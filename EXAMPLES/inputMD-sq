@@ -1,0 +1,34 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+backend_precision = double
+#debug = 1
+#seed = 4982
+
+####    SIM PARAMETERS    ####
+steps = 20000
+newtonian_steps = 103
+diff_coeff = 2.50
+#pt = 0.1
+thermostat = john
+
+T = 0.110
+dt = 0.005
+verlet_skin = 0.05
+
+#### SEQ. DEPENDENCE      ####
+use_average_seq = no
+seq_dep_file = seq_params.txt
+
+####    INPUT / OUTPUT    ####
+topology = prova.top
+conf_file = prova.conf
+trajectory_file = trajectory.dat
+refresh_vel = 1
+#log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 0
+energy_file = energy.dat
+print_conf_interval = 1000000
+print_energy_every = 1000
+time_scale = linear
+external_forces=0

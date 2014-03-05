@@ -1,0 +1,19 @@
+INFO: Backend precision: float
+INFO: Simulation type: VMMC
+DEBUG: Initializing
+INFO: seeding the RNG with -4624622356843724790
+INFO: pid: 22005
+DEBUG: N_cells: 64, N_cells_side: 4
+INFO: N: 18, max_neigh: 17
+WARNING: maxclust < 0, setting it to N = 18
+INFO: Not attempting to preserve topology; max_move_size = 23
+INFO: SVN CODE VERSION: 6086
+INFO: COMPILED ON: 11/10/13
+INFO: MODEL VERSION: JUNE-2011
+DEBUG: Running
+INFO: END OF THE SIMULATION, everything went OK!
+INFO: Timings informations:
+
+MC step: 0.529000 ms
+Lists update: 0.000000 ms
+

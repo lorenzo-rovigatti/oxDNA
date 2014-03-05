@@ -1,0 +1,35 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+backend_precision = double
+seed = 18112
+
+####    SIM PARAMETERS    ####
+sim_type = VMMC
+ensemble = NVT
+steps = 1e8
+
+delta_translation = 0.11
+delta_rotation = 0.22
+T = 72C  
+verlet_skin = 1.00 
+umbrella_sampling = 1
+op_file = op.txt
+weights_file = wfile.txt
+
+### Seq. Dependence ##########
+use_average_seq = 0
+seq_dep_file = seq.txt
+small_system = 1 
+
+####    INPUT / OUTPUT    ####
+topology = prova.top
+conf_file = initial.dat
+trajectory_file = trajectory.dat
+no_stdout_energy = 0 
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e6
+print_energy_every = 1e4 
+time_scale = linear
+external_forces = 0
+

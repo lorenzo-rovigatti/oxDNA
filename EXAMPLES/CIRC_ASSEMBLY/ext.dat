@@ -1,0 +1,35 @@
+{
+type=mutual_trap
+r0 = 1.2
+stiff = 0.5
+particle = 0
+ref_particle = 47
+PBC=0
+}
+
+{
+type=mutual_trap
+r0 = 1.2
+stiff = 0.5
+particle = 47
+ref_particle = 0 
+PBC=0
+}
+
+{
+type=mutual_trap
+r0 = 1.2
+stiff = 0.5
+particle = 39
+ref_particle = 48
+PBC=0
+}
+
+{
+type=mutual_trap
+r0 = 1.2
+stiff = 0.5
+particle = 48
+ref_particle = 39
+PBC=0
+}

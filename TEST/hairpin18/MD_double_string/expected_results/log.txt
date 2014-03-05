@@ -1,0 +1,36 @@
+INFO: Backend precision: double
+INFO: Simulation type: MD
+INFO: optional key 'print_reduced_conf_every' not found
+INFO: optional key 'log_file' not found
+INFO: optional key 'print_reduced_conf_every' not found
+INFO: optional key 'use_average_seq' not found
+INFO: optional key 'confs_to_skip' not found
+INFO: Converting temperature from Kelvin (320.000000 K) to simulation units (0.106667)
+INFO: optional key 'refresh_vel' not found
+INFO: optional key 'pt' not found
+DEBUG: Initializing
+INFO: Parsing Force file ../force.conf.string
+INFO:    Using temporary file
+INFO: --> adding constant rate force f = (0 + 1e-10 * t) [1,0,0] on part 0
+INFO:    Using temporary file
+INFO: --> adding constant rate force f = (0 + 1e-10 * t) [-1,0,0] on part 17
+INFO:    Force file parsed
+INFO: N_cells: 64, N_cells_side: 4
+INFO: N: 18, max_neigh: 17
+INFO: John's pt: 0.021735, pr: 0.007298
+INFO: SVN CODE VERSION: 5627:5649M
+INFO: COMPILED ON: 02/04/13 18:47
+INFO: MODEL VERSION: JUNE-2011
+DEBUG: Running
+DEBUG: Cleaning
+INFO: Lists updated 924 times (every ~10.822511 steps)
+INFO: Timings informations:
+
+MD step: 0.105000 ms
+First step: 0.008000 ms
+Hilbert sorting: 0.000000 ms
+Lists update: 0.004000 ms
+Forces + second step: 0.088000 ms
+Thermostat: 0.001000 ms
+
+INFO: END OF THE SIMULATION, everything went OK!

@@ -1,0 +1,40 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+sim_type = MD
+backend = CPU
+backend_precision = double
+#debug = 1
+seed = 42
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 100000000
+newtonian_steps = 103
+diff_coeff = 2.50
+thermostat = john
+
+use_average_seq = 0
+seq_dep_file = ../../sequence_dependent_parameters.txt
+
+T = 334 K
+dt = 0.005
+verlet_skin = 0.05
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = initial.top
+conf_file = initial.conf
+lastconf_file = last_conf_seq_dep.dat
+trajectory_file = trajectory_seq_dep.dat
+refresh_vel = 1
+log_file = log_seq_dep.dat
+no_stdout_energy = 1
+restart_step_counter = 1
+energy_file = energy_seq_dep.dat
+print_conf_interval = 100000000
+print_energy_every = 100000
+time_scale = linear
+external_forces = 0

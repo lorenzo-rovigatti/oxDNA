@@ -1,0 +1,35 @@
+STCK_FACT_EPS = 0.18f
+
+STCK_G_C =  1.684
+
+STCK_C_G =  1.737
+
+STCK_G_G =  1.604
+STCK_C_C =  1.604
+
+STCK_G_A =  1.590
+STCK_T_C =  1.590
+
+STCK_A_G =  1.610
+STCK_C_T =  1.610
+
+STCK_T_G =  1.654
+STCK_C_A =  1.654
+
+STCK_G_T =  1.671
+STCK_A_C =  1.671
+
+STCK_A_T =  1.553
+
+STCK_T_A =  1.634
+
+STCK_A_A =  1.709
+STCK_T_T =  1.709
+
+HYDR_A_T =  0.893
+HYDR_T_A =  0.893
+
+HYDR_C_G =  1.243
+HYDR_G_C =  1.243
+
+

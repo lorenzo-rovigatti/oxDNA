@@ -1,0 +1,242 @@
+.SUFFIXES: .cu
+
+# we need bash for colorful outputs
+SHELL=/bin/bash
+
+ifeq ($(cuda), 1)
+	nocuda=0
+else
+	nocuda=1
+endif
+
+# <no_deploy>
+# change these two lines to match your CUDA installation
+#CUDADIR = /usr/local/cuda
+CUDADIR = /opt/cuda/4.0/toolkit/
+#CUDADIR = /u/jpkd/rovigatti/cuda5.0
+# 64 or 32 bit?
+CPU_ARCH = 64
+NVCC = $(CUDADIR)/bin/nvcc
+CUFLAGS = 
+
+ifeq ($(arch), old)
+	CUFLAGS += -arch=sm_13
+	DEFINES += -DOLD_ARCH
+else
+	CUFLAGS += -arch=sm_20
+endif
+
+# verbose output from nvcc
+ifeq ($(v), 1)
+	CUFLAGS += --ptxas-options=-v
+endif
+
+CU_OBJS = $(DIR)/CUDAUtils.o \
+	$(DIR)/MD_CUDABackend.o \
+	$(DIR)/CUDANoList.o \
+	$(DIR)/CUDASimpleVerletList.o \
+	$(DIR)/CUDABackend.o \
+	$(DIR)/CUDA_sort.o \
+	$(DIR)/CUDA_rand.o
+# </no_deploy>
+
+ifeq ($(intel), 1)
+	EXEC = oxDNA_intel
+	CC = icc
+	CPP = icc
+	LINKER = icpc
+	OPT = -ipo -w -fast
+	nocuda=1
+else
+	EXEC = oxDNA
+	CC = gcc
+	CPP = g++
+	LINKER = $(NVCC)
+	OPT = -ffast-math
+endif
+
+ifeq ($(mpi), 1)
+	nocuda = 1
+	EXEC = MPIDNA
+	CC = mpicc
+	CPP = mpicc
+	LINKER = mpic++		
+endif
+
+CFLAGS += -Wall -Wshadow -Wno-deprecated-declarations -Wno-unused-function -Wno-switch
+LFLAGS = #-static
+LIBS = -lm
+INCLUDES += -I$(CUDADIR)/include
+DEFINES += -DBUILD_TIME="\"`date +'%D %R'`\"" -DSVN_VERSION="\"`svnversion`\""
+
+ifeq ($(dbg), 1)
+	DIR = ./Debug
+	CFLAGS += -O0 -g3 -pg
+	CUFLAGS += -O0 -G2 -pg
+else
+	DIR = ./Release
+	CFLAGS += -O3 $(OPT)
+	CUFLAGS += -O3 -use_fast_math --compiler-options "-ffast-math -O3"
+
+	ifeq ($(g), 1)
+		CFLAGS += -g3 -pg
+		CUFLAGS += -G2 -pg
+	else
+		DEFINES += -DNDEBUG
+	endif
+endif
+
+#C_OBJS = $(DIR)/oxDNA.o \
+#	 $(DIR)/VMMC_CPUBackend.o \
+#	 $(DIR)/MC_CPUBackend.o \
+#	 $(DIR)/MDBackend.o \
+#	 $(DIR)/MCBackend.o \
+#	 $(DIR)/IOManager.o \
+#	 $(DIR)/MD_CPUBackend.o \
+#	 $(DIR)/SimBackend.o \
+#	 $(DIR)/SimManager.o \
+#	 $(DIR)/Utils.o \
+#	 $(DIR)/Particle.o \
+#	 $(DIR)/Interaction.o \
+#	 $(DIR)/ExternalForce.o \
+#	 $(DIR)/OrderParameters.o \
+#	 $(DIR)/FFS_MD_CPUBackend.o \
+#	 $(DIR)/Weights.o \
+#	 $(DIR)/Histogram.o
+
+C_OBJS = $(DIR)/oxDNA.o \
+	 $(DIR)/MDBackend.o \
+	 $(DIR)/MCBackend.o \
+	 $(DIR)/IOManager.o \
+	 $(DIR)/MD_CPUBackend.o \
+	 $(DIR)/MC_CPUBackend.o \
+	 $(DIR)/FFS_MD_CPUBackend.o \
+	 $(DIR)/SimBackend.o \
+	 $(DIR)/SimManager.o \
+	 $(DIR)/Utils.o \
+	 $(DIR)/Particle.o \
+	 $(DIR)/Interaction.o \
+	 $(DIR)/ExternalForce.o \
+	 $(DIR)/OrderParameters.o \
+	 $(DIR)/Weights.o \
+	 $(DIR)/Histogram.o \
+	 $(DIR)/DNAInteraction.o \
+	 $(DIR)/LJInteraction.o
+
+EXT_OBJS = timing/timing.o \
+	 parse_input/parse_input.o \
+	 time_scales/time_scales.o \
+	 parse_input/getline.o
+
+ifeq ($(nocuda), 1)
+	CU_OBJS = 
+	INCLUDES = 
+	DEFINES += -DNOCUDA
+	ifeq ($(intel), 1)
+		LINKER = icpc
+	else
+		LINKER = g++
+	endif
+	LIBS = -lm
+	CUFLAGS = 
+	ifeq ($(g), 1)
+		LFLAGS += -g3 -pg
+	endif
+else
+	EXT_OBJS += CUDA/cuda_utils/cuda_device_utils.o
+endif
+
+ifeq ($(mpi), 1)
+	DEFINES += -DHAVE_MPI
+	C_OBJS +=  $(DIR)/MD_MPIBackend.o
+	C_OBJS +=  $(DIR)/PT_VMMC_CPUBackend.o
+	LINKER = mpic++
+endif
+
+# http://jamesdolan.blogspot.com/search/label/color
+GREEN=\x1b[32;01m
+RED=\x1b[31;01m
+YELLOW=\x1b[33;01m
+NOCOLOR=\x1b[0m
+ECHO_CC=$(RED)$(CC)$(NOCOLOR)
+ECHO_CPP=$(RED)$(CPP)$(NOCOLOR)
+ECHO_NVCC=$(GREEN)$(NVCC)$(NOCOLOR)
+ECHO_LINKER=$(YELLOW)$(LINKER)$(NOCOLOR)
+ECHO=echo -e
+
+all: makedir $(EXEC)
+
+$(EXEC): $(CU_OBJS) $(C_OBJS) $(EXT_OBJS)
+	@$(ECHO) "$(ECHO_LINKER) -o $(DIR)/$(EXEC) $(C_OBJS) $(CU_OBJS) $(EXT_OBJS)"
+	@$(LINKER) -o $(DIR)/$(EXEC) $(C_OBJS) $(CU_OBJS) $(EXT_OBJS) $(LFLAGS) $(CUFLAGS) $(LIBS) $(INCLUDES) $(DEFINES)
+
+$(DIR)/oxDNA.o: oxDNA.cpp
+	@$(ECHO) "$(ECHO_CPP) -c $< -o $@"
+	@$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
+
+# this line tells make that files in C_OBJS and CU_OBJC have model.h and defs.h as dependencies
+$(C_OBJS): model.h defs.h
+
+# <no_deploy>
+$(CU_OBJS): model.h defs.h
+
+$(DIR)/CUDASimpleVerletList.o: CUDA/CUDASimpleVerletList.cu CUDA/CUDASimpleVerletList.h CUDA/CUDA_verlet.cuh
+	@$(ECHO) "$(ECHO_NVCC) -c $< -o $@"
+	@$(NVCC) -c $< -o $@ $(CUFLAGS) $(INCLUDES) $(DEFINES)
+
+$(DIR)/MD_CUDABackend.o: CUDA/MD_CUDABackend.cu CUDA/MD_CUDABackend.h CUDA/CUDA_MD.cuh CUDA/CUDA_rand.cuh MDBackend.h CUDA/CUDABackend.h CUDA/CUDA_base_interactions.h
+	@$(ECHO) "$(ECHO_NVCC) -c $< -o $@"
+	@$(NVCC) -c $< -o $@ $(CUFLAGS) $(INCLUDES) $(DEFINES) -Xptxas -abi=no
+
+$(DIR)/CUDABackend.o: CUDA/CUDABackend.cu CUDA/CUDABackend.h CUDA/CUDA_sort.cu
+	@$(ECHO) "$(ECHO_NVCC) -c $< -o $@"
+	@$(NVCC) -c $< -o $@ $(CUFLAGS) $(INCLUDES) $(DEFINES)
+
+%.o: %.cu %.h
+	@$(ECHO) "$(ECHO_NVCC) -c $< -o $@"
+	@$(NVCC) -c $< -o $@ $(CUFLAGS) $(INCLUDES) $(DEFINES)
+
+%.o: ../CUDA/%.cu ../CUDA/%.cuh
+	@$(ECHO) "$(ECHO_NVCC) -c $< -o $@"
+	@$(NVCC) -c $< -o $@ $(CUFLAGS) $(INCLUDES) $(DEFINES)
+
+%.o: ../CUDA/%.cu ../CUDA/%.h
+	@$(ECHO) "$(ECHO_NVCC) -c $< -o $@"
+	@$(NVCC) -c $< -o $@ $(CUFLAGS) $(INCLUDES) $(DEFINES)
+# </no_deploy>
+
+# generic rules
+%.o: %.c %.h
+	@$(ECHO) "$(ECHO_CC) -c $< -o $@"
+	@$(CC) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
+
+%.o: ../%.cpp ../%.h
+	@$(ECHO) "$(ECHO_CPP) -c $< -o $@"
+	@$(CPP) -c $< -o $@ $(CFLAGS) $(INCLUDES) $(DEFINES)
+
+makedir:
+	mkdir -p $(DIR)
+
+clean:
+	$(MAKE) cleandir
+	$(MAKE) cleandir dbg=1
+	rm -fv */*.o
+	rm -rf DOCS/html_oxDNA
+	rm -rf docs.html
+	rm -rf TEST/logs
+	rm -rf TEST/oxDNA
+
+cleandir:
+	rm -rf $(DIR)/*.o
+	rm -rf $(DIR)/$(EXEC)
+
+docs:
+	doxygen DOCS/Doxyfile_oxDNA
+	ln -s DOCS/html_oxDNA/index.html docs.html
+
+test:
+	cd TEST/; ln -sf ../Release/oxDNA; ./sicomtest_runner; cd ..
+
+test_utils:
+	python UTILS/test.py
+

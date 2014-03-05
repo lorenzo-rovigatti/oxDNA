@@ -1,0 +1,33 @@
+backend = CUDA
+backend_precision = mixed
+# if no CUDA_device is specified, then oxDNA will try to 
+# find a suitable device to run on.
+#CUDA_device = 3
+CUDA_list = verlet
+CUDA_sort_every = 0
+use_edge = 1
+edge_n_forces = 1
+seed = 19382
+debug = 1
+
+verlet_skin = 0.05
+
+T = 300K
+dt = 0.001
+thermostat = john
+diff_coeff = 0.5
+newtonian_steps = 53
+
+steps = 200000
+
+refresh_vel = 1
+print_conf_interval = 1000000
+conf_file = init.conf
+topology = init.top
+trajectory_file = trajectory.dat
+energy_file = energy.dat
+restart_step_counter = 1
+print_energy_every = 50000
+time_scale = linear
+timings_filename = timings_1_0.001
+print_timings = yes

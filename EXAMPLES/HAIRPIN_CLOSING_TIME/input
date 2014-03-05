@@ -1,0 +1,46 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+debug =1
+sim_type = FFS_MD
+#seed = 1
+#CUDA_list = verlet
+#CUDA_device = 0
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 300000000000000
+newtonian_steps = 103
+diff_coeff = 2.50
+thermostat = john
+
+T = 0C
+dt = 0.005
+verlet_skin = 0.1
+use_average_seq = 1
+
+#seq_dep_file = lorenzo_average.txt 
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = hairpin.top
+conf_file = start.dat
+trajectory_file = /dev/null
+lastconf_file = lastconf_hairpin.dat
+order_parameters_file = op.txt
+ffs_file = ffs.txt
+refresh_vel = 1
+
+external_forces = 0
+#external_forces_file = external.conf
+#log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 0
+energy_file = energy.dat 
+print_conf_interval = 100000
+print_conf_ppc = 51
+print_energy_every = 100000
+time_scale = linear

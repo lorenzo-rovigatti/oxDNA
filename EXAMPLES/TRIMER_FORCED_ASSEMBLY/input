@@ -1,0 +1,41 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+sim_type = VMMC
+backend = CPU
+backend_precision = double
+#debug = 1
+#seed = 42
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 5e5
+
+ensemble = nvt
+delta_translation = 0.02
+delta_rotation = 0.04
+
+T = 42C
+dt = 0.05
+verlet_skin = 1.1
+maxclust = 63
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = unique_topology.top
+conf_file = last_conf_trap.dat
+lastconf_file = last_conf_trap.dat
+trajectory_file = trajectory_trap.dat
+refresh_vel = 1
+#log_file = log_trap.dat
+no_stdout_energy = 0
+restart_step_counter = 0
+energy_file = energy_trap.dat
+print_conf_interval = 500000
+print_energy_every = 10000
+time_scale = linear
+external_forces = 1
+external_forces_file = partial_forces.txt
+

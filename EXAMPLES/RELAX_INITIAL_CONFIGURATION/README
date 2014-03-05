@@ -1,0 +1,44 @@
+## Overview ##
+This example uses a modification to the coarse grained DNA model
+to allow an initial configuration, which would usually have an 
+infinite/undefined potential energy, to relax into a structure with
+finite energy in the coarse grained model. In this case the
+structure is a tile-L.
+
+## Running ##
+Use ./run.sh to run the simulations. 
+
+
+## Explanation ##
+In both simulations, the bonded backbone-backbone FENE potential 
+is replaced with a constant force (linear potential). First a 
+simulation with a weak force constant is run. This gently brings
+the structure into a roughly relaxed configuration, which is saved 
+as relaxed_weak.conf. Then a second simulation is run with a 
+stronger force constant and a very strong thermostat. This forces 
+the bonded backbone-backbone distances to be very close to the 
+FENE minimum distance, and the strong thermostat refreshes the 
+velocities every step to stop the system falling apart. If this 
+second simulation was not run, some of the bonded backbone sites 
+would probably be too far apart. The final output is saved as 
+relaxed.conf. At this point it is advised that you check that the 
+system looks reasonable. The system can then be simulated as normal 
+from this starting configuration with the normal DNA model, using 
+input_go.
+
+Note that this exact procedure may not work for every stressed
+configuration!
+
+## Input Options ##
+In the input file, set
+
+interaction_type = DNA_relax
+
+to use the alternative interaction. The type and force constant
+must also be set with
+
+relax_type = <constant_force || harmonic>
+relax_strength = <float>
+
+## Implementation ##
+The interaction is implemented in src/Interactions/DNAInteraction_relax.cpp

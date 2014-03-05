@@ -1,0 +1,94 @@
+This example will show how to use the Parallel Tempering backend.
+
+The underlying MC algorithm is VMMC, and the backend is aware of order
+parameters (i.e., you can do umbrella sampling if you want) and external forces.
+So all the configuration parameters used for VMMC are the same here. This
+backend builds on the VMMC one implementing Parallel Tempering (PT) on top of
+it. The PT is "truly" parallel, in that the code uses MPI to run the replica in
+parallel, sinchronize them, attempt exchanges, etc.
+
+
+COMPILING
+this backend requires MPI, so it only gets compiled when using "make mpi=1". In
+beetween compilations with and without MPI, a "make clean" is required.
+
+USAGE:
+To use the backend, the key "sim_type" in the input file should be set to
+PT_VMMC.
+
+The new parameters introduced in the input file are the following:
+
+pt_temp_list = [list of temperatures with the usual syntax]
+pt_attempt_every = 1000
+
+the first is the list of the temperatures to be used in the replica and the
+second is how many VMMC cycles (1 cycle = N cluster move attempts) to wait in
+between replica exchange attempts.
+
+The lenght of the list of temperatures specifies the number of replica. If the
+number of MPI processes does not match the length of the temperature list, the
+program will complain about it and abort.
+
+The temperature list needs not to be sorted: but remember that configuration
+exchange attempts are only performed on neighbouring replicas (neighbours in the
+temperature list) at alternating times. This means that if the temperatures are
+not sorted, temperatures that are close might not try to exchage configurations.
+I cannot see why you might want this, but nevertheless it is allowed. The
+program will spit out a warning if the temperature list is not sorted.
+
+
+INPUT/OUTPUT: 
+Each replica has its own configuration, trajectory and energy file. The program
+assumes that if the input file contains
+
+conf_file = pino.dat
+trajcetory = traj.dat
+last_conf = last.dat
+energy_file = energy.dat
+
+it will find N files (N being the number of MPI processes that it got started
+with) called pino.dat0, pino.dat1, ..., pino.dat(N-1). It will then create
+traj.dat0, traj.dat1, ..., traj.dat(N-1) as trajectories, and behave the same
+way for the energy and last_conf file.
+
+The program keeps track of the configuration id it has in the last column of the
+energy file (and standard output if enabled). This allows to monitor if the
+configurations do move in "temperature space".
+
+One final remark about umbrella sampling. The order parameter does need to be
+the same for all replica, so only one op_file is required. On the other hand,
+the weights do not need to be the same: thus, if the keyword pt_common_weights
+is set to 1, the program will read a single file for the weights, specified by
+the weights_file keyword. If pt_common_weights is set to 0 (the default, if not
+specified), the program will look for N files in the same way as it does for the
+initial configuration.
+
+
+RUNNING:
+The code requires to be executed with "mpirun" or something similar.
+ 
+EXAMPLE:
+the example in this directory is a "bruteforce" calculation of the melting
+temperature of a hairpin with a stem of length 8 and a loop of length 6.
+Assuming the average-base representation, SantaLucia's model predicts melting
+around 340K. We can thus set up a system with a suitable sequence (see
+generated.top) and set up a PT_VMMC run with 4 replica at T = 325K, 335K, 345K
+and 350K. By waiting long enough, we should be able to sample enough transitions
+at all the temperatures to compute a yield of bound and unbound stated as a
+function of temperature and thus estimate the melting temperature. A publishable
+result this way might take quite a long time (at least a few days), but it
+should be obvious before the end of the example (about an hour) that the
+configurations do exchange in between temperatures (plot the last column in the
+energy files) and that higher temperatures like more to be in an unbound state.
+Of course this is not the optimal way to compute hairpin melting: an order
+parameter and weights should be introduced to "flatten" the free energy profile
+and increase the number of transitions. But this is just an example of how to
+set up parallel tempering.
+
+Flavio Romano
+
+
+
+
+
+

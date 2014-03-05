@@ -1,0 +1,50 @@
+/*
+ * MD_CUDAMixedBackend.h
+ *
+ *  Created on: 22/feb/2013
+ *      Author: lorenzo
+ */
+
+#ifndef MD_CUDAMIXEDBACKEND_H_
+#define MD_CUDAMIXEDBACKEND_H_
+
+#include "MD_CUDABackend.h"
+
+/**
+ * @brief CUDA backend with mixed precision for MD simulations.
+ *
+ * This class is a regular MD backend written to be almost as fast as a MD_CUDABackend<float, float4>
+ * and, at the sime time, almost as reliable as MD_CUDABackend<double, LR_double4> when it comes
+ * to numerical precision. This is probably the best class for production simulations.
+ */
+class CUDAMixedBackend: public MD_CUDABackend<float, float4> {
+protected:
+	LR_double4 *_d_possd;
+	LR_double4 *_d_velsd, *_d_Lsd;
+	LR_GPU_matrix<double> *_d_orientationsd;
+	size_t _vec_sized, _orient_sized;
+
+	void _float4_to_LR_double4(float4 *src, LR_double4 *dest);
+	void _LR_double4_to_float4(LR_double4 *src, float4 *dest);
+	void _LR_matrix_double_to_matrix_float(LR_GPU_matrix<double> *src, LR_GPU_matrix<float> *dest);
+	void _LR_matrix_float_to_matrix_double(LR_GPU_matrix<float> *src, LR_GPU_matrix<double> *dest);
+
+	void _init_CUDA_MD_symbols();
+
+	virtual void _sort_particles();
+
+	virtual void _first_step();
+	virtual void _forces_second_step();
+
+	virtual void _thermalize(llint curr_step);
+	virtual void _gpu_to_host_particles();
+	virtual void _host_particles_to_gpu();
+
+public:
+	CUDAMixedBackend();
+	virtual ~CUDAMixedBackend();
+
+	void init(char conf_filename[256]);
+};
+
+#endif /* MD_CUDAMIXEDBACKEND_H_ */

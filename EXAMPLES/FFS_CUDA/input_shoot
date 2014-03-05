@@ -1,0 +1,50 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CUDA
+backend_precision = mixed
+debug = 1
+#seed = 1
+sim_type = FFS_MD
+CUDA_list = verlet
+#CUDA_device = 4
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 1e10
+newtonian_steps = 103
+diff_coeff = 2.5
+#pt = 0.99999
+thermostat = john
+
+T = 60C
+dt = 0.005
+verlet_skin = 0.05
+
+order_parameters_file = op.txt
+ffs_file = conditions.txt
+
+##############################
+####     INTERACTIONS     ####
+##############################
+rcut = 2.0
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = prova.top
+conf_file = initial.dat
+trajectory_file = /dev/null
+refresh_vel = 0
+#log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e12
+print_conf_ppc = 51
+print_energy_every = 1e5
+time_scale = linear
+external_forces=0
+use_edge = 1
+back_in_box = 1
