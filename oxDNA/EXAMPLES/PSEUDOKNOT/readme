@@ -1,0 +1,161 @@
+One of the features of the model implemented in oxDNA is that it has a
+three-dimensional structure, so that it automatically incorporates
+topological effects (see Flavio's paper). In this example we will see how
+to initialise a single strand in with a sequence designed to form a
+pseudoknot in its final configuration.
+
+The simplest option is to just generate a single strand with the right
+sequence, let it run at low temperature and wait for it to form the
+pseudoknot.  Unfortunately, this can be very slow, as the formation of the
+pseudoknot requires two rare events (the closure of two hairpins). One
+should keep in mind that lowering the temperature to drive the formation of
+the pseuoknot can backfire, since the life of metastable states becomes
+longer and longer.  Nevertheless, this is a perfectly acceptable solution.
+
+A second option is to design a specific sequence, where we use "arbitrary"
+bases that only bind to one specific other base. This allows to eliminate
+metastable states in the pseudoknot formation, so that one can safely lower
+the temperature at will (keeping in mind that the model is physically
+meaningful only at temperatures where water is liquid).
+
+A third option is to drive the formation of the pseudoknot with artificial
+forces, as one in the [hairpin formation] example. This is probably the
+most time-effective solution but requires a bit more work.
+
+We study the following sequence that forms, at low enough temperature,
+drives the formation of a pesudoknot with two 6-base pair stems and two
+8-base loops:
+
+<tt>GTGCCGAAAAAAAACGCGAGACGGCACAAAAAAAACTCGCG</tt>
+
+All the files needed to run this example are in the
+<tt>${oxDNA}/EXAMPLES/PSEUDOKNOT</tt> directory. The following assumes you
+work in that directory.
+
+== Option 1==
+You can run this example directly in the <tt>OPT1/</tt> directory.
+
+First, we use the configuration generator to generate an input
+configuration for a single strand. The box size does not matter as long as
+it is big enough to contain the structure, so 30 s.u. will do. The file
+<tt>pkseq.txt</tt> contains the above sequence. So, run
+
+<code>../../UTILS/generate-sa.py 30. pkseq.txt</code>
+
+which generates <tt>generated.dat</tt> and <tt>generated.top</tt>.
+
+Now, we choose to run a Brownian dynamics simulation since it is much more
+efficient than Monte Carlo (in our implementation) in exploring phase
+space. We use the standard "aggressive" values for the thermostat (see
+[Thermostat]). We use the average model in this example.  We set a fairly
+low temperature, let's say 20 Celsius, significantly below the melting
+temperature of the two hairpins in the average-base representation.  A long
+simulation might be needed, so we start with 10^9 total steps.
+
+We can thus run
+
+<code>../../Release/oxDNA inputMD1</code>
+
+and wait (possibly a long time) until the pseudoknot forms. It is not
+guaranteed that the structure will for within the quite long simulation. To
+detect its formation, we can run the <tt>structure analyser</tt> to detect
+the formation of the correct bonds. Also, in the 5th column in the energy
+file (extensive base-pairing contribution to the total energy) you expect a
+number close to -8 for the formed structure (-0.7 times 12 base pairs). A
+single hairpin will have around half of that.
+
+
+== Option 2 ==
+You can run this example directly in the <tt>OPT2/</tt> directory.
+
+In this case, we have to repeat the all the steps above except that we need
+to manually tweak the topology file to have specific binding of the bases.
+
+So, again generate the initial configuration with <tt>generate-sa.py</tt>
+and copy the topology file to a new one. The example directory already
+contains a working specific topology file for the impatient.
+
+<code>cp generated.dat specific.dat</code>.
+
+As discussed in the [Topology file] page, specific bases can be set up with
+two-digit numbers in the second column of the topology file, and
+complementarity is implemented if the sum is equal to 3 (negative numbers
+can be used). So if we want
+base number 0 and 26 to be bound, we can set their "type" (second column)
+to be 100 and -97, respectively. Pay close attention when modifying by hand
+the topology file, since it is very easy to make mistakes (base types don't add
+up to 3, using the wrong number, etc.). It makes sense to automatise this
+task.
+
+In this case, we want bases 0-5 to be bound to bases 26-21 and bases 14-19
+to be bound to bases 41-36. Modify the topology file so that complementary
+pairs have types corresponding to numbers with magnitude grater than 10 and
+that add up to 3. The poly-A sections in the loop can be left as
+<tt>A</tt>'s in the topology file.
+
+If you look into the file <tt>inputMD2</tt>, you will see that it is the
+same as <tt>inputMD1</tt> except that it uses <tt>specific.top</tt> as the
+topology file. If you decide to use the ready specific topology file, just
+copy it to <tt>specific.top</tt>. The temperature has also been lowered to
+0C, since we expect no unwanted metastable states.
+
+You can now run the code and see what happens. It should make base-pairs
+more rarely, but it should make only correct ones.
+
+<code>../../Release/oxDNA inputMD2</code>
+
+
+==Option 3==
+Why wait if we just want to form a structure and are not interested in how
+it forms? The mutual_trap force is implemented exactly to form initial
+configurations, having no physical meaning. But getting an initial
+configuration is sometimes half of the job.
+
+In this case we can use either of the topology file described above. We
+choose to use Monte Carlo, though, so that we don't have to worry about
+tweaking the magnitude of the traps and the thermostat parameters not to
+make the system explode.
+
+First of all, we have to generate a file where we specify the external
+forces. We set up 4 traps, a mutual trap between particles 0 and 26 and a
+mutual trap between particles 14 and 39. These should be enough to drive
+the formation of the two stems in a relatively short time.
+
+So, for each of the pairs, we set up a trap like this in
+<tt>external.conf</tt>:
+
+<code>
+{
+type = mutual_trap
+particle = 0
+ref_particle = 26
+stiff = 1.
+r0 = 1.5
+}
+
+{
+type = mutual_trap
+particle = 0
+ref_particle = 26
+stiff = 1.
+r0 = 1.5
+}
+</code>
+
+Repeat the same block with the indexes 0 and 26 changed to 14 and 39. 
+
+The file <tt>inputMC</tt> is a Monte Carlo input file with everything set
+up to use the <tt>external.conf</tt> file you just created.
+
+Running the program
+
+<code>../../Release/oxDNA inputMC</code>
+
+should produce a pseudoknot within half an hour, maybe faster. In this case
+we don't need the temperature to drive the formation of the motif, so we
+can use room temperature.
+
+Here is a picture of the formed pseudoknot: [XXX link]
+
+If you have any questions about this example, you can e-mail Flavio Romano.
+

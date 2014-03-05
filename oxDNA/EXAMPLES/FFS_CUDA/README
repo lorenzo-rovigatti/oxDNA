@@ -1,0 +1,143 @@
+|==========================|
+|CUDA Forward Flux Sampling|
+|==========================|
+Input file options
+------------------
+# these must be set to use the CUDA FFS backend
+backend = CUDA
+backend_precision = mixed
+sim_type = FFS_MD
+
+There are two modes for the CUDA FFS simulation:
+
+1) Single shooting run
+======================
+The default behaviour; the code stops when any condition (from conditions.txt) is satisfied, and prints the name of the condition that was satisfied.
+
+Input file options
+------------------
+order_parameters_file: path to the order parameter file
+ffs_file: path to the file with the stopping conditions
+ffs_generate_flux: must not be set to 1 (either set it to 0 or do not set it)
+
+(these are the same as the CPU ffs options)
+NB UNLIKE THE CPU CODE, the GPU implementation does not add columns with the order parameter values to the step-by-step stdout
+
+2) Flux generation
+==================
+The code runs a flux generation simulation until the desired number of crossings have been reached. Configurations will only be saved, and crossings recorded, when the system satisfies the forward condition for the first time after having last satisfied the backward condition. To get standard flux generation, set the forward and backward conditions to correspond to crossing the same interface (and use conditions corresponding to different interfaces for Tom's flux generation). In the stopping condition file, the conditions must be labelled forward1, forward2, ... (for the forward conditions); and backward1, backward2, ... (for the backward conditions), ... instead of condition1, condition2, ... As with the single shooting run mode, the name of the condition crossed will be printed to stderr each time.
+
+Input file options
+------------------
+# Mandatory
+ffs_generate_flux = 1: turn on flux generation
+gen_flux_save_every = N: save every 1 in N forward crossings
+gen_flux_total_crossings = N: stop the simulation after N crossings (using the definition of a crossing from above) attained
+gen_flux_conf_prefix = XXX: the prefix to be used for the saved forward crossings. For example, the 6th crossing configuration will be saved as XXX_N5.dat (counting starts at zero)
+order_parameters_file: path to the order parameter file
+ffs_file: path to the file with the stopping conditions
+# Optional
+gen_flux_debug = 0|1: set to 1 to turn on debugging; in this mode the backward-crossing configurations will also be saved.
+check_initial_state = 0|1: set to 1 to turn on initial state checking; in this mode an initial configuration that crosses the forward conditions after only 1 step will cause the code to complain and exit
+
+Nearly-Bonded Order Parameter
+=============================
+Unlike the CPU FFS backend, the CUDA FFS backend supports the nearly-bonded order parameter as well as the hydrogen bonded and minimum distance order parameters. The nearly-bonded order parameter counts the number of specified nucleotide pairs for which the following is true: At least 6 of the 7 factors that enter into the hydrogen bonding energy term are non-zero. This means that a pair may be counted as nearly bonded only if all but one of the factors is non-zero or if none are zero, in which case there is a finite hydrogen bonding energy. Note that by this definition of being nearly-bonded, every pair that would normally be considered hydrogen bonded is also nearly-bonded. To use the nearly-bonded order parameter, an entry for a hydrogen bond order parameter should be made in the order parameter file, with the energy cutoff set to 64. e.g.
+
+{
+order_parameter = bond
+cutoff = 64
+name = NAME
+pair1 = I1, I2
+pair2 = I3, I4
+...
+}
+
+
+
+Master Conditions
+=================
+Either shooting or flux generation sims may use master conditions. These conditions allow one to more easily handle very high dimensional order parameters. For example instead of having this conditions file:
+
+condition1 = {
+hb1 > 14
+hb2 > 14
+}
+condition2 = {
+hb2 > 14
+hb3 > 14
+}
+condition3 = {
+hb3 > 14
+hb1 > 14
+}
+
+One could instead use
+
+bound1 = {
+hb1 > 14
+}
+bound2 = {
+hb2 > 14
+}
+bound3 = {
+hb3 > 14
+}
+master1 = {
+bound == 2
+}
+
+Both sets of conditions make the simulation stop whenever two of the order parameters hb1,hb2,hb3 each have more than 14 bonds. In the second case, the simulation will stop whenever "master1" is satisfied, which will be whenever exactly 2 conditions called "boundXX" are satisfied. For shooting simulations, the master conditions must be called master1, master2, .. . For flux simulations, the master conditions must be called master_forward1, master_forward2, .. , and master_backward1, master_backward2, .. , and there must be at least a master_forward1 and master_backward1. The 'order parameters' for each master conditions, called master condition elements, are named by the prefix of the conditions they refer to. For example "bound == 2" means that exactly 2 conditions named boundXX must be satisfied. Like normal conditions, master conditions must have all of their condition elements satisfied to be satisfied. The code will automatically use master conditions if any (correctly named ones) are present in the conditions file; there is no setting in the input file to activate master conditions.
+
+Caveats
+=======
+-The code only checks the first condition that is satisfied and counts this is a crossing; no attempt is made to check for multiple conditions being reached at the same step.
+
+|===========================|
+|Forward Flux Sampling Files|
+|===========================|
+Order Parameter File
+====================
+the format is
+
+{
+order_parameter = TYPE
+name = NAME
+pair1 = I1, I2
+pair2 = I3, I4
+...
+}
+
+where TYPE is either `bond` or `mindistance` for hydrogen bonding or minimum distance type respectively, and NAME is the name of the order parameter. I1, I2, etc are the indices of the appropriate nucleotides. Each {...} defines an order parameter with a certain type of interaction.
+NB pairs must be labelled pair1,pair2,...,pairx with consecutive increasing integers, or the code will ignore some pairs with no warning!!
+
+As with the CPU FFS backend, the bond-type order parameters can have an optional cutoff setting that sets the energy cutoff for a hydrogen bond.
+
+Stopping Conditions File
+========================
+the format is
+
+condition1 = {
+OP TYPE MAG
+OP TYPE MAG
+}
+condition2 = {
+OP TYPE MAG
+}
+...
+
+where OP is the name of the order_parameter (corresponding to NAME in op.txt); TYPE is the type of condition, i.e. >=, =<, ==, > or <; and MAG is the magnitude of the condition.
+For example:
+
+condition1 = {
+dist1 < 6
+}
+condition2 = {
+dist1 > 16
+dist2 > 16
+}
+
+The code will stop when all conditions within condition1's {} are satisfied, OR when all conditions within condition2's {} are satisfied, etc.
+
+NB replace condtionxx with forwardxx and backwardxx for flux generation, as explained above.
+also NB conditions must be labelled condition1,condition2,...,conditionxx with consecutive increasing integers, or the code will ignore some conditions

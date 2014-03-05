@@ -1,0 +1,38 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+#debug = 1
+#seed = 10
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+sim_type = PT_VMMC
+ensemble = NVT
+steps = 2e6
+
+pt_temp_list = 325K, 335K, 345K, 355K
+pt_every = 5000
+
+delta_translation = 0.10
+delta_rotation = 0.25
+T = 315K
+ 
+verlet_skin = 0.20
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = generated.top
+conf_file = formed.dat
+trajectory_file = trajectory.dat
+# log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e5
+print_energy_every = 1e3
+time_scale = linear
+external_forces = 0

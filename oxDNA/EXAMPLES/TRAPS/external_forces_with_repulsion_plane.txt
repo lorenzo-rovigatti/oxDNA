@@ -1,0 +1,16 @@
+
+{
+type = repulsion_plane
+particle = -1
+position = 0.0
+dir = 0.0,0.0,1.0,
+stiff = 2.0
+}
+
+{
+type = repulsion_plane_moving
+ref_particle = 0
+particle = -1
+dir = 0.0,0.0,1.0,
+stiff = 2.0
+}

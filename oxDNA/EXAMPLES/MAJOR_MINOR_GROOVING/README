@@ -1,0 +1,27 @@
+|====================|
+|Major Minor Grooving|
+|====================|
+
+This version of the model changes the model DNA duplex so that the major and minor grooves no longer have equal widths, by changing the position of the backbone site for the rigid model nucleotide. 
+
+The change has a few small knock-on effects for the model: the pitch is changed from 10.34 to 10.59; the melting temperatures for short duplexes are increased by a couple of degrees, with the effect becoming smaller with increasing duplex length; there is probably a small effect on hairpin melting. At the time of writing the major minor groove model on svn has not been corrected for any of these changes, so that the only difference with the equal groove width model is the position of the backbones. Ben 26/8/13
+
+Note that configurations more complicated than a duplex will probably die if major minor grooving is switched on after they have been equilibrated with the equal groove model. The base.py-based utilities should all work with major minor grooving so that you can regenerate your configuration with major minor grooving (see base.py compatibility below).
+
+oxDNA Input File Option
+=======================
+To enable major minor grooving set
+
+major_minor_grooving = 1
+
+in the input file. It will be off by default. When grooving is switched on, oxDNA should print a notification that major minor grooving will be used to stderr before the simulation starts running.
+
+base.py Compatibility
+=====================
+Since there is nothing in the configuration or topology files that tells base.py whether or not major minor grooving is switched on, you have to tell base.py yourself whenever you want to make pictures or do analysis that relies on the backbone positions. This is done by setting an environment variable in the shell:
+
+export OXDNA_GROOVE=1
+
+Output Bonds
+============
+It seems that output bonds no longer compiles in the FEB2013_CMAKE branch; in any case it may not be major minor grooving aware. In case you want to use it with major minor grooving switched on, let me (Ben) know and I can give you the code for a major minor grooving aware output bonds.

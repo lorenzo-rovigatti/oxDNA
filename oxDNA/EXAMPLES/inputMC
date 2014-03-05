@@ -1,0 +1,36 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+#debug = 1
+#seed = 10
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+sim_type = MC
+ensemble = NVT
+steps = 20000
+check_energy_every = 10000
+check_energy_threshold = 1.e-4
+
+delta_translation = 0.10
+delta_rotation = 0.25
+T = 0.110
+verlet_skin = 0.20
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = prova.top
+conf_file = prova.conf
+trajectory_file = trajectory.dat
+# log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 100000
+print_energy_every = 10000
+time_scale = linear
+external_forces = 0

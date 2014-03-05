@@ -1,0 +1,94 @@
+This example describes how to generate an initial configuration with two
+strands that with sequences such that a short one (15 bases) will bind to both
+ends of a longer one (40 bases) forming a seemingly circular structure.
+
+First of all, let's generate an initial configuration:
+
+../../UTILS/generate-sa.py 40. sequences
+
+A good guess for a viable box size is the size of the longest strand, and thus
+we use 40. The file `sequences' is present in this directory. The previous
+command generates an initial configuration and topology, `generated.dat' and
+`generated.top' respectively.
+
+We could in principle at this stage just set up a simulation at a temperature
+where we expect the bound complex to be stable, but as high as possible to
+minimize unwanted secondary structure. The melting temperature of an average
+15-mer at this concentration is 65C, and the yield is ~1 below 50 C. Since this
+is not exactly a duplex system, we expect the melting temperature to be a
+little lower because it involves bringing together two far ends of a longish
+strand which is entropically costly. My pick would thus be 45C.
+
+But we are impatient, and eaget to study the formed structure without waiting
+hours to days until the assembly happens spontaneously. We give the system a
+hand by putting two traps that bring together one base pair per each section.
+Taking a look at the sequences
+
+TCCCAGACATCCTCTTCGGAGCACTGTAAAATCATAGAAC
+GTCTGGGAGTTCTAT
+
+if we invert the direction of the second sequence we have
+3'-TCCCAGACATCCTCTTCGGAGCACTGTAAAATCATAGAAC-5'
+5'-TATCTTGAGGGTCTG-3'
+
+and aligning them we obtain
+       3'-TCCCAGACATCCTCTTCGGAGCACTGTAAAATCATAGAAC-5'
+5'-TATCTTGAGGGTCTG-3'
+
+we want to push nucleotide 47 (8th of second strand) on strand 1 and nucleotide
+0 (first of first strand) together, as well as nucleotides 49 (last of first
+strand) ad 48 (9th of second strand). In principle, any base pair will help,
+but we picked these two because they are the ones that are less likely to
+create topological/geometric traps.
+
+So we create an external forces file with mutual traps file as follows and call
+it ext.dat (there is already one in the directory):
+
+####################
+
+{
+type=mutual_trap
+r0 = 1.2
+stiff = 0.5
+particle = 0
+ref_particle = 47
+PBC=0
+}
+
+{
+type=mutual_trap
+r0 = 1.2
+stiff = 0.5
+particle = 47
+ref_particle = 0 
+PBC=0
+}
+
+{
+type=mutual_trap
+r0 = 1.2
+stiff = 0.5
+particle = 39
+ref_particle = 48
+PBC=0
+}
+
+{
+type=mutual_trap
+r0 = 1.2
+stiff = 0.5
+particle = 48
+ref_particle = 39
+PBC=0
+}
+######################
+
+Than we start a VMMC simulation and wait for the assembly. An input file is
+ready in the directory
+
+../../bin/oxDNA input 
+
+should be done in a few minutes! The 1e6 steps in the input file should be
+enough to fully form the needed base pairs.
+
+

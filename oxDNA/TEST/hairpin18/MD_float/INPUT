@@ -1,0 +1,37 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+sim_type = MD
+backend = CPU
+backend_precision = float
+debug = 1
+seed = 10
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 5E4
+newtonian_steps = 103
+diff_coeff = 2.50
+thermostat = john
+
+T = 320K
+dt = 0.005
+verlet_skin = 0.05
+
+####    INPUT / OUTPUT    ####
+topology = ../hairpin.top
+conf_file = ../hairpin.conf
+lastconf_file = output_files/last_conf.dat
+trajectory_file = output_files/trajectory.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = output_files/energy.dat
+print_conf_interval = 1e3
+print_energy_every = 1e3
+print_timings = no
+time_scale = linear
+
+## External forces
+external_forces = 0
+

@@ -1,0 +1,44 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+debug = 1
+seed = 10
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+sim_type = MD
+ensemble = NVT
+thermostat = john
+newtonian_steps = 103
+diff_coeff = 2.5
+steps =  2e5    
+check_energy_every = 10000
+check_energy_threshold = 1.e-4
+seed = 1293823
+
+delta_translation = 0.10
+delta_rotation = 0.25
+T = 0.1
+dt = 0.005
+verlet_skin = 0.20
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = ssdna100.top
+conf_file = ssdna100.dat 
+trajectory_file = trajectory.dat
+refresh_vel = 1
+# log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 10000
+#print_conf_ppc = 51
+print_energy_every = 20000
+time_scale = linear
+external_forces = 1
+external_forces_file = external.conf

@@ -1,0 +1,47 @@
+VMMC simulation of melting of an RNA 8-mer 
+-------------------------------------------
+
+The example provides a melting of an RNA 8-mer as an example system to study
+The input file provided uses the average-base parametrization of the RNA model, note the setting of 
+
+interaction_type = RNA
+
+in the input file. If one wants to use the sequence dependent version of the model, the following lines also need to be included:
+
+use_average_seq = 0
+seq_dep_file = ../../rna_sequence_dependent_parameters.txt
+
+
+Make sure that the location of the parameters file is specified correctly for your directory.
+To evaluate the results of the simulations, you can run 
+./estimate_Tm.py  last_hist.dat
+
+which calculates melting temperature based on the extrapolations to a series of temperatures, as specified in the input file.
+Note that the ratio of single to double stranded states is 1 to 2 at melting temperature because of finite size effects (see e.g. Ouldridge, Doye, Louis: J. Phys.: Condens. Matter, 2010)
+The scripts includes this correction when calculating the yields at different temperatures.
+
+
+Finally, the generated strands are provided for the example in the sim.top and init.conf files. 
+Note that in the current setup, the hydrogen bonds are only allowed between the native base pairs (The base identity in the sim.top is provided by a number rather than by a letter A,C,G, U for this 
+particular example. Only bases whose identities numbers add to +3 can for a base pair).
+ 
+It is also possible to generate duplexes and single strands for RNA model using genRNA.py script in UTILS. 
+For example, if one uses it on file seq_example1.txt:
+
+ ../../UTILS/generate-RNA.py seq_example1.txt GEN 20.0
+
+which creates GEN.top and GEN.conf, where the strands with desired complementary sequences (specified in seq_example1.txt) are already created in A-helical duplex form. 
+The box size for the system is 20.
+
+To visualize / analyze the results from trajectory file and last_conf.dat, it is possible to use the python backend machinery in ../../UTILS/ directory. 
+It is necessary to set the OXRNA variable to 1 so that the python backend correctly handles the RNA model files:
+
+export OXRNA=1
+
+Finally, to visualize a particular configuration, one can for instance use:
+
+../../UTILS/traj2chimera.py init.conf sim.top 
+  
+which generates init.conf.pdb and chimera.com, which can be than viewed with chimera software
+
+chimera init.conf.pdb chimera.com

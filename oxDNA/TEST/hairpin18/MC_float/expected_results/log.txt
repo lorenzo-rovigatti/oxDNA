@@ -1,0 +1,23 @@
+INFO: Backend precision: float
+INFO: Simulation type: MC
+INFO: optional key 'print_reduced_conf_every' not found
+INFO: optional key 'log_file' not found
+INFO: optional key 'print_reduced_conf_every' not found
+INFO: optional key 'use_average_seq' not found
+INFO: optional key 'confs_to_skip' not found
+INFO: Converting temperature from Celsius (23.000000 C°) to simulation units (0.098717)
+DEBUG: Initializing
+INFO: N_cells: 64, N_cells_side: 4
+INFO: N: 18, max_neigh: 17
+INFO: SVN CODE VERSION: 5627:5649M
+INFO: COMPILED ON: 02/04/13 18:47
+INFO: MODEL VERSION: JUNE-2011
+DEBUG: Running
+DEBUG: Cleaning
+INFO: Lists updated 249 times (every ~40.160643 steps)
+INFO: Timings informations:
+
+MC step: 0.190000 ms
+Lists update: 0.008454 ms
+
+INFO: END OF THE SIMULATION, everything went OK!

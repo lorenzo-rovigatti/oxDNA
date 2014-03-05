@@ -1,0 +1,113 @@
+/*
+ * GeneratorManager.cpp
+ *
+ *  Created on: Feb 13, 2013
+ *      Author: rovigatti
+ */
+
+#include "GeneratorManager.h"
+#include "../Interactions/InteractionFactory.h"
+
+GeneratorManager::GeneratorManager(int argc, char *argv[]) {
+	_use_density = false;
+	_box_side = _density = -1.;
+	double argv2 = atof (argv[2]);
+	if (argv2 <= 0.) throw oxDNAException ("Refusing to run with box_side/density = %g (converted from \"%s\")", argv2, argv[2]);
+	if (argv2 < 2.) {
+		_use_density = true;
+		_density = argv2;
+		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
+	}
+	else {
+		_use_density = false;
+		_box_side = argv2;
+		OX_LOG(Logger::LOG_INFO, "Generating configuration with side %g", _box_side);
+	}
+
+	loadInputFile(&_input, argv[1]);
+	if(_input.state == ERROR) throw oxDNAException("Caught an error while opening the input file");
+	argc -= 3;
+	if(argc > 0) addCommandLineArguments(&_input, argc, argv+3);
+
+	_N = 0;
+	_particles = NULL;
+	_interaction = NULL;
+}
+
+GeneratorManager::~GeneratorManager() {
+	cleanInputFile(&_input);
+	if(_interaction != NULL) {
+		delete _interaction;
+		for(int i = 0; i < _N; i++) delete _particles[i];
+		delete[] _particles;
+	}
+}
+
+void GeneratorManager::load_options() {
+	getInputString(&_input, "trajectory_file", _trajectory, 1);
+	getInputString(&_input, "conf_file", _output_conf, 1);
+
+	// seed;
+	int seed;
+	if (getInputInt(&_input, "seed", &seed, 0) == KEY_NOT_FOUND) {
+		seed = time(NULL);
+		int rand_seed = 0;
+		FILE *f = fopen("/dev/urandom", "rb");
+		if (f == NULL) {
+			OX_LOG(Logger::LOG_INFO, "Can't open /dev/urandom, using system time as a random seed");
+		}
+		else {
+			if(fread((void *) &rand_seed, sizeof(rand_seed), 1, f) != 0) seed += rand_seed;
+			else OX_LOG(Logger::LOG_INFO, "Can't read from /dev/urandom, using system time as a random seed");
+			fclose(f);
+		}
+	}
+	OX_LOG(Logger::LOG_INFO, "Setting the random number generator with seed = %d", seed);
+	srand48((long int)seed);
+
+	Logger::instance()->get_settings(_input);
+
+	_interaction = InteractionFactory::make_interaction<double>(_input);
+	_interaction->get_settings(_input);
+}
+
+void GeneratorManager::init() {
+	_interaction->init();
+
+	_N = _interaction->get_N_from_topology();
+	_particles = new BaseParticle<double>*[_N];
+	int N_strands;
+	_interaction->read_topology(_N, &N_strands, _particles);
+
+	if (_use_density){
+		 _box_side = pow(_N / _density, 1. / 3.);
+		OX_LOG(Logger::LOG_INFO, "Generating configuration with box_side %g", _box_side);
+	}
+	else {
+		_density = _N / pow (_box_side, 3);
+		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
+	}
+}
+
+void GeneratorManager::generate() {
+	_interaction->generate_random_configuration(_particles, _N, _box_side);
+
+	ofstream conf_output(_output_conf);
+	conf_output.precision(15);
+
+	conf_output << "t = 0" << endl;
+	conf_output << "b = " << _box_side << " " << _box_side << " " << _box_side << endl;
+	conf_output << "E = 0 0 0 " << endl;
+
+	for(int i = 0; i < _N; i++) {
+		BaseParticle<double> *p = _particles[i];
+		LR_vector<double> mypos = p->get_abs_pos(_box_side);
+		LR_matrix<double> oT = p->orientation.get_transpose();
+		conf_output << mypos.x << " " << mypos.y << " " << mypos.z << " ";
+		conf_output << oT.v1.x << " " << oT.v1.y << " " << oT.v1.z << " ";
+		conf_output << oT.v3.x << " " << oT.v3.y << " " << oT.v3.z << " ";
+		conf_output << p->vel.x << " " << p->vel.y << " " << p->vel.z << " ";
+		conf_output << p->L.x << " " << p->L.y << " " << p->L.z << endl;
+	}
+	conf_output.close();
+}

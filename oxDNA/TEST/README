@@ -1,0 +1,40 @@
+Author      : Doye Research Group (http://doye.chem.ox.ac.uk/), Ryan M Harrison (ryan.m.harrison@gmail.com)
+Last Updated: 11 Feb 2013
+
+USAGE:
+python RunTest.py <RUNNER_LIST>
+    <RUNNER_LIST> --- File with directories to test.
+    See RunTest.py for more details.
+
+FILE OVERVEW:
+RunTest.py --- Command line executable for oxDNA integration testing.
+    RUNNER_LIST --- File listing directories to test
+    TEST_LIST --- File listing Testers to use for each Runner. These Testers are assumed to be drawn from the classes of the user UserTest module. See hack below.
+    INPUT --- oxDNA INPUT file
+        Note that TEST_LIST and INPUT are expected to be in the same directory by default.
+BaseTest.py --- TestSuite, Runner & Tester BaseClasses
+TestClass --- Inherit from Tester and write own Tests.
+    Test_EED.py --- (End-to-end distance test. Pass if +/- 5 SEM (Standard Error of the Mean) from expected_results)
+    Test_MeanPE.py --- (Energy test. Pass if +/- 5 SEM from expected_results)
+
+ADDING TEST:
+All test should be added as a seperate file in the directory UserTest.
+The filename and class name should be identical.
+The convention is to begin all tests with 'Test_' followed by what the tests does.
+
+Example...
+Filename: Test_Demo.py
+    class Test_Demo(BaseTest.Tester):
+        def do_test(self):
+            BaseTest.Tester.do_test(self)
+            <Do your testing>
+            return self.test_pass
+
+TERRIBLE HACK: To auto-import Test modules/classes
+It's a terrible hack (see UserTest/__init__.py for the gory details), 
+but if the 'Test_Demo.py' and class Test_Demo convention is followed,
+__init__.py will auto import the classes into the UserTest module,
+skipping the modules all together.
+
+If you choose to not follow this convention, manually import the module+class in UserTest/__init__.py
+No other classes should be in UserTest because its class list is assumed to be a list of Tester classes from which to match TEST_LIST

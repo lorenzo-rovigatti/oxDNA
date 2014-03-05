@@ -1,0 +1,95 @@
+/*
+ * ObservableFactory.cpp
+ *
+ *  Created on: Feb 12, 2013
+ *      Author: rovigatti
+ */
+
+#include "ObservableFactory.h"
+
+#include "../PluginManagement/PluginManager.h"
+
+#include "Step.h"
+#include "PotentialEnergy.h"
+#include "KineticEnergy.h"
+#include "TotalEnergy.h"
+#include "HBEnergy.h"
+#include "BackendInfo.h"
+#include "PairEnergy.h"
+#include "OrderParameterValues.h"
+#include "HBList.h"
+#include "StrandwiseBonds.h"
+#include "ForceEnergy.h"
+#include "Pressure.h"
+#include "Density.h"
+#include "DensityProfile.h"
+#include "ParticlePosition.h"
+#include "Rdf.h"
+#include "Distance.h"
+#include "Configurations/PdbOutput.h"
+#include "Configurations/ChimeraOutput.h"
+
+#include "Configurations/Configuration.h"
+#include "Configurations/BinaryConfiguration.h"
+#include "Configurations/TclOutput.h"
+
+#include "LR/ConstructwiseBonds.h"
+#include "LR/PatchyToMgl.h"
+#include "LR/StressTensor.h"
+
+ObservableFactory::ObservableFactory() {
+
+}
+
+ObservableFactory::~ObservableFactory() {
+
+}
+
+template<typename number>
+BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, input_file &sim_inp) {
+	char obs_type[512];
+	getInputString(&obs_inp, "type", obs_type, 1);
+
+	BaseObservable<number> * res = NULL;
+
+	if(!strncasecmp(obs_type, "step", 512)) res = new Step<number>();
+	else if(!strncasecmp(obs_type, "potential_energy", 512)) res = new PotentialEnergy<number>();
+	else if(!strncasecmp(obs_type, "kinetic_energy", 512)) res = new KineticEnergy<number>();
+	else if(!strncasecmp(obs_type, "total_energy", 512)) res = new TotalEnergy<number>();
+	else if(!strncasecmp(obs_type, "hb_energy", 512)) res = new HBEnergy<number>();
+	else if(!strncasecmp(obs_type, "backend_info", 512)) res = new BackendInfo<number>();
+	else if(!strncasecmp(obs_type, "pair_energy", 512)) res = new PairEnergy<number>();
+	else if(!strncasecmp(obs_type, "hb_list", 512)) res = new HBList<number>();
+	else if(!strncasecmp(obs_type, "order_parameters", 512)) res = new OrderParameterValues<number>();
+	else if(!strncasecmp(obs_type, "strandwise_bonds", 512)) res = new StrandwiseBonds<number>();
+	else if(!strncasecmp(obs_type, "constructwise_bonds", 512)) res = new ConstructwiseBonds<number>();
+	else if(!strncasecmp(obs_type, "force_energy", 512)) res = new ForceEnergy<number>();
+	else if(!strncasecmp(obs_type, "configuration", 512)) res = new Configuration<number>();
+	else if(!strncasecmp(obs_type, "binary_configuration", 512)) res = new BinaryConfiguration<number>();
+	else if(!strncasecmp(obs_type, "tcl_configuration", 512)) res = new TclOutput<number>();
+	else if(!strncasecmp(obs_type, "patchy_to_mgl", 512)) res = new PatchyToMgl<number>();
+	else if(!strncasecmp(obs_type, "stress_tensor", 512)) res = new StressTensor<number>();
+	else if(!strncasecmp(obs_type, "pressure", 512)) res = new Pressure<number>();
+	else if(!strncasecmp(obs_type, "density", 512)) res = new Density<number>();
+	else if(!strncasecmp(obs_type, "density_profile", 512)) res = new DensityProfile<number>();
+	else if(!strncasecmp(obs_type, "rdf", 512)) res = new Rdf<number>();
+	else if(!strncasecmp(obs_type, "particle_position", 512)) res = new ParticlePosition<number>();
+	else if(!strncasecmp(obs_type, "distance", 512)) res = new Distance<number>();
+	else if(!strncasecmp(obs_type, "pdb_configuration", 512)) res = new PdbOutput<number>();
+	else if(!strncasecmp(obs_type, "chimera_script", 512)) res = new ChimeraOutput<number>();
+	else {
+		PluginManager *pm = PluginManager::instance();
+		pm->init(sim_inp);
+		res = pm->get_observable<number>(obs_type);
+		if(res == NULL) throw oxDNAException ("Observable '%s' does not exist. Aborting", obs_type);
+		pm->clear();
+	}
+
+	res->get_settings(obs_inp, sim_inp);
+
+	return res;
+}
+
+template BaseObservable<float> *ObservableFactory::make_observable<float>(input_file &obs_inp, input_file &sim_inp);
+template BaseObservable<double> *ObservableFactory::make_observable<double>(input_file &obs_inp, input_file &sim_inp);
+

@@ -1,0 +1,44 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+debug = 1
+seed = 4982
+CUDA_list = verlet
+CUDA_device = 4
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 20000000
+newtonian_steps = 103
+diff_coeff = 2.5 
+#pt = 0.99999
+thermostat = john
+
+T = 100C
+dt = 0.005
+verlet_skin = 0.05
+
+##############################
+####     INTERACTIONS     ####
+##############################
+rcut = 2.0
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = prova.top
+conf_file = last_conf.dat
+trajectory_file = trajectory.dat
+refresh_vel = 1
+#log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 0
+energy_file = energy.dat
+print_conf_interval = 1000000
+print_conf_ppc = 51
+print_energy_every = 10000
+time_scale = linear
+external_forces=0
