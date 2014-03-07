@@ -253,7 +253,7 @@ void SimBackend<number>::init(char conf_filename[256]) {
 	_rcut = _interaction->get_rcut();
 	_sqr_rcut = SQR(_rcut);
 
-	// check number of particles;
+	// check number of particles
 	_N = _interaction->get_N_from_topology();
 	_particles = new BaseParticle<number>*[_N];
 	_interaction->read_topology(_N, &_N_strands, _particles);
