@@ -380,7 +380,7 @@ public:
 	/**
 	 * @brief Read settings from the input file
 	 *
-	 * @param input_file input file name
+	 * @param inp input file
 	 */
 	void get_settings(input_file &inp);
 	

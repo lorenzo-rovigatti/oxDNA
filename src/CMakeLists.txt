@@ -89,6 +89,7 @@ SET(interactions_SOURCES
 	Interactions/DNAInteraction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
+	Interactions/CustomInteraction.cpp
 	Interactions/InteractionFactory.cpp
 )
 
@@ -100,6 +101,7 @@ SET(common_SOURCES
 	Particles/DNANucleotide.cpp
 	Particles/PatchyParticle.cpp
 	Particles/TSPParticle.cpp
+	Particles/CustomParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp

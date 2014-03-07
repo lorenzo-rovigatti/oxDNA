@@ -634,6 +634,8 @@ public:
 
 template<typename number, typename child>
 BaseInteraction<number, child>::BaseInteraction() {
+	this->_rcut = 2.5;
+	this->_sqr_rcut = SQR(this->_rcut);
 	this->_last_box_side = (number) 0;
 	this->_cells_head = NULL;
 	this->_cells_neigh = NULL;
