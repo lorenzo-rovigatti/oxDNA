@@ -363,7 +363,7 @@ number DNAInteraction<number>::_backbone(BaseParticle<number> *p, BaseParticle<n
 	// we check wheter we ended up OUTSIDE of the FENE range
 	if (fabs(rbackr0) > FENE_DELTA - DBL_EPSILON) {
 		if (update_forces && !_allow_broken_fene) {
-			throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", p->index, q->index, fabs(rbackr0));
+			throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(rbackr0));
 		}
 		return (number) (1.e12);
 	}
