@@ -26,6 +26,7 @@
 #include "ParticlePosition.h"
 #include "Rdf.h"
 #include "Distance.h"
+#include "CoaxVariables.h"
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
 
@@ -77,6 +78,7 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "distance", 512)) res = new Distance<number>();
 	else if(!strncasecmp(obs_type, "pdb_configuration", 512)) res = new PdbOutput<number>();
 	else if(!strncasecmp(obs_type, "chimera_script", 512)) res = new ChimeraOutput<number>();
+	else if(!strncasecmp(obs_type, "coax_variables", 512)) res = new CoaxVariables<number>();
 	else {
 		PluginManager *pm = PluginManager::instance();
 		pm->init(sim_inp);
