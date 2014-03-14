@@ -234,7 +234,7 @@ template<typename number> void MD_MPIBackend<number>::_Evaluate_my_particles(voi
 		this->_U += _particle_particle_bonded_interaction(p);
 
 		std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
-		for(uint n = 0; n < neighs.size(); n++) {
+		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
 			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
 		}

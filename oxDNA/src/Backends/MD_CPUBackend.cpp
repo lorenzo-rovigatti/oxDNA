@@ -68,7 +68,7 @@ void MD_CPUBackend<number>::_compute_forces() {
 		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
 
 		std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
-		for(uint n = 0; n < neighs.size(); n++) {
+		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
 			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
 		}
