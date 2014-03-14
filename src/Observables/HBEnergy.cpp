@@ -69,7 +69,7 @@ std::string HBEnergy<number>::get_output_string(llint curr_step) {
 			BaseParticle<number> *p = this->_config_info.particles[*it];
 			std::vector<BaseParticle<number> *> neighs = this->_config_info.interaction->get_neighbours(p, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
 
-			for(uint j = 0; j < neighs.size(); j++) {
+			for(unsigned int j = 0; j < neighs.size(); j++) {
 				energy += this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, neighs[j]);
 			}
 		}

@@ -84,7 +84,7 @@ inline number MC_CPUBackend<number>::_particle_energy(BaseParticle<number> *p) {
 	}
 
 	std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
-	for(uint n = 0; n < neighs.size(); n++) {
+	for(unsigned int n = 0; n < neighs.size(); n++) {
 		BaseParticle<number> *q = neighs[n];
 		res += this->_interaction->pair_interaction_nonbonded(p, q);
 		if(this->_interaction->get_is_infinite() == true) {
@@ -105,7 +105,7 @@ void MC_CPUBackend<number>::_compute_energy() {
 		if(p->n5 != P_VIRTUAL) this->_U += this->_interaction->pair_interaction_bonded(p, p->n5);
 
 		std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
-		for(uint n = 0; n < neighs.size(); n++) {
+		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
 			this->_U += this->_interaction->pair_interaction_nonbonded(p, q);
 		}
