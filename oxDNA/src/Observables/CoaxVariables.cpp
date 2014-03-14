@@ -51,7 +51,7 @@ std::string CoaxVariables<number>::get_output_string(llint curr_step) {
 	output_str << p->index << " " << q->index << " ";
 
 	// Modified version of coaxial stacking calculation code
-	LR_vector<number> r = q->pos - p->pos;
+	LR_vector<number> r = q->pos.minimum_image(p->pos, *(this->_config_info.box_side));
 	LR_vector<number> rstack = r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
 	number rstackmod = rstack.module();
 
