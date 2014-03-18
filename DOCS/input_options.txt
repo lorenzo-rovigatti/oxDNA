@@ -82,12 +82,12 @@ Core options:
         number of time steps between the outputing of the energy (and of the
         other default observables such as acceptance ratios in Monte Carlo
         simulations). Defaults to 0.
-    verlet_skin = <float>
-        width of the skin that controls the maximum displacement after which
-        Verlet lists need to be updated.
     [list_type = verlet|cells|no]
         Type of neighbouring list to be used in CPU simulations. 'no' implies
         a O(N^2) computational complexity. Defaults to verlet.
+    verlet_skin = <float>
+        width of the skin that controls the maximum displacement after which
+        Verlet lists need to be updated.
     name = stream name
         name of the output stream. stdout or stderr are accepted values
     print_every = <integer>
@@ -113,6 +113,15 @@ Core options:
 
 MD options:
 
+    backend = CPU
+        For CPU FFS
+    backend_precision = <any>
+        CPU FFS may use any precision allowed for a normal CPU MD simulation
+    sim_type = FFS_MD
+        This must be set for an FFS simulation
+    gamma_trans = <float>
+        translational damping coefficient for the Langevin thermostat. Either
+        this or diff_coeff should be specified in the input file.
     newtonian_steps = <int>
         number of integration timesteps after which momenta are refreshed
     pt = <float>
@@ -120,9 +129,6 @@ MD options:
     diff_coeff = <float>
         base diffusion coefficient. Either pt or diff_coeff should be
         specified in the input file
-    gamma_trans = <float>
-        translational damping coefficient for the Langevin thermostat. Either
-        this or diff_coeff should be specified in the input file.
     [thermostat = no|refresh|brownian|langevin|srd]
         Select the simulation thermostat for MD simulations. 'no' means
         constant-energy simulations. 'refresh' is the Anderson thermostat.
@@ -202,51 +208,16 @@ MC options:
         Default: none; series of temperatures to which to extrapolate the
         histograms. They can be given as float in reduced units, or the units
         can be specified as in the T option
+    [safe_weights = <bool>]
+        Default: true; whether to check consistency in between order parameter
+        file and weight file. Only used if umbrella_sampling = true
+    [default_weight = <float>]
+        Default: none; mandatory if safe_weights = true; default weight for
+        states that have no specified weight assigned from the weights file
+    [skip_hist_zeros = <bool>]
+        Default: false; Wether to skip zero entries in the traj_hist file
 
 -------------------------------------------------------------------------------
-
-Interactions/DNAInteraction.h options:
-
-    [use_average_seq = <boolean>]
-        defaults to yes
-    [hb_multiplier = <float>]
-        HB interaction multiplier applied to all the nucleotides having a
-        custom numbered base whose magnitude is > 300, defaults to 1.0
-
-Interactions/DirkInteraction.h options:
-
-    length = <float>
-        lenght of the cylinders
-    DHS_radius = <float>
-        radius of the diploar hard sphere on top of each cylinder
-    DHS_rcut = <float>
-        distance cutoff for the reaction field treatment
-    DHS_eps = <float>
-        background dielectric constant for the reaction field treatment
-
-Interactions/LJInteraction.h options:
-
-    LJ_rcut = <float>
-        interaction cutoff
-    [LJ_kob_andersen = <bool>]
-        Simulate a Kob-Andersen mixture. Defaults to false.
-
-Interactions/DHSInteraction.h options:
-
-    DHS_eps = <float>
-        background dielectrci constant for reaction field treatment
-    DHS_rcut = <float>
-        cutoff for the reaction field treatment
-
-Interactions/BoxInteraction.h options:
-
-    box_sides = <float>, <float>, <float>
-        sides of the box
-
-Interactions/HardCylinderInteraction.h options:
-
-    height = <float>
-        cylinder length
 
 Interactions/TSPInteraction.h options:
 
@@ -261,6 +232,60 @@ Interactions/TSPInteraction.h options:
     TSP_n[type] = <int>
         exponent for the generalised LJ potential for each interaction
 
+Interactions/BoxInteraction.h options:
+
+    box_sides = <float>, <float>, <float>
+        sides of the box
+
+Interactions/DHSInteraction.h options:
+
+    DHS_eps = <float>
+        background dielectrci constant for reaction field treatment
+    DHS_rcut = <float>
+        cutoff for the reaction field treatment
+
+Interactions/RNAInteraction.h options:
+
+    [use_average_seq = <boolean>]
+        defaults to yes
+    [seq_dep_file = <string>]
+        sets the location of the files with sequence-dependent parameters
+    [external_model = <string>]
+        overrides default constants for the model, set in rna_model.h), by
+        values specified by this option
+
+Interactions/HardCylinderInteraction.h options:
+
+    height = <float>
+        cylinder length
+
+Interactions/HardSpheroCylinderInteraction.h options:
+
+    length = <float>
+        length of the spherocylinder
+
+Interactions/DirkInteraction.h options:
+
+    length = <float>
+        lenght of the cylinders
+    DHS_radius = <float>
+        radius of the diploar hard sphere on top of each cylinder
+    DHS_rcut = <float>
+        distance cutoff for the reaction field treatment
+    DHS_eps = <float>
+        background dielectric constant for the reaction field treatment
+
+Interactions/DirkInteraction2.h options:
+
+    length = <float>
+        lenght of the cylinders
+    DHS_radius = <float>
+        radius of the diploar hard sphere on top of each cylinder
+    DHS_rcut = <float>
+        distance cutoff for the reaction field treatment
+    DHS_eps = <float>
+        background dielectric constant for the reaction field treatment
+
 Interactions/PatchyInteraction.h options:
 
     PATCHY_N = <int>
@@ -269,11 +294,6 @@ Interactions/PatchyInteraction.h options:
         number of patches on species B
     [PATCHY_alpha = <float>]
         width of patches, defaults to 0.12
-
-Interactions/HardSpheroCylinderInteraction.h options:
-
-    length = <float>
-        length of the spherocylinder
 
 Interactions/DNAInteraction_relax.h options:
 
@@ -290,10 +310,27 @@ Interactions/InteractionFactory.h options:
         relative to the specific interaction for more details. Defaults to
         dna.
 
+Interactions/LJInteraction.h options:
+
+    LJ_rcut = <float>
+        interaction cutoff
+    [LJ_kob_andersen = <bool>]
+        Simulate a Kob-Andersen mixture. Defaults to false.
+
+Interactions/DNAInteraction.h options:
+
+    [use_average_seq = <boolean>]
+        defaults to yes
+    [hb_multiplier = <float>]
+        HB interaction multiplier applied to all the nucleotides having a
+        custom numbered base whose magnitude is > 300, defaults to 1.0
+
 -------------------------------------------------------------------------------
 
 CUDA options:
 
+    [CUDA_list = no|verlet]
+        Neighbour lists for CUDA simulations. Defaults to 'no'.
     [CUDA_device = <int>]
         CUDA-enabled device to run the simulation on. If it is not specified
         or it is given a negative number, a suitable device will be
@@ -305,8 +342,66 @@ CUDA options:
     [threads_per_block = <int>]
         Number of threads per block on the CUDA grid. defaults to 2 * the size
         of a warp.
-    [CUDA_list = no|verlet]
-        Neighbour lists for CUDA simulations. Defaults to 'no'.
+    backend = CUDA
+        For CUDA FFS -- NB unlike the CPU implementation, the CUDA
+        implementation does not print extra columns with the current order
+        parameter values whenever the energy is printed
+    backend_precision = mixed
+        CUDA FFS is currently only implemented for mixed precision
+    sim_type = FFS_MD
+        This must be set for an FFS simulation
+    order_parameters_file = <string>
+        path to the order parameters file
+    ffs_file = <string>
+        path to the file with the simulation stopping conditions. Optionally,
+        one may use 'master conditions' (CUDA FFS only), which allow one to
+        more easily handle very high dimensional order parameters. See the
+        EXAMPLES/CUDA_FFS/README file for more information
+    [ffs_generate_flux = <bool>]
+        CUDA FFS only. Default: False; if False, the simulation will run until
+        a stopping condition is reached; if True, a flux generation simulation
+        will be run, in which case reaching a condition will cause a
+        configuration to be saved but will not terminate the simulation. In
+        the stopping condition file, the conditions must be labelled forward1,
+        forward2, ... (for the forward conditions); and backward1, backward2,
+        ... (for the backward conditions), ... instead of condition1,
+        condition2, ... . To get standard flux generation, set the forward and
+        backward conditions to correspond to crossing the same interface (and
+        use conditions corresponding to different interfaces for Tom's flux
+        generation). As with the single shooting run mode, the name of the
+        condition crossed will be printed to stderr each time.
+    [gen_flux_save_every = <integer>]
+        CUDA FFS only. Mandatory if ffs_generate_flux is True; save a
+        configuration for 1 in every N forward crossings
+    [gen_flux_total_crossings = <integer>]
+        CUDA FFS only. Mandatory if ffs_generate_flux is True; stop the
+        simulation after N crossings achieved
+    [gen_flux_conf_prefix = <string>]
+        CUDA FFS only. Mandatory if ffs_generate_flux is True; the prefix used
+        for the file names of configurations corresponding to the saved
+        forward crossings. Counting starts at zero so the 3rd crossing
+        configuration will be saved as MY_PREFIX_N2.dat
+    [gen_flux_debug = <bool>]
+        CUDA FFS only. Default: False; In a flux generation simulation, set to
+        true to save backward-crossing configurations for debugging
+    [check_initial_state = <bool>]
+        CUDA FFS only. Default: False; in a flux generation simulation, set to
+        true to turn on initial state checking. In this mode an initial
+        configuration that crosses the forward conditions after only 1 step
+        will cause the code to complain and exit. Useful for checking that a
+        flux generation simulation does not start out of the A-state
+    [die_on_unexpected_master = <bool>]
+        CUDA FFS only. Default: False; in a flux generation simulation that
+        uses master conditions, set to true to cause the simulation to die if
+        any master conditions except master_forward1 or master_backward1 are
+        reached. Useful for checking that a flux generation simulation does
+        not enter any unwanted free energy basins (i.e. other than the initial
+        state and the desired final state)
+    [unexpected_master_prefix = <string>]
+        CUDA FFS only. Mandatory if die_on_unexpected_master is True; the
+        prefix used for the file names of configurations corresponding to
+        reaching any unexpected master conditions (see
+        die_on_unexpected_master).
 
 -------------------------------------------------------------------------------
 
@@ -322,17 +417,6 @@ Analysis options:
         the ObservableOutput class.
 
 -------------------------------------------------------------------------------
-
-Observables/Rdf.h options:
-
-    max_value = <float>
-        maximum r to consider
-    bin_size = <float>
-        bin size for the g(r)
-    [axes = <string>]
-        Possible values: x, y, z, xy, yx, zy, yz, xz, zx. Those are the axes
-        to consider in the computation. Mind that the normalization always
-        assumes 3D sytems for the time being.
 
 Observables/ObservableOutput.h options:
 
@@ -357,16 +441,6 @@ Observables/ObservableOutput.h options:
         this syntax specifies the column of the output file. Note that <n> is
         the column index and should start from 1
 
-Observables/DensityProfile.h options:
-
-    max_value = <float>
-        anything with a relevant coordinate grater than this will be ignored.
-        Mind that the observable is PBC-aware.
-    bin_size = <float>
-        the bin size for the profile
-    axis = <char>
-        Possible values: x, y, z the axis along which to compute the profile
-
 Observables/ParticlePosition.h options:
 
     particle_id = <int>
@@ -376,6 +450,42 @@ Observables/ParticlePosition.h options:
     [absolute = <bool>]
         defaults to false. If 1, does not use periodic boundaries and it
         prints out the absolute position of the center of mass
+
+Observables/HBEnergy.h options:
+
+    [pairs_file = <string>]
+        OrderParameter file containing the list of pairs whose HB energy is to
+        be computed
+    [base_file = <string>]
+        file containing a list of nucleotides whose HB energy is to be
+        computed, one nucleotide per line
+
+Observables/Pressure.h options:
+
+    type = pressure
+        an observable that computes the osmotic pressure of the system
+    [stress_tensor = <bool>]
+        if true, the output will contain 7 fields, with the first being the
+        total pressure and the other 6 the six independent components of the
+        stress tensor, xx, yy, zz, xy, xz, yz
+
+Observables/CoaxVariables.h options:
+
+    particle1_id = <int>
+        particle 1 id
+    particle2_id = <int>
+        particle 2 id
+
+Observables/Rdf.h options:
+
+    max_value = <float>
+        maximum r to consider
+    bin_size = <float>
+        bin size for the g(r)
+    [axes = <string>]
+        Possible values: x, y, z, xy, yx, zy, yz, xz, zx. Those are the axes
+        to consider in the computation. Mind that the normalization always
+        assumes 3D sytems for the time being.
 
 Observables/Distance.h options:
 
@@ -395,14 +505,15 @@ Observables/PotentialEnergy.h options:
         defaults to false, it tells the observable to print all the terms
         contributing to the potential energy
 
-Observables/Pressure.h options:
+Observables/DensityProfile.h options:
 
-    type = pressure
-        an observable that computes the osmotic pressure of the system
-    [stress_tensor = <bool>]
-        if true, the output will contain 7 fields, with the first being the
-        total pressure and the other 6 the six independent components of the
-        stress tensor, xx, yy, zz, xy, xz, yz
+    max_value = <float>
+        anything with a relevant coordinate grater than this will be ignored.
+        Mind that the observable is PBC-aware.
+    bin_size = <float>
+        the bin size for the profile
+    axis = <char>
+        Possible values: x, y, z the axis along which to compute the profile
 
 Observables/Step.h options:
 
@@ -410,14 +521,11 @@ Observables/Step.h options:
         units to print the time on. time in MD units = steps * dt, defaults to
         step
 
-Observables/HBEnergy.h options:
+Observables/Configurations/ChimeraOutput.h options:
 
-    [pairs_file = <string>]
-        OrderParameter file containing the list of pairs whose HB energy is to
-        be computed
-    [base_file = <string>]
-        file containing a list of nucleotides whose HB energy is to be
-        computed, one nucleotide per line
+    [colour_by_sequece = <bool>]
+        Default: false; whether to coulour the bases according to the base
+        type (A, C, G, T
 
 Observables/Configurations/PdbOutput.h options:
 
@@ -454,12 +562,6 @@ Observables/Configurations/Configuration.h options:
         if true only the strand centres of mass will be printed, defaults to
         false
 
-Observables/Configurations/ChimeraOutput.h options:
-
-    [colour_by_sequece = <bool>]
-        Default: false; whether to coulour the bases according to the base
-        type (A, C, G, T
-
 Observables/Configurations/TclOutput.h options:
 
     [back_in_box = <bool>]
@@ -484,6 +586,72 @@ Observables/Configurations/TclOutput.h options:
         Default: -1, no action; The strand with the id specified, starting
         from 1, is set at the centre of the box. Ignored if negative or too
         large for the system.
+
+-------------------------------------------------------------------------------
+
+Forward Flux Sampling (FFS) options:
+
+    backend = CPU/CUDA
+        For CPU FFS/For CUDA FFS -- NB unlike the CPU implementation, the CUDA
+        implementation does not print extra columns with the current order
+        parameter values whenever the energy is printed
+    backend_precision = <any>/mixed
+        CPU FFS may use any precision allowed for a normal CPU MD
+        simulation/CUDA FFS is currently only implemented for mixed precision
+    sim_type = FFS_MD
+        This must be set for an FFS simulation
+    order_parameters_file = <string>
+        path to the order parameters file
+    ffs_file = <string>
+        path to the file with the simulation stopping conditions. Optionally,
+        one may use 'master conditions' (CUDA FFS only), which allow one to
+        more easily handle very high dimensional order parameters. See the
+        EXAMPLES/CUDA_FFS/README file for more information
+    [ffs_generate_flux = <bool>]
+        CUDA FFS only. Default: False; if False, the simulation will run until
+        a stopping condition is reached; if True, a flux generation simulation
+        will be run, in which case reaching a condition will cause a
+        configuration to be saved but will not terminate the simulation. In
+        the stopping condition file, the conditions must be labelled forward1,
+        forward2, ... (for the forward conditions); and backward1, backward2,
+        ... (for the backward conditions), ... instead of condition1,
+        condition2, ... . To get standard flux generation, set the forward and
+        backward conditions to correspond to crossing the same interface (and
+        use conditions corresponding to different interfaces for Tom's flux
+        generation). As with the single shooting run mode, the name of the
+        condition crossed will be printed to stderr each time.
+    [gen_flux_save_every = <integer>]
+        CUDA FFS only. Mandatory if ffs_generate_flux is True; save a
+        configuration for 1 in every N forward crossings
+    [gen_flux_total_crossings = <integer>]
+        CUDA FFS only. Mandatory if ffs_generate_flux is True; stop the
+        simulation after N crossings achieved
+    [gen_flux_conf_prefix = <string>]
+        CUDA FFS only. Mandatory if ffs_generate_flux is True; the prefix used
+        for the file names of configurations corresponding to the saved
+        forward crossings. Counting starts at zero so the 3rd crossing
+        configuration will be saved as MY_PREFIX_N2.dat
+    [gen_flux_debug = <bool>]
+        CUDA FFS only. Default: False; In a flux generation simulation, set to
+        true to save backward-crossing configurations for debugging
+    [check_initial_state = <bool>]
+        CUDA FFS only. Default: False; in a flux generation simulation, set to
+        true to turn on initial state checking. In this mode an initial
+        configuration that crosses the forward conditions after only 1 step
+        will cause the code to complain and exit. Useful for checking that a
+        flux generation simulation does not start out of the A-state
+    [die_on_unexpected_master = <bool>]
+        CUDA FFS only. Default: False; in a flux generation simulation that
+        uses master conditions, set to true to cause the simulation to die if
+        any master conditions except master_forward1 or master_backward1 are
+        reached. Useful for checking that a flux generation simulation does
+        not enter any unwanted free energy basins (i.e. other than the initial
+        state and the desired final state)
+    [unexpected_master_prefix = <string>]
+        CUDA FFS only. Mandatory if die_on_unexpected_master is True; the
+        prefix used for the file names of configurations corresponding to
+        reaching any unexpected master conditions (see
+        die_on_unexpected_master).
 
 -------------------------------------------------------------------------------
 
