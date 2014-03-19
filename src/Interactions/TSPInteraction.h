@@ -22,6 +22,8 @@ TSP_sigma[type] = <float> (particle diameter associated to each interaction)
 TSP_epsilon[type] = <float> (energy scale associated to each interaction)
 TSP_attractive[type] = <float> (whether the interaction contains an attractive tail or not)
 TSP_n[type] = <int> (exponent for the generalised LJ potential for each interaction)
+[TSP_attractive_anchor = <bool> (set to true if you want the anchor monomer to be of type B instead of type A. Defaults to false)]
+[TSP_only_chains = <bool> (if true the system will be composed of chains only. The topology will be interpreted accordingly by ignoring the first value of each line (which, in the case of TSPs, is the number of arms). Defaults to false)]
 @endverbatim
  */
 template <typename number>
@@ -38,6 +40,8 @@ protected:
 	number _TSP_cut_energy[3];
 	number _TSP_epsilon[3];
 	int _TSP_n[3];
+	bool _attractive_anchor;
+	bool _only_chains;
 
 	int *_N_arms;
 	int *_N_monomer_per_arm;

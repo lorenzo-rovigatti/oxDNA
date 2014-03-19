@@ -109,11 +109,17 @@ class Option(object):
         self.description = description.strip().replace('\\n', '\n')
         self.optional = optional
         
-    def text(self):
-        spl = wrap(self.description, 70)
-        description = "\n".join(LR_TAB + s for s in spl)
-        if self.optional: return "[%s = %s]\n%s" % (self.key, self.value, description)
-        else: return "%s = %s\n%s" % (self.key, self.value, description)
+    def text(self, wiki=False):
+        if not wiki:
+            spl = wrap(self.description, 70)
+            description = "\n".join(LR_TAB + s for s in spl)
+            if self.optional: return "[%s = %s]\n%s" % (self.key, self.value, description)
+            else: return "%s = %s\n%s" % (self.key, self.value, description)
+        else:
+            key_value = "%s = %s" % (self.key, self.value)
+            key_value = key_value.replace("\n", "<br />")
+            if self.optional: return ";[%s]\n: %s" % (key_value, self.description)
+            else: return ";%s\n: %s" % (key_value, self.description)
         
         
 class OptionScanner(px.Scanner):
@@ -199,15 +205,22 @@ class Options(object):
         else:
             self.options[key] = new_option
 
-    def print_options(self):
+    def print_options(self, wiki):
         N = self.get_N_options()
         if N == 0: return
         
         print >> sys.stderr, "Number of '%s' options: %d" % (self.id, N)
-        print self.id + " options:\n"
-        for option in self.options.itervalues():
-            print indent(option.text())
-        print ""
+        
+        if not wiki:
+            print self.id + " options:\n"
+            for option in self.options.itervalues():
+                print indent(option.text())
+            print ""
+        else:
+            print "===%s options===\n" % self.id
+            for option in self.options.itervalues():
+                print option.text(True)
+            print ""
 
     def get_N_options(self):
         return len(self.options)
@@ -216,6 +229,8 @@ class Options(object):
 cwd = os.path.dirname(os.path.realpath(__file__))
 base_path = os.path.join(cwd, "..", "src")
 
+wiki = len(sys.argv) > 1 and sys.argv[1] == "wiki"
+    
 for cat, cat_paths in CATEGORIES.iteritems():
     join_cat = JOIN[cat]
     cat_options = Options(cat)
@@ -234,7 +249,7 @@ for cat, cat_paths in CATEGORIES.iteritems():
                 cat_options.add_option(new_option)
                 token = scanner.read()
                 
-            if not join_cat: file_options.print_options()
+            if not join_cat: file_options.print_options(wiki)
                 
-    if join_cat: cat_options.print_options()
-    print "-------------------------------------------------------------------------------\n"
+    if join_cat: cat_options.print_options(wiki)
+    if not wiki: print "-------------------------------------------------------------------------------\n"
