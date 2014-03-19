@@ -6,6 +6,9 @@ template<typename number>
 TSPInteraction<number>::TSPInteraction() : BaseInteraction<number, TSPInteraction<number> >() {
 	this->_int_map[BONDED] = &TSPInteraction<number>::pair_interaction_bonded;
 	this->_int_map[NONBONDED] = &TSPInteraction<number>::pair_interaction_nonbonded;
+
+	_attractive_anchor = false;
+	_only_chains = false;
 }
 
 template<typename number>
@@ -22,6 +25,14 @@ void TSPInteraction<number>::get_settings(input_file &inp) {
 	double tmp;
 	getInputDouble(&inp, "TSP_rfene", &tmp, 1);
 	_rfene = tmp;
+
+	int aa = 0;
+	getInputBoolAsInt(&inp, "TSP_attractive_anchor", &aa, 0);
+	_attractive_anchor = (bool) aa;
+
+	int oc = 0;
+	getInputBoolAsInt(&inp, "TSP_only_chains", &oc, 0);
+	_only_chains = (bool) oc;
 
 	for(int i = 0; i < 3; i++) {
 		char key[256];
@@ -70,7 +81,7 @@ number TSPInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<numbe
 	bool anchor = ((TSPParticle<number> *)p)->is_anchor() || ((TSPParticle<number> *)q)->is_anchor();
 
 	number sqr_r = r->norm();
-	number sqr_rfene = (anchor) ? _sqr_rfene_anchor : _sqr_rfene;
+	number sqr_rfene = (anchor && !_only_chains) ? _sqr_rfene_anchor : _sqr_rfene;
 
 	if(sqr_r > sqr_rfene) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)\n", p->index, q->index, sqrt(sqr_r), sqrt(_sqr_rfene));
@@ -255,7 +266,7 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 		TSPParticle<number> *anchor = (TSPParticle<number> *) particles[p_ind];
 		anchor->flag_as_anchor();
 		// this is an anchor: it has n_arms FENE neighbours since it is attached to each arm
-		anchor->btype = anchor->type = P_A;
+		anchor->btype = anchor->type = (_attractive_anchor) ? P_B : P_A;
 		anchor->n3 = anchor->n5 = P_VIRTUAL;
 		anchor->strand_id = ns;
 
@@ -363,6 +374,7 @@ template<typename number>
 void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
 	number old_rcut = this->_rcut;
 	this->_rcut = _TSP_sigma[0];
+	this->_sqr_rcut = SQR(this->_rcut);
 
 	this->_create_cells(particles, N, box_side);
 	for(int i = 0; i < N; i++) this->_cells_next[i] = P_INVALID;
@@ -379,19 +391,40 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 
 		for(int na = 0; na < _N_arms[ns]; na++) {
 			LR_vector<number> dir = _TSP_sigma[0]*Utils::get_random_vector<number>();
-			number arm_dist = drand48()*3 + 1.;
+			number arm_dist = 1.;
+			// if we simulate TSPs then the distance between an anchor and the first monomer of each arm
+			// should be more than one sigma to avoid overlaps
+			if(!_only_chains) arm_dist += 3.*drand48();
+			// if we simulate chains then we want monomers to be more than one sigma apart
+			else dir *= 1.01;
+
+			LR_vector<number> last_pos = anchor_pos;
 			for(int nm = 0; nm < _N_monomer_per_arm[ns]; nm++) {
 				BaseParticle<number> *p = particles[i];
-				p->pos = anchor_pos + dir*(nm+arm_dist);
+				p->pos = last_pos;
+				if(nm == 0) p->pos += dir*arm_dist;
+				else p->pos += dir;
+
+				// if there are only chains then we want to generate non-straight chains
+				// and hence we extract a new random direction
+				if(_only_chains) dir = _TSP_sigma[0]*Utils::get_random_vector<number>();
+
 				p->index = i;
-				if(nm == 0) {
+				// if we simulate TSPs then we check for overlaps only for the first monomer
+				if(nm == 0 && !_only_chains) {
 					if(_does_overlap(particles, p, box_side)) {
 						na--;
 						break;
 					}
 				}
+				// if we simulate chains, on the other hand, we always check for overlaps
+				if(_only_chains && _does_overlap(particles, p, box_side)) {
+					nm--;
+					continue;
+				}
 
 				_insert_in_cell_set_orientation(p, box_side);
+				last_pos = p->pos;
 
 				i++;
 			}
@@ -399,6 +432,7 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 	}
 
 	this->_rcut = old_rcut;
+	this->_sqr_rcut = SQR(this->_rcut);
 	this->_delete_cell_neighs();
 }
 
