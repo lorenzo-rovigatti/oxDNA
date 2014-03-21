@@ -26,6 +26,22 @@ void TSPInteraction<number>::get_settings(input_file &inp) {
 	getInputDouble(&inp, "TSP_rfene", &tmp, 1);
 	_rfene = tmp;
 
+	getInputDouble(&inp, "TSP_lambda", &tmp, 1);
+	if(tmp < 0.) {
+		OX_LOG(Logger::LOG_INFO, "Invalid TSP_lambda value detected, setting it to 0");
+		tmp = 0.;
+	}
+	if(tmp > 1.) {
+		OX_LOG(Logger::LOG_INFO, "Invalid TSP_lambda value detected, setting it to 1");
+		tmp = 1.;
+	}
+	_TSP_lambda = tmp;
+
+	getInputDouble(&inp, "TSP_rcut", &tmp, 1);
+	this->_rcut = tmp;
+
+	getInputInt(&inp, "TSP_n", &_TSP_n, 1);
+
 	int aa = 0;
 	getInputBoolAsInt(&inp, "TSP_attractive_anchor", &aa, 0);
 	_attractive_anchor = (bool) aa;
@@ -33,28 +49,6 @@ void TSPInteraction<number>::get_settings(input_file &inp) {
 	int oc = 0;
 	getInputBoolAsInt(&inp, "TSP_only_chains", &oc, 0);
 	_only_chains = (bool) oc;
-
-	for(int i = 0; i < 3; i++) {
-		char key[256];
-		sprintf(key, "TSP_sigma[%d]", i);
-		getInputDouble(&inp, key, &tmp, 1);
-		_TSP_sigma[i] = tmp;
-
-		sprintf(key, "TSP_rcut[%d]", i);
-		getInputDouble(&inp, key, &tmp, 1);
-		_TSP_rcut[i] = tmp;
-
-		sprintf(key, "TSP_epsilon[%d]", i);
-		getInputDouble(&inp, key, &tmp, 1);
-		_TSP_epsilon[i] = tmp;
-
-		sprintf(key, "TSP_attractive[%d]", i);
-		getInputDouble(&inp, key, &tmp, 1);
-		_TSP_attractive[i] = tmp;
-
-		sprintf(key, "TSP_n[%d]", i);
-		getInputInt(&inp, key, _TSP_n + i, 1);
-	}
 }
 
 template<typename number>
@@ -63,16 +57,9 @@ void TSPInteraction<number>::init() {
 	_rfene_anchor = _rfene * 3;
 	_sqr_rfene_anchor = SQR(_rfene_anchor);
 
-	this->_rcut = 0.;
-	for(int i = 0; i < 3; i++) {
-		if(_TSP_rcut[i] > this->_rcut) this->_rcut = _TSP_rcut[i];
-		if(_TSP_n[i] % 2 != 0) throw oxDNAException("TSP_n must be a multiple of 2");
-
-		_TSP_sqr_rcut[i] = SQR(_TSP_rcut[i]);
-		_TSP_sqr_sigma[i] = SQR(_TSP_sigma[i]);
-
-		_TSP_cut_energy[i] = 4 * _TSP_epsilon[i] * (pow(_TSP_sigma[i] / _TSP_rcut[i], 2*_TSP_n[i]) - _TSP_attractive[i] * pow(_TSP_sigma[i] / _TSP_rcut[i], _TSP_n[i]));
-	}
+	number rep_rcut = pow(2., 1./_TSP_n);
+	_TSP_sqr_rep_rcut = SQR(rep_rcut);
+	OX_LOG(Logger::LOG_INFO, "TSP: repulsive rcut: %lf (%lf)", rep_rcut, _TSP_sqr_rep_rcut);
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
@@ -88,12 +75,12 @@ number TSPInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<numbe
 		else return 1e10;
 	}
 
-	number energy = -15*_TSP_epsilon[0] * sqr_rfene * log(1 - sqr_r/sqr_rfene);
+	number energy = -15 * sqr_rfene * log(1 - sqr_r/sqr_rfene);
 
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
-		number force_mod = -30*_TSP_epsilon[0] * sqr_rfene / (sqr_rfene - sqr_r);
+		number force_mod = -30 * sqr_rfene / (sqr_rfene - sqr_r);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -104,20 +91,35 @@ number TSPInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<numbe
 template<typename number>
 number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	int int_type = q->type + p->type;
-	if(_TSP_epsilon[int_type] == (number) 0.) return (number) 0.;
 
 	number sqr_r = r->norm();
-	if(sqr_r > _TSP_sqr_rcut[int_type]) return (number) 0.;
+	// cut-off for the telechelic monomers
+	if(sqr_r > this->_sqr_rcut) return (number) 0.;
 
-	number part = pow(_TSP_sqr_sigma[int_type] / sqr_r, _TSP_n[int_type] / 2);
-	number energy = -_TSP_cut_energy[int_type];
+	// this number is the module of the force over r, so we don't have to divide the distance
+	// vector for its module
+	number force_mod = 0;
+	number energy = 0;
+	// cut-off for all the repulsive interactions
+	if(sqr_r < _TSP_sqr_rep_rcut) {
+		number part = pow(1./sqr_r, _TSP_n/2.);
+		energy += 4 * (part * (part - 1.)) + 1.;
+		if(update_forces) force_mod += 4 * _TSP_n * part * (2*part - 1) / sqr_r;
+	}
 
-	energy += 4 * _TSP_epsilon[int_type] * part * (part - (number) _TSP_attractive[int_type]);
+	// telechelic monomers
+	if(int_type == 2) {
+		if(sqr_r < _TSP_sqr_rep_rcut) energy -= _TSP_lambda;
+		// same as before except for a lambda in front of both energy and force
+		else {
+			number part = pow(1./sqr_r, _TSP_n/2.);
+			energy += 4 * _TSP_lambda * part * (part - 1.);
+
+			if(update_forces) force_mod += 4 * _TSP_lambda * _TSP_n * part * (2*part - 1) / sqr_r;
+		}
+	}
 
 	if(update_forces) {
-		// this number is the module of the force over r, so we don't have to divide the distance
-		// vector for its module
-		number force_mod = 4 * _TSP_n[int_type] * _TSP_epsilon[int_type] * part * (2*part - (number) _TSP_attractive[int_type]) / sqr_r;
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -181,7 +183,7 @@ void TSPInteraction<number>::check_input_sanity(BaseParticle<number> **particles
 		if(p->n5 != P_VIRTUAL && p->n5->index >= N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
-		number mind = _TSP_sigma[0]*0.5;
+		number mind = 0.5;
 		number maxd = _rfene;
 		if(p->n3 != P_VIRTUAL && p->n3->n5 != P_VIRTUAL) {
 			BaseParticle<number> *q = p->n3;
@@ -373,7 +375,7 @@ bool TSPInteraction<number>::_does_overlap(BaseParticle<number> **particles, Bas
 template<typename number>
 void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
 	number old_rcut = this->_rcut;
-	this->_rcut = _TSP_sigma[0];
+	this->_rcut = 1;
 	this->_sqr_rcut = SQR(this->_rcut);
 
 	this->_create_cells(particles, N, box_side);
@@ -390,7 +392,7 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 		LR_vector<number> anchor_pos = p->pos;
 
 		for(int na = 0; na < _N_arms[ns]; na++) {
-			LR_vector<number> dir = _TSP_sigma[0]*Utils::get_random_vector<number>();
+			LR_vector<number> dir = Utils::get_random_vector<number>();
 			number arm_dist = 1.;
 			// if we simulate TSPs then the distance between an anchor and the first monomer of each arm
 			// should be more than one sigma to avoid overlaps
@@ -407,7 +409,7 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 
 				// if there are only chains then we want to generate non-straight chains
 				// and hence we extract a new random direction
-				if(_only_chains) dir = _TSP_sigma[0]*Utils::get_random_vector<number>();
+				if(_only_chains) dir = Utils::get_random_vector<number>();
 
 				p->index = i;
 				// if we simulate TSPs then we check for overlaps only for the first monomer
