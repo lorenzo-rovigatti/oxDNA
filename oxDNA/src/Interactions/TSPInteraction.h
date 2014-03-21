@@ -32,14 +32,10 @@ protected:
 	number _rfene, _sqr_rfene;
 	number _rfene_anchor, _sqr_rfene_anchor;
 
-	number _TSP_sigma[3];
-	number _TSP_sqr_sigma[3];
-	number _TSP_rcut[3];
-	number _TSP_sqr_rcut[3];
-	number _TSP_attractive[3];
-	number _TSP_cut_energy[3];
-	number _TSP_epsilon[3];
-	int _TSP_n[3];
+	number _TSP_sqr_rep_rcut;
+	number _TSP_lambda;
+	int _TSP_n;
+
 	bool _attractive_anchor;
 	bool _only_chains;
 
