@@ -40,6 +40,7 @@ SET(observables_SOURCES
 	Observables/DensityProfile.cpp
 	Observables/ParticlePosition.cpp
 	Observables/CoaxVariables.cpp
+	Observables/Pitch.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
 	Observables/Configurations/TclOutput.cpp
