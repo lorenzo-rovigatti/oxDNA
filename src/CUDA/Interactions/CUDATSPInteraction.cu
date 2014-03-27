@@ -55,15 +55,15 @@ void CUDATSPInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rfene, &f_copy, sizeof(float)) );
 	f_copy = this->_sqr_rfene_anchor;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rfene_anchor, &f_copy, sizeof(float)) );
+	f_copy = this->_sqr_rcut;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rcut, &f_copy, sizeof(float)) );
+	f_copy = this->_TSP_sqr_rep_rcut;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rep_rcut, &f_copy, sizeof(float)) );
+	f_copy = this->_TSP_lambda;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_lambda, &f_copy, sizeof(float)) );
 
-	COPY_ARRAY_TO_CONSTANT(MD_TSP_sqr_rcut, this->_TSP_sqr_rcut, 3);
-	COPY_ARRAY_TO_CONSTANT(MD_TSP_sigma, this->_TSP_sigma, 3);
-	COPY_ARRAY_TO_CONSTANT(MD_TSP_sqr_sigma, this->_TSP_sqr_sigma, 3);
-	COPY_ARRAY_TO_CONSTANT(MD_TSP_attractive, this->_TSP_attractive, 3);
-	COPY_ARRAY_TO_CONSTANT(MD_TSP_cut_energy, this->_TSP_cut_energy, 3);
-	COPY_ARRAY_TO_CONSTANT(MD_TSP_epsilon, this->_TSP_epsilon, 3);
-
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_n, &this->_TSP_n, 3*sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_n, &this->_TSP_n, sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_only_chains, &this->_only_chains, sizeof(int)) );
 
 	if(this->_use_edge) CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)) );
 }

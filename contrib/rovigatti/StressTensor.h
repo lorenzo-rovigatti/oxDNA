@@ -8,7 +8,7 @@
 #ifndef STRESSTENSOR_H_
 #define STRESSTENSOR_H_
 
-#include "../BaseObservable.h"
+#include "BaseObservable.h"
 
 /**
  * @brief Computes the stress tensors in real space (Eq. 4.4.13 in the Frenkel & Smit book)
@@ -25,5 +25,8 @@ public:
 	void get_settings(input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
 };
+
+extern "C" BaseObservable<float> *make_float() { return new StressTensor<float>(); }
+extern "C" BaseObservable<double> *make_double() { return new StressTensor<double>(); }
 
 #endif /* STRESSTENSOR_H_ */

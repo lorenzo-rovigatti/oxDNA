@@ -8,7 +8,7 @@
 #ifndef PATCHYTOMGL_H_
 #define PATCHYTOMGL_H_
 
-#include "../Configurations/Configuration.h"
+#include "Configurations/Configuration.h"
 
 /**
  * @brief Prints an mgl configuration for patchy systems.
@@ -35,5 +35,8 @@ public:
 	void get_settings(input_file &my_inp, input_file &sim_inp);
 	void init(ConfigInfo<number> &config_info);
 };
+
+extern "C" BaseObservable<float> *make_float() { return new PatchyToMgl<float>(); }
+extern "C" BaseObservable<double> *make_double() { return new PatchyToMgl<double>(); }
 
 #endif /* PATCHYTOMGL_H_ */
