@@ -30,16 +30,16 @@ __device__ LR_GPU_matrix<double> _get_updated_orientation(LR_double4 &L, const L
 	return _matrix_matrix_product<double>(old_o, R);
 }
 
-__global__ void first_step_mixed(float4 *poss, LR_GPU_matrix<float> *orientations, LR_double4 *possd, LR_GPU_matrix<double> *orientationsd, float4 *list_poss, LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool *are_lists_old) {
+__global__ void first_step_mixed(float4 *poss, LR_GPU_matrix<float> *orientations, LR_double4 *possd, LR_GPU_matrix<double> *orientationsd, float4 *list_poss, LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool *are_lists_old, bool any_rigid_body) {
 	if(IND >= MD_N[0]) return;
 
 	float4 F = forces[IND];
 
 	LR_double4 v = velsd[IND];
 
-	v.x += F.x * MD_dt[0] * 0.5;
-	v.y += F.y * MD_dt[0] * 0.5;
-	v.z += F.z * MD_dt[0] * 0.5;
+	v.x += F.x * MD_dt[0] * 0.5f;
+	v.y += F.y * MD_dt[0] * 0.5f;
+	v.z += F.z * MD_dt[0] * 0.5f;
 
 	velsd[IND] = v;
 
@@ -54,56 +54,30 @@ __global__ void first_step_mixed(float4 *poss, LR_GPU_matrix<float> *orientation
 	float4 rf = make_float4(r.x, r.y, r.z, r.w);
 	poss[IND] = rf;
 
-	float4 T = torques[IND];
-	LR_double4 L = Lsd[IND];
-
-	L.x += T.x * MD_dt[0] * 0.5;
-	L.y += T.y * MD_dt[0] * 0.5;
-	L.z += T.z * MD_dt[0] * 0.5;
-
-	Lsd[IND] = L;
-
-	const LR_GPU_matrix<double> new_o = _get_updated_orientation(L, orientationsd[IND]);
-	orientationsd[IND] = new_o;
-
-	const LR_GPU_matrix<float> new_of = {(float)new_o.e[0], (float)new_o.e[1], (float)new_o.e[2],
-								  (float)new_o.e[3], (float)new_o.e[4], (float)new_o.e[5],
-								  (float)new_o.e[6], (float)new_o.e[7], (float)new_o.e[8]};
-	orientations[IND] = new_of;
-
-	// do verlet lists need to be updated?
-	if(quad_distance<float, float4>(rf, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
-}
-
-__global__ void first_step_mixed_spheres(float4 *poss, LR_double4 *possd, float4 *list_poss, LR_double4 *velsd, float4 *forces, bool *are_lists_old) {
-	if(IND >= MD_N[0]) return;
-
-	float4 F = forces[IND];
-
-	LR_double4 v = velsd[IND];
-
-	v.x += F.x * MD_dt[0] * 0.5;
-	v.y += F.y * MD_dt[0] * 0.5;
-	v.z += F.z * MD_dt[0] * 0.5;
-
-	velsd[IND] = v;
-
-	LR_double4 r = possd[IND];
-
-	r.x += v.x * MD_dt[0];
-	r.y += v.y * MD_dt[0];
-	r.z += v.z * MD_dt[0];
-
-	possd[IND] = r;
-
-	float4 rf = make_float4(r.x, r.y, r.z, r.w);
-	poss[IND] = rf;
+	if(any_rigid_body) {
+		float4 T = torques[IND];
+		LR_double4 L = Lsd[IND];
+		
+		L.x += T.x * MD_dt[0] * 0.5;
+		L.y += T.y * MD_dt[0] * 0.5;
+		L.z += T.z * MD_dt[0] * 0.5;
+		
+		Lsd[IND] = L;
+		
+		const LR_GPU_matrix<double> new_o = _get_updated_orientation(L, orientationsd[IND]);
+		orientationsd[IND] = new_o;
+		
+		const LR_GPU_matrix<float> new_of = {(float)new_o.e[0], (float)new_o.e[1], (float)new_o.e[2],
+									  (float)new_o.e[3], (float)new_o.e[4], (float)new_o.e[5],
+									  (float)new_o.e[6], (float)new_o.e[7], (float)new_o.e[8]};
+		orientations[IND] = new_of;
+	}
 
 	// do verlet lists need to be updated?
 	if(quad_distance<float, float4>(rf, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
 }
 
-__global__ void second_step_mixed(LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques) {
+__global__ void second_step_mixed(LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool any_rigid_body) {
 	if(IND >= MD_N[0]) return;
 
 	float4 F = forces[IND];
@@ -112,19 +86,19 @@ __global__ void second_step_mixed(LR_double4 *velsd, LR_double4 *Lsd, float4 *fo
 	v.x += (F.x * MD_dt[0] * 0.5f);
 	v.y += (F.y * MD_dt[0] * 0.5f);
 	v.z += (F.z * MD_dt[0] * 0.5f);
-	v.w = ((float)v.x*(float)v.x + (float)v.y*(float)v.y + (float)v.z*(float)v.z) * 0.5f;
 
 	velsd[IND] = v;
 
-	float4 T = torques[IND];
-	LR_double4 L = Lsd[IND];
-
-	L.x += (T.x * MD_dt[0] * 0.5f);
-	L.y += (T.y * MD_dt[0] * 0.5f);
-	L.z += (T.z * MD_dt[0] * 0.5f);
-	L.w = ((float)L.x*(float)L.x + (float)L.y*(float)L.y + (float)L.z*(float)L.z) * 0.5f;
-
-	Lsd[IND] = L;
+	if(any_rigid_body) {
+		float4 T = torques[IND];
+		LR_double4 L = Lsd[IND];
+		
+		L.x += (T.x * MD_dt[0] * 0.5f);
+		L.y += (T.y * MD_dt[0] * 0.5f);
+		L.z += (T.z * MD_dt[0] * 0.5f);
+		
+		Lsd[IND] = L;
+	}
 }
 
 __global__ void float4_to_LR_double4(float4 *src, LR_double4 *dest) {

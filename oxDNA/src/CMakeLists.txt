@@ -47,9 +47,6 @@ SET(observables_SOURCES
 	Observables/Configurations/PdbOutput.cpp
 	Observables/Configurations/ChimeraOutput.cpp
 	Observables/ObservableFactory.cpp
-	Observables/LR/ConstructwiseBonds.cpp
-	Observables/LR/PatchyToMgl.cpp
-	Observables/LR/StressTensor.cpp
 )
 
 SET(backends_SOURCES

@@ -35,10 +35,6 @@
 #include "Configurations/BinaryConfiguration.h"
 #include "Configurations/TclOutput.h"
 
-#include "LR/ConstructwiseBonds.h"
-#include "LR/PatchyToMgl.h"
-#include "LR/StressTensor.h"
-
 ObservableFactory::ObservableFactory() {
 
 }
@@ -64,13 +60,10 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "hb_list", 512)) res = new HBList<number>();
 	else if(!strncasecmp(obs_type, "order_parameters", 512)) res = new OrderParameterValues<number>();
 	else if(!strncasecmp(obs_type, "strandwise_bonds", 512)) res = new StrandwiseBonds<number>();
-	else if(!strncasecmp(obs_type, "constructwise_bonds", 512)) res = new ConstructwiseBonds<number>();
 	else if(!strncasecmp(obs_type, "force_energy", 512)) res = new ForceEnergy<number>();
 	else if(!strncasecmp(obs_type, "configuration", 512)) res = new Configuration<number>();
 	else if(!strncasecmp(obs_type, "binary_configuration", 512)) res = new BinaryConfiguration<number>();
 	else if(!strncasecmp(obs_type, "tcl_configuration", 512)) res = new TclOutput<number>();
-	else if(!strncasecmp(obs_type, "patchy_to_mgl", 512)) res = new PatchyToMgl<number>();
-	else if(!strncasecmp(obs_type, "stress_tensor", 512)) res = new StressTensor<number>();
 	else if(!strncasecmp(obs_type, "pressure", 512)) res = new Pressure<number>();
 	else if(!strncasecmp(obs_type, "density", 512)) res = new Density<number>();
 	else if(!strncasecmp(obs_type, "density_profile", 512)) res = new DensityProfile<number>();

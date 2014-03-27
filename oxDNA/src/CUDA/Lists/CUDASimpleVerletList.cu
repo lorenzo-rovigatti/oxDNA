@@ -40,7 +40,7 @@ void CUDASimpleVerletList<float, float4>::get_settings(input_file &inp) {
 	getInputFloat(&inp, "verlet_skin", &_verlet_skin, 1);
 	getInputFloat(&inp, "max_density_multiplier", &_max_density_multiplier, 0);
 	int tmpi;
-	if(getInputInt(&inp, "use_edge", &tmpi, 0) == KEY_FOUND) {
+	if(getInputBoolAsInt(&inp, "use_edge", &tmpi, 0) == KEY_FOUND) {
 		if (tmpi > 0) this->_use_edge = true;
 		else this->_use_edge = false;
 		if (this->_use_edge) OX_LOG(Logger::LOG_INFO, "Using edge-based approach...");
@@ -125,11 +125,14 @@ void CUDASimpleVerletList<number, number4>::update(number4 *poss, number4 *list_
 
 	if(_d_cell_overflow[0] == true) throw oxDNAException("A cell contains more than _max_n_per_cell (%d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell);
 
+	// texture binding for the number of particles contained in each cell
+	cudaBindTexture(0, counters_cells_tex, _d_counters_cells, sizeof(int)*_N_cells);
+
 	// for edge based approach
 	if(this->_use_edge) {
 		edge_update_neigh_list<number, number4>
 			<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-			(poss, list_poss, _d_cells, _d_counters_cells, _d_matrix_neighs, _d_number_neighs, _d_number_neighs_no_doubles, bonds);
+			(poss, list_poss, _d_cells, _d_matrix_neighs, _d_number_neighs, _d_number_neighs_no_doubles, bonds);
 		CUT_CHECK_ERROR("edge_update_neigh_list (SimpleVerlet) error");
 
 		// thrust operates on the GPU
@@ -146,7 +149,7 @@ void CUDASimpleVerletList<number, number4>::update(number4 *poss, number4 *list_
 	else {
 		simple_update_neigh_list<number, number4>
 			<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-			(poss, list_poss, _d_cells, _d_counters_cells, _d_matrix_neighs, _d_number_neighs, bonds);
+			(poss, list_poss, _d_cells, _d_matrix_neighs, _d_number_neighs, bonds);
 		CUT_CHECK_ERROR("update_neigh_list (SimpleVerlet) error");
 	}
 }

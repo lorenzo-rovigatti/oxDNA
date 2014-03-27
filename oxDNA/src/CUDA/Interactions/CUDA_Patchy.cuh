@@ -13,7 +13,7 @@ __constant__ float4 MD_base_patches[2][CUDA_MAX_PATCHES];
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
 template <typename number, typename number4>
-__device__ number4 minimum_image(const number4 &r_i, const number4 &r_j) {
+__device__ number4 minimum_image(number4 &r_i, number4 &r_j) {
 	number dx = r_j.x - r_i.x;
 	number dy = r_j.y - r_i.y;
 	number dz = r_j.z - r_i.z;
@@ -26,20 +26,7 @@ __device__ number4 minimum_image(const number4 &r_i, const number4 &r_j) {
 }
 
 template <typename number, typename number4>
-__device__ number quad_minimum_image_dist(const number4 &r_i, const number4 &r_j) {
-	number dx = r_j.x - r_i.x;
-	number dy = r_j.y - r_i.y;
-	number dz = r_j.z - r_i.z;
-
-	dx -= floorf(dx/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-	dy -= floorf(dy/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-	dz -= floorf(dz/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-
-	return dx*dx + dy*dy + dz*dz;
-}
-
-template <typename number, typename number4>
-__device__ void _particle_particle_interaction(const number4 &ppos, const number4 &qpos, const LR_GPU_matrix<number> &po, const LR_GPU_matrix<number> &qo, number4 &F, number4 &torque) {
+__device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, LR_GPU_matrix<number> &po, LR_GPU_matrix<number> &qo, number4 &F, number4 &torque) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 
@@ -49,13 +36,11 @@ __device__ void _particle_particle_interaction(const number4 &ppos, const number
 
 	number part = 1;
 	for(int i = 0; i < PATCHY_POWER / 2; i++) part /= sqr_r;
-	number energy = part - MD_E_cut[0];
 
 	number force_module = PATCHY_POWER * part / sqr_r;
 	F.x -= r.x * force_module;
 	F.y -= r.y * force_module;
 	F.z -= r.z * force_module;
-	F.w += energy;
 
 	for(int pi = 0; pi < MD_N_patches[ptype]; pi++) {
 		number4 ppatch = {
@@ -84,7 +69,6 @@ __device__ void _particle_particle_interaction(const number4 &ppos, const number
 				number r8b10 = dist*dist*dist*dist / MD_patch_pow_alpha[0];
 				number exp_part = -1.001f * expf(-(number)0.5f * r8b10 * dist);
 
-				F.w += exp_part - MD_patch_E_cut[0];
 				number4 tmp_force = patch_dist * (5 * exp_part * r8b10);
 
 				torque -= _cross<number, number4>(ppatch, tmp_force);
@@ -109,10 +93,9 @@ __global__ void patchy_forces(number4 *poss, LR_GPU_matrix<number> *orientations
 	number4 ppos = poss[IND];
 	LR_GPU_matrix<number> po = orientations[IND];
 
-	T.w = (number) 0;
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND) {
-			const number4 qpos = poss[j];
+			number4 qpos = poss[j];
 			LR_GPU_matrix<number> qo = orientations[j];
 
 			_particle_particle_interaction<number, number4>(ppos, qpos, po, qo, F, T);
@@ -121,8 +104,6 @@ __global__ void patchy_forces(number4 *poss, LR_GPU_matrix<number> *orientations
 
 	T = _matrix_transpose_number4_product<number>(po, T);
 
-	// the real energy per particle is half of the one computed (because we count each interaction twice)
-	F.w *= (number) 0.5f;
 	forces[IND] = F;
 	torques[IND] = T;
 }
@@ -146,13 +127,9 @@ __global__ void patchy_forces_edge(number4 *poss, LR_GPU_matrix<number> *orienta
 
 	_particle_particle_interaction<number, number4>(ppos, qpos, po, qo, dF, dT);
 
-	dF.w *= (number) 0.5f;
-	dT.w *= (number) 0.5f;
-
 	int from_index = MD_N[0]*(IND % MD_n_forces[0]) + b.from;
-	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
-	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z + dF.w*dF.w) > (number)0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
-	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z + dT.w*dT.w) > (number)0.f) LR_atomicAddXYZ(&(torques[from_index]), _matrix_transpose_number4_product<number>(po, dT));
+	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z) > (number)0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
+	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z) > (number)0.f) LR_atomicAddXYZ(&(torques[from_index]), _matrix_transpose_number4_product<number>(po, dT));
 
 	// Allen Eq. 6 pag 3:
 	number4 dr = minimum_image<number, number4>(ppos, qpos); // returns qpos-ppos
@@ -166,9 +143,8 @@ __global__ void patchy_forces_edge(number4 *poss, LR_GPU_matrix<number> *orienta
 	dF.z = -dF.z;
 
 	int to_index = MD_N[0]*(IND % MD_n_forces[0]) + b.to;
-	//int to_index = MD_N[0]*(b.n_to % MD_n_forces[0]) + b.to;
-	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z + dF.w*dF.w) > (number)0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
-	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z + dT.w*dT.w) > (number)0.f) LR_atomicAddXYZ(&(torques[to_index]), _matrix_transpose_number4_product<number>(qo, dT));
+	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z) > (number)0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
+	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z) > (number)0.f) LR_atomicAddXYZ(&(torques[to_index]), _matrix_transpose_number4_product<number>(qo, dT));
 }
 
 // forces + second step with verlet lists
@@ -176,25 +152,23 @@ template <typename number, typename number4>
 __global__ void patchy_forces(number4 *poss, LR_GPU_matrix<number> *orientations, number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs) {
 	if(IND >= MD_N[0]) return;
 
-	number4 F = make_number4<number, number4>(0, 0, 0, 0);
+	number4 F = forces[IND];
 	number4 T = make_number4<number, number4>(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	LR_GPU_matrix<number> po = orientations[IND];
 
-	const int num_neighs = number_neighs[IND];
+	int num_neighs = number_neighs[IND];
 
 	for(int j = 0; j < num_neighs; j++) {
-		const int k_index = matrix_neighs[j*MD_N[0] + IND];
+		int k_index = matrix_neighs[j*MD_N[0] + IND];
 
-		const number4 qpos = poss[k_index];
+		number4 qpos = poss[k_index];
 		LR_GPU_matrix<number> qo = orientations[k_index];
 		_particle_particle_interaction<number, number4>(ppos, qpos, po, qo, F, T);
 	}
 
 	T = _matrix_transpose_number4_product<number>(po, T);
 
-	// the real energy per particle is half of the one computed (because we count each interaction twice)
-	F.w *= (number) 0.5f;
 	forces[IND] = F;
 	torques[IND] = T;
 }

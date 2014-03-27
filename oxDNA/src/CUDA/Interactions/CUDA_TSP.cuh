@@ -7,14 +7,11 @@ __constant__ int MD_n_forces[1];
 
 __constant__ float MD_sqr_rfene[1];
 __constant__ float MD_sqr_rfene_anchor[1];
-__constant__ float MD_TSP_sigma[3];
-__constant__ float MD_TSP_sqr_sigma[3];
-__constant__ float MD_TSP_sqr_rcut[3];
-__constant__ float MD_TSP_attractive[3];
-__constant__ float MD_TSP_cut_energy[3];
-__constant__ float MD_TSP_epsilon[3];
-__constant__ int MD_TSP_n[3];
-__constant__ int MD_TSP_type[3];
+__constant__ float MD_sqr_rcut[1];
+__constant__ float MD_sqr_rep_rcut[1];
+__constant__ float MD_TSP_lambda[1];
+__constant__ int MD_TSP_n[1];
+__constant__ bool MD_TSP_only_chains[1];
 /* texture reference for positions */
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
@@ -52,14 +49,24 @@ template <typename number, typename number4>
 __device__ void _LJ(number4 &r, int int_type, number4 &F) {
 	number sqr_r = CUDA_DOT(r, r);
 
-	number part = powf(MD_TSP_sqr_sigma[int_type] / sqr_r, MD_TSP_n[int_type] / 2);
-	number energy = -MD_TSP_cut_energy[int_type];
-
-	energy += 4 * MD_TSP_epsilon[int_type] * part * (part - (number) MD_TSP_attractive[int_type]);
+	number part = powf(1.f / sqr_r, MD_TSP_n[0] / 2);
+	number energy = 0.f;
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector for its module
-	number force_mod = 4 * MD_TSP_n[int_type] * MD_TSP_epsilon[int_type] * part * (2*part - (number) MD_TSP_attractive[int_type]) / sqr_r;
-	if(sqr_r > MD_TSP_sqr_rcut[int_type]) energy = force_mod = (number) 0.f;
+	number force_mod = 0.f;
+
+	if(sqr_r < MD_sqr_rep_rcut[0]) {
+		energy += 4*part*(part - 1.f) + 1.f;
+		force_mod += 4.f*MD_TSP_n[0]*part*(2*part -1.f) / sqr_r;
+	}
+
+	if(int_type == 2) {
+		energy -= (sqr_r < MD_sqr_rep_rcut[0]) ? MD_TSP_lambda[0] : 0;
+		energy += 4*MD_TSP_lambda[0]*part*(part - 1.f);
+		force_mod += 4.f*MD_TSP_lambda[0]*MD_TSP_n[0]*part*(2*part -1.f) / sqr_r;
+	}
+
+	if(sqr_r > MD_sqr_rcut[0]) energy = force_mod = (number) 0.f;
 
 	F.x -= r.x * force_mod;
 	F.y -= r.y * force_mod;
@@ -69,13 +76,13 @@ __device__ void _LJ(number4 &r, int int_type, number4 &F) {
 template<typename number, typename number4>
 __device__ void _fene(number4 &r, number4 &F, bool anchor=false) {
 	number sqr_r = CUDA_DOT(r, r);
-	number sqr_rfene = (anchor) ? MD_sqr_rfene_anchor[0] : MD_sqr_rfene[0];
+	number sqr_rfene = (anchor && !MD_TSP_only_chains[0]) ? MD_sqr_rfene_anchor[0] : MD_sqr_rfene[0];
 
-	number energy = -15.f*MD_TSP_epsilon[0] * sqr_rfene * logf(1.f - sqr_r/sqr_rfene);
+	number energy = -15.f*sqr_rfene * logf(1.f - sqr_r/sqr_rfene);
 
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector by its module
-	number force_mod = -30.f*MD_TSP_epsilon[0] * sqr_rfene / (sqr_rfene - sqr_r);
+	number force_mod = -30.f* sqr_rfene / (sqr_rfene - sqr_r);
 	F.x -= r.x * force_mod;
 	F.y -= r.y * force_mod;
 	F.z -= r.z * force_mod;
