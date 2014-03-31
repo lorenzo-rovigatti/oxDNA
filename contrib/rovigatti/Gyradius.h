@@ -11,7 +11,7 @@
 #include "BaseObservable.h"
 
 /**
- * @brief Outputs the density of the system in number of particles over volume in simulation units
+ * @brief Computes the gyration radius of a single chain
  *
  */
 template<typename number>

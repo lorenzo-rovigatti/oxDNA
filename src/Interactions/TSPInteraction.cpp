@@ -226,7 +226,7 @@ int TSPInteraction<number>::get_N_from_topology() {
 	for(int i = 0; i < my_N_stars; i++) {
 		if(!topology.good()) throw oxDNAException("Not enough stars found in the topology file. There are only %d lines, there should be %d, aborting", i, my_N_stars);
 		topology.getline(line, 512);
-		if(sscanf(line, "%d %d %*f\n", &N_arms, &N_monomer_per_arm) != 2) throw new oxDNAException("The topology file does not contain any info on star n.%d\n", i);
+		if(sscanf(line, "%d %d %*f\n", &N_arms, &N_monomer_per_arm) != 2) throw oxDNAException("The topology file does not contain any info on star n.%d", i);
 
 		N_from_topology += N_monomer_per_arm * N_arms;
 	}
@@ -265,6 +265,8 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 	// construct the topology, i.e. assign the right FENE neighbours to all the particles
 	int p_ind = 0;
 	for(int ns = 0; ns < my_N_stars; ns++) {
+		int attractive_from = (int) round(_N_monomer_per_arm[ns] * (1. - _alpha[ns]));
+		OX_LOG(Logger::LOG_INFO, "Adding a TSP with %d arms, %d monomers per arm (of which %d repulsive)", _N_arms[ns], attractive_from);
 		TSPParticle<number> *anchor = (TSPParticle<number> *) particles[p_ind];
 		anchor->flag_as_anchor();
 		// this is an anchor: it has n_arms FENE neighbours since it is attached to each arm
@@ -276,9 +278,8 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 
 		p_ind++;
 		for(int na = 0; na < _N_arms[ns]; na++) {
-			int attractive_from = (int) round(_N_monomer_per_arm[ns] * (1. - _alpha[ns]));
 			for(int nm = 0; nm < _N_monomer_per_arm[ns]; nm++) {
-				int type = (nm > attractive_from) ? P_B : P_A;
+				int type = (nm >= attractive_from) ? P_B : P_A;
 				TSPParticle<number> *p = (TSPParticle<number> *) particles[p_ind];
 				p->type = p->btype = type;
 				p->strand_id = ns;

@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include "PatchyToMgl.h"
-#include "../../Interactions/PatchyInteraction.h"
+#include "../Interactions/PatchyInteraction.h"
 
 template<typename number>
 PatchyToMgl<number>::PatchyToMgl() : Configuration<number>() {
