@@ -377,7 +377,7 @@ void MD_CUDABackend<number, number4>::init(char conf_filename[256]){
 
 				}
 				else {
-					throw new oxDNAException ("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane and RepulsionPlaneMoving forces are supported on CUDA at the moment.\n");
+					throw oxDNAException ("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane and RepulsionPlaneMoving forces are supported on CUDA at the moment.\n");
 				}
 			}
 		}
