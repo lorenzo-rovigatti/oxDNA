@@ -6,6 +6,9 @@
  */
 
 #include "InteractionFactory.h"
+
+#include "../PluginManagement/PluginManager.h"
+
 #include "DNAInteraction.h"
 #include "DNAInteraction_nomesh.h"
 #include "RNAInteraction.h"
@@ -58,7 +61,11 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 	else if(!strncmp(inter_type, "Dirk", 512)) return new DirkInteraction<number>();
 	else if(!strncmp(inter_type, "Dirk2", 512)) return new DirkInteraction2<number>();
 	else if(!strncmp(inter_type, "custom", 512)) return new CustomInteraction<number>();
-	else throw oxDNAException("Invalid interaction '%s'", inter_type);
+	else {
+		IBaseInteraction<number> *res = PluginManager::instance()->get_interaction<number>(inter_type);
+		if(res == NULL) throw oxDNAException ("Interaction '%s' not found. Aborting", inter_type);
+		return res;
+	}
 }
 
 template IBaseInteraction<float> *InteractionFactory::make_interaction<float>(input_file &inp);

@@ -10,18 +10,21 @@
 
 #include <string>
 #include <vector>
+#include <stack>
 
 #include "../Observables/BaseObservable.h"
 #include "../Utilities/parse_input/parse_input.h"
+#include "../Interactions/BaseInteraction.h"
 
 /**
- * @brief Manages oxDNA plugins. As of now it only supports {@link BaseObservable observables}.
+ * @brief Manages oxDNA plugins. As of now it only supports {@link BaseObservable observables} and {@link IBaseInteraction interactions}.
  * It implements the singleton pattern (see http://en.wikipedia.org/wiki/Singleton_pattern).
  *
- * As of now, only {@link BaseObservable observables} plugins are supported. In order to write an
- * observable plugin you should write a regular observable and add two simple functions that serve as
- * entry points for the plugin manager.
- * As an example, we will assume that the new observable plugin is called MyObservable. We write
+ * As of now, only {@link BaseObservable observable} and {@link IBaseInteraction interaction}
+ * plugins are supported. In order to write a plugin you should write a regular observable
+ * or interaction class and add two simple functions that serve as entry points for the plugin
+ * manager.
+ * As an example, we will assume that the new plugin is an observable named MyObservable. We write
  * this observable in two files, MyObservable.cpp and MyObservable.h. In order to provide the
  * required entry points we  add the following two lines at the end of the MyObservable.h file
  *
@@ -43,6 +46,14 @@ g++ -shared -o MyObservable.so MyObservable.o
  * an observable specifier (as you would do for a regular observable). Note that the 'type' specifier
  * should match the case-sensitive filename and NOT the class name.
  *
+ * The exact same procedure described above holds true for interactions. In this case, the two
+ * entry functions should be defined as follows (with the new class being named MyInteraction)
+ *
+ * @code
+extern "C" IBaseInteraction<float> *make_float() { return new MyInteraction<float>(); }
+extern "C" IBaseInteraction<double> *make_double() { return new MyInteraction<double>(); }
+@endcode
+ *
  * @verbatim
 [plugin_search_path = <string> (a semicolon-separated list of directories where plugins are looked for in, in addition to the current directory.)]
 @endverbatim
@@ -52,6 +63,9 @@ protected:
 	static PluginManager *_manager;
 	std::vector<std::string> _path;
 	bool _initialised;
+	std::stack<void *> _handles;
+
+	void *_get_handle(string &name);
 
 private:
 	PluginManager();
@@ -78,6 +92,14 @@ public:
 	 */
 	template<typename number>
 	BaseObservable<number> *get_observable(std::string name);
+
+	/**
+	 * @brief Looks for an {@link BaseInteraction interaction} plugin in the current plugin path and, if found, builds it and returns it as a pointer
+	 * @param name Case-sensitive name of the plugin
+	 * @return a pointer to the newly built plugin
+	 */
+	template<typename number>
+	IBaseInteraction<number> *get_interaction(std::string name);
 
 	/**
 	 * @brief Cleans up the manager.

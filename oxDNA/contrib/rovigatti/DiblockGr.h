@@ -9,6 +9,7 @@
 #define DIBLOCKGR_H_
 
 #include "BaseObservable.h"
+#include "ForceEnergy.h"
 
 /**
  * @brief Computes the A-A, A-B, B-B and intramolecular g(r) of a two-chain diblock copolymer system
@@ -21,7 +22,11 @@ protected:
 	number _bin;
 	int _n_bins;
 	int _n_conf;
-	llint *_inter_hist[3], *_intra_hist;
+	bool _biased;
+	number _T;
+	number *_inter_hist[3], *_intra_hist;
+	number _inter_norm[3], _intra_norm;
+	ForceEnergy<number> _force_energy;
 
 	int _get_bin(number sqr_dist);
 
