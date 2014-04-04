@@ -48,7 +48,7 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	char obs_type[512];
 	getInputString(&obs_inp, "type", obs_type, 1);
 
-	BaseObservable<number> * res = NULL;
+	BaseObservable<number> *res = NULL;
 
 	if(!strncasecmp(obs_type, "step", 512)) res = new Step<number>();
 	else if(!strncasecmp(obs_type, "potential_energy", 512)) res = new PotentialEnergy<number>();
@@ -75,11 +75,8 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "coax_variables", 512)) res = new CoaxVariables<number>();
 	else if(!strncasecmp(obs_type, "pitch", 512)) res = new Pitch<number>();
 	else {
-		PluginManager *pm = PluginManager::instance();
-		pm->init(sim_inp);
-		res = pm->get_observable<number>(obs_type);
-		if(res == NULL) throw oxDNAException ("Observable '%s' does not exist. Aborting", obs_type);
-		pm->clear();
+		res = PluginManager::instance()->get_observable<number>(obs_type);
+		if(res == NULL) throw oxDNAException ("Observable '%s' not found. Aborting", obs_type);
 	}
 
 	res->get_settings(obs_inp, sim_inp);

@@ -266,7 +266,7 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 	int p_ind = 0;
 	for(int ns = 0; ns < my_N_stars; ns++) {
 		int attractive_from = (int) round(_N_monomer_per_arm[ns] * (1. - _alpha[ns]));
-		OX_LOG(Logger::LOG_INFO, "Adding a TSP with %d arms, %d monomers per arm (of which %d repulsive)", _N_arms[ns], attractive_from);
+		OX_LOG(Logger::LOG_INFO, "Adding a TSP with %d arms, %d monomers per arm (of which %d repulsive)", _N_arms[ns], _N_monomer_per_arm[ns], attractive_from);
 		TSPParticle<number> *anchor = (TSPParticle<number> *) particles[p_ind];
 		anchor->flag_as_anchor();
 		// this is an anchor: it has n_arms FENE neighbours since it is attached to each arm

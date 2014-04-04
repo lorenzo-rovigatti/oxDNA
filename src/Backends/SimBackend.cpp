@@ -12,6 +12,7 @@
 #include "../Interactions/InteractionFactory.h"
 #include "../Forces/ForceFactory.h"
 #include "../Lists/ListFactory.h"
+#include "../PluginManagement/PluginManager.h"
 
 template<typename number>
 SimBackend<number>::SimBackend() {
@@ -75,11 +76,17 @@ SimBackend<number>::~SimBackend() {
 
 	// destroy lists;
 	if (_lists != NULL) delete _lists;
+
+	PluginManager::clear();
 }
 
 template<typename number>
 void SimBackend<number>::get_settings(input_file &inp) {
 	int tmp;
+
+	// initialise the plugin manager with the input file
+	PluginManager *pm = PluginManager::instance();
+	pm->init(inp);
 
 	_interaction = InteractionFactory::make_interaction<number>(inp);
 	_interaction->get_settings(inp);
