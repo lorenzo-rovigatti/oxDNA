@@ -7,6 +7,7 @@
 
 #include "GeneratorManager.h"
 #include "../Interactions/InteractionFactory.h"
+#include "../PluginManagement/PluginManager.h"
 
 GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	_use_density = false;
@@ -66,6 +67,9 @@ void GeneratorManager::load_options() {
 	srand48((long int)seed);
 
 	Logger::instance()->get_settings(_input);
+
+	PluginManager *pm = PluginManager::instance();
+	pm->init(_input);
 
 	_interaction = InteractionFactory::make_interaction<double>(_input);
 	_interaction->get_settings(_input);
