@@ -22,7 +22,7 @@ if len (sys.argv) > 4:
     if sys.argv[4] == "cdmto0":
         cdm20 = True
 
-centre_strand = False
+centre_strand = None
 if len (sys.argv) > 5:
     centre_strand = int(sys.argv[5])
 
@@ -41,7 +41,7 @@ while s:
     # center of mass to 0
     if cdm20:
         # centre of mass of centre_strand to zero
-        if centre_strand:
+        if centre_strand is not None:
             base.Logger.log("setting centre of mass of strand %s to zero" %centre_strand, base.Logger.INFO)
             centre_of_mass = np.array([0.,0.,0.])
             n_nucleotides = 0
