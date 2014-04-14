@@ -106,7 +106,7 @@ void CUDAPatchyInteraction<number, number4>::compute_forces(CUDABaseList<number,
 					//(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_edge_list, _v_lists->_N_edges);
 					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges);
 
-				_sum_edge_forces_torques(d_forces, d_torques);
+				this->_sum_edge_forces_torques(d_forces, d_torques);
 
 				// potential for removal here
 				cudaThreadSynchronize();
