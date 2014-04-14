@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="0.840946717">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="0.840946717" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -51,6 +49,8 @@
 									<listOptionValue builtIn="false" value="__host__"/>
 									<listOptionValue builtIn="false" value="__constant__"/>
 									<listOptionValue builtIn="false" value="__device__"/>
+									<listOptionValue builtIn="false" value="SVN_VERSION=&quot;dummy&quot;"/>
+									<listOptionValue builtIn="false" value="BUILD_TIME=&quot;dummy&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.655505622" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -99,6 +99,10 @@
 							<builder arguments="nocuda=1" command="make" id="org.eclipse.cdt.build.core.settings.default.builder.2079233642" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1301075779" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.780806539" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.634889017" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="SVN_VERSION"/>
+									<listOptionValue builtIn="false" value="BUILD_TIME"/>
+								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.361536062" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.815999029" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">

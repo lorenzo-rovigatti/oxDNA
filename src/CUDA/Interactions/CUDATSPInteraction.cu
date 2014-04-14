@@ -109,7 +109,7 @@ void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
 					(d_poss, this->_d_edge_forces, _v_lists->_d_edge_list, _v_lists->_N_edges);
 
-				_sum_edge_forces(d_forces);
+				this->_sum_edge_forces(d_forces);
 
 				// potential for removal here
 				cudaThreadSynchronize();
