@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-PROCESSDIR = '/home/petr/workspace/CUDADNA/UTILS/process_data/'
+PROCESSDIR = '../../UTILS/'
 
 import subprocess
 import base
@@ -13,10 +13,12 @@ def check_domain_status(conffile,topologyfile,a1,b1,a2,b2):
 	r = readers.LorenzoReader(conffile,topologyfile)
 	mysystem = r.get_system()
 	mysystem.map_nucleotides_to_strands()
-	launchargs = [PROCESSDIR+'output_bonds',inputfile,conffile]
+	print PROCESSDIR+'output_bonds.py'
+	launchargs = [PROCESSDIR+'output_bonds.py',inputfile,conffile]
 	myinput = subprocess.Popen(launchargs,stdout=subprocess.PIPE, stderr=subprocess.PIPE) 
 	mysystem.read_H_bonds(myinput.stdout.readlines())
 	#a1 paried with b1, a2 with b2
+	print 'Launched my inpit and got' , inputfile, conffile
 	bindex = b1
 	totbonds = 0
 	for i in range(a1,a2+1):
@@ -38,8 +40,8 @@ def gen_force_file(conffile,topology,bond_pairs,no_of_w,out_file_name):
 			b = pair[1]
 			if(s._nucleotides[a]._btype + s._nucleotides[b]._btype != 3):
 				print 'Error, bases ',a,b,' are not complementary'
-			ous = '{ \ntype = mutual_trap\nparticle = %d\nstiff = 0.9\nr0 = 1.2\nref_particle = %d\n}\n' % (a,b)
-			ous += '{ \ntype = mutual_trap\nparticle = %d\nstiff = 0.9\nr0 = 1.2\nref_particle = %d\n}\n' % (b,a)
+			ous = '{ \ntype = mutual_trap\nparticle = %d\nstiff = 0.9\nr0 = 1.2\nref_particle = %d\nPBC=1\n}\n' % (a,b)
+			ous += '{ \ntype = mutual_trap\nparticle = %d\nstiff = 0.9\nr0 = 1.2\nref_particle = %d\nPBC=1\n}\n' % (b,a)
 			outfile.write(ous)
 			counter = counter + 1
 			print 'Using mutual trap ', a,b

@@ -59,7 +59,8 @@ lines = topology.split('\n')
 for i in range(len(lines)):
 	vals = lines[i].split()
 	if(i >= len(new_topology)):
-		print >> sys.stderr, 'impossible index ',i
+		pass
+		#print >> sys.stderr, 'impossible index ',i
 	else:
 		vals[1] = str(new_topology[i])
 		for info in vals:
