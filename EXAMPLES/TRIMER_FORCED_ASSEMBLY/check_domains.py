@@ -5,7 +5,7 @@ import readers
 
 import sys
 
-PROCESSDIR = '/home/petr/workspace/CUDADNA/UTILS/process_data/' 
+PROCESSDIR = '../../UTILS/' 
 
 def check_domain_status(mysystem,a1,b1,a2,b2):
 	#a1 paried with b1, a2 with b2
@@ -38,7 +38,7 @@ index = 16
 new_topology = range(s._N)
 import subprocess
 mysystem.map_nucleotides_to_strands()
-launchargs = [PROCESSDIR + 'output_bonds',inputfile,conffile]
+launchargs = [PROCESSDIR + 'output_bonds.py',inputfile,conffile]
 myinput = subprocess.Popen(launchargs,stdout=subprocess.PIPE, stderr=subprocess.PIPE) 
 mysystem.read_H_bonds(myinput.stdout.readlines())
 
