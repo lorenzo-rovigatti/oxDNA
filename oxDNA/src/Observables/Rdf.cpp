@@ -29,7 +29,7 @@ std::string Rdf<number>::get_output_string(llint curr_step) {
 
 	if (_max_value > box_side / 2. && _nconf == 1) OX_LOG(Logger::LOG_WARNING, "Observable Rdf: computing profile with max_value > box_size/2. (%g > %g/2.)", _max_value, box_side);
 
-	number fact = 1. / N / (N / (box_side * box_side * box_side));
+	number fact = box_side * box_side * box_side / (N * (N - 1.));
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];

@@ -267,18 +267,25 @@ void SimBackend<number>::init(char conf_filename[256]) {
 
 	_conf_input.seekg(0);
 
+	// we need to skip a certain number of lines, depending on how many
+	// particles we have and how many configurations we want to skip
+	if(_confs_to_skip > 0) {
+		int rows_to_skip = _confs_to_skip * (_N+3);
+		int i;
+		OX_LOG(Logger::LOG_INFO, "Skipping %d configuration(s)", _confs_to_skip);
+		for(i = 0; i < rows_to_skip && _conf_input.good(); i++) {
+			string trash;
+			getline(_conf_input, trash);
+		}
+		if(i != rows_to_skip) throw oxDNAException("Skipping %d configuration(s) is not possible, as the initial configuration file only contains %d.", _confs_to_skip, i/(_N+3));
+	}
+
 	bool check = false;
 	if (_initial_conf_is_binary) check = _read_next_configuration(true);
 	else check = _read_next_configuration();
 	if (!check) throw oxDNAException("Could not read the initial configuration, aborting");
 
 	_start_step_from_file = _read_conf_step;
-
-	// initializes the observable output machinery. This part has to follow
-	// read_topology() since _particles has to be initialized
-	ConfigInfo<number> conf_info(_particles, &_box_side, _interaction, &_N, &_backend_info);
-	typename vector<ObservableOutput<number> *>::iterator it;
-	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) (*it)->init(conf_info);
 
 	if (_external_forces) _read_external_forces();
 
@@ -290,14 +297,11 @@ void SimBackend<number>::init(char conf_filename[256]) {
 
 	_lists->init(_particles, _rcut);
 
-	// we need to skip a certain number of lines, depending on how many
-	// particles we have and how many configurations we want to skip
-	if(_confs_to_skip > 0) {
-		// TODO: change this so that there are no length limits
-		char trash[5000];
-		int rows_to_skip = _confs_to_skip * (_N+3);
-		for(int i = 0; i < rows_to_skip; i++) _conf_input.getline(trash, 5000);
-	}
+	// initializes the observable output machinery. This part has to follow
+	// read_topology() since _particles has to be initialized
+	ConfigInfo<number> conf_info(_particles, &_box_side, _interaction, &_N, &_backend_info);
+	typename vector<ObservableOutput<number> *>::iterator it;
+	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) (*it)->init(conf_info);
 
 	OX_LOG(Logger::LOG_INFO, "N: %d", _N);
 }

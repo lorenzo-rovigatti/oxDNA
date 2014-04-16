@@ -31,6 +31,7 @@ protected:
 	 * @param x
 	 * @param x_data
 	 * @param fx_data
+	 * @param points
 	 * @return
 	 */
 	number _linear_interpolation(number x, number *x_data, number *fx_data, int points);
