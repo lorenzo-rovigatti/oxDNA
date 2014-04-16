@@ -24,6 +24,7 @@ TSP_attractive[type] = <float> (whether the interaction contains an attractive t
 TSP_n[type] = <int> (exponent for the generalised LJ potential for each interaction)
 [TSP_attractive_anchor = <bool> (set to true if you want the anchor monomer to be of type B instead of type A. Defaults to false)]
 [TSP_only_chains = <bool> (if true the system will be composed of chains only. The topology will be interpreted accordingly by ignoring the first value of each line (which, in the case of TSPs, is the number of arms). Defaults to false)]
+[TSP_only_intra = <bool> (if true monomers belonging to different stars will not interact. Defaults to false)]
 @endverbatim
  */
 template <typename number>
@@ -38,6 +39,7 @@ protected:
 
 	bool _attractive_anchor;
 	bool _only_chains;
+	bool _only_intra;
 
 	int *_N_arms;
 	int *_N_monomer_per_arm;
@@ -79,6 +81,7 @@ public:
 
 	virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);
 
+	void set_only_intra(bool value) { _only_intra = value; }
 };
 
 #endif /* TSP_INTERACTION_H */

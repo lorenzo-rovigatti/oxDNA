@@ -98,7 +98,7 @@ std::string DiblockGr<number>::get_output_string(llint curr_step) {
 	}
 	for(int i = 0; i < 2; i++) for(int j = 0; j < 2; j++) coms[i][j] /= counters[i][j];
 
-	number factor = 1.;
+	number factor = 2.;
 	if(_biased) {
 		// we need N because the ForceEnergy observable computes the energy per particle and
 		// 0.5 because we have to put two traps to exert a "real", newtonian force between
@@ -144,11 +144,13 @@ std::string DiblockGr<number>::get_output_string(llint curr_step) {
 
 	stringstream ret;
 	ret << "# r g_AA g_AB g_BB g_intra" << endl;
-	number norm = (4.*M_PI*_bin)/(L*L*L);
+	number norm = (4.*M_PI)/(3.*L*L*L)*2;
 	for(int i = 0; i < _n_bins; i++) {
-		number x = (i+0.5)*_bin;
-		number tot_norm = norm * SQR(x);
-		ret << x << " ";
+		number x0 = i*_bin;
+		number x1 = (i+1)*_bin;
+		number vb = (x1*x1*x1 - x0*x0*x0);
+		number tot_norm = norm*vb;
+		ret << x0+0.5*_bin << " ";
 		ret << _inter_hist[AA][i]/(tot_norm*_inter_norm[AA]) << " ";
 		ret << _inter_hist[AB][i]/(tot_norm*_inter_norm[AB]) << " ";
 		ret << _inter_hist[BB][i]/(tot_norm*_inter_norm[BB]) << " ";

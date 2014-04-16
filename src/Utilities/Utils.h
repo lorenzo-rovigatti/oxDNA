@@ -86,14 +86,46 @@ public:
 	 */
 	static std::string sformat_ap(const std::string &fmt, va_list &ap);
 
+	/**
+	 * @brief Generates a random vector having module 1.
+	 *
+	 * @return
+	 */
 	template<typename number> static LR_vector<number> get_random_vector();
+
+	/**
+	 * @brief Generates a random vector inside a sphere of given radius.
+	 *
+	 * @param r sphere radius
+	 * @return
+	 */
 	template<typename number> static LR_vector<number> get_random_vector_in_sphere(number r);
+
+	/**
+	 * @brief Applies the Gram-Schmidt orthonormalization to the given matrix.
+	 *
+	 * @param M the matrix to be orthonormalized
+	 */
 	template<typename number> static void orthonormalize_matrix(LR_matrix<number> &M);
+
+	/**
+	 * @brief Returns a matrix which generates a rotation around a random axis of a random angle, extracted between 0 and max_angle.
+	 *
+	 * @param max_angle
+	 * @return
+	 */
 	template<typename number> static LR_matrix<number> get_random_rotation_matrix(number max_angle=2*M_PI);
+
+	/**
+	 * @brief Returns a matrix which generates a rotation around a random axis of the given angle.
+	 *
+	 * @param angle
+	 * @return
+	 */
 	template<typename number> static LR_matrix<number> get_random_rotation_matrix_from_angle (number angle);
 
 	/**
-	 * @brief Creates a temporary file and loads it in an input_file
+	 * @brief Creates a temporary file and loads it in an input_file.
 	 *
 	 * If the string parameter starts with a curly opening bracket, this method will print in the temporary file
 	 * only the part of the string which is enclosed by the outer bracket pair.
@@ -103,8 +135,25 @@ public:
 	 */
 	static input_file *get_input_file_from_string(const std::string &inp);
 
-	template<typename number>
-	static number get_temperature(char * raw_T);
+	/**
+	 * @brief Parses the string passed as the only argument and try to interpret it as a temperature.
+	 *
+	 * This static method tries to convert raw_T into a temperature. This is mostly used in DNA and
+	 * RNA simulations, as the temperature for these can be specified in Celsius or Kelvin degrees.
+	 *
+	 * For DNA, for example, all the following are equivalent:
+	 *
+	 * Value 	Simulation Units
+	 * 0.1		0.1
+	 * 300 K	0.1
+	 * 300k		0.1
+	 * 26.85c	0.1
+	 * 26.85 C	0.1
+	 *
+	 * @param raw_T c-string containing the text to be parsed
+	 * @return
+	 */
+	template<typename number> static number get_temperature(char *raw_T);
 
 	/**
 	 * @brief fills the memory pointed to by seedptr with the current
@@ -141,7 +190,7 @@ inline LR_vector<number> Utils::get_random_vector_in_sphere(number r) {
 	LR_vector<number> res = LR_vector<number>(r, r, r);
 
 	while(res.norm() > r2) {
-		res = LR_vector<number>(2 * r * (drand48() - 0.5), 2 * r * (drand48() - 0.5), 2 * r * (drand48() - 0.5));
+		res = LR_vector<number>(2.*r*(drand48() - 0.5), 2.*r*(drand48() - 0.5), 2.*r*(drand48() - 0.5));
 	}
 
 	return res;

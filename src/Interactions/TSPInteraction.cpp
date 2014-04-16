@@ -7,15 +7,20 @@ TSPInteraction<number>::TSPInteraction() : BaseInteraction<number, TSPInteractio
 	this->_int_map[BONDED] = &TSPInteraction<number>::pair_interaction_bonded;
 	this->_int_map[NONBONDED] = &TSPInteraction<number>::pair_interaction_nonbonded;
 
+	_alpha = NULL;
+	_N_arms = _N_monomer_per_arm = NULL;
+	_TSP_n = _N_stars = 0;
+
 	_attractive_anchor = false;
 	_only_chains = false;
+	_only_intra = false;
 }
 
 template<typename number>
 TSPInteraction<number>::~TSPInteraction() {
-	delete[] _alpha;
-	delete[] _N_arms;
-	delete[] _N_monomer_per_arm;
+	if(_alpha != NULL) delete[] _alpha;
+	if(_N_arms != NULL) delete[] _N_arms;
+	if(_N_monomer_per_arm != NULL) delete[] _N_monomer_per_arm;
 }
 
 template<typename number>
@@ -49,6 +54,10 @@ void TSPInteraction<number>::get_settings(input_file &inp) {
 	int oc = 0;
 	getInputBoolAsInt(&inp, "TSP_only_chains", &oc, 0);
 	_only_chains = (bool) oc;
+
+	int oi = 0;
+	getInputBoolAsInt(&inp, "TSP_only_intra", &oc, 0);
+	_only_intra = (bool) oi;
 }
 
 template<typename number>
@@ -95,6 +104,7 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 	number sqr_r = r->norm();
 	// cut-off for the telechelic monomers
 	if(sqr_r > this->_sqr_rcut) return (number) 0.;
+	if(sqr_r < 0.5) return 10000000.;
 
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector for its module
@@ -163,6 +173,10 @@ number TSPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 template<typename number>
 number TSPInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
+
+	// if the p and q don't belong to the same star AND the user enabled the TSP_only_intra option then
+	// the interaction should be 0
+	if(_only_intra && p->strand_id != q->strand_id) return 0.;
 
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
