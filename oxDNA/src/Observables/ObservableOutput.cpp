@@ -119,15 +119,15 @@ bool ObservableOutput<number>::is_ready(llint step) {
 
 template<typename number>
 void ObservableOutput<number>::print_output(llint step) {
-	if(_only_last) _output_stream.open(_output_name);
-
+	stringstream ss;
 	typename vector<BaseObservable<number> *>::iterator it;
 	for(it = _obss.begin(); it != _obss.end(); it++) {
-		if(it != _obss.begin()) *_output << " ";
-		*_output << (*it)->get_output_string(step);
+		if(it != _obss.begin()) ss << " ";
+		ss << (*it)->get_output_string(step);
 	}
-	*_output << endl;
 
+	if(_only_last) _output_stream.open(_output_name);
+	*_output << ss.str() << endl;
 	if(_only_last) _output_stream.close();
 }
 

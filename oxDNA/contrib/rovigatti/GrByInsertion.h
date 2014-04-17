@@ -26,7 +26,6 @@ protected:
 		BB = 2
 	};
 
-	number _max_dist;
 	number _bin;
 	int _n_bins;
 	int _n_conf;
@@ -38,6 +37,7 @@ protected:
 	std::vector<BaseParticle<number> *> _particles[2][2];
 	int _type;
 	int _fixed, _movable;
+	number _min, _max;
 
 	int _get_bin(number sqr_dist);
 	void _set_random_orientation(int chain);
