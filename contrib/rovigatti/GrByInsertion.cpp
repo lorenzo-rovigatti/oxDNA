@@ -15,7 +15,6 @@ using namespace std;
 
 template<typename number>
 GrByInsertion<number>::GrByInsertion() {
-	_max_dist = 0.;
 	_n_bins = 0;
 	_n_conf = 0;
 	_bin = 0.1;
@@ -24,6 +23,8 @@ GrByInsertion<number>::GrByInsertion() {
 	_inter_norm[AA] = _inter_norm[AB] = _inter_norm[BB] = 0.;
 	_insertions = 1000;
 	_type = AA;
+	_fixed = _movable = P_A;
+	_min = _max = 0.;
 }
 
 template<typename number>
@@ -44,6 +45,9 @@ void GrByInsertion<number>::get_settings(input_file &my_inp, input_file &sim_inp
 	getInputFloat(&sim_inp, "T", &tmp, 1);
 	_T = tmp;
 
+	if(getInputFloat(&my_inp, "gr_min", &tmp, 0) == KEY_FOUND) _min = tmp;
+	if(getInputFloat(&my_inp, "gr_max", &tmp, 0) == KEY_FOUND) _max = tmp;
+
 	char stype[512];
 	getInputString(&my_inp, "gr_type", stype, 1);
 	if(!strncmp(stype, "AA", 512)) _type = AA;
@@ -57,10 +61,10 @@ template<typename number>
 void GrByInsertion<number>::init(ConfigInfo<number> &config_info) {
 	BaseObservable<number>::init(config_info);
 
-	_max_dist = *config_info.box_side*0.5;
-	_n_bins = _max_dist / _bin;
+	if(_max == 0.) _max = *config_info.box_side*0.5;
+	_n_bins = (_max - _min) / _bin;
 	// rounding
-	_bin = _max_dist / _n_bins;
+	_bin = (_max - _min) / _n_bins;
 
 	_inter_hist[AA] = new number[_n_bins];
 	_inter_hist[AB] = new number[_n_bins];
@@ -97,7 +101,7 @@ void GrByInsertion<number>::init(ConfigInfo<number> &config_info) {
 
 template<typename number>
 int GrByInsertion<number>::_get_bin(number sqr_dist) {
-	int bin = sqrt(sqr_dist) / _bin;
+	int bin = (sqrt(sqr_dist) - _min) / _bin;
 	if(bin >= _n_bins) bin = -1;
 
 	return bin;
@@ -160,7 +164,7 @@ std::string GrByInsertion<number>::get_output_string(llint curr_step) {
 	TSPInteraction<number> *_TSP_inter = (TSPInteraction<number> *) this->_config_info.interaction;
 	_TSP_inter->set_only_intra(false);
 	for(int i = 0; i < _n_bins; i++) {
-		number x0 = i*_bin;
+		number x0 = i*_bin + _min;
 		for(int j = 0; j < _insertions; j++) {
 			// random distance between x0 and x0+bin
 			number distance = pow(x0*x0*x0 + drand48()*(_bin*_bin*_bin + 3.*SQR(_bin)*x0 + 3.*_bin*SQR(x0)), 1. / 3.);
@@ -203,7 +207,7 @@ std::string GrByInsertion<number>::get_output_string(llint curr_step) {
 	ret << "# r g_AA g_AB g_BB" << endl;
 	number norm = _n_conf*_insertions;
 	for(int i = 0; i < _n_bins; i++) {
-		number x = (i+0.5)*_bin;
+		number x = (i+0.5)*_bin + _min;
 		number tot_norm = norm;
 		ret << x << " ";
 		ret << _inter_hist[_type][i]/tot_norm << endl;
