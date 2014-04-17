@@ -25,6 +25,10 @@ public:
 	virtual ~PatchyParticle();
 
 	void set_positions();
+
+	virtual bool is_rigid_body() {
+		return true;
+	}
 };
 
 #endif /* PATCHYPARTICLE_H_ */
