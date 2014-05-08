@@ -20,6 +20,7 @@ protected:
 	bool _accumulate;
 	number _avg_gr2;
 	int _counter;
+	int _type;
 
 public:
 	Gyradius();

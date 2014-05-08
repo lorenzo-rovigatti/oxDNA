@@ -126,11 +126,11 @@ void GrByInsertion<number>::_set_random_orientation(int chain) {
 
 	typename vector<BaseParticle<number> *>::iterator it;
 	for(it = _particles[chain][0].begin(); it != _particles[chain][0].end(); it++) {
-		(*it)->orientation = (*it)->orientation*R;
+		(*it)->pos = R*(*it)->get_abs_pos(*this->_config_info.box_side);
 	}
 	// we have to move the whole chain
 	for(it = _particles[chain][1].begin(); it != _particles[chain][1].end(); it++) {
-		(*it)->orientation = (*it)->orientation*R;
+		(*it)->pos = R*(*it)->get_abs_pos(*this->_config_info.box_side);
 	}
 }
 
