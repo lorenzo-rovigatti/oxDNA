@@ -14,6 +14,7 @@ Alternatives...
 # This hack is already bad enough, don't want folks importing *
 __all__ = []
 
+FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 TESTFILE_LIST = glob.glob("UserTest/Test*.py")
 TEST_DICT = {}
 for test_name in TESTFILE_LIST:
@@ -21,7 +22,7 @@ for test_name in TESTFILE_LIST:
     # Attempt to append to globals/sys.modules fails
     name = os.path.basename(test_name)
 
-    f, pathname, description = imp.find_module(test_name)
+    f, pathname, description = imp.find_module(test_name, [os.path.join(FILE_DIR, "..")])
     module = imp.load_module(name, f, pathname, description)
     test_class = module.__getattribute__(name)
     globals()[name] = module
