@@ -94,6 +94,7 @@ SET(interactions_SOURCES
 
 SET(common_SOURCES
 	Forces/ExternalForce.cpp
+	Forces/COMForce.cpp
 	Forces/ForceFactory.cpp
 	Particles/RNANucleotide.cpp
 	Particles/BaseParticle.cpp

@@ -43,7 +43,7 @@ public:
 	LR_vector<number> _pos0;
 	number _stiff;
 
-	ExternalForce(number base, number rate, LR_vector<number> dir);
+	ExternalForce(number base=0, number rate=0, LR_vector<number> dir=LR_vector<number>(0, 0, 0));
 	virtual ~ExternalForce();
 
 	virtual void set_group_name(std::string &name) { _group_name = name; }

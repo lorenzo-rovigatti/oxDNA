@@ -12,7 +12,7 @@
 
 template<typename number>
 DiblockComs<number>::DiblockComs() {
-
+	_only_intra = false;
 }
 
 template<typename number>
@@ -22,7 +22,9 @@ DiblockComs<number>::~DiblockComs() {
 
 template<typename number>
 void DiblockComs<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-
+	int only_intra = 0;
+	getInputBoolAsInt(&my_inp, "only_intra", &only_intra, 0);
+	_only_intra = (bool) only_intra;
 }
 
 template<typename number>
@@ -47,13 +49,19 @@ std::string DiblockComs<number>::get_output_string(llint curr_step) {
 	}
 	for(int i = 0; i < 2; i++) for(int j = 0; j < 2; j++) coms[i][j] /= counters[i][j];
 
-	number r_AA = sqrt(coms[0][P_A].sqr_min_image_distance(coms[1][P_A], L));
-	number r_AB = sqrt(coms[0][P_A].sqr_min_image_distance(coms[1][P_B], L));
-	number r_BA = sqrt(coms[0][P_B].sqr_min_image_distance(coms[1][P_A], L));
-	number r_BB = sqrt(coms[0][P_B].sqr_min_image_distance(coms[1][P_B], L));
-
 	stringstream ret;
-	ret << r_AA << " " << r_AB << " " << r_BA << " " << r_BB;
+	if(!_only_intra) {
+		number r_AA = sqrt(coms[0][P_A].sqr_min_image_distance(coms[1][P_A], L));
+		number r_AB = sqrt(coms[0][P_A].sqr_min_image_distance(coms[1][P_B], L));
+		number r_BA = sqrt(coms[0][P_B].sqr_min_image_distance(coms[1][P_A], L));
+		number r_BB = sqrt(coms[0][P_B].sqr_min_image_distance(coms[1][P_B], L));
+
+		ret << r_AA << " " << r_AB << " " << r_BA << " " << r_BB << " ";
+	}
+
+	number r_intra = sqrt(coms[0][P_A].sqr_min_image_distance(coms[0][P_B], L));
+	ret << r_intra;
+
 	return ret.str();
 }
 

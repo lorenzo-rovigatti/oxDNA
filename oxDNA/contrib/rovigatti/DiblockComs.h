@@ -17,6 +17,7 @@
 template<typename number>
 class DiblockComs : public BaseObservable<number> {
 protected:
+	bool _only_intra;
 
 public:
 	DiblockComs();

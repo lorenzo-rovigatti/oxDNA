@@ -20,6 +20,7 @@ DiblockGr<number>::DiblockGr() {
 	_T = 0.;
 	_inter_hist[AA] = _inter_hist[AB] = _inter_hist[BB] = _intra_hist = NULL;
 	_inter_norm[AA] = _inter_norm[AB] = _inter_norm[BB] = _intra_norm = 0.;
+	_only_intra = 0;
 }
 
 template<typename number>
@@ -39,6 +40,9 @@ void DiblockGr<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	int biased = 0;
 	getInputBoolAsInt(&my_inp, "biased", &biased, 0);
 	_biased = (bool) biased;
+	int only_intra = 0;
+	getInputBoolAsInt(&my_inp, "only_intra", &only_intra, 0);
+	_only_intra = (bool) only_intra;
 
 	if(_biased) {
 		_force_energy.get_settings(my_inp, sim_inp);
@@ -109,25 +113,28 @@ std::string DiblockGr<number>::get_output_string(llint curr_step) {
 	}
 
 	// inter
-	int bin = _get_bin(coms[0][P_A].sqr_min_image_distance(coms[1][P_A], L));
-	if(bin != -1) {
-		_inter_hist[AA][bin] += factor;
-		_inter_norm[AA] += factor;
-	}
-	bin = _get_bin(coms[0][P_A].sqr_min_image_distance(coms[1][P_B], L));
-	if(bin != -1) {
-		_inter_hist[AB][bin] += factor*0.5;
-		_inter_norm[AB] += factor*0.5;
-	}
-	bin = _get_bin(coms[0][P_B].sqr_min_image_distance(coms[1][P_A], L));
-	if(bin != -1) {
-		_inter_hist[AB][bin] += factor*0.5;
-		_inter_norm[AB] += factor*0.5;
-	}
-	bin = _get_bin(coms[0][P_B].sqr_min_image_distance(coms[1][P_B], L));
-	if(bin != -1) {
-		_inter_hist[BB][bin] += factor;
-		_inter_norm[BB] += factor;
+	int bin;
+	if(!_only_intra) {
+		bin = _get_bin(coms[0][P_A].sqr_min_image_distance(coms[1][P_A], L));
+		if(bin != -1) {
+			_inter_hist[AA][bin] += factor;
+			_inter_norm[AA] += factor;
+		}
+		bin = _get_bin(coms[0][P_A].sqr_min_image_distance(coms[1][P_B], L));
+		if(bin != -1) {
+			_inter_hist[AB][bin] += factor*0.5;
+			_inter_norm[AB] += factor*0.5;
+		}
+		bin = _get_bin(coms[0][P_B].sqr_min_image_distance(coms[1][P_A], L));
+		if(bin != -1) {
+			_inter_hist[AB][bin] += factor*0.5;
+			_inter_norm[AB] += factor*0.5;
+		}
+		bin = _get_bin(coms[0][P_B].sqr_min_image_distance(coms[1][P_B], L));
+		if(bin != -1) {
+			_inter_hist[BB][bin] += factor;
+			_inter_norm[BB] += factor;
+		}
 	}
 
 	// intra
@@ -136,10 +143,13 @@ std::string DiblockGr<number>::get_output_string(llint curr_step) {
 		_intra_hist[bin] += factor*0.5;
 		_intra_norm += factor*0.5;
 	}
-	bin = _get_bin(coms[1][P_A].sqr_min_image_distance(coms[1][P_B], L));
-	if(bin != -1) {
-		_intra_hist[bin] += factor*0.5;
-		_intra_norm += factor*0.5;
+	
+	if(!_only_intra) {
+		bin = _get_bin(coms[1][P_A].sqr_min_image_distance(coms[1][P_B], L));
+		if(bin != -1) {
+			_intra_hist[bin] += factor*0.5;
+			_intra_norm += factor*0.5;
+		}
 	}
 
 	stringstream ret;
@@ -151,9 +161,11 @@ std::string DiblockGr<number>::get_output_string(llint curr_step) {
 		number vb = (x1*x1*x1 - x0*x0*x0);
 		number tot_norm = norm*vb;
 		ret << x0+0.5*_bin << " ";
-		ret << _inter_hist[AA][i]/(tot_norm*_inter_norm[AA]) << " ";
-		ret << _inter_hist[AB][i]/(tot_norm*_inter_norm[AB]) << " ";
-		ret << _inter_hist[BB][i]/(tot_norm*_inter_norm[BB]) << " ";
+		if(!_only_intra) {
+			ret << _inter_hist[AA][i]/(tot_norm*_inter_norm[AA]) << " ";
+			ret << _inter_hist[AB][i]/(tot_norm*_inter_norm[AB]) << " ";
+			ret << _inter_hist[BB][i]/(tot_norm*_inter_norm[BB]) << " ";
+		}
 		ret << _intra_hist[i]/(tot_norm*_intra_norm) << endl;
 	}
 
