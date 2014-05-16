@@ -6,6 +6,7 @@
  */
 
 #include "ForceFactory.h"
+#include "COMForce.h"
 
 using namespace std;
 
@@ -19,6 +20,10 @@ ForceFactory::~ForceFactory() {
 
 template<typename number>
 void ForceFactory::add_force(input_file &inp, BaseParticle<number> **particles, int N, bool is_CUDA, number * box_side_ptr) {
+	char group[512] = "default";
+	getInputString(&inp, "group_name", group, 0);
+	string group_name(group);
+
 	char type_str[512];
 	int type;
 	getInputString (&inp, "type", type_str, 1);
@@ -30,16 +35,19 @@ void ForceFactory::add_force(input_file &inp, BaseParticle<number> **particles, 
 	if (strncmp (type_str, "repulsion_plane_moving", 512) == 0) type = 4;
 	if (strncmp (type_str, "mutual_trap", 512) == 0) type = 5;
 	if (strcmp (type_str, "lowdim_trap") == 0) type = 6;
+	if(strcmp(type_str, "com") == 0) {
+		COMForce<number> *com_force = new COMForce<number>();
+		com_force->get_settings(inp);
+		com_force->init(particles, N, box_side_ptr);
+		com_force->set_group_name(group_name);
+		return;
+	}
 	if (type != 0 && type != 1 && type != 2 && type !=3 && type != 4 && type != 5 && type != 6) throw oxDNAException("force type %s not implemented. Aborting", type_str);
 	int npart, tmpi;
 	if(type == 0 || type == 1 || type == 2 || type == 3 || type == 4 || type == 5 || type == 6) {
 		getInputInt(&inp, "particle", &npart, 1);
 		if(npart >= N || npart < -1) throw oxDNAException("There is a force exerted on a non-existent particle (%d)", npart);
 	}
-
-	char group[512] = "default";
-	getInputString(&inp, "group_name", group, 0);
-	string group_name(group);
 
 	switch (type) {
 	case 0: {

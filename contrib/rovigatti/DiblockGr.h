@@ -27,6 +27,7 @@ protected:
 	number *_inter_hist[3], *_intra_hist;
 	number _inter_norm[3], _intra_norm;
 	ForceEnergy<number> _force_energy;
+	bool _only_intra;
 
 	int _get_bin(number sqr_dist);
 
