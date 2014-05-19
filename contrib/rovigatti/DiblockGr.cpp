@@ -166,7 +166,7 @@ std::string DiblockGr<number>::get_output_string(llint curr_step) {
 			ret << _inter_hist[AB][i]/(tot_norm*_inter_norm[AB]) << " ";
 			ret << _inter_hist[BB][i]/(tot_norm*_inter_norm[BB]) << " ";
 		}
-		ret << _intra_hist[i]/(tot_norm*_intra_norm) << endl;
+		ret << _intra_hist[i]/_intra_norm << " " << _intra_hist[i]/(_intra_norm*tot_norm) << endl;
 	}
 
 	return ret.str();
