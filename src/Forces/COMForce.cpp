@@ -18,7 +18,7 @@ template<typename number>
 COMForce<number>::COMForce() {
 	_r0 = 0;
 	_last_step = -1;
-	_box_side = 0.;
+	_box_side = NULL;
 }
 
 template<typename number>
