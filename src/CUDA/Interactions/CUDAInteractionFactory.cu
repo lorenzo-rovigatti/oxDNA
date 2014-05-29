@@ -5,7 +5,11 @@
  *      Author: lorenzo
  */
 
+#include <string>
+
 #include "CUDAInteractionFactory.h"
+
+#include "../../PluginManagement/PluginManager.h"
 
 #include "CUDADNAInteraction.h"
 #include "CUDALJInteraction.h"
@@ -31,7 +35,13 @@ CUDABaseInteraction<number, number4> *CUDAInteractionFactory::make_interaction(i
 	else if(!strncmp(inter_type, "LJ", 512)) return new CUDALJInteraction<number, number4>();
 	else if(!strncmp(inter_type, "patchy", 512)) return new CUDAPatchyInteraction<number, number4>();
 	else if(!strncmp(inter_type, "TSP", 512)) return new CUDATSPInteraction<number, number4>();
-	else throw oxDNAException("Invalid interaction '%s'", inter_type);
+	else {
+		std::string cuda_name(inter_type);
+		cuda_name = "CUDA" + cuda_name;
+		CUDABaseInteraction<number, number4> *res = dynamic_cast<CUDABaseInteraction<number, number4> *>(PluginManager::instance()->get_interaction<number>(cuda_name));
+		if(res == NULL) throw oxDNAException ("CUDA interaction '%s' not found. Aborting", cuda_name.c_str());
+		return res;
+	}
 }
 
 template class CUDABaseInteraction<float, float4> *CUDAInteractionFactory::make_interaction(input_file &inp);

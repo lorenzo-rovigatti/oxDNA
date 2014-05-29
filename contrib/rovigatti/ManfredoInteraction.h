@@ -25,10 +25,15 @@ protected:
 		STICKY
 	};
 
-	// look up tables
+	// look up tables for intra-tetramer potentials
 	char _intra_filename[3][512];
 	Mesh<number> _intra_mesh[3];
 	int _intra_points[3];
+
+	// look up tables for inter-tetramer potentials
+	char _inter_filename[3][512];
+	Mesh<number> _inter_mesh[3];
+	int _inter_points[3];
 
 	// this is used only during the look-up table set up
 	struct lt_data {
@@ -81,11 +86,25 @@ protected:
 
 	int _get_p_type(BaseParticle<number> *p);
 	int _get_inter_type(BaseParticle<number> *p, BaseParticle<number> *q);
+
+	/**
+	 * @brief Query the given mesh at the value x.
+	 *
+	 * This method is extended to support linear extrapolation for x-values which are out of range.
+	 *
+	 * @param x
+	 * @param m
+	 * @return
+	 */
+	number _query_mesh(number x, Mesh<number> &m);
 public:
 	enum {
 		CENTRE_ARM_INTRA,
 		ARM_ARM_NEAR,
 		ARM_ARM_FAR,
+	};
+
+	enum {
 		CENTRE_ARM_INTER,
 		ARM_ARM_INTER,
 		CENTRE_CENTRE,
@@ -122,7 +141,7 @@ protected:
 	LR_vector<number> _principal_DNA_axis;
 public:
 	CustomArmParticle() : CustomParticle<number>(), _principal_DNA_axis(LR_vector<number>(1, 0, 0)) {};
-	virtual ~CustomArmParticle();
+	virtual ~CustomArmParticle() {};
 
 	virtual bool is_rigid_body() { return true; }
 
@@ -131,13 +150,10 @@ public:
 		return CustomParticle<number>::is_bonded(q);
 	}
 
-	// we copy the next method from the DNANucleotide class
-	// not a pretty way of doing it, but it works. Sorry.
-	void set_positions() {
-		this->int_centers[DNANucleotide<number>::BACK] = this->orientation*_principal_DNA_axis*POS_BACK;
-		this->int_centers[DNANucleotide<number>::STACK] = this->int_centers[DNANucleotide<number>::BACK]*(POS_STACK/POS_BACK);
-		this->int_centers[DNANucleotide<number>::BASE] = this->int_centers[DNANucleotide<number>::STACK]*(POS_BASE/POS_STACK);
-	}
+	void set_positions();
 };
+
+extern "C" ManfredoInteraction<float> *make_float() { return new ManfredoInteraction<float>(); }
+extern "C" ManfredoInteraction<double> *make_double() { return new ManfredoInteraction<double>(); }
 
 #endif /* MANFREDOINTERACTION_H_ */

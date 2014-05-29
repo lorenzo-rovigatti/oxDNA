@@ -57,7 +57,8 @@ void *PluginManager::_get_handle(std::string &name) {
 		OX_DEBUG("Looking for plugin '%s' in '%s'", name.c_str(), it->c_str());
 		handle = dlopen(path.c_str(), RTLD_LAZY);
 	}
-	if(!handle) throw oxDNAException("Shared library '%s.so' not found", name.c_str());
+	const char *dl_error = dlerror();
+	if(dl_error != NULL) throw oxDNAException("Caught an error while opening shared library '%s.so': %s", name.c_str(), dl_error);
 
 	_handles.push(handle);
 
