@@ -181,6 +181,11 @@ void VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 	MC_CPUBackend<number>::get_settings(inp);
 	int is_us, tmpi;
 
+	char inter[512];
+	if(getInputString(&inp, "interaction_type", inter, 0) == KEY_FOUND) {
+		if(strncmp(inter, "DNA", 512) != 0 && strncmp(inter, "DNA_nomesh", 512) != 0 && strncmp(inter, "RNA", 512) != 0) throw oxDNAException("VMMC can be used only with DNA, DNA_nomesh and RNA interactions");
+	}
+
 	if (getInputInt(&inp, "maxclust", &tmpi, 0) == KEY_FOUND) {
 		_maxclust = tmpi;
 		OX_LOG(Logger::LOG_INFO, "Using maxclust = %i", _maxclust);
