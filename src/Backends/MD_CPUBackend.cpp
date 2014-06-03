@@ -5,6 +5,8 @@
  *      Author: lorenzo
  */
 
+#include <sstream>
+
 #include "MD_CPUBackend.h"
 #include "./Thermostats/ThermostatFactory.h"
 
@@ -20,11 +22,18 @@ MD_CPUBackend<number>::~MD_CPUBackend() {
 
 template<typename number>
 void MD_CPUBackend<number>::_first_step(llint cur_step) {
+	bool is_warning = false;
+	std::vector<int> w_ps;
 	for(int i = 0; i < this->_N; i++) {
 		BaseParticle<number> *p = this->_particles[i];
 
 		p->vel += p->force * this->_dt * (number) 0.5;
-		p->pos += p->vel * this->_dt;
+		LR_vector<number> dr = p->vel * this->_dt;
+		if(dr.norm() > 0.01) {
+			is_warning = true;
+			w_ps.push_back(p->index);
+		}
+		p->pos += dr;
 
 		if(p->is_rigid_body()) {
 			p->L += p->torque * this->_dt * (number) 0.5;
@@ -57,6 +66,12 @@ void MD_CPUBackend<number>::_first_step(llint cur_step) {
 		p->set_initial_forces(cur_step, this->_box_side);
 
 		this->_lists->single_update(p);
+	}
+
+	if(is_warning) {
+		std::stringstream ss;
+		for(vector<int>::iterator it = w_ps.begin(); it != w_ps.end(); it++) ss << *it << " ";
+		OX_LOG(Logger::LOG_WARNING, "The following particles had a displacement greater than one in this step: %s", ss.str().c_str());
 	}
 }
 

@@ -113,10 +113,10 @@ __global__ void set_external_forces(number4 *poss, LR_GPU_matrix<number> *orient
 				number max_dr = (number) 5.f;
 				if (dr_abs > max_dr) {
 					dr = dr * (max_dr / dr_abs);
-					dr_abs = _module<number, number4>(dr);
+					dr_abs = max_dr;
 				}
 
-				number4 force = dr / dr_abs * ( dr_abs - extF.mutual.r0) * ((number) 0.5) * extF.mutual.stiff;
+				number4 force = dr / dr_abs * (dr_abs - extF.mutual.r0) * extF.mutual.stiff;
 
 				F.x += force.x;
 				F.y += force.y;

@@ -1,13 +1,14 @@
 ===========================================
 ARCHITETTURA
 
-1d) Make it so that it is possible to override (all?) the numerical constant of (at least) the DNA interaction
+a) New parser (maybe)
+b) Level up config_info
+c) Shape up the new MC stuff
+d) Make external forces more similar to interactions and observables
 
-4) Improve testing script (Ryan)
+1d) Make it so that it is possible to override (all?) the numerical constant of (at least) the DNA interaction -- DONE FOR RNA, STILL TO BE DONE FOR DNA
 
 7) Make SimManager more parallel friendly (with Petr)
-
-10) Major/minor grooving
 
 11) Is it possible to have mixed precision on CPU?
 
@@ -21,21 +22,10 @@ STRONZATE
 
 14) Make it so that all the PT replica flush at the same time when the code is stopped 
 
-25) Fix US weight file so that if order parameter and weight files do not agree then you get undefined behaviour (without warnings). 
-
-26) Find a way of warning the user if velocities are too large in magnitude
-
-27) If external forces are used, the total energy due to the them should be printed in the energy file. !DONE?
-
-
 ================================================================================================
 VENUTE FUORI DOPO
 
-a) box_side ==> vettore
-
+a) box_side ==> vector (I did it and it turned out to slow things down considerably)
 
 ======================================================
 MORE THINGS
-
-a) Observables for chimera, vmd and cogli1 output
-
