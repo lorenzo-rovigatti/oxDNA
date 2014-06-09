@@ -8,10 +8,6 @@
 #ifndef BACKENDFACTORY_H_
 #define BACKENDFACTORY_H_
 
-extern "C" {
-#include "../Utilities/parse_input/parse_input.h"
-}
-
 #include "SimBackend.h"
 
 /**

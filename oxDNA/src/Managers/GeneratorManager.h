@@ -8,10 +8,6 @@
 #ifndef GENERATORMANAGER_H_
 #define GENERATORMANAGER_H_
 
-extern "C" {
-#include "../Utilities/parse_input/parse_input.h"
-}
-
 #include "../defs.h"
 #include "../Backends/AnalysisBackend.h"
 #include "../Particles/BaseParticle.h"

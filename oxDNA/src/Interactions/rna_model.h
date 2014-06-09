@@ -9,9 +9,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-extern "C" {
 #include "../Utilities/parse_input/parse_input.h"
-}
 
 //#define PI 3.141592653589793238462643f
 

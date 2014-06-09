@@ -13,9 +13,7 @@
 
 #include <cstdarg>
 
-extern "C" {
 #include "parse_input/parse_input.h"
-}
 
 /**
  * @brief Simple logger

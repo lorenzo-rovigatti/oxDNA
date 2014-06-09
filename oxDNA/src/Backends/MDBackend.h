@@ -25,8 +25,6 @@ protected:
 	number _dt;
 	bool _refresh_velocities;
 
-	void _get_number_settings(input_file &inp);
-
 	void _generate_vel();
 
 public:

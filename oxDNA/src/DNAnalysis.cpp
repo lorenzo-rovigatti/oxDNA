@@ -10,10 +10,6 @@
  * See high-level documentation on web: http://dna.physics.ox.ac.uk
  */
 
-extern "C" {
-#include "Utilities/parse_input/parse_input.h"
-}
-
 #include "defs.h"
 #include "Managers/AnalysisManager.h"
 

@@ -108,6 +108,9 @@ int _readLine(FILE *inp_file, char **key, char **value) {
 
 						char * new_trimmed_line = malloc((strlen(new_line)+1)*sizeof(char));
 						getTrimmedString(new_line, new_trimmed_line);
+						int new_trimmed_len = strlen(new_trimmed_line);
+						new_trimmed_line[new_trimmed_len] = '\n';
+						new_trimmed_line[new_trimmed_len + 1] = '\0';
 						if(new_trimmed_line[0] != '#') {
 							for(i = 0; i < strlen(new_line); i++) {
 								if(new_line[i] == '{') sum++;
@@ -115,8 +118,8 @@ int _readLine(FILE *inp_file, char **key, char **value) {
 							}
 							char *buffer = malloc((strlen(*value)+1) * sizeof(char));
 							strcpy(buffer, *value);
-							*value = realloc(*value, (strlen(*value) + strlen(new_line) + 1) * sizeof(char));
-							sprintf(*value, "%s%s", buffer, new_line);
+							*value = realloc(*value, (strlen(*value) + strlen(new_trimmed_line) + 1) * sizeof(char));
+							sprintf(*value, "%s%s", buffer, new_trimmed_line);
 							free(buffer);
 						}
 						free(new_line);

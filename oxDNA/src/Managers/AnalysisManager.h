@@ -8,10 +8,6 @@
 #ifndef ANALYSISMANAGER_H_
 #define ANALYSISMANAGER_H_
 
-extern "C" {
-#include "../Utilities/parse_input/parse_input.h"
-}
-
 #include "../defs.h"
 #include "../Backends/AnalysisBackend.h"
 

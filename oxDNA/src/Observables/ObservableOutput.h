@@ -13,10 +13,6 @@
 
 #include "BaseObservable.h"
 
-extern "C" {
-#include "../Utilities/parse_input/parse_input.h"
-}
-
 /**
  * @brief Manages a single output stream.
  *

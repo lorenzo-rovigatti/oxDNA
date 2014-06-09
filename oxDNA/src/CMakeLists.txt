@@ -109,7 +109,7 @@ SET(common_SOURCES
 	Utilities/Utils.cpp
 	Utilities/oxDNAException.cpp
 	Utilities/Logger.cpp
-	Utilities/parse_input/parse_input.c
+	Utilities/parse_input/parse_input.cpp
 	Utilities/timing/timing.c
 	Utilities/time_scales/time_scales.c
 	PluginManagement/PluginManager.cpp

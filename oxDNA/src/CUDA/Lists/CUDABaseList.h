@@ -9,11 +9,6 @@
 #ifndef CUDABASELIST_H_
 #define CUDABASELIST_H_
 
-extern "C" {
-#include "../../Utilities/parse_input/parse_input.h"
-}
-
-#include "../../Utilities/oxDNAException.h"
 #include "../CUDAUtils.h"
 
 /**
