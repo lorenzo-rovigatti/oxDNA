@@ -35,6 +35,7 @@
 
 #include "model.h"
 #include "Utilities/Logger.h"
+#include "Utilities/parse_input/parse_input.h"
 
 typedef long long int llint;
 template<typename number> class LR_vector;

@@ -12,7 +12,6 @@
 #include <ctime>
 
 extern "C" {
-#include "../../parse_input/parse_input.h"
 #include "../../timing/timing.h"
 #include "../../time_scales/time_scales.h"
 }

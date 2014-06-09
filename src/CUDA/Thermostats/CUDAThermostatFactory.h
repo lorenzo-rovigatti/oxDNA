@@ -10,10 +10,6 @@
 
 #include "CUDABaseThermostat.h"
 
-extern "C" {
-#include "../../Utilities/parse_input/parse_input.h"
-}
-
 /**
  * @brief CUDA Thermostat factory class.
  */

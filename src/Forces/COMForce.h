@@ -11,10 +11,6 @@
 #include <set>
 #include <string>
 
-extern "C" {
-#include "../Utilities/parse_input/parse_input.h"
-}
-
 #include "ExternalForce.h"
 
 /**

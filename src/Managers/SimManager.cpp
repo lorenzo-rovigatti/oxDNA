@@ -33,18 +33,13 @@ SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000), _res
 }
 
 SimManager::~SimManager() {
-	char unread[1024];
-	unread[0] = '\0';
-
 	// print unread (i.e. unused) keys
 	setUnreadKeys(&_input);
-	if(_input.N_unread_keys > 0) {
-		for(int i = 0; i < _input.N_unread_keys; i++) {
-			if(strlen(unread) < 1024)
-				sprintf(unread+strlen(unread), "\n\t%s", _input.unread_keys[i]);
-		}
-		OX_DEBUG("The following keys found in the input file were not used: %s", unread);
+	std::string unread;
+	for(std::vector<std::string>::iterator it = _input.unread_keys.begin(); it != _input.unread_keys.end(); it++) {
+		unread += string("\n\t") + *it;
 	}
+	if(unread.size() > 0) OX_DEBUG("The following keys found in the input file were not used: %s", unread.c_str());
 
 	cleanInputFile(&_input);
 	cleanTimeScale(&_time_scale_manager);

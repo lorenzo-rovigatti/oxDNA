@@ -21,10 +21,6 @@
 
 #include "../defs.h"
 
-extern "C" {
-#include "../Utilities/parse_input/parse_input.h"
-}
-
 /**
  * @brief Utility class. It mostly contains static methods.
  */

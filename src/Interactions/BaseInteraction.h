@@ -18,10 +18,6 @@
 #include "../Utilities/oxDNAException.h"
 #include "./Mesh.h"
 
-extern "C" {
-#include "../Utilities/parse_input/parse_input.h"
-}
-
 using namespace std;
 
 /**

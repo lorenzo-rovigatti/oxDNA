@@ -11,10 +11,6 @@
 #include "../CUDAUtils.h"
 #include "../Lists/CUDABaseList.h"
 
-extern "C" {
-#include "../../Utilities/parse_input/parse_input.h"
-}
-
 /**
  * @brief Abstract class providing an interface for CUDA-based interactions.
  */

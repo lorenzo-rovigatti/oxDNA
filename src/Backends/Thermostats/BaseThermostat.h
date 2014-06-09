@@ -1,9 +1,6 @@
 #ifndef BASE_THERMOSTAT_
 #define BASE_THERMOSTAT_
 
-extern "C" {
-#include "../../Utilities/parse_input/parse_input.h"
-}
 #include "../../Utilities/Utils.h"
 #include "../../Utilities/oxDNAException.h"
 #include "../../defs.h"

@@ -32,17 +32,21 @@ template<typename number>
 void MC_CPUBackend<number>::get_settings(input_file &inp) {
 	MCBackend<number>::get_settings(inp);
 
-	float skin = 1.0f;
-	getInputFloat(&inp, "verlet_skin", &skin, 0);
-	_verlet_skin = skin;
+	//float skin = 1.0f;
+	//getInputFloat(&inp, "verlet_skin", &skin, 0);
+	//_verlet_skin = skin;
 	
-	int tmpi;
-	if (getInputBoolAsInt(&inp, "enable_flip", &tmpi, 0) == KEY_FOUND) {
-		if (tmpi > 0) {
-			OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Enabling flip move...");
-			_enable_flip = true;
-		}
-	}
+	//int tmpi;
+	//if (getInputBoolAsInt(&inp, "enable_flip", &tmpi, 0) == KEY_FOUND) {
+	//	if (tmpi > 0) {
+	//		OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Enabling flip move...");
+	//		_enable_flip = true;
+	//	}
+	//}
+
+	getInputNumber<number> (&inp, "verlet_skin", &_verlet_skin, 0);
+	getInputBool (&inp, "enable_flip", &_enable_flip, 0);
+	if (_enable_flip) OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Enabling flip move");
 }
 
 template<typename number>

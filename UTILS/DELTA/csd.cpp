@@ -5,10 +5,6 @@
  *      Author: lorenzo
  */
 
-extern "C" {
-#include "../../parse_input/parse_input.h"
-}
-
 #include "../../defs.h"
 #include "CSDManager.h"
 

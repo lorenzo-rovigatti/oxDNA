@@ -29,16 +29,6 @@ MDBackend<number>::~MDBackend() {
 
 }
 
-template<>
-void MDBackend<float>::_get_number_settings(input_file &inp) {
-	getInputFloat(&inp, "dt", &_dt, 1);
-}
-
-template<>
-void MDBackend<double>::_get_number_settings(input_file &inp) {
-	getInputDouble(&inp, "dt", &_dt, 1);
-}
-
 template<typename number>
 void MDBackend<number>::get_settings(input_file &inp) {
 	SimBackend<number>::get_settings(inp);
@@ -47,7 +37,7 @@ void MDBackend<number>::get_settings(input_file &inp) {
 	int resc;
 	if(getInputBoolAsInt(&inp, "refresh_vel", &resc, 0) == KEY_FOUND) _refresh_velocities = resc;
 
-	_get_number_settings(inp);
+	getInputNumber<number>(&inp, "dt", &_dt, 1);
 
 	char energy_file[512];
 	llint print_every;
