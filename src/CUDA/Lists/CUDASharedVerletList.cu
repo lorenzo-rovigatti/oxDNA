@@ -8,6 +8,7 @@
 #include "CUDASharedVerletList.h"
 #include "../cuda_utils/cuda_device_utils.h"
 #include "CUDA_shared_verlet.cuh"
+#include "../../Utilities/oxDNAException.h"
 
 #include <thrust/device_vector.h>
 #include <thrust/extrema.h>

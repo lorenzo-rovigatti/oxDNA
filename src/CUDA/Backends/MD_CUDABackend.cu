@@ -282,7 +282,7 @@ void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
 		if(_use_edge && sizeof(number) == sizeof(double)) throw oxDNAException("use_edge and double precision are not compatible");
 	}
 
-	_cuda_thermostat = CUDAThermostatFactory::make_thermostat<number, number4>(inp);
+	_cuda_thermostat = CUDAThermostatFactory::make_thermostat<number, number4>(inp, this->_box_side);
 	_cuda_thermostat->get_settings(inp);
 }
 

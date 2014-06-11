@@ -10,6 +10,24 @@
 #ifndef CUDA_LR_COMMON
 #define CUDA_LR_COMMON
 
+#include <curand_kernel.h>
+
+__forceinline__ __device__ void gaussian(curandState &state, float &outx, float &outy) {
+	float r = sqrtf(-2.0f * logf(curand_uniform(&state)));
+	float phi = 2.f * PI * curand_uniform(&state);
+
+	outx = r * __cosf(phi);
+	outy = r * __sinf(phi);
+}
+
+__forceinline__ __device__ void gaussian(curandState &state, double &outx, double &outy) {
+	double r = sqrt(-2. * log(curand_uniform(&state)));
+	double phi = 2 * M_PI * curand_uniform(&state);
+
+	outx = r * cos(phi);
+	outy = r * sin(phi);
+}
+
 /**
  * @brief found at { @link http://stackoverflow.com/questions/12626096/why-has-atomicadd-not-been-implemented-for-doubles }
  */

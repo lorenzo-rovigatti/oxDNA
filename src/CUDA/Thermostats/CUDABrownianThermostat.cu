@@ -93,7 +93,7 @@ bool CUDABrownianThermostat<number, number4>::would_activate(llint curr_step) {
 }
 
 template<typename number, typename number4>
-void CUDABrownianThermostat<number, number4>::apply_cuda(number4 *d_poss, LR_GPU_matrix<number> *d_orientationss, number4 *d_vels, number4 *d_Ls, llint curr_step) {
+void CUDABrownianThermostat<number, number4>::apply_cuda(number4 *d_poss, LR_GPU_matrix<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
 	brownian_thermostat<number, number4>

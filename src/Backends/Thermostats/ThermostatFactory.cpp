@@ -31,7 +31,7 @@ BaseThermostat<number> *ThermostatFactory::make_thermostat(input_file &inp, numb
 	else if(!strncmp(thermostat_type, "no", 512)) return new NoThermostat<number>();
 	else if(!strncmp(thermostat_type, "refresh", 512)) return new RefreshThermostat<number>();
 	else if(!strncmp(thermostat_type, "langevin", 512)) return new LangevinThermostat<number>();
-	else if(!strncmp(thermostat_type, "srd", 512)) return new SRDThermostat<number>(box_side);
+	else if(!strncmp(thermostat_type, "srd", 512) || !strncmp(thermostat_type, "SRD", 512)) return new SRDThermostat<number>(box_side);
 	else throw oxDNAException("Invalid Thermostat '%s'", thermostat_type);
 }
 
