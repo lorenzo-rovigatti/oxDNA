@@ -6,6 +6,7 @@
  */
 
 #include "CUDAListFactory.h"
+#include "../../Utilities/oxDNAException.h"
 
 #include "CUDANoList.h"
 #include "CUDASimpleVerletList.h"
