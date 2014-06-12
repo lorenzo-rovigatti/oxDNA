@@ -219,6 +219,7 @@ void ForceFactory::add_force(input_file &inp, BaseParticle<number> **particles, 
 		OX_LOG(Logger::LOG_INFO, "--> adding LowdimMovingTrap with stiffness %lf and pos=[%g,%g,%g] + (%g * t) [%g,%g,%g] on part %i and visX=%i visY=%i visZ=%i", stiff, pos0x, pos0y, pos0z, rate, dirx, diry, dirz, npart, visX ? 1:0, visY ? 1:0, visZ ? 1:0);
 
 		LowdimMovingTrap<number> *extF = new LowdimMovingTrap<number>((number) stiff, LR_vector<number> ((number)pos0x, (number) pos0y, (number) pos0z), (number) rate, LR_vector<number>((number)dirx, (number)diry, (number)dirz),visX,visY,visZ);
+		extF->set_group_name(group_name);
 		particles[npart]->add_ext_force(extF);
 		break;
 	}
