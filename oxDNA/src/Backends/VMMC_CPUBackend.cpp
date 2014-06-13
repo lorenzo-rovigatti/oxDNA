@@ -10,6 +10,8 @@
 #include "../Utilities/Utils.h"
 #include "../Interactions/DNAInteraction.h"
 #include "../Particles/DNANucleotide.h"
+#include "../Interactions/RNAInteraction2.h"
+#include "../Interactions/DNAInteraction2.h"
 
 template<typename number> VMMC_CPUBackend<number>::VMMC_CPUBackend() : MC_CPUBackend<number>() {
 	//_op = NULL;
@@ -183,7 +185,7 @@ void VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 
 	char inter[512];
 	if(getInputString(&inp, "interaction_type", inter, 0) == KEY_FOUND) {
-		if(strncmp(inter, "DNA", 512) != 0 && strncmp(inter, "DNA_nomesh", 512) != 0 && strncmp(inter, "RNA", 512) != 0) throw oxDNAException("VMMC can be used only with DNA, DNA_nomesh and RNA interactions");
+		if(strncmp(inter,"DNA2",512) != 0 && strncmp(inter,"RNA2",512) != 0 &&  strncmp(inter, "DNA", 512) != 0 && strncmp(inter, "DNA_nomesh", 512) != 0 && strncmp(inter, "RNA", 512) != 0) throw oxDNAException("VMMC can be used only with DNA, DNA_nomesh and RNA interactions");
 	}
 
 	if (getInputInt(&inp, "maxclust", &tmpi, 0) == KEY_FOUND) {
@@ -390,6 +392,17 @@ inline number VMMC_CPUBackend<number>::_particle_particle_nonbonded_interaction_
 	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::NONBONDED_EXCLUDED_VOLUME, p, q, &r, false);
 	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::CROSS_STACKING, p, q, &r, false);
 	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::COAXIAL_STACKING, p, q, &r, false);
+
+        if(dynamic_cast<DNA2Interaction<number> *>(this->_interaction) != NULL)
+	{
+		energy += this->_interaction->pair_interaction_term(DNA2Interaction<number>::DEBYE_HUCKEL, p, q, &r, false);
+	}
+	else if(dynamic_cast<RNA2Interaction<number> *>(this->_interaction) != NULL)
+	{
+		
+	        energy += this->_interaction->pair_interaction_term(RNA2Interaction<number>::DEBYE_HUCKEL, p, q, &r, false);
+	}
+
 
 	return energy;
 }

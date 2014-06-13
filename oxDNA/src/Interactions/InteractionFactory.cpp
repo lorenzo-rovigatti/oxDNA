@@ -24,6 +24,9 @@
 #include "DirkInteraction.h"
 #include "DirkInteraction2.h"
 #include "CustomInteraction.h"
+#include "DNAInteraction2.h"
+#include "RNAInteraction2.h"
+
 
 InteractionFactory::InteractionFactory() {
 
@@ -61,6 +64,8 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 	else if(!strncmp(inter_type, "Dirk", 512)) return new DirkInteraction<number>();
 	else if(!strncmp(inter_type, "Dirk2", 512)) return new DirkInteraction2<number>();
 	else if(!strncmp(inter_type, "custom", 512)) return new CustomInteraction<number>();
+	else if(!strncmp(inter_type, "DNA2", 512)) return new DNA2Interaction<number>();
+	else if(!strncmp(inter_type, "RNA2", 512)) return new RNA2Interaction<number>();
 	else {
 		IBaseInteraction<number> *res = PluginManager::instance()->get_interaction<number>(inter_type);
 		if(res == NULL) throw oxDNAException ("Interaction '%s' not found. Aborting", inter_type);
