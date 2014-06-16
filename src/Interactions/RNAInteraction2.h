@@ -31,7 +31,7 @@ protected:
 	//parameters of the interaction
 	float _salt_concentration;
 	bool _mismatch_repulsion;
-    bool _debye_huckel_charged_n3;
+	bool _debye_huckel_half_charged_ends;
 	number _debye_huckel_prefactor; // this is the strength of the interaction
 	number _debye_huckel_lambdafactor; //Lambda is _debye_huckel_LAMBDAFACTOR / salt^0.5
 	number _debye_huckel_cutoff_factor;
@@ -39,8 +39,8 @@ protected:
 	//the following values are calculated
 	number _debye_huckel_Vrc; // is equal to DH(2*lambda,lambda,prefactor)
     number _debye_huckel_RC; //this is the maximum interaction distance between backbones to interact with DH
-	number _debye_huckel_B; //this is a smoothening parameter
-	number _debye_huckel_RHIGH; //this is a smoothening parameter, set to 2 * Lambda - 0.1
+	number _debye_huckel_B; //prefactor of the quadratic cut-off
+	number _debye_huckel_RHIGH; //distance after which the potential is replaced by a quadratic cut-off
 	number _minus_kappa; //= -1/lambda
 
     virtual number _debye_huckel(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);

@@ -32,7 +32,7 @@ protected:
 	//parameters of the interaction
 	float _salt_concentration;
 	bool _mismatch_repulsion;
-        bool _debye_huckel_charged_n3;
+	bool _debye_huckel_half_charged_ends;
 	number _debye_huckel_prefactor; // this is the strength of the interaction
 	number _debye_huckel_lambdafactor; //Lambda is _debye_huckel_LAMBDAFACTOR / salt^0.5
 
