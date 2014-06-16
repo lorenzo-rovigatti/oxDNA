@@ -50,7 +50,7 @@ void DNA2Interaction<number>::get_settings(input_file &inp) {
 	float lambdafactor; //Lambda is _debye_huckel_LAMBDAFACTOR / salt^0.5
 	float rh;
 	int lambda_T_dependent = 0;
-        int charged_n3 = 0;
+	int half_charged_ends = 0;
 	//getInputString(&inp, "topology", this->_topology_filename, 1);
 
 	// read salt concentration from file, or set it to the default value
@@ -93,12 +93,12 @@ void DNA2Interaction<number>::get_settings(input_file &inp) {
 	else {
 			this->_mismatch_repulsion = false;
 	}
-        // whether to put a charge on the 3 terminus or not
-        if(getInputBoolAsInt(&inp, "dh_charged_n3", &charged_n3, 0) == KEY_FOUND) {
-        		this-> _debye_huckel_charged_n3 = (bool) charged_n3;	
+        // whether to halve the charge on the terminus of the strand or not (default true)
+        if(getInputBoolAsInt(&inp, "dh_half_charged_ends", &half_charged_ends, 0) == KEY_FOUND) {
+        		this-> _debye_huckel_half_charged_ends = (bool) half_charged_ends;	
 	}
 	else {
-			this-> _debye_huckel_charged_n3 = true;
+			this-> _debye_huckel_half_charged_ends = true;
         }
 
 	//log it 
@@ -159,7 +159,7 @@ void DNA2Interaction<number>::init() {
 	// log the parameters of the Debye-Huckel
 	// question: why do we output Vrc?
 	OX_LOG(Logger::LOG_INFO,"DEBUGGING: rhigh is %g, Cutoff is %g, RC huckel is %g, B huckel is %g V is %g ",_debye_huckel_RHIGH,this->_rcut,_debye_huckel_RC, _debye_huckel_B,_debye_huckel_Vrc);
-	OX_LOG(Logger::LOG_INFO,"DEBUGGING: dh_charged_n3 = %s", _debye_huckel_charged_n3 ? "true" : "false");
+	OX_LOG(Logger::LOG_INFO,"DEBUGGING: dh_half_charged_ends = %s", _debye_huckel_half_charged_ends ? "true" : "false");
 
 
 
@@ -199,10 +199,12 @@ number DNA2Interaction<number>::test_huckel(number rbackmod)
 template<typename number>
 number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)
 {
-  // question: this checks if they are adjacent along the backbone? Why don't you want
-  // DH in that case?
+	number cut_factor = 1.0f;
+    // first neighbours along the backbone do not interact with the DH term
 	if(this->_are_bonded(p, q)) return (number) 0.f;
-        if ( ! this->_debye_huckel_charged_n3 && ( p->n3 == P_VIRTUAL || q->n3 == P_VIRTUAL)) return (number) 0.f;
+	// for each particle that is on a terminus, halve the charge
+    if (  this->_debye_huckel_half_charged_ends && ( p->n3 == P_VIRTUAL || p->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
+    if (  this->_debye_huckel_half_charged_ends && ( q->n3 == P_VIRTUAL || q->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
 	
 	//compute the distance vector between the two particles
 	//question: r is used to enforce periodic boundary conditions?
@@ -219,7 +221,7 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 	  else {
 	    energy = _debye_huckel_B * SQR(rbackmod -  _debye_huckel_RC);
 	  }
-	  
+	 energy *= cut_factor; 
 	  //update forces are NOT TESTED !!! NEEDS DEBUGGING+careful tests!!!
 	  if(update_forces && energy != 0.)
 	    {
@@ -240,6 +242,7 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 	      else {
 		force = - rbackdir * (2.0f * _debye_huckel_B * (rbackmod -  _debye_huckel_RC) );
 	      }
+		force *= cut_factor;
 	      // computes the torque on q and p
 	      torqueq = q->int_centers[DNANucleotide<number>::BACK].cross(force);
 	      torquep = -p->int_centers[DNANucleotide<number>::BACK].cross(force);
