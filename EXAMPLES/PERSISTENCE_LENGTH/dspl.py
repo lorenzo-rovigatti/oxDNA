@@ -59,8 +59,10 @@ L2 = 0.
 l0 = 0.
 Ll0 = 0.
 Lmax = 1.025 * (i2A - i1A + 1)
-niter = 1
-correlations = [0] * (i2A -i1A + 1)
+niter = 0
+correlations = [0.] * (i2A -i1A + 1)
+
+correlations_counter = [0] * (i2A -i1A + 1)
 
 read_confs = 1
 
@@ -70,57 +72,50 @@ while s:
     	s = l.get_system()
 	continue      
     #base.Logger.log("Working on conf %i..." % niter, base.Logger.INFO)
-    firstA = s._strands[0]._nucleotides[i1A]
-    firstB = s._strands[1]._nucleotides[i1B] 	
-    secondA = s._strands[0]._nucleotides[i1A+1]
-    secondB = s._strands[1]._nucleotides[i1B-1]
-         
-    lastA = s._strands[0]._nucleotides[i2A]
-    lastB = s._strands[1]._nucleotides[i2B]
-   
-    first_midpos = (firstA.get_pos_base() + firstB.get_pos_base()) / 2.0  
-    second_midpos = (secondA.get_pos_base() + secondB.get_pos_base()) / 2.0  
-    last_midpos = (lastA.get_pos_base() + lastB.get_pos_base()) / 2.0  
-  
-    box = s._box  
-    r01 = second_midpos - first_midpos 
-    r01 -= box * np.rint (r01 / box)
-    r0N = last_midpos - first_midpos 
-    r0N -= box * np.rint (r0N / box)
-     
-    for j in range (1,i2A - i1A):
-	jA = j + i1A
-	#jB = len(s._strands[1]._nucleotides) - jA - 1
-    	#lastjA = s._strands[0]._nucleotides[jA]
-    	#lastjB = s._strands[1]._nucleotides[jB]
-    	#last_midpos_j = (lastjA.get_pos_base() + lastjB.get_pos_base()) / 2.0  
-	#r0j = last_midpos_j - first_midpos
-	#r0j -= box * np.rint(r0j / box)
-	ml0 = r01 / math.sqrt(np.dot(r01,r01))
-        lj = get_lj(s,jA)
-	lj = lj / math.sqrt(np.dot(lj,lj))
- 	correlations[j] += np.dot(ml0,lj)
+    for subcounter in xrange(0,i2A-i1A):
+
+	 
+	    firstA = s._strands[0]._nucleotides[i1A+subcounter]
+	    firstB = s._strands[1]._nucleotides[i1B-subcounter] 	
+	    secondA = s._strands[0]._nucleotides[i1A+1+subcounter]
+	    secondB = s._strands[1]._nucleotides[i1B-1-subcounter]
+		 
+	    first_midpos = (firstA.get_pos_base() + firstB.get_pos_base()) / 2.0  
+	    second_midpos = (secondA.get_pos_base() + secondB.get_pos_base()) / 2.0  
+	  
+	    box = s._box  
+	    r01 = second_midpos - first_midpos 
+	    r01 -= box * np.rint (r01 / box)
+	    for j in range (0,i2A - i1A-subcounter):
+		jA = j + i1A + subcounter
+		#jB = len(s._strands[1]._nucleotides) - jA - 1
+		#lastjA = s._strands[0]._nucleotides[jA]
+		#lastjB = s._strands[1]._nucleotides[jB]
+		#last_midpos_j = (lastjA.get_pos_base() + lastjB.get_pos_base()) / 2.0  
+		#r0j = last_midpos_j - first_midpos
+		#r0j -= box * np.rint(r0j / box)
+		lj = get_lj(s,jA)
+    		ml0 = r01 / math.sqrt(np.dot(r01,r01))
+		lj = lj / math.sqrt(np.dot(lj,lj))
+		correlations[j] += np.dot(ml0,lj)
+		#if j == 1:
+		#	print 'Adding ', np.dot(ml0,lj)
+		correlations_counter[j] += 1.
     #r0N = first.distance (last, PBC=False)
     #r01 = first.distance (second, PBC=False)
     
     l0 += np.sqrt (np.dot (r01, r01))
-    L2 += np.dot (r0N, r0N)
-    Ll0 += np.dot (r01, r0N)
     
     s = l.get_system()
     niter += 1
     read_confs += 1
 
-Ll0 /= float (niter)
-L2 /= float (niter)
 l0 /= float (niter)
 
-Pl = Ll0 / l0
-Kl = L2 / Lmax
 
+print '#Configurations in total',niter
 print '# ',sys.argv[1]
-print "# Persistence length ", Pl, ", Kuhn length ", Kl, ", <l0> ", l0, ",  <L^2> ", L2
 print '# Correlation between lk and l_0:  '
-for j in range(len(correlations)):
-	print j,correlations[j]/float(niter)
+for j in range(len(correlations)-1):
+	print j,correlations[j]/correlations_counter[j]
 
