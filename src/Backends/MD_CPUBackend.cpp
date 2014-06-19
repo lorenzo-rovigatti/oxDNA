@@ -13,6 +13,7 @@
 template<typename number>
 MD_CPUBackend<number>::MD_CPUBackend() : MDBackend<number>() {
 	this->_is_CUDA_sim = false;
+	_thermostat = NULL;
 }
 
 template<typename number>
