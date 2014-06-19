@@ -164,7 +164,8 @@ void addInput(input_file *inp, FILE *inp_file) {
 
 input_map::iterator getInputValue(input_file *inp, const char *skey, int mandatory)  {
 	std::map<string, input_value>::iterator it = inp->keys.find(string(skey));
-	if(it == inp->keys.end() && mandatory) throw oxDNAException("Mandatory key `%s' not found, exiting", skey);
+	if(it != inp->keys.end()) it->second.read++;
+	else if(mandatory) throw oxDNAException("Mandatory key `%s' not found, exiting", skey);
 
 	return it;
 }

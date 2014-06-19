@@ -76,6 +76,7 @@ void CUDASimpleVerletList<number, number4>::init(int N, number box_side, number 
 	if(_max_neigh >= N) _max_neigh = N-1;
 
 	_N_cells_side = (int) floor(this->_box_side / sqrt(_sqr_rverlet));
+	if (_N_cells_side < 3) _N_cells_side = 3;
 	while(_N_cells_side > ceil(pow(2*N, 1/3.)) && _N_cells_side > 3) {
 		_N_cells_side--;
 	}
@@ -86,7 +87,6 @@ void CUDASimpleVerletList<number, number4>::init(int N, number box_side, number 
 	//_max_N_per_cell = 100;
 	if(_max_N_per_cell > N) _max_N_per_cell = N;
 
-	if(_N_cells_side < 3) throw oxDNAException("N_cells_side (%d) must be > 2", _N_cells_side);
 	OX_DEBUG("max_neigh: %d, max_N_per_cell: %d, N_cells: %d, rcell: %lf", _max_neigh, _max_N_per_cell, _N_cells, _rcell);
 	OX_DEBUG("Cells mem: %.2lf MBs, lists mem: %.2lf MBs", (double) _N_cells * (1 + _max_N_per_cell) * sizeof(int)/1048576., (double) this->_N * (1 + _max_neigh) * sizeof(int)/1048576.);
 

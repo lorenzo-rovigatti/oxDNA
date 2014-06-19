@@ -70,7 +70,6 @@ void Cells<number>::global_update() {
 	_N_cells_side = (int) floor(this->_box / this->_rcut + 0.1);
 	while(_N_cells_side > 750) _N_cells_side--;
 
-	//if(_N_cells_side < 3) throw oxDNAException("%s, N_cells_side (%d) must be > 2", __FILE__, _N_cells_side);
 	if (_N_cells_side < 3) _N_cells_side = 3;
 
 	_N_cells = _N_cells_side * _N_cells_side * _N_cells_side;
