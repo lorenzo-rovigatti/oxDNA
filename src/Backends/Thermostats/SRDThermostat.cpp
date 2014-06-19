@@ -143,7 +143,7 @@ void SRDThermostat<number>::apply1(BaseParticle<number> **particles, llint curr_
 		// new velocity; later on we correct to get conservation
 		// of linar momentum within each cell. For now, we just
 		// refresh the velocity completely
-		p->v = LR_vector<number> (Utils::gaussian<number>(), Utils::gaussian<number>(), Utils::gaussian<number>()) * _rescale_factor / sqrt_m;
+		p->v = LR_vector<number> (Utils::gaussian<number>(), Utils::gaussian<number>(), Utils::gaussian<number>()) * (_rescale_factor / sqrt_m);
 		
 		// store the contribution to mass, linear and angular momentum of cell
 		c->PR += _m * p->v;
