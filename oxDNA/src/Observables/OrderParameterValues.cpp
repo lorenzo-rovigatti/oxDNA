@@ -22,6 +22,10 @@ OrderParameterValues<number>::~OrderParameterValues() {
 template<typename number> void
 OrderParameterValues<number>::init(ConfigInfo<number> &config_info) {
    BaseObservable<number>::init(config_info);
+
+   ifstream tmpf(_order_parameters_file);
+   if(!tmpf.good ()) throw oxDNAException ("(OrderParameterValues.cpp) Can't read file '%s'", _order_parameters_file);
+
    _op.init_from_file(_order_parameters_file, this->_config_info.particles, *(this->_config_info.N));
 
 }
