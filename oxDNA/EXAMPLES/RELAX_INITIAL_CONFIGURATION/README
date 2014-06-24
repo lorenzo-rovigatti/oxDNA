@@ -34,11 +34,18 @@ In the input file, set
 
 interaction_type = DNA_relax
 
-to use the alternative interaction. The type and force constant
-must also be set with
+to use the alternative interaction. The functional form of the 
+potential must be set with
 
 relax_type = <constant_force || harmonic>
-relax_strength = <float>
+
+There is also an optional parameter that allows the user to set the
+strength of the potential. By default the strengths are 1 for the
+constant force potential and 32 for the harmonic spring potential
+(the latter gives the best harmonic approximation to the FENE 
+potential used in oxDNA)
+
+[relax_strength = <float>]
 
 ## Implementation ##
 The interaction is implemented in src/Interactions/DNAInteraction_relax.cpp
