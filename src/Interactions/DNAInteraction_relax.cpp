@@ -12,7 +12,7 @@
 
 template<typename number>
 DNAInteraction_relax<number>::DNAInteraction_relax() : DNAInteraction<number>() {
-	OX_LOG(Logger::LOG_INFO, "Using unphysical backbone\n");
+	OX_LOG(Logger::LOG_INFO, "Using unphysical backbone (DNA_relax interaction)");
 	_constant_force = 0;
 	_harmonic_force = 1;
 }
@@ -80,9 +80,21 @@ void DNAInteraction_relax<number>::get_settings(input_file &inp) {
 	else if (strcmp(tmps, "harmonic_force") == 0) _backbone_type = _harmonic_force;
 	else throw oxDNAException("Error while parsing input file: relax_type '%s' not implemented; use constant_force or harmonic_force", tmps);
 
-	getInputFloat(&inp, "relax_strength", &_backbone_k, 1);
+	float ftmp;
+	if (getInputFloat(&inp, "relax_strength", &ftmp, 0) == KEY_FOUND){
+		_backbone_k = (number) ftmp;
+		OX_LOG(Logger::LOG_INFO, "Using spring constant = %f for the DNA_relax interaction", _backbone_k);
+	}
+	else{
+		if (_backbone_type == _harmonic_force){
+			_backbone_k = (number) 32.;
+		}
+		else{
+			_backbone_k = (number) 1.;
+		}
+		OX_LOG(Logger::LOG_INFO, "Using default strength constant = %f for the DNA_relax interaction", _backbone_k);
+	}
 }
 
 template class DNAInteraction_relax<float>;
 template class DNAInteraction_relax<double>;
-
