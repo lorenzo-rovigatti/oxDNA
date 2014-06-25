@@ -18,7 +18,6 @@
 #define UNPARSED 0
 #define PARSED 1
 #define ERROR 2
-#define OPT_MAX_LENGTH 4096
 #define KEY_NOT_FOUND -1
 #define KEY_FOUND 0
 #define KEY_INVALID 1
@@ -26,24 +25,6 @@
 #define INP_EOF -1
 #define KEY_READ 0
 #define NOTHING_READ 1
-
-typedef char input_string[OPT_MAX_LENGTH];
-
-/**
- * @brief Incapsulates a parsed input file.
- *
- * The parsing of the input file is carried out in plain c for historical reasons (old code ported to oxDNA)
- */
-typedef struct {
-	int state;
-	int N_opts;
-	int N_alloc;
-	int N_unread_keys;
-	input_string *keys;
-	input_string *values;
-	int *reads;
-	input_string *unread_keys;
-} input_file2;
 
 struct input_value {
 	std::string value;
@@ -120,6 +101,7 @@ void addCommandLineArguments(input_file *inp, int argc, char *argv[]);
  */
 int _readLine(std::vector<std::string>::iterator &it, std::vector<std::string>::iterator &end, std::string &key, std::string &value); 
 
+int getInputString(input_file *inp, const char *skey, std::string &dest, int mandatory);
 int getInputString(input_file *inp, const char *skey, char *dest, int mandatory);
 int getInputInt(input_file *inp, const char *skey, int *dest, int mandatory);
 int getInputBoolAsInt(input_file *inp, const char *skey, int *dest, int mandatory);

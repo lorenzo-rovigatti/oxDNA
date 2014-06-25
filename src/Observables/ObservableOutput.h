@@ -61,7 +61,7 @@ public:
 	 * @param obs_string a string containing all the key=values lines related to the object and to its associated observables
 	 * @param sim_inp simulation input file
 	 */
-	ObservableOutput(std::string &obs_string, input_file &sim_inp);
+	ObservableOutput(std::string &stream_string, input_file &sim_inp);
 	virtual ~ObservableOutput();
 
 	/**

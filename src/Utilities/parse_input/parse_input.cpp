@@ -170,12 +170,20 @@ input_map::iterator getInputValue(input_file *inp, const char *skey, int mandato
 	return it;
 }
 
-int getInputString(input_file *inp, const char *skey, char *dest, int mandatory) {
+int getInputString(input_file *inp, const char *skey, std::string &dest, int mandatory) {
 	input_map::iterator it = getInputValue(inp, skey, mandatory);
 	if(it == inp->keys.end()) return KEY_NOT_FOUND;
 		
-	string val = it->second.value;
-	strncpy(dest, val.c_str(), sizeof(char) * (val.size()+1));
+	dest = it->second.value;
+
+	return KEY_FOUND;
+}
+
+int getInputString(input_file *inp, const char *skey, char *dest, int mandatory) {
+	string s_dest;
+	int res = getInputString(inp, skey, s_dest, mandatory);
+	if(res != KEY_FOUND) return res;
+	strncpy(dest, s_dest.c_str(), sizeof(char) * (s_dest.size()+1));
 
 	return KEY_FOUND;
 }
@@ -196,6 +204,7 @@ int getInputBool(input_file *inp, const char *skey, bool *dest, int mandatory) {
 	// make it lower case
 	string val = it->second.value;
 	std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+
 	set<string>::iterator res = inp->true_values.find(val);
 	if(res != inp->true_values.end()) *dest = true;
 	else {
