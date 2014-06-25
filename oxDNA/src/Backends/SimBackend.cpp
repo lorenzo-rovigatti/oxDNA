@@ -136,9 +136,8 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	while(found) {
 		stringstream ss;
 		ss << "data_output_" << i;
-		char value[1024];
-		if(getInputString(&inp, ss.str().c_str(), value, 0) == KEY_FOUND) {
-			string obs_string(value);
+		string obs_string;
+		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
 			ObservableOutput<number> *new_obs_out = new ObservableOutput<number>(obs_string, inp);
 			_obs_outputs.push_back(new_obs_out);
 		}

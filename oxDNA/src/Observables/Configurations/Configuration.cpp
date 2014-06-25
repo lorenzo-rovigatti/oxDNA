@@ -31,26 +31,19 @@ void Configuration<number>::get_settings(input_file &my_inp, input_file &sim_inp
 	if(getInputBoolAsInt(&sim_inp, "back_in_box", &bb, 0) == KEY_FOUND) _back_in_box = (bool) bb;
 	if(getInputBoolAsInt(&my_inp, "reduced", &bb, 0) == KEY_FOUND) _reduced = (bool) bb;
 
-	char opt[OPT_MAX_LENGTH];
+	string opt;
 	bool show_on = false;
 	if(getInputString(&my_inp, "show", opt, 0) == KEY_FOUND) {
 		show_on = true;
-		char *c_p = strtok(opt, ",");
-		while(c_p != NULL) {
-			_visible_particles.insert(atoi(c_p));
-			c_p = strtok(NULL, ",");
-		}
-
+		vector<string> spl = Utils::split(opt, ',');
+		for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) _visible_particles.insert(atoi(it->c_str()));
 	}
 
 	if(getInputString(&my_inp, "hide", opt, 0) == KEY_FOUND) {
 		if(show_on) OX_LOG(Logger::LOG_WARNING, "Observable '%s': Specifying both 'show' and 'hide' options does not make sense. I will not consider the 'hide' one.", typeid(*this).name());
 		else {
-			char *c_p = strtok(opt, ",");
-			while(c_p != NULL) {
-				_hidden_particles.insert(atoi(c_p));
-				c_p = strtok(NULL, ",");
-			}
+			vector<string> spl = Utils::split(opt, ',');
+			for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) _hidden_particles.insert(atoi(it->c_str()));
 		}
 	}
 }

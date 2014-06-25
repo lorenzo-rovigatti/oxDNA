@@ -68,9 +68,8 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	while(found) {
 		stringstream ss;
 		ss << "analysis_data_output_" << i;
-		char value[1024];
-		if(getInputString(&inp, ss.str().c_str(), value, 0) == KEY_FOUND) {
-			string obs_string(value);
+		string obs_string;
+		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
 			ObservableOutput<double> *new_obs_out = new ObservableOutput<double>(obs_string, inp);
 			_obs_outputs.push_back(new_obs_out);
 		}

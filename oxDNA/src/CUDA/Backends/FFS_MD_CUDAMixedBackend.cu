@@ -576,7 +576,7 @@ bool FFS_MD_CUDAMixedBackend::_read_conditions(const char *fname, const char *co
 	loadInput(&input, fin);
 
 	char pairname[512];
-	char strexpr[OPT_MAX_LENGTH];
+	string strexpr;
 	int pairid = 1;
 	sprintf(pairname, "%s%d", condition_set_type, pairid);
 	while (getInputString(&input, pairname, strexpr, 0) == KEY_FOUND) {
@@ -584,14 +584,14 @@ bool FFS_MD_CUDAMixedBackend::_read_conditions(const char *fname, const char *co
 		if (strcmp(condition_set_type, "master") == 0){
 			// special case for the master 'conditions' since we don't expect an entry in the order parameter file
 			// corresponding to each master condition element
-			newcondition.parse_condition(strexpr, &_op);
+			newcondition.parse_condition(strexpr.c_str(), &_op);
 			for (std::vector<parsed_expression>::iterator expression=newcondition.all_expressions.begin() ; expression != newcondition.all_expressions.end() ; expression++){
 				if ((*expression).compare_type == -1)
 					throw oxDNAException("Failed to parse condition %s, please check the file format and parameter names ", pairname);
 			}
 		}
 		else {
-			if (!newcondition.parse_condition(strexpr, &_op))
+			if (!newcondition.parse_condition(strexpr.c_str(), &_op))
 				throw oxDNAException("Failed to parse condition %s, please check the file format and parameter names ", pairname);
 		}
 		(*conditions).push_back(newcondition);
@@ -618,12 +618,12 @@ bool FFS_MD_CUDAMixedBackend::_read_conditions(const char *fname, const char *co
 	loadInput(&input, fin);
 
 	char pairname[512];
-	char strexpr[OPT_MAX_LENGTH];
+	string strexpr;
 	int pairid = 1;
 	sprintf(pairname, "%s%d", condition_set_type, pairid);
 	while (getInputString(&input, pairname, strexpr, 0) == KEY_FOUND) {
 		master_condition newcondition;
-		if (!newcondition.parse_master_condition(strexpr, fname)){
+		if (!newcondition.parse_master_condition(strexpr.c_str(), fname)){
 			throw oxDNAException("Failed to parse condition %s, please check the file format and parameter names ", pairname);
 		}
 		strcpy(newcondition.name, pairname);

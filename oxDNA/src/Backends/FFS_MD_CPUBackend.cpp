@@ -335,14 +335,14 @@ void FFS_MD_CPUBackend<number>::init_ffs_from_file(const char *fname) {
 
 
 	char pairname[512];
-	char strexpr[OPT_MAX_LENGTH];
+	string strexpr;
 	int pairid = 1;
 	sprintf(pairname, "condition%d", pairid);
 	while (getInputString(&input, pairname, strexpr, 0) == KEY_FOUND) {
 
 		parsed_condition newcondition;
 		//cout << "Parsing " << strexpr << endl;
-		if (!newcondition.parse_condition(strexpr, &_op))
+		if (!newcondition.parse_condition(strexpr.c_str(), &_op))
 			throw oxDNAException("Failed to parse condition %s, please check the file format and parameter names ", pairname);
 
 		this->_conditions.push_back(newcondition);

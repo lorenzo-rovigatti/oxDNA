@@ -15,11 +15,11 @@
 using namespace std;
 
 template<typename number>
-ObservableOutput<number>::ObservableOutput(std::string &obs_string, input_file &sim_inp) {
+ObservableOutput<number>::ObservableOutput(std::string &stream_string, input_file &sim_inp) {
 	_sim_inp = sim_inp;
 	_start_from = 0;
 	_stop_at = -1;
-	input_file *obs_input = Utils::get_input_file_from_string(obs_string);
+	input_file *obs_input = Utils::get_input_file_from_string(stream_string);
 
 	getInputString(obs_input, "name", _output_name, 1);
 	getInputLLInt(obs_input, "print_every", &_print_every, 1);
@@ -43,9 +43,8 @@ ObservableOutput<number>::ObservableOutput(std::string &obs_string, input_file &
 	while(found) {
 		stringstream ss;
 		ss << "col_" << i;
-		char value[1024];
-		if(getInputString(obs_input, ss.str().c_str(), value, 0) == KEY_FOUND) {
-			obs_string = string(value);
+		string obs_string;
+		if(getInputString(obs_input, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
 			add_observable(obs_string);
 		}
 		else found = false;

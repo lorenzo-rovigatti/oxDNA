@@ -28,12 +28,8 @@ COMForce<number>::~COMForce() {
 
 template<typename number>
 void COMForce<number>::get_settings(input_file &inp) {
-	char tmp[OPT_MAX_LENGTH];
-	getInputString(&inp, "com_list", tmp, 1);
-	_com_string = string(tmp);
-
-	getInputString(&inp, "ref_list", tmp, 1);
-	_ref_string = string(tmp);
+	getInputString(&inp, "com_list", _com_string, 1);
+	getInputString(&inp, "ref_list", _ref_string, 1);
 
 	double stiff;
 	getInputDouble(&inp, "stiff", &stiff, 1);
