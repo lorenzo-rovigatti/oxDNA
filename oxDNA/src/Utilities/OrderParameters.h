@@ -529,21 +529,21 @@ public:
 
 			rewind(temp);
 			input_file input;
-			char type_str[512];
-			char name_str[512];
+			std::string type_str;
+			std::string name_str;
 			int type;
 			loadInput(&input, temp);
 			getInputString(&input, "order_parameter", type_str, 1);
 			type = -1;
-			if (strcmp(type_str, "bond") == 0) type = 0;
-			if (strcmp(type_str, "mindistance") == 0) type = 1;
+			if (strcmp(type_str.c_str(), "bond") == 0) type = 0;
+			if (strcmp(type_str.c_str(), "mindistance") == 0) type = 1;
 
-			if (type != 0 && type != 1)	throw oxDNAException("Parameter type %s not implemented. Aborting",	type_str);
+			if (type != 0 && type != 1)	throw oxDNAException("Parameter type %s not implemented. Aborting",	type_str.c_str());
 			int tmpi;
 			if (type == 0 || type == 1) {
 				getInputString(&input, "name", name_str, 1);
 			}
-			OX_LOG(Logger::LOG_INFO, "Order parameter type %s found, processing", type_str);
+			OX_LOG(Logger::LOG_INFO, "Order parameter type %s found, processing", type_str.c_str());
 			switch (type) {
 			case 0: {
 				// HB

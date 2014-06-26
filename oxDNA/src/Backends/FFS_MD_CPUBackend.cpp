@@ -305,8 +305,8 @@ void FFS_MD_CPUBackend<number>::init(char conf_filename[256]) {
 
 	this->_sqr_rcut = this->_interaction->get_rcut() * this->_interaction->get_rcut();
 
-	_op.init_from_file(_order_parameters_file, this->_particles, this->_N);
-	init_ffs_from_file(_ffs_file);
+	_op.init_from_file(_order_parameters_file.c_str(), this->_particles, this->_N);
+	init_ffs_from_file(_ffs_file.c_str());
 	OX_LOG(Logger::LOG_INFO, "Setting initial value for the order parameter...");
 	_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
 
@@ -332,7 +332,6 @@ void FFS_MD_CPUBackend<number>::init_ffs_from_file(const char *fname) {
 	input_file input;
 
 	loadInput(&input, fin);
-
 
 	char pairname[512];
 	string strexpr;
