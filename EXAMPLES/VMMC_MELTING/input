@@ -31,8 +31,8 @@ energy_file = energy.dat
 print_conf_interval = 2e3
 print_energy_every = 1e3 
 time_scale = linear
-external_forces = 1
-external_forces_file = ext.dat
+#external_forces = 1
+#external_forces_file = ext.dat
 
 data_output_1 = {
 name = last_conf.bin
