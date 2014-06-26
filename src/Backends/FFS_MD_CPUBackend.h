@@ -113,10 +113,9 @@ protected:
 
 	OrderParameters _op;
 	std::vector<parsed_condition> _conditions;
-	//int _ffs_type;
-	char _order_parameters_file[512];
-	char _ffs_file[512];
-	char _state_str[1024];
+	std::string _order_parameters_file;
+	std::string _ffs_file;
+	char _state_str[2048];
 
 	number _sqr_rcut;
 	void _ffs_compute_forces(void);
@@ -127,15 +126,13 @@ public:
 	FFS_MD_CPUBackend();
 	virtual ~FFS_MD_CPUBackend();
 
-
-
 	void print_order_parameters(void);
 	void init_ffs_from_file(const char *fname);
 	bool check_stop_conditions(void);
 
 	virtual void get_settings(input_file &inp);
 
-	void init(char conf_filename[256]);
+	void init (char conf_filename[256]);
 
 	void sim_step(llint cur_step);
 	char * get_op_state_str(void);

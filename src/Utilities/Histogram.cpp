@@ -108,12 +108,16 @@ void Histogram::init (const char * filename, OrderParameters * op, double  * tem
 
 	// read the file linewise...
 	char line[2048];
+	std::string cpp_line;
 	int lineno = 1;
 	inp.getline(line, 2048); // to remove the first line
 	while (inp.good()) {
-		inp.getline(line, 2048);
-		if (strlen (line) == 0)
-			continue;
+		getline (inp, cpp_line);
+
+		if (cpp_line.length() == 0) continue;
+		if (cpp_line.length() > 2000) throw oxDNAException("(Histogram.cpp) Histogram parser: error parsing line %d in %s. Too many characters in line (2000 max). Aborting\n", lineno, filename);
+
+		strcpy (line, cpp_line.c_str());
 
 		char * aux = (char *) line;
 		while (isspace (* aux))
@@ -220,16 +224,19 @@ void Histogram::init (const char * filename, OrderParameters * op) {
 		_data[i] = 0.;
 		_rdata[i] = 0.;
 	}
-	//OX_LOG(Logger::LOG_INFO, "Histogram found: %d, %d\n", _ndim, _dim);
 
-	// read the file linewise...
+	//OX_LOG(Logger::LOG_INFO, "Histogram found: %d, %d\n", _ndim, _dim);
 	char line[2048];
+	std::string cpp_line;
 	int lineno = 1;
-	inp.getline(line, 2048); // to remove the initial time info
+	inp.getline(line, 2048); // to remove the first line
 	while (inp.good()) {
-		inp.getline(line, 2048);
-		if (strlen (line) == 0)
-			continue;
+		getline (inp, cpp_line);
+
+		if (cpp_line.length() == 0) continue;
+		if (cpp_line.length() > 2000) throw oxDNAException("(Histogram.cpp) Histogram parser: error parsing line %d in %s. Too many characters in line (2000 max). Aborting\n", lineno, filename);
+
+		strcpy (line, cpp_line.c_str());
 
 		char * aux = (char *) line;
 		while (isspace (* aux))

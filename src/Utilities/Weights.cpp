@@ -50,9 +50,14 @@ void Weights::init (const char * filename, OrderParameters * op, bool safe, doub
 
 	// read the file linewise...
 	char line[1024];
+	std::string cpp_line;
 	int lineno = 1;
 	while (inp.good()) {
-		inp.getline(line, 1024);
+		getline (inp, cpp_line);
+
+		if (cpp_line.length() > 1000) throw oxDNAException ("(Weights.cpp) weight parser: error parsing line %d in %s. Lines cannot exceed 1000 characters.", lineno, filename);
+		strcpy (line, cpp_line.c_str());
+
 		if (strlen (line) == 0)
 			continue;
 
