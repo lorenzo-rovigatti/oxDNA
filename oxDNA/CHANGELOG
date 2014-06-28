@@ -1,0 +1,18 @@
+v 2.1 (June 2014)
+	This is mostly a bug-fixing release. We have fixed a few issues with different compilers
+	and platforms and a few severe bugs that could result in segmentation faults.
+	- Added support for interaction plugins. Now you can write separate classes to manage custom 
+	interactions and load them in oxDNA as plugins. The mechanism is very similar to the one that
+	manages observable plugins. See PluginManagement/PluginManager.h for additional documentation.
+	- Added a new, improved and safer input parser. User-wise, the only difference with respect to
+	the old parser is that it is now possible to put more than a single key-value pair on the same
+	line by separating them with semicolons (e.g. key1 = value1; key2 = value2) 
+	- Added salt-dependent DNA and RNA interactions. Note that these are still under development
+	and then we advise not to use them as they are still subject to changes and possibly unstable.
+	- A SRD (stochastic rotational dynamics) thermostat has been added. It works on both CPUs and
+	GPUs. It seems working but we did not have thoroughly tested it. Use it at your own risk.
+	- Added many observables (in the Observables folder).
+	- Plenty of bugfixes, see commit messages for more information.
+
+v 2.0 (March 2014)
+	First release on sourceforge.
