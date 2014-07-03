@@ -114,6 +114,17 @@ template<typename number> int getInputNumber(input_file *inp, const char *skey, 
 int getInputChar(input_file *inp, const char *skey, char *dest, int mandatory);
 
 /**
+ * @brief find all keys that begin with a substring
+ *
+ * @param input file
+ * @param substring. If empty string, the function will return ALL the keys in the input file.
+ * @param pointer to a vector of strings to be filled
+ * @param whether at least one of these strings should be mandatory
+ * @return the number of keys matching the string.
+ */
+int getInputKeys (input_file *inp, std::string begins_with, std::vector<std::string> * dest, int mandatory);
+
+/**
  * @brief Strip whitespace from the beginning and end of src
  * src is left unchanged and the resulting, trimmed string is stored in dest. This function
  * does not allocate memory for dest.

@@ -286,6 +286,20 @@ void setUnreadKeys(input_file *inp) {
 	}
 }
 
+int getInputKeys (input_file *inp, string begins_with, vector<string> * dest, int mandatory) {
+	int ret = 0;
+	bool add_all = false;
+	if (begins_with.size() == 0) add_all = true;
+	for (input_map::iterator it = inp->keys.begin(); it != inp->keys.end(); it++) {
+		if (add_all || it->first.compare(0, begins_with.length(), begins_with) == 0) {
+			dest->push_back (it->first);
+			ret ++;
+		}
+	}
+	return ret;
+}
+
 void cleanInputFile(input_file *inp) {
 	inp->state = UNPARSED;
 }
+

@@ -40,6 +40,7 @@ public:
 		// lists have to know how to manage the associated neighbouring lists
 		if(strncmp("MD", sim_type, 512) == 0) _is_MC = false;
 		else if(strncmp("MC", sim_type, 512) == 0) _is_MC = true;
+		else if(strncmp("MC2", sim_type, 512) == 0) _is_MC = true;
 		else if(strncmp("VMMC", sim_type, 512) == 0) _is_MC = true;
 		else if(strncmp("FFS_MD", sim_type, 512) == 0) _is_MC = false;
 		else throw oxDNAException("BaseList does not know how to handle a '%s' sim_type\n", sim_type);
