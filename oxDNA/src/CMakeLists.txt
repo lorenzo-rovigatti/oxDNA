@@ -31,6 +31,7 @@ SET(observables_SOURCES
 	Observables/HBList.cpp
 	Observables/StrandwiseBonds.cpp
 	Observables/PairEnergy.cpp
+	Observables/PairForce.cpp
 	Observables/BackendInfo.cpp
 	Observables/ForceEnergy.cpp
 	Observables/Pressure.cpp
@@ -55,6 +56,7 @@ SET(backends_SOURCES
 	Backends/MCBackend.cpp 
 	Backends/MD_CPUBackend.cpp 
 	Backends/MC_CPUBackend.cpp
+	Backends/MC_CPUBackend2.cpp
 	Backends/SimBackend.cpp 
 	Backends/FFS_MD_CPUBackend.cpp
 	Backends/VMMC_CPUBackend.cpp
@@ -80,6 +82,7 @@ SET(interactions_SOURCES
 	Interactions/DHSInteraction.cpp
 	Interactions/DirkInteraction.cpp
 	Interactions/DirkInteraction2.cpp
+	Interactions/DirkInteractionBias.cpp
 	Interactions/HardCylinderInteraction.cpp
 	Interactions/HardSpheroCylinderInteraction.cpp
 	Interactions/BoxInteraction.cpp
@@ -92,6 +95,12 @@ SET(interactions_SOURCES
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/CustomInteraction.cpp
 	Interactions/InteractionFactory.cpp
+)
+
+SET(move_SOURCES
+	Backends/MCMoves/MoveFactory.cpp
+	Backends/MCMoves/MCTras.cpp
+	Backends/MCMoves/MCRot.cpp
 )
 
 SET(common_SOURCES
@@ -119,6 +128,7 @@ SET(common_SOURCES
 	${lists_SOURCES}
 	${backends_SOURCES}
 	${interactions_SOURCES}
+	${move_SOURCES}
 )
 
 ADD_LIBRARY(${lib_name} ${common_SOURCES})

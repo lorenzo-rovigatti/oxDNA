@@ -10,6 +10,7 @@
 
 #include "../defs.h"
 #include "../Interactions/BaseInteraction.h"
+#include "../Lists/BaseList.h"
 
 /**
  * @brief Utility class. It is used by observables to have access to SimBackend's private members.
@@ -26,7 +27,7 @@ public:
 	/**
 	 * @brief Default constructor. It does nothing but zero initialization
 	 */
-	ConfigInfo() : particles(NULL), box_side(NULL), interaction(NULL), N(NULL), backend_info(NULL) {}
+	ConfigInfo() : particles(NULL), box_side(NULL), interaction(NULL), N(NULL), backend_info(NULL), lists(NULL) {}
 
 	/**
 	 * @brief Allows one to initialize everything at once.
@@ -53,6 +54,9 @@ public:
 
 	/// Used by BackendInfo to print backend-related information such as Monte Carlo acceptance ratios.
 	std::string *backend_info;
+	
+	/// pointer to lists
+	BaseList<number> * lists;
 };
 
 /**

@@ -23,6 +23,7 @@
 #include "HardSpheroCylinderInteraction.h"
 #include "DirkInteraction.h"
 #include "DirkInteraction2.h"
+#include "DirkInteractionBias.h"
 #include "CustomInteraction.h"
 #include "DNAInteraction2.h"
 #include "RNAInteraction2.h"
@@ -63,6 +64,7 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 	else if(!strncmp(inter_type, "DHS", 512)) return new DHSInteraction<number>();
 	else if(!strncmp(inter_type, "Dirk", 512)) return new DirkInteraction<number>();
 	else if(!strncmp(inter_type, "Dirk2", 512)) return new DirkInteraction2<number>();
+	else if(!strncmp(inter_type, "DirkBias", 512)) return new DirkInteractionBias<number>();
 	else if(!strncmp(inter_type, "custom", 512)) return new CustomInteraction<number>();
 	else if(!strncmp(inter_type, "DNA2", 512)) return new DNA2Interaction<number>();
 	else if(!strncmp(inter_type, "RNA2", 512)) return new RNA2Interaction<number>();

@@ -16,6 +16,7 @@
 #include "HBEnergy.h"
 #include "BackendInfo.h"
 #include "PairEnergy.h"
+#include "PairForce.h"
 #include "OrderParameterValues.h"
 #include "HBList.h"
 #include "StrandwiseBonds.h"
@@ -57,6 +58,7 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "hb_energy", 512)) res = new HBEnergy<number>();
 	else if(!strncasecmp(obs_type, "backend_info", 512)) res = new BackendInfo<number>();
 	else if(!strncasecmp(obs_type, "pair_energy", 512)) res = new PairEnergy<number>();
+	else if(!strncasecmp(obs_type, "pair_force", 512)) res = new PairForce<number>();
 	else if(!strncasecmp(obs_type, "hb_list", 512)) res = new HBList<number>();
 	else if(!strncasecmp(obs_type, "order_parameters", 512)) res = new OrderParameterValues<number>();
 	else if(!strncasecmp(obs_type, "strandwise_bonds", 512)) res = new StrandwiseBonds<number>();
