@@ -18,7 +18,7 @@ class MCRot : public BaseMove<number> {
 	
 	public:
 		MCRot(ConfigInfo<number> *Info);
-		~MCRot();
+		virtual ~MCRot();
 
 		virtual void get_settings(input_file &inp, input_file &sim_inp);
 		void apply (llint curr_step);

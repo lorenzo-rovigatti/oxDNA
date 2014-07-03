@@ -39,7 +39,7 @@ class BaseMove {
 	
 	public:
 		BaseMove(ConfigInfo<number> * Info);
-		~BaseMove();	
+		virtual ~BaseMove();	
 
 		/// relative probability with which the move is attempted
 		number prob;
