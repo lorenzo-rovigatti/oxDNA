@@ -38,7 +38,7 @@ void MCRot<number>::apply (llint curr_step) {
 	int pi = (int) (drand48() * (*this->_Info->N));
 	BaseParticle<number> *p = this->_Info->particles[pi];
 
-	number delta_E = -particle_energy(p);
+	number delta_E = -this->particle_energy(p);
 	p->set_ext_potential (curr_step, (*this->_Info->box_side));
 	number delta_E_ext = -p->ext_potential;
 
@@ -73,7 +73,7 @@ void MCRot<number>::apply (llint curr_step) {
 		this->_Info->lists->global_update();
 	}
 
-	delta_E += particle_energy(p);
+	delta_E += this->particle_energy(p);
 	p->set_ext_potential(curr_step, *this->_Info->box_side);
 	delta_E_ext += p->ext_potential;
 	
