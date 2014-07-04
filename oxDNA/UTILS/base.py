@@ -283,7 +283,7 @@ class Nucleotide(Printable):
     _a2 = property (get_a2)
 
     def copy(self, disp=None, rot=None):
-        copy = Nucleotide(self.cm_pos, self._a1, self._a3, self._base, self._btype, self._L, self._v)
+        copy = Nucleotide(self.cm_pos, self._a1, self._a3, self._base, self._btype, self._L, self._v, self.n3)
         if disp is not None:
             copy.translate(disp)
         if rot is not None:
