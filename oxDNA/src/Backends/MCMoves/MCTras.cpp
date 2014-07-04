@@ -45,7 +45,7 @@ void MCTras<number>::apply (llint curr_step) {
 	pos_old = p->pos; 
 
 	// compute the energy before the move
-	number delta_E = -particle_energy(p);
+	number delta_E = -this->particle_energy(p);
 	p->set_ext_potential (curr_step, *this->_Info->box_side);
 	number delta_E_ext = -p->ext_potential;
 
@@ -61,7 +61,7 @@ void MCTras<number>::apply (llint curr_step) {
 	}
 
 	// energy after the move
-	delta_E += particle_energy(p);
+	delta_E += this->particle_energy(p);
 	p->set_ext_potential(curr_step, *this->_Info->box_side);
 	delta_E_ext += p->ext_potential;
 
