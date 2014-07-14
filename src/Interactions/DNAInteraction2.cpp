@@ -8,6 +8,7 @@ DNA2Interaction<number>::DNA2Interaction() : DNAInteraction<number>() {
 	this->_int_map[DEBYE_HUCKEL] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_debye_huckel;
 
 	_debye_huckel_half_charged_ends = true;
+	this->_grooving = true;
 }
 
 template<typename number>
@@ -54,6 +55,10 @@ void DNA2Interaction<number>::get_settings(input_file &inp) {
 		_debye_huckel_prefactor = 0.0543;
 	}
 
+	// notify the user that major-minor grooving is switched on
+	// check whether it's set in the input file to avoid duplicate messages
+	int tmp;
+	if (this->_grooving && (getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) != KEY_FOUND)) OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
 }
 
 template<typename number>
