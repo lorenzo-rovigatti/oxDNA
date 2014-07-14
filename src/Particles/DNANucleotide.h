@@ -17,10 +17,11 @@ template<typename number>
 class DNANucleotide: public BaseParticle<number> {
 protected:
 	bool _grooving;
-	LR_vector<number> _principal_axis;
-	LR_vector<number> _stack_axis;
-	LR_vector<number> _third_axis;
 public:
+	const static LR_vector<number> principal_axis;
+	const static LR_vector<number> stack_axis;
+	const static LR_vector<number> third_axis;
+
 	enum {
 		BACK = 0,
 		STACK = 1,

@@ -222,6 +222,7 @@ void DNAInteraction<number>::get_settings(input_file &inp) {
 	if(getInputInt(&inp, "use_average_seq", &avg_seq, 0) == KEY_FOUND) {
 		_average = (bool) avg_seq;
 		if(!_average) getInputString(&inp, "seq_dep_file", _seq_filename, 1);
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename);
 	}
 
 	float hb_multi = 1.;
