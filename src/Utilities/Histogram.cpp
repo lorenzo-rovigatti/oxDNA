@@ -4,6 +4,7 @@
  */
 
 #include <cfloat>
+#include <sstream>
 
 #include "Histogram.h"
 #include "OrderParameters.h"
@@ -52,6 +53,16 @@ void Histogram::init (OrderParameters * op, double * temps, int ntemps) {
 		}
 	}
 }
+
+template <typename number>
+void Histogram::init (OrderParameters * op, std::vector<number> temps) {
+	double * dtemps = (double *) malloc (temps.size() * sizeof(double));
+	for (unsigned int i = 0; i < temps.size(); i ++) dtemps[i] = (double)temps[i];
+	init (op, dtemps, temps.size());
+	free(dtemps);
+}
+template void Histogram::init<float>(OrderParameters * op, std::vector<float> temps);
+template void Histogram::init<double>(OrderParameters * op, std::vector<double> temps);
 
 void Histogram::init (OrderParameters * op) {
 	_ndim = op->get_all_parameters_count ();
@@ -364,6 +375,30 @@ void Histogram::add (int i, double am, double w, double e_state, double e_stack,
 
 void Histogram::add (int i, int am, double w, double e_state, double e_stack, double e_ext) {
 	this->add (i, (double)am, w, e_state, e_stack, e_ext);
+}
+
+// fix here, this function does not work
+std::string Histogram::print_to_string (bool skip_zeros) {
+	std::stringstream my_stream;
+
+	int tmp[_ndim];
+	for (int i = 0; i < _dim; i ++) {
+		if (_data[i] > 0 || skip_zeros == false) { 
+			for (int j = 0; j < _ndim; j ++) {
+				int pindex = 1;
+				for (int k = 0; k < j; k ++) {
+					pindex *= _sizes[k];
+				}
+				tmp[j] = (i / pindex) % _sizes[j];
+				my_stream << tmp[j] << " ";
+			}
+			my_stream << _data[i] << " " << _rdata[i] << " ";
+			for (int k = 0; k < _ntemps; k ++) my_stream << _erdata[k][i] << " ";
+			my_stream << endl;
+		}
+	}
+
+	return my_stream.str();
 }
 
 void Histogram::print_to_file (const char * filename, long long int time, bool only_last, bool skip_zeros) {

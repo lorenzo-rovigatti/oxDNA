@@ -783,14 +783,15 @@ std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> * > > BaseInt
 			while (j != P_INVALID) {
 				BaseParticle<number> *q = particles[j];
 				if (p->index < q-> index) {
-					dr = q->pos.minimum_image(p->pos, this->_box_side);
+					//dr = q->pos.minimum_image(p->pos, this->_box_side);
+					dr = q->pos.minimum_image(p->pos, box_side);
 					if (dr.norm() < this->_sqr_rcut) ret.push_back(std::pair<BaseParticle<number>*, BaseParticle<number>*> (p, q));
 				}
 				j = this->_cells_next[q->index];
 			}
 		}
 	}
-
+	
 	this->_delete_cell_neighs();
 
 	return ret;

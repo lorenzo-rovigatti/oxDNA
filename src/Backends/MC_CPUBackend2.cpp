@@ -55,9 +55,6 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 		add_move (tmps, inp);
 	}
 
-	printf ("aborting here...\n");
-	abort ();
-
 	typename vector<BaseMove<number> *>::iterator it;
 	//for(it = _moves.begin(); it != _moves.end(); it ++) (*it)->get_settings(inp);
 	//for(it = _moves.begin(); it != _moves.end(); it ++) (*it)->get_settings(inp);
@@ -65,6 +62,10 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 	for(it = _moves.begin(); it != _moves.end(); it ++) _accumulated_prob += (*it)->prob;
 
 	OX_LOG (Logger::LOG_INFO, "(MC_CPUBackend2.cpp) accumulated prob: %g", _accumulated_prob);
+	
+	printf ("aborting here %s %d...\n", __FILE__, __LINE__);
+	abort ();
+
 }
 
 template<typename number>

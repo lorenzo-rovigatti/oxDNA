@@ -23,10 +23,9 @@ template<typename number>
 void MCRot<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	BaseMove<number>::get_settings (inp, sim_inp);
 
-	float tmpf;
-	getInputFloat (&inp, "delta_rot", &tmpf, 1);
-	_delta = (number) tmpf;
-	this->prob = 0.5f;
+	getInputNumber (&inp, "delta_rot", &_delta, 1);
+	getInputNumber (&inp, "prob", &this->prob, 1);
+
 	OX_LOG(Logger::LOG_INFO, "(MCRot.cpp) MCRot initiated with T %g, delta_tras %g, prob: %g", this->_T, _delta, this->prob);
 }
 

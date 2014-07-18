@@ -29,9 +29,10 @@
 #include "Distance.h"
 #include "CoaxVariables.h"
 #include "Pitch.h"
+#include "SaltExtrapolation.h"
+
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
-
 #include "Configurations/Configuration.h"
 #include "Configurations/BinaryConfiguration.h"
 #include "Configurations/TclOutput.h"
@@ -76,11 +77,12 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "chimera_script", 512)) res = new ChimeraOutput<number>();
 	else if(!strncasecmp(obs_type, "coax_variables", 512)) res = new CoaxVariables<number>();
 	else if(!strncasecmp(obs_type, "pitch", 512)) res = new Pitch<number>();
+	else if(!strncasecmp(obs_type, "salt_extrapolation", 512)) res = new SaltExtrapolation<number>();
 	else {
 		res = PluginManager::instance()->get_observable<number>(obs_type);
 		if(res == NULL) throw oxDNAException ("Observable '%s' not found. Aborting", obs_type);
 	}
-
+	
 	res->get_settings(obs_inp, sim_inp);
 
 	return res;
