@@ -11,6 +11,9 @@
 #include <cstdlib>
 #include <cstdio>
 
+#include <vector>
+#include <string>
+
 class OrderParameters;
 
 class Histogram {
@@ -35,6 +38,8 @@ class Histogram {
 		void init (OrderParameters *, double *, int);
 		void init (const char *, OrderParameters *);
 		void init (const char *, OrderParameters *, double *, int);
+		template <typename number>
+		void init (OrderParameters * op, std::vector<number> temps);
 
 		void reset();
 		void set_simtemp (double arg) { _simtemp = arg; }
@@ -43,8 +48,10 @@ class Histogram {
 		void add(int index, int amount, double w, double e_state, double e_stack, double e_ext);
 		void add(int index, double amount, double w, double e_state, double e_stack, double e_ext);
 		void add(int index, double w, double e_state, double e_stack, double e_ext);
+		void add(int index, double w, double e); // to implement...
 		void print();
 		void print_to_file (const char * filename, long long int time, bool only_last, bool skip_zeros);
+		std::string print_to_string (bool skip_zeros=false);
 		void load_from_file (const char * filename);
 };
 

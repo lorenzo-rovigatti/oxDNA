@@ -296,6 +296,9 @@ int getInputKeys (input_file *inp, string begins_with, vector<string> * dest, in
 			ret ++;
 		}
 	}
+	
+	if(mandatory && ret == 0) throw oxDNAException("At least one key starting with `%s' is required. Found none, exiting", begins_with.c_str());
+
 	return ret;
 }
 
