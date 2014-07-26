@@ -23,7 +23,46 @@ CUDADNAInteraction<number, number4>::~CUDADNAInteraction() {
 
 template<typename number, typename number4>
 void CUDADNAInteraction<number, number4>::get_settings(input_file &inp) {
+
 	DNAInteraction<number>::get_settings(inp);
+
+	std::string inter_type;
+	if (getInputString(&inp, "interaction_type", inter_type, 0) == KEY_FOUND){
+		if (inter_type.compare("DNA2") == 0){
+			_use_debye_huckel = true;
+			// copy-pasted from the DNA2Interaction constructor
+			_debye_huckel_half_charged_ends = true;
+			this->_grooving = true;
+			// end copy from DNA2Interaction
+		}
+		else _use_debye_huckel = false;
+	}
+	
+	if (_use_debye_huckel){
+		// copied from DNA2Interaction::get_settings() (CPU), the least bad way of doing things
+		getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
+
+		getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
+
+		// lambda-factor (the dh length at T = 300K, I = 1.0)
+		float lambdafactor;
+		if (getInputFloat(&inp, "dh_lambda", &lambdafactor, 0) == KEY_FOUND) {
+			_debye_huckel_lambdafactor = (float) lambdafactor;
+		} 
+		else {
+			_debye_huckel_lambdafactor = 0.3616455;
+		}
+
+		// the prefactor to the Debye-Huckel term
+		float prefactor;
+		if (getInputFloat(&inp, "dh_strength", &prefactor, 0) == KEY_FOUND) {
+			_debye_huckel_prefactor = (float) prefactor;
+		} 
+		else {
+			_debye_huckel_prefactor = 0.0543;
+		}
+		// End copy from DNA2Interaction
+	}
 }
 
 template<typename number, typename number4>
@@ -73,6 +112,44 @@ void CUDADNAInteraction<number, number4>::cuda_init(number box_side, int N) {
 	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_XS, this->F5_PHI_XS, 4);
 
 	if(this->_use_edge) CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)) );
+	if (_use_debye_huckel){
+		// copied from DNA2Interaction::init() (CPU), the least bad way of doing things
+		// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide this->_T by 0.1
+		number lambda = _debye_huckel_lambdafactor * sqrt(this->_T / 0.1f) / sqrt(_salt_concentration);
+		// RHIGH gives the distance at which the smoothing begins
+		_debye_huckel_RHIGH = 3.0 * lambda;
+		_minus_kappa = -1.0/lambda;
+
+		// these are just for convenience for the smoothing parameter computation
+		number x = _debye_huckel_RHIGH;
+		number q = _debye_huckel_prefactor;
+		number l = lambda;
+
+		// compute the some smoothing parameters
+		_debye_huckel_B = -(exp(-x/l) * q * q * (x + l)*(x+l) )/(-4.*x*x*x * l * l * q );
+		_debye_huckel_RC = x*(q*x + 3. * q* l )/(q * (x+l));
+
+		number debyecut;
+		if (this->_grooving){
+			debyecut = 2.0f * sqrt((POS_MM_BACK1)*(POS_MM_BACK1) + (POS_MM_BACK2)*(POS_MM_BACK2)) + _debye_huckel_RC;
+		}
+		else{
+			debyecut =  2.0f * sqrt(SQR(POS_BACK)) + _debye_huckel_RC;
+		}
+		// the cutoff radius for the potential should be the larger of rcut and debyecut
+		if (debyecut > this->_rcut){
+			this->_rcut = debyecut;
+			this->_sqr_rcut = debyecut*debyecut;
+		}
+		// End copy from DNA2Interaction
+
+		CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dh_RC, &_debye_huckel_RC, sizeof(float)) );
+		CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dh_RHIGH, &_debye_huckel_RHIGH, sizeof(float)) );
+		CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dh_prefactor, &_debye_huckel_prefactor, sizeof(float)) );
+		CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dh_B, &_debye_huckel_B, sizeof(float)) );
+		CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dh_minus_kappa, &_minus_kappa, sizeof(float)) );
+		CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dh_half_charged_ends, &_debye_huckel_half_charged_ends, sizeof(bool)) );
+	}
 }
 
 template<typename number, typename number4>
@@ -82,7 +159,7 @@ void CUDADNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 		if(_v_lists->use_edge()) {
 				dna_forces_edge_nonbonded<number, number4>
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, this->_grooving);
+					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_grooving, _use_debye_huckel);
 
 				this->_sum_edge_forces_torques(d_forces, d_torques);
 
@@ -97,7 +174,7 @@ void CUDADNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 			else {
 				dna_forces<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_grooving);
+					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_grooving, _use_debye_huckel);
 				CUT_CHECK_ERROR("forces_second_step simple_lists error");
 			}
 	}
@@ -106,7 +183,7 @@ void CUDADNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 	if(_no_lists != NULL) {
 		dna_forces<number, number4>
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving);
+			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving, _use_debye_huckel);
 		CUT_CHECK_ERROR("forces_second_step no_lists error");
 	}
 }

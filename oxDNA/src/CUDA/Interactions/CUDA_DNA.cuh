@@ -32,6 +32,13 @@ __constant__ float MD_F5_PHI_B[4];
 __constant__ float MD_F5_PHI_XC[4];
 __constant__ float MD_F5_PHI_XS[4];
 
+__constant__ float MD_dh_RC[1];
+__constant__ float MD_dh_RHIGH[1];
+__constant__ float MD_dh_prefactor[1];
+__constant__ float MD_dh_B[1];
+__constant__ float MD_dh_minus_kappa[1];
+__constant__ bool MD_dh_half_charged_ends[1];
+
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
 template<typename number, typename number4>
@@ -431,7 +438,7 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 }
 
 template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, LR_GPU_matrix<number> qo, number4 &F, number4 &T, bool grooving) {
+__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, LR_GPU_matrix<number> qo, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 	int pbtype = get_particle_btype<number, number4>(ppos);
@@ -721,16 +728,44 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			F += Ftmp;
 		}
 	}
+	
+	// DEBYE HUCKEL
+	if (use_debye_huckel){
+		number rbackmod = _module<number, number4>(rbackbone);
+		if (rbackmod < MD_dh_RC[0]){
+			number4 rbackdir = rbackbone / rbackmod;
+			if(rbackmod < MD_dh_RHIGH[0]){
+				Ftmp = -rbackdir * MD_dh_prefactor[0] * exp(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod));
+			}
+			else {
+				Ftmp = -rbackdir * 2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]);
+			}
 
+			// check for half-charge strand ends
+			number cut_factor = 1.0f;
+			if (MD_dh_half_charged_ends[0] && (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID)) {
+				cut_factor *= 0.5f;
+			}
+			if (MD_dh_half_charged_ends[0] && (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID)) {
+				cut_factor *= 0.5f;
+			}
+
+			Ftmp *= cut_factor;
+		
+			Ttmp -= _cross<number, number4>(ppos_back, Ftmp);
+			F -= Ftmp;
+		}
+	}
+	
 	T += Ttmp;
-
+	
 	// this component stores the energy due to hydrogen bonding
 	T.w = old_Tw + hb_energy;
 }
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving) {
+__global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -774,8 +809,9 @@ __global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations, n
 		if(j != IND && bs.n3 != j && bs.n5 != j) {
 			const number4 qpos = poss[j];
 			const LR_GPU_matrix<number> qo = orientations[j];
+			LR_bonds qbonds = bonds[j];
 
-			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, F, T, grooving);
+			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, F, T, grooving, use_debye_huckel, bs, qbonds, IND, j);
 		}
 	}
 
@@ -789,7 +825,7 @@ __global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations, n
 }
 
 template <typename number, typename number4>
-__global__ void dna_forces_edge_nonbonded(number4 *poss, LR_GPU_matrix<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, bool grooving) {
+__global__ void dna_forces_edge_nonbonded(number4 *poss, LR_GPU_matrix<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -809,7 +845,9 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, LR_GPU_matrix<number> *
 	number4 qpos = poss[b.to];
 	LR_GPU_matrix<number> qo = orientations[b.to];
 
-	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, dF, dT, grooving);
+	LR_bonds pbonds = bonds[b.from];
+	LR_bonds qbonds = bonds[b.to];
+	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, dF, dT, grooving, use_debye_huckel, pbonds, qbonds, b.from, b.to);
 
 	dF.w *= (number) 0.5f;
 	dT.w *= (number) 0.5f;
@@ -896,7 +934,7 @@ __global__ void dna_forces_edge_bonded(number4 *poss, LR_GPU_matrix<number> *ori
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving) {
+__global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
 	if(IND >= MD_N[0]) return;
 
 	//number4 F = make_number4<number, number4>(0, 0, 0, 0);
@@ -943,7 +981,9 @@ __global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations,  
 
 		const number4 qpos = poss[k_index];
 		const LR_GPU_matrix<number> qo = orientations[k_index];
-		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, F, T, grooving);
+		LR_bonds pbonds = bonds[IND];
+		LR_bonds qbonds = bonds[k_index];
+		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, F, T, grooving, use_debye_huckel, pbonds, qbonds, IND, k_index);
 	}
 
 	T = _matrix_transpose_number4_product<number>(po, T);

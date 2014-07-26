@@ -57,13 +57,16 @@ template<typename number, typename number4>
 CUDABaseInteraction<number, number4>::CUDABaseInteraction() {
 	_use_edge = false;
 	_n_forces = 1;
+
+	_d_edge_forces = NULL;
+	_d_edge_torques = NULL;
 }
 
 template<typename number, typename number4>
 CUDABaseInteraction<number, number4>::~CUDABaseInteraction() {
 	if(_use_edge) {
-		CUDA_SAFE_CALL( cudaFree(_d_edge_forces) );
-		CUDA_SAFE_CALL( cudaFree(_d_edge_torques) );
+		if (_d_edge_forces != NULL) CUDA_SAFE_CALL( cudaFree(_d_edge_forces) );
+		if (_d_edge_torques != NULL) CUDA_SAFE_CALL( cudaFree(_d_edge_torques) );
 	}
 }
 

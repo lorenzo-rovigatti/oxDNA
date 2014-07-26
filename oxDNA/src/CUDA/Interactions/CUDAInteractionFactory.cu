@@ -33,7 +33,7 @@ CUDABaseInteraction<number, number4> *CUDAInteractionFactory::make_interaction(i
 	char inter_type[512] = "DNA";
 	getInputString(&inp, "interaction_type", inter_type, 0);
 
-	if(!strncmp(inter_type, "DNA", 512) || !strncmp(inter_type, "DNA_nomesh", 512)) return new CUDADNAInteraction<number, number4>();
+	if(!strncmp(inter_type, "DNA", 512) || !strncmp(inter_type, "DNA_nomesh", 512) || !strncmp(inter_type, "DNA2", 512)) return new CUDADNAInteraction<number, number4>();
 	else if(!strncmp(inter_type, "RNA", 512) ) return new CUDARNAInteraction<number, number4>();
 	else if(!strncmp(inter_type, "LJ", 512)) return new CUDALJInteraction<number, number4>();
 	else if(!strncmp(inter_type, "patchy", 512)) return new CUDAPatchyInteraction<number, number4>();

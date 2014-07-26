@@ -1,4 +1,4 @@
-#include "DNAInteraction2.h"
+#include "DNA2Interaction.h"
 
 #include "../Particles/DNANucleotide.h"
 
@@ -32,10 +32,10 @@ void DNA2Interaction<number>::get_settings(input_file &inp) {
 	DNAInteraction<number>::get_settings(inp);
 
 	getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
-	OX_LOG(Logger::LOG_INFO,"(DNAInteraction2.cpp) Running Debye-Huckel at salt concentration =  %g", this->_salt_concentration);
+	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt concentration =  %g", this->_salt_concentration);
 
         getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
-	OX_LOG(Logger::LOG_INFO,"(DNAInteraction2.cpp) dh_half_charged_ends = %s", _debye_huckel_half_charged_ends ? "true" : "false");
+	OX_LOG(Logger::LOG_INFO,"dh_half_charged_ends = %s", _debye_huckel_half_charged_ends ? "true" : "false");
 
 	// lambda-factor (the dh length at T = 300K, I = 1.0)
 	float lambdafactor;
@@ -58,7 +58,7 @@ void DNA2Interaction<number>::get_settings(input_file &inp) {
 	// notify the user that major-minor grooving is switched on
 	// check whether it's set in the input file to avoid duplicate messages
 	int tmp;
-	if (this->_grooving && (getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) != KEY_FOUND)) OX_LOG(Logger::LOG_INFO, "(DNAInteraction2.cpp) Using different widths for major and minor grooves");
+	if (this->_grooving && (getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) != KEY_FOUND)) OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
 }
 
 template<typename number>
@@ -94,8 +94,9 @@ void DNA2Interaction<number>::init() {
 	}
 
 	// NB lambda goes into the exponent for the D-H potential and is given by lambda = lambda_k * sqrt((T/300K)/(I/1M))
-	OX_LOG(Logger::LOG_DEBUG,"(DNAInteraction2.cpp) Debye-Huckel parameters: Q=%f, lambda_0=%f, lambda=%f, r_high=%f, cutoff=%f", _debye_huckel_prefactor, _debye_huckel_lambdafactor, lambda, _debye_huckel_RHIGH, this->_rcut);
-	OX_LOG(Logger::LOG_INFO,"(DNAInteraction2.cpp) The Debye length at this temperature and salt concentration is %f", lambda);
+	OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: Q=%f, lambda_0=%f, lambda=%f, r_high=%f, cutoff=%f", _debye_huckel_prefactor, _debye_huckel_lambdafactor, lambda, _debye_huckel_RHIGH, this->_rcut);
+	OX_LOG(Logger::LOG_DEBUG,"Debye-Huckel parameters: debye_huckel_RC=%e, debye_huckel_B=%e", _debye_huckel_RC, _debye_huckel_B);
+	OX_LOG(Logger::LOG_INFO,"The Debye length at this temperature and salt concentration is %f", lambda);
 
 }
 
@@ -111,7 +112,7 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 	LR_vector<number> rback = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BACK];
 	number rbackmod = rback.module();
 	number energy = (number) 0.f;
-	
+
 	// Debye-Huckel energy
 	if (rbackmod <_debye_huckel_RC) {
 		if(rbackmod < _debye_huckel_RHIGH) {
@@ -123,7 +124,7 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 
 		energy *= cut_factor; 
 
-		if(update_forces && energy != 0.) {
+		if(update_forces) {
 			LR_vector<number> force(0.,0.,0.);
 			LR_vector<number> torqueq(0.,0.,0.);
 			LR_vector<number> torquep(0.,0.,0.);
@@ -145,7 +146,6 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 			
 			p->torque += p->orientationT * torquep;
 			q->torque += q->orientationT * torqueq;
-			
 		}
 	}
 	

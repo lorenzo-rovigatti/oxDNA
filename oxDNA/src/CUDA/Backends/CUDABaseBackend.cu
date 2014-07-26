@@ -21,32 +21,55 @@ CUDABaseBackend<number, number4>::CUDABaseBackend() : _device_number(0), _sort_e
 
 	_device_number = -1;
 	_sqr_verlet_skin = 0.f;
+
+	_cuda_lists = NULL;
+	_cuda_interaction = NULL;
+	_d_poss = NULL;
+	_d_bonds = NULL;
+	_d_orientations = NULL;
+	_d_list_poss = NULL;
+	_d_are_lists_old = NULL;
+	_d_hindex = NULL;
+	_d_sorted_hindex = NULL;
+	_d_inv_sorted_hindex = NULL;
+	_d_buff_poss = NULL;
+	_d_buff_bonds = NULL;
+	_d_buff_orientations = NULL;
+	_h_poss = NULL;
+	_h_orientations = NULL;
+	_h_bonds = NULL;
 }
 
 template<typename number, typename number4>
 CUDABaseBackend<number, number4>::~CUDABaseBackend() {
-	_cuda_lists->clean();
-	delete _cuda_lists;
-	delete _cuda_interaction;
+	if (_cuda_lists != NULL) {
+		_cuda_lists->clean();
+		delete _cuda_lists;
+	}
+	if (_cuda_interaction != NULL) delete _cuda_interaction;
 
-	CUDA_SAFE_CALL( cudaFree(_d_poss) );
-	CUDA_SAFE_CALL( cudaFree(_d_bonds) );
-	CUDA_SAFE_CALL( cudaFree(_d_orientations) );
-	CUDA_SAFE_CALL( cudaFree(_d_list_poss) );
-	CUDA_SAFE_CALL( cudaFreeHost(_d_are_lists_old) );
-
-	if(_sort_every > 0) {
-		CUDA_SAFE_CALL( cudaFree(_d_hindex) );
-		CUDA_SAFE_CALL( cudaFree(_d_sorted_hindex) );
-		CUDA_SAFE_CALL( cudaFree(_d_inv_sorted_hindex) );
-		CUDA_SAFE_CALL( cudaFree(_d_buff_poss) );
-		CUDA_SAFE_CALL( cudaFree(_d_buff_bonds) );
-		CUDA_SAFE_CALL( cudaFree(_d_buff_orientations) );
+	if (_d_poss != NULL){
+		CUDA_SAFE_CALL( cudaFree(_d_poss) );
+		CUDA_SAFE_CALL( cudaFree(_d_bonds) );
+		CUDA_SAFE_CALL( cudaFree(_d_orientations) );
+		CUDA_SAFE_CALL( cudaFree(_d_list_poss) );
+		CUDA_SAFE_CALL( cudaFreeHost(_d_are_lists_old) );
 	}
 
-	delete[] _h_poss;
-	delete[] _h_orientations;
-	delete[] _h_bonds;
+	if(_sort_every > 0) {
+		if (_d_hindex != NULL){
+			CUDA_SAFE_CALL( cudaFree(_d_hindex) );
+			CUDA_SAFE_CALL( cudaFree(_d_sorted_hindex) );
+			CUDA_SAFE_CALL( cudaFree(_d_inv_sorted_hindex) );
+			CUDA_SAFE_CALL( cudaFree(_d_buff_poss) );
+			CUDA_SAFE_CALL( cudaFree(_d_buff_bonds) );
+			CUDA_SAFE_CALL( cudaFree(_d_buff_orientations) );
+		}
+	}
+
+	if (_h_poss != NULL) delete[] _h_poss;
+	if (_h_orientations != NULL) delete[] _h_orientations;
+	if (_h_bonds != NULL) delete[] _h_bonds;
 }
 
 template<typename number, typename number4>
