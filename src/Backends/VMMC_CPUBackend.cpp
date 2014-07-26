@@ -11,7 +11,7 @@
 #include "../Interactions/DNAInteraction.h"
 #include "../Particles/DNANucleotide.h"
 #include "../Interactions/RNAInteraction2.h"
-#include "../Interactions/DNAInteraction2.h"
+#include "../Interactions/DNA2Interaction.h"
 
 template<typename number> VMMC_CPUBackend<number>::VMMC_CPUBackend() : MC_CPUBackend<number>() {
 	//_op = NULL;

@@ -11,7 +11,7 @@
 #include <map>
 
 #include "../Interactions/InteractionFactory.h"
-#include "../Interactions/DNAInteraction2.h"
+#include "../Interactions/DNA2Interaction.h"
 
 template<typename number>
 SaltExtrapolation<number>::SaltExtrapolation() {

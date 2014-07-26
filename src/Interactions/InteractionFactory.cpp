@@ -25,7 +25,7 @@
 #include "DirkInteraction2.h"
 #include "DirkInteractionBias.h"
 #include "CustomInteraction.h"
-#include "DNAInteraction2.h"
+#include "DNA2Interaction.h"
 #include "RNAInteraction2.h"
 
 
@@ -51,7 +51,14 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 		if(!strncmp(backend, "CUDA", 512)) return new DNAInteraction_nomesh<number>();
 		else return new DNAInteraction<number>();
 	}
+	else if(!strncmp(inter_type, "DNA2", 512)) {
+		char backend[512];
+		getInputString(&inp, "backend", backend, 0);
+		if(!strncmp(backend, "CUDA", 512)) return new DNA2Interaction_nomesh<number>();
+		else return new DNA2Interaction<number>();
+	}
 	else if(!strncmp(inter_type, "DNA_nomesh", 512)) return new DNAInteraction_nomesh<number>();
+	else if(!strncmp(inter_type, "DNA2_nomesh", 512)) return new DNA2Interaction_nomesh<number>();
 	else if(!strncmp(inter_type, "LJ", 512)) return new LJInteraction<number>();
 	else if(!strncmp(inter_type, "DNA_relax", 512)) return new DNAInteraction_relax<number>();
 	else if(!strncmp(inter_type, "RNA", 512)) return new RNAInteraction<number>();
