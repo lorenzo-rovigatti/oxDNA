@@ -735,22 +735,19 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 		if (rbackmod < MD_dh_RC[0]){
 			number4 rbackdir = rbackbone / rbackmod;
 			if(rbackmod < MD_dh_RHIGH[0]){
-				Ftmp = -rbackdir * MD_dh_prefactor[0] * exp(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod));
+				Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
 			}
 			else {
-				Ftmp = -rbackdir * 2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]);
+				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
 			}
 
 			// check for half-charge strand ends
-			number cut_factor = 1.0f;
 			if (MD_dh_half_charged_ends[0] && (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID)) {
-				cut_factor *= 0.5f;
+				Ftmp *= 0.5f;
 			}
 			if (MD_dh_half_charged_ends[0] && (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID)) {
-				cut_factor *= 0.5f;
+				Ftmp *= 0.5f;
 			}
-
-			Ftmp *= cut_factor;
 		
 			Ttmp -= _cross<number, number4>(ppos_back, Ftmp);
 			F -= Ftmp;
