@@ -23,48 +23,35 @@ CUDADNAInteraction<number, number4>::~CUDADNAInteraction() {
 
 template<typename number, typename number4>
 void CUDADNAInteraction<number, number4>::get_settings(input_file &inp) {
-
-	DNAInteraction<number>::get_settings(inp);
-
+	_use_debye_huckel = false;
 	std::string inter_type;
 	if (getInputString(&inp, "interaction_type", inter_type, 0) == KEY_FOUND){
-		if (inter_type.compare("DNA2") == 0){
+		if (inter_type.compare("DNA2") == 0) {
 			_use_debye_huckel = true;
 			// copy-pasted from the DNA2Interaction constructor
 			_debye_huckel_half_charged_ends = true;
 			this->_grooving = true;
 			// end copy from DNA2Interaction
+
+			// copied from DNA2Interaction::get_settings() (CPU), the least bad way of doing things
+			getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
+			getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
+			
+			// lambda-factor (the dh length at T = 300K, I = 1.0)
+			_debye_huckel_lambdafactor = 0.3616455f;
+			getInputFloat(&inp, "dh_lambda", &_debye_huckel_lambdafactor, 0);
+			
+			// the prefactor to the Debye-Huckel term
+			_debye_huckel_prefactor = 0.0543f;
+			getInputFloat(&inp, "dh_strength", &_debye_huckel_prefactor, 0);
+			// End copy from DNA2Interaction
 		}
-		else _use_debye_huckel = false;
 	}
-	
-	if (_use_debye_huckel){
-		// copied from DNA2Interaction::get_settings() (CPU), the least bad way of doing things
-		getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
 
-		getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
-
-		// lambda-factor (the dh length at T = 300K, I = 1.0)
-		float lambdafactor;
-		if (getInputFloat(&inp, "dh_lambda", &lambdafactor, 0) == KEY_FOUND) {
-			_debye_huckel_lambdafactor = (float) lambdafactor;
-		} 
-		else {
-			_debye_huckel_lambdafactor = 0.3616455;
-		}
-
-		// the prefactor to the Debye-Huckel term
-		float prefactor;
-		if (getInputFloat(&inp, "dh_strength", &prefactor, 0) == KEY_FOUND) {
-			_debye_huckel_prefactor = (float) prefactor;
-		} 
-		else {
-			_debye_huckel_prefactor = 0.0543;
-		}
-		// End copy from DNA2Interaction
-	}
+	// this needs to be here so that the default value of this->_grooving can be overwritten
+	DNAInteraction<number>::get_settings(inp);
 }
-
+	
 template<typename number, typename number4>
 void CUDADNAInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
