@@ -34,6 +34,11 @@ template<typename number> VMMC_CPUBackend<number>::VMMC_CPUBackend() : MC_CPUBac
 	_default_weight = (number) 1.f;
 	_safe_weights = true;
 	_skip_hist_zeros = false;
+	new_en3s = NULL;
+	new_en5s = NULL;
+	new_stn3s = NULL;
+	new_stn5s = NULL;
+	_vmmc_N_cells = 0;
 }
 
 template<typename number>
@@ -185,7 +190,7 @@ void VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 
 	std::string inter ("");
 	if(getInputString(&inp, "interaction_type", inter, 0) == KEY_FOUND) {
-		if(strncmp(inter.c_str(),"DNA2",512) != 0 && strncmp(inter.c_str(),"RNA2",512) != 0 &&  strncmp(inter.c_str(), "DNA", 512) != 0 && strncmp(inter.c_str(), "DNA_nomesh", 512) != 0 && strncmp(inter.c_str(), "RNA", 512) != 0) throw oxDNAException("VMMC can be used only with DNA, DNA_nomesh and RNA interactions");
+		if(strncmp(inter.c_str(),"DNA2",512) != 0 && strncmp(inter.c_str(),"DNA2_nomesh",512) != 0 && strncmp(inter.c_str(),"RNA2",512) != 0 &&  strncmp(inter.c_str(), "DNA", 512) != 0 && strncmp(inter.c_str(), "DNA_nomesh", 512) != 0 && strncmp(inter.c_str(), "RNA", 512) != 0) throw oxDNAException("VMMC can be used only with DNA, DNA_nomesh, DNA2, DNA2_nomesh and RNA interactions");
 	}
 
 	if (getInputInt(&inp, "maxclust", &tmpi, 0) == KEY_FOUND) {
