@@ -19,7 +19,8 @@ protected:
 
 	/// Cosine of the patch half width
 	number _patch_cosmax;
-	number _patch_sqr_sigma;
+	number _patch_pow_sigma;
+	int _patch_power;
 	/// Cut-off for the attractive part. It is computed at runtime
 	number _patch_cutoff;
 	/// Patch-patch interaction energy at the cut-off
@@ -87,8 +88,8 @@ number NathanInteraction<number>::_patchy_interaction(BaseParticle<number> *p, B
 		q_axis = -q_axis;
 		cosqr = -cosqr;
 	}
-	number p_mod = exp(-SQR(cospr - 1.) / (2.*_patch_sqr_sigma));
-	number q_mod = exp(-SQR(cosqr - 1.) / (2.*_patch_sqr_sigma));
+	number p_mod = exp(-pow(cospr - 1., _patch_power) / (2.*_patch_pow_sigma));
+	number q_mod = exp(-pow(cosqr - 1., _patch_power) / (2.*_patch_pow_sigma));
 	if(p_mod < 1e-3 || q_mod < 1e-3) return energy;
 
 	number sqr_surf_dist = SQR(rmod - 1.);
@@ -102,12 +103,12 @@ number NathanInteraction<number>::_patchy_interaction(BaseParticle<number> *p, B
 		LR_vector<number> tmp_force = r_versor * (p_mod*q_mod * 5.*(rmod - 1.)*exp_part*r8b10);
 
 		// angular p part
-		number der_p = exp_part * q_mod * (p_mod * (cospr - 1.) / _patch_sqr_sigma);
+		number der_p = exp_part * q_mod * (0.5*_patch_power*p_mod * pow(cospr - 1., _patch_power-1.) / _patch_pow_sigma);
 		LR_vector<number> p_ortho = p_axis + cospr*r_versor;
 		tmp_force -= p_ortho * (der_p/rmod);
 
 		// angular q part
-		number der_q = exp_part * p_mod * (-q_mod * (cosqr - 1.) / _patch_sqr_sigma);
+		number der_q = exp_part * p_mod * (-0.5*_patch_power*q_mod * pow(cosqr - 1., _patch_power-1.) / _patch_pow_sigma);
 		LR_vector<number> q_ortho = q_axis - cosqr*r_versor;
 		tmp_force -= q_ortho * (der_q/rmod);
 

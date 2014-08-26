@@ -60,18 +60,22 @@ std::string NathanNeighs<number>::_particle(BaseParticle<number> *p) {
 	int n1 = 0;
 	int n2 = 0;
 	LR_vector<number> p_axis = p->orientationT.v3;
+	// this is the number of particles which are no more than 1 + alpha far apart from p
+	int n_within = 0;
 	vector<BaseParticle<number> *> particles = this->_config_info.interaction->get_neighbours(p, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
 	for(typename std::vector<BaseParticle<number> *>::iterator it = particles.begin(); it != particles.end(); it++) {
 		BaseParticle<number> *q = *it;
+		LR_vector<number> r = q->pos.minimum_image(p->pos, *this->_config_info.box_side);
+		number r_mod = r.module();
+		if(r_mod < (_patch_length + 0.5)) n_within++;
 		if(this->_config_info.interaction->pair_interaction(p, q) < _threshold) {
-			LR_vector<number> r = q->pos.minimum_image(p->pos, *this->_config_info.box_side);
-			r.normalize();
+			r /= r_mod;
 			if(p_axis*r > 0) n1++;
 			else n2++;
 		}
 	}
 	if(!_mgl) res << n1 << " " << n2;
-	else if(n1 >= 3 && n2 >= 3) {
+	else if(n1 == 3 && n2 == 3 && n_within == 6) {
 		LR_vector<number> p1 = p_axis*_patch_length;
 		LR_vector<number> p2 = -p_axis*_patch_length;
 		string str = Utils::sformat("%lf %lf %lf @ 0.5 C[red] M %lf %lf %lf %lf C[blue] %lf %lf %lf %lf C[blue]", p->pos.x, p->pos.y,p->pos.z, p1.x, p1.y, p1.z, 0.7, p2.x, p2.y, p2.z, 0.7);

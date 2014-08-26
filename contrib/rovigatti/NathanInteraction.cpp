@@ -15,6 +15,7 @@ NathanInteraction<number>::NathanInteraction() {
 	_rep_power = 200;
 
 	_patch_alpha = 0.12;
+	_patch_power = 30;
 }
 
 template<typename number>
@@ -50,7 +51,7 @@ void NathanInteraction<number>::init() {
 
 	_rep_E_cut = pow((number) this->_rcut, -_rep_power);
 
-	_patch_sqr_sigma = SQR(_patch_cosmax - 1.);
+	_patch_pow_sigma = pow(_patch_cosmax, _patch_power);
 	_patch_pow_alpha = pow(_patch_alpha, (number) 10.);
 	number r8b10 = pow(_patch_cutoff, (number) 8.) / _patch_pow_alpha;
 	_patch_E_cut = -1.001 * exp(-(number)0.5 * r8b10 * SQR(_patch_cutoff));
