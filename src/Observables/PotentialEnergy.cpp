@@ -19,11 +19,7 @@ PotentialEnergy<number>::~PotentialEnergy() {
 
 template<typename number>
 number PotentialEnergy<number>::get_potential_energy() {
-	map<int, number> energies = this->_config_info.interaction->get_system_energy_split(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
-	number energy = (number) 0.f;
-	for(typename map<int, number>::iterator it = energies.begin(); it != energies.end(); it++) {
-		energy += it->second;
-	}
+	number energy = this->_config_info.interaction->get_system_energy(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
 	energy /= *this->_config_info.N;
 
 	return energy;
@@ -31,9 +27,7 @@ number PotentialEnergy<number>::get_potential_energy() {
 
 template<typename number>
 void PotentialEnergy<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	int tmp = 0;
-	getInputBoolAsInt(&my_inp, "split", &tmp, 0);
-	_split = bool(tmp);
+	getInputBool(&my_inp, "split", &_split, 0);
 }
 
 template<typename number>

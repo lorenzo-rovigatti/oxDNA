@@ -128,7 +128,7 @@ number PatchyInteraction<number>::_patchy_interaction(BaseParticle<number> *p, B
 					LR_vector<number> tmp_force = patch_dist * (5 * exp_part * r8b10);
 
 					p->torque -= p->orientationT * ppatch.cross(tmp_force);
-					q->torque += q->orientationT * qpatch.cross(tmp_force);;
+					q->torque += q->orientationT * qpatch.cross(tmp_force);
 
 					p->force -= tmp_force;
 					q->force += tmp_force;

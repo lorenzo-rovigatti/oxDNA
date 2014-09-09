@@ -428,11 +428,12 @@ number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **partic
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
+		energy += pair_interaction_bonded(p, P_VIRTUAL);
 		for(int c = 0; c < 27; c ++) {
 			int j = _cells_head[_cells_neigh[_cells_index[p->index]][c]];
 			while (j != P_INVALID) {
 				BaseParticle<number> *q = particles[j];
-				if(p->index > q->index) energy += pair_interaction(p, q);
+				if(p->index > q->index) energy += pair_interaction_nonbonded(p, q);
 				j = _cells_next[q->index];
 			}
 		}
