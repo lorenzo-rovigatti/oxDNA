@@ -27,43 +27,33 @@ template<typename number>
 void TSPInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 
-	double tmp;
-	getInputDouble(&inp, "TSP_rfene", &tmp, 1);
-	_rfene = tmp;
+	getInputNumber(&inp, "TSP_rfene", &_rfene, 1);
 
-	getInputDouble(&inp, "TSP_lambda", &tmp, 1);
-	if(tmp < 0.) {
+	_rfene_anchor = _rfene * 3;
+	getInputNumber(&inp, "TSP_rfene_anchor", &_rfene_anchor, 0);
+
+	getInputNumber(&inp, "TSP_lambda", &_TSP_lambda, 1);
+	if(_TSP_lambda < 0.) {
 		OX_LOG(Logger::LOG_INFO, "Invalid TSP_lambda value detected, setting it to 0");
-		tmp = 0.;
+		_TSP_lambda = 0.;
 	}
-	if(tmp > 1.) {
+	if(_TSP_lambda > 1.) {
 		OX_LOG(Logger::LOG_INFO, "Invalid TSP_lambda value detected, setting it to 1");
-		tmp = 1.;
+		_TSP_lambda = 1.;
 	}
-	_TSP_lambda = tmp;
 
-	getInputDouble(&inp, "TSP_rcut", &tmp, 1);
-	this->_rcut = tmp;
+	getInputNumber(&inp, "TSP_rcut", &this->_rcut, 1);
 
 	getInputInt(&inp, "TSP_n", &_TSP_n, 1);
 
-	int aa = 0;
-	getInputBoolAsInt(&inp, "TSP_attractive_anchor", &aa, 0);
-	_attractive_anchor = (bool) aa;
-
-	int oc = 0;
-	getInputBoolAsInt(&inp, "TSP_only_chains", &oc, 0);
-	_only_chains = (bool) oc;
-
-	int oi = 0;
-	getInputBoolAsInt(&inp, "TSP_only_intra", &oc, 0);
-	_only_intra = (bool) oi;
+	getInputBool(&inp, "TSP_attractive_anchor", &_attractive_anchor, 0);
+	getInputBool(&inp, "TSP_only_chains", &_only_chains, 0);
+	getInputBool(&inp, "TSP_only_intra", &_only_intra, 0);
 }
 
 template<typename number>
 void TSPInteraction<number>::init() {
 	_sqr_rfene = SQR(_rfene);
-	_rfene_anchor = _rfene * 3;
 	_sqr_rfene_anchor = SQR(_rfene_anchor);
 
 	number rep_rcut = pow(2., 1./_TSP_n);
@@ -174,7 +164,7 @@ template<typename number>
 number TSPInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
-	// if the p and q don't belong to the same star AND the user enabled the TSP_only_intra option then
+	// if p and q don't belong to the same star AND the user enabled the TSP_only_intra option then
 	// the interaction should be 0
 	if(_only_intra && p->strand_id != q->strand_id) return 0.;
 

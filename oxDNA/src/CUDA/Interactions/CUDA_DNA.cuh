@@ -748,7 +748,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			if (MD_dh_half_charged_ends[0] && (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID)) {
 				Ftmp *= 0.5f;
 			}
-		
+
 			Ttmp -= _cross<number, number4>(ppos_back, Ftmp);
 			F -= Ftmp;
 		}
