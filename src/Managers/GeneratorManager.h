@@ -23,6 +23,7 @@ protected:
 
 	IBaseInteraction<double> *_interaction;
 
+	bool _init_completed;
 	bool _use_density;
 	double _box_side;
 	double _density;

@@ -83,7 +83,7 @@ protected:
 public:
 	virtual ~IBaseInteraction();
 
-	void set_box_side(number box_side) { _box_side = box_side; }
+	virtual void set_box_side(number box_side) { _box_side = box_side; }
 
 	virtual void get_settings(input_file &inp);
 
@@ -316,8 +316,8 @@ int IBaseInteraction<number>::get_N_from_topology() {
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	topology.getline(line, 512);
 	topology.close();
-	int caca, ret;
-	sscanf(line, "%d %d\n", &ret, &caca);
+	int ret;
+	sscanf(line, "%d %*d\n", &ret);
 	return ret;
 }
 
@@ -428,7 +428,8 @@ number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **partic
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
-		energy += pair_interaction_bonded(p, P_VIRTUAL);
+		// we need the 0.5 because pair_interaction_bonded computes the energy between all bonded pairs if update_forces == false
+		energy += 0.5*pair_interaction_bonded(p, P_VIRTUAL);
 		for(int c = 0; c < 27; c ++) {
 			int j = _cells_head[_cells_neigh[_cells_index[p->index]][c]];
 			while (j != P_INVALID) {

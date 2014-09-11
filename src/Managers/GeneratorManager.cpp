@@ -33,11 +33,12 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	_N = 0;
 	_particles = NULL;
 	_interaction = NULL;
+	_init_completed = false;
 }
 
 GeneratorManager::~GeneratorManager() {
 	cleanInputFile(&_input);
-	if(_interaction != NULL) {
+	if(_init_completed) {
 		delete _interaction;
 		for(int i = 0; i < _N; i++) delete _particles[i];
 		delete[] _particles;
@@ -91,6 +92,8 @@ void GeneratorManager::init() {
 		_density = _N / pow (_box_side, 3);
 		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
 	}
+
+	_init_completed = true;
 }
 
 void GeneratorManager::generate() {
