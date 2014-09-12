@@ -12,7 +12,7 @@ compilation_flags="-Wall -fpic -c $f.cpp -I../../src/Observables -I../../src/Int
 linking_flags="-shared -o $f.so $f.o"
 if [ $# -eq 1 ]
 then
-	g++ -O3 $compilation_flags
+	g++ -ffast-math -O3 $compilation_flags
 	g++ $linking_flags
 else
 	g++ -g2 $compilation_flags
