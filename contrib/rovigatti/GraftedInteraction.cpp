@@ -153,7 +153,7 @@ template<typename number>
 number GraftedInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	number energy = 0.f;
 	if(q == P_VIRTUAL) {
-		energy += _wall_interaction(p, update_forces);
+		if(_walls) energy += _wall_interaction(p, update_forces);
 		TSPParticle<number> *TSPp = (TSPParticle<number> *) p;
 		for(typename set<TSPParticle<number> *>::iterator it = TSPp->bonded_neighs.begin(); it != TSPp->bonded_neighs.end(); it++) {
 			energy += pair_interaction_bonded(p, *it, r, update_forces);
@@ -182,7 +182,7 @@ number GraftedInteraction<number>::pair_interaction_bonded(BaseParticle<number> 
 			else return 1e10;
 		}
 
-		energy += -15 * _colloid_sqr_rfene * log(1. - sqr_r_ma/_colloid_sqr_rfene);
+		energy += -15. * _colloid_sqr_rfene * log(1. - sqr_r_ma/_colloid_sqr_rfene);
 
 		if(update_forces) {
 			LR_vector<number> tmp_force = r_ma * (-30. * _colloid_sqr_rfene / (_colloid_sqr_rfene - sqr_r_ma));
