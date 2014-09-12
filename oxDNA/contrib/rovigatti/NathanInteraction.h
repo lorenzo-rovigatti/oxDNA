@@ -90,7 +90,7 @@ number NathanInteraction<number>::_patchy_interaction(BaseParticle<number> *p, B
 	}
 	number p_mod = exp(-pow(cospr - 1., _patch_power) / (2.*_patch_pow_sigma));
 	number q_mod = exp(-pow(cosqr - 1., _patch_power) / (2.*_patch_pow_sigma));
-	if(p_mod < 1e-3 || q_mod < 1e-3) return energy;
+	if(p_mod < 1e-6 || q_mod < 1e-6) return energy;
 
 	number sqr_surf_dist = SQR(rmod - 1.);
 	number r8b10 = SQR(SQR(sqr_surf_dist)) / _patch_pow_alpha;
@@ -117,12 +117,6 @@ number NathanInteraction<number>::_patchy_interaction(BaseParticle<number> *p, B
 
 		p->torque += p->orientationT * (r_versor.cross(p_axis) * der_p);
 		q->torque += q->orientationT * (r_versor.cross(q_axis) * der_q);
-
-//		p->torque += r_versor.cross(p_axis) * der_p;
-//		q->torque += r_versor.cross(q_axis) * der_q;
-
-//		LR_vector<number> tot = r_versor.cross(p_axis)*der_p + r_versor.cross(q_axis)*der_q - r->cross(tmp_force);
-//		printf("%lf %lf %lf = %lf\n", (r_versor.cross(p_axis) * der_p).x, (r_versor.cross(q_axis) * der_q).x, -r->cross(tmp_force).x, tot.x);
 	}
 
 	return energy;
