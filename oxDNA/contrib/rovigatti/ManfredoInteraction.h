@@ -73,7 +73,7 @@ protected:
 	 */
 	number _dfx(number x, void *par);
 
-	void _build_intra_lt(int lt_type);
+	void _build_lt(Mesh<number> &mesh, int points, char *filename);
 
 	int _N_tetramers;
 	const int _N_per_tetramer;
@@ -140,7 +140,7 @@ class CustomArmParticle: public CustomParticle<number> {
 protected:
 	LR_vector<number> _principal_DNA_axis;
 public:
-	CustomArmParticle() : CustomParticle<number>(), _principal_DNA_axis(LR_vector<number>(1, 0, 0)) {};
+	CustomArmParticle();
 	virtual ~CustomArmParticle() {};
 
 	virtual bool is_rigid_body() { return true; }

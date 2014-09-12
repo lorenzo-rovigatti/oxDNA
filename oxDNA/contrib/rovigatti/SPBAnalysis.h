@@ -17,8 +17,9 @@ template<typename number>
 class SPBAnalysis : public BaseObservable<number> {
 protected:
 	number _bin;
-	int _N_bins, _shift;
+	int _N_bins;
 	std::vector<number> _cx, _cy, _cz;
+	int _confs;
 
 public:
 	SPBAnalysis();

@@ -12,8 +12,8 @@ using namespace std;
 
 template<typename number>
 ManfredoInteraction<number>::ManfredoInteraction() : BaseInteraction<number, ManfredoInteraction<number> >(), _N_per_tetramer(29) {
-	//this->_int_map[LENNARD_JONES] = &ManfredoInteraction<number>::_lennard_jones;
 	_N_tetramers = 0;
+	this->_int_map[0] = &ManfredoInteraction<number>::pair_interaction;
 }
 
 template<typename number>
@@ -34,6 +34,17 @@ void ManfredoInteraction<number>::get_settings(input_file &inp) {
 
 	getInputString(&inp, "lt_arm_arm_far", _intra_filename[ARM_ARM_FAR], 1);
 	getInputInt(&inp, "lt_arm_arm_far_points", &_intra_points[ARM_ARM_FAR], 1);
+
+	getInputString(&inp, "lt_centre_centre", _inter_filename[CENTRE_CENTRE], 1);
+	getInputInt(&inp, "lt_centre_centre_points", &_inter_points[CENTRE_CENTRE], 1);
+
+	getInputString(&inp, "lt_centre_arm_near", _inter_filename[CENTRE_ARM_INTER], 1);
+	getInputInt(&inp, "lt_centre_arm_points", &_inter_points[CENTRE_ARM_INTER], 1);
+
+	getInputString(&inp, "lt_arm_arm", _inter_filename[ARM_ARM_INTER], 1);
+	getInputInt(&inp, "lt_arm_arm_points", &_inter_points[ARM_ARM_INTER], 1);
+
+	this->_rcut = 25.;
 }
 
 template<typename number>
@@ -68,9 +79,9 @@ number ManfredoInteraction<number>::_dfx(number x, void *par) {
 }
 
 template<typename number>
-void ManfredoInteraction<number>::_build_intra_lt(int lt_type) {
-	std::ifstream lt_file(_intra_filename[lt_type], ios::in);
-	if(!lt_file.good()) throw oxDNAException("Can't read lookup file '%s'. Aborting", _intra_filename[lt_type]);
+void ManfredoInteraction<number>::_build_lt(Mesh<number> &mesh, int points, char *filename) {
+	std::ifstream lt_file(filename, ios::in);
+	if(!lt_file.good()) throw oxDNAException("Can't read lookup file '%s'. Aborting", filename);
 
 	string line;
 	int n_lines = 0;
@@ -88,6 +99,7 @@ void ManfredoInteraction<number>::_build_intra_lt(int lt_type) {
 	data.dfx = new number[n_lines];
 	data.points = n_lines;
 
+	lt_file.clear();
 	lt_file.seekg(0, ios::beg);
 	int i = 0;
 	stop = false;
@@ -109,7 +121,7 @@ void ManfredoInteraction<number>::_build_intra_lt(int lt_type) {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i-1];
 
-	this->_build_mesh(this, &ManfredoInteraction::_fx, &ManfredoInteraction::_dfx, (void *)(&data), _intra_points[lt_type], lowlimit, uplimit, _intra_mesh[lt_type]);
+	this->_build_mesh(this, &ManfredoInteraction::_fx, &ManfredoInteraction::_dfx, (void *)(&data), points, lowlimit, uplimit, mesh);
 
 	delete[] data.x;
 	delete[] data.fx;
@@ -120,14 +132,13 @@ template<typename number>
 void ManfredoInteraction<number>::init() {
 	_DNA_inter.init();
 
-	_build_intra_lt(CENTRE_ARM_INTRA);
-	_build_intra_lt(ARM_ARM_FAR);
-	_build_intra_lt(ARM_ARM_NEAR);
+	for(int i = 0; i < 3; i++) _build_lt(_intra_mesh[i], _intra_points[i], _intra_filename[i]);
+	for(int i = 0; i < 3; i++) _build_lt(_inter_mesh[i], _inter_points[i], _inter_filename[i]);
 
-	for(double x = 0; x < 25; x += 0.1) {
-		printf("%lf %lf\n", x, _query_mesh(x, _intra_mesh[ARM_ARM_NEAR]));
-	}
-	exit(1);
+//	for(double x = 0; x < 25; x += 0.1) {
+//		printf("%lf %lf\n", x, _query_mesh(x, _intra_mesh[ARM_ARM_NEAR]));
+//	}
+//	exit(1);
 }
 
 template<typename number>
@@ -139,7 +150,7 @@ void ManfredoInteraction<number>::allocate_particles(BaseParticle<number> **part
 		// for each arm
 		for(int j = 0; j < 4; j++) {
 			particles[ind++] = new CustomArmParticle<number>();
-			//for(int k = 0; k < 6; k++) particles[ind++] = new DNANucleotide<number>(false);
+			for(int k = 0; k < 6; k++) particles[ind++] = new DNANucleotide<number>(false);
 		}
 	}
 }
@@ -198,13 +209,14 @@ int ManfredoInteraction<number>::_get_p_type(BaseParticle<number> *p) {
 	int rel_ind = p->index % _N_per_tetramer;
 	if(rel_ind == 0) return CENTRE;
 	if(((rel_ind-1) % 7) == 0) return ARM;
+
 	return STICKY;
 }
 
 template<typename number>
 int ManfredoInteraction<number>::_get_inter_type(BaseParticle<number> *p, BaseParticle<number> *q) {
 	int p_type = _get_p_type(p);
-	int q_type = _get_p_type(p);
+	int q_type = _get_p_type(q);
 
 	// common for both inter- and intra-tetramer interactions
 	if(_any(p_type, q_type, CENTRE) && _any(p_type, q_type, STICKY)) return CENTRE_STICKY;
@@ -242,13 +254,15 @@ inline number ManfredoInteraction<number>::_query_mesh(number x, Mesh<number> &m
 
 template<typename number>
 number ManfredoInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
+	else return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
 template<typename number>
 number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	int p_type = _get_p_type(p);
-	if(p_type == STICKY) return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
+	if(p_type == STICKY || (q != P_VIRTUAL && _get_p_type(q) == STICKY)) return 0.f;
+//	if(p_type == STICKY) return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
 
 	number energy = 0.f;
 	if(q == P_VIRTUAL) {
@@ -286,6 +300,8 @@ number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number>
 
 template<typename number>
 number ManfredoInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+	number energy = 0.f;
+
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = q->pos.minimum_image(p->pos, this->_box_side);
@@ -294,15 +310,37 @@ number ManfredoInteraction<number>::pair_interaction_nonbonded(BaseParticle<numb
 
 	int p_type = _get_p_type(p);
 	int q_type = _get_p_type(q);
-	if(_both(p_type, q_type, STICKY)) return _DNA_inter.pair_interaction_nonbonded(p, q, r, update_forces);
 
-	return 0.f;
+//	if(_both(p_type, q_type, STICKY)) return _DNA_inter.pair_interaction_nonbonded(p, q, r, update_forces);
+
+	// if there are no sticky ends involved and if the two particles belong to two different tetramers
+	if(!_any(p_type, q_type, STICKY) && p->strand_id != q->strand_id) {
+		int type = _get_inter_type(p, q);
+
+		number dist = r->module();
+		energy = this->_query_mesh(dist, _inter_mesh[type]);
+
+		if(update_forces) {
+			number force_mod = -this->_query_meshD(dist, _intra_mesh[type]);
+			LR_vector<number> force = *r * (force_mod/dist);
+			p->force -= force;
+			q->force += force;
+		}
+	}
+
+	return energy;
 }
 
 template<typename number>
 void ManfredoInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
 
 }
+
+template<typename number>
+CustomArmParticle<number>::CustomArmParticle() : CustomParticle<number>(), _principal_DNA_axis(LR_vector<number>(1, 0, 0)) {
+		this->int_centers = new LR_vector<number>[3];
+		this->N_int_centers = 3;
+};
 
 // we copy the next method from the DNANucleotide class
 // not a pretty way of doing it, but it works. Sorry.
