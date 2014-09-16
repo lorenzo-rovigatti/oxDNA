@@ -116,7 +116,7 @@ void VMMC_CPUBackend<number>::init(char conf_filename[256]) {
 		OX_LOG(Logger::LOG_INFO, "Preserving topology; max_move_size = %lf...", _max_move_size);
 	}
 	else {
-		_max_move_size = this->_box_side / 2. - 2.;
+		_max_move_size = this->_box_side / 2. - 2. * this->_rcut - 0.2;
 		_max_move_size_sqr = _max_move_size * _max_move_size;
 		OX_LOG(Logger::LOG_INFO, "Not attempting to preserve topology; max_move_size = %g", _max_move_size);
 	}
@@ -326,8 +326,8 @@ template<typename number>
 inline number VMMC_CPUBackend<number>::_particle_particle_bonded_interaction_n5_VMMC(BaseParticle<number> *p, BaseParticle<number> *q, number *stacking_en) {
 	throw oxDNAException ("ERROR: called a function that should not be called; file %s, line %d", __FILE__, __LINE__);
 	//return _particle_particle_bonded_interaction_n3_VMMC (q, p, stacking_en);
-	if (stacking_en != NULL) *stacking_en = 1.;
-	return this->_interaction->pair_interaction_bonded(q, p, NULL, false);
+	//if (stacking_en != NULL) *stacking_en = 1.;
+	//return this->_interaction->pair_interaction_bonded(q, p, NULL, false);
 }
 
 template<typename number>
@@ -489,7 +489,7 @@ inline number VMMC_CPUBackend<number>::build_cluster_small (movestr<number> * mo
 
 	//ppold = &(this->_particles_old[pp->index]);
 	store_particle (pp);
-	_move_particle(moveptr, pp);
+	_move_particle(moveptr, pp, pp);
 
 	while (k < nclust && nclust <= maxsize) {
 		//pp is the moved particle which is already in the cluster
@@ -520,7 +520,7 @@ inline number VMMC_CPUBackend<number>::build_cluster_small (movestr<number> * mo
 				if (test1 > this->_next_rand()) {
 					// prelink successful
 					store_particle (qq);
-					_move_particle (moveptr, qq);
+					_move_particle (moveptr, qq, pp);
 
 					E_qq_moved = _particle_particle_bonded_interaction_n3_VMMC (this->_particles_old[pp->index], qq);
 					test2 = VMMC_link (E_qq_moved, E_old);
@@ -559,7 +559,7 @@ inline number VMMC_CPUBackend<number>::build_cluster_small (movestr<number> * mo
 				if (test1 > this->_next_rand()) {
 					// prelink successful
 					store_particle (qq);
-					_move_particle(moveptr, qq);
+					_move_particle(moveptr, qq, pp);
 
 					//E_qq_moved = _particle_particle_bonded_interaction_n5_VMMC (this->_particles_old[pp->index], qq);
 					E_qq_moved = _particle_particle_bonded_interaction_n3_VMMC (qq, this->_particles_old[pp->index]);
@@ -601,7 +601,7 @@ inline number VMMC_CPUBackend<number>::build_cluster_small (movestr<number> * mo
 				test1 = VMMC_link (E_pp_moved, E_old);
 				if (test1 >  this->_next_rand ()) {
 					store_particle (qq);
-					_move_particle (moveptr, qq);
+					_move_particle (moveptr, qq, pp);
 
 					E_qq_moved = _particle_particle_nonbonded_interaction_VMMC (this->_particles_old[pp->index], qq);
 
@@ -821,9 +821,12 @@ inline number VMMC_CPUBackend<number>::build_cluster_cells (movestr<number> * mo
 	pp->inclust = true;
 
 	store_particle (pp);
-	_move_particle(moveptr, pp);
+	_move_particle(moveptr, pp, pp);
 
 	assert (this->_overlap == false);
+
+	// how far away am I recruiting?
+	LR_vector<number> how_far (0., 0., 0.);
 
 	while (k < nclust && nclust <= maxsize) {
 		//pp is the moved particle which is already in the cluster
@@ -852,7 +855,7 @@ inline number VMMC_CPUBackend<number>::build_cluster_cells (movestr<number> * mo
 				if (this->_overlap || test1 > this->_next_rand()) {
 					// prelink successful
 					store_particle (qq);
-					_move_particle(moveptr, qq);
+					_move_particle(moveptr, qq, pp);
 
 					// in case E_pp_moved created an overlap
 					this->_overlap = false;
@@ -910,7 +913,7 @@ inline number VMMC_CPUBackend<number>::build_cluster_cells (movestr<number> * mo
 				if (this->_overlap || test1 > this->_next_rand()) {
 					// prelink successful
 					store_particle (qq);
-					_move_particle(moveptr, qq);
+					_move_particle(moveptr, qq, pp);
 
 					// in case we have recruited because of an overlap
 					this->_overlap = false;
@@ -982,7 +985,7 @@ inline number VMMC_CPUBackend<number>::build_cluster_cells (movestr<number> * mo
 					test1 = VMMC_link (E_pp_moved, E_old);
 					if (test1 >  this->_next_rand ()) {
 						store_particle (qq);
-						_move_particle (moveptr, qq);
+						_move_particle (moveptr, qq, pp);
 
 						//_r_move_particle (moveptr, pp);
 						//E_qq_moved = _particle_particle_nonbonded_interaction_VMMC (pp, qq);
@@ -1189,7 +1192,7 @@ inline number VMMC_CPUBackend<number>::build_cluster_cells (movestr<number> * mo
 	return pprime;
 }
 
-
+/* // old version
 template<typename number>
 inline void VMMC_CPUBackend<number>::_move_particle(movestr<number> * moveptr, BaseParticle< number> *q) {
 	if (moveptr->type == MC_MOVE_TRANSLATION) {
@@ -1199,12 +1202,55 @@ inline void VMMC_CPUBackend<number>::_move_particle(movestr<number> * moveptr, B
 		//in this case, the translation vector is the point around which we
 		//rotate
 		LR_vector<number> dr, drp;
+		if (this->_particles[moveptr->seed]->strand_id == q->strand_id) {
+			dr = q->pos - moveptr->t;
+		//if (dr.norm() > 29. * 29.) {
+		//		printf("cavolo1... %g %g %g %d %d\n", dr.x, dr.y, dr.z, moveptr->seed, q->index);
+		//	}
+		}
+		else {
+			dr = q->pos.minimum_image(moveptr->t, this->_box_side);
+		//	if (dr.norm() > 29. * 29.) {
+		//		printf("cavolo2... %g %g %g %d %d\n", dr.x, dr.y, dr.z, moveptr->seed, q->index);
+		//	}
+		}
 
-		dr = q->pos.minimum_image(moveptr->t, this->_box_side);
+		if (q->index == 122 || q->index == 121) printf ("rotating %d... ", q->index);
+		if (q->index == 122 || q->index == 121) printf ("pos  = np.array ([%g, %g, %g]\n", q->pos.x, q->pos.y, q->pos.z);
+		if (q->index == 122 || q->index == 121) printf ("da:  = np.array ([%g, %g, %g]\n", moveptr->t.x, moveptr->t.y, moveptr->t.z);
+		if (q->index == 122 || q->index == 121) printf ("dr:  = np.array ([%g, %g, %g]\n", dr.x, dr.y, dr.z); 
 		drp = moveptr->R * dr;
+		if (q->index == 122 || q->index == 121) printf ("drp: = np.array ([%g, %g, %g]\n", drp.x, drp.y, drp.z); 
 		q->pos += (drp - dr); // accounting for PBC
 		q->orientation = moveptr->R * q->orientation;
 		//q->orientation.orthonormalize(); // NORMALIZZATo
+		q->orientationT = q->orientation.get_transpose();
+		q->set_positions();
+		if (q->index == 122 || q->index == 121) printf ("fin: = np.array ([%g, %g, %g]\n", q->pos.x, q->pos.y, q->pos.z);
+	}
+	else {
+		;
+	}
+
+	return;
+}
+*/
+
+template<typename number>
+inline void VMMC_CPUBackend<number>::_move_particle(movestr<number> * moveptr, BaseParticle< number> *q, BaseParticle<number> *p) {
+	if (moveptr->type == MC_MOVE_TRANSLATION) {
+		q->pos += moveptr->t;
+	}
+	else if (moveptr->type == MC_MOVE_ROTATION) {
+		//in this case, the translation vector is the point around which we rotate
+		BaseParticle<number> * p_old = this->_particles_old[p->index];
+		LR_vector<number> dr, drp;
+		if (p->strand_id == q->strand_id) { dr = q->pos - p_old->pos; }
+		else { dr = q->pos.minimum_image(p_old->pos, this->_box_side); }
+		drp = moveptr->R * dr;
+		//q->pos += (drp - dr); // accounting for PBC
+		q->pos = p->pos + drp;
+		q->orientation = moveptr->R * q->orientation;
 		q->orientationT = q->orientation.get_transpose();
 		q->set_positions();
 	}
@@ -1445,7 +1491,6 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 
 		//printf("## U: %lf dU: %lf, p': %lf, nclust: %d \n", this->_U, this->_dU, pprime, nclust);
 		if (this->_overlap == false && pprime > drand48()) {
-
 			if (nclust <= _maxclust) this->_accepted[_last_move]++;
 			//if (!_reject_prelinks) this->_accepted[0]++;
 			this->_U += this->_dU;
@@ -1483,7 +1528,6 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 					}
 				}
 			}
-
 			//printf("## accepting dU = %lf, pprime = %lf\n", this->_dU, pprime);
 			//printf("## checking metainfo after accepting\n");
 			//_check_metainfo();
@@ -1494,7 +1538,6 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 		else {
 			//move rejected
 			//printf("## rejecting dU = %lf, pprime = %lf, if %i==%i just updated lists\n", this->_dU, pprime, _just_updated_lists, true);
-
 			for (int l = 0; l < nclust; l ++) {
 				int old_index, new_index;
 				BaseParticle<number> * pp;
@@ -1514,7 +1557,6 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 			if (_have_us)
 				_op.restore();
 			//_op.print();
-
 			//printf ("rejected... checking metainfo...\n");
 			//if (_have_us) check_ops();
 			//_check_metainfo();
@@ -1547,21 +1589,25 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 			_h.add(oldwindex, oldweight, this->_U, this->_U_stack, _U_ext);
 		}
 
-		// set particles not into cluster
+		// reset the inclust property to the particles
 		for (int k = 0; k < nclust; k++) {
 			this->_particles[clust[k]]->inclust = false;
 		}
-		/*
-		for (int k = 0; k < ntainted; k++) {
-			_tainted[tainted[k]] = false;
-		}
-		*/
 	}
 
 	//check_ops();
 
 	delete[] clust;
 	//delete[] tainted;
+	
+	// check energy for percolation
+	if (curr_step % (llint)this->_check_energy_every == 1) {
+		//printf ("checking energy for percolation..\n");
+		number U_from_tally = this->_U;
+		_compute_energy();
+		if ((this->_U - U_from_tally) > 1.e-4) throw oxDNAException ("(VMMC_CPUBackend) Accumulated Energy (%g) and Energy computed from scratch (%g) don't match. Possibly percolating clusters. Your box is too small", U_from_tally, this->_U);
+		//printf ("all ok (%g %g)... \n", U_from_tally, this->_U);
+	}
 
 	get_time(&this->_timer, 1);
 	process_times(&this->_timer);
@@ -1745,6 +1791,7 @@ template<typename number>
 void VMMC_CPUBackend<number>::_compute_energy () {
 	// Since this function is called by MC_CPUBackend::init() but it uses cells initialized
 	// by VMMC_CPUBackend::init(), we do nothing if it's called too early
+	
 	if(_vmmc_heads == NULL) return;
 	BaseParticle<number> * p, * q;
 	this->_overlap = false;
