@@ -130,7 +130,7 @@ protected:
 	//inline number _next_rand (void) const { return drand48(); }
 	inline number _next_rand () {return drand48();}
 
-	inline void _move_particle(movestr<number> * moveptr, BaseParticle<number> *p);
+	inline void _move_particle(movestr<number> * moveptr, BaseParticle<number> *p, BaseParticle<number> *q);
 	//void _r_move_particle(movestr<number> * moveptr, BaseParticle<number> *p);
 	void _update_ops ();
 	void _update_lists ();
