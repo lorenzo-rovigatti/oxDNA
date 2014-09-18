@@ -317,8 +317,11 @@ void VMMC_CPUBackend<number>::get_settings(input_file & inp) {
                } else {
                        _have_us = false;
                }
-       }
+	}
 
+	if (_have_us) {
+		_h.read_grooving(inp);
+	}
 }
 
 // this function is just a wrapper that inverts p and q

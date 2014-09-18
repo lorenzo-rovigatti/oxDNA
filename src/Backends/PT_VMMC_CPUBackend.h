@@ -73,6 +73,8 @@ protected:
 	PT_serialized_particle_info<number> * _exchange_conf;
 	PT_energy_info<number> _exchange_energy;
 
+	bool _grooving;
+
 public:
 	PT_VMMC_CPUBackend();
 	virtual ~PT_VMMC_CPUBackend();

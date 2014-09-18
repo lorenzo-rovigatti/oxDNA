@@ -261,11 +261,13 @@ void DNAInteraction<number>::init() {
 	for(int i = 0; i < 5; i++) {
 		for(int j = 0; j < 5; j++) {
 			// stacking
-			F1_EPS[STCK_F1][i][j] = STCK_BASE_EPS + STCK_FACT_EPS * _T;
+			if (_grooving) F1_EPS[STCK_F1][i][j] = STCK_BASE_EPS_MM + STCK_FACT_EPS_MM * _T;
+			else F1_EPS[STCK_F1][i][j] = STCK_BASE_EPS_NO_MM + STCK_FACT_EPS_NO_MM * _T;
 			F1_SHIFT[STCK_F1][i][j] = F1_EPS[STCK_F1][i][j] * SQR(1 - exp(-(STCK_RC - STCK_R0) * STCK_A));
 
 			// HB
-			F1_EPS[HYDR_F1][i][j] = HYDR_EPS;
+			if (_grooving) F1_EPS[HYDR_F1][i][j] = HYDR_EPS_MM;
+			else F1_EPS[HYDR_F1][i][j] = HYDR_EPS_NO_MM;
 			F1_SHIFT[HYDR_F1][i][j] = F1_EPS[HYDR_F1][i][j] * SQR(1 - exp(-(HYDR_RC - HYDR_R0) * HYDR_A));
 		}
 	}

@@ -143,7 +143,6 @@ protected:
 	bool _back_in_box;
 	bool _custom_conf_name;
 	char _custom_conf_str[256];
-	bool _grooving;
 	ifstream _conf_input;
 	llint _read_conf_step;
 

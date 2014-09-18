@@ -9,8 +9,6 @@
 #ifndef MODEL_H_
 #define MODEL_H_
 
-#define MODEL_VERSION "JUNE-2011"
-
 /// POSITIONS OF INTERACTION CENTERS
 #define POS_BACK -0.4f
 #define POS_MM_BACK1 -0.3400f
@@ -54,7 +52,8 @@
  */
 /// radial part
 #define HYDR_F1 0
-#define HYDR_EPS 1.077f
+#define HYDR_EPS_NO_MM 1.077f
+#define HYDR_EPS_MM 1.0601f
 #define HYDR_A 8.f
 #define HYDR_RC 0.75f
 #define HYDR_R0 0.4f
@@ -114,8 +113,10 @@
  */
 /// radial part
 #define STCK_F1 1
-#define STCK_BASE_EPS 1.3448f
-#define STCK_FACT_EPS 2.6568f
+#define STCK_BASE_EPS_NO_MM 1.3448f
+#define STCK_BASE_EPS_MM 1.3476f
+#define STCK_FACT_EPS_NO_MM 2.6568f
+#define STCK_FACT_EPS_MM 2.6624f
 #define STCK_A 6.f
 #define STCK_RC 0.9f
 #define STCK_R0 0.4f
