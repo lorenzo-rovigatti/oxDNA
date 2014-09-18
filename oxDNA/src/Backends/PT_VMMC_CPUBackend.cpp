@@ -167,6 +167,14 @@ void PT_VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 		if (tmpi <= 0) _pt_common_weights = false;
 		else _pt_common_weights = true;
 	}
+
+	// For the stacking energy calculations
+	int tmp;
+	_grooving = false;
+	if(getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) == KEY_FOUND){
+		if (tmp != 0) _grooving = true;
+	}
+
 }
 
 template <typename number>
@@ -232,12 +240,15 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 				b1 = 1./this->_T;
 				b2 = 1./_exchange_energy.T;
 
-				et = this->_U_stack * STCK_FACT_EPS / (STCK_BASE_EPS + STCK_FACT_EPS / b1);
+				if (_grooving) et = this->_U_stack * STCK_FACT_EPS_MM / (STCK_BASE_EPS_MM + STCK_FACT_EPS_MM / b1);
+				else et = this->_U_stack * STCK_FACT_EPS_NO_MM / (STCK_BASE_EPS_NO_MM + STCK_FACT_EPS_NO_MM / b1);
+
 				e0 = this->_U - et / b1;
 
 				b2u1 = b2 * (e0 + et / b2);
 
-				et = _exchange_energy.U_stack * STCK_FACT_EPS / (STCK_BASE_EPS + STCK_FACT_EPS / b2);
+				if (_grooving) et = _exchange_energy.U_stack * STCK_FACT_EPS_MM / (STCK_BASE_EPS_MM + STCK_FACT_EPS_MM / b2);
+				else et = _exchange_energy.U_stack * STCK_FACT_EPS_NO_MM / (STCK_BASE_EPS_NO_MM + STCK_FACT_EPS_NO_MM / b2);
 				e0 = _exchange_energy.U - et / b2;
 
 				b1u2 = b1 * (e0 + et / b1);
@@ -425,7 +436,8 @@ void PT_VMMC_CPUBackend<number>::_rebuild_exchange_energy() {
 	//et = this->_U_stack * STCK_FACT_EPS / (STCK_BASE_EPS + STCK_FACT_EPS / b1);
 	//fprintf (stderr, "(replica %d) monkey %lf %lf %lf\n", _my_mpi_id, _exchange_energy.U, _exchange_energy.U_hydr, _exchange_energy.U_stack);
 
-	this->_U_stack = _exchange_energy.U_stack * (STCK_BASE_EPS + STCK_FACT_EPS * this->_T) / (STCK_BASE_EPS + STCK_FACT_EPS * _exchange_energy.T);
+	if (_grooving) this->_U_stack = _exchange_energy.U_stack * (STCK_BASE_EPS_MM + STCK_FACT_EPS_MM * this->_T) / (STCK_BASE_EPS_MM + STCK_FACT_EPS_MM * _exchange_energy.T);
+	else this->_U_stack = _exchange_energy.U_stack * (STCK_BASE_EPS_NO_MM + STCK_FACT_EPS_NO_MM * this->_T) / (STCK_BASE_EPS_NO_MM + STCK_FACT_EPS_NO_MM * _exchange_energy.T);
 	this->_U = _exchange_energy.U + this->_U_stack - _exchange_energy.U_stack;
 	this->_U_hydr = _exchange_energy.U_hydr;
 	_which_replica = _exchange_energy.replica_id;

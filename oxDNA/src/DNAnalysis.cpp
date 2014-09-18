@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
 
 		OX_LOG(Logger::LOG_INFO, "SVN CODE VERSION: %s", SVN_VERSION);
 		OX_LOG(Logger::LOG_INFO, "COMPILED ON: %s", BUILD_TIME);
-		OX_LOG(Logger::LOG_INFO, "MODEL VERSION: %s", MODEL_VERSION);
 
 		OX_DEBUG("Running");
 		OX_LOG(Logger::LOG_INFO, "Starting analysis");
