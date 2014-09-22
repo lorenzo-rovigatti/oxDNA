@@ -35,6 +35,7 @@ void SaltExtrapolation<number>::init (ConfigInfo<number> &config_info) {
    ifstream tmpf(_op_file.c_str());
    if(!tmpf.good ()) throw oxDNAException ("(SaltExtrapolation.cpp) Can't read file '%s'", _op_file.c_str());
 
+   _op.set_log_level (Logger::LOG_DEBUG);
    _op.init_from_file (_op_file.c_str(), this->_config_info.particles, *(this->_config_info.N));
 	
    _weights.init((const char *) _weights_file.c_str(), &_op, false, 1.);

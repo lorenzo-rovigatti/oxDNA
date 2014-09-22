@@ -20,6 +20,7 @@
 #include <map>
 #include <fstream>
 
+#include "../Utilities/Utils.h"
 #include "../Utilities/oxDNAException.h"
 #include "../Particles/BaseParticle.h"
 #include "../Particles/DNANucleotide.h"
@@ -181,8 +182,6 @@ struct MinDistanceParameter {
 
 	template<typename number>
 	int calculate_state(BaseParticle<number> **particle_list, double box_side) {
-
-
 		LR_vector<number> dist;
 		current_value = -1;
 		double candidate;
@@ -249,6 +248,8 @@ protected:
 
 	int _all_states_count;
 	int * _all_states;
+
+	int _log_level;	
 
 public:
 	OrderParameters();
@@ -482,7 +483,7 @@ public:
 	 */
 	template<typename number>
 	int init_from_file(const char *_external_filename, BaseParticle<number> **particles, int max_N) {
-		OX_LOG(Logger::LOG_INFO, "Parsing order parameter file %s", _external_filename);
+		OX_LOG(_log_level, "Parsing order parameter file %s", _external_filename);
 
 		//char line[512], typestr[512];
 		int open, justopen, a;
@@ -520,7 +521,7 @@ public:
 			// upon calling fclose
 			// the temporary file is opened with "wb+" flags
 			FILE *temp = tmpfile();
-			OX_LOG(Logger::LOG_INFO, "   Using temporary file");
+			//OX_LOG(Logger::_log_level, "   Using temporary file");
 			a = external.get();
 			while (a != '}' && external.good()) {
 				fprintf(temp, "%c", a);
@@ -539,11 +540,11 @@ public:
 			if (strcmp(type_str.c_str(), "mindistance") == 0) type = 1;
 
 			if (type != 0 && type != 1)	throw oxDNAException("Parameter type %s not implemented. Aborting",	type_str.c_str());
-			int tmpi;
 			if (type == 0 || type == 1) {
 				getInputString(&input, "name", name_str, 1);
 			}
-			OX_LOG(Logger::LOG_INFO, "Order parameter type %s found, processing", type_str.c_str());
+			OX_LOG(_log_level, "Order parameter type %s found, processing", type_str.c_str());
+
 			switch (type) {
 			case 0: {
 				// HB
@@ -551,16 +552,68 @@ public:
 				_hb_parnames[string(name_str)] = _hb_parameters_count;
 
 				double cutoff;
-				if( getInputDouble(&input,"cutoff",&cutoff,0) == KEY_FOUND)
-				{
+				if (getInputDouble(&input, "cutoff", &cutoff, 0) == KEY_FOUND) {
 					newpar.set_cutoff(cutoff);
-					OX_LOG(Logger::LOG_INFO," Using custom cutoff (applies to FFS simulations only) %f ",cutoff);
+					OX_LOG(_log_level, "Using custom cutoff (applies to FFS simulations only) %f ", cutoff);
 				}
+
+				vector<string> pair_strings;
+				int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
+
+				for (int l = 0; l < n_keys; l ++) {
+					string my_value;
+					getInputString (&input, pair_strings[l].c_str(), my_value, 1);
+
+					vector<string> my_values = Utils::split (my_value.c_str(), ',');
+
+					if (my_values.size() != 2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
+
+					// we check if the two strings contain '-'
+					bool found1 = my_values[0].find('-') != string::npos;
+					bool found2 = my_values[1].find('-') != string::npos;
+					if (found1 != found2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
+
+					// handle the case with the list
+					if (found1) {
+						vector<string> tmps1 = Utils::split(my_values[0].c_str(), '-');
+						vector<string> tmps2 = Utils::split(my_values[1].c_str(), '-');
+
+						if (tmps1.size() != 2 || tmps2.size() != 2) throw oxDNAException ("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting", my_value.c_str());
+
+						int start1 = atoi(tmps1[0].c_str());
+						int end1 = atoi(tmps1[1].c_str());
+						int start2 = atoi(tmps2[0].c_str());
+						int end2 = atoi(tmps2[1].c_str());
+
+						if (start1 - end1 != start2 - end2 || start1 > end1 || start2 > end2) throw oxDNAException ("Syntax error (d) in the order parameter file. Found invalid list `%s'. Perhaps the indexes are not correct?", my_value.c_str(), pair_strings[l].c_str());
+
+						for (int m = start1; m <= end1; m ++) {
+							int id1 = m;
+							int id2 = end2 - m;
+							if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
+							if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
+							newpar.save_pair_as_parameter (id1, id2);
+							OX_LOG (_log_level, "--> Adding HB pair (%d, %d) from list `%s' to order parameter `%s'", id1, id2, my_value.c_str(), name_str.c_str());
+						}
+					}
+					// handle the normal case, with pairX = <int>, <int>
+					else {
+						int id1 = atoi (my_values[0].c_str());
+						int id2 = atoi (my_values[1].c_str());
+						if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
+						if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
+						newpar.save_pair_as_parameter (id1, id2);
+						OX_LOG (_log_level, "--> Adding HB pair (%d, %d) to order parameter `%s'", id1, id2, name_str.c_str());
+					}
+				}
+
+				/*
 				int paira, pairb;
 				char strdir[512];
 				char pairname[512];
 				int pairid = 1;
 				sprintf(pairname, "pair%d", pairid);
+
 				while (getInputString(&input, pairname, strdir, 0) == KEY_FOUND) {
 					//fprintf(stderr, "Loaded %s\n", strdir);
 					tmpi = sscanf(strdir, "%d,%d", &paira, &pairb);
@@ -581,6 +634,8 @@ public:
 					sprintf(pairname, "pair%d", pairid);
 				}
 				if (pairid == 1) throw oxDNAException("Error, did not find any parameters to parse. Are pairs correctly numbered?");
+				*/
+
 				newpar.set_name (name_str);
 
 				_hb_parameters.push_back(newpar);
@@ -592,31 +647,58 @@ public:
 				// mindistance
 				MinDistanceParameter newpar;
 				_dist_parnames[string(name_str)] = _distance_parameters_count;
+				
+				vector<string> pair_strings;
+				int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
 
-				int paira, pairb;
-				char strdir[512];
-				char pairname[512];
-				int pairid = 1;
-				sprintf(pairname, "pair%d", pairid);
-				while (getInputString(&input, pairname, strdir, 0) == KEY_FOUND) {
-					tmpi = sscanf(strdir, "%d,%d", &paira, &pairb);
+				for (int l = 0; l < n_keys; l ++) {
+					string my_value;
+					getInputString (&input, pair_strings[l].c_str(), my_value, 1);
 
-					if (tmpi != 2)
-						throw oxDNAException("could not parse pairs order parameters file");
-					if (paira >= max_N || pairb >= max_N)
-						throw oxDNAException("particle index out of range while parsing order parameters");
-					OX_LOG(Logger::LOG_INFO, "--> adding mindistance pair %d %d ", paira, pairb);
+					vector<string> my_values = Utils::split (my_value.c_str(), ',');
 
-					newpar.save_pair_as_parameter(paira, pairb);
+					if (my_values.size() != 2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
 
-					if (particles[paira]->btype + particles[pairb]->btype != 3)
-						OX_LOG(Logger::LOG_WARNING, " pair %d %d not complementary, but still an order parameter for minimal distance", paira, pairb);
-					pairid++;
-					sprintf(pairname, "pair%d", pairid);
+					// we check if the two strings contain '-'
+					bool found1 = my_values[0].find('-') != string::npos;
+					bool found2 = my_values[1].find('-') != string::npos;
+					if (found1 != found2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
 
+					// handle the case with the list
+					if (found1) {
+						vector<string> tmps1 = Utils::split(my_values[0].c_str(), '-');
+						vector<string> tmps2 = Utils::split(my_values[1].c_str(), '-');
+
+						if (tmps1.size() != 2 || tmps2.size() != 2) throw oxDNAException ("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting", my_value.c_str());
+
+						int start1 = atoi(tmps1[0].c_str());
+						int end1 = atoi(tmps1[1].c_str());
+						int start2 = atoi(tmps2[0].c_str());
+						int end2 = atoi(tmps2[1].c_str());
+
+						if (start1 - end1 != start2 - end2 || start1 > end1 || start2 > end2) throw oxDNAException ("Syntax error (d) in the order parameter file. Found invalid list `%s'. Perhaps the indexes are not correct?", my_value.c_str(), pair_strings[l].c_str());
+
+						for (int m = start1; m <= end1; m ++) {
+							int id1 = m;
+							int id2 = end2 - m;
+							if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
+							if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
+							newpar.save_pair_as_parameter (id1, id2);
+							OX_LOG (_log_level, "--> Adding HB pair (%d, %d) from list `%s' to order parameter `%s'", id1, id2, my_value.c_str(), name_str.c_str());
+						}
+					}
+					// handle the normal case, with pairX = <int>, <int>
+					else {
+						int id1 = atoi (my_values[0].c_str());
+						int id2 = atoi (my_values[1].c_str());
+						if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
+						if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
+						newpar.save_pair_as_parameter (id1, id2);
+						OX_LOG (_log_level, "--> Adding HB pair (%d, %d) to order parameter `%s'", id1, id2, name_str.c_str());
+					}
 				}
-				if (pairid == 1) throw oxDNAException("Error, did not find any parameters to parse. Are pairs correctly numbered?");
 
+				/*
 				// parsing of the interfaces...
 				newpar.n_states = 0;
 				if (getInputString (&input, "interfaces", strdir, 0) == KEY_FOUND) {
@@ -627,16 +709,26 @@ public:
 						double tmpf;
 						sscanf(aux, "%lf", &tmpf);
 						newpar.interfaces.push_back(tmpf);
-						OX_LOG(Logger::LOG_INFO, " ---> found interface %i; %lf", i, newpar.interfaces[i]);
+						OX_LOG(_log_level, " ---> found interface %i; %lf", i, newpar.interfaces[i]);
 						i ++;
 						aux = strtok (NULL, ",");
 					}
 					newpar.n_states = i + 1; // the number of states is the number of interfaces + 1;
 				}
-
+				*/
+				string strdir;
+				if (getInputString (&input, "interfaces", strdir, 0) == KEY_FOUND) {
+					std::vector<string> interfaces = Utils::split (strdir.c_str(), ',');
+					for (unsigned int i = 0; i < interfaces.size(); i ++) {
+						newpar.interfaces.push_back (atof(interfaces[i].c_str()));
+						OX_LOG(_log_level, " ---> found interface %i; %lf", i, newpar.interfaces[i]);
+					}
+					newpar.n_states = interfaces.size() + 1;
+				}
+				
 				newpar.set_name (name_str);
 				_distance_parameters.push_back(newpar);
-				_distance_parameters_count++;
+				_distance_parameters_count ++;
 
 				break;
 
@@ -655,10 +747,18 @@ public:
 		_all_states_count = _hb_parameters_count + _distance_parameters_count;
 		if (_all_states_count > 0) _all_states = new int[_all_states_count];
 
-		OX_LOG(Logger::LOG_INFO, " File %s parsed; found %d hb_dim, %d dist_dim", _external_filename, _hb_parameters_count, _distance_parameters_count);
+		OX_LOG(_log_level, " File %s parsed; found %d hb_dim, %d dist_dim", _external_filename, _hb_parameters_count, _distance_parameters_count);
 
 		return 0;
 	}
+
+
+	/**
+	 * @brief Sets the log level;
+	 * @return
+	 */
+	void set_log_level (int arg) { _log_level = arg; }
+
 	virtual ~OrderParameters();
 };
 
