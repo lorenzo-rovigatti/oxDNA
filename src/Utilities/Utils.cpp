@@ -57,6 +57,25 @@ char Utils::encode_base(int b) {
 	}
 }
 
+/*
+std::vector<int> Utils::get_list_from_string (std::string arg) {
+	vector<int> ret;
+
+	vector<string> sections = Utils::split (arg.c_str(), ',');
+
+	if (sections.size() == 0) throw oxDNAException ("Invalid string %s");
+
+	for (int i = 0; i < sections.size(); i ++) {
+		vector<string> subsections = Utils::split(sections[i].c_str(), '-');
+		for (int j = 0; j < subsections.size(); j ++) {
+			ret.push_back (atoi (subsections[j].c_str));
+		}
+	}
+
+	return ret;
+}
+*/
+
 std::vector<std::string> Utils::split(const string &s, char delim) {
 	string s_copy(s);
 	if (delim == ' ')

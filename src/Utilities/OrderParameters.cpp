@@ -77,6 +77,7 @@ OrderParameters::OrderParameters() {
 	_hb_states = NULL;
 	_distance_states = NULL;
 	_all_states = NULL;
+	_log_level = Logger::LOG_INFO;
 }
 
 //adds given bonded pair to all values of order parameters
