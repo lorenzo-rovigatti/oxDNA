@@ -11,11 +11,15 @@
 #include "../Backends/BackendFactory.h"
 
 void gbl_terminate (int arg) {
+	// if the simulation has not started yet, then we make it so pressing ctrl+c twice
+	// kills the program no matter what.
+	if(!SimManager::started) signal(arg, SIG_DFL);
 	OX_LOG(Logger::LOG_INFO, "# Caught SIGNAL %d; setting stop = 1\n", arg);
 	SimManager::stop = true;
 }
 
 bool SimManager::stop = false;
+bool SimManager::started = false;
 
 SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000), _restart_step_counter(false) {
 	_start_step = _cur_step = _steps = _equilibration_steps = 0;
@@ -132,6 +136,7 @@ void SimManager::init() {
 }
 
 void SimManager::run() {
+	SimManager::started = true;
 	// equilibration loop
 	if(_equilibration_steps > 0) {
 		OX_LOG(Logger::LOG_INFO, "Equilibrating...");

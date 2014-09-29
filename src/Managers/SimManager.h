@@ -64,6 +64,7 @@ public:
 	virtual ~SimManager();
 
 	static bool stop;
+	static bool started;
 	virtual void load_options();
 	virtual void init();
 	virtual void run();
