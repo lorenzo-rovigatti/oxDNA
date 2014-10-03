@@ -65,6 +65,27 @@ public:
 
 template<typename number> class BaseParticle;
 
+// mutual trap with constant force, useful when things are far
+// apart and one wants just a force to pull it together
+template<typename number>
+class ConstantTrap : public ExternalForce<number> {
+public:
+	BaseParticle<number> * _p_ptr;
+	number _r0;
+	bool PBC;
+	number * box_side_ptr;
+
+	ConstantTrap (number stiff, number r0, BaseParticle<number> *p, number * box_side_ptr, bool use_PBC);
+	virtual ~ConstantTrap() {}
+
+	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
+	virtual number potential(llint step, LR_vector<number> &pos);
+
+protected:
+	LR_vector<number> _distance(LR_vector<number> u, LR_vector<number> v);
+};
+
+
 // mutual trap
 template<typename number>
 class MutualTrap : public ExternalForce<number> {

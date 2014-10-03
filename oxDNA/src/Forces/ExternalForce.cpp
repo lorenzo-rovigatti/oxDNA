@@ -50,8 +50,39 @@ number ConstantRateForce<number>::potential(llint step, LR_vector<number> &pos) 
 template class ConstantRateForce<double>;
 template class ConstantRateForce<float>;
 
-// Mutual trap: to make things come together...
+// constant force between two particles, to make them come together
+template<typename number>
+ConstantTrap<number>::ConstantTrap(number stiff, number r0, BaseParticle<number> *p, number * box_side_ptr, bool use_PBC) : ExternalForce<number>(0, 0, LR_vector<number> (0, 0, 0)) {
+	this->_stiff = stiff; // not really a stiffnets, units are energy / distance, not energy / (distance^2)
+	this->_r0 = r0;
+	this->_p_ptr = p;
+	this->box_side_ptr = box_side_ptr;
+	this->PBC = use_PBC;
+}
 
+template<typename number>
+LR_vector<number> ConstantTrap<number>::_distance(LR_vector<number> u, LR_vector<number> v) {
+	if (this->PBC) return v.minimum_image(u, *(this->box_side_ptr));
+	else return v - u;
+}
+
+template<typename number>
+LR_vector<number> ConstantTrap<number>::value (llint step, LR_vector<number> &pos) {
+	LR_vector<number> dr = this->_distance(pos, _p_ptr->get_abs_pos(*(this->box_side_ptr))); // other - self
+	number sign = copysign (1., (double)(dr.module() - _r0));
+	return (this->_stiff * sign) * (dr / dr.module());
+}
+
+template <typename number>
+number ConstantTrap<number>::potential (llint step, LR_vector<number> &pos) {
+	LR_vector<number> dr = this->_distance(pos, _p_ptr->get_abs_pos(*(this->box_side_ptr))); // other - self
+	return this->_stiff * (dr.module () - _r0);
+}
+
+template class ConstantTrap<double>;
+template class ConstantTrap<float>;
+
+// Mutual trap: to make things come together...
 template<typename number>
 MutualTrap<number>::MutualTrap(number stiff, number r0, BaseParticle<number> * p, number * box_side_ptr, bool use_PBC) : ExternalForce<number>(0, 0, LR_vector<number> (0, 0, 0)) {
 	this->_stiff = stiff;
