@@ -43,6 +43,7 @@ struct movestr {
 [safe_weights = <bool> (Default: true; whether to check consistency in between order parameter file and weight file. Only used if umbrella_sampling = true)]
 [default_weight = <float> (Default: none; mandatory if safe_weights = true; default weight for states that have no specified weight assigned from the weights file)]
 [skip_hist_zeros = <bool> (Default: false; Wether to skip zero entries in the traj_hist file)]
+[equilibration_steps = <int> (Default: 0; number of steps to ignore to allow for equilibration)]
 @endverbatim
  *
  */
@@ -150,6 +151,8 @@ protected:
 	}
 
 	number * new_en3s, * new_stn3s, * new_en5s, * new_stn5s;
+
+	llint _equilibration_steps;
 
 public:
 	VMMC_CPUBackend();

@@ -39,6 +39,7 @@ template<typename number> VMMC_CPUBackend<number>::VMMC_CPUBackend() : MC_CPUBac
 	new_stn3s = NULL;
 	new_stn5s = NULL;
 	_vmmc_N_cells = 0;
+	_equilibration_steps = 0;
 }
 
 template<typename number>
@@ -321,6 +322,14 @@ void VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 
 	if (_have_us) {
 		_h.read_grooving(inp);
+	}
+
+	if (getInputLLInt(&inp, "equilibration_steps", &_equilibration_steps, 0) == KEY_FOUND) {
+		if (_equilibration_steps < 0) { 
+			OX_LOG (Logger::LOG_WARNING, "found equilibration_steps < 0; setting equilibration steps = 0");
+			_equilibration_steps = 0;
+		}
+		OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) not recording histogram for steps < %lld", (long long unsigned)_equilibration_steps);
 	}
 }
 
@@ -1585,12 +1594,8 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 		}
 		// check ext potential done*/
 
-		//printf ("##G %lf %lf \n", this->_U_stack, this->_dU_stack);
-		if (_have_us) {
-			//assert (fabs (oldweight - _w.get_weight(&_op)) < 1.e-5);
-			//assert (oldwindex > 0);
-			_h.add(oldwindex, oldweight, this->_U, this->_U_stack, _U_ext);
-		}
+		// add to the histogram
+		if (_have_us && curr_step > _equilibration_steps) _h.add(oldwindex, oldweight, this->_U, this->_U_stack, _U_ext);
 
 		// reset the inclust property to the particles
 		for (int k = 0; k < nclust; k++) {

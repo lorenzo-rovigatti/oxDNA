@@ -62,6 +62,7 @@ void SimManager::_get_options() {
 	getInputInt(&_input, "restart_step_counter", &_restart_step_counter, 0);
 	getInputLLInt(&_input, "steps", &_steps, 1);
 	getInputLLInt(&_input, "equilibration_steps", &_equilibration_steps, 0);
+	if (_equilibration_steps < 0) throw oxDNAException ("Equilibration steps can not be < 0. Aborting");
 	if (getInputInt(&_input, "seed", &_seed, 0) == KEY_NOT_FOUND) {
 		_seed = time(NULL);
 		int rand_seed = 0;
@@ -132,6 +133,7 @@ void SimManager::init() {
 	setTSInitialStep(&_time_scale_manager, _start_step + tmpm - (_start_step % tmpm));
 	// end
 
+	_start_step = _start_step + _equilibration_steps;
 	_max_steps = _start_step + _steps;
 }
 

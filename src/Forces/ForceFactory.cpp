@@ -35,6 +35,7 @@ void ForceFactory::add_force(input_file &inp, BaseParticle<number> **particles, 
 	if (strncmp (type_str, "repulsion_plane_moving", 512) == 0) type = 4;
 	if (strncmp (type_str, "mutual_trap", 512) == 0) type = 5;
 	if (strcmp (type_str, "lowdim_trap") == 0) type = 6;
+	if (strcmp (type_str, "constant_trap") == 0) type = 7;
 	if(strcmp(type_str, "com") == 0) {
 		COMForce<number> *com_force = new COMForce<number>();
 		com_force->get_settings(inp);
@@ -42,9 +43,9 @@ void ForceFactory::add_force(input_file &inp, BaseParticle<number> **particles, 
 		com_force->set_group_name(group_name);
 		return;
 	}
-	if (type != 0 && type != 1 && type != 2 && type !=3 && type != 4 && type != 5 && type != 6) throw oxDNAException("force type %s not implemented. Aborting", type_str);
+	if (type != 0 && type != 1 && type != 2 && type !=3 && type != 4 && type != 5 && type != 6 && type != 7) throw oxDNAException("force type %s not implemented. Aborting", type_str);
 	int npart, tmpi;
-	if(type == 0 || type == 1 || type == 2 || type == 3 || type == 4 || type == 5 || type == 6) {
+	if(type == 0 || type == 1 || type == 2 || type == 3 || type == 4 || type == 5 || type == 6 || type == 7) {
 		getInputInt(&inp, "particle", &npart, 1);
 		if(npart >= N || npart < -1) throw oxDNAException("There is a force exerted on a non-existent particle (%d)", npart);
 	}
@@ -219,6 +220,22 @@ void ForceFactory::add_force(input_file &inp, BaseParticle<number> **particles, 
 		OX_LOG(Logger::LOG_INFO, "--> adding LowdimMovingTrap with stiffness %lf and pos=[%g,%g,%g] + (%g * t) [%g,%g,%g] on part %i and visX=%i visY=%i visZ=%i", stiff, pos0x, pos0y, pos0z, rate, dirx, diry, dirz, npart, visX ? 1:0, visY ? 1:0, visZ ? 1:0);
 
 		LowdimMovingTrap<number> *extF = new LowdimMovingTrap<number>((number) stiff, LR_vector<number> ((number)pos0x, (number) pos0y, (number) pos0z), (number) rate, LR_vector<number>((number)dirx, (number)diry, (number)dirz),visX,visY,visZ);
+		extF->set_group_name(group_name);
+		particles[npart]->add_ext_force(extF);
+		break;
+	}
+	case 7: {
+		// mutual trap between two particles
+		double stiff, r0;
+		int ref_particle;
+		int PBC = 0;
+		getInputDouble(&inp, "stiff", &stiff, 1);
+		getInputDouble(&inp, "r0", &r0, 1);
+		getInputInt(&inp, "ref_particle", &ref_particle, 1);
+		getInputBoolAsInt(&inp, "PBC", &PBC, 0);
+		OX_LOG(Logger::LOG_INFO, "--> adding ConstantTrap to particle %i with stiff %lf and r0 = %lf with respect to particle %i", npart, stiff, r0, ref_particle);
+		ConstantTrap<number> *extF;
+		extF = new ConstantTrap<number>((number) stiff, (number) r0, particles[ref_particle], box_side_ptr, PBC);
 		extF->set_group_name(group_name);
 		particles[npart]->add_ext_force(extF);
 		break;
