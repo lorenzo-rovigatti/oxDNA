@@ -41,12 +41,14 @@ std::string PairEnergy<number>::get_output_string(llint curr_step) {
 
 
 	std::stringstream output_str;
-	output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK total, t = " << curr_step << "\n";
 
 	number total_energy = 0.;
 	number total_energy_diff = 0.;
 	//std::map<int,number> split_energies = this->_config_info->get_system_energy_split(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
 	std::map<int, number> split_energies = this->_config_info.interaction->get_system_energy_split(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+
+	if ((int)split_energies.size() == 7) output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK total, t = " << curr_step << "\n";
+	else output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK DH total, t = " << curr_step << "\n";
 
 	for(typename std::map<int,number>::iterator l = split_energies.begin(); l != split_energies.end(); l++)
 		total_energy_diff += (*l).second;
