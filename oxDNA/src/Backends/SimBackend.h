@@ -75,6 +75,8 @@ public:
 	 * @param curr_step
 	 */
 	virtual void print_observables(llint curr_step) = 0;
+
+	virtual void _fix_diffusion () = 0;
 };
 
 /**

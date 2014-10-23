@@ -64,7 +64,6 @@ public:
 
 	void get_settings(input_file &inp);
 
-	void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
 	virtual void print_observables(llint curr_step);
 };
 

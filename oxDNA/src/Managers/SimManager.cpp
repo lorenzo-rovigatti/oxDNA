@@ -28,6 +28,7 @@ SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000), _res
 	_pid = getpid();
 	_seed = -1;
 	_backend = NULL;
+	_fix_diffusion_every = 100000;
 
 	loadInputFile(&_input, argv[1]);
 	if(_input.state == ERROR) throw oxDNAException("Caught an error while opening the input file");
@@ -77,6 +78,8 @@ void SimManager::_get_options() {
 		}
 	}
 	getInputString(&_input, "conf_file", _conf_file, 1);
+	
+	getInputInt(&_input, "fix_diffusion_every", &_fix_diffusion_every, 0);
 }
 
 void SimManager::load_options() {
@@ -133,7 +136,7 @@ void SimManager::init() {
 	setTSInitialStep(&_time_scale_manager, _start_step + tmpm - (_start_step % tmpm));
 	// end
 
-	_start_step = _start_step + _equilibration_steps;
+	//_start_step = _start_step + _equilibration_steps;
 	_max_steps = _start_step + _steps;
 }
 
@@ -144,8 +147,9 @@ void SimManager::run() {
 		OX_LOG(Logger::LOG_INFO, "Equilibrating...");
 		for(llint step = 0; step < _equilibration_steps && !SimManager::stop; step++) {
 			_backend->sim_step(step);
+			if (step > 1 && step % _fix_diffusion_every == 0) _backend->_fix_diffusion();
 		}
-		OX_LOG(Logger::LOG_INFO, "done");
+		OX_LOG(Logger::LOG_INFO, "Equilibration done");
 	}
 
 	// main loop
@@ -154,13 +158,15 @@ void SimManager::run() {
 			if(_cur_step > _start_step) _backend->print_conf(_cur_step);
 			setTSNextStep(&_time_scale_manager);
 		}
+		if (_cur_step > 1 && _cur_step % _fix_diffusion_every == 0) _backend->_fix_diffusion();
 
 		_backend->print_observables(_cur_step);
 		_backend->sim_step(_cur_step);
 	}
-
 	// this is in case _cur_step, after being increased by 1 before exiting the loop,
 	// has become a multiple of print_conf_every
+	if (_cur_step > 1 && _cur_step % _fix_diffusion_every == 0) _backend->_fix_diffusion();
+
 	if(_cur_step == _time_scale_manager.next_step) {
 		if(_cur_step > _start_step) _backend->print_conf(_cur_step);
 		setTSNextStep(&_time_scale_manager);

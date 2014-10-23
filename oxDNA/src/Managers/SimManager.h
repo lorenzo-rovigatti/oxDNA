@@ -55,6 +55,7 @@ protected:
 	int _restart_step_counter;
 	int _pid;
 	int _print_input;
+	int _fix_diffusion_every;
 
 	char _conf_file[256];
 	virtual void _get_options();

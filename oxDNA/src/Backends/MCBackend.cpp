@@ -118,11 +118,5 @@ void MCBackend<number>::print_observables(llint curr_step) {
 	SimBackend<number>::print_observables(curr_step);
 }
 
-template<typename number>
-void MCBackend<number>::print_conf(llint curr_step, bool reduced, bool only_last) {
-	this->_fix_diffusion();
-	SimBackend<number>::print_conf(curr_step, reduced, only_last);
-}
-
 template class MCBackend<float>;
 template class MCBackend<double>;
