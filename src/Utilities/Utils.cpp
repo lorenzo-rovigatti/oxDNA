@@ -192,7 +192,8 @@ void Utils::get_seed(unsigned short * seedptr) {
 	unsigned short * tmpptr;
 	tmpptr = seed48(seme);
 	memcpy(seedptr, tmpptr, 3 * sizeof(unsigned short));
-	seed48(tmpptr);
+	seed48(seedptr);
+	seed48(seedptr);
 }
 
 template float Utils::gaussian<float>();

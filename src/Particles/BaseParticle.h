@@ -132,6 +132,19 @@ public:
 		pos.y -= box * floor(shift.y / box + 0.01) ;
 		pos.z -= box * floor(shift.z / box + 0.01) ;
 	}
+	
+	inline void set_pos_shift (int x, int y, int z) {
+		_pos_shift[0] = x;
+		_pos_shift[1] = y;
+		_pos_shift[2] = z;
+	}
+	
+	void get_pos_shift (int * arg) {
+		arg[0] = _pos_shift[0];
+		arg[1] = _pos_shift[1];
+		arg[2] = _pos_shift[2];
+	}
+
 
 	LR_vector<number> get_abs_pos(number box) { return pos + box * LR_vector<number> ((number)_pos_shift[0], (number)_pos_shift[1], (number)_pos_shift[2]); }
 

@@ -1259,6 +1259,10 @@ inline void VMMC_CPUBackend<number>::_move_particle(movestr<number> * moveptr, B
 		LR_vector<number> dr, drp;
 		if (p->strand_id == q->strand_id) { dr = q->pos - p_old->pos; }
 		else { dr = q->pos.minimum_image(p_old->pos, this->_box_side); }
+
+		// we move around the backbone site
+		//dr += moveptr->t;
+
 		drp = moveptr->R * dr;
 		//q->pos += (drp - dr); // accounting for PBC
 		q->pos = p->pos + drp;
@@ -1272,7 +1276,6 @@ inline void VMMC_CPUBackend<number>::_move_particle(movestr<number> * moveptr, B
 
 	return;
 }
-
 
 template<typename number>
 inline void VMMC_CPUBackend<number>::_fix_list (int p_index, int oldcell, int newcell) {
@@ -1440,7 +1443,9 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 			move.R = Utils::get_random_rotation_matrix_from_angle<number>
 			  (this->_delta[MC_MOVE_ROTATION] * Utils::gaussian<number>());
 			move.Rt = (move.R).get_transpose();
-			move.t = this->_particles[move.seed]->int_centers[DNANucleotide<number>::BACK] + this->_particles[move.seed]->pos;
+			//move.t = this->_particles[move.seed]->int_centers[DNANucleotide<number>::BACK] + this->_particles[move.seed]->pos;
+			move.t = this->_particles[move.seed]->int_centers[DNANucleotide<number>::BACK];
+			if (fabs((move.t * move.t)) > 0.5) printf("caca");
 		}
 		_last_move = move.type;
 
@@ -1454,26 +1459,17 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 		assert (nclust >=1);
 
 		number delta_E_ext = 0.;
+
 		// if we are not SURE to reject the move, we check the external
 		// forces. Otherwise, there is no point.
-		if (this->_overlap == false && pprime > 0. && nclust < this->_N) {
-			//BaseParticle<number> * q;
+		if (this->_overlap == false && pprime > 0.) {
 			for (int l = 0; l < nclust; l++) {
 				p = this->_particles[clust[l]];
-
 				delta_E_ext += - p->ext_potential;
-
 				p->set_ext_potential(curr_step, this->_box_side);
-
 				delta_E_ext += + p->ext_potential;
-
 			}
-			// we need to check also the tainted particles, since it is
-			// possible that if we have two-body forces one was moved and
-			// the other wasn't, but is in the "neighborhood" of the moved
-			// particles
 			pprime *= exp(-(1. / this->_T) * delta_E_ext);
-
 		}
 
 		_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
@@ -1778,7 +1774,7 @@ char * VMMC_CPUBackend<number>::get_op_state_str() {
 
 template<typename number>
 void VMMC_CPUBackend<number>::print_conf(llint curr_step, bool reduced,	bool only_last) {
-	MC_CPUBackend<number>::print_conf(curr_step, reduced, only_last);
+	SimBackend<number>::print_conf(curr_step, reduced, only_last);
 	if (_have_us) {
 		if (!only_last) _h.print_to_file(_traj_hist_file, curr_step, false, _skip_hist_zeros);
 		_h.print_to_file(_last_hist_file, curr_step, true, _skip_hist_zeros);
@@ -1787,7 +1783,7 @@ void VMMC_CPUBackend<number>::print_conf(llint curr_step, bool reduced,	bool onl
 
 template<typename number>
 void VMMC_CPUBackend<number>::print_conf(llint curr_step, bool only_last) {
-	MC_CPUBackend<number>::print_conf(curr_step, only_last);
+	SimBackend<number>::print_conf(curr_step, only_last);
 	if (_have_us) {
 		if (!only_last)
 			this->_h.print_to_file(_traj_hist_file, curr_step, false, _skip_hist_zeros);
@@ -1975,15 +1971,54 @@ void VMMC_CPUBackend<number>::_delete_cells() {
 	return;
 }
 
+template<typename number>
+void VMMC_CPUBackend<number>::_fix_diffusion () {
+	
+	// fix diffusion can sometimes change the value of the order paramer by changing the
+	// orientations/coordinates particles that were barely above/below a cutoff.
+	// To avoid this, we store the system before fix_diffusion and restore it 
+	// if the order parameter value has changed.
+
+	for (int i = 0; i < this->_N; i ++) store_particle (this->_particles[i]);
+
+	// check of order parameter
+	int * state = (int *) malloc(_op.get_all_parameters_count() * sizeof(int));
+	memcpy(state, _op.get_all_states(), _op.get_all_parameters_count() * sizeof(int));
+	_op.reset();
+
+	SimBackend<number>::_fix_diffusion ();
+
+	_op.reset();
+	for (int i = 0; i < this->_N; i++) {
+		BaseParticle<number> * p = this->_particles[i];
+		for (int j = 0; j < i; j ++) {
+			BaseParticle<number> * q = this->_particles[j];
+			if (p->n3 != q && p->n5 != q) {
+				number hpq;
+				_particle_particle_nonbonded_interaction_VMMC (p, q, &hpq);
+				if (hpq < HB_CUTOFF) _op.add_hb (p->index, q->index);
+			}
+		}
+	}
+	_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
+
+	int * new_state = _op.get_all_states ();
+
+	int check = 0;
+	for (int i = 0; i < _op.get_all_parameters_count(); i++) check += abs(new_state[i] - state[i]);
+
+	if (check != 0) {
+		OX_LOG (Logger::LOG_DEBUG, "(VMMC_CPUBackend) _fix_diffusion() changed the value of the order parameter. Restoring simulation status before _fix_diffusion()");
+		for (int i = 0; i < this->_N; i ++) restore_particle (this->_particles[i]);
+	}
+}
 
 template<typename number>
 void VMMC_CPUBackend<number>::print_observables(llint curr_step) {
-	//if (curr_step%100)printf ("%lf %lf %lf\n", this->_U, this->_U_stack, this->_interaction->get_system_energy (this->_particles, this->_N, this->_box_side));
 	this->_backend_info += get_op_state_str();
 	MCBackend<number>::print_observables(curr_step);
-	if ((curr_step % (10*this->_N)) == 0) this->_fix_diffusion();
+	if ((curr_step % (10 * this->_N)) == 0) this->_fix_diffusion();
 }
-
 
 template<>
 inline int VMMC_CPUBackend<float>::_get_cell_index(const LR_vector<float> &pos) {

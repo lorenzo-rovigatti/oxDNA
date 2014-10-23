@@ -22,15 +22,13 @@ BinaryConfiguration<number>::~BinaryConfiguration() {
 template<typename number>
 std::string BinaryConfiguration<number>::_headers(llint step) {
 	std::stringstream headers;
-	headers.precision(15);
 
-	OX_DEBUG("saving step: %llu", step);
 	headers.write((char * )(&step), sizeof (llint));
 
 	unsigned short rndseed[3];
 	Utils::get_seed(rndseed);
 
-	OX_DEBUG("saving seed: %hu %hu %hu", rndseed[0], rndseed[1], rndseed[2]);
+	OX_DEBUG("Saving conf. at step %llu, rng status: %hu %hu %hu", step, rndseed[0], rndseed[1], rndseed[2]);
 
 	// print out the number
 	headers.write((char *)rndseed, 3 * sizeof(unsigned short));
@@ -53,11 +51,18 @@ std::string BinaryConfiguration<number>::_headers(llint step) {
 template<typename number>
 std::string BinaryConfiguration<number>::_configuration(llint step) {
 	std::stringstream conf;
-	conf.precision(15);
 
 	for(int i = 0; i < *this->_config_info.N; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector<double> mypos(p->get_abs_pos(*this->_config_info.box_side).x, p->get_abs_pos(*this->_config_info.box_side).y, p->get_abs_pos(*this->_config_info.box_side).z);
+
+		//LR_vector<double> mypos(p->get_abs_pos(*this->_config_info.box_side).x, p->get_abs_pos(*this->_config_info.box_side).y, p->get_abs_pos(*this->_config_info.box_side).z);
+		/*
+		LR_vector<double> mypos;
+		if (!this->_back_in_box) mypos = LR_vector<double> (p->get_abs_pos(*this->_config_info.box_side).x, p->get_abs_pos(*this->_config_info.box_side).y, p->get_abs_pos(*this->_config_info.box_side).z);
+		else mypos = LR_vector<double> (p->pos.x, p->pos.y, p->pos.z);
+		*/
+		LR_vector<double> mypos = LR_vector<double> (p->pos.x, p->pos.y, p->pos.z);
+
 		LR_matrix<number> oT = p->orientation.get_transpose();
 
 		double tmpf = mypos.x;
@@ -67,11 +72,24 @@ std::string BinaryConfiguration<number>::_configuration(llint step) {
 		tmpf = mypos.z;
 		conf.write ((char * )(&tmpf), sizeof (double));
 
+		int tmpi[3];
+		p->get_pos_shift ((int * )tmpi);
+		conf.write ((char * )(&(tmpi[0])), sizeof (int));
+		conf.write ((char * )(&(tmpi[1])), sizeof (int));
+		conf.write ((char * )(&(tmpi[2])), sizeof (int));
+		
 		tmpf = (double) oT.v1.x;
 		conf.write ((char * )(&tmpf), sizeof (double));
 		tmpf = (double) oT.v1.y;
 		conf.write ((char * )(&tmpf), sizeof (double));
 		tmpf = (double) oT.v1.z;
+		conf.write ((char * )(&tmpf), sizeof (double));
+		
+		tmpf = (double) oT.v2.x;
+		conf.write ((char * )(&tmpf), sizeof (double));
+		tmpf = (double) oT.v2.y;
+		conf.write ((char * )(&tmpf), sizeof (double));
+		tmpf = (double) oT.v2.z;
 		conf.write ((char * )(&tmpf), sizeof (double));
 
 		tmpf = (double) oT.v3.x;
@@ -95,6 +113,29 @@ std::string BinaryConfiguration<number>::_configuration(llint step) {
 		tmpf = (double) p->L.z;
 		conf.write ((char * )(&tmpf), sizeof (double));
 	}
+
+	// renormalization part
+	/* 
+	for(int i = 0; i < *this->_config_info.N; i++) {
+		BaseParticle<number> *p = this->_config_info.particles[i];
+		
+		LR_matrix<number> oT = p->orientation.get_transpose();
+		
+		oT.v1.normalize();
+		oT.v3.normalize();
+
+		oT.v1 -= oT.v3 * (oT.v1 * oT.v3);
+		oT.v1.normalize();
+		oT.v2 = oT.v3.cross(oT.v1);
+		//oT.v2.normalize();
+
+		oT.transpone();
+		
+		p->orientation = oT;
+		p->set_positions();
+		p->orientationT = p->orientation.get_transpose();
+	}
+	*/
 
 	return conf.str();
 }

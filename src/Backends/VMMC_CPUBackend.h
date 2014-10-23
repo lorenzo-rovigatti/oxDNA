@@ -163,6 +163,8 @@ public:
 	virtual void print_conf (llint curr_step, bool only_last);
 	virtual void print_observables(llint curr_step);
 
+	void _fix_diffusion();
+
 	void init(char conf_filename[256]);
 
 	void sim_step(llint cur_step);

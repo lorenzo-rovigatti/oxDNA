@@ -269,14 +269,14 @@ void SimBackend<number>::init(char conf_filename[256]) {
 	// we need to skip a certain number of lines, depending on how many
 	// particles we have and how many configurations we want to skip
 	if(_confs_to_skip > 0) {
-		int rows_to_skip = _confs_to_skip * (_N+3);
-		int i;
 		OX_LOG(Logger::LOG_INFO, "Skipping %d configuration(s)", _confs_to_skip);
-		for(i = 0; i < rows_to_skip && _conf_input.good(); i++) {
-			string trash;
-			getline(_conf_input, trash);
+		int i;
+		for(i = 0; i < _confs_to_skip && _conf_input.good(); i++) {
+			bool check = false;
+			if (_initial_conf_is_binary) check = _read_next_configuration(true);
+			else check = _read_next_configuration();
+			if(!check) throw oxDNAException("Skipping %d configuration(s) is not possible, as the initial configuration file only contains %d.", _confs_to_skip, i);
 		}
-		if(i != rows_to_skip) throw oxDNAException("Skipping %d configuration(s) is not possible, as the initial configuration file only contains %d.", _confs_to_skip, i/(_N+3));
 	}
 
 	bool check = false;
@@ -332,7 +332,6 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 	if(binary) {
 		OX_LOG(Logger::LOG_INFO, "Reading binary configuration");
 
-		_conf_input.seekg(0);
 		// first bytes: step
 		_conf_input.read ((char *)&_read_conf_step, sizeof(llint));
 
@@ -342,7 +341,7 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		// a) seed was not specified;
 		// b) restart_step_counter  == 0;
 		if (_reseed) {
-			OX_LOG(Logger::LOG_INFO,"Overriding seed: restoring seed: %hu %hu %hu from binary conf\n", rndseed[0], rndseed[1], rndseed[2]);
+			OX_LOG(Logger::LOG_INFO,"Overriding seed: restoring seed: %hu %hu %hu from binary conf", rndseed[0], rndseed[1], rndseed[2]);
 			seed48 (rndseed);
 		}
 
@@ -395,14 +394,27 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		scdm[k] += tmp_poss[i];
 		nins[k] ++;
 
-		p->orientation.v1 = _read_next_vector<number>(binary);
-		p->orientation.v3 = _read_next_vector<number>(binary);
-		p->orientation.v1.normalize();
-		p->orientation.v3.normalize();
-		// orthonormalization
-		p->orientation.v1 -= p->orientation.v3 * (p->orientation.v1*p->orientation.v3);
-		p->orientation.v1.normalize();
-		p->orientation.v2 = p->orientation.v3.cross(p->orientation.v1);
+		if (!binary) {
+			p->orientation.v1 = _read_next_vector<number>(binary);
+			p->orientation.v3 = _read_next_vector<number>(binary);
+			// get v2 from v1 and v3
+			p->orientation.v1.normalize();
+			p->orientation.v3.normalize();
+			p->orientation.v1 -= p->orientation.v3 * (p->orientation.v1*p->orientation.v3);
+			p->orientation.v1.normalize();
+			p->orientation.v2 = p->orientation.v3.cross(p->orientation.v1);
+		}
+		else {
+			int x, y, z;
+			_conf_input.read ((char *)&x, sizeof(int));
+			_conf_input.read ((char *)&y, sizeof(int));
+			_conf_input.read ((char *)&z, sizeof(int));
+			p->set_pos_shift (x, y, z);
+
+			p->orientation.v1 = _read_next_vector<number>(binary);
+			p->orientation.v2 = _read_next_vector<number>(binary);
+			p->orientation.v3 = _read_next_vector<number>(binary);
+		}
 		p->orientation.transpone();
 
 		p->vel = _read_next_vector<number>(binary);
@@ -420,6 +432,12 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		char line[512];
 		_conf_input.getline(line, 512);
 	}
+	
+	// discarding the final '\n' in the binary file...
+	if (binary && !_conf_input.eof()) {
+		char tmpc;
+		_conf_input.read ((char *)&tmpc, sizeof(char));
+	}
 
 	if(i != this->_N) {
 		if(_confs_to_skip > 0) throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
@@ -433,7 +451,7 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		k = p->strand_id;
 
 		LR_vector<double> p_pos = tmp_poss[i];
-		if(_enable_fix_diffusion) {
+		if(_enable_fix_diffusion && !binary) {
 			// we need to manually set the particle shift so that the particle absolute position
 			// is the right one
 			LR_vector<number> scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
@@ -462,8 +480,6 @@ void SimBackend<number>::print_observables(llint curr_step) {
 		if((*it)->is_ready(curr_step)) someone_ready = true;
 	}
 	if(someone_ready) {
-		_fix_diffusion();
-
 		typename vector<ObservableOutput<number> *>::iterator it;
 		for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 			if((*it)->is_ready(curr_step)) (*it)->print_output(curr_step);
