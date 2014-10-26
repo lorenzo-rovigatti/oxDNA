@@ -38,7 +38,7 @@ void ManfredoInteraction<number>::get_settings(input_file &inp) {
 	getInputString(&inp, "lt_centre_centre", _inter_filename[CENTRE_CENTRE], 1);
 	getInputInt(&inp, "lt_centre_centre_points", &_inter_points[CENTRE_CENTRE], 1);
 
-	getInputString(&inp, "lt_centre_arm_near", _inter_filename[CENTRE_ARM_INTER], 1);
+	getInputString(&inp, "lt_centre_arm", _inter_filename[CENTRE_ARM_INTER], 1);
 	getInputInt(&inp, "lt_centre_arm_points", &_inter_points[CENTRE_ARM_INTER], 1);
 
 	getInputString(&inp, "lt_arm_arm", _inter_filename[ARM_ARM_INTER], 1);
@@ -168,20 +168,20 @@ void ManfredoInteraction<number>::read_topology(int N, int *N_strands, BaseParti
 
 	allocate_particles(particles, N);
 	char arm_types[8] = "ACGATCG";
-	for(int i = 0; i < N; i ++) {
+	for(int i = 0; i < N; i++) {
 		BaseParticle<number> *p = particles[i];
 		p->index = i;
 		p->strand_id = i / _N_per_tetramer;
 		int p_type = _get_p_type(p);
 		if(p_type == CENTRE) p->type = p->btype = P_A;
-		else if(p_type == ARM) {
+		else {
 			// if it's in the arm then we assign it a letter, corresponding to a base type
 			int rel_ind = p->index % _N_per_tetramer;
 			int rel_arm = (rel_ind-1) % 7;
 			p->type = p->btype = Utils::decode_base(arm_types[rel_arm]);
 			// and then we assign 3" and 5" neighbours
-			p->n3 = p-1;
-			p->n5 = p+1;
+			p->n3 = particles[i - 1];
+			p->n5 = particles[i + 1];
 			// if it's the first one it doesn't have the 3" neighbour
 			if(rel_arm == 0) p->n3 = P_VIRTUAL;
 			// and if it's the last one it doesn't have the 5"
@@ -260,12 +260,13 @@ number ManfredoInteraction<number>::pair_interaction(BaseParticle<number> *p, Ba
 
 template<typename number>
 number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	int p_type = _get_p_type(p);
-	if(p_type == STICKY || (q != P_VIRTUAL && _get_p_type(q) == STICKY)) return 0.f;
-//	if(p_type == STICKY) return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
-
 	number energy = 0.f;
 	if(q == P_VIRTUAL) {
+		// if the particle is a sticky end nucleotide then we have to invoke the DNA_inter method to handle all
+		// its bonded interactions
+		if(_get_p_type(p) == STICKY) return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
+		//if(_get_p_type(p) == ARM) energy += _DNA_inter.pair_interaction_bonded(p, p->n5, r, update_forces);
+
 		CustomParticle<number> *cp = (CustomParticle<number> *) p;
 		for(typename set<CustomParticle<number> *>::iterator it = cp->bonded_neighs.begin(); it != cp->bonded_neighs.end(); it++) {
 			if(p->index > (*it)->index) energy += pair_interaction_bonded(p, *it, r, update_forces);
@@ -274,7 +275,10 @@ number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number>
 	else if(p->is_bonded(q)) {
 		// bonded interactions are only intra-tetramer
 		if(p->strand_id != q->strand_id) return energy;
+
 		int type = _get_inter_type(p, q);
+
+		if(type == STICKY_STICKY || type == ARM_STICKY) return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
 
 		LR_vector<number> computed_r(0, 0, 0);
 		if(r == NULL) {
@@ -311,7 +315,9 @@ number ManfredoInteraction<number>::pair_interaction_nonbonded(BaseParticle<numb
 	int p_type = _get_p_type(p);
 	int q_type = _get_p_type(q);
 
-//	if(_both(p_type, q_type, STICKY)) return _DNA_inter.pair_interaction_nonbonded(p, q, r, update_forces);
+	int type = _get_inter_type(p, q);
+
+	if(type == STICKY_STICKY || type == ARM_STICKY) return _DNA_inter.pair_interaction_nonbonded(p, q, r, update_forces);
 
 	// if there are no sticky ends involved and if the two particles belong to two different tetramers
 	if(!_any(p_type, q_type, STICKY) && p->strand_id != q->strand_id) {
@@ -334,6 +340,51 @@ number ManfredoInteraction<number>::pair_interaction_nonbonded(BaseParticle<numb
 template<typename number>
 void ManfredoInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
 
+}
+
+template<typename number>
+void ManfredoInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
+	number sqr_limit = SQR(20.);
+	LR_vector<number> arm_poss[4] = {
+			LR_vector<number>(-3.66451, -2.22875, -7.98832),
+			LR_vector<number>(3.83406, 7.82627, 1.45587),
+			LR_vector<number>(-3.6474, 2.70588, 7.63758),
+			LR_vector<number>(3.41029, -7.53441, -3.37317)
+	};
+
+	std::vector<LR_vector<number> > tetra_centres;
+	int p_ind = 0;
+	for(int nt = 0; nt < _N_tetramers; nt++) {
+		BaseParticle<number> *centre = particles[p_ind];
+		bool found = false;
+		while(!found) {
+			found = true;
+			centre->pos = this->_box_side * Utils::get_random_vector<number>();
+			typename std::vector<LR_vector<number> >::iterator it;
+			for(it = tetra_centres.begin(); it != tetra_centres.end() && found; it++) {
+				number sqr_dist = centre->pos.sqr_min_image_distance(*it, this->_box_side);
+				if(sqr_dist < sqr_limit) found = false;
+			}
+		}
+		tetra_centres.push_back(centre->pos);
+		p_ind++;
+
+		for(int na = 0; na < 4; na++) {
+			BaseParticle<number> *arm = particles[p_ind];
+			arm->pos = centre->pos + arm_poss[na];
+			arm->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+
+			p_ind++;
+			LR_vector<number> dir = arm_poss[na];
+			dir.normalize();
+			for(int nsticky = 0; nsticky < 6; nsticky++) {
+				BaseParticle<number> *sticky = particles[p_ind];
+				sticky->pos = particles[p_ind-1]->pos + dir*0.34;
+				sticky->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+				p_ind++;
+			}
+		}
+	}
 }
 
 template<typename number>
