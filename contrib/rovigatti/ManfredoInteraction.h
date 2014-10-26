@@ -130,6 +130,7 @@ public:
 	}
 
 	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);
 };
 
 // Arms are composed by 7 particles. The last six, which constitute the sticky end, are regular
