@@ -503,11 +503,6 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 		do {
 			p->pos = LR_vector<number> (drand48()*box_side, drand48()*box_side, drand48()*box_side);
 			// random orientation
-			//p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
-			//p->orientation.v1 = LR_vector<number> (1., 0., 0.);
-			//p->orientation.v2 = LR_vector<number> (0., 1., 0.);
-			//p->orientation.v3 = LR_vector<number> (0., 0., 1.);
-			//p->orientation =  Utils::get_random_rotation_matrix_from_angle<number> (M_PI) * p->orientation;
 			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
 			p->orientation.orthonormalize();
 			p->orientationT = p->orientation.get_transpose();

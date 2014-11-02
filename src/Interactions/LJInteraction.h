@@ -11,7 +11,7 @@
 #include "BaseInteraction.h"
 
 /**
- * @brief Handles Lennard-Jones interactions between spheres of size 1 or a Kob-Andersen interaction.
+ * @brief Handles (generalised) Lennard-Jones interactions between spheres of size 1 or a Kob-Andersen interaction.
  *
  * TODO: the Kob-Andersen mixture should be better implemented.
  *
@@ -23,6 +23,7 @@
  * @verbatim
 LJ_rcut = <float> (interaction cutoff)
 [LJ_kob_andersen = <bool> (Simulate a Kob-Andersen mixture. Defaults to false.)]
+[LJ_n = <int> (Generalised LJ exponent. Defaults to 6, which is the classic LJ value.)]
 @endverbatim
  */
 template <typename number>
@@ -31,6 +32,7 @@ protected:
 	number _E_cut[3];
 	bool _is_ka_mixture;
 	int _N_A, _N_B;
+	int _n[3];
 	number _sigma[3];
 	number _sqr_sigma[3];
 	number _epsilon[3];
@@ -70,10 +72,11 @@ number LJInteraction<number>::_lennard_jones(BaseParticle<number> *p, BasePartic
 	int type = p->type + q->type;
 	if(rnorm < _sqr_LJ_rcut[type]) {
 		number tmp = this->_sqr_sigma[type] / rnorm;
-		number lj_part = tmp * tmp * tmp;
+		number lj_part = 1;
+		for(int i = 0; i < _n[type]/2; i++) lj_part *= tmp;
 		energy = 4 * _epsilon[type] * (SQR(lj_part) - lj_part) - _E_cut[type];
 		if(update_forces) {
-			LR_vector<number> force = *r * (-24 * _epsilon[type] * (lj_part - 2*SQR(lj_part)) / rnorm);
+			LR_vector<number> force = *r * (-4 *_n[type] * _epsilon[type] * (lj_part - 2*SQR(lj_part)) / rnorm);
 			p->force -= force;
 			q->force += force;
 		}
@@ -81,6 +84,5 @@ number LJInteraction<number>::_lennard_jones(BaseParticle<number> *p, BasePartic
 
 	return energy;
 }
-
 
 #endif /* LJINTERACTION_H_ */

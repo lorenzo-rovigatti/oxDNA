@@ -30,10 +30,28 @@ protected:
 	/// _patch_alpha^10
 	number _patch_pow_alpha;
 
+	int _N_patchy;
+	int _N_polymers;
+	int _N_per_chain;
+	int _N_chains;
+
+	number _rfene, _sqr_rfene;
+	number _pol_rcut, _sqr_pol_rcut;
+	number _pol_sigma, _sqr_pol_sigma;
+	number _pol_patchy_sigma, _sqr_pol_patchy_sigma;
+	int _pol_n;
+
+	inline number _fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline number _nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	inline number _patchy_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 public:
 	enum {
 		PATCHY,
+	};
+
+	enum {
+		PATCHY_PARTICLE = 0,
+		POLYMER = 1
 	};
 
 	NathanInteraction();
@@ -43,6 +61,7 @@ public:
 	virtual void init();
 
 	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual int get_N_from_topology();
 	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
 
 	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
@@ -129,6 +148,24 @@ public:
 	virtual ~NathanPatchyParticle() {};
 
 	virtual bool is_rigid_body() { return true; }
+};
+
+template<typename number>
+class NathanPolymerParticle: public BaseParticle<number> {
+public:
+	NathanPolymerParticle<number> *n3, *n5;
+
+	NathanPolymerParticle() : BaseParticle<number>(), n3(P_VIRTUAL), n5(P_VIRTUAL) {};
+	virtual ~NathanPolymerParticle() {};
+
+	virtual bool is_rigid_body() { return false; }
+	virtual bool is_bonded(BaseParticle<number> *q) {
+		if(q->type == NathanInteraction<number>::POLYMER) {
+			NathanPolymerParticle<number> *q_pol = (NathanPolymerParticle<number> *)q;
+			return (q_pol == n3 || q_pol == n5);
+		}
+		return false;
+	}
 };
 
 extern "C" NathanInteraction<float> *make_float() { return new NathanInteraction<float>(); }
