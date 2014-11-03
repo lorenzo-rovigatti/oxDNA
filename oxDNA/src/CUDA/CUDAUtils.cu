@@ -56,8 +56,8 @@ void GpuUtils::check_device_thresold(T *v, int N, int t) {
 #endif
 
 // template instantiation
-template struct LR_GPU_matrix<float>;
-template struct LR_GPU_matrix<double>;
+template struct GPU_quat<float>;
+template struct GPU_quat<double>;
 
 template float GpuUtils::sum_4th_comp<float, float4>(float4 *, int);
 

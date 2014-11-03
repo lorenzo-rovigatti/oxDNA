@@ -163,6 +163,9 @@ FFS_MD_CUDAMixedBackend::~FFS_MD_CUDAMixedBackend(){
 	CUDA_SAFE_CALL( cudaFree(_d_hb_cutoffs) );
 	CUDA_SAFE_CALL( cudaFree(_d_region_is_nearhb) );
 	free(_h_region_is_nearhb);
+	free(_h_hb_energies);
+	free(_h_op_dists);
+	free(_h_nearhb_states);
 }
 
 
@@ -223,6 +226,7 @@ void FFS_MD_CUDAMixedBackend::get_settings(input_file &inp){
 
 	getInputString(&inp, "order_parameters_file", _order_parameters_file, 1);
 	getInputString(&inp, "ffs_file", _ffs_file, 1);
+	getInputInt(&inp, "print_energy_every", &_print_energy_every, 1);
 
 	int tmpi;
 	_gen_flux = false;
@@ -307,6 +311,9 @@ void FFS_MD_CUDAMixedBackend::init(char conf_filename[256]){
 	h_dist_pairs1 = (int *)malloc(_n_dist_pairs * sizeof(int));
 	h_dist_pairs2 = (int *)malloc(_n_dist_pairs * sizeof(int));
 	h_hb_cutoffs = (float *)malloc(_n_hb_regions * sizeof(float));
+	_h_hb_energies = (float *)malloc(_n_hb_pairs * sizeof(float));
+	_h_op_dists = (float *)malloc(_n_dist_pairs * sizeof(float));
+	_h_nearhb_states = (bool *)malloc(_n_hb_pairs * sizeof(bool));
 	_h_region_is_nearhb = (bool *)malloc(_n_hb_regions * sizeof(bool));
 
 	// array of hb cutoff values for each hb order parameter
@@ -539,29 +546,6 @@ SimpleConditions FFS_MD_CUDAMixedBackend::_get_simple_conditions(std::vector<par
 void FFS_MD_CUDAMixedBackend::_init_CUDA_MD_symbols() {
 	// this line tells the mixed backend to initialize the constants needed by its kernels (which are in CUDA_mixed.cuh), so that sim_step will work properly
 	CUDAMixedBackend::_init_CUDA_MD_symbols();
-
-	// fill in the CUDA constants we'll need to compute the order parameter values on the GPU
-	float f_copy = _box_side;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_box_side, &f_copy, sizeof(float)) );
-
-	DNAInteraction<float> *dna_int = ((DNAInteraction<float> *)(this->_interaction)); // make life a bit easier for ourselves by doing this cast once
-	float tmp[50];
-	for(int i = 0; i < 2; i++) for(int j = 0; j < 5; j++) for(int k = 0; k < 5; k++) tmp[i*25 + j*5 + k] = dna_int->F1_EPS[i][j][k];
-
-	COPY_ARRAY_TO_CONSTANT(MD_F1_EPS, tmp, 50);
-
-	for(int i = 0; i < 2; i++) for(int j = 0; j < 5; j++) for(int k = 0; k < 5; k++) tmp[i*25 + j*5 + k] = dna_int->F1_SHIFT[i][j][k];
-
-	COPY_ARRAY_TO_CONSTANT(MD_F1_SHIFT, tmp, 50);
-
-	COPY_ARRAY_TO_CONSTANT(MD_F1_A, dna_int->F1_A, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_R0, dna_int->F1_R0, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_BLOW, dna_int->F1_BLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_BHIGH, dna_int->F1_BHIGH, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RLOW, dna_int->F1_RLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RHIGH, dna_int->F1_RHIGH, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RCLOW, dna_int->F1_RCLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RCHIGH, dna_int->F1_RCHIGH, 2);
 }
 
 bool FFS_MD_CUDAMixedBackend::_read_conditions(const char *fname, const char *condition_set_type, std::vector<parsed_condition> *conditions) {
@@ -692,15 +676,11 @@ void FFS_MD_CUDAMixedBackend::_init_ffs_kernel_config(CUDA_kernel_cfg *kernel_cf
 }
 
 void FFS_MD_CUDAMixedBackend::_eval_order_parameter_states(){
-	// calculate the values of the order parameters
-	hb_op_precalc<float, float4><<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(this->_d_poss, this->_d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_hb_energies, _n_hb_pairs, _d_region_is_nearhb);
-	CUT_CHECK_ERROR("hb_op_precalc error");
+	this->_cuda_interaction->_hb_op_precalc(this->_d_poss, this->_d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_hb_energies, _n_hb_pairs, _d_region_is_nearhb, _ffs_hb_precalc_kernel_cfg);
 
-	near_hb_op_precalc<float, float4><<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(this->_d_poss, this->_d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_nearhb_states, _n_hb_pairs, _d_region_is_nearhb);
-	CUT_CHECK_ERROR("nearhb_op_precalc error");
+	this->_cuda_interaction->_near_hb_op_precalc(this->_d_poss, this->_d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_nearhb_states, _n_hb_pairs, _d_region_is_nearhb,  _ffs_hb_precalc_kernel_cfg);
 
-	dist_op_precalc<float, float4><<<_ffs_dist_precalc_kernel_cfg.blocks, _ffs_dist_precalc_kernel_cfg.threads_per_block>>>(this->_d_poss, this->_d_orientations, _d_dist_pairs1, _d_dist_pairs2, _d_op_dists, _n_dist_pairs);
-	CUT_CHECK_ERROR("dist_op_precalc error");
+	this->_cuda_interaction->_dist_op_precalc(this->_d_poss, this->_d_orientations, _d_dist_pairs1, _d_dist_pairs2, _d_op_dists, _n_dist_pairs, _ffs_dist_precalc_kernel_cfg);
 	cudaThreadSynchronize();
 }
 
@@ -970,4 +950,48 @@ int *FFS_MD_CUDAMixedBackend::_get_2D_rows(int rows_len, int *lens){
 		counter += lens[ii];
 	}
 	return rows;
+}
+
+//Used to print the order parameters, to match CPU behaviour
+char * FFS_MD_CUDAMixedBackend::get_op_state_str(void) { 
+	CUDA_SAFE_CALL(cudaMemcpy(_h_hb_energies, _d_hb_energies, _n_hb_pairs * sizeof(float), cudaMemcpyDeviceToHost) );
+	CUDA_SAFE_CALL(cudaMemcpy(_h_op_dists, _d_op_dists, _n_dist_pairs * sizeof(float), cudaMemcpyDeviceToHost) );
+	CUDA_SAFE_CALL(cudaMemcpy(_h_nearhb_states, _d_nearhb_states, _n_hb_pairs * sizeof(bool), cudaMemcpyDeviceToHost) );
+	char * aux;
+	int * h_hb_region_lens = (int *)malloc(_n_hb_regions * sizeof(int)); //These could probably be redefined as class variables, rather than being redeclared here and in init. 
+	int * h_dist_region_lens = (int *)malloc(_n_dist_regions * sizeof(int));
+	_op.get_hb_pairs_count(h_hb_region_lens);
+	_op.get_dist_pairs_count(h_dist_region_lens);
+	int * h_hb_region_rows = _get_2D_rows(_n_hb_regions, h_hb_region_lens);
+	int * h_dist_region_rows = _get_2D_rows(_n_dist_regions, h_dist_region_lens);
+	for (int i = 0; i < _n_hb_regions; i++) {
+		aux = (char *) _state_str;
+		if (_op.get_hb_cutoff(i)!=64) {
+			int tot_hb = 0;
+			for (int j=0 ; j < h_hb_region_lens[i] ; j++){
+				if (_h_hb_energies[h_hb_region_rows[i] + j] < _op.get_hb_cutoff(i)) tot_hb += 1;
+			}
+			sprintf(aux, "%2d ", tot_hb);
+		} else {
+			int tot_near_hb = 0;
+			for (int j=0 ; j < h_hb_region_lens[i] ; j++) tot_near_hb+=_h_nearhb_states[h_hb_region_rows[i] + j];
+			sprintf(aux, "%2d ", tot_near_hb);
+			printf("Tot near is %2d \n", tot_near_hb);
+		}
+		aux = (char *) _state_str + strlen(_state_str);
+	}
+	for (int i = 0; i < _n_dist_regions; i++) {
+			float min_dist = _h_op_dists[i];
+			for (int j=1 ; j < h_dist_region_lens[i] ; j++){
+				if (_h_op_dists[h_hb_region_rows[i] + j] < min_dist) {min_dist=_h_op_dists[h_hb_region_rows[i] + j];}
+			}
+			sprintf(aux, "%2f ", min_dist);
+			aux = (char *) _state_str + strlen(_state_str);
+		}
+	return _state_str;
+}
+
+void FFS_MD_CUDAMixedBackend::print_observables(llint curr_step) {
+	if (_curr_step % _print_energy_every == _print_energy_every-1) this->_backend_info  = get_op_state_str(); //Ugly
+	CUDAMixedBackend::print_observables(curr_step);
 }

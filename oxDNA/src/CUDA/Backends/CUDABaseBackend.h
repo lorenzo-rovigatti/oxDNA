@@ -43,18 +43,18 @@ protected:
 	cudaDeviceProp _device_prop;
 	CUDA_kernel_cfg _particles_kernel_cfg;
 	CUDABaseList<number, number4> *_cuda_lists;
-	size_t _vec_size, _orient_size, _bonds_size;
+	size_t _vec_size, _bonds_size, _orient_size;
 	number _sqr_verlet_skin;
 
 	/// used for sorting
 	number4 *_d_buff_poss;
-	LR_GPU_matrix<number> *_d_buff_orientations;
+	GPU_quat<number> *_d_buff_orientations;
 	LR_bonds *_d_buff_bonds;
 	int *_d_hindex, *_d_sorted_hindex, *_d_inv_sorted_hindex;
 
 	number4 *_d_poss, *_h_poss;
 	LR_bonds *_d_bonds, *_h_bonds;
-	LR_GPU_matrix<number> *_d_orientations, *_h_orientations;
+	GPU_quat<number> *_d_orientations, *_h_orientations;
 	number4 *_d_list_poss;
 	/// It is stored in pinned memory, i.e. on the host but it can be accessed directly from the device
 	bool *_d_are_lists_old;

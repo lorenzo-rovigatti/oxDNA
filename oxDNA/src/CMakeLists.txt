@@ -173,6 +173,7 @@ IF(CUDA)
 		CUDA/Thermostats/CUDAThermostatFactory.cu
 		CUDA/Thermostats/CUDABrownianThermostat.cu
 		CUDA/Thermostats/CUDASRDThermostat.cu
+		CUDA/Thermostats/CUDALangevinThermostat.cu
 	)
 	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES} ${oxDNA_CUDASOURCES})
 ELSE()

@@ -8,8 +8,9 @@ __constant__ float MD_box_side[1];
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
 // this function modifies L
+// Conversion of the R matrix in _get_updated_orientation above into a quaternion simplifies into the qR quaternion used in _get_updated_orientation. This is then multiplied by the original orientation quaternion to produce the updated quaternion. Quaternion multiplication is the cross_product - dot_product and is therefore non-commutative
 template <typename number, typename number4>
-__device__ LR_GPU_matrix<number> _get_updated_orientation(number4 &L, const LR_GPU_matrix<number> &old_o) {
+__device__ GPU_quat<number> _get_updated_orientation(number4 &L, GPU_quat<number> &old_o) {
 	number norm = _module<number, number4>(L);
 	L.x /= norm;
 	L.y /= norm;
@@ -17,24 +18,15 @@ __device__ LR_GPU_matrix<number> _get_updated_orientation(number4 &L, const LR_G
 
 	number sintheta, costheta;
 	sincos(MD_dt[0] * norm, &sintheta, &costheta);
+	number qw = (number) 0.5f * sqrtf(fmaxf((number) 0.f, (number) 2.f + 2.f*costheta));
+	number winv = (number)1.f /qw;
+	GPU_quat<number> R = {(number) 0.5f*L.x*sintheta*winv, (number) 0.5f*L.y*sintheta*winv, (number) 0.5f*L.z*sintheta*winv, qw};
 
-	number olcos = ((number)1) - costheta;
-	number xyo = L.x * L.y * olcos;
-	number xzo = L.x * L.z * olcos;
-	number yzo = L.y * L.z * olcos;
-	number xsin = L.x * sintheta;
-	number ysin = L.y * sintheta;
-	number zsin = L.z * sintheta;
-
-	LR_GPU_matrix<number> R = {L.x * L.x * olcos + costheta, xyo - zsin, xzo + ysin,
-							xyo + zsin, L.y * L.y * olcos + costheta, yzo - xsin,
-							xzo - ysin, yzo + xsin, L.z * L.z * olcos + costheta};
-
-	return _matrix_matrix_product<number>(old_o, R);
+	return quat_multiply(old_o, R);
 }
 
 template <typename number, typename number4>
-__global__ void first_step(number4 *poss, LR_GPU_matrix<number> *orientations, number4 *list_poss, number4 *vels, number4 *Ls, number4 *forces, number4 *torques, bool *are_lists_old) {
+__global__ void first_step(number4 *poss, GPU_quat<number> *orientations, number4 *list_poss, number4 *vels, number4 *Ls, number4 *forces, number4 *torques, bool *are_lists_old) {
 	if(IND >= MD_N[0]) return;
 
 	const number4 F = forces[IND];
@@ -62,15 +54,16 @@ __global__ void first_step(number4 *poss, LR_GPU_matrix<number> *orientations, n
 
 	Ls[IND] = L;
 
-	const LR_GPU_matrix<number> old_o = orientations[IND];
-	orientations[IND] = _get_updated_orientation<number>(L, old_o);
+
+	GPU_quat<number> qold_o = orientations[IND];
+	orientations[IND] = _get_updated_orientation<number>(L, qold_o);
 
 	// do verlet lists need to be updated?
 	if(quad_distance<number, number4>(r, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
 }
 
 template <typename number, typename number4>
-__global__ void set_external_forces(number4 *poss, LR_GPU_matrix<number> *orientations, CUDA_trap<number> *ext_forces, number4 *forces, number4 *torques, llint step, int max_ext_forces) {
+__global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientations, CUDA_trap<number> *ext_forces, number4 *forces, number4 *torques, llint step, int max_ext_forces) {
 	if(IND >= MD_N[0]) return;
 	// if there are no external forces then just put the force to 0
 	if(max_ext_forces == 0) {

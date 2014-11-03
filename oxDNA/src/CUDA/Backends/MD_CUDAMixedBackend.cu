@@ -26,14 +26,14 @@ void CUDAMixedBackend::init(char conf_filename[256]) {
 	MD_CUDABackend<float, float4>::init(conf_filename);
 
 	_vec_sized = ((size_t)_N) * sizeof(LR_double4);
-	_orient_sized = ((size_t)_N) * sizeof(LR_GPU_matrix<double>);
+	_orient_sized = ((size_t)_N) * sizeof(GPU_quat<double>);
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_possd, _vec_sized) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_velsd, _vec_sized) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_Lsd, _vec_sized) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_GPU_matrix<double>  >(&_d_orientationsd, _orient_sized) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat<double>  >(&_d_orientationsd, _orient_sized) );
 
 	_float4_to_LR_double4(_d_poss, _d_possd);
-	_LR_matrix_float_to_matrix_double(_d_orientations, _d_orientationsd);
+	_quat_float_to_quat_double(_d_orientations, _d_orientationsd); 
 	_float4_to_LR_double4(_d_vels, _d_velsd);
 	_float4_to_LR_double4(_d_Ls, _d_Lsd);
 }
@@ -59,14 +59,14 @@ void CUDAMixedBackend::_LR_double4_to_float4(LR_double4 *src, float4 *dest) {
 	CUT_CHECK_ERROR("LR_double4_to_float4 error");
 }
 
-void CUDAMixedBackend::_LR_matrix_float_to_matrix_double(LR_GPU_matrix<float> *src, LR_GPU_matrix<double> *dest) {
+void CUDAMixedBackend::_quat_float_to_quat_double(GPU_quat<float> *src, GPU_quat<double> *dest) {
 	float4_to_LR_double4
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(src, dest);
 	CUT_CHECK_ERROR("LR_matrix_float_to_matrix_double error");
 }
 
-void CUDAMixedBackend::_LR_matrix_double_to_matrix_float(LR_GPU_matrix<double> *src, LR_GPU_matrix<float> *dest) {
+void CUDAMixedBackend::_quat_double_to_quat_float(GPU_quat<double> *src, GPU_quat<float> *dest) {
 	LR_double4_to_float4
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(src, dest);
@@ -81,12 +81,12 @@ void CUDAMixedBackend::_first_step() {
 
 void CUDAMixedBackend::_sort_particles() {
 	_LR_double4_to_float4(_d_possd, _d_poss);
-	_LR_matrix_double_to_matrix_float(_d_orientationsd, _d_orientations);
 	_LR_double4_to_float4(_d_velsd, _d_vels);
 	_LR_double4_to_float4(_d_Lsd, _d_Ls);
+	_quat_double_to_quat_float(_d_orientationsd, _d_orientations);
 	MD_CUDABackend<float, float4>::_sort_particles();
+	_quat_float_to_quat_double(_d_orientations, _d_orientationsd);
 	_float4_to_LR_double4(_d_poss, _d_possd);
-	_LR_matrix_float_to_matrix_double(_d_orientations, _d_orientationsd);
 	_float4_to_LR_double4(_d_vels, _d_velsd);
 	_float4_to_LR_double4(_d_Ls, _d_Lsd);
 }
@@ -106,14 +106,13 @@ void CUDAMixedBackend::_gpu_to_host_particles() {
 	// probably useless
 	if(_d_possd != NULL) {
 		_LR_double4_to_float4(_d_possd, _d_poss);
-		_LR_matrix_double_to_matrix_float(_d_orientationsd, _d_orientations);
+		_quat_double_to_quat_float(_d_orientationsd, _d_orientations);
 		_LR_double4_to_float4(_d_velsd, _d_vels);
 		_LR_double4_to_float4(_d_Lsd, _d_Ls);
 	}
 
 	MD_CUDABackend<float, float4>::_gpu_to_host_particles();
 }
-
 void CUDAMixedBackend::_host_particles_to_gpu() {
 	MD_CUDABackend<float, float4>::_host_particles_to_gpu();
 
@@ -121,7 +120,7 @@ void CUDAMixedBackend::_host_particles_to_gpu() {
 	// allocated yet. It's a bit of a hack but it's needed
 	if(_d_possd != NULL) {
 		_float4_to_LR_double4(_d_poss, _d_possd);
-		_LR_matrix_float_to_matrix_double(_d_orientations, _d_orientationsd);
+		_quat_float_to_quat_double(_d_orientations, _d_orientationsd);
 		_float4_to_LR_double4(_d_vels, _d_velsd);
 		_float4_to_LR_double4(_d_Ls, _d_Lsd);
 	}

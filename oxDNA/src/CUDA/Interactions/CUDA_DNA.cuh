@@ -438,7 +438,7 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 }
 
 template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, LR_GPU_matrix<number> qo, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind) {
+__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 	int pbtype = get_particle_btype<number, number4>(ppos);
@@ -446,10 +446,6 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 	int int_type = pbtype + qbtype;
 
 	number4 r = minimum_image<number, number4>(ppos, qpos);
-
-	number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-	number4 b2 = make_number4<number, number4>(qo.e[1], qo.e[4], qo.e[7], 0);
-	number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
 
 	number4 ppos_back;
 	if(grooving) ppos_back = POS_MM_BACK1 * a1 + POS_MM_BACK2 * a2;
@@ -762,27 +758,21 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
+__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
 	number4 T = make_number4<number, number4>(0, 0, 0, 0);
 	LR_bonds bs = bonds[IND];
 	number4 ppos = poss[IND];
-	LR_GPU_matrix<number> po = orientations[IND];
 
-	// particle axes according to Allen's paper
-	number4 a1 = make_number4<number, number4>(po.e[0], po.e[3], po.e[6], 0);
-	number4 a2 = make_number4<number, number4>(po.e[1], po.e[4], po.e[7], 0);
-	number4 a3 = make_number4<number, number4>(po.e[2], po.e[5], po.e[8], 0);
+	number4 a1, a2, a3;
+	get_vectors_from_quat<number,number4>(orientations[IND], a1, a2, a3); //Returns vectors a1,a2 and a3 as they would be in the GPU matrix. These are necessary even in pure quaternion dynamics
 
 	if(bs.n3 != P_INVALID) {
 		number4 qpos = poss[bs.n3];
-		LR_GPU_matrix<number> qo = orientations[bs.n3];
-
-		number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-		number4 b2 = make_number4<number, number4>(qo.e[1], qo.e[4], qo.e[7], 0);
-		number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
+		number4 b1, b2, b3;
+		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
 						    qpos, b1, b2, b3, F, T, grooving);
@@ -790,11 +780,9 @@ __global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations, n
 
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
-		LR_GPU_matrix<number> qo = orientations[bs.n5];
 
-		number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-		number4 b2 = make_number4<number, number4>(qo.e[1], qo.e[4], qo.e[7], 0);
-		number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
+		number4 b1, b2, b3;
+		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
 						     ppos, a1, a2, a3, F, T, grooving);
@@ -805,14 +793,15 @@ __global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations, n
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND && bs.n3 != j && bs.n5 != j) {
 			const number4 qpos = poss[j];
-			const LR_GPU_matrix<number> qo = orientations[j];
+			number4 b1, b2, b3;
+			get_vectors_from_quat<number,number4>(orientations[j], b1, b2, b3);
 			LR_bonds qbonds = bonds[j];
 
-			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, F, T, grooving, use_debye_huckel, bs, qbonds, IND, j);
+			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, bs, qbonds, IND, j);
 		}
 	}
 
-	T = _matrix_transpose_number4_product<number>(po, T);
+	T = _vectors_transpose_number4_product(a1, a2, a3, T);
 
 	// the real energy per particle is half of the one computed (because we count each interaction twice)
 	F.w *= (number) 0.5f;
@@ -822,7 +811,7 @@ __global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations, n
 }
 
 template <typename number, typename number4>
-__global__ void dna_forces_edge_nonbonded(number4 *poss, LR_GPU_matrix<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
+__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -832,19 +821,17 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, LR_GPU_matrix<number> *
 
 	// get info for particle 1
 	number4 ppos = poss[b.from];
-	LR_GPU_matrix<number> po = orientations[b.from];
 	// particle axes according to Allen's paper
-	number4 a1 = make_number4<number, number4>(po.e[0], po.e[3], po.e[6], 0);
-	number4 a2 = make_number4<number, number4>(po.e[1], po.e[4], po.e[7], 0);
-	number4 a3 = make_number4<number, number4>(po.e[2], po.e[5], po.e[8], 0);
-
+	number4 a1, a2, a3;
+	get_vectors_from_quat<number,number4>(orientations[b.from], a1, a2, a3);
 	// get info for particle 2
 	number4 qpos = poss[b.to];
-	LR_GPU_matrix<number> qo = orientations[b.to];
 
+	number4 b1, b2, b3;
+	get_vectors_from_quat<number,number4>(orientations[b.to], b1, b2, b3);
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
-	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, dF, dT, grooving, use_debye_huckel, pbonds, qbonds, b.from, b.to);
+	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, pbonds, qbonds, b.from, b.to);
 
 	dF.w *= (number) 0.5f;
 	dT.w *= (number) 0.5f;
@@ -873,7 +860,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, LR_GPU_matrix<number> *
 
 // bonded interactions for edge-based approach
 template <typename number, typename number4>
-__global__ void dna_forces_edge_bonded(number4 *poss, LR_GPU_matrix<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving) {
+__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F0, T0;
@@ -891,31 +878,24 @@ __global__ void dna_forces_edge_bonded(number4 *poss, LR_GPU_matrix<number> *ori
 	number4 dT = make_number4<number, number4>(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
-	LR_GPU_matrix<number> po = orientations[IND];
-
 	// particle axes according to Allen's paper
-	number4 a1 = make_number4<number, number4>(po.e[0], po.e[3], po.e[6], 0);
-	number4 a2 = make_number4<number, number4>(po.e[1], po.e[4], po.e[7], 0);
-	number4 a3 = make_number4<number, number4>(po.e[2], po.e[5], po.e[8], 0);
+
+	number4 a1, a2, a3;
+	get_vectors_from_quat<number,number4>(orientations[IND], a1, a2, a3);
 
 	if(bs.n3 != P_INVALID) {
 		number4 qpos = poss[bs.n3];
-		LR_GPU_matrix<number> qo = orientations[bs.n3];
 
-		number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-		number4 b2 = make_number4<number, number4>(qo.e[1], qo.e[4], qo.e[7], 0);
-		number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
+		number4 b1,b2,b3;
+		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
-		LR_GPU_matrix<number> qo = orientations[bs.n5];
 
-		number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-		number4 b2 = make_number4<number, number4>(qo.e[1], qo.e[4], qo.e[7], 0);
-		number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
-
+		number4 b1,b2,b3;
+		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving);
 	}
 
@@ -926,45 +906,34 @@ __global__ void dna_forces_edge_bonded(number4 *poss, LR_GPU_matrix<number> *ori
 	forces[IND] = (dF + F0);
 	torques[IND] = (dT + T0);
 
-	torques[IND] = _matrix_transpose_number4_product<number>(po, torques[IND]);
+	torques[IND] = _vectors_transpose_number4_product(a1, a2, a3, torques[IND]);
 }
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
+__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
 	if(IND >= MD_N[0]) return;
 
-	//number4 F = make_number4<number, number4>(0, 0, 0, 0);
 	number4 F = forces[IND];
 	number4 T = make_number4<number, number4>(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
-	LR_GPU_matrix<number> po = orientations[IND];
 
 	// particle axes according to Allen's paper
-	number4 a1 = make_number4<number, number4>(po.e[0], po.e[3], po.e[6], 0);
-	number4 a2 = make_number4<number, number4>(po.e[1], po.e[4], po.e[7], 0);
-	number4 a3 = make_number4<number, number4>(po.e[2], po.e[5], po.e[8], 0);
-
+	number4 a1, a2, a3;
+	get_vectors_from_quat<number,number4>(orientations[IND], a1, a2, a3);
+	
 	if(bs.n3 != P_INVALID) {
 		number4 qpos = poss[bs.n3];
-		LR_GPU_matrix<number> qo = orientations[bs.n3];
-
-		number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-		number4 b2 = make_number4<number, number4>(qo.e[1], qo.e[4], qo.e[7], 0);
-		number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
-
+		number4 b1, b2, b3;
+		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
 						    qpos, b1, b2, b3, F, T, grooving);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
-		LR_GPU_matrix<number> qo = orientations[bs.n5];
-
-		number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-		number4 b2 = make_number4<number, number4>(qo.e[1], qo.e[4], qo.e[7], 0);
-		number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
-
+		number4 b1,b2,b3;
+		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
 						     ppos, a1, a2, a3, F, T, grooving);
 	}
@@ -977,17 +946,189 @@ __global__ void dna_forces(number4 *poss, LR_GPU_matrix<number> *orientations,  
 		const int k_index = matrix_neighs[j*MD_N[0] + IND];
 
 		const number4 qpos = poss[k_index];
-		const LR_GPU_matrix<number> qo = orientations[k_index];
+		number4 b1, b2, b3;
+		get_vectors_from_quat<number,number4>(orientations[k_index], b1, b2, b3);
 		LR_bonds pbonds = bonds[IND];
 		LR_bonds qbonds = bonds[k_index];
-		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, qo, F, T, grooving, use_debye_huckel, pbonds, qbonds, IND, k_index);
+		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, pbonds, qbonds, IND, k_index);
 	}
-
-	T = _matrix_transpose_number4_product<number>(po, T);
+	
+	T = _vectors_transpose_number4_product(a1, a2, a3, T);
 
 	// the real energy per particle is half of the one computed (because we count each interaction twice)
 	F.w *= (number) 0.5f;
 	T.w *= (number) 0.5f;
 	forces[IND] = F;
 	torques[IND] = T;
+}
+
+
+//FFS order parameter pre-calculations
+
+// check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
+template <typename number, typename number4>
+__global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb)
+{
+	if(IND >= n_threads) return;
+	
+	int pind = op_pairs1[IND];
+	int qind = op_pairs2[IND];
+	// get distance between this nucleotide pair's "com"s
+	number4 ppos = poss[pind];
+	number4 qpos = poss[qind];
+	number4 r = minimum_image<number, number4>(ppos, qpos);
+
+	// check whether hb energy is below a certain threshold for this nucleotide pair
+	int ptype = get_particle_type<number, number4>(ppos);
+	int qtype = get_particle_type<number, number4>(qpos);
+	int pbtype = get_particle_btype<number, number4>(ppos);
+	int qbtype = get_particle_btype<number, number4>(qpos);
+	int int_type = pbtype + qbtype;
+
+	GPU_quat<number> po = orientations[pind];
+	GPU_quat<number> qo = orientations[qind];
+
+	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make no difference. 
+	number4 a1, a2, a3, b1, b2, b3; 
+	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
+
+	get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
+
+	number4 ppos_base = POS_BASE * a1;
+	number4 qpos_base = POS_BASE * b1;
+
+	// HYDROGEN BONDING
+	number hb_energy = (number) 0;
+	number4 rhydro = r + qpos_base - ppos_base;
+	number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
+	if(int_type == 3 && SQR(HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(HYDR_RCHIGH)) {
+		// versor and magnitude of the base-base separation
+	  	number rhydromod = sqrtf(rhydromodsqr);
+	  	number4 rhydrodir = rhydro / rhydromod;
+
+		// angles involved in the HB interaction
+		number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
+		number t2 = CUDA_LRACOS(-CUDA_DOT(b1, rhydrodir));
+		number t3 = CUDA_LRACOS(CUDA_DOT(a1, rhydrodir));
+		number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
+		number t7 = CUDA_LRACOS(-CUDA_DOT(rhydrodir, b3));
+		number t8 = CUDA_LRACOS(CUDA_DOT(rhydrodir, a3));
+
+	 	 // functions called at their relevant arguments
+		number f1 = _f1(rhydromod, HYDR_F1, ptype, qtype);
+		number f4t1 = _f4(t1, HYDR_THETA1_T0, HYDR_THETA1_TS, HYDR_THETA1_TC, HYDR_THETA1_A, HYDR_THETA1_B);
+		number f4t2 = _f4(t2, HYDR_THETA2_T0, HYDR_THETA2_TS, HYDR_THETA2_TC, HYDR_THETA2_A, HYDR_THETA2_B);
+		number f4t3 = _f4(t3, HYDR_THETA3_T0, HYDR_THETA3_TS, HYDR_THETA3_TC, HYDR_THETA3_A, HYDR_THETA3_B);
+		number f4t4 = _f4(t4, HYDR_THETA4_T0, HYDR_THETA4_TS, HYDR_THETA4_TC, HYDR_THETA4_A, HYDR_THETA4_B);
+		number f4t7 = _f4(t7, HYDR_THETA7_T0, HYDR_THETA7_TS, HYDR_THETA7_TC, HYDR_THETA7_A, HYDR_THETA7_B);
+		number f4t8 = _f4(t8, HYDR_THETA8_T0, HYDR_THETA8_TS, HYDR_THETA8_TC, HYDR_THETA8_A, HYDR_THETA8_B);
+
+		hb_energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
+	}
+	// END HYDROGEN BONDING
+
+	hb_energies[IND] = hb_energy;
+}
+
+template <typename number, typename number4>
+__global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb)
+{
+	if(IND >= n_threads) return;
+	
+	int pind = op_pairs1[IND];
+	int qind = op_pairs2[IND];
+	// get distance between this nucleotide pair's "com"s
+	number4 ppos = poss[pind];
+	number4 qpos = poss[qind];
+	number4 r = minimum_image<number, number4>(ppos, qpos);
+
+	// check whether hb energy is below a certain threshold for this nucleotide pair
+	int ptype = get_particle_type<number, number4>(ppos);
+	int qtype = get_particle_type<number, number4>(qpos);
+	int pbtype = get_particle_btype<number, number4>(ppos);
+	int qbtype = get_particle_btype<number, number4>(qpos);
+	int int_type = pbtype + qbtype;
+
+	GPU_quat<number> po = orientations[pind];
+	GPU_quat<number> qo = orientations[qind];
+
+	//This gets extra a2 and b2 vectors that aren't needed. get_vectors_from_quat could easily be modified to only return the relevant vectors, but it will make computationally very little difference, since most of the same numbers need to be calculated anyway. Perhaps worth changing for memory considerations, however
+	number4 a1, a2, a3, b1, b2, b3; 
+	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
+	get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
+
+	number4 ppos_base = POS_BASE * a1;
+	number4 qpos_base = POS_BASE * b1;
+
+	// HYDROGEN BONDING
+	number4 rhydro = r + qpos_base - ppos_base;
+	number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
+	
+	int total_nonzero;
+	bool nearly_bonded = false;
+	if(int_type == 3 && SQR(HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(HYDR_RCHIGH)) {
+		// versor and magnitude of the base-base separation
+	  	number rhydromod = sqrtf(rhydromodsqr);
+	  	number4 rhydrodir = rhydro / rhydromod;
+
+		// angles involved in the HB interaction
+		number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
+		number t2 = CUDA_LRACOS(-CUDA_DOT(b1, rhydrodir));
+		number t3 = CUDA_LRACOS(CUDA_DOT(a1, rhydrodir));
+		number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
+		number t7 = CUDA_LRACOS(-CUDA_DOT(rhydrodir, b3));
+		number t8 = CUDA_LRACOS(CUDA_DOT(rhydrodir, a3));
+
+		// functions called at their relevant arguments
+		number f1 = _f1(rhydromod, HYDR_F1, ptype, qtype);
+		number f4t1 = _f4(t1, HYDR_THETA1_T0, HYDR_THETA1_TS, HYDR_THETA1_TC, HYDR_THETA1_A, HYDR_THETA1_B);
+		number f4t2 = _f4(t2, HYDR_THETA2_T0, HYDR_THETA2_TS, HYDR_THETA2_TC, HYDR_THETA2_A, HYDR_THETA2_B);
+		number f4t3 = _f4(t3, HYDR_THETA3_T0, HYDR_THETA3_TS, HYDR_THETA3_TC, HYDR_THETA3_A, HYDR_THETA3_B);
+		number f4t4 = _f4(t4, HYDR_THETA4_T0, HYDR_THETA4_TS, HYDR_THETA4_TC, HYDR_THETA4_A, HYDR_THETA4_B);
+		number f4t7 = _f4(t7, HYDR_THETA7_T0, HYDR_THETA7_TS, HYDR_THETA7_TC, HYDR_THETA7_A, HYDR_THETA7_B);
+		number f4t8 = _f4(t8, HYDR_THETA8_T0, HYDR_THETA8_TS, HYDR_THETA8_TC, HYDR_THETA8_A, HYDR_THETA8_B);
+
+		// the nearly bonded order parameter requires either all or all but one of these factors to be non-zero
+		bool f1not0 = f1 < 0 ? 1 : 0;
+		bool f4t1not0 = f4t1 > 0 ? 1 : 0;
+		bool f4t2not0 = f4t2 > 0 ? 1 : 0;
+		bool f4t3not0 = f4t3 > 0 ? 1 : 0;
+		bool f4t4not0 = f4t4 > 0 ? 1 : 0;
+		bool f4t7not0 = f4t7 > 0 ? 1 : 0;
+		bool f4t8not0 = f4t8 > 0 ? 1 : 0;
+		total_nonzero = f1not0 + f4t1not0 + f4t2not0 + f4t3not0 + f4t4not0 + f4t7not0 + f4t8not0;
+		if (total_nonzero >= 6) nearly_bonded = true;
+	}
+	// END HYDROGEN BONDING
+
+	nearly_bonded_array[IND] = nearly_bonded;
+}
+
+// compute the distance between a pair of particles
+template <typename number, typename number4>
+__global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads)
+{
+	if(IND >= n_threads) return;
+
+	int pind = op_pairs1[IND];
+	int qind = op_pairs2[IND];
+
+	// get distance between this nucleotide pair's "com"s
+	number4 ppos = poss[pind];
+	number4 qpos = poss[qind];
+	number4 r = minimum_image<number, number4>(ppos, qpos);
+
+	GPU_quat<number> po = orientations[pind];
+	GPU_quat<number> qo = orientations[qind];
+
+	//This gets extra a2 and b2 vectors that aren't needed. get_vectors_from_quat could easily be modified to only return the relevant vectors, but it will make computationally very little difference, since most of the same numbers need to be calculated anyway. Perhaps worth changing for memory considerations, however 
+	number4 a1, a2, a3, b1, b2, b3; 
+	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
+	get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
+
+	number4 ppos_base = POS_BASE * a1;
+	number4 qpos_base = POS_BASE * b1;
+	
+	number4 rbase = r + qpos_base - ppos_base;
+	op_dists[IND] = _module<number, number4>(rbase);
 }

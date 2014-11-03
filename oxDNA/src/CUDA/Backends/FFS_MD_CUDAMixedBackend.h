@@ -175,6 +175,8 @@ protected:
 	bool _unexpected_master_reached;
 	char _unexpected_master_name[256];
 	char _unexpected_master_prefix[256];
+	char _state_str[2048];
+	int _print_energy_every;
 
 	int _gen_flux_cross_count;
 	int _gen_flux_saved_cross_count;
@@ -207,6 +209,9 @@ protected:
 	int _n_hb_regions;
 	int _n_dist_pairs;
 	int _n_dist_regions;
+	float *_h_hb_energies;
+	bool *_h_nearhb_states;
+	float *_h_op_dists;
 	int *_d_hb_pairs1;
 	int *_d_hb_pairs2;
 	int *_d_dist_pairs1;
@@ -392,6 +397,8 @@ public:
 	 */
 	void sim_step(llint curr_step);
 
+	char * get_op_state_str(void);
+	virtual void print_observables(llint curr_step);
 };
 
 #endif /* FFS_MD_CUDAMIXEDBACKEND_H_ */

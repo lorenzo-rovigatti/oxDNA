@@ -21,7 +21,8 @@ CUDASimpleVerletList<number, number4>::CUDASimpleVerletList() : _max_density_mul
 
 template<typename number, typename number4>
 CUDASimpleVerletList<number, number4>::~CUDASimpleVerletList() {
-
+	_d_matrix_neighs = NULL;
+	_d_number_neighs = NULL;
 }
 
 template<>
@@ -115,7 +116,6 @@ void CUDASimpleVerletList<number, number4>::init(int N, number box_side, number 
 
 template<typename number, typename number4>
 void CUDASimpleVerletList<number, number4>::update(number4 *poss, number4 *list_poss, LR_bonds *bonds) {
-	// reset cells
 	CUDA_SAFE_CALL( cudaMemset(_d_counters_cells, 0, _N_cells * sizeof(int)) );
 
 	// fill cells

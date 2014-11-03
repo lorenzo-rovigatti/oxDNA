@@ -9,22 +9,6 @@
 
 #include "CUDABrownianThermostat.h"
 
-__device__ void gaussian(curandState &state, float &outx, float &outy) {
-	float r = sqrtf(-2.0f * logf(curand_uniform(&state)));
-	float phi = 2.f * PI * curand_uniform(&state);
-
-	outx = r * __cosf(phi);
-	outy = r * __sinf(phi);
-}
-
-__device__ void gaussian(curandState &state, double &outx, double &outy) {
-	double r = sqrt(-2. * log(curand_uniform(&state)));
-	double phi = 2 * M_PI * curand_uniform(&state);
-
-	outx = r * cos(phi);
-	outy = r * sin(phi);
-}
-
 template<typename number, typename number4>
 __global__ void brownian_thermostat(curandState *rand_state, number4 *vels, number4 *Ls, number rescale_factor, number pt, number pr, int N) {
 	if(IND < N) {
@@ -93,7 +77,7 @@ bool CUDABrownianThermostat<number, number4>::would_activate(llint curr_step) {
 }
 
 template<typename number, typename number4>
-void CUDABrownianThermostat<number, number4>::apply_cuda(number4 *d_poss, LR_GPU_matrix<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
+void CUDABrownianThermostat<number, number4>::apply_cuda(number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
 	brownian_thermostat<number, number4>
