@@ -7,6 +7,7 @@
 
 #include "CUDAThermostatFactory.h"
 #include "CUDABrownianThermostat.h"
+#include "CUDALangevinThermostat.h"
 #include "CUDANoThermostat.h"
 #include "CUDASRDThermostat.h"
 #include "../../Utilities/Utils.h"
@@ -27,6 +28,7 @@ CUDABaseThermostat<number, number4> *CUDAThermostatFactory::make_thermostat(inpu
 
 	if(!strncmp(thermostat_type, "john", 512)) return new CUDABrownianThermostat<number, number4>();
 	else if(!strncmp(thermostat_type, "brownian", 512)) return new CUDABrownianThermostat<number, number4>();
+	else if(!strncmp(thermostat_type, "langevin", 512)) return new CUDALangevinThermostat<number, number4>();
 	else if(!strncmp(thermostat_type, "srd", 512) || !strncmp(thermostat_type, "SRD", 512)) return new CUDASRDThermostat<number, number4>(box_side);
 	else if(!strncmp(thermostat_type, "no", 512)) return new CUDANoThermostat<number, number4>();
 	else throw oxDNAException("Invalid CUDA thermostat '%s'", thermostat_type);

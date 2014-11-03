@@ -33,7 +33,7 @@ __device__ number4 minimum_image(const number4 &r_i, const number4 &r_j) {
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
 template <typename number, typename number4>
-__global__ void hb_op_precalc(number4 *poss, LR_GPU_matrix<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb)
+__global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb)
 {
 	if(IND >= n_threads) return;
 // for now no test for op type	if(region_is_nearhb[IND]) return;
@@ -52,12 +52,15 @@ __global__ void hb_op_precalc(number4 *poss, LR_GPU_matrix<number> *orientations
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	LR_GPU_matrix<number> po = orientations[pind];
-	LR_GPU_matrix<number> qo = orientations[qind];
-	number4 a1 = make_number4<number, number4>(po.e[0], po.e[3], po.e[6], 0);
-	number4 a3 = make_number4<number, number4>(po.e[2], po.e[5], po.e[8], 0);
-	number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-	number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
+	GPU_quat<number> po = orientations[pind];
+	GPU_quat<number> qo = orientations[qind];
+
+	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
+	number4 a1, a2, a3, b1, b2, b3; 
+	get_vectors_from_quat(po, a1, a2, a3);
+//	printf("\n");
+
+	get_vectors_from_quat(qo, b1, b2, b3);
 
 	number4 ppos_base = POS_BASE * a1;
 	number4 qpos_base = POS_BASE * b1;
@@ -97,7 +100,7 @@ __global__ void hb_op_precalc(number4 *poss, LR_GPU_matrix<number> *orientations
 
 // check whether a particular pair of particles have a 'nearly' hydrogen bond, where all or all but one of the energy factors are non-zero
 template <typename number, typename number4>
-__global__ void near_hb_op_precalc(number4 *poss, LR_GPU_matrix<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb)
+__global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb)
 {
 	if(IND >= n_threads) return;
 //for now no test for op type	if(!region_is_nearhb[IND]) return; 
@@ -116,12 +119,13 @@ __global__ void near_hb_op_precalc(number4 *poss, LR_GPU_matrix<number> *orienta
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	LR_GPU_matrix<number> po = orientations[pind];
-	LR_GPU_matrix<number> qo = orientations[qind];
-	number4 a1 = make_number4<number, number4>(po.e[0], po.e[3], po.e[6], 0);
-	number4 a3 = make_number4<number, number4>(po.e[2], po.e[5], po.e[8], 0);
-	number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-	number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
+	GPU_quat<number> po = orientations[pind];
+	GPU_quat<number> qo = orientations[qind];
+
+	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
+	number4 a1, a2, a3, b1, b2, b3; 
+	get_vectors_from_quat(po, a1, a2, a3);
+	get_vectors_from_quat(qo, b1, b2, b3);
 
 	number4 ppos_base = POS_BASE * a1;
 	number4 qpos_base = POS_BASE * b1;
@@ -172,7 +176,7 @@ __global__ void near_hb_op_precalc(number4 *poss, LR_GPU_matrix<number> *orienta
 
 // compute the distance between a pair of particles
 template <typename number, typename number4>
-__global__ void dist_op_precalc(number4 *poss, LR_GPU_matrix<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads)
+__global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads)
 {
 	if(IND >= n_threads) return;
 
@@ -184,12 +188,13 @@ __global__ void dist_op_precalc(number4 *poss, LR_GPU_matrix<number> *orientatio
 	number4 qpos = poss[qind];
 	number4 r = minimum_image<number, number4>(ppos, qpos);
 
-	LR_GPU_matrix<number> po = orientations[pind];
-	LR_GPU_matrix<number> qo = orientations[qind];
-	number4 a1 = make_number4<number, number4>(po.e[0], po.e[3], po.e[6], 0);
-	number4 a3 = make_number4<number, number4>(po.e[2], po.e[5], po.e[8], 0);
-	number4 b1 = make_number4<number, number4>(qo.e[0], qo.e[3], qo.e[6], 0);
-	number4 b3 = make_number4<number, number4>(qo.e[2], qo.e[5], qo.e[8], 0);
+	GPU_quat<number> po = orientations[pind];
+	GPU_quat<number> qo = orientations[qind];
+
+	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
+	number4 a1, a2, a3, b1, b2, b3; 
+	get_vectors_from_quat(po, a1, a2, a3);
+	get_vectors_from_quat(qo, b1, b2, b3);
 
 	number4 ppos_base = POS_BASE * a1;
 	number4 qpos_base = POS_BASE * b1;
@@ -197,7 +202,6 @@ __global__ void dist_op_precalc(number4 *poss, LR_GPU_matrix<number> *orientatio
 	number4 rbase = r + qpos_base - ppos_base;
 	op_dists[IND] = _module<number, number4>(rbase);
 }
-
 // find the minimum distances for a region and check against the stopping conditions for that region
 template <typename number, typename number4>
 __global__ void dist_op_eval(number *op_dists, int *region_lens, int *region_rows, int *cond_lens, int *cond_rows, number *mags, int *types, bool *stop, int n_threads, int stop_element_offset)

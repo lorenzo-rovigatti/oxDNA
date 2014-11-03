@@ -41,7 +41,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init(int N);
 
-	virtual void apply_cuda(number4 *d_poss, LR_GPU_matrix<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step);
+	virtual void apply_cuda(number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step);
 	virtual bool would_activate(llint curr_step);
 };
 

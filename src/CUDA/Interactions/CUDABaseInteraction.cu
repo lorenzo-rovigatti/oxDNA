@@ -118,5 +118,20 @@ void CUDABaseInteraction<number, number4>::set_launch_cfg(CUDA_kernel_cfg &launc
 	_launch_cfg = launch_cfg;
 }
 
+template<typename number, typename number4>
+void CUDABaseInteraction<number, number4>::_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg) {
+	throw oxDNAException ("On CUDA, FFS is only implemented for the DNA and RNA interactions");
+}
+
+template<typename number, typename number4>
+void CUDABaseInteraction<number, number4>::_near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg  _ffs_hb_precalc_kernel_cfg) {
+	throw oxDNAException ("On CUDA, FFS is only implemented for the DNA and RNA interactions");
+}
+
+template<typename number, typename number4>
+void CUDABaseInteraction<number, number4>::_dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg) {
+	throw oxDNAException ("On CUDA, FFS is only implemented for the DNA and RNA interactions");
+}
+
 template class CUDABaseInteraction<float, float4>;
 template class CUDABaseInteraction<double, LR_double4>;

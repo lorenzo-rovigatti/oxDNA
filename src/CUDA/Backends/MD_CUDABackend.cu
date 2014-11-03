@@ -100,18 +100,36 @@ void MD_CUDABackend<number, number4>::_host_particles_to_gpu() {
 		_h_Ls[i].x = p->L.x;
 		_h_Ls[i].y = p->L.y;
 		_h_Ls[i].z = p->L.z;
-
-		this->_h_orientations[i].e[0] = p->orientation.v1.x;
-		this->_h_orientations[i].e[1] = p->orientation.v1.y;
-		this->_h_orientations[i].e[2] = p->orientation.v1.z;
-		this->_h_orientations[i].e[3] = p->orientation.v2.x;
-		this->_h_orientations[i].e[4] = p->orientation.v2.y;
-		this->_h_orientations[i].e[5] = p->orientation.v2.z;
-		this->_h_orientations[i].e[6] = p->orientation.v3.x;
-		this->_h_orientations[i].e[7] = p->orientation.v3.y;
-		this->_h_orientations[i].e[8] = p->orientation.v3.z;
-	}
-
+	
+		number trace = p->orientation.v1.x+p->orientation.v2.y+p->orientation.v3.z;
+		if (trace>0) {
+			number s = .5/sqrt(trace + 1);
+			this->_h_orientations[i].w = .25/s;
+			this->_h_orientations[i].x = (p->orientation.v3.y-p->orientation.v2.z)*s;
+			this->_h_orientations[i].y = (p->orientation.v1.z-p->orientation.v3.x)*s;
+			this->_h_orientations[i].z = (p->orientation.v2.x-p->orientation.v1.y)*s;
+		} else {    //Finding largest diagonal element
+			if ( (p->orientation.v1.x > p->orientation.v2.y) && (p->orientation.v1.x > p->orientation.v3.z) ) { 
+				number s = .5/sqrt(1+p->orientation.v1.x-p->orientation.v2.y-p->orientation.v3.z);
+				this->_h_orientations[i].w = (p->orientation.v3.y-p->orientation.v2.z)*s;
+				this->_h_orientations[i].x = .25/s;
+				this->_h_orientations[i].y = (p->orientation.v1.y+p->orientation.v2.x)*s;
+				this->_h_orientations[i].z = (p->orientation.v1.z+p->orientation.v3.x)*s;
+			} else if (p->orientation.v2.y > p->orientation.v3.z) {
+				number s = .5/sqrt(1+p->orientation.v2.y-p->orientation.v1.x-p->orientation.v3.z);
+				this->_h_orientations[i].w = (p->orientation.v1.z-p->orientation.v3.x)*s;
+				this->_h_orientations[i].x = (p->orientation.v1.y+p->orientation.v2.x)*s;
+				this->_h_orientations[i].y = .25/s;
+				this->_h_orientations[i].z = (p->orientation.v2.z+p->orientation.v3.y)*s;
+			} else {
+				number s = .5/sqrt(1+p->orientation.v3.z-p->orientation.v1.x-p->orientation.v2.y);
+				this->_h_orientations[i].w = (p->orientation.v2.x-p->orientation.v1.y)*s;
+				this->_h_orientations[i].x = (p->orientation.v1.z+p->orientation.v3.x)*s;
+				this->_h_orientations[i].y = (p->orientation.v2.z+p->orientation.v3.y)*s;
+				this->_h_orientations[i].z = .25/s;
+			}
+		}
+	} 
 	this->_host_to_gpu();
 }
 
@@ -155,15 +173,27 @@ void MD_CUDABackend<number, number4>::_gpu_to_host_particles() {
 		p->L.y = _h_Ls[i].y;
 		p->L.z = _h_Ls[i].z;
 
-		p->orientation.v1.x = this->_h_orientations[i].e[0];
-		p->orientation.v1.y = this->_h_orientations[i].e[1];
-		p->orientation.v1.z = this->_h_orientations[i].e[2];
-		p->orientation.v2.x = this->_h_orientations[i].e[3];
-		p->orientation.v2.y = this->_h_orientations[i].e[4];
-		p->orientation.v2.z = this->_h_orientations[i].e[5];
-		p->orientation.v3.x = this->_h_orientations[i].e[6];
-		p->orientation.v3.y = this->_h_orientations[i].e[7];
-		p->orientation.v3.z = this->_h_orientations[i].e[8];
+		number sqx = this->_h_orientations[i].x*this->_h_orientations[i].x;
+		number sqy = this->_h_orientations[i].y*this->_h_orientations[i].y;
+		number sqz = this->_h_orientations[i].z*this->_h_orientations[i].z;
+		number sqw = this->_h_orientations[i].w*this->_h_orientations[i].w;
+		number xy = this->_h_orientations[i].x*this->_h_orientations[i].y;
+		number xz = this->_h_orientations[i].x*this->_h_orientations[i].z;
+		number xw = this->_h_orientations[i].x*this->_h_orientations[i].w;
+		number yz = this->_h_orientations[i].y*this->_h_orientations[i].z;
+		number yw = this->_h_orientations[i].y*this->_h_orientations[i].w;
+		number zw = this->_h_orientations[i].z*this->_h_orientations[i].w;	
+		number invs = 1 / (sqx + sqy + sqz + sqw);
+
+		p->orientation.v1.x = (sqx-sqy-sqz+sqw)*invs;
+		p->orientation.v1.y = 2*(xy-zw)*invs;
+		p->orientation.v1.z = 2*(xz+yw)*invs;
+		p->orientation.v2.x = 2*(xy+zw)*invs;
+		p->orientation.v2.y = (-sqx+sqy-sqz+sqw)*invs;
+		p->orientation.v2.z = 2*(yz-xw)*invs;
+		p->orientation.v3.x = 2*(xz-yw)*invs;
+		p->orientation.v3.y = 2*(yz+xw)*invs;
+		p->orientation.v3.z = (-sqx-sqy+sqz+sqw)*invs;
 
 		p->set_positions();
 		p->orientationT = p->orientation.get_transpose();
@@ -186,13 +216,12 @@ void MD_CUDABackend<number, number4>::_first_step() {
 	first_step<number, number4>
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_poss, this->_d_orientations, this->_d_list_poss, _d_vels, _d_Ls, _d_forces, _d_torques, this->_d_are_lists_old);
-	CUT_CHECK_ERROR("first_step error");
+	CUT_CHECK_ERROR("_first_step error");
 }
 
 template<typename number, typename number4>
 void MD_CUDABackend<number, number4>::_forces_second_step() {
 	_set_external_forces();
-
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds);
 
 	second_step<number, number4>
@@ -212,15 +241,14 @@ void MD_CUDABackend<number, number4>::_set_external_forces() {
 template<typename number, typename number4>
 void MD_CUDABackend<number, number4>::_sort_particles() {
 	CUDABaseBackend<number, number4>::_sort_index();
-
 	permute_particles<number, number4>
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
-		(this->_d_sorted_hindex, this->_d_inv_sorted_hindex, this->_d_poss, _d_vels, _d_Ls, this->_d_orientations, this->_d_bonds, this->_d_buff_poss, _d_buff_vels, _d_buff_Ls, this->_d_buff_orientations, this->_d_buff_bonds);
-	CUT_CHECK_ERROR("permute_particles error");
+		(this->_d_sorted_hindex, this->_d_inv_sorted_hindex, this->_d_poss, _d_vels, _d_Ls, this->_d_orientations, this->_d_bonds, this->_d_buff_poss, _d_buff_vels, _d_buff_Ls, 				this->_d_buff_orientations, this->_d_buff_bonds);
+		CUT_CHECK_ERROR("_permute_particles error");
+		CUDA_SAFE_CALL( cudaMemcpy(this->_d_orientations, this->_d_buff_orientations, this->_orient_size, cudaMemcpyDeviceToDevice) );
 
 	// copy back the sorted vectors
 	CUDA_SAFE_CALL( cudaMemcpy(this->_d_poss, this->_d_buff_poss, this->_vec_size, cudaMemcpyDeviceToDevice) );
-	CUDA_SAFE_CALL( cudaMemcpy(this->_d_orientations, this->_d_buff_orientations, this->_orient_size, cudaMemcpyDeviceToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(this->_d_bonds, this->_d_buff_bonds, this->_bonds_size, cudaMemcpyDeviceToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_vels, _d_buff_vels, this->_vec_size, cudaMemcpyDeviceToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_Ls, _d_buff_Ls, this->_vec_size, cudaMemcpyDeviceToDevice) );

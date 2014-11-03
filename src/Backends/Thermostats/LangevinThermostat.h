@@ -16,7 +16,7 @@ gamma_trans = <float> (translational damping coefficient for the Langevin thermo
  */
 template<typename number>
 class LangevinThermostat : public BaseThermostat<number> {
-private:
+protected:
 	/// Integration time step
 	number _dt;
 

@@ -21,13 +21,13 @@ class CUDAMixedBackend: public MD_CUDABackend<float, float4> {
 protected:
 	LR_double4 *_d_possd;
 	LR_double4 *_d_velsd, *_d_Lsd;
-	LR_GPU_matrix<double> *_d_orientationsd;
+	GPU_quat<double> *_d_orientationsd;
 	size_t _vec_sized, _orient_sized;
 
 	void _float4_to_LR_double4(float4 *src, LR_double4 *dest);
 	void _LR_double4_to_float4(LR_double4 *src, float4 *dest);
-	void _LR_matrix_double_to_matrix_float(LR_GPU_matrix<double> *src, LR_GPU_matrix<float> *dest);
-	void _LR_matrix_float_to_matrix_double(LR_GPU_matrix<float> *src, LR_GPU_matrix<double> *dest);
+	void _quat_double_to_quat_float(GPU_quat<double> *src, GPU_quat<float> *dest);
+	void _quat_float_to_quat_double(GPU_quat<float> *src, GPU_quat<double> *dest);
 
 	void _init_CUDA_MD_symbols();
 

@@ -6,31 +6,24 @@ __constant__ float MD_dt[1];
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
 // this function modifies L
-__device__ LR_GPU_matrix<double> _get_updated_orientation(LR_double4 &L, const LR_GPU_matrix<double> &old_o) {
+
+
+__device__ GPU_quat<double> _get_updated_orientation(LR_double4 &L, GPU_quat<double> &old_o) {
 	double norm = sqrt(CUDA_DOT(L, L));
 	L.x /= norm;
 	L.y /= norm;
 	L.z /= norm;
-
+	
 	double sintheta, costheta;
 	sincos(MD_dt[0] * norm, &sintheta, &costheta);
-
-	double olcos = 1. - costheta;
-	double xyo = L.x * L.y * olcos;
-	double xzo = L.x * L.z * olcos;
-	double yzo = L.y * L.z * olcos;
-	double xsin = L.x * sintheta;
-	double ysin = L.y * sintheta;
-	double zsin = L.z * sintheta;
-
-	LR_GPU_matrix<double> R = {SQR(L.x) * olcos + costheta, xyo - zsin, xzo + ysin,
-						  xyo + zsin, SQR(L.y) * olcos + costheta, yzo - xsin,
-						  xzo - ysin, yzo + xsin, SQR(L.z) * olcos + costheta};
-
-	return _matrix_matrix_product<double>(old_o, R);
+	double qw = 0.5*sqrt(fmax(0, 2. + 2.*costheta));
+	double winv = (double)1.0 /qw;
+	GPU_quat<double> R = {0.5*L.x*sintheta*winv, 0.5*L.y*sintheta*winv, 0.5*L.z*sintheta*winv, qw};
+	
+	return quat_multiply(old_o,R);
 }
 
-__global__ void first_step_mixed(float4 *poss, LR_GPU_matrix<float> *orientations, LR_double4 *possd, LR_GPU_matrix<double> *orientationsd, float4 *list_poss, LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool *are_lists_old, bool any_rigid_body) {
+__global__ void first_step_mixed(float4 *poss, GPU_quat<float> *orientations, LR_double4 *possd, GPU_quat<double> *orientationsd, float4 *list_poss, LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool *are_lists_old, bool any_rigid_body) {
 	if(IND >= MD_N[0]) return;
 
 	float4 F = forces[IND];
@@ -64,13 +57,11 @@ __global__ void first_step_mixed(float4 *poss, LR_GPU_matrix<float> *orientation
 		
 		Lsd[IND] = L;
 		
-		const LR_GPU_matrix<double> new_o = _get_updated_orientation(L, orientationsd[IND]);
+		GPU_quat<double> new_o = _get_updated_orientation(L, orientationsd[IND]);
 		orientationsd[IND] = new_o;
-		
-		const LR_GPU_matrix<float> new_of = {(float)new_o.e[0], (float)new_o.e[1], (float)new_o.e[2],
-									  (float)new_o.e[3], (float)new_o.e[4], (float)new_o.e[5],
-									  (float)new_o.e[6], (float)new_o.e[7], (float)new_o.e[8]};
-		orientations[IND] = new_of;
+
+		GPU_quat<float> new_of = {(float)new_o.x, (float)new_o.y, (float)new_o.z, (float)new_o.w};
+		orientations[IND] = new_of; 
 	}
 
 	// do verlet lists need to be updated?
@@ -115,22 +106,18 @@ __global__ void LR_double4_to_float4(LR_double4 *src, float4 *dest) {
 	dest[IND] = make_float4((float)tmp.x, (float)tmp.y, (float)tmp.z, tmp.w);
 }
 
-__global__ void float4_to_LR_double4(LR_GPU_matrix<float> *src, LR_GPU_matrix<double> *dest) {
+__global__ void float4_to_LR_double4(GPU_quat<float> *src, GPU_quat<double> *dest) {
 	if(IND >= MD_N[0]) return;
 
-	LR_GPU_matrix<float> tmp = src[IND];
-	LR_GPU_matrix<double> res = {(double)tmp.e[0], (double)tmp.e[1], (double)tmp.e[2],
-				(double)tmp.e[3], (double)tmp.e[4], (double)tmp.e[5],
-				(double)tmp.e[6], (double)tmp.e[7], (double)tmp.e[8]};
+	GPU_quat<float> tmp = src[IND];
+	GPU_quat<double> res = {(double)tmp.x, (double)tmp.y, (double)tmp.z, (double)tmp.w};
 	dest[IND] = res;
 }
 
-__global__ void LR_double4_to_float4(LR_GPU_matrix<double> *src, LR_GPU_matrix<float> *dest) {
+__global__ void LR_double4_to_float4(GPU_quat<double> *src, GPU_quat<float> *dest) {
 	if(IND >= MD_N[0]) return;
 
-	LR_GPU_matrix<double> tmp = src[IND];
-	LR_GPU_matrix<float> res = {(float)tmp.e[0], (float)tmp.e[1], (float)tmp.e[2],
-				(float)tmp.e[3], (float)tmp.e[4], (float)tmp.e[5],
-				(float)tmp.e[6], (float)tmp.e[7], (float)tmp.e[8]};
+	GPU_quat<double> tmp = src[IND];
+	GPU_quat<float> res = {(float)tmp.x, (float)tmp.y, (float)tmp.z, (float)tmp.w};
 	dest[IND] = res;
 }

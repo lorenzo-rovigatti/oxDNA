@@ -12,6 +12,41 @@
 
 #include <curand_kernel.h>
 
+//This is the most commonly called quaternion to matrix conversion. 
+template<typename number, typename number4>
+__device__ void get_vectors_from_quat(GPU_quat<number> &q, number4 &a1, number4 &a2, number4 &a3) {
+	number sqx = q.x*q.x;
+	number sqy = q.y*q.y;
+	number sqz = q.z*q.z;
+	number sqw = q.w*q.w;
+	number xy = q.x*q.y;
+	number xz = q.x*q.z;
+	number xw = q.x*q.w;
+	number yz = q.y*q.z;
+	number yw = q.y*q.w;
+	number zw = q.z*q.w;
+
+	a1.x = (sqx-sqy-sqz+sqw);
+	a2.x = 2*(xy-zw);
+	a3.x = 2*(xz+yw);
+	a1.y = 2*(xy+zw);
+	a2.y = (-sqx+sqy-sqz+sqw);
+	a3.y = 2*(yz-xw);
+	a1.z = 2*(xz-yw);
+	a2.z = 2*(yz+xw);
+	a3.z = (-sqx-sqy+sqz+sqw);
+}
+
+template <typename number>
+__forceinline__ __device__ GPU_quat<number> quat_multiply(GPU_quat<number> &a, GPU_quat<number> &b) {
+	GPU_quat<number> p;
+	p.w = a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z;
+	p.x = a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y;
+	p.y = a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x;
+	p.z = a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w;
+	return p;
+}
+
 __forceinline__ __device__ void gaussian(curandState &state, float &outx, float &outy) {
 	float r = sqrtf(-2.0f * logf(curand_uniform(&state)));
 	float phi = 2.f * PI * curand_uniform(&state);
@@ -104,25 +139,29 @@ __forceinline__ __device__ number _module(const number4 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
-template <typename number, typename number4>
-__forceinline__ __device__ number4 _matrix_number4_product(const LR_GPU_matrix<number> m, const number4 v) {
+
+//Necessary to for calculating the torque without storing a seperate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
+template <typename number4>
+__forceinline__ __device__ number4 _vectors_number4_product(const number4 a1, const number4 a2, const number4 a3, const number4 v) {
 	number4 res = {
-		m.e[0]*v.x + m.e[1]*v.y + m.e[2]*v.z,
-		m.e[3]*v.x + m.e[4]*v.y + m.e[5]*v.z,
-		m.e[6]*v.x + m.e[7]*v.y + m.e[8]*v.z,
+		a1.x*v.x + a2.x*v.y + a3.x*v.z,
+		a1.y*v.x + a2.y*v.y + a3.y*v.z,
+		a1.z*v.x + a2.z*v.y + a3.z*v.z,
 		v.w
 	};
-
+	
 	return res;
 }
 
-template <typename number, typename number4>
-__forceinline__ __device__ number4 _matrix_transpose_number4_product(const LR_GPU_matrix<number> m, const number4 v) {
+
+//Necessary to for calculating the torque without storing a seperate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
+template <typename number4>
+__forceinline__ __device__ number4 _vectors_transpose_number4_product(const number4 a1, const number4 a2, const number4 a3, const number4 v) {
 	number4 res = {
-		res.x = m.e[0]*v.x + m.e[3]*v.y + m.e[6]*v.z,
-		res.y = m.e[1]*v.x + m.e[4]*v.y + m.e[7]*v.z,
-		res.z = m.e[2]*v.x + m.e[5]*v.y + m.e[8]*v.z,
-		res.w = v.w
+		a1.x*v.x + a1.y*v.y + a1.z*v.z,
+		a2.x*v.x + a2.y*v.y + a2.z*v.z,
+		a3.x*v.x + a3.y*v.y + a3.z*v.z,
+		v.w
 	};
 
 	return res;
@@ -131,25 +170,6 @@ __forceinline__ __device__ number4 _matrix_transpose_number4_product(const LR_GP
 template <typename number, typename number4>
 __forceinline__ __device__ number4 _cross(const number4 v, const number4 w) {
 	return make_number4<number, number4>(v.y*w.z - v.z*w.y, v.z*w.x - v.x*w.z, v.x*w.y - v.y*w.x, (number) 0);
-}
-
-template <typename number>
-__forceinline__ __device__ LR_GPU_matrix<number> _matrix_matrix_product(const LR_GPU_matrix<number> m, const LR_GPU_matrix<number> n) {
-	LR_GPU_matrix<number> res = {
-		m.e[0]*n.e[0] + m.e[1]*n.e[3] + m.e[2]*n.e[6],
-		m.e[0]*n.e[1] + m.e[1]*n.e[4] + m.e[2]*n.e[7],
-		m.e[0]*n.e[2] + m.e[1]*n.e[5] + m.e[2]*n.e[8],
-
-		m.e[3]*n.e[0] + m.e[4]*n.e[3] + m.e[5]*n.e[6],
-		m.e[3]*n.e[1] + m.e[4]*n.e[4] + m.e[5]*n.e[7],
-		m.e[3]*n.e[2] + m.e[4]*n.e[5] + m.e[5]*n.e[8],
-
-		m.e[6]*n.e[0] + m.e[7]*n.e[3] + m.e[8]*n.e[6],
-		m.e[6]*n.e[1] + m.e[7]*n.e[4] + m.e[8]*n.e[7],
-		m.e[6]*n.e[2] + m.e[7]*n.e[5] + m.e[8]*n.e[8]
-	};
-
-	return res;
 }
 
 // LR_DOUBLE4

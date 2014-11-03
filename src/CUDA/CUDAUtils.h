@@ -75,12 +75,9 @@ struct __align__(16) mutual_trap {
 	int p_ind;
 };*/
 
-/**
- * @brief 0-2 -> first row, 3-5 -> second row, 6-8 third row
- */
 template<typename number>
-struct __align__(16) LR_GPU_matrix {
-	number e[9];
+struct __align__(16) GPU_quat {
+	number x, y, z, w;
 };
 
 /**

@@ -187,13 +187,13 @@ void CUDABaseBackend<number, number4>::init(char conf_filename[256]) {
 	_cuda_interaction->cuda_init(_C_box_side, _C_N);
 
 	_vec_size = sizeof(number4) * _C_N;
-	_orient_size = sizeof(LR_GPU_matrix<number>) * _C_N;
+	_orient_size = sizeof(GPU_quat<number>) * _C_N;
 	_bonds_size = sizeof(LR_bonds) * _C_N;
 
 	// GPU memory allocations
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_poss, _vec_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_bonds, _bonds_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_GPU_matrix<number>  >(&_d_orientations, _orient_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat<number>  >(&_d_orientations, _orient_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_list_poss, _vec_size) );
 	CUDA_SAFE_CALL( cudaMallocHost(&_d_are_lists_old, sizeof(bool), cudaHostAllocDefault) );
 
@@ -201,7 +201,7 @@ void CUDABaseBackend<number, number4>::init(char conf_filename[256]) {
 
 	// CPU memory allocations
 	_h_poss = new number4[_C_N];
-	_h_orientations = new LR_GPU_matrix<number>[_C_N];
+	_h_orientations = new GPU_quat<number>[_C_N];
 	_h_bonds = new LR_bonds[_C_N];
 
 	// setup kernels' configurations
@@ -219,7 +219,7 @@ void CUDABaseBackend<number, number4>::init(char conf_filename[256]) {
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_inv_sorted_hindex, _C_N*sizeof(int)) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_buff_poss, _vec_size) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_buff_bonds, _bonds_size) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_GPU_matrix<number> >(&_d_buff_orientations, _orient_size) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat<number>  >(&_d_buff_orientations, _orient_size) );
 
 		reset_sorted_hindex
 			<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>

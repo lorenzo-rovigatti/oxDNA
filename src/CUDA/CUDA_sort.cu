@@ -139,10 +139,10 @@ __global__ void hilbert_curve(const number4 *pos, int *hindex) {
 	hindex[IND] = code;
 }
 
-template<typename number, typename number4>
+template<typename number, typename number4> 
 __global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, number4 *poss, number4 *vels, number4 *Ls,
-		LR_GPU_matrix<number> *orientations, LR_bonds *bonds, number4 *buff_poss, number4 *buff_vels,
-		number4 *buff_Ls, LR_GPU_matrix<number> *buff_orientations, LR_bonds *buff_bonds) {
+		GPU_quat<number> *orientations, LR_bonds *bonds, number4 *buff_poss, number4 *buff_vels,
+		number4 *buff_Ls, GPU_quat<number> *buff_orientations, LR_bonds *buff_bonds) {
 	if(IND >= hilb_N[0]) return;
 
 	const int j = sorted_hindex[IND];
@@ -195,11 +195,12 @@ void init_hilb_symbols(int N, int N_unsortable, int depth, float box_side) {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(hilb_N_unsortable, &N_unsortable, sizeof(int)) );
 }
 
+template
+__global__ void permute_particles<float, float4>(int *sorted_hindex, int *inv_sorted_hindex, float4 *poss, float4 *vels,	float4 *Ls, GPU_quat<float> *orientations, LR_bonds *bonds, float4 *buff_poss, float4 *buff_vels, float4 *buff_Ls, GPU_quat<float> *buff_orientations, LR_bonds *buff_bonds);
 template 
-__global__ void permute_particles<float, float4>(int *sorted_hindex, int *inv_sorted_hindex, float4 *poss, float4 *vels,	float4 *Ls, LR_GPU_matrix<float> *orientations, LR_bonds *bonds, float4 *buff_poss, float4 *buff_vels, float4 *buff_Ls, LR_GPU_matrix<float> *buff_orientations, LR_bonds *buff_bonds);
-template 
-__global__ void permute_particles<double, LR_double4>(int *sorted_hindex, int *inv_sorted_hindex, LR_double4 *poss, LR_double4 *vels, LR_double4 *Ls, LR_GPU_matrix<double> *orientations, LR_bonds *bonds, LR_double4 *buff_poss, LR_double4 *buff_vels, LR_double4 *buff_Ls, LR_GPU_matrix<double> *buff_orientations, LR_bonds *buff_bonds);
-template 
+
+__global__ void permute_particles<double, LR_double4>(int *sorted_hindex, int *inv_sorted_hindex, LR_double4 *poss, LR_double4 *vels, LR_double4 *Ls, GPU_quat<double> *orientations, LR_bonds *bonds, LR_double4 *buff_poss, LR_double4 *buff_vels, LR_double4 *buff_Ls, GPU_quat<double> *buff_orientations, LR_bonds *buff_bonds);
+template
 __global__ void permute_particles<float, float4>(int *sorted_hindex, float4 *poss, float4 *vels, float4 *buff_poss, float4 *buff_vels);
 template 
 __global__ void permute_particles<double, LR_double4>(int *sorted_hindex, LR_double4 *poss, LR_double4 *vels, LR_double4 *buff_poss, LR_double4 *buff_vels);
@@ -207,7 +208,6 @@ template
 __global__ void permute_particles<float, float4>(int *sorted_hindex, float4 *poss, float4 *buff_poss);
 template 
 __global__ void permute_particles<double, LR_double4>(int *sorted_hindex, LR_double4 *poss, LR_double4 *buff_poss);
-
 template 
 __global__ void hilbert_curve<float4>(const float4 *pos, int *hindex);
 template 
