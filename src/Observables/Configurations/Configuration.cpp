@@ -153,10 +153,14 @@ string Configuration<number>::_configuration(llint step) {
 		}
 	}
 	else {
+		// this is used to avoid printing empty lines
+		bool empty = true;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			if(it != _visible_particles.begin()) conf << endl;
+			if(it != _visible_particles.begin() && !empty) conf << endl;
 			BaseParticle<number> *p = this->_config_info.particles[*it];
-			conf << _particle(p);
+			string p_str = _particle(p);
+			conf << p_str;
+			empty = (p_str.size() == 0);
 		}
 	}
 

@@ -35,6 +35,8 @@ protected:
 	Mesh<number> _inter_mesh[3];
 	int _inter_points[3];
 
+	number _T;
+
 	// this is used only during the look-up table set up
 	struct lt_data {
 		int points;

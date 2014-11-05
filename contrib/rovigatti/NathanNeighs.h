@@ -16,11 +16,19 @@
 template<typename number>
 class NathanNeighs: public Configuration<number>  {
 protected:
+	enum {
+		MGL,
+		BONDS,
+		TOT_BONDS,
+		MIN_THETA
+	};
+
 	number _patch_length;
 	number _threshold;
-	bool _mgl;
-	bool _only_total;
+	int _mode;
 	int _total_bonds;
+	number _avg_min_theta;
+	int _n_crystalline;
 
 	virtual std::string _headers(llint step);
 	virtual std::string _particle(BaseParticle<number> *p);
@@ -34,7 +42,7 @@ public:
 	void init(ConfigInfo<number> &config_info);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new NathanNeighs<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new NathanNeighs<double>(); }
+extern "C" BaseObservable<float> *make_nathan_float() { return new NathanNeighs<float>(); }
+extern "C" BaseObservable<double> *make_nathan_double() { return new NathanNeighs<double>(); }
 
 #endif /* PATCHYTOMGL_H_ */

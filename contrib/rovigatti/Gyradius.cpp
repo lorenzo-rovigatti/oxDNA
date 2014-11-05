@@ -13,7 +13,7 @@ Gyradius<number>::Gyradius() {
 	_accumulate = false;
 	_avg_gr2 = 0;
 	_counter = 0;
-	_type = P_A;
+	_type = -1;
 }
 
 template<typename number>
@@ -28,7 +28,7 @@ void Gyradius<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_accumulate = (bool) tmp;
 
 	getInputInt(&my_inp, "rg_type", &_type, 0);
-	if(_type != P_A && _type != P_B) throw oxDNAException("rg_type should be either 0 (P_A) or 1 (P_B)");
+	if(_type != -1 && _type != P_A && _type != P_B) throw oxDNAException("rg_type should be either -1 (all particles), 0 (P_A) or 1 (P_B)");
 }
 
 template<typename number>
@@ -40,12 +40,12 @@ std::string Gyradius<number>::get_output_string(llint curr_step) {
 	int N_type = 0;
 	for(int i = 0; i < N; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
-		if(p->type == _type) {
-			N_type++;
-			for(int j = i+1; j < N; j++) {
-				BaseParticle<number> *q = this->_config_info.particles[j];
-				if(q->type == _type) rg2 += p->pos.sqr_min_image_distance(q->pos, L);
-			}
+		if(p->type != 2 && (_type == -1 || p->type == _type)) {
+				N_type++;
+				for(int j = i+1; j < N; j++) {
+						BaseParticle<number> *q = this->_config_info.particles[j];
+						if(_type == -1 || q->type == _type) rg2 += p->pos.sqr_min_image_distance(q->pos, L);
+				}
 		}
 	}
 	rg2 /= SQR(N_type);

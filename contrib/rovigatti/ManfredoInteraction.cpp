@@ -26,6 +26,10 @@ void ManfredoInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 	_DNA_inter.get_settings(inp);
 
+	char my_T[512];
+	getInputString(&inp, "T", my_T, 1);
+	_T = Utils::get_temperature<number>(my_T);
+
 	getInputString(&inp, "lt_centre_arm_intra", _intra_filename[CENTRE_ARM_INTRA], 1);
 	getInputInt(&inp, "lt_centre_arm_intra_points", &_intra_points[CENTRE_ARM_INTRA], 1);
 
@@ -109,8 +113,8 @@ void ManfredoInteraction<number>::_build_lt(Mesh<number> &mesh, int points, char
 		if(spl.size() != 3 || lt_file.eof()) stop = true;
 		else {
 			data.x[i] = atof(spl[0].c_str());
-			data.fx[i] = atof(spl[1].c_str());
-			data.dfx[i] = atof(spl[2].c_str());
+			data.fx[i] = _T*atof(spl[1].c_str());
+			data.dfx[i] = _T*atof(spl[2].c_str());
 
 			if(i > 0 && data.x[i] <= data.x[i-1]) throw oxDNAException("The x values of the lookup table should be monotonically increasing (found x[%d] = %f <= %f = x[%d])", i, data.x[i], i-1, data.x[i-1]);
 			i++;
@@ -278,8 +282,7 @@ number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number>
 
 		int type = _get_inter_type(p, q);
 
-		if(type == STICKY_STICKY || type == ARM_STICKY) return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
-
+		if(type == STICKY_STICKY || type == ARM_STICKY) throw oxDNAException("STICKY_STICKY and ARM_STICKY should always be handled in the q == P_VIRTUAL portion\n");
 		LR_vector<number> computed_r(0, 0, 0);
 		if(r == NULL) {
 			if (q != P_VIRTUAL && p != P_VIRTUAL) {
@@ -359,7 +362,7 @@ void ManfredoInteraction<number>::generate_random_configuration(BaseParticle<num
 		bool found = false;
 		while(!found) {
 			found = true;
-			centre->pos = this->_box_side * Utils::get_random_vector<number>();
+			centre->pos = box_side * Utils::get_random_vector<number>();
 			typename std::vector<LR_vector<number> >::iterator it;
 			for(it = tetra_centres.begin(); it != tetra_centres.end() && found; it++) {
 				number sqr_dist = centre->pos.sqr_min_image_distance(*it, this->_box_side);
@@ -373,14 +376,20 @@ void ManfredoInteraction<number>::generate_random_configuration(BaseParticle<num
 			BaseParticle<number> *arm = particles[p_ind];
 			arm->pos = centre->pos + arm_poss[na];
 			arm->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+			arm->set_positions();
 
 			p_ind++;
 			LR_vector<number> dir = arm_poss[na];
 			dir.normalize();
 			for(int nsticky = 0; nsticky < 6; nsticky++) {
 				BaseParticle<number> *sticky = particles[p_ind];
-				sticky->pos = particles[p_ind-1]->pos + dir*0.34;
 				sticky->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+				sticky->set_positions();
+
+				LR_vector<number> prev_back = particles[p_ind-1]->pos + particles[p_ind-1]->int_centers[DNANucleotide<number>::BACK];
+				LR_vector<number> curr_back = prev_back + dir*FENE_R0;
+				sticky->pos = curr_back - sticky->int_centers[DNANucleotide<number>::BACK];
+				//printf("%f\n", (sticky->pos-particles[p_ind-1]->pos).module());
 				p_ind++;
 			}
 		}
