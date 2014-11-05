@@ -186,7 +186,7 @@ public:
 		return LR_vector(x / V2.x, y / V2.y, z / V2.z);
 	}
 
-	inline double operator*(const LR_vector& V2) const {
+	inline number operator*(const LR_vector& V2) const {
 		return x * V2.x + y * V2.y + z * V2.z;
 	}
 

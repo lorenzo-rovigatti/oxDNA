@@ -23,7 +23,9 @@
  * As of now, only {@link BaseObservable observable} and {@link IBaseInteraction interaction}
  * plugins are supported. In order to write a plugin you should write a regular observable
  * or interaction class and add two simple functions that serve as entry points for the plugin
- * manager.
+ * manager. Note that the default names for the entry points are make_<precision> and
+ * make_observable_<precision> for observables and make_<precision> and make_interaction<precision>
+ * for the interactions, where <precision> should be either float or double.
  * As an example, we will assume that the new plugin is an observable named MyObservable. We write
  * this observable in two files, MyObservable.cpp and MyObservable.h. In order to provide the
  * required entry points we  add the following two lines at the end of the MyObservable.h file
@@ -56,6 +58,8 @@ extern "C" IBaseInteraction<double> *make_double() { return new MyInteraction<do
  *
  * @verbatim
 [plugin_search_path = <string> (a semicolon-separated list of directories where plugins are looked for in, in addition to the current directory.)]
+[plugin_observable_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing observables, followed by either float or double.)]
+[plugin_interaction_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing interactions, followed by either float or double.)]
 @endverbatim
  */
 class PluginManager {
@@ -65,10 +69,21 @@ protected:
 	bool _initialised;
 	std::stack<void *> _handles;
 
-	void *_get_handle(string &name);
+	std::vector<std::string> _obs_entry_points;
+	std::vector<std::string> _inter_entry_points;
+
+	void *_get_handle(std::string &name);
+	void *_get_entry_point(void *handle, std::vector<std::string> &entry_points, std::string suffix);
 
 private:
+	/**
+	 * @brief The default constructor is private because this is a singleton class.
+	 */
 	PluginManager();
+	/**
+	 * @brief The copy constructor is private because this is a singleton class.
+	 * @param
+	 */
 	PluginManager(PluginManager const &);
 public:
 	virtual ~PluginManager();

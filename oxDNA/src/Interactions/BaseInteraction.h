@@ -428,7 +428,6 @@ number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **partic
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
-		// we need the 0.5 because pair_interaction_bonded computes the energy between all bonded pairs if update_forces == false
 		energy += pair_interaction_bonded(p, P_VIRTUAL);
 		for(int c = 0; c < 27; c ++) {
 			int j = _cells_head[_cells_neigh[_cells_index[p->index]][c]];

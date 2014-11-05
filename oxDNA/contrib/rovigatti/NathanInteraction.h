@@ -46,7 +46,9 @@ protected:
 	inline number _patchy_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 public:
 	enum {
-		PATCHY,
+		PATCHY_PATCHY = 0,
+		PATCHY_POLYMER = 1,
+		POLYMER_POLYMER = 2
 	};
 
 	enum {
@@ -59,6 +61,8 @@ public:
 
 	virtual void get_settings(input_file &inp);
 	virtual void init();
+
+	virtual void generate_random_configuration (BaseParticle<number> **particles, int N, number box_side);
 
 	virtual void allocate_particles(BaseParticle<number> **particles, int N);
 	virtual int get_N_from_topology();
@@ -76,6 +80,7 @@ public:
 
 template<typename number>
 number NathanInteraction<number>::_patchy_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+	if(p->type != PATCHY_PARTICLE && q->type != PATCHY_PARTICLE) return 0.f;
 	number rnorm = r->norm();
 	if(rnorm > this->_sqr_rcut) return (number) 0.f;
 
@@ -153,22 +158,19 @@ public:
 template<typename number>
 class NathanPolymerParticle: public BaseParticle<number> {
 public:
-	NathanPolymerParticle<number> *n3, *n5;
-
-	NathanPolymerParticle() : BaseParticle<number>(), n3(P_VIRTUAL), n5(P_VIRTUAL) {};
+	NathanPolymerParticle() : BaseParticle<number>() {};
 	virtual ~NathanPolymerParticle() {};
 
 	virtual bool is_rigid_body() { return false; }
 	virtual bool is_bonded(BaseParticle<number> *q) {
 		if(q->type == NathanInteraction<number>::POLYMER) {
-			NathanPolymerParticle<number> *q_pol = (NathanPolymerParticle<number> *)q;
-			return (q_pol == n3 || q_pol == n5);
+			return (q == this->n3 || q == this->n5);
 		}
 		return false;
 	}
 };
 
-extern "C" NathanInteraction<float> *make_float() { return new NathanInteraction<float>(); }
-extern "C" NathanInteraction<double> *make_double() { return new NathanInteraction<double>(); }
+extern "C" NathanInteraction<float> *make_interaction_float() { return new NathanInteraction<float>(); }
+extern "C" NathanInteraction<double> *make_interaction_double() { return new NathanInteraction<double>(); }
 
 #endif /* NATHANINTERACTION_H_ */

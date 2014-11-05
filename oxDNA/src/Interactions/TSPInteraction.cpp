@@ -37,10 +37,6 @@ void TSPInteraction<number>::get_settings(input_file &inp) {
 		OX_LOG(Logger::LOG_INFO, "Invalid TSP_lambda value detected, setting it to 0");
 		_TSP_lambda = 0.;
 	}
-	if(_TSP_lambda > 1.) {
-		OX_LOG(Logger::LOG_INFO, "Invalid TSP_lambda value detected, setting it to 1");
-		_TSP_lambda = 1.;
-	}
 
 	getInputNumber(&inp, "TSP_rcut", &this->_rcut, 1);
 

@@ -9,7 +9,7 @@
 
 template<typename number>
 NathanInteraction<number>::NathanInteraction() {
-	this->_int_map[PATCHY] = &NathanInteraction<number>::_patchy_interaction;
+	this->_int_map[PATCHY_PATCHY] = &NathanInteraction<number>::_patchy_interaction;
 
 	_rep_E_cut = 0.;
 	_rep_power = 200;
@@ -20,7 +20,7 @@ NathanInteraction<number>::NathanInteraction() {
 	_N_chains = _N_patchy = _N_per_chain = _N_polymers = 0;
 
 	_rfene = 1.5;
-	_pol_n = 24;
+	_pol_n = 6;
 }
 
 template<typename number>
@@ -47,6 +47,16 @@ void NathanInteraction<number>::read_topology(int N, int *N_strands, BaseParticl
 	// since those are not linked to anything else
 	*N_strands = _N_chains + _N_patchy;
 	allocate_particles(particles, N);
+
+	// set up the polymers' topology
+	for(int i = _N_patchy; i < N; i++) {
+		NathanPolymerParticle<number> *p = static_cast<NathanPolymerParticle<number> *>(particles[i]);
+
+		int pol_idx = i - _N_patchy;
+		int rel_idx = pol_idx % _N_per_chain;
+		p->n3 = (rel_idx == 0) ? P_VIRTUAL : particles[i - 1];
+		p->n5 = (rel_idx == (_N_per_chain-1)) ? P_VIRTUAL : particles[i + 1];
+	}
 }
 
 template<typename number>
@@ -66,12 +76,8 @@ void NathanInteraction<number>::allocate_particles(BaseParticle<number> **partic
 		new_p->type = POLYMER;
 
 		int pol_idx = i - _N_patchy;
-		int rel_idx = pol_idx % _N_per_chain;
 		int chain_idx = pol_idx / _N_per_chain;
 		new_p->strand_id = _N_patchy + chain_idx;
-		new_p->n3 = (rel_idx == 0) ? P_VIRTUAL : new_p + 1;
-		new_p->n5 = (rel_idx == (_N_per_chain-1)) ? P_VIRTUAL : new_p - 1;
-
 		particles[i] = new_p;
 	}
 }
@@ -94,7 +100,7 @@ void NathanInteraction<number>::init() {
 	_sqr_pol_sigma = SQR(_pol_sigma);
 	_sqr_pol_patchy_sigma = SQR(_pol_patchy_sigma);
 
-	_rfene /= _pol_sigma;
+	_rfene *= _pol_sigma;
 	_sqr_rfene = SQR(_rfene);
 	_pol_rcut = pow(2., 1./_pol_n);
 	_sqr_pol_rcut = SQR(_pol_rcut);
@@ -115,29 +121,44 @@ void NathanInteraction<number>::init() {
 
 template<typename number>
 void NathanInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
+	for(int i = _N_patchy; i < N; i++) {
+		BaseParticle<number> *p = particles[i];
 
+		if(p->n3 != P_VIRTUAL) {
+			BaseParticle<number> *q = p->n3;
+			number r = (q->pos - p->pos).module();
+			if(r > _rfene) throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, q->index, r);
+		}
+
+		if(p->n5 != P_VIRTUAL) {
+			BaseParticle<number> *q = p->n5;
+			number r = (q->pos - p->pos).module();
+			if(r > _rfene) throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, q->index, r);
+		}
+	}
 }
 
 template<typename number>
 number NathanInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
+	else return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
 template<typename number>
 number NathanInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	number sqr_r = r->norm() / _sqr_pol_sigma;
+	number sqr_r = r->norm();
 
 	if(sqr_r > _sqr_rfene) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)\n", p->index, q->index, sqrt(sqr_r), sqrt(_sqr_rfene));
 		else return 1e10;
 	}
 
-	number energy = -15. * _sqr_rfene * log(1. - sqr_r/_sqr_rfene);
+	number energy = -15. * _sqr_rfene * log(1. - sqr_r/_sqr_rfene) / _sqr_pol_sigma;
 
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
-		number force_mod = -30. * _sqr_rfene / (_sqr_rfene - sqr_r) / _pol_sigma;
+		number force_mod = -30. * _sqr_rfene / (_sqr_rfene - sqr_r) / _sqr_pol_sigma;
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -148,22 +169,18 @@ number NathanInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<nu
 template<typename number>
 number NathanInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	int type = p->type + q->type;
-	assert(type != 2);
-	number sqr_sigma = (type == 0) ? _sqr_pol_sigma : _sqr_pol_patchy_sigma;
-	number sigma = (type == 0) ? _pol_sigma : _pol_patchy_sigma;
+	assert(type != PATCHY_PATCHY);
+	number sqr_sigma = (type == POLYMER_POLYMER) ? _sqr_pol_sigma : _sqr_pol_patchy_sigma;
 
-	number sqr_r = r->norm() / sqr_sigma;
-	// cut-off for the telechelic monomers
-	if(sqr_r > this->_sqr_rcut) return (number) 0.;
-	if(sqr_r*sqr_sigma < 0.5) return 10000000.;
-	if(sqr_r > _sqr_pol_rcut*sqr_sigma) return 0.;
+	number sqr_r = r->norm();
+	if(sqr_r > _sqr_pol_rcut*sqr_sigma) return (number) 0.;
 
-	number part = pow(1./sqr_r, _pol_n/2.);
+	number part = pow(sqr_sigma/sqr_r, _pol_n/2.);
 	number energy = 4. * (part * (part - 1.)) + 1.;
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector for its module
-		number force_mod = 4. * _pol_n * part * (2.*part - 1.) / (sqr_r*sigma);
+		number force_mod = 4. * _pol_n * part * (2.*part - 1.) / sqr_r;
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -180,10 +197,16 @@ number NathanInteraction<number>::pair_interaction_bonded(BaseParticle<number> *
 		q = p->n3;
 	}
 
+	LR_vector<number> computed_r;
+	if (r == NULL) {
+		computed_r = q->pos - p->pos;
+		r = &computed_r;
+	}
+
 	number energy = _fene(p, q, r, update_forces);
 	energy += _nonbonded(p, q, r, update_forces);
 
-	return (number) 0.f;
+	return (number) energy;
 }
 
 template<typename number>
@@ -194,7 +217,110 @@ number NathanInteraction<number>::pair_interaction_nonbonded(BaseParticle<number
 		r = &computed_r;
 	}
 
-	return _patchy_interaction(p, q, r, update_forces);
+	int type = p->type + q->type;
+	if(type == PATCHY_PATCHY) return _patchy_interaction(p, q, r, update_forces);
+	else return _nonbonded(p, q, r, update_forces);
+}
+
+template<typename number>
+void NathanInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
+	int N_per_side = ceil(pow(_N_per_chain-0.001, 1./3.));
+	vector<LR_vector<number> > lattice_poss;
+
+	number x_dir = 1.;
+	number y_dir = 1.;
+	LR_vector<number> com(0., 0., 0.);
+	LR_vector<number> to_insert(0., 0., 0.);
+	for(int nz = 0; nz < N_per_side; nz++) {
+		to_insert.z = nz*_pol_sigma;
+		for(int ny = 0; ny < N_per_side; ny++) {
+			for(int nx = 0; nx < N_per_side; nx++) {
+				if(lattice_poss.size() <= _N_per_chain) {
+					lattice_poss.push_back(to_insert);
+					printf("%f %f %f\n", to_insert.x, to_insert.y, to_insert.z);
+					com += to_insert;
+					to_insert.x += _pol_sigma*x_dir;
+				}
+			}
+			to_insert.x -= _pol_sigma*x_dir;
+			to_insert.y += _pol_sigma*y_dir;
+			x_dir *= -1.;
+		}
+		to_insert.y -= _pol_sigma*y_dir;
+		y_dir *= -1.;
+	}
+	com /= _N_per_chain;
+
+	// this is the diameter of the largest sphere that can accommodate a chain
+	number pol_sigma = 0.;
+	for(int i = 0; i < _N_per_chain; i++) {
+		lattice_poss[i] -= com;
+		number sigma = 2. * lattice_poss[i].module();
+		if(sigma > pol_sigma) pol_sigma = sigma;
+	}
+	pol_sigma += _pol_sigma;
+
+	int tot_N = _N_patchy + _N_chains;
+	// now we generate N positions on the lattice
+	number min_neigh_distance = (pol_sigma > 1.) ? pol_sigma : 1.;
+	number cell_side = min_neigh_distance * sqrt(2.);
+
+	// lattice vectors
+	LR_vector<number> a1(0., 0.5, 0.5);
+	LR_vector<number> a2(0.5, 0., 0.5);
+	LR_vector<number> a3(0.5, 0.5, 0.);
+	a1 *= cell_side;
+	a2 *= cell_side;
+	a3 *= cell_side;
+	vector<LR_vector<number> > fcc_points;
+	for(number nx = -tot_N; nx < tot_N; nx++) {
+		for(number ny = -tot_N; ny < tot_N; ny++) {
+			for(number nz = -tot_N; nz < tot_N; nz++) {
+				LR_vector<number> r = nx*a1 + ny*a2 + nz*a3;
+				// ugly way of doing it: we generate an unnecessary large number of lattice points and check whether they are inside the box or not
+				if((r.x > -0.00 && (r.x < box_side+0.00)) && (r.y > -0.00 && (r.y < box_side+0.00)) && (r.z > -0.00 && (r.z < box_side+0.00))) {
+					fcc_points.push_back(r);
+				}
+			}
+		}
+	}
+
+	OX_LOG(Logger::LOG_INFO, "Total N: %d, lattice sites: %d, cell side: %lf, minimum distance between neighbours: %f", tot_N, fcc_points.size(), cell_side, min_neigh_distance);
+	if(fcc_points.size() < tot_N) throw oxDNAException("Not enough FCC lattice points (%d instead of %d)", fcc_points.size(), tot_N);
+
+	for(int i = 0; i < _N_patchy; i++) {
+		BaseParticle<number> *p = particles[i];
+
+		// these 4 lines of code pick a random point from the fcc_points vector, copies it and then remove it
+		int r = drand48() * fcc_points.size();
+		p->pos = fcc_points[r];
+		std::swap(fcc_points[r], fcc_points.back());
+		fcc_points.pop_back();
+
+		// random orientation
+		p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
+		p->orientation.orthonormalize();
+		p->orientationT = p->orientation.get_transpose();
+		p->set_positions();
+	}
+
+	for(int i = 0; i < _N_chains; i++) {
+		int r = drand48() * fcc_points.size();
+		LR_vector<number> chain_com = fcc_points[r];
+		std::swap(fcc_points[r], fcc_points.back());
+		fcc_points.pop_back();
+		for(int j = 0; j < _N_per_chain; j++) {
+			int idx = _N_patchy + i*_N_per_chain + j;
+			BaseParticle<number> *p = particles[idx];
+			p->pos = chain_com + lattice_poss[j];
+
+			// random orientation
+			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
+			p->orientation.orthonormalize();
+			p->orientationT = p->orientation.get_transpose();
+			p->set_positions();
+		}
+	}
 }
 
 template class NathanInteraction<float>;

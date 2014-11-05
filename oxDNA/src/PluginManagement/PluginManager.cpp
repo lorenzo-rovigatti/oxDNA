@@ -14,6 +14,7 @@
 #include "../Utilities/oxDNAException.h"
 
 using std::string;
+using std::vector;
 
 PluginManager *PluginManager::_manager = NULL;
 
@@ -26,6 +27,13 @@ typedef IBaseInteraction<double>* make_double_inter();
 PluginManager::PluginManager() {
 	_path.push_back(string("."));
 	_initialised = false;
+
+	// these are the default entry point names
+	_obs_entry_points.push_back(string("make_"));
+	_obs_entry_points.push_back(string("make_observable_"));
+
+	_inter_entry_points.push_back(string("make_"));
+	_inter_entry_points.push_back(string("make_interaction_"));
 }
 
 PluginManager::~PluginManager() {
@@ -36,23 +44,34 @@ void PluginManager::init(input_file &sim_inp) {
 	_initialised = true;
 
 	// load the plugin path from the input file
-	char ppath[10000];
+	string ppath;
 	if(getInputString(&sim_inp, "plugin_search_path", ppath, 0) == KEY_FOUND) {
-		std::vector<string> paths = Utils::split(string(ppath), ':');
-		for(std::vector<string>::iterator it = paths.begin(); it < paths.end(); it++) add_to_path(*it);
+		vector<string> paths = Utils::split(ppath, ':');
+		for(vector<string>::iterator it = paths.begin(); it < paths.end(); it++) add_to_path(*it);
 	}
 
+	string entries;
+	// for observables
+	if(getInputString(&sim_inp, "plugin_observable_entry_points", entries, 0) == KEY_FOUND) {
+		vector<string> v_entries = Utils::split(entries, ':');
+		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _obs_entry_points.push_back(*it);
+	}
+	// for interactions
+	if(getInputString(&sim_inp, "plugin_interaction_entry_points", entries, 0) == KEY_FOUND) {
+		vector<string> v_entries = Utils::split(entries, ':');
+		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _inter_entry_points.push_back(*it);
+	}
 }
 
-void PluginManager::add_to_path(std::string s) {
+void PluginManager::add_to_path(string s) {
 	_path.push_back(s);
 }
 
-void *PluginManager::_get_handle(std::string &name) {
+void *PluginManager::_get_handle(string &name) {
 	if(!_initialised) throw oxDNAException("PluginManager not initialised, aborting");
 
 	void *handle = NULL;
-	for(std::vector<string>::iterator it = _path.begin(); it != _path.end() && handle == NULL; it++) {
+	for(vector<string>::iterator it = _path.begin(); it != _path.end() && handle == NULL; it++) {
 		string path = *it + "/" + name + ".so";
 		OX_DEBUG("Looking for plugin '%s' in '%s'", name.c_str(), it->c_str());
 		handle = dlopen(path.c_str(), RTLD_LAZY);
@@ -65,6 +84,20 @@ void *PluginManager::_get_handle(std::string &name) {
 	return handle;
 }
 
+void *PluginManager::_get_entry_point(void *handle, vector<string> &entry_points, string suffix) {
+	void *res = NULL;
+
+	bool found = false;
+	for(vector<string>::iterator it = entry_points.begin(); it != entry_points.end() && !found; it++) {
+		string to_try = *it + suffix;
+		res = dlsym(handle, to_try.c_str());
+		const char *dlsym_error = dlerror();
+		found = (!dlsym_error);
+	}
+
+	return res;
+}
+
 template<typename number>
 BaseObservable<number> *PluginManager::get_observable(string name) {
 	void *handle = _get_handle(name);
@@ -72,20 +105,24 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 	// we do this c-like because dynamic linking can be done only in c and thus
 	// we have no way of using templates
 	void *temp_obs;
+	bool found = false;
 	// choose between float and double
-	const char *dlsym_error;
 	if(sizeof(number) == 4) {
-		make_float_obs *make_obs = (make_float_obs *) dlsym(handle, "make_float");
-		dlsym_error = dlerror();
-		if(!dlsym_error) temp_obs = (void *)make_obs();
+		make_float_obs *make_obs = (make_float_obs *) _get_entry_point(handle, _obs_entry_points, string("float"));
+		if(make_obs != NULL) {
+			temp_obs = (void *)make_obs();
+			found = true;
+		}
 	}
 	else {
-		make_double_obs *make_obs = (make_double_obs *) dlsym(handle, "make_double");
-		dlsym_error = dlerror();
-		if(!dlsym_error) temp_obs = (void *)make_obs();
+		make_double_obs *make_obs = (make_double_obs *) _get_entry_point(handle, _obs_entry_points, string("double"));
+		if(make_obs != NULL) {
+			temp_obs = (void *)make_obs();
+			found = true;
+		}
 	}
 
-	if(dlsym_error) {
+	if(!found) {
 		OX_LOG(Logger::LOG_WARNING, "Cannot load symbol from plugin observable library '%s'", name.c_str());
 		return NULL;
 	}
@@ -95,26 +132,30 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 }
 
 template<typename number>
-IBaseInteraction<number> *PluginManager::get_interaction(std::string name) {
+IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 	void *handle = _get_handle(name);
 
 	// we do this c-like because dynamic linking can be done only in c and thus
 	// we have no way of using templates
 	void *temp_inter;
+	bool found = false;
 	// choose between float and double
-	const char *dlsym_error;
 	if(sizeof(number) == 4) {
-		make_float_inter *make_inter = (make_float_inter *) dlsym(handle, "make_float");
-		dlsym_error = dlerror();
-		if(!dlsym_error) temp_inter = (void *)make_inter();
+		make_float_inter *make_inter = (make_float_inter *) _get_entry_point(handle, _inter_entry_points, string("float"));
+		if(make_inter != NULL) {
+			temp_inter = (void *)make_inter();
+			found = true;
+		}
 	}
 	else {
-		make_double_inter *make_inter = (make_double_inter *) dlsym(handle, "make_double");
-		dlsym_error = dlerror();
-		if(!dlsym_error) temp_inter = (void *)make_inter();
+		make_double_inter *make_inter = (make_double_inter *) _get_entry_point(handle, _inter_entry_points, string("double"));
+		if(make_inter != NULL) {
+			temp_inter = (void *)make_inter();
+			found = true;
+		}
 	}
 
-	if(dlsym_error) {
+	if(!found) {
 		OX_LOG(Logger::LOG_WARNING, "Cannot load symbol from plugin interaction library '%s'", name.c_str());
 		return NULL;
 	}
