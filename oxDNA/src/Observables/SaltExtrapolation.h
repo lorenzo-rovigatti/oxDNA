@@ -23,6 +23,7 @@ salts = <float>, <float>, ... (list of salt concentration to extrapolate to)
 temps = <T>, <T>, ... (list of temperatures to extrapolate to, separated with commas. Temperatures can be specified in reduced units, Kelvin, Celsius as 0.10105, 30C, 30c, 30 c, 303.15 k, 303.15K, 303.15k)
 [op_file = <string>] (order parameter file. If not found, it will use the one from the input file)
 [weights_file = <string>] (weights file. If not found, the one from the input file will be used.)
+@endverbatim
  */
 template<typename number>
 class SaltExtrapolation: public BaseObservable<number> {
