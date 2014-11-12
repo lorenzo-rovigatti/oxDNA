@@ -473,23 +473,26 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 }
 
 template<typename number>
+void SimBackend<number>::_print_ready_observables(llint curr_step) {
+	typename vector<ObservableOutput<number> *>::iterator it;
+	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
+		if((*it)->is_ready(curr_step)) (*it)->print_output(curr_step);
+	}
+}
+
+template<typename number>
 void SimBackend<number>::print_observables(llint curr_step) {
 	bool someone_ready = false;
 	typename vector<ObservableOutput<number> *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		if((*it)->is_ready(curr_step)) someone_ready = true;
 	}
-	if(someone_ready) {
-		typename vector<ObservableOutput<number> *>::iterator it;
-		for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-			if((*it)->is_ready(curr_step)) (*it)->print_output(curr_step);
-		}
-	}
+	if(someone_ready) _print_ready_observables(curr_step);
 	_backend_info = std::string ("");
 }
 
 template<typename number>
-void SimBackend<number>::_fix_diffusion() {
+void SimBackend<number>::fix_diffusion() {
 	if(!_enable_fix_diffusion) return;
 
 	LR_vector<number> *scdm = new LR_vector<number>[this->_N_strands];

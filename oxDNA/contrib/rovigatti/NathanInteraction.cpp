@@ -237,7 +237,6 @@ void NathanInteraction<number>::generate_random_configuration(BaseParticle<numbe
 			for(int nx = 0; nx < N_per_side; nx++) {
 				if(lattice_poss.size() <= _N_per_chain) {
 					lattice_poss.push_back(to_insert);
-					printf("%f %f %f\n", to_insert.x, to_insert.y, to_insert.z);
 					com += to_insert;
 					to_insert.x += _pol_sigma*x_dir;
 				}

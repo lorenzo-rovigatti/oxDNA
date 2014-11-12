@@ -76,7 +76,7 @@ public:
 	 */
 	virtual void print_observables(llint curr_step) = 0;
 
-	virtual void _fix_diffusion () = 0;
+	virtual void fix_diffusion() = 0;
 };
 
 /**
@@ -194,7 +194,7 @@ protected:
 
 	void _read_external_forces ();
 
-	virtual void _fix_diffusion();
+	virtual void fix_diffusion();
 
 	/**
 	 * Reads from _conf_input three numbers in ascii or binary format, depending on the
@@ -213,6 +213,13 @@ protected:
 	bool _read_next_configuration(bool binary=false);
 
 	int _get_N_from_conf(ifstream &conf_input);
+
+	/**
+	 * Prints all the observables that are ready, i.e. whose is_ready(curr_step) method returns true.
+	 *
+	 * @param curr_step
+	 */
+	virtual void _print_ready_observables(llint curr_step);
 
 public:
 	SimBackend();

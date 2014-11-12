@@ -284,6 +284,7 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 				p->type = p->btype = type;
 				p->strand_id = ns;
 				p->n3 = p->n5 = P_VIRTUAL;
+				p->set_arm(na);
 				// if it's the first monomer of the arm then add also the anchor
 				// as a bonded neighbour
 				if(nm == 0) {

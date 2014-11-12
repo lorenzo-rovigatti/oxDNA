@@ -1972,7 +1972,7 @@ void VMMC_CPUBackend<number>::_delete_cells() {
 }
 
 template<typename number>
-void VMMC_CPUBackend<number>::_fix_diffusion () {
+void VMMC_CPUBackend<number>::fix_diffusion() {
 	
 	// fix diffusion can sometimes change the value of the order paramer by changing the
 	// orientations/coordinates particles that were barely above/below a cutoff.
@@ -1986,7 +1986,7 @@ void VMMC_CPUBackend<number>::_fix_diffusion () {
 	memcpy(state, _op.get_all_states(), _op.get_all_parameters_count() * sizeof(int));
 	_op.reset();
 
-	SimBackend<number>::_fix_diffusion ();
+	SimBackend<number>::fix_diffusion();
 
 	_op.reset();
 	for (int i = 0; i < this->_N; i++) {
@@ -2008,7 +2008,7 @@ void VMMC_CPUBackend<number>::_fix_diffusion () {
 	for (int i = 0; i < _op.get_all_parameters_count(); i++) check += abs(new_state[i] - state[i]);
 
 	if (check != 0) {
-		OX_LOG (Logger::LOG_DEBUG, "(VMMC_CPUBackend) _fix_diffusion() changed the value of the order parameter. Restoring simulation status before _fix_diffusion()");
+		OX_LOG (Logger::LOG_DEBUG, "(VMMC_CPUBackend) fix_diffusion() changed the value of the order parameter. Restoring simulation status before fix_diffusion()");
 		for (int i = 0; i < this->_N; i ++) restore_particle (this->_particles[i]);
 	}
 }
@@ -2017,7 +2017,7 @@ template<typename number>
 void VMMC_CPUBackend<number>::print_observables(llint curr_step) {
 	this->_backend_info += get_op_state_str();
 	MCBackend<number>::print_observables(curr_step);
-	if ((curr_step % (10 * this->_N)) == 0) this->_fix_diffusion();
+	if ((curr_step % (10 * this->_N)) == 0) this->fix_diffusion();
 }
 
 template<>

@@ -9,7 +9,7 @@
 
 template<typename number>
 TSPParticle<number>::TSPParticle() : BaseParticle<number>(), _is_anchor(false)  {
-
+	_arm = -1;
 }
 
 template<typename number>

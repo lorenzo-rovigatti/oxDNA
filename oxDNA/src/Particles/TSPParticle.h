@@ -18,17 +18,20 @@ template<typename number>
 class TSPParticle: public BaseParticle<number> {
 protected:
 	bool _is_anchor;
+	int _arm;
 
 public:
 	TSPParticle();
 	virtual ~TSPParticle();
 
 	virtual bool is_rigid_body() { return false; }
-
 	virtual bool is_bonded(BaseParticle<number> *q);
+	virtual bool is_anchor() { return _is_anchor; }
+	virtual int arm() { return _arm; }
+
 	virtual void add_bonded_neigh(TSPParticle<number> *nn);
 	virtual void flag_as_anchor() { _is_anchor = true; }
-	virtual bool is_anchor() { return _is_anchor; }
+	virtual void set_arm(int na) { _arm = na; }
 
 	std::set<TSPParticle<number> *> bonded_neighs;
 };
