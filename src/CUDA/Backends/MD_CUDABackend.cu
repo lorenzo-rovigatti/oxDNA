@@ -18,34 +18,46 @@ MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABas
 	this->_is_CUDA_sim = true;
 	_use_edge = false;
 	_any_rigid_body = false;
+
+	_d_vels = _d_Ls = _d_forces = _d_torques = NULL;
+	_h_vels = _h_Ls = _h_forces = _h_torques = NULL;
+	_h_gpu_index = _h_cpu_index = NULL;
+
+	_cuda_thermostat = NULL;
 }
 
 template<typename number, typename number4>
 MD_CUDABackend<number, number4>::~MD_CUDABackend() {
-	CUDA_SAFE_CALL( cudaFree(_d_vels) );
-	CUDA_SAFE_CALL( cudaFree(_d_Ls) );
-	CUDA_SAFE_CALL( cudaFree(_d_forces) );
-	CUDA_SAFE_CALL( cudaFree(_d_torques) );
+	if(_d_vels != NULL) {
+		CUDA_SAFE_CALL( cudaFree(_d_vels) );
+		CUDA_SAFE_CALL( cudaFree(_d_Ls) );
+		CUDA_SAFE_CALL( cudaFree(_d_forces) );
+		CUDA_SAFE_CALL( cudaFree(_d_torques) );
+	}
 
 	if(this->_sort_every > 0) {
 		CUDA_SAFE_CALL( cudaFree(_d_buff_vels) );
 		CUDA_SAFE_CALL( cudaFree(_d_buff_Ls) );
 	}
 
-	delete[] _h_gpu_index;
-	delete[] _h_cpu_index;
+	if(_h_gpu_index != NULL) {
+		delete[] _h_gpu_index;
+		delete[] _h_cpu_index;
+	}
 
 	if(this->_external_forces) {
 		delete[] _h_ext_forces;
 		CUDA_SAFE_CALL( cudaFree(_d_ext_forces) );
 	}
 
-	delete[] _h_vels;
-	delete[] _h_Ls;
-	delete[] _h_forces;
-	delete[] _h_torques;
+	if(_h_vels != NULL) {
+		delete[] _h_vels;
+		delete[] _h_Ls;
+		delete[] _h_forces;
+		delete[] _h_torques;
+	}
 
-	delete _cuda_thermostat;
+	if(_cuda_thermostat != NULL) delete _cuda_thermostat;
 }
 
 template<typename number, typename number4>
@@ -449,9 +461,16 @@ void MD_CUDABackend<number, number4>::print_conf(llint curr_step, bool reduced, 
 }
 
 template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_fix_diffusion() {
+void MD_CUDABackend<number, number4>::_print_ready_observables(llint curr_step) {
         _gpu_to_host_particles();
-        MDBackend<number>::_fix_diffusion();
+        MDBackend<number>::_print_ready_observables(curr_step);
+        _host_particles_to_gpu();
+}
+
+template<typename number, typename number4>
+void MD_CUDABackend<number, number4>::fix_diffusion() {
+        _gpu_to_host_particles();
+        MDBackend<number>::fix_diffusion();
         _host_particles_to_gpu();
 }
 

@@ -64,7 +64,9 @@ protected:
 	virtual void _thermalize(llint curr_step);
 
 	virtual void _init_CUDA_MD_symbols();
-	virtual void _fix_diffusion();
+
+	virtual void _print_ready_observables(llint curr_step);
+	virtual void fix_diffusion();
 
 public:
 	MD_CUDABackend();

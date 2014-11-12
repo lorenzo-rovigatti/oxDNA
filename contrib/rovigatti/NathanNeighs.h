@@ -42,7 +42,7 @@ public:
 	void init(ConfigInfo<number> &config_info);
 };
 
-extern "C" BaseObservable<float> *make_nathan_float() { return new NathanNeighs<float>(); }
-extern "C" BaseObservable<double> *make_nathan_double() { return new NathanNeighs<double>(); }
+extern "C" BaseObservable<float> *make_float() { return new NathanNeighs<float>(); }
+extern "C" BaseObservable<double> *make_double() { return new NathanNeighs<double>(); }
 
 #endif /* PATCHYTOMGL_H_ */
