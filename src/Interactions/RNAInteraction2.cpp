@@ -72,14 +72,15 @@ void RNA2Interaction<number>::get_settings(input_file &inp) {
 	if (getInputFloat(&inp, "dh_strength", &prefactor, 0) == KEY_FOUND) {
 				_debye_huckel_prefactor = (float) prefactor;
 			} else {
-				_debye_huckel_prefactor = 0.510473f;
+				_debye_huckel_prefactor =  0.0858; // 0.510473f;  Q = 0.0858
 	}
 	// read the cutoff distance (todo - set the default value to something 
 	// which makes sense, maybe that depends on lambdafactor and salt concentration
+	number lambda = _debye_huckel_lambdafactor * sqrt(this->_T / 0.1f) / sqrt(_salt_concentration);
 	if(getInputFloat(&inp, "debye_huckel_rhigh", &rh, 0) == KEY_FOUND) {
 	                        _debye_huckel_RHIGH = (float) rh; 
 	                } else {
-	                        _debye_huckel_RHIGH = 3.0f; 
+	                        _debye_huckel_RHIGH = 3.0 * lambda;
 	}
 	// read the mismatch_repulsion flag (not implemented yet)
 	if(getInputBoolAsInt(&inp, "mismatch_repulsion", &mismatches, 0) == KEY_FOUND) {
