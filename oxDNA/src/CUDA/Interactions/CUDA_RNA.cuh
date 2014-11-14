@@ -32,6 +32,17 @@ __constant__ float MD_F5_PHI_B[4];
 __constant__ float MD_F5_PHI_XC[4];
 __constant__ float MD_F5_PHI_XS[4];
 
+
+
+__constant__ float MD_dh_RC[1];
+__constant__ float MD_dh_RHIGH[1];
+__constant__ float MD_dh_prefactor[1];
+__constant__ float MD_dh_B[1];
+__constant__ float MD_dh_minus_kappa[1];
+__constant__ bool MD_dh_half_charged_ends[1];
+
+
+
 //__constant__ struct Model RNA_MODEL;
 
 
@@ -789,7 +800,7 @@ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4 &n5z,numbe
 	//printf("Goodbye from bonded part function \n");
 }
 
-template <typename number, typename number4> __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool average) {
+template <typename number, typename number4> __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool average, bool use_debye_huckel, LR_bonds pbonds, LR_bonds qbonds) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 	int pbtype = get_particle_btype<number, number4>(ppos);
@@ -1182,6 +1193,32 @@ template <typename number, typename number4> __device__ void _particle_particle_
 		}
 	}
 
+	//DEBYE-HUCKEL
+	if (use_debye_huckel){
+				number rbackmod = _module<number, number4>(rbackbone);
+				if (rbackmod < MD_dh_RC[0]){
+					number4 rbackdir = rbackbone / rbackmod;
+					if(rbackmod < MD_dh_RHIGH[0]){
+						Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
+					}
+					else {
+						Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
+					}
+
+					// check for half-charge strand ends
+					if (MD_dh_half_charged_ends[0] && (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID)) {
+						Ftmp *= 0.5f;
+					}
+					if (MD_dh_half_charged_ends[0] && (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID)) {
+						Ftmp *= 0.5f;
+					}
+
+					Ttmp -= _cross<number, number4>(ppos_back, Ftmp);
+					F -= Ftmp;
+				}
+	}
+
+
 	
 	T += Ttmp;
 
@@ -1194,7 +1231,7 @@ template <typename number, typename number4> __device__ void _particle_particle_
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool average) {
+__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool average, bool use_debye_huckel) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -1231,8 +1268,9 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number
 			const number4 qpos = poss[j];
 			number4 b1, b2, b3;
 			get_vectors_from_quat<number,number4>(orientations[j], b1, b2, b3);
+			LR_bonds qbonds = bonds[j];
 
-			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, average);
+			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, average,use_debye_huckel, bs, qbonds);
 
 
 		}
@@ -1248,7 +1286,7 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number
 }
 
 template <typename number, typename number4>
-__global__ void rna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, bool average) {
+__global__ void rna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges,LR_bonds *bonds, bool average,bool use_debye_huckel) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -1266,7 +1304,9 @@ __global__ void rna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 	number4 b1, b2, b3;
 	get_vectors_from_quat<number,number4>(orientations[b.to], b1, b2, b3);
 
-	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average);
+	LR_bonds pbonds = bonds[b.from];
+	LR_bonds qbonds = bonds[b.to];
+	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average, use_debye_huckel, pbonds, qbonds);
 
 	dF.w *= (number) 0.5f;
 	dT.w *= (number) 0.5f;
@@ -1349,7 +1389,7 @@ __global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool average) {
+__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool average, bool use_debye_huckel) {
 	if(IND >= MD_N[0]) return;
 
 	//number4 F = make_number4<number, number4>(0, 0, 0, 0);
@@ -1391,8 +1431,9 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		const number4 qpos = poss[k_index];
 		number4 b1, b2, b3;
 		get_vectors_from_quat<number,number4>(orientations[k_index], b1, b2, b3);
-
-		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, average);
+		LR_bonds pbonds = bonds[IND];
+		LR_bonds qbonds = bonds[k_index];
+		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, average,use_debye_huckel, pbonds, qbonds);
 	}
 
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
