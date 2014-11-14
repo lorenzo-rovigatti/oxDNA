@@ -59,24 +59,20 @@ OrderParameterValues<number>::get_settings(input_file &my_inp, input_file &sim_i
 
 }
 
-
 template<typename number>
 std::string OrderParameterValues<number>::get_output_string(llint curr_step) {
 
 	_op.reset();
 	_op.fill_distance_parameters(this->_config_info.particles,*this->_config_info.box_side);
+	
+	std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > neighbour_pairs = this->_config_info.interaction->get_potential_interactions(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+	
+	for (int i = 0; i < (int)neighbour_pairs.size(); i++) {
+		BaseParticle<number> * p = neighbour_pairs[i].first;
+		BaseParticle<number> * q = neighbour_pairs[i].second;
 
-	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		for(int j = i; j < *this->_config_info.N; j++)
-		{
-			BaseParticle<number> *q = this->_config_info.particles[j];
-			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, q);
-			if(hb_energy < HB_CUTOFF)
-			{
-				_op.add_hb(p->index,q->index);
-			}
-		}
+		number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, q);
+		if(hb_energy < HB_CUTOFF) _op.add_hb(p->index,q->index);
 	}
 
 	std::stringstream outstr;
