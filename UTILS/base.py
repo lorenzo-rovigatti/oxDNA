@@ -415,12 +415,12 @@ class Nucleotide(Printable):
         anis[2,2] = (I_l[0,0]+I_l[1,1]-I_l[2,2])/2.0
 
         # print the backbone site
-        res = "ATOM  %5d %4s %3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f\n" % (index_jump * self.index + 1,"A",strtype,'A',self.index,' ',s1[0],s1[1],s1[2],1,7.895)
-        res += "ANISOU%5d %4s %3s %c%4d%c %7i%7i%7i%7i%7i%7i\n" % (index_jump * self.index + 1,"A",strtype,'A',self.index,' ',1000,1000,1000,0,0,0)
+        res = "ATOM  %5d %4s %3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f\n" % (index_jump * self.index + 1,"A",strtype,'A',self.index % 10000,' ',s1[0],s1[1],s1[2],1,7.895)
+        res += "ANISOU%5d %4s %3s %c%4d%c %7i%7i%7i%7i%7i%7i\n" % (index_jump * self.index + 1,"A",strtype,'A',self.index % 10000,' ',1000,1000,1000,0,0,0)
         # print the centre of mass site (if grooving is on)
         if os.environ.get(GROOVE_ENV_VAR) == '1' or RNA:
-            res += "ATOM  %5d %4s %3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f\n" % (index_jump * self.index + 2,"B",strtype,'B',self.index,' ',s2[0],s2[1],s2[2],1,7.895)
-            res += "ANISOU%5d %4s %3s %c%4d%c %7i%7i%7i%7i%7i%7i\n" % (index_jump * self.index + 2,"B",strtype,'B',self.index,' ',250,250,250,0,0,0)
+            res += "ATOM  %5d %4s %3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f\n" % (index_jump * self.index + 2,"B",strtype,'B',self.index % 10000,' ',s2[0],s2[1],s2[2],1,7.895)
+            res += "ANISOU%5d %4s %3s %c%4d%c %7i%7i%7i%7i%7i%7i\n" % (index_jump * self.index + 2,"B",strtype,'B',self.index % 10000,' ',250,250,250,0,0,0)
 
         if self._base == 0:
             atomtype = 'O'
@@ -435,8 +435,8 @@ class Nucleotide(Printable):
             atomtype = 'H'
 
         # print the base site
-        res += "ATOM  %5d %4s %3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f\n" % (index_jump * self.index + 3, atomtype, strtype, 'C', self.index,' ',s3[0],s3[1],s3[2],1,6.316)
-        res += "ANISOU%5d %4s %3s %c%4d%c %7i%7i%7i%7i%7i%7i\n" % (index_jump * self.index + 3, atomtype, strtype, 'C', self.index, ' ' , anis[0,0]*1000, anis[1,1]*1000, anis[2,2]*1000, anis[0,1]*1000, anis[0,2]*1000, anis[1,2]*1000)
+        res += "ATOM  %5d %4s %3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f\n" % (index_jump * self.index + 3, atomtype, strtype, 'C', self.index % 10000,' ',s3[0],s3[1],s3[2],1,6.316)
+        res += "ANISOU%5d %4s %3s %c%4d%c %7i%7i%7i%7i%7i%7i\n" % (index_jump * self.index + 3, atomtype, strtype, 'C', self.index % 10000, ' ' , anis[0,0]*1000, anis[1,1]*1000, anis[2,2]*1000, anis[0,1]*1000, anis[0,2]*1000, anis[1,2]*1000)
 
         return res
 
@@ -1356,6 +1356,9 @@ class System(object):
 
 
         self._prepare(visibility)
+
+        if self._N > 9999:
+            Logger.log("More than 9999 nucleotides in system; recycling nucleotide indices in pdb file", Logger.WARNING)
 
         if append:
             flag = 'a'
