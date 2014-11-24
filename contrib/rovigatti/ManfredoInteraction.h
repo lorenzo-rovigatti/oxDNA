@@ -99,6 +99,16 @@ protected:
 	 * @return
 	 */
 	number _query_mesh(number x, Mesh<number> &m);
+	/**
+	 * @brief Query the derivative of the given mesh at the value x.
+	 *
+	 * This method is extended to support linear extrapolation for x-values which are out of range.
+	 *
+	 * @param x
+	 * @param m
+	 * @return
+	 */
+	number _query_meshD(number x, Mesh<number> &m);
 public:
 	enum {
 		CENTRE_ARM_INTRA,

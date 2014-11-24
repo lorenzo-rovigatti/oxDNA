@@ -43,7 +43,7 @@ template<typename number>
 void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 	MCBackend<number>::get_settings(inp);
 
-	_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str);
+	_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists);
 
 	_MC_Info.lists = this->_lists;
 

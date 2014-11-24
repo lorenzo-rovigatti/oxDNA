@@ -37,7 +37,7 @@ public:
 	 * @param Nn
 	 * @param info
 	 */
-	ConfigInfo(BaseParticle<number> **p, number *b, IBaseInteraction<number> *i, int *Nn, std::string *info) : particles(p), box_side(b), interaction(i), N(Nn), backend_info(info) {}
+	ConfigInfo(BaseParticle<number> **p, number *b, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l) : particles(p), box_side(b), interaction(i), N(Nn), backend_info(info), lists(l) {}
 	virtual ~ConfigInfo() {}
 
 	///Pointer to the array which stores all the particles' information.
@@ -55,8 +55,8 @@ public:
 	/// Used by BackendInfo to print backend-related information such as Monte Carlo acceptance ratios.
 	std::string *backend_info;
 	
-	/// pointer to lists
-	BaseList<number> * lists;
+	/// Pointer to lists
+	BaseList<number> *lists;
 };
 
 /**

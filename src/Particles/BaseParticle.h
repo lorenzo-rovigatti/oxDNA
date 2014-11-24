@@ -124,13 +124,13 @@ public:
 	 * @param shift reference vector to put back in the box (i.e., strand c.o.m.)
 	 * @param box
 	 */
-	inline void shift(LR_vector<number> &shift, number box) {
-		_pos_shift[0] += (int) (floor (shift.x / box + 0.01));
-		_pos_shift[1] += (int) (floor (shift.y / box + 0.01));
-		_pos_shift[2] += (int) (floor (shift.z / box + 0.01));
-		pos.x -= box * floor(shift.x / box + 0.01) ;
-		pos.y -= box * floor(shift.y / box + 0.01) ;
-		pos.z -= box * floor(shift.z / box + 0.01) ;
+	inline void shift(LR_vector<number> &my_shift, number box) {
+		_pos_shift[0] += (int) (floor (my_shift.x / box + 0.01));
+		_pos_shift[1] += (int) (floor (my_shift.y / box + 0.01));
+		_pos_shift[2] += (int) (floor (my_shift.z / box + 0.01));
+		pos.x -= box * floor(my_shift.x / box + 0.01) ;
+		pos.y -= box * floor(my_shift.y / box + 0.01) ;
+		pos.z -= box * floor(my_shift.z / box + 0.01) ;
 	}
 	
 	inline void set_pos_shift (int x, int y, int z) {
