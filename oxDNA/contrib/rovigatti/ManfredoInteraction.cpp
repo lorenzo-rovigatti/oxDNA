@@ -138,11 +138,6 @@ void ManfredoInteraction<number>::init() {
 
 	for(int i = 0; i < 3; i++) _build_lt(_intra_mesh[i], _intra_points[i], _intra_filename[i]);
 	for(int i = 0; i < 3; i++) _build_lt(_inter_mesh[i], _inter_points[i], _inter_filename[i]);
-
-//	for(double x = 0; x < 25; x += 0.1) {
-//		printf("%lf %lf\n", x, _query_mesh(x, _intra_mesh[ARM_ARM_NEAR]));
-//	}
-//	exit(1);
 }
 
 template<typename number>
@@ -251,9 +246,16 @@ int ManfredoInteraction<number>::_get_inter_type(BaseParticle<number> *p, BasePa
 // by using the nearest f'(x) (given by B[0] or B[N-1]) as the slope for the linear interpolation.
 template<typename number>
 inline number ManfredoInteraction<number>::_query_mesh(number x, Mesh<number> &m) {
-	if (x <= m.xlow) return m.A[0] + m.B[0]*(x - m.xlow);
-	if (x >= m.xupp) return m.A[m.N-1] + m.B[m.N-1]*(x - m.xupp);
+	if(x <= m.xlow) return m.A[0] + m.B[0]*(x - m.xlow);
+	if(x >= m.xupp) return m.A[m.N-1] + m.B[m.N-1]*(x - m.xupp);
 	return BaseInteraction<number, ManfredoInteraction<number> >::_query_mesh(x, m);
+}
+
+template<typename number>
+inline number ManfredoInteraction<number>::_query_meshD(number x, Mesh<number> &m) {
+	if(x <= m.xlow) return m.B[0];
+	if(x >= m.xupp) return m.B[m.N-1];
+	return BaseInteraction<number, ManfredoInteraction<number> >::_query_meshD(x, m);
 }
 
 template<typename number>
@@ -269,7 +271,6 @@ number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number>
 		// if the particle is a sticky end nucleotide then we have to invoke the DNA_inter method to handle all
 		// its bonded interactions
 		if(_get_p_type(p) == STICKY) return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
-		//if(_get_p_type(p) == ARM) energy += _DNA_inter.pair_interaction_bonded(p, p->n5, r, update_forces);
 
 		CustomParticle<number> *cp = (CustomParticle<number> *) p;
 		for(typename set<CustomParticle<number> *>::iterator it = cp->bonded_neighs.begin(); it != cp->bonded_neighs.end(); it++) {
@@ -389,7 +390,6 @@ void ManfredoInteraction<number>::generate_random_configuration(BaseParticle<num
 				LR_vector<number> prev_back = particles[p_ind-1]->pos + particles[p_ind-1]->int_centers[DNANucleotide<number>::BACK];
 				LR_vector<number> curr_back = prev_back + dir*FENE_R0;
 				sticky->pos = curr_back - sticky->int_centers[DNANucleotide<number>::BACK];
-				//printf("%f\n", (sticky->pos-particles[p_ind-1]->pos).module());
 				p_ind++;
 			}
 		}

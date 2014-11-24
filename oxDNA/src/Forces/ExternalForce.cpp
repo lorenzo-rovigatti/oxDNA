@@ -52,11 +52,11 @@ template class ConstantRateForce<float>;
 
 // constant force between two particles, to make them come together
 template<typename number>
-ConstantTrap<number>::ConstantTrap(number stiff, number r0, BaseParticle<number> *p, number * box_side_ptr, bool use_PBC) : ExternalForce<number>(0, 0, LR_vector<number> (0, 0, 0)) {
+ConstantTrap<number>::ConstantTrap(number stiff, number r0, BaseParticle<number> *p, number *box_ptr, bool use_PBC) : ExternalForce<number>(0, 0, LR_vector<number> (0, 0, 0)) {
 	this->_stiff = stiff; // not really a stiffnets, units are energy / distance, not energy / (distance^2)
 	this->_r0 = r0;
 	this->_p_ptr = p;
-	this->box_side_ptr = box_side_ptr;
+	this->box_side_ptr = box_ptr;
 	this->PBC = use_PBC;
 }
 
@@ -84,12 +84,12 @@ template class ConstantTrap<float>;
 
 // Mutual trap: to make things come together...
 template<typename number>
-MutualTrap<number>::MutualTrap(number stiff, number r0, BaseParticle<number> * p, number * box_side_ptr, bool use_PBC) : ExternalForce<number>(0, 0, LR_vector<number> (0, 0, 0)) {
+MutualTrap<number>::MutualTrap(number stiff, number r0, BaseParticle<number> * p, number * box_ptr, bool use_PBC) : ExternalForce<number>(0, 0, LR_vector<number> (0, 0, 0)) {
 	this->_stiff = stiff;
 	this->_r0 = r0;
 	this->_p_ptr = p;
 	//this->box_side = box_side;
-	this->box_side_ptr = box_side_ptr;
+	this->box_side_ptr = box_ptr;
 	this->PBC = use_PBC;
 }
 

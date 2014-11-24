@@ -8,7 +8,7 @@ fi
 
 f=$1
 
-compilation_flags="-Wall -fpic -c $f.cpp -I../../src/Observables -I../../src/Interactions"
+compilation_flags="-Wall -Wshadow -fpic -c $f.cpp -I../../src/Observables -I../../src/Interactions"
 linking_flags="-shared -o $f.so $f.o"
 if [ $# -eq 1 ]
 then

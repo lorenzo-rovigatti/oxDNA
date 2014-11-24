@@ -41,7 +41,7 @@ IF(G)
 	MESSAGE(STATUS "Compiling in Release+Debug symbols mode")
 ENDIF(G)
 
-ADD_DEFINITIONS(-Wall)
+ADD_DEFINITIONS(-Wall -Wshadow)
 
 IF(NOT CMAKE_BUILD_TYPE MATCHES Debug)
 	IF(INTEL)

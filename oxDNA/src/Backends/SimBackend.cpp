@@ -298,7 +298,7 @@ void SimBackend<number>::init(char conf_filename[256]) {
 
 	// initializes the observable output machinery. This part has to follow
 	// read_topology() since _particles has to be initialized
-	ConfigInfo<number> conf_info(_particles, &_box_side, _interaction, &_N, &_backend_info);
+	ConfigInfo<number> conf_info(_particles, &_box_side, _interaction, &_N, &_backend_info, _lists);
 	typename vector<ObservableOutput<number> *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) (*it)->init(conf_info);
 
