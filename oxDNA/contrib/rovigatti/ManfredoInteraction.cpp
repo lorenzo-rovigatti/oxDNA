@@ -283,7 +283,10 @@ number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number>
 
 		int type = _get_inter_type(p, q);
 
-		if(type == STICKY_STICKY || type == ARM_STICKY) throw oxDNAException("STICKY_STICKY and ARM_STICKY should always be handled in the q == P_VIRTUAL portion\n");
+		if(type == STICKY_STICKY || type == ARM_STICKY) {
+			if(update_forces) throw oxDNAException("STICKY_STICKY and ARM_STICKY should always be handled in the q == P_VIRTUAL portion\n");
+			return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
+		}
 		LR_vector<number> computed_r(0, 0, 0);
 		if(r == NULL) {
 			if (q != P_VIRTUAL && p != P_VIRTUAL) {
@@ -295,6 +298,7 @@ number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number>
 
 		number dist = r->module();
 		energy = this->_query_mesh(dist, _intra_mesh[type]);
+		//printf("%d %f\n", type, energy);
 
 		if(update_forces) {
 			number force_mod = -this->_query_meshD(dist, _intra_mesh[type]);
@@ -325,13 +329,11 @@ number ManfredoInteraction<number>::pair_interaction_nonbonded(BaseParticle<numb
 
 	// if there are no sticky ends involved and if the two particles belong to two different tetramers
 	if(!_any(p_type, q_type, STICKY) && p->strand_id != q->strand_id) {
-		int type = _get_inter_type(p, q);
-
 		number dist = r->module();
 		energy = this->_query_mesh(dist, _inter_mesh[type]);
 
 		if(update_forces) {
-			number force_mod = -this->_query_meshD(dist, _intra_mesh[type]);
+			number force_mod = -this->_query_meshD(dist, _inter_mesh[type]);
 			LR_vector<number> force = *r * (force_mod/dist);
 			p->force -= force;
 			q->force += force;
@@ -376,15 +378,29 @@ void ManfredoInteraction<number>::generate_random_configuration(BaseParticle<num
 		for(int na = 0; na < 4; na++) {
 			BaseParticle<number> *arm = particles[p_ind];
 			arm->pos = centre->pos + arm_poss[na];
-			arm->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
-			arm->set_positions();
+			//arm->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+			//arm->set_positions();
 
 			p_ind++;
 			LR_vector<number> dir = arm_poss[na];
 			dir.normalize();
+
+			LR_matrix<number> orientation(dir, Utils::get_random_vector<number>(), Utils::get_random_vector<number>());
+			Utils::orthonormalize_matrix<number>(orientation);
+			if(orientation.determinant() < 0.) orientation.v1 = -orientation.v1;
+			LR_vector<number> tmp = orientation.v1;
+			orientation.v1 = orientation.v3;
+			orientation.v3 = orientation.v2;
+			orientation.v2 = tmp;
+			orientation.transpone();
+
+			arm->orientation = orientation;
+			arm->set_positions();
+
 			for(int nsticky = 0; nsticky < 6; nsticky++) {
 				BaseParticle<number> *sticky = particles[p_ind];
-				sticky->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+				//sticky->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+				sticky->orientation = orientation;
 				sticky->set_positions();
 
 				LR_vector<number> prev_back = particles[p_ind-1]->pos + particles[p_ind-1]->int_centers[DNANucleotide<number>::BACK];

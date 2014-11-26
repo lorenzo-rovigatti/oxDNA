@@ -485,7 +485,7 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 		number nx = u2 * p->orientation.v1;
 		number ny = u2 * p->orientation.v2;
 
-		number cosphi, sinphi, func, df, lambda;
+		number cosphi, sinphi, func, df;
 		number num, den;
 
 		// first, we check wether we have the same sign:
@@ -662,7 +662,7 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 		number nx = u1 * q->orientation.v1;
 		number ny = u1 * q->orientation.v2;
 
-		number cosphi, sinphi, func, df, lambda;
+		number cosphi, sinphi, func, df;
 		number num, den;
 
 		// first, we check wether we have the same sign:

@@ -58,14 +58,56 @@ template<typename number>
 string TSPAnalysis<number>::get_output_string(llint curr_step) {
 	stringstream ss;
 
+	number L = *(this->_config_info.box_side);
 	number avg_patches = 0.;
+	number avg_distance = 0.;
+	number avg_patch_size = 0.;
+	number avg_angle = 0.;
 
 	for(int i = 0; i < _N_stars;i++) {
 		_stars[i].update();
-		avg_patches += _stars[i].patches.size();
+		int n_patches = _stars[i].patches.size();
+		avg_patches += n_patches;
+		LR_vector<number> star_pos = _stars[i].pos();
+		number avg_star_distance = 0.;
+		number avg_star_patch_size = 0.;
+		number avg_star_angle = 0.;
+
+		if(n_patches > 0) {
+			typename map<int, Patch<number> >::iterator it;
+			for(it = _stars[i].patches.begin(); it != _stars[i].patches.end(); it++) {
+				Patch<number> &patch = it->second;
+				LR_vector<number> rel_pos_1 = star_pos.minimum_image(patch.pos(), L);
+				number dist_1 = sqrt(SQR(rel_pos_1));
+				avg_star_distance += dist_1;
+				avg_star_patch_size += patch.n_arms();
+
+				rel_pos_1 /= dist_1;
+				// angle
+				typename map<int, Patch<number> >::iterator jt;
+				for(jt = _stars[i].patches.begin(); jt != _stars[i].patches.end(); jt++) {
+					if(it != jt) {
+						Patch<number> &patch_2 = jt->second;
+						LR_vector<number> rel_pos_2 = star_pos.minimum_image(patch_2.pos(), L);
+						rel_pos_2 /= sqrt(SQR(rel_pos_2));
+
+						printf("%f\n", rel_pos_1*rel_pos_2);
+						avg_star_angle += acos(rel_pos_1*rel_pos_2);
+					}
+				}
+			}
+			avg_distance += avg_star_distance / (number) n_patches;
+			avg_patch_size += avg_star_patch_size / (number) n_patches;
+			if(n_patches > 1) avg_angle += avg_star_angle / (number) (n_patches*(n_patches - 1));
+		}
 	}
+
 	avg_patches /= _N_stars;
-	ss << avg_patches;
+	avg_distance /= _N_stars;
+	avg_patch_size /= _N_stars;
+	avg_angle /= _N_stars;
+
+	ss << avg_patches << " " << avg_patch_size << " " << avg_distance << " " << avg_angle;
 
 	return ss.str();
 }
@@ -115,7 +157,8 @@ void TSP<number>::update() {
 			vector<BaseParticle<number> *> neighs = _config_info.lists->get_neigh_list(p);
 			for(unsigned int n = 0; n < neighs.size(); n++) {
 				TSPParticle<number> *q = (TSPParticle<number> *) neighs[n];
-				if(q->type == P_B && !p->is_bonded(q) && (p->arm() != q->arm())) {
+				// particles should be attractive, non bonded, on the same star but not on the same arm
+				if(q->type == P_B && !p->is_bonded(q) && (p->strand_id == q->strand_id) && (p->arm() != q->arm())) {
 					number energy = _config_info.interaction->pair_interaction_nonbonded(p, q, NULL, true);
 					if(energy < 0.) bond_map[p->arm()][q->arm()] = bond_map[q->arm()][p->arm()] = 1;
 				}
@@ -137,7 +180,7 @@ void TSP<number>::update() {
 	}
 
 	for(int i = 0; i < na; i++) {
-		patches[i].done();
+		patches[i].done(*_config_info.box_side);
 		if(patches[i].empty()) patches.erase(i);
 	}
 }
@@ -162,15 +205,14 @@ bool Patch<number>::empty() {
 }
 
 template<typename number>
-void Patch<number>::done() {
+void Patch<number>::done(number box_side) {
 	if(empty()) return;
 
-	_arms.clear();
 	_pos = LR_vector<number>(0., 0., 0.);
 
 	typename vector<TSPParticle<number> *>::iterator it;
 	for(it = _particles.begin(); it != _particles.end(); it++) {
-		_pos += (*it)->pos;
+		_pos += (*it)->get_abs_pos(box_side);
 	}
 
 	_pos /= _particles.size();
