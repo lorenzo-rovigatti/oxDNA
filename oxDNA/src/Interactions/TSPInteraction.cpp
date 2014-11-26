@@ -384,7 +384,10 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 	for(int i = 0; i < N; i++) this->_cells_next[i] = P_INVALID;
 	this->_cells_head[0] = P_INVALID;
 
+	int straight_till = 20;
+
 	int i = 0;
+	number max_dist = 0.;
 	for(int ns = 0; ns < _N_stars; ns++) {
 		BaseParticle<number> *anchor = particles[i];
 		anchor->index = i;
@@ -398,7 +401,7 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 			number arm_dist = 1.;
 			// if we simulate TSPs then the distance between an anchor and the first monomer of each arm
 			// should be more than one sigma to avoid overlaps
-			if(!_only_chains) arm_dist += 3.*drand48();
+			if(!_only_chains) arm_dist += 1.5;
 			// if we simulate chains then we want monomers to be more than one sigma apart
 			else dir *= 1.01;
 
@@ -407,7 +410,14 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 				BaseParticle<number> *p = particles[i];
 				p->pos = last_pos;
 				if(nm == 0) p->pos += dir*arm_dist;
-				else p->pos += dir;
+				else {
+					if(nm < straight_till) p->pos += dir;
+					else if(!_only_chains){
+						number angle = drand48() * (2*M_PI-0.2) + 0.2;
+						LR_matrix<number> R = Utils::get_random_rotation_matrix_from_angle<number>(angle);
+						p->pos += R*dir;
+					}
+				}
 
 				// if there are only chains then we want to generate non-straight chains
 				// and hence we extract a new random direction
@@ -422,18 +432,21 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 					}
 				}
 				// if we simulate chains, on the other hand, we always check for overlaps
-				if(_only_chains && _does_overlap(particles, p, box_side)) {
+				if((_only_chains || nm >= straight_till) && _does_overlap(particles, p, box_side)) {
 					nm--;
 					continue;
 				}
 
 				_insert_in_cell_set_orientation(p, box_side);
 				last_pos = p->pos;
+				number dist = sqrt(p->pos.sqr_distance(anchor_pos));
+				if(dist > max_dist) max_dist = dist;
 
 				i++;
 			}
 		}
 	}
+	OX_LOG(Logger::LOG_INFO, "Max distance: %f", max_dist);
 
 	this->_rcut = old_rcut;
 	this->_sqr_rcut = SQR(this->_rcut);
