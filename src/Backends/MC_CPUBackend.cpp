@@ -187,8 +187,8 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			this->_interaction->set_box_side(this->_box_side);
 
 			number dExt = (number) 0.;
-			for (int i = 0; i < this->_N; i ++) {
-				BaseParticle<number> *p = this->_particles[i];
+			for (int k = 0; k < this->_N; k ++) {
+				BaseParticle<number> *p = this->_particles[k];
 				dExt = -p->ext_potential;
 				p->pos *= this->_box_side / old_box_side;
 				p->set_ext_potential(curr_step, this->_box_side);
@@ -216,8 +216,8 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			}
 			else {
 				// volume move rejected
-				for (int i = 0; i < this->_N; i ++) {
-					BaseParticle<number> *p = this->_particles[i];
+				for (int k = 0; k < this->_N; k ++) {
+					BaseParticle<number> *p = this->_particles[k];
 					p->pos /= this->_box_side / old_box_side;
 					p->set_ext_potential(curr_step, this->_box_side);
 				}

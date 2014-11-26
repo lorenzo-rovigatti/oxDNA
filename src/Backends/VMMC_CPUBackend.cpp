@@ -242,7 +242,6 @@ void VMMC_CPUBackend<number>::get_settings(input_file & inp) {
                        }
 			
 			// wether to use unsafe weights
-			int tmpi;
 			if (getInputBoolAsInt (&inp, "safe_weights", &tmpi, 0) == KEY_FOUND) {
 				_safe_weights = (tmpi > 0);
 				if (! _safe_weights) {
@@ -2017,7 +2016,7 @@ template<typename number>
 void VMMC_CPUBackend<number>::print_observables(llint curr_step) {
 	this->_backend_info += get_op_state_str();
 	MCBackend<number>::print_observables(curr_step);
-	if ((curr_step % (10 * this->_N)) == 0) this->fix_diffusion();
+	//if ((curr_step % (10 * this->_N)) == 0) this->fix_diffusion();
 }
 
 template<>
