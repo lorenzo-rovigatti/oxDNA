@@ -27,8 +27,10 @@ public:
 	virtual ~Patch() {};
 
 	void add_particle(TSPParticle<number> *p);
+	LR_vector<number> &pos() { return _pos; }
+	int n_arms() { return _arms.size(); }
 	bool empty();
-	void done();
+	void done(number box_side);
 };
 
 template<typename number>
@@ -48,6 +50,8 @@ public:
 
 	void set_anchor(TSPParticle<number> *p) { _anchor = p; }
 	void set_config_info(ConfigInfo<number> ci) { _config_info = ci; }
+
+	LR_vector<number> pos() { return _anchor->get_abs_pos(*(_config_info.box_side)); };
 
 	int n_arms() { return (int)arms.size(); }
 	void set_n_arms(int na);

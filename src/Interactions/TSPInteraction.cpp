@@ -361,11 +361,11 @@ bool TSPInteraction<number>::_does_overlap(BaseParticle<number> **particles, Bas
 				loop_ind[2] = (ind[2] + l + this->_cells_N_side) % this->_cells_N_side;
 				int loop_index = (loop_ind[2] * this->_cells_N_side + loop_ind[1]) * this->_cells_N_side + loop_ind[0];
 
-				int j = this->_cells_head[loop_index];
-				while (j != P_INVALID) {
-					BaseParticle<number> *q = particles[j];
+				int c_idx = this->_cells_head[loop_index];
+				while (c_idx != P_INVALID) {
+					BaseParticle<number> *q = particles[c_idx];
 					if(p->pos.minimum_image(q->pos, box_side).norm() < SQR(this->_sqr_rcut)) return true;
-					j = this->_cells_next[q->index];
+					c_idx = this->_cells_next[q->index];
 				}
 			}
 		}
@@ -386,12 +386,12 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 
 	int i = 0;
 	for(int ns = 0; ns < _N_stars; ns++) {
-		BaseParticle<number> *p = particles[i];
-		p->index = i;
-		if(!_insert_anchor(particles, p, box_side)) throw oxDNAException("Can't insert particle number %d", i);
+		BaseParticle<number> *anchor = particles[i];
+		anchor->index = i;
+		if(!_insert_anchor(particles, anchor, box_side)) throw oxDNAException("Can't insert particle number %d", i);
 		i++;
 
-		LR_vector<number> anchor_pos = p->pos;
+		LR_vector<number> anchor_pos = anchor->pos;
 
 		for(int na = 0; na < _N_arms[ns]; na++) {
 			LR_vector<number> dir = Utils::get_random_vector<number>();
