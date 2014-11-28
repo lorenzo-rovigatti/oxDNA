@@ -89,6 +89,7 @@ SET(interactions_SOURCES
 	Interactions/BoxInteraction.cpp
 	Interactions/PatchyInteraction.cpp
 	Interactions/RNAInteraction.cpp
+	Interactions/RNAInteraction_relax.cpp
 	Interactions/DNAInteraction.cpp
 	Interactions/RNAInteraction2.cpp
 	Interactions/DNA2Interaction.cpp
