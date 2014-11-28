@@ -27,6 +27,7 @@
 #include "CustomInteraction.h"
 #include "DNA2Interaction.h"
 #include "RNAInteraction2.h"
+#include "RNAInteraction_relax.h"
 
 
 InteractionFactory::InteractionFactory() {
@@ -75,6 +76,7 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 	else if(!strncmp(inter_type, "custom", 512)) return new CustomInteraction<number>();
 	else if(!strncmp(inter_type, "DNA2", 512)) return new DNA2Interaction<number>();
 	else if(!strncmp(inter_type, "RNA2", 512)) return new RNA2Interaction<number>();
+	else if(!strncmp(inter_type, "RNA_relax", 512)) return new RNAInteraction_relax<number>();
 	else {
 		IBaseInteraction<number> *res = PluginManager::instance()->get_interaction<number>(inter_type);
 		if(res == NULL) throw oxDNAException ("Interaction '%s' not found. Aborting", inter_type);
