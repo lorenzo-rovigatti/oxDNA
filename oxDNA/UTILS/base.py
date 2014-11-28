@@ -429,7 +429,7 @@ class Nucleotide(Printable):
         elif self._base == 2:
             atomtype = 'K'
         elif self._base == 3:
-            atomtype = 'P'
+            atomtype = 'N'
         else:
             print >> sys.stderr, "Should not happen..."
             atomtype = 'H'
@@ -1425,7 +1425,7 @@ class System(object):
                 commands.append ("col yellow #0:%s@K" % (strtypes[i]))
                 commands.append ("col cornflower blue #0:%s@P" % (strtypes[i]))
             else:
-                commands.append ("col deep sky blue #0:%s@P" % (strtypes[i]))
+                commands.append ("col deep sky blue #0:%s@N" % (strtypes[i]))
                 commands.append ("col deep sky blue #0:%s@O" % (strtypes[i]))
                 commands.append ("col deep sky blue #0:%s@S" % (strtypes[i]))
                 commands.append ("col deep sky blue #0:%s@K" % (strtypes[i]))
