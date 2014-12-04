@@ -55,6 +55,8 @@ SimBackend<number>::~SimBackend() {
 	}
 	if(_interaction != NULL) delete _interaction;
 
+	ForceFactory<number>::instance()->clear();
+
 	typename vector<ObservableOutput<number> *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
 
@@ -239,7 +241,8 @@ void SimBackend<number>::_read_external_forces() {
 		input_file input;
 		loadInput(&input, temp);
 
-		ForceFactory::add_force<number>(input, _particles, _N, _is_CUDA_sim, &_box_side);
+		//ForceFactory::add_force<number>(input, _particles, _N, _is_CUDA_sim, &_box_side);
+		ForceFactory<number>::instance()->add_force(input, _particles, _N, _is_CUDA_sim, &_box_side);
 
 		cleanInputFile (&input);
 		fclose (temp);

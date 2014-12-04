@@ -51,11 +51,11 @@ void BaseParticle<number>::copy_from(const BaseParticle<number> &p) {
 template<typename number>
 BaseParticle<number>::~BaseParticle() {
 	if(int_centers != NULL) delete[] int_centers;
-	for(int i = 0; i < N_ext_forces; i++) delete ext_forces[i];
+	//for(int i = 0; i < N_ext_forces; i++) delete ext_forces[i]; // now handled by force facttory
 }
 
 template<typename number>
-bool BaseParticle<number>::add_ext_force(ExternalForce<number> *f) {
+bool BaseParticle<number>::add_ext_force(BaseForce<number> *f) {
 	if(N_ext_forces == MAX_EXT_FORCES) return false;
 
 	ext_forces[N_ext_forces] = f;

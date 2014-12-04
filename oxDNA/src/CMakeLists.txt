@@ -105,10 +105,21 @@ SET(move_SOURCES
 	Backends/MCMoves/MCRot.cpp
 )
 
-SET(common_SOURCES
-	Forces/ExternalForce.cpp
+SET(forces_SOURCES
 	Forces/COMForce.cpp
+	Forces/ConstantRateForce.cpp
+	Forces/ConstantRateTorque.cpp
+	Forces/ConstantTrap.cpp
+	Forces/MovingTrap.cpp
+	Forces/LowdimMovingTrap.cpp
+	Forces/MutualTrap.cpp
+	Forces/RepulsionPlane.cpp
+	Forces/RepulsionPlaneMoving.cpp
+	Forces/RepulsiveSphere.cpp
 	Forces/ForceFactory.cpp
+)
+
+SET(common_SOURCES
 	Particles/RNANucleotide.cpp
 	Particles/BaseParticle.cpp
 	Particles/DNANucleotide.cpp
@@ -126,6 +137,7 @@ SET(common_SOURCES
 	Utilities/timing/timing.c
 	Utilities/time_scales/time_scales.c
 	PluginManagement/PluginManager.cpp
+	${forces_SOURCES}
 	${observables_SOURCES}
 	${lists_SOURCES}
 	${backends_SOURCES}

@@ -11,7 +11,7 @@
 #include <set>
 #include <string>
 
-#include "ExternalForce.h"
+#include "BaseForce.h"
 
 /**
  * @brief A force acting on the centre of mass of an ensemble of particles.
@@ -34,7 +34,7 @@ ref_list = <string> (comma-separated list containing the ids of all the particle
 @endverbatim
  */
 template<typename number>
-class COMForce : public ExternalForce<number> {
+class COMForce : public BaseForce<number> {
 protected:
 	number _r0;
 	llint _last_step;

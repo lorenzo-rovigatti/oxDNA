@@ -37,7 +37,7 @@ std::string ForceEnergy<number>::get_output_string(llint curr_step) {
 		else {
 			LR_vector<number> abs_pos = p->get_abs_pos(*this->_config_info.box_side);
 			for(int j = 0; j < p->N_ext_forces; j++) {
-				ExternalForce<number> *f = p->ext_forces[j];
+				BaseForce<number> *f = p->ext_forces[j];
 				if(f->get_group_name() == _group_name) U += f->potential(curr_step, abs_pos);
 			}
 		}
