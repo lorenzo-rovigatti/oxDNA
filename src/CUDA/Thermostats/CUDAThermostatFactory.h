@@ -26,6 +26,7 @@ public:
 	 *
 	 * @param inp input file object reference. The settings of the
 	 * thermostat will be taken from it. It usually is an input_file object created from an input file
+	 * @param box_side
 	 *
 	 * @return a pointer to a CUDA thermostat Object, which must be of a class derived
 	 * from BaseThermostat

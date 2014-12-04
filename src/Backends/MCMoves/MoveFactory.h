@@ -27,7 +27,10 @@ public:
 	/**
 	 * @brief Builds the interaction instance.
 	 *
-	 * @param inp
+	 * @param inp input file
+	 * @param sim_inp input file of the simulation
+	 * @param Info pointer to a ConfingInfo object, which is the one that the move is going to use do do its magic
+	 *
 	 * @return a pointer to the newly built interaction
 	 */
 	template <typename number>

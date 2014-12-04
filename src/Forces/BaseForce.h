@@ -13,7 +13,7 @@
 #include "../Utilities/oxDNAException.h"
 
 /**
- * @brief Base class for external forces. All external forces should inherit from here.
+ * @brief Base class for external forces. All external forces inherit from here.
  *
  * Note: This class contains public members with names starting with underscores.
  * We have to change scope policy due to the fact that GPU classes
@@ -82,7 +82,7 @@ public:
 	virtual LR_vector<number> value(llint step, LR_vector<number> &pos) = 0;
 	
 	/**
-	 * @brief returns value of the potential associated to force (a number)
+	 * @brief returns value of the potential associated to the force (a number)
 	 *
 	 * @param step useful for forces that depend on time
 	 * @param pos position of the particle

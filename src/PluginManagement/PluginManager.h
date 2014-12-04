@@ -23,9 +23,9 @@
  * As of now, only {@link BaseObservable observable} and {@link IBaseInteraction interaction}
  * plugins are supported. In order to write a plugin you should write a regular observable
  * or interaction class and add two simple functions that serve as entry points for the plugin
- * manager. Note that the default names for the entry points are make_<precision> and
- * make_observable_<precision> for observables and make_<precision> and make_interaction<precision>
- * for the interactions, where <precision> should be either float or double.
+ * manager. Note that the default names for the entry points are make_\<precision\> and
+ * make_observable_\<precision\> for observables and make_\<precision\> and make_interaction\<precision\>
+ * for the interactions, where \<precision\> should be either float or double.
  * As an example, we will assume that the new plugin is an observable named MyObservable. We write
  * this observable in two files, MyObservable.cpp and MyObservable.h. In order to provide the
  * required entry points we  add the following two lines at the end of the MyObservable.h file

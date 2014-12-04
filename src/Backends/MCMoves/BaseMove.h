@@ -1,5 +1,5 @@
 /**
- * @file    BaseMoves.h
+ * @file    BaseMove.h
  * @date    30/apr/2014
  * @author  flavio
  *

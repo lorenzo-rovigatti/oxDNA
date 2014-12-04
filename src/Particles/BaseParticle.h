@@ -120,8 +120,9 @@ public:
 	}
 
 	/**
-	 * @brief Shifts particle's position and stores internally the shift. Used in the fix_diffusion procedure
-	 * @param shift reference vector to put back in the box (i.e., strand c.o.m.)
+	 * @brief Shifts the particle's position and stores internally the shift. Used in the fix_diffusion procedure
+	 *
+	 * @param my_shift reference vector to put back in the box (i.e., strand c.o.m.)
 	 * @param box
 	 */
 	inline void shift(LR_vector<number> &my_shift, number box) {
