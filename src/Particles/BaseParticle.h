@@ -16,7 +16,7 @@
 #include <stdio.h>
 
 #include "../defs.h"
-#include "../Forces/ExternalForce.h"
+#include "../Forces/BaseForce.h"
 
 /**
  * @brief Base particle class. All particles must inherit from this class.
@@ -33,7 +33,7 @@ protected:
 
 public:
 	int N_ext_forces;
-	ExternalForce<number> *ext_forces[MAX_EXT_FORCES];
+	BaseForce<number> *ext_forces[MAX_EXT_FORCES];
 	int next_particle;
 	int strand_id;
 	int N_int_centers;
@@ -68,7 +68,7 @@ public:
 	 * @param f
 	 * @return true if the force was added, false otherwise
 	 */
-	bool add_ext_force(ExternalForce<number> *f);
+	bool add_ext_force(BaseForce<number> *f);
 	void set_initial_forces(llint step, number box) {
 		LR_vector<number> abs_pos = get_abs_pos(box);
 		this->force = LR_vector<number>(0, 0, 0);
@@ -83,7 +83,7 @@ public:
 	 * @param f
 	 * @return true if the external potential was added, false otherwise
 	 */
-	bool add_ext_potential (ExternalForce<number> *f);
+	bool add_ext_potential (BaseForce<number> *f);
 
 	/**
 	 * @brief Add an external potential.
