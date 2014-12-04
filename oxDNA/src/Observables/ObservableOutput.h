@@ -58,7 +58,8 @@ protected:
 public:
 	/**
 	 * @brief Constructor. The two arguments are mandatory (i.e. there are no other constructors in this class)
-	 * @param obs_string a string containing all the key=values lines related to the object and to its associated observables
+	 *
+	 * @param stream_string a string containing all the key=values lines related to the object and to its associated observables
 	 * @param sim_inp simulation input file
 	 */
 	ObservableOutput(std::string &stream_string, input_file &sim_inp);

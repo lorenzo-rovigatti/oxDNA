@@ -10,15 +10,33 @@
 
 #include "BaseForce.h"
 
-/// pos0 * (x,y,z) + position = 0 is the definition of the plane.
-/// The pos0 vector is pointing to the halfplane where the
-/// repulsion is not acting!
+/**
+ * @brief External force field that confines particles into a sphere.
+ *
+ * example section in the external forces file:
+@vebatim
+\n
+{\n
+  particle = -1    # acts on all particles\n
+  type = sphere \n
+  r0 = 7.          # radius is 7 simulation unit lengths\n
+  stiff = 50.      # quite stiff. Good for MC, not for MD\n
+  rate = 0.        # constant radius\n
+}\n\n
+@endverbatim
+*/
 template<typename number>
 class RepulsiveSphere : public BaseForce<number> {
 private:
 	int _particle;
+
+	/// center of the sphere
 	LR_vector<number> _center;
+
+	/// initial radius of the sphere and rate of growth (linear in timesteps/MC steps, not reduced time units)
 	number _r0, _rate;
+
+	/// pointer to the box side
 	number * _box_side_ptr;
 
 public:

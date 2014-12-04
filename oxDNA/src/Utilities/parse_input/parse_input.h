@@ -94,7 +94,8 @@ void addCommandLineArguments(input_file *inp, int argc, char *argv[]);
 /**
  * @brief Parse a line of the input file
  * This function allocates memory for the key and the value.
- * @param inp_file
+ * @param it iterator begin position
+ * @param end iterator end position
  * @param key
  * @param value
  * @return INP_EOF if EOF, NOTHING_READ if the line is malformed, empty or commented and KEY_READ otherwise.
@@ -116,10 +117,10 @@ int getInputChar(input_file *inp, const char *skey, char *dest, int mandatory);
 /**
  * @brief find all keys that begin with a substring
  *
- * @param input file
- * @param substring. If empty string, the function will return ALL the keys in the input file.
- * @param pointer to a vector of strings to be filled
- * @param whether at least one of these strings should be mandatory
+ * @param inp input file
+ * @param begins_with substring. If empty string, the function will return ALL the keys in the input file.
+ * @param dest pointer to a vector of strings to be filled
+ * @param mandatory whether at least one of these strings should be mandatory
  * @return the number of keys matching the string.
  */
 int getInputKeys (input_file *inp, std::string begins_with, std::vector<std::string> * dest, int mandatory);
