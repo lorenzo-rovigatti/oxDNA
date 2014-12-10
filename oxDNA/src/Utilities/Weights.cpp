@@ -99,8 +99,8 @@ void Weights::init (const char * filename, OrderParameters * op, bool safe, doub
 			index += tmp[i] * pindex;
 		}
 
-		assert (index < _dim);
-		_w[index] = tmpf;
+		if (index < _dim) _w[index] = tmpf;
+		else OX_LOG (Logger::LOG_WARNING, "(Weights.cpp) Trying to assign weight to non-existent index the order parameter. Weight file too long/inconsistent?");
 
 		lineno ++;
 	}
