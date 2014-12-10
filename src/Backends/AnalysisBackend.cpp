@@ -11,16 +11,21 @@
 #include "../Interactions/InteractionFactory.h"
 #include "../Observables/ObservableOutput.h"
 #include "../Lists/ListFactory.h"
+#include "../PluginManagement/PluginManager.h"
 
 AnalysisBackend::AnalysisBackend() : SimBackend<double>(), _done(false), _n_conf(0) {
 	_enable_fix_diffusion = 0;
 }
 
 AnalysisBackend::~AnalysisBackend() {
-
+	PluginManager::clear();
 }
 
 void AnalysisBackend::get_settings(input_file &inp) {
+	// initialise the plugin manager with the input file
+	PluginManager *pm = PluginManager::instance();
+	pm->init(inp);
+
 	_interaction = InteractionFactory::make_interaction<double>(inp);
 	_interaction->get_settings(inp);
 

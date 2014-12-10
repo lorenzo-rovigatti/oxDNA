@@ -13,6 +13,17 @@
 #include <thrust/sort.h>
 #include <typeinfo>
 
+#include "../../Forces/COMForce.h"
+#include "../../Forces/ConstantRateForce.h"
+#include "../../Forces/ConstantRateTorque.h"
+#include "../../Forces/ConstantTrap.h"
+#include "../../Forces/LowdimMovingTrap.h"
+#include "../../Forces/MovingTrap.h"
+#include "../../Forces/MutualTrap.h"
+#include "../../Forces/RepulsionPlane.h"
+#include "../../Forces/RepulsionPlaneMoving.h"
+#include "../../Forces/RepulsiveSphere.h"
+
 template<typename number, typename number4>
 MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABaseBackend<number, number4>(), _max_ext_forces(0) {
 	this->_is_CUDA_sim = true;
@@ -351,12 +362,12 @@ void MD_CUDABackend<number, number4>::init(char conf_filename[256]){
 
 		for(int i = 0; i < this->_N*MAX_EXT_FORCES; i++) _h_ext_forces[i].type = -1;
 
-		ConstantRateForce<number> const_force(0, 0, LR_vector<number>(0, 0, 0));
-		MutualTrap<number> mutual_trap(0, 0, this->_particles[0], &this->_box_side, true);
-		MovingTrap<number> moving_trap(0, LR_vector<number>(0, 0, 0), 0, LR_vector<number> (0, 0, 0));
-		LowdimMovingTrap<number> lowdim_moving_trap(0, LR_vector<number>(0, 0, 0), 0, LR_vector<number>(0, 0, 0), true, true, true);
-		RepulsionPlane<number> repulsion_plane(0, 0, LR_vector<number>(0, 0, 0));
-		RepulsionPlaneMoving<number> repulsion_plane_moving(0, this->_particles[0], LR_vector<number>(0, 0, 0), &this->_box_side);
+		ConstantRateForce<number> const_force;
+		MutualTrap<number> mutual_trap;
+		MovingTrap<number> moving_trap;
+		LowdimMovingTrap<number> lowdim_moving_trap;
+		RepulsionPlane<number> repulsion_plane;
+		RepulsionPlaneMoving<number> repulsion_plane_moving;
 
 		for(int i = 0; i < this->_N; i++) {
 			BaseParticle<number> *p = this->_particles[i];
