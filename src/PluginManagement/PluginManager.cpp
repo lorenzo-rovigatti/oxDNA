@@ -171,6 +171,7 @@ void PluginManager::clear() {
 			_manager->_handles.pop();
 		}
 		delete _manager;
+		_manager = NULL;
 	}
 }
 
