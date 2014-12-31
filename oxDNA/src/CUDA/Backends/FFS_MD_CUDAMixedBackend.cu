@@ -217,7 +217,11 @@ void FFS_MD_CUDAMixedBackend::sim_step(llint curr_step){
 	if (_check_stop()) {
 		SimManager::stop = true;
 		OX_LOG(Logger::LOG_INFO,
-				"Reached stop conditions, stopping in step %d", curr_step);
+				"Reached stop conditions, stopping in step %lld", curr_step);
+		char tmp[1024];
+		sprintf_names_and_values(tmp);
+		OX_LOG(Logger::LOG_INFO,
+				"FFS final values: %s", tmp);
 	}
 }
 
@@ -964,8 +968,8 @@ char * FFS_MD_CUDAMixedBackend::get_op_state_str(void) {
 	_op.get_dist_pairs_count(h_dist_region_lens);
 	int * h_hb_region_rows = _get_2D_rows(_n_hb_regions, h_hb_region_lens);
 	int * h_dist_region_rows = _get_2D_rows(_n_dist_regions, h_dist_region_lens);
+	aux = (char *) _state_str;
 	for (int i = 0; i < _n_hb_regions; i++) {
-		aux = (char *) _state_str;
 		if (_op.get_hb_cutoff(i)!=64) {
 			int tot_hb = 0;
 			for (int j=0 ; j < h_hb_region_lens[i] ; j++){
@@ -988,10 +992,58 @@ char * FFS_MD_CUDAMixedBackend::get_op_state_str(void) {
 			sprintf(aux, "%2f ", min_dist);
 			aux = (char *) _state_str + strlen(_state_str);
 		}
+
+	free(h_hb_region_lens);
+	free(h_dist_region_lens);
+	free(h_hb_region_rows);
+	free(h_dist_region_rows);
 	return _state_str;
 }
 
+//Used to print the order parameters, to match CPU behaviour
+void FFS_MD_CUDAMixedBackend::sprintf_names_and_values(char *str) { 
+	// copy order parameter states from GPU
+	CUDA_SAFE_CALL(cudaMemcpy(_h_hb_energies, _d_hb_energies, _n_hb_pairs * sizeof(float), cudaMemcpyDeviceToHost) );
+	CUDA_SAFE_CALL(cudaMemcpy(_h_op_dists, _d_op_dists, _n_dist_pairs * sizeof(float), cudaMemcpyDeviceToHost) );
+	CUDA_SAFE_CALL(cudaMemcpy(_h_nearhb_states, _d_nearhb_states, _n_hb_pairs * sizeof(bool), cudaMemcpyDeviceToHost) );
+	int * h_hb_region_lens = (int *)malloc(_n_hb_regions * sizeof(int));
+	int * h_dist_region_lens = (int *)malloc(_n_dist_regions * sizeof(int));
+	_op.get_hb_pairs_count(h_hb_region_lens);
+	_op.get_dist_pairs_count(h_dist_region_lens);
+	int * h_hb_region_rows = _get_2D_rows(_n_hb_regions, h_hb_region_lens);
+	int * h_dist_region_rows = _get_2D_rows(_n_dist_regions, h_dist_region_lens);
+
+	char * aux;
+	aux = (char *) str;
+	for (int i = 0; i < _n_hb_regions; i++) {
+		if (_op.get_hb_cutoff(i)!=64) {
+			int tot_hb = 0;
+			for (int j=0 ; j < h_hb_region_lens[i] ; j++){
+				if (_h_hb_energies[h_hb_region_rows[i] + j] < _op.get_hb_cutoff(i)) tot_hb += 1;
+			}
+			sprintf(aux, "%s: %d; ", _op.get_name_from_hb_id(i), tot_hb);
+		} else {
+			int tot_near_hb = 0;
+			for (int j=0 ; j < h_hb_region_lens[i] ; j++) tot_near_hb+=_h_nearhb_states[h_hb_region_rows[i] + j];
+			sprintf(aux, "%s: %d; ", _op.get_name_from_hb_id(i), tot_near_hb);
+		}
+		aux = (char *) str + strlen(str);
+	}
+	for (int i = 0; i < _n_dist_regions; i++) {
+			float min_dist = _h_op_dists[i];
+			for (int j=1 ; j < h_dist_region_lens[i] ; j++){
+				if (_h_op_dists[h_hb_region_rows[i] + j] < min_dist) {min_dist=_h_op_dists[h_hb_region_rows[i] + j];}
+			}
+			sprintf(aux, "%s: %12.9f; ", _op.get_name_from_distance_id(i), min_dist);
+			aux = (char *) str + strlen(str);
+		}
+	free(h_hb_region_lens);
+	free(h_dist_region_lens);
+	free(h_hb_region_rows);
+	free(h_dist_region_rows);
+}
+
 void FFS_MD_CUDAMixedBackend::print_observables(llint curr_step) {
-	if (_curr_step % _print_energy_every == _print_energy_every-1) this->_backend_info  = get_op_state_str(); //Ugly
+	if (_curr_step % _print_energy_every == _print_energy_every-1) this->_backend_info  = get_op_state_str();
 	CUDAMixedBackend::print_observables(curr_step);
 }

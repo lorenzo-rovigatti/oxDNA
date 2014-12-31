@@ -397,8 +397,25 @@ public:
 	 */
 	void sim_step(llint curr_step);
 
+	/**
+	 * @brief Get a string showing the current state of the order parameters
+	 */
 	char * get_op_state_str(void);
+
+	/**
+	 * @brief Prints observables; makes sure order parameter values are up-to-date
+	 *
+	 * @param curr_step current step
+	 */
 	virtual void print_observables(llint curr_step);
+	
+	/**
+	 * @brief Print a list of order parameter names and values to the string str. Designed to reproduce
+	 * the output at the end of a CPU FFS simulation 31/12/14
+	 *
+	 * @param str string to be written to, memory should already be allocated
+	 */
+	void sprintf_names_and_values(char *str);
 };
 
 #endif /* FFS_MD_CUDAMIXEDBACKEND_H_ */
