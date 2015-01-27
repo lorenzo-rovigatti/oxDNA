@@ -30,6 +30,8 @@ def read_strands(filename='caca.sqs', box_side=50):
     The main() function for this script
     Reads a text file with the following format:
     - Each line contains the sequence for a single strand (A,C,T,G)
+	      the nucleotides can be specified by (case insensitive) letter (A, C, G, T), 
+			random (X), strong (S) and weak (W).
     - Options:
         - DOUBLE
         - CIRCULAR
@@ -42,6 +44,12 @@ def read_strands(filename='caca.sqs', box_side=50):
     Ex: Two strands, one double stranded, the other single stranded.
     DOUBLE AGGGCT
     CCTGTA
+
+	 Ex: One dsDNA that frays only on one side:
+	 DOUBLE SSXXXXXXWW
+
+	 Ex: One dsDNA that frays very little but has TATA in the middle:
+	 DOUBLE SSXXXXTATAXXXXSS
 
     Ex: Two strands, one double stranded circular, the other single stranded circular.
     DOUBLE CIRCULAR AGAGGTAGGAGGATTTGCTTGAGCTTCGAGAGCTTCGAGATTCGATCAGGGCT
@@ -82,21 +90,34 @@ def read_strands(filename='caca.sqs', box_side=50):
         bool_rw = False
         type_strand = 'single strand'
         type_circular = 'linear'
-        if line.find('DOUBLE') == 0:
+        if line.find('DOUBLE') >= 0:
             bool_double = True
             type_strand = 'duplex'
-        # Magic numbers!
-        # 0 is for CIRCULAR (single stranded)
-        # 7 is for DOUBLE CIRCULAR (double stranded). Note that the C is the 7th character. 
-        if line.find('CIRCULAR') == 0 or line.find('CIRCULAR') == 7:
+        if line.find('CIRCULAR') >= 0:
             bool_circular = True
             type_circular = 'circular'
-        if line.find('RW') == 0:
+        if line.find('RW') >= 0:
             bool_rw = True
+         
+        #print bool_double, bool_circular, bool_rw
 
         # Parse input and output structures in lorenzo format
         raw_seq = line.split()[-1]
-        seq = [base.base_to_number[x] for x in raw_seq]
+
+        import random
+        raw_seq2 = "" 
+        for x in raw_seq:
+            if x in ['x', 'X']:
+                raw_seq2 += random.choice(['A','C','G','T'])
+            elif x in ['s', 'S']:
+                raw_seq2 += random.choice(['C','G'])
+            elif x in ['w', 'W']:
+                raw_seq2 += random.choice(['A','T'])
+            else:
+                raw_seq2 += x
+
+        #seq = [base.base_to_number[x] for x in raw_seq]
+        seq = [base.base_to_number[x] for x in raw_seq2]
         length = len(raw_seq)
         print >> sys.stdout, "Adding %s %s of %i bases" % (type_circular, type_strand, length)
         cdm = np.random.random_sample(3) * s._box
