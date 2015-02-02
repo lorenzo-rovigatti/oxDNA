@@ -196,59 +196,6 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number>
-void SimBackend<number>::_read_external_forces() {
-	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", _external_filename);
-
-	//char line[512], typestr[512];
-	int open, justopen, a;
-	ifstream external(_external_filename);
-
-	if(!external.good ()) throw oxDNAException ("Can't read external_forces_file '%s'", _external_filename);
-
-	justopen = open = 0;
-	a = external.get();
-	while(external.good()) {
-		justopen = 0;
-		if (a == '{') {
-			open ++;
-			justopen = 1;
-		}
-		if (a == '}') {
-			if (justopen) throw oxDNAException ("Syntax error in '%s': nothing between parentheses", _external_filename);
-			open --;
-		}
-		if (open > 1 || open < 0) throw oxDNAException ("Syntax error in '%s': parentheses do not match", _external_filename);
-		a = external.get();
-	}
-	external.clear();
-	external.seekg(0, ios::beg);
-
-	a = external.get();
-	while(external.good()) {
-		while (a != '{' && external.good()) a = external.get();
-		if(!external.good()) break;
-		// this function create a temporary file which is destroyed upon calling fclose
-		// the temporary file is opened with "wb+" flags
-		FILE *temp = tmpfile();
-		OX_LOG(Logger::LOG_INFO, "   Using temporary file");
-		a = external.get();
-		while (a != '}' && external.good()) {
-			fprintf (temp, "%c", a);
-			a = external.get();
-		}
-		rewind(temp);
-		input_file input;
-		loadInput(&input, temp);
-
-		//ForceFactory::add_force<number>(input, _particles, _N, _is_CUDA_sim, &_box_side);
-		ForceFactory<number>::instance()->add_force(input, _particles, _N, _is_CUDA_sim, &_box_side);
-
-		cleanInputFile (&input);
-		fclose (temp);
-	}
-	OX_LOG(Logger::LOG_INFO, "   Force file parsed", _external_filename);
-}
 
 template<typename number>
 void SimBackend<number>::init(char conf_filename[256]) {
@@ -289,7 +236,7 @@ void SimBackend<number>::init(char conf_filename[256]) {
 
 	_start_step_from_file = _read_conf_step;
 
-	if (_external_forces) _read_external_forces();
+	if (_external_forces) ForceFactory<number>::instance()->read_external_forces(std::string(_external_filename), _particles, this->_N, _is_CUDA_sim, &_box_side);
 
 	this->_U = (number) 0;
 	this->_K = (number) 0;
