@@ -30,6 +30,9 @@ protected:
 	int _N;
 	BaseParticle<double> **_particles;
 
+	bool _external_forces;
+	std::string _external_filename;
+
 public:
 	GeneratorManager(int argc, char *argv[]);
 	virtual ~GeneratorManager();

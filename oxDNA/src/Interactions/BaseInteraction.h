@@ -41,6 +41,9 @@ protected:
 	/// This is useful for "hard" potentials
 	bool _is_infinite;
 
+	/// This is useful to create initial configurations. it is used by the generator functions
+	number _energy_threshold;
+
 	number _rcut, _sqr_rcut;
 
 	char _topology_filename[256];
@@ -81,6 +84,7 @@ protected:
 	 */
 	void _delete_cell_neighs();
 public:
+	IBaseInteraction();
 	virtual ~IBaseInteraction();
 
 	virtual void set_box_side(number box_side) { _box_side = box_side; }
@@ -299,6 +303,11 @@ public:
 };
 
 template<typename number>
+IBaseInteraction<number>::IBaseInteraction() {
+	_energy_threshold = (number) 100.f;
+}
+
+template<typename number>
 IBaseInteraction<number>::~IBaseInteraction() {
 	_delete_cells();
 }
@@ -306,6 +315,7 @@ IBaseInteraction<number>::~IBaseInteraction() {
 template<typename number>
 void IBaseInteraction<number>::get_settings(input_file &inp) {
 	getInputString(&inp, "topology", this->_topology_filename, 1);
+	getInputNumber (&inp, "energy_threshold", &_energy_threshold, 0);  
 }
 
 template<typename number>
@@ -474,12 +484,12 @@ bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticl
 	if (dr.norm() >= this->_sqr_rcut) return false;
 	
 	number energy = pair_interaction(p, q, &dr, false);
-	
+
 	// in case we create an overlap, we reset the interaction state
 	this->set_is_infinite(false);
 	
 	// if energy too large, reject
-	if (energy > (number) 100.f) return true;
+	if (energy > _energy_threshold) return true;
 	else return false;
 }
 
@@ -507,6 +517,8 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 			p->orientationT = p->orientation.get_transpose();
 			
 			p->set_positions ();
+
+			p->set_ext_potential (0, box_side);
 		
 			cell_index = (int) ((p->pos.x / box_side - floor(p->pos.x / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side);
 			cell_index += this->_cells_N_side * ((int) ((p->pos.y / box_side - floor(p->pos.y / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
@@ -521,6 +533,13 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 					j = this->_cells_next[q->index];
 				}
 			}
+			
+			// we take into account the external potential
+			if (p->ext_potential > _energy_threshold) {
+				//if (inserted) printf ("rejecting because of ext. potential\n");
+				inserted = false;
+			}
+
 		} while(!inserted);
 
 		int old_head = this->_cells_head[cell_index];
@@ -625,7 +644,7 @@ public:
 
 
 template<typename number, typename child>
-BaseInteraction<number, child>::BaseInteraction() {
+BaseInteraction<number, child>::BaseInteraction() : IBaseInteraction<number>() {
 	this->_rcut = 2.5;
 	this->_sqr_rcut = SQR(this->_rcut);
 	this->_last_box_side = (number) 0;

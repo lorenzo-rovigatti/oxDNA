@@ -7,6 +7,7 @@
 
 #include "GeneratorManager.h"
 #include "../Interactions/InteractionFactory.h"
+#include "../Forces/ForceFactory.h"
 #include "../PluginManagement/PluginManager.h"
 
 GeneratorManager::GeneratorManager(int argc, char *argv[]) {
@@ -34,6 +35,9 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	_particles = NULL;
 	_interaction = NULL;
 	_init_completed = false;
+
+	_external_forces = false;
+	_external_filename = std::string("");
 }
 
 GeneratorManager::~GeneratorManager() {
@@ -43,11 +47,17 @@ GeneratorManager::~GeneratorManager() {
 		for(int i = 0; i < _N; i++) delete _particles[i];
 		delete[] _particles;
 	}
+
+	if (_external_forces) ForceFactory<double>::instance()->clear();
 }
 
 void GeneratorManager::load_options() {
 	getInputString(&_input, "trajectory_file", _trajectory, 1);
 	getInputString(&_input, "conf_file", _output_conf, 1);
+	
+	// read wether to use external forces
+	getInputBool(&_input, "external_forces", &_external_forces, 0);
+	if (_external_forces) getInputString(&_input, "external_forces_file", _external_filename, 0);
 
 	// seed;
 	int seed;
@@ -93,6 +103,11 @@ void GeneratorManager::init() {
 		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
 	}
 
+	// initializing external forces
+	if (_external_forces) { 
+		ForceFactory<double>::instance()->read_external_forces(_external_filename, _particles, this->_N, false, &_box_side);
+	}
+ 
 	_init_completed = true;
 }
 

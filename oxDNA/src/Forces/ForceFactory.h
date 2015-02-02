@@ -43,6 +43,9 @@ public:
 	 * @param box_side_ptr pointer to the box side. We use a pointer since the box size can change 
 	 */
 	void add_force(input_file &inp, BaseParticle<number> **particles, int N, bool is_CUDA, number * box_side_ptr);
+
+	/// adds forces. Used by SimBackend and GeneratorManager
+	void read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA, number * box);
 	void clear ();
 };
 

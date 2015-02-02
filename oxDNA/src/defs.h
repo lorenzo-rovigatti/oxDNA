@@ -156,6 +156,11 @@ public:
 
 	}
 
+	LR_vector (number * arg) : 
+		x (arg[0]), y (arg[1]), z (arg[2]) {
+	
+	}
+
 	// Operator Overloads
 	inline bool operator==(const LR_vector& V2) const {
 		return (x == V2.x && y == V2.y && z == V2.z);
@@ -278,6 +283,11 @@ public:
 		z *= fMult;
 		return;
 	}
+
+	/*
+	std::string string() {
+		return std::string ("(%g, %g, %g)", x, y, z); 
+	}*/
 };
 
 template <typename number>
