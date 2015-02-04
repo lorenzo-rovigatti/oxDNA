@@ -24,9 +24,8 @@ typedef BaseObservable<double>* make_double_obs();
 typedef IBaseInteraction<float>* make_float_inter();
 typedef IBaseInteraction<double>* make_double_inter();
 
-PluginManager::PluginManager() {
+PluginManager::PluginManager() : _initialised(false), _do_cleanup(true) {
 	_path.push_back(string("."));
-	_initialised = false;
 
 	// these are the default entry point names
 	_obs_entry_points.push_back(string("make_"));
@@ -42,6 +41,8 @@ PluginManager::~PluginManager() {
 
 void PluginManager::init(input_file &sim_inp) {
 	_initialised = true;
+
+	getInputBool(&sim_inp, "plugin_do_cleanup", &_do_cleanup, 0);
 
 	// load the plugin path from the input file
 	string ppath;
@@ -165,7 +166,7 @@ IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 }
 
 void PluginManager::clear() {
-	if(_manager != NULL) {
+	if(_manager != NULL && _manager->_do_cleanup) {
 		while(!_manager->_handles.empty()) {
 			dlclose(_manager->_handles.top());
 			_manager->_handles.pop();

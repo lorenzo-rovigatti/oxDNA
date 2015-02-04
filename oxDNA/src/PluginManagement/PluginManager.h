@@ -60,6 +60,7 @@ extern "C" IBaseInteraction<double> *make_double() { return new MyInteraction<do
 [plugin_search_path = <string> (a semicolon-separated list of directories where plugins are looked for in, in addition to the current directory.)]
 [plugin_observable_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing observables, followed by either float or double.)]
 [plugin_interaction_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing interactions, followed by either float or double.)]
+[plugin_do_cleanup = <bool> (whether the PluginManager should perform a clean up at the end of the run. It should be set to false only when profiling code, since otherwise callgrind cannot read plugins' source files. It defaults to true.)]
 @endverbatim
  */
 class PluginManager {
@@ -67,6 +68,7 @@ protected:
 	static PluginManager *_manager;
 	std::vector<std::string> _path;
 	bool _initialised;
+	bool _do_cleanup;
 	std::stack<void *> _handles;
 
 	std::vector<std::string> _obs_entry_points;
