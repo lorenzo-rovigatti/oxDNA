@@ -187,10 +187,10 @@ number NathanStarInteraction<number>::_patchy_star_interaction(BaseParticle<numb
 	number mod_r = sqrt(sqr_r);
 
 	// this is just to avoid spitting out NaNs and it should occur very rarely, and only during equilibration
-	if(mod_r < _patch_r) energy = 1e-6;
+	if(mod_r < _spl_patchy_star->interp->xmin) energy = 1e-6;
 	else energy = gsl_spline_eval(_spl_patchy_star, mod_r, _acc_patchy_star);
 	if(update_forces) {
-		number force_mod = (mod_r < _patch_r) ? 1000 : -gsl_spline_eval_deriv(_spl_patchy_star, mod_r, _acc_patchy_star)/mod_r;
+		number force_mod = (mod_r < _spl_patchy_star->interp->xmin) ? 1000 : -gsl_spline_eval_deriv(_spl_patchy_star, mod_r, _acc_patchy_star)/mod_r;
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
