@@ -8,7 +8,7 @@
 #include "ParticlePosition.h"
 
 template<typename number>
-ParticlePosition<number>::ParticlePosition(): _orientation(false) , _absolute(false) {
+ParticlePosition<number>::ParticlePosition(): _particle_id(-1), _orientation(false) , _absolute(false) {
 
 }
 
@@ -33,8 +33,14 @@ void ParticlePosition<number>::get_settings(input_file &my_inp, input_file &sim_
 }
 
 template<typename number>
-std::string ParticlePosition<number>::get_output_string(llint curr_step) {
+void ParticlePosition<number>::init(ConfigInfo<number> &config_info) {
+	BaseObservable<number>::init(config_info);
 
+	if(_particle_id < 0 || _particle_id >= *config_info.N) throw oxDNAException("ParticlePosition: invalid id %d", _particle_id);
+}
+
+template<typename number>
+std::string ParticlePosition<number>::get_output_string(llint curr_step) {
 	string result;
 	LR_vector<number> mypos;
 	if (_absolute) mypos = this->_config_info.particles[_particle_id]->get_abs_pos(*this->_config_info.box_side);
