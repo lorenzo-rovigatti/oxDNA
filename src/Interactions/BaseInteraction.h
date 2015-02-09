@@ -444,7 +444,10 @@ number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **partic
 			while (j != P_INVALID) {
 				BaseParticle<number> *q = particles[j];
 				if(p->index > q->index) energy += pair_interaction_nonbonded(p, q);
-				if(this->get_is_infinite()) return energy;
+				if(this->get_is_infinite()) {
+					_delete_cell_neighs();
+					return energy;
+				}
 				j = _cells_next[q->index];
 			}
 		}
@@ -468,7 +471,10 @@ number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<n
 			while (j != P_INVALID) {
 				BaseParticle<number> *q = particles[j];
 				if(p->index > q->index) energy += pair_interaction_term(name, p, q);
-				if(this->get_is_infinite()) return energy;
+				if(this->get_is_infinite()) {
+					_delete_cell_neighs();
+					return energy;
+				}
 				j = _cells_next[q->index];
 			}
 		}
