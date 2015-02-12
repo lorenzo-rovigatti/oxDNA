@@ -232,14 +232,18 @@ number FFS_MD_CPUBackend<number>::pair_interaction_nonbonded_DNA_with_op(BasePar
 	}
 	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::NONBONDED_EXCLUDED_VOLUME,p, q, r, update_forces);
 	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::CROSS_STACKING,p, q, r, update_forces);
-	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::COAXIAL_STACKING,p, q, r, update_forces);
 
-	if(dynamic_cast<DNA2Interaction<number> *>(this->_interaction) != NULL) {
+	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
+        if(dynamic_cast<DNA2Interaction<number> *>(this->_interaction) == NULL) energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::COAXIAL_STACKING, p, q, r, update_forces);
+	
+        if(dynamic_cast<DNA2Interaction<number> *>(this->_interaction) != NULL) {
+		energy += this->_interaction->pair_interaction_term(DNA2Interaction<number>::COAXIAL_STACKING, p, q, r, update_forces);
 		energy += this->_interaction->pair_interaction_term(DNA2Interaction<number>::DEBYE_HUCKEL, p, q, r, update_forces);
 	}
 	else if(dynamic_cast<RNA2Interaction<number> *>(this->_interaction) != NULL) {
-		energy += this->_interaction->pair_interaction_term(RNA2Interaction<number>::DEBYE_HUCKEL, p, q, r, update_forces);
+	        energy += this->_interaction->pair_interaction_term(RNA2Interaction<number>::DEBYE_HUCKEL, p, q, r, update_forces);
 	}
+
 	return energy;
 }
 

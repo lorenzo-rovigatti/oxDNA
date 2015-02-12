@@ -160,6 +160,17 @@ __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, fl
 }
 
 template<typename number>
+__forceinline__ __device__ number _f4_pure_harmonic(number t, float a, float b) {
+	// for getting a f4t1 function with a continuous derivative that is less disruptive to the potential
+	number val = (number) 0.f;
+	t -= b;
+	if(t < 0) val = (number) 0.f;
+	else val = (number) a * SQR(t);
+
+	return val;
+}
+
+template<typename number>
 __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc, float a, float b) {
 	number val = (number) 0.f;
 	number tt0 = t - t0;
@@ -181,6 +192,21 @@ __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc
 	}
 
 	return 2.f * m * val;
+}
+
+template<typename number>
+__forceinline__ __device__ number _f4Dsin_pure_harmonic(number t, float a, float b) {
+	// for getting a f4t1 function with a continuous derivative that is less disruptive to the potential
+	number val = (number) 0.f;
+	number tt0 = t - b;
+	if(tt0 < 0) val = (number) 0.f;
+	else {
+		number sint = sin(t);
+		if (SQR(sint) > 1e-12) val = (number) 2 * a * tt0 / sint;
+		else val = (number) 2 * a;
+	}
+	
+	return val;
 }
 
 template<typename number>
@@ -268,7 +294,7 @@ __device__ void _bonded_excluded_volume(number4 &r, number4 &n3pos_base, number4
 
 template <typename number, typename number4, bool qIsN3>
 __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4 &n5z,number4 &n3pos,
-			     number4 &n3x, number4 &n3y, number4 &n3z, number4 &F, number4 &T, bool grooving) {
+			     number4 &n3x, number4 &n3y, number4 &n3z, number4 &F, number4 &T, bool grooving, bool use_oxDNA2_FENE) {
 
 	int n3type = get_particle_type<number, number4>(n3pos);
 	int n5type = get_particle_type<number, number4>(n5pos);
@@ -290,7 +316,9 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 
 	number4 rback = r + n3pos_back - n5pos_back;
 	number rbackmod = _module<number, number4>(rback);
-	number rbackr0 = rbackmod - FENE_R0;
+	number rbackr0;
+	if (use_oxDNA2_FENE) rbackr0 = rbackmod - FENE_R0_OXDNA2;
+	else rbackr0 = rbackmod - FENE_R0_OXDNA;
 
 	number4 Ftmp = rback * ((FENE_EPS * rbackr0  / (FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
 	Ftmp.w = -FENE_EPS * ((number)0.5f) * logf(1 - SQR(rbackr0) / FENE_DELTA2);
@@ -438,7 +466,7 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 }
 
 template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind) {
+__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 	int pbtype = get_particle_btype<number, number4>(ppos);
@@ -618,110 +646,172 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 	}
 
 	// COAXIAL STACKING
-	number4 rstack = r + qpos_stack - ppos_stack;
-	number rstackmodsqr = CUDA_DOT(rstack, rstack);
-	if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
-	  	number rstackmod = sqrtf(rstackmodsqr);
-	  	number4 rstackdir = rstack / rstackmod;
+	if (use_oxDNA2_coaxial_stacking){
+		number4 rstack = r + qpos_stack - ppos_stack;
+		number rstackmodsqr = CUDA_DOT(rstack, rstack);
+		if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
+			number rstackmod = sqrtf(rstackmodsqr);
+			number4 rstackdir = rstack / rstackmod;
 
-		// angles involved in the CXST interaction
-		number t1 = CUDA_LRACOS (-CUDA_DOT(a1, b1));
-		number t4 = CUDA_LRACOS ( CUDA_DOT(a3, b3));
-		number t5 = CUDA_LRACOS ( CUDA_DOT(a3, rstackdir));
-		number t6 = CUDA_LRACOS (-CUDA_DOT(b3, rstackdir));
+			// angles involved in the CXST interaction
+			number t1 = CUDA_LRACOS (-CUDA_DOT(a1, b1));
+			number t4 = CUDA_LRACOS ( CUDA_DOT(a3, b3));
+			number t5 = CUDA_LRACOS ( CUDA_DOT(a3, rstackdir));
+			number t6 = CUDA_LRACOS (-CUDA_DOT(b3, rstackdir));
 
-		// This is the position the backbone would have with major-minor grooves the same width.
-		// We need to do this to implement different major-minor groove widths because rback is
-		// used as a reference point for things that have nothing to do with the actual backbone
-		// position (in this case, the coaxial stacking interaction).
-		number4 rbackboneref = r + POS_BACK * b1 - POS_BACK * a1;
-		number rbackrefmod = _module<number, number4>(rbackboneref);
-		number4 rbackbonerefdir = rbackboneref / rbackrefmod;
-		number cosphi3 = CUDA_DOT(rstackdir, (_cross<number, number4>(rbackbonerefdir, a1)));
+			// functions called at their relevant arguments
+			number f2 = _f2(rstackmod, CXST_F2);
+			number f4t1 = _f4(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) +
+				_f4_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB);
+			number f4t4 = _f4(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
+			number f4t5 = _f4(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) +
+					_f4(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
+			number f4t6 = _f4(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) +
+					_f4(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
 
-	 	// functions called at their relevant arguments
-		number f2 = _f2(rstackmod, CXST_F2);
-		number f4t1 = _f4(t1, CXST_THETA1_T0, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) +
-				_f4(2 * PI - t1, CXST_THETA1_T0, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
-		number f4t4 = _f4(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
-		number f4t5 = _f4(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) +
-				_f4(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
-		number f4t6 = _f4(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) +
-				_f4(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
-		number f5cosphi3 = _f5(cosphi3, CXST_F5_PHI3);
+			number cxst_energy = f2 * f4t1 * f4t4 * f4t5 * f4t6;
 
-		number cxst_energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3);
+			if(cxst_energy < (number) 0) {
+				// derivatives called at the relevant arguments
+				number f2D = _f2D(rstackmod, CXST_F2);
+				number f4t1Dsin = -_f4Dsin(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) -
+					_f4Dsin_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB);
+				number f4t4Dsin =  _f4Dsin(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
+				number f4t5Dsin =  _f4Dsin(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) -
+						_f4Dsin(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
+				number f4t6Dsin = -_f4Dsin(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) +
+						_f4Dsin(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
 
-		if(cxst_energy < (number) 0) {
-			// derivatives called at the relevant arguments
-			number f2D = _f2D(rstackmod, CXST_F2);
-			number f4t1Dsin = -_f4Dsin(t1, CXST_THETA1_T0, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) +
-					_f4Dsin(2 * PI - t1, CXST_THETA1_T0, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
-			number f4t4Dsin =  _f4Dsin(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
-			number f4t5Dsin =  _f4Dsin(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) -
-					_f4Dsin(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
-			number f4t6Dsin = -_f4Dsin(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) +
-					_f4Dsin(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
-			number f5cosphi3D = _f5D(cosphi3, CXST_F5_PHI3);
+				// RADIAL PART
+				Ftmp = rstackdir * (cxst_energy * f2D / f2);
 
-			// RADIAL PART
-			Ftmp = rstackdir * (cxst_energy * f2D / f2);
+				// THETA1; t1 = LRACOS (-a1 * b1);
+				Ttmp -= _cross<number, number4>(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
 
-			// THETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= _cross<number, number4>(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
+				// TETA4; t4 = LRACOS (a3 * b3);
+				Ttmp -= _cross<number, number4>(a3, b3) * (-cxst_energy * f4t4Dsin / f4t4);
 
-			// TETA4; t4 = LRACOS (a3 * b3);
-			Ttmp -= _cross<number, number4>(a3, b3) * (-cxst_energy * f4t4Dsin / f4t4);
+				// THETA5; t5 = LRACOS ( a3 * rstackdir);
+				number part = cxst_energy * f4t5Dsin / f4t5;
+				Ftmp -= (a3 - rstackdir * cosf(t5)) / rstackmod * part;
+				Ttmp -= _cross<number, number4>(rstackdir, a3) * part;
 
-			// THETA5; t5 = LRACOS ( a3 * rstackdir);
-			number part = cxst_energy * f4t5Dsin / f4t5;
-			Ftmp -= (a3 - rstackdir * cosf(t5)) / rstackmod * part;
-			Ttmp -= _cross<number, number4>(rstackdir, a3) * part;
+				// THETA6; t6 = LRACOS (-b3 * rstackdir);
+				Ftmp -= (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
 
-			// THETA6; t6 = LRACOS (-b3 * rstackdir);
-			Ftmp -= (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
+				Ttmp += _cross<number, number4>(ppos_stack, Ftmp);
 
-			// COSPHI3
-			number rbackrefmodcub = rbackrefmod * rbackrefmod * rbackrefmod;
+				Ftmp.w = cxst_energy;
+				F += Ftmp;
+			}
+		}
+	}
+	else {
+		number4 rstack = r + qpos_stack - ppos_stack;
+		number rstackmodsqr = CUDA_DOT(rstack, rstack);
+		if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
+			number rstackmod = sqrtf(rstackmodsqr);
+			number4 rstackdir = rstack / rstackmod;
 
-			//number a1b1 = a1 * b1;
-			number a2b1 = CUDA_DOT(a2, b1);
-			number a3b1 = CUDA_DOT(a3, b1);
-			number ra1 = CUDA_DOT(rstackdir, a1);
-			number ra2 = CUDA_DOT(rstackdir, a2);
-			number ra3 = CUDA_DOT(rstackdir, a3);
-			number rb1 = CUDA_DOT(rstackdir, b1);
+			// angles involved in the CXST interaction
+			number t1 = CUDA_LRACOS (-CUDA_DOT(a1, b1));
+			number t4 = CUDA_LRACOS ( CUDA_DOT(a3, b3));
+			number t5 = CUDA_LRACOS ( CUDA_DOT(a3, rstackdir));
+			number t6 = CUDA_LRACOS (-CUDA_DOT(b3, rstackdir));
 
-			number parentesi = (ra3 * a2b1 - ra2 * a3b1);
-			number dcdr    = -GAMMA * parentesi * (GAMMA * (ra1 - rb1) + rstackmod) / rbackrefmodcub;
-			number dcda1b1 =  GAMMA * SQR(GAMMA) * parentesi / rbackrefmodcub;
-			number dcda2b1 =  GAMMA * ra3 / rbackrefmod;
-			number dcda3b1 = -GAMMA * ra2 / rbackrefmod;
-			number dcdra1  = -SQR(GAMMA) * parentesi * rstackmod / rbackrefmodcub;
-			number dcdra2  = -GAMMA * a3b1 / rbackrefmod;
-			number dcdra3  =  GAMMA * a2b1 / rbackrefmod;
-			number dcdrb1  = -dcdra1;
+			// This is the position the backbone would have with major-minor grooves the same width.
+			// We need to do this to implement different major-minor groove widths because rback is
+			// used as a reference point for things that have nothing to do with the actual backbone
+			// position (in this case, the coaxial stacking interaction).
+			number4 rbackboneref = r + POS_BACK * b1 - POS_BACK * a1;
+			number rbackrefmod = _module<number, number4>(rbackboneref);
+			number4 rbackbonerefdir = rbackboneref / rbackrefmod;
+			number cosphi3 = CUDA_DOT(rstackdir, (_cross<number, number4>(rbackbonerefdir, a1)));
 
-			part = cxst_energy * 2 * f5cosphi3D / f5cosphi3;
+			// functions called at their relevant arguments
+			number f2 = _f2(rstackmod, CXST_F2);
+			number f4t1 = _f4(t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) +
+					_f4(2 * PI - t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
+			number f4t4 = _f4(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
+			number f4t5 = _f4(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) +
+					_f4(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
+			number f4t6 = _f4(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) +
+					_f4(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
+			number f5cosphi3 = _f5(cosphi3, CXST_F5_PHI3);
 
-			Ftmp -= part * (rstackdir * dcdr +
-						    ((a1 - rstackdir * ra1) * dcdra1 +
-							(a2 - rstackdir * ra2) * dcdra2 +
-							(a3 - rstackdir * ra3) * dcdra3 +
-							(b1 - rstackdir * rb1) * dcdrb1) / rstackmod);
+			number cxst_energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3);
 
-			Ttmp += part * (_cross<number, number4>(rstackdir, a1) * dcdra1 +
-						    _cross<number, number4>(rstackdir, a2) * dcdra2 +
-						    _cross<number, number4>(rstackdir ,a3) * dcdra3);
+			if(cxst_energy < (number) 0) {
+				// derivatives called at the relevant arguments
+				number f2D = _f2D(rstackmod, CXST_F2);
+				number f4t1Dsin = -_f4Dsin(t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) +
+						_f4Dsin(2 * PI - t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
+				number f4t4Dsin =  _f4Dsin(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
+				number f4t5Dsin =  _f4Dsin(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) -
+						_f4Dsin(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
+				number f4t6Dsin = -_f4Dsin(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) +
+						_f4Dsin(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
+				number f5cosphi3D = _f5D(cosphi3, CXST_F5_PHI3);
 
-			Ttmp -= part * (_cross<number, number4>(a1, b1) * dcda1b1 +
-						    _cross<number, number4>(a2, b1) * dcda2b1 +
-						    _cross<number, number4>(a3, b1) * dcda3b1);
+				// RADIAL PART
+				Ftmp = rstackdir * (cxst_energy * f2D / f2);
 
-			Ttmp += _cross<number, number4>(ppos_stack, Ftmp);
+				// THETA1; t1 = LRACOS (-a1 * b1);
+				Ttmp -= _cross<number, number4>(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
 
-			Ftmp.w = cxst_energy;
-			F += Ftmp;
+				// TETA4; t4 = LRACOS (a3 * b3);
+				Ttmp -= _cross<number, number4>(a3, b3) * (-cxst_energy * f4t4Dsin / f4t4);
+
+				// THETA5; t5 = LRACOS ( a3 * rstackdir);
+				number part = cxst_energy * f4t5Dsin / f4t5;
+				Ftmp -= (a3 - rstackdir * cosf(t5)) / rstackmod * part;
+				Ttmp -= _cross<number, number4>(rstackdir, a3) * part;
+
+				// THETA6; t6 = LRACOS (-b3 * rstackdir);
+				Ftmp -= (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
+
+				// COSPHI3
+				number rbackrefmodcub = rbackrefmod * rbackrefmod * rbackrefmod;
+
+				//number a1b1 = a1 * b1;
+				number a2b1 = CUDA_DOT(a2, b1);
+				number a3b1 = CUDA_DOT(a3, b1);
+				number ra1 = CUDA_DOT(rstackdir, a1);
+				number ra2 = CUDA_DOT(rstackdir, a2);
+				number ra3 = CUDA_DOT(rstackdir, a3);
+				number rb1 = CUDA_DOT(rstackdir, b1);
+
+				number parentesi = (ra3 * a2b1 - ra2 * a3b1);
+				number dcdr    = -GAMMA * parentesi * (GAMMA * (ra1 - rb1) + rstackmod) / rbackrefmodcub;
+				number dcda1b1 =  GAMMA * SQR(GAMMA) * parentesi / rbackrefmodcub;
+				number dcda2b1 =  GAMMA * ra3 / rbackrefmod;
+				number dcda3b1 = -GAMMA * ra2 / rbackrefmod;
+				number dcdra1  = -SQR(GAMMA) * parentesi * rstackmod / rbackrefmodcub;
+				number dcdra2  = -GAMMA * a3b1 / rbackrefmod;
+				number dcdra3  =  GAMMA * a2b1 / rbackrefmod;
+				number dcdrb1  = -dcdra1;
+
+				part = cxst_energy * 2 * f5cosphi3D / f5cosphi3;
+
+				Ftmp -= part * (rstackdir * dcdr +
+							    ((a1 - rstackdir * ra1) * dcdra1 +
+								(a2 - rstackdir * ra2) * dcdra2 +
+								(a3 - rstackdir * ra3) * dcdra3 +
+								(b1 - rstackdir * rb1) * dcdrb1) / rstackmod);
+
+				Ttmp += part * (_cross<number, number4>(rstackdir, a1) * dcdra1 +
+							    _cross<number, number4>(rstackdir, a2) * dcdra2 +
+							    _cross<number, number4>(rstackdir ,a3) * dcdra3);
+
+				Ttmp -= part * (_cross<number, number4>(a1, b1) * dcda1b1 +
+							    _cross<number, number4>(a2, b1) * dcda2b1 +
+							    _cross<number, number4>(a3, b1) * dcda3b1);
+
+				Ttmp += _cross<number, number4>(ppos_stack, Ftmp);
+
+				Ftmp.w = cxst_energy;
+				F += Ftmp;
+			}
 		}
 	}
 	
@@ -758,7 +848,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
+__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -775,7 +865,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
-						    qpos, b1, b2, b3, F, T, grooving);
+						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE);
 	}
 
 	if(bs.n5 != P_INVALID) {
@@ -785,7 +875,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
-						     ppos, a1, a2, a3, F, T, grooving);
+						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
@@ -797,7 +887,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 			get_vectors_from_quat<number,number4>(orientations[j], b1, b2, b3);
 			LR_bonds qbonds = bonds[j];
 
-			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, bs, qbonds, IND, j);
+			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds, IND, j);
 		}
 	}
 
@@ -811,7 +901,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 }
 
 template <typename number, typename number4>
-__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
+__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -831,7 +921,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 	get_vectors_from_quat<number,number4>(orientations[b.to], b1, b2, b3);
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
-	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, pbonds, qbonds, b.from, b.to);
+	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to);
 
 	dF.w *= (number) 0.5f;
 	dT.w *= (number) 0.5f;
@@ -860,7 +950,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 
 // bonded interactions for edge-based approach
 template <typename number, typename number4>
-__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving) {
+__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F0, T0;
@@ -889,14 +979,14 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 
-		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving);
+		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_oxDNA2_FENE);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
 
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
-		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving);
+		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving, use_oxDNA2_FENE);
 	}
 
 	// the real energy per particle is half of the one computed (because we count each interaction twice)
@@ -911,7 +1001,7 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel) {
+__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -928,14 +1018,14 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		number4 b1, b2, b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
-						    qpos, b1, b2, b3, F, T, grooving);
+						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
-						     ppos, a1, a2, a3, F, T, grooving);
+						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
@@ -950,7 +1040,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		get_vectors_from_quat<number,number4>(orientations[k_index], b1, b2, b3);
 		LR_bonds pbonds = bonds[IND];
 		LR_bonds qbonds = bonds[k_index];
-		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, pbonds, qbonds, IND, k_index);
+		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index);
 	}
 	
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);

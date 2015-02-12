@@ -12,7 +12,7 @@
 #include "DNAInteraction.h"
 
 // HARMONIC BONDED BACKBONE-BACKBONE
-#define HARMONIC_R0 FENE_R0
+#define HARMONIC_R0 FENE_R0_OXDNA
 
 /**
  * @brief Modified version of DNAInteraction which modifies the bonded backbone-backbone potential so it does not diverge

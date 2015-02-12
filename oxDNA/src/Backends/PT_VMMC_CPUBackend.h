@@ -73,7 +73,7 @@ protected:
 	PT_serialized_particle_info<number> * _exchange_conf;
 	PT_energy_info<number> _exchange_energy;
 
-	bool _grooving;
+	bool _oxDNA2_stacking;
 
 public:
 	PT_VMMC_CPUBackend();

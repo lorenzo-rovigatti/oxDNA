@@ -17,7 +17,6 @@ CoaxVariables<number>::CoaxVariables() {
 
 template<typename number>
 CoaxVariables<number>::~CoaxVariables() {
-	// should I delete _dna_interaction?
 }
 
 template<typename number>
@@ -32,6 +31,12 @@ void CoaxVariables<number>::get_settings(input_file &my_inp, input_file &sim_inp
 	getInputInt(&my_inp,"particle2_id", &tmp, 1);
 	_particle2_id = tmp;
 
+	std::string inter_type;
+	if (getInputString(&sim_inp, "interaction_type", inter_type, 0) == KEY_FOUND){
+		if (inter_type.compare("DNA2") == 0) {
+			_use_oxDNA2_coaxial_stacking = true;
+		}
+	}
 	// initialise the DNAInteraction object
 	_dna_interaction->get_settings(sim_inp);
 	_dna_interaction->init();
@@ -40,8 +45,7 @@ void CoaxVariables<number>::get_settings(input_file &my_inp, input_file &sim_inp
 template<typename number>
 std::string CoaxVariables<number>::get_output_string(llint curr_step) {
 	std::stringstream output_str;
-	//output_str << "# step " << curr_step << "\n";
-	
+
 	output_str << "#id1 id2 delta_r_coax within_cutoff theta1 theta4 theta5 theta6 cos(phi3) total_coax, t = " << curr_step << "\n";
 	
 	BaseParticle<number> *p;
@@ -90,9 +94,14 @@ std::string CoaxVariables<number>::get_output_string(llint curr_step) {
 		number f4t4 = _dna_interaction->_custom_f4 (cost4, CXST_F4_THETA4);
 		number f4t5 = _dna_interaction->_custom_f4 (cost5, CXST_F4_THETA5) + _dna_interaction->_custom_f4 (-cost5, CXST_F4_THETA5);
 		number f4t6 = _dna_interaction->_custom_f4 (cost6, CXST_F4_THETA6) + _dna_interaction->_custom_f4 (-cost6, CXST_F4_THETA6);
-		number f5cosphi3 = _dna_interaction->_f5(cosphi3, CXST_F5_PHI3);
 
-		energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3);
+		if (_use_oxDNA2_coaxial_stacking){
+			energy = f2 * f4t1 * f4t4 * f4t5 * f4t6;
+		}
+		else{
+			number f5cosphi3 = _dna_interaction->_f5(cosphi3, CXST_F5_PHI3);
+			energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3;
+		}
 	}
 	
 	number t1 = acos(cost1);

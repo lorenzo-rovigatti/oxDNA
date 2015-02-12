@@ -17,10 +17,15 @@
 template<typename number, typename number4>
 class CUDADNAInteraction: public CUDABaseInteraction<number, number4>, public DNAInteraction<number> {
 public:
+        enum {
+		DEBYE_HUCKEL = 7
+	};
 	CUDADNAInteraction();
 	virtual ~CUDADNAInteraction();
 
 	bool _use_debye_huckel;
+	bool _use_oxDNA2_coaxial_stacking;
+	bool _use_oxDNA2_FENE;
 	// copied from DNA2Interaction.h (CPU) (and change number -> float), the least bad way of doing things
 	float _salt_concentration;
 	bool _debye_huckel_half_charged_ends;

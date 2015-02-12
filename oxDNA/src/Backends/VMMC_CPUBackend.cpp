@@ -320,7 +320,7 @@ void VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 	}
 
 	if (_have_us) {
-		_h.read_grooving(inp);
+		_h.read_interaction(inp);
 	}
 
 	if (getInputLLInt(&inp, "equilibration_steps", &_equilibration_steps, 0) == KEY_FOUND) {
@@ -356,7 +356,13 @@ inline number VMMC_CPUBackend<number>::_particle_particle_bonded_interaction_n3_
 
 	// check for overlaps;
 	LR_vector<number> rback = r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BACK];
-	number rbackr0 = rback.module() - FENE_R0;
+	number rbackr0;
+        if(dynamic_cast<DNA2Interaction<number> *>(this->_interaction) != NULL) {
+		rbackr0 = rback.module() - FENE_R0_OXDNA2;
+	}
+	else {
+		rbackr0 = rback.module() - FENE_R0_OXDNA;
+	}
 	if (fabs(rbackr0) > FENE_DELTA - DBL_EPSILON) {
 		this->_overlap = true;
 		p->n3 = tmp1;
@@ -407,10 +413,13 @@ inline number VMMC_CPUBackend<number>::_particle_particle_nonbonded_interaction_
 
 	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::NONBONDED_EXCLUDED_VOLUME, p, q, &r, false);
 	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::CROSS_STACKING, p, q, &r, false);
-	energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::COAXIAL_STACKING, p, q, &r, false);
 
-        if(dynamic_cast<DNA2Interaction<number> *>(this->_interaction) != NULL)
+	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
+        if(dynamic_cast<DNA2Interaction<number> *>(this->_interaction) == NULL) energy += this->_interaction->pair_interaction_term(DNAInteraction<number>::COAXIAL_STACKING, p, q, &r, false);
+	
+	if(dynamic_cast<DNA2Interaction<number> *>(this->_interaction) != NULL)
 	{
+		energy += this->_interaction->pair_interaction_term(DNA2Interaction<number>::COAXIAL_STACKING, p, q, &r, false);
 		energy += this->_interaction->pair_interaction_term(DNA2Interaction<number>::DEBYE_HUCKEL, p, q, &r, false);
 	}
 	else if(dynamic_cast<RNA2Interaction<number> *>(this->_interaction) != NULL)

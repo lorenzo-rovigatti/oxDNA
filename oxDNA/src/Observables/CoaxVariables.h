@@ -28,6 +28,7 @@ protected:
 	int _particle1_id;
 	int _particle2_id;
 	DNAInteraction<number> *_dna_interaction;
+	bool _use_oxDNA2_coaxial_stacking;
 public:
 	CoaxVariables();
 	virtual ~CoaxVariables();
