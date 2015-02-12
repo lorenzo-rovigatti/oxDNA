@@ -338,8 +338,8 @@ void Histogram::add (int i, double w, double e_state, double e_stack) {
 void Histogram::add (int i, double w, double e_state, double e_stack, double e_ext) {
 
 	double e0, et;
-	if (_grooving) et = e_stack * STCK_FACT_EPS_MM / (STCK_BASE_EPS_MM + _simtemp * STCK_FACT_EPS_MM);
-	else et = e_stack * STCK_FACT_EPS_NO_MM / (STCK_BASE_EPS_NO_MM + _simtemp * STCK_FACT_EPS_NO_MM);
+	if (_oxDNA2_stacking) et = e_stack * STCK_FACT_EPS_OXDNA2 / (STCK_BASE_EPS_OXDNA2 + _simtemp * STCK_FACT_EPS_OXDNA2);
+	else et = e_stack * STCK_FACT_EPS_OXDNA / (STCK_BASE_EPS_OXDNA + _simtemp * STCK_FACT_EPS_OXDNA);
 	e0 = e_state - _simtemp * et;
 
 	_data[i] += 1.;
@@ -358,8 +358,8 @@ void Histogram::add (int i, double w, double e_state, double e_stack, double e_e
 void Histogram::add (int i, double am, double w, double e_state, double e_stack, double e_ext) {
 	double e0, et;
 	// etot = e0 + T * et;
-	if (_grooving) et = e_stack * STCK_FACT_EPS_MM / (STCK_BASE_EPS_MM + _simtemp * STCK_FACT_EPS_MM);
-	else et = e_stack * STCK_FACT_EPS_NO_MM / (STCK_BASE_EPS_NO_MM + _simtemp * STCK_FACT_EPS_NO_MM);
+	if (_oxDNA2_stacking) et = e_stack * STCK_FACT_EPS_OXDNA2 / (STCK_BASE_EPS_OXDNA2 + _simtemp * STCK_FACT_EPS_OXDNA2);
+	else et = e_stack * STCK_FACT_EPS_OXDNA / (STCK_BASE_EPS_OXDNA + _simtemp * STCK_FACT_EPS_OXDNA);
 	e0 = e_state - _simtemp * et;
 
 	_data[i] += am;
@@ -442,11 +442,10 @@ void Histogram::print_to_file (const char * filename, long long int time, bool o
 	return;
 }
 
-void Histogram::read_grooving(input_file &inp){
+void Histogram::read_interaction(input_file &inp){
 	// need this to set the stacking strength
-	_grooving = false;
-	int tmp;
-	if(getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) == KEY_FOUND){
-		if (tmp != 0) _grooving = true;
-	}
+	_oxDNA2_stacking = false;
+	std::string inter_type ("");
+	getInputString(&inp, "interaction_type", inter_type, 0);
+	if(inter_type.compare("DNA2") == 0) _oxDNA2_stacking = true;
 }

@@ -43,6 +43,7 @@ SET(observables_SOURCES
 	Observables/CoaxVariables.cpp
 	Observables/Pitch.cpp
 	Observables/SaltExtrapolation.cpp
+	Observables/ExternalTorque.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
 	Observables/Configurations/TclOutput.cpp

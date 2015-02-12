@@ -42,7 +42,7 @@ DNAInteraction<number>::DNAInteraction() : BaseInteraction<number, DNAInteractio
 	F1_RCHIGH[1] = STCK_RCHIGH;
 
 	F2_K[0] = CRST_K;
-	F2_K[1] = CXST_K;
+	F2_K[1] = CXST_K_OXDNA;
 
 	F2_RC[0] = CRST_RC;
 	F2_RC[1] = CXST_RC;
@@ -115,7 +115,7 @@ DNAInteraction<number>::DNAInteraction() : BaseInteraction<number, DNAInteractio
 	F4_THETA_T0[8] = CRST_THETA4_T0;
 	F4_THETA_T0[9] = CRST_THETA7_T0;
 
-	F4_THETA_T0[10] = CXST_THETA1_T0;
+	F4_THETA_T0[10] = CXST_THETA1_T0_OXDNA;
 	F4_THETA_T0[11] = CXST_THETA4_T0;
 	F4_THETA_T0[12] = CXST_THETA5_T0;
 
@@ -261,13 +261,11 @@ void DNAInteraction<number>::init() {
 	for(int i = 0; i < 5; i++) {
 		for(int j = 0; j < 5; j++) {
 			// stacking
-			if (_grooving) F1_EPS[STCK_F1][i][j] = STCK_BASE_EPS_MM + STCK_FACT_EPS_MM * _T;
-			else F1_EPS[STCK_F1][i][j] = STCK_BASE_EPS_NO_MM + STCK_FACT_EPS_NO_MM * _T;
+			F1_EPS[STCK_F1][i][j] = STCK_BASE_EPS_OXDNA + STCK_FACT_EPS_OXDNA * _T;
 			F1_SHIFT[STCK_F1][i][j] = F1_EPS[STCK_F1][i][j] * SQR(1 - exp(-(STCK_RC - STCK_R0) * STCK_A));
 
 			// HB
-			if (_grooving) F1_EPS[HYDR_F1][i][j] = HYDR_EPS_MM;
-			else F1_EPS[HYDR_F1][i][j] = HYDR_EPS_NO_MM;
+			F1_EPS[HYDR_F1][i][j] = HYDR_EPS_OXDNA;
 			F1_SHIFT[HYDR_F1][i][j] = F1_EPS[HYDR_F1][i][j] * SQR(1 - exp(-(HYDR_RC - HYDR_R0) * HYDR_A));
 		}
 	}
@@ -360,7 +358,7 @@ number DNAInteraction<number>::_backbone(BaseParticle<number> *p, BaseParticle<n
 
 	LR_vector<number> rback = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BACK];
 	number rbackmod = rback.module();
-	number rbackr0 = rbackmod - FENE_R0;
+	number rbackr0 = rbackmod - FENE_R0_OXDNA;
 	number energy = -FENE_EPS * 0.5 * log(1 - SQR(rbackr0) / FENE_DELTA2);
 
 	// we check whether we ended up OUTSIDE of the FENE range
@@ -1184,21 +1182,29 @@ number DNAInteraction<number>::_f2D(number r, int type) {
 
 template<typename number>
 number DNAInteraction<number>::_fakef4(number t, void * par) {
+	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
+	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return _f4(acos(t), *((int*)par));
 }
 
 template<typename number>
 number DNAInteraction<number>::_fakef4D(number t, void * par) {
+	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
+	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return -_f4Dsin (acos(t), *((int*)par));
 }
 
 template<typename number>
 number DNAInteraction<number>::_fakef4_cxst_t1(number t, void * par) {
+	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
+	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return _f4(acos(t), *((int*)par)) + _f4(2 * PI - acos(t), *((int*)par));
 }
 
 template<typename number>
 number DNAInteraction<number>::_fakef4D_cxst_t1(number t, void * par) {
+	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
+	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return -_f4Dsin (acos(t), *((int*)par)) - _f4Dsin(2 * PI - acos(t), *((int*)par));
 }
 
@@ -1311,8 +1317,8 @@ void DNAInteraction<number>::check_input_sanity(BaseParticle<number> **particles
 		if(p->n5 != P_VIRTUAL && p->n5->index >= N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
-		number mind = FENE_R0 - FENE_DELTA;
-		number maxd = FENE_R0 + FENE_DELTA;
+		number mind = FENE_R0_OXDNA - FENE_DELTA;
+		number maxd = FENE_R0_OXDNA + FENE_DELTA;
 		if(p->n3 != P_VIRTUAL) {
 			BaseParticle<number> *q = p->n3;
 			q->set_positions();

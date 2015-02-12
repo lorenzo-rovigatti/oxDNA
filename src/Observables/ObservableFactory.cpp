@@ -30,6 +30,7 @@
 #include "CoaxVariables.h"
 #include "Pitch.h"
 #include "SaltExtrapolation.h"
+#include "ExternalTorque.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
@@ -78,6 +79,7 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "coax_variables", 512)) res = new CoaxVariables<number>();
 	else if(!strncasecmp(obs_type, "pitch", 512)) res = new Pitch<number>();
 	else if(!strncasecmp(obs_type, "salt_extrapolation", 512)) res = new SaltExtrapolation<number>();
+	else if(!strncasecmp(obs_type, "external_torque", 512)) res = new ExternalTorque<number>();
 	else {
 		res = PluginManager::instance()->get_observable<number>(obs_type);
 		if(res == NULL) throw oxDNAException ("Observable '%s' not found. Aborting", obs_type);

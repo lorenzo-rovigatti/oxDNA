@@ -31,7 +31,7 @@ class Histogram {
 		double ** _erdata;
 		double _simtemp;
 	
-		bool _grooving;
+		bool _oxDNA2_stacking;
 	
 	public:
 		Histogram();
@@ -56,7 +56,7 @@ class Histogram {
 		void print_to_file (const char * filename, long long int time, bool only_last, bool skip_zeros);
 		std::string print_to_string (bool skip_zeros=false);
 		void load_from_file (const char * filename);
-		void read_grooving(input_file &);
+		void read_interaction(input_file &);
 };
 
 #endif

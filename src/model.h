@@ -22,7 +22,8 @@
  * FENE
  */
 #define FENE_EPS 2.0f
-#define FENE_R0 0.7525f
+#define FENE_R0_OXDNA 0.7525f
+#define FENE_R0_OXDNA2 0.7564f
 #define FENE_DELTA 0.25f
 #define FENE_DELTA2 0.0625f
 
@@ -52,8 +53,8 @@
  */
 /// radial part
 #define HYDR_F1 0
-#define HYDR_EPS_NO_MM 1.077f
-#define HYDR_EPS_MM 1.0601f
+#define HYDR_EPS_OXDNA 1.077f
+#define HYDR_EPS_OXDNA2 1.0678f
 #define HYDR_A 8.f
 #define HYDR_RC 0.75f
 #define HYDR_R0 0.4f
@@ -113,10 +114,10 @@
  */
 /// radial part
 #define STCK_F1 1
-#define STCK_BASE_EPS_NO_MM 1.3448f
-#define STCK_BASE_EPS_MM 1.3476f
-#define STCK_FACT_EPS_NO_MM 2.6568f
-#define STCK_FACT_EPS_MM 2.6624f
+#define STCK_BASE_EPS_OXDNA 1.3448f
+#define STCK_BASE_EPS_OXDNA2 1.3523f
+#define STCK_FACT_EPS_OXDNA 2.6568f
+#define STCK_FACT_EPS_OXDNA2 2.6717f
 #define STCK_A 6.f
 #define STCK_RC 0.9f
 #define STCK_R0 0.4f
@@ -218,7 +219,8 @@
 #define CXST_F2 1
 #define CXST_R0 0.400f
 #define CXST_RC 0.6f
-#define CXST_K 46.0f
+#define CXST_K_OXDNA 46.0f
+#define CXST_K_OXDNA2 58.5f
 #define CXST_BLOW -2.13158f
 #define CXST_RLOW 0.22f
 #define CXST_RCLOW 0.177778f
@@ -232,9 +234,12 @@
 #define CXST_F4_THETA6 12 
 #define CXST_THETA1_A   2.f
 #define CXST_THETA1_B   10.9032f
-#define CXST_THETA1_T0 (PI - 0.60f)
+#define CXST_THETA1_T0_OXDNA (PI - 0.60f)
+#define CXST_THETA1_T0_OXDNA2 (PI - 0.25f)
 #define CXST_THETA1_TS  0.65f
 #define CXST_THETA1_TC  0.769231f
+#define CXST_THETA1_SA  20.f
+#define CXST_THETA1_SB (PI - 0.1f*(PI - (PI - 0.25f)))
 #define CXST_THETA4_A   1.3f
 #define CXST_THETA4_B   6.4381f
 #define CXST_THETA4_T0  0.f

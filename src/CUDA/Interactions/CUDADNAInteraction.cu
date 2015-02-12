@@ -10,6 +10,7 @@
 #include "CUDA_DNA.cuh"
 #include "../Lists/CUDASimpleVerletList.h"
 #include "../Lists/CUDANoList.h"
+#include "../../Interactions/DNA2Interaction.h"
 
 template<typename number, typename number4>
 CUDADNAInteraction<number, number4>::CUDADNAInteraction() {
@@ -24,11 +25,22 @@ CUDADNAInteraction<number, number4>::~CUDADNAInteraction() {
 template<typename number, typename number4>
 void CUDADNAInteraction<number, number4>::get_settings(input_file &inp) {
 	_use_debye_huckel = false;
+	_use_oxDNA2_coaxial_stacking = false;
+	_use_oxDNA2_FENE = false;
 	std::string inter_type;
 	if (getInputString(&inp, "interaction_type", inter_type, 0) == KEY_FOUND){
 		if (inter_type.compare("DNA2") == 0) {
 			_use_debye_huckel = true;
+			_use_oxDNA2_coaxial_stacking = true;
+			_use_oxDNA2_FENE = true;
 			// copy-pasted from the DNA2Interaction constructor
+			this->_int_map[DEBYE_HUCKEL] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_debye_huckel;
+			// I assume these are needed. I think the interaction map is used for when the observables want to print energy
+			this->_int_map[this->BACKBONE] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_backbone;
+			this->_int_map[this->COAXIAL_STACKING] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_coaxial_stacking;
+
+			// we don't need the F4_... terms as the macros are used in the CUDA_DNA.cuh file; this doesn't apply for the F2_K term
+			this->F2_K[1] = CXST_K_OXDNA2;
 			_debye_huckel_half_charged_ends = true;
 			this->_grooving = true;
 			// end copy from DNA2Interaction
@@ -146,7 +158,7 @@ void CUDADNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 		if(_v_lists->use_edge()) {
 				dna_forces_edge_nonbonded<number, number4>
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_grooving, _use_debye_huckel);
+					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking);
 
 				this->_sum_edge_forces_torques(d_forces, d_torques);
 
@@ -156,12 +168,12 @@ void CUDADNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 
 				dna_forces_edge_bonded<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_grooving);
+					(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_grooving, _use_oxDNA2_FENE);
 			}
 			else {
 				dna_forces<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_grooving, _use_debye_huckel);
+					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE);
 				CUT_CHECK_ERROR("forces_second_step simple_lists error");
 			}
 	}
@@ -170,7 +182,7 @@ void CUDADNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 	if(_no_lists != NULL) {
 		dna_forces<number, number4>
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving, _use_debye_huckel);
+			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE);
 		CUT_CHECK_ERROR("forces_second_step no_lists error");
 	}
 }
