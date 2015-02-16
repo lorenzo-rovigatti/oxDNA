@@ -956,18 +956,21 @@ int *FFS_MD_CUDAMixedBackend::_get_2D_rows(int rows_len, int *lens){
 	return rows;
 }
 
-//Used to print the order parameters, to match CPU behaviour
+//Used to print the order parameters whenever the energy is printed, to match CPU behaviour
 char * FFS_MD_CUDAMixedBackend::get_op_state_str(void) { 
 	CUDA_SAFE_CALL(cudaMemcpy(_h_hb_energies, _d_hb_energies, _n_hb_pairs * sizeof(float), cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL(cudaMemcpy(_h_op_dists, _d_op_dists, _n_dist_pairs * sizeof(float), cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL(cudaMemcpy(_h_nearhb_states, _d_nearhb_states, _n_hb_pairs * sizeof(bool), cudaMemcpyDeviceToHost) );
-	char * aux;
+
+	// work out the lengths and row indices for the hbond and distance order parameter arrays
 	int * h_hb_region_lens = (int *)malloc(_n_hb_regions * sizeof(int)); //These could probably be redefined as class variables, rather than being redeclared here and in init. 
 	int * h_dist_region_lens = (int *)malloc(_n_dist_regions * sizeof(int));
 	_op.get_hb_pairs_count(h_hb_region_lens);
 	_op.get_dist_pairs_count(h_dist_region_lens);
 	int * h_hb_region_rows = _get_2D_rows(_n_hb_regions, h_hb_region_lens);
 	int * h_dist_region_rows = _get_2D_rows(_n_dist_regions, h_dist_region_lens);
+
+	char * aux;
 	aux = (char *) _state_str;
 	for (int i = 0; i < _n_hb_regions; i++) {
 		if (_op.get_hb_cutoff(i)!=64) {
@@ -985,13 +988,13 @@ char * FFS_MD_CUDAMixedBackend::get_op_state_str(void) {
 		aux = (char *) _state_str + strlen(_state_str);
 	}
 	for (int i = 0; i < _n_dist_regions; i++) {
-			float min_dist = _h_op_dists[i];
-			for (int j=1 ; j < h_dist_region_lens[i] ; j++){
-				if (_h_op_dists[h_hb_region_rows[i] + j] < min_dist) {min_dist=_h_op_dists[h_hb_region_rows[i] + j];}
-			}
-			sprintf(aux, "%2f ", min_dist);
-			aux = (char *) _state_str + strlen(_state_str);
+		float min_dist = _h_op_dists[h_dist_region_rows[i]];
+		for (int j=1 ; j < h_dist_region_lens[i] ; j++){
+			if (_h_op_dists[h_dist_region_rows[i] + j] < min_dist) {min_dist=_h_op_dists[h_dist_region_rows[i] + j];}
 		}
+		sprintf(aux, "%2f ", min_dist);
+		aux = (char *) _state_str + strlen(_state_str);
+	}
 
 	free(h_hb_region_lens);
 	free(h_dist_region_lens);
@@ -1000,12 +1003,14 @@ char * FFS_MD_CUDAMixedBackend::get_op_state_str(void) {
 	return _state_str;
 }
 
-//Used to print the order parameters, to match CPU behaviour
+//Used to print the order parameters at the end of the simulation, to match CPU behaviour
 void FFS_MD_CUDAMixedBackend::sprintf_names_and_values(char *str) { 
 	// copy order parameter states from GPU
 	CUDA_SAFE_CALL(cudaMemcpy(_h_hb_energies, _d_hb_energies, _n_hb_pairs * sizeof(float), cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL(cudaMemcpy(_h_op_dists, _d_op_dists, _n_dist_pairs * sizeof(float), cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL(cudaMemcpy(_h_nearhb_states, _d_nearhb_states, _n_hb_pairs * sizeof(bool), cudaMemcpyDeviceToHost) );
+
+	// work out the lengths and row indices for the hbond and distance order parameter arrays
 	int * h_hb_region_lens = (int *)malloc(_n_hb_regions * sizeof(int));
 	int * h_dist_region_lens = (int *)malloc(_n_dist_regions * sizeof(int));
 	_op.get_hb_pairs_count(h_hb_region_lens);
@@ -1030,13 +1035,14 @@ void FFS_MD_CUDAMixedBackend::sprintf_names_and_values(char *str) {
 		aux = (char *) str + strlen(str);
 	}
 	for (int i = 0; i < _n_dist_regions; i++) {
-			float min_dist = _h_op_dists[i];
-			for (int j=1 ; j < h_dist_region_lens[i] ; j++){
-				if (_h_op_dists[h_hb_region_rows[i] + j] < min_dist) {min_dist=_h_op_dists[h_hb_region_rows[i] + j];}
-			}
-			sprintf(aux, "%s: %12.9f; ", _op.get_name_from_distance_id(i), min_dist);
-			aux = (char *) str + strlen(str);
+		float min_dist = _h_op_dists[h_dist_region_rows[i]];
+		for (int j=1 ; j < h_dist_region_lens[i] ; j++){
+			if (_h_op_dists[h_dist_region_rows[i] + j] < min_dist) {min_dist=_h_op_dists[h_dist_region_rows[i] + j];}
 		}
+		sprintf(aux, "%s: %12.9f; ", _op.get_name_from_distance_id(i), min_dist);
+		aux = (char *) str + strlen(str);
+	}
+
 	free(h_hb_region_lens);
 	free(h_dist_region_lens);
 	free(h_hb_region_rows);
