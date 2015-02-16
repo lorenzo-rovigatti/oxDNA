@@ -6,7 +6,7 @@ This utility requires python-plex, which can be downloaded from http://pypi.pyth
 
 import sys
 import plex as px
-from glob import glob
+from glob import iglob
 import os
 from textwrap import wrap
 
@@ -236,7 +236,7 @@ for cat, cat_paths in CATEGORIES.iteritems():
     cat_options = Options(cat)
     for cat_path in cat_paths:
         tot_path = os.path.join(base_path, cat_path)
-        for cat_file in glob(tot_path):
+        for cat_file in iglob(tot_path):
             base_file = cat_file.replace(base_path + os.path.sep, "")
             file_options = Options(base_file)
             
