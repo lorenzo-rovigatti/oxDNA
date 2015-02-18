@@ -85,6 +85,7 @@ SET(interactions_SOURCES
 	Interactions/DirkInteraction.cpp
 	Interactions/DirkInteraction2.cpp
 	Interactions/DirkInteractionBias.cpp
+	Interactions/DirkInteractionSin.cpp
 	Interactions/HardCylinderInteraction.cpp
 	Interactions/HardSpheroCylinderInteraction.cpp
 	Interactions/BoxInteraction.cpp
@@ -126,6 +127,7 @@ SET(common_SOURCES
 	Particles/DNANucleotide.cpp
 	Particles/PatchyParticle.cpp
 	Particles/TSPParticle.cpp
+	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
