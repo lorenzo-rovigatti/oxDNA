@@ -24,6 +24,7 @@
 #include "DirkInteraction.h"
 #include "DirkInteraction2.h"
 #include "DirkInteractionBias.h"
+#include "DirkInteractionSin.h"
 #include "CustomInteraction.h"
 #include "DNA2Interaction.h"
 #include "RNAInteraction2.h"
@@ -73,6 +74,7 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 	else if(inter_type.compare("Dirk") == 0) return new DirkInteraction<number>();
 	else if(inter_type.compare("Dirk2") == 0) return new DirkInteraction2<number>();
 	else if(inter_type.compare("DirkBias") == 0) return new DirkInteractionBias<number>();
+	else if(inter_type.compare("DirkSin") == 0) return new DirkInteractionSin<number>();
 	else if(inter_type.compare("custom") == 0) return new CustomInteraction<number>();
 	else if(inter_type.compare("DNA2") == 0) return new DNA2Interaction<number>();
 	else if(inter_type.compare("RNA2") == 0) return new RNA2Interaction<number>();
