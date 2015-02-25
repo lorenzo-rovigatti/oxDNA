@@ -155,13 +155,12 @@ SET(oxDNA_SOURCES
 	oxDNA.cpp 
 )
 	
-IF (MPI) 
+IF(MPI) 
 SET(oxDNA_SOURCES ${oxDNA_SOURCES} 
-		Backends/MD_MPIBackend.cpp
-		Backends/PT_VMMC_CPUBackend.cpp
-	)
+	Backends/MD_MPIBackend.cpp
+	Backends/PT_VMMC_CPUBackend.cpp
+)
 ENDIF (MPI)
-
 
 IF(CUDA)
 	SET(oxDNA_CUDASOURCES
@@ -214,3 +213,16 @@ SET(confGenerator_SOURCES
 
 ADD_EXECUTABLE(confGenerator ${confGenerator_SOURCES})
 TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
+
+FIND_PACKAGE(MPI)
+IF(MPI_FOUND)
+	include_directories(${MPI_INCLUDE_PATH})
+
+	SET(mpi_SOURCES
+		oxDNA_mpi
+		Managers/ParallelManager.cpp
+	)
+	
+	ADD_EXECUTABLE(oxDNA_mpi ${mpi_SOURCES})
+	TARGET_LINK_LIBRARIES(oxDNA_mpi ${lib_name} ${MPI_LIBRARIES})
+ENDIF()

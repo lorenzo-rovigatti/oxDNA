@@ -53,7 +53,7 @@ private:
 	 * @param
 	 * @return
 	 */
-	Logger(Logger const&){};
+	Logger(Logger const&) {};
 
 public:
 	enum {
