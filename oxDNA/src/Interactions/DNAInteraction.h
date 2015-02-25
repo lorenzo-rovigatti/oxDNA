@@ -87,15 +87,6 @@ protected:
 	 */
 	bool _check_bonded_neighbour(BaseParticle<number> **p, BaseParticle<number> **q, LR_vector<number> *r);
 
-	/**
-	 * @brief Checks whether the two particles share a backbone link.
-	 *
-	 * @param p
-	 * @param q
-	 * @return true if they are bonded, false otherwise
-	 */
-	bool _are_bonded(BaseParticle<number> *p, BaseParticle<number> *q) { return (p->n3 == q || p->n5 == q); }
-
 public:
 	enum {
 		BACKBONE = 0,

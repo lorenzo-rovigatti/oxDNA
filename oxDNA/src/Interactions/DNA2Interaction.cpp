@@ -17,6 +17,7 @@ DNA2Interaction<number>::DNA2Interaction() : DNAInteraction<number>() {
 	F4_THETA_SA[10] = CXST_THETA1_SA;
 	F4_THETA_SB[10] = CXST_THETA1_SB;
 
+	_salt_concentration = 0.5;
 	_debye_huckel_half_charged_ends = true;
 	this->_grooving = true;
 }
@@ -30,7 +31,7 @@ number DNA2Interaction<number>::pair_interaction_bonded(BaseParticle<number> *p,
 			r = &computed_r;
 		}
 
-		if(!_check_bonded_neighbour(&p, &q, r)) return (number) 0;
+		if(!this->_check_bonded_neighbour(&p, &q, r)) return (number) 0;
 	}
 
 	// The methods with "this->" in front of them are inherited from DNAInteraction. The
@@ -70,7 +71,7 @@ void DNA2Interaction<number>::get_settings(input_file &inp) {
 	getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
 	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt concentration =  %g", this->_salt_concentration);
 
-        getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
+	getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0);
 	//OX_LOG(Logger::LOG_INFO,"dh_half_charged_ends = %s", _debye_huckel_half_charged_ends ? "true" : "false");
 
 	// lambda-factor (the dh length at T = 300K, I = 1.0)
@@ -158,7 +159,7 @@ void DNA2Interaction<number>::init() {
 template<typename number>
 number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	number cut_factor = 1.0f;
-	if(this->_are_bonded(p, q)) return (number) 0.f;
+	if(p->is_bonded(q)) return (number) 0.f;
 	// for each particle that is on a terminus, halve the charge
 	if (this->_debye_huckel_half_charged_ends && (p->n3 == P_VIRTUAL || p->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
 	if (this->_debye_huckel_half_charged_ends && (q->n3 == P_VIRTUAL || q->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
@@ -209,7 +210,7 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 template<typename number>
 number DNA2Interaction<number>::_backbone(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	// copied from DNAInteraction, uses the FENE_R0_OXDNA2 backbone parameter
-	if(!_check_bonded_neighbour(&p, &q, r)) {
+	if(!this->_check_bonded_neighbour(&p, &q, r)) {
 	    return (number) 0.f;
 	}
 
@@ -280,7 +281,7 @@ void DNA2Interaction<number>::check_input_sanity(BaseParticle<number> **particle
 
 template<typename number>
 number DNA2Interaction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(_are_bonded(p, q)) return (number) 0.f;
+	if(p->is_bonded(q)) return (number) 0.f;
 
 	LR_vector<number> rstack = *r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
 	number rstackmod = rstack.module();
@@ -373,14 +374,14 @@ template<typename number>
 number DNA2Interaction<number>::_fakef4_cxst_t1(number t, void * par) {
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNA2Interaction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
-	return _f4(acos(t), *((int*)par)) + _f4_pure_harmonic(acos(t), *((int*)par));
+	return this->_f4(acos(t), *((int*)par)) + _f4_pure_harmonic(acos(t), *((int*)par));
 }
 
 template<typename number>
 number DNA2Interaction<number>::_fakef4D_cxst_t1(number t, void * par) {
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNA2Interaction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
-	return -_f4Dsin (acos(t), *((int*)par)) - _f4Dsin_pure_harmonic (acos(t), *((int*)par));
+	return -this->_f4Dsin(acos(t), *((int*)par)) - _f4Dsin_pure_harmonic (acos(t), *((int*)par));
 }
 
 template<typename number>

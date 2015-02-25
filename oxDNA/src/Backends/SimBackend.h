@@ -109,6 +109,8 @@ trajectory_file = <path> (path to the file which will contain the output traject
 
 [print_timings = <bool> (whether oxDNA should print out to a file performance timings at the end of the simulation or not, defaults to false)]
 [timings_filename = <path> (path to the file where timings will be printed)]
+
+[output_prefix = <string> (the name of all output files will be preceded by this prefix, defaults to an empty string)]
 @endverbatim
  */
 template<typename number>

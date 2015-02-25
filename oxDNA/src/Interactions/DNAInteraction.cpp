@@ -618,7 +618,7 @@ number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<n
 
 template<typename number>
 number DNAInteraction<number>::_nonbonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(_are_bonded(p, q)) return (number) 0.f;
+	if(p->is_bonded(q)) return (number) 0.f;
 
 	LR_vector<number> force(0, 0, 0);
 	LR_vector<number> torquep(0, 0, 0);
@@ -681,7 +681,7 @@ number DNAInteraction<number>::_nonbonded_excluded_volume(BaseParticle<number> *
 
 template<typename number>
 number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(_are_bonded(p, q)) return (number) 0.f;
+	if(p->is_bonded(q)) return (number) 0.f;
 
 	// true if p and q are Watson-Crick-like pairs
 	bool is_pair = (q->btype + p->btype == 3);
@@ -803,7 +803,7 @@ number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BasePa
 
 template<typename number>
 number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(_are_bonded(p, q)) return (number) 0.f;
+	if(p->is_bonded(q)) return (number) 0.f;
 
 	LR_vector<number> rcstack = *r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BASE];
 	number rcstackmod = rcstack.module();
@@ -919,7 +919,7 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 
 template<typename number>
 number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(_are_bonded(p, q)) return (number) 0.f;
+	if(p->is_bonded(q)) return (number) 0.f;
 
 	LR_vector<number> rstack = *r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
 	number rstackmod = rstack.module();
