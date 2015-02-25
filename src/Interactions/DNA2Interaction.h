@@ -30,7 +30,6 @@ class DNA2Interaction: public DNAInteraction<number> {
 
 protected:
 	float _salt_concentration;
-	bool _mismatch_repulsion;
 	bool _debye_huckel_half_charged_ends;
 	number _debye_huckel_prefactor;
 	number _debye_huckel_lambdafactor;

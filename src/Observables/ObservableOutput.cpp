@@ -15,13 +15,17 @@
 using namespace std;
 
 template<typename number>
-ObservableOutput<number>::ObservableOutput(std::string &stream_string, input_file &sim_inp) {
+ObservableOutput<number>::ObservableOutput(std::string &stream_string, input_file &sim_inp) : _prefix("") {
 	_sim_inp = sim_inp;
 	_start_from = 0;
 	_stop_at = -1;
 	input_file *obs_input = Utils::get_input_file_from_string(stream_string);
 
-	getInputString(obs_input, "name", _output_name, 1);
+	string out_name;
+	getInputString(obs_input, "name", out_name, 1);
+	// the prefix should be used only when the output is nor stdout nor stderr
+	if(out_name != "stdout" && out_name != "stderr") getInputString(&sim_inp, "output_prefix", _prefix, 0);
+	sprintf(_output_name, "%s%s", _prefix.c_str(), out_name.c_str());
 	getInputLLInt(obs_input, "print_every", &_print_every, 1);
 
 	getInputLLInt(obs_input, "start_from", &_start_from, 0);
@@ -104,7 +108,7 @@ void ObservableOutput<number>::add_observable(std::string obs_string) {
 
 template<typename number>
 void ObservableOutput<number>::change_output_file(string new_filename) {
-	sprintf(_output_name, "%s", new_filename.c_str());
+	sprintf(_output_name, "%s%s", _prefix.c_str(), new_filename.c_str());
 	if(_output_stream.is_open()) _output_stream.close();
 	_open_output();
 }

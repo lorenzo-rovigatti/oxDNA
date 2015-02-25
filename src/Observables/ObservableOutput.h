@@ -21,7 +21,7 @@
  * periodically. The constructor requires a string containing all the key=values associated to the instance.
  * The supported syntax is (optional values are between [])
  * @verbatim
-name = stream name (name of the output stream. stdout or stderr are accepted values)
+name = <string> (name of the output stream. stdout or stderr are accepted values)
 print_every = <integer> (frequency of output, in number steps for oxDNA, in number of configurations for DNAnalysis)
 [start_from = <integer> (start outputing from the given step, defaults to 0)]
 [stop_at = <integer> (stop outputing at this step, defaults to -1 (which means never))]
@@ -49,7 +49,8 @@ protected:
 	int _append;
 	int _only_last;
 	llint _start_from;
-     llint _stop_at;
+	llint _stop_at;
+	std::string _prefix;
 	char _output_name[512];
 	input_file _sim_inp;
 
