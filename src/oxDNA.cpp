@@ -30,48 +30,21 @@ void print_version() {
 int main(int argc, char *argv[]) {
 	Logger::init();
 
-#ifdef HAVE_MPI
-	MPI_Init(&argc,&argv);
-	//cout << "This is an MPI simulation" << endl;
-	int myid;
-	int proc_no;
-	MPI_Comm_rank(MPI_COMM_WORLD,&myid);
-	MPI_Comm_size(MPI_COMM_WORLD,&proc_no);
-	if(myid != 0) {
-		Logger::instance()->disable_log();
-		//freopen("/dev/null", "w", stderr);
-	}
-#endif
-
 	try {
 		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
 		if(!strcmp(argv[1], "-v")) print_version();
 
 		SimManager mysim(argc, argv);
 		mysim.load_options();
-#ifdef HAVE_MPI
-		MPI_Barrier (MPI_COMM_WORLD);
-#endif
 
 		OX_DEBUG("Initializing");
 		mysim.init();
-#ifdef HAVE_MPI
-		MPI_Barrier (MPI_COMM_WORLD);
-#endif
 
 		OX_LOG(Logger::LOG_INFO, "SVN CODE VERSION: %s", SVN_VERSION);
 		OX_LOG(Logger::LOG_INFO, "COMPILED ON: %s", BUILD_TIME);
 
 		OX_DEBUG("Running");
 		mysim.run();
-
-#ifdef HAVE_MPI
-		MPI_Barrier (MPI_COMM_WORLD);
-#endif
-
-#ifdef HAVE_MPI
-		MPI_Finalize();
-#endif
 
 		OX_LOG(Logger::LOG_INFO, "END OF THE SIMULATION, everything went OK!");
 	}

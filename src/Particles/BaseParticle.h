@@ -188,12 +188,6 @@ public:
 
 	/// transpose (= inverse) orientational matrix
 	LR_matrix<number> orientationT;
-
-#ifdef HAVE_MPI
-	//int *get_verlet_list(void) {return _verlet_list;}
-	template <typename num> friend struct Serialized_particle_force_torque;
-	template <typename num> friend struct Serialized_particle_position;
-#endif
 };
 
 #endif /* BASEPARTICLE_H_ */
