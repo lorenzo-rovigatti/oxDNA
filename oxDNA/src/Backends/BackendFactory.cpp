@@ -19,11 +19,6 @@
 #include "../CUDA/Backends/FFS_MD_CUDAMixedBackend.h"
 #endif
 
-#ifdef HAVE_MPI
-#include "MD_MPIBackend.h"
-#include "PT_VMMC_CPUBackend.h"
-#endif
-
 BackendFactory::BackendFactory() {
 
 }
@@ -51,20 +46,9 @@ ISimBackend *BackendFactory::make_backend(input_file &inp) {
 	ISimBackend *new_backend = NULL;
 	if(!strcmp(sim_type, "MD")) {
 		if(!strcmp(backend_opt, "CPU")) {
-#ifndef HAVE_MPI
 			if(!strcmp(backend_prec, "double")) new_backend = new MD_CPUBackend<double>();
 			else if(!strcmp(backend_prec, "float")) new_backend = new MD_CPUBackend<float>();
 			else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
-#endif
-#ifdef HAVE_MPI
-			if(!strcmp(backend_prec, "double")) new_backend = new MD_MPIBackend<double>();
-			else if(!strcmp(backend_prec, "float")) new_backend = new MD_MPIBackend<float>();
-			else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
-			int procsize;
-			MPI_Comm_size (MPI_COMM_WORLD, &procsize);
-			OX_LOG(Logger::LOG_INFO, "MPI Simulation with %d nodes", procsize);
-#endif
-
 		}
 #ifndef NOCUDA
 		else if(!strcmp(backend_opt, "CUDA")) {
@@ -118,16 +102,6 @@ ISimBackend *BackendFactory::make_backend(input_file &inp) {
 #endif
 		else throw oxDNAException("Backend '%s' not supported", backend_opt);
 	}
-#ifdef HAVE_MPI
-	else if(!strcmp (sim_type, "PT_VMMC")) {
-		if(!strcmp(backend_opt, "CPU")) {
-			if(!strcmp(backend_prec, "double")) new_backend = new PT_VMMC_CPUBackend<double>();
-			else if(!strcmp(backend_prec, "float")) new_backend = new PT_VMMC_CPUBackend<float>();
-			else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
-		}
-		else throw oxDNAException("Backend '%s' not supported", backend_opt);
-	}
-#endif
 	else throw oxDNAException("Simulation type '%s' not supported", sim_type);
 
 	return new_backend;

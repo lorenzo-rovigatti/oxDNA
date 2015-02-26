@@ -6,20 +6,6 @@ ELSE()
 	SET(lib_name common)
 ENDIF()
 
-IF(MPI)
-	FIND_PACKAGE(MPI REQUIRED)
-	INCLUDE(CMakeForceCompiler)
-	CMAKE_FORCE_CXX_COMPILER(mpicxx "MPI C++ Compiler")
-
-	IF(CMAKE_BUILD_TYPE MATCHES Debug)
-		SET(exe_name oxDNA_MPI_debug)
-		SET(lib_name common_MPI_debug)
-	ELSE()
-		SET(exe_name oxDNA_MPI)
-		SET(lib_name common_MPI)
-	ENDIF()
-ENDIF(MPI)
-
 SET(observables_SOURCES
 	Observables/ObservableOutput.cpp
 	Observables/Step.cpp
@@ -155,13 +141,6 @@ SET(oxDNA_SOURCES
 	oxDNA.cpp 
 )
 	
-IF(MPI) 
-SET(oxDNA_SOURCES ${oxDNA_SOURCES} 
-	Backends/MD_MPIBackend.cpp
-	Backends/PT_VMMC_CPUBackend.cpp
-)
-ENDIF (MPI)
-
 IF(CUDA)
 	SET(oxDNA_CUDASOURCES
 		CUDA/CUDA_rand.cu
@@ -214,8 +193,8 @@ SET(confGenerator_SOURCES
 ADD_EXECUTABLE(confGenerator ${confGenerator_SOURCES})
 TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
 
-FIND_PACKAGE(MPI)
-IF(MPI_FOUND)
+IF(MPI)
+	FIND_PACKAGE(MPI REQUIRED)
 	include_directories(${MPI_INCLUDE_PATH})
 
 	SET(mpi_SOURCES

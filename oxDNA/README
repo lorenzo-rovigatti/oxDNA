@@ -44,6 +44,7 @@ CMAKE OPTIONS
 -DDebug=ON		Compiles with debug symbols and without optimisation flags
 -DG=ON			Compiles with debug symbols + optimisation flags
 -DINTEL=ON		Uses INTEL's compiler suite
+-DMPI=ON		Compiles oxDNA with MPI support
 
 MAKE TARGETS
 -------------

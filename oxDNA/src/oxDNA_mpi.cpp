@@ -17,7 +17,7 @@
  * See high-level documentation on web: http://dna.physics.ox.ac.uk
  */
 
-#include <mpi/mpi.h>
+#include <mpi.h>
 
 #include "defs.h"
 #include "Managers/ParallelManager.h"
