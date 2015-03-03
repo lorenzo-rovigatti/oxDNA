@@ -584,16 +584,20 @@ public:
 						int end1 = atoi(tmps1[1].c_str());
 						int start2 = atoi(tmps2[0].c_str());
 						int end2 = atoi(tmps2[1].c_str());
+						printf ("@@ start1 %d, end1 %d, start2 %d, end2 %d\n", start1, end1, start2, end2); 
+					
 
 						if (start1 - end1 != start2 - end2 || start1 > end1 || start2 > end2) throw oxDNAException ("Syntax error (d) in the order parameter file. Found invalid list `%s'. Perhaps the indexes are not correct?", my_value.c_str(), pair_strings[l].c_str());
-
+						
+						int cntr = 0;
 						for (int m = start1; m <= end1; m ++) {
 							int id1 = m;
-							int id2 = end2 - m;
+							int id2 = end2 - cntr;
 							if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
 							if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
 							newpar.save_pair_as_parameter (id1, id2);
 							OX_LOG (_log_level, "--> Adding HB pair (%d, %d) from list `%s' to order parameter `%s'", id1, id2, my_value.c_str(), name_str.c_str());
+							cntr ++;
 						}
 					}
 					// handle the normal case, with pairX = <int>, <int>
