@@ -10,6 +10,9 @@
 
 #include <sstream>
 
+#include <errno.h>
+extern int errno;
+
 using std::string;
 
 Utils::Utils() {
@@ -140,12 +143,17 @@ input_file *Utils::get_input_file_from_string(const std::string &inp) {
 		}
 	}
 
+	errno = 0;
+
 	FILE *temp = NULL;
 	const int max_tries = 100;
 	for(int i = 0; i < max_tries && temp == NULL; i++) temp = tmpfile();
 	if(temp == NULL) throw oxDNAException("Failed to create a temporary file, exiting");
-	fprintf(temp, "%s", real_inp.c_str());
+	int check = fprintf(temp, "%s", real_inp.c_str());
+	if (check != (int)real_inp.size()) throw oxDNAException ("Failed to write to temporary file...; maybe /tmp has no space left? Aborting");
+
 	rewind(temp);
+	if (errno == ENOSPC) throw oxDNAException ("Failed to write to temporary file. No space left on device. maybe /tmp has no space left? Aborting");
 
 	input_file *ret = new input_file;
 	loadInput(ret, temp);
