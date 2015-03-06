@@ -18,7 +18,7 @@ AnalysisBackend::AnalysisBackend() : SimBackend<double>(), _done(false), _n_conf
 }
 
 AnalysisBackend::~AnalysisBackend() {
-	PluginManager::clear();
+
 }
 
 void AnalysisBackend::get_settings(input_file &inp) {
