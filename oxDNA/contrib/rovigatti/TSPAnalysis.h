@@ -63,6 +63,13 @@ public:
 template<typename number>
 class TSPAnalysis : public BaseObservable<number>{
 protected:
+	enum {
+		TSP_ALL,
+		TSP_SP
+	};
+
+	int _mode;
+
 	int _N_stars;
 	std::string _topology_filename;
 

@@ -49,7 +49,7 @@ void PatchyHSC<number>::init() {
 
 template<typename number>
 number PatchyHSC<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(this->_box_side > 0 && this->_box_side < 2*this->_rcut) throw oxDNAException("The box should be larger than twice the effective diameter of the particles (%lf)\n", 2*this->_rcut);
+	if(this->_box_side > 0.1 && this->_box_side < 2*this->_rcut) throw oxDNAException("The box should be larger than twice the effective diameter of the particles (%lf)\n", 2*this->_rcut);
 
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {

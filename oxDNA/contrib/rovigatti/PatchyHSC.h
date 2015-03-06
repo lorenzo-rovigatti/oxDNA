@@ -70,7 +70,7 @@ private:
 public:
 	PatchySpherocylinder(number cp_dist) : BaseParticle<number>(), _centre_patch_dist(cp_dist) {
 		this->N_int_centers = 1;
-		this->int_centers = new LR_vector<number>;
+		this->int_centers = new LR_vector<number>[1];
 	};
 
 	virtual ~PatchySpherocylinder() {};

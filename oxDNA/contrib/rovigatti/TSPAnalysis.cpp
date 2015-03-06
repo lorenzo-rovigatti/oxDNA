@@ -14,6 +14,7 @@ using namespace std;
 template<typename number>
 TSPAnalysis<number>::TSPAnalysis(): BaseObservable<number>() {
 	_N_stars = -1;
+	_mode = TSP_ALL;
 }
 
 template<typename number>
@@ -26,6 +27,12 @@ void TSPAnalysis<number>::get_settings(input_file &my_inp, input_file &sim_inp) 
 	BaseObservable<number>::get_settings(my_inp, sim_inp);
 
 	getInputString(&sim_inp, "topology", _topology_filename, 1);
+	std::string my_mode;
+	if(getInputString(&my_inp, "mode", my_mode, 0) == KEY_FOUND) {
+		if(my_mode == "size") _mode = TSP_SP;
+		else if(my_mode == "all") _mode = TSP_ALL;
+		else throw oxDNAException("TSPAnalysis: Mode '%s' not supported", my_mode.c_str());
+	}
 }
 
 template<typename number>
@@ -82,6 +89,8 @@ string TSPAnalysis<number>::get_output_string(llint curr_step) {
 				avg_star_distance += dist_1;
 				avg_star_patch_size += patch.n_arms();
 
+				if(_mode == TSP_SP) ss << patch.n_arms() << endl;
+
 				rel_pos_1 /= dist_1;
 				// angle
 				typename map<int, Patch<number> >::iterator jt;
@@ -91,7 +100,6 @@ string TSPAnalysis<number>::get_output_string(llint curr_step) {
 						LR_vector<number> rel_pos_2 = star_pos.minimum_image(patch_2.pos(), L);
 						rel_pos_2 /= sqrt(SQR(rel_pos_2));
 
-						printf("%f\n", rel_pos_1*rel_pos_2);
 						avg_star_angle += acos(rel_pos_1*rel_pos_2);
 					}
 				}
@@ -107,7 +115,7 @@ string TSPAnalysis<number>::get_output_string(llint curr_step) {
 	avg_patch_size /= _N_stars;
 	avg_angle /= _N_stars;
 
-	ss << avg_patches << " " << avg_patch_size << " " << avg_distance << " " << avg_angle;
+	if(_mode == TSP_ALL) ss << avg_patches << " " << avg_patch_size << " " << avg_distance << " " << avg_angle;
 
 	return ss.str();
 }
