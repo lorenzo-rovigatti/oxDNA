@@ -51,6 +51,7 @@ protected:
 	std::set<BaseParticle<number> *> _ref_list;
 
 	void _compute_coms(llint step);
+	void _check_index(int idx, int N);
 
 public:
 	COMForce();

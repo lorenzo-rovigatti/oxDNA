@@ -411,8 +411,8 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 				p->pos = last_pos;
 				if(nm == 0) p->pos += dir*arm_dist;
 				else {
-					if(nm < straight_till) p->pos += dir;
-					else if(!_only_chains){
+					if(nm < straight_till && !_only_chains) p->pos += dir;
+					else {
 						number angle = drand48() * (2*M_PI-0.2) + 0.2;
 						LR_matrix<number> R = Utils::get_random_rotation_matrix_from_angle<number>(angle);
 						p->pos += R*dir;
@@ -436,6 +436,7 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 					nm--;
 					continue;
 				}
+				printf("%d\n", nm);
 
 				_insert_in_cell_set_orientation(p, box_side);
 				last_pos = p->pos;

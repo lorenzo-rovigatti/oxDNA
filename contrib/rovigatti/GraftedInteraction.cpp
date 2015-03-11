@@ -77,7 +77,7 @@ void GraftedInteraction<number>::allocate_particles(BaseParticle<number> **parti
 	}
 	fclose(af);
 
-	if(anchors.size() != _N_arms) throw oxDNAException("The anchor file '%s' contains only %d positions while, according to the topology, there should be %d", anchors.size(), _N_arms);
+	if((int)anchors.size() != _N_arms) throw oxDNAException("The anchor file '%s' contains only %d positions while, according to the topology, there should be %d", anchors.size(), _N_arms);
 
 	particles[0] = new Colloid<number>(anchors);
 

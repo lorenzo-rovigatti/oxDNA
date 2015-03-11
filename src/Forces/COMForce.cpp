@@ -41,12 +41,18 @@ void COMForce<number>::get_settings(input_file &inp) {
 }
 
 template<typename number>
+void COMForce<number>::_check_index(int idx, int N) {
+	if(idx < 0 || idx >= N) throw oxDNAException("COMForce: invalid id %d", idx);
+}
+
+template<typename number>
 void COMForce<number>::init(BaseParticle<number> **particles, int N, number *box_side) {
 	_box_side = box_side;
 
 	vector<string> spl = Utils::split(_com_string, ',');
 	for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) {
 		int index = atoi(it->c_str());
+		_check_index(index, N);
 		_com_list.insert(particles[index]);
 		particles[index]->add_ext_force(this);
 	}
@@ -54,6 +60,7 @@ void COMForce<number>::init(BaseParticle<number> **particles, int N, number *box
 	spl = Utils::split(_ref_string, ',');
 	for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) {
 		int index = atoi(it->c_str());
+		_check_index(index, N);
 		_ref_list.insert(particles[index]);
 	}
 
