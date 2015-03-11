@@ -35,6 +35,8 @@ MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABas
 	_h_gpu_index = _h_cpu_index = NULL;
 
 	_cuda_thermostat = NULL;
+
+	_d_ext_forces = NULL;
 }
 
 template<typename number, typename number4>
@@ -58,7 +60,8 @@ MD_CUDABackend<number, number4>::~MD_CUDABackend() {
 
 	if(this->_external_forces) {
 		delete[] _h_ext_forces;
-		CUDA_SAFE_CALL( cudaFree(_d_ext_forces) );
+		if(_d_ext_forces != NULL)
+			CUDA_SAFE_CALL( cudaFree(_d_ext_forces) );
 	}
 
 	if(_h_vels != NULL) {
