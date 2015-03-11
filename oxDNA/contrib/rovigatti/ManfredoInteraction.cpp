@@ -404,7 +404,7 @@ void ManfredoInteraction<number>::generate_random_configuration(BaseParticle<num
 				sticky->set_positions();
 
 				LR_vector<number> prev_back = particles[p_ind-1]->pos + particles[p_ind-1]->int_centers[DNANucleotide<number>::BACK];
-				LR_vector<number> curr_back = prev_back + dir*FENE_R0;
+				LR_vector<number> curr_back = prev_back + dir*FENE_R0_OXDNA;
 				sticky->pos = curr_back - sticky->int_centers[DNANucleotide<number>::BACK];
 				p_ind++;
 			}

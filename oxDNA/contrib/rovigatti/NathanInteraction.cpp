@@ -235,7 +235,7 @@ void NathanInteraction<number>::generate_random_configuration(BaseParticle<numbe
 		to_insert.z = nz*_pol_sigma;
 		for(int ny = 0; ny < N_per_side; ny++) {
 			for(int nx = 0; nx < N_per_side; nx++) {
-				if(lattice_poss.size() <= _N_per_chain) {
+				if((int)lattice_poss.size() <= _N_per_chain) {
 					lattice_poss.push_back(to_insert);
 					com += to_insert;
 					to_insert.x += _pol_sigma*x_dir;
@@ -285,7 +285,7 @@ void NathanInteraction<number>::generate_random_configuration(BaseParticle<numbe
 	}
 
 	OX_LOG(Logger::LOG_INFO, "Total N: %d, lattice sites: %d, cell side: %lf, minimum distance between neighbours: %f", tot_N, fcc_points.size(), cell_side, min_neigh_distance);
-	if(fcc_points.size() < tot_N) throw oxDNAException("Not enough FCC lattice points (%d instead of %d)", fcc_points.size(), tot_N);
+	if((int)fcc_points.size() < tot_N) throw oxDNAException("Not enough FCC lattice points (%d instead of %d)", fcc_points.size(), tot_N);
 
 	for(int i = 0; i < _N_patchy; i++) {
 		BaseParticle<number> *p = particles[i];
