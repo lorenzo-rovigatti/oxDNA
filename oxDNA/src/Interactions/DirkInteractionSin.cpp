@@ -11,6 +11,7 @@ template<typename number>
 DirkInteractionSin<number>::DirkInteractionSin() : BaseInteraction<number, DirkInteractionSin<number> >() {
 	this->_int_map[1] = &DirkInteractionSin<number>::_dirk_pot;
 	_length = -1.;
+	_DHS_mu0 = -1;
 }
 
 template<typename number>
@@ -47,14 +48,16 @@ void DirkInteractionSin<number>::get_settings(input_file &inp) {
 	
 	_DHS_rf_fact = (_DHS_eps - 1.) / (2. * _DHS_eps + 1.) / (_DHS_rcut * _DHS_rcut * _DHS_rcut);
 	
+	getInputNumber (&inp, "DHS_mu0", &_DHS_mu0, 1);
+	
 	_hard_rcut = 1.001 * (_length + 1.);
 	_hard_sqr_rcut = _hard_rcut * _hard_rcut;
 	if (_hard_rcut > _DHS_rcut) this->_rcut = _hard_rcut;
 	else this->_rcut = _DHS_rcut; 
 	
-	if (_DHS_rcut < _length) throw oxDNAException ("can't do...\n");
+	if (_DHS_rcut < _length) throw oxDNAException ("can't run because DirkInteractionSin _DHS_rcut < _length...\n");
 	
-	OX_LOG(Logger::LOG_INFO, "Initializing DirkSin interaction with length %g, DHS_radius = %g, DHS_eps = %g, DHS_cutoff = %g, overall rcut = %g, hard_rcut %g", _length, _DHS_radius, _DHS_eps, _DHS_rcut, this->_rcut, _hard_rcut);
+	OX_LOG(Logger::LOG_INFO, "Initializing DirkSin interaction with length %g, DHS_radius = %g, DHS_eps = %g, DHS_mu0 = %g, DHS_cutoff = %g, overall rcut = %g, hard_rcut %g", _length, _DHS_radius, _DHS_eps, _DHS_mu0, _DHS_rcut, this->_rcut, _hard_rcut);
 }
 
 template<typename number>
