@@ -18,6 +18,8 @@
 #include "../defs.h"
 #include "../Forces/BaseForce.h"
 
+template <typename number> class ParticlePair;
+
 /**
  * @brief Base particle class. All particles must inherit from this class.
  */
@@ -40,6 +42,9 @@ public:
 
 	BaseParticle();
 	virtual ~BaseParticle();
+
+//	std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > affected;
+	std::vector<ParticlePair<number> > affected;
 
 	virtual void set_positions() { }
 
@@ -188,6 +193,38 @@ public:
 
 	/// transpose (= inverse) orientational matrix
 	LR_matrix<number> orientationT;
+};
+
+/*
+ * helpers
+ */
+template <typename number>
+class ParticlePair {
+public:
+	BaseParticle<number> *first;
+	BaseParticle<number> *second;
+
+	ParticlePair (BaseParticle<number> *p, BaseParticle<number> *q) {
+		if(p == q) throw oxDNAException("ParticlePair: p == q is not allowed");
+		if (p->index < q->index) {
+			first = p;
+			second = q;
+		}
+		else {
+			first = q;
+			second = p;
+		}
+	}
+
+	bool operator< (ParticlePair q) const {
+		int p1 = first->index;
+		int p2 = second->index;
+		int q1 = q.first->index;
+		int q2 = q.second->index;
+
+		if(p1 == q1) return (p2 < q2);
+		else return (p1 < q1);
+	}
 };
 
 #endif /* BASEPARTICLE_H_ */

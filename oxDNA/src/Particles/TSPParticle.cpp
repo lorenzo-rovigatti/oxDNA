@@ -21,6 +21,10 @@ template<typename number>
 void TSPParticle<number>::add_bonded_neigh(TSPParticle<number> *nn) {
 	bonded_neighs.insert(nn);
 	nn->bonded_neighs.insert(this);
+
+	ParticlePair<number> new_pair(this, nn);
+	this->affected.push_back(new_pair);
+	nn->affected.push_back(new_pair);
 }
 
 template<typename number>
