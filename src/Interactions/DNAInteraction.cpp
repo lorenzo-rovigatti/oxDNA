@@ -1397,6 +1397,10 @@ void DNAInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 		if(p->type == P_INVALID) throw oxDNAException ("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, base);
 		p->index = i;
 		i++;
+
+		// here we fill the affected vector
+		if (p->n3 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p->n3, p));
+		if (p->n5 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p, p->n5));
 	}
 
 	if(i < N_from_conf) throw oxDNAException ("Not enough particles found in the topology file (should be %d). Aborting", N_from_conf);

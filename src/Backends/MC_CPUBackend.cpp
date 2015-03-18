@@ -72,17 +72,41 @@ void MC_CPUBackend<number>::init(char conf_filename[256]) {
 		this->_particles[i]->orientationT = this->_particles[i]->orientation.get_transpose();
 	}
 
+	// qui ci facciamo la lista delle interazioni bonded
+	for (int i = 0; i < this->_N; i ++) {
+		BaseParticle<number> *p = this->_particles[i];
+		for (unsigned int n = 0; n < p->affected.size(); n ++) {
+			BaseParticle<number> * p1 = p->affected[n].first;
+			BaseParticle<number> * p2 = p->affected[n].second;
+			number e = this->_interaction->pair_interaction_bonded (p1, p2);
+			if (_stored_bonded_interactions.count(ParticlePair<number>(p1, p2)) == 0) _stored_bonded_interactions[ParticlePair<number>(p1,p2)] = e;
+		}
+	}
+
 	_compute_energy();
 	if(this->_overlap == true) throw oxDNAException("There is an overlap in the initial configuration");
 }
 
 template<typename number>
-inline number MC_CPUBackend<number>::_particle_energy(BaseParticle<number> *p) {
+inline number MC_CPUBackend<number>::_particle_energy(BaseParticle<number> *p, bool reuse) {
 	number res = (number) 0.f;
-	if(p->n3 != P_VIRTUAL) res += this->_interaction->pair_interaction_bonded(p, p->n3);
-	if(p->n5 != P_VIRTUAL) res += this->_interaction->pair_interaction_bonded(p, p->n5);
 
-	if (this->_interaction->get_is_infinite() == true) {
+	if(reuse) {
+		// slightly better than a direct loop, since in this way we don't have to build
+		// ParticlePair objects every time
+		typename vector<ParticlePair<number> >::iterator it = p->affected.begin();
+		for(; it != p->affected.end(); it++) res += _stored_bonded_interactions[*it];
+	}
+	else {
+		typename vector<ParticlePair<number> >::iterator it = p->affected.begin();
+		for(; it != p->affected.end(); it++) {
+			number de = this->_interaction->pair_interaction_bonded(it->first, it->second);
+			res += de;
+			_stored_bonded_tmp[*it] = de;
+		}
+	}
+
+	if(this->_interaction->get_is_infinite() == true) {
 		this->_overlap = true;
 		return (number) 1.e12;
 	}
@@ -102,22 +126,13 @@ inline number MC_CPUBackend<number>::_particle_energy(BaseParticle<number> *p) {
 
 template<typename number>
 void MC_CPUBackend<number>::_compute_energy() {
-	this->_U = this->_U_hydr = this->_U_stack = (number) 0;
+	this->_U = (number) 0;
 	for(int i = 0; i < this->_N; i++) {
 		BaseParticle<number> *p = this->_particles[i];
-		if(p->n3 != P_VIRTUAL) this->_U += this->_interaction->pair_interaction_bonded(p, p->n3);
-		if(p->n5 != P_VIRTUAL) this->_U += this->_interaction->pair_interaction_bonded(p, p->n5);
-
-		std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
-		for(unsigned int n = 0; n < neighs.size(); n++) {
-			BaseParticle<number> *q = neighs[n];
-			this->_U += this->_interaction->pair_interaction_nonbonded(p, q);
-		}
+		this->_U += this->_particle_energy(p);
 	}
 
 	this->_U *= (number) 0.5;
-	this->_U_hydr *= (number) 0.5;
-	this->_U_stack *= (number) 0.5;
 }
 
 template<typename number>
@@ -213,6 +228,17 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 				this->_accepted[MC_MOVE_VOLUME]++;
 				this->_U = newE;
 				if (curr_step < this->_MC_equilibration_steps && this->_adjust_moves) this->_delta[MC_MOVE_VOLUME] *= 1.03;
+
+				_stored_bonded_interactions.clear();
+				for (int k = 0; k < this->_N; k ++) {
+					BaseParticle<number> *p = this->_particles[k];
+					typename vector<ParticlePair<number> >::iterator it = p->affected.begin();
+					for(; it != p->affected.end(); it++) {
+						number e = this->_interaction->pair_interaction_bonded(it->first, it->second);
+						if(_stored_bonded_interactions.count(*it) == 0) _stored_bonded_interactions[*it] = e;
+					}
+				}
+
 			}
 			else {
 				// volume move rejected
@@ -238,9 +264,11 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			BaseParticle<number> *p = this->_particles[pi];
 
 			int move = (drand48() < (number) 0.5f) ? MC_MOVE_TRANSLATION : MC_MOVE_ROTATION;
+			if(!p->is_rigid_body()) move = MC_MOVE_TRANSLATION;
 
 			this->_tries[move]++;
-			number delta_E = -_particle_energy(p);
+			number delta_E = -_particle_energy(p, true);
+			//number delta_E = -_particle_energy(p, false);
 			p->set_ext_potential (curr_step, this->_box_side);
 			number delta_E_ext = -p->ext_potential;
 
@@ -264,7 +292,8 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			}
 			get_time(&this->_timer, 3);
 
-			delta_E += _particle_energy(p);
+			_stored_bonded_tmp.clear();
+			delta_E += _particle_energy(p, false);
 			p->set_ext_potential(curr_step, this->_box_side);
 			delta_E_ext += p->ext_potential;
 
@@ -273,8 +302,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			//if (curr_step > 410000 && curr_step <= 420001)
 			// printf("delta_E: %lf\n", (double)delta_E);
 
-			if(!this->_overlap && ((delta_E + delta_E_ext) < 0 ||
-					       exp(-(delta_E + delta_E_ext) / this->_T) > drand48())) {
+			if(!this->_overlap && ((delta_E + delta_E_ext) < 0 || exp(-(delta_E + delta_E_ext) / this->_T) > drand48())) {
 				this->_accepted[move]++;
 				this->_U += delta_E;
 				if (curr_step < this->_MC_equilibration_steps && this->_adjust_moves) {
@@ -284,6 +312,13 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 					if (move == MC_MOVE_ROTATION && this->_delta[move] > M_PI / 2.)
 						this->_delta[move] = M_PI / 2.;
 				}
+
+				// slightly faster than doing a loop over the indexes of affected
+				typename map<ParticlePair<number>, number>::iterator it = _stored_bonded_tmp.begin();
+				for(; it != _stored_bonded_tmp.end(); it++) {
+					_stored_bonded_interactions[it->first] = it->second;
+				}
+
 			}
 			else {
 				if(move == MC_MOVE_TRANSLATION) {
@@ -296,7 +331,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 				}
 				this->_lists->single_update(p);
 				this->_interaction->set_is_infinite(false);
-				if (curr_step < this->_MC_equilibration_steps && this->_adjust_moves) this->_delta[move] /= 1.01;
+				if(curr_step < this->_MC_equilibration_steps && this->_adjust_moves) this->_delta[move] /= 1.01;
 
 			}
 			this->_overlap = false;

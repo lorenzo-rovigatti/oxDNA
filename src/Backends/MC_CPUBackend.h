@@ -26,7 +26,11 @@ protected:
 	void _compute_energy();
 	inline void _translate_particle(BaseParticle<number> *p);
 	inline void _rotate_particle(BaseParticle<number> *p);
-	inline number _particle_energy(BaseParticle<number> *p);
+	inline number _particle_energy(BaseParticle<number> *p, bool reuse=false);
+
+	std::map<ParticlePair<number>, number> _stored_bonded_interactions;
+	std::map<ParticlePair<number>, number> _stored_bonded_tmp;
+	//std::vector < std:pair< std::pair<BaseParticle<number> *, BaseParticle<number> *>, number > > _stored_bonded_interactions;
 
 public:
 	MC_CPUBackend();

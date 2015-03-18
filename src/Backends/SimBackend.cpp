@@ -214,6 +214,14 @@ void SimBackend<number>::init(char conf_filename[256]) {
 	_particles = new BaseParticle<number>*[_N];
 	_interaction->read_topology(_N, &_N_strands, _particles);
 
+	// check that the interation has filled the affected
+	for (int i = 0; i < _N; i ++) {
+		BaseParticle<number> * p = _particles[i];
+		if (p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL)
+			if (p->affected.size() < 1)
+				throw oxDNAException ("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
+	}
+
 	_conf_input.seekg(0);
 
 	// we need to skip a certain number of lines, depending on how many
