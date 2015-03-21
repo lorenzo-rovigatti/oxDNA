@@ -51,8 +51,10 @@ protected:
 	llint _start_from;
 	llint _stop_at;
 	std::string _prefix;
-	char _output_name[512];
+	std::string _output_name;
 	input_file _sim_inp;
+
+	llint _bytes_written;
 
 	void _open_output();
 
@@ -102,6 +104,18 @@ public:
 	 * @return true if the object is ready to print, false otherwise
 	 */
 	bool is_ready(llint step);
+
+	/**
+	 * @brief Returns the number of bytes written to the output file
+	 *
+	 */
+	llint get_bytes_written() { return _bytes_written; }
+
+	/**
+	 * @brief Returns the name of the file being written to as a string
+	 *
+	 */
+	std::string get_output_name () { return _output_name; }
 };
 
 #endif /* OBSERVABLEOUTPUT_H_ */

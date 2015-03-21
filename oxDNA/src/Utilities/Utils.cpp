@@ -188,6 +188,34 @@ number Utils::get_temperature(char * raw_T) {
 	return T;
 }
 
+std::string Utils::bytes_to_human (llint bytes) {
+	llint base = 1024;
+	int ctr = 0;
+	while (bytes / base > 0 && ctr < 4) {
+		base *= 1024;
+		ctr ++;
+	}
+	base /= 1024;
+	std::string ret = Utils::sformat ("%7.3lf ", bytes / (double) base);
+	switch (ctr) {
+		case 0:
+			ret += std::string(" B");
+			break;
+		case 1:
+			ret += std::string("KB");
+			break;
+		case 2:
+			ret += std::string("MB");
+			break;
+		case 3:
+			ret += std::string("GB");
+			break;
+		default:
+			throw oxDNAException ("Should never get here... (ctr = %d) in %s:%d\n", ctr, __FILE__, __LINE__);
+	}
+	return ret;
+}
+
 /**
  * @brief fills the memory pointed to by seedptr with the current state of
  * the random number generator. Does not handle the memory: it assumes that
