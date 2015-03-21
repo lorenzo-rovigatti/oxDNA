@@ -6,6 +6,7 @@
  */
 
 #include <sstream>
+#include <fstream>
 
 #include "SimBackend.h"
 #include "../Utilities/Utils.h"
@@ -65,20 +66,19 @@ SimBackend<number>::~SimBackend() {
 		typename vector<ObservableOutput<number> *>::iterator it2;
 		llint total_file = 0;
 		llint total_stderr = 0;
-		OX_LOG (Logger::LOG_INFO, "I/O statistics");
+		OX_LOG (Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
 		for(it2 = _obs_outputs.begin(); it2 != _obs_outputs.end(); it2++) {
 			llint now = (*it2)->get_bytes_written();
 			std::string fname = (*it2)->get_output_name();
 			if (!strcmp (fname.c_str(), "stderr") || !strcmp (fname.c_str(), "stdout")) total_stderr += now;
 			else total_file += now;
 			std::string mybytes = Utils::bytes_to_human (now);
-			//OX_LOG (Logger::LOG_DEBUG, "  on %s: %s", fname.c_str(), mybytes.c_str());
 			OX_DEBUG("  on %s: %s", fname.c_str(), mybytes.c_str());
 		}
-		OX_LOG (Logger::LOG_INFO, "  %s written to files" , Utils::bytes_to_human(total_file).c_str());
-		OX_LOG (Logger::LOG_INFO, "  %s written to stdout/stderr" , Utils::bytes_to_human(total_stderr).c_str());
+		OX_LOG (Logger::LOG_NOTHING, "\t%s written to files" , Utils::bytes_to_human(total_file).c_str());
+		OX_LOG (Logger::LOG_NOTHING, "\t%s written to stdout/stderr" , Utils::bytes_to_human(total_stderr).c_str());
 		double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
-		OX_LOG (Logger::LOG_INFO, " for a total of %8.3lg MB/s", (total_file + total_stderr) / ((1024.*1024.) * time_passed)); 
+		OX_LOG (Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
 		
 		prepare_timer_results(&_timer);
 		OX_LOG(Logger::LOG_INFO, "Timings informations:");
@@ -249,7 +249,7 @@ void SimBackend<number>::init(char conf_filename[256]) {
 				throw oxDNAException ("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
 	}
 
-	_conf_input.seekg(0);
+	_conf_input.seekg(0, ios::beg);
 
 	// we need to skip a certain number of lines, depending on how many
 	// particles we have and how many configurations we want to skip

@@ -111,7 +111,6 @@ void ObservableOutput<number>::add_observable(std::string obs_string) {
 
 template<typename number>
 void ObservableOutput<number>::change_output_file(string new_filename) {
-	//sprintf(_output_name, "%s%s", _prefix.c_str(), new_filename.c_str());
 	_output_name = _prefix + new_filename;
 	if(_output_stream.is_open()) _output_stream.close();
 	_open_output();
@@ -135,12 +134,6 @@ void ObservableOutput<number>::print_output(llint step) {
 
 
 	if(_only_last) _output_stream.open(_output_name.c_str());
-	/*
-	size_t before = (size_t) _output->tellp();
-	*_output << ss.str() << endl;
-	size_t written = (size_t) _output->tellp() - (size_t) before;
-	_bytes_written += (llint) written;
-	*/
 	
 	ss << endl;
 	std::string towrite = ss.str();
