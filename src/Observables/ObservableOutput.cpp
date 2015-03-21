@@ -19,13 +19,16 @@ ObservableOutput<number>::ObservableOutput(std::string &stream_string, input_fil
 	_sim_inp = sim_inp;
 	_start_from = 0;
 	_stop_at = -1;
+	_bytes_written = 0;
+	_output_name = std::string("");
 	input_file *obs_input = Utils::get_input_file_from_string(stream_string);
 
 	string out_name;
 	getInputString(obs_input, "name", out_name, 1);
 	// the prefix should be used only when the output is nor stdout nor stderr
 	if(out_name != "stdout" && out_name != "stderr") getInputString(&sim_inp, "output_prefix", _prefix, 0);
-	sprintf(_output_name, "%s%s", _prefix.c_str(), out_name.c_str());
+	//sprintf(_output_name, "%s%s", _prefix.c_str(), out_name.c_str());
+	_output_name = _prefix + out_name;
 	getInputLLInt(obs_input, "print_every", &_print_every, 1);
 
 	getInputLLInt(obs_input, "start_from", &_start_from, 0);
@@ -69,17 +72,17 @@ ObservableOutput<number>::~ObservableOutput() {
 
 template<typename number>
 void ObservableOutput<number>::_open_output() {
-	if(!strncmp (_output_name, "stderr", 512)) _output = &std::cerr;
-	else if (!strncmp (_output_name, "stdout", 512)) _output = &std::cout;
+	if(!strncmp (_output_name.c_str(), "stderr", 512)) _output = &std::cerr;
+	else if (!strncmp (_output_name.c_str(), "stdout", 512)) _output = &std::cout;
 	else {
 		if(!_only_last) {
 			if(_append)	{
-				if (_is_binary) _output_stream.open(_output_name, ios::binary | ios_base::app);
-				else _output_stream.open(_output_name, ios::binary | ios_base::app);
+				if (_is_binary) _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
+				else _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
 			}
 			else {
-				if (_is_binary) _output_stream.open(_output_name, ios::binary);
-				else _output_stream.open(_output_name);
+				if (_is_binary) _output_stream.open(_output_name.c_str(), ios::binary);
+				else _output_stream.open(_output_name.c_str());
 			}
 		}
 
@@ -108,7 +111,8 @@ void ObservableOutput<number>::add_observable(std::string obs_string) {
 
 template<typename number>
 void ObservableOutput<number>::change_output_file(string new_filename) {
-	sprintf(_output_name, "%s%s", _prefix.c_str(), new_filename.c_str());
+	//sprintf(_output_name, "%s%s", _prefix.c_str(), new_filename.c_str());
+	_output_name = _prefix + new_filename;
 	if(_output_stream.is_open()) _output_stream.close();
 	_open_output();
 }
@@ -129,8 +133,20 @@ void ObservableOutput<number>::print_output(llint step) {
 		ss << (*it)->get_output_string(step);
 	}
 
-	if(_only_last) _output_stream.open(_output_name);
+
+	if(_only_last) _output_stream.open(_output_name.c_str());
+	/*
+	size_t before = (size_t) _output->tellp();
 	*_output << ss.str() << endl;
+	size_t written = (size_t) _output->tellp() - (size_t) before;
+	_bytes_written += (llint) written;
+	*/
+	
+	ss << endl;
+	std::string towrite = ss.str();
+	_bytes_written += (llint) towrite.length();
+	*_output << towrite; 
+	
 	if(_only_last) _output_stream.close();
 }
 

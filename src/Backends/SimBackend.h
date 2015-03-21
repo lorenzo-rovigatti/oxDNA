@@ -121,6 +121,7 @@ protected:
 	LR_timer _timer;
 	int _timer_msgs_number;
 	msg _timer_msgs[10];
+	number _max_io;
 
 	bool _enable_fix_diffusion;
 	bool _print_timings;

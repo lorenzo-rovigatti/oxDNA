@@ -45,6 +45,7 @@ SimBackend<number>::SimBackend() {
 	_obs_output_last_conf_bin = NULL;
 	_P = (number) 0.;
 	_lists = NULL;
+	_max_io = 1.;
 }
 
 template<typename number>
@@ -57,13 +58,30 @@ SimBackend<number>::~SimBackend() {
 
 	ForceFactory<number>::instance()->clear();
 
-	typename vector<ObservableOutput<number> *>::iterator it;
-	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
 
 	if(_timer.state == TIMER_READY) {
-		prepare_timer_results(&_timer);
 
-		OX_LOG(Logger::LOG_INFO, "Timings informations:\n");
+		// here we print the input output information
+		typename vector<ObservableOutput<number> *>::iterator it2;
+		llint total_file = 0;
+		llint total_stderr = 0;
+		OX_LOG (Logger::LOG_INFO, "I/O statistics");
+		for(it2 = _obs_outputs.begin(); it2 != _obs_outputs.end(); it2++) {
+			llint now = (*it2)->get_bytes_written();
+			std::string fname = (*it2)->get_output_name();
+			if (!strcmp (fname.c_str(), "stderr") || !strcmp (fname.c_str(), "stdout")) total_stderr += now;
+			else total_file += now;
+			std::string mybytes = Utils::bytes_to_human (now);
+			//OX_LOG (Logger::LOG_DEBUG, "  on %s: %s", fname.c_str(), mybytes.c_str());
+			OX_DEBUG("  on %s: %s", fname.c_str(), mybytes.c_str());
+		}
+		OX_LOG (Logger::LOG_INFO, "  %s written to files" , Utils::bytes_to_human(total_file).c_str());
+		OX_LOG (Logger::LOG_INFO, "  %s written to stdout/stderr" , Utils::bytes_to_human(total_stderr).c_str());
+		double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
+		OX_LOG (Logger::LOG_INFO, " for a total of %8.3lg MB/s", (total_file + total_stderr) / ((1024.*1024.) * time_passed)); 
+		
+		prepare_timer_results(&_timer);
+		OX_LOG(Logger::LOG_INFO, "Timings informations:");
 		print_times(&_timer, Logger::instance()->get_log_stream());
 		OX_LOG(Logger::LOG_NOTHING, "");
 
@@ -75,6 +93,9 @@ SimBackend<number>::~SimBackend() {
 
 		destroy_timer(&_timer);
 	}
+	
+	typename vector<ObservableOutput<number> *>::iterator it;
+	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
 
 	// destroy lists;
 	if (_lists != NULL) delete _lists;
@@ -193,6 +214,12 @@ void SimBackend<number>::get_settings(input_file &inp) {
 		_obs_output_reduced_conf = new ObservableOutput<number>(fake, inp);
 		_obs_output_reduced_conf->add_observable("type = configuration\nreduced = true");
 		_obs_outputs.push_back(_obs_output_reduced_conf);
+	}
+
+	// set the max IO
+	if (getInputNumber<number> (&inp, "max_io", &_max_io, 0) == KEY_FOUND) {
+		if (_max_io < 0) throw oxDNAException ("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
+		else OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
 	}
 }
 
@@ -432,10 +459,24 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 
 template<typename number>
 void SimBackend<number>::_print_ready_observables(llint curr_step) {
+	llint total_bytes = 0;
 	typename vector<ObservableOutput<number> *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		if((*it)->is_ready(curr_step)) (*it)->print_output(curr_step);
+		if((*it)->is_ready(curr_step)) {
+			(*it)->print_output(curr_step);
+		}
+		total_bytes += (*it)->get_bytes_written();
 	}
+
+	// here we control the timings; we leave the code a 30-second grace time
+	// to print the initial configuration
+	double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
+	if (time_passed > 30) {
+		double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
+		OX_DEBUG("Current data production rate: %g MB/s", MBps);
+		if (MBps > _max_io) throw oxDNAException ("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
+	}
+
 }
 
 template<typename number>

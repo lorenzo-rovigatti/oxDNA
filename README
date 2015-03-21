@@ -239,6 +239,9 @@ Core options:
     print_every = <integer>
         frequency of output, in number steps for oxDNA, in number of
         configurations for DNAnalysis
+    [max_io = <float>]
+        maximum amount of data ouput by the simulation in MB/s. Useful not to
+        clog disk access, particularly when running on clusters. Defaults to 1.
     [start_from = <integer>]
         start outputing from the given step, defaults to 0
     [stop_at = <integer>]
@@ -249,7 +252,7 @@ Core options:
     [binary = <bool>]
         if true, the output will be printed in binary, defaults to false
     col_<n> = {
-    type = name of the first observable
+    type = name of the observable
     [other observable options as lines of 'key = value']
     }
         this syntax specifies the column of the output file. Note that <n> is
