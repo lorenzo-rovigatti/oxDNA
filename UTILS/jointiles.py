@@ -32,6 +32,11 @@ for i in range(0, howmany):
 base.Logger.log ("# Bringing nucleotides in box")
 # bring the nucleotides back in the box
 for S in systems:
+
+    myr = S._strands[0].cm_pos
+    for s in S._strands:
+        s.translate (-myr)
+
     base.Logger.log ("   # Bringing nucleotides in box or another system...")
     for s in S._strands:
         diff = np.rint(s.cm_pos / S._box ) * S._box
@@ -40,7 +45,7 @@ for S in systems:
 base.Logger.log ("# Setting cdm to 0.")
 for S in systems:
     base.Logger.log ("   # Setting cdm to 0. for system another system")
-    
+
     redo = True
     while redo:
         cdm = np.array([0.,0.,0.])
@@ -50,6 +55,8 @@ for S in systems:
         cdm = (1. / float(S.get_N_Nucleotides())) * cdm
         S.translate (-cdm) 
         #S._prepare(visibility=None)
+        redo = False
+
         cdm = np.array([0.,0.,0.])
         for s in S._strands:
             for n in s._nucleotides:
@@ -60,6 +67,9 @@ for S in systems:
 
 final_box = np.array([box_side, box_side, box_side])
 final = systems[0].copy()
+
+final.print_lorenzo_output ("justone.dat", "justone.top")
+
 njoined = 1
 for S in systems[1:]:
     base.Logger.log ("# Trying to join")
