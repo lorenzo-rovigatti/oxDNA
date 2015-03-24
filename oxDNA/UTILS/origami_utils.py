@@ -8,6 +8,17 @@ import tempfile
 
 PROCESSDIR = os.path.join(os.path.dirname(__file__), "process_data/")
 
+def min_distance (r1, r2, box):
+    """
+    return the minimum image distance in going from r1 to r2, in a box of size box
+
+    stolen from base.py Nucleotide.distance()
+    """
+    assert (isinstance (box, np.ndarray) and len(box) == 3)
+    dr = r2 - r1
+    dr -= box * np.rint (dr / box)
+    return dr
+
 def vecs2spline(vecs, per):
     import scipy.interpolate
     # interpolate vecs by interpolating each cartesian co-ordinate in turn
@@ -461,14 +472,16 @@ def angle_sense(v1, v2, axis):
         angle *= -1 # attempt to check the 'sense' of the angle w.r.t. an axis
     return angle
 
-def dihedral_angle_sense(v1, v2, axis):
+def dihedral_angle_sense(v1, v2, axis, sanity_check = False):
     # return the dihedral angle between two vectors, using a 3rd vector to determine the sense of the angle and to define the axis normal to the plane we want the vectors in
-    v1 = norm(v1)
-    v2 = norm(v2)
+    v1n = norm(v1)
+    v2n = norm(v2)
     axis = norm(axis)
+    if sanity_check and (abs(np.dot(v1n,axis)) > 0.6 or abs(np.dot(v2n,axis)) > 0.6):
+        return False
     # in plane
-    v1p = v1 - np.dot(v1,axis)*axis
-    v2p = v2 - np.dot(v2,axis)*axis
+    v1p = v1n - np.dot(v1n,axis)*axis
+    v2p = v2n - np.dot(v2n,axis)*axis
     v1p = norm(v1p)
     v2p = norm(v2p)
     angle = np.arccos(np.dot(v1p,v2p))
@@ -558,13 +571,8 @@ class Origami(object):
                     pass
 
             # build a list of the vhelix indices contained in the cadnano design
-            for (vhelix, vbase) in iter(self._cad2cudadna._scaf):
-                if vhelix not in self.vhelix_indices:
-                    self.vhelix_indices.append(vhelix)
-                if vbase not in self.vbase_indices:
-                    self.vbase_indices.append(vbase)
-            self.vhelix_indices.sort()
-            self.vbase_indices.sort()
+            self.vhelix_indices = sorted(list(set([key[0] for key in self._cad2cudadna._scaf.keys()] + [key[0] for key in self._cad2cudadna._stap.keys()])))
+            self.vbase_indices = sorted(list(set([key[1] for key in self._cad2cudadna._scaf.keys()] + [key[1] for key in self._cad2cudadna._stap.keys()])))
 
             # build a list of the occupied virtual bases in each virtual helix
             self.vh_vbase_indices = [[] for x in self.vhelix_indices]
@@ -1002,14 +1010,18 @@ class Origami(object):
         self.vec_long = av_long
         self.vec_lat = av_lat
 
-    def get_bb_midpoint(self, n_index):
+    def get_bb_midpoint(self, n_index, pbc = False):
         # get midpoint 2 base vectors that are hybridised according to cadnano scheme
         if self.complementary_list[n_index] == "na":
             return False
         else:
             r1 = self._sys._nucleotides[n_index].get_pos_base()
             r2 = self._sys._nucleotides[self.complementary_list[n_index]].get_pos_base()
-            vec = (r1+r2)/2
+            if pbc:
+                # make sure we get a sensible answer if the nucleotides got put at opposite ends of the box due to pbc's
+                vec = r1 - min_distance(r1, r2, self._sys._box)/2
+            else:
+                vec = (r1+r2)/2
             return vec
 
     def get_backback_midpoint(self, n_index):
@@ -1728,11 +1740,12 @@ class Origami(object):
             n1, n2 = self.get_nearest_native_bonded(vhi, vh_begin[vhi], +1, vh_end[vhi])
             n3, n4 = self.get_nearest_native_bonded(vhi, vh_end[vhi], -1, vh_begin[vhi])
 
-            bbm1 = self.get_bb_midpoint(n1)
-            bbm2 = self.get_bb_midpoint(n3)
+            bbm1 = self.get_bb_midpoint(n1, pbc = True)
+            bbm2 = self.get_bb_midpoint(n3, pbc = True)
 
             # find the vector between the two base-pairs
-            av_helix_axis += bbm2 - bbm1
+            av_helix_axis += min_distance(bbm1, bbm2, self._sys._box)
+            
         av_helix_axis /= len(self.vhelix_indices)
         return av_helix_axis
     
@@ -1742,6 +1755,16 @@ class Origami(object):
 
         RUN get_h_bond_list FIRST!!
         """
+
+        ## Bring first strand to centre...!
+        # save a copy of the system
+        sys_copy = base.System(self._sys._box)
+        sys_copy = sys_copy.join(self._sys)
+
+        to_translate = -self._sys._strands[0].get_cm_pos()
+        for strandid, strand in enumerate(self._sys._strands):
+            strand.translate(to_translate)
+
         av_helix_axis = self.get_av_helix_axis(vhelix_extent, discard_unbonded)
         
         vhelices1, vhelices2 = self.parse_vh_edge(f_edge_vh)
@@ -1755,51 +1778,64 @@ class Origami(object):
 
         top = np.zeros(3)
         bottom = np.zeros(3)
-        top_left = np.zeros(3)
-        top_right = np.zeros(3)
-        bottom_left = np.zeros(3)
-        bottom_right = np.zeros(3)
+        top_left = [np.zeros(3) for xx in range(len(vhelices1))]
+        top_right = [np.zeros(3) for xx in range(len(vhelices1))]
+        bottom_left = [np.zeros(3) for xx in range(len(vhelices2))]
+        bottom_right = [np.zeros(3) for xx in range(len(vhelices2))]
         # top
-        for vh in vhelices1:
+        for id, vh in enumerate(vhelices1):
             vhi = self.vhelix_indices.index(vh)
             # should work with loops
-            #print vhi, vh_begin[vhi], vh_end[vhi]
             n1, n2 = self.get_nearest_native_bonded(vhi, vh_begin[vhi], 1, vh_end[vhi])
             n3, n4 = self.get_nearest_native_bonded(vhi, vh_end[vhi], -1, vh_begin[vhi])
-            #print n1, n2, n3, n4
-            vec1 = self.get_bb_midpoint(n1)
-            vec2 = self.get_bb_midpoint(n3)
+
+            vec1 = self.get_bb_midpoint(n1, pbc = True)
+            vec2 = self.get_bb_midpoint(n3, pbc = True)
+            #print self._sys._nucleotides[n1].get_pos_base(), self._sys._nucleotides[self.complementary_list[n1]].get_pos_base(), vec1
+
 
             # left and right correspond to left (low virtual base index) and right (high virtual base index) in cadnano
-            top_left += vec1
-            top_right += vec2
-            top += vec2 - vec1
-
+            top_left[id] = vec1
+            #print "setting top_right[", id, "] to", vec2, "and top_left to", vec1
+            top_right[id] = vec2
+            top += min_distance(vec1, vec2, self._sys._box)
+            #top += vec2-vec1
         # bottom
-        for vh in vhelices2:
+        for id, vh in enumerate(vhelices2):
             vhi = self.vhelix_indices.index(vh)
-            #print vhi, vh_begin[vhi], vh_end[vhi]
             # should work with loops
             n1, n2 = self.get_nearest_native_bonded(vhi, vh_begin[vhi], 1, vh_end[vhi])
             n3, n4 = self.get_nearest_native_bonded(vhi, vh_end[vhi], -1, vh_begin[vhi])
-            #print n1, n2, n3, n4
-            vec1 = self.get_bb_midpoint(n1)
-            vec2 = self.get_bb_midpoint(n3)
 
-            bottom_left += vec1
-            bottom_right += vec2
-            bottom += vec2 - vec1
+            vec1 = self.get_bb_midpoint(n1, pbc = True)
+            vec2 = self.get_bb_midpoint(n3, pbc = True)
+
+            bottom_left[id] = vec1
+            #print "setting bottom_right[", id, "] to", vec2, "and bottom_left to", vec1
+            bottom_right[id] = vec2
+            bottom += min_distance(vec1, vec2, self._sys._box)
+            #bottom += vec2-vec1
 
         top /= len(vhelices1)
-        top_left /= len(vhelices1)
-        top_right /= len(vhelices1)
         bottom /= len(vhelices2)
-        bottom_left /= len(vhelices2)
-        bottom_right /= len(vhelices2)
 
-        left = top_left - bottom_left
-        right = top_right - bottom_right
+        left = np.zeros(3)
+        for ii in range(len(bottom_left)):
+            left += min_distance(bottom_left[ii], top_left[ii], self._sys._box)
+            #left += top_left[ii] - bottom_left[ii]
+        left /= len(bottom_left)
 
+        right = np.zeros(3)
+        for ii in range(len(bottom_right)):
+            right += min_distance(bottom_right[ii], top_right[ii], self._sys._box)
+            #right += top_right[ii] - bottom_right[ii]
+            #print "TL,BL", top_left[ii], bottom_left[ii]
+            #print "TLBL", top_left[ii] - bottom_left[ii]
+            #print "TR,BR", top_right[ii], bottom_right[ii]
+            #print "TRBR", top_right[ii] - bottom_right[ii]
+        right /= len(bottom_right)
+
+        #print left, right
 
         # Schematic of vectors in cadnano representation. Each ===> arrow is a double helix in the cadnano representation
         #
@@ -1812,10 +1848,28 @@ class Origami(object):
         #
         #      bottom ------------>
 
-        twist1 = dihedral_angle_sense(left,right,av_helix_axis) # possibly twist2 doesn't allow -ve angles as it's currently defined??? # why not top+bottom 24/10/13
-        twist2 = dihedral_angle_sense(top,bottom,left+right)
+        twist1 = dihedral_angle_sense(left,right,av_helix_axis,sanity_check=True)
+        if twist1 == False:
+            print >> sys.stderr, "\n\nsanity check for left/right twist failed"
+            print >> sys.stderr, "left is %f %f %f" % (left[0], left[1], left[2])
+            print >> sys.stderr, "right is %f %f %f" % (right[0], right[1], right[2])
+            print >> sys.stderr, "axis is %f %f %f" % (av_helix_axis[0], av_helix_axis[1], av_helix_axis[2])
+            print >> sys.stderr, "projections onto axis are %f %f" % (np.dot(norm(left),norm(av_helix_axis)), np.dot(norm(right),norm(av_helix_axis)))
+            print >> sys.stderr, "dihedral angle is %f\n\n" % (dihedral_angle_sense(left,right,av_helix_axis) * 180./np.pi)
+            raise RuntimeError
+        twist2 = dihedral_angle_sense(top,bottom,left+right,sanity_check=True)
+        if twist2 == False:
+            print >> sys.stderr, "sanity check for top/bottom twist failed"
+            print >> sys.stderr, "left is %f %f %f" % (left[0], left[1], left[2])
+            print >> sys.stderr, "right is %f %f %f" % (right[0], right[1], right[2])
+            print >> sys.stderr, "axis is %f %f %f" % (left[0]+right[0], left[1]+right[1], left[2]+right[2])
+            print >> sys.stderr, "dihedral angle is %f" % abs(dihedral_angle_sense(top,bottom,left+right))
+            raise RuntimeError
         twist1 *= 180./np.pi
         twist2 *= 180./np.pi
+
+        # restore the copy of the system
+        self._sys = sys_copy
 
         return twist1, twist2
 
@@ -2041,3 +2095,4 @@ class Origami(object):
             ret = [vecs2spline(bbms1, force_circular), vecs2spline(bbms2, force_circular)]
 
         return ret
+
