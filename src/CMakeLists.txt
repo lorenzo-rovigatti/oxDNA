@@ -36,6 +36,7 @@ SET(observables_SOURCES
 	Observables/Configurations/PdbOutput.cpp
 	Observables/Configurations/ChimeraOutput.cpp
 	Observables/ObservableFactory.cpp
+	Observables/MeanVectorCosine.cpp
 )
 
 SET(backends_SOURCES
@@ -64,6 +65,7 @@ SET(lists_SOURCES
 )
 
 SET(interactions_SOURCES
+	Interactions/TEPInteraction.cpp
 	Interactions/TSPInteraction.cpp
 	Interactions/LJInteraction.cpp
 	Interactions/HSInteraction.cpp
@@ -108,6 +110,7 @@ SET(forces_SOURCES
 )
 
 SET(common_SOURCES
+	Particles/TEPParticle.cpp
 	Particles/RNANucleotide.cpp
 	Particles/BaseParticle.cpp
 	Particles/DNANucleotide.cpp
