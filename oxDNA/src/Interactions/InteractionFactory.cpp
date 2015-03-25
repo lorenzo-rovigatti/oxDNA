@@ -29,6 +29,7 @@
 #include "DNA2Interaction.h"
 #include "RNAInteraction2.h"
 #include "RNAInteraction_relax.h"
+#include "TEPInteraction.h"
 
 
 InteractionFactory::InteractionFactory() {
@@ -79,6 +80,7 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 	else if(inter_type.compare("DNA2") == 0) return new DNA2Interaction<number>();
 	else if(inter_type.compare("RNA2") == 0) return new RNA2Interaction<number>();
 	else if(inter_type.compare("RNA_relax") == 0) return new RNAInteraction_relax<number>();
+	else if(inter_type.compare("TEP") == 0) return new TEPInteraction<number>();
 	else {
 		IBaseInteraction<number> *res = PluginManager::instance()->get_interaction<number>(inter_type);
 		if(res == NULL) throw oxDNAException ("Interaction '%s' not found. Aborting", inter_type.c_str());
