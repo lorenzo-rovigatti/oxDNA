@@ -12,6 +12,7 @@ DirkInteractionSin<number>::DirkInteractionSin() : BaseInteraction<number, DirkI
 	this->_int_map[1] = &DirkInteractionSin<number>::_dirk_pot;
 	_length = -1.;
 	_DHS_mu0 = -1;
+	_DHS_mu = -1;
 }
 
 template<typename number>
@@ -49,6 +50,7 @@ void DirkInteractionSin<number>::get_settings(input_file &inp) {
 	_DHS_rf_fact = (_DHS_eps - 1.) / (2. * _DHS_eps + 1.) / (_DHS_rcut * _DHS_rcut * _DHS_rcut);
 	
 	getInputNumber (&inp, "DHS_mu0", &_DHS_mu0, 1);
+	getInputNumber (&inp, "DHS_mu", &_DHS_mu, 1);
 	
 	_hard_rcut = 1.001 * (_length + 1.);
 	_hard_sqr_rcut = _hard_rcut * _hard_rcut;

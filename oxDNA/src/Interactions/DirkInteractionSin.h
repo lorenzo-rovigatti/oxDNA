@@ -46,6 +46,9 @@ protected:
 	number _DHS_eps;
 	
 	/// permament dipole moment (in units of the induced one, which is assumed to be 1)
+	number _DHS_mu;
+	
+	/// permament dipole moment (in units of the induced one, which is assumed to be 1)
 	number _DHS_mu0;
 
 	/// cutoff for reaction field treatment
@@ -117,8 +120,8 @@ number DirkInteractionSin<number>::_dirk_pot (BaseParticle<number> *p, BaseParti
 	// DHS potential;
 	if (drdhsnorm > _DHS_sqr_rcut) return 0.f;
 
-	LR_vector<number> mu1 = LR_vector<number> (0., 0., 1.) + (_DHS_mu0 * p->orientation.v3);
-	LR_vector<number> mu2 = LR_vector<number> (0., 0., 1.) + (_DHS_mu0 * q->orientation.v3);
+	LR_vector<number> mu1 = (LR_vector<number> (0., 0., 1.) * _DHS_mu) + (_DHS_mu0 * p->orientation.v3);
+	LR_vector<number> mu2 = (LR_vector<number> (0., 0., 1.) * _DHS_mu) + (_DHS_mu0 * q->orientation.v3);
 	
 	// direct part
 	number energy = - (1. / (drdhsnorm * sqrt(drdhsnorm))) * (3.f * ((mu1 * drdhs) * (mu2 * drdhs)) / drdhsnorm - mu1 * mu2); 
