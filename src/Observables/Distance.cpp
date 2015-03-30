@@ -40,9 +40,13 @@ std::string Distance<number>::get_output_string(llint curr_step) {
     if (_PBC) dist = q->pos.minimum_image(p->pos, box);
     else dist = q->get_abs_pos(box) - p->get_abs_pos(box);
 
-    if (_have_dir) dist = _dir * (dist * _dir);
+	number sign  = 1.;
+	if (_have_dir) {
+		dist = _dir * (dist * _dir);
+		sign = copysign (1., dist * _dir);
+	}
 
-    return Utils::sformat("%14.4lf", sqrt (dist * dist));
+	return Utils::sformat("%14.4lf", sign * sqrt (dist * dist));
 }
 
 template<typename number>
