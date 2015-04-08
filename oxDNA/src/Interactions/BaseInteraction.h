@@ -443,7 +443,7 @@ number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **partic
 			int j = _cells_head[_cells_neigh[_cells_index[p->index]][c]];
 			while (j != P_INVALID) {
 				BaseParticle<number> *q = particles[j];
-				if(p->index > q->index) energy += pair_interaction_nonbonded(p, q);
+				if(p->index < q->index) energy += pair_interaction_nonbonded(p, q);
 				if(this->get_is_infinite()) {
 					_delete_cell_neighs();
 					return energy;
