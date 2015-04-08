@@ -98,6 +98,7 @@ SET(move_SOURCES
 SET(forces_SOURCES
 	Forces/COMForce.cpp
 	Forces/ConstantRateForce.cpp
+	Forces/SawtoothForce.cpp
 	Forces/ConstantRateTorque.cpp
 	Forces/ConstantTrap.cpp
 	Forces/MovingTrap.cpp

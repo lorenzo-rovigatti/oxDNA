@@ -21,7 +21,7 @@ for test_name in TESTFILE_LIST:
     test_name = test_name.strip('.py')
     # Attempt to append to globals/sys.modules fails
     name = os.path.basename(test_name)
-
+    print test_name, os.path.join(FILE_DIR, "..")
     f, pathname, description = imp.find_module(test_name, [os.path.join(FILE_DIR, "..")])
     module = imp.load_module(name, f, pathname, description)
     test_class = module.__getattribute__(name)
