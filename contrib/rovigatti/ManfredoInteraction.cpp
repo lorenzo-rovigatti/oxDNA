@@ -114,7 +114,7 @@ void ManfredoInteraction<number>::_build_lt(Mesh<number> &mesh, int points, char
 		else {
 			data.x[i] = atof(spl[0].c_str());
 			data.fx[i] = _T*atof(spl[1].c_str());
-			data.dfx[i] = _T*atof(spl[2].c_str());
+			data.dfx[i] = -_T*atof(spl[2].c_str());
 
 			if(i > 0 && data.x[i] <= data.x[i-1]) throw oxDNAException("The x values of the lookup table should be monotonically increasing (found x[%d] = %f <= %f = x[%d])", i, data.x[i], i-1, data.x[i-1]);
 			i++;
@@ -234,7 +234,7 @@ int ManfredoInteraction<number>::_get_inter_type(BaseParticle<number> *p, BasePa
 	// inter-tetramer interactions
 	else {
 		if(_any(p_type, q_type, CENTRE) && _any(p_type, q_type, ARM)) return CENTRE_ARM_INTER;
-		if(_any(p_type, q_type, ARM) && _any(p_type, q_type, ARM)) return ARM_ARM_INTER;
+		if(_both(p_type, q_type, ARM)) return ARM_ARM_INTER;
 		if(_both(p_type, q_type, CENTRE)) return CENTRE_CENTRE;
 	}
 
@@ -298,7 +298,6 @@ number ManfredoInteraction<number>::pair_interaction_bonded(BaseParticle<number>
 
 		number dist = r->module();
 		energy = this->_query_mesh(dist, _intra_mesh[type]);
-		//printf("%d %f\n", type, energy);
 
 		if(update_forces) {
 			number force_mod = -this->_query_meshD(dist, _intra_mesh[type]);

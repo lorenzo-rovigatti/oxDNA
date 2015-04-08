@@ -27,6 +27,8 @@ print_every = <integer> (frequency of output, in number steps for oxDNA, in numb
 [stop_at = <integer> (stop outputing at this step, defaults to -1 (which means never))]
 [only_last = <bool> (if true, the output will not be appended to the stream, but it will overwrite the previous output each time, defaults to false)]
 [binary = <bool> (if true, the output will be printed in binary, defaults to false)]
+[linear = <bool> (if true the OutputObservable will save in linear scale, otherwise will use the logline scale by FS. Defaults to true)]
+[update_name_with_time = <bool> (if true the output filename will be changed by using the 'name' key as a prefix and the current step as a suffix. Defaults to false)]
 col_<n> = {\ntype = name of the first observable\n[other observable options as lines of 'key = value']\n} (this syntax specifies the column of the output file. Note that <n> is the column index and should start from 1)
 @endverbatim
  * You can have as many observables (columns) as you want. You can put them in any order, but there has to be a col_1 key.
@@ -52,11 +54,23 @@ protected:
 	llint _stop_at;
 	std::string _prefix;
 	std::string _output_name;
+	std::string _base_name;
 	input_file _sim_inp;
+
+	bool _linear;
+	int _log_ppc;
+	int _log_n0;
+	number _log_fact;
+	llint _log_next;
+	llint _log_tot_cycle;
+	int _log_pos_in_cycle;
+	int _log_n_cycle;
+	bool _update_name_with_time;
 
 	llint _bytes_written;
 
 	void _open_output();
+	void _set_next_log_step();
 
 public:
 	/**

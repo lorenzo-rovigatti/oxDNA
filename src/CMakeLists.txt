@@ -129,6 +129,7 @@ SET(common_SOURCES
 	Utilities/parse_input/parse_input.cpp
 	Utilities/timing/timing.c
 	Utilities/time_scales/time_scales.c
+	Utilities/Timings.cpp
 	PluginManagement/PluginManager.cpp
 	${forces_SOURCES}
 	${observables_SOURCES}

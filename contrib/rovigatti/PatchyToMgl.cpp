@@ -25,9 +25,9 @@ template<typename number>
 void PatchyToMgl<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	Configuration<number>::get_settings(my_inp, sim_inp);
 
-	int tmp;
-	if(getInputBoolAsInt(&my_inp, "first_neighbours", &tmp, 0) == KEY_FOUND) _first_neighbours = (bool)tmp;
-	if(getInputBoolAsInt(&my_inp, "second_neighbours", &tmp, 0) == KEY_FOUND) {
+	bool tmp;
+	if(getInputBool(&my_inp, "first_neighbours", &tmp, 0) == KEY_FOUND) _first_neighbours = (bool)tmp;
+	if(getInputBool(&my_inp, "second_neighbours", &tmp, 0) == KEY_FOUND) {
 		_second_neighbours = (bool)tmp;
 		// _second_neighbours implies _first_neighbours
 		if(_second_neighbours) _first_neighbours = true;
@@ -35,14 +35,14 @@ void PatchyToMgl<number>::get_settings(input_file &my_inp, input_file &sim_inp) 
 	double threshold = -0.5;
 	getInputDouble(&my_inp, "threshold", &threshold, 0);
 	_threshold = (number) threshold;
+
+	_patch_size = 0.3;
+	getInputNumber(&my_inp, "costheta", &_patch_size, 0);
 }
 
 template<typename number>
 void PatchyToMgl<number>::init(ConfigInfo<number> &config_info) {
    Configuration<number>::init(config_info);
-
-   PatchyInteraction<number> *inter = reinterpret_cast<PatchyInteraction<number> *>(config_info.interaction);
-   _patch_size = inter->get_alpha();
 }
 
 template<typename number>
@@ -60,13 +60,12 @@ template<typename number>
 string PatchyToMgl<number>::_mgl_patchy_line(BaseParticle<number> *p, const char *color, bool print_p, const char *p_color) {
 	if(_printed.find(p) != _printed.end()) return "";
 	_printed.insert(p);
-	string res = Utils::sformat("%lf %lf %lf @ 0.5 C[%s]", p->pos.x, p->pos.y, p->pos.z, color);
+	string res = Utils::sformat("%lf %lf %lf @ 0.5 C[%s] M", p->pos.x, p->pos.y, p->pos.z, color);
 
 	if(print_p) {
 		for(int i = 0; i < p->N_int_centers; i++) {
-			LR_vector<number> p_pos = p->pos + p->int_centers[i];
-			res += "\n";
-			res += Utils::sformat("%lf %lf %lf @ %lf C[%s]", p_pos.x, p_pos.y, p_pos.z, _patch_size, p_color);
+			LR_vector<number> p_pos = p->int_centers[i]*1.1;
+			res += Utils::sformat(" %lf %lf %lf %lf C[%s]", p_pos.x, p_pos.y, p_pos.z, _patch_size, p_color);
 		}
 	}
 
@@ -77,7 +76,8 @@ template<typename number>
 std::string PatchyToMgl<number>::_particle(BaseParticle<number> *p) {
 	std::stringstream res;
 
-	res << _mgl_patchy_line(p, "0,0,1", true, "1,0,0");
+	if(p->type == 0) res << _mgl_patchy_line(p, "0,0,1", true, "1,0,0");
+	else res << _mgl_patchy_line(p, "0,1,0", true, "1,0,0");
 
 	if(_first_neighbours) {
 		vector<BaseParticle<number> *> particles = this->_config_info.interaction->get_neighbours(p, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
