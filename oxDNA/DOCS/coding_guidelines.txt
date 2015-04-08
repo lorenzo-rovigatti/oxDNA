@@ -1,0 +1,40 @@
+FILES
+----- 
+
+- c++ source files should use the file extension .cpp. 
+- Every .cpp file should have an associated .h file. The two should be named the 
+same, except for the extension.
+- Abstract (interface) classes may be defined entirely in a header file (see e.g. 
+BaseInteraction.h).
+- The .cpp and .h files should have the same name of the class defined therein.  
+
+NAMING CONVENTIONS
+------------------
+
+- The name of classes and structures should be in CamelCase (with the first letter
+capitalised). Example: ThisIsAClass
+- The name of methods, functions and variables should be in lower case. When the 
+name is made of distinct words or parts, these should be separated by an underscore.
+Example: this_is_a_variable
+- Please be as descriptive as you can AT LEAST when naming classes and public methods.
+Using long names does not hurt anyone but greatly increases the readability of the 
+code.
+- The name of private and protected members of classes and structures should be 
+prefixed with an underscore. 
+
+CODING STYLE
+------------
+
+- Indentation: please use tabs and make sure that your code is well-indented. If 
+you are too lazy to do it yourself then install eclipse, open your file and press
+ctrl+shift+f :-)
+- Braces: for consistency please put opening braces on the same level as function/
+method/class declarations and if/for/while statements. The opening brace should 
+be preceded by a space. Example:
+
+void my_function() {
+	if(1 != 0) {
+		printf("what?\n");
+		return;
+	}
+} 
