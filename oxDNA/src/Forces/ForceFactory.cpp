@@ -10,6 +10,7 @@
 // forces to include
 #include "COMForce.h"
 #include "ConstantRateForce.h"
+#include "SawtoothForce.h"
 #include "ConstantRateTorque.h"
 #include "ConstantTrap.h"
 #include "LowdimMovingTrap.h"
@@ -52,6 +53,7 @@ void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **par
 	BaseForce<number> * extF;
 	
 	if (type_str.compare("string") == 0) extF = new ConstantRateForce<number> ();
+	else if (type_str.compare("sawtooth") == 0) extF = new SawtoothForce<number> ();
 	else if (type_str.compare("twist") == 0) extF = new ConstantRateTorque<number> ();
 	else if (type_str.compare("trap") == 0) extF = new MovingTrap<number> ();
 	else if (type_str.compare("repulsion_plane") == 0) extF = new RepulsionPlane<number> ();
