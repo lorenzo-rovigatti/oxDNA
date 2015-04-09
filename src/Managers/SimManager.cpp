@@ -29,6 +29,8 @@ SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000), _res
 	_seed = -1;
 	_backend = NULL;
 	_fix_diffusion_every = 100000;
+	_max_steps = -1;
+	_time_scale = -1;
 
 	loadInputFile(&_input, argv[1]);
 	if(_input.state == ERROR) throw oxDNAException("Caught an error while opening the input file");

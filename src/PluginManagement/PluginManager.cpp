@@ -5,9 +5,10 @@
  *      Author: lorenzo
  */
 
-#include <dlfcn.h>
-
 #include "PluginManager.h"
+
+#include <dlfcn.h>
+#include <sys/stat.h>
 
 #include "../Utilities/Logger.h"
 #include "../Utilities/Utils.h"
@@ -72,15 +73,24 @@ void *PluginManager::_get_handle(string &name) {
 	if(!_initialised) throw oxDNAException("PluginManager not initialised, aborting");
 
 	void *handle = NULL;
+	vector<string> possible_paths;
 	for(vector<string>::iterator it = _path.begin(); it != _path.end() && handle == NULL; it++) {
 		string path = *it + "/" + name + ".so";
 		OX_DEBUG("Looking for plugin '%s' in '%s'", name.c_str(), it->c_str());
-		handle = dlopen(path.c_str(), RTLD_LAZY);
+		struct stat buffer;
+		if(stat(path.c_str(), &buffer) == 0) possible_paths.push_back(path);
 	}
-	const char *dl_error = dlerror();
-	if(dl_error != NULL) throw oxDNAException("Caught an error while opening shared library '%s.so': %s", name.c_str(), dl_error);
 
-	_handles.push(handle);
+	if(possible_paths.size() == 0) OX_LOG(Logger::LOG_WARNING, "Plugin shared library '%s.so' not found", name.c_str());
+	else {
+		if(possible_paths.size() > 1) OX_LOG(Logger::LOG_WARNING, "Multiple (%d) plugin shared libraries named '%s.so' were found. Using %s", possible_paths.size(), name.c_str(), possible_paths[0].c_str());
+
+		handle = dlopen(possible_paths[0].c_str(), RTLD_LAZY);
+		const char *dl_error = dlerror();
+		if(dl_error != NULL) throw oxDNAException("Caught an error while opening shared library '%s.so': %s", name.c_str(), dl_error);
+
+		_handles.push(handle);
+	}
 
 	return handle;
 }
@@ -102,6 +112,7 @@ void *PluginManager::_get_entry_point(void *handle, vector<string> &entry_points
 template<typename number>
 BaseObservable<number> *PluginManager::get_observable(string name) {
 	void *handle = _get_handle(name);
+	if(handle == NULL) return NULL;
 
 	// we do this c-like because dynamic linking can be done only in c and thus
 	// we have no way of using templates
@@ -135,6 +146,7 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 template<typename number>
 IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 	void *handle = _get_handle(name);
+	if(handle == NULL) return NULL;
 
 	// we do this c-like because dynamic linking can be done only in c and thus
 	// we have no way of using templates

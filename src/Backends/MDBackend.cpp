@@ -13,6 +13,7 @@
 template<typename number>
 MDBackend<number>::MDBackend() : SimBackend<number>(), _refresh_velocities(false) {
 	this->_sim_type = SIM_MD;
+	_reset_initial_com_momentum = false;
 
 	// initialize the messages for the timings output
 	this->_timer_msgs_number = 6;
@@ -34,8 +35,8 @@ void MDBackend<number>::get_settings(input_file &inp) {
 	SimBackend<number>::get_settings(inp);
 
 	// refresh of initial velocities
-	int resc;
-	if(getInputBoolAsInt(&inp, "refresh_vel", &resc, 0) == KEY_FOUND) _refresh_velocities = resc;
+	getInputBool(&inp, "refresh_vel", &_refresh_velocities, 0);
+	getInputBool(&inp, "reset_initial_com_momentum", &_reset_initial_com_momentum, 0);
 
 	getInputNumber<number>(&inp, "dt", &_dt, 1);
 
@@ -79,6 +80,32 @@ void MDBackend<number>::init(char conf_filename[256]) {
 		}
 	}
 
+	if(_reset_initial_com_momentum) {
+		OX_LOG(Logger::LOG_INFO, "Setting the centre of mass' momentum to 0");
+		_reset_momentum();
+	}
+}
+
+template<typename number>
+void MDBackend<number>::_reset_momentum() {
+	LR_vector<number> com_v(0, 0, 0);
+	for(int i = 0; i < this->_N; i ++) {
+		BaseParticle<number> *p = this->_particles[i];
+		com_v += p->vel;
+	}
+	com_v /= this->_N;
+
+	for(int i = 0; i < this->_N; i ++) {
+		BaseParticle<number> *p = this->_particles[i];
+		p->vel -= com_v;
+	}
+
+	com_v = LR_vector<number>(0, 0, 0);
+	for(int i = 0; i < this->_N; i ++) {
+		BaseParticle<number> *p = this->_particles[i];
+		com_v += p->vel;
+	}
+	com_v /= this->_N;
 }
 
 template<typename number>

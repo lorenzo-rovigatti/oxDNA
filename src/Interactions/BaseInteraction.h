@@ -470,7 +470,7 @@ number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<n
 			int j = _cells_head[_cells_neigh[_cells_index[p->index]][c]];
 			while (j != P_INVALID) {
 				BaseParticle<number> *q = particles[j];
-				if(p->index > q->index) energy += pair_interaction_term(name, p, q);
+				if(p->index < q->index) energy += pair_interaction_term(name, p, q);
 				if(this->get_is_infinite()) {
 					_delete_cell_neighs();
 					return energy;
@@ -805,7 +805,7 @@ std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> * > > BaseInt
 			int j = this->_cells_head[this->_cells_neigh[this->_cells_index[p->index]][c]];
 			while (j != P_INVALID) {
 				BaseParticle<number> *q = particles[j];
-				if (p->index < q-> index) {
+				if(p->index < q-> index) {
 					//dr = q->pos.minimum_image(p->pos, this->_box_side);
 					dr = q->pos.minimum_image(p->pos, box_side);
 					if (dr.norm() < this->_sqr_rcut) ret.push_back(std::pair<BaseParticle<number>*, BaseParticle<number>*> (p, q));

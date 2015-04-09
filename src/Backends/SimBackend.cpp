@@ -47,6 +47,9 @@ SimBackend<number>::SimBackend() {
 	_P = (number) 0.;
 	_lists = NULL;
 	_max_io = 1.;
+	_read_conf_step = -1;
+	_conf_interval = -1;
+	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = NULL;
 }
 
 template<typename number>
@@ -59,17 +62,14 @@ SimBackend<number>::~SimBackend() {
 
 	ForceFactory<number>::instance()->clear();
 
-
 	if(_timer.state == TIMER_READY) {
-
 		// here we print the input output information
-		typename vector<ObservableOutput<number> *>::iterator it2;
 		llint total_file = 0;
 		llint total_stderr = 0;
 		OX_LOG (Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
-		for(it2 = _obs_outputs.begin(); it2 != _obs_outputs.end(); it2++) {
-			llint now = (*it2)->get_bytes_written();
-			std::string fname = (*it2)->get_output_name();
+		for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
+			llint now = (*it)->get_bytes_written();
+			std::string fname = (*it)->get_output_name();
 			if (!strcmp (fname.c_str(), "stderr") || !strcmp (fname.c_str(), "stdout")) total_stderr += now;
 			else total_file += now;
 			std::string mybytes = Utils::bytes_to_human (now);
@@ -78,7 +78,7 @@ SimBackend<number>::~SimBackend() {
 		OX_LOG (Logger::LOG_NOTHING, "\t%s written to files" , Utils::bytes_to_human(total_file).c_str());
 		OX_LOG (Logger::LOG_NOTHING, "\t%s written to stdout/stderr" , Utils::bytes_to_human(total_stderr).c_str());
 		double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
-		OX_LOG (Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
+		if(time_passed > 0.) OX_LOG (Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
 		
 		prepare_timer_results(&_timer);
 		OX_LOG(Logger::LOG_INFO, "Timings informations:");
@@ -94,8 +94,7 @@ SimBackend<number>::~SimBackend() {
 		destroy_timer(&_timer);
 	}
 	
-	typename vector<ObservableOutput<number> *>::iterator it;
-	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
+	for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
 
 	// destroy lists;
 	if (_lists != NULL) delete _lists;
@@ -117,14 +116,14 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	_lists = ListFactory::make_list<number>(inp, _N, _box_side);
 	_lists->get_settings(inp);
 
-	int tmpi;
-	if (getInputBoolAsInt(&inp, "binary_initial_conf", &tmpi, 0) == KEY_FOUND) _initial_conf_is_binary = (tmpi > 0);
-	if (getInputBoolAsInt(&inp, "fix_diffusion", &tmpi, 0) == KEY_FOUND) _enable_fix_diffusion = (tmpi > 0);
+	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
+	getInputBool(&inp, "fix_diffusion", &_enable_fix_diffusion, 0);
 
 	// we only reseed the RNG if:
 	// a) we have a binary conf
 	// b) no seed was specified in the input file
 	// c) restart_step_counter is set to one (true) -- LR: looking at the code, it looks like it is quite the contrary
+	int tmpi;
 	getInputBoolAsInt (&inp, "restart_step_counter", &tmpi, 1);
 	_reseed = (getInputInt (&inp, "seed", &tmpi, 0) == KEY_NOT_FOUND || tmpi == 0);
 
@@ -223,7 +222,6 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	}
 }
 
-
 template<typename number>
 void SimBackend<number>::init(char conf_filename[256]) {
 	init_timer(&_timer, _timer_msgs_number, _timer_msgs);
@@ -267,11 +265,11 @@ void SimBackend<number>::init(char conf_filename[256]) {
 	bool check = false;
 	if (_initial_conf_is_binary) check = _read_next_configuration(true);
 	else check = _read_next_configuration();
-	if (!check) throw oxDNAException("Could not read the initial configuration, aborting");
+	if(!check) throw oxDNAException("Could not read the initial configuration, aborting");
 
 	_start_step_from_file = _read_conf_step;
 
-	if (_external_forces) ForceFactory<number>::instance()->read_external_forces(std::string(_external_filename), _particles, this->_N, _is_CUDA_sim, &_box_side);
+	if (_external_forces) ForceFactory<number>::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, &_box_side);
 
 	this->_U = (number) 0;
 	this->_K = (number) 0;
@@ -424,14 +422,14 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		_conf_input.read ((char *)&tmpc, sizeof(char));
 	}
 
-	if(i != this->_N) {
+	if(i != _N) {
 		if(_confs_to_skip > 0) throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
-		else throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, this->_N);
+		else throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, _N);
 	}
 
-	for(k = 0; k < this->_N_strands; k ++) scdm[k] /= (double) nins[k];
+	for(k = 0; k < _N_strands; k ++) scdm[k] /= (double) nins[k];
 
-	for (i = 0; i < this->_N; i ++) {
+	for (i = 0; i < _N; i ++) {
 		BaseParticle<number> *p = this->_particles[i];
 		k = p->strand_id;
 
@@ -471,12 +469,11 @@ void SimBackend<number>::_print_ready_observables(llint curr_step) {
 	// here we control the timings; we leave the code a 30-second grace time
 	// to print the initial configuration
 	double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
-	if (time_passed > 30) {
+	if(time_passed > 30) {
 		double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
 		OX_DEBUG("Current data production rate: %g MB/s", MBps);
-		if (MBps > _max_io) throw oxDNAException ("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
+		if(MBps > _max_io) throw oxDNAException ("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
 	}
-
 }
 
 template<typename number>
@@ -494,24 +491,24 @@ template<typename number>
 void SimBackend<number>::fix_diffusion() {
 	if(!_enable_fix_diffusion) return;
 
-	LR_vector<number> *scdm = new LR_vector<number>[this->_N_strands];
-	int *ninstrand = new int [this->_N_strands];
-	for(int k = 0; k < this->_N_strands; k ++) {
+	LR_vector<number> *scdm = new LR_vector<number>[_N_strands];
+	int *ninstrand = new int [_N_strands];
+	for(int k = 0; k < _N_strands; k ++) {
 		scdm[k].x = scdm[k].y = scdm[k].z = (number) 0.f;
 		ninstrand[k] = 0;
 	}
 
 	// compute com for each strand;
-	for (int i = 0; i < this->_N; i ++) {
+	for (int i = 0; i < _N; i ++) {
 		BaseParticle<number> *p = this->_particles[i];
 		scdm[p->strand_id] += p->pos;
 		ninstrand[p->strand_id]++;
 	}
 
-	for (int k = 0; k < this->_N_strands; k ++) scdm[k] = scdm[k] / (number) ninstrand[k];
+	for (int k = 0; k < _N_strands; k ++) scdm[k] = scdm[k] / (number) ninstrand[k];
 
 	// change particle position and fix orientation matrix;
-	for (int i = 0; i < this->_N; i ++) {
+	for (int i = 0; i < _N; i ++) {
 		BaseParticle<number> *p = this->_particles[i];
 		p->shift(scdm[p->strand_id], this->_box_side);
 		p->orientation.orthonormalize();

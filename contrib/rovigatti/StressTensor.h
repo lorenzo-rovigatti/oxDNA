@@ -11,7 +11,7 @@
 #include "BaseObservable.h"
 
 /**
- * @brief Computes the stress tensors in real space (Eq. 4.4.13 in the Frenkel & Smit book)
+ * @brief Computes the stress tensors in real space (Eq. 4.4.13 in the Frenkel & Smit book).
  */
 template<typename number>
 class StressTensor: public BaseObservable<number> {

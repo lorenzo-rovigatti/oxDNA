@@ -195,7 +195,7 @@ protected:
 	int _N_updates;
 	int _confs_to_skip;
 
-	void _read_external_forces ();
+	void _read_external_forces();
 
 	virtual void fix_diffusion();
 
@@ -208,8 +208,10 @@ protected:
 	template <typename n_number> LR_vector<n_number> _read_next_vector(bool binary);
 
 	/**
-	 * Reads the next configuration from the conf_file. It can read it either in binary
-	 * or ascii format.
+	 * @brief Reads the next configuration from the conf_file.
+	 *
+	 * It can read it either in binary or ascii format.
+	 *
 	 * @param binary whether conf_file is to be parsed in ascii or binary format
 	 * @return true if the operation was successful, false otherwise
 	 */
@@ -218,7 +220,7 @@ protected:
 	int _get_N_from_conf(ifstream &conf_input);
 
 	/**
-	 * Prints all the observables that are ready, i.e. whose is_ready(curr_step) method returns true.
+	 * @brief Prints all the observables that are ready, i.e. whose is_ready(curr_step) method returns true.
 	 *
 	 * @param curr_step
 	 */

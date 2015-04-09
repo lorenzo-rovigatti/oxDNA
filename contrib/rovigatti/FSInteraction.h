@@ -45,8 +45,8 @@ protected:
 	/// Number of particles per species
 	int _N_A, _N_B, _N;
 
-	/// true if we are to simulate a patchy binary mixture, false otherwise
-	bool _is_binary;
+	/// true if we are to simulate a patchy binary mixture, false otherwise. If false then A-A interactions are enabled
+	bool _one_component;
 
 	/// Repulsive interaction energy at the cut-off
 	number _rep_E_cut;
@@ -119,7 +119,7 @@ number FSInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<nu
 		}
 	}
 
-	if(p->type != q->type) {
+	if(p->type != q->type || _one_component) {
 		LR_vector<number> tmptorquep(0, 0, 0);
 		LR_vector<number> tmptorqueq(0, 0, 0);
 		for(int pi = 0; pi < p->N_int_centers; pi++) {
@@ -189,8 +189,6 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 
 			number other_energy = -it->energy;
 			if(it->r_p < _sigma_ss) other_energy = 1.;
-
-//			if(!update_forces) printf("%d (%d) %d %d\n", p->index, new_bond.p_patch, new_bond.other->index, it->other->index);
 
 			energy += _lambda * curr_energy * other_energy;
 
