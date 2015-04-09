@@ -14,7 +14,7 @@
 using namespace std;
 
 template <typename number>
-FSInteraction<number>::FSInteraction() : BaseInteraction<number, FSInteraction<number> >(), _N_patches(-1), _N_patches_B(-1), _N_A(0), _N_B(0), _is_binary(false) {
+FSInteraction<number>::FSInteraction() : BaseInteraction<number, FSInteraction<number> >(), _N_patches(-1), _N_patches_B(-1), _N_A(0), _N_B(0), _N(-1), _one_component(false) {
 	this->_int_map[FS] = &FSInteraction<number>::_two_body;
 
 	_lambda = 1.;
@@ -30,7 +30,8 @@ void FSInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 
 	getInputInt(&inp, "FS_N", &_N_patches, 1);
-	if(getInputInt(&inp, "FS_N_B", &_N_patches_B, 0) == KEY_FOUND) _is_binary = true;
+	getInputInt(&inp, "FS_N_B", &_N_patches_B, 0);
+	getInputBool(&inp, "FS_one_component", &_one_component, 0);
 
 	getInputNumber(&inp, "FS_lambda", &_lambda, 0);
 }
@@ -69,8 +70,9 @@ void FSInteraction<number>::allocate_particles(BaseParticle<number> **particles,
 
 template<typename number>
 number FSInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	pair_interaction_bonded(p, q, r, update_forces);
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	number energy = pair_interaction_bonded(p, q, r, update_forces);
+	energy += pair_interaction_nonbonded(p, q, r, update_forces);
+	return energy;
 }
 
 template<typename number>
@@ -148,7 +150,7 @@ void FSInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<nu
 	topology.close();
 	sscanf(line, "%*d %d\n", &_N_A);
 	_N_B = N - _N_A;
-	if(_N_B > 0) if(_N_patches_B == -1) throw oxDNAException("Number of patches of species B not specified");
+	if(_N_B > 0 && _N_patches_B == -1) throw oxDNAException("Number of patches of species B not specified");
 
 	allocate_particles(particles, N);
 	for (int i = 0; i < N; i ++) {
@@ -161,7 +163,7 @@ void FSInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<nu
 
 template<typename number>
 void FSInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
-
+	if(_N_B > 0 && _one_component) throw oxDNAException("One component simulations should have topologies implying that no B-particles are present");
 }
 
 template class FSInteraction<float>;

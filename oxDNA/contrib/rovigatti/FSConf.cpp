@@ -17,7 +17,8 @@ using namespace std;
 
 template<typename number>
 FSConf<number>::FSConf() : Configuration<number>() {
-
+	_N = _N_A = _N_B = -1;
+	_in_box = false;
 }
 
 template<typename number>
@@ -31,6 +32,8 @@ void FSConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	string topology_file;
 	getInputString(&sim_inp, "topology", topology_file, 0);
+
+	getInputBool(&my_inp, "in_box", _in_box, 0);
 
 	std::ifstream topology(topology_file.c_str(), ios::in);
 	char line[512];
@@ -65,10 +68,12 @@ std::string FSConf<number>::_particle(BaseParticle<number> *p) {
 
 	number mybox = *this->_config_info.box_side;
 
-	LR_vector<number> mypos = p->pos;
-	mypos.x -= floor(mypos.x / mybox)*mybox + 0.5*mybox;
-	mypos.y -= floor(mypos.y / mybox)*mybox + 0.5*mybox;
-	mypos.z -= floor(mypos.z / mybox)*mybox + 0.5*mybox;
+	LR_vector<number> mypos = p->get_abs_pos(mybox);
+	if(_in_box) {
+		mypos.x -= floor(mypos.x / mybox)*mybox + 0.5*mybox;
+		mypos.y -= floor(mypos.y / mybox)*mybox + 0.5*mybox;
+		mypos.z -= floor(mypos.z / mybox)*mybox + 0.5*mybox;
+	}
 
 	res << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 	for(int i = 0; i < p->N_int_centers; i++) {

@@ -25,9 +25,7 @@ void Pressure<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputString(&sim_inp, "T", raw_T, 1);
 	_T = Utils::get_temperature<number>(raw_T);
 
-	int tmp = 0;
-	getInputBoolAsInt(&my_inp, "stress_tensor", &tmp, 0);
-	_stress_tensor = (bool) tmp;
+	getInputBool(&my_inp, "stress_tensor", &_stress_tensor, 0);
 }
 
 template<typename number>
@@ -35,46 +33,47 @@ string Pressure<number>::get_output_string(llint curr_step) {
 	number L = *this->_config_info.box_side;
 	int N = *this->_config_info.N;
 
-	vector<pair<BaseParticle<number> *, BaseParticle<number>*> > pairs = this->_config_info.interaction->get_potential_interactions(this->_config_info.particles, N, L);
-
 	number virial = 0;
 	number st_xx, st_yy, st_zz, st_xy, st_xz, st_yz;
 	st_xx = st_yy = st_zz = st_xy = st_xz = st_yz = 0;
-	// we loop on all the pairs in order to update the forces
-	typename std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> >::iterator it;
-	for (it = pairs.begin(); it != pairs.end(); it ++ ) {
-		BaseParticle<number> *p = (*it).first;
-		BaseParticle<number> *q = (*it).second;
-		LR_vector<number> r = q->pos.minimum_image(p->pos, L);
 
-		// pair_interaction will change these vectors, but we still need them in the next
-		// first integration step. For this reason we copy and then restore their values
-		// after the calculation
-		LR_vector<number> old_p_force(p->force);
-		LR_vector<number> old_q_force(q->force);
-		LR_vector<number> old_p_torque(p->torque);
-		LR_vector<number> old_q_torque(q->torque);
+	for(int i = 0; i < N; i++) {
+		BaseParticle<number> *p = this->_config_info.particles[i];
 
-		p->force = LR_vector<number>(0, 0, 0);
-		q->force = LR_vector<number>(0, 0, 0);
-		p->torque = LR_vector<number>(0, 0, 0);
-		q->torque = LR_vector<number>(0, 0, 0);
+		std::vector<BaseParticle<number> *> neighs = this->_config_info.lists->get_neigh_list(p);
+		for(unsigned int n = 0; n < neighs.size(); n++) {
+			BaseParticle<number> *q = neighs[n];
 
-		this->_config_info.interaction->pair_interaction(p, q, NULL, true);
+			LR_vector<number> r = q->pos.minimum_image(p->pos, L);
+			// pair_interaction will change these vectors, but we still need them in the next
+			// first integration step. For this reason we copy and then restore their values
+			// after the calculation
+			LR_vector<number> old_p_force(p->force);
+			LR_vector<number> old_q_force(q->force);
+			LR_vector<number> old_p_torque(p->torque);
+			LR_vector<number> old_q_torque(q->torque);
 
-		st_xx += r.x * q->force.x;
-		st_yy += r.y * q->force.y;
-		st_zz += r.z * q->force.z;
-		st_xy += r.x * q->force.y;
-		st_xz += r.x * q->force.z;
-		st_yz += r.y * q->force.z;
+			p->force = LR_vector<number>(0, 0, 0);
+			q->force = LR_vector<number>(0, 0, 0);
+			p->torque = LR_vector<number>(0, 0, 0);
+			q->torque = LR_vector<number>(0, 0, 0);
 
-		virial += r*q->force;
+			this->_config_info.interaction->pair_interaction(p, q, NULL, true);
 
-		p->force = old_p_force;
-		q->force = old_q_force;
-		p->torque = old_p_torque;
-		q->torque = old_q_torque;
+			st_xx += r.x * q->force.x;
+			st_yy += r.y * q->force.y;
+			st_zz += r.z * q->force.z;
+			st_xy += r.x * q->force.y;
+			st_xz += r.x * q->force.z;
+			st_yz += r.y * q->force.z;
+
+			virial += r*q->force;
+
+			p->force = old_p_force;
+			q->force = old_q_force;
+			p->torque = old_p_torque;
+			q->torque = old_q_torque;
+		}
 	}
 
 	number V = L*L*L;

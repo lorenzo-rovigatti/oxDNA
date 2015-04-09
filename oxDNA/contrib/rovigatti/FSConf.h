@@ -11,12 +11,17 @@
 #include "Configurations/Configuration.h"
 
 /**
- * @brief Prints an mgl configuration for patchy systems.
+ * @brief Prints a configuration in the FS format.
+ *
+ * @verbatim
+[in_box = <bool> (if true all the positions are brought back between -L/2 and L/2. Defaults to false)]
+@endverbatim
  */
 template<typename number>
 class FSConf: public Configuration<number>  {
 protected:
 	int _N, _N_A, _N_B;
+	bool _in_box;
 
 	virtual std::string _headers(llint step);
 	virtual std::string _particle(BaseParticle<number> *p);
