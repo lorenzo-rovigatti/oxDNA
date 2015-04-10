@@ -105,6 +105,8 @@ void ObservableOutput<number>::_open_output() {
 
 		_output = &_output_stream;
 	}
+
+	if(_output->bad() || !_output->good()) throw oxDNAException("Stream %s not writable", _output_name.c_str());
 }
 
 template<typename number>

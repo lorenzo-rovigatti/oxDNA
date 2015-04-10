@@ -23,7 +23,7 @@ struct FSBond {
 };
 
 /**
- * @brief Manages the interaction between FS-like patchy particles
+ * @brief Manages the interaction between FS-like patchy particles.
  *
  * This interaction is selected with
  * interaction_type = patchy
@@ -31,6 +31,7 @@ struct FSBond {
  * @verbatim
 FS_N = <int> (number of patches)
 [FS_N_B = <int> (number of patches on species B)]
+[FS_one_component = <bool> (if true then the system will not contain particles of type B and A-A bonds will be allowed. Defaults to false.)]
 @endverbatim
  */
 template <typename number>
@@ -72,6 +73,7 @@ protected:
 	 * @return
 	 */
 	inline number _two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+
 	inline number _three_body(BaseParticle<number> *p, FSBond<number> &new_bond, bool update_forces);
 
 public:
@@ -223,7 +225,7 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 	return energy;
 }
 
-extern "C" FSInteraction<float> *make_float() { return new FSInteraction<float>(); }
-extern "C" FSInteraction<double> *make_double() { return new FSInteraction<double>(); }
+extern "C" FSInteraction<float> *make_float();
+extern "C" FSInteraction<double> *make_double();
 
 #endif /* FSINTERACTION_H_ */

@@ -170,10 +170,10 @@ void TEPInteraction<number>::init() {
 	//OX_LOG(Logger::LOG_INFO,"FENE_R0 = %f",FENE_R0);
 	// we choose rcut as the max of the range interaction of excluded
 	// volume between backbones and hydrogen bonding
-	number rcutback;
+	//number rcutback;
 	//TODO: when the shape of the elements has been decided, set rcutback to something that
 	//actually makes sense
-	rcutback = _a;
+	//rcutback = _a;
 
 	this->_rcut = 2.;
 	this->_sqr_rcut = SQR(this->_rcut);
