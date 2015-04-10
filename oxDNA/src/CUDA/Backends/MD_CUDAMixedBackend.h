@@ -14,7 +14,7 @@
  * @brief CUDA backend with mixed precision for MD simulations.
  *
  * This class is a regular MD backend written to be almost as fast as a MD_CUDABackend<float, float4>
- * and, at the sime time, almost as reliable as MD_CUDABackend<double, LR_double4> when it comes
+ * and, at the same time, almost as reliable as MD_CUDABackend<double, LR_double4> when it comes
  * to numerical precision. This is probably the best class for production simulations.
  */
 class CUDAMixedBackend: public MD_CUDABackend<float, float4> {

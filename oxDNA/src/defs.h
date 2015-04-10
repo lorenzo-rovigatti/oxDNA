@@ -10,8 +10,8 @@
 #define DEFS_H_
 
 #define VERSION_MAJOR 2
-#define VERSION_MINOR 1
-#define VERSION_STAGE 2 // 0 alpha, 1 beta, 2 stable
+#define VERSION_MINOR 2
+#define VERSION_STAGE 1 // 0 alpha, 1 beta, 2 stable
 
 #define MAX_EXT_FORCES 10
 

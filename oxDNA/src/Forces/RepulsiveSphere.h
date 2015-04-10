@@ -14,7 +14,7 @@
  * @brief External force field that confines particles into a sphere.
  *
  * example section in the external forces file:
-@vebatim
+
 \n
 {\n
   particle = -1    # acts on all particles\n
@@ -23,6 +23,11 @@
   stiff = 50.      # quite stiff. Good for MC, not for MD\n
   rate = 0.        # constant radius\n
 }\n\n
+
+ * @verbatim
+stiff = <float> (stiffness of the repulsion.)
+r0 = <float> (radius of the sphere, in simulation units.)
+rate = <float> (rate of growth of the radius. Note that the growth is linear in timesteps/MC steps, not reduced time units.)
 @endverbatim
 */
 template<typename number>

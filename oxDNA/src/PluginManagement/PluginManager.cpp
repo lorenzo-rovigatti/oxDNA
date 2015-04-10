@@ -27,13 +27,6 @@ typedef IBaseInteraction<double>* make_double_inter();
 
 PluginManager::PluginManager() : _initialised(false), _do_cleanup(true) {
 	_path.push_back(string("."));
-
-	// these are the default entry point names
-	_obs_entry_points.push_back(string("make_"));
-	_obs_entry_points.push_back(string("make_observable_"));
-
-	_inter_entry_points.push_back(string("make_"));
-	_inter_entry_points.push_back(string("make_interaction_"));
 }
 
 PluginManager::~PluginManager() {
@@ -63,6 +56,13 @@ void PluginManager::init(input_file &sim_inp) {
 		vector<string> v_entries = Utils::split(entries, ':');
 		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _inter_entry_points.push_back(*it);
 	}
+
+	// these are the default entry point names
+	_obs_entry_points.push_back(string("make_"));
+	_obs_entry_points.push_back(string("make_observable_"));
+
+	_inter_entry_points.push_back(string("make_"));
+	_inter_entry_points.push_back(string("make_interaction_"));
 }
 
 void PluginManager::add_to_path(string s) {

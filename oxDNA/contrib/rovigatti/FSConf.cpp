@@ -33,7 +33,7 @@ void FSConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	string topology_file;
 	getInputString(&sim_inp, "topology", topology_file, 0);
 
-	getInputBool(&my_inp, "in_box", _in_box, 0);
+	getInputBool(&my_inp, "in_box", &_in_box, 0);
 
 	std::ifstream topology(topology_file.c_str(), ios::in);
 	char line[512];

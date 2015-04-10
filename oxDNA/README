@@ -192,6 +192,9 @@ Core options:
         end of the simulation or not, defaults to false
     [timings_filename = <path>]
         path to the file where timings will be printed
+    [output_prefix = <string>]
+        the name of all output files will be preceded by this prefix, defaults
+        to an empty string
     [print_input = <bool>]
         make oxDNA write the input key=value pairs used by the simulation in a
         file named input.pid, with pid being the oxDNA pid. Defaults to False.
@@ -223,10 +226,22 @@ Core options:
     [list_type = verlet|cells|no]
         Type of neighbouring list to be used in CPU simulations. 'no' implies
         a O(N^2) computational complexity. Defaults to verlet.
+    particle = <int>
+        particle to apply the force to. -1 applies it to all particles.
+    F0 = <float>
+        Initial force.
+    wait_time = <float>
+        time interval over which the force is constant. Units are (MD/MC)
+        steps.
+    increment = <float>
+        amount by which to increment the force every wait_time steps.
     stiff = <float>
         stiffness of the spring
     r0 = <float>
         equilibrium elongation of the spring
+    rate = <float>
+        growth rate of the force. It is [oxDNA energy units / (oxDNA distance
+        units * (MD/MC) steps].
     com_list = <string>
         comma-separated list containing the ids of all the particles whose
         centre of mass is subject to the force
@@ -234,14 +249,11 @@ Core options:
         comma-separated list containing the ids of all the particles whose
         centre of mass is the reference point for the force acting on the
         other group of particles
-    name = stream name
+    name = <string>
         name of the output stream. stdout or stderr are accepted values
     print_every = <integer>
         frequency of output, in number steps for oxDNA, in number of
         configurations for DNAnalysis
-    [max_io = <float>]
-        maximum amount of data ouput by the simulation in MB/s. Useful not to
-        clog disk access, particularly when running on clusters. Defaults to 1.
     [start_from = <integer>]
         start outputing from the given step, defaults to 0
     [stop_at = <integer>]
@@ -251,8 +263,14 @@ Core options:
         overwrite the previous output each time, defaults to false
     [binary = <bool>]
         if true, the output will be printed in binary, defaults to false
+    [linear = <bool>]
+        if true the OutputObservable will save in linear scale, otherwise will
+        use the logline scale by FS. Defaults to true
+    [update_name_with_time = <bool>]
+        if true the output filename will be changed by using the 'name' key as
+        a prefix and the current step as a suffix. Defaults to false
     col_<n> = {
-    type = name of the observable
+    type = name of the first observable
     [other observable options as lines of 'key = value']
     }
         this syntax specifies the column of the output file. Note that <n> is
@@ -262,6 +280,10 @@ Core options:
 
 MD options:
 
+    [reset_initial_com_momentum = <bool>]
+        if true the momentum of the centre of mass of the initial
+        configuration will be set to 0. Defaults to false to enforce the
+        reproducibility of the trajectory
     backend = CPU
         For CPU FFS
     backend_precision = <any>
@@ -365,15 +387,67 @@ MC options:
         states that have no specified weight assigned from the weights file
     [skip_hist_zeros = <bool>]
         Default: false; Wether to skip zero entries in the traj_hist file
+    [equilibration_steps = <int>]
+        Default: 0; number of steps to ignore to allow for equilibration
 
 -------------------------------------------------------------------------------
 
-Interactions/DHSInteraction.h options:
+Interactions/RNAInteraction_relax.h options:
 
-    DHS_eps = <float>
-        background dielectrci constant for reaction field treatment
+    relax_type = <string>
+        Possible values: constant_force, harmonic_force; Relaxation algorithm
+        used
+    relax_strength = <float>
+        Force constant for the replacement of the FENE potential
+
+Interactions/DNAInteraction_relax.h options:
+
+    relax_type = <string>
+        Possible values: constant_force, harmonic_force; Relaxation algorithm
+        used
+    relax_strength = <float>
+        Force constant for the replacement of the FENE potential
+
+Interactions/DirkInteraction2.h options:
+
+    length = <float>
+        lenght of the cylinders
+    DHS_radius = <float>
+        radius of the diploar hard sphere on top of each cylinder
     DHS_rcut = <float>
-        cutoff for the reaction field treatment
+        distance cutoff for the reaction field treatment
+    DHS_eps = <float>
+        background dielectric constant for the reaction field treatment
+
+Interactions/RNAInteraction2.h options:
+
+    [use_average_seq = <boolean>]
+        defaults to yes
+    [seq_dep_file = <string>]
+        sets the location of the files with sequence-dependent parameters
+    [external_model = <string>]
+        overrides default constants for the model, set in rna_model.h), by
+        values specified by this option
+    [salt = <float>]
+        sets the salt concentration in M, defaults to 1
+    [mismatch_repulsion = <boolean>]
+        defaults to no
+
+Interactions/DirkInteractionSin.h options:
+
+    length = <float>
+        lenght of the cylinders
+    DHS_radius = <float>
+        radius of the diploar hard sphere on top of each cylinder
+    DHS_rcut = <float>
+        distance cutoff for the reaction field treatment
+    DHS_eps = <float>
+        background dielectric constant for the reaction field treatment
+
+Interactions/HardCylinderInteraction.h options:
+
+    height = <float>
+        cylinder length
 
 Interactions/DNAInteraction.h options:
 
@@ -383,7 +457,54 @@ Interactions/DNAInteraction.h options:
         HB interaction multiplier applied to all the nucleotides having a
         custom numbered base whose magnitude is > 300, defaults to 1.0
 
-Interactions/DirkInteraction.h options:
+Interactions/LJInteraction.h options:
+
+    LJ_rcut = <float>
+        interaction cutoff
+    [LJ_kob_andersen = <bool>]
+        Simulate a Kob-Andersen mixture. Defaults to false.
+    [LJ_n = <int>]
+        Generalised LJ exponent. Defaults to 6, which is the classic LJ value.
+
+Interactions/TSPInteraction.h options:
+
+    TSP_rfene = <float>
+        FENE length constant for bonded interactions
+    TSP_sigma[type] = <float>
+        particle diameter associated to each interaction
+    TSP_epsilon[type] = <float>
+        energy scale associated to each interaction
+    TSP_attractive[type] = <float>
+        whether the interaction contains an attractive tail or not
+    TSP_n[type] = <int>
+        exponent for the generalised LJ potential for each interaction
+    [TSP_attractive_anchor = <bool>]
+        set to true if you want the anchor monomer to be of type B instead of
+        type A. Defaults to false
+    [TSP_only_chains = <bool>]
+        if true the system will be composed of chains only. The topology will
+        be interpreted accordingly by ignoring the first value of each line
+        (which, in the case of TSPs, is the number of arms). Defaults to false
+    [TSP_only_intra = <bool>]
+        if true monomers belonging to different stars will not interact.
+        Defaults to false
+
+Interactions/TEPInteraction.h options:
+
+    [use_average_seq = <boolean>]
+        defaults to yes
+    [hb_multiplier = <float>]
+        HB interaction multiplier applied to all the nucleotides having a
+        custom numbered base whose magnitude is > 300, defaults to 1.0
+
+Interactions/DHSInteraction.h options:
+
+    DHS_eps = <float>
+        background dielectrci constant for reaction field treatment
+    DHS_rcut = <float>
+        cutoff for the reaction field treatment
+
+Interactions/DirkInteractionBias.h options:
 
     length = <float>
         lenght of the cylinders
@@ -413,92 +534,19 @@ Interactions/PatchyInteraction.h options:
     [PATCHY_alpha = <float>]
         width of patches, defaults to 0.12
 
-Interactions/LJInteraction.h options:
+Interactions/DNA2Interaction.h options:
 
-    LJ_rcut = <float>
-        interaction cutoff
-    [LJ_kob_andersen = <bool>]
-        Simulate a Kob-Andersen mixture. Defaults to false.
-
-Interactions/HardSpheroCylinderInteraction.h options:
-
-    length = <float>
-        length of the spherocylinder
-
-Interactions/DNAInteraction2.h options:
-
-    [use_average_seq = <boolean>]
-        defaults to yes
-    [seq_dep_file = <string>]
-        sets the location of the files with sequence-dependent parameters
-    [external_model = <string>]
-        overrides default constants for the model, set in rna_model.h), by
-        values specified by this option
-    [salt = <float>]
-        sets the salt concentration in M, defaults to 1
-    [mismatch_repulsion = <boolean>]
-        defaults to no
-
-Interactions/RNAInteraction2.h options:
-
-    [use_average_seq = <boolean>]
-        defaults to yes
-    [seq_dep_file = <string>]
-        sets the location of the files with sequence-dependent parameters
-    [external_model = <string>]
-        overrides default constants for the model, set in rna_model.h), by
-        values specified by this option
-    [salt = <float>]
-        sets the salt concentration in M, defaults to 1
-    [mismatch_repulsion = <boolean>]
-        defaults to no
-
-Interactions/HardCylinderInteraction.h options:
-
-    height = <float>
-        cylinder length
-
-Interactions/TSPInteraction.h options:
-
-    TSP_rfene = <float>
-        FENE length constant for bonded interactions
-    TSP_sigma[type] = <float>
-        particle diameter associated to each interaction
-    TSP_epsilon[type] = <float>
-        energy scale associated to each interaction
-    TSP_attractive[type] = <float>
-        whether the interaction contains an attractive tail or not
-    TSP_n[type] = <int>
-        exponent for the generalised LJ potential for each interaction
-    [TSP_attractive_anchor = <bool>]
-        set to true if you want the anchor monomer to be of type B instead of
-        type A. Defaults to false
-    [TSP_only_chains = <bool>]
-        if true the system will be composed of chains only. The topology will
-        be interpreted accordingly by ignoring the first value of each line
-        (which, in the case of TSPs, is the number of arms). Defaults to false
-    [TSP_only_intra = <bool>]
-        if true monomers belonging to different stars will not interact.
-        Defaults to false
-
-Interactions/DirkInteraction2.h options:
-
-    length = <float>
-        lenght of the cylinders
-    DHS_radius = <float>
-        radius of the diploar hard sphere on top of each cylinder
-    DHS_rcut = <float>
-        distance cutoff for the reaction field treatment
-    DHS_eps = <float>
-        background dielectric constant for the reaction field treatment
-
-Interactions/DNAInteraction_relax.h options:
-
-    relax_type = <string>
-        Possible values: constant_force, harmonic_force; Relaxation algorithm
-        used
-    relax_strength = <float>
-        Force constant for the replacement of the FENE potential
+    salt_concentration = <float>
+        sets the salt concentration in M
+    [dh_lambda = <float>]
+        the value that lambda, which is a function of temperature (T) and salt
+        concentration (I), should take when T=300K and I=1M, defaults to the
+        value from Debye-Huckel theory, 0.3616455
+    [dh_strength = <float>]
+        the value that scales the overall strength of the Debye-Huckel
+        interaction, defaults to 0.0543
+    [dh_half_charged_ends = <bool>]
+        set to false for 2N charges for an N-base-pair duplex, defaults to 1
 
 Interactions/InteractionFactory.h options:
 
@@ -512,12 +560,26 @@ Interactions/BoxInteraction.h options:
     box_sides = <float>, <float>, <float>
         sides of the box
 
+Interactions/HardSpheroCylinderInteraction.h options:
+
+    length = <float>
+        length of the spherocylinder
+
+Interactions/DirkInteraction.h options:
+
+    length = <float>
+        lenght of the cylinders
+    DHS_radius = <float>
+        radius of the diploar hard sphere on top of each cylinder
+    DHS_rcut = <float>
+        distance cutoff for the reaction field treatment
+    DHS_eps = <float>
+        background dielectric constant for the reaction field treatment
+
 -------------------------------------------------------------------------------
 
 CUDA options:
 
-    [CUDA_list = no|verlet]
-        Neighbour lists for CUDA simulations. Defaults to 'no'.
     backend = CUDA
         For CUDA FFS -- NB unlike the CPU implementation, the CUDA
         implementation does not print extra columns with the current order
@@ -589,6 +651,8 @@ CUDA options:
     [threads_per_block = <int>]
         Number of threads per block on the CUDA grid. defaults to 2 * the size
         of a warp.
+    [CUDA_list = no|verlet]
+        Neighbour lists for CUDA simulations. Defaults to 'no'.
 
 -------------------------------------------------------------------------------
 
@@ -605,6 +669,12 @@ Analysis options:
 
 -------------------------------------------------------------------------------
 
+Observables/Step.h options:
+
+    [units = steps|MD]
+        units to print the time on. time in MD units = steps * dt, defaults to
+        step
+
 Observables/DensityProfile.h options:
 
     max_value = <float>
@@ -615,35 +685,40 @@ Observables/DensityProfile.h options:
     axis = <char>
         Possible values: x, y, z the axis along which to compute the profile
 
-Observables/PairEnergy.h options:
+Observables/Pitch.h options:
 
-    particle1_id = <int>
-        particle 1 id
-    particle2_id = <int>
-        particle 2 id
+    bp1a_id = <int>
+        base pair 1 particle a id
+    bp1b_id = <int>
+        base pair 1 particle b id
+    bp2a_id = <int>
+        base pair 2 particle a id
+    bp2b_id = <int>
+        base pair 2 particle b id
 
-Observables/ObservableOutput.h options:
+Observables/ParticlePosition.h options:
 
-    name = stream name
-        name of the output stream. stdout or stderr are accepted values
-    print_every = <integer>
-        frequency of output, in number steps for oxDNA, in number of
-        configurations for DNAnalysis
-    [start_from = <integer>]
-        start outputing from the given step, defaults to 0
-    [stop_at = <integer>]
-        stop outputing at this step, defaults to -1 (which means never)
-    [only_last = <bool>]
-        if true, the output will not be appended to the stream, but it will
-        overwrite the previous output each time, defaults to false
-    [binary = <bool>]
-        if true, the output will be printed in binary, defaults to false
-    col_<n> = {
-    type = name of the first observable
-    [other observable options as lines of 'key = value']
-    }
-        this syntax specifies the column of the output file. Note that <n> is
-        the column index and should start from 1
+    particle_id = <int>
+        particle id
+    [orientation = <bool>]
+        defaults to false. If 1, it also prints out the orientation
+    [absolute = <bool>]
+        defaults to false. If 1, does not use periodic boundaries and it
+        prints out the absolute position of the center of mass
+
+Observables/SaltExtrapolation.h options:
+
+    salts = <float>, <float>, ...
+        list of salt concentration to extrapolate to
+    temps = <T>, <T>, ...
+        list of temperatures to extrapolate to, separated with commas.
+        Temperatures can be specified in reduced units, Kelvin, Celsius as
+        0.10105, 30C, 30c, 30 c, 303.15 k, 303.15K, 303.15k
+    [op_file = <string>]
+        order parameter file. If not found, it will use the one from the input
+        file
+    [weights_file = <string>]
+        weights file. If not found, the one from the input file will be used.
 
 Observables/Pressure.h options:
 
@@ -654,24 +729,14 @@ Observables/Pressure.h options:
         total pressure and the other 6 the six independent components of the
         stress tensor, xx, yy, zz, xy, xz, yz
 
-Observables/PotentialEnergy.h options:
+Observables/HBEnergy.h options:
 
-    [split = <bool>]
-        defaults to false, it tells the observable to print all the terms
-        contributing to the potential energy
-
-Observables/Step.h options:
-
-    [units = steps|MD]
-        units to print the time on. time in MD units = steps * dt, defaults to
-        step
-
-Observables/CoaxVariables.h options:
-
-    particle1_id = <int>
-        particle 1 id
-    particle2_id = <int>
-        particle 2 id
+    [pairs_file = <string>]
+        OrderParameter file containing the list of pairs whose HB energy is to
+        be computed
+    [base_file = <string>]
+        file containing a list of nucleotides whose HB energy is to be
+        computed, one nucleotide per line
 
 Observables/Distance.h options:
 
@@ -685,16 +750,55 @@ Observables/Distance.h options:
         vector to project the distance along. Beware that it gets normalized
         after reading. Defaults to (1, 1, 1) / sqrt(3)
 
-Observables/Pitch.h options:
+Observables/ForceEnergy.h options:
 
-    bp1a_id = <int>
-        base pair 1 particle a id
-    bp1b_id = <int>
-        base pair 1 particle b id
-    bp2a_id = <int>
-        base pair 2 particle a id
-    bp2b_id = <int>
-        base pair 2 particle b id
+    [print_group = <string>]
+        limits the energy computation to the forces belonging to a specific
+        group of forces. This can be set by adding a group_name option to each
+        force's input. By default ForceEnergy computes the energy due to all
+        the forces.
+
+Observables/PotentialEnergy.h options:
+
+    [split = <bool>]
+        defaults to false, it tells the observable to print all the terms
+        contributing to the potential energy
+
+Observables/CoaxVariables.h options:
+
+    particle1_id = <int>
+        particle 1 id
+    particle2_id = <int>
+        particle 2 id
+
+Observables/ObservableOutput.h options:
+
+    name = <string>
+        name of the output stream. stdout or stderr are accepted values
+    print_every = <integer>
+        frequency of output, in number steps for oxDNA, in number of
+        configurations for DNAnalysis
+    [start_from = <integer>]
+        start outputing from the given step, defaults to 0
+    [stop_at = <integer>]
+        stop outputing at this step, defaults to -1 (which means never)
+    [only_last = <bool>]
+        if true, the output will not be appended to the stream, but it will
+        overwrite the previous output each time, defaults to false
+    [binary = <bool>]
+        if true, the output will be printed in binary, defaults to false
+    [linear = <bool>]
+        if true the OutputObservable will save in linear scale, otherwise will
+        use the logline scale by FS. Defaults to true
+    [update_name_with_time = <bool>]
+        if true the output filename will be changed by using the 'name' key as
+        a prefix and the current step as a suffix. Defaults to false
+    col_<n> = {
+    type = name of the first observable
+    [other observable options as lines of 'key = value']
+    }
+        this syntax specifies the column of the output file. Note that <n> is
+        the column index and should start from 1
 
 Observables/Rdf.h options:
 
@@ -707,32 +811,48 @@ Observables/Rdf.h options:
         to consider in the computation. Mind that the normalization always
         assumes 3D sytems for the time being.
 
-Observables/ForceEnergy.h options:
+Observables/MeanVectorCosine.h options:
 
-    [print_group = <string>]
-        limits the energy computation to the forces belonging to a specific
-        group of forces. This can be set by adding a group_name option to each
-        force's input. By default ForceEnergy computes the energy due to all
-        the forces.
+    chain_id = <int>
+        chain id
+    first_particle_position = <int>
+        defaults to 0. position along the chain of  the first particle on
+        which to compute the vector's cosine with the next particle
+    last_particle_position = <int>
+        defaults to N-2, where N is the number of elements of the chain.
+        Position along the chain of the last particle over which to compute
+        the vector's cosine with the next particle
+    vector_to_average = <int>
+        defaults to 1. Can be 1,2, or 3 depending on the vectors we wish to
+        consider, or 0. In that case it measures the quantity (v2*v2')(v3*v3')
+        - |v2 ^ v2||v3 ^ v3|
 
-Observables/ParticlePosition.h options:
+Observables/PairEnergy.h options:
 
-    particle_id = <int>
-        particle id
-    [orientation = <bool>]
-        defaults to false. If 1, it also prints out the orientation
-    [absolute = <bool>]
-        defaults to false. If 1, does not use periodic boundaries and it
-        prints out the absolute position of the center of mass
+    particle1_id = <int>
+        particle 1 id
+    particle2_id = <int>
+        particle 2 id
 
-Observables/HBEnergy.h options:
+Observables/Configurations/PdbOutput.h options:
 
-    [pairs_file = <string>]
-        OrderParameter file containing the list of pairs whose HB energy is to
-        be computed
-    [base_file = <string>]
-        file containing a list of nucleotides whose HB energy is to be
-        computed, one nucleotide per line
+    [back_in_box = <bool>]
+        Default: true; if true the particle positions will be brought back in
+        the box
+    [show = <int>,<int>,...]
+        Default: all particles; list of comma-separated indexes of the
+        particles that will be shown. Other particles will not appear
+    [hide = <int>,<int>,...]
+        Default: no particles; list of comma-separated indexes of particles
+        that will not be shown
+    [ref_particle = <int>]
+        Default: -1, no action; The nucleotide with the id specified (starting
+        from 0) is set at the centre of the box. Overriden if ref_strands is
+        specified. Ignored if negative or too large for the system.
+    [ref_strand = <int>]
+        Default: -1, no action; The strand with the id specified (starts from
+        1) is set at the centre of the box. Ignored if negative or too large
+        for the system.
 
 Observables/Configurations/TclOutput.h options:
 
@@ -759,12 +879,6 @@ Observables/Configurations/TclOutput.h options:
         from 1, is set at the centre of the box. Ignored if negative or too
         large for the system.
 
-Observables/Configurations/ChimeraOutput.h options:
-
-    [colour_by_sequece = <bool>]
-        Default: false; whether to coulour the bases according to the base
-        type (A, C, G, T
-
 Observables/Configurations/Configuration.h options:
 
     [back_in_box = <bool>]
@@ -780,25 +894,11 @@ Observables/Configurations/Configuration.h options:
         if true only the strand centres of mass will be printed, defaults to
         false
 
-Observables/Configurations/PdbOutput.h options:
+Observables/Configurations/ChimeraOutput.h options:
 
-    [back_in_box = <bool>]
-        Default: true; if true the particle positions will be brought back in
-        the box
-    [show = <int>,<int>,...]
-        Default: all particles; list of comma-separated indexes of the
-        particles that will be shown. Other particles will not appear
-    [hide = <int>,<int>,...]
-        Default: no particles; list of comma-separated indexes of particles
-        that will not be shown
-    [ref_particle = <int>]
-        Default: -1, no action; The nucleotide with the id specified (starting
-        from 0) is set at the centre of the box. Overriden if ref_strands is
-        specified. Ignored if negative or too large for the system.
-    [ref_strand = <int>]
-        Default: -1, no action; The strand with the id specified (starts from
-        1) is set at the centre of the box. Ignored if negative or too large
-        for the system.
+    [colour_by_sequece = <bool>]
+        Default: false; whether to coulour the bases according to the base
+        type (A, C, G, T
 
 -------------------------------------------------------------------------------
 
@@ -867,3 +967,4 @@ Forward Flux Sampling (FFS) options:
         die_on_unexpected_master).
 
 -------------------------------------------------------------------------------
+

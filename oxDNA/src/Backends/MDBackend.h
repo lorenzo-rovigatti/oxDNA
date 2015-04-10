@@ -19,7 +19,9 @@ using namespace std;
  * This class sets up a basic MD simulation. It does not do any sensible computation but
  * takes care of the most basic input/output operations associated with MD simulations.
  *
- * [reset_initial_com_momentum = <bool> (if true the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to false to enforce the reproducibility of the trajectory)]
+ * @verbatim
+[reset_initial_com_momentum = <bool> (if true the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to false to enforce the reproducibility of the trajectory)]
+@endverbatim
  */
 template<typename number>
 class MDBackend: public SimBackend<number> {

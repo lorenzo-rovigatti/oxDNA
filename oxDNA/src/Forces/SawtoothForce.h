@@ -21,10 +21,10 @@
  *
  * arguments:
 @verbatim
-particle <int> particle to apply the force to. -1 applies it to all particles.
-F0 <float> Initial force
-wait_time <float> time interval over which the force is constant. Units are (MD/MC) steps.
-increment <float> amount by which to increment the force every wait_time steps.
+particle = <int> (particle to apply the force to. -1 applies it to all particles.)
+F0 = <float> (Initial force)
+wait_time = <float> (time interval over which the force is constant. Units are (MD/MC) steps.)
+increment = <float> (amount by which to increment the force every wait_time steps.)
 @endverbatim
  */
 template<typename number>

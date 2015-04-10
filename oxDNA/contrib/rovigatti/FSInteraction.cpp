@@ -166,5 +166,13 @@ void FSInteraction<number>::check_input_sanity(BaseParticle<number> **particles,
 	if(_N_B > 0 && _one_component) throw oxDNAException("One component simulations should have topologies implying that no B-particles are present");
 }
 
+extern "C" FSInteraction<float> *make_float() {
+	return new FSInteraction<float>();
+}
+
+extern "C" FSInteraction<double> *make_double() {
+	return new FSInteraction<double>();
+}
+
 template class FSInteraction<float>;
 template class FSInteraction<double>;

@@ -19,9 +19,9 @@
  *
  * arguments:
 @verbatim
-particle <int> particle to apply the force to. -1 applies it to all particles.
-F0 <float> Initial force
-rate <float> growth rate of the force. It is [oxDNA energy units / (oxDNA distance units * (MD/MC) steps] per 
+particle = <int> (particle to apply the force to. -1 applies it to all particles.)
+F0 = <float> (Initial force.)
+rate = <float> (growth rate of the force. It is [oxDNA energy units / (oxDNA distance units * (MD/MC) steps].)
 @endverbatim
  */
 template<typename number>

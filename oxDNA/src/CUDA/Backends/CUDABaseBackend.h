@@ -27,7 +27,6 @@
 [CUDA_device = <int> (CUDA-enabled device to run the simulation on. If it is not specified or it is given a negative number, a suitable device will be automatically chosen.)]
 [CUDA_sort_every = <int> (sort particles according to a 3D Hilbert curve every CUDA_sort_every time steps. This will greatly enhnance performances for some types of interaction. Defaults to 0, which disables sorting.)]
 [threads_per_block = <int> (Number of threads per block on the CUDA grid. defaults to 2 * the size of a warp.)]
-
 @endverbatim
  */
 template<typename number, typename number4>
