@@ -128,7 +128,7 @@ void MD_CUDABackend<number, number4>::_host_particles_to_gpu() {
 		_h_Ls[i].z = p->L.z;
 	
 		number trace = p->orientation.v1.x+p->orientation.v2.y+p->orientation.v3.z;
-		if (trace>0) {
+		if(trace > 0) {
 			number s = .5/sqrt(trace + 1);
 			this->_h_orientations[i].w = .25/s;
 			this->_h_orientations[i].x = (p->orientation.v3.y-p->orientation.v2.z)*s;

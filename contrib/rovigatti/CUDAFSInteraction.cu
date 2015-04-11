@@ -10,7 +10,31 @@
 #include "../Lists/CUDASimpleVerletList.h"
 #include "../Lists/CUDANoList.h"
 
+#define CUDA_MAX_FS_PATCHES 4
+#define CUDA_MAX_FS_NEIGHS 4
+
 /* BEGIN CUDA */
+template<typename number, typename number4>
+struct __align__(16) cuda_FS_bond {
+	int q;
+	number r_p;
+	number energy;
+	number4 force;
+	number4 p_torque;
+	number4 q_torque_ref_frame;
+};
+
+template<typename number, typename number4>
+struct __align__(16) cuda_FS_bond_list {
+	int n_bonds;
+	cuda_FS_bond<number, number4> bonds[CUDA_MAX_FS_NEIGHS];
+
+	__device__ cuda_FS_bond_list() : n_bonds(0) {}
+	__device__ cuda_FS_bond<number, number4> &new_bond() {
+		n_bonds++;
+		return bonds[n_bonds - 1];
+	}
+};
 
 /* System constants */
 __constant__ int MD_N[1];
@@ -43,7 +67,7 @@ __device__ number4 minimum_image(number4 &r_i, number4 &r_j) {
 }
 
 template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, number4 &a1, number4 &a2, number4 &a3, number4 &b1, number4 &b2, number4 &b3, number4 &F, number4 &torque) {
+__device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, number4 &a1, number4 &a2, number4 &a3, number4 &b1, number4 &b2, number4 &b3, number4 &F, number4 &torque, cuda_FS_bond_list<number, number4> *bonds, int q_idx) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 
@@ -90,15 +114,65 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 			if(dist < MD_sqr_patch_rcut[0]) {
 				number r_p = sqrtf(dist);
 				number exp_part = expf(MD_sigma_ss[0] / (r_p - MD_rcut_ss[0]));
-				number energy_part = MD_A_part[0] * exp_part * (MD_B_part[0]/SQR(dist) - 1.);
+				number energy_part = MD_A_part[0] * exp_part * (MD_B_part[0]/SQR(dist) - 1.f);
 
-				number force_mod  = MD_A_part[0] * exp_part * (4.*MD_B_part[0]/(SQR(dist)*r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
+				number force_mod  = MD_A_part[0] * exp_part * (4.f*MD_B_part[0]/(SQR(dist)*r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
 				number4 tmp_force = patch_dist * (force_mod / r_p);
 
-				torque -= _cross<number, number4>(ppatch, tmp_force);
+				cuda_FS_bond_list<number, number4> &bond_list = bonds[pi];
+				cuda_FS_bond<number, number4> &my_bond = bond_list.new_bond();
+
+				my_bond.energy = energy_part;
+				my_bond.force = tmp_force;
+				my_bond.p_torque = _cross<number, number4>(ppatch, tmp_force);
+				my_bond.q_torque_ref_frame = _vectors_transpose_number4_product(b1, b2, b3, _cross<number, number4>(qpatch, tmp_force));
+				my_bond.q = q_idx;
+				my_bond.r_p = r_p;
+
+				torque -= my_bond.p_torque;
 				F.x -= tmp_force.x;
 				F.y -= tmp_force.y;
 				F.z -= tmp_force.z;
+			}
+		}
+	}
+}
+
+template <typename number, typename number4>
+__device__ void _three_body(cuda_FS_bond_list<number, number4> *bonds, number4 &F, number4 &T, number4 *forces, number4 *torques) {
+	for(int pi = 0; pi < CUDA_MAX_FS_PATCHES; pi++) {
+		cuda_FS_bond_list<number, number4> &bond_list = bonds[pi];
+
+		for(int bi = 0; bi < bond_list.n_bonds; bi++) {
+			cuda_FS_bond<number, number4> b1 = bond_list.bonds[bi];
+			for(int bj = bi+1; bj < bond_list.n_bonds; bj++) {
+				cuda_FS_bond<number, number4> b2 = bond_list.bonds[bj];
+
+				number curr_energy = -b1.energy;
+				if(b1.r_p < MD_sigma_ss[0]) curr_energy = 1.f;
+
+				number other_energy = -b2.energy;
+				if(b2.r_p < MD_sigma_ss[0]) other_energy = 1.f;
+
+				if(b1.r_p > MD_sigma_ss[0]) {
+					number factor = -MD_lambda[0]*other_energy;
+
+					F -= factor*b1.force;
+					LR_atomicAddXYZ(forces + b1.q, factor*b1.force);
+
+					T -= factor*b1.p_torque;
+					LR_atomicAddXYZ(torques + b1.q, factor*b1.q_torque_ref_frame);
+				}
+
+				if(b2.r_p > MD_sigma_ss[0]) {
+					number factor = -MD_lambda[0]*curr_energy;
+
+					F -= factor*b2.force;
+					LR_atomicAddXYZ(forces + b2.q, factor*b2.force);
+
+					T -= factor*b2.p_torque;
+					LR_atomicAddXYZ(torques + b2.q, factor*b2.q_torque_ref_frame);
+				}
 			}
 		}
 	}
@@ -109,69 +183,29 @@ template <typename number, typename number4>
 __global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques) {
 	if(IND >= MD_N[0]) return;
 
-	number4 F = forces[IND];
+	number4 F = make_number4<number, number4>(0, 0, 0, 0);
 	number4 T = make_number4<number, number4>(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	GPU_quat<number> po = orientations[IND];
 	number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
 
+	cuda_FS_bond_list<number, number4> bonds[CUDA_MAX_FS_PATCHES];
+
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND) {
 			number4 qpos = poss[j];
 			GPU_quat<number> qo = orientations[j];
 			get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
-			_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T);
+			_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j);
 		}
 	}
+	_three_body(bonds, F, T, forces, torques);
 
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
 
-	forces[IND] = F;
-	torques[IND] = T;
-}
-
-template <typename number, typename number4>
-__global__ void FS_forces_edge(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list,  int n_edges) {
-	if(IND >= n_edges) return;
-
-	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
-	number4 dT = make_number4<number, number4>(0, 0, 0, 0);
-
-	edge_bond b = edge_list[IND];
-
-	// get info for particle 1
-	number4 ppos = poss[b.from];
-	GPU_quat<number> po = orientations[b.from];
-
-	// get info for particle 2
-	number4 qpos = poss[b.to];
-	GPU_quat<number> qo = orientations[b.to];
-
-	number4 a1, a2, a3, b1, b2, b3;
-	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
-	get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
-
-	_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, dF, dT);
-
-	int from_index = MD_N[0]*(IND % MD_n_forces[0]) + b.from;
-	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z) > (number)0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
-	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z) > (number)0.f) LR_atomicAddXYZ(&(torques[from_index]), _vectors_transpose_number4_product(a1, a2, a3, dT));
-
-	// Allen Eq. 6 pag 3:
-	number4 dr = minimum_image<number, number4>(ppos, qpos); // returns qpos-ppos
-	number4 crx = _cross<number, number4>(dr, dF);
-	dT.x = -dT.x + crx.x;
-	dT.y = -dT.y + crx.y;
-	dT.z = -dT.z + crx.z;
-
-	dF.x = -dF.x;
-	dF.y = -dF.y;
-	dF.z = -dF.z;
-
-	int to_index = MD_N[0]*(IND % MD_n_forces[0]) + b.to;
-	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z) > (number)0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
-	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z) > (number)0.f) LR_atomicAddXYZ(&(torques[to_index]), _vectors_transpose_number4_product(b1, b2, b3, dT));
+	LR_atomicAddXYZ(forces + IND, F);
+	LR_atomicAddXYZ(torques + IND, T);
 }
 
 //Forces + second step with verlet lists
@@ -179,28 +213,30 @@ template <typename number, typename number4>
 __global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs) {
 	if(IND >= MD_N[0]) return;
 
-	number4 F = forces[IND];
+	number4 F = make_number4<number, number4>(0, 0, 0, 0);
 	number4 T = make_number4<number, number4>(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	GPU_quat<number> po = orientations[IND];
 	number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
 
-	int num_neighs = number_neighs[IND];
+	cuda_FS_bond_list<number, number4> bonds[CUDA_MAX_FS_PATCHES];
 
+	int num_neighs = number_neighs[IND];
 	for(int j = 0; j < num_neighs; j++) {
 		int k_index = matrix_neighs[j*MD_N[0] + IND];
 
 		number4 qpos = poss[k_index];
 		GPU_quat<number> qo = orientations[k_index];
 		get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
-		_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T);
+		_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, k_index);
 	}
+	_three_body(bonds, F, T, forces, torques);
 
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
 
-	forces[IND] = F;
-	torques[IND] = T;
+	LR_atomicAddXYZ(forces + IND, F);
+	LR_atomicAddXYZ(torques + IND, T);
 }
 
 /* END CUDA PART */
@@ -226,6 +262,9 @@ template<typename number, typename number4>
 void CUDAFSInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
 	FSInteraction<number>::init();
+
+//	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_forces_3b, this->_vec_size) );
+//	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_torques_3b, this->_vec_size) );
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_one_component, &this->_one_component, sizeof(bool)) );
@@ -303,15 +342,7 @@ template<typename number, typename number4>
 void CUDAFSInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds) {
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) {
-				FS_forces_edge<number, number4>
-					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-					//(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_edge_list, _v_lists->_N_edges);
-					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges);
-				CUT_CHECK_ERROR("forces_second_step FS forces_edge");
-
-				this->_sum_edge_forces_torques(d_forces, d_torques);
-			}
+		if(_v_lists->use_edge()) throw oxDNAException("use_edge unsupported by FSInteraction");
 			else {
 				FS_forces<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>

@@ -95,8 +95,12 @@ void *PluginManager::_get_handle(string &name) {
 	return handle;
 }
 
-void *PluginManager::_get_entry_point(void *handle, vector<string> &entry_points, string suffix) {
+void *PluginManager::_get_entry_point(void *handle, string name, vector<string> entry_points, string suffix) {
 	void *res = NULL;
+
+	// we add the make_NAME_ entry to the list of possible entry point names
+	string named_entry = string("make_") + name + string("_");
+	entry_points.insert(entry_points.begin(), named_entry);
 
 	bool found = false;
 	for(vector<string>::iterator it = entry_points.begin(); it != entry_points.end() && !found; it++) {
@@ -120,14 +124,14 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 	bool found = false;
 	// choose between float and double
 	if(sizeof(number) == 4) {
-		make_float_obs *make_obs = (make_float_obs *) _get_entry_point(handle, _obs_entry_points, string("float"));
+		make_float_obs *make_obs = (make_float_obs *) _get_entry_point(handle, name, _obs_entry_points, string("float"));
 		if(make_obs != NULL) {
 			temp_obs = (void *)make_obs();
 			found = true;
 		}
 	}
 	else {
-		make_double_obs *make_obs = (make_double_obs *) _get_entry_point(handle, _obs_entry_points, string("double"));
+		make_double_obs *make_obs = (make_double_obs *) _get_entry_point(handle, name, _obs_entry_points, string("double"));
 		if(make_obs != NULL) {
 			temp_obs = (void *)make_obs();
 			found = true;
@@ -154,14 +158,14 @@ IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 	bool found = false;
 	// choose between float and double
 	if(sizeof(number) == 4) {
-		make_float_inter *make_inter = (make_float_inter *) _get_entry_point(handle, _inter_entry_points, string("float"));
+		make_float_inter *make_inter = (make_float_inter *) _get_entry_point(handle, name, _inter_entry_points, string("float"));
 		if(make_inter != NULL) {
 			temp_inter = (void *)make_inter();
 			found = true;
 		}
 	}
 	else {
-		make_double_inter *make_inter = (make_double_inter *) _get_entry_point(handle, _inter_entry_points, string("double"));
+		make_double_inter *make_inter = (make_double_inter *) _get_entry_point(handle, name, _inter_entry_points, string("double"));
 		if(make_inter != NULL) {
 			temp_inter = (void *)make_inter();
 			found = true;
