@@ -19,6 +19,7 @@ template<typename number>
 FSConf<number>::FSConf() : Configuration<number>() {
 	_N = _N_A = _N_B = -1;
 	_in_box = false;
+	_also_patch = false;
 }
 
 template<typename number>
@@ -34,6 +35,7 @@ void FSConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputString(&sim_inp, "topology", topology_file, 0);
 
 	getInputBool(&my_inp, "in_box", &_in_box, 0);
+	getInputBool(&my_inp, "also_patch", &_also_patch, 0);
 
 	std::ifstream topology(topology_file.c_str(), ios::in);
 	char line[512];
@@ -76,10 +78,12 @@ std::string FSConf<number>::_particle(BaseParticle<number> *p) {
 	}
 
 	res << mypos.x << " " << mypos.y << " " << mypos.z << " ";
-	for(int i = 0; i < p->N_int_centers; i++) {
-		LR_vector<number> p_pos = mypos + p->int_centers[i];
-		res << endl;
-		res << p_pos.x << " " << p_pos.y << " " << p_pos.z << " ";
+	if(_also_patch) {
+		for(int i = 0; i < p->N_int_centers; i++) {
+			LR_vector<number> p_pos = mypos + p->int_centers[i];
+			res << endl;
+			res << p_pos.x << " " << p_pos.y << " " << p_pos.z << " ";
+		}
 	}
 
 	return res.str();
@@ -99,9 +103,13 @@ string FSConf<number>::_configuration(llint step) {
 
 	for(int i = 0; i < _N; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
-		for(int j = 0; j < p->N_int_centers+1; j++) {
-			conf << endl;
-			conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
+		conf << endl;
+		conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
+		if(_also_patch) {
+			for(int j = 0; j < p->N_int_centers; j++) {
+				conf << endl;
+				conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
+			}
 		}
 	}
 

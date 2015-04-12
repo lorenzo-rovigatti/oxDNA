@@ -72,7 +72,7 @@ void MD_CPUBackend<number>::_first_step(llint cur_step) {
 	if(is_warning) {
 		std::stringstream ss;
 		for(vector<int>::iterator it = w_ps.begin(); it != w_ps.end(); it++) ss << *it << " ";
-		OX_LOG(Logger::LOG_WARNING, "The following particles had a displacement greater than one in this step: %s", ss.str().c_str());
+		OX_LOG(Logger::LOG_WARNING, "The following particles had a displacement greater than 0.1 in this step: %s", ss.str().c_str());
 	}
 }
 
