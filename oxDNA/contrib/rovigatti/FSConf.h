@@ -22,6 +22,7 @@ class FSConf: public Configuration<number>  {
 protected:
 	int _N, _N_A, _N_B;
 	bool _in_box;
+	bool _also_patch;
 
 	virtual std::string _headers(llint step);
 	virtual std::string _particle(BaseParticle<number> *p);

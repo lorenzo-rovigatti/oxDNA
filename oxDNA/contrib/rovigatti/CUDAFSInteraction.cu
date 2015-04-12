@@ -11,7 +11,7 @@
 #include "../Lists/CUDANoList.h"
 
 #define CUDA_MAX_FS_PATCHES 4
-#define CUDA_MAX_FS_NEIGHS 4
+#define CUDA_MAX_FS_NEIGHS 10
 
 /* BEGIN CUDA */
 template<typename number, typename number4>
@@ -32,6 +32,7 @@ struct __align__(16) cuda_FS_bond_list {
 	__device__ cuda_FS_bond_list() : n_bonds(0) {}
 	__device__ cuda_FS_bond<number, number4> &new_bond() {
 		n_bonds++;
+		if(n_bonds > CUDA_MAX_FS_NEIGHS) printf("TOO MANY BONDED NEIGHBOURS, TRAGEDY\n");
 		return bonds[n_bonds - 1];
 	}
 };
@@ -113,6 +114,7 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 			number dist = CUDA_DOT(patch_dist, patch_dist);
 			if(dist < MD_sqr_patch_rcut[0]) {
 				number r_p = sqrtf(dist);
+				if(r_p >= MD_rcut_ss[0]) r_p = 0.001f;
 				number exp_part = expf(MD_sigma_ss[0] / (r_p - MD_rcut_ss[0]));
 				number energy_part = MD_A_part[0] * exp_part * (MD_B_part[0]/SQR(dist) - 1.f);
 
@@ -262,9 +264,6 @@ template<typename number, typename number4>
 void CUDAFSInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
 	FSInteraction<number>::init();
-
-//	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_forces_3b, this->_vec_size) );
-//	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_torques_3b, this->_vec_size) );
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_one_component, &this->_one_component, sizeof(bool)) );
