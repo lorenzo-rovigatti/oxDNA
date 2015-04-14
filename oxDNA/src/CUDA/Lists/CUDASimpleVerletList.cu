@@ -124,6 +124,7 @@ void CUDASimpleVerletList<number, number4>::update(number4 *poss, number4 *list_
 		(poss, _d_cells, _d_counters_cells, _d_cell_overflow);
 	CUT_CHECK_ERROR("fill_cells (SimpleVerlet) error");
 
+	cudaThreadSynchronize();
 	if(_d_cell_overflow[0] == true) throw oxDNAException("A cell contains more than _max_n_per_cell (%d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell);
 
 	// texture binding for the number of particles contained in each cell

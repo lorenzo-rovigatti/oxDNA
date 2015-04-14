@@ -109,6 +109,7 @@ void GraftedInteraction<number>::read_topology(int N, int *N_strands, BasePartic
 		TSPParticle<number> *p = (TSPParticle<number> *) particles[i];
 		p->index = i;
 		p->strand_id = (i-1) / _N_per_arm + 1;
+		p->set_arm((i-1) / _N_per_arm);
 
 		int rel_index = (i-1) % _N_per_arm;
 		p->type = (rel_index >= attractive_from) ? P_B : P_A;
@@ -132,7 +133,7 @@ number GraftedInteraction<number>::_wall_interaction(BaseParticle<number> *p, bo
 	number energy = 0.;
 
 	number z = p->get_abs_pos(this->_box_side).z;
-	// we extern a constant force on monomers that are on the wrong side of the wall
+	// we exert a constant force on monomers that are on the wrong side of the wall
 	// this is useful to compress initial configurations
 	if(z <= -(_wall_distance-0.5) && update_forces) p->force.z += 10.;
 	else if(z >= (_wall_distance-0.5) && update_forces) p->force.z -= 10.;
@@ -141,7 +142,6 @@ number GraftedInteraction<number>::_wall_interaction(BaseParticle<number> *p, bo
 		energy += exp(-dz) / dz;
 		if(update_forces) {
 			number mod_force = energy * (1. + 1. / dz);
-//			printf("%f %f\n", z, mod_force);
 			p->force.z += (z > 0.) ? -mod_force : mod_force;
 		}
 	}
