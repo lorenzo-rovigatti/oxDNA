@@ -38,14 +38,17 @@ class TSP {
 protected:
 	TSPParticle<number> *_anchor;
 	ConfigInfo<number> _config_info;
+	bool _is_SPB;
 
 	void _flip_neighs(int arm, vector<vector<int> > &bond_map, vector<int> &arm_to_patch);
+	void _compute_eigenvalues();
 
 public:
 	std::vector<std::vector<TSPParticle<number> *> > arms;
 	std::map<int, Patch<number> > patches;
+	number l1, l2, l3;
 
-	TSP() : _anchor(NULL) {};
+	TSP(bool is_SPB) : _anchor(NULL), _is_SPB(is_SPB) {};
 	virtual ~TSP() {};
 
 	void set_anchor(TSPParticle<number> *p) { _anchor = p; }
@@ -65,15 +68,22 @@ class TSPAnalysis : public BaseObservable<number>{
 protected:
 	enum {
 		TSP_ALL,
-		TSP_SP
+		TSP_SP,
+		TSP_ALL_ANGLES,
+		TSP_EIGENVALUES
 	};
 
 	int _mode;
+	bool _is_SPB;
 
 	int _N_stars;
 	std::string _topology_filename;
 
 	std::vector<TSP<number> > _stars;
+
+	/// used when mode == eigenvalues
+	int _t;
+	number _sqr_rg, _delta, _S, _b, _c;
 
 	void _analyse_star(int ns);
 public:
@@ -85,6 +95,8 @@ public:
 
 	std::string get_output_string(llint curr_step);
 };
+
+void eigen_decomposition(double A[3][3], double V[3][3], double d[3]);
 
 extern "C" BaseObservable<float> *make_float() { return new TSPAnalysis<float>(); }
 extern "C" BaseObservable<double> *make_double() { return new TSPAnalysis<double>(); }

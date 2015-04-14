@@ -11,30 +11,34 @@
 #include "../Lists/CUDANoList.h"
 
 #define CUDA_MAX_FS_PATCHES 4
-#define CUDA_MAX_FS_NEIGHS 10
+#define CUDA_MAX_FS_NEIGHS 20
 
 /* BEGIN CUDA */
 template<typename number, typename number4>
 struct __align__(16) cuda_FS_bond {
-	int q;
-	number r_p;
-	number energy;
-	number4 force;
-	number4 p_torque;
-	number4 q_torque_ref_frame;
+    int q;
+    number r_p;
+    number energy;
+    number4 force;
+    number4 p_torque;
+    number4 q_torque_ref_frame;
 };
 
 template<typename number, typename number4>
 struct __align__(16) cuda_FS_bond_list {
-	int n_bonds;
-	cuda_FS_bond<number, number4> bonds[CUDA_MAX_FS_NEIGHS];
+    int n_bonds;
+    cuda_FS_bond<number, number4> bonds[CUDA_MAX_FS_NEIGHS];
 
-	__device__ cuda_FS_bond_list() : n_bonds(0) {}
-	__device__ cuda_FS_bond<number, number4> &new_bond() {
-		n_bonds++;
-		if(n_bonds > CUDA_MAX_FS_NEIGHS) printf("TOO MANY BONDED NEIGHBOURS, TRAGEDY\n");
-		return bonds[n_bonds - 1];
-	}
+    __device__ cuda_FS_bond_list() : n_bonds(0) {}
+    __device__ cuda_FS_bond<number, number4> &new_bond() {
+        n_bonds++;
+        if(n_bonds > CUDA_MAX_FS_NEIGHS) {
+            printf("TOO MANY BONDED NEIGHBOURS, TRAGEDY\nHere is the list of neighbours:\n");
+            for(int i = 0; i < n_bonds; i++) printf("%d ", bonds[i].q);
+            printf("\n");
+        }
+        return bonds[n_bonds - 1];
+    }
 };
 
 /* System constants */
@@ -114,27 +118,28 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 			number dist = CUDA_DOT(patch_dist, patch_dist);
 			if(dist < MD_sqr_patch_rcut[0]) {
 				number r_p = sqrtf(dist);
-				if(r_p >= MD_rcut_ss[0]) r_p = 0.001f;
-				number exp_part = expf(MD_sigma_ss[0] / (r_p - MD_rcut_ss[0]));
-				number energy_part = MD_A_part[0] * exp_part * (MD_B_part[0]/SQR(dist) - 1.f);
+				if((r_p - MD_rcut_ss[0]) < 0.f) {
+					number exp_part = expf(MD_sigma_ss[0] / (r_p - MD_rcut_ss[0]));
+					number energy_part = MD_A_part[0] * exp_part * (MD_B_part[0]/SQR(dist) - 1.f);
 
-				number force_mod  = MD_A_part[0] * exp_part * (4.f*MD_B_part[0]/(SQR(dist)*r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
-				number4 tmp_force = patch_dist * (force_mod / r_p);
+					number force_mod  = MD_A_part[0] * exp_part * (4.f*MD_B_part[0]/(SQR(dist)*r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
+					number4 tmp_force = patch_dist * (force_mod / r_p);
 
-				cuda_FS_bond_list<number, number4> &bond_list = bonds[pi];
-				cuda_FS_bond<number, number4> &my_bond = bond_list.new_bond();
+					cuda_FS_bond_list<number, number4> &bond_list = bonds[pi];
+					cuda_FS_bond<number, number4> &my_bond = bond_list.new_bond();
 
-				my_bond.energy = energy_part;
-				my_bond.force = tmp_force;
-				my_bond.p_torque = _cross<number, number4>(ppatch, tmp_force);
-				my_bond.q_torque_ref_frame = _vectors_transpose_number4_product(b1, b2, b3, _cross<number, number4>(qpatch, tmp_force));
-				my_bond.q = q_idx;
-				my_bond.r_p = r_p;
+					my_bond.energy = energy_part;
+					my_bond.force = tmp_force;
+					my_bond.p_torque = _cross<number, number4>(ppatch, tmp_force);
+					my_bond.q_torque_ref_frame = _vectors_transpose_number4_product(b1, b2, b3, _cross<number, number4>(qpatch, tmp_force));
+					my_bond.q = q_idx;
+					my_bond.r_p = r_p;
 
-				torque -= my_bond.p_torque;
-				F.x -= tmp_force.x;
-				F.y -= tmp_force.y;
-				F.z -= tmp_force.z;
+					torque -= my_bond.p_torque;
+					F.x -= tmp_force.x;
+					F.y -= tmp_force.y;
+					F.z -= tmp_force.z;
+				}
 			}
 		}
 	}

@@ -18,7 +18,6 @@
 template<typename number, typename number4>
 class CUDAFSInteraction: public CUDABaseInteraction<number, number4>, public FSInteraction<number> {
 protected:
-	number4 *_d_forces_3b, *_d_torques_3b;
 
 public:
 	CUDAFSInteraction();
