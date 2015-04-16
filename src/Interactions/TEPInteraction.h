@@ -31,7 +31,6 @@ protected:
 	number _ka_on_a;
 	number _kb;
 	number _kb_on_a;
-	number _one_over_a;
 	number _kt;
 	number _kt_on_a;
 	// FENE parameters
@@ -40,7 +39,8 @@ protected:
 	number _TEP_FENE_EPS;
 	number _TEP_FENE_R0;
 	// LJ parameters
-	number _TEP_EXCL_EPS;
+	number _TEP_EXCL_EPS_BONDED;
+	number _TEP_EXCL_EPS_NONBONDED;
 	number _TEP_EXCL_S2;
 	number _TEP_EXCL_R2;
 	number _TEP_EXCL_B2;
@@ -50,14 +50,7 @@ protected:
 
 // false by default: set this to true if you want neighbouring particles to be bound by a quadratic potential instead of a FENE
 	bool _prefer_harmonic_over_fene;
-//	true by default: set to false if you want to remove the nonbonded excluded volume interaction
-	bool _use_nonbonded_excluded_volume;
-//	true by default: set to false if you want to remove the bending interaction
-	bool _use_bending_interaction;
-//	true by default: set to false if you want to remove the torsional interaction
-	bool _use_torsional_interaction;
-//	true by default: set to false if you want to remove the alignment interaction
-	bool _use_alignment_interaction;
+
 	int MESH_F4_POINTS[13];
 	Mesh<number> _mesh_f4[13];
 
@@ -71,7 +64,7 @@ protected:
 	virtual number _bonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _nonbonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
-	inline number _repulsive_lj(const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces);
+	inline number _repulsive_lj2(number prefactor,const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces);
 
 
 	/**
@@ -128,7 +121,7 @@ public:
 };
 
 template<typename number>
-number TEPInteraction<number>::_repulsive_lj(const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces) {
+number TEPInteraction<number>::_repulsive_lj2(number prefactor, const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces) {
 	// this is a bit faster than calling r.norm()
 	number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
 	number energy = (number) 0;
@@ -136,15 +129,15 @@ number TEPInteraction<number>::_repulsive_lj(const LR_vector<number> &r, LR_vect
 		if(rnorm > SQR(rstar)) {
 			number rmod = sqrt(rnorm);
 			number rrc = rmod - rc;
-			energy = _TEP_EXCL_EPS * b * SQR(rrc);
-			if(update_forces) force = -r * (2 * _TEP_EXCL_EPS * b * rrc / rmod);
+			energy = prefactor * b * SQR(rrc);
+			if(update_forces) force = -r * (2 * prefactor * b * rrc / rmod);
 		}
 		else {
 			number tmp = SQR(sigma) / rnorm;
 			number lj_part = tmp * tmp * tmp;
 			// the additive term was added by me to mimick Davide's implementation
-			energy = 4 * _TEP_EXCL_EPS * (SQR(lj_part) - lj_part) +_TEP_EXCL_EPS; 
-			if(update_forces) force = -r * (24 * _TEP_EXCL_EPS * (lj_part - 2*SQR(lj_part)) / rnorm);
+			energy = 4 * prefactor * (SQR(lj_part) - lj_part) + prefactor; 
+			if(update_forces) force = -r * (24 * prefactor * (lj_part - 2*SQR(lj_part)) / rnorm);
 		}
 	}
 

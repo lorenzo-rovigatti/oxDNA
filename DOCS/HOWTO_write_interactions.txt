@@ -1,5 +1,5 @@
 This is a stub of a guide on how to code new  interactions, 
-True at the moment of writing (26 March 2015).
+True at the moment of writing (16 April 2015).
 
 	Written by Ferdinando Randisi
 	
@@ -50,7 +50,12 @@ which].
 	to call different constructors that set the parameters to different values
 	depending on the string received from the input file.
 *) the enumerator should be implemented so that the energy can be printed term
-	by term. Take a look at what DNA does and do something similar.
+	by term, with the option split=True. Take a look at what DNA does and do something similar.
+*) When the energy observable is computed with the option split = True, each
+	energy term is called between each particle pair. Therefore, the bonded
+	terms should check whether the particles are actually bonded and return 0
+	otherwise. Otherwise bonded terms will be computed between all the
+	particles, not only the bonded ones.
 *) Never use some flags to avoid computing a given term of the potential: just say
 	that the term returns 0 if the prefactor is 0 (in all compilers 0 is represented
 	correctly with infinite precision, even in doubles). Otherwise you'll break the 
