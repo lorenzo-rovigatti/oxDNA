@@ -188,9 +188,9 @@ bool InteractionUtils::spherocylinder_overlap (LR_vector<number> dr, LR_vector<n
 
 	number cc = 1. - u1dotu2 * u1dotu2;
 	if (cc < 1.e-6) {
-		// special case of (almost) parallel line segments
+		// here we handle the special case of (almost) parallel line segments
 		if (drdotu1 != (number) 0.f) {
-			// parallel line segments, on different lines
+			// in this case the segments are parallel and perfectly aligned 
 			lambda = copysign (hlength, drdotu1);
 			mu = lambda * u1dotu2 - drdotu2;
 			if (fabs(mu) > hlength) mu = copysign (hlength, mu);

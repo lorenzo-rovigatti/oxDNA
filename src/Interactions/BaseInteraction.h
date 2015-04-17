@@ -487,7 +487,7 @@ number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<n
 
 template<typename number>
 bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticle<number> * p, BaseParticle<number> * q, number box_side) {
-	LR_vector<number> dr = p->pos.minimum_image(q->pos, box_side);
+	LR_vector<number> dr = q->pos.minimum_image(p->pos, box_side);
 	
 	if (dr.norm() >= this->_sqr_rcut) return false;
 	
