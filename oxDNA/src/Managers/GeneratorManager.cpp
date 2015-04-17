@@ -102,6 +102,9 @@ void GeneratorManager::init() {
 		_density = _N / pow (_box_side, 3);
 		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
 	}
+	
+	// setting the box side for the interaction
+	_interaction->set_box_side(_box_side);
 
 	// initializing external forces
 	if (_external_forces) { 
