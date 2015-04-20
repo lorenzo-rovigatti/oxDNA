@@ -186,6 +186,7 @@ void TEPInteraction<number>::init() {
 	//TODO: when the shape of the elements has been decided, set rcutback to something that
 	//actually makes sense
 	//rcutback = _a;
+	
 
 	this->_rcut = 2.;
 	this->_sqr_rcut = SQR(this->_rcut);
@@ -437,8 +438,9 @@ number TEPInteraction<number>::_bonded_alignment(BaseParticle<number> *p, BasePa
 		frontp->force+= force;
 		//only the torque on p is updated, since this interaction term is basically a self-interaction
 		//that keeps a particle's u vector aligned with  its tangent vector.
-		backp->torque -= p->orientationT*((_ka_on_a*tp.cross(up))/tp.module());
-
+		backp->torque -= backp->orientationT*((_ka_on_a*tp.cross(up))/tp.module());
+		LR_vector<number> temp=((_ka_on_a*tp.cross(up))/tp.module());
+		//printf("%lf %lf %lf %lf %lf %lf\n",temp.x,temp.y,temp.z, tp.cross(force).x, tp.cross(force).y,tp.cross(force).z);
 	}
 
 		return  _ka_on_a*(1 - (up*tp) / tp.module()); 
