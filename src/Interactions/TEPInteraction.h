@@ -14,8 +14,8 @@
  * Input options:
  *
  * @verbatim
-[use_average_seq = <boolean> (defaults to yes)]
-[hb_multiplier = <float> (HB interaction multiplier applied to all the nucleotides having a custom numbered base whose magnitude is > 300, defaults to 1.0)]
+[_prefer_harmonic_over_fene = <bool>(if True, neighbouring beads are bound by an harmonic potential instead of a FENE one. Defaults to false.)]
+[_allow_broken_fene = <bool>(if True, the code won't die when the beads are beyond the acceptable FENE range. Defaults to True.)]
 @endverbatim
  The option above are true for the DNAinteraction class, not this one, but I keep them so that
  I can keep track of how they should be declared.
@@ -23,16 +23,11 @@
 template <typename number>
 class TEPInteraction : public BaseInteraction<number, TEPInteraction<number> > {
 protected:
-	char _seq_filename[512];
 	number _T;
 	//parameters of the TEP model
-	number _a;
 	number _ka;
-	number _ka_on_a;
 	number _kb;
-	number _kb_on_a;
 	number _kt;
-	number _kt_on_a;
 	// FENE parameters
 	number _TEP_FENE_DELTA;
 	number _TEP_FENE_DELTA2;
@@ -45,14 +40,14 @@ protected:
 	number _TEP_EXCL_R2;
 	number _TEP_EXCL_B2;
 	number _TEP_EXCL_RC2;
+	
+	number _TEP_spring_offset;
 	/// true by default; set this to false if you want the code to not die when bonded backbones are found to be outside the acceptable FENE range
 	bool _allow_broken_fene;
 
 // false by default: set this to true if you want neighbouring particles to be bound by a quadratic potential instead of a FENE
 	bool _prefer_harmonic_over_fene;
 
-	int MESH_F4_POINTS[13];
-	Mesh<number> _mesh_f4[13];
 
 
 	virtual number _spring(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
@@ -87,7 +82,7 @@ protected:
 	 * @param q
 	 * @return true if they are bonded, false otherwise
 	 */
-	bool _are_bonded(BaseParticle<number> *p, BaseParticle<number> *q) { return (p->n3 == q || p->n5 == q); }
+	inline bool _are_bonded(BaseParticle<number> *p, BaseParticle<number> *q) { return (p->n3 == q || p->n5 == q); }
 
 public:
 	enum {

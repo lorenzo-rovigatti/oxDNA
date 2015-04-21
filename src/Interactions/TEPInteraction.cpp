@@ -14,6 +14,33 @@ TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteractio
 	this->_int_map[NONBONDED_DEBYE_HUCKEL] = &TEPInteraction<number>::_nonbonded_debye_huckel;
 
 	_allow_broken_fene = false;
+	_prefer_harmonic_over_fene = false;
+	
+	//parameters of the TEP model
+
+		// Lengths
+	 _TEP_FENE_DELTA = 1.6;
+	 _TEP_FENE_DELTA2 = SQR(_TEP_FENE_DELTA);
+	 _TEP_FENE_R0 = 0.;
+
+	 _TEP_EXCL_S2 = 1.;
+	 _TEP_EXCL_R2 = 1.2246;
+	 _TEP_EXCL_B2 = 1.;
+	 _TEP_EXCL_RC2= 1.2246;
+		
+		// Energies
+
+	 _ka = 100.;
+	 _kb = 20.;
+	 _kt = 29.7;
+		
+	 _TEP_FENE_EPS = _TEP_FENE_DELTA2 * 30.;
+		
+	 _TEP_EXCL_EPS_BONDED = 1.;
+	 _TEP_EXCL_EPS_NONBONDED = 1.;
+		//the offset is just introduced so that the spring has a 0 energy minimum.
+	 _TEP_spring_offset = -19.5442;
+	
 }
 
 template<typename number>
@@ -26,64 +53,52 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 
 	// TEP model parameters
-	number a;
-	if(getInputNumber(&inp, "TEP_a",&a, 0) == KEY_FOUND) {
-		_a = (number) a;
-		if( _a <= 0 ) throw oxDNAException("read non-positive parameter TEP_a (rod length) for the TEP model. a = %f. Aborting",_a);
-		OX_LOG(Logger::LOG_INFO," TEP_a manually set to %g",_a);
-	}
-	else _a = 1.;
-
 	number kb; 
 	if(getInputNumber(&inp, "TEP_kb",&kb, 0) == KEY_FOUND) {
-		_kb = (number) kb;
-		if( _kb < 0 ) throw oxDNAException("read negative parameter TEP_kb (rod elastic costant) for the TEP model. TEP_kb = %f. Aborting",_kb); 
-		OX_LOG(Logger::LOG_INFO," TEP_kb manually set to %g",_kb);
+		_kb = kb;
+		if( kb < 0 ) throw oxDNAException("read negative parameter TEP_kb (rod bending energy prefactor) for the TEP model. TEP_kb = %f. Aborting",kb); 
+		OX_LOG(Logger::LOG_INFO," TEP_kb manually set to %g",kb);
 	}
-	else _kb = 1;
-	_kb_on_a = _kb/_a;
 
 	number ka; 
 	if(getInputNumber(&inp, "TEP_ka",&ka, 0) == KEY_FOUND) {
-		_ka = (number) ka;
-		if( _ka < 0 ) throw oxDNAException("read negative parameter TEP_ka (alignment term) for the TEP model. TEP_ka = %f. Aborting",_ka); 
-		OX_LOG(Logger::LOG_INFO," TEP_ka manually set to %g",_ka);
+		_ka = ka;
+		if( ka < 0 ) throw oxDNAException("read negative parameter TEP_ka (rod alignment energy prefactor) for the TEP model. TEP_ka = %f. Aborting",ka); 
+		OX_LOG(Logger::LOG_INFO," TEP_ka manually set to %g",ka);
 	}
-	else _ka = 1;
-	_ka_on_a = _ka/_a;
 
 	number kt;
 	if(getInputNumber(&inp, "TEP_kt",&kt, 0) == KEY_FOUND) {
-		_kt = (number) kt;
-		if( _kt < 0 ) throw oxDNAException("read negative parameter TEP_kt (rod twist constant) for the TEP model. TEP_kt = %f. Aborting",_kt);
-		OX_LOG(Logger::LOG_INFO," TEP_kt manually set to %g",_kt);
+		_kt = kt;
+		if( kt < 0 ) throw oxDNAException("read negative parameter TEP_kt (rod twist constant) for the TEP model. TEP_kt = %f. Aborting",kt);
+		OX_LOG(Logger::LOG_INFO," TEP_kt manually set to %g",kt);
 	}
-	else _kt = 1.;
-	_kt_on_a = _kt /_a;
 	
 	number temp_reading;
 	// Parameters for the FENE part of the potential
 	if(getInputNumber(&inp, "TEP_FENE_DELTA",&temp_reading,0) == KEY_FOUND) {
 		_TEP_FENE_DELTA = (number) temp_reading;
+		_TEP_FENE_DELTA2 = SQR(_TEP_FENE_DELTA);
 		if (_TEP_FENE_DELTA <= 0) throw oxDNAException("read non-positive parameter TEP_FENE_DELTA (FENE width constant) for the TEP model. TEP_FENE_DELTA = %f. Aborting",_TEP_FENE_DELTA);
 		OX_LOG(Logger::LOG_INFO," TEP_FENE_DELTA manually set to %g",_TEP_FENE_DELTA);
 	}
-	else _TEP_FENE_DELTA = 0.25;
-	_TEP_FENE_DELTA2 = _TEP_FENE_DELTA*_TEP_FENE_DELTA;	
 
 	if(getInputNumber(&inp, "TEP_FENE_EPS",&temp_reading,0) == KEY_FOUND) {
 		_TEP_FENE_EPS = (number) temp_reading;
 		if (_TEP_FENE_EPS < 0)  throw oxDNAException("read negative parameter TEP_FENE_EPS (FENE spring prefactor) for the TEP model. TEP_FENE_EPS = %f. Aborting",_TEP_FENE_EPS);
 		OX_LOG(Logger::LOG_INFO," TEP_FENE_EPS manually set to %g",_TEP_FENE_EPS);
 	}
-	else _TEP_FENE_EPS =2;
 
 	if(getInputNumber(&inp, "TEP_FENE_R0",&temp_reading,0) == KEY_FOUND) {
 		_TEP_FENE_R0 = (number) temp_reading;
 		if (_TEP_FENE_R0 < 0)  throw oxDNAException("ERROR: read negative parameter TEP_FENE_R0 (FENE spring rest distance) for the TEP model. TEP_FENE_R0 = %f. Aborting",_TEP_FENE_R0);
 		OX_LOG(Logger::LOG_INFO," TEP_FENE_R0 manually set to %g",_TEP_FENE_R0);
 	}
-	else _TEP_FENE_R0 =0;
+
+	if(getInputNumber(&inp, "TEP_spring_offset",&temp_reading,0) == KEY_FOUND) {
+		_TEP_spring_offset = (number) temp_reading;
+		OX_LOG(Logger::LOG_INFO," TEP_spring_offset manually set to %g",_TEP_spring_offset);
+	}
 
 	int tmp;
 	if(getInputBoolAsInt(&inp, "allow_broken_fene", &tmp, 0) == KEY_FOUND){
@@ -96,7 +111,7 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 		_prefer_harmonic_over_fene = tmp;
 		OX_LOG(Logger::LOG_INFO," bounded energy changed from FENE to harmonic");
 	}
-	else _prefer_harmonic_over_fene = false;
+
 //* All this block is commented because the potentials should simply be removed by setting their prefactor to 0
 	// Turn off the excluded volume potential
 	if ( getInputBoolAsInt(&inp, "use_nonbonded_excluded_volume",&tmp, 0) == KEY_FOUND) {
@@ -121,6 +136,7 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	// parameters of the LJ
 	
 	// there's two different coefficients for the bonded and nonbonded terms since.
+	number a;
 	if(getInputNumber(&inp, "TEP_EXCL_EPS", &a, 0) == KEY_FOUND){
 		throw oxDNAException("The input file contains the old argument TEP_EXCL_EPS. Now it is replaced\n"
 												 "       with the two arguments TEP_EXCL_EPS_BONDED and TEP_EXCL_EPS_NONBONDED, that\n"
@@ -133,42 +149,36 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 		if( _TEP_EXCL_EPS_BONDED < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_EPS_BONDED (LJ bonded term prefactor divided by 4) for the TEP model. TEP_EXCL_EPS_BONDED  = %f. Aborting",_TEP_EXCL_EPS_BONDED);
 		OX_LOG(Logger::LOG_INFO," TEP_EXCL_EPS_BONDED manually set to %g",_TEP_EXCL_EPS_BONDED);
 	}
-	else _TEP_EXCL_EPS_BONDED = 1.;
 
 	if(getInputNumber(&inp, "TEP_EXCL_EPS_NONBONDED",&a, 0) == KEY_FOUND) {
 		_TEP_EXCL_EPS_NONBONDED = (number) a;
 		if( _TEP_EXCL_EPS_NONBONDED < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_EPS_NONBONDED (LJ nonbonded term prefactor divided by 4) for the TEP model. TEP_EXCL_EPS_NONBONDED  = %f. Aborting",_TEP_EXCL_EPS_NONBONDED);
 		OX_LOG(Logger::LOG_INFO," TEP_EXCL_EPS_NONBONDED manually set to %g",_TEP_EXCL_EPS_NONBONDED);
 	}
-	else _TEP_EXCL_EPS_NONBONDED = 1.;
 
 	if(getInputNumber(&inp, "TEP_EXCL_S2",&a, 0) == KEY_FOUND) {
 		_TEP_EXCL_S2 = (number) a;
 		if( _TEP_EXCL_S2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_S2 (LJ sigma - bead size) for the TEP model. TEP_EXCL_S2 = %f. Aborting",_TEP_EXCL_S2);
 		OX_LOG(Logger::LOG_INFO," TEP_EXCL_S2 manually set to %g",_TEP_EXCL_S2);
 	}
-	else _TEP_EXCL_S2 = _a;
 
 	if(getInputNumber(&inp, "TEP_EXCL_R2",&a, 0) == KEY_FOUND) {
 		_TEP_EXCL_R2 = (number) a;
 		if( _TEP_EXCL_R2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_R2 (LJ r* - first truncation distance) for the TEP model. TEP_EXCL_R2 = %f. Aborting",_TEP_EXCL_R2);
 		OX_LOG(Logger::LOG_INFO," TEP_EXCL_R2 manually set to %g",_TEP_EXCL_R2);
 	}
-	else _TEP_EXCL_R2 = EXCL_R2;
 	
 	if(getInputNumber(&inp, "TEP_EXCL_B2",&a, 0) == KEY_FOUND) {
 		_TEP_EXCL_B2 = (number) a;
 		if( _TEP_EXCL_B2 < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_B2 (LJ rc - truncation prefactor) for the TEP model. TEP_EXCL_B2 = %f. Aborting",_TEP_EXCL_B2);
 		OX_LOG(Logger::LOG_INFO," TEP_EXCL_B2 manually set to %g",_TEP_EXCL_B2);
 	}
-	else _TEP_EXCL_B2 = EXCL_B2;
 
 	if(getInputNumber(&inp, "TEP_EXCL_RC2",&a, 0) == KEY_FOUND) {
 		_TEP_EXCL_RC2 = (number) a;
 		if( _TEP_EXCL_RC2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_RC2 (LJ rc - second truncation distance) for the TEP model. TEP_EXCL_RC2 = %f. Aborting",_TEP_EXCL_RC2);
 		OX_LOG(Logger::LOG_INFO," TEP_EXCL_RC2 manually set to %g",_TEP_EXCL_RC2);
 	}
-	else _TEP_EXCL_RC2 = EXCL_RC2;
 
 	// Other parameters
 	char T[256];
@@ -182,91 +192,22 @@ void TEPInteraction<number>::init() {
 	//OX_LOG(Logger::LOG_INFO,"FENE_R0 = %f",FENE_R0);
 	// we choose rcut as the max of the range interaction of excluded
 	// volume between backbones and hydrogen bonding
-	//number rcutback;
-	//TODO: when the shape of the elements has been decided, set rcutback to something that
-	//actually makes sense
-	//rcutback = _a;
 	
 
-	this->_rcut = 2.;
+	this->_rcut = _TEP_EXCL_RC2;
 	this->_sqr_rcut = SQR(this->_rcut);
 
-	// rcutback computation for DNA (commented, as it's really not needed here but might be useful
-	// when I write my own way of finding the rcutback);
-	/*if (_grooving){
-		rcutback = 2 * sqrt((POS_MM_BACK1)*(POS_MM_BACK1) + (POS_MM_BACK2)*(POS_MM_BACK2)) + EXCL_RC1;
-	}
-	else
-		rcutback = 2 * fabs(POS_BACK) + EXCL_RC1;
-	number rcutbase = 2 * fabs(POS_BASE) + HYDR_RCHIGH;
-	this->_rcut = fmax(rcutback, rcutbase);
-	this->_sqr_rcut = SQR(this->_rcut);
-
-	// set the default values
-	for(int i = 0; i < 5; i++) {
-		for(int j = 0; j < 5; j++) {
-			// stacking
-			if (_grooving) F1_EPS[STCK_F1][i][j] = STCK_BASE_EPS_MM + STCK_FACT_EPS_MM * _T;
-			else F1_EPS[STCK_F1][i][j] = STCK_BASE_EPS_NO_MM + STCK_FACT_EPS_NO_MM * _T;
-			F1_SHIFT[STCK_F1][i][j] = F1_EPS[STCK_F1][i][j] * SQR(1 - exp(-(STCK_RC - STCK_R0) * STCK_A));
-
-			// HB
-			if (_grooving) F1_EPS[HYDR_F1][i][j] = HYDR_EPS_MM;
-			else F1_EPS[HYDR_F1][i][j] = HYDR_EPS_NO_MM;
-			F1_SHIFT[HYDR_F1][i][j] = F1_EPS[HYDR_F1][i][j] * SQR(1 - exp(-(HYDR_RC - HYDR_R0) * HYDR_A));
-		}
-	}*/
 	//TODO: was it here that I should put the function that chooses a starting configuration?
 }
-
 /*
-template<typename number>
-bool TEPInteraction<number>::_check_bonded_neighbour(BaseParticle<number> **p, BaseParticle<number> **q, LR_vector<number> *r) {
-
-	return _are_bonded(*p, *q);
-
-//TODO: all these exceptions were introduced at debugging time.
-
-//TODO: remove this explanation (or edit it): The function is called with *q == P_VIRTUAL in
-//			get_system_energy. When this happens, read the interaction energy with the guy behind,
-//			unless you are not the last one and no-one is behind you, in that case return false (so
-//			that the interaction returns 0).
-//			if its'called with something non virtual, if the second particle is behind the first,
-//			then it's fine. Otherwise, if the second particle is behind the first then return false
-//			(I believe that in this case there's a problem).
-//			If that's the case, then swap them around, flipping the vector if it was defined already. 
-//			If I got it right, we do it so that the interaction between nucleotides are computed
-//			in the right order (e.g., we know that an interaction between A and T in the 3'-5'
-//			direction is different from one between T and A in the 3'-5' direction).
-//			I should not be needing this and therefore if I let the system evolve for the
-//			same amount of time I should get the same value.
-//			Finally, if p is ever a particle with nobody behin, then the energy is not ocunted.
-//			I don't understand why.
-	if(*q == P_VIRTUAL) *q = (*p)->n3;
-	else {
-		if(*q != (*p)->n3) {
-			if(*p == (*q)->n3) {
-				BaseParticle<number> *tmp = *q;
-				*q = *p;
-				*p = tmp;
-				if (r != NULL) *r = ((*r) * (-1.0f));
-			}
-			else {throw oxDNAException("In check_bonded_neighbour I'm strange2\n"); return false;}
-		}
-	}
-	if((*p)->n3 == P_VIRTUAL) return false;
-
-	return true;
-}*/
-
+ * Old version of the spring potential - kept here for sentimental reasons.
 template<typename number>
 number TEPInteraction<number>::_spring(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	
 	number energy;
-	/*printf("---\n");
-	printf("p = %p, q = %p\n",p,q);
-	printf("p-> n3 = %p, p->n5 = %p, q->n3 = %p, q->n5 = %p\n",p->n3,p->n5,q->n3,q->n5);
-*/
+	//printf("---\n");
+	//printf("p = %p, q = %p\n",p,q);
+	//printf("p-> n3 = %p, p->n5 = %p, q->n3 = %p, q->n5 = %p\n",p->n3,p->n5,q->n3,q->n5);
 	if(!_are_bonded(p, q)) {
 		return (number) 0.f;
 	}
@@ -291,8 +232,46 @@ number TEPInteraction<number>::_spring(BaseParticle<number> *p, BaseParticle<num
 			LR_vector<number> force = *r *(-(_TEP_FENE_EPS * r0 / (_TEP_FENE_DELTA2 - r0*r0))/rmod);
 			p->force -= force;
 			q->force += force;
-/* TODO: test the force calculation
+		}
+	}
+
+	return energy;
+}
 */
+
+template<typename number>
+number TEPInteraction<number>::_spring(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+	
+	number energy;
+	/*printf("---\n");
+	printf("p = %p, q = %p\n",p,q);
+	printf("p-> n3 = %p, p->n5 = %p, q->n3 = %p, q->n5 = %p\n",p->n3,p->n5,q->n3,q->n5);
+*/
+	if(!_are_bonded(p, q)) {
+		return (number) 0.f;
+	}
+	LR_vector<number> force(0.,0.,0.);
+	number rmod = r->module();
+	number r0 = rmod -_TEP_FENE_R0; 
+	// FENE energy - if uncommented, remember to uncomment the
+	// check for R within range
+	if (_prefer_harmonic_over_fene){
+		energy = 0.5*_TEP_FENE_EPS * r0*r0; // Harmonic energy
+	}
+	else{
+		energy = -_TEP_FENE_EPS * 0.5 * log(1 - SQR(r0) / _TEP_FENE_DELTA2);
+	// we check whether we ended up OUTSIDE of the FENE range
+		if (fabs(r0) > _TEP_FENE_DELTA - DBL_EPSILON) {
+			if (update_forces && !_allow_broken_fene) {
+				throw oxDNAException("(TEPInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(r0));
+			}
+			return (number) (1.e12);
+		}
+		energy += _repulsive_lj2(_TEP_EXCL_EPS_BONDED,*r,force, _TEP_EXCL_S2, _TEP_EXCL_R2, _TEP_EXCL_B2, _TEP_EXCL_RC2, update_forces) + _TEP_spring_offset;
+		if(update_forces) {
+			force += *r *(-(_TEP_FENE_EPS * r0 / (_TEP_FENE_DELTA2 - r0*r0))/rmod);
+			p->force -= force;
+			q->force += force;
 		}
 	}
 
@@ -349,7 +328,7 @@ number TEPInteraction<number>::_bonded_bending(BaseParticle<number> *p, BasePart
 	LR_vector<number> tp = p->n5->pos - p->pos;
 	LR_vector<number> tq = q->n5->pos - q->pos;
 	
-	return _kb_on_a*(1 - (tp*tq)/(tp.module()*tq.module()));
+	return _kb*(1 - (tp*tq)/(tp.module()*tq.module()));
 	
 }
 */
@@ -359,21 +338,19 @@ number TEPInteraction<number>::_bonded_bending(BaseParticle<number> *p, BasePart
 	if(!_are_bonded(p, q)) {
 		return (number) 0.f;
 	}
-	//printf("into bonded_bending.\n");
-	//abort();
 	if (p->n5 == P_VIRTUAL || q->n5 == P_VIRTUAL ) return 0.;
 	
-	LR_vector<number> up = p->orientationT.v1;
-	LR_vector<number> uq = q->orientationT.v1;
+	LR_vector<number> & up = p->orientationT.v1;
+	LR_vector<number> & uq = q->orientationT.v1;
 	if ( update_forces ){
-		torque = -_kb_on_a*( up.cross(uq));
+		torque = -_kb*( up.cross(uq));
 		p->torque -= p->orientationT*torque;
 		q->torque += q->orientationT*torque;
 	// forces are not updated since this term of the potential only introduces a torque,
 	// since it does not depend on r.
 	}
 	
-	return _kb_on_a*(1 - up*uq);
+	return _kb*(1 - up*uq);
 	
 }
 
@@ -384,34 +361,33 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 	}
 	//throw oxDNAException("into bonded_twist.\n");
 //	return the twist part of the interaction energy.
-	LR_vector<number> up = p->orientationT.v1;
-	LR_vector<number> uq = q->orientationT.v1;
-	LR_vector<number> fp = p->orientationT.v2;
-	LR_vector<number> fq = q->orientationT.v2;
-	LR_vector<number> vp = p->orientationT.v3;
-	LR_vector<number> vq = q->orientationT.v3;
+	LR_vector<number> & up = p->orientationT.v1;
+	LR_vector<number> & uq = q->orientationT.v1;
+	LR_vector<number> & fp = p->orientationT.v2;
+	LR_vector<number> & fq = q->orientationT.v2;
+	LR_vector<number> & vp = p->orientationT.v3;
+	LR_vector<number> & vq = q->orientationT.v3;
 		
 	number M = fp*fq + vp*vq;
 	number L = 1 + up*uq;
 	number cos_alpha_plus_gamma = M/L;
 		
 	if ( update_forces ){
-		LR_vector<number> torque = -(_kt_on_a/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) );//TODO: I just added a minus here to see if it worked, but for no other reason.
+		LR_vector<number> torque = -(_kt/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) );
 		
 		p->torque -= p->orientationT*torque;
 		q->torque += q->orientationT*torque;
 	// forces are not updated since this term of the potential only introduces a torque,
-	// since it does not depend on r.
-	} //TODO: replace the following return with return _kt-on_a*(1 - cos_alpha_plus_gamma);
-	return _kt_on_a*(1 - ( fp*fq + vp*vq)/(1 + up*uq));
+	// as it only depends on r.
+	} 
+	return _kt*(1 - cos_alpha_plus_gamma);
 }
 template<typename number>
 number TEPInteraction<number>::_bonded_alignment(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces){
+//	return the alignment term of the interaction energy.
 	if(!_are_bonded(p, q)) {
 		return (number) 0.f;
 	}
-	//throw oxDNAException("into bonded_alignment.\n");
-//	return the alignment interaction of the interaction energy.
 
 	LR_vector<number> up, tp;
 	BaseParticle<number> *backp, *frontp;
@@ -427,38 +403,30 @@ number TEPInteraction<number>::_bonded_alignment(BaseParticle<number> *p, BasePa
 		tp = p->pos - q->pos;
 		backp = q;
 		frontp = p;
-	}//TODO: remove this check
-	else{
-		printf("Something unpredicted in _bonded_alignment!\n");
-		abort();
 	}
+	number tpm = tp.module();
 	if ( update_forces){
-		LR_vector<number> force = _ka_on_a*(up - tp*(up*tp)/SQR(tp.module()))/tp.module();
+		LR_vector<number> force = _ka*(up - tp*(up*tp)/SQR(tpm))/tpm;
 		backp->force -= force;
 		frontp->force+= force;
 		//only the torque on p is updated, since this interaction term is basically a self-interaction
 		//that keeps a particle's u vector aligned with  its tangent vector.
-		backp->torque -= backp->orientationT*((_ka_on_a*tp.cross(up))/tp.module());
-		LR_vector<number> temp=((_ka_on_a*tp.cross(up))/tp.module());
+		backp->torque -= backp->orientationT*((_ka*tp.cross(up))/tpm);
+		//LR_vector<number> temp=((_ka*tp.cross(up))/tp.module());
 		//printf("%lf %lf %lf %lf %lf %lf\n",temp.x,temp.y,temp.z, tp.cross(force).x, tp.cross(force).y,tp.cross(force).z);
 	}
 
-		return  _ka_on_a*(1 - (up*tp) / tp.module()); 
+		return  _ka*(1 - (up*tp) / tpm); 
 }
 
 template<typename number>
 number TEPInteraction<number>::_nonbonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	//printf("into nonbonded_excluded_volume.\n");
 
 	if (_are_bonded(p,q)) return (number) 0.f;
 	
 	LR_vector<number> force(0,0,0);
 	
 	number energy = _repulsive_lj2(_TEP_EXCL_EPS_NONBONDED,*r,force, _TEP_EXCL_S2, _TEP_EXCL_R2, _TEP_EXCL_B2, _TEP_EXCL_RC2, update_forces);
-	// TODO: remove this check
-	if (energy != 0 && _TEP_EXCL_EPS_NONBONDED==0){
-	throw oxDNAException("energy should be zero when _TEP_EXCLS_EPS_NONBONDED is zero!");
-	}
 	
 	if(update_forces) {
 		p-> force -= force;
@@ -498,7 +466,6 @@ number TEPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 		}
 	}//else compute the interaction energy between p and q
 	else qq = q;
-	if (qq == P_VIRTUAL){ printf("mana\n");abort();}
 	
 	if (!(p->n5 == qq || qq->n5 == p)) return (number) 0.;
 		//printf("Chiamato con %p e %p\n",p,q);
@@ -509,16 +476,11 @@ number TEPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 		}
 	}
 
-		 energy = _spring(p, qq, r, update_forces);
-	//if (_use_torsional_interaction)
+		energy = _spring(p, qq, r, update_forces);
 		energy += _bonded_twist(p,qq,r,update_forces);
-	//if (_use_bending_interaction)
 		energy += _bonded_bending(p,qq,r,update_forces);
-	//if (_use_alignment_interaction)
 		energy += _bonded_alignment(p,qq,r,update_forces);
-		
-	//if (_use_bonded_excluded_volume)
-		energy += _bonded_excluded_volume(p,qq,r,update_forces);
+		//energy += _bonded_excluded_volume(p,qq,r,update_forces);
 
 		//if (p->index == 0) printf ("%d %d %g %g %g %g\n", p->index, q->index, _spring(p,q,r,false), _bonded_twist (p, q, r, false), _bonded_bending (p, q, r, false), _bonded_alignment (p, q, r, false));
 	
@@ -606,8 +568,6 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 	topology.open(this->_topology_filename, ios::in);
 
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
-	bool print_topology_creation = false;//TODO: remove this variable when there is no more need
-																			// to check the topology
 	topology.getline(line, 512);
 
 	sscanf(line, "%d %d\n", &my_N, &my_N_strands);
@@ -629,20 +589,7 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 			
 			if (i == strand_length -1) p->n5 = P_VIRTUAL;
 			else p->n5 = particles[ particles_in_previous_strands + i+1];
-			if(print_topology_creation){
-				printf("%d: n3 = %p this = %p n5 = %p\n",i,p->n3,p,p->n5);
-			}
-			// TODO remove this check because it will be useless:
-/*
-			if ( i!= 0 && (p->n3 != particles[i-1] || particles[i-1]->n5!=p )){
-					printf("ATTENZIONE QUALCOSA NON VA.\n");
-					printf("Particella %d: %p %p %p \n", i,p, p->n3, p->n5);
-					abort();
-			}
-*/
- /*if (i ==0 || i == strand_length-1)  printf("Particella %d: %p %p %p \n", i,p, p->n3, p->n5);
- else printf("Particella %d: %p, posizione (%.0f,%.0f,%.0f\n", i,p,p->pos.x,p->pos.y,p->pos.z );
-*/		p->strand_id = strand;
+			p->strand_id = strand;
 			added_particles ++;
 			//TODO this check assumes that we read the coniguration from a file - that might not always
 			//be the case, since maybe we generated the configuration during initialisation.
