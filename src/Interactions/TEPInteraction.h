@@ -60,20 +60,9 @@ protected:
 	virtual number _nonbonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
 	inline number _repulsive_lj2(number prefactor,const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces);
+	void setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
+	void setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
 
-
-	/**
-	 * @brief Check the relation between p and q. Used by the bonded interaction terms.
-	 *
-	 * Check whether q is the 3' neighbour of p. If this is not the case, it changes identities
-	 * between q and p if p is the 3' neighbour of q and updates r accordingly. It return false
-	 * if the two particles are not bonded neighbours, true otherwise.
-	 * @param p
-	 * @param q
-	 * @param r
-	 * @return false if the two particles are not bonded neighbours, true otherwise
-	 */
-	//bool _check_bonded_neighbour(BaseParticle<number> **p, BaseParticle<number> **q, LR_vector<number> *r);
 
 	/**
 	 * @brief Checks whether the two particles share a backbone link.
@@ -139,6 +128,24 @@ number TEPInteraction<number>::_repulsive_lj2(number prefactor, const LR_vector<
 	if(update_forces && energy == (number) 0) force.x = force.y = force.z = (number) 0;
 
 	return energy;
+}
+
+template<typename number>
+	void TEPInteraction<number>::setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
+
+	if(getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND) {
+		if( *dest < 0 ) throw oxDNAException("read negative parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
+		OX_LOG(Logger::LOG_INFO,"%s manually set to %g",skey,*dest);
+	}
+}
+
+template<typename number>
+	void TEPInteraction<number>::setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
+
+	if(getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND) {
+		if( *dest <= 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
+		OX_LOG(Logger::LOG_INFO,"%s manually set to %g",skey,*dest);
+	}
 }
 
 #endif /* TEP_INTERACTION_H */

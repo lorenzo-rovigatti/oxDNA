@@ -53,50 +53,17 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 
 	// TEP model parameters
-	number kb; 
-	if(getInputNumber(&inp, "TEP_kb",&kb, 0) == KEY_FOUND) {
-		_kb = kb;
-		if( kb < 0 ) throw oxDNAException("read negative parameter TEP_kb (rod bending energy prefactor) for the TEP model. TEP_kb = %f. Aborting",kb); 
-		OX_LOG(Logger::LOG_INFO," TEP_kb manually set to %g",kb);
-	}
-
-	number ka; 
-	if(getInputNumber(&inp, "TEP_ka",&ka, 0) == KEY_FOUND) {
-		_ka = ka;
-		if( ka < 0 ) throw oxDNAException("read negative parameter TEP_ka (rod alignment energy prefactor) for the TEP model. TEP_ka = %f. Aborting",ka); 
-		OX_LOG(Logger::LOG_INFO," TEP_ka manually set to %g",ka);
-	}
-
-	number kt;
-	if(getInputNumber(&inp, "TEP_kt",&kt, 0) == KEY_FOUND) {
-		_kt = kt;
-		if( kt < 0 ) throw oxDNAException("read negative parameter TEP_kt (rod twist constant) for the TEP model. TEP_kt = %f. Aborting",kt);
-		OX_LOG(Logger::LOG_INFO," TEP_kt manually set to %g",kt);
-	}
+	setNonNegativeNumber(&inp, "TEP_kb", &_kb, 0, "rod bending energy prefactor");
+	setNonNegativeNumber(&inp, "TEP_ka", &_ka, 0, "rod alignment energy prefactor");
+	setNonNegativeNumber(&inp, "TEP_kt", &_kt, 0, "rod twisting energy prefactor");
 	
-	number temp_reading;
 	// Parameters for the FENE part of the potential
-	if(getInputNumber(&inp, "TEP_FENE_DELTA",&temp_reading,0) == KEY_FOUND) {
-		_TEP_FENE_DELTA = (number) temp_reading;
-		_TEP_FENE_DELTA2 = SQR(_TEP_FENE_DELTA);
-		if (_TEP_FENE_DELTA <= 0) throw oxDNAException("read non-positive parameter TEP_FENE_DELTA (FENE width constant) for the TEP model. TEP_FENE_DELTA = %f. Aborting",_TEP_FENE_DELTA);
-		OX_LOG(Logger::LOG_INFO," TEP_FENE_DELTA manually set to %g",_TEP_FENE_DELTA);
-	}
+	setPositiveNumber(&inp, "TEP_FENE_DELTA", &_TEP_FENE_DELTA, 0, "FENE spring width constant");
+	_TEP_FENE_DELTA2 = SQR(_TEP_FENE_DELTA);
+	setNonNegativeNumber(&inp, "TEP_FENE_R0", &_TEP_FENE_R0, 0, "FENE spring rest distance");
+	setNonNegativeNumber(&inp, "TEP_FENE_EPS", &_TEP_FENE_EPS, 0, "FENE spring prefactor");
 
-	if(getInputNumber(&inp, "TEP_FENE_EPS",&temp_reading,0) == KEY_FOUND) {
-		_TEP_FENE_EPS = (number) temp_reading;
-		if (_TEP_FENE_EPS < 0)  throw oxDNAException("read negative parameter TEP_FENE_EPS (FENE spring prefactor) for the TEP model. TEP_FENE_EPS = %f. Aborting",_TEP_FENE_EPS);
-		OX_LOG(Logger::LOG_INFO," TEP_FENE_EPS manually set to %g",_TEP_FENE_EPS);
-	}
-
-	if(getInputNumber(&inp, "TEP_FENE_R0",&temp_reading,0) == KEY_FOUND) {
-		_TEP_FENE_R0 = (number) temp_reading;
-		if (_TEP_FENE_R0 < 0)  throw oxDNAException("ERROR: read negative parameter TEP_FENE_R0 (FENE spring rest distance) for the TEP model. TEP_FENE_R0 = %f. Aborting",_TEP_FENE_R0);
-		OX_LOG(Logger::LOG_INFO," TEP_FENE_R0 manually set to %g",_TEP_FENE_R0);
-	}
-
-	if(getInputNumber(&inp, "TEP_spring_offset",&temp_reading,0) == KEY_FOUND) {
-		_TEP_spring_offset = (number) temp_reading;
+	if(getInputNumber(&inp, "TEP_spring_offset",&_TEP_spring_offset,0) == KEY_FOUND) {
 		OX_LOG(Logger::LOG_INFO," TEP_spring_offset manually set to %g",_TEP_spring_offset);
 	}
 
@@ -104,7 +71,7 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	if(getInputBoolAsInt(&inp, "allow_broken_fene", &tmp, 0) == KEY_FOUND){
 		_allow_broken_fene = (tmp != 0);
 	}
-	// Parameters to choose the terms to use in the hamiltonian
+	// Parameters to choose which terms to use in the hamiltonian
 	
 	// Use a harmonic potential instead of a FENE potential
 	if ( getInputBoolAsInt(&inp, "prefer_harmonic_over_fene",&tmp, 0) == KEY_FOUND) {
@@ -112,7 +79,7 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 		OX_LOG(Logger::LOG_INFO," bounded energy changed from FENE to harmonic");
 	}
 
-//* All this block is commented because the potentials should simply be removed by setting their prefactor to 0
+// TODO: All the following checks will be removed because the potentials should simply be removed by setting their prefactor to 0 - this is just so that legacy input files raise errors.
 	// Turn off the excluded volume potential
 	if ( getInputBoolAsInt(&inp, "use_nonbonded_excluded_volume",&tmp, 0) == KEY_FOUND) {
 		throw oxDNAException("the input file contains the old argument use_nonbonded_excluded_volume.\n"
@@ -135,7 +102,7 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 
 	// parameters of the LJ
 	
-	// there's two different coefficients for the bonded and nonbonded terms since.
+	// check that the legacy argument TEP_EXCL_EPS is absent
 	number a;
 	if(getInputNumber(&inp, "TEP_EXCL_EPS", &a, 0) == KEY_FOUND){
 		throw oxDNAException("The input file contains the old argument TEP_EXCL_EPS. Now it is replaced\n"
@@ -144,41 +111,13 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 												 "       remove the argument, eventually replacing it with either of the two new\n"
 												 "       arguments, and restart the simulation. Abort.");
 	}
-	if(getInputNumber(&inp, "TEP_EXCL_EPS_BONDED",&a, 0) == KEY_FOUND) {
-		_TEP_EXCL_EPS_BONDED = (number) a;
-		if( _TEP_EXCL_EPS_BONDED < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_EPS_BONDED (LJ bonded term prefactor divided by 4) for the TEP model. TEP_EXCL_EPS_BONDED  = %f. Aborting",_TEP_EXCL_EPS_BONDED);
-		OX_LOG(Logger::LOG_INFO," TEP_EXCL_EPS_BONDED manually set to %g",_TEP_EXCL_EPS_BONDED);
-	}
 
-	if(getInputNumber(&inp, "TEP_EXCL_EPS_NONBONDED",&a, 0) == KEY_FOUND) {
-		_TEP_EXCL_EPS_NONBONDED = (number) a;
-		if( _TEP_EXCL_EPS_NONBONDED < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_EPS_NONBONDED (LJ nonbonded term prefactor divided by 4) for the TEP model. TEP_EXCL_EPS_NONBONDED  = %f. Aborting",_TEP_EXCL_EPS_NONBONDED);
-		OX_LOG(Logger::LOG_INFO," TEP_EXCL_EPS_NONBONDED manually set to %g",_TEP_EXCL_EPS_NONBONDED);
-	}
-
-	if(getInputNumber(&inp, "TEP_EXCL_S2",&a, 0) == KEY_FOUND) {
-		_TEP_EXCL_S2 = (number) a;
-		if( _TEP_EXCL_S2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_S2 (LJ sigma - bead size) for the TEP model. TEP_EXCL_S2 = %f. Aborting",_TEP_EXCL_S2);
-		OX_LOG(Logger::LOG_INFO," TEP_EXCL_S2 manually set to %g",_TEP_EXCL_S2);
-	}
-
-	if(getInputNumber(&inp, "TEP_EXCL_R2",&a, 0) == KEY_FOUND) {
-		_TEP_EXCL_R2 = (number) a;
-		if( _TEP_EXCL_R2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_R2 (LJ r* - first truncation distance) for the TEP model. TEP_EXCL_R2 = %f. Aborting",_TEP_EXCL_R2);
-		OX_LOG(Logger::LOG_INFO," TEP_EXCL_R2 manually set to %g",_TEP_EXCL_R2);
-	}
-	
-	if(getInputNumber(&inp, "TEP_EXCL_B2",&a, 0) == KEY_FOUND) {
-		_TEP_EXCL_B2 = (number) a;
-		if( _TEP_EXCL_B2 < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_B2 (LJ rc - truncation prefactor) for the TEP model. TEP_EXCL_B2 = %f. Aborting",_TEP_EXCL_B2);
-		OX_LOG(Logger::LOG_INFO," TEP_EXCL_B2 manually set to %g",_TEP_EXCL_B2);
-	}
-
-	if(getInputNumber(&inp, "TEP_EXCL_RC2",&a, 0) == KEY_FOUND) {
-		_TEP_EXCL_RC2 = (number) a;
-		if( _TEP_EXCL_RC2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_RC2 (LJ rc - second truncation distance) for the TEP model. TEP_EXCL_RC2 = %f. Aborting",_TEP_EXCL_RC2);
-		OX_LOG(Logger::LOG_INFO," TEP_EXCL_RC2 manually set to %g",_TEP_EXCL_RC2);
-	}
+	setNonNegativeNumber(&inp, "TEP_EXCL_EPS_BONDED", &_TEP_EXCL_EPS_BONDED, 0, "LJ bonded term prefactor to be divided by 4");
+	setNonNegativeNumber(&inp, "TEP_EXCL_EPS_NONBONDED", &_TEP_EXCL_EPS_NONBONDED, 0, "LJ nonbonded term prefactor to be divided by 4");
+	setPositiveNumber(&inp, "TEP_EXCL_S2", &_TEP_EXCL_S2, 0, "LJ sigma - bead size");
+	setPositiveNumber(&inp, "TEP_EXCL_R2", &_TEP_EXCL_R2, 0, "LJ r* - inner truncation distance");
+	setNonNegativeNumber(&inp, "TEP_EXCL_B2", &_TEP_EXCL_B2, 0, "LJ r* - inner truncation distance");
+	setPositiveNumber(&inp, "TEP_EXCL_RC2", &_TEP_EXCL_RC2, 0, "LJ r* - outer truncation distance");
 
 	// Other parameters
 	char T[256];
@@ -390,7 +329,8 @@ number TEPInteraction<number>::_bonded_alignment(BaseParticle<number> *p, BasePa
 	}
 
 	LR_vector<number> up, tp;
-	BaseParticle<number> *backp, *frontp;
+	// these particles are initialised to P_VIRTUAL to prevent gcc from complaining
+	BaseParticle<number> *backp=P_VIRTUAL, *frontp=P_VIRTUAL;
 //	make sure the particle q follows p and not the contrary
 	if ( q == p->n5){
 		up = p->orientationT.v1;
@@ -653,3 +593,81 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 template class TEPInteraction<float>;
 template class TEPInteraction<double>;
 
+	/* OLD way of reading the arguments for file. To keep here in case the new one fails.
+	number kb; 
+	if(getInputNumber(&inp, "TEP_kb",&kb, 0) == KEY_FOUND) {
+		_kb = kb;
+		if( kb < 0 ) throw oxDNAException("read negative parameter TEP_kb (rod bending energy prefactor) for the TEP model. TEP_kb = %f. Aborting",kb); 
+		OX_LOG(Logger::LOG_INFO," TEP_kb manually set to %g",kb);
+	}
+
+	number ka; 
+	if(getInputNumber(&inp, "TEP_ka",&ka, 0) == KEY_FOUND) {
+		_ka = ka;
+		if( ka < 0 ) throw oxDNAException("read negative parameter TEP_ka (rod alignment energy prefactor) for the TEP model. TEP_ka = %f. Aborting",ka); 
+		OX_LOG(Logger::LOG_INFO," TEP_ka manually set to %g",ka);
+	}
+
+	number kt;
+	if(getInputNumber(&inp, "TEP_kt",&kt, 0) == KEY_FOUND) {
+		_kt = kt;
+		if( kt < 0 ) throw oxDNAException("read negative parameter TEP_kt (rod twist constant) for the TEP model. TEP_kt = %f. Aborting",kt);
+		OX_LOG(Logger::LOG_INFO," TEP_kt manually set to %g",kt);
+	}
+	if(getInputNumber(&inp, "TEP_FENE_DELTA",&temp_reading,0) == KEY_FOUND) {
+		_TEP_FENE_DELTA = (number) temp_reading;
+		_TEP_FENE_DELTA2 = SQR(_TEP_FENE_DELTA);
+		if (_TEP_FENE_DELTA <= 0) throw oxDNAException("read non-positive parameter TEP_FENE_DELTA (FENE width constant) for the TEP model. TEP_FENE_DELTA = %f. Aborting",_TEP_FENE_DELTA);
+		OX_LOG(Logger::LOG_INFO," TEP_FENE_DELTA manually set to %g",_TEP_FENE_DELTA);
+	}
+
+	if(getInputNumber(&inp, "TEP_FENE_EPS",&temp_reading,0) == KEY_FOUND) {
+		_TEP_FENE_EPS = (number) temp_reading;
+		if (_TEP_FENE_EPS < 0)  throw oxDNAException("read negative parameter TEP_FENE_EPS (FENE spring prefactor) for the TEP model. TEP_FENE_EPS = %f. Aborting",_TEP_FENE_EPS);
+		OX_LOG(Logger::LOG_INFO," TEP_FENE_EPS manually set to %g",_TEP_FENE_EPS);
+	}
+
+	if(getInputNumber(&inp, "TEP_FENE_R0",&temp_reading,0) == KEY_FOUND) {
+		_TEP_FENE_R0 = (number) temp_reading;
+		if (_TEP_FENE_R0 < 0)  throw oxDNAException("ERROR: read negative parameter TEP_FENE_R0 (FENE spring rest distance) for the TEP model. TEP_FENE_R0 = %f. Aborting",_TEP_FENE_R0);
+		OX_LOG(Logger::LOG_INFO," TEP_FENE_R0 manually set to %g",_TEP_FENE_R0);
+	}
+
+	if(getInputNumber(&inp, "TEP_EXCL_EPS_BONDED",&a, 0) == KEY_FOUND) {
+		_TEP_EXCL_EPS_BONDED = (number) a;
+		if( _TEP_EXCL_EPS_BONDED < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_EPS_BONDED (LJ bonded term prefactor divided by 4) for the TEP model. TEP_EXCL_EPS_BONDED  = %f. Aborting",_TEP_EXCL_EPS_BONDED);
+		OX_LOG(Logger::LOG_INFO," TEP_EXCL_EPS_BONDED manually set to %g",_TEP_EXCL_EPS_BONDED);
+	}
+
+	if(getInputNumber(&inp, "TEP_EXCL_EPS_NONBONDED",&a, 0) == KEY_FOUND) {
+		_TEP_EXCL_EPS_NONBONDED = (number) a;
+		if( _TEP_EXCL_EPS_NONBONDED < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_EPS_NONBONDED (LJ nonbonded term prefactor divided by 4) for the TEP model. TEP_EXCL_EPS_NONBONDED  = %f. Aborting",_TEP_EXCL_EPS_NONBONDED);
+		OX_LOG(Logger::LOG_INFO," TEP_EXCL_EPS_NONBONDED manually set to %g",_TEP_EXCL_EPS_NONBONDED);
+	}
+
+	if(getInputNumber(&inp, "TEP_EXCL_S2",&a, 0) == KEY_FOUND) {
+		_TEP_EXCL_S2 = (number) a;
+		if( _TEP_EXCL_S2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_S2 (LJ sigma - bead size) for the TEP model. TEP_EXCL_S2 = %f. Aborting",_TEP_EXCL_S2);
+		OX_LOG(Logger::LOG_INFO," TEP_EXCL_S2 manually set to %g",_TEP_EXCL_S2);
+	}
+
+
+	if(getInputNumber(&inp, "TEP_EXCL_R2",&a, 0) == KEY_FOUND) {
+		_TEP_EXCL_R2 = (number) a;
+		if( _TEP_EXCL_R2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_R2 (LJ r* - first truncation distance) for the TEP model. TEP_EXCL_R2 = %f. Aborting",_TEP_EXCL_R2);
+		OX_LOG(Logger::LOG_INFO," TEP_EXCL_R2 manually set to %g",_TEP_EXCL_R2);
+	}
+	
+	if(getInputNumber(&inp, "TEP_EXCL_B2",&a, 0) == KEY_FOUND) {
+		_TEP_EXCL_B2 = (number) a;
+		if( _TEP_EXCL_B2 < 0 ) throw oxDNAException(" read negative parameter TEP_EXCL_B2 (LJ rc - truncation prefactor) for the TEP model. TEP_EXCL_B2 = %f. Aborting",_TEP_EXCL_B2);
+		OX_LOG(Logger::LOG_INFO," TEP_EXCL_B2 manually set to %g",_TEP_EXCL_B2);
+	}
+
+	if(getInputNumber(&inp, "TEP_EXCL_RC2",&a, 0) == KEY_FOUND) {
+		_TEP_EXCL_RC2 = (number) a;
+		if( _TEP_EXCL_RC2 <= 0 ) throw oxDNAException(" read non-positive parameter TEP_EXCL_RC2 (LJ rc - second truncation distance) for the TEP model. TEP_EXCL_RC2 = %f. Aborting",_TEP_EXCL_RC2);
+		OX_LOG(Logger::LOG_INFO," TEP_EXCL_RC2 manually set to %g",_TEP_EXCL_RC2);
+	}
+
+	*/
