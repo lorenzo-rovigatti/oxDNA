@@ -1,3 +1,21 @@
+v 2.2 (April 2015)
+	This release includes the finalised code implementing the oxDNA2 model. In addition there are
+	numerous bug fixes, more helpful error messages and other messages to the user, fixes to the 
+	examples and various new features.
+	- Added support for the oxDNA2 model. See the oxDNA wiki for more information. Use it by setting 
+	interaction_type = DNA2 in the input file. The salt concentration must also be specified.
+	- Added more observables.
+	- Added more external forces.
+	- Added GPU support for the salt-dependent RNA model.
+	- Updated the syntax for the CPU order parameter parser (the old syntax still works). Non-
+	consecutive numbers and letters can now be used to label particle pairs, and pairs can be added
+	as lists. See commit message for revision 6431.
+	- The Langevin thermostat may now be used on GPUs.
+	- Reworked the way the oxDNA code handles plugins. It is now possible to use custom names for 
+	the functions that act as entry points for the shared libraries. See the documentation in the 
+	PluginManager class.
+	- Various improvements to the python utility scripts.
+	
 v 2.1 (June 2014)
 	This is mostly a bug-fixing release. We have fixed a few issues with different compilers
 	and platforms and a few severe bugs that could result in segmentation faults.
