@@ -128,7 +128,7 @@ string TSPAnalysis<number>::get_output_string(llint curr_step) {
 				avg_star_distance += dist_1;
 				avg_star_patch_size += patch.n_arms();
 
-				if(_mode == TSP_SP) ss << patch.n_arms() << endl;
+				if(_mode == TSP_SP) ss << patch.n_arms() << " " << dist_1 << endl;
 
 				rel_pos_1 /= dist_1;
 				// angle
@@ -148,7 +148,8 @@ string TSPAnalysis<number>::get_output_string(llint curr_step) {
 			}
 			avg_distance += avg_star_distance / (number) n_patches;
 			avg_patch_size += avg_star_patch_size / (number) n_patches;
-			if(n_patches > 1) avg_angle += avg_star_angle / (number) (n_patches*(n_patches - 1));
+			// the factor 2 is to count for the number of unique pairs, which is N*(N-1) / 2
+			if(n_patches > 1) avg_angle += 2. * avg_star_angle / (number) (n_patches*(n_patches - 1));
 		}
 	}
 
