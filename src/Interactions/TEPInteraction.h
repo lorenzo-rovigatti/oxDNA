@@ -47,6 +47,17 @@ protected:
 
 // false by default: set this to true if you want neighbouring particles to be bound by a quadratic potential instead of a FENE
 	bool _prefer_harmonic_over_fene;
+// zero by default: if nonzero, the beads with a virtual neighbour will be twisted (e.g. will try and align the potential v2 vector to a spinning vector). This twist means that the twist_extremal_particles interaction will be used.
+	number _twist_boundary_stiff;
+	
+	LR_vector<number> _o1;
+	LR_vector<number> _o2;
+	number _o1_modulus;
+	number _o2_modulus;
+	LR_vector<number> _w1;
+	LR_vector<number> _w2;
+	llint _my_time;
+	llint _max_twisting_time;
 
 
 
@@ -60,8 +71,10 @@ protected:
 	virtual number _nonbonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
 	inline number _repulsive_lj2(number prefactor,const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces);
-	void setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
-	void setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
+	int setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
+	int setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
+	int setNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
+	int setPositiveLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description);
 
 
 	/**
@@ -71,8 +84,13 @@ protected:
 	 * @param q
 	 * @return true if they are bonded, false otherwise
 	 */
-	inline bool _are_bonded(BaseParticle<number> *p, BaseParticle<number> *q) { return (p->n3 == q || p->n5 == q); }
+	inline bool _are_bonded(BaseParticle<number> *p, BaseParticle<number> *q) { return (p->n3 == q || p->n5 == q); 
+}
 
+	// The following are all the functions used to implement the twisting of the extremal beads. Hopefully to be removed when torques are programmed properly.
+	int getInputDirection(input_file *inp, const char * skey, LR_vector<number> *dest, int mandatory);
+LR_vector<number> rotateVectorAroundVersor(const LR_vector<number> vector, const LR_vector<number> versor, const number angle);
+number _twist_boundary_particles(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 public:
 	enum {
 		SPRING = 0,
@@ -131,21 +149,81 @@ number TEPInteraction<number>::_repulsive_lj2(number prefactor, const LR_vector<
 }
 
 template<typename number>
-	void TEPInteraction<number>::setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
+int TEPInteraction<number>::setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
 
-	if(getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND) {
+	int ret_value = getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND;
+	if( ret_value ){
 		if( *dest < 0 ) throw oxDNAException("read negative parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
 		OX_LOG(Logger::LOG_INFO,"%s manually set to %g",skey,*dest);
 	}
+	return ret_value;
 }
 
 template<typename number>
-	void TEPInteraction<number>::setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
-
-	if(getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND) {
+int TEPInteraction<number>::setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
+	int ret_value = getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND;
+	if( ret_value ){
 		if( *dest <= 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
 		OX_LOG(Logger::LOG_INFO,"%s manually set to %g",skey,*dest);
 	}
+	return ret_value;
 }
 
+template<typename number>
+int TEPInteraction<number>::setNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
+	int ret_value = getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND;
+	if( ret_value ){
+		OX_LOG(Logger::LOG_INFO,"%s manually set to %g",skey,*dest);
+	}
+	return ret_value;
+}
+
+template<typename number>
+int TEPInteraction<number>::setPositiveLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description){
+	int ret_value = getInputLLInt(inp, skey,dest, mandatory) == KEY_FOUND;
+	if( ret_value ){
+		if( *dest <= 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
+		OX_LOG(Logger::LOG_INFO,"%s manually set to %lld",skey,*dest);
+	}
+	return ret_value;
+}
+	// The following are all the functions used to implement the twisting of the extremal beads. Hopefully to be removed when torques are programmed properly.
+	//
+	// Read a direction from file (TODO: propose to add this to defs.h, since it might be needed elsewhere).
+template<typename number>
+int TEPInteraction<number>::getInputDirection(input_file *inp, const char * skey, LR_vector<number> *dest, int mandatory){
+  std::string strdir;     
+  int ret_value = getInputString (inp, skey, strdir, mandatory);     
+  double x, y, z;            
+  int tmpi = sscanf(strdir.c_str(), "%lf,%lf,%lf", &x, &y, &z);     
+  if (tmpi != 3) throw oxDNAException("could not parse direction %s in input file. Dying badly",skey);     
+  *dest = LR_vector<number> ((number) x, (number) y, number (z));     
+	if (x == 0 && y == 0 && z == 0){
+		throw oxDNAException("direction %s in input file is the zero vector.",skey);
+	}
+  dest->normalize(); 
+	return ret_value;
+}
+
+// Rotate a vector around a versor (TODO: propose to add this to defs.h)
+template<typename number>
+LR_vector<number> TEPInteraction<number>::rotateVectorAroundVersor(const LR_vector<number> vector, const LR_vector<number> versor, const number angle){
+/* According to section 5.2 of this webpage http://inside.mines.edu/fs_home/gmurray/ArbitraryAxisRotation/ ,
+// the image of rotating a vector (x,y,z) around a versor (u,v,w) is given by
+//      / u(ux + vy + wz)(1 - cos th) + x cos th + (- wy + vz) sin th \
+//      | v(ux + vy + wz)(1 - cos th) + y cos th + (+ wx - uz) sin th |
+//      \ w(ux + vy + wz)(1 - cos th) + z cos th + (- vx + uy) sin th /
+//      Note that the first parenthesis in every component contains the scalar product of the vectors,
+//      and the last parenthesys in every component contains a component of the cross product versor ^ vector.
+//      The derivation that they show on the webpage seems sound, and I've checked it with Mathematica in about//			 1 hour of ininterrupting swearing. */
+	number costh = cos(angle);
+	number sinth = sin(angle);
+	number scalar = vector*versor;
+	LR_vector<number> cross = versor.cross(vector);
+	return LR_vector<number>( 
+		versor.x * scalar * (1. - costh) + vector.x*costh + cross.x * sinth,
+		versor.y * scalar * (1. - costh) + vector.y*costh + cross.y * sinth,
+		versor.z * scalar * (1. - costh) + vector.z*costh + cross.z * sinth
+	);
+}
 #endif /* TEP_INTERACTION_H */
