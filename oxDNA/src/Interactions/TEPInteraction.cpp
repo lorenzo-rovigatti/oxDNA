@@ -16,6 +16,8 @@ TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteractio
 	_allow_broken_fene = false;
 	_prefer_harmonic_over_fene = false;
 	
+	_twist_boundary_stiff = 0;//TODO: to remove once the twisting bit gets moved into the forces part of the code.
+	_my_time = 0;//TODO: to remove once the twisting bit gets moved into the forces part of the code.
 	//parameters of the TEP model
 
 		// Lengths
@@ -77,6 +79,25 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	if ( getInputBoolAsInt(&inp, "prefer_harmonic_over_fene",&tmp, 0) == KEY_FOUND) {
 		_prefer_harmonic_over_fene = tmp;
 		OX_LOG(Logger::LOG_INFO," bounded energy changed from FENE to harmonic");
+	}
+	
+	//if twist_extremal particle is set to true, look for other arguments as well.
+	setNonNegativeNumber(&inp,"TEP_twist_boundary_stiff",&_twist_boundary_stiff,0,"stiffness of the boundary twisting potential");
+	if (_twist_boundary_stiff > 0){
+		OX_LOG(Logger::LOG_INFO," twisting extremal particles.");
+		//read the starting w1 and w2 vectors to which the vectors f try to align
+		getInputDirection(&inp,"TEP_w1",&_w1,1);
+		getInputDirection(&inp,"TEP_w2",&_w2,1);
+		//read the direction around which w1 and w2 will spin in time
+		getInputDirection(&inp,"TEP_o1",&_o1,1);
+		getInputDirection(&inp,"TEP_o2",&_o2,1);
+		//read the angular speed of w1 and w2
+		setNumber(&inp,"TEP_w1_period",&_o1_modulus,1,"rotation period of w1 in time steps");
+		// The user chooses a period, but the program stores an angular speed.
+		_o1_modulus = 2*PI/double(_o1_modulus); 
+		setNumber(&inp,"TEP_w2_period",&_o2_modulus,1,"rotation period of w2 in time steps");
+		_o2_modulus = 2*PI/double(_o2_modulus); 
+		setPositiveLLInt(&inp,"TEP_max_twisting_time",&_max_twisting_time,1,"maximum twisting time");
 	}
 
 // TODO: All the following checks will be removed because the potentials should simply be removed by setting their prefactor to 0 - this is just so that legacy input files raise errors.
@@ -310,6 +331,10 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 	number M = fp*fq + vp*vq;
 	number L = 1 + up*uq;
 	number cos_alpha_plus_gamma = M/L;
+	//make sure that cos_alpha_plus_gamma is never too law, except for the last bead that behaves in a silly way.
+	if ( cos_alpha_plus_gamma < -0.85 && p->n5 != P_VIRTUAL && q->n5 != P_VIRTUAL){
+		throw oxDNAException("the bond between the bead %d and the bead %d is too twisted! cos_alpha_plus_gamma = %g, average superhelical density = %g/N,_my_time = %lld",p->get_index(),q->get_index(),cos_alpha_plus_gamma,_my_time*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI)),_my_time);
+	}
 		
 	if ( update_forces ){
 		LR_vector<number> torque = -(_kt/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) );
@@ -378,6 +403,106 @@ number TEPInteraction<number>::_nonbonded_excluded_volume(BaseParticle<number> *
 
 
 
+template<typename number>
+number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces){
+	LR_vector<number> torque(0.,0.,0.);
+	number energy=0.;
+	int print_period = int(1e10);
+	
+	if(!_are_bonded(p, q)) {
+		return (number) 0.f;
+	}
+		LR_vector<number> _w1t = rotateVectorAroundVersor(_w1,_o1,min(_my_time,_max_twisting_time)*_o1_modulus);
+		LR_vector<number> _w2t = rotateVectorAroundVersor(_w2,_o2,min(_my_time,_max_twisting_time)*_o2_modulus);
+	// If one of the particles is an extremal one, twist it accordingly.
+	if (p->n3 == P_VIRTUAL){
+		_my_time++;
+		if(_my_time % print_period == 0){
+			FILE * fp=fopen("w1t.txt","a");
+			//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w1t.x,_w1t.y,_w1t.z);
+			fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time,_w1t*p->orientationT.v3,_w1t.x,_w1t.y,_w1t.z,p->orientationT.v3.x,p->orientationT.v3.y,p->orientationT.v3.z);
+			fclose(fp);
+		}
+		energy += _twist_boundary_stiff * (1 - (p->orientationT.v3 * _w1t));
+		energy += _twist_boundary_stiff * (1 - (p->orientationT.v1 * _o1));
+	}
+	if (p->n5 != P_VIRTUAL){
+		if (p->n5->n5 == P_VIRTUAL){
+			_my_time++;
+
+			if(_my_time % print_period == 0){
+				FILE * fp=fopen("w2t.txt","a");
+				//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w2t.x,_w2t.y,_w2t.z);
+				fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time,_w2t*p->orientationT.v3,_w2t.x,_w2t.y,_w2t.z,p->orientationT.v3.x,p->orientationT.v3.y,p->orientationT.v3.z);
+				fclose(fp);
+			}
+			energy += _twist_boundary_stiff * (1 - (p->orientationT.v3 * _w2t));
+			energy += _twist_boundary_stiff * (1 - (p->orientationT.v1 * _o2));
+		}
+	}
+	if (q != P_VIRTUAL){
+		if (q->n3 == P_VIRTUAL){
+			_my_time++;
+			/*FILE * fp=fopen("w1t.txt","a");
+			fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w1t.x,_w1t.y,_w1t.z);
+			fclose(fp);*/
+			if(_my_time % print_period == 0){
+				FILE * fp=fopen("w1t.txt","a");
+				//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w1t.x,_w1t.y,_w1t.z);
+				fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time,_w1t*q->orientationT.v3,_w1t.x,_w1t.y,_w1t.z,q->orientationT.v3.x,q->orientationT.v3.y,q->orientationT.v3.z);
+				fclose(fp);
+			}
+			energy += _twist_boundary_stiff * (1 - (q->orientationT.v3 * _w1t));
+			energy += _twist_boundary_stiff * (1 - (q->orientationT.v1 * _o1));
+		}
+		if (q->n5 != P_VIRTUAL){
+			if (q->n5->n5 == P_VIRTUAL){
+				_my_time++;
+				/*FILE * fp=fopen("w2t.txt","a");
+				fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w2t.x,_w2t.y,_w2t.z);
+				fclose(fp);*/
+				if(_my_time % print_period == 0){
+					FILE * fp=fopen("w2t.txt","a");
+					//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w2t.x,_w2t.y,_w2t.z);
+					fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time,_w2t*q->orientationT.v3,_w2t.x,_w2t.y,_w2t.z,q->orientationT.v3.x,q->orientationT.v3.y,q->orientationT.v3.z);
+					fclose(fp);
+				}
+				energy += _twist_boundary_stiff * (1 - (q->orientationT.v3 * _w2t));
+				energy += _twist_boundary_stiff * (1 - (q->orientationT.v1 * _o2));
+			}
+		}
+	}
+	
+	if ( update_forces ){
+		if (p->n3 == P_VIRTUAL){
+			p->torque += p->orientationT*(_twist_boundary_stiff * ( p->orientationT.v3.cross(_w1t)));
+			p->torque += p->orientationT*(_twist_boundary_stiff * ( p->orientationT.v1.cross(_o1)));
+		}
+		if (p->n5 != P_VIRTUAL){
+			if (p->n5->n5 == P_VIRTUAL){
+				p->torque += p->orientationT*(_twist_boundary_stiff * ( p->orientationT.v3.cross(_w2t)));
+				p->torque += p->orientationT*(_twist_boundary_stiff * ( p->orientationT.v1.cross(_o2)));
+			}
+		}
+		if (q != P_VIRTUAL){
+			if (q->n3 == P_VIRTUAL){
+				q->torque += q->orientationT*(_twist_boundary_stiff * ( q->orientationT.v3.cross(_w1t)));
+				q->torque += q->orientationT*(_twist_boundary_stiff * ( q->orientationT.v1.cross(_o1)));
+			}
+			if (q->n5 != P_VIRTUAL){
+				if (q->n5->n5 == P_VIRTUAL){
+					q->torque += q->orientationT*(_twist_boundary_stiff * ( q->orientationT.v3.cross(_w2t)));
+					q->torque += q->orientationT*(_twist_boundary_stiff * ( q->orientationT.v1.cross(_o2)));
+				}
+			}
+		}
+	// forces are not updated since this term of the potential only introduces a torque,
+	// since it does not depend on r.
+	}
+	
+	return energy;
+	
+}
 
 template<typename number>
 number TEPInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
@@ -386,11 +511,10 @@ number TEPInteraction<number>::pair_interaction(BaseParticle<number> *p, BasePar
 	abort();
 	if(p->n3 == q || p->n5 == q) return pair_interaction_bonded(p, q, r, update_forces);
 	else { 
-printf("What am I doing it here?.\n");
-abort();
-return pair_interaction_nonbonded(p, q, r, update_forces);
-
-}
+		printf("What am I doing it here?.\n");
+		abort();
+		return pair_interaction_nonbonded(p, q, r, update_forces);
+	}
 }
 
 template<typename number>
@@ -402,7 +526,8 @@ number TEPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 	if ( q == P_VIRTUAL){
 		qq = p->n5;
 		if (qq == P_VIRTUAL){
-			return energy;
+	// the particle is the last particle of the chain. Return only the boundary twisting term.
+			return _twist_boundary_particles(p,qq,r,update_forces);
 		}
 	}//else compute the interaction energy between p and q
 	else qq = q;
@@ -420,6 +545,7 @@ number TEPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 		energy += _bonded_twist(p,qq,r,update_forces);
 		energy += _bonded_bending(p,qq,r,update_forces);
 		energy += _bonded_alignment(p,qq,r,update_forces);
+		energy += _twist_boundary_particles(p,qq,r,update_forces);
 		//energy += _bonded_excluded_volume(p,qq,r,update_forces);
 
 		//if (p->index == 0) printf ("%d %d %g %g %g %g\n", p->index, q->index, _spring(p,q,r,false), _bonded_twist (p, q, r, false), _bonded_bending (p, q, r, false), _bonded_alignment (p, q, r, false));
@@ -512,6 +638,8 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 
 	sscanf(line, "%d %d\n", &my_N, &my_N_strands);
 	//printf("N_from_conf = %d, my_N = %d",N_from_conf, my_N);
+		OX_LOG(Logger::LOG_INFO," average superhelical density set at %g, since:",_max_twisting_time*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI))/N_from_conf);//TODO remove this when the whole twisting boundary particle is removed. Possibly replace it with something that performs the same function in a cleaner way.
+		OX_LOG(Logger::LOG_INFO," TEP_max_twisting_time =  %lld, TEP_o1_modulus = %lf, TEP_o2_modulus = %lf, N = %d",_max_twisting_time,_o1_modulus,_o2_modulus,N_from_conf);//TODO remove this when the whole twisting boundary particle is removed. Possibly replace it with something that performs the same function in a cleaner way.
 	int * strand_lengths = new int [my_N_strands];//TODO to be removed
 	int strand = 0, added_particles = 0, strand_length, particles_in_previous_strands=0;
 	while(topology.good()) {
