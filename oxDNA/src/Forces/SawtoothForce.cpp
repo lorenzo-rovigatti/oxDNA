@@ -7,6 +7,9 @@
 
 #include "SawtoothForce.h"
 #include "../Particles/BaseParticle.h"
+#include<iostream>
+using std::cout;
+using std::endl;
 
 
 template<typename number>
@@ -53,15 +56,15 @@ void SawtoothForce<number>::init(BaseParticle<number> **particles, int N, number
 
 template<typename number>
 LR_vector<number> SawtoothForce<number>::value(llint step, LR_vector<number> &pos) {
-    number x = (this->_F0  + (int)(step/this->_wait_time) * this->_increment) * this->_direction.x;
-    number y = (this->_F0  + (int)(step/this->_wait_time) * this->_increment) * this->_direction.y;
-    number z = (this->_F0  + (int)(step/this->_wait_time) * this->_increment) * this->_direction.z;
+    number x = (this->_F0  + (int)((step-1)/this->_wait_time) * this->_increment) * this->_direction.x;
+    number y = (this->_F0  + (int)((step-1)/this->_wait_time) * this->_increment) * this->_direction.y;
+    number z = (this->_F0  + (int)((step-1)/this->_wait_time) * this->_increment) * this->_direction.z;
     return LR_vector<number>(x, y, z);
 }
 
 template<typename number>
 number SawtoothForce<number>::potential(llint step, LR_vector<number> &pos) {
-    return (number) -(this->_F0  + (int)(step/this->_wait_time) * this->_increment) * (pos * this->_direction);
+  return (number) -(this->_F0  + (int)((step-1)/this->_wait_time) * this->_increment) * (pos * this->_direction);
 }
 
 template class SawtoothForce<double>;
