@@ -7,9 +7,6 @@
 
 #include "SawtoothForce.h"
 #include "../Particles/BaseParticle.h"
-#include<iostream>
-using std::cout;
-using std::endl;
 
 
 template<typename number>
