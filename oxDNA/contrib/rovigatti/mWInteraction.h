@@ -92,14 +92,15 @@ number mWInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<nu
 	if(sqr_r < this->_sqr_rcut) {
 		number ir4 = 1. / SQR(sqr_r);
 		number mod_r = sqrt(sqr_r);
-		number exp_part = exp(1. / (mod_r - _a));
+		number mod_r_a = mod_r - _a;
+		number exp_part = exp(1. / mod_r_a);
 		energy = _A * (_B*ir4 - 1.) * exp_part;
 
 		mWBond<number> p_bond(q, *r, mod_r);
 		mWBond<number> q_bond(p, -(*r), mod_r);
 
 		if(update_forces) {
-			LR_vector<number> force = *r * ((_A*4.*exp_part*_B*ir4/mod_r + energy/SQR(mod_r - _a)) / mod_r);
+			LR_vector<number> force = *r * ((_A*4.*exp_part*_B*ir4/mod_r + energy/SQR(mod_r_a)) / mod_r);
 			p->force -= force;
 			q->force += force;
 		}
@@ -124,15 +125,16 @@ number mWInteraction<number>::_three_body(BaseParticle<number> *p, mWBond<number
 		number cos_theta = it->r*new_bond.r / irpq;
 		number diff_cos = cos_theta - _cos_theta0;
 		number exp_part = exp(_gamma/(it->mod_r - _a)) * exp(_gamma/(new_bond.mod_r - _a));
-		number U3 = _lambda * SQR(diff_cos) * exp_part;
+		number l_diff_exp = _lambda * diff_cos * exp_part;
+		number U3 = l_diff_exp*diff_cos;
 		energy += U3;
 
 		if(update_forces) {
-			LR_vector<number> p_it_force = it->r * (U3*_gamma/SQR(it->mod_r - _a)/it->mod_r + 2.*cos_theta*U3/diff_cos/SQR(it->mod_r)) - new_bond.r * (2.*U3 / it->mod_r / new_bond.mod_r / diff_cos);
+			LR_vector<number> p_it_force = it->r * (U3*_gamma/SQR(it->mod_r - _a)/it->mod_r + 2.*cos_theta*l_diff_exp/SQR(it->mod_r)) - new_bond.r * (2.*l_diff_exp / irpq);
 			p->force -= p_it_force;
 			it->other->force += p_it_force;
 
-			LR_vector<number> q_it_force = new_bond.r * (U3*_gamma/SQR(new_bond.mod_r - _a)/new_bond.mod_r + 2.*cos_theta*U3/diff_cos/SQR(new_bond.mod_r)) - it->r * (2.*U3 / it->mod_r / new_bond.mod_r / diff_cos);
+			LR_vector<number> q_it_force = new_bond.r * (U3*_gamma/SQR(new_bond.mod_r - _a)/new_bond.mod_r + 2.*cos_theta*l_diff_exp/SQR(new_bond.mod_r)) - it->r * (2.*l_diff_exp / irpq);
 			p->force -= q_it_force;
 			new_bond.other->force += q_it_force;
 		}
