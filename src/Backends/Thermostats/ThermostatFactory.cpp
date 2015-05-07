@@ -11,6 +11,7 @@
 #include "RefreshThermostat.h"
 #include "LangevinThermostat.h"
 #include "SRDThermostat.h"
+#include "BussiThermostat.h"
 #include "../../Utilities/Utils.h"
 
 ThermostatFactory::ThermostatFactory() {
@@ -32,6 +33,7 @@ BaseThermostat<number> *ThermostatFactory::make_thermostat(input_file &inp, numb
 	else if(!strncmp(thermostat_type, "refresh", 512)) return new RefreshThermostat<number>();
 	else if(!strncmp(thermostat_type, "langevin", 512)) return new LangevinThermostat<number>();
 	else if(!strncmp(thermostat_type, "srd", 512) || !strncmp(thermostat_type, "SRD", 512)) return new SRDThermostat<number>(box_side);
+	else if(!strncmp(thermostat_type, "bussi", 512) || !strncmp(thermostat_type, "Bussi", 512)) return new BussiThermostat<number>();
 	else throw oxDNAException("Invalid Thermostat '%s'", thermostat_type);
 }
 

@@ -53,6 +53,7 @@ SET(backends_SOURCES
 	Backends/Thermostats/BrownianThermostat.cpp
 	Backends/Thermostats/NoThermostat.cpp
 	Backends/Thermostats/RefreshThermostat.cpp
+	Backends/Thermostats/BussiThermostat.cpp
 	Backends/Thermostats/LangevinThermostat.cpp
 	Backends/Thermostats/SRDThermostat.cpp
 )
