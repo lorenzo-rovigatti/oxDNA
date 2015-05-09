@@ -38,6 +38,14 @@ void BussiThermostat<number>::init(int N_part) {
 }
 
 template<typename number>
+void BussiThermostat<number>::_update_K(number &K) {
+	// dynamics for the kinetic energy
+	number K_target = ((3. / 2.) * this->_N_part * this->_T);
+	number dK = (K_target - K) / (number) _tau + 2. * sqrt (K * K_target / (3. * this->_N_part * _tau)) * Utils::gaussian<number>();
+	K += dK;
+}
+
+template<typename number>
 void BussiThermostat<number>::apply(BaseParticle<number> **particles, llint curr_step) {
 	if (!(curr_step % _newtonian_steps) == 0) return;
 
@@ -50,21 +58,14 @@ void BussiThermostat<number>::apply(BaseParticle<number> **particles, llint curr
 		K_now_r += (p->L * p->L) / 2.;
 	}
 
-	// dynamics for the kinetic energy
-	number K_target = ((3. / 2.) * this->_N_part * this->_T); 
+	_update_K(_K_t);
+	_update_K(_K_r);
+
+	number rescale_factor_t = sqrt(_K_t / K_now_t);
+	number rescale_factor_r = sqrt(_K_r / K_now_r);
 	
-	//printf ("before: %g %g; measured: %g %g\n", _K_t, _K_r, K_now_t, K_now_r);
-	//number dK_t = (K_target - K_now_t) / (number) _tau + 2. * sqrt (K_now_t * K_target / (3. * this->_N_part * _tau)) * Utils::gaussian<number>();
-	//number dK_r = (K_target - K_now_r) / (number) _tau + 2. * sqrt (K_now_r * K_target / (3. * this->_N_part * _tau)) * Utils::gaussian<number>();
-	number dK_t = (K_target - _K_t) / (number) _tau + 2. * sqrt (_K_t * K_target / (3. * this->_N_part * _tau)) * Utils::gaussian<number>();
-	number dK_r = (K_target - _K_r) / (number) _tau + 2. * sqrt (_K_r * K_target / (3. * this->_N_part * _tau)) * Utils::gaussian<number>();
-	_K_t += dK_t;
-	_K_r += dK_r;
-	printf ("%g %g THERMO \n", _K_t, _K_r);
-	number rescale_factor_t = sqrt (_K_t / K_now_t); 
-	number rescale_factor_r = sqrt (_K_r / K_now_r); 
-	//printf ("after: %g %g\n", _K_t, _K_r);
-	
+//	printf("%lf %lf %lf %lf\n", K_now_t, K_now_r, rescale_factor_t, rescale_factor_r);
+
 	for(int i = 0; i < this->_N_part; i++) {
 		BaseParticle<number> *p = particles[i];
 		p->vel = p->vel * rescale_factor_t;

@@ -14,7 +14,7 @@
  * @brief This class implements the thermostat introduced in the paper
  * "Canonical sampling through velocity rescaling"
  * by Bussi, Donadio and Parrinello (JCP 126, 014101, 2007).
- * This is a canonical thermostat is good for atomic and molecular systems, and contains 
+ * This is a canonical thermostat which is good for atomic and molecular systems. It contains
  * a stochastic evolution of the kinetic energy. It is supposed to be an improvement over 
  * Nose-Hoover or other thermostats. In particular, it is able to sample the fluctuations 
  * of the kinetic energy. Do NOT use for DNA or other coarse grained models since it does
@@ -27,7 +27,7 @@ bussi_tau = <int> (correlation time, in time steps, for the stochastic evolution
  */
 template<typename number>
 class BussiThermostat : public BaseThermostat<number> {
-private:
+protected:
 	/// interval, in time steps, over which the dynamics is ballistic.
 	int _newtonian_steps;
 	
@@ -39,6 +39,8 @@ private:
 	
 	/// stored value for the stochastic dynamic of the kinetic energy associated to rotations
 	number _K_r;
+
+	void _update_K(number &K);
 
 public:
 	BussiThermostat();
