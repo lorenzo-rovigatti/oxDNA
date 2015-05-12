@@ -249,14 +249,14 @@ template<typename number>
 number NathanStarInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
-		computed_r = q->pos.minimum_image(p->pos, this->_box_side);
+		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 
 //	p->pos = LR_vector<number>(0, 0, 0);
 //	for(number mr = 0.501; mr < _patchy_star_rcut; mr += 0.001) {
 //		q->pos = LR_vector<number>(mr, 0, 0);
-//		computed_r = q->pos.minimum_image(p->pos, this->_box_side);
+//		computed_r = this->_box->min_image(p->pos, q->pos);
 //		r = &computed_r;
 //		printf("%lf %lf\n", mr, _patchy_star_interaction(p, q, r, update_forces));
 //		_patchy_star_interaction(p, q, r, update_forces);

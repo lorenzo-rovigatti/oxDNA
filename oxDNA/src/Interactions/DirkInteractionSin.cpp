@@ -51,7 +51,7 @@ void DirkInteractionSin<number>::get_settings(input_file &inp) {
 	
 	getInputNumber (&inp, "DHS_mu0", &_DHS_mu0, 1);
 	getInputNumber (&inp, "DHS_mu", &_DHS_mu, 1);
-	
+
 	_hard_rcut = 1.001 * (_length + 1.);
 	_hard_sqr_rcut = _hard_rcut * _hard_rcut;
 	if (_hard_rcut > _DHS_rcut) this->_rcut = _hard_rcut;
@@ -86,7 +86,7 @@ template<typename number>
 number DirkInteractionSin<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
-		computed_r = q->pos.minimum_image(p->pos, this->_box_side);
+		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 	

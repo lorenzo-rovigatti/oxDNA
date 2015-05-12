@@ -20,7 +20,7 @@ ListFactory::~ListFactory() {
 }
 
 template<typename number>
-BaseList<number> *ListFactory::make_list(input_file &inp, int &N, number &box) {
+BaseList<number> *ListFactory::make_list(input_file &inp, int &N, BaseBox<number> *box) {
 	// the default list is verlet
 	char list_type[512] = "verlet";
 	getInputString(&inp, "list_type", list_type, 0);
@@ -31,5 +31,5 @@ BaseList<number> *ListFactory::make_list(input_file &inp, int &N, number &box) {
 	else throw oxDNAException("Invalid list '%s'", list_type);
 }
 
-template BaseList<float> *ListFactory::make_list(input_file &inp, int &N, float &box);
-template BaseList<double> *ListFactory::make_list(input_file &inp, int &N, double &box);
+template BaseList<float> *ListFactory::make_list(input_file &inp, int &N, BaseBox<float> *box);
+template BaseList<double> *ListFactory::make_list(input_file &inp, int &N, BaseBox<double> *box);

@@ -87,8 +87,8 @@ std::string HBList<number>::get_output_string(llint curr_step) {
 	}
 	// checking all particle pairs
 	else{
-		std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > pairs = this->_config_info.interaction->get_potential_interactions (this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
-		typename std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> >::iterator it;
+		std::vector<ParticlePair<number> > pairs = this->_config_info.lists->get_potential_interactions();
+		typename std::vector<ParticlePair<number> >::iterator it;
 		for (it = pairs.begin(); it != pairs.end(); it ++ ) {
 			BaseParticle<number> * p = (*it).first;
 			BaseParticle<number> * q = (*it).second;

@@ -64,8 +64,8 @@ string ConstructwiseBonds<number>::get_output_string(llint curr_step) {
 
 	// compute the interaction map between constructs
 	map<pair<int, int>, int> hbmap;
-	vector<pair<BaseParticle<number> *, BaseParticle<number> *> > pairs = this->_config_info.interaction->get_potential_interactions(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
-	typename vector<pair<BaseParticle<number> *, BaseParticle<number> *> >::iterator it;
+	vector<ParticlePair<number> > pairs = this->_config_info.lists->get_potential_interactions();
+	typename vector<ParticlePair<number> >::iterator it;
 	for(it = pairs.begin(); it != pairs.end(); it ++ ) {
 		BaseParticle<number> *p = (*it).first;
 		BaseParticle<number> *q = (*it).second;

@@ -9,6 +9,7 @@
 #define CELLS_H_
 
 #include "BaseList.h"
+#include <cfloat>
 
 /**
  * @brief Implementation of simple simulation cells.
@@ -23,12 +24,13 @@ protected:
 	BaseParticle<number> **_next;
 	int *_cells;
 	int _N_cells;
-	int _N_cells_side;
+	int _N_cells_side[3];
 	number _sqr_rcut;
+	LR_vector<number> _box_sides;
 
 	inline int _get_cell_index(const LR_vector<number> &pos);
 public:
-	Cells(int &N, number &box);
+	Cells(int &N, BaseBox<number> *box);
 	virtual ~Cells();
 
 	virtual void init(BaseParticle<number> **particles, number rcut);
@@ -41,17 +43,17 @@ public:
 
 template<>
 inline int Cells<float>::_get_cell_index(const LR_vector<float> &pos) {
-	int res = (int) ((pos.x / this->_box - floorf(pos.x / this->_box)) * (1.f - FLT_EPSILON) * _N_cells_side);
-	res += _N_cells_side * ((int) ((pos.y / this->_box - floorf(pos.y / this->_box)) * (1.f - FLT_EPSILON) * _N_cells_side));
-	res += _N_cells_side * _N_cells_side * ((int) ((pos.z / this->_box - floorf(pos.z / this->_box)) * (1.f - FLT_EPSILON) * _N_cells_side));
+	int res = (int) ((pos.x / _box_sides.x - floorf(pos.x / _box_sides.x)) * (1.f - FLT_EPSILON) * _N_cells_side[0]);
+	res += _N_cells_side[0] * ((int) ((pos.y / _box_sides.y - floorf(pos.y / _box_sides.y)) * (1.f - FLT_EPSILON) * _N_cells_side[1]));
+	res += _N_cells_side[0] * _N_cells_side[1] * ((int) ((pos.z / _box_sides.z - floorf(pos.z / _box_sides.z)) * (1.f - FLT_EPSILON) * _N_cells_side[2]));
 	return res;
 }
 
 template<>
 inline int Cells<double>::_get_cell_index(const LR_vector<double> &pos) {
-	int res = (int) ((pos.x / this->_box - floor(pos.x / this->_box)) * (1. - DBL_EPSILON) * _N_cells_side);
-	res += _N_cells_side * ((int) ((pos.y / this->_box - floor(pos.y / this->_box)) * (1. - DBL_EPSILON) * _N_cells_side));
-	res += _N_cells_side * _N_cells_side * ((int) ((pos.z / this->_box - floor(pos.z / this->_box)) * (1. - DBL_EPSILON) * _N_cells_side));
+	int res = (int) ((pos.x / _box_sides[0] - floor(pos.x / _box_sides.x)) * (1. - DBL_EPSILON) * _N_cells_side[0]);
+	res += _N_cells_side[0] * ((int) ((pos.y / _box_sides.y - floor(pos.y / _box_sides.y)) * (1. - DBL_EPSILON) * _N_cells_side[1]));
+	res += _N_cells_side[0] * _N_cells_side[1] * ((int) ((pos.z / _box_sides.z - floor(pos.z / _box_sides.z)) * (1. - DBL_EPSILON) * _N_cells_side[2]));
 	return res;
 }
 

@@ -67,7 +67,7 @@ std::string HBEnergy<number>::get_output_string(llint curr_step) {
 	case BASES_FROM_FILE: {
 		for(std::set<int>::iterator it = _list.begin(); it != _list.end(); it++) {
 			BaseParticle<number> *p = this->_config_info.particles[*it];
-			std::vector<BaseParticle<number> *> neighs = this->_config_info.interaction->get_neighbours(p, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+			std::vector<BaseParticle<number> *> neighs = this->_config_info.lists->get_all_neighbours(p);
 
 			for(unsigned int j = 0; j < neighs.size(); j++) {
 				energy += this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, neighs[j]);
@@ -76,8 +76,9 @@ std::string HBEnergy<number>::get_output_string(llint curr_step) {
 		break;
 	}
 	default:
-		energy = this->_config_info.interaction->get_system_energy_term(DNAInteraction<number>::HYDROGEN_BONDING, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+		energy = this->_config_info.interaction->get_system_energy_term(DNAInteraction<number>::HYDROGEN_BONDING, this->_config_info.particles, *this->_config_info.N, this->_config_info.lists);
 		energy /= *this->_config_info.N;
+		break;
 	}
 
 	return Utils::sformat("% 10.6lf", energy);

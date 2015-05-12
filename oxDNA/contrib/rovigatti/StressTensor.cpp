@@ -32,11 +32,11 @@ void StressTensor<number>::get_settings(input_file &my_inp, input_file &sim_inp)
 
 template<typename number>
 string StressTensor<number>::get_output_string(llint curr_step) {
-	vector<pair<BaseParticle<number> *, BaseParticle<number>*> > pairs = this->_config_info.interaction->get_potential_interactions(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+	vector<ParticlePair<number> > pairs = this->_config_info.lists->get_potential_interactions();
 	vector<vector<number> > st(3, vector<number>(3, (number) 0));
 
 	// now we loop on all the pairs in order to update the forces
-	typename std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> >::iterator it;
+	typename vector<ParticlePair<number> >::iterator it;
 	for (it = pairs.begin(); it != pairs.end(); it ++ ) {
 		BaseParticle<number> *p = (*it).first;
 		BaseParticle<number> *q = (*it).second;

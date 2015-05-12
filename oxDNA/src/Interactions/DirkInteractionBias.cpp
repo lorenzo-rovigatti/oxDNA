@@ -97,7 +97,7 @@ number DirkInteractionBias<number>::pair_interaction_bonded(BaseParticle<number>
 
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
-		computed_r = q->pos.minimum_image(p->pos, this->_box_side);
+		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 	
@@ -115,7 +115,7 @@ number DirkInteractionBias<number>::pair_interaction_nonbonded(BaseParticle<numb
 
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
-		computed_r = q->pos.minimum_image(p->pos, this->_box_side);
+		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 

@@ -29,8 +29,8 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	_interaction = InteractionFactory::make_interaction<double>(inp);
 	_interaction->get_settings(inp);
 
-	_lists = ListFactory::make_list<double>(inp, _N, _box_side);
-        _lists->get_settings(inp);
+	_lists = ListFactory::make_list<double>(inp, _N, _box);
+	_lists->get_settings(inp);
 
 	getInputInt(&inp, "analysis_confs_to_skip", &_confs_to_skip, 0);
 

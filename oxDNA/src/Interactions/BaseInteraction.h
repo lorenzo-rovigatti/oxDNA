@@ -14,6 +14,8 @@
 
 #include "../defs.h"
 #include "../Particles/BaseParticle.h"
+#include "../Boxes/BaseBox.h"
+#include "../Lists/BaseList.h"
 #include "../Utilities/Utils.h"
 #include "../Utilities/oxDNAException.h"
 #include "./Mesh.h"
@@ -31,6 +33,7 @@ template <typename number>
 class IBaseInteraction {
 protected:
 	number _box_side;
+	BaseBox<number> *_box;
 
 	/// Is used by _create_cells() to avoid useless memory allocations.
 	number _last_box_side;
@@ -88,6 +91,7 @@ public:
 	virtual ~IBaseInteraction();
 
 	virtual void set_box_side(number box_side) { _box_side = box_side; }
+	virtual void set_box(BaseBox<number> *box) { _box = box; }
 
 	virtual void get_settings(input_file &inp);
 
@@ -159,15 +163,6 @@ public:
 	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) = 0;
 
 	/**
-	 * @brief Returns the total potential energy of the system
-	 *
-	 * @param particles
-	 * @param N
-	 * @return
-	 */
-	virtual number get_system_energy(BaseParticle<number> **particles, int N) { return get_system_energy(particles, N, _box_side); }
-
-	/**
 	 * @brief Returns the total potential energy of the system, given a box size
 	 *
 	 * @param particles
@@ -175,19 +170,7 @@ public:
 	 * @param box_side
 	 * @return
 	 */
-	virtual number get_system_energy(BaseParticle<number> **particles, int N, number box_side);
-
-	/**
-	 * @brief return the total system energy according to a single term
-	 * in the interaction potential
-	 *
-	 * @param name identifier of the interaction method to call for the
-	 * pair interaction
-	 * @param particles
-	 * @param N
-	 * @return the energy in question
-	 */
-	virtual number get_system_energy_term(int name, BaseParticle<number> **particles, int N) { return get_system_energy_term(name, particles, N, _box_side); }
+	virtual number get_system_energy(BaseParticle<number> **particles, int N, BaseList<number> *lists);
 
 	/**
 	 * @brief Like get_system_energy_term, just that the box size can be specified in this case
@@ -198,7 +181,7 @@ public:
 	 * @param box_side
 	 * @return the required energy contribution
 	 */
-	virtual number get_system_energy_term(int name, BaseParticle<number> **particles, int N, number box_side);
+	virtual number get_system_energy_term(int name, BaseParticle<number> **particles, int N, BaseList<number> *lists);
 
 	/**
 	 * @brief Read the topology of the interactions. The defaut
@@ -224,43 +207,13 @@ public:
 	virtual int get_N_from_topology();
 
 	/**
-	 * @brief Returns a map which stores all the energy contributions due to the different
-	 * energy terms.
-	 *
-	 * @return map of the energy contributions
-	 */
-	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N) = 0;
-
-	/**
 	 * @brief Like get_system_energy_split, just that the box size can be
 	 * specified in this case.
 	 *
 	 * @return map of the energy contributions
 	 */
-	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N, number box_side) = 0;
+	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N, BaseList<number> *lists) = 0;
 
-	/**
-	 * @brief Returns a list of potentially interaction neighbouts of particle p. This is VERY expensive, since
-	 * it creates the cells and destroys them each time
-	 *
-	 * @param p particle
-	 * @param particles
-	 * @param N
-	 * @param box_side
-	 * @return an array storing a list of particles.
-	 */
-	virtual std::vector<BaseParticle<number>*> get_neighbours (BaseParticle<number> * p, BaseParticle<number> **particles, int N, number box_side) = 0;
-
-	/**
-	 * @brief Returns a list of potentially interacting pairs
-	 *
-	 * @param particles
-	 * @param N
-	 * @param box_side
-	 * @return an array pairs of particle pointers.
-	 */
-	virtual std::vector< std::pair <BaseParticle<number> *, BaseParticle<number>*> > get_potential_interactions (BaseParticle<number> **particles, int N, number box_side) = 0;
-	
 	/**
 	 * @brief Returns the state of the interaction
 	 */
@@ -305,6 +258,14 @@ public:
 template<typename number>
 IBaseInteraction<number>::IBaseInteraction() {
 	_energy_threshold = (number) 100.f;
+	_last_box_side = (number) 0;
+	_cells_head = NULL;
+	_cells_neigh = NULL;
+	_cells_next = NULL;
+	_cells_index = NULL;
+	_cells_N_side = -1;
+	_is_infinite = false;
+	_box = NULL;
 }
 
 template<typename number>
@@ -431,56 +392,44 @@ void IBaseInteraction<number>::_delete_cells() {
 }
 
 template<typename number>
-number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **particles, int N, number box_side) {
-	_create_cells (particles, N, box_side);
-
+number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **particles, int N, BaseList<number> *lists) {
 	number energy = (number) 0.f;
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
 		energy += pair_interaction_bonded(p, P_VIRTUAL);
-		for(int c = 0; c < 27; c ++) {
-			int j = _cells_head[_cells_neigh[_cells_index[p->index]][c]];
-			while (j != P_INVALID) {
-				BaseParticle<number> *q = particles[j];
-				if(p->index < q->index) energy += pair_interaction_nonbonded(p, q);
-				if(this->get_is_infinite()) {
-					_delete_cell_neighs();
-					return energy;
-				}
-				j = _cells_next[q->index];
+
+		vector<BaseParticle<number> *> neighs = lists->get_neigh_list(p);
+
+		for(unsigned int n = 0; n < neighs.size(); n++) {
+			BaseParticle<number> *q = neighs[n];
+			if(p->index > q->index) energy += pair_interaction_nonbonded(p, q);
+			if(this->get_is_infinite()) {
+				_delete_cell_neighs();
+				return energy;
 			}
 		}
 	}
-
-	_delete_cell_neighs();
 	
 	return energy;
 }
 
 template<typename number>
-number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<number> **particles, int N, number box_side) {
-	_create_cells(particles, N, box_side);
-
+number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<number> **particles, int N, BaseList<number> *lists) {
 	number energy = (number) 0.f;
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
-		for(int c = 0; c < 27; c ++) {
-			int j = _cells_head[_cells_neigh[_cells_index[p->index]][c]];
-			while (j != P_INVALID) {
-				BaseParticle<number> *q = particles[j];
-				if(p->index < q->index) energy += pair_interaction_term(name, p, q);
-				if(this->get_is_infinite()) {
-					_delete_cell_neighs();
-					return energy;
-				}
-				j = _cells_next[q->index];
+		vector<BaseParticle<number> *> neighs = lists->get_neigh_list(p);
+
+		for(unsigned int n = 0; n < neighs.size(); n++) {
+			BaseParticle<number> *q = neighs[n];
+			if(p->index > q->index) energy += pair_interaction_term(name, p, q);
+			if(this->get_is_infinite()) {
+				return energy;
 			}
 		}
 	}
-
-	_delete_cell_neighs();
 
 	return energy;
 }
@@ -504,7 +453,6 @@ bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticl
 template<typename number>
 void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
 	this->_create_cells(particles, N, box_side, true);
-	
 	
 	for (int i = 0; i < _cells_N_side*_cells_N_side*_cells_N_side; i ++) _cells_head[i] = P_INVALID;
 	for (int i = 0; i < N; i ++) _cells_next[i] = P_INVALID;
@@ -624,16 +572,6 @@ public:
 	BaseInteraction();
 	virtual ~BaseInteraction();
 
-
-	/**
-	 * @brief Like get_system_energy_split, just that the box size can be specified in this case
-	 *
-	 * @param particles
-	 * @param N
-	 * @return a map storing all the potential energy contributions.
-	 */
-	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N) { return get_system_energy_split(particles, N, this->_box_side); }
-
 	/**
 	 * @brief Computes all the contributions to the total potential energy and returns them in a map.
 	 *
@@ -642,25 +580,14 @@ public:
 	 * @param box_side
 	 * @return a map storing all the potential energy contributions.
 	 */
-	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N, number box_side);
-
-	virtual std::vector<BaseParticle<number>*> get_neighbours (BaseParticle<number> * p, BaseParticle<number> **particles, int N, number box_side);
-
-	virtual std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > get_potential_interactions (BaseParticle<number> **particles, int N, number box_side);
+	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N, BaseList<number> *lists);
 	
 };
-
 
 template<typename number, typename child>
 BaseInteraction<number, child>::BaseInteraction() : IBaseInteraction<number>() {
 	this->_rcut = 2.5;
 	this->_sqr_rcut = SQR(this->_rcut);
-	this->_last_box_side = (number) 0;
-	this->_cells_head = NULL;
-	this->_cells_neigh = NULL;
-	this->_cells_next = NULL;
-	this->_cells_index = NULL;
-	this->_is_infinite = false;
 }
 
 template<typename number, typename child>
@@ -672,7 +599,7 @@ template<typename number, typename child>
 number BaseInteraction<number, child>::_pair_interaction_term_wrapper(child *that, int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	LR_vector<number> computed_r;
 	if(r == NULL) {
-		computed_r = q->pos.minimum_image(p->pos, this->_box_side);
+		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 
@@ -739,9 +666,7 @@ void BaseInteraction<number, child>::_build_mesh(child *that, number (child::*f)
 }
 
 template<typename number, typename child>
-map<int, number> BaseInteraction<number, child>::get_system_energy_split(BaseParticle<number> **particles, int N, number box_side) {
-	this->_create_cells(particles, N, box_side);
-
+map<int, number> BaseInteraction<number, child>::get_system_energy_split(BaseParticle<number> **particles, int N, BaseList<number> *lists) {
 	std::map<int, number> energy_map;
 
 	for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
@@ -751,73 +676,21 @@ map<int, number> BaseInteraction<number, child>::get_system_energy_split(BasePar
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
-		for(int c = 0; c < 27; c ++) {
-			int j = this->_cells_head[this->_cells_neigh[this->_cells_index[p->index]][c]];
-			while (j != P_INVALID) {
-				BaseParticle<number> *q = particles[j];
-				if(q->index > p->index) {
-					for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
-						int name = it->first;
-						energy_map[name] += this->pair_interaction_term(name, p, q);
-					}
-				}
+		vector<BaseParticle<number> *> neighs = lists->get_neigh_list(p);
 
-				j = this->_cells_next[q->index];
+		for(unsigned int n = 0; n < neighs.size(); n++) {
+			BaseParticle<number> *q = neighs[n];
+			if(p->index > q->index) {
+				for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
+					int name = it->first;
+					energy_map[name] += this->pair_interaction_term(name, p, q);
+				}
 			}
 		}
 	}
-
-	this->_delete_cell_neighs();
 
 	return energy_map;
 }
 
-template<typename number, typename child>
-std::vector<BaseParticle<number> *> BaseInteraction<number, child>::get_neighbours(BaseParticle<number> *p, BaseParticle<number> **particles, int N, number box_side) {
-	this->_create_cells(particles, N, box_side);
-
-	std::vector <BaseParticle<number> *> ret;
-
-	for(int c = 0; c < 27; c ++) {
-		int j = this->_cells_head[this->_cells_neigh[this->_cells_index[p->index]][c]];
-		while (j != P_INVALID) {
-			BaseParticle<number> *q = particles[j];
-			if (p != q) ret.push_back(q);
-			j = this->_cells_next[q->index];
-		}
-	}
-
-	this->_delete_cell_neighs();
-
-	return ret;
-}
-
-template<typename number, typename child>
-std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> * > > BaseInteraction<number, child>::get_potential_interactions (BaseParticle<number> **particles, int N, number box_side) {
-	this->_create_cells(particles, N, box_side);
-
-	std::vector <std::pair<BaseParticle<number> *, BaseParticle<number> *> > ret;
-	LR_vector<number> dr;
-
-	for (int i = 0; i < N; i ++) {
-		BaseParticle<number> *p = particles[i];
-		for(int c = 0; c < 27; c ++) {
-			int j = this->_cells_head[this->_cells_neigh[this->_cells_index[p->index]][c]];
-			while (j != P_INVALID) {
-				BaseParticle<number> *q = particles[j];
-				if(p->index < q-> index) {
-					//dr = q->pos.minimum_image(p->pos, this->_box_side);
-					dr = q->pos.minimum_image(p->pos, box_side);
-					if (dr.norm() < this->_sqr_rcut) ret.push_back(std::pair<BaseParticle<number>*, BaseParticle<number>*> (p, q));
-				}
-				j = this->_cells_next[q->index];
-			}
-		}
-	}
-	
-	this->_delete_cell_neighs();
-
-	return ret;
-}
 #endif /* BASE_INTERACTION_H */
 

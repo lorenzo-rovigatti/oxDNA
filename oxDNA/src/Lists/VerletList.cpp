@@ -8,7 +8,7 @@
 #include "VerletList.h"
 
 template<typename number>
-VerletList<number>::VerletList(int &N, number &box) : BaseList<number>(N, box), _updated(false), _cells(N, box) {
+VerletList<number>::VerletList(int &N, BaseBox<number> *box) : BaseList<number>(N, box), _updated(false), _cells(N, box) {
 
 }
 
@@ -22,10 +22,8 @@ void VerletList<number>::get_settings(input_file &inp) {
 	BaseList<number>::get_settings(inp);
 	_cells.get_settings(inp);
 
-	float skin;
-	getInputFloat(&inp, "verlet_skin", &skin, 1);
-	_skin = skin;
-	_sqr_skin = SQR(skin);
+	getInputNumber(&inp, "verlet_skin", &_skin, 1);
+	_sqr_skin = SQR(_skin);
 
 	if(this->_is_MC) {
 		float delta_t = 0.f;
@@ -39,6 +37,8 @@ void VerletList<number>::init(BaseParticle<number> **particles, number rcut) {
 	rcut += 2*_skin;
 	BaseList<number>::init(particles, rcut);
 
+	_sqr_rcut = SQR(rcut);
+
 	_lists.resize(this->_N, std::vector<BaseParticle<number> *>());
 	_list_poss.resize(this->_N, LR_vector<number>(0, 0, 0));
 
@@ -48,7 +48,6 @@ void VerletList<number>::init(BaseParticle<number> **particles, number rcut) {
 
 template<typename number>
 bool VerletList<number>::is_updated() {
-	//return (_updated && _cells.is_updated());
 	return (_updated);
 }
 

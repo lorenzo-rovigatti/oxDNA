@@ -25,6 +25,7 @@ extern "C" {
 #include "../Particles/BaseParticle.h"
 #include "../Observables/ObservableOutput.h"
 #include "../Lists/BaseList.h"
+#include "../Boxes/BaseBox.h"
 
 using namespace std;
 
@@ -142,6 +143,7 @@ protected:
 	number _T;
 	number _P;
 	number _box_side;
+	BaseBox<number> *_box;
 
 	int _conf_interval;
 	bool _initial_conf_is_binary;

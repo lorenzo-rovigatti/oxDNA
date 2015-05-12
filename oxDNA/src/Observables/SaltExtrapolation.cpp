@@ -131,8 +131,7 @@ std::string SaltExtrapolation<number>::get_output_string(llint curr_step) {
 	
 	// we get the potential interactions once from the interaction
 	// with the largest cutoff
-	std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > neighbour_pairs = this->_config_info.interaction->get_potential_interactions(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
-	
+	std::vector<ParticlePair<number> > neighbour_pairs = this->_config_info.lists->get_potential_interactions();
 
 	number e_sim = 0.;
 	number e0 = 0.;

@@ -65,7 +65,7 @@ std::string NathanNeighs<number>::_particle(BaseParticle<number> *p) {
 	LR_vector<number> p_axis = p->orientationT.v3;
 	// this is the number of particles which are no more than 1 + alpha far apart from p
 	int n_within = 0;
-	vector<BaseParticle<number> *> particles = this->_config_info.interaction->get_neighbours(p, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+	vector<BaseParticle<number> *> particles = this->_config_info.lists->get_all_neighbours(p);
 	LR_vector<number> bonded_p1[3];
 	LR_vector<number> bonded_p2[3];
 	for(typename std::vector<BaseParticle<number> *>::iterator it = particles.begin(); it != particles.end(); it++) {
