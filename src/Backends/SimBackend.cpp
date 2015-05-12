@@ -13,6 +13,7 @@
 #include "../Interactions/InteractionFactory.h"
 #include "../Forces/ForceFactory.h"
 #include "../Lists/ListFactory.h"
+#include "../Boxes/BoxFactory.h"
 #include "../PluginManagement/PluginManager.h"
 
 template<typename number>
@@ -46,6 +47,7 @@ SimBackend<number>::SimBackend() {
 	_obs_output_last_conf_bin = NULL;
 	_P = (number) 0.;
 	_lists = NULL;
+	_box = NULL;
 	_max_io = 1.;
 	_read_conf_step = -1;
 	_conf_interval = -1;
@@ -59,6 +61,7 @@ SimBackend<number>::~SimBackend() {
 		delete[] _particles;
 	}
 	if(_interaction != NULL) delete _interaction;
+	if(_box != NULL) delete _box;
 
 	ForceFactory<number>::instance()->clear();
 
@@ -93,8 +96,9 @@ SimBackend<number>::~SimBackend() {
 
 		destroy_timer(&_timer);
 	}
-	
+
 	for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
+
 
 	// destroy lists;
 	if (_lists != NULL) delete _lists;
@@ -113,7 +117,10 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	_interaction = InteractionFactory::make_interaction<number>(inp);
 	_interaction->get_settings(inp);
 
-	_lists = ListFactory::make_list<number>(inp, _N, _box_side);
+	_box = BoxFactory::make_box<number>(inp);
+	_box->get_settings(inp);
+
+	_lists = ListFactory::make_list<number>(inp, _N, _box);
 	_lists->get_settings(inp);
 
 	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
@@ -276,6 +283,7 @@ void SimBackend<number>::init(char conf_filename[256]) {
 	this->_U_stack = (number) 0;
 
 	_interaction->set_box_side(_box_side);
+	_interaction->set_box(_box);
 
 	_lists->init(_particles, _rcut);
 
@@ -310,6 +318,7 @@ LR_vector<number_n> SimBackend<number>::_read_next_vector(bool binary) {
 template<typename number>
 bool SimBackend<number>::_read_next_configuration(bool binary) {
 	double box_side;
+	double Lx, Ly, Lz;
 	// parse headers. Binary and ascii configurations have different headers, and hence
 	// we have to separate the two procedures
 	if(binary) {
@@ -329,9 +338,9 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		}
 
 		double tmpf;
-		_conf_input.read ((char *)&box_side, sizeof(double));
-		_conf_input.read ((char *)&tmpf, sizeof(double));
-		_conf_input.read ((char *)&tmpf, sizeof(double));
+		_conf_input.read ((char *)&Lx, sizeof(double));
+		_conf_input.read ((char *)&Ly, sizeof(double));
+		_conf_input.read ((char *)&Lz, sizeof(double));
 
 		// energies and such; discarded
 		_conf_input.read ((char *)&tmpf, sizeof(double));
@@ -345,13 +354,16 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		int res = sscanf(line, "t = %lld", &_read_conf_step);
 		_conf_input.getline(line, 512);
 
-		res += sscanf(line, "b = %lf %*f %*f", &box_side);
-		if(res != 2) throw oxDNAException("Malformed headers found in the initial configuration file");
+		res += sscanf(line, "b = %lf %lf %lf", &Lx, &Ly, &Lz);
+		if(res != 4) throw oxDNAException("Malformed headers found in the initial configuration file");
 
 		_conf_input.getline(line, 512);
 	}
 
+	box_side = Lx;
 	_box_side = (number) box_side;
+
+	_box->init(Lx, Ly, Lz);
 
 	// the following part is in double precision since
 	// we want to be able to restart from confs that have

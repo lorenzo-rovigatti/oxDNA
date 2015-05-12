@@ -179,7 +179,7 @@ void ObservableOutput<number>::print_output(llint step) {
 	_bytes_written += (llint) towrite.length();
 	*_output << towrite;
 	_output->flush();
-
+	
 	if(_only_last) _output_stream.close();
 	if(!_linear) _set_next_log_step();
 }

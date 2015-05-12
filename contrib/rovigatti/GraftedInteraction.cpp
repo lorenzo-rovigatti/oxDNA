@@ -62,6 +62,14 @@ void GraftedInteraction<number>::set_box_side(number box_side) {
 }
 
 template<typename number>
+void GraftedInteraction<number>::set_box(BaseBox<number> *box) {
+	IBaseInteraction<number>::set_box(box);
+	_TSP_inter.set_box(box);
+
+	if(_walls && box->box_sides().x < 2*_wall_distance) throw oxDNAException("The box side (%lf) is too small to contain walls separated by %lf", box->box_sides().x, _wall_distance);
+}
+
+template<typename number>
 void GraftedInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
 	// we need to parse the file storing the anchors' positions
 	FILE *af = fopen(_anchor_file, "r");

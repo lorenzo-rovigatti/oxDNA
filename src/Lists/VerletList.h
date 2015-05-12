@@ -25,11 +25,12 @@ protected:
 	number _skin;
 	number _sqr_skin;
 	bool _updated;
+	number _sqr_rcut;
 
 	Cells<number> _cells;
 
 public:
-	VerletList(int &N, number &box);
+	VerletList(int &N, BaseBox<number> *box);
 	virtual ~VerletList();
 
 	virtual void get_settings(input_file &inp);

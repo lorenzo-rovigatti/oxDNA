@@ -65,7 +65,7 @@ std::string OrderParameterValues<number>::get_output_string(llint curr_step) {
 	_op.reset();
 	_op.fill_distance_parameters(this->_config_info.particles,*this->_config_info.box_side);
 	
-	std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > neighbour_pairs = this->_config_info.interaction->get_potential_interactions(this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+	std::vector<ParticlePair<number> > neighbour_pairs = this->_config_info.lists->get_potential_interactions();
 	
 	for (int i = 0; i < (int)neighbour_pairs.size(); i++) {
 		BaseParticle<number> * p = neighbour_pairs[i].first;

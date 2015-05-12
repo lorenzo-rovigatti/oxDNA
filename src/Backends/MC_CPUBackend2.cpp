@@ -79,7 +79,7 @@ void MC_CPUBackend2<number>::init(char conf_filename[256]) {
 		this->_particles[i]->orientationT = this->_particles[i]->orientation.get_transpose();
 	}
 
-	this->_U = this->_interaction->get_system_energy (this->_particles, this->_N, this->_box_side); 
+	this->_U = this->_interaction->get_system_energy (this->_particles, this->_N, this->_lists);
 	if(this->_interaction->get_is_infinite() == true) throw oxDNAException("There is an overlap in the initial configuration. Aborting");
 
 	// needed to fill un the pointers....

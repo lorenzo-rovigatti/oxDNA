@@ -8,7 +8,7 @@
 #include "NoList.h"
 
 template<typename number>
-NoList<number>::NoList(int &N, number &box) : BaseList<number>(N, box) {
+NoList<number>::NoList(int &N, BaseBox<number> *box) : BaseList<number>(N, box) {
 
 }
 

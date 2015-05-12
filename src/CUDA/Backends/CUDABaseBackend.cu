@@ -13,6 +13,8 @@
 #include "../Interactions/CUDAInteractionFactory.h"
 #include "../../Utilities/oxDNAException.h"
 
+using namespace std;
+
 template<typename number, typename number4>
 CUDABaseBackend<number, number4>::CUDABaseBackend() : _device_number(0), _sort_every(0) {
 	_particles_kernel_cfg.blocks = dim3(1, 1, 1);
@@ -108,6 +110,10 @@ void CUDABaseBackend<number, number4>::get_settings(input_file &inp) {
 
 	_cuda_lists = CUDAListFactory::make_list<number, number4>(inp);
 	_cuda_lists->get_settings(inp);
+
+	// check that the box is cubic
+	string my_box;
+	if(getInputString(&inp, "box_type", my_box, 0) == KEY_FOUND) if(my_box != "cubic") throw oxDNAException("The CUDA backend only supports cubic boxes");
 }
 
 template<typename number, typename number4>
@@ -161,7 +167,7 @@ void CUDABaseBackend<number, number4>::init(char conf_filename[256]) {
 
 	CUDA_SAFE_CALL( cudaThreadSetCacheConfig(cudaFuncCachePreferL1) );
 
-	conf_input.seekg(0);
+	conf_input.seekg(0, ios::beg);
 
 	// get box size
 	char line[512];

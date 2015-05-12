@@ -10,11 +10,12 @@
 
 #include <vector>
 #include <utility>
+#include <set>
 
 #include "../defs.h"
 #include "../Utilities/parse_input/parse_input.h"
 #include "../Particles/BaseParticle.h"
-#include "../Interactions/BaseInteraction.h"
+#include "../Boxes/BaseBox.h"
 
 /**
  * @brief Abstract class providing an interface to classes that manage interaction lists.
@@ -23,13 +24,13 @@ template<typename number>
 class BaseList {
 protected:
 	int &_N;
-	number &_box;
+	BaseBox<number> *_box;
 	BaseParticle<number> **_particles;
 	number _rcut;
 	bool _is_MC;
 
 public:
-	BaseList(int &N, number &box) : _N(N), _box(box), _particles(NULL), _rcut(0), _is_MC(false) { };
+	BaseList(int &N, BaseBox<number> *box) : _N(N), _box(box), _particles(NULL), _rcut(0), _is_MC(false) { };
 	virtual ~BaseList() { };
 
 	virtual void get_settings(input_file &inp) {
@@ -53,10 +54,75 @@ public:
 
 	virtual bool is_updated() = 0;
 
+	/**
+	 * @brief Updates particle p's list.
+	 *
+	 * @param p
+	 */
 	virtual void single_update(BaseParticle<number> *p) = 0;
+
+	/**
+	 * @brief Updates all lists.
+	 */
 	virtual void global_update() = 0;
+
+	/**
+	 * @brief Returns a list of neighbours of particle p. This list doest NOT contain bonded neighbours.
+	 *
+	 * @param p particle
+	 *
+	 * * @return a vector of BaseParticle pointers
+	 */
 	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p) = 0;
-//	virtual std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > get_potential_interactions() = 0;
+
+	/**
+	 * @brief Returns a list of potentially interaction neighbours of particle p. It does contain also bonded neighbours.
+	 *
+	 * This method
+	 *
+	 * @param p particle
+	 * @return a vector of BaseParticle pointers
+	 */
+	virtual std::vector<BaseParticle<number> *> get_all_neighbours(BaseParticle<number> *p);
+
+	/**
+	 * @brief Returns a list of potentially interacting pairs
+
+	 * @return a vector of ParticlePair objects.
+	 */
+	virtual std::vector<ParticlePair<number> > get_potential_interactions();
 };
+
+template<typename number>
+std::vector<BaseParticle<number> *> BaseList<number>::get_all_neighbours(BaseParticle<number> *p) {
+	std::vector<BaseParticle<number> *> neighs = get_neigh_list(p);
+
+	std::set<BaseParticle<number> *> bonded_neighs;
+	typename std::vector<ParticlePair<number> >::iterator it = p->affected.begin();
+	for(; it != p->affected.end(); it++) {
+		if(it->first != p) bonded_neighs.insert(it->first);
+		if(it->second != p) bonded_neighs.insert(it->second);
+	}
+
+	neighs.insert(neighs.end(), bonded_neighs.begin(), bonded_neighs.end());
+	return neighs;
+}
+
+template<typename number>
+std::vector<ParticlePair<number> > BaseList<number>::get_potential_interactions() {
+	std::vector<ParticlePair<number> > list;
+
+	for(int i = 0; i < _N; i++) {
+		BaseParticle<number> *p = _particles[i];
+		std::vector<BaseParticle<number> *> neighs = get_all_neighbours(p);
+		typename std::vector<BaseParticle<number> *>::iterator it = neighs.begin();
+		for(; it != neighs.end(); it++) {
+			BaseParticle<number> *q = *it;
+			if(p->index > q->index) list.push_back(ParticlePair<number>(p, q));
+		}
+	}
+
+	return list;
+}
 
 #endif /* BASELIST_H_ */

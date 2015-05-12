@@ -42,6 +42,7 @@ public:
 	virtual void init();
 
 	virtual void set_box_side(number box_side);
+	virtual void set_box(BaseBox<number> *box);
 
 	virtual void allocate_particles(BaseParticle<number> **particles, int N);
 	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);

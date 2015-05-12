@@ -18,7 +18,7 @@ class NoList: public BaseList<number> {
 protected:
 	std::vector<BaseParticle<number> *> _all_particles;
 public:
-	NoList(int &N, number &box);
+	NoList(int &N, BaseBox<number> *box);
 	virtual ~NoList();
 
 	virtual void init(BaseParticle<number> **particles, number rcut);

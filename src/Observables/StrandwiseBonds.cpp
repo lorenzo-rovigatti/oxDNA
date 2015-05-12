@@ -25,26 +25,8 @@ std::string StrandwiseBonds<number>::get_output_string(llint curr_step) {
 	outstr << "# step " << curr_step << "\n";
 
 	std::map<std::pair<int, int>, int> hbmap;
-	/*
-	for (int i = 0; i < *this->_config_info.N; i++) {
-		p = this->_config_info.particles[i];
-		std::vector<BaseParticle<number> *> neighs = this->_config_info.interaction->get_neighbours(p, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
-		typename std::vector<BaseParticle<number> *>::iterator it;
-		for (it = neighs.begin(); it != neighs.end(); it ++) {
-			BaseParticle<number> * q = (*it);
-			if (p->strand_id < q->strand_id) {
-				number ene = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, q);
-				if (ene < HB_CUTOFF) {
-					std::pair<int, int> k (p->strand_id, q->strand_id);
-					if (hbmap.count(k) == 0) hbmap[k] = 1;
-					else hbmap[k] ++;
-				}
-			}
-		}
-	}
-	*/
-	std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > pairs = this->_config_info.interaction->get_potential_interactions (this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
-	typename std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> >::iterator it;
+	std::vector<ParticlePair<number> > pairs = this->_config_info.lists->get_potential_interactions();
+	typename std::vector<ParticlePair<number> >::iterator it;
 	for (it = pairs.begin(); it != pairs.end(); it ++ ) {
 		BaseParticle<number> * p = (*it).first;
 		BaseParticle<number> * q = (*it).second;

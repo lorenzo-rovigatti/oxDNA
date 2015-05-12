@@ -80,7 +80,7 @@ std::string PatchyToMgl<number>::_particle(BaseParticle<number> *p) {
 	else res << _mgl_patchy_line(p, "0,1,0", true, "1,0,0");
 
 	if(_first_neighbours) {
-		vector<BaseParticle<number> *> particles = this->_config_info.interaction->get_neighbours(p, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+		vector<BaseParticle<number> *> particles = this->_config_info.lists->get_all_neighbours(p);
 		for(typename std::vector<BaseParticle<number> *>::iterator it = particles.begin(); it != particles.end(); it++) {
 			BaseParticle<number> *q = *it;
 			if(this->_config_info.interaction->pair_interaction(p, q) < _threshold) {
@@ -88,7 +88,7 @@ std::string PatchyToMgl<number>::_particle(BaseParticle<number> *p) {
 				res << _mgl_patchy_line(q, "0,1,0,0.5", true, "0.5,0,0,0.5");
 
 				if(_second_neighbours) {
-					vector<BaseParticle<number> *> s_particles = this->_config_info.interaction->get_neighbours(q, this->_config_info.particles, *this->_config_info.N, *this->_config_info.box_side);
+					vector<BaseParticle<number> *> s_particles = this->_config_info.lists->get_all_neighbours(q);
 					for(typename std::vector<BaseParticle<number> *>::iterator s_it = s_particles.begin(); s_it != s_particles.end(); s_it++) {
 						BaseParticle<number> *s_q = *s_it;
 						if(this->_config_info.interaction->pair_interaction(q, s_q) < _threshold) {

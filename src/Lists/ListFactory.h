@@ -32,7 +32,7 @@ public:
 	 * @return a pointer to the newly built list
 	 */
 	template<typename number>
-	static BaseList<number> *make_list(input_file &inp, int &N, number &box);
+	static BaseList<number> *make_list(input_file &inp, int &N, BaseBox<number> *box);
 };
 
 #endif /* LISTFACTORY_H_ */

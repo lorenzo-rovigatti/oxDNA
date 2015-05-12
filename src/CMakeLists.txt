@@ -111,6 +111,13 @@ SET(forces_SOURCES
 	Forces/ForceFactory.cpp
 )
 
+SET(box_SOURCES
+	Boxes/BaseBox.cpp
+	Boxes/CubicBox.cpp
+	Boxes/OrthogonalBox.cpp
+	Boxes/BoxFactory.cpp
+)
+
 SET(common_SOURCES
 	Particles/TEPParticle.cpp
 	Particles/RNANucleotide.cpp
@@ -138,6 +145,7 @@ SET(common_SOURCES
 	${backends_SOURCES}
 	${interactions_SOURCES}
 	${move_SOURCES}
+	${box_SOURCES}
 )
 
 ADD_LIBRARY(${lib_name} ${common_SOURCES})

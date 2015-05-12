@@ -56,7 +56,6 @@ protected:
 	std::string _output_name;
 	std::string _base_name;
 	input_file _sim_inp;
-
 	bool _linear;
 	int _log_ppc;
 	int _log_n0;

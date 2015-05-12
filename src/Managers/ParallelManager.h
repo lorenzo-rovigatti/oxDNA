@@ -10,6 +10,9 @@
 
 #include "SimManager.h"
 
+/**
+ * @brief Manages parallel simulations through MPI.
+ */
 class ParallelManager: public SimManager {
 protected:
 	int _mpi_rank;
