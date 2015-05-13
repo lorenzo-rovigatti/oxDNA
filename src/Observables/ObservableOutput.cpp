@@ -58,7 +58,7 @@ ObservableOutput<number>::ObservableOutput(std::string &stream_string, input_fil
 		_log_next = _log_n0;
 		_log_pos_in_cycle = 1;
 		_log_n_cycle = 0;
-		_log_tot_cycle = (llint) round(_log_n0 * pow(_log_fact, _log_ppc - 1.));
+		_log_tot_cycle = (llint) round(_log_n0 * pow(_log_fact, (number)(_log_ppc - 1.)));
 	}
 	else getInputLLInt(obs_input, "print_every", &_print_every, 1);
 
