@@ -70,6 +70,8 @@ void CUDABussiThermostat<number, number4>::get_settings(input_file &inp) {
 template<typename number, typename number4>
 void CUDABussiThermostat<number, number4>::init(int N) {
 	BussiThermostat<number>::init(N);
+
+	this->_setup_rand(N);
 }
 
 template<typename number, typename number4>
@@ -94,7 +96,7 @@ void CUDABussiThermostat<number, number4>::apply_cuda(number4 *d_poss, GPU_quat<
 
 	number rescale_factor_t = sqrt(this->_K_t / K_now_t.w);
 	number rescale_factor_r = sqrt(this->_K_r / K_now_r.w);
-//	printf("%lf %lf %lf %lf\n", K_now_t, K_now_r, rescale_factor_t, rescale_factor_r);
+	//printf("%lf %lf %lf %lf\n", K_now_t.w, K_now_r.w, rescale_factor_t, rescale_factor_r);
 
 	bussi_thermostat<number, number4>
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
