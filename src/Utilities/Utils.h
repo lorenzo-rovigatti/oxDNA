@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "../defs.h"
+#include "../Particles/BaseParticle.h"
 
 /**
  * @brief Utility class. It mostly contains static methods.
@@ -171,6 +172,14 @@ public:
 	 */
 	static std::string bytes_to_human (llint arg);
 
+	/**
+	 * @brief Utility function that sets the centre of mass velocity of the system to 0.
+	 *
+	 * @param particles pointer to array of particle pointers
+	 * @param N number of particles
+	 */
+	template <typename number>
+	static void stop_com (BaseParticle<number> **particles, int N);
 };
 
 template<typename number>
