@@ -232,8 +232,25 @@ void Utils::get_seed(unsigned short * seedptr) {
 	seed48(seedptr);
 }
 
+// zeroes the velocity of the centre of mass
+template <typename number>
+void Utils::stop_com (BaseParticle<number> **particles, int N) {
+	LR_vector<number> vcom = LR_vector<number> ((number)0., (number)0., (number) 0.);
+
+	for (int i = 0; i < N; i ++) vcom += particles[i]->vel;
+
+	vcom = vcom / (number) N;
+
+	for (int i = 0; i < N; i ++) particles[i]->vel -= vcom;
+	
+	return;
+}
+
 template float Utils::gaussian<float>();
 template double Utils::gaussian<double>();
 
 template float Utils::get_temperature<float>(char *);
 template double Utils::get_temperature<double>(char *);
+
+template void Utils::stop_com<float>(BaseParticle<float> **, int );
+template void Utils::stop_com<double>(BaseParticle<double> **, int );
