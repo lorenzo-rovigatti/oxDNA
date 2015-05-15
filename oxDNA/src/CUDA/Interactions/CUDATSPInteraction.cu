@@ -63,7 +63,7 @@ void CUDATSPInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_lambda, &f_copy, sizeof(float)) );
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_n, &this->_TSP_n, sizeof(int)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_only_chains, &this->_only_chains, sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_only_chains, &this->_only_chains, sizeof(bool)) );
 
 	if(this->_use_edge) CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)) );
 }

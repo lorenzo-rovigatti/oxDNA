@@ -90,7 +90,15 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 	number sqr_r = r->norm();
 	// cut-off for the telechelic monomers
 	if(sqr_r > this->_sqr_rcut) return (number) 0.;
-	if(sqr_r < 0.5) return 10000000.;
+	if(sqr_r < 0.5) {
+		if(update_forces) {
+			number force_mod = 1000;
+			p->force -= *r * force_mod;
+			q->force += *r * force_mod;
+		}
+		
+		return 10000000.;
+	}
 
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector for its module
@@ -266,7 +274,7 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 	int p_ind = 0;
 	for(int ns = 0; ns < my_N_stars; ns++) {
 		int attractive_from = (int) round(_N_monomer_per_arm[ns] * (1. - _alpha[ns]));
-		OX_LOG(Logger::LOG_INFO, "Adding a TSP with %d arms, %d monomers per arm (of which %d repulsive)", _N_arms[ns], _N_monomer_per_arm[ns], attractive_from);
+		OX_DEBUG("Adding a TSP with %d arms, %d monomers per arm (of which %d repulsive)", _N_arms[ns], _N_monomer_per_arm[ns], attractive_from);
 		TSPParticle<number> *anchor = (TSPParticle<number> *) particles[p_ind];
 		anchor->flag_as_anchor();
 		// this is an anchor: it has n_arms FENE neighbours since it is attached to each arm
@@ -388,6 +396,9 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 
 	int i = 0;
 	number max_dist = 0.;
+
+	if(_N_stars > 1 && !_only_chains) OX_LOG(Logger::LOG_WARNING, "Can't reliably generate TSP configurations containing more than one star. Be careful.");
+
 	for(int ns = 0; ns < _N_stars; ns++) {
 		BaseParticle<number> *anchor = particles[i];
 		anchor->index = i;
@@ -436,7 +447,6 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 					nm--;
 					continue;
 				}
-				printf("%d\n", nm);
 
 				_insert_in_cell_set_orientation(p, box_side);
 				last_pos = p->pos;
