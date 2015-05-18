@@ -15,7 +15,19 @@ void init_timer(LR_timer *timer, unsigned int num_events, msg *msgs) {
 
 void get_time(LR_timer *timer, unsigned int event) {
 	if(timer->state != TIMER_READY) return;
-	if(event % 2) timer->timings[(event-1)/2] += (double)clock() - (double)timer->events[event-1];
+	if(event % 2) {
+		double diff = (double)clock() - (double)timer->events[event-1];
+		// we need this because of the idiocy of the standard regarding the clock_t type. Indeed,
+		// the standard does not give any requirement on the size of this typedef, which can be
+		// either an int, an unsigned int or a long long int. When clock()'s internal counter
+		// (which is of type clock_t) reaches its maximum it resets to 0 (or to a negative value
+		// if it is a signed variable). If this happens in between two calls to get_time, the
+		// diff variable has a negative value which would screw up the associated timing. In
+		// order to avoid this, if diff is negative we just skip ahead and disregard the event.
+		// It's dirty but it works.
+		if(diff < 0.) return;
+		timer->timings[(event-1)/2] += diff;
+	}
 	else timer->events[event] = clock();
 	timer->times_added[event]++;
 }
