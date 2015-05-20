@@ -30,7 +30,7 @@ void Cells<number>::init(BaseParticle<number> **particles, number rcut) {
 
 	_sqr_rcut = rcut*rcut;
 
-	global_update();
+	global_update(true);
 
 	OX_LOG(Logger::LOG_INFO, "N_cells_side: %d, %d, %d", _N_cells_side[0], _N_cells_side[1], _N_cells_side[2]);
 }
@@ -71,7 +71,7 @@ void Cells<number>::single_update(BaseParticle<number> *p) {
 }
 
 template<typename number>
-void Cells<number>::global_update() {
+void Cells<number>::global_update(bool force_update) {
 	_box_sides = this->_box->box_sides();
 
 	for(int i = 0; i < 3; i++) {

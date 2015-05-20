@@ -165,7 +165,7 @@ public:
 
 	void fix_diffusion();
 
-	void init(char conf_filename[256]);
+	void init();
 
 	void sim_step(llint cur_step);
 	inline void check_overlaps();

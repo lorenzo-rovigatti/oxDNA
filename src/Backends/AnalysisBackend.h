@@ -41,7 +41,7 @@ public:
 	bool done() { return _done; };
 
 	void get_settings(input_file &inp);
-	void init(char traj_patch[256]);
+	void init();
 };
 
 #endif /* ANALYSISBACKEND_H_ */

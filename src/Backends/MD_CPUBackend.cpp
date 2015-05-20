@@ -140,8 +140,8 @@ void MD_CPUBackend<number>::get_settings (input_file &inp) {
 }
 
 template<typename number>
-void MD_CPUBackend<number>::init(char conf_filename[256]) {
-	MDBackend<number>::init(conf_filename);
+void MD_CPUBackend<number>::init() {
+	MDBackend<number>::init();
 	_thermostat->init (this->_N);
 
 	_compute_forces();

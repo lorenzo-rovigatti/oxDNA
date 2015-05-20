@@ -53,7 +53,7 @@ public:
 	 *
 	 * @param path
 	 */
-	virtual void init(char path[256]) = 0;
+	virtual void init() = 0;
 
 	/**
 	 * @brief Performs a simulation step.
@@ -112,6 +112,12 @@ trajectory_file = <path> (path to the file which will contain the output traject
 [timings_filename = <path> (path to the file where timings will be printed)]
 
 [output_prefix = <string> (the name of all output files will be preceded by this prefix, defaults to an empty string)]
+
+[checkpoint_every = <int> (If > 0, it enables the production of checkpoints, which have a binary format. Beware that trajectories that do have this option enabled will differ from trajectories that do not. If this key is specified, at least one of checkpoint_file and checkpoint_trajectory needs to be specified)]
+[checkpoint_file = <string> (File name for the last checkpoint. If not specified, the last checkpoint will not be printed separately)]
+[checkpoint_trajectory = <string> (File name for the checkpoint trajectory. If not specified, only the last checkpoint will be printed)]
+[reload_from = <string> (checkpoint to reload from. This option is incompatible with the keys conf_file and seed, and requires restart_step_counter=0 as well as binary_initial_conf!=1)]
+
 @endverbatim
  */
 template<typename number>
@@ -146,12 +152,15 @@ protected:
 	BaseBox<number> *_box;
 
 	int _conf_interval;
+	std::string _conf_filename;
 	bool _initial_conf_is_binary;
 	bool _back_in_box;
 	bool _custom_conf_name;
 	char _custom_conf_str[256];
 	ifstream _conf_input;
 	llint _read_conf_step;
+	std::string _checkpoint_file;
+	std::string _checkpoint_traj;
 
 	/// Vector of ObservableOutput used to manage the simulation output
 	vector<ObservableOutput<number> *> _obs_outputs;
@@ -161,6 +170,8 @@ protected:
 	ObservableOutput<number> *_obs_output_last_conf;
 	ObservableOutput<number> *_obs_output_last_conf_bin;
 	ObservableOutput<number> *_obs_output_reduced_conf;
+	ObservableOutput<number> *_obs_output_checkpoints;
+	ObservableOutput<number> *_obs_output_last_checkpoint;
 
 	/// Pointer to the interaction manager
 	IBaseInteraction<number> *_interaction;
@@ -233,7 +244,7 @@ public:
 	virtual ~SimBackend();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(char path[256]);
+	virtual void init();
 
 	int get_N_updates() {return _N_updates; }
 	virtual void print_observables(llint curr_step);

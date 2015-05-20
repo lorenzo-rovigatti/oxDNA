@@ -11,6 +11,7 @@
 #include "../Interactions/InteractionFactory.h"
 #include "../Observables/ObservableOutput.h"
 #include "../Lists/ListFactory.h"
+#include "../Boxes/BoxFactory.h"
 #include "../PluginManagement/PluginManager.h"
 
 AnalysisBackend::AnalysisBackend() : SimBackend<double>(), _done(false), _n_conf(0) {
@@ -28,11 +29,16 @@ void AnalysisBackend::get_settings(input_file &inp) {
 
 	_interaction = InteractionFactory::make_interaction<double>(inp);
 	_interaction->get_settings(inp);
+	
+	_box = BoxFactory::make_box<double>(inp);
+	_box->get_settings(inp);
 
 	_lists = ListFactory::make_list<double>(inp, _N, _box);
 	_lists->get_settings(inp);
 
 	getInputInt(&inp, "analysis_confs_to_skip", &_confs_to_skip, 0);
+
+	getInputString(&inp, "trajectory_file", this->_conf_filename, 1); 
 
 	int tmp;
 	int val = getInputBoolAsInt(&inp, "external_forces", &tmp, 0);
@@ -84,8 +90,8 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	}
 }
 
-void AnalysisBackend::init(char traj_path[256]) {
-	SimBackend<double>::init(traj_path);
+void AnalysisBackend::init() {
+	SimBackend<double>::init();
 	// this is to avoid the "print timings" at the end
 	destroy_timer(&_timer);
 }

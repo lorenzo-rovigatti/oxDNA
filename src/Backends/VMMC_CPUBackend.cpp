@@ -84,8 +84,8 @@ VMMC_CPUBackend<number>::~VMMC_CPUBackend() {
 }
 
 template<typename number>
-void VMMC_CPUBackend<number>::init(char conf_filename[256]) {
-	MC_CPUBackend<number>::init(conf_filename);
+void VMMC_CPUBackend<number>::init() {
+	MC_CPUBackend<number>::init();
 
 	// fix maxclust if evidently wrong
 	if (_maxclust < 1) {

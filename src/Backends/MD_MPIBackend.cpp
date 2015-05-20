@@ -520,9 +520,9 @@ void MDBackend<number>::print_conf(llint curr_step, bool reduced, bool only_last
 //-----------------------------------------------------------------
 template<typename number>
 //void MD_MPIBackend<number>::init(ifstream &conf_input) {
-void MD_MPIBackend<number>::init(char conf_filename[256]) {
+void MD_MPIBackend<number>::init() {
 //	MD_CPUBackend<number>::init(conf_input);
-	MD_CPUBackend<number>::init(conf_filename);
+	MD_CPUBackend<number>::init();
 	this->_serialized_particles = new Serialized_particle_position<number>[this->_N];
 	this->_serialized_forces = new Serialized_particle_force_torque<number>[this->_N];
 	//cout << "INIT finished, this->N is " << this->_N << endl;

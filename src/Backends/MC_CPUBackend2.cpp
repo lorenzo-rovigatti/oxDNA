@@ -69,9 +69,9 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 }
 
 template<typename number>
-void MC_CPUBackend2<number>::init(char conf_filename[256]) {
+void MC_CPUBackend2<number>::init() {
 	OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing bakend...");
-	MCBackend<number>::init(conf_filename);
+	MCBackend<number>::init();
 
 	for(int i = 0; i < this->_N; i++) {
 		// this is needed for the first _compute_energy()

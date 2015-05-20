@@ -79,8 +79,7 @@ void SimManager::_get_options() {
 			fclose(f);
 		}
 	}
-	getInputString(&_input, "conf_file", _conf_file, 1);
-	
+
 	getInputInt(&_input, "fix_diffusion_every", &_fix_diffusion_every, 0);
 }
 
@@ -117,7 +116,7 @@ void SimManager::init() {
 	else if(strcmp(ts_type, "log_lin") == 0) _time_scale = TS_LOG_LIN;
 	else throw oxDNAException("Time scale '%s' not supported", ts_type);
 
-	_backend->init(_conf_file);
+	_backend->init();
 
 	if(_restart_step_counter != 0) _start_step = 0;
 	else _start_step = _backend->_start_step_from_file;

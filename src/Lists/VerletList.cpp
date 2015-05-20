@@ -58,8 +58,8 @@ void VerletList<number>::single_update(BaseParticle<number> *p) {
 }
 
 template<typename number>
-void VerletList<number>::global_update() {
-	if(!_cells.is_updated()) _cells.global_update();
+void VerletList<number>::global_update(bool force_update) {
+	if(!_cells.is_updated() || force_update) _cells.global_update();
 
 	for(int i = 0; i < this->_N; i++) {
 		BaseParticle<number> *p = this->_particles[i];

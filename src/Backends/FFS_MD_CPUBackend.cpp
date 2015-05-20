@@ -310,10 +310,8 @@ void FFS_MD_CPUBackend<number>::sim_step(llint curr_step) {
 }
 
 template<typename number>
-//void FFS_MD_CPUBackend<number>::init(ifstream &conf_input) {
-void FFS_MD_CPUBackend<number>::init(char conf_filename[256]) {
-	//MDBackend<number>::init(conf_input);
-	MD_CPUBackend<number>::init(conf_filename);
+void FFS_MD_CPUBackend<number>::init() {
+	MD_CPUBackend<number>::init();
 
 	this->_sqr_rcut = this->_interaction->get_rcut() * this->_interaction->get_rcut();
 

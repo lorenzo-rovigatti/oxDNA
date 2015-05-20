@@ -69,8 +69,8 @@ void MDBackend<number>::get_settings(input_file &inp) {
 }
 
 template<typename number>
-void MDBackend<number>::init(char conf_filename[256]) {
-	SimBackend<number>::init(conf_filename);
+void MDBackend<number>::init() {
+	SimBackend<number>::init();
 
 	if(_refresh_velocities) _generate_vel();
 	else {
