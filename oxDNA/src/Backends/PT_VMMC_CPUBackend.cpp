@@ -26,7 +26,7 @@ PT_VMMC_CPUBackend<number>::~PT_VMMC_CPUBackend() {
 }
 
 template<typename number>
-void PT_VMMC_CPUBackend<number>::init (char conf_filename[256]) {
+void PT_VMMC_CPUBackend<number>::init () {
 	//VMMC_CPUBackend<number>::init(conf_input);
 
 	MPI_Comm_rank (MPI_COMM_WORLD, &(_my_mpi_id));

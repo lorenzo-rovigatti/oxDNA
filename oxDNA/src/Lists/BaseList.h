@@ -64,7 +64,7 @@ public:
 	/**
 	 * @brief Updates all lists.
 	 */
-	virtual void global_update() = 0;
+	virtual void global_update(bool force_update=false) = 0;
 
 	/**
 	 * @brief Returns a list of neighbours of particle p. This list doest NOT contain bonded neighbours.

@@ -37,6 +37,7 @@ SET(observables_SOURCES
 	Observables/Configurations/ChimeraOutput.cpp
 	Observables/ObservableFactory.cpp
 	Observables/MeanVectorCosine.cpp
+	Observables/Checkpoint.cpp
 )
 
 SET(backends_SOURCES

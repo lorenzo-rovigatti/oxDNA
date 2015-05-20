@@ -43,7 +43,7 @@ public:
 	virtual ~MDBackend();
 
 	void get_settings(input_file &inp);
-	void init(char conf_filename[256]);
+	void init();
 };
 
 #endif /* MDBACKEND_H_ */

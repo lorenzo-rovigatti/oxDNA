@@ -79,7 +79,7 @@ public:
 	PT_VMMC_CPUBackend();
 	virtual ~PT_VMMC_CPUBackend();
 	//void init(ifstream &conf_input);
-	void init(char conf_filename[256]);
+	void init();
 	void get_settings (input_file &inp);
 
 	int get_mpi_id () { return _my_mpi_id; }

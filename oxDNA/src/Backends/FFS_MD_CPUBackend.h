@@ -132,7 +132,7 @@ public:
 
 	virtual void get_settings(input_file &inp);
 
-	void init (char conf_filename[256]);
+	void init ();
 
 	void sim_step(llint cur_step);
 	char * get_op_state_str(void);

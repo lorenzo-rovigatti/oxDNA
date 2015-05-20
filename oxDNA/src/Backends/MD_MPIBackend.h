@@ -119,8 +119,7 @@ public:
 	MD_MPIBackend();
 	virtual ~MD_MPIBackend();
 
-	//virtual void init(ifstream &conf_input);
-	virtual void init(char conf_filename[256]);
+	virtual void init();
     virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false) ;
 	virtual void sim_step(llint cur_step);
 

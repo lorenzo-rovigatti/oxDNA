@@ -25,11 +25,10 @@ void AnalysisManager::load_options() {
 	Logger::instance()->get_settings(_input);
 
 	_backend->get_settings(_input);
-	getInputString(&_input, "trajectory_file", _trajectory, 1);
 }
 
 void AnalysisManager::init() {
-	_backend->init(_trajectory);
+	_backend->init();
 }
 
 void AnalysisManager::analysis() {

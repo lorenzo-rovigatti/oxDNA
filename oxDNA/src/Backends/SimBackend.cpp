@@ -123,7 +123,31 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	_lists = ListFactory::make_list<number>(inp, _N, _box);
 	_lists->get_settings(inp);
 
+	// reload configuration
+	std::string reload_from;
+	if (getInputString (&inp, "reload_from", reload_from, 0) == KEY_FOUND) {
+		// set default variables in this case
+		_initial_conf_is_binary = true;
+
+		// check that conf_file is not specified
+		std::string tmpstring;
+		if (getInputString (&inp, "conf_file", tmpstring, 0) == KEY_FOUND) throw oxDNAException ("Input file error: \"conf_file\" cannot be specified if \"reload_from\" is specified");
+
+		// check that restart_step_counter is set to 0
+		int tmpi;
+		getInputBoolAsInt (&inp, "restart_step_counter", &tmpi, 1);
+		if (tmpi != 0) throw oxDNAException ("Input file error: \"restart_step_counter\" must be set to 0 if \"reload_from\" is specified");
+
+		if (getInputInt (&inp, "seed", &tmpi, 0) == KEY_FOUND) throw oxDNAException ("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
+
+		_conf_filename = std::string (reload_from);
+	}
+	else {
+		getInputString (&inp, "conf_file", _conf_filename, 1);
+	}
+
 	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
+
 	getInputBool(&inp, "fix_diffusion", &_enable_fix_diffusion, 0);
 
 	// we only reseed the RNG if:
@@ -221,6 +245,30 @@ void SimBackend<number>::get_settings(input_file &inp) {
 		_obs_output_reduced_conf->add_observable("type = configuration\nreduced = true");
 		_obs_outputs.push_back(_obs_output_reduced_conf);
 	}
+	
+	// checkpoints trajectory, optional
+	llint checkpoint_every;
+	if(getInputLLInt(&inp, "checkpoint_every", &checkpoint_every, 0) == KEY_FOUND && checkpoint_every > 0) {
+		int tmp1 = getInputString(&inp, "checkpoint_trajectory", _checkpoint_traj, 0);
+		if (tmp1 == KEY_FOUND) {
+			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
+			_obs_output_checkpoints = new ObservableOutput<number>(fake, inp);
+			_obs_output_checkpoints->add_observable("type = checkpoint");
+			_obs_outputs.push_back(_obs_output_checkpoints);
+			OX_LOG(Logger::LOG_INFO, "Setting up a trajectory of checkpoints to file %s every %lld steps",_checkpoint_traj.c_str(), checkpoint_every);
+		}
+		
+		int tmp2 = getInputString(&inp, "checkpoint_file", _checkpoint_file, 0);
+		if (tmp2 == KEY_FOUND) {
+			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
+			_obs_output_last_checkpoint = new ObservableOutput<number>(fake, inp);
+			_obs_output_last_checkpoint->add_observable("type = checkpoint");
+			_obs_outputs.push_back(_obs_output_last_checkpoint);
+			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);
+		}
+
+		if (tmp1 != KEY_FOUND && tmp2 != KEY_FOUND) throw oxDNAException ("Input file error: At least one of \"checkpoint_file\" or \"checkpoint_trajectory\" must be specified if \"checkpoint_every\" is specified.");
+	}
 
 	// set the max IO
 	if (getInputNumber<number> (&inp, "max_io", &_max_io, 0) == KEY_FOUND) {
@@ -230,11 +278,11 @@ void SimBackend<number>::get_settings(input_file &inp) {
 }
 
 template<typename number>
-void SimBackend<number>::init(char conf_filename[256]) {
+void SimBackend<number>::init() {
 	init_timer(&_timer, _timer_msgs_number, _timer_msgs);
 
-	_conf_input.open(conf_filename);
-	if(_conf_input.good() == false) throw oxDNAException("Can't read configuration file '%s'", conf_filename);
+	_conf_input.open(_conf_filename.c_str());
+	if(_conf_input.good() == false) throw oxDNAException("Can't read configuration file '%s'", _conf_filename.c_str());
 
 	_interaction->init();
 

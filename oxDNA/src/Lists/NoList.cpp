@@ -21,7 +21,7 @@ template<typename number>
 void NoList<number>::init(BaseParticle<number> **particles, number rcut) {
 	BaseList<number>::init(particles, rcut);
 
-	global_update();
+	global_update(true);
 }
 
 template<typename number>
@@ -30,7 +30,7 @@ void NoList<number>::single_update(BaseParticle<number> *p) {
 }
 
 template<typename number>
-void NoList<number>::global_update() {
+void NoList<number>::global_update(bool force_update) {
 
 }
 

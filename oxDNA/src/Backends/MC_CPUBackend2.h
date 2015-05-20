@@ -31,7 +31,7 @@ public:
 	virtual ~MC_CPUBackend2();
 
 	virtual void get_settings(input_file &inp);
-	void init(char conf_filename[256]);
+	void init();
 
 	void sim_step(llint cur_step);
 	void add_move (std::string move_string, input_file &sim_inp);

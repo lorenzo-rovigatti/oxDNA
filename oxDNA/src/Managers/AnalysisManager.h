@@ -21,7 +21,6 @@ class AnalysisManager {
 protected:
 	input_file _input;
 	AnalysisBackend *_backend;
-	char _trajectory[256];
 
 public:
 	AnalysisManager(int argc, char *argv[]);

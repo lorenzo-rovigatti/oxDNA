@@ -38,8 +38,8 @@ void MC_CPUBackend<number>::get_settings(input_file &inp) {
 }
 
 template<typename number>
-void MC_CPUBackend<number>::init(char conf_filename[256]) {
-	MCBackend<number>::init(conf_filename);
+void MC_CPUBackend<number>::init() {
+	MCBackend<number>::init();
 
 	_particles_old = new BaseParticle<number>*[this->_N];
 	this->_interaction->read_topology(this->_N, &this->_N_strands, _particles_old);
