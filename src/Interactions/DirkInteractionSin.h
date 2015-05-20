@@ -99,10 +99,24 @@ number DirkInteractionSin<number>::_dirk_pot (BaseParticle<number> *p, BaseParti
 	if (rnorm > this->_sqr_rcut) return (number) 0.f;
 
 	if (rnorm < _hard_sqr_rcut) {
-		SpheroCylinder<number> * pp = dynamic_cast< SpheroCylinder<number> *> (p);
-		SpheroCylinder<number> * qq = dynamic_cast< SpheroCylinder<number> *> (q);
+		LR_vector<number> my_r;
+		SpheroCylinder<number> * pp = NULL, * qq = NULL;
+
+
+		// the algorithm is not symmetric, so we have to compute things always in the same order
+		if (p->index < q->index) {
+			pp = dynamic_cast< SpheroCylinder<number> *> (p);
+			qq = dynamic_cast< SpheroCylinder<number> *> (q);
+			my_r = *r;
+		}
+		else {
+			pp = dynamic_cast< SpheroCylinder<number> *> (q);
+			qq = dynamic_cast< SpheroCylinder<number> *> (p);
+			my_r = qq->pos.minimum_image (pp->pos, this->_box_side); // beware, p != pp and q != qq
+		}
+		
 		//bool spherocylinder_overlap = InteractionUtils::spherocylinder_overlap (*r, (SpheroCylinder<number> * p)->_dir, q->_dir, _length);
-		bool spherocylinder_overlap = InteractionUtils::spherocylinder_overlap (*r, *(pp->dir), *(qq->dir), _length);
+		bool spherocylinder_overlap = InteractionUtils::spherocylinder_overlap (my_r, *(pp->dir), *(qq->dir), _length);
 		// the following works, but assumes dir == orientation.v1 things in SpheroCylinder.cpp. The above does not.
 		//bool spherocylinder_overlap = InteractionUtils::spherocylinder_overlap (*r, p->orientation.v1, q->orientation.v1, _length);
 		if (spherocylinder_overlap) {
