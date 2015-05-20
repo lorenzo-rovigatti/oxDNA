@@ -284,8 +284,8 @@ void FFS_MD_CUDAMixedBackend::get_settings(input_file &inp){
 	this->_obs_outputs.push_back(_obs_output_custom_conf);
 }
 
-void FFS_MD_CUDAMixedBackend::init(char conf_filename[256]){
-	CUDAMixedBackend::init(conf_filename);
+void FFS_MD_CUDAMixedBackend::init(){
+	CUDAMixedBackend::init();
 	_op.init_from_file(_order_parameters_file, this->_particles, this->_N);
 
 	// initialise the order parameter region arrays (variable width, pseudo-2D arrays)

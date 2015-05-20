@@ -90,6 +90,8 @@ void CUDABaseBackend<number, number4>::_gpu_to_host() {
 
 template<typename number, typename number4>
 void CUDABaseBackend<number, number4>::get_settings(input_file &inp) {
+	getInputString(&inp, "conf_file", _conf_filename, 1);
+
 	if(getInputInt(&inp, "CUDA_device", &_device_number, 0) == KEY_NOT_FOUND) {
 		OX_LOG(Logger::LOG_INFO, "CUDA device not specified");
 		_device_number = -1;
@@ -114,6 +116,9 @@ void CUDABaseBackend<number, number4>::get_settings(input_file &inp) {
 	// check that the box is cubic
 	string my_box;
 	if(getInputString(&inp, "box_type", my_box, 0) == KEY_FOUND) if(my_box != "cubic") throw oxDNAException("The CUDA backend only supports cubic boxes");
+
+	string reload_from;
+	if(getInputString(&inp, "reload_from", reload_from, 0) == KEY_FOUND) throw oxDNAException("The CUDA backend does not support reloading checkpoints, owing to its intrisincally stochastic nature");
 }
 
 template<typename number, typename number4>
@@ -158,8 +163,8 @@ void CUDABaseBackend<number, number4>::_choose_device () {
 }
 
 template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::init(char conf_filename[256]) {
-	std::ifstream conf_input(conf_filename);
+void CUDABaseBackend<number, number4>::init() {
+	std::ifstream conf_input(_conf_filename.c_str());
 
 	if(_device_number < 0)	_choose_device();
 	set_device(_device_number);
