@@ -44,7 +44,7 @@ public:
 	CUDAMixedBackend();
 	virtual ~CUDAMixedBackend();
 
-	void init(char conf_filename[256]);
+	void init();
 };
 
 #endif /* MD_CUDAMIXEDBACKEND_H_ */

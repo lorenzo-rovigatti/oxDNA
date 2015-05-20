@@ -34,6 +34,7 @@ class CUDABaseBackend {
 private:
 	int _C_N;
 	number _C_box_side;
+	std::string _conf_filename;
 
 protected:
 	/// if 0 then do not sort. If it's > 1 then sort particles every _sort_every updates
@@ -75,7 +76,7 @@ public:
 	virtual ~CUDABaseBackend();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(char conf_filename[256]);
+	virtual void init();
 };
 
 #endif /* CUDABASEBACKEND_H_ */

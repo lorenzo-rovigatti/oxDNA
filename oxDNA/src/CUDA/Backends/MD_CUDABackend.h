@@ -73,7 +73,7 @@ public:
 	virtual ~MD_CUDABackend();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(char conf_filename[256]);
+	virtual void init();
 
 	virtual void sim_step(llint curr_step);
 

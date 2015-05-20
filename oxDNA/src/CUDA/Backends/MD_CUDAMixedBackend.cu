@@ -22,8 +22,8 @@ CUDAMixedBackend::~CUDAMixedBackend(){
 	CUDA_SAFE_CALL( cudaFree(_d_Lsd) );
 }
 
-void CUDAMixedBackend::init(char conf_filename[256]) {
-	MD_CUDABackend<float, float4>::init(conf_filename);
+void CUDAMixedBackend::init() {
+	MD_CUDABackend<float, float4>::init();
 
 	_vec_sized = ((size_t)_N) * sizeof(LR_double4);
 	_orient_sized = ((size_t)_N) * sizeof(GPU_quat<double>);

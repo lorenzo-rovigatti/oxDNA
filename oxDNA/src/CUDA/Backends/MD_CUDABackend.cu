@@ -341,9 +341,9 @@ void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
 }
 
 template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::init(char conf_filename[256]){
-	MDBackend<number>::init(conf_filename);
-	CUDABaseBackend<number, number4>::init(conf_filename);
+void MD_CUDABackend<number, number4>::init(){
+	MDBackend<number>::init();
+	CUDABaseBackend<number, number4>::init();
 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_vels, this->_vec_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_Ls, this->_vec_size) );

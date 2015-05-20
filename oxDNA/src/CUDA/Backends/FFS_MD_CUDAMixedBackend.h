@@ -380,7 +380,7 @@ public:
 	 *
 	 * @param conf_filename order parameters file
 	 */
-	void init(char conf_filename[256]);
+	void init();
 
 	/**
 	 * @brief Read settings from the input file
