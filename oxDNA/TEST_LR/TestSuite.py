@@ -201,7 +201,7 @@ class System(object):
         
         Logger.log("%s initialising" % self.log_prefix, Logger.DEBUG)
         
-        self.folder = folder
+        self.folder = os.path.abspath(folder)
         self.level = level
         self.input_name = level + SUFFIX_INPUT
         self.input_file = os.path.abspath(os.path.join(folder, level + SUFFIX_INPUT))
