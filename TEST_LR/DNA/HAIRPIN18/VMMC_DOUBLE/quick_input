@@ -1,0 +1,32 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+debug = 1
+seed = 20
+
+####    SIM PARAMETERS    ####
+sim_type = VMMC
+ensemble = NVT
+steps = 1e4
+check_energy_every = 1e4
+check_energy_threshold = 1.e-4
+
+delta_translation = 0.10
+delta_rotation = 0.2 
+T = 23C  
+verlet_skin = 0.20
+
+####    INPUT / OUTPUT    ####
+topology = ../hairpin.top
+conf_file = ../hairpin.conf
+trajectory_file = trajectory.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e3
+print_energy_every = 1e3
+print_timings = no
+time_scale = linear
+
