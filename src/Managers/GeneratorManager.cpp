@@ -106,6 +106,9 @@ void GeneratorManager::init() {
 	// setting the box side for the interaction
 	_interaction->set_box_side(_box_side);
 
+	_mybox.init (_box_side, _box_side, _box_side);
+	_interaction->set_box(&_mybox);
+
 	// initializing external forces
 	if (_external_forces) { 
 		ForceFactory<double>::instance()->read_external_forces(_external_filename, _particles, this->_N, false, &_box_side);

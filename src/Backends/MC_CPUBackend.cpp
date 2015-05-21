@@ -188,6 +188,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 
 			this->_box_side += dL;
 			this->_interaction->set_box_side(this->_box_side);
+			this->_box->init(this->_box_side, this->_box_side, this->_box_side);
 
 			number dExt = (number) 0.;
 			for (int k = 0; k < this->_N; k ++) {
@@ -237,6 +238,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 				}
 				this->_box_side = old_box_side;
 				this->_interaction->set_box_side(this->_box_side);
+				this->_box->init(this->_box_side, this->_box_side, this->_box_side);
 				this->_interaction->set_is_infinite (false);
 				//for (int i = 0; i < this->_N; i ++) this->_lists->single_update(this->_particles[i]);
 				if(!this->_lists->is_updated()) {

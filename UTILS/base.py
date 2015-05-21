@@ -1413,6 +1413,9 @@ class System(object):
                     commands.append ("bond #0:%i.A,%i.A" % (msid + oid, (msid-1)%(len(s._nucleotides)) + oid))
                 msid += 1
             oid += len(s._nucleotides)
+        # a questo punto vogliamo sistemare il nuovo comportamento su chimera-1.10.
+        commands.append("preset apply int ribbons")
+        commands.append("set bg_color white")
         
         # sistemiamo il colore degli strands (dopo quello delle basi)
         # DOPO aver ricreato i legami
