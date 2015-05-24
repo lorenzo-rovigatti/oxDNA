@@ -35,13 +35,92 @@ void Cells<number>::init(BaseParticle<number> **particles, number rcut) {
 	OX_LOG(Logger::LOG_INFO, "N_cells_side: %d, %d, %d", _N_cells_side[0], _N_cells_side[1], _N_cells_side[2]);
 }
 
+/*
+template<typename number>
+void Cells<number>::dump(std::string filename) {
+	std::ofstream output;
+	output.open(filename.c_str(), std::ifstream::out | std::ifstream::binary);
+
+	if (!output.good()) throw oxDNAException("Could not open file %s to which to write lists.", filename.c_str());
+
+	int minus1 = -1;
+
+	output.write ((char *) &this->_N, sizeof(int));
+	output.write ((char *) _N_cells_side, 3 * sizeof(int));
+	
+	for (int icell = 0; icell < _N_cells; icell ++) {
+		BaseParticle<number> * p = _heads[icell];
+		if (p != P_VIRTUAL) output.write ((char *) &(p->index), sizeof(int));
+		else output.write ((char *) &minus1, sizeof(int));
+	}
+
+	for (int i = 0; i < this->_N; i ++) {
+		BaseParticle<number> * p = _next[i];
+		if (p != P_VIRTUAL) output.write ((char *) &(p->index), sizeof(int));
+		else output.write ((char *) &minus1, sizeof(int));
+	}
+	
+	output.close();
+}
+
+template<typename number>
+void Cells<number>::load(std::string filename) {
+	std::ifstream input;
+	input.open(filename.c_str(), std::ifstream::in | std::ifstream::binary);
+
+	if (!input.good()) throw oxDNAException("Could not open file %s from which to load lists.", filename.c_str());
+
+	_box_sides = this->_box->box_sides();
+
+	int tmpi;
+
+	// we have to get the number of particles
+	input.read((char *)(&(this->_N)), sizeof(int));
+	
+	// we have to get the number of cells
+	input.read((char *) _N_cells_side, 3 * sizeof(int));
+	_N_cells = _N_cells_side[0] * _N_cells_side[1] * _N_cells_side[2];
+
+	_heads = new BaseParticle<number> *[_N_cells];
+	_next = new BaseParticle<number> *[this->_N];
+	_cells = new int[this->_N];
+
+	// read the cells' heads
+	for(int i = 0; i < _N_cells; i ++) {
+		input.read((char *) &tmpi, sizeof(int));
+		if (tmpi > this->_N) throw oxDNAException("Error reading lists: found index %d, which is larger than N=%d", tmpi, this->_N);
+		if (tmpi >= 0) _heads[i] = this->_particles[tmpi];
+		else _heads[i] = P_VIRTUAL;
+	}
+
+	// read next for each particle
+	for(int i = 0; i < this->_N; i ++) {
+		input.read((char *) &tmpi, sizeof(int));
+		if (tmpi > this->_N) throw oxDNAException("Error reading lists: found index %d, which is larger than N=%d", tmpi, this->_N);
+		if (tmpi >= 0) _next[i] = this->_particles[tmpi];
+		else _next[i] = P_VIRTUAL;
+	}
+	
+	// now we just need to set the cell index
+	for(int i = 0; i < _N_cells; i ++) {
+		BaseParticle<number> * p = _heads[i];
+		while (p != P_VIRTUAL) {
+			_cells[p->index] = i;
+			p = _next[p->index];
+		}
+	}
+
+	input.close();
+}
+*/
+
 template<typename number>
 bool Cells<number>::is_updated() {
 	LR_vector<number> new_box = this->_box->box_sides();
 	int new_N_cells_side[3] = {
-		(int) floor(new_box.x / this->_rcut + 0.1),
-		(int) floor(new_box.y / this->_rcut + 0.1),
-		(int) floor(new_box.z / this->_rcut + 0.1)
+		(int) (floor(new_box.x / this->_rcut) + 0.1),
+		(int) (floor(new_box.y / this->_rcut) + 0.1),
+		(int) (floor(new_box.z / this->_rcut) + 0.1)
 	};
 	return (new_N_cells_side[0] == _N_cells_side[0] && new_N_cells_side[1] == _N_cells_side[1] && new_N_cells_side[2] == _N_cells_side[2]);
 }
@@ -75,12 +154,10 @@ void Cells<number>::global_update(bool force_update) {
 	_box_sides = this->_box->box_sides();
 
 	for(int i = 0; i < 3; i++) {
-		_N_cells_side[i] = (int) floor(_box_sides[i] / this->_rcut + 0.1);
+		_N_cells_side[i] = (int) (floor(_box_sides[i] / this->_rcut) + 0.1);
 		if(_N_cells_side[i] > 500) _N_cells_side[i] = 500;
 		if (_N_cells_side[i] < 3) _N_cells_side[i] = 3;
 	}
-
-
 
 	_N_cells = _N_cells_side[0] * _N_cells_side[1] * _N_cells_side[2];
 
@@ -140,6 +217,11 @@ std::vector<BaseParticle<number> *> Cells<number>::get_neigh_list(BaseParticle<n
 	}
 
 	return res;
+}
+
+template<typename number>
+void Cells<number>::change_box () {
+	_box_sides = this->_box->box_sides();
 }
 
 template class Cells<float>;

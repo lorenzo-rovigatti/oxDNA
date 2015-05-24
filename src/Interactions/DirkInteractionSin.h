@@ -112,8 +112,8 @@ number DirkInteractionSin<number>::_dirk_pot (BaseParticle<number> *p, BaseParti
 		else {
 			pp = dynamic_cast< SpheroCylinder<number> *> (q);
 			qq = dynamic_cast< SpheroCylinder<number> *> (p);
-			//my_r = qq->pos.minimum_image (pp->pos, this->_box_side); // beware, p != pp and q != qq
-			my_r = this->_box->min_image(pp->pos, qq->pos);
+			my_r = qq->pos.minimum_image (pp->pos, this->_box_side); // beware, p != pp and q != qq
+			//my_r = this->_box->min_image(pp->pos, qq->pos);
 		}
 		
 		//bool spherocylinder_overlap = InteractionUtils::spherocylinder_overlap (*r, (SpheroCylinder<number> * p)->_dir, q->_dir, _length);
