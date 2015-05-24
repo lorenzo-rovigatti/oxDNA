@@ -22,6 +22,10 @@ protected:
 
 	bool _enable_flip;
 
+	number _target_box;
+	number _box_tolerance;
+	number _e_tolerance;
+
 	inline number _excluded_volume(const LR_vector<number> &r, number sigma, number rstar, number b, number rc);
 	void _compute_energy();
 	inline void _translate_particle(BaseParticle<number> *p);

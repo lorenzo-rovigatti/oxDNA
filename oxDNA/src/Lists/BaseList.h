@@ -87,10 +87,15 @@ public:
 
 	/**
 	 * @brief Returns a list of potentially interacting pairs
-
+	 *
 	 * @return a vector of ParticlePair objects.
 	 */
 	virtual std::vector<ParticlePair<number> > get_potential_interactions();
+
+	/**
+	 * @brief Informs the list object that the box has been changed
+	 */
+	virtual void change_box () { return;}
 };
 
 template<typename number>

@@ -6,6 +6,7 @@
  */
 
 #include "MC_CPUBackend.h"
+#include "../Managers/SimManager.h"
 
 template<typename number>
 MC_CPUBackend<number>::MC_CPUBackend() : MCBackend<number>(), _particles_old(NULL) {
@@ -15,6 +16,9 @@ MC_CPUBackend<number>::MC_CPUBackend() : MCBackend<number>(), _particles_old(NUL
 	strncpy(this->_timer_msgs[0], "MC step", 256);
 	strncpy(this->_timer_msgs[1], "Lists update", 256);
 	_enable_flip = false;
+	_target_box = -1.;
+	_box_tolerance = 1.e-8;
+	_e_tolerance = -1.;
 }
 
 template<typename number>
@@ -35,6 +39,18 @@ void MC_CPUBackend<number>::get_settings(input_file &inp) {
 	getInputNumber<number> (&inp, "verlet_skin", &_verlet_skin, 0);
 	getInputBool (&inp, "enable_flip", &_enable_flip, 0);
 	if (_enable_flip) OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Enabling flip move");
+
+	getInputNumber (&inp, "target_box", &_target_box, 0);
+	number tmpf;
+	if (getInputNumber (&inp, "target_volume", &tmpf, 0) == KEY_FOUND) _target_box = pow (tmpf, 1. / 3.);
+
+	if (_target_box > 0.) getInputNumber (&inp, "box_tolerance", &_box_tolerance, 0);
+
+	if (_target_box > 0.) {
+		if (getInputNumber (&inp, "e_tolerance", &_e_tolerance, 0) == KEY_FOUND) {
+			if (_e_tolerance < 0.) throw oxDNAException ("(MC_CPUBackend) Cannot run box adjustment with e_tolerance < 0.");
+		}
+	}
 }
 
 template<typename number>
@@ -69,6 +85,16 @@ void MC_CPUBackend<number>::init() {
 			number e = this->_interaction->pair_interaction_bonded (p1, p2);
 			if (_stored_bonded_interactions.count(ParticlePair<number>(p1, p2)) == 0) _stored_bonded_interactions[ParticlePair<number>(p1,p2)] = e;
 		}
+	}
+
+	// check that target_box makes sense and output details
+	if (_target_box > 0.f) {
+		if (_target_box < 2. * this->_interaction->get_rcut())
+			throw oxDNAException("Cannot run box adjustment with target_box (%g) <  2 * rcut (2 * %g)", _target_box, this->_interaction->get_rcut()); 
+		if (_e_tolerance < 0.f) _e_tolerance = 0.3 * this->_T * this->_N;	
+		else _e_tolerance *= this->_N;
+
+		OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Working to achieve taget_box=%g (Volume: %g), tolerance=%g, energy tolerance=%g (e/N)=%g", _target_box, pow(_target_box,3.), _box_tolerance, _e_tolerance, _e_tolerance / this->_N);
 	}
 
 	_compute_energy();
@@ -176,10 +202,12 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 		if (this->_ensemble == MC_ENSEMBLE_NPT && drand48() < 1. / this->_N) {
 			// do npt move
 
-			// might be useful for checking
-			//number oldE2 = this->_interaction->get_system_energy(this->_particles, this->_N, this->_box_side);
-			//if (fabs((this->_U - oldE2)/oldE2) > 1.e-6) throw oxDNAException ("happened %g %g", this->_U, oldE2);
-
+			// useful for checking
+			number oldE2 = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists);
+			if (fabs((this->_U - oldE2)/oldE2) > 1.e-6) throw oxDNAException ("happened %g %g", this->_U, oldE2);
+			if (fabs((this->_U - oldE2)/oldE2) > 1.e-6) printf ("### happened %g %g (%g) (%g)\n", this->_U, oldE2, 
+					fabs(this->_U- oldE2), fabs((this->_U - oldE2)/oldE2));
+			if (this->_interaction->get_is_infinite()) throw oxDNAException ("non ci siamo affatto");
 			number oldE = this->_U;
 
 			number old_box_side = this->_box_side;
@@ -189,17 +217,20 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			this->_box_side += dL;
 			this->_interaction->set_box_side(this->_box_side);
 			this->_box->init(this->_box_side, this->_box_side, this->_box_side);
+			this->_lists->change_box();
 
 			number dExt = (number) 0.;
 			for (int k = 0; k < this->_N; k ++) {
 				BaseParticle<number> *p = this->_particles[k];
 				dExt = -p->ext_potential;
+				_particles_old[k]->pos = p->pos; 
 				p->pos *= this->_box_side / old_box_side;
 				p->set_ext_potential(curr_step, this->_box_side);
 				dExt += -p->ext_potential;
 			}
 			//for (int i = 0; i < this->_N; i ++) this->_lists->single_update(this->_particles[i]);
 			if(!this->_lists->is_updated()) {
+				//printf ("updating lists after box change\n");
 				this->_lists->global_update();
 				this->_N_updates++;
 			}
@@ -212,11 +243,18 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 
 			this->_tries[MC_MOVE_VOLUME]++;
 
-			if (this->_interaction->get_is_infinite() == false && exp (-(dE + this->_P * dV - this->_N * this->_T * log (V / Vold)) / this->_T) > drand48()) {
+			bool second_factor;
+			if (_target_box > (number) 0.f) {
+				number V_target = _target_box * _target_box * _target_box;
+				second_factor = fabs(V - V_target) < fabs (Vold - V_target) && dE < _e_tolerance;
+			}
+			else second_factor = exp (-(dE + this->_P * dV - this->_N * this->_T * log (V / Vold)) / this->_T) > drand48();
+
+			if (this->_interaction->get_is_infinite() == false && second_factor) {
 				// volume move accepted
 				this->_accepted[MC_MOVE_VOLUME]++;
 				this->_U = newE;
-				if (curr_step < this->_MC_equilibration_steps && this->_adjust_moves) this->_delta[MC_MOVE_VOLUME] *= 1.03;
+				if ((curr_step < this->_MC_equilibration_steps && this->_adjust_moves) || _target_box > 0.f) this->_delta[MC_MOVE_VOLUME] *= 1.03;
 
 				_stored_bonded_interactions.clear();
 				for (int k = 0; k < this->_N; k ++) {
@@ -233,19 +271,22 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 				// volume move rejected
 				for (int k = 0; k < this->_N; k ++) {
 					BaseParticle<number> *p = this->_particles[k];
-					p->pos /= this->_box_side / old_box_side;
+					//p->pos /= this->_box_side / old_box_side;
+					p->pos = _particles_old[k]->pos; 
 					p->set_ext_potential(curr_step, this->_box_side);
 				}
 				this->_box_side = old_box_side;
 				this->_interaction->set_box_side(this->_box_side);
 				this->_box->init(this->_box_side, this->_box_side, this->_box_side);
+				this->_lists->change_box();
 				this->_interaction->set_is_infinite (false);
 				//for (int i = 0; i < this->_N; i ++) this->_lists->single_update(this->_particles[i]);
 				if(!this->_lists->is_updated()) {
+					//printf ("updating lists after  rejection\n");
 					this->_lists->global_update();
 					this->_N_updates++;
 				}
-				if (curr_step < this->_MC_equilibration_steps && this->_adjust_moves) this->_delta[MC_MOVE_VOLUME] /= 1.01;
+				if ((curr_step < this->_MC_equilibration_steps && this->_adjust_moves) || _target_box > 0.f) this->_delta[MC_MOVE_VOLUME] /= 1.01;
 			}
 		}
 		else {
@@ -277,6 +318,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 
 			get_time(&this->_timer, 2);
 			if(!this->_lists->is_updated()) {
+				//printf ("updating lists because of translations\n");
 				this->_lists->global_update();
 				this->_N_updates++;
 			}
@@ -325,6 +367,13 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 
 			}
 			this->_overlap = false;
+		}
+	}
+
+	if (_target_box > 0.) {
+		if (fabs(_target_box / this->_box_side - 1.) < _box_tolerance) {
+			SimManager::stop = true;
+			OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Box adjusted to %g (target %g, relative error %g)", this->_box_side, _target_box, fabs(_target_box / this->_box_side - 1.));
 		}
 	}
 
