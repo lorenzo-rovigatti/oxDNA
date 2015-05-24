@@ -34,6 +34,7 @@ public:
 	static char encode_base(int b);
 
 	template<typename number> static number gaussian();
+	template<typename number> static number gamma(number alpha, number beta);
 	template<typename number> static number sum(number *v, int N) {
 		number res = (number) 0.;
 		for(int i = 0; i < N; i++) res += v[i];

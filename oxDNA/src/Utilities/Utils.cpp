@@ -246,6 +246,32 @@ void Utils::stop_com (BaseParticle<number> **particles, int N) {
 	return;
 }
 
+template<typename number>
+number Utils::gamma (number alpha, number beta) {
+	number x, v, u;
+	double d = alpha - 1. / 3.;
+	double c = (1. / 3.) / sqrt(d);
+
+	if (alpha < 1.) return pow(drand48(), 1. / alpha) * gamma((number) 1. + alpha, beta);
+
+	while (true) {
+		do {
+			x = Utils::gaussian<number>();
+			v = 1. + c * x;
+		} while (v <= 0);
+
+		v = v * v * v;
+		u = drand48();
+
+		if (u < 1. - 0.0331 * x * x * x * x) break;
+
+		if (log(u) < 0.5 * x * x + d * (1 - v + log(v))) break;
+	}
+
+	return beta * d * v;
+}
+
+
 template float Utils::gaussian<float>();
 template double Utils::gaussian<double>();
 
@@ -254,3 +280,7 @@ template double Utils::get_temperature<double>(char *);
 
 template void Utils::stop_com<float>(BaseParticle<float> **, int );
 template void Utils::stop_com<double>(BaseParticle<double> **, int );
+
+template float Utils::gamma<float>(float alpha, float beta);
+template double Utils::gamma<double>(double alpha, double beta);
+

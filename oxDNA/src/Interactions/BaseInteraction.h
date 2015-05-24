@@ -309,7 +309,7 @@ void IBaseInteraction<number>::_create_cells(BaseParticle<number> **particles, i
 	if(box_side != _last_box_side) {
 		_delete_cells();
 
-		_cells_N_side = (int) floor(box_side / _rcut + (number)0.1f);
+		_cells_N_side = (int) (floor(box_side / _rcut) + (number)0.1f);
 
 		if(_cells_N_side < 3) _cells_N_side = 3;
 		if(_cells_N_side > 300) _cells_N_side = 300;
@@ -440,7 +440,8 @@ bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticl
 	
 	if (dr.norm() >= this->_sqr_rcut) return false;
 	
-	number energy = pair_interaction(p, q, &dr, false);
+	// number energy = pair_interaction(p, q, &dr, false);
+	number energy = pair_interaction_nonbonded(p, q, &dr, false);
 
 	// in case we create an overlap, we reset the interaction state
 	this->set_is_infinite(false);
@@ -481,6 +482,19 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 			cell_index += this->_cells_N_side * this->_cells_N_side * ((int) ((p->pos.z / box_side - floor(p->pos.z / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
 
 			inserted = true;
+			
+			// we take into account the bonded neighbours 
+			for (unsigned int n = 0; n < p->affected.size(); n ++) {
+				BaseParticle<number> * p1 = p->affected[n].first;
+				BaseParticle<number> * p2 = p->affected[n].second;
+				number e = 0.;
+				if (p1->index <= p->index && p2->index <= p->index) {
+					e = pair_interaction_bonded (p1, p2);
+				}
+				if (e > _energy_threshold) inserted = false;
+			}
+
+			// here we take into account the non-bonded interactions
 			for(int c = 0; c < 27 && inserted; c ++) {
 				int j = this->_cells_head[this->_cells_neigh[cell_index][c]];
 				while (j != P_INVALID && inserted) {
