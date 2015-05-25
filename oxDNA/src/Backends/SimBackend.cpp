@@ -499,9 +499,9 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 			// is the right one
 			LR_vector<number> scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
 			p->shift(scdm_number, box_side);
-			p_pos.x -= box_side * floor(scdm[k].x / box_side + 0.001);
-			p_pos.y -= box_side * floor(scdm[k].y / box_side + 0.001);
-			p_pos.z -= box_side * floor(scdm[k].z / box_side + 0.001);
+			p_pos.x -= box_side * (floor(scdm[k].x / box_side) + 0.001);
+			p_pos.y -= box_side * (floor(scdm[k].y / box_side) + 0.001);
+			p_pos.z -= box_side * (floor(scdm[k].z / box_side) + 0.001);
 		}
 		p->pos = LR_vector<number>(p_pos.x, p_pos.y, p_pos.z);
 	}

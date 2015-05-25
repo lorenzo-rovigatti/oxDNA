@@ -131,12 +131,12 @@ public:
 	 * @param box
 	 */
 	inline void shift(LR_vector<number> &my_shift, number box) {
-		_pos_shift[0] += (int) (floor (my_shift.x / box + 0.01));
-		_pos_shift[1] += (int) (floor (my_shift.y / box + 0.01));
-		_pos_shift[2] += (int) (floor (my_shift.z / box + 0.01));
-		pos.x -= box * floor(my_shift.x / box + 0.01) ;
-		pos.y -= box * floor(my_shift.y / box + 0.01) ;
-		pos.z -= box * floor(my_shift.z / box + 0.01) ;
+		_pos_shift[0] += (int) (floor (my_shift.x / box) + 0.01);
+		_pos_shift[1] += (int) (floor (my_shift.y / box) + 0.01);
+		_pos_shift[2] += (int) (floor (my_shift.z / box) + 0.01);
+		pos.x -= box * (floor(my_shift.x / box) + 0.01) ;
+		pos.y -= box * (floor(my_shift.y / box) + 0.01) ;
+		pos.z -= box * (floor(my_shift.z / box) + 0.01) ;
 	}
 	
 	inline void set_pos_shift (int x, int y, int z) {

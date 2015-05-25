@@ -1,3 +1,8 @@
+v 2.2.1 (May 2015)
+	This release fixes a serious bug that could affect the calculation of the number of cells along 
+	the box. In some cases this bug could affect the simulation outcome, as not all interacting
+	pairs would be seen as such. All CPU backends (MD, MC, VMMC) were affected by this bug. 
+
 v 2.2 (April 2015)
 	This release includes the finalised code implementing the oxDNA2 model. In addition there are
 	numerous bug fixes, more helpful error messages and other messages to the user, fixes to the 
