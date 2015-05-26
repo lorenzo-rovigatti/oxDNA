@@ -7,6 +7,8 @@ import os
 import subprocess as sp
 import math
 
+from multiprocessing import Lock
+
 SUFFIX_INPUT = "_input"
 SUFFIX_COMPARE = "_compare"
 
@@ -18,6 +20,7 @@ class Logger():
     WARNING = 2
     CRITICAL = 3
     RESULTS = 4
+    log_lock = Lock()
 
     messages = ("DEBUG", "INFO", "WARNING", "CRITICAL", "RESULTS")
 
@@ -25,7 +28,9 @@ class Logger():
     def log(msg, level, prepend=""):
         if level < Logger.debug_level: return
 
+        Logger.log_lock.acquire()
         print >> sys.stderr, "%s%s: %s" % (prepend, Logger.messages[level], msg)
+        Logger.log_lock.release()
 
 
 class Runner(threading.Thread):
@@ -45,16 +50,13 @@ class Runner(threading.Thread):
             to_execute = "%s %s" % (details["oxDNA"], system.input_name)
             
             try:
-                os.chdir(folder)
                 
-                p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+                p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, cwd=folder)
                 p.wait()
                 system.simulation_done(p)
                 
             except Exception as e:
                 Logger.log(e, Logger.WARNING)
-                
-            os.chdir(self.base_folder)
             
             Runner.queue.task_done()
             
@@ -208,11 +210,14 @@ class System(object):
         
         self.analyser = Analyser(folder, level)
         
+        self.n_tests = 0
+        self.n_failed = 0
+    
     def simulation_done(self, p, do_tests=True):
-        self.process = p
         
         if p.returncode != 0:
             Logger.log("%s oxDNA returned %d" % (self.log_prefix, p.returncode), Logger.WARNING)
+            return
             
         # check the standard error for errors
         for l in p.stderr.readlines():
@@ -225,7 +230,7 @@ class System(object):
             for t in tokens: 
                 if t in l: 
                     Logger.log("%s oxDNA generated a '%s': %s" % (t, l), Logger.WARNING)
-                
+        
         Logger.log("%s oxDNA run completed and successful" % self.log_prefix, Logger.DEBUG)
         
         if do_tests:
