@@ -250,6 +250,8 @@ class TestManager(object):
         f = open(list_file, "r")
         for l in f.readlines():
             d = l.strip()
+            if len(d) == 0 or d[0] == '#':
+                continue
             input_path = os.path.join(d, input_name)
             if os.path.exists(input_path) and os.path.isfile(input_path):
                 new_system = System(d, level) 
