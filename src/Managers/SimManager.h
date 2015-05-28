@@ -13,7 +13,6 @@
 #include <ctime>
 
 extern "C" {
-#include "../Utilities/timing/timing.h"
 #include "../Utilities/time_scales/time_scales.h"
 }
 

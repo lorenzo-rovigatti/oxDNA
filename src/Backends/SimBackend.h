@@ -17,15 +17,12 @@
 #include <cfloat>
 #include <vector>
 
-extern "C" {
-#include "../Utilities/timing/timing.h"
-}
-
 #include "../defs.h"
 #include "../Particles/BaseParticle.h"
 #include "../Observables/ObservableOutput.h"
 #include "../Lists/BaseList.h"
 #include "../Boxes/BaseBox.h"
+#include "../Utilities/Timings.h"
 
 using namespace std;
 
@@ -125,9 +122,8 @@ class SimBackend: public ISimBackend{
 protected:
 	std::string _backend_info;
 
-	LR_timer _timer;
-	int _timer_msgs_number;
-	msg _timer_msgs[10];
+	Timer * _mytimer;
+
 	number _max_io;
 
 	bool _enable_fix_diffusion;

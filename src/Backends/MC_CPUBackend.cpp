@@ -11,10 +11,6 @@
 template<typename number>
 MC_CPUBackend<number>::MC_CPUBackend() : MCBackend<number>(), _particles_old(NULL) {
 	this->_is_CUDA_sim = false;
-	// initialize the messages for the timings output
-	this->_timer_msgs_number = 2;
-	strncpy(this->_timer_msgs[0], "MC step", 256);
-	strncpy(this->_timer_msgs[1], "Lists update", 256);
 	_enable_flip = false;
 	_target_box = -1.;
 	_box_tolerance = 1.e-8;
@@ -29,7 +25,6 @@ MC_CPUBackend<number>::~MC_CPUBackend() {
 		for(int i = 0; i < this->_N; i++) delete _particles_old[i];
 		delete [] _particles_old;
 	}
-	if(this->_N_updates > 0) divide_given_timing(&this->_timer, 1, this->_N / (double) this->_N_updates);
 }
 
 template<typename number>
@@ -56,6 +51,10 @@ void MC_CPUBackend<number>::get_settings(input_file &inp) {
 template<typename number>
 void MC_CPUBackend<number>::init() {
 	MCBackend<number>::init();
+
+	_timer_move = TimingManager::instance()->new_timer(std::string("Rotations+Translations"), std::string("SimBackend"));
+	if (this->_ensemble == MC_ENSEMBLE_NPT) _timer_box = TimingManager::instance()->new_timer(std::string("Volume Moves"), std::string("SimBackend"));
+	_timer_lists = TimingManager::instance()->new_timer(std::string("Lists"));
 
 	_particles_old = new BaseParticle<number>*[this->_N];
 	this->_interaction->read_topology(this->_N, &this->_N_strands, _particles_old);
@@ -193,13 +192,12 @@ inline void MC_CPUBackend<number>::_rotate_particle(BaseParticle<number> *p) {
 
 template<typename number>
 void MC_CPUBackend<number>::sim_step(llint curr_step) {
-	LR_vector<number> tmp;
-
-	get_time(&this->_timer, 0);
+	this->_mytimer->resume();
 
 	for(int i = 0; i < this->_N; i++) {
 		if (i > 0 && this->_interaction->get_is_infinite() == true) throw oxDNAException ("should not happen %d", i);
 		if (this->_ensemble == MC_ENSEMBLE_NPT && drand48() < 1. / this->_N) {
+			_timer_box->resume();
 			// do npt move
 
 			// useful for checking
@@ -230,9 +228,10 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			}
 			//for (int i = 0; i < this->_N; i ++) this->_lists->single_update(this->_particles[i]);
 			if(!this->_lists->is_updated()) {
-				//printf ("updating lists after box change\n");
+				_timer_lists->resume();
 				this->_lists->global_update();
 				this->_N_updates++;
+				_timer_lists->pause();
 			}
 
 			number newE = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists);
@@ -282,14 +281,18 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 				this->_interaction->set_is_infinite (false);
 				//for (int i = 0; i < this->_N; i ++) this->_lists->single_update(this->_particles[i]);
 				if(!this->_lists->is_updated()) {
+					_timer_lists->resume();
 					//printf ("updating lists after  rejection\n");
 					this->_lists->global_update();
 					this->_N_updates++;
+					_timer_lists->pause();
 				}
 				if ((curr_step < this->_MC_equilibration_steps && this->_adjust_moves) || _target_box > 0.f) this->_delta[MC_MOVE_VOLUME] /= 1.01;
 			}
+			_timer_box->pause();
 		}
 		else {
+			_timer_move->resume();
 			// do normal move
 			int pi = (int) (drand48() * this->_N);
 			BaseParticle<number> *p = this->_particles[pi];
@@ -316,13 +319,15 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			}
 			this->_lists->single_update(p);
 
-			get_time(&this->_timer, 2);
+			//get_time(&this->_timer, 2);
 			if(!this->_lists->is_updated()) {
 				//printf ("updating lists because of translations\n");
+				_timer_lists->resume();
 				this->_lists->global_update();
 				this->_N_updates++;
+				_timer_lists->pause();
 			}
-			get_time(&this->_timer, 3);
+			//get_time(&this->_timer, 3);
 
 			_stored_bonded_tmp.clear();
 			delta_E += _particle_energy(p, false);
@@ -367,6 +372,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 
 			}
 			this->_overlap = false;
+			_timer_move->pause();
 		}
 	}
 
@@ -377,8 +383,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 		}
 	}
 
-	get_time(&this->_timer, 1);
-	process_times(&this->_timer);
+	this->_mytimer->pause();
 }
 
 template class MC_CPUBackend<float>;

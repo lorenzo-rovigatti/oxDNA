@@ -13,6 +13,7 @@
 #include <set>
 
 #include "../defs.h"
+#include "../Utilities/Timings.h"
 #include "../Utilities/parse_input/parse_input.h"
 #include "../Particles/BaseParticle.h"
 #include "../Boxes/BaseBox.h"

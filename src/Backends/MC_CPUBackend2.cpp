@@ -11,11 +11,6 @@
 template<typename number>
 MC_CPUBackend2<number>::MC_CPUBackend2() : MCBackend<number>() {
 	this->_is_CUDA_sim = false;
-	// initialize the messages for the timings output
-	this->_timer_msgs_number = 2;
-	strncpy(this->_timer_msgs[0], "MC step", 256);
-	strncpy(this->_timer_msgs[1], "Lists update", 256);
-
 	_info_str = std::string("dummy");
 	_N_moves = -1;
 	_MC_Info = ConfigInfo<number>();
@@ -24,7 +19,7 @@ MC_CPUBackend2<number>::MC_CPUBackend2() : MCBackend<number>() {
 
 template<typename number>
 MC_CPUBackend2<number>::~MC_CPUBackend2() {
-	if(this->_N_updates > 0) divide_given_timing(&this->_timer, 1, this->_N / (double) this->_N_updates);
+
 }
 
 template<typename number>

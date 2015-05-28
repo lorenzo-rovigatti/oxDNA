@@ -36,6 +36,9 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	_lists = ListFactory::make_list<double>(inp, _N, _box);
 	_lists->get_settings(inp);
 
+	// initialise the timer
+	_mytimer = TimingManager::instance()->new_timer(std::string("AnalysisBackend"));
+
 	getInputInt(&inp, "analysis_confs_to_skip", &_confs_to_skip, 0);
 
 	getInputString(&inp, "trajectory_file", this->_conf_filename, 1); 
@@ -92,15 +95,18 @@ void AnalysisBackend::get_settings(input_file &inp) {
 
 void AnalysisBackend::init() {
 	SimBackend<double>::init();
-	// this is to avoid the "print timings" at the end
-	destroy_timer(&_timer);
 }
 
 void AnalysisBackend::analyse() {
+	_mytimer->resume();
+
 	if(_n_conf % 100 == 0 && _n_conf > 0) OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
 	SimBackend<double>::print_observables(_read_conf_step);
+
 	for(int i = 0; i < this->_N; i++) this->_lists->single_update(this->_particles[i]);
 	this->_lists->global_update();
 	if(!_read_next_configuration()) _done = true;
 	else _n_conf++;
+
+	_mytimer->pause();
 }

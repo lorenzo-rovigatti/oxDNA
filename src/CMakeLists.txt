@@ -136,9 +136,7 @@ SET(common_SOURCES
 	Utilities/oxDNAException.cpp
 	Utilities/Logger.cpp
 	Utilities/parse_input/parse_input.cpp
-	Utilities/timing/timing.c
 	Utilities/time_scales/time_scales.c
-	Utilities/Timings.cpp
 	PluginManagement/PluginManager.cpp
 	${forces_SOURCES}
 	${observables_SOURCES}
@@ -149,11 +147,19 @@ SET(common_SOURCES
 	${box_SOURCES}
 )
 
-ADD_LIBRARY(${lib_name} ${common_SOURCES})
-TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
-
 SET(oxDNA_SOURCES
 	oxDNA.cpp 
+)
+
+SET(DNAnalysis_SOURCES
+	DNAnalysis.cpp
+	Managers/AnalysisManager.cpp
+	Backends/AnalysisBackend.cpp
+)
+
+SET(confGenerator_SOURCES
+	confGenerator.cpp
+	Managers/GeneratorManager.cpp
 )
 	
 IF(CUDA)
@@ -184,30 +190,33 @@ IF(CUDA)
 		CUDA/Thermostats/CUDASRDThermostat.cu
 		CUDA/Thermostats/CUDALangevinThermostat.cu
 		CUDA/Thermostats/CUDABussiThermostat.cu
+		Utilities/Timings.cpp
 	)
+	
 	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES} ${oxDNA_CUDASOURCES})
+	CUDA_ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)
 ELSE()
+	SET(common_SOURCES
+		${common_SOURCES}
+		Utilities/Timings.cpp
+	)
+
 	ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
+	ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES})
 ENDIF(CUDA)
 
-TARGET_LINK_LIBRARIES(${exe_name} ${lib_name})
-
-SET(DNAnalysis_SOURCES
-	DNAnalysis.cpp
-	Managers/AnalysisManager.cpp
-	Backends/AnalysisBackend.cpp
-)
-
-ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES})
-TARGET_LINK_LIBRARIES(DNAnalysis ${lib_name})
-
-SET(confGenerator_SOURCES
-	confGenerator.cpp
-	Managers/GeneratorManager.cpp
-)
-
 ADD_EXECUTABLE(confGenerator ${confGenerator_SOURCES})
+
+ADD_LIBRARY(${lib_name} ${common_SOURCES})
+TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
+TARGET_LINK_LIBRARIES(${exe_name} ${lib_name})
+TARGET_LINK_LIBRARIES(DNAnalysis ${lib_name})
 TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
+
+# we add these executable as dependencies for the test targets
+ADD_DEPENDENCIES(test_run ${exe_name} DNAnalysis confGenerator)
+ADD_DEPENDENCIES(test_quick ${exe_name} DNAnalysis confGenerator)
+ADD_DEPENDENCIES(test_scientific ${exe_name} DNAnalysis confGenerator)
 
 IF(MPI)
 	FIND_PACKAGE(MPI REQUIRED)

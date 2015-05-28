@@ -287,43 +287,41 @@ void MD_CUDABackend<number, number4>::_thermalize(llint curr_step) {
 
 template<typename number, typename number4>
 void MD_CUDABackend<number, number4>::sim_step(llint curr_step) {
+	this->_mytimer->resume();
 	_curr_step = curr_step;
-	get_time(&this->_timer, 0);
 
-	get_time(&this->_timer, 2);
+	this->_timer_first_step->resume();
 	_first_step();
 	cudaThreadSynchronize();
-	get_time(&this->_timer, 3);
+	this->_timer_first_step->pause();
 
-	get_time(&this->_timer, 4);
+	_timer_sorting->resume();
 	if(this->_d_are_lists_old[0] && this->_sort_every > 0 && (this->_N_updates % this->_sort_every == 0)) {
 		_sort_particles();
 		cudaThreadSynchronize();
 	}
-	get_time(&this->_timer, 5);
+	_timer_sorting->pause();
 
-	get_time(&this->_timer, 6);
+	this->_timer_lists->resume();
 	if(this->_d_are_lists_old[0]) {
 		this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
 		this->_d_are_lists_old[0] = false;
 		this->_N_updates++;
 		cudaThreadSynchronize();
 	}
-	get_time(&this->_timer, 7);
+	this->_timer_lists->pause();
 
-	get_time(&this->_timer, 8);
+	this->_timer_forces->resume();
 	_forces_second_step();
 	cudaThreadSynchronize();
-	get_time(&this->_timer, 9);
+	this->_timer_forces->pause();
 
-	get_time(&this->_timer, 10);
+	this->_timer_thermostat->resume();
 	_thermalize(curr_step);
 	cudaThreadSynchronize();
-	get_time(&this->_timer, 11);
+	this->_timer_thermostat->pause();
 
-	get_time(&this->_timer, 1);
-
-	process_times(&this->_timer);
+	this->_mytimer->pause();
 }
 
 template<typename number, typename number4>
@@ -344,6 +342,8 @@ template<typename number, typename number4>
 void MD_CUDABackend<number, number4>::init(){
 	MDBackend<number>::init();
 	CUDABaseBackend<number, number4>::init();
+
+	_timer_sorting = TimingManager::instance()->new_timer(std::string("Hilbert sorting"), std::string("SimBackend"));
 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_vels, this->_vec_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_Ls, this->_vec_size) );

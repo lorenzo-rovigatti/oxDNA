@@ -176,5 +176,7 @@ void SimManager::run() {
 
 	// prints the last configuration
 	_backend->print_conf(_cur_step, false, true);
+
+	TimingManager::instance()->print(_cur_step - _start_step);
 }
 

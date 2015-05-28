@@ -127,7 +127,7 @@ public:
 	static void clear();
 
 	/// prints 
-	void print();
+	void print(long long int total_steps);
 
 	virtual ~TimingManager();
 };

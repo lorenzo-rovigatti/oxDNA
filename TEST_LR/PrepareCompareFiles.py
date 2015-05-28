@@ -3,23 +3,25 @@
 from TestSuite import *
 
 class CompareFileGenerator(object):
-    def __init__(self, folder, oxDNA_path, level):
+    def __init__(self, folder, executable, level):
         self.log_prefix = "CompareFileGenerator:"
         
         self.base_folder = os.getcwd()
         self.folder = folder
-        self.oxDNA_path = os.path.abspath(oxDNA_path)
+        self.executable = os.path.abspath(executable)
+        self.executable_name = os.path.basename(self.executable)
         self.level = level
             
         input_name = level + SUFFIX_INPUT
         input_path = os.path.join(folder, input_name)
         if os.path.exists(input_path) and os.path.isfile(input_path):
-            self.system = System(folder, level) 
+            self.system = System(folder, level, self.executable_name) 
                 
     def launch(self):
         os.chdir(self.folder)
         
-        to_execute = "%s %s" % (self.oxDNA_path, self.system.input_name)
+        log_file = get_log_name(self.level)
+        to_execute = "%s %s log_file=%s no_stdout_energy=0" % (self.executable, self.system.input_name, log_file)
         p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
         p.wait()
         
@@ -34,7 +36,7 @@ class CompareFileGenerator(object):
 def main():
     def print_usage():
         print "USAGE:"
-        print "\t%s path oxDNA_executable test_level [-d|--debug] [-h|--help] [-v|--version]" % sys.argv[0]
+        print "\t%s path executable test_level [-d|--debug] [-h|--help] [-v|--version]" % sys.argv[0]
         exit(1)
 
     def print_version():

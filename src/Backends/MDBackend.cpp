@@ -14,15 +14,6 @@ template<typename number>
 MDBackend<number>::MDBackend() : SimBackend<number>(), _refresh_velocities(false) {
 	this->_sim_type = SIM_MD;
 	_reset_initial_com_momentum = false;
-
-	// initialize the messages for the timings output
-	this->_timer_msgs_number = 6;
-	strncpy(this->_timer_msgs[0], "MD step", 256);
-	strncpy(this->_timer_msgs[1], "First step", 256);
-	strncpy(this->_timer_msgs[2], "Hilbert sorting", 256);
-	strncpy(this->_timer_msgs[3], "Lists update", 256);
-	strncpy(this->_timer_msgs[4], "Forces + second step", 256);
-	strncpy(this->_timer_msgs[5], "Thermostat", 256);
 }
 
 template<typename number>
@@ -84,6 +75,11 @@ void MDBackend<number>::init() {
 		OX_LOG(Logger::LOG_INFO, "Setting the centre of mass' momentum to 0");
 		_reset_momentum();
 	}
+
+	_timer_first_step = TimingManager::instance()->new_timer(std::string("First Step"), std::string("SimBackend"));
+	_timer_forces = TimingManager::instance()->new_timer(std::string("Forces"), std::string("SimBackend"));
+	_timer_thermostat = TimingManager::instance()->new_timer(std::string("Thermostat"), std::string("SimBackend"));
+	_timer_lists = TimingManager::instance()->new_timer(std::string("Lists"), std::string("SimBackend"));
 }
 
 template<typename number>

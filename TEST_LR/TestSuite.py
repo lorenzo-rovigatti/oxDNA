@@ -11,6 +11,10 @@ from multiprocessing import Lock
 
 SUFFIX_INPUT = "_input"
 SUFFIX_COMPARE = "_compare"
+SUFFIX_LOG = "_log.dat"
+
+def get_log_name(level):
+    return "%s%s" % (level, SUFFIX_LOG)
 
 # static class
 class Logger():
@@ -47,10 +51,10 @@ class Runner(threading.Thread):
             
             system = details["system"]
             folder = system.folder
-            to_execute = "%s %s" % (details["oxDNA"], system.input_name)
+            log_file = get_log_name(details["level"])
+            to_execute = "%s %s log_file=%s no_stdout_energy=0" % (details["executable"], system.input_name, log_file)
             
             try:
-                
                 p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, cwd=folder)
                 p.wait()
                 system.simulation_done(p)
@@ -198,11 +202,12 @@ class Analyser(object):
 
 
 class System(object):
-    def __init__(self, folder, level):
+    def __init__(self, folder, level, exec_name):
         self.log_prefix = "System '%s':" % folder
         
         Logger.log("%s initialising" % self.log_prefix, Logger.DEBUG)
         
+        self.executable_name = exec_name
         self.folder = os.path.abspath(folder)
         self.level = level
         self.input_name = level + SUFFIX_INPUT
@@ -214,24 +219,36 @@ class System(object):
         self.n_failed = 0
     
     def simulation_done(self, p, do_tests=True):
-        
+        error = False
         if p.returncode != 0:
-            Logger.log("%s oxDNA returned %d" % (self.log_prefix, p.returncode), Logger.WARNING)
-            return
+            # segfault
+            if p.returncode == 139: Logger.log("%s segmentation fault (return code %d)" % (self.log_prefix, p.returncode), Logger.WARNING)
+            else: Logger.log("%s %s returned %d" % (self.executable_name, self.log_prefix, p.returncode), Logger.WARNING)
+            error = True
             
-        # check the standard error for errors
-        for l in p.stderr.readlines():
-            if l.startswith("ERROR"): 
-                Logger.log("%s oxDNA error: %s" % (self.log_prefix, l.strip()), Logger.WARNING)
-            
+        # check the logfile for errors
+        log_file = os.path.join(self.folder, get_log_name(self.level))
+        if os.path.exists(log_file):
+            f = open(log_file)
+            for l in f.readlines():
+                if l.startswith("ERROR"): 
+                    Logger.log("%s %s error: %s" % (self.executable_name, self.log_prefix, l.strip()), Logger.WARNING)
+                    error = True
+            f.close()
+        
         # check the standard output for nans and infs
         for l in p.stdout.readlines():
             tokens = ["nan", "inf"]
             for t in tokens: 
                 if t in l: 
-                    Logger.log("%s oxDNA generated a '%s': %s" % (t, l), Logger.WARNING)
+                    Logger.log("%s %s generated a '%s': %s" % (self.executable_name, t, l), Logger.WARNING)
+                    error = True
         
-        Logger.log("%s oxDNA run completed and successful" % self.log_prefix, Logger.DEBUG)
+        # we don't run tests if the simulation was not successful. We put this here so that all
+        # above messages can be printed independently of each other
+        if error: return
+        
+        Logger.log("%s %s run completed and successful" % (self.executable_name, self.log_prefix), Logger.DEBUG)
         
         if do_tests:
             (n_tests, n_failed) = self.analyser.test()
@@ -242,10 +259,11 @@ class System(object):
         
     
 class TestManager(object):
-    def __init__(self, list_file, oxDNA_path, level, threads=1):
+    def __init__(self, list_file, executable, level, threads=1):
         self.log_prefix = "TestManager:"
         
-        self.oxDNA_path = os.path.abspath(oxDNA_path)
+        self.executable = os.path.abspath(executable)
+        self.executable_name = os.path.basename(self.executable)
         self.level = level
         self.systems = []
         self.threads = threads
@@ -259,7 +277,7 @@ class TestManager(object):
                 continue
             input_path = os.path.join(d, input_name)
             if os.path.exists(input_path) and os.path.isfile(input_path):
-                new_system = System(d, level) 
+                new_system = System(d, level, self.executable_name) 
                 self.systems.append(new_system)
                 
         f.close()
@@ -271,11 +289,12 @@ class TestManager(object):
             runner.start()
         
         for system in self.systems:
-            Logger.log("%s starting oxDNA in '%s'" % (self.log_prefix, system.folder), Logger.DEBUG)
+            Logger.log("%s starting %s in '%s'" % (self.executable_name, self.log_prefix, system.folder), Logger.DEBUG)
             
             details = {
                        "system" : system,
-                       "oxDNA" : self.oxDNA_path,
+                       "executable" : self.executable,
+                       "level" : self.level
                        }
             
             Runner.queue.put(details, block=True)
@@ -289,13 +308,13 @@ class TestManager(object):
             n_failed += system.n_failed
             n_tests += system.n_tests
             
-        Logger.log("SUMMARY\n\tFAILED/TOTAL: %d/%d" % (n_failed, n_tests), Logger.RESULTS, "\n")
+        Logger.log("Summary for level '%s'\n\tFAILED/TOTAL: %d/%d\n" % (self.level, n_failed, n_tests), Logger.RESULTS, "\n")
     
     
 def main():
     def print_usage():
         print "USAGE:"
-        print "\t%s folder_list_file oxDNA_executable test_level [-d|--debug] [-h|--help] [-v|--version] [--threads=N_threads]" % sys.argv[0]
+        print "\t%s folder_list_file executable test_level [-d|--debug] [-h|--help] [-v|--version] [--threads=N_threads]" % sys.argv[0]
         exit(1)
 
     def print_version():
@@ -332,6 +351,7 @@ def main():
         Logger.log("List file '%s' does not exist or it is unreadable" % file_list, Logger.CRITICAL)
         sys.exit(1)
         
+    Logger.log("Running tests for level '%s'" % sys.argv[3], Logger.INFO)
     tm = TestManager(sys.argv[1], sys.argv[2], sys.argv[3], threads=threads)
     tm.launch()
     tm.finalise()
@@ -339,4 +359,3 @@ def main():
     
 if __name__ == '__main__':
     main()
-    
