@@ -4,7 +4,7 @@ backend_precision = double
 sim_type = MD
 steps = 10 
 
-thermostat = langevina
+thermostat = langevin
 diff_coeff = 1.
 
 dt = 0.001
@@ -27,5 +27,3 @@ refresh_vel = 1
 
 no_stdout_energy = 1
 log_file = log.dat
-
-

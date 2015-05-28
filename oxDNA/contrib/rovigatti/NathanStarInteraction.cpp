@@ -8,7 +8,7 @@
 #include "NathanStarInteraction.h"
 
 template<typename number>
-NathanStarInteraction<number>::NathanStarInteraction() : _sqrt_pi(sqrt(M_PI)), _patch_r(0.5), _sqr_patch_r(SQR(_patch_r)), _star_f(-1), _interp_size(500) {
+NathanStarInteraction<number>::NathanStarInteraction() : _sqrt_pi(sqrt(M_PI)), _patch_r(0.5), _sqr_patch_r(SQR(_patch_r)), _star_f(-1), _is_marzi(false), _interp_size(500) {
 	this->_int_map[PATCHY_PATCHY] = &NathanStarInteraction<number>::_patchy_interaction;
 
 	_rep_E_cut = 0.;
@@ -91,6 +91,8 @@ void NathanStarInteraction<number>::get_settings(input_file &inp) {
 	getInputNumber(&inp, "NATHAN_size_ratio", &size_ratio, 1);
 	_star_sigma_g = 1. / size_ratio;
 
+	if(_star_sigma_g > 1.) _is_marzi = true;
+
 	getInputInt(&inp, "NATHAN_f", &_star_f, 1);
 }
 
@@ -135,12 +137,55 @@ number NathanStarInteraction<number>::_patchy_star_derivative(number r) {
 	number sqr_r = r*r;
 	number z = r - _patch_r;
 	number smax = sqrt(z*(z + 1.));
+
 	number derivative = -_T * _pi_lambda * _star_f3_2 * _patch_r / sqr_r;
 
 	if(z < _star_rs) derivative *= (sqr_r - _sqr_patch_r)*(0.5/SQR(z) - 0.5/_sqr_star_rs + _psi_1(_star_rs, smax)) - log(z/_star_rs) + _psi_2(_star_rs, smax);
 	else derivative *= (sqr_r - _sqr_patch_r)*_psi_1(z, smax) + _psi_2(z, smax);
 
 	return derivative;
+}
+
+template<typename number>
+number NathanStarInteraction<number>::_patchy_star_marzi_derivative(number r, gsl_spline *spl, gsl_interp_accel *acc, number bin) {
+	number sqr_r = r*r;
+	number z = r - _patch_r;
+	number factor = M_PI * _patch_r / sqr_r;
+
+	if(spl == NULL) {
+		spl = gsl_spline_alloc(gsl_interp_cspline, _interp_size);
+		acc = gsl_interp_accel_alloc();
+
+		double *ss = new double[_interp_size]();
+		double *integrand = new double[_interp_size]();
+		for(int i = 0; i < _interp_size; i++) {
+			double s = (i + 0.5)*bin;
+			double t = (z*(r + _patch_r) - SQR(s)) / s;
+			ss[i] = s;
+			integrand[i] = (sqr_r -_sqr_patch_r + SQR(s)) * (_pressure(s) - _pressure(s + t));
+		}
+		gsl_spline_init(spl, ss, integrand, _interp_size);
+
+		delete[] ss;
+		delete[] integrand;
+	}
+
+	number smax = sqrt(z*(z + 1.));
+	number smax_used = (_interp_size-0.5)*bin;
+	if(smax > smax_used) smax = smax_used;
+	if(z > smax) return 0.f;
+
+	return factor * gsl_spline_eval_integ(spl, z, smax, acc);
+}
+
+template<typename number>
+number NathanStarInteraction<number>::_pressure(number s) {
+	number common_factor = _T * _pi_lambda * _star_f3_2 / M_PI;
+	if(s < _star_rs) return common_factor / CUB(s);
+
+	number sqr_s = SQR(s);
+	number sqr_kappa = SQR(_kappa);
+	return common_factor * (1./sqr_s + 2*sqr_kappa) * _xi * exp(-sqr_kappa*(sqr_s - _sqr_star_rs)) / _star_rs;
 }
 
 template<typename number>
@@ -156,9 +201,12 @@ void NathanStarInteraction<number>::_setup_interp() {
 	number r = _patch_r + bin;
 	double *rs = new double[_interp_size]();
 	double *f_ys = new double[_interp_size]();
+	gsl_spline *marzi_spline = NULL;
+	gsl_interp_accel *marzi_accel = NULL;
 	for(int i = 0; i < _interp_size; i++, r += bin) {
 		rs[i] = r;
-		f_ys[i] = _patchy_star_derivative(r);
+		if(_is_marzi) f_ys[i] = _patchy_star_marzi_derivative(r, marzi_spline, marzi_accel, bin);
+		else f_ys[i] = _patchy_star_derivative(r);
 	}
 	gsl_spline_init(_spl_patchy_star, rs, f_ys, _interp_size);
 
@@ -166,7 +214,9 @@ void NathanStarInteraction<number>::_setup_interp() {
 	ofstream out_der("tabulated_patchy_star.dat");
 	for(int i = 0; i < _interp_size-1; i++) {
 		r = rs[0] + 0.001 + bin*i;
-		number real_der = _patchy_star_derivative(r);
+		number real_der;
+		if(_is_marzi) real_der = _patchy_star_marzi_derivative(r, marzi_spline, marzi_accel, bin);
+		else real_der = _patchy_star_derivative(r);
 		number interp_der = gsl_spline_eval(_spl_patchy_star, r, _acc_patchy_star);
 		out_der << r << " " << real_der << " " << interp_der << " " << (real_der - interp_der) / real_der << endl;
 	}
@@ -182,6 +232,11 @@ void NathanStarInteraction<number>::_setup_interp() {
 	delete[] rs;
 	delete[] f_ys;
 	delete[] u_ys;
+
+	if(_is_marzi) {
+		gsl_spline_free(marzi_spline);
+		gsl_interp_accel_free(marzi_accel);
+	}
 }
 
 template<typename number>
@@ -189,7 +244,7 @@ void NathanStarInteraction<number>::init() {
 	_setup_lambda_kappa();
 
 	_star_f1_2 = sqrt(_star_f);
-	_star_f3_2 = _star_f*sqrt(_star_f);
+	_star_f3_2 = CUB(_star_f1_2);
 
 	_star_rg = 0.5*_star_sigma_g;
 	_star_rs = 2.*_star_rg/3.;
@@ -198,7 +253,7 @@ void NathanStarInteraction<number>::init() {
 	_sqr_star_sigma_s = SQR(_star_sigma_s);
 	_sqr_star_sigma_g = SQR(_star_sigma_g);
 
-	_patchy_star_rcut = _patch_r + 2*_star_sigma_g;
+	_patchy_star_rcut = _patch_r + _star_sigma_g;
 	_sqr_patchy_star_rcut = SQR(_patchy_star_rcut);
 
 	_star_rcut = 3.*_star_sigma_s;
