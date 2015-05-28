@@ -215,7 +215,6 @@ void FFS_MD_CPUBackend<number>::get_settings(input_file &inp) {
 	getInputString(&inp, "ffs_file", _ffs_file, 1);
 }
 
-
 template<typename number>
 number FFS_MD_CPUBackend<number>::pair_interaction_nonbonded_DNA_with_op(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	LR_vector<number> computed_r(0, 0, 0);
@@ -266,48 +265,44 @@ void FFS_MD_CPUBackend<number>::_ffs_compute_forces(void) {
 
 template<typename number>
 void FFS_MD_CPUBackend<number>::sim_step(llint curr_step) {
-	get_time(&this->_timer, 0);
+	this->_mytimer->resume();
 
 	this->_op.reset();
 
-	get_time(&this->_timer, 2);
+	this->_timer_first_step->resume();
 	this->_first_step(curr_step);
-	get_time(&this->_timer, 3);
+	this->_timer_first_step->pause();
 
-	get_time(&this->_timer, 6);
+	this->_timer_lists->resume();
 	if(!this->_lists->is_updated()) {
 		this->_lists->global_update();
 		this->_N_updates++;
 	}
-	get_time(&this->_timer, 7);
+	this->_timer_lists->pause();
 
-	get_time(&this->_timer, 8);
+	this->_timer_forces->resume();
 	this->_ffs_compute_forces();
 	this->_second_step();
-	get_time(&this->_timer, 9);
+	this->_timer_forces->pause();
 
-	get_time(&this->_timer, 10);
+	this->_timer_thermostat->resume();
 	this->_thermostat->apply (this->_particles, curr_step);
-	get_time(&this->_timer, 11);
-
-	get_time(&this->_timer, 1);
+	this->_timer_thermostat->pause();
 
 	_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
 
 	//cout << "I just stepped and bond parameter is " << _op.get_hb_parameter(0) << " and distance is " << _op.get_distance_parameter(0) << endl;
-	process_times(&this->_timer);
-
 	if (this->check_stop_conditions()) {
 		SimManager::stop = true;
-		OX_LOG(Logger::LOG_INFO,
-				"Reached stop conditions, stopping in step %lld", curr_step);
+		OX_LOG(Logger::LOG_INFO, "Reached stop conditions, stopping in step %lld", curr_step);
 		char tmp[1024];
 		_op.sprintf_names_and_values(tmp);
-		OX_LOG(Logger::LOG_INFO,
-				"FFS final values: %s", tmp);
+		OX_LOG(Logger::LOG_INFO, "FFS final values: %s", tmp);
 	}
 
+	this->_mytimer->pause();
 }
+
 
 template<typename number>
 void FFS_MD_CPUBackend<number>::init() {

@@ -34,6 +34,8 @@ protected:
 
 	int *_h_gpu_index, *_h_cpu_index;
 
+	Timer *_timer_sorting;
+
 	number4 *_d_vels, *_h_vels;
 	number4 *_d_Ls, *_h_Ls;
 	number4 *_d_forces, *_h_forces;

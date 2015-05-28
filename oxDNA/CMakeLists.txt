@@ -5,6 +5,7 @@ OPTION(MPI "Set to ON to compile with MPI support" OFF)
 OPTION(Debug "Set to ON to compile with debug symbols" OFF)
 OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
+OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have
 # problems at linking time
@@ -40,6 +41,11 @@ IF(G)
 	SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 	MESSAGE(STATUS "Compiling in Release+Debug symbols mode")
 ENDIF(G)
+
+IF(MOSIX)
+	ADD_DEFINITIONS(-DMOSIX)
+	MESSAGE(STATUS "Disabling timings")
+ENDIF(MOSIX)
 
 ADD_DEFINITIONS(-Wall -Wshadow)
 
@@ -103,22 +109,23 @@ if(DOXYGEN_FOUND)
 	)
 ENDIF(DOXYGEN_FOUND)
 
-ADD_CUSTOM_TARGET(test_new
-    ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA quick
+ADD_CUSTOM_TARGET(test_run
+    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA run
+    COMMAND ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/DNAnalysis analysis
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
-    COMMENT "Running new build integration test" VERBATIM
+    COMMENT "Running build integration tests" VERBATIM
 )
 
 ADD_CUSTOM_TARGET(test_quick
-    ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TEST/BuildTest.sh ${PROJECT_BINARY_DIR}/bin/oxDNA
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST
-    COMMENT "Running build integration test" VERBATIM
+    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA quick
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
+    COMMENT "Running quick tests" VERBATIM
 )
 
 ADD_CUSTOM_TARGET(test_scientific
-    ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TEST/ScientificTest.sh ${PROJECT_BINARY_DIR}/bin/oxDNA
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST
-    COMMENT "Running scientific integration test." VERBATIM
+    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA scientific
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
+    COMMENT "Running scientific tests" VERBATIM
 )
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)

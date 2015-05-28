@@ -11,10 +11,22 @@
 
 #include <algorithm>
 
+#ifdef NOCUDA
+#define SYNCHRONIZE()
+#else
+#include <cuda_runtime_api.h>
+#define SYNCHRONIZE() cudaDeviceSynchronize()
+#endif
+
+#ifdef MOSIX
+#define OXDNA_CLOCK() 0
+#else
+#define OXDNA_CLOCK() clock()
+#endif
+
 Timer::Timer() {
 	_time = (clock_t) 0;
 	_last = (clock_t) 0;
-	//_last = clock();
 	_active = false;
 	_desc = std::string("Uninitialized timer");
 }
@@ -23,30 +35,30 @@ Timer::Timer(std::string arg) {
 	_desc = std::string(arg);
 	_time = (clock_t) 0;
 	_last = (clock_t) 0;
-	//_last = clock();
 	_active = false;
 }
 
 Timer::~Timer() {
-
+	OX_DEBUG("Timer with desc %s deleted", _desc.c_str());
 }
 
 void Timer::resume() {
 	if(_active) throw oxDNAException("resuming already active timer %s", _desc.c_str());
-	_last = clock();
+	_last = OXDNA_CLOCK();
 	_active = true;
 }
 
 void Timer::pause() {
+	SYNCHRONIZE();
 	if(!_active) throw oxDNAException("pausing resuming already inactive timer %s", _desc.c_str());
-	_time += (clock() - _last);
+	_time += (OXDNA_CLOCK() - _last);
 	_active = false;
 }
 
 // this should work regardless of the timers being active
 long long int Timer::get_time() {
 	if(_active)
-		return (long long int) (_time + (clock() - _last));
+		return (long long int) (_time + (OXDNA_CLOCK() - _last));
 	else
 		return (long long int) _time;
 }
@@ -62,7 +74,12 @@ TimingManager::TimingManager() {
 }
 
 TimingManager::~TimingManager() {
-	for(unsigned int i = 0; i < _timers.size(); i++) delete _timers[i];
+	for(unsigned int i = 0; i < _timers.size(); i++) {
+		if (_timers[i] != NULL) {
+			OX_DEBUG ("Trying to delete timer...");
+			delete _timers[i];
+		}
+	}
 }
 
 void TimingManager::init() {
@@ -91,9 +108,7 @@ Timer * TimingManager::new_timer(std::string desc) {
 	Timer * timer = new Timer(desc);
 
 	_timers.push_back(timer);
-	//_parents.insert (std::make_pair (timer, (Timer *)NULL));
 	_parents[timer] = (Timer *) NULL;
-	//_desc_map.insert (std::make_pair (desc, timer));
 	_desc_map[desc] = timer;
 
 	OX_DEBUG("Adding new timer with description %s and no parent", desc.c_str());
@@ -107,9 +122,7 @@ Timer * TimingManager::new_timer(std::string desc, std::string parent_desc) {
 
 	Timer * timer = new Timer(desc);
 	_timers.push_back(timer);
-	//_parents.insert (std::make_pair (timer, get_timer_by_desc(parent_desc)));
 	_parents[timer] = get_timer_by_desc(parent_desc);
-	//_desc_map.insert (std::make_pair (desc, timer));
 	_desc_map[desc] = timer;
 
 	OX_DEBUG("Adding new timer with description %s and parent %s", desc.c_str(), parent_desc.c_str());
@@ -135,7 +148,7 @@ void TimingManager::add_timer(Timer * arg, std::string parent_desc) {
 	_desc_map.insert(std::make_pair(arg->get_desc(), arg));
 }
 
-void TimingManager::print() {
+void TimingManager::print(long long int total_steps) {
 	// times (including children) 
 	std::map<Timer *, long long int> totaltimes;
 	for(unsigned int i = 0; i < _timers.size(); i++) totaltimes[_timers[i]] = _timers[i]->get_time();
@@ -181,7 +194,14 @@ void TimingManager::print() {
 	}
 
 	// now the list is ordered in the order we want to print it
+	double tot = (double)get_timer_by_desc("SimBackend")->get_time() / CPSF;
+	if(tot < 1e-10) {
+		OX_LOG(Logger::LOG_INFO, "No timings available (either oxDNA was compiled with MOSIX=1 or no simulation steps were performed)");
+		return;
+	}
+
 	OX_LOG(Logger::LOG_NOTHING, "");
+	OX_LOG(Logger::LOG_INFO, "Total Running Time: %g s, per step: %g ms", tot, tot / total_steps * 1000.);
 	OX_LOG(Logger::LOG_INFO, "Timings, in seconds, by Timer (total, own, spent in children)");
 	for(unsigned int i = 0; i < mylist.size(); i++) {
 		char mystr[512] = "";
@@ -198,7 +218,12 @@ void TimingManager::print() {
 		strcat(mystr, "> ");
 		strcat(mystr, t->get_desc().c_str());
 		//printf ("%s %lld %lld %lld %s\n", t->get_desc().c_str(), totaltimes[t], own_time[t], sum_of_children[t]);
-		OX_LOG(Logger::LOG_NOTHING, "%-30s %12.3lf %12.3lf %12.3lf", (char *) mystr, totaltimes[t] / CPSF, own_time[t] / CPSF, sum_of_children[t] / CPSF);
+		//OX_LOG(Logger::LOG_NOTHING, "%-30s %12.3lf %12.3lf %12.3lf", (char *) mystr, totaltimes[t] / CPSF, own_time[t] / CPSF, sum_of_children[t] / CPSF);
+		OX_LOG(Logger::LOG_NOTHING, "%-30s %12.3lf (%5.1lf\%) %12.3lf (%5.1f\%) %12.3lf (%5.1f\%)",
+				(char *) mystr,
+				totaltimes[t] / CPSF, totaltimes[t] / CPSF / tot * 100.,
+				own_time[t] / CPSF, own_time[t] / CPSF / tot * 100.,
+				sum_of_children[t] / CPSF, sum_of_children[t] / CPSF / tot * 100.);
 	}
 	OX_LOG(Logger::LOG_NOTHING, "");
 

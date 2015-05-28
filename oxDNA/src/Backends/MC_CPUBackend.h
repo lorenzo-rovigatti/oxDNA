@@ -22,6 +22,10 @@ protected:
 
 	bool _enable_flip;
 
+	Timer * _timer_move;
+	Timer * _timer_box;
+	Timer * _timer_lists;
+
 	number _target_box;
 	number _box_tolerance;
 	number _e_tolerance;

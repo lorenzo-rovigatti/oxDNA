@@ -20,7 +20,6 @@ template<typename number>
 SimBackend<number>::SimBackend() {
 	// we need to initialize everything so that we can check what we can
 	// and what we can't delete[] in the destructor
-	_timer_msgs_number = 0;
 	_enable_fix_diffusion = true;
 	_print_timings = false;
 	_external_forces = false;
@@ -34,7 +33,6 @@ SimBackend<number>::SimBackend() {
 	_N = 0;
 	// here to avoid valgrind's "Conditional jump or move depends on
 	// uninitialised value"
-	_timer.state = TIMER_NOT_INIT;
 	_start_step_from_file = (llint) 0;
 	_U = (number) 0.f;
 	_K = (number) 0.f;
@@ -52,6 +50,7 @@ SimBackend<number>::SimBackend() {
 	_read_conf_step = -1;
 	_conf_interval = -1;
 	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = NULL;
+	_mytimer = NULL;
 }
 
 template<typename number>
@@ -65,40 +64,40 @@ SimBackend<number>::~SimBackend() {
 
 	ForceFactory<number>::instance()->clear();
 
-	if(_timer.state == TIMER_READY) {
-		// here we print the input output information
-		llint total_file = 0;
-		llint total_stderr = 0;
-		OX_LOG (Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
-		for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-			llint now = (*it)->get_bytes_written();
-			std::string fname = (*it)->get_output_name();
-			if (!strcmp (fname.c_str(), "stderr") || !strcmp (fname.c_str(), "stdout")) total_stderr += now;
-			else total_file += now;
-			std::string mybytes = Utils::bytes_to_human (now);
-			OX_DEBUG("  on %s: %s", fname.c_str(), mybytes.c_str());
-		}
-		OX_LOG (Logger::LOG_NOTHING, "\t%s written to files" , Utils::bytes_to_human(total_file).c_str());
-		OX_LOG (Logger::LOG_NOTHING, "\t%s written to stdout/stderr" , Utils::bytes_to_human(total_stderr).c_str());
-		double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
-		if(time_passed > 0.) OX_LOG (Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
-		
-		prepare_timer_results(&_timer);
-		OX_LOG(Logger::LOG_INFO, "Timings informations:");
-		print_times(&_timer, Logger::instance()->get_log_stream());
-		OX_LOG(Logger::LOG_NOTHING, "");
-
-		if(_print_timings == true) {
-			FILE *timings_file = fopen(_timings_filename, "a");
-			fprintf(timings_file, "%d %lf\n", _N, _timer.timings[0]);
-			fclose(timings_file);
-		}
-
-		destroy_timer(&_timer);
+	// here we print the input output information
+	llint total_file = 0;
+	llint total_stderr = 0;
+	OX_LOG (Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
+	for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
+		llint now = (*it)->get_bytes_written();
+		std::string fname = (*it)->get_output_name();
+		if (!strcmp (fname.c_str(), "stderr") || !strcmp (fname.c_str(), "stdout")) total_stderr += now;
+		else total_file += now;
+		std::string mybytes = Utils::bytes_to_human (now);
+		OX_DEBUG("  on %s: %s", fname.c_str(), mybytes.c_str());
 	}
+	OX_LOG (Logger::LOG_NOTHING, "\t%s written to files" , Utils::bytes_to_human(total_file).c_str());
+	OX_LOG (Logger::LOG_NOTHING, "\t%s written to stdout/stderr" , Utils::bytes_to_human(total_stderr).c_str());
+
+	if(_mytimer != NULL ) {
+		double time_passed = (double)_mytimer->get_time() / (double)CLOCKS_PER_SEC;
+		if(time_passed > 0.) OX_LOG (Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
+	}
+	
+	/* TODO 
+	 * to implement: optional file output for timer
+	OX_LOG(Logger::LOG_INFO, "Timings informations:");
+	print_times(&_timer, Logger::instance()->get_log_stream());
+	OX_LOG(Logger::LOG_NOTHING, "");
+
+	if(_print_timings == true) {
+		FILE *timings_file = fopen(_timings_filename, "a");
+		fprintf(timings_file, "%d %lf\n", _N, _timer.timings[0]);
+		fclose(timings_file);
+	}
+	*/
 
 	for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
-
 
 	// destroy lists;
 	if (_lists != NULL) delete _lists;
@@ -113,6 +112,9 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	// initialise the plugin manager with the input file
 	PluginManager *pm = PluginManager::instance();
 	pm->init(inp);
+
+	// initialise the timer
+	_mytimer = TimingManager::instance()->new_timer(std::string("SimBackend"));	
 
 	_interaction = InteractionFactory::make_interaction<number>(inp);
 	_interaction->get_settings(inp);
@@ -279,8 +281,6 @@ void SimBackend<number>::get_settings(input_file &inp) {
 
 template<typename number>
 void SimBackend<number>::init() {
-	init_timer(&_timer, _timer_msgs_number, _timer_msgs);
-
 	_conf_input.open(_conf_filename.c_str());
 	if(_conf_input.good() == false) throw oxDNAException("Can't read configuration file '%s'", _conf_filename.c_str());
 
@@ -528,7 +528,8 @@ void SimBackend<number>::_print_ready_observables(llint curr_step) {
 
 	// here we control the timings; we leave the code a 30-second grace time
 	// to print the initial configuration
-	double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
+	//double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
+	double time_passed = (double)_mytimer->get_time() / (double)CLOCKS_PER_SEC;
 	if(time_passed > 30) {
 		double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
 		OX_DEBUG("Current data production rate: %g MB/s", MBps);

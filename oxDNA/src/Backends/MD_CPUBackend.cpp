@@ -106,31 +106,29 @@ void MD_CPUBackend<number>::_second_step() {
 
 template<typename number>
 void MD_CPUBackend<number>::sim_step(llint curr_step) {
-	get_time(&this->_timer, 0);
+	this->_mytimer->resume();
 
-	get_time(&this->_timer, 2);
+	this->_timer_first_step->resume();
 	_first_step(curr_step);
-	get_time(&this->_timer, 3);
+	this->_timer_first_step->pause();
 
-	get_time(&this->_timer, 6);
+	this->_timer_lists->resume();
 	if(!this->_lists->is_updated()) {
 		this->_lists->global_update();
 		this->_N_updates++;
 	}
-	get_time(&this->_timer, 7);
+	this->_timer_lists->pause();
 
-	get_time(&this->_timer, 8);
+	this->_timer_forces->resume();
 	_compute_forces();
 	_second_step();
-	get_time(&this->_timer, 9);
+	this->_timer_forces->pause();
 
-	get_time(&this->_timer, 10);
+	this->_timer_thermostat->resume();
 	_thermostat->apply(this->_particles, curr_step);
-	get_time(&this->_timer, 11);
+	this->_timer_thermostat->pause();
 
-	get_time(&this->_timer, 1);
-
-	process_times(&this->_timer);
+	this->_mytimer->pause();
 }
 template<typename number>
 void MD_CPUBackend<number>::get_settings (input_file &inp) {

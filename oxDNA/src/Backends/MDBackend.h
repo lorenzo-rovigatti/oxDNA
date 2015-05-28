@@ -28,8 +28,13 @@ class MDBackend: public SimBackend<number> {
 protected:
 	number _dt;
 	bool _refresh_velocities;
-
 	bool _reset_initial_com_momentum;
+
+	// timers
+	Timer *_timer_first_step;
+	Timer *_timer_forces;
+	Timer *_timer_lists;
+	Timer *_timer_thermostat;
 
 	/**
 	 * @brief Set the momentum of the centre of mass to 0.

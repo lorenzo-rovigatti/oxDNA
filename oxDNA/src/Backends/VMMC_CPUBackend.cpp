@@ -56,9 +56,6 @@ VMMC_CPUBackend<number>::~VMMC_CPUBackend() {
 	delete[] new_stn3s;
 	delete[] new_stn5s;
 
-	if (this->_N_updates > 0)
-		divide_given_timing(&this->_timer, 1, this->_N / (double) this->_N_updates);
-
 	if (_netemps > 0)
 		delete[] _etemps;
 
@@ -1349,6 +1346,10 @@ inline void VMMC_CPUBackend<number>::_fix_list (int p_index, int oldcell, int ne
 
 template<typename number>
 void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
+
+	this->_mytimer->resume();
+	this->_timer_move->resume();
+
 	//srand48(curr_step);
 	/*
 	  {
@@ -1368,7 +1369,7 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 	//	printf("%lf %lf\n", this->_U/this->_N, this->_U_hydr);
 	//	exit(1);
 
-	get_time(&this->_timer, 0);
+	//get_time(&this->_timer, 0);
 
 	int * clust, nclust;
 	clust = new int[this->_N];
@@ -1621,8 +1622,10 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 		//printf ("all ok (%g %g)... \n", U_from_tally, this->_U);
 	}
 
-	get_time(&this->_timer, 1);
-	process_times(&this->_timer);
+	//get_time(&this->_timer, 1);
+	//process_times(&this->_timer);
+	this->_timer_move->pause();
+	this->_mytimer->pause();
 }
 
 template<typename number>
@@ -1849,7 +1852,7 @@ void VMMC_CPUBackend<number>::_compute_energy () {
 template<typename number>
 void VMMC_CPUBackend<number>::_init_cells() {
 	//_vmmc_N_cells_side = (int) floor(this->_box_side / sqrt(this->_sqr_rverlet));
-	_vmmc_N_cells_side = (int) floor(this->_box_side / this->_rcut + 0.1);
+	_vmmc_N_cells_side = (int) (floor(this->_box_side / this->_rcut) + 0.1);
 	//printf ("### %g %lf -> %i\n", this->_box_side, sqrt(this->_sqr_rverlet), _vmmc_N_cells_side);
 
 	/*

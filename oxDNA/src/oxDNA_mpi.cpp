@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	try {
+		TimingManager::init();
 		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
 		if(!strcmp(argv[1], "-v")) print_version();
 
@@ -66,6 +67,7 @@ int main(int argc, char *argv[]) {
 		MPI_Finalize();
 
 		OX_LOG(Logger::LOG_INFO, "END OF THE SIMULATION, everything went OK!");
+		TimingManager::clear();
 	}
 	catch (oxDNAException &e) {
 		OX_LOG(Logger::LOG_ERROR, "%s", e.error());

@@ -23,6 +23,8 @@ void print_version() {
 int main(int argc, char *argv[]) {
 	try {
 		Logger::init();
+		TimingManager::init();
+
 		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
 		if(!strcmp(argv[1], "-v")) print_version();
 
@@ -40,6 +42,7 @@ int main(int argc, char *argv[]) {
 		myanalysis.analysis();
 
 		OX_LOG(Logger::LOG_INFO, "END OF THE ANALYSIS, everything went OK!");
+		TimingManager::clear();
 	}
 	catch (oxDNAException &e) {
 		OX_LOG(Logger::LOG_ERROR, "%s", e.error());
