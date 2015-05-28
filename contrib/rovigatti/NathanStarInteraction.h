@@ -58,6 +58,7 @@ protected:
 
 	int _N_patchy;
 	int _N_stars;
+	bool _is_marzi;
 
 	void _setup_lambda_kappa();
 
@@ -68,7 +69,9 @@ protected:
 	gsl_spline *_spl_patchy, *_spl_patchy_star;
 	gsl_interp_accel *_acc_patchy, *_acc_patchy_star;
 
+	number _pressure(number s);
 	number _patchy_star_derivative(number r);
+	number _patchy_star_marzi_derivative(number, gsl_spline *, gsl_interp_accel *, number);
 	void _setup_interp();
 
 	number _patchy_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
