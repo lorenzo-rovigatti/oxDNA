@@ -150,7 +150,7 @@ template<typename number>
 number NathanStarInteraction<number>::_patchy_star_marzi_derivative(number r, gsl_spline *spl, gsl_interp_accel *acc, number bin) {
 	number sqr_r = r*r;
 	number z = r - _patch_r;
-	number factor = M_PI * _patch_r / sqr_r;
+	number factor = -M_PI * _patch_r / sqr_r;
 
 	if(spl == NULL) {
 		spl = gsl_spline_alloc(gsl_interp_cspline, _interp_size);

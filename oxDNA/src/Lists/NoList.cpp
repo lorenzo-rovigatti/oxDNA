@@ -35,10 +35,10 @@ void NoList<number>::global_update(bool force_update) {
 }
 
 template<typename number>
-std::vector<BaseParticle<number> *> NoList<number>::get_neigh_list(BaseParticle<number> *p) {
+std::vector<BaseParticle<number> *> NoList<number>::get_neigh_list(BaseParticle<number> *p, bool all) {
 	std::vector<BaseParticle<number> *> res;
 
-	if(this->_is_MC) {
+	if(this->_is_MC && !all) {
 		for(int i = 0; i < this->_N; i++) if(i != p->index) res.push_back(this->_particles[i]);
 	}
 	else for(int i = p->index+1; i < this->_N; i++) res.push_back(this->_particles[i]);
