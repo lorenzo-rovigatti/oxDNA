@@ -38,7 +38,7 @@ std::string DiblockComs<number>::get_output_string(llint curr_step) {
 	number L = *this->_config_info.box_side;
 
 	LR_vector<number> coms[2][2];
-	int counters[2][2] = {0, 0};
+	int counters[2][2] = {{0, 0}, {0, 0}};
 
 	for(int i = 0; i < N; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];

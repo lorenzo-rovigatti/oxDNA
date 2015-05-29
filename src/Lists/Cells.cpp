@@ -185,7 +185,7 @@ void Cells<number>::global_update(bool force_update) {
 }
 
 template<typename number>
-std::vector<BaseParticle<number> *> Cells<number>::get_neigh_list(BaseParticle<number> *p) {
+std::vector<BaseParticle<number> *> Cells<number>::get_neigh_list(BaseParticle<number> *p, bool all) {
 	std::vector<BaseParticle<number> *> res;
 
 	int cind = _cells[p->index];
@@ -205,8 +205,9 @@ std::vector<BaseParticle<number> *> Cells<number>::get_neigh_list(BaseParticle<n
 
 				BaseParticle<number> *q = _heads[loop_index];
 				while(q != P_VIRTUAL) {
-					// if this is an MC simulation then we need full lists, otherwise the i-th particle will have neighbours with index > i
-					if((p->index > q->index || (this->_is_MC && p != q)) && !p->is_bonded(q) && this->_box->sqr_min_image_distance(p->pos, q->pos) < _sqr_rcut) {
+					// if this is an MC simulation or i all == true we need full lists, otherwise the i-th particle will have neighbours with index > i
+					bool include_q = (p != q && (all || ((p->index > q->index || this->_is_MC))));
+					if(include_q && !p->is_bonded(q) && this->_box->sqr_min_image_distance(p->pos, q->pos) < _sqr_rcut) {
 						res.push_back(q);
 					}
 

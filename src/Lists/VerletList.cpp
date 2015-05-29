@@ -59,7 +59,6 @@ void VerletList<number>::single_update(BaseParticle<number> *p) {
 
 template<typename number>
 void VerletList<number>::global_update(bool force_update) {
-
 	if(!_cells.is_updated() || force_update) _cells.global_update();
 
 	for(int i = 0; i < this->_N; i++) {
@@ -71,7 +70,8 @@ void VerletList<number>::global_update(bool force_update) {
 }
 
 template<typename number>
-std::vector<BaseParticle<number> *> VerletList<number>::get_neigh_list(BaseParticle<number> *p) {
+std::vector<BaseParticle<number> *> VerletList<number>::get_neigh_list(BaseParticle<number> *p, bool all) {
+	if(all) return _cells.get_neigh_list(p, true);
 	return _lists[p->index];
 }
 

@@ -74,7 +74,7 @@ public:
 	 *
 	 * * @return a vector of BaseParticle pointers
 	 */
-	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p) = 0;
+	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p, bool all=false) = 0;
 
 	/**
 	 * @brief Returns a list of potentially interaction neighbours of particle p. It does contain also bonded neighbours.
@@ -101,7 +101,7 @@ public:
 
 template<typename number>
 std::vector<BaseParticle<number> *> BaseList<number>::get_all_neighbours(BaseParticle<number> *p) {
-	std::vector<BaseParticle<number> *> neighs = get_neigh_list(p);
+	std::vector<BaseParticle<number> *> neighs = get_neigh_list(p, true);
 
 	std::set<BaseParticle<number> *> bonded_neighs;
 	typename std::vector<ParticlePair<number> >::iterator it = p->affected.begin();

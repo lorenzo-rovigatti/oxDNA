@@ -59,7 +59,7 @@ template<typename number>
 std::string NathanNeighs<number>::_particle(BaseParticle<number> *p) {
 	std::stringstream res;
 	if(p->type != 0) return res.str();
-
+	
 	int n1 = 0;
 	int n2 = 0;
 	LR_vector<number> p_axis = p->orientationT.v3;
