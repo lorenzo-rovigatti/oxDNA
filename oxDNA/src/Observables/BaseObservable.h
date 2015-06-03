@@ -27,7 +27,7 @@ public:
 	/**
 	 * @brief Default constructor. It does nothing but zero initialization
 	 */
-	ConfigInfo() : particles(NULL), box_side(NULL), interaction(NULL), N(NULL), backend_info(NULL), lists(NULL) {}
+	ConfigInfo() : particles(NULL), box_side(NULL), interaction(NULL), N(NULL), backend_info(NULL), lists(NULL), box(NULL) {}
 
 	/**
 	 * @brief Allows one to initialize everything at once.
@@ -40,6 +40,9 @@ public:
 	 * @param l pointer to list object
 	 */
 	ConfigInfo(BaseParticle<number> **p, number *b, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l) : particles(p), box_side(b), interaction(i), N(Nn), backend_info(info), lists(l) {}
+	
+	ConfigInfo(BaseParticle<number> **p, number *b, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l, BaseBox<number> *abox) : particles(p), box_side(b), interaction(i), N(Nn), backend_info(info), lists(l), box(abox) {}
+
 	virtual ~ConfigInfo() {}
 
 	///Pointer to the array which stores all the particles' information.
@@ -59,6 +62,9 @@ public:
 	
 	/// Pointer to lists
 	BaseList<number> *lists;
+
+	/// Pointer to box object
+	BaseBox<number> * box;
 };
 
 /**

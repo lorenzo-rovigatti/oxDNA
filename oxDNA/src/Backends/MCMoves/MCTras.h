@@ -16,6 +16,8 @@ class MCTras : public BaseMove<number> {
 	protected:
 		number _delta;
 		LR_vector<number> pos_old;
+
+		number _verlet_skin;
 	
 	public:
 		MCTras(ConfigInfo<number> *Info);
