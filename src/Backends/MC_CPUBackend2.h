@@ -25,6 +25,7 @@ protected:
 	std::string _info_str;
 	void _compute_energy(); // to silence compiler, for now
 	number _accumulated_prob;
+	number _verlet_skin;
 
 public:
 	MC_CPUBackend2();
@@ -35,6 +36,8 @@ public:
 
 	void sim_step(llint cur_step);
 	void add_move (std::string move_string, input_file &sim_inp);
+	
+	void print_observables(llint curr_step); 
 };
 
 #endif /* MC_CPUBACKEND2_H_ */

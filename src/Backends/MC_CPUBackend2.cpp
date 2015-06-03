@@ -15,6 +15,7 @@ MC_CPUBackend2<number>::MC_CPUBackend2() : MCBackend<number>() {
 	_N_moves = -1;
 	_MC_Info = ConfigInfo<number>();
 	_accumulated_prob = 0.; // total weight
+	
 }
 
 template<typename number>
@@ -38,9 +39,10 @@ template<typename number>
 void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 	MCBackend<number>::get_settings(inp);
 
-	_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists);
+	//_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists);
+	_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists, this->_box);
 
-	_MC_Info.lists = this->_lists;
+	//_MC_Info.lists = this->_lists;
 
 	std::vector<std::string> move_strings;
 	_N_moves = getInputKeys (&inp, std::string("move_"), &move_strings, 0); 
@@ -58,9 +60,8 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 
 	OX_LOG (Logger::LOG_INFO, "(MC_CPUBackend2.cpp) accumulated prob: %g", _accumulated_prob);
 	
-	printf ("aborting here %s %d...\n", __FILE__, __LINE__);
-	abort ();
-
+	//printf ("aborting here %s %d...\n", __FILE__, __LINE__);
+	//abort ();
 }
 
 template<typename number>
@@ -114,6 +115,20 @@ void MC_CPUBackend2<number>::sim_step(llint curr_step) {
 		//}
 	}
 }
+
+template<typename number>
+void MC_CPUBackend2<number>::print_observables(llint curr_step) {
+	std::string tmpstr("");
+	typename std::vector<BaseMove<number> *>::iterator it; 
+	for(it = _moves.begin(); it != _moves.end(); it ++) {
+		number ratio = (*it)->get_acceptance();
+		tmpstr += Utils::sformat (" %5.3f", ratio);
+	}
+	this->_backend_info.insert(0, tmpstr + "  ");
+
+	SimBackend<number>::print_observables(curr_step);
+}
+
 
 template<typename number>
 void MC_CPUBackend2<number>::_compute_energy() {

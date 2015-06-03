@@ -35,6 +35,18 @@ class BaseMove {
 
 		/// submoves
 		vector<BaseMove *> _submoves;
+		
+		/// whether to adjust moves during equilibration
+		bool _adjust_moves;
+
+		/// number of equilibration steps
+		llint _equilibration_steps;
+
+		/// target acceptance rate for the move (used only when adjust_moves=true)
+		number _target_acc_rate;
+
+		/// auxiliary factors to adjust acceptance, used internally
+		number _rej_fact, _acc_fact;
 
 	
 	public:
@@ -61,6 +73,12 @@ class BaseMove {
 
 		/// method that applies the move to the system. Each child class must have it.
 		virtual void apply (llint curr_step) = 0;
+
+		/// method that gets the ratio of accepted moves
+		virtual double get_acceptance() {
+			if (_attempted > 0) return _accepted / (double) _attempted;
+			else return 0.;
+		}
 };
 
 template<typename number>
@@ -70,6 +88,7 @@ BaseMove<number>::BaseMove (ConfigInfo<number> * Info) {
 	_T = -1.;
 	_Info = Info;
 	prob = (number) -1.f;
+	_target_acc_rate = 0.25;
 }
 
 template<typename number>
@@ -79,21 +98,30 @@ BaseMove<number>::~BaseMove () {
 
 template<typename number>
 void BaseMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
-	getInputNumber (&sim_inp, "T", &_T, 1);
-	//OX_LOG(Logger::LOG_INFO, "(BaseMoves.cpp) Here is T %g", _T);
+	char raw_T[1024];
+	getInputString(&sim_inp, "T", raw_T, 1);
+	_T = Utils::get_temperature<number>(raw_T);
+
+	getInputLLInt(&sim_inp, "equilibration_steps", &_equilibration_steps, 0);
+	getInputBool(&sim_inp, "adjust_moves", &_adjust_moves, 0);
+	getInputNumber(&inp, "target_acc_rate", &_target_acc_rate, 0);
 }
 
 template<typename number>
 void BaseMove<number>::init() {
-	OX_LOG(Logger::LOG_INFO, "(BaseMove.h) BaseMove generic init...");
+	_rej_fact = 1.001;
+	_acc_fact = 1. + 0.001 * (_target_acc_rate - 1.) / (0.001 - _target_acc_rate); 
+	OX_LOG(Logger::LOG_INFO, "(BaseMove.h) BaseMove generic init... (b, a) = (%g, %g), %g", (_rej_fact - 1.), (_acc_fact - 1.), _target_acc_rate);
 }
 
 template <typename number>
-number BaseMove<number>::particle_energy (BaseParticle<number> * p) {
+number BaseMove<number>::particle_energy(BaseParticle<number> * p) {
 	number res = (number) 0.f;
-	if(p->n3 != P_VIRTUAL) res += _Info->interaction->pair_interaction_bonded(p, p->n3);
-	if(p->n5 != P_VIRTUAL) res += _Info->interaction->pair_interaction_bonded(p, p->n5);
-
+	typename vector<ParticlePair<number> >::iterator it = p->affected.begin();
+	for(; it != p->affected.end(); it++) {
+		number de = _Info->interaction->pair_interaction_bonded(it->first, it->second);
+		res += de;
+	}
 	if (_Info->interaction->get_is_infinite() == true) return (number) 1.e12;
 
 	std::vector<BaseParticle<number> *> neighs = _Info->lists->get_neigh_list(p);

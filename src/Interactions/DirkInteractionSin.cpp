@@ -24,9 +24,9 @@ template<typename number>
 void DirkInteractionSin<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 	
-	char tmps[512];
-	getInputString (&inp, "sim_type", (char *)tmps, 1);
-	if (strncmp(tmps, "MC", 512)) throw oxDNAException ("Cannot run Dirk with MD");
+	std::string tmps;
+	getInputString (&inp, "sim_type", tmps, 1);
+	if (tmps.compare("MC") and tmps.compare("MC2")) throw oxDNAException ("Cannot run Dirk with MD");
 	
 	// length
 	float tmpf;

@@ -10,8 +10,8 @@
 
 template<typename number>
 MCRot<number>::MCRot (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
-	_orientation_old = LR_matrix<number> (0., 0., 0., 0., 0., 0., 0., 0., 0.); 
-	_orientationT_old = LR_matrix<number> (0., 0., 0., 0., 0., 0., 0., 0., 0.); 
+	_orientation_old = LR_matrix<number> (1., 0., 0., 0., 1., 0., 0., 0., 1.); 
+	_orientationT_old = LR_matrix<number> (1., 0., 0., 0., 1., 0., 0., 0., 1.); 
 }
 
 template<typename number>
@@ -44,7 +44,8 @@ void MCRot<number>::apply (llint curr_step) {
 	_orientation_old = p->orientation;
 	_orientationT_old = p->orientationT;
 				
-	number t = (drand48() - (number)0.5f) * _delta;
+	//number t = (drand48() - (number)0.5f) * _delta;
+	number t = drand48() * _delta;
 	LR_vector<number> axis = Utils::get_random_vector<number>();
 	
 	number sintheta = sin(t);
@@ -66,10 +67,11 @@ void MCRot<number>::apply (llint curr_step) {
 	p->orientationT = p->orientation.get_transpose();
 	p->set_positions();
 	
-	this->_Info->lists->single_update(p);
-
-	if(!this->_Info->lists->is_updated()) {
-		this->_Info->lists->global_update();
+	if (p->is_rigid_body()) {
+		this->_Info->lists->single_update(p);
+		if(!this->_Info->lists->is_updated()) {
+			this->_Info->lists->global_update();
+		}
 	}
 
 	delta_E += this->particle_energy(p);
@@ -81,6 +83,10 @@ void MCRot<number>::apply (llint curr_step) {
 		// move accepted
 		// put here the adjustment of moves
 		this->_accepted ++;
+		if (curr_step < this->_equilibration_steps && this->_adjust_moves) {
+			_delta *= this->_acc_fact;
+			if (_delta > M_PI) _delta = M_PI;
+		}
 	}
 	else {
 		p->orientation = _orientation_old;
@@ -88,7 +94,8 @@ void MCRot<number>::apply (llint curr_step) {
 		p->set_positions();
 		this->_Info->lists->single_update(p);
 		this->_Info->interaction->set_is_infinite(false);
-		// adjust moves here as well...
+
+		if (curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
 	}
 	
 	return;

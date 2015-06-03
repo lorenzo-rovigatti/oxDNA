@@ -12,6 +12,7 @@
 
 #include "MCTras.h"
 #include "MCRot.h"
+#include "VolumeMove.h"
 
 MoveFactory::MoveFactory() {
 
@@ -28,8 +29,9 @@ BaseMove<number> * MoveFactory::make_move (input_file &inp, input_file &sim_inp,
 	std::string move_type;
 	getInputString (&inp, "type", move_type, 0);
 	
-	if (!strncmp (move_type.c_str(), "rotation", move_type.length() + 2)) ret = new MCRot<number>(Info);
-	else if (!strncmp (move_type.c_str(), "traslation", move_type.length() + 2)) ret = new MCTras<number>(Info);
+	if (!move_type.compare("rotation")) ret = new MCRot<number>(Info);
+	else if (!move_type.compare("traslation")) ret = new MCTras<number>(Info);
+	else if (!move_type.compare("volume")) ret = new VolumeMove<number>(Info);
 	else throw oxDNAException ("(MoveFactory.cpp) Unknown move type %s. Aborting", move_type.c_str());
 
 	/* // plugin management o be added later on... NEEDS to be fixed, copied and pasted from interactionfactory.cpp
