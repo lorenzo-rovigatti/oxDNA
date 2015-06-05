@@ -13,13 +13,22 @@
 template <typename number>
 struct FSBond {
 	BaseParticle<number> *other;
+	LR_vector<number> r;
 	number r_p;
 	int p_patch, q_patch;
 	number energy;
 	LR_vector<number> force;
 	LR_vector<number> p_torque, q_torque;
 
-	FSBond(BaseParticle<number> *o, number my_r_p, int pp, int qp, number e) : other(o), r_p(my_r_p), p_patch(pp), q_patch(qp), energy(e) {}
+	FSBond(BaseParticle<number> *o, LR_vector<number> my_r, number my_r_p, int pp, int qp, number e) : other(o), r(my_r), r_p(my_r_p), p_patch(pp), q_patch(qp), energy(e) {}
+};
+
+template <typename number>
+struct FSBondCompare {
+	bool operator() (const FSBond<number> &lhs, const FSBond<number> &rhs) {
+		if(lhs.other->index == rhs.other->index && lhs.p_patch == rhs.p_patch && lhs.q_patch == rhs.q_patch) return false;
+		else return true;
+	}
 };
 
 /**
@@ -61,7 +70,9 @@ protected:
 	number _lambda;
 	number _A_part, _B_part;
 
-	std::vector<std::vector<FSBond<number> > > _bonds;
+	std::vector<std::set<FSBond<number>, FSBondCompare<number> > > _bonds;
+
+	std::vector<std::vector<number> > _stress_tensor;
 
 	/**
 	 * @brief FS interaction between two particles.
@@ -76,10 +87,14 @@ protected:
 
 	inline number _three_body(BaseParticle<number> *p, FSBond<number> &new_bond, bool update_forces);
 
+	void _update_stress_tensor(LR_vector<number> r, LR_vector<number> f);
+
 public:
 	enum {
 		FS = 0
 	};
+
+	std::vector<std::vector<number> > get_stress_tensor() { return _stress_tensor; }
 
 	FSInteraction();
 	virtual ~FSInteraction();
@@ -103,6 +118,15 @@ public:
 };
 
 template<typename number>
+void FSInteraction<number>::_update_stress_tensor(LR_vector<number> r, LR_vector<number> f) {
+	for(int i = 0; i < 3; i++) {
+		for(int j = 0; j < 3; j++) {
+			_stress_tensor[i][j] += r[i]*f[j];
+		}
+	}
+}
+
+template<typename number>
 number FSInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	number sqr_r = r->norm();
 	if(sqr_r > this->_sqr_rcut) return (number) 0.f;
@@ -118,12 +142,12 @@ number FSInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<nu
 			LR_vector<number> force = *r * (-24. * (lj_part - 2*SQR(lj_part)) / sqr_r);
 			p->force -= force;
 			q->force += force;
+
+			_update_stress_tensor(*r, force);
 		}
 	}
 
 	if(p->type != q->type || _one_component) {
-		LR_vector<number> tmptorquep(0, 0, 0);
-		LR_vector<number> tmptorqueq(0, 0, 0);
 		for(int pi = 0; pi < p->N_int_centers; pi++) {
 			LR_vector<number> ppatch = p->int_centers[pi];
 			for(int pj = 0; pj < q->N_int_centers; pj++) {
@@ -138,8 +162,8 @@ number FSInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<nu
 
 					energy += tmp_energy;
 
-					FSBond<number> p_bond(q, r_p, pi, pj, tmp_energy);
-					FSBond<number> q_bond(p, r_p, pj, pi, tmp_energy);
+					FSBond<number> p_bond(q, *r, r_p, pi, pj, tmp_energy);
+					FSBond<number> q_bond(p, -*r, r_p, pj, pi, tmp_energy);
 
 					if(update_forces) {
 						number force_mod  = _A_part * exp_part * (4.*_B_part/(SQR(dist)*r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
@@ -162,13 +186,14 @@ number FSInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<nu
 						q_bond.p_torque = -q_torque;
 						q_bond.q_torque = -p_torque;
 
+						_update_stress_tensor(*r, tmp_force);
 					}
 
 					energy += _three_body(p, p_bond, update_forces);
 					energy += _three_body(q, q_bond, update_forces);
 
-					_bonds[p->index].push_back(p_bond);
-					_bonds[q->index].push_back(q_bond);
+					_bonds[p->index].insert(p_bond);
+					_bonds[q->index].insert(q_bond);
 				}
 			}
 		}
@@ -181,11 +206,11 @@ template<typename number>
 number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number> &new_bond, bool update_forces) {
 	number energy = 0.;
 
-	typename std::vector<FSBond<number> >::iterator it = _bonds[p->index].begin();
+	typename std::set<FSBond<number> >::iterator it = _bonds[p->index].begin();
 	for(; it != _bonds[p->index].end(); it++) {
 		// three-body interactions happen only when the same patch is involved in
 		// more than a bond
-		if(it->p_patch == new_bond.p_patch) {
+		if(it->other != new_bond.other && it->p_patch == new_bond.p_patch) {
 			number curr_energy = -new_bond.energy;
 			if(new_bond.r_p < _sigma_ss) curr_energy = 1.;
 
@@ -199,9 +224,12 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 					BaseParticle<number> *other = new_bond.other;
 
 					number factor = -_lambda*other_energy;
+					LR_vector<number> tmp_force = factor*new_bond.force;
 
-					p->force -= factor*new_bond.force;
-					other->force += factor*new_bond.force;
+					p->force -= tmp_force;
+					other->force += tmp_force;
+
+					_update_stress_tensor(new_bond.r, tmp_force);
 
 					p->torque -= factor*new_bond.p_torque;
 					other->torque += factor*new_bond.q_torque;
@@ -211,9 +239,12 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 					BaseParticle<number> *other = it->other;
 
 					number factor = -_lambda*curr_energy;
+					LR_vector<number> tmp_force = factor*it->force;
 
 					p->force -= factor*it->force;
 					other->force += factor*it->force;
+
+					_update_stress_tensor(it->r, tmp_force);
 
 					p->torque -= factor*it->p_torque;
 					other->torque += factor*it->q_torque;
@@ -225,7 +256,7 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 	return energy;
 }
 
-extern "C" FSInteraction<float> *make_float();
-extern "C" FSInteraction<double> *make_double();
+extern "C" FSInteraction<float> *make_FSInteraction_float();
+extern "C" FSInteraction<double> *make_FSInteraction_double();
 
 #endif /* FSINTERACTION_H_ */

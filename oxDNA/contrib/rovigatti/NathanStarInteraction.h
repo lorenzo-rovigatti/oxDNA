@@ -30,6 +30,8 @@ protected:
 	number _patch_pow_sigma;
 	/// Cut-off for the attractive part. It is computed at runtime
 	number _patch_cutoff;
+	/// Angular cut-off for the patchy attraction
+	number _patch_angular_cutoff;
 	/// Patch-patch interaction energy at the cut-off
 	number _patch_E_cut;
 	/// Width of the patch, defaults to 0.12
@@ -142,13 +144,13 @@ number NathanStarInteraction<number>::_patchy_interaction(BaseParticle<number> *
 		q_axis = -q_axis;
 		cosqr = -cosqr;
 	}
+	if(cospr < _patch_angular_cutoff || cosqr < _patch_angular_cutoff) return energy;
+
 	number cospr_part = pow(cospr - 1., _patch_power);
 	number p_mod = exp(-cospr_part / (2.*_patch_pow_sigma));
 
 	number cosqr_part = pow(cosqr - 1., _patch_power);
 	number q_mod = exp(-cosqr_part / (2.*_patch_pow_sigma));
-
-	if(p_mod < 1e-6 || q_mod < 1e-6) return energy;
 
 	number sqr_surf_dist = SQR(rmod - 1.);
 	number r8b10 = SQR(SQR(sqr_surf_dist)) / _patch_pow_alpha;

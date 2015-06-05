@@ -16,6 +16,7 @@
 template<typename number>
 class StressTensor: public BaseObservable<number> {
 protected:
+	int _N, _N_A, _N_B;
 	bool _print_averaged_off_diagonal;
 
 public:

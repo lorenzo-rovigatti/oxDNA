@@ -271,6 +271,7 @@ void NathanStarInteraction<number>::init() {
 	this->_rcut = 1. + _patch_cutoff;
 	if(_star_rcut > this->_rcut) this->_rcut = _star_rcut;
 	this->_sqr_rcut = SQR(this->_rcut);
+	_patch_angular_cutoff = _patch_cosmax * 1.5;
 
 	_rep_E_cut = pow((number) this->_rcut, -_rep_power);
 

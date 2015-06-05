@@ -80,6 +80,7 @@ number FSInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, B
 	// reset _bonds. This is beyond horrible
 	if(q == P_VIRTUAL && p->index == 0) {
 		for(int i = 0; i < _N; i++)	_bonds[i].clear();
+		_stress_tensor = vector<vector<number> >(3, vector<number>(3, (number) 0));
 	}
 
 	return (number) 0.f;
@@ -166,11 +167,11 @@ void FSInteraction<number>::check_input_sanity(BaseParticle<number> **particles,
 	if(_N_B > 0 && _one_component) throw oxDNAException("One component simulations should have topologies implying that no B-particles are present");
 }
 
-extern "C" FSInteraction<float> *make_float() {
+extern "C" FSInteraction<float> *make_FSInteraction_float() {
 	return new FSInteraction<float>();
 }
 
-extern "C" FSInteraction<double> *make_double() {
+extern "C" FSInteraction<double> *make_FSInteraction_double() {
 	return new FSInteraction<double>();
 }
 
