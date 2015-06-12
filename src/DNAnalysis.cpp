@@ -12,6 +12,7 @@
 
 #include "defs.h"
 #include "Managers/AnalysisManager.h"
+#include "Utilities/SignalManager.h"
 
 using namespace std;
 
@@ -23,6 +24,7 @@ void print_version() {
 int main(int argc, char *argv[]) {
 	try {
 		Logger::init();
+		SignalManager::manage_segfault();
 		TimingManager::init();
 
 		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
