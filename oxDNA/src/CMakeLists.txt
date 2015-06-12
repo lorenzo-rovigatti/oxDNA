@@ -138,6 +138,7 @@ SET(common_SOURCES
 	Utilities/Logger.cpp
 	Utilities/parse_input/parse_input.cpp
 	Utilities/time_scales/time_scales.c
+	Utilities/SignalManager.cpp
 	PluginManagement/PluginManager.cpp
 	${forces_SOURCES}
 	${observables_SOURCES}
