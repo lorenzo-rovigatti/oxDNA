@@ -404,10 +404,7 @@ number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **partic
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
 			if(p->index > q->index) energy += pair_interaction_nonbonded(p, q);
-			if(this->get_is_infinite()) {
-				_delete_cell_neighs();
-				return energy;
-			}
+			if(this->get_is_infinite()) return energy;
 		}
 	}
 	
@@ -425,9 +422,7 @@ number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<n
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
 			if(p->index > q->index) energy += pair_interaction_term(name, p, q);
-			if(this->get_is_infinite()) {
-				return energy;
-			}
+			if(this->get_is_infinite()) return energy;
 		}
 	}
 

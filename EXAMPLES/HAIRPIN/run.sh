@@ -23,7 +23,7 @@ echo "Simulating a 18-base hairpin (6-base stem + 6-base loop) at 334 K"
 if [ -e $OXDNA_BIN ]
 then
     # prepare the inputMD_seq_dep file
-    sed "s;seq_dep_file = ../../sequence_dependent_parameters.txt;seq_dep_file = $CODEDIR\/sequence_dependent_parameters.txt;" inputMD_seq_dep > input.tmp
+    sed "s;seq_dep_file = ../../oxDNA1_sequence_dependent_parameters.txt;seq_dep_file = $CODEDIR\/oxDNA1_sequence_dependent_parameters.txt;" inputMD_seq_dep > input.tmp
     mv -f input.tmp inputMD_seq_dep
 
     # run the examples

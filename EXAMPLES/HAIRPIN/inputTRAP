@@ -17,7 +17,7 @@ delta_translation = 0.1
 delta_rotation = 0.1
 
 T = 334 K
-dt = 0.005
+dt = 0.003
 verlet_skin = 0.2
 
 ##############################
@@ -28,7 +28,7 @@ conf_file = initial.conf
 lastconf_file = last_conf_trap.dat
 trajectory_file = trajectory_trap.dat
 refresh_vel = 1
-#log_file = log_trap.dat
+log_file = log_trap.dat
 no_stdout_energy = 1
 restart_step_counter = 1
 energy_file = energy_trap.dat
@@ -37,3 +37,14 @@ print_energy_every = 100000
 time_scale = linear
 external_forces = 1
 external_forces_file = hairpin_forces.dat
+
+data_output_1 = {
+	print_every = 100000
+	name = hb_energy_trap.dat
+	col_1 = {
+		type = step
+	}
+	col_2 = {
+		type = hb_energy
+	}
+}
