@@ -2,7 +2,7 @@
 type = mutual_trap
 particle = 1
 stiff = 1
-r0 = 1.5
+r0 = 1.2
 ref_particle = 16
 }
 
@@ -10,6 +10,6 @@ ref_particle = 16
 type = mutual_trap
 particle = 2
 stiff = 1
-r0 = 1.5
+r0 = 1.2
 ref_particle = 15
 }

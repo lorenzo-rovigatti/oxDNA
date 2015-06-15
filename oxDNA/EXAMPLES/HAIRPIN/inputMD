@@ -16,7 +16,7 @@ diff_coeff = 2.50
 thermostat = john
 
 T = 334 K
-dt = 0.005
+dt = 0.003
 verlet_skin = 0.05
 
 ##############################
@@ -35,3 +35,14 @@ print_conf_interval = 100000000
 print_energy_every = 100000
 time_scale = linear
 external_forces = 0
+
+data_output_1 = {
+	print_every = 100000
+	name = hb_energy.dat
+	col_1 = {
+		type = step
+	}
+	col_2 = {
+		type = hb_energy
+	}
+}
