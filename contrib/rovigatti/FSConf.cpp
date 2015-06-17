@@ -57,6 +57,7 @@ std::string FSConf<number>::_headers(llint step) {
 	number mybox = *this->_config_info.box_side;
 
 	int tot_N = 5*_N_A + 3*_N_B;
+	if(!_also_patch) tot_N = _N_A + _N_B;
 
 	headers << step << " " << step << " " << tot_N << " " << 5*_N_A << " " << 0 << endl;
 	headers << mybox << " " << mybox << " " << mybox << " " << 0. << " " << 0. << " " << 0.;

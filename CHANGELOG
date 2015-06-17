@@ -1,3 +1,6 @@
+v 2.2.2 (June 2015)
+	Fixed the hairpin example (see https://sourceforge.net/p/oxdna/discussion/general/thread/92fbef91/?limit=25#3c9b)
+
 v 2.2.1 (May 2015)
 	This release fixes a serious bug that could affect the calculation of the number of cells along 
 	the box. In some cases this bug could affect the simulation outcome, as not all interacting
