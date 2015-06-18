@@ -464,8 +464,8 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		p->L = _read_next_vector<number>(binary);
 
 		p->init();
-		p->set_positions();
 		p->orientationT = p->orientation.get_transpose();
+		p->set_positions();
 
 		i++;
 	}
