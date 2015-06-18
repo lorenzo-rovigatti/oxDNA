@@ -30,7 +30,6 @@ namespace SignalManager {
 void segfault_handler(int sig, siginfo_t *info, void *secret);
 void manage_segfault();
 
-a = 12.;
 
 }
 
