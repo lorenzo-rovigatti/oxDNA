@@ -32,7 +32,7 @@ void Cells<number>::init(BaseParticle<number> **particles, number rcut) {
 
 	global_update(true);
 
-	OX_LOG(Logger::LOG_INFO, "N_cells_side: %d, %d, %d", _N_cells_side[0], _N_cells_side[1], _N_cells_side[2]);
+	OX_LOG(Logger::LOG_INFO, "(Cells.cpp) N_cells_side: %d, %d, %d; rcut=%g, IS_MC: %d", _N_cells_side[0], _N_cells_side[1], _N_cells_side[2], this->_rcut, this->_is_MC);
 }
 
 /*

@@ -87,7 +87,7 @@ BaseMove<number>::BaseMove (ConfigInfo<number> * Info) {
 	_accepted = 0;
 	_T = -1.;
 	_Info = Info;
-	prob = (number) -1.f;
+	prob = (number) 1.f;
 	_target_acc_rate = 0.25;
 }
 
@@ -102,8 +102,9 @@ void BaseMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	getInputString(&sim_inp, "T", raw_T, 1);
 	_T = Utils::get_temperature<number>(raw_T);
 
+	getInputNumber (&inp, "prob", &prob, 0);
 	getInputLLInt(&sim_inp, "equilibration_steps", &_equilibration_steps, 0);
-	getInputBool(&sim_inp, "adjust_moves", &_adjust_moves, 0);
+	getInputBool(&inp, "adjust_moves", &_adjust_moves, 0);
 	getInputNumber(&inp, "target_acc_rate", &_target_acc_rate, 0);
 }
 
@@ -111,7 +112,7 @@ template<typename number>
 void BaseMove<number>::init() {
 	_rej_fact = 1.001;
 	_acc_fact = 1. + 0.001 * (_target_acc_rate - 1.) / (0.001 - _target_acc_rate); 
-	OX_LOG(Logger::LOG_INFO, "(BaseMove.h) BaseMove generic init... (b, a) = (%g, %g), %g", (_rej_fact - 1.), (_acc_fact - 1.), _target_acc_rate);
+	OX_LOG(Logger::LOG_INFO, "(BaseMove.h) BaseMove generic init... (b, a) = (%g, %g), %g, adjust_moves=%d", (_rej_fact - 1.), (_acc_fact - 1.), _target_acc_rate, _adjust_moves);
 }
 
 template <typename number>

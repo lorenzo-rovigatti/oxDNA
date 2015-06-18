@@ -26,7 +26,6 @@ void MCTras<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	BaseMove<number>::get_settings (inp, sim_inp);
 
 	getInputNumber (&inp, "delta", &_delta, 1);
-	getInputNumber (&inp, "prob", &this->prob, 0);
 	OX_LOG(Logger::LOG_INFO, "(MCTras.cpp) MCtras initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 	
 	std::string tmps;

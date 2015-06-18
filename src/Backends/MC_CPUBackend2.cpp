@@ -46,6 +46,7 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 
 	std::vector<std::string> move_strings;
 	_N_moves = getInputKeys (&inp, std::string("move_"), &move_strings, 0); 
+	if (_N_moves < 1) throw oxDNAException ("(MC_CPUBackend2) No moves found in the input file");
 	for (int i = 0; i < _N_moves; i ++) {
 		std::string tmps;
 		getInputString (&inp, move_strings[i].c_str(), tmps, 1);

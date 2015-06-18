@@ -9,7 +9,7 @@
 #define SIGNALMANAGER_H_
 
 // see http://www.linuxjournal.com/files/linuxjournal.com/linuxjournal/articles/063/6391/6391l3.html
-#include <signal.h>
+#include <csignal>
 #include <execinfo.h>
 /* get REG_EIP from ucontext.h */
 #ifndef __USE_GNU
@@ -17,10 +17,20 @@
 #endif
 #include <ucontext.h>
 
+#if __WORDSIZE == 64
+#define MY_REG_RIP REG_RIP
+#else
+#define MY_REG_RIP REG_EIP
+#endif
+
+
+
 namespace SignalManager {
 
 void segfault_handler(int sig, siginfo_t *info, void *secret);
 void manage_segfault();
+
+a = 12.;
 
 }
 
