@@ -7,12 +7,8 @@
 
 #include "SignalManager.h"
 
-#include <string>
-
 #include "../defs.h"
 #include "oxDNAException.h"
-
-using std::string;
 
 void SignalManager::segfault_handler(int sig, siginfo_t *info, void *secret) {
 	if(sig != SIGSEGV) throw oxDNAException("segfault_handler should handle segmentation faults only, got %d", sig);
@@ -22,16 +18,15 @@ void SignalManager::segfault_handler(int sig, siginfo_t *info, void *secret) {
 	int i, trace_size = 0;
 	ucontext_t *uc = (ucontext_t *) secret;
 
-	OX_LOG(Logger::LOG_ERROR, "Segmentation fault identified, faulty address is %p, from %p", info->si_addr, uc->uc_mcontext.gregs[REG_RIP]);
+	OX_LOG(Logger::LOG_ERROR, "Segmentation fault identified, faulty address is %p, from %p", info->si_addr, uc->uc_mcontext.gregs[MY_REG_RIP]);
 
 	trace_size = backtrace(trace, 16);
 	/* overwrite sigaction with caller's address */
-	trace[1] = (void *) uc->uc_mcontext.gregs[REG_RIP];
+	trace[1] = (void *) uc->uc_mcontext.gregs[MY_REG_RIP];
 
 	messages = backtrace_symbols(trace, trace_size);
 	/* skip first stack frame (points here) */
 
-	string msg("Execution path:");
 	OX_LOG(Logger::LOG_INFO, "Execution path:");
 	for (i = 1; i < trace_size; ++i) OX_LOG(Logger::LOG_NOTHING, "\t[bt] %s", messages[i]);
 

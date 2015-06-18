@@ -112,6 +112,7 @@ void PatchyInteraction<number>::generate_random_configuration(BaseParticle<numbe
 		p->orientation.v2 = Utils::get_random_vector<number>();
 		p->orientation.v3 = Utils::get_random_vector<number>();
 		Utils::orthonormalize_matrix<number>(p->orientation);
+		p->orientationT = p->orientation.get_transpose();
 	}
 
 	this->_rcut = old_rcut;
