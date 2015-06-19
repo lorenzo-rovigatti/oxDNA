@@ -53,7 +53,7 @@ string StressTensor<number>::get_output_string(llint curr_step) {
 		p->torque = LR_vector<number>(0, 0, 0);
 	}
 
-	// we reset and then update the 3-body lists
+	// we reset and then update the 3-body lists, if present
 	this->_config_info.interaction->pair_interaction_bonded(this->_config_info.particles[0], P_VIRTUAL);
 	typename vector<ParticlePair<number> >::iterator it;
 	for (it = pairs.begin(); it != pairs.end(); it ++ ) {
@@ -63,9 +63,6 @@ string StressTensor<number>::get_output_string(llint curr_step) {
 		LR_vector<number> r = q->pos.minimum_image(p->pos, *this->_config_info.box_side);
 		this->_config_info.interaction->pair_interaction(p, q, &r, true);
 	}
-
-	FSInteraction<number> *fs_int = (FSInteraction<number> *) this->_config_info.interaction;
-	vector<vector<number> > other_st = fs_int->get_stress_tensor();
 
 	// and then we compute the forces
 	for (it = pairs.begin(); it != pairs.end(); it ++ ) {
@@ -127,7 +124,9 @@ string StressTensor<number>::get_output_string(llint curr_step) {
 		res << avg;
 	}
 	else {
-		st_pot = other_st;
+		FSInteraction<number> *fs_int = dynamic_cast<FSInteraction<number> *>(this->_config_info.interaction);
+		if(fs_int != NULL) st_pot = fs_int->get_stress_tensor();
+
 		number st_pot_01 = st_pot[0][1];
 		number st_pot_02 = st_pot[0][2];
 		number st_pot_12 = st_pot[1][2];

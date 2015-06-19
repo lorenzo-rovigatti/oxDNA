@@ -87,7 +87,7 @@ protected:
 
 	inline number _three_body(BaseParticle<number> *p, FSBond<number> &new_bond, bool update_forces);
 
-	void _update_stress_tensor(LR_vector<number> r, LR_vector<number> f);
+	void _update_stress_tensor(const LR_vector<number> r, const LR_vector<number> f);
 
 public:
 	enum {
@@ -118,10 +118,10 @@ public:
 };
 
 template<typename number>
-void FSInteraction<number>::_update_stress_tensor(LR_vector<number> r, LR_vector<number> f) {
+void FSInteraction<number>::_update_stress_tensor(const LR_vector<number> r, const LR_vector<number> f) {
 	for(int i = 0; i < 3; i++) {
 		for(int j = 0; j < 3; j++) {
-			_stress_tensor[i][j] += r[i]*f[j];
+			_stress_tensor[i][j] += r[i]*f[j]; 
 		}
 	}
 }
