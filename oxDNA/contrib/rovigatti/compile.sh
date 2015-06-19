@@ -15,6 +15,6 @@ then
 	g++ -ffast-math -O3 $compilation_flags
 	g++ $linking_flags
 else
-	g++ -O3 -ffast-math -g2 $compilation_flags
-	g++ -O3 -ffast-math -g2 $linking_flags
+	g++ -ffast-math -g2 $compilation_flags
+	g++ -ffast-math -g2 $linking_flags
 fi
