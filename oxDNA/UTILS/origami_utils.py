@@ -33,7 +33,7 @@ def vecs2spline(vecs, per):
 
 def get_base_spline(strand, reverse = False):
     """
-    return a cartesian spline that represents a fit through the bases for each the strand s1
+    return a cartesian spline that represents a fit through the bases for the strand 'strand'
 
     args:
     strand: base.Strand object
@@ -1470,7 +1470,7 @@ class Origami(object):
 
         return d
 
-    def get_weave(self, vh_id, vvib_id):
+    def get_bpwise_weave(self, vh_id, vvib_id):
         # find weave for a pair of base pairs located at (vh_id, vvib_id) and (vh_id + 1, vvib_id)
         # assumes no skip/loop
         ss = self._sys
@@ -1492,6 +1492,42 @@ class Origami(object):
         d = np.sqrt(np.dot(d,d))
 
         return d
+
+    def get_weave(self, verbose=False):
+        """
+        Return the weave pattern as a list of lists. Each pair of virtual 
+        helices has a list associated with it. Each of those lists contains the
+        interhelical distance as a function of base-pair index along the virtual
+        helix.
+        
+        This method copes with insertions/deletions by creating a list of base-
+        base midpoints for each virtual helix, and assuming that each pair of 
+        virtual helices has the same number of base-base midpoints. This should
+        mean that the base pairs are fairly well lined up and results in a 
+        reasonable definition of the weave pattern.
+        """
+        out = [[] for xx in range(len(self.vhelix_indices)-1)]
+        for vhi in range(len(self.vhelix_indices)-1):
+            # make a list of base-base midpoints for each helix
+            bbms1 = []
+            bbms2 = []
+            for vb in self.vvib[vhi]:
+                bbms1.extend([self.get_bb_midpoint(nuc, pbc = True) for nuc in self.get_nucleotides(self.vhelix_indices[vhi], vb, "default")])
+            for vb in self.vvib[vhi+1]:
+                bbms2.extend([self.get_bb_midpoint(nuc, pbc = True) for nuc in self.get_nucleotides(self.vhelix_indices[vhi+1], vb, "default")])
+            if len(bbms1) != len(bbms2):
+                if verbose:
+                    print >> sys.stderr, "INFO: skipping virtual helix pair %d, %d: number of base pairs in virtual helix number %d (%d) different to number of base pairs in virtual helix number %d (%d)" % (self.vhelix_indices[vhi], self.vhelix_indices[vhi+1], self.vhelix_indices[vhi], len(bbms1), self.vhelix_indices[vhi+1], len(bbms2))
+            else:
+                # compute the weave as the inter-base-base-midpoint distance
+                out[vhi] = [-1 for xx in bbms1]
+                for ii in range(len(bbms1)):
+                    displ = min_distance(bbms2[ii], bbms1[ii], self._sys._box)
+                    #if np.sqrt(np.dot(displ, displ)) > 10:
+                    #print bbms2[ii], bbms1[ii]
+                    out[vhi][ii] = np.sqrt(np.dot(displ, displ))
+
+        return out
 
     def get_alignment(self, trim, period):
         # find alignment of a pair of nucleotides, ie to see if ones that are supposed to line up do.
@@ -2050,8 +2086,11 @@ class Origami(object):
 
         args:
         force_circular: force a closed curve; the ends of the midpoint curve (which is open) will be joined together by a straight line
+        vh: virtual helix number (NOT the corresponding index from the vhelix_indices array!)
         """
         import scipy.interpolate
+
+        vhi = self.vhelix_indices.index(vh)
         if vhelix_extent:
             vh_begin = vhelix_extent[0]
             vh_end = vhelix_extent[1]
@@ -2062,7 +2101,6 @@ class Origami(object):
         if discard_unbonded:
             assert self.interaction_list[0] != -1, "If using discard_unbonded, make sure that you run Origami.get_h_bond_list() or similar first to fill in the interaction list"
             
-        vhi = self.vhelix_indices.index(vh)
         if mode == "midpoint":
             bbms = []
             for vb in self.vvib[vhi]:
@@ -2096,3 +2134,12 @@ class Origami(object):
 
         return ret
 
+    def get_n_bp(self, vh):
+        """
+        Return the number of base pairs in the virtual helix with number 
+        'vh'
+        """
+        nucs = []
+        for vb in self.vvib[self.vhelix_indices.index(vh)]:
+            nucs.extend(self.get_nucleotides(vh, vb, "default"))
+        return len(nucs)
