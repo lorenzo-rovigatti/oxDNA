@@ -20,6 +20,7 @@ StarrInteraction<number>::StarrInteraction() : BaseInteraction<number, StarrInte
 	_N_strands_per_tetramer = 4;
 	_N_per_strand = 17;
 	_N_per_tetramer = _N_strands_per_tetramer*_N_per_strand;
+	_N_tetramers = -1;
 }
 
 template <typename number>
@@ -71,6 +72,7 @@ void StarrInteraction<number>::allocate_particles(BaseParticle<number> **particl
 template<typename number>
 void StarrInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
 	*N_strands = N / _N_per_strand;
+	_N_tetramers = N / _N_per_tetramer;
 
 	if(N % _N_per_tetramer != 0) throw oxDNAException("The number of particles (%d) is not a multiple of the number of particles in a tetramer (%d)", N, _N_per_tetramer);
 
@@ -150,11 +152,10 @@ number StarrInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle
 	number sqr_r = r->norm();
 	if(sqr_r > _LJ_sqr_rcut[int_type]) return (number) 0.;
 
-	number force_mod = 0;
 	number part = pow(_LJ_sqr_sigma[int_type]/sqr_r, 3.);
 	number energy = 4*part*(part - 1.) - _LJ_E_cut[int_type];
 	if(update_forces) {
-		force_mod += 24 * part * (2*part - 1) / sqr_r;
+		number force_mod = 24 * part * (2*part - 1) / sqr_r;
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -233,14 +234,17 @@ number StarrInteraction<number>::pair_interaction_nonbonded(BaseParticle<number>
 	return _two_body(p, q, r, update_forces);
 }
 
-//template<typename number>
-//void StarrInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
-//	throw oxDNAException("Governo ladro");
-//}
-
 template<typename number>
 void StarrInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
 
+}
+
+extern "C" StarrInteraction<float> *make_StarrInteraction_float() {
+	return new StarrInteraction<float>();
+}
+
+extern "C" StarrInteraction<double> *make_StarrInteraction_double() {
+	return new StarrInteraction<double>();
 }
 
 template class StarrInteraction<float>;

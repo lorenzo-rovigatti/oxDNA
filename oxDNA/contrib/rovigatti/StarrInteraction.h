@@ -28,6 +28,7 @@ protected:
 	int _N_per_tetramer;
 	int _N_per_strand;
 	int _N_strands_per_tetramer;
+	int _N_tetramers;
 
 	number _LJ_sigma[3];
 	number _LJ_sqr_sigma[3];
@@ -70,12 +71,7 @@ public:
 //	virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);
 };
 
-extern "C" StarrInteraction<float> *make_StarrInteraction_float() {
-	return new StarrInteraction<float>();
-}
-
-extern "C" StarrInteraction<double> *make_StarrInteraction_double() {
-	return new StarrInteraction<double>();
-}
+extern "C" StarrInteraction<float> *make_StarrInteraction_float();
+extern "C" StarrInteraction<double> *make_StarrInteraction_double();
 
 #endif /* STARRINTERACTION */

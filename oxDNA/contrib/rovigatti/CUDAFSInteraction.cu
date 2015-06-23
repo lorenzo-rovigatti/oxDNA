@@ -347,12 +347,12 @@ void CUDAFSInteraction<number, number4>::compute_forces(CUDABaseList<number, num
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) throw oxDNAException("use_edge unsupported by FSInteraction");
-			else {
-				FS_forces<number, number4>
-					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs);
-				CUT_CHECK_ERROR("forces_second_step FS simple_lists error");
-			}
+		else {
+			FS_forces<number, number4>
+				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs);
+			CUT_CHECK_ERROR("forces_second_step FS simple_lists error");
+		}
 	}
 
 	CUDANoList<number, number4> *_no_lists = dynamic_cast<CUDANoList<number, number4> *>(lists);
