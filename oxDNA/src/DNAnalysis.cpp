@@ -44,12 +44,12 @@ int main(int argc, char *argv[]) {
 		myanalysis.analysis();
 
 		OX_LOG(Logger::LOG_INFO, "END OF THE ANALYSIS, everything went OK!");
-		TimingManager::clear();
 	}
 	catch (oxDNAException &e) {
 		OX_LOG(Logger::LOG_ERROR, "%s", e.error());
 	}
 
+	TimingManager::clear();
 	Logger::clear();
 
 	return 0;

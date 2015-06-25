@@ -466,6 +466,11 @@ void MD_CUDABackend<number, number4>::init(){
 	_cuda_thermostat->init(this->_N);
 
 	OX_DEBUG("Allocated CUDA memory: %.2lf MBs", GpuUtils::get_allocated_mem_mb());
+
+	// initialise lists and compute the forces for the first step
+	this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
+	_set_external_forces();
+	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds);
 }
 
 template<typename number, typename number4>

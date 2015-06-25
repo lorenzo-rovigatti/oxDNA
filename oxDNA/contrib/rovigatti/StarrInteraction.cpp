@@ -85,6 +85,7 @@ void StarrInteraction<number>::read_topology(int N, int *N_strands, BaseParticle
 		p->strand_id = i / _N_per_strand;
 		p->n3 = p->n5 = P_VIRTUAL;
 		p->type = P_A;
+		p->btype = N_DUMMY;
 
 		int idx_in_tetramer = i % _N_per_tetramer;
 		int idx_in_arm = idx_in_tetramer % _N_per_strand;
@@ -113,9 +114,8 @@ void StarrInteraction<number>::read_topology(int N, int *N_strands, BaseParticle
 				int idx_prev = (idx_in_arm == 1) ? i - 1 : i - 2;
 				CustomParticle<number> *q = static_cast<CustomParticle<number> *>(particles[idx_prev]);
 				p->add_bonded_neigh(q);
-				p->btype = N_DUMMY;
 				p->n3 = q;
-				q->n5 = p;
+				if(idx_in_arm != 1) q->n5 = p;
 			}
 		}
 	}
@@ -136,6 +136,7 @@ number StarrInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<num
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
 		number force_mod = -_fene_K * _fene_sqr_r0 / (_fene_sqr_r0 - sqr_r);
+//		printf("%d %f\n", p->index, force_mod);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -147,7 +148,7 @@ template<typename number>
 number StarrInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	int int_type = p->type + q->type;
 	int int_btype = p->btype + q->btype;
-	if(int_type == 2 && (int_btype != 3 || p->strand_id == q->strand_id)) int_type = 1;
+	if(int_type == 2 && (int_btype != 3 || (p->strand_id == q->strand_id))) int_type = 1;
 
 	number sqr_r = r->norm();
 	if(sqr_r > _LJ_sqr_rcut[int_type]) return (number) 0.;
@@ -156,6 +157,7 @@ number StarrInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle
 	number energy = 4*part*(part - 1.) - _LJ_E_cut[int_type];
 	if(update_forces) {
 		number force_mod = 24 * part * (2*part - 1) / sqr_r;
+//		printf("%d %d %f %f %d\n", p->index, q->index, energy, force_mod, int_type);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -210,6 +212,7 @@ number StarrInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p
 		return energy;
 	}
 	if(!p->is_bonded(q)) return 0.;
+	if(p->index > q->index) return 0.f;
 
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
