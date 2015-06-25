@@ -10,6 +10,7 @@
  */
 
 #include "VMMC.h"
+#include "../../Lists/Cells.h"
 
 #define VMMC_ROTATION (1)
 #define VMMC_TRANSLATION (2)
@@ -70,6 +71,8 @@ void VMMC<number>::init() {
 	OX_LOG(Logger::LOG_INFO, "(VMMC.cpp) VMMC move initialized with T=%g, delta_tras=%g, delta_rot=%g, prob=%g, max_move_size=%g, max_cluster_size=%d", this->_T, _delta_tras, _delta_rot, this->prob, _max_move_size, _max_cluster_size);
 	printf ("adjust: %d\n", this->_adjust_moves);
 
+	if( ! dynamic_cast<Cells<number> *> (this->_Info->lists) )
+			throw oxDNAException ("Cannot run MC2 VMMC with selected lists. Set list_type = cells in the input file");
 	//throw oxDNAException ("Aborting at the end of VMMC::init for debugging purposes...");
 	//abort();
 }
