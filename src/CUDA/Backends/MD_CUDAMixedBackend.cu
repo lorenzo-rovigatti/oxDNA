@@ -93,7 +93,6 @@ void CUDAMixedBackend::_sort_particles() {
 
 void CUDAMixedBackend::_forces_second_step() {
 	this->_set_external_forces();
-
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds);
 
 	second_step_mixed

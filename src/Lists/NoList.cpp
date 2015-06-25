@@ -38,10 +38,13 @@ template<typename number>
 std::vector<BaseParticle<number> *> NoList<number>::get_neigh_list(BaseParticle<number> *p, bool all) {
 	std::vector<BaseParticle<number> *> res;
 
-	if(this->_is_MC && !all) {
-		for(int i = 0; i < this->_N; i++) if(i != p->index) res.push_back(this->_particles[i]);
+	int last = p->index;
+	if(this->_is_MC && !all) last = this->_N;
+
+	for(int i = 0; i < last; i++) {
+		BaseParticle<number> *q = this->_particles[i];
+		if(p != q && !p->is_bonded(q)) res.push_back(this->_particles[i]);
 	}
-	else for(int i = p->index+1; i < this->_N; i++) res.push_back(this->_particles[i]);
 
 	return res;
 }

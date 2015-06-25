@@ -50,13 +50,13 @@ int main(int argc, char *argv[]) {
 		mysim.run();
 
 		OX_LOG(Logger::LOG_INFO, "END OF THE SIMULATION, everything went OK!");
-		TimingManager::clear();
 	}
 	catch (oxDNAException &e) {
 		OX_LOG(Logger::LOG_ERROR, "%s", e.error());
 		return 1;
 	}
 
+	TimingManager::clear();
 	Logger::clear();
 
 	return 0;

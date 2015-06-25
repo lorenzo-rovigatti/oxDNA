@@ -118,6 +118,12 @@ __forceinline__ __device__ int get_particle_type(const number4 &r_i) {
 	else return 3 - ((3 - (my_btype)) % 4);
 }
 
+template <typename number, typename number4>
+__forceinline__ __device__ int get_particle_index(const number4 &r_i) {
+	int msk = -1 << 22;
+	return __float_as_int(r_i.w) & (~msk);
+}
+
 __forceinline__ __device__ LR_double4 make_LR_double4(const float4 &v) {
 	LR_double4 ret;
 	ret.x = (double) v.x;

@@ -14,6 +14,7 @@
 /* CUDA constants */
 __constant__ int MD_N[1];
 __constant__ int MD_N_hubs[1];
+__constant__ int MD_N_per_strand[1];
 __constant__ float MD_box_side[1];
 
 __constant__ float MD_LJ_sigma[3];
@@ -55,60 +56,66 @@ __device__ number quad_minimum_image_dist(const number4 &r_i, const number4 &r_j
 }
 
 template <typename number, typename number4>
-__device__ void _two_body(number4 &r, int int_type, int can_form_hb, number4 &F) {
-	if(int_type == 2 && !can_form_hb) int_type = 1;
+__device__ void _two_body(number4 &r, int pbtype, int qbtype, int p_idx, int q_idx, number4 &F) {
+	int ptype = (pbtype == N_DUMMY) ? 0 : 1;
+	int qtype = (qbtype == N_DUMMY) ? 0 : 1;
+	int int_type = ptype + qtype;
+
+	bool same_strand = (p_idx/MD_N_per_strand[0]) == (q_idx/MD_N_per_strand[0]);
+	int int_btype = pbtype + qbtype;
+	if(int_type == 2 && (int_btype != 3 || same_strand)) int_type = 1;
 
 	number sqr_r = CUDA_DOT(r, r);
-
-	number part = powf(MD_LJ_sqr_sigma[int_type]/sqr_r, 3.f);
+	number sqr_sigma_r = MD_LJ_sqr_sigma[int_type] / sqr_r;
+	number part = sqr_sigma_r*sqr_sigma_r*sqr_sigma_r;
 	number force_mod = 24.f * part * (2.f*part - 1.f) / sqr_r;
+	number energy = 4.f*part*(part - 1.f) - MD_LJ_E_cut[int_type];
 
-	if(sqr_r > MD_LJ_sqr_rcut[int_type]) force_mod = (number) 0.f;
+	if(sqr_r > MD_LJ_sqr_rcut[int_type]) energy = force_mod = (number) 0.f;
+//	else printf("%d %d %f %f %d\n", p_idx, q_idx, energy, force_mod, int_type);
 
 	F.x -= r.x * force_mod;
 	F.y -= r.y * force_mod;
 	F.z -= r.z * force_mod;
+	F.w += energy*0.5f;
 }
 
 template<typename number, typename number4>
 __device__ void _fene(number4 &r, number4 &F) {
 	number sqr_r = CUDA_DOT(r, r);
+	number energy = -0.5f*MD_fene_K[0]*MD_fene_sqr_r0[0]*logf(1.f - sqr_r/MD_fene_sqr_r0[0]);
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector by its module
 	number force_mod = -MD_fene_K[0] * MD_fene_sqr_r0[0] / (MD_fene_sqr_r0[0] - sqr_r);
+//	printf("%d %lf\n", IND, force_mod);
+
 	F.x -= r.x * force_mod;
 	F.y -= r.y * force_mod;
 	F.z -= r.z * force_mod;
+	F.w += energy*0.5f;
 }
 
 template <typename number, typename number4>
-__device__ void _particle_particle_bonded_interaction(number4 &ppos, number4 &qpos, number4 &F) {
-	int ptype = get_particle_type<number, number4>(ppos);
-	int qtype = get_particle_type<number, number4>(qpos);
-	int int_type = ptype + qtype;
+__device__ void _particle_particle_bonded_interaction(number4 &ppos, number4 &qpos, number4 &F, bool only_fene=false) {
+	int pbtype = get_particle_btype<number, number4>(ppos);
+	int p_idx = get_particle_index<number, number4>(ppos);
+	int qbtype = get_particle_btype<number, number4>(qpos);
+	int q_idx = get_particle_index<number, number4>(qpos);
 
-//	int pbtype = get_particle_btype<number, number4>(ppos);
-//	int qbtype = get_particle_btype<number, number4>(qpos);
-//	int int_btype = pbtype + qbtype;
-
-	number4 r = qpos - ppos;
-	_two_body<number, number4>(r, int_type, false, F);
+	number4 r = minimum_image<number, number4>(ppos, qpos);
+	if(!only_fene) _two_body<number, number4>(r, pbtype, qbtype, p_idx, q_idx, F);
 	_fene<number, number4>(r, F);
 }
 
 template <typename number, typename number4>
 __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, number4 &F) {
-	int ptype = get_particle_type<number, number4>(ppos);
-	int qtype = get_particle_type<number, number4>(qpos);
-	int int_type = ptype + qtype;
-
 	int pbtype = get_particle_btype<number, number4>(ppos);
+	int p_idx = get_particle_index<number, number4>(ppos);
 	int qbtype = get_particle_btype<number, number4>(qpos);
-	int int_btype = pbtype + qbtype;
-	int can_form_hb = (int_btype == 3);
+	int q_idx = get_particle_index<number, number4>(qpos);
 
 	number4 r = minimum_image<number, number4>(ppos, qpos);
-	_two_body<number, number4>(r, int_type, can_form_hb, F);
+	_two_body<number, number4>(r, pbtype, qbtype, p_idx, q_idx, F);
 }
 
 template<typename number, typename number4>
@@ -132,8 +139,46 @@ __device__ void _three_body(number4 &ppos, LR_bonds &bs, number4 &F, number4 *po
 	number force_mod_n5 = i_pn3_pn5 + cost_n5;
 
 	F += dist_pn3*(force_mod_n3*MD_lin_k[0]) - dist_pn5*(force_mod_n5*MD_lin_k[0]);
-	forces[bs.n3] -= dist_pn3*(cost_n3*MD_lin_k[0]) - dist_pn5*(i_pn3_pn5*MD_lin_k[0]);
-	forces[bs.n5] -= dist_pn3*(i_pn3_pn5*MD_lin_k[0]) - dist_pn5*(cost_n5*MD_lin_k[0]);
+	F.w += MD_lin_k[0] * (1.f - cost);
+
+	number4 n3_force = dist_pn5*(i_pn3_pn5*MD_lin_k[0]) - dist_pn3*(cost_n3*MD_lin_k[0]);
+	number4 n5_force = dist_pn5*(cost_n5*MD_lin_k[0]) - dist_pn3*(i_pn3_pn5*MD_lin_k[0]);
+	LR_atomicAddXYZ(forces + bs.n3, n3_force);
+	LR_atomicAddXYZ(forces + bs.n5, n5_force);
+}
+
+template <typename number, typename number4>
+__device__ void _particle_all_bonded_interactions(number4 &ppos, LR_bonds &bs, number4 &F, number4 *poss, number4 *forces) {
+	int pbtype = get_particle_btype<number, number4>(ppos);
+	// backbone or hub
+	if(pbtype == N_DUMMY) {
+		bool has_n3 = bs.n3 != P_INVALID;
+		bool has_n5 = bs.n5 != P_INVALID;
+		// backbone
+		if(has_n3 || has_n5) {
+			if(has_n3) {
+				number4 qpos = poss[bs.n3];
+				_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
+			}
+
+			if(has_n5) {
+				number4 qpos = poss[bs.n5];
+				_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
+			}
+
+			_three_body<number, number4>(ppos, bs, F, poss, forces);
+
+			// backbone-base
+			number4 qpos = poss[IND + 1];
+			_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F, true);
+		}
+	}
+	// base
+	else {
+		// base-backbone
+		number4 qpos = poss[IND - 1];
+		_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F, true);
+	}
 }
 
 // forces + second step without lists
@@ -145,17 +190,7 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, LR_bonds *bonds) {
 	LR_bonds bs = bonds[IND];
 	number4 ppos = poss[IND];
 
-	if(bs.n3 != P_INVALID) {
-		number4 qpos = poss[bs.n3];
-		_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
-	}
-
-	if(bs.n5 != P_INVALID) {
-		number4 qpos = poss[bs.n5];
-		_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
-	}
-
-	_three_body<number, number4>(ppos, bs, F, poss, forces);
+	_particle_all_bonded_interactions<number, number4>(ppos, bs, F, poss, forces);
 
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND && bs.n3 != j && bs.n5 != j) {
@@ -164,9 +199,8 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, LR_bonds *bonds) {
 		}
 	}
 
-	// the real energy per particle is half of the one computed (because we count each interaction twice)
-	F.w *= (number) 0.5f;
-	forces[IND] = F;
+	LR_atomicAddXYZ(forces + IND, F);
+//	forces[IND] = F;
 }
 
 // forces + second step with verlet lists
@@ -175,19 +209,10 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, int *matrix_neighs,
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
-	number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
+	number4 ppos = poss[IND];
 
-	if(bs.n3 != P_INVALID) {
-		number4 qpos = poss[bs.n3];
-		_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
-	}
-	if(bs.n5 != P_INVALID) {
-		number4 qpos = poss[bs.n5];
-		_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
-	}
-
-	_three_body<number, number4>(ppos, bs, F, poss, forces);
+	_particle_all_bonded_interactions<number, number4>(ppos, bs, F, poss, forces);
 
 	const int num_neighs = number_neighs[IND];
 	for(int j = 0; j < num_neighs; j++) {
@@ -197,10 +222,8 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, int *matrix_neighs,
 		_particle_particle_interaction<number, number4>(ppos, qpos, F);
 	}
 
-	// the real energy per particle is half the one computed (because we count each interaction twice)
-	F.w *= (number) 0.5f;
-
-	forces[IND] = F;
+	LR_atomicAddXYZ(forces + IND, F);
+//	forces[IND] = F;
 }
 
 template <typename number, typename number4>
@@ -214,10 +237,10 @@ __global__ void tetra_hub_forces(number4 *poss, number4 *forces, int *hubs, tetr
 
 	for(int an = 0; an < HUB_SIZE; an++) {
 		int bonded_neigh = hub_bonds.n[an];
-		// since bonded neighbours of anchors are in the anchor's neighbouring list, the LJ interaction between
-		// the two, from the point of view of the anchor, has been already computed and hence the anchor-particle
+		// since bonded neighbours of hub are in the hub's neighbouring list, the LJ interaction between
+		// the two, from the point of view of the hub, has been already computed and hence the hub-particle
 		// interaction reduces to just the fene
-		number4 r = poss[bonded_neigh] - poss_hub;
+		number4 r = minimum_image<number, number4>(poss_hub, poss[bonded_neigh]);
 		_fene<number, number4>(r, F);
 	}
 
@@ -261,14 +284,15 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_hubs, &_N_hubs, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_per_strand, &this->_N_per_strand, sizeof(int)) );
 	float f_copy = box_side;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_box_side, &f_copy, sizeof(float)) );
-	f_copy = this->_fene_sqr_r0;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_fene_sqr_r0, &f_copy, sizeof(float)) );
 	f_copy = this->_lin_k;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_lin_k, &f_copy, sizeof(float)) );
 	f_copy = this->_fene_K;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_fene_K, &f_copy, sizeof(float)) );
+	f_copy = this->_fene_sqr_r0;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_fene_sqr_r0, &f_copy, sizeof(float)) );
 	f_copy = this->_sqr_rcut;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rcut, &f_copy, sizeof(float)) );
 
@@ -286,7 +310,7 @@ void CUDAStarrInteraction<number, number4>::_setup_tetra_hubs() {
 	int N_strands;
 	StarrInteraction<number>::read_topology(this->_N, &N_strands, particles);
 
-	_N_hubs = this->_N_tetramers;
+	_N_hubs = this->_N_tetramers*HUB_SIZE;
 	_h_tetra_hubs = new int[_N_hubs];
 	_h_tetra_hub_neighs = new tetra_hub_bonds[_N_hubs];
 
@@ -343,6 +367,11 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 		(d_poss, d_forces, _d_tetra_hubs, _d_tetra_hub_neighs);
 	CUT_CHECK_ERROR("forces_second_step simple_lists error");
+
+//	number4 h_forces[68];
+//	CUDA_SAFE_CALL( cudaMemcpy(h_forces, d_forces, 68*sizeof(number4), cudaMemcpyDeviceToHost) );
+//	number energy = GpuUtils::sum_4th_comp<number, number4>(h_forces, 68);
+//	printf("ENERGY %f\n", energy/68.);
 }
 
 extern "C" IBaseInteraction<float> *make_CUDAStarrInteraction_float() {
