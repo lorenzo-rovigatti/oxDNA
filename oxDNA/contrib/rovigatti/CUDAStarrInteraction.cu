@@ -19,6 +19,7 @@ __constant__ float MD_box_side[1];
 
 __constant__ float MD_LJ_sigma[3];
 __constant__ float MD_LJ_sqr_sigma[3];
+__constant__ float MD_LJ_rcut[3];
 __constant__ float MD_LJ_sqr_rcut[3];
 __constant__ float MD_LJ_E_cut[3];
 __constant__ float MD_der_LJ_E_cut[3];
@@ -66,10 +67,11 @@ __device__ void _two_body(number4 &r, int pbtype, int qbtype, int p_idx, int q_i
 	if(int_type == 2 && (int_btype != 3 || same_strand)) int_type = 1;
 
 	number sqr_r = CUDA_DOT(r, r);
+	number mod_r = sqrt(sqr_r);
 	number sqr_sigma_r = MD_LJ_sqr_sigma[int_type] / sqr_r;
 	number part = sqr_sigma_r*sqr_sigma_r*sqr_sigma_r;
-	number force_mod = 24.f * part * (2.f*part - 1.f) / sqr_r;
-	number energy = 4.f*part*(part - 1.f) - MD_LJ_E_cut[int_type];
+	number force_mod = 24.f * part * (2.f*part - 1.f) / sqr_r + MD_der_LJ_E_cut[int_type]/mod_r;
+	number energy = 4.f*part*(part - 1.f) - MD_LJ_E_cut[int_type] - (mod_r - MD_LJ_rcut[int_type])*MD_der_LJ_E_cut[int_type];
 
 	if(sqr_r > MD_LJ_sqr_rcut[int_type]) energy = force_mod = (number) 0.f;
 //	else printf("%d %d %f %f %d\n", p_idx, q_idx, energy, force_mod, int_type);
@@ -298,6 +300,7 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 
 	COPY_ARRAY_TO_CONSTANT(MD_LJ_sigma, this->_LJ_sigma, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_LJ_sqr_sigma, this->_LJ_sqr_sigma, 3);
+	COPY_ARRAY_TO_CONSTANT(MD_LJ_rcut, this->_LJ_rcut, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_LJ_sqr_rcut, this->_LJ_sqr_rcut, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_LJ_E_cut, this->_LJ_E_cut, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_der_LJ_E_cut, this->_der_LJ_E_cut, 3);
