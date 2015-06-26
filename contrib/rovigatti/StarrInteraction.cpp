@@ -45,13 +45,14 @@ void StarrInteraction<number>::init() {
 	_LJ_sigma[1] = 0.35;
 	_LJ_sigma[2] = 0.35;
 
+	_LJ_rcut[0] = _LJ_sigma[0] * pow(2., 1./6.);
+	_LJ_rcut[1] = _LJ_sigma[1] * pow(2., 1./6.);
+	_LJ_rcut[2] = _LJ_sigma[2] * 2.5;
+
 	for(int i = 0; i < 3; i++) {
 		_LJ_sqr_sigma[i] = SQR(_LJ_sigma[i]);
+		_LJ_sqr_rcut[i] = SQR(_LJ_rcut[i]);
 	}
-
-	_LJ_sqr_rcut[0] = _LJ_sqr_sigma[0] * pow(2., 1./3.);
-	_LJ_sqr_rcut[1] = _LJ_sqr_sigma[1] * pow(2., 1./3.);
-	_LJ_sqr_rcut[2] = _LJ_sqr_sigma[2] * SQR(2.5);
 
 	for(int i = 0; i < 3; i++) {
 		_LJ_E_cut[i] = 4. * (pow(_LJ_sqr_sigma[i] / _LJ_sqr_rcut[i], 6.) - pow(_LJ_sqr_sigma[i] / _LJ_sqr_rcut[i], 3));
@@ -154,11 +155,12 @@ number StarrInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle
 
 	number sqr_r = r->norm();
 	if(sqr_r > _LJ_sqr_rcut[int_type]) return (number) 0.;
+	number mod_r = sqrt(sqr_r);
 
 	number part = pow(_LJ_sqr_sigma[int_type]/sqr_r, 3.);
-	number energy = 4*part*(part - 1.) - _LJ_E_cut[int_type];
+	number energy = 4*part*(part - 1.) - _LJ_E_cut[int_type] - (mod_r - _LJ_rcut[int_type])*_der_LJ_E_cut[int_type];
 	if(update_forces) {
-		number force_mod = 24 * part * (2*part - 1) / sqr_r;
+		number force_mod = 24 * part * (2*part - 1)/sqr_r + _der_LJ_E_cut[int_type]/mod_r;
 //		printf("%d %d %f %f %d\n", p->index, q->index, energy, force_mod, int_type);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;

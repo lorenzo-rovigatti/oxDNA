@@ -26,6 +26,7 @@ protected:
 
 	number _LJ_sigma[3];
 	number _LJ_sqr_sigma[3];
+	number _LJ_rcut[3];
 	number _LJ_sqr_rcut[3];
 	number _LJ_E_cut[3];
 	number _der_LJ_E_cut[3];

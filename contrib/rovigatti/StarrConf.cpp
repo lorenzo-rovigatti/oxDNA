@@ -105,9 +105,9 @@ string StarrConf<number>::_configuration(llint step) {
 	for(int i = 0; i < _N_tetramers; i++) {
 		conf << endl;
 		if(_print_bonds) {
-			for(map<int, int>::iterator it = _tetra_bonds[i].begin(); it != _tetra_bonds[i].end(); it++) if(it->second <= 3) _tetra_bonds[i].erase(it);
+			for(map<int, int>::iterator it = _tetra_bonds[i].begin(); it != _tetra_bonds[i].end(); it++) if(it->second < 4) _tetra_bonds[i].erase(it);
 			conf << i+1 << " " << _tetra_bonds[i].size() << endl;
-			for(map<int, int>::iterator it = _tetra_bonds[i].begin(); it != _tetra_bonds[i].end(); it++) if(it->second > 3) conf << it->first+1 << " ";
+			for(map<int, int>::iterator it = _tetra_bonds[i].begin(); it != _tetra_bonds[i].end(); it++) conf << it->first+1 << " ";
 		}
 		else conf << _tetra_vels[i].x << " " << _tetra_vels[i].y << " " << _tetra_vels[i].z;
 	}
