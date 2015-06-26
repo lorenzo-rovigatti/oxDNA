@@ -20,6 +20,8 @@
 #include "../Utilities/oxDNAException.h"
 #include "./Mesh.h"
 
+#include "../Lists/Cells.h"
+
 using namespace std;
 
 /**
@@ -35,12 +37,6 @@ protected:
 	number _box_side;
 	BaseBox<number> *_box;
 
-	/// Is used by _create_cells() to avoid useless memory allocations.
-	number _last_box_side;
-
-	/// Keeps track of all the cells containing at least one particle.
-	std::set<int> _not_empty_cells;
-
 	/// This is useful for "hard" potentials
 	bool _is_infinite;
 
@@ -50,42 +46,6 @@ protected:
 	number _rcut, _sqr_rcut;
 
 	char _topology_filename[256];
-
-	int _cells_N_side;
-	int *_cells_head;
-	int *_cells_index;
-	int *_cells_next;
-	int **_cells_neigh;
-
-	/**
-	 * @brief Allocates and initializes cells used to compute interaction energies.
-	 *
-	 * The caller must take care of deleting the _cells_neigh array. The implementation of this
-	 * method is complicated by the fact that it has to be O(N) and not O(box_side^3) for all
-	 * box_side values. In order to have good performances we resort to bookkeeping. This is why
-	 * we use _last_box_side and _not_empty_cells. If the last optional argument is true,
-	 * the bookkeeping is not used and all the cells gets initialized. This brings back the
-	 * O(box_side^3) computational complexity.
-	 *
-	 * @param particles
-	 * @param N
-	 * @param box_side
-	 * @param init_all_neighs initializes all the cells. If true, then this method becomes O(box_side^3)
-	 */
-	void _create_cells(BaseParticle<number> **particles, int N, number box_side, bool init_all_neighs=false);
-
-	/**
-	 * @brief Delete all the cell-related arrays but _cells_neigh.
-	 */
-	void _delete_cells();
-
-	/**
-	 * @brief Free _cells_neigh.
-	 *
-	 * It uses _not_empty_cells to check whether _cells_neigh[i] is allocated or not. This method
-	 * has to be called by all the methods which also call _create_cells to avoid memory leaks.
-	 */
-	void _delete_cell_neighs();
 public:
 	IBaseInteraction();
 	virtual ~IBaseInteraction();
@@ -258,19 +218,13 @@ public:
 template<typename number>
 IBaseInteraction<number>::IBaseInteraction() {
 	_energy_threshold = (number) 100.f;
-	_last_box_side = (number) 0;
-	_cells_head = NULL;
-	_cells_neigh = NULL;
-	_cells_next = NULL;
-	_cells_index = NULL;
-	_cells_N_side = -1;
 	_is_infinite = false;
 	_box = NULL;
 }
 
 template<typename number>
 IBaseInteraction<number>::~IBaseInteraction() {
-	_delete_cells();
+
 }
 
 template<typename number>
@@ -300,94 +254,6 @@ void IBaseInteraction<number>::read_topology(int N, int *N_strands, BaseParticle
 	   particles[i]->index = i;
 	   particles[i]->type = 0;
 	   particles[i]->strand_id = i;
-	}
-}
-
-template<typename number>
-void IBaseInteraction<number>::_create_cells(BaseParticle<number> **particles, int N, number box_side, bool init_all_neighs) {
-	int N_cells = _cells_N_side*_cells_N_side*_cells_N_side;
-	if(box_side != _last_box_side) {
-		_delete_cells();
-
-		_cells_N_side = (int) (floor(box_side / _rcut) + (number)0.1f);
-
-		if(_cells_N_side < 3) _cells_N_side = 3;
-		if(_cells_N_side > 300) _cells_N_side = 300;
-
-		N_cells = _cells_N_side*_cells_N_side*_cells_N_side;
-
-		_cells_head = new int[N_cells];
-		// the allocation of the memory for the 27 neighbors of each cell is done later on only if
-		// the cell is not empty (i.e. if _cells_head[i] != P_INVALID)
-		_cells_neigh = new int *[N_cells];
-		_cells_next = new int[N];
-		_cells_index = new int[N];
-
-		for(int i = 0; i < N_cells; i++) _cells_head[i] = P_INVALID;
-	}
-	// we set to P_INVALID only the cells which contained at least one particle in the previous _create_cells() call
-	else for(std::set<int>::iterator it = _not_empty_cells.begin(); it != _not_empty_cells.end(); it++) _cells_head[*it] = P_INVALID;
-
-	for(int i = 0; i < N; i++) _cells_next[i] = P_INVALID;
-
-	_not_empty_cells.clear();
-	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = particles[i];
-		int cell_index = (int) ((p->pos.x / box_side - floor(p->pos.x / box_side)) * (1.f - FLT_EPSILON) * _cells_N_side);
-		cell_index += _cells_N_side * ((int) ((p->pos.y / box_side - floor(p->pos.y / box_side)) * (1.f - FLT_EPSILON) * _cells_N_side));
-		cell_index += _cells_N_side * _cells_N_side * ((int) ((p->pos.z / box_side - floor(p->pos.z / box_side)) * (1.f - FLT_EPSILON) * _cells_N_side));
-
-		_not_empty_cells.insert(cell_index);
-
-		int old_head = _cells_head[cell_index];
-		_cells_head[cell_index] = i;
-		_cells_index[i] = cell_index;
-		assert(cell_index < N_cells);
-		_cells_next[i] = old_head;
-	}
-
-	// if we have to initialize all the neighbours, we add all the cells to the set
-	if(init_all_neighs) for(int i = 0; i < N_cells; i++) _not_empty_cells.insert(i);
-
-	// we initialize only neighbours of the cells containing at least one particle
-	for(std::set<int>::iterator it = _not_empty_cells.begin(); it != _not_empty_cells.end(); it++) {
-		int i = *it;
-		_cells_neigh[i] = new int[27];
-		int ind[3], loop_ind[3], nneigh = 0;
-		ind[0] = i % _cells_N_side;
-		ind[1] = (i / _cells_N_side) % _cells_N_side;
-		ind[2] = i / (_cells_N_side * _cells_N_side);
-		for(int j = -1; j < 2; j++) {
-			loop_ind[0] = (ind[0] + j + _cells_N_side) % _cells_N_side;
-			for(int k = -1; k < 2; k++) {
-				loop_ind[1] = (ind[1] + k + _cells_N_side) % _cells_N_side;
-				for(int l = -1; l < 2; l++) {
-					loop_ind[2] = (ind[2] + l + _cells_N_side) % _cells_N_side;
-					int loop_index = (loop_ind[2] * _cells_N_side + loop_ind[1]) * _cells_N_side + loop_ind[0];
-					_cells_neigh[i][nneigh] = loop_index;
-					nneigh++;
-				}
-			}
-		}
-	}
-
-	_last_box_side = box_side;
-}
-
-template<typename number>
-void IBaseInteraction<number>::_delete_cell_neighs() {
-	for(std::set<int>::iterator it = _not_empty_cells.begin(); it != _not_empty_cells.end(); it++) {
-		delete[] _cells_neigh[*it];
-	}
-}
-
-template<typename number>
-void IBaseInteraction<number>::_delete_cells() {
-	if(_cells_head != NULL)  {
-		delete[] _cells_head;
-		delete[] _cells_neigh;
-		delete[] _cells_next;
-		delete[] _cells_index;
 	}
 }
 
@@ -448,37 +314,34 @@ bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticl
 
 template<typename number>
 void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
-	this->_create_cells(particles, N, box_side, true);
-	
-	for (int i = 0; i < _cells_N_side*_cells_N_side*_cells_N_side; i ++) _cells_head[i] = P_INVALID;
-	for (int i = 0; i < N; i ++) _cells_next[i] = P_INVALID;
-	for (int i = 0; i < N; i ++) _cells_index[i] = -1;
-	
-	LR_matrix<number> R;
+	Cells<number> c(N, _box);
+	c.init(particles, _rcut);
 
 	for(int i = 0; i < N; i++) {
 		BaseParticle<number> *p = particles[i];
-		
+		p->pos = LR_vector<number>(0., 0., 0.);
+	}
+
+	c.global_update();
+
+	for(int i = 0; i < N; i++) {
+		BaseParticle<number> *p = particles[i];
+
 		bool inserted = false;
-		int cell_index;
 		do {
 			p->pos = LR_vector<number> (drand48()*box_side, drand48()*box_side, drand48()*box_side);
 			// random orientation
 			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
 			p->orientation.orthonormalize();
 			p->orientationT = p->orientation.get_transpose();
-			
-			p->set_positions ();
 
-			p->set_ext_potential (0, box_side);
-		
-			cell_index = (int) ((p->pos.x / box_side - floor(p->pos.x / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side);
-			cell_index += this->_cells_N_side * ((int) ((p->pos.y / box_side - floor(p->pos.y / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
-			cell_index += this->_cells_N_side * this->_cells_N_side * ((int) ((p->pos.z / box_side - floor(p->pos.z / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
+			p->set_positions();
+			p->set_ext_potential(0, box_side);
+			c.single_update(p);
 
 			inserted = true;
-			
-			// we take into account the bonded neighbours 
+
+			// we take into account the bonded neighbours
 			for (unsigned int n = 0; n < p->affected.size(); n ++) {
 				BaseParticle<number> * p1 = p->affected[n].first;
 				BaseParticle<number> * p2 = p->affected[n].second;
@@ -486,19 +349,17 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 				if (p1->index <= p->index && p2->index <= p->index) {
 					e = pair_interaction_bonded (p1, p2);
 				}
-				if (e > _energy_threshold) inserted = false;
+				if(e > _energy_threshold) inserted = false;
 			}
 
 			// here we take into account the non-bonded interactions
-			for(int c = 0; c < 27 && inserted; c ++) {
-				int j = this->_cells_head[this->_cells_neigh[cell_index][c]];
-				while (j != P_INVALID && inserted) {
-					BaseParticle<number> *q = particles[j];
-					if (p != q && generate_random_configuration_overlap (p, q, box_side)) inserted = false;
-					j = this->_cells_next[q->index];
-				}
+			vector<BaseParticle<number> *> neighs = c.get_neigh_list(p, true);
+			for(unsigned int n = 0; n < neighs.size(); n++) {
+				BaseParticle<number> *q = neighs[n];
+				// particles with an index larger than p->index have not been inserted yet
+				if(q->index < p->index && generate_random_configuration_overlap (p, q, box_side)) inserted = false;
 			}
-			
+
 			// we take into account the external potential
 			if (p->ext_potential > _energy_threshold) {
 				//if (inserted) printf ("rejecting because of ext. potential\n");
@@ -506,17 +367,8 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 			}
 
 		} while(!inserted);
-
-		int old_head = this->_cells_head[cell_index];
-		this->_cells_head[cell_index] = i;
-		this->_cells_index[i] = cell_index;
-		this->_cells_next[i] = old_head;
-
 	}
-	
-	this->_delete_cell_neighs();
 }
-
 
 /**
  * @brief Base class for managing particle-particle interactions. It is an abstract class.

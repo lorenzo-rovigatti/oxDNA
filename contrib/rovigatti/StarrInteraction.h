@@ -11,16 +11,10 @@
 #include "BaseInteraction.h"
 
 /**
- * @brief Manages the interaction between FS-like patchy particles.
+ * @brief Manages the interaction between Starr tetramers.
  *
  * This interaction is selected with
- * interaction_type = patchy
- *
- * @verbatim
-FS_N = <int> (number of patches)
-[FS_N_B = <int> (number of patches on species B)]
-[FS_one_component = <bool> (if true then the system will not contain particles of type B and A-A bonds will be allowed. Defaults to false.)]
-@endverbatim
+ * interaction_type = StarrInteraction
  */
 template <typename number>
 class StarrInteraction: public BaseInteraction<number, StarrInteraction<number> > {
@@ -47,7 +41,8 @@ protected:
 
 public:
 	enum {
-		STARR = 0
+		BONDED = 0,
+		NONBONDED = 1
 	};
 
 	StarrInteraction();
@@ -68,7 +63,7 @@ public:
 	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
 	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
 
-//	virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);
+	virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);
 };
 
 extern "C" StarrInteraction<float> *make_StarrInteraction_float();
