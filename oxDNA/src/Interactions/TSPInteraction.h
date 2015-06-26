@@ -5,6 +5,7 @@
 #include <vector>
 #include "BaseInteraction.h"
 #include "../Particles/TSPParticle.h"
+#include "../Lists/Cells.h"
 
 #define MAX_INSERTION_TRIES 1000000
 
@@ -51,9 +52,8 @@ protected:
 	number _fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	number _nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
-	void _insert_in_cell_set_orientation(BaseParticle<number> *p, number box_side);
-	bool _insert_anchor(BaseParticle<number> **particles, BaseParticle<number> *p, number box_side);
-	bool _does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, number box_side);
+	bool _insert_anchor(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c);
+	bool _does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c);
 
 public:
 	enum {

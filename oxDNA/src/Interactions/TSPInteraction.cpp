@@ -320,63 +320,29 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 }
 
 template<typename number>
-void TSPInteraction<number>::_insert_in_cell_set_orientation(BaseParticle<number> *p, number box_side) {
-	int cell_index = (int) ((p->pos.x / box_side - floor(p->pos.x / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side);
-	cell_index += this->_cells_N_side * ((int) ((p->pos.y / box_side - floor(p->pos.y / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
-	cell_index += this->_cells_N_side * this->_cells_N_side * ((int) ((p->pos.z / box_side - floor(p->pos.z / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
-
-	int old_head = this->_cells_head[cell_index];
-	this->_cells_head[cell_index] = p->index;
-	this->_cells_index[p->index] = cell_index;
-	this->_cells_next[p->index] = old_head;
-
-	p->orientation.v1 = Utils::get_random_vector<number>();
-	p->orientation.v2 = Utils::get_random_vector<number>();
-	p->orientation.v3 = Utils::get_random_vector<number>();
-	Utils::orthonormalize_matrix<number>(p->orientation);
-}
-
-template<typename number>
-bool TSPInteraction<number>::_insert_anchor(BaseParticle<number> **particles, BaseParticle<number> *p, number box_side) {
+bool TSPInteraction<number>::_insert_anchor(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c) {
 	int i = 0;
 	bool inserted = false;
+
 	do {
-		p->pos = LR_vector<number>(drand48()*box_side, drand48()*box_side, drand48()*box_side);
-		inserted = !_does_overlap(particles, p, box_side);
+		p->pos = LR_vector<number>(drand48()*this->_box_side, drand48()*this->_box_side, drand48()*this->_box_side);
+		inserted = !_does_overlap(particles, p, c);
 		i++;
 	} while(!inserted && i < MAX_INSERTION_TRIES);
 
-	_insert_in_cell_set_orientation(p, box_side);
+	p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
 
 	return (i != MAX_INSERTION_TRIES);
 }
 
 template<typename number>
-bool TSPInteraction<number>::_does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, number box_side) {
-	int cell_index = (int) ((p->pos.x / box_side - floor(p->pos.x / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side);
-	cell_index += this->_cells_N_side * ((int) ((p->pos.y / box_side - floor(p->pos.y / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
-	cell_index += this->_cells_N_side * this->_cells_N_side * ((int) ((p->pos.z / box_side - floor(p->pos.z / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
-
-	int ind[3], loop_ind[3];
-	ind[0] = cell_index % this->_cells_N_side;
-	ind[1] = (cell_index / this->_cells_N_side) % this->_cells_N_side;
-	ind[2] = cell_index / (this->_cells_N_side * this->_cells_N_side);
-	for(int j = -1; j < 2; j++) {
-		loop_ind[0] = (ind[0] + j + this->_cells_N_side) % this->_cells_N_side;
-		for(int k = -1; k < 2; k++) {
-			loop_ind[1] = (ind[1] + k + this->_cells_N_side) % this->_cells_N_side;
-			for(int l = -1; l < 2; l++) {
-				loop_ind[2] = (ind[2] + l + this->_cells_N_side) % this->_cells_N_side;
-				int loop_index = (loop_ind[2] * this->_cells_N_side + loop_ind[1]) * this->_cells_N_side + loop_ind[0];
-
-				int c_idx = this->_cells_head[loop_index];
-				while (c_idx != P_INVALID) {
-					BaseParticle<number> *q = particles[c_idx];
-					if(p->pos.minimum_image(q->pos, box_side).norm() < SQR(this->_sqr_rcut)) return true;
-					c_idx = this->_cells_next[q->index];
-				}
-			}
-		}
+bool TSPInteraction<number>::_does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c) {
+	// here we take into account the non-bonded interactions
+	vector<BaseParticle<number> *> neighs = c->get_neigh_list(p, true);
+	for(unsigned int n = 0; n < neighs.size(); n++) {
+		BaseParticle<number> *q = neighs[n];
+		// particles with an index larger than p->index have not been inserted yet
+		if(q->index < p->index && this->generate_random_configuration_overlap(p, q, this->_box_side)) return true;
 	}
 
 	return false;
@@ -384,13 +350,15 @@ bool TSPInteraction<number>::_does_overlap(BaseParticle<number> **particles, Bas
 
 template<typename number>
 void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
-	number old_rcut = this->_rcut;
-	this->_rcut = 1;
-	this->_sqr_rcut = SQR(this->_rcut);
+	Cells<number> c(N, this->_box);
+	c.init(particles, this->_rcut);
 
-	this->_create_cells(particles, N, box_side);
-	for(int i = 0; i < N; i++) this->_cells_next[i] = P_INVALID;
-	this->_cells_head[0] = P_INVALID;
+	for(int i = 0; i < N; i++) {
+		BaseParticle<number> *p = particles[i];
+		p->pos = LR_vector<number>(0., 0., 0.);
+	}
+
+	c.global_update();
 
 	int straight_till = 20;
 
@@ -402,7 +370,8 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 	for(int ns = 0; ns < _N_stars; ns++) {
 		BaseParticle<number> *anchor = particles[i];
 		anchor->index = i;
-		if(!_insert_anchor(particles, anchor, box_side)) throw oxDNAException("Can't insert particle number %d", i);
+		if(!_insert_anchor(particles, anchor, &c)) throw oxDNAException("Can't insert particle number %d", i);
+		c.single_update(anchor);
 		i++;
 
 		LR_vector<number> anchor_pos = anchor->pos;
@@ -437,18 +406,19 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 				p->index = i;
 				// if we simulate TSPs then we check for overlaps only for the first monomer
 				if(nm == 0 && !_only_chains) {
-					if(_does_overlap(particles, p, box_side)) {
+					if(_does_overlap(particles, p, &c)) {
 						na--;
 						break;
 					}
 				}
 				// if we simulate chains, on the other hand, we always check for overlaps
-				if((_only_chains || nm >= straight_till) && _does_overlap(particles, p, box_side)) {
+				if((_only_chains || nm >= straight_till) && _does_overlap(particles, p, &c)) {
 					nm--;
 					continue;
 				}
 
-				_insert_in_cell_set_orientation(p, box_side);
+				p->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+				c.single_update(p);
 				last_pos = p->pos;
 				number dist = sqrt(p->pos.sqr_distance(anchor_pos));
 				if(dist > max_dist) max_dist = dist;
@@ -458,10 +428,6 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 		}
 	}
 	OX_LOG(Logger::LOG_INFO, "Max distance: %f", max_dist);
-
-	this->_rcut = old_rcut;
-	this->_sqr_rcut = SQR(this->_rcut);
-	this->_delete_cell_neighs();
 }
 
 template class TSPInteraction<float>;

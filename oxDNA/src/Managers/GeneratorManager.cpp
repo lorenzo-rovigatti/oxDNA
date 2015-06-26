@@ -106,7 +106,7 @@ void GeneratorManager::init() {
 	// setting the box side for the interaction
 	_interaction->set_box_side(_box_side);
 
-	_mybox.init (_box_side, _box_side, _box_side);
+	_mybox.init(_box_side, _box_side, _box_side);
 	_interaction->set_box(&_mybox);
 
 	// initializing external forces

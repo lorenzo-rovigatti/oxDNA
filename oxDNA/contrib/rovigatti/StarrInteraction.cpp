@@ -8,6 +8,7 @@
 #include "StarrInteraction.h"
 #include "../Particles/CustomParticle.h"
 #include "../Utilities/Utils.h"
+#include "../Lists/Cells.h"
 
 #include <string>
 
@@ -15,7 +16,8 @@ using namespace std;
 
 template <typename number>
 StarrInteraction<number>::StarrInteraction() : BaseInteraction<number, StarrInteraction<number> >() {
-	this->_int_map[STARR] = &StarrInteraction<number>::pair_interaction;
+	this->_int_map[BONDED] = &StarrInteraction<number>::pair_interaction_bonded;
+	this->_int_map[NONBONDED] = &StarrInteraction<number>::pair_interaction_nonbonded;
 
 	_N_strands_per_tetramer = 4;
 	_N_per_strand = 17;
@@ -211,8 +213,7 @@ number StarrInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p
 		}
 		return energy;
 	}
-	if(!p->is_bonded(q)) return 0.;
-	if(p->index > q->index) return 0.f;
+	if(!p->is_bonded(q) || p->index > q->index) return 0.;
 
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
@@ -228,6 +229,8 @@ number StarrInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p
 
 template<typename number>
 number StarrInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+	if(p->is_bonded(q)) return 0.f;
+
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = q->pos.minimum_image(p->pos, this->_box_side);
@@ -240,6 +243,56 @@ number StarrInteraction<number>::pair_interaction_nonbonded(BaseParticle<number>
 template<typename number>
 void StarrInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
 
+}
+
+template<typename number>
+void StarrInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
+	Cells<number> c(N, this->_box);
+	c.init(particles, this->_rcut);
+
+	for(int i = 0; i < N; i++) {
+		BaseParticle<number> *p = particles[i];
+		p->pos = LR_vector<number>(0., 0., 0.);
+	}
+
+	c.global_update();
+
+	// we begin by generating a single tetramer
+	BaseInteraction<number, StarrInteraction<number> >::generate_random_configuration(particles, _N_per_tetramer, 20.);
+
+	int N_inserted = 1;
+	int tries = 0;
+	while(N_inserted != _N_tetramers) {
+		int N_base = _N_per_tetramer * N_inserted;
+
+		// now we take the first tetramer's positions and we assign them to the new tetramer after shifting them
+		LR_vector<number> shift = Utils::get_random_vector<number>();
+		shift.x *= this->_box->box_sides().x;
+		shift.y *= this->_box->box_sides().y;
+		shift.z *= this->_box->box_sides().z;
+
+		bool inserted = true;
+		for(int i = 0; i < _N_per_tetramer && inserted; i++) {
+			BaseParticle<number> *base = particles[i];
+			BaseParticle<number> *new_p = particles[N_base + i];
+			new_p->pos = base->pos + shift;
+			new_p->orientation = base->orientation;
+			c.single_update(new_p);
+
+			// here we take into account the non-bonded interactions
+			vector<BaseParticle<number> *> neighs = c.get_neigh_list(new_p, true);
+			for(unsigned int n = 0; n < neighs.size(); n++) {
+				BaseParticle<number> *q = neighs[n];
+				// particles with an index larger than p->index have not been inserted yet
+				if(q->index < new_p->index && this->generate_random_configuration_overlap(new_p, q, box_side)) inserted = false;
+			}
+		}
+
+		if(inserted) N_inserted++;
+		tries++;
+
+		if(tries > 1e6) throw oxDNAException("I tried 10^6 times but I couldn't manage to insert the %d-th tetramer", N_inserted+1);
+	}
 }
 
 extern "C" StarrInteraction<float> *make_StarrInteraction_float() {
