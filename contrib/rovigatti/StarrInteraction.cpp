@@ -45,9 +45,9 @@ void StarrInteraction<number>::init() {
 	_LJ_sigma[1] = 0.35;
 	_LJ_sigma[2] = 0.35;
 
-	_LJ_rcut[0] = _LJ_sigma[0] * pow(2., 1./6.);
-	_LJ_rcut[1] = _LJ_sigma[1] * pow(2., 1./6.);
-	_LJ_rcut[2] = _LJ_sigma[2] * 2.5;
+	_LJ_rcut[0] = _LJ_sigma[0]*pow(2., 1./6.);
+	_LJ_rcut[1] = _LJ_sigma[1]*pow(2., 1./6.);
+	_LJ_rcut[2] = _LJ_sigma[2]*2.5;
 
 	for(int i = 0; i < 3; i++) {
 		_LJ_sqr_sigma[i] = SQR(_LJ_sigma[i]);
@@ -55,12 +55,12 @@ void StarrInteraction<number>::init() {
 	}
 
 	for(int i = 0; i < 3; i++) {
-		_LJ_E_cut[i] = 4. * (pow(_LJ_sqr_sigma[i] / _LJ_sqr_rcut[i], 6.) - pow(_LJ_sqr_sigma[i] / _LJ_sqr_rcut[i], 3));
-		_der_LJ_E_cut[i] = 24. * (pow(_LJ_sqr_sigma[i] / _LJ_sqr_rcut[i], 3.) - 2*pow(_LJ_sqr_sigma[i] / _LJ_sqr_rcut[i], 6.)) / sqrt(_LJ_sqr_rcut[i]);
+		_LJ_E_cut[i] = 4.*(pow(_LJ_sqr_sigma[i] / _LJ_sqr_rcut[i], 6.) - pow(_LJ_sqr_sigma[i] / _LJ_sqr_rcut[i], 3.));
+		_der_LJ_E_cut[i] = 24.*(pow(_LJ_sqr_sigma[i]/_LJ_sqr_rcut[i], 3.) - 2.*pow(_LJ_sqr_sigma[i]/_LJ_sqr_rcut[i], 6.)) / _LJ_rcut[i];
 	}
 
-	if(_LJ_sqr_rcut[0] > _LJ_sqr_rcut[2]) this->_rcut = sqrt(_LJ_sqr_rcut[0]);
-	else this->_rcut = sqrt(_LJ_sqr_rcut[2]);
+	if(_LJ_rcut[0] > _LJ_rcut[2]) this->_rcut = _LJ_rcut[0];
+	else this->_rcut = _LJ_rcut[2];
 
 	this->_sqr_rcut = SQR(this->_rcut);
 }

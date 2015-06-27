@@ -70,10 +70,10 @@ __device__ void _two_body(number4 &r, int pbtype, int qbtype, int p_idx, int q_i
 	number mod_r = sqrt(sqr_r);
 	number sqr_sigma_r = MD_LJ_sqr_sigma[int_type] / sqr_r;
 	number part = sqr_sigma_r*sqr_sigma_r*sqr_sigma_r;
-	number force_mod = 24.f * part * (2.f*part - 1.f) / sqr_r + MD_der_LJ_E_cut[int_type]/mod_r;
+	number force_mod = 24.f*part*(2.f*part - 1.f) / sqr_r + MD_der_LJ_E_cut[int_type]/mod_r;
 	number energy = 4.f*part*(part - 1.f) - MD_LJ_E_cut[int_type] - (mod_r - MD_LJ_rcut[int_type])*MD_der_LJ_E_cut[int_type];
 
-	if(sqr_r > MD_LJ_sqr_rcut[int_type]) energy = force_mod = (number) 0.f;
+	if(sqr_r > MD_LJ_sqr_rcut[int_type]) energy = force_mod = 0.f;
 //	else printf("%d %d %f %f %d\n", p_idx, q_idx, energy, force_mod, int_type);
 
 	F.x -= r.x * force_mod;
@@ -88,7 +88,7 @@ __device__ void _fene(number4 &r, number4 &F) {
 	number energy = -0.5f*MD_fene_K[0]*MD_fene_sqr_r0[0]*logf(1.f - sqr_r/MD_fene_sqr_r0[0]);
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector by its module
-	number force_mod = -MD_fene_K[0] * MD_fene_sqr_r0[0] / (MD_fene_sqr_r0[0] - sqr_r);
+	number force_mod = -MD_fene_K[0]*MD_fene_sqr_r0[0] / (MD_fene_sqr_r0[0] - sqr_r);
 //	printf("%d %lf\n", IND, force_mod);
 
 	F.x -= r.x * force_mod;
@@ -120,35 +120,6 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 	_two_body<number, number4>(r, pbtype, qbtype, p_idx, q_idx, F);
 }
 
-template<typename number, typename number4>
-__device__ void _three_body(number4 &ppos, LR_bonds &bs, number4 &F, number4 *poss, number4 *forces) {
-	if(bs.n3 == P_INVALID || bs.n5 == P_INVALID) return;
-
-	number4 n3_pos = poss[bs.n3];
-	number4 n5_pos = poss[bs.n5];
-
-	number4 dist_pn3 = n3_pos - ppos;
-	number4 dist_pn5 = ppos - n5_pos;
-
-	number sqr_dist_pn3 = CUDA_DOT(dist_pn3, dist_pn3);
-	number sqr_dist_pn5 = CUDA_DOT(dist_pn5, dist_pn5);
-	number i_pn3_pn5 = 1.f / sqrtf(sqr_dist_pn3*sqr_dist_pn5);
-	number cost = CUDA_DOT(dist_pn3, dist_pn5) * i_pn3_pn5;
-
-	number cost_n3 = cost / sqr_dist_pn3;
-	number cost_n5 = cost / sqr_dist_pn5;
-	number force_mod_n3 = i_pn3_pn5 + cost_n3;
-	number force_mod_n5 = i_pn3_pn5 + cost_n5;
-
-	F += dist_pn3*(force_mod_n3*MD_lin_k[0]) - dist_pn5*(force_mod_n5*MD_lin_k[0]);
-	F.w += MD_lin_k[0] * (1.f - cost);
-
-	number4 n3_force = dist_pn5*(i_pn3_pn5*MD_lin_k[0]) - dist_pn3*(cost_n3*MD_lin_k[0]);
-	number4 n5_force = dist_pn5*(cost_n5*MD_lin_k[0]) - dist_pn3*(i_pn3_pn5*MD_lin_k[0]);
-	LR_atomicAddXYZ(forces + bs.n3, n3_force);
-	LR_atomicAddXYZ(forces + bs.n5, n5_force);
-}
-
 template <typename number, typename number4>
 __device__ void _particle_all_bonded_interactions(number4 &ppos, LR_bonds &bs, number4 &F, number4 *poss, number4 *forces) {
 	int pbtype = get_particle_btype<number, number4>(ppos);
@@ -168,7 +139,7 @@ __device__ void _particle_all_bonded_interactions(number4 &ppos, LR_bonds &bs, n
 				_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
 			}
 
-			_three_body<number, number4>(ppos, bs, F, poss, forces);
+//			_three_body<number, number4>(ppos, bs, F, poss, forces);
 
 			// backbone-base
 			number4 qpos = poss[IND + 1];
@@ -201,8 +172,7 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, LR_bonds *bonds) {
 		}
 	}
 
-	LR_atomicAddXYZ(forces + IND, F);
-//	forces[IND] = F;
+	forces[IND] = F;
 }
 
 // forces + second step with verlet lists
@@ -224,8 +194,57 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, int *matrix_neighs,
 		_particle_particle_interaction<number, number4>(ppos, qpos, F);
 	}
 
-	LR_atomicAddXYZ(forces + IND, F);
-//	forces[IND] = F;
+	forces[IND] = F;
+}
+
+template<typename number, typename number4>
+__device__ void _three_body(number4 &ppos, LR_bonds &bs, number4 &F, number4 *poss, number4 *n3_forces, number4 *n5_forces) {
+	if(bs.n3 == P_INVALID || bs.n5 == P_INVALID) return;
+
+	number4 n3_pos = poss[bs.n3];
+	number4 n5_pos = poss[bs.n5];
+
+	number4 dist_pn3 = n3_pos - ppos;
+	number4 dist_pn5 = ppos - n5_pos;
+
+	number sqr_dist_pn3 = CUDA_DOT(dist_pn3, dist_pn3);
+	number sqr_dist_pn5 = CUDA_DOT(dist_pn5, dist_pn5);
+	number i_pn3_pn5 = 1.f / sqrtf(sqr_dist_pn3*sqr_dist_pn5);
+	number cost = CUDA_DOT(dist_pn3, dist_pn5) * i_pn3_pn5;
+
+	number cost_n3 = cost / sqr_dist_pn3;
+	number cost_n5 = cost / sqr_dist_pn5;
+	number force_mod_n3 = i_pn3_pn5 + cost_n3;
+	number force_mod_n5 = i_pn3_pn5 + cost_n5;
+
+	F += dist_pn3*(force_mod_n3*MD_lin_k[0]) - dist_pn5*(force_mod_n5*MD_lin_k[0]);
+	F.w += MD_lin_k[0] * (1.f - cost);
+
+	number4 n3_force = dist_pn5*(i_pn3_pn5*MD_lin_k[0]) - dist_pn3*(cost_n3*MD_lin_k[0]);
+	number4 n5_force = dist_pn5*(cost_n5*MD_lin_k[0]) - dist_pn3*(i_pn3_pn5*MD_lin_k[0]);
+	n3_forces[bs.n3] = n3_force;
+	n5_forces[bs.n5] = n5_force;
+}
+
+template <typename number, typename number4>
+__global__ void three_body_forces(number4 *poss, number4 *forces, number4 *n3_forces, number4 *n5_forces, LR_bonds *bonds) {
+	if(IND >= MD_N[0]) return;
+
+	number4 F = forces[IND];
+	LR_bonds bs = bonds[IND];
+	number4 ppos = poss[IND];
+
+	_three_body<number, number4>(ppos, bs, F, poss, n3_forces, n5_forces);
+
+	forces[IND] = F;
+}
+
+template <typename number, typename number4>
+__global__ void sum_three_body(number4 *forces, number4 *n3_forces, number4 *n5_forces) {
+	if(IND >= MD_N[0]) return;
+
+	number4 F = forces[IND] + n3_forces[IND] + n5_forces[IND];
+	forces[IND] = F;
 }
 
 template <typename number, typename number4>
@@ -254,6 +273,7 @@ CUDAStarrInteraction<number, number4>::CUDAStarrInteraction() : _h_tetra_hubs(NU
 	_N_hubs = -1;
 	_d_tetra_hubs = NULL;
 	_d_tetra_hub_neighs = NULL;
+	_d_n3_forces = _d_n5_forces = NULL;
 }
 
 template<typename number, typename number4>
@@ -264,6 +284,11 @@ CUDAStarrInteraction<number, number4>::~CUDAStarrInteraction() {
 
 		CUDA_SAFE_CALL( cudaFree(_d_tetra_hubs) );
 		CUDA_SAFE_CALL( cudaFree(_d_tetra_hub_neighs) );
+	}
+
+	if(_d_n3_forces == NULL) {
+		CUDA_SAFE_CALL( cudaFree(_d_n3_forces) );
+		CUDA_SAFE_CALL( cudaFree(_d_n5_forces) );
 	}
 }
 
@@ -283,6 +308,11 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 	StarrInteraction<number>::init();
 
 	_setup_tetra_hubs();
+
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_n3_forces, this->_N*sizeof(number4)) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_n5_forces, this->_N*sizeof(number4)) );
+	CUDA_SAFE_CALL( cudaMemset(_d_n3_forces, 0, this->_N*sizeof(number4)) );
+	CUDA_SAFE_CALL( cudaMemset(_d_n5_forces, 0, this->_N*sizeof(number4)) );
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_hubs, &_N_hubs, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
@@ -345,6 +375,16 @@ void CUDAStarrInteraction<number, number4>::_setup_tetra_hubs() {
 
 template<typename number, typename number4>
 void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds) {
+	three_body_forces<number, number4>
+		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+		(d_poss, d_forces, _d_n3_forces, _d_n5_forces, d_bonds);
+	CUT_CHECK_ERROR("three_body_forces error");
+
+	sum_three_body<number, number4>
+		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+		(d_forces, _d_n3_forces, _d_n5_forces);
+	CUT_CHECK_ERROR("sum_three_body error");
+
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) throw oxDNAException("use_edge unsupported by StarrInteraction");
@@ -352,7 +392,7 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 			Starr_forces<number, number4>
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 				(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds);
-			CUT_CHECK_ERROR("forces_second_step simple_lists error");
+			CUT_CHECK_ERROR("Starr_forces Verlet Lists error");
 		}
 	}
 	else {
@@ -362,14 +402,14 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 			Starr_forces<number, number4>
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 				(d_poss,  d_forces, d_bonds);
-			CUT_CHECK_ERROR("forces_second_step no_lists error");
+			CUT_CHECK_ERROR("Starr_forces no_lists error");
 		}
 	}
 
 	tetra_hub_forces<number, number4>
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 		(d_poss, d_forces, _d_tetra_hubs, _d_tetra_hub_neighs);
-	CUT_CHECK_ERROR("forces_second_step simple_lists error");
+	CUT_CHECK_ERROR("tetra_hub_forces error");
 
 //	number4 h_forces[68];
 //	CUDA_SAFE_CALL( cudaMemcpy(h_forces, d_forces, 68*sizeof(number4), cudaMemcpyDeviceToHost) );
