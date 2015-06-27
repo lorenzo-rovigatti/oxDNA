@@ -26,6 +26,7 @@ protected:
 	int _N_hubs;
 	int *_h_tetra_hubs, *_d_tetra_hubs;
 	tetra_hub_bonds *_h_tetra_hub_neighs, *_d_tetra_hub_neighs;
+	number4 *_d_n3_forces, *_d_n5_forces;
 
 	void _setup_tetra_hubs();
 public:
