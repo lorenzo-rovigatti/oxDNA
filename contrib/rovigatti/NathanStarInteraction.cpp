@@ -284,6 +284,7 @@ void NathanStarInteraction<number>::init() {
 	_setup_interp();
 
 	OX_LOG(Logger::LOG_INFO, "pi*lambda: %lf, kappa*rs: %lf, zeta: %lf, xi: %lf", _pi_lambda, _kappa_rs, _zeta, _xi);
+	OX_LOG(Logger::LOG_INFO, "patchy rcut: %lf, patchy-star rcut: %lf, star-star rcut: %lf", _patchy_rcut, _patchy_star_rcut, _star_rcut);
 }
 
 template<typename number>

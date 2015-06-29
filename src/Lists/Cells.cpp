@@ -15,6 +15,8 @@ Cells<number>::Cells(int &N, BaseBox<number> *box) : BaseList<number>(N, box) {
 	_N_cells = 0;
 	_N_cells_side[0] = _N_cells_side[1] = _N_cells_side[2] = 0;
 	_sqr_rcut = 0;
+	_allowed_type = -1;
+	_unlike_type_only = false;
 }
 
 template<typename number>
@@ -176,11 +178,13 @@ void Cells<number>::global_update(bool force_update) {
 
 	for(int i = 0; i < this->_N; i++) {
 		BaseParticle<number> *p = this->_particles[i];
-		int cell_index = _get_cell_index(p->pos);
-		BaseParticle<number> *old_head = _heads[cell_index];
-		_heads[cell_index] = p;
-		_cells[i] = cell_index;
-		_next[i] = old_head;
+		if(_allowed_type == -1 || p->type == _allowed_type) {
+			int cell_index = _get_cell_index(p->pos);
+			BaseParticle<number> *old_head = _heads[cell_index];
+			_heads[cell_index] = p;
+			_cells[i] = cell_index;
+			_next[i] = old_head;
+		}
 	}
 }
 
@@ -208,7 +212,7 @@ std::vector<BaseParticle<number> *> Cells<number>::get_neigh_list(BaseParticle<n
 					// if this is an MC simulation or i all == true we need full lists, otherwise the i-th particle will have neighbours with index > i
 					bool include_q = (p != q && (all || ((p->index > q->index || this->_is_MC))));
 					if(include_q && !p->is_bonded(q) && this->_box->sqr_min_image_distance(p->pos, q->pos) < _sqr_rcut) {
-						res.push_back(q);
+						if(!_unlike_type_only || p->type != q->type) res.push_back(q);
 					}
 
 					q = _next[q->index];

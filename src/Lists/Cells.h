@@ -20,6 +20,8 @@
 template<typename number>
 class Cells: public BaseList<number> {
 protected:
+	int _allowed_type;
+	bool _unlike_type_only;
 	BaseParticle<number> **_heads;
 	BaseParticle<number> **_next;
 	int *_cells;
@@ -40,6 +42,9 @@ public:
 	virtual void global_update(bool force_update=false);
 	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p, bool all=false);
 	virtual void change_box();
+
+	virtual void set_allowed_type(int type) { _allowed_type = type; }
+	virtual void set_unlike_type_only() { _unlike_type_only = true; }
 };
 
 template<>
