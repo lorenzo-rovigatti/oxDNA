@@ -63,6 +63,7 @@ SET(lists_SOURCES
 	Lists/NoList.cpp
 	Lists/Cells.cpp
 	Lists/VerletList.cpp
+	Lists/BinVerletList.cpp
 	Lists/ListFactory.cpp
 )
 
