@@ -112,6 +112,7 @@ void CUDAMixedBackend::_gpu_to_host_particles() {
 
 	MD_CUDABackend<float, float4>::_gpu_to_host_particles();
 }
+
 void CUDAMixedBackend::_host_particles_to_gpu() {
 	MD_CUDABackend<float, float4>::_host_particles_to_gpu();
 
