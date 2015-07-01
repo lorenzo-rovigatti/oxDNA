@@ -31,7 +31,7 @@ BaseMove<number> * MoveFactory::make_move (input_file &inp, input_file &sim_inp,
 	getInputString (&inp, "type", move_type, 0);
 	
 	if (!move_type.compare("rotation")) ret = new MCRot<number>(Info);
-	else if (!move_type.compare("traslation")) ret = new MCTras<number>(Info);
+	else if (!move_type.compare("translation")) ret = new MCTras<number>(Info);
 	else if (!move_type.compare("volume")) ret = new VolumeMove<number>(Info);
 	else if (!move_type.compare("VMMC")) ret = new VMMC<number>(Info);
 	else throw oxDNAException ("(MoveFactory.cpp) Unknown move type %s. Aborting", move_type.c_str());
