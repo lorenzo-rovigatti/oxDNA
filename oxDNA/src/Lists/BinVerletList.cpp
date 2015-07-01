@@ -101,8 +101,8 @@ void BinVerletList<number>::global_update(bool force_update) {
 template<typename number>
 std::vector<BaseParticle<number> *> BinVerletList<number>::get_neigh_list(BaseParticle<number> *p, bool all) {
 	if(all) {
-		vector<BaseParticle<number> *> l1 = _cells[2*p->type]->get_neigh_list(p);
-		vector<BaseParticle<number> *> l2 = _cells[1]->get_neigh_list(p);
+		vector<BaseParticle<number> *> l1 = _cells[2*p->type]->get_neigh_list(p, all);
+		vector<BaseParticle<number> *> l2 = _cells[1]->get_neigh_list(p, all);
 
 		l1.reserve(l1.size() + l2.size());
 		l1.insert(l1.end(), l2.begin(), l2.end());

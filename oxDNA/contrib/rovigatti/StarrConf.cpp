@@ -71,7 +71,7 @@ string StarrConf<number>::_configuration(llint step) {
 				int idx = base_idx + k;
 				BaseParticle<number> *p = this->_config_info.particles[idx];
 
-				_tetra_poss[i] += p->get_abs_pos(*(this->_config_info.box_side));
+				_tetra_poss[i] += p->get_abs_pos(*this->_config_info.box_side);
 				_tetra_vels[i] += p->vel;
 			}
 			base_idx += _N_per_strand;
@@ -105,7 +105,11 @@ string StarrConf<number>::_configuration(llint step) {
 	for(int i = 0; i < _N_tetramers; i++) {
 		conf << endl;
 		if(_print_bonds) {
-			for(map<int, int>::iterator it = _tetra_bonds[i].begin(); it != _tetra_bonds[i].end(); it++) if(it->second < 4) _tetra_bonds[i].erase(it);
+			map<int, int>::iterator er_it = _tetra_bonds[i].begin();
+			while(er_it != _tetra_bonds[i].end()) {
+				if(er_it->second < 4) _tetra_bonds[i].erase(er_it++);
+				else er_it++;
+			}
 			conf << i+1 << " " << _tetra_bonds[i].size() << endl;
 			for(map<int, int>::iterator it = _tetra_bonds[i].begin(); it != _tetra_bonds[i].end(); it++) conf << it->first+1 << " ";
 		}

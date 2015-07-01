@@ -261,6 +261,27 @@ void StarrInteraction<number>::generate_random_configuration(BaseParticle<number
 
 	// we begin by generating a single tetramer
 	BaseInteraction<number, StarrInteraction<number> >::generate_random_configuration(particles, _N_per_tetramer, 20.);
+	// and then we correct all the coordinates so as to avoid having a split tetramer due to pbc
+	LR_vector<number> com;
+	for(int i = 0; i < _N_per_tetramer; i++) {
+		BaseParticle<number> *p = particles[i];
+		com += p->pos;
+		CustomParticle<number> *cp = static_cast<CustomParticle<number> *>(p);
+		for(typename set<CustomParticle<number> *>::iterator it = cp->bonded_neighs.begin(); it != cp->bonded_neighs.end(); it++) {
+			CustomParticle<number> *cq = *it;
+			if(cq->index > cp->index) {
+				LR_vector<number> dist = cq->pos - cp->pos;
+				LR_vector<number> min_dist = cq->pos.minimum_image(cp->pos, this->_box_side);
+				cq->pos += min_dist - dist;
+			}
+		}
+	}
+	// and now we put the tetramer in the centre of the box, so that we are sure that there are problems with the boundaries
+	com /= _N_per_tetramer;
+	for(int i = 0; i < _N_per_tetramer; i++) {
+		BaseParticle<number> *p = particles[i];
+		p->pos += this->_box->box_sides()*0.5 - com;
+	}
 
 	int N_inserted = 1;
 	int tries = 0;
@@ -274,10 +295,12 @@ void StarrInteraction<number>::generate_random_configuration(BaseParticle<number
 		shift.z *= this->_box->box_sides().z;
 
 		bool inserted = true;
+		com = LR_vector<number>(0., 0., 0.);
 		for(int i = 0; i < _N_per_tetramer && inserted; i++) {
 			BaseParticle<number> *base = particles[i];
 			BaseParticle<number> *new_p = particles[N_base + i];
 			new_p->pos = base->pos + shift;
+			com += new_p->pos;
 			new_p->orientation = base->orientation;
 			c.single_update(new_p);
 
@@ -288,6 +311,19 @@ void StarrInteraction<number>::generate_random_configuration(BaseParticle<number
 				// particles with an index larger than p->index have not been inserted yet
 				if(q->index < new_p->index && this->generate_random_configuration_overlap(new_p, q, box_side)) inserted = false;
 			}
+		}
+
+		// and now we bring the tetramer back in the box
+		com /= _N_per_tetramer;
+		LR_vector<number> com_shift(
+				floor(com.x / box_side)*box_side + 0.5*box_side,
+				floor(com.y / box_side)*box_side + 0.5*box_side,
+				floor(com.z / box_side)*box_side + 0.5*box_side
+		);
+		com_shift -= this->_box->box_sides()*0.5;
+		for(int i = 0; i < _N_per_tetramer && inserted; i++) {
+			BaseParticle<number> *p = particles[N_base + i];
+			p->pos -= com_shift;
 		}
 
 		if(inserted) N_inserted++;
