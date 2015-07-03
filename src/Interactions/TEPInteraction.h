@@ -28,6 +28,9 @@ protected:
 	number _ka;
 	number _kb;
 	number _kt;
+	// parameters of the modified twisting terms
+	number _twist_a;
+	number _twist_b;
 	// FENE parameters
 	number _TEP_FENE_DELTA;
 	number _TEP_FENE_DELTA2;
@@ -56,7 +59,8 @@ protected:
 	number _o2_modulus;
 	LR_vector<number> _w1;
 	LR_vector<number> _w2;
-	llint _my_time;
+	llint _my_time1;
+	llint _my_time2;
 	llint _max_twisting_time;
 
 
@@ -91,6 +95,7 @@ protected:
 	int getInputDirection(input_file *inp, const char * skey, LR_vector<number> *dest, int mandatory);
 LR_vector<number> rotateVectorAroundVersor(const LR_vector<number> vector, const LR_vector<number> versor, const number angle);
 number _twist_boundary_particles(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+number _index_twist_boundary_particles(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 public:
 	enum {
 		SPRING = 0,
