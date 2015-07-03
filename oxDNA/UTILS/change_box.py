@@ -86,6 +86,8 @@ shutil.copy(conf, "init_new_box.dat")
 shutil.copy(conf, "last_new_box.dat")
 
 args = ["/home/lorenzo/programmi/oxDNA_new/build/bin/oxDNA", "input_new_box"]
+args = ["/users/randisif/tep/CURRENToxdna-code/oxDNA/build/bin/oxDNA", "input_new_box"]
+#~/tep/CURRENToxdna-code/oxDNA/build/bin/oxDNA
 p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output = p.stdout.readline()
 initial_E = float(output.split()[1])

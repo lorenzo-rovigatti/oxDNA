@@ -100,6 +100,7 @@ OUT_LORENZO = 1
 OUT_VMD = 2
 OUT_CREPY = 3
 OUT_VMD_XYZ = 4
+OUT_TEP_VMD_XYZ = 5
 
 LENGTH_FACT = 8.518
 BASE_BASE = 0.3897628551303122
@@ -161,7 +162,8 @@ class Printable(object):
                                   OUT_LORENZO : self._get_lorenzo_output,
                                   OUT_VMD : self._get_vmd_output,
                                   OUT_CREPY : self._get_crepy_output,
-                                  OUT_VMD_XYZ : self._get_vmd_xyz_output
+                                  OUT_VMD_XYZ : self._get_vmd_xyz_output,
+                                  OUT_TEP_VMD_XYZ : self._get_TEP_vmd_xyz_output
                                   }
 
     def get_output(self, type):
@@ -177,6 +179,9 @@ class Printable(object):
         raise NotImplementedError
 
     def _get_vmd_xyz_output(self):
+        raise NotImplementedError
+
+    def _get_TEP_vmd_xyz_output(self):
         raise NotImplementedError
 
     def _get_crepy_output(self):
@@ -379,6 +384,16 @@ class Nucleotide(Printable):
         res += "O %lf %lf %lf\n" % (s2[0], s2[1], s2[2])
 
         return res
+		# This prints a sphere with a line around it, hopefully.
+    def _get_TEP_vmd_xyz_output(self):
+				s1 = self.cm_pos_box
+				s2 = self.cm_pos_box + 0.3*self._a2
+				s3 = self.cm_pos_box + 0.15*self._a1
+				res = "C %lf %lf %lf\n" %tuple(s1)
+				res += "H %lf %lf %lf\n" %tuple(s2)
+				res += "He %lf %lf %lf\n" %tuple(s3)
+				
+				return res
 
     def get_pdb_output(self, strtype, strsubid):
         s1 = self.cm_pos_box + get_pos_back_rel()
@@ -787,6 +802,12 @@ class Strand(Printable):
             return ""
 
         return "".join(n.get_output(OUT_VMD_XYZ) for n in self._nucleotides)
+
+    def _get_TEP_vmd_xyz_output(self):
+        if not self.visible:
+            return ""
+
+        return "".join(n.get_output(OUT_TEP_VMD_XYZ) for n in self._nucleotides)
 
     cm_pos = property(get_cm_pos, set_cm_pos)
     N = property(get_length)
@@ -1295,6 +1316,35 @@ class System(object):
         #f.write("%d\n\n" % (2*self._N, ))
         for s in self._strands:
              out = s.get_output(OUT_VMD_XYZ)
+             if same_colors:
+                 type = types[unique_seq.index(s.sequence)]
+                 out = out.replace("C", type)
+             f.write(out)
+        f.close()
+
+    def print_TEP_vmd_xyz_output(self, xyz_name="out.xyz", append=False, same_colors=False, visibility=None):
+        self._prepare(visibility)
+        unique_seq = self.get_unique_seq()
+
+        if same_colors:
+            n = len(unique_seq)
+            types = VMD_ELEMENT_TABLE
+            while len(types) < n: types *= 2
+
+        if append: flag = 'a'
+        else: flag = 'w'
+
+        # get the number of bases
+        visible_nucleotides = 0
+        for s in self._strands:
+            if s.visible:
+                visible_nucleotides += s.N
+
+        f = open(xyz_name, flag)
+        f.write("%d\n#%lf %lf %lf\n" % (3 * visible_nucleotides, self._box[0], self._box[1], self._box[2]))
+        #f.write("%d\n\n" % (2*self._N, ))
+        for s in self._strands:
+             out = s.get_output(OUT_TEP_VMD_XYZ)
              if same_colors:
                  type = types[unique_seq.index(s.sequence)]
                  out = out.replace("C", type)

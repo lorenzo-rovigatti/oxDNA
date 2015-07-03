@@ -35,6 +35,7 @@ SET(observables_SOURCES
 	Observables/Configurations/TclOutput.cpp
 	Observables/Configurations/PdbOutput.cpp
 	Observables/Configurations/ChimeraOutput.cpp
+	Observables/Configurations/TEPxyzOutput.cpp
 	Observables/ObservableFactory.cpp
 	Observables/MeanVectorCosine.cpp
 	Observables/Checkpoint.cpp

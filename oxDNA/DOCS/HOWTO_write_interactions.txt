@@ -6,9 +6,10 @@ True at the moment of writing (16 April 2015).
 *) It's probably best to code a new interaction by copying a similar
 	interaction and modifying it until it becomes what you wish it to become.
 
-*) The init and get_settings are called at different times, one after and one before the
-	configuration (and possibly the topology?) has been read [TODO: which is
-which].
+*) The init and get_settings are called at different times: get_settings is called
+ before the configuration file is read, and init is called afterwards. The
+topology is only read in read_topology, which is called after both
+get_settings and init.
 
 *) If the interaction is sensitive to orientational degrees of freedom, the
 	Particle class should overload the function is_rigid_body to return true instead
