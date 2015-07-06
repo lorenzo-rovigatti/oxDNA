@@ -39,6 +39,7 @@
 #include "Configurations/Configuration.h"
 #include "Configurations/BinaryConfiguration.h"
 #include "Configurations/TclOutput.h"
+#include "Configurations/TEPtclOutput.h"
 #include "Configurations/TEPxyzOutput.h"
 
 ObservableFactory::ObservableFactory() {
@@ -84,6 +85,7 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "salt_extrapolation", 512)) res = new SaltExtrapolation<number>();
 	else if(!strncasecmp(obs_type, "external_torque", 512)) res = new ExternalTorque<number>();
 	else if(!strncasecmp(obs_type, "mean_vector_cosine", 512)) res = new MeanVectorCosine<number>();
+	else if(!strncasecmp(obs_type, "TEPtcl_configuration", 512)) res = new TEPtclOutput<number>();
 	else if(!strncasecmp(obs_type, "TEPxyz_configuration", 512)) res = new TEPxyzOutput<number>();
 	else if(!strncasecmp(obs_type, "checkpoint", 512)) res = new Checkpoint<number>();
 	else {

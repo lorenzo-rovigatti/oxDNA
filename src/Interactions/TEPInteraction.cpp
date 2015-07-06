@@ -19,6 +19,7 @@ TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteractio
 	_twist_boundary_stiff = 0;//TODO: to remove once the twisting bit gets moved into the forces part of the code.
 	_my_time1 = 0;//TODO: to remove once the twisting bit gets moved into the forces part of the code.
 	_my_time2 = 0;//TODO: to remove once the twisting bit gets moved into the forces part of the code.
+	_print_torques_every = 0;
 	//parameters of the TEP model
 
 		// Lengths
@@ -134,6 +135,7 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 		setPositiveLLInt(&inp,"TEP_max_twisting_time",&_max_twisting_time,1,"maximum twisting time");
 		
 		//delete the contents of the files that measure the torques and the twisting behaviour
+		setPositiveLLInt(&inp,"TEP_print_torques_every",&_print_torques_every,0,"frequency between two measures of the external torques");
 		FILE *fp;
 		fp=fopen("torques_n3.txt","w");fclose(fp);
 		fp=fopen("torques_n5.txt","w");fclose(fp);
@@ -587,7 +589,6 @@ number TEPInteraction<number>::_nonbonded_excluded_volume(BaseParticle<number> *
 template<typename number>
 number TEPInteraction<number>::_index_twist_boundary_particles(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces){
 	// make sure that q is always virtual
-	int print_period = int(1e5);
 	number energy = 0;
 	LR_vector<number> torque_wt, torque_o;
 	if (q != P_VIRTUAL){
@@ -602,10 +603,12 @@ number TEPInteraction<number>::_index_twist_boundary_particles(BaseParticle<numb
 	if (p->n3 == P_VIRTUAL){
 		_my_time1++;
 		LR_vector<number> _w1t = rotateVectorAroundVersor(_w1,_o1,min(_my_time1,_max_twisting_time)*_o1_modulus);
-		if(_my_time1 % print_period == 0){
+		if( _print_torques_every != 0){
+		if(_my_time1 % _print_torques_every == 0){
 			FILE *fp = fopen("w1t.txt","a");
 			fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time1,_w1t*p->orientationT.v3,_w1t.x,_w1t.y,_w1t.z,p->orientationT.v3.x,p->orientationT.v3.y,p->orientationT.v3.z);
 			fclose(fp);
+		}
 		}
 		energy += _twist_boundary_stiff * (1 - (p->orientationT.v3 * _w1t));
 		energy += _twist_boundary_stiff * (1 - (p->orientationT.v1 * _o1));
@@ -615,11 +618,13 @@ number TEPInteraction<number>::_index_twist_boundary_particles(BaseParticle<numb
 
 			torque_o  = p->orientationT*(_twist_boundary_stiff * ( p->orientationT.v1.cross(_o1)));
 			p->torque += torque_o;
-			if(_my_time1 % print_period == 0){
+			if( _print_torques_every != 0){
+			if(_my_time1 % _print_torques_every == 0){
 				FILE * fp;
 				fp = fopen("torques_n3.txt","a");
 				fprintf(fp,"%lld\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t1\n", _my_time1, torque_wt.x,torque_wt.y,torque_wt.z, torque_o.x, torque_o.y, torque_o.z);
 				fclose(fp);
+			}
 			}
 		}
 	}
@@ -627,10 +632,12 @@ number TEPInteraction<number>::_index_twist_boundary_particles(BaseParticle<numb
 	if (p->n5->n5 == P_VIRTUAL){
 		_my_time2++;
 		LR_vector<number> _w2t = rotateVectorAroundVersor(_w2,_o2,min(_my_time2,_max_twisting_time)*_o2_modulus);
-		if(_my_time2 % print_period == 0){
+		if( _print_torques_every != 0){
+		if(_my_time2 % _print_torques_every == 0){
 				FILE * fp=fopen("w2t.txt","a");
 				fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time2,_w2t*p->orientationT.v3,_w2t.x,_w2t.y,_w2t.z,p->orientationT.v3.x,p->orientationT.v3.y,p->orientationT.v3.z);
 				fclose(fp);
+		}
 		}
 		energy += _twist_boundary_stiff * (1 - (p->orientationT.v3 * _w2t));
 		energy += _twist_boundary_stiff * (1 - (p->orientationT.v1 * _o2));
@@ -641,11 +648,13 @@ number TEPInteraction<number>::_index_twist_boundary_particles(BaseParticle<numb
 			torque_o  = p->orientationT*(_twist_boundary_stiff * ( p->orientationT.v1.cross(_o2)));
 			p->torque += torque_o;
 
-			if(_my_time2 % print_period == 0){
+			if( _print_torques_every != 0){
+			if(_my_time2 % _print_torques_every == 0){
 				FILE * fp;
 				fp = fopen("torques_n5.txt","a");
 				fprintf(fp,"%lld\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t1\n", _my_time2, torque_wt.x,torque_wt.y,torque_wt.z, torque_o.x, torque_o.y, torque_o.z);
 				fclose(fp);
+			}
 			}
 		}
 	}
@@ -657,7 +666,6 @@ template<typename number>
 number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces){
 	LR_vector<number> torque(0.,0.,0.);
 	number energy=0.;
-	int print_period = int(1e5);
 	
 	if(!_are_bonded(p, q)) {
 		return (number) 0.f;
@@ -667,7 +675,7 @@ number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p
 	// If one of the particles is an extremal one, twist it accordingly.
 	if (p->n3 == P_VIRTUAL){
 		_my_time++;
-		if(_my_time % print_period == 0){
+		if(_my_time % print_torques_every == 0){
 			FILE * fp=fopen("w1t.txt","a");
 			//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w1t.x,_w1t.y,_w1t.z);
 			fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time,_w1t*p->orientationT.v3,_w1t.x,_w1t.y,_w1t.z,p->orientationT.v3.x,p->orientationT.v3.y,p->orientationT.v3.z);
@@ -680,7 +688,7 @@ number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p
 		if (p->n5->n5 == P_VIRTUAL){
 			_my_time++;
 
-			if(_my_time % print_period == 0){
+			if(_my_time % print_torques_every == 0){
 				FILE * fp=fopen("w2t.txt","a");
 				//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w2t.x,_w2t.y,_w2t.z);
 				fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time,_w2t*p->orientationT.v3,_w2t.x,_w2t.y,_w2t.z,p->orientationT.v3.x,p->orientationT.v3.y,p->orientationT.v3.z);
@@ -696,7 +704,7 @@ number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p
 			// FILE * fp=fopen("w1t.txt","a");
 			//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w1t.x,_w1t.y,_w1t.z);
 			//fclose(fp);
-			if(_my_time % print_period == 0){
+			if(_my_time % print_torques_every == 0){
 				FILE * fp=fopen("w1t.txt","a");
 				//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w1t.x,_w1t.y,_w1t.z);
 				fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time,_w1t*q->orientationT.v3,_w1t.x,_w1t.y,_w1t.z,q->orientationT.v3.x,q->orientationT.v3.y,q->orientationT.v3.z);
@@ -712,7 +720,7 @@ number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p
 				//FILE * fp=fopen("w2t.txt","a");
 				//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w2t.x,_w2t.y,_w2t.z);
 				//fclose(fp);
-				if(_my_time % print_period == 0){
+				if(_my_time % print_torques_every == 0){
 					FILE * fp=fopen("w2t.txt","a");
 					//fprintf(fp,"%lld\t%lf\t%lf\t%lf\n",_my_time,_w2t.x,_w2t.y,_w2t.z);
 					fprintf(fp,"%lld\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",_my_time,_w2t*q->orientationT.v3,_w2t.x,_w2t.y,_w2t.z,q->orientationT.v3.x,q->orientationT.v3.y,q->orientationT.v3.z);
@@ -735,7 +743,7 @@ number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p
 			torque_o  = p->orientationT*(_twist_boundary_stiff * ( p->orientationT.v1.cross(_o1)));
 			p->torque += torque_o;
 
-			if(_my_time % print_period == 0){
+			if(_my_time % print_torques_every == 0){
 				fp = fopen("torques_n3.txt","a");
 				fprintf(fp,"%lld\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t1\n", _my_time, torque_wt.x,torque_wt.y,torque_wt.z, torque_o.x, torque_o.y, torque_o.z);
 				fclose(fp);
@@ -749,7 +757,7 @@ number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p
 				torque_o  = p->orientationT*(_twist_boundary_stiff * ( p->orientationT.v1.cross(_o2)));
 				p->torque += torque_o;
 
-				if(_my_time % print_period == 0){
+				if(_my_time % print_torques_every == 0){
 					fp = fopen("torques_n5.txt","a");
 					fprintf(fp,"%lld\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t1\n", _my_time, torque_wt.x,torque_wt.y,torque_wt.z, torque_o.x, torque_o.y, torque_o.z);
 					fclose(fp);
@@ -763,7 +771,7 @@ number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p
 
 				torque_o = q->orientationT*(_twist_boundary_stiff * ( q->orientationT.v1.cross(_o1)));
 				q->torque += torque_o;
-				if(_my_time % print_period == 0){
+				if(_my_time % print_torques_every == 0){
 					fp = fopen("torques_n3.txt","a");
 					fprintf(fp,"%lld\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t2\n", _my_time, torque_wt.x,torque_wt.y,torque_wt.z, torque_o.x, torque_o.y, torque_o.z);
 					fclose(fp);
@@ -778,7 +786,7 @@ number TEPInteraction<number>::_twist_boundary_particles(BaseParticle<number> *p
 					torque_o = q->orientationT*(_twist_boundary_stiff * ( q->orientationT.v1.cross(_o2)));
 					q->torque += torque_o;
 
-					if(_my_time % print_period == 0){
+					if(_my_time % print_torques_every == 0){
 						fp = fopen("torques_n5.txt","a");
 						fprintf(fp,"%lld\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t%14.14lf\t2\n", _my_time, torque_wt.x,torque_wt.y,torque_wt.z, torque_o.x, torque_o.y, torque_o.z);
 						fclose(fp);

@@ -62,6 +62,7 @@ protected:
 	llint _my_time1;
 	llint _my_time2;
 	llint _max_twisting_time;
+	llint _print_torques_every;
 
 
 
