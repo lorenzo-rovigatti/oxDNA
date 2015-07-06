@@ -1,15 +1,15 @@
 /*
- * TEPxyzOutput.h
+ * TEPtclOutput.h
  *
  *  Created on: 19/jun/2015
- *      Author: Ferdinando (after TcLOutput.cpp, written by Flavio, and TEPtclOutput.cpp, written by Ferdinando)
+ *      Author: Ferdinando (after TcLOutput.cpp, written by Flavio)
  */
 
 #include <sstream>
-#include "TEPxyzOutput.h"
+#include "TEPtclOutput.h"
 
 template<typename number>
-TEPxyzOutput<number>::TEPxyzOutput() : Configuration<number>() {
+TEPtclOutput<number>::TEPtclOutput() : Configuration<number>() {
 	_print_labels = false;
 	_core_radius = 1;
 	_side_radius = 0.7;
@@ -23,15 +23,16 @@ TEPxyzOutput<number>::TEPxyzOutput() : Configuration<number>() {
 	_ref_strand_id = -1;
 	_back_in_box = true;
 
+	OX_LOG(Logger::LOG_WARNING,"Observable TEPtclOutput has not been properly tested since vmd takes forever to read tcl commands. Use TEPxyzOutput instead.");
 }
 
 template<typename number>
-TEPxyzOutput<number>::~TEPxyzOutput() {
+TEPtclOutput<number>::~TEPtclOutput() {
 
 }
 
 template<typename number>
-void TEPxyzOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void TEPtclOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	Configuration<number>::get_settings(my_inp, sim_inp);
 	int tmp;
 	if(getInputBoolAsInt(&my_inp, "back_in_box", &tmp, 0) == KEY_FOUND) _back_in_box = (bool)tmp;
@@ -42,17 +43,12 @@ void TEPxyzOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp)
 }
 
 template<typename number>
-std::string TEPxyzOutput<number>::_headers(llint step) {
+std::string TEPtclOutput<number>::_headers(llint step) {
 	std::stringstream headers;
 	
-	const number mybox = *this->_config_info.box_side;
-	const int N = *this->_config_info.N*3;
-
-	headers << N << endl;
-	headers << "#" << mybox <<" "<< mybox <<" "<< mybox << endl;
-/* // Previous headers TODO remove them when the observable is finished
 	headers << "color Display Background white" << endl;
 	headers << "mol new" << endl;
+
 	// we might want to be able to change these in the future...
 	double _box_radius = 0.1;
 	int _box_resolution = _resolution;
@@ -71,12 +67,11 @@ std::string TEPxyzOutput<number>::_headers(llint step) {
 	headers << "graphics 0 cylinder {" <<  mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
 
-*/
 	return headers.str();
 }
 
 template<typename number>
-std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
+std::string TEPtclOutput<number>::_particle(BaseParticle<number> *p) {
 	std::stringstream res;
 	
 	TEPParticle<number> * me;
@@ -88,13 +83,11 @@ std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
 	if (_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_strands_cdm[_ref_strand_id];
 		
 	// set the colour according to the strand id
-	/* //this is used to set the color in tclOutput. I could do something similar with atom type should I ever need it.
 	int colorid = p->strand_id;
 	if (colorid >= 8) colorid ++;
 	colorid = colorid % 33;
-	res << "graphics 0 color " << colorid << endl;
-	*/
 	
+	res << "graphics 0 color " << colorid << endl;
 	number mybox = *this->_config_info.box_side;
 	LR_vector<number> my_strand_cdm = this->_strands_cdm[me->strand_id];
 	LR_vector<number> origin (0., 0., 0.);
@@ -104,27 +97,25 @@ std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
 	LR_vector<number> side = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + _side_shift*me->orientationT.v2; 
 	LR_vector<number> front = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + _front_shift*me->orientationT.v1; 
 
-/*
-//This was used to print labels in tcl. I don't think there's a way of doing it in xyz.	
+	
 	if (_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << core.x << " " << core.y << " " << core.z << "} \"" << me->strand_id << "\" size 1.5 " << endl;
-*/	
-
+	
 	// core
-	res << "C" <<" "<< core.x << " " << core.y << " " << core.z << endl;
+	res << "graphics 0 sphere {" << core.x << " " << core.y << " " << core.z << "} radius " << _core_radius << " resolution " << _resolution << endl;
 	// base
-	res << "H" <<" "<< side.x << " " << side.y << " " << side.z << endl;
+	res << "graphics 0 sphere {" << side.x << " " << side.y << " " << side.z << "} radius " << _side_radius << " resolution " << _resolution << endl;
 	// front 
-	res << "He" <<" "<< front.x << " " << front.y << " " << front.z ;
+	res << "graphics 0 sphere {" << front.x << " " << front.y << " " << front.z << "} radius " << _front_radius << " resolution " << _resolution << endl;
 	
 	
-	//res << "graphics 0 color white";
+	res << "graphics 0 color white";
 
 	return res.str();
 }
 
 
 template<typename number>
-std::string TEPxyzOutput<number>::_configuration(llint step) {
+std::string TEPtclOutput<number>::_configuration(llint step) {
 	stringstream conf;
 	//conf.precision(15);
 	if (_back_in_box) this->_fill_strands_cdm ();
@@ -137,6 +128,6 @@ std::string TEPxyzOutput<number>::_configuration(llint step) {
 	return conf.str();
 }
 
-template class TEPxyzOutput<float>;
-template class TEPxyzOutput<double>;
+template class TEPtclOutput<float>;
+template class TEPtclOutput<double>;
 
