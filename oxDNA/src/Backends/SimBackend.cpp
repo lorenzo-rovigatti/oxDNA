@@ -46,7 +46,7 @@ SimBackend<number>::SimBackend() {
 	_P = (number) 0.;
 	_lists = NULL;
 	_box = NULL;
-	_max_io = 1.;
+	_max_io = (number) 1.0e10;
 	_read_conf_step = -1;
 	_conf_interval = -1;
 	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = NULL;
@@ -276,6 +276,9 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	if (getInputNumber<number> (&inp, "max_io", &_max_io, 0) == KEY_FOUND) {
 		if (_max_io < 0) throw oxDNAException ("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
 		else OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
+	}
+	else {
+		_max_io = 1.; // default value for a simulation is 1 MB/s
 	}
 }
 
