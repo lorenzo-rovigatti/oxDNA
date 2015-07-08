@@ -257,52 +257,54 @@ def build_nodes(vh):
         dir = -1
     for i in range(len(vh.scaf)):
         # need to consider what happens when I add an index to the node list that doesn't fall within the range of square indices in the vhelix
-        if (i-1*dir) in range(len(vh.scaf)):
-            prev = vh.scaf[i-1*dir].type(vh)
-            prev_stap = vh.stap[i-1*dir].type(vh)
+        previd = i-1*dir
+        nextid = i+1*dir
+        if previd in range(len(vh.scaf)):
+            prev = vh.scaf[previd].type(vh, previd)
+            prev_stap = vh.stap[previd].type(vh, previd)
         else:
             prev = False
             prev_stap = False
-        if (i+1*dir) in range(len(vh.scaf)):
-            next = vh.scaf[i+1*dir].type(vh)
-            next_stap = vh.stap[i+1*dir].type(vh)
+        if nextid in range(len(vh.scaf)):
+            next = vh.scaf[nextid].type(vh, nextid)
+            next_stap = vh.stap[nextid].type(vh, nextid)
         else:
             next = False
             next_stap = False
         # now build the effective strand vh_nodes object
         if not ((prev == prev_stap and (prev == 'begin' or prev == 'end')) or (next == next_stap and (next == 'begin' or next == 'end'))):
-            if vh.scaf[i].type(vh) == 'empty':
-                if vh.stap[i].type(vh) == 'begin':
+            if vh.scaf[i].type(vh, i) == 'empty':
+                if vh.stap[i].type(vh, i) == 'begin':
                     nodes.add_end(i)
-                elif vh.stap[i].type(vh) == 'end':
+                elif vh.stap[i].type(vh, i) == 'end':
                     nodes.add_begin(i)
-            elif vh.scaf[i].type(vh) == 'begin':
-                if vh.stap[i].type(vh) == 'empty':
+            elif vh.scaf[i].type(vh, i) == 'begin':
+                if vh.stap[i].type(vh, i) == 'empty':
                     nodes.add_begin(i)
-                elif vh.stap[i].type(vh) == 'continue':
+                elif vh.stap[i].type(vh, i) == 'continue':
                     nodes.add_begin(i)
                     nodes.add_end(i-1*dir)
-                elif vh.stap[i].type(vh) == 'begin':
+                elif vh.stap[i].type(vh, i) == 'begin':
                     nodes.add_begin(i+1*dir)
                     nodes.add_end(i-1*dir)
-                elif vh.stap[i].type(vh) == 'end':
+                elif vh.stap[i].type(vh, i) == 'end':
                     nodes.add_begin(i)
-            elif vh.scaf[i].type(vh) == 'end':
-                if vh.stap[i].type(vh) == 'empty':
+            elif vh.scaf[i].type(vh, i) == 'end':
+                if vh.stap[i].type(vh, i) == 'empty':
                     nodes.add_end(i)
-                elif vh.stap[i].type(vh) == 'continue':
+                elif vh.stap[i].type(vh, i) == 'continue':
                     nodes.add_begin(i+1*dir)
                     nodes.add_end(i)
-                elif vh.stap[i].type(vh) == 'begin':
+                elif vh.stap[i].type(vh, i) == 'begin':
                     nodes.add_end(i)
-                elif vh.stap[i].type(vh) == 'end':
+                elif vh.stap[i].type(vh, i) == 'end':
                     nodes.add_begin(i+1*dir)
                     nodes.add_end(i-1*dir)
-            elif vh.scaf[i].type(vh) == 'continue':
-                if vh.stap[i].type(vh) == 'begin':
+            elif vh.scaf[i].type(vh, i) == 'continue':
+                if vh.stap[i].type(vh, i) == 'begin':
                     nodes.add_begin(i+1*dir)
                     nodes.add_end(i)
-                elif vh.stap[i].type(vh) == 'end':
+                elif vh.stap[i].type(vh, i) == 'end':
                     nodes.add_begin(i)
                     nodes.add_end(i-1*dir)
 
@@ -565,6 +567,10 @@ class vhelix (object):
 
 class square (object):
     def __init__ (self, V_0=-1, b_0=-1, V_1=-1, b_1=-1):
+        """
+        V_0, b_0, V_1, b_1 are integer indices correspond to:
+        virtual_helix_behind, virtual_base_behind, virtual_helix_ahead, virtual_base_ahead
+        """
         self.V_0 = V_0
         self.b_0 = b_0
         self.V_1 = V_1
@@ -573,25 +579,25 @@ class square (object):
     def __str__ (self):
         return '[%i,%i,%i,%i]' % (self.V_0, self.b_0, self.V_1, self.b_1)
 
-    def type(self, vhelix):
+    def type(self, vhelix, myid):
         # find type of strand (junction) on this square
         # currently direction always equals zero...
         direction = 0
         if self.V_0 == -1 and self.b_0 == -1:
             if self.V_1 == -1 and self.b_1 == -1:
                 return 'empty'
-            elif self.V_1 == vhelix.num:
+            elif self.V_1 == vhelix.num and abs(self.b_1-myid) == 1:
                 if direction == 0:
                     return 'begin'
                 else:
                     return 'end'
-        elif self.V_0 == vhelix.num:
+        elif self.V_0 == vhelix.num and abs(self.b_0-myid) == 1:
             if self.V_1 == -1:
                 if direction == 0:
                     return 'end'
                 else:
                     return 'begin'
-            elif self.V_1 == vhelix.num:
+            elif self.V_1 == vhelix.num and abs(self.b_1-myid) == 1:
                 return 'continue'
             else:
                 #join
@@ -600,7 +606,7 @@ class square (object):
                 else:
                     return 'begin'
         else:
-            if self.V_1 == vhelix.num:
+            if self.V_1 == vhelix.num and abs(self.b_1-myid) == 1:
                 if direction == 0:
                     return 'begin'
                 else:
@@ -833,10 +839,11 @@ def main():
         # read the scaffold squares and add strands to slice_sys
         i = 0
         for s in h.scaf:
+            print s, s.type(h, i), i
             if s.V_0 == -1 and s.b_0 == -1:
                 if s.V_1 == -1 and s.b_0 == -1:
                     pass
-                elif s.V_1 == h.num:
+                elif s.V_1 == h.num and abs(s.b_1 - i) == 1:
                     if h.num % 2 == 0:
                         strand_number += 1
                     begin_helix = i
@@ -848,7 +855,7 @@ def main():
                             vh_vb2nuc = add_slice_nupack(h, strand_number, begin_helix, end_helix, vh_vb2nuc, 2)
                 else:
                     base.Logger.log("unexpected square array", base.Logger.WARNING)
-            elif s.V_0 == h.num:
+            elif s.V_0 == h.num and abs(s.b_0 - i) == 1:
                 if s.V_1 == -1 and s.b_1 == -1:
                     if h.num % 2 == 1:
                         strand_number += 1
@@ -859,7 +866,7 @@ def main():
                         else:
                             slice_sys = add_slice(slice_sys, h, begin_helix, end_helix, nodes, strands, pos, vhelix_direction, vhelix_perp, rot, helix_angles, 0, block_seq, sequences)
                             vh_vb2nuc = add_slice_nupack(h, strand_number, begin_helix, end_helix, vh_vb2nuc, 2)
-                elif s.V_1 == h.num:
+                elif s.V_1 == h.num and abs(s.b_1 - i) == 1:
                     pass
                 else:
                     if h.num % 2 == 1:
@@ -888,7 +895,7 @@ def main():
             else:
                 if s.V_1 == -1 and s.b_1 == -1:
                     base.Logger.log("unexpected square array", base.Logger.WARNING)
-                elif s.V_1 == h.num:
+                elif s.V_1 == h.num and abs(s.b_1 - i) == 1:
                     if h.num % 2 == 0:
                         strand_number += 1
                     begin_helix = i
@@ -921,7 +928,7 @@ def main():
             if s.V_0 == -1 and s.b_0 == -1:
                 if s.V_1 == -1 and s.b_0 == -1:
                     pass
-                elif s.V_1 == h.num:
+                elif s.V_1 == h.num and abs(s.b_1 - i) == 1:
                     if h.num % 2 == 1:
                         strand_number += 1
                     begin_helix = i
@@ -933,7 +940,7 @@ def main():
                             vh_vb2nuc = add_slice_nupack(h, strand_number, begin_helix, end_helix, vh_vb2nuc, 3)
                 else:
                     base.Logger.log("unexpected square array", base.Logger.WARNING)
-            elif s.V_0 == h.num:
+            elif s.V_0 == h.num and abs(s.b_0 - i) == 1:
                 if s.V_1 == -1 and s.b_1 == -1:
                     if h.num % 2 == 0:
                         strand_number += 1
@@ -945,7 +952,7 @@ def main():
                             slice_sys = add_slice(slice_sys, h, begin_helix, end_helix, nodes, strands, pos, vhelix_direction, vhelix_perp, rot, helix_angles, 1, block_seq, sequences)
                             vh_vb2nuc = add_slice_nupack(h, strand_number, begin_helix, end_helix, vh_vb2nuc, 3)
 
-                elif s.V_1 == h.num:
+                elif s.V_1 == h.num and abs(s.b_1 - i) == 1:
                     pass
                 else:
                     if h.num % 2 == 0:
@@ -974,7 +981,7 @@ def main():
             else:
                 if s.V_1 == -1 and s.b_1 == -1:
                     base.Logger.log("unexpected square array", base.Logger.WARNING)
-                elif s.V_1 == h.num:
+                elif s.V_1 == h.num and abs(s.b_1 - i) == 1:
                     if h.num % 2 == 1:
                         strand_number += 1
                     begin_helix = i
