@@ -60,6 +60,7 @@ TEPInteraction<number>::~TEPInteraction() {
 template<typename number>
 void TEPInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
+	
 
 	// TEP model parameters
 	setNonNegativeNumber(&inp, "TEP_kb", &_kb, 0, "rod bending energy prefactor");
@@ -96,10 +97,19 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 		OX_LOG(Logger::LOG_INFO," bounded energy changed from FENE to harmonic");
 	}
 	
-	// If we're doing MC (e.g. not MD), then we should make sure that the delta_translation doesn't
-	// allow for beads to flip over the twisting barrier.
 	std::string sim_type("MD");
   getInputString(&inp, "sim_type", sim_type, 0);
+	// check that the dt for MD is set to the optimal value (Ferdinando checked that this is actually a good value)
+	if ( sim_type.compare("MD") == 0 ){
+		number dt;
+		number optimal_dt = 1e-3;
+		getInputNumber(&inp,"dt",&dt,0);
+		if( fabs(dt-optimal_dt)>1e-8){
+			OX_LOG(Logger::LOG_WARNING,"the optimal dt for the TEP model has been found to be %g, but it has been set to %g in the input file. Ignore this warning if you know what you're doing.",optimal_dt,dt);
+		}
+	}
+	// If we're doing MC (e.g. not MD), then we should make sure that the delta_translation doesn't
+	// allow for beads to flip over the twisting barrier.
 	if ( sim_type.compare("MD") != 0 ){
 		printf("OKKEY____________________________________\n");
 		number max_delta_rotation = 2*(PI-acos(-_twist_b));
