@@ -23,6 +23,7 @@ StarrInteraction<number>::StarrInteraction() : BaseInteraction<number, StarrInte
 	_N_per_strand = 17;
 	_N_per_tetramer = _N_strands_per_tetramer*_N_per_strand;
 	_N_tetramers = -1;
+	_starr_model = false;
 }
 
 template <typename number>
@@ -33,6 +34,8 @@ StarrInteraction<number>::~StarrInteraction() {
 template<typename number>
 void StarrInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
+
+	getInputBool(&inp, "FS_starr_model", &_starr_model, 0);
 }
 
 template<typename number>
@@ -118,7 +121,7 @@ void StarrInteraction<number>::read_topology(int N, int *N_strands, BaseParticle
 				CustomParticle<number> *q = static_cast<CustomParticle<number> *>(particles[idx_prev]);
 				p->add_bonded_neigh(q);
 				p->n3 = q;
-				if(idx_in_arm != 1) q->n5 = p;
+				q->n5 = p;
 			}
 		}
 	}
@@ -170,10 +173,7 @@ number StarrInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle
 }
 
 template<typename number>
-number StarrInteraction<number>::_three_body(BaseParticle<number> *p, bool update_forces) {
-	BaseParticle<number> *n3 = p->n3;
-	BaseParticle<number> *n5 = p->n5;
-
+number StarrInteraction<number>::_three_body(BaseParticle<number> *p, BaseParticle<number> *n3, BaseParticle<number> *n5, bool update_forces) {
 	if(n3 == P_VIRTUAL || n5 == P_VIRTUAL) return 0.;
 
 	LR_vector<number> dist_pn3 = n3->pos.minimum_image(p->pos, this->_box_side);
@@ -208,10 +208,13 @@ number StarrInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseP
 template<typename number>
 number StarrInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if(q == P_VIRTUAL) {
-		number energy = _three_body(p, update_forces);
+	  number energy = _three_body(p, p->n3, p->n5, update_forces);
+	  bool is_hub = (p->index % _N_per_strand) == 0;
 		CustomParticle<number> *cp = static_cast<CustomParticle<number> *>(p);
 		for(typename set<CustomParticle<number> *>::iterator it = cp->bonded_neighs.begin(); it != cp->bonded_neighs.end(); it++) {
-			energy += pair_interaction_bonded(cp, *it, r, update_forces);
+			CustomParticle<number> *cq = *it;
+			energy += pair_interaction_bonded(cp, cq, r, update_forces);
+			if(_starr_model && is_hub && ((cq->index % _N_per_strand) == 0)) energy += _three_body(p, cq, p->n5, update_forces);
 		}
 		return energy;
 	}
