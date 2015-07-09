@@ -39,6 +39,7 @@ SET(observables_SOURCES
 	Observables/Configurations/TEPxyzOutput.cpp
 	Observables/ObservableFactory.cpp
 	Observables/MeanVectorCosine.cpp
+	Observables/VectorAngle.cpp
 	Observables/Checkpoint.cpp
 )
 
