@@ -12,9 +12,11 @@
 #include "../Particles/CustomParticle.h"
 
 /* CUDA constants */
+__constant__ bool MD_starr_model[1];
 __constant__ int MD_N[1];
 __constant__ int MD_N_hubs[1];
 __constant__ int MD_N_per_strand[1];
+__constant__ int MD_N_per_tetramer[1];
 __constant__ float MD_box_side[1];
 
 __constant__ float MD_LJ_sigma[3];
@@ -128,22 +130,18 @@ __device__ void _particle_all_bonded_interactions(number4 &ppos, LR_bonds &bs, n
 		bool has_n3 = bs.n3 != P_INVALID;
 		bool has_n5 = bs.n5 != P_INVALID;
 		// backbone
-		if(has_n3 || has_n5) {
-			if(has_n3) {
-				number4 qpos = poss[bs.n3];
-				_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
-			}
-
-			if(has_n5) {
-				number4 qpos = poss[bs.n5];
-				_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
-			}
-
-//			_three_body<number, number4>(ppos, bs, F, poss, forces);
+		if(has_n3) {
+			number4 qpos = poss[bs.n3];
+			_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
 
 			// backbone-base
-			number4 qpos = poss[IND + 1];
+			qpos = poss[IND + 1];
 			_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F, true);
+		}
+
+		if(has_n5) {
+			number4 qpos = poss[bs.n5];
+			_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
 		}
 	}
 	// base
@@ -204,8 +202,8 @@ __device__ void _three_body(number4 &ppos, LR_bonds &bs, number4 &F, number4 *po
 	number4 n3_pos = poss[bs.n3];
 	number4 n5_pos = poss[bs.n5];
 
-	number4 dist_pn3 = n3_pos - ppos;
-	number4 dist_pn5 = ppos - n5_pos;
+	number4 dist_pn3 = minimum_image<number, number4>(ppos, n3_pos);
+	number4 dist_pn5 = minimum_image<number, number4>(n5_pos, ppos);
 
 	number sqr_dist_pn3 = CUDA_DOT(dist_pn3, dist_pn3);
 	number sqr_dist_pn5 = CUDA_DOT(dist_pn5, dist_pn5);
@@ -222,8 +220,10 @@ __device__ void _three_body(number4 &ppos, LR_bonds &bs, number4 &F, number4 *po
 
 	number4 n3_force = dist_pn5*(i_pn3_pn5*MD_lin_k[0]) - dist_pn3*(cost_n3*MD_lin_k[0]);
 	number4 n5_force = dist_pn5*(cost_n5*MD_lin_k[0]) - dist_pn3*(i_pn3_pn5*MD_lin_k[0]);
-	n3_forces[bs.n3] = n3_force;
-	n5_forces[bs.n5] = n5_force;
+	/*n3_forces[bs.n3] = n3_force;
+	  n5_forces[bs.n5] = n5_force;*/
+	LR_atomicAddXYZ(n3_forces + bs.n3, n3_force);
+	LR_atomicAddXYZ(n5_forces + bs.n5, n5_force);
 }
 
 template <typename number, typename number4>
@@ -234,7 +234,16 @@ __global__ void three_body_forces(number4 *poss, number4 *forces, number4 *n3_fo
 	LR_bonds bs = bonds[IND];
 	number4 ppos = poss[IND];
 
-	_three_body<number, number4>(ppos, bs, F, poss, n3_forces, n5_forces);
+	if(MD_starr_model[0] && (IND % MD_N_per_strand[0] == 0)) {
+	  int base_idx = IND - (IND % MD_N_per_tetramer[0]);
+		for(int i = 0; i < MD_N_per_tetramer[0]; i += MD_N_per_strand[0]) {
+			bs.n3 = base_idx + i;
+			if(bs.n3 != IND) {
+				_three_body<number, number4>(ppos, bs, F, poss, n3_forces, n5_forces);
+			}
+		}
+	}
+	else _three_body<number, number4>(ppos, bs, F, poss, n3_forces, n5_forces);
 
 	forces[IND] = F;
 }
@@ -253,16 +262,15 @@ __global__ void tetra_hub_forces(number4 *poss, number4 *forces, int *hubs, tetr
 
 	int idx_hub = hubs[IND];
 	tetra_hub_bonds hub_bonds = bonds[IND];
-	number4 poss_hub = poss[idx_hub];
+	number4 pos_hub = poss[idx_hub];
 	number4 F = forces[idx_hub];
 
-	for(int an = 0; an < HUB_SIZE; an++) {
+	for(int an = 0; an < (HUB_SIZE-1); an++) {
 		int bonded_neigh = hub_bonds.n[an];
 		// since bonded neighbours of hub are in the hub's neighbouring list, the LJ interaction between
 		// the two, from the point of view of the hub, has been already computed and hence the hub-particle
 		// interaction reduces to just the fene
-		number4 r = minimum_image<number, number4>(poss_hub, poss[bonded_neigh]);
-		_fene<number, number4>(r, F);
+		_particle_particle_bonded_interaction<number, number4>(pos_hub, poss[bonded_neigh], F, true);
 	}
 
 	forces[idx_hub] = F;
@@ -314,9 +322,11 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDA_SAFE_CALL( cudaMemset(_d_n3_forces, 0, this->_N*sizeof(number4)) );
 	CUDA_SAFE_CALL( cudaMemset(_d_n5_forces, 0, this->_N*sizeof(number4)) );
 
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_hubs, &_N_hubs, sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_starr_model, &this->_starr_model, sizeof(bool)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_hubs, &_N_hubs, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_per_strand, &this->_N_per_strand, sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_per_tetramer, &this->_N_per_tetramer, sizeof(int)) );
 	float f_copy = box_side;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_box_side, &f_copy, sizeof(float)) );
 	f_copy = this->_lin_k;
@@ -360,8 +370,11 @@ void CUDAStarrInteraction<number, number4>::_setup_tetra_hubs() {
 
 			// now load all the tetra_hub_bonds structures by looping over all the bonded neighbours
 			int nn = 0;
-			for(typename set<CustomParticle<number> *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++, nn++) {
-				_h_tetra_hub_neighs[rel_idx_hub].n[nn] = (*it)->index;
+			for(typename set<CustomParticle<number> *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++) {
+				if((*it) != p->n5) {
+					_h_tetra_hub_neighs[rel_idx_hub].n[nn] = (*it)->index;
+					nn++;
+				}
 			}
 		}
 	}
@@ -384,6 +397,9 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 		(d_forces, _d_n3_forces, _d_n5_forces);
 	CUT_CHECK_ERROR("sum_three_body error");
+
+	CUDA_SAFE_CALL( cudaMemset(_d_n3_forces, 0, this->_N*sizeof(number4)) );
+	CUDA_SAFE_CALL( cudaMemset(_d_n5_forces, 0, this->_N*sizeof(number4)) );
 
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {

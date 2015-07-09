@@ -1,5 +1,5 @@
 /*
- * StarrConf.h
+ * StarrHubConf.h
  *
  *  Created on: 08/ott/2013
  *      Author: lorenzo
@@ -18,7 +18,7 @@
 @endverbatim
  */
 template<typename number>
-class StarrConf: public Configuration<number>  {
+class StarrHubConf: public Configuration<number>  {
 protected:
 	int _N_per_strand;
 	int _N_strands_per_tetramer;
@@ -37,14 +37,14 @@ protected:
 	std::string _configuration(llint step);
 
 public:
-	StarrConf();
-	virtual ~StarrConf();
+	StarrHubConf();
+	virtual ~StarrHubConf();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
 	void init(ConfigInfo<number> &config_info);
 };
 
-extern "C" BaseObservable<float> *make_StarrConf_float() { return new StarrConf<float>(); }
-extern "C" BaseObservable<double> *make_StarrConf_double() { return new StarrConf<double>(); }
+extern "C" BaseObservable<float> *make_StarrHubConf_float() { return new StarrHubConf<float>(); }
+extern "C" BaseObservable<double> *make_StarrHubConf_double() { return new StarrHubConf<double>(); }
 
 #endif /* STARRCONF_H_ */

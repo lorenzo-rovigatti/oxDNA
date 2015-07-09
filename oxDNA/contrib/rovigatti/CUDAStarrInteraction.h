@@ -14,7 +14,7 @@
 #define HUB_SIZE 4
 
 typedef struct __align__(8) {
-	int n[HUB_SIZE];
+	int n[HUB_SIZE-1];
 } tetra_hub_bonds;
 
 /**

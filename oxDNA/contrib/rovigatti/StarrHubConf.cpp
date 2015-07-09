@@ -1,5 +1,5 @@
 /*
- * StarrConf.cpp
+ * StarrHubConf.cpp
  *
  *  Created on: 08/ott/2013
  *      Author: lorenzo
@@ -9,13 +9,13 @@
 #include <iostream>
 #include <string>
 
-#include "StarrConf.h"
+#include "StarrHubConf.h"
 #include "../Interactions/PatchyInteraction.h"
 
 using namespace std;
 
 template<typename number>
-StarrConf<number>::StarrConf() : Configuration<number>() {
+StarrHubConf<number>::StarrHubConf() : Configuration<number>() {
 	_N_strands_per_tetramer = 4;
 	_N_per_strand = 17;
 	_N_per_tetramer = _N_strands_per_tetramer*_N_per_strand;
@@ -25,12 +25,12 @@ StarrConf<number>::StarrConf() : Configuration<number>() {
 }
 
 template<typename number>
-StarrConf<number>::~StarrConf() {
+StarrHubConf<number>::~StarrHubConf() {
 
 }
 
 template<typename number>
-void StarrConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void StarrHubConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	Configuration<number>::get_settings(my_inp, sim_inp);
 
 	getInputBool(&my_inp, "print_bonds", &_print_bonds, 0);
@@ -38,7 +38,7 @@ void StarrConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 template<typename number>
-void StarrConf<number>::init(ConfigInfo<number> &config_info) {
+void StarrHubConf<number>::init(ConfigInfo<number> &config_info) {
    Configuration<number>::init(config_info);
 
    _N_tetramers = *config_info.N / _N_per_tetramer;
@@ -48,7 +48,7 @@ void StarrConf<number>::init(ConfigInfo<number> &config_info) {
 }
 
 template<typename number>
-std::string StarrConf<number>::_headers(llint step) {
+std::string StarrHubConf<number>::_headers(llint step) {
 	std::stringstream headers;
 
 	number mybox = *this->_config_info.box_side;
@@ -60,7 +60,7 @@ std::string StarrConf<number>::_headers(llint step) {
 }
 
 template<typename number>
-string StarrConf<number>::_configuration(llint step) {
+string StarrHubConf<number>::_configuration(llint step) {
 	stringstream conf;
 	conf.precision(15);
 
@@ -69,18 +69,15 @@ string StarrConf<number>::_configuration(llint step) {
 		if(_print_bonds) _tetra_bonds[i].clear();
 		int base_idx = i*_N_per_tetramer;
 		for(int j = 0; j < _N_strands_per_tetramer; j++) {
-			for(int k = 0; k < _N_per_strand; k++) {
-				int idx = base_idx + k;
-				BaseParticle<number> *p = this->_config_info.particles[idx];
+			BaseParticle<number> *p = this->_config_info.particles[base_idx];
 
-				_tetra_poss[i] += p->get_abs_pos(*this->_config_info.box_side);
-				_tetra_vels[i] += p->vel;
-			}
+			_tetra_poss[i] += p->get_abs_pos(*this->_config_info.box_side);
+			_tetra_vels[i] += p->vel;
 			base_idx += _N_per_strand;
 		}
 
-		_tetra_poss[i] /= _N_per_tetramer;
-		_tetra_vels[i] /= _N_per_tetramer;
+		_tetra_poss[i] /= _N_strands_per_tetramer;
+		_tetra_vels[i] /= _N_strands_per_tetramer;
 
 		conf << endl;
 		conf << _tetra_poss[i].x << " " << _tetra_poss[i].y << " " << _tetra_poss[i].z;
@@ -121,5 +118,5 @@ string StarrConf<number>::_configuration(llint step) {
 	return conf.str();
 }
 
-template class StarrConf<float>;
-template class StarrConf<double>;
+template class StarrHubConf<float>;
+template class StarrHubConf<double>;

@@ -24,6 +24,8 @@ protected:
 	int _N_strands_per_tetramer;
 	int _N_tetramers;
 
+	bool _starr_model;
+
 	number _LJ_sigma[3];
 	number _LJ_sqr_sigma[3];
 	number _LJ_rcut[3];
@@ -38,7 +40,7 @@ protected:
 
 	virtual number _fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _three_body(BaseParticle<number> *p, bool update_forces);
+	virtual number _three_body(BaseParticle<number> *p, BaseParticle<number> *n3, BaseParticle<number> *n5, bool update_forces);
 
 public:
 	enum {
