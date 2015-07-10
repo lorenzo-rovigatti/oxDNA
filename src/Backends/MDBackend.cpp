@@ -14,6 +14,7 @@ template<typename number>
 MDBackend<number>::MDBackend() : SimBackend<number>(), _refresh_velocities(false) {
 	this->_sim_type = SIM_MD;
 	_reset_initial_com_momentum = false;
+	_reset_com_momentum = false;
 }
 
 template<typename number>
@@ -28,6 +29,8 @@ void MDBackend<number>::get_settings(input_file &inp) {
 	// refresh of initial velocities
 	getInputBool(&inp, "refresh_vel", &_refresh_velocities, 0);
 	getInputBool(&inp, "reset_initial_com_momentum", &_reset_initial_com_momentum, 0);
+	getInputBool(&inp, "reset_com_momentum", &_reset_com_momentum, 0);
+	if(_reset_com_momentum && !this->_enable_fix_diffusion) throw oxDNAException("reset_com_momentum requires fix_diffusion = true");
 
 	getInputNumber<number>(&inp, "dt", &_dt, 1);
 
@@ -95,13 +98,6 @@ void MDBackend<number>::_reset_momentum() {
 		BaseParticle<number> *p = this->_particles[i];
 		p->vel -= com_v;
 	}
-
-	com_v = LR_vector<number>(0, 0, 0);
-	for(int i = 0; i < this->_N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
-		com_v += p->vel;
-	}
-	com_v /= this->_N;
 }
 
 template<typename number>
@@ -125,6 +121,12 @@ void MDBackend<number>::_generate_vel() {
 	}
 
 	OX_LOG(Logger::LOG_INFO, "Initial kinetic energy: %f", initial_K);
+}
+
+template<typename number>
+void MDBackend<number>::fix_diffusion() {
+	if(_reset_com_momentum) MDBackend<number>::_reset_momentum();
+	SimBackend<number>::fix_diffusion();
 }
 
 template class MDBackend<float>;
