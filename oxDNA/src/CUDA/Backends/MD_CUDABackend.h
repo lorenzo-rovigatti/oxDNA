@@ -68,7 +68,6 @@ protected:
 	virtual void _init_CUDA_MD_symbols();
 
 	virtual void _print_ready_observables(llint curr_step);
-	virtual void fix_diffusion();
 
 public:
 	MD_CUDABackend();
@@ -78,6 +77,7 @@ public:
 	virtual void init();
 
 	virtual void sim_step(llint curr_step);
+	virtual void fix_diffusion();
 
 	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
 };

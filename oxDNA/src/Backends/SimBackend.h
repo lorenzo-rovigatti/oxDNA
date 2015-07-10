@@ -206,8 +206,6 @@ protected:
 
 	void _read_external_forces();
 
-	virtual void fix_diffusion();
-
 	/**
 	 * Reads from _conf_input three numbers in ascii or binary format, depending on the
 	 * value of the parameter.
@@ -243,6 +241,7 @@ public:
 	virtual void init();
 
 	int get_N_updates() {return _N_updates; }
+	virtual void fix_diffusion();
 	virtual void print_observables(llint curr_step);
 	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
 };
