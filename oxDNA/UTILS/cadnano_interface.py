@@ -839,7 +839,6 @@ def main():
         # read the scaffold squares and add strands to slice_sys
         i = 0
         for s in h.scaf:
-            print s, s.type(h, i), i
             if s.V_0 == -1 and s.b_0 == -1:
                 if s.V_1 == -1 and s.b_0 == -1:
                     pass
