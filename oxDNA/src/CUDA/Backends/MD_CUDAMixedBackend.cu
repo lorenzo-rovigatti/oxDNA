@@ -30,7 +30,7 @@ void CUDAMixedBackend::init() {
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_possd, _vec_sized) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_velsd, _vec_sized) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_Lsd, _vec_sized) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat<double>  >(&_d_orientationsd, _orient_sized) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat<double> >(&_d_orientationsd, _orient_sized) );
 
 	_float4_to_LR_double4(_d_poss, _d_possd);
 	_quat_float_to_quat_double(_d_orientations, _d_orientationsd); 

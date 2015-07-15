@@ -481,17 +481,17 @@ void MD_CUDABackend<number, number4>::print_conf(llint curr_step, bool reduced, 
 
 template<typename number, typename number4>
 void MD_CUDABackend<number, number4>::_print_ready_observables(llint curr_step) {
-        _gpu_to_host_particles();
-        this->_lists->global_update(true);
-        MDBackend<number>::_print_ready_observables(curr_step);
-        _host_particles_to_gpu();
+	_gpu_to_host_particles();
+	this->_lists->global_update(true);
+	MDBackend<number>::_print_ready_observables(curr_step);
+	_host_particles_to_gpu();
 }
 
 template<typename number, typename number4>
 void MD_CUDABackend<number, number4>::fix_diffusion() {
-        _gpu_to_host_particles();
-        MDBackend<number>::fix_diffusion();
-        _host_particles_to_gpu();
+	_gpu_to_host_particles();
+	MDBackend<number>::fix_diffusion();
+	_host_particles_to_gpu();
 }
 
 // template instantiations
