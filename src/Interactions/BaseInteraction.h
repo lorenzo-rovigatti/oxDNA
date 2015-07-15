@@ -259,22 +259,22 @@ void IBaseInteraction<number>::read_topology(int N, int *N_strands, BaseParticle
 
 template<typename number>
 number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **particles, int N, BaseList<number> *lists) {
-	number energy = (number) 0.f;
+	double energy = 0.;
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
-		energy += pair_interaction_bonded(p, P_VIRTUAL);
+		energy += (double) pair_interaction_bonded(p, P_VIRTUAL);
 
 		vector<BaseParticle<number> *> neighs = lists->get_neigh_list(p);
 
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
-			if(p->index > q->index) energy += pair_interaction_nonbonded(p, q);
+			if(p->index > q->index) energy += (double) pair_interaction_nonbonded(p, q);
 			if(this->get_is_infinite()) return energy;
 		}
 	}
 	
-	return energy;
+	return (number) energy;
 }
 
 template<typename number>
@@ -362,11 +362,12 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 
 			// we take into account the external potential
 			if (p->ext_potential > _energy_threshold) {
-				//if (inserted) printf ("rejecting because of ext. potential\n");
 				inserted = false;
 			}
 
 		} while(!inserted);
+
+		if(i > 0 && i % (N/10) == 0) OX_LOG(Logger::LOG_INFO, "Inserted %d%% of the particles (%d/%d)", i*100/N, i, N);
 	}
 }
 
