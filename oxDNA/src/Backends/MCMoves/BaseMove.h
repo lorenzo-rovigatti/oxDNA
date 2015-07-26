@@ -89,6 +89,8 @@ BaseMove<number>::BaseMove (ConfigInfo<number> * Info) {
 	_Info = Info;
 	prob = (number) 1.f;
 	_target_acc_rate = 0.25;
+	_equilibration_steps = 0;
+	_adjust_moves = false;
 }
 
 template<typename number>
