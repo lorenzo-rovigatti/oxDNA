@@ -20,6 +20,7 @@ FSConf<number>::FSConf() : Configuration<number>() {
 	_N = _N_A = _N_B = -1;
 	_in_box = false;
 	_also_patch = false;
+	_print_bonds = false;
 }
 
 template<typename number>
@@ -36,6 +37,13 @@ void FSConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputBool(&my_inp, "in_box", &_in_box, 0);
 	getInputBool(&my_inp, "also_patch", &_also_patch, 0);
+	getInputBool(&my_inp, "print_bonds", &_print_bonds, 0);
+	if(_print_bonds) {
+		_bond_threshold = -0.2;
+		getInputNumber(&my_inp, "bond_threshold", &_bond_threshold, 0);
+	}
+
+	if(_also_patch && _print_bonds) throw oxDNAException("FSConf: the options 'also_patch' and 'print_bonds' are incompatible");
 
 	std::ifstream topology(topology_file.c_str(), ios::in);
 	char line[512];
@@ -96,20 +104,40 @@ string FSConf<number>::_configuration(llint step) {
 	conf.precision(15);
 
 	for(int i = 0; i < _N; i++) {
+		if(_print_bonds) _bonds[i].clear();
 		BaseParticle<number> *p = this->_config_info.particles[i];
 		string p_str = _particle(p);
 		conf << endl;
 		conf << p_str;
 	}
 
+	// compute the bonding pattern
+	if(_print_bonds) {
+		vector<ParticlePair<number> > inter_pairs = this->_config_info.lists->get_potential_interactions();
+
+		for(typename vector<ParticlePair<number> >::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
+			number energy = this->_config_info.interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+			if(energy < _bond_threshold) {
+				_bonds[it->first->index][it->second->index]++;
+				_bonds[it->second->index][it->first->index]++;
+			}
+		}
+	}
+
 	for(int i = 0; i < _N; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
 		conf << endl;
-		conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
-		if(_also_patch) {
-			for(int j = 0; j < p->N_int_centers; j++) {
-				conf << endl;
-				conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
+		if(_print_bonds) {
+			conf << i+1 << " " << _bonds[i].size() << endl;
+			for(map<int, int>::iterator it = _bonds[i].begin(); it != _bonds[i].end(); it++) conf << it->first+1 << " ";
+		}
+		else {
+			conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
+			if(_also_patch) {
+				for(int j = 0; j < p->N_int_centers; j++) {
+					conf << endl;
+					conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
+				}
 			}
 		}
 	}

@@ -32,8 +32,6 @@ protected:
 	number _patch_cutoff;
 	/// Angular cut-off for the patchy attraction
 	number _patch_angular_cutoff;
-	/// Patch-patch interaction energy at the cut-off
-	number _patch_E_cut;
 	/// Width of the patch, defaults to 0.12
 	number _patch_alpha;
 	/// _patch_alpha^10
@@ -146,10 +144,13 @@ number NathanStarInteraction<number>::_patchy_interaction(BaseParticle<number> *
 	}
 	if(cospr < _patch_angular_cutoff || cosqr < _patch_angular_cutoff) return energy;
 
-	number cospr_part = pow(cospr - 1., _patch_power);
+	number cospr_base = pow(cospr - 1., _patch_power - 1);
+	// we do this so that later we don't have to divide this number by (cospr - 1), which could be 0
+	number cospr_part = cospr_base*(cospr - 1.);
 	number p_mod = exp(-cospr_part / (2.*_patch_pow_sigma));
 
-	number cosqr_part = pow(cosqr - 1., _patch_power);
+	number cosqr_base = pow(cosqr - 1., _patch_power - 1);
+	number cosqr_part = cosqr_base*(cosqr - 1.);
 	number q_mod = exp(-cosqr_part / (2.*_patch_pow_sigma));
 
 	number sqr_surf_dist = SQR(rmod - 1.);
@@ -162,14 +163,13 @@ number NathanStarInteraction<number>::_patchy_interaction(BaseParticle<number> *
 		LR_vector<number> tmp_force = r_versor * (p_mod*q_mod * 5.*(rmod - 1.)*exp_part*r8b10);
 
 		// angular p part
-		cospr_part /= cospr - 1.;
-		number der_p = exp_part * q_mod * (0.5*_patch_power*p_mod * cospr_part / _patch_pow_sigma);
+		number der_p = exp_part * q_mod * (0.5*_patch_power*p_mod * cospr_base / _patch_pow_sigma);
 		LR_vector<number> p_ortho = p_axis + cospr*r_versor;
 		tmp_force -= p_ortho * (der_p/rmod);
 
 		// angular q part
 		cosqr_part /= cosqr - 1.;
-		number der_q = exp_part * p_mod * (-0.5*_patch_power*q_mod * cosqr_part / _patch_pow_sigma);
+		number der_q = exp_part * p_mod * (-0.5*_patch_power*q_mod * cosqr_base / _patch_pow_sigma);
 		LR_vector<number> q_ortho = q_axis - cosqr*r_versor;
 		tmp_force -= q_ortho * (der_q/rmod);
 
@@ -193,6 +193,8 @@ number NathanStarInteraction<number>::_patchy_star_interaction(BaseParticle<numb
 
 	// this is just to avoid spitting out NaNs and it should occur very rarely, and only during equilibration
 	if(mod_r < _spl_patchy_star->interp->xmin) energy = 1e-6;
+	// this can happen only in single precision
+	else if(mod_r > _spl_patchy_star->interp->xmax) return (number) 0.f;
 	else energy = gsl_spline_eval(_spl_patchy_star, mod_r, _acc_patchy_star);
 	if(update_forces) {
 		number force_mod = (mod_r < _spl_patchy_star->interp->xmin) ? 1000 : -gsl_spline_eval_deriv(_spl_patchy_star, mod_r, _acc_patchy_star)/mod_r;
@@ -262,8 +264,8 @@ public:
 	}
 };
 
-extern "C" NathanStarInteraction<float> *make_interaction_float() { return new NathanStarInteraction<float>(); }
-extern "C" NathanStarInteraction<double> *make_interaction_double() { return new NathanStarInteraction<double>(); }
+extern "C" NathanStarInteraction<float> *make_interaction_float();
+extern "C" NathanStarInteraction<double> *make_interaction_double();
 
 #endif /* NATHANSTARINTERACTION_H_ */
 
