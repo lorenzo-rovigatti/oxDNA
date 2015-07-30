@@ -61,7 +61,7 @@ void NathanStarInteraction<number>::allocate_particles(BaseParticle<number> **pa
 	for(int i = 0; i < _N_patchy; i++) {
 		NathanPatchyParticle<number> *new_p = new NathanPatchyParticle<number>();
 		new_p->index = i;
-		new_p->type = PATCHY_PARTICLE;
+		new_p->type = new_p->btype = PATCHY_PARTICLE;
 		new_p->strand_id = i;
 
 		particles[i] = new_p;
@@ -70,7 +70,7 @@ void NathanStarInteraction<number>::allocate_particles(BaseParticle<number> **pa
 	for(int i = _N_patchy; i < N; i++) {
 		NathanPolymerParticle<number> *new_p = new NathanPolymerParticle<number>();
 		new_p->index = i;
-		new_p->type = POLYMER;
+		new_p->type = new_p->btype = POLYMER;
 		new_p->strand_id = i;
 		particles[i] = new_p;
 	}
@@ -277,9 +277,6 @@ void NathanStarInteraction<number>::init() {
 
 	_patch_pow_sigma = pow(_patch_cosmax, _patch_power);
 	_patch_pow_alpha = pow(_patch_alpha, (number) 10.);
-	number r8b10 = pow(_patch_cutoff, (number) 8.) / _patch_pow_alpha;
-	_patch_E_cut = -1.001 * exp(-(number)0.5 * r8b10 * SQR(_patch_cutoff));
-	_patch_E_cut = 0.;
 
 	_setup_interp();
 
@@ -328,3 +325,6 @@ number NathanStarInteraction<number>::pair_interaction_nonbonded(BaseParticle<nu
 
 template class NathanStarInteraction<float>;
 template class NathanStarInteraction<double>;
+
+extern "C" NathanStarInteraction<float> *make_interaction_float() { return new NathanStarInteraction<float>(); }
+extern "C" NathanStarInteraction<double> *make_interaction_double() { return new NathanStarInteraction<double>(); }

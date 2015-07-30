@@ -23,6 +23,10 @@ protected:
 	int _N, _N_A, _N_B;
 	bool _in_box;
 	bool _also_patch;
+	bool _print_bonds;
+	number _bond_threshold;
+
+	std::vector<std::map<int, int> > _bonds;
 
 	virtual std::string _headers(llint step);
 	virtual std::string _particle(BaseParticle<number> *p);
