@@ -126,7 +126,6 @@ void CUDABaseBackend<number, number4>::_choose_device () {
 	OX_LOG(Logger::LOG_INFO, "Choosing device automatically");
 
 	int ndev = -1, trydev = 0;
-	cudaError_t ggg;
 	cudaDeviceProp tryprop;
 
 	cudaGetDeviceCount (&ndev);
@@ -141,9 +140,9 @@ void CUDABaseBackend<number, number4>::_choose_device () {
 			continue;
 		}
 		set_device (trydev);
-		int * dummyptr;
-		ggg = GpuUtils::LR_cudaMalloc<int> (& dummyptr, (size_t)sizeof(int));
-		if (ggg == cudaSuccess) {
+		int *dummyptr = NULL;
+		cudaError_t ggg = GpuUtils::LR_cudaMalloc<int> (&dummyptr, (size_t)sizeof(int));
+		if(ggg == cudaSuccess) {
 			OX_LOG(Logger::LOG_INFO, " -- using device %i", trydev);
 			cudaFree (dummyptr);
 			break;

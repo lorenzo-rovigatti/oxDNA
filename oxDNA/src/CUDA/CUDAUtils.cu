@@ -8,7 +8,7 @@
 #include "CUDAUtils.h"
 #include <curand_kernel.h>
 
-size_t GpuUtils::_allocated_dev_mem;
+size_t GpuUtils::_allocated_dev_mem = 0;
 
 #ifndef OLD_ARCH
 __global__ void print_array(int *v, int N) {

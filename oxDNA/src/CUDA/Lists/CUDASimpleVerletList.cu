@@ -25,28 +25,12 @@ CUDASimpleVerletList<number, number4>::~CUDASimpleVerletList() {
 	_d_number_neighs = NULL;
 }
 
-template<>
-void CUDASimpleVerletList<double, LR_double4>::get_settings(input_file &inp) {
-	getInputDouble(&inp, "verlet_skin", &_verlet_skin, 1);
-	getInputDouble(&inp, "max_density_multiplier", &_max_density_multiplier, 0);
-	int tmpi;
-	if(getInputBoolAsInt(&inp, "use_edge", &tmpi, 0) == KEY_FOUND) {
-		if (tmpi > 0) this->_use_edge = true;
-		else this->_use_edge = false;
-		if (this->_use_edge) OX_LOG(Logger::LOG_INFO, "Using edge-based approach...");
-	}
-}
-
-template<>
-void CUDASimpleVerletList<float, float4>::get_settings(input_file &inp) {
-	getInputFloat(&inp, "verlet_skin", &_verlet_skin, 1);
-	getInputFloat(&inp, "max_density_multiplier", &_max_density_multiplier, 0);
-	int tmpi;
-	if(getInputBoolAsInt(&inp, "use_edge", &tmpi, 0) == KEY_FOUND) {
-		if (tmpi > 0) this->_use_edge = true;
-		else this->_use_edge = false;
-		if (this->_use_edge) OX_LOG(Logger::LOG_INFO, "Using edge-based approach...");
-	}
+template<typename number, typename number4>
+void CUDASimpleVerletList<number, number4>::get_settings(input_file &inp) {
+	getInputNumber(&inp, "verlet_skin", &_verlet_skin, 1);
+	getInputNumber(&inp, "max_density_multiplier", &_max_density_multiplier, 0);
+	getInputBool(&inp, "use_edge", &this->_use_edge, 0);
+	if(this->_use_edge) OX_LOG(Logger::LOG_INFO, "Using edge-based approach...");
 }
 
 template<typename number, typename number4>
@@ -95,8 +79,8 @@ void CUDASimpleVerletList<number, number4>::init(int N, number box_side, number 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_cells, _N_cells * _max_N_per_cell * sizeof(int)) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_number_neighs, this->_N * sizeof(int)) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_matrix_neighs, this->_N * _max_neigh * sizeof(int)) );
-	CUDA_SAFE_CALL( cudaMallocHost(&_d_cell_overflow, sizeof(bool), cudaHostAllocDefault) );
 
+	CUDA_SAFE_CALL( cudaMallocHost(&_d_cell_overflow, sizeof(bool), cudaHostAllocDefault) );
 	_d_cell_overflow[0] = false;
 
 	if(this->_use_edge) {

@@ -9,7 +9,7 @@ fi
 f=$1
 
 compilation_flags="-arch=sm_20 -Xcompiler -fpic -c CUDA$f.cu -I../../src/CUDA/Interactions -I../../src/Interactions"
-linking_flags="-shared -o CUDA$f.so CUDA$f.o $f.o"
+linking_flags="-shared -o CUDA$f.so CUDA$f.o $f.o -lgsl"
 if [ $# -eq 1 ]
 then
 	nvcc --use_fast_math -O3 $compilation_flags
