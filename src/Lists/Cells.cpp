@@ -158,12 +158,12 @@ void Cells<number>::global_update(bool force_update) {
 	for(int i = 0; i < 3; i++) {
 		_N_cells_side[i] = (int) (floor(_box_sides[i] / this->_rcut) + 0.1);
 		if(_N_cells_side[i] > 500) _N_cells_side[i] = 500;
-		if (_N_cells_side[i] < 3) _N_cells_side[i] = 3;
+		if(_N_cells_side[i] < 3) _N_cells_side[i] = 3;
 	}
 
 	_N_cells = _N_cells_side[0] * _N_cells_side[1] * _N_cells_side[2];
 
-	// this is needed only at the very beginning
+	// we have to deallocate only if this is not the first time that this method gets called
 	if(_heads != NULL) {
 		delete[] _heads;
 		delete[] _next;
@@ -209,7 +209,7 @@ std::vector<BaseParticle<number> *> Cells<number>::get_neigh_list(BaseParticle<n
 
 				BaseParticle<number> *q = _heads[loop_index];
 				while(q != P_VIRTUAL) {
-					// if this is an MC simulation or i all == true we need full lists, otherwise the i-th particle will have neighbours with index > i
+					// if this is an MC simulation or all == true we need full lists, otherwise the i-th particle will have neighbours with index > i
 					bool include_q = (p != q && (all || ((p->index > q->index || this->_is_MC))));
 					if(include_q && !p->is_bonded(q) && this->_box->sqr_min_image_distance(p->pos, q->pos) < _sqr_rcut) {
 						if(!_unlike_type_only || p->type != q->type) res.push_back(q);

@@ -59,6 +59,8 @@ protected:
 	int _N_patchy;
 	int _N_stars;
 	bool _is_marzi;
+	bool _make_crystal;
+	string _crystal_type;
 
 	void _setup_lambda_kappa();
 
@@ -107,6 +109,7 @@ public:
 	}
 
 	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);
 };
 
 template<typename number>
