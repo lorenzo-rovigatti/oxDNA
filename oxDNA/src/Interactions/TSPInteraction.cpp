@@ -90,7 +90,7 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 	number sqr_r = r->norm();
 	// cut-off for the telechelic monomers
 	if(sqr_r > this->_sqr_rcut) return (number) 0.;
-	if(sqr_r < 0.5) {
+	if(sqr_r < 0.5 && update_forces) {
 		if(update_forces) {
 			number force_mod = 1000;
 			p->force -= *r * force_mod;

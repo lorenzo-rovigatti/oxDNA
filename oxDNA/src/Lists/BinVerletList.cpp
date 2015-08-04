@@ -33,7 +33,7 @@ void BinVerletList<number>::get_settings(input_file &inp) {
 	if(this->_is_MC) {
 		float delta_t = 0.f;
 		getInputFloat(&inp, "delta_translation", &delta_t, 0);
-		if(delta_t > 0.f && delta_t * sqrt(3) > _skin) throw oxDNAException("verlet_skin must be > delta_translation times sqrt(3) (the maximum displacement)");
+		if(delta_t > 0.f && delta_t*sqrt(3) > _skin) throw oxDNAException("verlet_skin must be > delta_translation times sqrt(3) (the maximum displacement)");
 	}
 }
 
@@ -65,7 +65,7 @@ void BinVerletList<number>::init(BaseParticle<number> **particles, number rcut) 
 
 	_lists.resize(this->_N, std::vector<BaseParticle<number> *>());
 	_list_poss.resize(this->_N, LR_vector<number>(0, 0, 0));
-	global_update();
+	global_update(true);
 }
 
 template<typename number>

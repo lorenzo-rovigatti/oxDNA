@@ -8,7 +8,7 @@
 #include "NathanStarInteraction.h"
 
 template<typename number>
-NathanStarInteraction<number>::NathanStarInteraction() : _sqrt_pi(sqrt(M_PI)), _patch_r(0.5), _sqr_patch_r(SQR(_patch_r)), _star_f(-1), _is_marzi(false), _interp_size(500) {
+NathanStarInteraction<number>::NathanStarInteraction() : _sqrt_pi(sqrt(M_PI)), _patch_r(0.5), _sqr_patch_r(SQR(_patch_r)), _star_f(-1), _is_marzi(false), _make_crystal(false), _interp_size(500) {
 	this->_int_map[PATCHY_PATCHY] = &NathanStarInteraction<number>::_patchy_interaction;
 
 	_rep_E_cut = 0.;
@@ -94,6 +94,9 @@ void NathanStarInteraction<number>::get_settings(input_file &inp) {
 	if(_star_sigma_g > 1.) _is_marzi = true;
 
 	getInputInt(&inp, "NATHAN_f", &_star_f, 1);
+
+	getInputBool(&inp, "NATHAN_make_crystal", &_make_crystal, 0);
+	if(_make_crystal) getInputString(&inp, "NATHAN_crystal_type", _crystal_type, 1);
 }
 
 template<typename number>
@@ -321,6 +324,195 @@ number NathanStarInteraction<number>::pair_interaction_nonbonded(BaseParticle<nu
 	if(type == PATCHY_PATCHY) return _patchy_interaction(p, q, r, update_forces);
 	else if(type == PATCHY_POLYMER) return _patchy_star_interaction(p, q, r, update_forces);
 	else return _star_star_interaction(p, q, r, update_forces);
+}
+
+template<typename number>
+void NathanStarInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
+	if(!_make_crystal) {
+		BaseInteraction<number, NathanStarInteraction<number> >::generate_random_configuration(particles, N, box_side);
+		return;
+	}
+
+	// check on the number of particles
+	if(_N_patchy % 4 != 0) throw oxDNAException("The number of patchy particles should be a multiple of 4");
+	int cxcycz = _N_patchy / 4;
+	int cell_side = round(cbrt(cxcycz));
+	if(CUB(cell_side) != cxcycz) throw oxDNAException("The number of patchy particles should be equal to 4*i^3, where i is an integer. For this specific case you may want to use %d", 4*CUB(cell_side));
+
+	number gap = 0.05;
+	number sigma_c = 1.;
+
+	LR_vector<number> tetrahedron_up[4];
+	tetrahedron_up[0].x = tetrahedron_up[0].y = tetrahedron_up[0].z = 0;
+
+	tetrahedron_up[1].x = sigma_c+gap;
+	tetrahedron_up[1].y = tetrahedron_up[1].z = 0;
+
+	tetrahedron_up[2].x = 0.5*(sigma_c+gap);
+	tetrahedron_up[2].y = sqrt(3.0)/2.0*(sigma_c+gap);
+	tetrahedron_up[2].z = 0;
+
+	tetrahedron_up[3].x = 0.5*(sigma_c+gap);
+	tetrahedron_up[3].y = 1./3.*sqrt(3.0)/2.0*(sigma_c+gap);
+	tetrahedron_up[3].z = sqrt(2.0/3.0)*(sigma_c+gap);
+
+	LR_matrix<number> tetrahedron_orientT[4];
+	for(int i = 0; i < 4; i++) {
+		LR_vector<number> axis(0, 0, 0);
+		for(int j = 0; j < 4; j++) {
+			if(j != i) axis += tetrahedron_up[j];
+		}
+		axis /= 3;
+		axis -= tetrahedron_up[i];
+		axis.normalize();
+		tetrahedron_orientT[i] = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+		tetrahedron_orientT[i].v3 = axis;
+		tetrahedron_orientT[i].orthonormalize();
+	}
+
+	int cells[3] = {cell_side, cell_side, cell_side};
+
+	// let's build the crystal
+	if(_crystal_type == "hT") {
+		LR_vector<number> tetrahedron_down[4] = {tetrahedron_up[0], tetrahedron_up[1], tetrahedron_up[2], tetrahedron_up[3]};
+		tetrahedron_down[2].y *= -1;
+		tetrahedron_down[3].y *= -1;
+
+		number xshift = (sigma_c + gap);
+		number yshift = sqrt(3.0)*(sigma_c + gap);
+		number zshift = 2.0*sqrt(2.0/3.0)*(sigma_c + gap);
+
+		LR_matrix<number> tetrahedron_down_orientT[4];
+		for(int i = 0; i < 4; i++) {
+			LR_vector<number> axis(0, 0, 0);
+			for(int j = 0; j < 4; j++) {
+				if(j != i) axis += tetrahedron_down[j];
+			}
+			axis /= 3;
+			axis -= tetrahedron_down[i];
+			axis.normalize();
+			tetrahedron_down_orientT[i] = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+			tetrahedron_down_orientT[i].v3 = axis;
+			tetrahedron_down_orientT[i].orthonormalize();
+		}
+
+		int inserted = 0;
+		for(int zc = 0; zc < cells[2]; zc++) {
+			LR_vector<number> *tetra = (zc % 2 == 0) ? tetrahedron_up : tetrahedron_down;
+			LR_matrix<number> *tetra_orientT = (zc % 2 == 0) ? tetrahedron_orientT : tetrahedron_down_orientT;
+			number tot_zshift = zc*zshift;
+			for(int yc = 0; yc < cells[1]; yc++) {
+				number tot_yshift = yc*yshift;
+				if(zc % 2 != 0) tot_yshift += yshift;
+				for(int xc = 0; xc < cells[2]; xc++) {
+					number tot_xshift = (yc%2 + 2*xc)*xshift;
+					// loop over the tetrahedron
+					for(int t = 0; t < 4; t++, inserted++) {
+						BaseParticle<number> *p = particles[inserted];
+						p->pos.x = tetra[t].x + tot_xshift;
+						p->pos.y = tetra[t].y + tot_yshift;
+						p->pos.z = tetra[t].z + tot_zshift;
+
+						p->orientationT = tetra_orientT[t];
+						p->orientation = p->orientationT.get_transpose();
+						p->set_positions();
+					}
+				}
+			}
+		}
+	}
+	else if(_crystal_type == "cT") {
+		number xshift = 2.0*(sigma_c + gap);
+		number yshift = 2.0*sqrt(3.0)/2.0*(sigma_c + gap);
+		number zshift = 2.0*sqrt(2.0/3.0)*(sigma_c + gap);
+
+		int inserted = 0;
+		for(int zc = 0; zc < cells[2]; zc++) {
+			number tot_zshift = 3*zc*zshift;
+			tot_zshift += (zc % 3)*zshift;
+			tot_zshift = zc*zshift;
+
+			for(int yc = 0; yc < cells[1]; yc++) {
+				number tot_yshift = yc*yshift;
+				if(zc % 3 == 1) tot_yshift -= 2.*yshift/3.;
+				else if(zc % 3 == 2) tot_yshift += 2.*yshift/3.;
+				for(int xc = 0; xc < cells[2]; xc++) {
+					number tot_xshift = xc*xshift;
+					if(yc % 2 == 1) tot_xshift += 0.5*xshift;
+					// loop over the tetrahedron
+					for(int t = 0; t < 4; t++, inserted++) {
+						BaseParticle<number> *p = particles[inserted];
+						p->pos.x = tetrahedron_up[t].x + tot_xshift;
+						p->pos.y = tetrahedron_up[t].y + tot_yshift;
+						p->pos.z = tetrahedron_up[t].z + tot_zshift;
+
+						p->orientationT = tetrahedron_orientT[t];
+						p->orientation = p->orientationT.get_transpose();
+						p->set_positions();
+						p->set_ext_potential(0, box_side);
+					}
+				}
+			}
+		}
+	}
+	else throw oxDNAException("The crystal type be should be either 'hT' or 'cT' and not '%s'", _crystal_type.c_str());
+
+	// now we add the polymers
+	Cells<number> c(N, this->_box);
+	c.init(particles, this->_rcut);
+
+	for(int i = _N_patchy; i < N; i++) {
+		BaseParticle<number> *p = particles[i];
+		p->pos = LR_vector<number>(0., 0., 0.);
+	}
+
+	c.global_update();
+
+	for(int i = _N_patchy; i < N; i++) {
+		BaseParticle<number> *p = particles[i];
+
+		bool inserted = false;
+		do {
+			p->pos = LR_vector<number> (drand48()*box_side, drand48()*box_side, drand48()*box_side);
+			// random orientation
+			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
+			p->orientation.orthonormalize();
+			p->orientationT = p->orientation.get_transpose();
+
+			p->set_positions();
+			p->set_ext_potential(0, box_side);
+			c.single_update(p);
+
+			inserted = true;
+
+			// we take into account the bonded neighbours
+			for (unsigned int n = 0; n < p->affected.size(); n ++) {
+				BaseParticle<number> * p1 = p->affected[n].first;
+				BaseParticle<number> * p2 = p->affected[n].second;
+				number e = 0.;
+				if (p1->index <= p->index && p2->index <= p->index) {
+					e = pair_interaction_bonded(p1, p2);
+				}
+				if(e > this->_energy_threshold) inserted = false;
+			}
+
+			// here we take into account the non-bonded interactions
+			vector<BaseParticle<number> *> neighs = c.get_neigh_list(p, true);
+			for(unsigned int n = 0; n < neighs.size(); n++) {
+				BaseParticle<number> *q = neighs[n];
+				// particles with an index larger than p->index have not been inserted yet
+				if(q->index < p->index && this->generate_random_configuration_overlap(p, q, box_side)) inserted = false;
+			}
+
+			// we take into account the external potential
+			if (p->ext_potential > this->_energy_threshold) {
+				inserted = false;
+			}
+
+		} while(!inserted);
+
+		if(i > 0 && i % (N/10) == 0) OX_LOG(Logger::LOG_INFO, "Inserted %d%% of the particles (%d/%d)", i*100/N, i, N);
+	}
 }
 
 template class NathanStarInteraction<float>;
