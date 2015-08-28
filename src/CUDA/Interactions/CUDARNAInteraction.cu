@@ -234,6 +234,7 @@ CUDARNAInteraction<number, number4>::~CUDARNAInteraction() {
 template<typename number, typename number4>
 void CUDARNAInteraction<number, number4>::get_settings(input_file &inp) {
 	_use_debye_huckel = false;
+	_mismatch_repulsion = false;
 	std::string inter_type;
 	if (getInputString(&inp, "interaction_type", inter_type, 0) == KEY_FOUND){
 		if (inter_type.compare("RNA2") == 0) {
@@ -255,6 +256,24 @@ void CUDARNAInteraction<number, number4>::get_settings(input_file &inp) {
 			_debye_huckel_prefactor = 0.0858;
 			getInputFloat(&inp, "dh_strength", &_debye_huckel_prefactor, 0);
 			// End copy from DNA2Interaction
+			
+			int mismatches = 0;
+			if(getInputBoolAsInt(&inp, "mismatch_repulsion", &mismatches, 0) == KEY_FOUND) {
+			         this->_mismatch_repulsion = (bool) mismatches;
+           	}
+           	if(this->_mismatch_repulsion)
+	        {
+		        float temp;
+		        if(getInputFloat(&inp, "mismatch_repulsion_strength", &temp, 0) == KEY_FOUND) {
+					this->_RNA_HYDR_MIS = temp;
+		        }
+		        else
+		        {
+	        		this->_RNA_HYDR_MIS = 1;
+		        }
+
+	       }
+			
 		}
 	}
 
@@ -273,6 +292,14 @@ void CUDARNAInteraction<number, number4>::cuda_init(number box_side, int N) {
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
 
+    //mismatch repulsion modification
+    if(this->_mismatch_repulsion)
+    {
+     float tempmis = -1.0 * this->_RNA_HYDR_MIS / this->model->RNA_HYDR_EPS;
+     this->F1_EPS[RNA_HYDR_F1][0][0] *= tempmis;
+     this->F1_SHIFT[RNA_HYDR_F1][0][0] *= tempmis;
+    }
+     
 	number tmp[50];
 	for(int i = 0; i < 2; i++) for(int j = 0; j < 5; j++) for(int k = 0; k < 5; k++) tmp[i*25 + j*5 + k] = this->F1_EPS[i][j][k];
 
@@ -360,7 +387,7 @@ void CUDARNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 		if(_v_lists->use_edge()) {
 				rna_forces_edge_nonbonded<number, number4>
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_average,this->_use_debye_huckel);
+					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion);
 
 				this->_sum_edge_forces_torques(d_forces, d_torques);
 
@@ -375,7 +402,7 @@ void CUDARNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 			else {
 				rna_forces<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_average,this->_use_debye_huckel);
+					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion);
 				CUT_CHECK_ERROR("forces_second_step simple_lists error");
 			}
 	}
@@ -390,7 +417,7 @@ void CUDARNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 	if(_no_lists != NULL) {
 		rna_forces<number, number4>
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_average,this->_use_debye_huckel);
+			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion);
 		CUT_CHECK_ERROR("forces_second_step no_lists error");
 	}
 }
