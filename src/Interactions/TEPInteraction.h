@@ -64,7 +64,11 @@ protected:
 	llint _max_twisting_time;
 	llint _print_torques_every;
 
+// quick and dirty way of implementing the local dependence in the model (to replace with something more clever that uses the topology when I have a second).
 
+	number _TEP_weakened_kt_prefactor;
+	number _TEP_weakened_kb_prefactor;
+	int _TEP_weakened_bead_index;
 
 	virtual number _spring(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _bonded_bending(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
