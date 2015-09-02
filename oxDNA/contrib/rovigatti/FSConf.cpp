@@ -56,21 +56,28 @@ void FSConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 template<typename number>
 void FSConf<number>::init(ConfigInfo<number> &config_info) {
    Configuration<number>::init(config_info);
+
+   if(_print_bonds) _bonds.resize(*config_info.N);
 }
 
 template<typename number>
 std::string FSConf<number>::_headers(llint step) {
-	std::stringstream headers;
+        std::stringstream headers;
 
-	number mybox = *this->_config_info.box_side;
+        number mybox = *this->_config_info.box_side;
 
-	int tot_N = 5*_N_A + 3*_N_B;
-	if(!_also_patch) tot_N = _N_A + _N_B;
+        int tot_N = 5*_N_A + 3*_N_B;
+        int tot_N_A = 5*_N_A;
+        if(!_also_patch && 0) {
+                tot_N = _N_A + _N_B;
+                tot_N_A = _N_A;
+        }
 
-	headers << step << " " << step << " " << tot_N << " " << 5*_N_A << " " << 0 << endl;
-	headers << mybox << " " << mybox << " " << mybox << " " << 0. << " " << 0. << " " << 0.;
 
-	return headers.str();
+        headers << step << " " << step << " " << tot_N << " " << tot_N_A << " " << 0 << endl;
+        headers << mybox << " " << mybox << " " << mybox << " " << 0. << " " << 0. << " " << 0.;
+
+        return headers.str();
 }
 
 template<typename number>
