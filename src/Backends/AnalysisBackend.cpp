@@ -42,7 +42,8 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	getInputInt(&inp, "analysis_confs_to_skip", &_confs_to_skip, 0);
 
 	getInputString(&inp, "trajectory_file", this->_conf_filename, 1); 
-
+	//TODO: the following line I just pasted so that I can read binary configurations, but maybe it's a problem.
+	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
 	int tmp;
 	int val = getInputBoolAsInt(&inp, "external_forces", &tmp, 0);
 	if(val == KEY_FOUND) {
@@ -105,8 +106,22 @@ void AnalysisBackend::analyse() {
 
 	for(int i = 0; i < this->_N; i++) this->_lists->single_update(this->_particles[i]);
 	this->_lists->global_update();
-	if(!_read_next_configuration()) _done = true;
+	//if(!_read_next_configuration()) _done = true;
+	//else _n_conf++;
+	//TODO: I hacked together this if-else structure to replace the line above, hoping to introduce support for binary trajectories. Let's see howit goes
+	/*
+	if (_initial_conf_is_binary){
+		if(!_read_next_configuration(true)) _done = true;
+		else _n_conf++;
+	}
+	else{
+		if(!_read_next_configuration()) _done = true;
+		else _n_conf++;
+	}
+	*/
+	if ( !_read_next_configuration(_initial_conf_is_binary) ) _done = true;
 	else _n_conf++;
+
 
 	_mytimer->pause();
 }
