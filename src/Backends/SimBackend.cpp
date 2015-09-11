@@ -149,6 +149,9 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	}
 
 	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
+	if (_initial_conf_is_binary){
+		OX_LOG(Logger::LOG_INFO, "Reading binary configuration");
+	}
 
 	getInputBool(&inp, "fix_diffusion", &_enable_fix_diffusion, 0);
 
@@ -373,10 +376,15 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 	// parse headers. Binary and ascii configurations have different headers, and hence
 	// we have to separate the two procedures
 	if(binary) {
-		OX_LOG(Logger::LOG_INFO, "Reading binary configuration");
 
 		// first bytes: step
+		// if there's nothing to read, _read_conf_step is unchanged and equal to -1
+		_read_conf_step = -1;
 		_conf_input.read ((char *)&_read_conf_step, sizeof(llint));
+		if (_read_conf_step == -1){
+			OX_DEBUG("End of binary configuration file reached.");
+		 	return false;
+		}
 
 		unsigned short rndseed[3];
 		_conf_input.read ((char *)rndseed, 3 * sizeof(unsigned short));

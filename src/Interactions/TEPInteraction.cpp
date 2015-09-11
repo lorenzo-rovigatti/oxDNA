@@ -161,13 +161,13 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	}
 	// locally-dependent twisting-bending prefactors (quick and dirty, do something more sensible when you have time)
 	if( getInputNumber(&inp,"TEP_weakened_kt_prefactor",&_TEP_weakened_kt_prefactor,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kt_prefactor = %g\n",_TEP_weakened_kt_prefactor);
+		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kt_prefactor = %g",_TEP_weakened_kt_prefactor);
 	}
 	if( getInputNumber(&inp,"TEP_weakened_kb_prefactor",&_TEP_weakened_kb_prefactor,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kb_prefactor = %g\n",_TEP_weakened_kb_prefactor);
+		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kb_prefactor = %g",_TEP_weakened_kb_prefactor);
 	}
 	if( getInputInt(&inp,"TEP_weakened_bead_index",&_TEP_weakened_bead_index,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_bead_index = %d\n",_TEP_weakened_bead_index);
+		OX_LOG(Logger::LOG_INFO," _TEP_weakened_bead_index = %d",_TEP_weakened_bead_index);
 
 	}
 
@@ -529,7 +529,7 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 //end of added block	
 	if(p->index == _TEP_weakened_bead_index){
 		energy *= _TEP_weakened_kt_prefactor;
-		printf("Here's the index %d and here's the time %lld\n",_TEP_weakened_bead_index,_my_time1);
+		//printf("Here's the index %d and here's the time %lld\n",_TEP_weakened_bead_index,_my_time1);
 	}
 	return energy;
 }
