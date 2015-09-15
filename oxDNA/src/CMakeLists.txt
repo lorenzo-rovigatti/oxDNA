@@ -41,6 +41,7 @@ SET(observables_SOURCES
 	Observables/MeanVectorCosine.cpp
 	Observables/VectorAngle.cpp
 	Observables/Checkpoint.cpp
+	Observables/Contacts.cpp
 )
 
 SET(backends_SOURCES
