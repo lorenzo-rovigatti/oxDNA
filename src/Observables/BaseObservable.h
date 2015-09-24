@@ -39,7 +39,7 @@ public:
 	 * @param info
 	 * @param l pointer to list object
 	 */
-	ConfigInfo(BaseParticle<number> **p, number *b, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l) : particles(p), box_side(b), interaction(i), N(Nn), backend_info(info), lists(l) {}
+	ConfigInfo(BaseParticle<number> **p, number *b, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l) : particles(p), box_side(b), interaction(i), N(Nn), backend_info(info), lists(l), box(NULL) {}
 	
 	ConfigInfo(BaseParticle<number> **p, number *b, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l, BaseBox<number> *abox) : particles(p), box_side(b), interaction(i), N(Nn), backend_info(info), lists(l), box(abox) {}
 
