@@ -21,6 +21,7 @@
 #include "RepulsiveSphere.h"
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -87,40 +88,56 @@ void ForceFactory<number>::read_external_forces(std::string external_filename, B
 
 	justopen = open = 0;
 	a = external.get();
+	bool is_commented = false;
+	stringstream external_string;
 	while(external.good()) {
 		justopen = 0;
-		if (a == '{') {
-			open ++;
-			justopen = 1;
+		switch(a) {
+		case '#':
+			is_commented = true;
+			break;
+		case '\n':
+			is_commented = false;
+			break;
+		case '{':
+			if(!is_commented) {
+				open++;
+				justopen = 1;
+			}
+			break;
+		case '}':
+			if(!is_commented) {
+				if(justopen) throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
+				open--;
+			}
+			break;
 		}
-		if (a == '}') {
-			if (justopen) throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
-			open --;
-		}
-		if (open > 1 || open < 0) throw oxDNAException ("Syntax error in '%s': parentheses do not match", external_filename.c_str());
+
+		if(!is_commented) external_string << (char)a;
+		if(open > 1 || open < 0) throw oxDNAException ("Syntax error in '%s': parentheses do not match", external_filename.c_str());
 		a = external.get();
 	}
-	external.clear();
-	external.seekg(0, ios::beg);
+	external.close();
 
-	a = external.get();
-	while(external.good()) {
-		while (a != '{' && external.good()) a = external.get();
-		if(!external.good()) break;
+	external_string.clear();
+	external_string.seekg(0, ios::beg);
+	a = external_string.get();
+	while(external_string.good()) {
+		while (a != '{' && external_string.good()) a = external_string.get();
+		if(!external_string.good()) break;
 		// this function create a temporary file which is destroyed upon calling fclose
 		// the temporary file is opened with "wb+" flags
 		FILE *temp = tmpfile();
 		OX_LOG(Logger::LOG_INFO, "   Using temporary file");
-		a = external.get();
-		while (a != '}' && external.good()) {
+		a = external_string.get();
+		while (a != '}' && external_string.good()) {
 			fprintf (temp, "%c", a);
-			a = external.get();
+			a = external_string.get();
 		}
 		rewind(temp);
 		input_file input;
 		loadInput(&input, temp);
 
-		//ForceFactory::add_force<number>(input, _particles, _N, _is_CUDA_sim, &_box_side);
 		ForceFactory<number>::instance()->add_force(input, particles, N, is_CUDA, box);
 
 		cleanInputFile (&input);
