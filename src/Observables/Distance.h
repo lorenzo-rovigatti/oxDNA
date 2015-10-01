@@ -11,14 +11,14 @@
 #include "BaseObservable.h"
 
 /**
- * @brief Outputs the distance between two particles; can be projected along a direction.
+ * @brief Outputs the distance between two particles or centres of mass of sets of particles; can be projected along a direction.
  *
  * To use this observable, use type = distance 
  *
- * This observable takes one mandatory arguments and an tow optional ones:
+ * This observable takes two mandatory arguments and two optional ones:
  * @verbatim
-particle_1 = <int> (index of the first particle)
-particle_2 = <int> (index of the second particle. The distance is returned as r(2) - r(1))
+particle_1 = <int> (index of the first particle or comma-separated list of particle indexes composing the first set)
+particle_2 = <int> (index of the second particle or comma-separated list of the particle indexes composing the second set. The distance is returned as r(2) - r(1))
 [PBC = <bool> (Whether to honour PBC. Defaults to True)]
 [dir = <float>, <float>, <float> (vector to project the distance along. Beware that it gets normalized after reading. Defaults to (1, 1, 1) / sqrt(3))]
 @endverbatim
@@ -26,9 +26,18 @@ particle_2 = <int> (index of the second particle. The distance is returned as r(
 template<typename number>
 class Distance : public BaseObservable<number> {
 private:
-	int _i, _j;
-        bool _PBC, _have_dir;
+	std::string _p1_string;
+	std::string _p2_string;
+
+	std::set<BaseParticle<number> *> _p1_list;
+	std::set<BaseParticle<number> *> _p2_list;
+
+	bool _PBC, _have_dir;
 	LR_vector<number> _dir;
+
+	void _check_index(int idx, int N) {
+		if(idx < 0 || idx >= N) throw oxDNAException("COMForce: invalid id %d", idx);
+	}
 public:
 	Distance();
 	virtual ~Distance();

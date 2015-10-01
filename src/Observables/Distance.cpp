@@ -10,8 +10,6 @@
 
 template<typename number>
 Distance<number>::Distance() {
-    _i = -1;
-    _j = -1;
     _PBC = true;
     _have_dir = false;
     _dir = LR_vector<number> (1., 1., 1.);
@@ -25,20 +23,42 @@ Distance<number>::~Distance() {
 template<typename number>
 void Distance<number>::init(ConfigInfo<number> &config_info) {
     BaseObservable<number>::init(config_info);
-    if (_i >= *this->_config_info.N || _i < 0) throw oxDNAException ("%s: invalid particle_1 index %d. Aborting", __FILE__, _i);
-    if (_j >= *this->_config_info.N || _j < 0) throw oxDNAException ("%s: invalid particle_2 index %d. Aborting", __FILE__, _j);
+
+    int N = *config_info.N;
+    BaseParticle<number> **particles = config_info.particles;
+    vector<string> spl = Utils::split(_p1_string, ',');
+	for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) {
+		int index = atoi(it->c_str());
+		_check_index(index, N);
+		_p1_list.insert(particles[index]);
+	}
+
+	spl = Utils::split(_p2_string, ',');
+	for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) {
+		int index = atoi(it->c_str());
+		_check_index(index, N);
+		_p2_list.insert(particles[index]);
+	}
 }
 
 template<typename number>
 std::string Distance<number>::get_output_string(llint curr_step) {
     LR_vector<number> dist;
-    
-    BaseParticle<number> *p = this->_config_info.particles[_i];
-    BaseParticle<number> *q = this->_config_info.particles[_j];
     number box = *this->_config_info.box_side;
+    
+    LR_vector<number> p1_com, p2_com;
+	for(typename set<BaseParticle<number> *>::iterator it = _p1_list.begin(); it != _p1_list.end(); it++) {
+		p1_com += (*it)->get_abs_pos(box);
+	}
+	p1_com /= _p1_list.size();
 
-    if (_PBC) dist = q->pos.minimum_image(p->pos, box);
-    else dist = q->get_abs_pos(box) - p->get_abs_pos(box);
+	for(typename set<BaseParticle<number> *>::iterator it = _p2_list.begin(); it != _p2_list.end(); it++) {
+		p2_com += (*it)->get_abs_pos(box);
+	}
+	p2_com /= _p2_list.size();
+
+    if (_PBC) dist = p2_com.minimum_image(p1_com, box);
+    else dist = p2_com - p1_com;
 
 	number sign  = 1.;
 	if (_have_dir) {
@@ -46,20 +66,18 @@ std::string Distance<number>::get_output_string(llint curr_step) {
 		sign = copysign (1., dist * _dir);
 	}
 
-	return Utils::sformat("%14.4lf", sign * sqrt (dist * dist));
+	return Utils::sformat("%14.4lf", sign*sqrt(dist*dist));
 }
 
 template<typename number>
 void Distance<number>::get_settings (input_file &my_inp, input_file &sim_inp) {
-    char tmpstr[256];
-    int tmpi;
-    
-    // particle 1
-    getInputInt (&my_inp, "particle_1", &_i, 1); 
-    // particle 2
-    getInputInt (&my_inp, "particle_2", &_j, 1); 
-    
+	// particle 1
+	getInputString(&my_inp, "particle_1", _p1_string, 1);
+	// particle 2
+	getInputString(&my_inp, "particle_2", _p2_string, 1);
+
     // optional direction argument
+    char tmpstr[256];
     if (getInputString(&my_inp, "dir", tmpstr, 0) == KEY_FOUND) {
 	double x, y, z;
         sscanf(tmpstr, "%lf,%lf,%lf", &x, &y, &z);
@@ -68,7 +86,7 @@ void Distance<number>::get_settings (input_file &my_inp, input_file &sim_inp) {
     }
     _dir.normalize();
     
-    if (getInputBoolAsInt (&my_inp, "PBC", &tmpi, 0) == KEY_FOUND) _PBC = (tmpi != 0);
+    getInputBool(&my_inp, "PBC", &_PBC, 0);
     
 }
 

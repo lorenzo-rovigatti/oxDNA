@@ -231,7 +231,7 @@ std::string NathanNeighs<number>::_configuration(llint step) {
 	}
 	else if(_mode == QS_AVG) {
 		stringstream ss;
-		bool first = true;
+		ss << "# " << _n_crystalline;
 		for(int i = 0; i < *this->_config_info.N; i++) {
 			NateParticle<number> *np = &_nate_particles[i];
 			if(np->is_crystalline) {
@@ -263,9 +263,7 @@ std::string NathanNeighs<number>::_configuration(llint step) {
 				}
 				avg_q6 *= 4*M_PI/(13.*SQR(np->neighs.size()));
 
-				if(!first) ss << endl;
-				else first = false;
-				ss << avg_q4 << " " << avg_q6;
+				ss << endl << np->p->index << " " << avg_q4 << " " << avg_q6;
 			}
 		}
 

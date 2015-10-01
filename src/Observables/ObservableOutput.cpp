@@ -137,7 +137,7 @@ void ObservableOutput<number>::change_output_file(string new_filename) {
 
 template<typename number>
 void ObservableOutput<number>::_set_next_log_step() {
-	_log_next = (llint) (round((_log_n0*pow(_log_fact, _log_pos_in_cycle)) + _log_tot_cycle * _log_n_cycle) + 0.1);
+	_log_next = (llint)round((_log_n0*pow(_log_fact, _log_pos_in_cycle))) + _log_tot_cycle*_log_n_cycle;
 	_log_pos_in_cycle++;
 	if(_log_pos_in_cycle == _log_ppc) {
 		_log_n_cycle++;
