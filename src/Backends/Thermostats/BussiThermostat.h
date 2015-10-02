@@ -34,6 +34,9 @@ protected:
 	/// correlation time for the stochastic dynamics of the kinetic energy (in time steps)
 	int _tau;
 
+	/// number used in the Bussi formula to integrate the kinetic energy
+	number _exp_dt_tau;
+
 	/// stored value for the stochastic dynamic of the kinetic energy associated to translations
 	number _K_t;
 	
@@ -41,6 +44,10 @@ protected:
 	number _K_r;
 
 	void _update_K(number &K);
+
+	// Bussi's methods
+	number _sum_noises(int nn);
+	number _gamdev(const int ia);
 
 public:
 	BussiThermostat();
