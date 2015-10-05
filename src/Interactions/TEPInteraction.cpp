@@ -154,20 +154,22 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 		}
 		setNonNegativeLLInt(&inp,"TEP_max_twisting_time",&_max_twisting_time,1,"maximum twisting time");
 		
-		//delete the contents of the files that measure the torques and the twisting behaviour
+		//delete the contents of the files that measure the torques and the twisting behaviour (if you have to)
 		setPositiveLLInt(&inp,"TEP_print_torques_every",&_print_torques_every,0,"frequency between two measures of the external torques");
-		FILE *fp;
 		
-		int restart_step_counter = 1;
-		getInputBool(&inp,"restart_step_counter",tmp,0);
+		// TODO: commented since DNAnalysis would remove these.
+		/*
+		FILE *fp;
+		bool restart_step_counter = 1;
+		getInputBool(&inp,"restart_step_counter",&restart_step_counter,0);
 		if (restart_step_counter){
 			// overwrite the torque files if you have to.
-			// TODO: currently this means that 
 			fp=fopen("torques_n3.txt","w");fclose(fp);
 			fp=fopen("torques_n5.txt","w");fclose(fp);
 			fp=fopen("w1t.txt","w");fclose(fp);
 			fp=fopen("w2t.txt","w");fclose(fp);
 		}
+			*/
 
 	}
 	// locally-dependent twisting-bending prefactors (quick and dirty, do something more sensible when you have time)
