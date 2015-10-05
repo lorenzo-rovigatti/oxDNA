@@ -55,6 +55,10 @@ TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteractio
 		_TEP_weakened_kb_prefactor = 1.0;
 		_TEP_weakened_kt_prefactor = 1.0;
 	
+		//same as above, but supports a second weaker bead
+		_TEP_weakened_bead_index2 = -1;
+		_TEP_weakened_kb_prefactor2 = 1.0;
+		_TEP_weakened_kt_prefactor2 = 1.0;
 }
 
 template<typename number>
@@ -148,15 +152,22 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 		if (_o2_modulus != 0){
 			_o2_modulus = 2*PI/double(_o2_modulus); 
 		}
-		setPositiveLLInt(&inp,"TEP_max_twisting_time",&_max_twisting_time,1,"maximum twisting time");
+		setNonNegativeLLInt(&inp,"TEP_max_twisting_time",&_max_twisting_time,1,"maximum twisting time");
 		
 		//delete the contents of the files that measure the torques and the twisting behaviour
 		setPositiveLLInt(&inp,"TEP_print_torques_every",&_print_torques_every,0,"frequency between two measures of the external torques");
 		FILE *fp;
-		fp=fopen("torques_n3.txt","w");fclose(fp);
-		fp=fopen("torques_n5.txt","w");fclose(fp);
-		fp=fopen("w1t.txt","w");fclose(fp);
-		fp=fopen("w2t.txt","w");fclose(fp);
+		
+		int restart_step_counter = 1;
+		getInputBool(&inp,"restart_step_counter",tmp,0);
+		if (restart_step_counter){
+			// overwrite the torque files if you have to.
+			// TODO: currently this means that 
+			fp=fopen("torques_n3.txt","w");fclose(fp);
+			fp=fopen("torques_n5.txt","w");fclose(fp);
+			fp=fopen("w1t.txt","w");fclose(fp);
+			fp=fopen("w2t.txt","w");fclose(fp);
+		}
 
 	}
 	// locally-dependent twisting-bending prefactors (quick and dirty, do something more sensible when you have time)
@@ -168,9 +179,23 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	}
 	if( getInputInt(&inp,"TEP_weakened_bead_index",&_TEP_weakened_bead_index,0) == KEY_FOUND){
 		OX_LOG(Logger::LOG_INFO," _TEP_weakened_bead_index = %d",_TEP_weakened_bead_index);
-
 	}
 
+	//copied and pasted from above, needed to support the possibility of having a second weakened bead.
+	// locally-dependent twisting-bending prefactors (quick and dirty, do something more sensible when you have time)
+	if( getInputNumber(&inp,"TEP_weakened_kt_prefactor2",&_TEP_weakened_kt_prefactor2,0) == KEY_FOUND){
+		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kt_prefactor2 = %g",_TEP_weakened_kt_prefactor2);
+	}
+	if( getInputNumber(&inp,"TEP_weakened_kb_prefactor2",&_TEP_weakened_kb_prefactor2,0) == KEY_FOUND){
+		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kb_prefactor2 = %g",_TEP_weakened_kb_prefactor2);
+	}
+	if( getInputInt(&inp,"TEP_weakened_bead_index2",&_TEP_weakened_bead_index2,0) == KEY_FOUND){
+		OX_LOG(Logger::LOG_INFO," _TEP_weakened_bead_index2 = %d",_TEP_weakened_bead_index2);
+	}
+	
+	if(_TEP_weakened_bead_index2 == _TEP_weakened_bead_index && _TEP_weakened_bead_index != -1){
+		throw oxDNAException("TEP_weakened_bead_index = %d, TEP_weakened_bead_index2 = %d, but they should be different.",_TEP_weakened_bead_index, _TEP_weakened_bead_index2);
+	}
 // TODO: All the following checks will be removed because the potentials should simply be removed by setting their prefactor to 0 - this is just so that legacy input files raise errors.
 	// Turn off the excluded volume potential
 	if ( getInputBoolAsInt(&inp, "use_nonbonded_excluded_volume",&tmp, 0) == KEY_FOUND) {
@@ -378,6 +403,14 @@ number TEPInteraction<number>::_bonded_bending(BaseParticle<number> *p, BasePart
 	LR_vector<number> & uq = q->orientationT.v1;
 	if ( update_forces ){
 		torque = -_kb*( up.cross(uq));
+		if(p->index == _TEP_weakened_bead_index){
+			//printf("bend yes %d\n",p->index);
+			torque *= _TEP_weakened_kb_prefactor;
+		}
+		// same as above but for the second weaker bead
+		else if(p->index == _TEP_weakened_bead_index2){
+			torque *= _TEP_weakened_kb_prefactor2;
+		}
 		p->torque -= p->orientationT*torque;
 		q->torque += q->orientationT*torque;
 	// forces are not updated since this term of the potential only introduces a torque,
@@ -385,7 +418,12 @@ number TEPInteraction<number>::_bonded_bending(BaseParticle<number> *p, BasePart
 	}
 	number energy = _kb*(1 - up*uq);
 	if(p->index == _TEP_weakened_bead_index){
+		//printf("bend yes %d\n",p->index);
 		energy *= _TEP_weakened_kb_prefactor;
+	}
+	// same as above but for the second weaker bead
+	else if(p->index == _TEP_weakened_bead_index2){
+		energy *= _TEP_weakened_kb_prefactor2;
 	}
 	return energy;
 	
@@ -490,6 +528,13 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 			if ( update_forces ){
 		
 				torque = -(_kt/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) );
+				if(p->index == _TEP_weakened_bead_index){
+					//printf("twist yes %d",p->index);
+					torque *= _TEP_weakened_kt_prefactor;
+				}
+				if(p->index == _TEP_weakened_bead_index2){
+					torque *= _TEP_weakened_kt_prefactor2;
+				}
 				p->torque -= p->orientationT*torque;
 				q->torque += q->orientationT*torque;
 			// forces are not updated since this term of the potential only introduces a torque,
@@ -510,6 +555,13 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 				// the torque is made steeper by multiplication of the derivative of the potential. It should work.
 				//torque.normalize();
 				torque = -(_kt/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) );//this torque is the same as above
+				if(p->index == _TEP_weakened_bead_index){
+					//printf("twist yes %d",p->index);
+					torque *= _TEP_weakened_kt_prefactor;
+				}
+				if(p->index == _TEP_weakened_bead_index2){
+					torque *= _TEP_weakened_kt_prefactor2;
+				}
 				// quadratic prefactor - here for sentimental reasons
 				//torque *= 2*A/( (SQR(_twist_b+cos_alpha_plus_gamma))*(_twist_b+cos_alpha_plus_gamma) );
 				torque *= 4*A/( (SQR(_twist_b+cos_alpha_plus_gamma))*(SQR(_twist_b+cos_alpha_plus_gamma))*(_twist_b+cos_alpha_plus_gamma) );
@@ -528,8 +580,13 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 */
 //end of added block	
 	if(p->index == _TEP_weakened_bead_index){
+		//printf("twist yes %d",p->index);
 		energy *= _TEP_weakened_kt_prefactor;
 		//printf("Here's the index %d and here's the time %lld\n",_TEP_weakened_bead_index,_my_time1);
+	}
+	if(p->index == _TEP_weakened_bead_index2){
+		energy *= _TEP_weakened_kt_prefactor2;
+		//printf("Here's the index %d and here's the time %lld\n",_TEP_weakened_bead_index2,_my_time1);
 	}
 	return energy;
 }

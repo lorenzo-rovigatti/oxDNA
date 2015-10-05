@@ -11,6 +11,10 @@
 template<typename number>
 TEPxyzOutput<number>::TEPxyzOutput() : Configuration<number>() {
 	_print_labels = false;
+	
+	_weak_bead_1_index = -1;
+	_weak_bead_2_index = -1;
+	
 	_core_radius = 1;
 	_side_radius = 0.7;
 	_front_radius = 0.82;
@@ -39,6 +43,10 @@ void TEPxyzOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp)
 	if(getInputInt(&my_inp, "ref_particle", &tmp, 0) == KEY_FOUND) _ref_particle_id = tmp;
 	if(getInputInt(&my_inp, "ref_strand", &tmp, 0) == KEY_FOUND) _ref_strand_id = tmp;
 	if(getInputInt(&my_inp, "resolution", &tmp, 0) == KEY_FOUND) _resolution = tmp;
+	
+	getInputInt(&sim_inp,"TEP_weakened_bead_index",&_weak_bead_1_index,0);
+	printf("%d weak\n",_weak_bead_1_index);
+	getInputInt(&sim_inp,"TEP_weakened_bead_index2",&_weak_bead_2_index,0);
 }
 
 template<typename number>
@@ -110,7 +118,15 @@ std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
 */	
 
 	// core
-	res << "C" <<" "<< core.x << " " << core.y << " " << core.z << endl;
+	if (me->index == _weak_bead_1_index){
+		res << "Po" <<" "<< core.x << " " << core.y << " " << core.z << endl;
+	}
+	else if (me->index == _weak_bead_2_index){
+		res << "Fe" <<" "<< core.x << " " << core.y << " " << core.z << endl;
+	}
+	else{	
+		res << "Cr" <<" "<< core.x << " " << core.y << " " << core.z << endl;
+	}
 	// base
 	res << "H" <<" "<< side.x << " " << side.y << " " << side.z << endl;
 	// front 
