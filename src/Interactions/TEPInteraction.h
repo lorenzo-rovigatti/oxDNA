@@ -69,6 +69,10 @@ protected:
 	number _TEP_weakened_kt_prefactor;
 	number _TEP_weakened_kb_prefactor;
 	int _TEP_weakened_bead_index;
+// same as above, but supports a second weaker bead.
+	number _TEP_weakened_kt_prefactor2;
+	number _TEP_weakened_kb_prefactor2;
+	int _TEP_weakened_bead_index2;
 
 	virtual number _spring(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _bonded_bending(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
@@ -81,6 +85,7 @@ protected:
 
 	inline number _repulsive_lj2(number prefactor,const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces);
 	int setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
+	int setNonNegativeLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description);
 	int setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
 	int setNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
 	int setPositiveLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description);
@@ -193,6 +198,15 @@ int TEPInteraction<number>::setPositiveLLInt(input_file *inp, const char * skey,
 	int ret_value = getInputLLInt(inp, skey,dest, mandatory) == KEY_FOUND;
 	if( ret_value ){
 		if( *dest <= 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
+		OX_LOG(Logger::LOG_INFO,"%s manually set to %lld",skey,*dest);
+	}
+	return ret_value;
+}
+template<typename number>
+int TEPInteraction<number>::setNonNegativeLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description){
+	int ret_value = getInputLLInt(inp, skey,dest, mandatory) == KEY_FOUND;
+	if( ret_value ){
+		if( *dest < 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
 		OX_LOG(Logger::LOG_INFO,"%s manually set to %lld",skey,*dest);
 	}
 	return ret_value;

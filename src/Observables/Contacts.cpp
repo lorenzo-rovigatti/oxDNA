@@ -13,9 +13,10 @@ Contacts<number>::Contacts() {
 	
 	_first_particle_index = 0;
 	_last_particle_index = -1;
-	_neighbours_to_ignore = 1;
+	_neighbours_to_ignore = 2;
 
-	_contact_distance = 1.;
+	_contact_distance = 1.5;
+	_only_outermost_contacts = false;
 }
 
 template<typename number>
@@ -68,7 +69,8 @@ void Contacts<number>::init(ConfigInfo<number> &config_info) {
 		test_index = p[test_index]->n5->index;
 	} 
 	if (p[test_index]->n5 == P_VIRTUAL){
-		throw oxDNAException("In observable Contacts, could not get from particle %d to particle %d by going forward.");
+		throw oxDNAException("In observable Contacts, could not get from particle %d to particle %d by going forward.\n Currently the observable Contacts works only for particles on the same strand. It can easily be modified for particles on different strands/free, but then instead of looping around particles using a list we must use the indices directly.");
+	
 	}
 	if (p[test_index]->n5->index == _first_particle_index){
 		throw oxDNAException("In observable Contacts, could not get from particle %d to particle %d by going forward. This is very strange since they are both on the same strand as far as I know, so one of the developers (probably Ferdinando) messed something up. Please report the occurrence of this error to the developers.");
@@ -94,6 +96,7 @@ void Contacts<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	
 	getInputInt(&my_inp,"neighbours_to_ignore",&_neighbours_to_ignore,0);
 	getInputNumber(&my_inp,"contact_distance",&_contact_distance,0);
+	getInputBool(&my_inp,"only_outermost_contacts",&_only_outermost_contacts,0);
 
 
 }
@@ -119,26 +122,27 @@ std::string Contacts<number>::get_output_string(llint curr_step) {
 		// particle will be set to the outermost particle to make a contact.
 		bool refresh_innermost_particle = false;
 		int nth_i_neighbour = i_particle;
-		for (int i = 0; i < _neighbours_to_ignore; i++){
-			nth_i_neighbour = p[j_particle]->n5->index;
+		for (int i = 0; i <= _neighbours_to_ignore; i++){
 			if ( innermost_particle == nth_i_neighbour ){
-			refresh_innermost_particle = true;
+				refresh_innermost_particle = true;
 			}
+			nth_i_neighbour = p[nth_i_neighbour]->n5->index;
 		}
 		if ( refresh_innermost_particle ){
 			innermost_particle = nth_i_neighbour;
 		}
 		
 		// if i_particle and j_particle are within contact distance, print their indices.
-		while (j_particle >= nth_i_neighbour){
+		while (j_particle >= innermost_particle){
 			LR_vector<number> r=p[i_particle]->pos - p[j_particle]->pos;
+			//printf("%d %d %lf\n",i_particle,j_particle,r.module());
 
 			if( r.module() < _contact_distance ){
 				result += Utils::sformat("%d %d\t",i_particle,j_particle);	
 				// if only the outermost contacts should be reported, then skip to the next i-particle
 				// and don't loop through the j_particles before it.
 				if( _only_outermost_contacts){
-					innermost_particle = j_particle;
+					innermost_particle = p[j_particle]->n5->index;
 					break;
 				}
 			}

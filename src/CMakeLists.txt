@@ -42,6 +42,7 @@ SET(observables_SOURCES
 	Observables/VectorAngle.cpp
 	Observables/Checkpoint.cpp
 	Observables/Contacts.cpp
+	Observables/Writhe.cpp
 )
 
 SET(backends_SOURCES

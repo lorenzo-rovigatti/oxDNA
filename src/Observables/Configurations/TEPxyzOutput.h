@@ -53,6 +53,9 @@ protected:
 	int _ref_particle_id;
 	int _ref_strand_id;
 	int _resolution;
+	
+	int _weak_bead_1_index;
+	int _weak_bead_2_index;
 	number _core_radius, _side_radius, _front_radius, _backback_radius;
 	number _side_shift, _front_shift;
 	
