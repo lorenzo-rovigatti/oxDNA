@@ -8,6 +8,12 @@ import tempfile
 
 PROCESSDIR = os.path.join(os.path.dirname(__file__), "process_data/")
 
+def array_index(mylist, myarray):
+    """
+    Return the index in a list mylist of a numpy array myarray
+    """
+    return map(lambda x: (myarray == x).all(), mylist).index(True)
+
 def min_distance (r1, r2, box):
     """
     return the minimum image distance in going from r1 to r2, in a box of size box
@@ -556,6 +562,7 @@ class Origami(object):
         self.vec_long = np.array([0., 0., 0.])
         self.vec_lat = np.array([0., 0., 0.])
         self._vhelix_pattern = False
+        self.vh_midpoints = []
         if cad2cuda_file:
             self.get_cad2cudadna(cad2cuda_file, visibility = visibility)
             # build list of complementary nucleotides (according to cadnano scheme)
@@ -572,6 +579,8 @@ class Origami(object):
 
             # build a list of the vhelix indices contained in the cadnano design
             self.vhelix_indices = sorted(list(set([key[0] for key in self._cad2cudadna._scaf.keys()] + [key[0] for key in self._cad2cudadna._stap.keys()])))
+            if len(self.vhelix_indices) == 0:
+                print >> sys.stderr, "WARNING: vhelix_indices member variable list is empty, this probably means the virt2nuc file you are using is out of date"
             self.vbase_indices = sorted(list(set([key[1] for key in self._cad2cudadna._scaf.keys()] + [key[1] for key in self._cad2cudadna._stap.keys()])))
 
             # build a list of the occupied virtual bases in each virtual helix
@@ -619,6 +628,7 @@ class Origami(object):
 
         else:
             self._cad2cudadna = {}
+
 
 #        print self.vvib[0]
 #        for ii in self.vvib[0]:
@@ -1010,7 +1020,7 @@ class Origami(object):
         self.vec_long = av_long
         self.vec_lat = av_lat
 
-    def get_bb_midpoint(self, n_index, pbc = False):
+    def get_bb_midpoint(self, n_index, pbc = True):
         # get midpoint 2 base vectors that are hybridised according to cadnano scheme
         if self.complementary_list[n_index] == "na":
             return False
@@ -1019,7 +1029,7 @@ class Origami(object):
             r2 = self._sys._nucleotides[self.complementary_list[n_index]].get_pos_base()
             if pbc:
                 # make sure we get a sensible answer if the nucleotides got put at opposite ends of the box due to pbc's
-                vec = r1 - min_distance(r1, r2, self._sys._box)/2
+                vec = r1 + min_distance(r1, r2, self._sys._box)/2
             else:
                 vec = (r1+r2)/2
             return vec
@@ -1234,6 +1244,42 @@ class Origami(object):
         base += 1
         return base
 
+    def square_contains_exactly_one_nucleotide(self, vh, vb, strand_type):
+        """
+        Does the square vh, vb contain exactly one nucleotide?
+        """
+        if strand_type == "staple":
+            try:
+                strand, nucs = self._cad2cudadna._stap[(vh,vb)]
+            except KeyError:
+                return False
+        else:
+            assert strand_type == "scaffold"
+            try:
+                strand, nucs = self._cad2cudadna._scaf[(vh,vb)]
+            except KeyError:
+                return False
+        return len(nucs) == 1
+
+    def is_crossover(self, vh, vhn, vb, strand_type):
+        """
+        Does a crossover of type strand_type span the squares (vh, vb) and (vhn, vb)?
+        """
+        # for a crossover we have no insertions/deletions
+        if (self.square_contains_exactly_one_nucleotide(vh, vb, strand_type) and self.square_contains_exactly_one_nucleotide(vhn, vb, strand_type)):
+            if strand_type == "staple":
+                cstrand, [cnuc] = self._cad2cudadna._stap[(vh,vb)]
+                nstrand, [nnuc] = self._cad2cudadna._stap[(vhn,vb)]
+            else:
+                assert strand_type == "scaffold"
+                cstrand, [cnuc] = self._cad2cudadna._scaf[(vh,vb)]
+                nstrand, [nnuc] = self._cad2cudadna._scaf[(vhn,vb)]
+            # if there is a crossover between the squares (vh,vb) and (vhn,vb), the strand will be the same and the nucleotides will be consecutive
+            adjacent_nucs = abs(cnuc - nnuc) == 1 or abs(cnuc - nnuc) == self._sys._strands[get_scaffold_index(self._sys)].get_length() - 1
+            return (cstrand == nstrand and adjacent_nucs)
+        else:
+            return False
+
     def get_holliday_junctions(self, single=False, single_only=False):
         """
         returns list of hjs in format (vh, vb, vh_neighbour, vb_next)
@@ -1252,81 +1298,41 @@ class Origami(object):
                 vh_neighbours_below[vh].append(vh1)
 
         hjs = []
-        skip = False
+        skip_scaffold = False
+        skip_staple = False
         lone_crossover = 0
         for vhi in range(len(self.vhelix_indices)):
             vh = self.vhelix_indices[vhi]
-            for ii in range(len(self.vvib[vhi])):
-                if skip:
-                    skip = False
-                    continue
-                vb = self.vvib[vhi][ii]
-                try:
-                    vhn = vh_neighbours_below[vh][0]
-                except IndexError:
-                    continue
-                try:
-                    # for a crossover we have no insertions/deletions - here we make sure that this is the case, because if there are 0 or > 1 nucleotides on this square, a ValueError will be thrown
-                    (cstap, [cnuc]) = self._cad2cudadna._stap[(vh,vb)]
-                    (nstap, [nnuc]) = self._cad2cudadna._stap[(vhn,vb)]
-                except (KeyError, ValueError):
-                    continue
-                # if there is a crossover between the squares (vh,vb) and (vhn,vb), the strand will be the same and the nucleotides will be consecutive
-                if cstap == nstap and abs(cnuc - nnuc) == 1:
-                    if single and not single_only:
-                        hjs.append([vh, vhn, vb])
-                    else:
-                        this_hj = [vh, vb, vhn]
-                        # we expect the staple crossovers to be in pairs
-                        vb += 1
-                        try:
-                            (cstap, [cnuc]) = self._cad2cudadna._stap[(vh,vb)]
-                            (nstap, [nnuc]) = self._cad2cudadna._stap[(vhn,vb)]
-                        except (KeyError, ValueError):
-                            lone_crossover += 1
-                            continue
-                        if cstap == nstap and abs(cnuc - nnuc) == 1:
+            if len(vh_neighbours_below[vh]) > 0:
+                vhn = vh_neighbours_below[vh][0]
+                for ii in range(len(self.vvib[vhi])):
+                    vb = self.vvib[vhi][ii]
+                    vbn = vb + 1
+                    # check for staple single/double crossover
+                    if self.is_crossover(vh, vhn, vb, "staple") and not skip_staple:
+                        if self.is_crossover(vh, vhn, vbn, "staple"):
                             if not single_only:
-                                this_hj.append(vb)
-                                hjs.append(this_hj)
-                                skip = True
+                                hjs.append([vh, vb, vhn, vbn])
+                            skip_staple = True # skip the next vbase since it is part of a double crossover
                         else:
-                            if single_only:
+                            lone_crossover += 1
+                            if single or single_only:
                                 hjs.append([vh, vhn, vb])
-                            else:
-                                lone_crossover += 1
-                            continue
-                else:
-                    # if no staple crossover, we check for a scaffold crossover
-                    try:
-                        (cscaf, [cnuc]) = self._cad2cudadna._scaf[(vh,vb)]
-                        (nscaf, [nnuc]) = self._cad2cudadna._scaf[(vhn,vb)]
-                    except (KeyError, ValueError):
-                        continue
-                    if cscaf == nscaf and abs(cnuc - nnuc) == 1:
-                        if single and not single_only:
-                            hjs.append([vh, vhn, vb])
+                    else:
+                        skip_staple = False
+
+                    # check for scaffold single/double crossover
+                    if self.is_crossover(vh, vhn, vb, "scaffold") and not skip_scaffold:
+                        if self.is_crossover(vh, vhn, vbn, "scaffold"):
+                            if not single_only:
+                                hjs.append([vh, vb, vhn, vbn])
+                            skip_scaffold = True # skip the next vbase since it is part of a double crossover
                         else:
-                            this_hj = [vh, vb, vhn]
-                            # we expect the scaffold crossovers to be in pairs
-                            vb += 1
-                            try:
-                                (cscaf, [cnuc]) = self._cad2cudadna._scaf[(vh,vb)]
-                                (nscaf, [nnuc]) = self._cad2cudadna._scaf[(vhn,vb)]
-                            except (KeyError, ValueError):
-                                lone_crossover += 1
-                                continue
-                            if cscaf == nscaf and abs(cnuc - nnuc) == 1:
-                                if not single_only:
-                                    this_hj.append(vb)
-                                    hjs.append(this_hj)
-                                    skip = True
-                            else:
-                                if single_only:
-                                    hjs.append([vh, vhn, vb])
-                                else:
-                                    lone_crossover += 1
-                                continue
+                            lone_crossover += 1
+                            if single or single_only:
+                                hjs.append([vh, vhn, vb])
+                    else:
+                        skip_scaffold = False
 
         if not single and not single_only and lone_crossover > 0:
             base.Logger.log("%d lone crossovers found, they will not be used in analysis" % lone_crossover, base.Logger.INFO)
@@ -1479,7 +1485,7 @@ class Origami(object):
         try:
             n3 = self.get_nucleotides(self.vhelix_indices[vh_id+1], self.vvib[vh_id+1][vvib_id])[0]
         except KeyError:
-            base.Logger.die("origami_utils.Origami.get_weave: KeyError - probably the virtual base index argument was too high")
+            base.Logger.die("origami_utils.Origami.get_bpwise_weave: KeyError - probably the virtual base index argument was too high")
         n4 = self.complementary_list[n3]
 
         r1 = ss._nucleotides[n1].get_pos_base()
@@ -1509,12 +1515,9 @@ class Origami(object):
         out = [[] for xx in range(len(self.vhelix_indices)-1)]
         for vhi in range(len(self.vhelix_indices)-1):
             # make a list of base-base midpoints for each helix
-            bbms1 = []
-            bbms2 = []
-            for vb in self.vvib[vhi]:
-                bbms1.extend([self.get_bb_midpoint(nuc, pbc = True) for nuc in self.get_nucleotides(self.vhelix_indices[vhi], vb, "default")])
-            for vb in self.vvib[vhi+1]:
-                bbms2.extend([self.get_bb_midpoint(nuc, pbc = True) for nuc in self.get_nucleotides(self.vhelix_indices[vhi+1], vb, "default")])
+            bbms1 = self.get_vh_midpoints(self.vhelix_indices[vhi])
+            bbms2 = self.get_vh_midpoints(self.vhelix_indices[vhi + 1])
+
             if len(bbms1) != len(bbms2):
                 if verbose:
                     print >> sys.stderr, "INFO: skipping virtual helix pair %d, %d: number of base pairs in virtual helix number %d (%d) different to number of base pairs in virtual helix number %d (%d)" % (self.vhelix_indices[vhi], self.vhelix_indices[vhi+1], self.vhelix_indices[vhi], len(bbms1), self.vhelix_indices[vhi+1], len(bbms2))
@@ -1523,11 +1526,29 @@ class Origami(object):
                 out[vhi] = [-1 for xx in bbms1]
                 for ii in range(len(bbms1)):
                     displ = min_distance(bbms2[ii], bbms1[ii], self._sys._box)
-                    #if np.sqrt(np.dot(displ, displ)) > 10:
-                    #print bbms2[ii], bbms1[ii]
                     out[vhi][ii] = np.sqrt(np.dot(displ, displ))
 
         return out
+
+    def compute_vh_midpoints(self):
+        """
+        compute the base pair midpoints for each virtual helix just once to 
+        save time
+        """
+        if self._sys:
+            self.vh_midpoints = []
+            for vhi in range(len(self.vhelix_indices)):
+                self.vh_midpoints.append(self.get_vh_midpoints(vhi))
+
+    def get_vh_midpoints(self, vhi):
+        """
+        Return a list of base pair midpoints for a virtual helix. Effectively 
+        'flattens' a virtual helix, dealing with any skips or loops.
+        """
+        bbms = []
+        for vb in self.vvib[vhi]:
+            bbms.extend([self.get_bb_midpoint(nuc, pbc = True) for nuc in self.get_nucleotides(self.vhelix_indices[vhi], vb, "default")])
+        return bbms
 
     def get_alignment(self, trim, period):
         # find alignment of a pair of nucleotides, ie to see if ones that are supposed to line up do.
@@ -1690,7 +1711,122 @@ class Origami(object):
 
         return n
 
-    def get_corrug_weave(self, vh1, vh2, vb, n, norm2, corrug_signed=False):
+    def intra_helix_autocorr(self):
+        """
+        Get the autocorrelation (i.e. the dot product) between the intra-helix 
+        vectors along each pair of virtual helices in the origami.
+
+        This method does assume that the base pairs on adjacent virtual helices
+        'line up,' in the sense that the list index of the closest base pair 
+        on one helix is the same as the index of the closest base pair on the
+        neighbouring helix. A weak check for this is the condition that the
+        lengths of the bbm lists (and so the number of base pairs in each virtual
+        helix) are the same.
+
+        Note that the list this method returns is indexed by the actual virtual
+        helix number given by cadnano, not the 'virtual helix index' which
+        indexes the self.vhelix_indices list.
+
+        run compute_vh_midpoints() first
+        """
+        corrs = [[] for xx in range(max(self.vhelix_indices))]
+        for vhi in range(len(self.vhelix_indices) - 1):
+            try:
+                bbms1 = self.vh_midpoints[vhi]
+            except IndexError:
+                print >> sys.stderr, "make sure Origami.compute_vh_midpoints() has run"
+                raise
+            bbms2 = self.vh_midpoints[vhi + 1]
+            # weak check for base-pair aligment across virtual helices
+            if len(bbms1) != len(bbms2):
+                continue
+            nbp = len(bbms1)
+            corr = [0 for xx in range(nbp)]
+            count = [0 for xx in range(nbp)]
+            for bpidi in range(nbp):
+                intra_i = norm(self.min_distance(bbms2[bpidi], bbms1[bpidi]))
+                for bpidj in range(bpidi, nbp):
+                    intra_j = norm(self.min_distance(bbms2[bpidj], bbms1[bpidj]))
+                    corr[bpidj - bpidi] += np.dot(intra_i, intra_j)
+                    count[bpidj - bpidi] += 1
+
+            corrs[self.vhelix_indices[vhi]] = [float(corr[ii])/count[ii] for ii in range(nbp)]
+
+        return corrs
+
+    def corrugation(self, hj, span=16):
+        """
+        Find the corrugation a distance span around the junction hj. The 
+        corrugation pattern is quantified as the angle from the dot product between the average
+        of the two intra-helix vectors at the junction and each of the other
+        intra-helix vectors.
+
+        run compute_vh_midpoints() first
+        """
+        vh1 = hj[0]
+        vb1 = hj[1]
+        vh2 = hj[2]
+        vb2 = hj[3]
+
+        # label the base pairs like this
+        # ===A-B==>
+        #    | | 
+        # <==C-D===
+        bbmA = self.get_bb_midpoint(self.get_nucleotides(vh1, vb1)[0], pbc=True)
+        bbmB = self.get_bb_midpoint(self.get_nucleotides(vh1, vb2)[0], pbc=True)
+        bbmC = self.get_bb_midpoint(self.get_nucleotides(vh2, vb1)[0], pbc=True)
+        bbmD = self.get_bb_midpoint(self.get_nucleotides(vh2, vb2)[0], pbc=True)
+
+        # average of the helix axes at the junction
+        av_axis = norm(norm(self.min_distance(bbmA, bbmB)) + norm(self.min_distance(bbmC, bbmD)))
+
+        # find component of reference intrahelix vector that is in the plane 
+        # normal to av_axis
+        ref_intra = self.min_distance(bbmC, bbmA) + self.min_distance(bbmD, bbmB)
+        ref_intra_in_plane = norm(ref_intra - np.dot(ref_intra, av_axis) * av_axis)
+
+        # bbmsX are lists of base-pair midpoints for each virtual helix
+        bbms1 = self.vh_midpoints[vh1]
+        bbms2 = self.vh_midpoints[vh2]
+        # find the location of the junction within the base-pair midpoint lists
+        idA = array_index(bbms1, bbmA)
+        idB = array_index(bbms1, bbmB)
+        idC = array_index(bbms2, bbmC)
+        idD = array_index(bbms2, bbmD)
+
+        # now loop through the revelant intra-strand pairs and compute the dot
+        # products of each intra-strand vector with the reference vector
+        ret = []
+        for xpos in range(-span, 0):
+            ret.append(self.corrug_angle(xpos, bbms1, bbms2, idA, idC, av_axis, ref_intra_in_plane))
+        for xpos in range(1, span+1):
+            ret.append(self.corrug_angle(xpos, bbms1, bbms2, idB, idD, av_axis, ref_intra_in_plane))
+
+        return ret
+
+    def corrug_angle(self, xpos, bbms1, bbms2, id1, id2, av_axis, ref_intra_in_plane):
+        """
+        compute the corrugation angle as the dot product of the intra-strand
+        vector at xpos with the reference vector, after both have been projected
+        into the plane perpendicular to the average helix axis at the junction.
+        """
+        # the if condition is here to ensure we don't have a negative 
+        # index (which with python logic gets treated as the penultimate
+        # list element) and that we don't run off the end of the list
+        if id1 + xpos > 0 and id1 + xpos < len(bbms1) and id2 + xpos > 0 and id2 + xpos < len(bbms2):
+            this_intra = self.min_distance(bbms2[id2 + xpos], bbms1[id1 + xpos])
+            this_intra_in_plane = norm(this_intra - np.dot(this_intra, av_axis) * av_axis)
+            # give the dot product a sign corresponding to the sense of the
+            # angle between the vectors, given by the triple product between
+            # the two intra-helix vectors and the average helix axis.
+            fac = 1
+            if np.dot(np.cross(this_intra_in_plane, ref_intra_in_plane), av_axis) < 0:
+                fac = -1
+            return fac * np.arccos(np.dot(this_intra_in_plane, ref_intra_in_plane))
+        else:
+            return "NA"
+
+    def old_get_corrug_weave(self, vh1, vh2, vb, n, norm2, corrug_signed=False):
         # find distance between adjacent helices and decompose into weave and corrugation
         # for a pair of base pairs located at (vh1, vb) and (vh2, vb)
         # assumes no skip/loop
@@ -2143,3 +2279,9 @@ class Origami(object):
         for vb in self.vvib[self.vhelix_indices.index(vh)]:
             nucs.extend(self.get_nucleotides(vh, vb, "default"))
         return len(nucs)
+
+    def min_distance (self, r1, r2):
+        """
+        return the minimum image distance in going from r1 to r2, in this system's box
+        """
+        return min_distance(r1, r2, self._sys._box)
