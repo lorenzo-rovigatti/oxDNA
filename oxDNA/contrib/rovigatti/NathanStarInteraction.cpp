@@ -16,6 +16,7 @@ NathanStarInteraction<number>::NathanStarInteraction() : _sqrt_pi(sqrt(M_PI)), _
 
 	_patch_alpha = 0.12;
 	_patch_power = 30;
+	_star_factor = 1.;
 
 	_N_stars = _N_patchy = 0;
 
@@ -94,6 +95,7 @@ void NathanStarInteraction<number>::get_settings(input_file &inp) {
 	if(_star_sigma_g > 1.) _is_marzi = true;
 
 	getInputInt(&inp, "NATHAN_f", &_star_f, 1);
+	getInputNumber(&inp, "NATHAN_star_factor", &_star_factor, 0);
 
 	getInputBool(&inp, "NATHAN_make_crystal", &_make_crystal, 0);
 	if(_make_crystal) getInputString(&inp, "NATHAN_crystal_type", _crystal_type, 1);
