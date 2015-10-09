@@ -34,6 +34,7 @@ __constant__ float  MD_star_f1_2[1];
 __constant__ float  MD_T[1];
 __constant__ float  MD_star_sigma_s[1];
 __constant__ float  MD_sqr_star_sigma_s[1];
+__constant__ float MD_star_factor[1];
 
 // patchy-star variables
 __constant__ int MD_interp_size[1];
@@ -59,7 +60,7 @@ __device__ number4 minimum_image(number4 &r_i, number4 &r_j) {
 
 template <typename number>
 __device__ number interpolate_patchy_star(number x) {
-	if(x <= MD_xmin[0]) return 10e5;
+	if(x <= MD_xmin[0]) return 100.;
 	if(x >= MD_xmax[0]) return 0.;
 
 	int last = (MD_interp_size[0] - 1);
@@ -172,8 +173,7 @@ __device__ void _star_star_interaction(number4 &ppos, number4 &qpos, number4 &F)
 
 	number mod_r = sqrt(sqr_r);
 
-	number common_fact = 5.f * MD_T[0] * MD_star_f3_2[0] / 18.f;
-	number i_f = 1.f / (1.f + MD_star_f1_2[0]*0.5f);
+	number common_fact = MD_star_factor[0] * 5.f * MD_T[0] * MD_star_f3_2[0] / 18.f;
 
 	if(sqr_r < MD_sqr_star_sigma_s[0]) {
 		// force over r
@@ -183,6 +183,7 @@ __device__ void _star_star_interaction(number4 &ppos, number4 &qpos, number4 &F)
 	else {
 		number exp_factor = expf(-(mod_r - MD_star_sigma_s[0])*MD_star_f1_2[0]/(2.*MD_star_sigma_s[0]));
 
+		number i_f = 1.f / (1.f + MD_star_f1_2[0]*0.5f);
 		// force over r
 		number force_mod = common_fact * i_f * exp_factor * (MD_star_sigma_s[0]/(sqr_r*mod_r) + MD_star_f1_2[0]/(2.f*sqr_r));
 		F -= r * force_mod;
@@ -334,6 +335,8 @@ void CUDANathanStarInteraction<number, number4>::cuda_init(number box_side, int 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_star_sigma_s, &f_copy, sizeof(float)) );
 	f_copy = this->_star_sigma_s;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_star_sigma_s, &f_copy, sizeof(float)) );
+	f_copy = this->_star_factor;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_star_factor, &f_copy, sizeof(float)) );
 
 	_setup_cuda_interp();
 }

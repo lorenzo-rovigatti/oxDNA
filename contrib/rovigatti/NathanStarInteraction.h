@@ -43,6 +43,7 @@ protected:
 
 	number _star_sigma_g, _sqr_star_sigma_g, _star_sigma_s, _sqr_star_sigma_s;
 	number _star_rg, _star_rs, _sqr_star_rs;
+	number _star_factor;
 	/// Interaction cut-off between patchy particles and stars
 	number _patchy_star_rcut, _sqr_patchy_star_rcut;
 	/// Interaction cut-off between stars
@@ -215,7 +216,7 @@ number NathanStarInteraction<number>::_star_star_interaction(BaseParticle<number
 
 	number mod_r = sqrt(sqr_r);
 
-	number common_fact = 5. * _T * _star_f3_2 / 18.;
+	number common_fact = _star_factor * 5. * _T * _star_f3_2 / 18.;
 	number i_f = 1. / (1. + _star_f1_2*0.5);
 
 	if(sqr_r < _sqr_star_sigma_s) {
