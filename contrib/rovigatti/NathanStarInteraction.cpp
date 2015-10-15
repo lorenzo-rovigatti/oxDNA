@@ -341,6 +341,8 @@ void NathanStarInteraction<number>::generate_random_configuration(BaseParticle<n
 	int cell_side = round(cbrt(cxcycz));
 	if(CUB(cell_side) != cxcycz) throw oxDNAException("The number of patchy particles should be equal to 4*i^3, where i is an integer. For this specific case you may want to use %d", 4*CUB(cell_side));
 
+	OX_LOG(Logger::LOG_INFO, "Crystal cell_side: %d", cell_side);
+
 	number gap = 0.05;
 	number sigma_c = 1.;
 
