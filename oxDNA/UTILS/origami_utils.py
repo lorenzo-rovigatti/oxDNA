@@ -8,6 +8,17 @@ import tempfile
 
 PROCESSDIR = os.path.join(os.path.dirname(__file__), "process_data/")
 
+def get_pos_midpoint(r1, r2, box):
+    """
+    return the midpoint of two vectors r1 and r2
+    
+    use the minimum image: i.e. make sure we get a sensible answer if the                                                                     
+    positions r1 and r2 correspond to nucleotides which were put at opposite                                                                  
+    ends of the box due to pbc's                                                                                                            
+    """
+    assert (isinstance (box, np.ndarray) and len(box) == 3)
+    return r1 - min_distance(r1, r2, box)/2
+
 def array_index(mylist, myarray):
     """
     Return the index in a list mylist of a numpy array myarray
