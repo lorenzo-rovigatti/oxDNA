@@ -87,8 +87,8 @@ void VectorAngle<number>::get_settings(input_file &my_inp, input_file &sim_inp) 
 	
 	// get the angle to consider 
 	if (getInputInt(&my_inp,"angle_index",&_angle_index,0) == KEY_FOUND){
-		if (_angle_index < 0 || _angle_index > 3)
-			throw oxDNAException("(VectorAngle.cpp) angle_index must be 0,1,2, or 3, but was set to %d.",_angle_index);
+		if (_angle_index < 0 || _angle_index > 4)
+			throw oxDNAException("(VectorAngle.cpp) angle_index must be 0,1,2,3, or 4, but was set to %d.",_angle_index);
 	}
 
 }
@@ -165,6 +165,21 @@ std::string VectorAngle<number>::get_output_string(llint curr_step) {
 				result_number += v*vp;
 			}
 		}
+		else if ( _angle_index == 4){
+			// Total Twist:
+			// 1/(2*pi) * t_i . (v_i x v_i+1)
+			v =	p[i]->orientationT.v3;
+			vp = p[i]->n5->orientationT.v3;
+			u =	p[i]->orientationT.v1;
+
+			if(_print_local_details){
+				result += Utils::sformat("%14.14lf\t",v*vp)+' ';
+			}
+			else{
+				result_number += (1./(2*M_PI))*(u*(v.cross(vp)));
+			}
+			
+		}
 		// some of the things that MeanVectorCosine chose to output instead.
 		// kept here just in case they are needed.
 		/*
@@ -199,7 +214,7 @@ std::string VectorAngle<number>::get_output_string(llint curr_step) {
 		number_of_values++;
 	}while (i!= _last_particle_index);
 	if (! _print_local_details){
-		if (_angle_index == 0){
+		if (_angle_index == 0 || _angle_index == 4){
 			result = Utils::sformat("%14.14lf",result_number);
 		}
 		else{

@@ -43,6 +43,7 @@ public:
 
 	virtual void init(ConfigInfo<number> &config_info);
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
+	//virtual std::string get_output_stringOLD(llint curr_step);
 	
 
 	std::string get_output_string(llint curr_step);
