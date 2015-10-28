@@ -98,7 +98,11 @@ void NathanStarInteraction<number>::get_settings(input_file &inp) {
 	getInputNumber(&inp, "NATHAN_star_factor", &_star_factor, 0);
 
 	getInputBool(&inp, "NATHAN_make_crystal", &_make_crystal, 0);
-	if(_make_crystal) getInputString(&inp, "NATHAN_crystal_type", _crystal_type, 1);
+	if(_make_crystal) {
+		getInputString(&inp, "NATHAN_crystal_type", _crystal_type, 1);
+		_N_in_crystal = -1;
+		getInputInt(&inp, "NATHAN_N_in_crystal", &_N_in_crystal, 0);
+	}
 }
 
 template<typename number>
@@ -334,10 +338,13 @@ void NathanStarInteraction<number>::generate_random_configuration(BaseParticle<n
 		BaseInteraction<number, NathanStarInteraction<number> >::generate_random_configuration(particles, N, box_side);
 		return;
 	}
+	// from here on it is implied that _make_crystal == true
+
+	if(_N_in_crystal == -1) _N_in_crystal = _N_patchy;
 
 	// check on the number of particles
-	if(_N_patchy % 4 != 0) throw oxDNAException("The number of patchy particles should be a multiple of 4");
-	int cxcycz = _N_patchy / 4;
+	if(_N_in_crystal % 4 != 0) throw oxDNAException("The number of patchy particles should be a multiple of 4");
+	int cxcycz = _N_in_crystal / 4;
 	int cell_side = round(cbrt(cxcycz));
 	if(CUB(cell_side) != cxcycz) throw oxDNAException("The number of patchy particles should be equal to 4*i^3, where i is an integer. For this specific case you may want to use %d", 4*CUB(cell_side));
 
@@ -465,14 +472,14 @@ void NathanStarInteraction<number>::generate_random_configuration(BaseParticle<n
 	Cells<number> c(N, this->_box);
 	c.init(particles, this->_rcut);
 
-	for(int i = _N_patchy; i < N; i++) {
+	for(int i = _N_in_crystal; i < N; i++) {
 		BaseParticle<number> *p = particles[i];
 		p->pos = LR_vector<number>(0., 0., 0.);
 	}
 
 	c.global_update();
 
-	for(int i = _N_patchy; i < N; i++) {
+	for(int i = _N_in_crystal; i < N; i++) {
 		BaseParticle<number> *p = particles[i];
 
 		bool inserted = false;
