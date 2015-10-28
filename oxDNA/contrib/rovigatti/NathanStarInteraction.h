@@ -61,6 +61,7 @@ protected:
 	int _N_stars;
 	bool _is_marzi;
 	bool _make_crystal;
+	int _N_in_crystal;
 	string _crystal_type;
 
 	void _setup_lambda_kappa();
