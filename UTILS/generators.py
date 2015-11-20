@@ -151,7 +151,7 @@ class StrandGenerator (object):
             # Angle between base pairs along torus
             angle = 2. * np.pi / float(bp)
             # Radius of torus
-            radius = base.FENE_R0 / math.sqrt(2. * (1. - math.cos(angle)));
+            radius = base.FENE_R0_OXDNA / math.sqrt(2. * (1. - math.cos(angle)));
 
         if circular == True and option_use_helicity:
             # Draw backbone in a helical spiral around a torus

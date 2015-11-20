@@ -1,6 +1,6 @@
 /**
  * @file    BaseParticle.h
- * @date    21/set/2010
+ * @date    21/set/2210
  * @author   lorenzo
  *
  *
@@ -130,13 +130,13 @@ public:
 	 * @param my_shift reference vector to put back in the box (i.e., strand c.o.m.)
 	 * @param box
 	 */
-	inline void shift(LR_vector<number> &my_shift, number box) {
-		_pos_shift[0] += (int) floor(my_shift.x / box);
-		_pos_shift[1] += (int) floor(my_shift.y / box);
-		_pos_shift[2] += (int) floor(my_shift.z / box);
-		pos.x -= box * floor(my_shift.x / box);
-		pos.y -= box * floor(my_shift.y / box);
-		pos.z -= box * floor(my_shift.z / box);
+	inline void shift(LR_vector<number> &my_shift, LR_vector<number> &box_sides) {
+		_pos_shift[0] += (int) floor(my_shift.x / box_sides.x);
+		_pos_shift[1] += (int) floor(my_shift.y / box_sides.y);
+		_pos_shift[2] += (int) floor(my_shift.z / box_sides.z);
+		pos.x -= box_sides.x * floor(my_shift.x / box_sides.x);
+		pos.y -= box_sides.y * floor(my_shift.y / box_sides.y);
+		pos.z -= box_sides.z * floor(my_shift.z / box_sides.z);
 	}
 	
 	inline void set_pos_shift (int x, int y, int z) {
@@ -151,8 +151,10 @@ public:
 		arg[2] = _pos_shift[2];
 	}
 
-
+	/// Returns the absolute position of the particle, useful for MSD and such
 	LR_vector<number> get_abs_pos(number box) { return pos + box * LR_vector<number> ((number)_pos_shift[0], (number)_pos_shift[1], (number)_pos_shift[2]); }
+	LR_vector<number> get_abs_pos(number box_x, number box_y, number box_z) { return pos + LR_vector<number> (box_x * (number)_pos_shift[0], box_y * (number)_pos_shift[1], box_z * (number)_pos_shift[2]); }
+	LR_vector<number> get_abs_pos(LR_vector<number> box_sides) { return pos + LR_vector<number> (box_sides.x * (number)_pos_shift[0], box_sides.y * (number)_pos_shift[1], box_sides.z * (number)_pos_shift[2]); }
 
 	/// Index of the particle. Usually it is a useful way of accessing arrays of particles
 	int index;

@@ -79,8 +79,6 @@ string Configuration<number>::_headers(llint step) {
 	stringstream headers;
 	headers.precision(15);
 
-	number mybox = *this->_config_info.box_side;
-
 	if(_reduced) {
 		set<int> strands;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
@@ -88,14 +86,14 @@ string Configuration<number>::_headers(llint step) {
 			strands.insert(p->strand_id);
 		}
 
-		headers << strands.size() << " " << mybox << " " << mybox << " " << mybox << " " << step << endl;
+		headers << strands.size() << " " << this->_config_info.box->box_sides().x << " " << this->_config_info.box->box_sides().y << " " << this->_config_info.box->box_sides().z << endl;
 	}
 	else {
 		number U = _tot_energy.get_U(step);
 		number K = _tot_energy.get_K(step);
 		
 		headers << "t = " << step << endl;
-		headers << "b = " << mybox << " " << mybox << " " << mybox << endl;
+		headers << "b = " << this->_config_info.box->box_sides().x << " " << this->_config_info.box->box_sides().y << " " << this->_config_info.box->box_sides().z << endl;
 		headers << "E = " << U+K << " " << U << " " << K << endl;
 	}
 
@@ -114,9 +112,9 @@ string Configuration<number>::_particle(BaseParticle<number> *p) {
 		mypos.z = p->pos.z;
 	}
 	else{
-		mypos.x = p->get_abs_pos(*this->_config_info.box_side).x;
-		mypos.y = p->get_abs_pos(*this->_config_info.box_side).y;
-		mypos.z = p->get_abs_pos(*this->_config_info.box_side).z;
+		mypos.x = p->get_abs_pos(this->_config_info.box->box_sides()).x;
+		mypos.y = p->get_abs_pos(this->_config_info.box->box_sides()).y;
+		mypos.z = p->get_abs_pos(this->_config_info.box->box_sides()).z;
 	}
 	LR_matrix<number> oT = p->orientation.get_transpose();
 	conf << mypos.x << " " << mypos.y << " " << mypos.z << " ";

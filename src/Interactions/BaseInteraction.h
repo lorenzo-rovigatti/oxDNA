@@ -297,7 +297,7 @@ number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<n
 
 template<typename number>
 bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticle<number> * p, BaseParticle<number> * q, number box_side) {
-	LR_vector<number> dr = q->pos.minimum_image(p->pos, box_side);
+	LR_vector<number> dr = _box->min_image(p, q); 
 	
 	if (dr.norm() >= this->_sqr_rcut) return false;
 	
@@ -329,7 +329,7 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 
 		bool inserted = false;
 		do {
-			p->pos = LR_vector<number> (drand48()*box_side, drand48()*box_side, drand48()*box_side);
+			p->pos = LR_vector<number> (drand48() * _box->box_sides().x, drand48()* _box->box_sides().y, drand48() * _box->box_sides().z);
 			// random orientation
 			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
 			p->orientation.orthonormalize();

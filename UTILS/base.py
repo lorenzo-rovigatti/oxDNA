@@ -70,10 +70,9 @@ import_model_constants()
 number_to_base = {0 : 'A', 1 : 'G', 2 : 'C', 3 : 'T'}
 
 
-
 base_to_number = {'A' : 0, 'a' : 0, 'G' : 1, 'g' : 1,
                   'C' : 2, 'c' : 2, 'T' : 3, 't' : 3,
-                  'U' : 3, 'u' : 3}
+                  'U' : 3, 'u' : 3, 'D' : 4}
                   
                   
 
