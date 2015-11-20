@@ -84,6 +84,7 @@ void MC_CPUBackend2<number>::init() {
 	_MC_Info.N = &this->_N;
 	_MC_Info.interaction = this->_interaction;
 	_MC_Info.box_side = &(this->_box_side);
+	_MC_Info.box = this->_box;
 
 	//this->update_lists;
 	this->_lists->global_update();

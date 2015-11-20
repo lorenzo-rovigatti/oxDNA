@@ -103,6 +103,7 @@ SET(move_SOURCES
 	Backends/MCMoves/MCRot.cpp
 	Backends/MCMoves/VMMC.cpp
 	Backends/MCMoves/VolumeMove.cpp
+	Backends/MCMoves/ShapeMove.cpp
 )
 
 SET(forces_SOURCES

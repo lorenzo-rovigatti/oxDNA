@@ -22,7 +22,7 @@ void HSInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 	char tmps[512];
 	getInputString (&inp, "sim_type", (char *)tmps, 1);
-	if (strncmp(tmps, "MC", 512)) throw oxDNAException ("Cannot run HS with MD");
+	if (strncmp(tmps, "MC", 512) && strncmp(tmps, "MC2", 512)) throw oxDNAException ("Cannot run HS with MD");
 	this->_rcut = (number) 1.001;
 }
 

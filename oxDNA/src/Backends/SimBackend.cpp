@@ -46,7 +46,7 @@ SimBackend<number>::SimBackend() {
 	_P = (number) 0.;
 	_lists = NULL;
 	_box = NULL;
-	_max_io = (number) 1.0e10;
+	_max_io = 1.e30;
 	_read_conf_step = -1;
 	_conf_interval = -1;
 	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = NULL;
@@ -281,7 +281,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 		else OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
 	}
 	else {
-		_max_io = 1.; // default value for a simulation is 1 MB/s
+		_max_io = 1.; // default value for a simulation is 1 MB/s;
 	}
 }
 
@@ -343,7 +343,7 @@ void SimBackend<number>::init() {
 
 	// initializes the observable output machinery. This part has to follow
 	// read_topology() since _particles has to be initialized
-	ConfigInfo<number> conf_info(_particles, &_box_side, _interaction, &_N, &_backend_info, _lists);
+	ConfigInfo<number> conf_info(_particles, &_box_side, _interaction, &_N, &_backend_info, _lists, _box);
 	typename vector<ObservableOutput<number> *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) (*it)->init(conf_info);
 
@@ -509,10 +509,10 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 			// we need to manually set the particle shift so that the particle absolute position
 			// is the right one
 			LR_vector<number> scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
-			p->shift(scdm_number, box_side);
-			p_pos.x -= box_side * (floor(scdm[k].x / box_side) + 0.001);
-			p_pos.y -= box_side * (floor(scdm[k].y / box_side) + 0.001);
-			p_pos.z -= box_side * (floor(scdm[k].z / box_side) + 0.001);
+			p->shift(scdm_number, _box->box_sides());
+			p_pos.x -= _box->box_sides().x * (floor(scdm[k].x / _box->box_sides().x) + 0.001);
+			p_pos.y -= _box->box_sides().y * (floor(scdm[k].y / _box->box_sides().y) + 0.001);
+			p_pos.z -= _box->box_sides().z * (floor(scdm[k].z / _box->box_sides().z) + 0.001);
 		}
 		p->pos = LR_vector<number>(p_pos.x, p_pos.y, p_pos.z);
 	}
@@ -539,11 +539,11 @@ void SimBackend<number>::_print_ready_observables(llint curr_step) {
 
 	// here we control the timings; we leave the code a 30-second grace time
 	// to print the initial configuration
-	//double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
+	// double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
 	double time_passed = (double)_mytimer->get_time() / (double)CLOCKS_PER_SEC;
 	if(time_passed > 30) {
 		double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
-		OX_DEBUG("Current data production rate: %g MB/s", MBps);
+		OX_DEBUG("Current data production rate: %g MB/s (total bytes: %lld, time_passed: %g)" , MBps, total_bytes, time_passed);
 		if(MBps > _max_io) throw oxDNAException ("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
 	}
 }
@@ -562,6 +562,17 @@ void SimBackend<number>::print_observables(llint curr_step) {
 template<typename number>
 void SimBackend<number>::fix_diffusion() {
 	if(!_enable_fix_diffusion) return;
+
+	number E_before = this->_interaction->get_system_energy(_particles, _N, _lists);
+	LR_vector<number> * stored_pos = new LR_vector<number>[_N];
+	LR_matrix<number> * stored_or = new LR_matrix<number>[_N];
+	LR_matrix<number> * stored_orT = new LR_matrix<number>[_N];
+	for (int i = 0; i < _N; i ++) {
+		BaseParticle<number> *p = this->_particles[i];
+		stored_pos[i] = p->pos;
+		stored_or[i] = p->orientation;
+		stored_orT[i] = p->orientationT;
+	}
 
 	LR_vector<number> *scdm = new LR_vector<number>[_N_strands];
 	int *ninstrand = new int [_N_strands];
@@ -582,12 +593,69 @@ void SimBackend<number>::fix_diffusion() {
 	// change particle position and fix orientation matrix;
 	for (int i = 0; i < _N; i ++) {
 		BaseParticle<number> *p = this->_particles[i];
-		p->shift(scdm[p->strand_id], this->_box_side);
+		//p->shift(scdm[p->strand_id], this->_box_side);
+		p->shift(scdm[p->strand_id], _box->box_sides());
 		p->orientation.orthonormalize();
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
 	}
 
+	number E_after = this->_interaction->get_system_energy(_particles, _N, _lists);
+	if (this->_interaction->get_is_infinite() == true || fabs(E_before - E_after) > 1.e-6 * fabs(E_before)) {
+		OX_LOG(Logger::LOG_INFO, "Fix diffusion went too far... %g, %g, %d, (%g>%g)", E_before, E_after, this->_interaction->get_is_infinite(), fabs(E_before - E_after), 1.e-6 * fabs(E_before));
+		this->_interaction->set_is_infinite(false);
+		for (int i = 0; i < _N; i ++) {
+			BaseParticle<number> *p = this->_particles[i];
+			LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
+			p->shift(dscdm, _box->box_sides());
+			p->pos = stored_pos[i];
+			p->orientation = stored_or[i];
+			p->orientationT = stored_orT[i];
+			p->set_positions();
+		}
+
+		// we try to normalize a few of them...
+		std::vector<int> apply;
+		for (int i = 0; i < _N_strands; i ++) 
+			if (drand48() < 0.005) apply.push_back(1);
+			else apply.push_back(0);
+
+		for (int i = 0; i < _N; i ++) {
+			BaseParticle<number> *p = this->_particles[i];
+			if (apply[p->strand_id]) {
+				//p->shift(scdm[p->strand_id], this->_box_side);
+				p->orientation.orthonormalize();
+				p->orientationT = p->orientation.get_transpose();
+				p->set_positions();
+			}
+		}
+		number E_after2 = this->_interaction->get_system_energy(_particles, _N, _lists);
+		if (this->_interaction->get_is_infinite() == true || fabs(E_before - E_after2) > 1.e-6 * fabs(E_before)) {
+			OX_LOG(Logger::LOG_INFO, " *** Fix diffusion hopeless... %g, %g, %d, (%g>%g)", E_before, E_after2, this->_interaction->get_is_infinite(), fabs(E_before - E_after2), 1.e-6 * fabs(E_before));
+			this->_interaction->set_is_infinite(false);
+			for (int i = 0; i < _N; i ++) {
+				BaseParticle<number> *p = this->_particles[i];
+				if (apply[p->strand_id]) {
+					LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
+					//p->shift(dscdm, this->_box_side);
+					p->pos = stored_pos[i];
+					p->orientation = stored_or[i];
+					p->orientationT = stored_orT[i];
+					p->set_positions();
+				}
+			}
+		}
+		else {
+			OX_LOG(Logger::LOG_INFO, "diffusion PARTIALLY fixed");
+		}
+	}
+	else {
+		OX_LOG(Logger::LOG_INFO, "diffusion fixed.. %g %g", E_before, E_after);
+	}
+
+	delete[] stored_pos;
+	delete[] stored_or;
+	delete[] stored_orT;
 	delete[] ninstrand;
 	delete[] scdm;
 }

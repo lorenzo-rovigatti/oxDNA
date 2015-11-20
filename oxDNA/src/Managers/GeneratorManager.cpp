@@ -9,21 +9,44 @@
 #include "../Interactions/InteractionFactory.h"
 #include "../Forces/ForceFactory.h"
 #include "../PluginManagement/PluginManager.h"
+#include "../Boxes/BoxFactory.h"
 
 GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	_use_density = false;
-	_box_side = _density = -1.;
-	double argv2 = atof (argv[2]);
-	if (argv2 <= 0.) throw oxDNAException ("Refusing to run with box_side/density = %g (converted from \"%s\")", argv2, argv[2]);
-	if (argv2 < 2.) {
-		_use_density = true;
-		_density = argv2;
-		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
+	_density = -1.;
+	_box_side = -1.;
+	_box_side_x = _box_side_y = _box_side_z = -1.;
+
+	// first we look for an x in argv[2]
+	std::string tmpstr = argv[2];
+	size_t found_x = tmpstr.find('x');
+	if (found_x != std::string::npos) {
+		std::vector< std::string > sides_str = Utils::split(tmpstr, 'x');
+		_box_side_x = atof(sides_str[0].c_str());
+		_box_side_y = atof(sides_str[1].c_str());
+		_box_side_z = atof(sides_str[2].c_str());
+
+		_box_side = _box_side_x;
+		if (_box_side_y < _box_side) _box_side = _box_side_y;
+		if (_box_side_z < _box_side) _box_side = _box_side_z;
+		
+		OX_LOG (Logger::LOG_INFO, "Detected non cubic box; box sides %g, %g, %g", _box_side_x, _box_side_y, _box_side_z);
+		_use_density = false;
 	}
 	else {
-		_use_density = false;
-		_box_side = argv2;
-		OX_LOG(Logger::LOG_INFO, "Generating configuration with side %g", _box_side);
+		double argv2 = atof (argv[2]);
+		if (argv2 <= 0.) throw oxDNAException ("Refusing to run with box_side/density = %g (converted from \"%s\")", argv2, argv[2]);
+		if (argv2 < 2.) {
+			_use_density = true;
+			_density = argv2;
+			OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
+		}
+		else {
+			_use_density = false;
+			_box_side = argv2;
+			_box_side_x = _box_side_y = _box_side_z = _box_side;
+			OX_LOG(Logger::LOG_INFO, "Generating configuration with side %g", _box_side);
+		}
 	}
 
 	loadInputFile(&_input, argv[1]);
@@ -82,6 +105,9 @@ void GeneratorManager::load_options() {
 	PluginManager *pm = PluginManager::instance();
 	pm->init(_input);
 
+	// added by FR
+	_mybox = BoxFactory::make_box<double>(_input);
+
 	_interaction = InteractionFactory::make_interaction<double>(_input);
 	_interaction->get_settings(_input);
 }
@@ -96,18 +122,19 @@ void GeneratorManager::init() {
 
 	if (_use_density){
 		 _box_side = pow(_N / _density, 1. / 3.);
-		OX_LOG(Logger::LOG_INFO, "Generating configuration with box_side %g", _box_side);
+		 _box_side_x = _box_side_y = _box_side_z = _box_side;
+		OX_LOG(Logger::LOG_INFO, "Generating cubic configuration with box_side %g", _box_side);
 	}
 	else {
-		_density = _N / pow (_box_side, 3);
-		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
+		_density = _N / (_box_side_x * _box_side_y * _box_side_z);
+		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g (%d particles, box sides %g %g %g)", _density, _N, _box_side_x, _box_side_y, _box_side_z);
 	}
 	
 	// setting the box side for the interaction
 	_interaction->set_box_side(_box_side);
 
-	_mybox.init(_box_side, _box_side, _box_side);
-	_interaction->set_box(&_mybox);
+	_mybox->init(_box_side_x, _box_side_y, _box_side_z);
+	_interaction->set_box(_mybox);
 
 	// initializing external forces
 	if (_external_forces) { 
@@ -124,12 +151,12 @@ void GeneratorManager::generate() {
 	conf_output.precision(15);
 
 	conf_output << "t = 0" << endl;
-	conf_output << "b = " << _box_side << " " << _box_side << " " << _box_side << endl;
+	conf_output << "b = " << _box_side_x << " " << _box_side_y << " " << _box_side_z << endl;
 	conf_output << "E = 0 0 0 " << endl;
 
 	for(int i = 0; i < _N; i++) {
 		BaseParticle<double> *p = _particles[i];
-		LR_vector<double> mypos = p->get_abs_pos(_box_side);
+		LR_vector<double> mypos = p->get_abs_pos(_box_side_x, _box_side_y, _box_side_z);
 		LR_matrix<double> oT = p->orientation.get_transpose();
 		conf_output << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 		conf_output << oT.v1.x << " " << oT.v1.y << " " << oT.v1.z << " ";

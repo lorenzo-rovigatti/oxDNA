@@ -2026,6 +2026,7 @@ void VMMC_CPUBackend<number>::fix_diffusion() {
 
 template<typename number>
 void VMMC_CPUBackend<number>::print_observables(llint curr_step) {
+	this->_lists->global_update(true);
 	this->_backend_info += get_op_state_str();
 	MCBackend<number>::print_observables(curr_step);
 	//if ((curr_step % (10 * this->_N)) == 0) this->fix_diffusion();

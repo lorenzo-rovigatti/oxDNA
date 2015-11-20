@@ -92,7 +92,13 @@ void MCRot<number>::apply (llint curr_step) {
 		p->orientation = _orientation_old;
 		p->orientationT = _orientationT_old;
 		p->set_positions();
-		this->_Info->lists->single_update(p);
+	
+		if (p->is_rigid_body()) {
+			this->_Info->lists->single_update(p);
+			if(!this->_Info->lists->is_updated()) {
+				this->_Info->lists->global_update();
+			}
+		}
 		this->_Info->interaction->set_is_infinite(false);
 
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;

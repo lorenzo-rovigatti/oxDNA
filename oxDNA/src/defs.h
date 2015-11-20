@@ -222,7 +222,7 @@ public:
 		z *= S;
 	}
 
-	inline number operator[](int i) const {
+	inline number &operator[](int i) {
 		if (i == 0)
 			return x;
 		else if (i == 1)
