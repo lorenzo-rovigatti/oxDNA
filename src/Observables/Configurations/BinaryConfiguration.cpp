@@ -33,10 +33,10 @@ std::string BinaryConfiguration<number>::_headers(llint step) {
 	// print out the number
 	headers.write((char *)rndseed, 3 * sizeof(unsigned short));
 
-	double mybox = *this->_config_info.box_side;
-	headers.write ((char * )(&mybox), sizeof (double));
-	headers.write ((char * )(&mybox), sizeof (double));
-	headers.write ((char * )(&mybox), sizeof (double));
+	LR_vector<double> my_box_sides (this->_config_info.box->box_sides().x, this->_config_info.box->box_sides().y, this->_config_info.box->box_sides().z);
+	headers.write ((char * )(&my_box_sides.x), sizeof (double));
+	headers.write ((char * )(&my_box_sides.y), sizeof (double));
+	headers.write ((char * )(&my_box_sides.z), sizeof (double));
 
 	double U = (double) this->_tot_energy.get_U(step);
 	double K = (double) this->_tot_energy.get_K(step);
