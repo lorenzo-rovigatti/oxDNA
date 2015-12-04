@@ -5,6 +5,7 @@ __constant__ float MD_box_side[1];
 __constant__ float MD_sqr_rcut[3];
 __constant__ float MD_sqr_sigma[3];
 __constant__ float MD_epsilon[3];
+__constant__ int MD_LJ_n[3];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
@@ -33,8 +34,9 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 
 	number eps = MD_epsilon[type];
 	number tmp = MD_sqr_sigma[type] / sqr_r;
-	number lj_part = tmp * tmp * tmp;
-	number force_module = -24.f * eps * (lj_part - 2.f*SQR(lj_part)) / sqr_r;
+	number lj_part = 1;
+	for(int i = 0; i < MD_LJ_n[type]/2; i++) lj_part *= tmp;
+	number force_module = -4.f * MD_LJ_n[type] * eps * (lj_part - 2.f*SQR(lj_part)) / sqr_r;
 
 	if(sqr_r >= MD_sqr_rcut[type]) force_module = (number) 0.f;
 

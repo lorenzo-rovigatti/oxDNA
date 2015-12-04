@@ -34,6 +34,7 @@ void CUDALJInteraction<number, number4>::cuda_init(number box_side, int N) {
 	float f_copy = box_side;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_box_side, &f_copy, sizeof(float)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_LJ_n, &this->_n, 3*sizeof(int)) );
 
 	COPY_ARRAY_TO_CONSTANT(MD_sqr_rcut, this->_sqr_LJ_rcut, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_sqr_sigma, this->_sqr_sigma, 3);
