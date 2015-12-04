@@ -107,9 +107,9 @@ string Configuration<number>::_particle(BaseParticle<number> *p) {
 
 	LR_vector<double> mypos;
 	if (_back_in_box){
-		mypos.x = p->pos.x;
-		mypos.y = p->pos.y;
-		mypos.z = p->pos.z;
+		mypos.x = p->pos.x - floor(p->pos.x / *this->_config_info.box_side)*(*this->_config_info.box_side);
+		mypos.y = p->pos.y - floor(p->pos.y / *this->_config_info.box_side)*(*this->_config_info.box_side);
+		mypos.z = p->pos.z - floor(p->pos.z / *this->_config_info.box_side)*(*this->_config_info.box_side);
 	}
 	else{
 		mypos.x = p->get_abs_pos(this->_config_info.box->box_sides()).x;
