@@ -23,6 +23,7 @@
 #include "../../Forces/RepulsionPlane.h"
 #include "../../Forces/RepulsionPlaneMoving.h"
 #include "../../Forces/RepulsiveSphere.h"
+#include "../../Forces/LJWall.h"
 
 template<typename number, typename number4>
 MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABaseBackend<number, number4>(), _max_ext_forces(0) {
@@ -371,6 +372,7 @@ void MD_CUDABackend<number, number4>::init(){
 		LowdimMovingTrap<number> lowdim_moving_trap;
 		RepulsionPlane<number> repulsion_plane;
 		RepulsionPlaneMoving<number> repulsion_plane_moving;
+		LJWall<number> LJ_wall;
 
 		for(int i = 0; i < this->_N; i++) {
 			BaseParticle<number> *p = this->_particles[i];
@@ -428,6 +430,17 @@ void MD_CUDABackend<number, number4>::init(){
 					force->repulsionplanemoving.stiff = p_force->_stiff;
 					force->repulsionplanemoving.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 					force->repulsionplanemoving.p_ind = p_force->_p_ptr->index;
+
+				}
+				else if (typeid (*(p->ext_forces[j])) == typeid (LJ_wall) ) {
+					LJWall<number> * p_force = (LJWall<number> *) p->ext_forces[j];
+					force->type = CUDA_LJ_WALL;
+					force->ljwall.stiff = p_force->_stiff;
+					force->ljwall.position = p_force->_position;
+					force->ljwall.n = p_force->_n;
+					force->ljwall.cutoff = p_force->_cutoff;
+					force->ljwall.sigma = p_force->_sigma;
+					force->ljwall.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 
 				}
 				else {
