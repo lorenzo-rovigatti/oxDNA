@@ -18,6 +18,7 @@
 #include "MutualTrap.h"
 #include "RepulsionPlane.h"
 #include "RepulsionPlaneMoving.h"
+#include "LJWall.h"
 #include "RepulsiveSphere.h"
 
 #include <fstream>
@@ -64,6 +65,7 @@ void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **par
 	else if (type_str.compare("constant_trap") == 0) extF = new ConstantTrap<number> ();
 	else if (type_str.compare("sphere") == 0) extF = new RepulsiveSphere<number> ();
 	else if (type_str.compare("com") == 0) extF = new COMForce<number> ();
+	else if (type_str.compare("LJ_wall") == 0) extF = new LJWall<number> ();
 	else throw oxDNAException ("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");

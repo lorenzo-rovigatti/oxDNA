@@ -15,6 +15,7 @@
 #define CUDA_REPULSION_PLANE 3
 #define CUDA_REPULSION_PLANE_MOVING 4
 #define CUDA_TRAP_MOVING_LOWDIM 5
+#define CUDA_LJ_WALL 6
 
 /**
  * @brief CUDA version of a ConstantRateForce.
@@ -89,6 +90,20 @@ struct repulsion_plane_moving {
 };
 
 /**
+ * @brief CUDA version of a LJWall.
+ */
+template<typename number>
+struct LJ_wall {
+	int type;
+	number stiff;
+	number position;
+	number cutoff;
+	number sigma;
+	int n;
+	float3 dir;
+};
+
+/**
  * @brief Used internally by CUDA classes to provide an inheritance-like mechanism for external forces.
  */
 template<typename number>
@@ -100,6 +115,7 @@ union CUDA_trap {
 	lowdim_moving_trap<number> lowdim;
 	repulsion_plane<number> repulsionplane;
 	repulsion_plane_moving<number> repulsionplanemoving;
+	LJ_wall<number> ljwall;
 };
 
 #endif /* CUDAFORCES_H_ */
