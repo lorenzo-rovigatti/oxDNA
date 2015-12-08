@@ -18,6 +18,7 @@ FSInteraction<number>::FSInteraction() : BaseInteraction<number, FSInteraction<n
 	this->_int_map[FS] = &FSInteraction<number>::_two_body;
 
 	_lambda = 1.;
+	no_three_body = false;
 }
 
 template <typename number>

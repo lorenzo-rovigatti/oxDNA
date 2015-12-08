@@ -47,18 +47,18 @@ template<typename number>
 void LJWall<number>::init (BaseParticle<number> ** particles, int N, number * box_side_ptr) {
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a LJWall on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
-		OX_LOG (Logger::LOG_INFO, "Adding LJWall (stiff=%g, position=%g, dir=%g,%g,%g, sigma=%g, n=%d, on particle %d", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n, _particle);
+		OX_LOG (Logger::LOG_INFO, "Adding LJWall (stiff=%g, position=%g, dir=%g,%g,%g, sigma=%g, n=%d) on particle %d", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n, _particle);
 		particles[_particle]->add_ext_force(this);
 	}
 	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding LJWall (stiff=%g, position=%g, dir=%g,%g,%g, sigma=%g, n=%d on ALL particles", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n);
+		OX_LOG (Logger::LOG_INFO, "Adding LJWall (stiff=%g, position=%g, dir=%g,%g,%g, sigma=%g, n=%d) on ALL particles", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n);
 		for (int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
 	}
 }
 
 template<typename number>
 LR_vector<number> LJWall<number>::value(llint step, LR_vector<number> &pos) {
-	number distance = (this->_direction*pos + this->_position)/_sigma; // distance from the plane
+	number distance = this->_direction*pos + this->_position; // distance from the plane
 	number rel_distance = distance/_sigma; // distance from the plane in units of _sigma
 	if(rel_distance > _cutoff) return LR_vector<number>(0., 0., 0.);
 	number lj_part = pow(rel_distance, -_n);
