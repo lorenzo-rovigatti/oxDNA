@@ -319,7 +319,7 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 
 	for(int i = 0; i < N; i++) {
 		BaseParticle<number> *p = particles[i];
-		p->pos = LR_vector<number>(0., 0., 0.);
+		p->pos = LR_vector<number> (drand48()*_box->box_sides().x, drand48()*_box->box_sides().y, drand48()*_box->box_sides().z);
 	}
 
 	c.global_update();
@@ -329,7 +329,7 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 
 		bool inserted = false;
 		do {
-			p->pos = LR_vector<number> (drand48() * _box->box_sides().x, drand48()* _box->box_sides().y, drand48() * _box->box_sides().z);
+			p->pos = LR_vector<number> (drand48()*_box->box_sides().x, drand48()*_box->box_sides().y, drand48()*_box->box_sides().z);
 			// random orientation
 			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
 			p->orientation.orthonormalize();

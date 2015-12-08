@@ -156,7 +156,7 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 				break;
 			}
 			case CUDA_LJ_WALL: {
-				number distance = (extF.ljwall.dir.x*ppos.x + extF.ljwall.dir.y*ppos.y + extF.ljwall.dir.z*ppos.z + extF.ljwall.position)/extF.ljwall.sigma;
+				number distance = extF.ljwall.dir.x*ppos.x + extF.ljwall.dir.y*ppos.y + extF.ljwall.dir.z*ppos.z + extF.ljwall.position;
 				number rel_distance = distance/extF.ljwall.sigma;
 				if(rel_distance < extF.ljwall.cutoff) {
 					number lj_part = powf(rel_distance, -extF.ljwall.n);

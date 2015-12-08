@@ -69,7 +69,6 @@ void CUDASimpleVerletList<number, number4>::init(int N, number box_side, number 
 	_N_cells = _N_cells_side * _N_cells_side * _N_cells_side;
 	_rcell = this->_box_side / _N_cells_side;
 	_max_N_per_cell = (int) ((floor(sqrt(2.) * pow(ceil(_rcell), (number)3.) + 0.01) + 0.01) * 2 * _max_density_multiplier);
-	//_max_N_per_cell = 100;
 	if(_max_N_per_cell > N) _max_N_per_cell = N;
 
 	OX_DEBUG("max_neigh: %d, max_N_per_cell: %d, N_cells: %d, rcell: %lf", _max_neigh, _max_N_per_cell, _N_cells, _rcell);

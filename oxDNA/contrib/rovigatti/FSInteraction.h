@@ -94,6 +94,8 @@ public:
 		FS = 0
 	};
 
+	bool no_three_body;
+
 	std::vector<std::vector<number> > get_stress_tensor() { return _stress_tensor; }
 
 	FSInteraction();

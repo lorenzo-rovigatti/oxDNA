@@ -12,6 +12,7 @@
 
 #include "FSConf.h"
 #include "../Interactions/PatchyInteraction.h"
+#include "FSInteraction.h"
 
 using namespace std;
 
@@ -110,6 +111,9 @@ string FSConf<number>::_configuration(llint step) {
 	stringstream conf;
 	conf.precision(15);
 
+	FSInteraction<number> *fint = dynamic_cast<FSInteraction<number> *>(this->_config_info.interaction);
+	if(fint != NULL) fint->no_three_body = true;
+
 	for(int i = 0; i < _N; i++) {
 		if(_print_bonds) _bonds[i].clear();
 		BaseParticle<number> *p = this->_config_info.particles[i];
@@ -148,6 +152,8 @@ string FSConf<number>::_configuration(llint step) {
 			}
 		}
 	}
+
+	if(fint != NULL) fint->no_three_body = false;
 
 	return conf.str();
 }
