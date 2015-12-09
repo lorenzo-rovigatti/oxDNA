@@ -7,6 +7,7 @@
 
 #include "SignalManager.h"
 
+#ifdef SIGNAL
 #include "../defs.h"
 #include "oxDNAException.h"
 
@@ -42,3 +43,9 @@ void SignalManager::manage_segfault() {
 
 	sigaction(SIGSEGV, &sa, NULL);
 }
+
+#else
+void SignalManager::segfault_handler(int sig, siginfo_t *info, void *secret) {}
+void SignalManager::manage_segfault() {}
+
+#endif
