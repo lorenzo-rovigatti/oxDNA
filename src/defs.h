@@ -32,6 +32,8 @@
 #define N_DUMMY 4
 
 #include <cmath>
+#include <strings.h>
+#include <xlocale.h>
 
 #include "model.h"
 #include "Utilities/Logger.h"

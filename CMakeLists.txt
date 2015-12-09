@@ -6,6 +6,7 @@ OPTION(Debug "Set to ON to compile with debug symbols" OFF)
 OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
+OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF) 
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have
 # problems at linking time
@@ -46,6 +47,10 @@ IF(MOSIX)
 	ADD_DEFINITIONS(-DMOSIX)
 	MESSAGE(STATUS "Disabling timings")
 ENDIF(MOSIX)
+
+IF(SIGNAL)
+	ADD_DEFINITIONS(-DSIGNAL)
+ENDIF(SIGNAL)
 
 ADD_DEFINITIONS(-Wall -Wshadow)
 

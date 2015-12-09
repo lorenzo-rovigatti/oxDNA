@@ -11,6 +11,8 @@
 // see http://www.linuxjournal.com/files/linuxjournal.com/linuxjournal/articles/063/6391/6391l3.html
 #include <csignal>
 #include <execinfo.h>
+
+#ifdef SIGNAL
 /* get REG_EIP from ucontext.h */
 #ifndef __USE_GNU
 #define __USE_GNU
@@ -21,6 +23,7 @@
 #define MY_REG_RIP REG_RIP
 #else
 #define MY_REG_RIP REG_EIP
+#endif
 #endif
 
 
