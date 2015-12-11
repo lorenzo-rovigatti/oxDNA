@@ -86,7 +86,7 @@ void CUDABinVerletList<number, number4>::init(int N, number box_side, number rcu
 
 		_N_cells[i] = _N_cells_side[i] * _N_cells_side[i] * _N_cells_side[i];
 		_rcell[i] = box_side / _N_cells_side[i];
-		_max_N_per_cell[i] = density_factor * pow(_rcell[i], 3.);
+		_max_N_per_cell[i] = density_factor * pow(_rcell[i], (number) 3.f);
 		// for value < 11 every now and then the program crashes
 		if(_max_N_per_cell[i] < 11) _max_N_per_cell[i] = 11;
 
