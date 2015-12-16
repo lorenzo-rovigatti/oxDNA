@@ -17,6 +17,7 @@ LJWall<number>::LJWall() : BaseForce<number>() {
 	_n = 6;
 	_sigma = 1.;
 	_cutoff = 1e6;
+	_generate_inside = false;
 	_only_repulsive = false;
 }
 
@@ -32,6 +33,8 @@ void LJWall<number>::get_settings (input_file &inp) {
 
 	getInputBool(&inp, "only_repulsive", &_only_repulsive, 0);
 	if(_only_repulsive) _cutoff = pow(2., 1./_n);
+
+	getInputBool(&inp, "generate_inside", &_generate_inside, 0);
 
 	int tmpi;
 	double tmpf[3];
@@ -68,6 +71,7 @@ LR_vector<number> LJWall<number>::value(llint step, LR_vector<number> &pos) {
 template<typename number>
 number LJWall<number>::potential (llint step, LR_vector<number> &pos) {
 	number distance = (this->_direction*pos + this->_position)/_sigma; // distance from the plane in units of _sigma
+	if(_generate_inside && distance < 0.) return 10e8;
 	if(distance > _cutoff) distance = _cutoff;
 	number lj_part = pow(distance, -_n);
 	return 4*this->_stiff*(SQR(lj_part) - lj_part);

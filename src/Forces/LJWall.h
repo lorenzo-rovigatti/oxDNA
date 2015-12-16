@@ -18,6 +18,7 @@ class LJWall : public BaseForce<number> {
 private:
 	int _particle;
 	bool _only_repulsive;
+	bool _generate_inside;
 
 public:
 	int _n;
