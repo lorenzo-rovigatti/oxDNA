@@ -1,8 +1,9 @@
 /*
- * ExternalForce.cpp
+ * ConstantRateForce.cpp
  *
  *  Created on: 18/oct/2011
  *      Author: Flavio 
+ *              Modified by Ferdinando on 11/Dec/2015
  */
 
 #include "ConstantRateForce.h"
@@ -10,7 +11,7 @@
 
 template<typename number>
 ConstantRateForce<number>::ConstantRateForce() : BaseForce<number>() {
-	_particle = 0;
+	_particles_string = "\0";
 }
 
 template<typename number>
@@ -20,7 +21,10 @@ ConstantRateForce<number>::~ConstantRateForce() {
 
 template<typename number>
 void ConstantRateForce<number>::get_settings(input_file &inp) {
-	getInputInt (&inp, "particle", &this->_particle, 1);
+  //Original line
+	//getInputInt (&inp, "particle", &this->_particle, 1);
+	std::string particles_string;
+	getInputString (&inp, "particle", _particles_string, 1);
 
 	getInputNumber (&inp, "F0", &this->_F0, 1);
 	getInputNumber (&inp, "rate", &this->_rate, 1);
@@ -36,13 +40,17 @@ void ConstantRateForce<number>::get_settings(input_file &inp) {
 
 template<typename number>
 void ConstantRateForce<number>::init(BaseParticle<number> **particles, int N, number *box_side) {
-	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a ConstantRateForce on non-existent particle %d. Aborting", _particle);
-	if (_particle != -1) {
-		OX_LOG (Logger::LOG_INFO, "Adding ConstantRateForce (F==%g, rate=%g, dir=%g,%g,%g on particle %d", this->_F0, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z, _particle);
-		particles[_particle]->add_ext_force(this);
+
+	std::vector<int> particle_indices_vector = getParticlesFromString(particles,N,_particles_string);
+
+	if (particle_indices_vector[0] != -1) {
+		for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){
+			particles[particle_indices_vector[i]]->add_ext_force(this);
+			OX_LOG (Logger::LOG_INFO, "Adding ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g) on particle %d", this->_F0, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z, particle_indices_vector[i]);
+		}
 	}
 	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding ConstantRateForce (F==%g, rate=%g, dir=%g,%g,%g on ALL particles", this->_F0, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z);
+		OX_LOG (Logger::LOG_INFO, "Adding ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g) on ALL particles", this->_F0, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z);
 		for (int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
 	}
 }
