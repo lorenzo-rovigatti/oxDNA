@@ -47,7 +47,7 @@ public:
 template<typename number>
 std::vector<int> ConstantRateForce<number>::getParticlesFromString(BaseParticle<number> **particles, int N,std::string particle_string){
 	// first remove all the spaces from the string, so that the parsing goes well.
-	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), isspace), particle_string.end());
+	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int(*)(int)>( isspace )), particle_string.end());
 
   std::vector<std::string> temp = Utils::split (particle_string.c_str(), ',');
 	std::vector<int> particles_index;//declare as empty
