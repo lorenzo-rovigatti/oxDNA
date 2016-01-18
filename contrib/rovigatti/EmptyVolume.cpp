@@ -31,7 +31,7 @@ template<typename number>
 void EmptyVolume<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable<number>::get_settings(my_inp, sim_inp);
 
-	getInputInt(&my_inp, "tries", &_tries, 1);
+	getInputInt(&my_inp, "tries", &_tries, 0);
 	getInputNumber(&my_inp, "probe_diameter", &_probe_diameter, 1);
 	getInputNumber(&my_inp, "particle_diameter", &_particle_diameter, 0);
 }
@@ -56,6 +56,13 @@ void EmptyVolume<number>::init(ConfigInfo<number> &config_info) {
 	_sqr_rcut = SQR(_rcut);
 	_cells = new Cells<number>(_N, config_info.box);
 	_cells->init(_particles, _rcut);
+
+	if(_tries == 0) {
+		number tot_V = config_info.box->box_sides().x*config_info.box->box_sides().y*config_info.box->box_sides().z;
+		number probe_V = M_PI*pow(_probe_diameter, 3.) / 6.;
+		_tries = (int)(tot_V/probe_V)*50;
+		OX_LOG(Logger::LOG_INFO, "EmptyVolume: tries = %d", _tries);
+	}
 }
 
 template<typename number>
