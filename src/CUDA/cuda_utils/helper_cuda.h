@@ -39,6 +39,9 @@
 //#include <iostream>
 //#include <sstream>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+
 // Note, it is required that your SDK sample to include the proper header files, please
 // refer the CUDA examples for examples of the needed CUDA headers, which may change depending
 // on which CUDA functions are used.
@@ -974,5 +977,6 @@ inline bool checkCudaCapabilities(int major_version, int minor_version)
 
 // end of CUDA Helper Functions
 
+#pragma GCC diagnostic pop
 
 #endif

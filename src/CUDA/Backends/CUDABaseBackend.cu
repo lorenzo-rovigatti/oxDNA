@@ -90,8 +90,6 @@ void CUDABaseBackend<number, number4>::_gpu_to_host() {
 
 template<typename number, typename number4>
 void CUDABaseBackend<number, number4>::get_settings(input_file &inp) {
-	getInputString(&inp, "conf_file", _conf_filename, 1);
-
 	if(getInputInt(&inp, "CUDA_device", &_device_number, 0) == KEY_NOT_FOUND) {
 		OX_LOG(Logger::LOG_INFO, "CUDA device not specified");
 		_device_number = -1;
@@ -162,43 +160,21 @@ void CUDABaseBackend<number, number4>::_choose_device () {
 }
 
 template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::init() {
-	std::ifstream conf_input(_conf_filename.c_str());
-
+void CUDABaseBackend<number, number4>::init_cuda(ConfigInfo<number> &config_info) {
 	if(_device_number < 0)	_choose_device();
 	set_device(_device_number);
 	_device_prop = get_device_prop(_device_number);
 
 	CUDA_SAFE_CALL( cudaThreadSetCacheConfig(cudaFuncCachePreferL1) );
 
-	conf_input.seekg(0, ios::beg);
+	number box_side = config_info.box->box_sides().x;
+	int N = *config_info.N;
 
-	// get box size
-	char line[512];
-	conf_input.getline(line, 512);
-	sscanf(line, "t = %*d");
-	conf_input.getline(line, 512);
-	double box_side;
-	sscanf(line, "b = %lf %*f %*f", &box_side);
-	_C_box_side = (number) box_side;
-	conf_input.getline(line, 512);
+	_cuda_interaction->cuda_init(box_side, N);
 
-	// get N
-	bool end = false;
-	_C_N = 0;
-	while(!end) {
-		conf_input.getline(line, 512);
-		char first;
-		sscanf(line, "%c", &first);
-		if(!conf_input.good() || first == 't' || strlen(line) == 0) end = true;
-		else _C_N++;
-	}
-
-	_cuda_interaction->cuda_init(_C_box_side, _C_N);
-
-	_vec_size = sizeof(number4) * _C_N;
-	_orient_size = sizeof(GPU_quat<number>) * _C_N;
-	_bonds_size = sizeof(LR_bonds) * _C_N;
+	_vec_size = sizeof(number4) * N;
+	_orient_size = sizeof(GPU_quat<number>) * N;
+	_bonds_size = sizeof(LR_bonds) * N;
 
 	// GPU memory allocations
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_poss, _vec_size) );
@@ -210,23 +186,23 @@ void CUDABaseBackend<number, number4>::init() {
 	CUDA_SAFE_CALL( cudaMemset(_d_list_poss, 0, _vec_size) );
 
 	// CPU memory allocations
-	_h_poss = new number4[_C_N];
-	_h_orientations = new GPU_quat<number>[_C_N];
-	_h_bonds = new LR_bonds[_C_N];
+	_h_poss = new number4[N];
+	_h_orientations = new GPU_quat<number>[N];
+	_h_bonds = new LR_bonds[N];
 
 	// setup kernels' configurations
 	_init_CUDA_kernel_cfgs();
-	_cuda_lists->init(_C_N, _C_box_side, _cuda_interaction->get_cuda_rcut());
+	_cuda_lists->init(N, box_side, _cuda_interaction->get_cuda_rcut());
 
 	if(_sort_every > 0) {
 		int uns = 0;
 
 		// fixed value for depth (8): changing this value does not significantly affect performances
-		init_hilb_symbols(_C_N, uns, 8, (float) _C_box_side);
+		init_hilb_symbols(N, uns, 8, (float) box_side);
 
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_hindex, _C_N*sizeof(int)) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_sorted_hindex, _C_N*sizeof(int)) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_inv_sorted_hindex, _C_N*sizeof(int)) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_hindex, N*sizeof(int)) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_sorted_hindex, N*sizeof(int)) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_inv_sorted_hindex, N*sizeof(int)) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_buff_poss, _vec_size) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_buff_bonds, _bonds_size) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat<number>  >(&_d_buff_orientations, _orient_size) );
@@ -244,7 +220,8 @@ void CUDABaseBackend<number, number4>::_init_CUDA_kernel_cfgs() {
 		OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
 	}
 
-	_particles_kernel_cfg.blocks.x = _C_N / _particles_kernel_cfg.threads_per_block + ((_C_N % _particles_kernel_cfg.threads_per_block == 0) ? 0 : 1);
+	int N = *_prv_config_info.N;
+	_particles_kernel_cfg.blocks.x = N / _particles_kernel_cfg.threads_per_block + ((N % _particles_kernel_cfg.threads_per_block == 0) ? 0 : 1);
 	if(_particles_kernel_cfg.blocks.x == 0) _particles_kernel_cfg.blocks.x = 1;
 	_particles_kernel_cfg.blocks.y = _particles_kernel_cfg.blocks.z = 1;
 
@@ -269,7 +246,7 @@ void CUDABaseBackend<number, number4>::_sort_index() {
 	thrust::device_ptr<int> _d_hindex_p(_d_hindex);
 	thrust::device_ptr<int> _d_sorted_hindex_p(_d_sorted_hindex);
 	// sort d_sorted_hindex by using d_hindex
-	thrust::sort_by_key(_d_hindex_p, _d_hindex_p + _C_N, _d_sorted_hindex_p);
+	thrust::sort_by_key(_d_hindex_p, _d_hindex_p + *_prv_config_info.N, _d_sorted_hindex_p);
 	get_inverted_sorted_hindex
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_sorted_hindex, _d_inv_sorted_hindex);

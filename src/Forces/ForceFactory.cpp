@@ -113,6 +113,8 @@ void ForceFactory<number>::read_external_forces(std::string external_filename, B
 				open--;
 			}
 			break;
+		default:
+			break;
 		}
 
 		if(!is_commented) external_string << (char)a;
