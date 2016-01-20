@@ -342,7 +342,7 @@ void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
 template<typename number, typename number4>
 void MD_CUDABackend<number, number4>::init(){
 	MDBackend<number>::init();
-	CUDABaseBackend<number, number4>::init();
+	CUDABaseBackend<number, number4>::init_cuda(this->_config_info);
 
 	_timer_sorting = TimingManager::instance()->new_timer(std::string("Hilbert sorting"), std::string("SimBackend"));
 

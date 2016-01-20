@@ -17,6 +17,7 @@
 #include "../Lists/CUDABaseList.h"
 #include "../CUDA_sort.cuh"
 #include "../Interactions/CUDABaseInteraction.h"
+#include "../../Observables/BaseObservable.h"
 
 /**
  * @brief Basic simulation backend on CUDA. All CUDA backends should inherit from this class as well as from a regular CPU backend
@@ -32,9 +33,7 @@
 template<typename number, typename number4>
 class CUDABaseBackend {
 private:
-	int _C_N;
-	number _C_box_side;
-	std::string _conf_filename;
+	ConfigInfo<number> _prv_config_info;
 
 protected:
 	/// if 0 then do not sort. If it's > 1 then sort particles every _sort_every updates
@@ -76,7 +75,7 @@ public:
 	virtual ~CUDABaseBackend();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init();
+	virtual void init_cuda(ConfigInfo<number> &config_info);
 };
 
 #endif /* CUDABASEBACKEND_H_ */
