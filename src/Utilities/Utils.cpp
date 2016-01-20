@@ -253,6 +253,13 @@ number Utils::gamma (number alpha, number beta) {
 }
 
 
+void Utils::assert_is_valid_particle(int index, int N,char const * identifier){
+	if (index >= N || index < -1){
+		throw oxDNAException ("Trying to add a %s on non-existent particle %d. Aborting", identifier,index);
+	}
+}
+
+
 template float Utils::gaussian<float>();
 template double Utils::gaussian<double>();
 
@@ -264,4 +271,7 @@ template void Utils::stop_com<double>(BaseParticle<double> **, int );
 
 template float Utils::gamma<float>(float alpha, float beta);
 template double Utils::gamma<double>(double alpha, double beta);
+
+template std::vector<int> Utils::getParticlesFromString<float>(BaseParticle<float> ** particles, int N, std::string particle_string, char const * identifier);
+template std::vector<int> Utils::getParticlesFromString<double>(BaseParticle<double> ** particles, int N, std::string particle_string, char const * identifier);
 
