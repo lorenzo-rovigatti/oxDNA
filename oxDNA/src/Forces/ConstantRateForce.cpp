@@ -41,7 +41,7 @@ void ConstantRateForce<number>::get_settings(input_file &inp) {
 template<typename number>
 void ConstantRateForce<number>::init(BaseParticle<number> **particles, int N, number *box_side) {
 
-	std::vector<int> particle_indices_vector = getParticlesFromString(particles,N,_particles_string);
+	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles,N,_particles_string,"force string (ConstantRateForce.cpp)");
 
 	if (particle_indices_vector[0] != -1) {
 		for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){

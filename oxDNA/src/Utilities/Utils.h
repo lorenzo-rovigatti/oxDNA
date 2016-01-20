@@ -181,6 +181,24 @@ public:
 	 */
 	template <typename number>
 	static void stop_com (BaseParticle<number> **particles, int N);
+	/**
+   * @brief Utility function that reads a string like "10-16,18" and returns a vector of integers.
+   * @param particles pointer to array of particle pointers
+	 * @param N number of particles
+   * @param particles_string string to process
+   * @param identifier the identifier of the calling item (to display to the user in case problems arise).
+   */
+	template <typename number>
+	static std::vector<int> getParticlesFromString(BaseParticle<number> **particles, int N, std::string particle_string, char const * identifier);
+	/**
+   * @brief Utility function that checks if an integer is a valid particle index, or -1.
+   * @param n integer to check.
+   * @param N number of particles
+   * @param identifier the identifier of the calling item (to display to the user in case problems arise).
+   */
+
+	static void assert_is_valid_particle(int n,int N,char const * identifier);
+	
 };
 
 template<typename number>
@@ -283,6 +301,71 @@ inline number Utils::gaussian() {
 	isNextG = 1;
 
 	return toRet;
+}
+
+template<typename number>
+std::vector<int> Utils::getParticlesFromString(BaseParticle<number> **particles, int N,std::string particle_string,char const * identifier){
+	// first remove all the spaces from the string, so that the parsing goes well.
+	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int(*)(int)>( isspace )), particle_string.end());
+
+  std::vector<std::string> temp = Utils::split (particle_string.c_str(), ',');
+	std::vector<int> particles_index;//declare as empty
+
+	for( std::vector<std::string>::size_type i = 0; i < temp.size(); i++){
+		bool found_dash = temp[i].find('-') != std::string::npos;
+		// if the string contains a dash, then it has to be interpreted as a list of particles
+		// unless it's a negative number
+		//if (found_dash && strcmp("-1",temp[i].c_str()) != 0 ){
+		if (found_dash && '-'!= temp[i].c_str()[0] ){
+			// get the two indices p1 and p2 and check they make sense
+			std::vector<std::string> p1_p2_index = Utils::split(temp[i].c_str(),'-');
+
+			int p1 = atoi(p1_p2_index[0].c_str());
+			int p2 = atoi(p1_p2_index[1].c_str());
+			Utils::assert_is_valid_particle(p1,N,identifier);
+			Utils::assert_is_valid_particle(p2,N,identifier);
+
+			int j = p1;
+			// add all the particles between p1 and p2 (extremes included)
+			bool found_p2 = false;
+			do{
+				particles_index.push_back(j);
+				if (j == p2){
+					found_p2 = true;
+				}
+				if (particles[j]->n5 == P_VIRTUAL) break;
+				j = particles[j]->n5->index;
+
+			} while( j != p1 && !found_p2);
+			// check that it hasn't got to either the end of the strand or back to p1
+			if(!found_p2){
+				throw oxDNAException("In force %s I couldn't get from particle %d to particle %d.",identifier,p1,p2);
+			} 
+
+		}	
+		else{//just add it to the vector
+			int j = atoi(temp[i].c_str());
+			
+			Utils::assert_is_valid_particle(j,N,identifier);
+			particles_index.push_back(j);
+		}
+		
+	}
+	// check that if -1 is present then that's the only key - something must be wrong if you
+  // specified -1 (all particles) and then some more particles.
+	if (std::find(particles_index.begin(),particles_index.end(),-1) != particles_index.end() && particles_index.size()>1){
+		throw oxDNAException("In %s there are more than one particle index, including -1. If -1 is a particle index then it has to be the only one. Dying badly.",identifier);
+	}
+	// check that no particle appears twice
+	for( std::vector<int>::size_type i = 0; i < particles_index.size(); i++){
+		for( std::vector<int>::size_type j = i+1; j < particles_index.size(); j++){
+			if ( particles_index[i] == particles_index[j] ){
+				throw oxDNAException("In %s particle index %d appears twice (both at position %d and at position %d), but each index can only appear once. Dying badly.",identifier,particles_index[i],i+1,j+1);
+			}
+		}
+	}	
+	// finally return the vector.
+	return particles_index;
 }
 
 #endif /* UTILS_H_ */
