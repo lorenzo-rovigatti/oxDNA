@@ -143,7 +143,8 @@ class Atom(object):
         return "H" in self.name
 
     def to_pdb(self, chain_identifier, serial_residue):
-        res = "%-6s%5d %4s%1s%3s %1s%4d%1s   %11.3f%11.3f%11.3f%6.2f%6.2f          %2s%2s" % ("ATOM", Atom.serial_atom, self.name, " ", self.residue, chain_identifier, serial_residue, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, 0.00, " ", " ")
+        #res = "%-6s%5d %4s%1s%3s %1s%4d%1s   %11.3f%11.3f%11.3f%6.2f%6.2f          %2s%2s" % ("ATOM", Atom.serial_atom, self.name, " ", self.residue, chain_identifier, serial_residue, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, 0.00, " ", " ")
+        res = "%-6s%5d %-4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f%-4s%-2s%-2s" % ("ATOM", Atom.serial_atom, self.name, " ", self.residue, chain_identifier, serial_residue, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, 0.00, " ", " ", " ")
         Atom.serial_atom += 1
         return res
 
@@ -209,10 +210,23 @@ def align(full_base, ox_base):
 #print ".Box:100,100,100"
 ox_nucleotides = []
 s.map_nucleotides_to_strands()
+
+print "HEADER    t=1.12"
+print "MODEL     1"
+print "REMARK ## 0,0"
+first_id = True
+old_chain_id = -1
 for nucleotide in s._nucleotides:
     nb = base.number_to_base[nucleotide._base]
     my_base = copy.deepcopy(bases[nb])
     my_base.chain_id = s._nucleotide_to_strand[nucleotide.index]
+    if first_id:
+        old_chain_id = my_base.chain_id
+        first_id = False
+    if my_base.chain_id != old_chain_id:
+        print >> sys.stderr, "TERRING: ", old_chain_id, my_base.chain_id
+        old_chain_id = my_base.chain_id
+        print "TER"
     my_base.idx = (nucleotide.index % 12) + 1
     align(my_base, nucleotide)
     my_base.set_base(nucleotide.pos_base*8.518)
@@ -220,6 +234,10 @@ for nucleotide in s._nucleotides:
     #my_base.set_com(nucleotide.cm_pos*8.518)
     print my_base.to_pdb("A")
     #print my_base.to_mgl()
+print "REMARK ## 0,0"
+print "TER"
+print "ENDMDL"
+
 
 # remove the next line to print the distance between P atoms
 sys.exit(1)
