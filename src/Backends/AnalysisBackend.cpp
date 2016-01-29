@@ -43,6 +43,8 @@ void AnalysisBackend::get_settings(input_file &inp) {
 
 	getInputString(&inp, "trajectory_file", this->_conf_filename, 1); 
 
+	getInputDouble(&inp, "max_io", &this->_max_io, 0);
+
 	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
 	if (_initial_conf_is_binary){
   	OX_LOG(Logger::LOG_INFO, "Reading binary configuration");
