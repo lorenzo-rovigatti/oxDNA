@@ -167,6 +167,7 @@ void CUDABaseBackend<number, number4>::init_cuda(ConfigInfo<number> &config_info
 
 	CUDA_SAFE_CALL( cudaThreadSetCacheConfig(cudaFuncCachePreferL1) );
 
+	_prv_config_info = config_info;
 	number box_side = config_info.box->box_sides().x;
 	int N = *config_info.N;
 
