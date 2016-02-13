@@ -2,7 +2,6 @@
 
 #include "TEPInteraction.h"
 
-
 template<typename number>
 TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteraction<number> >() {
 	this->_int_map[SPRING] = &TEPInteraction<number>::_spring;
@@ -50,15 +49,6 @@ TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteractio
 		//the offset is just introduced so that the spring has a 0 energy minimum.
 	 _TEP_spring_offset = -19.5442;
 
-		//locally dependent twisting_bending prefactor - quick and dirty way to do it from the input file
-		_TEP_weakened_bead_index = -1;
-		_TEP_weakened_kb_prefactor = 1.0;
-		_TEP_weakened_kt_prefactor = 1.0;
-	
-		//same as above, but supports a second weaker bead
-		_TEP_weakened_bead_index2 = -1;
-		_TEP_weakened_kb_prefactor2 = 1.0;
-		_TEP_weakened_kt_prefactor2 = 1.0;
 }
 
 template<typename number>
@@ -172,31 +162,13 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 			*/
 
 	}
-	// locally-dependent twisting-bending prefactors (quick and dirty, do something more sensible when you have time)
-	if( getInputNumber(&inp,"TEP_weakened_kt_prefactor",&_TEP_weakened_kt_prefactor,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kt_prefactor = %g",_TEP_weakened_kt_prefactor);
-	}
-	if( getInputNumber(&inp,"TEP_weakened_kb_prefactor",&_TEP_weakened_kb_prefactor,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kb_prefactor = %g",_TEP_weakened_kb_prefactor);
-	}
-	if( getInputInt(&inp,"TEP_weakened_bead_index",&_TEP_weakened_bead_index,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_bead_index = %d",_TEP_weakened_bead_index);
+	
+	if( getInputInt(&inp,"TEP_weakened_bead_index",&tmp,0) == KEY_FOUND){
+		throw oxDNAException("TEP_weakened_bead_index in the input file is no longer supported. Edit the topology file instead.");
 	}
 
-	//copied and pasted from above, needed to support the possibility of having a second weakened bead.
-	// locally-dependent twisting-bending prefactors (quick and dirty, do something more sensible when you have time)
-	if( getInputNumber(&inp,"TEP_weakened_kt_prefactor2",&_TEP_weakened_kt_prefactor2,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kt_prefactor2 = %g",_TEP_weakened_kt_prefactor2);
-	}
-	if( getInputNumber(&inp,"TEP_weakened_kb_prefactor2",&_TEP_weakened_kb_prefactor2,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_kb_prefactor2 = %g",_TEP_weakened_kb_prefactor2);
-	}
-	if( getInputInt(&inp,"TEP_weakened_bead_index2",&_TEP_weakened_bead_index2,0) == KEY_FOUND){
-		OX_LOG(Logger::LOG_INFO," _TEP_weakened_bead_index2 = %d",_TEP_weakened_bead_index2);
-	}
-	
-	if(_TEP_weakened_bead_index2 == _TEP_weakened_bead_index && _TEP_weakened_bead_index != -1){
-		throw oxDNAException("TEP_weakened_bead_index = %d, TEP_weakened_bead_index2 = %d, but they should be different.",_TEP_weakened_bead_index, _TEP_weakened_bead_index2);
+	if( getInputInt(&inp,"TEP_weakened_bead_index2",&tmp,0) == KEY_FOUND){
+		throw oxDNAException("TEP_weakened_bead_index2 in the input file is no longer supported. Edit the topology file instead.");
 	}
 // TODO: All the following checks will be removed because the potentials should simply be removed by setting their prefactor to 0 - this is just so that legacy input files raise errors.
 	// Turn off the excluded volume potential
@@ -404,29 +376,13 @@ number TEPInteraction<number>::_bonded_bending(BaseParticle<number> *p, BasePart
 	LR_vector<number> & up = p->orientationT.v1;
 	LR_vector<number> & uq = q->orientationT.v1;
 	if ( update_forces ){
-		torque = -_kb*( up.cross(uq));
-		if(p->index == _TEP_weakened_bead_index){
-			//printf("bend yes %d\n",p->index);
-			torque *= _TEP_weakened_kb_prefactor;
-		}
-		// same as above but for the second weaker bead
-		else if(p->index == _TEP_weakened_bead_index2){
-			torque *= _TEP_weakened_kb_prefactor2;
-		}
+		torque = -_kb * _kb_pref[p->index] * ( up.cross(uq));
 		p->torque -= p->orientationT*torque;
 		q->torque += q->orientationT*torque;
 	// forces are not updated since this term of the potential only introduces a torque,
 	// since it does not depend on r.
 	}
-	number energy = _kb*(1 - up*uq);
-	if(p->index == _TEP_weakened_bead_index){
-		//printf("bend yes %d\n",p->index);
-		energy *= _TEP_weakened_kb_prefactor;
-	}
-	// same as above but for the second weaker bead
-	else if(p->index == _TEP_weakened_bead_index2){
-		energy *= _TEP_weakened_kb_prefactor2;
-	}
+	number energy = _kb*(1 - up*uq) * _kb_pref[p->index];
 	return energy;
 	
 }
@@ -469,6 +425,8 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 	if(!_are_bonded(p, q)) {
 		return (number) 0.f;
 	}
+	// just return 0 if the k_t is 0.
+	if (_kt == 0 || _kt_pref[p->index] == 0) return 0;
 //	return the twist part of the interaction energy.
 	LR_vector<number> & up = p->orientationT.v1;
 	LR_vector<number> & uq = q->orientationT.v1;
@@ -529,14 +487,8 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 		if ( -cos_alpha_plus_gamma <= _twist_a)	{
 			if ( update_forces ){
 		
-				torque = -(_kt/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) );
-				if(p->index == _TEP_weakened_bead_index){
-					//printf("twist yes %d",p->index);
-					torque *= _TEP_weakened_kt_prefactor;
-				}
-				if(p->index == _TEP_weakened_bead_index2){
-					torque *= _TEP_weakened_kt_prefactor2;
-				}
+				torque = -(_kt/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) ) * _kt_pref[p->index];
+
 				p->torque -= p->orientationT*torque;
 				q->torque += q->orientationT*torque;
 			// forces are not updated since this term of the potential only introduces a torque,
@@ -556,14 +508,7 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 			if ( update_forces ){
 				// the torque is made steeper by multiplication of the derivative of the potential. It should work.
 				//torque.normalize();
-				torque = -(_kt/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) );//this torque is the same as above
-				if(p->index == _TEP_weakened_bead_index){
-					//printf("twist yes %d",p->index);
-					torque *= _TEP_weakened_kt_prefactor;
-				}
-				if(p->index == _TEP_weakened_bead_index2){
-					torque *= _TEP_weakened_kt_prefactor2;
-				}
+				torque = -(_kt/L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq) ) * _kt_pref[p->index];//this torque is the same as above
 				// quadratic prefactor - here for sentimental reasons
 				//torque *= 2*A/( (SQR(_twist_b+cos_alpha_plus_gamma))*(_twist_b+cos_alpha_plus_gamma) );
 				torque *= 4*A/( (SQR(_twist_b+cos_alpha_plus_gamma))*(SQR(_twist_b+cos_alpha_plus_gamma))*(_twist_b+cos_alpha_plus_gamma) );
@@ -581,15 +526,7 @@ number TEPInteraction<number>::_bonded_twist(BaseParticle<number> *p, BasePartic
 	abort();
 */
 //end of added block	
-	if(p->index == _TEP_weakened_bead_index){
-		//printf("twist yes %d",p->index);
-		energy *= _TEP_weakened_kt_prefactor;
-		//printf("Here's the index %d and here's the time %lld\n",_TEP_weakened_bead_index,_my_time1);
-	}
-	if(p->index == _TEP_weakened_bead_index2){
-		energy *= _TEP_weakened_kt_prefactor2;
-		//printf("Here's the index %d and here's the time %lld\n",_TEP_weakened_bead_index2,_my_time1);
-	}
+	energy *= _kt_pref[p->index];
 	return energy;
 }
 template<typename number>
@@ -1033,6 +970,8 @@ template<typename number>
 void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, BaseParticle<number> **particles) {
 	IBaseInteraction<number>::read_topology(N_from_conf, N_strands, particles);
 	int my_N, my_N_strands;
+	_kt_pref = new number [N_from_conf];
+	_kb_pref = new number [N_from_conf];
 
 	char line[512];
 	std::ifstream topology;
@@ -1042,6 +981,7 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 	topology.getline(line, 512);
 
 	sscanf(line, "%d %d\n", &my_N, &my_N_strands);
+	
 	//printf("N_from_conf = %d, my_N = %d",N_from_conf, my_N);
 	if ( _twist_boundary_stiff>0){
 		OX_LOG(Logger::LOG_INFO," average superhelical density set at %g, since:",_max_twisting_time*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI))/N_from_conf);//TODO remove this when the whole twisting boundary particle is removed. Possibly replace it with something that performs the same function in a cleaner way.
@@ -1053,30 +993,72 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 		topology.getline(line, 512);
 		if(strlen(line) == 0 || line[0] == '#') continue;
 
-		int res = sscanf(line, "%d", &strand_length );
-		strand_lengths[strand] = strand_length;
-		if (res < 1) throw oxDNAException("Line %d of the topology file has an invalid syntax",strand+2);
-		for (int i = 0; i < strand_length; i++){
-			BaseParticle<number> *p = particles[i + particles_in_previous_strands];
-
-			if (i == 0)	p->n3 = P_VIRTUAL;
-			else p->n3 = particles[ particles_in_previous_strands + i-1];
-			
-			if (i == strand_length -1) p->n5 = P_VIRTUAL;
-			else p->n5 = particles[ particles_in_previous_strands + i+1];
-			p->strand_id = strand;
-			added_particles ++;
-			//TODO this check assumes that we read the coniguration from a file - that might not always
-			//be the case, since maybe we generated the configuration during initialisation.
-			//then a different control is needed, here and in the following (possibly)
-			if( added_particles > N_from_conf) throw oxDNAException("Too many particles found in the topology file (should be %d to match the configuration file). Aborting", N_from_conf);
-    // here we fill the affected vector
-      if (p->n3 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p->n3, p)); 
-      if (p->n5 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p, p->n5));
+		//old way of handling scannf
+		//int res = sscanf(line, "%d", &strand_length );
+		//strand_lengths[strand] = strand_length;
+		// new way TODO make sure it works
+		int temp_index;
+		double temp_kb, temp_kt;
+		int res = sscanf(line, "%d %lf %lf",&temp_index,&temp_kb,&temp_kt);
+		if (res == 3){
+			if (temp_index < added_particles){
+				_kb_pref[temp_index] = (number) temp_kb;	
+				_kt_pref[temp_index] = (number) temp_kt;	
+				printf("on i=%d, kb = %lf and kt = %lf\n",temp_index,_kb_pref[temp_index],_kt_pref[temp_index]);
+			}
+			else throw oxDNAException("In the topology file particle %d is assigned non-default kb/kt prefactors before its strand is declared, as only %d particles have yet been added to the box.",temp_index,added_particles);
 
 		}
-		strand++;
-		particles_in_previous_strands+= strand_length;
+		else if (res < 1 || res == 2) throw oxDNAException("Line %d of the topology file has an invalid syntax",strand+2);
+		else{
+			res = sscanf(line, "%d", &strand_length );
+			strand_lengths[strand] = strand_length;
+			for (int i = 0; i < strand_length; i++){
+				_kb_pref[i] = 1.;
+				_kt_pref[i] = 1.;
+				BaseParticle<number> *p = particles[i + particles_in_previous_strands];
+
+				if (i == 0)	p->n3 = P_VIRTUAL;
+				else p->n3 = particles[ particles_in_previous_strands + i-1];
+
+				if (i == strand_length -1) p->n5 = P_VIRTUAL;
+				else p->n5 = particles[ particles_in_previous_strands + i+1];
+				p->strand_id = strand;
+				added_particles ++;
+				//TODO this check assumes that we read the coniguration from a file - that might not always
+				//be the case, since maybe we generated the configuration during initialisation.
+				//then a different control is needed, here and in the following (possibly)
+				if( added_particles > N_from_conf) throw oxDNAException("Too many particles found in the topology file (should be %d to match the configuration file). Aborting", N_from_conf);
+    	// here we fill the affected vector
+				if (p->n3 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p->n3, p)); 
+				if (p->n5 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p, p->n5));
+			
+				
+				/* TODO remove this once the read from the topology file of kb and kt works.
+				char kt_on_bead_i[255];
+				char kb_on_bead_i[255];
+				sprintf(kt_on_bead_i,"TEP_kt_on_bead_%d",p->index);
+				sprintf(kb_on_bead_i,"TEP_kb_on_bead_%d",p->index);
+				if( getInputInt(&inp,kt_on_bead_i,&p->_kt_prefactor,0) == KEY_FOUND){
+					OX_LOG(Logger::LOG_INFO," On bead %d, set kt_prefactor = %e",p->index, p->_kt_prefactor);
+				}
+				else{
+					p->_kt_prefactor=1.;
+				}
+				if( getInputInt(&inp,kb_on_bead_i,&p->_kb_prefactor,0) == KEY_FOUND){
+					OX_LOG(Logger::LOG_INFO," On bead %d, set kb_prefactor = %e",p->index, p->_kb_prefactor);
+				}
+				else{
+					p->_kb_prefactor=1.;
+				}
+				printf("on bead %d, kt_p = %e, kb_p = %e.\n",p->index, p->_kt_prefactor, p->_kb_prefactor);
+				*/
+				//TODO adesso modifica i termini della forza in modo che ritornino forze e energie con il giusto prefattore.
+
+			}
+			strand++;
+			particles_in_previous_strands+= strand_length;
+		}
 	
 	}
 	if (added_particles < N_from_conf )throw oxDNAException("Not enough particles found in the topology file (should be %d to match the configuration file). Aborting", N_from_conf);

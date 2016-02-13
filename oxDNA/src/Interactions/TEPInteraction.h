@@ -28,6 +28,9 @@ protected:
 	number _ka;
 	number _kb;
 	number _kt;
+	
+	number * _kt_pref;
+	number * _kb_pref;
 	// parameters of the modified twisting terms
 	number _twist_a;
 	number _twist_b;
@@ -64,15 +67,8 @@ protected:
 	llint _max_twisting_time;
 	llint _print_torques_every;
 
-// quick and dirty way of implementing the local dependence in the model (to replace with something more clever that uses the topology when I have a second).
 
-	number _TEP_weakened_kt_prefactor;
-	number _TEP_weakened_kb_prefactor;
-	int _TEP_weakened_bead_index;
-// same as above, but supports a second weaker bead.
-	number _TEP_weakened_kt_prefactor2;
-	number _TEP_weakened_kb_prefactor2;
-	int _TEP_weakened_bead_index2;
+input_file * input_file_copy;
 
 	virtual number _spring(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _bonded_bending(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);

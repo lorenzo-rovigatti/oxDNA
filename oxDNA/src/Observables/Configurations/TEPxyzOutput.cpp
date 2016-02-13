@@ -11,9 +11,11 @@
 template<typename number>
 TEPxyzOutput<number>::TEPxyzOutput() : Configuration<number>() {
 	_print_labels = false;
+	_particles_type1_string = "\0";
+	_particles_type2_string = "\0";
 	
-	_weak_bead_1_index = -1;
-	_weak_bead_2_index = -1;
+	//_weak_bead_1_index = -1;
+	//_weak_bead_2_index = -1;
 	
 	_core_radius = 1;
 	_side_radius = 0.7;
@@ -43,10 +45,30 @@ void TEPxyzOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp)
 	if(getInputInt(&my_inp, "ref_particle", &tmp, 0) == KEY_FOUND) _ref_particle_id = tmp;
 	if(getInputInt(&my_inp, "ref_strand", &tmp, 0) == KEY_FOUND) _ref_strand_id = tmp;
 	if(getInputInt(&my_inp, "resolution", &tmp, 0) == KEY_FOUND) _resolution = tmp;
+
+	getInputString(&my_inp,"particles_type_1",_particles_type1_string,0);
+	getInputString(&my_inp,"particles_type_2",_particles_type2_string,0);
 	
-	getInputInt(&sim_inp,"TEP_weakened_bead_index",&_weak_bead_1_index,0);
-	printf("%d weak\n",_weak_bead_1_index);
-	getInputInt(&sim_inp,"TEP_weakened_bead_index2",&_weak_bead_2_index,0);
+}
+
+template<typename number>
+void TEPxyzOutput<number>::init(ConfigInfo<number> &config_info) {
+   Configuration<number>::init(config_info);
+
+	int N = *this->_config_info.N;
+	_bead_types = new int[N];
+	for (int i = 0; i < N; i++){
+		_bead_types[i] = 0;
+	}
+	
+		std::vector<int> particle_indices_vector = Utils::getParticlesFromString(this->_config_info.particles,N,_particles_type1_string,"force string (TEPxyzOutput.cpp)");
+		for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){
+			_bead_types[particle_indices_vector[i]] = 1;
+		}
+		particle_indices_vector = Utils::getParticlesFromString(this->_config_info.particles,N,_particles_type2_string,"force string (TEPxyzOutput.cpp)");
+		for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){
+			_bead_types[particle_indices_vector[i]] = 2;
+		}
 }
 
 template<typename number>
@@ -118,10 +140,10 @@ std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
 */	
 
 	// core
-	if (me->index == _weak_bead_1_index){
+	if (_bead_types[me->index] == 1){
 		res << "Po" <<" "<< core.x << " " << core.y << " " << core.z << endl;
 	}
-	else if (me->index == _weak_bead_2_index){
+	else if (_bead_types[me->index] == 2){
 		res << "Fe" <<" "<< core.x << " " << core.y << " " << core.z << endl;
 	}
 	else{	

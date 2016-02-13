@@ -53,9 +53,12 @@ protected:
 	int _ref_particle_id;
 	int _ref_strand_id;
 	int _resolution;
+	int *_bead_types;
 	
 	int _weak_bead_1_index;
 	int _weak_bead_2_index;
+	std::string _particles_type1_string;
+	std::string _particles_type2_string;
 	number _core_radius, _side_radius, _front_radius, _backback_radius;
 	number _side_shift, _front_shift;
 	
@@ -68,6 +71,7 @@ public:
 	virtual ~TEPxyzOutput();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
+	void init(ConfigInfo<number> &config_info);
 };
 
 #endif /* TEPXYZOUTPUT_H_ */
