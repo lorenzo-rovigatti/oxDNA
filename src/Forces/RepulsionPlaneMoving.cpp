@@ -7,16 +7,17 @@
 
 #include "RepulsionPlaneMoving.h"
 #include "../Particles/BaseParticle.h"
+#include "../Utilities/Utils.h"
 
 template<typename number>
 RepulsionPlaneMoving<number>::RepulsionPlaneMoving() : BaseForce<number>() {
-	_particle = -1;
+	_particles_string="-1";
 	_ref_id = -1;
 }
 
 template<typename number>
 void RepulsionPlaneMoving<number>::get_settings (input_file &inp) {
-	getInputInt (&inp, "particle", &_particle, 0);
+	getInputString (&inp, "particle", _particles_string, 0);
 
 	getInputNumber(&inp, "stiff", &this->_stiff, 1);
 	getInputInt(&inp, "ref_particle", &_ref_id, 1);
@@ -38,13 +39,16 @@ void RepulsionPlaneMoving<number>::init (BaseParticle<number> ** particles, int 
 
 	this->box_side_ptr = my_box_side_ptr;
 	
-	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a RepulsionPlaneMoving on non-existent particle %d. Aborting", _particle);
-	if (_particle != -1) {
-		OX_LOG(Logger::LOG_INFO, "Adding RepulsionPlaneMoving with stiffnes %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]  on particle %i", this->_stiff,  this->_direction.x, this->_direction.y, this->_direction.z, _particle);
-		particles[_particle]->add_ext_force(this);
+	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles,N,_particles_string,"moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+
+	if (particle_indices_vector[0] != -1) {
+		OX_LOG(Logger::LOG_INFO, "Adding repulsion_plane_moving force (RepulsionPlaneMoving.cpp) with stiffnes %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]  on particle %s", this->_stiff,  this->_direction.x, this->_direction.y, this->_direction.z, _particles_string.c_str());
+		for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){
+			particles[particle_indices_vector[i]]->add_ext_force(this);
+		}
 	}
 	else { // force affects all particles
-		OX_LOG(Logger::LOG_INFO, "Adding RepulsionPlaneMoving with stiffnes %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]  on ALL particles", this->_stiff,  this->_direction.x, this->_direction.y, this->_direction.z);
+		OX_LOG(Logger::LOG_INFO, "Adding repulsion_plane_moving force (RepulsionPlaneMoving.cpp) with stiffnes %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]  on ALL particles", this->_stiff,  this->_direction.x, this->_direction.y, this->_direction.z);
 		for (int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
 	}
 }
