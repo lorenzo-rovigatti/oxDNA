@@ -15,7 +15,7 @@ template<typename number>
 class RepulsionPlaneMoving : public BaseForce<number> {
 private:
 	number * box_side_ptr;
-	int _particle;
+	std::string _particles_string;
 	int _ref_id;
 
 public:
