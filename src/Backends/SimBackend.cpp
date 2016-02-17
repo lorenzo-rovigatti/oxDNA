@@ -215,27 +215,27 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	}
 
 	// we build the default stream of observables for trajectory and last configuration
-	char traj_file[512];
-
+	//char traj_file[512];
+	std::string traj_file;
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
-	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file);
+	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
 	_obs_output_trajectory = new ObservableOutput<number>(fake, inp);
 	_obs_output_trajectory->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_trajectory);
 
 	// Last configuration
-	char lastconf_file[512] = "last_conf.dat";
+	std::string lastconf_file = "lastconf_file";
 	getInputString(&inp, "lastconf_file", lastconf_file, 0);
-	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file);
+	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
 	_obs_output_last_conf = new ObservableOutput<number>(fake, inp);
 	_obs_output_last_conf->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_last_conf);
 
 	// Last configuration in binary, optional
-	char lastconf_file_bin[512];
+	std::string lastconf_file_bin;
 	if((getInputString(&inp, "lastconf_file_bin", lastconf_file_bin, 0) == KEY_FOUND)) {
-		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin);
+		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
 		_obs_output_last_conf_bin = new ObservableOutput<number>(fake, inp);
 		_obs_output_last_conf_bin->add_observable("type = binary_configuration");
 		_obs_outputs.push_back(_obs_output_last_conf_bin);
@@ -324,8 +324,9 @@ void SimBackend<number>::init() {
 	}
 
 	bool check = false;
-	if (_initial_conf_is_binary) check = _read_next_configuration(true);
-	else check = _read_next_configuration();
+	//if (_initial_conf_is_binary) check = _read_next_configuration(true);
+	//else check = _read_next_configuration();
+	check = _read_next_configuration(_initial_conf_is_binary);
 	if(!check) throw oxDNAException("Could not read the initial configuration, aborting");
 
 	_start_step_from_file = _read_conf_step;
@@ -407,16 +408,38 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		_conf_input.read ((char *)&tmpf, sizeof(double));
 	}
 	else {
-		char line[512];
-		_conf_input.getline(line, 512);
-		if(_conf_input.eof()) return false;
-		int res = sscanf(line, "t = %lld", &_read_conf_step);
-		_conf_input.getline(line, 512);
+		bool malformed_headers = false;
+		std::string line;
+		std::getline(_conf_input,line);
+		if(_conf_input.eof()) { return false; }
+		int res = sscanf(line.c_str(), "t = %lld", &_read_conf_step);
+		std::stringstream error_message;
+		// handle the case when t can't be read
+		if (res!= 1){
+			error_message << "Malformed headers found in an input configuration.\"t = <int>\" was expected, but \"" << line << "\" was found instead.";
+			malformed_headers = true;
+			
 
-		res += sscanf(line, "b = %lf %lf %lf", &Lx, &Ly, &Lz);
-		if(res != 4) throw oxDNAException("Malformed headers found in the initial configuration file");
+		}
+		if (! malformed_headers){
+			std::getline(_conf_input,line);
+			// handle the case when the box_size can't be read
+			res += sscanf(line.c_str(), "b = %lf %lf %lf", &Lx, &Ly, &Lz);
+			if(res != 4){ 
+				error_message << "Malformed headers found in an input configuration.\"b = <float> <float> <float>\" was expected, but \"" << line << "\" was found instead.";
+				malformed_headers = true;
+			}
+		}
+		if (malformed_headers){
+			double t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15;
+			res = sscanf(line.c_str(), "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, &t13, &t14, &t15);
+			if (res == 15){
+				error_message << "\nSince the line contains 15 floats, likely the configuration contains more particles than specified in the topology file, or the header has been trimmed away.";
+			}
+			throw oxDNAException(error_message.str().c_str());
+		}
 
-		_conf_input.getline(line, 512);
+		std::getline(_conf_input,line);
 	}
 
 	box_side = Lx;
@@ -483,8 +506,8 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 
 	// this is needed because, if reading from an ascii trajectory, at this stage the _conf_input pointer points to a \n
 	if(!binary && !_conf_input.eof()) {
-		char line[512];
-		_conf_input.getline(line, 512);
+		std::string line;
+		std::getline(_conf_input,line);
 	}
 	
 	// discarding the final '\n' in the binary file...
@@ -636,7 +659,8 @@ void SimBackend<number>::fix_diffusion() {
 			for (int i = 0; i < _N; i ++) {
 				BaseParticle<number> *p = this->_particles[i];
 				if (apply[p->strand_id]) {
-					LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
+					// the following line has been commented to prevent unused_variable warning during compilation.
+					//LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
 					//p->shift(dscdm, this->_box_side);
 					p->pos = stored_pos[i];
 					p->orientation = stored_or[i];
@@ -663,9 +687,9 @@ void SimBackend<number>::fix_diffusion() {
 template<typename number>
 void SimBackend<number>::print_conf(llint curr_step, bool reduced, bool only_last) {
 	if(reduced) {
-		char conf_name[512];
-		sprintf(conf_name, "%s/reduced_conf%lld.dat", _reduced_conf_output_dir, curr_step);
-		_obs_output_reduced_conf->change_output_file(conf_name);
+		std::stringstream conf_name;
+		conf_name << _reduced_conf_output_dir << "/reduced_conf" << curr_step <<".dat";
+		_obs_output_reduced_conf->change_output_file(conf_name.str().c_str());
 		_obs_output_reduced_conf->print_output(curr_step);
 	}
 	else {
