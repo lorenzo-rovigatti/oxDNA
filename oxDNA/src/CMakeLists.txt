@@ -73,6 +73,7 @@ SET(lists_SOURCES
 )
 
 SET(interactions_SOURCES
+	Interactions/JordanInteraction.cpp
 	Interactions/TEPInteraction.cpp
 	Interactions/TSPInteraction.cpp
 	Interactions/LJInteraction.cpp
@@ -130,6 +131,7 @@ SET(box_SOURCES
 )
 
 SET(common_SOURCES
+	Particles/JordanParticle.cpp
 	Particles/TEPParticle.cpp
 	Particles/RNANucleotide.cpp
 	Particles/BaseParticle.cpp
