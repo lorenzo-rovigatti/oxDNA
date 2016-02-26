@@ -37,6 +37,7 @@ MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABas
 
 	_cuda_thermostat = NULL;
 
+	_h_ext_forces = NULL;
 	_d_ext_forces = NULL;
 }
 
@@ -60,7 +61,8 @@ MD_CUDABackend<number, number4>::~MD_CUDABackend() {
 	}
 
 	if(this->_external_forces) {
-		delete[] _h_ext_forces;
+		if(_h_ext_forces != NULL)
+			delete[] _h_ext_forces;
 		if(_d_ext_forces != NULL)
 			CUDA_SAFE_CALL( cudaFree(_d_ext_forces) );
 	}
