@@ -39,12 +39,12 @@ void CUDAPatchyInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_patches, &this->_N_patches, sizeof(int)) );
 	if(this->_is_binary) CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_patches, &this->_N_patches_B, sizeof(int), sizeof(int)) );
 
-	f_copy = this->_sqr_rcut;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rcut, &f_copy, sizeof(float)) );
-	f_copy = this->_E_cut;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_E_cut, &f_copy, sizeof(float)) );
-	f_copy = this->_patch_E_cut;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_patch_E_cut, &f_copy, sizeof(float)) );
+	COPY_ARRAY_TO_CONSTANT(MD_sqr_tot_rcut, this->_sqr_tot_rcut, 3);
+	f_copy = this->_sqr_patch_rcut;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_patch_rcut, &f_copy, sizeof(float)) );
+	COPY_ARRAY_TO_CONSTANT(MD_epsilon, this->_epsilon, 3);
+	COPY_ARRAY_TO_CONSTANT(MD_sigma, this->_sigma, 3);
+	COPY_ARRAY_TO_CONSTANT(MD_sqr_sigma, this->_sqr_sigma, 3);
 	f_copy = this->_patch_pow_alpha;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_patch_pow_alpha, &f_copy, sizeof(float)) );
 

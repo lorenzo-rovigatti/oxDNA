@@ -9,7 +9,6 @@
 #define PATCHYINTERACTION_H_
 
 #define PATCHY_POWER 200
-#define PATCHY_CUTOFF 0.18f
 
 #include "BaseInteraction.h"
 
@@ -37,14 +36,29 @@ protected:
 	/// Number of particles per species
 	int _N_A, _N_B;
 
-	/// true if we are to simulate a patchy binary mixture, false otherwise
+	/// True if we are to simulate a patchy binary mixture, false otherwise
 	bool _is_binary;
 
+	/// Particles' diameters
+	number _sigma[3];
+
+	/// Squared diameters
+	number _sqr_sigma[3];
+
+	/// Repulsive interaction cut-off squared
+	number _sqr_tot_rcut[3];
+
+	/// Depth of the patch-patch well
+	number _epsilon[3];
+
 	/// Repulsive interaction energy at the cut-off
-	number _E_cut;
+	number _E_cut[3];
 
 	/// Patch-patch interaction energy at the cut-off
-	number _patch_E_cut;
+	number _patch_E_cut[3];
+
+	/// Patch-patch interaction cut-off squared
+	number _sqr_patch_rcut;
 
 	/// Width of the patch, defaults to 0.12
 	number _patch_alpha;
@@ -91,16 +105,17 @@ public:
 
 template<typename number>
 number PatchyInteraction<number>::_patchy_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	number rnorm = r->norm();
-	if(rnorm > this->_sqr_rcut) return (number) 0.f;
+	number sqr_r = r->norm();
+	int type = p->type + q->type;
+	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
 
 	number energy = (number) 0.f;
 
-	number part = 1 / powf(rnorm, PATCHY_POWER * 0.5f);
-	energy = part - _E_cut;
+	number part = 1. / powf(sqr_r/_sqr_sigma[type], PATCHY_POWER*0.5f);
+	energy = part - _E_cut[type];
 
 	if(update_forces) {
-		LR_vector<number> force = *r * (PATCHY_POWER * part / rnorm);
+		LR_vector<number> force = *r * (PATCHY_POWER*part/sqr_r);
 		p->force -= force;
 		q->force += force;
 	}
@@ -115,24 +130,21 @@ number PatchyInteraction<number>::_patchy_interaction(BaseParticle<number> *p, B
 
 			LR_vector<number> patch_dist = *r + qpatch - ppatch;
 			number dist = patch_dist.norm();
-			if(dist < SQR(PATCHY_CUTOFF)) {
+			if(dist < _sqr_patch_rcut) {
 				c++;
 				number r8b10 = dist*dist*dist*dist / _patch_pow_alpha;
-				number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * dist);
+				number exp_part = -1.001f*_epsilon[type]*exp(-(number)0.5f*r8b10*dist);
 
-				energy += exp_part - _patch_E_cut;
+				energy += exp_part - _patch_E_cut[type];
 
 				if(update_forces) {
-					LR_vector<number> tmp_force = patch_dist * (5 * exp_part * r8b10);
+					LR_vector<number> tmp_force = patch_dist * (5*exp_part*r8b10);
 
-					p->torque -= p->orientationT * ppatch.cross(tmp_force);
-					q->torque += q->orientationT * qpatch.cross(tmp_force);
+					p->torque -= p->orientationT*ppatch.cross(tmp_force);
+					q->torque += q->orientationT*qpatch.cross(tmp_force);
 
 					p->force -= tmp_force;
 					q->force += tmp_force;
-
-					// we are in the single bond per patch condition and hence we can safely return here
-					return energy;
 				}
 			}
 		}

@@ -11,7 +11,8 @@
 #define HALF_ISQRT3 0.28867513459481292f
 
 template<typename number>
-PatchyParticle<number>::PatchyParticle(int N_patches) : BaseParticle<number>() {
+PatchyParticle<number>::PatchyParticle(int N_patches, int nt, number sigma) : BaseParticle<number>(), _sigma(sigma) {
+	this->type = nt;
 	this->N_int_centers = N_patches;
 	this->int_centers = new LR_vector<number>[N_patches];
 	_base_patches = new LR_vector<number>[N_patches];
@@ -62,7 +63,7 @@ void PatchyParticle<number>::_set_base_patches() {
 
 template<typename number>
 void PatchyParticle<number>::set_positions() {
-	for(int i = 0; i < this->N_int_centers; i++) this->int_centers[i] = this->orientation * _base_patches[i];
+	for(int i = 0; i < this->N_int_centers; i++) this->int_centers[i] = (this->orientation*_base_patches[i])*_sigma;
 }
 
 template class PatchyParticle<float>;
