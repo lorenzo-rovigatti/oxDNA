@@ -22,6 +22,12 @@
 PATCHY_N = <int> (number of patches)
 [PATCHY_N_B = <int> (number of patches on species B)]
 [PATCHY_alpha = <float> (width of patches, defaults to 0.12)]
+[PATCHY_epsilon_AA = <float> (depth of the well of the patch-patch interaction between particles of species A)]
+[PATCHY_epsilon_BB = <float> (depth of the well of the patch-patch interaction between particles of species B)]
+[PATCHY_epsilon_AA = <float> (depth of the well of the patch-patch interaction between particles of different species)]
+[PATCHY_sigma_AA = <float> (diameter controlling the repulsive interaction between particles of species A)]
+[PATCHY_sigma_BB = <float> (diameter controlling the repulsive interaction between particles of species B)]
+[PATCHY_sigma_AA = <float> (diameter controlling the repulsive interaction between particles of different species)]
 @endverbatim
  */
 template <typename number>
