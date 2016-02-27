@@ -37,14 +37,13 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 	number sqr_r = CUDA_DOT(r, r);
 	if(sqr_r >= MD_sqr_tot_rcut[type]) return;
 
-	number part = 1;
-	for(int i = 0; i < PATCHY_POWER/2; i++) part *= MD_sqr_sigma[type]/sqr_r;
+	number part = powf(MD_sqr_sigma[type]/sqr_r, PATCHY_POWER*0.5f);
 
 	number force_module = PATCHY_POWER*part/sqr_r;
 	F.x -= r.x*force_module;
 	F.y -= r.y*force_module;
 	F.z -= r.z*force_module;
-
+	
 	for(int pi = 0; pi < MD_N_patches[ptype]; pi++) {
 		number4 ppatch = {
 			a1.x*MD_base_patches[ptype][pi].x + a2.x*MD_base_patches[ptype][pi].y + a3.x*MD_base_patches[ptype][pi].z,
@@ -70,7 +69,7 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 			};
 
 			number dist = CUDA_DOT(patch_dist, patch_dist);
-			if(dist < MD_sqr_patch_rcut[type]) {
+			if(dist < MD_sqr_patch_rcut[0]) {
 				number r8b10 = dist*dist*dist*dist / MD_patch_pow_alpha[0];
 				number exp_part = -1.001f*MD_epsilon[type]*expf(-(number)0.5f*r8b10*dist);
 

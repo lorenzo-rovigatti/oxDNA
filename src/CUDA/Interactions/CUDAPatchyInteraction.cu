@@ -61,12 +61,12 @@ void CUDAPatchyInteraction<number, number4>::cuda_init(number box_side, int N) {
 			break;
 		}
 		case 3: {
-			number cos120 = cos(2 * M_PI / 3.);
-			number sin120 = sin(2 * M_PI / 3.);
+			number cos30 = cos(M_PI/6.);
+			number sin30 = sin(M_PI/6.);
 
 			base_patches[0] = make_float4(0, 1, 0, 0);
-			base_patches[1] = make_float4(cos120, -sin120, 0, 0);
-			base_patches[2] = make_float4(-cos120, -sin120, 0, 0);
+			base_patches[1] = make_float4(cos30, -sin30, 0, 0);
+			base_patches[2] = make_float4(-cos30, -sin30, 0, 0);
 			break;
 		}
 		case 4: {

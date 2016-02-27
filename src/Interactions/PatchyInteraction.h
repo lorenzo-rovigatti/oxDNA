@@ -24,10 +24,10 @@ PATCHY_N = <int> (number of patches)
 [PATCHY_alpha = <float> (width of patches, defaults to 0.12)]
 [PATCHY_epsilon_AA = <float> (depth of the well of the patch-patch interaction between particles of species A)]
 [PATCHY_epsilon_BB = <float> (depth of the well of the patch-patch interaction between particles of species B)]
-[PATCHY_epsilon_AA = <float> (depth of the well of the patch-patch interaction between particles of different species)]
+[PATCHY_epsilon_AB = <float> (depth of the well of the patch-patch interaction between particles of different species)]
 [PATCHY_sigma_AA = <float> (diameter controlling the repulsive interaction between particles of species A)]
 [PATCHY_sigma_BB = <float> (diameter controlling the repulsive interaction between particles of species B)]
-[PATCHY_sigma_AA = <float> (diameter controlling the repulsive interaction between particles of different species)]
+[PATCHY_sigma_AB = <float> (diameter controlling the repulsive interaction between particles of different species)]
 @endverbatim
  */
 template <typename number>
@@ -117,7 +117,7 @@ number PatchyInteraction<number>::_patchy_interaction(BaseParticle<number> *p, B
 
 	number energy = (number) 0.f;
 
-	number part = 1. / powf(sqr_r/_sqr_sigma[type], PATCHY_POWER*0.5f);
+	number part = powf(_sqr_sigma[type]/sqr_r, PATCHY_POWER*0.5f);
 	energy = part - _E_cut[type];
 
 	if(update_forces) {
