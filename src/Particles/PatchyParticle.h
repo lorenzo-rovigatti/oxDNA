@@ -17,11 +17,12 @@ template<typename number>
 class PatchyParticle : public BaseParticle<number> {
 protected:
 	LR_vector<number> *_base_patches;
+	number _sigma;
 
 	void _set_base_patches();
 
 public:
-	PatchyParticle(int N_patches);
+	PatchyParticle(int N_patches, int nt, number sigma);
 	virtual ~PatchyParticle();
 
 	void set_positions();
