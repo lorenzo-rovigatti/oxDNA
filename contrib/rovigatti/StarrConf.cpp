@@ -10,7 +10,6 @@
 #include <string>
 
 #include "StarrConf.h"
-#include "../Interactions/PatchyInteraction.h"
 
 using namespace std;
 
