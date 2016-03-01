@@ -10,6 +10,8 @@
 
 #include "BaseInteraction.h"
 
+#include "../Lists/Cells.h"
+
 /**
  * @brief Manages the interaction between Starr tetramers.
  *
@@ -19,12 +21,11 @@
 template <typename number>
 class StarrInteraction: public BaseInteraction<number, StarrInteraction<number> > {
 protected:
-	int _N_per_tetramer;
 	int _N_per_strand;
-	int _N_strands_per_tetramer;
-	int _N_tetramers;
+	int _N_strands;
 
 	bool _starr_model;
+	int _mode;
 
 	number _LJ_sigma[3];
 	number _LJ_sqr_sigma[3];
@@ -42,10 +43,24 @@ protected:
 	virtual number _two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _three_body(BaseParticle<number> *p, BaseParticle<number> *n3, BaseParticle<number> *n5, bool update_forces);
 
+	virtual void _read_strand_topology(int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void _read_tetramer_topology(int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void _read_vitrimer_topology(int N, int *N_strands, BaseParticle<number> **particles);
+
+	virtual void _generate_strands(BaseParticle<number> **particles, int N, number box_side, Cells<number> &c);
+	virtual void _generate_tetramers(BaseParticle<number> **particles, int N, number box_side, Cells<number> &c);
+	virtual void _generate_vitrimers(BaseParticle<number> **particles, int N, number box_side, Cells<number> &c);
+
 public:
 	enum {
 		BONDED = 0,
 		NONBONDED = 1
+	};
+
+	enum {
+		STRANDS = 0,
+		TETRAMERS = 1,
+		VITRIMERS = 2
 	};
 
 	StarrInteraction();

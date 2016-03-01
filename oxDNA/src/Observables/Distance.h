@@ -36,7 +36,7 @@ private:
 	LR_vector<number> _dir;
 
 	void _check_index(int idx, int N) {
-		if(idx < 0 || idx >= N) throw oxDNAException("COMForce: invalid id %d", idx);
+		if(idx < 0 || idx >= N) throw oxDNAException("Distance: invalid id %d", idx);
 	}
 public:
 	Distance();
