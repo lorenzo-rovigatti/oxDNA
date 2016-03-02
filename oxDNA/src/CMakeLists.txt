@@ -49,6 +49,7 @@ SET(backends_SOURCES
 	Backends/BackendFactory.cpp
 	Backends/MDBackend.cpp
 	Backends/MCBackend.cpp 
+	Backends/MinBackend.cpp
 	Backends/MD_CPUBackend.cpp 
 	Backends/MC_CPUBackend.cpp
 	Backends/MC_CPUBackend2.cpp
