@@ -45,6 +45,7 @@ public:
 		else if(strncmp("MC2", sim_type, 512) == 0) _is_MC = true;
 		else if(strncmp("VMMC", sim_type, 512) == 0) _is_MC = true;
 		else if(strncmp("FFS_MD", sim_type, 512) == 0) _is_MC = false;
+		else if(strncmp("min", sim_type, 512) == 0) _is_MC = false;
 		else throw oxDNAException("BaseList does not know how to handle a '%s' sim_type\n", sim_type);
 	}
 

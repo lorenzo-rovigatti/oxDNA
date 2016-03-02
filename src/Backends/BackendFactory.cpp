@@ -13,6 +13,7 @@
 #include "MC_CPUBackend2.h"
 #include "FFS_MD_CPUBackend.h"
 #include "VMMC_CPUBackend.h"
+#include "MinBackend.h"
 #ifndef NOCUDA
 #include "../CUDA/Backends/MD_CUDABackend.h"
 #include "../CUDA/Backends/MD_CUDAMixedBackend.h"
@@ -86,6 +87,17 @@ ISimBackend *BackendFactory::make_backend(input_file &inp) {
 				else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
 			}
 			else throw oxDNAException("Backend '%s' not supported", backend_opt);
+
+	}
+	else if(!strcmp (sim_type, "min")) {
+			if(!strcmp(backend_opt, "CPU")) {
+				if(!strcmp(backend_prec, "double")) new_backend = new MinBackend<double>();
+				else if(!strcmp(backend_prec, "float")) {
+					new_backend = new MinBackend<float>();
+				}
+				else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
+			}
+			else throw oxDNAException("Backend '%s' not supported with sim_type = %s", backend_opt, sim_type);
 
 	}
 	else if(!strcmp (sim_type, "FFS_MD")) {
