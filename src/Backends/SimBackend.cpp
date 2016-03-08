@@ -215,7 +215,6 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	}
 
 	// we build the default stream of observables for trajectory and last configuration
-	//char traj_file[512];
 	std::string traj_file;
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
@@ -225,7 +224,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	_obs_outputs.push_back(_obs_output_trajectory);
 
 	// Last configuration
-	std::string lastconf_file = "lastconf_file";
+	std::string lastconf_file = "last_conf.dat";
 	getInputString(&inp, "lastconf_file", lastconf_file, 0);
 	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
 	_obs_output_last_conf = new ObservableOutput<number>(fake, inp);
@@ -324,8 +323,6 @@ void SimBackend<number>::init() {
 	}
 
 	bool check = false;
-	//if (_initial_conf_is_binary) check = _read_next_configuration(true);
-	//else check = _read_next_configuration();
 	check = _read_next_configuration(_initial_conf_is_binary);
 	if(!check) throw oxDNAException("Could not read the initial configuration, aborting");
 
@@ -562,7 +559,6 @@ void SimBackend<number>::_print_ready_observables(llint curr_step) {
 
 	// here we control the timings; we leave the code a 30-second grace time
 	// to print the initial configuration
-	// double time_passed = (double)_timer.timings[0] / (double)CLOCKS_PER_SEC;
 	double time_passed = (double)_mytimer->get_time() / (double)CLOCKS_PER_SEC;
 	if(time_passed > 30) {
 		double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
@@ -616,7 +612,6 @@ void SimBackend<number>::fix_diffusion() {
 	// change particle position and fix orientation matrix;
 	for (int i = 0; i < _N; i ++) {
 		BaseParticle<number> *p = this->_particles[i];
-		//p->shift(scdm[p->strand_id], this->_box_side);
 		p->shift(scdm[p->strand_id], _box->box_sides());
 		p->orientation.orthonormalize();
 		p->orientationT = p->orientation.get_transpose();
@@ -646,7 +641,6 @@ void SimBackend<number>::fix_diffusion() {
 		for (int i = 0; i < _N; i ++) {
 			BaseParticle<number> *p = this->_particles[i];
 			if (apply[p->strand_id]) {
-				//p->shift(scdm[p->strand_id], this->_box_side);
 				p->orientation.orthonormalize();
 				p->orientationT = p->orientation.get_transpose();
 				p->set_positions();
@@ -659,9 +653,6 @@ void SimBackend<number>::fix_diffusion() {
 			for (int i = 0; i < _N; i ++) {
 				BaseParticle<number> *p = this->_particles[i];
 				if (apply[p->strand_id]) {
-					// the following line has been commented to prevent unused_variable warning during compilation.
-					//LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
-					//p->shift(dscdm, this->_box_side);
 					p->pos = stored_pos[i];
 					p->orientation = stored_or[i];
 					p->orientationT = stored_orT[i];

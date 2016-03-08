@@ -98,14 +98,17 @@ void StarrInteraction<number>::_read_strand_topology(int N, int *N_strands, Base
 	while(!done) {
 		topology.getline(line, 2048);
 		if(!topology.fail()) {
-			for(int np = 0; np < strlen(line); np++) {
+			for(uint np = 0; np < strlen(line); np++) {
 				CustomParticle<number> *back = static_cast<CustomParticle<number> *>(particles[N_particles]);
 				back->index = N_particles;
 				back->type = P_A;
 				back->btype = N_DUMMY;
+				back->n3 = back->n5 = P_VIRTUAL;
 				if(np != 0) {
 					CustomParticle<number> *n3 = static_cast<CustomParticle<number> *>(particles[N_particles - 2]);
 					back->add_bonded_neigh(n3);
+					back->n3 = n3;
+					n3->n5 = back;
 				}
 				N_particles++;
 
@@ -116,7 +119,7 @@ void StarrInteraction<number>::_read_strand_topology(int N, int *N_strands, Base
 				base->add_bonded_neigh(back);
 				N_particles++;
 
-				back->n3 = back->n5 = base->n3 = base->n5 = P_VIRTUAL;
+				base->n3 = base->n5 = P_VIRTUAL;
 				back->strand_id = base->strand_id = N_strands_read;
 			}
 			N_strands_read++;
@@ -214,12 +217,12 @@ number StarrInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<num
 		else return 1e10;
 	}
 
-	number energy = -0.5*_fene_K*_fene_sqr_r0*log(1 - sqr_r/_fene_sqr_r0);
+	number energy = -0.5*_fene_K*_fene_sqr_r0*log(1. - sqr_r/_fene_sqr_r0);
 
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
-		number force_mod = -_fene_K * _fene_sqr_r0 / (_fene_sqr_r0 - sqr_r);
+		number force_mod = -_fene_K*_fene_sqr_r0 / (_fene_sqr_r0 - sqr_r);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
