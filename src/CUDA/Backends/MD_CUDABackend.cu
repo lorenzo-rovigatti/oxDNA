@@ -39,6 +39,8 @@ MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABas
 
 	_h_ext_forces = NULL;
 	_d_ext_forces = NULL;
+
+	_restart_step_counter = true;
 }
 
 template<typename number, typename number4>
@@ -336,6 +338,8 @@ void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
 		_use_edge = (tmpi != 0);
 		if(_use_edge && sizeof(number) == sizeof(double)) throw oxDNAException("use_edge and double precision are not compatible");
 	}
+	
+	getInputBool(&inp, "restart_step_counter", &_restart_step_counter, 1);
 
 	_cuda_thermostat = CUDAThermostatFactory::make_thermostat<number, number4>(inp, this->_box_side);
 	_cuda_thermostat->get_settings(inp);
@@ -484,6 +488,8 @@ void MD_CUDABackend<number, number4>::init(){
 
 	// initialise lists and compute the forces for the first step
 	this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
+	_curr_step = this->_read_conf_step;
+	if (_restart_step_counter) _curr_step = 0;
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds);
 }

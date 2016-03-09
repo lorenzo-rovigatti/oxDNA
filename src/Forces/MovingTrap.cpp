@@ -40,7 +40,7 @@ template<typename number>
 void MovingTrap<number>::init (BaseParticle<number> ** particles, int N, number * box_side_ptr) {
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a MovingTrap on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
-		OX_LOG (Logger::LOG_INFO, "Adding MovingTrap (stiff=%g, rate=%g, dir=%g,%g,%g, pos0=%g,%g,%g on particle %d", this->_F0, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z, this->_pos0.x, this->_pos0.y, this->_pos0.z, _particle);
+		OX_LOG (Logger::LOG_INFO, "Adding MovingTrap (stiff=%g, rate=%g, dir=%g,%g,%g, pos0=%g,%g,%g on particle %d", this->_stiff, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z, this->_pos0.x, this->_pos0.y, this->_pos0.z, _particle);
 		particles[_particle]->add_ext_force(this);
 	}
 	else { // force affects all particles
