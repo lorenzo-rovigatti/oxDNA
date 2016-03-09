@@ -31,6 +31,7 @@ class MD_CUDABackend: public MDBackend<number>, public CUDABaseBackend<number, n
 protected:
 	bool _use_edge;
 	bool _any_rigid_body;
+	bool _restart_step_counter;
 
 	int *_h_gpu_index, *_h_cpu_index;
 
