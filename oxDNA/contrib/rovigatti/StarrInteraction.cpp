@@ -234,7 +234,7 @@ template<typename number>
 number StarrInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	int int_type = p->type + q->type;
 	int int_btype = p->btype + q->btype;
-	if(int_type == 2 && (int_btype != 3 || (p->strand_id == q->strand_id))) int_type = 1;
+	if(int_type == 2 && (int_btype != 3 || (p->strand_id == q->strand_id && abs(p->index - q->index) == 2))) int_type = 1;
 
 	number sqr_r = r->norm();
 	if(sqr_r > _LJ_sqr_rcut[int_type]) return (number) 0.;
@@ -243,7 +243,7 @@ number StarrInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle
 	number part = pow(_LJ_sqr_sigma[int_type]/sqr_r, 3.);
 	number energy = 4*part*(part - 1.) - _LJ_E_cut[int_type] - (mod_r - _LJ_rcut[int_type])*_der_LJ_E_cut[int_type];
 	if(update_forces) {
-		number force_mod = 24 * part * (2*part - 1)/sqr_r + _der_LJ_E_cut[int_type]/mod_r;
+		number force_mod = 24*part*(2*part - 1)/sqr_r + _der_LJ_E_cut[int_type]/mod_r;
 //		printf("%d %d %f %f %d\n", p->index, q->index, energy, force_mod, int_type);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
