@@ -40,7 +40,7 @@ MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABas
 	_h_ext_forces = NULL;
 	_d_ext_forces = NULL;
 
-	_restart_step_counter = true;
+	_restart_step_counter = false;
 }
 
 template<typename number, typename number4>
