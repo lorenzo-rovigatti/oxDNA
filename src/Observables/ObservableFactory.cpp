@@ -36,6 +36,7 @@
 #include "Checkpoint.h"
 #include "Contacts.h"
 #include "Writhe.h"
+#include "NematicS.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
@@ -94,6 +95,7 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "checkpoint", 512)) res = new Checkpoint<number>();
 	else if(!strncasecmp(obs_type, "contacts", 512)) res = new Contacts<number>();
 	else if(!strncasecmp(obs_type, "writhe", 512)) res = new Writhe<number>();
+	else if(!strncasecmp(obs_type, "nematic_s", 512)) res = new NematicS<number>();
 	else {
 		res = PluginManager::instance()->get_observable<number>(obs_type);
 		if(res == NULL) throw oxDNAException ("Observable '%s' not found. Aborting", obs_type);
