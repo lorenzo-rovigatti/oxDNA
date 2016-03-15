@@ -43,6 +43,7 @@ SET(observables_SOURCES
 	Observables/Checkpoint.cpp
 	Observables/Contacts.cpp
 	Observables/Writhe.cpp
+	Observables/NematicS.cpp
 )
 
 SET(backends_SOURCES
