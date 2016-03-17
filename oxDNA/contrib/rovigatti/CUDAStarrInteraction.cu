@@ -13,6 +13,7 @@
 
 /* CUDA constants */
 __constant__ bool MD_starr_model[1];
+__constant__ int MD_mode[1];
 __constant__ int MD_N[1];
 __constant__ int MD_N_hubs[1];
 __constant__ int MD_N_per_strand[1];
@@ -65,6 +66,7 @@ __device__ void _two_body(number4 &r, int pbtype, int qbtype, int p_idx, int q_i
 	int int_type = ptype + qtype;
 
 	bool same_strand = (p_idx/MD_N_per_strand[0]) == (q_idx/MD_N_per_strand[0]);
+	same_strand = false;
 	int int_btype = pbtype + qbtype;
 	if(int_type == 2 && (int_btype != 3 || same_strand)) int_type = 1;
 
@@ -133,9 +135,12 @@ __device__ void _particle_all_bonded_interactions(number4 &ppos, LR_bonds &bs, n
 		if(has_n3) {
 			number4 qpos = poss[bs.n3];
 			_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
+		}
 
+		// if MD_mode is not STRANDS then only non-hub particles have has_n3 == true
+		if(has_n3 || MD_mode[0] == StarrInteraction<number>::STRANDS) {
 			// backbone-base
-			qpos = poss[IND + 1];
+			number4 qpos = poss[IND + 1];
 			_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F, true);
 		}
 
@@ -315,7 +320,7 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
 	StarrInteraction<number>::init();
 
-	_setup_tetra_hubs();
+	if(this->_mode != StarrInteraction<number>::STRANDS) _setup_tetra_hubs();
 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_n3_forces, this->_N*sizeof(number4)) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_n5_forces, this->_N*sizeof(number4)) );
@@ -323,10 +328,9 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDA_SAFE_CALL( cudaMemset(_d_n5_forces, 0, this->_N*sizeof(number4)) );
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_starr_model, &this->_starr_model, sizeof(bool)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_mode, &this->_mode, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_hubs, &_N_hubs, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_per_strand, &this->_N_per_strand, sizeof(int)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_per_tetramer, &this->_N_per_tetramer, sizeof(int)) );
 	float f_copy = box_side;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_box_side, &f_copy, sizeof(float)) );
 	f_copy = this->_lin_k;
@@ -353,15 +357,18 @@ void CUDAStarrInteraction<number, number4>::_setup_tetra_hubs() {
 	int N_strands;
 	StarrInteraction<number>::read_topology(this->_N, &N_strands, particles);
 
-	_N_hubs = this->_N_tetramers*HUB_SIZE;
+	int N_per_tetramer = 4*this->_N_per_strand;
+	int N_tetramers = this->_N / N_per_tetramer;
+
+	_N_hubs = N_tetramers*HUB_SIZE;
 	_h_tetra_hubs = new int[_N_hubs];
 	_h_tetra_hub_neighs = new tetra_hub_bonds[_N_hubs];
 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_tetra_hubs, _N_hubs*sizeof(int)) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tetra_hub_bonds>(&_d_tetra_hub_neighs, _N_hubs*sizeof(tetra_hub_bonds)) );
 
-	for(int i = 0; i < this->_N_tetramers; i++) {
-		int idx_tetra = this->_N_per_tetramer*i;
+	for(int i = 0; i < N_tetramers; i++) {
+		int idx_tetra = N_per_tetramer*i;
 		for(int j = 0; j < HUB_SIZE; j++) {
 			int idx_hub = idx_tetra + j*this->_N_per_strand;
 			CustomParticle<number> *p = static_cast<CustomParticle<number> *>(particles[idx_hub]);
@@ -381,6 +388,8 @@ void CUDAStarrInteraction<number, number4>::_setup_tetra_hubs() {
 
 	CUDA_SAFE_CALL( cudaMemcpy(_d_tetra_hubs, _h_tetra_hubs, _N_hubs*sizeof(int), cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_tetra_hub_neighs, _h_tetra_hub_neighs, _N_hubs*sizeof(tetra_hub_bonds), cudaMemcpyHostToDevice) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_hubs, &_N_hubs, sizeof(int)) );
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_per_tetramer, &N_per_tetramer, sizeof(int)) );
 
 	for(int i = 0; i < this->_N; i++) delete particles[i];
 	delete[] particles;
@@ -422,15 +431,12 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 		}
 	}
 
-	tetra_hub_forces<number, number4>
-		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_tetra_hubs, _d_tetra_hub_neighs);
-	CUT_CHECK_ERROR("tetra_hub_forces error");
-
-//	number4 h_forces[68];
-//	CUDA_SAFE_CALL( cudaMemcpy(h_forces, d_forces, 68*sizeof(number4), cudaMemcpyDeviceToHost) );
-//	number energy = GpuUtils::sum_4th_comp<number, number4>(h_forces, 68);
-//	printf("ENERGY %f\n", energy/68.);
+	if(this->_mode != StarrInteraction<number>::STRANDS) {
+		tetra_hub_forces<number, number4>
+			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+			(d_poss, d_forces, _d_tetra_hubs, _d_tetra_hub_neighs);
+		CUT_CHECK_ERROR("tetra_hub_forces error");
+	}
 }
 
 extern "C" IBaseInteraction<float> *make_CUDAStarrInteraction_float() {
