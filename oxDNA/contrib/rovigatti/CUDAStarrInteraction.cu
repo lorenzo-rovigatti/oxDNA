@@ -368,7 +368,7 @@ void CUDAStarrInteraction<number, number4>::_setup_strand_ids() {
 	int *h_strand_ids = new int[this->_N];
 
 	for(int i = 0; i < this->_N; i++) h_strand_ids[i] = particles[i]->strand_id;
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_strand_ids, this->_N) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_strand_ids, this->_N*sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_strand_ids, h_strand_ids, this->_N*sizeof(int), cudaMemcpyHostToDevice) );
 
 	delete[] h_strand_ids;
