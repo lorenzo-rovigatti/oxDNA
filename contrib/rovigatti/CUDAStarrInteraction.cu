@@ -60,15 +60,13 @@ __device__ number quad_minimum_image_dist(const number4 &r_i, const number4 &r_j
 }
 
 template <typename number, typename number4>
-__device__ void _two_body(number4 &r, int pbtype, int qbtype, int p_idx, int q_idx, number4 &F) {
+__device__ void _two_body(number4 &r, int pbtype, int qbtype, int p_idx, int q_idx, number4 &F, bool disable_pairing) {
 	int ptype = (pbtype == N_DUMMY) ? 0 : 1;
 	int qtype = (qbtype == N_DUMMY) ? 0 : 1;
 	int int_type = ptype + qtype;
 
-	bool same_strand = (p_idx/MD_N_per_strand[0]) == (q_idx/MD_N_per_strand[0]);
-	same_strand = false;
 	int int_btype = pbtype + qbtype;
-	if(int_type == 2 && (int_btype != 3 || same_strand)) int_type = 1;
+	if(int_type == 2 && (int_btype != 3 || disable_pairing)) int_type = 1;
 
 	number sqr_r = CUDA_DOT(r, r);
 	number mod_r = sqrt(sqr_r);
@@ -109,19 +107,22 @@ __device__ void _particle_particle_bonded_interaction(number4 &ppos, number4 &qp
 	int q_idx = get_particle_index<number, number4>(qpos);
 
 	number4 r = minimum_image<number, number4>(ppos, qpos);
-	if(!only_fene) _two_body<number, number4>(r, pbtype, qbtype, p_idx, q_idx, F);
+	if(!only_fene) _two_body<number, number4>(r, pbtype, qbtype, p_idx, q_idx, F, true);
 	_fene<number, number4>(r, F);
 }
 
 template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, number4 &F) {
+__device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, number4 &F, int *strand_ids) {
 	int pbtype = get_particle_btype<number, number4>(ppos);
 	int p_idx = get_particle_index<number, number4>(ppos);
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int q_idx = get_particle_index<number, number4>(qpos);
 
+	bool same_strand = (strand_ids[p_idx] == strand_ids[q_idx]);
+	bool neighbours = (abs(p_idx - q_idx) == 2);
+
 	number4 r = minimum_image<number, number4>(ppos, qpos);
-	_two_body<number, number4>(r, pbtype, qbtype, p_idx, q_idx, F);
+	_two_body<number, number4>(r, pbtype, qbtype, p_idx, q_idx, F, same_strand && neighbours);
 }
 
 template <typename number, typename number4>
@@ -159,7 +160,7 @@ __device__ void _particle_all_bonded_interactions(number4 &ppos, LR_bonds &bs, n
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void Starr_forces(number4 *poss, number4 *forces, LR_bonds *bonds) {
+__global__ void Starr_forces(number4 *poss, number4 *forces, LR_bonds *bonds, int *strand_ids) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -171,7 +172,7 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, LR_bonds *bonds) {
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND && bs.n3 != j && bs.n5 != j) {
 			number4 qpos = poss[j];
-			_particle_particle_interaction<number, number4>(ppos, qpos, F);
+			_particle_particle_interaction<number, number4>(ppos, qpos, F, strand_ids);
 		}
 	}
 
@@ -180,7 +181,7 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, LR_bonds *bonds) {
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void Starr_forces(number4 *poss, number4 *forces, int *matrix_neighs, int *number_neighs, LR_bonds *bonds) {
+__global__ void Starr_forces(number4 *poss, number4 *forces, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, int *strand_ids) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -194,7 +195,7 @@ __global__ void Starr_forces(number4 *poss, number4 *forces, int *matrix_neighs,
 		const int k_index = matrix_neighs[j*MD_N[0] + IND];
 
 		number4 qpos = poss[k_index];
-		_particle_particle_interaction<number, number4>(ppos, qpos, F);
+		_particle_particle_interaction<number, number4>(ppos, qpos, F, strand_ids);
 	}
 
 	forces[IND] = F;
@@ -284,13 +285,19 @@ __global__ void tetra_hub_forces(number4 *poss, number4 *forces, int *hubs, tetr
 template<typename number, typename number4>
 CUDAStarrInteraction<number, number4>::CUDAStarrInteraction() : _h_tetra_hubs(NULL), _h_tetra_hub_neighs(NULL) {
 	_N_hubs = -1;
-	_d_tetra_hubs = NULL;
+	_h_tetra_hub_neighs = NULL;
+	_h_tetra_hubs = NULL;
+	_d_tetra_hubs = _d_strand_ids = NULL;
 	_d_tetra_hub_neighs = NULL;
 	_d_n3_forces = _d_n5_forces = NULL;
 }
 
 template<typename number, typename number4>
 CUDAStarrInteraction<number, number4>::~CUDAStarrInteraction() {
+	if(_d_strand_ids != NULL) {
+		CUDA_SAFE_CALL( cudaFree(_d_strand_ids) );
+	}
+
 	if(_h_tetra_hubs != NULL) {
 		delete[] _h_tetra_hubs;
 		delete[] _h_tetra_hub_neighs;
@@ -321,6 +328,7 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 	StarrInteraction<number>::init();
 
 	if(this->_mode != StarrInteraction<number>::STRANDS) _setup_tetra_hubs();
+	_setup_strand_ids();
 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_n3_forces, this->_N*sizeof(number4)) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_n5_forces, this->_N*sizeof(number4)) );
@@ -348,6 +356,25 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 	COPY_ARRAY_TO_CONSTANT(MD_LJ_sqr_rcut, this->_LJ_sqr_rcut, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_LJ_E_cut, this->_LJ_E_cut, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_der_LJ_E_cut, this->_der_LJ_E_cut, 3);
+}
+
+template<typename number, typename number4>
+void CUDAStarrInteraction<number, number4>::_setup_strand_ids() {
+	BaseParticle<number> **particles = new BaseParticle<number> *[this->_N];
+	StarrInteraction<number>::allocate_particles(particles, this->_N);
+	int N_strands;
+	StarrInteraction<number>::read_topology(this->_N, &N_strands, particles);
+
+	int *h_strand_ids = new int[this->_N];
+
+	for(int i = 0; i < this->_N; i++) h_strand_ids[i] = particles[i]->strand_id;
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_strand_ids, this->_N) );
+	CUDA_SAFE_CALL( cudaMemcpy(_d_strand_ids, h_strand_ids, this->_N*sizeof(int), cudaMemcpyHostToDevice) );
+
+	delete[] h_strand_ids;
+
+	for(int i = 0; i < this->_N; i++) delete particles[i];
+	delete[] particles;
 }
 
 template<typename number, typename number4>
@@ -416,7 +443,7 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 		else {
 			Starr_forces<number, number4>
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds);
+				(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, _d_strand_ids);
 			CUT_CHECK_ERROR("Starr_forces Verlet Lists error");
 		}
 	}
@@ -426,7 +453,7 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 		if(_no_lists != NULL) {
 			Starr_forces<number, number4>
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss,  d_forces, d_bonds);
+				(d_poss,  d_forces, d_bonds, _d_strand_ids);
 			CUT_CHECK_ERROR("Starr_forces no_lists error");
 		}
 	}
