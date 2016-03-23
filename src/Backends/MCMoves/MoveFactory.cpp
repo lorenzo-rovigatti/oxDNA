@@ -15,6 +15,7 @@
 #include "VolumeMove.h"
 #include "VMMC.h"
 #include "ShapeMove.h"
+#include "RotateSite.h"
 
 MoveFactory::MoveFactory() {
 
@@ -36,6 +37,7 @@ BaseMove<number> * MoveFactory::make_move (input_file &inp, input_file &sim_inp,
 	else if (!move_type.compare("volume")) ret = new VolumeMove<number>(Info);
 	else if (!move_type.compare("VMMC")) ret = new VMMC<number>(Info);
 	else if (!move_type.compare("shape")) ret = new ShapeMove<number>(Info);
+	else if (!move_type.compare("rotate_site")) ret = new RotateSite<number>(Info);
 	else throw oxDNAException ("(MoveFactory.cpp) Unknown move type %s. Aborting", move_type.c_str());
 
 	/* // plugin management o be added later on... NEEDS to be fixed, copied and pasted from interactionfactory.cpp

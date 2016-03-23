@@ -1,53 +1,51 @@
 /**
- * @file    MCRot.cpp
- * @date    30/apr/2014
+ * @file    RotateSite.cpp
+ * @date    23/mar/2016
  * @author  flavio
  *
  *
  */
 
-#include "MCRot.h"
+#include "RotateSite.h"
+#include "../../Particles/JordanParticle.h"
 
 template<typename number>
-MCRot<number>::MCRot (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
-	_orientation_old = LR_matrix<number> (1., 0., 0., 0., 1., 0., 0., 0., 1.); 
-	_orientationT_old = LR_matrix<number> (1., 0., 0., 0., 1., 0., 0., 0., 1.); 
-}
-
-template<typename number>
-MCRot<number>::~MCRot () {
+RotateSite<number>::RotateSite (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
 
 }
 
 template<typename number>
-void MCRot<number>::get_settings (input_file &inp, input_file &sim_inp) {
+RotateSite<number>::~RotateSite () {
+
+}
+
+template<typename number>
+void RotateSite<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	BaseMove<number>::get_settings (inp, sim_inp);
 
-	// the following "double" parsing is for backwards compatibility
-	if (getInputNumber (&inp, "delta_rot", &_delta, 0) == KEY_NOT_FOUND) {
-		getInputNumber (&inp, "delta", &_delta, 1);
-	}
+	getInputNumber (&inp, "delta", &_delta, 1);
 	getInputNumber (&inp, "prob", &this->prob, 1);
 
-	OX_LOG(Logger::LOG_INFO, "(MCRot.cpp) MCRot initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
+	OX_LOG(Logger::LOG_INFO, "(RotateSite.cpp) RotateSite initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
 template<typename number>
-void MCRot<number>::apply (llint curr_step) {
+void RotateSite<number>::apply (llint curr_step) {
 
 	this->_attempted ++;
 
 	int pi = (int) (drand48() * (*this->_Info->N));
-	BaseParticle<number> *p = this->_Info->particles[pi];
+	JordanParticle<number> *p = (JordanParticle<number> *)this->_Info->particles[pi];
 
 	number delta_E = -this->particle_energy(p);
+	delta_E -= p->int_potential();
 	p->set_ext_potential (curr_step, (*this->_Info->box_side));
 	number delta_E_ext = -p->ext_potential;
 
-	_orientation_old = p->orientation;
-	_orientationT_old = p->orientationT;
-				
-	//number t = (drand48() - (number)0.5f) * _delta;
+	// select site
+	int i_patch = (int) (drand48() * (p->N_int_centers));
+	LR_matrix<number> site_store = p->get_patch_rotation(i_patch);
+	
 	number t = drand48() * _delta;
 	LR_vector<number> axis = Utils::get_random_vector<number>();
 	
@@ -65,9 +63,8 @@ void MCRot<number>::apply (llint curr_step) {
 	LR_matrix<number> R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin,
 				xyo + zsin, axis.y * axis.y * olcos + costheta, yzo - xsin,
 				xzo - ysin, yzo + xsin, axis.z * axis.z * olcos + costheta);
-
-	p->orientation = p->orientation * R;
-	p->orientationT = p->orientation.get_transpose();
+	
+	p->rotate_patch(i_patch, R);
 	p->set_positions();
 	
 	if (p->is_rigid_body()) {
@@ -76,8 +73,9 @@ void MCRot<number>::apply (llint curr_step) {
 			this->_Info->lists->global_update();
 		}
 	}
-
+	
 	delta_E += this->particle_energy(p);
+	delta_E += p->int_potential();
 	p->set_ext_potential(curr_step, *this->_Info->box_side);
 	delta_E_ext += p->ext_potential;
 	
@@ -92,8 +90,7 @@ void MCRot<number>::apply (llint curr_step) {
 		}
 	}
 	else {
-		p->orientation = _orientation_old;
-		p->orientationT = _orientationT_old;
+		p->set_patch_rotation(i_patch, site_store);
 		p->set_positions();
 	
 		if (p->is_rigid_body()) {
@@ -110,6 +107,6 @@ void MCRot<number>::apply (llint curr_step) {
 	return;
 }
 
-template class MCRot<float>;
-template class MCRot<double>;
+template class RotateSite<float>;
+template class RotateSite<double>;
 

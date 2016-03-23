@@ -16,7 +16,9 @@ JordanInteraction<number>::JordanInteraction() : BaseInteraction<number, JordanI
 	_s = (number) 0.3; // patch width
 	_m = 6;            // LJ exponent
     _phi = M_PI / 6.;  // angle below the equator
-
+	_int_k = 0.f;      // stiffness of the internal spring
+	_SB_s = 1.;       
+	_n_patches = -1;
 }
 
 template <typename number>
@@ -30,24 +32,27 @@ void JordanInteraction<number>::get_settings(input_file &inp) {
 
 	float tmp = 2.5;
 	getInputFloat(&inp, "JORDAN_rcut", &tmp, 0);
+	getInputInt(&inp, "JORDAN_N_patches", &_n_patches, 1);
 	this->_rcut = (number) tmp;
 	this->_sqr_rcut = this->_rcut * this->_rcut;
 
-	getInputNumber(&inp, "JORDAN_phi", &this->_phi, 0);
-	getInputNumber(&inp, "JORDAN_s", &this->_s, 0);
-	getInputInt(&inp, "JORDAN_m", &this->_m, 0);
+	getInputNumber(&inp, "JORDAN_phi", &_phi, 0);
+	getInputNumber(&inp, "JORDAN_s", &_s, 0);
+	getInputNumber(&inp, "JORDAN_int_k", &_int_k, 0);
+	getInputNumber(&inp, "JORDAN_SB_s", &_SB_s, 0);
+	getInputInt(&inp, "JORDAN_m", &_m, 0);
 }
 
 template<typename number>
 void JordanInteraction<number>::init() {
 	
-	OX_LOG(Logger::LOG_INFO,"Running Jordan interaction with s=%g, rcut=%g, m=%d, phi=%g", _s, this->_rcut, _m, _phi);
+	OX_LOG(Logger::LOG_INFO,"Running Jordan interaction with s=%g, rcut=%g, m=%d, phi=%g, int_k=%g", _s, this->_rcut, _m, _phi, _int_k);
 }
 
 template<typename number>
 void JordanInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
 	for(int i = 0; i < N; i++) {
-		particles[i] = new JordanParticle<number>(_phi);
+		particles[i] = new JordanParticle<number>(_n_patches, _phi, _int_k);
 	}
 }
 
@@ -92,15 +97,22 @@ number JordanInteraction<number>::_jordan_interaction(BaseParticle<number> *p, B
 	if (rm <= 1.f) return energy; // we do not consider the patches if r < 1
 
 	// here we look for the closest patch on particle p;
+	int imax1 = -1, imax2 = -1;
 	number max1 = -2.f;
-	for (int i = 0; i < 3; i ++) {
+	for (int i = 0; i < p->N_int_centers; i ++) {
 		number tmp = ((p->int_centers[i] * (*r)) / (0.5 * rm));
-		if (tmp > max1) max1 = tmp;
+		if (tmp > max1) {
+			max1 = tmp;
+			imax1 = i;
+		}
 	}
 	number max2 = -2.f;
-	for (int i = 0; i < 3; i ++) {
+	for (int i = 0; i < q->N_int_centers; i ++) {
 		number tmp = (-(q->int_centers[i] * (*r)) / (0.5 * rm));
-		if (tmp > max2) max2 = tmp;
+		if (tmp > max2) {
+			max2 = tmp;
+			imax2 = i;
+		}
 	}
 
 	// now max1 and max2 are ready to be acos'd
@@ -111,8 +123,18 @@ number JordanInteraction<number>::_jordan_interaction(BaseParticle<number> *p, B
 	number theta2 = acos(max2);
 
 	number fact = exp ((- theta1 * theta1 - theta2 * theta2) / (2.f * _s * _s));
+	
+	// simmetry breaking term
+	// we get a random vetor and remove its projection onto r
+	LR_vector<number> pprime = p->int_centers[imax1] - (*r) * (p->int_centers[imax1] * (*r));
+	LR_vector<number> qprime = q->int_centers[imax2] - (*r) * (q->int_centers[imax2] * (*r));
+	number Gamma_arg = (pprime * qprime) * (1.f / (pprime.module() * qprime.module()));
+	if (fabs(Gamma_arg) > 1.f) Gamma_arg = copysign(1.f, Gamma_arg);
+	number Gamma = acos(Gamma_arg);
 
-	return energy * fact;
+	number fact_SB = exp (- Gamma * Gamma / (2.f * _SB_s * _SB_s));  // could be optimized joining with previous exponential
+
+	return energy * fact * fact_SB;
 
 }
 
@@ -136,3 +158,4 @@ void JordanInteraction<number>::check_input_sanity(BaseParticle<number> **partic
 
 template class JordanInteraction<float>;
 template class JordanInteraction<double>;
+

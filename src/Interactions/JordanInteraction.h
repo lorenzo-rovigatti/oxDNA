@@ -17,16 +17,24 @@
  * interaction_type = jordan
  *
  * @verbatim
-JORDAN_N = <int> (number of patches)
-[JORDAN_N_B = <int> (number of patches on species B)]
-[JORDAN_alpha = <float> (width of patches, defaults to 0.12)]
+JORDAN_N_patches = <int> (number of patches)
+[JORDAN_s = <float> (sigma of the gaussian modulation, defaults to 0.3)]
+[JORDAN_m = <float> (exponent to the 2m-m lennard-jones part)]
+[JORDAN_phi = <float> (angle below the equator for the rest position of the patches, defaults to PI/6)]
+[JORDAN_int_k = <float> (stiffness of the internal spring, defaults to 0., i.e., free patches)]
 @endverbatim
  */
 template <typename number>
 class JordanInteraction: public BaseInteraction<number, JordanInteraction<number> > {
 protected:
+	/// number of patches on each particle
+	int _n_patches;
+	
 	/// sigma of the gaussian modulation
 	number _s;
+
+	/// sigma of simmetry breaking gaussian function
+	number _SB_s;
 
 	/// angle below the equator
 	number _phi;
@@ -34,9 +42,11 @@ protected:
 	/// "sensitivity" of the LJ contribution
 	int _m;
 
+	/// stiffness of the internal spring
+	number _int_k;
+
 	/// interaction
 	number _jordan_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-
 
 public:
 	enum {
