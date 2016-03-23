@@ -44,6 +44,14 @@ void JordanParticle<number>::_set_base_patches(number phi) {
 
 			break;
 		}
+		case 4: {
+			_base_patches[0] = LR_vector<number>(cos(phi), 0, -sin(phi));
+			_base_patches[1] = LR_vector<number>(cos(1.*M_PI/2.)*cos(phi), sin(1.*M_PI/2.)*cos(phi), -sin(phi));
+			_base_patches[2] = LR_vector<number>(cos(2.*M_PI/2.)*cos(phi), sin(2.*M_PI/2.)*cos(phi), -sin(phi));
+			_base_patches[3] = LR_vector<number>(cos(3.*M_PI/2.)*cos(phi), sin(3.*M_PI/2.)*cos(phi), -sin(phi));
+
+			break;
+		}
 		default:
 			throw oxDNAException("Unsupported number of patches %d\n", this->N_int_centers);
 	}
@@ -76,6 +84,16 @@ number JordanParticle<number>::int_potential() {
 template<typename number>
 void JordanParticle<number>::set_positions() {
 	for(int i = 0; i < this->N_int_centers; i++) this->int_centers[i] = this->orientation * (_patch_rotations[i] * _base_patches[i]);
+}
+
+template<typename number>
+std::string JordanParticle<number>::get_output_string () {
+	std::string ret = Utils::sformat("%g %g %g ", this->pos.x, this->pos.y, this->pos.z);
+	for (int i = 0; i < this->N_int_centers; i ++) {
+		LR_vector<number> patch = _patch_rotations[i] * _base_patches[i]; 
+		ret += Utils::sformat("%g %g %g ", patch.x, patch.y, patch.z);
+	}
+	return ret;
 }
 
 template class JordanParticle<float>;

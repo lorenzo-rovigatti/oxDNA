@@ -19,6 +19,9 @@ JordanInteraction<number>::JordanInteraction() : BaseInteraction<number, JordanI
 	_int_k = 0.f;      // stiffness of the internal spring
 	_SB_s = 1.;       
 	_n_patches = -1;
+	
+	_my_N = -1;
+	_my_N3 = -1;
 }
 
 template <typename number>
@@ -41,18 +44,21 @@ void JordanInteraction<number>::get_settings(input_file &inp) {
 	getInputNumber(&inp, "JORDAN_int_k", &_int_k, 0);
 	getInputNumber(&inp, "JORDAN_SB_s", &_SB_s, 0);
 	getInputInt(&inp, "JORDAN_m", &_m, 0);
+	//getInputString(&inp, "JORDAN_load_patches_from", patches_file_in, 0);
+	//getInputString(&inp, "JORDAN_save_patches_to", patches_file_out, 1);
 }
 
 template<typename number>
 void JordanInteraction<number>::init() {
-	
-	OX_LOG(Logger::LOG_INFO,"Running Jordan interaction with s=%g, rcut=%g, m=%d, phi=%g, int_k=%g", _s, this->_rcut, _m, _phi, _int_k);
+	OX_LOG(Logger::LOG_INFO,"(JordanInteraction.cpp) Running Jordan interaction with s=%g, rcut=%g, m=%d, phi=%g, int_k=%g", _s, this->_rcut, _m, _phi, _int_k, _my_N3);
 }
 
 template<typename number>
 void JordanInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
+	OX_LOG(Logger::LOG_INFO,"(JordanInteraction.cpp) Allocating %d particles with 3 patches and %d with 4 patches", _my_N3, N - _my_N3);
 	for(int i = 0; i < N; i++) {
-		particles[i] = new JordanParticle<number>(_n_patches, _phi, _int_k);
+		if (i > _my_N3 && _my_N3 >= 0) particles[i] = new JordanParticle<number>(4, _phi, _int_k);
+		else particles[i] = new JordanParticle<number>(3, _phi, _int_k);
 	}
 }
 
@@ -126,8 +132,16 @@ number JordanInteraction<number>::_jordan_interaction(BaseParticle<number> *p, B
 	
 	// simmetry breaking term
 	// we get a random vetor and remove its projection onto r
-	LR_vector<number> pprime = p->int_centers[imax1] - (*r) * (p->int_centers[imax1] * (*r));
-	LR_vector<number> qprime = q->int_centers[imax2] - (*r) * (q->int_centers[imax2] * (*r));
+	LR_vector<number> pprime = p->int_centers[imax1] - (*r) * ((p->int_centers[imax1] * (*r)) / (rm * rm));
+	LR_vector<number> qprime = q->int_centers[imax2] - (*r) * ((q->int_centers[imax2] * (*r)) / (rm * rm));
+	
+	/* // check that pprime and qprime have no residual component on r
+	number chk1 = pprime * (*r);
+	number chk2 = qprime * (*r);
+	if (fabs(chk1) > 1.e-12) printf ("Non ci siamo... %g\n", chk1);
+	if (fabs(chk2) > 1.e-12) printf ("Non ci siamo proprio... %g\n", chk2);
+	*/
+
 	number Gamma_arg = (pprime * qprime) * (1.f / (pprime.module() * qprime.module()));
 	if (fabs(Gamma_arg) > 1.f) Gamma_arg = copysign(1.f, Gamma_arg);
 	number Gamma = acos(Gamma_arg);
@@ -140,6 +154,15 @@ number JordanInteraction<number>::_jordan_interaction(BaseParticle<number> *p, B
 
 template<typename number>
 void JordanInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+	std::ifstream topology;
+	topology.open(this->_topology_filename, ios::in);
+	if(!topology.good()) throw oxDNAException("(JordanInteraction.cpp) Can't read topology file '%s'. Aborting", this->_topology_filename);
+	std::string line;
+	std::getline (topology, line);
+	int check = sscanf(line.c_str(), "%d %d\n", &_my_N, &_my_N3);
+	if (check != 2) throw oxDNAException("(JordanInteraction.cpp) Wrong content in topology file '%s'. Expecting <N> and <N3>", this->_topology_filename);
+	topology.close();
+
 	*N_strands = N;
 
 	allocate_particles(particles, N);

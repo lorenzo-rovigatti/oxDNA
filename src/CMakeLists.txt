@@ -37,6 +37,7 @@ SET(observables_SOURCES
 	Observables/Configurations/ChimeraOutput.cpp
 	Observables/Configurations/TEPtclOutput.cpp
 	Observables/Configurations/TEPxyzOutput.cpp
+	Observables/Configurations/JordanOutput.cpp
 	Observables/ObservableFactory.cpp
 	Observables/MeanVectorCosine.cpp
 	Observables/VectorAngle.cpp

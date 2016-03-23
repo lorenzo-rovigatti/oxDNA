@@ -48,6 +48,12 @@ protected:
 	/// interaction
 	number _jordan_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
 
+	/// number of particles with N3 patches and of particles in general
+	int _my_N3, _my_N;
+
+	std::string patches_file_in;
+	std::string patches_file_out;
+
 public:
 	enum {
 		JORDAN = 0
