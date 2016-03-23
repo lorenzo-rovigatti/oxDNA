@@ -9,6 +9,7 @@
 #define JORDANPARTICLE_H_
 
 #include "BaseParticle.h"
+#include "../Utilities/Utils.h"
 
 /**
  * @brief Incapsulates a jordan particle with 2, 3, or 4 spherical patches. Used by JordanInteraction.
@@ -37,6 +38,8 @@ public:
 	virtual bool is_rigid_body() {
 		return true;
 	}
+	
+	std::string get_output_string ();
 };
 
 #endif /* JORDANPARTICLE_H_ */
