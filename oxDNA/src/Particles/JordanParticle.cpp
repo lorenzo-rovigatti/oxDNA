@@ -10,18 +10,21 @@
 
 
 template<typename number>
-JordanParticle<number>::JordanParticle(number phi) : BaseParticle<number>() {
-	int N_patches = 3;
+JordanParticle<number>::JordanParticle(int npatches, number phi, number int_k) : BaseParticle<number>() {
+	int N_patches = npatches;
 	this->N_int_centers = N_patches;
 	this->int_centers = new LR_vector<number>[N_patches];
 	_base_patches = new LR_vector<number>[N_patches];
-
+	_patch_rotations = new LR_matrix<number>[N_patches];
+	
 	_set_base_patches(phi);
+	_int_k = int_k;
 }
 
 template<typename number>
 JordanParticle<number>::~JordanParticle() {
 	delete[] _base_patches;
+	delete[] _patch_rotations;
 }
 
 template<typename number>
@@ -48,14 +51,31 @@ void JordanParticle<number>::_set_base_patches(number phi) {
 	for(int i = 0; i < this->N_int_centers; i++) {
 		_base_patches[i].normalize();
 		_base_patches[i] *= 0.5;
+		_patch_rotations[i] = LR_matrix<number> (1., 0., 0.,  0., 1., 0.,  0., 0., 1.);
 	}
 
 	set_positions();
 }
 
 template<typename number>
+number JordanParticle<number>::int_potential() {
+	number energy = 0.f;
+	
+	for (int i = 0; i < this->N_int_centers; i ++) {
+		// the trace of a rotation matrix == 1. + 2.cos(t)
+		number arg = _patch_rotations[i].v1.x + _patch_rotations[i].v2.y + _patch_rotations[i].v3.z;
+		arg = arg - 1.f;
+		if (fabs(arg) > 1.f) arg = copysign(1.f, arg);
+		number gamma = acos(arg);
+		energy += _int_k * gamma * gamma;
+	}
+	
+	return energy;
+}
+
+template<typename number>
 void JordanParticle<number>::set_positions() {
-	for(int i = 0; i < this->N_int_centers; i++) this->int_centers[i] = this->orientation * _base_patches[i];
+	for(int i = 0; i < this->N_int_centers; i++) this->int_centers[i] = this->orientation * (_patch_rotations[i] * _base_patches[i]);
 }
 
 template class JordanParticle<float>;
