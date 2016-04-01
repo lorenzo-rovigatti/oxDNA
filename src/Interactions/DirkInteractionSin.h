@@ -31,6 +31,9 @@ length = <float> (lenght of the cylinders)
 DHS_radius = <float> (radius of the diploar hard sphere on top of each cylinder)
 DHS_rcut = <float> (distance cutoff for the reaction field treatment)
 DHS_eps = <float> (background dielectric constant for the reaction field treatment)
+DHS_B = <float> (external field, in units of G (Gauss))
+DHS_alpha = <float> (magnetic susceptivity of particles; induced moment grows like mu_0 + DHS_alpha * DHS_B, units of (k T_0) / Gauss^2)
+DHS_mu0 = <float> (permanent magnetic moment of particles; aligned along p.orientation.v3; in units of (k T_0) / Gauss)
 @endverbatim
  */
 template <typename number>
@@ -45,11 +48,17 @@ protected:
 	/// dielectric constant for reaction field
 	number _DHS_eps;
 	
-	/// permament dipole moment (in units of the induced one, which is assumed to be 1)
-	number _DHS_mu;
+	/// magnetic susceptivity of the particles, in (k T_0) / Gauss^2
+	number _alpha;
+	
+	/// external field, in (k T_0) / Gauss
+	number _B;
+	
+	/// induced dipole moment (i.e., _alpha * _B)
+	number _mu;
 	
 	/// permament dipole moment (in units of the induced one, which is assumed to be 1)
-	number _DHS_mu0;
+	number _mu0;
 
 	/// cutoff for reaction field treatment
 	number _DHS_rcut, _DHS_sqr_rcut;
@@ -134,14 +143,14 @@ number DirkInteractionSin<number>::_dirk_pot (BaseParticle<number> *p, BaseParti
 	// DHS potential;
 	if (drdhsnorm > _DHS_sqr_rcut) return 0.f;
 
-	LR_vector<number> mu1 = (LR_vector<number> (0., 0., 1.) * _DHS_mu) + (_DHS_mu0 * p->orientation.v3);
-	LR_vector<number> mu2 = (LR_vector<number> (0., 0., 1.) * _DHS_mu) + (_DHS_mu0 * q->orientation.v3);
-
+	LR_vector<number> mu1 = (LR_vector<number> (0.f, 0.f, 1.f) * _mu) + (_mu0 * p->orientation.v3);
+	LR_vector<number> mu2 = (LR_vector<number> (0.f, 0.f, 1.f) * _mu) + (_mu0 * q->orientation.v3);
 	
-	// direct part
-	number energy = - (1. / (drdhsnorm * sqrt(drdhsnorm))) * (3.f * ((mu1 * drdhs) * (mu2 * drdhs)) / drdhsnorm - mu1 * mu2); 
-
-	energy += - _DHS_rf_fact; 
+	// direct part; 0.03291 = nu_0 / (4 pi sigma^3) in units of Gauss^2 / (k_B T_0), with T_0 = 25C.
+	const number fact = 0.3291;
+	const number dot = mu1 * mu2;
+	number energy = - (fact / (drdhsnorm * sqrt(drdhsnorm))) * (3.f * ((mu1 * drdhs) * (mu2 * drdhs)) / drdhsnorm - dot); 
+	energy += - fact * _DHS_rf_fact * dot;
 	
 	return energy;
 }

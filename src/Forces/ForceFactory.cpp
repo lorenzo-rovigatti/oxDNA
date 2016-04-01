@@ -20,6 +20,7 @@
 #include "RepulsionPlaneMoving.h"
 #include "LJWall.h"
 #include "RepulsiveSphere.h"
+#include "AlignmentField.h"
 
 #include <fstream>
 #include <sstream>
@@ -66,6 +67,7 @@ void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **par
 	else if (type_str.compare("sphere") == 0) extF = new RepulsiveSphere<number> ();
 	else if (type_str.compare("com") == 0) extF = new COMForce<number> ();
 	else if (type_str.compare("LJ_wall") == 0) extF = new LJWall<number> ();
+	else if (type_str.compare("alignment_field") == 0) extF = new AlignmentField<number> ();
 	else throw oxDNAException ("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
