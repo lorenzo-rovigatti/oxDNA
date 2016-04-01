@@ -124,6 +124,7 @@ SET(forces_SOURCES
 	Forces/RepulsionPlaneMoving.cpp
 	Forces/RepulsiveSphere.cpp
 	Forces/LJWall.cpp
+	Forces/AlignmentField.cpp
 	Forces/ForceFactory.cpp
 )
 
