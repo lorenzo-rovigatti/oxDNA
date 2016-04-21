@@ -65,7 +65,7 @@ template<typename number>
 std::string FSConf<number>::_headers(llint step) {
         std::stringstream headers;
 
-        number mybox = *this->_config_info.box_side;
+	LR_vector<number> sides = this->_config_info.box->box_sides();
 
         int tot_N = 5*_N_A + 3*_N_B;
         int tot_N_A = 5*_N_A;
@@ -76,7 +76,7 @@ std::string FSConf<number>::_headers(llint step) {
 
 
         headers << step << " " << step << " " << tot_N << " " << tot_N_A << " " << 0 << endl;
-        headers << mybox << " " << mybox << " " << mybox << " " << 0. << " " << 0. << " " << 0.;
+        headers << sides.x << " " << sides.y << " " << sides.z << " " << 0. << " " << 0. << " " << 0.;
 
         return headers.str();
 }
@@ -85,13 +85,12 @@ template<typename number>
 std::string FSConf<number>::_particle(BaseParticle<number> *p) {
 	std::stringstream res;
 
-	number mybox = *this->_config_info.box_side;
-
-	LR_vector<number> mypos = p->get_abs_pos(mybox);
+	LR_vector<number> sides = this->_config_info.box->box_sides();
+	LR_vector<number> mypos = p->get_abs_pos(sides);
 	if(_in_box) {
-		mypos.x -= floor(mypos.x / mybox)*mybox + 0.5*mybox;
-		mypos.y -= floor(mypos.y / mybox)*mybox + 0.5*mybox;
-		mypos.z -= floor(mypos.z / mybox)*mybox + 0.5*mybox;
+		mypos.x -= floor(mypos.x / sides.x)*sides.x + 0.5*sides.x;
+		mypos.y -= floor(mypos.y / sides.y)*sides.y + 0.5*sides.y;
+		mypos.z -= floor(mypos.z / sides.z)*sides.z + 0.5*sides.z;
 	}
 
 	res << mypos.x << " " << mypos.y << " " << mypos.z << " ";

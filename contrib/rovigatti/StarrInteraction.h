@@ -12,6 +12,8 @@
 
 #include "../Lists/Cells.h"
 
+#define P_HUB 400
+
 /**
  * @brief Manages the interaction between Starr tetramers.
  *
@@ -22,7 +24,7 @@ template <typename number>
 class StarrInteraction: public BaseInteraction<number, StarrInteraction<number> > {
 protected:
 	int _N_per_strand;
-	int _N_strands;
+	int _N_strands, _N_tetramers, _N_dimers;
 
 	bool _starr_model;
 	int _mode;
