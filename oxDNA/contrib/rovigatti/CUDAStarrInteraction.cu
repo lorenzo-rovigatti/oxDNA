@@ -61,8 +61,8 @@ __device__ number quad_minimum_image_dist(const number4 &r_i, const number4 &r_j
 
 template <typename number, typename number4>
 __device__ void _two_body(number4 &r, int pbtype, int qbtype, int p_idx, int q_idx, number4 &F, bool disable_pairing) {
-	int ptype = (pbtype == N_DUMMY) ? 0 : 1;
-	int qtype = (qbtype == N_DUMMY) ? 0 : 1;
+	int ptype = (pbtype == N_DUMMY || pbtype == P_HUB) ? 0 : 1;
+	int qtype = (qbtype == N_DUMMY || qbtype == P_HUB) ? 0 : 1;
 	int int_type = ptype + qtype;
 
 	int int_btype = pbtype + qbtype;
@@ -129,18 +129,17 @@ template <typename number, typename number4>
 __device__ void _particle_all_bonded_interactions(number4 &ppos, LR_bonds &bs, number4 &F, number4 *poss, number4 *forces) {
 	int pbtype = get_particle_btype<number, number4>(ppos);
 	// backbone or hub
-	if(pbtype == N_DUMMY) {
-		bool has_n3 = bs.n3 != P_INVALID;
-		bool has_n5 = bs.n5 != P_INVALID;
+	if(pbtype == N_DUMMY || pbtype == P_HUB) {
+		bool has_n3 = (bs.n3 != P_INVALID);
+		bool has_n5 = (bs.n5 != P_INVALID);
 		// backbone
 		if(has_n3) {
 			number4 qpos = poss[bs.n3];
 			_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F);
 		}
 
-		// if MD_mode is not STRANDS then only non-hub particles have has_n3 == true
-		if(has_n3 || MD_mode[0] == StarrInteraction<number>::STRANDS) {
-			// backbone-base
+		// backbone-base
+		if(pbtype == N_DUMMY) {
 			number4 qpos = poss[IND + 1];
 			_particle_particle_bonded_interaction<number, number4>(ppos, qpos, F, true);
 		}
@@ -222,7 +221,7 @@ __device__ void _three_body(number4 &ppos, LR_bonds &bs, number4 &F, number4 *po
 	number force_mod_n5 = i_pn3_pn5 + cost_n5;
 
 	F += dist_pn3*(force_mod_n3*MD_lin_k[0]) - dist_pn5*(force_mod_n5*MD_lin_k[0]);
-	F.w += MD_lin_k[0] * (1.f - cost);
+	F.w += MD_lin_k[0]*(1.f - cost);
 
 	number4 n3_force = dist_pn5*(i_pn3_pn5*MD_lin_k[0]) - dist_pn3*(cost_n3*MD_lin_k[0]);
 	number4 n5_force = dist_pn5*(cost_n5*MD_lin_k[0]) - dist_pn3*(i_pn3_pn5*MD_lin_k[0]);
@@ -239,15 +238,16 @@ __global__ void three_body_forces(number4 *poss, number4 *forces, number4 *n3_fo
 	number4 F = forces[IND];
 	LR_bonds bs = bonds[IND];
 	number4 ppos = poss[IND];
+	int btype = get_particle_btype<number, number4>(ppos);
 
-	if(MD_starr_model[0] && (IND % MD_N_per_strand[0] == 0)) {
-	  int base_idx = IND - (IND % MD_N_per_tetramer[0]);
+	if(MD_starr_model[0] && btype == P_HUB) {
+	  /*int base_idx = IND - (IND % MD_N_per_tetramer[0]);
 		for(int i = 0; i < MD_N_per_tetramer[0]; i += MD_N_per_strand[0]) {
 			bs.n3 = base_idx + i;
 			if(bs.n3 != IND) {
 				_three_body<number, number4>(ppos, bs, F, poss, n3_forces, n5_forces);
 			}
-		}
+		}*/
 	}
 	else _three_body<number, number4>(ppos, bs, F, poss, n3_forces, n5_forces);
 
@@ -263,32 +263,37 @@ __global__ void sum_three_body(number4 *forces, number4 *n3_forces, number4 *n5_
 }
 
 template <typename number, typename number4>
-__global__ void tetra_hub_forces(number4 *poss, number4 *forces, int *hubs, tetra_hub_bonds *bonds) {
+__global__ void hub_forces(number4 *poss, number4 *forces, number4 *n3_forces, number4 *n5_forces, int *hubs, hub_bonds *bonds, LR_bonds *n3n5) {
 	if(IND >= MD_N_hubs[0]) return;
 
 	int idx_hub = hubs[IND];
-	tetra_hub_bonds hub_bonds = bonds[IND];
+	hub_bonds hub_bonds = bonds[IND];
 	number4 pos_hub = poss[idx_hub];
 	number4 F = forces[idx_hub];
+	LR_bonds bs_hub = n3n5[idx_hub];
 
 	for(int an = 0; an < (HUB_SIZE-1); an++) {
 		int bonded_neigh = hub_bonds.n[an];
 		// since bonded neighbours of hub are in the hub's neighbouring list, the LJ interaction between
 		// the two, from the point of view of the hub, has been already computed and hence the hub-particle
 		// interaction reduces to just the fene
-		_particle_particle_bonded_interaction<number, number4>(pos_hub, poss[bonded_neigh], F, true);
+		if(bonded_neigh != P_INVALID) {
+			_particle_particle_bonded_interaction<number, number4>(pos_hub, poss[bonded_neigh], F, true);
+			if(MD_starr_model[0]) {
+				bs_hub.n3 = bonded_neigh;
+				_three_body<number, number4>(pos_hub, bs_hub, F, poss, n3_forces, n5_forces);
+			}
+		}
 	}
 
 	forces[idx_hub] = F;
 }
 
 template<typename number, typename number4>
-CUDAStarrInteraction<number, number4>::CUDAStarrInteraction() : _h_tetra_hubs(NULL), _h_tetra_hub_neighs(NULL) {
+CUDAStarrInteraction<number, number4>::CUDAStarrInteraction() {
 	_N_hubs = -1;
-	_h_tetra_hub_neighs = NULL;
-	_h_tetra_hubs = NULL;
-	_d_tetra_hubs = _d_strand_ids = NULL;
-	_d_tetra_hub_neighs = NULL;
+	_d_hubs = _d_strand_ids = NULL;
+	_d_hub_neighs = NULL;
 	_d_n3_forces = _d_n5_forces = NULL;
 }
 
@@ -298,12 +303,9 @@ CUDAStarrInteraction<number, number4>::~CUDAStarrInteraction() {
 		CUDA_SAFE_CALL( cudaFree(_d_strand_ids) );
 	}
 
-	if(_h_tetra_hubs != NULL) {
-		delete[] _h_tetra_hubs;
-		delete[] _h_tetra_hub_neighs;
-
-		CUDA_SAFE_CALL( cudaFree(_d_tetra_hubs) );
-		CUDA_SAFE_CALL( cudaFree(_d_tetra_hub_neighs) );
+	if(_d_hubs != NULL) {
+		CUDA_SAFE_CALL( cudaFree(_d_hubs) );
+		CUDA_SAFE_CALL( cudaFree(_d_hub_neighs) );
 	}
 
 	if(_d_n3_forces == NULL) {
@@ -327,7 +329,7 @@ void CUDAStarrInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
 	StarrInteraction<number>::init();
 
-	if(this->_mode != StarrInteraction<number>::STRANDS) _setup_tetra_hubs();
+	if(this->_mode != StarrInteraction<number>::STRANDS) _setup_hubs();
 	_setup_strand_ids();
 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_n3_forces, this->_N*sizeof(number4)) );
@@ -378,48 +380,52 @@ void CUDAStarrInteraction<number, number4>::_setup_strand_ids() {
 }
 
 template<typename number, typename number4>
-void CUDAStarrInteraction<number, number4>::_setup_tetra_hubs() {
+void CUDAStarrInteraction<number, number4>::_setup_hubs() {	
 	BaseParticle<number> **particles = new BaseParticle<number> *[this->_N];
 	StarrInteraction<number>::allocate_particles(particles, this->_N);
 	int N_strands;
 	StarrInteraction<number>::read_topology(this->_N, &N_strands, particles);
 
 	int N_per_tetramer = 4*this->_N_per_strand;
-	int N_tetramers = this->_N / N_per_tetramer;
+	N_per_tetramer = 68;
 
-	_N_hubs = N_tetramers*HUB_SIZE;
-	_h_tetra_hubs = new int[_N_hubs];
-	_h_tetra_hub_neighs = new tetra_hub_bonds[_N_hubs];
+	_N_hubs = this->_N_tetramers*4 + this->_N_dimers*2;
+	int *h_hubs = new int[_N_hubs];
+	hub_bonds *h_hub_neighs = new hub_bonds[_N_hubs];
 
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_tetra_hubs, _N_hubs*sizeof(int)) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tetra_hub_bonds>(&_d_tetra_hub_neighs, _N_hubs*sizeof(tetra_hub_bonds)) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_hubs, _N_hubs*sizeof(int)) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<hub_bonds>(&_d_hub_neighs, _N_hubs*sizeof(hub_bonds)) );
 
-	for(int i = 0; i < N_tetramers; i++) {
-		int idx_tetra = N_per_tetramer*i;
-		for(int j = 0; j < HUB_SIZE; j++) {
-			int idx_hub = idx_tetra + j*this->_N_per_strand;
-			CustomParticle<number> *p = static_cast<CustomParticle<number> *>(particles[idx_hub]);
-			int rel_idx_hub = i*HUB_SIZE + j;
-			_h_tetra_hubs[rel_idx_hub] = p->index;
+	int rel_idx_hub = 0;
+	for(int i = 0; i < this->_N; i++) {
+		CustomParticle<number> *p = static_cast<CustomParticle<number> *>(particles[i]);
+		if(p->btype == P_HUB) {
+			h_hubs[rel_idx_hub] = p->index;
 
-			// now load all the tetra_hub_bonds structures by looping over all the bonded neighbours
+			// now load all the hub_bonds structures by looping over all the bonded neighbours
 			int nn = 0;
 			for(typename set<CustomParticle<number> *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++) {
 				if((*it) != p->n5) {
-					_h_tetra_hub_neighs[rel_idx_hub].n[nn] = (*it)->index;
+					h_hub_neighs[rel_idx_hub].n[nn] = (*it)->index;
 					nn++;
 				}
 			}
+			for(; nn < HUB_SIZE-1; nn++) h_hub_neighs[rel_idx_hub].n[nn] = P_INVALID;
+			rel_idx_hub++;
 		}
 	}
 
-	CUDA_SAFE_CALL( cudaMemcpy(_d_tetra_hubs, _h_tetra_hubs, _N_hubs*sizeof(int), cudaMemcpyHostToDevice) );
-	CUDA_SAFE_CALL( cudaMemcpy(_d_tetra_hub_neighs, _h_tetra_hub_neighs, _N_hubs*sizeof(tetra_hub_bonds), cudaMemcpyHostToDevice) );
+	if(rel_idx_hub != _N_hubs) throw oxDNAException("%d hubs found, should have been %d", rel_idx_hub, _N_hubs);
+
+	CUDA_SAFE_CALL( cudaMemcpy(_d_hubs, h_hubs, _N_hubs*sizeof(int), cudaMemcpyHostToDevice) );
+	CUDA_SAFE_CALL( cudaMemcpy(_d_hub_neighs, h_hub_neighs, _N_hubs*sizeof(hub_bonds), cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_hubs, &_N_hubs, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_per_tetramer, &N_per_tetramer, sizeof(int)) );
 
 	for(int i = 0; i < this->_N; i++) delete particles[i];
 	delete[] particles;
+	delete[] h_hubs;
+	delete[] h_hub_neighs;
 }
 
 template<typename number, typename number4>
@@ -428,6 +434,13 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 		(d_poss, d_forces, _d_n3_forces, _d_n5_forces, d_bonds);
 	CUT_CHECK_ERROR("three_body_forces error");
+
+	if(this->_mode != StarrInteraction<number>::STRANDS) {
+		hub_forces<number, number4>
+			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+			(d_poss, d_forces, _d_n3_forces, _d_n5_forces, _d_hubs, _d_hub_neighs, d_bonds);
+		CUT_CHECK_ERROR("hub_forces error");
+	}
 
 	sum_three_body<number, number4>
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
@@ -456,14 +469,7 @@ void CUDAStarrInteraction<number, number4>::compute_forces(CUDABaseList<number, 
 				(d_poss,  d_forces, d_bonds, _d_strand_ids);
 			CUT_CHECK_ERROR("Starr_forces no_lists error");
 		}
-	}
-
-	if(this->_mode != StarrInteraction<number>::STRANDS) {
-		tetra_hub_forces<number, number4>
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_forces, _d_tetra_hubs, _d_tetra_hub_neighs);
-		CUT_CHECK_ERROR("tetra_hub_forces error");
-	}
+	}	
 }
 
 extern "C" IBaseInteraction<float> *make_CUDAStarrInteraction_float() {

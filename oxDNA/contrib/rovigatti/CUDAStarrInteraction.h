@@ -15,7 +15,7 @@
 
 typedef struct __align__(8) {
 	int n[HUB_SIZE-1];
-} tetra_hub_bonds;
+} hub_bonds;
 
 /**
  * @brief Handles interactions between Starr tetramers on CUDA.
@@ -24,13 +24,13 @@ template<typename number, typename number4>
 class CUDAStarrInteraction: public CUDABaseInteraction<number, number4>, public StarrInteraction<number> {
 protected:
 	int _N_hubs;
-	int *_h_tetra_hubs, *_d_tetra_hubs;
+	int *_d_hubs;
 	int *_d_strand_ids;
-	tetra_hub_bonds *_h_tetra_hub_neighs, *_d_tetra_hub_neighs;
+	hub_bonds *_d_hub_neighs;
 	number4 *_d_n3_forces, *_d_n5_forces;
 
 	void _setup_strand_ids();
-	void _setup_tetra_hubs();
+	void _setup_hubs();
 public:
 	CUDAStarrInteraction();
 	virtual ~CUDAStarrInteraction();
