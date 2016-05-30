@@ -37,6 +37,7 @@
 #include "Contacts.h"
 #include "Writhe.h"
 #include "NematicS.h"
+#include "UnstackedList.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
@@ -98,6 +99,7 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "writhe", 512)) res = new Writhe<number>();
 	else if(!strncasecmp(obs_type, "nematic_s", 512)) res = new NematicS<number>();
 	else if(!strncasecmp(obs_type, "jordan_conf", 512)) res = new JordanOutput<number>();
+	else if(!strncasecmp(obs_type, "unstacked_list", 512)) res = new UnstackedList<number>();
 	else {
 		res = PluginManager::instance()->get_observable<number>(obs_type);
 		if(res == NULL) throw oxDNAException ("Observable '%s' not found. Aborting", obs_type);
