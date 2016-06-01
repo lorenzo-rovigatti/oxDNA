@@ -1,4 +1,5 @@
 #include <fstream>
+#include <sstream>
 
 #include "TEPInteraction.h"
 
@@ -997,31 +998,63 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 		//int res = sscanf(line, "%d", &strand_length );
 		//strand_lengths[strand] = strand_length;
 		// new way TODO make sure it works
-		int temp_index;
+		std::string temp_string;
 		double temp_kb, temp_kt;
-		int res = sscanf(line, "%d %lf %lf",&temp_index,&temp_kb,&temp_kt);
-		if (res == 3){
-			if (temp_index < added_particles){
-				_kb_pref[temp_index] = (number) temp_kb;	
-				_kt_pref[temp_index] = (number) temp_kt;	
-				printf("on i=%d, kb = %lf and kt = %lf\n",temp_index,_kb_pref[temp_index],_kt_pref[temp_index]);
-			}
-			else throw oxDNAException("In the topology file particle %d is assigned non-default kb/kt prefactors before its strand is declared, as only %d particles have yet been added to the box.",temp_index,added_particles);
-
-		}
-		else if (res < 1 || res == 2) throw oxDNAException("Line %d of the topology file has an invalid syntax",strand+2);
+		int res = sscanf(line, "%[^\t \n] %lf %lf",temp_string.c_str(),&temp_kb,&temp_kt);
+		std::stringstream stream(line);
+		printf("Ce sto con %d, %s\n",res,temp_string.c_str());
+		if (!(stream >> temp_string )) {
+    // unable to read all values. handle error here
+    	printf("Can't read stream.\n");
+    }
 		else{
-			res = sscanf(line, "%d", &strand_length );
+			printf("Read string %s.\n",temp_string.c_str());
+			if(!(stream >> temp_kb)){
+    		printf("Can't read kb.\n");}
+			else{
+				printf("Read kb %g.\n",temp_kb);
+			}
+			
+		}
+		if (res == 3){
+			std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles,added_particles,temp_string,"force string (ConstantRateForce.cpp)");
+			for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){
+				int temp_index = particle_indices_vector[i];
+				if (temp_index < added_particles){
+					_kb_pref[temp_index] = (number) temp_kb;	
+					_kt_pref[temp_index] = (number) temp_kt;	
+					printf("on i=%d, kb = %g and kt = %g\n",temp_index,_kb_pref[temp_index],_kt_pref[temp_index]);
+				}
+				else throw oxDNAException("In the topology file particle %d is assigned non-default kb/kt prefactors before its strand is declared, as only %d particles have yet been added to the box.",temp_index,added_particles);
+			}
+		}
+		else if (res < 1 || res > 3) throw oxDNAException("Line %d of the topology file has an invalid syntax",strand+2);
+		else if (res == 1 || res == 2){
+			char topology_char='l';
+			bool closed_topology = false;
+			res = sscanf(line, "%d %c", &strand_length, &topology_char );
+			if (res == 2){
+				if (topology_char == 'c' || topology_char == 'C'){
+					closed_topology = true;
+				}
+				else throw oxDNAException("Only the character 'c' and 'C' are allowed as a topology qualifier on line (%c found).\n",topology_char);
+			}
 			strand_lengths[strand] = strand_length;
 			for (int i = 0; i < strand_length; i++){
 				_kb_pref[i] = 1.;
 				_kt_pref[i] = 1.;
 				BaseParticle<number> *p = particles[i + particles_in_previous_strands];
 
-				if (i == 0)	p->n3 = P_VIRTUAL;
+				if (i == 0)	{
+					if (closed_topology) p->n3 = particles[particles_in_previous_strands + strand_length - 1];
+					else p->n3 = P_VIRTUAL;
+				}
 				else p->n3 = particles[ particles_in_previous_strands + i-1];
 
-				if (i == strand_length -1) p->n5 = P_VIRTUAL;
+				if (i == strand_length -1){ 
+					if (closed_topology) p->n5 = particles[ particles_in_previous_strands];
+					else p->n5 = P_VIRTUAL;
+				}
 				else p->n5 = particles[ particles_in_previous_strands + i+1];
 				p->strand_id = strand;
 				added_particles ++;
@@ -1033,32 +1066,11 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 				if (p->n3 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p->n3, p)); 
 				if (p->n5 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p, p->n5));
 			
-				
-				/* TODO remove this once the read from the topology file of kb and kt works.
-				char kt_on_bead_i[255];
-				char kb_on_bead_i[255];
-				sprintf(kt_on_bead_i,"TEP_kt_on_bead_%d",p->index);
-				sprintf(kb_on_bead_i,"TEP_kb_on_bead_%d",p->index);
-				if( getInputInt(&inp,kt_on_bead_i,&p->_kt_prefactor,0) == KEY_FOUND){
-					OX_LOG(Logger::LOG_INFO," On bead %d, set kt_prefactor = %e",p->index, p->_kt_prefactor);
-				}
-				else{
-					p->_kt_prefactor=1.;
-				}
-				if( getInputInt(&inp,kb_on_bead_i,&p->_kb_prefactor,0) == KEY_FOUND){
-					OX_LOG(Logger::LOG_INFO," On bead %d, set kb_prefactor = %e",p->index, p->_kb_prefactor);
-				}
-				else{
-					p->_kb_prefactor=1.;
-				}
-				printf("on bead %d, kt_p = %e, kb_p = %e.\n",p->index, p->_kt_prefactor, p->_kb_prefactor);
-				*/
-				//TODO adesso modifica i termini della forza in modo che ritornino forze e energie con il giusto prefattore.
-
 			}
 			strand++;
 			particles_in_previous_strands+= strand_length;
 		}
+		else throw oxDNAException("Unhandled exception in reading the topology file. Please contact a developer (probably Ferdinando Randisi).");
 	
 	}
 	if (added_particles < N_from_conf )throw oxDNAException("Not enough particles found in the topology file (should be %d to match the configuration file). Aborting", N_from_conf);
@@ -1066,42 +1078,6 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 	if(my_N != N_from_conf) throw oxDNAException ("Number of lines in the configuration file and\nnumber of particles as stated in the header of the topology file don't match. Aborting");
 	
 	if( strand != my_N_strands) throw oxDNAException("Number of strands in the topology file and\nnumber of strands as stated in the header of the topology file don't match. Aborting");
-// Check the topology of the chain TODO to be removed after the code above has been checked.
-	particles_in_previous_strands = 0;
-	for (int i = 0; i<strand; i++){
-		for (int j = 0; j < strand_lengths[i]; j++){
-			BaseParticle<number> *p = particles[j + particles_in_previous_strands];
-// First and last particle (e.g. particle without bonds)
-		if (j == 0 && j == strand_lengths[i]-1){
-			if ( p->n3 != P_VIRTUAL)
-				throw oxDNAException("in strand %d the particle %d is preceded by particle %p instead of a virtual one",i,j+particles_in_previous_strands,p->n3);
-			if ( p->n5 != P_VIRTUAL)
-				throw oxDNAException("in strand %d the particle %d is followed by particle %p instead of a virtual one",i,j+particles_in_previous_strands,p->n5);
-		}
-//	First particle
-			else if (j ==0){
-				if ( p->n3 != P_VIRTUAL)
-					throw oxDNAException("in strand %d the particle %d is preceded by particle %p instead of a virtual one",i,j+particles_in_previous_strands,p->n3);
-				if ( p->n5 != particles[j+particles_in_previous_strands+1])
-					throw oxDNAException("in strand %d the particle %d is followed by particle %p instead of particle %d(%p)",i,j+particles_in_previous_strands,p->n5,j+particles_in_previous_strands+1,particles[j+particles_in_previous_strands +1]);
-			}
-// Last particle
-			else if (j == strand_lengths[i]-1){
-				if ( p->n5 != P_VIRTUAL)
-					throw oxDNAException("in strand %d the particle %d is followed by particle %p instead of a virtual one",i,j+particles_in_previous_strands,p->n5);
-				if ( p->n3 != particles[j+particles_in_previous_strands-1])
-					throw oxDNAException("in strand %d the particle %d is preceded by particle %p instead of particle %d(%p)",i,j+particles_in_previous_strands,p->n3,j+particles_in_previous_strands-1,particles[j+particles_in_previous_strands -1]);
-			}
-			else{
-//	Generic particle
-				if ( p->n3 != particles[j+particles_in_previous_strands-1])
-					throw oxDNAException("in strand %d the particle %d is preceded by particle %p instead of particle %d(%p)",i,j+particles_in_previous_strands,p->n3,j+particles_in_previous_strands-1,particles[j+particles_in_previous_strands -1]);
-				if ( p->n5 != particles[j+particles_in_previous_strands+1])
-					throw oxDNAException("in strand %d the particle %d is followed by particle %p instead of particle %d(%p)",i,j+particles_in_previous_strands,p->n5,j+particles_in_previous_strands+1,particles[j+particles_in_previous_strands +1]);
-			}	
-		}
-		particles_in_previous_strands += strand_lengths[i];
-	}
 	
 	delete [] strand_lengths;
 
