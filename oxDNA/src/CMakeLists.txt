@@ -45,6 +45,7 @@ SET(observables_SOURCES
 	Observables/Contacts.cpp
 	Observables/Writhe.cpp
 	Observables/NematicS.cpp
+	Observables/UnstackedList.cpp
 )
 
 SET(backends_SOURCES
