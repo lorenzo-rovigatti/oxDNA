@@ -13,13 +13,11 @@ template<typename number>
 UnstackedList<number>::UnstackedList() {
 	_threshold_fraction = 0.1;
 	model = new Model;
-
 }
 
 template<typename number>
 UnstackedList<number>::~UnstackedList() {
 	delete model;
-
 }
 
 template<typename number> void
