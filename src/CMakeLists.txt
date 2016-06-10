@@ -46,6 +46,7 @@ SET(observables_SOURCES
 	Observables/Writhe.cpp
 	Observables/NematicS.cpp
 	Observables/UnstackedList.cpp
+	Observables/PlectonemePosition.cpp
 )
 
 SET(backends_SOURCES
