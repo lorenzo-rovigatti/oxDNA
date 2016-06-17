@@ -198,6 +198,11 @@ public:
    */
 
 	static void assert_is_valid_particle(int n,int N,char const * identifier);
+	/**
+ *	@brief Utility function that returns true if a string only contains digits, and false otherwise.
+ *	@param s string to be checked. 
+ */
+	static bool is_integer(std::string s);
 	
 };
 
@@ -315,35 +320,56 @@ std::vector<int> Utils::getParticlesFromString(BaseParticle<number> **particles,
 		bool found_dash = temp[i].find('-') != std::string::npos;
 		// if the string contains a dash, then it has to be interpreted as a list of particles
 		// unless it's a negative number
+		
 		//if (found_dash && strcmp("-1",temp[i].c_str()) != 0 ){
 		if (found_dash && '-'!= temp[i].c_str()[0] ){
-			// get the two indices p1 and p2 and check they make sense
-			std::vector<std::string> p1_p2_index = Utils::split(temp[i].c_str(),'-');
+			// get the two indices p0 and p1 and check they make sense
+			std::vector<std::string> p0_p1_index = Utils::split(temp[i].c_str(),'-');
 
-			int p1 = atoi(p1_p2_index[0].c_str());
-			int p2 = atoi(p1_p2_index[1].c_str());
-			Utils::assert_is_valid_particle(p1,N,identifier);
-			Utils::assert_is_valid_particle(p2,N,identifier);
+			int p[2]={0};
+			// check whether the p0 and p1 keys can be understood, and set them
+			for (int ii = 0; ii < 2; ii++){
+				if ( Utils::is_integer(p0_p1_index[ii])){
+					p[ii] = atoi(p0_p1_index[ii].c_str());
+					Utils::assert_is_valid_particle(p[ii],N,identifier);
+				}
+				if ( ! Utils::is_integer(p0_p1_index[ii])){
+					if(p0_p1_index[ii] == "last") p[ii] = N - 1;
+					else{
+						throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\" used as a boundary particle.",identifier,p0_p1_index[ii].c_str());
+					}
+				}
+			}
 
-			int j = p1;
-			// add all the particles between p1 and p2 (extremes included)
-			bool found_p2 = false;
+			// add all the particles between p0 and p1 (extremes included)
+			int j = p[0];
+			bool found_p1 = false;
 			do{
 				particles_index.push_back(j);
-				if (j == p2){
-					found_p2 = true;
+				if (j == p[1]){
+					found_p1 = true;
 				}
 				if (particles[j]->n5 == P_VIRTUAL) break;
 				j = particles[j]->n5->index;
 
-			} while( j != p1 && !found_p2);
+			} while( j != p[0] && !found_p1);
 			// check that it hasn't got to either the end of the strand or back to p1
-			if(!found_p2){
-				throw oxDNAException("In force %s I couldn't get from particle %d to particle %d.",identifier,p1,p2);
+			if(!found_p1){
+				throw oxDNAException("In %s I couldn't get from particle %d to particle %d.",identifier,p[0],p[1]);
 			} 
 
 		}	
-		else{//just add it to the vector
+		else if ( temp[i] == "last"){
+			particles_index.push_back(N-1);
+		} 
+		else if ( temp[i] == "all"){
+			particles_index.push_back(-1);
+		}
+		else{//add it to the vector, and make sure that the identifier is not an unidentified string
+			if ( temp[i] != "-1" && ! Utils::is_integer(temp[i])){
+				throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\".",identifier,temp[i].c_str());
+				
+			}
 			int j = atoi(temp[i].c_str());
 			
 			Utils::assert_is_valid_particle(j,N,identifier);
@@ -354,7 +380,7 @@ std::vector<int> Utils::getParticlesFromString(BaseParticle<number> **particles,
 	// check that if -1 is present then that's the only key - something must be wrong if you
   // specified -1 (all particles) and then some more particles.
 	if (std::find(particles_index.begin(),particles_index.end(),-1) != particles_index.end() && particles_index.size()>1){
-		throw oxDNAException("In %s there are more than one particle index, including -1. If -1 is a particle index then it has to be the only one. Dying badly.",identifier);
+		throw oxDNAException("In %s there is more than one particle identifier, including -1 or \"all\". If either -1 or \"all\" are used as particle identifiers then they have to be the only one, as both translate to \"all the particles\". Dying badly.",identifier);
 	}
 	// check that no particle appears twice
 	for( std::vector<int>::size_type i = 0; i < particles_index.size(); i++){
