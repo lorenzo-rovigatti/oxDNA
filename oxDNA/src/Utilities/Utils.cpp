@@ -259,6 +259,11 @@ void Utils::assert_is_valid_particle(int index, int N,char const * identifier){
 	}
 }
 
+bool Utils::is_integer(std::string s){
+	return s.find_first_not_of( "0123456789" ) == string::npos;
+
+}
+
 
 template float Utils::gaussian<float>();
 template double Utils::gaussian<double>();
