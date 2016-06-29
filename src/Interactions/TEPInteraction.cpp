@@ -1258,8 +1258,8 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 		//strand_lengths[strand] = strand_length;
 		// new way TODO make sure it works
 		std::string temp_string;
-		double temp_kb, temp_kt, temp_kb2;
-		int res = sscanf(line, "%[^\t \n] %lf %lf %lf",temp_string.c_str(),&temp_kb,&temp_kt,&temp_kb2);
+		double temp_kb, temp_kt, temp_kb2,xu,xk;
+		int res = sscanf(line, "%[^\t \n] %lf %lf %lf %lf %lf",temp_string.c_str(),&temp_kb,&temp_kt,&temp_kb2,&xu,&xk);
 		std::stringstream stream(line);
 		printf("Ce sto con %d, %s\n",res,temp_string.c_str());
 		if (!(stream >> temp_string )) {
@@ -1275,24 +1275,29 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 			}
 			
 		}
-		if (res == 3 || res == 4){
+		int max_n_fields=6;
+		// if these many fields are given, specific beads are being edited
+		if (res >= 3 && res <= max_n_fields){
 			std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles,added_particles,temp_string,"interaction TEP (TEPInteraction.cpp)");
 			for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){
 				int temp_index = particle_indices_vector[i];
 				if (temp_index < added_particles){
 					_kb1_pref[temp_index] = (number) temp_kb;	
 					_kt_pref[temp_index] = (number) temp_kt;	
-					printf("on i=%d, kb1 = %g and kt = %g\n",temp_index,_kb1_pref[temp_index],_kt_pref[temp_index]);
-					printf("res = %d\n",res);
-					if (res == 4){
+					if (res >= 4){
 						_kb2_pref[temp_index] = (number) temp_kb2;
-						printf("       also kb2 = %g",_kb2_pref[temp_index]);
+					}
+					if (res >= 5){
+						_xu_bending[temp_index] = (number) xu;
+					}
+					if (res >= 6){
+						_xk_bending[temp_index] = (number) xk;
 					}
 				}
 				else throw oxDNAException("In the topology file particle %d is assigned non-default kb/kt prefactors before its strand is declared, as only %d particles have yet been added to the box.",temp_index,added_particles);
 			}
 		}
-		else if (res < 1 || res > 4) throw oxDNAException("Line %d of the topology file has an invalid syntax",strand+2);
+		else if (res < 1 || res > max_n_fields) throw oxDNAException("Line %d of the topology file has an invalid syntax",strand+2);
 		else if (res == 1 || res == 2){
 			char topology_char='l';
 			bool closed_topology = false;
