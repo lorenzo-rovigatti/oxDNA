@@ -30,10 +30,19 @@ protected:
 	number _kt;
 	
 	number * _kt_pref;
-	number * _kb_pref;
+	number * _kb1_pref;
 	// parameters of the modified twisting terms
 	number _twist_a;
 	number _twist_b;
+	
+	// parameters of the double bending term
+	
+	number * _xu_bending;
+	number * _xk_bending;
+	number * _kb2_pref;
+	number _xu_bending_default;
+	number _xk_bending_default;
+	number _kb2_pref_default;
 	// FENE parameters
 	number _TEP_FENE_DELTA;
 	number _TEP_FENE_DELTA2;
@@ -72,6 +81,8 @@ input_file * input_file_copy;
 
 	virtual number _spring(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _bonded_bending(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	virtual number _bonded_double_bending(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	virtual number _bonded_double_bending_silly(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _bonded_twist(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _bonded_alignment(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _bonded_debye_huckel(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
@@ -85,8 +96,66 @@ input_file * input_file_copy;
 	int setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
 	int setNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
 	int setPositiveLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description);
+	// Return the parameters for the smoothed potential
+	// parameter A
+	inline number _get_A_smooth(int particle_index){ 
+		number kb2 = _kb2_pref[particle_index];
+		number gu = cos(_xu_bending[particle_index]);
+		number gu2 = gu *gu ;
+		number gu3 = gu2*gu ;
+		number gu4 = gu2*gu2;
+		number gk = cos(_xk_bending[particle_index]);
+		number gk2 = gk *gk ;
+		number gk3 = gk2*gk ;
+		number gk4 = gk2*gk2;
 
+return (gk2*kb2 - 2.*gk*gu*kb2 + 1.*gu2*kb2)/(gk4 - 4.*gk3*gu + 6.*gk2*gu2 - 4.*gk*gu3 + gu4);
+	}
 
+	// parameter B
+	inline number _get_B_smooth(int particle_index){ 
+		number kb2 = _kb2_pref[particle_index];
+		number kb1 = _kb1_pref[particle_index];
+		number gu = cos(_xu_bending[particle_index]);
+		number gu2 = gu *gu ;
+		number gu3 = gu2*gu ;
+		number gu4 = gu2*gu2;
+		number gu5 = gu4*gu;
+		number gk = cos(_xk_bending[particle_index]);
+		number gk2 = gk *gk ;
+		number gk3 = gk2*gk ;
+		number gk4 = gk2*gk2;
+		number gk5 = gk4*gk;
+		return (gk*gu3*(2.*kb1 - 5.*kb2) + gk4*(-0.5*kb1 - kb2) + gk3*gu*(2.*kb1 + kb2) + gu4*(-0.5*kb1 + 2.*kb2) +  gk2*gu2*(-3.*kb1 + 3.*kb2)) / (gk5 - 5.*gk4*gu + 10.*gk3*gu2 - 10.*gk2*gu3 + 5.*gk*gu4 - gu5);
+
+		return (gk*SQR(gu)*gu*(2.*kb1 - 5.*kb2) + SQR(gk)*SQR(gk)*(-0.5*kb1 - kb2) + SQR(gk)*gk*gu*(2.*kb1 + kb2) + SQR(gu)*SQR(gu)*(-0.5*kb1 + 2.*kb2) +  SQR(gk)*SQR(gu)*(-3.*kb1 + 3.*kb2)) / (SQR(gk)*SQR(gk)*gk - 5.*SQR(gk)*SQR(gk)*gu + 10.*SQR(gk)*gk*SQR(gu) - 10.*SQR(gk)*SQR(gu)*gu + 5.*gk*SQR(gu)*SQR(gu) - SQR(gu)*SQR(gu)*gu);
+	}
+	// parameter C
+	inline number _get_C_smooth(int particle_index){
+		number gu = cos(_xu_bending[particle_index]);
+		number gk = cos(_xk_bending[particle_index]);
+		number kb2 = _kb2_pref[particle_index];
+		number kb1 = _kb1_pref[particle_index];
+
+		return (SQR(gk)*SQR(gk)*gk*kb1 + SQR(gk)*gk*SQR(gu)*(6.*kb1 - 5.*kb2) - SQR(gu)*SQR(gu)*gu*kb2 + gk*SQR(gu)*SQR(gu)*(kb1 + kb2) + SQR(gk)*SQR(gk)*gu*(-4.*kb1 + 2.*kb2) +  SQR(gk)*SQR(gu)*gu*(-4.*kb1 + 3.*kb2))/ (SQR(gk)*SQR(gk)*gk - 5.*SQR(gk)*SQR(gk)*gu + 10.*SQR(gk)*gk*SQR(gu) - 10.*SQR(gk)*SQR(gu)*gu + 5.*gk*SQR(gu)*SQR(gu) - SQR(gu)*SQR(gu)*gu);
+	}
+
+	// parameter D
+	inline number _get_D_smooth( int particle_index){
+		number gu = cos(_xu_bending[particle_index]);
+		number kb1 = _kb1_pref[particle_index];
+
+		return kb1*(1.-gu);
+	}
+	// parameter phi
+	inline number _get_phi_bending ( int particle_index){
+		number kb1 = _kb1_pref[particle_index];
+		number kb2 = _kb2_pref[particle_index];
+		number gu = cos(_xu_bending[particle_index]);
+		number gk = cos(_xk_bending[particle_index]);
+
+		return kb1*(1-(gu + gk)*0.5) - kb2*(1-gk);
+	}
 	/**
 	 * @brief Checks whether the two particles share a backbone link.
 	 *
