@@ -35,6 +35,13 @@ TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteractio
 		// Cosines
 	 _twist_a = 0.00;
 	 _twist_b = 0.95;
+	
+		// bending default values
+		_xu_bending_default = 0.5;
+		_xu_bending_default = 0.952319757;
+		_xk_bending_default = 1.0;
+		_xk_bending_default = 1.14813301;
+		_kb2_pref_default = 0.6;
 		
 		// Energies
 
@@ -54,6 +61,11 @@ TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteractio
 
 template<typename number>
 TEPInteraction<number>::~TEPInteraction() {
+	delete _kt_pref;
+	delete _kb1_pref;
+	delete _kb2_pref;
+	delete _xu_bending;
+	delete _xk_bending;
 
 }
 
@@ -210,6 +222,11 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	setPositiveNumber(&inp, "TEP_EXCL_R2", &_TEP_EXCL_R2, 0, "LJ r* - inner truncation distance");
 	setNonNegativeNumber(&inp, "TEP_EXCL_B2", &_TEP_EXCL_B2, 0, "LJ r* - inner truncation distance");
 	setPositiveNumber(&inp, "TEP_EXCL_RC2", &_TEP_EXCL_RC2, 0, "LJ r* - outer truncation distance");
+	// parameters of the double bending term
+	setNonNegativeNumber(&inp, "xu_bending_default",&_xu_bending_default,0,"xu_bending_default - default value for the lower kinking threshold");
+	setNonNegativeNumber(&inp, "xk_bending_default",&_xk_bending_default,0,"xk_bending_default - default value for the upper kinking threshold");
+	setNonNegativeNumber(&inp, "kb2_pref_default",&_kb2_pref_default,0,"kb2_pref_default - default value for the curvature of the outer region of the bending potential.");
+
 
 	// Other parameters
 	char T[256];
@@ -377,13 +394,251 @@ number TEPInteraction<number>::_bonded_bending(BaseParticle<number> *p, BasePart
 	LR_vector<number> & up = p->orientationT.v1;
 	LR_vector<number> & uq = q->orientationT.v1;
 	if ( update_forces ){
-		torque = -_kb * _kb_pref[p->index] * ( up.cross(uq));
+		torque = -_kb * _kb1_pref[p->index] * ( up.cross(uq));
 		p->torque -= p->orientationT*torque;
 		q->torque += q->orientationT*torque;
 	// forces are not updated since this term of the potential only introduces a torque,
 	// since it does not depend on r.
 	}
-	number energy = _kb*(1 - up*uq) * _kb_pref[p->index];
+	number energy = _kb*(1 - up*uq) * _kb1_pref[p->index];
+	return energy;
+	
+}
+/////////// double-harmonic bending potential / currently under development
+template<typename number>
+number TEPInteraction<number>::_bonded_double_bending_silly(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces){
+	number energy = 0;
+	LR_vector<number> torque(0.,0.,0.);
+	if(!_are_bonded(p, q)) {
+		return (number) 0.f;
+	}
+	if (p->n5 == P_VIRTUAL || q->n5 == P_VIRTUAL ) return 0.;
+	
+//begin of added block
+///*
+
+	fflush(stdout);
+	// The following are few orientation matrices for particles  with v1 in a given direction.
+	LR_matrix<number> face_right( 1.,0.,0.,  0.,1. ,0.,  0.,0.,1.); //face right
+	char buffer [50];
+	sprintf(buffer,"mybend.dat");
+	FILE *ffp = fopen(buffer,"w");
+	p->orientationT = face_right;
+	q->orientationT = face_right;
+
+	p->orientation = p->orientationT.get_transpose();
+	q->orientation = q->orientationT.get_transpose();
+	printf("p: vector v1 : %g %g %g\n",p->orientationT.v1.x,p->orientationT.v1.y,p->orientationT.v1.z);
+
+	printf("q: vector v1 : %g %g %g\n",q->orientationT.v1.x,q->orientationT.v1.y,q->orientationT.v1.z);
+
+
+	p->pos = LR_vector<number>(0.,0.,0.) ;
+	q->pos = LR_vector<number>(1,0.,0.) ;
+
+	//for (double rr = -acos(-_twist_b)+0.001; rr <= acos(-_twist_b)-0.001; rr+=0.001){
+	for (double rr = -3.1415+0.001; rr <= 3.1415-0.001; rr+=0.001){
+	//q->orientationT = LR_matrix<number>( 1.,0.,0.,  0.,cos(rr),-sin(rr),  0.,sin(rr),cos(rr));
+	q->orientationT = LR_matrix<number>( cos(rr),0.,-sin(rr),  0.,1.,0., sin(rr),0.,cos(rr));
+	q->orientation = q->orientationT.get_transpose();
+	energy = (number) 0.f;
+	int regime;
+	int i = p->index;
+	/*
+	printf("index %d\n",i);
+	printf("A %lf\nB %lf \nC %lf\nD %lf\n",_get_A_smooth(i),_get_B_smooth(i),_get_C_smooth(i),_get_D_smooth(i));
+	printf("gu %lf\ngk %lf\nkb2 %lf\n",cos(_xu_bending[i]),cos(_xk_bending[i]),_kb2_pref[i]);
+	abort();*/
+//*/
+	// end of added block
+	LR_vector<number> & up = p->orientationT.v1;
+	LR_vector<number> & uq = q->orientationT.v1;
+	number cosine = up*uq;
+	// unkinked bending regime
+	if ( acos(cosine) < _xu_bending[p->index]){
+		regime = 0;
+		if ( update_forces ){
+			torque = -_kb * _kb1_pref[p->index] * ( up.cross(uq));
+			p->torque -= p->orientationT*torque;
+			q->torque += q->orientationT*torque;
+		// forces are not updated since this term of the potential only introduces a torque,
+		// since it does not depend on r.
+		}
+		energy = _kb*(1 - up*uq) * _kb1_pref[p->index];
+	}//smoothing potential
+	else if (acos(cosine) < _xk_bending[p->index]){
+		regime = 1;
+		number A = _get_A_smooth(p->index);
+		number B = _get_B_smooth(p->index);
+		number C = _get_C_smooth(p->index);
+		number D = _get_D_smooth(p->index);
+		number gu = cos(_xu_bending[p->index]);
+	if ( update_forces ){
+		torque = +(_kb * (3 * A * SQR(cosine) + 2 * B * cosine + C ))*(up.cross(uq));
+			p->torque -= p->orientationT*torque;
+			q->torque += q->orientationT*torque;
+		}
+		energy = _kb*(A*(-cosine*SQR(cosine)+gu*SQR(gu))+B*( -SQR(cosine)+SQR(gu))+C*(-cosine + gu) + D);
+
+	}// kinked bending regime - same as unkinked, but with an additive term to the energy and with a different bending.
+	else{
+		regime = 2;
+		if ( update_forces ){
+			torque = -_kb * _kb2_pref[p->index] * ( up.cross(uq));
+			p->torque -= p->orientationT*torque;
+			q->torque += q->orientationT*torque;
+		// forces are not updated since this term of the potential only introduces a torque,
+		// since it does not depend on r.
+		}
+		energy = _kb*( (1 - up*uq) * _kb2_pref[p->index] + _get_phi_bending(p->index) );
+
+	}
+//begin of added block
+///*
+		fprintf(ffp,"%14.14lf %14.14lf %14.14lf %14.14lf %d\n",rr,cos(rr),energy,torque.module(),regime);
+	}
+	abort();
+//*/
+//end of added block	
+	return energy;
+	
+}
+/////////// double-harmonic bending potential / currently under development
+template<typename number>
+number TEPInteraction<number>::_bonded_double_bending(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces){
+	number energy = 0;
+	LR_vector<number> torque(0.,0.,0.);
+	if(!_are_bonded(p, q)) {
+		return (number) 0.f;
+	}
+	if (p->n5 == P_VIRTUAL || q->n5 == P_VIRTUAL ) return 0.;
+	
+//begin of added block
+/*
+
+	int regime;
+	int i = p->index;
+	fflush(stdout);
+	// The following are few orientation matrices for particles  with v1 in a given direction.
+	LR_matrix<number> face_right( 1.,0.,0.,  0.,1. ,0.,  0.,0.,1.); //face right
+	char buffer [50];
+	sprintf(buffer,"mybend.dat");
+	FILE *ffp = fopen(buffer,"w");
+	p->orientationT = face_right;
+	q->orientationT = face_right;
+
+	p->orientation = p->orientationT.get_transpose();
+	q->orientation = q->orientationT.get_transpose();
+	printf("p: vector v1 : %g %g %g\n",p->orientationT.v1.x,p->orientationT.v1.y,p->orientationT.v1.z);
+
+	printf("q: vector v1 : %g %g %g\n",q->orientationT.v1.x,q->orientationT.v1.y,q->orientationT.v1.z);
+
+
+	p->pos = LR_vector<number>(0.,0.,0.) ;
+	q->pos = LR_vector<number>(1,0.,0.) ;
+
+	//for (double rr = -acos(-_twist_b)+0.001; rr <= acos(-_twist_b)-0.001; rr+=0.001){
+	for (double rr = -3.1415+0.001; rr <= 3.1415-0.001; rr+=0.001){
+	//q->orientationT = LR_matrix<number>( 1.,0.,0.,  0.,cos(rr),-sin(rr),  0.,sin(rr),cos(rr));
+	q->orientationT = LR_matrix<number>( cos(rr),0.,-sin(rr),  0.,1.,0., sin(rr),0.,cos(rr));
+	q->orientation = q->orientationT.get_transpose();
+//*/
+	// end of added block
+
+	LR_vector<number> & up = p->orientationT.v1;
+	LR_vector<number> & uq = q->orientationT.v1;
+	number cosine = up*uq;
+
+	energy = (number) 0.f;
+
+	number tu = _xu_bending[p->index];
+	number tk = _xk_bending[p->index];
+	number kb1 = _kb1_pref[p->index];
+	number kb2 = _kb2_pref[p->index];
+
+	number gu = cos(_xu_bending[p->index]);
+	number angle = acos(cosine);
+
+	number A = (kb2*sin(tk)-kb1*sin(tu))/(tk-tu);
+	number B = kb1*sin(tu);
+	number C = kb1*(1-gu) - ( A*SQR(tu)/2.+tu*(B-tu*A));
+	number D = cos(tk) + (A*SQR(tk)*0.5+tk*(B-tu*A)+C)/kb2;
+
+
+	number g1 = (angle - tu) * A + B;
+	number g_ = A*SQR(angle)/2.+ angle*(B-tu*A);
+	number g = g_ + C;
+	
+	/*
+	printf("index %d\n",i);
+	printf("A %lf\nB %lf \nC %lf\nD %lf\n",_get_A_smooth(i),_get_B_smooth(i),_get_C_smooth(i),_get_D_smooth(i));
+	printf("gu %lf\ngk %lf\nkb2 %lf\n",cos(_xu_bending[i]),cos(_xk_bending[i]),_kb2_pref[i]);
+	abort();*/
+	// unkinked bending regime
+	if ( acos(cosine) < _xu_bending[p->index]){
+/*
+def f(x): return kb1*(1-np.cos(x))
+def f1(x): return kb1*np.sin(x)
+def g1(x): return (x-xu)*A+B
+def g_(x): return A*x**2/2.+x*(B-xu*A)
+C = f(xu) - g_(xu)
+def g(x): return g_(x) + C 
+def h1(x): return kb2*np.sin(x)
+D = np.cos(xk) + g(xk)/kb2
+def h(x): return kb2*(D-np.cos(x))
+def double_bending_3(x):
+  if x < xu: 
+    return f(x)
+  elif x < xk: 
+    return g(x)
+  else:
+    return h(x)
+def double_bending_3_force(x):
+  if x < xu: return f1(x)
+  if x < xk: return g1(x)
+  else:      return h1(x)
+*/
+		if ( update_forces ){
+			torque = -_kb * _kb1_pref[p->index] * ( up.cross(uq));
+			p->torque -= p->orientationT*torque;
+			q->torque += q->orientationT*torque;
+		// forces are not updated since this term of the potential only introduces a torque,
+		// since it does not depend on r.
+		}
+		energy = _kb*(1 - up*uq) * _kb1_pref[p->index];
+	}//intermediate regime 
+	else if (acos(cosine) < _xk_bending[p->index]){
+		if ( update_forces ){
+			LR_vector<number> sin_vector=up.cross(uq);
+			sin_vector.normalize();
+			torque = -_kb*g1*sin_vector;
+
+			p->torque -= p->orientationT*torque;
+			q->torque += q->orientationT*torque;
+		}
+		//energy = _kb*(A*(-cosine*SQR(cosine)+gu*SQR(gu))+B*( -SQR(cosine)+SQR(gu))+C*(-cosine + gu) + D);
+		//energy = _kb*(0.5* (kb1 + kb2)*(gu-cosine) + A*(acos(cosine) - _xu_bending[p->index])+B;
+		energy = _kb*g;
+	}// kinked bending regime - same as unkinked, but with an additive term to the energy and with a different bending.
+	else{
+		if ( update_forces ){
+			torque = -_kb * _kb2_pref[p->index] * ( up.cross(uq));
+			p->torque -= p->orientationT*torque;
+			q->torque += q->orientationT*torque;
+		// forces are not updated since this term of the potential only introduces a torque,
+		// since it does not depend on r.
+		}
+		//energy = _kb*( (1 - up*uq) * _kb2_pref[p->index] + _get_phi_bending(p->index) );
+		energy = _kb*(D-cosine)*kb2;
+
+	}
+//begin of added block
+/*
+		fprintf(ffp,"%14.14lf %14.14lf %14.14lf %14.14lf %d\n",rr,cos(rr),energy,torque.module(),regime);
+	}
+	abort();
+//*/
+//end of added block	
 	return energy;
 	
 }
@@ -881,7 +1136,8 @@ number TEPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 
 	energy += _spring(p, qq, r, update_forces);
 	energy += _bonded_twist(p,qq,r,update_forces);
-	energy += _bonded_bending(p,qq,r,update_forces);
+	//energy += _bonded_bending(p,qq,r,update_forces);
+	energy += _bonded_double_bending(p,qq,r,update_forces);
 	energy += _bonded_alignment(p,qq,r,update_forces);
 	//usually the interactions are called in an ordered fashion, but if qq is actually the last particle then it has to be aligned as well
 	// To make the alignment term behave as usual, just comment the following three lines.
@@ -972,7 +1228,10 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 	IBaseInteraction<number>::read_topology(N_from_conf, N_strands, particles);
 	int my_N, my_N_strands;
 	_kt_pref = new number [N_from_conf];
-	_kb_pref = new number [N_from_conf];
+	_kb1_pref = new number [N_from_conf];
+	_kb2_pref = new number [N_from_conf];
+	_xk_bending = new number [N_from_conf];
+	_xu_bending = new number [N_from_conf];
 
 	char line[512];
 	std::ifstream topology;
@@ -999,8 +1258,8 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 		//strand_lengths[strand] = strand_length;
 		// new way TODO make sure it works
 		std::string temp_string;
-		double temp_kb, temp_kt;
-		int res = sscanf(line, "%[^\t \n] %lf %lf",temp_string.c_str(),&temp_kb,&temp_kt);
+		double temp_kb, temp_kt, temp_kb2;
+		int res = sscanf(line, "%[^\t \n] %lf %lf %lf",temp_string.c_str(),&temp_kb,&temp_kt,&temp_kb2);
 		std::stringstream stream(line);
 		printf("Ce sto con %d, %s\n",res,temp_string.c_str());
 		if (!(stream >> temp_string )) {
@@ -1016,19 +1275,24 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 			}
 			
 		}
-		if (res == 3){
-			std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles,added_particles,temp_string,"force string (ConstantRateForce.cpp)");
+		if (res == 3 || res == 4){
+			std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles,added_particles,temp_string,"interaction TEP (TEPInteraction.cpp)");
 			for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){
 				int temp_index = particle_indices_vector[i];
 				if (temp_index < added_particles){
-					_kb_pref[temp_index] = (number) temp_kb;	
+					_kb1_pref[temp_index] = (number) temp_kb;	
 					_kt_pref[temp_index] = (number) temp_kt;	
-					printf("on i=%d, kb = %g and kt = %g\n",temp_index,_kb_pref[temp_index],_kt_pref[temp_index]);
+					printf("on i=%d, kb1 = %g and kt = %g\n",temp_index,_kb1_pref[temp_index],_kt_pref[temp_index]);
+					printf("res = %d\n",res);
+					if (res == 4){
+						_kb2_pref[temp_index] = (number) temp_kb2;
+						printf("       also kb2 = %g",_kb2_pref[temp_index]);
+					}
 				}
 				else throw oxDNAException("In the topology file particle %d is assigned non-default kb/kt prefactors before its strand is declared, as only %d particles have yet been added to the box.",temp_index,added_particles);
 			}
 		}
-		else if (res < 1 || res > 3) throw oxDNAException("Line %d of the topology file has an invalid syntax",strand+2);
+		else if (res < 1 || res > 4) throw oxDNAException("Line %d of the topology file has an invalid syntax",strand+2);
 		else if (res == 1 || res == 2){
 			char topology_char='l';
 			bool closed_topology = false;
@@ -1041,8 +1305,13 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 			}
 			strand_lengths[strand] = strand_length;
 			for (int i = 0; i < strand_length; i++){
-				_kb_pref[i] = 1.;
+				_kb1_pref[i] = 1.;
 				_kt_pref[i] = 1.;
+				// these parameters can't be currently set in the topology file
+				_kb2_pref[i] = _kb2_pref_default;
+				_xu_bending[i] = _xu_bending_default;
+				_xk_bending[i] = _xk_bending_default;
+
 				BaseParticle<number> *p = particles[i + particles_in_previous_strands];
 
 				if (i == 0)	{
