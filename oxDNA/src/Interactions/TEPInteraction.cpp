@@ -41,7 +41,7 @@ TEPInteraction<number>::TEPInteraction() : BaseInteraction<number, TEPInteractio
 		_xu_bending_default = 0.952319757;
 		_xk_bending_default = 1.0;
 		_xk_bending_default = 1.14813301;
-		_kb2_pref_default = 0.85;
+		_kb2_pref_default = 0.80;
 		
 		// Energies
 
