@@ -108,6 +108,9 @@ struct MinDistanceParameter {
 	double stored_value;
 	std::string name;
 
+    //flag for use of COM-COM distances instead of base-base distances:
+    bool _use_COM = false;
+    
 	// added to discretize it
 	/// index of the state
 	int state_index;
@@ -169,10 +172,12 @@ struct MinDistanceParameter {
 			BaseParticle<number> *first = particle_list[(*i).first];
 			BaseParticle<number> *second = particle_list[(*i).second];
 			//dist = first->pos + first->pos_base;
-			dist = first->pos + first->int_centers[DNANucleotide<number>::BASE];
-
-			//candidate = (double) dist.sqr_min_image_distance(second->pos + second->pos_base, box_side);
-			candidate = (double) dist.sqr_min_image_distance(second->pos + second->int_centers[DNANucleotide<number>::BASE], box_side);
+			if(_use_COM) dist = first->pos;
+            else if(!_use_COM) dist = first->pos + first->int_centers[DNANucleotide<number>::BASE];
+			
+            //candidate = (double) dist.sqr_min_image_distance(second->pos + second->pos_base, box_side);
+			if(_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos, box_side);
+            else if(!_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos + second->int_centers[DNANucleotide<number>::BASE], box_side);
 
 			if (current_value < 0 || candidate < current_value) current_value = candidate;
 		}
@@ -187,10 +192,13 @@ struct MinDistanceParameter {
 		double candidate;
 		for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
 			BaseParticle<number> *first = particle_list[(*i).first];
-			dist = (first->pos + first->int_centers[DNANucleotide<number>::BASE]);
-
-			BaseParticle<number> *second = particle_list[(*i).second];
-			candidate = (double) dist.sqr_min_image_distance((second->pos + second->int_centers[DNANucleotide<number>::BASE]), box_side);
+			if(_use_COM) dist = (first->pos);
+            else if(!_use_COM) dist = (first->pos + first->int_centers[DNANucleotide<number>::BASE]);
+			
+            BaseParticle<number> *second = particle_list[(*i).second];
+			if(_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos, box_side);
+            else if(!_use_COM) candidate = (double) dist.sqr_min_image_distance((second->pos + second->int_centers[DNANucleotide<number>::BASE]), box_side);
+            
 			if (current_value < 0 || candidate < current_value) current_value = candidate;
 		}
 		current_value = sqrt(current_value);
@@ -732,6 +740,19 @@ public:
 					newpar.n_states = interfaces.size() + 1;
 				}
 				
+                //optional use of COM-COM distance instead of base-base distance
+                char tmpstr2[256];
+                if (getInputString(&input, "use_COM", tmpstr2, 0) == KEY_FOUND) {
+                    unsigned int COM=0;
+                    sscanf(tmpstr2, "%u", &COM);
+                    if(COM==0) { newpar._use_COM = false; }
+                    else if(COM==1) {
+                        newpar._use_COM = true;
+                        OX_LOG (_log_level, "using COM-COM distances instead of base-base");
+                    }
+                    else { OX_LOG (_log_level, "unsupported value for use_COM"); }
+                }
+                
 				newpar.set_name (name_str);
 				_distance_parameters.push_back(newpar);
 				_distance_parameters_count ++;
