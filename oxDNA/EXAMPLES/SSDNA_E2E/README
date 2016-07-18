@@ -1,0 +1,14 @@
+UNDER CONSTRUCTION
+Example on how to simulate a single-stranded DNA of any sequence or length, neglecting
+secondary structure.
+
+Just run ./launch_local_concentration.py <seuence> and you're good to go.
+<sequence> can be a number (so that the average-base model is used), a sequence
+(with the prefixes "oxdna-" or "5p3p-", according to whether the sequence is given
+from the 5' end or the 3'), or something like "polyA-30", "polyG_20", etc.
+More documentation can be accessed by launching ./launch_local_concentration.py 
+
+WARNING: the input file provided is works for DNA strands that are not too long (<~50)
+and all hydrogen bondns are forbidden, so it should provide reliable results in a
+computationally efficient manner only for not too long strands with neglectable
+secondary structure.

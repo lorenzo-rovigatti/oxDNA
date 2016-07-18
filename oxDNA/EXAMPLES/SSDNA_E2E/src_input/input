@@ -1,0 +1,58 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+#debug = 1
+#eed = -1796251294
+
+##############################
+####    SIM PARAMETERS    ####
+interaction_type = DNA2
+salt_concentration = 1.0
+sim_type = VMMC
+ensemble = NVT
+steps = 2e6
+check_energy_every = 10000
+check_energy_threshold = 1.e-4
+
+delta_translation = 0.10
+delta_rotation = 0.25
+T = 25C
+verlet_skin = 0.20
+# The folowwing bit, provided that the order parameter file
+# and the weight file are properly written, always prevents
+# hydrogen bonds.
+umbrella_sampling = 1
+safe_weights = False
+default_weight = 0
+op_file = op.txt
+weights_file = wfile.txt
+
+### Seq. Dependence ##########
+use_average_seq = 0
+#seq_dep_file = seq.txt
+seq_dep_file=/home/bob/oxdna-code/oxDNA/oxDNA2_sequence_dependent_parameters.txt
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = prova.top
+lastconf_file_bin = last_conf.bin
+conf_file = prova.conf
+trajectory_file = trajectory.dat
+log_file = log.dat
+no_stdout_energy = 1
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e3
+print_energy_every = 1e3 
+time_scale = linear
+external_forces = 0
+
+data_output_1={
+	name = distances.txt
+	print_every = 1e3
+DISTANCE_COLUMNS
+}
+
