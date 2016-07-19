@@ -113,10 +113,8 @@ input_file *Utils::get_input_file_from_string(const std::string &inp) {
 	if (inp[0] == '{') {
 		int sum = 0;
 		for (unsigned int i = 0; i < inp.size(); i++) {
-			if (inp[i] == '{')
-				sum += 1;
-			else if (inp[i] == '}')
-				sum -= 1;
+			if (inp[i] == '{') sum += 1;
+			else if (inp[i] == '}') sum -= 1;
 			if (sum == 0) {
 				real_inp = inp.substr(1, i - 1);
 				break;

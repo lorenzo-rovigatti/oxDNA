@@ -74,8 +74,8 @@ int _readLine(std::vector<string>::iterator &it, std::vector<string>::iterator &
 
 		if(my_value[0] == '{') {
 			// counts the number of open and closed curly brackets 
-			size_t open = std::count (my_value.begin(), my_value.end(), '{');
-			size_t close = std::count (my_value.begin(), my_value.end(), '}');
+			size_t open = std::count(my_value.begin(), my_value.end(), '{');
+			size_t close = std::count(my_value.begin(), my_value.end(), '}');
 
 			int sum = (int)open - (int)close; 
 
@@ -93,9 +93,18 @@ int _readLine(std::vector<string>::iterator &it, std::vector<string>::iterator &
 				
 				string new_line = string(*it);
 				new_line = Utils::trim(new_line);
+
+				int n_open = std::count(new_line.begin(), new_line.end(), '{');
+				int n_closed = std::count(new_line.begin(), new_line.end(), '}');
 			
-				sum += std::count (new_line.begin(), new_line.end(), '{');
-				sum -= std::count (new_line.begin(), new_line.end(), '}');
+				sum += n_open;
+				sum -= n_closed;
+
+				if(n_closed > 0) {
+					int last_pos = new_line.find_last_of("}");
+					string after_end = new_line.substr(last_pos + 1);
+					if(after_end.size() > 0) throw oxDNAException("Found the string '%s' after a closing curly brace. You should either comment it or remove it. Aborting", after_end.c_str());
+				}
 
 				my_value += new_line;
 				if(sum != 0) my_value += string("\n");
