@@ -218,11 +218,11 @@ template<typename number>
 void DNAInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 
-	int avg_seq;
-	if(getInputInt(&inp, "use_average_seq", &avg_seq, 0) == KEY_FOUND) {
-		_average = (bool) avg_seq;
-		if(!_average) getInputString(&inp, "seq_dep_file", _seq_filename, 1);
-		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename);
+	if(getInputBool(&inp, "use_average_seq", &_average, 0) == KEY_FOUND) {
+		if(!_average) {
+			getInputString(&inp, "seq_dep_file", _seq_filename, 1);
+			OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename);
+		}
 	}
 
 	float hb_multi = 1.;

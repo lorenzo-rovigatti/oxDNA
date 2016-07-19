@@ -56,7 +56,7 @@ protected:
 public:
 	enum {
 		BONDED = 0,
-		NONBONDED = 1
+		NONBONDED = 4
 	};
 
 	enum {
