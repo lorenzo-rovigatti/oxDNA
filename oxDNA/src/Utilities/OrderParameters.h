@@ -109,7 +109,7 @@ struct MinDistanceParameter {
 	std::string name;
 
     //flag for use of COM-COM distances instead of base-base distances:
-    bool _use_COM = false;
+    bool _use_COM;
     
 	// added to discretize it
 	/// index of the state
@@ -658,7 +658,8 @@ public:
 				// mindistance
 				MinDistanceParameter newpar;
 				_dist_parnames[string(name_str)] = _distance_parameters_count;
-				
+				newpar._use_COM = false; //defaults to false
+                
 				vector<string> pair_strings;
 				int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
 
