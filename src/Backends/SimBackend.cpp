@@ -489,6 +489,8 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 			p->orientation.v2 = _read_next_vector<number>(binary);
 			p->orientation.v3 = _read_next_vector<number>(binary);
 		}
+		// v1, v2 and v3 should have length 1. If they don't it means that they are null vectors
+		if(p->orientation.v1.module() < 0.9 || p->orientation.v2.module() < 0.9 || p->orientation.v3.module() < 0.9) throw oxDNAException("Invalid orientation for particle %d: at least one of the vectors is a null vector", p->index);
 		p->orientation.transpone();
 
 		p->vel = _read_next_vector<number>(binary);
