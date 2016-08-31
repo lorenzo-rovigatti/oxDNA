@@ -92,6 +92,7 @@ SET(interactions_SOURCES
 	Interactions/HardSpheroCylinderInteraction.cpp
 	Interactions/BoxInteraction.cpp
 	Interactions/PatchyInteraction.cpp
+	Interactions/PatchyInteractionDan.cpp
 	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction_relax.cpp
 	Interactions/DNAInteraction.cpp
@@ -144,6 +145,7 @@ SET(common_SOURCES
 	Particles/BaseParticle.cpp
 	Particles/DNANucleotide.cpp
 	Particles/PatchyParticle.cpp
+	Particles/PatchyParticleDan.cpp
 	Particles/TSPParticle.cpp
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
