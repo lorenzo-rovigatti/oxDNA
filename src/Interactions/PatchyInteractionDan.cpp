@@ -406,7 +406,7 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 		  topology >> _offset_angle_patch[patch_type1][patch_type2][offset_angle];
 
 		  //[Revise this?] Check offset angle is in correct range
-		  if (_offset_angle_patch[patch_type1][patch_type2][offset_angle] >= (2*M_PI) || _offset_angle_patch[patch_type1][patch_type2][offset_angle] < 0) throw oxDNAException("Offset angle %f, between patch type %d and patch type %d and offset angle number %d, specified in topology file '%s', is greater than PI/2 or less than -PI/2. Aborting\n", _offset_angle_patch[patch_type1][patch_type2][offset_angle], patch_type1, patch_type2, offset_angle, this->_topology_filename);
+		  if (_offset_angle_patch[patch_type1][patch_type2][offset_angle] >= M_PI || _offset_angle_patch[patch_type1][patch_type2][offset_angle] < -M_PI) throw oxDNAException("Offset angle %f, between patch type %d and patch type %d and offset angle number %d, specified in topology file '%s', is greater than PI or less than -PI. Aborting\n", _offset_angle_patch[patch_type1][patch_type2][offset_angle], patch_type1, patch_type2, offset_angle, this->_topology_filename);
 
 		  std::cout << " " << _offset_angle_patch[patch_type1][patch_type2][offset_angle] << ",";
 
