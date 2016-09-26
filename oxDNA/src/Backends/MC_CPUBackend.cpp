@@ -7,6 +7,8 @@
 
 #include "MC_CPUBackend.h"
 #include "../Managers/SimManager.h"
+#include "../Particles/PatchyParticleDan.h"
+#include "../Particles/PatchyParticleDan.cpp"
 
 template<typename number>
 MC_CPUBackend<number>::MC_CPUBackend() : MCBackend<number>(), _particles_old(NULL) {
