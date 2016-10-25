@@ -20,6 +20,16 @@ PairForce<number>::~PairForce() {
 }
 
 template<typename number>
+void PairForce<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+	int tmp = 0;
+	_print_all_particles = true;
+	if (getInputInt(&my_inp,"particle_id", &tmp, 0) == KEY_FOUND){
+		_print_all_particles = false;
+		_particle_id = tmp;
+	}
+}
+
+template<typename number>
 std::string PairForce<number>::get_output_string(llint curr_step) {
 	BaseParticle<number> *p;
 	BaseParticle<number> *q;
@@ -32,10 +42,14 @@ std::string PairForce<number>::get_output_string(llint curr_step) {
 	for (int i = 0; i < (int)neighbour_pairs.size(); i++) {
 		p = neighbour_pairs[i].first;
 		q = neighbour_pairs[i].second;
+	
+		if (_print_all_particles == false)
+			if (p->index != _particle_id and q->index != _particle_id)
+				continue;
 
 		std::stringstream pair_string;
 		
-		// we store and then restore the force since some observables might need the actual value	
+		// we store and then restore the force since some observables might need the current value	
 		LR_vector<number> p_store_f = p->force;
 		LR_vector<number> q_store_f = q->force;
 		LR_vector<number> p_store_t = p->torque;
