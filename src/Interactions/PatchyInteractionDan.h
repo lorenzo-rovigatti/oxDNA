@@ -201,7 +201,8 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	//Variables (explained when used)
 	number V_ang_p, V_ang_q, V_ang, V_ang_epsilon, V_tor, V_ang_V_tor_epsilon;
 	number angle_r_p, angle_r_q;
-	int max_patch_index[2] = {-1, -1};
+	/*May be used later
+	  int max_patch_index[2] = {-1, -1};*/
 	LR_vector<number> ppatch, qpatch, pref, qref;
 	
 	//Current maximum of patch-patch modulation to LJ potential (now: start at 0.0 for the case where one/both particles have no patches; formerly: start at -1.0 rather than 0.0 to make sure that first patch pair is checked)
@@ -543,11 +544,9 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	      max_V_ang_V_tor_epsilon = V_ang_V_tor_epsilon;
 	      //EVAprintf("%.16lf, %.16lf\n", V_ang_V_tor_epsilon, max_V_ang_V_tor_epsilon);
 
-	      max_patch_index[0] = p_patch;
-	      max_patch_index[1] = q_patch;
-
-	      /*max_patch_index[p->index][q->index][0] = p_patch;
-		max_patch_index[p->index][q->index][1] = q_patch;*/
+	      /*May be used later
+		max_patch_index[0] = p_patch;
+		max_patch_index[1] = q_patch;*/
 
 	    }
 
