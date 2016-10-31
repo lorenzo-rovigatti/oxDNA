@@ -68,10 +68,6 @@ void Writhe<number>::init(ConfigInfo<number> &config_info) {
 		test_index = p[test_index]->n5->index;
 		N_strand++;
 	} 
-	// TODO: this check is just to count the number of particles in the strand. Remove the check after we realise it actually works.
-	if ( N_strand != N-1 ){
-		throw oxDNAException("N_strand = %d, N = %d\n",N_strand,N-1);
-	}
 	if (p[test_index]->n5 == P_VIRTUAL){
 		throw oxDNAException("In observable writhe, could not get from particle %d to particle %d by going forward.");
 	}
