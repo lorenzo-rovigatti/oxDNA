@@ -92,9 +92,14 @@ def get_rotation_matrix(axis, anglest):
                 angle = (np.pi / 180.) * anglest[0]
                 #angle = np.deg2rad (anglest[0])
             elif anglest[1] in ["bp"]:
+								# Notice that the choice of 35.9 DOES NOT correspond to the minimum free energy configuration.
+								# This is usually not a problem, since the structure will istantly relax during simulation, but it can be
+								# if you need a configuration with an equilibrium value for the linking number.
+								# The minimum free energy angle depends on a number of factors (salt, temperature, length, and possibly more),
+								# so if you need a configuration with 0 twist make sure to carefully choose a value for this angle
+								# and force it in some way (e.g. by changing the angle value below to something else in your local copy).
                 # Allow partial bp turns
                 angle = float(anglest[0]) * (np.pi / 180.) * 35.9
-                #angle = int(anglest[0]) * (np.pi / 180.) * 35.9
                 # Older versions of numpy don't implement deg2rad()
                 #angle = int(anglest[0]) * np.deg2rad(35.9)
             else:
