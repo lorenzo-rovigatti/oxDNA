@@ -221,9 +221,9 @@ void TEPInteraction<number>::get_settings(input_file &inp) {
 	setNonNegativeNumber(&inp, "TEP_EXCL_B2", &_TEP_EXCL_B2, 0, "LJ r* - inner truncation distance");
 	setPositiveNumber(&inp, "TEP_EXCL_RC2", &_TEP_EXCL_RC2, 0, "LJ r* - outer truncation distance");
 	// parameters of the double bending term
-	setNonNegativeNumber(&inp, "xu_bending_default", &_xu_bending_default, 0, "xu_bending_default - default value for the lower kinking threshold");
-	setNonNegativeNumber(&inp, "xk_bending_default", &_xk_bending_default, 0, "xk_bending_default - default value for the upper kinking threshold");
-	setNonNegativeNumber(&inp, "kb2_pref_default", &_kb2_pref_default, 0, "kb2_pref_default - default value for the curvature of the outer region of the bending potential.");
+	setNonNegativeNumber(&inp, "TEP_xu_bending_default", &_xu_bending_default, 0, "xu_bending_default - default value for the lower kinking threshold");
+	setNonNegativeNumber(&inp, "TEP_xk_bending_default", &_xk_bending_default, 0, "xk_bending_default - default value for the upper kinking threshold");
+	setNonNegativeNumber(&inp, "TEP_kb2_pref_default", &_kb2_pref_default, 0, "kb2_pref_default - default value for the curvature of the outer region of the bending potential.");
 
 	// Other parameters
 	char T[256];
@@ -1193,7 +1193,6 @@ void TEPInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 					OX_LOG(Logger::LOG_INFO,"Setting _kb1_pref[%d] = %lf",temp_index,(number)temp_kb);
 					_kt_pref[temp_index] = (number) temp_kt;
 					OX_LOG(Logger::LOG_INFO,"Setting _kt_pref[%d] = %lf",temp_index,(number)temp_kt);
-					_kt_pref[temp_index] = (number) temp_kt;
 					if(res >= 4) {
 						_kb2_pref[temp_index] = (number) temp_kb2;
 						OX_LOG(Logger::LOG_INFO,"Setting _kb2_pref[%d] = %lf",temp_index,(number)temp_kb2);
