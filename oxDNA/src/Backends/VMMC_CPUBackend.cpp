@@ -1868,7 +1868,7 @@ void VMMC_CPUBackend<number>::_init_cells() {
 		_vmmc_N_cells_side--;
 	}
 
-	if(_vmmc_N_cells_side < 3) throw oxDNAException("N_cells_side (%d) must be > 2", _vmmc_N_cells_side);
+	if(_vmmc_N_cells_side < 3) throw oxDNAException("N_cells_side (%d) must be > 2. You're gonna need a bigger box.", _vmmc_N_cells_side);
 
 	_vmmc_N_cells = _vmmc_N_cells_side * _vmmc_N_cells_side * _vmmc_N_cells_side;
 
