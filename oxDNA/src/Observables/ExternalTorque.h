@@ -13,20 +13,22 @@
 #include "BaseObservable.h"
 
 /**
- * @brief Outputs the torque due to an external force.
+ * @brief Outputs the torque due to an external force, with respect to the distance from a point (using the origin key) or a line (using both the origin and the direction keyes).
  * 
  * To use this observable, use type = external_torque
  *
  * This observable takes one mandatory argument and one optional argument:
  * verbatim
  print_group = <str> (name of the group of forces to print)
- origin = <float>, <float>, <float> (position of the origin with respect to whom the torque is to be measured)
+ origin = <float>, <float>, <float> (position of the origin with respect to whom the torque is to be measured, when the key direction is not set OR origin of the line with which respect the torque is to be measured)
  */
 template<typename number>
 class ExternalTorque : public BaseObservable<number> {
 protected:
 	std::string _group_name;
 	LR_vector<number> _origin;
+	LR_vector<number> _direction;
+	bool _respect_to_line;
 public:
 	ExternalTorque();
 	virtual ~ExternalTorque();
