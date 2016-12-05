@@ -54,8 +54,8 @@ number Writhe<number>::_writheIntegrand(LR_vector<number> t,LR_vector<number> tp
 	// (1/2pi) * t x t' . ( r - r')/ | r - r'|**3
 	// The formula for writhe usually reports a prefactor of 1/4pi, but that's when both integration variables are left free. Since the double integral is symmetrical, we run the second integer with values greater than the first, hence the factor of 2 in the formula above.
 	number rm = ( r - rp ).module();
-	return (1./2*M_PI)*((t.cross(tp))*( r - rp ))/(  rm*rm*rm );
-	//return (1./2*M_PI)*((t.cross(tp))*( r - rp ))/(  rm*rm*rm );
+	//return (1./2*M_PI)*((tp.cross(t))*( r - rp ))/(  rm*rm*rm );
+	return ((t.cross(tp))*( r - rp ))/(2*M_PI*rm*rm*rm);
 }
 
 #endif /* WRITHE_H_ */
