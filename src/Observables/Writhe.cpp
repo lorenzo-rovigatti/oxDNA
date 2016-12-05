@@ -76,7 +76,7 @@ void Writhe<number>::init(ConfigInfo<number> &config_info) {
 	}
 	
 	if ( _subdomain_size == -1){
-		_subdomain_size = N;
+		_subdomain_size = N-1;
 	}
 	//declare the array that does the thing. TODO: this is actually bigger than it should be, but I can
 	// initialise everything to a very negative value to make sure I don't go out of bounds.
@@ -110,41 +110,58 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 	const int N = *this->_config_info.N;
 	LR_vector<number> r, rp, t, tp;
 	
+	printf("subdomain size %d\n",_subdomain_size);
 	number writhe = 0;
-	number writhetemp = 0;
-	int i_p_index = _first_particle_index;
-	for ( int i = 0; i < N - 2; i++){
-		BaseParticle<number> * i_n5_particle = p[i_p_index]->n5;
+	//number writhetemp = 0;
+	// first compute the value of the writhe integrand
+	for ( int i = _first_particle_index; i <= _last_particle_index; i++){
+		BaseParticle<number> * i_n5_particle = p[i]->n5;
 		
-		t = (i_n5_particle->pos - p[i_p_index]->pos);
+		t = (i_n5_particle->pos - p[i]->pos);
 		t.normalize();
-		r = p[i_p_index]->pos;
+		r = p[i]->pos;
 		
-		int j_p_index = i_p_index;
 		// this loop starts from i+2 to disregard adjacent segments. 
 		// if two segments are adjacent then r-r'=-t, so we have - t x t' . t = 0
-		for ( int j = i + 2; j < N - 1; j++) {
-			j_p_index = p[j_p_index]->n5->index;
-			BaseParticle<number> * j_n5_particle = p[j_p_index]->n5;
+		for ( int j = (int)(max(0,i-_subdomain_size)); j < i; j++) {
+			BaseParticle<number> * j_n5_particle = p[j]->n5;
+			if (j_n5_particle == P_VIRTUAL){
+				printf("Skipping i %d j %d.\n",i,j);
+				continue;
+			}
 
 			//printf("i=%dj=%d,ii=%d,jj=%d ",i,j,i_p_index,j_p_index);
-			tp = (j_n5_particle->pos - p[j_p_index]->pos);
+			tp = (j_n5_particle->pos - p[j]->pos);
 			tp.normalize();
-			rp = p[j_p_index]->pos;
+			rp = p[j]->pos;
 			//printf("%lf %lf %lf, %lf %lf %lf ",t.x,t.y,t.z,tp.x,tp.y,tp.z);
 			//printf("%lf %lf %lf, %lf %lf %lf ",r.x,r.y,r.z,rp.x,rp.y,rp.z);
-			
-			writhetemp = _writheIntegrand(t,tp,r,rp);
-			writhe += writhetemp;
+			_writhe_integrand_values[i][j] = _writheIntegrand(t,tp,r,rp);
+			printf("%d %d %.3lf\n",i,j,_writhe_integrand_values[i][j]);
+			//writhetemp = _writheIntegrand(t,tp,r,rp);
+			//writhe += writhetemp;
 			//printf("Writhe = %lf\t",writhe);
 			//printf("Writhetemp = %14.14lf\n",writhetemp);
 
 		}
-		i_p_index = p[i_p_index]->n5->index;
-
 	} 
+	printf("Mannaggiaddio\n");
+	//then perform the addition in order to compute the (local) writhe
+	for(int k = _first_particle_index; k < _last_particle_index - _subdomain_size; k++){
+		writhe = 0;
+		for(int i = k + 1; i < k + _subdomain_size; i++){
+			for(int j = k; j < i; j++){
+				writhe += _writhe_integrand_values[i][j];
+			}
+		}
+		char temp[512]={0};
+		sprintf(temp,"%14.14lf ",writhe);
+		printf("%s\n",temp);
+		result += std::string(temp);
+	}
+
 			//printf("Writhe = %lf\n",writhe);
-	return Utils::sformat("%14.14lf",writhe);
+	return result;
 
 	
 	/* I'm fairly sure that I'm doing something meaningful, but before doing this I should implement a simple writhe calculation that doesn't drive me insane and at the same time works. I should therefore be able to compute at least the global writhe with it. This is what the above stuff does.
