@@ -17,6 +17,8 @@ Writhe<number>::Writhe() {
 	_subdomain_size = -1;
 	_N = -1;
 	_use_default_go_around = true;
+	_locate_plectonemes = false;
+	_writhe_threshold = 0.28;
 }
 
 template<typename number>
@@ -101,14 +103,15 @@ void Writhe<number>::init(ConfigInfo<number> &config_info) {
 
 	int default_subdomain_size = (_last_particle_index - _first_particle_index) -1;
 	if ( _subdomain_size == -1){
-		_subdomain_size = default_subdomain_size;
+		if (_locate_plectonemes) _subdomain_size = 35;
+		else _subdomain_size = default_subdomain_size;
 	}
 	if ( _subdomain_size >= _last_particle_index - _first_particle_index){
 		throw oxDNAException("In observable Writhe, subdomain_size %d should be strictly less than the difference between last_particle_index and first_particle_index.");
 	}
 	if (_use_default_go_around){
 		// set the _go_around variable
-		if (p[_last_particle_index]->n3->index == _first_particle_index && _subdomain_size != default_subdomain_size) _go_around = true;
+		if (p[_last_particle_index]->n5->index == _first_particle_index && _subdomain_size != default_subdomain_size) _go_around = true;
 		else _go_around = false;
 	}
 
@@ -121,12 +124,15 @@ void Writhe<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputInt(&my_inp,"last_particle_index",&_last_particle_index,0);
 
-	// get the subdomain size.
 	getInputInt(&my_inp,"subdomain_size",&_subdomain_size,0);
 
+	//if the user has set the value of go_around, keep track of it so that we don't overwrite it.
 	if( getInputBool(&my_inp,"go_around",&_go_around,0) == KEY_FOUND){
 		_use_default_go_around = false;
 	}
+
+	getInputBool(&my_inp,"locate_plectonemes",&_locate_plectonemes,0);
+	getInputNumber(&my_inp,"writhe_threshold",&_writhe_threshold,0);
 
 }
 
@@ -176,36 +182,61 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 		}
 	} 
 	//then perform the addition in order to compute the (local) writhe
-	for(int k = _first_particle_index; k < _last_particle_index - _subdomain_size; k++){
+	bool on_peak = false;
+	double peak_value = -1;
+	int  peak_position = -1;
+	bool stop = false;
+	for(int k = _first_particle_index; k <= _last_particle_index; k++){
+		if ( k >= _last_particle_index - _subdomain_size && ! _go_around) break;
 		writhe = 0;
 		for(int i = k + 1; i < k + _subdomain_size; i++){
 			for(int j = k; j < i; j++){
-				writhe += _writhe_integrand_values[i][j];
+				int actual_i = i > _last_particle_index ? i - _last_particle_index + _first_particle_index + 1: i;
+				int actual_j = j > _last_particle_index ? j - _last_particle_index + _first_particle_index + 1: j;
+				if( _writhe_integrand_values[actual_i][actual_j] < -1e8){ 
+					OX_LOG(Logger::LOG_INFO,"Obsevrable writhe: problem with %d %d %lf\n",actual_i,actual_j,_writhe_integrand_values[actual_i][actual_j]);
+					stop = true;
+				}
+
+				writhe += _writhe_integrand_values[actual_i][actual_j];
 			}
 		}
 		char temp[512]={0};
-		sprintf(temp,"%14.14lf\n",writhe);
-		result += std::string(temp);
-	}
-	//if we should assume that the first and last particle are contiguous, then there are more terms to be computed.
-	if (_go_around){
-		for(int k = _last_particle_index - _subdomain_size; k <= _last_particle_index; k++){
-			writhe = 0;
-			for(int i = k + 1; i < k + _subdomain_size; i++){
-				for(int j = k; j < i; j++){
-					int actual_i = i > _last_particle_index ? i - _last_particle_index + _first_particle_index + 1: i;
-					int actual_j = j > _last_particle_index ? j - _last_particle_index + _first_particle_index + 1: j;
-					if( _writhe_integrand_values[actual_i][actual_j] < -1e5) printf("%d %d %lf\n",actual_i,actual_j,_writhe_integrand_values[actual_i][actual_j]);
-
-					writhe += _writhe_integrand_values[actual_i][actual_j];
+		if (_locate_plectonemes){
+	  	// If the writhe is higher than the threshold, there's a peak.
+	  	if (!on_peak){
+	    	if (abs(writhe) > _writhe_threshold){
+					
+	      	on_peak = true;
+	      	peak_value = abs(writhe);
+	      	peak_position = k; 
 				}
 			}
-			char temp[512]={0};
+	  	else{
+	  		// When on a peak, look for the maximum.
+	    	if (abs(writhe) > peak_value){
+	      	peak_value = abs(writhe);
+	      	peak_position = (int)(k+_subdomain_size/2.);
+				}
+	  		// When the writhe goes below the threshold, the peak is over.
+	    	else if (abs(writhe) < _writhe_threshold){ 
+	      	on_peak = false;
+					if (peak_position > _last_particle_index){
+						peak_position -= ( _last_particle_index - _first_particle_index + 1);
+					}
+					sprintf(temp,"%d\t",peak_position);
+					result += std::string(temp);
+				}
+			}
+
+		}
+		else{
 			sprintf(temp,"%14.14lf\n",writhe);
 			result += std::string(temp);
 		}
-
 	}
+	if (stop) throw oxDNAException("Dying badly because of problems with the observable writhe. That's not supposed to happen!");
+
 
 	return result;
 }
