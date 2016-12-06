@@ -60,11 +60,11 @@ TEPInteraction<number>::TEPInteraction() :
 
 template<typename number>
 TEPInteraction<number>::~TEPInteraction() {
-	delete _kt_pref;
-	delete _kb1_pref;
-	delete _kb2_pref;
-	delete _xu_bending;
-	delete _xk_bending;
+	delete []_kt_pref;
+	delete []_kb1_pref;
+	delete []_kb2_pref;
+	delete []_xu_bending;
+	delete []_xk_bending;
 
 }
 
