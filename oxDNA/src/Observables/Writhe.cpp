@@ -10,28 +10,48 @@
 #include "../Interactions/TEPInteraction.h"
 template<typename number>
 Writhe<number>::Writhe() {
-	
+
 	_first_particle_index = 0;
 	_last_particle_index = -1;
 
 	_subdomain_size = -1;
+	_N = -1;
+	_use_default_go_around = true;
 }
 
 template<typename number>
 Writhe<number>::~Writhe() {
+	//deallocate them only if they have been allocated
+	if (_N != -1){
+		for (int i = 0; i < _N; i ++){
+			delete []_writhe_integrand_values[i];
+		}
+		delete []_writhe_integrand_values;
+	}
 
 }
 
 template<typename number>
 void Writhe<number>::init(ConfigInfo<number> &config_info) {
-    BaseObservable<number>::init(config_info);
-	
-	BaseParticle<number> **p = this->_config_info.particles;
-	const int N = *this->_config_info.N;
+	BaseObservable<number>::init(config_info);
 
+	BaseParticle<number> **p = this->_config_info.particles;
+	_N = *this->_config_info.N;
+
+	//allocate the arrays - these take up unnecessary memory when the subdomain is smaller than N, but I don't think I care.
+	_writhe_integrand_values = new number*[_N];
+	for (int i = 0; i < _N; i ++){
+		_writhe_integrand_values[i]= new number[ _N ];
+	}
+	for ( int i = 0; i < _N; i ++){
+		for ( int j = 0; j < _N ;j++){
+			_writhe_integrand_values[i][j] = -1e9;
+		}
+	}
 	// check that _first_particle_index is in [0,N) and not the terminal particle
-	if (_first_particle_index < 0 || _first_particle_index > N-1)
-		throw oxDNAException("Writhe: first_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.",N,_first_particle_index);	
+	if (_first_particle_index < 0 || _first_particle_index > _N-1){
+		throw oxDNAException("Writhe: first_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.",_N,_first_particle_index);	
+	}
 	if (p[_first_particle_index]->n5 == P_VIRTUAL){
 		throw oxDNAException("Writhe: first_particle_index must not be the index of the last particle of a strand, otherwise which particle should be last_particle_index referring to?");
 	}
@@ -44,21 +64,24 @@ void Writhe<number>::init(ConfigInfo<number> &config_info) {
 
 		}	while (p[_last_particle_index]->n5 != P_VIRTUAL && _last_particle_index != _first_particle_index);
 	}
+	if(_first_particle_index == _last_particle_index){
+		_last_particle_index = p[_first_particle_index]->n3->index;
+	}
 	// check that _last_particle_index is in [0,N)
-	if (_last_particle_index < 0 || _last_particle_index > N-1)
-		throw oxDNAException("Writhe: last_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.",N,_last_particle_index);	
+	if (_last_particle_index < 0 || _last_particle_index > _N-1){
+		throw oxDNAException("Writhe: last_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.",_N,_last_particle_index);	
+	}
 	// check that _first_particle_index is different than _last_particle_index
 	if (_first_particle_index == _last_particle_index){
 		throw oxDNAException("Writhe: first_particle_index can't be equal to last_particle_index. If you're talking about a circular molecule then just don't set last_particle_index.");
 	}
-
 	// if the molecule is not circular, the last bead is not considered since it just mirrors the behaviour of the first-but-last bead
 	if (p[_last_particle_index]->n5 == P_VIRTUAL){
 		_last_particle_index = p[_last_particle_index]->n3->index;
 	}
 	// check that first and last particle are on the same strand.
 	if (p[_first_particle_index]->strand_id != p[_last_particle_index]->strand_id){
-		throw oxDNAException("In observable writhe, the first particle (index %d) and the last particle (index %d) are not on the same strand. They're supposed to define a domain of topologically adjacent particles, but obviously they don't.");
+		throw oxDNAException("In observable writhe, the first particle (index %d) and the last particle (index %d) are not on the same strand. They're supposed to define a domain of topologically adjacent particles, but obviously they don't.",_first_particle_index,_last_particle_index);
 	}
 	// check that you can actually start from the first particle and get to the last one going forward along the chain.
 	int test_index = p[_first_particle_index]->n5->index;
@@ -69,26 +92,26 @@ void Writhe<number>::init(ConfigInfo<number> &config_info) {
 		N_strand++;
 	} 
 	if (p[test_index]->n5 == P_VIRTUAL){
-		throw oxDNAException("In observable writhe, could not get from particle %d to particle %d by going forward.");
+		throw oxDNAException("In observable writhe, could not get from particle %d to particle %d by going forward.",_first_particle_index,_last_particle_index);
 	}
-	if (p[test_index]->n5->index == _first_particle_index){
-		throw oxDNAException("In observable writhe, could not get from particle %d to particle %d by going forward. This is very strange since they are both on the same strand as far as I know, so one of the developers (probably Ferdinando) messed something up. Please report the occurrence of this error to the developers.");
+	if (p[test_index]->n5->index == _first_particle_index && test_index != _last_particle_index){
+		//throw oxDNAException("Bye!");
+		throw oxDNAException("In observable writhe, could not get from particle %d to particle %d by going forward. This is very strange since they are both on the same strand as far as I know, so one of the developers (probably Ferdinando) messed something up. Please report the occurrence of this error to the developers.",_first_particle_index,_last_particle_index);
 	}
-	
+
+	int default_subdomain_size = (_last_particle_index - _first_particle_index) -1;
 	if ( _subdomain_size == -1){
-		_subdomain_size = N-1;
+		_subdomain_size = default_subdomain_size;
 	}
-	//declare the array that does the thing. TODO: this is actually bigger than it should be, but I can
-	// initialise everything to a very negative value to make sure I don't go out of bounds.
-	_writhe_integrand_values = new number*[N-1];
-	for (int i = 0; i < N-1; i ++){
-		_writhe_integrand_values[i]= new number[_subdomain_size - 1];
+	if ( _subdomain_size >= _last_particle_index - _first_particle_index){
+		throw oxDNAException("In observable Writhe, subdomain_size %d should be strictly less than the difference between last_particle_index and first_particle_index.");
 	}
-	for ( int i = 0; i < N-1; i ++){
-		for ( int j = 0; j < _subdomain_size - 1;j++){
-			_writhe_integrand_values[i][j] = -1e9;
-		}
+	if (_use_default_go_around){
+		// set the _go_around variable
+		if (p[_last_particle_index]->n3->index == _first_particle_index && _subdomain_size != default_subdomain_size) _go_around = true;
+		else _go_around = false;
 	}
+
 }
 
 template<typename number>
@@ -101,51 +124,57 @@ void Writhe<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	// get the subdomain size.
 	getInputInt(&my_inp,"subdomain_size",&_subdomain_size,0);
 
+	if( getInputBool(&my_inp,"go_around",&_go_around,0) == KEY_FOUND){
+		_use_default_go_around = false;
+	}
+
 }
 
 template<typename number>
 std::string Writhe<number>::get_output_string(llint curr_step) {
 	string result; 
 	BaseParticle<number> **p = this->_config_info.particles;
-	const int N = *this->_config_info.N;
 	LR_vector<number> r, rp, t, tp;
-	
-	printf("subdomain size %d\n",_subdomain_size);
+
 	number writhe = 0;
 	//number writhetemp = 0;
 	// first compute the value of the writhe integrand
 	for ( int i = _first_particle_index; i <= _last_particle_index; i++){
 		BaseParticle<number> * i_n5_particle = p[i]->n5;
-		
+
 		t = (i_n5_particle->pos - p[i]->pos);
 		t.normalize();
 		r = p[i]->pos;
-		
+
 		// this loop starts from i+2 to disregard adjacent segments. 
 		// if two segments are adjacent then r-r'=-t, so we have - t x t' . t = 0
-		for ( int j = (int)(max(0,i-_subdomain_size)); j < i; j++) {
-			BaseParticle<number> * j_n5_particle = p[j]->n5;
-			if (j_n5_particle == P_VIRTUAL){
-				printf("Skipping i %d j %d.\n",i,j);
-				continue;
+		for ( int j = (int)(i-_subdomain_size -1); j < i; j++) {
+			// if we should go around, then we have to compute the ''negative'' values of j as well.
+			int jj;
+			if (j < _first_particle_index){
+				if (_go_around){
+					jj = j + _last_particle_index +1 - _first_particle_index;
+				}
+				// otherwise we don't need to.
+				else {
+					continue;
+				}
+			}
+			else{
+				jj = j;
+			}
+			BaseParticle<number> * jj_n5_particle = p[jj]->n5;
+			//the following condition should never be met - if it is, an edge case has not been treated properly.
+			if (jj_n5_particle == P_VIRTUAL){
+				throw oxDNAException("In observable writhe, Skipping i %d jj %d. This wasn't supposed to happen!",i,jj);
 			}
 
-			//printf("i=%dj=%d,ii=%d,jj=%d ",i,j,i_p_index,j_p_index);
-			tp = (j_n5_particle->pos - p[j]->pos);
+			tp = (jj_n5_particle->pos - p[jj]->pos);
 			tp.normalize();
-			rp = p[j]->pos;
-			//printf("%lf %lf %lf, %lf %lf %lf ",t.x,t.y,t.z,tp.x,tp.y,tp.z);
-			//printf("%lf %lf %lf, %lf %lf %lf ",r.x,r.y,r.z,rp.x,rp.y,rp.z);
-			_writhe_integrand_values[i][j] = _writheIntegrand(t,tp,r,rp);
-			printf("%d %d %.3lf\n",i,j,_writhe_integrand_values[i][j]);
-			//writhetemp = _writheIntegrand(t,tp,r,rp);
-			//writhe += writhetemp;
-			//printf("Writhe = %lf\t",writhe);
-			//printf("Writhetemp = %14.14lf\n",writhetemp);
-
+			rp = p[jj]->pos;
+			_writhe_integrand_values[i][jj] = _writheIntegrand(t,tp,r,rp);
 		}
 	} 
-	printf("Mannaggiaddio\n");
 	//then perform the addition in order to compute the (local) writhe
 	for(int k = _first_particle_index; k < _last_particle_index - _subdomain_size; k++){
 		writhe = 0;
@@ -155,260 +184,52 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 			}
 		}
 		char temp[512]={0};
-		sprintf(temp,"%14.14lf ",writhe);
-		printf("%s\n",temp);
+		sprintf(temp,"%14.14lf\n",writhe);
 		result += std::string(temp);
 	}
+	//if we should assume that the first and last particle are contiguous, then there are more terms to be computed.
+	if (_go_around){
+		for(int k = _last_particle_index - _subdomain_size; k <= _last_particle_index; k++){
+			writhe = 0;
+			for(int i = k + 1; i < k + _subdomain_size; i++){
+				for(int j = k; j < i; j++){
+					int actual_i = i > _last_particle_index ? i - _last_particle_index + _first_particle_index + 1: i;
+					int actual_j = j > _last_particle_index ? j - _last_particle_index + _first_particle_index + 1: j;
+					if( _writhe_integrand_values[actual_i][actual_j] < -1e5) printf("%d %d %lf\n",actual_i,actual_j,_writhe_integrand_values[actual_i][actual_j]);
 
-			//printf("Writhe = %lf\n",writhe);
-	return result;
-
-	
-	/* I'm fairly sure that I'm doing something meaningful, but before doing this I should implement a simple writhe calculation that doesn't drive me insane and at the same time works. I should therefore be able to compute at least the global writhe with it. This is what the above stuff does.
-	//TODO
-	//summary of what's left to do:
-	// populate the array with all the values of _writheIntegrand that are needed, and the others are neglected.
-	//I'm labelling segments, so the i index goes from 0 to the label of the first_but_last particle, N-2
-	// There are two for loops: the first computes the values where j goes from i+1 to i+_subdom_size-1
-	// The other computes the ones in which j goes from i+1 to N-2.
-	//	Example for N = 7, _subdomain_size = 4
-	//
-	//i	
-	//
-	//6|_|_|_|_|_|_|/|
-	//5|_|_|_|_|_|/|o|
-	//4|_|_|_|_|/|o|o|
-	//3|_|_|_|/|x|x|x|
-	//2|_|_|/|x|x|x|_|
-	//1|_|/|x|x|x|_|_|
-	//0|/|x|x|x|_|_|_|
-	//  0 1 2 3 4 5 6  j
-	//
-	//  The first for loop computes the x values, the second computes the o values.
-	//  Notice that since j goes from i+1 to something, j is labeled starting from 0 and ending to _subdomain_size-1
-	int i_p_index = _first_particle_index;
-	for ( int i = 0; i <= N - _subdomain_size; i++){
-		BaseParticle<number> * i_n5_particle = p[i_p_index]->n5;
-
-		t = (i_n5_particle->pos - p[i_p_index]->pos).normalize();
-		r = p[i_p_index]->pos;
-		
-		int j_p_index = i_p_index;
-		for ( int j = 0; j < _subdomain_size-1; j++){
-			j_p_index = p[j_p_index]->n5->index;
-			BaseParticle<number> * j_n5_particle = p[j_p_index]->n5;
-
-			tp = (j_n5_particle->pos - p[j_p_index]->pos).normalize();
-			rp = p[i_p_index]->pos;
-
-			_writhe_integrand_values[i][j] = _writheIntegrand(t,tp,r,rp);
+					writhe += _writhe_integrand_values[actual_i][actual_j];
+				}
+			}
+			char temp[512]={0};
+			sprintf(temp,"%14.14lf\n",writhe);
+			result += std::string(temp);
 		}
-		i_p_index = p[i_p_index]->n5->index;
-	}
-	for ( int i = N - _subdomain_size; i < N-2; i++){
-		BaseParticle<number> * i_n5_particle = p[i_p_index]->n5;
-
-		t = (i_n5_particle->pos - p[i_p_index]->pos).normalize();
-		r = p[i_p_index]->pos;
-		
-		int j_p_index = i_p_index;
-		// according to the table above, j should go from i + 1 to N - 2, so when we use an index that goes
-		// from 0 to something it has to go until N - 1 - i
-		for ( int j = 0; j < N - 1 - i ; j++){
-			j_p_index = p[j_p_index]->n5->index;
-			BaseParticle<number> * j_n5_particle = p[j_p_index]->n5;
-
-			tp = (j_n5_particle->pos - p[j_p_index]->pos).normalize();
-			rp = p[i_p_index]->pos;
-
-			_writhe_integrand_values[i][j] = _writheIntegrand(t,tp,r,rp);
-		}
-		i_p_index = p[i_p_index]->n5->index;
 
 	}
-	
-	// Now compute the integral on the first subdomain.
-	number writhe = 0;
-	int i_p_index = _first_particle_index;
-	for ( int i = 0; i < _subdomain size - 1; i++){
-		for (int j = 0; j < _subdomain_size - 1 - i; j++){
-			writhe += _writhe_integrand_values[i][j];
 
-		}
-	}
-		*/
-	
-	// if _subdomain_size==N_strand, just sum them all and call it a day.
-	// figure out the first, and print it. If _subdomain_size == N_strand, then that's all we need, and we can
-	// call it a day. Otherwise,
-	// subtract the bottom row and add the rightmost column, and print it. That's the second.
-	// do this until the end, every time adding to the string to output.
-	//
-	// All the following lines are kept here for inspiration.
-	// ____________________________________________________________________________
-/*
-
-	int i = _first_particle_index;
-	do{
-		if ( _angle_index == 0){
-			// omega + gamma = twisting angle
-			u =	p[i]->orientationT.v1;
-			up = p[i]->n5->orientationT.v1;
-
-			f = p[i]->orientationT.v2;
-			fp = p[i]->n5->orientationT.v2;
-			
-			v = p[i]->orientationT.v3;
-			vp = p[i]->n5->orientationT.v3;
-			
-			if (up * (f.cross(fp)) > 0)
-				sign = 1;
-			else
-				sign = -1;
-			delta_omega = LRACOS(( f*fp + v*vp )/(1 + u*up))/(2*PI); 
-			if(_print_local_details){
-				result += Utils::sformat("%14.14lf\t",delta_omega * sign)+' ';
-			}
-			else{
-				result_number += delta_omega * sign;
-			}
-
-		}
-		else if ( _angle_index == 1){
-			// u * u
-			u =	p[i]->orientationT.v1;
-			up = p[i]->n5->orientationT.v1;
-
-			if(_print_local_details){
-				result += Utils::sformat("%14.14lf\t",u*up)+' ';
-			}
-			else{
-				result_number += u*up;
-			}
-		}
-		else if ( _angle_index == 2){
-			// f * f
-			f =	p[i]->orientationT.v2;
-			fp = p[i]->n5->orientationT.v2;
-
-			if(_print_local_details){
-				result += Utils::sformat("%14.14lf\t",f*fp)+' ';
-			}
-			else{
-				result_number += f*fp;
-			}
-		}
-		else if ( _angle_index == 3){
-			// v * v
-			v =	p[i]->orientationT.v3;
-			vp = p[i]->n5->orientationT.v3;
-
-			if(_print_local_details){
-				result += Utils::sformat("%14.14lf\t",v*vp)+' ';
-			}
-			else{
-				result_number += v*vp;
-			}
-		}
-		*/
-		// some of the things that MeanVectorCosine chose to output instead.
-		// kept here just in case they are needed.
-		/*
-		else if ( _angle_index == 2){
-			// u * t
-			u = p[i]->orientationT.v1;
-			LR_vector<number> t = p[i]->n5->pos - p[i]->pos;
-			average += u*t/t.module();
-		}else if ( _angle_index == 3){
-			if( p[i]->n5->n5 != P_VIRTUAL){
-				// t * t
-				LR_vector<number> t = p[i]->n5->pos - p[i]->pos;
-				LR_vector<number> tp = p[i]->n5->n5->pos - p[i]->n5->pos;
-				average += t*tp/(t.module()*tp.module());
-			}
-			
-
-		} else {
-			u =	p[i]->orientationT.v1;
-			up = p[i]->n5->orientationT.v1;
-
-			f = p[i]->orientationT.v2;
-			fp = p[i]->n5->orientationT.v2;
-			
-			v = p[i]->orientationT.v3;
-			vp = p[i]->n5->orientationT.v3;
-
-			average +=( f*fp + v*vp )/(1 + u*up);
-		}
-		i = p[i]->n5->index;
-		number_of_values++;
-	}while (i!= _last_particle_index);
-	if (! _print_local_details){
-		if (_angle_index == 0){
-			result = Utils::sformat("%14.14lf",result_number);
-		}
-		else{
-			result = Utils::sformat("%14.14lf",result_number/number_of_values);
-		}
-	}
-	
-	return result;
-		*/
-}
-/*
-template<typename number>
-std::string Writhe<number>::OLD_get_output_string(llint curr_step) {
-
-	string result; number average = 0.;
-	BaseParticle<number> **p = this->_config_info.particles;
-	for( int i = _first_particle_id; i <= _last_particle_id; i++){
-		if ( _vector_to_average == 1){
-			_u =	p[i]->orientationT.v1;
-			_up = p[i]->n5->orientationT.v1;
-
-			average += _u*_up;
-		} else if (_vector_to_average == 2){
-			_f =	p[i]->orientationT.v2;
-			_fp = p[i]->n5->orientationT.v2;
-
-			average += _f*_fp;
-		} else if (_vector_to_average == 3){
-			_v =	p[i]->orientationT.v3;
-			_vp = p[i]->n5->orientationT.v3;
-
-			average += _v*_vp;
-		} else if (_vector_to_average == 0){
-			_u =	p[i]->orientationT.v1;
-			_up = p[i]->n5->orientationT.v1;
-
-			_f = p[i]->orientationT.v2;
-			_fp = p[i]->n5->orientationT.v2;
-			
-			_v = p[i]->orientationT.v3;
-			_vp = p[i]->n5->orientationT.v3;
-
-			average +=( _f*_fp + _v*_vp )/(1 + _u*_up);
-		}
-//TODO: remove the -1 thing after we are sure it's equivalent to the 0 one
-		 else if (_vector_to_average == -1){
-			_u =	p[i]->orientationT.v2;
-			_up = p[i]->n5->orientationT.v2;
-			_v =	p[i]->orientationT.v3;
-			_vp = p[i]->n5->orientationT.v3;
-			average += (_u*_up)*(_v*_vp) - _u.cross(_up).module()*_v.cross(_vp).module();
-		}
-*/ /*
-		printf("Writhe\ti = %d p[i]->pos.x %lf u.x %lf u'.x %lf u*u' %lf \n",i,p[i]->pos.x, u.x, up.x, u * up);
-		printf("u.x %lf u.y %lf u.z %lf\n",u.x,u.y,u.z);
-		printf("up.x %lf up.y %lf up.z %lf\n",up.x,up.y,up.z);
-		printf("thex %lf they %lf thez %lf total %lf\n",u.x*up.x,u.y*up.y,u.z*up.z,u.x*up.x+u.y*up.y+u.z*up.z);
-*/ /*
-//		printf("average %lf\n",average);
-	}
-//		printf("average %lf\n",average*_one_over_number_of_values);
-	result  =  Utils::sformat("%14.4lf", average*_one_over_number_of_values);
 	return result;
 }
+
+
+/* 
+//I'm labelling segments, so the i index goes from 0 to the label of the first_but_last particle, N-2
+// There are two for loops: the first computes the values where j goes from i+1 to i+_subdom_size-1
+// The other computes the ones in which j goes from i+1 to N-2.
+//	Example for N = 7, _subdomain_size = 4
+//
+//i	
+//
+//6|_|_|_|_|_|_|/|
+//5|_|_|_|_|_|/|o|
+//4|_|_|_|_|/|o|o|
+//3|_|_|_|/|x|x|x|
+//2|_|_|/|x|x|x|_|
+//1|_|/|x|x|x|_|_|
+//0|/|x|x|x|_|_|_|
+//  0 1 2 3 4 5 6  j
+//
+//  The first for loop computes the x values, the second computes the o values.
+//  Notice that since j goes from i+1 to something, j is labeled starting from 0 and ending to _subdomain_size-1
 */
 
 template class Writhe<float>;
