@@ -19,6 +19,9 @@ PatchyInteractionDan<number>::PatchyInteractionDan() : BaseInteraction<number, P
 
 	this->_int_map[PATCHY] = &PatchyInteractionDan<number>::_patchy_interaction;
 
+	/*//Set initialisation value to false
+	  _initialised = false;*/
+
 	//Set all arrays to NULL, so can delete them in destructor
 	_N_particles_of_type = NULL;
 	_particle_type_of = NULL;
@@ -29,8 +32,8 @@ PatchyInteractionDan<number>::PatchyInteractionDan() : BaseInteraction<number, P
 	_patch_type_of = NULL;
 	_sigma_ang_patch = NULL;
 	_epsilon_patch = NULL;
-	_ref_vectors_particle = NULL;
 	_ref_vectors_type = NULL;
+	_ref_vectors_particle = NULL;
 	_sigma_tor_patch = NULL;
 	_number_offset_angles = NULL;
 	_offset_angle_patch = NULL;
@@ -43,57 +46,68 @@ template <typename number>
 PatchyInteractionDan<number>::~PatchyInteractionDan() {
         //printf("PI, ~PatchyInteractionDan\n");
 
+        //if(_initialised) {
+  
         //Delete all arrays
         /*Template
-	  if(_something != NULL) delete[] _something;*/
+	if(_something != NULL) delete[] _something;
+	For pointers to pointers (etc.), you could do what is commented out for _patch_vectors_particle and _ref_vectors_particle, but that would be meaningful IFF all _patch_vectors_particle[i] were initialised to NULL just after you allocate memory for _patch_vectors_particle itself. i.e. In the code, after "_patch_vectors_particle = new LR_vector<number>*[_N_particles];", I would have to loop through and set "_patch_vectors_particle[i] = NULL" for all i. There is no strong/immediate need to do this, so I haven't.*/
         if(_N_particles_of_type != NULL) delete[] _N_particles_of_type;
-        if(_particle_type_of != NULL) delete[] _particle_type_of;
-        if(_N_patches_type != NULL) delete[] _N_patches_type;
-        if(_patches_on_particle != NULL) delete[] _patches_on_particle;
-        if(_patch_vectors_type != NULL) {
+	if(_particle_type_of != NULL) delete[] _particle_type_of;
+	if(_N_patches_type != NULL) delete[] _N_patches_type;
+	if(_patches_on_particle != NULL) delete[] _patches_on_particle;
+	if(_patch_vectors_type != NULL) {
 	  for (int part_type = 0; part_type < _N_particle_types; part_type++) delete[] _patch_vectors_type[part_type];
 	  delete[] _patch_vectors_type;
 	}
-        if(_patch_vectors_particle != NULL) {
+	if(_patch_vectors_particle != NULL) {
 	  for (int particle = 0; particle < _N_particles; particle++) delete[] _patch_vectors_particle[particle];
+	  /*for (int particle = 0; particle < _N_particles; particle++) {
+	    if(_patch_vectors_particle[particle] != NULL) delete[] _patch_vectors_particle[particle];
+	  }*/
 	  delete[] _patch_vectors_particle;
 	}
-        if(_patch_type_of != NULL) {
+	if(_patch_type_of != NULL) {
 	  for (int part_type = 0; part_type < _N_particle_types; part_type++) delete[] _patch_type_of[part_type];
 	  delete[] _patch_vectors_type;
 	}
-        if(_sigma_ang_patch != NULL) delete[] _sigma_ang_patch;
-        if(_epsilon_patch != NULL) {
+	if(_sigma_ang_patch != NULL) delete[] _sigma_ang_patch;
+	if(_epsilon_patch != NULL) {
 	  for (int patch_type = 0; patch_type < _N_patch_types; patch_type++) delete[] _epsilon_patch[patch_type];
 	  delete[] _epsilon_patch;
 	}
-        if(_ref_vectors_particle != NULL) {
-	  for (int particle = 0; particle < _N_particles; particle++) delete[] _ref_vectors_particle[particle];
-	  delete[] _ref_vectors_particle;
-	}
-        if(_ref_vectors_type != NULL) {
+	if(_ref_vectors_type != NULL) {
 	  for (int part_type = 0; part_type < _N_particle_types; part_type++) delete[] _ref_vectors_type[part_type];
 	  delete[] _ref_vectors_type;
 	}
-        if(_sigma_tor_patch != NULL) {
+	if(_ref_vectors_particle != NULL) {
+	  for (int particle = 0; particle < _N_particles; particle++) delete[] _ref_vectors_particle[particle];
+	  /*for (int particle = 0; particle < _N_particles; particle++) {
+	    if(_ref_vectors_particle[particle] != NULL) delete[] _ref_vectors_particle[particle];
+	  }*/
+	  delete[] _ref_vectors_particle;
+	}
+	if(_sigma_tor_patch != NULL) {
 	  for (int patch_type = 0; patch_type < _N_patch_types; patch_type++) delete[] _sigma_tor_patch[patch_type];
 	  delete[] _sigma_tor_patch;
 	}
-        if(_number_offset_angles != NULL) {
+	if(_number_offset_angles != NULL) {
 	  for (int patch_type = 0; patch_type < _N_patch_types; patch_type++) delete[] _number_offset_angles[patch_type];
 	  delete[] _number_offset_angles;
 	}
-        if(_offset_angle_patch != NULL) {
+	if(_offset_angle_patch != NULL) {
 	  for (int patch_type1 = 0; patch_type1 < _N_patch_types; patch_type1++) {
 	    for (int patch_type2 = 0; patch_type2 < _N_patch_types; patch_type2++) delete[] _offset_angle_patch[patch_type1][patch_type2];
 	    delete[] _offset_angle_patch[patch_type1];
 	  }
 	  delete[] _offset_angle_patch;
 	}
-        /*if(particles != NULL) {
+	/*if(particles != NULL) {
 	  for (int particle = 0; particle < _N_particles; particle++) delete[] particles[particle];
 	  delete[] particles;
 	  }*/
+
+	//}
 
 }
 
@@ -406,7 +420,7 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 		  topology >> _offset_angle_patch[patch_type1][patch_type2][offset_angle];
 
 		  //[Revise this?] Check offset angle is in correct range
-		  if (_offset_angle_patch[patch_type1][patch_type2][offset_angle] >= M_PI || _offset_angle_patch[patch_type1][patch_type2][offset_angle] < -M_PI) throw oxDNAException("Offset angle %f, between patch type %d and patch type %d and offset angle number %d, specified in topology file '%s', is greater than PI or less than -PI. Aborting\n", _offset_angle_patch[patch_type1][patch_type2][offset_angle], patch_type1, patch_type2, offset_angle, this->_topology_filename);
+		  if ((_offset_angle_patch[patch_type1][patch_type2][offset_angle] > M_PI) || (_offset_angle_patch[patch_type1][patch_type2][offset_angle] <= -M_PI)) throw oxDNAException("Offset angle %f, between patch type %d and patch type %d and offset angle number %d, specified in topology file '%s', is greater than PI or less than or equal to -PI. (Beware rounding of PI and -PI.) Aborting\n", _offset_angle_patch[patch_type1][patch_type2][offset_angle], patch_type1, patch_type2, offset_angle, this->_topology_filename);
 
 		  std::cout << " " << _offset_angle_patch[patch_type1][patch_type2][offset_angle] << ",";
 
@@ -473,6 +487,9 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 	printf("p->index, q->index, r->x, r->y, r->z, sqr_r_dist, r_dist, V_LJ (before shift), V_LJ (after shift)\n");
 	printf(", , p_patch, q_patch, ppatch.x, ppatch.y, ppatch.z, qpatch.x, qpatch.y, qpatch.z, pref.x, pref.y, pref.z, qref.x, qref.y, qref.z, angle_r_p, angle_r_q, V_ang_p, V_ang_q, V_ang, proj_pref.x, proj_pref.y, proj_pref.z, proj_qref.x, proj_qref.y, proj_qref.z, angle_tor (initial), cross_proj </>, dot_proj </>, sign </>, angle_tor (final), offset_angle1, angle_diff1, offset_angle2, angle_diff2, offset_angle3, angle_diff3, min_sqr_angle_diff, V_tor, V_ang_V_tor_epsilon, max_V_ang_V_tor_epsilon (at current stage)\n");
 	printf(", max_V_ang_V_tor_epsilon (final), energy\n");*/
+
+	/*//Set initialisation flag to true, now all pointers are initialised
+	  _initialised = true;*/
 
 }
 

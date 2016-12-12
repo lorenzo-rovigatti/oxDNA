@@ -25,6 +25,10 @@ PatchyParticleDan<number>::PatchyParticleDan(int _N_patches, LR_vector<number> *
 	  printf("PP tor_flag %d\n", tor_flag);
 	  }*/
 
+        _base_patch_vectors = NULL;
+        _base_ref_vectors = NULL;
+        _ref_vectors = NULL;
+
 	this->N_int_centers = _N_patches;
 	//printf("PP this->N_int_centers %d\n", this->N_int_centers);
         //printf("PP 2\n");
@@ -34,8 +38,8 @@ PatchyParticleDan<number>::PatchyParticleDan(int _N_patches, LR_vector<number> *
         //printf("PP 3\n");
 	_base_patch_vectors = new LR_vector<number>[_N_patches];
         //printf("PP 4\n");
-	_ref_vectors = new LR_vector<number>[_N_patches];
 	_base_ref_vectors = new LR_vector<number>[_N_patches];
+	_ref_vectors = new LR_vector<number>[_N_patches];
 	//printf("PP 5\n");
 
 	//Define _base_patch_vectors and _base_ref_vectors
@@ -71,10 +75,11 @@ template<typename number>
 PatchyParticleDan<number>::~PatchyParticleDan() {
         //printf("PP, ~PatchyParticleDan\n");
 
-	delete[] this->int_centers;
-	delete[] _base_patch_vectors;
-	delete[] _ref_vectors;
-	delete[] _base_ref_vectors;
+        /*Not sure if this is needed, and if it is, should it follow format below? 10/11/16
+	  delete[] this->int_centers;*/
+	if(_base_patch_vectors != NULL) delete[] _base_patch_vectors;
+	if(_base_ref_vectors != NULL) delete[] _base_ref_vectors;
+	if(_ref_vectors != NULL) delete[] _ref_vectors;
 
 }
 
