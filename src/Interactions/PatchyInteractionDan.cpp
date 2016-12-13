@@ -69,7 +69,7 @@ PatchyInteractionDan<number>::~PatchyInteractionDan() {
 	}
 	if(_patch_type_of != NULL) {
 	  for (int part_type = 0; part_type < _N_particle_types; part_type++) delete[] _patch_type_of[part_type];
-	  delete[] _patch_vectors_type;
+	  delete[] _patch_type_of;
 	}
 	if(_sigma_ang_patch != NULL) delete[] _sigma_ang_patch;
 	if(_epsilon_patch != NULL) {
