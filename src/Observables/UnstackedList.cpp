@@ -37,7 +37,7 @@ UnstackedList<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	bool average;
 	if (getInputBool(&sim_inp,"use_average_seq",&average,0) == KEY_FOUND){
 		if(!average){
-		throw oxDNAException("%s: observable unstacked_list not implemented for the seqeunce dependent model",__FILE__);
+		throw oxDNAException("%s: observable unstacked_list not implemented for the sequence dependent model",__FILE__);
 		}
 	}
 	
@@ -72,9 +72,9 @@ std::string UnstackedList<number>::get_output_string(llint curr_step) {
 
 			number stacking_energy;
 			if (_interaction_type == "DNA" || _interaction_type == "DNA2")
-				stacking_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::STACKING,p,q);
+				stacking_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::STACKING,p,q) + this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::COAXIAL_STACKING,p,q);
 			else if (_interaction_type == "RNA")
-				stacking_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::STACKING,p,q);
+				stacking_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::STACKING,p,q) + this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::COAXIAL_STACKING,p,q);
 			else throw oxDNAException("Interaction type %s not supported in observable unstacked_list (%s)",_interaction_type.c_str(),__FILE__);
 			if (stacking_energy > _threshold_energy)
 				outstr << i << " ";
