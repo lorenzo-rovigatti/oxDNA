@@ -1,0 +1,28 @@
+# file that reproduces the average sequence file for oxDNA2
+#
+# start from this and modify it as you want if e.g. you want to shut down hydrogen bonds,
+# or change the stacking strengths, etc.
+
+STCK_FACT_EPS = 0.180004
+STCK_G_C = 1.6491556
+STCK_C_G = 1.6491556
+STCK_G_G = 1.6491556
+STCK_C_C = 1.6491556
+STCK_G_A = 1.6491556
+STCK_T_C = 1.6491556
+STCK_A_G = 1.6491556
+STCK_C_T = 1.6491556
+STCK_T_G = 1.6491556
+STCK_C_A = 1.6491556
+STCK_G_T = 1.6491556
+STCK_A_C = 1.6491556
+STCK_A_T = 1.6491556
+STCK_T_A = 1.6491556
+STCK_A_A = 1.6491556
+STCK_T_T = 1.6491556
+# notice that this is not 1.058875, which is the average of the hydrogen bonding terms, but is the value
+# defined into the model.h file
+HYDR_A_T = 1.0678
+HYDR_T_A = 1.0678
+HYDR_C_G = 1.0678
+HYDR_G_C = 1.0678
