@@ -19,6 +19,9 @@
 #include <string>
 #include <map>
 #include <fstream>
+#include <list>
+#include <iterator>
+
 
 #include "../Utilities/Utils.h"
 #include "../Utilities/oxDNAException.h"
@@ -107,6 +110,9 @@ struct MinDistanceParameter {
 	double current_value;
 	double stored_value;
 	std::string name;
+	
+	// the sub-type is used to decide what to actually measure 
+	int _sub_type;
 
     //flag for use of COM-COM distances instead of base-base distances:
     bool _use_COM;
@@ -165,52 +171,119 @@ struct MinDistanceParameter {
 
 	template<typename number>
 	double calculate_value(BaseParticle<number> **particle_list, double box_side) {
-		LR_vector<number> dist;
-		current_value = -1;
-		double candidate;
-		for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
-			BaseParticle<number> *first = particle_list[(*i).first];
-			BaseParticle<number> *second = particle_list[(*i).second];
-			//dist = first->pos + first->pos_base;
-			if(_use_COM) dist = first->pos;
-            else if(!_use_COM) dist = first->pos + first->int_centers[DNANucleotide<number>::BASE];
-			
-            //candidate = (double) dist.sqr_min_image_distance(second->pos + second->pos_base, box_side);
-			if(_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos, box_side);
-            else if(!_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos + second->int_centers[DNANucleotide<number>::BASE], box_side);
+		
+		// mindistance
+		if (_sub_type == 0){
+			LR_vector<number> dist;
+			current_value = -1;
+			double candidate;
+			for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
+				BaseParticle<number> *first = particle_list[(*i).first];
+				BaseParticle<number> *second = particle_list[(*i).second];
+				//dist = first->pos + first->pos_base;
+				if(_use_COM) dist = first->pos;
+        else if(!_use_COM) dist = first->pos + first->int_centers[DNANucleotide<number>::BASE];
 
-			if (current_value < 0 || candidate < current_value) current_value = candidate;
+        //candidate = (double) dist.sqr_min_image_distance(second->pos + second->pos_base, box_side);
+				if(_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos, box_side);
+        else if(!_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos + second->int_centers[DNANucleotide<number>::BASE], box_side);
+
+				if (current_value < 0 || candidate < current_value) current_value = candidate;
+			}
+			current_value = sqrt(current_value);
+			return current_value;
 		}
-		current_value = sqrt(current_value);
-		return current_value;
+		// twist
+		// Algorithm described in page 26 of Christian Matek's thesis - Statistical mechanics of Nucleic Acids under Mechanical Stress
+		else if (_sub_type == 1){
+			double twist = 0;
+			for (vector_of_pairs::iterator i = std::advance(counted_pairs.begin(),1); i != counted_pairs.end(); i++) {
+				// get the position vectors of the current and previous base-pairs
+				BaseParticle<number> *first_curr = particle_list[(*i).first];
+				BaseParticle<number> *second_curr = particle_list[(*i).second];
+				vector_of_pairs::iterator prev = std::advance(i,-1);
+				BaseParticle<number> *first_prev = particle_list[(*prev).first];
+				BaseParticle<number> *second_prev = particle_list[(*prev).second];
+
+				// base-pair vectors - vectors that connect the center of mass of the two nucleotides in a base-pair
+				LR_vector<number> bp_curr = first_curr->pos - second_curr->pos;
+				LR_vector<number> bp_prev = first_prev->pos - second_prev->pos;
+				// versor that connects the two base-pair vectors
+				LR_vector<number> conn = (bp_curr - bp_prev).normalise();
+				// project the two base-pair vectors onto the plane normal to the conn vector
+				bp_curr  -= (conn * bp_curr) * bp_curr;
+				bp_prev  -= (conn * bp_prev) * bp_prev;
+				// finally, compute the angle between the projections and sum it up
+				twist += LRACOS(bp_curr * bp_prev);
+			}
+			//return the twist, which is defined as the number of turns (i.e. the angle in radians divided by 2pi).
+			return twist / 2*M_PI;
+		}
+		// unknown order parameter.
+		else {
+			throw oxDNAException("Unknown order parameter subtype %d",_sub_type);
+		}
 	}
 
 	template<typename number>
 	int calculate_state(BaseParticle<number> **particle_list, double box_side) {
-		LR_vector<number> dist;
-		current_value = -1;
-		double candidate;
-		for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
-			BaseParticle<number> *first = particle_list[(*i).first];
-			if(_use_COM) dist = (first->pos);
-            else if(!_use_COM) dist = (first->pos + first->int_centers[DNANucleotide<number>::BASE]);
-			
-            BaseParticle<number> *second = particle_list[(*i).second];
-			if(_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos, box_side);
-            else if(!_use_COM) candidate = (double) dist.sqr_min_image_distance((second->pos + second->int_centers[DNANucleotide<number>::BASE]), box_side);
-            
-			if (current_value < 0 || candidate < current_value) current_value = candidate;
-		}
-		current_value = sqrt(current_value);
+		if (_sub_type == 0){
+			LR_vector<number> dist;
+			current_value = -1;
+			double candidate;
+			for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
+				BaseParticle<number> *first = particle_list[(*i).first];
+				if(_use_COM) dist = (first->pos);
+        else if(!_use_COM) dist = (first->pos + first->int_centers[DNANucleotide<number>::BASE]);
 
+        BaseParticle<number> *second = particle_list[(*i).second];
+				if(_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos, box_side);
+        else if(!_use_COM) candidate = (double) dist.sqr_min_image_distance((second->pos + second->int_centers[DNANucleotide<number>::BASE]), box_side);
+
+				if (current_value < 0 || candidate < current_value) current_value = candidate;
+			}
+			current_value = sqrt(current_value);
+
+		}
+		// twist
+		// Algorithm described in page 26 of Christian Matek's thesis - Statistical mechanics of Nucleic Acids under Mechanical Stress
+		else if (_sub_type == 1){
+			double twist = 0;
+			for (vector_of_pairs::iterator i = counted_pairs.begin() + 1; i != counted_pairs.end(); i++) {
+				// get the position vectors of the current and previous base-pairs
+				BaseParticle<number> *first_curr = particle_list[(*i).first];
+				BaseParticle<number> *second_curr = particle_list[(*i).second];
+				vector_of_pairs::iterator prev = i - 1;
+				BaseParticle<number> *first_prev = particle_list[(*prev).first];
+				BaseParticle<number> *second_prev = particle_list[(*prev).second];
+
+				// base-pair vectors - vectors that connect the center of mass of the two nucleotides in a base-pair
+				LR_vector<number> bp_curr = first_curr->pos - second_curr->pos;
+				LR_vector<number> bp_prev = first_prev->pos - second_prev->pos;
+				// versor that connects the two base-pair vectors
+				LR_vector<number> conn = (bp_curr - bp_prev);
+				conn.normalize();
+				// project the two base-pair vectors onto the plane normal to the conn vector
+				bp_curr  -= (conn * bp_curr) * bp_curr;
+				bp_prev  -= (conn * bp_prev) * bp_prev;
+				// finally, compute the angle between the projections and sum it up
+				twist += LRACOS(bp_curr * bp_prev);
+			}
+			//return the twist, which is defined as the number of turns (i.e. the angle in radians divided by 2pi).
+			current_value = twist / 2*M_PI;
+		}
+		// unknown order parameter.
+		else {
+			throw oxDNAException("Unknown order parameter subtype %d",_sub_type);
+		}
 		if (n_states == 0) {
-					state_index = -1;
-					return state_index;
+			state_index = -1;
+			return state_index;
 		}
 
 		if (n_states == 1) {
-					state_index = 0;
-					return state_index;
+			state_index = 0;
+			return state_index;
 		}
 
 		int c = 0;
@@ -258,6 +331,7 @@ protected:
 	int * _all_states;
 
 	int _log_level;	
+	
 
 public:
 	OrderParameters();
@@ -541,12 +615,19 @@ public:
 			std::string type_str;
 			std::string name_str;
 			int type;
+			int sub_type = 0;
 			loadInput(&input, temp);
 			getInputString(&input, "order_parameter", type_str, 1);
 			type = -1;
 			if (strcmp(type_str.c_str(), "bond") == 0) type = 0;
-			if (strcmp(type_str.c_str(), "mindistance") == 0) type = 1;
-
+			if (strcmp(type_str.c_str(), "mindistance") == 0){
+				type = 1;
+				sub_type = 0;
+			}
+			if (strcmp(type_str.c_str(), "twist") == 0){
+				type = 1;
+				sub_type = 1;
+			}
 			if (type != 0 && type != 1)	throw oxDNAException("Parameter type %s not implemented. Aborting",	type_str.c_str());
 			if (type == 0 || type == 1) {
 				getInputString(&input, "name", name_str, 1);
@@ -655,10 +736,12 @@ public:
 				break;
 			}
 			case 1: {
+				printf("So che e' mindistance, sappilo\n");
 				// mindistance
 				MinDistanceParameter newpar;
 				_dist_parnames[string(name_str)] = _distance_parameters_count;
 				newpar._use_COM = false; //defaults to false
+				newpar._sub_type = sub_type;
                 
 				vector<string> pair_strings;
 				int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
