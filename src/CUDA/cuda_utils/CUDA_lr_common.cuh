@@ -63,9 +63,11 @@ __forceinline__ __device__ void gaussian(curandState &state, double &outx, doubl
 	outy = r * sin(phi);
 }
 
+#if !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 600
+#else
 /**
  * @brief found at { @link http://stackoverflow.com/questions/12626096/why-has-atomicadd-not-been-implemented-for-doubles }
- */
+*/
 __forceinline__ __device__ double atomicAdd(double* address, double val) {
     unsigned long long int* address_as_ull = (unsigned long long int*)address;
     unsigned long long int old = *address_as_ull, assumed;
@@ -77,6 +79,7 @@ __forceinline__ __device__ double atomicAdd(double* address, double val) {
 
     return __longlong_as_double(old);
 }
+#endif
 
 template<typename number4>
 __forceinline__ __device__ void LR_atomicAdd(number4 *dst, number4 delta) {

@@ -204,7 +204,6 @@ IF(CUDA)
 		CUDA/Lists/CUDANoList.cu
 		CUDA/Lists/CUDASimpleVerletList.cu
 		CUDA/Lists/CUDABinVerletList.cu
-		CUDA/Lists/CUDASharedVerletList.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Thermostats/CUDABaseThermostat.cu
 		CUDA/Thermostats/CUDANoThermostat.cu
