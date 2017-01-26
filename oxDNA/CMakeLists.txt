@@ -70,7 +70,12 @@ IF(CUDA)
 
 	INCLUDE_DIRECTORIES(${CUDA_INSTALL_PREFIX}/include/)
 	LINK_DIRECTORIES(${CUDA_INSTALL_PREFIX}/lib)
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -use_fast_math --compiler-options "-ffast-math -O3")
+	
+	IF(CUDA_VERSION_MAJOR GREATER 7)
+		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -use_fast_math --compiler-options "-ffast-math -O3" -Xcudafe "--diag_suppress=unrecognized_gcc_pragma")
+	ELSE()
+		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20 -use_fast_math --compiler-options "-ffast-math -O3" -Xcudafe "--diag_suppress=unrecognized_gcc_pragma")
+	ENDIF(CUDA_VERSION_MAJOR GREATER 7)
 ELSE()
 	ADD_DEFINITIONS(-DNOCUDA)
 ENDIF(CUDA)
