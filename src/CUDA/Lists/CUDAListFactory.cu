@@ -10,7 +10,6 @@
 
 #include "CUDANoList.h"
 #include "CUDASimpleVerletList.h"
-#include "CUDASharedVerletList.h"
 #include "CUDABinVerletList.h"
 
 CUDAListFactory::CUDAListFactory() {
@@ -27,7 +26,6 @@ CUDABaseList<number, number4> *CUDAListFactory::make_list(input_file &inp) {
 
 	if(getInputString(&inp, "CUDA_list", list_type, 0) == KEY_NOT_FOUND || !strcmp("no", list_type)) return new CUDANoList<number, number4>();
 	else if(!strcmp("verlet", list_type)) return new CUDASimpleVerletList<number, number4>();
-	else if(!strcmp("verlet_shared", list_type)) return new CUDASharedVerletList<number, number4>();
 	else if(!strcmp("bin_verlet", list_type)) return new CUDABinVerletList<number, number4>();
 	else throw new oxDNAException("CUDA_list '%s' is not supported", list_type);
 }

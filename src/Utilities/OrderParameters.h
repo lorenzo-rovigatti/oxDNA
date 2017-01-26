@@ -171,7 +171,6 @@ struct MinDistanceParameter {
 
 	template<typename number>
 	double calculate_value(BaseParticle<number> **particle_list, double box_side) {
-		
 		// mindistance
 		if (_sub_type == 0){
 			LR_vector<number> dist;
@@ -195,13 +194,13 @@ struct MinDistanceParameter {
 		}
 		// twist
 		// Algorithm described in page 26 of Christian Matek's thesis - Statistical mechanics of Nucleic Acids under Mechanical Stress
-		else if (_sub_type == 1){
+		else if(_sub_type == 1){
 			double twist = 0;
-			for (vector_of_pairs::iterator i = std::advance(counted_pairs.begin(),1); i != counted_pairs.end(); i++) {
+			for(vector_of_pairs::iterator i = counted_pairs.begin() + 1; i != counted_pairs.end(); i++) {
 				// get the position vectors of the current and previous base-pairs
 				BaseParticle<number> *first_curr = particle_list[(*i).first];
 				BaseParticle<number> *second_curr = particle_list[(*i).second];
-				vector_of_pairs::iterator prev = std::advance(i,-1);
+				vector_of_pairs::iterator prev =  i - 1;
 				BaseParticle<number> *first_prev = particle_list[(*prev).first];
 				BaseParticle<number> *second_prev = particle_list[(*prev).second];
 
