@@ -27,27 +27,25 @@
 #include "BaseObservable.h"
 #include "../Utilities/OrderParameters.h"
 #include "../Interactions/DNAInteraction.h"
+#include "../Interactions/DNA2Interaction.h"
 #include "../Interactions/RNAInteraction.h"
+#include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/rna_model.h"
 
 template<typename number>
 class UnstackedList  : public BaseObservable<number>  {
 	double _threshold_fraction;
-	double _threshold_energy;
+	number _threshold_energies[5][5];
   std::string _interaction_type;
 	Model *model;
-	//char _order_parameters_file[512];
-	//OrderParameters _op;
-	//bool _read_op;
 
-public:
+	public:
 	UnstackedList();
 	virtual ~UnstackedList();
 
 	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
 	virtual void init(ConfigInfo<number> &config_info);
-	//bool is_hbond(int p, int q);
 };
 
 #endif /* UNSTACKEDLIST_H_ */
