@@ -102,9 +102,9 @@ protected:
 	inline number _patchy_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
 public:
-//DT - ??
+//DT - bond type (irrelevant for me as all bonds are the same type; I use 4 = hydrogen bond as this allows me to use Observable/HBList & HBEnergy)
 	enum {
-		PATCHY = 0
+		PATCHY = 4
 	};
 
 //Constructor and destructor
@@ -154,7 +154,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	if (sqr_r_dist >= this->_sqr_rcut) {
 	  //EVAprintf("\n, , %.16lf\n", energy);
 	  /*printf("PID.h (1) sqr_r_dist (%f) > this->_sqr_rcut (%f); energy 0.0\n", sqr_r_dist, this->_sqr_rcut);
-	  fflush(stdout);*/
+	    fflush(stdout);*/
 
 	  return energy;
 
@@ -222,7 +222,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	    //If epsilon_patch is less than or equal to the current max_V_ang_V_tor_epsilon, we cannot exceed max_V_ang_V_tor_epsilon (as V_ang and V_tor are <= 1) for this pair of patches, so we skip to the next patch pair (next iteration)
 	    if (_epsilon_patch[_patch_type_of[pp->type][p_patch]][_patch_type_of[qq->type][q_patch]] <= max_V_ang_V_tor_epsilon) {
 	      
-	      /*printf("PID.h (3) _epsilon_patch[_patch_type_of[pp->type %d][p_patch %d] %d][_patch_type_of[qq->type %d][q_patch %d] %d] (%f) < max_V_ang_V_tor_epsilon (%f)\n", pp->type, p_patch, _patch_type_of[pp->type][p_patch], qq->type, q_patch, _patch_type_of[qq->type][q_patch], _epsilon_patch[_patch_type_of[pp->type][p_patch]][_patch_type_of[qq->type][q_patch]], max_V_ang_V_tor_epsilon);
+	      /*printf("PID.h (3) _epsilon_patch[_patch_type_of[pp->type %d][p_patch %d] %d][_patch_type_of[qq->type %d][q_patch %d] %d] (%f) < max_V_ang_V_tor_epsilon (%f); energy %f\n", pp->type, p_patch, _patch_type_of[pp->type][p_patch], qq->type, q_patch, _patch_type_of[qq->type][q_patch], _epsilon_patch[_patch_type_of[pp->type][p_patch]][_patch_type_of[qq->type][q_patch]], max_V_ang_V_tor_epsilon, energy);
 		fflush(stdout);*/
 	      
 	      continue;
@@ -300,7 +300,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	    if (_tor_flag == true) {
 	      
 	      //Variables (explained when used)
-	      number angle_tor, dot_proj_pref_proj_qref, sign, angle_diff, sqr_angle_diff;// V_tor_offset;
+	      number dot_proj_pref_proj_qref, sign, angle_diff, sqr_angle_diff, angle_tor; // V_tor_offset;
 	      LR_vector<number> proj_pref, proj_qref, cross_proj_pref_proj_qref;
 	      
 	      //Current minimum of square of angle_diff (difference between angle_tor and offset angle), across equivalent offset angles
@@ -546,19 +546,24 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	      max_V_ang_V_tor_epsilon = V_ang_V_tor_epsilon;
 	      //EVAprintf("%.16lf, %.16lf\n", V_ang_V_tor_epsilon, max_V_ang_V_tor_epsilon);
 
-	      /*printf("%d, %d, %d, %d, %d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, MAX\n", p->index, q->index, p_patch, q_patch, pp->type, qq->type, _patch_type_of[pp->type][p_patch], _patch_type_of[qq->type][q_patch], p->pos.x, p->pos.y, p->pos.z, q->pos.x, q->pos.y, q->pos.z, r_dist, V_LJ, _epsilon_patch[_patch_type_of[pp->type][p_patch]][_patch_type_of[qq->type][q_patch]], angle_r_p, angle_r_q, V_ang, V_tor, V_ang_V_tor_epsilon);
+	      /*printf("%d, %d, %d, %d, %d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, MAX\n", p->index, q->index, p_patch, q_patch, pp->type, qq->type, _patch_type_of[pp->type][p_patch], _patch_type_of[qq->type][q_patch], p->pos.x, p->pos.y, p->pos.z, q->pos.x, q->pos.y, q->pos.z, r_dist, V_LJ, _epsilon_patch[_patch_type_of[pp->type][p_patch]][_patch_type_of[qq->type][q_patch]], angle_r_p, angle_r_q, V_ang, angle_tor, V_tor, V_ang_V_tor_epsilon);
 		fflush(stdout);*/
 
+	      /*if (((_patch_type_of[pp->type][p_patch] == 3) && (_patch_type_of[qq->type][q_patch] == 4)) || ((_patch_type_of[pp->type][p_patch] == 4) && (_patch_type_of[qq->type][q_patch] == 3))) {
+	      //if ((_patch_type_of[pp->type][p_patch] == 7) && (_patch_type_of[qq->type][q_patch] == 7)) {
+		printf("%d, %d, %d, %d, %d, %d, %d, %d, %f, %f\n", p->index, q->index, p_patch, q_patch, pp->type, qq->type, _patch_type_of[pp->type][p_patch], _patch_type_of[qq->type][q_patch], angle_tor, V_ang_V_tor_epsilon);
+		}*/
+		  
 	      /*May be used later
 		max_patch_index[0] = p_patch;
 		max_patch_index[1] = q_patch;*/
 
-	    } /*else {
+	    }/* else {
 
-	      printf("%d, %d, %d, %d, %d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, --\n", p->index, q->index, p_patch, q_patch, pp->type, qq->type, _patch_type_of[pp->type][p_patch], _patch_type_of[qq->type][q_patch], p->pos.x, p->pos.y, p->pos.z, q->pos.x, q->pos.y, q->pos.z, r_dist, V_LJ, _epsilon_patch[_patch_type_of[pp->type][p_patch]][_patch_type_of[qq->type][q_patch]], angle_r_p, angle_r_q, V_ang, V_tor, V_ang_V_tor_epsilon);
-		fflush(stdout);
+	      printf("%d, %d, %d, %d, %d, %d, %d, %d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, --\n", p->index, q->index, p_patch, q_patch, pp->type, qq->type, _patch_type_of[pp->type][p_patch], _patch_type_of[qq->type][q_patch], p->pos.x, p->pos.y, p->pos.z, q->pos.x, q->pos.y, q->pos.z, r_dist, V_LJ, _epsilon_patch[_patch_type_of[pp->type][p_patch]][_patch_type_of[qq->type][q_patch]], angle_r_p, angle_r_q, V_ang, angle_tor, V_tor, V_ang_V_tor_epsilon);
+	      fflush(stdout);
 
-	    }*/
+	      }*/
 
 	  }
 	}
