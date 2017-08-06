@@ -6,6 +6,8 @@ model introduced by T. E. Ouldridge, J. P. K. Doye and A. A. Louis (http://dx.do
 It has been since reworked and it is now an extensible simulation+analysis framework.
 It natively supports DNA, RNA, Lennard-Jones and patchy particle simulations on both CPU and NVIDIA
 GPUs.
+The development of this software has been partially supported by the European Commission through the Marie 
+Skłodowska−Curie Fellowship No. 702298-DELTAS.
 
 REQUIREMENTS
 ------------
