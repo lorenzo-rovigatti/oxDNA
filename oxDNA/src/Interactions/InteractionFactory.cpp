@@ -16,6 +16,7 @@
 #include "PatchyInteraction.h"
 #include "PatchyInteractionDan.h"
 #include "DNAInteraction_relax.h"
+#include "DNA2Interaction_relax.h"
 #include "TSPInteraction.h"
 #include "HSInteraction.h"
 #include "DHSInteraction.h"
@@ -67,6 +68,7 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 	else if(inter_type.compare("LJ") == 0) return new LJInteraction<number>();
 	else if(inter_type.compare("DNA_relax") == 0) return new DNAInteraction_relax<number>();
 	else if(inter_type.compare("RNA") == 0) return new RNAInteraction<number>();
+	else if(inter_type.compare("DNA2_relax") == 0) return new DNA2Interaction_relax<number>();
 	else if(inter_type.compare("patchy") == 0) return new PatchyInteraction<number>();
 	else if(inter_type.compare("patchyDan") == 0) return new PatchyInteractionDan<number>();
 	else if(inter_type.compare("TSP") == 0) return new TSPInteraction<number>();
