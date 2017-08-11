@@ -100,6 +100,7 @@ SET(interactions_SOURCES
 	Interactions/DNA2Interaction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
+	Interactions/DNA2Interaction_relax.cpp
 	Interactions/CustomInteraction.cpp
 	Interactions/InteractionFactory.cpp
 )
