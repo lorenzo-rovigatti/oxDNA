@@ -809,8 +809,8 @@ def main():
         side = cadsys.bbox()
         if not nupack:
             base.Logger.log("using default box size, a factor %s larger than size of cadnano system" % str(BOX_FACTOR), base.Logger.INFO)
-    vhelix_direction_initial = np.array([0,0,1])
-    vhelix_perp_initial = np.array([1,0,0])
+    vhelix_direction_initial = np.array([0.,0.,1.])
+    vhelix_perp_initial = np.array([1.,0.,0.])
     if origami_sq:
         vhelix_perp_initial = vhelix_rotation_origami_sq(vhelix_direction_initial, vhelix_perp_initial)
         period = 21

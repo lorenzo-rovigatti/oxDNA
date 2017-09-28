@@ -214,9 +214,10 @@ bool InteractionUtils::spherocylinder_overlap (LR_vector<number> dr, LR_vector<n
 		if (fabs(mu) > hlength) mu = copysign(hlength, mu);
 		number dr2 = dr.norm() + lambda * lambda + mu * mu - 2.f * lambda * mu * u1dotu2 + 2.f * mu * drdotu2 - 2.f * lambda * drdotu1;
 
-		printf ("%g %g ##\n", sqrt(dr1), sqrt(dr2));
+		//printf ("%g %g ##\n", sqrt(dr1), sqrt(dr2));
 		if ((dr1 < 1.) != (dr2 < 1.)) {
 			printf ("INCONSISTENT (cc=%g - %g)\n", cc, u1dotu2 * u1dotu2);
+			printf ("sqrt(dr1) = %g, sqrt(dr2) = %g ##\n", sqrt(dr1), sqrt(dr2));
 			printf ("lambda, mu, drdotu1, drdotu2, u1dotu2 %g %g %g %g %g\n", lambda1, mu1, drdotu1, drdotu2, u1dotu2);
 			printf ("lambda, mu, drdotu1, drdotu2, u1dotu2 %g %g %g %g %g\n", lambda, mu, drdotu1, drdotu2, u1dotu2);
 			printf ("u1 = np.array([% 12.9g, % 12.9g, % 12.9g])\n", u1.x, u1.y, u1.z);
