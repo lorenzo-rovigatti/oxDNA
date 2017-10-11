@@ -38,15 +38,16 @@ inp.close ()
 nrows = len (es)
 avgee /= float (nrows)
 avge /= float (nrows)
-print >> sys.stderr, "# nrows, <x>, <x^2> :", nrows, avge, avgee
+print >> sys.stderr, "# nrows, <x>, <x^2>, sigma^2 :", nrows, avge, avgee, (avgee - avge * avge)
 
 nblocks = 0
 vtv0 = [0. for i in xrange (block)]
 for i in xrange (0, nrows - block):
     for j in xrange (block):
-        vtv0[j] += es[i + j] * es[i] - avge * avge
+        vtv0[j] += (es[i + j] - avge)*(es[i] - avge)
     nblocks += 1
 
 for i in xrange (len (vtv0)):
     print i, vtv0[i] / float (nblocks), vtv0[i] / float (nblocks) / (avgee - avge * avge)
+
 
