@@ -5,6 +5,9 @@
 #ifndef MESH_H
 #define MESH_H
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvla"
+
 /**
  * @brief Simple implementation of a cubic mesh.
  *
@@ -38,5 +41,7 @@ public:
 	number delta, inv_sqr_delta, xlow, xupp;
 	number *A, *B, *C, *D;
 };
+
+#pragma GCC diagnostic pop
 
 #endif // MESH_H

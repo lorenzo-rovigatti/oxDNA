@@ -207,6 +207,15 @@ DNAInteraction<number>::DNAInteraction() : BaseInteraction<number, DNAInteractio
 	}
 	_grooving = false;
 	_allow_broken_fene = false;
+	this->_generate_consider_bonded_interactions = true;
+
+	_fene_r0 = FENE_R0_OXDNA;
+
+	// variables useful only for max_backbone_force
+	_use_mbf = false;
+	_mbf_xmax = 0.f;
+	_mbf_fmax = 0.f;
+	_mbf_finf = 0.f; // roughly 2pN 
 }
 
 template<typename number>
@@ -218,11 +227,11 @@ template<typename number>
 void DNAInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 
-	if(getInputBool(&inp, "use_average_seq", &_average, 0) == KEY_FOUND) {
-		if(!_average) {
-			getInputString(&inp, "seq_dep_file", _seq_filename, 1);
-			OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename);
-		}
+	int avg_seq;
+	if(getInputInt(&inp, "use_average_seq", &avg_seq, 0) == KEY_FOUND) {
+		_average = (bool) avg_seq;
+		if(!_average) getInputString(&inp, "seq_dep_file", _seq_filename, 1);
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename.c_str());
 	}
 
 	float hb_multi = 1.;
@@ -240,6 +249,15 @@ void DNAInteraction<number>::get_settings(input_file &inp) {
 
 	if(getInputBoolAsInt(&inp, "allow_broken_fene", &tmp, 0) == KEY_FOUND){
 		_allow_broken_fene = (tmp != 0);
+	}
+
+	if(getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND) {
+		_use_mbf = true;
+		if (_mbf_fmax < 0.f) throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
+		_mbf_xmax =(-FENE_EPS + sqrt(FENE_EPS * FENE_EPS + 4.f * _mbf_fmax * _mbf_fmax * FENE_DELTA2)) / (2.f * _mbf_fmax);
+		if (getInputNumber (&inp, "max_backbone_force_far", &_mbf_finf, 0) != KEY_FOUND) _mbf_finf = 0.04f; // roughly 2pN, very weak but still there
+		
+		if (_mbf_finf < 0.f) throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force_far"); 
 	}
 }
 
@@ -279,8 +297,8 @@ void DNAInteraction<number>::init() {
 		float tmp_value, stck_fact_eps;
 
 		input_file seq_file;
-		loadInputFile(&seq_file, _seq_filename);
-		if(seq_file.state == ERROR) throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename);
+		loadInputFile(&seq_file, _seq_filename.c_str());
+		if(seq_file.state == ERROR) throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename.c_str());
 
 		// stacking
 		getInputFloat(&seq_file, "STCK_FACT_EPS", &stck_fact_eps, 1);
@@ -322,6 +340,9 @@ void DNAInteraction<number>::init() {
 
 		cleanInputFile(&seq_file);
 	}
+
+	// if we use mbf, we should tell the user
+	if (_use_mbf) OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g  (the corresponding mbf_xmax is %g) and a far value of %g", _mbf_fmax, _mbf_xmax, _mbf_finf);
 }
 
 template<typename number>
@@ -355,27 +376,39 @@ number DNAInteraction<number>::_backbone(BaseParticle<number> *p, BaseParticle<n
 		r = &computed_r;
 	}
 
-
 	LR_vector<number> rback = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BACK];
 	number rbackmod = rback.module();
-	number rbackr0 = rbackmod - FENE_R0_OXDNA;
-	number energy = -FENE_EPS * 0.5 * log(1 - SQR(rbackr0) / FENE_DELTA2);
+	number rbackr0 = rbackmod - _fene_r0;
 
-	// we check whether we ended up OUTSIDE of the FENE range
-	if (fabs(rbackr0) > FENE_DELTA - DBL_EPSILON) {
-		if (update_forces && !_allow_broken_fene) {
-			throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(rbackr0));
+	LR_vector<number> force;
+	number energy;
+
+	if(_use_mbf && fabs(rbackr0) > _mbf_xmax) {
+		// we use the "log"  potential
+		number fene_xmax = - (FENE_EPS / 2.f) * log (1.f - SQR(_mbf_xmax) / FENE_DELTA2);
+		number long_xmax = (_mbf_fmax - _mbf_finf) * _mbf_xmax * log(_mbf_xmax) + _mbf_finf * _mbf_xmax; 
+		energy = (_mbf_fmax - _mbf_finf) * _mbf_xmax * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
+		if (update_forces)
+			force = rback * (- copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * _mbf_xmax / fabs(rbackr0) + _mbf_finf ) / rbackmod); 
+	}
+	else {
+		// we check whether we ended up OUTSIDE of the FENE range
+		if (fabs(rbackr0) > FENE_DELTA - DBL_EPSILON) {
+			if (update_forces && !_allow_broken_fene) {
+				throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(rbackr0));
+			}
+			return (number) (1.e12);
 		}
-		return (number) (1.e12);
+		
+		// if not, we just do the right thing
+		energy = - (FENE_EPS / 2.f) * log(1.f - SQR(rbackr0) / FENE_DELTA2);
+		if (update_forces) force = rback * (-(FENE_EPS * rbackr0  / (FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
 	}
 
 	if(update_forces) {
-		LR_vector<number> force = rback * (-(FENE_EPS * rbackr0  / (FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
-
 		p->force -= force;
 		q->force += force;
 
-		// we need torques in the reference system of the particle
 		p->torque -= p->orientationT * p->int_centers[DNANucleotide<number>::BACK].cross(force);
 		q->torque += q->orientationT * q->int_centers[DNANucleotide<number>::BACK].cross(force);
 	}
@@ -385,7 +418,9 @@ number DNAInteraction<number>::_backbone(BaseParticle<number> *p, BaseParticle<n
 
 template<typename number>
 number DNAInteraction<number>::_bonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(!_check_bonded_neighbour(&p, &q, r)) return (number) 0.f;
+	if(!_check_bonded_neighbour(&p, &q, r)) {
+		return (number) 0.f;
+	}
 
 	LR_vector<number> computed_r;
 	if (r == NULL) {
@@ -442,7 +477,9 @@ number DNAInteraction<number>::_bonded_excluded_volume(BaseParticle<number> *p, 
 
 template<typename number>
 number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(!_check_bonded_neighbour(&p, &q, r)) return (number) 0.f;
+	if(!_check_bonded_neighbour(&p, &q, r)) {
+		return (number) 0.f;
+	}
 
 	LR_vector<number> &a1 = p->orientationT.v1;
 	LR_vector<number> &a2 = p->orientationT.v2;
@@ -1067,7 +1104,7 @@ number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BasePa
 
 template<typename number>
 number DNAInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(p->n3 == q || p->n5 == q) return pair_interaction_bonded(p, q, r, update_forces);
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
 	else return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
@@ -1079,9 +1116,8 @@ number DNAInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 			computed_r = q->pos - p->pos;
 			r = &computed_r;
 		}
-
-		if(!_check_bonded_neighbour(&p, &q, r)) return (number) 0;
 	}
+	if(!_check_bonded_neighbour(&p, &q, r)) return (number) 0;
 
 	number energy = _backbone(p, q, r, update_forces);
 	energy += _bonded_excluded_volume(p, q, r, update_forces);
@@ -1316,9 +1352,11 @@ void DNAInteraction<number>::check_input_sanity(BaseParticle<number> **particles
 		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
 		if(p->n5 != P_VIRTUAL && p->n5->index >= N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 
+		if (this->_use_mbf) continue;
+
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
-		number mind = FENE_R0_OXDNA - FENE_DELTA;
-		number maxd = FENE_R0_OXDNA + FENE_DELTA;
+		number mind = _fene_r0 - FENE_DELTA;
+		number maxd = _fene_r0 + FENE_DELTA;
 		if(p->n3 != P_VIRTUAL) {
 			BaseParticle<number> *q = p->n3;
 			q->set_positions();

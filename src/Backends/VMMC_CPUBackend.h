@@ -70,6 +70,7 @@ protected:
 
 	int **_neighcells, * _cells, * _vmmc_heads;
 	int _vmmc_N_cells, _vmmc_N_cells_side;
+	number _vmmc_box_side;
 
 	void _create_cells();
 	void _init_cells();

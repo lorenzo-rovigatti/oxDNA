@@ -42,6 +42,11 @@
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol((dest), val, (size)*sizeof(float)))\
 		delete[] val; }
 
+#define COPY_NUMBER_TO_FLOAT(dest, src) {\
+		float tmp = src;\
+		CUDA_SAFE_CALL(cudaMemcpyToSymbol((dest), &tmp, sizeof(float)));\
+		}
+
 /**
  * @brief Utility struct used by CUDA class to store information about kernel configurations.
  */
@@ -65,15 +70,6 @@ typedef struct __align__(16) {
 typedef struct __align__(8) {
 	int n3, n5;
 } LR_bonds;
-
-/*
-template<typename number>
-struct __align__(16) mutual_trap {
-	//number x, y, z;
-	number stiff;
-	number r0; 
-	int p_ind;
-};*/
 
 template<typename number>
 struct __align__(16) GPU_quat {
@@ -105,6 +101,11 @@ public:
 		return res;
 	}
 
+	template<typename number4>
+	static number4 sum_number4_on_GPU(number4 *dv, int N);
+	template<typename number4>
+	static double sum_number4_to_double_on_GPU(number4 *dv, int N);
+
 	static float int_as_float(const int a) {
 		union {
 			int a;
@@ -135,7 +136,6 @@ public:
 
 	template<typename T>
 	static cudaError_t LR_cudaMalloc(T **devPtr, size_t size);
-
 };
 
 template<typename T>

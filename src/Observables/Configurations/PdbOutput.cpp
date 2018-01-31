@@ -56,7 +56,7 @@ std::string PdbOutput<number>::_particle(BaseParticle<number> *p,std::string str
 	anis.v2.y = (I_l.v1.x+I_l.v3.z-I_l.v2.y)/2.0;
 	anis.v3.z = (I_l.v1.x+I_l.v2.y-I_l.v3.z)/2.0;
 
-	number mybox = *this->_config_info.box_side;
+	BaseBox<number> * mybox = this->_config_info.box;
 	LR_vector<number> my_strand_cdm = this->_strands_cdm[p->strand_id];
 	LR_vector<number> zero (0., 0., 0.);
 	if(_ref_strand_id>=0 && this->_strands_cdm.count(_ref_strand_id) == 1) 
@@ -69,8 +69,8 @@ std::string PdbOutput<number>::_particle(BaseParticle<number> *p,std::string str
 
 	LR_vector<number> origin(0., 0., 0.);
 	origin = zero;
-	LR_vector<number> back = (p->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + p->int_centers[0];
-	LR_vector<number> base = (p->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + p->int_centers[2];
+	LR_vector<number> back = (p->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + p->int_centers[0];
+	LR_vector<number> base = (p->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + p->int_centers[2];
 	base = base-(base-back)*_backbase_radius;
 	
 	char back_buf1[264];

@@ -85,7 +85,7 @@ protected:
 
 public:
 	enum {
-		PATCHY = 0
+		PATCHY = 4
 	};
 
 	PatchyInteraction();

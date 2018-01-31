@@ -39,7 +39,7 @@ void RotateSite<number>::apply (llint curr_step) {
 
 	number delta_E = -this->particle_energy(p);
 	delta_E -= p->int_potential();
-	p->set_ext_potential (curr_step, (*this->_Info->box_side));
+	p->set_ext_potential (curr_step, this->_Info->box);
 	number delta_E_ext = -p->ext_potential;
 
 	// select site
@@ -76,7 +76,7 @@ void RotateSite<number>::apply (llint curr_step) {
 	
 	delta_E += this->particle_energy(p);
 	delta_E += p->int_potential();
-	p->set_ext_potential(curr_step, *this->_Info->box_side);
+	p->set_ext_potential(curr_step, this->_Info->box);
 	delta_E_ext += p->ext_potential;
 	
 	// accept or reject?

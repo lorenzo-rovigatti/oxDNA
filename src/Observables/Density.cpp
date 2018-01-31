@@ -21,7 +21,7 @@ Density<number>::~Density() {
 template<typename number>
 std::string Density<number>::get_output_string(llint curr_step) {
 	int N = *this->_config_info.N;
-	number V = pow (*this->_config_info.box_side, 3);
+	number V = this->_config_info.box->V();
 	return Utils::sformat ("%# 10.8g", N / V);
 }
 

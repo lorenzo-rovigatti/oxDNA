@@ -10,7 +10,8 @@
 
 #include "../../Backends/Thermostats/BaseThermostat.h"
 #include "../CUDAUtils.h"
-#include "../CUDA_rand.cuh"
+
+#include <curand_kernel.h>
 
 /**
  * @brief Abstract class for CUDA thermostats
@@ -38,7 +39,7 @@ protected:
 	virtual void _setup_rand(int N);
 
 public:
-	CUDABaseThermostat() : _d_rand_state(NULL), _seed(0) { };
+	CUDABaseThermostat();
 	virtual ~CUDABaseThermostat();
 
 	virtual void set_seed(llint seed) { _seed = seed; }

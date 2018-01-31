@@ -10,6 +10,7 @@
 #include <sstream>
 #include <cctype>
 
+#include "Thermostats/BaseThermostat.h"
 #include "../Interactions/DNAInteraction.h"
 #include "../Interactions/DNA2Interaction.h"
 #include "../Interactions/RNAInteraction2.h"
@@ -251,13 +252,14 @@ void FFS_MD_CPUBackend<number>::_ffs_compute_forces(void) {
 	this->_U = this->_U_hydr = (number) 0;
 	for (int i = 0; i < this->_N; i++) {
 		BaseParticle<number> *p = this->_particles[i];
-		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
+		typename vector<ParticlePair<number> >::iterator it = p->affected.begin();
+		for(; it != p->affected.end(); it++) {
+			if(it->first == p) this->_U += this->_interaction->pair_interaction_bonded(it->first, it->second, NULL, true);
+		}
 
 		std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
-			// if implemented implicitely in the lists
-			//if (p->index < q->index) this->_U += this->pair_interaction_nonbonded_DNA_with_op(p, q, NULL, true);
 			this->_U += this->pair_interaction_nonbonded_DNA_with_op(p, q, NULL, true);
 		}
 	}
@@ -289,7 +291,7 @@ void FFS_MD_CPUBackend<number>::sim_step(llint curr_step) {
 	this->_thermostat->apply (this->_particles, curr_step);
 	this->_timer_thermostat->pause();
 
-	_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box);
 
 	//cout << "I just stepped and bond parameter is " << _op.get_hb_parameter(0) << " and distance is " << _op.get_distance_parameter(0) << endl;
 	if (this->check_stop_conditions()) {
@@ -313,7 +315,7 @@ void FFS_MD_CPUBackend<number>::init() {
 	_op.init_from_file(_order_parameters_file.c_str(), this->_particles, this->_N);
 	init_ffs_from_file(_ffs_file.c_str());
 	OX_LOG(Logger::LOG_INFO, "Setting initial value for the order parameter...");
-	_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box);
 
 }
 

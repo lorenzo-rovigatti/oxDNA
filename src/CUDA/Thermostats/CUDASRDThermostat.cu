@@ -14,7 +14,7 @@
 #include "../CUDAUtils.h"
 
 template<typename number, typename number4>
-CUDASRDThermostat<number, number4>::CUDASRDThermostat(number &box_side) : CUDABaseThermostat<number, number4>(), SRDThermostat<number>(box_side) {
+CUDASRDThermostat<number, number4>::CUDASRDThermostat(BaseBox<number> *box) : CUDABaseThermostat<number, number4>(), SRDThermostat<number>(box) {
 	_d_counters_cells = NULL;
 	_d_cells = NULL;
 	_d_cell_overflow = NULL;
@@ -55,7 +55,7 @@ void CUDASRDThermostat<number, number4>::init(int N) {
 	this->_setup_rand(_N_tot);
 
 	// copy constant values to the GPU
-	float f_copy = this->_box_side;
+	float f_copy = this->_box->box_sides()[0];
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(box_side, &f_copy, sizeof(float)) );
 	f_copy = this->_r_cell;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(rcell, &f_copy, sizeof(float)) );

@@ -15,18 +15,14 @@
 #include "LJInteraction.h"
 #include "PatchyInteraction.h"
 #include "PatchyInteractionDan.h"
+#include "KFInteraction.h"
 #include "DNAInteraction_relax.h"
-#include "DNA2Interaction_relax.h"
 #include "TSPInteraction.h"
 #include "HSInteraction.h"
 #include "DHSInteraction.h"
 #include "BoxInteraction.h"
 #include "HardCylinderInteraction.h"
 #include "HardSpheroCylinderInteraction.h"
-#include "DirkInteraction.h"
-#include "DirkInteraction2.h"
-#include "DirkInteractionBias.h"
-#include "DirkInteractionSin.h"
 #include "CustomInteraction.h"
 #include "DNA2Interaction.h"
 #include "RNAInteraction2.h"
@@ -68,19 +64,15 @@ IBaseInteraction<number> *InteractionFactory::make_interaction(input_file &inp) 
 	else if(inter_type.compare("LJ") == 0) return new LJInteraction<number>();
 	else if(inter_type.compare("DNA_relax") == 0) return new DNAInteraction_relax<number>();
 	else if(inter_type.compare("RNA") == 0) return new RNAInteraction<number>();
-	else if(inter_type.compare("DNA2_relax") == 0) return new DNA2Interaction_relax<number>();
 	else if(inter_type.compare("patchy") == 0) return new PatchyInteraction<number>();
 	else if(inter_type.compare("patchyDan") == 0) return new PatchyInteractionDan<number>();
+	else if(inter_type.compare("KF") == 0) return new KFInteraction<number>();
 	else if(inter_type.compare("TSP") == 0) return new TSPInteraction<number>();
 	else if(inter_type.compare("HS") == 0) return new HSInteraction<number>();
 	else if(inter_type.compare("Box") == 0) return new BoxInteraction<number>();
 	else if(inter_type.compare("HardCylinder") == 0) return new HardCylinderInteraction<number>();
 	else if(inter_type.compare("HardSpheroCylinder") == 0) return new HardSpheroCylinderInteraction<number>();
 	else if(inter_type.compare("DHS") == 0) return new DHSInteraction<number>();
-	else if(inter_type.compare("Dirk") == 0) return new DirkInteraction<number>();
-	else if(inter_type.compare("Dirk2") == 0) return new DirkInteraction2<number>();
-	else if(inter_type.compare("DirkBias") == 0) return new DirkInteractionBias<number>();
-	else if(inter_type.compare("DirkSin") == 0) return new DirkInteractionSin<number>();
 	else if(inter_type.compare("custom") == 0) return new CustomInteraction<number>();
 	else if(inter_type.compare("DNA2") == 0) return new DNA2Interaction<number>();
 	else if(inter_type.compare("RNA2") == 0) return new RNA2Interaction<number>();

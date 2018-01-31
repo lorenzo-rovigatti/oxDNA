@@ -75,6 +75,7 @@ number LJInteraction<number>::_lennard_jones(BaseParticle<number> *p, BasePartic
 		number lj_part = 1;
 		for(int i = 0; i < _n[type]/2; i++) lj_part *= tmp;
 		energy = 4 * _epsilon[type] * (SQR(lj_part) - lj_part) - _E_cut[type];
+
 		if(update_forces) {
 			LR_vector<number> force = *r * (-4 *_n[type] * _epsilon[type] * (lj_part - 2*SQR(lj_part)) / rnorm);
 			p->force -= force;

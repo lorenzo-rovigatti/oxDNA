@@ -20,6 +20,7 @@ RNAInteraction<number>::RNAInteraction() : BaseInteraction<number, RNAInteractio
 			_cross_seq_dep_K[i][j] = 1.;
 
 	OX_LOG(Logger::LOG_INFO,"Running oxRNA version %s",RNA_MODEL_VERSION);
+	this->_generate_consider_bonded_interactions = true;
 }
 
 

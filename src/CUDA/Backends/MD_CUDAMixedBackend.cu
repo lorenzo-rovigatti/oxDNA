@@ -16,10 +16,12 @@ CUDAMixedBackend::CUDAMixedBackend() : MD_CUDABackend<float, float4>() {
 }
 
 CUDAMixedBackend::~CUDAMixedBackend(){
-	CUDA_SAFE_CALL( cudaFree(_d_possd) );
-	CUDA_SAFE_CALL( cudaFree(_d_orientationsd) );
-	CUDA_SAFE_CALL( cudaFree(_d_velsd) );
-	CUDA_SAFE_CALL( cudaFree(_d_Lsd) );
+	if(_d_possd != NULL) {
+		CUDA_SAFE_CALL( cudaFree(_d_possd) );
+		CUDA_SAFE_CALL( cudaFree(_d_orientationsd) );
+		CUDA_SAFE_CALL( cudaFree(_d_velsd) );
+		CUDA_SAFE_CALL( cudaFree(_d_Lsd) );
+	}
 }
 
 void CUDAMixedBackend::init() {
@@ -79,6 +81,11 @@ void CUDAMixedBackend::_first_step() {
 		(_d_poss, _d_orientations, _d_possd, _d_orientationsd, _d_list_poss, _d_velsd, _d_Lsd, _d_forces, _d_torques, _d_are_lists_old, this->_any_rigid_body);
 }
 
+void CUDAMixedBackend::_rescale_positions(float4 new_Ls, float4 old_Ls) {
+	MD_CUDABackend<float, float4>::_rescale_positions(new_Ls, old_Ls);
+	_float4_to_LR_double4(_d_poss, _d_possd);
+}
+
 void CUDAMixedBackend::_sort_particles() {
 	_LR_double4_to_float4(_d_possd, _d_poss);
 	_LR_double4_to_float4(_d_velsd, _d_vels);
@@ -93,7 +100,7 @@ void CUDAMixedBackend::_sort_particles() {
 
 void CUDAMixedBackend::_forces_second_step() {
 	this->_set_external_forces();
-	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds);
+	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
 
 	second_step_mixed
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>

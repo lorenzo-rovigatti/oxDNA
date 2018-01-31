@@ -1,8 +1,8 @@
 /*
  * LJWall.cpp
  *
- *  Created on: 18/oct/2011
- *      Author: Flavio 
+ *  Created on: 04/dec/2015
+ *      Author: Lorenzo
  */
 
 #include "LJWall.h"
@@ -23,7 +23,7 @@ LJWall<number>::LJWall() : BaseForce<number>() {
 
 template<typename number>
 void LJWall<number>::get_settings (input_file &inp) {
-	getInputInt (&inp, "particle", &_particle, 0);
+	getInputInt (&inp, "particle", &_particle, 1);
 
 	getInputNumber(&inp, "stiff", &this->_stiff, 0);
 	getInputNumber(&inp, "position", &this->_position, 1);
@@ -47,7 +47,7 @@ void LJWall<number>::get_settings (input_file &inp) {
 }
 
 template<typename number>
-void LJWall<number>::init (BaseParticle<number> ** particles, int N, number * box_side_ptr) {
+void LJWall<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a LJWall on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding LJWall (stiff=%g, position=%g, dir=%g,%g,%g, sigma=%g, n=%d) on particle %d", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n, _particle);

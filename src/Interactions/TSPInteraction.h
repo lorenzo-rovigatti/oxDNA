@@ -38,9 +38,14 @@ protected:
 	number _TSP_lambda;
 	int _TSP_n;
 
+	number _TSP_yukawa_A;
+	number _TSP_yukawa_xi;
+	number _yukawa_E_cut;
+
 	bool _attractive_anchor;
 	bool _only_chains;
 	bool _only_intra;
+	bool _yukawa_repulsion;
 
 	int *_N_arms;
 	int *_N_monomer_per_arm;
@@ -79,7 +84,7 @@ public:
 	virtual void read_topology(int N_from_conf, int *N_stars, BaseParticle<number> **particles);
 	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
 
-	virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);
+	virtual void generate_random_configuration(BaseParticle<number> **particles, int N);
 
 	void set_only_intra(bool value) { _only_intra = value; }
 };

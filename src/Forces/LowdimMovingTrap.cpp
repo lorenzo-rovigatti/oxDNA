@@ -45,7 +45,7 @@ void LowdimMovingTrap<number>::get_settings (input_file &inp) {
 }
 
 template<typename number>
-void LowdimMovingTrap<number>::init (BaseParticle<number> ** particles, int N, number * box_side_ptr) {
+void LowdimMovingTrap<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a LowdimMovingTrap on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding LowdimMovingTrap (stiff=stiffness %lf and pos=[%g,%g,%g] + (%g * t) [%g,%g,%g] and visX=%i visY=%i visZ=%i on particle %d", this->_stiff, this->_pos0.x, this->_pos0.y, this->_pos0.z, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z, this->_visX, this->_visY, this->_visZ, _particle);

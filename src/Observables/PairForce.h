@@ -12,13 +12,13 @@
 
 /**
  * @brief Prints out all the non-zero forces in between particles. Select with type=pair_force
- * if the particle_id option is specified, only the forces relative to pair interactions that involve the particle
- * with that id will be printed
  *
-@verbatim
-[particle_id = <int>] (Optional argument. particle id.)
+ * If the particle_id option is specified, only the forces relative to pair interactions that involve the particle
+ * with that id will be printed. To use this observable, use type = pair_force.
+ *
+ * @verbatim
+[particle_id = <int> (Optional argument. particle id.)]
 @endverbatim
- *
  */
 template<typename number>
 class PairForce: public BaseObservable<number> {

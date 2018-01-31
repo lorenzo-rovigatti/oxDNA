@@ -55,7 +55,7 @@ public:
 
 	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
 
-	bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q, number box_side);
+	bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q);
 };
 
 template<typename number>

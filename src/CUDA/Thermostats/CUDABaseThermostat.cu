@@ -7,10 +7,22 @@
 
 #include "CUDABaseThermostat.h"
 
+__global__ void setup_curand(curandState *rand_state, const llint seed, const int N) {
+	if(IND >= N) return;
+
+	curand_init(seed, IND, 0, &rand_state[IND]);
+}
+
+template<typename number, typename number4>
+CUDABaseThermostat<number, number4>::CUDABaseThermostat() : _d_rand_state(NULL), _seed(0) {
+
+}
+
 template<typename number, typename number4>
 CUDABaseThermostat<number, number4>::~CUDABaseThermostat() {
-	CUDA_SAFE_CALL( cudaFree(_d_rand_state) );
+	if(_d_rand_state != NULL) CUDA_SAFE_CALL( cudaFree(_d_rand_state) );
 }
+
 template<typename number, typename number4>
 void CUDABaseThermostat<number, number4>::get_cuda_settings(input_file &inp) {
 	_launch_cfg.threads_per_block = 64;

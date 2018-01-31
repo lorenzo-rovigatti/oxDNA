@@ -1,0 +1,98 @@
+
+-- ENERGY MINIMIZATION BACKEND -- 
+
+A cpu-only poor-man's version of a steepest descent algoritm with a maximum step
+size has been implemented for (local) minimization of the potential energy.
+
+The main use of this backend is to remove initial overlaps for excluded volumes.
+It is also effective at bringing neighbours within the FENE range (if combined
+with the max_backbone_force key described below) provided that the neighbours
+start within a couple of length units.
+
+This procedure is meant to run for a few thousand steps, and it will run fine on
+the CPU even for large systems. Often, the procedure is almost done, and the
+energy is minimized within a few tens/a hundred steps, so the run time will be
+of the order of seconds even for very large systems.
+
+see the "input_min" input file provided to see how to use this backend. The only
+relevant parameter to be tweaked is max_step, which provides the size of the
+maximum step taken by any particle during the procedure. The default value is
+good in all the test cases I have tried.
+
+
+-- "RELAX" OPTION TO oxDNA and oxDNA2 INTERACTION (max_backbone_force) --
+
+The reason this new option is meant to slowly bring together neighbours that
+start far away (more than a couple of length units) from each other. Exotic
+cadnano files will inevitably have this problem. The nice thing about this
+interaction is that it also works on CUDA, and works in the same way for both
+oxDNA and oxDNA2.
+
+This option replaces the DNA_relax interactions, which should not be used
+anymore, as this new procedure should be much faster, also works on CUDA and
+requires fewer steps.
+
+First of all, we use the new feature of the DNA interaction max_backbone_force.
+This feature sets a maximum value for the force exerted by the FENE potential
+between nearest neighbours, which diverges at a finite separation. We change the
+potential in the following way (x is the separation vector between backbone
+sites)
+ * read max_backbone_force from the input file
+ * compute x_max so that |grad(FENE(x_max))| = max_backbone_force
+ * for |x| < x_max, we use the standard FENE potential
+ * for |x| > x_max, we use a potential of the form A |x| + B log(|x|);
+This form was chosen so that the potential is monotonically increasing but does
+not diverge for large x, and also the magnitude of the force for large
+separations is tunable (it is A). The magnitude of the force, on the other hand,
+decreases as x increases, and plateaus to A.
+
+A defaults to 0.04 (roughly 2 pN), a weak value that slowly pushes neighbours
+together without breaking stable base pairs. This value can be changed with the
+key max_backbone_force_far.
+
+The value of B is chosen so that the potential is continuous and differentiable at x_max.
+
+See the "input_relax" file to see how to use this interaction.
+
+
+-- COMMAND LIST --
+
+Firtly, we generate a starting configuration from a cadnano file. 
+
+:> python ../../UTILS/cadnano_interface.py caca.json sq 50.
+
+This is a very small origami two very "foced links". The final configuration is
+not meant to be flat. We copy the generated files to honour the input files:
+
+:> cp prova.top top.top
+:> cp prova.conf start.conf
+
+Now we can run the minimization backend for a few steps:
+
+:> ../../build/bin/oxDNA input_min
+
+If one takes a look at the final configuration, one should see a very flat
+origami and a short single strand on top with two stretched bonds. This short
+single strand will need to rotate 180 degrees and then pull the two sides of the
+origamis closer together. Why does the energy minimization not rotate this short
+strand? The reason is that the further away two neighbours are, the smaller the
+force, and what you see is actually a local minimum for the energy. This can be
+changed by changing max_backbone_force_far. Try experimenting with
+max_backbone_force_far and see if you can make it rotate during the
+minimization without destroying the system.
+
+We can now copy the last configuration into the input for the next step:
+
+:> cp last_conf.dat stage1.dat
+
+And then run the final relaxation:
+
+:> ../../build/bin/oxDNA input_relax
+
+This will take a little longer. Note that the kinetic energy will take a while
+to reach the equilibrium value (0.3) since the starting configuration has been
+minimised and as such corresponds to an equilibrium configuration at a very low
+temperature. You should see that eventually two opposite corners of the
+original origami are pulled together, and the final configuration does not look
+flat at all :).
+

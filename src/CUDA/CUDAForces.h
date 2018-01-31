@@ -16,6 +16,10 @@
 #define CUDA_REPULSION_PLANE_MOVING 4
 #define CUDA_TRAP_MOVING_LOWDIM 5
 #define CUDA_LJ_WALL 6
+#define CUDA_REPULSIVE_SPHERE 7
+#define CUDA_CONSTANT_RATE_TORQUE 8
+#define CUDA_GENERIC_CENTRAL_FORCE 9
+#define CUDA_LJ_CONE 10
 
 /**
  * @brief CUDA version of a ConstantRateForce.
@@ -24,6 +28,7 @@ template<typename number>
 struct constant_rate_force {
 	int type;
 	number x, y, z;
+	bool dir_as_centre;
 	number rate;
 	number F0;
 };
@@ -85,12 +90,24 @@ template<typename number>
 struct repulsion_plane_moving {
 	int type;
 	number stiff;
-	int p_ind;
+	int low_idx, high_idx;
 	float3 dir;
 };
 
 /**
- * @brief CUDA version of a LJWall.
+ * @brief CUDA version of a RepulsiveSphere.
+ */
+template<typename number>
+struct repulsive_sphere {
+	int type;
+	number stiff;
+	number r0;
+	number rate;
+	float3 centre;
+};
+
+/**
+ * @brief CUDA version of an LJWall.
  */
 template<typename number>
 struct LJ_wall {
@@ -101,6 +118,44 @@ struct LJ_wall {
 	number sigma;
 	int n;
 	float3 dir;
+};
+
+/**
+ * @brief CUDA version of a ConstantRateTorque.
+ */
+template<typename number>
+struct constant_rate_torque {
+	int type;
+	float3 center, pos0, axis, mask;
+	number rate;
+	number stiff;
+	number F0;
+};
+
+/**
+ * @brief CUDA version of a GenericCentralForce.
+ */
+template<typename number>
+struct generic_constant_force {
+	int type;
+	number x, y, z;
+	number F0;
+	number inner_cut_off_sqr;
+};
+
+/**
+ * @brief CUDA version of an LJCone.
+ */
+template<typename number>
+struct LJ_cone {
+	int type;
+	float3 dir, pos0;
+	number stiff;
+	number cutoff;
+	number sigma;
+	number alpha;
+	number sin_alpha;
+	int n;
 };
 
 /**
@@ -115,7 +170,11 @@ union CUDA_trap {
 	lowdim_moving_trap<number> lowdim;
 	repulsion_plane<number> repulsionplane;
 	repulsion_plane_moving<number> repulsionplanemoving;
+	repulsive_sphere<number> repulsivesphere;
 	LJ_wall<number> ljwall;
+	constant_rate_torque<number> constantratetorque;
+	generic_constant_force<number> genericconstantforce;
+	LJ_cone<number> ljcone;
 };
 
 #endif /* CUDAFORCES_H_ */

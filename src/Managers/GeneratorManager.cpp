@@ -61,6 +61,10 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 
 	_external_forces = false;
 	_external_filename = std::string("");
+
+	_mybox = NULL;
+
+	ConfigInfo<double>::init();
 }
 
 GeneratorManager::~GeneratorManager() {
@@ -130,33 +134,31 @@ void GeneratorManager::init() {
 		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g (%d particles, box sides %g %g %g)", _density, _N, _box_side_x, _box_side_y, _box_side_z);
 	}
 	
-	// setting the box side for the interaction
-	_interaction->set_box_side(_box_side);
-
+	// setting the box or the interaction
 	_mybox->init(_box_side_x, _box_side_y, _box_side_z);
 	_interaction->set_box(_mybox);
 
 	// initializing external forces
 	if (_external_forces) { 
-		ForceFactory<double>::instance()->read_external_forces(_external_filename, _particles, this->_N, false, &_box_side);
+		ForceFactory<double>::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox);
 	}
  
 	_init_completed = true;
 }
 
 void GeneratorManager::generate() {
-	_interaction->generate_random_configuration(_particles, _N, _box_side);
+	_interaction->generate_random_configuration(_particles, _N);
 
 	ofstream conf_output(_output_conf);
 	conf_output.precision(15);
 
 	conf_output << "t = 0" << endl;
-	conf_output << "b = " << _box_side_x << " " << _box_side_y << " " << _box_side_z << endl;
+	conf_output << "b = " << _mybox->box_sides().x << " " << _mybox->box_sides().y << " " << _mybox->box_sides().z << endl;
 	conf_output << "E = 0 0 0 " << endl;
 
 	for(int i = 0; i < _N; i++) {
 		BaseParticle<double> *p = _particles[i];
-		LR_vector<double> mypos = p->get_abs_pos(_box_side_x, _box_side_y, _box_side_z);
+		LR_vector<double> mypos = _mybox->get_abs_pos(p);
 		LR_matrix<double> oT = p->orientation.get_transpose();
 		conf_output << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 		conf_output << oT.v1.x << " " << oT.v1.y << " " << oT.v1.z << " ";

@@ -18,6 +18,7 @@ template<typename number>
 Configuration<number>::Configuration() {
 	_back_in_box = false;
 	_reduced = false;
+	_only_type = -1;
 }
 
 template<typename number>
@@ -27,9 +28,9 @@ Configuration<number>::~Configuration() {
 
 template<typename number>
 void Configuration<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	int bb;
-	if(getInputBoolAsInt(&sim_inp, "back_in_box", &bb, 0) == KEY_FOUND) _back_in_box = (bool) bb;
-	if(getInputBoolAsInt(&my_inp, "reduced", &bb, 0) == KEY_FOUND) _reduced = (bool) bb;
+	getInputBool(&sim_inp, "back_in_box", &_back_in_box, 0);
+	getInputBool(&my_inp, "reduced", &_reduced, 0);
+	getInputInt(&my_inp, "only_type", &_only_type, 0);
 
 	string opt;
 	bool show_on = false;
@@ -105,17 +106,21 @@ string Configuration<number>::_particle(BaseParticle<number> *p) {
 	stringstream conf;
 	conf.precision(15);
 
+	LR_vector<number> box_sides = this->_config_info.box->box_sides();
+
 	LR_vector<double> mypos;
 	if (_back_in_box){
-		mypos.x = p->pos.x - floor(p->pos.x / *this->_config_info.box_side)*(*this->_config_info.box_side);
-		mypos.y = p->pos.y - floor(p->pos.y / *this->_config_info.box_side)*(*this->_config_info.box_side);
-		mypos.z = p->pos.z - floor(p->pos.z / *this->_config_info.box_side)*(*this->_config_info.box_side);
+		mypos.x = p->pos.x - floor(_strands_cdm[p->strand_id].x/box_sides.x)*box_sides.x;
+		mypos.y = p->pos.y - floor(_strands_cdm[p->strand_id].y/box_sides.y)*box_sides.y;
+		mypos.z = p->pos.z - floor(_strands_cdm[p->strand_id].z/box_sides.z)*box_sides.z;
 	}
-	else{
-		mypos.x = p->get_abs_pos(this->_config_info.box->box_sides()).x;
-		mypos.y = p->get_abs_pos(this->_config_info.box->box_sides()).y;
-		mypos.z = p->get_abs_pos(this->_config_info.box->box_sides()).z;
+	else {
+		LR_vector<number> number_pos = this->_config_info.box->get_abs_pos(p);
+		mypos.x = number_pos.x;
+		mypos.y = number_pos.y;
+		mypos.z = number_pos.z;
 	}
+
 	LR_matrix<number> oT = p->orientation.get_transpose();
 	conf << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 	conf << oT.v1.x << " " << oT.v1.y << " " << oT.v1.z << " ";
@@ -138,8 +143,7 @@ string Configuration<number>::_configuration(llint step) {
 
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
 			BaseParticle<number> *p = this->_config_info.particles[*it];
-
-			coms[p->strand_id] += p->get_abs_pos(*this->_config_info.box_side);
+			coms[p->strand_id] += this->_config_info.box->get_abs_pos(p);
 			counters[p->strand_id]++;
 		}
 
@@ -151,14 +155,18 @@ string Configuration<number>::_configuration(llint step) {
 		}
 	}
 	else {
+		if(_back_in_box) _fill_strands_cdm();
 		// this is used to avoid printing empty lines
 		bool empty = true;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			if(it != _visible_particles.begin() && !empty) conf << endl;
 			BaseParticle<number> *p = this->_config_info.particles[*it];
-			string p_str = _particle(p);
-			conf << p_str;
-			empty = (p_str.size() == 0);
+			bool visible = (_only_type == -1 || p->type == _only_type);
+			if(visible) {
+				if(it != _visible_particles.begin() && !empty) conf << endl;
+				string p_str = _particle(p);
+				conf << p_str;
+				empty = (p_str.size() == 0);
+			}
 		}
 	}
 

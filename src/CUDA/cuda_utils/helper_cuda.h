@@ -25,7 +25,6 @@
 #endif
 // end of definitions for 4.0 
 
-
 #pragma once
 
 #include <stdlib.h>

@@ -17,7 +17,7 @@ RepulsionPlane<number>::RepulsionPlane() : BaseForce<number>() {
 
 template<typename number>
 void RepulsionPlane<number>::get_settings (input_file &inp) {
-	getInputInt (&inp, "particle", &_particle, 0);
+	getInputInt (&inp, "particle", &_particle, 1);
 
 	getInputNumber(&inp, "stiff", &this->_stiff, 1);
 	getInputNumber(&inp, "position", &this->_position, 1);
@@ -33,7 +33,7 @@ void RepulsionPlane<number>::get_settings (input_file &inp) {
 }
 
 template<typename number>
-void RepulsionPlane<number>::init (BaseParticle<number> ** particles, int N, number * box_side_ptr) {
+void RepulsionPlane<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a RepulsionPlane on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding RepulsionPlane (stiff=%g, position=%g, dir=%g,%g,%g, on particle %d", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _particle);

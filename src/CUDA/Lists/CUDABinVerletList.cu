@@ -26,7 +26,7 @@ void CUDABinVerletList<number, number4>::_init_CUDA_verlet_symbols() {
 	COPY_ARRAY_TO_CONSTANT(bverlet_sqr_rverlet, _sqr_rverlet, 3);
 	COPY_ARRAY_TO_CONSTANT(bverlet_rcell, _rcell, 3);
 
-	float f_copy = this->_box_side;
+	float f_copy = _box_side;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(bverlet_box_side, &f_copy, sizeof(float)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(bverlet_N, &this->_N, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(bverlet_N_cells_side, this->_N_cells_side, 3*sizeof(int)) );
@@ -55,9 +55,8 @@ void CUDABinVerletList<number, number4>::get_settings(input_file &inp) {
 }
 
 template<typename number, typename number4>
-void CUDABinVerletList<number, number4>::init(int N, number box_side, number rcut) {
-	CUDABaseList<number, number4>::init(N, box_side, rcut);
-
+void CUDABinVerletList<number, number4>::init(int N, number rcut, CUDABox<number, number4> *h_cuda_box, CUDABox<number, number4> *d_cuda_box) {
+	CUDABaseList<number, number4>::init(N, rcut, h_cuda_box, d_cuda_box);
 	size_t cells_mem = 0;
 	size_t matrix_mem = 0;
 	size_t number_mem = 0;
@@ -65,8 +64,12 @@ void CUDABinVerletList<number, number4>::init(int N, number box_side, number rcu
 	this->_sqr_verlet_skin = SQR(this->_verlet_skin);
 	_vec_size = N * sizeof(number4);
 
-	number density = N / CUB(box_side);
-	number density_factor = density * 5. * this->_max_density_multiplier;
+	number4 box_sides = h_cuda_box->box_sides();
+	if(box_sides.x != box_sides.y || box_sides.y != box_sides.z) throw oxDNAException("CUDA_list = bin_verlet can work only with cubic boxes");
+	_box_side = box_sides.x;
+
+	number density = N/h_cuda_box->V();
+	number density_factor = density*5.*this->_max_density_multiplier;
 
 	// the maximum number of neighbours per particle is just the overall density times the volume of the
 	// verlet sphere times a constant that, by default, is 5.
@@ -81,11 +84,11 @@ void CUDABinVerletList<number, number4>::init(int N, number box_side, number rcu
 
 	_cells_offset[0] = _counters_offset[0] = 0;
 	for(int i = 0; i < 3; i++) {
-		_N_cells_side[i] = floor(this->_box_side / sqrt(_sqr_rverlet[i]));
+		_N_cells_side[i] = floor(_box_side / sqrt(_sqr_rverlet[i]));
 		if(_N_cells_side[i] < 3) _N_cells_side[i] = 3;
 
 		_N_cells[i] = _N_cells_side[i] * _N_cells_side[i] * _N_cells_side[i];
-		_rcell[i] = box_side / _N_cells_side[i];
+		_rcell[i] = _box_side / _N_cells_side[i];
 		_max_N_per_cell[i] = density_factor * pow(_rcell[i], (number) 3.f);
 		// for value < 11 every now and then the program crashes
 		if(_max_N_per_cell[i] < 11) _max_N_per_cell[i] = 11;
@@ -100,7 +103,7 @@ void CUDABinVerletList<number, number4>::init(int N, number box_side, number rcu
 		}
 	}
 
-	OX_DEBUG("Cells mem: %.2lf MBs, lists mem: %.2lf MBs", (cells_mem+_counters_mem)/1048576., (matrix_mem+number_mem)/1048576.);
+	OX_LOG(Logger::LOG_INFO, "Cells mem: %.2lf MBs, lists mem: %.2lf MBs", (cells_mem+_counters_mem)/1048576., (matrix_mem+number_mem)/1048576.);
 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&this->_d_number_neighs, number_mem) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&this->_d_matrix_neighs, matrix_mem) );

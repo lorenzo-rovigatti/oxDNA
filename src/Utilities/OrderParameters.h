@@ -22,11 +22,11 @@
 #include <list>
 #include <iterator>
 
-
 #include "../Utilities/Utils.h"
 #include "../Utilities/oxDNAException.h"
 #include "../Particles/BaseParticle.h"
 #include "../Particles/DNANucleotide.h"
+#include "../Boxes/BaseBox.h"
 
 using namespace std;
 
@@ -71,7 +71,6 @@ struct HBParameter {
 		return current_value;
 	}
 
-
 	double get_cutoff(void) {
 		return cutoff;
 	}
@@ -114,8 +113,8 @@ struct MinDistanceParameter {
 	// the sub-type is used to decide what to actually measure 
 	int _sub_type;
 
-    //flag for use of COM-COM distances instead of base-base distances:
-    bool _use_COM;
+	//flag for use of COM-COM distances instead of base-base distances:
+	bool _use_COM;
     
 	// added to discretize it
 	/// index of the state
@@ -170,22 +169,24 @@ struct MinDistanceParameter {
 	}
 
 	template<typename number>
-	double calculate_value(BaseParticle<number> **particle_list, double box_side) {
+	double calculate_value(BaseParticle<number> **particle_list, BaseBox<number> * box) {
 		// mindistance
 		if (_sub_type == 0){
 			LR_vector<number> dist;
 			current_value = -1;
 			double candidate;
 			for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
-				BaseParticle<number> *first = particle_list[(*i).first];
-				BaseParticle<number> *second = particle_list[(*i).second];
-				//dist = first->pos + first->pos_base;
-				if(_use_COM) dist = first->pos;
-        else if(!_use_COM) dist = first->pos + first->int_centers[DNANucleotide<number>::BASE];
-
-        //candidate = (double) dist.sqr_min_image_distance(second->pos + second->pos_base, box_side);
-				if(_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos, box_side);
-        else if(!_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos + second->int_centers[DNANucleotide<number>::BASE], box_side);
+				BaseParticle<number> *p = particle_list[(*i).first];
+				BaseParticle<number> *q = particle_list[(*i).second];
+				
+				if (p->strand_id == q->strand_id) dist = q->pos - p->pos;
+				else dist = box->min_image(p, q);
+				
+				if (_use_COM == false) {
+					dist += q->int_centers[DNANucleotide<number>::BASE];
+					dist -= p->int_centers[DNANucleotide<number>::BASE];
+				}
+				candidate = dist * dist;
 
 				if (current_value < 0 || candidate < current_value) current_value = candidate;
 			}
@@ -194,7 +195,7 @@ struct MinDistanceParameter {
 		}
 		// twist
 		// Algorithm described in page 26 of Christian Matek's thesis - Statistical mechanics of Nucleic Acids under Mechanical Stress
-		else if(_sub_type == 1){
+		else if(_sub_type == 1) {
 			double twist = 0;
 			for(vector_of_pairs::iterator i = counted_pairs.begin() + 1; i != counted_pairs.end(); i++) {
 				// get the position vectors of the current and previous base-pairs
@@ -225,24 +226,27 @@ struct MinDistanceParameter {
 	}
 
 	template<typename number>
-	int calculate_state(BaseParticle<number> **particle_list, double box_side) {
+	int calculate_state(BaseParticle<number> **particle_list, BaseBox<number> * box) {
+		// if mindistance
 		if (_sub_type == 0){
 			LR_vector<number> dist;
 			current_value = -1;
 			double candidate;
 			for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
-				BaseParticle<number> *first = particle_list[(*i).first];
-				if(_use_COM) dist = (first->pos);
-        else if(!_use_COM) dist = (first->pos + first->int_centers[DNANucleotide<number>::BASE]);
-
-        BaseParticle<number> *second = particle_list[(*i).second];
-				if(_use_COM) candidate = (double) dist.sqr_min_image_distance(second->pos, box_side);
-        else if(!_use_COM) candidate = (double) dist.sqr_min_image_distance((second->pos + second->int_centers[DNANucleotide<number>::BASE]), box_side);
+				BaseParticle<number> *p = particle_list[(*i).first];
+				BaseParticle<number> *q = particle_list[(*i).first];
+				if (p->strand_id == q->strand_id) dist = q->pos - p->pos;
+				else dist = box->min_image(p, q);
+				
+				if (_use_COM == false) {
+					dist += q->int_centers[DNANucleotide<number>::BASE];
+					dist -= p->int_centers[DNANucleotide<number>::BASE];
+				}
+				candidate = dist * dist;
 
 				if (current_value < 0 || candidate < current_value) current_value = candidate;
 			}
 			current_value = sqrt(current_value);
-
 		}
 		// twist
 		// Algorithm described in page 26 of Christian Matek's thesis - Statistical mechanics of Nucleic Acids under Mechanical Stress
@@ -275,6 +279,7 @@ struct MinDistanceParameter {
 		else {
 			throw oxDNAException("Unknown order parameter subtype %d",_sub_type);
 		}
+
 		if (n_states == 0) {
 			state_index = -1;
 			return state_index;
@@ -288,11 +293,9 @@ struct MinDistanceParameter {
 		int c = 0;
 		while (c < (n_states - 1) && current_value > interfaces[c]) c++;
 		state_index = c;
-		//fprintf (stderr, " ## %d %lf\n", state_index, current_value);
 
 		return state_index;
 	}
-
 };
 
 /**
@@ -330,7 +333,6 @@ protected:
 	int * _all_states;
 
 	int _log_level;	
-	
 
 public:
 	OrderParameters();
@@ -535,11 +537,11 @@ public:
 	/// to be called in order to evaluate order_parameters:
 	/// calculates all minimal distances from list of particles
 	template<typename number>
-	void fill_distance_parameters(BaseParticle<number> **particles, double box_side) {
+	void fill_distance_parameters(BaseParticle<number> **particles, BaseBox<number> * box) {
 		for (int i = 0; i < _distance_parameters_count; i++) {
 			//_distance_parameters[i].calculate_value(particles, box_side);
 			// the next line also updates current_value
-			_distance_parameters[i].calculate_state(particles, box_side);
+			_distance_parameters[i].calculate_state(particles, box);
 		}
 	}
 
@@ -735,13 +737,12 @@ public:
 				break;
 			}
 			case 1: {
-				printf("So che e' mindistance, sappilo\n");
 				// mindistance
 				MinDistanceParameter newpar;
 				_dist_parnames[string(name_str)] = _distance_parameters_count;
 				newpar._use_COM = false; //defaults to false
 				newpar._sub_type = sub_type;
-                
+
 				vector<string> pair_strings;
 				int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
 
@@ -823,18 +824,24 @@ public:
 					newpar.n_states = interfaces.size() + 1;
 				}
 				
-                //optional use of COM-COM distance instead of base-base distance
-                char tmpstr2[256];
-                if (getInputString(&input, "use_COM", tmpstr2, 0) == KEY_FOUND) {
-                    unsigned int COM=0;
-                    sscanf(tmpstr2, "%u", &COM);
-                    if(COM==0) { newpar._use_COM = false; }
-                    else if(COM==1) {
-                        newpar._use_COM = true;
-                        OX_LOG (_log_level, "using COM-COM distances instead of base-base");
-                    }
-                    else { OX_LOG (_log_level, "unsupported value for use_COM"); }
-                }
+				//optional use of COM-COM distance instead of base-base distance
+				/*
+				char tmpstr2[256];
+				if (getInputString(&input, "use_COM", tmpstr2, 0) == KEY_FOUND) {
+					unsigned int COM=0;
+					sscanf(tmpstr2, "%u", &COM);
+					if(COM==0) { newpar._use_COM = false; }
+					else if(COM==1) {
+						newpar._use_COM = true;
+						OX_LOG (_log_level, "using COM-COM distances instead of base-base");
+					}
+					else { OX_LOG (_log_level, "unsupported value for use_COM"); }
+				}*/
+				
+				// optional use of COM-COM distance instead of base-base distance
+				if (getInputBool(&input, "use_COM", &newpar._use_COM, 0) == KEY_FOUND) {
+					if (newpar._use_COM) OX_LOG (_log_level, "using COM-COM distances instead of base-base");
+				}
                 
 				newpar.set_name (name_str);
 				_distance_parameters.push_back(newpar);

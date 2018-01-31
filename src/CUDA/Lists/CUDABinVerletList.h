@@ -22,6 +22,7 @@ protected:
 	int _N_cells[3];
 	size_t _vec_size;
 	int _counters_mem;
+	number _box_side;
 
 	number _rverlet[3];
 	number _sqr_rverlet[3];
@@ -39,7 +40,7 @@ public:
 	CUDABinVerletList();
 	virtual ~CUDABinVerletList();
 
-	void init(int N, number box_side, number rcut);
+	void init(int N, number rcut, CUDABox<number, number4> *h_cuda_box, CUDABox<number, number4> *d_cuda_box);
 	void update(number4 *poss, number4 *list_poss, LR_bonds *bonds);
 	void clean();
 

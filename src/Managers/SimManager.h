@@ -51,7 +51,6 @@ protected:
 	llint _max_steps;
 	int _seed;
 	int _print_energy_every;
-	int _restart_step_counter;
 	int _pid;
 	int _print_input;
 	int _fix_diffusion_every;

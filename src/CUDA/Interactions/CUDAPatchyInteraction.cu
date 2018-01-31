@@ -33,18 +33,18 @@ void CUDAPatchyInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
 	PatchyInteraction<number>::init();
 
-	float f_copy = box_side;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_box_side, &f_copy, sizeof(float)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_patches, &this->_N_patches, sizeof(int)) );
 	if(this->_is_binary) CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_patches, &this->_N_patches_B, sizeof(int), sizeof(int)) );
 
 	COPY_ARRAY_TO_CONSTANT(MD_sqr_tot_rcut, this->_sqr_tot_rcut, 3);
-	f_copy = this->_sqr_patch_rcut;
+	float f_copy = this->_sqr_patch_rcut;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_patch_rcut, &f_copy, sizeof(float)) );
 	COPY_ARRAY_TO_CONSTANT(MD_epsilon, this->_epsilon, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_sigma, this->_sigma, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_sqr_sigma, this->_sqr_sigma, 3);
+	COPY_ARRAY_TO_CONSTANT(MD_E_cut, this->_E_cut, 3);
+	COPY_ARRAY_TO_CONSTANT(MD_patch_E_cut, this->_patch_E_cut, 3);
 	f_copy = this->_patch_pow_alpha;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_patch_pow_alpha, &f_copy, sizeof(float)) );
 
@@ -55,6 +55,10 @@ void CUDAPatchyInteraction<number, number4>::cuda_init(number box_side, int N) {
 	int n_patches = this->_N_patches;
 	for(int i = 0; i < limit; i++) {
 		switch(n_patches) {
+		case 1: {
+			base_patches[0] = make_float4(1, 0, 0, 0);
+			break;
+		}
 		case 2: {
 			base_patches[0] = make_float4(0, 0.5, 0, 0);
 			base_patches[1] = make_float4(0, -0.5, 0, 0);
@@ -97,14 +101,13 @@ void CUDAPatchyInteraction<number, number4>::cuda_init(number box_side, int N) {
 }
 
 template<typename number, typename number4>
-void CUDAPatchyInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds) {
+void CUDAPatchyInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
 				patchy_forces_edge<number, number4>
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-					//(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_edge_list, _v_lists->_N_edges);
-					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges);
+					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_box);
 
 				this->_sum_edge_forces_torques(d_forces, d_torques);
 
@@ -115,7 +118,7 @@ void CUDAPatchyInteraction<number, number4>::compute_forces(CUDABaseList<number,
 			else {
 				patchy_forces<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs);
+					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_box);
 				CUT_CHECK_ERROR("forces_second_step patchy simple_lists error");
 			}
 	}
@@ -124,7 +127,7 @@ void CUDAPatchyInteraction<number, number4>::compute_forces(CUDABaseList<number,
 	if(_no_lists != NULL) {
 		patchy_forces<number, number4>
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques);
+			(d_poss, d_orientations, d_forces, d_torques, d_box);
 		CUT_CHECK_ERROR("forces_second_step patchy no_lists error");
 	}
 }

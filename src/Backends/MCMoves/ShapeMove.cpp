@@ -77,7 +77,6 @@ void ShapeMove<number>::apply (llint curr_step) {
 	//printf ("@#@@ old sides: %g %g %g\n", old_box_sides[0], old_box_sides[1], old_box_sides[2]);
 	//printf ("@#@@ old sides: %g %g %g\n", box_sides[0], box_sides[1], box_sides[2]);
 
-	this->_Info->interaction->set_box_side(box_sides[0]);
 	//this->_Info->interaction->box->init (box_sides[0], box_sides[1], box_sides[2]);
 	this->_Info->box->init(box_sides.x, box_sides.y, box_sides.z);
 	this->_Info->lists->change_box();
@@ -92,7 +91,7 @@ void ShapeMove<number>::apply (llint curr_step) {
 		p->pos.y *= (box_sides.y / old_box_sides.y);
 		p->pos.z *= (box_sides.z / old_box_sides.z);
 
-		p->set_ext_potential(curr_step, box_sides[0]);
+		p->set_ext_potential(curr_step, this->_Info->box);
 		dExt += -p->ext_potential;
 	}
 
@@ -110,7 +109,6 @@ void ShapeMove<number>::apply (llint curr_step) {
 	if (this->_Info->interaction->get_is_infinite() == false && exp(- dE / this->_T) > drand48()) {
 		this->_accepted ++;
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) _delta *= this->_acc_fact;
-		*(this->_Info->box_side) = box_sides[0];
 		//number xE  = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
 		//if (fabs ((xE - newE) / newE) > 1.e-8) throw oxDNAException ("Look at this shit, JUST ACCEPTED %g %g", xE, oldE);
 		//if (this->_Info->interaction->get_is_infinite()) throw oxDNAException ("No, no, no...!");
@@ -120,9 +118,8 @@ void ShapeMove<number>::apply (llint curr_step) {
 		for (int k = 0; k < N; k ++) {
 			BaseParticle<number> *p = particles[k];
 			p->pos = _pos_old[k]; 
-			p->set_ext_potential(curr_step, old_box_sides[0]);
+			p->set_ext_potential(curr_step, this->_Info->box);
 		}
-		this->_Info->interaction->set_box_side(old_box_sides[0]);
 		this->_Info->box->init(old_box_sides.x, old_box_sides.y, old_box_sides.z);
 		this->_Info->lists->change_box();
 		this->_Info->interaction->set_is_infinite (false);

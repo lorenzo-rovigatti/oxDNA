@@ -30,8 +30,12 @@ public:
 
 	virtual LR_vector<number> normalised_in_box(const LR_vector<number> &v);
 	virtual LR_vector<number> &box_sides() ;
+	virtual number V() { return _sides.x*_sides.y*_sides.z; }
 
 	virtual void apply_boundary_conditions(BaseParticle<number> **particles, int N);
+	
+	virtual LR_vector<number> get_abs_pos(BaseParticle<number> * p); 
+	virtual void shift_particle (BaseParticle<number> *p, LR_vector<number> &amount);
 };
 
 #endif /* ORTHOGONALBOX_H_ */

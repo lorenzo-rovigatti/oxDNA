@@ -9,6 +9,7 @@
 #define CUDATHERMOSTATFACTORY_H_
 
 #include "CUDABaseThermostat.h"
+#include "../cuda_utils/CUDABox.h"
 
 /**
  * @brief CUDA Thermostat factory class.
@@ -32,7 +33,7 @@ public:
 	 * from BaseThermostat
 	 */
 	template<typename number, typename number4>
-	static CUDABaseThermostat<number, number4> *make_thermostat(input_file &inp, number &box_side);
+	static CUDABaseThermostat<number, number4> *make_thermostat(input_file &inp, BaseBox<number> * box);
 };
 
 #endif /* CUDATHERMOSTATFACTORY_H_ */

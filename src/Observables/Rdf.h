@@ -52,6 +52,8 @@ private:
 	int _nbins;
 	std::vector<long double> _profile;
 	LR_vector<number> _mask;
+	int _type;
+
 public:
 	Rdf();
 	virtual ~Rdf();

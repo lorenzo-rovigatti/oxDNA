@@ -39,7 +39,7 @@ protected:
 	number _r0;
 	llint _last_step;
 
-	number *_box_side;
+	BaseBox<number> * _box_ptr;
 
 	LR_vector<number> _com;
 	LR_vector<number> _ref_com;
@@ -59,7 +59,7 @@ public:
 
 	virtual void get_settings(input_file &inp);
 
-	virtual void init(BaseParticle<number> **particles, int N, number *box_side);
+	virtual void init(BaseParticle<number> **particles, int N, BaseBox<number> * box_side);
 
 	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
 	virtual number potential(llint step, LR_vector<number> &pos);

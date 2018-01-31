@@ -10,7 +10,7 @@
 using namespace std;
 
 template<typename number>
-BinVerletList<number>::BinVerletList(int &N, BaseBox<number> *box) : BaseList<number>(N, box), _updated(false) {
+BinVerletList<number>::BinVerletList(int &N, BaseBox<number> *box) : BaseList<number>(N, box), _updated(false), _is_AO(false) {
 
 }
 
@@ -29,6 +29,8 @@ void BinVerletList<number>::get_settings(input_file &inp) {
 	getInputNumber(&inp, "bin_verlet_rcut[0]", _rcut, 1);
 	getInputNumber(&inp, "bin_verlet_rcut[1]", _rcut + 1, 1);
 	getInputNumber(&inp, "bin_verlet_rcut[2]", _rcut + 2, 1);
+
+	getInputBool(&inp, "AO_mixture", &_is_AO, 0);
 
 	if(this->_is_MC) {
 		float delta_t = 0.f;
@@ -88,7 +90,8 @@ void BinVerletList<number>::global_update(bool force_update) {
 
 	for(int i = 0; i < this->_N; i++) {
 		BaseParticle<number> *p = this->_particles[i];
-		_lists[p->index] = _cells[2*p->type]->get_neigh_list(p);
+		if(p->type == 0 || !_is_AO) _lists[p->index] = _cells[2*p->type]->get_neigh_list(p);
+		else _lists[p->index].clear();
 		vector<BaseParticle<number> *> l2 = _cells[1]->get_neigh_list(p);
 		_lists[p->index].reserve(_lists[p->index].size() + l2.size());
 		_lists[p->index].insert(_lists[p->index].end(), l2.begin(), l2.end());
@@ -99,16 +102,18 @@ void BinVerletList<number>::global_update(bool force_update) {
 }
 
 template<typename number>
-std::vector<BaseParticle<number> *> BinVerletList<number>::get_neigh_list(BaseParticle<number> *p, bool all) {
-	if(all) {
-		vector<BaseParticle<number> *> l1 = _cells[2*p->type]->get_neigh_list(p, all);
-		vector<BaseParticle<number> *> l2 = _cells[1]->get_neigh_list(p, all);
-
-		l1.reserve(l1.size() + l2.size());
-		l1.insert(l1.end(), l2.begin(), l2.end());
-		return l1;
-	}
+std::vector<BaseParticle<number> *> BinVerletList<number>::get_neigh_list(BaseParticle<number> *p) {
 	return _lists[p->index];
+}
+
+template<typename number>
+std::vector<BaseParticle<number> *> BinVerletList<number>::get_complete_neigh_list(BaseParticle<number> *p) {
+	vector<BaseParticle<number> *> l1 = _cells[2*p->type]->get_complete_neigh_list(p);
+	vector<BaseParticle<number> *> l2 = _cells[1]->get_complete_neigh_list(p);
+
+	l1.reserve(l1.size() + l2.size());
+	l1.insert(l1.end(), l2.begin(), l2.end());
+	return l1;
 }
 
 template class BinVerletList<float>;

@@ -11,6 +11,8 @@
 
 #include "MCBackend.h"
 
+template <typename number> class ParticlePair;
+
 /**
  * @brief Manages a MC simulation on CPU. It supports NVT and NPT simulations
  */

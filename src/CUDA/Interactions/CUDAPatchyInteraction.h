@@ -26,7 +26,7 @@ public:
 	void cuda_init(number box_side, int N);
 	number get_cuda_rcut() { return this->get_rcut(); }
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds);
+	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
 };
 
 #endif /* CUDAPATCHYINTERACTION_H_ */

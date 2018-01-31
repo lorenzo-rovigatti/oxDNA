@@ -39,7 +39,9 @@ public:
 	virtual bool is_updated();
 	virtual void single_update(BaseParticle<number> *p);
 	virtual void global_update(bool force_update = false);
-	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p, bool all=false);
+	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p);
+	virtual std::vector<BaseParticle<number> *> get_complete_neigh_list(BaseParticle<number> *p);
+	virtual void change_box();
 };
 
 #endif /* VERLETLIST_H_ */

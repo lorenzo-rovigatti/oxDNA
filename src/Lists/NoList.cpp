@@ -35,11 +35,10 @@ void NoList<number>::global_update(bool force_update) {
 }
 
 template<typename number>
-std::vector<BaseParticle<number> *> NoList<number>::get_neigh_list(BaseParticle<number> *p, bool all) {
+std::vector<BaseParticle<number> *> NoList<number>::_get_neigh_list(BaseParticle<number> *p, bool all) {
 	std::vector<BaseParticle<number> *> res;
 
-	int last = p->index;
-	if(this->_is_MC && !all) last = this->_N;
+	int last = (all) ? this->_N : p->index;
 
 	for(int i = 0; i < last; i++) {
 		BaseParticle<number> *q = this->_particles[i];
@@ -47,6 +46,16 @@ std::vector<BaseParticle<number> *> NoList<number>::get_neigh_list(BaseParticle<
 	}
 
 	return res;
+}
+
+template<typename number>
+std::vector<BaseParticle<number> *> NoList<number>::get_neigh_list(BaseParticle<number> *p) {
+	return _get_neigh_list(p, this->_is_MC);
+}
+
+template<typename number>
+std::vector<BaseParticle<number> *> NoList<number>::get_complete_neigh_list(BaseParticle<number> *p) {
+	return _get_neigh_list(p, true);
 }
 
 template class NoList<float>;

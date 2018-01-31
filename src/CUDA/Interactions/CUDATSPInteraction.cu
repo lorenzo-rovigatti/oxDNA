@@ -49,21 +49,19 @@ void CUDATSPInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_per_star, &N_per_star, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_stars, &this->_N_stars, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
-	float f_copy = box_side;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_box_side, &f_copy, sizeof(float)) );
-	f_copy = this->_sqr_rfene;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rfene, &f_copy, sizeof(float)) );
-	f_copy = this->_sqr_rfene_anchor;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rfene_anchor, &f_copy, sizeof(float)) );
-	f_copy = this->_sqr_rcut;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rcut, &f_copy, sizeof(float)) );
-	f_copy = this->_TSP_sqr_rep_rcut;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_rep_rcut, &f_copy, sizeof(float)) );
-	f_copy = this->_TSP_lambda;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_lambda, &f_copy, sizeof(float)) );
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rfene, this->_sqr_rfene);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rfene_anchor, this->_sqr_rfene_anchor);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, this->_sqr_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, this->_TSP_sqr_rep_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_TSP_lambda, this->_TSP_lambda);
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_n, &this->_TSP_n, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_TSP_only_chains, &this->_only_chains, sizeof(bool)) );
+
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_yukawa_repulsion, &this->_yukawa_repulsion, sizeof(bool)) );
+	COPY_NUMBER_TO_FLOAT(MD_TSP_yukawa_A, this->_TSP_yukawa_A);
+	COPY_NUMBER_TO_FLOAT(MD_TSP_yukawa_xi, this->_TSP_yukawa_xi);
+	COPY_NUMBER_TO_FLOAT(MD_yukawa_E_cut, this->_yukawa_E_cut);
 
 	if(this->_use_edge) CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)) );
 }
@@ -101,13 +99,13 @@ void CUDATSPInteraction<number, number4>::_setup_anchors() {
 }
 
 template<typename number, typename number4>
-void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds) {
+void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
 				tsp_forces_edge_nonbonded<number, number4>
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-					(d_poss, this->_d_edge_forces, _v_lists->_d_edge_list, _v_lists->_N_edges);
+					(d_poss, this->_d_edge_forces, _v_lists->_d_edge_list, _v_lists->_N_edges, d_box);
 
 				this->_sum_edge_forces(d_forces);
 
@@ -122,7 +120,7 @@ void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 			else {
 				tsp_forces<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds);
+					(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, d_box);
 				CUT_CHECK_ERROR("forces_second_step simple_lists error");
 			}
 	}
@@ -132,7 +130,7 @@ void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 		if(_no_lists != NULL) {
 			tsp_forces<number, number4>
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss,  d_forces, d_bonds);
+				(d_poss,  d_forces, d_bonds, d_box);
 			CUT_CHECK_ERROR("forces_second_step no_lists error");
 		}
 	}

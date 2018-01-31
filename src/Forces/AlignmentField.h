@@ -31,7 +31,7 @@ public:
 	virtual ~AlignmentField() {}
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, number *);
+	void init (BaseParticle<number> **, int, BaseBox<number> *);
 
 	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
 	virtual number potential(llint step, LR_vector<number> &pos);

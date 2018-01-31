@@ -29,9 +29,13 @@ protected:
 	BaseParticle<number> **_particles;
 	number _rcut;
 	bool _is_MC;
+	LR_vector<number> _box_sides;
 
 public:
-	BaseList(int &N, BaseBox<number> *box) : _N(N), _box(box), _particles(NULL), _rcut(0), _is_MC(false) { };
+	BaseList(int &N, BaseBox<number> *box) : _N(N), _box(box), _particles(NULL), _rcut(0), _is_MC(false) {
+		_box_sides = box->box_sides();
+	};
+
 	virtual ~BaseList() { };
 
 	virtual void get_settings(input_file &inp) {
@@ -46,6 +50,7 @@ public:
 		else if(strncmp("VMMC", sim_type, 512) == 0) _is_MC = true;
 		else if(strncmp("FFS_MD", sim_type, 512) == 0) _is_MC = false;
 		else if(strncmp("min", sim_type, 512) == 0) _is_MC = false;
+		else if(strncmp("FIRE", sim_type, 512) == 0) _is_MC = false;
 		else throw oxDNAException("BaseList does not know how to handle a '%s' sim_type\n", sim_type);
 	}
 
@@ -69,18 +74,26 @@ public:
 	virtual void global_update(bool force_update=false) = 0;
 
 	/**
-	 * @brief Returns a list of neighbours of particle p. This list doest NOT contain bonded neighbours.
+	 * @brief Returns a list of unbonded neighbours q of particle p having q->index < p->index
 	 *
 	 * @param p particle
 	 *
 	 * * @return a vector of BaseParticle pointers
 	 */
-	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p, bool all=false) = 0;
+	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p) = 0;
+
+	/**
+	 * @brief Returns a list of all unbonded neighbours of particle p.
+	 *
+	 * @param p particle
+	 *
+	 * * @return a vector of BaseParticle pointers
+	 */
+	virtual std::vector<BaseParticle<number> *> get_complete_neigh_list(BaseParticle<number> *p) = 0;
 
 	/**
 	 * @brief Returns a list of potentially interaction neighbours of particle p. It does contain also bonded neighbours.
 	 *
-	 * This method
 	 *
 	 * @param p particle
 	 * @return a vector of BaseParticle pointers
@@ -97,12 +110,15 @@ public:
 	/**
 	 * @brief Informs the list object that the box has been changed
 	 */
-	virtual void change_box () { return;}
+	virtual void change_box () {
+		_box_sides = this->_box->box_sides();
+	}
 };
 
 template<typename number>
 std::vector<BaseParticle<number> *> BaseList<number>::get_all_neighbours(BaseParticle<number> *p) {
-	std::vector<BaseParticle<number> *> neighs = get_neigh_list(p, true);
+//	std::vector<BaseParticle<number> *> neighs = std::move(get_complete_neigh_list(p));
+	std::vector<BaseParticle<number> *> neighs = get_complete_neigh_list(p);
 
 	std::set<BaseParticle<number> *> bonded_neighs;
 	typename std::vector<ParticlePair<number> >::iterator it = p->affected.begin();
@@ -121,6 +137,7 @@ std::vector<ParticlePair<number> > BaseList<number>::get_potential_interactions(
 
 	for(int i = 0; i < _N; i++) {
 		BaseParticle<number> *p = _particles[i];
+//		std::vector<BaseParticle<number> *> neighs = std::move(get_all_neighbours(p));
 		std::vector<BaseParticle<number> *> neighs = get_all_neighbours(p);
 		typename std::vector<BaseParticle<number> *>::iterator it = neighs.begin();
 		for(; it != neighs.end(); it++) {

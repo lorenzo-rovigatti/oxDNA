@@ -31,8 +31,8 @@ public:
 	virtual void set_positions();
 	virtual bool is_rigid_body() { return true; }
 
-	void set_initial_forces (llint step, number box); 
-	void set_ext_potential (llint step, number box); 
+	void set_initial_forces (llint step, BaseBox<number> * box); 
+	void set_ext_potential (llint step, BaseBox<number> * box); 
 
 	void set_length (number arg);
 };

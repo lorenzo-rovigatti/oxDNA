@@ -10,11 +10,15 @@
 
 #include "SimBackend.h"
 #include "../Utilities/Utils.h"
+#include "../Utilities/ConfigInfo.h"
 #include "../Interactions/InteractionFactory.h"
 #include "../Forces/ForceFactory.h"
 #include "../Lists/ListFactory.h"
 #include "../Boxes/BoxFactory.h"
 #include "../PluginManagement/PluginManager.h"
+#include "../Particles/BaseParticle.h"
+#include "../Observables/ObservableOutput.h"
+#include "../Utilities/Timings.h"
 
 template<typename number>
 SimBackend<number>::SimBackend() {
@@ -49,8 +53,12 @@ SimBackend<number>::SimBackend() {
 	_max_io = 1.e30;
 	_read_conf_step = -1;
 	_conf_interval = -1;
-	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = NULL;
+	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = _obs_output_checkpoints = _obs_output_last_checkpoint = NULL;
 	_mytimer = NULL;
+	_restart_step_counter = false;
+
+	ConfigInfo<number>::init();
+	_config_info = ConfigInfo<number>::instance();
 }
 
 template<typename number>
@@ -103,6 +111,7 @@ SimBackend<number>::~SimBackend() {
 	if (_lists != NULL) delete _lists;
 
 	PluginManager::clear();
+	ConfigInfo<number>::clear();
 }
 
 template<typename number>
@@ -125,6 +134,8 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	_lists = ListFactory::make_list<number>(inp, _N, _box);
 	_lists->get_settings(inp);
 
+	getInputBool(&inp, "restart_step_counter", &_restart_step_counter, 0);
+
 	// reload configuration
 	std::string reload_from;
 	if (getInputString (&inp, "reload_from", reload_from, 0) == KEY_FOUND) {
@@ -136,11 +147,10 @@ void SimBackend<number>::get_settings(input_file &inp) {
 		if (getInputString (&inp, "conf_file", tmpstring, 0) == KEY_FOUND) throw oxDNAException ("Input file error: \"conf_file\" cannot be specified if \"reload_from\" is specified");
 
 		// check that restart_step_counter is set to 0
-		int tmpi;
-		getInputBoolAsInt (&inp, "restart_step_counter", &tmpi, 1);
-		if (tmpi != 0) throw oxDNAException ("Input file error: \"restart_step_counter\" must be set to 0 if \"reload_from\" is specified");
+		if(_restart_step_counter) throw oxDNAException ("Input file error: \"restart_step_counter\" must be set to false if \"reload_from\" is specified");
 
-		if (getInputInt (&inp, "seed", &tmpi, 0) == KEY_FOUND) throw oxDNAException ("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
+		int my_seed;
+		if(getInputInt(&inp, "seed", &my_seed, 0) == KEY_FOUND) throw oxDNAException ("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
 
 		_conf_filename = std::string (reload_from);
 	}
@@ -326,24 +336,25 @@ void SimBackend<number>::init() {
 	check = _read_next_configuration(_initial_conf_is_binary);
 	if(!check) throw oxDNAException("Could not read the initial configuration, aborting");
 
-	_start_step_from_file = _read_conf_step;
+	_start_step_from_file = (_restart_step_counter) ? 0 : _read_conf_step;
+	_config_info->curr_step = _start_step_from_file;
 
-	if (_external_forces) ForceFactory<number>::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, &_box_side);
+	if(_external_forces) ForceFactory<number>::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, _box);
 
 	this->_U = (number) 0;
 	this->_K = (number) 0;
 	this->_U_stack = (number) 0;
 
-	_interaction->set_box_side(_box_side);
 	_interaction->set_box(_box);
 
 	_lists->init(_particles, _rcut);
 
 	// initializes the observable output machinery. This part has to follow
 	// read_topology() since _particles has to be initialized
-	_config_info = ConfigInfo<number>(_particles, &_box_side, _interaction, &_N, &_backend_info, _lists, _box);
+	_config_info->set(_particles, _interaction, &_N, &_backend_info, _lists, _box);
+
 	typename vector<ObservableOutput<number> *>::iterator it;
-	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) (*it)->init(_config_info);
+	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) (*it)->init(*_config_info);
 
 	OX_LOG(Logger::LOG_INFO, "N: %d", _N);
 }
@@ -369,7 +380,6 @@ LR_vector<number_n> SimBackend<number>::_read_next_vector(bool binary) {
 
 template<typename number>
 bool SimBackend<number>::_read_next_configuration(bool binary) {
-	double box_side;
 	double Lx, Ly, Lz;
 	// parse headers. Binary and ascii configurations have different headers, and hence
 	// we have to separate the two procedures
@@ -439,9 +449,6 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 		std::getline(_conf_input,line);
 	}
 
-	box_side = Lx;
-	_box_side = (number) box_side;
-
 	_box->init(Lx, Ly, Lz);
 
 	// the following part is in double precision since
@@ -477,6 +484,7 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 			p->orientation.v1 -= p->orientation.v3 * (p->orientation.v1*p->orientation.v3);
 			p->orientation.v1.normalize();
 			p->orientation.v2 = p->orientation.v3.cross(p->orientation.v1);
+			p->orientation.v2.normalize();
 		}
 		else {
 			int x, y, z;
@@ -531,10 +539,10 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 			// we need to manually set the particle shift so that the particle absolute position
 			// is the right one
 			LR_vector<number> scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
-			p->shift(scdm_number, _box->box_sides());
-			p_pos.x -= _box->box_sides().x * (floor(scdm[k].x / _box->box_sides().x) + 0.001);
-			p_pos.y -= _box->box_sides().y * (floor(scdm[k].y / _box->box_sides().y) + 0.001);
-			p_pos.z -= _box->box_sides().z * (floor(scdm[k].z / _box->box_sides().z) + 0.001);
+			_box->shift_particle(p, scdm_number);
+			p_pos.x -= _box->box_sides().x * (floor(scdm[k].x / _box->box_sides().x));
+			p_pos.y -= _box->box_sides().y * (floor(scdm[k].y / _box->box_sides().y));
+			p_pos.z -= _box->box_sides().z * (floor(scdm[k].z / _box->box_sides().z));
 		}
 		p->pos = LR_vector<number>(p_pos.x, p_pos.y, p_pos.z);
 	}
@@ -614,7 +622,7 @@ void SimBackend<number>::fix_diffusion() {
 	// change particle position and fix orientation matrix;
 	for (int i = 0; i < _N; i ++) {
 		BaseParticle<number> *p = this->_particles[i];
-		p->shift(scdm[p->strand_id], _box->box_sides());
+		_box->shift_particle(p, scdm[p->strand_id]);
 		p->orientation.orthonormalize();
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
@@ -627,7 +635,7 @@ void SimBackend<number>::fix_diffusion() {
 		for (int i = 0; i < _N; i ++) {
 			BaseParticle<number> *p = this->_particles[i];
 			LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
-			p->shift(dscdm, _box->box_sides());
+			_box->shift_particle(p, dscdm);
 			p->pos = stored_pos[i];
 			p->orientation = stored_or[i];
 			p->orientationT = stored_orT[i];

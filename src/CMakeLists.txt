@@ -44,9 +44,14 @@ SET(observables_SOURCES
 	Observables/Checkpoint.cpp
 	Observables/Contacts.cpp
 	Observables/Writhe.cpp
-	Observables/NematicS.cpp
 	Observables/UnstackedList.cpp
 	Observables/PlectonemePosition.cpp
+	Observables/StretchedBonds.cpp
+	Observables/StructureFactor.cpp
+	Observables/FormFactor.cpp
+	Observables/UnstackedList.cpp
+	Observables/PlectonemePosition.cpp
+	Observables/TEPPlectonemePosition.cpp
 )
 
 SET(backends_SOURCES
@@ -54,6 +59,8 @@ SET(backends_SOURCES
 	Backends/MDBackend.cpp
 	Backends/MCBackend.cpp 
 	Backends/MinBackend.cpp
+	Backends/FIREBackend.cpp
+	Backends/FIREBackend.h
 	Backends/MD_CPUBackend.cpp 
 	Backends/MC_CPUBackend.cpp
 	Backends/MC_CPUBackend2.cpp
@@ -67,6 +74,7 @@ SET(backends_SOURCES
 	Backends/Thermostats/BussiThermostat.cpp
 	Backends/Thermostats/LangevinThermostat.cpp
 	Backends/Thermostats/SRDThermostat.cpp
+	Backends/Thermostats/DPDThermostat.cpp
 )
 
 SET(lists_SOURCES
@@ -84,15 +92,12 @@ SET(interactions_SOURCES
 	Interactions/LJInteraction.cpp
 	Interactions/HSInteraction.cpp
 	Interactions/DHSInteraction.cpp
-	Interactions/DirkInteraction.cpp
-	Interactions/DirkInteraction2.cpp
-	Interactions/DirkInteractionBias.cpp
-	Interactions/DirkInteractionSin.cpp
 	Interactions/HardCylinderInteraction.cpp
 	Interactions/HardSpheroCylinderInteraction.cpp
 	Interactions/BoxInteraction.cpp
 	Interactions/PatchyInteraction.cpp
 	Interactions/PatchyInteractionDan.cpp
+	Interactions/KFInteraction.cpp
 	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction_relax.cpp
 	Interactions/DNAInteraction.cpp
@@ -100,7 +105,7 @@ SET(interactions_SOURCES
 	Interactions/DNA2Interaction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
-	Interactions/DNA2Interaction_relax.cpp
+	Interactions/DNAInteraction_relax2.cpp
 	Interactions/CustomInteraction.cpp
 	Interactions/InteractionFactory.cpp
 )
@@ -128,14 +133,19 @@ SET(forces_SOURCES
 	Forces/RepulsionPlaneMoving.cpp
 	Forces/RepulsiveSphere.cpp
 	Forces/LJWall.cpp
+	Forces/HardWall.cpp
 	Forces/AlignmentField.cpp
+	Forces/GenericCentralForce.cpp
+	Forces/LJCone.cpp
 	Forces/ForceFactory.cpp
+	Forces/BaseForce.cpp
 )
 
 SET(box_SOURCES
 	Boxes/BaseBox.cpp
 	Boxes/CubicBox.cpp
 	Boxes/OrthogonalBox.cpp
+	Boxes/LeesEdwardsCubicBox.cpp
 	Boxes/BoxFactory.cpp
 )
 
@@ -160,6 +170,7 @@ SET(common_SOURCES
 	Utilities/parse_input/parse_input.cpp
 	Utilities/time_scales/time_scales.c
 	Utilities/SignalManager.cpp
+	Utilities/ConfigInfo.cpp
 	PluginManagement/PluginManager.cpp
 	${forces_SOURCES}
 	${observables_SOURCES}
@@ -187,7 +198,6 @@ SET(confGenerator_SOURCES
 	
 IF(CUDA)
 	SET(oxDNA_CUDASOURCES
-		CUDA/CUDA_rand.cu
 		CUDA/CUDA_sort.cu
 		CUDA/CUDAUtils.cu
 		CUDA/cuda_utils/cuda_device_utils.cu
@@ -201,6 +211,7 @@ IF(CUDA)
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu
 		CUDA/Interactions/CUDATSPInteraction.cu
+		CUDA/Interactions/CUDATEPInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
 		CUDA/Lists/CUDANoList.cu
 		CUDA/Lists/CUDASimpleVerletList.cu
@@ -243,7 +254,7 @@ ADD_DEPENDENCIES(test_scientific ${exe_name} DNAnalysis confGenerator)
 
 IF(MPI)
 	FIND_PACKAGE(MPI REQUIRED)
-	include_directories(${MPI_INCLUDE_PATH})
+	INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
 
 	SET(mpi_SOURCES
 		oxDNA_mpi

@@ -78,15 +78,12 @@ public:
 	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
-
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
 	number _fakef4_cxst_t1(number t, void * par);
 	number _fakef4D_cxst_t1(number t, void * par);
 
-	virtual number _backbone(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	virtual number _coaxial_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
 	number F4_THETA_SA[13];

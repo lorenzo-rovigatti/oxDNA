@@ -63,7 +63,7 @@ template<typename number>
 std::string OrderParameterValues<number>::get_output_string(llint curr_step) {
 
 	_op.reset();
-	_op.fill_distance_parameters(this->_config_info.particles,*this->_config_info.box_side);
+	_op.fill_distance_parameters(this->_config_info.particles, this->_config_info.box);
 	
 	std::vector<ParticlePair<number> > neighbour_pairs = this->_config_info.lists->get_potential_interactions();
 	

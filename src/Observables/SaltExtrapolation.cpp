@@ -6,7 +6,6 @@
  */
 
 #include "SaltExtrapolation.h"
-//#include "../Interactions/RNAInteraction_V1.h"
 #include <sstream>
 #include <map>
 
@@ -127,7 +126,7 @@ std::string SaltExtrapolation<number>::get_output_string(llint curr_step) {
 	// we need to set the box side for all the interactions
 	for (i = 0; i < _temps.size(); i++)
 		for (j = 0; j < _salts.size(); j ++)
-			_interactions[i][j]->set_box_side(*this->_config_info.box_side);
+			_interactions[i][j]->set_box(this->_config_info.box);
 	
 	// we get the potential interactions once from the interaction
 	// with the largest cutoff
@@ -138,7 +137,7 @@ std::string SaltExtrapolation<number>::get_output_string(llint curr_step) {
 	std::vector<number> es = std::vector<number> (_temps.size(), 0.);
 	std::vector< std::vector <number> > edhs = std::vector<std::vector <number> > (_temps.size(), std::vector<number> (_salts.size(), (number) 0.));
 	_op.reset();
-	_op.fill_distance_parameters(this->_config_info.particles,*this->_config_info.box_side);
+	_op.fill_distance_parameters(this->_config_info.particles,this->_config_info.box);
 	for (k = 0; k < neighbour_pairs.size(); k ++) {
 		BaseParticle<number> * p = neighbour_pairs[k].first;
 		BaseParticle<number> * q = neighbour_pairs[k].second;
@@ -172,7 +171,7 @@ std::string SaltExtrapolation<number>::get_output_string(llint curr_step) {
 	number eext = 0.;
 	for (k = 0; k < (unsigned int)*this->_config_info.N; k ++) {
 		BaseParticle<number> *p = this->_config_info.particles[k];
-		p->set_ext_potential(curr_step, *this->_config_info.box_side);
+		p->set_ext_potential(curr_step, this->_config_info.box);
 		eext += p->ext_potential;
 	}
 

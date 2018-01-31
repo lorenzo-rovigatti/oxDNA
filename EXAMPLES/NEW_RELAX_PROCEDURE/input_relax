@@ -1,0 +1,28 @@
+
+backend = CPU
+
+sim_type = MD
+steps = 1e6
+T = 300K
+interaction_type = DNA
+max_backbone_force = 5
+verlet_skin = 0.15
+
+thermostat = langevin
+diff_coeff = 2.5
+dt = 0.005
+
+topology = top.top
+conf_file = stage1.dat 
+
+trajectory_file = trajectory.dat
+print_conf_interval = 10000
+
+energy_file = energy.dat
+print_energy_every = 100
+no_stdout_energy = false
+time_scale = linear
+
+restart_step_counter = 1
+refresh_vel = 1
+

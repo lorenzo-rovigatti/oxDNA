@@ -14,6 +14,7 @@ TSPInteraction<number>::TSPInteraction() : BaseInteraction<number, TSPInteractio
 	_attractive_anchor = false;
 	_only_chains = false;
 	_only_intra = false;
+	_yukawa_repulsion = false;
 }
 
 template<typename number>
@@ -45,6 +46,12 @@ void TSPInteraction<number>::get_settings(input_file &inp) {
 	getInputBool(&inp, "TSP_attractive_anchor", &_attractive_anchor, 0);
 	getInputBool(&inp, "TSP_only_chains", &_only_chains, 0);
 	getInputBool(&inp, "TSP_only_intra", &_only_intra, 0);
+
+	getInputBool(&inp, "TSP_yukawa_repulsion", &_yukawa_repulsion, 0);
+	if(_yukawa_repulsion) {
+		getInputNumber(&inp, "TSP_yukawa_A", &_TSP_yukawa_A, 1);
+		getInputNumber(&inp, "TSP_yukawa_xi", &_TSP_yukawa_xi, 1);
+	}
 }
 
 template<typename number>
@@ -56,6 +63,13 @@ void TSPInteraction<number>::init() {
 	_TSP_sqr_rep_rcut = SQR(rep_rcut);
 	OX_LOG(Logger::LOG_INFO, "TSP: repulsive rcut: %lf (%lf)", rep_rcut, _TSP_sqr_rep_rcut);
 	this->_sqr_rcut = SQR(this->_rcut);
+
+	if(_yukawa_repulsion) {
+		OX_LOG(Logger::LOG_INFO, "TSP: enabling Yukawa repulsion with A = %lf and xi = %lf", rep_rcut, _TSP_yukawa_A, _TSP_yukawa_xi);
+		number r_over_xi = this->_rcut/_TSP_yukawa_xi;
+		number exp_part = exp(-r_over_xi);
+		_yukawa_E_cut = _TSP_yukawa_A*exp_part/r_over_xi;
+	}
 }
 
 template<typename number>
@@ -67,15 +81,16 @@ number TSPInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<numbe
 
 	if(sqr_r > sqr_rfene) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)\n", p->index, q->index, sqrt(sqr_r), sqrt(_sqr_rfene));
-		else return 1e10;
+		this->set_is_infinite(true);
+		return 10e10;
 	}
 
-	number energy = -15 * sqr_rfene * log(1 - sqr_r/sqr_rfene);
+	number energy = -15*sqr_rfene*log(1. - sqr_r/sqr_rfene);
 
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
-		number force_mod = -30 * sqr_rfene / (sqr_rfene - sqr_r);
+		number force_mod = -30*sqr_rfene/(sqr_rfene - sqr_r);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -90,15 +105,6 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 	number sqr_r = r->norm();
 	// cut-off for the telechelic monomers
 	if(sqr_r > this->_sqr_rcut) return (number) 0.;
-	if(sqr_r < 0.5 && update_forces) {
-		if(update_forces) {
-			number force_mod = 1000;
-			p->force -= *r * force_mod;
-			q->force += *r * force_mod;
-		}
-		
-		return 10000000.;
-	}
 
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector for its module
@@ -108,7 +114,7 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 	if(sqr_r < _TSP_sqr_rep_rcut) {
 		number part = pow(1./sqr_r, _TSP_n/2.);
 		energy += 4 * (part * (part - 1.)) + 1.;
-		if(update_forces) force_mod += 4 * _TSP_n * part * (2*part - 1) / sqr_r;
+		if(update_forces) force_mod += 4*_TSP_n*part*(2*part - 1)/sqr_r;
 	}
 
 	// telechelic monomers
@@ -117,13 +123,24 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 		// same as before except for a lambda in front of both energy and force
 		else {
 			number part = pow(1./sqr_r, _TSP_n/2.);
-			energy += 4 * _TSP_lambda * part * (part - 1.);
+			energy += 4*_TSP_lambda*part*(part - 1.);
 
-			if(update_forces) force_mod += 4 * _TSP_lambda * _TSP_n * part * (2*part - 1) / sqr_r;
+			if(update_forces) force_mod += 4*_TSP_lambda*_TSP_n*part*(2*part - 1.) / sqr_r;
+		}
+
+		if(_yukawa_repulsion) {
+			number mod_r = sqrt(sqr_r);
+			number r_over_xi = mod_r/_TSP_yukawa_xi;
+			number exp_part = exp(-r_over_xi);
+			number yukawa_energy = _TSP_yukawa_A*exp_part/r_over_xi;
+			energy += yukawa_energy - _yukawa_E_cut;
+
+			if(update_forces) force_mod += yukawa_energy*(1. - 1./r_over_xi)/(mod_r*_TSP_yukawa_xi);
 		}
 	}
 
 	if(update_forces) {
+		if(sqr_r < 0.5) force_mod = 1000;
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -148,8 +165,8 @@ number TSPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 			energy += pair_interaction_bonded(p, *it, r, update_forces);
 		}
 	}
-	else if(p->is_bonded(q)){
-		LR_vector<number> computed_r(0, 0, 0);
+	else if(p->is_bonded(q)) {
+		LR_vector<number> computed_r;
 		if(r == NULL) {
 			if (q != P_VIRTUAL && p != P_VIRTUAL) {
 				computed_r = q->pos - p->pos;
@@ -157,10 +174,10 @@ number TSPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 			}
 		}
 
-		if(p->index < q->index && update_forces) return energy;
 		energy = _fene(p, q, r, update_forces);
 		energy += _nonbonded(p, q, r, update_forces);
 	}
+
 	return energy;
 }
 
@@ -177,8 +194,6 @@ number TSPInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
-
-	if(r->norm() >= this->_sqr_rcut) return (number) 0;
 
 	return _nonbonded(p, q, r, update_forces);
 }
@@ -324,8 +339,10 @@ bool TSPInteraction<number>::_insert_anchor(BaseParticle<number> **particles, Ba
 	int i = 0;
 	bool inserted = false;
 
+	LR_vector<number> box_sides = this->_box->box_sides();
+
 	do {
-		p->pos = LR_vector<number>(drand48()*this->_box_side, drand48()*this->_box_side, drand48()*this->_box_side);
+		p->pos = LR_vector<number>(drand48()*box_sides.x, drand48()*box_sides.y, drand48()*box_sides.z);
 		inserted = !_does_overlap(particles, p, c);
 		i++;
 	} while(!inserted && i < MAX_INSERTION_TRIES);
@@ -338,18 +355,25 @@ bool TSPInteraction<number>::_insert_anchor(BaseParticle<number> **particles, Ba
 template<typename number>
 bool TSPInteraction<number>::_does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c) {
 	// here we take into account the non-bonded interactions
-	vector<BaseParticle<number> *> neighs = c->get_neigh_list(p, true);
+	vector<BaseParticle<number> *> neighs = c->get_complete_neigh_list(p);
 	for(unsigned int n = 0; n < neighs.size(); n++) {
 		BaseParticle<number> *q = neighs[n];
 		// particles with an index larger than p->index have not been inserted yet
-		if(q->index < p->index && this->generate_random_configuration_overlap(p, q, this->_box_side)) return true;
+		if(q->index < p->index && this->generate_random_configuration_overlap(p, q)) return true;
 	}
 
 	return false;
 }
 
 template<typename number>
-void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
+void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N) {
+	if(_only_chains) {
+		this->_generate_consider_bonded_interactions = true;
+		this->_generate_bonded_cutoff = _rfene;
+		IBaseInteraction<number>::generate_random_configuration(particles, N);
+		return;
+	}
+
 	Cells<number> c(N, this->_box);
 	c.init(particles, this->_rcut);
 

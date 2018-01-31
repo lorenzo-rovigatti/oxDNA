@@ -61,10 +61,9 @@ void Logger::debug(const char *format, ...) {
 
 void Logger::get_settings(input_file &inp) {
 	char filename[256];
-	int tmp;
 
 	if(getInputString(&inp, "log_file", filename, 0) == KEY_FOUND) _set_stream(filename);
-	if(getInputInt(&inp, "debug", &tmp, 0) == KEY_FOUND) _debug = tmp;
+	getInputBool(&inp, "debug", &_debug, 0);
 }
 
 void Logger::init() {

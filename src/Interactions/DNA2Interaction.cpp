@@ -7,7 +7,6 @@ template<typename number>
 DNA2Interaction<number>::DNA2Interaction() : DNAInteraction<number>() {
 	this->_int_map[DEBYE_HUCKEL] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_debye_huckel;
 	// I assume these are needed. I think the interaction map is used for when the observables want to print energy
-	this->_int_map[this->BACKBONE] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_backbone;
 	this->_int_map[this->COAXIAL_STACKING] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_coaxial_stacking;
 
 	this->F2_K[1] = CXST_K_OXDNA2;
@@ -20,6 +19,7 @@ DNA2Interaction<number>::DNA2Interaction() : DNAInteraction<number>() {
 	_salt_concentration = 0.5;
 	_debye_huckel_half_charged_ends = true;
 	this->_grooving = true;
+	this->_fene_r0 = FENE_R0_OXDNA2;
 }
 
 template<typename number>
@@ -30,13 +30,12 @@ number DNA2Interaction<number>::pair_interaction_bonded(BaseParticle<number> *p,
 			computed_r = q->pos - p->pos;
 			r = &computed_r;
 		}
-
-		if(!this->_check_bonded_neighbour(&p, &q, r)) return (number) 0;
 	}
+	if(!this->_check_bonded_neighbour(&p, &q, r)) return (number) 0;
 
 	// The methods with "this->" in front of them are inherited from DNAInteraction. The
 	// other one belongs to DNA2Interaction
-	number energy = _backbone(p, q, r, update_forces);
+	number energy = this->_backbone(p, q, r, update_forces);
 	energy += this->_bonded_excluded_volume(p, q, r, update_forces);
 	energy += this->_stacking(p, q, r, update_forces);
 
@@ -51,7 +50,7 @@ number DNA2Interaction<number>::pair_interaction_nonbonded(BaseParticle<number> 
 		r = &computed_r;
 	}
 
-        if (r->norm() >= this->_sqr_rcut) return (number) 0.f;
+	if (r->norm() >= this->_sqr_rcut) return (number) 0.f;
 
 	// The methods with "this->" in front of them are inherited from DNAInteraction. The
 	// other two methods belong to DNA2Interaction
@@ -207,77 +206,6 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 	return energy;
 }
 
-template<typename number>
-number DNA2Interaction<number>::_backbone(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	// copied from DNAInteraction, uses the FENE_R0_OXDNA2 backbone parameter
-	if(!this->_check_bonded_neighbour(&p, &q, r)) {
-	    return (number) 0.f;
-	}
-
-	LR_vector<number> computed_r;
-	if (r == NULL) {
-		computed_r = q->pos - p->pos;
-		r = &computed_r;
-	}
-
-
-	LR_vector<number> rback = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BACK];
-	number rbackmod = rback.module();
-	number rbackr0 = rbackmod - FENE_R0_OXDNA2;
-	number energy = -FENE_EPS * 0.5 * log(1 - SQR(rbackr0) / FENE_DELTA2);
-
-	// we check whether we ended up OUTSIDE of the FENE range
-	if (fabs(rbackr0) > FENE_DELTA - DBL_EPSILON) {
-		if (update_forces && !(this->_allow_broken_fene)) {
-			throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(rbackr0));
-		}
-		return (number) (1.e12);
-	}
-
-	if(update_forces) {
-		LR_vector<number> force = rback * (-(FENE_EPS * rbackr0  / (FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
-
-		p->force -= force;
-		q->force += force;
-
-		// we need torques in the reference system of the particle
-		p->torque -= p->orientationT * p->int_centers[DNANucleotide<number>::BACK].cross(force);
-		q->torque += q->orientationT * q->int_centers[DNANucleotide<number>::BACK].cross(force);
-	}
-
-	return energy;
-}
-
-template<typename number>
-void DNA2Interaction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
-	// copied from DNAInteraction, uses the FENE_R0_OXDNA2 backbone parameter
-	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = particles[i];
-		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
-		if(p->n5 != P_VIRTUAL && p->n5->index >= N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
-
-		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
-		number mind = FENE_R0_OXDNA2 - FENE_DELTA;
-		number maxd = FENE_R0_OXDNA2 + FENE_DELTA;
-		if(p->n3 != P_VIRTUAL) {
-			BaseParticle<number> *q = p->n3;
-			q->set_positions();
-			LR_vector<number> rv = p->pos + p->int_centers[DNANucleotide<number>::BACK] - (q->pos + q->int_centers[DNANucleotide<number>::BACK]);
-			number r = sqrt(rv*rv);
-			if(r > maxd || r < mind)
-				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
-		}
-
-		if(p->n5 != P_VIRTUAL) {
-			BaseParticle<number> *q = p->n5;
-			q->set_positions();
-			LR_vector<number> rv = p->pos + p->int_centers[DNANucleotide<number>::BACK] - (q->pos + q->int_centers[DNANucleotide<number>::BACK]);
-			number r = sqrt(rv*rv);
-			if(r > maxd || r < mind)
-				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n5->index, r);
-		}
-	}
-}
 
 template<typename number>
 number DNA2Interaction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {

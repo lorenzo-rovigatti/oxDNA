@@ -7,13 +7,16 @@
 
 #include "BussiThermostat.h"
 #include "../../Utilities/Utils.h"
+#include "../../Utilities/ConfigInfo.h"
 
 template<typename number>
-BussiThermostat<number>::BussiThermostat() : BaseThermostat<number>(){
+BussiThermostat<number>::BussiThermostat() :
+		BaseThermostat<number>() {
 	_newtonian_steps = 0;
 	_tau = -1;
 	_K_t = 0.;
 	_K_r = 0.;
+	this->_supports_shear = true;
 }
 
 template<typename number>
@@ -26,14 +29,14 @@ void BussiThermostat<number>::get_settings(input_file &inp) {
 	BaseThermostat<number>::get_settings(inp);
 	getInputInt(&inp, "newtonian_steps", &_newtonian_steps, 1);
 	getInputInt(&inp, "bussi_tau", &_tau, 1);
-	if(_newtonian_steps < 1) throw oxDNAException ("'newtonian_steps' must be > 0");
+	if(_newtonian_steps < 1) throw oxDNAException("'newtonian_steps' must be > 0");
 }
 
 template<typename number>
 void BussiThermostat<number>::init(int N_part) {
 	BaseThermostat<number>::init(N_part);
 
-	_K_t = ((3. / 2.) * this->_N_part * this->_T); 
+	_K_t = ((3. / 2.) * this->_N_part * this->_T);
 	_K_r = ((3. / 2.) * this->_N_part * this->_T);
 
 	_exp_dt_tau = exp(-_newtonian_steps / (number) _tau);
@@ -44,7 +47,6 @@ void BussiThermostat<number>::_update_K(number &K) {
 	// dynamics for the kinetic energy
 	number K_target = ((3. / 2.) * this->_N_part * this->_T);
 	int N_deg = 3. * this->_N_part;
-//	number dK = (K_target - K)*_newtonian_steps / (number) _tau + 2. * sqrt (K * K_target / (N_deg * _tau)) * Utils::gaussian<number>();
 
 	number rr = Utils::gaussian<number>();
 	number dK = (1.0 - _exp_dt_tau) * (K_target * (_sum_noises(N_deg - 1) + rr * rr) / N_deg - K) + 2.0 * rr * sqrt(K * K_target / N_deg * (1.0 - _exp_dt_tau) * _exp_dt_tau);
@@ -53,14 +55,18 @@ void BussiThermostat<number>::_update_K(number &K) {
 
 template<typename number>
 void BussiThermostat<number>::apply(BaseParticle<number> **particles, llint curr_step) {
-	if (!(curr_step % _newtonian_steps) == 0) return;
+	if(!(curr_step % _newtonian_steps) == 0) return;
 
 	// compute the total kinetic energy
 	number K_now_t = (number) 0.;
 	number K_now_r = (number) 0.;
-	for (int i = 0; i < this->_N_part; i++) {
+	for(int i = 0; i < this->_N_part; i++) {
 		BaseParticle<number> *p = particles[i];
-		K_now_t += (p->vel * p->vel) / 2.;
+		if(this->_lees_edwards) {
+			// we compute the instant kinetic energy considering only two out of three dimensions, leaving out the flow direction x
+			K_now_t += (SQR(p->vel.y) + SQR(p->vel.z)) * 3. / 4.;
+		}
+		else K_now_t += (p->vel * p->vel) / 2.;
 		K_now_r += (p->L * p->L) / 2.;
 	}
 
@@ -69,13 +75,19 @@ void BussiThermostat<number>::apply(BaseParticle<number> **particles, llint curr
 
 	number rescale_factor_t = sqrt(_K_t / K_now_t);
 	number rescale_factor_r = sqrt(_K_r / K_now_r);
-	
-//	printf("%lf %lf %lf %lf\n", K_now_t, K_now_r, rescale_factor_t, rescale_factor_r);
 
 	for(int i = 0; i < this->_N_part; i++) {
 		BaseParticle<number> *p = particles[i];
-		p->vel = p->vel * rescale_factor_t;
-		p->L = p->L * rescale_factor_r;
+		if(this->_lees_edwards) {
+			number Ly = CONFIG_INFO->box->box_sides().y;
+			number y_in_box = p->pos.y - floor(p->pos.y/Ly)*Ly - 0.5*Ly;
+			number flow_vx = y_in_box*this->_shear_rate;
+			p->vel.x = (p->vel.x - flow_vx) * rescale_factor_t + flow_vx;
+			p->vel.y *= rescale_factor_t;
+			p->vel.z *= rescale_factor_t;
+		}
+		else p->vel *= rescale_factor_t;
+		if(p->is_rigid_body()) p->L *= rescale_factor_r;
 	}
 }
 
@@ -102,12 +114,13 @@ number BussiThermostat<number>::_sum_noises(int nn) {
 template<typename number>
 number BussiThermostat<number>::_gamdev(int ia) {
 	int j;
-	number am,e,s,v1,v2,x,y;
+	number am, e, s, v1, v2, x, y;
 
-	if(ia < 1) throw oxDNAException("BussiThermostat::_gamdev may not be called with an argument ia == 1");
+	if(ia < 1) throw oxDNAException("BussiThermostat::_gamdev may not be called with an argument ia < 1");
 	if(ia < 6) {
 		x = 1.0;
-		for(j = 1; j <= ia; j++) x *= drand48();
+		for(j = 1; j <= ia; j++)
+			x *= drand48();
 		x = -log(x);
 	}
 	else {
@@ -128,6 +141,6 @@ number BussiThermostat<number>::_gamdev(int ia) {
 	return x;
 }
 
-template class BussiThermostat<float>;
-template class BussiThermostat<double>;
+template class BussiThermostat<float> ;
+template class BussiThermostat<double> ;
 
