@@ -268,6 +268,8 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 		_move_particle(moveptr, pp);
 		if (pp->pos.sqr_distance(this->_particles_old[pp->index]->pos) > this->_max_move_size_sqr) {
 			//printf("Cluster move done: exiting because the move is too large, setting pprime = 0.\n\n");
+			// even if we stop halfway in the cycle where we move_particles, the rejection block in 
+			// the apply method will put everything back in the correct position using particles_old
 			return 0.;
 		}
 		this->_Info->lists->single_update(pp);
