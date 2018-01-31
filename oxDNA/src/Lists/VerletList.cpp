@@ -70,9 +70,33 @@ void VerletList<number>::global_update(bool force_update) {
 }
 
 template<typename number>
-std::vector<BaseParticle<number> *> VerletList<number>::get_neigh_list(BaseParticle<number> *p, bool all) {
-	if(all) return _cells.get_neigh_list(p, true);
+std::vector<BaseParticle<number> *> VerletList<number>::get_neigh_list(BaseParticle<number> *p) {
 	return _lists[p->index];
+}
+
+template<typename number>
+std::vector<BaseParticle<number> *> VerletList<number>::get_complete_neigh_list(BaseParticle<number> *p) {
+	return _cells.get_complete_neigh_list(p);
+}
+
+template<typename number>
+void VerletList<number>::change_box () {
+	LR_vector<number> new_box_sides = this->_box->box_sides();
+	number fx = new_box_sides.x/this->_box_sides.x;
+	number fy = new_box_sides.y/this->_box_sides.y;
+	number fz = new_box_sides.z/this->_box_sides.z;
+
+	for(int i = 0; i < this->_N; i++) {
+		BaseParticle<number> *p = this->_particles[i];
+		_list_poss[p->index].x *= fx;
+		_list_poss[p->index].z *= fy;
+		_list_poss[p->index].y *= fz;
+
+		if(_list_poss[p->index].sqr_distance(p->pos) > _sqr_skin) _updated = false;
+	}
+
+	_cells.change_box();
+	BaseList<number>::change_box();
 }
 
 template class VerletList<float>;

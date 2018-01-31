@@ -28,6 +28,8 @@ public:
 	TotalEnergy();
 	virtual ~TotalEnergy();
 
+	void get_settings(input_file &my_inp, input_file &sim_inp);
+
 	virtual void init(ConfigInfo<number> &config_info);
 	virtual std::string get_output_string(llint curr_step);
 

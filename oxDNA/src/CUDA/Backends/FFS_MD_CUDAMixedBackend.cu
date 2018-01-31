@@ -6,9 +6,11 @@
  */
 
 #include "FFS_MD_CUDAMixedBackend.h"
-#include "../../Managers/SimManager.h"
 #include "FFS_CUDA_MD.cuh"
+
+#include "../../Managers/SimManager.h"
 #include "../../Interactions/DNAInteraction.h"
+#include "../../Observables/ObservableOutput.h"
 #include <sstream>
 
 // adapted from FFS_MD_CPUBackend.cpp parsed_expression::parse_expression()
@@ -680,11 +682,11 @@ void FFS_MD_CUDAMixedBackend::_init_ffs_kernel_config(CUDA_kernel_cfg *kernel_cf
 }
 
 void FFS_MD_CUDAMixedBackend::_eval_order_parameter_states(){
-	this->_cuda_interaction->_hb_op_precalc(this->_d_poss, this->_d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_hb_energies, _n_hb_pairs, _d_region_is_nearhb, _ffs_hb_precalc_kernel_cfg);
+	this->_cuda_interaction->_hb_op_precalc(this->_d_poss, this->_d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_hb_energies, _n_hb_pairs, _d_region_is_nearhb, _ffs_hb_precalc_kernel_cfg, _d_cuda_box);
 
-	this->_cuda_interaction->_near_hb_op_precalc(this->_d_poss, this->_d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_nearhb_states, _n_hb_pairs, _d_region_is_nearhb,  _ffs_hb_precalc_kernel_cfg);
+	this->_cuda_interaction->_near_hb_op_precalc(this->_d_poss, this->_d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_nearhb_states, _n_hb_pairs, _d_region_is_nearhb,  _ffs_hb_precalc_kernel_cfg, _d_cuda_box);
 
-	this->_cuda_interaction->_dist_op_precalc(this->_d_poss, this->_d_orientations, _d_dist_pairs1, _d_dist_pairs2, _d_op_dists, _n_dist_pairs, _ffs_dist_precalc_kernel_cfg);
+	this->_cuda_interaction->_dist_op_precalc(this->_d_poss, this->_d_orientations, _d_dist_pairs1, _d_dist_pairs2, _d_op_dists, _n_dist_pairs, _ffs_dist_precalc_kernel_cfg, _d_cuda_box);
 	cudaThreadSynchronize();
 }
 

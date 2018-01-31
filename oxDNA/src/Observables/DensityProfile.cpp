@@ -24,16 +24,21 @@ DensityProfile<number>::~DensityProfile() {
 template<typename number>
 std::string DensityProfile<number>::get_output_string(llint curr_step) {
 	int N = *this->_config_info.N;
-	number box_side = *this->_config_info.box_side;
 	
-	if (_max_value > box_side) OX_LOG(Logger::LOG_WARNING, "Observable DensityProfile: computing profile with max_value > box_size (%g > %g)", _max_value, box_side);
+	// get smallest side
+	LR_vector<number> sides = this->_config_info.box->box_sides();
+	number min_box_side = sides[0];
+	if (sides[1] < min_box_side) min_box_side = sides[1]; 
+	if (sides[2] < min_box_side) min_box_side = sides[2]; 
+	
+	if (_max_value > min_box_side) OX_LOG(Logger::LOG_WARNING, "Observable DensityProfile: computing profile with max_value > box_size (%g > %g)", _max_value, min_box_side);
 	
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector <number> mypos = p->get_abs_pos (box_side);	
-		mypos.x -= box_side * floor (mypos.x / box_side);
-		mypos.y -= box_side * floor (mypos.y / box_side);
-		mypos.z -= box_side * floor (mypos.z / box_side);
+		LR_vector <number> mypos = this->_config_info.box->get_abs_pos(p);	
+		mypos.x -= sides.x * floor (mypos.x / sides.x);
+		mypos.y -= sides.y * floor (mypos.y / sides.y);
+		mypos.z -= sides.z * floor (mypos.z / sides.z);
 		if (mypos[_axis] < _max_value) {
 			int mybin = (int) (0.01 + floor (mypos[_axis] / _bin_size));
 			_profile[mybin] ++;

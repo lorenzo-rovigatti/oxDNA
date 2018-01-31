@@ -84,8 +84,8 @@ void BoxInteraction<number>::check_input_sanity(BaseParticle<number> **particles
 }
 
 template<typename number>
-bool BoxInteraction<number>::generate_random_configuration_overlap (BaseParticle<number> *p, BaseParticle<number> *q, number box_side) {
-	LR_vector<number> dr = p->pos.minimum_image (q->pos, box_side);
+bool BoxInteraction<number>::generate_random_configuration_overlap (BaseParticle<number> *p, BaseParticle<number> *q) {
+	LR_vector<number> dr = this->_box->min_image (q->pos, p->pos);
 	return InteractionUtils::box_overlap (p, q, dr, _lx, _ly, _lz);
 }
 

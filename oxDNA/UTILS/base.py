@@ -395,7 +395,7 @@ class Nucleotide(Printable):
 				return res
 
     def get_pdb_output(self, strtype, strsubid):
-        s1 = self.cm_pos_box + get_pos_back_rel()
+        s1 = self.cm_pos_box + self.get_pos_back_rel()
         s2 = self.cm_pos_box + POS_BASE*self._a1
         res = "ATOM  %5d %4s %3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f\n" % (2 * self.index + 1,"C",strtype,'C',self.index,' ',s1[0],s1[1],s1[2],1,7.895)
         res += "ATOM  %5d %4s %3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f\n" % (2 * self.index + 2,"O",strtype,'C',self.index,' ',s2[0],s2[1],s2[2],1,6.316)
@@ -878,6 +878,9 @@ class System(object):
         self._strands = []
         self._nucleotide_to_strand = []
         self._N_cells = np.array(np.floor (self._box / 3.), np.int)
+        for kk in [0, 1, 2]:
+            if self._N_cells[kk] > 100:
+                self._N_cells[kk] = 100
         self._cellsides = box / self._N_cells
         self._head = [False,] * int(self._N_cells[0] * self._N_cells[1] * self._N_cells[2])
         self.E_pot = E_pot
@@ -1005,6 +1008,9 @@ class System(object):
 
     def do_cells (self):
         self._N_cells = np.array(np.floor (self._box / 3.), np.int)
+        for kk in [0,1,2]:
+            if self._N_cells[kk] > 100:
+                self._N_cells[kk] = 100
         self._cellsides = self._box / self._N_cells
         for n in self._nucleotides:
             n.next = -1

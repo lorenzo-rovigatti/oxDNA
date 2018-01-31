@@ -20,7 +20,6 @@ public:
 	CUDANoList();
 	virtual ~CUDANoList();
 
-	void init(int N, number box_side, number rcut) {}
 	void update(number4 *poss, number4 *list_poss, LR_bonds *bonds) {}
 	void clean() {}
 

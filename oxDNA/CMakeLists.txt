@@ -1,12 +1,16 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+# this is required when working with newer gcc versions (> 5.4)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
+
 OPTION(CUDA "Set to ON to compile with CUDA support" OFF)
 OPTION(MPI "Set to ON to compile with MPI support" OFF)
 OPTION(Debug "Set to ON to compile with debug symbols" OFF)
 OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
-OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF) 
+OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
+OPTION(CXX11 "Compile with C++11 support" OFF)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have
 # problems at linking time
@@ -32,6 +36,16 @@ PROJECT(oxDNA)
 
 # The default behaviour is to compile with optimisations
 SET(CMAKE_BUILD_TYPE Release)
+
+IF(CXX11)
+	MESSAGE(STATUS "Compiling with c++11 support")
+	IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
+		SET(CMAKE_CXX_STANDARD 11)
+		SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+	ELSE()
+		ADD_COMPILE_OPTIONS(-std=c++11)
+	ENDIF()
+ENDIF(CXX11)
 
 IF(Debug)
 	SET(CMAKE_BUILD_TYPE Debug)
@@ -143,3 +157,4 @@ ADD_CUSTOM_TARGET(test_scientific
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(contrib)

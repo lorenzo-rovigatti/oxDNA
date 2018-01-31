@@ -32,6 +32,7 @@ protected:
 	bool _use_edge;
 	bool _any_rigid_body;
 	bool _restart_step_counter;
+	bool _avoid_cpu_calculations;
 
 	int *_h_gpu_index, *_h_cpu_index;
 
@@ -44,6 +45,10 @@ protected:
 
 	number4 *_d_buff_vels, *_d_buff_Ls;
 	llint _curr_step;
+
+	llint _barostat_attempts, _barostat_accepted;
+
+	bool _print_energy;
 
 	CUDABaseThermostat<number, number4> *_cuda_thermostat;
 
@@ -59,8 +64,10 @@ protected:
 	virtual void _gpu_to_host_particles();
 
 	virtual void _sort_particles();
+	virtual void _rescale_positions(number4 new_Ls, number4 old_Ls);
 
 	virtual void _first_step();
+	virtual void _apply_barostat(llint curr_step);
 	virtual void _forces_second_step();
 	virtual void _set_external_forces();
 

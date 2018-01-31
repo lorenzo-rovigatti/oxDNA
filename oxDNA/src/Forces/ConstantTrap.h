@@ -15,20 +15,20 @@ template <typename number> class BaseParticle;
 template<typename number>
 class ConstantTrap : public BaseForce<number> {
 private:
-	int	_particle;
+	int _particle;
 	int _ref_id;
 
 public:
 	BaseParticle<number> * _p_ptr;
 	number _r0;
 	bool PBC;
-	number * box_side_ptr;
+	BaseBox<number> * _box_ptr;
 
 	ConstantTrap ();
 	virtual ~ConstantTrap() {}
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, number *);
+	void init (BaseParticle<number> **, int, BaseBox<number> *);
 
 	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
 	virtual number potential(llint step, LR_vector<number> &pos);

@@ -110,7 +110,7 @@ void Weights::init (const char * filename, OrderParameters * op, bool safe, doub
 	lineno --;
 	if (lineno != _dim) {
 		if (safe) throw oxDNAException ("(Weights.cpp) number of lines in the weights file do not match the dimensions of the order parameter. Expecting %d lines, got %d.\n\tUse safe_weights = False and default_weight = <float> to assume a default weight. Aborting", _dim, lineno);
-		else OX_LOG (Logger::LOG_INFO, "(Weights.cpp) number of lines in the weights file do not match the dimensions of the order parameter. Expecting %d lines, got %d. Usiong default weight %g", _dim, lineno, default_weight);
+		else OX_LOG (Logger::LOG_INFO, "(Weights.cpp) number of lines in the weights file do not match the dimensions of the order parameter. Expecting %d lines, got %d. Using default weight %g", _dim, lineno, default_weight);
 	}
 	
 	OX_LOG (Logger::LOG_INFO, "(Weights.cpp) parser: parsing done"); 

@@ -48,7 +48,7 @@ std::string TclOutput<number>::_headers(llint step) {
 	double _box_radius = 0.1;
 	int _box_resolution = _resolution;
 	
-	number mybox = *this->_config_info.box_side;
+	number mybox = this->_config_info.box->box_sides()[0];
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
@@ -84,12 +84,12 @@ std::string TclOutput<number>::_particle(BaseParticle<number> *p) {
 	
 	res << "graphics 0 color " << colorid << endl;
 	
-	number mybox = *this->_config_info.box_side;
+	//number mybox = *this->_config_info.box_side;
 	LR_vector<number> my_strand_cdm = this->_strands_cdm[me->strand_id];
 	LR_vector<number> origin (0., 0., 0.);
 	origin = zero;
-	LR_vector<number> back = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + me->int_centers[0]; 
-	LR_vector<number> base = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + me->int_centers[2]; 
+	LR_vector<number> back = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[0]; 
+	LR_vector<number> base = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[2]; 
 	
 	if (_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << back.x << " " << back.y << " " << back.z << "} \"" << me->strand_id << "\" size 1.5 " << endl;
 	
@@ -101,14 +101,14 @@ std::string TclOutput<number>::_particle(BaseParticle<number> *p) {
 	res << "graphics 0 cylinder {" << base.x << " " << base.y << " " << base.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backbase_radius << " resolution " << _resolution << " filled yes" << endl; 
 	
 	if (next != P_VIRTUAL) {
-		LR_vector<number> nextback = (next->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + next->int_centers[0]; 
+		LR_vector<number> nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0]; 
 		res << "graphics 0 cylinder {" << nextback.x << " " << nextback.y << " " << nextback.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backback_radius << " resolution " << _resolution << " filled yes" << endl; 
 	}
 	else {
 		// we draw the cone
 		if (me->n3 != P_VIRTUAL) {
 			next = reinterpret_cast<DNANucleotide<number>  *> (me->n3);
-			LR_vector<number> nextback = (next->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + next->int_centers[0]; 
+			LR_vector<number> nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0]; 
 			LR_vector<number> dir = back - nextback;
 			LR_vector<number> start = back;
 			LR_vector<number> end = back + dir * (2.75 / 3.);

@@ -322,7 +322,7 @@ void VMMC<number>::apply (llint curr_step) {
 		for (int l = 0; l < nclust; l++) {
 			p = this->_Info->particles[_clust[l]];
 			delta_E_ext += - p->ext_potential;
-			p->set_ext_potential(curr_step, *this->_Info->box_side);
+			p->set_ext_potential(curr_step, this->_Info->box);
 			delta_E_ext += + p->ext_potential;
 		}
 		pprime *= exp(-(1. / this->_T) * delta_E_ext);
@@ -350,7 +350,7 @@ void VMMC<number>::apply (llint curr_step) {
 			BaseParticle<number> * pp = this->_Info->particles[_clust[l]];
 			_restore_particle (pp);
 			this->_Info->lists->single_update(pp);
-			pp->set_ext_potential(curr_step, *this->_Info->box_side);
+			pp->set_ext_potential(curr_step, this->_Info->box);
 		}
 		this->_Info->interaction->set_is_infinite(false);
 
@@ -373,7 +373,7 @@ inline void VMMC<number>::_move_particle(movestr<number> * moveptr, BaseParticle
 	else if (moveptr->type == VMMC_ROTATION) {
 		LR_vector<number> dr;
 		if (moveptr->seed_strand_id == q->strand_id) dr = q->pos - moveptr->t;
-		else dr = q->pos.minimum_image(moveptr->t, *this->_Info->box_side);
+		else dr = this->_Info->box->min_image(moveptr->t, q->pos);
 
 		LR_vector<number> drp = moveptr->R * dr;
 		q->pos = moveptr->t + drp;

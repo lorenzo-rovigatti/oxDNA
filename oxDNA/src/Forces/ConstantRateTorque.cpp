@@ -50,7 +50,7 @@ void ConstantRateTorque<number>::get_settings (input_file &inp) {
 }
 
 template <typename number>
-void ConstantRateTorque<number>::init (BaseParticle<number> ** particles, int N, number * box_side_ptr) {
+void ConstantRateTorque<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a ConstantRateTorque on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding ConstantRateTorque (F0==%g, rate=%g, pos0=%g,%g,%g, axis=%g,%g,%g, center=%g,%g,%g, mask=%g,%g,%g on particle %d", this->_F0, this->_pos0.x, this->_pos0.y, this->_pos0.z, this->_rate, this->_axis.x, this->_axis.y, this->_axis.z, this->_center.x, this->_center.y, this->_center.z, this->_mask.x, this->_mask.y, this->_mask.z, _particle);

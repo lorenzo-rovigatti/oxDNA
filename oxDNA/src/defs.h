@@ -10,8 +10,8 @@
 #define DEFS_H_
 
 #define VERSION_MAJOR 2
-#define VERSION_MINOR 2
-#define VERSION_STAGE 1 // 0 alpha, 1 beta, 2 stable
+#define VERSION_MINOR 3
+#define VERSION_STAGE 2 // 0 alpha, 1 beta, 2 stable
 
 #define MAX_EXT_FORCES 10
 
@@ -19,6 +19,12 @@
 #define SQR(x) ((x) * (x))
 #define CUB(x) ((x) * (x) * (x))
 #define LRACOS(x) (((x) > 1) ? (number) 0 : ((x) < -1) ? (number) PI : acos(x))
+
+#define CHECK_BOX(my_class, inp) 	std::string box_type ("");\
+	if (getInputString(&inp, "box_type", box_type, 0) == KEY_FOUND) {\
+		if (box_type.compare("cubic") != 0) \
+			throw oxDNAException ("%s only works with cubic box! Aborting", my_class);\
+	}\
 
 #define P_A 0
 #define P_B 1
@@ -34,6 +40,7 @@
 #include <cmath>
 #include <strings.h>
 #include <xlocale.h>
+#include <iostream>
 
 #include "model.h"
 #include "Utilities/Logger.h"
@@ -66,15 +73,7 @@ public:
 
 	}
 
-	LR_matrix(const LR_matrix<number> &p) : v1(p.v1), v2(p.v2), v3(p.v3) {
-
-	}
-
 	// Operator Overloads
-	inline bool operator==(const LR_matrix &m) const {
-		return (v1 == m.v1 && v2 == m.v2 && v3 == m.v3);
-	}
-
 	inline LR_matrix operator+(const LR_matrix& m) const {
 		return LR_matrix(v1 + m.v1, v2 + m.v2, v3 + m.v3);
 	}
@@ -95,6 +94,12 @@ public:
 		number fInv = ((number)1.) / S;
 		return LR_matrix(v1 * fInv, v2 * fInv, v3 * fInv);
 	}
+
+	inline void operator/=(number S) {
+			v1 /= S;
+			v2 /= S;
+			v3 /= S;
+		}
 
 	inline LR_vector<number> operator*(const LR_vector<number>& v) const {
 		return LR_vector<number>(v1 * v, v2 * v, v3 * v);
@@ -154,20 +159,12 @@ public:
 		x(0), y(0), z(0) {
 	}
 
-	LR_vector(const LR_vector<number> &p) : x(p.x), y(p.y), z(p.z) {
-
-	}
-
 	LR_vector (number * arg) : 
 		x (arg[0]), y (arg[1]), z (arg[2]) {
 	
 	}
 
 	// Operator Overloads
-	inline bool operator==(const LR_vector& V2) const {
-		return (x == V2.x && y == V2.y && z == V2.z);
-	}
-
 	inline LR_vector operator+(const LR_vector& V2) const {
 		return LR_vector(x + V2.x, y + V2.y, z + V2.z);
 	}
@@ -187,10 +184,6 @@ public:
 	inline LR_vector operator/(number S) const {
 		number fInv = ((number)1.) / S;
 		return LR_vector(x * fInv, y * fInv, z * fInv);
-	}
-
-	inline LR_vector operator/(const LR_vector& V2) const {
-		return LR_vector(x / V2.x, y / V2.y, z / V2.z);
 	}
 
 	inline number operator*(const LR_vector& V2) const {
@@ -245,34 +238,12 @@ public:
 		return sqrt(norm());
 	}
 
-	number sqr_min_image_distance(const LR_vector &V1, const number box_side) const {
-		number nx = x - V1.x;
-		number ny = y - V1.y;
-		number nz = z - V1.z;
-
-		nx -= rint(nx / box_side) * box_side;
-		ny -= rint(ny / box_side) * box_side;
-		nz -= rint(nz / box_side) * box_side;
-
-		return nx*nx + ny*ny + nz*nz;
-	}
-
 	number sqr_distance(const LR_vector &V1) const {
 		return (*this - V1).norm();
 	}
 
 	number distance(const LR_vector &V1) const {
 		return sqrt(sqr_distance(V1));
-	}
-
-	LR_vector<number> minimum_image(const LR_vector &V1, const number box_side) {
-		LR_vector<number> r = *this - V1;
-
-		r.x -= rint(r.x / box_side) * box_side;
-		r.y -= rint(r.y / box_side) * box_side;
-		r.z -= rint(r.z / box_side) * box_side;
-
-		return r;
 	}
 
 	inline void normalize() {
@@ -286,10 +257,10 @@ public:
 		return;
 	}
 
-	/*
-	std::string string() {
-		return std::string ("(%g, %g, %g)", x, y, z); 
-	}*/
+	friend std::ostream &operator<<(std::ostream &stream,const  LR_vector &vector) {
+		stream << "(" << vector.x << ", " << vector.y << ", " << vector.z << ")";
+		return stream;
+	}
 };
 
 template <typename number>

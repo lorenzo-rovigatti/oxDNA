@@ -47,14 +47,16 @@ std::string Pitch<number>::get_output_string(llint curr_step) {
 	BaseParticle<number> *bp1b = this->_config_info.particles[_bp1b_id];
 	BaseParticle<number> *bp2a = this->_config_info.particles[_bp2a_id];
 	BaseParticle<number> *bp2b = this->_config_info.particles[_bp2b_id];
+	
+	BaseBox<number> * mybox = this->_config_info.box;
 
 	// base-base vector for each base pair; vector from a to b
-	LR_vector<number> bp1_rbase = bp1b->pos.minimum_image(bp1a->pos, *(this->_config_info.box_side)) + bp1b->int_centers[DNANucleotide<number>::BASE] - bp1a->int_centers[DNANucleotide<number>::BASE];
-	LR_vector<number> bp2_rbase = bp2b->pos.minimum_image(bp2a->pos, *(this->_config_info.box_side)) + bp2b->int_centers[DNANucleotide<number>::BASE] - bp2a->int_centers[DNANucleotide<number>::BASE];
+	LR_vector<number> bp1_rbase = mybox->min_image(bp1a->pos, bp1b->pos) + bp1b->int_centers[DNANucleotide<number>::BASE] - bp1a->int_centers[DNANucleotide<number>::BASE];
+	LR_vector<number> bp2_rbase = mybox->min_image(bp2a->pos, bp2b->pos) + bp2b->int_centers[DNANucleotide<number>::BASE] - bp2a->int_centers[DNANucleotide<number>::BASE];
 
 	// base-base midpoint for each base pair; vector from 1a to 2a and 1b to 2b
-	LR_vector<number> bpa_r = bp2a->pos.minimum_image(bp1a->pos, *(this->_config_info.box_side)) + bp2a->int_centers[DNANucleotide<number>::BASE] - bp1a->int_centers[DNANucleotide<number>::BASE];
-	LR_vector<number> bpb_r = bp2b->pos.minimum_image(bp1b->pos, *(this->_config_info.box_side)) + bp2b->int_centers[DNANucleotide<number>::BASE] - bp1b->int_centers[DNANucleotide<number>::BASE];
+	LR_vector<number> bpa_r = mybox->min_image(bp1a->pos, bp2a->pos) + bp2a->int_centers[DNANucleotide<number>::BASE] - bp1a->int_centers[DNANucleotide<number>::BASE];
+	LR_vector<number> bpb_r = mybox->min_image(bp1b->pos, bp2b->pos) + bp2b->int_centers[DNANucleotide<number>::BASE] - bp1b->int_centers[DNANucleotide<number>::BASE];
 	
 	LR_vector<number> helix_axis = (bpa_r + bpb_r) * 0.5;
 	number helix_axis_mod = helix_axis.module();

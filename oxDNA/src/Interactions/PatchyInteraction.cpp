@@ -70,7 +70,7 @@ void PatchyInteraction<number>::init() {
 	this->_sqr_rcut = SQR(this->_rcut);
 
 	if(_is_binary) OX_LOG(Logger::LOG_INFO, "Simulating a binary patchy system with diameters AA %lf, BB %lf, AB %lf (N patch: %d %d, rcut: %lf %lf %lf)", _sigma[0], _sigma[2], _sigma[1], _N_patches, _N_patches_B, sqrt(_sqr_tot_rcut[0]), sqrt(_sqr_tot_rcut[1]), sqrt(_sqr_tot_rcut[2]));
-	else OX_LOG(Logger::LOG_INFO, "Simulating a pure patchy system (N patch: %d, rcut: %lf, patch_alpha: %lf\n", _N_patches, this->_rcut);
+	else OX_LOG(Logger::LOG_INFO, "Simulating a pure patchy system (N patch: %d, rcut: %lf, patch_alpha: %lf)", _N_patches, this->_rcut);
 }
 
 template<typename number>

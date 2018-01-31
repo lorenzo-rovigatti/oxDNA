@@ -34,14 +34,17 @@ using namespace std;
 template <typename number>
 class IBaseInteraction {
 protected:
-	number _box_side;
 	BaseBox<number> *_box;
 
 	/// This is useful for "hard" potentials
 	bool _is_infinite;
 
-	/// This is useful to create initial configurations. it is used by the generator functions
+	/// This is useful to create initial configurations. It is used by the generator functions
 	number _energy_threshold;
+	/// If true, the generation of the initial configuration will try to take into account the fact that particles that are bonded neighbours should be close to each other
+	bool _generate_consider_bonded_interactions;
+	/// This controls the maximum at which bonded neighbours should be randomly placed to speed-up generation. Used by generator functions.
+	number _generate_bonded_cutoff;
 
 	number _rcut, _sqr_rcut;
 
@@ -50,7 +53,6 @@ public:
 	IBaseInteraction();
 	virtual ~IBaseInteraction();
 
-	virtual void set_box_side(number box_side) { _box_side = box_side; }
 	virtual void set_box(BaseBox<number> *box) { _box = box; }
 
 	virtual void get_settings(input_file &inp);
@@ -127,7 +129,6 @@ public:
 	 *
 	 * @param particles
 	 * @param N
-	 * @param box_side
 	 * @return
 	 */
 	virtual number get_system_energy(BaseParticle<number> **particles, int N, BaseList<number> *lists);
@@ -138,7 +139,6 @@ public:
 	 * @param name
 	 * @param particles
 	 * @param N
-	 * @param box_side
 	 * @return the required energy contribution
 	 */
 	virtual number get_system_energy_term(int name, BaseParticle<number> **particles, int N, BaseList<number> *lists);
@@ -195,10 +195,9 @@ public:
 	 *
 	 * @param p
 	 * @param q
-	 * @param box_side
 	 * @return bool whether the two particles overlap
 	 */
-	virtual bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q, number box_side);
+	virtual bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q);
 	
 	
 	/**
@@ -210,9 +209,8 @@ public:
 	 *
 	 * @param particles
 	 * @param N
-	 * @param box_side
 	 */
-	virtual void generate_random_configuration (BaseParticle<number> **particles, int N, number box_side);
+	virtual void generate_random_configuration (BaseParticle<number> **particles, int N);
 };
 
 template<typename number>
@@ -220,6 +218,8 @@ IBaseInteraction<number>::IBaseInteraction() {
 	_energy_threshold = (number) 100.f;
 	_is_infinite = false;
 	_box = NULL;
+	_generate_consider_bonded_interactions = false;
+	_generate_bonded_cutoff = 2.0;
 }
 
 template<typename number>
@@ -230,7 +230,12 @@ IBaseInteraction<number>::~IBaseInteraction() {
 template<typename number>
 void IBaseInteraction<number>::get_settings(input_file &inp) {
 	getInputString(&inp, "topology", this->_topology_filename, 1);
-	getInputNumber (&inp, "energy_threshold", &_energy_threshold, 0);  
+	getInputNumber (&inp, "energy_threshold", &_energy_threshold, 0);
+	getInputBool(&inp, "generate_consider_bonded_interactions", &_generate_consider_bonded_interactions, 0);
+	if(_generate_consider_bonded_interactions) {
+		getInputNumber (&inp, "generate_bonded_cutoff", &_generate_bonded_cutoff, 0);
+		OX_LOG(Logger::LOG_INFO, "The generator will try to take into account bonded interactions by choosing distances between bonded neighbours no larger than %lf", _generate_bonded_cutoff);
+	}
 }
 
 template<typename number>
@@ -261,17 +266,13 @@ template<typename number>
 number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **particles, int N, BaseList<number> *lists) {
 	double energy = 0.;
 
-	for (int i = 0; i < N; i ++) {
-		BaseParticle<number> *p = particles[i];
-		energy += (double) pair_interaction_bonded(p, P_VIRTUAL);
-
-		vector<BaseParticle<number> *> neighs = lists->get_neigh_list(p);
-
-		for(unsigned int n = 0; n < neighs.size(); n++) {
-			BaseParticle<number> *q = neighs[n];
-			if(p->index > q->index) energy += (double) pair_interaction_nonbonded(p, q);
-			if(this->get_is_infinite()) return energy;
-		}
+	vector<ParticlePair<number> > pairs = lists->get_potential_interactions();
+	typename std::vector<ParticlePair<number> >::iterator it;
+	for(it = pairs.begin(); it != pairs.end(); it++ ) {
+		BaseParticle<number> *p = (*it).first;
+		BaseParticle<number> *q = (*it).second;
+		energy += (double) pair_interaction(p, q);
+		if(this->get_is_infinite()) return energy;
 	}
 	
 	return (number) energy;
@@ -283,7 +284,7 @@ number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<n
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
-		vector<BaseParticle<number> *> neighs = lists->get_neigh_list(p);
+		vector<BaseParticle<number> *> neighs = lists->get_all_neighbours(p);
 
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
@@ -296,7 +297,7 @@ number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<n
 }
 
 template<typename number>
-bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticle<number> * p, BaseParticle<number> * q, number box_side) {
+bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticle<number> * p, BaseParticle<number> * q) {
 	LR_vector<number> dr = _box->min_image(p, q); 
 	
 	if (dr.norm() >= this->_sqr_rcut) return false;
@@ -313,7 +314,7 @@ bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticl
 }
 
 template<typename number>
-void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
+void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N) {
 	Cells<number> c(N, _box);
 	c.init(particles, _rcut);
 
@@ -326,17 +327,19 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 
 	for(int i = 0; i < N; i++) {
 		BaseParticle<number> *p = particles[i];
+		bool same_strand = (_generate_consider_bonded_interactions && i > 0 && p->is_bonded(particles[i - 1]));
 
 		bool inserted = false;
 		do {
-			p->pos = LR_vector<number> (drand48()*_box->box_sides().x, drand48()*_box->box_sides().y, drand48()*_box->box_sides().z);
+			if(same_strand)	p->pos = particles[i - 1]->pos + LR_vector<number> ((drand48() - 0.5), (drand48() - 0.5), (drand48() - 0.5))*_generate_bonded_cutoff;
+			else p->pos = LR_vector<number> (drand48()*_box->box_sides().x, drand48()*_box->box_sides().y, drand48()*_box->box_sides().z);
 			// random orientation
-			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
+			p->orientation = Utils::get_random_rotation_matrix<number> (2.*M_PI);
 			p->orientation.orthonormalize();
 			p->orientationT = p->orientation.get_transpose();
 
 			p->set_positions();
-			p->set_ext_potential(0, box_side);
+			p->set_ext_potential(0, this->_box);
 			c.single_update(p);
 
 			inserted = true;
@@ -345,29 +348,26 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 			for (unsigned int n = 0; n < p->affected.size(); n ++) {
 				BaseParticle<number> * p1 = p->affected[n].first;
 				BaseParticle<number> * p2 = p->affected[n].second;
-				number e = 0.;
-				if (p1->index <= p->index && p2->index <= p->index) {
-					e = pair_interaction_bonded (p1, p2);
+				if(p1->index <= p->index && p2->index <= p->index) {
+					number e = pair_interaction_bonded (p1, p2);
+					if(__isnan(e) || e > _energy_threshold) inserted = false;
 				}
-				if(e > _energy_threshold) inserted = false;
 			}
 
 			// here we take into account the non-bonded interactions
-			vector<BaseParticle<number> *> neighs = c.get_neigh_list(p, true);
+			vector<BaseParticle<number> *> neighs = c.get_complete_neigh_list(p);
 			for(unsigned int n = 0; n < neighs.size(); n++) {
 				BaseParticle<number> *q = neighs[n];
 				// particles with an index larger than p->index have not been inserted yet
-				if(q->index < p->index && generate_random_configuration_overlap (p, q, box_side)) inserted = false;
+				if(q->index < p->index && generate_random_configuration_overlap (p, q)) inserted = false;
 			}
 
 			// we take into account the external potential
-			if (p->ext_potential > _energy_threshold) {
-				inserted = false;
-			}
+			if(__isnan(p->ext_potential) || p->ext_potential > _energy_threshold) inserted = false;
 
 		} while(!inserted);
 
-		if(i > 0 && i % (N/10) == 0) OX_LOG(Logger::LOG_INFO, "Inserted %d%% of the particles (%d/%d)", i*100/N, i, N);
+		if(i > 0 && N > 10 && i % (N/10) == 0) OX_LOG(Logger::LOG_INFO, "Inserted %d%% of the particles (%d/%d)", i*100/N, i, N);
 	}
 }
 
@@ -439,7 +439,6 @@ public:
 	 *
 	 * @param particles
 	 * @param N
-	 * @param box_side
 	 * @return a map storing all the potential energy contributions.
 	 */
 	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N, BaseList<number> *lists);

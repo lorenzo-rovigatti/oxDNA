@@ -17,6 +17,7 @@
 
 #include "../defs.h"
 #include "../Forces/BaseForce.h"
+#include "../Boxes/BaseBox.h"
 
 template <typename number> class ParticlePair;
 
@@ -27,9 +28,6 @@ template<typename number>
 class BaseParticle {
 protected:
 	int _max_neigh, _N_neigh;
-
-	/// number of boxes the particle has diffused in each direction
-	int _pos_shift[3];
 
 	void _check();
 
@@ -43,10 +41,12 @@ public:
 	BaseParticle();
 	virtual ~BaseParticle();
 
-//	std::vector<std::pair<BaseParticle<number> *, BaseParticle<number> *> > affected;
 	std::vector<ParticlePair<number> > affected;
 
 	virtual void set_positions() { }
+	
+	/// number of boxes the particle has diffused in each direction
+	int _pos_shift[3];
 
 	virtual void copy_from(const BaseParticle<number> &);
 	inline void soft_copy_from(const BaseParticle<number> * p) {
@@ -74,9 +74,11 @@ public:
 	 * @return true if the force was added, false otherwise
 	 */
 	bool add_ext_force(BaseForce<number> *f);
-	void set_initial_forces(llint step, number box) {
-		LR_vector<number> abs_pos = get_abs_pos(box);
-		this->force = LR_vector<number>(0, 0, 0);
+
+	void set_initial_forces (llint step, BaseBox<number> * box) {
+		LR_vector<number> abs_pos = box->get_abs_pos(this);
+		if (this->is_rigid_body()) this->torque = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
+		this->force = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
 		for(int i = 0; i < N_ext_forces; i++) {
 			this->force += ext_forces[i]->value(step, abs_pos);
 		}
@@ -91,14 +93,14 @@ public:
 	bool add_ext_potential (BaseForce<number> *f);
 
 	/**
-	 * @brief Add an external potential.
+	 * @brief Computes the interaction resulting from all the external forces acting on the particle. Stores the result in the ext_potential member.
 	 *
 	 * @param step current time step. Useful for forces that depend on time.
-	 * @param box the current box size. Useful for PBC-aware forces
+	 * @param box pointer to the box object
 	 * @return true if the external potential was added, false otherwise
 	 */
-	void set_ext_potential (llint step, number box) {
-		LR_vector<number> abs_pos = get_abs_pos(box);
+	void set_ext_potential (llint step, BaseBox<number> * box) {
+		LR_vector<number> abs_pos = box->get_abs_pos(this);
 		this->ext_potential = (number) 0.;
 		for(int i = 0; i < N_ext_forces; i++) {
 			this->ext_potential += ext_forces[i]->potential(step, abs_pos);
@@ -124,21 +126,6 @@ public:
 		return false;
 	}
 
-	/**
-	 * @brief Shifts the particle's position and stores internally the shift. Used in the fix_diffusion procedure
-	 *
-	 * @param my_shift reference vector to put back in the box (i.e., strand c.o.m.)
-	 * @param box
-	 */
-	inline void shift(LR_vector<number> &my_shift, LR_vector<number> &box_sides) {
-		_pos_shift[0] += (int) floor(my_shift.x / box_sides.x);
-		_pos_shift[1] += (int) floor(my_shift.y / box_sides.y);
-		_pos_shift[2] += (int) floor(my_shift.z / box_sides.z);
-		pos.x -= box_sides.x * floor(my_shift.x / box_sides.x);
-		pos.y -= box_sides.y * floor(my_shift.y / box_sides.y);
-		pos.z -= box_sides.z * floor(my_shift.z / box_sides.z);
-	}
-	
 	inline void set_pos_shift (int x, int y, int z) {
 		_pos_shift[0] = x;
 		_pos_shift[1] = y;
@@ -150,11 +137,6 @@ public:
 		arg[1] = _pos_shift[1];
 		arg[2] = _pos_shift[2];
 	}
-
-	/// Returns the absolute position of the particle, useful for MSD and such
-	LR_vector<number> get_abs_pos(number box) { return pos + box * LR_vector<number> ((number)_pos_shift[0], (number)_pos_shift[1], (number)_pos_shift[2]); }
-	LR_vector<number> get_abs_pos(number box_x, number box_y, number box_z) { return pos + LR_vector<number> (box_x * (number)_pos_shift[0], box_y * (number)_pos_shift[1], box_z * (number)_pos_shift[2]); }
-	LR_vector<number> get_abs_pos(LR_vector<number> box_sides) { return pos + LR_vector<number> (box_sides.x * (number)_pos_shift[0], box_sides.y * (number)_pos_shift[1], box_sides.z * (number)_pos_shift[2]); }
 
 	/// Index of the particle. Usually it is a useful way of accessing arrays of particles
 	int index;

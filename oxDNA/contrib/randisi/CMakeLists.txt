@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 2.8)
+
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/Interactions)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/Observables)
+
+ADD_CUSTOM_TARGET(randisi
+	DEPENDS DNA2ModInteraction
+) 
+
+SET(CMAKE_SHARED_LIBRARY_PREFIX "")
+
+# Observables
+
+# Interactions
+ADD_LIBRARY(DNA2ModInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/DNA2ModInteraction.cpp)

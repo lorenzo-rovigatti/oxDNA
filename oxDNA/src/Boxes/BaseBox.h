@@ -98,12 +98,34 @@ public:
 	virtual LR_vector<number> &box_sides() = 0;
 
 	/**
+	 * @brief Returns the box's total volume.
+	 *
+	 * @return Simulation box's total volume
+	 */
+	virtual number V() = 0;
+
+	/**
 	 * @brief Currently not implemented.
 	 *
 	 * @param particles
 	 * @param N
 	 */
 	virtual void apply_boundary_conditions(BaseParticle<number> **particles, int N) = 0;
+
+	/**
+	 * @brief Returns the "absolute" position of a particle
+	 *
+	 * @param p pointer to the particle object
+	 */
+	virtual LR_vector<number> get_abs_pos(BaseParticle<number> * p) = 0; 
+	
+	/**
+	 * @brief Shifts the particle's position and stores internally the shift. Used in the fix_diffusion procedure
+	 *
+	 * @param p particle 
+	 * @param amount displacement 
+	 */
+	virtual void shift_particle (BaseParticle<number> * p, LR_vector<number> &amount) = 0;
 };
 
 #endif /* BASEBOX_H_ */

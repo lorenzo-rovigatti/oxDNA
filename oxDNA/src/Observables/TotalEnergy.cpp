@@ -30,6 +30,12 @@ TotalEnergy<number>::~TotalEnergy() {
 }
 
 template<typename number>
+void TotalEnergy<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+	_pot_energy.get_settings(my_inp, sim_inp);
+	_kin_energy.get_settings(my_inp, sim_inp);
+}
+
+template<typename number>
 void TotalEnergy<number>::init(ConfigInfo<number> &config_info) {
 	_pot_energy.init(config_info);
 	_kin_energy.init(config_info);

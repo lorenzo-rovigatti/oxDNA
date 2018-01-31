@@ -2,7 +2,7 @@
  * HBList.cpp
  *
  *  Created on: Apr 11, 2013
- *      Author: Ben Snodin
+ *      Author: Ben Snodin, later modified by Ferdinando in e.g. September 2017.
  */
 
 #include "HBList.h"
@@ -11,6 +11,8 @@
 
 template<typename number>
 HBList<number>::HBList() {
+	_max_shift = 10;
+	_measure_mean_shift = false;
 
 }
 
@@ -21,15 +23,16 @@ HBList<number>::~HBList() {
 
 template<typename number> void
 HBList<number>::init(ConfigInfo<number> &config_info) {
-   BaseObservable<number>::init(config_info);
-   if (_read_op){
-	   _op.init_from_file(_order_parameters_file, this->_config_info.particles, *(this->_config_info.N));
-   }
+	 BaseObservable<number>::init(config_info);
+	 if (_read_op){
+		 _op.init_from_file(_order_parameters_file, this->_config_info.particles, *(this->_config_info.N));
+	 }
 }
 
 template<typename number> void
 HBList<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_read_op = true;
+	_only_count = false;
 	bool parameters_loaded = false;
 	//first try to load parameters from specific op_file key
 	if(getInputString(&my_inp, "order_parameters_file", _order_parameters_file, 0) == KEY_NOT_FOUND)
@@ -57,7 +60,11 @@ HBList<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 				}
 		}
 	}
-
+	// read the _only_count and _measure_mean_shift flags
+	getInputBool(&my_inp, "only_count", &_only_count,0);
+	if(getInputBool(&my_inp, "measure_mean_shift", &_measure_mean_shift,0) == KEY_FOUND){
+		getInputInt(&my_inp,"max_shift",&_max_shift,0);
+	}
 
 }
 
@@ -69,7 +76,11 @@ bool HBList<number>::is_hbond(int p_ind, int q_ind){
 
 template<typename number>
 std::string HBList<number>::get_output_string(llint curr_step) {
+	unsigned long long int total_reg = 0;
+	unsigned long long int n_reg_entries = 0;
 	std::stringstream outstr;
+	llint N_bonds = 0;
+	if(!_only_count and !_measure_mean_shift)
 	outstr << "# step " << curr_step << "\n";
 	// using an order parameters file
 	if (_read_op){
@@ -80,9 +91,14 @@ std::string HBList<number>::get_output_string(llint curr_step) {
 			BaseParticle<number> *p = this->_config_info.particles[p_ind];
 			BaseParticle<number> *q = this->_config_info.particles[q_ind];
 			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, q);
+			//
 			if (hb_energy < HB_CUTOFF){
-				outstr << p_ind << " " << q_ind << "\n";
+				if (_only_count) 
+					N_bonds++;
+				else if(!_measure_mean_shift)
+					outstr << p_ind << " " << q_ind << "\n";
 			}
+			//
 		}
 	}
 	// checking all particle pairs
@@ -95,10 +111,54 @@ std::string HBList<number>::get_output_string(llint curr_step) {
 			int p_ind = p->get_index();
 			int q_ind = q->get_index();
 			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, q);
+			// what to do if it's unbound
+			int complementary_ind = *this->_config_info.N - 1 - p_ind;
 			if (hb_energy < HB_CUTOFF){
-				outstr << p_ind << " " << q_ind << "\n";
+				if (_only_count) 
+					N_bonds++;
+				else if(!_measure_mean_shift)
+					outstr << p_ind << " " << q_ind << "\n";
+			}
+			else if (_measure_mean_shift && complementary_ind == q_ind){
+				//this always takes into account periodic boundary conditions, which makes sense.
+				LR_vector<number> distance_vector = this->_config_info.box->min_image(p->pos,q->pos);
+				double distance = distance_vector * distance_vector;
+				BaseParticle<number> * ahead = q;
+				BaseParticle<number> * before = q;
+				//find the register for this particular base-pair 
+				int reg = 0;
+				for (int i = 0; i < _max_shift; i++){
+					double newdist = -1;
+					if (ahead->n5 != P_VIRTUAL){
+						ahead = ahead->n5;
+						LR_vector<number> newdist_vector = this->_config_info.box->min_image(p->pos,ahead->pos);
+						newdist = newdist_vector * newdist_vector;
+						if (newdist < distance){
+							distance = newdist;
+							reg = i + 1;
+						}
+					}
+					if (before->n3 != P_VIRTUAL){
+						before = before->n3;
+						LR_vector<number> newdist_vector = this->_config_info.box->min_image(p->pos,before->pos);
+						newdist = newdist_vector * newdist_vector;
+						if (newdist < distance){
+							distance = newdist;
+							reg = i + 1;
+						}
+					}
+				}
+				total_reg += reg;
+				n_reg_entries ++;
 			}
 		}
+	}
+	if (_only_count) outstr << N_bonds;
+	else if (_measure_mean_shift){
+			if (n_reg_entries == 0)
+				outstr << "none";
+			else
+				outstr << (total_reg/((double)n_reg_entries)); 
 	}
 	return outstr.str();
 }

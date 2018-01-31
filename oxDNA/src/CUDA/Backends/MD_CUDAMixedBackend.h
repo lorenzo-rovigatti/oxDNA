@@ -32,6 +32,7 @@ protected:
 	void _init_CUDA_MD_symbols();
 
 	virtual void _sort_particles();
+	virtual void _rescale_positions(float4 new_Ls, float4 old_Ls);
 
 	virtual void _first_step();
 	virtual void _forces_second_step();

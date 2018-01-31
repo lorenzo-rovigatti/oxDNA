@@ -10,14 +10,20 @@
 
 #include "BaseObservable.h"
 
+#include <set>
+
 /**
  * @brief Outputs the total kinetic energy of the system.
  */
 template<typename number>
 class KineticEnergy : public BaseObservable<number> {
+protected:
+	set<int> _directions;
 public:
 	KineticEnergy();
 	virtual ~KineticEnergy();
+
+	void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	std::string get_output_string(llint curr_step);
 	number get_kinetic_energy();

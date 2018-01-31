@@ -13,6 +13,8 @@
 #include "defs.h"
 #include "Managers/AnalysisManager.h"
 #include "Utilities/SignalManager.h"
+#include "Utilities/oxDNAException.h"
+#include "Utilities/Timings.h"
 
 using namespace std;
 

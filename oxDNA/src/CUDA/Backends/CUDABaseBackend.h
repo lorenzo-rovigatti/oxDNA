@@ -13,6 +13,7 @@
 #include <cuda_runtime_api.h>
 
 #include "../cuda_utils/cuda_device_utils.h"
+#include "../cuda_utils/CUDABox.h"
 #include "../CUDAUtils.h"
 #include "../Lists/CUDABaseList.h"
 #include "../CUDA_sort.cuh"
@@ -32,9 +33,6 @@
  */
 template<typename number, typename number4>
 class CUDABaseBackend {
-private:
-	ConfigInfo<number> _prv_config_info;
-
 protected:
 	/// if 0 then do not sort. If it's > 1 then sort particles every _sort_every updates
 	int _sort_every;
@@ -44,6 +42,7 @@ protected:
 	CUDABaseList<number, number4> *_cuda_lists;
 	size_t _vec_size, _bonds_size, _orient_size;
 	number _sqr_verlet_skin;
+	CUDABox<number, number4> _h_cuda_box, *_d_cuda_box;
 
 	/// used for sorting
 	number4 *_d_buff_poss;
@@ -75,7 +74,7 @@ public:
 	virtual ~CUDABaseBackend();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init_cuda(ConfigInfo<number> &config_info);
+	virtual void init_cuda();
 };
 
 #endif /* CUDABASEBACKEND_H_ */

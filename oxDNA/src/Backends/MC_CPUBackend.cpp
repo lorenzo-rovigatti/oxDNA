@@ -6,6 +6,9 @@
  */
 
 #include "MC_CPUBackend.h"
+
+#include "../Particles/BaseParticle.h"
+#include "../Observables/ObservableOutput.h"
 #include "../Managers/SimManager.h"
 
 template<typename number>
@@ -201,20 +204,25 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			// do npt move
 
 			// useful for checking
-			number oldE2 = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists);
-			if (fabs((this->_U - oldE2)/oldE2) > 1.e-6) throw oxDNAException ("happened %g %g", this->_U, oldE2);
-			if (fabs((this->_U - oldE2)/oldE2) > 1.e-6) printf ("### happened %g %g (%g) (%g)\n", this->_U, oldE2, 
-					fabs(this->_U- oldE2), fabs((this->_U - oldE2)/oldE2));
+			//number oldE2 = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists);
+			//if (fabs((this->_U - oldE2)/oldE2) > 1.e-6) throw oxDNAException ("happened %g %g", this->_U, oldE2);
+			//if (fabs((this->_U - oldE2)/oldE2) > 1.e-6) printf ("### happened %g %g (%g) (%g)\n", this->_U, oldE2, 
+			//		fabs(this->_U- oldE2), fabs((this->_U - oldE2)/oldE2));
 			if (this->_interaction->get_is_infinite()) throw oxDNAException ("non ci siamo affatto");
 			number oldE = this->_U;
+			number oldV = this->_box->V();
 
-			number old_box_side = this->_box_side;
+			LR_vector<number> box_sides = this->_box->box_sides();
+			LR_vector<number> old_box_sides = box_sides;
 
 			number dL = this->_delta[MC_MOVE_VOLUME] * (drand48() - (number) 0.5);
+			
+			// isotropic move
+			box_sides.x += dL;
+			box_sides.y += dL;
+			box_sides.z += dL;
 
-			this->_box_side += dL;
-			this->_interaction->set_box_side(this->_box_side);
-			this->_box->init(this->_box_side, this->_box_side, this->_box_side);
+			this->_box->init(box_sides.x, box_sides.y, box_sides.z);
 			this->_lists->change_box();
 
 			number dExt = (number) 0.;
@@ -222,11 +230,14 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 				BaseParticle<number> *p = this->_particles[k];
 				dExt = -p->ext_potential;
 				_particles_old[k]->pos = p->pos; 
-				p->pos *= this->_box_side / old_box_side;
-				p->set_ext_potential(curr_step, this->_box_side);
+				p->pos.x *= box_sides[0]/old_box_sides[0];
+				p->pos.y *= box_sides[1]/old_box_sides[1];
+				p->pos.z *= box_sides[2]/old_box_sides[2];
+				p->set_ext_potential(curr_step, this->_box);
 				dExt += -p->ext_potential;
 			}
 			//for (int i = 0; i < this->_N; i ++) this->_lists->single_update(this->_particles[i]);
+			this->_lists->change_box();
 			if(!this->_lists->is_updated()) {
 				_timer_lists->resume();
 				this->_lists->global_update();
@@ -236,18 +247,17 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 
 			number newE = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists);
 			number dE = newE - oldE + dExt;
-			number V = this->_box_side * this->_box_side * this->_box_side;
-			number Vold = old_box_side * old_box_side * old_box_side;
-			number dV = V - Vold;
+			number V = this->_box->V();
+			number dV = V - oldV;
 
 			this->_tries[MC_MOVE_VOLUME]++;
 
 			bool second_factor;
 			if (_target_box > (number) 0.f) {
 				number V_target = _target_box * _target_box * _target_box;
-				second_factor = fabs(V - V_target) < fabs (Vold - V_target) && dE < _e_tolerance;
+				second_factor = fabs(V - V_target) < fabs (oldV - V_target) && dE < _e_tolerance;
 			}
-			else second_factor = exp (-(dE + this->_P * dV - this->_N * this->_T * log (V / Vold)) / this->_T) > drand48();
+			else second_factor = exp (-(dE + this->_P * dV - this->_N * this->_T * log (V / oldV)) / this->_T) > drand48();
 
 			if (this->_interaction->get_is_infinite() == false && second_factor) {
 				// volume move accepted
@@ -264,19 +274,17 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 						if(_stored_bonded_interactions.count(*it) == 0) _stored_bonded_interactions[*it] = e;
 					}
 				}
-
 			}
 			else {
 				// volume move rejected
+				this->_box->init(old_box_sides.x, old_box_sides.y,old_box_sides.z);
+				this->_lists->change_box();
 				for (int k = 0; k < this->_N; k ++) {
 					BaseParticle<number> *p = this->_particles[k];
 					//p->pos /= this->_box_side / old_box_side;
 					p->pos = _particles_old[k]->pos; 
-					p->set_ext_potential(curr_step, this->_box_side);
+					p->set_ext_potential(curr_step, this->_box);
 				}
-				this->_box_side = old_box_side;
-				this->_interaction->set_box_side(this->_box_side);
-				this->_box->init(this->_box_side, this->_box_side, this->_box_side);
 				this->_lists->change_box();
 				this->_interaction->set_is_infinite (false);
 				//for (int i = 0; i < this->_N; i ++) this->_lists->single_update(this->_particles[i]);
@@ -303,7 +311,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			this->_tries[move]++;
 			number delta_E = -_particle_energy(p, true);
 			//number delta_E = -_particle_energy(p, false);
-			p->set_ext_potential (curr_step, this->_box_side);
+			p->set_ext_potential (curr_step, this->_box);
 			number delta_E_ext = -p->ext_potential;
 
 			if(move == MC_MOVE_TRANSLATION) {
@@ -331,7 +339,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 
 			_stored_bonded_tmp.clear();
 			delta_E += _particle_energy(p, false);
-			p->set_ext_potential(curr_step, this->_box_side);
+			p->set_ext_potential(curr_step, this->_box);
 			delta_E_ext += p->ext_potential;
 
 			// uncomment to check the energy at a given time step.
@@ -377,9 +385,9 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 	}
 
 	if (_target_box > 0.) {
-		if (fabs(_target_box / this->_box_side - 1.) < _box_tolerance) {
+		if (fabs(_target_box / this->_box->box_sides()[0] - 1.) < _box_tolerance) {
 			SimManager::stop = true;
-			OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Box adjusted to %g (target %g, relative error %g)", this->_box_side, _target_box, fabs(_target_box / this->_box_side - 1.));
+			OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Box adjusted to %g (target %g, relative error %g)", this->_box->box_sides()[0], _target_box, fabs(_target_box / this->_box->box_sides()[0] - 1.));
 		}
 	}
 

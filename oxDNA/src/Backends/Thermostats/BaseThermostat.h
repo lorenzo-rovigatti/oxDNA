@@ -9,10 +9,12 @@
 /**
  * @brief This class is the basic thermostat interface.
  */
-template <typename number>
+template<typename number>
 class IBaseThermostat {
 public:
-	virtual ~IBaseThermostat() {};
+	virtual ~IBaseThermostat() {
+	}
+	;
 
 	/**
 	 * @brief function that gets the settings from the input file.
@@ -34,18 +36,24 @@ public:
  * @brief This class is meant to be used so that all other thermostat classes can inherit
  * from here
  */
-template <typename number>
-class BaseThermostat : public virtual IBaseThermostat<number> {
+template<typename number>
+class BaseThermostat: public virtual IBaseThermostat<number> {
 protected:
 	int _N_part;
 	number _T;
+	bool _supports_shear;
+	bool _lees_edwards;
+	number _shear_rate;
 
 public:
-	BaseThermostat () : _N_part(0), _T ((number) 0.f){}
-	virtual ~BaseThermostat () {}
+	BaseThermostat();
+	virtual ~BaseThermostat() {
+	}
 
-	virtual void get_settings (input_file &inp);
-	virtual void init(int N) { _N_part = N; }
+	virtual void get_settings(input_file &inp);
+	virtual void init(int N) {
+		_N_part = N;
+	}
 
 	/**
 	 * @brief this method is what the MD_CPUBackend calls to apply the
@@ -61,12 +69,26 @@ public:
 };
 
 template<typename number>
+BaseThermostat<number>::BaseThermostat() :
+				_N_part(0),
+				_T((number) 0.f),
+				_supports_shear(false),
+				_lees_edwards(false) {
+
+}
+
+template<typename number>
 void BaseThermostat<number>::get_settings(input_file &inp) {
 	// we get the temperature from the input file;
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
-	_T = Utils::get_temperature<number> (raw_T);
+	_T = Utils::get_temperature<number>(raw_T);
+
+	getInputBool(&inp, "lees_edwards", &_lees_edwards, 0);
+	if(_lees_edwards) {
+		if(!_supports_shear) throw oxDNAException("The chosen thermostat does not support Lees-Edwards boundary conditions");
+		getInputNumber(&inp, "lees_edwards_shear_rate", &_shear_rate, 1);
+	}
 }
 
 #endif // BASE_THERMOSTAT_
-

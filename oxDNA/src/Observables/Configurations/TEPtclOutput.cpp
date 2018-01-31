@@ -53,7 +53,7 @@ std::string TEPtclOutput<number>::_headers(llint step) {
 	double _box_radius = 0.1;
 	int _box_resolution = _resolution;
 	
-	number mybox = *this->_config_info.box_side;
+	number mybox = this->_config_info.box->box_sides()[0];
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
@@ -88,14 +88,14 @@ std::string TEPtclOutput<number>::_particle(BaseParticle<number> *p) {
 	colorid = colorid % 33;
 	
 	res << "graphics 0 color " << colorid << endl;
-	number mybox = *this->_config_info.box_side;
+	BaseBox<number> * mybox = this->_config_info.box;
 	LR_vector<number> my_strand_cdm = this->_strands_cdm[me->strand_id];
 	LR_vector<number> origin (0., 0., 0.);
 	origin = zero;
 
-	LR_vector<number> core = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox);
-	LR_vector<number> side = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + _side_shift*me->orientationT.v2; 
-	LR_vector<number> front = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + _front_shift*me->orientationT.v1; 
+	LR_vector<number> core = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm);
+	LR_vector<number> side = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + _side_shift*me->orientationT.v2; 
+	LR_vector<number> front = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + _front_shift*me->orientationT.v1; 
 
 	
 	if (_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << core.x << " " << core.y << " " << core.z << "} \"" << me->strand_id << "\" size 1.5 " << endl;

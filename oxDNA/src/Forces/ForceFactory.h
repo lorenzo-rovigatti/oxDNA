@@ -14,6 +14,8 @@
 #include "../Particles/BaseParticle.h"
 
 #include "BaseForce.h"
+#include "../Boxes/BaseBox.h"
+
 
 /**
  * @brief Produces and adds external forces to the particles.
@@ -42,10 +44,10 @@ public:
 	 * @param is_CUDA
 	 * @param box_side_ptr pointer to the box side. We use a pointer since the box size can change 
 	 */
-	void add_force(input_file &inp, BaseParticle<number> **particles, int N, bool is_CUDA, number * box_side_ptr);
+	void add_force(input_file &inp, BaseParticle<number> **particles, int N, bool is_CUDA, BaseBox<number> * box_ptr);
 
 	/// adds forces. Used by SimBackend and GeneratorManager
-	void read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA, number * box);
+	void read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA, BaseBox<number> * box_ptr);
 	void clear ();
 };
 

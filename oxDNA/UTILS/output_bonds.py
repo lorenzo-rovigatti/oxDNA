@@ -14,8 +14,7 @@ import subprocess
 import tempfile
 
 command_for_data =  'analysis_data_output_1 = { \n name = stdout \n print_every = 1 \n col_1 = { \n type=pair_energy \n} \n}'
-PROCESSPROGRAM = os.path.join(os.path.dirname(__file__), "../bin/DNAnalysis")
-#print PROCESSDIR
+PROCESSPROGRAM = os.path.join(os.path.dirname(__file__), "../build/bin/DNAnalysis")
 
 if (len(sys.argv) < 3):
   print 'Usage %s input_file trajectory_file [confid]' % sys.argv[0]

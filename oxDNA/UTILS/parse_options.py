@@ -30,15 +30,13 @@ CATEGORIES["Interactions"] = []
 CATEGORIES["CUDA"] = []
 CATEGORIES["Analysis"] = []
 CATEGORIES["Observables"] = []
+CATEGORIES["External Forces"] = []
 CATEGORIES["Forward Flux Sampling (FFS)"] = []
 
 CATEGORIES["Core"] = [
                       "Backends/SimBackend.h",
                       "Managers/SimManager.h",
-                      "Interactions/BaseInteraction.h",
-                      "Lists/*.h",
-                      "Forces/*.h",
-                      "Observables/ObservableOutput.h"
+                      "Lists/*.h"
                       ]
 
 CATEGORIES["MD"] = [
@@ -51,7 +49,9 @@ CATEGORIES["MD"] = [
 CATEGORIES["MC"] = [
                     "Backends/MCBackend.h",
                     "Backends/MC_CPUBackend.h",
-                    "Backends/VMMC_CPUBackend.h"
+                    "Backends/MC_CPUBackend2.h",
+                    "Backends/VMMC_CPUBackend.h",
+                    "Backends/MCMoves/*.h"
                     ]
 
 CATEGORIES["Interactions"] = [
@@ -73,6 +73,10 @@ CATEGORIES["Observables"] = [
                              "Observables/*.h",
                              "Observables/*/*.h"
                              ]
+                             
+CATEGORIES["External Forces"] = [
+                             "Forces/*.h"
+                             ]
 
 CATEGORIES["Forward Flux Sampling (FFS)"] = [
                      "Backends/FFS_MD_CPUBackend.h",
@@ -88,6 +92,7 @@ JOIN = {
         "CUDA" : True,
         "Analysis" : True,
         "Observables" : False,
+        "External Forces" : False,
         "Forward Flux Sampling (FFS)" : True
         }
 

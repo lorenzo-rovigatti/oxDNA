@@ -9,6 +9,7 @@
 
 #include <cfloat>
 #include "../Utilities/Utils.h"
+#include "../Particles/BaseParticle.h"
 
 using namespace std;
 
@@ -82,6 +83,24 @@ number OrthogonalBox<number>::sqr_min_image_distance(const LR_vector<number> &v1
 template<typename number>
 void OrthogonalBox<number>::apply_boundary_conditions(BaseParticle<number> **particles, int N) {
 
+}
+
+template<typename number>
+LR_vector<number> OrthogonalBox<number>::get_abs_pos(BaseParticle<number> * p) {
+	return p->pos + LR_vector<number> (
+			_sides.x * (number)p->_pos_shift[0],
+			_sides.y * (number)p->_pos_shift[1],
+			_sides.z * (number)p->_pos_shift[2]);
+}
+
+template<typename number>
+void OrthogonalBox<number>::shift_particle(BaseParticle<number> * p, LR_vector<number> &amount) {
+	p->_pos_shift[0] += (int) floor(amount.x / _sides.x);
+	p->_pos_shift[1] += (int) floor(amount.y / _sides.y);
+	p->_pos_shift[2] += (int) floor(amount.z / _sides.z);
+	p->pos.x -= _sides.x * floor(amount.x / _sides.x);
+	p->pos.y -= _sides.y * floor(amount.y / _sides.y);
+	p->pos.z -= _sides.z * floor(amount.z / _sides.z);
 }
 
 template class OrthogonalBox<float>;

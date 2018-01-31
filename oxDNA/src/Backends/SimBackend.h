@@ -18,15 +18,16 @@
 #include <vector>
 
 #include "../defs.h"
-#include "../Particles/BaseParticle.h"
-#include "../Observables/ObservableOutput.h"
-#include "../Lists/BaseList.h"
-#include "../Boxes/BaseBox.h"
-#include "../Utilities/Timings.h"
 
 using namespace std;
 
 template <typename number> class IBaseInteraction;
+template <typename number> class BaseBox;
+template <typename number> class BaseList;
+template <typename number> class BaseParticle;
+template <typename number> class ObservableOutput;
+template <typename number> class ConfigInfo;
+class Timer;
 
 /**
  * @brief Defines the backend interface. It is an abstract class.
@@ -144,7 +145,7 @@ protected:
 	int _N_strands;
 	number _T;
 	number _P;
-	number _box_side;
+	//number _box_side; // the root of all evil
 	BaseBox<number> *_box;
 
 	int _conf_interval;
@@ -157,6 +158,7 @@ protected:
 	llint _read_conf_step;
 	std::string _checkpoint_file;
 	std::string _checkpoint_traj;
+	bool _restart_step_counter;
 
 	/// Vector of ObservableOutput used to manage the simulation output
 	vector<ObservableOutput<number> *> _obs_outputs;
@@ -200,7 +202,7 @@ protected:
 	BaseParticle<number> **_particles;
 
 	/// object that stores pointers to a few important variables that need to be shared with other objects
-	ConfigInfo<number> _config_info;
+	ConfigInfo<number> *_config_info;
 
 	void _get_number_settings(input_file &inp);
 

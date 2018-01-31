@@ -21,7 +21,7 @@ class MC_CPUBackend2: public MCBackend<number> {
 protected:
 	std::vector <BaseMove<number> *> _moves;
 	int _N_moves;
-	ConfigInfo<number> _MC_Info;
+	ConfigInfo<number> *_MC_Info;
 	std::string _info_str;
 	void _compute_energy(); // to silence compiler, for now
 	number _accumulated_prob;

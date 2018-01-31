@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include "SimManager.h"
 #include "../Backends/BackendFactory.h"
+#include "../Utilities/oxDNAException.h"
+#include "../Utilities/Timings.h"
 
 void gbl_terminate (int arg) {
 	// if the simulation has not started yet, then we make it so pressing ctrl+c twice
@@ -21,7 +23,7 @@ void gbl_terminate (int arg) {
 bool SimManager::stop = false;
 bool SimManager::started = false;
 
-SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000), _restart_step_counter(false) {
+SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000) {
 	_start_step = _cur_step = _steps = _equilibration_steps = 0;
 	_time_scale_manager.state = 0;
 	_print_input = 0;
@@ -62,7 +64,6 @@ SimManager::~SimManager() {
 void SimManager::_get_options() {
 	getInputBoolAsInt(&_input, "print_input", &_print_input, 0);
 	getInputInt(&_input, "print_energy_every", &_print_energy_every, 0);
-	getInputInt(&_input, "restart_step_counter", &_restart_step_counter, 0);
 	getInputLLInt(&_input, "steps", &_steps, 1);
 	getInputLLInt(&_input, "equilibration_steps", &_equilibration_steps, 0);
 	if (_equilibration_steps < 0) throw oxDNAException ("Equilibration steps can not be < 0. Aborting");
@@ -118,8 +119,7 @@ void SimManager::init() {
 
 	_backend->init();
 
-	if(_restart_step_counter != 0) _start_step = 0;
-	else _start_step = _backend->_start_step_from_file;
+	_start_step = _backend->_start_step_from_file;
 
 	// init time_scale_manager
 	initTimeScale(&_time_scale_manager, _time_scale);

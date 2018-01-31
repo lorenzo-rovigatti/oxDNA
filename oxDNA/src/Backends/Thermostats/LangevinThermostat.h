@@ -7,7 +7,7 @@
  * @brief Implementation of the Langevin thermostat
  *
  * the Langevin thermostat adds random force and a drag force to the velocities
- * and angular momenta of a of the particles. It requires dt and diffusion
+ * and angular momenta of the particles. It requires dt and diffusion
  * coefficient to be specified in the input file.
  *
  * @verbatim

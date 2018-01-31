@@ -1,0 +1,29 @@
+
+backend = CPU
+steps = 2000
+
+sim_type = min
+
+dt = 0.005
+verlet_skin = 0.15
+
+T = 300K
+
+interaction_type = DNA
+max_backbone_force = 5.
+
+
+topology = top.top
+conf_file = start.conf
+
+trajectory_file = trajectory.dat
+print_conf_interval = 1000
+
+energy_file = energy.dat
+print_energy_every = 20
+no_stdout_energy = false
+time_scale = linear
+
+restart_step_counter = 1
+refresh_vel = 1
+

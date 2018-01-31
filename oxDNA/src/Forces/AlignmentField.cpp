@@ -35,7 +35,7 @@ void AlignmentField<number>::get_settings (input_file &inp) {
 }
 
 template<typename number>
-void AlignmentField<number>::init (BaseParticle<number> ** particles, int N, number * box_side_ptr) {
+void AlignmentField<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
 	if (_particle >= N || N < 0) throw oxDNAException ("Trying to add a AlignmentField on non-existent particle %d. Aborting", _particle);
 	//if (_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding AlignmentField (F=%g, dir=%g,%g,%g) on particle %d", _F, this->_direction.x, this->_direction.y, this->_direction.z, _particle);

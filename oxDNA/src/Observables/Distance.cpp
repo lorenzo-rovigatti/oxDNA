@@ -26,38 +26,35 @@ void Distance<number>::init(ConfigInfo<number> &config_info) {
 
     int N = *config_info.N;
     BaseParticle<number> **particles = config_info.particles;
-    vector<string> spl = Utils::split(_p1_string, ',');
-	for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) {
-		int index = atoi(it->c_str());
-		_check_index(index, N);
-		_p1_list.insert(particles[index]);
-	}
 
-	spl = Utils::split(_p2_string, ',');
-	for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) {
-		int index = atoi(it->c_str());
-		_check_index(index, N);
-		_p2_list.insert(particles[index]);
-	}
+    vector<int> p1_indexes = Utils::getParticlesFromString(particles, N, _p1_string, "Distance observable");
+    for(vector<int>::iterator it = p1_indexes.begin(); it != p1_indexes.end(); it++) {
+    	_check_index(*it, N);
+    	_p1_list.insert(particles[*it]);
+    }
+
+    vector<int> p2_indexes = Utils::getParticlesFromString(particles, N, _p2_string, "Distance observable");
+    for(vector<int>::iterator it = p2_indexes.begin(); it != p2_indexes.end(); it++) {
+    	_check_index(*it, N);
+    	_p2_list.insert(particles[*it]);
+    }
 }
 
 template<typename number>
 std::string Distance<number>::get_output_string(llint curr_step) {
     LR_vector<number> dist;
-    number box = *this->_config_info.box_side;
-    
     LR_vector<number> p1_com, p2_com;
 	for(typename set<BaseParticle<number> *>::iterator it = _p1_list.begin(); it != _p1_list.end(); it++) {
-		p1_com += (*it)->get_abs_pos(box);
+		p1_com += this->_config_info.box->get_abs_pos(*it);
 	}
 	p1_com /= _p1_list.size();
 
 	for(typename set<BaseParticle<number> *>::iterator it = _p2_list.begin(); it != _p2_list.end(); it++) {
-		p2_com += (*it)->get_abs_pos(box);
+		p2_com += this->_config_info.box->get_abs_pos(*it);
 	}
 	p2_com /= _p2_list.size();
 
-    if (_PBC) dist = p2_com.minimum_image(p1_com, box);
+    if (_PBC) dist = this->_config_info.box->min_image(p1_com,p2_com);
     else dist = p2_com - p1_com;
 
 	number sign  = 1.;
@@ -92,3 +89,5 @@ void Distance<number>::get_settings (input_file &my_inp, input_file &sim_inp) {
 
 template class Distance<float>;
 template class Distance<double>;
+
+

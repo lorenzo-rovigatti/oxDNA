@@ -53,10 +53,10 @@ protected:
 	SRDCell<number> *_cells;
 	int _N_particles;
 	number _rescale_factor;
-	/// The first _N_particles are solvent particles, the otherl are the regular particles
+	/// The first _N_particles are solvent particles, the others are the regular particles
 	SRDParticle<number> *_srd_particles;
 	/// Since this is a reference, srd *should* also work for variable boxes, should we ever implement an MD barostat
-	number &_box_side;
+	BaseBox<number> *_box;
 	number _T;
 	number _dt;
 	int _apply_every;
@@ -68,7 +68,7 @@ protected:
 	int _get_cell_index(LR_vector<number> &r);
 
 public:
-	SRDThermostat(number &box_side);
+	SRDThermostat(BaseBox<number> * box);
 	virtual ~SRDThermostat();
 
 	void get_settings(input_file &inp);

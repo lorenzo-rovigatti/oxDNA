@@ -35,7 +35,7 @@ protected:
 	int _N_vec_size;
 
 public:
-	CUDASRDThermostat(number &box_side);
+	CUDASRDThermostat(BaseBox<number> * box);
 	virtual ~CUDASRDThermostat();
 
 	virtual void get_settings(input_file &inp);

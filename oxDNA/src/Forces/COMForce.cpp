@@ -9,8 +9,9 @@
 
 #include "COMForce.h"
 
-#include "../Particles/BaseParticle.h"
 #include "../Utilities/Utils.h"
+
+#include "../Boxes/BaseBox.h"
 
 using namespace std;
 
@@ -18,7 +19,7 @@ template<typename number>
 COMForce<number>::COMForce() {
 	_r0 = 0;
 	_last_step = -1;
-	_box_side = NULL;
+	_box_ptr = NULL;
 }
 
 template<typename number>
@@ -46,22 +47,20 @@ void COMForce<number>::_check_index(int idx, int N) {
 }
 
 template<typename number>
-void COMForce<number>::init(BaseParticle<number> **particles, int N, number *box_side) {
-	_box_side = box_side;
+void COMForce<number>::init(BaseParticle<number> **particles, int N, BaseBox<number> * box_ptr) {
+	_box_ptr = box_ptr;
 
-	vector<string> spl = Utils::split(_com_string, ',');
-	for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) {
-		int index = atoi(it->c_str());
-		_check_index(index, N);
-		_com_list.insert(particles[index]);
-		particles[index]->add_ext_force(this);
+	vector<int> com_indexes = Utils::getParticlesFromString(particles, N, _com_string, "COMForce");
+	for(vector<int>::iterator it = com_indexes.begin(); it != com_indexes.end(); it++) {
+		_check_index(*it, N);
+		_com_list.insert(particles[*it]);
+		particles[*it]->add_ext_force(this);
 	}
 
-	spl = Utils::split(_ref_string, ',');
-	for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) {
-		int index = atoi(it->c_str());
-		_check_index(index, N);
-		_ref_list.insert(particles[index]);
+	vector<int> ref_indexes = Utils::getParticlesFromString(particles, N, _ref_string, "COMForce");
+	for(vector<int>::iterator it = ref_indexes.begin(); it != ref_indexes.end(); it++) {
+		_check_index(*it, N);
+		_ref_list.insert(particles[*it]);
 	}
 
 	OX_LOG(Logger::LOG_INFO, "Adding a COM force of stiffness = %lf and r0 = %lf", this->_stiff, _r0);
@@ -72,12 +71,12 @@ void COMForce<number>::_compute_coms(llint step) {
 	if(step != _last_step) {
 		_com = _ref_com = LR_vector<number>(0, 0, 0);
 		for(typename set<BaseParticle<number> *>::iterator it = _com_list.begin(); it != _com_list.end(); it++) {
-			_com += (*it)->get_abs_pos(*_box_side);
+			_com += _box_ptr->get_abs_pos(*it);
 		}
 		_com /= _com_list.size();
 
 		for(typename set<BaseParticle<number> *>::iterator it = _ref_list.begin(); it != _ref_list.end(); it++) {
-			_ref_com += (*it)->get_abs_pos(*_box_side);
+			_ref_com += _box_ptr->get_abs_pos(*it);
 		}
 		_ref_com /= _ref_list.size();
 

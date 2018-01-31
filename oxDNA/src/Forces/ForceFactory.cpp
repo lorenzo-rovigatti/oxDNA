@@ -19,11 +19,14 @@
 #include "RepulsionPlane.h"
 #include "RepulsionPlaneMoving.h"
 #include "LJWall.h"
+#include "HardWall.h"
 #include "RepulsiveSphere.h"
 #include "AlignmentField.h"
-
+#include "GenericCentralForce.h"
+#include "LJCone.h"
 #include <fstream>
 #include <sstream>
+#include "LJCone.h"
 
 using namespace std;
 
@@ -48,40 +51,43 @@ ForceFactory<number> * ForceFactory<number>::instance() {
 }
 
 template<typename number>
-void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **particles, int N, bool is_CUDA, number * box_side_ptr) {
+void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **particles, int N, bool is_CUDA, BaseBox<number> * box_ptr) {
 
 	string type_str;
 	getInputString (&inp, "type", type_str, 1);
 
 	BaseForce<number> * extF;
 	
-	if (type_str.compare("string") == 0) extF = new ConstantRateForce<number> ();
-	else if (type_str.compare("sawtooth") == 0) extF = new SawtoothForce<number> ();
-	else if (type_str.compare("twist") == 0) extF = new ConstantRateTorque<number> ();
-	else if (type_str.compare("trap") == 0) extF = new MovingTrap<number> ();
-	else if (type_str.compare("repulsion_plane") == 0) extF = new RepulsionPlane<number> ();
-	else if (type_str.compare("repulsion_plane_moving") == 0) extF = new RepulsionPlaneMoving<number> ();
-	else if (type_str.compare("mutual_trap") == 0) extF = new MutualTrap<number> ();
-	else if (type_str.compare("lowdim_trap") == 0) extF = new LowdimMovingTrap<number> ();
-	else if (type_str.compare("constant_trap") == 0) extF = new ConstantTrap<number> ();
-	else if (type_str.compare("sphere") == 0) extF = new RepulsiveSphere<number> ();
-	else if (type_str.compare("com") == 0) extF = new COMForce<number> ();
-	else if (type_str.compare("LJ_wall") == 0) extF = new LJWall<number> ();
-	else if (type_str.compare("alignment_field") == 0) extF = new AlignmentField<number> ();
+	if (type_str.compare("string") == 0) extF = new ConstantRateForce<number>();
+	else if (type_str.compare("sawtooth") == 0) extF = new SawtoothForce<number>();
+	else if (type_str.compare("twist") == 0) extF = new ConstantRateTorque<number>();
+	else if (type_str.compare("trap") == 0) extF = new MovingTrap<number>();
+	else if (type_str.compare("repulsion_plane") == 0) extF = new RepulsionPlane<number>();
+	else if (type_str.compare("repulsion_plane_moving") == 0) extF = new RepulsionPlaneMoving<number>();
+	else if (type_str.compare("mutual_trap") == 0) extF = new MutualTrap<number>();
+	else if (type_str.compare("lowdim_trap") == 0) extF = new LowdimMovingTrap<number>();
+	else if (type_str.compare("constant_trap") == 0) extF = new ConstantTrap<number>();
+	else if (type_str.compare("sphere") == 0) extF = new RepulsiveSphere<number>();
+	else if (type_str.compare("com") == 0) extF = new COMForce<number>();
+	else if (type_str.compare("LJ_wall") == 0) extF = new LJWall<number>();
+	else if (type_str.compare("hard_wall") == 0) extF = new HardWall<number>();
+	else if (type_str.compare("alignment_field") == 0) extF = new AlignmentField<number>();
+	else if (type_str.compare("generic_central_force") == 0) extF = new GenericCentralForce<number>();
+	else if (type_str.compare("LJ_cone") == 0) extF = new LJCone<number>();
 	else throw oxDNAException ("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
 	getInputString(&inp, "group_name", group, 0);
 	
 	extF->get_settings(inp);
-	extF->init(particles, N, box_side_ptr); // here the force is added to the particle
+	extF->init(particles, N, box_ptr); // here the force is added to the particle
 	extF->set_group_name(group);
 
 	_forces.push_back(extF);
 }
 
 template<typename number>
-void ForceFactory<number>::read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA, number * box) {
+void ForceFactory<number>::read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA,BaseBox<number> * box) {
 	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
 
 	//char line[512], typestr[512];

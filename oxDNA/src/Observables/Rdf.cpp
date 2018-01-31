@@ -14,6 +14,7 @@ Rdf<number>::Rdf() {
 	_bin_size = (number) -1.;
 	_max_value = (number) -1.;
 	_mask = LR_vector<number> (1., 1., 1.);
+	_type = -1;
 }
 
 template<typename number>
@@ -24,23 +25,32 @@ Rdf<number>::~Rdf() {
 template<typename number>
 std::string Rdf<number>::get_output_string(llint curr_step) {
 	int N = *this->_config_info.N;
-	number box_side = *this->_config_info.box_side;
+
+	// get smallest side
+	LR_vector<number> sides = this->_config_info.box->box_sides();
+	number box_side = sides[0];
+	if (sides[1] < box_side) box_side = sides[1]; 
+	if (sides[2] < box_side) box_side = sides[2]; 
+
 	_nconf += 1;
 
-	if (_max_value > box_side / 2. && _nconf == 1) OX_LOG(Logger::LOG_WARNING, "Observable Rdf: computing profile with max_value > box_size/2. (%g > %g/2.)", _max_value, box_side);
+	if(_max_value > box_side/2. && _nconf == 1) OX_LOG(Logger::LOG_WARNING, "Observable Rdf: computing profile with max_value > box_size/2. (%g > %g/2.)", _max_value, box_side);
 
-	number fact = box_side * box_side * box_side / (N * (N - 1.));
-
-	for (int i = 0; i < N; i ++) {
+	int n_pairs = 0;
+	for(int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
-		for (int j = 0; j < i; j ++) {
+		for(int j = 0; j < i; j ++) {
 			BaseParticle<number> *q = this->_config_info.particles[j];
-			LR_vector <number> dr = p->pos.minimum_image(q->pos, box_side);
-			dr = LR_vector<number> (dr.x * _mask.x, dr.y * _mask.y, dr.z * _mask.z);
-			number drmod = dr.module ();
-			if (drmod < _max_value) {
-				int mybin = (int) (0.01 + floor (drmod / _bin_size));
-				_profile[mybin] += 2. * fact;
+			int type = p->type + q->type;
+			if(_type == -1 || type == _type) {
+				LR_vector <number> dr = this->_config_info.box->min_image(q->pos, p->pos);
+				dr = LR_vector<number> (dr.x*_mask.x, dr.y*_mask.y, dr.z*_mask.z);
+				number drmod = dr.module();
+				if(drmod < _max_value) {
+					int mybin = (int) (0.01 + floor (drmod / _bin_size));
+					_profile[mybin] += 1.;
+				}
+				n_pairs++;
 			}
 		}
 	}
@@ -48,8 +58,9 @@ std::string Rdf<number>::get_output_string(llint curr_step) {
 	stringstream ret;
 	ret.precision(9);
 	double myx = _bin_size / 2.;
+	double norm_factor = 4*M_PI*_nconf*n_pairs*_bin_size/this->_config_info.box->V();
 	for(std::vector<long double>::iterator it = _profile.begin(); it != _profile.end(); it ++) {
-		ret << myx << " " << (*it) / (4 * M_PI * myx * myx * _bin_size) / (_nconf) << endl;
+		ret << myx << " " << (*it) / (norm_factor*myx*myx) << endl;
 		myx += _bin_size;
 	}
 	ret << endl;
@@ -77,10 +88,11 @@ void Rdf<number>::get_settings (input_file &my_inp, input_file &sim_inp) {
 	_nbins = (int) (floor(_max_value / tmpf) + 0.01);
 	_bin_size = (number) _max_value / _nbins;
 
-	OX_LOG(Logger::LOG_INFO, "Observable Rdf initialized with axis %g %g %g, max_value %g, bin_size %g (%g), nbins %d", _mask.x, _mask.y, _mask.z, _max_value, _bin_size, tmpf, _nbins);
+	getInputInt(&my_inp, "int_type", &_type, 0);
+
+	OX_LOG(Logger::LOG_INFO, "Observable Rdf initialized with axis %g %g %g, max_value %g, bin_size %g (%g), nbins %d, int_type %d", _mask.x, _mask.y, _mask.z, _max_value, _bin_size, tmpf, _nbins, _type);
 
 	_profile.resize(_nbins);
-	//throw oxDNAException ("oh well");
 }
 
 template class Rdf<float>;

@@ -15,9 +15,10 @@
 #include "CUDALJInteraction.h"
 #include "CUDAPatchyInteraction.h"
 #include "CUDATSPInteraction.h"
-#include "../../Utilities/Utils.h"
+#include "CUDATEPInteraction.h"
 #include "CUDARNAInteraction.h"
 
+#include "../../Utilities/Utils.h"
 
 CUDAInteractionFactory::CUDAInteractionFactory() {
 
@@ -30,14 +31,15 @@ CUDAInteractionFactory::~CUDAInteractionFactory() {
 template<typename number, typename number4>
 CUDABaseInteraction<number, number4> *CUDAInteractionFactory::make_interaction(input_file &inp) {
 	// The default interaction is DNAInteraction
-	char inter_type[512] = "DNA";
+	string inter_type("DNA");
 	getInputString(&inp, "interaction_type", inter_type, 0);
 
-	if(!strncmp(inter_type, "DNA", 512) || !strncmp(inter_type, "DNA_nomesh", 512) || !strncmp(inter_type, "DNA2", 512)) return new CUDADNAInteraction<number, number4>();
-	else if(!strncmp(inter_type, "RNA", 512) || !strncmp(inter_type, "RNA2", 512)  ) return new CUDARNAInteraction<number, number4>();
-	else if(!strncmp(inter_type, "LJ", 512)) return new CUDALJInteraction<number, number4>();
-	else if(!strncmp(inter_type, "patchy", 512)) return new CUDAPatchyInteraction<number, number4>();
-	else if(!strncmp(inter_type, "TSP", 512)) return new CUDATSPInteraction<number, number4>();
+	if(!inter_type.compare("DNA") || !inter_type.compare("DNA_nomesh") || !inter_type.compare("DNA2")) return new CUDADNAInteraction<number, number4>();
+	else if(!inter_type.compare("RNA") || !inter_type.compare("RNA2")  ) return new CUDARNAInteraction<number, number4>();
+	else if(!inter_type.compare("LJ")) return new CUDALJInteraction<number, number4>();
+	else if(!inter_type.compare("patchy")) return new CUDAPatchyInteraction<number, number4>();
+	else if(!inter_type.compare("TSP")) return new CUDATSPInteraction<number, number4>();
+	else if(inter_type.compare("TEP") == 0) return new CUDATEPInteraction<number, number4>();
 	else {
 		std::string cuda_name(inter_type);
 		cuda_name = "CUDA" + cuda_name;

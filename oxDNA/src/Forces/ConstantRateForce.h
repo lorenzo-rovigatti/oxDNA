@@ -23,6 +23,7 @@
 particle = <int> (comma-separated list of indices of particles to apply the force to. -1 applies it to all particles. Entries separated by a dash "-" get expanded in a list of all the particles on a same strand comprised between the two indices. E.g., particle= 1,2,5-7 applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.)
 F0 = <float> (Initial force.)
 rate = <float> (growth rate of the force. It is [oxDNA energy units / (oxDNA distance units * (MD/MC) steps].)
+[dir_as_centre = <bool> (if true the "dir" parameter will be interpreted as the origin of the force, so that the true direction will be dir - p->pos)]
 @endverbatim
  */
 template<typename number>
@@ -31,11 +32,13 @@ private:
 	std::string _particles_string;
 
 public:
+	bool dir_as_centre;
+
 	ConstantRateForce();
 	virtual ~ConstantRateForce();
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, number *);
+	void init (BaseParticle<number> **, int, BaseBox<number> *);
 
 	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
 	virtual number potential (llint step, LR_vector<number> &pos);

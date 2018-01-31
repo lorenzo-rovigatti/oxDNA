@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <stdio.h>
 
 /**
  * @brief Incapsulates a time scale. It is used by oxDNA to manage output. It will probably be slowly integrated into ObservableOutput.

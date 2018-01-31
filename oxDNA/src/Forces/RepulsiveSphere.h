@@ -22,12 +22,15 @@
   r0 = 7.          # radius is 7 simulation unit lengths\n
   stiff = 50.      # quite stiff. Good for MC, not for MD\n
   rate = 0.        # constant radius\n
+  center = 0,0,0
 }\n\n
 
  * @verbatim
 stiff = <float> (stiffness of the repulsion.)
 r0 = <float> (radius of the sphere, in simulation units.)
 rate = <float> (rate of growth of the radius. Note that the growth is linear in timesteps/MC steps, not reduced time units.)
+particle = <int> (index of the particle on which the force shall be applied. If -1, the force will be exerted on all the particles)
+[center = <float>,<float>,<float> (centre of the sphere, defaults to 0,0,0)]
 @endverbatim
 */
 template<typename number>
@@ -35,21 +38,21 @@ class RepulsiveSphere : public BaseForce<number> {
 private:
 	int _particle;
 
+	/// pointer to the box side
+	BaseBox<number> *_box_ptr;
+
+public:
 	/// center of the sphere
 	LR_vector<number> _center;
 
 	/// initial radius of the sphere and rate of growth (linear in timesteps/MC steps, not reduced time units)
 	number _r0, _rate;
 
-	/// pointer to the box side
-	number * _box_side_ptr;
-
-public:
 	RepulsiveSphere();
 	virtual ~RepulsiveSphere() {}
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, number *);
+	void init (BaseParticle<number> **, int, BaseBox<number> *);
 
 	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
 	virtual number potential(llint step, LR_vector<number> &pos);

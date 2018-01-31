@@ -22,10 +22,10 @@ template<typename number>
 class BaseMove {
 	protected:
 		/// number of attempted moves
-		unsigned int _attempted;
+		llint _attempted;
 
 		/// number of accepted moves
-		unsigned int _accepted;
+		llint _accepted;
 
 		/// Temperature at which the simulation is run
 		number _T;

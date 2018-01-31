@@ -34,8 +34,8 @@ void SpheroCylinder<number>::set_positions() {
 }
 
 template<typename number>
-void SpheroCylinder<number>::set_ext_potential (llint step, number box) {
-	LR_vector<number> abs_pos = this->get_abs_pos(box);
+void SpheroCylinder<number>::set_ext_potential (llint step, BaseBox<number> * box) {
+	LR_vector<number> abs_pos = box->get_abs_pos(this);
 	this->ext_potential = (number) 0.;
 	for(int i = 0; i < this->N_ext_forces; i++) {
 		LR_vector<number> my_abs_pos = abs_pos + this->int_centers[TOP];
@@ -46,8 +46,8 @@ void SpheroCylinder<number>::set_ext_potential (llint step, number box) {
 }
 
 template<typename number>
-void SpheroCylinder<number>::set_initial_forces(llint step, number box) {
-	LR_vector<number> abs_pos = this->get_abs_pos(box);
+void SpheroCylinder<number>::set_initial_forces(llint step, BaseBox<number> * box) {
+	LR_vector<number> abs_pos = box->get_abs_pos(this);
 	this->force = LR_vector<number>(0, 0, 0);
 	for(int i = 0; i < this->N_ext_forces; i++) {
 		LR_vector<number> my_abs_pos = abs_pos + this->int_centers[TOP];

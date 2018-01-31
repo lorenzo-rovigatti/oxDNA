@@ -6,12 +6,18 @@ import numpy as np
 from math import sqrt
 import copy
 
+# Uncomment and set the correct path if you want to copy the script over to some other folder 
+#sys.path.append('/home/rovigattil/programmi/oxDNA_relax/UTILS')
+
 import base
 import utils
 from readers import LorenzoReader
+from scipy.optimize import _numdiff
+from numpy import diff
 
 BASE_SHIFT = 1.13
 COM_SHIFT = 0.5
+FROM_OXDNA_TO_ANGSTROM = 8.518
 
 class Nucleotide(object):
     serial_residue = 1
@@ -87,13 +93,22 @@ class Nucleotide(object):
         self.compute_a3()
         self.a2 = np.cross(self.a3, self.a1)
         self.check = abs(np.dot(self.a1, self.a3))
+        
+    def correct_for_large_boxes(self, box):
+        map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.atoms)
 
-    def to_pdb(self, chain_identifier):
+    def to_pdb(self, chain_identifier, print_H, is_3_prime):
         res = []
         for a in self.atoms:
+            if not print_H and 'H' in a.name:
+                continue
+            if is_3_prime and 'P' in a.name:
+                continue
             res.append(a.to_pdb(chain_identifier, Nucleotide.serial_residue))
 
         Nucleotide.serial_residue += 1
+        if Nucleotide.serial_residue > 9999:
+            Nucleotide.serial_residue = 1
         return "\n".join(res)
 
     def to_mgl(self):
@@ -137,15 +152,19 @@ class Atom(object):
         self.residue = pdb_line[17:20].strip()
         self.residue_idx = int(pdb_line[22:26])
         # convert to oxDNA's length unit
-        self.pos = np.array([float(pdb_line[31:38]), float(pdb_line[38:46]), float(pdb_line[46:54])])# / 8.518
+        self.pos = np.array([float(pdb_line[31:38]), float(pdb_line[38:46]), float(pdb_line[46:54])])
 
     def is_hydrogen(self):
         return "H" in self.name
+    
+    def shift(self, diff):
+        self.pos += diff
 
     def to_pdb(self, chain_identifier, serial_residue):
-        #res = "%-6s%5d %4s%1s%3s %1s%4d%1s   %11.3f%11.3f%11.3f%6.2f%6.2f          %2s%2s" % ("ATOM", Atom.serial_atom, self.name, " ", self.residue, chain_identifier, serial_residue, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, 0.00, " ", " ")
         res = "%-6s%5d %-4s%1s%3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f%-4s%-2s%-2s" % ("ATOM", Atom.serial_atom, self.name, " ", self.residue, chain_identifier, serial_residue, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, 0.00, " ", " ", " ")
         Atom.serial_atom += 1
+        if Atom.serial_atom > 99999:
+            Atom.serial_atom = 1
         return res
 
     def to_mgl(self):
@@ -182,19 +201,14 @@ for n in nucleotides:
 for n in nucleotides:
     n.a1, n.a2, n.a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
 
-#for b in ("A", "T", "C", "G"):
-#    print bases[b].to_pdb("A")
-
 lr = LorenzoReader(sys.argv[2], sys.argv[3])
 s = lr.get_system()
 
 def align(full_base, ox_base):
-    #print full_base.base, np.dot(full_base.a1, ox_base._a1), np.dot(full_base.a3, ox_base._a3)
-
     theta = utils.get_angle(full_base.a3, ox_base._a3)
     axis = np.cross(full_base.a3, ox_base._a3)
     axis /= sqrt(np.dot(axis, axis))
-    #print np.dot(axis, ox_base._a1)
+    
     R = utils.get_rotation_matrix(axis, theta)
     full_base.rotate(R)
 
@@ -205,11 +219,18 @@ def align(full_base, ox_base):
     full_base.rotate(R)
     old_a1 = np.array(full_base.a1)
 
-    #print " ", np.dot(full_base.a1, ox_base._a1), np.dot(full_base.a3, ox_base._a3)
-
-#print ".Box:100,100,100"
 ox_nucleotides = []
 s.map_nucleotides_to_strands()
+com = np.array([0., 0., 0.])
+for my_strand in s._strands:
+    com += my_strand.cm_pos
+com /= s.N_strands
+
+box_angstrom = s._box * FROM_OXDNA_TO_ANGSTROM
+correct_for_large_boxes = False
+if np.any(box_angstrom[box_angstrom > 999]):
+    print >> sys.stderr, "At least one of the box sizes is larger than 999: all the atoms which are outside of the box will be brought back"
+    correct_for_large_boxes = True
 
 print "HEADER    t=1.12"
 print "MODEL     1"
@@ -220,20 +241,20 @@ for nucleotide in s._nucleotides:
     nb = base.number_to_base[nucleotide._base]
     my_base = copy.deepcopy(bases[nb])
     my_base.chain_id = s._nucleotide_to_strand[nucleotide.index]
-    if first_id:
-        old_chain_id = my_base.chain_id
-        first_id = False
+    is_3_prime = False
     if my_base.chain_id != old_chain_id:
-        print >> sys.stderr, "TERRING: ", old_chain_id, my_base.chain_id
+        if old_chain_id != -1:
+            print >> sys.stderr, "TERRING: ", old_chain_id, my_base.chain_id
+            print "TER"
         old_chain_id = my_base.chain_id
-        print "TER"
+        is_3_prime = True
     my_base.idx = (nucleotide.index % 12) + 1
     align(my_base, nucleotide)
-    my_base.set_base(nucleotide.pos_base*8.518)
+    my_base.set_base((nucleotide.pos_base - com) * FROM_OXDNA_TO_ANGSTROM)
     ox_nucleotides.append(my_base)
-    #my_base.set_com(nucleotide.cm_pos*8.518)
-    print my_base.to_pdb("A")
-    #print my_base.to_mgl()
+    if correct_for_large_boxes:
+        my_base.correct_for_large_boxes(box_angstrom)
+    print my_base.to_pdb("A", False, is_3_prime)
 print "REMARK ## 0,0"
 print "TER"
 print "ENDMDL"

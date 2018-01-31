@@ -28,6 +28,10 @@ PatchyParticle<number>::~PatchyParticle() {
 template<typename number>
 void PatchyParticle<number>::_set_base_patches() {
 	switch(this->N_int_centers) {
+	case 1: {
+		_base_patches[0] = LR_vector<number>(1, 0, 0);
+		break;
+	}
 	case 2: {
 		_base_patches[0] = LR_vector<number>(0, 1, 0);
 		_base_patches[1] = LR_vector<number>(0, -1, 0);

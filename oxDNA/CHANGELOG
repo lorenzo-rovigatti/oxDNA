@@ -1,3 +1,61 @@
+v 2.3 (revision 6870, January 2018)
+	This new version contains a lot of under-the-hood improvements and a few more features. As 
+	far as we can tell, the code is fully backward compatible (input-file-wise).
+	Here is a condensed list of changes:
+	- It is now possible to write interactions that feature three-body contributions. The only 
+	perative difference is that each particle now stores a vector of ParticlePair objects which 
+	contain all particle pairs that are involved in a bonded interaction with that particle. This 
+	vector should be initialised by the Interaction object. Look how it is done in the DNA or RNA 
+	interactions.
+	- oxDNA now supports non-cubic boxes. Both CPU and CUDA backends have this.
+	- The code now has a check that is not producing too much data. The default limit is set to 
+	1 MB/s (after a 30-second grace period). This limit can be modified from the input file with the 
+	keyword
+	max_io = <float> [units of MB/s]
+	and can be raised to any number should a user need to do so.
+	- There is a new Timings class for more intuitive and usable timings.
+	- oxDNA can now simulate the TEP model (see "Models for twistable elastic polymers in Brownian 
+	dynamics, and their implementation for LAMMPS.", http://www.ncbi.nlm.nih.gov/pubmed/24712817)
+	- Added a "reset_initial_com_momentum" option that, if set to true, will set the momentum of 
+	the centre of mass of the initial configuration to 0. A similar key, "reset_com_momentum", will
+	do the same every time the diffusion is fixed.
+	- Added DOCS/HOWTO_write_interactions.txt, a short guide on how to write new interactions.
+	- Added the Bussi-Donadio-Parrinello thermostat (from Bussi et al, J. Chem. Phys. 2007).
+	- Checkpoints have been implemented, although not thoroughly tested, so that the code can be 
+	restarted and follow the same trajectory. See the Doxygen documentation for SimBackend on how to 
+	use them. This cannot work on CUDA due to the operation order not being predictable.
+	- Implemented a new test suite. It is lighter and easier to use. Use "make test_run" and "make test_quick"
+	to check whether the code runs and gives sensible results in simple cases, respectively.
+	- Added the NPT ensemble to Monte Carlo simulations.
+	- Added a new Monte Carlo backend that supports custom moves (src/Backends/MCMoves). It is 
+	flexible and modular. It supports, rotations, translations, site-rotations, volume and shape
+	moves and VMMC.
+	- Added a segfault handler that prints out the intercept the SIGSEGV signal and prints out the 
+	stacktrace of the program before crashing.
+	- Added mismatch_repulsion (0 by default) option to RNA2 interaction. When set to 1 in input file, 
+	it introduces repulsion potential between non-complementary bases.
+	- Added a new type of wall (LJ_wall). In contrast with repulsion_plane, LJ_wall acts on both sides 
+	and its properties can be finely tuned (the diameter, stiffness and steepness can all be chosen, 
+	and the user can choose whether the wall should feature an attractive part or not). 
+	- confGenerator can now be used to generate DNA and RNA initial configurations. These configurations
+	are generated randomly and hence mostly composed of single strands in coil configurations.
+	- Added some new relaxation strategies. See the NEW_RELAX_PROCEDURE/README file for details.
+	- Added a simple (MC-like) barostat to the MD backends. The barostat_probability key makes it 
+	possible to tune the coupling of the MC-like barostat. A value of 1 means that the barostat will be 
+	applied every time step.
+	- oxDNA can now be compiled with c++11-complaint compilers by setting the CMake CXX11 flag to 1 
+	(-DCXX11=1). This might result in small speed-ups.
+	- Added the cells_auto_optimisation key (defaults to true). If true, the number of cells (both on 
+	CPU and GPU) will not exceed the number of particles, thus avoiding running out of memory when using 
+	extremely large boxes. However, doing so might result in a performance hit, which is why the new key 
+	was added. Experienced users might want to turn it off to optimise simulations.
+	- Lees-Edwards boundary conditions to simulate systems under shear are now enabled for MD simulations
+	(on CPU only). Simulating with shear requires the two mandatory keys
+	lees_edwards = true
+	lees_edwards_shear_rate = <float>
+	Only Bussi, Langevin and DPD thermostats should be used to control the temperature of simulations 
+	under shear.
+
 v 2.2.2 (June 2015)
 	Fixed the hairpin example (see https://sourceforge.net/p/oxdna/discussion/general/thread/92fbef91/?limit=25#3c9b)
 

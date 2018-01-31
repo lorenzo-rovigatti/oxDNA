@@ -7,20 +7,25 @@
 
 #include "RepulsionPlaneMoving.h"
 #include "../Particles/BaseParticle.h"
+#include "../Boxes/BaseBox.h"
 #include "../Utilities/Utils.h"
+
+#include <algorithm>
 
 template<typename number>
 RepulsionPlaneMoving<number>::RepulsionPlaneMoving() : BaseForce<number>() {
 	_particles_string="-1";
-	_ref_id = -1;
+	_ref_particles_string = "-1";
+	_box_ptr = NULL;
+	low_idx = high_idx = -1;
 }
 
 template<typename number>
 void RepulsionPlaneMoving<number>::get_settings (input_file &inp) {
-	getInputString (&inp, "particle", _particles_string, 0);
+	getInputString (&inp, "particle", _particles_string, 1);
+	getInputString (&inp, "ref_particle", _ref_particles_string, 1);
 
 	getInputNumber(&inp, "stiff", &this->_stiff, 1);
-	getInputInt(&inp, "ref_particle", &_ref_id, 1);
 
 	int tmpi;
 	double tmpf[3];
@@ -33,17 +38,24 @@ void RepulsionPlaneMoving<number>::get_settings (input_file &inp) {
 }
 
 template<typename number>
-void RepulsionPlaneMoving<number>::init (BaseParticle<number> ** particles, int N, number * my_box_side_ptr) {
-	if (_ref_id < 0 || _ref_id >= N) throw oxDNAException ("Trying to add a RepulsionPlaneMoving to non-existent particle %d", _ref_id);
-	_p_ptr = particles[_ref_id];
-
-	this->box_side_ptr = my_box_side_ptr;
+void RepulsionPlaneMoving<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
+	_box_ptr = box_ptr;
 	
-	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles,N,_particles_string,"moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles, N, _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	std::vector<int> ref_particle_indices_vector = Utils::getParticlesFromString(particles, N, _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+
+	sort(ref_particle_indices_vector.begin(), ref_particle_indices_vector.end());
+	low_idx = ref_particle_indices_vector.front();
+	high_idx = ref_particle_indices_vector.back();
+
+	if((high_idx - low_idx + 1) != (int) ref_particle_indices_vector.size()) throw oxDNAException("RepulsionPlaneMoving requires the list of ref_particle indices to be contiguous");
+	for (std::vector<int>::size_type i = 0; i < ref_particle_indices_vector.size(); i++) {
+		ref_p_ptr.push_back(particles[ref_particle_indices_vector[i]]);
+	}
 
 	if (particle_indices_vector[0] != -1) {
 		OX_LOG(Logger::LOG_INFO, "Adding repulsion_plane_moving force (RepulsionPlaneMoving.cpp) with stiffnes %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]  on particle %s", this->_stiff,  this->_direction.x, this->_direction.y, this->_direction.z, _particles_string.c_str());
-		for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++){
+		for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 			particles[particle_indices_vector[i]]->add_ext_force(this);
 		}
 	}
@@ -55,21 +67,22 @@ void RepulsionPlaneMoving<number>::init (BaseParticle<number> ** particles, int 
 
 template<typename number>
 LR_vector<number> RepulsionPlaneMoving<number>::value(llint step, LR_vector<number> &pos) {
-	number distance = (pos - _p_ptr->get_abs_pos(*(this->box_side_ptr))) * this->_direction;
-	if (distance >=  0)
-		return LR_vector<number>(0,0,0);
-	else
-		return -distance * this->_stiff * this->_direction;
+	LR_vector<number> force(0., 0., 0.);
+	for (std::vector<int>::size_type i = 0; i < ref_p_ptr.size(); i++){
+		number distance = (pos - _box_ptr->get_abs_pos(ref_p_ptr[i])) * this->_direction;
+		force += -this->_stiff * this->_direction * std::min(distance, (number)0.);
+	}
+	return force;
 }
 
 template<typename number>
-number RepulsionPlaneMoving<number>::potential (llint step, LR_vector<number> &pos) {
-	number distance = (pos - _p_ptr->get_abs_pos(*(this->box_side_ptr))) * this->_direction;
-//	number distance = _p_ptr->pos * this->_direction; //distance from the plane
-	if (distance >= 0)
-		return 0;
-	else
-		return (number) (0.5 * this->_stiff * distance * distance);
+number RepulsionPlaneMoving<number>::potential(llint step, LR_vector<number> &pos) {
+	number V = 0.;
+	for (std::vector<int>::size_type i = 0; i < ref_p_ptr.size(); i++){
+		number distance = (pos - _box_ptr->get_abs_pos(ref_p_ptr[i])) * this->_direction;
+		V += (number) 0.5 * this->_stiff * distance * std::min(distance, (number)0.);
+	}
+	return (number) V;
 }
 
 template class RepulsionPlaneMoving<double>;

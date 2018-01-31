@@ -43,7 +43,7 @@ template<typename number>
 std::string ParticlePosition<number>::get_output_string(llint curr_step) {
 	string result;
 	LR_vector<number> mypos;
-	if (_absolute) mypos = this->_config_info.particles[_particle_id]->get_abs_pos(*this->_config_info.box_side);
+	if (_absolute) mypos = this->_config_info.box->get_abs_pos(this->_config_info.particles[_particle_id]);
 	else mypos = this->_config_info.particles[_particle_id]->pos; 
 
 	result  =  Utils::sformat("%10.6lf %10.6lf %10.6lf ", mypos.x, mypos.y, mypos.z);

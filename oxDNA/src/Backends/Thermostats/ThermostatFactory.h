@@ -9,6 +9,7 @@
 #define THERMOSTATFACTORY_H_
 
 #include "BaseThermostat.h"
+#include "../../Boxes/BaseBox.h"
 
 /**
  * @brief Thermostat factory class.
@@ -37,7 +38,7 @@ public:
 	 * from BaseThermostat
 	 */
 	template<typename number>
-	static BaseThermostat<number> *make_thermostat(input_file &inp, number &box_side);
+	static BaseThermostat<number> *make_thermostat(input_file &inp, BaseBox<number> * box);
 };
 
 #endif /* THERMOSTATFACTORY_H_ */

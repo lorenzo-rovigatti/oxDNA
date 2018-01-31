@@ -8,6 +8,7 @@
 #include "RepulsiveSphere.h"
 #include "../Utilities/oxDNAException.h"
 #include "../Particles/BaseParticle.h"
+#include "../Boxes/BaseBox.h"
 
 template<typename number>
 RepulsiveSphere<number>::RepulsiveSphere() : BaseForce<number>() {
@@ -15,7 +16,7 @@ RepulsiveSphere<number>::RepulsiveSphere() : BaseForce<number>() {
 	_r0 = -1.;
 	_center = LR_vector<number>(0., 0., 0.);
 	_rate = 0.;
-	_box_side_ptr = NULL;
+	_box_ptr = NULL;
 }
 
 template<typename number>
@@ -23,6 +24,7 @@ void RepulsiveSphere<number>::get_settings (input_file &inp) {
 	getInputNumber(&inp, "stiff", &this->_stiff, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
 	getInputNumber(&inp, "rate", &_rate, 0);
+	getInputInt(&inp, "particle", &_particle, 1);
 
 	std::string strdir;
 	if (getInputString (&inp, "center", strdir, 0) == KEY_FOUND) {
@@ -34,7 +36,7 @@ void RepulsiveSphere<number>::get_settings (input_file &inp) {
 }
 
 template<typename number>
-void RepulsiveSphere<number>::init (BaseParticle<number> ** particles, int N, number * my_box_side_ptr) {
+void RepulsiveSphere<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
 	if (this->_particle >= N || N < -1) throw oxDNAException ("Trying to add a RepulsiveSphere on non-existent particle %d. Aborting", this->_particle);
 	if (this->_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding RepulsiveSphere force (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g) on particle %d", this->_stiff, this->_r0, this->_rate, this->_center.x, this->_center.y, this->_center.z, _particle);
@@ -44,12 +46,12 @@ void RepulsiveSphere<number>::init (BaseParticle<number> ** particles, int N, nu
 		OX_LOG (Logger::LOG_INFO, "Adding RepulsiveSphere force (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g) on ALL particles", this->_stiff, this->_r0, this->_rate, this->_center.x, this->_center.y, this->_center.z);
 		for (int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
 	}
-	_box_side_ptr = my_box_side_ptr; 
+	_box_ptr = box_ptr; 
 }
 
 template<typename number>
 LR_vector<number> RepulsiveSphere<number>::value(llint step, LR_vector<number> &pos) {
-	LR_vector<number> dist = pos.minimum_image(this->_center, *(this->_box_side_ptr));
+	LR_vector<number> dist = _box_ptr->min_image(this->_center, pos);
 	number mdist = dist.module();
 	number radius = _r0 + _rate * (number) step;
 
@@ -59,7 +61,7 @@ LR_vector<number> RepulsiveSphere<number>::value(llint step, LR_vector<number> &
 
 template<typename number>
 number RepulsiveSphere<number>::potential (llint step, LR_vector<number> &pos) {
-	LR_vector<number> dist = pos.minimum_image(this->_center, *(this->_box_side_ptr));
+	LR_vector<number> dist = _box_ptr->min_image(this->_center, pos);
 	number mdist = dist.module();
 	number radius = _r0 + _rate * (number) step;
 

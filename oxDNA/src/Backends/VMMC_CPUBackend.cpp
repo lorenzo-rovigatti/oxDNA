@@ -8,8 +8,6 @@
 
 #include "VMMC_CPUBackend.h"
 #include "../Utilities/Utils.h"
-#include "../Interactions/DNAInteraction.h"
-#include "../Particles/DNANucleotide.h"
 #include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/DNA2Interaction.h"
 
@@ -39,7 +37,11 @@ template<typename number> VMMC_CPUBackend<number>::VMMC_CPUBackend() : MC_CPUBac
 	new_stn3s = NULL;
 	new_stn5s = NULL;
 	_vmmc_N_cells = 0;
+	_vmmc_box_side = -1.;
 	_equilibration_steps = 0;
+	_vmmc_N_cells_side = -1;
+	_reload_hist = false;
+	_just_updated_lists = false;
 }
 
 template<typename number>
@@ -106,6 +108,8 @@ void VMMC_CPUBackend<number>::init() {
 
 	if (this->_delta[MC_MOVE_TRANSLATION] * sqrt(3) > this->_verlet_skin)
 		throw oxDNAException("verlet_skin must be > delta_translation times sqrt(3) (the maximum displacement)");
+	
+	_vmmc_box_side = this->_box->box_sides()[0];
 
 	// setting the maximum displacement
 	if (_preserve_topology) {
@@ -114,7 +118,7 @@ void VMMC_CPUBackend<number>::init() {
 		OX_LOG(Logger::LOG_INFO, "Preserving topology; max_move_size = %lf...", _max_move_size);
 	}
 	else {
-		_max_move_size = this->_box_side / 2. - 2. * this->_rcut - 0.2;
+		_max_move_size = _vmmc_box_side / 2. - 2. * this->_rcut - 0.2;
 		_max_move_size_sqr = _max_move_size * _max_move_size;
 		OX_LOG(Logger::LOG_INFO, "Not attempting to preserve topology; max_move_size = %g", _max_move_size);
 	}
@@ -186,9 +190,24 @@ void VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 	MC_CPUBackend<number>::get_settings(inp);
 	int is_us, tmpi;
 
+	CHECK_BOX("VMMC_CPUBackend", inp);
+
 	std::string inter ("");
+	std::vector<std::string> ok_interactions; //= {"DNA", "DNA_nomesh", "DNA2", "DNA2_nomesh","RNA","RNA2"};//would work in C++11 and we woudln't to push back the elements
+	ok_interactions.push_back("DNA");
+	ok_interactions.push_back("DNA2");
+	ok_interactions.push_back("DNA2ModInteraction");
+	ok_interactions.push_back("DNA_nomesh");
+	ok_interactions.push_back("DNA2_nomesh");
+	ok_interactions.push_back("RNA");
+	ok_interactions.push_back("RNA2");
 	if(getInputString(&inp, "interaction_type", inter, 0) == KEY_FOUND) {
-		if(strncmp(inter.c_str(),"DNA2",512) != 0 && strncmp(inter.c_str(),"DNA2_nomesh",512) != 0 && strncmp(inter.c_str(),"RNA2",512) != 0 &&  strncmp(inter.c_str(), "DNA", 512) != 0 && strncmp(inter.c_str(), "DNA_nomesh", 512) != 0 && strncmp(inter.c_str(), "RNA", 512) != 0) throw oxDNAException("VMMC can be used only with DNA, DNA_nomesh, DNA2, DNA2_nomesh and RNA interactions");
+		// std::find points is equal to ok_interactions.end() if it can't find inter in ok_interactions.
+		if (std::find(ok_interactions.begin(), ok_interactions.end(), inter) == ok_interactions.end()){ 
+			std::stringstream ok_as_string("");
+			for(size_t i = 0; i < ok_interactions.size(); ++i) ok_as_string << ok_interactions[i] << ' ';
+			throw oxDNAException("VMMC can be used only with the following interactions: %s", ok_as_string.str().c_str());
+		}
 	}
 
 	if (getInputInt(&inp, "maxclust", &tmpi, 0) == KEY_FOUND) {
@@ -399,7 +418,7 @@ inline number VMMC_CPUBackend<number>::_particle_particle_nonbonded_interaction_
 
 	if(H_energy != 0) *H_energy = (number) 0;
 
-	LR_vector<number> r = q->pos.minimum_image (p->pos, this->_box_side);
+	LR_vector<number> r = this->_box->min_image(p->pos, q->pos);
 
 	// early ejection
 	if (r.norm() > this->_sqr_rcut) return (number) 0.f;
@@ -1209,50 +1228,6 @@ inline number VMMC_CPUBackend<number>::build_cluster_cells (movestr<number> * mo
 	return pprime;
 }
 
-/* // old version
-template<typename number>
-inline void VMMC_CPUBackend<number>::_move_particle(movestr<number> * moveptr, BaseParticle< number> *q) {
-	if (moveptr->type == MC_MOVE_TRANSLATION) {
-		q->pos += moveptr->t;
-	}
-	else if (moveptr->type == MC_MOVE_ROTATION) {
-		//in this case, the translation vector is the point around which we
-		//rotate
-		LR_vector<number> dr, drp;
-		if (this->_particles[moveptr->seed]->strand_id == q->strand_id) {
-			dr = q->pos - moveptr->t;
-		//if (dr.norm() > 29. * 29.) {
-		//		printf("cavolo1... %g %g %g %d %d\n", dr.x, dr.y, dr.z, moveptr->seed, q->index);
-		//	}
-		}
-		else {
-			dr = q->pos.minimum_image(moveptr->t, this->_box_side);
-		//	if (dr.norm() > 29. * 29.) {
-		//		printf("cavolo2... %g %g %g %d %d\n", dr.x, dr.y, dr.z, moveptr->seed, q->index);
-		//	}
-		}
-
-		if (q->index == 122 || q->index == 121) printf ("rotating %d... ", q->index);
-		if (q->index == 122 || q->index == 121) printf ("pos  = np.array ([%g, %g, %g]\n", q->pos.x, q->pos.y, q->pos.z);
-		if (q->index == 122 || q->index == 121) printf ("da:  = np.array ([%g, %g, %g]\n", moveptr->t.x, moveptr->t.y, moveptr->t.z);
-		if (q->index == 122 || q->index == 121) printf ("dr:  = np.array ([%g, %g, %g]\n", dr.x, dr.y, dr.z); 
-		drp = moveptr->R * dr;
-		if (q->index == 122 || q->index == 121) printf ("drp: = np.array ([%g, %g, %g]\n", drp.x, drp.y, drp.z); 
-		q->pos += (drp - dr); // accounting for PBC
-		q->orientation = moveptr->R * q->orientation;
-		//q->orientation.orthonormalize(); // NORMALIZZATo
-		q->orientationT = q->orientation.get_transpose();
-		q->set_positions();
-		if (q->index == 122 || q->index == 121) printf ("fin: = np.array ([%g, %g, %g]\n", q->pos.x, q->pos.y, q->pos.z);
-	}
-	else {
-		;
-	}
-
-	return;
-}
-*/
-
 template<typename number>
 inline void VMMC_CPUBackend<number>::_move_particle(movestr<number> * moveptr, BaseParticle< number> *q, BaseParticle<number> *p) {
 	if (moveptr->type == MC_MOVE_TRANSLATION) {
@@ -1263,7 +1238,7 @@ inline void VMMC_CPUBackend<number>::_move_particle(movestr<number> * moveptr, B
 		BaseParticle<number> * p_old = this->_particles_old[p->index];
 		LR_vector<number> dr, drp;
 		if (p->strand_id == q->strand_id) { dr = q->pos - p_old->pos; }
-		else { dr = q->pos.minimum_image(p_old->pos, this->_box_side); }
+		else { dr = this->_box->min_image(p_old->pos, q->pos); } 
 
 		// we move around the backbone site
 		//dr += moveptr->t;
@@ -1296,8 +1271,6 @@ inline void VMMC_CPUBackend<number>::_fix_list (int p_index, int oldcell, int ne
 		j = this->_particles[j]->next_particle;
 	}
 
-	//printf ("j, jold: %i, %i\n", j, jold);
-	//printf("no\n");
 	assert (j != jold);
 	assert (j != P_INVALID);
 
@@ -1391,7 +1364,7 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 	_U_ext = (number) 0.f;
 	for (int k = 0; k < this->_N; k ++) {
 		BaseParticle<number> *p = this->_particles[k];
-		p->set_ext_potential(curr_step, this->_box_side);
+		p->set_ext_potential(curr_step, this->_box);
 		_U_ext += p->ext_potential;
 	}
 
@@ -1475,13 +1448,13 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 			for (int l = 0; l < nclust; l++) {
 				p = this->_particles[clust[l]];
 				delta_E_ext += - p->ext_potential;
-				p->set_ext_potential(curr_step, this->_box_side);
+				p->set_ext_potential(curr_step, this->_box);
 				delta_E_ext += + p->ext_potential;
 			}
 			pprime *= exp(-(1. / this->_T) * delta_E_ext);
 		}
 
-		_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
+		_op.fill_distance_parameters<number>(this->_particles, this->_box);
 
 		windex = oldwindex;
 		weight = oldweight;
@@ -1566,7 +1539,7 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 				if (new_index != old_index) {
 					_fix_list (pp->index, old_index, new_index);
 				}
-				pp->set_ext_potential(curr_step, this->_box_side);
+				pp->set_ext_potential(curr_step, this->_box);
 			}
 
 			this->_overlap = false;
@@ -1657,7 +1630,7 @@ void VMMC_CPUBackend<number>::check_ops() {
 			}
 		}
 	}
-	_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box);
 
 	int * new_state = _op.get_all_states ();
 	int check = 0;
@@ -1715,7 +1688,7 @@ void VMMC_CPUBackend<number>::_update_ops() {
 	}
 
 	// distances
-	_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box);
 
 	//exit(-1);
 	return;
@@ -1851,64 +1824,18 @@ void VMMC_CPUBackend<number>::_compute_energy () {
 
 template<typename number>
 void VMMC_CPUBackend<number>::_init_cells() {
-	//_vmmc_N_cells_side = (int) floor(this->_box_side / sqrt(this->_sqr_rverlet));
-	_vmmc_N_cells_side = (int) (floor(this->_box_side / this->_rcut) + 0.1);
-	//printf ("### %g %lf -> %i\n", this->_box_side, sqrt(this->_sqr_rverlet), _vmmc_N_cells_side);
-
-	/*
-	// thisi is not useful here. It's useful not to make the verlet update
-	// O(27 * n_cells), which can be much more than (N^2) for a small,
-	// dilute system. This makes it O(min(27 * n_cells, N^2))
-	// here it's detrimental
-	while(_vmmc_N_cells_side > ceil(pow(2*this->_N, 1/3.)) && _vmmc_N_cells_side > 3) {
-		_vmmc_N_cells_side--;
-	}
-	*/
+	_vmmc_N_cells_side = (int) (floor(_vmmc_box_side / this->_rcut) + 0.1);
 	while(_vmmc_N_cells_side > ceil(750.) && _vmmc_N_cells_side > 3) {
 		_vmmc_N_cells_side--;
 	}
 
-	if(_vmmc_N_cells_side < 3) throw oxDNAException("N_cells_side (%d) must be > 2. You're gonna need a bigger box.", _vmmc_N_cells_side);
+	if(_vmmc_N_cells_side < 3) _vmmc_N_cells_side = 3;
 
 	_vmmc_N_cells = _vmmc_N_cells_side * _vmmc_N_cells_side * _vmmc_N_cells_side;
 
 	_vmmc_heads = new int[_vmmc_N_cells];
 	_cells = new int[this->_N];
 	_neighcells = new int * [_vmmc_N_cells];
-	//for (int i = 0; i < _vmmc_N_cells; i ++)
-	// _neighcells[i] = new int[27];
-
-	/*
-	for(int i = 0; i < _vmmc_N_cells; i++) {
-		_cells[i][0] = i % _vmmc_N_cells_side;
-		_cells[i][1] = i / _vmmc_N_cells_side;
-		_cells[i][2] = i / (_vmmc_N_cells_side * _vmmc_N_cells_side);
-		fprintf (stderr, "CELLE: %i -> (%i, %i, %i)\n", i, _cells[i][0], _cells[i][1], _cells[i][2]);
-	}*/
-
-	//fprintf (stderr, "VMMC CELL INFO: N_cells=%i, box_side=%g, N_cells_side=%i, r_cut = %g\n", _vmmc_N_cells, this->_box_side, _vmmc_N_cells_side, this->_rcut);
-	/*
-	int loop_ind[3], ind[3], nneigh;
-	for(int i = 0; i < _vmmc_N_cells; i++) {
-		nneigh = 0;
-		ind[0] = i % _vmmc_N_cells_side;
-		ind[1] = (i / _vmmc_N_cells_side) % _vmmc_N_cells_side;
-		ind[2] = i / (_vmmc_N_cells_side * _vmmc_N_cells_side);
-		for(int j = -1; j < 2; j++) {
-			loop_ind[0] = (ind[0] + j + _vmmc_N_cells_side) % _vmmc_N_cells_side;
-			for(int k = -1; k < 2; k++) {
-				loop_ind[1] = (ind[1] + k + _vmmc_N_cells_side) % _vmmc_N_cells_side;
-				for(int l = -1; l < 2; l++) {
-					loop_ind[2] = (ind[2] + l + _vmmc_N_cells_side) % _vmmc_N_cells_side;
-					int loop_index = (loop_ind[2] * _vmmc_N_cells_side + loop_ind[1]) * _vmmc_N_cells_side + loop_ind[0];
-					_neighcells[i][nneigh] = loop_index;
-					nneigh ++;
-				}
-			}
-		}
-		assert (nneigh == 27);
-	}*/
-	//fprintf (stderr, "cells initialised...\n");
 
 	for(int i = 0; i < _vmmc_N_cells; i++)
 	  _vmmc_heads[i] = P_INVALID;
@@ -2011,7 +1938,7 @@ void VMMC_CPUBackend<number>::fix_diffusion() {
 			}
 		}
 	}
-	_op.fill_distance_parameters<number>(this->_particles, this->_box_side);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box);
 
 	int * new_state = _op.get_all_states ();
 
@@ -2034,19 +1961,17 @@ void VMMC_CPUBackend<number>::print_observables(llint curr_step) {
 
 template<>
 inline int VMMC_CPUBackend<float>::_get_cell_index(const LR_vector<float> &pos) {
-	int res = (int) ((pos.x / _box_side - floor(pos.x / _box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side);
-	res += _vmmc_N_cells_side * ((int) ((pos.y / _box_side - floor(pos.y / _box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side));
-	res += _vmmc_N_cells_side * _vmmc_N_cells_side *
-		((int) ((pos.z / _box_side - floor(pos.z / _box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side));
+	int res = (int) ((pos.x / _vmmc_box_side - floor(pos.x / _vmmc_box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side);
+	res += _vmmc_N_cells_side * ((int) ((pos.y / _vmmc_box_side - floor(pos.y / _vmmc_box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side));
+	res += _vmmc_N_cells_side * _vmmc_N_cells_side * ((int) ((pos.z / _vmmc_box_side - floor(pos.z / _vmmc_box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side));
 	return res;
 }
 
 template<>
 inline int VMMC_CPUBackend<double>::_get_cell_index(const LR_vector<double> &pos) {
-	int res = (int) ((pos.x / _box_side - floor(pos.x / _box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side);
-	res += _vmmc_N_cells_side * ((int) ((pos.y / _box_side - floor(pos.y / _box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side));
-	res += _vmmc_N_cells_side * _vmmc_N_cells_side *
-		((int) ((pos.z / _box_side - floor(pos.z / _box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side));
+	int res = (int) ((pos.x / _vmmc_box_side - floor(pos.x / _vmmc_box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side);
+	res += _vmmc_N_cells_side * ((int) ((pos.y / _vmmc_box_side - floor(pos.y / _vmmc_box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side));
+	res += _vmmc_N_cells_side * _vmmc_N_cells_side * ((int) ((pos.z / _vmmc_box_side - floor(pos.z / _vmmc_box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side));
 	return res;
 }
 

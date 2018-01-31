@@ -36,9 +36,14 @@
 #include "Checkpoint.h"
 #include "Contacts.h"
 #include "Writhe.h"
-#include "NematicS.h"
 #include "UnstackedList.h"
 #include "PlectonemePosition.h"
+#include "StretchedBonds.h"
+#include "StructureFactor.h"
+#include "FormFactor.h"
+#include "UnstackedList.h"
+#include "PlectonemePosition.h"
+#include "TEPPlectonemePosition.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
@@ -98,8 +103,13 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "checkpoint", 512)) res = new Checkpoint<number>();
 	else if(!strncasecmp(obs_type, "contacts", 512)) res = new Contacts<number>();
 	else if(!strncasecmp(obs_type, "writhe", 512)) res = new Writhe<number>();
-	else if(!strncasecmp(obs_type, "nematic_s", 512)) res = new NematicS<number>();
+	else if(!strncasecmp(obs_type, "stretched", 512)) res = new StretchedBonds<number>();
 	else if(!strncasecmp(obs_type, "jordan_conf", 512)) res = new JordanOutput<number>();
+	else if(!strncasecmp(obs_type, "unstacked_list", 512)) res = new UnstackedList<number>();
+	else if(!strncasecmp(obs_type, "plectoneme_position", 512)) res = new PlectonemePosition<number>();
+	else if(!strncasecmp(obs_type, "TEP_plectoneme_position", 512)) res = new TEPPlectonemePosition<number>();
+	else if(!strncasecmp(obs_type, "Sq", 512)) res = new StructureFactor<number>();
+	else if(!strncasecmp(obs_type, "Pq", 512)) res = new FormFactor<number>();
 	else if(!strncasecmp(obs_type, "unstacked_list", 512)) res = new UnstackedList<number>();
 	else if(!strncasecmp(obs_type, "plectoneme_position", 512)) res = new PlectonemePosition<number>();
 	else {

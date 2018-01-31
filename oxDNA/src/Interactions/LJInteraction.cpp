@@ -31,9 +31,7 @@ void LJInteraction<number>::get_settings(input_file &inp) {
 	// no odd exponents allowed
 	if((_n[0] % 2) == 1) throw oxDNAException("LJ_n must be an even integer");
 
-	int ka = 0;
-	getInputBoolAsInt(&inp, "LJ_kob_andersen", &ka, 0);
-	_is_ka_mixture = (bool) ka;
+	getInputBool(&inp, "LJ_kob_andersen", &_is_ka_mixture, 0);
 
 	double sigma;
 	if(getInputDouble(&inp, "LJ_sigma[2]", &sigma, 0) == KEY_FOUND) {

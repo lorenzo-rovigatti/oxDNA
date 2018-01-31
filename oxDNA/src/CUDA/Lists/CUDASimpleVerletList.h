@@ -18,12 +18,12 @@ template<typename number, typename number4>
 class CUDASimpleVerletList: public CUDABaseList<number, number4> {
 protected:
 	int _max_neigh;
-	number _rcell;
-	int _N_cells_side;
+	int _N_cells_side[3];
 	int _max_N_per_cell;
 	number _max_density_multiplier;
-	int _N_cells;
+	int _N_cells, _old_N_cells;
 	size_t _vec_size;
+	bool _auto_optimisation;
 
 	number _verlet_skin;
 	number _sqr_verlet_skin;
@@ -36,7 +36,7 @@ protected:
 
 	CUDA_kernel_cfg _cells_kernel_cfg;
 
-	virtual void _init_CUDA_verlet_symbols();
+	virtual void _init_cells();
 
 public:
 	int *_d_matrix_neighs;
@@ -47,7 +47,7 @@ public:
 	CUDASimpleVerletList();
 	virtual ~CUDASimpleVerletList();
 
-	void init(int N, number box_side, number rcut);
+	void init(int N, number rcut, CUDABox<number, number4> *h_cuda_box, CUDABox<number, number4> *d_cuda_box);
 	void update(number4 *poss, number4 *list_poss, LR_bonds *bonds);
 	void clean();
 

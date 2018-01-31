@@ -809,8 +809,8 @@ def main():
         side = cadsys.bbox()
         if not nupack:
             base.Logger.log("using default box size, a factor %s larger than size of cadnano system" % str(BOX_FACTOR), base.Logger.INFO)
-    vhelix_direction_initial = np.array([0.,0.,1.])
-    vhelix_perp_initial = np.array([1.,0.,0.])
+    vhelix_direction_initial = np.array([0., 0., 1.])
+    vhelix_perp_initial = np.array([1., 0., 0.])
     if origami_sq:
         vhelix_perp_initial = vhelix_rotation_origami_sq(vhelix_direction_initial, vhelix_perp_initial)
         period = 21
@@ -1130,7 +1130,7 @@ def main():
         rev_sys.add_strand(rev_strand, check_overlap = False)
     ## also reverse the vhelix_vbase_to_nucleotide order so it corresponds to the reversed system
     vh_vb2nuc_rev = oru.vhelix_vbase_to_nucleotide()
-    # count up the number of nucleotides up to but not including the nucleotides in strand ii
+    # count the number of nucleotides up to but not including the nucleotides in strand ii
     nnucs_to_here = range(rev_sys._N_strands)
     nuc_total = 0
     for strandii, strand in enumerate(rev_sys._strands):
@@ -1166,7 +1166,7 @@ def main():
     if nupack == 0:
         #final_sys.print_lorenzo_output ("prova.conf", "prova.top")
         rev_sys.print_lorenzo_output ("prova.conf", "prova.top")
-        base.Logger.log("printed lorenzo output files prova.conf, prova.top", base.Logger.INFO)
+        base.Logger.log("printed oxDNA output files prova.conf, prova.top", base.Logger.INFO)
     else:
         # check for unjoined strands
         if len(vhelix_to_scaffold_final) == 0:

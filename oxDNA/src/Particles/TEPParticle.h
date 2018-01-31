@@ -19,15 +19,21 @@ class TEPParticle: public BaseParticle<number> {
 protected:
 
 public:
-	//CustomParticle();
-	//virtual ~CustomParticle();
+	TEPParticle() {
 
-	virtual bool is_rigid_body() { return true; }
+	}
 
-	//virtual bool is_bonded(BaseParticle<number> *q);
-	//virtual void add_bonded_neigh(CustomParticle<number> *nn);
+	virtual ~TEPParticle() {
 
-	//std::set<CustomParticle<number> *> bonded_neighs;
+	}
+
+	virtual bool is_rigid_body() {
+		return true;
+	}
+
+	virtual bool is_bonded(BaseParticle<number> *q) {
+		return (this->n3 == q || this->n5 == q);
+	}
 };
 
 #endif /* TEPPARTICLE_H_ */

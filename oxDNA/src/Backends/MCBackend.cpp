@@ -5,9 +5,10 @@
  *      Author: lorenzo
  */
 
-#include <sstream>
-
 #include "MCBackend.h"
+
+#include "../Observables/ObservableOutput.h"
+#include <sstream>
 
 template<typename number>
 MCBackend<number>::MCBackend() : SimBackend<number>(), _MC_moves(3), _overlap(false), _check_energy_counter(0) {

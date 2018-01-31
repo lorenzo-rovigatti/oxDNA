@@ -33,6 +33,7 @@ protected:
 	std::set<int> _visible_particles;
 	std::set<int> _hidden_particles;
 	std::map<int, LR_vector<number> > _strands_cdm;
+	int _only_type;
 
 	/**
 	 * @brief Returns the configuration header(s)

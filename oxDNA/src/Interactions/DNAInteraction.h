@@ -16,18 +16,29 @@
  * @verbatim
 [use_average_seq = <boolean> (defaults to yes)]
 [hb_multiplier = <float> (HB interaction multiplier applied to all the nucleotides having a custom numbered base whose magnitude is > 300, defaults to 1.0)]
+[max_backbone_force = <float> (defaults to nothing, has to be > 0) (if set to a float value, it specifies the maximum force (in reduced units) that the FENE bonds will exert. After the separation corresponding to the specified value, the potential has a form A x + B log(x), where A and B are computed automatically to obtain a continuous, differentiable and monotonically increasing potential. The computation involves the value of max_backbone_force as well as the value of max_backbone_force_far, below)]
+[max_backbone_force_far = <float> (defaults to 0.04, only read if max_backbone_force is set, has to be > 0) (limit value of the force exerted by the bonded interactions for large separations, in reduced units. Used in the computation of A and B above. The default value is set to be very weak (0.04 = ~2pN), so that two neighbours will eventually get close without ever breaking base pairs)]
 @endverbatim
  */
 template <typename number>
 class DNAInteraction : public BaseInteraction<number, DNAInteraction<number> > {
 protected:
 	bool _average;
-	char _seq_filename[512];
+	std::string _seq_filename;
 	number _T;
 	number _hb_multiplier;
 	bool _grooving;
 	/// true by default; set this to false if you want the code to not die when bonded backbones are found to be outside the acceptable FENE range
 	bool _allow_broken_fene;
+
+	/// here we store the r0, which is different in oxDNA and oxDNA2, and is set in the constructor
+	number _fene_r0;
+
+	/// variables used when max_backbone_force = true
+	bool _use_mbf;
+	number _mbf_xmax;
+	number _mbf_fmax;
+	number _mbf_finf;
 
 	int MESH_F4_POINTS[13];
 	Mesh<number> _mesh_f4[13];

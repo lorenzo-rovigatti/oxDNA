@@ -41,7 +41,7 @@ void MCRot<number>::apply (llint curr_step) {
 	BaseParticle<number> *p = this->_Info->particles[pi];
 
 	number delta_E = -this->particle_energy(p);
-	p->set_ext_potential (curr_step, (*this->_Info->box_side));
+	p->set_ext_potential (curr_step, this->_Info->box);
 	number delta_E_ext = -p->ext_potential;
 
 	_orientation_old = p->orientation;
@@ -78,7 +78,7 @@ void MCRot<number>::apply (llint curr_step) {
 	}
 
 	delta_E += this->particle_energy(p);
-	p->set_ext_potential(curr_step, *this->_Info->box_side);
+	p->set_ext_potential(curr_step, this->_Info->box);
 	delta_E_ext += p->ext_potential;
 	
 	// accept or reject?

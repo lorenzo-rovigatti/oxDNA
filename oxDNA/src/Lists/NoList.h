@@ -17,6 +17,8 @@ template<typename number>
 class NoList: public BaseList<number> {
 protected:
 	std::vector<BaseParticle<number> *> _all_particles;
+
+	std::vector<BaseParticle<number> *> _get_neigh_list(BaseParticle<number> *p, bool all);
 public:
 	NoList(int &N, BaseBox<number> *box);
 	virtual ~NoList();
@@ -26,7 +28,8 @@ public:
 	virtual bool is_updated() { return true; }
 	virtual void single_update(BaseParticle<number> *p);
 	virtual void global_update(bool force_update=false);
-	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p, bool all=false);
+	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p);
+	virtual std::vector<BaseParticle<number> *> get_complete_neigh_list(BaseParticle<number> *p);
 };
 
 #endif /* NOLIST_H_ */

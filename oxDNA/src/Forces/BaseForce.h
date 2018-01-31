@@ -11,6 +11,11 @@
 #include <string>
 #include "../defs.h"
 #include "../Utilities/oxDNAException.h"
+#include "../Utilities/Utils.h"
+
+// forward declarations of BaseParticle and BaseBox; needed to compile
+template <typename number> class BaseParticle;
+template <typename number> class BaseBox;
 
 /**
  * @brief Base class for external forces. All external forces inherit from here.
@@ -20,9 +25,6 @@
  * require access to these members.
  *
  */
-
-template <typename number> class BaseParticle;
-
 template<typename number>
 class BaseForce {
 private:
@@ -35,6 +37,20 @@ private:
 	 * groups of forces.
 	 */
 	std::string _group_name;
+
+protected:
+	/**
+	 * @brief Adds the current force to the particle(s) listed in particle_string
+	 *
+	 * This method internally uses Utils::getParticlesFromString to extract a list of particles from the particle_string parameter
+	 * and then use it to initialise all the particles contained therein.
+	 *
+	 * @param particles particle array
+	 * @param N number of particles
+	 * @param particle_string a list of particles
+	 * @param force_description an optional description (defaults to "generic force") that will be used in the logging messages
+	 */
+	void _add_self_to_particles(BaseParticle<number> **particles, int N, std::string particle_string, std::string force_description=std::string("force"));
 
 public:
 	/**
@@ -68,7 +84,7 @@ public:
 	 * This function initialises the force object and assignes 
 	 * it to the relevant particles.
 	 */
-	virtual void init(BaseParticle<number> **particles, int N, number *box_side) = 0; 
+	virtual void init(BaseParticle<number> **particles, int N, BaseBox<number> * box) = 0; 
 
 	virtual void set_group_name(std::string &name) { _group_name = name; }
 	virtual std::string get_group_name() { return _group_name; }
@@ -89,21 +105,5 @@ public:
 	 */
 	virtual number potential (llint step, LR_vector<number> &pos) = 0;
 };
-
-template <typename number>
-BaseForce<number>::BaseForce () {
-	_F0 = -1.;
-	_rate = -1.;
-	_direction = LR_vector<number>(1., 0., 0.);
-	_pos0 = LR_vector<number>(0., 0., 0.);
-	_site = -1;
-	_stiff = 0.;
-	_p_ptr = P_VIRTUAL;
-}
-
-template <typename number>
-BaseForce<number>::~BaseForce () {
-
-}
 
 #endif /* BASEFORCE_H_ */

@@ -16,14 +16,14 @@ def double_strands():
     s.add_strands(g.generate(25, dir=[0, 1, 0], start_pos=[0, 0, 7], double=False))
     s.add_strands(g.generate(25, dir=[1, 1, 1], start_pos=[-10, -10, -10]))
     s.print_crepy_output ("prova.mgl")
-    s.print_lorenzo_output ("prova.conf", "prova.top")
+    s.print_lorenzo_output ("generated.dat", "generated.top")
 
 def tetramers():
     g = gen.TetramerGenerator()
     s = base.System ([20, 20, 20])
     s.add_strands (g.generate())
     s.print_crepy_output ("tetramer.mgl")
-    s.print_lorenzo_output ("tetramer.conf", "tetramer.top")
+    s.print_lorenzo_output ("tetramer.dat", "tetramer.top")
 
 def read_strands(filename='caca.sqs', box_side=50):
     """
@@ -55,8 +55,9 @@ def read_strands(filename='caca.sqs', box_side=50):
     DOUBLE CIRCULAR AGAGGTAGGAGGATTTGCTTGAGCTTCGAGAGCTTCGAGATTCGATCAGGGCT
     CIRCULAR CCTGTAAGGAGATCGGAGAGATTCGAGAGGATCTGAGAGCTTAGCT
     """
-    # prendiamo le sequenze da un file; ogni riga uno strand; se e' un
-    # double strand, ci deve essere DOUBLE davanti
+    # we read the sequences from a file; each line is a strand; 
+    # prepending DOUBLE tells us to generate a double strand
+    # prepending CIRCULAR tells us to generate a (topologically) closed strand 
 
     # Check filename
     try:
@@ -99,8 +100,6 @@ def read_strands(filename='caca.sqs', box_side=50):
         if line.find('RW') >= 0:
             bool_rw = True
          
-        #print bool_double, bool_circular, bool_rw
-
         # Parse input and output structures in lorenzo format
         raw_seq = line.split()[-1]
 
@@ -116,7 +115,6 @@ def read_strands(filename='caca.sqs', box_side=50):
             else:
                 raw_seq2 += x
 
-        #seq = [base.base_to_number[x] for x in raw_seq]
         seq = [base.base_to_number[x] for x in raw_seq2]
         length = len(raw_seq)
         print >> sys.stdout, "Adding %s %s of %i bases" % (type_circular, type_strand, length)
@@ -134,12 +132,11 @@ def read_strands(filename='caca.sqs', box_side=50):
             cdm = np.random.random_sample(3) * s._box
             axis = np.random.random_sample(3)
             axis /= np.sqrt(np.dot(axis, axis))
-            print >> sys.stdout, "  riprovo %i" % (i)
+            print >> sys.stdout, "  try again with %i" % (i)
         print >> sys.stdout, "  done %i" % (i)
         i += 1
 
-    #s.print_crepy_output("prova.mgl")
-    s.print_lorenzo_output("prova.conf", "prova.top")
+    s.print_lorenzo_output("generated.dat", "generated.top")
 
 
 def main():

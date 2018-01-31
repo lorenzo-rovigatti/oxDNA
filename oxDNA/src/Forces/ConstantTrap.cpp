@@ -7,6 +7,7 @@
 
 #include "ConstantTrap.h"
 #include "../Particles/BaseParticle.h"
+#include "../Boxes/BaseBox.h"
 
 // constant force between two particles, to make them come together
 template<typename number>
@@ -16,6 +17,7 @@ ConstantTrap<number>::ConstantTrap() : BaseForce<number>() {
 	PBC = false;
 	_r0 = -1.;
 	_ref_id = -2;
+	_box_ptr = NULL;
 }
 
 template <typename number>
@@ -28,11 +30,11 @@ void ConstantTrap<number>::get_settings (input_file &inp) {
 }
 
 template <typename number>
-void ConstantTrap<number>::init (BaseParticle<number> ** particles, int N, number * my_box_side_ptr){
+void ConstantTrap<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
 	if (_ref_id < 0 || _ref_id >= N) throw oxDNAException ("Invalid reference particle %d for ConstantTrap", _ref_id);
 	_p_ptr = particles[_ref_id];
 
-	this->box_side_ptr = my_box_side_ptr;
+	_box_ptr = box_ptr;
 	
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a ConstantTrap on non-existent particle %d. Aborting", _particle);
 	if (_particle == -1) throw oxDNAException ("Cannot apply ConstantTrap to all particles. Aborting");
@@ -43,13 +45,13 @@ void ConstantTrap<number>::init (BaseParticle<number> ** particles, int N, numbe
 }
 template<typename number>
 LR_vector<number> ConstantTrap<number>::_distance(LR_vector<number> u, LR_vector<number> v) {
-	if (this->PBC) return v.minimum_image(u, *(this->box_side_ptr));
+	if (this->PBC) return _box_ptr->min_image(u, v);
 	else return v - u;
 }
 
 template<typename number>
 LR_vector<number> ConstantTrap<number>::value (llint step, LR_vector<number> &pos) {
-	LR_vector<number> dr = this->_distance(pos, _p_ptr->get_abs_pos(*(this->box_side_ptr))); // other - self
+	LR_vector<number> dr = this->_distance(pos, _box_ptr->get_abs_pos(_p_ptr)); // other - self
 	if (this->_site >= 0) dr -= _p_ptr->orientationT * _p_ptr->int_centers[this->_site];
 	number sign = copysign (1., (double)(dr.module() - _r0));
 	return (this->_stiff * sign) * (dr / dr.module());
@@ -57,7 +59,7 @@ LR_vector<number> ConstantTrap<number>::value (llint step, LR_vector<number> &po
 
 template <typename number>
 number ConstantTrap<number>::potential (llint step, LR_vector<number> &pos) {
-	LR_vector<number> dr = this->_distance(pos, _p_ptr->get_abs_pos(*(this->box_side_ptr))); // other - self
+	LR_vector<number> dr = this->_distance(pos, _box_ptr->get_abs_pos(_p_ptr)); // other - self
 	if (this->_site >= 0) dr -= _p_ptr->orientationT * _p_ptr->int_centers[this->_site];
 	return this->_stiff * fabs((dr.module () - _r0));
 }

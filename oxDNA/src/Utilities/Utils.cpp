@@ -7,6 +7,9 @@
 
 #include "Utils.h"
 #include "oxDNAException.h"
+#include "../Particles/TEPParticle.h"
+#include "../Particles/DNANucleotide.h"
+#include "../Particles/RNANucleotide.h"
 
 #include <sstream>
 
@@ -94,7 +97,10 @@ std::string Utils::sformat_ap(const std::string &fmt, va_list &ap) {
 	std::string str;
 	while (1) {
 		str.resize(size);
-		int n = vsnprintf((char *) str.c_str(), size, fmt.c_str(), ap);
+		va_list ap_copy;
+		va_copy(ap_copy, ap);
+		int n = vsnprintf((char *) str.c_str(), size, fmt.c_str(), ap_copy);
+		va_end(ap_copy);
 		if (n > -1 && n < size) {
 			str.resize(n);
 			return str;
@@ -251,7 +257,7 @@ number Utils::gamma (number alpha, number beta) {
 }
 
 
-void Utils::assert_is_valid_particle(int index, int N,char const * identifier){
+void Utils::assert_is_valid_particle(int index, int N, char const *identifier){
 	if (index >= N || index < -1){
 		throw oxDNAException ("Trying to add a %s on non-existent particle %d. Aborting", identifier,index);
 	}
@@ -260,6 +266,108 @@ void Utils::assert_is_valid_particle(int index, int N,char const * identifier){
 bool Utils::is_integer(std::string s){
 	return s.find_first_not_of( "0123456789" ) == string::npos;
 
+}
+
+template<typename number>
+std::vector<int> Utils::getParticlesFromString(BaseParticle<number> **particles, int N, std::string particle_string, char const *identifier) {
+	// first remove all the spaces from the string, so that the parsing goes well.
+	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int (*)(int)>( isspace )), particle_string.end());
+
+	std::vector<std::string> temp = Utils::split (particle_string.c_str(), ',');
+	std::vector<int> particles_index; //declare as empty
+
+	// try to understand whether we are dealing with a strand-based system or not
+	bool has_strands = false;
+	if(dynamic_cast<DNANucleotide<number> *>(particles[0]) != NULL) has_strands = true;
+	else if(dynamic_cast<RNANucleotide<number> *>(particles[0]) != NULL) has_strands = true;
+	else if(dynamic_cast<TEPParticle<number> *>(particles[0]) != NULL) has_strands = true;
+
+	for( std::vector<std::string>::size_type i = 0; i < temp.size(); i++){
+		bool found_dash = temp[i].find('-') != std::string::npos;
+		// if the string contains a dash, then it has to be interpreted as a list of particles
+		// unless it's a negative number
+
+		if (found_dash && '-'!= temp[i].c_str()[0] ){
+			// get the two indices p0 and p1 and check they make sense
+			std::vector<std::string> p0_p1_index = Utils::split(temp[i].c_str(),'-');
+
+			int p[2]={0};
+			// check whether the p0 and p1 keys can be understood, and set them
+			for (int ii = 0; ii < 2; ii++){
+				if ( Utils::is_integer(p0_p1_index[ii])){
+					p[ii] = atoi(p0_p1_index[ii].c_str());
+					Utils::assert_is_valid_particle(p[ii],N,identifier);
+				}
+				if ( ! Utils::is_integer(p0_p1_index[ii])){
+					if(p0_p1_index[ii] == "last") p[ii] = N - 1;
+					else{
+						throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\" used as a boundary particle.",identifier,p0_p1_index[ii].c_str());
+					}
+				}
+			}
+
+			// the behaviour changes whether the particles are arranged on strands (DNA, RNA, TEP) or not (everything else)
+
+			// add all the particles between p0 and p1 (extremes included)
+			if(has_strands) {
+				int j = p[0];
+				bool found_p1 = false;
+				do{
+					particles_index.push_back(j);
+					if (j == p[1]){
+						found_p1 = true;
+					}
+					if (particles[j]->n5 == P_VIRTUAL) break;
+					j = particles[j]->n5->index;
+
+				} while( j != p[0] && !found_p1);
+				// check that it hasn't got to either the end of the strand or back to p1
+				if(!found_p1){
+					throw oxDNAException("In %s I couldn't get from particle %d to particle %d.",identifier,p[0],p[1]);
+				}
+			}
+			else {
+				if(p[0] >= p[1]) throw oxDNAException("%s: the two indexes in a particle range (here %d and %d) should be sorted (the first one should be smaller than the second one).", identifier, p[0], p[1]);
+				for(int p_idx = p[0]; p_idx <= p[1]; p_idx++) {
+					particles_index.push_back(p_idx);
+				}
+			}
+
+		}
+		else if ( temp[i] == "last"){
+			particles_index.push_back(N-1);
+		}
+		else if ( temp[i] == "all"){
+			particles_index.push_back(-1);
+		}
+		// add it to the vector, and make sure that the identifier is not an unidentified string
+		else{
+			if ( temp[i] != "-1" && ! Utils::is_integer(temp[i])){
+				throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\".",identifier,temp[i].c_str());
+
+			}
+			int j = atoi(temp[i].c_str());
+
+			Utils::assert_is_valid_particle(j,N,identifier);
+			particles_index.push_back(j);
+		}
+
+	}
+	// check that if -1 is present then that's the only key - something must be wrong if you
+	// specified -1 (all particles) and then some more particles.
+	if (std::find(particles_index.begin(),particles_index.end(),-1) != particles_index.end() && particles_index.size()>1){
+		throw oxDNAException("In %s there is more than one particle identifier, including -1 or \"all\". If either -1 or \"all\" are used as particle identifiers then they have to be the only one, as both translate to \"all the particles\". Dying badly.",identifier);
+	}
+	// check that no particle appears twice
+	for( std::vector<int>::size_type i = 0; i < particles_index.size(); i++){
+		for( std::vector<int>::size_type j = i+1; j < particles_index.size(); j++){
+			if ( particles_index[i] == particles_index[j] ){
+				throw oxDNAException("In %s particle index %d appears twice (both at position %d and at position %d), but each index can only appear once. Dying badly.",identifier,particles_index[i],i+1,j+1);
+			}
+		}
+	}
+	// finally return the vector.
+	return particles_index;
 }
 
 

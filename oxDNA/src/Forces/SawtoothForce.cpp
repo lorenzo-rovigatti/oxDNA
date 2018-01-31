@@ -39,7 +39,7 @@ void SawtoothForce<number>::get_settings(input_file &inp) {
 }
 
 template<typename number>
-void SawtoothForce<number>::init(BaseParticle<number> **particles, int N, number *box_side) {
+void SawtoothForce<number>::init(BaseParticle<number> **particles, int N, BaseBox<number> * box_side) {
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a SawtoothForce on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding SawtoothForce (F==%g, wait_time=%g, increment=%g, dir=%g,%g,%g on particle %d", this->_F0, this->_wait_time, this->_increment, this->_direction.x, this->_direction.y, this->_direction.z, _particle);

@@ -19,6 +19,7 @@ class VolumeMove : public BaseMove<number> {
 
 		number _verlet_skin;
 		number _P;
+		bool _isotropic;
 	
 	public:
 		VolumeMove(ConfigInfo<number> *Info);

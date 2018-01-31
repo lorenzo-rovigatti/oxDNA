@@ -13,21 +13,22 @@ MC_CPUBackend2<number>::MC_CPUBackend2() : MCBackend<number>() {
 	this->_is_CUDA_sim = false;
 	_info_str = std::string("dummy");
 	_N_moves = -1;
-	_MC_Info = ConfigInfo<number>();
+	_MC_Info = NULL;
 	_accumulated_prob = 0.; // total weight
 	
+	_MC_Info = ConfigInfo<number>::instance();
 }
 
 template<typename number>
 MC_CPUBackend2<number>::~MC_CPUBackend2() {
-
+	for(typename std::vector <BaseMove<number> *>::iterator it = _moves.begin(); it != _moves.end(); it++) delete *it;
 }
 
 template<typename number>
 void MC_CPUBackend2<number>::add_move (std::string move_string, input_file &sim_inp) {
 	input_file * move_inp = Utils::get_input_file_from_string(move_string);
 
-	BaseMove<number> * new_move = MoveFactory::make_move<number> (*move_inp, sim_inp, &_MC_Info);
+	BaseMove<number> * new_move = MoveFactory::make_move<number> (*move_inp, sim_inp, _MC_Info);
 
 	_moves.push_back (new_move);
 
@@ -40,7 +41,7 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 	MCBackend<number>::get_settings(inp);
 
 	//_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists);
-	_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists, this->_box);
+	_MC_Info->set(this->_particles, this->_interaction, &(this->_N), &_info_str, this->_lists, this->_box);
 
 	//_MC_Info.lists = this->_lists;
 
@@ -80,13 +81,11 @@ void MC_CPUBackend2<number>::init() {
 	if(this->_interaction->get_is_infinite() == true) throw oxDNAException("There is an overlap in the initial configuration. Aborting");
 
 	// needed to fill un the pointers....
-	_MC_Info.particles = this->_particles;
-	_MC_Info.N = &this->_N;
-	_MC_Info.interaction = this->_interaction;
-	_MC_Info.box_side = &(this->_box_side);
-	_MC_Info.box = this->_box;
+	_MC_Info->particles = this->_particles;
+	_MC_Info->N = &this->_N;
+	_MC_Info->interaction = this->_interaction;
+	_MC_Info->box = this->_box;
 
-	//this->update_lists;
 	this->_lists->global_update();
 
 	// we initialize the moves
@@ -101,20 +100,17 @@ template<typename number>
 void MC_CPUBackend2<number>::sim_step(llint curr_step) {
 	for(int i = 0; i < this->_N; i++) {
 		// pick a move with a given probability
-		number choiche = drand48() * _accumulated_prob;
+		number choice = drand48() * _accumulated_prob;
 		int j = 0;
 		number tmp = _moves[0]->prob;
-		while (choiche > tmp) {
-			j ++;
+		while (choice > tmp) {
+			j++;
 			tmp += _moves[j]->prob;
 		}
 
 		// now j is the chosen move
 		_moves[j]->apply (curr_step);
 
-		//for (int j=0; j < _N_moves; j ++) {
-		//	_moves[j]->apply(curr_step);
-		//}
 	}
 }
 

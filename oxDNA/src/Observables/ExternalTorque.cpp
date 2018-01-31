@@ -48,7 +48,7 @@ std::string ExternalTorque<number>::get_output_string(llint curr_step) {
 				LR_vector<number> tau = LR_vector<number>((number) 0., (number)0., (number)0.);
 	for(int i = 0; i < *this->_config_info.N; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector<number> abs_pos = p->get_abs_pos(*this->_config_info.box_side);
+		LR_vector<number> abs_pos = this->_config_info.box->get_abs_pos(p);
 		LR_vector<number> distvec = abs_pos-_origin;	
 		if ( _respect_to_line){
 			// the distance between the point and the axis is the distance vector between the point and the origin,

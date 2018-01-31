@@ -1,6 +1,5 @@
 /* System constants */
 __constant__ int MD_N[1];
-__constant__ float MD_box_side[1];
 __constant__ int MD_n_forces[1];
 
 __constant__ float MD_hb_multi[1];
@@ -242,32 +241,6 @@ __forceinline__ __device__ number _f5D(number f, int type) {
 	return val;
 }
 
-template <typename number, typename number4>
-__device__ number4 minimum_image(const number4 &r_i, const number4 &r_j) {
-	number dx = r_j.x - r_i.x;
-	number dy = r_j.y - r_i.y;
-	number dz = r_j.z - r_i.z;
-
-	dx -= floorf(dx/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-	dy -= floorf(dy/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-	dz -= floorf(dz/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-
-	return make_number4<number, number4>(dx, dy, dz, (number) 0.f);
-}
-
-template <typename number, typename number4>
-__device__ number quad_minimum_image_dist(const number4 &r_i, const number4 &r_j) {
-	number dx = r_j.x - r_i.x;
-	number dy = r_j.y - r_i.y;
-	number dz = r_j.z - r_i.z;
-
-	dx -= floorf(dx/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-	dy -= floorf(dy/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-	dz -= floorf(dz/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
-
-	return dx*dx + dy*dy + dz*dz;
-}
-
 template <typename number, typename number4, bool qIsN3>
 __device__ void _bonded_excluded_volume(number4 &r, number4 &n3pos_base, number4 &n3pos_back, number4 &n5pos_base, number4 &n5pos_back, number4 &F, number4 &T) {
 	number4 Ftmp;
@@ -293,8 +266,9 @@ __device__ void _bonded_excluded_volume(number4 &r, number4 &n3pos_base, number4
 }
 
 template <typename number, typename number4, bool qIsN3>
-__device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4 &n5z,number4 &n3pos,
-			     number4 &n3x, number4 &n3y, number4 &n3z, number4 &F, number4 &T, bool grooving, bool use_oxDNA2_FENE) {
+__device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4 &n5z, number4 &n3pos,
+			     number4 &n3x, number4 &n3y, number4 &n3z, number4 &F, number4 &T, bool grooving, bool use_oxDNA2_FENE,
+                 bool use_mbf, number mbf_xmax, number mbf_finf) {
 
 	int n3type = get_particle_type<number, number4>(n3pos);
 	int n5type = get_particle_type<number, number4>(n5pos);
@@ -319,9 +293,20 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 	number rbackr0;
 	if (use_oxDNA2_FENE) rbackr0 = rbackmod - FENE_R0_OXDNA2;
 	else rbackr0 = rbackmod - FENE_R0_OXDNA;
-
-	number4 Ftmp = rback * ((FENE_EPS * rbackr0  / (FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
-	Ftmp.w = -FENE_EPS * ((number)0.5f) * logf(1 - SQR(rbackr0) / FENE_DELTA2);
+	
+	number4 Ftmp;
+	if (use_mbf == true && fabsf(rbackr0) > mbf_xmax) {
+		// this is the "relax" potential, i.e. the standard FENE up to xmax and then something like A + B log(r) for r>xmax
+		number fene_xmax = - (FENE_EPS / 2.f) * logf(1.f - mbf_xmax * mbf_xmax / FENE_DELTA2);
+		number mbf_fmax = (FENE_EPS * mbf_xmax  / (FENE_DELTA2 - SQR(mbf_xmax)));
+		number long_xmax = (mbf_fmax - mbf_finf) * mbf_xmax * logf(mbf_xmax) + mbf_finf * mbf_xmax;
+		Ftmp = rback * (copysignf(1.f, rbackr0) * ((mbf_fmax - mbf_finf) * mbf_xmax / fabsf(rbackr0) + mbf_finf) / rbackmod);
+		Ftmp.w = (mbf_fmax - mbf_finf) * mbf_xmax * logf(fabsf(rbackr0)) + mbf_finf * fabsf(rbackr0) - long_xmax + fene_xmax;
+	}
+	else {
+		Ftmp = rback * ((FENE_EPS * rbackr0  / (FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
+		Ftmp.w = -FENE_EPS * ((number)0.5f) * logf(1 - SQR(rbackr0) / FENE_DELTA2);
+	}
 
 	number4 Ttmp = (qIsN3) ? _cross<number, number4>(n5pos_back, Ftmp) : _cross<number, number4>(n3pos_back, Ftmp);
 	// EXCLUDED VOLUME
@@ -466,14 +451,14 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 }
 
 template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind) {
+__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind, CUDABox<number, number4> *box) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 	int pbtype = get_particle_btype<number, number4>(ppos);
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	number4 r = minimum_image<number, number4>(ppos, qpos);
+	number4 r = box->minimum_image(ppos, qpos);
 
 	number4 ppos_back;
 	if(grooving) ppos_back = POS_MM_BACK1 * a1 + POS_MM_BACK2 * a2;
@@ -848,7 +833,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE) {
+__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -865,7 +850,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
-						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE);
+						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE,
+                            use_mbf, mbf_xmax, mbf_finf);
 	}
 
 	if(bs.n5 != P_INVALID) {
@@ -875,7 +861,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
-						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE);
+						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE,
+                             use_mbf, mbf_xmax, mbf_finf);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
@@ -887,7 +874,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 			get_vectors_from_quat<number,number4>(orientations[j], b1, b2, b3);
 			LR_bonds qbonds = bonds[j];
 
-			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds, IND, j);
+			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds, IND, j, box);
 		}
 	}
 
@@ -901,7 +888,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 }
 
 template <typename number, typename number4>
-__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking) {
+__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, CUDABox<number, number4> *box) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -921,7 +908,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 	get_vectors_from_quat<number,number4>(orientations[b.to], b1, b2, b3);
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
-	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to);
+	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, box);
 
 	dF.w *= (number) 0.5f;
 	dT.w *= (number) 0.5f;
@@ -932,7 +919,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z + dT.w*dT.w) > (number)0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
 
 	// Allen Eq. 6 pag 3:
-	number4 dr = minimum_image<number, number4>(ppos, qpos); // returns qpos-ppos
+	number4 dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
 	number4 crx = _cross<number, number4> (dr, dF);
 	dT.x = -dT.x + crx.x;
 	dT.y = -dT.y + crx.y;
@@ -950,7 +937,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 
 // bonded interactions for edge-based approach
 template <typename number, typename number4>
-__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE) {
+__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F0, T0;
@@ -979,14 +966,14 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 
-		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_oxDNA2_FENE);
+		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
 
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
-		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving, use_oxDNA2_FENE);
+		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 
 	// the real energy per particle is half of the one computed (because we count each interaction twice)
@@ -1001,7 +988,7 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE) {
+__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -1018,14 +1005,14 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		number4 b1, b2, b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
-						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE);
+						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
-						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE);
+						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
@@ -1040,7 +1027,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		get_vectors_from_quat<number,number4>(orientations[k_index], b1, b2, b3);
 		LR_bonds pbonds = bonds[IND];
 		LR_bonds qbonds = bonds[k_index];
-		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index);
+		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index, box);
 	}
 	
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
@@ -1057,7 +1044,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
 template <typename number, typename number4>
-__global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb)
+__global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1066,7 +1053,7 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int
 	// get distance between this nucleotide pair's "com"s
 	number4 ppos = poss[pind];
 	number4 qpos = poss[qind];
-	number4 r = minimum_image<number, number4>(ppos, qpos);
+	number4 r = box->minimum_image(ppos, qpos);
 
 	// check whether hb energy is below a certain threshold for this nucleotide pair
 	int ptype = get_particle_type<number, number4>(ppos);
@@ -1121,7 +1108,7 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int
 }
 
 template <typename number, typename number4>
-__global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb)
+__global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1130,7 +1117,7 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations
 	// get distance between this nucleotide pair's "com"s
 	number4 ppos = poss[pind];
 	number4 qpos = poss[qind];
-	number4 r = minimum_image<number, number4>(ppos, qpos);
+	number4 r = box->minimum_image(ppos, qpos);
 
 	// check whether hb energy is below a certain threshold for this nucleotide pair
 	int ptype = get_particle_type<number, number4>(ppos);
@@ -1196,7 +1183,7 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations
 
 // compute the distance between a pair of particles
 template <typename number, typename number4>
-__global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads)
+__global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 
@@ -1206,7 +1193,7 @@ __global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, i
 	// get distance between this nucleotide pair's "com"s
 	number4 ppos = poss[pind];
 	number4 qpos = poss[qind];
-	number4 r = minimum_image<number, number4>(ppos, qpos);
+	number4 r = box->minimum_image(ppos, qpos);
 
 	GPU_quat<number> po = orientations[pind];
 	GPU_quat<number> qo = orientations[qind];

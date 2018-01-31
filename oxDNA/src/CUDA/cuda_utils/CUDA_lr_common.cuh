@@ -12,6 +12,14 @@
 
 #include <curand_kernel.h>
 
+/// Used to avoid syntax highlighting errors when coding with Eclipse
+#ifdef __CDT_PARSER__
+#define __global__
+#define __device__
+#define __shared__
+#define IND 0
+#endif
+
 //This is the most commonly called quaternion to matrix conversion. 
 template<typename number, typename number4>
 __device__ void get_vectors_from_quat(GPU_quat<number> &q, number4 &a1, number4 &a2, number4 &a3) {
@@ -138,7 +146,7 @@ __forceinline__ __device__ LR_double4 make_LR_double4(const float4 &v) {
 }
 
 template <typename number, typename number4>
-__forceinline__ __device__ number4 make_number4(const number x, const number y, const number z, const number w) {
+__forceinline__ __host__ __device__ number4 make_number4(const number x, const number y, const number z, const number w) {
 	number4 res = {x, y, z, w};
 	return res;
 }
@@ -148,6 +156,10 @@ __forceinline__ __device__ number _module(const number4 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
+template <typename number>
+__forceinline__ __device__ number _module(const float3 v) {
+	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
+}
 
 //Necessary to for calculating the torque without storing a seperate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
 template <typename number4>
@@ -226,6 +238,40 @@ __forceinline__ __device__ void operator-=(LR_double4 &a, LR_double4 b) {
 	a.x -= b.x; a.y -= b.y; a.z -= b.z; a.w += b.w;
 }
 
+// FLOAT3
+__forceinline__ __device__ float3 operator+(float3 a) {
+	return make_float3(a.x, a.y, a.z);
+}
+
+__forceinline__ __device__ float3 operator-(float3 a) {
+	return make_float3(-a.x, -a.y, -a.z);
+}
+
+template<typename number>
+__forceinline__ __device__ float3 operator*(number a, float3 b) {
+	return make_float3(a*b.x, a*b.y, a*b.z);
+}
+
+template<typename number>
+__forceinline__ __device__ float3 operator*(float3 b, number a) {
+	return make_float3(a*b.x, a*b.y, a*b.z);
+}
+
+__forceinline__ __device__ float3 operator+(float3 a, float3 b) {
+	return make_float3(a.x+b.x, a.y+b.y, a.z+b.z);
+}
+
+__forceinline__ __device__ float3 operator-(float3 a, float3 b) {
+	return make_float3(a.x-b.x, a.y-b.y, a.z-b.z);
+}
+
+__forceinline__ __device__ void operator+=(float3 &a, float3 b) {
+	a.x += b.x; a.y += b.y; a.z += b.z;
+}
+
+__forceinline__ __device__ void operator-=(float3 &a, float3 b) {
+	a.x -= b.x; a.y -= b.y; a.z -= b.z;
+}
 
 // FLOAT4
 __forceinline__ __device__ float4 operator*(float4 v, float c) {

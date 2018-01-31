@@ -75,7 +75,7 @@ template<typename number>
 std::string TEPxyzOutput<number>::_headers(llint step) {
 	std::stringstream headers;
 	
-	const number mybox = *this->_config_info.box_side;
+	const number mybox = this->_config_info.box->box_sides()[0];
 	const int N = *this->_config_info.N*3;
 
 	headers << N << endl;
@@ -125,14 +125,14 @@ std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
 	res << "graphics 0 color " << colorid << endl;
 	*/
 	
-	number mybox = *this->_config_info.box_side;
+	BaseBox<number> * mybox = this->_config_info.box;
 	LR_vector<number> my_strand_cdm = this->_strands_cdm[me->strand_id];
 	LR_vector<number> origin (0., 0., 0.);
 	origin = zero;
 
-	LR_vector<number> core = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox);
-	LR_vector<number> side = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + _side_shift*me->orientationT.v2; 
-	LR_vector<number> front = (me->pos - my_strand_cdm) + my_strand_cdm.minimum_image (origin, mybox) + _front_shift*me->orientationT.v1; 
+	LR_vector<number> core = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm);
+	LR_vector<number> side = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + _side_shift*me->orientationT.v2; 
+	LR_vector<number> front = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + _front_shift*me->orientationT.v1; 
 
 /*
 //This was used to print labels in tcl. I don't think there's a way of doing it in xyz.	

@@ -82,9 +82,7 @@ ObservableOutput<number>::ObservableOutput(std::string &stream_string, input_fil
 template<typename number>
 ObservableOutput<number>::~ObservableOutput() {
 	if(_output_stream.is_open()) _output_stream.close();
-
-	typename vector<BaseObservable<number> *>::iterator it;
-	for(it = _obss.begin(); it != _obss.end(); it++) delete *it;
+	clear();
 }
 
 template<typename number>
@@ -115,6 +113,13 @@ void ObservableOutput<number>::init(ConfigInfo<number> &config_info) {
 
 	typename vector<BaseObservable<number> *>::iterator it;
 	for(it = _obss.begin(); it != _obss.end(); it++) (*it)->init(config_info);
+}
+
+template<typename number>
+void ObservableOutput<number>::clear() {
+	typename vector<BaseObservable<number> *>::iterator it;
+	for(it = _obss.begin(); it != _obss.end(); it++) delete *it;
+	_obss.clear();
 }
 
 template<typename number>
