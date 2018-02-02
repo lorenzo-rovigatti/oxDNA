@@ -34,15 +34,26 @@ class DNA2ModInteraction: public DNA2Interaction<number> {
 		number _hb_multiplier_1;
 		number _mod_stacking_roll_1;
 		number _mod_stacking_tilt_1;
+		LR_matrix<number> _rotation_matrix_1;
 
 		std::vector<int> _vec_group_2;
 		number _hb_multiplier_2;
 		number _mod_stacking_roll_2;
 		number _mod_stacking_tilt_2;
+		LR_matrix<number> _rotation_matrix_2;
 
 		static std::vector<int> unsafeGetParticlesFromString(std::string particle_string, char const * identifier);
 		virtual bool _is_particle_in_group(BaseParticle<number> *particle, std::vector<int> group){
 			return std::find(group.begin(), group.end(), particle->index) != group.end();
+		}
+		// get the matrix that rotates the vectors in order to change the stacking
+		inline LR_matrix<number> _get_rotation_matrix(number const roll, number const tilt){
+			// first we introduce roll, so we rotate around the hb vector (first component)
+			LR_matrix<number> R_roll(1.,0.,0., 0.,cos(roll),-sin(roll), 0.,sin(roll),cos(roll));
+			//then we introduce the tilt, so that we rotate around the second vector
+			LR_matrix<number> R_tilt(cos(tilt),0.,-sin(tilt), 0.,1.,0., sin(tilt),0.,cos(tilt));
+			return R_roll * R_tilt;
+			
 		}
 
 
@@ -69,13 +80,17 @@ class DNA2ModInteraction: public DNA2Interaction<number> {
 			number angle_1 = p_in_group_1 ? _mod_stacking_roll_1 : (p_in_group_2 ? _mod_stacking_roll_2 : 0);
 			number angle_2 = p_in_group_1 ? _mod_stacking_tilt_1 : (p_in_group_2 ? _mod_stacking_tilt_2 : 0);
 			LR_vector<number> rotated = rotateVectorAroundVersor(p->orientationT.v3, p->orientationT.v1, angle_1);
-			rotated = rotateVectorAroundVersor(rotated, p->orientationT.v2, angle_2);
-			if (p_in_group_1){ 
-				//printf("p[%d].v3 = %g %g %g rotated.v3 = %g %g %g, angle %g, cos %g\n",p->index,p->orientationT.v3.x,p->orientationT.v3.y,p->orientationT.v3.z, rotated.x, rotated.y, rotated.z, angle, p->orientationT.v3*rotated);
+			if ((p_in_group_1 or p_in_group_2) and false){ 
+				printf("angle_1 %g, angle_2 %g\n",angle_1, angle_2);
+				printf("rotated.v3 = %g %g %g\n",rotated.x, rotated.y, rotated.z);
+				rotated = rotateVectorAroundVersor(rotated, p->orientationT.v2, angle_2);
+				printf("rotated.v3 = %g %g %g\n",rotated.x, rotated.y, rotated.z);
 			}
 			return rotated;
 	}
+	
 	LR_vector<number> rotateVectorAroundVersor(const LR_vector<number> vector, const LR_vector<number> versor, const number angle);
+	LR_matrix<number> rotationMatrixAroundVersorByAngle(const LR_vector<number> vector, const number angle);
 
 	protected:
 	virtual number _stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
@@ -105,6 +120,16 @@ LR_vector<number> DNA2ModInteraction<number>::rotateVectorAroundVersor(const LR_
 		versor.y * scalar * (1. - costh) + vector.y*costh + cross.y * sinth,
 		versor.z * scalar * (1. - costh) + vector.z*costh + cross.z * sinth
 		  );  
+}
+
+	//Create the rotation matrix around a vector
+template<typename number>
+LR_matrix<number> DNA2ModInteraction<number>::rotationMatrixAroundVersorByAngle(const LR_vector<number> versor, const number angle){
+	//Implementing Rodrigues rotation formula, as described e.g. on https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+	LR_matrix<number> K(0.,-versor.z,versor.y, versor.z,0.,-versor.x, -versor.y,versor.x,0.);
+	LR_matrix<number> identity(1.,0.,0., 0.,1.,0., 0.,0.,1.);
+	
+	return identity + K * sin(angle) + K * K * (1.-cos(angle));
 }
 
 extern "C" IBaseInteraction<float> *make_DNA2ModInteraction_float() { return new DNA2ModInteraction<float>(); }

@@ -105,6 +105,10 @@ public:
 		return LR_vector<number>(v1 * v, v2 * v, v3 * v);
 	}
 
+	inline LR_matrix operator*(number S) const {
+		return LR_matrix(v1 * S, v2 * S, v3 * S);
+	}
+
 	inline LR_matrix operator*(const LR_matrix& m) const {
 		LR_matrix tm = m.get_transpose();
 		return LR_matrix<number>(

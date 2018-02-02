@@ -10,6 +10,8 @@ DNA2ModInteraction<number>::DNA2ModInteraction() : DNA2Interaction<number>() {
 	_hb_multiplier_2 = 1.;
 	_mod_stacking_roll_2 = 0.;
 	_mod_stacking_tilt_2 = 0.;
+	_rotation_matrix_1 = LR_matrix<number>(1.,0.,0., 0.,1.,0., 0.,0.,1.);
+	_rotation_matrix_2 = LR_matrix<number>(1.,0.,0., 0.,1.,0., 0.,0.,1.);
 }
 template<typename number>
 void DNA2Interaction<number>::init() {
@@ -131,6 +133,8 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 		printf(" mod stacking roll_2 %g\n",_mod_stacking_roll_2);
 		printf(" mod stacking tilt_2 %g\n",_mod_stacking_tilt_2);
 	}
+	_rotation_matrix_2 = _get_rotation_matrix(_mod_stacking_roll_2, _mod_stacking_tilt_2);
+	_rotation_matrix_1 = _get_rotation_matrix(_mod_stacking_roll_1, _mod_stacking_tilt_1);
 
 }
 
@@ -141,11 +145,59 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 	LR_vector<number> &a1 = p->orientationT.v1;
 	LR_vector<number> &a2 = p->orientationT.v2;
 	LR_vector<number> &a3 = p->orientationT.v3;
-	LR_vector<number> &b1 = q->orientationT.v1;
-	LR_vector<number> &b2 = q->orientationT.v2;
-
+	LR_vector<number> b1_1 = q->orientationT.v1;
+	LR_vector<number> b2_1 = q->orientationT.v2;
+	
 	// The b3 vector is rolled and tilted as needed.
-	LR_vector<number> b3 = get_rotated_T_v3(q);
+	LR_vector<number> b3_1 = get_rotated_T_v3(q);
+	bool q_in_group_1 = _is_particle_in_group(q, _vec_group_1);
+	bool q_in_group_2 = _is_particle_in_group(q, _vec_group_2);
+	LR_vector<number> b3(0.,0.,0.);
+	LR_vector<number> b2(0.,0.,0.);
+	LR_vector<number> b1(0.,0.,0.);
+	LR_matrix<number> R;
+	if (q_in_group_1){
+		R = rotationMatrixAroundVersorByAngle(q->orientationT.v1, _mod_stacking_roll_1);
+		R = rotationMatrixAroundVersorByAngle(q->orientationT.v2, _mod_stacking_tilt_1) * R;
+		R = (R*q->orientation).get_transpose();
+		b1 = R.v1;
+		b2 = R.v2;
+		b3 = R.v3;
+	}
+	else if (q_in_group_2){
+		R = rotationMatrixAroundVersorByAngle(q->orientationT.v1, _mod_stacking_roll_2);
+		R = rotationMatrixAroundVersorByAngle(q->orientationT.v2, _mod_stacking_tilt_2) * R;
+		R = (R*q->orientation).get_transpose();
+		b1 = R.v1;
+		b2 = R.v2;
+		b3 = R.v3;
+		//b3 = R*q->orientationT.v3;
+	}
+	else b3 = q->orientationT.v3;
+	//LR_vector<number> b3 = q_in_group_1 ? _rotation_matrix_1 * q->orientationT.v3 : (q_in_group_2 ? _rotation_matrix_2 * q->orientationT.v3 : q->orientationT.v3);
+	number bcos = b3 * b3_1;
+	number angle = LRACOS(bcos)*180./M_PI;
+	number bcos_2 = b2 * b2_1;
+	number angle_2 = LRACOS(bcos_2)*180./M_PI;
+	number bcos_1 = b1 * b1_1;
+	number angle_1 = LRACOS(bcos_1)*180./M_PI;
+	if ((q_in_group_1 or q_in_group_2) and true){
+		printf("p[%d].v1 = %g %g %g\nrotated.v1 = %g %g %g\nnew_rota.v1 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v1.x,q->orientationT.v1.y,q->orientationT.v1.z, b1_1.x, b1_1.y, b1_1.z, b1.x, b1.y, b1.z, angle_1, bcos_1);
+		printf("p[%d].v2 = %g %g %g\nrotated.v2 = %g %g %g\nnew_rota.v2 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v2.x,q->orientationT.v2.y,q->orientationT.v2.z, b2_1.x, b2_1.y, b2_1.z, b2.x, b2.y, b2.z, angle_2, bcos_2);
+		printf("p[%d].v3 = %g %g %g\nrotated.v3 = %g %g %g\nnew_rota.v3 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v3.x,q->orientationT.v3.y,q->orientationT.v3.z, b3_1.x, b3_1.y, b3_1.z, b3.x, b3.y, b3.z, angle, bcos);
+		LR_matrix<number> m = q->orientationT;
+		printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",m.v1.x,m.v1.y,m.v1.z, m.v2.x,m.v2.y,m.v2.z, m.v3.x,m.v3.y,m.v3.z);
+		LR_matrix<number> rr = R*q->orientationT;
+		printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",rr.v1.x,rr.v1.y,rr.v1.z, rr.v2.x,rr.v2.y,rr.v2.z, rr.v3.x,rr.v3.y,rr.v3.z);
+		exit(1);
+	}
+		LR_matrix<number> rr(0.,.1,2., 3.,4.,5., 6.,7.,8.);
+		LR_matrix<number> m = rr * 2;
+		printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",rr.v1.x,rr.v1.y,rr.v1.z, rr.v2.x,rr.v2.y,rr.v2.z, rr.v3.x,rr.v3.y,rr.v3.z);
+		printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",m.v1.x,m.v1.y,m.v1.z, m.v2.x,m.v2.y,m.v2.z, m.v3.x,m.v3.y,m.v3.z);
+		exit(-1);
+	
+
 	//LR_vector<number> &b3 = q->orientationT.v3;
 
 	LR_vector<number> computed_r;
