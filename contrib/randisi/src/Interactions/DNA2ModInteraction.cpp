@@ -181,7 +181,7 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 	number angle_2 = LRACOS(bcos_2)*180./M_PI;
 	number bcos_1 = b1 * b1_1;
 	number angle_1 = LRACOS(bcos_1)*180./M_PI;
-	if ((q_in_group_1 or q_in_group_2) and true){
+	if ((q_in_group_1 or q_in_group_2) and false){
 		printf("p[%d].v1 = %g %g %g\nrotated.v1 = %g %g %g\nnew_rota.v1 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v1.x,q->orientationT.v1.y,q->orientationT.v1.z, b1_1.x, b1_1.y, b1_1.z, b1.x, b1.y, b1.z, angle_1, bcos_1);
 		printf("p[%d].v2 = %g %g %g\nrotated.v2 = %g %g %g\nnew_rota.v2 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v2.x,q->orientationT.v2.y,q->orientationT.v2.z, b2_1.x, b2_1.y, b2_1.z, b2.x, b2.y, b2.z, angle_2, bcos_2);
 		printf("p[%d].v3 = %g %g %g\nrotated.v3 = %g %g %g\nnew_rota.v3 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v3.x,q->orientationT.v3.y,q->orientationT.v3.z, b3_1.x, b3_1.y, b3_1.z, b3.x, b3.y, b3.z, angle, bcos);
@@ -191,12 +191,6 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",rr.v1.x,rr.v1.y,rr.v1.z, rr.v2.x,rr.v2.y,rr.v2.z, rr.v3.x,rr.v3.y,rr.v3.z);
 		exit(1);
 	}
-		LR_matrix<number> rr(0.,.1,2., 3.,4.,5., 6.,7.,8.);
-		LR_matrix<number> m = rr * 2;
-		printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",rr.v1.x,rr.v1.y,rr.v1.z, rr.v2.x,rr.v2.y,rr.v2.z, rr.v3.x,rr.v3.y,rr.v3.z);
-		printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",m.v1.x,m.v1.y,m.v1.z, m.v2.x,m.v2.y,m.v2.z, m.v3.x,m.v3.y,m.v3.z);
-		exit(-1);
-	
 
 	//LR_vector<number> &b3 = q->orientationT.v3;
 
