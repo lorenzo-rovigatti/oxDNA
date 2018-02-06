@@ -16,6 +16,7 @@
  * @verbatim
 particle1_id = <int> (particle 1 id)
 particle2_id = <int> (particle 2 id)
+print_header = <bool> (if true, print a header that explains the value of each column, and a newline after the list of particles. defaults to true)
 @endverbatim
  */
 template<typename number>
@@ -24,6 +25,7 @@ protected:
 	int _particle1_id;
 	int _particle2_id;
 	bool _print_all_particles;
+	bool _print_header;
 
 public:
 	PairEnergy();
