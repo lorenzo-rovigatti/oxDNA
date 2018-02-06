@@ -1,4 +1,4 @@
-v 2.3 (revision 6870, January 2018)
+v 2.3 (revision 6874, February 2018)
 	This new version contains a lot of under-the-hood improvements and a few more features. As 
 	far as we can tell, the code is fully backward compatible (input-file-wise).
 	Here is a condensed list of changes:
@@ -55,6 +55,7 @@ v 2.3 (revision 6870, January 2018)
 	lees_edwards_shear_rate = <float>
 	Only Bussi, Langevin and DPD thermostats should be used to control the temperature of simulations 
 	under shear.
+	- UTILS/base.py and its main accompanying scripts are now compatible with numpy > 1.10
 
 v 2.2.2 (June 2015)
 	Fixed the hairpin example (see https://sourceforge.net/p/oxdna/discussion/general/thread/92fbef91/?limit=25#3c9b)
