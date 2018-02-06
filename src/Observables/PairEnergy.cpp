@@ -12,7 +12,7 @@
 
 template<typename number>
 PairEnergy<number>::PairEnergy() {
-
+	_print_header = true;
 }
 
 template<typename number>
@@ -32,6 +32,8 @@ void PairEnergy<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 		getInputInt(&my_inp, "particle2_id", &tmp, 1);
 		_particle2_id = tmp;
 	}
+	if(getInputBoolAsInt(&my_inp,"print_header", &tmp,0) == KEY_FOUND)
+		_print_header = tmp;
 }
 
 template<typename number>
@@ -45,9 +47,11 @@ std::string PairEnergy<number>::get_output_string(llint curr_step) {
 	number total_energy_diff = 0.;
 	std::map<int, number> split_energies = this->_config_info.interaction->get_system_energy_split(this->_config_info.particles, *this->_config_info.N, this->_config_info.lists);
 
-	if((int) split_energies.size() == 7)
-		output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK total, t = " << curr_step << "\n";
-	else output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK DH total, t = " << curr_step << "\n";
+	if( _print_header){
+		if((int) split_energies.size() == 7)
+			output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK total, t = " << curr_step << "\n";
+		else output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK DH total, t = " << curr_step << "\n";
+	}
 
 	for(typename std::map<int, number>::iterator l = split_energies.begin(); l != split_energies.end(); l++)
 		total_energy_diff += (*l).second;
@@ -79,7 +83,7 @@ std::string PairEnergy<number>::get_output_string(llint curr_step) {
 			if(interaction_exists)
 				output_str << pair_string.str();
 		}
-		output_str << "#Total energy per particle is  " << total_energy / *this->_config_info.N << " and should be " << total_energy_diff / *this->_config_info.N << '\n';
+		output_str << "#Total energy per particle is  " << total_energy / *this->_config_info.N << " and should be " << total_energy_diff / *this->_config_info.N << '\n'*_print_header;
 	}
 	else {
 		p = this->_config_info.particles[_particle1_id];
@@ -95,7 +99,7 @@ std::string PairEnergy<number>::get_output_string(llint curr_step) {
 			total_energy += k_th_interaction;
 			pair_string << " " << k_th_interaction;
 		}
-		pair_string << " " << pair_interaction << '\n';
+		pair_string << " " << pair_interaction << '\n'*_print_header;
 		// always print even if the interaction energy is zero
 		output_str << pair_string.str();
 
