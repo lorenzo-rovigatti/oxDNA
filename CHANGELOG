@@ -1,3 +1,7 @@
+v 2.3.1
+	Bugfixing release:
+	- Fixed a bug that would prevent compilation on Apple systems
+
 v 2.3 (revision 6874, February 2018)
 	This new version contains a lot of under-the-hood improvements and a few more features. As 
 	far as we can tell, the code is fully backward compatible (input-file-wise).
