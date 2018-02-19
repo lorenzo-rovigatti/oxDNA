@@ -24,6 +24,7 @@ box					see get_TM
 '''
 complementary_base = {'A':'T', 'T':'A', 'C':'G', 'G':'C'}
 complementary_base.update({k.lower():v.lower() for k,v in complementary_base.iteritems()})
+R_cal_mol_K = 1.9858775 
 
 def pretty_print_duplex(seq, comp_seq, seq_is_53 = True):
 	'''
@@ -108,8 +109,18 @@ def get_duplex_concentration_from_box(box_size, box_unit = oxDNA_box_unit):
 	alt_duplex_concentration = 2.6868994 / (box_size*box_size*box_size) ;
 	return duplex_concentration
 
+def get_TM_from_H_S_duplexC(H,S,duplexC, strand_is_self_complementary = False):
+	'''
+	Get the duplex melting temperature from provided DeltaH, DeltaS for a given duplex concentration.
 	
-def get_TM(seq,boxsize=16.4,salt_conc=0.5,seq_comp = [],duplex_concentration = None, phosphate_correction = 0.):
+	The DeltaH and DeltaS should all be given in cal/mol (or cal/mol K), and T will be in degrees Celsius.
+	If the strand is self-complementary, the third argument should be set to True.
+	'''
+	x = 4 - 3 * strand_is_self_complementary
+	return H / (S + R_cal_mol_K * math.log( 2 * duplexC / x)) - 273.15
+	
+	
+def get_TM(seq,boxsize = 16.4,salt_conc = 0.5,seq_comp = [],duplex_concentration = None, phosphate_correction = 0.):
 	'''
 	Computes melting temperature, DeltaH and DeltaS of a DNA duplex.
 
@@ -292,10 +303,9 @@ def get_TM(seq,boxsize=16.4,salt_conc=0.5,seq_comp = [],duplex_concentration = N
 	salt_correction = 0.368 * (len(seq) + phosphate_correction) * math.log(salt_conc)
 	deltaS += salt_correction
  
-	GAS_CONSTANT = 1.9858775 
 
 
-	Tm = deltaH / (deltaS + GAS_CONSTANT * math.log(duplex_concentration/divisor));
+	Tm = deltaH / (deltaS + R_cal_mol_K * math.log(duplex_concentration/divisor));
 	return Tm - 273.15, deltaH, deltaS
 
 if __name__ == '__main__':
