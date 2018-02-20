@@ -28,25 +28,28 @@
 
 template<typename number>
 class DNA2ModInteraction: public DNA2Interaction<number> {
-	private:
+	protected:
+		number *_a_hb_multiplier, *_a_stacking_roll, *_a_stacking_r_roll, *_a_stacking_tilt;
 // Horrible copy-paste that should be substituted with a vector as needed
+	private:
 		std::vector<int> _vec_group_1;
 		number _hb_multiplier_1;
 		number _mod_stacking_roll_1;
 		number _mod_stacking_r_roll_1;
 		number _mod_stacking_tilt_1;
-		LR_matrix<number> _rotation_matrix_1;
 
 		std::vector<int> _vec_group_2;
 		number _hb_multiplier_2;
 		number _mod_stacking_roll_2;
 		number _mod_stacking_r_roll_2;
 		number _mod_stacking_tilt_2;
-		LR_matrix<number> _rotation_matrix_2;
 
 		static std::vector<int> unsafeGetParticlesFromString(std::string particle_string, char const * identifier);
 		virtual bool _is_particle_in_group(BaseParticle<number> *particle, std::vector<int> group){
 			return std::find(group.begin(), group.end(), particle->index) != group.end();
+		}
+		virtual bool _is_integer_in_group(int integer, std::vector<int> group){
+			return std::find(group.begin(), group.end(), integer) != group.end();
 		}
 		// get the matrix that rotates the vectors in order to change the stacking
 		inline LR_matrix<number> _get_rotation_matrix(number const roll, number const tilt){
@@ -61,7 +64,7 @@ class DNA2ModInteraction: public DNA2Interaction<number> {
 
 	public:
 		DNA2ModInteraction();
-		virtual ~DNA2ModInteraction() {}
+		virtual ~DNA2ModInteraction();
 		virtual void get_settings(input_file &inp);
 		virtual inline number get_hb_multiplier(BaseParticle<number> *p, BaseParticle<number> *q){ 
 			number hb_multiplier = (abs(p->btype) >= 300 && abs(q->btype) >= 300) ? this->_hb_multiplier : 1.f; 
@@ -134,7 +137,6 @@ LR_matrix<number> DNA2ModInteraction<number>::rotationMatrixAroundVersorByAngle(
 	return identity + K * sin(angle) + K * K * (1.-cos(angle));
 }
 
-extern "C" IBaseInteraction<float> *make_DNA2ModInteraction_float() { return new DNA2ModInteraction<float>(); }
-extern "C" IBaseInteraction<double> *make_DNA2ModInteraction_double() { return new DNA2ModInteraction<double>(); }
-
+extern "C" IBaseInteraction<float> *make_DNA2ModInteraction_float();
+extern "C" IBaseInteraction<double> *make_DNA2ModInteraction_double(); 
 #endif /* DNA2MOD_INTERACTION_H */

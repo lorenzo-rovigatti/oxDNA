@@ -12,8 +12,14 @@ DNA2ModInteraction<number>::DNA2ModInteraction() : DNA2Interaction<number>() {
 	_mod_stacking_roll_2 = 0.;
 	_mod_stacking_r_roll_2 = 0.;
 	_mod_stacking_tilt_2 = 0.;
-	_rotation_matrix_1 = LR_matrix<number>(1.,0.,0., 0.,1.,0., 0.,0.,1.);
-	_rotation_matrix_2 = LR_matrix<number>(1.,0.,0., 0.,1.,0., 0.,0.,1.);
+	_a_hb_multiplier = _a_stacking_roll = _a_stacking_r_roll = _a_stacking_tilt = NULL;
+}
+template<typename number>
+DNA2ModInteraction<number>::~DNA2ModInteraction(){
+	delete[] _a_hb_multiplier;
+	delete[] _a_stacking_roll;
+	delete[] _a_stacking_r_roll;
+	delete[] _a_stacking_tilt;
 }
 template<typename number>
 void DNA2Interaction<number>::init() {
@@ -143,8 +149,34 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 		printf(" mod stacking tilt_2 %g\n",_mod_stacking_tilt_2);
 		printf(" mod hb multiplier 2 %g\n",_hb_multiplier_2);
 	}
-	_rotation_matrix_2 = _get_rotation_matrix(_mod_stacking_roll_2, _mod_stacking_tilt_2);
-	_rotation_matrix_1 = _get_rotation_matrix(_mod_stacking_roll_1, _mod_stacking_tilt_1);
+	// initialise the arrays
+	int N = this->get_N_from_topology();
+	_a_hb_multiplier = new number[N];
+	_a_stacking_tilt = new number[N];
+	_a_stacking_roll = new number[N];
+	_a_stacking_r_roll = new number[N];
+
+	for (int i = 0; i < N; i++){
+		if (_is_integer_in_group(i, _vec_group_1)){
+			_a_hb_multiplier[i] = _hb_multiplier_1;
+			_a_stacking_tilt[i] = _mod_stacking_tilt_1;
+			_a_stacking_roll[i] = _mod_stacking_roll_1;
+			_a_stacking_r_roll[i] = _mod_stacking_r_roll_1;
+		}
+		else if (_is_integer_in_group(i, _vec_group_2)){
+			_a_hb_multiplier[i] = _hb_multiplier_2;
+			_a_stacking_tilt[i] = _mod_stacking_tilt_2;
+			_a_stacking_roll[i] = _mod_stacking_roll_2;
+			_a_stacking_r_roll[i] = _mod_stacking_r_roll_2;
+		}
+		else{
+			_a_hb_multiplier[i] = 1.;
+			_a_stacking_tilt[i] = 0.;
+			_a_stacking_roll[i] = 0.;
+			_a_stacking_r_roll[i] = 0.;
+		}
+
+	}
 
 }
 
@@ -166,6 +198,7 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 	LR_vector<number> b2(0.,0.,0.);
 	LR_vector<number> b1(0.,0.,0.);
 	LR_matrix<number> R;
+	number stack_roll=0,stack_r_roll=0,stack_tilt=0,hb_multi=1.;
 	if (q_in_group_1){
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v1, _mod_stacking_roll_1);
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v2, _mod_stacking_tilt_1) * R;
@@ -173,6 +206,10 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		b1 = R.v1;
 		b2 = R.v2;
 		b3 = R.v3;
+		stack_roll=_mod_stacking_roll_1;
+		stack_r_roll=_mod_stacking_r_roll_1;
+		stack_tilt=_mod_stacking_tilt_1;
+		hb_multi = _hb_multiplier_1;
 	}
 	else if (q_in_group_2){
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v1, _mod_stacking_roll_2);
@@ -181,10 +218,19 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		b1 = R.v1;
 		b2 = R.v2;
 		b3 = R.v3;
+		stack_roll=_mod_stacking_roll_2;
+		stack_r_roll=_mod_stacking_r_roll_2;
+		stack_tilt=_mod_stacking_tilt_2;
+		hb_multi = _hb_multiplier_2;
 		//b3 = R*q->orientationT.v3;
 	}
 	else b3 = q->orientationT.v3;
-	//LR_vector<number> b3 = q_in_group_1 ? _rotation_matrix_1 * q->orientationT.v3 : (q_in_group_2 ? _rotation_matrix_2 * q->orientationT.v3 : q->orientationT.v3);
+	// TODO: just use the array values for the angles every time this is necessary, and remove the choice structure above, as soon as it's clear that the following exception is never triggered. 
+	// TODO: the same should be done in hydrogen_bonding
+	if (stack_roll != _a_stacking_roll[q->index] or stack_r_roll != _a_stacking_r_roll[q->index] or stack_tilt != _a_stacking_tilt[q->index] or hb_multi != _a_hb_multiplier[q->index]){
+		throw oxDNAException("SBANGABANGA!!!!!\n");
+	}
+
 	number bcos = b3 * b3_1;
 	number angle = LRACOS(bcos)*180./M_PI;
 	number bcos_2 = b2 * b2_1;
@@ -495,5 +541,7 @@ number DNA2ModInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, Ba
 	return energy;
 }
 
+extern "C" IBaseInteraction<float> *make_DNA2ModInteraction_float() { return new DNA2ModInteraction<float>(); }
+extern "C" IBaseInteraction<double> *make_DNA2ModInteraction_double() { return new DNA2ModInteraction<double>(); }
 template class DNA2ModInteraction<float>;
 template class DNA2ModInteraction<double>;
