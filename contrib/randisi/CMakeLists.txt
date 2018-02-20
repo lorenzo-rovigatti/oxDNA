@@ -15,3 +15,7 @@ SET(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 # Interactions
 ADD_LIBRARY(DNA2ModInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/DNA2ModInteraction.cpp)
+IF(CUDA)
+	CUDA_ADD_LIBRARY(CUDADNA2ModInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDADNA2ModInteraction.cu src/Interactions/DNA2ModInteraction.cpp)
+	ADD_DEPENDENCIES(randisi CUDADNA2ModInteraction)
+ENDIF(CUDA)

@@ -6,9 +6,11 @@ template<typename number>
 DNA2ModInteraction<number>::DNA2ModInteraction() : DNA2Interaction<number>() {
 	_hb_multiplier_1 = 1.;
 	_mod_stacking_roll_1 = 0.;
+	_mod_stacking_r_roll_1 = 0.;
 	_mod_stacking_tilt_1 = 0.;
 	_hb_multiplier_2 = 1.;
 	_mod_stacking_roll_2 = 0.;
+	_mod_stacking_r_roll_2 = 0.;
 	_mod_stacking_tilt_2 = 0.;
 	_rotation_matrix_1 = LR_matrix<number>(1.,0.,0., 0.,1.,0., 0.,0.,1.);
 	_rotation_matrix_2 = LR_matrix<number>(1.,0.,0., 0.,1.,0., 0.,0.,1.);
@@ -116,22 +118,30 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 	
 		getInputNumber(&inp, "mod_hb_multiplier_1", &_hb_multiplier_1,0);
 		getInputNumber(&inp, "mod_stacking_roll_1", &_mod_stacking_roll_1,0);
+		getInputNumber(&inp, "mod_stacking_r_roll_1", &_mod_stacking_r_roll_1,0);
 		getInputNumber(&inp, "mod_stacking_tilt_1", &_mod_stacking_tilt_1,0);
 		_mod_stacking_roll_1 *= M_PI / 180.;
+		_mod_stacking_r_roll_1 *= M_PI / 180.;
 		_mod_stacking_tilt_1 *= M_PI / 180.;
 		printf(" mod stacking roll_1 %g\n",_mod_stacking_roll_1);
+		printf(" mod stacking r_roll_1 %g\n",_mod_stacking_r_roll_1);
 		printf(" mod stacking tilt_1 %g\n",_mod_stacking_tilt_1);
+		printf(" mod hb multiplier 1 %g\n",_hb_multiplier_1);
 	}
 	if (KEY_FOUND == getInputString(&inp, "mod_nucleotide_group_2", temp, 0)){
 		_vec_group_2 = unsafeGetParticlesFromString(temp,"DNA2_mod interaction");
 	
 		getInputNumber(&inp, "mod_hb_multiplier_2", &_hb_multiplier_2,0);
 		getInputNumber(&inp, "mod_stacking_roll_2", &_mod_stacking_roll_2,0);
+		getInputNumber(&inp, "mod_stacking_r_roll_2", &_mod_stacking_r_roll_2,0);
 		getInputNumber(&inp, "mod_stacking_tilt_2", &_mod_stacking_tilt_2,0);
 		_mod_stacking_roll_2 *= M_PI / 180.;
+		_mod_stacking_r_roll_2 *= M_PI / 180.;
 		_mod_stacking_tilt_2 *= M_PI / 180.;
 		printf(" mod stacking roll_2 %g\n",_mod_stacking_roll_2);
+		printf(" mod stacking r_roll_2 %g\n",_mod_stacking_r_roll_2);
 		printf(" mod stacking tilt_2 %g\n",_mod_stacking_tilt_2);
+		printf(" mod hb multiplier 2 %g\n",_hb_multiplier_2);
 	}
 	_rotation_matrix_2 = _get_rotation_matrix(_mod_stacking_roll_2, _mod_stacking_tilt_2);
 	_rotation_matrix_1 = _get_rotation_matrix(_mod_stacking_roll_1, _mod_stacking_tilt_1);
@@ -205,9 +215,13 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 	// used as a reference point for things that have nothing to do with the actual backbone
 	// position (in this case, the stacking interaction).
 	LR_vector<number> rbackref = *r + b1 * POS_BACK - a1 * POS_BACK;
+	if (q_in_group_1) rbackref = rotateVectorAroundVersor(rbackref, q->orientationT.v1, _mod_stacking_r_roll_1);
+	else if (q_in_group_2) rbackref = rotateVectorAroundVersor(rbackref, q->orientationT.v1, _mod_stacking_r_roll_2);
 	number rbackrefmod = rbackref.module();
 
 	LR_vector<number> rstack = *r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
+	if (q_in_group_1) rstack = rotateVectorAroundVersor(rstack, q->orientationT.v1, _mod_stacking_r_roll_1);
+	else if (q_in_group_2) rstack = rotateVectorAroundVersor(rstack, q->orientationT.v1, _mod_stacking_r_roll_2);
 	number rstackmod = rstack.module();
 	LR_vector<number> rstackdir = rstack / rstackmod;
 

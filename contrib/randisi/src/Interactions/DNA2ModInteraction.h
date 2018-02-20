@@ -33,12 +33,14 @@ class DNA2ModInteraction: public DNA2Interaction<number> {
 		std::vector<int> _vec_group_1;
 		number _hb_multiplier_1;
 		number _mod_stacking_roll_1;
+		number _mod_stacking_r_roll_1;
 		number _mod_stacking_tilt_1;
 		LR_matrix<number> _rotation_matrix_1;
 
 		std::vector<int> _vec_group_2;
 		number _hb_multiplier_2;
 		number _mod_stacking_roll_2;
+		number _mod_stacking_r_roll_2;
 		number _mod_stacking_tilt_2;
 		LR_matrix<number> _rotation_matrix_2;
 
