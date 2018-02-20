@@ -1,4 +1,4 @@
-#! /usr/local/shared/python/2.7.6-gcc/bin/python
+#! /usr/bin/env python
 
 """
 This program reads an oxDNA trajectory, and, if the file NO_DISCARD
