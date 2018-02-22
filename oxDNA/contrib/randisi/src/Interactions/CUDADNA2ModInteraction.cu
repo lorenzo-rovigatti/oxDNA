@@ -1,8 +1,8 @@
 /*
  * CUDADNA2ModInteraction.cu
  *
- *  Created on: 22/feb/2013
- *      Author: lorenzo
+ *  Created on: 5/feb/2018
+ *      Author: Ferdinando, after CUDADNAInteraction.cu by Lorenzo
  */
 
 #include "CUDADNA2ModInteraction.h"
@@ -10,7 +10,7 @@
 #include "CUDA_DNA2ModInteraction.cuh"
 #include "CUDA/Lists/CUDASimpleVerletList.h"
 #include "CUDA/Lists/CUDANoList.h"
-#include "Interactions/DNA2Interaction.h"
+#include "DNA2ModInteraction.h"
 
 #include "CUDA/cuda_utils/CUDA_lr_common.cuh"
 template<typename number, typename number4>

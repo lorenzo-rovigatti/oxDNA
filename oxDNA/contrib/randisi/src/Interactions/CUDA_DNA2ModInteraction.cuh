@@ -324,13 +324,6 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 	}
 
 	// STACKING
-	number4 rstack = r + n3pos_stack - n5pos_stack;
-	number rstackmod = _module<number, number4>(rstack);
-	number4 rstackdir = make_number4<number, number4>(rstack.x / rstackmod, rstack.y / rstackmod, rstack.z / rstackmod, 0);
-	// This is the position the backbone would have with major-minor grooves the same width.
-	// We need to do this to implement different major-minor groove widths because rback is
-	// used as a reference point for things that have nothing to do with the actual backbone
-	// position (in this case, the stacking interaction).
 	
 	////////////// DNA2Mod 
 	// Here we write a piece of code that rotates the vectors n3x, n3y, n3z as needed.
@@ -350,26 +343,38 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
   number4 n3y_1 = CUDA_rotateVectorAroundVersor(n3y,n3x,stacking_roll);
   number4 n3z_1 = CUDA_rotateVectorAroundVersor(n3z,n3x,stacking_roll);
 	//then rotate the vectors around the second vector
-  n3x_1 = CUDA_rotateVectorAroundVersor(n3x,n3y,stacking_tilt);
+  n3x_1 = CUDA_rotateVectorAroundVersor(n3x_1,n3y,stacking_tilt);
   n3y_1 = n3y_1;
-  n3z_1 = CUDA_rotateVectorAroundVersor(n3z,n3y,stacking_tilt);
-/*
-	printf("p[%d].v1 = %g %g %g\nrotated.v1 = %g %g %g\nnew_rota.v1 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v1.x,q->orientationT.v1.y,q->orientationT.v1.z, b1_1.x, b1_1.y, b1_1.z, b1.x, b1.y, b1.z, angle_1, bcos_1);
-	printf("p[%d].v2 = %g %g %g\nrotated.v2 = %g %g %g\nnew_rota.v2 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v2.x,q->orientationT.v2.y,q->orientationT.v2.z, b2_1.x, b2_1.y, b2_1.z, b2.x, b2.y, b2.z, angle_2, bcos_2);
-	printf("p[%d].v3 = %g %g %g\nrotated.v3 = %g %g %g\nnew_rota.v3 = %g %g %g, angle %g, cos %g\n",q->index,q->orientationT.v3.x,q->orientationT.v3.y,q->orientationT.v3.z, b3_1.x, b3_1.y, b3_1.z, b3.x, b3.y, b3.z, angle, bcos);
-	LR_matrix<number> m = q->orientationT;
-	printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",m.v1.x,m.v1.y,m.v1.z, m.v2.x,m.v2.y,m.v2.z, m.v3.x,m.v3.y,m.v3.z);
-	LR_matrix<number> rr = R*q->orientationT;
-	printf("orientationT:\n%g\t%g\t%g\n%g\t%g\t%g\n%g\t%g\t%g\n",rr.v1.x,rr.v1.y,rr.v1.z, rr.v2.x,rr.v2.y,rr.v2.z, rr.v3.x,rr.v3.y,rr.v3.z);
-	exit(1);
-	*/
+  n3z_1 = CUDA_rotateVectorAroundVersor(n3z_1,n3y,stacking_tilt);
+	
+	number4 n3_1pos_stack = n3x_1 * POS_STACK;
+///*
+	if (stacking_roll != 0 && 0){
+		number bcos_1 = CUDA_DOT(n3x, n3x_1);
+		number angle_1 = CUDA_LRACOS(bcos_1) * 180./M_PI;
+		number bcos_2 = CUDA_DOT(n3y, n3y_1);
+		number angle_2 = CUDA_LRACOS(bcos_2) * 180./M_PI;
+		number bcos_3 = CUDA_DOT(n3z, n3z_1);
+		number angle_3 = CUDA_LRACOS(bcos_3) * 180./M_PI;
+		printf("stacking_roll = %g\n",stacking_roll);
+		printf("p[%d].v1 = %g %g %g\nrotated.v1 = %g %g %g\n angle %g, cos %g\n",0, n3x.x, n3x.y, n3x.z, n3x_1.x, n3x_1.y, n3x_1.z, angle_1, bcos_1);
+		printf("p[%d].v2 = %g %g %g\nrotated.v2 = %g %g %g\n angle %g, cos %g\n",0, n3y.x, n3y.y, n3y.z, n3y_1.x, n3y_1.y, n3y_1.z, angle_2, bcos_2);
+		printf("p[%d].v3 = %g %g %g\nrotated.v3 = %g %g %g\n angle %g, cos %g\n",0, n3z.x, n3z.y, n3z.z, n3z_1.x, n3z_1.y, n3z_1.z, angle_3, bcos_3);
+		asm("trap;");
+	}
+//	*/
 	
 	//TODO: write something that checks that it's working properly.
-	//TODO: options include setting the w component of some orientation vector, or 
-  //TODO: do the same thing that TEP does.
 
 	
 	////////////// DNA2Mod 
+	number4 rstack = r + n3_1pos_stack - n5pos_stack;
+	number rstackmod = _module<number, number4>(rstack);
+	number4 rstackdir = make_number4<number, number4>(rstack.x / rstackmod, rstack.y / rstackmod, rstack.z / rstackmod, 0);
+	// This is the position the backbone would have with major-minor grooves the same width.
+	// We need to do this to implement different major-minor groove widths because rback is
+	// used as a reference point for things that have nothing to do with the actual backbone
+	// position (in this case, the stacking interaction).
 	number4 rbackref = r + n3x_1 * POS_BACK - n5x * POS_BACK;
 	number rbackrefmod = _module<number, number4>(rbackref);
 

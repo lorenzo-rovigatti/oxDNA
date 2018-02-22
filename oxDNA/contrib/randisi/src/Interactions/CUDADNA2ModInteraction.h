@@ -1,9 +1,9 @@
 /*
  * CUDADNA2ModInteraction.h
  *
- *  Created on: 22/feb/2013
- *      Author: lorenzo
- *      re-Author: Ferdinando 5feb2018
+ *  Created on: 5/feb/2018
+ *      Author: Ferdinando 
+ *      re-Author: Ferdinando, after CUDADNAInteraction.h by Lorenzo
  */
 
 #ifndef CUDADNA2MODINTERACTION_H_
