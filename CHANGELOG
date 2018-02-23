@@ -2,9 +2,11 @@ v 2.3.1
 	Bugfixing release:
 	- Fixed a bug that would prevent compilation on Apple systems
 	- Fixed a bug introduced in the previous version that broke the mindistance order parameter.
-  - Added a function to SantaLucia.py that computes the melting temperature of a duplex from given
-    values of DeltaH, DeltaS, and duplex concentration.
-  - Minor clean-up to SantaLucia.py and cullTraj.py.
+	- Fixed a bug in the cadnano_interface.py that prevented the processing of sequence files with 
+	  \r\n newline sequences.
+	- Added a function to SantaLucia.py that computes the melting temperature of a duplex from given 
+	  values of DeltaH, DeltaS, and duplex concentration.
+	- Minor clean-up to SantaLucia.py and cullTraj.py.
 
 v 2.3 (revision 6874, February 2018)
 	This new version contains a lot of under-the-hood improvements and a few more features. As 
