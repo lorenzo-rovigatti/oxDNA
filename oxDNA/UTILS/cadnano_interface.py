@@ -11,6 +11,7 @@ import re
 from utils import *
 import pickle
 import origami_utils as oru
+import re
 
 DEBUG = 0
 DIST_HEXAGONAL=2.55 #distance between centres of virtual helices (hexagonal array)
@@ -769,10 +770,12 @@ def main():
         block_seq = True
         if sequence_file:
             base.Logger.log("using sequence file caca.sqs", base.Logger.INFO)
+            # with this we can remove all whitespace and we don't have issues with the different newline sequences (\n vs \r\n)
+            pattern = re.compile('\s+')
             lines = sequence_file.readlines()
             for line in lines:
                 seq = []
-                for x in line.replace("\n","").replace(" ",""):
+                for x in re.sub(pattern, '', line):
                     if x in ["R","r"]:
                         seq.append(np.random.randint(0, 4))
                     else:
