@@ -1,3 +1,9 @@
+v 2.3.2
+	Bugfixing release:
+	- Fixed a bug in SimManager.cpp that would make the ambigous case of equilibration_steps>0
+	  and restart_step_counter=false misbehave
+	- Removed the inclusion of xlocale.h from defs.h
+
 v 2.3.1
 	Bugfixing release:
 	- Fixed a bug that would prevent compilation on Apple systems

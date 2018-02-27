@@ -66,6 +66,14 @@ void SimManager::_get_options() {
 	getInputInt(&_input, "print_energy_every", &_print_energy_every, 0);
 	getInputLLInt(&_input, "steps", &_steps, 1);
 	getInputLLInt(&_input, "equilibration_steps", &_equilibration_steps, 0);
+	
+	// check that equilibration is only run on a simulation 
+	bool my_restart_step_counter = false;
+	getInputBool(&_input, "restart_step_counter", &my_restart_step_counter, 0);
+	if (my_restart_step_counter == false && _equilibration_steps > 0) {
+		throw oxDNAException("Incompatible key values found:\n\tif equilibration_steps > 0, restart_step_counter must be set to true.\n\tAborting");
+	}
+
 	if (_equilibration_steps < 0) throw oxDNAException ("Equilibration steps can not be < 0. Aborting");
 	if (getInputInt(&_input, "seed", &_seed, 0) == KEY_NOT_FOUND) {
 		_seed = time(NULL);
