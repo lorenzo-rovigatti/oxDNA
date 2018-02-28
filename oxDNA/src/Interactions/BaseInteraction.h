@@ -350,7 +350,7 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 				BaseParticle<number> * p2 = p->affected[n].second;
 				if(p1->index <= p->index && p2->index <= p->index) {
 					number e = pair_interaction_bonded (p1, p2);
-					if(isnan(e) || e > _energy_threshold) inserted = false;
+					if(std::isnan(e) || e > _energy_threshold) inserted = false;
 				}
 			}
 
@@ -363,7 +363,7 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 			}
 
 			// we take into account the external potential
-			if(isnan(p->ext_potential) || p->ext_potential > _energy_threshold) inserted = false;
+			if(std::isnan(p->ext_potential) || p->ext_potential > _energy_threshold) inserted = false;
 
 		} while(!inserted);
 
