@@ -13,7 +13,7 @@
 #define VERSION_MINOR 3
 #define VERSION_STAGE 2 // 0 alpha, 1 beta, 2 stable
 
-#define MAX_EXT_FORCES 10
+#define MAX_EXT_FORCES 15
 
 #define PI 3.141592653589793238462643f
 #define SQR(x) ((x) * (x))
