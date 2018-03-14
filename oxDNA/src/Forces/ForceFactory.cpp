@@ -40,7 +40,9 @@ ForceFactory<number>::ForceFactory() {
 
 template <typename number>
 ForceFactory<number>::~ForceFactory() {
-	for (unsigned int i =0; i < _forces.size(); i ++) delete _forces[i];
+	for(unsigned int i = 0; i < _forces.size(); i ++) {
+		delete _forces[i];
+	}
 }
 
 template <typename number>
@@ -90,7 +92,6 @@ template<typename number>
 void ForceFactory<number>::read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA,BaseBox<number> * box) {
 	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
 
-	//char line[512], typestr[512];
 	int open, justopen, a;
 	ifstream external(external_filename.c_str());
 
@@ -152,8 +153,8 @@ void ForceFactory<number>::read_external_forces(std::string external_filename, B
 
 		ForceFactory<number>::instance()->add_force(input, particles, N, is_CUDA, box);
 
-		cleanInputFile (&input);
-		fclose (temp);
+		cleanInputFile(&input);
+		fclose(temp);
 	}
 	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());
 }
