@@ -453,7 +453,7 @@ void qh__face_init(qh_face_t* face, qh_index_t vertices[3], qh_context_t* contex
 void qh__tetrahedron_basis(qh_context_t* context, qh_index_t vertices[3])
 {
     qh_index_t eps[6];
-    int i, j, k, l;
+    int i, j, k, l = 0;
     float max = -QH_FLT_MAX;
 
     qh__find_6eps(context->vertices, context->nvertices, eps);
@@ -505,7 +505,7 @@ qh_index_t qh__furthest_point_from_plane(qh_context_t* context,
     qh_vec3_t* normal,
     float sdist)
 {
-    int i, j;
+    int i, j = 0;
     float max = -QH_FLT_MAX;
 
     for (i = 0; i < nindices; ++i) {
