@@ -41,6 +41,7 @@ class Writhe : public BaseObservable<number> {
 		int _last_particle_index;
 		int _subdomain_size;
 		int _N;
+		bool _particles_are_bases;
 
 		bool _go_around;
 		bool _use_default_go_around;
