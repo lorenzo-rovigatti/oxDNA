@@ -26,6 +26,7 @@ Writhe<number>::Writhe() {
 	_size_outer_threshold = 30;
 	_minimum_plectoneme_size = 1;
 	_bending_angle_number_segments = 0;
+	_particles_are_bases = true;
 }
 
 template<typename number>
@@ -148,6 +149,19 @@ void Writhe<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputBool(&my_inp, "locate_plectonemes", &_locate_plectonemes, 0);
 	getInputNumber(&my_inp, "writhe_threshold", &_writhe_threshold, 0);
+	if (_writhe_threshold < 0) throw oxDNAException("In observable writhe, writhe_threshold is used to compare the absolute value of the local writhe, so it can't be set to a negative value.");
+	
+	// check whether we're using the oxDNA/oxRNA models, or kTEP
+	std::string inter_type("DNA");
+	if(getInputString(&sim_inp, "interaction_type",inter_type,0) == KEY_FOUND){
+		if (inter_type.substr(0,3) == "DNA" or inter_type.substr(0,3) == "RNA"){
+			_particles_are_bases = true;
+		}
+		else
+			_particles_are_bases = false;
+	}// the default interaction is DNA
+	else _particles_are_bases = true;
+	if (_particles_are_bases) throw oxDNAException("Writhe observable NOT IMPLEMENTED for DNA or RNA.");
 
 }
 
@@ -156,6 +170,11 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 	string result;
 	BaseParticle<number> **p = this->_config_info.particles;
 	LR_vector<number> r, rp, t, tp;
+	LR_vector<number> *positions = new LR_vector<number>[_N];
+	// get the positions of the array - will later have to be done with the get_helical_axis_from_duplex
+	for (int i = 0; i <= _last_particle_index - _first_particle_index; i++){
+		positions[i] = p[i]->pos;
+	}
 
 	number writhe = 0;
 	//number writhetemp = 0;
@@ -233,8 +252,8 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 					peak_value = abs(writhe);
 					peak_position = (int) (k + _subdomain_size / 2.);
 				}
-				// When the writhe goes below the threshold, the peak is over.
-				else if(abs(writhe) < _writhe_threshold) {
+				// When the writhe goes below the threshold, or when we have reached the end of the chain, the peak is over.
+				else if(abs(writhe) < _writhe_threshold or k == _last_particle_index) {
 					on_peak = false;
 					if(peak_position > _last_particle_index) {
 						peak_position -= (_last_particle_index - _first_particle_index + 1);
@@ -301,7 +320,7 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 							}
 						}
 					}
-					else sprintf(temp, "%d\t", peak_position);
+					else result += Utils::sformat("%d\t",peak_position);
 				}
 			}
 		}
