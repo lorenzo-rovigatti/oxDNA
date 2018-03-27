@@ -14,6 +14,7 @@ template<typename number>
 RepulsiveSphere<number>::RepulsiveSphere() : BaseForce<number>() {
 	_particle = -1;
 	_r0 = -1.;
+	_r_ext = 1e10;
 	_center = LR_vector<number>(0., 0., 0.);
 	_rate = 0.;
 	_box_ptr = NULL;
@@ -24,6 +25,7 @@ void RepulsiveSphere<number>::get_settings (input_file &inp) {
 	getInputNumber(&inp, "stiff", &this->_stiff, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
 	getInputNumber(&inp, "rate", &_rate, 0);
+	getInputNumber(&inp, "r_ext", &_r_ext, 0);
 	getInputInt(&inp, "particle", &_particle, 1);
 
 	std::string strdir;
@@ -55,7 +57,7 @@ LR_vector<number> RepulsiveSphere<number>::value(llint step, LR_vector<number> &
 	number mdist = dist.module();
 	number radius = _r0 + _rate * (number) step;
 
-	if(mdist <= radius) return LR_vector<number>(0., 0., 0.);
+	if(mdist <= radius || mdist >= _r_ext) return LR_vector<number>(0., 0., 0.);
 	else return dist * (- this->_stiff * (1. - radius / mdist));
 }
 
@@ -65,7 +67,7 @@ number RepulsiveSphere<number>::potential (llint step, LR_vector<number> &pos) {
 	number mdist = dist.module();
 	number radius = _r0 + _rate * (number) step;
 
-	if (mdist <= radius) return 0.;
+	if(mdist <= radius || mdist >= _r_ext) return 0.;
 	else return 0.5 * this->_stiff * (mdist - radius) * (mdist - radius);
 }
 
