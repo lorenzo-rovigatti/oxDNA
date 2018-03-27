@@ -103,6 +103,7 @@ struct repulsive_sphere {
 	number stiff;
 	number r0;
 	number rate;
+	number r_ext;
 	float3 centre;
 };
 

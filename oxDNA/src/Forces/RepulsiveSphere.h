@@ -47,6 +47,8 @@ public:
 
 	/// initial radius of the sphere and rate of growth (linear in timesteps/MC steps, not reduced time units)
 	number _r0, _rate;
+	/// external radius: for distances greater than r_ext, particles will not feel any force
+	number _r_ext;
 
 	RepulsiveSphere();
 	virtual ~RepulsiveSphere() {}

@@ -555,6 +555,7 @@ void MD_CUDABackend<number, number4>::init(){
 					force->repulsivesphere.stiff = p_force->_stiff;
 					force->repulsivesphere.rate= p_force->_rate;
 					force->repulsivesphere.r0 = p_force->_r0;
+					force->repulsivesphere.r_ext = p_force->_r_ext;
 					force->repulsivesphere.centre = make_float3 (p_force->_center.x, p_force->_center.y, p_force->_center.z);
 				}
 				else if(typeid (*(p->ext_forces[j])) == typeid(LJ_wall) ) {

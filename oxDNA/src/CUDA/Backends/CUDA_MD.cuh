@@ -171,7 +171,8 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 				number4 dist = box->minimum_image(centre, ppos);
 				number mdist = _module<number, number4>(dist);
 				number radius = extF.repulsivesphere.r0 + extF.repulsivesphere.rate*(number) step;
-				if(mdist > radius) {
+				number radius_ext = extF.repulsivesphere.r_ext;
+				if(mdist > radius && mdist < radius_ext) {
 					number force_mod = extF.repulsivesphere.stiff*((number)1.f - radius/mdist);
 					F.x += -dist.x*force_mod;
 					F.y += -dist.y*force_mod;
