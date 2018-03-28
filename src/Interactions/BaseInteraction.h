@@ -537,7 +537,7 @@ map<int, number> BaseInteraction<number, child>::get_system_energy_split(BasePar
 
 	for (int i = 0; i < N; i ++) {
 		BaseParticle<number> *p = particles[i];
-		vector<BaseParticle<number> *> neighs = lists->get_neigh_list(p);
+		vector<BaseParticle<number> *> neighs = lists->get_all_neighbours(p);
 
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle<number> *q = neighs[n];
