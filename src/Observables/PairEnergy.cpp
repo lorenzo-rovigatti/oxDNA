@@ -22,18 +22,13 @@ PairEnergy<number>::~PairEnergy() {
 
 template<typename number>
 void PairEnergy<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	int tmp = 0;
-	tmp = 0;
 	_print_all_particles = true;
-	if(getInputInt(&my_inp, "particle1_id", &tmp, 0) == KEY_FOUND) {
+	if(getInputInt(&my_inp, "particle1_id", &_particle1_id, 0) == KEY_FOUND) {
 		_print_all_particles = false;
-		_particle1_id = tmp;
-		tmp = 0;
-		getInputInt(&my_inp, "particle2_id", &tmp, 1);
-		_particle2_id = tmp;
+		getInputInt(&my_inp, "particle2_id", &_particle2_id, 1);
+		if(_particle1_id < 0 || _particle2_id < 0) throw oxDNAException("PairEnergy: particle index must be positive");
 	}
-	if(getInputBoolAsInt(&my_inp,"print_header", &tmp,0) == KEY_FOUND)
-		_print_header = tmp;
+	getInputBool(&my_inp,"print_header", &_print_header,0);
 }
 
 template<typename number>
@@ -86,6 +81,9 @@ std::string PairEnergy<number>::get_output_string(llint curr_step) {
 		output_str << "#Total energy per particle is  " << total_energy / *this->_config_info.N << " and should be " << total_energy_diff / *this->_config_info.N << '\n'*_print_header;
 	}
 	else {
+		if(_particle1_id > *this->_config_info.N) throw oxDNAException("PairEnergy: particle1_id (%d) is invalid", _particle1_id);
+		if(_particle2_id > *this->_config_info.N) throw oxDNAException("PairEnergy: particle2_id (%d) is invalid", _particle2_id);
+
 		p = this->_config_info.particles[_particle1_id];
 		q = this->_config_info.particles[_particle2_id];
 
