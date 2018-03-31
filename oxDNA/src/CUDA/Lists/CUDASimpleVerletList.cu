@@ -84,8 +84,8 @@ void CUDASimpleVerletList<number, number4>::_init_cells() {
 	}
 
 	if(_d_cells == NULL) {
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_counters_cells, _N_cells*sizeof(int)) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_cells, _N_cells*_max_N_per_cell*sizeof(int)) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_counters_cells, (size_t) _N_cells*sizeof(int)) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_cells, (size_t) _N_cells*_max_N_per_cell*sizeof(int)) );
 		CUDA_SAFE_CALL( cudaMemcpyToSymbol(verlet_N_cells_side, this->_N_cells_side, 3*sizeof(int)) );
 		CUDA_SAFE_CALL( cudaMemcpyToSymbol(verlet_max_N_per_cell, &this->_max_N_per_cell, sizeof(int)) );
 	}
@@ -114,15 +114,15 @@ void CUDASimpleVerletList<number, number4>::init(int N, number rcut, CUDABox<num
 	OX_LOG(Logger::LOG_INFO, "CUDA max_neigh: %d, max_N_per_cell: %d, N_cells: %d (per side: %d %d %d)", _max_neigh, _max_N_per_cell, _N_cells, _N_cells_side[0], _N_cells_side[1], _N_cells_side[2]);
 	OX_LOG(Logger::LOG_INFO, "CUDA Cells mem: %.2lf MBs, lists mem: %.2lf MBs", (double) _N_cells*(1 + _max_N_per_cell) * sizeof(int)/1048576., (double) this->_N * (1 + _max_neigh) * sizeof(int)/1048576.);
 
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_number_neighs, this->_N*sizeof(int)) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_matrix_neighs, this->_N*_max_neigh * sizeof(int)) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_number_neighs, (size_t) this->_N*sizeof(int)) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_matrix_neighs, (size_t) this->_N*_max_neigh * sizeof(int)) );
 
 	CUDA_SAFE_CALL( cudaMallocHost(&_d_cell_overflow, sizeof(bool), cudaHostAllocDefault) );
 	_d_cell_overflow[0] = false;
 
 	if(this->_use_edge) {
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_edge_list, this->_N*_max_neigh*sizeof(edge_bond)) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_number_neighs_no_doubles, (this->_N + 1)*sizeof(int)) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_edge_list, (size_t) this->_N*_max_neigh*sizeof(edge_bond)) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_number_neighs_no_doubles, (size_t) (this->_N + 1)*sizeof(int)) );
 	}
 
 	if(_cells_kernel_cfg.threads_per_block == 0) _cells_kernel_cfg.threads_per_block = 64;
