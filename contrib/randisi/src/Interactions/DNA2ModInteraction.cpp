@@ -8,10 +8,12 @@ DNA2ModInteraction<number>::DNA2ModInteraction() : DNA2Interaction<number>() {
 	_mod_stacking_roll_1 = 0.;
 	_mod_stacking_r_roll_1 = 0.;
 	_mod_stacking_tilt_1 = 0.;
+	_mod_stacking_multiplier_1 = 1.;
 	_hb_multiplier_2 = 1.;
 	_mod_stacking_roll_2 = 0.;
 	_mod_stacking_r_roll_2 = 0.;
 	_mod_stacking_tilt_2 = 0.;
+	_mod_stacking_multiplier_2 = 1.;
 	_a_hb_multiplier = _a_stacking_roll = _a_stacking_r_roll = _a_stacking_tilt = NULL;
 }
 template<typename number>
@@ -126,12 +128,14 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 		getInputNumber(&inp, "mod_stacking_roll_1", &_mod_stacking_roll_1,0);
 		getInputNumber(&inp, "mod_stacking_r_roll_1", &_mod_stacking_r_roll_1,0);
 		getInputNumber(&inp, "mod_stacking_tilt_1", &_mod_stacking_tilt_1,0);
+		getInputNumber(&inp, "mod_stacking_multiplier_1", &_mod_stacking_multiplier_1,0);
 		_mod_stacking_roll_1 *= M_PI / 180.;
 		_mod_stacking_r_roll_1 *= M_PI / 180.;
 		_mod_stacking_tilt_1 *= M_PI / 180.;
 		printf(" mod stacking roll_1 %g\n",_mod_stacking_roll_1);
 		printf(" mod stacking r_roll_1 %g\n",_mod_stacking_r_roll_1);
 		printf(" mod stacking tilt_1 %g\n",_mod_stacking_tilt_1);
+		printf(" mod stacking multiplier_1 %g\n",_mod_stacking_multiplier_1);
 		printf(" mod hb multiplier 1 %g\n",_hb_multiplier_1);
 	}
 	if (KEY_FOUND == getInputString(&inp, "mod_nucleotide_group_2", temp, 0)){
@@ -141,12 +145,14 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 		getInputNumber(&inp, "mod_stacking_roll_2", &_mod_stacking_roll_2,0);
 		getInputNumber(&inp, "mod_stacking_r_roll_2", &_mod_stacking_r_roll_2,0);
 		getInputNumber(&inp, "mod_stacking_tilt_2", &_mod_stacking_tilt_2,0);
+		getInputNumber(&inp, "mod_stacking_multiplier_2", &_mod_stacking_multiplier_2,0);
 		_mod_stacking_roll_2 *= M_PI / 180.;
 		_mod_stacking_r_roll_2 *= M_PI / 180.;
 		_mod_stacking_tilt_2 *= M_PI / 180.;
 		printf(" mod stacking roll_2 %g\n",_mod_stacking_roll_2);
 		printf(" mod stacking r_roll_2 %g\n",_mod_stacking_r_roll_2);
 		printf(" mod stacking tilt_2 %g\n",_mod_stacking_tilt_2);
+		printf(" mod stacking multiplier_2 %g\n",_mod_stacking_multiplier_2);
 		printf(" mod hb multiplier 2 %g\n",_hb_multiplier_2);
 	}
 	// initialise the arrays
@@ -198,7 +204,7 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 	LR_vector<number> b2(0.,0.,0.);
 	LR_vector<number> b1(0.,0.,0.);
 	LR_matrix<number> R;
-	number stack_roll=0,stack_r_roll=0,stack_tilt=0,hb_multi=1.;
+	number stack_roll=0, stack_r_roll=0, stack_tilt=0, hb_multi=1., mod_stacking_multiplier=1.;
 	if (q_in_group_1){
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v1, _mod_stacking_roll_1);
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v2, _mod_stacking_tilt_1) * R;
@@ -210,6 +216,7 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		stack_r_roll=_mod_stacking_r_roll_1;
 		stack_tilt=_mod_stacking_tilt_1;
 		hb_multi = _hb_multiplier_1;
+		mod_stacking_multiplier = _mod_stacking_multiplier_1;
 	}
 	else if (q_in_group_2){
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v1, _mod_stacking_roll_2);
@@ -222,6 +229,7 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		stack_r_roll=_mod_stacking_r_roll_2;
 		stack_tilt=_mod_stacking_tilt_2;
 		hb_multi = _hb_multiplier_2;
+		mod_stacking_multiplier = _mod_stacking_multiplier_2;
 		//b3 = R*q->orientationT.v3;
 	}
 	else b3 = q->orientationT.v3;
@@ -364,8 +372,8 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 									   (a1 - rstackdir * rb1) * dcosphi2drb1) / rstackmod);
 
 		// Add the contribution from all the forces to the stored particles' forces
-		p->force -= force;
-		q->force += force;
+		p->force -= force * mod_stacking_multiplier;
+		q->force += force * mod_stacking_multiplier;
 
 		torquep -= p->int_centers[DNANucleotide<number>::STACK].cross(force);
 		torqueq += q->int_centers[DNANucleotide<number>::STACK].cross(force);
@@ -412,11 +420,11 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		torqueq += puretorque;
 
 		// we need torques in the reference system of the particle
-		p->torque += p->orientationT * torquep;
-		q->torque += q->orientationT * torqueq;
+		p->torque += p->orientationT * torquep * mod_stacking_multiplier;
+		q->torque += q->orientationT * torqueq * mod_stacking_multiplier;
 	}
 
-	return energy;
+	return energy * mod_stacking_multiplier;
 }
 
 template<typename number>
