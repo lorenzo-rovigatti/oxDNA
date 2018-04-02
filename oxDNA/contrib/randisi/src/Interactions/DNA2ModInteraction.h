@@ -16,6 +16,7 @@
 [mod_hb_multiplier_<N> = <float> (defaults to 1) (HB interaction multiplier applied to all nucleotides in group N. Notice that this is in addition to any other multiplier applied by the argument hb_multiplier (see DNAInteraction.h))]
 [mod_stacking_roll_<N> = <float> (defaults to 0) (when computing the stacking interaction between all nucleotides of group N and their 5' neighbour, the stack vector will be rotated by this angle (in degrees) around the base vector, so that it should introduce a roll.)]
 [mod_stacking_tilt_<N> = <float> (defaults to 0) (when computing the stacking interaction between all nucleotides of group N and their 5' neighbour, the stack vector will be rotated by this angle (in degrees) around the vector normal to the base vector and the stacking vector, so that it should introduce a tilt.)]
+[mod_stacking_multiplier_<N> = <float> (defaults to 0) (when computing the stacking interaction between all nucleotides of group N and their 5' neighbour, the energy, forces and torques are going to be multiplied by this factor. Defaults to 1.)]
 
  @endverbatim
  */
@@ -37,12 +38,14 @@ class DNA2ModInteraction: public DNA2Interaction<number> {
 		number _mod_stacking_roll_1;
 		number _mod_stacking_r_roll_1;
 		number _mod_stacking_tilt_1;
+		number _mod_stacking_multiplier_1;
 
 		std::vector<int> _vec_group_2;
 		number _hb_multiplier_2;
 		number _mod_stacking_roll_2;
 		number _mod_stacking_r_roll_2;
 		number _mod_stacking_tilt_2;
+		number _mod_stacking_multiplier_2;
 
 		static std::vector<int> unsafeGetParticlesFromString(std::string particle_string, char const * identifier);
 		virtual bool _is_particle_in_group(BaseParticle<number> *particle, std::vector<int> group){
