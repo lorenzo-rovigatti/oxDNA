@@ -35,7 +35,7 @@
 #pragma GCC diagnostic ignored "-Wvla"
 
 template<typename number, typename number4>
-MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABaseBackend<number, number4>(), _max_ext_forces(0) {
+MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABaseBackend<number, number4>(), _max_ext_forces(0), _error_conf_file("error_conf.dat") {
 	this->_is_CUDA_sim = true;
 	_use_edge = false;
 	_any_rigid_body = false;
@@ -58,6 +58,8 @@ MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABas
 	_barostat_attempts = _barostat_accepted = 0;
 
 	_print_energy = false;
+
+	_obs_output_error_conf = NULL;
 }
 
 template<typename number, typename number4>
@@ -94,6 +96,8 @@ MD_CUDABackend<number, number4>::~MD_CUDABackend() {
 	}
 
 	if(_cuda_thermostat != NULL) delete _cuda_thermostat;
+
+	if(_obs_output_error_conf != NULL) delete _obs_output_error_conf;
 }
 
 template<typename number, typename number4>
@@ -386,7 +390,16 @@ void MD_CUDABackend<number, number4>::sim_step(llint curr_step) {
 
 	this->_timer_lists->resume();
 	if(this->_d_are_lists_old[0]) {
-		this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
+		try {
+			this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
+		}
+		catch (oxDNAException &e) {
+			_gpu_to_host_particles();
+			std::string filename("list_update_error.dat");
+			_obs_output_error_conf->print_output(curr_step);
+			OX_LOG(Logger::LOG_ERROR, "%s----> The last configuration has been printed to %s", e.error(), _error_conf_file.c_str());
+			return;
+		}
 		this->_d_are_lists_old[0] = false;
 		this->_N_updates++;
 		cudaThreadSynchronize();
@@ -434,6 +447,10 @@ void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
 	_cuda_thermostat = CUDAThermostatFactory::make_thermostat<number, number4>(inp, this->_box);
 	_cuda_thermostat->get_settings(inp);
 
+	std::string init_string = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", _error_conf_file.c_str());
+	_obs_output_error_conf = new ObservableOutput<number>(init_string, inp);
+	_obs_output_error_conf->add_observable("type = configuration");
+
 	// if we want to limt the calculations done on CPU we clear the default ObservableOutputs and tell them to just print the timesteps (and, for constant-pressure, simulations, also the density)
 	if(_avoid_cpu_calculations) {
 		this->_obs_output_file->clear();
@@ -470,6 +487,8 @@ void MD_CUDABackend<number, number4>::init(){
 	_h_Ls = new number4[this->_N];
 	_h_forces = new number4[this->_N];
 	_h_torques = new number4[this->_N];
+
+	_obs_output_error_conf->init(*this->_config_info);
 
 	if(this->_external_forces) {
 		if(this->_sort_every > 0) throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");

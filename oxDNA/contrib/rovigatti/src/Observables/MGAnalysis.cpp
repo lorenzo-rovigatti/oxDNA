@@ -50,6 +50,12 @@ void MGAnalysis<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputBool(&my_inp, "volume_only", &_volume_only, 0);
 	getInputBool(&my_inp, "rg_only", &_rg_only, 0);
 
+	if(_volume_only) {
+		_volume_threshold = 0.;
+		getInputNumber(&my_inp, "volume_threshold", &_volume_threshold, 0);
+		_volume_threshold_sqr = SQR(_volume_threshold);
+	}
+
 	if(_volume_only && _rg_only) {
 		throw oxDNAException("MGAnalysis: volume_only and rg_only are incompatible");
 	}
@@ -124,16 +130,20 @@ number MGAnalysis<number>::_volume() {
 	int N = *this->_config_info.N;
 
 	vector<qh_vertex_t> vertices(N);
+	int curr_idx = 0;
 	for(int i = 0; i < N; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
 		LR_vector<number> p_pos = this->_config_info.box->get_abs_pos(p) - com;
 
-		vertices[i].x = p_pos.x;
-		vertices[i].y = p_pos.y;
-		vertices[i].z = p_pos.z;
+		if(_volume_threshold == 0. || p_pos.norm() < _volume_threshold_sqr) {
+			vertices[curr_idx].x = p_pos.x;
+			vertices[curr_idx].y = p_pos.y;
+			vertices[curr_idx].z = p_pos.z;
+			curr_idx++;
+		}
 	}
 
-	qh_mesh_t mesh = qh_quickhull3d(vertices.data(), N);
+	qh_mesh_t mesh = qh_quickhull3d(vertices.data(), curr_idx);
 
 	number volume = 0.;
 	for(int i = 0, j = 0; i < (int)mesh.nindices; i += 3, j++) {

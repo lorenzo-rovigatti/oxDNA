@@ -178,6 +178,8 @@ void CUDASimpleVerletList<number, number4>::update(number4 *poss, number4 *list_
 			(poss, list_poss, _d_cells, _d_matrix_neighs, _d_number_neighs, bonds, this->_d_cuda_box);
 		CUT_CHECK_ERROR("update_neigh_list (SimpleVerlet) error");
 	}
+
+	cudaUnbindTexture(counters_cells_tex);
 }
 
 template class CUDASimpleVerletList<float, float4>;

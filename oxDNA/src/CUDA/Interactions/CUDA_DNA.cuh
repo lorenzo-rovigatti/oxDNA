@@ -807,9 +807,11 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			number4 rbackdir = rbackbone / rbackmod;
 			if(rbackmod < MD_dh_RHIGH[0]){
 				Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
+				Ftmp.w = expf(rbackmod * MD_dh_minus_kappa[0]) * (MD_dh_prefactor[0] / rbackmod);
 			}
 			else {
 				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
+				Ftmp.w = MD_dh_B[0] * SQR(rbackmod -  MD_dh_RC[0]);
 			}
 
 			// check for half-charge strand ends
@@ -1004,15 +1006,13 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		number4 qpos = poss[bs.n3];
 		number4 b1, b2, b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
-		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
-						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
-		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
-						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
