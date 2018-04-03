@@ -50,6 +50,9 @@ protected:
 
 	bool _print_energy;
 
+	ObservableOutput<number> *_obs_output_error_conf;
+	std::string _error_conf_file;
+
 	CUDABaseThermostat<number, number4> *_cuda_thermostat;
 
 	//constant_rate_force<number> *_h_ext_forces, *_d_ext_forces;

@@ -42,9 +42,9 @@ public:
 		res.y = r_j.y - r_i.y;
 		res.z = r_j.z - r_i.z;
 
-		res.x -= floorf(res.x/_Lx + (number) 0.5f)*_Lx;
-		res.y -= floorf(res.y/_Ly + (number) 0.5f)*_Ly;
-		res.z -= floorf(res.z/_Lz + (number) 0.5f)*_Lz;
+		res.x -= rintf(res.x / _Lx) * _Lx;
+		res.y -= rintf(res.y / _Ly) * _Ly;
+		res.z -= rintf(res.z / _Lz) * _Lz;
 
 		return res;
 	}
