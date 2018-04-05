@@ -14,7 +14,7 @@ DNA2ModInteraction<number>::DNA2ModInteraction() : DNA2Interaction<number>() {
 	_mod_stacking_r_roll_2 = 0.;
 	_mod_stacking_tilt_2 = 0.;
 	_mod_stacking_multiplier_2 = 1.;
-	_a_hb_multiplier = _a_stacking_roll = _a_stacking_r_roll = _a_stacking_tilt = NULL;
+	_a_hb_multiplier = _a_stacking_roll = _a_stacking_r_roll = _a_stacking_tilt = _a_stacking_multiplier = NULL;
 }
 template<typename number>
 DNA2ModInteraction<number>::~DNA2ModInteraction(){
@@ -22,6 +22,7 @@ DNA2ModInteraction<number>::~DNA2ModInteraction(){
 	delete[] _a_stacking_roll;
 	delete[] _a_stacking_r_roll;
 	delete[] _a_stacking_tilt;
+	delete[] _a_stacking_multiplier;
 }
 template<typename number>
 void DNA2Interaction<number>::init() {
@@ -159,6 +160,7 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 	int N = this->get_N_from_topology();
 	_a_hb_multiplier = new number[N];
 	_a_stacking_tilt = new number[N];
+	_a_stacking_multiplier = new number[N];
 	_a_stacking_roll = new number[N];
 	_a_stacking_r_roll = new number[N];
 
@@ -166,18 +168,21 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 		if (_is_integer_in_group(i, _vec_group_1)){
 			_a_hb_multiplier[i] = _hb_multiplier_1;
 			_a_stacking_tilt[i] = _mod_stacking_tilt_1;
+			_a_stacking_multiplier[i] = _mod_stacking_multiplier_1;
 			_a_stacking_roll[i] = _mod_stacking_roll_1;
 			_a_stacking_r_roll[i] = _mod_stacking_r_roll_1;
 		}
 		else if (_is_integer_in_group(i, _vec_group_2)){
 			_a_hb_multiplier[i] = _hb_multiplier_2;
 			_a_stacking_tilt[i] = _mod_stacking_tilt_2;
+			_a_stacking_multiplier[i] = _mod_stacking_multiplier_2;
 			_a_stacking_roll[i] = _mod_stacking_roll_2;
 			_a_stacking_r_roll[i] = _mod_stacking_r_roll_2;
 		}
 		else{
 			_a_hb_multiplier[i] = 1.;
 			_a_stacking_tilt[i] = 0.;
+			_a_stacking_multiplier[i] = 1.;
 			_a_stacking_roll[i] = 0.;
 			_a_stacking_r_roll[i] = 0.;
 		}
@@ -204,7 +209,7 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 	LR_vector<number> b2(0.,0.,0.);
 	LR_vector<number> b1(0.,0.,0.);
 	LR_matrix<number> R;
-	number stack_roll=0, stack_r_roll=0, stack_tilt=0, hb_multi=1., mod_stacking_multiplier=1.;
+	number stack_roll=0, stack_r_roll=0, stack_tilt=0, hb_multi=1., stack_multi=1.;
 	if (q_in_group_1){
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v1, _mod_stacking_roll_1);
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v2, _mod_stacking_tilt_1) * R;
@@ -216,7 +221,7 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		stack_r_roll=_mod_stacking_r_roll_1;
 		stack_tilt=_mod_stacking_tilt_1;
 		hb_multi = _hb_multiplier_1;
-		mod_stacking_multiplier = _mod_stacking_multiplier_1;
+		stack_multi = _mod_stacking_multiplier_1;
 	}
 	else if (q_in_group_2){
 		R = rotationMatrixAroundVersorByAngle(q->orientationT.v1, _mod_stacking_roll_2);
@@ -229,13 +234,13 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		stack_r_roll=_mod_stacking_r_roll_2;
 		stack_tilt=_mod_stacking_tilt_2;
 		hb_multi = _hb_multiplier_2;
-		mod_stacking_multiplier = _mod_stacking_multiplier_2;
+		stack_multi = _mod_stacking_multiplier_2;
 		//b3 = R*q->orientationT.v3;
 	}
 	else b3 = q->orientationT.v3;
 	// TODO: just use the array values for the angles every time this is necessary, and remove the choice structure above, as soon as it's clear that the following exception is never triggered. 
 	// TODO: the same should be done in hydrogen_bonding
-	if (stack_roll != _a_stacking_roll[q->index] or stack_r_roll != _a_stacking_r_roll[q->index] or stack_tilt != _a_stacking_tilt[q->index] or hb_multi != _a_hb_multiplier[q->index]){
+	if (stack_roll != _a_stacking_roll[q->index] or stack_r_roll != _a_stacking_r_roll[q->index] or stack_tilt != _a_stacking_tilt[q->index] or stack_multi != _a_stacking_multiplier[q->index] or hb_multi != _a_hb_multiplier[q->index]){
 		throw oxDNAException("SBANGABANGA!!!!!\n");
 	}
 
@@ -372,8 +377,8 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 									   (a1 - rstackdir * rb1) * dcosphi2drb1) / rstackmod);
 
 		// Add the contribution from all the forces to the stored particles' forces
-		p->force -= force * mod_stacking_multiplier;
-		q->force += force * mod_stacking_multiplier;
+		p->force -= force * stack_multi;
+		q->force += force * stack_multi;
 
 		torquep -= p->int_centers[DNANucleotide<number>::STACK].cross(force);
 		torqueq += q->int_centers[DNANucleotide<number>::STACK].cross(force);
@@ -420,11 +425,11 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 		torqueq += puretorque;
 
 		// we need torques in the reference system of the particle
-		p->torque += p->orientationT * torquep * mod_stacking_multiplier;
-		q->torque += q->orientationT * torqueq * mod_stacking_multiplier;
+		p->torque += p->orientationT * torquep * stack_multi;
+		q->torque += q->orientationT * torqueq * stack_multi;
 	}
 
-	return energy * mod_stacking_multiplier;
+	return energy * stack_multi;
 }
 
 template<typename number>
