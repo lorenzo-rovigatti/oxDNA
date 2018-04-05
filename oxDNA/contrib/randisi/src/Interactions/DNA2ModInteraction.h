@@ -30,7 +30,7 @@
 template<typename number>
 class DNA2ModInteraction: public DNA2Interaction<number> {
 	protected:
-		number *_a_hb_multiplier, *_a_stacking_roll, *_a_stacking_r_roll, *_a_stacking_tilt;
+		number *_a_hb_multiplier, *_a_stacking_roll, *_a_stacking_r_roll, *_a_stacking_tilt, *_a_stacking_multiplier;
 // Horrible copy-paste that should be substituted with a vector as needed
 	private:
 		std::vector<int> _vec_group_1;

@@ -270,7 +270,7 @@ __device__ void _bonded_excluded_volume(number4 &r, number4 &n3pos_base, number4
 template <typename number, typename number4, bool qIsN3>
 __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4 &n5z, number4 &n3pos,
 			     number4 &n3x, number4 &n3y, number4 &n3z, number4 &F, number4 &T, bool grooving, bool use_oxDNA2_FENE,
-                 bool use_mbf, number mbf_xmax, number mbf_finf, number stacking_roll, number stacking_r_roll, number stacking_tilt) {
+                 bool use_mbf, number mbf_xmax, number mbf_finf, number stacking_roll, number stacking_r_roll, number stacking_tilt, number stacking_multi) {
 
 	int n3type = get_particle_type<number, number4>(n3pos);
 	int n5type = get_particle_type<number, number4>(n5pos);
@@ -392,7 +392,7 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 	number f5phi1 = _f5(cosphi1, STCK_F5_PHI1);
 	number f5phi2 = _f5(cosphi2, STCK_F5_PHI2);
 
-	number energy = f1 * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2;
+	number energy = f1 * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2 * stacking_multi;
 
 	if(energy != (number) 0) {
 		// and their derivatives
@@ -483,21 +483,21 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 			// THETA 5
 			Ttmp += _cross<number, number4>(rstackdir, n5z) * energy * f4t5Dsin / f4t5;
 
-			T += Ttmp;
-			F += Ftmp;
+			T += Ttmp * stacking_multi;
+			F += Ftmp * stacking_multi;
 		}
 		else {
 			// THETA 6
 			Ttmp += _cross<number, number4>(rstackdir, n3z_1) * (-energy * f4t6Dsin / f4t6);
 
-			T -= Ttmp;
-			F -= Ftmp;
+			T -= Ttmp * stacking_multi;
+			F -= Ftmp * stacking_multi;
 		}
 	}
 }
 
 template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind, CUDABox<number, number4> *box) {
+__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind, CUDABox<number, number4> *box, number hb_multi_extra) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 	int pbtype = get_particle_btype<number, number4>(ppos);
@@ -536,6 +536,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 	number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
 	if(int_type == 3 && SQR(HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(HYDR_RCHIGH)) {
 		number hb_multi = (abs(qbtype) >= 300 && abs(pbtype) >= 300) ? MD_hb_multi[0] : 1.f;
+		hb_multi *= hb_multi_extra;
 		// versor and magnitude of the base-base separation
 	  	number rhydromod = sqrtf(rhydromodsqr);
 	  	number4 rhydrodir = rhydro / rhydromod;
@@ -879,7 +880,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box, number *_d_stacking_roll, number *_d_stacking_r_roll, number *_d_stacking_tilt, number *_d_hb_multiplier) {
+__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box, number *_d_stacking_roll, number *_d_stacking_r_roll, number *_d_stacking_tilt, number *_d_stacking_multiplier, number *_d_hb_multiplier) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -899,10 +900,11 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		number stacking_roll = _d_stacking_roll[n3_index];
 		number stacking_r_roll = _d_stacking_r_roll[n3_index];
 		number stacking_tilt = _d_stacking_tilt[n3_index];
+		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
 						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE,
                             use_mbf, mbf_xmax, mbf_finf,
-														stacking_roll, stacking_r_roll, stacking_tilt);
+														stacking_roll, stacking_r_roll, stacking_tilt, stacking_multi);
 	}
 
 	if(bs.n5 != P_INVALID) {
@@ -916,9 +918,10 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		number stacking_roll = _d_stacking_roll[n3_index];
 		number stacking_r_roll = _d_stacking_r_roll[n3_index];
 		number stacking_tilt = _d_stacking_tilt[n3_index];
+		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
 						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE,
-                             use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt);
+                             use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt, stacking_multi);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
@@ -930,7 +933,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 			get_vectors_from_quat<number,number4>(orientations[j], b1, b2, b3);
 			LR_bonds qbonds = bonds[j];
 
-			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds, IND, j, box);
+		number hb_multi_extra = _d_hb_multiplier[IND] * _d_hb_multiplier[j];
+			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds, IND, j, box, hb_multi_extra);
 		}
 	}
 
@@ -944,7 +948,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 }
 
 template <typename number, typename number4>
-__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, CUDABox<number, number4> *box) {
+__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, CUDABox<number, number4> *box, number * _d_hb_multiplier) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -964,12 +968,15 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 	get_vectors_from_quat<number,number4>(orientations[b.to], b1, b2, b3);
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
-	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, box);
+	int from_index = MD_N[0]*(IND % MD_n_forces[0]) + b.from;
+	int to_index = MD_N[0]*(IND % MD_n_forces[0]) + b.to;
+	number hb_multi_extra = _d_hb_multiplier[from_index] * _d_hb_multiplier[to_index];
+	
+	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, box, hb_multi_extra);
 
 	dF.w *= (number) 0.5f;
 	dT.w *= (number) 0.5f;
 
-	int from_index = MD_N[0]*(IND % MD_n_forces[0]) + b.from;
 	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
 	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z + dF.w*dF.w) > (number)0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
 	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z + dT.w*dT.w) > (number)0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
@@ -985,7 +992,6 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 	dF.y = -dF.y;
 	dF.z = -dF.z;
 
-	int to_index = MD_N[0]*(IND % MD_n_forces[0]) + b.to;
 	//int to_index = MD_N[0]*(b.n_to % MD_n_forces[0]) + b.to;
 	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z + dF.w*dF.w) > (number)0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
 	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z + dT.w*dT.w) > (number)0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
@@ -993,7 +999,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 
 // bonded interactions for edge-based approach
 template <typename number, typename number4>
-__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, number *_d_stacking_roll, number *_d_stacking_r_roll, number *_d_stacking_tilt, number *_d_hb_multiplier) {
+__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, number *_d_stacking_roll, number *_d_stacking_r_roll, number *_d_stacking_tilt, number *_d_stacking_multiplier) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F0, T0;
@@ -1026,7 +1032,8 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 		number stacking_roll = _d_stacking_roll[n3_index];
 		number stacking_r_roll = _d_stacking_r_roll[n3_index];
 		number stacking_tilt = _d_stacking_tilt[n3_index];
-		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt);
+		number stacking_multi = _d_stacking_multiplier[n3_index];
+		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt, stacking_multi);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
@@ -1039,7 +1046,8 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 		number stacking_roll = _d_stacking_roll[n3_index];
 		number stacking_r_roll = _d_stacking_r_roll[n3_index];
 		number stacking_tilt = _d_stacking_tilt[n3_index];
-		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt);
+		number stacking_multi = _d_stacking_multiplier[n3_index];
+		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt, stacking_multi);
 	}
 
 	// the real energy per particle is half of the one computed (because we count each interaction twice)
@@ -1054,7 +1062,7 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box, number *_d_stacking_roll,  number *_d_stacking_r_roll,  number *_d_stacking_tilt,  number *_d_hb_multiplier) {
+__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box, number *_d_stacking_roll,  number *_d_stacking_r_roll,  number *_d_stacking_tilt,  number *_d_stacking_multiplier,  number *_d_hb_multiplier) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -1074,8 +1082,9 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		number stacking_roll = _d_stacking_roll[n3_index];
 		number stacking_r_roll = _d_stacking_r_roll[n3_index];
 		number stacking_tilt = _d_stacking_tilt[n3_index];
+		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
-						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt);
+						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt, stacking_multi);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
@@ -1086,8 +1095,9 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		number stacking_roll = _d_stacking_roll[n3_index];
 		number stacking_r_roll = _d_stacking_r_roll[n3_index];
 		number stacking_tilt = _d_stacking_tilt[n3_index];
+		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
-						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt);
+						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt, stacking_multi);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
@@ -1102,7 +1112,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		get_vectors_from_quat<number,number4>(orientations[k_index], b1, b2, b3);
 		LR_bonds pbonds = bonds[IND];
 		LR_bonds qbonds = bonds[k_index];
-		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index, box);
+		number hb_multi_extra = _d_hb_multiplier[IND] * _d_hb_multiplier[k_index];
+		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index, box, hb_multi_extra);
 	}
 	
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);

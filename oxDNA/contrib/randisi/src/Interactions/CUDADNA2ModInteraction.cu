@@ -15,8 +15,7 @@
 #include "CUDA/cuda_utils/CUDA_lr_common.cuh"
 template<typename number, typename number4>
 CUDADNA2ModInteraction<number, number4>::CUDADNA2ModInteraction() {
-	_d_stacking_roll = _d_stacking_r_roll = _d_stacking_tilt = NULL;
-
+	_d_stacking_roll = _d_stacking_r_roll = _d_stacking_tilt = _d_stacking_multiplier = _d_hb_multiplier = NULL;
 
 }
 
@@ -25,7 +24,8 @@ CUDADNA2ModInteraction<number, number4>::~CUDADNA2ModInteraction() {
 	if(_d_stacking_roll != NULL) CUDA_SAFE_CALL( cudaFree(_d_stacking_roll) );
 	if(_d_stacking_r_roll != NULL) CUDA_SAFE_CALL( cudaFree(_d_stacking_r_roll) );
 	if(_d_stacking_tilt != NULL) CUDA_SAFE_CALL( cudaFree(_d_stacking_tilt) );
-	if(_d_stacking_tilt != NULL) CUDA_SAFE_CALL( cudaFree(_d_hb_multiplier) );
+	if(_d_hb_multiplier != NULL) CUDA_SAFE_CALL( cudaFree(_d_hb_multiplier) );
+	if(_d_stacking_multiplier != NULL) CUDA_SAFE_CALL( cudaFree(_d_stacking_multiplier) );
 
 }
 
@@ -159,11 +159,14 @@ void CUDADNA2ModInteraction<number, number4>::cuda_init(number box_side, int N) 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_stacking_roll, k_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_stacking_r_roll, k_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_stacking_tilt, k_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_stacking_multiplier, k_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_hb_multiplier, k_size) );
 	
 	CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_roll, this->_a_stacking_roll, k_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_r_roll, this->_a_stacking_r_roll, k_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_tilt, this->_a_stacking_tilt, k_size, cudaMemcpyHostToDevice) );
+	CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_multiplier, this->_a_stacking_multiplier, k_size, cudaMemcpyHostToDevice) );
+	CUDA_SAFE_CALL( cudaMemcpy(_d_hb_multiplier, this->_a_hb_multiplier, k_size, cudaMemcpyHostToDevice) );
 }
 
 template<typename number, typename number4>
@@ -173,7 +176,7 @@ void CUDADNA2ModInteraction<number, number4>::compute_forces(CUDABaseList<number
 		if(_v_lists->use_edge()) {
 				dna_forces_edge_nonbonded<number, number4>
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, d_box);
+					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, d_box, _d_hb_multiplier);
 
 				this->_sum_edge_forces_torques(d_forces, d_torques);
 
@@ -183,12 +186,12 @@ void CUDADNA2ModInteraction<number, number4>::compute_forces(CUDABaseList<number
 
 				dna_forces_edge_bonded<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_grooving, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf,_d_stacking_roll, _d_stacking_r_roll, _d_stacking_tilt, _d_hb_multiplier);
+					(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_grooving, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf,_d_stacking_roll, _d_stacking_r_roll, _d_stacking_tilt, _d_stacking_multiplier);
 			}
 			else {
 				dna_forces<number, number4>
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box,_d_stacking_roll, _d_stacking_r_roll, _d_stacking_tilt, _d_hb_multiplier);
+					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box,_d_stacking_roll, _d_stacking_r_roll, _d_stacking_tilt, _d_stacking_multiplier, _d_hb_multiplier);
 				CUT_CHECK_ERROR("forces_second_step simple_lists error");
 			}
 	}
@@ -197,7 +200,7 @@ void CUDADNA2ModInteraction<number, number4>::compute_forces(CUDABaseList<number
 	if(_no_lists != NULL) {
 		dna_forces<number, number4>
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box,_d_stacking_roll, _d_stacking_r_roll, _d_stacking_tilt, _d_hb_multiplier);
+			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box,_d_stacking_roll, _d_stacking_r_roll, _d_stacking_tilt, _d_stacking_multiplier, _d_hb_multiplier);
 		CUT_CHECK_ERROR("forces_second_step no_lists error");
 	}
 }

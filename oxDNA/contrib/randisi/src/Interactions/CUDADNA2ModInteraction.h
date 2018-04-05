@@ -19,7 +19,7 @@ template<typename number, typename number4>
 class CUDADNA2ModInteraction: public CUDABaseInteraction<number, number4>, public DNA2ModInteraction<number> {
 protected:
 	// vectors that store the modification parameters for each nucleotide
-	number *_d_stacking_roll, *_d_stacking_r_roll, *_d_stacking_tilt, *_d_hb_multiplier;
+	number *_d_stacking_roll, *_d_stacking_r_roll, *_d_stacking_tilt, *_d_stacking_multiplier, *_d_hb_multiplier;
 
 public:
         enum {
