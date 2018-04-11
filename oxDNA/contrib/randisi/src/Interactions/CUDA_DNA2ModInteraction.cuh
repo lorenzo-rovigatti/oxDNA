@@ -483,15 +483,15 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 			// THETA 5
 			Ttmp += _cross<number, number4>(rstackdir, n5z) * energy * f4t5Dsin / f4t5;
 
-			T += Ttmp * stacking_multi;
-			F += Ftmp * stacking_multi;
+			T += Ttmp;
+			F += Ftmp;
 		}
 		else {
 			// THETA 6
 			Ttmp += _cross<number, number4>(rstackdir, n3z_1) * (-energy * f4t6Dsin / f4t6);
 
-			T -= Ttmp * stacking_multi;
-			F -= Ftmp * stacking_multi;
+			T -= Ttmp;
+			F -= Ftmp;
 		}
 	}
 }
@@ -898,7 +898,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 
 		int n3_index = bs.n3;
 		number stacking_roll = _d_stacking_roll[n3_index];
-		number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		//number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		number stacking_r_roll = 0;
 		number stacking_tilt = _d_stacking_tilt[n3_index];
 		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
@@ -916,7 +917,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		//TODO: assuming that IND is actually the index of the particle - otherwise this will do strange things
 		int n3_index = IND;
 		number stacking_roll = _d_stacking_roll[n3_index];
-		number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		//number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		number stacking_r_roll = 0;
 		number stacking_tilt = _d_stacking_tilt[n3_index];
 		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
@@ -1030,7 +1032,8 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 		int n3_index = bs.n3;
 		number stacking_roll = _d_stacking_roll[n3_index];
-		number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		//number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		number stacking_r_roll = 0;
 		number stacking_tilt = _d_stacking_tilt[n3_index];
 		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt, stacking_multi);
@@ -1044,7 +1047,8 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 		//TODO: assuming that IND is actually the index of the particle - otherwise this will do strange things
 		int n3_index = IND;
 		number stacking_roll = _d_stacking_roll[n3_index];
-		number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		//number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		number stacking_r_roll = 0;
 		number stacking_tilt = _d_stacking_tilt[n3_index];
 		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, stacking_roll, stacking_r_roll, stacking_tilt, stacking_multi);
@@ -1080,7 +1084,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 		int n3_index = bs.n3;
 		number stacking_roll = _d_stacking_roll[n3_index];
-		number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		//number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		number stacking_r_roll = 0;
 		number stacking_tilt = _d_stacking_tilt[n3_index];
 		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
@@ -1093,7 +1098,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		//TODO: assuming that IND is actually the index of the particle - otherwise this will do strange things
 		int n3_index = IND;
 		number stacking_roll = _d_stacking_roll[n3_index];
-		number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		//number stacking_r_roll = _d_stacking_r_roll[n3_index];
+		number stacking_r_roll = 0;
 		number stacking_tilt = _d_stacking_tilt[n3_index];
 		number stacking_multi = _d_stacking_multiplier[n3_index];
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
