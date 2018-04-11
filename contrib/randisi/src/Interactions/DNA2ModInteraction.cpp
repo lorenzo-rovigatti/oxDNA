@@ -114,6 +114,8 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 	DNA2Interaction<number>::get_settings(inp);
  	//int index = 0;
 	std::string temp;
+	std::string backend="CPU";
+	getInputString(&inp,"backend",backend,0);
 	/*
 	if (KEY_FOUND == getInputInt(&inp, "mod_nucleotide_group_1", &index, 0))
 		_vec_group_1.push_back(index);
@@ -127,7 +129,8 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 	
 		getInputNumber(&inp, "mod_hb_multiplier_1", &_hb_multiplier_1,0);
 		getInputNumber(&inp, "mod_stacking_roll_1", &_mod_stacking_roll_1,0);
-		getInputNumber(&inp, "mod_stacking_r_roll_1", &_mod_stacking_r_roll_1,0);
+		if( getInputNumber(&inp, "mod_stacking_r_roll_1", &_mod_stacking_r_roll_1,0) == KEY_FOUND and backend == "CUDA")
+			throw oxDNAException("mod_stacking_r_roll_1 has been disabled on CUDA to try and prevent Bus Error.");
 		getInputNumber(&inp, "mod_stacking_tilt_1", &_mod_stacking_tilt_1,0);
 		getInputNumber(&inp, "mod_stacking_multiplier_1", &_mod_stacking_multiplier_1,0);
 		_mod_stacking_roll_1 *= M_PI / 180.;
@@ -144,7 +147,8 @@ void DNA2ModInteraction<number>::get_settings(input_file &inp) {
 	
 		getInputNumber(&inp, "mod_hb_multiplier_2", &_hb_multiplier_2,0);
 		getInputNumber(&inp, "mod_stacking_roll_2", &_mod_stacking_roll_2,0);
-		getInputNumber(&inp, "mod_stacking_r_roll_2", &_mod_stacking_r_roll_2,0);
+		if( getInputNumber(&inp, "mod_stacking_r_roll_2", &_mod_stacking_r_roll_2,0) == KEY_FOUND and backend == "CUDA")
+			throw oxDNAException("mod_stacking_r_roll_2 has been disabled on CUDA to try and prevent Bus Error.");
 		getInputNumber(&inp, "mod_stacking_tilt_2", &_mod_stacking_tilt_2,0);
 		getInputNumber(&inp, "mod_stacking_multiplier_2", &_mod_stacking_multiplier_2,0);
 		_mod_stacking_roll_2 *= M_PI / 180.;

@@ -163,7 +163,8 @@ void CUDADNA2ModInteraction<number, number4>::cuda_init(number box_side, int N) 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_hb_multiplier, k_size) );
 	
 	CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_roll, this->_a_stacking_roll, k_size, cudaMemcpyHostToDevice) );
-	CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_r_roll, this->_a_stacking_r_roll, k_size, cudaMemcpyHostToDevice) );
+	// The following line is commented to save memory, hopefully this will prevent the Bus Error
+	//CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_r_roll, this->_a_stacking_r_roll, k_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_tilt, this->_a_stacking_tilt, k_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_stacking_multiplier, this->_a_stacking_multiplier, k_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_hb_multiplier, this->_a_hb_multiplier, k_size, cudaMemcpyHostToDevice) );
