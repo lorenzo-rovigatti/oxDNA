@@ -19,7 +19,7 @@ MGAnalysis<number>::MGAnalysis() :
 				_alpha(0.),
 				_volume_only(true),
 				_rg_only(false) {
-
+	_two_microgels = false;
 }
 
 template<typename number>
@@ -49,6 +49,7 @@ void MGAnalysis<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputBool(&my_inp, "volume_only", &_volume_only, 0);
 	getInputBool(&my_inp, "rg_only", &_rg_only, 0);
+	getInputBool(&my_inp, "two_microgels", &_two_microgels, 0);
 
 	if(_volume_only) {
 		_volume_threshold = 0.;
@@ -58,6 +59,10 @@ void MGAnalysis<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	if(_volume_only && _rg_only) {
 		throw oxDNAException("MGAnalysis: volume_only and rg_only are incompatible");
+	}
+
+	if(_two_microgels) {
+		OX_LOG(Logger::LOG_INFO, "MGAnalysis: Assuming configurations with two identical microgels");
 	}
 }
 
@@ -126,8 +131,8 @@ pair<number, number> MGAnalysis<number>::_lame_coefficients() {
 
 template<typename number>
 number MGAnalysis<number>::_volume() {
-	LR_vector<number> com = _com();
 	int N = *this->_config_info.N;
+	LR_vector<number> com = _com(0, N);
 
 	vector<qh_vertex_t> vertices(N);
 	int curr_idx = 0;
@@ -160,10 +165,10 @@ number MGAnalysis<number>::_volume() {
 }
 
 template<typename number>
-LR_vector<number> MGAnalysis<number>::_com() {
+LR_vector<number> MGAnalysis<number>::_com(int from_idx, int to_idx) {
 	LR_vector<number> com;
-	int N = *this->_config_info.N;
-	for(int i = 0; i < N; i++) {
+	int N = to_idx - from_idx;
+	for(int i = from_idx; i < to_idx; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
 		com += this->_config_info.box->get_abs_pos(p);
 	}
@@ -171,13 +176,13 @@ LR_vector<number> MGAnalysis<number>::_com() {
 }
 
 template<typename number>
-vector<number> MGAnalysis<number>::_rg_eigenvalues() {
+vector<number> MGAnalysis<number>::_rg_eigenvalues(int from_idx, int to_idx) {
 	vector<number> res;
-	LR_vector<number> com = _com();
-	int N = *this->_config_info.N;
+	LR_vector<number> com = _com(from_idx, to_idx);
+	int N = to_idx - from_idx;
 
 	double IM[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-	for(int i = 0; i < N; i++) {
+	for(int i = from_idx; i < to_idx; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
 		LR_vector<number> i_pos = this->_config_info.box->get_abs_pos(p) - com;
 		
@@ -215,7 +220,7 @@ vector<number> MGAnalysis<number>::_rg_eigenvalues() {
 	LR_vector<number> max_along_EVs(-1.e6, -1.e6, -1.e6);
 	LR_vector<number> min_along_EVs(1.e6, 1.e6, 1.e6);
 
-	for(int i = 0; i < *this->_config_info.N; i++) {
+	for(int i = from_idx; i < to_idx; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
 		LR_vector<number> p_pos = this->_config_info.box->get_abs_pos(p) - com;
 
@@ -242,8 +247,18 @@ std::string MGAnalysis<number>::get_output_string(llint curr_step) {
 		to_ret = Utils::sformat("%lf", volume);
 	}
 	else if(_rg_only) {
-		vector<number> eigenvalues = _rg_eigenvalues();
-		to_ret = Utils::sformat("%lf %lf %lf %lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2], eigenvalues[3], eigenvalues[4], eigenvalues[5]);
+		int N = *this->_config_info.N;
+		if(!_two_microgels) {
+			vector<number> eigenvalues = _rg_eigenvalues(0, N);
+			to_ret = Utils::sformat("%lf %lf %lf %lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2], eigenvalues[3], eigenvalues[4], eigenvalues[5]);
+		}
+		else {
+			int N_half = N / 2;
+			vector<number> eigenvalues = _rg_eigenvalues(0, N_half);
+			to_ret = Utils::sformat("%lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2]);
+			eigenvalues = _rg_eigenvalues(N_half, N);
+			to_ret += Utils::sformat(" %lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2]);
+		}
 	}
 	else {
 		double volume = _volume();

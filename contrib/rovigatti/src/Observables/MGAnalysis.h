@@ -23,10 +23,11 @@ protected:
 
 	bool _volume_only;
 	bool _rg_only;
+	bool _two_microgels;
 
 	std::pair<number, number> _lame_coefficients();
-	std::vector<number> _rg_eigenvalues();
-	LR_vector<number> _com();
+	std::vector<number> _rg_eigenvalues(int from_idx, int to_idx);
+	LR_vector<number> _com(int from_idx, int to_idx);
 	number _volume();
 
 public:
