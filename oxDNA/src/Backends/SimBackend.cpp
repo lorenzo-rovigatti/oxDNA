@@ -636,7 +636,6 @@ void SimBackend<number>::fix_diffusion() {
 			BaseParticle<number> *p = this->_particles[i];
 			LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
 			_box->shift_particle(p, dscdm);
-			p->pos = stored_pos[i];
 			p->orientation = stored_or[i];
 			p->orientationT = stored_orT[i];
 			p->set_positions();
