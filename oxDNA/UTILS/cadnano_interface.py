@@ -31,7 +31,8 @@ class vh_nodes(object):
             self.begin.append(begin_index)
 
     def add_end(self, end_index):
-        if end_index not in self.end:
+        # the first condition tries to mitigate a crash that occurs whenever self.begin and self.end have the same length at the end of the generation procedure
+        if len(self.begin) != len(self.end) or end_index not in self.end:
             self.end.append(end_index)
 
 def print_usage():
@@ -135,7 +136,7 @@ def insert_loop_skip(strands, start_pos, dir, perp, rot, helix_angles, vhelix, n
             for k in range(j):
                 helix_angles_new = np.insert(helix_angles_new, begin_gs - deleted + inserted, new_angle[i])
                 inserted_this_iteration += 1
-
+                
     new_strands = g.generate_or_sq(len(helix_angles_new)+1, start_pos=start_pos, dir=dir, perp=perp, double=True, rot=rot, angle = helix_angles_new, length_change=length_change, region_begin = new_nodes.begin, region_end = new_nodes.end)
     if use_seq:
         try:
