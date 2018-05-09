@@ -21,6 +21,7 @@ Writhe<number>::Writhe() {
 	_writhe_threshold = 0.28;
 	_print_space_pos = false;
 	_print_size = false;
+	_print_left_right = false;
 
 	_contact_threshold = 5.;
 	_size_outer_threshold = 30;
@@ -88,7 +89,7 @@ void Writhe<number>::init(ConfigInfo<number> &config_info) {
 	if(p[_last_particle_index]->n5 == P_VIRTUAL) {
 		_last_particle_index = p[_last_particle_index]->n3->index;
 	}
-	else if(_print_size) throw oxDNAException("In observable writhe, print_size = true is incompatible with circular strands.");
+	else if(_print_size or _print_left_right) throw oxDNAException("In observable writhe, print_size = true and print_left_right = true are incompatible with circular strands.");
 	// check that first and last particle are on the same strand.
 	if(p[_first_particle_index]->strand_id != p[_last_particle_index]->strand_id) {
 		throw oxDNAException("In observable writhe, the first particle (index %d) and the last particle (index %d) are not on the same strand. They're supposed to define a domain of topologically adjacent particles, but obviously they don't.", _first_particle_index, _last_particle_index);
@@ -137,6 +138,8 @@ void Writhe<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputBool(&my_inp, "print_space_position", &_print_space_pos, 0);
 	getInputBool(&my_inp, "print_size", &_print_size, 0);
+	getInputBool(&my_inp, "print_left_right", &_print_left_right, 0);
+	if (_print_size and _print_left_right) throw oxDNAException("Writhe.cpp: print_size and print_left_right can't be both true.");
 	getInputNumber(&my_inp, "contact_threshold", &_contact_threshold, 0);
 	getInputInt(&my_inp, "size_outer_threshold", &_size_outer_threshold, 0);
 	getInputInt(&my_inp, "minimum_plectoneme_size", &_minimum_plectoneme_size, 0);
@@ -169,12 +172,15 @@ template<typename number>
 std::string Writhe<number>::get_output_string(llint curr_step) {
 	string result;
 	BaseParticle<number> **p = this->_config_info.particles;
+	int time = this->_config_info.curr_step;
 	LR_vector<number> r, rp, t, tp;
+	/*
 	LR_vector<number> *positions = new LR_vector<number>[_N];
+	delete[] positions;
 	// get the positions of the array - will later have to be done with the get_helical_axis_from_duplex
 	for (int i = 0; i <= _last_particle_index - _first_particle_index; i++){
 		positions[i] = p[i]->pos;
-	}
+	}*/
 
 	number writhe = 0;
 	//number writhetemp = 0;
@@ -220,9 +226,16 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 	double peak_value = -1;
 	int peak_position = -1;
 	bool stop = false;
-	for(int k = _first_particle_index; k <= _last_particle_index; k++) {
-		if(k >= _last_particle_index - _subdomain_size && !_go_around)
+	int final_particle_index = 0;
+	if (_go_around) final_particle_index = _last_particle_index;
+	else final_particle_index = _last_particle_index - _subdomain_size - 1;
+	for(int k = _first_particle_index; k <= final_particle_index; k++) {
+	/*
+		if(k >= _last_particle_index - _subdomain_size && !_go_around){
+			printf("break: k = %d\n",k);
 			break;
+		}
+	*/
 		writhe = 0;
 		for(int i = k + 1; i < k + _subdomain_size; i++) {
 			for(int j = k; j < i; j++) {
@@ -253,14 +266,14 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 					peak_position = (int) (k + _subdomain_size / 2.);
 				}
 				// When the writhe goes below the threshold, or when we have reached the end of the chain, the peak is over.
-				else if(abs(writhe) < _writhe_threshold or k == _last_particle_index) {
+				if(abs(writhe) < _writhe_threshold or k == final_particle_index) {
 					on_peak = false;
 					if(peak_position > _last_particle_index) {
 						peak_position -= (_last_particle_index - _first_particle_index + 1);
 					}
 					result += std::string(temp);
 					// compute the size of the plectoneme
-					if(_print_size) {
+					if(_print_size or _print_left_right) {
 						if((peak_position - _minimum_plectoneme_size) >= 0 && (peak_position + _minimum_plectoneme_size) < *this->_config_info.N) {
 							BaseParticle<number> *left = p[peak_position - _minimum_plectoneme_size];
 							BaseParticle<number> *right = p[peak_position + _minimum_plectoneme_size];
@@ -293,7 +306,10 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 
 							// we don't print info about plectonemes that are smaller than _minimum_plectoneme_size
 							if(size > _minimum_plectoneme_size*2) {
-								result += Utils::sformat(" %d %d", peak_position, size);
+								if (_print_size)
+									result += Utils::sformat(" %d %d", peak_position, size);
+								else if (_print_left_right)
+									result += Utils::sformat(" %d %d %d", peak_position, left->index, right->index);
 
 								// print the spatial position of the particle on the tip of the plectoneme
 								if(_print_space_pos) {
@@ -329,6 +345,8 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 			result += std::string(temp);
 		}
 	}
+	if(on_peak)
+		throw oxDNAException("Writhe.cpp never got off a peak on time %d. Most likely a bug!!!",time);
 	if(stop)
 		throw oxDNAException("Dying badly because of problems with the observable writhe. That's not supposed to happen!");
 
