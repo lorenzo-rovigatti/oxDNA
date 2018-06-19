@@ -21,6 +21,7 @@
 #include "LJWall.h"
 #include "HardWall.h"
 #include "RepulsiveSphere.h"
+#include "RepulsiveSphereSmooth.h"
 #include "AlignmentField.h"
 #include "GenericCentralForce.h"
 #include "LJCone.h"
@@ -40,9 +41,7 @@ ForceFactory<number>::ForceFactory() {
 
 template <typename number>
 ForceFactory<number>::~ForceFactory() {
-	for(unsigned int i = 0; i < _forces.size(); i ++) {
-		delete _forces[i];
-	}
+	for (unsigned int i =0; i < _forces.size(); i ++) delete _forces[i];
 }
 
 template <typename number>
@@ -70,6 +69,7 @@ void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **par
 	else if (type_str.compare("lowdim_trap") == 0) extF = new LowdimMovingTrap<number>();
 	else if (type_str.compare("constant_trap") == 0) extF = new ConstantTrap<number>();
 	else if (type_str.compare("sphere") == 0) extF = new RepulsiveSphere<number>();
+	else if (type_str.compare("sphere_smooth") == 0) extF = new RepulsiveSphereSmooth<number>();
 	else if (type_str.compare("com") == 0) extF = new COMForce<number>();
 	else if (type_str.compare("LJ_wall") == 0) extF = new LJWall<number>();
 	else if (type_str.compare("hard_wall") == 0) extF = new HardWall<number>();
@@ -92,6 +92,7 @@ template<typename number>
 void ForceFactory<number>::read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA,BaseBox<number> * box) {
 	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
 
+	//char line[512], typestr[512];
 	int open, justopen, a;
 	ifstream external(external_filename.c_str());
 
@@ -153,8 +154,8 @@ void ForceFactory<number>::read_external_forces(std::string external_filename, B
 
 		ForceFactory<number>::instance()->add_force(input, particles, N, is_CUDA, box);
 
-		cleanInputFile(&input);
-		fclose(temp);
+		cleanInputFile (&input);
+		fclose (temp);
 	}
 	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());
 }
