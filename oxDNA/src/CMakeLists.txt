@@ -132,6 +132,7 @@ SET(forces_SOURCES
 	Forces/RepulsionPlane.cpp
 	Forces/RepulsionPlaneMoving.cpp
 	Forces/RepulsiveSphere.cpp
+	Forces/RepulsiveSphereSmooth.cpp
 	Forces/LJWall.cpp
 	Forces/HardWall.cpp
 	Forces/AlignmentField.cpp

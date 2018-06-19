@@ -38,7 +38,7 @@ void MutualTrap<number>::init (BaseParticle<number> ** particles, int N, BaseBox
 	if(_particle >= N || N < -1) throw oxDNAException ("Trying to add a MutualTrap on non-existent particle %d. Aborting", _particle);
 	if(_particle == -1) throw oxDNAException ("Cannot apply MutualTrap to all particles. Aborting");
 
-	OX_LOG (Logger::LOG_INFO, "Adding MutualTrap (stiff=%g, r0=%g, ref_particle=%d, PBC=%d on particle %d", this->_stiff, this->_r0, _ref_id, PBC, _particle);
+	OX_LOG (Logger::LOG_INFO, "Adding MutualTrap (stiff=%g, r0=%g, ref_particle=%d, PBC=%d on particle %d)", this->_stiff, this->_r0, _ref_id, PBC, _particle);
 	particles[_particle]->add_ext_force(this);
 	
 }

@@ -174,6 +174,34 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 				}
 				break;
 			}
+			case CUDA_REPULSIVE_SPHERE_SMOOTH: {
+				number4 centre = make_number4<number, number4>(extF.repulsivespheresmooth.centre.x, extF.repulsivespheresmooth.centre.y, extF.repulsivespheresmooth.centre.z, 0.);
+				number4 dist = box->minimum_image(centre, ppos);
+				number mdist = _module<number, number4>(dist);
+				number r0 = extF.repulsivespheresmooth.r0;
+				number r_ext = extF.repulsivespheresmooth.r_ext;
+				number smooth = extF.repulsivespheresmooth.smooth;
+				number alpha = extF.repulsivespheresmooth.alpha;
+				number stiff = extF.repulsivespheresmooth.stiff;
+
+				if(mdist > r0 && mdist < r_ext) {
+					number force_mod = 0.f;
+					if(mdist >= alpha && mdist <= r_ext) {
+						force_mod = -(stiff * 0.5f * expf((mdist - alpha) / smooth)) / mdist;
+					}
+					else {
+						if(mdist < alpha && mdist >= r0) {
+							force_mod = -(stiff * mdist - stiff * 0.5f * expf(-(mdist - alpha) / smooth)) / mdist;
+						}
+					}
+
+					F.x += dist.x*force_mod;
+					F.y += dist.y*force_mod;
+					F.z += dist.z*force_mod;
+				}
+
+				break;
+			}
 			case CUDA_LJ_WALL: {
 				number distance = CUDA_DOT(extF.ljwall.dir, ppos) + extF.ljwall.position;
 				number rel_distance = distance/extF.ljwall.sigma;
