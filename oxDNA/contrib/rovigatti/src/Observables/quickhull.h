@@ -92,8 +92,6 @@ void qh_free_mesh(qh_mesh_t mesh);
 #include <stdio.h>  // FILE
 #include <string.h> // memcpy
 
-#define MAX_NFACES 10000
-
 // Quickhull helpers, define your own if needed
 #ifndef QUICKHULL_HELPERS
 #include <stdlib.h> // malloc, free, realloc
@@ -1162,8 +1160,7 @@ void qh__init_context(qh_context_t* context, qh_vertex_t const* vertices, unsign
     // TODO:
     // size_t nedges = 3 * nvertices - 6;
     // size_t nfaces = 2 * nvertices - 4;
-    unsigned int nfaces = nvertices * (nvertices - 1);
-    if(nfaces > MAX_NFACES) nfaces = MAX_NFACES;
+    unsigned int nfaces = 2 * (nvertices - 2);
     unsigned int nedges = nfaces * 3;
 
     context->edges = QH_MALLOC(qh_half_edge_t, nedges);
