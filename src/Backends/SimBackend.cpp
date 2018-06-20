@@ -301,15 +301,15 @@ void SimBackend<number>::init() {
 
 	_interaction->init();
 
-	_rcut = _interaction->get_rcut();
-	_sqr_rcut = SQR(_rcut);
-
 	// check number of particles
 	_N = _interaction->get_N_from_topology();
 	_particles = new BaseParticle<number>*[_N];
 	_interaction->read_topology(_N, &_N_strands, _particles);
 
-	// check that the interation has filled the affected
+	_rcut = _interaction->get_rcut();
+	_sqr_rcut = SQR(_rcut);
+
+	// check that the interaction has filled the array of "affected" particles
 	for (int i = 0; i < _N; i ++) {
 		BaseParticle<number> * p = _particles[i];
 		if (p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL)
