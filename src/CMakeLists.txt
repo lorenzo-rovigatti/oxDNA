@@ -260,8 +260,9 @@ IF(MPI)
 	SET(mpi_SOURCES
 		oxDNA_mpi
 		Managers/ParallelManager.cpp
+                Backends/PT_VMMC_CPUBackend.cpp
 	)
-	
 	ADD_EXECUTABLE(oxDNA_mpi ${mpi_SOURCES})
+        SET(exe_name oxDNA_mpi)
 	TARGET_LINK_LIBRARIES(oxDNA_mpi ${lib_name} ${MPI_LIBRARIES})
 ENDIF()
