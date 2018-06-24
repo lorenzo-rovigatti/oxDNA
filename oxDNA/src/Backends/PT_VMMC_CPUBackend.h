@@ -10,7 +10,9 @@
 #define _PT_VMMC_CPUBACKEND_H_
 
 #include "VMMC_CPUBackend.h"
-#include "mpi.h"
+#include "../Interactions/rna_model.h"
+#include "../Interactions/RNAInteraction.h"
+
 
 template<typename number>
 struct PT_serialized_particle_info {
@@ -74,6 +76,8 @@ protected:
 	PT_energy_info<number> _exchange_energy;
 
 	bool _oxDNA2_stacking;
+	bool _oxRNA_stacking;
+	Model *model; //is necessary for temperature dependent potentials and exchange probability
 
 public:
 	PT_VMMC_CPUBackend();
