@@ -5,7 +5,7 @@
  *      Author: lorenzo
  */
 
-#include <mpi/mpi.h>
+#include <mpi.h>
 
 #include "ParallelManager.h"
 #include "../Utilities/Utils.h"

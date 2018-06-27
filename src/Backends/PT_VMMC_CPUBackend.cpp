@@ -286,11 +286,11 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 				if (this->_have_us) {
 					number w21, w12, w22, w11;
 
-					w11 = this->_w.get_weight (this->_op.get_hb_states());
+					w11 = this->_w.get_weight (this->_op.get_all_states());
 					w22 = this->_exchange_energy.w;
 
 					// weight of my conf in the irresponsible simulation
-					w21 = _irresp_w.get_weight (this->_op.get_hb_states());
+					w21 = _irresp_w.get_weight (this->_op.get_all_states());
 					// weight of the other conf in this simulation:
 					// we do something slightly obscure: we exchange the weight index
 					// for convenience. Go in Weights.cpp if you want to find out/remember
@@ -457,7 +457,7 @@ void PT_VMMC_CPUBackend<number>::_build_exchange_energy() {
 	_exchange_energy.T = this->_T;
 	_exchange_energy.U_ext = _U_ext;
 	_exchange_energy.replica_id = _which_replica;
-	if (this->_have_us) _exchange_energy.w = this->_w.get_weight (this->_op.get_hb_states(), &(_exchange_energy.weight_index));
+	if (this->_have_us) _exchange_energy.w = this->_w.get_weight (this->_op.get_all_states(), &(_exchange_energy.weight_index));
 }
 
 
@@ -540,6 +540,7 @@ void PT_VMMC_CPUBackend<number>::_rebuild_exchange_conf() {
 		}
 	}
 
+        this->_op.fill_distance_parameters(this->_particles, this->_box);
 
 	//VMMC_CPUBackend<number>::_update_metainfo ();
 	return;
