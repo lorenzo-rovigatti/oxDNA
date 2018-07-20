@@ -32,6 +32,7 @@ private:
 
 	std::map<std::string, int> _supported_types;
 	int _type;
+	number _E_shift;
 
 	std::string _table_filename;
 	int _table_N;

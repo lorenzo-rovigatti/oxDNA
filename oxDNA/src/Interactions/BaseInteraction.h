@@ -39,8 +39,8 @@ protected:
 	/// This is useful for "hard" potentials
 	bool _is_infinite;
 
-	/// This is useful to create initial configurations. It is used by the generator functions
-	number _energy_threshold;
+	/// This are needed to create initial configurations, and they are used by the generator functions
+	number _energy_threshold, _temperature;
 	/// If true, the generation of the initial configuration will try to take into account the fact that particles that are bonded neighbours should be close to each other
 	bool _generate_consider_bonded_interactions;
 	/// This controls the maximum at which bonded neighbours should be randomly placed to speed-up generation. Used by generator functions.
@@ -230,7 +230,8 @@ IBaseInteraction<number>::~IBaseInteraction() {
 template<typename number>
 void IBaseInteraction<number>::get_settings(input_file &inp) {
 	getInputString(&inp, "topology", this->_topology_filename, 1);
-	getInputNumber (&inp, "energy_threshold", &_energy_threshold, 0);
+	getInputNumber(&inp, "energy_threshold", &_energy_threshold, 0);
+	getInputNumber(&inp, "T", &_temperature, 1);
 	getInputBool(&inp, "generate_consider_bonded_interactions", &_generate_consider_bonded_interactions, 0);
 	if(_generate_consider_bonded_interactions) {
 		getInputNumber (&inp, "generate_bonded_cutoff", &_generate_bonded_cutoff, 0);
@@ -363,7 +364,10 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 			}
 
 			// we take into account the external potential
-			if(std::isnan(p->ext_potential) || p->ext_potential > _energy_threshold) inserted = false;
+			number boltzmann_factor = exp(-p->ext_potential / _temperature);
+			if(std::isnan(p->ext_potential) || drand48() > boltzmann_factor) {
+				inserted = false;
+			}
 
 		} while(!inserted);
 

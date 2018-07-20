@@ -36,7 +36,7 @@ particle = <int> (index of the particle on which the force shall be applied. If 
 template<typename number>
 class RepulsiveSphere : public BaseForce<number> {
 private:
-	int _particle;
+	std::string _particles_string;
 
 	/// pointer to the box side
 	BaseBox<number> *_box_ptr;
