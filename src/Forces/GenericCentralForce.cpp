@@ -19,6 +19,7 @@ GenericCentralForce<number>::GenericCentralForce() :
 	_particles_string = "\0";
 	_type = -1;
 	_table_N = -1;
+	_E_shift = 0.;
 
 	inner_cut_off = 0.;
 	_supported_types[string("gravity")] = GRAVITY;
@@ -34,6 +35,8 @@ template<typename number>
 void GenericCentralForce<number>::get_settings(input_file &inp) {
 	string particles_string;
 	getInputString(&inp, "particle", _particles_string, 1);
+
+	getInputNumber(&inp, "E_shift", &_E_shift, 0);
 
 	string strdir;
 	getInputString(&inp, "center", strdir, 1);
@@ -105,7 +108,7 @@ number GenericCentralForce<number>::potential(llint step, LR_vector<number> &pos
 
 	switch(_type) {
 	case GRAVITY:
-		energy = (dist < inner_cut_off) ? this->_F0 * inner_cut_off : this->_F0 * dist;
+		energy = (dist < inner_cut_off) ? 0. : this->_F0 * dist - this->_F0 * inner_cut_off + _E_shift;
 		break;
 	case INTERPOLATED:
 		energy = _table.query_function(dist);
