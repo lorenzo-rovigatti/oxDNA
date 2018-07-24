@@ -14,6 +14,8 @@ template<typename number>
 class MicrogelElasticity : public BaseObservable<number> {
 protected:
 	LR_vector<number> _com();
+	bool _crosslinkers_only;
+	int _N_crosslinkers;
 
 public:
 	MicrogelElasticity();

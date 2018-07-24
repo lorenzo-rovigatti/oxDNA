@@ -83,6 +83,7 @@ std::string FSConf<number>::_headers(llint step) {
 template<typename number>
 std::string FSConf<number>::_particle(BaseParticle<number> *p) {
 	std::stringstream res;
+	res.precision(15);
 
 	LR_vector<number> mybox = this->_config_info.box->box_sides();
 	LR_vector<number> mypos = this->_config_info.box->get_abs_pos(p);
