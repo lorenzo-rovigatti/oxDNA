@@ -115,6 +115,12 @@ public:
 				v2 * tm.v1, v2 * tm.v2, v2 * tm.v3,
 				v3 * tm.v1, v3 * tm.v2, v3 * tm.v3);
 	}
+	
+	inline LR_vector<number> &operator[](int i) {
+		if (i==0) return v1;
+		else if (i==1) return v2;
+		else return v3;
+	}
 
 	inline void transpone() {
 		LR_vector<number> nv1 = LR_vector<number>(v1.x, v2.x, v3.x);
