@@ -128,6 +128,31 @@ public:
  	 * @param l3 box length
  	 */
 	template<typename number> static bool sphere_box_overlap (LR_vector<number> dr, number R_s, LR_matrix<number> O, number l1, number l2, number l3);
+	
+	/*
+	 * @brief Solves a 3 eq in 3 unknowns system
+	 *
+	 * Function to solve a system of 3 equations in 3 unknowns.
+	 * 
+	 * @param C matrix defining the system
+	 * @param rhs right-hand side of the system
+	 * @param sol pointer to an LR_vector where the solution will be stored
+	 */
+	// TODO: perhaps make it return the vector instead of using the pointer?
+	template<typename number> static LR_vector<number> gauss_elim_solve (LR_matrix<number> &C, LR_vector<number> &rhs);
+
+	/*
+	 * @brief checks wheter a segment intersects a triangle in 3D
+	 *
+	 * This function checks if a segment intersects a triangle in 3D.
+	 * 
+	 * @param S1 pointer to vector defining the start of the segment
+	 * @param S2 pointer to vector defining the end of the segment
+	 * @param P1 pointer to vector defining the first vertex of the triangle
+	 * @param P2 pointer to vector defining the second vertex of the triangle
+	 * @param P3 pointer to vector defining the third vertex of the triangle
+	 */
+	template<typename number> static bool edge_triangle_intersection (LR_vector<number> &S1, LR_vector<number> &S2, LR_vector<number> &P1,LR_vector<number> &P2, LR_vector<number> &P3);
 };
 
 /// SAT to evaluate whether two boxes overlap
@@ -881,5 +906,191 @@ bool InteractionUtils::sphere_box_overlap (LR_vector<number> dr, number sphere_r
 	else return false;
 }
 
-#endif /* INTERACTION_UTILS_H_ */
 
+// helper function to solve systems by Gaussian elimination
+// TODO: perhaps check that passing by reference is faster
+// TODO: perhaps remove the copying of Ca to C
+template<typename number>
+LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &Ca, LR_vector<number> &rhs) {
+	int keys[3] = {-1, -1, -1};
+
+	number ** C;
+	C = (number**) malloc (3*sizeof(number*));
+	for (int k = 0; k < 3; k ++) C[k] = (number*) malloc (3 * sizeof(number));
+	C[0][0] = Ca.v1.x;
+	C[0][1] = Ca.v1.y;
+	C[0][2] = Ca.v1.z;
+	C[1][0] = Ca.v2.x;
+	C[1][1] = Ca.v2.y;
+	C[1][2] = Ca.v2.z;
+	C[2][0] = Ca.v3.x;
+	C[2][1] = Ca.v3.y;
+	C[2][2] = Ca.v3.z;
+	/*
+	printf ("{ ");
+	for (int i = 0; i < 3; i++) {
+		printf ("{ %g, %g, %g},", C[i][0], C[i][1], C[i][2]);
+	}
+	printf(" }\n");
+	printf ("{ %g, %g, %g }\n", rhs.x, rhs.y, rhs.z);
+	*/
+	// find maximum of the first column
+	int maxid = 0;
+	if (fabs(C[0][0]) > fabs(C[1][0])) maxid = (fabs(C[0][0]) > fabs(C[2][0]) ? 0 : 2);
+	else maxid = ((fabs(C[1][0]) > fabs(C[2][0])) ? 1 : 2);
+	keys[0] = maxid;
+
+	int i = (maxid+1)%3;
+	int j = (maxid+2)%3;
+	keys[1] = (fabs(C[i][1]) > fabs(C[j][1])) ? i : j;
+
+	keys[2] = 3 - keys[1] - keys[0];
+
+	//keys[0] = 0; keys[1] = 1; keys[2] = 2;
+	LR_vector<number> u (C[keys[0]][0], C[keys[0]][1], C[keys[0]][2]);
+	LR_vector<number> v (C[keys[1]][0], C[keys[1]][1], C[keys[1]][2]);
+	LR_vector<number> w (C[keys[2]][0], C[keys[2]][1], C[keys[2]][2]);
+	LR_vector<number> r (rhs[keys[0]], rhs[keys[1]], rhs[keys[2]]);
+
+	//printf ("%8.5g %8.5g %8.5g u \n", u.x, u.y, u.z);
+	//printf ("%8.5g %8.5g %8.5g v \n", v.x, v.y, v.z);
+	//printf ("%8.5g %8.5g %8.5g w \n", w.x, w.y, w.z);
+	
+	number f = (u[0]/v[0]); 
+	v = u - f*v; r[1] = r[0] - f*r[1];
+	f = (u[0]/w[0]);
+	w = u - f*w; r[2] = r[0] - f*r[2];
+	//printf ("%8.5g %8.5g %8.5g u \n", u.x, u.y, u.z);
+	//printf ("%8.5g %8.5g %8.5g v \n", v.x, v.y, v.z);
+	//printf ("%8.5g %8.5g %8.5g w \n", w.x, w.y, w.z);
+	
+	f = (v[1]/w[1]);
+	w = v - f*w; r[2] = r[1] - f*r[2];
+	//printf ("%8.5g %8.5g %8.5g u \n", u.x, u.y, u.z);
+	//printf ("%8.5g %8.5g %8.5g v \n", v.x, v.y, v.z);
+	//printf ("%8.5g %8.5g %8.5g w \n", w.x, w.y, w.z);
+	
+	number z = r[2]/w[2];
+	number y = (r[1] - v[2]*z)/v[1];
+	number x = (r[0] - u[1]*y - u[2]*z)/u[0];
+
+	for (int k = 0; k<3; k++) free(C[k]);
+	free(C);
+
+	//printf("sol: %g %g %g\n\n", x, y, z);
+	return LR_vector<number> (x, y, z);
+}
+
+// intersection test between a segment and a triangle,
+// defined by its three vertexes
+template<typename number>
+bool InteractionUtils::edge_triangle_intersection (
+		LR_vector<number> &S1, LR_vector<number> &S2,
+		LR_vector<number> &P1, LR_vector<number> &P2, LR_vector<number> &P3) {
+	LR_matrix<number> C;
+	LR_vector<number> rhs, res;
+
+	LR_vector<number> P[3] = {P1, P2, P3};
+	LR_vector<number> p[3] = {P2 - P1, P3 - P2, P1 - P3};
+	LR_vector<number> e = S2 - S1;
+
+	// maybe one check is enough
+	for (int i = 0; i < 3; i ++) {
+		C = LR_matrix<number>(	p[i].x, -p[(i+2)%3].x, -e.x,
+								p[i].y, -p[(i+2)%3].y, -e.y,
+								p[i].z, -p[(i+2)%3].z, -e.z );
+		rhs = S1 - P[i];
+		res = InteractionUtils::gauss_elim_solve(C, rhs);
+		if (res[0] >= (number)0. &&
+				res[1] >= (number)0. &&
+				res[0] + res[1] <= (number)1. &&
+				res[2] >= (number)0. &&
+				res[2] <= (number)1.) {
+			///printf ("overlappppp %g %g %g....\n", res[0], res[1], res[2]);
+			return true;
+		}
+	}
+	
+	/*
+	int i = 0;
+	C = LR_matrix<number>(	p[i].x, -p[(i+2)%3].x, e.x,
+							p[i].y, -p[(i+2)%3].y, e.y,
+							p[i].z, -p[(i+2)%3].z, e.z );
+	rhs = S1 - P[i];
+	res = InteractionUtils::gauss_elim_solve(C, rhs);
+	if (res[0] >= (number)0. &&
+			res[1] >= (number)0. &&
+			res[0] + res[1] <= 1. &&
+			res[2] >= (number)0. &&
+			res[2] <= (number)1.) {
+		return true;
+	}
+
+*/
+	return false;
+}
+
+// test for the intersection between two triangles, the first
+// has vertexes v1,v2,v3 and the second has vertexes u1,u2,u3.
+// TODO: perhaps implement faster test presented 
+// in the paper http://webee.technion.ac.il/~ayellet/Ps/TroppTalShimshoni.pdf
+// DOI 10.1002/cav.115
+// // TODO: not tested!!!!
+template<typename number>
+bool triangle_intersection (LR_vector<number> * P1, LR_vector<number> * P2, LR_vector<number> * P3,
+							LR_vector<number> * Q1, LR_vector<number> * Q2, LR_vector<number> * Q3) {
+	// for each vertex of face 1, we need to see if it intersects face 2
+	// this will happen if, by solving the equation
+	// P + a1 * e1 + a2 * e2 = Qi + bi * ei
+	
+	// faces and edges
+	// TODO: memory leaks?
+	LR_vector<number> *P = new LR_vector<number>[3];
+	LR_vector<number> *Q = new LR_vector<number>[3];
+	LR_vector<number> *p = new LR_vector<number>[3];
+	LR_vector<number> *q = new LR_vector<number>[3];
+
+	P[0] = *P1; P[1] = *P2; P[2] = *P3; 
+	Q[0] = *Q1; Q[1] = *Q2; Q[2] = *Q3; 
+
+	p[0] = *P2 - *P1; p[1] = *P3 - *P2; p[2] = *P1 - *P3;
+	q[0] = *Q2 - *Q1; q[1] = *Q3 - *Q2; q[2] = *Q1 - *Q3;
+
+	LR_matrix<number> C;
+	LR_vector<number> rhs;
+	LR_vector<number> res; // solution: will contain a1, a2 and bi in this order
+
+	// check if edges of triangle Q go through triangle P
+	for (int i = 0; i < 3; i ++) {
+		for (int j=0; j < 3; j ++) {
+			C = LR_matrix<number>( 	p[i].x, -p[(i+2)%3].x, q[j].x,
+									p[i].y, -p[(i+2)%3].y, q[j].y,
+									p[i].z, -p[(i+2)%3].z, q[j].z );
+			rhs = Q[j] - P[i];
+			res = InteractionUtils::gauss_elim_solve(C, rhs);
+			if (res[0] >= (number)0. &&
+				res[1] >= (number)0. &&
+				res[0] + res[1] <= 1. &&
+				res[2] >= (number)0. &&
+				res[2] <= (number)1.) return true;
+		}
+	}
+	
+	// check if edges of triangle P go through triangle Q
+	for (int i = 0; i < 3; i ++) {
+		for (int j=0; j < 3; j ++) {
+			C = LR_matrix<number>( 	q[i].x, -q[(i+2)%3].x, p[j].x,
+									q[i].y, -q[(i+2)%3].y, p[j].y,
+									q[i].z, -q[(i+2)%3].z, p[j].z );
+			rhs = P[j] - Q[i];
+			res = InteractionUtils::gauss_elim_solve(C, rhs);
+			if (res[0] >= (number)0. &&
+				res[1] >= (number)0. &&
+				res[0] + res[1] <= 1. &&
+				res[2] >= (number)0. &&
+				res[2] <= (number)1.) return true;
+		}
+	}
+}
+
+#endif /* INTERACTION_UTILS_H_ */
