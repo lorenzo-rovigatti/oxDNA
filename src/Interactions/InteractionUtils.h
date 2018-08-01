@@ -911,21 +911,8 @@ bool InteractionUtils::sphere_box_overlap (LR_vector<number> dr, number sphere_r
 // TODO: perhaps check that passing by reference is faster
 // TODO: perhaps remove the copying of Ca to C
 template<typename number>
-LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &Ca, LR_vector<number> &rhs) {
+LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &C, LR_vector<number> &rhs) {
 	int keys[3] = {-1, -1, -1};
-
-	number ** C;
-	C = (number**) malloc (3*sizeof(number*));
-	for (int k = 0; k < 3; k ++) C[k] = (number*) malloc (3 * sizeof(number));
-	C[0][0] = Ca.v1.x;
-	C[0][1] = Ca.v1.y;
-	C[0][2] = Ca.v1.z;
-	C[1][0] = Ca.v2.x;
-	C[1][1] = Ca.v2.y;
-	C[1][2] = Ca.v2.z;
-	C[2][0] = Ca.v3.x;
-	C[2][1] = Ca.v3.y;
-	C[2][2] = Ca.v3.z;
 	/*
 	printf ("{ ");
 	for (int i = 0; i < 3; i++) {
@@ -946,7 +933,6 @@ LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &Ca, LR_v
 
 	keys[2] = 3 - keys[1] - keys[0];
 
-	//keys[0] = 0; keys[1] = 1; keys[2] = 2;
 	LR_vector<number> u (C[keys[0]][0], C[keys[0]][1], C[keys[0]][2]);
 	LR_vector<number> v (C[keys[1]][0], C[keys[1]][1], C[keys[1]][2]);
 	LR_vector<number> w (C[keys[2]][0], C[keys[2]][1], C[keys[2]][2]);
@@ -974,8 +960,8 @@ LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &Ca, LR_v
 	number y = (r[1] - v[2]*z)/v[1];
 	number x = (r[0] - u[1]*y - u[2]*z)/u[0];
 
-	for (int k = 0; k<3; k++) free(C[k]);
-	free(C);
+	//for (int k = 0; k<3; k++) free(C[k]);
+	//free(C);
 
 	//printf("sol: %g %g %g\n\n", x, y, z);
 	return LR_vector<number> (x, y, z);
@@ -983,6 +969,40 @@ LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &Ca, LR_v
 
 // intersection test between a segment and a triangle,
 // defined by its three vertexes
+template<typename number>
+bool InteractionUtils::edge_triangle_intersection (
+		LR_vector<number> &S1, LR_vector<number> &S2,
+		LR_vector<number> &P1, LR_vector<number> &P2, LR_vector<number> &P3) {
+	LR_vector<number> rhs;
+	LR_vector<number> res;
+
+	/*
+	LR_vector<number> p1 = P2 - P1;
+	LR_vector<number> p3 = P1 - P3;
+	LR_vector<number> e = S2 - S1;
+
+	LR_matrix<number> C (p1.x, -p3.x, -e.x,
+						 p1.y, -p3.y, -e.y,
+						 p1.z, -p3.z, -e.z );
+	*/
+	LR_matrix<number> C (P2.x - P1.x, P3.x - P1.x, S1.x - S2.x,
+	                     P2.y - P1.y, P3.y - P1.y, S1.y - S2.y,
+	                     P2.z - P1.z, P3.z - P1.z, S1.z - S2.z);
+
+	rhs = S1 - P1;
+	res = InteractionUtils::gauss_elim_solve(C, rhs);
+	if (res[0] >= (number)0. &&
+			res[1] >= (number)0. &&
+			res[0] + res[1] <= (number)1. &&
+			res[2] >= (number)0. &&
+			res[2] <= (number)1.) {
+		return true;
+	}
+	
+	return false;
+}
+
+/*
 template<typename number>
 bool InteractionUtils::edge_triangle_intersection (
 		LR_vector<number> &S1, LR_vector<number> &S2,
@@ -1011,24 +1031,9 @@ bool InteractionUtils::edge_triangle_intersection (
 		}
 	}
 	
-	/*
-	int i = 0;
-	C = LR_matrix<number>(	p[i].x, -p[(i+2)%3].x, e.x,
-							p[i].y, -p[(i+2)%3].y, e.y,
-							p[i].z, -p[(i+2)%3].z, e.z );
-	rhs = S1 - P[i];
-	res = InteractionUtils::gauss_elim_solve(C, rhs);
-	if (res[0] >= (number)0. &&
-			res[1] >= (number)0. &&
-			res[0] + res[1] <= 1. &&
-			res[2] >= (number)0. &&
-			res[2] <= (number)1.) {
-		return true;
-	}
-
-*/
 	return false;
 }
+*/
 
 // test for the intersection between two triangles, the first
 // has vertexes v1,v2,v3 and the second has vertexes u1,u2,u3.
