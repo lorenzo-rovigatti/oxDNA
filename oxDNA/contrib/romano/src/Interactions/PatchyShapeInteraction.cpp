@@ -273,6 +273,21 @@ number PatchyShapeInteraction<number>::_exc_LJ_vol_interaction_sphere(BasePartic
 template<typename number>
 number PatchyShapeInteraction<number>::_exc_vol_hard_icosahedron(BaseParticle<number> *ap, BaseParticle<number> *aq, LR_vector<number> *r,bool update_forces) {
 
+	/*
+	printf("Particle %d has %d int_centers \n",ap->index,ap->N_int_centers);
+	for(int i = 0; i < ap->N_int_centers; i++)
+	{
+		printf("%d center: %f %f %f \n",i,ap->int_centers[i].x,ap->int_centers[i].y,ap->int_centers[i].z);
+	}
+	PatchyShapeParticle < number > *pp = dynamic_cast<PatchyShapeParticle<number> *>(ap);
+	printf("Particle %d has %d vertices \n",pp->index,pp->N_vertexes);
+	for(int i = 0; i < pp->N_vertexes; i++)
+	{
+			printf("%d vertex: %f %f %f \n",i,pp->_vertexes[i].x,pp->_vertexes[i].y,pp->_vertexes[i].z);
+	}
+	exit(-1);
+	*/
+
 	if (update_forces)
 		throw oxDNAException("No forces, figlio di ndrocchia");
 
@@ -785,6 +800,7 @@ PatchyShapeParticle<number> PatchyShapeInteraction<number>::_process_particle_ty
 	if (N_vertexes  != 0)
 	{
 	   p._set_vertexes();
+
 	}
 	int position = 0;
 	for(typename std::vector<Patch<number> >::iterator i = all_patches.begin(); i != all_patches.end(); ++i)
@@ -1302,6 +1318,17 @@ void PatchyShapeInteraction<number>::read_topology(int N, int *N_strands, BasePa
         int i = total_count;
         particles[i]->copy_from(this->_particle_types[type]);
 
+        /*
+        printf("!!!!!!!!! JUST INITIALIZED PARTICLE %d \n",i);
+        PatchyShapeParticle<number> *p =  dynamic_cast<PatchyShapeParticle<number> *>( particles[i]);
+        printf("N_patch %d N_vertex %d N_int %d\n",p->N_patches,p->N_vertexes,p->N_int_centers);
+        for(int ii = 0; ii < 12; ii++)
+       	{
+
+       		   printf("%f %f %f \n",p->_vertexes[ii].x,p->_vertexes[ii].y,p->_vertexes[ii].z);
+       	}
+        */
+
     	particles[i]->index = i;
     	particles[i]->type = type;
     	particles[i]->btype = type;
@@ -1416,10 +1443,12 @@ void PatchyShapeInteraction<number>::_init_icosahedron(void)
 	PatchyShapeParticle<number> tmp (0,0,12);
 	tmp._set_icosahedron_vertexes();
 
+	/*
 	for(int i = 0; i < 12; i++)
 	{
 		printf("Icosahedron vertex %d = %f %f %f \n",i,tmp._vertexes[i][0],tmp._vertexes[i][1],tmp._vertexes[i][2]);
 	}
+	*/
 
 	tmp.pos = LR_vector<number> ((number)0.f, (number)0.f, (number)0.f);
 	tmp.orientation = LR_matrix<number> ((number)1.f, (number)0.f, (number)0.f,
