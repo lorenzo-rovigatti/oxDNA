@@ -100,7 +100,11 @@ void PatchyShapeParticle<number>::_set_base_patches() {
 
 template<typename number>
 void PatchyShapeParticle<number>::set_positions() {
+	/*
+	 if(this->index == 0)
+        printf("I am in set_positions for particle %d, N_patches=%d, N_vertices=%d, N_int_centers=%d \n",this->index,this->N_patches,this->N_vertexes,this->N_int_centers);
 
+    */
     //printf("Setting position with %f %f %f\n",this->orientationT.v1.x,this->orientationT.v1.y,this->orientationT.v1.z);
 	for(int i = 0; i < this->N_patches; i++)
     {
@@ -109,10 +113,21 @@ void PatchyShapeParticle<number>::set_positions() {
         this->patches[i].a2 = (patches[i].a2_x * this->orientationT.v1) + (patches[i].a2_y * this->orientationT.v2) + (patches[i].a2_z * this->orientationT.v3); //possibly can be accelerated
 
     }
-	for(int i = this->N_patches; i < this->N_int_centers; i++)
+	for(int i = 0; i < this->N_vertexes; i++)
 	{
-			this->int_centers[i] = this->orientation * this->_vertexes[i];
+			this->int_centers[this->N_patches+i] = this->orientation * this->_vertexes[i];
 	}
+
+	/*
+	if(this->index == 0)
+	{
+		for(int i = 0; i < this->N_int_centers; i++)
+			{
+			printf("%d center: %f %f %f vertex: %f %f %f \n",i,this->int_centers[i].x,this->int_centers[i].y,this->int_centers[i].z,this->_vertexes[i].x,this->_vertexes[i].y,this->_vertexes[i].z);
+			}
+	}
+	*/
+
 }
 
 template<typename number>
