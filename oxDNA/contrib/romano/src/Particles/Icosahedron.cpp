@@ -17,19 +17,13 @@ Icosahedron<number>::Icosahedron(int N_patches) : BaseParticle<number>() {
 	_vertexes = new LR_vector<number>[12];
 	_patch_indexes = new int[N_patches];
 
-	// todo: perhaps remove these useless arrays...
-	_faces = new int[20 * 3]; // store an array of indexes of vertexes defining a face
-	_close_faces = new int[12 * 5];  // store the indexes of the faces close to each vertex 
-
 	_set_vertexes();
 }
 
 template<typename number>
 Icosahedron<number>::~Icosahedron() {
 	delete[] _vertexes;
-	delete[] _faces;
 	delete[] _patch_indexes;
-	delete[] _close_faces;
 }
 
 template<typename number>
@@ -41,61 +35,20 @@ void Icosahedron<number>::_set_vertexes() {
 
 	// 12 vertexes of the icosahedron; circular
 	// permutations of (0, +/-a, +/-b)
-	_vertexes[ 0] = LR_vector<number>( 0.,  a,  b);
-	_vertexes[ 1] = LR_vector<number>( 0.,  a, -b);
-	_vertexes[ 2] = LR_vector<number>( 0., -a,  b);
-	_vertexes[ 3] = LR_vector<number>( 0., -a, -b);
-
-	_vertexes[ 4] = LR_vector<number>(  b, 0.,  a);
-	_vertexes[ 5] = LR_vector<number>(  b, 0., -a);
-	_vertexes[ 6] = LR_vector<number>( -b, 0.,  a);
-	_vertexes[ 7] = LR_vector<number>( -b, 0., -a);
-
-	_vertexes[ 8] = LR_vector<number>(  a,  b, 0.);
-	_vertexes[ 9] = LR_vector<number>(  a, -b, 0.);
-	_vertexes[10] = LR_vector<number>( -a,  b, 0.);
-	_vertexes[11] = LR_vector<number>( -a, -b, 0.);
-
-	// we now need to figure out which vertexes belong to which face
-	// angle between vertexes of the same face: 1.1071487177940436, ~63.435 degrees
-	// the possible angles between all pairs are: ~63.4, ~116.6 e 180.
-	// each vertex has 5 vertexes at 63, 5 more at 116 and 1 at 180 (opposite)
-	int nface = 0;
-	number thres = 0.;  // threshold angle is 90 degrees
-	for (int i = 0; i < 12; i ++) {
-		for (int j = 0; j < i; j ++) {
-			for (int k = 0; k < j; k ++) {
-				if ((_vertexes[i]*_vertexes[j] > thres) &&
-				    (_vertexes[i]*_vertexes[k] > thres) &&
-				    (_vertexes[j]*_vertexes[k] > thres)) {
-						_faces[3*nface + 0] = i;
-						_faces[3*nface + 1] = j;
-						_faces[3*nface + 2] = k;
-						/*printf ("\n\n%d %d %d @\n", i, j, k);
-						printf ("%7.5g %7.5g %7.5g\n", _vertexes[i].x, _vertexes[i].y, _vertexes[i].z);
-						printf ("%7.5g %7.5g %7.5g\n", _vertexes[j].x, _vertexes[j].y, _vertexes[j].z);
-						printf ("%7.5g %7.5g %7.5g\n", _vertexes[k].x, _vertexes[k].y, _vertexes[k].z);
-						printf ("  %g %g %g\n", 4.f*(_vertexes[i]*_vertexes[j]), 4.f*(_vertexes[i]*_vertexes[k]), 4.*(_vertexes[j]*_vertexes[k]));*/
-						nface ++;
-				}
-			}
-		}
-	}
-	if (nface != 20) throw oxDNAException ("no can do here %d...", nface);
-
-	// we also want an array of faces close to each vertex
-	for (int i = 0; i < 12; i ++) {
-		int mynfaces = 0;
-		for (int j = 0; j < 20; j ++) {
-			if ( (_faces[3*j + 0] == i) ||
-				 (_faces[3*j + 1] == i) ||
-				 (_faces[3*j + 2] == i) ) {
-				_close_faces[5 * i + mynfaces] = j;
-				mynfaces ++;
-			}
-		}
-		if (mynfaces != 5) throw oxDNAException ("no can do 2");
-	}
+	// each vertex +6 is the opposite; this is 
+	// helpful in the interaction
+	_vertexes[ 0] = LR_vector<number>( 0.,  a,  b); //   0
+	_vertexes[ 1] = LR_vector<number>( 0.,  a, -b); //   1
+	_vertexes[ 2] = LR_vector<number>(  b, 0.,  a); //   4
+	_vertexes[ 3] = LR_vector<number>(  b, 0., -a); //   5
+	_vertexes[ 4] = LR_vector<number>(  a,  b, 0.); //   8
+	_vertexes[ 5] = LR_vector<number>(  a, -b, 0.); //   9
+	_vertexes[ 6] = LR_vector<number>( 0., -a, -b); //  -0
+	_vertexes[ 7] = LR_vector<number>( 0., -a,  b); //  -1
+	_vertexes[ 8] = LR_vector<number>( -b, 0., -a); //  -4
+	_vertexes[ 9] = LR_vector<number>( -b, 0.,  a); //  -5
+	_vertexes[10] = LR_vector<number>( -a, -b, 0.); //  -8
+	_vertexes[11] = LR_vector<number>( -a,  b, 0.); //  -9
 
 	switch(this->_N_patches) {
 	case 1: {

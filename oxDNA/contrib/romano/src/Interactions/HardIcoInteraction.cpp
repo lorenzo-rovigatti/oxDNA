@@ -10,7 +10,6 @@
 template<typename number>
 HardIcoInteraction<number>::HardIcoInteraction() : BaseInteraction<number, HardIcoInteraction<number> >() {
 	this->_int_map[HardIco] = &HardIcoInteraction<number>::_hi_pot;
-	// perhaps change this to short unsigned?
 	_close_vertexes = new int[12 * 5]; // 5 close vertexes for each vertex
 	_tworinscribed = (number) (2.*sqrt((1./12.) + (1./(6.*sqrt(5.))))); // twice the radius of inscribed sphere
 }
