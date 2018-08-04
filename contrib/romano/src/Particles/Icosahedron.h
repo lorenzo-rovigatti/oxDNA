@@ -29,21 +29,8 @@ protected:
 	/**
 	 * array containing the indexes of the vertexes that have
 	 * patches on them
-	 * TODO: perhaps change to short int to save memory?
 	 */
 	int * _patch_indexes;
-
-	/** 
-	 * array storing the indexes of the vertexes that form each face
-	 * TODO: perhaps change to short int to save memory?
-	 */
-	int * _faces;
-
-	/**
-	 * array storing to which faces each vertex belongs to
-	 * TODO: perhaps change to short int to save memory?
-	 */
-	int * _close_faces; 
 
 	void _set_vertexes();
 
