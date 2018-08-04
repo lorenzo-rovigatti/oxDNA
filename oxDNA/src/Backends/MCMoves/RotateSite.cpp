@@ -10,7 +10,7 @@
 #include "../../Particles/JordanParticle.h"
 
 template<typename number>
-RotateSite<number>::RotateSite (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
+RotateSite<number>::RotateSite () {
 
 }
 

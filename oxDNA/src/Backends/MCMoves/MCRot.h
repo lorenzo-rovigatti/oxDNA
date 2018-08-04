@@ -17,7 +17,7 @@ class MCRot : public BaseMove<number> {
 		LR_matrix<number> _orientation_old, _orientationT_old;
 	
 	public:
-		MCRot(ConfigInfo<number> *Info);
+		MCRot();
 		virtual ~MCRot();
 
 		virtual void get_settings(input_file &inp, input_file &sim_inp);

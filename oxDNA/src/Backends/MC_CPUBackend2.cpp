@@ -28,7 +28,7 @@ template<typename number>
 void MC_CPUBackend2<number>::add_move (std::string move_string, input_file &sim_inp) {
 	input_file * move_inp = Utils::get_input_file_from_string(move_string);
 
-	BaseMove<number> * new_move = MoveFactory::make_move<number> (*move_inp, sim_inp, _MC_Info);
+	BaseMove<number> * new_move = MoveFactory::make_move<number> (*move_inp, sim_inp);
 
 	_moves.push_back (new_move);
 

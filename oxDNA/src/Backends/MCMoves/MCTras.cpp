@@ -10,7 +10,7 @@
 
 /// traslation
 template<typename number>
-MCTras<number>::MCTras (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
+MCTras<number>::MCTras()  {
 	pos_old = LR_vector<number> (0., 0., 0.);
 
 	_verlet_skin = -1.f;

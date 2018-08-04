@@ -17,7 +17,7 @@
 
 /// traslation
 template<typename number>
-VMMC<number>::VMMC (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
+VMMC<number>::VMMC ()  {
 	_max_move_size_sqr = -1.;
 	_max_move_size = 1.;
 	_max_cluster_size = -1;

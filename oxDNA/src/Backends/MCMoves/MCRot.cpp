@@ -9,7 +9,7 @@
 #include "MCRot.h"
 
 template<typename number>
-MCRot<number>::MCRot (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
+MCRot<number>::MCRot () : BaseMove<number>() {
 	_orientation_old = LR_matrix<number> (1., 0., 0., 0., 1., 0., 0., 0., 1.); 
 	_orientationT_old = LR_matrix<number> (1., 0., 0., 0., 1., 0., 0., 0., 1.); 
 }
