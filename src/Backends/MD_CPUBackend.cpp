@@ -258,7 +258,7 @@ void MD_CPUBackend<number>::get_settings (input_file &inp) {
 	if(this->_use_barostat) {
 		string str_inp = Utils::sformat("type = volume\ndelta = %lf\nisotropic = %d", this->_delta_L, (int) this->_barostat_isotropic);
 		input_file *move_inp = Utils::get_input_file_from_string(str_inp);
-		_V_move = MoveFactory::make_move<number>(*move_inp, inp, this->_config_info);
+		_V_move = MoveFactory::make_move<number>(*move_inp, inp);
 		cleanInputFile(move_inp);
 	}
 }

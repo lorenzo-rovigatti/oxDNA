@@ -10,7 +10,7 @@
 
 /// traslation
 template<typename number>
-ShapeMove<number>::ShapeMove (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
+ShapeMove<number>::ShapeMove () {
 	_verlet_skin = -1.f;
 }
 

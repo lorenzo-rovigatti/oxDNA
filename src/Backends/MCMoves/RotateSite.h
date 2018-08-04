@@ -17,7 +17,7 @@ class RotateSite : public BaseMove<number> {
 		std::vector<int> allowed_sites;
 		
 	public:
-		RotateSite(ConfigInfo<number> *Info);
+		RotateSite();
 		virtual ~RotateSite();
 
 		virtual void get_settings(input_file &inp, input_file &sim_inp);

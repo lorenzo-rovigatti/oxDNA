@@ -20,7 +20,7 @@ class MCTras : public BaseMove<number> {
 		number _verlet_skin;
 	
 	public:
-		MCTras(ConfigInfo<number> *Info);
+		MCTras();
 		virtual ~MCTras();
 
 		void apply (llint curr_step);

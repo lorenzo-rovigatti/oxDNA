@@ -50,7 +50,8 @@ class BaseMove {
 
 	
 	public:
-		BaseMove(ConfigInfo<number> * Info);
+		BaseMove();
+
 		virtual ~BaseMove();	
 
 		/// relative probability with which the move is attempted
@@ -82,11 +83,11 @@ class BaseMove {
 };
 
 template<typename number>
-BaseMove<number>::BaseMove (ConfigInfo<number> * Info) {
+BaseMove<number>::BaseMove ():  _Info(&ConfigInfo<number>::ref_instance()) {
 	_attempted = 0;
 	_accepted = 0;
 	_T = -1.;
-	_Info = Info;
+	//_Info = Info;
 	prob = (number) 1.f;
 	_target_acc_rate = 0.25;
 	_equilibration_steps = 0;

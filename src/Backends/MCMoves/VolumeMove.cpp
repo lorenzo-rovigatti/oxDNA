@@ -10,7 +10,7 @@
 
 /// traslation
 template<typename number>
-VolumeMove<number>::VolumeMove (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
+VolumeMove<number>::VolumeMove ()  {
 	_verlet_skin = -1.f;
 	_isotropic = true;
 }

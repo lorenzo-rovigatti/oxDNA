@@ -22,7 +22,7 @@ class VolumeMove : public BaseMove<number> {
 		bool _isotropic;
 	
 	public:
-		VolumeMove(ConfigInfo<number> *Info);
+		VolumeMove();
 		virtual ~VolumeMove();
 
 		void apply (llint curr_step);

@@ -21,7 +21,7 @@ class ShapeMove : public BaseMove<number> {
 		number _P;
 	
 	public:
-		ShapeMove(ConfigInfo<number> *Info);
+		ShapeMove();
 		virtual ~ShapeMove();
 
 		void apply (llint curr_step);

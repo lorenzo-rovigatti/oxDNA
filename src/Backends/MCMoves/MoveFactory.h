@@ -34,7 +34,7 @@ public:
 	 * @return a pointer to the newly built interaction
 	 */
 	template <typename number>
-	static BaseMove<number> * make_move (input_file &inp, input_file &sim_inp, ConfigInfo<number> * Info);
+	static BaseMove<number> * make_move (input_file &inp, input_file &sim_inp);
 };
 
 #endif /* INTERACTIONFACTORY_H_ */
