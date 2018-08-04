@@ -30,14 +30,13 @@ class MCMovePatchyShape : public BaseMove<number> {
 
 		void apply (llint curr_step);
 		virtual void get_settings(input_file &inp, input_file &sim_inp);
+		virtual void init(void);
 
 };
 
 
-
 extern "C" BaseMove<float> * make_MCMovePatchyShape_float()   { return new MCMovePatchyShape<float> () ; }
 extern "C" BaseMove<double> * make_MCMovePatchyShape_double() {return new MCMovePatchyShape<double> () ; }
-
 
 #endif // MCMovePatchyShape.h
 

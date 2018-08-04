@@ -21,6 +21,15 @@ MCMovePatchyShape<number>::~MCMovePatchyShape () {
 
 }
 
+
+template<typename number>
+void MCMovePatchyShape<number>::init () {
+	BaseMove<number>::init();
+	PatchyShapeInteraction<number> *interaction = dynamic_cast<PatchyShapeInteraction<number> *  >( this->_Info->interaction );
+	interaction->_init_patchy_locks();
+	interaction->check_patchy_locks();
+}
+
 template<typename number>
 void MCMovePatchyShape<number>::get_settings (input_file &inp, input_file &sim_inp) {
 
@@ -60,7 +69,6 @@ struct lock
 template<typename number>
 void MCMovePatchyShape<number>::apply (llint curr_step) {
 
-
 	// we increase the attempted count
 	this->_attempted += 1;
 
@@ -69,9 +77,9 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 
 	//cout << "GGB " << this->_Info->particles << endl;;
 
-	PatchyShapeParticle<number> *p = dynamic_cast< PatchyShapeParticle<number> *>(this->_Info->particles[pi]);
+	PatchyShapeParticle<number> *p = static_cast< PatchyShapeParticle<number> *>(this->_Info->particles[pi]);
 
-	//printf(" I am about to segfault, moving particle %d with pos %f \n",p->index,p->pos[0]);
+	//printf("Moving particle %d with pos %f \n",p->index,p->pos[0]);
 
 	pos_old = p->pos; 
 	_orientation_old = p->orientation;
@@ -125,7 +133,8 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 	//vector< Patch<number>  > broken_locks;
 	vector<lock> locks_to_restore; //this is a list of locks that will be rejected
     vector<lock> locks_to_break;
-	PatchyShapeInteraction<number> *interaction = dynamic_cast<PatchyShapeInteraction<number> *  >( this->_Info->interaction );
+	PatchyShapeInteraction<number> *interaction = static_cast<PatchyShapeInteraction<number> *  >( this->_Info->interaction );
+
 	number new_ene;
 
 	//printf("After suggesting mov and fucking: , delta_E = %f, pos = %g %g %g \n",delta_E,p->pos.x,p->pos.y,p->pos.z);
@@ -135,18 +144,21 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 		{
 		  int qid=-1, qpatch=-1;
 		  p->patches[i].get_lock(qid,qpatch);
-		  //printf("I am particle %d, patch %d, locked to %d %d",p->index,i,qid,qpatch);
 		  assert(qid >= 0);  assert(qpatch >= 0 && qpatch < 6);
-		  PatchyShapeParticle<number> *q = dynamic_cast< PatchyShapeParticle<number> *>(this->_Info->particles[qid]);
+		  PatchyShapeParticle<number> *q = static_cast< PatchyShapeParticle<number> *>(this->_Info->particles[qid]);
 		  LR_vector<number> r = this->_Info->box->min_image(p,q);
 		  new_ene = interaction->just_two_patch_interaction(p,q,i,qpatch,&r);
-		  if ( ! new_ene < interaction->get_patch_cutoff_energy() ) //we break the lock
+		  //printf("I am particle %d, patch %d, locked to %d %d (new energy %g), cutoff %f\n",p->index,i,qid,qpatch, new_ene,interaction->get_patch_cutoff_energy() );
+		  //if ( new_ene < -0.1 ) throw oxDNAException("it actually happens");
+		  if ( ! (new_ene < interaction->get_patch_cutoff_energy()) ) //we break the lock
 		  {
 
-			 // broken_locks.push_back(p->patches[i]);
+			  //printf("I am particle %d breaking lock %d with %d (%d) \n",p->index,i,qid,qpatch);
+			  // broken_locks.push_back(p->patches[i]);
 			  p->patches[i].unlock();
 			  q->patches[qpatch].unlock();
 			  locks_to_restore.push_back(  lock(p->index,q->index,i,qpatch));
+			  //throw oxDNAException("here...");
 		  }
 		}
 	}
@@ -166,10 +178,10 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 		int qid = i->qid;
 		int qpatch = i->qpatchid;
 
-		PatchyShapeParticle<number> *q = dynamic_cast< PatchyShapeParticle<number> *>(this->_Info->particles[qid]);
+		PatchyShapeParticle<number> *q = static_cast< PatchyShapeParticle<number> *>(this->_Info->particles[qid]);
 		std::vector<BaseParticle<number> *> neighs = this->_Info->lists->get_neigh_list(q);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
-			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(neighs[n]);
+			PatchyShapeParticle<number> *qq =   static_cast< PatchyShapeParticle<number> *>(neighs[n]);
 			LR_vector<number> r = this->_Info->box->min_image(q,qq);
 			for(int qqpatch = 0; qqpatch < qq->N_patches; qqpatch++)
 			{
@@ -203,11 +215,12 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 	// accept or reject?
 	if (this->_Info->interaction->get_is_infinite() == false && ((delta_E + delta_E_ext + delta_E_newlocks) < 0 || exp(-(delta_E + delta_E_ext+delta_E_newlocks) / this->_T) > drand48() )) {
 		// move accepted
+        //printf("Move accepted\n");
 		this->_accepted ++;
 		//We need to make new locks for p
 		std::vector<BaseParticle<number> *> neighs = this->_Info->lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
-			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(neighs[n]);
+			PatchyShapeParticle<number> *qq =   static_cast< PatchyShapeParticle<number> *>(neighs[n]);
 			LR_vector<number> r = this->_Info->box->min_image(p,qq);
 			for(int ppatch = 0; ppatch < p->N_patches; ppatch++ )
 			{
@@ -218,6 +231,7 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 					{
 						p->patches[ppatch].set_lock(qq->index,qqpatch);
 						qq->patches[qqpatch].set_lock(p->index,ppatch);
+						//printf("setting lock %d %d %d %d \n",p->index,ppatch,qq->index,qqpatch);
 
 					}
 				}
@@ -234,20 +248,23 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 		}
 	}
 	else {
+		//printf("Move rejected\n");
 		//rejected; We need to fix locks that were broken or created
 		for (vector<lock>::iterator i = locks_to_break.begin(); i != locks_to_break.end(); ++i)
 		{
-			PatchyShapeParticle<number> *pp =   dynamic_cast< PatchyShapeParticle<number> *>(this->_Info->particles[i->pid]);
-			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(this->_Info->particles[i->qid]);
+			PatchyShapeParticle<number> *pp =   static_cast< PatchyShapeParticle<number> *>(this->_Info->particles[i->pid]);
+			PatchyShapeParticle<number> *qq =   static_cast< PatchyShapeParticle<number> *>(this->_Info->particles[i->qid]);
 			pp->patches[i->ppatchid].unlock();
 			qq->patches[i->qpatchid].unlock();
+			//printf("unsetting lock %d %d %d %d \n",pp->index,i->ppatchid,qq->index,i->qpatchid);
 		}
 		for (vector<lock>::iterator i = locks_to_restore.begin(); i != locks_to_restore.end(); ++i)
 		{
-			PatchyShapeParticle<number> *pp =   dynamic_cast< PatchyShapeParticle<number> *>(this->_Info->particles[i->pid]);
-			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(this->_Info->particles[i->qid]);
+			PatchyShapeParticle<number> *pp =   static_cast< PatchyShapeParticle<number> *>(this->_Info->particles[i->pid]);
+			PatchyShapeParticle<number> *qq =   static_cast< PatchyShapeParticle<number> *>(this->_Info->particles[i->qid]);
 			pp->patches[i->ppatchid].set_lock(i->qid,i->qpatchid);
 			qq->patches[i->qpatchid].set_lock(i->pid,i->ppatchid);
+			//printf("restoring lock %d %d %d %d \n",pp->index,i->ppatchid,qq->index,i->qpatchid);
 		}
 
 
@@ -263,6 +280,12 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
 	}
 
+
+	//perform check
+	//if( curr_step % 1000  == 0)
+	//{
+	// interaction->check_patchy_locks();
+	//}
 	return;
 }
 

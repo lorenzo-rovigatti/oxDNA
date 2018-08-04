@@ -1147,7 +1147,7 @@ void PatchyShapeInteraction<number>::init() {
 
 	number r8b10 = powf(PATCHY_CUTOFF, (number) 8.f) / _patch_pow_alpha;
 	_patch_E_cut = -1.001f * expf(-(number)0.5f * r8b10 * SQR(PATCHY_CUTOFF));
-	printf("CRITICAL setting _patch_E_cut to %f whiuch is %f, with %f \n", _patch_E_cut,-1.001f * expf(-(number)0.5f * r8b10 * SQR(PATCHY_CUTOFF)),_patch_alpha);
+	printf("INFO: setting _patch_E_cut to %f whiuch is %f, with %f \n", _patch_E_cut,-1.001f * expf(-(number)0.5f * r8b10 * SQR(PATCHY_CUTOFF)),_patch_alpha);
 
 
 	if(_narrow_type == 0)
@@ -1205,6 +1205,7 @@ void PatchyShapeInteraction<number>::init() {
 	{
 		 _init_icosahedron();
 	}
+
 
 }
 
@@ -1384,7 +1385,7 @@ number PatchyShapeInteraction<number>::just_two_patch_interaction(PatchyShapePar
 	PatchyShapeParticle<number> *qq = dynamic_cast<PatchyShapeParticle<number> *>(q);
 
     LR_vector<number> ppatch = p->int_centers[pi];
-	if(this->_bonding_allowed(pp,qq,pi,qi))
+	if(this->_bonding_allowed(pp,qq,pi,qi) )
 	{
 				number K = pp->patches[pi].strength;
 			    LR_vector<number> qpatch = q->int_centers[qi];
@@ -1501,38 +1502,128 @@ void PatchyShapeInteraction<number>::_init_patchy_locks(ConfigInfo<number>  *Inf
 		Info = &ConfigInfo<number>::ref_instance();
 	}
 
+	//printf("!!INITPATCHY: Starting locking, we have %d particles\n",*Info->N);
 	Info->lists->global_update();
 	for(int pid = 0; pid < *Info->N; pid++)
 	{
-		PatchyShapeParticle<number> *p = dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[pid]);
+		PatchyShapeParticle<number> *p = static_cast< PatchyShapeParticle<number> *>(Info->particles[pid]);
+		//printf("XXXXXXXXXXXXXXXXXXxParticle has %d partches\n",p->N_patches);
+		//fflush(stdout);
+		//p->_set_vertexes();
 		p->unlock_patches();
 	}
+
 	for(int pid = 0; pid < *Info->N; pid++)
 	{
+
 		PatchyShapeParticle<number> *p = dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[pid]);
-		std::vector<BaseParticle<number> *> neighs = Info->lists->get_neigh_list(p);;
-		for(unsigned int n = 0; n < neighs.size(); n++) {
-			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(neighs[n]);
-			if(p->index > qq->index)
-			{
-				break;
-			}
+		//printf("Pidf is %d, p->index is %d\n",pid,p->index);
+
+		//std::vector<BaseParticle<number> *> neighs = Info->lists->get_neigh_list(p);;
+		for(unsigned int n = pid+1; n < *Info->N; n++) {
+			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[n]);
+			//printf("qid is %d, qq->index is %d\n",n,qq->index);
+
 			LR_vector<number> r = Info->box->min_image(p,qq);
 			for(int ppatch = 0; ppatch < p->N_patches; ppatch++)
 			{
 				for(int qqpatch = 0; qqpatch < qq->N_patches; qqpatch++)
 				{
+
 					number new_ene = this->just_two_patch_interaction(p,qq,ppatch,qqpatch,&r);
+
 					if(new_ene < this->get_patch_cutoff_energy())
 					{
+						//throw oxDNAException("Locking ");
 						p->patches[ppatch].set_lock(qq->index,qqpatch);
 						qq->patches[qqpatch].set_lock(p->index,ppatch);
+						//printf("!!INITPATCHY: Locking %d (%d) to %d (%d) \n",p->index,ppatch,qq->index,qqpatch);
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	for(int pid = 0; pid < *Info->N; pid++)
+	{
+		PatchyShapeParticle<number> *p = dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[pid]);
+		//p->unlock_patches();
+
+		printf("Afterwards Particle %d: , patches: ",pid);
+		for(int kk = 0; kk < p->N_patches; kk++)
+		{
+			printf(" %d-(%d %d) ",kk,p->patches[kk].locked_to_particle,p->patches[kk].locked_to_patch);
+		}
+		printf("\n");
+
+	}
+*/
+	//throw oxDNAException("Finished init");
+}
+
+
+
+
+template<typename number>
+void PatchyShapeInteraction<number>::check_patchy_locks(ConfigInfo<number>  *Info)
+{
+
+	if (Info == NULL)
+	{
+		Info = &ConfigInfo<number>::ref_instance();
+	}
+
+	//Info->lists->global_update();
+	for(int pid = 0; pid < *Info->N; pid++)
+	{
+		PatchyShapeParticle<number> *p = dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[pid]);
+		//std::vector<BaseParticle<number> *> neighs = Info->lists->get_neigh_list(p);
+		for(unsigned int qid = 0; qid < *Info->N; qid++) {
+			if(qid == pid)
+			{
+				continue;
+			}
+			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[qid]);
+
+			LR_vector<number> r = Info->box->min_image(p,qq);
+			for(int ppatch = 0; ppatch < p->N_patches; ppatch++)
+			{
+				for(int qqpatch = 0; qqpatch < qq->N_patches; qqpatch++)
+				{
+
+					this->_no_multipatch = false;
+					number new_ene = this->just_two_patch_interaction(p,qq,ppatch,qqpatch,&r);
+					this->_no_multipatch = true;
+
+					if(new_ene < this->get_patch_cutoff_energy())
+					{
+						//This can be either already locked:
+						if( !( p->patches[ppatch].locked_to(qid,qqpatch) && qq->patches[qqpatch].locked_to(pid,ppatch) ) )
+						{
+							if (!qq->patches[qqpatch].is_locked())
+							{
+								throw oxDNAException("Found a case where lock is missing: %d (%d) - %d (%d), %f ",pid,ppatch,qid,qqpatch, new_ene);
+							}
+						}
+
+					}
+					else //they should not be locked to each other!
+					{
+						if(p->patches[ppatch].locked_to(qid,qqpatch) || qq->patches[qqpatch].locked_to(pid,ppatch))
+						{
+							throw oxDNAException("Found a wrong lock, they should be not locked: %d (%d) - %d (%d), %f",pid,ppatch,qid,qqpatch,new_ene);
+						}
+
 					}
 				}
 			}
 		}
 	}
 }
+
+
+
 
 template class PatchyShapeInteraction<float>;
 template class PatchyShapeInteraction<double>;
