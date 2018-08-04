@@ -58,7 +58,10 @@ struct Patch {
 
  bool locked_to(int particle_id,int patch_id) {return is_locked() && (particle_id == locked_to_particle && locked_to_patch == patch_id);}
  bool locked_to_particle_id(int particle_id)  {return is_locked() && particle_id == locked_to_particle;}
+ void get_lock(int& particle_id, int& patch_id) {particle_id = locked_to_particle; patch_id =  locked_to_patch;}
  number get_lock_energy(void) {return locked_energy;}
+
+ void unlock() {locked_to_particle = -1;}
 
 };
 
@@ -111,6 +114,8 @@ public:
 
 	bool locked_to_particle_id(int particle_id); // {return is_locked() && particle_id == locked_to_particle;}
 	void unlock_patches(void);
+
+
 };
 
 #endif /* PLPATCHYPARTICLE_H_ */

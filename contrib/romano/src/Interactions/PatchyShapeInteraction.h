@@ -59,7 +59,7 @@ narrow_type = <int> (for lj48 like interaction, sets the type of narrowness of t
 interaction_tensor = <bool> (false by default; if true, possible interactions are loaded from a file specified by the option below)
 interaction_tensor_file = <string> (filename of the interaction tensor file; interactions specified in a following way described below)
 same_type_bonding = <bool> (particles of the same type can bond)
-
+no_multipatch = <bool> (if set to 1, the code does not allow 1 patch binding to more than 1 other patch, and uses the lock patch; only works if used with MC2 and special move MCPatchyShapeMove
 
  input config files about types of patches will be in a separate file of the following form:
 	 *   patch_0 = {
@@ -170,6 +170,8 @@ public:
 	//virtual int check_valence(ConfigInfo<number> &conf_info) {return 0;} //scans all interacting particles if one patch is bond to more particles, it breaks all bonds but 1;
 	virtual number just_two_patch_interaction(PatchyShapeParticle<number> *p, PatchyShapeParticle<number> *q, int pi,int  qi,LR_vector<number> *r);
 
+	number get_patch_cutoff_energy() {return this->_lock_cutoff;}
+
 	Patch<number> _process_patch_type(std::string input_string); //this function processes patch type from the input file
 	PatchyShapeParticle<number> _process_particle_type(std::string input_string);
 
@@ -179,6 +181,9 @@ public:
 
     void _init_icosahedron(void);
 
+    void _init_patchy_locks(ConfigInfo<number> *_Info = NULL);
+
+    void _check_patchy_locks(void);
 
 public:
 	enum {
@@ -219,9 +224,9 @@ public:
 };
 
 
-
-extern "C" IBaseInteraction<float> * make_float()   { return new PatchyShapeInteraction<float> () ; }
-extern "C" IBaseInteraction<double> * make_double() { return new PatchyShapeInteraction<double> () ; }
-
+#ifndef MCMOVEPS_H_
+ extern "C" IBaseInteraction<float> * make_float()   { return new PatchyShapeInteraction<float> () ; }
+ extern "C" IBaseInteraction<double> * make_double() { return new PatchyShapeInteraction<double> () ; }
+#endif
 
 #endif /* PATCHYINTERACTION_H_ */

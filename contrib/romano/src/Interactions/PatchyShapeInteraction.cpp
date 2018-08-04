@@ -1,4 +1,5 @@
 
+
 #include "PatchyShapeInteraction.h"
 #include "../Particles/PatchyShapeParticle.h"
 #include "../../../../src/Utilities/Utils.h"
@@ -946,8 +947,8 @@ void PatchyShapeInteraction<number>::get_settings(input_file &inp) {
 
 
 
-	//NOT IMPLEMENTED IN THIS VERSION
-	int no_multi = 1;
+
+	int no_multi = 0;
 	if( getInputBoolAsInt(&inp,"no_multipatch",&no_multi,0) == KEY_FOUND)
 	{
 		this->_no_multipatch = (bool)no_multi;
@@ -956,6 +957,8 @@ void PatchyShapeInteraction<number>::get_settings(input_file &inp) {
 	{
 	   this->_no_multipatch = true;
 	}
+	OX_LOG(Logger::LOG_INFO, "Using no_multipatch option: %d; only makes sense if used with MC2 MCMovePatchyShape!",this->_no_multipatch);
+
 
 
 	/*
@@ -1487,6 +1490,48 @@ void PatchyShapeInteraction<number>::_init_icosahedron(void)
 		}
 	}
 
+}
+
+
+template<typename number>
+void PatchyShapeInteraction<number>::_init_patchy_locks(ConfigInfo<number>  *Info)
+{
+	if (Info == NULL)
+	{
+		Info = &ConfigInfo<number>::ref_instance();
+	}
+
+	Info->lists->global_update();
+	for(int pid = 0; pid < *Info->N; pid++)
+	{
+		PatchyShapeParticle<number> *p = dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[pid]);
+		p->unlock_patches();
+	}
+	for(int pid = 0; pid < *Info->N; pid++)
+	{
+		PatchyShapeParticle<number> *p = dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[pid]);
+		std::vector<BaseParticle<number> *> neighs = Info->lists->get_neigh_list(p);;
+		for(unsigned int n = 0; n < neighs.size(); n++) {
+			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(neighs[n]);
+			if(p->index > qq->index)
+			{
+				break;
+			}
+			LR_vector<number> r = Info->box->min_image(p,qq);
+			for(int ppatch = 0; ppatch < p->N_patches; ppatch++)
+			{
+				for(int qqpatch = 0; qqpatch < qq->N_patches; qqpatch++)
+				{
+					number new_ene = this->just_two_patch_interaction(p,qq,ppatch,qqpatch,&r);
+					if(new_ene < this->get_patch_cutoff_energy())
+					{
+						p->patches[ppatch].set_lock(qq->index,qqpatch);
+						qq->patches[qqpatch].set_lock(p->index,ppatch);
+					}
+				}
+			}
+		}
+	}
 }
 
 template class PatchyShapeInteraction<float>;
