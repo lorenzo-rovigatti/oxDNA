@@ -183,7 +183,7 @@ public:
 
     void _init_patchy_locks(ConfigInfo<number> *_Info = NULL);
 
-    void _check_patchy_locks(void);
+    void check_patchy_locks(ConfigInfo<number> *_Info = NULL);
 
 public:
 	enum {
