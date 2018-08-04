@@ -48,6 +48,8 @@ void PatchyShapeParticle<number>::copy_from(const BaseParticle<number> &b)
 	  throw oxDNAException("Can't convert particle to PatchyShapeParticle by dynamic cast'. Aborting");
   }
 
+  if( ! (this->int_centers == b.int_centers && this->N_patches == bb->N_patches && this->N_vertexes == bb->N_vertexes)      )
+  {
 	delete [] this->int_centers;
 	delete [] this->patches;
 	delete [] this->_vertexes;
@@ -59,7 +61,7 @@ void PatchyShapeParticle<number>::copy_from(const BaseParticle<number> &b)
 	this->int_centers = new LR_vector<number>[bb->N_int_centers];
 	patches = new Patch<number>[bb->N_patches];
 	_vertexes = new LR_vector<number>[bb->N_vertexes];
-
+  }
 
   BaseParticle<number>::copy_from(b);
 
