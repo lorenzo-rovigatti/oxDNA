@@ -168,13 +168,13 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 	p->set_ext_potential(curr_step, this->_Info->box);
 	delta_E_ext += p->ext_potential;
 
-
-
 	number delta_E_newlocks = 0.f;
 
 	for(vector<lock>::iterator i = locks_to_restore.begin(); i != locks_to_restore.end(); ++i)
 	{
 		//i->locked_to(qid,qpatch);
+		// we use the locks_to_restore array just to get the indexes 
+		// of the particles (and patches) to check
 		int qid = i->qid;
 		int qpatch = i->qpatchid;
 
@@ -195,7 +195,7 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 					bool known = false;
 					for(vector<lock>::iterator it = locks_to_break.begin(); it != locks_to_break.end(); it++)
 					{
-						if( *it == newlock)
+						if(*it == newlock)
 						{
 							known = true;
 							break;
@@ -204,7 +204,7 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 					if (! known)
 					{
 					  delta_E_newlocks += new_ene;
-					  locks_to_break.push_back(  newlock);
+					  locks_to_break.push_back(newlock);
 					}
 				}
 			}
@@ -220,7 +220,7 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 		//We need to make new locks for p
 		std::vector<BaseParticle<number> *> neighs = this->_Info->lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
-			PatchyShapeParticle<number> *qq =   static_cast< PatchyShapeParticle<number> *>(neighs[n]);
+			PatchyShapeParticle<number> *qq = static_cast< PatchyShapeParticle<number> *>(neighs[n]);
 			LR_vector<number> r = this->_Info->box->min_image(p,qq);
 			for(int ppatch = 0; ppatch < p->N_patches; ppatch++ )
 			{
@@ -231,7 +231,7 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 					{
 						p->patches[ppatch].set_lock(qq->index,qqpatch);
 						qq->patches[qqpatch].set_lock(p->index,ppatch);
-						//printf("setting lock %d %d %d %d \n",p->index,ppatch,qq->index,qqpatch);
+						// printf("setting lock %d (%d) %d (%d) \n",p->index,ppatch,qq->index,qqpatch);
 
 					}
 				}
@@ -282,10 +282,12 @@ void MCMovePatchyShape<number>::apply (llint curr_step) {
 
 
 	//perform check
-	//if( curr_step % 1000  == 0)
-	//{
-	// interaction->check_patchy_locks();
-	//}
+	if( curr_step % 100  == 0)
+	{
+		//printf("checking locks %lld\n", curr_step);
+		interaction->check_patchy_locks();
+		//printf("all good\n");
+	}
 	return;
 }
 
