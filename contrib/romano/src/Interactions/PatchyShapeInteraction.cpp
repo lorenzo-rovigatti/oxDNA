@@ -770,24 +770,25 @@ PatchyShapeParticle<number> PatchyShapeInteraction<number>::_process_particle_ty
 	input_file *obs_input = Utils::get_input_file_from_string(input_string);
 	int type;
 	getInputInt(obs_input,"type",&type,1);
+	
+	printf ("hello\n");
 
 	std::vector<Patch<number> > all_patches;
 	int _N_patches;
 	std::string patches;
 	if( getInputString(obs_input,"patches",patches,1) == KEY_FOUND )
 	{
-       //now process a list of patches: 1,2,3,4
+		//now process a list of patches: 1,2,3,4
 		std::replace( patches.begin(), patches.end(), ',', ' ');
-        std::stringstream s(patches);
-        int patch_id;
-
-        while( s >> patch_id)
-        {
-        	Patch<number> patch(this->_patch_types[patch_id]);
-        	all_patches.push_back(patch);
-        	printf("Particle of type %d adding a patch of color %d\n",type,patch.color);
-        	//s >> patch_id;
-        }
+		std::stringstream s(patches);
+		int patch_id;
+		while( s >> patch_id)
+		{
+			Patch<number> patch(this->_patch_types[patch_id]);
+			all_patches.push_back(patch);
+			printf("Particle of type %d adding a patch of color %d\n",type,patch.color);
+			//s >> patch_id;
+		}
 	}
 
 	_N_patches = all_patches.size();
@@ -1125,15 +1126,15 @@ void PatchyShapeInteraction<number>::get_settings(input_file &inp) {
 	getInputFloat(&inp, "PATCHY_alpha", &tmp, 0);
 	_patch_alpha = (number) tmp;
 
-
 	tmp = 0.5;
 	getInputFloat(&inp, "PATCHY_radius", &tmp, 0);
 	_sphere_radius = (number) tmp;
 
-
 	tmp = -0.1;
 	getInputFloat(&inp, "PATCHY_multi_cutoff", &tmp, 0);
 	_lock_cutoff = (number) tmp;
+
+	OX_LOG(Logger::LOG_INFO, "(PatchyShapeInteraction) using radius=%g, alpha=%g, cutoff=%g, multipatch=%d", _sphere_radius, _patch_alpha, _lock_cutoff, _no_multipatch);
 
 }
 
@@ -1305,20 +1306,19 @@ void PatchyShapeInteraction<number>::read_topology(int N, int *N_strands, BasePa
 	allocate_particles(particles, N);
 	//second line specifies numbero f particles of each  type
 	topology.getline(line,4090);
+	//printf ("N:%d FIRST LINE:--%s--\n", N, line);
 
     std::stringstream ss(line);
 
     //int count_type;
     int total_count = 0;
     int type = 0;
-
-
     while (ss >> type)
     {
     	//printf("Loaded type %d, and state is %d\n",type,ss.good());
     	fflush(stdout);
     	if(total_count >= N || type >= _N_particle_types || type < 0)
-    		throw oxDNAException("The sum of number of species is larger than number of particles, or unknown type encountered. Aborting while processing file %s ", this->_topology_filename);
+    		throw oxDNAException("The sum of number of species is larger than number of particles, or unknown type encountered. Aborting while processing file %s (%d %d %d)", this->_topology_filename, total_count, _N_particle_types, type);
         int i = total_count;
         particles[i]->copy_from(this->_particle_types[type]);
 
@@ -1347,17 +1347,17 @@ void PatchyShapeInteraction<number>::read_topology(int N, int *N_strands, BasePa
     int patch_index = 0;
     for(int i = 0; i < N; i++)
     {
-    	printf("Particle %d has %d patches, which have the following colors: ",i,dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->N_patches);
+    	//printf("Particle %d has %d patches, which have the following colors: ",i,dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->N_patches);
     	particles[i]->set_positions();
     	for(int c = 0; c < dynamic_cast<PatchyShapeParticle<number> *>( particles[i])->N_patches; c++)
     	{
     		//now assign each patch its unique id
-    		printf("%d ",dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->patches[c].color);
+    		//printf("%d ",dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->patches[c].color);
     		dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->patches[c].index = patch_index;
     		patch_index++;
     		//printf("%d (%f %f %f) ",dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->patches[c].color, dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->patches[c].a1.x,dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->patches[c].a1.y,dynamic_cast<PatchyShapeParticle<number> *>(particles[i])->patches[c].a1.z);
     	}
-    	printf("\n");
+    	//printf("\n");
     }
 
 
@@ -1520,7 +1520,7 @@ void PatchyShapeInteraction<number>::_init_patchy_locks(ConfigInfo<number>  *Inf
 		//printf("Pidf is %d, p->index is %d\n",pid,p->index);
 
 		//std::vector<BaseParticle<number> *> neighs = Info->lists->get_neigh_list(p);;
-		for(unsigned int n = pid+1; n < *Info->N; n++) {
+		for(int n = pid+1; n < *Info->N; n++) {
 			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[n]);
 			//printf("qid is %d, qq->index is %d\n",n,qq->index);
 
@@ -1563,8 +1563,6 @@ void PatchyShapeInteraction<number>::_init_patchy_locks(ConfigInfo<number>  *Inf
 }
 
 
-
-
 template<typename number>
 void PatchyShapeInteraction<number>::check_patchy_locks(ConfigInfo<number>  *Info)
 {
@@ -1579,11 +1577,7 @@ void PatchyShapeInteraction<number>::check_patchy_locks(ConfigInfo<number>  *Inf
 	{
 		PatchyShapeParticle<number> *p = dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[pid]);
 		//std::vector<BaseParticle<number> *> neighs = Info->lists->get_neigh_list(p);
-		for(unsigned int qid = 0; qid < *Info->N; qid++) {
-			if(qid == pid)
-			{
-				continue;
-			}
+		for(int qid = 0; qid < pid; qid++) {
 			PatchyShapeParticle<number> *qq =   dynamic_cast< PatchyShapeParticle<number> *>(Info->particles[qid]);
 
 			LR_vector<number> r = Info->box->min_image(p,qq);
@@ -1598,13 +1592,20 @@ void PatchyShapeInteraction<number>::check_patchy_locks(ConfigInfo<number>  *Inf
 
 					if(new_ene < this->get_patch_cutoff_energy())
 					{
+						// either the particles are locked to each other
+						bool mutual_lock = p->patches[ppatch].locked_to(qid,qqpatch) && qq->patches[qqpatch].locked_to(pid,ppatch);
+						// or either of them is locked to somone else
+						bool external_lock = p->patches[ppatch].is_locked() || qq->patches[qqpatch].is_locked(); 
+
 						//This can be either already locked:
-						if( !( p->patches[ppatch].locked_to(qid,qqpatch) && qq->patches[qqpatch].locked_to(pid,ppatch) ) )
-						{
-							if (!qq->patches[qqpatch].is_locked())
-							{
-								throw oxDNAException("Found a case where lock is missing: %d (%d) - %d (%d), %f ",pid,ppatch,qid,qqpatch, new_ene);
-							}
+						if (mutual_lock == false and external_lock == false) {
+							printf("particles %d (patch %d) and %d (patch %d) have energy %g\n", pid, ppatch, qid, qqpatch, new_ene);
+							int tmpi, tmpj;
+							p->patches[ppatch].get_lock(tmpi, tmpj);
+							printf("%d(%d) locked to %d(%d)\n", pid, ppatch, tmpi, tmpj);
+							qq->patches[qqpatch].get_lock(tmpi, tmpj);
+							printf("%d(%d) locked to %d(%d)\n", qid, qqpatch, tmpi, tmpj);
+							throw oxDNAException("Found a case where lock is missing: %d (%d) - %d (%d), %f ",pid,ppatch,qid,qqpatch, new_ene);
 						}
 
 					}
@@ -1623,13 +1624,6 @@ void PatchyShapeInteraction<number>::check_patchy_locks(ConfigInfo<number>  *Inf
 }
 
 
-
-
 template class PatchyShapeInteraction<float>;
 template class PatchyShapeInteraction<double>;
-
-
-
-
-
 

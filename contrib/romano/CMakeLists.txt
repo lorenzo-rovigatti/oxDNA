@@ -26,7 +26,7 @@ ADD_LIBRARY(PatchyShapeInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/Patc
 
 
 #Backends
-ADD_LIBRARY(MCMovePatchyShape SHARED EXCLUDE_FROM_ALL  src/Backends/MCMoves/MCMovePatchyShape.cpp   src/Interactions/PatchyShapeInteraction.cpp )
+ADD_LIBRARY(MCMovePatchyShape SHARED EXCLUDE_FROM_ALL  src/Backends/MCMoves/MCMovePatchyShape.cpp   src/Interactions/PatchyShapeInteraction.cpp src/Particles/PatchyShapeParticle.cpp)
 # Particles
 ADD_LIBRARY(PatchyShapeParticle SHARED EXCLUDE_FROM_ALL src/Particles/PatchyShapeParticle.cpp)
 ADD_LIBRARY(Icosahedron SHARED EXCLUDE_FROM_ALL src/Particles/Icosahedron.cpp)
