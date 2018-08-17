@@ -8,13 +8,14 @@ SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(romano
 	#	DEPENDS PatchyShapeParticle PatchyShapeInteraction DirkInteraction DirkInteraction2 DirkInteractionBias NematicS Icosahedron HardIcoInteraction
-	DEPENDS HardIcoInteraction  PatchyShapeParticle PatchyShapeInteraction MCMovePatchyShape
+	DEPENDS HardIcoInteraction PLCluster PatchyShapeParticle PatchyShapeInteraction MCMovePatchyShape #MCMoveDesign
 ) 
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 # Observables
 ADD_LIBRARY(NematicS SHARED EXCLUDE_FROM_ALL src/Observables/NematicS.cpp)
+ADD_LIBRARY(PLCluster SHARED EXCLUDE_FROM_ALL  src/Observables/PLCluster.cpp  src/Interactions/PatchyShapeInteraction.cpp src/Particles/PatchyShapeParticle.cpp)
 
 # Interactions
 ADD_LIBRARY(DirkInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/DirkInteraction.cpp)
@@ -27,6 +28,9 @@ ADD_LIBRARY(PatchyShapeInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/Patc
 
 #Backends
 ADD_LIBRARY(MCMovePatchyShape SHARED EXCLUDE_FROM_ALL  src/Backends/MCMoves/MCMovePatchyShape.cpp   src/Interactions/PatchyShapeInteraction.cpp src/Particles/PatchyShapeParticle.cpp)
+
+#ADD_LIBRARY(MCMoveDesign SHARED EXCLUDE_FROM_ALL  src/Backends/MCMoves/MCMoveDesign.cpp   src/Interactions/PatchyShapeInteraction.cpp src/Particles/PatchyShapeParticle.cpp)
+
 # Particles
 ADD_LIBRARY(PatchyShapeParticle SHARED EXCLUDE_FROM_ALL src/Particles/PatchyShapeParticle.cpp)
 ADD_LIBRARY(Icosahedron SHARED EXCLUDE_FROM_ALL src/Particles/Icosahedron.cpp)
