@@ -8,6 +8,7 @@
 
 #ifndef MCMOVEPS_H_
 #define MCMOVEPS_H_
+#define MCMOVE_CUSTOM
 
 #include "../../../../../src/Backends/MCMoves/BaseMove.h"
 #include "../../Interactions/PatchyShapeInteraction.h"

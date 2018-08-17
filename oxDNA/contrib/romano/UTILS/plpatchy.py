@@ -402,7 +402,8 @@ class PLPSimulation:
         self._E_kin = 0.
         
         self._particle_colors = ['blue','green','red','black','yellow','cyan','magenta','orange','violet']
-        self._patch_colors = ['orange','violet','pink','brown','green','red','black']
+        self._patch_colors = ['green','violet','pink','brown','orange','red','black']
+        self._complementary_colors = {20: 'blue', -20: 'cyan', 21: 'red', -21: 'yellow',22: 'black', -22: 'brown' }
         
         
         self.particles = []
@@ -670,13 +671,19 @@ class PLPSimulation:
     
     def _get_color(self,index,ispatch=False):
         if not ispatch:
-           if index >= len(self._particle_colors):
-               return self.generate_random_color()
+           if index <0 or index  >= len(self._particle_colors):
+               if index in self._complementary_colors.keys():
+                   return self._complementary_colors[index]
+               else:
+                   return self.generate_random_color()
            else:
                return self._particle_colors[index]
         else:
-           if index >= len(self._patch_colors):
-               return self.generate_random_color(index)
+           if index < 0 or index >= len(self._patch_colors):
+               if index in self._complementary_colors.keys():
+                   return self._complementary_colors[index]
+               else:
+                   return self.generate_random_color(index)
            else:
                return self._patch_colors[index]
    
@@ -689,7 +696,7 @@ class PLPSimulation:
             particle_color = self._get_color(p._type)
             sout = sout + p.export_to_mgl(patch_colors,particle_color) + '\n'
             if icosahedron:
-                 line = "%f %f %f @ 0.5 C[blue] I %f %f %f %f %f %f \n" % (p.cm_pos[0],p.cm_pos[1],p.cm_pos[2], p.a1[0],p.a1[1],p.a1[2], p.a2[0],p.a2[1],p.a2[2] )
+                 line = "%f %f %f @ 0.5 C[%s] I %f %f %f %f %f %f \n" % (p.cm_pos[0],p.cm_pos[1],p.cm_pos[2],particle_color , p.a1[0],p.a1[1],p.a1[2], p.a2[0],p.a2[1],p.a2[2] )
                  sout = sout + line
         
         out.write(sout)

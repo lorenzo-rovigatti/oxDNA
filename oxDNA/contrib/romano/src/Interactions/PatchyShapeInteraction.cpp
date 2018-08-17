@@ -24,15 +24,23 @@ template <typename number> LR_vector<number> getVector(input_file *obs_input,con
 // implementation of inline functions:
 template<typename number>
 bool PatchyShapeInteraction<number>::_patches_compatible(PatchyShapeParticle<number>  *p, PatchyShapeParticle<number>  *q, int pi, int pj ) {
-	if(p->patches[pi].color == q->patches[pj].color ) { //patches are complementary
-		if(this->_same_type_bonding == false && p->type == q->type)
-			return false;
-		else
-			return true;
+ if(abs(p->patches[pi].color)  < 10 &&  abs(q->patches[pj].color ) < 10  )  //we are in the self-complementary regime
+ {
+	if(p->patches[pi].color == q->patches[pj].color ) { //patches are the same, hence complementary
+        return true;
 	}
 	else {
 		return false;
 	}
+ }
+ else if (p->patches[pi].color + q->patches[pj].color == 0) { //the case where only complementary patches (like -10 and +10) can bind
+	 return true;
+
+ }
+
+ //if we got here, no compatibility
+ return false;
+
 }
 
 
@@ -42,7 +50,8 @@ inline bool PatchyShapeInteraction<number>::_bonding_allowed(PatchyShapeParticle
 {
    // printf("@@@@\n");
 	bool allowed = false;
-	if(p->patches[pi].color == q->patches[pj].color && p->patches[pi].active && q->patches[pj].active ) //patches are complementary
+	//if(p->patches[pi].color == q->patches[pj].color && p->patches[pi].active && q->patches[pj].active ) //patches are complementary
+	if(_patches_compatible(p,q,pi,pj) && p->patches[pi].active && q->patches[pj].active ) //patches are complementary
 	{
 		if(this->_same_type_bonding == false && p->type == q->type)
 		{
@@ -518,9 +527,14 @@ number PatchyShapeInteraction<number>::_patchy_interaction_notorsion(BaseParticl
 				    energy_ij = f1;// * angular_part;
                     energy += energy_ij;
 
-                    //NO patchy locking now
-                    /*
-                    if(update_forces)
+                    //PRO LUKASE:
+                    // if (energy_ij < -1.)
+                    // {
+                    //	printf("@@@@: particle: %d , patch %d binds to particle %d, patch %d \n",p->index,pi,q->index,pj);
+                    // }
+
+                    //patchy locking enabled for MD
+                    if(update_forces && this->_no_multipatch)
                     {
                      if (energy_ij < this->_lock_cutoff )
                      {
@@ -533,8 +547,9 @@ number PatchyShapeInteraction<number>::_patchy_interaction_notorsion(BaseParticl
                     	pp->patches[pi].unlock();
 
                      }
+
                     }
-                    */
+
 
 
                     //printf("Patches %d and %d distance %f , K:%f, attraction ene: %f, exp_part: %f, E_cut: %f, angular ene: %f, cos: %f %f %f\n",pp->patches[pi].id,qq->patches[pj].id,dist,K,(exp_part - _patch_E_cut),exp_part,_patch_E_cut,angular_part,pp->patches[pi].a1.x,pp->patches[pi].a1.y,pp->patches[pi].a1.z);
