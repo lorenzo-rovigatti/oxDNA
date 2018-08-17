@@ -91,6 +91,8 @@ void PT_VMMC_CPUBackend<number>::init () {
 	char extra[16];
 	sprintf (extra, "%d", _my_mpi_id);
 	strcat (this->_last_hist_file, extra);
+	strcat (this->_traj_hist_file, extra);
+
 	if (this->_reload_hist) strcat (this->_init_hist_file, extra);
 
 	// common weights file? if so, we have a single file
