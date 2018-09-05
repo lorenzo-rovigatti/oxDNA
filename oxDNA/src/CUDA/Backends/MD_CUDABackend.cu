@@ -531,6 +531,7 @@ void MD_CUDABackend<number, number4>::init(){
 				else if(typeid (*(p->ext_forces[j])) == typeid(mutual_trap) ) {
 					MutualTrap<number> *p_force = (MutualTrap<number> *) p->ext_forces[j];
 					force->type = CUDA_TRAP_MUTUAL;
+					force->mutual.rate = p_force->_rate;
 					force->mutual.stiff = p_force->_stiff;
 					force->mutual.r0 = p_force->_r0;
 					force->mutual.p_ind = p_force->_p_ptr->index;
