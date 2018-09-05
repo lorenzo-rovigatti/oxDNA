@@ -44,6 +44,7 @@ struct mutual_trap {
 	number r0;
 	int p_ind;
 	bool PBC;
+	number rate;
 };
 
 /**
