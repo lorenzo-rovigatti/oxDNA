@@ -50,6 +50,13 @@ public:
 	 * @param length length of the spherocylinders
 	 */
 	template<typename number> static bool spherocylinder_overlap (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length);
+	
+	/**
+	 * @brief distance between two spherocylinders.
+	 *
+	 * All the options are the same as the above function
+	 */
+	template<typename number> static number spherocylinder_distance (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length);
 
 	/**
 	 * @brief overlap test between a disk and a sphere
@@ -281,6 +288,88 @@ bool InteractionUtils::spherocylinder_overlap (LR_vector<number> dr, LR_vector<n
 		return true;
 	else
 		return false;
+}
+
+// distance between two spherocylinders
+template<typename number>
+number InteractionUtils::spherocylinder_distance (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length) {
+	
+	// this function computes a distance. Some early exit things might be implemented
+	number hlength = length / 2.;
+	number drdotu1 = dr * u1;
+	number drdotu2 = dr * u2;
+	number u1dotu2 = u1 * u2;
+
+	number mu, lambda;
+
+	number cc = 1. - u1dotu2 * u1dotu2;
+	if (cc < 1.e-9 && cc > 1.e-12) {
+		lambda = ( drdotu1 - u1dotu2 * drdotu2) / cc;
+		mu     = (-drdotu2 + u1dotu2 * drdotu1) / cc;
+		if (!(fabs (lambda) <= hlength && fabs (mu) <= hlength)) {
+			number aux1 = fabs(lambda) - hlength;
+			number aux2 = fabs(mu) - hlength;
+			if (aux1 > aux2) {
+				lambda = copysign (hlength, lambda);
+				mu = lambda * u1dotu2 - drdotu2;
+				if (fabs(mu) > hlength) mu = copysign (hlength, mu);
+			}
+			else {
+				mu = copysign (hlength, mu);
+				lambda = mu * u1dotu2 + drdotu1;
+				if (fabs(lambda) > hlength) lambda = copysign(hlength, lambda);
+			}
+		}
+		number dr1 = dr.norm() + lambda * lambda + mu * mu - 2.f * lambda * mu * u1dotu2 + 2.f * mu * drdotu2 - 2.f * lambda * drdotu1;
+		number lambda1=lambda;
+		number mu1=mu;
+		
+		lambda = drdotu1 / 2.;
+		mu = -drdotu2 / 2.;
+		if (fabs(lambda) > hlength) lambda = copysign(hlength, lambda);
+		if (fabs(mu) > hlength) mu = copysign(hlength, mu);
+		number dr2 = dr.norm() + lambda * lambda + mu * mu - 2.f * lambda * mu * u1dotu2 + 2.f * mu * drdotu2 - 2.f * lambda * drdotu1;
+
+		//printf ("%g %g ##\n", sqrt(dr1), sqrt(dr2));
+		if ((dr1 < 1.) != (dr2 < 1.)) {
+			printf ("INCONSISTENT (cc=%g - %g)\n", cc, u1dotu2 * u1dotu2);
+			printf ("sqrt(dr1) = %g, sqrt(dr2) = %g ##\n", sqrt(dr1), sqrt(dr2));
+			printf ("lambda, mu, drdotu1, drdotu2, u1dotu2 %g %g %g %g %g\n", lambda1, mu1, drdotu1, drdotu2, u1dotu2);
+			printf ("lambda, mu, drdotu1, drdotu2, u1dotu2 %g %g %g %g %g\n", lambda, mu, drdotu1, drdotu2, u1dotu2);
+			printf ("u1 = np.array([% 12.9g, % 12.9g, % 12.9g])\n", u1.x, u1.y, u1.z);
+			printf ("u2 = np.array([% 12.9g, % 12.9g, % 12.9g])\n", u2.x, u2.y, u2.z);
+			//abort();
+		}
+	}
+
+	if (cc < 1.e-12) {
+		lambda = drdotu1 / 2.;
+		mu = -drdotu2 / 2.;
+		if (fabs(lambda) > hlength) lambda = copysign(hlength, lambda);
+		if (fabs(mu) > hlength) mu = copysign(hlength, mu);
+	}
+	else {
+		// line segments not parallel
+		lambda = ( drdotu1 - u1dotu2 * drdotu2) / cc;
+		mu     = (-drdotu2 + u1dotu2 * drdotu1) / cc;
+		if (!(fabs (lambda) <= hlength && fabs (mu) <= hlength)) {
+			number aux1 = fabs(lambda) - hlength;
+			number aux2 = fabs(mu) - hlength;
+			if (aux1 > aux2) {
+				lambda = copysign (hlength, lambda);
+				mu = lambda * u1dotu2 - drdotu2;
+				if (fabs(mu) > hlength) mu = copysign (hlength, mu);
+			}
+			else {
+				mu = copysign (hlength, mu);
+				lambda = mu * u1dotu2 + drdotu1;
+				if (fabs(lambda) > hlength) lambda = copysign(hlength, lambda);
+			}
+		}
+	}
+
+	number dist_sqd = dr.norm() + lambda * lambda + mu * mu - 2.f * lambda * mu * u1dotu2 + 2.f * mu * drdotu2 - 2.f * lambda * drdotu1;
+	return sqrt(dist_sqd);
 }
 
 template<typename number>
