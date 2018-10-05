@@ -111,18 +111,16 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 		my_r = this->_box->min_image (pp, qq);
 	}
 
-	bool inner_cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, my_r, _length);
+	number fact = 0.5 / (0.5 + _chiral_delta);
+	bool outer_cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, fact*my_r, fact*_length);
+	if (outer_cylinder_overlap == false) {
+		return (number) 0.f;
+	}
 
+	bool inner_cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, my_r, _length);
 	if (inner_cylinder_overlap) {
 		this->set_is_infinite (true);
 		return (number) 1.e12;
-	}
-
-	number fact = 0.5 / (0.5 + _chiral_delta);
-	bool outer_cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, fact*my_r, fact*_length);
-
-	if (outer_cylinder_overlap == false) {
-		return (number) 0.f;
 	}
 
 	// if we end up here, it means we have to deal with chirality

@@ -8,31 +8,45 @@
 #ifndef NEMATICS_H_
 #define NEMATICS_H_
 
-#include "BaseObservable.h"
+#include "Observables/BaseObservable.h"
+#include "Interactions/InteractionUtils.h"
+#include "Lists/Cells.h"
+#include <list>
+
+
 /**
- * @brief Outputs the mematic order parameter. It uses as a reference vector one of the 6 orientation vectors, which can be specified in the input file. It can also be configured to use an pre-defined nematic axis rather than computing one.
+ * @brief Outputs the nematic order parameter and the three components of the
+ * nematic director. It uses as a reference vector on each particle one of the
+ * 6 orientation vectors, which can be specified in the input file. The
+ * observable can also be used with a custom director: in this case, the
+ * director won't be computed and the one provided will be used
  *
  * To use this observable, use: type = nematic_s
  *
  * This observable takes four optional arguments
  * @verbatim
-
-ref_vec = <int> (between 0 and 5, corresponding to ->orientation->v1, v2, v3, p->orientationT.v1, v2, v3 in this order)
-[dir = <float>, <float>, <float>] (set a pre-defined nemati axis rather than computing one)
+ref_vec = <int> (between 0 and 5, corresponding to p->orientation->v1, v2, v3, p->orientationT.v1, v2, v3 in this order)
+[custom_dir = <bool>] (default: False. To choose a pre-defined )
+[dir = <float>, <float>, <float>] (mandatory if custom_dir is True. Set a pre-defined nematic director rather than computing one)
 @endverbatim
  */
 
 template<typename number>
 class NematicS : public BaseObservable<number> {
 private:
-	// arguments
-	LR_vector<number> _dir;
-
-	bool _external_dir;
 
 	int _axis_i;
 
+	Cells<number> * _cells;
+	BaseParticle<number> **_particles;
+
 	LR_vector<number> * _get_axis(BaseParticle<number> *);
+
+	// cutoffs used for the clustering
+	number _cluster_n_cutoff;
+	number _cluster_angle_cutoff;
+	number _cluster_distance_cutoff;
+	number _rod_length;
 
 public:
 	// we can use sites
@@ -53,7 +67,7 @@ public:
 
 	std::string get_output_string(llint curr_step);
 
-	void _compute_dir () { return; } // eventually, there will be the possibility to compute the directrion
+	std::vector<list<int> > build_clusters();
 };
 
 extern "C" BaseObservable<float> * make_NematicS_float() { return new NematicS<float>(); }
