@@ -90,6 +90,7 @@ number ChiralRodInteraction<number>::pair_interaction_nonbonded(BaseParticle<num
 	return _chiral_pot (p, q, r, update_forces);
 }
 
+/* OLD VERSION
 template<typename number>
 number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
@@ -119,6 +120,11 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 
 	bool inner_cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, my_r, _length);
 	if (inner_cylinder_overlap) {
+		//printf ("OVERLAP here %d %d\n", pp->index, qq->index);
+		//printf ("p.pos: %g %g %g\n", pp->pos.x, pp->pos.y, pp->pos.z);
+		//printf ("q.pos: %g %g %g\n", qq->pos.x, qq->pos.y, qq->pos.z);
+		//printf ("my_r:  %g %g %g (%g)\n", my_r.x, my_r.y, my_r.z, sqrt(my_r.norm()));
+
 		this->set_is_infinite (true);
 		return (number) 1.e12;
 	}
@@ -137,12 +143,127 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 	}
 	else {
 		// we's overlapping
+		//printf ("OVERLAP here2 %d %d\n", pp->index, qq->index);
+		//printf ("p.pos: %g %g %g\n", pp->pos.x, pp->pos.y, pp->pos.z);
+		//printf ("q.pos: %g %g %g\n", qq->pos.x, qq->pos.y, qq->pos.z);
+		//printf ("my_r:  %g %g %g (%g)\n", my_r.x, my_r.y, my_r.z, sqrt(my_r.norm()));
 		this->set_is_infinite(true);
 		return (number) 1.e12;
 	}
 
 	return (number) 0.f;
 
+}
+*/
+
+template<typename number>
+number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
+
+	number rnorm = (*r).norm();
+	if (rnorm > this->_sqr_rcut) return (number) 0.f;
+
+	LR_vector<number> my_r;
+	SpheroCylinder<number> * pp = NULL, * qq = NULL;
+	// the algorithm is not symmetric, so we have to compute things always in the same order
+	if (p->index < q->index) {
+		pp = static_cast< SpheroCylinder<number> *> (p);
+		qq = static_cast< SpheroCylinder<number> *> (q);
+		my_r = *r;
+	}
+	else {
+		pp = static_cast< SpheroCylinder<number> *> (q);
+		qq = static_cast< SpheroCylinder<number> *> (p);
+		my_r = this->_box->min_image (pp, qq);
+	}
+
+	// first we compute the distance between the two spherocylinders
+	number hlength = _length / 2.f;
+	number drdotu1 = my_r * pp->orientation.v3;
+	number drdotu2 = my_r * qq->orientation.v3;
+	number u1dotu2 = pp->orientation.v3 * qq->orientation.v3;
+
+	number mu, lambda;
+
+	number cc = 1. - u1dotu2 * u1dotu2;
+	if (cc < 1.e-12) {
+		// parallel line segments
+		lambda = drdotu1 / 2.;
+		mu = -drdotu2 / 2.;
+		if (fabs(lambda) > hlength) lambda = copysign(hlength, lambda);
+		if (fabs(mu) > hlength) mu = copysign(hlength, mu);
+	}
+	else {
+		// line segments not parallel
+		lambda = ( drdotu1 - u1dotu2 * drdotu2) / cc;
+		mu     = (-drdotu2 + u1dotu2 * drdotu1) / cc;
+		if (!(fabs (lambda) <= hlength && fabs (mu) <= hlength)) {
+			number aux1 = fabs(lambda) - hlength;
+			number aux2 = fabs(mu) - hlength;
+			if (aux1 > aux2) {
+				lambda = copysign (hlength, lambda);
+				mu = lambda * u1dotu2 - drdotu2;
+				if (fabs(mu) > hlength) mu = copysign (hlength, mu);
+			}
+			else {
+				mu = copysign (hlength, mu);
+				lambda = mu * u1dotu2 + drdotu1;
+				if (fabs(lambda) > hlength) lambda = copysign(hlength, lambda);
+			}
+		}
+	}
+	LR_vector<number> dist = my_r - lambda * pp->orientation.v3 + mu * qq->orientation.v3;
+	number dnorm = dist.norm();
+
+	// early exit if spherocylinders too far away
+	if (dnorm > ((number) 1.f + _chiral_delta)*((number) 1.f + _chiral_delta))
+		return (number) 0.f;
+
+	// we check if it goes through both rims
+	//fabs(lambda + (dist * u1)) < hlength && fabs(mu + (-dist * u2)) < hlength
+	bool through_rims = false;
+	//if (fabs(lambda + (dist * u1)) < hlength && fabs(mu - (dist * u2)) < hlength) // the line below is equivalent
+	if (fabs(mu * u1dotu2 + drdotu1) < hlength && fabs(lambda * u1dotu2 - drdotu2) < hlength)
+		through_rims = true;
+
+	if (through_rims) {
+		// overlap between inner rims
+		if (dnorm <= (number)1.f) {
+			this->set_is_infinite(true);
+			return (number) 1.e12;
+		}
+
+		// if we got here, it means that we have to handle the chirality.
+		my_r.normalize(); // don't need it anymore, so we can normalize it
+		LR_vector<number> pv3 = ((number) 1.f - pp->orientation.v3 * my_r) * pp->orientation.v3;
+		LR_vector<number> qv3 = ((number) 1.f - qq->orientation.v3 * my_r) * qq->orientation.v3;
+		pv3.normalize();
+		qv3.normalize();
+
+		// the angle between pv3 and pq3 is what we are looking for
+		number angle = LRACOS((pv3 * qv3));
+
+		if (_chiral_min < angle && angle < _chiral_max) {
+			// they are in a happy chiral configuration
+			return (number) 0.f;
+		}
+		else {
+			// they are not happily chiral, so they are overlapping
+			this->set_is_infinite(true);
+			return (number) 1.e12;
+		}
+	}
+	else {
+		// actually compute the cylinder overlap
+		bool cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, my_r, _length);
+		if (cylinder_overlap == true) {
+			this->set_is_infinite(true);
+			return (number)1.e12;
+		}
+		else {
+			return (number) 0.f;
+		}
+	}
 }
 
 template<typename number>

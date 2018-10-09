@@ -11,6 +11,7 @@
 #include "Cells.h"
 #include "VerletList.h"
 #include "BinVerletList.h"
+#include "RodCells.h"
 
 ListFactory::ListFactory() {
 
@@ -30,6 +31,7 @@ BaseList<number> *ListFactory::make_list(input_file &inp, int &N, BaseBox<number
 	if(!strncmp(list_type, "bin_verlet", 512)) return new BinVerletList<number>(N, box);
 	else if(!strncmp(list_type, "no", 512)) return new NoList<number>(N, box);
 	else if(!strncmp(list_type, "cells", 512)) return new Cells<number>(N, box);
+	else if(!strncmp(list_type, "rodcells", 512)) return new RodCells<number>(N, box);
 	else throw oxDNAException("Invalid list '%s'", list_type);
 }
 

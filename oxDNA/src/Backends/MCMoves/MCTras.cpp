@@ -27,7 +27,7 @@ void MCTras<number>::get_settings (input_file &inp, input_file &sim_inp) {
 
 	getInputNumber (&inp, "delta", &_delta, 1);
 	OX_LOG(Logger::LOG_INFO, "(MCTras.cpp) MCtras initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
-	
+
 	std::string tmps;
 	if (getInputString (&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
 		if (!tmps.compare ("verlet")) {
@@ -49,10 +49,12 @@ void MCTras<number>::apply (llint curr_step) {
 
 	BaseParticle<number> *p = this->_Info->particles[pi];
 
-	pos_old = p->pos; 
+	pos_old = p->pos;
 
 	// compute the energy before the move
-	number delta_E = -this->particle_energy(p);
+	number delta_E;
+	if (this->_compute_energy_before) delta_E = -this->particle_energy(p);
+	else delta_E = (number) 0.f;
 	p->set_ext_potential (curr_step, this->_Info->box);
 	number delta_E_ext = -p->ext_potential;
 
@@ -60,7 +62,7 @@ void MCTras<number>::apply (llint curr_step) {
 	p->pos.x += 2. * (drand48() - (number)0.5f) * _delta;
 	p->pos.y += 2. * (drand48() - (number)0.5f) * _delta;
 	p->pos.z += 2. * (drand48() - (number)0.5f) * _delta;
-	
+
 	// update lists
 	this->_Info->lists->single_update(p);
 	if(!this->_Info->lists->is_updated()) {

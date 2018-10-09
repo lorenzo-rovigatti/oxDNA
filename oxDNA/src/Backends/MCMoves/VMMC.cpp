@@ -35,7 +35,7 @@ void VMMC<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	getInputNumber (&inp, "delta_tras", &_delta_tras, 1);
 	getInputNumber (&inp, "delta_rot", &_delta_rot, 1);
 	getInputNumber (&inp, "prob", &this->prob, 0);
-	
+
 	std::string tmps;
 	if (getInputString (&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
 		if (!tmps.compare ("verlet")) {
@@ -53,7 +53,7 @@ void VMMC<number>::init() {
 
 	// setting the maximum displacement
 	_max_move_size_sqr = _max_move_size * _max_move_size;
-	
+
 	// fix maxclust if evidently wrong
 	if (_max_cluster_size < 1) {
 		_max_cluster_size = *this->_Info->N;
@@ -65,7 +65,7 @@ void VMMC<number>::init() {
 
 	// here we only use this array as a storage place for positions and orientations;
 	// the topology is not set for _particles_old
-	_particles_old = new BaseParticle<number>*[*this->_Info->N]; 
+	_particles_old = new BaseParticle<number>*[*this->_Info->N];
 	for (int i = 0; i < *this->_Info->N; i ++) _particles_old[i] = new BaseParticle<number>();
 
 	OX_LOG(Logger::LOG_INFO, "(VMMC.cpp) VMMC move initialized with T=%g, delta_tras=%g, delta_rot=%g, prob=%g, max_move_size=%g, max_cluster_size=%d", this->_T, _delta_tras, _delta_rot, this->prob, _max_move_size, _max_cluster_size);
@@ -135,8 +135,8 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 	_restore_particle (pp);
 	this->_Info->lists->single_update(pp);
 	typename std::vector<BaseParticle<number> *>::iterator itt = neighs1.begin();
-	for (itt = neighs1.begin(); itt != neighs1.end(); itt ++) possible_links.insert(ParticlePair<number>(pp, *itt)); 
-	for (itt = neighs2.begin(); itt != neighs2.end(); itt ++) possible_links.insert(ParticlePair<number>(pp, *itt)); 
+	for (itt = neighs1.begin(); itt != neighs1.end(); itt ++) possible_links.insert(ParticlePair<number>(pp, *itt));
+	for (itt = neighs2.begin(); itt != neighs2.end(); itt ++) possible_links.insert(ParticlePair<number>(pp, *itt));
 
 	number  E_pp_moved, E_qq_moved, E_old;
 
@@ -147,12 +147,12 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 		itc = possible_links.begin();
 		int n = rand() % ((int)possible_links.size());
 		for (int kk = 0; kk < n; kk ++) itc ++;
-		
+
 		pp = (*itc).first;
 		qq = (*itc).second;
 		assert(pp->inclust || qq->inclust);
 
-		// we remove this link and select a new one if both 
+		// we remove this link and select a new one if both
 		// particles are in the cluster
 		if (pp->inclust && qq->inclust) {
 			possible_links.erase(ParticlePair<number>(pp, qq));
@@ -166,7 +166,7 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 			qq = pp;
 			pp = tmp;
 		}
-		
+
 		// now we check if pp and qq are bonded; if so, we store two auxiliary pointers
 		// fpp and fqq to preserve the order of the particles when calling bonded interactions
 		bool pp_qq_bonded = false;
@@ -176,7 +176,7 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 			if ((*itb).first == pp && (*itb).second == qq) {
 				fpp = pp;
 				fqq = qq;
-				pp_qq_bonded = true;		
+				pp_qq_bonded = true;
 			}
 			if ((*itb).first == qq && (*itb).second == pp) {
 				fpp = qq;
@@ -217,7 +217,7 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 				qq->inclust = true;
 				_clust.push_back(qq->index);
 				nclust ++;
-				
+
 				for(itb = qq->affected.begin(); itb != qq->affected.end(); itb++) {
 					BaseParticle<number> * tmp;
 					if (qq != itb->first && qq != itb->second) continue;
@@ -233,12 +233,12 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 				neighs2 = this->_Info->lists->get_neigh_list(qq);
 				_restore_particle (qq);
 				this->_Info->lists->single_update(qq);
-				for (itt = neighs1.begin(); itt != neighs1.end(); itt ++) 
+				for (itt = neighs1.begin(); itt != neighs1.end(); itt ++)
 					if (!(*itt)->inclust)
-						possible_links.insert(ParticlePair<number>(qq, *itt)); 
+						possible_links.insert(ParticlePair<number>(qq, *itt));
 				for (itt = neighs2.begin(); itt != neighs2.end(); itt ++)
 					if (!(*itt)->inclust)
-						possible_links.insert(ParticlePair<number>(qq, *itt)); 
+						possible_links.insert(ParticlePair<number>(qq, *itt));
 			}
 			else {
 				prelinked_particles.insert(qq->index);
@@ -268,7 +268,7 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 		_move_particle(moveptr, pp);
 		if (pp->pos.sqr_distance(this->_particles_old[pp->index]->pos) > this->_max_move_size_sqr) {
 			//printf("Cluster move done: exiting because the move is too large, setting pprime = 0.\n\n");
-			// even if we stop halfway in the cycle where we move_particles, the rejection block in 
+			// even if we stop halfway in the cycle where we move_particles, the rejection block in
 			// the apply method will put everything back in the correct position using particles_old
 			return 0.;
 		}
@@ -331,7 +331,7 @@ void VMMC<number>::apply (llint curr_step) {
 	if (this->_Info->interaction->get_is_infinite() == false && pprime > drand48()) {
 		// move accepted
 		this->_accepted += 1;
-		
+
 		// adjust move size
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) {
 			if (move.type == VMMC_TRANSLATION) {

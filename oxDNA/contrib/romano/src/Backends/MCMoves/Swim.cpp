@@ -64,7 +64,9 @@ void Swim<number>::apply (llint curr_step) {
 	pos_old = p->pos;
 
 	// compute the energy before the move
-	number delta_E = -this->particle_energy(p);
+	number delta_E;
+	if (this->_compute_energy_before) delta_E = -this->particle_energy(p);
+	else delta_E = (number) 0.f;
 	p->set_ext_potential (curr_step, this->_Info->box);
 	number delta_E_ext = -p->ext_potential;
 

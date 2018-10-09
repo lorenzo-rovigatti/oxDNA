@@ -80,6 +80,7 @@ SET(backends_SOURCES
 SET(lists_SOURCES
 	Lists/NoList.cpp
 	Lists/Cells.cpp
+	Lists/RodCells.cpp
 	Lists/VerletList.cpp
 	Lists/BinVerletList.cpp
 	Lists/ListFactory.cpp

@@ -100,7 +100,7 @@ void MC_CPUBackend<number>::init() {
 	}
 
 	_compute_energy();
-	if(this->_overlap == true) throw oxDNAException("There is an overlap in the initial configuration");
+	if(this->_overlap == true) throw oxDNAException("(MC_CPUBackend) There is an overlap in the initial configuration");
 }
 
 template<typename number>
