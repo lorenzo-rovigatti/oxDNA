@@ -68,7 +68,7 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 
 template<typename number>
 void MC_CPUBackend2<number>::init() {
-	OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing bakend...");
+	//OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing backend...");
 	MCBackend<number>::init();
 
 	for(int i = 0; i < this->_N; i++) {
@@ -77,8 +77,7 @@ void MC_CPUBackend2<number>::init() {
 		this->_particles[i]->orientationT = this->_particles[i]->orientation.get_transpose();
 	}
 
-	this->_U = this->_interaction->get_system_energy (this->_particles, this->_N, this->_lists);
-	if(this->_interaction->get_is_infinite() == true) throw oxDNAException("There is an overlap in the initial configuration. Aborting");
+
 
 	// needed to fill un the pointers....
 	_MC_Info->particles = this->_particles;
@@ -88,10 +87,13 @@ void MC_CPUBackend2<number>::init() {
 
 	this->_lists->global_update();
 
+	this->_U = this->_interaction->get_system_energy (this->_particles, this->_N, this->_lists);
+	if(this->_interaction->get_is_infinite() == true) throw oxDNAException("(MC_CPUBackend2) There is an overlap in the initial configuration. Aborting");
+
 	// we initialize the moves
 	typename vector<BaseMove<number> *>::iterator it;
 	for(it = _moves.begin(); it != _moves.end(); it ++) {
-		OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing move...");
+		//OX_LOG(Logger::LOG_DEBUG, "(MC_CPUBackend2) Initializing move...");
 		(*it)->init();
 	}
 }

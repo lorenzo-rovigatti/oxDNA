@@ -35,7 +35,7 @@ void VolumeMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	getInputNumber(&inp, "prob", &this->prob, 0);
 	getInputNumber(&sim_inp, "P", &_P, 1);
 	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) VolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, this->_T, _delta, this->prob);
-	
+
 	std::string tmps;
 	if (getInputString (&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
 		if (!tmps.compare ("verlet")) {
@@ -51,11 +51,13 @@ void VolumeMove<number>::apply (llint curr_step) {
 
 	BaseParticle<number> ** particles = this->_Info->particles;
 	int N = *(this->_Info->N);
-	
+
 	LR_vector<number> box_sides = this->_Info->box->box_sides();
 	LR_vector<number> old_box_sides = box_sides;
 
-	number oldE = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
+	number oldE;
+	if (this->_compute_energy_before) oldE = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
+	else oldE = (number) 0.f;
 	number oldV = this->_Info->box->V();
 
 	if(_isotropic) {
@@ -77,7 +79,7 @@ void VolumeMove<number>::apply (llint curr_step) {
 	for(int k = 0; k < N; k ++) {
 		BaseParticle<number> *p = particles[k];
 		dExt -= p->ext_potential;
-		_pos_old[k] = p->pos; 
+		_pos_old[k] = p->pos;
 		p->pos.x *= box_sides[0]/old_box_sides[0];
 		p->pos.y *= box_sides[1]/old_box_sides[1];
 		p->pos.z *= box_sides[2]/old_box_sides[2];

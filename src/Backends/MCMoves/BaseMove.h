@@ -33,9 +33,12 @@ class BaseMove {
 		/// Information on the system.
 		ConfigInfo<number> * _Info;
 
+		/// should the move compute the energy before acting (use default=true for non-hard potentials)
+		bool _compute_energy_before;
+
 		/// submoves
 		vector<BaseMove *> _submoves;
-		
+
 		/// whether to adjust moves during equilibration
 		bool _adjust_moves;
 
@@ -48,11 +51,11 @@ class BaseMove {
 		/// auxiliary factors to adjust acceptance, used internally
 		number _rej_fact, _acc_fact;
 
-	
+
 	public:
 		BaseMove();
 
-		virtual ~BaseMove();	
+		virtual ~BaseMove();
 
 		/// relative probability with which the move is attempted
 		number prob;
@@ -92,6 +95,7 @@ BaseMove<number>::BaseMove ():  _Info(&ConfigInfo<number>::ref_instance()) {
 	_target_acc_rate = 0.25;
 	_equilibration_steps = 0;
 	_adjust_moves = false;
+	_compute_energy_before = true;
 }
 
 template<typename number>
@@ -109,13 +113,14 @@ void BaseMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	getInputLLInt(&sim_inp, "equilibration_steps", &_equilibration_steps, 0);
 	getInputBool(&inp, "adjust_moves", &_adjust_moves, 0);
 	getInputNumber(&inp, "target_acc_rate", &_target_acc_rate, 0);
+	getInputBool(&inp, "compute_energy_before", &_compute_energy_before, 0);
 }
 
 template<typename number>
 void BaseMove<number>::init() {
 	_rej_fact = 1.001;
-	_acc_fact = 1. + 0.001 * (_target_acc_rate - 1.) / (0.001 - _target_acc_rate); 
-	OX_LOG(Logger::LOG_INFO, "(BaseMove.h) BaseMove generic init... (b, a) = (%g, %g), %g, adjust_moves=%d", (_rej_fact - 1.), (_acc_fact - 1.), _target_acc_rate, _adjust_moves);
+	_acc_fact = 1. + 0.001 * (_target_acc_rate - 1.) / (0.001 - _target_acc_rate);
+	OX_LOG(Logger::LOG_INFO, "(BaseMove.h) BaseMove generic init... (b, a) = (%g, %g), %g, adjust_moves=%d, compute_energy_before=%d", (_rej_fact - 1.), (_acc_fact - 1.), _target_acc_rate, _adjust_moves, _compute_energy_before);
 }
 
 template <typename number>

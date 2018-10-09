@@ -63,7 +63,7 @@ void MCBackend<number>::get_settings(input_file &inp) {
 		_ensemble = MC_ENSEMBLE_NPT;
 		//throw oxDNAException("Ensemble NPT will be implemented soon");
 		int check = getInputString(&inp, "list_type", tmp, 0);
-		if (check == KEY_NOT_FOUND || (strncasecmp(tmp, "cells", 256) != 0 && strncasecmp(tmp, "no", 256) != 0)) throw oxDNAException ("NPT ensemble requires no lists or cells to handle interaction lists; set list_type=cells in the input file");
+		if (check == KEY_NOT_FOUND || (strncasecmp(tmp, "cells", 256) != 0 && strncasecmp(tmp, "no", 256) != 0 && strncasecmp(tmp, "rodcells", 256) != 0)) throw oxDNAException ("NPT ensemble requires no lists or cells to handle interaction lists; set list_type=cells in the input file");
 
 	}
 	else if(strncasecmp(tmp, "nvt", 256) == 0) _ensemble = MC_ENSEMBLE_NVT;

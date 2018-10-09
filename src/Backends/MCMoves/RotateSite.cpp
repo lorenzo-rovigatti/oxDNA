@@ -37,7 +37,9 @@ void RotateSite<number>::apply (llint curr_step) {
 	int pi = (int) (drand48() * (*this->_Info->N));
 	JordanParticle<number> *p = (JordanParticle<number> *)this->_Info->particles[pi];
 
-	number delta_E = -this->particle_energy(p);
+	number delta_E;
+	if (this->_compute_energy_before) delta_E = -this->particle_energy(p);
+	else delta_E = (number) 0.f;
 	delta_E -= p->int_potential();
 	p->set_ext_potential (curr_step, this->_Info->box);
 	number delta_E_ext = -p->ext_potential;
@@ -45,10 +47,10 @@ void RotateSite<number>::apply (llint curr_step) {
 	// select site
 	int i_patch = (int) (drand48() * (p->N_int_centers));
 	LR_matrix<number> site_store = p->get_patch_rotation(i_patch);
-	
+
 	number t = drand48() * _delta;
 	LR_vector<number> axis = Utils::get_random_vector<number>();
-	
+
 	number sintheta = sin(t);
 	number costheta = cos(t);
 	number olcos = ((number)1.) - costheta;
@@ -63,22 +65,22 @@ void RotateSite<number>::apply (llint curr_step) {
 	LR_matrix<number> R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin,
 				xyo + zsin, axis.y * axis.y * olcos + costheta, yzo - xsin,
 				xzo - ysin, yzo + xsin, axis.z * axis.z * olcos + costheta);
-	
+
 	p->rotate_patch(i_patch, R);
 	p->set_positions();
-	
+
 	if (p->is_rigid_body()) {
 		this->_Info->lists->single_update(p);
 		if(!this->_Info->lists->is_updated()) {
 			this->_Info->lists->global_update();
 		}
 	}
-	
+
 	delta_E += this->particle_energy(p);
 	delta_E += p->int_potential();
 	p->set_ext_potential(curr_step, this->_Info->box);
 	delta_E_ext += p->ext_potential;
-	
+
 	// accept or reject?
 	if (this->_Info->interaction->get_is_infinite() == false && ((delta_E + delta_E_ext) < 0 || exp(-(delta_E + delta_E_ext) / this->_T) > drand48() )) {
 		// move accepted
@@ -92,7 +94,7 @@ void RotateSite<number>::apply (llint curr_step) {
 	else {
 		p->set_patch_rotation(i_patch, site_store);
 		p->set_positions();
-	
+
 		if (p->is_rigid_body()) {
 			this->_Info->lists->single_update(p);
 			if(!this->_Info->lists->is_updated()) {
@@ -103,10 +105,9 @@ void RotateSite<number>::apply (llint curr_step) {
 
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
 	}
-	
+
 	return;
 }
 
 template class RotateSite<float>;
 template class RotateSite<double>;
-
