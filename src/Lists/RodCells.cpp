@@ -228,7 +228,7 @@ std::vector<BaseParticle<number> *> RodCells<number>::_get_neigh_list(BasePartic
 	//res.erase(std::unique(res.begin(), res.end()), res.end());
 
 	typename std::vector<BaseParticle<number> *>::iterator it;
-	for (res.begin(); it != res.end(); ++it) _added[(*it)->index] = false;
+	for (it = res.begin(); it != res.end(); ++it) _added[(*it)->index] = false;
 
 	/*
 	 // this was needed for ordered sets
