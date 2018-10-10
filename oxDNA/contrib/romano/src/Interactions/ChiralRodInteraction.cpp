@@ -234,9 +234,9 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 		}
 
 		// if we got here, it means that we have to handle the chirality.
-		my_r.normalize(); // don't need it anymore, so we can normalize it
-		LR_vector<number> pv3 = ((number) 1.f - pp->orientation.v3 * my_r) * pp->orientation.v3;
-		LR_vector<number> qv3 = ((number) 1.f - qq->orientation.v3 * my_r) * qq->orientation.v3;
+		dist.normalize(); // don't need it anymore, so we can normalize it
+		LR_vector<number> pv3 = ((number) 1.f - pp->orientation.v3 * dist) * pp->orientation.v3;
+		LR_vector<number> qv3 = ((number) 1.f - qq->orientation.v3 * dist) * qq->orientation.v3;
 		pv3.normalize();
 		qv3.normalize();
 
