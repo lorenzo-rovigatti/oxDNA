@@ -112,7 +112,7 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 				number4 dr = (extF.mutual.PBC) ? box->minimum_image(ppos, qpos) : qpos - ppos;
 				number dr_abs = _module<number, number4>(dr);
 
-				number4 force = dr * ((dr_abs - (extF.mutual.r0 + extF.moving.rate * step)) * extF.mutual.stiff / dr_abs);
+				number4 force = dr * ((dr_abs - (extF.mutual.r0 + extF.mutual.rate * step)) * extF.mutual.stiff / dr_abs);
 
 				F.x += force.x;
 				F.y += force.y;

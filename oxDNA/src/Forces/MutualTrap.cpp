@@ -26,7 +26,8 @@ void MutualTrap<number>::get_settings (input_file &inp) {
 	getInputNumber (&inp, "r0", &_r0, 1);
 	getInputNumber (&inp, "stiff", &this->_stiff, 1);
 	getInputBool (&inp, "PBC", &PBC, 0);
-	getInputNumber(&inp, "rate", &this->_rate, 1);
+	this->_rate = 0.f; //default rate is 0
+	getInputNumber(&inp, "rate", &this->_rate, 0);
 }
 
 template <typename number>
