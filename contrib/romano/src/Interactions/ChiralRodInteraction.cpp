@@ -10,12 +10,13 @@
 template<typename number>
 ChiralRodInteraction<number>::ChiralRodInteraction() : BaseInteraction<number, ChiralRodInteraction<number> >() {
 	this->_int_map[1] = &ChiralRodInteraction<number>::_chiral_pot;
-	_length = -1.;
-	_chiral_max = 0.f;
-	_chiral_min = 0.f;
-	_chiral_alpha = 0.f;
-	_chiral_delta = 0.f;
-	_chiral_interval = 0.f;
+	_length = (number) - 1.0f;
+	_chiral_max = (number) 0.f;
+	_chiral_min = (number) 0.f;
+	_chiral_alpha = (number) 0.f;
+	_chiral_delta = (number) 0.f;
+	_chiral_interval = (number) 0.f;
+	_epsilon = (number) 0.f;
 }
 
 template<typename number>
@@ -234,9 +235,8 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 		}
 
 		// if we got here, it means that we have to handle the chirality.
-		dist.normalize(); // don't need it anymore, so we can normalize it
-		LR_vector<number> pv3 = ((number) 1.f - pp->orientation.v3 * dist) * pp->orientation.v3;
-		LR_vector<number> qv3 = ((number) 1.f - qq->orientation.v3 * dist) * qq->orientation.v3;
+		LR_vector<number> pv3 = pp->orientation.v3 - (pp->orientation.v3 * dist) * dist / dnorm;
+		LR_vector<number> qv3 = qq->orientation.v3 - (qq->orientation.v3 * dist) * dist / dnorm;
 		pv3.normalize();
 		qv3.normalize();
 
@@ -245,7 +245,7 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 
 		if (_chiral_min < angle && angle < _chiral_max) {
 			// they are in a happy chiral configuration
-			return (number) 0.f;
+			return -_epsilon;
 		}
 		else {
 			// they are not happily chiral, so they are overlapping
