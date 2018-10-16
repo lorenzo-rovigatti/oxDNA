@@ -47,20 +47,22 @@ void ChiralRodInteraction<number>::get_settings(input_file &inp) {
 	getInputFloat (&inp, "chiral_interval", &tmpf, 1);
 	_chiral_interval = (number) tmpf;
 
+	getInputNumber (&inp, "chiral_epsilon", &_epsilon, 0);
+
 
 	// this assumes that the length of the cylinders is larger than
 	// the delta by quite a lot...
-	this->_rcut = 1.001 * (_length + 1.);
+	this->_rcut = 1.001 * (_length + 1. + _chiral_delta);
 
 }
 
 template<typename number>
 void ChiralRodInteraction<number>::init() {
 
-	OX_LOG(Logger::LOG_INFO, "Initializing ChiralRod interaction with length %g, chiral_delta = %g, chiral_alpha = %g, chiral_interval = %g", _length, _chiral_delta, _chiral_alpha, _chiral_interval);
-
 	_chiral_min = _chiral_alpha - _chiral_interval;
 	_chiral_max = _chiral_alpha + _chiral_interval;
+
+	OX_LOG(Logger::LOG_INFO, "Initializing ChiralRod interaction with length %g, chiral_delta = %g, chiral_alpha = %g, chiral_interval = %g (min:%g, max:%g)", _length, _chiral_delta, _chiral_alpha, _chiral_interval, _chiral_min, _chiral_max);
 
 	this->_sqr_rcut = SQR(this->_rcut);
 }
@@ -230,33 +232,73 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 	if (through_rims) {
 		// overlap between inner rims
 		if (dnorm <= (number)1.f) {
+			//printf ("overlap di tipo 1 %d %d\n", pp->index, qq->index);
 			this->set_is_infinite(true);
 			return (number) 1.e12;
 		}
 
 		// if we got here, it means that we have to handle the chirality.
-		LR_vector<number> pv3 = pp->orientation.v3 - (pp->orientation.v3 * dist) * dist / dnorm;
-		LR_vector<number> qv3 = qq->orientation.v3 - (qq->orientation.v3 * dist) * dist / dnorm;
-		pv3.normalize();
-		qv3.normalize();
 
-		// the angle between pv3 and pq3 is what we are looking for
-		number angle = LRACOS((pv3 * qv3));
+		// first, we check that the projection of the v1 vector is positive for
+		// both particles, for right handed helix
+		//LR_vector<number> chiral_dir = pp->orientation.v3.cross(qq->orientation.v3);
+		//if (pp->orientation.v3 * qq->orientation.v3 < 0.)
+		//	chiral_dir = -chiral_dir;
 
-		if (_chiral_min < angle && angle < _chiral_max) {
-			// they are in a happy chiral configuration
-			return -_epsilon;
+		LR_vector<number> pv3 = pp->orientation.v3;
+		LR_vector<number> qv3;
+		if (u1dotu2 >= (number) 0.f)
+			qv3 = qq->orientation.v3;
+		else
+			qv3 = -qq->orientation.v3;
+
+		//handedness
+		//if ((pp->orientation.v3.cross(qq->orientation.v3)) * dist < (number)0.f) {
+		if (pv3.cross(qv3) * dist < 0.f) {
+		//if ((pp->orientation.v1 * chiral_dir) > (number) 0.f && (qq->orientation.v1 * chiral_dir) > (number)0.f) {
+
+			//LR_vector<number> pv3 = pp->orientation.v3 - ((pp->orientation.v3 * dist) / dnorm) * dist;
+			//LR_vector<number> qv3 = qq->orientation.v3 - ((qq->orientation.v3 * dist) / dnorm) * dist;
+			//pv3.normalize();
+			//qv3.normalize();
+
+			// the angle between pv3 and pq3 is what we are looking for
+			number angle = LRACOS((pv3 * qv3));
+
+			if (angle > (number)(M_PI / 2.)) throw oxDNAException ("should not happen %g\n", angle);
+
+			if (_chiral_min < angle && angle < _chiral_max) {
+				if (pp->index == 20 && false) {
+					printf ("## %d %d %g\n", pp->index, qq->index, angle);
+					printf ("## pp->orientation.v3: %g, %g, %g\n", pp->orientation.v3.x, pp->orientation.v3.y, pp->orientation.v3.z);
+					printf ("## qq->orientation.v3: %g, %g, %g\n", qq->orientation.v3.x, qq->orientation.v3.y, qq->orientation.v3.z);
+					printf ("## dist:               %g, %g, %g\n", dist.x, dist.y, dist.z);
+				}
+				// they are in a happy chiral configuration
+				//printf ("XXX %d - %g %g %g -- %d - %g %g %g \n",
+				//printf("@@ %d %d %g\n", pp->index, qq->index, angle);
+				return -_epsilon;
+			}
+			else {
+				// wrong angle
+				// they are not happily chiral, so they are overlapping
+				// printf ("overlap di tipo 2 %d %d (%g)\n", pp->index, qq->index, angle);
+				this->set_is_infinite(true);
+				return (number) 1.e12;
+			}
 		}
-		else {
-			// they are not happily chiral, so they are overlapping
-			this->set_is_infinite(true);
+		else { // wrong handedness
+			// printf ("overlap di tipo 3 %d %d\n", pp->index, qq->index);
+ 			this->set_is_infinite(true);
 			return (number) 1.e12;
 		}
 	}
 	else {
 		// actually compute the cylinder overlap
-		bool cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, my_r, _length);
+		number fact = 0.5 / (0.5 + _chiral_delta);
+		bool cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, fact * my_r, fact * _length);
 		if (cylinder_overlap == true) {
+			// printf ("overlap di tipo 4 %d %d\n", pp->index, qq->index);
 			this->set_is_infinite(true);
 			return (number)1.e12;
 		}
@@ -275,6 +317,15 @@ template<typename number>
 bool ChiralRodInteraction<number>::generate_random_configuration_overlap (BaseParticle<number> *p, BaseParticle<number> *q) {
 	LR_vector<number> dr = this->_box->min_image (p->pos, q->pos);
 	number energy = _chiral_pot(p, q, &dr, false);
+
+	if (this->_is_infinite == true) {
+		this->set_is_infinite (false);
+		dr = this->_box->min_image (q->pos, p->pos);
+		_chiral_pot(q, p, &dr, false);
+		if (this->_is_infinite == false) throw oxDNAException ("NOT SYMMETRIC");
+	}
+
+
 	this->set_is_infinite (false);
 	return (energy > (number) this->_energy_threshold);
 }
