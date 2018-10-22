@@ -49,6 +49,12 @@ protected:
 
 	number _epsilon;
 
+	bool _attractive;
+
+	number _att_range;
+
+	number _min;
+
 	/// potential
 	inline number _chiral_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 

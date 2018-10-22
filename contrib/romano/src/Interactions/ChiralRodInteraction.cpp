@@ -16,7 +16,10 @@ ChiralRodInteraction<number>::ChiralRodInteraction() : BaseInteraction<number, C
 	_chiral_alpha = (number) 0.f;
 	_chiral_delta = (number) 0.f;
 	_chiral_interval = (number) 0.f;
-	_epsilon = (number) 0.f;
+	_epsilon = (number) 1.f;
+	_attractive = false;
+	_att_range = 0.f;
+	_min = 10.;
 }
 
 template<typename number>
@@ -36,7 +39,7 @@ void ChiralRodInteraction<number>::get_settings(input_file &inp) {
 	float tmpf;
 	getInputFloat (&inp, "length", &tmpf, 1);
 	_length = (number) tmpf;
-	if (_length < 0.) throw oxDNAException ("Cannot run ChiralRod Interaction with negative lenght");
+	if (_length < 0.) throw oxDNAException ("Cannot run ChiralRod Interaction with negative length");
 
 	getInputFloat (&inp, "chiral_delta", &tmpf, 1);
 	_chiral_delta = (number) tmpf;
@@ -47,12 +50,17 @@ void ChiralRodInteraction<number>::get_settings(input_file &inp) {
 	getInputFloat (&inp, "chiral_interval", &tmpf, 1);
 	_chiral_interval = (number) tmpf;
 
-	getInputNumber (&inp, "chiral_epsilon", &_epsilon, 0);
+	getInputBool (&inp, "attractive", &_attractive, 0);
 
+	if (_attractive) {
+		getInputNumber(&inp, "att_range", &_att_range, 1);
+		//getInputNumber (&inp, "chiral_epsilon", &_epsilon, 0);
+		_epsilon = 1. / (_length * _length);
+	}
 
 	// this assumes that the length of the cylinders is larger than
 	// the delta by quite a lot...
-	this->_rcut = 1.001 * (_length + 1. + _chiral_delta);
+	this->_rcut = 1.001 * (_length + 1. + fmax(_chiral_delta, _att_range));
 
 }
 
@@ -181,7 +189,7 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 	}
 
 	// first we compute the distance between the two spherocylinders
-	number hlength = _length / 2.f;
+	number hlength = _length / (number) 2.f;
 	number drdotu1 = my_r * pp->orientation.v3;
 	number drdotu2 = my_r * qq->orientation.v3;
 	number u1dotu2 = pp->orientation.v3 * qq->orientation.v3;
@@ -218,9 +226,30 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 	LR_vector<number> dist = my_r - lambda * pp->orientation.v3 + mu * qq->orientation.v3;
 	number dnorm = dist.norm();
 
+	// here we set the att count
+	number att_extent;
+	if (u1dotu2 >= (number) 0.f) {
+		att_extent = ((_length * _length / (number)2.f) + 2. * mu * lambda)*u1dotu2;
+	}
+	else { // we pretend to invert one of the cylinders;
+			// the formula below is valid if the two cylinders make an ACUTE angle
+		att_extent = ((_length * _length / (number)2.f) + 2. * (-mu) * lambda)*(-u1dotu2);
+	}
+
+	// the following chech never fails, so it should be ok
+	//if (att_extent < 0.) throw oxDNAException ("SHOULD NEVER HAPPEN");
+	if (-att_extent < _min) {
+		_min = -att_extent;
+		printf ("found more minimal min %g\n", _min);
+	}
+
+	// the extent of the interaction is zero if the two SpheroCylinders are too far apart
+	if (dnorm >= _att_range * _att_range) att_extent = (number) 0.f;
+
+
 	// early exit if spherocylinders too far away
 	if (dnorm > ((number) 1.f + _chiral_delta)*((number) 1.f + _chiral_delta))
-		return (number) 0.f;
+		return - att_extent * _epsilon;
 
 	// we check if it goes through both rims
 	//fabs(lambda + (dist * u1)) < hlength && fabs(mu + (-dist * u2)) < hlength
@@ -277,7 +306,7 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 				// they are in a happy chiral configuration
 				//printf ("XXX %d - %g %g %g -- %d - %g %g %g \n",
 				//printf("@@ %d %d %g\n", pp->index, qq->index, angle);
-				return -_epsilon;
+				return - att_extent * _epsilon;
 			}
 			else {
 				// wrong angle
@@ -303,7 +332,7 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 			return (number)1.e12;
 		}
 		else {
-			return (number) 0.f;
+			return - att_extent * _epsilon;
 		}
 	}
 }
