@@ -37,7 +37,7 @@ class Swim : public BaseMove<number> {
 		void apply (llint curr_step);
 		virtual void get_settings(input_file &inp, input_file &sim_inp);
 		virtual void init(void);
-
+		virtual void log_parameters();
 };
 
 

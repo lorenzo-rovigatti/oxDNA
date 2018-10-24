@@ -8,7 +8,7 @@ SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(romano
 	#	DEPENDS PatchyShapeParticle PatchyShapeInteraction DirkInteraction DirkInteraction2 DirkInteractionBias NematicS Icosahedron HardIcoInteraction
-	DEPENDS HardIcoInteraction PLCluster PatchyShapeParticle PatchyShapeInteraction MCMovePatchyShape ChiralRodInteraction NematicS Swim#MCMoveDesign
+	DEPENDS HardIcoInteraction PLCluster PatchyShapeParticle PatchyShapeInteraction MCMovePatchyShape ChiralRodInteraction NematicS Swim ChiralRodExplicit Reappear #MCMoveDesign
 ) 
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -23,6 +23,7 @@ ADD_LIBRARY(DirkInteraction2 SHARED EXCLUDE_FROM_ALL src/Interactions/DirkIntera
 ADD_LIBRARY(DirkInteractionSin SHARED EXCLUDE_FROM_ALL src/Interactions/DirkInteractionSin.cpp)
 ADD_LIBRARY(DirkInteractionBias SHARED EXCLUDE_FROM_ALL src/Interactions/DirkInteractionBias.cpp)
 ADD_LIBRARY(ChiralRodInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/ChiralRodInteraction.cpp ../../src/Particles/SpheroCylinder.cpp)
+ADD_LIBRARY(ChiralRodExplicit SHARED EXCLUDE_FROM_ALL src/Interactions/ChiralRodExplicit.cpp ../../src/Particles/SpheroCylinder.cpp)
 ADD_LIBRARY(HardIcoInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/HardIcoInteraction.cpp src/Particles/Icosahedron.cpp)
 ADD_LIBRARY(PatchyShapeInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PatchyShapeInteraction.cpp   src/Particles/PatchyShapeParticle.cpp)
 
@@ -30,6 +31,8 @@ ADD_LIBRARY(PatchyShapeInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/Patc
 #Backends
 ADD_LIBRARY(MCMovePatchyShape SHARED EXCLUDE_FROM_ALL  src/Backends/MCMoves/MCMovePatchyShape.cpp   src/Interactions/PatchyShapeInteraction.cpp src/Particles/PatchyShapeParticle.cpp)
 ADD_LIBRARY(Swim SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/Swim.cpp)
+ADD_LIBRARY(Reappear SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/Reappear.cpp)
+#ADD_LIBRARY(OverlapVolume SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/OverlapVolume.cpp)
 
 #ADD_LIBRARY(MCMoveDesign SHARED EXCLUDE_FROM_ALL  src/Backends/MCMoves/MCMoveDesign.cpp   src/Interactions/PatchyShapeInteraction.cpp src/Particles/PatchyShapeParticle.cpp)
 

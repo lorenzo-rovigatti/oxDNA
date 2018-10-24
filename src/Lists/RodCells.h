@@ -36,7 +36,9 @@ protected:
 
 	number _rod_cell_rcut;
 	number _rod_length;
-	int _n_virtual_sites;
+	int * _n_virtual_sites;
+	int _n_part_types;
+	int _n_virtual_sites_max;
 
 	//std::set<int> _neighs;
 	//std::unordered_set<int> _neighs; // unordered_set are measurably and consistently faster than the other options, but slower than sorting the resulting vector

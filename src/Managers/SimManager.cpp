@@ -159,6 +159,7 @@ void SimManager::run() {
 			if (step > 1 && step % _fix_diffusion_every == 0) _backend->fix_diffusion();
 		}
 		OX_LOG(Logger::LOG_INFO, "Equilibration done");
+		_backend->print_equilibration_info();
 	}
 
 	// main loop

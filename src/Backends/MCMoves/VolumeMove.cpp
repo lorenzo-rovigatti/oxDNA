@@ -24,6 +24,8 @@ template<typename number>
 void VolumeMove<number>::init () {
 	BaseMove<number>::init();
 	_pos_old.resize (*this->_Info->N);
+	if (this->_restrict_to_type > 0) OX_LOG (Logger::LOG_WARNING, "(VolumeMove.cpp) Cant use VMMC with restrict_to_type. Ignoring");
+	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) VolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, this->_T, _delta, this->prob);
 }
 
 template<typename number>
@@ -34,7 +36,6 @@ void VolumeMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	getInputNumber(&inp, "delta", &_delta, 1);
 	getInputNumber(&inp, "prob", &this->prob, 0);
 	getInputNumber(&sim_inp, "P", &_P, 1);
-	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) VolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, this->_T, _delta, this->prob);
 
 	std::string tmps;
 	if (getInputString (&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
@@ -114,6 +115,12 @@ void VolumeMove<number>::apply (llint curr_step) {
 		if(curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
 	}
 	return;
+}
+
+template<typename number>
+void VolumeMove<number>::log_parameters() {
+	BaseMove<number>::log_parameters();
+	OX_LOG(Logger::LOG_INFO, "\tdelta", _delta);
 }
 
 template class VolumeMove<float>;

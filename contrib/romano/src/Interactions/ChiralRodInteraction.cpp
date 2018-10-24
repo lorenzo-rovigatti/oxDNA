@@ -19,6 +19,7 @@ ChiralRodInteraction<number>::ChiralRodInteraction() : BaseInteraction<number, C
 	_epsilon = (number) 1.f;
 	_attractive = false;
 	_att_range = 0.f;
+	_extra_range = 0.f;
 	_min = 10.;
 }
 
@@ -55,7 +56,8 @@ void ChiralRodInteraction<number>::get_settings(input_file &inp) {
 	if (_attractive) {
 		getInputNumber(&inp, "att_range", &_att_range, 1);
 		//getInputNumber (&inp, "chiral_epsilon", &_epsilon, 0);
-		_epsilon = 1. / (_length * _length);
+		_extra_range = _att_range - (number) 1.f;
+		_epsilon = 1. / (_length + _extra_range);
 	}
 
 	// this assumes that the length of the cylinders is larger than
@@ -70,7 +72,7 @@ void ChiralRodInteraction<number>::init() {
 	_chiral_min = _chiral_alpha - _chiral_interval;
 	_chiral_max = _chiral_alpha + _chiral_interval;
 
-	OX_LOG(Logger::LOG_INFO, "Initializing ChiralRod interaction with length %g, chiral_delta = %g, chiral_alpha = %g, chiral_interval = %g (min:%g, max:%g)", _length, _chiral_delta, _chiral_alpha, _chiral_interval, _chiral_min, _chiral_max);
+	OX_LOG(Logger::LOG_INFO, "Initializing ChiralRod interaction with length %g, chiral_delta = %g, chiral_alpha = %g, chiral_interval = %g (min:%g, max:%g), epsilon=%g", _length, _chiral_delta, _chiral_alpha, _chiral_interval, _chiral_min, _chiral_max, _epsilon);
 
 	this->_sqr_rcut = SQR(this->_rcut);
 }
@@ -196,6 +198,8 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 
 	number mu, lambda;
 
+	bool redo_for_attraction = false;
+
 	number cc = 1. - u1dotu2 * u1dotu2;
 	if (cc < 1.e-12) {
 		// parallel line segments
@@ -203,12 +207,14 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 		mu = -drdotu2 / 2.;
 		if (fabs(lambda) > hlength) lambda = copysign(hlength, lambda);
 		if (fabs(mu) > hlength) mu = copysign(hlength, mu);
+		redo_for_attraction = true;
 	}
 	else {
 		// line segments not parallel
 		lambda = ( drdotu1 - u1dotu2 * drdotu2) / cc;
 		mu     = (-drdotu2 + u1dotu2 * drdotu1) / cc;
 		if (!(fabs (lambda) <= hlength && fabs (mu) <= hlength)) {
+			redo_for_attraction = true;
 			number aux1 = fabs(lambda) - hlength;
 			number aux2 = fabs(mu) - hlength;
 			if (aux1 > aux2) {
@@ -226,26 +232,77 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 	LR_vector<number> dist = my_r - lambda * pp->orientation.v3 + mu * qq->orientation.v3;
 	number dnorm = dist.norm();
 
-	// here we set the att count
-	number att_extent;
-	if (u1dotu2 >= (number) 0.f) {
-		att_extent = ((_length * _length / (number)2.f) + 2. * mu * lambda)*u1dotu2;
-	}
-	else { // we pretend to invert one of the cylinders;
-			// the formula below is valid if the two cylinders make an ACUTE angle
-		att_extent = ((_length * _length / (number)2.f) + 2. * (-mu) * lambda)*(-u1dotu2);
-	}
-
-	// the following chech never fails, so it should be ok
-	//if (att_extent < 0.) throw oxDNAException ("SHOULD NEVER HAPPEN");
-	if (-att_extent < _min) {
-		_min = -att_extent;
-		printf ("found more minimal min %g\n", _min);
-	}
-
 	// the extent of the interaction is zero if the two SpheroCylinders are too far apart
-	if (dnorm >= _att_range * _att_range) att_extent = (number) 0.f;
+	number att_extent = (number) 0.f;
+	if (dnorm >= _att_range * _att_range) {
+		att_extent = (number) 0.f;
+	}
+	else {
+		number lambda_att, mu_att;
+		number hlength_e = (_length + _extra_range)/ (number) 2.f;
 
+		// we need to recompute the segment distance if redo_for_attraction is true
+		if (redo_for_attraction) {
+			if (cc < 1.e-12) {
+				// parallel line segments
+				lambda_att = drdotu1 / 2.;
+				mu_att = -drdotu2 / 2.;
+				if (fabs(lambda_att) > hlength_e) lambda_att = copysign(hlength_e, lambda_att);
+				if (fabs(mu_att) > hlength_e) mu_att = copysign(hlength_e, mu_att);
+			}
+			else {
+				// line segments not parallel
+				lambda_att = ( drdotu1 - u1dotu2 * drdotu2) / cc;
+				mu_att     = (-drdotu2 + u1dotu2 * drdotu1) / cc;
+				if (!(fabs (lambda_att) <= hlength_e && fabs (mu_att) <= hlength_e)) {
+					number aux1 = fabs(lambda_att) - hlength_e;
+					number aux2 = fabs(mu_att) - hlength_e;
+					if (aux1 > aux2) {
+						lambda_att = copysign (hlength_e, lambda_att);
+						mu_att = lambda_att * u1dotu2 - drdotu2;
+						if (fabs(mu_att) > hlength_e) mu_att = copysign (hlength_e, mu_att);
+					}
+					else {
+						mu_att = copysign (hlength_e, mu_att);
+						lambda_att = mu_att * u1dotu2 + drdotu1;
+						if (fabs(lambda_att) > hlength_e) lambda_att = copysign(hlength_e, lambda_att);
+					}
+				}
+			}
+		}
+		else {
+			lambda_att = lambda;
+			mu_att = mu;
+		}
+
+		if (u1dotu2 >= (number) 0.f) {
+			//LR_vector<number> tau1 = (hlength - lambda) * pp->orientation.v3;
+			//LR_vector<number> tau2 = (hlength - mu) * qq->orientation.v3;
+			//LR_vector<number> beta1 = (-hlength - lambda) * pp->orientation.v3;
+			//LR_vector<number> beta2 = (-hlength - mu) * qq->orientation.v3;
+			//att_extent = u1dotu2 * (sqrt(fmin(tau1.norm(), tau2.norm())) + sqrt(fmin(beta1.norm(), beta2.norm())));
+			att_extent = u1dotu2 * (fmin(fabs(hlength_e - lambda_att), fabs(hlength_e - mu_att)) +
+	                                fmin(fabs(hlength_e + lambda_att), fabs(hlength_e + mu_att)));
+		}
+		else { // we pretend to invert one of the cylinders;
+				// the formula below is valid if the two cylinders make an ACUTE angle
+			//LR_vector<number> tau1 = (hlength - lambda) * pp->orientation.v3;
+			//LR_vector<number> tau2 = (hlength + mu) * (-qq->orientation.v3);
+			//LR_vector<number> beta1 = (-hlength - lambda) * pp->orientation.v3;
+			//LR_vector<number> beta2 = (-hlength + mu) * (-qq->orientation.v3);
+			//att_extent = (-u1dotu2) * (sqrt(fmin(tau1.norm(), tau2.norm())) + sqrt(fmin(beta1.norm(), beta2.norm())));
+			att_extent = (-u1dotu2) * (fmin(fabs(hlength_e - lambda_att), fabs(hlength_e - (-mu_att))) +
+	                                   fmin(fabs(hlength_e + lambda_att), fabs(hlength_e + (-mu_att))));
+		}
+
+		if (-att_extent < _min) {
+			_min = -att_extent;
+			OX_LOG(Logger::LOG_INFO, "(ChiralRodInteraction.cpp) found more minimal min %g (dr=%g, mu=%g, lambda=%g, u1u2=%g), expecting to be < %g", _min, sqrt(dnorm), mu, lambda, u1dotu2, 1./_epsilon);
+		}
+		// the following chech never fails, so I removed it
+		// if (att_extent < 0.) throw oxDNAException ("SHOULD NEVER HAPPEN %g", att_extent);
+
+	} // end of the calculation of att_extent;
 
 	// early exit if spherocylinders too far away
 	if (dnorm > ((number) 1.f + _chiral_delta)*((number) 1.f + _chiral_delta))

@@ -51,7 +51,7 @@ protected:
 
 	bool _attractive;
 
-	number _att_range;
+	number _att_range, _extra_range;
 
 	number _min;
 
