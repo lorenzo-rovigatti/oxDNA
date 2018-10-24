@@ -699,6 +699,12 @@ void SimBackend<number>::print_conf(llint curr_step, bool reduced, bool only_las
 	}
 }
 
+template<typename number>
+void SimBackend<number>::print_equilibration_info() {
+	// he who overloads this will print something;
+	return;
+}
+
 template class SimBackend<float>;
 template class SimBackend<double>;
 

@@ -75,6 +75,8 @@ void VMMC<number>::init() {
 			throw oxDNAException ("Cannot run MC2 VMMC with selected lists. Set list_type = cells in the input file");
 	//throw oxDNAException ("Aborting at the end of VMMC::init for debugging purposes...");
 	//abort();
+
+	if (this->_restrict_to_type > 0) OX_LOG (Logger::LOG_WARNING, "(VMMC.cpp) Cant use VMMC with restrict_to_type. Ignoring");
 }
 
 // TODO: define store, restore, rerestore

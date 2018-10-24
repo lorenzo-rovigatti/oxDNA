@@ -23,6 +23,8 @@ template<typename number>
 void ShapeMove<number>::init () {
 	BaseMove<number>::init();
 	_pos_old.resize (*this->_Info->N);
+	if (this->_restrict_to_type > 0) OX_LOG(Logger::LOG_WARNING, "(ShapeMove.cpp) Cant use VMMC with restrict_to_type. Ignoring");
+	OX_LOG(Logger::LOG_INFO, "(ShapeMove.cpp) ShapeMove initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
 template<typename number>
@@ -31,7 +33,6 @@ void ShapeMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
 
 	getInputNumber (&inp, "delta", &_delta, 1);
 	getInputNumber (&inp, "prob", &this->prob, 0);
-	OX_LOG(Logger::LOG_INFO, "(ShapeMove.cpp) ShapeMove initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 
 	std::string tmps;
 	if (getInputString (&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
@@ -135,6 +136,12 @@ void ShapeMove<number>::apply (llint curr_step) {
 	}
 
 	return;
+}
+
+template<typename number>
+void ShapeMove<number>::log_parameters() {
+	BaseMove<number>::log_parameters();
+	OX_LOG(Logger::LOG_INFO, "\tdelta = %g", _delta);
 }
 
 template class ShapeMove<float>;

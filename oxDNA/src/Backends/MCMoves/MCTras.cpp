@@ -26,7 +26,6 @@ void MCTras<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	BaseMove<number>::get_settings (inp, sim_inp);
 
 	getInputNumber (&inp, "delta", &_delta, 1);
-	OX_LOG(Logger::LOG_INFO, "(MCTras.cpp) MCtras initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 
 	std::string tmps;
 	if (getInputString (&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
@@ -37,6 +36,12 @@ void MCTras<number>::get_settings (input_file &inp, input_file &sim_inp) {
 }
 
 template<typename number>
+void MCTras<number>::init() {
+	BaseMove<number>::init();
+	OX_LOG(Logger::LOG_INFO, "(MCTras.cpp) MCtras initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
+}
+
+template<typename number>
 void MCTras<number>::apply (llint curr_step) {
 
 	// we increase the attempted count
@@ -44,10 +49,13 @@ void MCTras<number>::apply (llint curr_step) {
 
 	// we select the particle to translate
 	int pi = (int) (drand48() * (*this->_Info->N));
-
-	//cout << "GGB " << this->_Info->particles << endl;;
-
 	BaseParticle<number> *p = this->_Info->particles[pi];
+	if (this->_restrict_to_type >= 0) {
+		while(p->type != this->_restrict_to_type) {
+			pi = (int) (drand48() * (*this->_Info->N));
+			p = this->_Info->particles[pi];
+		}
+	}
 
 	pos_old = p->pos;
 
@@ -80,6 +88,8 @@ void MCTras<number>::apply (llint curr_step) {
 		this->_accepted ++;
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) {
 			_delta *= this->_acc_fact;
+			if (_delta > 0.5) _delta = 0.5;
+			if (_delta < 1.e-5) _delta = 1.e-5;
 			if (_verlet_skin > 0. && _delta > _verlet_skin * 0.8660254037844386 / 2.) {
 				_delta = _verlet_skin *_verlet_skin * 0.8660254037844386 / 2.; //  0.8660254 .. ==sqrt(3.) / 2.
 			}
@@ -94,6 +104,12 @@ void MCTras<number>::apply (llint curr_step) {
 	}
 
 	return;
+}
+
+template<typename number>
+void MCTras<number>::log_parameters() {
+	BaseMove<number>::log_parameters();
+	OX_LOG(Logger::LOG_INFO, "\tdelta = %g", _delta);
 }
 
 template class MCTras<float>;

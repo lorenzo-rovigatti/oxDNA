@@ -28,7 +28,11 @@ void MCRot<number>::get_settings (input_file &inp, input_file &sim_inp) {
 		getInputNumber (&inp, "delta", &_delta, 1);
 	}
 	getInputNumber (&inp, "prob", &this->prob, 1);
+}
 
+template<typename number>
+void MCRot<number>::init () {
+	BaseMove<number>::init();
 	OX_LOG(Logger::LOG_INFO, "(MCRot.cpp) MCRot initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
@@ -39,6 +43,12 @@ void MCRot<number>::apply (llint curr_step) {
 
 	int pi = (int) (drand48() * (*this->_Info->N));
 	BaseParticle<number> *p = this->_Info->particles[pi];
+	if (this->_restrict_to_type >= 0) {
+		while(p->type != this->_restrict_to_type) {
+			pi = (int) (drand48() * (*this->_Info->N));
+			p = this->_Info->particles[pi];
+		}
+	}
 
 	number delta_E;
 	if (this->_compute_energy_before) delta_E = -this->particle_energy(p);
@@ -110,6 +120,12 @@ void MCRot<number>::apply (llint curr_step) {
 	}
 
 	return;
+}
+
+template<typename number>
+void MCRot<number>::log_parameters() {
+	BaseMove<number>::log_parameters();
+	OX_LOG(Logger::LOG_INFO, "\tdelta = %g", _delta);
 }
 
 template class MCRot<float>;

@@ -3,7 +3,6 @@
  * @date    30/apr/2014
  * @author  flavio
  *
- *
  */
 #include "Swim.h"
 
@@ -23,9 +22,7 @@ Swim<number>::~Swim () {
 template<typename number>
 void Swim<number>::init () {
 	BaseMove<number>::init();
-
 	OX_LOG(Logger::LOG_INFO, "(Swim.cpp) Swim move initiated on axis %d with delta %g and probability %g", _axis_i, _delta, this->prob);
-
 }
 
 template<typename number>
@@ -34,9 +31,6 @@ void Swim<number>::get_settings (input_file &inp, input_file &sim_inp) {
 
 	getInputNumber (&inp, "delta", &_delta, 1);
 	getInputInt (&inp, "axis", &_axis_i, 1);
-
-
-
 }
 
 template<typename number>
@@ -58,8 +52,13 @@ void Swim<number>::apply (llint curr_step) {
 
 	// we select the particle to translate
 	int pi = (int) (drand48() * (*this->_Info->N));
-
 	BaseParticle<number> * p = this->_Info->particles[pi];
+	if (this->_restrict_to_type >= 0) {
+		while(p->type != this->_restrict_to_type) {
+			pi = (int) (drand48() * (*this->_Info->N));
+			p = this->_Info->particles[pi];
+		}
+	}
 
 	pos_old = p->pos;
 
@@ -103,6 +102,12 @@ void Swim<number>::apply (llint curr_step) {
 	}
 
 	return;
+}
+
+template<typename number>
+void Swim<number>::log_parameters() {
+	BaseMove<number>::log_parameters();
+	OX_LOG(Logger::LOG_INFO, "\tdelta = %g", _delta);
 }
 
 template class Swim<float>;
