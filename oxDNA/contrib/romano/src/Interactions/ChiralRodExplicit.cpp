@@ -19,7 +19,7 @@ ChiralRodExplicit<number>::ChiralRodExplicit() : BaseInteraction<number, ChiralR
 	_sigma_solv = 0.2f;
 	_N_solv = -1;
 	_N_rods = -1;
-
+	_togrow = false;
 }
 
 template<typename number>
@@ -52,6 +52,7 @@ void ChiralRodExplicit<number>::get_settings(input_file &inp) {
 
 	getInputNumber (&inp, "sigma_solvent", &_sigma_solv, 1);
 
+	getInputBool (&inp, "togrow", &_togrow, 0);
 	// this assumes that the length of the cylinders is larger than
 	// the delta by quite a lot...
 	this->_rcut = 1.001 * (_length + (number)1.f);
@@ -92,11 +93,16 @@ void ChiralRodExplicit<number>::read_topology(int N, int *N_strands, BaseParticl
 	allocate_particles(particles, N);
 
 	for (int i = 0; i < N; i ++) {
-		BaseParticle<number> * p = particles[i];
+		SpheroCylinder<number> * p = static_cast<SpheroCylinder<number> *> (particles[i]);
 		p->index = i;
 		p->strand_id = i;
 		if (i < _N_rods) p->type = 0;  // rods colloids
 		else p->type = 1;              // solvent colloids
+
+		if (p->type == 1) {
+			if (_togrow) p->length = 1.e-6;
+			else p->length = _sigma_solv;
+		}
 	}
 
 	OX_LOG(Logger::LOG_INFO, "             ChiralRodExplicit: N_rods %d, N_solvent %d, sigma_solvent %g", _N_rods, _N_solv, _sigma_solv);
@@ -152,7 +158,18 @@ number ChiralRodExplicit<number>::pair_interaction_nonbonded(BaseParticle<number
 
 template <typename number>
 inline number ChiralRodExplicit<number>::_solv_solv(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if (r->norm() < ((number)4.f)*_sigma_solv*_sigma_solv) {
+	//if (r->norm() < ((number)4.f)*_sigma_solv*_sigma_solv) {
+	number compare;
+	if (_togrow == false) {
+		compare = (number)2.f * _sigma_solv;
+	}
+	else {
+		SpheroCylinder<number> * pp = static_cast<SpheroCylinder<number> *> (p);
+		SpheroCylinder<number> * qq = static_cast<SpheroCylinder<number> *> (q);
+		compare = pp->length + qq->length;
+	}
+	if (r->norm() < compare*compare) {
+		//if (pp->length > 0.3) throw oxDNAException("oh yes");
 		this->set_is_infinite(true);
 		return (number) 1.e12;
 	}
@@ -263,8 +280,6 @@ number ChiralRodExplicit<number>::_chiral_pot(BaseParticle<number> *p, BaseParti
 			// the angle between pv3 and pq3 is what we are looking for
 			number angle = LRACOS((pv3 * qv3));
 
-			if (angle > (number)(M_PI / 2.)) throw oxDNAException ("should not happen %g\n", angle);
-
 			if (_chiral_min < angle && angle < _chiral_max) {
 				return (number) 0.f;
 			}
@@ -300,7 +315,6 @@ template<typename number>
 void ChiralRodExplicit<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
 
 }
-
 
 template<typename number>
 bool ChiralRodExplicit<number>::generate_random_configuration_overlap (BaseParticle<number> *p, BaseParticle<number> *q) {

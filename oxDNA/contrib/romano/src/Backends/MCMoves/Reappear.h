@@ -29,6 +29,6 @@ class Reappear : public BaseMove<number> {
 
 
 extern "C" BaseMove<float> * make_Reappear_float()   { return new Reappear<float> () ; }
-extern "C" BaseMove<double> * make_Reappear_double() {return new Reappear<double> () ; }
+extern "C" BaseMove<double> * make_Reappear_double() { return new Reappear<double> () ; }
 
 #endif // REAPPEAR_H_

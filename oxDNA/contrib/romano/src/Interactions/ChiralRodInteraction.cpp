@@ -103,72 +103,6 @@ number ChiralRodInteraction<number>::pair_interaction_nonbonded(BaseParticle<num
 	return _chiral_pot (p, q, r, update_forces);
 }
 
-/* OLD VERSION
-template<typename number>
-number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
-
-	number rnorm = (*r).norm();
-	if (rnorm > this->_sqr_rcut) return (number) 0.f;
-
-	LR_vector<number> my_r;
-	SpheroCylinder<number> * pp = NULL, * qq = NULL;
-	// the algorithm is not symmetric, so we have to compute things always in the same order
-	if (p->index < q->index) {
-		pp = dynamic_cast< SpheroCylinder<number> *> (p);
-		qq = dynamic_cast< SpheroCylinder<number> *> (q);
-		my_r = *r;
-	}
-	else {
-		pp = dynamic_cast< SpheroCylinder<number> *> (q);
-		qq = dynamic_cast< SpheroCylinder<number> *> (p);
-		my_r = this->_box->min_image (pp, qq);
-	}
-
-	number fact = 0.5 / (0.5 + _chiral_delta);
-	bool outer_cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, fact*my_r, fact*_length);
-	if (outer_cylinder_overlap == false) {
-		return (number) 0.f;
-	}
-
-	bool inner_cylinder_overlap = InteractionUtils::cylinder_overlap<number> (pp, qq, my_r, _length);
-	if (inner_cylinder_overlap) {
-		//printf ("OVERLAP here %d %d\n", pp->index, qq->index);
-		//printf ("p.pos: %g %g %g\n", pp->pos.x, pp->pos.y, pp->pos.z);
-		//printf ("q.pos: %g %g %g\n", qq->pos.x, qq->pos.y, qq->pos.z);
-		//printf ("my_r:  %g %g %g (%g)\n", my_r.x, my_r.y, my_r.z, sqrt(my_r.norm()));
-
-		this->set_is_infinite (true);
-		return (number) 1.e12;
-	}
-
-	// if we end up here, it means we have to deal with chirality
-	LR_vector<number> chiral_axis =  pp->orientation.v3.cross(qq->orientation.v3);
-	if (pp->orientation.v3 * qq->orientation.v3 < (number) 0.f)
-		chiral_axis =  -chiral_axis;
-
-	my_r.normalize();
-	number chiral_angle = acos(chiral_axis * my_r); // assumes r_ij goes from i to j
-
-	if (_chiral_min < chiral_angle && chiral_angle < _chiral_max) {
-		// we's chiral
-		return (number) 0.f;
-	}
-	else {
-		// we's overlapping
-		//printf ("OVERLAP here2 %d %d\n", pp->index, qq->index);
-		//printf ("p.pos: %g %g %g\n", pp->pos.x, pp->pos.y, pp->pos.z);
-		//printf ("q.pos: %g %g %g\n", qq->pos.x, qq->pos.y, qq->pos.z);
-		//printf ("my_r:  %g %g %g (%g)\n", my_r.x, my_r.y, my_r.z, sqrt(my_r.norm()));
-		this->set_is_infinite(true);
-		return (number) 1.e12;
-	}
-
-	return (number) 0.f;
-
-}
-*/
-
 template<typename number>
 number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
@@ -301,6 +235,8 @@ number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BasePa
 		}
 		// the following chech never fails, so I removed it
 		// if (att_extent < 0.) throw oxDNAException ("SHOULD NEVER HAPPEN %g", att_extent);
+		if (!(fabs(mu_att * u1dotu2 + drdotu1) < hlength_e && fabs(lambda_att * u1dotu2 - drdotu2) < hlength_e))
+			att_extent = (number) 0.f;
 
 	} // end of the calculation of att_extent;
 
@@ -410,7 +346,6 @@ bool ChiralRodInteraction<number>::generate_random_configuration_overlap (BasePa
 		_chiral_pot(q, p, &dr, false);
 		if (this->_is_infinite == false) throw oxDNAException ("NOT SYMMETRIC");
 	}
-
 
 	this->set_is_infinite (false);
 	return (energy > (number) this->_energy_threshold);
