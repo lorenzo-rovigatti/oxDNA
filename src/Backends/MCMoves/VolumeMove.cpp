@@ -24,7 +24,7 @@ template<typename number>
 void VolumeMove<number>::init () {
 	BaseMove<number>::init();
 	_pos_old.resize (*this->_Info->N);
-	if (this->_restrict_to_type > 0) OX_LOG (Logger::LOG_WARNING, "(VolumeMove.cpp) Cant use VMMC with restrict_to_type. Ignoring");
+	if (this->_restrict_to_type > 0) OX_LOG (Logger::LOG_WARNING, "(VolumeMove.cpp) Cant use VolumeMove with restrict_to_type. Ignoring");
 	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) VolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, this->_T, _delta, this->prob);
 }
 

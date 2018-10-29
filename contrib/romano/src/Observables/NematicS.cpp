@@ -20,7 +20,6 @@ template<typename number> NematicS<number>::NematicS() {
 
 template<typename number>
 NematicS<number>::~NematicS() {
-    if (_cells != NULL) delete _cells;
     if (_particles != NULL) delete _particles;
 }
 

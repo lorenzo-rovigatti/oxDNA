@@ -57,6 +57,8 @@ protected:
 	/// number of chiral cylinders and of solvent molecules; read in get_settings
 	int _N_rods, _N_solv;
 
+	bool _togrow;
+
 	/// interaction between chiral rods
 	inline number _chiral_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
