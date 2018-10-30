@@ -8,7 +8,7 @@ SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(romano
 	#	DEPENDS PatchyShapeParticle PatchyShapeInteraction DirkInteraction DirkInteraction2 DirkInteractionBias NematicS Icosahedron HardIcoInteraction
-	DEPENDS HardIcoInteraction PLCluster PatchyShapeParticle PatchyShapeInteraction MCMovePatchyShape ChiralRodInteraction NematicS Swim ChiralRodExplicit Reappear CutVolume Grow Exhaust FakePressure FreeVolume #MCMoveDesign
+	DEPENDS HardIcoInteraction PLCluster PatchyShapeParticle PatchyShapeInteraction MCMovePatchyShape ChiralRodInteraction NematicS Swim ChiralRodExplicit Reappear CutVolume Grow Exhaust FakePressure FreeVolume Depletion #MCMoveDesign
 ) 
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -34,6 +34,7 @@ ADD_LIBRARY(PatchyShapeInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/Patc
 ADD_LIBRARY(MCMovePatchyShape SHARED EXCLUDE_FROM_ALL  src/Backends/MCMoves/MCMovePatchyShape.cpp   src/Interactions/PatchyShapeInteraction.cpp src/Particles/PatchyShapeParticle.cpp)
 ADD_LIBRARY(Swim SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/Swim.cpp)
 ADD_LIBRARY(Reappear SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/Reappear.cpp)
+ADD_LIBRARY(Depletion SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/Depletion.cpp)
 ADD_LIBRARY(CutVolume SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/CutVolume.cpp)
 ADD_LIBRARY(Grow SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/Grow.cpp)
 ADD_LIBRARY(Exhaust SHARED EXCLUDE_FROM_ALL src/Backends/MCMoves/Exhaust.cpp)
