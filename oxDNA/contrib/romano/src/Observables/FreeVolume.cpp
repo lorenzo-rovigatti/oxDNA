@@ -61,7 +61,10 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
             particles[j] = new BaseParticle<number> ();
             particles[j]->pos = p->pos;
             particles[j]->index = j;
-            particles[j]->type = _restrict_to_type;
+            particles[j]->type = p->type;
+            particles[j]->orientation = p->orientation;
+            particles[j]->orientationT = p->orientationT;
+            particles[j]->set_positions();
             j ++;
         }
     }
@@ -72,7 +75,8 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
     particles[N_of_type]->pos.x = drand48() * box_sides[0];
     particles[N_of_type]->pos.y = drand48() * box_sides[1];
     particles[N_of_type]->pos.z = drand48() * box_sides[2];
-    particles[N_of_type]->type = _restrict_to_type;
+    if (_restrict_to_type >= 0) particles[N_of_type]->type = _restrict_to_type;
+    else particles[N_of_type]->type = 1;
 
     p = particles[N_of_type];
     int real_N_of_type = N_of_type + 1;
@@ -90,13 +94,20 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
         typename std::vector<BaseParticle<number> *>::iterator it;
         bool found = false;
         for (it = neighs.begin(); it != neighs.end() && found == false; it ++) {
-            if (_restrict_to_type >= 0 && (*it)->type != _restrict_to_type) continue;
-            this->_config_info.interaction->pair_interaction(p, *it);
+            if (_restrict_to_type >= 0 && (*it)->type != _restrict_to_type) {
+                //throw oxDNAException("fsf");
+                continue;
+            }
+            //if (p->type != 1) throw oxDNAException("gg");
+            //if ((*it)->type != 0) throw oxDNAException("hh %d", (*it)->index);
+            //if ((*it)->index >= p->index) throw oxDNAException ("jj");
+            this->_config_info.interaction->pair_interaction(*it, p);
             if (this->_config_info.interaction->get_is_infinite() == true) {
-                nfull ++;
                 found = true;
+                this->_config_info.interaction->set_is_infinite(false);
             }
         }
+        if (found) nfull ++;
         ntries ++;
     }
 
