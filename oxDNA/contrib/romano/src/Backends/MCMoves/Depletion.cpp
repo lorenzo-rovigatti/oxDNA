@@ -8,12 +8,16 @@
 
 #define DEPLETION_TRANSLATION (0)
 #define DEPLETION_ROTATION (1)
+#define DEPLETION_SWIM (2)
 
-/// traslation
 template<typename number>
 Depletion<number>::Depletion (){
-	_delta = (number) -1.f;
-	_delta_max = (number) -1.f;
+	_delta_trs = (number) -1.f;
+	_delta_rot = (number) -1.f;
+	_delta_swm = (number) -1.f;
+	_delta_trs_max = (number) -1.f;
+	_delta_rot_max = (number) -1.f;
+	_delta_swm_max = (number) -1.f;
 	_ntries = -1;
 	_sigma_dep = 0.5f;
 	_rho_dep = -1.f;
@@ -36,15 +40,29 @@ void Depletion<number>::init () {
 		_ntries = 50;
 	}
 	if (this->_restrict_to_type < 0) throw oxDNAException("Depletion move MUST be restricted to a type");
-	OX_LOG(Logger::LOG_INFO, "(Depletion.cpp) Depletion move initiated with delta=%g, delta_max=%g, ntries=%d, sigma_dep=%g, mu_gas=%g, tryvolume=%g", _delta, _delta_max, _ntries, _sigma_dep, _mu_gas, _tryvolume);
+	OX_LOG(Logger::LOG_INFO, "(Depletion.cpp) Depletion move initiated with delta_trs=%g, delta_trs_max=%g, delta_rot=%g, delta_rot_max=%g, delta_swm=%g, delta_swm_max=%g", _delta_trs, _delta_trs_max, _delta_rot, _delta_rot_max, _delta_swm, _delta_swm_max);
+	OX_LOG(Logger::LOG_INFO, "(Depletion.cpp)                               tries=%d, sigma_dep=%g, mu_gas=%g, tryvolume=%g", _ntries, _sigma_dep, _mu_gas, _tryvolume);
 	OX_LOG(Logger::LOG_INFO, "(Depletion.cpp)                               restrict_to_type=%d, and probability %g", this->_restrict_to_type, this->prob);
 }
 
 template<typename number>
 void Depletion<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	BaseMove<number>::get_settings (inp, sim_inp);
-	getInputNumber (&inp, "delta", &_delta, 1);
-	getInputNumber (&inp, "delta_max", &_delta_max, 1);
+
+	double tmpf[3];
+	std::string tmpstr;
+	getInputString (&inp, "deltas", tmpstr, 1);
+	int tmpi = sscanf(tmpstr.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
+	_delta_trs = (number) tmpf[0];
+	_delta_rot = (number) tmpf[1];
+	_delta_swm = (number) tmpf[2];
+	if(tmpi != 3) throw oxDNAException ("(Depletion.cpp) Could not parse deltas (found deltas=%s, provide deltas=<float>,<float>,<float>)", tmpstr.c_str());
+	getInputString (&inp, "deltas_max", tmpstr, 1);
+	tmpi = sscanf(tmpstr.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
+	if(tmpi != 3) throw oxDNAException ("(Depletion.cpp) Could not parse deltas (found deltas_max=%s, provide deltas_max=<float>,<float>,<float>)", tmpstr.c_str());
+	_delta_trs_max = (number) tmpf[0];
+	_delta_rot_max = (number) tmpf[1];
+	_delta_swm_max = (number) tmpf[2];
 	getInputNumber (&inp, "sigma_dep", &_sigma_dep, 1);
 	//getInputNumber (&inp, "rho_dep", &_rho_dep, 1);
 	getInputNumber (&inp, "mu_gas", &_mu_gas, 1);
@@ -81,21 +99,27 @@ void Depletion<number>::apply (llint curr_step) {
 
 	// move_particle
 	int move_type;
+	int choice = lrand48() % 21;
+	if ( 0 <= choice && choice < 10) move_type = DEPLETION_TRANSLATION;
+	if (10 <= choice && choice < 20) move_type = DEPLETION_ROTATION;
+	if (20 <= choice && choice < 21) move_type = DEPLETION_SWIM;
+
 	LR_vector<number> pos_old = p->pos;
 	LR_matrix<number> orientation_old = p->orientation;
 	LR_matrix<number> orientationT_old = p->orientationT;
-	if (drand48() < 0.5) {
-		move_type = DEPLETION_TRANSLATION;
-		p->pos.x += (number) 2.f * _delta * (drand48() - 0.5);
-		p->pos.y += (number) 2.f * _delta * (drand48() - 0.5);
-		p->pos.z += (number) 2.f * _delta * (drand48() - 0.5);
+	if (move_type == DEPLETION_TRANSLATION) {
+		p->pos.x += (number) 2.f * _delta_trs * (drand48() - 0.5);
+		p->pos.y += (number) 2.f * _delta_trs * (drand48() - 0.5);
+		p->pos.z += (number) 2.f * _delta_trs * (drand48() - 0.5);
 	}
-	else {
-		move_type = DEPLETION_ROTATION;
-		LR_matrix<number> R = Utils::get_random_rotation_matrix_from_angle<number> (2. * _delta * drand48());
+	if (move_type == DEPLETION_ROTATION) {
+		LR_matrix<number> R = Utils::get_random_rotation_matrix_from_angle<number> (_delta_rot * drand48());
 		p->orientation = R * p->orientation;
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
+	}
+	if (move_type == DEPLETION_SWIM) {
+		p->pos += ((number) 2.f * _delta_swm * (number)(drand48() - 0.5)) * p->orientation.v3;
 	}
 
 	this->_Info->lists->single_update(p);
@@ -159,7 +183,6 @@ void Depletion<number>::apply (llint curr_step) {
 			ntry ++;
 		}
 
-		int nfvold = nfv;
 		number fv_old = _tryvolume * nfv / (number) _ntries;
 
 		ntry = 0;
@@ -205,12 +228,22 @@ void Depletion<number>::apply (llint curr_step) {
         this->_accepted ++;
 
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) {
-			_delta *= this->_acc_fact;
-			if (_delta > _delta_max) _delta = _delta_max;
+			if (move_type == DEPLETION_TRANSLATION) {
+				_delta_trs *= this->_acc_fact;
+				if (_delta_trs >= _delta_trs_max) _delta_trs = _delta_trs_max;
+			}
+			if (move_type == DEPLETION_ROTATION) {
+				_delta_rot *= this->_acc_fact;
+				if (_delta_rot >= _delta_rot_max) _delta_rot = _delta_rot_max;
+			}
+			if (move_type == DEPLETION_SWIM) {
+				_delta_swm *= this->_acc_fact;
+				if (_delta_swm >= _delta_swm_max) _delta_swm = _delta_swm_max;
+			}
 		}
 	}
 	else {
-		if (move_type == DEPLETION_TRANSLATION) {
+		if (move_type == DEPLETION_TRANSLATION || move_type == DEPLETION_SWIM) {
 			p->pos = pos_old;
 		}
 		else {
@@ -225,8 +258,11 @@ void Depletion<number>::apply (llint curr_step) {
 			this->_Info->lists->global_update();
 		}
 
-		if (curr_step < this->_equilibration_steps && this->_adjust_moves)
-			_delta /= this->_rej_fact;
+		if (curr_step < this->_equilibration_steps && this->_adjust_moves) {
+			if (move_type == DEPLETION_TRANSLATION) _delta_trs /= this->_rej_fact;
+			if (move_type == DEPLETION_ROTATION) _delta_rot /= this->_rej_fact;
+			if (move_type == DEPLETION_SWIM) _delta_rot /= this->_rej_fact;
+		}
 	}
 
 	return;
@@ -235,7 +271,7 @@ void Depletion<number>::apply (llint curr_step) {
 template<typename number>
 void Depletion<number>::log_parameters() {
 	BaseMove<number>::log_parameters();
-	OX_LOG(Logger::LOG_INFO, "\tdelta = %g, delta_max = %g", _delta, _delta_max);
+	OX_LOG(Logger::LOG_INFO, "\tdelta_trs = %g, delta_rot = %g, delta_swm = %g", _delta_trs, _delta_rot, _delta_swm);
 }
 
 template class Depletion<float>;

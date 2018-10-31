@@ -21,13 +21,16 @@ FreeVolume<number>::~FreeVolume() {
 template<typename number>
 void FreeVolume<number>::init(ConfigInfo<number> &config_info) {
     BaseObservable<number>::init(config_info);
-    OX_LOG (Logger::LOG_INFO, "(FreeVolume.cpp) Using sigma=%g, and restrict_to_type=%d", _sigma, _restrict_to_type);
+    if (_ntries < 0) {
+        _ntries = -_ntries * int(this->_config_info.box->V());
+    }
+    OX_LOG (Logger::LOG_INFO, "(FreeVolume.cpp) Using sigma=%g, ntries=%d (%g per unit volume) and restrict_to_type=%d", _sigma, _ntries, _ntries / this->_config_info.box->V(), _restrict_to_type);
 }
 
 template<typename number>
 void FreeVolume<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
     getInputNumber (&my_inp, "sigma", &_sigma, 0);
-    getInputInt(&my_inp, "restrict_to_type", &_restrict_to_type, 1);
+    getInputInt(&my_inp, "restrict_to_type", &_restrict_to_type, 0);
     getInputInt (&my_inp, "ntries", &_ntries, 1);
 }
 
@@ -44,7 +47,7 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
     int N_of_type = 0;
     for(int i = 0; i < N; i++) {
         p = this->_config_info.particles[i];
-        if (p->type == _restrict_to_type) {
+        if (_restrict_to_type < 0 || p->type == _restrict_to_type) {
             N_of_type ++;
         }
     }
@@ -54,7 +57,7 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
     int j = 0;
     for(int i = 0; i < N; i++) {
         p = this->_config_info.particles[i];
-        if (p->type == _restrict_to_type) {
+        if (_restrict_to_type <=0 || p->type == _restrict_to_type) {
             particles[j] = new BaseParticle<number> ();
             particles[j]->pos = p->pos;
             particles[j]->index = j;
@@ -74,12 +77,11 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
     p = particles[N_of_type];
     int real_N_of_type = N_of_type + 1;
     Cells<number> * cells = new Cells<number>(real_N_of_type, this->_config_info.box);
-    cells->init(particles, 2.01 * _sigma);
+    cells->init(particles, 10 + 2.01 * _sigma);
 
     int ntries = 0;
     int nfull = 0;
     while (ntries < _ntries) {
-        number min = 4.f * _sigma * _sigma + 1.;
         p->pos.x = box_sides[0] * drand48();
         p->pos.y = box_sides[1] * drand48();
         p->pos.z = box_sides[2] * drand48();
@@ -88,10 +90,9 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
         typename std::vector<BaseParticle<number> *>::iterator it;
         bool found = false;
         for (it = neighs.begin(); it != neighs.end() && found == false; it ++) {
-            number mydist2 = this->_config_info.box->sqr_min_image_distance(p, *it);
-            if ((*it)->type != _restrict_to_type) throw oxDNAException("fix things please 2");
-            if (mydist2 < min) min = mydist2;
-            if (min < 4.f * _sigma * _sigma) {
+            if (_restrict_to_type >= 0 && (*it)->type != _restrict_to_type) continue;
+            this->_config_info.interaction->pair_interaction(p, *it);
+            if (this->_config_info.interaction->get_is_infinite() == true) {
                 nfull ++;
                 found = true;
             }
