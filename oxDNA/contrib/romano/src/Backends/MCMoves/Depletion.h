@@ -10,10 +10,12 @@
 
 #ifndef DEPLETION_H_
 #define DEPLETION_H_
-
 #include <random>
-
 #include "../../../../../src/Backends/MCMoves/BaseMove.h"
+
+#define DEPLETION_TRANSLATION (0)
+#define DEPLETION_ROTATION (1)
+#define DEPLETION_SWIM (2)
 
 template<typename number>
 class Depletion : public BaseMove<number> {

@@ -25,6 +25,7 @@ RodCells<number>::RodCells(int &N, BaseBox<number> *box) : BaseList<number>(N, b
 	_added = std::vector<bool> ();
 	_n_part_types = 1;
 	_n_virtual_sites_max = -1;
+	_restrict_to_type = -1;
 	//_neighs = std::unordered_set<int> ();
 	//_neighs = std::set<int> ();
 	//_neighs = std::list<int> ();
@@ -44,6 +45,7 @@ void RodCells<number>::get_settings(input_file &inp) {
 	getInputNumber(&inp, "rod_cell_rcut", &_rod_cell_rcut, 1);
 	getInputNumber(&inp, "rod_length", &_rod_length, 1);
 	getInputInt(&inp, "rod_cell_n_part_types", &_n_part_types, 0);
+	getInputInt(&inp, "rod_cell_restrict_to_type", &_restrict_to_type, 0);
 }
 
 template<typename number>
@@ -72,7 +74,7 @@ void RodCells<number>::init(BaseParticle<number> **particles, number rcut) {
 
 	global_update(true);
 
-	OX_LOG(Logger::LOG_INFO, "(RodCells.cpp) N_cells_side: %d, %d, %d; rcut=%g, rod_cell_size=%g, _n_virtual_sites=%d, IS_MC: %d",_N_cells_side[0], _N_cells_side[1], _N_cells_side[2], this->_rcut, _rod_cell_rcut, _n_virtual_sites[0], this->_is_MC);
+	OX_LOG(Logger::LOG_INFO, "(RodCells.cpp) N_cells_side: %d, %d, %d; rcut=%g, rod_cell_size=%g, _n_virtual_sites=%d, restrict_to_type=%d, IS_MC: %d",_N_cells_side[0], _N_cells_side[1], _N_cells_side[2], this->_rcut, _rod_cell_rcut, _n_virtual_sites[0], _restrict_to_type, this->_is_MC);
 }
 
 template<typename number>
@@ -94,6 +96,8 @@ bool RodCells<number>::is_updated() {
 
 template<typename number>
 void RodCells<number>::single_update(BaseParticle<number> *p) {
+
+	//if (_restrict_to_type >= 0 && p->type != _restrict_to_type) return;
 
 	// remove from old cells
 	for (int k = 0; k < _n_virtual_sites[p->type]; k++) {
@@ -150,6 +154,7 @@ void RodCells<number>::global_update(bool force_update) {
 
 	for(int i = 0; i < this->_N; i++) {
 		BaseParticle<number> *p = this->_particles[i];
+		//if (_restrict_to_type >= 0 && p->type != _restrict_to_type) continue;
 		LR_vector<number> stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * p->orientation.v3;
 		LR_vector<number> site_pos = p->pos - (_rod_length / (number) 2.f) * p->orientation.v3;
 		if (_n_virtual_sites[p->type] < 2) site_pos = p->pos;
@@ -167,6 +172,12 @@ void RodCells<number>::global_update(bool force_update) {
 template<typename number>
 std::vector<BaseParticle<number> *> RodCells<number>::_get_neigh_list(BaseParticle<number> *p, bool all) {
 	std::vector<BaseParticle<number> *> res;
+
+	int want_type = -1;
+	if (_restrict_to_type >= 0) {
+	 	if (p->type == _restrict_to_type) want_type = -1; // we want 'em all
+		else want_type = _restrict_to_type;               // we just want the other type
+	}
 
 	res.reserve(_max_size);
 
@@ -217,11 +228,15 @@ std::vector<BaseParticle<number> *> RodCells<number>::_get_neigh_list(BasePartic
 
 					while (n != -1) {
 						int m = n / _n_virtual_sites_max;
-						if (m != p->index && m != last_inserted && _added[m] == false) {
+						if (m != p->index && m != last_inserted) {
 							if (all || this->_is_MC || p->index > m) {
-								res.push_back(this->_particles[m]);
-								last_inserted = m;
-								_added[m] = true;
+								if (want_type < 0 || this->_particles[m]->type == want_type) {
+									if (_added[m] == false) {
+										res.push_back(this->_particles[m]);
+										last_inserted = m;
+										_added[m] = true;
+									}
+								}
 							}
 						}
 						n = _next[n];
@@ -269,6 +284,51 @@ std::vector<BaseParticle<number> *> RodCells<number>::_get_neigh_list(BasePartic
 		}
 	}
 	*/
+
+	return res;
+}
+
+template<typename number>
+std::vector<BaseParticle<number> *> RodCells<number>::whos_there(int idx) {
+	if (idx >= _N_cells) throw oxDNAException ("wrong cell idx");
+
+	std::vector<BaseParticle<number> *> res;
+	res.reserve(_max_size);
+
+	int ind[3] = {
+		idx % _N_cells_side[0],
+		(idx / _N_cells_side[0]) % _N_cells_side[1],
+		idx / (_N_cells_side[0]*_N_cells_side[1])
+	};
+
+	int loop_ind[3];
+	for (int i = -1; i < 2; i ++) {
+		loop_ind[0] = (ind[0] + i) % _N_cells_side[0];
+		if (loop_ind[0] < 0) loop_ind[0] += _N_cells_side[0];
+		for (int j = -1; j < 2; j ++) {
+			loop_ind[1] = (ind[1] + j) % _N_cells_side[1];
+			if (loop_ind[1] < 0) loop_ind[1] += _N_cells_side[1];
+			for (int k = -1; k < 2; k ++) {
+				loop_ind[2] = (ind[2] + k) % _N_cells_side[2];
+				if (loop_ind[2] < 0) loop_ind[2] += _N_cells_side[2];
+				int other_cell_index = loop_ind[0] + _N_cells_side[0]*(loop_ind[1] + _N_cells_side[1]*loop_ind[2]);
+
+				int n = _heads[other_cell_index];
+
+				while (n != -1) {
+					int m = n / _n_virtual_sites_max;
+					if (_added[m] == false) {
+						res.push_back(this->_particles[m]);
+						_added[m] = true;
+					}
+					n = _next[n];
+				}
+			}
+		}
+	}
+
+	typename std::vector<BaseParticle<number> *>::iterator it;
+	for (it = res.begin(); it != res.end(); ++it) _added[(*it)->index] = false;
 
 	return res;
 }
