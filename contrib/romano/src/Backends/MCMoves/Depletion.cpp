@@ -8,10 +8,6 @@
 
 #include <random>  // for poissonian distribution
 
-#define DEPLETION_TRANSLATION (0)
-#define DEPLETION_ROTATION (1)
-#define DEPLETION_SWIM (2)
-
 template<typename number>
 Depletion<number>::Depletion (){
 	_delta_trs = (number) -1.f;
@@ -186,7 +182,7 @@ void Depletion<number>::apply (llint curr_step) {
 	BaseParticle<number> * q = new BaseParticle<number> ();
 	q->type = this->_restrict_to_type + 1;
 	q->index = (*this->_Info->N);
-	
+
 	//printf ("%d N\n", *this->_Info->N);
 	//throw oxDNAException ("cacca\n");
 

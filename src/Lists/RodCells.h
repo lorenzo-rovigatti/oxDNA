@@ -39,6 +39,7 @@ protected:
 	int * _n_virtual_sites;
 	int _n_part_types;
 	int _n_virtual_sites_max;
+	int _restrict_to_type;
 
 	//std::set<int> _neighs;
 	//std::unordered_set<int> _neighs; // unordered_set are measurably and consistently faster than the other options, but slower than sorting the resulting vector
@@ -60,6 +61,8 @@ public:
 	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p);
 	virtual std::vector<BaseParticle<number> *> get_complete_neigh_list(BaseParticle<number> *p);
 
+	std::vector<BaseParticle<number> * > whos_there(int idx);
+	
 	virtual int get_N_cells() { return _N_cells; }
 	inline int get_cell_index(const LR_vector<number> &pos);
 };
