@@ -97,14 +97,14 @@ public:
 	 * @return pair-interaction energy
 	 */
 	virtual number pair_interaction (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) = 0;
-	
+
 	/**
 	 * @brief Computes the bonded part interaction between particles p and q.
 	 *
 	 * See {\@link pair_interaction} for a description of the parameters.
 	 */
 	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) = 0;
-	
+
 	/**
 	 * @brief Computed the non bonded part of the interaction between particles p and q.
 	 *
@@ -178,14 +178,14 @@ public:
 	 * @brief Returns the state of the interaction
 	 */
 	bool get_is_infinite () { return _is_infinite; }
-	
+
 	/**
 	 * @brief Sets _is_infinite
 	 *
-	 * @param arg bool 
+	 * @param arg bool
 	 */
 	void set_is_infinite (bool arg) { _is_infinite = arg; }
-	
+
 	/**
 	 * @brief overlap criterion. Used only in the generation of configurations. Can be overloaded.
 	 *
@@ -198,13 +198,13 @@ public:
 	 * @return bool whether the two particles overlap
 	 */
 	virtual bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q);
-	
-	
+
+
 	/**
 	 * @brief generation of initial configurations. Can be overloaded.
 	 *
 	 * The default function creates a random configuration in the most simple way possible:
-	 * puts particles in one at a time, and using {\@link generate_random_configuration_overlap} 
+	 * puts particles in one at a time, and using {\@link generate_random_configuration_overlap}
 	 * to test if two particles overlap.
 	 *
 	 * @param particles
@@ -275,7 +275,7 @@ number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **partic
 		energy += (double) pair_interaction(p, q);
 		if(this->get_is_infinite()) return energy;
 	}
-	
+
 	return (number) energy;
 }
 
@@ -299,16 +299,16 @@ number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<n
 
 template<typename number>
 bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticle<number> * p, BaseParticle<number> * q) {
-	LR_vector<number> dr = _box->min_image(p, q); 
-	
+	LR_vector<number> dr = _box->min_image(p, q);
+
 	if (dr.norm() >= this->_sqr_rcut) return false;
-	
+
 	// number energy = pair_interaction(p, q, &dr, false);
 	number energy = pair_interaction_nonbonded(p, q, &dr, false);
 
 	// in case we create an overlap, we reset the interaction state
 	this->set_is_infinite(false);
-	
+
 	// if energy too large, reject
 	if (energy > _energy_threshold) return true;
 	else return false;
@@ -335,7 +335,8 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
 			if(same_strand)	p->pos = particles[i - 1]->pos + LR_vector<number> ((drand48() - 0.5), (drand48() - 0.5), (drand48() - 0.5))*_generate_bonded_cutoff;
 			else p->pos = LR_vector<number> (drand48()*_box->box_sides().x, drand48()*_box->box_sides().y, drand48()*_box->box_sides().z);
 			// random orientation
-			p->orientation = Utils::get_random_rotation_matrix<number> (2.*M_PI);
+			//p->orientation = Utils::get_random_rotation_matrix<number> (2.*M_PI);
+			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (acos(2. * (drand48() - 0.5)));
 			p->orientation.orthonormalize();
 			p->orientationT = p->orientation.get_transpose();
 
@@ -446,7 +447,7 @@ public:
 	 * @return a map storing all the potential energy contributions.
 	 */
 	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N, BaseList<number> *lists);
-	
+
 };
 
 template<typename number, typename child>
@@ -558,4 +559,3 @@ map<int, number> BaseInteraction<number, child>::get_system_energy_split(BasePar
 }
 
 #endif /* BASE_INTERACTION_H */
-

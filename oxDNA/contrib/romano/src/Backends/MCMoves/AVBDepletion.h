@@ -13,15 +13,18 @@
 template<typename number>
 class AVBDepletion : public BaseMove<number> {
 	protected:
-		number _delta_rot, _delta_z, _Vb, _rmax, _rmin;
+		number _delta_rot, _delta_z, _Vb, _rmax, _rmin, _skin, _target_Vb, _histo_dr, _histo_dt, _histo_dz;
 		number _sigma_dep, _tryvolume, _mu_dep, _z;
 		llint _rejected_n_too_small[2], _rejected_depletion[2], _rejected_overlap[2], _rejected_avb_bias[2], _split_accepted[2];
-		int _ntries;
+		int _ntries, _nretries;
+		number _delta_max, _tau_max, _zeta_max;
 
 		std::default_random_engine _generator;
 		std::poisson_distribution<int> _poisson;
 
-		bool are_close(BaseParticle<number> * , BaseParticle<number> *);
+		bool are_close(BaseParticle<number> * , BaseParticle<number> *, bool log);
+		number fake_vb (number, number);
+		uint32_t _histo[100][100][100], _gain[3];
 
 	public:
 		AVBDepletion();
