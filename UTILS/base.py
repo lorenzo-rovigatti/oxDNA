@@ -142,8 +142,10 @@ class Logger(object):
 
     @staticmethod
     def log(msg, level=None, additional=None):
-        if level == None: level = Logger.INFO
-        if level < Logger.debug_level: return
+        if level == None: 
+            level = Logger.INFO
+        if level < Logger.debug_level: 
+            return
 
         if additional != None and Logger.debug_level == Logger.DEBUG:
             print >> sys.stderr, "%s: %s (additional info: '%s')" % (Logger.messages[level], msg, additional)
@@ -304,7 +306,8 @@ class Nucleotide(Printable):
         except: pass
 
     def rotate(self, R, origin=None):
-        if origin == None: origin = self.cm_pos
+        if origin is None:
+            origin = self.cm_pos
 
         self.cm_pos = np.dot(R, self.cm_pos - origin) + origin
         self._a1 = np.dot(R, self._a1)
@@ -550,7 +553,8 @@ class Strand(Printable):
         self.set_cm_pos(new_pos)
 
     def rotate(self, R, origin=None):
-        if origin == None: origin = self.cm_pos
+        if origin is None:
+            origin = self.cm_pos
 
         for n in self._nucleotides: n.rotate(R, origin)
 
@@ -919,7 +923,7 @@ class System(object):
     def get_reduced(self, according_to, bbox=None, check_overlap=False):
         visibility_list = self.get_visibility(according_to)
 
-        if bbox == None or bbox == True:
+        if bbox is None or bbox is True:
             bbox = self._box
         elif isinstance(bbox, list) and not isinstance(bbox, np.array):
             bbox = np.array(box)
