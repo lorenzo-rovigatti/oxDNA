@@ -617,114 +617,35 @@ class square (object):
         # shouldn't get to here
         base.Logger.log('unexpected square array', base.Logger.WARNING)
         
-def parse_cadnano (path):
-    if not isinstance (path, str):
-        print >> sys.stderr, "must be a path. Aborting"
-        sys.exit (-1)
+        
+def parse_cadnano(path):
+    import json
+    
+    cadsys = vstrands()
     
     try:
-        inp = open (path, 'r')
+        with open(path) as json_data:
+            cadnano = json.load(json_data)
+            for vstrand in cadnano["vstrands"]:
+                vh = vhelix()
+                for key, val in vstrand.items():
+                    setattr(vh, key, val)
+                vh.stap = [square(*i) for i in vh.stap]
+                vh.scaf = [square(*i) for i in vh.scaf]
+                vh.skiploop_bases = len(vh.skip) + sum(vh.loop) - sum(vh.skip)
+                cadsys.add_vhelix(vh)
+    except IOError:
+        print >> sys.stderr, "File '" + path + "' not found, aborting"
+        sys.exit(1)
+    except ValueError:
+        print >> sys.stderr, "Invalid json file '" + path + "', aborting"
+        sys.exit(1)
     except:
-        print >> sys.stderr, "Could not open", path, "Aborting now"
-        sys.exit (-1)
-    
-    string = ''
-    for line in inp.readlines ():
-        string += line
-    inp.close()
+        print >> sys.stderr, "Caught an error while parsing '" + path + "', aborting"
+        sys.exit(1)
+        
+    return cadsys
 
-    string = string[1:len(string)-1] # remove the outer bracket par
-    
-    ret = vstrands ()
-    
-    while string.find('{') > 0:
-        i = string.find('{')
-        j = string.find('}')
-        h = parse_helix (string[i+1:j])
-        ret.add_vhelix (h)
-        string = string[j+1:]
-
-    return ret
-
-
-def parse_helix (string):
-    try:
-        i = string.index ('{')
-    except:
-        i = 0
-
-    try:
-        j = string.index ('}')
-    except:
-        j = len(string)
-    
-    string = string[i:j].strip()
-    
-    ret = vhelix ()
-
-    lines = []
-    delims = []
-    index = 0
-    in_bracket = 0
-    for char in string:
-        if char == '[':
-            in_bracket += 1
-        elif char == ']':
-            in_bracket -= 1
-        elif in_bracket < 1:
-            if char == ',':
-                delims.append(index)
-        index += 1
-
-    lines.append(string[:delims[0]+1])
-    for i in range(len(delims)):
-        if i != len(delims) - 1:
-            lines.append(string[delims[i]+1:delims[i+1]+1])
-        else:
-            lines.append(string[delims[i]+1:])
-
-    for line in lines:
-        line = line.strip()
-        if line.startswith('"stapLoop"'):
-            ret.stapLoop = map (int, re.findall(r'\d+', line))
-        elif line.startswith('"skip"'):
-            ret.skip = map (int, re.findall(r'\d+', line))
-        elif line.startswith('"loop"'):
-            ret.loop = map (int, re.findall(r'\d+', line))
-        elif line.startswith('"stap_colors"'):
-            # not implemented at the moment
-            pass
-        elif line.startswith('"scafLoop"'):
-            ret.scafLoop = map (int, re.findall(r'\d+', line))
-        elif line.startswith('"stap"'):
-            i = line.index('[')
-            j = line.rindex(']')
-            words = line[i+1+1:j-1].split('],[')
-            for word in words:
-                V_0, b_0, V1, b_1 = map(int, word.split(','))
-                sq = square (V_0, b_0, V1, b_1)
-                ret.add_square (sq, 'stap')
-        elif line.startswith('"scaf"'):
-            i = line.index('[')
-            j = line.rindex(']')
-            words = line[i+1+1:j-1].split('],[')
-            base = 0
-            for word in words:
-                V_0, b_0, V1, b_1 = map(int, word.split(','))
-                sq = square (V_0, b_0, V1, b_1)
-                ret.add_square (sq, 'scaf')
-        elif line.startswith('"row"'):
-            ret.row = map(int, re.findall(r'(\d+)', line))[0]
-        elif line.startswith('"num"'):
-            ret.num = map(int, re.findall(r'(\d+)', line))[0]
-        elif line.startswith('"col"'):
-            ret.col = map(int, re.findall(r'(\d+)', line))[0]
-        else:
-            pass #print >> sys.stderr, "Unknown line... Passing"
-
-    ret.skiploop_bases = len(ret.skip) + sum(ret.loop) - sum(ret.skip)
-
-    return ret
 
 def main():
     vh_vb2nuc = oru.vhelix_vbase_to_nucleotide()
