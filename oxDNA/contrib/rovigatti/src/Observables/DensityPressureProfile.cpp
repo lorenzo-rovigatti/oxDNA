@@ -32,14 +32,17 @@ void DensityPressureProfile<number>::get_settings(input_file &my_inp, input_file
 	else if(!strncasecmp(tmps, "z", 512)) _axis = 2;
 	else throw oxDNAException("DensityPressureProfile observable: unknown axis %s; use x, y or z", tmps);
 
-	float tmpf;
-	getInputFloat(&my_inp, "max_value", &tmpf, 1);
-	_max_value = (number) tmpf;
-	getInputFloat(&my_inp, "bin_size", &tmpf, 1);
-	_nbins = (int) (floor(_max_value / tmpf) + 0.01);
+	getInputNumber(&my_inp, "g_species_A", &_g_species_A, 1);
+	if(getInputNumber(&my_inp, "g_species_B", &_g_species_B, 0) == KEY_NOT_FOUND) {
+		_g_species_B = _g_species_A;
+	}
+	
+	getInputNumber(&my_inp, "max_value", &_max_value, 1);
+	getInputNumber(&my_inp, "bin_size", &_bin_size, 1);
+	_nbins = (int) (floor(_max_value / _bin_size) + 0.01);
 	_bin_size = (number) _max_value / _nbins;
 
-	OX_LOG(Logger::LOG_INFO, "Observable DensityPressureProfile initialized with axis %d, max_value %g, bin_size %g (%g), nbins %d", _axis, _max_value, _bin_size, tmpf, _nbins);
+	OX_LOG(Logger::LOG_INFO, "Observable DensityPressureProfile initialized with axis %d, max_value %g, bin_size %g, nbins %d, g_species_A %lf, g_species_B %lf", _axis, _max_value, _bin_size, _nbins, _g_species_A, _g_species_B);
 
 	_density_profile.resize(_nbins);
 	_pressure_profile.resize(_nbins);
@@ -65,6 +68,8 @@ std::string DensityPressureProfile<number>::get_output_string(llint curr_step) {
 	}
 	double bin_volume = bin_area * _bin_size;
 
+	int NA = 0;
+	int NB = 0;
 	for(int i = 0; i < N; i++) {
 		BaseParticle<number> *p = this->_config_info.particles[i];
 		LR_vector<number> mypos = this->_config_info.box->get_abs_pos(p);
@@ -76,20 +81,26 @@ std::string DensityPressureProfile<number>::get_output_string(llint curr_step) {
 			_current_N_profile[mybin]++;
 			if(p->type == 0) {
 				_current_NA_profile[mybin]++;
+				NA++;
+			}
+			else {
+				NB++;
 			}
 		}
 	}
 
 	stringstream ret;
 	ret.precision(9);
-	int tot_N = 0;
+	int tot_NA = 0;
+	int tot_NB = 0;
 	double myx = _bin_size / 2.;
 	for(int i = 0; i < _nbins; i++) {
 		double current_rho = _current_N_profile[i] / bin_volume;
 		double current_x = (_current_N_profile[i] > 0) ?_current_NA_profile[i] / (double) _current_N_profile[i] : 0;
 		// we use only half of the particles of the bin for the computation of the pressure
-		double N_P = N - (tot_N + _current_N_profile[i] / 2.);
-		double current_P = N_P / bin_area;
+		double NA_pressure = NA - (tot_NA + _current_NA_profile[i] / 2.);
+		double NB_pressure = NB - (tot_NB + (_current_N_profile[i] - _current_NA_profile[i]) / 2.);
+		double current_P = (NA_pressure * _g_species_A + NB_pressure * _g_species_B) / bin_area;
 
 		_density_profile[i] += current_rho;
 		_concentration_profile[i] += current_x;
@@ -102,7 +113,8 @@ std::string DensityPressureProfile<number>::get_output_string(llint curr_step) {
 		ret << myx << " " << rho << " " << " " << x << " " << P << endl;
 		myx += _bin_size;
 
-		tot_N += _current_N_profile[i];
+		tot_NA += _current_NA_profile[i];
+		tot_NB += _current_N_profile[i] - _current_NA_profile[i];
 	}
 	ret << endl;
 
