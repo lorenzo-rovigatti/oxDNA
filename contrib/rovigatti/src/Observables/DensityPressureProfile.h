@@ -23,6 +23,8 @@ private:
 	std::vector<double> _pressure_profile;
 	std::vector<double> _concentration_profile;
 	std::vector<long int> _current_NA_profile, _current_N_profile;
+
+	number _g_species_A, _g_species_B;
 public:
 	DensityPressureProfile();
 	virtual ~DensityPressureProfile();
