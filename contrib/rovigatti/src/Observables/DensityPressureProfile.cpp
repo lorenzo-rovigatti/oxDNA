@@ -76,15 +76,17 @@ std::string DensityPressureProfile<number>::get_output_string(llint curr_step) {
 		mypos.x -= sides.x * floor(mypos.x / sides.x);
 		mypos.y -= sides.y * floor(mypos.y / sides.y);
 		mypos.z -= sides.z * floor(mypos.z / sides.z);
+		if(p->type == 0) {
+			NA++;
+		}
+		else {
+			NB++;
+		}
 		if(mypos[_axis] < _max_value) {
 			int mybin = (int) (0.01 + floor(mypos[_axis] / _bin_size));
 			_current_N_profile[mybin]++;
 			if(p->type == 0) {
 				_current_NA_profile[mybin]++;
-				NA++;
-			}
-			else {
-				NB++;
 			}
 		}
 	}
