@@ -6,6 +6,8 @@ template<typename number>
 PolymerInteraction<number>::PolymerInteraction() : BaseInteraction<number, PolymerInteraction<number> >() {
 	this->_int_map[BONDED] = &PolymerInteraction<number>::pair_interaction_bonded;
 	this->_int_map[NONBONDED] = &PolymerInteraction<number>::pair_interaction_nonbonded;
+
+	_rfene = 1.5;
 }
 
 template<typename number>
@@ -17,10 +19,7 @@ template<typename number>
 void PolymerInteraction<number>::get_settings(input_file &inp) {
 	IBaseInteraction<number>::get_settings(inp);
 
-	getInputNumber(&inp, "Polymer_rfene", &_rfene, 1);
-
-	_rfene_anchor = _rfene * 3;
-	getInputNumber(&inp, "Polymer_rfene_anchor", &_rfene_anchor, 0);
+	getInputNumber(&inp, "Polymer_rfene", &_rfene, 0);
 
 	getInputNumber(&inp, "Polymer_lambda", &_Polymer_lambda, 1);
 	if(_Polymer_lambda < 0.) {
@@ -34,7 +33,6 @@ void PolymerInteraction<number>::get_settings(input_file &inp) {
 template<typename number>
 void PolymerInteraction<number>::init() {
 	_sqr_rfene = SQR(_rfene);
-	_sqr_rfene_anchor = SQR(_rfene_anchor);
 
 	number rep_rcut = pow(2., 1./6.);
 	_Polymer_sqr_rep_rcut = SQR(rep_rcut);
@@ -192,18 +190,17 @@ int PolymerInteraction<number>::get_N_from_topology() {
 
 	topology.getline(line, 512);
 
-	int my_N_stars;
-	sscanf(line, "%d\n", &my_N_stars);
+	int my_N_chains;
+	sscanf(line, "%d\n", &my_N_chains);
 
-	int N_arms, N_monomer_per_arm;
-	// because we have at least a particle per star (the anchor)
-	int N_from_topology = my_N_stars;
-	for(int i = 0; i < my_N_stars; i++) {
-		if(!topology.good()) throw oxDNAException("Not enough stars found in the topology file. There are only %d lines, there should be %d, aborting", i, my_N_stars);
+	int N_from_topology = 0;
+	for(int i = 0; i < my_N_chains; i++) {
+		if(!topology.good()) throw oxDNAException("Not enough chains found in the topology file. There are only %d lines, there should be %d, aborting", i, my_N_chains);
 		topology.getline(line, 512);
-		if(sscanf(line, "%d %d %*f\n", &N_arms, &N_monomer_per_arm) != 2) throw oxDNAException("The topology file does not contain any info on star n.%d", i);
+		int bl1, bl2, bl3;
+		if(sscanf(line, "%d %d %d\n", &bl1, &bl2, &bl3) != 3) throw oxDNAException("The topology file does not contain any info on star n.%d", i);
 
-		N_from_topology += N_monomer_per_arm * N_arms;
+		N_from_topology += bl1 + bl2 + bl3;
 	}
 
 	return N_from_topology;
@@ -233,89 +230,44 @@ void PolymerInteraction<number>::read_topology(int N_from_conf, int *N_chains, B
 		sscanf(line, "%d %d %d\n", &bl_1, &bl_2, &bl_3);
 		new_chain.block_lengths.push_back(bl_1);
 		new_chain.block_lengths.push_back(bl_2);
-		new_chain.block_lengths.push_back(bl_2);
+		new_chain.block_lengths.push_back(bl_3);
 
 		N_from_topology += new_chain.N();
 		_chains.push_back(new_chain);
 	}
 
-	// construct the topology, i.e. assign the right FENE neighbours to all the particles
-	int p_ind = 0;
-	for(int ns = 0; ns < my_N_chains; ns++) {
-//		int attractive_from = (int) round(_N_monomer_per_arm[ns] * (1. - _alpha[ns]));
-//		OX_DEBUG("Adding a Polymer with %d arms, %d monomers per arm (of which %d repulsive)", _N_arms[ns], _N_monomer_per_arm[ns], attractive_from);
-//		TSPParticle<number> *anchor = (TSPParticle<number> *) particles[p_ind];
-//		anchor->flag_as_anchor();
-//		// this is an anchor: it has n_arms FENE neighbours since it is attached to each arm
-//		anchor->btype = anchor->type = P_A;
-//		anchor->n3 = anchor->n5 = P_VIRTUAL;
-//		anchor->strand_id = ns;
-//
-//		_anchors.push_back(anchor);
-//
-//		p_ind++;
-//		for(int na = 0; na < _N_arms[ns]; na++) {
-//			for(int nm = 0; nm < _N_monomer_per_arm[ns]; nm++) {
-//				int type = (nm >= attractive_from) ? P_B : P_A;
-//				TSPParticle<number> *p = (TSPParticle<number> *) particles[p_ind];
-//				p->type = p->btype = type;
-//				p->strand_id = ns;
-//				p->n3 = p->n5 = P_VIRTUAL;
-//				p->set_arm(na);
-//				// if it's the first monomer of the arm then add also the anchor
-//				// as a bonded neighbour
-//				if(nm == 0) {
-//					p->add_bonded_neigh(anchor);
-//					p->n3 = anchor;
-//				}
-//				else {
-//					TSPParticle<number> *p_n = (TSPParticle<number> *) particles[p_ind-1];
-//					p->n3 = p_n;
-//					p_n->n5 = p;
-//					p->add_bonded_neigh(p_n);
-//				}
-//
-//				p_ind++;
-//			}
-//		}
-	}
-
+	topology.close();
 	if(N_from_topology < N_from_conf) throw oxDNAException ("Not enough particles found in the topology file (should be %d). Aborting", N_from_conf);
 
-	topology.close();
+	// construct the topology, i.e. assign the right FENE neighbours to all the particles
+	int p_ind = 0;
+	for(int nc = 0; nc < my_N_chains; nc++) {
+		int P_A_N_min = _chains[nc].block_lengths[0];
+		int P_A_N_max = _chains[nc].block_lengths[0] + _chains[nc].block_lengths[1];
+		for(int np = 0; np < _chains[nc].N(); np++) {
+			int type = P_B;
+			if(np >= P_A_N_min && np < P_A_N_max) {
+				type = P_A;
+			}
 
-	*N_chains = my_N_chains;
-}
+			TSPParticle<number> *p = static_cast<TSPParticle<number> *>(particles[p_ind]);
 
-template<typename number>
-bool PolymerInteraction<number>::_insert_anchor(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c) {
-	int i = 0;
-	bool inserted = false;
+			p->type = p->btype = type;
+			p->strand_id = nc;
+			p->n3 = p->n5 = P_VIRTUAL;
 
-	LR_vector<number> box_sides = this->_box->box_sides();
+			if(np > 0) {
+				TSPParticle<number> *prev_p = static_cast<TSPParticle<number> *>(particles[p_ind - 1]);
+				p->n3 = prev_p;
+				prev_p->n5 = p;
+				p->add_bonded_neigh(prev_p);
+			}
 
-	do {
-		p->pos = LR_vector<number>(drand48()*box_sides.x, drand48()*box_sides.y, drand48()*box_sides.z);
-		inserted = !_does_overlap(particles, p, c);
-		i++;
-	} while(!inserted && i < MAX_INSERTION_TRIES);
-
-	p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
-
-	return (i != MAX_INSERTION_TRIES);
-}
-
-template<typename number>
-bool PolymerInteraction<number>::_does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c) {
-	// here we take into account the non-bonded interactions
-	vector<BaseParticle<number> *> neighs = c->get_complete_neigh_list(p);
-	for(unsigned int n = 0; n < neighs.size(); n++) {
-		BaseParticle<number> *q = neighs[n];
-		// particles with an index larger than p->index have not been inserted yet
-		if(q->index < p->index && this->generate_random_configuration_overlap(p, q)) return true;
+			p_ind++;
+		}
 	}
 
-	return false;
+	*N_chains = my_N_chains;
 }
 
 template<typename number>
@@ -323,6 +275,14 @@ void PolymerInteraction<number>::generate_random_configuration(BaseParticle<numb
 	this->_generate_consider_bonded_interactions = true;
 	this->_generate_bonded_cutoff = _rfene;
 	IBaseInteraction<number>::generate_random_configuration(particles, N);
+}
+
+extern "C" PolymerInteraction<float> *make_PolymerInteraction_float() {
+	return new PolymerInteraction<float>();
+}
+
+extern "C" PolymerInteraction<double> *make_PolymerInteraction_double() {
+	return new PolymerInteraction<double>();
 }
 
 template class PolymerInteraction<float>;

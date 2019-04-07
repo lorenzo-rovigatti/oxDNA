@@ -24,20 +24,14 @@ template <typename number>
 class PolymerInteraction : public BaseInteraction<number, PolymerInteraction<number> > {
 protected:
 	number _rfene, _sqr_rfene;
-	number _rfene_anchor, _sqr_rfene_anchor;
 
 	number _Polymer_sqr_rep_rcut;
 	number _Polymer_lambda;
 
 	std::vector<ChainDetails<number>> _chains;
 
-	std::vector<TSPParticle<number> *> _anchors;
-
 	number _fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	number _nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-
-	bool _insert_anchor(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c);
-	bool _does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c);
 
 public:
 	enum {
@@ -65,5 +59,8 @@ public:
 
 	virtual void generate_random_configuration(BaseParticle<number> **particles, int N);
 };
+
+extern "C" PolymerInteraction<float> *make_PolymerInteraction_float();
+extern "C" PolymerInteraction<double> *make_PolymerInteraction_double();
 
 #endif /* POLYMER_INTERACTION_H */
