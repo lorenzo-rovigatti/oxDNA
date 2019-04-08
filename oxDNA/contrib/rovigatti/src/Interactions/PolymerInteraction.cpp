@@ -178,7 +178,9 @@ void PolymerInteraction<number>::check_input_sanity(BaseParticle<number> **parti
 
 template<typename number>
 void PolymerInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
-	for(int i = 0; i < N; i++) particles[i] = new TSPParticle<number>();
+	for(int i = 0; i < N; i++) {
+		particles[i] = new TSPParticle<number>();
+	}
 }
 
 template<typename number>
@@ -202,6 +204,7 @@ int PolymerInteraction<number>::get_N_from_topology() {
 
 		N_from_topology += bl1 + bl2 + bl3;
 	}
+	printf("%d\n", N_from_topology);
 
 	return N_from_topology;
 }
