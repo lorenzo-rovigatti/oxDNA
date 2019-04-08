@@ -85,11 +85,34 @@ IF(CUDA)
 	INCLUDE_DIRECTORIES(${CUDA_INSTALL_PREFIX}/include/)
 	LINK_DIRECTORIES(${CUDA_INSTALL_PREFIX}/lib)
 	
-	IF(CUDA_VERSION_MAJOR GREATER 7)
-		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -use_fast_math --compiler-options "-ffast-math -O3" -Xcudafe "--diag_suppress=unrecognized_gcc_pragma")
-	ELSE()
-		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20 -use_fast_math --compiler-options "-ffast-math -O3" -Xcudafe "--diag_suppress=unrecognized_gcc_pragma")
-	ENDIF(CUDA_VERSION_MAJOR GREATER 7)
+	# taken from HOOMD
+	# setup nvcc to build for all CUDA architectures. Allow user to modify the list if desired
+	IF(CUDA_VERSION VERSION_GREATER 8.99)
+        SET(CUDA_ARCH_LIST 30 35 50 60 70 CACHE STRING "List of target sm_ architectures to compile CUDA code for. Separate with semicolons.")
+    ELSEIF(CUDA_VERSION VERSION_GREATER 7.99)
+        SET(CUDA_ARCH_LIST 30 35 50 60 CACHE STRING "List of target sm_ architectures to compile CUDA code for. Separate with semicolons.")
+    ELSEIF(CUDA_VERSION VERSION_GREATER 6.99)
+        SET(CUDA_ARCH_LIST 20 30 35 50 CACHE STRING "List of target sm_ architectures to compile CUDA code for. Separate with semicolons.")
+    ELSE()
+    	SET(CUDA_ARCH_LIST 20 30 35 CACHE STRING "List of target sm_ architectures to compile CUDA code for. Separate with semicolons.")
+    ENDIF()
+    
+    MESSAGE(STATUS "Generating code for the following CUDA architectures: ${CUDA_ARCH_LIST}")
+
+    FOREACH(_cuda_arch ${CUDA_ARCH_LIST})
+        LIST(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${_cuda_arch},code=sm_${_cuda_arch}")
+    ENDFOREACH(_cuda_arch)
+
+    # need to know the minumum supported CUDA_ARCH
+    SET(_cuda_arch_list_sorted ${CUDA_ARCH_LIST})
+    LIST(SORT _cuda_arch_list_sorted)
+    LIST(GET _cuda_arch_list_sorted 0 _cuda_min_arch)
+
+    # only generaTe ptx code for the maximum supported CUDA_ARCH (saves on file size)
+    LIST(REVERSE _cuda_arch_list_sorted)
+    LIST(GET _cuda_arch_list_sorted 0 _cuda_max_arch)
+    LIST(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${_cuda_max_arch},code=compute_${_cuda_max_arch}")
+
 ELSE()
 	ADD_DEFINITIONS(-DNOCUDA)
 ENDIF(CUDA)
