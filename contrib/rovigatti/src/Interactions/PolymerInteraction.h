@@ -28,7 +28,7 @@ protected:
 	number _Polymer_sqr_rep_rcut;
 	number _Polymer_lambda;
 
-	std::vector<ChainDetails<number>> _chains;
+	std::vector<ChainDetails<number> > _chains;
 
 	number _fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 	number _nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
