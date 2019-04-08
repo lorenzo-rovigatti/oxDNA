@@ -151,6 +151,12 @@ __forceinline__ __host__ __device__ number4 make_number4(const number x, const n
 	return res;
 }
 
+template <>
+__forceinline__ __host__ __device__ LR_double4 make_number4(const double x, const double y, const double z, const double w) {
+	LR_double4 res = {x, y, z, (float) w};
+	return res;
+}
+
 template <typename number, typename number4>
 __forceinline__ __device__ number _module(const number4 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
