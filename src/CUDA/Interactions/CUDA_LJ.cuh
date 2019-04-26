@@ -98,6 +98,5 @@ __global__ void lj_forces(number4 *poss, number4 *forces, int *matrix_neighs, in
 		_particle_particle_interaction<number, number4>(ppos, qpos, F, box);
 	}
 
-
 	forces[IND] = F;
 }
