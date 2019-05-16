@@ -50,6 +50,7 @@ public:
 
 	LR_vector<number> center;
 	number inner_cut_off, inner_cut_off_sqr;
+	number outer_cut_off, outer_cut_off_sqr;
 };
 
 template<typename number>

@@ -158,6 +158,7 @@ struct generic_constant_force {
 	number x, y, z;
 	number F0;
 	number inner_cut_off_sqr;
+	number outer_cut_off_sqr;
 };
 
 /**

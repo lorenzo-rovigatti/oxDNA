@@ -251,14 +251,16 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 
 				number dist_sqr = CUDA_DOT(dir, dir);
 				if(dist_sqr >= extF.genericconstantforce.inner_cut_off_sqr) {
-					number dist = sqrtf(dist_sqr);
-					dir.x /= dist;
-					dir.y /= dist;
-					dir.z /= dist;
+					if(extF.genericconstantforce.outer_cut_off_sqr == 0.f || dist_sqr <= extF.genericconstantforce.outer_cut_off_sqr) {
+						number dist = sqrtf(dist_sqr);
+						dir.x /= dist;
+						dir.y /= dist;
+						dir.z /= dist;
 
-					F.x += dir.x*strength;
-					F.y += dir.y*strength;
-					F.z += dir.z*strength;
+						F.x += dir.x*strength;
+						F.y += dir.y*strength;
+						F.z += dir.z*strength;
+					}
 				}
 				break;
 			}
