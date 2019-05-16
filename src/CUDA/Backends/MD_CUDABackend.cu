@@ -617,6 +617,7 @@ void MD_CUDABackend<number, number4>::init(){
 					force->type = CUDA_GENERIC_CENTRAL_FORCE;
 					force->genericconstantforce.F0 = p_force->_F0;
 					force->genericconstantforce.inner_cut_off_sqr = p_force->inner_cut_off_sqr;
+					force->genericconstantforce.outer_cut_off_sqr = p_force->outer_cut_off_sqr;
 					force->genericconstantforce.x = p_force->center.x;
 					force->genericconstantforce.y = p_force->center.y;
 					force->genericconstantforce.z = p_force->center.z;

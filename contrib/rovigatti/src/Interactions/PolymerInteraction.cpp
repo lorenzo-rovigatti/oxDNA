@@ -204,7 +204,6 @@ int PolymerInteraction<number>::get_N_from_topology() {
 
 		N_from_topology += bl1 + bl2 + bl3;
 	}
-	printf("%d\n", N_from_topology);
 
 	return N_from_topology;
 }
@@ -245,12 +244,12 @@ void PolymerInteraction<number>::read_topology(int N_from_conf, int *N_chains, B
 	// construct the topology, i.e. assign the right FENE neighbours to all the particles
 	int p_ind = 0;
 	for(int nc = 0; nc < my_N_chains; nc++) {
-		int P_A_N_min = _chains[nc].block_lengths[0];
-		int P_A_N_max = _chains[nc].block_lengths[0] + _chains[nc].block_lengths[1];
+		int P_B_N_min = _chains[nc].block_lengths[0];
+		int P_B_N_max = _chains[nc].block_lengths[0] + _chains[nc].block_lengths[1];
 		for(int np = 0; np < _chains[nc].N(); np++) {
-			int type = P_B;
-			if(np >= P_A_N_min && np < P_A_N_max) {
-				type = P_A;
+			int type = P_A;
+			if(np >= P_B_N_min && np < P_B_N_max) {
+				type = P_B;
 			}
 
 			TSPParticle<number> *p = static_cast<TSPParticle<number> *>(particles[p_ind]);

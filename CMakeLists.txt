@@ -112,6 +112,14 @@ IF(CUDA)
     LIST(REVERSE _cuda_arch_list_sorted)
     LIST(GET _cuda_arch_list_sorted 0 _cuda_max_arch)
     LIST(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${_cuda_max_arch},code=compute_${_cuda_max_arch}")
+    
+    IF(G)
+		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo)
+    ENDIF(G)
+
+    IF(DEBUG)
+		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo -G)
+    ENDIF(DEBUG)
 
 ELSE()
 	ADD_DEFINITIONS(-DNOCUDA)
