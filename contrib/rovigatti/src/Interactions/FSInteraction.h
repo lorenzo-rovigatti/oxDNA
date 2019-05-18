@@ -81,6 +81,16 @@ protected:
 	number _lambda;
 	number _A_part, _B_part;
 
+	// used if we also have polymers in the simulation
+	bool _with_polymers;
+	int _N_in_polymers;
+	string _bond_filename;
+	number _polymer_length_scale, _polymer_length_scale_sqr;
+	number _polymer_rfene, _polymer_rfene_sqr;
+	number _polymer_alpha, _polymer_beta, _polymer_gamma;
+	/// this quantity rescales the energy of the WCA and FENE parts. It is set to the thermal energy by default
+	number _polymer_energy_scale;
+
 	std::vector<std::set<FSBond<number>, FSBondCompare<number> > > _bonds;
 
 	std::vector<std::vector<number> > _stress_tensor;
@@ -94,17 +104,34 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	number _two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	number _patchy_two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	number _patchy_polymer_two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	number _polymer_two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+
+	number _polymer_fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	number _polymer_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
 	number _three_body(BaseParticle<number> *p, FSBond<number> &new_bond, bool update_forces);
 
 	void _update_stress_tensor(LR_vector<number> r, LR_vector<number> f);
 
+	void _parse_bond_file(BaseParticle<number> **particles);
+
 	bool _attraction_allowed(int p_type, int q_type);
+
+	inline bool _is_patchy_patchy(int p_type, int q_type);
+	inline bool _is_patchy_polymer(int p_type, int q_type);
+	inline bool _is_polymer_polymer(int p_type, int q_type);
 
 public:
 	enum {
 		FS = 0
+	};
+
+	enum {
+		PATCHY_A = 0,
+		PATCHY_B = 1,
+		POLYMER = 2
 	};
 
 	bool no_three_body;
@@ -146,8 +173,31 @@ bool FSInteraction<number>::_attraction_allowed(int p_type, int q_type) {
 	if(_same_patches) return true;
 	if(_one_component) return true;
 	if(p_type != q_type) return true;
-	if(_B_attraction && p_type == P_B && q_type == P_B) return true;
+	if(_B_attraction && p_type == PATCHY_B && q_type == PATCHY_B) return true;
 	return false;
+}
+
+template<typename number>
+bool FSInteraction<number>::_is_patchy_patchy(int p_type, int q_type) {
+	return p_type != POLYMER && q_type != POLYMER;
+}
+
+template<typename number>
+bool FSInteraction<number>::_is_patchy_polymer(int p_type, int q_type) {
+	if(p_type != POLYMER && q_type == POLYMER) {
+		return true;
+	}
+
+	if(p_type == POLYMER && q_type != POLYMER) {
+		return true;
+	}
+
+	return false;
+}
+
+template<typename number>
+bool FSInteraction<number>::_is_polymer_polymer(int p_type, int q_type) {
+	return p_type == POLYMER && q_type == POLYMER;
 }
 
 extern "C" FSInteraction<float> *make_FSInteraction_float();
