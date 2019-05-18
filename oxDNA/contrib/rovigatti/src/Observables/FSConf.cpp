@@ -67,7 +67,7 @@ std::string FSConf<number>::_headers(llint step) {
 
         int tot_N = 5*_N_A + 3*_N_B;
         int tot_N_A = 5*_N_A;
-        if(!_also_patch && 0) {
+        if(!_also_patch) {
                 tot_N = _N_A + _N_B;
                 tot_N_A = _N_A;
         }

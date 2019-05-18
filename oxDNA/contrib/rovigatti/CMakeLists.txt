@@ -1,7 +1,7 @@
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(rovigatti
-	DEPENDS PolymerInteraction DensityPressureProfile PolydisperseLTInteraction ConstructwisePressure MicrogelElasticity MGAnalysis AOInteraction RadialDensityProfile MGInteraction GenericGrByInsertion YasutakaAnalysis VoidPercolation Remoteness CPAnalysis Widom LevyDelta LevyInteraction CPMixtureInteraction StarrInteraction NathanInteraction mWInteraction ManfredoInteraction GraftedInteraction FSInteraction TSPAnalysis StarrConf SPBAnalysis PatchyToMgl Diblock ConstructwiseBonds DiblockComs EmptyVolume FSConf GrByInsertion Gyradius PatchyToMgl  
+	DEPENDS MGAssemblyConf PolymerInteraction DensityPressureProfile PolydisperseLTInteraction ConstructwisePressure MicrogelElasticity MGAnalysis AOInteraction RadialDensityProfile MGInteraction GenericGrByInsertion YasutakaAnalysis VoidPercolation Remoteness CPAnalysis Widom LevyDelta LevyInteraction CPMixtureInteraction StarrInteraction NathanInteraction mWInteraction ManfredoInteraction GraftedInteraction FSInteraction TSPAnalysis StarrConf SPBAnalysis PatchyToMgl Diblock ConstructwiseBonds DiblockComs EmptyVolume FSConf GrByInsertion Gyradius PatchyToMgl  
 )
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -30,6 +30,7 @@ ADD_LIBRARY(MGAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/MGAnalysis.cpp)
 ADD_LIBRARY(MicrogelElasticity SHARED EXCLUDE_FROM_ALL src/Observables/MicrogelElasticity.cpp)
 ADD_LIBRARY(ConstructwisePressure SHARED EXCLUDE_FROM_ALL src/Observables/ConstructwisePressure.cpp)
 ADD_LIBRARY(DensityPressureProfile SHARED EXCLUDE_FROM_ALL src/Observables/DensityPressureProfile.cpp)
+ADD_LIBRARY(MGAssemblyConf SHARED EXCLUDE_FROM_ALL src/Observables/MGAssemblyConf.cpp)
 
 # Interactions
 ADD_LIBRARY(PolymerInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolymerInteraction.cpp)

@@ -114,7 +114,7 @@ number MGInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, B
 		LR_vector<number> computed_r;
 		if(r == NULL) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
-				computed_r = q->pos - p->pos;
+				computed_r = this->_box->min_image(p->pos, q->pos);
 				r = &computed_r;
 			}
 		}
