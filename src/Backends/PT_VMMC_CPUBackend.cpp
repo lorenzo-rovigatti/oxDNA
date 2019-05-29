@@ -7,8 +7,6 @@
 
 #include "PT_VMMC_CPUBackend.h"
 
-#include "mpi.h"
-
 template<typename number> PT_VMMC_CPUBackend<number>::PT_VMMC_CPUBackend() : VMMC_CPUBackend<number> () {
 	// parallel tempering
 	_npttemps = 4;
@@ -31,22 +29,14 @@ template<typename number>
 void PT_VMMC_CPUBackend<number>::init () {
 	//VMMC_CPUBackend<number>::init(conf_input);
 
-	if(_oxRNA_stacking)
-	{
-		RNAInteraction<number> *it = dynamic_cast<RNAInteraction<number> *>(this->_interaction);
-		this->model = it->get_model();
-	}
-
 	MPI_Comm_rank (MPI_COMM_WORLD, &(_my_mpi_id));
 	MPI_Comm_size (MPI_COMM_WORLD, &(_mpi_nprocs));
 
-	char my_conf_filename[1024];
-	sprintf (my_conf_filename, "%s%d",this->_conf_filename.c_str(), _my_mpi_id);
-
-	this->_conf_filename = string(my_conf_filename);
+	char my_conf_filename[256];
+	sprintf (my_conf_filename, "%s%d", conf_filename, _my_mpi_id);
 
 	fprintf (stderr, "REPLICA %d: reading configuration from %s\n", _my_mpi_id, my_conf_filename);
-	VMMC_CPUBackend<number>::init();
+	VMMC_CPUBackend<number>::init (my_conf_filename);
 
 	_exchange_conf = new PT_serialized_particle_info<number>[this->_N];
 
@@ -68,21 +58,20 @@ void PT_VMMC_CPUBackend<number>::init () {
 	if (_npttemps != _mpi_nprocs) throw oxDNAException("Number of PT temperatures does not match number of processes (%d != %d)", _npttemps, _mpi_nprocs);
 	this->_T = _pttemps[_my_mpi_id];
 	//OX_LOG(Logger::LOG_INFO, "Replica %d: Running at T=%g", _my_mpi_id, this->_T);
-	fprintf(stderr, "Replica %d: Running at T=%g\n", _my_mpi_id, this->_T);
 
 	OX_LOG(Logger::LOG_INFO, "Deleting previous interaction and creating one...");
 	//this->_interaction.init(this->_T);
-	//throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
+	throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
 	// here we should initialize the interaction to use the appropriate T
 	
 	OX_LOG(Logger::LOG_INFO, "Deleting previous lists and creating one...");
-	//throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
+	throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
 	// here we should create our own lists...
 
 	//VMMC_CPUBackend<number>::_compute_energy();
 	MC_CPUBackend<number>::_compute_energy();
 
-	//fprintf (stderr, "REPLICA %d: Running at T=%g\n", _my_mpi_id, this->_T);
+	fprintf (stderr, "REPLICA %d: Running at T=%g\n", _my_mpi_id, this->_T);
 
 	// setting replica number
 	_which_replica = _my_mpi_id;
@@ -91,8 +80,6 @@ void PT_VMMC_CPUBackend<number>::init () {
 	char extra[16];
 	sprintf (extra, "%d", _my_mpi_id);
 	strcat (this->_last_hist_file, extra);
-	strcat (this->_traj_hist_file, extra);
-
 	if (this->_reload_hist) strcat (this->_init_hist_file, extra);
 
 	// common weights file? if so, we have a single file
@@ -110,7 +97,7 @@ void PT_VMMC_CPUBackend<number>::init () {
 			}
 		}
 
-		_irresp_w.init((const char *) _irresp_weights_file, &this->_op,this->_safe_weights,this->_default_weight);
+		_irresp_w.init((const char *) _irresp_weights_file, &this->_op);
 
 		fprintf (stderr, "(from replica %d) common_weights = %d; weights file = %s\n", _my_mpi_id, _pt_common_weights, this->_weights_file);
 	}
@@ -183,12 +170,9 @@ void PT_VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 
 	// For the stacking energy calculations
 	_oxDNA2_stacking = false;
-	_oxRNA_stacking  = false;
-
 	std::string inter_type ("");
 	getInputString(&inp, "interaction_type", inter_type, 0);
 	if(inter_type.compare("DNA2") == 0) _oxDNA2_stacking = true;
-	if(inter_type.compare("RNA2") == 0 || inter_type.compare("RNA2") == 0) _oxRNA_stacking = true;
 }
 
 template <typename number>
@@ -201,20 +185,10 @@ template <typename number>
 void PT_serialized_particle_info<number>::write_to (BaseParticle<number> * par) {
 	par->pos = pos;
 	par->orientation = orientation;
-
-/*
-	par->en3 = 0; // = p->en3;
-	par->en5 = 0; // p->en5;
-	par->esn3 = 0; //p->esn3;
-	par->esn5 = 0; // p->esn5;
-	par->inclust = false;
-*/
-
 }
 
 template<typename number>
 void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
-	//printf("This is a step %ld in process %d, with ene %f \n",curr_step,_my_mpi_id,this->_U);
 	VMMC_CPUBackend<number>::sim_step(curr_step);
 
 	if (curr_step % _pt_move_every == 0 && curr_step > 2) {
@@ -225,7 +199,7 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 			BaseParticle<number> * p;
 			for (int i = 0; i < this->_N; i ++) {
 				p = this->_particles[i];
-				p->set_ext_potential(curr_step, this->_box);
+				p->set_ext_potential(curr_step, this->_box_side);
 				_U_ext += p->ext_potential;
 			}
 		}
@@ -265,7 +239,6 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 				b2 = 1./_exchange_energy.T;
 
 				if (_oxDNA2_stacking) et = this->_U_stack * STCK_FACT_EPS_OXDNA2 / (STCK_BASE_EPS_OXDNA2 + STCK_FACT_EPS_OXDNA2 / b1);
-				else if (_oxRNA_stacking) et = this->_U_stack * model->RNA_STCK_FACT_EPS / (model->RNA_STCK_BASE_EPS + model->RNA_STCK_FACT_EPS / b1);
 				else et = this->_U_stack * STCK_FACT_EPS_OXDNA / (STCK_BASE_EPS_OXDNA + STCK_FACT_EPS_OXDNA / b1);
 
 				e0 = this->_U - et / b1;
@@ -273,7 +246,6 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 				b2u1 = b2 * (e0 + et / b2);
 
 				if (_oxDNA2_stacking) et = _exchange_energy.U_stack * STCK_FACT_EPS_OXDNA2 / (STCK_BASE_EPS_OXDNA2 + STCK_FACT_EPS_OXDNA2 / b2);
-				else if (_oxRNA_stacking) et = _exchange_energy.U_stack * model->RNA_STCK_FACT_EPS / (model->RNA_STCK_BASE_EPS + model->RNA_STCK_FACT_EPS / b2);
 				else et = _exchange_energy.U_stack * STCK_FACT_EPS_OXDNA / (STCK_BASE_EPS_OXDNA + STCK_FACT_EPS_OXDNA / b2);
 				e0 = _exchange_energy.U - et / b2;
 
@@ -288,11 +260,11 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 				if (this->_have_us) {
 					number w21, w12, w22, w11;
 
-					w11 = this->_w.get_weight (this->_op.get_all_states());
+					w11 = this->_w.get_weight (this->_op.get_hb_states());
 					w22 = this->_exchange_energy.w;
 
 					// weight of my conf in the irresponsible simulation
-					w21 = _irresp_w.get_weight (this->_op.get_all_states());
+					w21 = _irresp_w.get_weight (this->_op.get_hb_states());
 					// weight of the other conf in this simulation:
 					// we do something slightly obscure: we exchange the weight index
 					// for convenience. Go in Weights.cpp if you want to find out/remember
@@ -352,11 +324,7 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 					_rebuild_exchange_conf ();
 					_rebuild_exchange_energy ();
 
-
-
 					delete [] buffer_conf;
-
-
 				}
 				else {
 					//printf ("(from %d) rejecting exchange...\n", _my_mpi_id);
@@ -374,7 +342,7 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 			// not responsible. I basically don't know anything, but perhaps
 			// more importantly I have no interest in doing so.
 			if (resp_id >= 0 && resp_id < _mpi_nprocs) {
-				//fprintf (stdout, "(replica %d) had %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
+				//fprintf (stderr, "(replica %d) had %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
 				// send my energy and conf
 				_build_exchange_energy ();
 				_send_exchange_energy (resp_id);
@@ -388,18 +356,11 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 
 				_rebuild_exchange_energy ();
 				_rebuild_exchange_conf ();
-				//fprintf (stdout, "(replica %d) got %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
-				VMMC_CPUBackend<number>::_compute_energy ();
-				//printf("Received the following positions in process %d\n",_my_mpi_id);
-				//for (int kk = 0; kk < this->_N; kk++)
-			//	{
-				//	this->_print_pos(kk);
-				//}
-				fflush(stdout);
-				//fprintf (stdout, "(replica %d) now %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
+				//fprintf (stderr, "(replica %d) got %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
+				//VMMC_CPUBackend<number>::_compute_energy ();
+				//fprintf (stderr, "(replica %d) now %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
 			}
 		}
-		fflush(stdout);
 		// debug
 		if (fabs(this->_T - _pttemps[_my_mpi_id]) > 1.e-7) {
 			fprintf (stderr, "DISASTRO\n\n\n");
@@ -409,7 +370,7 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 			BaseParticle<number> *p;
 			for (int i = 0; i < this->_N; i ++) {
 				p = this->_particles[i];
-				p->set_ext_potential(curr_step, this->_box);
+				p->set_ext_potential(curr_step, this->_box_side);
 			}
 		}
 
@@ -459,7 +420,7 @@ void PT_VMMC_CPUBackend<number>::_build_exchange_energy() {
 	_exchange_energy.T = this->_T;
 	_exchange_energy.U_ext = _U_ext;
 	_exchange_energy.replica_id = _which_replica;
-	if (this->_have_us) _exchange_energy.w = this->_w.get_weight (this->_op.get_all_states(), &(_exchange_energy.weight_index));
+	if (this->_have_us) _exchange_energy.w = this->_w.get_weight (this->_op.get_hb_states(), &(_exchange_energy.weight_index));
 }
 
 
@@ -474,9 +435,7 @@ void PT_VMMC_CPUBackend<number>::_rebuild_exchange_energy() {
 	//fprintf (stderr, "(replica %d) monkey %lf %lf %lf\n", _my_mpi_id, _exchange_energy.U, _exchange_energy.U_hydr, _exchange_energy.U_stack);
 
 	if (_oxDNA2_stacking) this->_U_stack = _exchange_energy.U_stack * (STCK_BASE_EPS_OXDNA2 + STCK_FACT_EPS_OXDNA2 * this->_T) / (STCK_BASE_EPS_OXDNA2 + STCK_FACT_EPS_OXDNA2 * _exchange_energy.T);
-	else if (_oxRNA_stacking)  this->_U_stack = _exchange_energy.U_stack * (model->RNA_STCK_BASE_EPS + model->RNA_STCK_FACT_EPS * this->_T) / (model->RNA_STCK_BASE_EPS + model->RNA_STCK_FACT_EPS * _exchange_energy.T);
 	else this->_U_stack = _exchange_energy.U_stack * (STCK_BASE_EPS_OXDNA + STCK_FACT_EPS_OXDNA * this->_T) / (STCK_BASE_EPS_OXDNA + STCK_FACT_EPS_OXDNA * _exchange_energy.T);
-
 	this->_U = _exchange_energy.U + this->_U_stack - _exchange_energy.U_stack;
 	this->_U_hydr = _exchange_energy.U_hydr;
 	_which_replica = _exchange_energy.replica_id;
@@ -495,55 +454,6 @@ void PT_VMMC_CPUBackend<number>::_rebuild_exchange_conf() {
 	}
 	VMMC_CPUBackend<number>::_delete_cells ();
 	VMMC_CPUBackend<number>::_init_cells ();
-
-	number tmpf,epq;
-	BaseParticle<number>  *q;
-	for (int k = 0; k < this->_N; k ++) {
-			p = this->_particles[k];
-			if (p->n3 != P_VIRTUAL) {
-				q = p->n3;
-				epq = this->_particle_particle_bonded_interaction_n3_VMMC (p, q, &tmpf);
-				p->en3 = epq;
-				q->en5 = epq;
-				p->esn3 = tmpf;
-				q->esn5 = tmpf;
-			}
-	}
-
-	if (this->_small_system) {
-			for (int k = 0; k < this->_N; k ++) {
-				for (int l = 0; l < k; l ++) {
-					p = this->_particles[k];
-					q = this->_particles[l];
-					if (p->n3 != q && p->n5 != q) {
-						this->eijm[k][l] = this->eijm[l][k] = this->eijm_old[k][l] = this->eijm_old[l][k] = this->_particle_particle_nonbonded_interaction_VMMC(p, q, &tmpf);
-						this->hbijm[k][l] = this->hbijm[l][k] = this->hbijm_old[k][l] = this->hbijm_old[l][k] = (tmpf < HB_CUTOFF);
-					}
-				}
-			}
-	}
-
-
-
-//here we reset order parameters
-	this->_op.reset();
-	int i, j;
-	number hpq;
-	for (i = 0; i < this->_N; i++) {
-		p = this->_particles[i];
-		for (j = 0; j < i; j ++) {
-			q = this->_particles[j];
-			if (p->n3 != q && p->n5 != q) {
-				this->_particle_particle_nonbonded_interaction_VMMC (p, q, &hpq);
-				if (hpq < HB_CUTOFF) {
-					this->_op.add_hb (p->index, q->index);
-				}
-			}
-		}
-	}
-
-        this->_op.fill_distance_parameters(this->_particles, this->_box);
-
 	//VMMC_CPUBackend<number>::_update_metainfo ();
 	return;
 }

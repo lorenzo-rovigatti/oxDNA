@@ -26,7 +26,6 @@
 [writhe_threshold = <double> (if the writhe exceeds this, then we mark a plectoneme. Only used if locate_plectonemes is true. Defaults to 0.28, since this is the value that works best with a subdomain_size of 35, which is the default one.)]
 [print_space_position = <bool> (defaults to false. Whether to print the position of the plectoneme tip segment in 3d space as well as its index. Only used if locate_plectonemes = true.)]
 [print_size = <bool> (defaults to false. Whether to print the plectoneme size compute with Ferdinando-Lorenzo's algorithm. Only used if locate_plectonemes = true.)]
-[print_left_right = <bool> (defaults to false. Does everything like with the print_size option, but instead of printing the sizes it prints the indices of the first and last bead/base-pair of the plectoneme. Can't be used together with print_size. Only used if locate_plectonemes = true.)]
 [contact_threshold = <number> (defaults to 5. Segments closer than this will be considered to be touching accourding to the plectoneme size algorithm.)]
 [size_outer_threshold = <int> (defaults to 30. Outer threshold parameter, which substantially is the maximum separation in indices between two points of contact of a plectoneme loop, for the plectoneme size algorithm.)]
 [minimum_plectoneme_size = <int> (defaults to 1. Plectonemes shorter than this wont' be reported.)]
@@ -42,14 +41,12 @@ class Writhe : public BaseObservable<number> {
 		int _last_particle_index;
 		int _subdomain_size;
 		int _N;
-		bool _particles_are_bases;
 
 		bool _go_around;
 		bool _use_default_go_around;
 		bool _locate_plectonemes;
 		bool _print_space_pos;
 		bool _print_size;
-		bool _print_left_right;
 		
 		number _contact_threshold;
 		int _size_outer_threshold;

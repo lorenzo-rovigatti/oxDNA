@@ -21,11 +21,6 @@
 #include "../CUDA/Backends/FFS_MD_CUDAMixedBackend.h"
 #endif
 
-
-#ifdef HAVE_MPI
-#include "PT_VMMC_CPUBackend.h"
-#endif
-
 BackendFactory::BackendFactory() {
 
 }
@@ -95,20 +90,6 @@ ISimBackend *BackendFactory::make_backend(input_file &inp) {
 			else throw oxDNAException("Backend '%s' not supported", backend_opt);
 
 	}
-
-#ifdef HAVE_MPI
-	else if(!strcmp (sim_type, "PT_VMMC")) {
-			if(!strcmp(backend_opt, "CPU")) {
-				if(!strcmp(backend_prec, "double")) new_backend = new PT_VMMC_CPUBackend<double>();
-				else if(!strcmp(backend_prec, "float")) {
-					new_backend = new PT_VMMC_CPUBackend<float>();
-				}
-				else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
-			}
-			else throw oxDNAException("Backend '%s' not supported", backend_opt);
-
-	}
-#endif
 	else if(!strcmp (sim_type, "min")) {
 			if(!strcmp(backend_opt, "CPU")) {
 				if(!strcmp(backend_prec, "double")) new_backend = new MinBackend<double>();

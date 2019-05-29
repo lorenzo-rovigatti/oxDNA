@@ -21,11 +21,6 @@
 
 #include "defs.h"
 #include "Managers/ParallelManager.h"
-#include "Utilities/SignalManager.h"
-#include "Utilities/oxDNAException.h"
-#include "Utilities/Timings.h"
-#include "Utilities/Utils.h"
-
 
 using namespace std;
 

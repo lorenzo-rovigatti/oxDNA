@@ -13,7 +13,7 @@
 #define VERSION_MINOR 3
 #define VERSION_STAGE 2 // 0 alpha, 1 beta, 2 stable
 
-#define MAX_EXT_FORCES 15
+#define MAX_EXT_FORCES 10
 
 #define PI 3.141592653589793238462643f
 #define SQR(x) ((x) * (x))
@@ -39,6 +39,7 @@
 
 #include <cmath>
 #include <strings.h>
+#include <xlocale.h>
 #include <iostream>
 
 #include "model.h"
@@ -114,12 +115,6 @@ public:
 				v1 * tm.v1, v1 * tm.v2, v1 * tm.v3,
 				v2 * tm.v1, v2 * tm.v2, v2 * tm.v3,
 				v3 * tm.v1, v3 * tm.v2, v3 * tm.v3);
-	}
-	
-	inline LR_vector<number> &operator[](int i) {
-		if (i==0) return v1;
-		else if (i==1) return v2;
-		else return v3;
 	}
 
 	inline void transpone() {

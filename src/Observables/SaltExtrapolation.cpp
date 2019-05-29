@@ -188,7 +188,7 @@ std::string SaltExtrapolation<number>::get_output_string(llint curr_step) {
 	memcpy (sizes, _op.get_state_sizes(), n_op_dim * sizeof (int));
 	for (j = 0; j < _salts.size(); j ++) {
 		// header per each salt
-		output_str += Utils::sformat ("t: %llu, salt: %g, Ts: ", curr_step, _salts[j]);
+		output_str += Utils::sformat ("t: %lli, salt: %g, Ts: ", curr_step, _salts[j]);
 		for (i = 0; i < _temps.size(); i ++) output_str += Utils::sformat ("%g ", _temps[i]);
 		output_str += Utils::sformat ("\n");
 

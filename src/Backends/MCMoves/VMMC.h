@@ -49,7 +49,7 @@ class VMMC : public BaseMove<number> {
 		number build_cluster_old (movestr<number> * moveptr, int maxsize);
 	
 	public:
-		VMMC();
+		VMMC(ConfigInfo<number> *Info);
 		virtual ~VMMC();
 
 		void apply (llint curr_step);

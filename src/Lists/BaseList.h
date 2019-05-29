@@ -48,7 +48,6 @@ public:
 		else if(strncmp("MC", sim_type, 512) == 0) _is_MC = true;
 		else if(strncmp("MC2", sim_type, 512) == 0) _is_MC = true;
 		else if(strncmp("VMMC", sim_type, 512) == 0) _is_MC = true;
-	        else if(strncmp("PT_VMMC", sim_type, 512) == 0) _is_MC = true;
 		else if(strncmp("FFS_MD", sim_type, 512) == 0) _is_MC = false;
 		else if(strncmp("min", sim_type, 512) == 0) _is_MC = false;
 		else if(strncmp("FIRE", sim_type, 512) == 0) _is_MC = false;

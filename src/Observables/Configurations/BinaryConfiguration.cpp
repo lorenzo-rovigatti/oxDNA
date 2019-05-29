@@ -28,7 +28,7 @@ std::string BinaryConfiguration<number>::_headers(llint step) {
 	unsigned short rndseed[3];
 	Utils::get_seed(rndseed);
 
-	OX_DEBUG("Saving conf. at step %llu, rng status: %hu %hu %hu", step, rndseed[0], rndseed[1], rndseed[2]);
+	OX_DEBUG("Saving conf. at step %lli, rng status: %hu %hu %hu", step, rndseed[0], rndseed[1], rndseed[2]);
 
 	// print out the number
 	headers.write((char *)rndseed, 3 * sizeof(unsigned short));

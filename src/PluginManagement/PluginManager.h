@@ -15,7 +15,6 @@
 #include "../Observables/BaseObservable.h"
 #include "../Utilities/parse_input/parse_input.h"
 #include "../Interactions/BaseInteraction.h"
-#include "../Backends/MCMoves/BaseMove.h"
 
 /**
  * @brief Manages oxDNA plugins. As of now it only supports {@link BaseObservable observables} and {@link IBaseInteraction interactions}.
@@ -75,7 +74,6 @@ protected:
 
 	std::vector<std::string> _obs_entry_points;
 	std::vector<std::string> _inter_entry_points;
-	std::vector<std::string> _move_entry_points;
 
 	void *_get_handle(std::string &name);
 	void *_get_entry_point(void *handle, std::string name, std::vector<std::string> entry_points, std::string suffix);
@@ -120,10 +118,6 @@ public:
 	 */
 	template<typename number>
 	IBaseInteraction<number> *get_interaction(std::string name);
-
-	template<typename number>
-	BaseMove<number> *get_move(std::string name);
-
 
 	/**
 	 * @brief Cleans up the manager.

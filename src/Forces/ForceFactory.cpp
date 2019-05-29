@@ -21,7 +21,6 @@
 #include "LJWall.h"
 #include "HardWall.h"
 #include "RepulsiveSphere.h"
-#include "RepulsiveSphereSmooth.h"
 #include "AlignmentField.h"
 #include "GenericCentralForce.h"
 #include "LJCone.h"
@@ -69,7 +68,6 @@ void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **par
 	else if (type_str.compare("lowdim_trap") == 0) extF = new LowdimMovingTrap<number>();
 	else if (type_str.compare("constant_trap") == 0) extF = new ConstantTrap<number>();
 	else if (type_str.compare("sphere") == 0) extF = new RepulsiveSphere<number>();
-	else if (type_str.compare("sphere_smooth") == 0) extF = new RepulsiveSphereSmooth<number>();
 	else if (type_str.compare("com") == 0) extF = new COMForce<number>();
 	else if (type_str.compare("LJ_wall") == 0) extF = new LJWall<number>();
 	else if (type_str.compare("hard_wall") == 0) extF = new HardWall<number>();

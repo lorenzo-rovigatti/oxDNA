@@ -16,7 +16,7 @@ __device__ GPU_quat<double> _get_updated_orientation(LR_double4 &L, GPU_quat<dou
 	
 	double sintheta, costheta;
 	sincos(MD_dt[0] * norm, &sintheta, &costheta);
-	double qw = 0.5*sqrt(max(0., 2. + 2.*costheta));
+	double qw = 0.5*sqrt(fmax(0, 2. + 2.*costheta));
 	double winv = (double)1.0 /qw;
 	GPU_quat<double> R = {0.5*L.x*sintheta*winv, 0.5*L.y*sintheta*winv, 0.5*L.z*sintheta*winv, qw};
 	
