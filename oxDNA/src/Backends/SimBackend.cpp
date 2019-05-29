@@ -90,6 +90,7 @@ SimBackend<number>::~SimBackend() {
 	if(_mytimer != NULL ) {
 		double time_passed = (double)_mytimer->get_time() / (double)CLOCKS_PER_SEC;
 		if(time_passed > 0.) OX_LOG (Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
+		if (total_file + total_stderr <=0.) OX_LOG(Logger::LOG_ERROR, "Nothing was written to stdout/stderr, check your inputs");
 	}
 	
 	/* TODO 
@@ -301,15 +302,15 @@ void SimBackend<number>::init() {
 
 	_interaction->init();
 
+	_rcut = _interaction->get_rcut();
+	_sqr_rcut = SQR(_rcut);
+
 	// check number of particles
 	_N = _interaction->get_N_from_topology();
 	_particles = new BaseParticle<number>*[_N];
 	_interaction->read_topology(_N, &_N_strands, _particles);
 
-	_rcut = _interaction->get_rcut();
-	_sqr_rcut = SQR(_rcut);
-
-	// check that the interaction has filled the array of "affected" particles
+	// check that the interation has filled the affected
 	for (int i = 0; i < _N; i ++) {
 		BaseParticle<number> * p = _particles[i];
 		if (p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL)
@@ -579,8 +580,10 @@ void SimBackend<number>::_print_ready_observables(llint curr_step) {
 
 template<typename number>
 void SimBackend<number>::print_observables(llint curr_step) {
+	if (curr_step < 0) throw oxDNAException ("DNAnalysis cannot handle negative times");
 	bool someone_ready = false;
 	typename vector<ObservableOutput<number> *>::iterator it;
+	//if the time is negative this does not run
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		if((*it)->is_ready(curr_step)) someone_ready = true;
 	}
@@ -636,6 +639,7 @@ void SimBackend<number>::fix_diffusion() {
 			BaseParticle<number> *p = this->_particles[i];
 			LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
 			_box->shift_particle(p, dscdm);
+			p->pos = stored_pos[i];
 			p->orientation = stored_or[i];
 			p->orientationT = stored_orT[i];
 			p->set_positions();
@@ -697,12 +701,6 @@ void SimBackend<number>::print_conf(llint curr_step, bool reduced, bool only_las
 		_obs_output_last_conf->print_output(curr_step);
 		if(_obs_output_last_conf_bin != NULL) _obs_output_last_conf_bin->print_output(curr_step);
 	}
-}
-
-template<typename number>
-void SimBackend<number>::print_equilibration_info() {
-	// he who overloads this will print something;
-	return;
 }
 
 template class SimBackend<float>;

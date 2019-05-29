@@ -1303,6 +1303,9 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number
 
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
 
+	// the real energy per particle is half of the one computed (because we count each interaction twice)
+	F.w *= (number) 0.5f;
+	T.w *= (number) 0.5f;
 	forces[IND] = F;
 	torques[IND] = T;
 }
@@ -1329,6 +1332,9 @@ __global__ void rna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
 	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average, use_debye_huckel, mismatch_repulsion , pbonds, qbonds, box);
+
+	dF.w *= (number) 0.5f;
+	dT.w *= (number) 0.5f;
 
 	int from_index = MD_N[0]*(IND % MD_n_forces[0]) + b.from;
 	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
@@ -1394,6 +1400,10 @@ __global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 	}
 
+	// the real energy per particle is half of the one computed (because we count each interaction twice)
+	dF.w *= (number) 0.5f;
+	dT.w *= (number) 0.5f;
+
 	forces[IND] = (dF + F0);
 	torques[IND] = (dT + T0);
 
@@ -1451,6 +1461,9 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
 
+	// the real energy per particle is half of the one computed (because we count each interaction twice)
+	F.w *= (number) 0.5f;
+	T.w *= (number) 0.5f;
 	forces[IND] = F;
 	torques[IND] = T;
 }

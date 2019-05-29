@@ -9,6 +9,9 @@
 
 #include "../PluginManagement/PluginManager.h"
 
+#include "AverageEnergy.h"
+#include "ContactMap.h"
+#include "AllVectors.h"
 #include "Step.h"
 #include "PotentialEnergy.h"
 #include "KineticEnergy.h"
@@ -74,6 +77,9 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "kinetic_energy", 512)) res = new KineticEnergy<number>();
 	else if(!strncasecmp(obs_type, "total_energy", 512)) res = new TotalEnergy<number>();
 	else if(!strncasecmp(obs_type, "hb_energy", 512)) res = new HBEnergy<number>();
+	else if(!strncasecmp(obs_type, "average_energy", 512)) res = new AverageEnergy<number>();
+	else if(!strncasecmp(obs_type, "contact_map", 512)) res = new ContactMap<number>();
+	else if(!strncasecmp(obs_type, "all_vectors", 512)) res = new AllVectors<number>();
 	else if(!strncasecmp(obs_type, "backend_info", 512)) res = new BackendInfo<number>();
 	else if(!strncasecmp(obs_type, "pair_energy", 512)) res = new PairEnergy<number>();
 	else if(!strncasecmp(obs_type, "pair_force", 512)) res = new PairForce<number>();

@@ -76,8 +76,6 @@ public:
 	virtual void print_observables(llint curr_step) = 0;
 
 	virtual void fix_diffusion() = 0;
-
-	virtual void print_equilibration_info() = 0;
 };
 
 /**
@@ -249,7 +247,6 @@ public:
 
 	int get_N_updates() {return _N_updates; }
 	virtual void fix_diffusion();
-	virtual void print_equilibration_info();
 	virtual void print_observables(llint curr_step);
 	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
 };

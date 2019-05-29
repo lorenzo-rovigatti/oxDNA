@@ -111,7 +111,7 @@ __global__ void SRD_init_particles(number4 *poss, number4 *vels, curandState *ra
 		curand_uniform(&state)*box_side[0],
 		curand_uniform(&state)*box_side[0],
 		curand_uniform(&state)*box_side[0],
-		0.f
+		IND
 	};
 	poss[IND] = r;
 

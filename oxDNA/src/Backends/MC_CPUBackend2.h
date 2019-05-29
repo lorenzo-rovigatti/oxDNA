@@ -36,10 +36,8 @@ public:
 
 	void sim_step(llint cur_step);
 	void add_move (std::string move_string, input_file &sim_inp);
-
-	void print_observables(llint curr_step);
-
-	virtual void print_equilibration_info();
+	
+	void print_observables(llint curr_step); 
 };
 
 #endif /* MC_CPUBACKEND2_H_ */

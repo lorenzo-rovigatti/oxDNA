@@ -23,7 +23,6 @@ BaseParticle<number>::BaseParticle() : N_ext_forces(0), index(-1), type(P_INVALI
 	torque = LR_vector<number>(0., 0., 0.);
 	int_centers = NULL;
 	btype = 0;
-	next_particle = P_INVALID;
 }
 
 template<typename number>
@@ -52,13 +51,12 @@ void BaseParticle<number>::copy_from(const BaseParticle<number> &p) {
 template<typename number>
 BaseParticle<number>::~BaseParticle() {
 	if(int_centers != NULL) delete[] int_centers;
+	//for(int i = 0; i < N_ext_forces; i++) delete ext_forces[i]; // now handled by force facttory
 }
 
 template<typename number>
 bool BaseParticle<number>::add_ext_force(BaseForce<number> *f) {
-	if(N_ext_forces == MAX_EXT_FORCES) {
-		throw oxDNAException("Particle %d cannot have more than %d associated external forces. This hard limit can be increased by changing the value of the MAX_EXT_FORCES macro in src/defs.h", this->index, MAX_EXT_FORCES);
-	}
+	if(N_ext_forces == MAX_EXT_FORCES) return false;
 
 	ext_forces[N_ext_forces] = f;
 	N_ext_forces++;

@@ -18,14 +18,12 @@ class MCTras : public BaseMove<number> {
 		LR_vector<number> pos_old;
 
 		number _verlet_skin;
-
+	
 	public:
-		MCTras();
+		MCTras(ConfigInfo<number> *Info);
 		virtual ~MCTras();
 
-		virtual void init();
 		void apply (llint curr_step);
 		virtual void get_settings(input_file &inp, input_file &sim_inp);
-		virtual void log_parameters();
 };
 #endif // MCTras.h

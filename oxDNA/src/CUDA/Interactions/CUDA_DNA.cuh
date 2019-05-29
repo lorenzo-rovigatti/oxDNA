@@ -807,11 +807,9 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			number4 rbackdir = rbackbone / rbackmod;
 			if(rbackmod < MD_dh_RHIGH[0]){
 				Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
-				Ftmp.w = expf(rbackmod * MD_dh_minus_kappa[0]) * (MD_dh_prefactor[0] / rbackmod);
 			}
 			else {
 				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
-				Ftmp.w = MD_dh_B[0] * SQR(rbackmod -  MD_dh_RC[0]);
 			}
 
 			// check for half-charge strand ends
@@ -882,6 +880,9 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
 
+	// the real energy per particle is half of the one computed (because we count each interaction twice)
+	F.w *= (number) 0.5f;
+	T.w *= (number) 0.5f;
 	forces[IND] = F;
 	torques[IND] = T;
 }
@@ -908,6 +909,9 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
 	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, box);
+
+	dF.w *= (number) 0.5f;
+	dT.w *= (number) 0.5f;
 
 	int from_index = MD_N[0]*(IND % MD_n_forces[0]) + b.from;
 	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
@@ -972,6 +976,10 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 
+	// the real energy per particle is half of the one computed (because we count each interaction twice)
+	dF.w *= (number) 0.5f;
+	dT.w *= (number) 0.5f;
+
 	forces[IND] = (dF + F0);
 	torques[IND] = (dT + T0);
 
@@ -996,13 +1004,15 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		number4 qpos = poss[bs.n3];
 		number4 b1, b2, b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
-		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
+						    qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
-		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
+						     ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
@@ -1022,6 +1032,9 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 	
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
 
+	// the real energy per particle is half of the one computed (because we count each interaction twice)
+	F.w *= (number) 0.5f;
+	T.w *= (number) 0.5f;
 	forces[IND] = F;
 	torques[IND] = T;
 }

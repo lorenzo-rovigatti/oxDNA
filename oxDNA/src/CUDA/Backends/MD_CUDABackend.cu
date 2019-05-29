@@ -23,7 +23,6 @@
 #include "../../Forces/RepulsionPlane.h"
 #include "../../Forces/RepulsionPlaneMoving.h"
 #include "../../Forces/RepulsiveSphere.h"
-#include "../../Forces/RepulsiveSphereSmooth.h"
 #include "../../Forces/LJWall.h"
 #include "../../Forces/GenericCentralForce.h"
 #include "../../Forces/LJCone.h"
@@ -36,7 +35,7 @@
 #pragma GCC diagnostic ignored "-Wvla"
 
 template<typename number, typename number4>
-MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABaseBackend<number, number4>(), _max_ext_forces(0), _error_conf_file("error_conf.dat") {
+MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABaseBackend<number, number4>(), _max_ext_forces(0) {
 	this->_is_CUDA_sim = true;
 	_use_edge = false;
 	_any_rigid_body = false;
@@ -59,8 +58,6 @@ MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend<number>(), CUDABas
 	_barostat_attempts = _barostat_accepted = 0;
 
 	_print_energy = false;
-
-	_obs_output_error_conf = NULL;
 }
 
 template<typename number, typename number4>
@@ -97,8 +94,6 @@ MD_CUDABackend<number, number4>::~MD_CUDABackend() {
 	}
 
 	if(_cuda_thermostat != NULL) delete _cuda_thermostat;
-
-	if(_obs_output_error_conf != NULL) delete _obs_output_error_conf;
 }
 
 template<typename number, typename number4>
@@ -391,16 +386,7 @@ void MD_CUDABackend<number, number4>::sim_step(llint curr_step) {
 
 	this->_timer_lists->resume();
 	if(this->_d_are_lists_old[0]) {
-		try {
-			this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
-		}
-		catch (oxDNAException &e) {
-			_gpu_to_host_particles();
-			std::string filename("list_update_error.dat");
-			_obs_output_error_conf->print_output(curr_step);
-			OX_LOG(Logger::LOG_ERROR, "%s----> The last configuration has been printed to %s", e.error(), _error_conf_file.c_str());
-			return;
-		}
+		this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
 		this->_d_are_lists_old[0] = false;
 		this->_N_updates++;
 		cudaThreadSynchronize();
@@ -448,10 +434,6 @@ void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
 	_cuda_thermostat = CUDAThermostatFactory::make_thermostat<number, number4>(inp, this->_box);
 	_cuda_thermostat->get_settings(inp);
 
-	std::string init_string = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", _error_conf_file.c_str());
-	_obs_output_error_conf = new ObservableOutput<number>(init_string, inp);
-	_obs_output_error_conf->add_observable("type = configuration");
-
 	// if we want to limt the calculations done on CPU we clear the default ObservableOutputs and tell them to just print the timesteps (and, for constant-pressure, simulations, also the density)
 	if(_avoid_cpu_calculations) {
 		this->_obs_output_file->clear();
@@ -489,8 +471,6 @@ void MD_CUDABackend<number, number4>::init(){
 	_h_forces = new number4[this->_N];
 	_h_torques = new number4[this->_N];
 
-	_obs_output_error_conf->init(*this->_config_info);
-
 	if(this->_external_forces) {
 		if(this->_sort_every > 0) throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
 		_h_ext_forces = new CUDA_trap<number>[this->_N * MAX_EXT_FORCES];
@@ -505,7 +485,6 @@ void MD_CUDABackend<number, number4>::init(){
 		RepulsionPlane<number> repulsion_plane;
 		RepulsionPlaneMoving<number> repulsion_plane_moving;
 		RepulsiveSphere<number> repulsive_sphere;
-		RepulsiveSphereSmooth<number> repulsive_sphere_smooth;
 		LJWall<number> LJ_wall;
 		ConstantRateTorque<number> const_rate_torque;
 		GenericCentralForce<number> generic_central;
@@ -531,7 +510,6 @@ void MD_CUDABackend<number, number4>::init(){
 				else if(typeid (*(p->ext_forces[j])) == typeid(mutual_trap) ) {
 					MutualTrap<number> *p_force = (MutualTrap<number> *) p->ext_forces[j];
 					force->type = CUDA_TRAP_MUTUAL;
-					force->mutual.rate = p_force->_rate;
 					force->mutual.stiff = p_force->_stiff;
 					force->mutual.r0 = p_force->_r0;
 					force->mutual.p_ind = p_force->_p_ptr->index;
@@ -577,18 +555,7 @@ void MD_CUDABackend<number, number4>::init(){
 					force->repulsivesphere.stiff = p_force->_stiff;
 					force->repulsivesphere.rate= p_force->_rate;
 					force->repulsivesphere.r0 = p_force->_r0;
-					force->repulsivesphere.r_ext = p_force->_r_ext;
 					force->repulsivesphere.centre = make_float3 (p_force->_center.x, p_force->_center.y, p_force->_center.z);
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsive_sphere_smooth) ) {
-					RepulsiveSphereSmooth<number> *p_force = (RepulsiveSphereSmooth<number> *) p->ext_forces[j];
-					force->type = CUDA_REPULSIVE_SPHERE_SMOOTH;
-					force->repulsivespheresmooth.r0 = p_force->_r0;
-					force->repulsivespheresmooth.r_ext = p_force->_r_ext;
-					force->repulsivespheresmooth.smooth = p_force->_smooth;
-					force->repulsivespheresmooth.alpha = p_force->_alpha;
-					force->repulsivespheresmooth.stiff = p_force->_stiff;
-					force->repulsivespheresmooth.centre = make_float3 (p_force->_center.x, p_force->_center.y, p_force->_center.z);
 				}
 				else if(typeid (*(p->ext_forces[j])) == typeid(LJ_wall) ) {
 					LJWall<number> *p_force = (LJWall<number> *) p->ext_forces[j];
@@ -617,7 +584,6 @@ void MD_CUDABackend<number, number4>::init(){
 					force->type = CUDA_GENERIC_CENTRAL_FORCE;
 					force->genericconstantforce.F0 = p_force->_F0;
 					force->genericconstantforce.inner_cut_off_sqr = p_force->inner_cut_off_sqr;
-					force->genericconstantforce.outer_cut_off_sqr = p_force->outer_cut_off_sqr;
 					force->genericconstantforce.x = p_force->center.x;
 					force->genericconstantforce.y = p_force->center.y;
 					force->genericconstantforce.z = p_force->center.z;
@@ -698,7 +664,6 @@ void MD_CUDABackend<number, number4>::_print_ready_observables(llint curr_step) 
 template<typename number, typename number4>
 void MD_CUDABackend<number, number4>::fix_diffusion() {
 	_gpu_to_host_particles();
-	if(!_avoid_cpu_calculations) this->_lists->global_update(true);
 	MDBackend<number>::fix_diffusion();
 	_host_particles_to_gpu();
 }

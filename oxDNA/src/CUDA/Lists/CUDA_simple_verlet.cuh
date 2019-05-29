@@ -94,9 +94,7 @@ __global__ void simple_fill_cells(number4 *poss, int *cells, int *counters_cells
 	int index = box->compute_cell_index(verlet_N_cells_side, r);
 
 	cells[index*verlet_max_N_per_cell[0] + atomicInc((uint *) &counters_cells[index], verlet_max_N_per_cell[0])] = IND;
-	if(counters_cells[index] >= verlet_max_N_per_cell[0]) {
-		*cell_overflow = true;
-	}
+	if(counters_cells[index] >= verlet_max_N_per_cell[0]) *cell_overflow = true;
 }
 
 __global__ void compress_matrix_neighs(int *matrix, int *nneighs, int *offsets, edge_bond *edge_list) {

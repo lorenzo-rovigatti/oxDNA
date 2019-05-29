@@ -76,7 +76,6 @@ GeneratorManager::~GeneratorManager() {
 	}
 
 	if (_external_forces) ForceFactory<double>::instance()->clear();
-	if (_mybox != NULL) delete _mybox;
 }
 
 void GeneratorManager::load_options() {
