@@ -38,6 +38,9 @@ void PolymerInteraction<number>::init() {
 	_Polymer_sqr_rep_rcut = SQR(rep_rcut);
 	OX_LOG(Logger::LOG_INFO, "Polymer: repulsive rcut: %lf (%lf)", rep_rcut, _Polymer_sqr_rep_rcut);
 	this->_sqr_rcut = SQR(this->_rcut);
+
+	number part = CUB(1. / this->_sqr_rcut);
+	_Polymer_lambda_E_cut = 4 * _Polymer_lambda * part * (part - 1.);
 }
 
 template<typename number>
@@ -76,25 +79,29 @@ number PolymerInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParti
 	number energy = 0;
 	// cut-off for all the repulsive interactions
 	if(sqr_r < _Polymer_sqr_rep_rcut) {
-		number part = CUB(1./sqr_r);
+		number part = CUB(1. / sqr_r);
 		energy += 4 * (part * (part - 1.)) + 1.;
-		if(update_forces) force_mod += 24. * part*(2*part - 1)/sqr_r;
+		if(update_forces) {
+			force_mod += 24. * part * (2. * part - 1)/sqr_r;
+		}
 	}
 
 	// telechelic monomers
-	if(int_type == 2) {
+	if(int_type == 2 && !p->is_bonded(q)) {
 		if(sqr_r < _Polymer_sqr_rep_rcut) energy -= _Polymer_lambda;
 		// same as before except for a lambda in front of both energy and force
 		else {
 			number part = CUB(1. / sqr_r);
-			energy += 4 * _Polymer_lambda * part*(part - 1.);
+			energy += 4 * _Polymer_lambda * part * (part - 1.) - _Polymer_lambda_E_cut;
 
-			if(update_forces) force_mod += 24. * _Polymer_lambda * part * (2. * part - 1.) / sqr_r;
+			if(update_forces) {
+				force_mod += 24. * _Polymer_lambda * part * (2. * part - 1.) / sqr_r;
+			}
 		}
 	}
 
 	if(update_forces) {
-		if(sqr_r < 0.5) force_mod = 1000;
+		if(sqr_r < 0.5) force_mod = 1000.;
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
