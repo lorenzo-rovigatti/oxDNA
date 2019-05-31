@@ -27,8 +27,6 @@ template <typename number> class ParticlePair;
 template<typename number>
 class BaseParticle {
 protected:
-	int _max_neigh, _N_neigh;
-
 	void _check();
 
 public:

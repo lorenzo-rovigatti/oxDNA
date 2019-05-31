@@ -35,8 +35,6 @@ std::string PotentialEnergy<number>::get_output_string(llint curr_step) {
 	if(!_split) {
 		number energy = get_potential_energy();
 
-		//return("88");
-
 		return Utils::sformat("% 10.6lf", energy);
 	}
 	else {

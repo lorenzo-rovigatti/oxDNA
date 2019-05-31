@@ -72,9 +72,12 @@ __device__ void _fene(number4 &r, number4 &F) {
 
 template <typename number, typename number4>
 __device__ void _particle_particle_bonded_interaction(number4 &ppos, number4 &qpos, number4 &F) {
+	int ptype = get_particle_type<number, number4>(ppos);
+	int qtype = get_particle_type<number, number4>(qpos);
+	int int_type = ptype + qtype;
+
 	number4 r = qpos - ppos;
-	// bonded interactions are purely repulsive, so we set the int_type to 0 for all pairs
-	_nonbonded<number, number4>(r, 0, F);
+	_nonbonded<number, number4>(r, int_type, F);
 	_fene<number, number4>(r, F);
 }
 

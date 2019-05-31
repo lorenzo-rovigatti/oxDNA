@@ -5,9 +5,10 @@
  *      Author: lorenzo
  */
 
-#include <mpi/mpi.h>
+#include <mpi.h>
 
 #include "ParallelManager.h"
+#include "../Utilities/Utils.h"
 
 ParallelManager::ParallelManager(int argc, char *argv[]) : SimManager(argc, argv) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &_mpi_rank);

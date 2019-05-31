@@ -58,6 +58,7 @@ void CustomInteraction<number>::get_settings(input_file &inp) {
 
 	getInputString(&inp, "custom_lt_file", _lt_filename, 1);
 	getInputInt(&inp, "custom_points", &_bonded_points, 0);
+	getInputNumber(&inp, "custom_rcut", &this->_rcut, 1);
 }
 
 template<typename number>
@@ -74,6 +75,8 @@ void CustomInteraction<number>::init() {
 		if(spl.size() != 3 || lt_file.eof()) stop = true;
 		else n_lines++;
 	}
+
+	if(n_lines == 0) throw oxDNAException("Zero lines found in the lookup file. The only parsed lines are those with three columns (x, U, F)");
 
 	base_function data;
 	data.x = new number[n_lines];
@@ -100,25 +103,18 @@ void CustomInteraction<number>::init() {
 	lt_file.close();
 
 	number lowlimit = data.x[0];
-	number uplimit = data.x[i-1];
+	number uplimit = data.x[i - 1];
 
-	this->_build_mesh(this, &CustomInteraction::_fx, &CustomInteraction::_dfx, (void *)(&data), _bonded_points, lowlimit, uplimit, _bonded_mesh);
-
-//	ofstream out("yo.dat");
-//	for(i = 0; i < 500; i++) {
-//		number x = (uplimit - lowlimit)/500. * i;
-//		number fx = this->_query_mesh(x, _bonded_mesh);
-//		number dfx = this->_query_meshD(x, _bonded_mesh);
-//		out << x << " " << fx << " " << dfx << endl;
-//	}
-//	out.close();
+	this->_build_mesh(this, &CustomInteraction::_fx, &CustomInteraction::_dfx, (void *)(&data), _bonded_points, lowlimit, uplimit, _non_bonded_mesh);
 
 	delete[] data.x;
 	delete[] data.fx;
 	delete[] data.dfx;
 
-	this->_rcut = uplimit;
+	_Ecut = this->_query_mesh(this->_rcut, _non_bonded_mesh);
 	this->_sqr_rcut = SQR(this->_rcut);
+
+	OX_LOG(Logger::LOG_INFO, "custom: rcut = %lf, Ecut = %lf", this->_rcut, _Ecut);
 }
 
 template<typename number>
@@ -137,10 +133,12 @@ void CustomInteraction<number>::read_topology(int N, int *N_strands, BaseParticl
 	topology.close();
 
 	allocate_particles(particles, N);
-	for (int i = 0; i < N; i ++) particles[i]->index = particles[i]->strand_id = i;
+	for (int i = 0; i < N; i ++) {
+		particles[i]->index = particles[i]->strand_id = i;
+	}
 
-	CustomParticle<number> *p = (CustomParticle<number> *) particles[0];
-	p->add_bonded_neigh((CustomParticle<number> *) particles[1]);
+//	CustomParticle<number> *p = (CustomParticle<number> *) particles[0];
+//	p->add_bonded_neigh((CustomParticle<number> *) particles[1]);
 }
 
 template<typename number>
@@ -151,34 +149,27 @@ number CustomInteraction<number>::pair_interaction(BaseParticle<number> *p, Base
 
 template<typename number>
 number CustomInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	number energy = (number) 0.f;
+	if(!p->is_bonded(q)) return 0.;
 
-	if(q == P_VIRTUAL) {
-		CustomParticle<number> *Cp = (CustomParticle<number> *) p;
-		for(typename set<CustomParticle<number> *>::iterator it = Cp->bonded_neighs.begin(); it != Cp->bonded_neighs.end(); it++) {
-			energy += pair_interaction_bonded(p, *it, r, update_forces);
+	throw oxDNAException("Custom bonded interactions are not supported");
+
+	number energy = (number) 0.f;
+	LR_vector<number> computed_r(0, 0, 0);
+	if(r == NULL) {
+		if (q != P_VIRTUAL && p != P_VIRTUAL) {
+			computed_r = q->pos - p->pos;
+			r = &computed_r;
 		}
 	}
-	else if(p->is_bonded(q)){
-		LR_vector<number> computed_r(0, 0, 0);
-		if(r == NULL) {
-			if (q != P_VIRTUAL && p != P_VIRTUAL) {
-				computed_r = q->pos - p->pos;
-				r = &computed_r;
-			}
-		}
 
-		if(p->index < q->index && update_forces) return energy;
+	number dist = r->module();
+	energy = this->_query_mesh(dist, _bonded_mesh);
 
-		number dist = r->module();
-		energy = this->_query_mesh(dist, _bonded_mesh);
-
-		if(update_forces) {
-			number force_mod = -this->_query_meshD(dist, _bonded_mesh);
-			LR_vector<number> force = *r * (force_mod/dist);
-			p->force -= force;
-			q->force += force;
-		}
+	if(update_forces) {
+		number force_mod = -this->_query_meshD(dist, _bonded_mesh);
+		LR_vector<number> force = *r * (force_mod/dist);
+		p->force -= force;
+		q->force += force;
 	}
 
 	return energy;
@@ -186,13 +177,29 @@ number CustomInteraction<number>::pair_interaction_bonded(BaseParticle<number> *
 
 template<typename number>
 number CustomInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+	if(p->is_bonded(q)) return 0.;
+
 	LR_vector<number> computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 
-	return 0.f;
+	number dist = r->module();
+	if(dist > this->_rcut) return 0.;
+
+	number energy = this->_query_mesh(dist, _non_bonded_mesh) - _Ecut;
+
+	if(dist < _non_bonded_mesh.xlow) fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _non_bonded_mesh.xlow);
+
+	if(update_forces) {
+		number force_mod = -this->_query_meshD(dist, _non_bonded_mesh);
+		LR_vector<number> force = *r * (force_mod / dist);
+		p->force -= force;
+		q->force += force;
+	}
+
+	return energy;
 }
 
 template<typename number>

@@ -290,42 +290,4 @@
 #define CXST_T5_MESH_POINTS 6   // perfetto
 #define CXST_T6_MESH_POINTS CXST_T5_MESH_POINTS
 
-//Default RNA sequence-dependent parameters
-#define R_HYDR_A_T 0.820419f
-#define R_HYDR_C_G 1.06444f
-#define R_HYDR_G_T 0.510558f
-#define R_STCK_G_C 1.27562f
-#define R_STCK_C_G 1.60302f
-#define R_STCK_G_G 1.49422f
-#define R_STCK_C_C 1.47301f
-#define R_STCK_G_A 1.62114f
-#define R_STCK_T_C 1.16724f
-#define R_STCK_A_G 1.39374f
-#define R_STCK_C_T 1.47145f
-#define R_STCK_T_G 1.28576f
-#define R_STCK_C_A 1.58294f
-#define R_STCK_G_T 1.57119f
-#define R_STCK_A_C 1.21041f
-#define R_STCK_A_T 1.38529f
-#define R_STCK_T_A 1.24573f
-#define R_STCK_A_A 1.31585f
-#define R_STCK_T_T 1.17518f
-#define R_CROSS_A_A 59.9626f
-#define R_CROSS_A_T 59.9626f
-#define R_CROSS_T_A 59.9626f
-#define R_CROSS_A_C 59.9626f
-#define R_CROSS_C_A 59.9626f
-#define R_CROSS_A_G 59.9626f
-#define R_CROSS_G_A 59.9626f
-#define R_CROSS_G_G 59.9626f
-#define R_CROSS_G_C 59.9626f
-#define R_CROSS_C_G 59.9626f
-#define R_CROSS_G_T 59.9626f
-#define R_CROSS_T_G 59.9626f
-#define R_CROSS_C_C 59.9626f
-#define R_CROSS_C_T 59.9626f
-#define R_CROSS_T_C 59.9626f
-#define R_CROSS_T_T 59.9626f
-#define R_ST_T_DEP 1.97561f
-
 #endif /* MODEL_H_ */

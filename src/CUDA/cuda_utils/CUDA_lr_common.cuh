@@ -151,6 +151,12 @@ __forceinline__ __host__ __device__ number4 make_number4(const number x, const n
 	return res;
 }
 
+template <>
+__forceinline__ __host__ __device__ LR_double4 make_number4(const double x, const double y, const double z, const double w) {
+	LR_double4 res = {x, y, z, (float) w};
+	return res;
+}
+
 template <typename number, typename number4>
 __forceinline__ __device__ number _module(const number4 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
@@ -196,7 +202,7 @@ __forceinline__ __device__ number4 _cross(const number4 v, const number4 w) {
 // LR_DOUBLE4
 
 __forceinline__ __device__ LR_double4 operator*(LR_double4 v, double c) {
-	return make_number4<double, LR_double4>(v.x*c, v.y*c, v.z*c, v.w);
+	return make_number4<double, LR_double4>(v.x*c, v.y*c, v.z*c, v.w*c);
 }
 
 __forceinline__ __device__ LR_double4 operator/(LR_double4 v, double c) {
@@ -205,7 +211,7 @@ __forceinline__ __device__ LR_double4 operator/(LR_double4 v, double c) {
 }
 
 __forceinline__ __device__ LR_double4 operator*(double c, LR_double4 v) {
-	return make_number4<double, LR_double4>(v.x*c, v.y*c, v.z*c, v.w);
+	return make_number4<double, LR_double4>(v.x*c, v.y*c, v.z*c, v.w*c);
 }
 
 __forceinline__ __device__ LR_double4 operator-(LR_double4 a) {
@@ -275,7 +281,7 @@ __forceinline__ __device__ void operator-=(float3 &a, float3 b) {
 
 // FLOAT4
 __forceinline__ __device__ float4 operator*(float4 v, float c) {
-	return make_float4(v.x*c, v.y*c, v.z*c, v.w);
+	return make_float4(v.x*c, v.y*c, v.z*c, v.w*c);
 }
 
 __forceinline__ __device__ float4 operator/(float4 v, float c) {
@@ -284,7 +290,7 @@ __forceinline__ __device__ float4 operator/(float4 v, float c) {
 }
 
 __forceinline__ __device__ float4 operator*(float c, float4 v) {
-	return make_float4(v.x*c, v.y*c, v.z*c, v.w);
+	return make_float4(v.x*c, v.y*c, v.z*c, v.w*c);
 }
 
 __forceinline__ __device__ float4 operator-(float4 a) {

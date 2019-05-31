@@ -17,8 +17,10 @@ template <typename number>
 class CustomInteraction: public BaseInteraction<number, CustomInteraction<number> > {
 protected:
 	char _lt_filename[512];
+	Mesh<number> _non_bonded_mesh;
 	Mesh<number> _bonded_mesh;
 	int _bonded_points;
+	number _Ecut;
 
 	struct base_function {
 		int points;

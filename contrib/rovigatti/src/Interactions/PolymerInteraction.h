@@ -27,7 +27,6 @@ protected:
 
 	number _Polymer_sqr_rep_rcut;
 	number _Polymer_lambda;
-	number _Polymer_lambda_E_cut;
 
 	std::vector<ChainDetails<number> > _chains;
 

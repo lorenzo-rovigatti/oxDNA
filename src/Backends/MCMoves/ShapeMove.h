@@ -19,13 +19,14 @@ class ShapeMove : public BaseMove<number> {
 
 		number _verlet_skin;
 		number _P;
-	
+
 	public:
-		ShapeMove(ConfigInfo<number> *Info);
+		ShapeMove();
 		virtual ~ShapeMove();
 
 		void apply (llint curr_step);
 		virtual void init ();
 		virtual void get_settings(input_file &inp, input_file &sim_inp);
+		virtual void log_parameters();
 };
 #endif // SHAPE_MOVE_H_

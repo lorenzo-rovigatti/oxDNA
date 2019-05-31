@@ -414,7 +414,7 @@ void Histogram::print_to_file (const char * filename, long long int time, bool o
 	}
 
 	if (outfile == NULL) throw oxDNAException("could not open histogram file `%s\' for writing. Aborting.\n", filename);
-	fprintf(outfile, "#t = %lli; extr. Ts: ", time);
+	fprintf(outfile, "#t = %llu; extr. Ts: ", time);
 	for (int k = 0; k < _ntemps; k ++)
 		fprintf(outfile, "%g ", _etemps[k]);
 	fprintf(outfile, "\n");
