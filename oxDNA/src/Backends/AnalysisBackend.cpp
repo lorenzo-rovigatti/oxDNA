@@ -106,11 +106,15 @@ void AnalysisBackend::init() {
 
 void AnalysisBackend::analyse() {
 	_mytimer->resume();
+
 	if(_n_conf % 100 == 0 && _n_conf > 0) OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
 	SimBackend<double>::print_observables(_read_conf_step);
+
 	if(!_read_next_configuration(_initial_conf_is_binary)) _done = true;
 	else _n_conf++;
+
 	for(int i = 0; i < this->_N; i++) this->_lists->single_update(this->_particles[i]);
 	this->_lists->global_update();
+
 	_mytimer->pause();
 }

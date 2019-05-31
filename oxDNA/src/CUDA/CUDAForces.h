@@ -20,6 +20,7 @@
 #define CUDA_CONSTANT_RATE_TORQUE 8
 #define CUDA_GENERIC_CENTRAL_FORCE 9
 #define CUDA_LJ_CONE 10
+#define CUDA_REPULSIVE_SPHERE_SMOOTH 11
 
 /**
  * @brief CUDA version of a ConstantRateForce.
@@ -43,6 +44,7 @@ struct mutual_trap {
 	number r0;
 	int p_ind;
 	bool PBC;
+	number rate;
 };
 
 /**
@@ -103,6 +105,21 @@ struct repulsive_sphere {
 	number stiff;
 	number r0;
 	number rate;
+	number r_ext;
+	float3 centre;
+};
+
+/**
+ * @brief CUDA version of a RepulsiveSphereSmooth.
+ */
+template<typename number>
+struct repulsive_sphere_smooth {
+	int type;
+	number r0;
+	number r_ext;
+	number smooth;
+	number alpha;
+	number stiff;
 	float3 centre;
 };
 
@@ -141,6 +158,7 @@ struct generic_constant_force {
 	number x, y, z;
 	number F0;
 	number inner_cut_off_sqr;
+	number outer_cut_off_sqr;
 };
 
 /**
@@ -171,6 +189,7 @@ union CUDA_trap {
 	repulsion_plane<number> repulsionplane;
 	repulsion_plane_moving<number> repulsionplanemoving;
 	repulsive_sphere<number> repulsivesphere;
+	repulsive_sphere_smooth<number> repulsivespheresmooth;
 	LJ_wall<number> ljwall;
 	constant_rate_torque<number> constantratetorque;
 	generic_constant_force<number> genericconstantforce;

@@ -2,7 +2,7 @@
  * MC_CPUBackend2.cpp
  *
  *  Created on: 02/apr/2014
- *      Author: Flavio 
+ *      Author: Flavio
  */
 
 #include "MC_CPUBackend2.h"
@@ -15,7 +15,7 @@ MC_CPUBackend2<number>::MC_CPUBackend2() : MCBackend<number>() {
 	_N_moves = -1;
 	_MC_Info = NULL;
 	_accumulated_prob = 0.; // total weight
-	
+
 	_MC_Info = ConfigInfo<number>::instance();
 }
 
@@ -28,7 +28,7 @@ template<typename number>
 void MC_CPUBackend2<number>::add_move (std::string move_string, input_file &sim_inp) {
 	input_file * move_inp = Utils::get_input_file_from_string(move_string);
 
-	BaseMove<number> * new_move = MoveFactory::make_move<number> (*move_inp, sim_inp, _MC_Info);
+	BaseMove<number> * new_move = MoveFactory::make_move<number> (*move_inp, sim_inp);
 
 	_moves.push_back (new_move);
 
@@ -46,7 +46,7 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 	//_MC_Info.lists = this->_lists;
 
 	std::vector<std::string> move_strings;
-	_N_moves = getInputKeys (&inp, std::string("move_"), &move_strings, 0); 
+	_N_moves = getInputKeys (&inp, std::string("move_"), &move_strings, 0);
 	if (_N_moves < 1) throw oxDNAException ("(MC_CPUBackend2) No moves found in the input file");
 	for (int i = 0; i < _N_moves; i ++) {
 		std::string tmps;
@@ -61,14 +61,14 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 	for(it = _moves.begin(); it != _moves.end(); it ++) _accumulated_prob += (*it)->prob;
 
 	OX_LOG (Logger::LOG_INFO, "(MC_CPUBackend2.cpp) accumulated prob: %g", _accumulated_prob);
-	
+
 	//printf ("aborting here %s %d...\n", __FILE__, __LINE__);
 	//abort ();
 }
 
 template<typename number>
 void MC_CPUBackend2<number>::init() {
-	OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing bakend...");
+	//OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing backend...");
 	MCBackend<number>::init();
 
 	for(int i = 0; i < this->_N; i++) {
@@ -76,9 +76,6 @@ void MC_CPUBackend2<number>::init() {
 		this->_particles[i]->set_positions();
 		this->_particles[i]->orientationT = this->_particles[i]->orientation.get_transpose();
 	}
-
-	this->_U = this->_interaction->get_system_energy (this->_particles, this->_N, this->_lists);
-	if(this->_interaction->get_is_infinite() == true) throw oxDNAException("There is an overlap in the initial configuration. Aborting");
 
 	// needed to fill un the pointers....
 	_MC_Info->particles = this->_particles;
@@ -88,10 +85,29 @@ void MC_CPUBackend2<number>::init() {
 
 	this->_lists->global_update();
 
+	this->_U = this->_interaction->get_system_energy (this->_particles, this->_N, this->_lists);
+	if(this->_interaction->get_is_infinite() == true) {
+		this->_interaction->set_is_infinite(false);
+		for (int i = 0; i < this->_N; i ++) {
+			for (int j = 0; j < i; j ++) {
+				BaseParticle<number> * p = this->_particles[i];
+				BaseParticle<number> * q = this->_particles[j];
+				this->_interaction->pair_interaction(p, q);
+				if (this->_interaction->get_is_infinite() == true) {
+					OX_LOG(Logger::LOG_INFO, "   overlap %d %d", i, j);
+					//printf ("%g %g %g\n", p->pos.x, p->pos.y, p->pos.z);
+					//printf ("%g %g %g %g %g %g\n", q->pos.x, q->pos.y, q->pos.z, q->orientation.v3.x, q->orientation.v3.y, q->orientation.v3.z);
+					this->_interaction->set_is_infinite(false);
+				}
+			}
+		}
+		throw oxDNAException("(MC_CPUBackend2) There is an overlap in the initial configuration. Aborting");
+	}
+
 	// we initialize the moves
 	typename vector<BaseMove<number> *>::iterator it;
 	for(it = _moves.begin(); it != _moves.end(); it ++) {
-		OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing move...");
+		//OX_LOG(Logger::LOG_DEBUG, "(MC_CPUBackend2) Initializing move...");
 		(*it)->init();
 	}
 }
@@ -117,7 +133,7 @@ void MC_CPUBackend2<number>::sim_step(llint curr_step) {
 template<typename number>
 void MC_CPUBackend2<number>::print_observables(llint curr_step) {
 	std::string tmpstr("");
-	typename std::vector<BaseMove<number> *>::iterator it; 
+	typename std::vector<BaseMove<number> *>::iterator it;
 	for(it = _moves.begin(); it != _moves.end(); it ++) {
 		number ratio = (*it)->get_acceptance();
 		tmpstr += Utils::sformat (" %5.3f", ratio);
@@ -127,6 +143,13 @@ void MC_CPUBackend2<number>::print_observables(llint curr_step) {
 	SimBackend<number>::print_observables(curr_step);
 }
 
+template<typename number>
+void MC_CPUBackend2<number>::print_equilibration_info() {
+	typename std::vector<BaseMove<number> *>::iterator it;
+	for(it = _moves.begin(); it != _moves.end(); it ++) {
+		(*it)->log_parameters();
+	}
+}
 
 template<typename number>
 void MC_CPUBackend2<number>::_compute_energy() {
@@ -136,4 +159,3 @@ void MC_CPUBackend2<number>::_compute_energy() {
 
 template class MC_CPUBackend2<float>;
 template class MC_CPUBackend2<double>;
-

@@ -36,7 +36,7 @@ particle = <int> (index of the particle on which the force shall be applied. If 
 template<typename number>
 class RepulsiveSphere : public BaseForce<number> {
 private:
-	int _particle;
+	std::string _particles_string;
 
 	/// pointer to the box side
 	BaseBox<number> *_box_ptr;
@@ -47,6 +47,8 @@ public:
 
 	/// initial radius of the sphere and rate of growth (linear in timesteps/MC steps, not reduced time units)
 	number _r0, _rate;
+	/// external radius: for distances greater than r_ext, particles will not feel any force
+	number _r_ext;
 
 	RepulsiveSphere();
 	virtual ~RepulsiveSphere() {}

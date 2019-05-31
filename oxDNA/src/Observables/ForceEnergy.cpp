@@ -19,10 +19,7 @@ ForceEnergy<number>::~ForceEnergy() {
 
 template<typename number> void
 ForceEnergy<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	char group_name[512] = "";
-	getInputString(&my_inp, "print_group", group_name, 0);
-
-	_group_name = group_name;
+	getInputString(&my_inp, "print_group", _group_name, 0);
 }
 
 template<typename number>

@@ -21,6 +21,9 @@ CUDASRDThermostat<number, number4>::CUDASRDThermostat(BaseBox<number> *box) : CU
 	_d_poss = NULL;
 	_d_vels = NULL;
 	_d_cells_dp = NULL;
+	_d_reduced_cells_keys = NULL;
+	_d_reduced_cells_dp = NULL;
+	_d_reduce_keys = NULL;
 
 	_N_tot = _max_N_per_cell = _N_vec_size = -1;
 }

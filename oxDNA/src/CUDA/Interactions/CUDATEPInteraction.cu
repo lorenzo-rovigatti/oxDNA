@@ -414,7 +414,7 @@ void CUDATEPInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDA_SAFE_CALL( cudaMemcpy(_d_o_vects, h_o_vects, 2*sizeof(number4), cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_w_vects, h_w_vects, 2*sizeof(number4), cudaMemcpyHostToDevice) );
 	COPY_NUMBER_TO_FLOAT(MD_twist_boundary_stiff, this->_twist_boundary_stiff);
-	float o_modulus[2] = { this->_o1_modulus, this->_o2_modulus };
+	float o_modulus[2] = { (float) this->_o1_modulus, (float) this->_o2_modulus };
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_o_modulus, o_modulus, 2*sizeof(float)) );
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );

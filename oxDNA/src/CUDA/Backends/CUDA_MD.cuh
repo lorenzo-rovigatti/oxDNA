@@ -109,27 +109,10 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 			case CUDA_TRAP_MUTUAL: {
 				number4 qpos = poss[extF.mutual.p_ind];
 
-				number dx = qpos.x - ppos.x;
-				number dy = qpos.y - ppos.y;
-				number dz = qpos.z - ppos.z;
-
-				if (extF.mutual.PBC) {
-					number4 box_sides = box->box_sides();
-					dx -= floorf(dx/box_sides.x + (number) 0.5f) * box_sides.x;
-					dy -= floorf(dy/box_sides.y + (number) 0.5f) * box_sides.y;
-					dz -= floorf(dz/box_sides.z + (number) 0.5f) * box_sides.z;
-				}
-
-				number4 dr = make_number4<number, number4>(dx, dy, dz, (number) 0.f);
+				number4 dr = (extF.mutual.PBC) ? box->minimum_image(ppos, qpos) : qpos - ppos;
 				number dr_abs = _module<number, number4>(dr);
 
-				number max_dr = (number) 5.f;
-				if (dr_abs > max_dr) {
-					dr = dr * (max_dr / dr_abs);
-					dr_abs = max_dr;
-				}
-
-				number4 force = dr / dr_abs * (dr_abs - extF.mutual.r0) * extF.mutual.stiff;
+				number4 force = dr * ((dr_abs - (extF.mutual.r0 + extF.mutual.rate * step)) * extF.mutual.stiff / dr_abs);
 
 				F.x += force.x;
 				F.y += force.y;
@@ -182,12 +165,41 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 				number4 dist = box->minimum_image(centre, ppos);
 				number mdist = _module<number, number4>(dist);
 				number radius = extF.repulsivesphere.r0 + extF.repulsivesphere.rate*(number) step;
-				if(mdist > radius) {
+				number radius_ext = extF.repulsivesphere.r_ext;
+				if(mdist > radius && mdist < radius_ext) {
 					number force_mod = extF.repulsivesphere.stiff*((number)1.f - radius/mdist);
 					F.x += -dist.x*force_mod;
 					F.y += -dist.y*force_mod;
 					F.z += -dist.z*force_mod;
 				}
+				break;
+			}
+			case CUDA_REPULSIVE_SPHERE_SMOOTH: {
+				number4 centre = make_number4<number, number4>(extF.repulsivespheresmooth.centre.x, extF.repulsivespheresmooth.centre.y, extF.repulsivespheresmooth.centre.z, 0.);
+				number4 dist = box->minimum_image(centre, ppos);
+				number mdist = _module<number, number4>(dist);
+				number r0 = extF.repulsivespheresmooth.r0;
+				number r_ext = extF.repulsivespheresmooth.r_ext;
+				number smooth = extF.repulsivespheresmooth.smooth;
+				number alpha = extF.repulsivespheresmooth.alpha;
+				number stiff = extF.repulsivespheresmooth.stiff;
+
+				if(mdist > r0 && mdist < r_ext) {
+					number force_mod = 0.f;
+					if(mdist >= alpha && mdist <= r_ext) {
+						force_mod = -(stiff * 0.5f * expf((mdist - alpha) / smooth)) / mdist;
+					}
+					else {
+						if(mdist < alpha && mdist >= r0) {
+							force_mod = -(stiff * mdist - stiff * 0.5f * expf(-(mdist - alpha) / smooth)) / mdist;
+						}
+					}
+
+					F.x += dist.x*force_mod;
+					F.y += dist.y*force_mod;
+					F.z += dist.z*force_mod;
+				}
+
 				break;
 			}
 			case CUDA_LJ_WALL: {
@@ -228,7 +240,6 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 				F.x += -extF.constantratetorque.stiff*(ppos.x - postrap.x) * extF.constantratetorque.mask.x;
 				F.y += -extF.constantratetorque.stiff*(ppos.y - postrap.y) * extF.constantratetorque.mask.y;
 				F.z += -extF.constantratetorque.stiff*(ppos.z - postrap.z) * extF.constantratetorque.mask.z;
-				printf("%d -- %lf %lf %lf -- %lf %lf %lf", IND, postrap.x, postrap.y, postrap.z, F.x, F.y, F.z);
 				break;
 			}
 			case CUDA_GENERIC_CENTRAL_FORCE: {
@@ -240,14 +251,16 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 
 				number dist_sqr = CUDA_DOT(dir, dir);
 				if(dist_sqr >= extF.genericconstantforce.inner_cut_off_sqr) {
-					number dist = sqrtf(dist_sqr);
-					dir.x /= dist;
-					dir.y /= dist;
-					dir.z /= dist;
+					if(extF.genericconstantforce.outer_cut_off_sqr == 0.f || dist_sqr <= extF.genericconstantforce.outer_cut_off_sqr) {
+						number dist = sqrtf(dist_sqr);
+						dir.x /= dist;
+						dir.y /= dist;
+						dir.z /= dist;
 
-					F.x += dir.x*strength;
-					F.y += dir.y*strength;
-					F.z += dir.z*strength;
+						F.x += dir.x*strength;
+						F.y += dir.y*strength;
+						F.z += dir.z*strength;
+					}
 				}
 				break;
 			}

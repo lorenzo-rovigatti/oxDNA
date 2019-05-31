@@ -25,6 +25,10 @@ typedef BaseObservable<double>* make_double_obs();
 typedef IBaseInteraction<float>* make_float_inter();
 typedef IBaseInteraction<double>* make_double_inter();
 
+typedef BaseMove<float>* make_float_move();
+typedef BaseMove<double>* make_double_move();
+
+
 PluginManager::PluginManager() : _initialised(false), _do_cleanup(true) {
 	_path.push_back(string("."));
 }
@@ -57,12 +61,20 @@ void PluginManager::init(input_file &sim_inp) {
 		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _inter_entry_points.push_back(*it);
 	}
 
+	if(getInputString(&sim_inp, "plugin_move_entry_points", entries, 0) == KEY_FOUND) {
+			vector<string> v_entries = Utils::split(entries, ':');
+			for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _move_entry_points.push_back(*it);
+	}
+
 	// these are the default entry point names
 	_obs_entry_points.push_back(string("make_"));
 	_obs_entry_points.push_back(string("make_observable_"));
 
 	_inter_entry_points.push_back(string("make_"));
 	_inter_entry_points.push_back(string("make_interaction_"));
+
+	_move_entry_points.push_back(string("make_"));
+	_move_entry_points.push_back(string("make_move_"));
 }
 
 void PluginManager::add_to_path(string s) {
@@ -147,6 +159,44 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 	return static_cast<BaseObservable<number> *>(temp_obs);
 }
 
+
+
+template<typename number>
+BaseMove<number> *PluginManager::get_move(std::string name)
+{
+	void *handle = _get_handle(name);
+	if(handle == NULL) return NULL;
+
+	// we do this c-like because dynamic linking can be done only in c and thus
+	// we have no way of using templates
+	void *temp_move;
+	bool found = false;
+	// choose between float and double
+	if(sizeof(number) == 4) {
+		make_float_move *make_move = (make_float_move *) _get_entry_point(handle, name, _move_entry_points, string("float"));
+		if(make_move != NULL) {
+			temp_move = (void *)make_move();
+			found = true;
+		}
+	}
+	else {
+		make_double_move *make_move = (make_double_move *) _get_entry_point(handle, name, _move_entry_points, string("double"));
+		if(make_move != NULL) {
+			temp_move = (void *)make_move();
+			found = true;
+		}
+	}
+
+	if(!found) {
+		OX_LOG(Logger::LOG_WARNING, "Cannot load symbol from plugin interaction library '%s'", name.c_str());
+		return NULL;
+	}
+
+	// now we cast it back to the type required by the code
+	return static_cast<BaseMove<number> *>(temp_move);
+
+}
+
 template<typename number>
 IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 	void *handle = _get_handle(name);
@@ -203,3 +253,8 @@ template BaseObservable<double> *PluginManager::get_observable(string name);
 
 template IBaseInteraction<float> *PluginManager::get_interaction(string name);
 template IBaseInteraction<double> *PluginManager::get_interaction(string name);
+
+
+
+template BaseMove<float> *PluginManager::get_move(string name);
+template BaseMove<double> *PluginManager::get_move(string name);

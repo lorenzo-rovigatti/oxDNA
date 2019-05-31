@@ -12,9 +12,6 @@ SET(observables_SOURCES
 	Observables/PotentialEnergy.cpp
 	Observables/KineticEnergy.cpp
 	Observables/TotalEnergy.cpp
-	Observables/AverageEnergy.cpp
-	Observables/ContactMap.cpp
-	Observables/AllVectors.cpp
 	Observables/HBEnergy.cpp
 	Observables/OrderParameterValues.cpp
 	Observables/HBList.cpp
@@ -83,6 +80,7 @@ SET(backends_SOURCES
 SET(lists_SOURCES
 	Lists/NoList.cpp
 	Lists/Cells.cpp
+	Lists/RodCells.cpp
 	Lists/VerletList.cpp
 	Lists/BinVerletList.cpp
 	Lists/ListFactory.cpp
@@ -135,6 +133,7 @@ SET(forces_SOURCES
 	Forces/RepulsionPlane.cpp
 	Forces/RepulsionPlaneMoving.cpp
 	Forces/RepulsiveSphere.cpp
+	Forces/RepulsiveSphereSmooth.cpp
 	Forces/LJWall.cpp
 	Forces/HardWall.cpp
 	Forces/AlignmentField.cpp
@@ -262,8 +261,9 @@ IF(MPI)
 	SET(mpi_SOURCES
 		oxDNA_mpi
 		Managers/ParallelManager.cpp
+                Backends/PT_VMMC_CPUBackend.cpp
 	)
-	
 	ADD_EXECUTABLE(oxDNA_mpi ${mpi_SOURCES})
+        SET(exe_name oxDNA_mpi)
 	TARGET_LINK_LIBRARIES(oxDNA_mpi ${lib_name} ${MPI_LIBRARIES})
 ENDIF()

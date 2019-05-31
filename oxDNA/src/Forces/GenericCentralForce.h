@@ -32,6 +32,7 @@ private:
 
 	std::map<std::string, int> _supported_types;
 	int _type;
+	number _E_shift;
 
 	std::string _table_filename;
 	int _table_N;
@@ -49,6 +50,7 @@ public:
 
 	LR_vector<number> center;
 	number inner_cut_off, inner_cut_off_sqr;
+	number outer_cut_off, outer_cut_off_sqr;
 };
 
 template<typename number>

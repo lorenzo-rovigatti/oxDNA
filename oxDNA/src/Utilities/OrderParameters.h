@@ -234,7 +234,7 @@ struct MinDistanceParameter {
 			double candidate;
 			for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
 				BaseParticle<number> *p = particle_list[(*i).first];
-				BaseParticle<number> *q = particle_list[(*i).first];
+				BaseParticle<number> *q = particle_list[(*i).second];
 				if (p->strand_id == q->strand_id) dist = q->pos - p->pos;
 				else dist = box->min_image(p, q);
 				

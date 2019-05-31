@@ -19,8 +19,10 @@ GenericCentralForce<number>::GenericCentralForce() :
 	_particles_string = "\0";
 	_type = -1;
 	_table_N = -1;
+	_E_shift = 0.;
 
 	inner_cut_off = 0.;
+	outer_cut_off = 0.;
 	_supported_types[string("gravity")] = GRAVITY;
 	_supported_types[string("interpolated")] = INTERPOLATED;
 }
@@ -34,6 +36,8 @@ template<typename number>
 void GenericCentralForce<number>::get_settings(input_file &inp) {
 	string particles_string;
 	getInputString(&inp, "particle", _particles_string, 1);
+
+	getInputNumber(&inp, "E_shift", &_E_shift, 0);
 
 	string strdir;
 	getInputString(&inp, "center", strdir, 1);
@@ -54,6 +58,7 @@ void GenericCentralForce<number>::get_settings(input_file &inp) {
 	case GRAVITY:
 		getInputNumber(&inp, "F0", &this->_F0, 1);
 		getInputNumber(&inp, "inner_cut_off", &inner_cut_off, 0);
+		getInputNumber(&inp, "outer_cut_off", &outer_cut_off, 0);
 		break;
 	case INTERPOLATED:
 		getInputString(&inp, "potential_file", _table_filename, 1);
@@ -70,6 +75,7 @@ void GenericCentralForce<number>::init(BaseParticle<number> **particles, int N, 
 	this->_add_self_to_particles(particles, N, _particles_string, force_description);
 
 	inner_cut_off_sqr = SQR(inner_cut_off);
+	outer_cut_off_sqr = SQR(outer_cut_off);
 
 	switch(_type) {
 	case INTERPOLATED:
@@ -88,7 +94,13 @@ LR_vector<number> GenericCentralForce<number>::value(llint step, LR_vector<numbe
 
 	switch(_type) {
 	case GRAVITY:
-		if(dist_sqr < inner_cut_off_sqr) return LR_vector<number>(0., 0., 0.);
+		if(dist_sqr < inner_cut_off_sqr) {
+			return LR_vector<number>(0., 0., 0.);
+		}
+		if(outer_cut_off > 0. && dist_sqr > outer_cut_off_sqr) {
+			return LR_vector<number>(0., 0., 0.);
+		}
+
 		return this->_F0 * dir;
 	case INTERPOLATED:
 		return _table.query_derivative(sqrt(dist_sqr)) * dir;
@@ -105,7 +117,15 @@ number GenericCentralForce<number>::potential(llint step, LR_vector<number> &pos
 
 	switch(_type) {
 	case GRAVITY:
-		energy = (dist < inner_cut_off) ? this->_F0 * inner_cut_off : this->_F0 * dist;
+		if(dist < inner_cut_off) {
+			energy = 0.;
+		}
+		else if(outer_cut_off > 0. && dist > outer_cut_off) {
+			energy = 0.;
+		}
+		else {
+			energy = this->_F0 * dist - this->_F0 * inner_cut_off + _E_shift;
+		}
 		break;
 	case INTERPOLATED:
 		energy = _table.query_function(dist);

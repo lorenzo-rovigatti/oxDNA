@@ -10,7 +10,7 @@
 
 /// traslation
 template<typename number>
-ShapeMove<number>::ShapeMove (ConfigInfo<number> * Info) : BaseMove<number>(Info) {
+ShapeMove<number>::ShapeMove () {
 	_verlet_skin = -1.f;
 }
 
@@ -23,6 +23,8 @@ template<typename number>
 void ShapeMove<number>::init () {
 	BaseMove<number>::init();
 	_pos_old.resize (*this->_Info->N);
+	if (this->_restrict_to_type > 0) OX_LOG(Logger::LOG_WARNING, "(ShapeMove.cpp) Cant use ShapeMove with restrict_to_type. Ignoring");
+	OX_LOG(Logger::LOG_INFO, "(ShapeMove.cpp) ShapeMove initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
 template<typename number>
@@ -31,8 +33,7 @@ void ShapeMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
 
 	getInputNumber (&inp, "delta", &_delta, 1);
 	getInputNumber (&inp, "prob", &this->prob, 0);
-	OX_LOG(Logger::LOG_INFO, "(ShapeMove.cpp) ShapeMove initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
-	
+
 	std::string tmps;
 	if (getInputString (&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
 		if (!tmps.compare ("verlet")) {
@@ -67,25 +68,27 @@ void ShapeMove<number>::apply (llint curr_step) {
 	LR_vector<number> box_sides = this->_Info->box->box_sides();
 	LR_vector<number> old_box_sides = this->_Info->box->box_sides();
 
-	number oldE = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
+	number oldE;
+	if (this->_compute_energy_before) oldE = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
+	else oldE = (number) 0.f;
 	if (this->_Info->interaction->get_is_infinite()) printf ("WHAAT\n");
 	number oldV = (box_sides[0]) * (box_sides[1]) * (box_sides[2]);
 
 	box_sides[change_axis_1] += dL;
 	box_sides[change_axis_2] = oldV / (box_sides[preserved_axis] * box_sides[change_axis_1]);
-	
+
 	//printf ("@#@@ old sides: %g %g %g\n", old_box_sides[0], old_box_sides[1], old_box_sides[2]);
 	//printf ("@#@@ old sides: %g %g %g\n", box_sides[0], box_sides[1], box_sides[2]);
 
 	//this->_Info->interaction->box->init (box_sides[0], box_sides[1], box_sides[2]);
 	this->_Info->box->init(box_sides.x, box_sides.y, box_sides.z);
 	this->_Info->lists->change_box();
-	
+
 	number dExt = (number) 0.f;
 	for (int k = 0; k < N; k ++) {
 		BaseParticle<number> *p = particles[k];
-		dExt = -p->ext_potential;
-		_pos_old[k] = p->pos; 
+		dExt -= -p->ext_potential;
+		_pos_old[k] = p->pos;
 		// p->pos *= (1. + dL / box_sides[0]);
 		p->pos.x *= (box_sides.x / old_box_sides.x);
 		p->pos.y *= (box_sides.y / old_box_sides.y);
@@ -117,7 +120,7 @@ void ShapeMove<number>::apply (llint curr_step) {
 		//printf ("reject: dE = %g\n", dE);
 		for (int k = 0; k < N; k ++) {
 			BaseParticle<number> *p = particles[k];
-			p->pos = _pos_old[k]; 
+			p->pos = _pos_old[k];
 			p->set_ext_potential(curr_step, this->_Info->box);
 		}
 		this->_Info->box->init(old_box_sides.x, old_box_sides.y, old_box_sides.z);
@@ -131,8 +134,14 @@ void ShapeMove<number>::apply (llint curr_step) {
 		//number xE  = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
 		//if (fabs ((xE - oldE) / oldE) > 1.e-5) throw oxDNAException ("Look at this shit %g %g", xE, oldE);
 	}
-	
+
 	return;
+}
+
+template<typename number>
+void ShapeMove<number>::log_parameters() {
+	BaseMove<number>::log_parameters();
+	OX_LOG(Logger::LOG_INFO, "\tdelta = %g", _delta);
 }
 
 template class ShapeMove<float>;
