@@ -39,7 +39,6 @@
 
 #include <cmath>
 #include <strings.h>
-#include <xlocale.h>
 #include <iostream>
 
 #include "model.h"
