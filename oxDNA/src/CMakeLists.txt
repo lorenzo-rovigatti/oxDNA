@@ -52,6 +52,9 @@ SET(observables_SOURCES
 	Observables/UnstackedList.cpp
 	Observables/PlectonemePosition.cpp
 	Observables/TEPPlectonemePosition.cpp
+	Observables/AverageEnergy.cpp
+	Observables/ContactMap.cpp
+	Observables/AllVectors.cpp
 )
 
 SET(backends_SOURCES
