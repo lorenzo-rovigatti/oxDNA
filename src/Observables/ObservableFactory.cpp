@@ -44,6 +44,9 @@
 #include "UnstackedList.h"
 #include "PlectonemePosition.h"
 #include "TEPPlectonemePosition.h"
+#include "AverageEnergy.h"
+#include "ContactMap.h"
+#include "AllVectors.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
@@ -112,6 +115,10 @@ BaseObservable<number> *ObservableFactory::make_observable(input_file &obs_inp, 
 	else if(!strncasecmp(obs_type, "Pq", 512)) res = new FormFactor<number>();
 	else if(!strncasecmp(obs_type, "unstacked_list", 512)) res = new UnstackedList<number>();
 	else if(!strncasecmp(obs_type, "plectoneme_position", 512)) res = new PlectonemePosition<number>();
+	else if(!strncasecmp(obs_type, "average_energy", 512)) res = new AverageEnergy<number>();
+	else if(!strncasecmp(obs_type, "contact_map", 512)) res = new ContactMap<number>();
+	else if(!strncasecmp(obs_type, "all_vectors", 512)) res = new AllVectors<number>();
+
 	else {
 		res = PluginManager::instance()->get_observable<number>(obs_type);
 		if(res == NULL) throw oxDNAException ("Observable '%s' not found. Aborting", obs_type);
