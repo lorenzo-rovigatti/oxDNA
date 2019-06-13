@@ -21,7 +21,7 @@ template<typename number>
 class Depletion : public BaseMove<number> {
 	protected:
 		number _delta_trs, _delta_trs_max, _delta_rot, _delta_rot_max, _delta_swm, _delta_swm_max;
-		number _sigma_dep, _rho_dep, _tryvolume, _mu_gas, _z;
+		number _length, _sigma_dep, _rho_dep, _tryvolume, _mu_gas, _z;
 		int _ntries, _avg_dn, _n_dn, _n_dn_n0;
 
 		std::default_random_engine _generator;

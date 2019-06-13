@@ -200,7 +200,8 @@ void NDepletion<number>::apply (llint curr_step) {
 	q->type = this->_restrict_to_type + 1;
 	q->index = (*this->_Info->N);
 
-	//int old_nneighs = target_neighs.size();
+	//since lists can change, and after moving p could in principle not be
+	// a neighbour of pt anymore, we need this check to ensure detailed balance
 	if (target_neighs.size() != this->_Info->lists->get_complete_neigh_list(pt).size()) {
 		//OX_LOG(Logger::LOG_DEBUG, "Not a neighbour anymore...");
 		this->_Info->interaction->set_is_infinite(true);
