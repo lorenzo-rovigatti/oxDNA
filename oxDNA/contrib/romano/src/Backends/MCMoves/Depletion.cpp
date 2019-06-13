@@ -25,6 +25,7 @@ Depletion<number>::Depletion (){
 	_n_dn = 0;
 	_n_dn_n0 = 0;
 	_z = (number) 0.f;
+	_length = 10.f;
 	_generator = std::default_random_engine();
 }
 
@@ -61,7 +62,7 @@ void Depletion<number>::init () {
 
 	// let's compute an effective temperature
 	double ovolume = coverlap (0.5 + _sigma_dep, 0.5 + _sigma_dep, 1.) - 2. * coverlap(0.5+_sigma_dep, 0.5, 1.);
-	ovolume *= (10. + 2.*_sigma_dep);
+	ovolume *= (_length + 2.*_sigma_dep);
 	double kteq = _z*ovolume;
 
 	if (this->_restrict_to_type < 0) throw oxDNAException("Depletion move MUST be restricted to a type");
@@ -92,8 +93,8 @@ void Depletion<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	getInputNumber (&inp, "sigma_dep", &_sigma_dep, 1);
 	//getInputNumber (&inp, "rho_dep", &_rho_dep, 1);
 	getInputNumber (&inp, "mu_gas", &_mu_gas, 1);
-	getInputNumber (&inp, "tryvolume", &_tryvolume, 1);
 	getInputInt (&inp, "ntries", &_ntries, 1);
+	getInputNumber (&inp, "length", &_length, 0);
 }
 
 int part_log(int n, int k) {
@@ -105,8 +106,6 @@ int part_log(int n, int k) {
 
 template<typename number>
 void Depletion<number>::apply (llint curr_step) {
-
-	number length = 10.;
 
 	// we increase the attempted count
 	this->_attempted += 1;
@@ -198,6 +197,8 @@ void Depletion<number>::apply (llint curr_step) {
 
 		// free volume before the move;
 		int ntry = 0, nfv = 0;
+
+//#####pragma
 		while (ntry < _ntries) {
 			number dx = 2.*drand48() - 1.; // between -1 and 1
 			number dy = 2.*drand48() - 1.; // between -1 and 1
@@ -208,7 +209,7 @@ void Depletion<number>::apply (llint curr_step) {
 			}
 			dx = dx * (0.5 + _sigma_dep);
 			dy = dy * (0.5 + _sigma_dep);
-			dz = dz * (length + 2. * _sigma_dep);
+			dz = dz * (_length + 2. * _sigma_dep);
 
 			q->pos = p_new->pos + (p_new->orientation.v1 * dx) +
 			                      (p_new->orientation.v2 * dy) +
@@ -216,7 +217,7 @@ void Depletion<number>::apply (llint curr_step) {
 
 			// compare with core
 			if (_sigma_dep < 0.5f) {
-				if (fabs(dz) > length / 2. - _sigma_dep) {
+				if (fabs(dz) > _length / 2. - _sigma_dep) {
 					if (dx * dx + dy * dy < (0.5 - _sigma_dep) * (0.5 - _sigma_dep)) {
 						this->_Info->interaction->set_is_infinite(true); // to skip cycle
 					}
@@ -255,7 +256,7 @@ void Depletion<number>::apply (llint curr_step) {
 			}
 			dx = dx * (0.5 + _sigma_dep);
 			dy = dy * (0.5 + _sigma_dep);
-			dz = dz * (length + 2. * _sigma_dep);
+			dz = dz * (_length + 2. * _sigma_dep);
 
 			//q->pos.x = p_old->pos.x + p_old->orientation.v1.x * dx + p_old->orientation.v2.x * dy + p_old->orientation.v3.x * dz;
 			//q->pos.y = p_old->pos.y + p_old->orientation.v1.y * dx + p_old->orientation.v2.y * dy + p_old->orientation.v3.y * dz;
@@ -267,7 +268,7 @@ void Depletion<number>::apply (llint curr_step) {
 
 			// compare with core
   			if (_sigma_dep < 0.5f) {
-  				if (fabs(dz) > length / 2. - _sigma_dep) {
+  				if (fabs(dz) > _length / 2. - _sigma_dep) {
   					if (dx * dx + dy * dy < (0.5 - _sigma_dep) * (0.5 - _sigma_dep)) {
   						this->_Info->interaction->set_is_infinite(true); // to skip cycle
   					}
