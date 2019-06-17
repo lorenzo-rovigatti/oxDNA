@@ -42,14 +42,15 @@ in the build/bin folder.
 CMAKE OPTIONS
 -------------
 
--DCUDA=ON		Enables CUDA support
--DDebug=ON		Compiles with debug symbols and without optimisation flags
--DG=ON			Compiles with debug symbols + optimisation flags
--DINTEL=ON		Uses INTEL's compiler suite
--DMPI=ON		Compiles oxDNA with MPI support
--DCXX11=ON		Compiles oxDNA with c++11 support
--DSIGNAL=OFF	Handling system signals is not supported everything. Set this flag to OFF to remove this feature
--DMOSIX=ON		Makes oxDNA compatible with MOSIX
+-DCUDA=ON				Enables CUDA support
+-DCUDA_COMMON_ARCH=ON	Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.
+-DDebug=ON				Compiles with debug symbols and without optimisation flags
+-DG=ON					Compiles with debug symbols + optimisation flags
+-DINTEL=ON				Uses INTEL's compiler suite
+-DMPI=ON				Compiles oxDNA with MPI support
+-DCXX11=ON				Compiles oxDNA with c++11 support
+-DSIGNAL=OFF			Handling system signals is not always supported. Set this flag to OFF to remove this feature
+-DMOSIX=ON				Makes oxDNA compatible with MOSIX
 
 MAKE TARGETS
 -------------
