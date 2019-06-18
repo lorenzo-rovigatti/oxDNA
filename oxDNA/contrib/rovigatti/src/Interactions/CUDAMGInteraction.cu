@@ -75,6 +75,7 @@ __global__ void cp_bonded_forces(number4 *poss, number4 *forces, int *bonded_nei
 
 	number4 F = forces[IND];
 	number4 ppos = poss[IND];
+	// this is set in the read_topology method of MGInteraction
 	int n_bonded_neighs = get_particle_btype<number, number4>(ppos);
 
 	for(int i = 0; i < n_bonded_neighs; i++) {
