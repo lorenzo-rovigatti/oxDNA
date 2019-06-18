@@ -182,24 +182,6 @@ bool FSInteraction<number>::_is_patchy_patchy(int p_type, int q_type) {
 	return p_type != POLYMER && q_type != POLYMER;
 }
 
-template<typename number>
-bool FSInteraction<number>::_is_patchy_polymer(int p_type, int q_type) {
-	if(p_type != POLYMER && q_type == POLYMER) {
-		return true;
-	}
-
-	if(p_type == POLYMER && q_type != POLYMER) {
-		return true;
-	}
-
-	return false;
-}
-
-template<typename number>
-bool FSInteraction<number>::_is_polymer_polymer(int p_type, int q_type) {
-	return p_type == POLYMER && q_type == POLYMER;
-}
-
 extern "C" FSInteraction<float> *make_FSInteraction_float();
 extern "C" FSInteraction<double> *make_FSInteraction_double();
 

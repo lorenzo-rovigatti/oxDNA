@@ -27,6 +27,9 @@ protected:
 	swap_event *_h_events, *_d_events;
 	number4 *_d_three_body_forces, *_d_three_body_torques;
 	llint _step;
+
+	// polymer stuff
+	int *_d_bonded_neighs;
 public:
 	CUDAFSInteraction();
 	virtual ~CUDAFSInteraction();

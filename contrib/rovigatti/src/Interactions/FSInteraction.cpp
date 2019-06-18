@@ -50,7 +50,9 @@ void FSInteraction<number>::get_settings(input_file &inp) {
 
 	string backend;
 	getInputString(&inp, "backend", backend, 0);
-	if(backend == "CUDA") no_three_body = true;
+//	if(backend == "CUDA") {
+//		no_three_body = true;
+//	}
 
 	getInputNumber(&inp, "FS_lambda", &_lambda, 0);
 	getInputNumber(&inp, "FS_sigma_ss", &_sigma_ss, 0);
@@ -247,46 +249,49 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 	
 	typename std::set<FSBond<number> >::iterator it = _bonds[p->index].begin();
 	for(; it != _bonds[p->index].end(); it++) {
-		// three-body interactions happen only when the same patch is involved in
-		// more than a bond
+		// three-body interactions happen only when the same patch is involved in more than a bond
 		if(it->other != new_bond.other && it->p_patch == new_bond.p_patch) {
 			number curr_energy = -new_bond.energy;
-			if(new_bond.r_p < _sigma_ss) curr_energy = 1.;
+			if(new_bond.r_p < _sigma_ss) {
+				curr_energy = 1.;
+			}
 
 			number other_energy = -it->energy;
-			if(it->r_p < _sigma_ss) other_energy = 1.;
+			if(it->r_p < _sigma_ss) {
+				other_energy = 1.;
+			}
 
-			energy += _lambda*curr_energy*other_energy;
+			energy += _lambda * curr_energy * other_energy;
 
 			if(update_forces) {
 				if(new_bond.r_p > _sigma_ss) {
 					BaseParticle<number> *other = new_bond.other;
 
-					number factor = -_lambda*other_energy;
-					LR_vector<number> tmp_force = factor*new_bond.force;
+					number factor = -_lambda * other_energy;
+					LR_vector<number> tmp_force = factor * new_bond.force;
 
 					p->force -= tmp_force;
 					other->force += tmp_force;
 
 					_update_stress_tensor(new_bond.r, tmp_force);
 
-					p->torque -= factor*new_bond.p_torque;
-					other->torque += factor*new_bond.q_torque;
+					p->torque -= factor * new_bond.p_torque;
+					other->torque += factor * new_bond.q_torque;
 				}
 
 				if(it->r_p > _sigma_ss) {
 					BaseParticle<number> *other = it->other;
 
-					number factor = -_lambda*curr_energy;
-					LR_vector<number> tmp_force = factor*it->force;
+					number factor = -_lambda * curr_energy;
+					LR_vector<number> tmp_force = factor * it->force;
 
-					p->force -= factor*it->force;
-					other->force += factor*it->force;
+					p->force -= factor * it->force;
+					other->force += factor * it->force;
 
 					_update_stress_tensor(it->r, tmp_force);
 
-					p->torque -= factor*it->p_torque;
-					other->torque += factor*it->q_torque;
+					p->torque -= factor * it->p_torque;
+					other->torque += factor * it->q_torque;
 				}
 			}
 		}
@@ -369,6 +374,7 @@ void FSInteraction<number>::_parse_bond_file(BaseParticle<number> **particles) {
 		idx--;
 		CustomParticle<number> *p = static_cast<CustomParticle<number> *>(particles[idx]);
 		p->n3 = p->n5 = P_VIRTUAL;
+		p->btype = n_bonds;
 		for(int j = 0; j < n_bonds; j++) {
 			int n_idx;
 			bond_file >> n_idx;
@@ -413,17 +419,19 @@ void FSInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<nu
 	else if(_N_def_A > _N_A) {
 		throw oxDNAException("The number of defective A-particles (%d) should not be larger than the number of A-particles (%d)", _N_def_A, _N_A);
 	}
-	_N_B = N - _N_A;
-	if(_N_B > 0 && _N_patches_B == -1) throw oxDNAException("Number of patches of species B not specified");
 
 	if(_with_polymers) {
 		topology.getline(line, 512);
 		if(sscanf(line, "%d\n", &_N_in_polymers) != 1) {
 			throw oxDNAException("When FS_with_polymers is set to true, the second line of the topology file should contain the number of polymer beads");
 		}
+		OX_LOG(Logger::LOG_INFO, "FSInteraction: simulating %d polymer beads", _N_in_polymers);
 	}
 
 	topology.close();
+
+	_N_B = N - _N_A - _N_in_polymers;
+	if(_N_B > 0 && _N_patches_B == -1) throw oxDNAException("Number of patches of species B not specified");
 
 	OX_LOG(Logger::LOG_INFO, "FSInteraction: simulating %d A-particles (of which %d are defective) and %d B-particles", _N_A, _N_def_A, _N_B);
 	
