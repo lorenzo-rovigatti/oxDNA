@@ -1,6 +1,26 @@
+v. 2.4 (revision 6963, 27th June 2019)
+	- Added a r_ext option to RepulsiveSphere which acts as an optional outer cut-off
+	- Added a parallel tempering backend for Monte Carlo simulations
+	- Now external forces are accounted for during configuration generation through their associated Boltzmann factor
+	- RepulsiveSphere now uses the _add_self_to_particles method that makes it possible to write expressiones like "particle = 0-999" instead of having 1000 times near-copies of the same stanza
+	- GenericCentralForce now supports an E_shift option to shift the non-zero portion of the energy. Useful during configuration generation
+	- Added the option to use plugin manager to dynamically load custom MCMove class for MC2 Backend from contrib
+	- Added a "rate" option to mutual traps in order to make their strength time-dependent
+	- Added the "compute_energy_before" option to MC2 Moves not to compute the energy before the move, useful in case of purely repulsive hard potentials. Defaults to true
+	- Made oxDNA compatible with CUDA 9.1 and remove a few subsequent warnings
+	- Made the G and DBG cmake options work also with nvcc
+	- Added a new option to cmake (CUDA_COMMON_ARCH) that is set to ON by default. If ON, this optional will make oxDNA be compiled for a list of architectures that depend on the installed CUDA version. This might result in a very slow compilation. Use -DCUDA_COMMON_ARCH=OFF to have cmake detect the installed GPU and compile only for its arch
+	Bug fixes:
+	- Mutual traps now work in the same way on the CPU and GPU backends
+	- General bug fixes to the Writhe observable, which now works as intended also when plectonemes are close to the end of the chain
+	- Fixed a bug whereby the code would segfault when PairEnergy was given incorrect particle indexes. Now the code exits with a meaningful message instead
+	- Fixed the umpteenth fix_diffusion bug which unphysically made the system's centre of mass move towards the -1,-1,-1 direction
+	- Fixed a bug with the cadnano interface by making sure that new_nodes.begin and new_nodes.end are the same length at the end of the "insert_loop_skip" method	
+	- Updated base.py to avoid ValueError exceptions when variables that may be numpy arrays are checked against None's and True's
+
 v 2.3.2
 	Bugfixing release:
-	- Fixed a bug in SimManager.cpp that would make the ambigous case of equilibration_steps>0
+	- Fixed a bug in SimManager.cpp that would make the ambiguous case of equilibration_steps>0
 	  and restart_step_counter=false misbehave
 	- Removed the inclusion of xlocale.h from defs.h
 
