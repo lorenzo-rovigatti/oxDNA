@@ -108,6 +108,9 @@ protected:
 	number _patch_pow_alpha;
 
 	int _shape;
+	int _patch_type;
+
+	number _kf_delta, _kf_cosmax;
 
 
 	int _narrow_type; //the type of angular narrowness used by the patches
@@ -156,11 +159,12 @@ public:
 	number _repulsive_lj_n(const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc,int n,bool update_forces);
 
 	number _exc_LJ_vol_interaction_sphere(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	number  _exc_vol_hard_icosahedron(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r,bool update_forces);
+	number _exc_vol_hard_icosahedron(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r,bool update_forces);
+	number _exc_vol_hs (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r,bool update_forces);
 	//inline number _exc_quadratic_vol_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
-
 	inline number _patchy_interaction_notorsion(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline number _patchy_interaction_kf(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
 
 	virtual bool multipatch_allowed(void) {return  ! this->_no_multipatch;}
 
@@ -188,13 +192,18 @@ public:
 public:
 	enum {
 		PATCHY = 0,
-		EXCVOL = 1
-
+		EXCVOL = 1,
 	};
 
 	enum {
 		SPHERE_SHAPE = 0,
-		ICOSAHEDRON_SHAPE = 1
+		ICOSAHEDRON_SHAPE = 1,
+		HS_SHAPE = 2,
+	};
+
+	enum {
+		POINT_PATCHES = 0,
+		KF_PATCHES = 1,
 	};
 
 	PatchyShapeInteraction();
