@@ -434,18 +434,75 @@ number PatchyShapeInteraction<number>::_exc_vol_hard_icosahedron(BaseParticle<nu
 	return (number) 0.;
 }
 
-
 template<typename number>
 number PatchyShapeInteraction<number>::_exc_vol_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-
 	if(this->_shape == SPHERE_SHAPE) {
 		return this->_exc_LJ_vol_interaction_sphere(p,q,r,update_forces);
 	}
 	else if (this->_shape == ICOSAHEDRON_SHAPE) {
 		return this->_exc_vol_hard_icosahedron(p,q,r,update_forces);
-	} else {
-		throw oxDNAException("Selected particle shape type not supported");
+	} 
+	else if (this->_shape == HS_SHAPE) {
+		return this->_exc_vol_hs(p,q,r,update_forces);
+	} 
+	else {
+		throw oxDNAException("Selected interaction not supported");
 	}
+}
+
+template<typename number>
+number PatchyShapeInteraction<number>::_exc_vol_hs (BaseParticle<number> *ap, BaseParticle<number> *aq, LR_vector<number> *r,bool update_forces) {
+	if (update_forces)
+		throw oxDNAException("No forces, figlio di ndrocchia");
+
+	BaseParticle<number> *p = NULL, *q = NULL;
+	LR_vector<number> my_r;
+	if (ap->index < aq->index) {
+		p = ap;
+		q = aq;
+		my_r = *r;
+	} else {
+		p = aq;
+		q = ap;
+		my_r = this->_box->min_image(p, q);
+	}
+	
+	number rnorm = my_r.norm();
+	if (rnorm > (4. * _sphere_radius * _sphere_radius)) {
+		return (number) 0.f;
+	}
+	else {
+		this->set_is_infinite(true);
+		return (number) 1.0e12;
+	}
+}
+
+template<typename number>
+number PatchyShapeInteraction<number>::_patchy_interaction_kf(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+	number rnorm = r->norm();
+	if(rnorm > this->_sqr_rcut) return (number) 0.f;
+
+	number rmod = sqrt(rnorm);
+	number energy = (number) 0.f;
+
+	PatchyShapeParticle<number> *pp = static_cast<PatchyShapeParticle<number> *>(p);
+	PatchyShapeParticle<number> *qq = static_cast<PatchyShapeParticle<number> *>(q);
+
+	for(int pi = 0; pi < pp->N_patches; pi++) {
+		for(int qi = 0; qi < qq->N_patches; qi++) {
+			if(this->_bonding_allowed(pp, qq, pi, qi)) {
+				number my_cos_p =  ((*r) * p->int_centers[pi] / (0.5 * rmod));
+				number my_cos_q = -((*r) * q->int_centers[qi] / (0.5 * rmod));
+				if (my_cos_p > _kf_cosmax && my_cos_q > _kf_cosmax) {
+					energy += -1.f;
+				}
+			}
+		}
+	}
+
+	if (energy < -1.1f) throw oxDNAException("More than one bond...");
+
+	return energy;
 }
 
 //USING THIS ONE!
@@ -466,7 +523,7 @@ number PatchyShapeInteraction<number>::_patchy_interaction_notorsion(BaseParticl
 		q->force += force;
 	}
 
-   */
+   	*/
 	//printf("Particles %d and %d: distance %f  repulsion ene: %f\n",p->index,q->index,sqrt(rnorm),energy);
 
 	PatchyShapeParticle<number> *pp = static_cast<PatchyShapeParticle<number> *>(p);
@@ -607,19 +664,12 @@ number PatchyShapeInteraction<number>::_patchy_interaction_notorsion(BaseParticl
 	return energy;
 }
 
-
+// constructor
 template <typename number>
 PatchyShapeInteraction<number>::PatchyShapeInteraction() : BaseInteraction<number, PatchyShapeInteraction<number> >()  {
-	//this->_int_map[PATCHY] = &PatchyShapeInteraction<number>::_patchy_interaction;
     _close_vertexes = NULL;
 
     _no_multipatch = 0;
-
-	this->_int_map[EXCVOL] = &PatchyShapeInteraction<number>::_exc_vol_interaction;
-	this->_int_map[PATCHY] = &PatchyShapeInteraction<number>::_patchy_interaction_notorsion;
-
-	//this->_int_map[PATCHY] = &PatchyShapeInteraction<number>::_patchy_LJ_interaction;
-	//this->_int_map[PATCHY] = &PatchyShapeInteraction<number>::_patchy_CUT_LJ4896_noEXC_interaction;
 
 	//default option, very wide!
 	PLPATCHY_THETA_T0[0] = PLPATCHY_THETA_T0[1] = 0.;
@@ -648,6 +698,8 @@ PatchyShapeInteraction<number>::PatchyShapeInteraction() : BaseInteraction<numbe
 	_interaction_patch_types = 0; //a 2d matrix of patches (each patch has a unique id) that checks if patches can interact; is only used if interaction tensor is true
 	_interaction_table_types = 0;
 
+	_kf_delta = 0.12;
+	_kf_cosmax = 0.92;
 }
 
 template <typename number>
@@ -858,12 +910,34 @@ void PatchyShapeInteraction<number>::get_settings(input_file &inp) {
 	{
 		this->_shape = ICOSAHEDRON_SHAPE;
 	}
+	else if ( shapestring == string("hs") )
+	{
+		this->_shape = HS_SHAPE;
+	}
 	else
 	{
 		throw oxDNAException("Unsupported shape: %s",shapestring.c_str());
 	}
-
 	OX_LOG(Logger::LOG_INFO, "Using excluded volume shape %d (%s)",this->_shape,shapestring.c_str());
+	
+	//DETECT patcht type
+	this->_patch_type = POINT_PATCHES;
+	std::string patchstring; //this file contains information about types of patches
+	if (getInputString(&inp, "patch_type", patchstring, 0) == KEY_FOUND) {
+		if ( patchstring == string("kf") )
+		{
+			this->_patch_type = KF_PATCHES;
+		}
+		else if ( patchstring == string("point") )
+		{
+			this->_patch_type = POINT_PATCHES;
+		}
+		else
+		{
+			throw oxDNAException("Unsupported patch: %s",patchstring.c_str());
+		}
+		OX_LOG(Logger::LOG_INFO, "Using patch type  %d (%s)",this->_patch_type,patchstring.c_str());
+	}
 
 	int no_multi = 0;
 	if( getInputBoolAsInt(&inp,"no_multipatch",&no_multi,0) == KEY_FOUND)
@@ -1043,7 +1117,13 @@ void PatchyShapeInteraction<number>::get_settings(input_file &inp) {
 
 	OX_LOG(Logger::LOG_INFO, "(PatchyShapeInteraction) using radius=%g, alpha=%g, cutoff=%g, multipatch=%d", _sphere_radius, _patch_alpha, _lock_cutoff, _no_multipatch);
 
+
+	if (_patch_type == KF_PATCHES) {
+		getInputNumber(&inp, "kf_delta", &_kf_delta, 1);
+		getInputNumber(&inp, "kf_cosmax", &_kf_cosmax, 1);
+	}
 }
+
 
 template<typename number>
 void PatchyShapeInteraction<number>::init() {
@@ -1109,10 +1189,47 @@ void PatchyShapeInteraction<number>::init() {
 	if (_shape == ICOSAHEDRON_SHAPE) {
 		 _init_icosahedron();
 	}
+	
+	// choose which function to call for excluded volume
+	switch (_shape) {
+		case HS_SHAPE :
+			this->_int_map[EXCVOL] = (number (PatchyShapeInteraction<number>::*) (BaseParticle<number> *, BaseParticle<number> *, LR_vector<number> *, bool)) &PatchyShapeInteraction<number>::_exc_vol_hs;
+			break;
+		case ICOSAHEDRON_SHAPE :
+			this->_int_map[EXCVOL] = &PatchyShapeInteraction<number>::_exc_vol_hard_icosahedron;
+			break;
+		case SPHERE_SHAPE :
+			this->_int_map[EXCVOL] = &PatchyShapeInteraction<number>::_exc_LJ_vol_interaction_sphere;
+			break;
+		default:
+			throw oxDNAException("Unknown interaction specified");
+			break;
+	}
+
+	// choose which function to call for patchy interaction
+	switch (_patch_type) {
+		case POINT_PATCHES :
+			this->_int_map[PATCHY] = &PatchyShapeInteraction<number>::_patchy_interaction_notorsion;
+			break;
+		case KF_PATCHES :
+			this->_int_map[PATCHY] = &PatchyShapeInteraction<number>::_patchy_interaction_kf;
+			break;
+		default :
+			throw oxDNAException("Unknown patch type specified");
+			break;
+	}
+
+	if (_patch_type == KF_PATCHES) {
+		this->_rcut = 2. * _sphere_radius + _kf_delta;
+		this->_sqr_rcut = this->_rcut * this->_rcut;
+	}
 }
+
 
 template<typename number>
 void PatchyShapeInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
+	
+	OX_LOG(Logger::LOG_INFO, "ALLOCATING");
 	for(int i = 0; i < N; i++) {
 		//int i_patches = (i < _N_A) ? _N_patches : _N_patches_B;
 		particles[i] = new PatchyShapeParticle<number>(1);
@@ -1140,15 +1257,18 @@ number PatchyShapeInteraction<number>::pair_interaction_nonbonded(BaseParticle<n
 		r = &computed_r;
 	}
 
-	number energy;
+	/*
+	number energy = _exc_vol_hs (p, q, r, update_forces);
+	if (this->get_is_infinite() == false)
+		energy += _patchy_interaction_kf (p, q, r, update_forces);
+	*/
 
-	energy = this->_patchy_interaction_notorsion(p, q, r, update_forces);
-	energy += this->_exc_vol_interaction(p,q,r,update_forces);
+	number energy = this->_pair_interaction_term_wrapper(this, EXCVOL, p, q, r, update_forces);
+	if (this->get_is_infinite() == false)
+		energy += this->_pair_interaction_term_wrapper(this, PATCHY, p, q, r, update_forces);
 
 	return energy;
 }
-
-
 
 /*
 template<typename number>
@@ -1201,13 +1321,15 @@ void PatchyShapeInteraction<number>::read_topology(int N, int *N_strands, BasePa
     int N_types;
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
-	char line[4096];
+
+	char *line = new char[3*N + 3];
 	topology.getline(line, 512);
+
 	sscanf(line, "%*d %d\n", &N_types);
 	allocate_particles(particles, N);
+
 	//second line specifies numbero f particles of each  type
-	topology.getline(line,4090);
-	//printf ("N:%d FIRST LINE:--%s--\n", N, line);
+	topology.getline(line,3*N);
 
     std::stringstream ss(line);
 
@@ -1263,6 +1385,8 @@ void PatchyShapeInteraction<number>::read_topology(int N, int *N_strands, BasePa
 
 
     this->N_patches = patch_index;
+
+	delete[] line;
 }
 
 
@@ -1466,6 +1590,7 @@ void PatchyShapeInteraction<number>::_init_patchy_locks(ConfigInfo<number>  *Inf
 template<typename number>
 void PatchyShapeInteraction<number>::check_patchy_locks(ConfigInfo<number>  *Info)
 {
+	printf ("here i am...\n");
 	if (Info == NULL) {
 		Info = &ConfigInfo<number>::ref_instance();
 	}
