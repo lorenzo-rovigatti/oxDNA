@@ -17,10 +17,13 @@
 template<typename number>
 class DepletionVolume : public BaseMove<number> {
 	protected:
-		number _delta, _delta_max;
-		number _sigma_dep, _mu_gas, _z;
+		number _delta, _delta_max, _pressure;
+		number _sigma_dep, _mu_gas, _z, _length;
+	
+		bool _change_volume;
+
 		int _ntries;
-		std::vector<LR_vector<number> > _pos_old, _depletants;
+		std::vector<LR_vector<number> > _pos_old;
 
 		std::default_random_engine _generator;
 		std::poisson_distribution<int> _poisson;
