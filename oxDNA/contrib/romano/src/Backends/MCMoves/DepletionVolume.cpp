@@ -16,6 +16,9 @@ DepletionVolume<number>::DepletionVolume (){
 	_sigma_dep = 0.5f;
 	_mu_gas = 1.;
 	_z = (number) 0.f;
+	_length = 10.f;
+	_pressure = -1.f;
+	_change_volume = false;
 	_generator = std::default_random_engine();
 }
 
@@ -42,17 +45,22 @@ double coverlap (double r1, double r2, double d) {
 template<typename number>
 void DepletionVolume<number>::init () {
 	BaseMove<number>::init();
-	_depletants.resize(int(_z * this->_Info->box->V()));
+
+	if (_pressure < 0.f)
+		_change_volume = false;
+	else
+		_change_volume = true;
+
 	_pos_old.resize(*this->_Info->N);
 	if (_delta_max < (number) 0.) _delta_max = 1.e6;
 	_z = exp(_mu_gas / this->_T);
 
 	// let's compute an effective temperature
 	double ovolume = coverlap (0.5 + _sigma_dep, 0.5 + _sigma_dep, 1.) - 2. * coverlap(0.5+_sigma_dep, 0.5, 1.);
-	ovolume *= (10. + 2.*_sigma_dep);
+	ovolume *= (_length + 2.*_sigma_dep);
 	double kteq = _z*ovolume;
 
-	OX_LOG(Logger::LOG_INFO, "(DepletionVolume.cpp) DepletionVolume move initiated with delta=%g, delta_max=%g", _delta, _delta_max);
+	OX_LOG(Logger::LOG_INFO, "(DepletionVolume.cpp) DepletionVolume move initiated with pressure=%g, delta=%g, delta_max=%g", _pressure, _delta, _delta_max);
 	OX_LOG(Logger::LOG_INFO, "(DepletionVolume.cpp)                               sigma_dep=%g, mu_gas=%g", _sigma_dep, _mu_gas);
 	OX_LOG(Logger::LOG_INFO, "(DepletionVolume.cpp)                               max overlap volume=%g, effective T=%g", ovolume, 1./kteq);
 }
@@ -65,6 +73,8 @@ void DepletionVolume<number>::get_settings (input_file &inp, input_file &sim_inp
 	getInputNumber (&inp, "delta_max", &_delta_max, 0);
 	getInputNumber (&inp, "sigma_dep", &_sigma_dep, 1);
 	getInputNumber (&inp, "mu_gas", &_mu_gas, 1);
+	getInputNumber (&inp, "length", &_length, 0);
+	getInputNumber (&inp, "pressure", &_pressure, 0);
 }
 
 int part_log(int n, int k) {
@@ -82,8 +92,6 @@ double part_log_n(int n, int k) {
 template<typename number>
 void DepletionVolume<number>::apply (llint curr_step) {
 
-	number length = 10.;
-
 	// we increase the attempted count
 	this->_attempted += 1;
 
@@ -100,12 +108,22 @@ void DepletionVolume<number>::apply (llint curr_step) {
 
 	number oldV = this->_Info->box->V();
 
-	number dL = _delta * (drand48() - 0.5);
-	box_sides.z += dL;
+	if (_change_volume == false) {
+		number dL = _delta * (drand48() - 0.5);
+		box_sides.z += dL;
 
-	number f = sqrt(old_box_sides.z / box_sides.z);
-	box_sides.y = f * box_sides.y;
-	box_sides.z = f * box_sides.z;
+		number f = sqrt(old_box_sides.z / box_sides.z);
+		box_sides.y = f * box_sides.y;
+		box_sides.x = f * box_sides.x;
+	}
+	else {
+		// random walk in log(V)
+		number dv = 2. * _delta * (drand48() - 0.5);
+		number f = exp(dv/3.);
+		box_sides.x *= f;
+		box_sides.y *= f;
+		box_sides.z *= f;
+	}
 
 	RodCells<number> * cells = static_cast<RodCells<number> * > (this->_Info->lists);
 	int old_ncells = cells->get_N_cells();
@@ -142,7 +160,7 @@ void DepletionVolume<number>::apply (llint curr_step) {
 	number V = this->_Info->box->V();
 	number dV = V - oldV;  // this will be VERY small
 
-	if (fabs(dV/V) > 1.e-3) throw oxDNAException ("dV/V too large: %g", dV/V);
+	if (_change_volume == false && fabs(dV/V) > 1.e-3) throw oxDNAException ("dV/V too large: %g", dV/V);
 
 	if (this->_Info->interaction->get_is_infinite() == false) {
 		// fake particle
@@ -175,7 +193,7 @@ void DepletionVolume<number>::apply (llint curr_step) {
 				BaseParticle<number> * q = *it;
 				LR_vector<number> dr = this->_Info->box->min_image(_pos_old[q->index], p->pos);
 				number rdot = dr * q->orientation.v3;
-				if (fabs(rdot) <= 0.5 * length) {
+				if (fabs(rdot) <= 0.5 * _length) {
 					LR_vector<number> r_on_axis = rdot * q->orientation.v3;
 					LR_vector<number> r_off_axis = dr - r_on_axis;
 					if (r_off_axis.norm() <= (0.5+_sigma_dep)*(0.5+_sigma_dep)) {
@@ -203,7 +221,7 @@ void DepletionVolume<number>::apply (llint curr_step) {
 				BaseParticle<number> * q = *it;
 				LR_vector<number> dr = this->_Info->box->min_image(q, p);  // q is the rod
 				number rdot = dr * q->orientation.v3;
-				if (fabs(rdot) <= 0.5 * length) {
+				if (fabs(rdot) <= 0.5 * _length) {
 					LR_vector<number> r_on_axis = rdot * q->orientation.v3;
 					LR_vector<number> r_off_axis = dr - r_on_axis;
 					if (r_off_axis.norm() <= (0.5+_sigma_dep)*(0.5+_sigma_dep)) {
@@ -218,15 +236,14 @@ void DepletionVolume<number>::apply (llint curr_step) {
 
 		int dN = n_new - n_old;
 
-		dE += -dN * log(_z * V) - lgamma(n_old + 1) + lgamma(n_new + 1);
+		dE += -dN * log(_z) - n_new * log(V) + n_old * log(oldV) - lgamma(n_old + 1) + lgamma(n_new + 1);
 	}
 
 	// accept or reject?
 	// for the ideal gas, beta * P = rho = z
 	//exp(-(dE + _P*dV - (N + 1)*this->_T*log(V/oldV))/this->_T
 	if (this->_Info->interaction->get_is_infinite() == false &&
-		exp(-(dE + dExt) / this->_T -_z*dV +(N+1)*log(V/oldV)) > drand48() ) {
-		//exp(-(dE + dExt) / this->_T -_z*dV +(N+1)*log(V/oldV)) > drand48() ) {
+		exp(-(dE + dExt + _pressure * dV) / this->_T +(N+1)*log(V/oldV)) > drand48() ) {
 		// move accepted
         this->_accepted ++;
 
