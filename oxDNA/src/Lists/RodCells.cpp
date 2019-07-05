@@ -85,6 +85,11 @@ void RodCells<number>::_set_N_cells_side_from_box(int N_cells_side[3], BaseBox<n
 		if(N_cells_side[i] < 3)
 			N_cells_side[i] = 3;
 	}
+	while ( (N_cells_side[0] * N_cells_side[1] * N_cells_side[2]) > 2 * this->_N * _n_virtual_sites_max ) {
+		N_cells_side[0] --;
+		N_cells_side[1] --;
+		N_cells_side[2] --;
+	}
 }
 
 template<typename number>
