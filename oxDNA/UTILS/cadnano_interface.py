@@ -31,8 +31,7 @@ class vh_nodes(object):
             self.begin.append(begin_index)
 
     def add_end(self, end_index):
-        # the first condition tries to mitigate a crash that occurs whenever self.begin and self.end have the same length at the end of the generation procedure
-        if len(self.begin) != len(self.end) or end_index not in self.end:
+        if end_index not in self.end:
             self.end.append(end_index)
 
 def print_usage():
@@ -629,7 +628,10 @@ def parse_cadnano(path):
             for vstrand in cadnano["vstrands"]:
                 vh = vhelix()
                 for key, val in vstrand.items():
-                    setattr(vh, key, val)
+                    if key == "skip":
+                        vh.skip = [abs(int(x)) for x in val]
+                    else:
+                        setattr(vh, key, val)
                 vh.stap = [square(*i) for i in vh.stap]
                 vh.scaf = [square(*i) for i in vh.scaf]
                 vh.skiploop_bases = len(vh.skip) + sum(vh.loop) - sum(vh.skip)
@@ -648,6 +650,8 @@ def parse_cadnano(path):
 
 
 def main():
+    print >> sys.stderr, "\t################################################################\n\tTHIS SCRIPT HAS BEEN DEPRECATED IN FAVOUR OF THE ONE CONTAINED\n\tIN THE TACOXDNA PACKAGE (https://github.com/lorenzo-rovigatti/tacoxDNA)\n\tUSE IT AT YOUR OWN RISK\n\t################################################################\n"
+    
     vh_vb2nuc = oru.vhelix_vbase_to_nucleotide()
     vh_vb2nuc_final = oru.vhelix_vbase_to_nucleotide()
     if len(sys.argv) < 3:
