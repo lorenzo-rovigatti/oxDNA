@@ -128,7 +128,4 @@ public:
 
 };
 
-template class DNA2Interaction_nomesh<float>;
-template class DNA2Interaction_nomesh<double>;
-
 #endif /* DNA2_INTERACTION_H */
