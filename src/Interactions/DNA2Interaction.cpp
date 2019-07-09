@@ -351,3 +351,6 @@ number DNA2Interaction<number>::_f4D_pure_harmonic(number t, int type) {
 
 template class DNA2Interaction<float>;
 template class DNA2Interaction<double>;
+
+template class DNA2Interaction_nomesh<float>;
+template class DNA2Interaction_nomesh<double>;
