@@ -230,9 +230,9 @@ void AVBDepletion<number>::apply (llint curr_step) {
 		OX_LOG(Logger::LOG_DEBUG, "accepted:                      %8.6lf %8.6lf  (%lld %lld)", _split_accepted[0] /(double) this->_attempted, _split_accepted[1] / (double) this->_attempted, _split_accepted[0], _split_accepted[1]);
 
 		// let's try to fix things
-		double rej_n = _rejected_n_too_small[1] / (double) freq;
-		double rej_o = _rejected_overlap[1] / (double) freq;
-		double rej_d = _rejected_depletion[1] / (double) freq;
+		//double rej_n = _rejected_n_too_small[1] / (double) freq;
+		//double rej_o = _rejected_overlap[1] / (double) freq;
+		//double rej_d = _rejected_depletion[1] / (double) freq;
 
 		/*
 		//if (rej_n < rej_d + rej_o) {

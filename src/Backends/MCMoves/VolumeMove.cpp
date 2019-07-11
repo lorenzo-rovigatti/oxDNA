@@ -120,7 +120,7 @@ void VolumeMove<number>::apply (llint curr_step) {
 template<typename number>
 void VolumeMove<number>::log_parameters() {
 	BaseMove<number>::log_parameters();
-	OX_LOG(Logger::LOG_INFO, "\tdelta", _delta);
+	OX_LOG(Logger::LOG_INFO, "\tdelta %g", _delta);
 }
 
 template class VolumeMove<float>;
