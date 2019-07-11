@@ -94,7 +94,7 @@ std::string StructureFactor<number>::get_output_string(llint curr_step) {
 	else _nconf += 1;
 
 	int N = *this->_config_info.N;
-	uint nq = 0;
+	uint32_t nq = 0;
 	for(typename std::list<LR_vector<double> >::iterator it = _qs.begin(); it != _qs.end(); nq++, it++) {
 		double sq_cos = 0.;
 		double sq_sin = 0.;

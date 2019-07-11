@@ -102,7 +102,7 @@ template double GpuUtils::sum_number4_to_double_on_GPU<LR_double4>(LR_double4 *d
 #ifndef OLD_ARCH
 template double GpuUtils::sum_4th_comp<double, double4>(double4 *, int);
 template void GpuUtils::check_device_thresold<int>(int *, int, int);
-template void GpuUtils::check_device_thresold<uint>(uint *, int, int);
+template void GpuUtils::check_device_thresold<uint32_t>(uint32_t *, int, int);
 template void GpuUtils::print_device_array<int>(int *v, int);
 template void GpuUtils::print_device_array<float>(float *v, int);
 template void GpuUtils::print_device_array<double>(double *v, int);
