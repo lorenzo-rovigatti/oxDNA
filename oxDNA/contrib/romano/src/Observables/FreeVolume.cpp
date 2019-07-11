@@ -10,6 +10,7 @@
 template<typename number> FreeVolume<number>::FreeVolume() {
     _restrict_to_type = -1;
     _sigma = 0.5f;
+	_length = 10.0f;
     _ntries = 0;
 }
 
@@ -30,6 +31,7 @@ void FreeVolume<number>::init(ConfigInfo<number> &config_info) {
 template<typename number>
 void FreeVolume<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
     getInputNumber (&my_inp, "sigma", &_sigma, 0);
+    getInputNumber (&my_inp, "length", &_length, 0);
     getInputInt(&my_inp, "restrict_to_type", &_restrict_to_type, 0);
     getInputInt (&my_inp, "ntries", &_ntries, 1);
 }
@@ -81,7 +83,7 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
     p = particles[N_of_type];
     int real_N_of_type = N_of_type + 1;
     Cells<number> * cells = new Cells<number>(real_N_of_type, this->_config_info.box);
-    cells->init(particles, 10 + 2.01 * _sigma);
+    cells->init(particles, _length + 2. *(0.5 + _sigma));
 
     int ntries = 0;
     int nfull = 0;
@@ -112,9 +114,10 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
     }
 
     int nempty = _ntries - nfull;
-    number free_volume = (nempty / (double) _ntries) * this->_config_info.box->V();
+	number volume = this->_config_info.box->V();
+    number free_volume = (nempty / (double) _ntries) * volume;
 
-    ret += Utils::sformat("%g %g", free_volume, (nempty / (double) _ntries));
+    ret += Utils::sformat("%g %g %g", (volume - free_volume) / N_of_type, free_volume, (nempty / (double) _ntries));
 
     for (int i = 0; i <= N_of_type; i ++) delete particles[i];
     delete[] particles;

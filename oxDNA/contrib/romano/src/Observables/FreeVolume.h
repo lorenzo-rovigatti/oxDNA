@@ -35,7 +35,7 @@ template<typename number>
 class FreeVolume : public BaseObservable<number> {
 private:
 	number _mesh_size;
-	number _sigma;
+	number _sigma, _length;
 	int _restrict_to_type;
 	int _ntries;
 
