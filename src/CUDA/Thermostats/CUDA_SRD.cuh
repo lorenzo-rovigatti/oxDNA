@@ -71,7 +71,7 @@ __global__ void SRD_fill_cells_and_refresh(number4 *poss, number4 *vels, int *ce
 
 	// index of the cell
 	int index = compute_cell_index(r);
-	int c_elem = index*max_N_per_cell[0] + atomicInc((uint *) &counters_cells[index], max_N_per_cell[0]);
+	int c_elem = index*max_N_per_cell[0] + atomicInc((uint32_t *) &counters_cells[index], max_N_per_cell[0]);
 	cells[c_elem] = IND;
 	cells_dp[c_elem] = dp;
 

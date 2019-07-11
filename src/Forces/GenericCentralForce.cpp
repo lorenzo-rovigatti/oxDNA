@@ -140,7 +140,7 @@ template class GenericCentralForce<float> ;
 template<typename number>
 number LookupTable<number>::_linear_interpolation(number x, vector<number> &x_data, vector<number> &fx_data) {
 	int ind = -1;
-	for(uint i = 0; i < x_data.size() && ind == -1; i++) {
+	for(uint32_t i = 0; i < x_data.size() && ind == -1; i++) {
 		if(x_data[i] > x) ind = i;
 	}
 

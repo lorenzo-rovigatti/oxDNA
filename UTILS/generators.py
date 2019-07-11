@@ -210,6 +210,13 @@ class StrandGenerator (object):
             return ns1
 
     def generate_or_sq(self, bp, sequence=None, start_pos=np.array([0,0,0]), dir=np.array([0, 0, 1]), perp=None, double=True, rot=0., angle=np.pi/180*33.75, length_change=0, region_begin=0, region_end=0):
+        if length_change and len(region_begin) != len(region_end):
+            if (len(region_end) + 1) == len(region_begin):
+                base.Logger.log("the lengths of begin (%d) and end (%d) arrays are mismatched; I will try to proceed by using the number of basepairs as the last element of the end array" % (len(region_begin), len(region_end)), base.Logger.WARNING)
+                region_end.append(bp + 1)
+            else:
+                base.Logger.die("the lengths of begin (%d) and end (%d) arrays are unrecoverably mismatched" % (len(region_begin), len(region_end)))
+        
         # we need numpy array for these
         start_pos = np.array(start_pos, dtype=float)
         dir = np.array(dir, dtype=float)

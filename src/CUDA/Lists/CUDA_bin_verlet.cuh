@@ -177,11 +177,11 @@ __global__ void bin_fill_cells(number4 *poss, int *cells, int *counters_cells, b
 	int index = compute_cell_index(r, cell_type);
 	// the index that results from this operation is just offset + index
 	// self cells
-	cells[bverlet_cells_offset[cell_type] + index*bverlet_max_N_per_cell[cell_type] + atomicInc((uint *) &counters_cells[bverlet_counters_offset[cell_type] + index], bverlet_max_N_per_cell[cell_type])] = IND;
+	cells[bverlet_cells_offset[cell_type] + index*bverlet_max_N_per_cell[cell_type] + atomicInc((uint32_t *) &counters_cells[bverlet_counters_offset[cell_type] + index], bverlet_max_N_per_cell[cell_type])] = IND;
 
 	// mixed cells
 	cell_type = 1;
 	index = compute_cell_index(r, cell_type);
-	cells[bverlet_cells_offset[cell_type] + index*bverlet_max_N_per_cell[cell_type] + atomicInc((uint *) &counters_cells[bverlet_counters_offset[cell_type] + index], bverlet_max_N_per_cell[cell_type])] = IND;
+	cells[bverlet_cells_offset[cell_type] + index*bverlet_max_N_per_cell[cell_type] + atomicInc((uint32_t *) &counters_cells[bverlet_counters_offset[cell_type] + index], bverlet_max_N_per_cell[cell_type])] = IND;
 	if(counters_cells[bverlet_counters_offset[cell_type] + index] >= bverlet_max_N_per_cell[cell_type]) *cell_overflow = true;
 }

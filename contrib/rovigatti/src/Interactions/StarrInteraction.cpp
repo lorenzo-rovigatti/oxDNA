@@ -100,7 +100,7 @@ void StarrInteraction<number>::_read_strand_topology(int N, int *N_strands, Base
 	while(!done) {
 		topology.getline(line, 2048);
 		if(!topology.fail()) {
-			for(uint np = 0; np < strlen(line); np++) {
+			for(uint32_t np = 0; np < strlen(line); np++) {
 				CustomParticle<number> *back = static_cast<CustomParticle<number> *>(particles[N_particles]);
 				back->index = N_particles;
 				back->type = P_A;

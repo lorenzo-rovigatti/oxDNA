@@ -215,13 +215,13 @@ std::string NathanNeighs<number>::_configuration(llint step) {
 					NateParticle<number> *nq = *it;
 					// q4
 					complex<number> qiqj;
-					for(uint di = 0; di < np->q4.size(); di++) qiqj += np->q4[di]*conj(nq->q4[di]);
+					for(uint32_t di = 0; di < np->q4.size(); di++) qiqj += np->q4[di]*conj(nq->q4[di]);
 					if(!first) ss << endl;
 					else first = false;
 					ss << qiqj.real();
 					// q6
 					qiqj = complex<number>();
-					for(uint di = 0; di < np->q6.size(); di++) qiqj += np->q6[di]*conj(nq->q6[di]);
+					for(uint32_t di = 0; di < np->q6.size(); di++) qiqj += np->q6[di]*conj(nq->q6[di]);
 					ss << " " << qiqj.real();
 				}
 			}

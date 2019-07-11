@@ -185,7 +185,7 @@ void qh__find_6eps(qh_vertex_t* vertices, unsigned int nvertices, qh_index_t* ep
     float maxxz = -QH_FLT_MAX;
     float maxyz = -QH_FLT_MAX;
 
-    uint i = 0;
+    uint32_t i = 0;
     for (i = 0; i < 6; ++i) {
         eps[i] = 0;
     }
