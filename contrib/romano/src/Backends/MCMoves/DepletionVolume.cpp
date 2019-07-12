@@ -162,7 +162,7 @@ void DepletionVolume<number>::apply (llint curr_step) {
 
 	if (_change_volume == false && fabs(dV/V) > 1.e-3) throw oxDNAException ("dV/V too large: %g", dV/V);
 
-	if (this->_Info->interaction->get_is_infinite() == false) {
+	if (this->_Info->interaction->get_is_infinite() == false && V < oldV) {
 		// fake particle
 		BaseParticle<number> * p = new BaseParticle<number> ();
 		p->orientation.v1 = LR_vector<number> (0., 0., 1.);
@@ -179,6 +179,7 @@ void DepletionVolume<number>::apply (llint curr_step) {
 		_poisson = std::poisson_distribution<int> (_z * oldV);
 		int n_old = 0;
 		int ndep = _poisson(_generator);
+		std::vector<LR_vector<number> > dep_pos;
 		this->_Info->box->init(old_box_sides[0], old_box_sides[1], old_box_sides[2]);
 		cells->change_box();
 		if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
@@ -201,19 +202,19 @@ void DepletionVolume<number>::apply (llint curr_step) {
 					}
 				}
 			}
-			if (overlap == false) n_old ++;
+			if (overlap == false) {
+				dep_pos.push_back(p->pos);
+				n_old ++;
+			}
 		}
 
 		// new conf
-		_poisson = std::poisson_distribution<int> (_z * V);
-		int n_new = 0;
 		this->_Info->box->init(box_sides[0], box_sides[1], box_sides[2]);
 		cells->change_box();
 		if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
-		for (int d = 0; d < ndep; d++) {
-			p->pos.x = drand48() * box_sides.x;
-			p->pos.y = drand48() * box_sides.y;
-			p->pos.z = drand48() * box_sides.z;
+		number fact = box_sides.x / old_box_sides.x;
+		for (int d = 0; d < n_old; d++) {
+			p->pos =  fact * dep_pos[d];
 			int k = cells->get_cell_index(p->pos);
 			bool overlap = false;
 			typename std::vector<BaseParticle<number> *>::iterator it;
@@ -229,14 +230,15 @@ void DepletionVolume<number>::apply (llint curr_step) {
 					}
 				}
 			}
-			if (overlap == false) n_new ++;
+			if (overlap == true) {
+				this->_Info->interaction->set_is_infinite(true);
+				break;
+			}
 		}
 
 		delete p;
 
-		int dN = n_new - n_old;
-
-		dE += -dN * log(_z) - n_new * log(V) + n_old * log(oldV) - lgamma(n_old + 1) + lgamma(n_new + 1);
+		//dE += -dN * log(_z) - n_new * log(V) + n_old * log(oldV) - lgamma(n_old + 1) + lgamma(n_new + 1);
 	}
 
 	// accept or reject?
