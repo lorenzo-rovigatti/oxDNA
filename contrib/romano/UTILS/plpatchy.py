@@ -364,7 +364,7 @@ class PLPatchyParticle:
    a2 = property (get_a2)       
   
     
-   def export_to_mgl(self,patch_colors,particle_color,patch_width=0.4,patch_extension=0.2): 
+   def export_to_mgl(self,patch_colors,particle_color,patch_width=0.1,patch_extension=0.2): 
        #sout = '%f %f %f @ %f C[%s] ' % (self.cm_pos[0],self.cm_pos[1],self.cm_pos[2],self._radius,particle_color)
 
        sout = '%f %f %f @ %f C[%s] ' % (self.cm_pos[0],self.cm_pos[1],self.cm_pos[2],0.4,particle_color)
@@ -418,7 +418,7 @@ class PLPSimulation:
     
     def generate_random_color(self,id=-1):
         #random.seed(seed)
-        if(len(self._colorbank) < 1 or id == -1):
+        if(True or len(self._colorbank) < 1 or id == -1):
           r = [random.random() for i in xrange(3)]
           color = '%f,%f,%f' % (r[0],r[1],r[2])
           return color
@@ -485,7 +485,7 @@ class PLPSimulation:
         
         self._patch_types = patches
             
-        particles = [None for x in range(self._N_patch_types)]    
+        particles = [None for x in range(self._N_particle_types)]    
         handlep.close()
         handlep = open(particle_file,'r')
         lines = handlep.readlines()
@@ -504,10 +504,12 @@ class PLPSimulation:
                     particle.init_from_string(strargs)
                     particle.fill_patches(self._patch_types)
                     index = particle._type
-                    particles[index] = particle    
+                    particles[index] = copy.deepcopy(particle)    
                     Np += 1
             j = j + 1
         self._particle_types = particles
+        #print 'Critical', self._particle_types
+        #print "LOADED", len(self._particle_types)
     
     def load_topology(self,topology_file):
         handle = open(topology_file,'r')
@@ -517,6 +519,9 @@ class PLPSimulation:
         Ntypes = int(vals[1])
         types = [int(x) for x in line[1].split()]
         #print 'Critical', line[1].split()
+        #print types
+        #print self._particle_types
+        #print 'THERE ARE', len(self._particle_types), ' particle types '
         self.particles = []
         for index,type in enumerate(types):
             p = copy.deepcopy(self._particle_types[type])
@@ -670,6 +675,13 @@ class PLPSimulation:
                         p.cm_pos[i] += self._box_size[i]          
     
     def _get_color(self,index,ispatch=False):
+        if abs(index) >= 20:
+            index = abs(index)-20
+        #print index
+        #print self._patch_colors
+        return self._patch_colors[index]
+
+
         if not ispatch:
            if index <0 or index  >= len(self._particle_colors):
                if index in self._complementary_colors.keys():
