@@ -21,6 +21,7 @@ class DepletionVolume : public BaseMove<number> {
 		number _sigma_dep, _mu_gas, _z, _length;
 	
 		bool _change_volume;
+		int _affected_side;
 
 		int _ntries;
 		std::vector<LR_vector<number> > _pos_old;
