@@ -117,7 +117,7 @@ std::string FreeVolume<number>::get_output_string(llint curr_step) {
 	number volume = this->_config_info.box->V();
     number free_volume = (nempty / (double) _ntries) * volume;
 
-    ret += Utils::sformat("%g %g %g", (volume - free_volume) / N_of_type, free_volume, (nempty / (double) _ntries));
+    ret += Utils::sformat("%g %g %g", (volume - free_volume) / N_of_type, free_volume, nempty);
 
     for (int i = 0; i <= N_of_type; i ++) delete particles[i];
     delete[] particles;
