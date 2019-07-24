@@ -37,7 +37,7 @@ private:
 	number _mesh_size;
 	number _sigma, _length;
 	int _restrict_to_type;
-	int _ntries;
+	int _ntries, _max_ntries;
 
 public:
 
