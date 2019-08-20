@@ -44,6 +44,13 @@ protected:
 
 protected:
 	bool _average;
+
+	/// variables used when max_backbone_force = true
+	bool _use_mbf;
+	number _mbf_xmax;
+	number _mbf_fmax;
+	number _mbf_finf;
+
 	char _seq_filename[512];
 
 	Model *model;

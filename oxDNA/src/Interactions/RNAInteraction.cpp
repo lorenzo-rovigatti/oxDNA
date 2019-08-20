@@ -21,6 +21,12 @@ RNAInteraction<number>::RNAInteraction() : BaseInteraction<number, RNAInteractio
 
 	OX_LOG(Logger::LOG_INFO,"Running oxRNA version %s",RNA_MODEL_VERSION);
 	this->_generate_consider_bonded_interactions = true;
+
+	_use_mbf = false;
+	_mbf_xmax = 0.f;
+	_mbf_fmax = 0.f;
+	_mbf_finf = 0.f; 
+
 }
 
 
@@ -62,8 +68,14 @@ void RNAInteraction<number>::get_settings(input_file &inp) {
 				model->load_model_from_file(external_model);
 	}
 
-
-
+	if(getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND) {
+		_use_mbf = true;
+		if (_mbf_fmax < 0.f) throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
+		_mbf_xmax =(-model->RNA_FENE_EPS + sqrt(model->RNA_FENE_EPS * model->RNA_FENE_EPS + 4.f * _mbf_fmax * _mbf_fmax * model->RNA_FENE_DELTA2)) / (2.f * _mbf_fmax);
+		if (getInputNumber (&inp, "max_backbone_force_far", &_mbf_finf, 0) != KEY_FOUND) _mbf_finf = 0.04f; // roughly 2pN, very weak but still there
+		
+		if (_mbf_finf < 0.f) throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force_far"); 
+	}
 
    RNANucleotide<number>::set_model(model);
 
@@ -75,6 +87,9 @@ void RNAInteraction<number>::init() {
 	// volume between backbones and hydrogen bonding
 	//number rcutback = 2 * fabs(model->RNA_POS_BACK) + model->RNA_EXCL_RC1;
 	//this->_T = T;
+	
+
+
 	number rcutback = 2 * sqrt(SQR(model->RNA_POS_BACK_a1) +  SQR(model->RNA_POS_BACK_a2) + SQR(model->RNA_POS_BACK_a3)  ) + model->RNA_EXCL_RC1;
 	number rcutbaseA = 2 * fabs(model->RNA_POS_BASE) + model->RNA_HYDR_RCHIGH;
 	number rcutbaseB = 2 * fabs(model->RNA_POS_BASE) + model->RNA_CRST_RCHIGH;
@@ -367,6 +382,9 @@ void RNAInteraction<number>::init() {
 
 		cleanInputFile(&seq_file);
 	}
+
+	if (_use_mbf) OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g  (the corresponding mbf_xmax is %g) and a far value of %g", _mbf_fmax, _mbf_xmax, _mbf_finf);
+
 //
 //	{
 //		number x = -1, dx = 0.001;
@@ -427,14 +445,31 @@ number RNAInteraction<number>::_backbone(BaseParticle<number> *p, BaseParticle<n
 	LR_vector<number> rback = *r + q->int_centers[RNANucleotide<number>::BACK] - p->int_centers[RNANucleotide<number>::BACK];
 	number rbackmod = rback.module();
 	number rbackr0 = rbackmod - model->RNA_FENE_R0;
-	number energy = -model->RNA_FENE_EPS * 0.5 * log(1 - SQR(rbackr0) / model->RNA_FENE_DELTA2);
+	number energy;
+	LR_vector<number> force;
+	
+	if(_use_mbf && fabs(rbackr0) > _mbf_xmax) {
+		// we use the "log"  potential
+		number fene_xmax = - ( model->RNA_FENE_EPS / 2.f) * log (1.f - SQR(_mbf_xmax) /  model->RNA_FENE_DELTA2);
+		number long_xmax = (_mbf_fmax - _mbf_finf) * _mbf_xmax * log(_mbf_xmax) + _mbf_finf * _mbf_xmax; 
+		energy = (_mbf_fmax - _mbf_finf) * _mbf_xmax * log(fabs(rbackr0)) + _mbf_finf * fabs(rbackr0) - long_xmax + fene_xmax;
+		if (update_forces)
+			force = rback * (- copysign(1.f, rbackr0) * ((_mbf_fmax - _mbf_finf) * _mbf_xmax / fabs(rbackr0) + _mbf_finf ) / rbackmod); 
+	}
+	else
+	{
+		energy = -model->RNA_FENE_EPS * 0.5 * log(1 - SQR(rbackr0) / model->RNA_FENE_DELTA2);
 
-	//printf("Calling FENE for %d %d returning %f with EPS=%f, R0 = %f, rbackmod = %f, qposx=%f %f %f, ppos.x= %f %f %f, rback= %f %f %f, rmod=%f r= %f %f %f\n",p->index,q->index,energy,model->RNA_FENE_EPS,model->RNA_FENE_R0,rbackmod,q->int_centers[RNANucleotide<number>::BACK].x,q->int_centers[RNANucleotide<number>::BACK].y,q->int_centers[RNANucleotide<number>::BACK].z, p->int_centers[RNANucleotide<number>::BACK].x, p->int_centers[RNANucleotide<number>::BACK].y, p->int_centers[RNANucleotide<number>::BACK].z,rback.x,rback.y,rback.z,(*r).module(),(*r).x,(*r).y,(*r).z);
-	// we check wheter we ended up OUTSIDE of the FENE range
-	if (fabs(rbackr0) > model->RNA_FENE_DELTA - DBL_EPSILON) return (number) (1.e12);
+		//printf("Calling FENE for %d %d returning %f with EPS=%f, R0 = %f, rbackmod = %f, qposx=%f %f %f, ppos.x= %f %f %f, rback= %f %f %f, rmod=%f r= %f %f %f\n",p->index,q->index,energy,model->RNA_FENE_EPS,model->RNA_FENE_R0,rbackmod,q->int_centers[RNANucleotide<number>::BACK].x,q->int_centers[RNANucleotide<number>::BACK].y,q->int_centers[RNANucleotide<number>::BACK].z, p->int_centers[RNANucleotide<number>::BACK].x, p->int_centers[RNANucleotide<number>::BACK].y, p->int_centers[RNANucleotide<number>::BACK].z,rback.x,rback.y,rback.z,(*r).module(),(*r).x,(*r).y,(*r).z);
+		// we check wheter we ended up OUTSIDE of the FENE range
+		if (fabs(rbackr0) > model->RNA_FENE_DELTA - DBL_EPSILON) return (number) (1.e12);
 
+		if (update_forces) force = rback * (-(model->RNA_FENE_EPS * rbackr0  / (model->RNA_FENE_DELTA2 - SQR(rbackr0))) / rbackmod);	
+	}
+	
+	
 	if(update_forces) {
-		LR_vector<number> force = rback * (-(model->RNA_FENE_EPS * rbackr0  / (model->RNA_FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
+		// = rback * (-(model->RNA_FENE_EPS * rbackr0  / (model->RNA_FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
 
 		p->force -= force;
 		q->force += force;
@@ -1906,6 +1941,7 @@ void RNAInteraction<number>::check_input_sanity(BaseParticle<number> **_particle
 		if(p->n3 != P_VIRTUAL && p->n3->index >= _N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, _N);
 		if(p->n5 != P_VIRTUAL && p->n5->index >= _N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, _N);
 
+		if (this->_use_mbf) continue;
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 		number mind =  model->RNA_FENE_R0 - model->RNA_FENE_DELTA;
 		number maxd =  model->RNA_FENE_R0 + model->RNA_FENE_DELTA;
