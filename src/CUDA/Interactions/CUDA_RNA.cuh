@@ -554,7 +554,7 @@ __device__ void _bonded_excluded_volume(number4 &r, number4 &n3pos_base, number4
 
 template <typename number, typename number4, bool qIsN3> __device__
 void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4 &n5z,number4 &n3pos,
-			     number4 &n3x, number4 &n3y, number4 &n3z, number4 &F, number4 &T, bool average) {
+			     number4 &n3x, number4 &n3y, number4 &n3z, number4 &F, number4 &T, bool average,bool use_mbf, number mbf_xmax, number mbf_finf) {
 
 	//printf("Hello from bonded part function \n");
 	int n3type = get_particle_type<number, number4>(n3pos);
@@ -594,9 +594,20 @@ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4 &n5z,numbe
 
 	number rbackr0 = rbackmod - rnamodel.RNA_FENE_R0;
 
-	number4 Ftmp = rback * ((rnamodel.RNA_FENE_EPS * rbackr0  / (rnamodel.RNA_FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
-	Ftmp.w = -rnamodel.RNA_FENE_EPS * ((number)0.5f) * logf(1 - SQR(rbackr0) / rnamodel.RNA_FENE_DELTA2);
-
+	number4 Ftmp;
+	
+	if (use_mbf == true && fabsf(rbackr0) > mbf_xmax) {
+		// this is the "relax" potential, i.e. the standard FENE up to xmax and then something like A + B log(r) for r>xmax
+		number fene_xmax = - (rnamodel.RNA_FENE_EPS / 2.f) * logf(1.f - mbf_xmax * mbf_xmax / rnamodel.RNA_FENE_DELTA2);
+		number mbf_fmax = (rnamodel.RNA_FENE_EPS * mbf_xmax  / (rnamodel.RNA_FENE_DELTA2 - SQR(mbf_xmax)));
+		number long_xmax = (mbf_fmax - mbf_finf) * mbf_xmax * logf(mbf_xmax) + mbf_finf * mbf_xmax;
+		Ftmp = rback * (copysignf(1.f, rbackr0) * ((mbf_fmax - mbf_finf) * mbf_xmax / fabsf(rbackr0) + mbf_finf) / rbackmod);
+		Ftmp.w = (mbf_fmax - mbf_finf) * mbf_xmax * logf(fabsf(rbackr0)) + mbf_finf * fabsf(rbackr0) - long_xmax + fene_xmax;
+	}
+	else {
+	    Ftmp = rback * ((rnamodel.RNA_FENE_EPS * rbackr0  / (rnamodel.RNA_FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
+	    Ftmp.w = -rnamodel.RNA_FENE_EPS * ((number)0.5f) * logf(1 - SQR(rbackr0) / rnamodel.RNA_FENE_DELTA2);
+	}
 	number4 Ttmp = (qIsN3) ? _cross<number, number4>(n5pos_back, Ftmp) : _cross<number, number4>(n3pos_back, Ftmp);
 	// EXCLUDED VOLUME
 	_bonded_excluded_volume<number, number4, qIsN3>(r, n3pos_base, n3pos_back, n5pos_base, n5pos_back, Ftmp, Ttmp);
@@ -1258,7 +1269,7 @@ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion, CUDABox<number, number4> *box) {
+__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion,  bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -1273,7 +1284,7 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		number4 b1, b2, b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
-						    qpos, b1, b2, b3, F, T, average);
+						    qpos, b1, b2, b3, F, T, average,use_mbf,mbf_xmax,mbf_finf);
 
 
 	}
@@ -1284,7 +1295,7 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number
 		number4 b1, b2, b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
-						     ppos, a1, a2, a3, F, T, average);
+						     ppos, a1, a2, a3, F, T, average,use_mbf,mbf_xmax,mbf_finf);
 
 	}
 
@@ -1354,7 +1365,7 @@ __global__ void rna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 
 // bonded interactions for edge-based approach
 template <typename number, typename number4>
-__global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool average) {
+__global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool average, bool use_mbf, number mbf_xmax, number mbf_finf) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F0, T0;
@@ -1382,14 +1393,14 @@ __global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 
 		//grooving =false;
-		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average);
+		_bonded_part<number, number4, true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average,use_mbf,mbf_xmax,mbf_finf);
 	}
 	if(bs.n5 != P_INVALID) {
 		number4 qpos = poss[bs.n5];
 		number4 b1,b2,b3;
 		get_vectors_from_quat<number,number4>(orientations[bs.n5], b1, b2, b3);
 
-		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, average);
+		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, average,use_mbf,mbf_xmax,mbf_finf);
 
 
 	}
@@ -1402,7 +1413,7 @@ __global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion, CUDABox<number, number4> *box) {
+__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion,  bool use_mbf, number mbf_xmax, number mbf_finf,CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	//number4 F = make_number4<number, number4>(0, 0, 0, 0);
@@ -1420,7 +1431,7 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 		get_vectors_from_quat<number,number4>(orientations[bs.n3], b1, b2, b3);
 
 		_bonded_part<number, number4, true>(ppos, a1, a2, a3,
-						    qpos, b1, b2, b3, F, T, average);
+						    qpos, b1, b2, b3, F, T, average,use_mbf,  mbf_xmax,  mbf_finf);
 
 
 	}
@@ -1431,7 +1442,7 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 
 
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3,
-						     ppos, a1, a2, a3, F, T, average);
+						     ppos, a1, a2, a3, F, T, average,use_mbf,  mbf_xmax,  mbf_finf);
 	}
 
 	const int type = get_particle_type<number, number4>(ppos);
