@@ -55,6 +55,13 @@ void PatchyParticle<number>::_set_base_patches() {
 		_base_patches[3] = LR_vector<number>(-HALF_ISQRT3,  HALF_ISQRT3, -HALF_ISQRT3);
 		break;
 	}
+	case 5: {
+		_base_patches[0] = LR_vector<number>(0.135000, -0.657372, -0.741375);
+		_base_patches[1] = LR_vector<number>(0.259200, 0.957408, -0.127224);
+		_base_patches[2] = LR_vector<number>(-0.394215, -0.300066, 0.868651);
+		_base_patches[3] = LR_vector<number>(-0.916202, 0.202077, -0.346033);
+		_base_patches[4] = LR_vector<number>(0.916225, -0.202059, 0.345982);
+	}
 	default:
 		throw oxDNAException("Unsupported number of patches %d\n", this->N_int_centers);
 	}

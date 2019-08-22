@@ -11,7 +11,7 @@
 #include "CUDABaseInteraction.h"
 #include "../../Interactions/PatchyInteraction.h"
 
-#define CUDA_MAX_PATCHES 4
+#define CUDA_MAX_PATCHES 5
 
 /**
  * @brief CUDA implementation of the {@link PatchyInteraction patchy interaction}.
