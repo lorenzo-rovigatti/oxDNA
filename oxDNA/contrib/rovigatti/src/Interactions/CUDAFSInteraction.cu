@@ -15,7 +15,7 @@
 #include <thrust/fill.h>
 #include <thrust/transform.h>
 
-#define CUDA_MAX_FS_PATCHES 4
+#define CUDA_MAX_FS_PATCHES 5
 #define CUDA_MAX_FS_NEIGHS 20
 
 /* BEGIN CUDA */
@@ -599,6 +599,14 @@ void CUDAFSInteraction<number, number4>::cuda_init(number box_side, int N) {
 			base_patches[1] = make_float4( HALF_ISQRT3, -HALF_ISQRT3, -HALF_ISQRT3, 0);
 			base_patches[2] = make_float4( HALF_ISQRT3,  HALF_ISQRT3,  HALF_ISQRT3, 0);
 			base_patches[3] = make_float4(-HALF_ISQRT3,  HALF_ISQRT3, -HALF_ISQRT3, 0);
+			break;
+		}
+		case 5: {
+			base_patches[0] = make_float4(0.135000, -0.657372, -0.741375, 0.);
+			base_patches[1] = make_float4(0.259200, 0.957408, -0.127224, 0.);
+			base_patches[2] = make_float4(-0.394215, -0.300066, 0.868651, 0.);
+			base_patches[3] = make_float4(-0.916202, 0.202077, -0.346033, 0.);
+			base_patches[4] = make_float4(0.916225, -0.202059, 0.345982, 0.);
 			break;
 		}
 		default:
