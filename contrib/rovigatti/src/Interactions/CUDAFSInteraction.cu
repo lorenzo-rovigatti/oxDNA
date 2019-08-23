@@ -91,28 +91,6 @@ struct __align__(16) CUDA_FS_bond_list {
     }
 };
 
-struct __align__(16) CUDA_FS_bonding_pattern {
-	int n_bonds[CUDA_MAX_FS_PATCHES];
-	int bonds[CUDA_MAX_FS_PATCHES][CUDA_MAX_FS_NEIGHS];
-
-	__device__ CUDA_FS_bonding_pattern() {
-		for(int i = 0; i < CUDA_MAX_FS_PATCHES; i++) n_bonds[i] = 0;
-	}
-	__device__ bool contains(int patch, int id) {
-		for(int i = 0; i < n_bonds[patch]; i++) if(bonds[patch][i] == id) return true;
-		return false;
-	}
-	__device__ void add_bond(int patch, int id) {
-		bonds[patch][n_bonds[patch]] = id;
-		n_bonds[patch]++;
-		if(n_bonds[patch] > CUDA_MAX_FS_NEIGHS) {
-			printf("TOO MANY BONDED NEIGHBOURS, TRAGEDY\nHere is the list of neighbours:\n");
-			for(int i = 0; i < n_bonds[patch]; i++) printf("%d ", bonds[patch][i]);
-			printf("\n");
-		}
-	}
-};
-
 __device__ bool _attraction_allowed(int p_type, int q_type) {
 	if(MD_same_patches[0]) return true;
 	if(MD_one_component[0]) return true;
@@ -122,7 +100,7 @@ __device__ bool _attraction_allowed(int p_type, int q_type) {
 }
 
 template <typename number, typename number4>
-__device__ void _patchy_two_body_interaction(number4 &ppos, number4 &qpos, number4 &a1, number4 &a2, number4 &a3, number4 &b1, number4 &b2, number4 &b3, number4 &F, number4 &torque, CUDA_FS_bond_list<number4> *bonds, CUDA_FS_bonding_pattern &pattern, int q_idx, CUDABox<number, number4> *box) {
+__device__ void _patchy_two_body_interaction(number4 &ppos, number4 &qpos, number4 &a1, number4 &a2, number4 &a3, number4 &b1, number4 &b2, number4 &b3, number4 &F, number4 &torque, CUDA_FS_bond_list<number4> *bonds, int q_idx, CUDABox<number, number4> *box) {
 	int ptype = get_particle_type<number, number4>(ppos);
 	int qtype = get_particle_type<number, number4>(qpos);
 
@@ -185,7 +163,6 @@ __device__ void _patchy_two_body_interaction(number4 &ppos, number4 &qpos, numbe
 
 					CUDA_FS_bond_list<number4> &bond_list = bonds[pi];
 					CUDA_FS_bond<number4> &my_bond = bond_list.new_bond();
-					if(energy_part < -0.2f) pattern.add_bond(pi, q_idx);
 
 					my_bond.force = tmp_force;
 					my_bond.force.w = energy_part;
@@ -313,7 +290,7 @@ __global__ void FS_bonded_forces(number4 *poss, number4 *forces, int *bonded_nei
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *three_body_forces, number4 *torques, number4 *three_body_torques, CUDA_FS_bonding_pattern *patterns, CUDABox<number, number4> *box) {
+__global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *three_body_forces, number4 *torques, number4 *three_body_torques, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -324,7 +301,6 @@ __global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4
 	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
 
 	CUDA_FS_bond_list<number4> bonds[CUDA_MAX_FS_PATCHES];
-	CUDA_FS_bonding_pattern bonding_pattern;
 
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND) {
@@ -333,7 +309,7 @@ __global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4
 			if(get_particle_type<number, number4>(ppos) != FSInteraction<number>::POLYMER && get_particle_type<number, number4>(qpos) != FSInteraction<number>::POLYMER) {
 				GPU_quat<number> qo = orientations[j];
 				get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
-				_patchy_two_body_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, bonding_pattern, j, box);
+				_patchy_two_body_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
 			}
 			else {
 				_polymer_interaction(ppos, qpos, F, T, box);
@@ -345,12 +321,11 @@ __global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4
 
 	forces[IND] = F;
 	torques[IND] = _vectors_transpose_number4_product(a1, a2, a3, T);
-	patterns[IND] = bonding_pattern;
 }
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *three_body_forces, number4 *torques, number4 *three_body_torques, int *matrix_neighs, int *number_neighs, CUDA_FS_bonding_pattern *patterns, CUDABox<number, number4> *box) {
+__global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *three_body_forces, number4 *torques, number4 *three_body_torques, int *matrix_neighs, int *number_neighs, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -361,7 +336,6 @@ __global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4
 	get_vectors_from_quat<number, number4>(po, a1, a2, a3);
 
 	CUDA_FS_bond_list<number4> bonds[CUDA_MAX_FS_PATCHES];
-	CUDA_FS_bonding_pattern bonding_pattern;
 
 	int num_neighs = number_neighs[IND];
 	for(int j = 0; j < num_neighs; j++) {
@@ -372,7 +346,7 @@ __global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4
 		if(get_particle_type<number, number4>(ppos) != FSInteraction<number>::POLYMER && get_particle_type<number, number4>(qpos) != FSInteraction<number>::POLYMER) {
 			GPU_quat<number> qo = orientations[k_index];
 			get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
-			_patchy_two_body_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, bonding_pattern, k_index, box);
+			_patchy_two_body_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, k_index, box);
 		}
 		else {
 			_polymer_interaction(ppos, qpos, F, T, box);
@@ -383,64 +357,6 @@ __global__ void FS_forces(number4 *poss, GPU_quat<number> *orientations, number4
 
 	forces[IND] = F;
 	torques[IND] = _vectors_transpose_number4_product(a1, a2, a3, T);
-	patterns[IND] = bonding_pattern;
-}
-
-__global__ void FS_compare_bonding_patterns2(CUDA_FS_bonding_pattern *old_patterns, CUDA_FS_bonding_pattern *new_patterns, llint step) {
-	if(IND >= MD_N[0]) return;
-
-	CUDA_FS_bonding_pattern old_pattern = old_patterns[IND];
-	CUDA_FS_bonding_pattern new_pattern = new_patterns[IND];
-
-	for(int i = 0; i < CUDA_MAX_FS_PATCHES; i++) {
-		for(int on = 0; on < old_pattern.n_bonds[i]; on++) {
-			int p_idx = old_pattern.bonds[i][on];
-			// p_idx is no longer a neighbour of patch i
-			if(IND > p_idx && !new_pattern.contains(i, p_idx)) {
-				printf("TIME %lld: %d has detached from %d via its patch %d\n", step, IND, p_idx, i);
-			}
-		}
-
-		for(int nn = 0; nn < new_pattern.n_bonds[i]; nn++) {
-			int p_idx = new_pattern.bonds[i][nn];
-			// p_idx is a new neighbour of patch i
-			if(IND > p_idx && !old_pattern.contains(i, p_idx)) {
-				printf("TIME %lld: %d has attached to %d via its patch %d\n", step, IND, p_idx, i);
-			}
-		}
-	}
-}
-
-__global__ void FS_compare_bonding_patterns(CUDA_FS_bonding_pattern *old_patterns, CUDA_FS_bonding_pattern *new_patterns, swap_event *events) {
-	if(IND >= MD_N[0]) return;
-
-	CUDA_FS_bonding_pattern old_pattern = old_patterns[IND];
-	CUDA_FS_bonding_pattern new_pattern = new_patterns[IND];
-	swap_event event;
-
-	bool changed = false;
-	for(int i = 0; i < CUDA_MAX_FS_PATCHES; i++) {
-		for(int on = 0; on < old_pattern.n_bonds[i]; on++) {
-			int p_idx = old_pattern.bonds[i][on];
-			// p_idx is no longer a neighbour of patch i
-			if(!new_pattern.contains(i, p_idx)) changed = true;
-			event.old_neighs[event.old_n_neighs] = p_idx;
-			event.old_n_neighs++;
-		}
-
-		for(int nn = 0; nn < new_pattern.n_bonds[i]; nn++) {
-			int p_idx = new_pattern.bonds[i][nn];
-			// p_idx is a new neighbour of patch i
-			if(!old_pattern.contains(i, p_idx)) changed = true;
-			event.new_neighs[event.new_n_neighs] = p_idx;
-			event.new_n_neighs++;
-		}
-	}
-
-	if(changed) {
-		event.active = true;
-		events[IND] = event;
-	}
 }
 
 /* END CUDA PART */
@@ -502,8 +418,6 @@ void CUDAFSInteraction<number, number4>::cuda_init(number box_side, int N) {
 		this->_N_def_A = 0;
 	}
 
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_bonds, N * sizeof(CUDA_FS_bonding_pattern)) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_new_bonds, N * sizeof(CUDA_FS_bonding_pattern)) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_three_body_forces, N * sizeof(number4)) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_three_body_torques, N * sizeof(number4)) );
 
@@ -652,7 +566,7 @@ void CUDAFSInteraction<number, number4>::compute_forces(CUDABaseList<number, num
 		else {
 			FS_forces<number, number4>
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, _d_new_bonds, d_box);
+				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_box);
 			CUT_CHECK_ERROR("FS_forces simple_lists error");
 		}
 	}
@@ -661,34 +575,8 @@ void CUDAFSInteraction<number, number4>::compute_forces(CUDABaseList<number, num
 	if(_no_lists != NULL) {
 		FS_forces<number, number4>
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _d_new_bonds, d_box);
+			(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, d_box);
 		CUT_CHECK_ERROR("FS_forces no_lists error");
-	}
-
-	if(_analyse_bonds) {
-		if(_called_once) {
-			FS_compare_bonding_patterns
-				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(_d_bonds, _d_new_bonds, _d_events);
-			CUT_CHECK_ERROR("FS_compare_bonding_patterns error");
-			cudaDeviceSynchronize();
-
-			for(int i = 0; i < N; i++) {
-				swap_event &event = _h_events[i];
-				if(event.active) {
-					printf("%lld %d %d %d\n", _step, i + 1, event.old_n_neighs, event.new_n_neighs);
-					for(int on = 0; on < event.old_n_neighs; on++) printf("%d ", event.old_neighs[on] + 1);
-					printf("\n");
-					for(int nn = 0; nn < event.new_n_neighs; nn++) printf("%d ", event.new_neighs[nn] + 1);
-					printf("\n");
-				}
-				event.active = false;
-			}
-			
-			_step++;
-		}
-
-		CUDA_SAFE_CALL( cudaMemcpy(_d_bonds, _d_new_bonds, N*sizeof(CUDA_FS_bonding_pattern), cudaMemcpyDeviceToDevice) );
 	}
 
 	// add the three body contributions to the two-body forces and torques
