@@ -33,7 +33,7 @@ set(CUDA_KNOWN_GPU_ARCHITECTURES  "Fermi" "Kepler" "Maxwell")
 set(CUDA_COMMON_GPU_ARCHITECTURES "3.0" "3.5" "5.0")
 
 if(CUDA_VERSION VERSION_LESS "7.0")
-  set(CUDA_LIMIT_GPU_ARCHITECTURE "5.2")
+  set(CUDA_LIMIT_GPU_ARCHITECTURE "4.9")
 endif()
 
 # This list is used to filter CUDA archs when autodetecting
@@ -45,7 +45,7 @@ if(CUDA_VERSION VERSION_GREATER "6.9")
 
   if(CUDA_VERSION VERSION_LESS "8.0")
     list(APPEND CUDA_COMMON_GPU_ARCHITECTURES "5.2+PTX")
-    set(CUDA_LIMIT_GPU_ARCHITECTURE "6.0")
+    set(CUDA_LIMIT_GPU_ARCHITECTURE "5.9")
   endif()
 endif()
 
@@ -56,7 +56,7 @@ if(CUDA_VERSION VERSION_GREATER "7.9")
 
   if(CUDA_VERSION VERSION_LESS "9.0")
     list(APPEND CUDA_COMMON_GPU_ARCHITECTURES "6.1+PTX")
-    set(CUDA_LIMIT_GPU_ARCHITECTURE "7.0")
+    set(CUDA_LIMIT_GPU_ARCHITECTURE "6.9")
   endif()
 endif ()
 
@@ -66,7 +66,7 @@ if(CUDA_VERSION VERSION_GREATER "8.9")
   list(APPEND CUDA_ALL_GPU_ARCHITECTURES "7.0" "7.0+PTX" "7.2" "7.2+PTX")
 
   if(CUDA_VERSION VERSION_LESS "10.0")
-    set(CUDA_LIMIT_GPU_ARCHITECTURE "8.0")
+    set(CUDA_LIMIT_GPU_ARCHITECTURE "7.9")
   endif()
 endif()
 
@@ -76,7 +76,7 @@ if(CUDA_VERSION VERSION_GREATER "9.9")
   list(APPEND CUDA_ALL_GPU_ARCHITECTURES "7.5" "7.5+PTX")
 
   if(CUDA_VERSION VERSION_LESS "11.0")
-    set(CUDA_LIMIT_GPU_ARCHITECTURE "9.0")
+    set(CUDA_LIMIT_GPU_ARCHITECTURE "8.9")
   endif()
 endif()
 
@@ -138,7 +138,7 @@ function(CUDA_DETECT_INSTALLED_GPUS OUT_VARIABLE)
     set(CUDA_GPU_DETECT_OUTPUT_FILTERED "")
     separate_arguments(CUDA_GPU_DETECT_OUTPUT)
     foreach(ITEM IN ITEMS ${CUDA_GPU_DETECT_OUTPUT})
-        if(CUDA_LIMIT_GPU_ARCHITECTURE AND ITEM VERSION_GREATER_EQUAL CUDA_LIMIT_GPU_ARCHITECTURE)
+      if(CUDA_LIMIT_GPU_ARCHITECTURE AND ITEM VERSION_GREATER CUDA_LIMIT_GPU_ARCHITECTURE)
         list(GET CUDA_COMMON_GPU_ARCHITECTURES -1 NEWITEM)
         string(APPEND CUDA_GPU_DETECT_OUTPUT_FILTERED " ${NEWITEM}")
       else()
@@ -254,7 +254,7 @@ function(CUDA_SELECT_NVCC_ARCH_FLAGS out_variable)
       list(APPEND nvcc_archs_readable sm_${CMAKE_MATCH_1})
     else()
       # User didn't explicitly specify ARCH for the concrete CODE, we assume ARCH=CODE
-      list(APPEND nvcc_flags -gencode arch=compute_${arch},code=sm_${arch})
+      list(APPEND nvcc_flags "-gencode arch=compute_${arch},code=sm_${arch}")
       list(APPEND nvcc_archs_readable sm_${arch})
     endif()
   endforeach()

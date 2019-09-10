@@ -77,7 +77,7 @@ IF(NOT CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF()
 
 IF(CUDA)
-	CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+	CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 	FIND_PACKAGE(CUDA)
 	
 	OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
@@ -97,16 +97,8 @@ IF(CUDA)
 	
 	MESSAGE(STATUS "Generating code for the following CUDA architectures: ${ARCH_FLAGS_readable}")
 	LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
-    
-    IF(G)
-		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo)
-    ENDIF(G)
-
-    IF(DEBUG)
-		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo -G)
-    ENDIF(DEBUG)
-
-
+	MESSAGE(STATUS "${CUDA_NVCC_FLAGS}")
+   
 	IF(G)
 		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo)
 	ENDIF(G)
@@ -114,6 +106,8 @@ IF(CUDA)
 	IF(DEBUG)
 		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo -G)
 	ENDIF(DEBUG)
+
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -use_fast_math --compiler-options "-ffast-math -O3" -Xcudafe "--diag_suppress=unrecognized_gcc_pragma")
 ELSE()
 	ADD_DEFINITIONS(-DNOCUDA)
 ENDIF(CUDA)
