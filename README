@@ -18,7 +18,7 @@ make
 gcc >= 4.2 / icc >= 11.0
 
 With CUDA support:
-cmake >= 2.8
+cmake >= 3.5
 make
 gcc >= 4.2 / icc >= 11.0
 CUDA toolkit >= 4.0
