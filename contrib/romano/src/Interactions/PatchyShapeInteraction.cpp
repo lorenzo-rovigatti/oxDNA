@@ -494,7 +494,7 @@ number PatchyShapeInteraction<number>::_patchy_interaction_kf(BaseParticle<numbe
 				number my_cos_p =  ((*r) * p->int_centers[pi] / (0.5 * rmod));
 				number my_cos_q = -((*r) * q->int_centers[qi] / (0.5 * rmod));
 				if (my_cos_p > _kf_cosmax && my_cos_q > _kf_cosmax) {
-					energy += -1.f;
+					energy += -1.f * pp->patches[pi].strength;
 				}
 			}
 		}
