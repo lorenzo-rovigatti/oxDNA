@@ -10,7 +10,6 @@ OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
 OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
-OPTION(CXX11 "Compile with C++11 support" OFF)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have
 # problems at linking time
@@ -37,15 +36,12 @@ PROJECT(oxDNA)
 # The default behaviour is to compile with optimisations
 SET(CMAKE_BUILD_TYPE Release)
 
-IF(CXX11)
-	MESSAGE(STATUS "Compiling with c++11 support")
-	IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
-		SET(CMAKE_CXX_STANDARD 11)
-		SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-	ELSE()
-		ADD_COMPILE_OPTIONS(-std=c++11)
-	ENDIF()
-ENDIF(CXX11)
+IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
+	SET(CMAKE_CXX_STANDARD 14)
+	SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+ELSE()
+	ADD_COMPILE_OPTIONS(-std=c++14)
+ENDIF()
 
 IF(Debug)
 	SET(CMAKE_BUILD_TYPE Debug)

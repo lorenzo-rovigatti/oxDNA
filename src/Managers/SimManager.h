@@ -41,7 +41,7 @@ print_conf_ppc = <int> (mandatory only if time_scale == log_line. This is the nu
  */
 class SimManager {
 protected:
-	ISimBackend *_backend;
+	std::shared_ptr<ISimBackend> _backend;
 	input_file _input;
 	time_scale _time_scale_manager;
 	int _time_scale;

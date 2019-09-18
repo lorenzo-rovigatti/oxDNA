@@ -34,7 +34,7 @@ public:
 	 * @param inp
 	 * @return a pointer to the newly created backend
 	 */
-	static ISimBackend *make_backend(input_file &inp);
+	static std::shared_ptr<ISimBackend> make_backend(input_file &inp);
 };
 
 #endif /* BACKENDFACTORY_H_ */

@@ -40,6 +40,7 @@
 #include <cmath>
 #include <string>
 #include <iostream>
+#include <memory>
 
 #include "model.h"
 #include "Utilities/Logger.h"

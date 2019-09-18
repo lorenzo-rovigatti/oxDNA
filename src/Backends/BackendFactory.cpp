@@ -34,7 +34,7 @@ BackendFactory::~BackendFactory() {
 
 }
 
-ISimBackend *BackendFactory::make_backend(input_file &inp) {
+std::shared_ptr<ISimBackend> BackendFactory::make_backend(input_file &inp) {
 	char backend_opt[256], backend_prec[256], sim_type[256];
 	getInputString(&inp, "backend", backend_opt, 1);
 
@@ -145,5 +145,5 @@ ISimBackend *BackendFactory::make_backend(input_file &inp) {
 	}
 	else throw oxDNAException("Simulation type '%s' not supported", sim_type);
 
-	return new_backend;
+	return std::shared_ptr<ISimBackend>(new_backend);
 }
