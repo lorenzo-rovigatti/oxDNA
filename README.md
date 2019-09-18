@@ -1,90 +1,70 @@
-oxDNA README
-------------
+# oxDNA
 
-oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA
-model introduced by T. E. Ouldridge, J. P. K. Doye and A. A. Louis (http://dx.doi.org/10.1063/1.3552946).
-It has been since reworked and it is now an extensible simulation+analysis framework.
-It natively supports DNA, RNA, Lennard-Jones and patchy particle simulations on both CPU and NVIDIA
-GPUs.
-The development of this software has been partially supported by the European Commission through the Marie 
-Skłodowska−Curie Fellowship No. 702298-DELTAS.
+oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by [T. E. Ouldridge, J. P. K. Doye and A. A. Louis](http://dx.doi.org/10.1063/1.3552946). It has been since reworked and it is now an extensible simulation+analysis framework. It natively supports DNA, RNA, Lennard-Jones and patchy particle simulations on both CPU and NVIDIA GPUs.
+The development of this software has been partially supported by the European Commission through the Marie Skłodowska−Curie Fellowship No. 702298-DELTAS.
 
-REQUIREMENTS
-------------
+## Requirements
 
 Without CUDA support:
-cmake >= 2.6
-make
-gcc >= 4.2 / icc >= 11.0
+
+* `cmake` >= 2.6
+* `make`
+* `gcc` >= 4.2 / `icc` >= 11.0
 
 With CUDA support:
-cmake >= 3.5
-make
-gcc >= 4.2 / icc >= 11.0
-CUDA toolkit >= 4.0
 
-Generating the documentation (with 'make docs', see below) requires doxygen. 
+* `cmake` >= 3.5
+* `make`
+* `gcc` >= 4.2
+* CUDA toolkit >= 4.0
 
-COMPILING oxDNA
----------------
+Generating the documentation (with `make docs`, see below) requires doxygen. 
+
+## Compiling oxDNA
 
 Extract the oxDNA archive and then:
 
-cd oxDNA 		# enter the oxDNA folder
-mkdir build 	# create a new build folder. It is good practice to compile out-of-source
+```
+cd oxDNA         # enter the oxDNA folder
+mkdir build      # create a new build folder. It is good practice to compile out-of-source
 cd build
-cmake ..		# here you can specify additional options, see next section
-make -j4		# compile oxDNA. The -jX make option makes it compile the code in parallel by using X threads.
+cmake ..         # here you can specify additional options, see next section
+make -j4         # compile oxDNA. The -jX make option makes it compile the code in parallel by using X threads.
+```
 
 At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed
 in the build/bin folder.
 
-CMAKE OPTIONS
+## `cmake` options
 -------------
 
--DCUDA=ON				Enables CUDA support
--DCUDA_COMMON_ARCH=ON	Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.
--DDebug=ON				Compiles with debug symbols and without optimisation flags
--DG=ON					Compiles with debug symbols + optimisation flags
--DINTEL=ON				Uses INTEL's compiler suite
--DMPI=ON				Compiles oxDNA with MPI support
--DCXX11=ON				Compiles oxDNA with c++11 support
--DSIGNAL=OFF			Handling system signals is not always supported. Set this flag to OFF to remove this feature
--DMOSIX=ON				Makes oxDNA compatible with MOSIX
+* `-DCUDA=ON` Enables CUDA support
+* `-DCUDA_COMMON_ARCH=ON` Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.
+* `-DDebug=ON` Compiles with debug symbols and without optimisation flags
+* `-DG=ON` Compiles with debug symbols + optimisation flags
+* `-DINTEL=ON` Uses INTEL's compiler suite
+* `-DMPI=ON` Compiles oxDNA with MPI support
+* `-DCXX11=ON` Compiles oxDNA with c++11 support
+* `-DSIGNAL=OFF` Handling system signals is not always supported. Set this flag to OFF to remove this feature
+* `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
 
-MAKE TARGETS
--------------
+## `make` targets
 
-make
-	Compiles oxDNA
+* `make` compiles oxDNA
+* `make docs` Produces html doxygen documentation for oxDNA (`DOCS/html_oxDNA/index.html`) and for the UTILS folder (`DOCS/html_UTILS/index.html`)
+* `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
+* `make romano` Compiles the observables and interactions in contrib/romano
 	
-make docs
-    Produces html doxygen documentation.
-    oxDNA: DOCS/html_oxDNA/index.html
-    UTILS: DOCS/html_UTILS/index.html
-    
-make rovigatti
-	Compiles the observables and interactions in contrib/rovigatti
-	
-make romano 
-	Compiles the observables and interactions in contrib/romano
-	
-TESTING
--------
+## Testing
 
-make test_run
-	Runs quick tests to check whether oxDNA has been correctly compiled or not.
-	
-make test_quick
-	Runs longer tests to check that oxDNA works (not fully implemented yet, but the main features are supported). 
+* `make test_run` Runs quick tests to check whether oxDNA has been correctly compiled or not.	
+* `make test_quick` Runs longer tests to check that oxDNA works (not fully implemented yet, but the main features are supported). 
 
-USAGE
------
+## Usage
 
-oxDNA input_file
+`oxDNA input_file`
 
-OUTPUT FILE
------------
+## Output files
 
 The energy.dat (default name, can be changed in the configuration file) has this layout for MD:
 time potential_energy kinetic_energy total_energy
@@ -96,18 +76,14 @@ Mind that potential, kinetic and total energies are divided by the number of par
 
 Configurations are saved in the trajectory file (appended one after the other).
 
-OBSERVABLES
------------
+## Observables
 
-The observable infrastructure was devised to help building
-customized output from oxDNA (and DNAAnalysis) without having to
-dive in the simulation code itself. 
+The observable infrastructure was devised to help building customized output from `oxDNA` (and `DNAnalysis`) without having to dive in the simulation code itself. 
 
-The relevant keys in the input file are analysis_data_output_* and
-data_output_* (see below). These take as an argument, between curly
-brackets, a series of lines that is interpreted as an input file.
+The relevant keys in the input file are analysis_data_output_* and data_output_* (see below). These take as an argument, between curly brackets, a series of lines that is interpreted as an input file.
 An example is:
 
+```
 data_output_1 = {
 name = caca.dat
 print_every = 100
@@ -119,29 +95,22 @@ type = step
 units = MD
 }
 }
+```
 
-this will print in caca.dat two colums, the first with the
-potential energy and the second with the steps in MD units (dt
-aware). 
+this will print in caca.dat two colums, the first with the potential energy and the second with the steps in MD units (`dt`-aware). 
 
-The lines in between curly brackets are interpreted as input files
-by the single observables.
+The lines in between curly brackets are interpreted as input files by the single observables.
 
-See also the doxygen documentation for Observables/ObservableOutput.h
+See also the doxygen documentation for `Observables/ObservableOutput.h`
 
 oxDNA provides a plugin infrastructure to manage additional 
-Observables. See the doxygen documentation for PluginManagement/PluginManager.h
+Observables. See the doxygen documentation for `PluginManagement/PluginManager.h`
 
-INPUT FILE OPTIONS
-------------------
+## Input file options
 
 As always in UNIX environments, everything is case sensitive.
-The options are in the form key = value. Key-value pairs should be either on different
-lines or separated by a semicolon. There can be arbitrary spaces before and after both key and value. 
-Line with a leading # will be treated as comments. The expected type of the value is specified between < and >. 
-A <bool> key can be specified with values 1|0, yes|no or true|false.  
-The | symbol (pipe) is used to indicate the different values that can be used to specify a value for the key.
-Keys between [ and ] are optional.
+
+The options are in the form key = value. Key-value pairs should be either on different lines or separated by a semicolon. There can be arbitrary spaces before and after both key and value.  Line with a leading # will be treated as comments. The expected type of the value is specified between < and >. A <bool> key can be specified with values 1|0, yes|no or true|false. The | symbol (pipe) is used to indicate the different values that can be used to specify a value for the key. Keys between [ and ] are optional.
 
 Core options:
 
