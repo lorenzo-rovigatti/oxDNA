@@ -35,8 +35,7 @@ make -j4         # compile oxDNA. The -jX make option makes it compile the code 
 At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed
 in the build/bin folder.
 
-## `cmake` options
--------------
+## `cmake` option
 
 * `-DCUDA=ON` Enables CUDA support
 * `-DCUDA_COMMON_ARCH=ON` Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.
@@ -47,6 +46,7 @@ in the build/bin folder.
 * `-DCXX11=ON` Compiles oxDNA with c++11 support
 * `-DSIGNAL=OFF` Handling system signals is not always supported. Set this flag to OFF to remove this feature
 * `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
+* `-DPYTHON=ON` Enables Python bindings
 
 ## `make` targets
 
@@ -54,6 +54,7 @@ in the build/bin folder.
 * `make docs` Produces html doxygen documentation for oxDNA (`DOCS/html_oxDNA/index.html`) and for the UTILS folder (`DOCS/html_UTILS/index.html`)
 * `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
 * `make romano` Compiles the observables and interactions in contrib/romano
+* `make install` Copies the `oxpy` library to the user's Python library folder
 	
 ## Testing
 
