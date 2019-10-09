@@ -514,12 +514,12 @@ void MD_CUDABackend<number, number4>::init(){
 		for(int i = 0; i < this->_N; i++) {
 			BaseParticle<number> *p = this->_particles[i];
 
-			for(int j = 0; j < p->N_ext_forces; j++) {
-				_max_ext_forces = max(_max_ext_forces, p->N_ext_forces);
+			for(uint j = 0; j < p->ext_forces.size(); j++) {
+				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
 
 				CUDA_trap<number> *force = &(_h_ext_forces[j*this->_N + i]);
-				if(typeid(*(p->ext_forces[j])) == typeid(const_force) ) {
-					ConstantRateForce<number> *p_force = (ConstantRateForce<number> *) p->ext_forces[j];
+				if(typeid(*(p->ext_forces[j].get())) == typeid(const_force) ) {
+					ConstantRateForce<number> *p_force = (ConstantRateForce<number> *) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_CONSTANT;
 					force->constant.F0 = p_force->_F0;
 					force->constant.dir_as_centre = p_force->dir_as_centre;
@@ -528,8 +528,8 @@ void MD_CUDABackend<number, number4>::init(){
 					force->constant.y = p_force->_direction.y;
 					force->constant.z = p_force->_direction.z;
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(mutual_trap) ) {
-					MutualTrap<number> *p_force = (MutualTrap<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(mutual_trap) ) {
+					MutualTrap<number> *p_force = (MutualTrap<number> *) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_MUTUAL;
 					force->mutual.rate = p_force->_rate;
 					force->mutual.stiff = p_force->_stiff;
@@ -537,16 +537,16 @@ void MD_CUDABackend<number, number4>::init(){
 					force->mutual.p_ind = p_force->_p_ptr->index;
 					force->mutual.PBC = p_force->PBC;
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(moving_trap) ) {
-					MovingTrap<number> *p_force = (MovingTrap<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(moving_trap) ) {
+					MovingTrap<number> *p_force = (MovingTrap<number> *) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_MOVING;
 					force->moving.stiff = p_force->_stiff;
 					force->moving.rate = p_force->_rate;
 					force->moving.pos0 = make_float3 (p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
 					force->moving.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(lowdim_moving_trap) ) {
-					LowdimMovingTrap<number> *p_force = (LowdimMovingTrap<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(lowdim_moving_trap) ) {
+					LowdimMovingTrap<number> *p_force = (LowdimMovingTrap<number> *) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_MOVING_LOWDIM;
 					force->lowdim.stiff = p_force->_stiff;
 					force->lowdim.rate = p_force->_rate;
@@ -556,23 +556,23 @@ void MD_CUDABackend<number, number4>::init(){
 					force->lowdim.visY = p_force->_visY;
 					force->lowdim.visZ = p_force->_visZ;
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsion_plane) ) {
-					RepulsionPlane<number> *p_force = (RepulsionPlane<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsion_plane) ) {
+					RepulsionPlane<number> *p_force = (RepulsionPlane<number> *) p->ext_forces[j].get();
 					force->type = CUDA_REPULSION_PLANE;
 					force->repulsionplane.stiff = p_force->_stiff;
 					force->repulsionplane.position = p_force->_position;
 					force->repulsionplane.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsion_plane_moving) ) {
-					RepulsionPlaneMoving<number> *p_force = (RepulsionPlaneMoving<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsion_plane_moving) ) {
+					RepulsionPlaneMoving<number> *p_force = (RepulsionPlaneMoving<number> *) p->ext_forces[j].get();
 					force->type = CUDA_REPULSION_PLANE_MOVING;
 					force->repulsionplanemoving.stiff = p_force->_stiff;
 					force->repulsionplanemoving.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 					force->repulsionplanemoving.low_idx = p_force->low_idx;
 					force->repulsionplanemoving.high_idx = p_force->high_idx;
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsive_sphere) ) {
-					RepulsiveSphere<number> *p_force = (RepulsiveSphere<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsive_sphere) ) {
+					RepulsiveSphere<number> *p_force = (RepulsiveSphere<number> *) p->ext_forces[j].get();
 					force->type = CUDA_REPULSIVE_SPHERE;
 					force->repulsivesphere.stiff = p_force->_stiff;
 					force->repulsivesphere.rate= p_force->_rate;
@@ -580,8 +580,8 @@ void MD_CUDABackend<number, number4>::init(){
 					force->repulsivesphere.r_ext = p_force->_r_ext;
 					force->repulsivesphere.centre = make_float3 (p_force->_center.x, p_force->_center.y, p_force->_center.z);
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsive_sphere_smooth) ) {
-					RepulsiveSphereSmooth<number> *p_force = (RepulsiveSphereSmooth<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsive_sphere_smooth) ) {
+					RepulsiveSphereSmooth<number> *p_force = (RepulsiveSphereSmooth<number> *) p->ext_forces[j].get();
 					force->type = CUDA_REPULSIVE_SPHERE_SMOOTH;
 					force->repulsivespheresmooth.r0 = p_force->_r0;
 					force->repulsivespheresmooth.r_ext = p_force->_r_ext;
@@ -590,8 +590,8 @@ void MD_CUDABackend<number, number4>::init(){
 					force->repulsivespheresmooth.stiff = p_force->_stiff;
 					force->repulsivespheresmooth.centre = make_float3 (p_force->_center.x, p_force->_center.y, p_force->_center.z);
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(LJ_wall) ) {
-					LJWall<number> *p_force = (LJWall<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(LJ_wall) ) {
+					LJWall<number> *p_force = (LJWall<number> *) p->ext_forces[j].get();
 					force->type = CUDA_LJ_WALL;
 					force->ljwall.stiff = p_force->_stiff;
 					force->ljwall.position = p_force->_position;
@@ -601,8 +601,8 @@ void MD_CUDABackend<number, number4>::init(){
 					force->ljwall.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 
 				}
-				else if(typeid(*(p->ext_forces[j])) == typeid(const_rate_torque) ) {
-					ConstantRateTorque<number> *p_force = (ConstantRateTorque<number> *) p->ext_forces[j];
+				else if(typeid(*(p->ext_forces[j].get())) == typeid(const_rate_torque) ) {
+					ConstantRateTorque<number> *p_force = (ConstantRateTorque<number> *) p->ext_forces[j].get();
 					force->type = CUDA_CONSTANT_RATE_TORQUE;
 					force->constantratetorque.stiff = p_force->_stiff;
 					force->constantratetorque.F0 = p_force->_F0;
@@ -612,8 +612,8 @@ void MD_CUDABackend<number, number4>::init(){
 					force->constantratetorque.axis = make_float3(p_force->_axis.x, p_force->_axis.y, p_force->_axis.z);
 					force->constantratetorque.mask = make_float3(p_force->_mask.x, p_force->_mask.y, p_force->_mask.z);
 				}
-				else if(typeid(*(p->ext_forces[j])) == typeid(generic_central) ) {
-					GenericCentralForce<number> *p_force = (GenericCentralForce<number> *) p->ext_forces[j];
+				else if(typeid(*(p->ext_forces[j].get())) == typeid(generic_central) ) {
+					GenericCentralForce<number> *p_force = (GenericCentralForce<number> *) p->ext_forces[j].get();
 					force->type = CUDA_GENERIC_CENTRAL_FORCE;
 					force->genericconstantforce.F0 = p_force->_F0;
 					force->genericconstantforce.inner_cut_off_sqr = p_force->inner_cut_off_sqr;
@@ -622,8 +622,8 @@ void MD_CUDABackend<number, number4>::init(){
 					force->genericconstantforce.y = p_force->center.y;
 					force->genericconstantforce.z = p_force->center.z;
 				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(LJ_cone) ) {
-					LJCone<number> *p_force = (LJCone<number> *) p->ext_forces[j];
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(LJ_cone) ) {
+					LJCone<number> *p_force = (LJCone<number> *) p->ext_forces[j].get();
 					force->type = CUDA_LJ_CONE;
 					force->ljcone.stiff = p_force->_stiff;
 					force->ljcone.n = p_force->_n;

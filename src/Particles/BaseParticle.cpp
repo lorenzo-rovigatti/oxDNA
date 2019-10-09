@@ -8,7 +8,7 @@
 #include "BaseParticle.h"
 
 template<typename number>
-BaseParticle<number>::BaseParticle() : N_ext_forces(0), index(-1), type(P_INVALID), n3(P_VIRTUAL), n5(P_VIRTUAL) {
+BaseParticle<number>::BaseParticle() : index(-1), type(P_INVALID), n3(P_VIRTUAL), n5(P_VIRTUAL) {
 	en3 = (number) 0;
 	en5 = (number) 0;
 	esn3 = (number) 0;
@@ -55,13 +55,8 @@ BaseParticle<number>::~BaseParticle() {
 }
 
 template<typename number>
-bool BaseParticle<number>::add_ext_force(BaseForce<number> *f) {
-	if(N_ext_forces == MAX_EXT_FORCES) {
-		throw oxDNAException("Particle %d cannot have more than %d associated external forces. This hard limit can be increased by changing the value of the MAX_EXT_FORCES macro in src/defs.h", this->index, MAX_EXT_FORCES);
-	}
-
-	ext_forces[N_ext_forces] = f;
-	N_ext_forces++;
+bool BaseParticle<number>::add_ext_force(ForcePtr<number> f) {
+	ext_forces.push_back(f);
 
 	return true;
 }

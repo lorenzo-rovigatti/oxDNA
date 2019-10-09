@@ -41,15 +41,17 @@ void RepulsiveSphereSmooth<number>::get_settings(input_file &inp) {
 }
 
 template<typename number>
-void RepulsiveSphereSmooth<number>::init(BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
+void RepulsiveSphereSmooth<number>::init(BaseParticle<number> ** particles, int N, BaseBox<number> *box_ptr) {
 	if(this->_particle >= N || N < -1) throw oxDNAException("Trying to add a RepulsiveSphereSmooth on non-existent particle %d. Aborting", this->_particle);
 	if(this->_particle != -1) {
 		OX_LOG(Logger::LOG_INFO, "Adding RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g) on particle %d", this->_stiff, this->_r0, this->_center.x, this->_center.y, this->_center.z, _particle);
-		particles[_particle]->add_ext_force(this);
+		particles[_particle]->add_ext_force(ForcePtr<number>(this));
 	}
 	else { // force affects all particles
 		OX_LOG (Logger::LOG_INFO, "Adding RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g) on ALL particles", this->_stiff, this->_r0, this->_center.x, this->_center.y, this->_center.z);
-		for (int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
+		for (int i = 0; i < N; i ++) {
+			particles[i]->add_ext_force(ForcePtr<number>(this));
+		}
 	}
 	_box_ptr = box_ptr;
 }

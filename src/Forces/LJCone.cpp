@@ -62,11 +62,13 @@ void LJCone<number>::init (BaseParticle<number> ** particles, int N, BaseBox<num
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a RepulsiveCone on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
 		OX_LOG(Logger::LOG_INFO, "Adding RepulsiveCone (stiff=%g, pos0=%g,%g,%g, dir=%g,%g,%g, sigma=%g, n=%d) on particle %d", this->_stiff, this->_pos0.x, this->_pos0.y, this->_pos0.z, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n, _particle);
-		particles[_particle]->add_ext_force(this);
+		particles[_particle]->add_ext_force(ForcePtr<number>(this));
 	}
 	else { // force affects all particles
 		OX_LOG(Logger::LOG_INFO, "Adding RepulsiveCone (stiff=%g, pos0=%g,%g,%g, dir=%g,%g,%g, sigma=%g, n=%d) on ALL particles", this->_stiff, this->_pos0.x, this->_pos0.y, this->_pos0.z, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n);
-		for (int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
+		for (int i = 0; i < N; i ++) {
+			particles[i]->add_ext_force(ForcePtr<number>(this));
+		}
 	}
 }
 

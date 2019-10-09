@@ -40,7 +40,7 @@ void ConstantTrap<number>::init (BaseParticle<number> ** particles, int N, BaseB
 	if (_particle == -1) throw oxDNAException ("Cannot apply ConstantTrap to all particles. Aborting");
 
 	OX_LOG (Logger::LOG_INFO, "Adding ConstantTrap (stiff=%g, r0=%g, ref_particle=%d, PBC=%d on particle %d", this->_stiff, this->_r0, _ref_id, PBC, _particle);
-	particles[_particle]->add_ext_force(this);
+	particles[_particle]->add_ext_force(ForcePtr<number>(this));
 	
 }
 template<typename number>

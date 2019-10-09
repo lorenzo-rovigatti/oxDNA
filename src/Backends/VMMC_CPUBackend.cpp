@@ -46,11 +46,6 @@ template<typename number> VMMC_CPUBackend<number>::VMMC_CPUBackend() : MC_CPUBac
 
 template<typename number>
 VMMC_CPUBackend<number>::~VMMC_CPUBackend() {
-	// this is because otherwise the pointer to the force object gets freed
-	// twice... maybe not the best way to do this, but oh well...
-	if(this->_particles_old != NULL) {
-		for (int i = 0; i < this->_N; i++) this->_particles_old[i]->N_ext_forces = 0;
-	}
 	_delete_cells();
 
 	delete[] new_en3s;

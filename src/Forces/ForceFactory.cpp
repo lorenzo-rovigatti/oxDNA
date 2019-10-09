@@ -41,7 +41,7 @@ ForceFactory<number>::ForceFactory() {
 
 template <typename number>
 ForceFactory<number>::~ForceFactory() {
-	for (unsigned int i =0; i < _forces.size(); i ++) delete _forces[i];
+
 }
 
 template <typename number>
@@ -57,25 +57,25 @@ void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **par
 	string type_str;
 	getInputString (&inp, "type", type_str, 1);
 
-	BaseForce<number> * extF;
+	ForcePtr<number> extF;
 	
-	if (type_str.compare("string") == 0) extF = new ConstantRateForce<number>();
-	else if (type_str.compare("sawtooth") == 0) extF = new SawtoothForce<number>();
-	else if (type_str.compare("twist") == 0) extF = new ConstantRateTorque<number>();
-	else if (type_str.compare("trap") == 0) extF = new MovingTrap<number>();
-	else if (type_str.compare("repulsion_plane") == 0) extF = new RepulsionPlane<number>();
-	else if (type_str.compare("repulsion_plane_moving") == 0) extF = new RepulsionPlaneMoving<number>();
-	else if (type_str.compare("mutual_trap") == 0) extF = new MutualTrap<number>();
-	else if (type_str.compare("lowdim_trap") == 0) extF = new LowdimMovingTrap<number>();
-	else if (type_str.compare("constant_trap") == 0) extF = new ConstantTrap<number>();
-	else if (type_str.compare("sphere") == 0) extF = new RepulsiveSphere<number>();
-	else if (type_str.compare("sphere_smooth") == 0) extF = new RepulsiveSphereSmooth<number>();
-	else if (type_str.compare("com") == 0) extF = new COMForce<number>();
-	else if (type_str.compare("LJ_wall") == 0) extF = new LJWall<number>();
-	else if (type_str.compare("hard_wall") == 0) extF = new HardWall<number>();
-	else if (type_str.compare("alignment_field") == 0) extF = new AlignmentField<number>();
-	else if (type_str.compare("generic_central_force") == 0) extF = new GenericCentralForce<number>();
-	else if (type_str.compare("LJ_cone") == 0) extF = new LJCone<number>();
+	if (type_str.compare("string") == 0) extF = std::make_shared<ConstantRateForce<number>>();
+	else if (type_str.compare("sawtooth") == 0) extF = std::make_shared<SawtoothForce<number>>();
+	else if (type_str.compare("twist") == 0) extF = std::make_shared<ConstantRateTorque<number>>();
+	else if (type_str.compare("trap") == 0) extF = std::make_shared<MovingTrap<number>>();
+	else if (type_str.compare("repulsion_plane") == 0) extF = std::make_shared<RepulsionPlane<number>>();
+	else if (type_str.compare("repulsion_plane_moving") == 0) extF = std::make_shared<RepulsionPlaneMoving<number>>();
+	else if (type_str.compare("mutual_trap") == 0) extF = std::make_shared<MutualTrap<number>>();
+	else if (type_str.compare("lowdim_trap") == 0) extF = std::make_shared<LowdimMovingTrap<number>>();
+	else if (type_str.compare("constant_trap") == 0) extF = std::make_shared<ConstantTrap<number>>();
+	else if (type_str.compare("sphere") == 0) extF = std::make_shared<RepulsiveSphere<number>>();
+	else if (type_str.compare("sphere_smooth") == 0) extF = std::make_shared<RepulsiveSphereSmooth<number>>();
+	else if (type_str.compare("com") == 0) extF = std::make_shared<COMForce<number>>();
+	else if (type_str.compare("LJ_wall") == 0) extF = std::make_shared<LJWall<number>>();
+	else if (type_str.compare("hard_wall") == 0) extF = std::make_shared<HardWall<number>>();
+	else if (type_str.compare("alignment_field") == 0) extF = std::make_shared<AlignmentField<number>>();
+	else if (type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce<number>>();
+	else if (type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone<number>>();
 	else throw oxDNAException ("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
@@ -84,8 +84,6 @@ void ForceFactory<number>::add_force(input_file &inp, BaseParticle<number> **par
 	extF->get_settings(inp);
 	extF->init(particles, N, box_ptr); // here the force is added to the particle
 	extF->set_group_name(group);
-
-	_forces.push_back(extF);
 }
 
 template<typename number>

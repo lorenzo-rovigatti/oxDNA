@@ -48,7 +48,7 @@ void AlignmentField<number>::init (BaseParticle<number> ** particles, int N, Bas
 			case 5: _v_ptr = &(particles[_particle]->orientationT.v3); break;
 			default: throw oxDNAException ("Should Never Get here %s %s", __FILE__, __LINE__); break;
 		}
-		particles[_particle]->add_ext_force(this);
+		particles[_particle]->add_ext_force(ForcePtr<number>(this));
 	//}
 }
 

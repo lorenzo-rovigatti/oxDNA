@@ -30,8 +30,7 @@ protected:
 	void _check();
 
 public:
-	int N_ext_forces;
-	BaseForce<number> *ext_forces[MAX_EXT_FORCES];
+	std::vector<std::shared_ptr<BaseForce<number>>> ext_forces;
 	int next_particle;
 	int strand_id;
 	int N_int_centers;
@@ -71,14 +70,14 @@ public:
 	 * @param f
 	 * @return true if the force was added, false otherwise
 	 */
-	bool add_ext_force(BaseForce<number> *f);
+	bool add_ext_force(ForcePtr<number> f);
 
 	void set_initial_forces (llint step, BaseBox<number> * box) {
 		LR_vector<number> abs_pos = box->get_abs_pos(this);
 		if (this->is_rigid_body()) this->torque = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
 		this->force = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
-		for(int i = 0; i < N_ext_forces; i++) {
-			this->force += ext_forces[i]->value(step, abs_pos);
+		for(auto ext_force : ext_forces) {
+			this->force += ext_force->value(step, abs_pos);
 		}
 	}
 
@@ -100,8 +99,8 @@ public:
 	void set_ext_potential (llint step, BaseBox<number> * box) {
 		LR_vector<number> abs_pos = box->get_abs_pos(this);
 		this->ext_potential = (number) 0.;
-		for(int i = 0; i < N_ext_forces; i++) {
-			this->ext_potential += ext_forces[i]->potential(step, abs_pos);
+		for(auto ext_force: ext_forces) {
+			this->ext_potential += ext_force->potential(step, abs_pos);
 		}
 	}
 

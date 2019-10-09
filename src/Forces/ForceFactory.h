@@ -28,7 +28,6 @@ class ForceFactory {
 private:
 	static ForceFactory * _ForceFactoryPtr;
 	ForceFactory();
-	std::vector<BaseForce<number> *> _forces;
 
 public:
 	virtual ~ForceFactory();

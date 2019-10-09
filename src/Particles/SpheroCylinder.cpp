@@ -37,11 +37,11 @@ template<typename number>
 void SpheroCylinder<number>::set_ext_potential (llint step, BaseBox<number> * box) {
 	LR_vector<number> abs_pos = box->get_abs_pos(this);
 	this->ext_potential = (number) 0.;
-	for(int i = 0; i < this->N_ext_forces; i++) {
+	for(auto ext_force: this->ext_forces) {
 		LR_vector<number> my_abs_pos = abs_pos + this->int_centers[TOP];
-		this->ext_potential += this->ext_forces[i]->potential(step, my_abs_pos);
+		this->ext_potential += ext_force->potential(step, my_abs_pos);
 		my_abs_pos = abs_pos + this->int_centers[BOT];
-		this->ext_potential += this->ext_forces[i]->potential(step, my_abs_pos);
+		this->ext_potential += ext_force->potential(step, my_abs_pos);
 	}
 }
 
@@ -49,11 +49,11 @@ template<typename number>
 void SpheroCylinder<number>::set_initial_forces(llint step, BaseBox<number> * box) {
 	LR_vector<number> abs_pos = box->get_abs_pos(this);
 	this->force = LR_vector<number>(0, 0, 0);
-	for(int i = 0; i < this->N_ext_forces; i++) {
+	for(auto ext_force: this->ext_forces) {
 		LR_vector<number> my_abs_pos = abs_pos + this->int_centers[TOP];
-		this->force += this->ext_forces[i]->value(step, my_abs_pos);
+		this->force += ext_force->value(step, my_abs_pos);
 		my_abs_pos = abs_pos + this->int_centers[BOT];
-		this->force += this->ext_forces[i]->value(step, my_abs_pos);
+		this->force += ext_force->value(step, my_abs_pos);
 	}
 }
 

@@ -58,19 +58,17 @@ std::string ExternalTorque<number>::get_output_string(llint curr_step) {
 		if(string(_group_name) == "") {
 			LR_vector<number> total_force = LR_vector<number>((number) 0., (number)0., (number)0.);
 			exit(1);
-			for(int j = 0; j < p->N_ext_forces; j++) {
-				BaseForce<number> *f = p->ext_forces[j];
-				total_force += f->value(curr_step,abs_pos);
+			for(auto ext_force : p->ext_forces) {
+				total_force += ext_force->value(curr_step,abs_pos);
 			}
 			tau += distvec.cross(total_force);
 		}
 		else {
-			for(int j = 0; j < p->N_ext_forces; j++) {
-				BaseForce<number> *f = p->ext_forces[j];
-					 		//printf("CURRENT GROUP NAME %s, searching for: %s\n",f->get_group_name().c_str(),_group_name.c_str());
-				if(f->get_group_name() == string(_group_name)) {
+			for(auto ext_force : p->ext_forces) {
+				//printf("CURRENT GROUP NAME %s, searching for: %s\n",f->get_group_name().c_str(),_group_name.c_str());
+				if(ext_force->get_group_name() == string(_group_name)) {
 					//printf("Adding torque on particle %i\n", i);
-					tau += distvec.cross(f->value(curr_step, abs_pos));
+					tau += distvec.cross(ext_force->value(curr_step, abs_pos));
 				}
 			}
 		}

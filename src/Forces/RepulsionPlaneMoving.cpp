@@ -41,8 +41,8 @@ template<typename number>
 void RepulsionPlaneMoving<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
 	_box_ptr = box_ptr;
 	
-	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles, N, _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
-	std::vector<int> ref_particle_indices_vector = Utils::getParticlesFromString(particles, N, _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	auto particle_indices_vector = Utils::getParticlesFromString(particles, N, _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	auto ref_particle_indices_vector = Utils::getParticlesFromString(particles, N, _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
 
 	sort(ref_particle_indices_vector.begin(), ref_particle_indices_vector.end());
 	low_idx = ref_particle_indices_vector.front();
@@ -56,12 +56,14 @@ void RepulsionPlaneMoving<number>::init (BaseParticle<number> ** particles, int 
 	if (particle_indices_vector[0] != -1) {
 		OX_LOG(Logger::LOG_INFO, "Adding repulsion_plane_moving force (RepulsionPlaneMoving.cpp) with stiffnes %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]  on particle %s", this->_stiff,  this->_direction.x, this->_direction.y, this->_direction.z, _particles_string.c_str());
 		for (std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
-			particles[particle_indices_vector[i]]->add_ext_force(this);
+			particles[particle_indices_vector[i]]->add_ext_force(ForcePtr<number>(this));
 		}
 	}
 	else { // force affects all particles
 		OX_LOG(Logger::LOG_INFO, "Adding repulsion_plane_moving force (RepulsionPlaneMoving.cpp) with stiffnes %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]  on ALL particles", this->_stiff,  this->_direction.x, this->_direction.y, this->_direction.z);
-		for (int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
+		for (int i = 0; i < N; i ++) {
+			particles[i]->add_ext_force(ForcePtr<number>(this));
+		}
 	}
 }
 

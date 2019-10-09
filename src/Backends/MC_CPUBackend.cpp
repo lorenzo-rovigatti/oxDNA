@@ -23,8 +23,6 @@ MC_CPUBackend<number>::MC_CPUBackend() : MCBackend<number>(), _particles_old(NUL
 template<typename number>
 MC_CPUBackend<number>::~MC_CPUBackend() {
 	if (_particles_old != NULL) {
-		// horrendous hack not to have forces deleted twice
-		for(int i = 0; i < this->_N; i++) _particles_old[i]->N_ext_forces = 0;
 		for(int i = 0; i < this->_N; i++) delete _particles_old[i];
 		delete [] _particles_old;
 	}
@@ -68,8 +66,8 @@ void MC_CPUBackend<number>::init() {
 		p->type = this->_particles[i]->type;
 		p->init();
 
-		for (int l = 0; l < this->_particles[i]->N_ext_forces; l ++) {
-			p->add_ext_force(this->_particles[i]->ext_forces[l]);
+		for(auto ext_force : this->_particles[i]->ext_forces) {
+			p->add_ext_force(ext_force);
 		}
 		p->copy_from(*this->_particles[i]);
 

@@ -106,4 +106,7 @@ public:
 	virtual number potential (llint step, LR_vector<number> &pos) = 0;
 };
 
+template<typename number>
+using ForcePtr = std::shared_ptr<BaseForce<number>>;
+
 #endif /* BASEFORCE_H_ */

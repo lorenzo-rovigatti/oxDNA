@@ -50,15 +50,15 @@ template<typename number>
 void COMForce<number>::init(BaseParticle<number> **particles, int N, BaseBox<number> * box_ptr) {
 	_box_ptr = box_ptr;
 
-	vector<int> com_indexes = Utils::getParticlesFromString(particles, N, _com_string, "COMForce");
-	for(vector<int>::iterator it = com_indexes.begin(); it != com_indexes.end(); it++) {
+	auto com_indexes = Utils::getParticlesFromString(particles, N, _com_string, "COMForce");
+	for(auto it = com_indexes.begin(); it != com_indexes.end(); it++) {
 		_check_index(*it, N);
 		_com_list.insert(particles[*it]);
-		particles[*it]->add_ext_force(this);
+		particles[*it]->add_ext_force(ForcePtr<number>(this));
 	}
 
-	vector<int> ref_indexes = Utils::getParticlesFromString(particles, N, _ref_string, "COMForce");
-	for(vector<int>::iterator it = ref_indexes.begin(); it != ref_indexes.end(); it++) {
+	auto ref_indexes = Utils::getParticlesFromString(particles, N, _ref_string, "COMForce");
+	for(auto it = ref_indexes.begin(); it != ref_indexes.end(); it++) {
 		_check_index(*it, N);
 		_ref_list.insert(particles[*it]);
 	}

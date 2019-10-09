@@ -33,15 +33,17 @@ void RepulsionPlane<number>::get_settings (input_file &inp) {
 }
 
 template<typename number>
-void RepulsionPlane<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
+void RepulsionPlane<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> *box_ptr) {
 	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a RepulsionPlane on non-existent particle %d. Aborting", _particle);
 	if (_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding RepulsionPlane (stiff=%g, position=%g, dir=%g,%g,%g, on particle %d", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _particle);
-		particles[_particle]->add_ext_force(this);
+		particles[_particle]->add_ext_force(ForcePtr<number>(this));
 	}
 	else { // force affects all particles
 		OX_LOG (Logger::LOG_INFO, "Adding RepulsionPlane (stiff=%g, position=%g, dir=%g,%g,%g, on ALL particles", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z);
-		for(int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
+		for(int i = 0; i < N; i ++) {
+			particles[i]->add_ext_force(ForcePtr<number>(this));
+		}
 	}
 }
 
