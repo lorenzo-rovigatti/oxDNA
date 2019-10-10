@@ -17,9 +17,9 @@
 
 #include "../defs.h"
 #include "../Forces/BaseForce.h"
-#include "../Boxes/BaseBox.h"
 
 template <typename number> class ParticlePair;
+template <typename number> class BaseBox;
 
 /**
  * @brief Base particle class. All particles must inherit from this class.
@@ -72,14 +72,7 @@ public:
 	 */
 	bool add_ext_force(ForcePtr<number> f);
 
-	void set_initial_forces (llint step, BaseBox<number> * box) {
-		LR_vector<number> abs_pos = box->get_abs_pos(this);
-		if (this->is_rigid_body()) this->torque = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
-		this->force = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
-		for(auto ext_force : ext_forces) {
-			this->force += ext_force->value(step, abs_pos);
-		}
-	}
+	void set_initial_forces (llint step, const std::shared_ptr<BaseBox<number>> &box);
 
 	/**
 	 * @brief Add an external potential.

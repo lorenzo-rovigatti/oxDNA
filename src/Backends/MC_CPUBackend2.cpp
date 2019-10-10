@@ -41,7 +41,7 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 	MCBackend<number>::get_settings(inp);
 
 	//_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists);
-	_MC_Info->set(this->_particles, this->_interaction, &(this->_N), &_info_str, this->_lists, this->_box);
+	_MC_Info->set(this->_particles, this->_interaction, &(this->_N), &_info_str, this->_lists, this->_box.get());
 
 	//_MC_Info.lists = this->_lists;
 
@@ -81,7 +81,7 @@ void MC_CPUBackend2<number>::init() {
 	_MC_Info->particles = this->_particles;
 	_MC_Info->N = &this->_N;
 	_MC_Info->interaction = this->_interaction;
-	_MC_Info->box = this->_box;
+	_MC_Info->box = this->_box.get();
 
 	this->_lists->global_update();
 

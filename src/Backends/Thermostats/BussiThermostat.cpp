@@ -8,6 +8,7 @@
 #include "BussiThermostat.h"
 #include "../../Utilities/Utils.h"
 #include "../../Utilities/ConfigInfo.h"
+#include "../../Boxes/BaseBox.h"
 
 template<typename number>
 BussiThermostat<number>::BussiThermostat() :

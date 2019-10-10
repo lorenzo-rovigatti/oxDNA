@@ -7,6 +7,8 @@
 
 #include "SpheroCylinder.h"
 
+#include "../Boxes/BaseBox.h"
+
 template<typename number>
 SpheroCylinder<number>::SpheroCylinder(number l) : BaseParticle<number>()  {
 	length = l;

@@ -35,7 +35,7 @@ protected:
 	bool _external_forces;
 	std::string _external_filename;
 	
-	BaseBox<double> * _mybox;
+	std::shared_ptr<BaseBox<double>> _mybox;
 
 public:
 	GeneratorManager(int argc, char *argv[]);

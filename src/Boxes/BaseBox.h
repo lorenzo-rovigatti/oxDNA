@@ -128,4 +128,7 @@ public:
 	virtual void shift_particle (BaseParticle<number> * p, LR_vector<number> &amount) = 0;
 };
 
+template<typename number>
+using BoxPtr = std::shared_ptr<BaseBox<number>>;
+
 #endif /* BASEBOX_H_ */

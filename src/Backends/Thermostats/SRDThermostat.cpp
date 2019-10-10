@@ -5,9 +5,11 @@
  *      Author: lorenzo/Flavio
  */
 
-#include <cfloat>
-
 #include "SRDThermostat.h"
+
+#include "../../Boxes/BaseBox.h"
+
+#include <cfloat>
 
 template<typename number>
 SRDThermostat<number>::SRDThermostat(BaseBox<number> *box) : BaseThermostat<number>(), _box(box) {
@@ -105,7 +107,7 @@ template<typename number>
 void SRDThermostat<number>::apply(BaseParticle<number> **particles, llint curr_step) {
 	if(_is_cuda) throw oxDNAException("The apply method of the SRD thermostat has been called on the CPU on a CUDA-enabled simulation. This should not happen.");
 
-	return apply1 (particles, curr_step);
+	apply1(particles, curr_step);
 	//return apply2 (particles, curr_step);
 	//return apply3 (particles, curr_step);
 }

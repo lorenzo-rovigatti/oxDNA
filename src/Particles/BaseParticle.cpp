@@ -7,6 +7,8 @@
 
 #include "BaseParticle.h"
 
+#include "../Boxes/BaseBox.h"
+
 template<typename number>
 BaseParticle<number>::BaseParticle() : index(-1), type(P_INVALID), n3(P_VIRTUAL), n5(P_VIRTUAL) {
 	en3 = (number) 0;
@@ -52,6 +54,16 @@ void BaseParticle<number>::copy_from(const BaseParticle<number> &p) {
 template<typename number>
 BaseParticle<number>::~BaseParticle() {
 	if(int_centers != NULL) delete[] int_centers;
+}
+
+template<typename number>
+void BaseParticle<number>::set_initial_forces (llint step, const BoxPtr<number> &box) {
+	LR_vector<number> abs_pos = box->get_abs_pos(this);
+	if (this->is_rigid_body()) this->torque = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
+	this->force = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
+	for(auto ext_force : ext_forces) {
+		this->force += ext_force->value(step, abs_pos);
+	}
 }
 
 template<typename number>

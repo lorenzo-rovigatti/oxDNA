@@ -49,7 +49,7 @@ SimBackend<number>::SimBackend() {
 	_obs_output_last_conf_bin = NULL;
 	_P = (number) 0.;
 	_lists = NULL;
-	_box = NULL;
+	_box = nullptr;
 	_max_io = 1.e30;
 	_read_conf_step = -1;
 	_conf_interval = -1;
@@ -68,7 +68,6 @@ SimBackend<number>::~SimBackend() {
 		delete[] _particles;
 	}
 	if(_interaction != NULL) delete _interaction;
-	if(_box != NULL) delete _box;
 
 	ForceFactory<number>::instance()->clear();
 
@@ -78,7 +77,7 @@ SimBackend<number>::~SimBackend() {
 	OX_LOG (Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
 	for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		llint now = (*it)->get_bytes_written();
-		std::string fname = (*it)->get_output_name();
+		auto fname = (*it)->get_output_name();
 		if (!strcmp (fname.c_str(), "stderr") || !strcmp (fname.c_str(), "stdout")) total_stderr += now;
 		else total_file += now;
 		std::string mybytes = Utils::bytes_to_human (now);
@@ -131,7 +130,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	_box = BoxFactory::make_box<number>(inp);
 	_box->get_settings(inp);
 
-	_lists = ListFactory::make_list<number>(inp, _N, _box);
+	_lists = ListFactory::make_list<number>(inp, _N, _box.get());
 	_lists->get_settings(inp);
 
 	getInputBool(&inp, "restart_step_counter", &_restart_step_counter, 0);
@@ -339,19 +338,21 @@ void SimBackend<number>::init() {
 	_start_step_from_file = (_restart_step_counter) ? 0 : _read_conf_step;
 	_config_info->curr_step = _start_step_from_file;
 
-	if(_external_forces) ForceFactory<number>::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, _box);
+	if(_external_forces) {
+		ForceFactory<number>::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, _box.get());
+	}
 
 	this->_U = (number) 0;
 	this->_K = (number) 0;
 	this->_U_stack = (number) 0;
 
-	_interaction->set_box(_box);
+	_interaction->set_box(_box.get());
 
 	_lists->init(_particles, _rcut);
 
 	// initializes the observable output machinery. This part has to follow
 	// read_topology() since _particles has to be initialized
-	_config_info->set(_particles, _interaction, &_N, &_backend_info, _lists, _box);
+	_config_info->set(_particles, _interaction, &_N, &_backend_info, _lists, _box.get());
 
 	typename vector<ObservableOutput<number> *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) (*it)->init(*_config_info);

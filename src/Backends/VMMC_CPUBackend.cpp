@@ -1359,7 +1359,7 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 	_U_ext = (number) 0.f;
 	for (int k = 0; k < this->_N; k ++) {
 		BaseParticle<number> *p = this->_particles[k];
-		p->set_ext_potential(curr_step, this->_box);
+		p->set_ext_potential(curr_step, this->_box.get());
 		_U_ext += p->ext_potential;
 	}
 
@@ -1443,13 +1443,13 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 			for (int l = 0; l < nclust; l++) {
 				p = this->_particles[clust[l]];
 				delta_E_ext += - p->ext_potential;
-				p->set_ext_potential(curr_step, this->_box);
+				p->set_ext_potential(curr_step, this->_box.get());
 				delta_E_ext += + p->ext_potential;
 			}
 			pprime *= exp(-(1. / this->_T) * delta_E_ext);
 		}
 
-		_op.fill_distance_parameters<number>(this->_particles, this->_box);
+		_op.fill_distance_parameters<number>(this->_particles, this->_box.get());
 
 		windex = oldwindex;
 		weight = oldweight;
@@ -1534,7 +1534,7 @@ void VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 				if (new_index != old_index) {
 					_fix_list (pp->index, old_index, new_index);
 				}
-				pp->set_ext_potential(curr_step, this->_box);
+				pp->set_ext_potential(curr_step, this->_box.get());
 			}
 
 			this->_overlap = false;
@@ -1625,7 +1625,7 @@ void VMMC_CPUBackend<number>::check_ops() {
 			}
 		}
 	}
-	_op.fill_distance_parameters<number>(this->_particles, this->_box);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box.get());
 
 	int * new_state = _op.get_all_states ();
 	int check = 0;
@@ -1683,7 +1683,7 @@ void VMMC_CPUBackend<number>::_update_ops() {
 	}
 
 	// distances
-	_op.fill_distance_parameters<number>(this->_particles, this->_box);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box.get());
 
 	//exit(-1);
 	return;
@@ -1933,7 +1933,7 @@ void VMMC_CPUBackend<number>::fix_diffusion() {
 			}
 		}
 	}
-	_op.fill_distance_parameters<number>(this->_particles, this->_box);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box.get());
 
 	int * new_state = _op.get_all_states ();
 

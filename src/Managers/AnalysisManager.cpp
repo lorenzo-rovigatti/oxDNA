@@ -15,12 +15,11 @@ AnalysisManager::AnalysisManager(int argc, char *argv[]) {
 	argc -= 2;
 	if(argc > 0) addCommandLineArguments(&_input, argc, argv+2);
 
-	_backend = new AnalysisBackend();
+	_backend = std::make_shared<AnalysisBackend>();
 }
 
 AnalysisManager::~AnalysisManager() {
 	cleanInputFile(&_input);
-	delete _backend;
 }
 
 void AnalysisManager::load_options() {

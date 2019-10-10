@@ -291,7 +291,7 @@ void FFS_MD_CPUBackend<number>::sim_step(llint curr_step) {
 	this->_thermostat->apply (this->_particles, curr_step);
 	this->_timer_thermostat->pause();
 
-	_op.fill_distance_parameters<number>(this->_particles, this->_box);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box.get());
 
 	//cout << "I just stepped and bond parameter is " << _op.get_hb_parameter(0) << " and distance is " << _op.get_distance_parameter(0) << endl;
 	if (this->check_stop_conditions()) {
@@ -315,7 +315,7 @@ void FFS_MD_CPUBackend<number>::init() {
 	_op.init_from_file(_order_parameters_file.c_str(), this->_particles, this->_N);
 	init_ffs_from_file(_ffs_file.c_str());
 	OX_LOG(Logger::LOG_INFO, "Setting initial value for the order parameter...");
-	_op.fill_distance_parameters<number>(this->_particles, this->_box);
+	_op.fill_distance_parameters<number>(this->_particles, this->_box.get());
 
 }
 
@@ -385,20 +385,15 @@ void FFS_MD_CPUBackend<number>::print_observables(llint curr_step) {
 
 template<typename number>
 bool FFS_MD_CPUBackend<number>::check_stop_conditions(void) {
- //check if any of the stop conditions is true
-		for (vector<parsed_condition>::iterator i = this->_conditions.begin();
-				i != this->_conditions.end(); i++) {
-			if ((*i).eval_condition(&(this->_op)))
-			{
-				OX_LOG(Logger::LOG_INFO,"Reached condition%d",1+std::distance(_conditions.begin(), i));
-				return true;
-			}
+	//check if any of the stop conditions is true
+	for(auto i = this->_conditions.begin(); i != this->_conditions.end(); i++) {
+		if ((*i).eval_condition(&(this->_op))) {
+			OX_LOG(Logger::LOG_INFO,"Reached condition%d",1+std::distance(_conditions.begin(), i));
+			return true;
 		}
-		return false;
+	}
+	return false;
 }
-
-
-
 
 template class FFS_MD_CPUBackend<float> ;
 template class FFS_MD_CPUBackend<double> ;

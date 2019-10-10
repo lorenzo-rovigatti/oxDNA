@@ -245,7 +245,7 @@ template<typename number>
 void MD_CPUBackend<number>::get_settings (input_file &inp) {
 	MDBackend<number>::get_settings(inp);
 
-	_thermostat = ThermostatFactory::make_thermostat<number>(inp, this->_box);
+	_thermostat = ThermostatFactory::make_thermostat<number>(inp, this->_box.get());
 	_thermostat->get_settings(inp);
 
 	getInputBool(&inp, "MD_compute_stress_tensor", &_compute_stress_tensor, 0);
@@ -256,7 +256,7 @@ void MD_CPUBackend<number>::get_settings (input_file &inp) {
 	}
 
 	if(this->_use_barostat) {
-		string str_inp = Utils::sformat("type = volume\ndelta = %lf\nisotropic = %d", this->_delta_L, (int) this->_barostat_isotropic);
+		auto str_inp = Utils::sformat("type = volume\ndelta = %lf\nisotropic = %d", this->_delta_L, (int) this->_barostat_isotropic);
 		input_file *move_inp = Utils::get_input_file_from_string(str_inp);
 		_V_move = MoveFactory::make_move<number>(*move_inp, inp);
 		cleanInputFile(move_inp);

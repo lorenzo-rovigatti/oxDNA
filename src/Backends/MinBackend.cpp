@@ -122,7 +122,9 @@ template<typename number>
 void MinBackend<number>::sim_step(llint curr_step) {
 	this->_mytimer->resume();
 	
-	for(int i = 0; i < this->_N; i++) this->_particles[i]->set_initial_forces(curr_step, this->_box);
+	for(int i = 0; i < this->_N; i++) {
+		this->_particles[i]->set_initial_forces(curr_step, this->_box);
+	}
 
 	this->_timer_lists->resume();
 	if(!this->_lists->is_updated()) {

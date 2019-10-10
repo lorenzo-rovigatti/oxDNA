@@ -231,7 +231,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 				p->pos.x *= box_sides[0]/old_box_sides[0];
 				p->pos.y *= box_sides[1]/old_box_sides[1];
 				p->pos.z *= box_sides[2]/old_box_sides[2];
-				p->set_ext_potential(curr_step, this->_box);
+				p->set_ext_potential(curr_step, this->_box.get());
 				dExt += -p->ext_potential;
 			}
 			//for (int i = 0; i < this->_N; i ++) this->_lists->single_update(this->_particles[i]);
@@ -281,7 +281,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 					BaseParticle<number> *p = this->_particles[k];
 					//p->pos /= this->_box_side / old_box_side;
 					p->pos = _particles_old[k]->pos; 
-					p->set_ext_potential(curr_step, this->_box);
+					p->set_ext_potential(curr_step, this->_box.get());
 				}
 				this->_lists->change_box();
 				this->_interaction->set_is_infinite (false);
@@ -309,7 +309,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 			this->_tries[move]++;
 			number delta_E = -_particle_energy(p, true);
 			//number delta_E = -_particle_energy(p, false);
-			p->set_ext_potential (curr_step, this->_box);
+			p->set_ext_potential (curr_step, this->_box.get());
 			number delta_E_ext = -p->ext_potential;
 
 			if(move == MC_MOVE_TRANSLATION) {
@@ -337,7 +337,7 @@ void MC_CPUBackend<number>::sim_step(llint curr_step) {
 
 			_stored_bonded_tmp.clear();
 			delta_E += _particle_energy(p, false);
-			p->set_ext_potential(curr_step, this->_box);
+			p->set_ext_potential(curr_step, this->_box.get());
 			delta_E_ext += p->ext_potential;
 
 			// uncomment to check the energy at a given time step.

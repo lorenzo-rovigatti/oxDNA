@@ -62,8 +62,6 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	_external_forces = false;
 	_external_filename = std::string("");
 
-	_mybox = NULL;
-
 	ConfigInfo<double>::init();
 }
 
@@ -76,7 +74,6 @@ GeneratorManager::~GeneratorManager() {
 	}
 
 	if (_external_forces) ForceFactory<double>::instance()->clear();
-	if (_mybox != NULL) delete _mybox;
 }
 
 void GeneratorManager::load_options() {
@@ -111,7 +108,7 @@ void GeneratorManager::load_options() {
 	pm->init(_input);
 
 	// added by FR
-	_mybox = BoxFactory::make_box<double>(_input);
+	_mybox = std::shared_ptr<BaseBox<double>>(BoxFactory::make_box<double>(_input));
 
 	_interaction = InteractionFactory::make_interaction<double>(_input);
 	_interaction->get_settings(_input);
@@ -137,11 +134,11 @@ void GeneratorManager::init() {
 	
 	// setting the box or the interaction
 	_mybox->init(_box_side_x, _box_side_y, _box_side_z);
-	_interaction->set_box(_mybox);
+	_interaction->set_box(_mybox.get());
 
 	// initializing external forces
 	if (_external_forces) { 
-		ForceFactory<double>::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox);
+		ForceFactory<double>::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox.get());
 	}
  
 	_init_completed = true;

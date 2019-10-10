@@ -147,8 +147,7 @@ protected:
 	int _N_strands;
 	number _T;
 	number _P;
-	//number _box_side; // the root of all evil
-	BaseBox<number> *_box;
+	std::shared_ptr<BaseBox<number>> _box;
 
 	int _conf_interval;
 	std::string _conf_filename;
