@@ -24,10 +24,10 @@
 box_sides = <float>, <float>, <float> (sides of the box)
 @endverbatim
  */
-template <typename number>
-class BoxInteraction: public BaseInteraction<number, BoxInteraction<number> > {
+
+class BoxInteraction: public BaseInteraction<number, BoxInteraction > {
 protected:
-	inline number _box_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline number _box_pot (BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 	number _sides[3];
 	number _lx, _ly, _lz;
@@ -44,22 +44,22 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 
-	bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q);
+	bool generate_random_configuration_overlap (BaseParticle * p, BaseParticle *q);
 };
 
-template<typename number>
-number BoxInteraction<number>::_box_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number BoxInteraction::_box_pot (BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
 	
 	number rnorm = r->norm();
@@ -79,7 +79,7 @@ number BoxInteraction<number>::_box_pot (BaseParticle<number> *p, BaseParticle<n
 	// http://www.pnas.org/content/suppl/2012/09/05/1211784109.DCSupplemental/pnas.1211784109_SI.pdf#STXT
 	
 	// here we compute the 15 potential separating axes
-	LR_vector<number> sep[15];
+	LR_vector sep[15];
 	
 	sep[0] = p->orientation.v1;
 	sep[1] = p->orientation.v2;

@@ -10,17 +10,17 @@
 
 #include <sstream>
 
-template<typename number>
-CoaxVariables<number>::CoaxVariables() {
-	_dna_interaction = new DNAInteraction<number>();
+
+CoaxVariables::CoaxVariables() {
+	_dna_interaction = new DNAInteraction();
 }
 
-template<typename number>
-CoaxVariables<number>::~CoaxVariables() {
+
+CoaxVariables::~CoaxVariables() {
 }
 
-template<typename number>
-void CoaxVariables<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+
+void CoaxVariables::get_settings(input_file &my_inp, input_file &sim_inp) {
 	int tmp = 0;
 
 	tmp = 0;
@@ -42,31 +42,31 @@ void CoaxVariables<number>::get_settings(input_file &my_inp, input_file &sim_inp
 	_dna_interaction->init();
 }
 
-template<typename number>
-std::string CoaxVariables<number>::get_output_string(llint curr_step) {
+
+std::string CoaxVariables::get_output_string(llint curr_step) {
 	std::stringstream output_str;
 
 	output_str << "#id1 id2 delta_r_coax within_cutoff theta1 theta4 theta5 theta6 cos(phi3) total_coax, t = " << curr_step << "\n";
 	
-	BaseParticle<number> *p;
-	BaseParticle<number> *q;
+	BaseParticle *p;
+	BaseParticle *q;
 	p = this->_config_info.particles[_particle1_id];
 	q = this->_config_info.particles[_particle2_id];
 	output_str << p->index << " " << q->index << " ";
 
 	// Modified version of coaxial stacking calculation code
-	LR_vector<number> r = this->_config_info.box->min_image(p->pos, q->pos);
-	LR_vector<number> rstack = r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
+	LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
+	LR_vector rstack = r + q->int_centers[DNANucleotide::STACK] - p->int_centers[DNANucleotide::STACK];
 	number rstackmod = rstack.module();
 
-	LR_vector<number> rstackdir = rstack / rstackmod;
+	LR_vector rstackdir = rstack / rstackmod;
 
 	// particle axes according to Allen's paper
-	LR_vector<number> &a1 = p->orientationT.v1;
-	//LR_vector<number> &a2 = p->orientationT.v2;
-	LR_vector<number> &a3 = p->orientationT.v3;
-	LR_vector<number> &b1 = q->orientationT.v1;
-	LR_vector<number> &b3 = q->orientationT.v3;
+	LR_vector &a1 = p->orientationT.v1;
+	//LR_vector &a2 = p->orientationT.v2;
+	LR_vector &a3 = p->orientationT.v3;
+	LR_vector &b1 = q->orientationT.v1;
+	LR_vector &b3 = q->orientationT.v3;
 
 	// angles involved in the CXST interaction
 	number cost1 = -a1 * b1;
@@ -78,10 +78,10 @@ std::string CoaxVariables<number>::get_output_string(llint curr_step) {
 	// We need to do this to implement different major-minor groove widths because rback is
 	// used as a reference point for things that have nothing to do with the actual backbone
 	// position (in this case, the coaxial stacking interaction).
-	LR_vector<number> rbackboneref = r + b1 * POS_BACK - a1 * POS_BACK;
+	LR_vector rbackboneref = r + b1 * POS_BACK - a1 * POS_BACK;
 
 	number rbackrefmod = rbackboneref.module();
-	LR_vector<number> rbackbonerefdir = rbackboneref / rbackrefmod;
+	LR_vector rbackbonerefdir = rbackboneref / rbackrefmod;
 	number cosphi3 = rstackdir * (rbackbonerefdir.cross(a1));
 
 	number energy = (number) 0.f;

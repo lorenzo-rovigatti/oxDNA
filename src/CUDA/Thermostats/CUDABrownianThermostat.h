@@ -16,7 +16,7 @@
  * @brief CUDA implementation of a {@link BrownianThermostat brownian thermostat}.
  */
 template<typename number, typename number4>
-class CUDABrownianThermostat: public CUDABaseThermostat<number, number4>, public BrownianThermostat<number> {
+class CUDABrownianThermostat: public CUDABaseThermostat<number, number4>, public BrownianThermostat {
 protected:
 public:
 	CUDABrownianThermostat();
@@ -25,7 +25,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init(int N);
 
-	virtual void apply_cuda(number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step);
+	virtual void apply_cuda(number4 *d_poss, GPU_quat *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step);
 	virtual bool would_activate(llint curr_step);
 };
 

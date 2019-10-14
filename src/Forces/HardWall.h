@@ -32,8 +32,8 @@ particle = <int> (index of the particle on which the force shall be applied. If 
 [sigma = <float> ("Diameter" of the wall. It effectively rescales the distance between particle and wall. Defaults to 1.)]
 @endverbatim
 */
-template<typename number>
-class HardWall : public BaseForce<number> {
+
+class HardWall : public BaseForce {
 private:
 	int _particle;
 
@@ -45,10 +45,10 @@ public:
 	virtual ~HardWall() {}
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void init (BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif // HARDWALL_H

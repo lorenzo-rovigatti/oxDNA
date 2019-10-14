@@ -25,14 +25,14 @@
  * Note that you cannot put both the 'show' and 'hide' keys in the input file.
  * If you do so, the 'hide' key will not be considered.
  */
-template<typename number>
-class Configuration: public BaseObservable<number>  {
+
+class Configuration: public BaseObservable  {
 protected:
 	bool _back_in_box;
 	bool _reduced;
 	std::set<int> _visible_particles;
 	std::set<int> _hidden_particles;
-	std::map<int, LR_vector<number> > _strands_cdm;
+	std::map<int, LR_vector > _strands_cdm;
 	int _only_type;
 
 	/**
@@ -49,7 +49,7 @@ protected:
 	 * @param p
 	 * @return
 	 */
-	virtual std::string _particle(BaseParticle<number> *p);
+	virtual std::string _particle(BaseParticle *p);
 
 	/**
 	 * @brief Returns the configuration output for the whole system. It does not comprise the headers.
@@ -64,14 +64,14 @@ protected:
 	 */
 	void _fill_strands_cdm ();
 
-	TotalEnergy<number> _tot_energy;
+	TotalEnergy _tot_energy;
 
 public:
 	Configuration();
 	virtual ~Configuration();
 
 	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 	std::string get_output_string(llint curr_step);
 };
 

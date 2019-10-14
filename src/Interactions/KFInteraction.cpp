@@ -9,9 +9,9 @@
 #include "../Particles/PatchyParticle.h"
 #include "../Utilities/Utils.h"
 
-template <typename number>
-KFInteraction<number>::KFInteraction() : BaseInteraction<number, KFInteraction<number> >(), _N_patches(0), _N_patches_B(-1), _N_A(0), _N_B(0), _is_binary(false) {
-	this->_int_map[PATCHY] = &KFInteraction<number>::pair_interaction_nonbonded;
+
+KFInteraction::KFInteraction() : BaseInteraction<number, KFInteraction >(), _N_patches(0), _N_patches_B(-1), _N_A(0), _N_B(0), _is_binary(false) {
+	this->_int_map[PATCHY] = &KFInteraction::pair_interaction_nonbonded;
 
 	for(int i = 0; i < 3; i++) _sigma[i] = _sqr_sigma[i] = _epsilon[i] = 1.;
 
@@ -20,14 +20,14 @@ KFInteraction<number>::KFInteraction() : BaseInteraction<number, KFInteraction<n
 	_is_continuous = false;
 }
 
-template <typename number>
-KFInteraction<number>::~KFInteraction() {
+
+KFInteraction::~KFInteraction() {
 
 }
 
-template<typename number>
-void KFInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+
+void KFInteraction::get_settings(input_file &inp) {
+	IBaseInteraction::get_settings(inp);
 
 	getInputBool(&inp, "KF_continuous", &_is_continuous, 1);
 
@@ -35,25 +35,25 @@ void KFInteraction<number>::get_settings(input_file &inp) {
 	if(getInputInt(&inp, "KF_N_B", &_N_patches_B, 0) == KEY_FOUND) _is_binary = true;
 
 	if(_is_binary) {
-		getInputNumber<number>(&inp, "KF_sigma_AA", _sigma, 0);
-		getInputNumber<number>(&inp, "KF_sigma_BB", _sigma + 2, 0);
-		if(getInputNumber<number>(&inp, "KF_sigma_AB", _sigma + 1, 0) == KEY_NOT_FOUND) {
+		getInputNumber(&inp, "KF_sigma_AA", _sigma, 0);
+		getInputNumber(&inp, "KF_sigma_BB", _sigma + 2, 0);
+		if(getInputNumber(&inp, "KF_sigma_AB", _sigma + 1, 0) == KEY_NOT_FOUND) {
 			_sigma[1] = (_sigma[0] + _sigma[2])*0.5;
 		}
 
-		getInputNumber<number>(&inp, "KF_epsilon_AA", _epsilon, 0);
-		getInputNumber<number>(&inp, "KF_epsilon_BB", _epsilon + 2, 0);
-		if(getInputNumber<number>(&inp, "KF_epsilon_AB", _epsilon + 1, 0) == KEY_NOT_FOUND) {
+		getInputNumber(&inp, "KF_epsilon_AA", _epsilon, 0);
+		getInputNumber(&inp, "KF_epsilon_BB", _epsilon + 2, 0);
+		if(getInputNumber(&inp, "KF_epsilon_AB", _epsilon + 1, 0) == KEY_NOT_FOUND) {
 			_epsilon[1] = sqrt(_epsilon[0]*_epsilon[2]);
 		}
 	}
 
-	getInputNumber<number>(&inp, "KF_delta", &_patch_delta, 1);
-	getInputNumber<number>(&inp, "KF_cosmax", &_patch_cosmax, 1);
+	getInputNumber(&inp, "KF_delta", &_patch_delta, 1);
+	getInputNumber(&inp, "KF_cosmax", &_patch_cosmax, 1);
 }
 
-template<typename number>
-void KFInteraction<number>::init() {
+
+void KFInteraction::init() {
 	this->_rcut = 0;
 	for(int i = 0; i < 3; i++) {
 		number rcut = _sigma[i] + _patch_delta;
@@ -77,27 +77,27 @@ void KFInteraction<number>::init() {
 	else OX_LOG(Logger::LOG_INFO, "Simulating a pure patchy system (N patch: %d, rcut: %lf, patch_delta: %lf, patch_cosmax: %lf)", _N_patches, this->_rcut, _patch_delta, _patch_cosmax);
 }
 
-template<typename number>
-void KFInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
+
+void KFInteraction::allocate_particles(BaseParticle **particles, int N) {
 	for(int i = 0; i < N; i++) {
-		if(i < _N_A) particles[i] = new PatchyParticle<number>(_N_patches, P_A, _sigma[2*P_A]);
-		else particles[i] = new PatchyParticle<number>(_N_patches_B, P_B, _sigma[2*P_B]);
+		if(i < _N_A) particles[i] = new PatchyParticle(_N_patches, P_A, _sigma[2*P_A]);
+		else particles[i] = new PatchyParticle(_N_patches_B, P_B, _sigma[2*P_B]);
 	}
 }
 
-template<typename number>
-number KFInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number KFInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
-template<typename number>
-number KFInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number KFInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	return (number) 0.f;
 }
 
-template<typename number>
-number KFInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+
+number KFInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -107,8 +107,8 @@ number KFInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p
 	else return _KF_interaction(p, q, r, update_forces);
 }
 
-template<typename number>
-void KFInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+
+void KFInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, ios::in);
@@ -129,8 +129,8 @@ void KFInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<nu
 	}
 }
 
-template<typename number>
-void KFInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
+
+void KFInteraction::check_input_sanity(BaseParticle **particles, int N) {
 
 }
 

@@ -28,8 +28,8 @@ TSP_n[type] = <int> (exponent for the generalised LJ potential for each interact
 [TSP_only_intra = <bool> (if true monomers belonging to different stars will not interact. Defaults to false)]
 @endverbatim
  */
-template <typename number>
-class TSPInteraction : public BaseInteraction<number, TSPInteraction<number> > {
+
+class TSPInteraction : public BaseInteraction<number, TSPInteraction > {
 protected:
 	number _rfene, _sqr_rfene;
 	number _rfene_anchor, _sqr_rfene_anchor;
@@ -52,13 +52,13 @@ protected:
 	number *_alpha;
 	int _N_stars;
 
-	std::vector<TSPParticle<number> *> _anchors;
+	std::vector<TSPParticle *> _anchors;
 
-	number _fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	number _nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	number _fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
-	bool _insert_anchor(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c);
-	bool _does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c);
+	bool _insert_anchor(BaseParticle **particles, BaseParticle *p, Cells *c);
+	bool _does_overlap(BaseParticle **particles, BaseParticle *p, Cells *c);
 
 public:
 	enum {
@@ -71,20 +71,20 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
 	virtual int get_N_from_topology();
-	virtual void read_topology(int N_from_conf, int *N_stars, BaseParticle<number> **particles);
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void read_topology(int N_from_conf, int *N_stars, BaseParticle **particles);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 
-	virtual void generate_random_configuration(BaseParticle<number> **particles, int N);
+	virtual void generate_random_configuration(BaseParticle **particles, int N);
 
 	void set_only_intra(bool value) { _only_intra = value; }
 };

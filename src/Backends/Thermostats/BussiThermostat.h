@@ -25,8 +25,8 @@ newtonian_steps = <int> (number of integration timesteps after which the thermos
 bussi_tau = <int> (correlation time, in time steps, for the stochastic evolution of the kinetic energy)
 @endverbatim
  */
-template<typename number>
-class BussiThermostat : public BaseThermostat<number> {
+
+class BussiThermostat : public BaseThermostat {
 protected:
 	/// interval, in time steps, over which the dynamics is ballistic.
 	int _newtonian_steps;
@@ -55,7 +55,7 @@ public:
 
 	void get_settings(input_file &inp);
 	void init(int N_part);
-	void apply(BaseParticle<number> **particles, llint curr_step);
+	void apply(BaseParticle **particles, llint curr_step);
 };
 
 #endif // REFRESH_THERMOSTAT_

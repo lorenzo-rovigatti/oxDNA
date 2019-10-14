@@ -20,8 +20,8 @@
 [distance_threshold  = <float> (a plectoneme is identified when any two beads with indices farther away than bead_minimum_distance are closer than this distance. Defaults to 2)]
 @endverbatim
  */
-template<typename number>
-class TEPPlectonemePosition: public BaseObservable<number> {
+
+class TEPPlectonemePosition: public BaseObservable {
 protected:
 	int _bead_minimum_distance;
 	number _distance_threshold;

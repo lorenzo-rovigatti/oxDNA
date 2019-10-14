@@ -9,28 +9,28 @@
 
 #include <sstream>
 
-template<typename number>
-UnstackedList<number>::UnstackedList() {
+
+UnstackedList::UnstackedList() {
 	_threshold_fraction = 0.1;
 	model = new Model;
 }
 
-template<typename number>
-UnstackedList<number>::~UnstackedList() {
+
+UnstackedList::~UnstackedList() {
 	delete model;
 }
 
-template<typename number> void
-UnstackedList<number>::init(ConfigInfo<number> &config_info) {
-  BaseObservable<number>::init(config_info);
+void
+UnstackedList::init(ConfigInfo &config_info) {
+  BaseObservable::init(config_info);
 }
 
-template<typename number> void
-UnstackedList<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void
+UnstackedList::get_settings(input_file &my_inp, input_file &sim_inp) {
 	// Read temperature from the input file
   char TT[256];
   getInputString(&sim_inp, "T", TT, 1);    
-  double T = Utils::get_temperature<number>(TT);
+  double T = Utils::get_temperature(TT);
 	// get the threshold fraction of the stacking energy
 	getInputNumber(&my_inp,"threshold_fraction",&_threshold_fraction,0);
 	// Make sure we're not using the sequence-dependent model
@@ -99,18 +99,18 @@ UnstackedList<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	else throw oxDNAException("Interaction type %s not supported in observable unstacked_list (%s)",_interaction_type.c_str(),__FILE__);
 }
 
-template<typename number>
-std::string UnstackedList<number>::get_output_string(llint curr_step){
+
+std::string UnstackedList::get_output_string(llint curr_step){
 	std::stringstream outstr;
 
 	int N = *this->_config_info.N;
 	for(int i=0;i<N-1;i++){
-		BaseParticle<number> * p = this->_config_info.particles[i];
-		BaseParticle<number> * q = this->_config_info.particles[i+1];
+		BaseParticle * p = this->_config_info.particles[i];
+		BaseParticle * q = this->_config_info.particles[i+1];
 
 		//the following line don't need to be different for every interaction, assuming that all these interactions have the same values of STACKING and COAXIAL_STACKING, which is true
 		// for any interaction that inherits from DNAInteraction (unless it's changed explicitly).
-		number stacking_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::STACKING,p,q) + this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::COAXIAL_STACKING,p,q);
+		number stacking_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction::STACKING,p,q) + this->_config_info.interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING,p,q);
 		if(stacking_energy > _threshold_energies[p->type][q->type])
 			outstr << i << " ";
 	}

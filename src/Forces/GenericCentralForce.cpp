@@ -13,9 +13,9 @@
 
 using namespace std;
 
-template<typename number>
-GenericCentralForce<number>::GenericCentralForce() :
-				BaseForce<number>() {
+
+GenericCentralForce::GenericCentralForce() :
+				BaseForce() {
 	_particles_string = "\0";
 	_type = -1;
 	_table_N = -1;
@@ -27,13 +27,13 @@ GenericCentralForce<number>::GenericCentralForce() :
 	_supported_types[string("interpolated")] = INTERPOLATED;
 }
 
-template<typename number>
-GenericCentralForce<number>::~GenericCentralForce() {
+
+GenericCentralForce::~GenericCentralForce() {
 
 }
 
-template<typename number>
-void GenericCentralForce<number>::get_settings(input_file &inp) {
+
+void GenericCentralForce::get_settings(input_file &inp) {
 	string particles_string;
 	getInputString(&inp, "particle", _particles_string, 1);
 
@@ -69,8 +69,8 @@ void GenericCentralForce<number>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number>
-void GenericCentralForce<number>::init(BaseParticle<number> **particles, int N, BaseBox<number> *box_ptr) {
+
+void GenericCentralForce::init(BaseParticle **particles, int N, BaseBox *box_ptr) {
 	std::string force_description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
 	this->_add_self_to_particles(particles, N, _particles_string, force_description);
 
@@ -86,19 +86,19 @@ void GenericCentralForce<number>::init(BaseParticle<number> **particles, int N, 
 	}
 }
 
-template<typename number>
-LR_vector<number> GenericCentralForce<number>::value(llint step, LR_vector<number> &pos) {
-	LR_vector<number> dir = center - pos;
+
+LR_vector GenericCentralForce::value(llint step, LR_vector &pos) {
+	LR_vector dir = center - pos;
 	number dist_sqr = dir.norm();
 	dir.normalize();
 
 	switch(_type) {
 	case GRAVITY:
 		if(dist_sqr < inner_cut_off_sqr) {
-			return LR_vector<number>(0., 0., 0.);
+			return LR_vector(0., 0., 0.);
 		}
 		if(outer_cut_off > 0. && dist_sqr > outer_cut_off_sqr) {
-			return LR_vector<number>(0., 0., 0.);
+			return LR_vector(0., 0., 0.);
 		}
 
 		return this->_F0 * dir;
@@ -107,11 +107,11 @@ LR_vector<number> GenericCentralForce<number>::value(llint step, LR_vector<numbe
 	}
 
 	// we should never reach this point, but we return something to remove warnings
-	return LR_vector<number>(0., 0., 0.);
+	return LR_vector(0., 0., 0.);
 }
 
-template<typename number>
-number GenericCentralForce<number>::potential(llint step, LR_vector<number> &pos) {
+
+number GenericCentralForce::potential(llint step, LR_vector &pos) {
 	number dist = (center - pos).module();
 	number energy = 0.f;
 
@@ -137,8 +137,8 @@ number GenericCentralForce<number>::potential(llint step, LR_vector<number> &pos
 template class GenericCentralForce<double> ;
 template class GenericCentralForce<float> ;
 
-template<typename number>
-number LookupTable<number>::_linear_interpolation(number x, vector<number> &x_data, vector<number> &fx_data) {
+
+number LookupTable::_linear_interpolation(number x, vector &x_data, vector &fx_data) {
 	int ind = -1;
 	for(uint32_t i = 0; i < x_data.size() && ind == -1; i++) {
 		if(x_data[i] > x) ind = i;
@@ -158,14 +158,14 @@ number LookupTable<number>::_linear_interpolation(number x, vector<number> &x_da
 	return val;
 }
 
-template<typename number>
-void LookupTable<number>::init(std::string filename, int N) {
+
+void LookupTable::init(std::string filename, int N) {
 	_N = N;
 
 	ifstream input(filename.c_str());
 	if(!input.good()) throw oxDNAException("GenericCentralForce: potential_file '%s' not found", filename.c_str());
 
-	vector<number> v_x, v_fx, v_dfx;
+	vector v_x, v_fx, v_dfx;
 	while(input.good()) {
 		number x, fx, dfx;
 		input >> x >> fx >> dfx;
@@ -206,8 +206,8 @@ void LookupTable<number>::init(std::string filename, int N) {
 	}
 }
 
-template<typename number>
-inline number LookupTable<number>::query_function(number x) {
+
+inline number LookupTable::query_function(number x) {
 	if(x <= _xlow) return _A[0];
 	if(x >= _xupp) return _A[_N];
 	int i = (int) ((x - _xlow) / _delta);
@@ -215,8 +215,8 @@ inline number LookupTable<number>::query_function(number x) {
 	return (_A[i] + dx * (_B[i] + dx * (_C[i] + dx * _D[i]) * _inv_sqr_delta));
 }
 
-template<typename number>
-inline number LookupTable<number>::query_derivative(number x) {
+
+inline number LookupTable::query_derivative(number x) {
 	if(x < _xlow) return _B[0];
 	if(x >= _xupp) return _B[_N];
 	int i = (int) ((x - _xlow) / _delta);

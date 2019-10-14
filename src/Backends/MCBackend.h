@@ -40,8 +40,8 @@ P = <float> (the pressure of the simulation. Used only if ensemble == npt.)
 [adjust_moves = <bool> (if true, oxDNA will run for equilibration_steps time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if equilibration_steps is 0 or not given. Defaults to false)]
 @endverbatim
  */
-template<typename number>
-class MCBackend: public SimBackend<number> {
+
+class MCBackend: public SimBackend {
 protected:
 	int _MC_moves;
 	bool _overlap;
@@ -55,7 +55,6 @@ protected:
 	int _check_energy_counter;
 	number _check_energy_threshold;
 
-	void _get_number_settings(input_file &inp);
 	virtual void _compute_energy() = 0;
 
 public:

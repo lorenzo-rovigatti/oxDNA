@@ -7,32 +7,32 @@
 
 #include "ForceEnergy.h"
 
-template<typename number>
-ForceEnergy<number>::ForceEnergy() {
+
+ForceEnergy::ForceEnergy() {
 
 }
 
-template<typename number>
-ForceEnergy<number>::~ForceEnergy() {
+
+ForceEnergy::~ForceEnergy() {
 
 }
 
-template<typename number> void
-ForceEnergy<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void
+ForceEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputString(&my_inp, "print_group", _group_name, 0);
 }
 
-template<typename number>
-std::string ForceEnergy<number>::get_output_string(llint curr_step) {
+
+std::string ForceEnergy::get_output_string(llint curr_step) {
 	number U = (number) 0.f;
 	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
+		BaseParticle *p = this->_config_info.particles[i];
 		if(_group_name == "") {
 			p->set_ext_potential(curr_step, this->_config_info.box);
 			U += p->ext_potential;
 		}
 		else {
-			LR_vector<number> abs_pos = this->_config_info.box->get_abs_pos(p);
+			LR_vector abs_pos = this->_config_info.box->get_abs_pos(p);
 			for(auto ext_force : p->ext_forces) {
 				if(ext_force->get_group_name() == _group_name) U += ext_force->potential(curr_step, abs_pos);
 			}

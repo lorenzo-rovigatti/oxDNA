@@ -25,13 +25,13 @@ CUDAPatchyInteraction<number, number4>::~CUDAPatchyInteraction() {
 
 template<typename number, typename number4>
 void CUDAPatchyInteraction<number, number4>::get_settings(input_file &inp) {
-	PatchyInteraction<number>::get_settings(inp);
+	PatchyInteraction::get_settings(inp);
 }
 
 template<typename number, typename number4>
 void CUDAPatchyInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
-	PatchyInteraction<number>::init();
+	PatchyInteraction::init();
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N_patches, &this->_N_patches, sizeof(int)) );
@@ -109,7 +109,7 @@ void CUDAPatchyInteraction<number, number4>::cuda_init(number box_side, int N) {
 }
 
 template<typename number, typename number4>
-void CUDAPatchyInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
+void CUDAPatchyInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {

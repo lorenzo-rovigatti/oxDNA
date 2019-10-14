@@ -9,9 +9,9 @@
 #include "../Particles/JordanParticle.h"
 #include "../Utilities/Utils.h"
 
-template <typename number>
-JordanInteraction<number>::JordanInteraction() : BaseInteraction<number, JordanInteraction<number> >() {
-	this->_int_map[JORDAN] = &JordanInteraction<number>::_jordan_interaction;
+
+JordanInteraction::JordanInteraction() : BaseInteraction<number, JordanInteraction >() {
+	this->_int_map[JORDAN] = &JordanInteraction::_jordan_interaction;
 
 	_s = (number) 0.3; // patch width
 	_m = 6;            // LJ exponent
@@ -24,14 +24,14 @@ JordanInteraction<number>::JordanInteraction() : BaseInteraction<number, JordanI
 	_my_N3 = -1;
 }
 
-template <typename number>
-JordanInteraction<number>::~JordanInteraction() {
+
+JordanInteraction::~JordanInteraction() {
 
 }
 
-template<typename number>
-void JordanInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+
+void JordanInteraction::get_settings(input_file &inp) {
+	IBaseInteraction::get_settings(inp);
 
 	float tmp = 2.5;
 	getInputFloat(&inp, "JORDAN_rcut", &tmp, 0);
@@ -48,33 +48,33 @@ void JordanInteraction<number>::get_settings(input_file &inp) {
 	//getInputString(&inp, "JORDAN_save_patches_to", patches_file_out, 1);
 }
 
-template<typename number>
-void JordanInteraction<number>::init() {
+
+void JordanInteraction::init() {
 	OX_LOG(Logger::LOG_INFO,"(JordanInteraction.cpp) Running Jordan interaction with s=%g, rcut=%g, m=%d, phi=%g, int_k=%g", _s, this->_rcut, _m, _phi, _int_k, _my_N3);
 }
 
-template<typename number>
-void JordanInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
+
+void JordanInteraction::allocate_particles(BaseParticle **particles, int N) {
 	OX_LOG(Logger::LOG_INFO,"(JordanInteraction.cpp) Allocating %d particles with 3 patches and %d with 4 patches", _my_N3, N - _my_N3);
 	for(int i = 0; i < N; i++) {
-		if (i > _my_N3 && _my_N3 >= 0) particles[i] = new JordanParticle<number>(4, _phi, _int_k);
-		else particles[i] = new JordanParticle<number>(3, _phi, _int_k);
+		if (i > _my_N3 && _my_N3 >= 0) particles[i] = new JordanParticle(4, _phi, _int_k);
+		else particles[i] = new JordanParticle(3, _phi, _int_k);
 	}
 }
 
-template<typename number>
-number JordanInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number JordanInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
-template<typename number>
-number JordanInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number JordanInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	return (number) 0.f;
 }
 
-template<typename number>
-number JordanInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+
+number JordanInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -83,8 +83,8 @@ number JordanInteraction<number>::pair_interaction_nonbonded(BaseParticle<number
 	return _jordan_interaction(p, q, r, update_forces);
 }
 
-template <typename number>
-number JordanInteraction<number>::_jordan_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 
 	if (update_forces) throw oxDNAException ("JordanInteraction cannot compute forces. Use MC/MC2/VMMC to simulate.");
 
@@ -132,8 +132,8 @@ number JordanInteraction<number>::_jordan_interaction(BaseParticle<number> *p, B
 	
 	// simmetry breaking term
 	// we get a random vetor and remove its projection onto r
-	LR_vector<number> pprime = p->int_centers[imax1] - (*r) * ((p->int_centers[imax1] * (*r)) / (rm * rm));
-	LR_vector<number> qprime = q->int_centers[imax2] - (*r) * ((q->int_centers[imax2] * (*r)) / (rm * rm));
+	LR_vector pprime = p->int_centers[imax1] - (*r) * ((p->int_centers[imax1] * (*r)) / (rm * rm));
+	LR_vector qprime = q->int_centers[imax2] - (*r) * ((q->int_centers[imax2] * (*r)) / (rm * rm));
 	
 	/* // check that pprime and qprime have no residual component on r
 	number chk1 = pprime * (*r);
@@ -152,8 +152,8 @@ number JordanInteraction<number>::_jordan_interaction(BaseParticle<number> *p, B
 
 }
 
-template<typename number>
-void JordanInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+
+void JordanInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	std::ifstream topology;
 	topology.open(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("(JordanInteraction.cpp) Can't read topology file '%s'. Aborting", this->_topology_filename);
@@ -174,8 +174,8 @@ void JordanInteraction<number>::read_topology(int N, int *N_strands, BaseParticl
 	}
 }
 
-template<typename number>
-void JordanInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
+
+void JordanInteraction::check_input_sanity(BaseParticle **particles, int N) {
 
 }
 

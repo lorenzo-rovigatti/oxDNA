@@ -23,7 +23,7 @@
  * This class is implemented as a singleton. See the comments in Logger.h/cpp for the singleton structure.
  *
  */
-template<typename number>
+
 class ForceFactory {
 private:
 	static ForceFactory * _ForceFactoryPtr;
@@ -43,10 +43,10 @@ public:
 	 * @param is_CUDA
 	 * @param box_side_ptr pointer to the box side. We use a pointer since the box size can change 
 	 */
-	void add_force(input_file &inp, BaseParticle<number> **particles, int N, bool is_CUDA, BaseBox<number> * box_ptr);
+	void add_force(input_file &inp, BaseParticle **particles, int N, bool is_CUDA, BaseBox * box_ptr);
 
 	/// adds forces. Used by SimBackend and GeneratorManager
-	void read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA, BaseBox<number> * box_ptr);
+	void read_external_forces(std::string external_filename, BaseParticle ** particles, int N, bool is_CUDA, BaseBox * box_ptr);
 	void clear ();
 };
 

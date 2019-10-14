@@ -26,8 +26,8 @@ vector_to_average = <int> (defaults to 1. Can be 1,2, or 3 depending on the vect
 @endverbatim
  */
 
-template<typename number>
-class MeanVectorCosine : public BaseObservable<number> {
+
+class MeanVectorCosine : public BaseObservable {
 private:
 	// arguments
 	int _chain_id;
@@ -40,12 +40,12 @@ private:
 	number _one_over_number_of_values;
 	//ausiliary variables to compute the cosine - declared here so that
 	// they are not declared every time the function get_output_string is called.
-	LR_vector<number> _u, _up, _v, _vp, _f, _fp;
+	LR_vector _u, _up, _v, _vp, _f, _fp;
 public:
 	MeanVectorCosine();
 	virtual ~MeanVectorCosine();
 
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	std::string get_output_string(llint curr_step);

@@ -26,8 +26,8 @@ rate = <float> (growth rate of the force. It is [oxDNA energy units / (oxDNA dis
 [dir_as_centre = <bool> (if true the "dir" parameter will be interpreted as the origin of the force, so that the true direction will be dir - p->pos)]
 @endverbatim
  */
-template<typename number>
-class ConstantRateForce : public BaseForce<number> {
+
+class ConstantRateForce : public BaseForce {
 private:
 	std::string _particles_string;
 
@@ -38,10 +38,10 @@ public:
 	virtual ~ConstantRateForce();
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void init (BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential (llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential (llint step, LR_vector &pos);
 
 };
 

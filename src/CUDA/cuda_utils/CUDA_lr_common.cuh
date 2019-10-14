@@ -22,7 +22,7 @@
 
 //This is the most commonly called quaternion to matrix conversion. 
 template<typename number, typename number4>
-__device__ void get_vectors_from_quat(GPU_quat<number> &q, number4 &a1, number4 &a2, number4 &a3) {
+__device__ void get_vectors_from_quat(GPU_quat &q, number4 &a1, number4 &a2, number4 &a3) {
 	number sqx = q.x*q.x;
 	number sqy = q.y*q.y;
 	number sqz = q.z*q.z;
@@ -45,9 +45,9 @@ __device__ void get_vectors_from_quat(GPU_quat<number> &q, number4 &a1, number4 
 	a3.z = (-sqx-sqy+sqz+sqw);
 }
 
-template <typename number>
-__forceinline__ __device__ GPU_quat<number> quat_multiply(GPU_quat<number> &a, GPU_quat<number> &b) {
-	GPU_quat<number> p;
+
+__forceinline__ __device__ GPU_quat quat_multiply(GPU_quat &a, GPU_quat &b) {
+	GPU_quat p;
 	p.w = a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z;
 	p.x = a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y;
 	p.y = a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x;
@@ -162,7 +162,7 @@ __forceinline__ __device__ number _module(const number4 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
-template <typename number>
+
 __forceinline__ __device__ number _module(const float3 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
@@ -253,12 +253,12 @@ __forceinline__ __device__ float3 operator-(float3 a) {
 	return make_float3(-a.x, -a.y, -a.z);
 }
 
-template<typename number>
+
 __forceinline__ __device__ float3 operator*(number a, float3 b) {
 	return make_float3(a*b.x, a*b.y, a*b.z);
 }
 
-template<typename number>
+
 __forceinline__ __device__ float3 operator*(float3 b, number a) {
 	return make_float3(a*b.x, a*b.y, a*b.z);
 }

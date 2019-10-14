@@ -10,8 +10,8 @@
 
 #include "BaseForce.h"
 
-template<typename number>
-class LowdimMovingTrap : public BaseForce<number> {
+
+class LowdimMovingTrap : public BaseForce {
 private:
 	int _particle;
 
@@ -24,10 +24,10 @@ public:
 	bool _visZ;
 
 	void get_settings (input_file &inp);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void init (BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif // LOWDIMMOVINGTRAP_H

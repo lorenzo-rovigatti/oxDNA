@@ -9,28 +9,28 @@
 
 #include <sstream>
 
-template<typename number>
-HBList<number>::HBList() {
+
+HBList::HBList() {
 	_max_shift = 10;
 	_measure_mean_shift = false;
 
 }
 
-template<typename number>
-HBList<number>::~HBList() {
+
+HBList::~HBList() {
 
 }
 
-template<typename number> void
-HBList<number>::init(ConfigInfo<number> &config_info) {
-	 BaseObservable<number>::init(config_info);
+void
+HBList::init(ConfigInfo &config_info) {
+	 BaseObservable::init(config_info);
 	 if (_read_op){
 		 _op.init_from_file(_order_parameters_file, this->_config_info.particles, *(this->_config_info.N));
 	 }
 }
 
-template<typename number> void
-HBList<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void
+HBList::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_read_op = true;
 	_only_count = false;
 	bool parameters_loaded = false;
@@ -68,14 +68,14 @@ HBList<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 }
 
-template<typename number>
-bool HBList<number>::is_hbond(int p_ind, int q_ind){
+
+bool HBList::is_hbond(int p_ind, int q_ind){
 	// return true if particle pair p_ind, q_ind have a hydrogen bond between them
 	return false;
 }
 
-template<typename number>
-std::string HBList<number>::get_output_string(llint curr_step) {
+
+std::string HBList::get_output_string(llint curr_step) {
 	unsigned long long int total_reg = 0;
 	unsigned long long int n_reg_entries = 0;
 	std::stringstream outstr;
@@ -88,9 +88,9 @@ std::string HBList<number>::get_output_string(llint curr_step) {
 		for (vector_of_pairs::iterator i = inds.begin(); i != inds.end(); i++) {
 			int p_ind = (*i).first;
 			int q_ind = (*i).second;
-			BaseParticle<number> *p = this->_config_info.particles[p_ind];
-			BaseParticle<number> *q = this->_config_info.particles[q_ind];
-			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, q);
+			BaseParticle *p = this->_config_info.particles[p_ind];
+			BaseParticle *q = this->_config_info.particles[q_ind];
+			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 			//
 			if (hb_energy < HB_CUTOFF){
 				if (_only_count) 
@@ -103,14 +103,14 @@ std::string HBList<number>::get_output_string(llint curr_step) {
 	}
 	// checking all particle pairs
 	else{
-		std::vector<ParticlePair<number> > pairs = this->_config_info.lists->get_potential_interactions();
-		typename std::vector<ParticlePair<number> >::iterator it;
+		std::vector<ParticlePair > pairs = this->_config_info.lists->get_potential_interactions();
+		typename std::vector<ParticlePair >::iterator it;
 		for (it = pairs.begin(); it != pairs.end(); it ++ ) {
-			BaseParticle<number> * p = (*it).first;
-			BaseParticle<number> * q = (*it).second;
+			BaseParticle * p = (*it).first;
+			BaseParticle * q = (*it).second;
 			int p_ind = p->get_index();
 			int q_ind = q->get_index();
-			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, q);
+			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 			// what to do if it's unbound
 			int complementary_ind = *this->_config_info.N - 1 - p_ind;
 			if (hb_energy < HB_CUTOFF){
@@ -121,17 +121,17 @@ std::string HBList<number>::get_output_string(llint curr_step) {
 			}
 			else if (_measure_mean_shift && complementary_ind == q_ind){
 				//this always takes into account periodic boundary conditions, which makes sense.
-				LR_vector<number> distance_vector = this->_config_info.box->min_image(p->pos,q->pos);
+				LR_vector distance_vector = this->_config_info.box->min_image(p->pos,q->pos);
 				double distance = distance_vector * distance_vector;
-				BaseParticle<number> * ahead = q;
-				BaseParticle<number> * before = q;
+				BaseParticle * ahead = q;
+				BaseParticle * before = q;
 				//find the register for this particular base-pair 
 				int reg = 0;
 				for (int i = 0; i < _max_shift; i++){
 					double newdist = -1;
 					if (ahead->n5 != P_VIRTUAL){
 						ahead = ahead->n5;
-						LR_vector<number> newdist_vector = this->_config_info.box->min_image(p->pos,ahead->pos);
+						LR_vector newdist_vector = this->_config_info.box->min_image(p->pos,ahead->pos);
 						newdist = newdist_vector * newdist_vector;
 						if (newdist < distance){
 							distance = newdist;
@@ -140,7 +140,7 @@ std::string HBList<number>::get_output_string(llint curr_step) {
 					}
 					if (before->n3 != P_VIRTUAL){
 						before = before->n3;
-						LR_vector<number> newdist_vector = this->_config_info.box->min_image(p->pos,before->pos);
+						LR_vector newdist_vector = this->_config_info.box->min_image(p->pos,before->pos);
 						newdist = newdist_vector * newdist_vector;
 						if (newdist < distance){
 							distance = newdist;

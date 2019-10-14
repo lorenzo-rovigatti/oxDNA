@@ -32,8 +32,8 @@ position = <float> (defines the position of the plane along the direction identi
 particle = <int> (index of the particle on which the force shall be applied. If -1, the force will be exerted on all the particles.)
 @endverbatim
 */
-template<typename number>
-class RepulsionPlane : public BaseForce<number> {
+
+class RepulsionPlane : public BaseForce {
 private:
 	int _particle;
 
@@ -44,10 +44,10 @@ public:
 	virtual ~RepulsionPlane() {}
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void init (BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif // MOVINGTRAP_H

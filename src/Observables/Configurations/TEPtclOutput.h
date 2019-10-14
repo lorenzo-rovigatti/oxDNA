@@ -47,8 +47,8 @@ col_1 = {
  * simulation steps, printing out the strand labels and centering the box on
  * the center of mass of strand 1
  */
-template<typename number>
-class TEPtclOutput: public Configuration<number>  {
+
+class TEPtclOutput: public Configuration  {
 protected:
 	bool _back_in_box;
 	bool _print_labels;
@@ -59,7 +59,7 @@ protected:
 	number _side_shift, _front_shift;
 	
 	virtual std::string _headers(llint step);
-	virtual std::string _particle(BaseParticle<number> *p);
+	virtual std::string _particle(BaseParticle *p);
 	virtual std::string _configuration(llint step);
 
 public:

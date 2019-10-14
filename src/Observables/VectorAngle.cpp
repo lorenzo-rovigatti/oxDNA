@@ -8,8 +8,8 @@
 #include "VectorAngle.h"
 #include "../Utilities/Utils.h"
 #include "../Interactions/TEPInteraction.h"
-template<typename number>
-VectorAngle<number>::VectorAngle() {
+
+VectorAngle::VectorAngle() {
 	
 	_angle_index = 1;
 	_first_particle_index = 0;
@@ -18,16 +18,16 @@ VectorAngle<number>::VectorAngle() {
 	_print_local_details = true;
 }
 
-template<typename number>
-VectorAngle<number>::~VectorAngle() {
+
+VectorAngle::~VectorAngle() {
 
 }
 
-template<typename number>
-void VectorAngle<number>::init(ConfigInfo<number> &config_info) {
-    BaseObservable<number>::init(config_info);
+
+void VectorAngle::init(ConfigInfo &config_info) {
+    BaseObservable::init(config_info);
 	
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	const int N = *this->_config_info.N;
 
 	// check that _first_particle_index is in [0,N) and not the terminal particle
@@ -75,8 +75,8 @@ void VectorAngle<number>::init(ConfigInfo<number> &config_info) {
 	}
 }
 
-template<typename number>
-void VectorAngle<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+
+void VectorAngle::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputInt(&my_inp,"first_particle_index",&_first_particle_index,0);
 
@@ -93,14 +93,14 @@ void VectorAngle<number>::get_settings(input_file &my_inp, input_file &sim_inp) 
 
 }
 
-template<typename number>
-std::string VectorAngle<number>::get_output_string(llint curr_step) {
+
+std::string VectorAngle::get_output_string(llint curr_step) {
 	int sign, number_of_values=0;
 	string result; 
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	double delta_omega=0;
 	number result_number=0;
-	LR_vector<number> u, up, v, vp, f, fp;
+	LR_vector u, up, v, vp, f, fp;
 
 
 	int i = _first_particle_index;
@@ -186,13 +186,13 @@ std::string VectorAngle<number>::get_output_string(llint curr_step) {
 		else if ( _angle_index == 2){
 			// u * t
 			u = p[i]->orientationT.v1;
-			LR_vector<number> t = p[i]->n5->pos - p[i]->pos;
+			LR_vector t = p[i]->n5->pos - p[i]->pos;
 			average += u*t/t.module();
 		}else if ( _angle_index == 3){
 			if( p[i]->n5->n5 != P_VIRTUAL){
 				// t * t
-				LR_vector<number> t = p[i]->n5->pos - p[i]->pos;
-				LR_vector<number> tp = p[i]->n5->n5->pos - p[i]->n5->pos;
+				LR_vector t = p[i]->n5->pos - p[i]->pos;
+				LR_vector tp = p[i]->n5->n5->pos - p[i]->n5->pos;
 				average += t*tp/(t.module()*tp.module());
 			}
 			
@@ -225,11 +225,11 @@ std::string VectorAngle<number>::get_output_string(llint curr_step) {
 	return result;
 }
 /*
-template<typename number>
-std::string VectorAngle<number>::OLD_get_output_string(llint curr_step) {
+
+std::string VectorAngle::OLD_get_output_string(llint curr_step) {
 
 	string result; number average = 0.;
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	for( int i = _first_particle_id; i <= _last_particle_id; i++){
 		if ( _vector_to_average == 1){
 			_u =	p[i]->orientationT.v1;

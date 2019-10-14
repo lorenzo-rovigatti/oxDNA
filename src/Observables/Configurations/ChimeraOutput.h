@@ -22,8 +22,8 @@
 @endverbatim
  *
  */
-template<typename number>
-class ChimeraOutput: public Configuration<number> {
+
+class ChimeraOutput: public Configuration {
 protected:
 	bool _colour_by_seq;
 

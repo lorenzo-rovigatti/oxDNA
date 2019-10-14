@@ -20,8 +20,8 @@
 [particle_id = <int> (Optional argument. particle id.)]
 @endverbatim
  */
-template<typename number>
-class PairForce: public BaseObservable<number> {
+
+class PairForce: public BaseObservable {
 protected:
 	int _particle_id;
 	bool _print_all_particles;

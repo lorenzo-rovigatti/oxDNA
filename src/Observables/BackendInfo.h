@@ -13,8 +13,8 @@
 /**
  * @brief Outputs backend-related information (see ConfigInfo).
  */
-template<typename number>
-class BackendInfo: public BaseObservable<number> {
+
+class BackendInfo: public BaseObservable {
 public:
 	BackendInfo();
 	virtual ~BackendInfo();

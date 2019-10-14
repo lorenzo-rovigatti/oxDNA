@@ -14,14 +14,14 @@
 /**
  * @brief Outputs a contact map for the system
  */
-template<typename number>
-class AllVectors : public BaseObservable<number> {
+
+class AllVectors : public BaseObservable {
     protected:
 
     public:
     AllVectors();
     virtual ~AllVectors();
-    virtual void init (ConfigInfo<number> &config_info);
+    virtual void init (ConfigInfo &config_info);
     std::string get_output_string(llint curr_step);
 };
 

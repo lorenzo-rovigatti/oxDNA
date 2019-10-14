@@ -7,9 +7,9 @@
 
 #include "Pressure.h"
 
-template<typename number>
-Pressure<number>::Pressure() :
-				BaseObservable<number>(),
+
+Pressure::Pressure() :
+				BaseObservable(),
 				_with_stress_tensor(false),
 				_spherical(false),
 				_nonbonded_only(false),
@@ -20,18 +20,18 @@ Pressure<number>::Pressure() :
 
 }
 
-template<typename number>
-Pressure<number>::~Pressure() {
+
+Pressure::~Pressure() {
 
 }
 
-template<typename number>
-void Pressure<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	BaseObservable<number>::get_settings(my_inp, sim_inp);
+
+void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
 
 	char raw_T[256];
 	getInputString(&sim_inp, "T", raw_T, 1);
-	_T = Utils::get_temperature<number>(raw_T);
+	_T = Utils::get_temperature(raw_T);
 
 	getInputBool(&my_inp, "stress_tensor", &_with_stress_tensor, 0);
 	getInputBool(&my_inp, "spherical_geometry", &_spherical, 0);
@@ -43,47 +43,47 @@ void Pressure<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	if(lees_edwards) getInputNumber(&sim_inp, "lees_edwards_shear_rate", &_shear_rate, 0);
 }
 
-template<typename number>
-LR_vector<number> Pressure<number>::_get_com() {
-	LR_vector<number> com;
+
+LR_vector Pressure::_get_com() {
+	LR_vector com;
 	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
+		BaseParticle *p = this->_config_info.particles[i];
 		com += this->_config_info.box->get_abs_pos(p);
 	}
 	com /= *this->_config_info.N;
 	return com;
 }
 
-template<typename number>
-void Pressure<number>::update_pressure() {
-	int N = *this->_config_info.N;
-	vector<ParticlePair<number> > pairs = this->_config_info.lists->get_potential_interactions();
 
-	LR_vector<number> com = (_spherical) ? _get_com() : LR_vector<number>();
+void Pressure::update_pressure() {
+	int N = *this->_config_info.N;
+	vector<ParticlePair > pairs = this->_config_info.lists->get_potential_interactions();
+
+	LR_vector com = (_spherical) ? _get_com() : LR_vector();
 	_P_norm = 0.;
 
 	double virial = 0;
 	_stress_tensor = LR_matrix<double>();
 	double energy = 0.;
 	// we loop over all the pairs in order to update the forces
-	typename vector<ParticlePair<number> >::iterator it;
+	typename vector<ParticlePair >::iterator it;
 	for(it = pairs.begin(); it != pairs.end(); it++) {
-		BaseParticle<number> *p = (*it).first;
-		BaseParticle<number> *q = (*it).second;
+		BaseParticle *p = (*it).first;
+		BaseParticle *q = (*it).second;
 		if(!(_nonbonded_only && p->is_bonded(q))) {
-			LR_vector<number> r = this->_config_info.box->min_image(p->pos, q->pos);
+			LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
 
 			// pair_interaction will change these vectors, but we still need them in the next
 			// first integration step. For this reason we copy and then restore their values
 			// after the calculation
-			LR_vector<number> old_p_force(p->force);
-			LR_vector<number> old_q_force(q->force);
-			LR_vector<number> old_p_torque(p->torque);
-			LR_vector<number> old_q_torque(q->torque);
+			LR_vector old_p_force(p->force);
+			LR_vector old_q_force(q->force);
+			LR_vector old_p_torque(p->torque);
+			LR_vector old_q_torque(q->torque);
 
-			p->force = q->force = p->torque = q->torque = LR_vector<number>();
+			p->force = q->force = p->torque = q->torque = LR_vector();
 
-			LR_vector<number> r_mutable(r);
+			LR_vector r_mutable(r);
 			energy += (double) this->_config_info.interaction->pair_interaction(p, q, &r_mutable, true);
 
 			_stress_tensor.v1.x -= r.x * p->force.x;
@@ -100,8 +100,8 @@ void Pressure<number>::update_pressure() {
 
 			// see http://dx.doi.org/10.1080/102866202100002518a
 			if(_spherical) {
-				LR_vector<number> rp_rel = this->_config_info.box->min_image(p->pos, com);
-				LR_vector<number> rq_rel = this->_config_info.box->min_image(q->pos, com);
+				LR_vector rp_rel = this->_config_info.box->min_image(p->pos, com);
+				LR_vector rq_rel = this->_config_info.box->min_image(q->pos, com);
 				number l0 = sqrt(rp_rel.norm() - SQR(rp_rel*r)/r.norm());
 				// check that the arguments of the square roots are non-negative (it does happen for finite-accuracy reasons)
 				double delta_rp_sqr_l0_sqr = rp_rel.norm() - SQR(l0);
@@ -121,8 +121,8 @@ void Pressure<number>::update_pressure() {
 	}
 
 	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector<number> vel = p->vel;
+		BaseParticle *p = this->_config_info.particles[i];
+		LR_vector vel = p->vel;
 		if(_shear_rate > 0.) {
 			number Ly = CONFIG_INFO->box->box_sides().y;
 			number y_in_box = p->pos.y - floor(p->pos.y/Ly)*Ly - 0.5*Ly;
@@ -140,7 +140,7 @@ void Pressure<number>::update_pressure() {
 		_stress_tensor.v3.z += SQR(vel.z);
 
 //		if(_spherical) {
-//			LR_vector<number> rp_rel = this->_config_info.box->min_image(p->pos, com);
+//			LR_vector rp_rel = this->_config_info.box->min_image(p->pos, com);
 //			rp_rel.normalize();
 //			_P_norm += 3*SQR(vel*rp_rel);
 //			printf("%e %e\n", SQR(vel*rp_rel), vel.norm());
@@ -153,8 +153,8 @@ void Pressure<number>::update_pressure() {
 	_P_norm = _T * (N / V) + _P_norm / (3. * V);
 }
 
-template<typename number>
-string Pressure<number>::get_output_string(llint curr_step) {
+
+string Pressure::get_output_string(llint curr_step) {
 	update_pressure();
 
 	string to_ret;

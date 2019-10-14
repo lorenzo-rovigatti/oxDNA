@@ -22,7 +22,7 @@ CUDAThermostatFactory::~CUDAThermostatFactory() {
 }
 
 template<typename number, typename number4>
-CUDABaseThermostat<number, number4> *CUDAThermostatFactory::make_thermostat(input_file &inp, BaseBox<number> * box) {
+CUDABaseThermostat<number, number4> *CUDAThermostatFactory::make_thermostat(input_file &inp, BaseBox * box) {
 	// The default thermostat is no thermostat
 	char thermostat_type[512] = "no";
 	getInputString(&inp, "thermostat", thermostat_type, 0);

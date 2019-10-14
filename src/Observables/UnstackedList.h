@@ -32,8 +32,8 @@
 #include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/rna_model.h"
 
-template<typename number>
-class UnstackedList  : public BaseObservable<number>  {
+
+class UnstackedList  : public BaseObservable  {
 	double _threshold_fraction;
 	number _threshold_energies[5][5];
   std::string _interaction_type;
@@ -45,7 +45,7 @@ class UnstackedList  : public BaseObservable<number>  {
 
 	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 };
 
 #endif /* UNSTACKEDLIST_H_ */

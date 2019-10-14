@@ -8,9 +8,9 @@
 #include "PatchyParticleDan.h"
 #include "../Utilities/oxDNAException.h"
 
-template<typename number>
-PatchyParticleDan<number>::PatchyParticleDan(int _N_patches, LR_vector<number> * _inp_patch_vectors, LR_vector<number> * _inp_ref_vectors, bool tor_flag) : BaseParticle<number>() {
-//Original: PatchyParticle<number>::PatchyParticle(char patch_file[], int particle_number) : BaseParticle<number>() {
+
+PatchyParticleDan::PatchyParticleDan(int _N_patches, LR_vector * _inp_patch_vectors, LR_vector * _inp_ref_vectors, bool tor_flag) : BaseParticle() {
+//Original: PatchyParticle::PatchyParticle(char patch_file[], int particle_number) : BaseParticle() {
 
         //printf("PP, PatchyParticleDan\n");
 
@@ -34,12 +34,12 @@ PatchyParticleDan<number>::PatchyParticleDan(int _N_patches, LR_vector<number> *
         //printf("PP 2\n");
 
 	//Create new arrays (one row for each patch)
-	this->int_centers = new LR_vector<number>[_N_patches];
+	this->int_centers = new LR_vector[_N_patches];
         //printf("PP 3\n");
-	_base_patch_vectors = new LR_vector<number>[_N_patches];
+	_base_patch_vectors = new LR_vector[_N_patches];
         //printf("PP 4\n");
-	_base_ref_vectors = new LR_vector<number>[_N_patches];
-	_ref_vectors = new LR_vector<number>[_N_patches];
+	_base_ref_vectors = new LR_vector[_N_patches];
+	_ref_vectors = new LR_vector[_N_patches];
 	//printf("PP 5\n");
 
 	//Define _base_patch_vectors and _base_ref_vectors
@@ -71,8 +71,8 @@ PatchyParticleDan<number>::PatchyParticleDan(int _N_patches, LR_vector<number> *
 
 }
 
-template<typename number>
-PatchyParticleDan<number>::~PatchyParticleDan() {
+
+PatchyParticleDan::~PatchyParticleDan() {
         //printf("PP, ~PatchyParticleDan\n");
 
         /*Not sure if this is needed, and if it is, should it follow format below? 10/11/16
@@ -83,8 +83,8 @@ PatchyParticleDan<number>::~PatchyParticleDan() {
 
 }
 
-template<typename number>
-void PatchyParticleDan<number>::set_positions() {
+
+void PatchyParticleDan::set_positions() {
         //printf("PP, set_positions\n");
 
         //Set patch vectors and reference vectors based on particle orientation
@@ -99,15 +99,12 @@ void PatchyParticleDan<number>::set_positions() {
 
 }
 
-template<typename number>
-void PatchyParticleDan<number>::copy_from(const PatchyParticleDan<number> &p) {
+
+void PatchyParticleDan::copy_from(const PatchyParticleDan &p) {
 
         //To inherit/extend copy_from from BaseParticle (see Lorenzo email) 
-        BaseParticle<number>::copy_from(p);
+        BaseParticle::copy_from(p);
 	//To add the same functionality for ref_vectors
 	for(int patch = 0; patch < this->N_int_centers; patch++) _ref_vectors[patch] = p._ref_vectors[patch];
 
 }
-
-template class PatchyParticleDan<float>;
-template class PatchyParticleDan<double>;

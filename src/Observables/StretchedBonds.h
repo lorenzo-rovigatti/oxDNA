@@ -22,8 +22,8 @@ print_list = <bool> (Whether to print the indexes of the particles that have str
 [threshold = <float> (Threshold above which to report a stretched bond, in energy units. Default is 1.)]
 @endverbatim
  */
-template<typename number>
-class StretchedBonds : public BaseObservable<number> {
+
+class StretchedBonds : public BaseObservable {
 private:
 	bool _print_list;
 	number _threshold;
@@ -32,7 +32,7 @@ public:
 	StretchedBonds();
 	virtual ~StretchedBonds();
 
-	virtual void init(ConfigInfo<number> &config_info); 
+	virtual void init(ConfigInfo &config_info); 
 	virtual std::string get_output_string(llint curr_step);
 	void get_settings (input_file &my_inp, input_file &sim_inp);
 };

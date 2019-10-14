@@ -27,10 +27,10 @@ relax_type = <string> (Possible values: constant_force, harmonic_force; Relaxati
 relax_strength = <float> (Force constant for the replacement of the FENE potential)
 @endverbatim
  */
-template <typename number>
-class RNAInteraction_relax : public RNAInteraction<number> {
+
+class RNAInteraction_relax : public RNAInteraction {
 protected:
-	inline virtual number _backbone(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline virtual number _backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	int _backbone_type;
 	float _backbone_k;
 
@@ -41,7 +41,7 @@ public:
 	RNAInteraction_relax();
 	virtual ~RNAInteraction_relax();
 
-	void check_input_sanity(BaseParticle<number> **particles, int N);
+	void check_input_sanity(BaseParticle **particles, int N);
 	void get_settings(input_file &inp);
 };
 

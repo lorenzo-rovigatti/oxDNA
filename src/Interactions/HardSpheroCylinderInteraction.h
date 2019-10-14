@@ -28,15 +28,15 @@
 length = <float> (length of the spherocylinder)
 @endverbatim
  */
-template <typename number>
-class HardSpheroCylinderInteraction: public BaseInteraction<number, HardSpheroCylinderInteraction<number> > {
+
+class HardSpheroCylinderInteraction: public BaseInteraction<number, HardSpheroCylinderInteraction > {
 protected:
 	/// length of the line segment 
 	number _length;
 	
-	inline number _hsc_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline number _hsc_pot (BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	
-	inline number _vega_distance_sq (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length);
+	inline number _vega_distance_sq (LR_vector dr, LR_vector u1, LR_vector u2, number length);
 
 public:
 	HardSpheroCylinderInteraction();
@@ -45,23 +45,23 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 
-	//virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);
+	//virtual void generate_random_configuration(BaseParticle **particles, int N, number box_side);
 };
 
 /// vega's function; assumes the lenght of the line segments are the same
-template<typename number>
-number HardSpheroCylinderInteraction<number>::_vega_distance_sq (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length) {
+
+number HardSpheroCylinderInteraction::_vega_distance_sq (LR_vector dr, LR_vector u1, LR_vector u2, number length) {
 	number hlength = length / 2.;
 	u1.normalize();
 	u2.normalize();
@@ -109,8 +109,8 @@ number HardSpheroCylinderInteraction<number>::_vega_distance_sq (LR_vector<numbe
 }
 
 
-template<typename number>
-number HardSpheroCylinderInteraction<number>::_hsc_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number HardSpheroCylinderInteraction::_hsc_pot (BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
 	
 	if ((*r).norm() > this->_sqr_rcut) return (number) 0.f;

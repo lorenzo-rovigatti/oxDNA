@@ -8,9 +8,9 @@
 #include "LangevinThermostat.h"
 #include "../../Utilities/Utils.h"
 
-template<typename number>
-LangevinThermostat<number>::LangevinThermostat() :
-		BaseThermostat<number>() {
+
+LangevinThermostat::LangevinThermostat() :
+		BaseThermostat() {
 	_gamma_trans = (number) 0.f;
 	_gamma_rot = (number) 0.f;
 	_dt = (number) 0.f;
@@ -22,14 +22,14 @@ LangevinThermostat<number>::LangevinThermostat() :
 	this->_supports_shear = true;
 }
 
-template<typename number>
-LangevinThermostat<number>::~LangevinThermostat() {
+
+LangevinThermostat::~LangevinThermostat() {
 
 }
 
-template<typename number>
-void LangevinThermostat<number>::get_settings(input_file &inp) {
-	BaseThermostat<number>::get_settings(inp);
+
+void LangevinThermostat::get_settings(input_file &inp) {
+	BaseThermostat::get_settings(inp);
 
 	float tmp_diff_coeff, tmp_gamma;
 
@@ -57,9 +57,9 @@ void LangevinThermostat<number>::get_settings(input_file &inp) {
 	getInputNumber(&inp, "dt", &_dt, 1);
 }
 
-template<typename number>
-void LangevinThermostat<number>::init(int N_part) {
-	BaseThermostat<number>::init(N_part);
+
+void LangevinThermostat::init(int N_part) {
+	BaseThermostat::init(N_part);
 
 	if(_diff_coeff_trans == 0.) _diff_coeff_trans = this->_T / _gamma_trans;
 	else _gamma_trans = this->_T / _diff_coeff_trans;
@@ -75,12 +75,12 @@ void LangevinThermostat<number>::init(int N_part) {
 
 }
 
-template<typename number>
-void LangevinThermostat<number>::apply(BaseParticle<number> **particles, llint curr_step) {
+
+void LangevinThermostat::apply(BaseParticle **particles, llint curr_step) {
 	for(int i = 0; i < this->_N_part; i++) {
-		BaseParticle<number> *p = particles[i];
-		p->vel += _dt * (-_gamma_trans * p->vel + LR_vector<number>(Utils::gaussian<number>(), Utils::gaussian<number>(), Utils::gaussian<number>()) * _rescale_factor_trans);
-		if(p->is_rigid_body()) p->L += _dt * (-_gamma_rot * p->L + LR_vector<number>(Utils::gaussian<number>(), Utils::gaussian<number>(), Utils::gaussian<number>()) * _rescale_factor_rot);
+		BaseParticle *p = particles[i];
+		p->vel += _dt * (-_gamma_trans * p->vel + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_trans);
+		if(p->is_rigid_body()) p->L += _dt * (-_gamma_rot * p->L + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_rot);
 	}
 }
 

@@ -15,8 +15,8 @@
 DPD_zeta = <float> (translational damping coefficient for the DPD thermostat.)
 @endverbatim
  */
-template<typename number>
-class DPDThermostat : public BaseThermostat<number> {
+
+class DPDThermostat : public BaseThermostat {
 protected:
 	/// Integration time step
 	number _dt, _sqrt_dt;
@@ -39,7 +39,7 @@ public:
 
 	void get_settings (input_file &inp);
 	void init(int N_part);
-	void apply(BaseParticle<number> **particles, llint curr_step);
+	void apply(BaseParticle **particles, llint curr_step);
 };
 
 #endif // DPD_THERMOSTAT_

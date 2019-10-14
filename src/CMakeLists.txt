@@ -7,18 +7,24 @@ ELSE()
 ENDIF()
 
 SET(observables_SOURCES
+	Observables/ObservableFactory.cpp
 	Observables/ObservableOutput.cpp
 	Observables/Step.cpp
 	Observables/PotentialEnergy.cpp
 	Observables/KineticEnergy.cpp
 	Observables/TotalEnergy.cpp
+	Observables/Configurations/Configuration.cpp
+	Observables/Configurations/BinaryConfiguration.cpp
+	Observables/BackendInfo.cpp
+)
+
+SET(roba 	
 	Observables/HBEnergy.cpp
 	Observables/OrderParameterValues.cpp
 	Observables/HBList.cpp
 	Observables/StrandwiseBonds.cpp
 	Observables/PairEnergy.cpp
 	Observables/PairForce.cpp
-	Observables/BackendInfo.cpp
 	Observables/ForceEnergy.cpp
 	Observables/Pressure.cpp
 	Observables/Density.cpp
@@ -30,15 +36,12 @@ SET(observables_SOURCES
 	Observables/Pitch.cpp
 	Observables/SaltExtrapolation.cpp
 	Observables/ExternalTorque.cpp
-	Observables/Configurations/Configuration.cpp
-	Observables/Configurations/BinaryConfiguration.cpp
 	Observables/Configurations/TclOutput.cpp
 	Observables/Configurations/PdbOutput.cpp
 	Observables/Configurations/ChimeraOutput.cpp
 	Observables/Configurations/TEPtclOutput.cpp
 	Observables/Configurations/TEPxyzOutput.cpp
 	Observables/Configurations/JordanOutput.cpp
-	Observables/ObservableFactory.cpp
 	Observables/MeanVectorCosine.cpp
 	Observables/VectorAngle.cpp
 	Observables/Checkpoint.cpp
@@ -60,19 +63,22 @@ SET(observables_SOURCES
 SET(backends_SOURCES
 	Backends/BackendFactory.cpp
 	Backends/MDBackend.cpp
-	Backends/MCBackend.cpp 
-	Backends/MinBackend.cpp
-	Backends/FIREBackend.cpp
-	Backends/FIREBackend.h
+	Backends/MCBackend.cpp
 	Backends/MD_CPUBackend.cpp 
 	Backends/MC_CPUBackend.cpp
 	Backends/MC_CPUBackend2.cpp
 	Backends/SimBackend.cpp 
-	Backends/FFS_MD_CPUBackend.cpp
-	Backends/VMMC_CPUBackend.cpp
 	Backends/Thermostats/ThermostatFactory.cpp
+	Backends/Thermostats/BaseThermostat.cpp
 	Backends/Thermostats/BrownianThermostat.cpp
 	Backends/Thermostats/NoThermostat.cpp
+)
+SET(roba
+	Backends/MinBackend.cpp
+	Backends/FIREBackend.cpp
+	Backends/FIREBackend.h
+	Backends/FFS_MD_CPUBackend.cpp
+	Backends/VMMC_CPUBackend.cpp 
 	Backends/Thermostats/RefreshThermostat.cpp
 	Backends/Thermostats/BussiThermostat.cpp
 	Backends/Thermostats/LangevinThermostat.cpp
@@ -81,6 +87,7 @@ SET(backends_SOURCES
 )
 
 SET(lists_SOURCES
+	Lists/BaseList.cpp
 	Lists/NoList.cpp
 	Lists/Cells.cpp
 	Lists/RodCells.cpp
@@ -90,10 +97,17 @@ SET(lists_SOURCES
 )
 
 SET(interactions_SOURCES
+	Interactions/InteractionFactory.cpp
+	Interactions/BaseInteraction.cpp
+	Interactions/LJInteraction.cpp
+	Interactions/DNAInteraction.cpp
+	Interactions/DNA2Interaction.cpp
+)
+
+SET(roba 
 	Interactions/JordanInteraction.cpp
 	Interactions/TEPInteraction.cpp
 	Interactions/TSPInteraction.cpp
-	Interactions/LJInteraction.cpp
 	Interactions/HSInteraction.cpp
 	Interactions/DHSInteraction.cpp
 	Interactions/HardCylinderInteraction.cpp
@@ -104,17 +118,15 @@ SET(interactions_SOURCES
 	Interactions/KFInteraction.cpp
 	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction_relax.cpp
-	Interactions/DNAInteraction.cpp
 	Interactions/RNAInteraction2.cpp
-	Interactions/DNA2Interaction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/DNAInteraction_relax2.cpp
 	Interactions/CustomInteraction.cpp
-	Interactions/InteractionFactory.cpp
 )
 
 SET(move_SOURCES
+	Backends/MCMoves/BaseMove.cpp
 	Backends/MCMoves/MoveFactory.cpp
 	Backends/MCMoves/MCTras.cpp
 	Backends/MCMoves/MCRot.cpp
@@ -125,6 +137,11 @@ SET(move_SOURCES
 )
 
 SET(forces_SOURCES
+	Forces/ForceFactory.cpp
+	Forces/BaseForce.cpp
+)
+
+set(roba 
 	Forces/COMForce.cpp
 	Forces/ConstantRateForce.cpp
 	Forces/SawtoothForce.cpp
@@ -142,8 +159,6 @@ SET(forces_SOURCES
 	Forces/AlignmentField.cpp
 	Forces/GenericCentralForce.cpp
 	Forces/LJCone.cpp
-	Forces/ForceFactory.cpp
-	Forces/BaseForce.cpp
 )
 
 SET(box_SOURCES
@@ -166,9 +181,11 @@ SET(common_SOURCES
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Managers/SimManager.cpp
-	Utilities/OrderParameters.cpp
-	Utilities/Weights.cpp
-	Utilities/Histogram.cpp
+#	Utilities/OrderParameters.cpp
+#	Utilities/Weights.cpp
+#	Utilities/Histogram.cpp
+	Utilities/LR_vector.cpp
+	Utilities/LR_matrix.cpp
 	Utilities/Utils.cpp
 	Utilities/oxDNAException.cpp
 	Utilities/Logger.cpp

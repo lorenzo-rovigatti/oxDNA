@@ -14,7 +14,7 @@
 #include "../Boxes/BoxFactory.h"
 #include "../PluginManagement/PluginManager.h"
 
-AnalysisBackend::AnalysisBackend() : SimBackend<double>(), _done(false), _n_conf(0) {
+AnalysisBackend::AnalysisBackend() : SimBackend(), _done(false), _n_conf(0) {
 	_enable_fix_diffusion = 0;
 }
 
@@ -27,13 +27,13 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	PluginManager *pm = PluginManager::instance();
 	pm->init(inp);
 
-	_interaction = InteractionFactory::make_interaction<double>(inp);
+	_interaction = InteractionFactory::make_interaction(inp);
 	_interaction->get_settings(inp);
 	
-	_box = BoxFactory::make_box<double>(inp);
+	_box = BoxFactory::make_box(inp);
 	_box->get_settings(inp);
 
-	_lists = ListFactory::make_list<double>(inp, _N, _box.get());
+	_lists = ListFactory::make_list(inp, _N, _box.get());
 	_lists->get_settings(inp);
 
 	// initialise the timer
@@ -91,7 +91,7 @@ void AnalysisBackend::get_settings(input_file &inp) {
 		ss << "analysis_data_output_" << i;
 		string obs_string;
 		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
-			ObservableOutput<double> *new_obs_out = new ObservableOutput<double>(obs_string, inp);
+			ObservableOutput *new_obs_out = new ObservableOutput(obs_string, inp);
 			_obs_outputs.push_back(new_obs_out);
 		}
 		else found = false;
@@ -101,14 +101,14 @@ void AnalysisBackend::get_settings(input_file &inp) {
 }
 
 void AnalysisBackend::init() {
-	SimBackend<double>::init();
+	SimBackend::init();
 }
 
 void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
 	if(_n_conf % 100 == 0 && _n_conf > 0) OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
-	SimBackend<double>::print_observables(_read_conf_step);
+	SimBackend::print_observables(_read_conf_step);
 
 	if(!_read_next_configuration(_initial_conf_is_binary)) _done = true;
 	else _n_conf++;

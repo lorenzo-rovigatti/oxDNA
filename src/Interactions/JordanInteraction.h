@@ -24,8 +24,8 @@ JORDAN_N_patches = <int> (number of patches)
 [JORDAN_int_k = <float> (stiffness of the internal spring, defaults to 0., i.e., free patches)]
 @endverbatim
  */
-template <typename number>
-class JordanInteraction: public BaseInteraction<number, JordanInteraction<number> > {
+
+class JordanInteraction: public BaseInteraction<number, JordanInteraction > {
 protected:
 	/// number of patches on each particle
 	int _n_patches;
@@ -46,7 +46,7 @@ protected:
 	number _int_k;
 
 	/// interaction
-	number _jordan_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
+	number _jordan_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
 
 	/// number of particles with N3 patches and of particles in general
 	int _my_N3, _my_N;
@@ -65,17 +65,17 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 };
 
 #endif /* JORDANINTERACTION_H_ */

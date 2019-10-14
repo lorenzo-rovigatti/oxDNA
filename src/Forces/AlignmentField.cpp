@@ -9,16 +9,16 @@
 #include "../Utilities/oxDNAException.h"
 #include "../Particles/BaseParticle.h"
 
-template<typename number>
-AlignmentField<number>::AlignmentField() : BaseForce<number>() {
+
+AlignmentField::AlignmentField() : BaseForce() {
 	_particle = -1;
 	_F = -1.f;
 	_v_idx = -1;
 	_v_ptr = NULL;
 }
 
-template<typename number>
-void AlignmentField<number>::get_settings (input_file &inp) {
+
+void AlignmentField::get_settings (input_file &inp) {
 	getInputInt(&inp, "particle", &_particle, 0);
 	getInputInt(&inp, "v_idx", &_v_idx, 1); 
 	getInputNumber(&inp, "F", &_F, 1);
@@ -30,12 +30,12 @@ void AlignmentField<number>::get_settings (input_file &inp) {
 	getInputString (&inp, "dir", strdir, 1);
 	tmpi = sscanf(strdir.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
 	if(tmpi != 3) throw oxDNAException ("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
-	this->_direction = LR_vector<number> ((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
+	this->_direction = LR_vector ((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	this->_direction.normalize();
 }
 
-template<typename number>
-void AlignmentField<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
+
+void AlignmentField::init (BaseParticle ** particles, int N, BaseBox * box_ptr) {
 	if (_particle >= N || N < 0) throw oxDNAException ("Trying to add a AlignmentField on non-existent particle %d. Aborting", _particle);
 	//if (_particle != -1) {
 		OX_LOG (Logger::LOG_INFO, "Adding AlignmentField (F=%g, dir=%g,%g,%g) on particle %d", _F, this->_direction.x, this->_direction.y, this->_direction.z, _particle);
@@ -48,17 +48,17 @@ void AlignmentField<number>::init (BaseParticle<number> ** particles, int N, Bas
 			case 5: _v_ptr = &(particles[_particle]->orientationT.v3); break;
 			default: throw oxDNAException ("Should Never Get here %s %s", __FILE__, __LINE__); break;
 		}
-		particles[_particle]->add_ext_force(ForcePtr<number>(this));
+		particles[_particle]->add_ext_force(ForcePtr(this));
 	//}
 }
 
-template<typename number>
-LR_vector<number> AlignmentField<number>::value(llint step, LR_vector<number> &pos) {
+
+LR_vector AlignmentField::value(llint step, LR_vector &pos) {
 	throw oxDNAException ("Not implemented... %s %s", __FILE__, __LINE__);
 }
 
-template<typename number>
-number AlignmentField<number>::potential (llint step, LR_vector<number> &pos) {
+
+number AlignmentField::potential (llint step, LR_vector &pos) {
 	return _F * (1.f - ((*_v_ptr) * (this->_direction)));
 }
 

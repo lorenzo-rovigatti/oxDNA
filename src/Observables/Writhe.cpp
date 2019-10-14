@@ -8,8 +8,8 @@
 #include "Writhe.h"
 #include "../Utilities/Utils.h"
 #include "../Interactions/TEPInteraction.h"
-template<typename number>
-Writhe<number>::Writhe() {
+
+Writhe::Writhe() {
 
 	_first_particle_index = 0;
 	_last_particle_index = -1;
@@ -30,8 +30,8 @@ Writhe<number>::Writhe() {
 	_particles_are_bases = true;
 }
 
-template<typename number>
-Writhe<number>::~Writhe() {
+
+Writhe::~Writhe() {
 	//deallocate them only if they have been allocated
 	if(_N != -1) {
 		for(int i = 0; i < _N; i++) {
@@ -42,11 +42,11 @@ Writhe<number>::~Writhe() {
 
 }
 
-template<typename number>
-void Writhe<number>::init(ConfigInfo<number> &config_info) {
-	BaseObservable<number>::init(config_info);
 
-	BaseParticle<number> **p = this->_config_info.particles;
+void Writhe::init(ConfigInfo &config_info) {
+	BaseObservable::init(config_info);
+
+	BaseParticle **p = this->_config_info.particles;
 	_N = *this->_config_info.N;
 
 	//allocate the arrays - these take up unnecessary memory when the subdomain is smaller than N, but I don't think I care.
@@ -127,8 +127,8 @@ void Writhe<number>::init(ConfigInfo<number> &config_info) {
 
 }
 
-template<typename number>
-void Writhe<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+
+void Writhe::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputInt(&my_inp, "first_particle_index", &_first_particle_index, 0);
 
@@ -169,14 +169,14 @@ void Writhe<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 }
 
-template<typename number>
-std::string Writhe<number>::get_output_string(llint curr_step) {
+
+std::string Writhe::get_output_string(llint curr_step) {
 	string result;
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	int time = this->_config_info.curr_step;
-	LR_vector<number> r, rp, t, tp;
+	LR_vector r, rp, t, tp;
 	/*
-	LR_vector<number> *positions = new LR_vector<number>[_N];
+	LR_vector *positions = new LR_vector[_N];
 	delete[] positions;
 	// get the positions of the array - will later have to be done with the get_helical_axis_from_duplex
 	for (int i = 0; i <= _last_particle_index - _first_particle_index; i++){
@@ -187,7 +187,7 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 	//number writhetemp = 0;
 	// first compute the value of the writhe integrand
 	for(int i = _first_particle_index; i <= _last_particle_index; i++) {
-		BaseParticle<number> * i_n5_particle = p[i]->n5;
+		BaseParticle * i_n5_particle = p[i]->n5;
 
 		t = (i_n5_particle->pos - p[i]->pos);
 		t.normalize();
@@ -210,7 +210,7 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 			else {
 				jj = j;
 			}
-			BaseParticle<number> * jj_n5_particle = p[jj]->n5;
+			BaseParticle * jj_n5_particle = p[jj]->n5;
 			//the following condition should never be met - if it is, an edge case has not been treated properly.
 			if(jj_n5_particle == P_VIRTUAL) {
 				throw oxDNAException("In observable writhe, Skipping i %d jj %d. This wasn't supposed to happen!", i, jj);
@@ -280,11 +280,11 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 					if(_print_size or _print_left_right) {
 						if((peak_position - _minimum_plectoneme_size) >= 0 && (peak_position + _minimum_plectoneme_size) < *this->_config_info.N){//TODO: probably remove this if statement - the pointers should keep track of things by checking for P_VIRTUAL
 							//--old way
-							//BaseParticle<number> *left = p[peak_position - _minimum_plectoneme_size];
-							//BaseParticle<number> *right = p[peak_position + _minimum_plectoneme_size];
+							//BaseParticle *left = p[peak_position - _minimum_plectoneme_size];
+							//BaseParticle *right = p[peak_position + _minimum_plectoneme_size];
 							//--
-							BaseParticle<number> *left = p[peak_position];
-							BaseParticle<number> *right = p[peak_position];
+							BaseParticle *left = p[peak_position];
+							BaseParticle *right = p[peak_position];
 							for (int l = 0; l < _minimum_plectoneme_size; l++){
 								if (left->n3 != P_VIRTUAL) left = left->n3;
 								if (right->n5 != P_VIRTUAL) right = right->n5;
@@ -292,18 +292,18 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 							bool done = false;
 
 							while(!done) {
-								BaseParticle<number> *new_left = left;
-								BaseParticle<number> *new_right = right;
+								BaseParticle *new_left = left;
+								BaseParticle *new_right = right;
 								number min_distance = 1e6;
 								//--old if statement
 								//for(int pleft = 1; pleft < _size_outer_threshold && (left->index - pleft) >= 0; pleft++) {
-								//	BaseParticle<number> *curr_left = p[left->index - pleft];
-								BaseParticle<number> *curr_left = left->n3;
+								//	BaseParticle *curr_left = p[left->index - pleft];
+								BaseParticle *curr_left = left->n3;
 								for(int pleft = 1; pleft < _size_outer_threshold && curr_left != P_VIRTUAL; pleft++) {
 									//--old if statement
 									//for(int pright = 1; pright < _size_outer_threshold && (right->index + pright) < *this->_config_info.N; pright++) {
-										//BaseParticle<number> *curr_right = p[right->index + pright];
-									BaseParticle<number> *curr_right = right->n5;
+										//BaseParticle *curr_right = p[right->index + pright];
+									BaseParticle *curr_right = right->n5;
 									for(int pright = 1; pright < _size_outer_threshold && curr_right != P_VIRTUAL; pright++) {
 										number curr_dist = (curr_right->pos - curr_left->pos).module();
 										if(curr_dist < min_distance) {
@@ -327,7 +327,7 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 							//--old size
 							//int size = right->index - left->index;
 							int size = 0, max_size = *this->_config_info.N+10;
-							BaseParticle<number> * step_counter = left;
+							BaseParticle * step_counter = left;
 							for (int l = 1; (l <= max_size and step_counter != right);l++){
 								size = l;
 								step_counter = step_counter->n5;
@@ -348,7 +348,7 @@ std::string Writhe<number>::get_output_string(llint curr_step) {
 
 								// print the spatial position of the particle on the tip of the plectoneme
 								if(_print_space_pos) {
-									BaseParticle<number> *p_tip = p[peak_position];
+									BaseParticle *p_tip = p[peak_position];
 									result += Utils::sformat(" %lf %lf %lf", p_tip->pos.x, p_tip->pos.y, p_tip->pos.z);
 								}
 								// print the bending angle averaged over a few segments around the tip bead

@@ -39,8 +39,8 @@ particle = <int> (index of the particle on which the force shall be applied. If 
 [generate_inside = <bool> (If true the wall-particle interaction may not diverge, even for negative distances. Useful when generating the starting configuration. Defaults to false)]
 @endverbatim
 */
-template<typename number>
-class LJWall : public BaseForce<number> {
+
+class LJWall : public BaseForce {
 private:
 	int _particle;
 	bool _only_repulsive;
@@ -56,10 +56,10 @@ public:
 	virtual ~LJWall() {}
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void init (BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif // LJWALL_H

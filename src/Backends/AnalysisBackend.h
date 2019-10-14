@@ -18,7 +18,7 @@
 analysis_data_output_<n> = {\nObservableOutput\n} (specify an analysis output stream. <n> is an integer number and should start from 1. The setup and usage of output streams are documented in the ObservableOutput class.)
 @endverbatim
  */
-class AnalysisBackend : public SimBackend<double> {
+class AnalysisBackend : public SimBackend {
 protected:
 	bool _done;
 	llint _n_conf;

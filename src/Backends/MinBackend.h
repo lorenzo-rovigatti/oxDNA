@@ -15,8 +15,8 @@
 /**
  * @brief Manages some kind of potential energy minimization
  */
-template<typename number>
-class MinBackend: public MDBackend<number> {
+
+class MinBackend: public MDBackend {
 protected:
 	void _compute_forces();
 	void _evolve();

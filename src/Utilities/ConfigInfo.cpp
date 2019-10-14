@@ -9,11 +9,9 @@
 
 #include "oxDNAException.h"
 
-template<typename number>
-ConfigInfo<number> *ConfigInfo<number>::_config_info = NULL;
+ConfigInfo *ConfigInfo::_config_info = NULL;
 
-template<typename number>
-ConfigInfo<number>::ConfigInfo() :
+ConfigInfo::ConfigInfo() :
 				particles(NULL),
 				interaction(NULL),
 				N(NULL),
@@ -24,13 +22,11 @@ ConfigInfo<number>::ConfigInfo() :
 
 }
 
-template<typename number>
-ConfigInfo<number>::~ConfigInfo() {
+ConfigInfo::~ConfigInfo() {
 
 }
 
-template<typename number>
-void ConfigInfo<number>::set(BaseParticle<number> **p, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l, BaseBox<number> *abox) {
+void ConfigInfo::set(BaseParticle **p, IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox) {
 	particles = p;
 	interaction = i;
 	N = Nn;
@@ -39,17 +35,12 @@ void ConfigInfo<number>::set(BaseParticle<number> **p, IBaseInteraction<number> 
 	box = abox;
 }
 
-template<typename number>
-void ConfigInfo<number>::init() {
+void ConfigInfo::init() {
 	if(_config_info != NULL) throw oxDNAException("The ConfigInfo object have been already initialised");
 
 	_config_info = new ConfigInfo();
 }
 
-template<typename number>
-void ConfigInfo<number>::clear() {
+void ConfigInfo::clear() {
 	if(_config_info != NULL) delete _config_info;
 }
-
-template class ConfigInfo<float> ;
-template class ConfigInfo<double> ;

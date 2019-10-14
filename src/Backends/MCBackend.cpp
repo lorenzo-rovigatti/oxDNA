@@ -10,8 +10,8 @@
 #include "../Observables/ObservableOutput.h"
 #include <sstream>
 
-template<typename number>
-MCBackend<number>::MCBackend() : SimBackend<number>(), _MC_moves(3), _overlap(false), _check_energy_counter(0) {
+
+MCBackend::MCBackend() : SimBackend(), _MC_moves(3), _overlap(false), _check_energy_counter(0) {
 	this->_sim_type = SIM_MC;
 
 	_delta = new number[_MC_moves];
@@ -24,38 +24,17 @@ MCBackend<number>::MCBackend() : SimBackend<number>(), _MC_moves(3), _overlap(fa
 	for(int i = 0; i < _MC_moves; i++) _tries[i] = _accepted[i] = 0;
 }
 
-template<typename number>
-MCBackend<number>::~MCBackend() {
+
+MCBackend::~MCBackend() {
 	delete[] _delta;
 	delete[] _tries;
 	delete[] _accepted;
 }
 
-template<>
-void MCBackend<float>::_get_number_settings(input_file &inp) {
-	if(getInputFloat(&inp, "check_energy_threshold", &_check_energy_threshold, 0) == KEY_NOT_FOUND)
-		_check_energy_threshold = 1e-2f;
-	getInputFloat(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
-	getInputFloat(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
-	if(_ensemble == MC_ENSEMBLE_NPT) getInputFloat(&inp, "delta_volume", &_delta[MC_MOVE_VOLUME], 1);
-	if(_ensemble == MC_ENSEMBLE_NPT) getInputFloat(&inp, "P", &(this->_P), 1);
-}
-
-template<>
-void MCBackend<double>::_get_number_settings(input_file &inp) {
-	if(getInputDouble(&inp, "check_energy_threshold", &_check_energy_threshold, 0) == KEY_NOT_FOUND)
-		_check_energy_threshold = 1e-6;
-	getInputDouble(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
-	getInputDouble(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
-	if(_ensemble == MC_ENSEMBLE_NPT) getInputDouble(&inp, "delta_volume", &_delta[MC_MOVE_VOLUME], 1);
-	if(_ensemble == MC_ENSEMBLE_NPT) getInputDouble(&inp, "P", &(this->_P), 1);
-}
-
-template<typename number>
-void MCBackend<number>::get_settings(input_file &inp) {
+void MCBackend::get_settings(input_file &inp) {
 	char tmp[256];
 
-	SimBackend<number>::get_settings(inp);
+	SimBackend::get_settings(inp);
 
 	getInputInt(&inp, "check_energy_every", &_check_energy_every, 0);
 	getInputString(&inp, "ensemble", tmp, 1);
@@ -76,7 +55,16 @@ void MCBackend<number>::get_settings(input_file &inp) {
 		getInputLLInt(&inp, "equilibration_steps", &_MC_equilibration_steps, 1);
 	}
 
-	_get_number_settings(inp);
+	if(getInputNumber(&inp, "check_energy_threshold", &_check_energy_threshold, 0) == KEY_NOT_FOUND) {
+		_check_energy_threshold = 1e-6;
+	}
+
+	getInputNumber(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
+	getInputNumber(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
+	if(_ensemble == MC_ENSEMBLE_NPT) {
+		getInputNumber(&inp, "P", &(this->_P), 1);
+		getInputNumber(&inp, "delta_volume", &_delta[MC_MOVE_VOLUME], 1);
+	}
 
 	char energy_file[512];
 	llint print_every;
@@ -85,7 +73,7 @@ void MCBackend<number>::get_settings(input_file &inp) {
 	// we build the default stream of observables;
 	// we build a helper string for that
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n}\n", energy_file, print_every);
-	this->_obs_output_file = new ObservableOutput<number>(fake, inp);
+	this->_obs_output_file = new ObservableOutput(fake, inp);
 	this->_obs_output_file->add_observable("type = step");
 	this->_obs_output_file->add_observable("type = potential_energy");
 	if (_ensemble == MC_ENSEMBLE_NPT) this->_obs_output_file->add_observable("type = density");
@@ -97,7 +85,7 @@ void MCBackend<number>::get_settings(input_file &inp) {
 	getInputBoolAsInt(&inp, "no_stdout_energy", &no_stdout_energy, 0);
 	if(!no_stdout_energy) {
 		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n}\n", "stdout", print_every);
-		this->_obs_output_stdout = new ObservableOutput<number>(fake, inp);
+		this->_obs_output_stdout = new ObservableOutput(fake, inp);
 		this->_obs_outputs.push_back(this->_obs_output_stdout);
 		this->_obs_output_stdout->add_observable("type = step");
 		this->_obs_output_stdout->add_observable("type = potential_energy");
@@ -106,8 +94,8 @@ void MCBackend<number>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number>
-void MCBackend<number>::print_observables(llint curr_step) {
+
+void MCBackend::print_observables(llint curr_step) {
 	std::string tmpstr("");
 	for(int i = 0; i < _MC_moves; i++) {
 		number ratio = (this->_tries[i] > 0) ? this->_accepted[i]/(float)this->_tries[i] : 0;
@@ -116,8 +104,5 @@ void MCBackend<number>::print_observables(llint curr_step) {
 	}
 	this->_backend_info.insert(0, tmpstr + "  ");
 
-	SimBackend<number>::print_observables(curr_step);
+	SimBackend::print_observables(curr_step);
 }
-
-template class MCBackend<float>;
-template class MCBackend<double>;

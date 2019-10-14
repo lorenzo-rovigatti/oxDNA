@@ -20,8 +20,8 @@
 [split = <bool> (defaults to false, it tells the observable to print all the terms contributing to the potential energy)]
  @endverbatim
  */
-template<typename number>
-class PotentialEnergy: public BaseObservable<number> {
+
+class PotentialEnergy: public BaseObservable {
 protected:
 	bool _split;
 public:

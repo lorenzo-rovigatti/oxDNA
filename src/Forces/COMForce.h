@@ -33,22 +33,22 @@ com_list = <string> (comma-separated list containing the ids of all the particle
 ref_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is the reference point for the force acting on the other group of particles)
 @endverbatim
  */
-template<typename number>
-class COMForce : public BaseForce<number> {
+
+class COMForce : public BaseForce {
 protected:
 	number _r0;
 	llint _last_step;
 
-	BaseBox<number> * _box_ptr;
+	BaseBox * _box_ptr;
 
-	LR_vector<number> _com;
-	LR_vector<number> _ref_com;
+	LR_vector _com;
+	LR_vector _ref_com;
 
 	std::string _com_string;
 	std::string _ref_string;
 
-	std::set<BaseParticle<number> *> _com_list;
-	std::set<BaseParticle<number> *> _ref_list;
+	std::set<BaseParticle *> _com_list;
+	std::set<BaseParticle *> _ref_list;
 
 	void _compute_coms(llint step);
 	void _check_index(int idx, int N);
@@ -59,10 +59,10 @@ public:
 
 	virtual void get_settings(input_file &inp);
 
-	virtual void init(BaseParticle<number> **particles, int N, BaseBox<number> * box_side);
+	virtual void init(BaseParticle **particles, int N, BaseBox * box_side);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif /* COMFORCE_H_ */

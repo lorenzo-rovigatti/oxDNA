@@ -1,9 +1,9 @@
 #include "RNAInteraction2.h"
 
-template<typename number>
-RNA2Interaction<number>::RNA2Interaction() : RNAInteraction<number>() {
 
-	this->_int_map[DEBYE_HUCKEL] = (number (RNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &RNA2Interaction<number>::_debye_huckel;
+RNA2Interaction::RNA2Interaction() : RNAInteraction() {
+
+	this->_int_map[DEBYE_HUCKEL] = (number (RNAInteraction::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)) &RNA2Interaction::_debye_huckel;
 	_RNA_HYDR_MIS = 1;
     // log the interaction type
 	OX_LOG(Logger::LOG_INFO,"Running modification of oxRNA with additional Debye-Huckel potential");
@@ -11,12 +11,12 @@ RNA2Interaction<number>::RNA2Interaction() : RNAInteraction<number>() {
 
 
 
-template<typename number>
-number RNA2Interaction<number>::pair_interaction_nonbonded(
-		BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r,
+
+number RNA2Interaction::pair_interaction_nonbonded(
+		BaseParticle *p, BaseParticle *q, LR_vector *r,
 		bool update_forces) {
 
-	LR_vector<number> computed_r(0, 0, 0);
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -26,7 +26,7 @@ number RNA2Interaction<number>::pair_interaction_nonbonded(
         if (r->norm() >= this->_sqr_rcut)
 		return (number) 0.f;
 	// compute the interaction energy as always ...
-	number energy = RNAInteraction<number>::pair_interaction_nonbonded(p, q, r,
+	number energy = RNAInteraction::pair_interaction_nonbonded(p, q, r,
 			update_forces);
 
 	// ... and then add the debye_huckel energy
@@ -35,9 +35,9 @@ number RNA2Interaction<number>::pair_interaction_nonbonded(
 	return energy;
 }
 
-template<typename number>
-void RNA2Interaction<number>::get_settings(input_file &inp) {
-	RNAInteraction<number>::get_settings(inp);
+
+void RNA2Interaction::get_settings(input_file &inp) {
+	RNAInteraction::get_settings(inp);
 
 	float salt;
 	int mismatches;
@@ -119,8 +119,8 @@ void RNA2Interaction<number>::get_settings(input_file &inp) {
 
 }
 
-template<typename number> //initialise the interaction
-void RNA2Interaction<number>::init() {
+//initialise the interaction
+void RNA2Interaction::init() {
 
 	// we choose rcut as the max of the range interaction of excluded
 	// volume between backbones and hydrogen bonding
@@ -128,7 +128,7 @@ void RNA2Interaction<number>::init() {
 	//this->_T = T;
 
         //perform the initialisation as in RNAinteraction
-	RNAInteraction<number>::init();
+	RNAInteraction::init();
 
 	//compute the DH length lambda
 	number lambda = _debye_huckel_lambdafactor / sqrt(_salt_concentration);
@@ -189,8 +189,8 @@ void RNA2Interaction<number>::init() {
 }
 
 //to be removed later, the following function is just for debugging
-template<typename number>
-number RNA2Interaction<number>::test_huckel(number rbackmod)
+
+number RNA2Interaction::test_huckel(number rbackmod)
 {
 	number energy = 0;
 	if (rbackmod <_debye_huckel_RC) {
@@ -209,8 +209,8 @@ number RNA2Interaction<number>::test_huckel(number rbackmod)
 
 
 
-template<typename number>
-number RNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)
+
+number RNA2Interaction::_debye_huckel(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)
 {
 	number cut_factor = 1.0f;
 	if(this->_are_bonded(p, q)) return (number) 0.f;
@@ -219,7 +219,7 @@ number RNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
     if (  this->_debye_huckel_half_charged_ends && ( q->n3 == P_VIRTUAL || q->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
 	
 
-	LR_vector<number> rback = *r + q->int_centers[RNANucleotide<number>::BACK] - p->int_centers[RNANucleotide<number>::BACK];
+	LR_vector rback = *r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
 	number rbackmod = rback.module();
 	number energy = (number) 0.f;
 	
@@ -235,10 +235,10 @@ number RNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 	  //update forces are NOT TESTED !!! NEEDS DEBUGGING+careful tests!!!
 	  if(update_forces && energy != 0.)
 	    {
-	      LR_vector<number> force(0.,0.,0.);
-	      LR_vector<number> torqueq(0.,0.,0.);
-	      LR_vector<number> torquep(0.,0.,0.);
-	      LR_vector<number> rbackdir = rback / rbackmod;
+	      LR_vector force(0.,0.,0.);
+	      LR_vector torqueq(0.,0.,0.);
+	      LR_vector torquep(0.,0.,0.);
+	      LR_vector rbackdir = rback / rbackmod;
 	      // compute the new force
 	      if(rbackmod < _debye_huckel_RHIGH)
 		{
@@ -251,8 +251,8 @@ number RNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 	      }
 		force *= cut_factor;
 	      // computes the torque on q and p
-	      torqueq = q->int_centers[RNANucleotide<number>::BACK].cross(force);
-	      torquep = -p->int_centers[RNANucleotide<number>::BACK].cross(force);
+	      torqueq = q->int_centers[RNANucleotide::BACK].cross(force);
+	      torquep = -p->int_centers[RNANucleotide::BACK].cross(force);
 	      // updates the forces and the torques.
 	      p->force -= force;
 	      q->force += force;
@@ -271,8 +271,8 @@ number RNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 
 //repulsion potentials
 
-template<typename number>
-number RNA2Interaction<number>::_fX(number r, int type,int n3, int n5) {
+
+number RNA2Interaction::_fX(number r, int type,int n3, int n5) {
 	number val = (number) 0;
 	if(r < this->F1_RCHIGH[type]) {
 		if(r > this->F1_RHIGH[type]) {
@@ -291,8 +291,8 @@ number RNA2Interaction<number>::_fX(number r, int type,int n3, int n5) {
 	return val;
 }
 
-template<typename number>
-number RNA2Interaction<number>::_fXD(number r, int type,int n3, int n5) {
+
+number RNA2Interaction::_fXD(number r, int type,int n3, int n5) {
 	number val = (number) 0;
 	if(r < this->F1_RCHIGH[type]) {
 		if(r > this->F1_RHIGH[type]) {
@@ -314,8 +314,8 @@ number RNA2Interaction<number>::_fXD(number r, int type,int n3, int n5) {
 
 
 
-template<typename number>
-number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number RNA2Interaction::_hydrogen_bonding_repulsion(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(this->_are_bonded(p, q)) return (number) 0.f;
 
 	// true if p and q are Watson-Crick-like pairs
@@ -330,7 +330,7 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
     	return 0;
     }
 
-	LR_vector<number> rhydro = *r + q->int_centers[RNANucleotide<number>::BASE] - p->int_centers[RNANucleotide<number>::BASE];
+	LR_vector rhydro = *r + q->int_centers[RNANucleotide::BASE] - p->int_centers[RNANucleotide::BASE];
 	number rhydromod = rhydro.module();
 	number energy = (number) 0.f;
 
@@ -342,13 +342,13 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
 
 	if (rhydromod < this->model->RNA_HYDR_RCHIGH) {
 		// vector, versor and magnitude of the base-base separation
-		LR_vector<number> rhydrodir = rhydro / rhydromod;
+		LR_vector rhydrodir = rhydro / rhydromod;
 
 		// particle axes according to Allen's paper
-		LR_vector<number> &a1 = p->orientationT.v1;
-		LR_vector<number> &a3 = p->orientationT.v3;
-		LR_vector<number> &b1 = q->orientationT.v1;
-		LR_vector<number> &b3 = q->orientationT.v3;
+		LR_vector &a1 = p->orientationT.v1;
+		LR_vector &a3 = p->orientationT.v3;
+		LR_vector &b1 = q->orientationT.v1;
+		LR_vector &b3 = q->orientationT.v3;
 
 		// angles involved in the HB interaction
 		number cost1 = -a1 * b1;
@@ -375,9 +375,9 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
 
 		// makes sense, since the above functions may return 0. exactly
 		if(update_forces && energy != 0.) {
-			LR_vector<number> force(0, 0, 0);
-			LR_vector<number> torquep(0, 0, 0);
-			LR_vector<number> torqueq(0, 0, 0);
+			LR_vector force(0, 0, 0);
+			LR_vector torquep(0, 0, 0);
+			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
 			number f1D;
@@ -395,7 +395,7 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
 			force = - rhydrodir * f1D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			LR_vector<number> dir = a3.cross(b3);
+			LR_vector dir = a3.cross(b3);
 			number torquemod = - f1 * f4t1 * f4t2 * f4t3 * f4t4Dsin * f4t7 * f4t8 ;
 
 			torquep -= dir * torquemod;
@@ -418,7 +418,7 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
 			force += (a1 - rhydrodir * cost3) / rhydromod * f1 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8;
 
-			LR_vector<number> t3dir = rhydrodir.cross(a1);
+			LR_vector t3dir = rhydrodir.cross(a1);
 			torquemod = - f1 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8;
 
 			torquep += t3dir * torquemod;
@@ -426,7 +426,7 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
 			force += (b3 + rhydrodir * cost7) / rhydromod * f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7Dsin * f4t8;
 
-			LR_vector<number> t7dir = rhydrodir.cross(b3);
+			LR_vector t7dir = rhydrodir.cross(b3);
 			torquemod = - f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7Dsin * f4t8;
 
 			torqueq += t7dir * torquemod;
@@ -434,7 +434,7 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			force +=  (a3 - rhydrodir * cost8) / rhydromod * f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin;
 
-			LR_vector<number> t8dir = rhydrodir.cross(a3);
+			LR_vector t8dir = rhydrodir.cross(a3);
 			torquemod = - f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin;
 
 			torquep += t8dir * torquemod;
@@ -443,8 +443,8 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
 			p->force -= force;
 			q->force += force;
 
-			torquep -= p->int_centers[RNANucleotide<number>::BASE].cross(force);
-			torqueq += q->int_centers[RNANucleotide<number>::BASE].cross(force);
+			torquep -= p->int_centers[RNANucleotide::BASE].cross(force);
+			torqueq += q->int_centers[RNANucleotide::BASE].cross(force);
 
 			// we need torques in the reference system of the particle
 			p->torque += p->orientationT * torquep;
@@ -456,8 +456,8 @@ number RNA2Interaction<number>::_hydrogen_bonding_repulsion(BaseParticle<number>
 }
 
 
-template<typename number>
-number RNA2Interaction<number>::_hydrogen_bonding(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number RNA2Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(this->_are_bonded(p, q)) return (number) 0.f;
 
 	// true if p and q are Watson-Crick-like pairs
@@ -470,7 +470,7 @@ number RNA2Interaction<number>::_hydrogen_bonding(BaseParticle<number> *p, BaseP
 
 	if(is_pair)
 	{
-		return this->RNAInteraction<number>::_hydrogen_bonding(p,q,r,update_forces);
+		return this->RNAInteraction::_hydrogen_bonding(p,q,r,update_forces);
 	}
 	else if (_mismatch_repulsion)
 	{

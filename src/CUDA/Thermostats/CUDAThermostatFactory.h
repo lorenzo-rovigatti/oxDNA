@@ -33,7 +33,7 @@ public:
 	 * from BaseThermostat
 	 */
 	template<typename number, typename number4>
-	static CUDABaseThermostat<number, number4> *make_thermostat(input_file &inp, BaseBox<number> * box);
+	static CUDABaseThermostat<number, number4> *make_thermostat(input_file &inp, BaseBox * box);
 };
 
 #endif /* CUDATHERMOSTATFACTORY_H_ */

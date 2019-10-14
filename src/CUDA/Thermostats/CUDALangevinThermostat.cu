@@ -39,7 +39,7 @@ __global__ void langevin_thermostat(curandState *rand_state, number4 *vels, numb
 }
 
 template<typename number, typename number4>
-CUDALangevinThermostat<number, number4>::CUDALangevinThermostat() : CUDABaseThermostat<number, number4>(), LangevinThermostat<number>() {
+CUDALangevinThermostat<number, number4>::CUDALangevinThermostat() : CUDABaseThermostat<number, number4>(), LangevinThermostat() {
 
 }
 
@@ -50,13 +50,13 @@ CUDALangevinThermostat<number, number4>::~CUDALangevinThermostat() {
 
 template<typename number, typename number4>
 void CUDALangevinThermostat<number, number4>::get_settings(input_file &inp) {
-	LangevinThermostat<number>::get_settings(inp);
+	LangevinThermostat::get_settings(inp);
 	CUDABaseThermostat<number, number4>::get_cuda_settings(inp);
 }
 
 template<typename number, typename number4>
 void CUDALangevinThermostat<number, number4>::init(int N) {
-	LangevinThermostat<number>::init(N);
+	LangevinThermostat::init(N);
 
 	this->_setup_rand(N);
 }
@@ -67,7 +67,7 @@ bool CUDALangevinThermostat<number, number4>::would_activate(llint curr_step) {
 }
 
 template<typename number, typename number4>
-void CUDALangevinThermostat<number, number4>::apply_cuda(number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
+void CUDALangevinThermostat<number, number4>::apply_cuda(number4 *d_poss, GPU_quat *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 	//printf("%d \n",this->_N_part);
 	langevin_thermostat<number, number4>

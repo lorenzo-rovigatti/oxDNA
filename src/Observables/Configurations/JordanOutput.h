@@ -30,11 +30,11 @@ col_1 = {
  * simulation steps.
  * Since only_last is set to true, every 10^4 steps, the file will be augmented
  */
-template<typename number>
-class JordanOutput: public Configuration<number>  {
+
+class JordanOutput: public Configuration  {
 protected:
 	virtual std::string _headers(llint step);
-	virtual std::string _particle(BaseParticle<number> *p);
+	virtual std::string _particle(BaseParticle *p);
 	virtual std::string _configuration(llint step);
 
 public:

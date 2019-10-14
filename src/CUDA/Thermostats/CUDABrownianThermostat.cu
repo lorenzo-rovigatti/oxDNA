@@ -49,7 +49,7 @@ __global__ void brownian_thermostat(curandState *rand_state, number4 *vels, numb
 }
 
 template<typename number, typename number4>
-CUDABrownianThermostat<number, number4>::CUDABrownianThermostat() : CUDABaseThermostat<number, number4>(), BrownianThermostat<number>() {
+CUDABrownianThermostat<number, number4>::CUDABrownianThermostat() : CUDABaseThermostat<number, number4>(), BrownianThermostat() {
 
 }
 
@@ -60,13 +60,13 @@ CUDABrownianThermostat<number, number4>::~CUDABrownianThermostat() {
 
 template<typename number, typename number4>
 void CUDABrownianThermostat<number, number4>::get_settings(input_file &inp) {
-	BrownianThermostat<number>::get_settings(inp);
+	BrownianThermostat::get_settings(inp);
 	CUDABaseThermostat<number, number4>::get_cuda_settings(inp);
 }
 
 template<typename number, typename number4>
 void CUDABrownianThermostat<number, number4>::init(int N) {
-	BrownianThermostat<number>::init(N);
+	BrownianThermostat::init(N);
 
 	this->_setup_rand(N);
 }
@@ -77,7 +77,7 @@ bool CUDABrownianThermostat<number, number4>::would_activate(llint curr_step) {
 }
 
 template<typename number, typename number4>
-void CUDABrownianThermostat<number, number4>::apply_cuda(number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
+void CUDABrownianThermostat<number, number4>::apply_cuda(number4 *d_poss, GPU_quat *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
 	brownian_thermostat<number, number4>

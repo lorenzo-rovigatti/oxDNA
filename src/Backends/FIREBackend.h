@@ -14,8 +14,8 @@
 /**
  * @brief Manages the FIRE algorithm for potential energy minimization
  */
-template<typename number>
-class FIREBackend: public MDBackend<number> {
+
+class FIREBackend: public MDBackend {
 protected:
 	void _compute_forces();
 	void _first_step(llint);

@@ -7,15 +7,12 @@
 
 #include "BaseBox.h"
 
-template<typename number>
-BaseBox<number>::BaseBox() {
+
+BaseBox::BaseBox() {
 
 }
 
-template<typename number>
-BaseBox<number>::~BaseBox() {
+
+BaseBox::~BaseBox() {
 
 }
-
-template class BaseBox<float>;
-template class BaseBox<double>;

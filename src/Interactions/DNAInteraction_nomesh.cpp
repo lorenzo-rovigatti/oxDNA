@@ -1,12 +1,12 @@
 #include "DNAInteraction_nomesh.h"
 
-template<typename number>
-DNAInteraction_nomesh<number>::DNAInteraction_nomesh() : DNAInteraction<number>() {
+
+DNAInteraction_nomesh::DNAInteraction_nomesh() : DNAInteraction() {
 
 }
 
-template<typename number>
-DNAInteraction_nomesh<number>::~DNAInteraction_nomesh() {
+
+DNAInteraction_nomesh::~DNAInteraction_nomesh() {
 
 }
 

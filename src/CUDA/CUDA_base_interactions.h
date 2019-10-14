@@ -56,7 +56,7 @@ __forceinline__ __device__ void _excluded_volume(const number4 &r, number4 &F, n
 	}
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	if(r < MD_F1_RCHIGH[type]) {
@@ -76,7 +76,7 @@ __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	int eps_index = 0;
@@ -97,7 +97,7 @@ __forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
 	return MD_F1_EPS[eps_index] * val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f2(number r, int type) {
     number val = (number) 0.f;
     if (r < MD_F2_RCHIGH[type]) {
@@ -114,7 +114,7 @@ __forceinline__ __device__ number _f2(number r, int type) {
     return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f2D(number r, int type) {
     number val = (number) 0.f;
     if (r < MD_F2_RCHIGH[type]) {
@@ -131,7 +131,7 @@ __forceinline__ __device__ number _f2D(number r, int type) {
     return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, float a, float b) {
 	number val = (number) 0.f;
 	t -= t0;
@@ -148,7 +148,7 @@ __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, fl
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc, float a, float b) {
 	number val = (number) 0.f;
 	number tt0 = t - t0;
@@ -172,7 +172,7 @@ __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc
 	return 2.f * m * val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f5(number f, int type) {
 	number val = (number) 0.f;
 
@@ -189,7 +189,7 @@ __forceinline__ __device__ number _f5(number f, int type) {
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f5D(number f, int type) {
 	number val = (number) 0.f;
 

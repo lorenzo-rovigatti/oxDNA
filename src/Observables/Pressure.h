@@ -19,8 +19,8 @@ type = pressure (an observable that computes the osmotic pressure of the system)
 [stress_tensor = <bool> (if true, the output will contain 9 fields: the total pressure and the nine components of the stress tensor, xx, xy, xz, yx, yy, yz, zx, zy, zz)]
 @endverbatim
  */
-template<typename number>
-class Pressure: public BaseObservable<number> {
+
+class Pressure: public BaseObservable {
 protected:
 	number _T;
 	bool _with_stress_tensor;
@@ -31,7 +31,7 @@ protected:
 	LR_matrix<double> _stress_tensor;
 	number _shear_rate;
 
-	LR_vector<number> _get_com();
+	LR_vector _get_com();
 
 public:
 	Pressure();

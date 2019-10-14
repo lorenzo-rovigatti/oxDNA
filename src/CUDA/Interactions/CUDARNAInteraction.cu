@@ -277,13 +277,13 @@ void CUDARNAInteraction<number, number4>::get_settings(input_file &inp) {
 		}
 	}
 
-	RNAInteraction<number>::get_settings(inp);
+	RNAInteraction::get_settings(inp);
 }
 
 template<typename number, typename number4>
 void CUDARNAInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
-	RNAInteraction<number>::init();
+	RNAInteraction::init();
 
 	float f_copy = 1.0;//this->_hb_multiplier;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_hb_multi, &f_copy, sizeof(float)) );
@@ -377,7 +377,7 @@ void CUDARNAInteraction<number, number4>::cuda_init(number box_side, int N) {
 }
 
 template<typename number, typename number4>
-void CUDARNAInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
+void CUDARNAInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 
 	//this->_grooving = this->_average;
@@ -421,19 +421,19 @@ void CUDARNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 }
 
 template<typename number, typename number4>
-void CUDARNAInteraction<number, number4>::_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
+void CUDARNAInteraction<number, number4>::_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
 	rna_hb_op_precalc<<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, hb_energies, n_threads, region_is_nearhb, d_box);
 	CUT_CHECK_ERROR("hb_op_precalc error");
 }
 
 template<typename number, typename number4>
-void CUDARNAInteraction<number, number4>::_near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg  _ffs_hb_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
+void CUDARNAInteraction<number, number4>::_near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg  _ffs_hb_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
 	rna_near_hb_op_precalc<<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, nearly_bonded_array, n_threads, region_is_nearhb, d_box);
 	CUT_CHECK_ERROR("nearhb_op_precalc error");
 }
 
 template<typename number, typename number4>
-void CUDARNAInteraction<number, number4>::_dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
+void CUDARNAInteraction<number, number4>::_dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
 	rna_dist_op_precalc<<<_ffs_dist_precalc_kernel_cfg.blocks, _ffs_dist_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, op_dists, n_threads, d_box);
 	CUT_CHECK_ERROR("dist_op_precalc error");
 }

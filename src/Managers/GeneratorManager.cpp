@@ -62,7 +62,7 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	_external_forces = false;
 	_external_filename = std::string("");
 
-	ConfigInfo<double>::init();
+	ConfigInfo::init();
 }
 
 GeneratorManager::~GeneratorManager() {
@@ -73,7 +73,7 @@ GeneratorManager::~GeneratorManager() {
 		delete[] _particles;
 	}
 
-	if (_external_forces) ForceFactory<double>::instance()->clear();
+	if (_external_forces) ForceFactory::instance()->clear();
 }
 
 void GeneratorManager::load_options() {
@@ -108,9 +108,9 @@ void GeneratorManager::load_options() {
 	pm->init(_input);
 
 	// added by FR
-	_mybox = std::shared_ptr<BaseBox<double>>(BoxFactory::make_box<double>(_input));
+	_mybox = std::shared_ptr<BaseBox>(BoxFactory::make_box(_input));
 
-	_interaction = InteractionFactory::make_interaction<double>(_input);
+	_interaction = InteractionFactory::make_interaction(_input);
 	_interaction->get_settings(_input);
 }
 
@@ -118,7 +118,7 @@ void GeneratorManager::init() {
 	_interaction->init();
 
 	_N = _interaction->get_N_from_topology();
-	_particles = new BaseParticle<double>*[_N];
+	_particles = new BaseParticle*[_N];
 	int N_strands;
 	_interaction->read_topology(_N, &N_strands, _particles);
 
@@ -138,7 +138,7 @@ void GeneratorManager::init() {
 
 	// initializing external forces
 	if (_external_forces) { 
-		ForceFactory<double>::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox.get());
+		ForceFactory::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox.get());
 	}
  
 	_init_completed = true;
@@ -155,9 +155,9 @@ void GeneratorManager::generate() {
 	conf_output << "E = 0 0 0 " << endl;
 
 	for(int i = 0; i < _N; i++) {
-		BaseParticle<double> *p = _particles[i];
-		LR_vector<double> mypos = _mybox->get_abs_pos(p);
-		LR_matrix<double> oT = p->orientation.get_transpose();
+		BaseParticle *p = _particles[i];
+		LR_vector mypos = _mybox->get_abs_pos(p);
+		LR_matrix oT = p->orientation.get_transpose();
 		conf_output << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 		conf_output << oT.v1.x << " " << oT.v1.y << " " << oT.v1.z << " ";
 		conf_output << oT.v3.x << " " << oT.v3.y << " " << oT.v3.z << " ";

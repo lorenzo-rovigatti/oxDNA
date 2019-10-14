@@ -211,7 +211,7 @@ __device__ void _twist_boundary_particle(number4 &v1, number4& v3, number4 &T, n
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void TEP_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques,
+__global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques,
 						LR_bonds *bonds, CUDABox<number, number4> *box, number *kb1_pref, number *kb2_pref,
 						number *xk_bending, number *xu_bending, number *kt_pref,
 						number4 *o_vects, number4 *w_vects, llint step) {
@@ -277,7 +277,7 @@ __global__ void TEP_forces(number4 *poss, GPU_quat<number> *orientations, number
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void TEP_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques,
+__global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques,
 						int *matrix_neighs, int *number_neighs, LR_bonds *bonds, CUDABox<number, number4> *box,
 						number *kb1_pref, number *kb2_pref,	number *xk_bending, number *xu_bending,
 						number *kt_pref, number4 *o_vects, number4 *w_vects, llint step) {
@@ -365,7 +365,7 @@ CUDATEPInteraction<number, number4>::~CUDATEPInteraction() {
 
 template<typename number, typename number4>
 void CUDATEPInteraction<number, number4>::get_settings(input_file &inp) {
-	TEPInteraction<number>::get_settings(inp);
+	TEPInteraction::get_settings(inp);
 
 	int sort_every;
 	if(getInputInt(&inp, "CUDA_sort_every", &sort_every, 0) == KEY_FOUND) {
@@ -378,18 +378,18 @@ void CUDATEPInteraction<number, number4>::get_settings(input_file &inp) {
 template<typename number, typename number4>
 void CUDATEPInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
-	TEPInteraction<number>::init();
+	TEPInteraction::init();
 
-	BaseParticle<number> **particles = new BaseParticle<number> *[N];
+	BaseParticle **particles = new BaseParticle *[N];
 	int my_N_strands;
-	TEPInteraction<number>::read_topology(N, &my_N_strands, particles);
+	TEPInteraction::read_topology(N, &my_N_strands, particles);
 
 	size_t k_size = N*sizeof(number);
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_kb1_pref, k_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_kb2_pref, k_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_xk_bending, k_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_xu_bending, k_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number>(&_d_kt_pref, k_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_kb1_pref, k_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_kb2_pref, k_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_xk_bending, k_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_xu_bending, k_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc(&_d_kt_pref, k_size) );
 
 	CUDA_SAFE_CALL( cudaMemcpy(_d_kb1_pref, this->_kb1_pref, k_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_kb2_pref, this->_kb2_pref, k_size, cudaMemcpyHostToDevice) );
@@ -439,7 +439,7 @@ void CUDATEPInteraction<number, number4>::cuda_init(number box_side, int N) {
 }
 
 template<typename number, typename number4>
-void CUDATEPInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
+void CUDATEPInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
 	_steps++;
 
 	this->update_increment(_steps);

@@ -22,8 +22,8 @@ type = average_energy (name of  the observable)
 #include "../Utilities/OrderParameters.h"
 #include "../Interactions/DNAInteraction.h"
 
-template<typename number>
-class AverageEnergy  : public BaseObservable<number>  {
+
+class AverageEnergy  : public BaseObservable  {
 protected:
 	char _list_file[512];
     std::set<int> _particle_ids;
@@ -34,7 +34,7 @@ public:
 
 	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 };
 
 #endif /* AverageEnergy_H_ */

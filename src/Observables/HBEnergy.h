@@ -20,8 +20,8 @@
 [base_file = <string> (file containing a list of nucleotides whose HB energy is to be computed, one nucleotide per line)]
 @endverbatim
  */
-template<typename number>
-class HBEnergy: public BaseObservable<number> {
+
+class HBEnergy: public BaseObservable {
 protected:
 	enum {
 		ALL_BASES = 0,
@@ -39,7 +39,7 @@ public:
 	virtual ~HBEnergy();
 
 	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 	std::string get_output_string(llint curr_step);
 };
 

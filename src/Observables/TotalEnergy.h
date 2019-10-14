@@ -15,22 +15,22 @@
 /**
  * @brief Outputs the total (kinetic + potential) energy of the system.
  */
-template<typename number>
-class TotalEnergy: public BaseObservable<number> {
+
+class TotalEnergy: public BaseObservable {
 private:
 	static number _U;
 	static number _K;
 	static llint _saved_on;
 
-	PotentialEnergy<number> _pot_energy;
-	KineticEnergy<number> _kin_energy;
+	PotentialEnergy _pot_energy;
+	KineticEnergy _kin_energy;
 public:
 	TotalEnergy();
 	virtual ~TotalEnergy();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
 
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 	virtual std::string get_output_string(llint curr_step);
 
 	number get_U(llint curr_step);

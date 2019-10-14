@@ -9,7 +9,7 @@
 /**
  * @brief This class is the basic thermostat interface.
  */
-template<typename number>
+
 class IBaseThermostat {
 public:
 	virtual ~IBaseThermostat() {
@@ -36,8 +36,8 @@ public:
  * @brief This class is meant to be used so that all other thermostat classes can inherit
  * from here
  */
-template<typename number>
-class BaseThermostat: public virtual IBaseThermostat<number> {
+
+class BaseThermostat: public virtual IBaseThermostat {
 protected:
 	int _N_part;
 	number _T;
@@ -65,30 +65,7 @@ public:
 	 * @param particles array of BaseParticle objects
 	 * @param curr_step current step of the simulation.
 	 */
-	virtual void apply(BaseParticle<number> **particles, llint curr_step) = 0;
+	virtual void apply(BaseParticle **particles, llint curr_step) = 0;
 };
-
-template<typename number>
-BaseThermostat<number>::BaseThermostat() :
-				_N_part(0),
-				_T((number) 0.f),
-				_supports_shear(false),
-				_lees_edwards(false) {
-
-}
-
-template<typename number>
-void BaseThermostat<number>::get_settings(input_file &inp) {
-	// we get the temperature from the input file;
-	char raw_T[256];
-	getInputString(&inp, "T", raw_T, 1);
-	_T = Utils::get_temperature<number>(raw_T);
-
-	getInputBool(&inp, "lees_edwards", &_lees_edwards, 0);
-	if(_lees_edwards) {
-		if(!_supports_shear) throw oxDNAException("The chosen thermostat does not support Lees-Edwards boundary conditions");
-		getInputNumber(&inp, "lees_edwards_shear_rate", &_shear_rate, 1);
-	}
-}
 
 #endif // BASE_THERMOSTAT_

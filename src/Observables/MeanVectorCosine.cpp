@@ -8,19 +8,19 @@
 #include "MeanVectorCosine.h"
 #include "../Utilities/Utils.h"
 #include "../Interactions/TEPInteraction.h"
-template<typename number>
-MeanVectorCosine<number>::MeanVectorCosine() {
+
+MeanVectorCosine::MeanVectorCosine() {
 	_chain_id = -1;
 }
 
-template<typename number>
-MeanVectorCosine<number>::~MeanVectorCosine() {
+
+MeanVectorCosine::~MeanVectorCosine() {
 
 }
 
-template<typename number>
-void MeanVectorCosine<number>::init(ConfigInfo<number> &config_info) {
-    BaseObservable<number>::init(config_info);
+
+void MeanVectorCosine::init(ConfigInfo &config_info) {
+    BaseObservable::init(config_info);
 	
 	// check that _vector_to_average is either 1,2, or 3.
 	if (_vector_to_average > 3 || _vector_to_average < -1){
@@ -34,8 +34,8 @@ void MeanVectorCosine<number>::init(ConfigInfo<number> &config_info) {
 
 }
 
-template<typename number>
-void MeanVectorCosine<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+
+void MeanVectorCosine::get_settings(input_file &my_inp, input_file &sim_inp) {
 	int tmp = 0;
 
 	getInputInt(&my_inp,"chain_id", &tmp, 1);
@@ -67,11 +67,11 @@ void MeanVectorCosine<number>::get_settings(input_file &my_inp, input_file &sim_
 	
 }
 
-template<typename number>
-std::string MeanVectorCosine<number>::get_output_string(llint curr_step) {
+
+std::string MeanVectorCosine::get_output_string(llint curr_step) {
 	int sign;
 	string result; double average = 0.;
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	double delta_omega=0;
 
 	//FILE *fp = fopen("myv-1.txt","w");//TODO: comment this line when the problem is solved
@@ -109,13 +109,13 @@ std::string MeanVectorCosine<number>::get_output_string(llint curr_step) {
 		}else if ( _vector_to_average == 2){
 			// u * t
 			_u = p[i]->orientationT.v1;
-			LR_vector<number> t = p[i]->n5->pos - p[i]->pos;
+			LR_vector t = p[i]->n5->pos - p[i]->pos;
 			average += _u*t/t.module();
 		}else if ( _vector_to_average == 3){
 			if( p[i]->n5->n5 != P_VIRTUAL){
 				// t * t
-				LR_vector<number> t = p[i]->n5->pos - p[i]->pos;
-				LR_vector<number> tp = p[i]->n5->n5->pos - p[i]->n5->pos;
+				LR_vector t = p[i]->n5->pos - p[i]->pos;
+				LR_vector tp = p[i]->n5->n5->pos - p[i]->n5->pos;
 				average += t*tp/(t.module()*tp.module());
 			}
 			
@@ -160,11 +160,11 @@ std::string MeanVectorCosine<number>::get_output_string(llint curr_step) {
 	return result;
 }
 /*
-template<typename number>
-std::string MeanVectorCosine<number>::OLD_get_output_string(llint curr_step) {
+
+std::string MeanVectorCosine::OLD_get_output_string(llint curr_step) {
 
 	string result; number average = 0.;
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	for( int i = _first_particle_id; i <= _last_particle_id; i++){
 		if ( _vector_to_average == 1){
 			_u =	p[i]->orientationT.v1;
@@ -215,11 +215,11 @@ std::string MeanVectorCosine<number>::OLD_get_output_string(llint curr_step) {
 }
 */
 
-template <typename number>
-void MeanVectorCosine<number>::set_first_last_particle_id(){
+
+void MeanVectorCosine::set_first_last_particle_id(){
 	//int N = *this->_config_info.N;
 	int N = *this->_config_info.N;
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	int chain_counter = 0;
 	int particle_counter = 0;
 	int number_of_values = 0;

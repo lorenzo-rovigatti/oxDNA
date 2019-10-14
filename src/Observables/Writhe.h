@@ -27,15 +27,15 @@
 [print_space_position = <bool> (defaults to false. Whether to print the position of the plectoneme tip segment in 3d space as well as its index. Only used if locate_plectonemes = true.)]
 [print_size = <bool> (defaults to false. Whether to print the plectoneme size compute with Ferdinando-Lorenzo's algorithm. Only used if locate_plectonemes = true.)]
 [print_left_right = <bool> (defaults to false. Does everything like with the print_size option, but instead of printing the sizes it prints the indices of the first and last bead/base-pair of the plectoneme. Can't be used together with print_size. Only used if locate_plectonemes = true.)]
-[contact_threshold = <number> (defaults to 5. Segments closer than this will be considered to be touching accourding to the plectoneme size algorithm.)]
+[contact_threshold =  (defaults to 5. Segments closer than this will be considered to be touching accourding to the plectoneme size algorithm.)]
 [size_outer_threshold = <int> (defaults to 30. Outer threshold parameter, which substantially is the maximum separation in indices between two points of contact of a plectoneme loop, for the plectoneme size algorithm.)]
 [minimum_plectoneme_size = <int> (defaults to 1. Plectonemes shorter than this wont' be reported.)]
 [bending_angle_number_segments = <int> (defaults to 0. When non-zero, the angle between that many segments surrounding the plectoneme tip will be averaged and printed on file.)]
  @endverbatim
  */
 
-template<typename number>
-class Writhe : public BaseObservable<number> {
+
+class Writhe : public BaseObservable {
 	private:
 		// arguments
 		int _first_particle_index;
@@ -60,12 +60,12 @@ class Writhe : public BaseObservable<number> {
 
 		number ** _writhe_integrand_values;
 
-		inline number _writheIntegrand(LR_vector<number> t,LR_vector<number> tp,LR_vector<number> r,LR_vector<number> rp);
+		inline number _writheIntegrand(LR_vector t,LR_vector tp,LR_vector r,LR_vector rp);
 	public:
 		Writhe();
 		virtual ~Writhe();
 
-		virtual void init(ConfigInfo<number> &config_info);
+		virtual void init(ConfigInfo &config_info);
 		virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 		//virtual std::string get_output_stringOLD(llint curr_step);
 
@@ -73,8 +73,8 @@ class Writhe : public BaseObservable<number> {
 		std::string get_output_string(llint curr_step);
 };
 
-template<typename number>
-number Writhe<number>::_writheIntegrand(LR_vector<number> t,LR_vector<number> tp,LR_vector<number> r,LR_vector<number> rp){
+
+number Writhe::_writheIntegrand(LR_vector t,LR_vector tp,LR_vector r,LR_vector rp){
 	// (1/2pi) * t x t' . ( r - r')/ | r - r'|**3
 	// The formula for writhe usually reports a prefactor of 1/4pi, but that's when both integration variables are left free. Since the double integral is symmetrical, we run the second integer with values greater than the first, hence the factor of 2 in the formula above.
 	number rm = ( r - rp ).module();

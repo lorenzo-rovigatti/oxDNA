@@ -19,8 +19,8 @@ BoxFactory::~BoxFactory() {
 
 }
 
-template<typename number>
-BoxPtr<number> BoxFactory::make_box(input_file &inp) {
+
+BoxPtr BoxFactory::make_box(input_file &inp) {
 	// the default box is the cubic one
 	char box_type[512] = "cubic";
 	getInputString(&inp, "box_type", box_type, 0);
@@ -28,15 +28,12 @@ BoxPtr<number> BoxFactory::make_box(input_file &inp) {
 	getInputBool(&inp, "lees_edwards", &lees_edwards, 0);
 
 	if(!strncmp(box_type, "cubic", 512)) {
-		if(!lees_edwards) return std::make_shared<CubicBox<number>>();
-		else return std::make_shared<LeesEdwardsCubicBox<number>>();
+		if(!lees_edwards) return std::make_shared<CubicBox>();
+		else return std::make_shared<LeesEdwardsCubicBox>();
 	}
 	else if(!strncmp(box_type, "orthogonal", 512)) {
-		if(!lees_edwards) return std::make_shared<OrthogonalBox<number>>();
+		if(!lees_edwards) return std::make_shared<OrthogonalBox>();
 		else throw oxDNAException("Lees-Edwards boundary conditions and orthogonal boxes are not compatible");
 	}
 	else throw oxDNAException("Unsupported box '%s'", box_type);
 }
-
-template BoxPtr<float> BoxFactory::make_box<float>(input_file &inp);
-template BoxPtr<double> BoxFactory::make_box<double>(input_file &inp);

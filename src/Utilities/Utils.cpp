@@ -109,6 +109,23 @@ std::string Utils::sformat_ap(const std::string &fmt, va_list &ap) {
 	return str;
 }
 
+void Utils::orthonormalize_matrix(LR_matrix &m) {
+	number v1_norm2 = m.v1 * m.v1;
+	number v2_v1 = m.v2 * m.v1;
+
+	m.v2 -= (v2_v1 / v1_norm2) * m.v1;
+
+	number v3_v1 = m.v3 * m.v1;
+	number v3_v2 = m.v3 * m.v2;
+	number v2_norm2 = m.v2 * m.v2;
+
+	m.v3 -= (v3_v1 / v1_norm2) * m.v1 + (v3_v2 / v2_norm2) * m.v2;
+
+	m.v1.normalize();
+	m.v2.normalize();
+	m.v3.normalize();
+}
+
 input_file *Utils::get_input_file_from_string(const std::string &inp) {
 	std::string real_inp(inp);
 
@@ -145,7 +162,7 @@ input_file *Utils::get_input_file_from_string(const std::string &inp) {
 	return ret;
 }
 
-template<typename number>
+
 number Utils::get_temperature(char * raw_T) {
 	char deg;
 	double tmp_T;
@@ -215,9 +232,9 @@ void Utils::get_seed(unsigned short * seedptr) {
 }
 
 // zeroes the velocity of the centre of mass
-template<typename number>
-void Utils::stop_com(BaseParticle<number> **particles, int N) {
-	LR_vector<number> vcom = LR_vector<number>((number) 0., (number) 0., (number) 0.);
+
+void Utils::stop_com(BaseParticle **particles, int N) {
+	LR_vector vcom = LR_vector((number) 0., (number) 0., (number) 0.);
 
 	for(int i = 0; i < N; i++)
 		vcom += particles[i]->vel;
@@ -230,7 +247,7 @@ void Utils::stop_com(BaseParticle<number> **particles, int N) {
 	return;
 }
 
-template<typename number>
+
 number Utils::gamma(number alpha, number beta) {
 	number x, v, u;
 	double d = alpha - 1. / 3.;
@@ -240,7 +257,7 @@ number Utils::gamma(number alpha, number beta) {
 
 	while(true) {
 		do {
-			x = Utils::gaussian<number>();
+			x = Utils::gaussian();
 			v = 1. + c * x;
 		} while(v <= 0);
 
@@ -266,8 +283,8 @@ bool Utils::is_integer(std::string s) {
 
 }
 
-template<typename number>
-std::vector<int> Utils::getParticlesFromString(BaseParticle<number> **particles, int N, std::string particle_string, char const *identifier) {
+
+std::vector<int> Utils::getParticlesFromString(BaseParticle **particles, int N, std::string particle_string, char const *identifier) {
 	// first remove all the spaces from the string, so that the parsing goes well.
 	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int (*)(int)>( isspace )), particle_string.end());
 
@@ -276,9 +293,9 @@ std::vector<int> Utils::getParticlesFromString(BaseParticle<number> **particles,
 
 	// try to understand whether we are dealing with a strand-based system or not
 	bool has_strands = false;
-	if(dynamic_cast<DNANucleotide<number> *>(particles[0]) != NULL) has_strands = true;
-	else if(dynamic_cast<RNANucleotide<number> *>(particles[0]) != NULL) has_strands = true;
-	else if(dynamic_cast<TEPParticle<number> *>(particles[0]) != NULL) has_strands = true;
+	if(dynamic_cast<DNANucleotide *>(particles[0]) != NULL) has_strands = true;
+	else if(dynamic_cast<RNANucleotide *>(particles[0]) != NULL) has_strands = true;
+	else if(dynamic_cast<TEPParticle *>(particles[0]) != NULL) has_strands = true;
 
 	for( std::vector<std::string>::size_type i = 0; i < temp.size(); i++) {
 		bool found_dash = temp[i].find('-') != std::string::npos;
@@ -367,19 +384,3 @@ std::vector<int> Utils::getParticlesFromString(BaseParticle<number> **particles,
 	// finally return the vector.
 	return particles_index;
 }
-
-template float Utils::gaussian<float>();
-template double Utils::gaussian<double>();
-
-template float Utils::get_temperature<float>(char *);
-template double Utils::get_temperature<double>(char *);
-
-template void Utils::stop_com<float>(BaseParticle<float> **, int);
-template void Utils::stop_com<double>(BaseParticle<double> **, int);
-
-template float Utils::gamma<float>(float alpha, float beta);
-template double Utils::gamma<double>(double alpha, double beta);
-
-template std::vector<int> Utils::getParticlesFromString<float>(BaseParticle<float> ** particles, int N, std::string particle_string, char const * identifier);
-template std::vector<int> Utils::getParticlesFromString<double>(BaseParticle<double> ** particles, int N, std::string particle_string, char const * identifier);
-

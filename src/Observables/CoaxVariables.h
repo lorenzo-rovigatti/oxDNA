@@ -22,12 +22,12 @@ particle1_id = <int> (particle 1 id)
 particle2_id = <int> (particle 2 id)
 @endverbatim
  */
-template<typename number>
-class CoaxVariables: public BaseObservable<number> {
+
+class CoaxVariables: public BaseObservable {
 protected:
 	int _particle1_id;
 	int _particle2_id;
-	DNAInteraction<number> *_dna_interaction;
+	DNAInteraction *_dna_interaction;
 	bool _use_oxDNA2_coaxial_stacking;
 public:
 	CoaxVariables();

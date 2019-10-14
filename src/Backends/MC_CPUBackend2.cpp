@@ -8,27 +8,27 @@
 #include "MC_CPUBackend2.h"
 #include <sstream>
 
-template<typename number>
-MC_CPUBackend2<number>::MC_CPUBackend2() : MCBackend<number>() {
+
+MC_CPUBackend2::MC_CPUBackend2() : MCBackend() {
 	this->_is_CUDA_sim = false;
 	_info_str = std::string("dummy");
 	_N_moves = -1;
 	_MC_Info = NULL;
 	_accumulated_prob = 0.; // total weight
 
-	_MC_Info = ConfigInfo<number>::instance();
+	_MC_Info = ConfigInfo::instance();
 }
 
-template<typename number>
-MC_CPUBackend2<number>::~MC_CPUBackend2() {
-	for(typename std::vector <BaseMove<number> *>::iterator it = _moves.begin(); it != _moves.end(); it++) delete *it;
+
+MC_CPUBackend2::~MC_CPUBackend2() {
+	for(typename std::vector <BaseMove *>::iterator it = _moves.begin(); it != _moves.end(); it++) delete *it;
 }
 
-template<typename number>
-void MC_CPUBackend2<number>::add_move (std::string move_string, input_file &sim_inp) {
+
+void MC_CPUBackend2::add_move (std::string move_string, input_file &sim_inp) {
 	input_file * move_inp = Utils::get_input_file_from_string(move_string);
 
-	BaseMove<number> * new_move = MoveFactory::make_move<number> (*move_inp, sim_inp);
+	BaseMove * new_move = MoveFactory::make_move (*move_inp, sim_inp);
 
 	_moves.push_back (new_move);
 
@@ -36,11 +36,11 @@ void MC_CPUBackend2<number>::add_move (std::string move_string, input_file &sim_
 	delete move_inp;
 }
 
-template<typename number>
-void MC_CPUBackend2<number>::get_settings(input_file &inp) {
-	MCBackend<number>::get_settings(inp);
 
-	//_MC_Info = ConfigInfo<number>(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists);
+void MC_CPUBackend2::get_settings(input_file &inp) {
+	MCBackend::get_settings(inp);
+
+	//_MC_Info = ConfigInfo(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists);
 	_MC_Info->set(this->_particles, this->_interaction, &(this->_N), &_info_str, this->_lists, this->_box.get());
 
 	//_MC_Info.lists = this->_lists;
@@ -54,7 +54,7 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 		add_move (tmps, inp);
 	}
 
-	typename vector<BaseMove<number> *>::iterator it;
+	typename vector<BaseMove *>::iterator it;
 	//for(it = _moves.begin(); it != _moves.end(); it ++) (*it)->get_settings(inp);
 	//for(it = _moves.begin(); it != _moves.end(); it ++) (*it)->get_settings(inp);
 
@@ -66,10 +66,10 @@ void MC_CPUBackend2<number>::get_settings(input_file &inp) {
 	//abort ();
 }
 
-template<typename number>
-void MC_CPUBackend2<number>::init() {
+
+void MC_CPUBackend2::init() {
 	//OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing backend...");
-	MCBackend<number>::init();
+	MCBackend::init();
 
 	for(int i = 0; i < this->_N; i++) {
 		// this is needed for the first _compute_energy()
@@ -90,8 +90,8 @@ void MC_CPUBackend2<number>::init() {
 		this->_interaction->set_is_infinite(false);
 		for (int i = 0; i < this->_N; i ++) {
 			for (int j = 0; j < i; j ++) {
-				BaseParticle<number> * p = this->_particles[i];
-				BaseParticle<number> * q = this->_particles[j];
+				BaseParticle * p = this->_particles[i];
+				BaseParticle * q = this->_particles[j];
 				this->_interaction->pair_interaction(p, q);
 				if (this->_interaction->get_is_infinite() == true) {
 					OX_LOG(Logger::LOG_INFO, "   overlap %d %d", i, j);
@@ -105,15 +105,15 @@ void MC_CPUBackend2<number>::init() {
 	}
 
 	// we initialize the moves
-	typename vector<BaseMove<number> *>::iterator it;
+	typename vector<BaseMove *>::iterator it;
 	for(it = _moves.begin(); it != _moves.end(); it ++) {
 		//OX_LOG(Logger::LOG_DEBUG, "(MC_CPUBackend2) Initializing move...");
 		(*it)->init();
 	}
 }
 
-template<typename number>
-void MC_CPUBackend2<number>::sim_step(llint curr_step) {
+
+void MC_CPUBackend2::sim_step(llint curr_step) {
 	for(int i = 0; i < this->_N; i++) {
 		// pick a move with a given probability
 		number choice = drand48() * _accumulated_prob;
@@ -130,32 +130,29 @@ void MC_CPUBackend2<number>::sim_step(llint curr_step) {
 	}
 }
 
-template<typename number>
-void MC_CPUBackend2<number>::print_observables(llint curr_step) {
+
+void MC_CPUBackend2::print_observables(llint curr_step) {
 	std::string tmpstr("");
-	typename std::vector<BaseMove<number> *>::iterator it;
+	typename std::vector<BaseMove *>::iterator it;
 	for(it = _moves.begin(); it != _moves.end(); it ++) {
 		number ratio = (*it)->get_acceptance();
 		tmpstr += Utils::sformat (" %5.3f", ratio);
 	}
 	this->_backend_info.insert(0, tmpstr + "  ");
 
-	SimBackend<number>::print_observables(curr_step);
+	SimBackend::print_observables(curr_step);
 }
 
-template<typename number>
-void MC_CPUBackend2<number>::print_equilibration_info() {
-	typename std::vector<BaseMove<number> *>::iterator it;
+
+void MC_CPUBackend2::print_equilibration_info() {
+	typename std::vector<BaseMove *>::iterator it;
 	for(it = _moves.begin(); it != _moves.end(); it ++) {
 		(*it)->log_parameters();
 	}
 }
 
-template<typename number>
-void MC_CPUBackend2<number>::_compute_energy() {
+
+void MC_CPUBackend2::_compute_energy() {
 	printf ("somebody called me...\n");
 	abort ();
 }
-
-template class MC_CPUBackend2<float>;
-template class MC_CPUBackend2<double>;

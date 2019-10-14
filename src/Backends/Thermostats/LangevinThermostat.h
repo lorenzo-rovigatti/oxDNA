@@ -14,8 +14,8 @@
 gamma_trans = <float> (translational damping coefficient for the Langevin thermostat. Either this or diff_coeff should be specified in the input file.)
 @endverbatim
  */
-template<typename number>
-class LangevinThermostat : public BaseThermostat<number> {
+
+class LangevinThermostat : public BaseThermostat {
 protected:
 	/// Integration time step
 	number _dt;
@@ -44,7 +44,7 @@ public:
 
 	void get_settings (input_file &inp);
 	void init (int N_part);
-	void apply (BaseParticle<number> **particles, llint curr_step);
+	void apply (BaseParticle **particles, llint curr_step);
 };
 
 #endif // LANGEVIN_THERMOSTAT_

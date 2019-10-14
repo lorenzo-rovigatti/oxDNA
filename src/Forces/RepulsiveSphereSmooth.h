@@ -33,17 +33,17 @@ particle = <int> (index of the particle on which the force shall be applied. If 
 [center = <float>,<float>,<float> (centre of the sphere, defaults to 0,0,0)]
 @endverbatim
 */
-template<typename number>
-class RepulsiveSphereSmooth : public BaseForce<number> {
+
+class RepulsiveSphereSmooth : public BaseForce {
 private:
 	int _particle;
 
 	/// pointer to the box side
-	BaseBox<number> *_box_ptr;
+	BaseBox *_box_ptr;
 
 public:
 	/// center of the sphere
-	LR_vector<number> _center;
+	LR_vector _center;
 
 	/// initial radius of the sphere 
 	number _r0;
@@ -58,10 +58,10 @@ public:
 	virtual ~RepulsiveSphereSmooth() {}
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void init (BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif // REPULSIVESPHERESMOOTH

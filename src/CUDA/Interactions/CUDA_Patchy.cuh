@@ -77,20 +77,20 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void patchy_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, CUDABox<number, number4> *box) {
+__global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
 	number4 T = make_number4<number, number4>(0, 0, 0, 0);
 	number4 ppos = poss[IND];
-	GPU_quat<number> po = orientations[IND];
+	GPU_quat po = orientations[IND];
 	number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
 
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND) {
 			number4 qpos = poss[j];
-			GPU_quat<number> qo = orientations[j];
+			GPU_quat qo = orientations[j];
 			get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
 			_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
 		}
@@ -103,7 +103,7 @@ __global__ void patchy_forces(number4 *poss, GPU_quat<number> *orientations, num
 }
 
 template <typename number, typename number4>
-__global__ void patchy_forces_edge(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list,  int n_edges, CUDABox<number, number4> *box) {
+__global__ void patchy_forces_edge(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, edge_bond *edge_list,  int n_edges, CUDABox<number, number4> *box) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -113,11 +113,11 @@ __global__ void patchy_forces_edge(number4 *poss, GPU_quat<number> *orientations
 
 	// get info for particle 1
 	number4 ppos = poss[b.from];
-	GPU_quat<number> po = orientations[b.from];
+	GPU_quat po = orientations[b.from];
 
 	// get info for particle 2
 	number4 qpos = poss[b.to];
-	GPU_quat<number> qo = orientations[b.to];
+	GPU_quat qo = orientations[b.to];
 
 	number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
@@ -146,13 +146,13 @@ __global__ void patchy_forces_edge(number4 *poss, GPU_quat<number> *orientations
 }
 //Forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void patchy_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, CUDABox<number, number4> *box) {
+__global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
 	number4 T = make_number4<number, number4>(0, 0, 0, 0);
 	number4 ppos = poss[IND];
-	GPU_quat<number> po = orientations[IND];
+	GPU_quat po = orientations[IND];
 	number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
 
@@ -162,7 +162,7 @@ __global__ void patchy_forces(number4 *poss, GPU_quat<number> *orientations, num
 		int k_index = matrix_neighs[j*MD_N[0] + IND];
 
 		number4 qpos = poss[k_index];
-		GPU_quat<number> qo = orientations[k_index];
+		GPU_quat qo = orientations[k_index];
 		get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
 		_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
 	}

@@ -42,8 +42,8 @@ col_1 = {
  * simulation steps, printing out the strand labels and centering the box on
  * the center of mass of strand 1
  */
-template<typename number>
-class PdbOutput: public Configuration<number> {
+
+class PdbOutput: public Configuration {
 protected:
 	bool _back_in_box;
 	int _ref_particle_id;
@@ -53,7 +53,7 @@ protected:
 	//	static const char * const strtypes[];//= {"ALA","GLY","CYS","TYR","ARG","PHE","LYS","SER","PRO","VAL","ASN","ASP","CYX","HSP","HSD","MET","LEU"};
 	
 	virtual std::string _headers(llint step);
-	virtual std::string _particle(BaseParticle<number> *p,std::string strtype);
+	virtual std::string _particle(BaseParticle *p,std::string strtype);
 	virtual std::string _configuration(llint step);
 
 public:

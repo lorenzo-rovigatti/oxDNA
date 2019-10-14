@@ -52,7 +52,7 @@ __global__ void bussi_thermostat(number4 *vels, number4 *Ls, number rescale_fact
 }
 
 template<typename number, typename number4>
-CUDABussiThermostat<number, number4>::CUDABussiThermostat() : CUDABaseThermostat<number, number4>(), BussiThermostat<number>() {
+CUDABussiThermostat<number, number4>::CUDABussiThermostat() : CUDABaseThermostat<number, number4>(), BussiThermostat() {
 
 }
 
@@ -63,13 +63,13 @@ CUDABussiThermostat<number, number4>::~CUDABussiThermostat() {
 
 template<typename number, typename number4>
 void CUDABussiThermostat<number, number4>::get_settings(input_file &inp) {
-	BussiThermostat<number>::get_settings(inp);
+	BussiThermostat::get_settings(inp);
 	CUDABaseThermostat<number, number4>::get_cuda_settings(inp);
 }
 
 template<typename number, typename number4>
 void CUDABussiThermostat<number, number4>::init(int N) {
-	BussiThermostat<number>::init(N);
+	BussiThermostat::init(N);
 
 	this->_setup_rand(N);
 }
@@ -80,7 +80,7 @@ bool CUDABussiThermostat<number, number4>::would_activate(llint curr_step) {
 }
 
 template<typename number, typename number4>
-void CUDABussiThermostat<number, number4>::apply_cuda(number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
+void CUDABussiThermostat<number, number4>::apply_cuda(number4 *d_poss, GPU_quat *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
 	// we first calculate the current kinetic energy

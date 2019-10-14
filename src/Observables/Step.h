@@ -19,8 +19,8 @@
 [units = steps|MD (units to print the time on. time in MD units = steps * dt, defaults to step)]
 @endverbatim
  */
-template<typename number>
-class Step : public BaseObservable<number> {
+
+class Step : public BaseObservable {
 private:
 	enum {
 		STEP_UNIT_ONE_PER_STEP = 1,

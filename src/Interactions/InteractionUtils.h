@@ -31,7 +31,7 @@ public:
  	 * @param l2 box side
  	 * @param l3 box side
  	 */
-	template<typename number> static bool box_overlap (BaseParticle<number> * p, BaseParticle<number> * q, LR_vector<number> dr, number l1, number l2, number l3);
+	static bool box_overlap (BaseParticle * p, BaseParticle * q, LR_vector dr, number l1, number l2, number l3);
 
 	/**
 	 * @brief overlap test between two spherocylinder (hard rods)
@@ -49,15 +49,15 @@ public:
 	 * @param u2 (normalised) axis identifying the other spherocylinder.
 	 * @param length length of the spherocylinders
 	 */
-	template<typename number> static bool spherocylinder_overlap (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length);
+	static bool spherocylinder_overlap (LR_vector dr, LR_vector u1, LR_vector u2, number length);
 
 	/**
 	 * @brief distance between two spherocylinders.
 	 *
 	 * All the options are the same as the above function
 	 */
-	template<typename number> static number spherocylinder_distance (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length);
-	template<typename number> static LR_vector<number> spherocylinder_vector (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length);
+	static number spherocylinder_distance (LR_vector dr, LR_vector u1, LR_vector u2, number length);
+	static LR_vector spherocylinder_vector (LR_vector dr, LR_vector u1, LR_vector u2, number length);
 
 	/**
 	 * @brief overlap test between a disk and a sphere
@@ -72,7 +72,7 @@ public:
 	 * @param z axis normal to the plane identified by the disk.
 	 * @param R radius of the sphere
 	 */
-	template<typename number> static bool disk_sphere_overlap (LR_vector<number> dr, LR_vector<number> x, LR_vector<number> y, LR_vector<number> z, number R);
+	static bool disk_sphere_overlap (LR_vector dr, LR_vector x, LR_vector y, LR_vector z, number R);
 
 	/**
 	 * @brief overlap test between a cylinder and a sphere
@@ -86,7 +86,7 @@ public:
 	 * @param height cylinder height
 	 * @param R radius of the sphere
 	 */
-	template<typename number> static bool cylinder_sphere_overlap (LR_vector<number> dr, LR_vector<number> n, number height, number R);
+	static bool cylinder_sphere_overlap (LR_vector dr, LR_vector n, number height, number R);
 
 	/**
 	 * @brief overlap test between two cylinders
@@ -109,7 +109,7 @@ public:
 	 * @param dr distance q-p between the two cylinders
 	 * @param l lenght of the two cylinders
 	 */
-	template<typename number> static bool cylinder_overlap (BaseParticle<number> * p, BaseParticle<number> * q, LR_vector<number> dr, number l);
+	static bool cylinder_overlap (BaseParticle * p, BaseParticle * q, LR_vector dr, number l);
 
 	/**
 	 * @brief Overlap between a sphere and a spherocylinder
@@ -120,7 +120,7 @@ public:
 	 * @param sc_length length of the spherocylinder
 	 * @param R_sc spherocylinder radius
 	 */
-	template<typename number> static bool sphere_spherocylinder_overlap (LR_vector<number> dr, number R_s, LR_vector<number> u, number sc_length, number R_sc);
+	static bool sphere_spherocylinder_overlap (LR_vector dr, number R_s, LR_vector u, number sc_length, number R_sc);
 
 	/**
  	 * @brief Overlap between a sphere and a box
@@ -135,7 +135,7 @@ public:
  	 * @param l2 box length
  	 * @param l3 box length
  	 */
-	template<typename number> static bool sphere_box_overlap (LR_vector<number> dr, number R_s, LR_matrix<number> O, number l1, number l2, number l3);
+	static bool sphere_box_overlap (LR_vector dr, number R_s, LR_matrix O, number l1, number l2, number l3);
 
 	/*
 	 * @brief Solves a 3 eq in 3 unknowns system
@@ -147,7 +147,7 @@ public:
 	 * @param sol pointer to an LR_vector where the solution will be stored
 	 */
 	// TODO: perhaps make it return the vector instead of using the pointer?
-	template<typename number> static LR_vector<number> gauss_elim_solve (LR_matrix<number> &C, LR_vector<number> &rhs);
+	static LR_vector gauss_elim_solve (LR_matrix &C, LR_vector &rhs);
 
 	/*
 	 * @brief checks wheter a segment intersects a triangle in 3D
@@ -160,14 +160,14 @@ public:
 	 * @param P2 pointer to vector defining the second vertex of the triangle
 	 * @param P3 pointer to vector defining the third vertex of the triangle
 	 */
-	template<typename number> static bool edge_triangle_intersection (LR_vector<number> &S1, LR_vector<number> &S2, LR_vector<number> &P1,LR_vector<number> &P2, LR_vector<number> &P3);
+	static bool edge_triangle_intersection (LR_vector &S1, LR_vector &S2, LR_vector &P1,LR_vector &P2, LR_vector &P3);
 };
 
 /// SAT to evaluate whether two boxes overlap
-template<typename number>
-bool InteractionUtils::box_overlap (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> dr, number lx, number ly, number lz) {
+
+bool InteractionUtils::box_overlap (BaseParticle *p, BaseParticle *q, LR_vector dr, number lx, number ly, number lz) {
 	// here we compute the 15 potential separating axes
-	LR_vector<number> sep[15];
+	LR_vector sep[15];
 
 	sep[0] = p->orientation.v1;
 	sep[1] = p->orientation.v2;
@@ -208,8 +208,8 @@ bool InteractionUtils::box_overlap (BaseParticle<number> *p, BaseParticle<number
 
 /// vega and Lago's function; assumes the lengths of the line segments are the same
 /// and that the vectors u1 and u2 are normalized
-template<typename number>
-bool InteractionUtils::spherocylinder_overlap (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length) {
+
+bool InteractionUtils::spherocylinder_overlap (LR_vector dr, LR_vector u1, LR_vector u2, number length) {
 
 	// this function computes a distance. Some early exit things might be implemented
 	number hlength = length / 2.;
@@ -294,8 +294,8 @@ bool InteractionUtils::spherocylinder_overlap (LR_vector<number> dr, LR_vector<n
 }
 
 // distance between two spherocylinders
-template<typename number>
-LR_vector<number> InteractionUtils::spherocylinder_vector (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length) {
+
+LR_vector InteractionUtils::spherocylinder_vector (LR_vector dr, LR_vector u1, LR_vector u2, number length) {
 
 	// this function computes a distance. Some early exit things might be implemented
 	number hlength = length / 2.;
@@ -334,21 +334,21 @@ LR_vector<number> InteractionUtils::spherocylinder_vector (LR_vector<number> dr,
 		}
 	}
 
-	LR_vector<number> res = dr - lambda * u1 + mu * u2;
+	LR_vector res = dr - lambda * u1 + mu * u2;
 
 	return res;
 }
 
 
 // distance between two spherocylinders
-template<typename number>
-number InteractionUtils::spherocylinder_distance (LR_vector<number> dr, LR_vector<number> u1, LR_vector<number> u2, number length) {
-	LR_vector<number> r = InteractionUtils::spherocylinder_vector(dr, u1, u2, length);
+
+number InteractionUtils::spherocylinder_distance (LR_vector dr, LR_vector u1, LR_vector u2, number length) {
+	LR_vector r = InteractionUtils::spherocylinder_vector(dr, u1, u2, length);
 	return sqrt(r.norm());
 }
 
-template<typename number>
-bool InteractionUtils::cylinder_sphere_overlap (LR_vector<number> dr, LR_vector<number> n, number height, number R) {
+
+bool InteractionUtils::cylinder_sphere_overlap (LR_vector dr, LR_vector n, number height, number R) {
 	// dr goes from cylinder to sphere; cylinder has radius 0.5
 	number drpar = dr * n;
 	number drpersq = dr.norm() - drpar * drpar;
@@ -368,7 +368,7 @@ bool InteractionUtils::cylinder_sphere_overlap (LR_vector<number> dr, LR_vector<
 		// here we check the disk/sphere overlap between
 		// one face of the cylinder and the sphere;
 		// we choose the face closest to the sphere
-		LR_vector<number> mydr;
+		LR_vector mydr;
 		if (drpar > 0.) mydr = dr - n * (height / 2.);
 		else mydr = dr + n * (height / 2.);
 
@@ -376,9 +376,9 @@ bool InteractionUtils::cylinder_sphere_overlap (LR_vector<number> dr, LR_vector<
 		if (mydr.norm() > (0.5 + R) * (0.5 + R)) return false;
 
 		// we get two vectors perpendicular to n
-		LR_vector<number> x = dr - n * drpar;
+		LR_vector x = dr - n * drpar;
 		x.normalize();
-		LR_vector<number> y = n.cross(x);
+		LR_vector y = n.cross(x);
 		return disk_sphere_overlap (mydr, x, y, n, R);
 	}
 
@@ -396,7 +396,7 @@ bool InteractionUtils::cylinder_sphere_overlap (LR_vector<number> dr, LR_vector<
 		// here we check the disk/sphere overlap between
 		// one face of the cylinder and the sphere;
 		// we choose the face closest to the sphere
-		LR_vector<number> mydr;
+		LR_vector mydr;
 		if (drpar > 0.) mydr = dr - n * (height / 2.);
 		else mydr = dr + n * (height / 2.);
 
@@ -404,23 +404,23 @@ bool InteractionUtils::cylinder_sphere_overlap (LR_vector<number> dr, LR_vector<
 		if (mydr.norm() > (0.5 + R) * (0.5 + R)) return false;
 
 		// we get two vectors perpendicular to n
-		LR_vector<number> x = dr - n * drpar;
+		LR_vector x = dr - n * drpar;
 		x.normalize();
-		LR_vector<number> y = n.cross(x);
+		LR_vector y = n.cross(x);
 		return disk_sphere_overlap (mydr, x, y, n, R);
 	}
 	*/
 }
 
-template<typename number>
-bool InteractionUtils::disk_sphere_overlap (LR_vector<number> dr, LR_vector<number> x, LR_vector<number> y, LR_vector<number> z, number R) {
+
+bool InteractionUtils::disk_sphere_overlap (LR_vector dr, LR_vector x, LR_vector y, LR_vector z, number R) {
 	// assumes disk is in 0, 0, 0, with radius is 0.5;
 	// dr goes from disk to sphere
 
 	// sphere inside disk, but disk perimeter does not intersect sphere (like a ball in a glass)
 	// Closest point from sphere's center to the plane identified by disk
 	number drn = dr * z;
-	LR_vector<number> P = dr - z * drn;
+	LR_vector P = dr - z * drn;
 	if (fabs(drn) < R && P.norm() < 0.25) return true;
 
 	// we now check if the perimeter intersects the sphere
@@ -442,8 +442,8 @@ bool InteractionUtils::disk_sphere_overlap (LR_vector<number> dr, LR_vector<numb
 
 /// overlap between cylinders; combines box and spherocylinder overlap
 /*
-template<typename number>
-bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<number> * q, LR_vector<number> dr, number length) {
+
+bool InteractionUtils::cylinder_overlap (BaseParticle *p, BaseParticle * q, LR_vector dr, number length) {
 	// one more thing that can be optimized is, instead of checking
 	// (box && box) && (spherocylinder && spherocylinder)
 	// we may want to check
@@ -453,14 +453,14 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 	if (spherocylinder_overlap (dr, p->orientation.v3, q->orientation.v3, length)) return box_overlap (p, q, dr, (number)1.f, (number)1.f, length);
 	else return false;
 }*/
-template<typename number>
-bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<number> * q, LR_vector<number> dr, number length) {
+
+bool InteractionUtils::cylinder_overlap (BaseParticle *p, BaseParticle * q, LR_vector dr, number length) {
 
 	number hlength = length / 2.;
 	// dr = pos_1 - pos_2 with PBC; thus, we invert it;
 	dr = -dr;
-	LR_vector<number> u1 = p->orientation.v3;
-	LR_vector<number> u2 = q->orientation.v3;
+	LR_vector u1 = p->orientation.v3;
+	LR_vector u2 = q->orientation.v3;
 	u1.normalize();
 	u2.normalize();
 	number drdotu1 = dr * u1;
@@ -505,7 +505,7 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 	}
 
 	// now the distance is dr + mu * u2 - lambda * u1
-	LR_vector<number> dist = dr + mu * u2 - lambda * u1;
+	LR_vector dist = dr + mu * u2 - lambda * u1;
 	number distnormsq = dr.norm() + lambda * lambda + mu * mu - 2.f * lambda * mu * u1dotu2 + 2.f * mu * drdotu2 - 2.f * lambda * drdotu1;
 	// if no overlap between spherocylinders we eject;
 	if (!(distnormsq <= (number) 1.f)) return false;
@@ -520,19 +520,19 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 	//if (box_overlap(p, q, dr, (number)1.f, (number)1.f, length) == false) return false;
 
 	// We now handle disk-disk overlaps.
-	LR_vector<number> v = u1.cross(u2);
+	LR_vector v = u1.cross(u2);
 	v.normalize();
 	for (int i = -1; i < 2; i += 2) { // face on cylinder 1
 		for (int j = -1; j < 2; j += 2) { // face on cylinder 2
 			// we put p in (0, 0, 0) and q in (drx, dry, drz);
-			LR_vector<number> D1 = i * hlength * u1;
-			LR_vector<number> D2 = dr + j * hlength * u2;
+			LR_vector D1 = i * hlength * u1;
+			LR_vector D2 = dr + j * hlength * u2;
 
 			// we preempt the check by checking if spheres overlap first
 			if ((D1 - D2).norm() > (number)1.f) continue;
 
 			// line in between planes: g = g0 * eta * v
-			LR_vector<number> g0;
+			LR_vector g0;
 
 			number den = u1.y * u2.z - u2.y * u1.z;
 			//if (fabs(den) > 1.e9 || fabs(den) < 1.e-9) fprintf (stderr, "WARNING: large den %g\n", den);
@@ -545,13 +545,13 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 			// now, the line g = g0 + eta * v identifies the intersection
 			// P1 is the point that belongs to g and is perpendicular to
 			// the center of the first disk
-			LR_vector<number> tmpv = g0 - D1;
+			LR_vector tmpv = g0 - D1;
 			number eta = - tmpv * v;
-			LR_vector<number> P1 = D1 + tmpv + eta * v;
+			LR_vector P1 = D1 + tmpv + eta * v;
 
 			tmpv = g0 - D2;
 			eta = - tmpv * v;
-			LR_vector<number> P2 = D2 + tmpv + eta * v;
+			LR_vector P2 = D2 + tmpv + eta * v;
 
 			number P1D1norm = (P1 - D1).norm();
 			number P2D2norm = (P2 - D2).norm();
@@ -571,11 +571,11 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 	}
 
 	for (int i = -1; i < 2; i += 2) { // face on cylinder 1
-		LR_vector<number> Dj = i * hlength * u1;
-		LR_vector<number> Ci = dr;
-		LR_vector<number> Ui = Ci + u2 * ((Dj - Ci) * u2);
+		LR_vector Dj = i * hlength * u1;
+		LR_vector Ci = dr;
+		LR_vector Ui = Ci + u2 * ((Dj - Ci) * u2);
 
-		LR_vector<number> tmpv = Dj - Ui;
+		LR_vector tmpv = Dj - Ui;
 		number tmpvnorm = tmpv.norm();
 		// sphere on disk and cylinder don't overlap
 		if (tmpvnorm > (number) 1.f) continue;
@@ -591,7 +591,7 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 		// cylinder.
 		number d = (Dj - Ci) * u1 / u1dotu2;
 		if (fabs(d) < hlength) {
-			LR_vector<number> Z = Ci + u2 * d;
+			LR_vector Z = Ci + u2 * d;
 			if ((Z - Dj).norm() < 0.5 * 0.5) {
 				return true;
 			}
@@ -738,8 +738,8 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 		sinphi = num / rho;
 		cosphi = den / rho;
 
-		//LR_vector<number> T = Dj + p->orientation.v1 * 0.5 * cosphi + p->orientation.v2 * 0.5 * sinphi - (Ci + lambda * u2);
-		LR_vector<number> T = Dj + p->orientation.v1 * 0.5 * cosphi + p->orientation.v2 * 0.5 * sinphi - Ci;
+		//LR_vector T = Dj + p->orientation.v1 * 0.5 * cosphi + p->orientation.v2 * 0.5 * sinphi - (Ci + lambda * u2);
+		LR_vector T = Dj + p->orientation.v1 * 0.5 * cosphi + p->orientation.v2 * 0.5 * sinphi - Ci;
 		number Tpar = T * u2;
 		number Tpersq = T.norm() - Tpar * Tpar;
 		if (fabs(Tpar) < hlength && Tpersq < 0.5 * 0.5) {
@@ -749,11 +749,11 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 	}
 
 	for (int i = -1; i < 2; i += 2) { // face on cylinder 2
-		LR_vector<number> Dj = dr + u2 * (i * hlength);
-		LR_vector<number> Ci (0., 0., 0.);
-		LR_vector<number> Ui = Ci + u1 * ((Dj - Ci) * u1);
+		LR_vector Dj = dr + u2 * (i * hlength);
+		LR_vector Ci (0., 0., 0.);
+		LR_vector Ui = Ci + u1 * ((Dj - Ci) * u1);
 
-		LR_vector<number> tmpv = Dj - Ui;
+		LR_vector tmpv = Dj - Ui;
 		number tmpvnorm = tmpv.norm();
 		// sphere on disk and cylinder don't overlap
 		if (tmpvnorm > (number) 1.f) continue;
@@ -767,7 +767,7 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 		// early check: does the cylinder axis intersect disk within the cylinder?
 		number d = (Dj - Ci) * u2 / u1dotu2;
 		if (fabs(d) < hlength) {
-			LR_vector<number> Z = Ci + u1 * d;
+			LR_vector Z = Ci + u1 * d;
 			if ((Z - Dj).norm() < 0.5 * 0.5) {
 				//printf ("%s %d\n", __FILE__, __LINE__);
 				return true;
@@ -914,7 +914,7 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 		sinphi = num / rho;
 		cosphi = den / rho;
 
-		LR_vector<number> T = Dj + q->orientation.v1 * (0.5 * cosphi) + q->orientation.v2 * (0.5 * sinphi) - Ci;
+		LR_vector T = Dj + q->orientation.v1 * (0.5 * cosphi) + q->orientation.v2 * (0.5 * sinphi) - Ci;
 		number Tpar = T * u1;
 		number Tpersq = T.norm() - Tpar * Tpar;
 		if (fabs(Tpar) < hlength && Tpersq < 0.5 * 0.5) {
@@ -928,8 +928,8 @@ bool InteractionUtils::cylinder_overlap (BaseParticle<number> *p, BaseParticle<n
 }
 
 
-template<typename number>
-bool InteractionUtils::sphere_spherocylinder_overlap (LR_vector<number> dr, number sphere_radius, LR_vector<number> sc_versor, number sc_length, number sc_radius) {
+
+bool InteractionUtils::sphere_spherocylinder_overlap (LR_vector dr, number sphere_radius, LR_vector sc_versor, number sc_length, number sc_radius) {
 	// dr goes from sphere to spherocylinder
 	number drdotu = dr * sc_versor;
 
@@ -947,10 +947,10 @@ bool InteractionUtils::sphere_spherocylinder_overlap (LR_vector<number> dr, numb
 	else return false;
 }
 
-template<typename number>
-bool InteractionUtils::sphere_box_overlap (LR_vector<number> dr, number sphere_radius, LR_matrix<number> box, number l1, number l2, number l3) {
+
+bool InteractionUtils::sphere_box_overlap (LR_vector dr, number sphere_radius, LR_matrix box, number l1, number l2, number l3) {
 	// algorithm http://www.idt.mdh.se/personal/tla/publ/sb.pdf
-	LR_vector<number> rdr (0., 0., 0.);
+	LR_vector rdr (0., 0., 0.);
 	dr = -dr;
 
 	// some early exit test may be implemented here
@@ -974,8 +974,8 @@ bool InteractionUtils::sphere_box_overlap (LR_vector<number> dr, number sphere_r
 // helper function to solve systems by Gaussian elimination
 // TODO: perhaps check that passing by reference is faster
 // TODO: perhaps remove the copying of Ca to C
-template<typename number>
-LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &C, LR_vector<number> &rhs) {
+
+LR_vector InteractionUtils::gauss_elim_solve(LR_matrix &C, LR_vector &rhs) {
 	int keys[3] = {-1, -1, -1};
 	/*
 	printf ("{ ");
@@ -997,10 +997,10 @@ LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &C, LR_ve
 
 	keys[2] = 3 - keys[1] - keys[0];
 
-	LR_vector<number> u (C[keys[0]][0], C[keys[0]][1], C[keys[0]][2]);
-	LR_vector<number> v (C[keys[1]][0], C[keys[1]][1], C[keys[1]][2]);
-	LR_vector<number> w (C[keys[2]][0], C[keys[2]][1], C[keys[2]][2]);
-	LR_vector<number> r (rhs[keys[0]], rhs[keys[1]], rhs[keys[2]]);
+	LR_vector u (C[keys[0]][0], C[keys[0]][1], C[keys[0]][2]);
+	LR_vector v (C[keys[1]][0], C[keys[1]][1], C[keys[1]][2]);
+	LR_vector w (C[keys[2]][0], C[keys[2]][1], C[keys[2]][2]);
+	LR_vector r (rhs[keys[0]], rhs[keys[1]], rhs[keys[2]]);
 
 	//printf ("%8.5g %8.5g %8.5g u \n", u.x, u.y, u.z);
 	//printf ("%8.5g %8.5g %8.5g v \n", v.x, v.y, v.z);
@@ -1028,28 +1028,28 @@ LR_vector<number> InteractionUtils::gauss_elim_solve(LR_matrix<number> &C, LR_ve
 	//free(C);
 
 	//printf("sol: %g %g %g\n\n", x, y, z);
-	return LR_vector<number> (x, y, z);
+	return LR_vector (x, y, z);
 }
 
 // intersection test between a segment and a triangle,
 // defined by its three vertexes
-template<typename number>
+
 bool InteractionUtils::edge_triangle_intersection (
-		LR_vector<number> &S1, LR_vector<number> &S2,
-		LR_vector<number> &P1, LR_vector<number> &P2, LR_vector<number> &P3) {
-	LR_vector<number> rhs;
-	LR_vector<number> res;
+		LR_vector &S1, LR_vector &S2,
+		LR_vector &P1, LR_vector &P2, LR_vector &P3) {
+	LR_vector rhs;
+	LR_vector res;
 
 	/*
-	LR_vector<number> p1 = P2 - P1;
-	LR_vector<number> p3 = P1 - P3;
-	LR_vector<number> e = S2 - S1;
+	LR_vector p1 = P2 - P1;
+	LR_vector p3 = P1 - P3;
+	LR_vector e = S2 - S1;
 
-	LR_matrix<number> C (p1.x, -p3.x, -e.x,
+	LR_matrix C (p1.x, -p3.x, -e.x,
 						 p1.y, -p3.y, -e.y,
 						 p1.z, -p3.z, -e.z );
 	*/
-	LR_matrix<number> C (P2.x - P1.x, P3.x - P1.x, S1.x - S2.x,
+	LR_matrix C (P2.x - P1.x, P3.x - P1.x, S1.x - S2.x,
 	                     P2.y - P1.y, P3.y - P1.y, S1.y - S2.y,
 	                     P2.z - P1.z, P3.z - P1.z, S1.z - S2.z);
 
@@ -1067,20 +1067,20 @@ bool InteractionUtils::edge_triangle_intersection (
 }
 
 /*
-template<typename number>
-bool InteractionUtils::edge_triangle_intersection (
-		LR_vector<number> &S1, LR_vector<number> &S2,
-		LR_vector<number> &P1, LR_vector<number> &P2, LR_vector<number> &P3) {
-	LR_matrix<number> C;
-	LR_vector<number> rhs, res;
 
-	LR_vector<number> P[3] = {P1, P2, P3};
-	LR_vector<number> p[3] = {P2 - P1, P3 - P2, P1 - P3};
-	LR_vector<number> e = S2 - S1;
+bool InteractionUtils::edge_triangle_intersection (
+		LR_vector &S1, LR_vector &S2,
+		LR_vector &P1, LR_vector &P2, LR_vector &P3) {
+	LR_matrix C;
+	LR_vector rhs, res;
+
+	LR_vector P[3] = {P1, P2, P3};
+	LR_vector p[3] = {P2 - P1, P3 - P2, P1 - P3};
+	LR_vector e = S2 - S1;
 
 	// maybe one check is enough
 	for (int i = 0; i < 3; i ++) {
-		C = LR_matrix<number>(	p[i].x, -p[(i+2)%3].x, -e.x,
+		C = LR_matrix(	p[i].x, -p[(i+2)%3].x, -e.x,
 								p[i].y, -p[(i+2)%3].y, -e.y,
 								p[i].z, -p[(i+2)%3].z, -e.z );
 		rhs = S1 - P[i];
@@ -1105,19 +1105,19 @@ bool InteractionUtils::edge_triangle_intersection (
 // in the paper http://webee.technion.ac.il/~ayellet/Ps/TroppTalShimshoni.pdf
 // DOI 10.1002/cav.115
 // // TODO: not tested!!!!
-template<typename number>
-bool triangle_intersection (LR_vector<number> * P1, LR_vector<number> * P2, LR_vector<number> * P3,
-							LR_vector<number> * Q1, LR_vector<number> * Q2, LR_vector<number> * Q3) {
+
+bool triangle_intersection (LR_vector * P1, LR_vector * P2, LR_vector * P3,
+							LR_vector * Q1, LR_vector * Q2, LR_vector * Q3) {
 	// for each vertex of face 1, we need to see if it intersects face 2
 	// this will happen if, by solving the equation
 	// P + a1 * e1 + a2 * e2 = Qi + bi * ei
 
 	// faces and edges
 	// TODO: memory leaks?
-	LR_vector<number> *P = new LR_vector<number>[3];
-	LR_vector<number> *Q = new LR_vector<number>[3];
-	LR_vector<number> *p = new LR_vector<number>[3];
-	LR_vector<number> *q = new LR_vector<number>[3];
+	LR_vector *P = new LR_vector[3];
+	LR_vector *Q = new LR_vector[3];
+	LR_vector *p = new LR_vector[3];
+	LR_vector *q = new LR_vector[3];
 
 	P[0] = *P1; P[1] = *P2; P[2] = *P3;
 	Q[0] = *Q1; Q[1] = *Q2; Q[2] = *Q3;
@@ -1125,14 +1125,14 @@ bool triangle_intersection (LR_vector<number> * P1, LR_vector<number> * P2, LR_v
 	p[0] = *P2 - *P1; p[1] = *P3 - *P2; p[2] = *P1 - *P3;
 	q[0] = *Q2 - *Q1; q[1] = *Q3 - *Q2; q[2] = *Q1 - *Q3;
 
-	LR_matrix<number> C;
-	LR_vector<number> rhs;
-	LR_vector<number> res; // solution: will contain a1, a2 and bi in this order
+	LR_matrix C;
+	LR_vector rhs;
+	LR_vector res; // solution: will contain a1, a2 and bi in this order
 
 	// check if edges of triangle Q go through triangle P
 	for (int i = 0; i < 3; i ++) {
 		for (int j=0; j < 3; j ++) {
-			C = LR_matrix<number>( 	p[i].x, -p[(i+2)%3].x, q[j].x,
+			C = LR_matrix( 	p[i].x, -p[(i+2)%3].x, q[j].x,
 									p[i].y, -p[(i+2)%3].y, q[j].y,
 									p[i].z, -p[(i+2)%3].z, q[j].z );
 			rhs = Q[j] - P[i];
@@ -1148,7 +1148,7 @@ bool triangle_intersection (LR_vector<number> * P1, LR_vector<number> * P2, LR_v
 	// check if edges of triangle P go through triangle Q
 	for (int i = 0; i < 3; i ++) {
 		for (int j=0; j < 3; j ++) {
-			C = LR_matrix<number>( 	q[i].x, -q[(i+2)%3].x, p[j].x,
+			C = LR_matrix( 	q[i].x, -q[(i+2)%3].x, p[j].x,
 									q[i].y, -q[(i+2)%3].y, p[j].y,
 									q[i].z, -q[(i+2)%3].z, p[j].z );
 			rhs = P[j] - Q[i];

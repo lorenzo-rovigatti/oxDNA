@@ -25,13 +25,13 @@ temps = <T>, <T>, ... (list of temperatures to extrapolate to, separated with co
 [weights_file = <string> (weights file. If not found, the one from the input file will be used.)]
 @endverbatim
  */
-template<typename number>
-class SaltExtrapolation: public BaseObservable<number> {
+
+class SaltExtrapolation: public BaseObservable {
 protected:
-	std::vector<number> _salts;
-	std::vector<number> _temps;
-	std::vector<std::vector< IBaseInteraction<number> * > > _interactions;
-	IBaseInteraction<number> * _ref_interaction;
+	std::vector _salts;
+	std::vector _temps;
+	std::vector<std::vector< IBaseInteraction * > > _interactions;
+	IBaseInteraction * _ref_interaction;
 	OrderParameters _op;
 	Weights _weights;
 	std::string _op_file, _weights_file;
@@ -46,7 +46,7 @@ public:
 	std::string get_output_string(llint curr_step);
 
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init (ConfigInfo<number> &Info);
+	void init (ConfigInfo &Info);
 };
 
 #endif /* SALTEXTRAPOLATION_H_ */

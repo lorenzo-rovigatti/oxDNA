@@ -30,7 +30,7 @@ CUDATSPInteraction<number, number4>::~CUDATSPInteraction() {
 
 template<typename number, typename number4>
 void CUDATSPInteraction<number, number4>::get_settings(input_file &inp) {
-	TSPInteraction<number>::get_settings(inp);
+	TSPInteraction::get_settings(inp);
 
 	int sort_every;
 	if(getInputInt(&inp, "CUDA_sort_every", &sort_every, 0) == KEY_FOUND) {
@@ -41,7 +41,7 @@ void CUDATSPInteraction<number, number4>::get_settings(input_file &inp) {
 template<typename number, typename number4>
 void CUDATSPInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
-	TSPInteraction<number>::init();
+	TSPInteraction::init();
 
 	_setup_anchors();
 
@@ -68,9 +68,9 @@ void CUDATSPInteraction<number, number4>::cuda_init(number box_side, int N) {
 
 template<typename number, typename number4>
 void CUDATSPInteraction<number, number4>::_setup_anchors() {
-	BaseParticle<number> **particles = new BaseParticle<number> *[this->_N];
-	TSPInteraction<number>::allocate_particles(particles, this->_N);
-	TSPInteraction<number>::read_topology(this->_N, &this->_N_stars, particles);
+	BaseParticle **particles = new BaseParticle *[this->_N];
+	TSPInteraction::allocate_particles(particles, this->_N);
+	TSPInteraction::read_topology(this->_N, &this->_N_stars, particles);
 
 	_h_anchors = new int[this->_N_stars];
 	_h_anchor_neighs = new TSP_anchor_bonds[this->_N_stars * TSP_MAX_ARMS];
@@ -79,12 +79,12 @@ void CUDATSPInteraction<number, number4>::_setup_anchors() {
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<TSP_anchor_bonds>(&_d_anchor_neighs, this->_N_stars*TSP_MAX_ARMS*sizeof(TSP_anchor_bonds)) );
 
 	for(int i = 0; i < this->_anchors.size(); i++) {
-		TSPParticle<number> *p = this->_anchors[i];
+		TSPParticle *p = this->_anchors[i];
 		_h_anchors[i] = p->index;
 		
 		// now load all the TSP_anchor_bonds structures by first looping over all the bonded neighbours
 		int nn = 0;
-		for(typename set<TSPParticle<number> *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++, nn++) {
+		for(typename set<TSPParticle *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++, nn++) {
 			_h_anchor_neighs[i].n[nn] = (*it)->index;
 		}
 		// and then by putting P_INVALID for all the other arms
@@ -99,7 +99,7 @@ void CUDATSPInteraction<number, number4>::_setup_anchors() {
 }
 
 template<typename number, typename number4>
-void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
+void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {

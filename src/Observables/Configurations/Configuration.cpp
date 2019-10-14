@@ -14,20 +14,20 @@
 
 using namespace std;
 
-template<typename number>
-Configuration<number>::Configuration() {
+
+Configuration::Configuration() {
 	_back_in_box = false;
 	_reduced = false;
 	_only_type = -1;
 }
 
-template<typename number>
-Configuration<number>::~Configuration() {
+
+Configuration::~Configuration() {
 
 }
 
-template<typename number>
-void Configuration<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+
+void Configuration::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputBool(&sim_inp, "back_in_box", &_back_in_box, 0);
 	getInputBool(&my_inp, "reduced", &_reduced, 0);
 	getInputInt(&my_inp, "only_type", &_only_type, 0);
@@ -49,9 +49,9 @@ void Configuration<number>::get_settings(input_file &my_inp, input_file &sim_inp
 	}
 }
 
-template<typename number>
-void Configuration<number>::init(ConfigInfo<number> &config_info) {
-   BaseObservable<number>::init(config_info);
+
+void Configuration::init(ConfigInfo &config_info) {
+   BaseObservable::init(config_info);
 
    // if no 'show' options is found then the default behaviour is to show all the particles
    if(_visible_particles.size() == 0) for(int i = 0; i < *config_info.N; i++) _visible_particles.insert(i);
@@ -75,15 +75,15 @@ void Configuration<number>::init(ConfigInfo<number> &config_info) {
    _tot_energy.init(config_info);
 }
 
-template<typename number>
-string Configuration<number>::_headers(llint step) {
+
+string Configuration::_headers(llint step) {
 	stringstream headers;
 	headers.precision(15);
 
 	if(_reduced) {
 		set<int> strands;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle<number> *p = this->_config_info.particles[*it];
+			BaseParticle *p = this->_config_info.particles[*it];
 			strands.insert(p->strand_id);
 		}
 
@@ -101,27 +101,27 @@ string Configuration<number>::_headers(llint step) {
 	return headers.str();
 }
 
-template<typename number>
-string Configuration<number>::_particle(BaseParticle<number> *p) {
+
+string Configuration::_particle(BaseParticle *p) {
 	stringstream conf;
 	conf.precision(15);
 
-	LR_vector<number> box_sides = this->_config_info.box->box_sides();
+	LR_vector box_sides = this->_config_info.box->box_sides();
 
-	LR_vector<double> mypos;
+	LR_vector mypos;
 	if (_back_in_box){
 		mypos.x = p->pos.x - floor(_strands_cdm[p->strand_id].x/box_sides.x)*box_sides.x;
 		mypos.y = p->pos.y - floor(_strands_cdm[p->strand_id].y/box_sides.y)*box_sides.y;
 		mypos.z = p->pos.z - floor(_strands_cdm[p->strand_id].z/box_sides.z)*box_sides.z;
 	}
 	else {
-		LR_vector<number> number_pos = this->_config_info.box->get_abs_pos(p);
+		LR_vector number_pos = this->_config_info.box->get_abs_pos(p);
 		mypos.x = number_pos.x;
 		mypos.y = number_pos.y;
 		mypos.z = number_pos.z;
 	}
 
-	LR_matrix<number> oT = p->orientation.get_transpose();
+	LR_matrix oT = p->orientation.get_transpose();
 	conf << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 	conf << oT.v1.x << " " << oT.v1.y << " " << oT.v1.z << " ";
 	conf << oT.v3.x << " " << oT.v3.y << " " << oT.v3.z << " ";
@@ -131,24 +131,24 @@ string Configuration<number>::_particle(BaseParticle<number> *p) {
 	return conf.str();
 }
 
-template<typename number>
-string Configuration<number>::_configuration(llint step) {
+
+string Configuration::_configuration(llint step) {
 	stringstream conf;
 	conf.precision(15);
 
 	if(_reduced) {
 		// prints only the centres of mass of the strands
-		map<int, LR_vector<number> > coms;
+		map<int, LR_vector > coms;
 		map<int, int> counters;
 
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle<number> *p = this->_config_info.particles[*it];
+			BaseParticle *p = this->_config_info.particles[*it];
 			coms[p->strand_id] += this->_config_info.box->get_abs_pos(p);
 			counters[p->strand_id]++;
 		}
 
-		for(typename map<int, LR_vector<number> >::iterator it = coms.begin(); it != coms.end(); it++) {
-			LR_vector<number> com = it->second / (number) counters[it->first];
+		for(typename map<int, LR_vector >::iterator it = coms.begin(); it != coms.end(); it++) {
+			LR_vector com = it->second / (number) counters[it->first];
 
 			if(it != coms.begin()) conf << endl;
 			conf << com.x << " " << com.y << " " << com.z;
@@ -159,7 +159,7 @@ string Configuration<number>::_configuration(llint step) {
 		// this is used to avoid printing empty lines
 		bool empty = true;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle<number> *p = this->_config_info.particles[*it];
+			BaseParticle *p = this->_config_info.particles[*it];
 			bool visible = (_only_type == -1 || p->type == _only_type);
 			if(visible) {
 				if(it != _visible_particles.begin() && !empty) conf << endl;
@@ -173,17 +173,17 @@ string Configuration<number>::_configuration(llint step) {
 	return conf.str();
 }
 
-template<typename number>
-string Configuration<number>::get_output_string(llint curr_step) {
+
+string Configuration::get_output_string(llint curr_step) {
 	return _headers(curr_step) + _configuration(curr_step);
 }
 
-template<typename number>
-void Configuration<number>::_fill_strands_cdm() {
+
+void Configuration::_fill_strands_cdm() {
 	std::map<int, int> nin;
 	_strands_cdm.clear();
 	for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-		BaseParticle<number> *p = this->_config_info.particles[*it];
+		BaseParticle *p = this->_config_info.particles[*it];
 		if (_strands_cdm.count(p->strand_id) == 0) {
 			nin[p->strand_id] = 1;
 			_strands_cdm[p->strand_id] = p->pos;
@@ -199,7 +199,4 @@ void Configuration<number>::_fill_strands_cdm() {
 		_strands_cdm[strand_id] /= (number) nin_id;
 	}
 }
-
-template class Configuration<float>;
-template class Configuration<double>;
 

@@ -20,8 +20,8 @@
 #include "../Observables/ObservableOutput.h"
 #include "../Utilities/Timings.h"
 
-template<typename number>
-SimBackend<number>::SimBackend() {
+
+SimBackend::SimBackend() {
 	// we need to initialize everything so that we can check what we can
 	// and what we can't delete[] in the destructor
 	_enable_fix_diffusion = true;
@@ -57,25 +57,25 @@ SimBackend<number>::SimBackend() {
 	_mytimer = NULL;
 	_restart_step_counter = false;
 
-	ConfigInfo<number>::init();
-	_config_info = ConfigInfo<number>::instance();
+	ConfigInfo::init();
+	_config_info = ConfigInfo::instance();
 }
 
-template<typename number>
-SimBackend<number>::~SimBackend() {
+
+SimBackend::~SimBackend() {
 	if(_particles != NULL) {
 		for(int i = 0; i < _N; i++) delete _particles[i];
 		delete[] _particles;
 	}
 	if(_interaction != NULL) delete _interaction;
 
-	ForceFactory<number>::instance()->clear();
+	ForceFactory::instance()->clear();
 
 	// here we print the input output information
 	llint total_file = 0;
 	llint total_stderr = 0;
 	OX_LOG (Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
-	for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
+	for(typename vector<ObservableOutput *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		llint now = (*it)->get_bytes_written();
 		auto fname = (*it)->get_output_name();
 		if (!strcmp (fname.c_str(), "stderr") || !strcmp (fname.c_str(), "stdout")) total_stderr += now;
@@ -104,17 +104,17 @@ SimBackend<number>::~SimBackend() {
 	}
 	*/
 
-	for(typename vector<ObservableOutput<number> *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
+	for(typename vector<ObservableOutput *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) delete *it;
 
 	// destroy lists;
 	if (_lists != NULL) delete _lists;
 
 	PluginManager::clear();
-	ConfigInfo<number>::clear();
+	ConfigInfo::clear();
 }
 
-template<typename number>
-void SimBackend<number>::get_settings(input_file &inp) {
+
+void SimBackend::get_settings(input_file &inp) {
 	int tmp;
 
 	// initialise the plugin manager with the input file
@@ -124,13 +124,13 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	// initialise the timer
 	_mytimer = TimingManager::instance()->new_timer(std::string("SimBackend"));	
 
-	_interaction = InteractionFactory::make_interaction<number>(inp);
+	_interaction = InteractionFactory::make_interaction(inp);
 	_interaction->get_settings(inp);
 
-	_box = BoxFactory::make_box<number>(inp);
+	_box = BoxFactory::make_box(inp);
 	_box->get_settings(inp);
 
-	_lists = ListFactory::make_list<number>(inp, _N, _box.get());
+	_lists = ListFactory::make_list(inp, _N, _box.get());
 	_lists->get_settings(inp);
 
 	getInputBool(&inp, "restart_step_counter", &_restart_step_counter, 0);
@@ -195,7 +195,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
-	_T = Utils::get_temperature<number>(raw_T);
+	_T = Utils::get_temperature(raw_T);
 
 	// here we fill the _obs_outputs vector
 	int i = 1;
@@ -205,7 +205,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 		ss << "data_output_" << i;
 		string obs_string;
 		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
-			ObservableOutput<number> *new_obs_out = new ObservableOutput<number>(obs_string, inp);
+			ObservableOutput *new_obs_out = new ObservableOutput(obs_string, inp);
 			_obs_outputs.push_back(new_obs_out);
 		}
 		else found = false;
@@ -228,7 +228,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
-	_obs_output_trajectory = new ObservableOutput<number>(fake, inp);
+	_obs_output_trajectory = new ObservableOutput(fake, inp);
 	_obs_output_trajectory->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_trajectory);
 
@@ -236,7 +236,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	std::string lastconf_file = "last_conf.dat";
 	getInputString(&inp, "lastconf_file", lastconf_file, 0);
 	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
-	_obs_output_last_conf = new ObservableOutput<number>(fake, inp);
+	_obs_output_last_conf = new ObservableOutput(fake, inp);
 	_obs_output_last_conf->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_last_conf);
 
@@ -244,7 +244,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	std::string lastconf_file_bin;
 	if((getInputString(&inp, "lastconf_file_bin", lastconf_file_bin, 0) == KEY_FOUND)) {
 		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
-		_obs_output_last_conf_bin = new ObservableOutput<number>(fake, inp);
+		_obs_output_last_conf_bin = new ObservableOutput(fake, inp);
 		_obs_output_last_conf_bin->add_observable("type = binary_configuration");
 		_obs_outputs.push_back(_obs_output_last_conf_bin);
 	}
@@ -254,7 +254,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	if(getInputLLInt(&inp, "print_reduced_conf_every", &reduced_conf_every, 0) == KEY_FOUND && reduced_conf_every > 0) {
 		getInputString(&inp, "reduced_conf_output_dir", _reduced_conf_output_dir, 1);
 		fake = Utils::sformat("{\n\tname = reduced_conf.dat\n\tprint_every = %lld\n\tonly_last = 1\n}\n", reduced_conf_every);
-		_obs_output_reduced_conf = new ObservableOutput<number>(fake, inp);
+		_obs_output_reduced_conf = new ObservableOutput(fake, inp);
 		_obs_output_reduced_conf->add_observable("type = configuration\nreduced = true");
 		_obs_outputs.push_back(_obs_output_reduced_conf);
 	}
@@ -265,7 +265,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 		int tmp1 = getInputString(&inp, "checkpoint_trajectory", _checkpoint_traj, 0);
 		if (tmp1 == KEY_FOUND) {
 			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
-			_obs_output_checkpoints = new ObservableOutput<number>(fake, inp);
+			_obs_output_checkpoints = new ObservableOutput(fake, inp);
 			_obs_output_checkpoints->add_observable("type = checkpoint");
 			_obs_outputs.push_back(_obs_output_checkpoints);
 			OX_LOG(Logger::LOG_INFO, "Setting up a trajectory of checkpoints to file %s every %lld steps",_checkpoint_traj.c_str(), checkpoint_every);
@@ -274,7 +274,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 		int tmp2 = getInputString(&inp, "checkpoint_file", _checkpoint_file, 0);
 		if (tmp2 == KEY_FOUND) {
 			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
-			_obs_output_last_checkpoint = new ObservableOutput<number>(fake, inp);
+			_obs_output_last_checkpoint = new ObservableOutput(fake, inp);
 			_obs_output_last_checkpoint->add_observable("type = checkpoint");
 			_obs_outputs.push_back(_obs_output_last_checkpoint);
 			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);
@@ -284,7 +284,7 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	}
 
 	// set the max IO
-	if (getInputNumber<number> (&inp, "max_io", &_max_io, 0) == KEY_FOUND) {
+	if (getInputNumber (&inp, "max_io", &_max_io, 0) == KEY_FOUND) {
 		if (_max_io < 0) throw oxDNAException ("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
 		else OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
 	}
@@ -293,8 +293,8 @@ void SimBackend<number>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number>
-void SimBackend<number>::init() {
+
+void SimBackend::init() {
 	_conf_input.open(_conf_filename.c_str());
 	if(_conf_input.good() == false) throw oxDNAException("Can't read configuration file '%s'", _conf_filename.c_str());
 
@@ -302,7 +302,7 @@ void SimBackend<number>::init() {
 
 	// check number of particles
 	_N = _interaction->get_N_from_topology();
-	_particles = new BaseParticle<number>*[_N];
+	_particles = new BaseParticle*[_N];
 	_interaction->read_topology(_N, &_N_strands, _particles);
 
 	_rcut = _interaction->get_rcut();
@@ -310,7 +310,7 @@ void SimBackend<number>::init() {
 
 	// check that the interaction has filled the array of "affected" particles
 	for (int i = 0; i < _N; i ++) {
-		BaseParticle<number> * p = _particles[i];
+		BaseParticle * p = _particles[i];
 		if (p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL)
 			if (p->affected.size() < 1)
 				throw oxDNAException ("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
@@ -339,7 +339,7 @@ void SimBackend<number>::init() {
 	_config_info->curr_step = _start_step_from_file;
 
 	if(_external_forces) {
-		ForceFactory<number>::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, _box.get());
+		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, _box.get());
 	}
 
 	this->_U = (number) 0;
@@ -354,17 +354,14 @@ void SimBackend<number>::init() {
 	// read_topology() since _particles has to be initialized
 	_config_info->set(_particles, _interaction, &_N, &_backend_info, _lists, _box.get());
 
-	typename vector<ObservableOutput<number> *>::iterator it;
+	typename vector<ObservableOutput *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) (*it)->init(*_config_info);
 
 	OX_LOG(Logger::LOG_INFO, "N: %d", _N);
 }
 
-// apparently this is the right syntax to have a templated method in a templated classes. Oh c++...
-template<typename number>
-template<typename number_n>
-LR_vector<number_n> SimBackend<number>::_read_next_vector(bool binary) {
-	LR_vector<number_n> res;
+LR_vector SimBackend::_read_next_vector(bool binary) {
+	LR_vector res;
 	if(binary) {
 		double tmpf;
 		_conf_input.read ((char *)&tmpf, sizeof(double));
@@ -379,8 +376,8 @@ LR_vector<number_n> SimBackend<number>::_read_next_vector(bool binary) {
 	return res;
 }
 
-template<typename number>
-bool SimBackend<number>::_read_next_configuration(bool binary) {
+
+bool SimBackend::_read_next_configuration(bool binary) {
 	double Lx, Ly, Lz;
 	// parse headers. Binary and ascii configurations have different headers, and hence
 	// we have to separate the two procedures
@@ -457,28 +454,28 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 	// large numbers in the conf file and use float precision
 	// later
 	int *nins, k, i;
-	LR_vector<double> *tmp_poss, *scdm;
+	LR_vector *tmp_poss, *scdm;
 
-	tmp_poss = new LR_vector<double>[_N];
+	tmp_poss = new LR_vector[_N];
 	nins = new int[_N_strands];
-	scdm = new LR_vector<double> [_N_strands];
+	scdm = new LR_vector [_N_strands];
 	for (k = 0; k < _N_strands; k ++) {
 		nins[k] = 0;
-		scdm[k] = LR_vector<double> ((double)0., (double)0., (double)0.);
+		scdm[k] = LR_vector ((double)0., (double)0., (double)0.);
 	}
 
 	i = 0;
 	while(!_conf_input.eof() && i < _N) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 
-		tmp_poss[i] = _read_next_vector<double>(binary);
+		tmp_poss[i] = _read_next_vector(binary);
 		k = p->strand_id;
 		scdm[k] += tmp_poss[i];
 		nins[k] ++;
 
 		if (!binary) {
-			p->orientation.v1 = _read_next_vector<number>(binary);
-			p->orientation.v3 = _read_next_vector<number>(binary);
+			p->orientation.v1 = _read_next_vector(binary);
+			p->orientation.v3 = _read_next_vector(binary);
 			// get v2 from v1 and v3
 			p->orientation.v1.normalize();
 			p->orientation.v3.normalize();
@@ -494,16 +491,16 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 			_conf_input.read ((char *)&z, sizeof(int));
 			p->set_pos_shift (x, y, z);
 
-			p->orientation.v1 = _read_next_vector<number>(binary);
-			p->orientation.v2 = _read_next_vector<number>(binary);
-			p->orientation.v3 = _read_next_vector<number>(binary);
+			p->orientation.v1 = _read_next_vector(binary);
+			p->orientation.v2 = _read_next_vector(binary);
+			p->orientation.v3 = _read_next_vector(binary);
 		}
 		// v1, v2 and v3 should have length 1. If they don't it means that they are null vectors
 		if(p->orientation.v1.module() < 0.9 || p->orientation.v2.module() < 0.9 || p->orientation.v3.module() < 0.9) throw oxDNAException("Invalid orientation for particle %d: at least one of the vectors is a null vector", p->index);
 		p->orientation.transpone();
 
-		p->vel = _read_next_vector<number>(binary);
-		p->L = _read_next_vector<number>(binary);
+		p->vel = _read_next_vector(binary);
+		p->L = _read_next_vector(binary);
 
 		p->init();
 		p->orientationT = p->orientation.get_transpose();
@@ -532,20 +529,20 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 	for(k = 0; k < _N_strands; k ++) scdm[k] /= (double) nins[k];
 
 	for (i = 0; i < _N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		k = p->strand_id;
 
-		LR_vector<double> p_pos = tmp_poss[i];
+		LR_vector p_pos = tmp_poss[i];
 		if(_enable_fix_diffusion && !binary) {
 			// we need to manually set the particle shift so that the particle absolute position
 			// is the right one
-			LR_vector<number> scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
+			LR_vector scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
 			_box->shift_particle(p, scdm_number);
 			p_pos.x -= _box->box_sides().x * (floor(scdm[k].x / _box->box_sides().x));
 			p_pos.y -= _box->box_sides().y * (floor(scdm[k].y / _box->box_sides().y));
 			p_pos.z -= _box->box_sides().z * (floor(scdm[k].z / _box->box_sides().z));
 		}
-		p->pos = LR_vector<number>(p_pos.x, p_pos.y, p_pos.z);
+		p->pos = LR_vector(p_pos.x, p_pos.y, p_pos.z);
 	}
 
 	_interaction->check_input_sanity(_particles, _N);
@@ -557,10 +554,10 @@ bool SimBackend<number>::_read_next_configuration(bool binary) {
 	return true;
 }
 
-template<typename number>
-void SimBackend<number>::_print_ready_observables(llint curr_step) {
+
+void SimBackend::_print_ready_observables(llint curr_step) {
 	llint total_bytes = 0;
-	typename vector<ObservableOutput<number> *>::iterator it;
+	typename vector<ObservableOutput *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		if((*it)->is_ready(curr_step)) {
 			(*it)->print_output(curr_step);
@@ -578,10 +575,10 @@ void SimBackend<number>::_print_ready_observables(llint curr_step) {
 	}
 }
 
-template<typename number>
-void SimBackend<number>::print_observables(llint curr_step) {
+
+void SimBackend::print_observables(llint curr_step) {
 	bool someone_ready = false;
-	typename vector<ObservableOutput<number> *>::iterator it;
+	typename vector<ObservableOutput *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		if((*it)->is_ready(curr_step)) someone_ready = true;
 	}
@@ -589,22 +586,22 @@ void SimBackend<number>::print_observables(llint curr_step) {
 	_backend_info = std::string ("");
 }
 
-template<typename number>
-void SimBackend<number>::fix_diffusion() {
+
+void SimBackend::fix_diffusion() {
 	if(!_enable_fix_diffusion) return;
 
 	number E_before = this->_interaction->get_system_energy(_particles, _N, _lists);
-	LR_vector<number> * stored_pos = new LR_vector<number>[_N];
-	LR_matrix<number> * stored_or = new LR_matrix<number>[_N];
-	LR_matrix<number> * stored_orT = new LR_matrix<number>[_N];
+	LR_vector * stored_pos = new LR_vector[_N];
+	LR_matrix * stored_or = new LR_matrix[_N];
+	LR_matrix * stored_orT = new LR_matrix[_N];
 	for (int i = 0; i < _N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		stored_pos[i] = p->pos;
 		stored_or[i] = p->orientation;
 		stored_orT[i] = p->orientationT;
 	}
 
-	LR_vector<number> *scdm = new LR_vector<number>[_N_strands];
+	LR_vector *scdm = new LR_vector[_N_strands];
 	int *ninstrand = new int [_N_strands];
 	for(int k = 0; k < _N_strands; k ++) {
 		scdm[k].x = scdm[k].y = scdm[k].z = (number) 0.f;
@@ -613,7 +610,7 @@ void SimBackend<number>::fix_diffusion() {
 
 	// compute com for each strand;
 	for (int i = 0; i < _N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		scdm[p->strand_id] += p->pos;
 		ninstrand[p->strand_id]++;
 	}
@@ -622,7 +619,7 @@ void SimBackend<number>::fix_diffusion() {
 
 	// change particle position and fix orientation matrix;
 	for (int i = 0; i < _N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		_box->shift_particle(p, scdm[p->strand_id]);
 		p->orientation.orthonormalize();
 		p->orientationT = p->orientation.get_transpose();
@@ -634,8 +631,8 @@ void SimBackend<number>::fix_diffusion() {
 		OX_LOG(Logger::LOG_INFO, "Fix diffusion went too far... %g, %g, %d, (%g>%g)", E_before, E_after, this->_interaction->get_is_infinite(), fabs(E_before - E_after), 1.e-6 * fabs(E_before));
 		this->_interaction->set_is_infinite(false);
 		for (int i = 0; i < _N; i ++) {
-			BaseParticle<number> *p = this->_particles[i];
-			LR_vector<number> dscdm = scdm[p->strand_id] * (number)-1.; 
+			BaseParticle *p = this->_particles[i];
+			LR_vector dscdm = scdm[p->strand_id] * (number)-1.; 
 			_box->shift_particle(p, dscdm);
 			p->orientation = stored_or[i];
 			p->orientationT = stored_orT[i];
@@ -649,7 +646,7 @@ void SimBackend<number>::fix_diffusion() {
 			else apply.push_back(0);
 
 		for (int i = 0; i < _N; i ++) {
-			BaseParticle<number> *p = this->_particles[i];
+			BaseParticle *p = this->_particles[i];
 			if (apply[p->strand_id]) {
 				p->orientation.orthonormalize();
 				p->orientationT = p->orientation.get_transpose();
@@ -661,7 +658,7 @@ void SimBackend<number>::fix_diffusion() {
 			OX_LOG(Logger::LOG_INFO, " *** Fix diffusion hopeless... %g, %g, %d, (%g>%g)", E_before, E_after2, this->_interaction->get_is_infinite(), fabs(E_before - E_after2), 1.e-6 * fabs(E_before));
 			this->_interaction->set_is_infinite(false);
 			for (int i = 0; i < _N; i ++) {
-				BaseParticle<number> *p = this->_particles[i];
+				BaseParticle *p = this->_particles[i];
 				if (apply[p->strand_id]) {
 					p->pos = stored_pos[i];
 					p->orientation = stored_or[i];
@@ -685,8 +682,8 @@ void SimBackend<number>::fix_diffusion() {
 	delete[] scdm;
 }
 
-template<typename number>
-void SimBackend<number>::print_conf(llint curr_step, bool reduced, bool only_last) {
+
+void SimBackend::print_conf(llint curr_step, bool reduced, bool only_last) {
 	if(reduced) {
 		std::stringstream conf_name;
 		conf_name << _reduced_conf_output_dir << "/reduced_conf" << curr_step <<".dat";
@@ -700,12 +697,8 @@ void SimBackend<number>::print_conf(llint curr_step, bool reduced, bool only_las
 	}
 }
 
-template<typename number>
-void SimBackend<number>::print_equilibration_info() {
+
+void SimBackend::print_equilibration_info() {
 	// he who overloads this will print something;
 	return;
 }
-
-template class SimBackend<float>;
-template class SimBackend<double>;
-

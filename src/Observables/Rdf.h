@@ -43,15 +43,15 @@ bin_size = 0.02
  *
  *
  */
-template<typename number>
-class Rdf : public BaseObservable<number> {
+
+class Rdf : public BaseObservable {
 private:
 	long int _nconf;
 	number _max_value;
 	number _bin_size;
 	int _nbins;
 	std::vector<long double> _profile;
-	LR_vector<number> _mask;
+	LR_vector _mask;
 	int _type;
 
 public:

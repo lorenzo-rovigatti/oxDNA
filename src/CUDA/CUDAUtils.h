@@ -71,7 +71,7 @@ typedef struct __align__(8) {
 	int n3, n5;
 } LR_bonds;
 
-template<typename number>
+
 struct __align__(16) GPU_quat {
 	number x, y, z, w;
 };

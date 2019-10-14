@@ -39,8 +39,8 @@ bin_size = 0.25
 </pre>
  *
  */
-template<typename number>
-class DensityProfile : public BaseObservable<number> {
+
+class DensityProfile : public BaseObservable {
 private:
 	int _axis;
 	number _max_value;

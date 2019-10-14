@@ -9,18 +9,18 @@
 
 #include "BinaryConfiguration.h"
 
-template<typename number>
-BinaryConfiguration<number>::BinaryConfiguration() : Configuration<number>() {
+
+BinaryConfiguration::BinaryConfiguration() : Configuration() {
 
 }
 
-template<typename number>
-BinaryConfiguration<number>::~BinaryConfiguration() {
+
+BinaryConfiguration::~BinaryConfiguration() {
 
 }
 
-template<typename number>
-std::string BinaryConfiguration<number>::_headers(llint step) {
+
+std::string BinaryConfiguration::_headers(llint step) {
 	std::stringstream headers;
 
 	headers.write((char * )(&step), sizeof (llint));
@@ -33,7 +33,7 @@ std::string BinaryConfiguration<number>::_headers(llint step) {
 	// print out the number
 	headers.write((char *)rndseed, 3 * sizeof(unsigned short));
 
-	LR_vector<double> my_box_sides (this->_config_info.box->box_sides().x, this->_config_info.box->box_sides().y, this->_config_info.box->box_sides().z);
+	LR_vector my_box_sides (this->_config_info.box->box_sides().x, this->_config_info.box->box_sides().y, this->_config_info.box->box_sides().z);
 	headers.write ((char * )(&my_box_sides.x), sizeof (double));
 	headers.write ((char * )(&my_box_sides.y), sizeof (double));
 	headers.write ((char * )(&my_box_sides.z), sizeof (double));
@@ -48,22 +48,16 @@ std::string BinaryConfiguration<number>::_headers(llint step) {
 	return headers.str();
 }
 
-template<typename number>
-std::string BinaryConfiguration<number>::_configuration(llint step) {
+
+std::string BinaryConfiguration::_configuration(llint step) {
 	std::stringstream conf;
 
 	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
+		BaseParticle *p = this->_config_info.particles[i];
 
-		//LR_vector<double> mypos(p->get_abs_pos(*this->_config_info.box_side).x, p->get_abs_pos(*this->_config_info.box_side).y, p->get_abs_pos(*this->_config_info.box_side).z);
-		/*
-		LR_vector<double> mypos;
-		if (!this->_back_in_box) mypos = LR_vector<double> (p->get_abs_pos(*this->_config_info.box_side).x, p->get_abs_pos(*this->_config_info.box_side).y, p->get_abs_pos(*this->_config_info.box_side).z);
-		else mypos = LR_vector<double> (p->pos.x, p->pos.y, p->pos.z);
-		*/
-		LR_vector<double> mypos = LR_vector<double> (p->pos.x, p->pos.y, p->pos.z);
+		LR_vector mypos(p->pos.x, p->pos.y, p->pos.z);
 
-		LR_matrix<number> oT = p->orientation.get_transpose();
+		LR_matrix oT = p->orientation.get_transpose();
 
 		double tmpf = mypos.x;
 		conf.write ((char * )(&tmpf), sizeof (double));
@@ -117,9 +111,9 @@ std::string BinaryConfiguration<number>::_configuration(llint step) {
 	// renormalization part
 	/* 
 	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
+		BaseParticle *p = this->_config_info.particles[i];
 		
-		LR_matrix<number> oT = p->orientation.get_transpose();
+		LR_matrix oT = p->orientation.get_transpose();
 		
 		oT.v1.normalize();
 		oT.v3.normalize();
@@ -139,6 +133,3 @@ std::string BinaryConfiguration<number>::_configuration(llint step) {
 
 	return conf.str();
 }
-
-template class BinaryConfiguration<float>;
-template class BinaryConfiguration<double>;

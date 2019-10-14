@@ -40,10 +40,10 @@ col_<n> = {\ntype = name of the first observable\n[other observable options as l
  * For oxDNA, streams can be specified with 'data_output_\<n\>' keys, whereas for DNAnalysis, streams can be specified
  * with 'analysis_data_output_\<n\>' keys. In both cases, \<n\> is an integer starting from 1.
  */
-template<typename number>
+
 class ObservableOutput {
 protected:
-	std::vector<BaseObservable<number> *> _obss;
+	std::vector<BaseObservable *> _obss;
 	std::ofstream _output_stream;
 	std::ostream *_output;
 	llint _print_every;
@@ -85,7 +85,7 @@ public:
 	 * @brief Initialize the object
 	 * @param config_info an instance of {@link ConfigInfo} containing all the values stored in the backend which may be required by the observables
 	 */
-	void init(ConfigInfo<number> &config_info);
+	void init(ConfigInfo &config_info);
 
 	/**
 	 * @brief Adds the observable defined by obs_string to the list

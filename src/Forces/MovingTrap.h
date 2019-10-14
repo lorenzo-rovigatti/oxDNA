@@ -10,8 +10,8 @@
 
 #include "BaseForce.h"
 
-template<typename number>
-class MovingTrap : public BaseForce<number> {
+
+class MovingTrap : public BaseForce {
 private:
 	int _particle;
 
@@ -20,10 +20,10 @@ public:
 	virtual ~MovingTrap() {}
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void init (BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 

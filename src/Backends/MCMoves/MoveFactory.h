@@ -33,8 +33,8 @@ public:
 	 *
 	 * @return a pointer to the newly built interaction
 	 */
-	template <typename number>
-	static BaseMove<number> * make_move (input_file &inp, input_file &sim_inp);
+	
+	static BaseMove * make_move (input_file &inp, input_file &sim_inp);
 };
 
 #endif /* INTERACTIONFACTORY_H_ */

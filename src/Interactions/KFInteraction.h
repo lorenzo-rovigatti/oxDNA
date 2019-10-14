@@ -30,8 +30,8 @@ KF_cosmax = <float> (angular half-width of the patches)
 [KF_sigma_AB = <float> (diameter controlling the repulsive interaction between particles of unlike species)]
 @endverbatim
  */
-template <typename number>
-class KFInteraction: public BaseInteraction<number, KFInteraction<number> > {
+
+class KFInteraction: public BaseInteraction<number, KFInteraction > {
 protected:
 	/// Number of patches per particle
 	int _N_patches;
@@ -93,7 +93,7 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	inline number _KF_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline number _KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 	/**
 	 * @brief Continuous KF interaction between two particles.
@@ -104,7 +104,7 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	inline number _continuous_KF_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline number _continuous_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 public:
 	enum {
@@ -117,21 +117,21 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 };
 
-template<typename number>
-number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm();
 	int type = p->type + q->type;
 	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
@@ -142,21 +142,21 @@ number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p
 	energy = part - _E_cut[type];
 
 	if(update_forces) {
-		LR_vector<number> force = *r*(_rep_power*part/sqr_r);
+		LR_vector force = *r*(_rep_power*part/sqr_r);
 		p->force -= force;
 		q->force += force;
 	}
 
 	// here everything is done as in Allen's paper
 	number rmod = sqrt(sqr_r);
-	LR_vector<number> r_versor = *r/(-rmod);
+	LR_vector r_versor = *r/(-rmod);
 
 	number sqr_surf_dist = SQR(rmod - 1.);
 	number r8b10 = SQR(SQR(sqr_surf_dist)) / _patch_pow_delta;
 	number exp_part = -1.001*exp(-(number)0.5*r8b10*sqr_surf_dist);
 
 	for(int pi = 0; pi < p->N_int_centers; pi++) {
-		LR_vector<number> ppatch = p->int_centers[pi]*2.;
+		LR_vector ppatch = p->int_centers[pi]*2.;
 
 		number cospr = -(ppatch*r_versor);
 		if(cospr > _patch_angular_cutoff) {
@@ -166,7 +166,7 @@ number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p
 			number p_mod = exp(-cospr_part / (2.*_patch_pow_cosmax));
 
 			for(int pj = 0; pj < q->N_int_centers; pj++) {
-				LR_vector<number> qpatch = q->int_centers[pj]*2.;
+				LR_vector qpatch = q->int_centers[pj]*2.;
 
 				number cosqr = qpatch*r_versor;
 				if(cosqr > _patch_angular_cutoff) {
@@ -178,16 +178,16 @@ number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p
 
 					if(update_forces) {
 						// radial part
-						LR_vector<number> tmp_force = r_versor*(p_mod*q_mod*5.*(rmod - 1.)*exp_part*r8b10);
+						LR_vector tmp_force = r_versor*(p_mod*q_mod*5.*(rmod - 1.)*exp_part*r8b10);
 
 						// angular p part
 						number der_p = exp_part*q_mod*(0.5*_patch_power*p_mod*cospr_base/_patch_pow_cosmax);
-						LR_vector<number> p_ortho = ppatch + cospr*r_versor;
+						LR_vector p_ortho = ppatch + cospr*r_versor;
 						tmp_force -= p_ortho*(der_p/rmod);
 
 						// angular q part
 						number der_q = exp_part*p_mod*(-0.5*_patch_power*q_mod*cosqr_base/_patch_pow_cosmax);
-						LR_vector<number> q_ortho = qpatch - cosqr*r_versor;
+						LR_vector q_ortho = qpatch - cosqr*r_versor;
 						tmp_force -= q_ortho*(der_q/rmod);
 
 						p->force += tmp_force;
@@ -204,8 +204,8 @@ number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p
 	return energy;
 }
 
-//template<typename number>
-//number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+//
+//number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 //	number sqr_r = r->norm();
 //	int type = p->type + q->type;
 //	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
@@ -216,14 +216,14 @@ number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p
 //	energy = part - _E_cut[type];
 //
 //	if(update_forces) {
-//		LR_vector<number> force = *r*(_rep_power*part/sqr_r);
+//		LR_vector force = *r*(_rep_power*part/sqr_r);
 //		p->force -= force;
 //		q->force += force;
 //	}
 //
 //	// here everything is done as in Allen's paper
 //	number rmod = sqrt(sqr_r);
-//	LR_vector<number> r_versor = *r/(-rmod);
+//	LR_vector r_versor = *r/(-rmod);
 //
 //	number sqr_surf_dist = SQR(rmod - 1.);
 //	number r8b10 = SQR(SQR(sqr_surf_dist)) / _patch_pow_delta;
@@ -231,7 +231,7 @@ number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p
 //	energy += exp_part;
 //
 //	if(update_forces) {
-//		LR_vector<number> tmp_force = r_versor*(5.*(rmod - 1.)*exp_part*r8b10);
+//		LR_vector tmp_force = r_versor*(5.*(rmod - 1.)*exp_part*r8b10);
 //		p->force += tmp_force;
 //		q->force -= tmp_force;
 //	}
@@ -239,8 +239,8 @@ number KFInteraction<number>::_continuous_KF_interaction(BaseParticle<number> *p
 //	return energy;
 //}
 
-template<typename number>
-number KFInteraction<number>::_KF_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number KFInteraction::_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(update_forces) throw oxDNAException("KFInteraction: forces are not defined in non-continuous KF interactions");
 
 	number sqr_r = r->norm();
@@ -253,15 +253,15 @@ number KFInteraction<number>::_KF_interaction(BaseParticle<number> *p, BaseParti
 	}
 
 	number energy = (number) 0.f;
-	LR_vector<number> r_versor(*r/sqrt(sqr_r));
+	LR_vector r_versor(*r/sqrt(sqr_r));
 	for(int pi = 0; pi < p->N_int_centers; pi++) {
 		// the factor of two comes from the fact that patches are normalised to 0.5
-		LR_vector<number> ppatch = p->int_centers[pi]*2.;
+		LR_vector ppatch = p->int_centers[pi]*2.;
 
 		number p_cos = r_versor*ppatch;
 		if(p_cos > _patch_cosmax) {
 			for(int pj = 0; pj < q->N_int_centers; pj++) {
-				LR_vector<number> qpatch = q->int_centers[pj]*2.;
+				LR_vector qpatch = q->int_centers[pj]*2.;
 
 				number q_cos = -r_versor*qpatch;
 				if(q_cos > _patch_cosmax) energy -= _epsilon[type];

@@ -19,14 +19,9 @@ using std::vector;
 
 PluginManager *PluginManager::_manager = NULL;
 
-typedef BaseObservable<float>* make_float_obs();
-typedef BaseObservable<double>* make_double_obs();
-
-typedef IBaseInteraction<float>* make_float_inter();
-typedef IBaseInteraction<double>* make_double_inter();
-
-typedef BaseMove<float>* make_float_move();
-typedef BaseMove<double>* make_double_move();
+typedef BaseObservable* make_obs();
+typedef IBaseInteraction* make_inter();
+typedef BaseMove* make_move();
 
 
 PluginManager::PluginManager() : _initialised(false), _do_cleanup(true) {
@@ -125,8 +120,8 @@ void *PluginManager::_get_entry_point(void *handle, string name, vector<string> 
 	return res;
 }
 
-template<typename number>
-BaseObservable<number> *PluginManager::get_observable(string name) {
+
+BaseObservable *PluginManager::get_observable(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
@@ -134,20 +129,10 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 	// we have no way of using templates
 	void *temp_obs;
 	bool found = false;
-	// choose between float and double
-	if(sizeof(number) == 4) {
-		make_float_obs *make_obs = (make_float_obs *) _get_entry_point(handle, name, _obs_entry_points, string("float"));
-		if(make_obs != NULL) {
-			temp_obs = (void *)make_obs();
-			found = true;
-		}
-	}
-	else {
-		make_double_obs *make_obs = (make_double_obs *) _get_entry_point(handle, name, _obs_entry_points, string("double"));
-		if(make_obs != NULL) {
-			temp_obs = (void *)make_obs();
-			found = true;
-		}
+	make_obs *make_new_obs = (make_obs *) _get_entry_point(handle, name, _obs_entry_points, string("float"));
+	if(make_new_obs != NULL) {
+		temp_obs = (void *) make_new_obs();
+		found = true;
 	}
 
 	if(!found) {
@@ -156,13 +141,13 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 	}
 
 	// now we cast it back to the type required by the code
-	return static_cast<BaseObservable<number> *>(temp_obs);
+	return static_cast<BaseObservable *>(temp_obs);
 }
 
 
 
-template<typename number>
-BaseMove<number> *PluginManager::get_move(std::string name)
+
+BaseMove *PluginManager::get_move(std::string name)
 {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
@@ -171,20 +156,10 @@ BaseMove<number> *PluginManager::get_move(std::string name)
 	// we have no way of using templates
 	void *temp_move;
 	bool found = false;
-	// choose between float and double
-	if(sizeof(number) == 4) {
-		make_float_move *make_move = (make_float_move *) _get_entry_point(handle, name, _move_entry_points, string("float"));
-		if(make_move != NULL) {
-			temp_move = (void *)make_move();
-			found = true;
-		}
-	}
-	else {
-		make_double_move *make_move = (make_double_move *) _get_entry_point(handle, name, _move_entry_points, string("double"));
-		if(make_move != NULL) {
-			temp_move = (void *)make_move();
-			found = true;
-		}
+	make_move *make_new_move = (make_move *) _get_entry_point(handle, name, _move_entry_points, string("float"));
+	if(make_new_move != NULL) {
+		temp_move = (void *) make_new_move();
+		found = true;
 	}
 
 	if(!found) {
@@ -193,12 +168,12 @@ BaseMove<number> *PluginManager::get_move(std::string name)
 	}
 
 	// now we cast it back to the type required by the code
-	return static_cast<BaseMove<number> *>(temp_move);
+	return static_cast<BaseMove *>(temp_move);
 
 }
 
-template<typename number>
-IBaseInteraction<number> *PluginManager::get_interaction(string name) {
+
+IBaseInteraction *PluginManager::get_interaction(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
@@ -206,20 +181,10 @@ IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 	// we have no way of using templates
 	void *temp_inter;
 	bool found = false;
-	// choose between float and double
-	if(sizeof(number) == 4) {
-		make_float_inter *make_inter = (make_float_inter *) _get_entry_point(handle, name, _inter_entry_points, string("float"));
-		if(make_inter != NULL) {
-			temp_inter = (void *)make_inter();
-			found = true;
-		}
-	}
-	else {
-		make_double_inter *make_inter = (make_double_inter *) _get_entry_point(handle, name, _inter_entry_points, string("double"));
-		if(make_inter != NULL) {
-			temp_inter = (void *)make_inter();
-			found = true;
-		}
+	make_inter *make_new_inter = (make_inter *) _get_entry_point(handle, name, _inter_entry_points, string("float"));
+	if(make_new_inter != NULL) {
+		temp_inter = (void *) make_new_inter();
+		found = true;
 	}
 
 	if(!found) {
@@ -228,7 +193,7 @@ IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 	}
 
 	// now we cast it back to the type required by the code
-	return static_cast<IBaseInteraction<number> *>(temp_inter);
+	return static_cast<IBaseInteraction *>(temp_inter);
 }
 
 void PluginManager::clear() {
@@ -247,14 +212,3 @@ PluginManager *PluginManager::instance() {
 
 	return _manager;
 }
-
-template BaseObservable<float> *PluginManager::get_observable(string name);
-template BaseObservable<double> *PluginManager::get_observable(string name);
-
-template IBaseInteraction<float> *PluginManager::get_interaction(string name);
-template IBaseInteraction<double> *PluginManager::get_interaction(string name);
-
-
-
-template BaseMove<float> *PluginManager::get_move(string name);
-template BaseMove<double> *PluginManager::get_move(string name);

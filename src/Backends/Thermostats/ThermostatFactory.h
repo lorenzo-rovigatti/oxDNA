@@ -37,8 +37,8 @@ public:
 	 * @return the Thermostat Object, which must be of a class derived
 	 * from BaseThermostat
 	 */
-	template<typename number>
-	static BaseThermostat<number> *make_thermostat(input_file &inp, BaseBox<number> * box);
+	
+	static BaseThermostat *make_thermostat(input_file &inp, BaseBox * box);
 };
 
 #endif /* THERMOSTATFACTORY_H_ */

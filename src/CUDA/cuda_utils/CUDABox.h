@@ -91,8 +91,8 @@ public:
 	 *
 	 * @param box
 	 */
-	void set_CUDA_from_CPU(BaseBox<number> *box) {
-		LR_vector<number> sides = box->box_sides();
+	void set_CUDA_from_CPU(BaseBox *box) {
+		LR_vector sides = box->box_sides();
 		change_sides(sides.x, sides.y, sides.z);
 	}
 
@@ -101,7 +101,7 @@ public:
 	 *
 	 * @param box
 	 */
-	void set_CPU_from_CUDA(BaseBox<number> *box) {
+	void set_CPU_from_CUDA(BaseBox *box) {
 		box->init(_Lx, _Ly, _Lz);
 	}
 

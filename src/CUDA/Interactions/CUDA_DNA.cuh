@@ -66,7 +66,7 @@ __forceinline__ __device__ void _excluded_volume(const number4 &r, number4 &F, n
 	}
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	if(r < MD_F1_RCHIGH[type]) {
@@ -86,7 +86,7 @@ __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	int eps_index = 0;
@@ -107,7 +107,7 @@ __forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
 	return MD_F1_EPS[eps_index] * val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f2(number r, int type) {
     number val = (number) 0.f;
     if (r < MD_F2_RCHIGH[type]) {
@@ -124,7 +124,7 @@ __forceinline__ __device__ number _f2(number r, int type) {
     return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f2D(number r, int type) {
     number val = (number) 0.f;
     if (r < MD_F2_RCHIGH[type]) {
@@ -141,7 +141,7 @@ __forceinline__ __device__ number _f2D(number r, int type) {
     return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, float a, float b) {
 	number val = (number) 0.f;
 	t -= t0;
@@ -158,7 +158,7 @@ __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, fl
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4_pure_harmonic(number t, float a, float b) {
 	// for getting a f4t1 function with a continuous derivative that is less disruptive to the potential
 	number val = (number) 0.f;
@@ -169,7 +169,7 @@ __forceinline__ __device__ number _f4_pure_harmonic(number t, float a, float b) 
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc, float a, float b) {
 	number val = (number) 0.f;
 	number tt0 = t - t0;
@@ -193,7 +193,7 @@ __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc
 	return 2.f * m * val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4Dsin_pure_harmonic(number t, float a, float b) {
 	// for getting a f4t1 function with a continuous derivative that is less disruptive to the potential
 	number val = (number) 0.f;
@@ -208,7 +208,7 @@ __forceinline__ __device__ number _f4Dsin_pure_harmonic(number t, float a, float
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f5(number f, int type) {
 	number val = (number) 0.f;
 
@@ -225,7 +225,7 @@ __forceinline__ __device__ number _f5(number f, int type) {
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f5D(number f, int type) {
 	number val = (number) 0.f;
 
@@ -835,7 +835,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
+__global__ void dna_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -887,7 +887,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations, number
 }
 
 template <typename number, typename number4>
-__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, CUDABox<number, number4> *box) {
+__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, CUDABox<number, number4> *box) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -933,7 +933,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 
 // bonded interactions for edge-based approach
 template <typename number, typename number4>
-__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf) {
+__global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F0, T0;
@@ -980,7 +980,7 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
+__global__ void dna_forces(number4 *poss, GPU_quat *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -1031,7 +1031,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
 template <typename number, typename number4>
-__global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
+__global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1049,8 +1049,8 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make no difference. 
 	number4 a1, a2, a3, b1, b2, b3; 
@@ -1095,7 +1095,7 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int
 }
 
 template <typename number, typename number4>
-__global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
+__global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1113,8 +1113,8 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets extra a2 and b2 vectors that aren't needed. get_vectors_from_quat could easily be modified to only return the relevant vectors, but it will make computationally very little difference, since most of the same numbers need to be calculated anyway. Perhaps worth changing for memory considerations, however
 	number4 a1, a2, a3, b1, b2, b3; 
@@ -1170,7 +1170,7 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations
 
 // compute the distance between a pair of particles
 template <typename number, typename number4>
-__global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDABox<number, number4> *box)
+__global__ void dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 
@@ -1182,8 +1182,8 @@ __global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, i
 	number4 qpos = poss[qind];
 	number4 r = box->minimum_image(ppos, qpos);
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets extra a2 and b2 vectors that aren't needed. get_vectors_from_quat could easily be modified to only return the relevant vectors, but it will make computationally very little difference, since most of the same numbers need to be calculated anyway. Perhaps worth changing for memory considerations, however 
 	number4 a1, a2, a3, b1, b2, b3; 

@@ -8,8 +8,8 @@
 #include <sstream>
 #include "TclOutput.h"
 
-template<typename number>
-TclOutput<number>::TclOutput() : Configuration<number>() {
+
+TclOutput::TclOutput() : Configuration() {
 	_print_labels = false;
 	_back_radius = 0.35;
 	_base_radius = 0.25;
@@ -21,14 +21,14 @@ TclOutput<number>::TclOutput() : Configuration<number>() {
 	_back_in_box = true;
 }
 
-template<typename number>
-TclOutput<number>::~TclOutput() {
+
+TclOutput::~TclOutput() {
 
 }
 
-template<typename number>
-void TclOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	Configuration<number>::get_settings(my_inp, sim_inp);
+
+void TclOutput::get_settings(input_file &my_inp, input_file &sim_inp) {
+	Configuration::get_settings(my_inp, sim_inp);
 	int tmp;
 	if(getInputBoolAsInt(&my_inp, "back_in_box", &tmp, 0) == KEY_FOUND) _back_in_box = (bool)tmp;
 	if(getInputBoolAsInt(&my_inp, "print_labels", &tmp, 0) == KEY_FOUND) _print_labels = (bool)tmp;
@@ -37,8 +37,8 @@ void TclOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	if(getInputInt(&my_inp, "resolution", &tmp, 0) == KEY_FOUND) _resolution = tmp;
 }
 
-template<typename number>
-std::string TclOutput<number>::_headers(llint step) {
+
+std::string TclOutput::_headers(llint step) {
 	std::stringstream headers;
 	
 	headers << "color Display Background white" << endl;
@@ -65,15 +65,15 @@ std::string TclOutput<number>::_headers(llint step) {
 	return headers.str();
 }
 
-template<typename number>
-std::string TclOutput<number>::_particle(BaseParticle<number> *p) {
+
+std::string TclOutput::_particle(BaseParticle *p) {
 	std::stringstream res;
 	
-	DNANucleotide<number> * me, * next;
-	me = reinterpret_cast<DNANucleotide<number> *> (p);
-	next = reinterpret_cast<DNANucleotide<number> *> (p->n5);
+	DNANucleotide * me, * next;
+	me = reinterpret_cast<DNANucleotide *> (p);
+	next = reinterpret_cast<DNANucleotide *> (p->n5);
 	
-	LR_vector<number> zero (0., 0., 0.);
+	LR_vector zero (0., 0., 0.);
 	if (_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = this->_config_info.particles[_ref_particle_id]->pos; 
 	if (_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_strands_cdm[_ref_strand_id];
 	
@@ -85,11 +85,11 @@ std::string TclOutput<number>::_particle(BaseParticle<number> *p) {
 	res << "graphics 0 color " << colorid << endl;
 	
 	//number mybox = *this->_config_info.box_side;
-	LR_vector<number> my_strand_cdm = this->_strands_cdm[me->strand_id];
-	LR_vector<number> origin (0., 0., 0.);
+	LR_vector my_strand_cdm = this->_strands_cdm[me->strand_id];
+	LR_vector origin (0., 0., 0.);
 	origin = zero;
-	LR_vector<number> back = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[0]; 
-	LR_vector<number> base = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[2]; 
+	LR_vector back = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[0]; 
+	LR_vector base = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[2]; 
 	
 	if (_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << back.x << " " << back.y << " " << back.z << "} \"" << me->strand_id << "\" size 1.5 " << endl;
 	
@@ -101,17 +101,17 @@ std::string TclOutput<number>::_particle(BaseParticle<number> *p) {
 	res << "graphics 0 cylinder {" << base.x << " " << base.y << " " << base.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backbase_radius << " resolution " << _resolution << " filled yes" << endl; 
 	
 	if (next != P_VIRTUAL) {
-		LR_vector<number> nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0]; 
+		LR_vector nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0]; 
 		res << "graphics 0 cylinder {" << nextback.x << " " << nextback.y << " " << nextback.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backback_radius << " resolution " << _resolution << " filled yes" << endl; 
 	}
 	else {
 		// we draw the cone
 		if (me->n3 != P_VIRTUAL) {
-			next = reinterpret_cast<DNANucleotide<number>  *> (me->n3);
-			LR_vector<number> nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0]; 
-			LR_vector<number> dir = back - nextback;
-			LR_vector<number> start = back;
-			LR_vector<number> end = back + dir * (2.75 / 3.);
+			next = reinterpret_cast<DNANucleotide  *> (me->n3);
+			LR_vector nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0]; 
+			LR_vector dir = back - nextback;
+			LR_vector start = back;
+			LR_vector end = back + dir * (2.75 / 3.);
 			dir.normalize();
 			res << "graphics 0 cone {" << start.x << " " << start.y << " " << start.z << "} {" << end.x << " " << end.y << " " << end.z << "} radius " << _back_radius - 0.01 << " resolution " << _resolution << endl; 
 			//ret += "graphics 0 cone {%lf %lf %lf} {%lf %lf %lf} radius 0.35 resolution 20\n" % (start[0], start[1], start[2], end[0], end[1], end[2]);
@@ -124,15 +124,15 @@ std::string TclOutput<number>::_particle(BaseParticle<number> *p) {
 }
 
 
-template<typename number>
-std::string TclOutput<number>::_configuration(llint step) {
+
+std::string TclOutput::_configuration(llint step) {
 	stringstream conf;
 	//conf.precision(15);
 	if (_back_in_box) this->_fill_strands_cdm ();
-	//return Configuration<number>::_configuration(step);
+	//return Configuration::_configuration(step);
 	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << endl;
-		BaseParticle<number> *p = this->_config_info.particles[*it];
+		BaseParticle *p = this->_config_info.particles[*it];
 		conf << _particle(p);
 	}
 	return conf.str();

@@ -12,29 +12,29 @@
 
 #include <sstream>
 
-template<typename number>
-MinBackend<number>::MinBackend() : MDBackend<number>() {
+
+MinBackend::MinBackend() : MDBackend() {
 	this->_is_CUDA_sim = false;
 
 	_max_step = 0.005;
 }
 
-template<typename number>
-MinBackend<number>::~MinBackend() {
+
+MinBackend::~MinBackend() {
 
 }
 
-template<typename number>
-void MinBackend<number>::get_settings (input_file &inp) {
-	MDBackend<number>::get_settings(inp);
+
+void MinBackend::get_settings (input_file &inp) {
+	MDBackend::get_settings(inp);
 
 	getInputNumber (&inp, "minimization_max_step", &_max_step, 0);
 
 }
 
-template<typename number>
-void MinBackend<number>::init () {
-	MDBackend<number>::init();
+
+void MinBackend::init () {
+	MDBackend::init();
 
 	_compute_forces();
 	
@@ -42,29 +42,29 @@ void MinBackend<number>::init () {
 }
 
 
-template<typename number>
-void MinBackend<number>::_compute_forces() {
+
+void MinBackend::_compute_forces() {
 	this->_U = this->_U_hydr = (number) 0;
 	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
 
-		std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
+		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
-			BaseParticle<number> *q = neighs[n];
+			BaseParticle *q = neighs[n];
 			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
 		}
 	}
 }
 
-template<typename number>
-void MinBackend<number>::_evolve () {
+
+void MinBackend::_evolve () {
 	// find maximum force
 	number max_f = -1.f;
 	number max_t = -1.f;
 
 	for (int i = 0; i < this->_N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		number tmp = p->force.norm();
 		if (tmp > max_f) max_f = tmp;
 		
@@ -84,12 +84,12 @@ void MinBackend<number>::_evolve () {
 
 	// we evolve all the particles' position
 	for (int i = 0; i < this->_N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		p->pos = p->pos + p->force / fact_r;
 		if (p->is_rigid_body()) {
 			// update of the orientation
 			number norm = p->torque.module();
-			LR_vector<number> LVersor(p->torque / norm);
+			LR_vector LVersor(p->torque / norm);
 
 			number sintheta = sin(norm / fact_l);
 			number costheta = cos(norm / fact_l);
@@ -102,7 +102,7 @@ void MinBackend<number>::_evolve () {
 			number ysin = LVersor[1] * sintheta;
 			number zsin = LVersor[2] * sintheta;
 
-			LR_matrix<number> R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
+			LR_matrix R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
 						xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin,
 						xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
 
@@ -110,7 +110,7 @@ void MinBackend<number>::_evolve () {
 			// set back, base and stack positions
 			p->set_positions();
 			p->orientationT = p->orientation.get_transpose();
-			p->torque = LR_vector<number>((number) 0, (number) 0, (number) 0);
+			p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 		}
 		this->_lists->single_update(p);
 	}
@@ -118,8 +118,8 @@ void MinBackend<number>::_evolve () {
 	return;
 }
 
-template<typename number>
-void MinBackend<number>::sim_step(llint curr_step) {
+
+void MinBackend::sim_step(llint curr_step) {
 	this->_mytimer->resume();
 	
 	for(int i = 0; i < this->_N; i++) {
@@ -139,7 +139,7 @@ void MinBackend<number>::sim_step(llint curr_step) {
 	
 	// here we normalize forces
 	//for (int i = 0; i < this->_N; i ++) {
-	//	BaseParticle<number> * p = this->_particles[i];
+	//	BaseParticle * p = this->_particles[i];
 	//	if (p->force.module() > 0.1) p->force = p->force * (0.1 / p->force.module());
 	//}
 	

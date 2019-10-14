@@ -33,7 +33,7 @@ __device__ number4 minimum_image(const number4 &r_i, const number4 &r_j) {
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
 template <typename number, typename number4>
-__global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb)
+__global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb)
 {
 	if(IND >= n_threads) return;
 // for now no test for op type	if(region_is_nearhb[IND]) return;
@@ -52,8 +52,8 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
 	number4 a1, a2, a3, b1, b2, b3; 
@@ -100,7 +100,7 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int
 
 // check whether a particular pair of particles have a 'nearly' hydrogen bond, where all or all but one of the energy factors are non-zero
 template <typename number, typename number4>
-__global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb)
+__global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb)
 {
 	if(IND >= n_threads) return;
 //for now no test for op type	if(!region_is_nearhb[IND]) return; 
@@ -119,8 +119,8 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
 	number4 a1, a2, a3, b1, b2, b3; 
@@ -176,7 +176,7 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations
 
 // compute the distance between a pair of particles
 template <typename number, typename number4>
-__global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads)
+__global__ void dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads)
 {
 	if(IND >= n_threads) return;
 
@@ -188,8 +188,8 @@ __global__ void dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, i
 	number4 qpos = poss[qind];
 	number4 r = minimum_image<number, number4>(ppos, qpos);
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
 	number4 a1, a2, a3, b1, b2, b3; 
@@ -350,7 +350,7 @@ __global__ void nearhb_op_eval(bool *nearhb_states, int *region_lens, int *regio
 	}
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	if(r < MD_F1_RCHIGH[type]) {
@@ -370,7 +370,7 @@ __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, float a, float b) {
 	number val = (number) 0.f;
 	t -= t0;

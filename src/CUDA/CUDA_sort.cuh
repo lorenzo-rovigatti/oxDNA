@@ -21,7 +21,7 @@ template<typename number, typename number4>
 __global__ void permute_particles(int *sorted_hindex, number4 *poss, number4 *buff_poss);
 
 template<typename number, typename number4>
-__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, number4 *poss, number4 *vels, number4 *Ls, GPU_quat<number> *orientations, LR_bonds *bonds, number4 *buff_poss, number4 *buff_vels, number4 *buff_Ls, GPU_quat<number> *buff_orientations, LR_bonds *buff_bonds);
+__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, number4 *poss, number4 *vels, number4 *Ls, GPU_quat *orientations, LR_bonds *bonds, number4 *buff_poss, number4 *buff_vels, number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds);
 __global__ void get_inverted_sorted_hindex(int *sorted_hindex, int *inv_sorted_hindex);
 __global__ void reset_sorted_hindex(int *sorted_hindex);
 

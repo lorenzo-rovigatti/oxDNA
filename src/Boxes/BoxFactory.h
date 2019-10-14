@@ -29,8 +29,8 @@ public:
 	 * @param inp
 	 * @return a pointer to the newly built box
 	 */
-	template<typename number>
-	static BoxPtr<number> make_box(input_file &inp);
+	
+	static BoxPtr make_box(input_file &inp);
 };
 
 #endif /* BOXFACTORY_H_ */

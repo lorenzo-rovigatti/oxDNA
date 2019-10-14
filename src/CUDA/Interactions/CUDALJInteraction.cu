@@ -23,13 +23,13 @@ CUDALJInteraction<number, number4>::~CUDALJInteraction() {
 
 template<typename number, typename number4>
 void CUDALJInteraction<number, number4>::get_settings(input_file &inp) {
-	LJInteraction<number>::get_settings(inp);
+	LJInteraction::get_settings(inp);
 }
 
 template<typename number, typename number4>
 void CUDALJInteraction<number, number4>::cuda_init(number box_side, int N) {
 	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
-	LJInteraction<number>::init();
+	LJInteraction::init();
 
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &N, sizeof(int)) );
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_LJ_n, &this->_n, 3*sizeof(int)) );
@@ -43,7 +43,7 @@ void CUDALJInteraction<number, number4>::cuda_init(number box_side, int N) {
 }
 
 template<typename number, typename number4>
-void CUDALJInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
+void CUDALJInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
 	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {

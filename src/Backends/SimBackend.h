@@ -21,12 +21,12 @@
 
 using namespace std;
 
-template <typename number> class IBaseInteraction;
-template <typename number> class BaseBox;
-template <typename number> class BaseList;
-template <typename number> class BaseParticle;
-template <typename number> class ObservableOutput;
-template <typename number> class ConfigInfo;
+ class IBaseInteraction;
+ class BaseBox;
+ class BaseList;
+ class BaseParticle;
+ class ObservableOutput;
+ class ConfigInfo;
 class Timer;
 
 /**
@@ -120,7 +120,7 @@ trajectory_file = <path> (path to the file which will contain the output traject
 
 @endverbatim
  */
-template<typename number>
+
 class SimBackend: public ISimBackend{
 protected:
 	std::string _backend_info;
@@ -147,7 +147,7 @@ protected:
 	int _N_strands;
 	number _T;
 	number _P;
-	std::shared_ptr<BaseBox<number>> _box;
+	std::shared_ptr<BaseBox> _box;
 
 	int _conf_interval;
 	std::string _conf_filename;
@@ -162,21 +162,21 @@ protected:
 	bool _restart_step_counter;
 
 	/// Vector of ObservableOutput used to manage the simulation output
-	vector<ObservableOutput<number> *> _obs_outputs;
-	ObservableOutput<number> *_obs_output_stdout;
-	ObservableOutput<number> *_obs_output_file;
-	ObservableOutput<number> *_obs_output_trajectory;
-	ObservableOutput<number> *_obs_output_last_conf;
-	ObservableOutput<number> *_obs_output_last_conf_bin;
-	ObservableOutput<number> *_obs_output_reduced_conf;
-	ObservableOutput<number> *_obs_output_checkpoints;
-	ObservableOutput<number> *_obs_output_last_checkpoint;
+	vector<ObservableOutput *> _obs_outputs;
+	ObservableOutput *_obs_output_stdout;
+	ObservableOutput *_obs_output_file;
+	ObservableOutput *_obs_output_trajectory;
+	ObservableOutput *_obs_output_last_conf;
+	ObservableOutput *_obs_output_last_conf_bin;
+	ObservableOutput *_obs_output_reduced_conf;
+	ObservableOutput *_obs_output_checkpoints;
+	ObservableOutput *_obs_output_last_checkpoint;
 
 	/// Pointer to the interaction manager
-	IBaseInteraction<number> *_interaction;
+	IBaseInteraction *_interaction;
 
 	/// Pointer to the list manager
-	BaseList<number> *_lists;
+	BaseList *_lists;
 
 	number _rcut;
 	number _sqr_rcut;
@@ -200,10 +200,10 @@ protected:
 	number _dU;
 
 	/// array of pointers to particle objects
-	BaseParticle<number> **_particles;
+	BaseParticle **_particles;
 
 	/// object that stores pointers to a few important variables that need to be shared with other objects
-	ConfigInfo<number> *_config_info;
+	ConfigInfo *_config_info;
 
 	void _get_number_settings(input_file &inp);
 
@@ -218,7 +218,7 @@ protected:
 	 * @param binary whether _conf_input has been open in ascii or binary format
 	 * @return a vector containing the three numbers read
 	 */
-	template <typename n_number> LR_vector<n_number> _read_next_vector(bool binary);
+	LR_vector _read_next_vector(bool binary);
 
 	/**
 	 * @brief Reads the next configuration from the conf_file.

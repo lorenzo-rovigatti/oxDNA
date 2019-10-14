@@ -10,11 +10,11 @@
 
 #include "BaseMove.h"
 
-template<typename number>
-class MCRot : public BaseMove<number> {
+
+class MCRot : public BaseMove {
 	protected:
 		number _delta;
-		LR_matrix<number> _orientation_old, _orientationT_old;
+		LR_matrix _orientation_old, _orientationT_old;
 
 	public:
 		MCRot();

@@ -16,12 +16,12 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)>(b))?(b):(a))
 
-template<typename number>
+
 struct movestr {
     int seed, type;
-    LR_vector<number> t;
-    LR_matrix<number> R;
-    LR_matrix<number> Rt;
+    LR_vector t;
+    LR_matrix R;
+    LR_matrix Rt;
 };
 
 /**
@@ -47,8 +47,8 @@ struct movestr {
 @endverbatim
  *
  */
-template<typename number>
-class VMMC_CPUBackend: public MC_CPUBackend<number> {
+
+class VMMC_CPUBackend: public MC_CPUBackend {
 protected:
 	bool _have_us;
 	bool _reload_hist;
@@ -65,8 +65,8 @@ protected:
 	int _last_move;
 	number _U_ext;
 	
-	inline void store_particle (BaseParticle<number> * src);
-	inline void restore_particle (BaseParticle<number> * src);
+	inline void store_particle (BaseParticle * src);
+	inline void restore_particle (BaseParticle * src);
 
 	int **_neighcells, * _cells, * _vmmc_heads;
 	int _vmmc_N_cells, _vmmc_N_cells_side;
@@ -76,7 +76,7 @@ protected:
 	void _init_cells();
 	void _delete_cells();
 	inline void _fix_list(int, int, int);
-	inline int _get_cell_index(const LR_vector<number> &pos);
+	inline int _get_cell_index(const LR_vector &pos);
 
 	void _print_pos (int);
 
@@ -98,13 +98,13 @@ protected:
 	number ** eijm, ** eijm_old;
 	bool ** hbijm, ** hbijm_old;
 
-	inline number _excluded_volume(const LR_vector<number> &r, number sigma, number rstar, number b, number rc);
-	inline number _excluded_volume_faster(const LR_vector<number> &r, const number sigma, const number rstar, const number b, const number rc);
+	inline number _excluded_volume(const LR_vector &r, number sigma, number rstar, number b, number rc);
+	inline number _excluded_volume_faster(const LR_vector &r, const number sigma, const number rstar, const number b, const number rc);
 
 	number _compute_energy_n2();
 	void _compute_energy();
 
-	number _particle_particle_bonded_interaction_n5_VMMC(BaseParticle<number> *p, BaseParticle<number> *q,number *stacking_en=0);
+	number _particle_particle_bonded_interaction_n5_VMMC(BaseParticle *p, BaseParticle *q,number *stacking_en=0);
 
 	/**
 	 * @brief Computes the bonded interactions given a pair of particles.
@@ -112,28 +112,28 @@ protected:
 	 * If the third argument (default null) / is set not to be the NULL pointer, the
 	 * address it points to is filled with the stacking energy.
 	 */
-	number _particle_particle_bonded_interaction_n3_VMMC(BaseParticle<number> *p, BaseParticle<number> *q,number *stacking_en=0);
-	number _particle_particle_nonbonded_interaction_VMMC(BaseParticle<number> *p, BaseParticle<number> *q, number *H_energy=0);
+	number _particle_particle_bonded_interaction_n3_VMMC(BaseParticle *p, BaseParticle *q,number *stacking_en=0);
+	number _particle_particle_nonbonded_interaction_VMMC(BaseParticle *p, BaseParticle *q, number *H_energy=0);
 
 	/* //old functions
-	inline number _particle_particle_bonded_interaction_n5 (BaseParticle<number> *p, BaseParticle<number> *q,number *stacking_en = 0);
-	inline number _particle_particle_bonded_interaction_n5_real (BaseParticle<number> *p, BaseParticle<number> *q,number *stacking_en = 0);
-	inline number _particle_particle_bonded_interaction_n3 (BaseParticle<number> *p, BaseParticle<number> *q,number *stacking_en = 0);
-	inline number _particle_particle_interaction (BaseParticle<number> *p, BaseParticle<number> *q, number *H_energy=0);
+	inline number _particle_particle_bonded_interaction_n5 (BaseParticle *p, BaseParticle *q,number *stacking_en = 0);
+	inline number _particle_particle_bonded_interaction_n5_real (BaseParticle *p, BaseParticle *q,number *stacking_en = 0);
+	inline number _particle_particle_bonded_interaction_n3 (BaseParticle *p, BaseParticle *q,number *stacking_en = 0);
+	inline number _particle_particle_interaction (BaseParticle *p, BaseParticle *q, number *H_energy=0);
 	*/
 
-	number build_cluster (movestr<number> * moveptr, int maxsize, int * clust, int * size);
-	number build_cluster_cells (movestr<number> * moveptr, int maxsize, int * clust, int * size);
-	number build_cluster_small (movestr<number> * moveptr, int maxsize, int * clust, int * size);
-	//number build_cluster_smallish (movestr<number> * moveptr, int maxsize, int * clust, int * size);
+	number build_cluster (movestr * moveptr, int maxsize, int * clust, int * size);
+	number build_cluster_cells (movestr * moveptr, int maxsize, int * clust, int * size);
+	number build_cluster_small (movestr * moveptr, int maxsize, int * clust, int * size);
+	//number build_cluster_smallish (movestr * moveptr, int maxsize, int * clust, int * size);
 
 	number VMMC_link(double E_new, double E_old) { return (1. - exp((1. / this->_T) * (E_old - E_new)));}
 
 	//inline number _next_rand (void) const { return drand48(); }
 	inline number _next_rand () {return drand48();}
 
-	inline void _move_particle(movestr<number> * moveptr, BaseParticle<number> *p, BaseParticle<number> *q);
-	//void _r_move_particle(movestr<number> * moveptr, BaseParticle<number> *p);
+	inline void _move_particle(movestr * moveptr, BaseParticle *p, BaseParticle *q);
+	//void _r_move_particle(movestr * moveptr, BaseParticle *p);
 	void _update_ops ();
 	void _update_lists ();
 

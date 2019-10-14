@@ -25,8 +25,8 @@ max_shift = 5 (with this option, we compute the distances between each unpaired 
 #include "../Utilities/OrderParameters.h"
 #include "../Interactions/DNAInteraction.h"
 
-template<typename number>
-class HBList  : public BaseObservable<number>  {
+
+class HBList  : public BaseObservable  {
 	char _order_parameters_file[512];
 	OrderParameters _op;
 	bool _read_op;
@@ -40,7 +40,7 @@ public:
 
 	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 	bool is_hbond(int p, int q);
 };
 

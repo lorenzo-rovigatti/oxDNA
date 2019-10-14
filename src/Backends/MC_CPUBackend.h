@@ -11,16 +11,16 @@
 
 #include "MCBackend.h"
 
-template <typename number> class ParticlePair;
+ class ParticlePair;
 
 /**
  * @brief Manages a MC simulation on CPU. It supports NVT and NPT simulations
  */
-template<typename number>
-class MC_CPUBackend: public MCBackend<number> {
+
+class MC_CPUBackend: public MCBackend {
 protected:
 	number _verlet_skin;
-	BaseParticle<number> **_particles_old;
+	BaseParticle **_particles_old;
 
 	bool _enable_flip;
 
@@ -32,15 +32,15 @@ protected:
 	number _box_tolerance;
 	number _e_tolerance;
 
-	inline number _excluded_volume(const LR_vector<number> &r, number sigma, number rstar, number b, number rc);
+	inline number _excluded_volume(const LR_vector &r, number sigma, number rstar, number b, number rc);
 	void _compute_energy();
-	inline void _translate_particle(BaseParticle<number> *p);
-	inline void _rotate_particle(BaseParticle<number> *p);
-	inline number _particle_energy(BaseParticle<number> *p, bool reuse=false);
+	inline void _translate_particle(BaseParticle *p);
+	inline void _rotate_particle(BaseParticle *p);
+	inline number _particle_energy(BaseParticle *p, bool reuse=false);
 
-	std::map<ParticlePair<number>, number> _stored_bonded_interactions;
-	std::map<ParticlePair<number>, number> _stored_bonded_tmp;
-	//std::vector < std:pair< std::pair<BaseParticle<number> *, BaseParticle<number> *>, number > > _stored_bonded_interactions;
+	std::map<ParticlePair, number> _stored_bonded_interactions;
+	std::map<ParticlePair, number> _stored_bonded_tmp;
+	//std::vector < std:pair< std::pair<BaseParticle *, BaseParticle *>, number > > _stored_bonded_interactions;
 
 public:
 	MC_CPUBackend();

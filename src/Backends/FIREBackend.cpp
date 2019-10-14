@@ -11,8 +11,8 @@
 
 #include <sstream>
 
-template<typename number>
-FIREBackend<number>::FIREBackend() : MDBackend<number>() {
+
+FIREBackend::FIREBackend() : MDBackend() {
 	this->_is_CUDA_sim = false;
 
 	_N_min = 5;
@@ -30,14 +30,14 @@ FIREBackend<number>::FIREBackend() : MDBackend<number>() {
 	_allow_dt_increase = false;
 }
 
-template<typename number>
-FIREBackend<number>::~FIREBackend() {
+
+FIREBackend::~FIREBackend() {
 
 }
 
-template<typename number>
-void FIREBackend<number>::get_settings (input_file &inp) {
-	MDBackend<number>::get_settings(inp);
+
+void FIREBackend::get_settings (input_file &inp) {
+	MDBackend::get_settings(inp);
 
 	getInputNumber (&inp, "dt", &(this->_dt), 1);
 	_dt_restart = this->_dt;
@@ -46,9 +46,9 @@ void FIREBackend<number>::get_settings (input_file &inp) {
 
 }
 
-template<typename number>
-void FIREBackend<number>::init () {
-	MDBackend<number>::init();
+
+void FIREBackend::init () {
+	MDBackend::init();
 
 	_compute_forces();
 
@@ -58,14 +58,14 @@ void FIREBackend<number>::init () {
 	OX_LOG(Logger::LOG_INFO, "FIRE: Using max step for minimization = %g", _max_step);
 }
 
-template<typename number>
-void FIREBackend<number>::_first_step(llint cur_step) {
+
+void FIREBackend::_first_step(llint cur_step) {
 	// Spalletti
 	number max_f = -1.f;
 	number max_t = -1.f;
 
 	for (int i = 0; i < this->_N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		number tmp = p->force.norm();
 		if (tmp > max_f) max_f = tmp;
 		
@@ -88,27 +88,27 @@ void FIREBackend<number>::_first_step(llint cur_step) {
 
 	bool is_warning = false;
 	std::vector<int> w_ps;
-	std::vector<LR_vector<number> > drs; 
-	std::vector<LR_matrix<number> > dRs; 
-	std::vector<number> dthetas;
+	std::vector<LR_vector > drs; 
+	std::vector<LR_matrix > dRs; 
+	std::vector dthetas;
 
 	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 
 		p->vel += p->force * this->_dt * (number) 0.5;
-		LR_vector<number> dr = p->vel * this->_dt;
+		LR_vector dr = p->vel * this->_dt;
 		if(dr.norm() > 0.01) {
 			is_warning = true;
 			w_ps.push_back(p->index);
 		}
 		//p->pos += dr;
-		drs.push_back(LR_vector<number> (dr.x, dr.y, dr.z));
+		drs.push_back(LR_vector (dr.x, dr.y, dr.z));
 
 		if(p->is_rigid_body()) {
 			p->L += p->torque * this->_dt * (number) 0.5;
 			// update of the orientation
 			number norm = p->L.module();
-			LR_vector<number> LVersor(p->L / norm);
+			LR_vector LVersor(p->L / norm);
 			dthetas.push_back (this->_dt * norm);
 
 			number sintheta = sin(this->_dt * norm);
@@ -122,26 +122,26 @@ void FIREBackend<number>::_first_step(llint cur_step) {
 			number ysin = LVersor[1] * sintheta;
 			number zsin = LVersor[2] * sintheta;
 
-			LR_matrix<number> R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
+			LR_matrix R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
 						xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin,
 						xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
-			dRs.push_back (LR_matrix<number> (LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
+			dRs.push_back (LR_matrix (LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
 						xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin,
 						xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta));
 
 			//p->orientation = p->orientation * R;
 			//p->orientationT = p->orientation.get_transpose();
 			//p->set_positions();
-			//p->torque = LR_vector<number>((number) 0, (number) 0, (number) 0);
+			//p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 		}
 	}
 
 	_allow_dt_increase = true;
 	number fact = -1.f;
 	for (int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 
-		LR_vector<number> mydr = drs.back();
+		LR_vector mydr = drs.back();
 		drs.pop_back();
 		if (mydr.module() > _max_step) {
 			_allow_dt_increase = false;
@@ -167,17 +167,17 @@ void FIREBackend<number>::_first_step(llint cur_step) {
 
 	// here we increment coordinates
 	for (int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 
 		p->pos += p->vel * (this->_dt / fact);
 		
 		if (p->is_rigid_body()) {
-			LR_matrix<number> myR = dRs.back();
+			LR_matrix myR = dRs.back();
 			dRs.pop_back();
 			p->orientation = (p->orientation * myR)  / fact;
 			p->orientationT = p->orientation.get_transpose();
 			p->set_positions();
-			p->torque = LR_vector<number>((number) 0, (number) 0, (number) 0);
+			p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 
 		}
 		p->set_initial_forces(cur_step, this->_box);
@@ -193,11 +193,11 @@ void FIREBackend<number>::_first_step(llint cur_step) {
 }
 
 
-template<typename number>
-void FIREBackend<number>::_second_step() {
+
+void FIREBackend::_second_step() {
 	this->_K = (number) 0.f;
 	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 
 		p->vel += p->force * this->_dt * (number) 0.5f;
 		if(p->is_rigid_body()) p->L += p->torque * this->_dt * (number) 0.5f;
@@ -206,29 +206,29 @@ void FIREBackend<number>::_second_step() {
 	}
 }
 
-template<typename number>
-void FIREBackend<number>::_compute_forces() {
+
+void FIREBackend::_compute_forces() {
 	this->_U = this->_U_hydr = (number) 0;
 	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
 
-		std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
+		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
-			BaseParticle<number> *q = neighs[n];
+			BaseParticle *q = neighs[n];
 			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
 		}
 	}
 }
 
-template<typename number>
-void FIREBackend<number>::_evolve () {
+
+void FIREBackend::_evolve () {
 	// find maximum force
 	number max_f = -1.f;
 	number max_t = -1.f;
 
 	for (int i = 0; i < this->_N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		number tmp = p->force.norm();
 		if (tmp > max_f) max_f = tmp;
 		
@@ -248,12 +248,12 @@ void FIREBackend<number>::_evolve () {
 
 	// we evolve all the particles' position
 	for (int i = 0; i < this->_N; i ++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		p->pos = p->pos + p->force / fact_r;
 		if (p->is_rigid_body()) {
 			// update of the orientation
 			number norm = p->torque.module();
-			LR_vector<number> LVersor(p->torque / norm);
+			LR_vector LVersor(p->torque / norm);
 
 			number sintheta = sin(norm / fact_l);
 			number costheta = cos(norm / fact_l);
@@ -266,7 +266,7 @@ void FIREBackend<number>::_evolve () {
 			number ysin = LVersor[1] * sintheta;
 			number zsin = LVersor[2] * sintheta;
 
-			LR_matrix<number> R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
+			LR_matrix R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
 						xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin,
 						xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
 
@@ -274,7 +274,7 @@ void FIREBackend<number>::_evolve () {
 			// set back, base and stack positions
 			p->set_positions();
 			p->orientationT = p->orientation.get_transpose();
-			p->torque = LR_vector<number>((number) 0, (number) 0, (number) 0);
+			p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 		}
 		this->_lists->single_update(p);
 	}
@@ -282,8 +282,8 @@ void FIREBackend<number>::_evolve () {
 	return;
 }
 
-template<typename number>
-void FIREBackend<number>::sim_step(llint curr_step) {
+
+void FIREBackend::sim_step(llint curr_step) {
 	this->_mytimer->resume();
 
 	this->_timer_first_step->resume();
@@ -307,13 +307,13 @@ void FIREBackend<number>::sim_step(llint curr_step) {
 	// calculate P
 	number P = 0.;
 	for (int i = 0; i < this->_N; i ++) {
-		BaseParticle<number> * p = this->_particles[i];
+		BaseParticle * p = this->_particles[i];
 		P += p->force * p->vel;
 		if (p->is_rigid_body()) P += p->L * p->torque;
 	}
 	
 	for (int i = 0; i < this->_N; i ++) {
-		BaseParticle<number> * p = this->_particles[i];
+		BaseParticle * p = this->_particles[i];
 		p->vel = p->vel * (1. - _alpha) + p->force * (_alpha * p->vel.module() / p->force.module());
 		if (p->is_rigid_body()) {
 			p->L = p->L * (1. - _alpha) + p->torque * (_alpha * p->L.module() / p->torque.module());
@@ -331,7 +331,7 @@ void FIREBackend<number>::sim_step(llint curr_step) {
 		this->_dt = this->_dt * _f_dec;
 		_alpha = _alpha_start;
 		for (int i = 0; i < this->_N; i ++) {
-			BaseParticle<number> * p = this->_particles[i];
+			BaseParticle * p = this->_particles[i];
 			p->vel.x = (number) 0.f;
 			p->vel.y = (number) 0.f;
 			p->vel.z = (number) 0.f;

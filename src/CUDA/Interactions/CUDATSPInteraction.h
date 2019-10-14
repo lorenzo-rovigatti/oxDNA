@@ -24,7 +24,7 @@ typedef struct __align__(8) {
  * @brief Handles interactions between TSPs on CUDA. See TSPInteraction for a list of options.
  */
 template<typename number, typename number4>
-class CUDATSPInteraction: public CUDABaseInteraction<number, number4>, public TSPInteraction<number> {
+class CUDATSPInteraction: public CUDABaseInteraction<number, number4>, public TSPInteraction {
 protected:
 	int *_h_anchors, *_d_anchors;
 	TSP_anchor_bonds *_h_anchor_neighs, *_d_anchor_neighs;
@@ -39,7 +39,7 @@ public:
 
 	void cuda_init(number box_side, int N);
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
+	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
 };
 
 #endif /* CUDATSPINTERACTION_H_ */

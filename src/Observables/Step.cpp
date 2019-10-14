@@ -8,25 +8,25 @@
 #include "Step.h"
 #include "../Utilities/Utils.h"
 
-template<typename number>
-Step<number>::Step() {
+
+Step::Step() {
     _dt = (number) 1.f;
     _units = STEP_UNIT_ONE_PER_STEP;
 }
 
-template<typename number>
-Step<number>::~Step() {
+
+Step::~Step() {
 
 }
 
-template<typename number>
-std::string Step<number>::get_output_string(llint curr_step) {
+
+std::string Step::get_output_string(llint curr_step) {
 	if (_units == STEP_UNIT_ONE_PER_STEP) return Utils::sformat("%12lld", curr_step);
 	else return Utils::sformat("%14.4lf", curr_step * _dt);
 }
 
-template<typename number>
-void Step<number>::get_settings (input_file &my_inp, input_file &sim_inp) {
+
+void Step::get_settings (input_file &my_inp, input_file &sim_inp) {
     // if no units are specified, we assume STEP_UNIT_ONE_PER_STEP
     char tmpstr[256];
     if (getInputString(&my_inp, "units", tmpstr, 0) == KEY_FOUND) {
@@ -45,6 +45,3 @@ void Step<number>::get_settings (input_file &my_inp, input_file &sim_inp) {
 		_dt = (number)tmp_dt;
     }
 }
-
-template class Step<float>;
-template class Step<double>;

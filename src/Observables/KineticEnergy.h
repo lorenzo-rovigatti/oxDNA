@@ -15,8 +15,8 @@
 /**
  * @brief Outputs the total kinetic energy of the system.
  */
-template<typename number>
-class KineticEnergy : public BaseObservable<number> {
+
+class KineticEnergy : public BaseObservable {
 protected:
 	set<int> _directions;
 public:

@@ -14,8 +14,8 @@
  * @brief Outputs the density of the system in number of particles over volume in simulation units
  *
  */
-template<typename number>
-class Density : public BaseObservable<number> {
+
+class Density : public BaseObservable {
 public:
 	Density();
 	virtual ~Density();

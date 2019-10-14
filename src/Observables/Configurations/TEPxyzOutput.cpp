@@ -8,8 +8,8 @@
 #include <sstream>
 #include "TEPxyzOutput.h"
 
-template<typename number>
-TEPxyzOutput<number>::TEPxyzOutput() : Configuration<number>() {
+
+TEPxyzOutput::TEPxyzOutput() : Configuration() {
 	_print_labels = false;
 	_particles_type1_string = "\0";
 	_particles_type2_string = "\0";
@@ -31,14 +31,14 @@ TEPxyzOutput<number>::TEPxyzOutput() : Configuration<number>() {
 
 }
 
-template<typename number>
-TEPxyzOutput<number>::~TEPxyzOutput() {
+
+TEPxyzOutput::~TEPxyzOutput() {
 
 }
 
-template<typename number>
-void TEPxyzOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	Configuration<number>::get_settings(my_inp, sim_inp);
+
+void TEPxyzOutput::get_settings(input_file &my_inp, input_file &sim_inp) {
+	Configuration::get_settings(my_inp, sim_inp);
 	int tmp;
 	if(getInputBoolAsInt(&my_inp, "back_in_box", &tmp, 0) == KEY_FOUND) _back_in_box = (bool)tmp;
 	if(getInputBoolAsInt(&my_inp, "print_labels", &tmp, 0) == KEY_FOUND) _print_labels = (bool)tmp;
@@ -51,9 +51,9 @@ void TEPxyzOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp)
 	
 }
 
-template<typename number>
-void TEPxyzOutput<number>::init(ConfigInfo<number> &config_info) {
-   Configuration<number>::init(config_info);
+
+void TEPxyzOutput::init(ConfigInfo &config_info) {
+   Configuration::init(config_info);
 
 	int N = *this->_config_info.N;
 	_bead_types = new int[N];
@@ -71,8 +71,8 @@ void TEPxyzOutput<number>::init(ConfigInfo<number> &config_info) {
 		}
 }
 
-template<typename number>
-std::string TEPxyzOutput<number>::_headers(llint step) {
+
+std::string TEPxyzOutput::_headers(llint step) {
 	std::stringstream headers;
 	
 	const number mybox = this->_config_info.box->box_sides()[0];
@@ -105,15 +105,15 @@ std::string TEPxyzOutput<number>::_headers(llint step) {
 	return headers.str();
 }
 
-template<typename number>
-std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
+
+std::string TEPxyzOutput::_particle(BaseParticle *p) {
 	std::stringstream res;
 	
-	TEPParticle<number> * me;
-	me = reinterpret_cast<TEPParticle<number> *> (p);
-	//next = reinterpret_cast<TEPParticle<number> *> (p->n5);
+	TEPParticle * me;
+	me = reinterpret_cast<TEPParticle *> (p);
+	//next = reinterpret_cast<TEPParticle *> (p->n5);
 	
-	LR_vector<number> zero (0., 0., 0.);
+	LR_vector zero (0., 0., 0.);
 	if (_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = this->_config_info.particles[_ref_particle_id]->pos; 
 	if (_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_strands_cdm[_ref_strand_id];
 		
@@ -125,14 +125,14 @@ std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
 	res << "graphics 0 color " << colorid << endl;
 	*/
 	
-	BaseBox<number> * mybox = this->_config_info.box;
-	LR_vector<number> my_strand_cdm = this->_strands_cdm[me->strand_id];
-	LR_vector<number> origin (0., 0., 0.);
+	BaseBox * mybox = this->_config_info.box;
+	LR_vector my_strand_cdm = this->_strands_cdm[me->strand_id];
+	LR_vector origin (0., 0., 0.);
 	origin = zero;
 
-	LR_vector<number> core = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm);
-	LR_vector<number> side = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + _side_shift*me->orientationT.v2; 
-	LR_vector<number> front = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + _front_shift*me->orientationT.v1; 
+	LR_vector core = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm);
+	LR_vector side = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + _side_shift*me->orientationT.v2; 
+	LR_vector front = (me->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + _front_shift*me->orientationT.v1; 
 
 /*
 //This was used to print labels in tcl. I don't think there's a way of doing it in xyz.	
@@ -161,15 +161,15 @@ std::string TEPxyzOutput<number>::_particle(BaseParticle<number> *p) {
 }
 
 
-template<typename number>
-std::string TEPxyzOutput<number>::_configuration(llint step) {
+
+std::string TEPxyzOutput::_configuration(llint step) {
 	stringstream conf;
 	//conf.precision(15);
 	if (_back_in_box) this->_fill_strands_cdm ();
-	//return Configuration<number>::_configuration(step);
+	//return Configuration::_configuration(step);
 	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << endl;
-		BaseParticle<number> *p = this->_config_info.particles[*it];
+		BaseParticle *p = this->_config_info.particles[*it];
 		conf << _particle(p);
 	}
 	return conf.str();

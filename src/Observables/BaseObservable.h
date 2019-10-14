@@ -16,13 +16,13 @@
 /**
  * @brief Abstract class defining the basic interface for observables.
  */
-template <typename number>
+
 class BaseObservable {
 protected:
 	/// Stores all the backend's information that may be needed by the observable
-	ConfigInfo<number> &_config_info;
+	ConfigInfo &_config_info;
 public:
-	BaseObservable() : _config_info(ConfigInfo<number>::ref_instance()) {};
+	BaseObservable() : _config_info(ConfigInfo::ref_instance()) {};
 	virtual ~BaseObservable() {};
 
 	/**
@@ -46,7 +46,7 @@ public:
 	 *
 	 * @param config_info
 	 */
-	virtual void init(ConfigInfo<number> &config_info) { }
+	virtual void init(ConfigInfo &config_info) { }
 };
 
 #endif /* BASEOBSERVABLE_H_ */

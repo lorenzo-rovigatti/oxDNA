@@ -14,7 +14,7 @@
 #include "../CUDAUtils.h"
 
 template<typename number, typename number4>
-CUDASRDThermostat<number, number4>::CUDASRDThermostat(BaseBox<number> *box) : CUDABaseThermostat<number, number4>(), SRDThermostat<number>(box) {
+CUDASRDThermostat<number, number4>::CUDASRDThermostat(BaseBox *box) : CUDABaseThermostat<number, number4>(), SRDThermostat(box) {
 	_d_counters_cells = NULL;
 	_d_cells = NULL;
 	_d_cell_overflow = NULL;
@@ -43,13 +43,13 @@ CUDASRDThermostat<number, number4>::~CUDASRDThermostat() {
 
 template<typename number, typename number4>
 void CUDASRDThermostat<number, number4>::get_settings(input_file &inp) {
-	SRDThermostat<number>::get_settings(inp);
+	SRDThermostat::get_settings(inp);
 	CUDABaseThermostat<number, number4>::get_cuda_settings(inp);
 }
 
 template<typename number, typename number4>
 void CUDASRDThermostat<number, number4>::init(int N) {
-	SRDThermostat<number>::init(N);
+	SRDThermostat::init(N);
 
 	_max_N_per_cell = this->_N_per_cell * 10;
 	_N_tot = N + this->_N_particles;
@@ -108,7 +108,7 @@ bool CUDASRDThermostat<number, number4>::would_activate(llint curr_step) {
 }
 
 template<typename number, typename number4>
-void CUDASRDThermostat<number, number4>::apply_cuda(number4 *d_poss,GPU_quat<number> *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
+void CUDASRDThermostat<number, number4>::apply_cuda(number4 *d_poss,GPU_quat *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
 	// reset cells

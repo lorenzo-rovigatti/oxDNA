@@ -27,8 +27,8 @@ wait_time = <float> (time interval over which the force is constant. Units are (
 increment = <float> (amount by which to increment the force every wait_time steps.)
 @endverbatim
  */
-template<typename number>
-class SawtoothForce : public BaseForce<number> {
+
+class SawtoothForce : public BaseForce {
 private:
 	int _particle;
 	float _wait_time;
@@ -39,10 +39,10 @@ public:
 	virtual ~SawtoothForce();
 
 	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void init (BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential (llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential (llint step, LR_vector &pos);
 };
 
 #endif /* SAWTOOTHFORCE_H_ */

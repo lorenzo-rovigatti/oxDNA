@@ -31,8 +31,8 @@ public:
 	 * @param box
 	 * @return a pointer to the newly built list
 	 */
-	template<typename number>
-	static BaseList<number> *make_list(input_file &inp, int &N, BaseBox<number> *box);
+	
+	static BaseList *make_list(input_file &inp, int &N, BaseBox *box);
 };
 
 #endif /* LISTFACTORY_H_ */

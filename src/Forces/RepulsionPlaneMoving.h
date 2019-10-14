@@ -32,25 +32,25 @@ particle = <int> (index(es) of the particle(s) on which the force shall be appli
 ref_particle = <int> (index(es) of the particle(s) whose position along the normal will be used to define the repulsive plane(s). Can be a list of comma-separated indexes.)
 @endverbatim
 */
-template<typename number>
-class RepulsionPlaneMoving : public BaseForce<number> {
+
+class RepulsionPlaneMoving : public BaseForce {
 private:
-	BaseBox<number> * _box_ptr;
+	BaseBox * _box_ptr;
 	std::string _particles_string;
 	std::string _ref_particles_string;
 
 public:
-	std::vector<BaseParticle<number> *> ref_p_ptr;
+	std::vector<BaseParticle *> ref_p_ptr;
 	int low_idx, high_idx;
 
 	RepulsionPlaneMoving();
 	virtual ~RepulsionPlaneMoving() {}
 
 	void get_settings(input_file &);
-	void init(BaseParticle<number> **, int, BaseBox<number> *);
+	void init(BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif // REPULSIONPLANEMOVING_H_

@@ -24,8 +24,8 @@
 @endverbatim
  */
 
-template<typename number>
-class VectorAngle : public BaseObservable<number> {
+
+class VectorAngle : public BaseObservable {
 private:
 	// arguments
 	int _first_particle_index;
@@ -39,7 +39,7 @@ public:
 	VectorAngle();
 	virtual ~VectorAngle();
 
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	std::string get_output_string(llint curr_step);

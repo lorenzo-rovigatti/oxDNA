@@ -24,7 +24,7 @@ private:
 public:
 	virtual ~InteractionFactory();
 
-	template<typename number>
+	
 
 	/**
 	 * @brief Builds the interaction instance.
@@ -32,7 +32,7 @@ public:
 	 * @param inp
 	 * @return a pointer to the newly built interaction
 	 */
-	static IBaseInteraction<number> *make_interaction(input_file &inp);
+	static IBaseInteraction *make_interaction(input_file &inp);
 };
 
 #endif /* INTERACTIONFACTORY_H_ */

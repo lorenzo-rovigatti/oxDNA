@@ -10,8 +10,8 @@
 #include "../Utilities/ConfigInfo.h"
 #include <algorithm>
 
-template<typename number>
-RodCells<number>::RodCells(int &N, BaseBox<number> *box) : BaseList<number>(N, box) {
+
+RodCells::RodCells(int &N, BaseBox *box) : BaseList(N, box) {
 	_heads = NULL;
 	_next = NULL;
 	_cells = NULL;
@@ -31,26 +31,26 @@ RodCells<number>::RodCells(int &N, BaseBox<number> *box) : BaseList<number>(N, b
 	//_neighs = std::list<int> ();
 }
 
-template<typename number>
-RodCells<number>::~RodCells() {
+
+RodCells::~RodCells() {
 	if(_heads != NULL) delete[] _heads;
 	if(_next != NULL) delete[] _next;
 	if(_cells != NULL) delete[] _cells;
 	if(_n_virtual_sites != NULL) delete[] _n_virtual_sites;
  }
 
-template<typename number>
-void RodCells<number>::get_settings(input_file &inp) {
-	BaseList<number>::get_settings(inp);
+
+void RodCells::get_settings(input_file &inp) {
+	BaseList::get_settings(inp);
 	getInputNumber(&inp, "rod_cell_rcut", &_rod_cell_rcut, 1);
 	getInputNumber(&inp, "rod_length", &_rod_length, 1);
 	getInputInt(&inp, "rod_cell_n_part_types", &_n_part_types, 0);
 	getInputInt(&inp, "rod_cell_restrict_to_type", &_restrict_to_type, 0);
 }
 
-template<typename number>
-void RodCells<number>::init(BaseParticle<number> **particles, number rcut) {
-	BaseList<number>::init(particles, rcut);
+
+void RodCells::init(BaseParticle **particles, number rcut) {
+	BaseList::init(particles, rcut);
 
 	_sqr_rcut = rcut * rcut;
 
@@ -77,9 +77,9 @@ void RodCells<number>::init(BaseParticle<number> **particles, number rcut) {
 	OX_LOG(Logger::LOG_INFO, "(RodCells.cpp) N_cells_side: %d, %d, %d; rcut=%g, rod_cell_size=%g, _n_virtual_sites=%d, restrict_to_type=%d, IS_MC: %d",_N_cells_side[0], _N_cells_side[1], _N_cells_side[2], this->_rcut, _rod_cell_rcut, _n_virtual_sites[0], _restrict_to_type, this->_is_MC);
 }
 
-template<typename number>
-void RodCells<number>::_set_N_cells_side_from_box(int N_cells_side[3], BaseBox<number> *box) {
-	LR_vector<number> box_sides = box->box_sides();  // TODO: perhaps use pointer instead of copying?
+
+void RodCells::_set_N_cells_side_from_box(int N_cells_side[3], BaseBox *box) {
+	LR_vector box_sides = box->box_sides();  // TODO: perhaps use pointer instead of copying?
 	for(int i = 0; i < 3; i++) {
 		N_cells_side[i] = (int) (floor(box_sides[i] / _rod_cell_rcut) + 0.1);
 		if(N_cells_side[i] < 3)
@@ -92,15 +92,15 @@ void RodCells<number>::_set_N_cells_side_from_box(int N_cells_side[3], BaseBox<n
 	}
 }
 
-template<typename number>
-bool RodCells<number>::is_updated() {
+
+bool RodCells::is_updated() {
 	int new_N_cells_side[3];
 	_set_N_cells_side_from_box(new_N_cells_side, this->_box);
 	return (new_N_cells_side[0] == _N_cells_side[0] && new_N_cells_side[1] == _N_cells_side[1] && new_N_cells_side[2] == _N_cells_side[2]);
 }
 
-template<typename number>
-void RodCells<number>::single_update(BaseParticle<number> *p) {
+
+void RodCells::single_update(BaseParticle *p) {
 
 	//if (_restrict_to_type >= 0 && p->type != _restrict_to_type) return;
 
@@ -120,10 +120,10 @@ void RodCells<number>::single_update(BaseParticle<number> *p) {
 	}
 
 	// compute new cell indexes and add to new cells
-	LR_vector<number> * r = &p->pos;
-	LR_vector<number> * u = &p->orientation.v3;
-	LR_vector<number> stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * (*u);
-	LR_vector<number> site_pos = (*r) - (_rod_length / (number) 2.f) * (*u);
+	LR_vector * r = &p->pos;
+	LR_vector * u = &p->orientation.v3;
+	LR_vector stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * (*u);
+	LR_vector site_pos = (*r) - (_rod_length / (number) 2.f) * (*u);
 	if (_n_virtual_sites[p->type] < 2) site_pos = *r;
 	for (int k = 0; k < _n_virtual_sites[p->type]; k ++) {
 		int site_idx = p->index * _n_virtual_sites_max + k;
@@ -138,8 +138,8 @@ void RodCells<number>::single_update(BaseParticle<number> *p) {
 	return;
 }
 
-template<typename number>
-void RodCells<number>::global_update(bool force_update) {
+
+void RodCells::global_update(bool force_update) {
 	this->_box_sides = this->_box->box_sides();
 	_set_N_cells_side_from_box(_N_cells_side, this->_box);
 	_N_cells = _N_cells_side[0] * _N_cells_side[1] * _N_cells_side[2];
@@ -158,10 +158,10 @@ void RodCells<number>::global_update(bool force_update) {
 	for(int i = 0; i < this->_N * _n_virtual_sites_max; i++) _next[i] = -1;
 
 	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 		//if (_restrict_to_type >= 0 && p->type != _restrict_to_type) continue;
-		LR_vector<number> stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * p->orientation.v3;
-		LR_vector<number> site_pos = p->pos - (_rod_length / (number) 2.f) * p->orientation.v3;
+		LR_vector stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * p->orientation.v3;
+		LR_vector site_pos = p->pos - (_rod_length / (number) 2.f) * p->orientation.v3;
 		if (_n_virtual_sites[p->type] < 2) site_pos = p->pos;
 		for (int k = 0; k < _n_virtual_sites[p->type]; k ++) {
 			int site_idx = i * _n_virtual_sites_max + k;
@@ -174,9 +174,9 @@ void RodCells<number>::global_update(bool force_update) {
 	}
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> RodCells<number>::_get_neigh_list(BaseParticle<number> *p, bool all) {
-	std::vector<BaseParticle<number> *> res;
+
+std::vector<BaseParticle *> RodCells::_get_neigh_list(BaseParticle *p, bool all) {
+	std::vector<BaseParticle *> res;
 
 	int want_type = -1;
 	if (_restrict_to_type >= 0) {
@@ -189,7 +189,7 @@ std::vector<BaseParticle<number> *> RodCells<number>::_get_neigh_list(BasePartic
 	//_neighs.clear();
 	//typename std::unordered_set<int>::iterator it = _neighs.begin();
 	//typename std::set<int>::iterator it = _neighs.begin();
-	//typename std::vector<BaseParticle<number> *>::iterator it = res.begin();
+	//typename std::vector<BaseParticle *>::iterator it = res.begin();
 	//typename std::list<int>::iterator it;
 
 	int last_inserted = -4;
@@ -261,7 +261,7 @@ std::vector<BaseParticle<number> *> RodCells<number>::_get_neigh_list(BasePartic
 	//std::sort(res.begin(), res.end());
 	//res.erase(std::unique(res.begin(), res.end()), res.end());
 
-	typename std::vector<BaseParticle<number> *>::iterator it;
+	typename std::vector<BaseParticle *>::iterator it;
 	for (it = res.begin(); it != res.end(); ++it) _added[(*it)->index] = false;
 
 	/*
@@ -293,11 +293,11 @@ std::vector<BaseParticle<number> *> RodCells<number>::_get_neigh_list(BasePartic
 	return res;
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> RodCells<number>::whos_there(int idx) {
+
+std::vector<BaseParticle *> RodCells::whos_there(int idx) {
 	if (idx >= _N_cells) throw oxDNAException ("wrong cell idx");
 
-	std::vector<BaseParticle<number> *> res;
+	std::vector<BaseParticle *> res;
 	res.reserve(_max_size);
 
 	int ind[3] = {
@@ -332,21 +332,18 @@ std::vector<BaseParticle<number> *> RodCells<number>::whos_there(int idx) {
 		}
 	}
 
-	typename std::vector<BaseParticle<number> *>::iterator it;
+	typename std::vector<BaseParticle *>::iterator it;
 	for (it = res.begin(); it != res.end(); ++it) _added[(*it)->index] = false;
 
 	return res;
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> RodCells<number>::get_neigh_list(BaseParticle<number> *p) {
+
+std::vector<BaseParticle *> RodCells::get_neigh_list(BaseParticle *p) {
 	return _get_neigh_list(p, false);
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> RodCells<number>::get_complete_neigh_list(BaseParticle<number> *p) {
+
+std::vector<BaseParticle *> RodCells::get_complete_neigh_list(BaseParticle *p) {
 	return _get_neigh_list(p, true);
 }
-
-template class RodCells<float>;
-template class RodCells<double>;

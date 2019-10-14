@@ -9,7 +9,7 @@ __constant__ float MD_dt[1];
 // this function modifies L
 // Conversion of the R matrix in _get_updated_orientation above into a quaternion simplifies into the qR quaternion used in _get_updated_orientation. This is then multiplied by the original orientation quaternion to produce the updated quaternion. Quaternion multiplication is the cross_product - dot_product and is therefore non-commutative
 template <typename number, typename number4>
-__device__ GPU_quat<number> _get_updated_orientation(number4 &L, GPU_quat<number> &old_o) {
+__device__ GPU_quat _get_updated_orientation(number4 &L, GPU_quat &old_o) {
 	number norm = _module<number, number4>(L);
 	L.x /= norm;
 	L.y /= norm;
@@ -19,13 +19,13 @@ __device__ GPU_quat<number> _get_updated_orientation(number4 &L, GPU_quat<number
 	sincos(MD_dt[0] * norm, &sintheta, &costheta);
 	number qw = (number) 0.5f * sqrtf(fmaxf((number) 0.f, (number) 2.f + 2.f*costheta));
 	number winv = (number)1.f /qw;
-	GPU_quat<number> R = {(number) 0.5f*L.x*sintheta*winv, (number) 0.5f*L.y*sintheta*winv, (number) 0.5f*L.z*sintheta*winv, qw};
+	GPU_quat R = {(number) 0.5f*L.x*sintheta*winv, (number) 0.5f*L.y*sintheta*winv, (number) 0.5f*L.z*sintheta*winv, qw};
 
 	return quat_multiply(old_o, R);
 }
 
 template <typename number, typename number4>
-__global__ void first_step(number4 *poss, GPU_quat<number> *orientations, number4 *list_poss, number4 *vels, number4 *Ls, number4 *forces, number4 *torques, bool *are_lists_old) {
+__global__ void first_step(number4 *poss, GPU_quat *orientations, number4 *list_poss, number4 *vels, number4 *Ls, number4 *forces, number4 *torques, bool *are_lists_old) {
 	if(IND >= MD_N[0]) return;
 
 	const number4 F = forces[IND];
@@ -54,8 +54,8 @@ __global__ void first_step(number4 *poss, GPU_quat<number> *orientations, number
 	Ls[IND] = L;
 
 
-	GPU_quat<number> qold_o = orientations[IND];
-	orientations[IND] = _get_updated_orientation<number>(L, qold_o);
+	GPU_quat qold_o = orientations[IND];
+	orientations[IND] = _get_updated_orientation(L, qold_o);
 
 	// do verlet lists need to be updated?
 	if(quad_distance<number, number4>(r, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
@@ -72,7 +72,7 @@ __global__ void rescale_positions(number4 *poss, number4 ratio) {
 }
 
 template<typename number, typename number4>
-__global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientations, CUDA_trap<number> *ext_forces, number4 *forces, number4 *torques, llint step, int max_ext_forces, CUDABox<number, number4> *box) {
+__global__ void set_external_forces(number4 *poss, GPU_quat *orientations, CUDA_trap *ext_forces, number4 *forces, number4 *torques, llint step, int max_ext_forces, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 	// if there are no external forces then just put the force to 0
 	if(max_ext_forces == 0) {
@@ -87,7 +87,7 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 
 	for(int i = 0; i < max_ext_forces; i++) {
 		// coalesced
-		CUDA_trap<number> extF = ext_forces[MD_N[0] * i + IND];
+		CUDA_trap extF = ext_forces[MD_N[0] * i + IND];
 		switch (extF.type) {
 			case CUDA_TRAP_CONSTANT: {
 				number intensity = extF.constant.F0 + step*extF.constant.rate;
@@ -96,7 +96,7 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 					dir.x -= ppos.x;
 					dir.y -= ppos.y;
 					dir.z -= ppos.z;
-					number dir_mod = _module<number>(dir);
+					number dir_mod = _module(dir);
 					dir.x /= dir_mod;
 					dir.y /= dir_mod;
 					dir.z /= dir_mod;
@@ -270,7 +270,7 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 					ppos.y - extF.ljcone.pos0.y,
 					ppos.z - extF.ljcone.pos0.z
 				);
-				number d_from_apex = _module<number>(v_from_apex);
+				number d_from_apex = _module(v_from_apex);
 
 				number d_along_axis = CUDA_DOT(v_from_apex, extF.ljcone.dir);
 				float3 v_along_axis = extF.ljcone.dir*d_along_axis;
@@ -284,10 +284,10 @@ __global__ void set_external_forces(number4 *poss, GPU_quat<number> *orientation
 				if(rel_distance < extF.ljcone.cutoff && extF.ljcone.stiff > 0.f) {
 					// now we compute the normal to the cone
 					float3 v_from_axis = v_along_axis - v_from_apex;
-					float3 normal = v_from_axis + extF.ljcone.dir*(_module<number>(v_from_axis)/extF.ljcone.sin_alpha);
+					float3 normal = v_from_axis + extF.ljcone.dir*(_module(v_from_axis)/extF.ljcone.sin_alpha);
 
 					number lj_part = powf(rel_distance, -extF.ljcone.n);
-					number factor = 4*extF.ljcone.n*extF.ljcone.stiff*(2*SQR(lj_part) - lj_part) / (d_from_cone * _module<number>(normal));
+					number factor = 4*extF.ljcone.n*extF.ljcone.stiff*(2*SQR(lj_part) - lj_part) / (d_from_cone * _module(normal));
 
 					F.x += factor*normal.x;
 					F.y += factor*normal.y;

@@ -10,8 +10,8 @@
 
 const std::string strtypes[] = {"ALA","GLY","CYS","TYR","ARG","PHE","LYS","SER","PRO","VAL","ASN","ASP","CYX","HSP","HSD","MET","LEU"};
 
-template<typename number>
-PdbOutput<number>::PdbOutput() : Configuration<number>() {
+
+PdbOutput::PdbOutput() : Configuration() {
 	_backbase_radius = 0.15;
 	_ref_particle_id = -1;
 	_ref_strand_id = -1;
@@ -19,22 +19,22 @@ PdbOutput<number>::PdbOutput() : Configuration<number>() {
 	_model_nr=0;
 }
 
-template<typename number>
-PdbOutput<number>::~PdbOutput() {
+
+PdbOutput::~PdbOutput() {
 
 }
 
-template<typename number>
-void PdbOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	Configuration<number>::get_settings(my_inp, sim_inp);
+
+void PdbOutput::get_settings(input_file &my_inp, input_file &sim_inp) {
+	Configuration::get_settings(my_inp, sim_inp);
 	int tmp;
 	if(getInputBoolAsInt(&my_inp, "back_in_box", &tmp, 0) == KEY_FOUND) _back_in_box = (bool)tmp;
 	if(getInputInt(&my_inp, "ref_particle", &tmp, 0) == KEY_FOUND) _ref_particle_id = tmp;
 	if(getInputInt(&my_inp, "ref_strand", &tmp, 0) == KEY_FOUND) _ref_strand_id = tmp;
 }
 
-template<typename number>
-std::string PdbOutput<number>::_headers(llint step) {
+
+std::string PdbOutput::_headers(llint step) {
 	std::stringstream headers;
 	_model_nr+=1;
 	char model_buf[264];
@@ -44,21 +44,21 @@ std::string PdbOutput<number>::_headers(llint step) {
 	return headers.str();
 }
 
-template<typename number>
-std::string PdbOutput<number>::_particle(BaseParticle<number> *p,std::string strtype) {
+
+std::string PdbOutput::_particle(BaseParticle *p,std::string strtype) {
 	std::stringstream res;
 	std::string _strtype = strtype;
-	LR_matrix<number> I_b = LR_matrix<number>(LR_vector<number> (1.1,0,0),LR_vector<number> (0,1.5,0),LR_vector<number> (0,0,2.2));
-	LR_matrix<number> I_l = p->orientation*I_b*p->orientationT;
-	LR_matrix<number> anis = I_l*LR_matrix<number>(-1.,0.,0.,0.,-1.,0.,0.,0.,-1.);
+	LR_matrix I_b = LR_matrix(LR_vector (1.1,0,0),LR_vector (0,1.5,0),LR_vector (0,0,2.2));
+	LR_matrix I_l = p->orientation*I_b*p->orientationT;
+	LR_matrix anis = I_l*LR_matrix(-1.,0.,0.,0.,-1.,0.,0.,0.,-1.);
 
 	anis.v1.x = (I_l.v2.y+I_l.v3.z-I_l.v1.x)/2.0;
 	anis.v2.y = (I_l.v1.x+I_l.v3.z-I_l.v2.y)/2.0;
 	anis.v3.z = (I_l.v1.x+I_l.v2.y-I_l.v3.z)/2.0;
 
-	BaseBox<number> * mybox = this->_config_info.box;
-	LR_vector<number> my_strand_cdm = this->_strands_cdm[p->strand_id];
-	LR_vector<number> zero (0., 0., 0.);
+	BaseBox * mybox = this->_config_info.box;
+	LR_vector my_strand_cdm = this->_strands_cdm[p->strand_id];
+	LR_vector zero (0., 0., 0.);
 	if(_ref_strand_id>=0 && this->_strands_cdm.count(_ref_strand_id) == 1) 
 		zero = this->_config_info.particles[_ref_particle_id]->pos;
 
@@ -67,10 +67,10 @@ std::string PdbOutput<number>::_particle(BaseParticle<number> *p,std::string str
 	else
 		zero = this->_config_info.particles[0]->pos;
 
-	LR_vector<number> origin(0., 0., 0.);
+	LR_vector origin(0., 0., 0.);
 	origin = zero;
-	LR_vector<number> back = (p->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + p->int_centers[0];
-	LR_vector<number> base = (p->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + p->int_centers[2];
+	LR_vector back = (p->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + p->int_centers[0];
+	LR_vector base = (p->pos - my_strand_cdm) + mybox->min_image(origin, my_strand_cdm) + p->int_centers[2];
 	base = base-(base-back)*_backbase_radius;
 	
 	char back_buf1[264];
@@ -109,15 +109,15 @@ std::string PdbOutput<number>::_particle(BaseParticle<number> *p,std::string str
 }
 
 
-template<typename number>
-std::string PdbOutput<number>::_configuration(llint step) {
+
+std::string PdbOutput::_configuration(llint step) {
 	stringstream conf;
 	//conf.precision(15);
 	if (_back_in_box) this->_fill_strands_cdm ();
 
 	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << endl;
-		BaseParticle<number> *p = this->_config_info.particles[*it];
+		BaseParticle *p = this->_config_info.particles[*it];
 		std::string cur_strtype = strtypes[(p->strand_id+1)%17];
 		conf << _particle(p,cur_strtype);
 	}

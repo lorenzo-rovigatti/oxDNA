@@ -8,8 +8,8 @@
 #include "Contacts.h"
 #include "../Utilities/Utils.h"
 #include "../Interactions/TEPInteraction.h"
-template<typename number>
-Contacts<number>::Contacts() {
+
+Contacts::Contacts() {
 	
 	_first_particle_index = 0;
 	_last_particle_index = -1;
@@ -19,16 +19,16 @@ Contacts<number>::Contacts() {
 	_only_outermost_contacts = false;
 }
 
-template<typename number>
-Contacts<number>::~Contacts() {
+
+Contacts::~Contacts() {
 
 }
 
-template<typename number>
-void Contacts<number>::init(ConfigInfo<number> &config_info) {
-    BaseObservable<number>::init(config_info);
+
+void Contacts::init(ConfigInfo &config_info) {
+    BaseObservable::init(config_info);
 	
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	const int N = *this->_config_info.N;
 
 	// check that _first_particle_index is in [0,N) and not the terminal particle
@@ -87,8 +87,8 @@ void Contacts<number>::init(ConfigInfo<number> &config_info) {
 	}
 }
 
-template<typename number>
-void Contacts<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+
+void Contacts::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputInt(&my_inp,"first_particle_index",&_first_particle_index,0);
 
@@ -101,11 +101,11 @@ void Contacts<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 }
 
-template<typename number>
-std::string Contacts<number>::get_output_string(llint curr_step) {
+
+std::string Contacts::get_output_string(llint curr_step) {
 	
 
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	string result; 
 	
 	int first_but_last_particle = p[_last_particle_index]->n3->index;
@@ -134,7 +134,7 @@ std::string Contacts<number>::get_output_string(llint curr_step) {
 		
 		// if i_particle and j_particle are within contact distance, print their indices.
 		while (j_particle >= innermost_particle){
-			LR_vector<number> r=p[i_particle]->pos - p[j_particle]->pos;
+			LR_vector r=p[i_particle]->pos - p[j_particle]->pos;
 			//printf("%d %d %lf\n",i_particle,j_particle,r.module());
 
 			if( r.module() < _contact_distance ){
@@ -157,10 +157,10 @@ std::string Contacts<number>::get_output_string(llint curr_step) {
 	// ____________________________ Previous function
 	int sign, number_of_values=0;
 	string result; 
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	double delta_omega=0;
 	number result_number=0;
-	LR_vector<number> u, up, v, vp, f, fp;
+	LR_vector u, up, v, vp, f, fp;
 
 
 	int i = _first_particle_index;
@@ -232,13 +232,13 @@ std::string Contacts<number>::get_output_string(llint curr_step) {
 		else if ( _angle_index == 2){
 			// u * t
 			u = p[i]->orientationT.v1;
-			LR_vector<number> t = p[i]->n5->pos - p[i]->pos;
+			LR_vector t = p[i]->n5->pos - p[i]->pos;
 			average += u*t/t.module();
 		}else if ( _angle_index == 3){
 			if( p[i]->n5->n5 != P_VIRTUAL){
 				// t * t
-				LR_vector<number> t = p[i]->n5->pos - p[i]->pos;
-				LR_vector<number> tp = p[i]->n5->n5->pos - p[i]->n5->pos;
+				LR_vector t = p[i]->n5->pos - p[i]->pos;
+				LR_vector tp = p[i]->n5->n5->pos - p[i]->n5->pos;
 				average += t*tp/(t.module()*tp.module());
 			}
 			
@@ -273,11 +273,11 @@ std::string Contacts<number>::get_output_string(llint curr_step) {
 	return result;
 }
 /*
-template<typename number>
-std::string Contacts<number>::OLD_get_output_string(llint curr_step) {
+
+std::string Contacts::OLD_get_output_string(llint curr_step) {
 
 	string result; number average = 0.;
-	BaseParticle<number> **p = this->_config_info.particles;
+	BaseParticle **p = this->_config_info.particles;
 	for( int i = _first_particle_id; i <= _last_particle_id; i++){
 		if ( _vector_to_average == 1){
 			_u =	p[i]->orientationT.v1;

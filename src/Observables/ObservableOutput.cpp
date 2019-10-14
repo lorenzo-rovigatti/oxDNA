@@ -14,8 +14,8 @@
 
 using namespace std;
 
-template<typename number>
-ObservableOutput<number>::ObservableOutput(std::string &stream_string, input_file &sim_inp) : _prefix("") {
+
+ObservableOutput::ObservableOutput(std::string &stream_string, input_file &sim_inp) : _prefix("") {
 	_sim_inp = sim_inp;
 	_start_from = 0;
 	_stop_at = -1;
@@ -79,14 +79,14 @@ ObservableOutput<number>::ObservableOutput(std::string &stream_string, input_fil
 	delete obs_input;
 }
 
-template<typename number>
-ObservableOutput<number>::~ObservableOutput() {
+
+ObservableOutput::~ObservableOutput() {
 	if(_output_stream.is_open()) _output_stream.close();
 	clear();
 }
 
-template<typename number>
-void ObservableOutput<number>::_open_output() {
+
+void ObservableOutput::_open_output() {
 	if(!strncmp (_output_name.c_str(), "stderr", 512)) _output = &std::cerr;
 	else if (!strncmp (_output_name.c_str(), "stdout", 512)) _output = &std::cout;
 	else {
@@ -107,41 +107,41 @@ void ObservableOutput<number>::_open_output() {
 	if(_output->bad() || !_output->good()) throw oxDNAException("Stream %s not writable", _output_name.c_str());
 }
 
-template<typename number>
-void ObservableOutput<number>::init(ConfigInfo<number> &config_info) {
+
+void ObservableOutput::init(ConfigInfo &config_info) {
 	if(!_update_name_with_time) _open_output();
 
-	typename vector<BaseObservable<number> *>::iterator it;
+	typename vector<BaseObservable *>::iterator it;
 	for(it = _obss.begin(); it != _obss.end(); it++) (*it)->init(config_info);
 }
 
-template<typename number>
-void ObservableOutput<number>::clear() {
-	typename vector<BaseObservable<number> *>::iterator it;
+
+void ObservableOutput::clear() {
+	typename vector<BaseObservable *>::iterator it;
 	for(it = _obss.begin(); it != _obss.end(); it++) delete *it;
 	_obss.clear();
 }
 
-template<typename number>
-void ObservableOutput<number>::add_observable(std::string obs_string) {
+
+void ObservableOutput::add_observable(std::string obs_string) {
 	input_file *obs_inp = Utils::get_input_file_from_string(obs_string);
 
-	BaseObservable<number> *new_obs = ObservableFactory::make_observable<number>(*obs_inp, _sim_inp);
+	BaseObservable *new_obs = ObservableFactory::make_observable(*obs_inp, _sim_inp);
 	_obss.push_back(new_obs);
 
 	cleanInputFile(obs_inp);
 	delete obs_inp;
 }
 
-template<typename number>
-void ObservableOutput<number>::change_output_file(string new_filename) {
+
+void ObservableOutput::change_output_file(string new_filename) {
 	_output_name = _prefix + new_filename;
 	if(_output_stream.is_open()) _output_stream.close();
 	_open_output();
 }
 
-template<typename number>
-void ObservableOutput<number>::_set_next_log_step() {
+
+void ObservableOutput::_set_next_log_step() {
 	_log_next = (llint)round((_log_n0*pow(_log_fact, _log_pos_in_cycle))) + _log_tot_cycle*_log_n_cycle;
 	_log_pos_in_cycle++;
 	if(_log_pos_in_cycle == _log_ppc) {
@@ -150,8 +150,8 @@ void ObservableOutput<number>::_set_next_log_step() {
 	}
 }
 
-template<typename number>
-bool ObservableOutput<number>::is_ready(llint step) {
+
+bool ObservableOutput::is_ready(llint step) {
 	if(_stop_at > -1 && step > _stop_at) return false;
 
 	if(_linear) {
@@ -164,10 +164,10 @@ bool ObservableOutput<number>::is_ready(llint step) {
 	}
 }
 
-template<typename number>
-void ObservableOutput<number>::print_output(llint step) {
+
+void ObservableOutput::print_output(llint step) {
 	stringstream ss;
-	typename vector<BaseObservable<number> *>::iterator it;
+	typename vector<BaseObservable *>::iterator it;
 	for(it = _obss.begin(); it != _obss.end(); it++) {
 		if(it != _obss.begin()) ss << " ";
 		ss << (*it)->get_output_string(step);
@@ -188,6 +188,3 @@ void ObservableOutput<number>::print_output(llint step) {
 	if(_only_last) _output_stream.close();
 	if(!_linear) _set_next_log_step();
 }
-
-template class ObservableOutput<float>;
-template class ObservableOutput<double>;

@@ -332,7 +332,7 @@ __forceinline__ __device__ void _excluded_volume(const number4 &r, number4 &F, n
 	}
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	if(r < MD_F1_RCHIGH[type]) {
@@ -352,7 +352,7 @@ __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	int eps_index = 0;
@@ -373,7 +373,7 @@ __forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
 	return MD_F1_EPS[eps_index] * val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _fX(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	if(r < MD_F1_RCHIGH[type]) {
@@ -394,7 +394,7 @@ __forceinline__ __device__ number _fX(number r, int type, int n3, int n5) {
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _fXD(number r, int type, int n3, int n5) {
 	number val = (number) 0.f;
 	int eps_index = 0;
@@ -416,7 +416,7 @@ __forceinline__ __device__ number _fXD(number r, int type, int n3, int n5) {
 
 
 
-template<typename number>
+
 __forceinline__ __device__ number _f2(number r, int type) {
     number val = (number) 0.f;
     if (r < MD_F2_RCHIGH[type]) {
@@ -433,7 +433,7 @@ __forceinline__ __device__ number _f2(number r, int type) {
     return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f2D(number r, int type) {
     number val = (number) 0.f;
     if (r < MD_F2_RCHIGH[type]) {
@@ -454,7 +454,7 @@ __forceinline__ __device__ number _f2D(number r, int type) {
     return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, float a, float b) {
 	number val = (number) 0.f;
 	t -= t0;
@@ -471,7 +471,7 @@ __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, fl
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc, float a, float b) {
 	number val = (number) 0.f;
 	number tt0 = t - t0;
@@ -495,7 +495,7 @@ __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc
 	return 2.f * m * val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f5(number f, int type) {
 	number val = (number) 0.f;
 
@@ -512,7 +512,7 @@ __forceinline__ __device__ number _f5(number f, int type) {
 	return val;
 }
 
-template<typename number>
+
 __forceinline__ __device__ number _f5D(number f, int type) {
 	number val = (number) 0.f;
 
@@ -643,8 +643,8 @@ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4 &n5z,numbe
 	number cosphi2 = CUDA_DOT(n3y, rbackdir); // / rbackrefmod;
 
 
-	//number costB1 = -rback_back_dir * p->int_centers[RNANucleotide<number>::BBVECTOR_3];
-	//number costB2 = -rback_back_dir * q->int_centers[RNANucleotide<number>::BBVECTOR_5];
+	//number costB1 = -rback_back_dir * p->int_centers[RNANucleotide::BBVECTOR_3];
+	//number costB2 = -rback_back_dir * q->int_centers[RNANucleotide::BBVECTOR_5];
 
 	number4 n3bbvector_5 = (n3x * rnamodel.p5_x + n3y * rnamodel.p5_y +  n3z * rnamodel.p5_z);
 	number4 n5bbvector_3 = (n5x * rnamodel.p3_x + n5y * rnamodel.p3_y +  n5z * rnamodel.p3_z);
@@ -1132,12 +1132,12 @@ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number
 
 
 			// for p
-			number4 mytorque1  =-  _cross<number,number4>(ppos_stack, forcestack ); //a1 * (p->int_centers[RNANucleotide<number>::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide<number>::STACK] * a1 )
-			mytorque1  -=  _cross<number,number4>(ppos_back, forceback) ;  // p->int_centers[RNANucleotide<number>::BACK].cross(forceback);
+			number4 mytorque1  =-  _cross<number,number4>(ppos_stack, forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
+			mytorque1  -=  _cross<number,number4>(ppos_back, forceback) ;  // p->int_centers[RNANucleotide::BACK].cross(forceback);
 
 			// for q
-			number4 mytorque2  = _cross<number,number4>(qpos_stack,forcestack); //  q->int_centers[RNANucleotide<number>::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide<number>::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide<number>::STACK] * a1 )
-			mytorque2 +=   _cross<number,number4>(qpos_back,forceback); // q->int_centers[RNANucleotide<number>::BACK].cross(forceback);
+			number4 mytorque2  = _cross<number,number4>(qpos_stack,forcestack); //  q->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
+			mytorque2 +=   _cross<number,number4>(qpos_back,forceback); // q->int_centers[RNANucleotide::BACK].cross(forceback);
 
 			mytorque1 -=  force_c  *   _cross<number,number4>(a1,  _cross<number,number4>(rstackdir,rbackbonedir)); // a1.cross(rstackdir.cross(rbackbonedir));  // rstackdir * (rbackbonedir * a1) - rbackbonedir * (rstackdir * a1);
 
@@ -1155,12 +1155,12 @@ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number
 			myforce +=  forceback;
 
 									// for p
-			mytorque2  +=   _cross<number,number4>(qpos_stack,forcestack); // q->int_centers[RNANucleotide<number>::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide<number>::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide<number>::STACK] * a1 )
-			mytorque2  +=  _cross<number,number4>(qpos_back,forceback); //  q->int_centers[RNANucleotide<number>::BACK].cross(forceback);
+			mytorque2  +=   _cross<number,number4>(qpos_stack,forcestack); // q->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
+			mytorque2  +=  _cross<number,number4>(qpos_back,forceback); //  q->int_centers[RNANucleotide::BACK].cross(forceback);
 
 									// for q
-			mytorque1  -=  _cross<number,number4>(ppos_stack,forcestack); // p->int_centers[RNANucleotide<number>::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide<number>::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide<number>::STACK] * a1 )
-			mytorque1 -=  _cross<number,number4>(ppos_back,forceback); //p->int_centers[RNANucleotide<number>::BACK].cross(forceback);
+			mytorque1  -=  _cross<number,number4>(ppos_stack,forcestack); // p->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
+			mytorque1 -=  _cross<number,number4>(ppos_back,forceback); //p->int_centers[RNANucleotide::BACK].cross(forceback);
 
 			mytorque2 -=  force_c  *  _cross<number,number4>(b1,rbackbonedir); // b1.cross(rstackdir.cross(rbackbonedir));  // rstackdir * (rbackbonedir * a1) - rbackbonedir * (rstackdir * a1);
 
@@ -1269,7 +1269,7 @@ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number
 
 // forces + second step without lists
 template <typename number, typename number4>
-__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion,  bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
+__global__ void rna_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion,  bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
@@ -1319,7 +1319,7 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations, number
 }
 
 template <typename number, typename number4>
-__global__ void rna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges,LR_bonds *bonds, bool average,bool use_debye_huckel, bool mismatch_repulsion, CUDABox<number, number4> *box) {
+__global__ void rna_forces_edge_nonbonded(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges,LR_bonds *bonds, bool average,bool use_debye_huckel, bool mismatch_repulsion, CUDABox<number, number4> *box) {
 	if(IND >= n_edges) return;
 
 	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
@@ -1365,7 +1365,7 @@ __global__ void rna_forces_edge_nonbonded(number4 *poss, GPU_quat<number> *orien
 
 // bonded interactions for edge-based approach
 template <typename number, typename number4>
-__global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool average, bool use_mbf, number mbf_xmax, number mbf_finf) {
+__global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool average, bool use_mbf, number mbf_xmax, number mbf_finf) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F0, T0;
@@ -1413,7 +1413,7 @@ __global__ void rna_forces_edge_bonded(number4 *poss, GPU_quat<number> *orientat
 
 // forces + second step with verlet lists
 template <typename number, typename number4>
-__global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion,  bool use_mbf, number mbf_xmax, number mbf_finf,CUDABox<number, number4> *box) {
+__global__ void rna_forces(number4 *poss, GPU_quat *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion,  bool use_mbf, number mbf_xmax, number mbf_finf,CUDABox<number, number4> *box) {
 	if(IND >= MD_N[0]) return;
 
 	//number4 F = make_number4<number, number4>(0, 0, 0, 0);
@@ -1470,7 +1470,7 @@ __global__ void rna_forces(number4 *poss, GPU_quat<number> *orientations,  numbe
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
 template <typename number, typename number4>
-__global__ void rna_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
+__global__ void rna_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1488,8 +1488,8 @@ __global__ void rna_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations,
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make no difference. 
 	number4 a1, a2, a3, b1, b2, b3; 
@@ -1544,7 +1544,7 @@ __global__ void rna_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations,
 }
 
 template <typename number, typename number4>
-__global__ void rna_near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
+__global__ void rna_near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1562,8 +1562,8 @@ __global__ void rna_near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientat
 	int qbtype = get_particle_btype<number, number4>(qpos);
 	int int_type = pbtype + qbtype;
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets extra a2 and b2 vectors that aren't needed. get_vectors_from_quat could easily be modified to only return the relevant vectors, but it will make computationally very little difference, since most of the same numbers need to be calculated anyway. Perhaps worth changing for memory considerations, however
 	number4 a1, a2, a3, b1, b2, b3; 
@@ -1630,7 +1630,7 @@ __global__ void rna_near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientat
 
 // compute the distance between a pair of particles
 template <typename number, typename number4>
-__global__ void rna_dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDABox<number, number4> *box)
+__global__ void rna_dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDABox<number, number4> *box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1643,8 +1643,8 @@ __global__ void rna_dist_op_precalc(number4 *poss, GPU_quat<number> *orientation
 	number4 qpos = poss[qind];
 	number4 r = box->minimum_image(ppos, qpos);
 
-	GPU_quat<number> po = orientations[pind];
-	GPU_quat<number> qo = orientations[qind];
+	GPU_quat po = orientations[pind];
+	GPU_quat qo = orientations[qind];
 
 	//This gets extra a2 and b2 vectors that aren't needed. get_vectors_from_quat could easily be modified to only return the relevant vectors, but it will make computationally very little difference, since most of the same numbers need to be calculated anyway. Perhaps worth changing for memory considerations, however 
 	number4 a1, a2, a3, b1, b2, b3; 

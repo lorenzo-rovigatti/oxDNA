@@ -43,7 +43,7 @@ CUDABaseInteraction<number, number4> *CUDAInteractionFactory::make_interaction(i
 	else {
 		std::string cuda_name(inter_type);
 		cuda_name = "CUDA" + cuda_name;
-		CUDABaseInteraction<number, number4> *res = dynamic_cast<CUDABaseInteraction<number, number4> *>(PluginManager::instance()->get_interaction<number>(cuda_name));
+		CUDABaseInteraction<number, number4> *res = dynamic_cast<CUDABaseInteraction<number, number4> *>(PluginManager::instance()->get_interaction(cuda_name));
 		if(res == NULL) throw oxDNAException ("CUDA interaction '%s' not found. Aborting", cuda_name.c_str());
 		return res;
 	}

@@ -27,8 +27,8 @@ using namespace std;
 [delta_L = <float> (controls the box side change by the MC-like barostat)]
 @endverbatim
  */
-template<typename number>
-class MDBackend: public SimBackend<number> {
+
+class MDBackend: public SimBackend {
 protected:
 	number _dt;
 	bool _refresh_velocities;

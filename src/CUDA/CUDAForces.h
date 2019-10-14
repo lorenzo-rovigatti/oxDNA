@@ -25,7 +25,7 @@
 /**
  * @brief CUDA version of a ConstantRateForce.
  */
-template<typename number>
+
 struct constant_rate_force {
 	int type;
 	number x, y, z;
@@ -37,7 +37,7 @@ struct constant_rate_force {
 /**
  * @brief CUDA version of a MutualTrap.
  */
-template<typename number>
+
 struct mutual_trap {
 	int type;
 	number stiff;
@@ -50,7 +50,7 @@ struct mutual_trap {
 /**
  * @brief CUDA version of a MovingTrap.
  */
-template<typename number>
+
 struct moving_trap {
 	int type;
 	number stiff;
@@ -62,7 +62,7 @@ struct moving_trap {
 /**
  * @brief CUDA version of a LowdimMovingTrap.
  */
-template<typename number>
+
 struct lowdim_moving_trap {
 	int type;
 	number stiff;
@@ -77,7 +77,7 @@ struct lowdim_moving_trap {
 /**
  * @brief CUDA version of a RepulsionPlane.
  */
-template<typename number>
+
 struct repulsion_plane {
 	int type;
 	number stiff;
@@ -88,7 +88,7 @@ struct repulsion_plane {
 /**
  * @brief CUDA version of a RepulsionPlaneMoving.
  */
-template<typename number>
+
 struct repulsion_plane_moving {
 	int type;
 	number stiff;
@@ -99,7 +99,7 @@ struct repulsion_plane_moving {
 /**
  * @brief CUDA version of a RepulsiveSphere.
  */
-template<typename number>
+
 struct repulsive_sphere {
 	int type;
 	number stiff;
@@ -112,7 +112,7 @@ struct repulsive_sphere {
 /**
  * @brief CUDA version of a RepulsiveSphereSmooth.
  */
-template<typename number>
+
 struct repulsive_sphere_smooth {
 	int type;
 	number r0;
@@ -126,7 +126,7 @@ struct repulsive_sphere_smooth {
 /**
  * @brief CUDA version of an LJWall.
  */
-template<typename number>
+
 struct LJ_wall {
 	int type;
 	number stiff;
@@ -140,7 +140,7 @@ struct LJ_wall {
 /**
  * @brief CUDA version of a ConstantRateTorque.
  */
-template<typename number>
+
 struct constant_rate_torque {
 	int type;
 	float3 center, pos0, axis, mask;
@@ -152,7 +152,7 @@ struct constant_rate_torque {
 /**
  * @brief CUDA version of a GenericCentralForce.
  */
-template<typename number>
+
 struct generic_constant_force {
 	int type;
 	number x, y, z;
@@ -164,7 +164,7 @@ struct generic_constant_force {
 /**
  * @brief CUDA version of an LJCone.
  */
-template<typename number>
+
 struct LJ_cone {
 	int type;
 	float3 dir, pos0;
@@ -179,21 +179,21 @@ struct LJ_cone {
 /**
  * @brief Used internally by CUDA classes to provide an inheritance-like mechanism for external forces.
  */
-template<typename number>
+
 union CUDA_trap {
 	int type;
-	constant_rate_force<number> constant;
-	mutual_trap<number> mutual;
-	moving_trap<number> moving;
-	lowdim_moving_trap<number> lowdim;
-	repulsion_plane<number> repulsionplane;
-	repulsion_plane_moving<number> repulsionplanemoving;
-	repulsive_sphere<number> repulsivesphere;
-	repulsive_sphere_smooth<number> repulsivespheresmooth;
-	LJ_wall<number> ljwall;
-	constant_rate_torque<number> constantratetorque;
-	generic_constant_force<number> genericconstantforce;
-	LJ_cone<number> ljcone;
+	constant_rate_force constant;
+	mutual_trap mutual;
+	moving_trap moving;
+	lowdim_moving_trap lowdim;
+	repulsion_plane repulsionplane;
+	repulsion_plane_moving repulsionplanemoving;
+	repulsive_sphere repulsivesphere;
+	repulsive_sphere_smooth repulsivespheresmooth;
+	LJ_wall ljwall;
+	constant_rate_torque constantratetorque;
+	generic_constant_force genericconstantforce;
+	LJ_cone ljcone;
 };
 
 #endif /* CUDAFORCES_H_ */

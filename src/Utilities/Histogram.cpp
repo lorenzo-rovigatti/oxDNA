@@ -54,8 +54,8 @@ void Histogram::init (OrderParameters * op, double * temps, int ntemps) {
 	}
 }
 
-template <typename number>
-void Histogram::init (OrderParameters * op, std::vector<number> temps) {
+
+void Histogram::init (OrderParameters * op, std::vector temps) {
 	double * dtemps = (double *) malloc (temps.size() * sizeof(double));
 	for (unsigned int i = 0; i < temps.size(); i ++) dtemps[i] = (double)temps[i];
 	init (op, dtemps, temps.size());

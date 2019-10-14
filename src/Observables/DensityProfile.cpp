@@ -8,25 +8,25 @@
 #include "DensityProfile.h"
 #include "../Utilities/Utils.h"
 
-template<typename number>
-DensityProfile<number>::DensityProfile() {
+
+DensityProfile::DensityProfile() {
 	_axis = -1;
 	_nbins = -1;
 	_bin_size = (number) -1.;
 	_max_value = (number) -1.;
 }
 
-template<typename number>
-DensityProfile<number>::~DensityProfile() {
+
+DensityProfile::~DensityProfile() {
 
 }
 
-template<typename number>
-std::string DensityProfile<number>::get_output_string(llint curr_step) {
+
+std::string DensityProfile::get_output_string(llint curr_step) {
 	int N = *this->_config_info.N;
 	
 	// get smallest side
-	LR_vector<number> sides = this->_config_info.box->box_sides();
+	LR_vector sides = this->_config_info.box->box_sides();
 	number min_box_side = sides[0];
 	if (sides[1] < min_box_side) min_box_side = sides[1]; 
 	if (sides[2] < min_box_side) min_box_side = sides[2]; 
@@ -34,8 +34,8 @@ std::string DensityProfile<number>::get_output_string(llint curr_step) {
 	if (_max_value > min_box_side) OX_LOG(Logger::LOG_WARNING, "Observable DensityProfile: computing profile with max_value > box_size (%g > %g)", _max_value, min_box_side);
 	
 	for (int i = 0; i < N; i ++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector <number> mypos = this->_config_info.box->get_abs_pos(p);	
+		BaseParticle *p = this->_config_info.particles[i];
+		LR_vector  mypos = this->_config_info.box->get_abs_pos(p);	
 		mypos.x -= sides.x * floor (mypos.x / sides.x);
 		mypos.y -= sides.y * floor (mypos.y / sides.y);
 		mypos.z -= sides.z * floor (mypos.z / sides.z);
@@ -57,8 +57,8 @@ std::string DensityProfile<number>::get_output_string(llint curr_step) {
 	return ret.str();
 }
 
-template<typename number>
-void DensityProfile<number>::get_settings (input_file &my_inp, input_file &sim_inp) {
+
+void DensityProfile::get_settings (input_file &my_inp, input_file &sim_inp) {
 	char tmps[512];
 	getInputString(&my_inp, "axis", tmps, 1);
 	if (!strncasecmp (tmps, "x", 512)) _axis = 0;

@@ -110,20 +110,16 @@ public:
 	 * @param name Case-sensitive name of the plugin
 	 * @return a pointer to the newly built plugin
 	 */
-	template<typename number>
-	BaseObservable<number> *get_observable(std::string name);
+	BaseObservable *get_observable(std::string name);
 
 	/**
 	 * @brief Looks for an {@link BaseInteraction interaction} plugin in the current plugin path and, if found, builds it and returns it as a pointer
 	 * @param name Case-sensitive name of the plugin
 	 * @return a pointer to the newly built plugin
 	 */
-	template<typename number>
-	IBaseInteraction<number> *get_interaction(std::string name);
+	IBaseInteraction *get_interaction(std::string name);
 
-	template<typename number>
-	BaseMove<number> *get_move(std::string name);
-
+	BaseMove *get_move(std::string name);
 
 	/**
 	 * @brief Cleans up the manager.

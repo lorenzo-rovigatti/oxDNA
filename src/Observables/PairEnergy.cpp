@@ -10,18 +10,18 @@
 #include <sstream>
 #include <map>
 
-template<typename number>
-PairEnergy<number>::PairEnergy() {
+
+PairEnergy::PairEnergy() {
 	_print_header = true;
 }
 
-template<typename number>
-PairEnergy<number>::~PairEnergy() {
+
+PairEnergy::~PairEnergy() {
 
 }
 
-template<typename number>
-void PairEnergy<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+
+void PairEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_print_all_particles = true;
 	if(getInputInt(&my_inp, "particle1_id", &_particle1_id, 0) == KEY_FOUND) {
 		_print_all_particles = false;
@@ -31,10 +31,10 @@ void PairEnergy<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputBool(&my_inp,"print_header", &_print_header,0);
 }
 
-template<typename number>
-std::string PairEnergy<number>::get_output_string(llint curr_step) {
-	BaseParticle<number> *p;
-	BaseParticle<number> *q;
+
+std::string PairEnergy::get_output_string(llint curr_step) {
+	BaseParticle *p;
+	BaseParticle *q;
 
 	std::stringstream output_str;
 
@@ -52,7 +52,7 @@ std::string PairEnergy<number>::get_output_string(llint curr_step) {
 		total_energy_diff += (*l).second;
 
 	if(_print_all_particles) {
-		std::vector<ParticlePair<number> > neighbour_pairs = this->_config_info.lists->get_potential_interactions();
+		std::vector<ParticlePair > neighbour_pairs = this->_config_info.lists->get_potential_interactions();
 
 		//printf("Total fene energy is %f \n", split_energies[0]);
 		for(int i = 0; i < (int) neighbour_pairs.size(); i++) {

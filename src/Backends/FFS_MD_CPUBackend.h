@@ -107,8 +107,8 @@ struct parsed_condition {
  * }
  *
  */
-template<typename number>
-class FFS_MD_CPUBackend: public MD_CPUBackend<number> {
+
+class FFS_MD_CPUBackend: public MD_CPUBackend {
 protected:
 
 	OrderParameters _op;
@@ -119,7 +119,7 @@ protected:
 
 	number _sqr_rcut;
 	void _ffs_compute_forces(void);
-	number pair_interaction_nonbonded_DNA_with_op(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces=false) ;
+	number pair_interaction_nonbonded_DNA_with_op(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces=false) ;
 
 
 public:

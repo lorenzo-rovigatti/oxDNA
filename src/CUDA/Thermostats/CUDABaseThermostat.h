@@ -23,7 +23,7 @@
  * found at http://en.wikipedia.org/wiki/Virtual_inheritance.
  */
 template<typename number, typename number4>
-class CUDABaseThermostat: public virtual IBaseThermostat<number> {
+class CUDABaseThermostat: public virtual IBaseThermostat {
 protected:
 	CUDA_kernel_cfg _launch_cfg;
 	curandState *_d_rand_state;
@@ -44,7 +44,7 @@ public:
 
 	virtual void set_seed(llint seed) { _seed = seed; }
 	virtual void get_cuda_settings(input_file &inp);
-	virtual void apply_cuda(number4 *d_pos, GPU_quat<number> *d_orientations, number4 *d_vel, number4 *d_L, llint curr_step) = 0;
+	virtual void apply_cuda(number4 *d_pos, GPU_quat *d_orientations, number4 *d_vel, number4 *d_L, llint curr_step) = 0;
 	virtual bool would_activate(llint curr_step) = 0;
 };
 

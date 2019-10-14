@@ -12,27 +12,27 @@
 #include "MDBackend.h"
 #include "MCMoves/VolumeMove.h"
 
-template <typename number> class BaseThermostat;
+ class BaseThermostat;
 
 /**
  * @brief Manages a MD simulation on CPU. It supports NVE and NVT simulations
  */
-template<typename number>
-class MD_CPUBackend: public MDBackend<number> {
+
+class MD_CPUBackend: public MDBackend {
 protected:
-	BaseThermostat<number> * _thermostat;
-	BaseMove<number> *_V_move;
+	BaseThermostat * _thermostat;
+	BaseMove *_V_move;
 	bool _compute_stress_tensor;
 	int _stress_tensor_avg_every;
 	int _stress_tensor_counter;
-	LR_matrix<double> _stress_tensor;
+	LR_matrix _stress_tensor;
 
 	void _first_step(llint cur_step);
 	void _compute_forces();
 	void _second_step();
 
-	void _update_forces_and_stress_tensor(BaseParticle<number> *p, BaseParticle<number> *q);
-	void _update_kinetic_stress_tensor(BaseParticle<number> *p);
+	void _update_forces_and_stress_tensor(BaseParticle *p, BaseParticle *q);
+	void _update_kinetic_stress_tensor(BaseParticle *p);
 	void _update_backend_info();
 
 public:

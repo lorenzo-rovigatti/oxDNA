@@ -9,8 +9,8 @@
 
 #include <algorithm>
 
-template<typename number>
-StructureFactor<number>::StructureFactor() {
+
+StructureFactor::StructureFactor() {
 	_nconf = 0;
 	_type = -1;
 	_max_qs_in_interval = 30;
@@ -18,13 +18,13 @@ StructureFactor<number>::StructureFactor() {
 	_always_reset = false;
 }
 
-template<typename number>
-StructureFactor<number>::~StructureFactor() {
+
+StructureFactor::~StructureFactor() {
 
 }
 
-template<typename number>
-void StructureFactor<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+
+void StructureFactor::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&my_inp, "max_q", &_max_q, 1);
 	getInputInt(&my_inp, "int_type", &_type, 0);
 	getInputInt(&my_inp, "max_qs_in_interval", &_max_qs_in_interval, 0);
@@ -38,11 +38,11 @@ struct sort_qs {
 	}
 };
 
-template<typename number>
-void StructureFactor<number>::init(ConfigInfo<number> &config_info) {
-	BaseObservable<number>::init(config_info);
 
-	LR_vector<number> box_sides = config_info.box->box_sides();
+void StructureFactor::init(ConfigInfo &config_info) {
+	BaseObservable::init(config_info);
+
+	LR_vector box_sides = config_info.box->box_sides();
 	number sqr_max_q = SQR(_max_q);
 	LR_vector<double> delta_q(2.*M_PI/box_sides.x, 2.*M_PI/box_sides.y, 2.*M_PI/box_sides.z);
 	for(int nx = 0; nx <= _max_q/delta_q.x; nx++) {
@@ -85,8 +85,8 @@ void StructureFactor<number>::init(ConfigInfo<number> &config_info) {
 	OX_LOG(Logger::LOG_INFO, "StructureFactor: %d wave vectors", _qs.size());
 }
 
-template<typename number>
-std::string StructureFactor<number>::get_output_string(llint curr_step) {
+
+std::string StructureFactor::get_output_string(llint curr_step) {
 	if(_always_reset) {
 		_nconf = 1;
 		std::fill(_sq.begin(), _sq.end(), 0.);
@@ -100,7 +100,7 @@ std::string StructureFactor<number>::get_output_string(llint curr_step) {
 		double sq_sin = 0.;
 		int N_type = 0;
 		for(int i = 0; i < N; i++) {
-			BaseParticle<number> *p = this->_config_info.particles[i];
+			BaseParticle *p = this->_config_info.particles[i];
 			if(_type == -1 || p->type == _type) {
 				LR_vector<double> r(p->pos.x, p->pos.y, p->pos.z);
 				number qr = *it*r;

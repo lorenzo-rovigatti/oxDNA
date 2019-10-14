@@ -9,19 +9,19 @@
 
 #include <sstream>
 
-template<typename number>
-OrderParameterValues<number>::OrderParameterValues() {
+
+OrderParameterValues::OrderParameterValues() {
 
 }
 
-template<typename number>
-OrderParameterValues<number>::~OrderParameterValues() {
+
+OrderParameterValues::~OrderParameterValues() {
 
 }
 
-template<typename number> void
-OrderParameterValues<number>::init(ConfigInfo<number> &config_info) {
-   BaseObservable<number>::init(config_info);
+void
+OrderParameterValues::init(ConfigInfo &config_info) {
+   BaseObservable::init(config_info);
 
    ifstream tmpf(_order_parameters_file);
    if(!tmpf.good ()) throw oxDNAException ("(OrderParameterValues.cpp) Can't read file '%s'", _order_parameters_file);
@@ -30,8 +30,8 @@ OrderParameterValues<number>::init(ConfigInfo<number> &config_info) {
 
 }
 
-template<typename number> void
-OrderParameterValues<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void
+OrderParameterValues::get_settings(input_file &my_inp, input_file &sim_inp) {
 	bool parameters_loaded = false;
 	//first try load parameters from specific op_file key
 	if(getInputString(&my_inp, "order_parameters_file", _order_parameters_file, 0) == KEY_NOT_FOUND)
@@ -59,19 +59,19 @@ OrderParameterValues<number>::get_settings(input_file &my_inp, input_file &sim_i
 
 }
 
-template<typename number>
-std::string OrderParameterValues<number>::get_output_string(llint curr_step) {
+
+std::string OrderParameterValues::get_output_string(llint curr_step) {
 
 	_op.reset();
 	_op.fill_distance_parameters(this->_config_info.particles, this->_config_info.box);
 	
-	std::vector<ParticlePair<number> > neighbour_pairs = this->_config_info.lists->get_potential_interactions();
+	std::vector<ParticlePair > neighbour_pairs = this->_config_info.lists->get_potential_interactions();
 	
 	for (int i = 0; i < (int)neighbour_pairs.size(); i++) {
-		BaseParticle<number> * p = neighbour_pairs[i].first;
-		BaseParticle<number> * q = neighbour_pairs[i].second;
+		BaseParticle * p = neighbour_pairs[i].first;
+		BaseParticle * q = neighbour_pairs[i].second;
 
-		number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction<number>::HYDROGEN_BONDING, p, q);
+		number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 		if(hb_energy < HB_CUTOFF) _op.add_hb(p->index,q->index);
 	}
 

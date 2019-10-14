@@ -13,10 +13,10 @@
 /**
  * @brief Incapsulates a patchy particle with 2, 3, or 4 spherical patches. Used by PatchyInteraction.
  */
-template<typename number>
-class PatchyParticle : public BaseParticle<number> {
+
+class PatchyParticle : public BaseParticle {
 protected:
-	LR_vector<number> *_base_patches;
+	LR_vector *_base_patches;
 	number _sigma;
 
 	void _set_base_patches();

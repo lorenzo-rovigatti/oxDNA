@@ -20,8 +20,8 @@
  The option above are true for the DNAinteraction class, not this one, but I keep them so that
  I can keep track of how they should be declared.
  */
-template <typename number>
-class TEPInteraction : public BaseInteraction<number, TEPInteraction<number> > {
+
+class TEPInteraction : public BaseInteraction<number, TEPInteraction > {
 protected:
 	bool _is_on_cuda;
 	
@@ -72,12 +72,12 @@ protected:
 // zero by default: if nonzero, the beads with a virtual neighbour will be twisted (e.g. will try and align the potential v2 vector to a spinning vector). This twist means that the twist_extremal_particles interaction will be used.
 	number _twist_boundary_stiff;
 	
-	LR_vector<number> _o1;
-	LR_vector<number> _o2;
+	LR_vector _o1;
+	LR_vector _o2;
 	number _o1_modulus;
 	number _o2_modulus;
-	LR_vector<number> _w1;
-	LR_vector<number> _w2;
+	LR_vector _w1;
+	LR_vector _w2;
 	int _time_increment;
 //	int _max_delta_lk;
 	llint _my_time1;
@@ -87,17 +87,17 @@ protected:
 	llint _choose_direction_time;
 	llint _print_torques_every;
 
-	virtual number _spring(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _bonded_bending(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _bonded_double_bending(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _bonded_twist(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _bonded_alignment(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _bonded_debye_huckel(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _nonbonded_debye_huckel(BaseParticle <number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _bonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _nonbonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	virtual number _spring(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _bonded_bending(BaseParticle  *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _bonded_double_bending(BaseParticle  *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _bonded_twist(BaseParticle  *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _bonded_alignment(BaseParticle  *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _bonded_debye_huckel(BaseParticle  *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _nonbonded_debye_huckel(BaseParticle  *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
-	inline number _repulsive_lj2(number prefactor,const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces);
+	inline number _repulsive_lj2(number prefactor,const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 	int setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
 	int setNonNegativeLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description);
 	int setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
@@ -169,7 +169,7 @@ protected:
 	 * @param q
 	 * @return true if they are bonded, false otherwise
 	 */
-	inline bool _are_bonded(BaseParticle<number> *p, BaseParticle<number> *q) { return (p->n3 == q || p->n5 == q); 
+	inline bool _are_bonded(BaseParticle *p, BaseParticle *q) { return (p->n3 == q || p->n5 == q); 
 	}
 	/**
 	* @brief update the time_variable used in index_twist_boundary_particles
@@ -201,10 +201,10 @@ protected:
 	}
 
 	// The following are all the functions used to implement the twisting of the extremal beads. Hopefully to be removed when torques are programmed properly.
-	int getInputDirection(input_file *inp, const char * skey, LR_vector<number> *dest, int mandatory);
-	LR_vector<number> rotateVectorAroundVersor(const LR_vector<number> vector, const LR_vector<number> versor, const number angle);
-	number _twist_boundary_particles(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	number _index_twist_boundary_particles(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	int getInputDirection(input_file *inp, const char * skey, LR_vector *dest, int mandatory);
+	LR_vector rotateVectorAroundVersor(const LR_vector vector, const LR_vector versor, const number angle);
+	number _twist_boundary_particles(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _index_twist_boundary_particles(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 public:
 	enum {
 		SPRING = 0,
@@ -221,23 +221,23 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 
-	virtual void read_topology(int N_from_conf, int *N_strands, BaseParticle<number> **particles);
+	virtual void read_topology(int N_from_conf, int *N_strands, BaseParticle **particles);
 
 };
 
-template<typename number>
-number TEPInteraction<number>::_repulsive_lj2(number prefactor, const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces) {
+
+number TEPInteraction::_repulsive_lj2(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
 	// this is a bit faster than calling r.norm()
 	number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
 	number energy = (number) 0;
@@ -262,8 +262,8 @@ number TEPInteraction<number>::_repulsive_lj2(number prefactor, const LR_vector<
 	return energy;
 }
 
-template<typename number>
-int TEPInteraction<number>::setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
+
+int TEPInteraction::setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
 
 	int ret_value = getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND;
 	if( ret_value ){
@@ -273,8 +273,8 @@ int TEPInteraction<number>::setNonNegativeNumber(input_file *inp, const char * s
 	return ret_value;
 }
 
-template<typename number>
-int TEPInteraction<number>::setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
+
+int TEPInteraction::setPositiveNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
 	int ret_value = getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND;
 	if( ret_value ){
 		if( *dest <= 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
@@ -283,8 +283,8 @@ int TEPInteraction<number>::setPositiveNumber(input_file *inp, const char * skey
 	return ret_value;
 }
 
-template<typename number>
-int TEPInteraction<number>::setNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
+
+int TEPInteraction::setNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description){
 	int ret_value = getInputNumber(inp, skey,dest, mandatory) == KEY_FOUND;
 	if( ret_value ){
 		OX_LOG(Logger::LOG_INFO,"%s manually set to %g",skey,*dest);
@@ -292,8 +292,8 @@ int TEPInteraction<number>::setNumber(input_file *inp, const char * skey, number
 	return ret_value;
 }
 
-template<typename number>
-int TEPInteraction<number>::setPositiveLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description){
+
+int TEPInteraction::setPositiveLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description){
 	int ret_value = getInputLLInt(inp, skey,dest, mandatory) == KEY_FOUND;
 	if( ret_value ){
 		if( *dest <= 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
@@ -301,8 +301,8 @@ int TEPInteraction<number>::setPositiveLLInt(input_file *inp, const char * skey,
 	}
 	return ret_value;
 }
-template<typename number>
-int TEPInteraction<number>::setNonNegativeLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description){
+
+int TEPInteraction::setNonNegativeLLInt(input_file *inp, const char * skey, llint *dest, int mandatory, const char * arg_description){
 	int ret_value = getInputLLInt(inp, skey,dest, mandatory) == KEY_FOUND;
 	if( ret_value ){
 		if( *dest < 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
@@ -311,8 +311,8 @@ int TEPInteraction<number>::setNonNegativeLLInt(input_file *inp, const char * sk
 	return ret_value;
 }
 /*
-template<typename number>
-int TEPInteraction<number>::setNonNegativeInt(input_file *inp, const char * skey, int *dest, int mandatory, const char * arg_description){
+
+int TEPInteraction::setNonNegativeInt(input_file *inp, const char * skey, int *dest, int mandatory, const char * arg_description){
 	int ret_value = getInputLLInt(inp, skey,dest, mandatory) == KEY_FOUND;
 	if( ret_value ){
 		if( *dest < 0 ) throw oxDNAException("read non-positive parameter %s (%s) for the TEP model. %s = %g. Aborting",skey,arg_description,skey,*dest); 
@@ -324,14 +324,14 @@ int TEPInteraction<number>::setNonNegativeInt(input_file *inp, const char * skey
 	// The following are all the functions used to implement the twisting of the extremal beads. Hopefully to be removed when torques are programmed properly.
 	//
 	// Read a direction from file (TODO: propose to add this to defs.h, since it might be needed elsewhere).
-template<typename number>
-int TEPInteraction<number>::getInputDirection(input_file *inp, const char * skey, LR_vector<number> *dest, int mandatory){
+
+int TEPInteraction::getInputDirection(input_file *inp, const char * skey, LR_vector *dest, int mandatory){
   std::string strdir;     
   int ret_value = getInputString (inp, skey, strdir, mandatory);     
   double x, y, z;            
   int tmpi = sscanf(strdir.c_str(), "%lf,%lf,%lf", &x, &y, &z);     
   if (tmpi != 3) throw oxDNAException("could not parse direction %s in input file. Dying badly",skey);     
-  *dest = LR_vector<number> ((number) x, (number) y, number (z));     
+  *dest = LR_vector ((number) x, (number) y, number (z));     
 	if (x == 0 && y == 0 && z == 0){
 		throw oxDNAException("direction %s in input file is the zero vector.",skey);
 	}
@@ -340,8 +340,8 @@ int TEPInteraction<number>::getInputDirection(input_file *inp, const char * skey
 }
 
 // Rotate a vector around a versor (TODO: propose to add this to defs.h)
-template<typename number>
-LR_vector<number> TEPInteraction<number>::rotateVectorAroundVersor(const LR_vector<number> vector, const LR_vector<number> versor, const number angle){
+
+LR_vector TEPInteraction::rotateVectorAroundVersor(const LR_vector vector, const LR_vector versor, const number angle){
 /* According to section 5.2 of this webpage http://inside.mines.edu/fs_home/gmurray/ArbitraryAxisRotation/ ,
 // the image of rotating a vector (x,y,z) around a versor (u,v,w) is given by
 //      / u(ux + vy + wz)(1 - cos th) + x cos th + (- wy + vz) sin th \
@@ -353,8 +353,8 @@ LR_vector<number> TEPInteraction<number>::rotateVectorAroundVersor(const LR_vect
 	number costh = cos(angle);
 	number sinth = sin(angle);
 	number scalar = vector*versor;
-	LR_vector<number> cross = versor.cross(vector);
-	return LR_vector<number>( 
+	LR_vector cross = versor.cross(vector);
+	return LR_vector( 
 		versor.x * scalar * (1. - costh) + vector.x*costh + cross.x * sinth,
 		versor.y * scalar * (1. - costh) + vector.y*costh + cross.y * sinth,
 		versor.z * scalar * (1. - costh) + vector.z*costh + cross.z * sinth

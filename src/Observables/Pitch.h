@@ -23,8 +23,8 @@ bp2a_id = <int> (base pair 2 particle a id)
 bp2b_id = <int> (base pair 2 particle b id)
 @endverbatim
  */
-template<typename number>
-class Pitch: public BaseObservable<number> {
+
+class Pitch: public BaseObservable {
 protected:
 	int _bp1a_id;
 	int _bp1b_id;

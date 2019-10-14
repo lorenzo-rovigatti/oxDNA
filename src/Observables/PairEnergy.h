@@ -19,8 +19,8 @@ particle2_id = <int> (particle 2 id)
 print_header = <bool> (if true, print a header that explains the value of each column, and a newline after the list of particles. defaults to true)
 @endverbatim
  */
-template<typename number>
-class PairEnergy: public BaseObservable<number> {
+
+class PairEnergy: public BaseObservable {
 protected:
 	int _particle1_id;
 	int _particle2_id;

@@ -10,19 +10,19 @@
 #include "ExternalTorque.h"
 #include <string>
 
-template<typename number>
-ExternalTorque<number>::ExternalTorque() {
+
+ExternalTorque::ExternalTorque() {
 	_respect_to_line = false;
 
 }
 
-template<typename number>
-ExternalTorque<number>::~ExternalTorque() {
+
+ExternalTorque::~ExternalTorque() {
 
 }
 
-template<typename number> void
-ExternalTorque<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void
+ExternalTorque::get_settings(input_file &my_inp, input_file &sim_inp) {
 	char group_name[512] = "";
 	char origin[512] = "";
 	std::string direction;
@@ -32,31 +32,31 @@ ExternalTorque<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 	getInputString(&my_inp, "origin", origin, 1);
 	sscanf(origin, "%lf,%lf,%lf", &x, &y, &z);
-	_origin = LR_vector<number> ((number)x,(number)y,(number)z);
+	_origin = LR_vector ((number)x,(number)y,(number)z);
 
 	if( getInputString(&my_inp, "direction", direction, 0) == KEY_FOUND){
 		_respect_to_line = true;
 		int tmpi = sscanf(direction.c_str(), "%lf,%lf,%lf", &x, &y, &z);
 		if (tmpi != 3) throw oxDNAException("could not parse direction in torque observable. Dying badly");
-		_direction = LR_vector<number> ((number) x, (number) y, number (z));
+		_direction = LR_vector ((number) x, (number) y, number (z));
 		_direction.normalize();
 	}
 }
 
-template<typename number>
-std::string ExternalTorque<number>::get_output_string(llint curr_step) {
-				LR_vector<number> tau = LR_vector<number>((number) 0., (number)0., (number)0.);
+
+std::string ExternalTorque::get_output_string(llint curr_step) {
+				LR_vector tau = LR_vector((number) 0., (number)0., (number)0.);
 	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector<number> abs_pos = this->_config_info.box->get_abs_pos(p);
-		LR_vector<number> distvec = abs_pos-_origin;	
+		BaseParticle *p = this->_config_info.particles[i];
+		LR_vector abs_pos = this->_config_info.box->get_abs_pos(p);
+		LR_vector distvec = abs_pos-_origin;	
 		if ( _respect_to_line){
 			// the distance between the point and the axis is the distance vector between the point and the origin,
 			// minus the projection on the line of the distance vector between the point and the origin
 			distvec -= (distvec*_direction)*_direction;
 		}
 		if(string(_group_name) == "") {
-			LR_vector<number> total_force = LR_vector<number>((number) 0., (number)0., (number)0.);
+			LR_vector total_force = LR_vector((number) 0., (number)0., (number)0.);
 			exit(1);
 			for(auto ext_force : p->ext_forces) {
 				total_force += ext_force->value(curr_step,abs_pos);

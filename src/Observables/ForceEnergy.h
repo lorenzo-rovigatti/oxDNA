@@ -18,8 +18,8 @@
 [print_group = <string> (limits the energy computation to the forces belonging to a specific group of forces. This can be set by adding a group_name option to each force's input. By default ForceEnergy computes the energy due to all the forces.)]
 @endverbatim
  */
-template<typename number>
-class ForceEnergy : public BaseObservable<number> {
+
+class ForceEnergy : public BaseObservable {
 protected:
 	std::string _group_name;
 public:

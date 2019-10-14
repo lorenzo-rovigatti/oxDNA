@@ -11,13 +11,13 @@
 #include "../Utilities/Utils.h"
 
 //Constructor
-template <typename number>
-PatchyInteractionDan<number>::PatchyInteractionDan() : BaseInteraction<number, PatchyInteractionDan<number> >() {
-//Original: PatchyInteraction<number>::PatchyInteraction() : BaseInteraction<number, PatchyInteraction<number> >(), _N_patches_B(-1), _N_B(0), _is_binary(false) {
+
+PatchyInteractionDan::PatchyInteractionDan() : BaseInteraction<number, PatchyInteractionDan >() {
+//Original: PatchyInteraction::PatchyInteraction() : BaseInteraction<number, PatchyInteraction >(), _N_patches_B(-1), _N_B(0), _is_binary(false) {
 
         //printf("PI, PatchyInteractionDan\n");
 
-	this->_int_map[PATCHY] = &PatchyInteractionDan<number>::_patchy_interaction;
+	this->_int_map[PATCHY] = &PatchyInteractionDan::_patchy_interaction;
 
 	/*//Set initialisation value to false
 	  _initialised = false;*/
@@ -42,8 +42,8 @@ PatchyInteractionDan<number>::PatchyInteractionDan() : BaseInteraction<number, P
 }
 
 //Destructor
-template <typename number>
-PatchyInteractionDan<number>::~PatchyInteractionDan() {
+
+PatchyInteractionDan::~PatchyInteractionDan() {
         //printf("PI, ~PatchyInteractionDan\n");
 
         //if(_initialised) {
@@ -51,7 +51,7 @@ PatchyInteractionDan<number>::~PatchyInteractionDan() {
         //Delete all arrays
         /*Template
 	if(_something != NULL) delete[] _something;
-	For pointers to pointers (etc.), you could do what is commented out for _patch_vectors_particle and _ref_vectors_particle, but that would be meaningful IFF all _patch_vectors_particle[i] were initialised to NULL just after you allocate memory for _patch_vectors_particle itself. i.e. In the code, after "_patch_vectors_particle = new LR_vector<number>*[_N_particles];", I would have to loop through and set "_patch_vectors_particle[i] = NULL" for all i. There is no strong/immediate need to do this, so I haven't.*/
+	For pointers to pointers (etc.), you could do what is commented out for _patch_vectors_particle and _ref_vectors_particle, but that would be meaningful IFF all _patch_vectors_particle[i] were initialised to NULL just after you allocate memory for _patch_vectors_particle itself. i.e. In the code, after "_patch_vectors_particle = new LR_vector*[_N_particles];", I would have to loop through and set "_patch_vectors_particle[i] = NULL" for all i. There is no strong/immediate need to do this, so I haven't.*/
         if(_N_particles_of_type != NULL) delete[] _N_particles_of_type;
 	if(_particle_type_of != NULL) delete[] _particle_type_of;
 	if(_N_patches_type != NULL) delete[] _N_patches_type;
@@ -112,8 +112,8 @@ PatchyInteractionDan<number>::~PatchyInteractionDan() {
 }
 
 //Settings from input file
-template<typename number>
-void PatchyInteractionDan<number>::get_settings(input_file &inp) {
+
+void PatchyInteractionDan::get_settings(input_file &inp) {
         //printf("PI, get_settings\n");
 
 	//To temporarily store numbers (usually extracted from files)
@@ -131,13 +131,13 @@ void PatchyInteractionDan<number>::get_settings(input_file &inp) {
 	_tor_flag = (bool) tmp2;
 
         //Gets topology filename
-	IBaseInteraction<number>::get_settings(inp);
+	IBaseInteraction::get_settings(inp);
 
 }
 
 //Further initialisation
-template<typename number>
-void PatchyInteractionDan<number>::init() {
+
+void PatchyInteractionDan::init() {
         //printf("PI, init\n");
 
 	//Square of _rcut (for computational efficiency)
@@ -181,8 +181,8 @@ void PatchyInteractionDan<number>::init() {
 }
 
 //Where is it called from, and so what are N, N_strands, etc.?
-template<typename number>
-void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+
+void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **particles) {
         //printf("PI, read_topology\n");
 
         //Reads lines from topology file into this
@@ -224,9 +224,9 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 	  _N_patches_type = new int[_N_particle_types];
 	  _patches_on_particle = new int[_N_particles];
 	  //Define number of rows (one row for each particle type)
-	  _patch_vectors_type = new LR_vector<number>*[_N_particle_types];
+	  _patch_vectors_type = new LR_vector*[_N_particle_types];
 	  //Define number of rows (one row for each particle)
-	  _patch_vectors_particle = new LR_vector<number>*[_N_particles];
+	  _patch_vectors_particle = new LR_vector*[_N_particles];
 	  //Define number of rows (one row for each particle type)
 	  _patch_type_of = new int*[_N_particle_types];
 	  _sigma_ang_patch = new number[_N_patch_types];
@@ -234,11 +234,11 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 	  _epsilon_patch = new number*[_N_patch_types];
 
 	  //Define number of rows (one row for each particle)
-	  _ref_vectors_particle = new LR_vector<number>*[_N_particles];
+	  _ref_vectors_particle = new LR_vector*[_N_particles];
 
 	  if (_tor_flag == true) {
 	    //Define number of rows (one row for each particle type)
-	    _ref_vectors_type = new LR_vector<number>*[_N_particle_types];
+	    _ref_vectors_type = new LR_vector*[_N_particle_types];
 	    //Define number of rows (one row for each patch type)
 	    _sigma_tor_patch = new number*[_N_patch_types];
 	    //Define number of rows (one row for each patch type)
@@ -261,7 +261,7 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 
 	    //Create new arrays
 	    //Define number of columns in each row (one row for each particle type, one column for each patch on that particle type)
-	    _patch_vectors_type[part_type] = new LR_vector<number>[_N_patches_type[part_type]];
+	    _patch_vectors_type[part_type] = new LR_vector[_N_patches_type[part_type]];
 	    //Define number of columns in each row (one row for each particle type, one column for each patch on that particle type)
 	    _patch_type_of[part_type] = new int[_N_patches_type[part_type]];
 
@@ -270,7 +270,7 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 
 	      topology.getline(line, 512);
 	      sscanf(line, "%d %lf %lf %lf %*s\n", &_patch_type_of[part_type][patch], &tmp1, &tmp2, &tmp3);
-	      _patch_vectors_type[part_type][patch] = LR_vector<number>(tmp1, tmp2, tmp3);
+	      _patch_vectors_type[part_type][patch] = LR_vector(tmp1, tmp2, tmp3);
 	      printf("RT3a part_type %d, patch %d, patch_type %d, patchvect.x %.16lf, patchvect.y %.16lf patchvect.z %.16lf\n", part_type, patch, _patch_type_of[part_type][patch], _patch_vectors_type[part_type][patch].x, _patch_vectors_type[part_type][patch].y, _patch_vectors_type[part_type][patch].z);
 
 	      //printf("RT-- patchvect1 %.16lf, patchvect2 %.16lf patchvect3 %.16 refvect1 %.16lf, refvect2 %.16lf refvect3 %.16lf\n", tmp1, tmp2, tmp3, tmp4, tmp5, tmp6);
@@ -290,14 +290,14 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 	    if (_tor_flag == true) {
 	      //Create new array
 	      //Define number of columns in each row (one row for each particle type, one column for each patch on that particle type)
-	      _ref_vectors_type[part_type] = new LR_vector<number>[_N_patches_type[part_type]];
+	      _ref_vectors_type[part_type] = new LR_vector[_N_patches_type[part_type]];
 
 	      //As above
 	      for (int patch = 0; patch < _N_patches_type[part_type]; patch++) {
 
 		topology.getline(line, 512);
 		sscanf(line, "%lf %lf %lf %*s\n", &tmp1, &tmp2, &tmp3);
-		_ref_vectors_type[part_type][patch] = LR_vector<number>(tmp1, tmp2, tmp3);
+		_ref_vectors_type[part_type][patch] = LR_vector(tmp1, tmp2, tmp3);
 		printf("RT3b part_type %d, patch %d, patch_type %d, refvect.x %f, refvect.y %f refvect.z %f\n", part_type, patch, _patch_type_of[part_type][patch], _ref_vectors_type[part_type][patch].x, _ref_vectors_type[part_type][patch].y, _ref_vectors_type[part_type][patch].z);
 
 		patch_count_check++;
@@ -335,7 +335,7 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 
 	    //Old code
 	    /*sscanf(line, "%lf %lf %lf %lf %*s\n", &_sigma_ang_patch[patch_type], &tmp1, &tmp2, &tmp3);
-	    _ref_vector_patch[patch_type] = LR_vector<number>(tmp1, tmp2, tmp3);
+	    _ref_vector_patch[patch_type] = LR_vector(tmp1, tmp2, tmp3);
 	    printf("RT4 patch_type %d, _sigma_ang_patch[patch_type] %f, _ref_vector_patch[patch_type] %lf %lf %lf\n", patch_type, _sigma_ang_patch[patch_type], _ref_vector_patch[patch_type].x, _ref_vector_patch[patch_type].y, _ref_vector_patch[patch_type].z);*/
 
 	  }
@@ -494,8 +494,8 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 }
 
 /*OLD 3/6/16
-template<typename number>
-void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+
+void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **particles) {
         //printf("PI, read_topology\n");
 
         //Is this needed?
@@ -513,8 +513,8 @@ void PatchyInteractionDan<number>::read_topology(int N, int *N_strands, BasePart
 
 }*/
 
-template<typename number>
-void PatchyInteractionDan<number>::allocate_particles(BaseParticle<number> **particles, int N) {
+
+void PatchyInteractionDan::allocate_particles(BaseParticle **particles, int N) {
         //printf("PI, allocate_particles\n");
 
         int particle_number = 0;
@@ -530,8 +530,8 @@ void PatchyInteractionDan<number>::allocate_particles(BaseParticle<number> **par
 
 	    //Create new arrays
 	    //Define number of columns in each row (one row for each particle, one column for each patch on that particle)
-	    _patch_vectors_particle[particle_number] = new LR_vector<number>[_N_patches_type[part_type]];
-	    _ref_vectors_particle[particle_number] = new LR_vector<number>[_N_patches_type[part_type]];
+	    _patch_vectors_particle[particle_number] = new LR_vector[_N_patches_type[part_type]];
+	    _ref_vectors_particle[particle_number] = new LR_vector[_N_patches_type[part_type]];
 
 	    for (int patch = 0; patch < _N_patches_type[part_type]; patch++) {
 	      //printf("AP0 _patch_type_of[part_type %d][patch %d] %d\n", part_type, patch, _patch_type_of[part_type][patch]);
@@ -577,7 +577,7 @@ void PatchyInteractionDan<number>::allocate_particles(BaseParticle<number> **par
         for (particle_number = 0; particle_number < _N_particles; particle_number++) {
 	  //printf("Allocating particle %d, _patches_on_particle %d, _particle_type_of %d\n", particle_number, _patches_on_particle[particle_number], _particle_type_of[particle_number]);
 
-	  particles[particle_number] = new PatchyParticleDan<number>(_patches_on_particle[particle_number], _patch_vectors_particle[particle_number], _ref_vectors_particle[particle_number], _tor_flag);
+	  particles[particle_number] = new PatchyParticleDan(_patches_on_particle[particle_number], _patch_vectors_particle[particle_number], _ref_vectors_particle[particle_number], _tor_flag);
 
 	  //printf("Allocated particle %d\n", particle_number);
 
@@ -586,8 +586,8 @@ void PatchyInteractionDan<number>::allocate_particles(BaseParticle<number> **par
 }
 
 //All interactions are nonbonded
-template<typename number>
-number PatchyInteractionDan<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number PatchyInteractionDan::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
         //printf("PI, pair_interaction\n");
 
         //Currently only MC (not MD) simulations supported
@@ -597,18 +597,18 @@ number PatchyInteractionDan<number>::pair_interaction(BaseParticle<number> *p, B
 }
 
 //No bonded interaction, so always 0
-template<typename number>
-number PatchyInteractionDan<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number PatchyInteractionDan::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
         //printf("PI, pair_interaction_bonded\n");
 
 	return (number) 0.f;
 }
 
-template<typename number>
-number PatchyInteractionDan<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number PatchyInteractionDan::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
         //printf("PI, pair_interaction_nonbonded\n");
 
-	LR_vector<number> computed_r(0, 0, 0);
+	LR_vector computed_r(0, 0, 0);
 
 	//?? If r is not given, it computes it itself
 	if(r == NULL) {
@@ -625,8 +625,8 @@ number PatchyInteractionDan<number>::pair_interaction_nonbonded(BaseParticle<num
 
 /*16-06-07
 //?? Don't think this is used
-template<typename number>
-void PatchyInteractionDan<number>::generate_random_configuration(BaseParticle<number> **particles, int N, number box_side) {
+
+void PatchyInteractionDan::generate_random_configuration(BaseParticle **particles, int N, number box_side) {
         //printf("PI, generate_random_configuration\n");
 
 	number old_rcut = this->_rcut;
@@ -636,11 +636,11 @@ void PatchyInteractionDan<number>::generate_random_configuration(BaseParticle<nu
 	this->_create_cells(particles, N, box_side, true);
 
 	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = particles[i];
+		BaseParticle *p = particles[i];
 		bool inserted = false;
 		int cell_index;
 		do {
-			p->pos = LR_vector<number>(drand48()*box_side, drand48()*box_side, drand48()*box_side);
+			p->pos = LR_vector(drand48()*box_side, drand48()*box_side, drand48()*box_side);
 			cell_index = (int) ((p->pos.x / box_side - floor(p->pos.x / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side);
 			cell_index += this->_cells_N_side * ((int) ((p->pos.y / box_side - floor(p->pos.y / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
 			cell_index += this->_cells_N_side * this->_cells_N_side * ((int) ((p->pos.z / box_side - floor(p->pos.z / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
@@ -649,7 +649,7 @@ void PatchyInteractionDan<number>::generate_random_configuration(BaseParticle<nu
 			for(int c = 0; c < 27; c ++) {
 				int j = this->_cells_head[this->_cells_neigh[cell_index][c]];
 				while (j != P_INVALID) {
-					BaseParticle<number> *q = particles[j];
+					BaseParticle *q = particles[j];
 					if(p->pos.minimum_image(q->pos, box_side).norm() < SQR(this->_rcut)) inserted = false;
 					j = this->_cells_next[q->index];
 				}
@@ -661,10 +661,10 @@ void PatchyInteractionDan<number>::generate_random_configuration(BaseParticle<nu
 		this->_cells_index[i] = cell_index;
 		this->_cells_next[i] = old_head;
 
-		p->orientation.v1 = Utils::get_random_vector<number>();
-		p->orientation.v2 = Utils::get_random_vector<number>();
-		p->orientation.v3 = Utils::get_random_vector<number>();
-		Utils::orthonormalize_matrix<number>(p->orientation);
+		p->orientation.v1 = Utils::get_random_vector();
+		p->orientation.v2 = Utils::get_random_vector();
+		p->orientation.v3 = Utils::get_random_vector();
+		Utils::orthonormalize_matrix(p->orientation);
 	}
 
 	this->_rcut = old_rcut;
@@ -672,8 +672,8 @@ void PatchyInteractionDan<number>::generate_random_configuration(BaseParticle<nu
 }
 */
 
-template<typename number>
-void PatchyInteractionDan<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
+
+void PatchyInteractionDan::check_input_sanity(BaseParticle **particles, int N) {
 }
 
 template class PatchyInteractionDan<float>;
