@@ -62,6 +62,3 @@ number MutualTrap::potential (llint step, LR_vector &pos) {
 	LR_vector dr = this->_distance(pos, this->_box_ptr->get_abs_pos(_p_ptr));
 	return pow (dr.module() - (_r0 + (this->_rate * step)), 2) * ((number) 0.5) * this->_stiff;
 }
-
-template class MutualTrap<double>;
-template class MutualTrap<float>;

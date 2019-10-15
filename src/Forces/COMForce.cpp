@@ -15,18 +15,15 @@
 
 using namespace std;
 
-
 COMForce::COMForce() {
 	_r0 = 0;
 	_last_step = -1;
 	_box_ptr = NULL;
 }
 
-
 COMForce::~COMForce() {
 
 }
-
 
 void COMForce::get_settings(input_file &inp) {
 	getInputString(&inp, "com_list", _com_string, 1);
@@ -41,11 +38,9 @@ void COMForce::get_settings(input_file &inp) {
 	_r0 = r0;
 }
 
-
 void COMForce::_check_index(int idx, int N) {
 	if(idx < 0 || idx >= N) throw oxDNAException("COMForce: invalid id %d", idx);
 }
-
 
 void COMForce::init(BaseParticle **particles, int N, BaseBox * box_ptr) {
 	_box_ptr = box_ptr;
@@ -66,7 +61,6 @@ void COMForce::init(BaseParticle **particles, int N, BaseBox * box_ptr) {
 	OX_LOG(Logger::LOG_INFO, "Adding a COM force of stiffness = %lf and r0 = %lf", this->_stiff, _r0);
 }
 
-
 void COMForce::_compute_coms(llint step) {
 	if(step != _last_step) {
 		_com = _ref_com = LR_vector(0, 0, 0);
@@ -84,21 +78,16 @@ void COMForce::_compute_coms(llint step) {
 	}
 }
 
-
 LR_vector COMForce::value(llint step, LR_vector &pos) {
 	_compute_coms(step);
 	LR_vector dist = (_ref_com - _com);
 	number d_com = dist.module();
 	number force = (d_com - _r0) * this->_stiff / _com_list.size();
 
-	return dist * (force/d_com);
+	return dist * (force / d_com);
 }
-
 
 number COMForce::potential(llint step, LR_vector &pos) {
 	_compute_coms(step);
 	return 0.5 * this->_stiff * SQR((_ref_com - _com).module() - _r0) / _com_list.size();
 }
-
-template class COMForce<double>;
-template class COMForce<float>;

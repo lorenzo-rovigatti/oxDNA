@@ -9,17 +9,16 @@
 #include "../Utilities/oxDNAException.h"
 #include "../Particles/BaseParticle.h"
 
-
-HardWall::HardWall() : BaseForce() {
+HardWall::HardWall() :
+				BaseForce() {
 	_particle = -1;
 	_position = -1.;
 	this->_stiff = 1;
 	_sigma = 1.;
 }
 
-
-void HardWall::get_settings (input_file &inp) {
-	getInputInt (&inp, "particle", &_particle, 1);
+void HardWall::get_settings(input_file &inp) {
+	getInputInt(&inp, "particle", &_particle, 1);
 
 	getInputNumber(&inp, "position", &this->_position, 1);
 	getInputNumber(&inp, "sigma", &this->_sigma, 0);
@@ -27,18 +26,17 @@ void HardWall::get_settings (input_file &inp) {
 	int tmpi;
 	double tmpf[3];
 	std::string strdir;
-	getInputString (&inp, "dir", strdir, 1);
+	getInputString(&inp, "dir", strdir, 1);
 	tmpi = sscanf(strdir.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
-	if (tmpi != 3) throw oxDNAException ("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
-	this->_direction = LR_vector ((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
+	if(tmpi != 3) throw oxDNAException("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
+	this->_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	this->_direction.normalize();
 }
 
-
-void HardWall::init (BaseParticle ** particles, int N, BaseBox *box_ptr) {
-	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a HardWall on non-existent particle %d. Aborting", _particle);
-	if (_particle != -1) {
-		OX_LOG (Logger::LOG_INFO, "Adding HardWall (position=%g, dir=%g,%g,%g, sigma=%g) on particle %d", this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _particle);
+void HardWall::init(BaseParticle ** particles, int N, BaseBox *box_ptr) {
+	if(_particle >= N || N < -1) throw oxDNAException("Trying to add a HardWall on non-existent particle %d. Aborting", _particle);
+	if(_particle != -1) {
+		OX_LOG(Logger::LOG_INFO, "Adding HardWall (position=%g, dir=%g,%g,%g, sigma=%g) on particle %d", this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _particle);
 		particles[_particle]->add_ext_force(ForcePtr(this));
 	}
 	else { // force affects all particles
@@ -49,17 +47,12 @@ void HardWall::init (BaseParticle ** particles, int N, BaseBox *box_ptr) {
 	}
 }
 
-
 LR_vector HardWall::value(llint step, LR_vector &pos) {
 	throw oxDNAException("HardWall can be used only in Monte Carlo simulations.");
 }
 
-
-number HardWall::potential (llint step, LR_vector &pos) {
-	number distance = (this->_direction*pos + this->_position)/_sigma; // distance from the plane in units of _sigma
+number HardWall::potential(llint step, LR_vector &pos) {
+	number distance = (this->_direction * pos + this->_position) / _sigma; // distance from the plane in units of _sigma
 	if(distance < 1.) return 10e8;
 	return 0.;
 }
-
-template class HardWall<double>;
-template class HardWall<float>;

@@ -10,7 +10,6 @@
 #include "../Particles/BaseParticle.h"
 #include "../Boxes/BaseBox.h"
 
-
 RepulsiveSphereSmooth::RepulsiveSphereSmooth() :
 				BaseForce() {
 	_particle = -1;
@@ -21,7 +20,6 @@ RepulsiveSphereSmooth::RepulsiveSphereSmooth() :
 	_smooth = -1.;
 	_box_ptr = NULL;
 }
-
 
 void RepulsiveSphereSmooth::get_settings(input_file &inp) {
 	getInputNumber(&inp, "stiff", &this->_stiff, 1);
@@ -40,7 +38,6 @@ void RepulsiveSphereSmooth::get_settings(input_file &inp) {
 	}
 }
 
-
 void RepulsiveSphereSmooth::init(BaseParticle ** particles, int N, BaseBox *box_ptr) {
 	if(this->_particle >= N || N < -1) throw oxDNAException("Trying to add a RepulsiveSphereSmooth on non-existent particle %d. Aborting", this->_particle);
 	if(this->_particle != -1) {
@@ -55,7 +52,6 @@ void RepulsiveSphereSmooth::init(BaseParticle ** particles, int N, BaseBox *box_
 	}
 	_box_ptr = box_ptr;
 }
-
 
 LR_vector RepulsiveSphereSmooth::value(llint step, LR_vector &pos) {
 	LR_vector dist = _box_ptr->min_image(this->_center, pos);
@@ -74,7 +70,6 @@ LR_vector RepulsiveSphereSmooth::value(llint step, LR_vector &pos) {
 	}
 }
 
-
 number RepulsiveSphereSmooth::potential(llint step, LR_vector &pos) {
 	LR_vector dist = _box_ptr->min_image(this->_center, pos);
 	number mdist = dist.module();
@@ -85,7 +80,3 @@ number RepulsiveSphereSmooth::potential(llint step, LR_vector &pos) {
 		else return (this->_stiff * mdist + this->_stiff * 0.5 * _smooth * exp(-(mdist - _alpha) / _smooth));
 	}
 }
-
-template class RepulsiveSphereSmooth<double> ;
-template class RepulsiveSphereSmooth<float> ;
-

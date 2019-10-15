@@ -10,21 +10,20 @@
 
 #include "BaseForce.h"
 
-
-class MovingTrap : public BaseForce {
+class MovingTrap: public BaseForce {
 private:
 	int _particle;
 
 public:
-	MovingTrap ();
-	virtual ~MovingTrap() {}
+	MovingTrap();
+	virtual ~MovingTrap() {
+	}
 
-	void get_settings (input_file &);
-	void init (BaseParticle **, int, BaseBox *);
+	void get_settings(input_file &);
+	void init(BaseParticle **, int, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);
 };
-
 
 #endif // MOVINGTRAP_H

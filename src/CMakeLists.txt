@@ -68,7 +68,13 @@ SET(backends_SOURCES
 	Backends/MD_CPUBackend.cpp 
 	Backends/MC_CPUBackend.cpp
 	Backends/MC_CPUBackend2.cpp
-	Backends/VMMC_CPUBackend.cpp 
+	Backends/VMMC_CPUBackend.cpp
+	Backends/MinBackend.cpp
+	Backends/FIREBackend.cpp
+	Backends/FIREBackend.h
+	Backends/FFS_MD_CPUBackend.cpp
+	Backends/Thermostats/SRDThermostat.cpp
+	Backends/Thermostats/DPDThermostat.cpp
 	Backends/Thermostats/ThermostatFactory.cpp
 	Backends/Thermostats/BaseThermostat.cpp
 	Backends/Thermostats/NoThermostat.cpp
@@ -76,14 +82,6 @@ SET(backends_SOURCES
 	Backends/Thermostats/RefreshThermostat.cpp
 	Backends/Thermostats/BussiThermostat.cpp
 	Backends/Thermostats/LangevinThermostat.cpp
-)
-SET(roba
-	Backends/MinBackend.cpp
-	Backends/FIREBackend.cpp
-	Backends/FIREBackend.h
-	Backends/FFS_MD_CPUBackend.cpp
-	Backends/Thermostats/SRDThermostat.cpp
-	Backends/Thermostats/DPDThermostat.cpp
 )
 
 SET(lists_SOURCES
@@ -139,9 +137,6 @@ SET(move_SOURCES
 SET(forces_SOURCES
 	Forces/ForceFactory.cpp
 	Forces/BaseForce.cpp
-)
-
-set(roba 
 	Forces/COMForce.cpp
 	Forces/ConstantRateForce.cpp
 	Forces/SawtoothForce.cpp

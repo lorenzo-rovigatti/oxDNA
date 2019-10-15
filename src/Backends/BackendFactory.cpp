@@ -11,12 +11,11 @@
 #include "MC_CPUBackend.h"
 #include "MC_CPUBackend2.h"
 #include "VMMC_CPUBackend.h"
-
-/*#include "FFS_MD_CPUBackend.h"
+#include "FFS_MD_CPUBackend.h"
 #include "FFS_MD_CPUBackend.h"
 #include "MinBackend.h"
 #include "FIREBackend.h"
-#ifndef NOCUDA
+/*#ifndef NOCUDA
 #include "../CUDA/Backends/MD_CUDABackend.h"
 #include "../CUDA/Backends/MD_CUDAMixedBackend.h"
 #include "../CUDA/Backends/FFS_MD_CUDAMixedBackend.h"
@@ -104,31 +103,21 @@ std::shared_ptr<ISimBackend> BackendFactory::make_backend(input_file &inp) {
 
 	}
 #endif
-	/*else if(!strcmp (sim_type, "min")) {
+	else if(!strcmp (sim_type, "min")) {
 			if(!strcmp(backend_opt, "CPU")) {
-				if(!strcmp(backend_prec, "double")) new_backend = new MinBackend<double>();
-				else if(!strcmp(backend_prec, "float")) {
-					new_backend = new MinBackend<float>();
-				}
-				else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
+				new_backend = new MinBackend();
 			}
 			else throw oxDNAException("Backend '%s' not supported with sim_type = %s", backend_opt, sim_type);
 	}
 	else if(!strcmp (sim_type, "FIRE")) {
 			if(!strcmp(backend_opt, "CPU")) {
-				if(!strcmp(backend_prec, "double")) new_backend = new FIREBackend<double>();
-				else if(!strcmp(backend_prec, "float")) {
-					new_backend = new FIREBackend<float>();
-				}
-				else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
+				new_backend = new FIREBackend();
 			}
 			else throw oxDNAException("Backend '%s' not supported with sim_type = %s", backend_opt, sim_type);
 	}
 	else if(!strcmp (sim_type, "FFS_MD")) {
 		if(!strcmp(backend_opt, "CPU")) {
-			if(!strcmp(backend_prec, "double")) new_backend = new FFS_MD_CPUBackend<double>();
-			else if(!strcmp(backend_prec, "float")) new_backend = new FFS_MD_CPUBackend<float>();
-			else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
+			new_backend = new FFS_MD_CPUBackend();
 		}
 #ifndef NOCUDA
 		else if(!strcmp(backend_opt, "CUDA")) {
@@ -137,7 +126,7 @@ std::shared_ptr<ISimBackend> BackendFactory::make_backend(input_file &inp) {
 		}
 #endif
 		else throw oxDNAException("Backend '%s' not supported", backend_opt);
-	}*/
+	}
 	else throw oxDNAException("Simulation type '%s' not supported", sim_type);
 
 	return std::shared_ptr<ISimBackend>(new_backend);

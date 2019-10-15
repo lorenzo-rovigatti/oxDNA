@@ -11,28 +11,26 @@
 
 using namespace std;
 
-
-ConstantRateForce::ConstantRateForce() : BaseForce() {
+ConstantRateForce::ConstantRateForce() :
+				BaseForce() {
 	_particles_string = "\0";
 	dir_as_centre = false;
 }
-
 
 ConstantRateForce::~ConstantRateForce() {
 
 }
 
-
 void ConstantRateForce::get_settings(input_file &inp) {
 	std::string particles_string;
-	getInputString (&inp, "particle", _particles_string, 1);
+	getInputString(&inp, "particle", _particles_string, 1);
 
-	getInputNumber (&inp, "F0", &this->_F0, 1);
-	getInputNumber (&inp, "rate", &this->_rate, 1);
+	getInputNumber(&inp, "F0", &this->_F0, 1);
+	getInputNumber(&inp, "rate", &this->_rate, 1);
 	getInputBool(&inp, "dir_as_centre", &this->dir_as_centre, 0);
 
 	string strdir;
-	getInputString (&inp, "dir", strdir, 1);
+	getInputString(&inp, "dir", strdir, 1);
 	vector<string> spl = Utils::split(strdir, ',');
 	if(spl.size() != 3) throw oxDNAException("Could not parse 'dir' in external_forces_file. Dying badly");
 
@@ -43,12 +41,10 @@ void ConstantRateForce::get_settings(input_file &inp) {
 	if(!dir_as_centre) this->_direction.normalize();
 }
 
-
 void ConstantRateForce::init(BaseParticle **particles, int N, BaseBox * box_ptr) {
 	std::string force_description = Utils::sformat("ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g)", this->_F0, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z);
 	this->_add_self_to_particles(particles, N, _particles_string, force_description);
 }
-
 
 LR_vector ConstantRateForce::value(llint step, LR_vector &pos) {
 	LR_vector dir = this->_direction;
@@ -56,10 +52,9 @@ LR_vector ConstantRateForce::value(llint step, LR_vector &pos) {
 		dir -= pos;
 		dir.normalize();
 	}
-	LR_vector force = (this->_F0 + this->_rate*step)*dir;
+	LR_vector force = (this->_F0 + this->_rate * step) * dir;
 	return force;
 }
-
 
 number ConstantRateForce::potential(llint step, LR_vector &pos) {
 	number strength = -(this->_F0 + this->_rate * step);
@@ -69,7 +64,3 @@ number ConstantRateForce::potential(llint step, LR_vector &pos) {
 	}
 	return strength * (pos * this->_direction);
 }
-
-template class ConstantRateForce<double>;
-template class ConstantRateForce<float>;
-

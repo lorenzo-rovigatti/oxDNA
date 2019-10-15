@@ -10,8 +10,21 @@
 
 #include "BaseForce.h"
 
+class LookupTable {
+public:
+	LookupTable();
+	~LookupTable();
 
-class LookupTable;
+	void init(std::string filename, int N);
+	number query_function(number x);
+	number query_derivative(number x);
+private:
+	number _linear_interpolation(number x, std::vector<number> &x_data, std::vector<number> &fx_data);
+
+	int _N;
+	number _delta, _inv_sqr_delta, _xlow, _xupp;
+	std::vector<number> _A, _B, _C, _D;
+};
 
 /**
  * @brief A customizable radial force.
@@ -21,7 +34,6 @@ class LookupTable;
  center = <float>,<float>,<float> (the centre from which the force originates from)
  @endverbatim
  */
-
 class GenericCentralForce: public BaseForce {
 private:
 	std::string _particles_string;
@@ -51,24 +63,6 @@ public:
 	LR_vector center;
 	number inner_cut_off, inner_cut_off_sqr;
 	number outer_cut_off, outer_cut_off_sqr;
-};
-
-
-class LookupTable {
-public:
-	LookupTable() {
-		_N = -1;
-	}
-
-	void init(std::string filename, int N);
-	number query_function(number x);
-	number query_derivative(number x);
-private:
-	number _linear_interpolation(number x, std::vector &x_data, std::vector &fx_data);
-
-	int _N;
-	number _delta, _inv_sqr_delta, _xlow, _xupp;
-	std::vector _A, _B, _C, _D;
 };
 
 #endif /* GENERICCENTRALFORCE_H_ */

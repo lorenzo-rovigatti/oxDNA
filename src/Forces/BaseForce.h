@@ -14,8 +14,8 @@
 #include "../Utilities/Utils.h"
 
 // forward declarations of BaseParticle and BaseBox; needed to compile
- class BaseParticle;
- class BaseBox;
+class BaseParticle;
+class BaseBox;
 
 /**
  * @brief Base class for external forces. All external forces inherit from here.
@@ -50,7 +50,7 @@ protected:
 	 * @param particle_string a list of particles
 	 * @param force_description an optional description (defaults to "generic force") that will be used in the logging messages
 	 */
-	void _add_self_to_particles(BaseParticle **particles, int N, std::string particle_string, std::string force_description=std::string("force"));
+	void _add_self_to_particles(BaseParticle **particles, int N, std::string particle_string, std::string force_description = std::string("force"));
 
 public:
 	/**
@@ -84,10 +84,14 @@ public:
 	 * This function initialises the force object and assignes 
 	 * it to the relevant particles.
 	 */
-	virtual void init(BaseParticle **particles, int N, BaseBox * box) = 0; 
+	virtual void init(BaseParticle **particles, int N, BaseBox * box) = 0;
 
-	virtual void set_group_name(std::string &name) { _group_name = name; }
-	virtual std::string get_group_name() { return _group_name; }
+	virtual void set_group_name(std::string &name) {
+		_group_name = name;
+	}
+	virtual std::string get_group_name() {
+		return _group_name;
+	}
 
 	/**
 	 * @brief returns value of the force (a vector)
@@ -96,16 +100,15 @@ public:
 	 * @param pos position of the particle
 	 */
 	virtual LR_vector value(llint step, LR_vector &pos) = 0;
-	
+
 	/**
 	 * @brief returns value of the potential associated to the force (a number)
 	 *
 	 * @param step useful for forces that depend on time
 	 * @param pos position of the particle
 	 */
-	virtual number potential (llint step, LR_vector &pos) = 0;
+	virtual number potential(llint step, LR_vector &pos) = 0;
 };
-
 
 using ForcePtr = std::shared_ptr<BaseForce>;
 

@@ -11,19 +11,19 @@
 #include "BaseForce.h"
 
 /// Constant Torque implemented as moving traps
-
-class ConstantRateTorque : public BaseForce {
+class ConstantRateTorque: public BaseForce {
 private:
 	int _particle;
 
 public:
 	LR_vector _center, _pos0, _axis, _mask;
 	number _rate;
-	ConstantRateTorque ();
-	virtual ~ConstantRateTorque() {}
+	ConstantRateTorque();
+	virtual ~ConstantRateTorque() {
+	}
 
-	void get_settings (input_file &);
-	void init (BaseParticle **, int, BaseBox *);
+	void get_settings(input_file &);
+	void init(BaseParticle **, int, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

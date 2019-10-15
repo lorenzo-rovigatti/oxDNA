@@ -10,10 +10,9 @@
 
 #include "BaseForce.h"
 
- class BaseParticle;
+class BaseParticle;
 
-
-class ConstantTrap : public BaseForce {
+class ConstantTrap: public BaseForce {
 private:
 	int _particle;
 	int _ref_id;
@@ -24,11 +23,12 @@ public:
 	bool PBC;
 	BaseBox * _box_ptr;
 
-	ConstantTrap ();
-	virtual ~ConstantTrap() {}
+	ConstantTrap();
+	virtual ~ConstantTrap() {
+	}
 
-	void get_settings (input_file &);
-	void init (BaseParticle **, int, BaseBox *);
+	void get_settings(input_file &);
+	void init(BaseParticle **, int, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

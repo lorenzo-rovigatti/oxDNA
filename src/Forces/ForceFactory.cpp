@@ -7,7 +7,7 @@
 
 #include "ForceFactory.h"
 
-/*#include "COMForce.h"
+#include "COMForce.h"
 #include "ConstantRateForce.h"
 #include "SawtoothForce.h"
 #include "ConstantRateTorque.h"
@@ -23,7 +23,7 @@
 #include "RepulsiveSphereSmooth.h"
 #include "AlignmentField.h"
 #include "GenericCentralForce.h"
-#include "LJCone.h"*/
+#include "LJCone.h"
 
 #include <fstream>
 #include <sstream>
@@ -44,7 +44,7 @@ ForceFactory::~ForceFactory() {
 }
 
 
-ForceFactory * ForceFactory::instance() {
+ForceFactory *ForceFactory::instance() {
 	if (_ForceFactoryPtr == NULL) _ForceFactoryPtr = new ForceFactory();
 
 	return _ForceFactoryPtr;
@@ -58,7 +58,7 @@ void ForceFactory::add_force(input_file &inp, BaseParticle **particles, int N, b
 
 	ForcePtr extF;
 	
-	/*if (type_str.compare("string") == 0) extF = std::make_shared<ConstantRateForce>();
+	if (type_str.compare("string") == 0) extF = std::make_shared<ConstantRateForce>();
 	else if (type_str.compare("sawtooth") == 0) extF = std::make_shared<SawtoothForce>();
 	else if (type_str.compare("twist") == 0) extF = std::make_shared<ConstantRateTorque>();
 	else if (type_str.compare("trap") == 0) extF = std::make_shared<MovingTrap>();
@@ -75,7 +75,7 @@ void ForceFactory::add_force(input_file &inp, BaseParticle **particles, int N, b
 	else if (type_str.compare("alignment_field") == 0) extF = std::make_shared<AlignmentField>();
 	else if (type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
 	else if (type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
-	else*/ throw oxDNAException ("Invalid force type `%s\'", type_str.c_str());
+	else throw oxDNAException ("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
 	getInputString(&inp, "group_name", group, 0);

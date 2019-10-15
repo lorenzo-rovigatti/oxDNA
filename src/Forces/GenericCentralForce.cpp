@@ -13,132 +13,19 @@
 
 using namespace std;
 
-
-GenericCentralForce::GenericCentralForce() :
-				BaseForce() {
-	_particles_string = "\0";
-	_type = -1;
-	_table_N = -1;
-	_E_shift = 0.;
-
-	inner_cut_off = 0.;
-	outer_cut_off = 0.;
-	_supported_types[string("gravity")] = GRAVITY;
-	_supported_types[string("interpolated")] = INTERPOLATED;
+LookupTable::LookupTable() {
+	_N = -1;
+	_xupp = -1.;
+	_xlow = -1.;
+	_inv_sqr_delta = -1.;
+	_delta = -1.;
 }
 
-
-GenericCentralForce::~GenericCentralForce() {
+LookupTable::~LookupTable() {
 
 }
 
-
-void GenericCentralForce::get_settings(input_file &inp) {
-	string particles_string;
-	getInputString(&inp, "particle", _particles_string, 1);
-
-	getInputNumber(&inp, "E_shift", &_E_shift, 0);
-
-	string strdir;
-	getInputString(&inp, "center", strdir, 1);
-	vector<string> spl = Utils::split(strdir, ',');
-	if(spl.size() != 3) throw oxDNAException("Could not parse 'center' in external_forces_file. Dying badly");
-
-	center.x = atof(spl[0].c_str());
-	center.y = atof(spl[1].c_str());
-	center.z = atof(spl[2].c_str());
-
-	string type_str;
-	getInputString(&inp, "force_type", type_str, 1);
-	map<string, int>::iterator res = _supported_types.find(type_str);
-	if(res == _supported_types.end()) throw oxDNAException("GenericCentralForce: unsupported type '%s'", type_str.c_str());
-
-	_type = res->second;
-	switch(_type) {
-	case GRAVITY:
-		getInputNumber(&inp, "F0", &this->_F0, 1);
-		getInputNumber(&inp, "inner_cut_off", &inner_cut_off, 0);
-		getInputNumber(&inp, "outer_cut_off", &outer_cut_off, 0);
-		break;
-	case INTERPOLATED:
-		getInputString(&inp, "potential_file", _table_filename, 1);
-		getInputInt(&inp, "interpolated_N", &_table_N, 1);
-		break;
-	default:
-		break;
-	}
-}
-
-
-void GenericCentralForce::init(BaseParticle **particles, int N, BaseBox *box_ptr) {
-	std::string force_description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
-	this->_add_self_to_particles(particles, N, _particles_string, force_description);
-
-	inner_cut_off_sqr = SQR(inner_cut_off);
-	outer_cut_off_sqr = SQR(outer_cut_off);
-
-	switch(_type) {
-	case INTERPOLATED:
-		_table.init(_table_filename, _table_N);
-		break;
-	default:
-		break;
-	}
-}
-
-
-LR_vector GenericCentralForce::value(llint step, LR_vector &pos) {
-	LR_vector dir = center - pos;
-	number dist_sqr = dir.norm();
-	dir.normalize();
-
-	switch(_type) {
-	case GRAVITY:
-		if(dist_sqr < inner_cut_off_sqr) {
-			return LR_vector(0., 0., 0.);
-		}
-		if(outer_cut_off > 0. && dist_sqr > outer_cut_off_sqr) {
-			return LR_vector(0., 0., 0.);
-		}
-
-		return this->_F0 * dir;
-	case INTERPOLATED:
-		return _table.query_derivative(sqrt(dist_sqr)) * dir;
-	}
-
-	// we should never reach this point, but we return something to remove warnings
-	return LR_vector(0., 0., 0.);
-}
-
-
-number GenericCentralForce::potential(llint step, LR_vector &pos) {
-	number dist = (center - pos).module();
-	number energy = 0.f;
-
-	switch(_type) {
-	case GRAVITY:
-		if(dist < inner_cut_off) {
-			energy = 0.;
-		}
-		else if(outer_cut_off > 0. && dist > outer_cut_off) {
-			energy = 0.;
-		}
-		else {
-			energy = this->_F0 * dist - this->_F0 * inner_cut_off + _E_shift;
-		}
-		break;
-	case INTERPOLATED:
-		energy = _table.query_function(dist);
-		break;
-	}
-	return energy;
-}
-
-template class GenericCentralForce<double> ;
-template class GenericCentralForce<float> ;
-
-
-number LookupTable::_linear_interpolation(number x, vector &x_data, vector &fx_data) {
+number LookupTable::_linear_interpolation(number x, vector<number> &x_data, vector<number> &fx_data) {
 	int ind = -1;
 	for(uint32_t i = 0; i < x_data.size() && ind == -1; i++) {
 		if(x_data[i] > x) ind = i;
@@ -158,14 +45,13 @@ number LookupTable::_linear_interpolation(number x, vector &x_data, vector &fx_d
 	return val;
 }
 
-
 void LookupTable::init(std::string filename, int N) {
 	_N = N;
 
 	ifstream input(filename.c_str());
 	if(!input.good()) throw oxDNAException("GenericCentralForce: potential_file '%s' not found", filename.c_str());
 
-	vector v_x, v_fx, v_dfx;
+	vector<number> v_x, v_fx, v_dfx;
 	while(input.good()) {
 		number x, fx, dfx;
 		input >> x >> fx >> dfx;
@@ -206,7 +92,6 @@ void LookupTable::init(std::string filename, int N) {
 	}
 }
 
-
 inline number LookupTable::query_function(number x) {
 	if(x <= _xlow) return _A[0];
 	if(x >= _xupp) return _A[_N];
@@ -215,12 +100,127 @@ inline number LookupTable::query_function(number x) {
 	return (_A[i] + dx * (_B[i] + dx * (_C[i] + dx * _D[i]) * _inv_sqr_delta));
 }
 
-
 inline number LookupTable::query_derivative(number x) {
 	if(x < _xlow) return _B[0];
 	if(x >= _xupp) return _B[_N];
 	int i = (int) ((x - _xlow) / _delta);
 	number dx = x - _xlow - _delta * i;
 	return (_B[i] + (2 * dx * _C[i] + 3 * SQR(dx) * _D[i]) * _inv_sqr_delta);
+}
+
+
+GenericCentralForce::GenericCentralForce() :
+				BaseForce() {
+	_particles_string = "\0";
+	_type = -1;
+	_table_N = -1;
+	_E_shift = 0.;
+
+	inner_cut_off = 0.;
+	outer_cut_off = 0.;
+	_supported_types[string("gravity")] = GRAVITY;
+	_supported_types[string("interpolated")] = INTERPOLATED;
+}
+
+GenericCentralForce::~GenericCentralForce() {
+
+}
+
+void GenericCentralForce::get_settings(input_file &inp) {
+	string particles_string;
+	getInputString(&inp, "particle", _particles_string, 1);
+
+	getInputNumber(&inp, "E_shift", &_E_shift, 0);
+
+	string strdir;
+	getInputString(&inp, "center", strdir, 1);
+	vector<string> spl = Utils::split(strdir, ',');
+	if(spl.size() != 3) throw oxDNAException("Could not parse 'center' in external_forces_file. Dying badly");
+
+	center.x = atof(spl[0].c_str());
+	center.y = atof(spl[1].c_str());
+	center.z = atof(spl[2].c_str());
+
+	string type_str;
+	getInputString(&inp, "force_type", type_str, 1);
+	map<string, int>::iterator res = _supported_types.find(type_str);
+	if(res == _supported_types.end()) throw oxDNAException("GenericCentralForce: unsupported type '%s'", type_str.c_str());
+
+	_type = res->second;
+	switch(_type) {
+	case GRAVITY:
+		getInputNumber(&inp, "F0", &this->_F0, 1);
+		getInputNumber(&inp, "inner_cut_off", &inner_cut_off, 0);
+		getInputNumber(&inp, "outer_cut_off", &outer_cut_off, 0);
+		break;
+	case INTERPOLATED:
+		getInputString(&inp, "potential_file", _table_filename, 1);
+		getInputInt(&inp, "interpolated_N", &_table_N, 1);
+		break;
+	default:
+		break;
+	}
+}
+
+void GenericCentralForce::init(BaseParticle **particles, int N, BaseBox *box_ptr) {
+	std::string force_description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
+	this->_add_self_to_particles(particles, N, _particles_string, force_description);
+
+	inner_cut_off_sqr = SQR(inner_cut_off);
+	outer_cut_off_sqr = SQR(outer_cut_off);
+
+	switch(_type) {
+	case INTERPOLATED:
+		_table.init(_table_filename, _table_N);
+		break;
+	default:
+		break;
+	}
+}
+
+LR_vector GenericCentralForce::value(llint step, LR_vector &pos) {
+	LR_vector dir = center - pos;
+	number dist_sqr = dir.norm();
+	dir.normalize();
+
+	switch(_type) {
+	case GRAVITY:
+		if(dist_sqr < inner_cut_off_sqr) {
+			return LR_vector(0., 0., 0.);
+		}
+		if(outer_cut_off > 0. && dist_sqr > outer_cut_off_sqr) {
+			return LR_vector(0., 0., 0.);
+		}
+
+		return this->_F0 * dir;
+	case INTERPOLATED:
+		return _table.query_derivative(sqrt(dist_sqr)) * dir;
+	}
+
+	// we should never reach this point, but we return something to remove warnings
+	return LR_vector(0., 0., 0.);
+}
+
+number GenericCentralForce::potential(llint step, LR_vector &pos) {
+	number dist = (center - pos).module();
+	number energy = 0.f;
+
+	switch(_type) {
+	case GRAVITY:
+		if(dist < inner_cut_off) {
+			energy = 0.;
+		}
+		else if(outer_cut_off > 0. && dist > outer_cut_off) {
+			energy = 0.;
+		}
+		else {
+			energy = this->_F0 * dist - this->_F0 * inner_cut_off + _E_shift;
+		}
+		break;
+	case INTERPOLATED:
+		energy = _table.query_function(dist);
+		break;
+	}
+	return energy;
 }
 

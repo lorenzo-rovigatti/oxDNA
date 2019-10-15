@@ -10,21 +10,21 @@
 
 #include "BaseForce.h"
 
-
-class LowdimMovingTrap : public BaseForce {
+class LowdimMovingTrap: public BaseForce {
 private:
 	int _particle;
 
 public:
-	LowdimMovingTrap ();
-	virtual ~LowdimMovingTrap() {}
+	LowdimMovingTrap();
+	virtual ~LowdimMovingTrap() {
+	}
 
 	bool _visX;
 	bool _visY;
 	bool _visZ;
 
-	void get_settings (input_file &inp);
-	void init (BaseParticle **, int, BaseBox *);
+	void get_settings(input_file &inp);
+	void init(BaseParticle **, int, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

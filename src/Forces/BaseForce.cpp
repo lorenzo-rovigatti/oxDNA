@@ -8,8 +8,7 @@
 #include "BaseForce.h"
 #include "../Particles/BaseParticle.h"
 
-
-BaseForce::BaseForce () {
+BaseForce::BaseForce() {
 	_F0 = -1.;
 	_rate = -1.;
 	_direction = LR_vector(1., 0., 0.);
@@ -19,11 +18,9 @@ BaseForce::BaseForce () {
 	_p_ptr = P_VIRTUAL;
 }
 
-
-BaseForce::~BaseForce () {
+BaseForce::~BaseForce() {
 
 }
-
 
 void BaseForce::_add_self_to_particles(BaseParticle **particles, int N, std::string particle_string, std::string force_description) {
 	auto particle_indices_vector = Utils::getParticlesFromString(particles, N, particle_string, force_description.c_str());
@@ -31,7 +28,7 @@ void BaseForce::_add_self_to_particles(BaseParticle **particles, int N, std::str
 	if(particle_indices_vector[0] != -1) {
 		for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 			particles[particle_indices_vector[i]]->add_ext_force(ForcePtr(this));
-			OX_LOG (Logger::LOG_INFO, "Adding a %s on particle %d", force_description.c_str(), particle_indices_vector[i]);
+			OX_LOG(Logger::LOG_INFO, "Adding a %s on particle %d", force_description.c_str(), particle_indices_vector[i]);
 		}
 	}
 	else { // force affects all particles

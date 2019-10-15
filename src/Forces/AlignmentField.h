@@ -14,7 +14,7 @@
 /// The pos0 vector is pointing to the halfplane where the
 /// repulsion is not acting!
 
-class AlignmentField : public BaseForce {
+class AlignmentField: public BaseForce {
 private:
 	int _particle;
 	number _F;
@@ -27,11 +27,12 @@ public:
 	number _sigma;
 	number _cutoff;
 
-	AlignmentField ();
-	virtual ~AlignmentField() {}
+	AlignmentField();
+	virtual ~AlignmentField() {
+	}
 
-	void get_settings (input_file &);
-	void init (BaseParticle **, int, BaseBox *);
+	void get_settings(input_file &);
+	void init(BaseParticle **, int, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

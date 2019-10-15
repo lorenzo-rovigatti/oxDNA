@@ -17,7 +17,6 @@
 
 #define MAX_BOND_CUTOFF (0.f)
 
-
 /**
  * @brief This class implements an MD algorithm, and stops if conditions are met. The conditions are specified
  * in a file (say ffs.txt, and one has to put ffs_file = ffs.txt into input file)
@@ -45,10 +44,10 @@
  *  Note that cutoff option is relevant only for FFS backend. It is ignored by all other Backends and Observables
  *
  @verbatim
-backend = CPU (For CPU FFS)
-backend_precision = <any> (CPU FFS may use any precision allowed for a normal CPU MD simulation)
-sim_type = FFS_MD (This must be set for an FFS simulation)
-@endverbatim
+ backend = CPU (For CPU FFS)
+ backend_precision = <any> (CPU FFS may use any precision allowed for a normal CPU MD simulation)
+ sim_type = FFS_MD (This must be set for an FFS simulation)
+ @endverbatim
  */
 
 struct parsed_expression {
@@ -68,7 +67,9 @@ public:
 
 	int parameter_index;
 
-	parsed_expression() : expression_type(-1) { }
+	parsed_expression() :
+					expression_type(-1) {
+	}
 	bool parse_expression(const char *expression, OrderParameters *op);
 
 	parsed_expression(const char *expression, OrderParameters *op) {
@@ -82,12 +83,11 @@ public:
 struct parsed_condition {
 	std::vector<parsed_expression> all_expressions;
 
-
 	bool parse_condition(const char *expression, OrderParameters *op);
 
-	parsed_condition(void) {}
-	parsed_condition(const char *expression, OrderParameters *op)
-	{
+	parsed_condition(void) {
+	}
+	parsed_condition(const char *expression, OrderParameters *op) {
 		parse_condition(expression, op);
 	}
 	bool eval_condition(OrderParameters *op);
@@ -119,8 +119,7 @@ protected:
 
 	number _sqr_rcut;
 	void _ffs_compute_forces(void);
-	number pair_interaction_nonbonded_DNA_with_op(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces=false) ;
-
+	number pair_interaction_nonbonded_DNA_with_op(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces = false);
 
 public:
 	FFS_MD_CPUBackend();
@@ -132,7 +131,7 @@ public:
 
 	virtual void get_settings(input_file &inp);
 
-	void init ();
+	void init();
 
 	void sim_step(llint cur_step);
 	char * get_op_state_str(void);

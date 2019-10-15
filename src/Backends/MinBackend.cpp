@@ -12,36 +12,31 @@
 
 #include <sstream>
 
-
-MinBackend::MinBackend() : MDBackend() {
+MinBackend::MinBackend() :
+				MDBackend() {
 	this->_is_CUDA_sim = false;
 
 	_max_step = 0.005;
 }
 
-
 MinBackend::~MinBackend() {
 
 }
 
-
-void MinBackend::get_settings (input_file &inp) {
+void MinBackend::get_settings(input_file &inp) {
 	MDBackend::get_settings(inp);
 
-	getInputNumber (&inp, "minimization_max_step", &_max_step, 0);
+	getInputNumber(&inp, "minimization_max_step", &_max_step, 0);
 
 }
 
-
-void MinBackend::init () {
+void MinBackend::init() {
 	MDBackend::init();
 
 	_compute_forces();
-	
+
 	OX_LOG(Logger::LOG_INFO, "Using max step for minimization = %g", _max_step);
 }
-
-
 
 void MinBackend::_compute_forces() {
 	this->_U = this->_U_hydr = (number) 0;
@@ -57,19 +52,18 @@ void MinBackend::_compute_forces() {
 	}
 }
 
-
-void MinBackend::_evolve () {
+void MinBackend::_evolve() {
 	// find maximum force
 	number max_f = -1.f;
 	number max_t = -1.f;
 
-	for (int i = 0; i < this->_N; i ++) {
+	for(int i = 0; i < this->_N; i++) {
 		BaseParticle *p = this->_particles[i];
 		number tmp = p->force.norm();
-		if (tmp > max_f) max_f = tmp;
-		
+		if(tmp > max_f) max_f = tmp;
+
 		tmp = p->torque.norm();
-		if (tmp > max_t) max_t = tmp;
+		if(tmp > max_t) max_t = tmp;
 
 	}
 
@@ -83,10 +77,10 @@ void MinBackend::_evolve () {
 	//if (fact_l < 1.f) fact_l = 1.f;
 
 	// we evolve all the particles' position
-	for (int i = 0; i < this->_N; i ++) {
+	for(int i = 0; i < this->_N; i++) {
 		BaseParticle *p = this->_particles[i];
 		p->pos = p->pos + p->force / fact_r;
-		if (p->is_rigid_body()) {
+		if(p->is_rigid_body()) {
 			// update of the orientation
 			number norm = p->torque.module();
 			LR_vector LVersor(p->torque / norm);
@@ -102,9 +96,7 @@ void MinBackend::_evolve () {
 			number ysin = LVersor[1] * sintheta;
 			number zsin = LVersor[2] * sintheta;
 
-			LR_matrix R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
-						xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin,
-						xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
+			LR_matrix R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin, xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin, xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
 
 			p->orientation = p->orientation * R;
 			// set back, base and stack positions
@@ -118,10 +110,9 @@ void MinBackend::_evolve () {
 	return;
 }
 
-
 void MinBackend::sim_step(llint curr_step) {
 	this->_mytimer->resume();
-	
+
 	for(int i = 0; i < this->_N; i++) {
 		this->_particles[i]->set_initial_forces(curr_step, this->_box);
 	}
@@ -136,18 +127,15 @@ void MinBackend::sim_step(llint curr_step) {
 	this->_timer_forces->resume();
 	_compute_forces();
 	this->_timer_forces->pause();
-	
+
 	// here we normalize forces
 	//for (int i = 0; i < this->_N; i ++) {
 	//	BaseParticle * p = this->_particles[i];
 	//	if (p->force.module() > 0.1) p->force = p->force * (0.1 / p->force.module());
 	//}
-	
+
 	_evolve();
 
 	this->_mytimer->pause();
 }
-
-template class MinBackend<float>;
-template class MinBackend<double>;
 

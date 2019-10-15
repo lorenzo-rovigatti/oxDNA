@@ -27,14 +27,14 @@
  * to the "com_list" list.
  *
  * @verbatim
-stiff = <float> (stiffness of the spring)
-r0 = <float> (equilibrium elongation of the spring)
-com_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is subject to the force)
-ref_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is the reference point for the force acting on the other group of particles)
-@endverbatim
+ stiff = <float> (stiffness of the spring)
+ r0 = <float> (equilibrium elongation of the spring)
+ com_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is subject to the force)
+ ref_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is the reference point for the force acting on the other group of particles)
+ @endverbatim
  */
 
-class COMForce : public BaseForce {
+class COMForce: public BaseForce {
 protected:
 	number _r0;
 	llint _last_step;

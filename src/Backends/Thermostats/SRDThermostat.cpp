@@ -11,16 +11,21 @@
 
 #include <cfloat>
 
-
-SRDThermostat::SRDThermostat(BaseBox *box) : BaseThermostat(), _box(box) {
+SRDThermostat::SRDThermostat(BaseBox *box) :
+				BaseThermostat(),
+				_box(box) {
 	_cells = NULL;
 	_srd_particles = NULL;
 	_N_particles = 0;
 	_N_cells = _N_cells_side = _N_per_cell = 0;
 	_apply_every = 0;
 	_rescale_factor = 0.;
+	_m = -1.;
+	_r_cell = -1.;
+	_T = -1.;
+	_is_cuda = false;
+	_dt = -1.;
 }
-
 
 SRDThermostat::~SRDThermostat() {
 	if(!_is_cuda) {
@@ -29,10 +34,9 @@ SRDThermostat::~SRDThermostat() {
 	}
 }
 
-
 void SRDThermostat::get_settings(input_file &inp) {
 	BaseThermostat::get_settings(inp);
-	
+
 	CHECK_BOX("SRDThermostat", inp);
 
 	float tmp;
@@ -52,12 +56,11 @@ void SRDThermostat::get_settings(input_file &inp) {
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
 	_T = Utils::get_temperature(raw_T);
-	
+
 	_rescale_factor = sqrt(_T); // for particles with mass 1
-	
+
 	OX_LOG(Logger::LOG_INFO, "SRD thermostat: T=%g, r_cell: %g, N_per_cell: %d, rescale_factor: %g", _T, _r_cell, _N_per_cell, _rescale_factor);
 }
-
 
 void SRDThermostat::init(int N_part) {
 	BaseThermostat::init(N_part);
@@ -77,7 +80,7 @@ void SRDThermostat::init(int N_part) {
 		_cells = new SRDCell[_N_cells];
 		_srd_particles = new SRDParticle[_N_particles + N_part];
 
-		number rescale_factor = sqrt(_T/_m);
+		number rescale_factor = sqrt(_T / _m);
 		for(int i = 0; i < _N_particles; i++) {
 			_srd_particles[i].r.x = drand48() * L;
 			_srd_particles[i].r.y = drand48() * L;
@@ -87,14 +90,13 @@ void SRDThermostat::init(int N_part) {
 			_srd_particles[i].v.y = Utils::gaussian() * rescale_factor;
 			_srd_particles[i].v.z = Utils::gaussian() * rescale_factor;
 
-			_srd_particles[i].L = LR_vector (0., 0., 0.);
+			_srd_particles[i].L = LR_vector(0., 0., 0.);
 		}
 	}
 }
 
-
 int SRDThermostat::_get_cell_index(LR_vector &r) {
-	LR_vector norm_in_box = _box->normalised_in_box(r)*_N_cells_side;
+	LR_vector norm_in_box = _box->normalised_in_box(r) * _N_cells_side;
 	int ind[3];
 	ind[0] = (int) norm_in_box.x;
 	ind[1] = (int) norm_in_box.y;
@@ -102,7 +104,6 @@ int SRDThermostat::_get_cell_index(LR_vector &r) {
 
 	return (ind[0] * _N_cells_side + ind[1]) * _N_cells_side + ind[2];
 }
-
 
 void SRDThermostat::apply(BaseParticle **particles, llint curr_step) {
 	if(_is_cuda) throw oxDNAException("The apply method of the SRD thermostat has been called on the CPU on a CUDA-enabled simulation. This should not happen.");
@@ -117,8 +118,8 @@ void SRDThermostat::apply(BaseParticle **particles, llint curr_step) {
 // angular momenta of the solute particles are refreshed
 
 void SRDThermostat::apply1(BaseParticle **particles, llint curr_step) {
-	if (!(curr_step % _apply_every == 0)) return;
-	
+	if(!(curr_step % _apply_every == 0)) return;
+
 	number L = _box->box_sides()[0];
 	for(int i = 0; i < _N_cells; i++) {
 		_cells[i].P = LR_vector(0., 0., 0.);  // total momentum
@@ -129,8 +130,8 @@ void SRDThermostat::apply1(BaseParticle **particles, llint curr_step) {
 		x = i % _N_cells_side;
 		y = (i / _N_cells_side) % _N_cells_side;
 		z = (i / _N_cells_side / _N_cells_side) % _N_cells_side;
-		 // center of cell
-		_cells[i].centre = LR_vector ((x + 0.5) * L / _N_cells_side, (y + 0.5) * L / _N_cells_side, (z + 0.5) * L / _N_cells_side);
+		// center of cell
+		_cells[i].centre = LR_vector((x + 0.5) * L / _N_cells_side, (y + 0.5) * L / _N_cells_side, (z + 0.5) * L / _N_cells_side);
 	}
 
 	// put particles in cells and find out average
@@ -143,15 +144,15 @@ void SRDThermostat::apply1(BaseParticle **particles, llint curr_step) {
 		int ind = _get_cell_index(p->r);
 		p->cell_index = ind;
 		SRDCell *c = _cells + ind;
-		
+
 		// need to add this BEFORE refreshing
 		c->P += _m * p->v; // linear momentum 
-		
+
 		// new velocity; later on we correct to get conservation
 		// of linar momentum within each cell. For now, we just
 		// refresh the velocity completely
-		p->v = LR_vector (Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * (_rescale_factor / sqrt_m);
-		
+		p->v = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * (_rescale_factor / sqrt_m);
+
 		// store the contribution to mass, linear and angular momentum of cell
 		c->PR += _m * p->v;
 		c->tot_mass += _m;
@@ -165,48 +166,48 @@ void SRDThermostat::apply1(BaseParticle **particles, llint curr_step) {
 
 		int ind = _get_cell_index(p->pos);
 		SRDCell *c = _cells + ind;
-		
+
 		// need to add this BEFORE refreshing
 		c->P += p->vel; // linear momentum, mass = 1 
-		
+
 		// we refresh the linear and angular momentum completely; later on, we
 		// will correct to get conservation of linear and angular momentum
 		// within each cell
-		p->vel = LR_vector (Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
+		p->vel = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
 		p->L = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
-		
+
 		// store the contribution to the total mass and spin inertia
 		c->PR += p->vel;
 		c->tot_mass += (number) 1.f;
-		
+
 		// regular particles have to be given a cell, so we use srd particles
 		// to assign cell indexes and copy the velocity;
 		SRDParticle *fake_p = _srd_particles + (_N_particles + i);
 		fake_p->v = p->vel;
 		fake_p->L = p->L;
 		fake_p->cell_index = ind;
-		
+
 		fake_p->next = c->head;
 		c->head = fake_p;
 	}
-	
+
 	for(int i = 0; i < _N_cells; i++) {
 		SRDCell *c = _cells + i;
-		
-		if (c-> tot_mass > 0.) {
+
+		if(c->tot_mass > 0.) {
 			c->P /= c->tot_mass;
 			c->PR /= c->tot_mass;
 		}
-		
+
 		//printf ("%d (%g %g) %g %g %g -- %g %g %g %g@@\n", i, c->tot_mass, c->tot_I, c->P.module(), c->L.module(), c->L_spin.module(), c->PR.module(), c->LR.module(), c->LR_spin.module(), c->dLgn.module()); 
 	}
-	
+
 	// update velocities of SRD particles
 	for(int i = 0; i < _N_particles; i++) {
 		SRDParticle *p = _srd_particles + i;
 		p->v += _cells[p->cell_index].P - _cells[p->cell_index].PR;
 	}
-	
+
 	// update velocities and angular momenta
 	// of solute particles
 	//return;
@@ -344,6 +345,3 @@ void SRDThermostat::apply1(BaseParticle **particles, llint curr_step) {
 //		p->L = fake_p->L + c->L_spin - c->LR_spin - c->dLgn;
 //	}
 //}
-
-template class SRDThermostat<float>;
-template class SRDThermostat<double>;

@@ -13,8 +13,7 @@
 /// pos0 * (x,y,z) + position = 0 is the definition of the plane.
 /// The pos0 vector is pointing to the halfplane where the
 /// repulsion is not acting!
-
-class LJCone : public BaseForce {
+class LJCone: public BaseForce {
 private:
 	int _particle;
 	bool _only_repulsive;
@@ -29,10 +28,11 @@ public:
 	number _cutoff;
 
 	LJCone();
-	virtual ~LJCone() {}
+	virtual ~LJCone() {
+	}
 
-	void get_settings (input_file &);
-	void init (BaseParticle **, int, BaseBox *);
+	void get_settings(input_file &);
+	void init(BaseParticle **, int, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

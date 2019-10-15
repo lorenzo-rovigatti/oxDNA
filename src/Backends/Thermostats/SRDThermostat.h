@@ -44,7 +44,7 @@ struct SRDCell {
  * @brief Incapsulates a stochastic rotation dynamics thermostat (see https://en.wikipedia.org/wiki/Multi-particle_collision_dynamics).
  */
 
-class SRDThermostat : public BaseThermostat {
+class SRDThermostat: public BaseThermostat {
 protected:
 	int _N_per_cell;
 	number _r_cell;
