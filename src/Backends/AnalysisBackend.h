@@ -30,7 +30,7 @@ public:
 	/**
 	 * @brief This method does nothing, exactly as it is supposed to do.
 	 *
-	 * It is only implemented because it is a purely virtual method in ISimBackend.
+	 * It is only implemented because it is a purely virtual method in SimBackend.
 	 * Yes, it is a design flaw, I am aware of that :-)
 	 * @param cur_step
 	 */

@@ -34,7 +34,7 @@ BackendFactory::~BackendFactory() {
 
 }
 
-std::shared_ptr<ISimBackend> BackendFactory::make_backend(input_file &inp) {
+std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 	char backend_opt[256], backend_prec[256], sim_type[256];
 	getInputString(&inp, "backend", backend_opt, 1);
 
@@ -54,7 +54,7 @@ std::shared_ptr<ISimBackend> BackendFactory::make_backend(input_file &inp) {
 		OX_LOG(Logger::LOG_WARNING, "\nThe 'backend_precision' option cannot be set by input file when running on CPU\n");
 	}
 
-	ISimBackend *new_backend = NULL;
+	SimBackend *new_backend = NULL;
 	if(!strcmp(sim_type, "MD")) {
 		if(!strcmp(backend_opt, "CPU")) {
 			new_backend = new MD_CPUBackend();
@@ -129,5 +129,5 @@ std::shared_ptr<ISimBackend> BackendFactory::make_backend(input_file &inp) {
 	}
 	else throw oxDNAException("Simulation type '%s' not supported", sim_type);
 
-	return std::shared_ptr<ISimBackend>(new_backend);
+	return std::shared_ptr<SimBackend>(new_backend);
 }

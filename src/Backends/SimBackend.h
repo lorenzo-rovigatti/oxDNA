@@ -21,107 +21,56 @@
 
 using namespace std;
 
- class IBaseInteraction;
- class BaseBox;
- class BaseList;
- class BaseParticle;
- class ObservableOutput;
- class ConfigInfo;
+class IBaseInteraction;
+class BaseBox;
+class BaseList;
+class BaseParticle;
+class ObservableOutput;
+class ConfigInfo;
 class Timer;
-
-/**
- * @brief Defines the backend interface. It is an abstract class.
- */
-class ISimBackend {
-public:
-	ISimBackend() : _start_step_from_file(0) {};
-	virtual ~ISimBackend() {};
-
-	llint _start_step_from_file;
-
-	/**
-	 * @brief Loads all the required settings from the input file.
-	 *
-	 * @param inp
-	 */
-	virtual void get_settings(input_file &inp) = 0;
-
-	/**
-	 * @brief Initializes the backend.
-	 *
-	 * @param path
-	 */
-	virtual void init() = 0;
-
-	/**
-	 * @brief Performs a simulation step.
-	 *
-	 * @param curr_step
-	 */
-	virtual void sim_step(llint curr_step) = 0;
-	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false) = 0;
-
-	/**
-	 * @brief Returns how many times verlet lists have been updated.
-	 *
-	 * @return number of Verlet lists updates
-	 */
-	virtual int get_N_updates() = 0;
-
-	/**
-	 * @brief Prints the observables attached to the backend.
-	 *
-	 * @param curr_step
-	 */
-	virtual void print_observables(llint curr_step) = 0;
-
-	virtual void fix_diffusion() = 0;
-
-	virtual void print_equilibration_info() = 0;
-};
 
 /**
  * @brief Base backend class. Every backend inherits from this class.
  *
  * @verbatim
-T = <float> (temperature of the simulation. It can be expressed in simulation units or kelvin (append a k or K after the value) or celsius (append a c or C after the value).)
+ T = <float> (temperature of the simulation. It can be expressed in simulation units or kelvin (append a k or K after the value) or celsius (append a c or C after the value).)
 
-[fix_diffusion = <bool> (if true, particles that leave the simulation box are brought back in via periodic boundary conditions. Defaults to true.)]
-[seed = <int> (seed for the random number generator. On Unix systems, defaults to either a number from /dev/urandom or to time(NULL))]
+ [fix_diffusion = <bool> (if true, particles that leave the simulation box are brought back in via periodic boundary conditions. Defaults to true.)]
+ [seed = <int> (seed for the random number generator. On Unix systems, defaults to either a number from /dev/urandom or to time(NULL))]
 
-[confs_to_skip = <int> (how many configurations should be skipped before using the next one as the initial configuration, defaults to 0)]
-restart_step_counter = <boolean> (false means that the step counter will start from the value read in the configuration file, true means that the step counter will start from 0)
+ [confs_to_skip = <int> (how many configurations should be skipped before using the next one as the initial configuration, defaults to 0)]
+ restart_step_counter = <boolean> (false means that the step counter will start from the value read in the configuration file, true means that the step counter will start from 0)
 
-[external_forces = <bool> (specifies whether there are external forces acting on the nucleotides or not. If it is set to 1, then a file which specifies the external forces' configuration has to be provided (see external_forces_file))]
-[external_forces_file = <path> (specifies the file containing all the external forces' configurations. Currently there are six supported force types: string, twist, trap, repulsion_plane, repulsion_plane_moving and mutual_trap (see EXAMPLES/TRAPS for some examples))]
+ [external_forces = <bool> (specifies whether there are external forces acting on the nucleotides or not. If it is set to 1, then a file which specifies the external forces' configuration has to be provided (see external_forces_file))]
+ [external_forces_file = <path> (specifies the file containing all the external forces' configurations. Currently there are six supported force types: string, twist, trap, repulsion_plane, repulsion_plane_moving and mutual_trap (see EXAMPLES/TRAPS for some examples))]
 
-[back_in_box = <bool> (whether particles should be brought back into the box when a configuration is printed or not, defaults to false)]
+ [back_in_box = <bool> (whether particles should be brought back into the box when a configuration is printed or not, defaults to false)]
 
-[lastconf_file = <path> (path to the file where the last configuration will be dumped)]
-trajectory_file = <path> (path to the file which will contain the output trajectory of the simulation)
+ [lastconf_file = <path> (path to the file where the last configuration will be dumped)]
+ trajectory_file = <path> (path to the file which will contain the output trajectory of the simulation)
 
-[binary_initial_conf = <bool> (whether the initial configuration is a binary configuration or not, defaults to false)]
-[lastconf_file_bin = <path> (path to the file where the last configuration will be printed in binary format, if not specified no binary configurations will be printed)]
+ [binary_initial_conf = <bool> (whether the initial configuration is a binary configuration or not, defaults to false)]
+ [lastconf_file_bin = <path> (path to the file where the last configuration will be printed in binary format, if not specified no binary configurations will be printed)]
 
-[print_reduced_conf_every = <int> (every how many time steps configurations containing only the centres of mass of the strands should be printed. If 0, no reduced configurations will be printed)]
-[reduced_conf_output_dir = <path> (path to the folder where reduced configurations will be printed)]
+ [print_reduced_conf_every = <int> (every how many time steps configurations containing only the centres of mass of the strands should be printed. If 0, no reduced configurations will be printed)]
+ [reduced_conf_output_dir = <path> (path to the folder where reduced configurations will be printed)]
 
-[no_stdout_energy = <bool> (if true oxDNA will not print the default simulation output, including the energy, to stdout. Defaults to false)]
+ [no_stdout_energy = <bool> (if true oxDNA will not print the default simulation output, including the energy, to stdout. Defaults to false)]
 
-[print_timings = <bool> (whether oxDNA should print out to a file performance timings at the end of the simulation or not, defaults to false)]
-[timings_filename = <path> (path to the file where timings will be printed)]
+ [print_timings = <bool> (whether oxDNA should print out to a file performance timings at the end of the simulation or not, defaults to false)]
+ [timings_filename = <path> (path to the file where timings will be printed)]
 
-[output_prefix = <string> (the name of all output files will be preceded by this prefix, defaults to an empty string)]
+ [output_prefix = <string> (the name of all output files will be preceded by this prefix, defaults to an empty string)]
 
-[checkpoint_every = <int> (If > 0, it enables the production of checkpoints, which have a binary format. Beware that trajectories that do have this option enabled will differ from trajectories that do not. If this key is specified, at least one of checkpoint_file and checkpoint_trajectory needs to be specified)]
-[checkpoint_file = <string> (File name for the last checkpoint. If not specified, the last checkpoint will not be printed separately)]
-[checkpoint_trajectory = <string> (File name for the checkpoint trajectory. If not specified, only the last checkpoint will be printed)]
-[reload_from = <string> (checkpoint to reload from. This option is incompatible with the keys conf_file and seed, and requires restart_step_counter=0 as well as binary_initial_conf!=1)]
+ [checkpoint_every = <int> (If > 0, it enables the production of checkpoints, which have a binary format. Beware that trajectories that do have this option enabled will differ from trajectories that do not. If this key is specified, at least one of checkpoint_file and checkpoint_trajectory needs to be specified)]
+ [checkpoint_file = <string> (File name for the last checkpoint. If not specified, the last checkpoint will not be printed separately)]
+ [checkpoint_trajectory = <string> (File name for the checkpoint trajectory. If not specified, only the last checkpoint will be printed)]
+ [reload_from = <string> (checkpoint to reload from. This option is incompatible with the keys conf_file and seed, and requires restart_step_counter=0 as well as binary_initial_conf!=1)]
 
-@endverbatim
+ @endverbatim
  */
 
-class SimBackend: public ISimBackend{
+class SimBackend {
 protected:
 	std::string _backend_info;
 
@@ -228,7 +177,7 @@ protected:
 	 * @param binary whether conf_file is to be parsed in ascii or binary format
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool _read_next_configuration(bool binary=false);
+	bool _read_next_configuration(bool binary = false);
 
 	int _get_N_from_conf(ifstream &conf_input);
 
@@ -243,14 +192,48 @@ public:
 	SimBackend();
 	virtual ~SimBackend();
 
+	/**
+	 * @brief Loads all the required settings from the input file.
+	 *
+	 * @param inp
+	 */
 	virtual void get_settings(input_file &inp);
+	/**
+	 * @brief Initializes the backend.
+	 *
+	 * @param path
+	 */
 	virtual void init();
 
-	int get_N_updates() {return _N_updates; }
+	/**
+	 * @brief Returns how many times verlet lists have been updated.
+	 *
+	 * @return number of Verlet lists updates
+	 */
+	int get_N_updates() {
+		return _N_updates;
+	}
+
 	virtual void fix_diffusion();
 	virtual void print_equilibration_info();
+
+	/**
+	 * @brief Prints the observables attached to the backend.
+	 *
+	 * @param curr_step
+	 */
 	virtual void print_observables(llint curr_step);
-	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
+
+	virtual void print_conf(llint curr_step, bool reduced = false, bool only_last = false);
+
+	/**
+	 * @brief Performs a simulation step.
+	 *
+	 * @param curr_step
+	 */
+	virtual void sim_step(llint curr_step) = 0;
+
+	llint _start_step_from_file;
 };
 
 #endif /* SIMBACKEND_H_ */
