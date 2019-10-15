@@ -17,22 +17,22 @@
  *
  * The supported syntax is (optional values are between [])
  * @verbatim
-[back_in_box = <bool> (if true the particle positions will be brought back in the box, defaults to false)]
-[show = <int>,<int>,... (list of comma-separated particle indexes whose positions will be put into the final configuration)]
-[hide = <int>,<int>,... (list of comma-separated particle indexes whose positions won't be put into the final configuration)]
-[reduced = <bool> (if true only the strand centres of mass will be printed, defaults to false)]
+ [back_in_box = <bool> (if true the particle positions will be brought back in the box, defaults to false)]
+ [show = <int>,<int>,... (list of comma-separated particle indexes whose positions will be put into the final configuration)]
+ [hide = <int>,<int>,... (list of comma-separated particle indexes whose positions won't be put into the final configuration)]
+ [reduced = <bool> (if true only the strand centres of mass will be printed, defaults to false)]
  @endverbatim
  * Note that you cannot put both the 'show' and 'hide' keys in the input file.
  * If you do so, the 'hide' key will not be considered.
  */
 
-class Configuration: public BaseObservable  {
+class Configuration: public BaseObservable {
 protected:
 	bool _back_in_box;
 	bool _reduced;
 	std::set<int> _visible_particles;
 	std::set<int> _hidden_particles;
-	std::map<int, LR_vector > _strands_cdm;
+	std::map<int, LR_vector> _strands_cdm;
 	int _only_type;
 
 	/**
@@ -62,7 +62,7 @@ protected:
 	/**
 	 * @brief A auxiliary function that fills _strands_cdm, a vector with the c.o.m. of the strands;
 	 */
-	void _fill_strands_cdm ();
+	void _fill_strands_cdm();
 
 	TotalEnergy _tot_energy;
 
@@ -70,7 +70,7 @@ public:
 	Configuration();
 	virtual ~Configuration();
 
-	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
+	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 	virtual void init(ConfigInfo &config_info);
 	std::string get_output_string(llint curr_step);
 };

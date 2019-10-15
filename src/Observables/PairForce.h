@@ -17,8 +17,8 @@
  * with that id will be printed. To use this observable, use type = pair_force.
  *
  * @verbatim
-[particle_id = <int> (Optional argument. particle id.)]
-@endverbatim
+ [particle_id = <int> (Optional argument. particle id.)]
+ @endverbatim
  */
 
 class PairForce: public BaseObservable {

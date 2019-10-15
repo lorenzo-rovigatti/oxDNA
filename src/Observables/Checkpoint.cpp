@@ -9,27 +9,20 @@
 
 #include "Checkpoint.h"
 
-
 Checkpoint::Checkpoint() {
 
 }
-
 
 Checkpoint::~Checkpoint() {
 
 }
 
-
 void Checkpoint::init(ConfigInfo &config_info) {
 	_conf.init(config_info);
-	this->_config_info = config_info; 
+	this->_config_info = config_info;
 }
-
 
 string Checkpoint::get_output_string(llint curr_step) {
 	this->_config_info.lists->global_update(true);
 	return _conf.get_output_string(curr_step);
 }
-
-template class Checkpoint<float>;
-template class Checkpoint<double>;

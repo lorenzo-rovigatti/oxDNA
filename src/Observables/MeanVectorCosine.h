@@ -19,15 +19,14 @@
  *
  * This observable takes one mandatory argument and three optional arguments
  * @verbatim
-chain_id = <int> (chain id)
-first_particle_position = <int> (defaults to 0. position along the chain of  the first particle on which to compute the vector's cosine with the next particle)
-last_particle_position = <int> (defaults to N-2, where N is the number of elements of the chain. Position along the chain of the last particle over which to compute the vector's cosine with the next particle)
-vector_to_average = <int> (defaults to 1. Can be 1,2, or 3 depending on the vectors we wish to consider, or 0. In that case it measures the quantity (v2*v2')(v3*v3') - |v2 ^ v2||v3 ^ v3|)
-@endverbatim
+ chain_id = <int> (chain id)
+ first_particle_position = <int> (defaults to 0. position along the chain of  the first particle on which to compute the vector's cosine with the next particle)
+ last_particle_position = <int> (defaults to N-2, where N is the number of elements of the chain. Position along the chain of the last particle over which to compute the vector's cosine with the next particle)
+ vector_to_average = <int> (defaults to 1. Can be 1,2, or 3 depending on the vectors we wish to consider, or 0. In that case it measures the quantity (v2*v2')(v3*v3') - |v2 ^ v2||v3 ^ v3|)
+ @endverbatim
  */
 
-
-class MeanVectorCosine : public BaseObservable {
+class MeanVectorCosine: public BaseObservable {
 private:
 	// arguments
 	int _chain_id;

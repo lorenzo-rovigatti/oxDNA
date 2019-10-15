@@ -18,9 +18,9 @@
  * @brief Outputs the relevant angle and position variables for the coaxial stacking term between 2 specified particles in the oxDNA potential
  *
  * @verbatim
-particle1_id = <int> (particle 1 id)
-particle2_id = <int> (particle 2 id)
-@endverbatim
+ particle1_id = <int> (particle 1 id)
+ particle2_id = <int> (particle 2 id)
+ @endverbatim
  */
 
 class CoaxVariables: public BaseObservable {

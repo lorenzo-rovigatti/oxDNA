@@ -15,8 +15,7 @@
 #include "TotalEnergy.h"
 #include "Configurations/Configuration.h"
 #include "BackendInfo.h"
-
-/*#include "HBEnergy.h"
+#include "HBEnergy.h"
 #include "PairEnergy.h"
 #include "PairForce.h"
 #include "OrderParameterValues.h"
@@ -56,7 +55,7 @@
 #include "Configurations/TclOutput.h"
 #include "Configurations/TEPtclOutput.h"
 #include "Configurations/TEPxyzOutput.h"
-#include "Configurations/JordanOutput.h"*/
+#include "Configurations/JordanOutput.h"
 
 ObservableFactory::ObservableFactory() {
 
@@ -65,7 +64,6 @@ ObservableFactory::ObservableFactory() {
 ObservableFactory::~ObservableFactory() {
 
 }
-
 
 BaseObservable *ObservableFactory::make_observable(input_file &obs_inp, input_file &sim_inp) {
 	char obs_type[512];
@@ -79,8 +77,7 @@ BaseObservable *ObservableFactory::make_observable(input_file &obs_inp, input_fi
 	else if(!strncasecmp(obs_type, "total_energy", 512)) res = new TotalEnergy();
 	else if(!strncasecmp(obs_type, "backend_info", 512)) res = new BackendInfo();
 	else if(!strncasecmp(obs_type, "configuration", 512)) res = new Configuration();
-
-	/*else if(!strncasecmp(obs_type, "hb_energy", 512)) res = new HBEnergy();
+	else if(!strncasecmp(obs_type, "hb_energy", 512)) res = new HBEnergy();
 	else if(!strncasecmp(obs_type, "pair_energy", 512)) res = new PairEnergy();
 	else if(!strncasecmp(obs_type, "pair_force", 512)) res = new PairForce();
 	else if(!strncasecmp(obs_type, "hb_list", 512)) res = new HBList();
@@ -119,12 +116,12 @@ BaseObservable *ObservableFactory::make_observable(input_file &obs_inp, input_fi
 	else if(!strncasecmp(obs_type, "plectoneme_position", 512)) res = new PlectonemePosition();
 	else if(!strncasecmp(obs_type, "average_energy", 512)) res = new AverageEnergy();
 	else if(!strncasecmp(obs_type, "contact_map", 512)) res = new ContactMap();
-	else if(!strncasecmp(obs_type, "all_vectors", 512)) res = new AllVectors();*/
+	else if(!strncasecmp(obs_type, "all_vectors", 512)) res = new AllVectors();
 	else {
 		res = PluginManager::instance()->get_observable(obs_type);
-		if(res == NULL) throw oxDNAException ("Observable '%s' not found. Aborting", obs_type);
+		if(res == NULL) throw oxDNAException("Observable '%s' not found. Aborting", obs_type);
 	}
-	
+
 	res->get_settings(obs_inp, sim_inp);
 
 	return res;

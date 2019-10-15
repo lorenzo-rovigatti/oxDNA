@@ -14,8 +14,8 @@
 
 using namespace std;
 
-
-ObservableOutput::ObservableOutput(std::string &stream_string, input_file &sim_inp) : _prefix("") {
+ObservableOutput::ObservableOutput(std::string &stream_string, input_file &sim_inp) :
+				_prefix("") {
 	_sim_inp = sim_inp;
 	_start_from = 0;
 	_stop_at = -1;
@@ -58,7 +58,7 @@ ObservableOutput::ObservableOutput(std::string &stream_string, input_file &sim_i
 		_log_next = _log_n0;
 		_log_pos_in_cycle = 1;
 		_log_n_cycle = 0;
-		_log_tot_cycle = (llint) round(_log_n0 * pow(_log_fact, (number)(_log_ppc - 1.)));
+		_log_tot_cycle = (llint) round(_log_n0 * pow(_log_fact, (number) (_log_ppc - 1.)));
 	}
 	else getInputLLInt(obs_input, "print_every", &_print_every, 1);
 
@@ -79,24 +79,22 @@ ObservableOutput::ObservableOutput(std::string &stream_string, input_file &sim_i
 	delete obs_input;
 }
 
-
 ObservableOutput::~ObservableOutput() {
 	if(_output_stream.is_open()) _output_stream.close();
 	clear();
 }
 
-
 void ObservableOutput::_open_output() {
-	if(!strncmp (_output_name.c_str(), "stderr", 512)) _output = &std::cerr;
-	else if (!strncmp (_output_name.c_str(), "stdout", 512)) _output = &std::cout;
+	if(!strncmp(_output_name.c_str(), "stderr", 512)) _output = &std::cerr;
+	else if(!strncmp(_output_name.c_str(), "stdout", 512)) _output = &std::cout;
 	else {
 		if(!_only_last) {
-			if(_append && !_update_name_with_time)	{
+			if(_append && !_update_name_with_time) {
 				if(_is_binary) _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
 				else _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
 			}
 			else {
-				if (_is_binary) _output_stream.open(_output_name.c_str(), ios::binary);
+				if(_is_binary) _output_stream.open(_output_name.c_str(), ios::binary);
 				else _output_stream.open(_output_name.c_str());
 			}
 		}
@@ -107,21 +105,20 @@ void ObservableOutput::_open_output() {
 	if(_output->bad() || !_output->good()) throw oxDNAException("Stream %s not writable", _output_name.c_str());
 }
 
-
 void ObservableOutput::init(ConfigInfo &config_info) {
 	if(!_update_name_with_time) _open_output();
 
 	typename vector<BaseObservable *>::iterator it;
-	for(it = _obss.begin(); it != _obss.end(); it++) (*it)->init(config_info);
+	for(it = _obss.begin(); it != _obss.end(); it++)
+		(*it)->init(config_info);
 }
-
 
 void ObservableOutput::clear() {
 	typename vector<BaseObservable *>::iterator it;
-	for(it = _obss.begin(); it != _obss.end(); it++) delete *it;
+	for(it = _obss.begin(); it != _obss.end(); it++)
+		delete *it;
 	_obss.clear();
 }
-
 
 void ObservableOutput::add_observable(std::string obs_string) {
 	input_file *obs_inp = Utils::get_input_file_from_string(obs_string);
@@ -133,23 +130,20 @@ void ObservableOutput::add_observable(std::string obs_string) {
 	delete obs_inp;
 }
 
-
 void ObservableOutput::change_output_file(string new_filename) {
 	_output_name = _prefix + new_filename;
 	if(_output_stream.is_open()) _output_stream.close();
 	_open_output();
 }
 
-
 void ObservableOutput::_set_next_log_step() {
-	_log_next = (llint)round((_log_n0*pow(_log_fact, _log_pos_in_cycle))) + _log_tot_cycle*_log_n_cycle;
+	_log_next = (llint) round((_log_n0 * pow(_log_fact, _log_pos_in_cycle))) + _log_tot_cycle * _log_n_cycle;
 	_log_pos_in_cycle++;
 	if(_log_pos_in_cycle == _log_ppc) {
 		_log_n_cycle++;
 		_log_pos_in_cycle = 0;
 	}
 }
-
 
 bool ObservableOutput::is_ready(llint step) {
 	if(_stop_at > -1 && step > _stop_at) return false;
@@ -159,11 +153,11 @@ bool ObservableOutput::is_ready(llint step) {
 		return ((step >= _start_from) && (step % _print_every == 0));
 	}
 	else {
-		while(_log_next < step) _set_next_log_step();
+		while(_log_next < step)
+			_set_next_log_step();
 		return (step == _log_next);
 	}
 }
-
 
 void ObservableOutput::print_output(llint step) {
 	stringstream ss;
@@ -178,13 +172,13 @@ void ObservableOutput::print_output(llint step) {
 		change_output_file(new_name);
 	}
 	else if(_only_last) _output_stream.open(_output_name.c_str());
-	
+
 	ss << endl;
 	std::string towrite = ss.str();
 	_bytes_written += (llint) towrite.length();
 	*_output << towrite;
 	_output->flush();
-	
+
 	if(_only_last) _output_stream.close();
 	if(!_linear) _set_next_log_step();
 }

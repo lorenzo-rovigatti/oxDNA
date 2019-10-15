@@ -9,7 +9,6 @@
 
 #include <algorithm>
 
-
 StructureFactor::StructureFactor() {
 	_nconf = 0;
 	_type = -1;
@@ -18,11 +17,9 @@ StructureFactor::StructureFactor() {
 	_always_reset = false;
 }
 
-
 StructureFactor::~StructureFactor() {
 
 }
-
 
 void StructureFactor::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&my_inp, "max_q", &_max_q, 1);
@@ -33,24 +30,23 @@ void StructureFactor::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 struct sort_qs {
-	inline bool operator()(const LR_vector<double>& v1, const LR_vector<double>& v2) {
+	inline bool operator()(const LR_vector& v1, const LR_vector& v2) {
 		return (v1.norm() < v2.norm());
 	}
 };
-
 
 void StructureFactor::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
 	LR_vector box_sides = config_info.box->box_sides();
 	number sqr_max_q = SQR(_max_q);
-	LR_vector<double> delta_q(2.*M_PI/box_sides.x, 2.*M_PI/box_sides.y, 2.*M_PI/box_sides.z);
-	for(int nx = 0; nx <= _max_q/delta_q.x; nx++) {
-		for(int ny = 0; ny <= _max_q/delta_q.y; ny++) {
-			for(int nz = 0; nz <= _max_q/delta_q.z; nz++) {
+	LR_vector delta_q(2. * M_PI / box_sides.x, 2. * M_PI / box_sides.y, 2. * M_PI / box_sides.z);
+	for(int nx = 0; nx <= _max_q / delta_q.x; nx++) {
+		for(int ny = 0; ny <= _max_q / delta_q.y; ny++) {
+			for(int nz = 0; nz <= _max_q / delta_q.z; nz++) {
 				if(nx == 0 && ny == 0 && nz == 0) continue;
 
-				LR_vector<double> new_q(delta_q);
+				LR_vector new_q(delta_q);
 				new_q.x *= nx;
 				new_q.y *= ny;
 				new_q.z *= nz;
@@ -64,7 +60,7 @@ void StructureFactor::init(ConfigInfo &config_info) {
 
 	int q_count = 0;
 	double first_q = -1.;
-	for(typename std::list<LR_vector<double> >::iterator it = _qs.begin(); it != _qs.end();) {
+	for(typename std::list<LR_vector >::iterator it = _qs.begin(); it != _qs.end();) {
 		q_count++;
 		double q_mod = it->module();
 		if(first_q < 0.) first_q = q_mod;
@@ -85,7 +81,6 @@ void StructureFactor::init(ConfigInfo &config_info) {
 	OX_LOG(Logger::LOG_INFO, "StructureFactor: %d wave vectors", _qs.size());
 }
 
-
 std::string StructureFactor::get_output_string(llint curr_step) {
 	if(_always_reset) {
 		_nconf = 1;
@@ -95,22 +90,22 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 
 	int N = *this->_config_info.N;
 	uint32_t nq = 0;
-	for(typename std::list<LR_vector<double> >::iterator it = _qs.begin(); it != _qs.end(); nq++, it++) {
+	for(typename std::list<LR_vector >::iterator it = _qs.begin(); it != _qs.end(); nq++, it++) {
 		double sq_cos = 0.;
 		double sq_sin = 0.;
 		int N_type = 0;
 		for(int i = 0; i < N; i++) {
 			BaseParticle *p = this->_config_info.particles[i];
 			if(_type == -1 || p->type == _type) {
-				LR_vector<double> r(p->pos.x, p->pos.y, p->pos.z);
-				number qr = *it*r;
+				LR_vector r(p->pos.x, p->pos.y, p->pos.z);
+				number qr = *it * r;
 				sq_cos += cos(qr);
 				sq_sin += sin(qr);
 				N_type++;
 			}
 		}
 
-		_sq[nq] += (SQR(sq_cos) + SQR(sq_sin))/N_type;
+		_sq[nq] += (SQR(sq_cos) + SQR(sq_sin)) / N_type;
 	}
 
 	stringstream ret;
@@ -120,16 +115,16 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 	double sq_mean = 0.;
 	double first_q = -1;
 	nq = 0;
-	for(typename std::list<LR_vector<double> >::iterator it = _qs.begin(); it != _qs.end(); nq++) {
+	for(typename std::list<LR_vector >::iterator it = _qs.begin(); it != _qs.end(); nq++) {
 		q_count++;
 		double q_mod = it->module();
 		if(first_q < 0.) first_q = q_mod;
 		avg_q_mod += q_mod;
 		sq_mean += _sq[nq];
 		it++;
-		if(nq+1 == _qs.size() || fabs(it->norm() - SQR(first_q)) > _max_qs_delta) {
+		if(nq + 1 == _qs.size() || fabs(it->norm() - SQR(first_q)) > _max_qs_delta) {
 			avg_q_mod /= q_count;
-			sq_mean /= q_count*_nconf;
+			sq_mean /= q_count * _nconf;
 			ret << avg_q_mod << " " << sq_mean << endl;
 			q_count = 0;
 			avg_q_mod = sq_mean = 0.;
@@ -139,6 +134,3 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 
 	return ret.str();
 }
-
-template class StructureFactor<float>;
-template class StructureFactor<double>;

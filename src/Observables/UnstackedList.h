@@ -32,18 +32,17 @@
 #include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/rna_model.h"
 
-
-class UnstackedList  : public BaseObservable  {
+class UnstackedList: public BaseObservable {
 	double _threshold_fraction;
 	number _threshold_energies[5][5];
-  std::string _interaction_type;
+	std::string _interaction_type;
 	Model *model;
 
-	public:
+public:
 	UnstackedList();
 	virtual ~UnstackedList();
 
-	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
+	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
 	virtual void init(ConfigInfo &config_info);
 };

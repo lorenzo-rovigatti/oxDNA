@@ -14,7 +14,7 @@
  * @brief Prints a configuration in binary format.
  */
 
-class BinaryConfiguration: public Configuration  {
+class BinaryConfiguration: public Configuration {
 protected:
 	virtual std::string _headers(llint step);
 	virtual std::string _configuration(llint step);

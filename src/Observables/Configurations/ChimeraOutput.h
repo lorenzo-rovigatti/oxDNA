@@ -17,9 +17,9 @@
  *
  * this observable is selected with type = chimera_script
  *
-@verbatim
-[colour_by_sequece = <bool> (Default: false; whether to coulour the bases according to the base type (A, C, G, T)]
-@endverbatim
+ @verbatim
+ [colour_by_sequece = <bool> (Default: false; whether to coulour the bases according to the base type (A, C, G, T)]
+ @endverbatim
  *
  */
 

@@ -7,16 +7,14 @@
 
 #include "PotentialEnergy.h"
 
-
-PotentialEnergy::PotentialEnergy(): _split(false) {
+PotentialEnergy::PotentialEnergy() :
+				_split(false) {
 
 }
-
 
 PotentialEnergy::~PotentialEnergy() {
 
 }
-
 
 number PotentialEnergy::get_potential_energy() {
 	number energy = this->_config_info.interaction->get_system_energy(this->_config_info.particles, *this->_config_info.N, this->_config_info.lists);
@@ -25,11 +23,9 @@ number PotentialEnergy::get_potential_energy() {
 	return energy;
 }
 
-
 void PotentialEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputBool(&my_inp, "split", &_split, 0);
 }
-
 
 std::string PotentialEnergy::get_output_string(llint curr_step) {
 	if(!_split) {

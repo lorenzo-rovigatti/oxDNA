@@ -7,16 +7,13 @@
 
 #include "BackendInfo.h"
 
-
 BackendInfo::BackendInfo() {
 
 }
 
-
 BackendInfo::~BackendInfo() {
 
 }
-
 
 std::string BackendInfo::get_output_string(llint curr_step) {
 	return *(this->_config_info.backend_info);

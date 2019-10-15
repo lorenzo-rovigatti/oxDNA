@@ -13,7 +13,6 @@
 /**
  * @brief Outputs the positon of a plectoneme in the system.
  */
-
 class PlectonemePosition: public BaseObservable {
 protected:
 	int _critical_bp_distance;

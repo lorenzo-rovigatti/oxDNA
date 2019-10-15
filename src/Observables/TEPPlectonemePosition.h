@@ -16,9 +16,9 @@
  * To use this observable, use type = TEP_plectoneme_position
  *
  * @verbatim
-[bead_minimum_distance = <int> (the minimum integer separation between beads whose relative distance will be checked. Defaults to 7)]
-[distance_threshold  = <float> (a plectoneme is identified when any two beads with indices farther away than bead_minimum_distance are closer than this distance. Defaults to 2)]
-@endverbatim
+ [bead_minimum_distance = <int> (the minimum integer separation between beads whose relative distance will be checked. Defaults to 7)]
+ [distance_threshold  = <float> (a plectoneme is identified when any two beads with indices farther away than bead_minimum_distance are closer than this distance. Defaults to 2)]
+ @endverbatim
  */
 
 class TEPPlectonemePosition: public BaseObservable {

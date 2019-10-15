@@ -9,16 +9,13 @@
 
 #include "../Utilities/Utils.h"
 
-
 KineticEnergy::KineticEnergy() {
 
 }
 
-
 KineticEnergy::~KineticEnergy() {
 
 }
-
 
 void KineticEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	string dirs = "0,1,2";
@@ -32,7 +29,6 @@ void KineticEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 	if(_directions.size() == 0) throw oxDNAException("The 'velocity_directions' key may not be empty");
 }
-
 
 number KineticEnergy::get_kinetic_energy() {
 	number factor = 1.5 / _directions.size();
@@ -49,7 +45,6 @@ number KineticEnergy::get_kinetic_energy() {
 
 	return K;
 }
-
 
 std::string KineticEnergy::get_output_string(llint curr_step) {
 	number K = get_kinetic_energy();

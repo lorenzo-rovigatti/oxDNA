@@ -7,7 +7,6 @@
 
 #include "Pressure.h"
 
-
 Pressure::Pressure() :
 				BaseObservable(),
 				_with_stress_tensor(false),
@@ -20,11 +19,9 @@ Pressure::Pressure() :
 
 }
 
-
 Pressure::~Pressure() {
 
 }
-
 
 void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
@@ -43,7 +40,6 @@ void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 	if(lees_edwards) getInputNumber(&sim_inp, "lees_edwards_shear_rate", &_shear_rate, 0);
 }
 
-
 LR_vector Pressure::_get_com() {
 	LR_vector com;
 	for(int i = 0; i < *this->_config_info.N; i++) {
@@ -54,19 +50,18 @@ LR_vector Pressure::_get_com() {
 	return com;
 }
 
-
 void Pressure::update_pressure() {
 	int N = *this->_config_info.N;
-	vector<ParticlePair > pairs = this->_config_info.lists->get_potential_interactions();
+	vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
 
 	LR_vector com = (_spherical) ? _get_com() : LR_vector();
 	_P_norm = 0.;
 
 	double virial = 0;
-	_stress_tensor = LR_matrix<double>();
+	_stress_tensor = LR_matrix();
 	double energy = 0.;
 	// we loop over all the pairs in order to update the forces
-	typename vector<ParticlePair >::iterator it;
+	typename vector<ParticlePair>::iterator it;
 	for(it = pairs.begin(); it != pairs.end(); it++) {
 		BaseParticle *p = (*it).first;
 		BaseParticle *q = (*it).second;
@@ -102,15 +97,15 @@ void Pressure::update_pressure() {
 			if(_spherical) {
 				LR_vector rp_rel = this->_config_info.box->min_image(p->pos, com);
 				LR_vector rq_rel = this->_config_info.box->min_image(q->pos, com);
-				number l0 = sqrt(rp_rel.norm() - SQR(rp_rel*r)/r.norm());
+				number l0 = sqrt(rp_rel.norm() - SQR(rp_rel*r) / r.norm());
 				// check that the arguments of the square roots are non-negative (it does happen for finite-accuracy reasons)
 				double delta_rp_sqr_l0_sqr = rp_rel.norm() - SQR(l0);
-				double F0 = (delta_rp_sqr_l0_sqr < 0.) ? 0 : -l0*atan(sqrt(delta_rp_sqr_l0_sqr)/l0);
+				double F0 = (delta_rp_sqr_l0_sqr < 0.) ? 0 : -l0 * atan(sqrt(delta_rp_sqr_l0_sqr) / l0);
 				double delta_rq_sqr_l0_sqr = rq_rel.norm() - SQR(l0);
-				double F1 = (delta_rq_sqr_l0_sqr < 0.) ? 0 : -l0*atan(sqrt(delta_rq_sqr_l0_sqr)/l0);
-				double Fpq_mod = -(p->force*r)/r.module();
+				double F1 = (delta_rq_sqr_l0_sqr < 0.) ? 0 : -l0 * atan(sqrt(delta_rq_sqr_l0_sqr) / l0);
+				double Fpq_mod = -(p->force * r) / r.module();
 				double rpq_mod = r.module();
-				_P_norm += Fpq_mod*(rpq_mod + F1 - F0);
+				_P_norm += Fpq_mod * (rpq_mod + F1 - F0);
 			}
 
 			p->force = old_p_force;
@@ -125,8 +120,8 @@ void Pressure::update_pressure() {
 		LR_vector vel = p->vel;
 		if(_shear_rate > 0.) {
 			number Ly = CONFIG_INFO->box->box_sides().y;
-			number y_in_box = p->pos.y - floor(p->pos.y/Ly)*Ly - 0.5*Ly;
-			number flow_vx = y_in_box*_shear_rate;
+			number y_in_box = p->pos.y - floor(p->pos.y / Ly) * Ly - 0.5 * Ly;
+			number flow_vx = y_in_box * _shear_rate;
 			vel.x -= flow_vx;
 		}
 		_stress_tensor.v1.x += SQR(vel.x);
@@ -153,7 +148,6 @@ void Pressure::update_pressure() {
 	_P_norm = _T * (N / V) + _P_norm / (3. * V);
 }
 
-
 string Pressure::get_output_string(llint curr_step) {
 	update_pressure();
 
@@ -172,6 +166,3 @@ string Pressure::get_output_string(llint curr_step) {
 
 	return to_ret;
 }
-
-template class Pressure<float> ;
-template class Pressure<double> ;

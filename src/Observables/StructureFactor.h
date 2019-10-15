@@ -44,7 +44,7 @@ private:
 	long int _nconf;
 	number _max_q;
 	std::vector<long double> _sq, _sq_cos, _sq_sin;
-	std::list<LR_vector<double> > _qs;
+	std::list<LR_vector> _qs;
 	int _type;
 	int _max_qs_in_interval;
 	number _max_qs_delta;

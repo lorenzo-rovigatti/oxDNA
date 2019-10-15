@@ -8,45 +8,40 @@
 #include "HBEnergy.h"
 #include "../Interactions/DNAInteraction.h"
 
-
 HBEnergy::HBEnergy() {
 	_mode = ALL_BASES;
 }
 
-
 HBEnergy::~HBEnergy() {
 
 }
-
 
 void HBEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	if(getInputString(&my_inp, "pairs_file", _list_file, 0) == KEY_FOUND) _mode = PAIRS_FROM_OP_FILE;
 	if(getInputString(&my_inp, "bases_file", _list_file, 0) == KEY_FOUND) _mode = BASES_FROM_FILE;
 }
 
-
 void HBEnergy::init(ConfigInfo &config_info) {
-   BaseObservable::init(config_info);
+	BaseObservable::init(config_info);
 
-   switch(_mode) {
-   case PAIRS_FROM_OP_FILE:
-	   _op.init_from_file(_list_file, this->_config_info.particles, *(this->_config_info.N));
-	   break;
-   case BASES_FROM_FILE: {
-	   ifstream inp(_list_file);
-	   while(!inp.eof()) {
-		   int n;
-		   inp >> n;
-		   _list.insert(n);
-	   }
-	   inp.close();
-	   break;
-   }
-   default:
-	   break;
-   }
+	switch(_mode) {
+	case PAIRS_FROM_OP_FILE:
+		_op.init_from_file(_list_file, this->_config_info.particles, *(this->_config_info.N));
+		break;
+	case BASES_FROM_FILE: {
+		ifstream inp(_list_file);
+		while(!inp.eof()) {
+			int n;
+			inp >> n;
+			_list.insert(n);
+		}
+		inp.close();
+		break;
+	}
+	default:
+		break;
+	}
 }
-
 
 std::string HBEnergy::get_output_string(llint curr_step) {
 	number energy = (number) 0.f;
@@ -54,7 +49,7 @@ std::string HBEnergy::get_output_string(llint curr_step) {
 	switch(_mode) {
 	case PAIRS_FROM_OP_FILE: {
 		vector_of_pairs inds = _op.get_hb_particle_list();
-		for (vector_of_pairs::iterator i = inds.begin(); i != inds.end(); i++) {
+		for(vector_of_pairs::iterator i = inds.begin(); i != inds.end(); i++) {
 			int p_ind = (*i).first;
 			int q_ind = (*i).second;
 			BaseParticle *p = this->_config_info.particles[p_ind];
@@ -82,6 +77,3 @@ std::string HBEnergy::get_output_string(llint curr_step) {
 
 	return Utils::sformat("% 10.6lf", energy);
 }
-
-template class HBEnergy<float>;
-template class HBEnergy<double>;

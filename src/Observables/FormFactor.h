@@ -17,13 +17,13 @@
  *
  *
  * the parameters are as follows:
-@verbatim
-@endverbatim
+ @verbatim
+ @endverbatim
  *
  *
  */
 
-class FormFactor : public BaseObservable {
+class FormFactor: public BaseObservable {
 private:
 	number _min_q, _max_q, _mult_q;
 	int _type;

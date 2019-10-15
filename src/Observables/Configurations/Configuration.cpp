@@ -14,18 +14,15 @@
 
 using namespace std;
 
-
 Configuration::Configuration() {
 	_back_in_box = false;
 	_reduced = false;
 	_only_type = -1;
 }
 
-
 Configuration::~Configuration() {
 
 }
-
 
 void Configuration::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputBool(&sim_inp, "back_in_box", &_back_in_box, 0);
@@ -37,7 +34,8 @@ void Configuration::get_settings(input_file &my_inp, input_file &sim_inp) {
 	if(getInputString(&my_inp, "show", opt, 0) == KEY_FOUND) {
 		show_on = true;
 		vector<string> spl = Utils::split(opt, ',');
-		for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++) _visible_particles.insert(atoi(it->c_str()));
+		for(vector<string>::iterator it = spl.begin(); it != spl.end(); it++)
+			_visible_particles.insert(atoi(it->c_str()));
 	}
 
 	if(getInputString(&my_inp, "hide", opt, 0) == KEY_FOUND) {
@@ -49,32 +47,31 @@ void Configuration::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 }
 
-
 void Configuration::init(ConfigInfo &config_info) {
-   BaseObservable::init(config_info);
+	BaseObservable::init(config_info);
 
-   // if no 'show' options is found then the default behaviour is to show all the particles
-   if(_visible_particles.size() == 0) for(int i = 0; i < *config_info.N; i++) _visible_particles.insert(i);
-   // otherwise we have to check that all the particles the user wants to show exist
-   else {
-	   for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-		   if(*it < 0 || *it >= *config_info.N) {
-			   OX_LOG(Logger::LOG_WARNING, "Observable '%s': Particle '%d' cannot be shown because it does not exist", typeid(*this).name(), *it);
-			   _visible_particles.erase(*it);
-		   }
-	   }
-   }
-   // if a 'hide' option is found then we remove these elements from the _visible_particles set
-   if(_hidden_particles.size() > 0) {
-	   for(set<int>::iterator it = _hidden_particles.begin(); it != _hidden_particles.end(); it++) {
-		   if(_visible_particles.find(*it) == _visible_particles.end()) OX_LOG(Logger::LOG_WARNING, "Observable '%s': Particle '%d' cannot be hidden because it does not exist", typeid(*this).name(), *it);
-		   else _visible_particles.erase(*it);
-	   }
-   }
+	// if no 'show' options is found then the default behaviour is to show all the particles
+	if(_visible_particles.size() == 0) for(int i = 0; i < *config_info.N; i++)
+		_visible_particles.insert(i);
+	// otherwise we have to check that all the particles the user wants to show exist
+	else {
+		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
+			if(*it < 0 || *it >= *config_info.N) {
+				OX_LOG(Logger::LOG_WARNING, "Observable '%s': Particle '%d' cannot be shown because it does not exist", typeid(*this).name(), *it);
+				_visible_particles.erase(*it);
+			}
+		}
+	}
+	// if a 'hide' option is found then we remove these elements from the _visible_particles set
+	if(_hidden_particles.size() > 0) {
+		for(set<int>::iterator it = _hidden_particles.begin(); it != _hidden_particles.end(); it++) {
+			if(_visible_particles.find(*it) == _visible_particles.end()) OX_LOG(Logger::LOG_WARNING, "Observable '%s': Particle '%d' cannot be hidden because it does not exist", typeid(*this).name(), *it);
+			else _visible_particles.erase(*it);
+		}
+	}
 
-   _tot_energy.init(config_info);
+	_tot_energy.init(config_info);
 }
-
 
 string Configuration::_headers(llint step) {
 	stringstream headers;
@@ -92,15 +89,14 @@ string Configuration::_headers(llint step) {
 	else {
 		number U = _tot_energy.get_U(step);
 		number K = _tot_energy.get_K(step);
-		
+
 		headers << "t = " << step << endl;
 		headers << "b = " << this->_config_info.box->box_sides().x << " " << this->_config_info.box->box_sides().y << " " << this->_config_info.box->box_sides().z << endl;
-		headers << "E = " << U+K << " " << U << " " << K << endl;
+		headers << "E = " << U + K << " " << U << " " << K << endl;
 	}
 
 	return headers.str();
 }
-
 
 string Configuration::_particle(BaseParticle *p) {
 	stringstream conf;
@@ -109,10 +105,10 @@ string Configuration::_particle(BaseParticle *p) {
 	LR_vector box_sides = this->_config_info.box->box_sides();
 
 	LR_vector mypos;
-	if (_back_in_box){
-		mypos.x = p->pos.x - floor(_strands_cdm[p->strand_id].x/box_sides.x)*box_sides.x;
-		mypos.y = p->pos.y - floor(_strands_cdm[p->strand_id].y/box_sides.y)*box_sides.y;
-		mypos.z = p->pos.z - floor(_strands_cdm[p->strand_id].z/box_sides.z)*box_sides.z;
+	if(_back_in_box) {
+		mypos.x = p->pos.x - floor(_strands_cdm[p->strand_id].x / box_sides.x) * box_sides.x;
+		mypos.y = p->pos.y - floor(_strands_cdm[p->strand_id].y / box_sides.y) * box_sides.y;
+		mypos.z = p->pos.z - floor(_strands_cdm[p->strand_id].z / box_sides.z) * box_sides.z;
 	}
 	else {
 		LR_vector number_pos = this->_config_info.box->get_abs_pos(p);
@@ -131,14 +127,13 @@ string Configuration::_particle(BaseParticle *p) {
 	return conf.str();
 }
 
-
 string Configuration::_configuration(llint step) {
 	stringstream conf;
 	conf.precision(15);
 
 	if(_reduced) {
 		// prints only the centres of mass of the strands
-		map<int, LR_vector > coms;
+		map<int, LR_vector> coms;
 		map<int, int> counters;
 
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
@@ -147,7 +142,7 @@ string Configuration::_configuration(llint step) {
 			counters[p->strand_id]++;
 		}
 
-		for(typename map<int, LR_vector >::iterator it = coms.begin(); it != coms.end(); it++) {
+		for(typename map<int, LR_vector>::iterator it = coms.begin(); it != coms.end(); it++) {
 			LR_vector com = it->second / (number) counters[it->first];
 
 			if(it != coms.begin()) conf << endl;
@@ -173,27 +168,25 @@ string Configuration::_configuration(llint step) {
 	return conf.str();
 }
 
-
 string Configuration::get_output_string(llint curr_step) {
 	return _headers(curr_step) + _configuration(curr_step);
 }
-
 
 void Configuration::_fill_strands_cdm() {
 	std::map<int, int> nin;
 	_strands_cdm.clear();
 	for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
 		BaseParticle *p = this->_config_info.particles[*it];
-		if (_strands_cdm.count(p->strand_id) == 0) {
+		if(_strands_cdm.count(p->strand_id) == 0) {
 			nin[p->strand_id] = 1;
 			_strands_cdm[p->strand_id] = p->pos;
 		}
 		else {
-			nin[p->strand_id] ++;
+			nin[p->strand_id]++;
 			_strands_cdm[p->strand_id] += p->pos;
 		}
 	}
-	for (map<int, int>::iterator it = nin.begin(); it != nin.end(); it ++) {
+	for(map<int, int>::iterator it = nin.begin(); it != nin.end(); it++) {
 		int strand_id = it->first;
 		int nin_id = it->second;
 		_strands_cdm[strand_id] /= (number) nin_id;

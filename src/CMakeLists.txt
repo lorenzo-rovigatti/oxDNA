@@ -13,12 +13,7 @@ SET(observables_SOURCES
 	Observables/PotentialEnergy.cpp
 	Observables/KineticEnergy.cpp
 	Observables/TotalEnergy.cpp
-	Observables/Configurations/Configuration.cpp
-	Observables/Configurations/BinaryConfiguration.cpp
-	Observables/BackendInfo.cpp
-)
-
-SET(roba 	
+	Observables/BackendInfo.cpp	
 	Observables/HBEnergy.cpp
 	Observables/OrderParameterValues.cpp
 	Observables/HBList.cpp
@@ -36,12 +31,6 @@ SET(roba
 	Observables/Pitch.cpp
 	Observables/SaltExtrapolation.cpp
 	Observables/ExternalTorque.cpp
-	Observables/Configurations/TclOutput.cpp
-	Observables/Configurations/PdbOutput.cpp
-	Observables/Configurations/ChimeraOutput.cpp
-	Observables/Configurations/TEPtclOutput.cpp
-	Observables/Configurations/TEPxyzOutput.cpp
-	Observables/Configurations/JordanOutput.cpp
 	Observables/MeanVectorCosine.cpp
 	Observables/VectorAngle.cpp
 	Observables/Checkpoint.cpp
@@ -58,6 +47,14 @@ SET(roba
 	Observables/AverageEnergy.cpp
 	Observables/ContactMap.cpp
 	Observables/AllVectors.cpp
+	Observables/Configurations/Configuration.cpp
+	Observables/Configurations/BinaryConfiguration.cpp
+	Observables/Configurations/TclOutput.cpp
+	Observables/Configurations/PdbOutput.cpp
+	Observables/Configurations/ChimeraOutput.cpp
+	Observables/Configurations/TEPtclOutput.cpp
+	Observables/Configurations/TEPxyzOutput.cpp
+	Observables/Configurations/JordanOutput.cpp
 )
 
 SET(backends_SOURCES

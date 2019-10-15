@@ -14,12 +14,11 @@
  * @brief Outputs the position of the center of mass of a particle.
  *
  * @verbatim
-particle_id = <int> (particle id)
-[orientation = <bool> (defaults to false. If 1, it also prints out the orientation)]
-[absolute = <bool> (defaults to false. If 1, does not use periodic boundaries and it prints out the absolute position of the center of mass)]
-@endverbatim
+ particle_id = <int> (particle id)
+ [orientation = <bool> (defaults to false. If 1, it also prints out the orientation)]
+ [absolute = <bool> (defaults to false. If 1, does not use periodic boundaries and it prints out the absolute position of the center of mass)]
+ @endverbatim
  */
-
 class ParticlePosition: public BaseObservable {
 protected:
 	int _particle_id;

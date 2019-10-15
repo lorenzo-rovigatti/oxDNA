@@ -23,7 +23,7 @@
  origin = <float>, <float>, <float> (position of the origin with respect to whom the torque is to be measured, when the key direction is not set OR origin of the line with which respect the torque is to be measured)
  */
 
-class ExternalTorque : public BaseObservable {
+class ExternalTorque: public BaseObservable {
 protected:
 	std::string _group_name;
 	LR_vector _origin;
@@ -33,7 +33,7 @@ public:
 	ExternalTorque();
 	virtual ~ExternalTorque();
 
-	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
+	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	std::string get_output_string(llint curr_step);
 };

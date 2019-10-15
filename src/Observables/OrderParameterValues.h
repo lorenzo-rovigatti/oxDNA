@@ -19,8 +19,7 @@
  * name = stream name (name of the output stream. stdout or stderr are accepted values)
  */
 
-
-class OrderParameterValues  : public BaseObservable  {
+class OrderParameterValues: public BaseObservable {
 	char _order_parameters_file[512];
 	OrderParameters _op;
 
@@ -28,7 +27,7 @@ public:
 	OrderParameterValues();
 	virtual ~OrderParameterValues();
 
-	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
+	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
 	virtual void init(ConfigInfo &config_info);
 };

@@ -10,16 +10,13 @@
 #include <sstream>
 #include <map>
 
-
 PairEnergy::PairEnergy() {
 	_print_header = true;
 }
 
-
 PairEnergy::~PairEnergy() {
 
 }
-
 
 void PairEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_print_all_particles = true;
@@ -28,9 +25,8 @@ void PairEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 		getInputInt(&my_inp, "particle2_id", &_particle2_id, 1);
 		if(_particle1_id < 0 || _particle2_id < 0) throw oxDNAException("PairEnergy: particle index must be positive");
 	}
-	getInputBool(&my_inp,"print_header", &_print_header,0);
+	getInputBool(&my_inp, "print_header", &_print_header, 0);
 }
-
 
 std::string PairEnergy::get_output_string(llint curr_step) {
 	BaseParticle *p;
@@ -42,9 +38,8 @@ std::string PairEnergy::get_output_string(llint curr_step) {
 	number total_energy_diff = 0.;
 	std::map<int, number> split_energies = this->_config_info.interaction->get_system_energy_split(this->_config_info.particles, *this->_config_info.N, this->_config_info.lists);
 
-	if( _print_header){
-		if((int) split_energies.size() == 7)
-			output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK total, t = " << curr_step << "\n";
+	if(_print_header) {
+		if((int) split_energies.size() == 7) output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK total, t = " << curr_step << "\n";
 		else output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK DH total, t = " << curr_step << "\n";
 	}
 
@@ -52,7 +47,7 @@ std::string PairEnergy::get_output_string(llint curr_step) {
 		total_energy_diff += (*l).second;
 
 	if(_print_all_particles) {
-		std::vector<ParticlePair > neighbour_pairs = this->_config_info.lists->get_potential_interactions();
+		std::vector<ParticlePair> neighbour_pairs = this->_config_info.lists->get_potential_interactions();
 
 		//printf("Total fene energy is %f \n", split_energies[0]);
 		for(int i = 0; i < (int) neighbour_pairs.size(); i++) {
@@ -71,14 +66,12 @@ std::string PairEnergy::get_output_string(llint curr_step) {
 				pair_interaction += k_th_interaction;
 				total_energy += k_th_interaction;
 				pair_string << " " << k_th_interaction;
-				if(k_th_interaction != 0.f)
-					interaction_exists = true;
+				if(k_th_interaction != 0.f) interaction_exists = true;
 			}
 			pair_string << " " << pair_interaction << '\n';
-			if(interaction_exists)
-				output_str << pair_string.str();
+			if(interaction_exists) output_str << pair_string.str();
 		}
-		output_str << "#Total energy per particle is  " << total_energy / *this->_config_info.N << " and should be " << total_energy_diff / *this->_config_info.N << '\n'*_print_header;
+		output_str << "#Total energy per particle is  " << total_energy / *this->_config_info.N << " and should be " << total_energy_diff / *this->_config_info.N << '\n' * _print_header;
 	}
 	else {
 		if(_particle1_id > *this->_config_info.N) throw oxDNAException("PairEnergy: particle1_id (%d) is invalid", _particle1_id);
@@ -97,7 +90,7 @@ std::string PairEnergy::get_output_string(llint curr_step) {
 			total_energy += k_th_interaction;
 			pair_string << " " << k_th_interaction;
 		}
-		pair_string << " " << pair_interaction << '\n'*_print_header;
+		pair_string << " " << pair_interaction << '\n' * _print_header;
 		// always print even if the interaction energy is zero
 		output_str << pair_string.str();
 
@@ -105,7 +98,3 @@ std::string PairEnergy::get_output_string(llint curr_step) {
 
 	return output_str.str();
 }
-
-template class PairEnergy<float> ;
-template class PairEnergy<double> ;
-

@@ -17,7 +17,7 @@
  * All the energies are per particle.
  *
  * @verbatim
-[split = <bool> (defaults to false, it tells the observable to print all the terms contributing to the potential energy)]
+ [split = <bool> (defaults to false, it tells the observable to print all the terms contributing to the potential energy)]
  @endverbatim
  */
 

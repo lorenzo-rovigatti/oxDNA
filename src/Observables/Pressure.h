@@ -15,9 +15,9 @@
  *
  * The supported syntax is
  * @verbatim
-type = pressure (an observable that computes the osmotic pressure of the system)
-[stress_tensor = <bool> (if true, the output will contain 9 fields: the total pressure and the nine components of the stress tensor, xx, xy, xz, yx, yy, yz, zx, zy, zz)]
-@endverbatim
+ type = pressure (an observable that computes the osmotic pressure of the system)
+ [stress_tensor = <bool> (if true, the output will contain 9 fields: the total pressure and the nine components of the stress tensor, xx, xy, xz, yx, yy, yz, zx, zy, zz)]
+ @endverbatim
  */
 
 class Pressure: public BaseObservable {
@@ -28,7 +28,7 @@ protected:
 	bool _nonbonded_only;
 	bool _PV_only;
 	double _P, _P_norm;
-	LR_matrix<double> _stress_tensor;
+	LR_matrix _stress_tensor;
 	number _shear_rate;
 
 	LR_vector _get_com();
@@ -40,7 +40,9 @@ public:
 	void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	void update_pressure();
-	number get_P() { return _P; }
+	number get_P() {
+		return _P;
+	}
 	std::string get_output_string(llint curr_step);
 };
 

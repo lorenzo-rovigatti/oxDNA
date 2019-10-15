@@ -17,11 +17,11 @@
  * to the helix axis of the base-base vectors of specified two base pairs
  *
  * @verbatim
-bp1a_id = <int> (base pair 1 particle a id)
-bp1b_id = <int> (base pair 1 particle b id)
-bp2a_id = <int> (base pair 2 particle a id)
-bp2b_id = <int> (base pair 2 particle b id)
-@endverbatim
+ bp1a_id = <int> (base pair 1 particle a id)
+ bp1b_id = <int> (base pair 1 particle b id)
+ bp2a_id = <int> (base pair 2 particle a id)
+ bp2b_id = <int> (base pair 2 particle b id)
+ @endverbatim
  */
 
 class Pitch: public BaseObservable {

@@ -10,30 +10,27 @@
 
 #include <sstream>
 
-
 CoaxVariables::CoaxVariables() {
 	_dna_interaction = new DNAInteraction();
 }
 
-
 CoaxVariables::~CoaxVariables() {
 }
-
 
 void CoaxVariables::get_settings(input_file &my_inp, input_file &sim_inp) {
 	int tmp = 0;
 
 	tmp = 0;
-	getInputInt(&my_inp,"particle1_id", &tmp, 1);
+	getInputInt(&my_inp, "particle1_id", &tmp, 1);
 	_particle1_id = tmp;
 
 	tmp = 0;
-	getInputInt(&my_inp,"particle2_id", &tmp, 1);
+	getInputInt(&my_inp, "particle2_id", &tmp, 1);
 	_particle2_id = tmp;
 
 	std::string inter_type;
-	if (getInputString(&sim_inp, "interaction_type", inter_type, 0) == KEY_FOUND){
-		if (inter_type.compare("DNA2") == 0) {
+	if(getInputString(&sim_inp, "interaction_type", inter_type, 0) == KEY_FOUND) {
+		if(inter_type.compare("DNA2") == 0) {
 			_use_oxDNA2_coaxial_stacking = true;
 		}
 	}
@@ -42,12 +39,11 @@ void CoaxVariables::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_dna_interaction->init();
 }
 
-
 std::string CoaxVariables::get_output_string(llint curr_step) {
 	std::stringstream output_str;
 
 	output_str << "#id1 id2 delta_r_coax within_cutoff theta1 theta4 theta5 theta6 cos(phi3) total_coax, t = " << curr_step << "\n";
-	
+
 	BaseParticle *p;
 	BaseParticle *q;
 	p = this->_config_info.particles[_particle1_id];
@@ -70,8 +66,8 @@ std::string CoaxVariables::get_output_string(llint curr_step) {
 
 	// angles involved in the CXST interaction
 	number cost1 = -a1 * b1;
-	number cost4 =  a3 * b3;
-	number cost5 =  a3 * rstackdir;
+	number cost4 = a3 * b3;
+	number cost5 = a3 * rstackdir;
 	number cost6 = -b3 * rstackdir;
 
 	// This is the position the backbone would have with major-minor grooves the same width.
@@ -89,21 +85,21 @@ std::string CoaxVariables::get_output_string(llint curr_step) {
 	if(CXST_RCLOW < rstackmod && rstackmod < CXST_RCHIGH) {
 		rstack_within_cutoff = true;
 		// functions called at their relevant arguments
-		number f2   = _dna_interaction->_f2(rstackmod, CXST_F2);
-		number f4t1 = _dna_interaction->_custom_f4 (cost1, CXST_F4_THETA1);
-		number f4t4 = _dna_interaction->_custom_f4 (cost4, CXST_F4_THETA4);
-		number f4t5 = _dna_interaction->_custom_f4 (cost5, CXST_F4_THETA5) + _dna_interaction->_custom_f4 (-cost5, CXST_F4_THETA5);
-		number f4t6 = _dna_interaction->_custom_f4 (cost6, CXST_F4_THETA6) + _dna_interaction->_custom_f4 (-cost6, CXST_F4_THETA6);
+		number f2 = _dna_interaction->_f2(rstackmod, CXST_F2);
+		number f4t1 = _dna_interaction->_custom_f4(cost1, CXST_F4_THETA1);
+		number f4t4 = _dna_interaction->_custom_f4(cost4, CXST_F4_THETA4);
+		number f4t5 = _dna_interaction->_custom_f4(cost5, CXST_F4_THETA5) + _dna_interaction->_custom_f4(-cost5, CXST_F4_THETA5);
+		number f4t6 = _dna_interaction->_custom_f4(cost6, CXST_F4_THETA6) + _dna_interaction->_custom_f4(-cost6, CXST_F4_THETA6);
 
-		if (_use_oxDNA2_coaxial_stacking){
+		if(_use_oxDNA2_coaxial_stacking) {
 			energy = f2 * f4t1 * f4t4 * f4t5 * f4t6;
 		}
-		else{
+		else {
 			number f5cosphi3 = _dna_interaction->_f5(cosphi3, CXST_F5_PHI3);
 			energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3;
 		}
 	}
-	
+
 	number t1 = acos(cost1);
 	number t4 = acos(cost4);
 	number t5 = acos(cost5);
@@ -112,13 +108,10 @@ std::string CoaxVariables::get_output_string(llint curr_step) {
 	// \delta r_{coax} is equal to dr_{stack}, which is called rstackmod here
 	output_str << rstackmod << " ";
 	// record whether we're within the cutoff radius for dr_{stack}
-	if (rstack_within_cutoff) output_str << "True  ";
+	if(rstack_within_cutoff) output_str << "True  ";
 	else output_str << "False ";
 
 	output_str << t1 << " " << t4 << " " << t5 << " " << t6 << " " << cosphi3 << " " << energy << "\n";
 
 	return output_str.str();
 }
-
-template class CoaxVariables<float>;
-template class CoaxVariables<double>;

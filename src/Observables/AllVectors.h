@@ -1,9 +1,9 @@
 /*
-* all_vectors.h
-*
-* Created on Mar 25, 2019
-*       Author: Poppleton
-*/
+ * all_vectors.h
+ *
+ * Created on Mar 25, 2019
+ *       Author: Poppleton
+ */
 
 #ifndef ALL_VECTORS_H_
 #define ALL_VECTORS_H_
@@ -15,14 +15,14 @@
  * @brief Outputs a contact map for the system
  */
 
-class AllVectors : public BaseObservable {
-    protected:
+class AllVectors: public BaseObservable {
+protected:
 
-    public:
-    AllVectors();
-    virtual ~AllVectors();
-    virtual void init (ConfigInfo &config_info);
-    std::string get_output_string(llint curr_step);
+public:
+	AllVectors();
+	virtual ~AllVectors();
+	virtual void init(ConfigInfo &config_info);
+	std::string get_output_string(llint curr_step);
 };
 
 #endif /*ALL_VECTORS_H_ */

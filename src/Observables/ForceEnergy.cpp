@@ -7,21 +7,17 @@
 
 #include "ForceEnergy.h"
 
-
 ForceEnergy::ForceEnergy() {
 
 }
-
 
 ForceEnergy::~ForceEnergy() {
 
 }
 
-void
-ForceEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+void ForceEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputString(&my_inp, "print_group", _group_name, 0);
 }
-
 
 std::string ForceEnergy::get_output_string(llint curr_step) {
 	number U = (number) 0.f;
@@ -42,6 +38,3 @@ std::string ForceEnergy::get_output_string(llint curr_step) {
 
 	return Utils::sformat("% 10.6lf", U);
 }
-
-template class ForceEnergy<float>;
-template class ForceEnergy<double>;
