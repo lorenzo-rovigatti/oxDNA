@@ -6,12 +6,13 @@
  */
 
 #include "ThermostatFactory.h"
-#include "BrownianThermostat.h"
+
 #include "NoThermostat.h"
-/*#include "RefreshThermostat.h"
-#include "LangevinThermostat.h"
-#include "SRDThermostat.h"
+#include "BrownianThermostat.h"
 #include "BussiThermostat.h"
+#include "RefreshThermostat.h"
+#include "LangevinThermostat.h"
+/*#include "SRDThermostat.h"
 #include "DPDThermostat.h"*/
 
 #include "../../Utilities/Utils.h"
@@ -32,10 +33,10 @@ BaseThermostat *ThermostatFactory::make_thermostat(input_file &inp, BaseBox * bo
 
 	if(!strncmp(thermostat_type, "john", 512) || !strncmp(thermostat_type, "brownian", 512)) return new BrownianThermostat();
 	else if(!strncmp(thermostat_type, "no", 512)) return new NoThermostat();
-	/*else if(!strncmp(thermostat_type, "refresh", 512)) return new RefreshThermostat();
+	else if(!strncmp(thermostat_type, "refresh", 512)) return new RefreshThermostat();
 	else if(!strncmp(thermostat_type, "langevin", 512)) return new LangevinThermostat();
-	else if(!strncmp(thermostat_type, "srd", 512) || !strncmp(thermostat_type, "SRD", 512)) return new SRDThermostat(box);
 	else if(!strncmp(thermostat_type, "bussi", 512) || !strncmp(thermostat_type, "Bussi", 512)) return new BussiThermostat();
+	/*else if(!strncmp(thermostat_type, "srd", 512) || !strncmp(thermostat_type, "SRD", 512)) return new SRDThermostat(box);
 	else if(!strncmp(thermostat_type, "DPD", 512)) return new DPDThermostat();*/
 	else throw oxDNAException("Invalid Thermostat '%s'", thermostat_type);
 }

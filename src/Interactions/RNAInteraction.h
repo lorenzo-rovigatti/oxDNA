@@ -28,8 +28,7 @@
 #include "rna_model.h"
 #include "../Particles/RNANucleotide.h"
 
-
-class RNAInteraction : public BaseInteraction<number, RNAInteraction > {
+class RNAInteraction : public BaseInteraction<RNAInteraction > {
 protected:
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
@@ -109,7 +108,6 @@ public:
 	virtual void allocate_particles(BaseParticle **particles, int N);
 
 	virtual void check_input_sanity(BaseParticle **particles, int N);
-	//void check_input_sanity(BaseParticle *_particles, int _N);
 
 	Model *get_model() {return model;}
 
@@ -120,44 +118,41 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-
-	virtual void read_topology (int N_from_conf, int *N_strands, BaseParticle **particles);
+	virtual void read_topology(int N_from_conf, int *N_strands, BaseParticle **particles);
 
 	// model constants
-	    number F1_EPS[2][5][5];
-		number F1_SHIFT[2][5][5];
-		number F1_A[2];
-		number F1_RC[2];
-		number F1_R0[2];
-		number F1_BLOW[2];
-		number F1_BHIGH[2];
-		number F1_RLOW[2];
-		number F1_RHIGH[2];
-		number F1_RCLOW[2];
-		number F1_RCHIGH[2];
+	number F1_EPS[2][5][5];
+	number F1_SHIFT[2][5][5];
+	number F1_A[2];
+	number F1_RC[2];
+	number F1_R0[2];
+	number F1_BLOW[2];
+	number F1_BHIGH[2];
+	number F1_RLOW[2];
+	number F1_RHIGH[2];
+	number F1_RCLOW[2];
+	number F1_RCHIGH[2];
 
-		number F2_K[2];
-		number F2_RC[2];
-		number F2_R0[2];
-		number F2_BLOW[2];
-		number F2_RLOW[2];
-		number F2_RCLOW[2];
-		number F2_BHIGH[2];
-		number F2_RCHIGH[2];
-		number F2_RHIGH[2];
+	number F2_K[2];
+	number F2_RC[2];
+	number F2_R0[2];
+	number F2_BLOW[2];
+	number F2_RLOW[2];
+	number F2_RCLOW[2];
+	number F2_BHIGH[2];
+	number F2_RCHIGH[2];
+	number F2_RHIGH[2];
 
-		number F4_THETA_A[20];
-		number F4_THETA_B[20];
-		number F4_THETA_T0[20];
-		number F4_THETA_TS[20];
-		number F4_THETA_TC[20];
+	number F4_THETA_A[20];
+	number F4_THETA_B[20];
+	number F4_THETA_T0[20];
+	number F4_THETA_TS[20];
+	number F4_THETA_TC[20];
 
-		number F5_PHI_A[4];
-		number F5_PHI_B[4];
-		number F5_PHI_XC[4];
-		number F5_PHI_XS[4];
-
-
+	number F5_PHI_A[4];
+	number F5_PHI_B[4];
+	number F5_PHI_XC[4];
+	number F5_PHI_XS[4];
 };
 
 #endif /*RNA_INTERACTION_H*/

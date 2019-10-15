@@ -8,24 +8,21 @@
 #include "RefreshThermostat.h"
 #include "../../Utilities/Utils.h"
 
-
-RefreshThermostat::RefreshThermostat() : BaseThermostat(){
+RefreshThermostat::RefreshThermostat() :
+				BaseThermostat() {
 	_newtonian_steps = 0;
 	_rescale_factor = (number) 0.f;
 }
-
 
 RefreshThermostat::~RefreshThermostat() {
 
 }
 
-
 void RefreshThermostat::get_settings(input_file &inp) {
 	BaseThermostat::get_settings(inp);
 	getInputInt(&inp, "newtonian_steps", &_newtonian_steps, 1);
-	if(_newtonian_steps < 1) throw oxDNAException ("'newtonian_steps' must be > 0");
+	if(_newtonian_steps < 1) throw oxDNAException("'newtonian_steps' must be > 0");
 }
-
 
 void RefreshThermostat::init(int N_part) {
 	BaseThermostat::init(N_part);
@@ -33,9 +30,8 @@ void RefreshThermostat::init(int N_part) {
 	_rescale_factor = sqrt(this->_T);
 }
 
-
 void RefreshThermostat::apply(BaseParticle **particles, llint curr_step) {
-	if (!(curr_step % _newtonian_steps) == 0) return;
+	if(!(curr_step % _newtonian_steps) == 0) return;
 
 	for(int i = 0; i < this->_N_part; i++) {
 		BaseParticle *p = particles[i];
@@ -43,7 +39,3 @@ void RefreshThermostat::apply(BaseParticle **particles, llint curr_step) {
 		p->L = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
 	}
 }
-
-template class RefreshThermostat<float>;
-template class RefreshThermostat<double>;
-

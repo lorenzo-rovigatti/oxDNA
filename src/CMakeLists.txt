@@ -62,26 +62,26 @@ SET(roba
 
 SET(backends_SOURCES
 	Backends/BackendFactory.cpp
+	Backends/SimBackend.cpp 
 	Backends/MDBackend.cpp
 	Backends/MCBackend.cpp
 	Backends/MD_CPUBackend.cpp 
 	Backends/MC_CPUBackend.cpp
 	Backends/MC_CPUBackend2.cpp
-	Backends/SimBackend.cpp 
+	Backends/VMMC_CPUBackend.cpp 
 	Backends/Thermostats/ThermostatFactory.cpp
 	Backends/Thermostats/BaseThermostat.cpp
-	Backends/Thermostats/BrownianThermostat.cpp
 	Backends/Thermostats/NoThermostat.cpp
+	Backends/Thermostats/BrownianThermostat.cpp
+	Backends/Thermostats/RefreshThermostat.cpp
+	Backends/Thermostats/BussiThermostat.cpp
+	Backends/Thermostats/LangevinThermostat.cpp
 )
 SET(roba
 	Backends/MinBackend.cpp
 	Backends/FIREBackend.cpp
 	Backends/FIREBackend.h
 	Backends/FFS_MD_CPUBackend.cpp
-	Backends/VMMC_CPUBackend.cpp 
-	Backends/Thermostats/RefreshThermostat.cpp
-	Backends/Thermostats/BussiThermostat.cpp
-	Backends/Thermostats/LangevinThermostat.cpp
 	Backends/Thermostats/SRDThermostat.cpp
 	Backends/Thermostats/DPDThermostat.cpp
 )
@@ -102,6 +102,8 @@ SET(interactions_SOURCES
 	Interactions/LJInteraction.cpp
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
+	Interactions/RNAInteraction.cpp
+	Interactions/RNAInteraction2.cpp
 )
 
 SET(roba 
@@ -116,9 +118,7 @@ SET(roba
 	Interactions/PatchyInteraction.cpp
 	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
-	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction_relax.cpp
-	Interactions/RNAInteraction2.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/DNAInteraction_relax2.cpp
@@ -181,9 +181,9 @@ SET(common_SOURCES
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Managers/SimManager.cpp
-#	Utilities/OrderParameters.cpp
-#	Utilities/Weights.cpp
-#	Utilities/Histogram.cpp
+	Utilities/OrderParameters.cpp
+	Utilities/Weights.cpp
+	Utilities/Histogram.cpp
 	Utilities/LR_vector.cpp
 	Utilities/LR_matrix.cpp
 	Utilities/Utils.cpp

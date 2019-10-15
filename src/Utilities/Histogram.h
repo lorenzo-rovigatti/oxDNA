@@ -42,7 +42,7 @@ class Histogram {
 		void init (const char *, OrderParameters *);
 		void init (const char *, OrderParameters *, double *, int);
 		
-		void init (OrderParameters * op, std::vector temps);
+		void init (OrderParameters *op, std::vector<number> temps);
 
 		void reset();
 		void set_simtemp (double arg) { _simtemp = arg; }

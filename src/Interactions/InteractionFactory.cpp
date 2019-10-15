@@ -12,9 +12,10 @@
 #include "LJInteraction.h"
 #include "DNAInteraction.h"
 #include "DNA2Interaction.h"
+#include "RNAInteraction.h"
+#include "RNAInteraction2.h"
 
 /*#include "DNAInteraction_nomesh.h"
-#include "RNAInteraction.h"
 #include "PatchyInteraction.h"
 #include "PatchyInteractionDan.h"
 #include "KFInteraction.h"
@@ -26,7 +27,6 @@
 #include "HardCylinderInteraction.h"
 #include "HardSpheroCylinderInteraction.h"
 #include "CustomInteraction.h"
-#include "RNAInteraction2.h"
 #include "RNAInteraction_relax.h"
 #include "TEPInteraction.h"
 #include "JordanInteraction.h"
@@ -63,9 +63,11 @@ IBaseInteraction *InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("LJ") == 0) return new LJInteraction();
 	/*else if(inter_type.compare("DNA_nomesh") == 0) return new DNAInteraction_nomesh();
 	else if(inter_type.compare("DNA2_nomesh") == 0) return new DNA2Interaction_nomesh();
-	else if(inter_type.compare("DNA_relax") == 0) return new DNAInteraction_relax();
+	else if(inter_type.compare("DNA_relax") == 0) return new DNAInteraction_relax();*/
+	else if(inter_type.compare("DNA2") == 0) return new DNA2Interaction();
 	else if(inter_type.compare("RNA") == 0) return new RNAInteraction();
-	else if(inter_type.compare("patchy") == 0) return new PatchyInteraction();
+	else if(inter_type.compare("RNA2") == 0) return new RNA2Interaction();
+	/*else if(inter_type.compare("patchy") == 0) return new PatchyInteraction();
 	else if(inter_type.compare("patchyDan") == 0) return new PatchyInteractionDan();
 	else if(inter_type.compare("KF") == 0) return new KFInteraction();
 	else if(inter_type.compare("TSP") == 0) return new TSPInteraction();
@@ -75,8 +77,6 @@ IBaseInteraction *InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("HardSpheroCylinder") == 0) return new HardSpheroCylinderInteraction();
 	else if(inter_type.compare("DHS") == 0) return new DHSInteraction();
 	else if(inter_type.compare("custom") == 0) return new CustomInteraction();
-	else if(inter_type.compare("DNA2") == 0) return new DNA2Interaction();
-	else if(inter_type.compare("RNA2") == 0) return new RNA2Interaction();
 	else if(inter_type.compare("RNA_relax") == 0) return new RNAInteraction_relax();
 	else if(inter_type.compare("TEP") == 0) return new TEPInteraction();
 	else if(inter_type.compare("Jordan") == 0) return new JordanInteraction();*/

@@ -21,16 +21,16 @@
  * not take the solvent into account.
  *
  * @verbatim
-newtonian_steps = <int> (number of integration timesteps after which the thermostat acts. Can be 1.)
-bussi_tau = <int> (correlation time, in time steps, for the stochastic evolution of the kinetic energy)
-@endverbatim
+ newtonian_steps = <int> (number of integration timesteps after which the thermostat acts. Can be 1.)
+ bussi_tau = <int> (correlation time, in time steps, for the stochastic evolution of the kinetic energy)
+ @endverbatim
  */
 
-class BussiThermostat : public BaseThermostat {
+class BussiThermostat: public BaseThermostat {
 protected:
 	/// interval, in time steps, over which the dynamics is ballistic.
 	int _newtonian_steps;
-	
+
 	/// correlation time for the stochastic dynamics of the kinetic energy (in time steps)
 	int _tau;
 
@@ -39,7 +39,7 @@ protected:
 
 	/// stored value for the stochastic dynamic of the kinetic energy associated to translations
 	number _K_t;
-	
+
 	/// stored value for the stochastic dynamic of the kinetic energy associated to rotations
 	number _K_r;
 

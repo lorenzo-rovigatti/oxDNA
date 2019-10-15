@@ -8,9 +8,8 @@
 #include "LangevinThermostat.h"
 #include "../../Utilities/Utils.h"
 
-
 LangevinThermostat::LangevinThermostat() :
-		BaseThermostat() {
+				BaseThermostat() {
 	_gamma_trans = (number) 0.f;
 	_gamma_rot = (number) 0.f;
 	_dt = (number) 0.f;
@@ -22,11 +21,9 @@ LangevinThermostat::LangevinThermostat() :
 	this->_supports_shear = true;
 }
 
-
 LangevinThermostat::~LangevinThermostat() {
 
 }
-
 
 void LangevinThermostat::get_settings(input_file &inp) {
 	BaseThermostat::get_settings(inp);
@@ -57,7 +54,6 @@ void LangevinThermostat::get_settings(input_file &inp) {
 	getInputNumber(&inp, "dt", &_dt, 1);
 }
 
-
 void LangevinThermostat::init(int N_part) {
 	BaseThermostat::init(N_part);
 
@@ -75,7 +71,6 @@ void LangevinThermostat::init(int N_part) {
 
 }
 
-
 void LangevinThermostat::apply(BaseParticle **particles, llint curr_step) {
 	for(int i = 0; i < this->_N_part; i++) {
 		BaseParticle *p = particles[i];
@@ -83,7 +78,3 @@ void LangevinThermostat::apply(BaseParticle **particles, llint curr_step) {
 		if(p->is_rigid_body()) p->L += _dt * (-_gamma_rot * p->L + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_rot);
 	}
 }
-
-template class LangevinThermostat<float> ;
-template class LangevinThermostat<double> ;
-

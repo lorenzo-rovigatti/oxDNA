@@ -10,10 +10,10 @@
 #include "MD_CPUBackend.h"
 #include "MC_CPUBackend.h"
 #include "MC_CPUBackend2.h"
+#include "VMMC_CPUBackend.h"
 
 /*#include "FFS_MD_CPUBackend.h"
 #include "FFS_MD_CPUBackend.h"
-#include "VMMC_CPUBackend.h"
 #include "MinBackend.h"
 #include "FIREBackend.h"
 #ifndef NOCUDA
@@ -51,8 +51,8 @@ std::shared_ptr<ISimBackend> BackendFactory::make_backend(input_file &inp) {
 	}
 	else OX_LOG(Logger::LOG_INFO, "Simulation type: %s", sim_type);
 
-	if(backend_prec != std::string("")) {
-		throw oxDNAException("Fa qualcosa per dire che backend_prec è stata settata");
+	if(backend_prec != std::string("") && !strcmp(backend_opt, "CPU")) {
+		OX_LOG(Logger::LOG_WARNING, "\nThe 'backend_precision' option cannot be set by input file when running on CPU\n");
 	}
 
 	ISimBackend *new_backend = NULL;
@@ -83,17 +83,13 @@ std::shared_ptr<ISimBackend> BackendFactory::make_backend(input_file &inp) {
 		}
 		else throw oxDNAException("Backend '%s' not supported", backend_opt);
 	}
-	/*else if(!strcmp (sim_type, "VMMC")) {
+	else if(!strcmp (sim_type, "VMMC")) {
 			if(!strcmp(backend_opt, "CPU")) {
-				if(!strcmp(backend_prec, "double")) new_backend = new VMMC_CPUBackend<double>();
-				else if(!strcmp(backend_prec, "float")) {
-					new_backend = new VMMC_CPUBackend<float>();
-				}
-				else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
+				new_backend = new VMMC_CPUBackend();
 			}
 			else throw oxDNAException("Backend '%s' not supported", backend_opt);
 
-	}*/
+	}
 
 #ifdef HAVE_MPI
 	else if(!strcmp (sim_type, "PT_VMMC")) {

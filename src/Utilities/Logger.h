@@ -47,22 +47,16 @@ private:
 	 */
 	Logger();
 
-	/**
-	 * @brief Copy constructor. It is kept private to enforce the singleton pattern.
-	 *
-	 * @param
-	 * @return
-	 */
-	Logger(Logger const&) {};
-
 public:
-	enum {
+	enum log_levels {
 		LOG_INFO = 0,
 		LOG_WARNING = 1,
 		LOG_DEBUG = 2,
 		LOG_ERROR = 3,
 		LOG_NOTHING = 4
-	} log_levels;
+	};
+
+	Logger(Logger const&) = delete;
 
 	/**
 	 * @brief Read options from the input file

@@ -168,64 +168,6 @@ struct MinDistanceParameter {
 		name = newname;
 	}
 
-	
-	double calculate_value(BaseParticle **particle_list, BaseBox * box) {
-		// mindistance
-		if (_sub_type == 0){
-			LR_vector dist;
-			current_value = -1;
-			double candidate;
-			for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
-				BaseParticle *p = particle_list[(*i).first];
-				BaseParticle *q = particle_list[(*i).second];
-				
-				if (p->strand_id == q->strand_id) dist = q->pos - p->pos;
-				else dist = box->min_image(p, q);
-				
-				if (_use_COM == false) {
-					dist += q->int_centers[DNANucleotide::BASE];
-					dist -= p->int_centers[DNANucleotide::BASE];
-				}
-				candidate = dist * dist;
-
-				if (current_value < 0 || candidate < current_value) current_value = candidate;
-			}
-			current_value = sqrt(current_value);
-			return current_value;
-		}
-		// twist
-		// Algorithm described in page 26 of Christian Matek's thesis - Statistical mechanics of Nucleic Acids under Mechanical Stress
-		else if(_sub_type == 1) {
-			double twist = 0;
-			for(vector_of_pairs::iterator i = counted_pairs.begin() + 1; i != counted_pairs.end(); i++) {
-				// get the position vectors of the current and previous base-pairs
-				BaseParticle *first_curr = particle_list[(*i).first];
-				BaseParticle *second_curr = particle_list[(*i).second];
-				vector_of_pairs::iterator prev =  i - 1;
-				BaseParticle *first_prev = particle_list[(*prev).first];
-				BaseParticle *second_prev = particle_list[(*prev).second];
-
-				// base-pair vectors - vectors that connect the center of mass of the two nucleotides in a base-pair
-				LR_vector bp_curr = first_curr->pos - second_curr->pos;
-				LR_vector bp_prev = first_prev->pos - second_prev->pos;
-				// versor that connects the two base-pair vectors
-				LR_vector conn = (bp_curr - bp_prev).normalise();
-				// project the two base-pair vectors onto the plane normal to the conn vector
-				bp_curr  -= (conn * bp_curr) * bp_curr;
-				bp_prev  -= (conn * bp_prev) * bp_prev;
-				// finally, compute the angle between the projections and sum it up
-				twist += LRACOS(bp_curr * bp_prev);
-			}
-			//return the twist, which is defined as the number of turns (i.e. the angle in radians divided by 2pi).
-			return twist / 2*M_PI;
-		}
-		// unknown order parameter.
-		else {
-			throw oxDNAException("Unknown order parameter subtype %d",_sub_type);
-		}
-	}
-
-	
 	int calculate_state(BaseParticle **particle_list, BaseBox * box) {
 		// if mindistance
 		if (_sub_type == 0){

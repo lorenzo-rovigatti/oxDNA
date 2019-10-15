@@ -16,7 +16,6 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)>(b))?(b):(a))
 
-
 struct movestr {
     int seed, type;
     LR_vector t;
@@ -47,7 +46,6 @@ struct movestr {
 @endverbatim
  *
  */
-
 class VMMC_CPUBackend: public MC_CPUBackend {
 protected:
 	bool _have_us;
@@ -115,25 +113,19 @@ protected:
 	number _particle_particle_bonded_interaction_n3_VMMC(BaseParticle *p, BaseParticle *q,number *stacking_en=0);
 	number _particle_particle_nonbonded_interaction_VMMC(BaseParticle *p, BaseParticle *q, number *H_energy=0);
 
-	/* //old functions
-	inline number _particle_particle_bonded_interaction_n5 (BaseParticle *p, BaseParticle *q,number *stacking_en = 0);
-	inline number _particle_particle_bonded_interaction_n5_real (BaseParticle *p, BaseParticle *q,number *stacking_en = 0);
-	inline number _particle_particle_bonded_interaction_n3 (BaseParticle *p, BaseParticle *q,number *stacking_en = 0);
-	inline number _particle_particle_interaction (BaseParticle *p, BaseParticle *q, number *H_energy=0);
-	*/
-
 	number build_cluster (movestr * moveptr, int maxsize, int * clust, int * size);
 	number build_cluster_cells (movestr * moveptr, int maxsize, int * clust, int * size);
 	number build_cluster_small (movestr * moveptr, int maxsize, int * clust, int * size);
-	//number build_cluster_smallish (movestr * moveptr, int maxsize, int * clust, int * size);
 
-	number VMMC_link(double E_new, double E_old) { return (1. - exp((1. / this->_T) * (E_old - E_new)));}
+	number VMMC_link(double E_new, double E_old) {
+		return (1. - exp((1. / this->_T) * (E_old - E_new)));
+	}
 
-	//inline number _next_rand (void) const { return drand48(); }
-	inline number _next_rand () {return drand48();}
+	inline number _next_rand () {
+		return drand48();
+	}
 
 	inline void _move_particle(movestr * moveptr, BaseParticle *p, BaseParticle *q);
-	//void _r_move_particle(movestr * moveptr, BaseParticle *p);
 	void _update_ops ();
 	void _update_lists ();
 

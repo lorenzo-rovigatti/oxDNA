@@ -3,13 +3,14 @@
  *      Author: flavio
  */
 
-#include <set>
-#include <sstream>
-
 #include "VMMC_CPUBackend.h"
 #include "../Utilities/Utils.h"
 #include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/DNA2Interaction.h"
+
+#include <set>
+#include <sstream>
+#include <limits>
 
 VMMC_CPUBackend::VMMC_CPUBackend() : MC_CPUBackend() {
 	//_op = NULL;
@@ -1224,7 +1225,7 @@ inline number VMMC_CPUBackend::build_cluster_cells (movestr * moveptr, int maxsi
 }
 
 
-inline void VMMC_CPUBackend::_move_particle(movestr * moveptr, BaseParticle< number> *q, BaseParticle *p) {
+inline void VMMC_CPUBackend::_move_particle(movestr *moveptr, BaseParticle *q, BaseParticle *p) {
 	if (moveptr->type == MC_MOVE_TRANSLATION) {
 		q->pos += moveptr->t;
 	}
@@ -1954,22 +1955,9 @@ void VMMC_CPUBackend::print_observables(llint curr_step) {
 	//if ((curr_step % (10 * this->_N)) == 0) this->fix_diffusion();
 }
 
-template<>
-inline int VMMC_CPUBackend<float>::_get_cell_index(const LR_vector<float> &pos) {
-	int res = (int) ((pos.x / _vmmc_box_side - floor(pos.x / _vmmc_box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side);
-	res += _vmmc_N_cells_side * ((int) ((pos.y / _vmmc_box_side - floor(pos.y / _vmmc_box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side));
-	res += _vmmc_N_cells_side * _vmmc_N_cells_side * ((int) ((pos.z / _vmmc_box_side - floor(pos.z / _vmmc_box_side)) * (1.f - FLT_EPSILON) * _vmmc_N_cells_side));
+inline int VMMC_CPUBackend::_get_cell_index(const LR_vector &pos) {
+	int res = (int) ((pos.x / _vmmc_box_side - floor(pos.x / _vmmc_box_side)) * (1. - std::numeric_limits<number>::epsilon()) * _vmmc_N_cells_side);
+	res += _vmmc_N_cells_side * ((int) ((pos.y / _vmmc_box_side - floor(pos.y / _vmmc_box_side)) * (1. - std::numeric_limits<number>::epsilon()) * _vmmc_N_cells_side));
+	res += _vmmc_N_cells_side * _vmmc_N_cells_side * ((int) ((pos.z / _vmmc_box_side - floor(pos.z / _vmmc_box_side)) * (1. - std::numeric_limits<number>::epsilon()) * _vmmc_N_cells_side));
 	return res;
 }
-
-template<>
-inline int VMMC_CPUBackend<double>::_get_cell_index(const LR_vector<double> &pos) {
-	int res = (int) ((pos.x / _vmmc_box_side - floor(pos.x / _vmmc_box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side);
-	res += _vmmc_N_cells_side * ((int) ((pos.y / _vmmc_box_side - floor(pos.y / _vmmc_box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side));
-	res += _vmmc_N_cells_side * _vmmc_N_cells_side * ((int) ((pos.z / _vmmc_box_side - floor(pos.z / _vmmc_box_side)) * (1.f - DBL_EPSILON) * _vmmc_N_cells_side));
-	return res;
-}
-
-template class VMMC_CPUBackend<float> ;
-template class VMMC_CPUBackend<double> ;
-
