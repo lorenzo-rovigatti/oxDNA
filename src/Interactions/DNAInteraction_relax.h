@@ -25,13 +25,13 @@
  * This interaction is selected with
  * interaction_type = DNA_relax
  *
-@verbatim
-relax_type = <string> (Possible values: constant_force, harmonic_force; Relaxation algorithm used)
-relax_strength = <float> (Force constant for the replacement of the FENE potential)
-@endverbatim
+ @verbatim
+ relax_type = <string> (Possible values: constant_force, harmonic_force; Relaxation algorithm used)
+ relax_strength = <float> (Force constant for the replacement of the FENE potential)
+ @endverbatim
  */
 
-class DNAInteraction_relax : public DNAInteraction {
+class DNAInteraction_relax: public DNAInteraction {
 protected:
 	inline virtual number _backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	int _backbone_type;

@@ -8,50 +8,46 @@
 #include "CustomInteraction.h"
 #include "../Particles/CustomParticle.h"
 
-
-CustomInteraction::CustomInteraction() {
+CustomInteraction::CustomInteraction() :
+				BaseInteraction<CustomInteraction>() {
 	_bonded_points = 100;
 
 	this->_int_map[BONDED] = &CustomInteraction::pair_interaction_bonded;
 	this->_int_map[NONBONDED] = &CustomInteraction::pair_interaction_nonbonded;
 }
 
-
 CustomInteraction::~CustomInteraction() {
 
 }
 
-
 number CustomInteraction::_linear_interpolation(number x, number *x_data, number *fx_data, int points) {
 	int ind = -1;
-	for(int i = 0; i < points && ind == -1; i++) if(x_data[i] > x) ind = i;
+	for(int i = 0; i < points && ind == -1; i++)
+		if(x_data[i] > x) ind = i;
 
 	number val;
 	if(ind == -1) {
 		int last = points - 1;
-		number slope = (fx_data[last] - fx_data[last-1]) / (x_data[last] - x_data[last-1]);
+		number slope = (fx_data[last] - fx_data[last - 1]) / (x_data[last] - x_data[last - 1]);
 		val = fx_data[last] + slope * (x - x_data[last]);
 	}
 	else {
-		number slope = (fx_data[ind] - fx_data[ind-1]) / (x_data[ind] - x_data[ind-1]);
-		val = fx_data[ind-1] + slope * (x - x_data[ind-1]);
+		number slope = (fx_data[ind] - fx_data[ind - 1]) / (x_data[ind] - x_data[ind - 1]);
+		val = fx_data[ind - 1] + slope * (x - x_data[ind - 1]);
 	}
 
 	return val;
 }
-
 
 number CustomInteraction::_fx(number x, void *par) {
 	base_function *data = (base_function *) par;
 	return _linear_interpolation(x, data->x, data->fx, data->points);
 }
 
-
 number CustomInteraction::_dfx(number x, void *par) {
 	base_function *data = (base_function *) par;
 	return _linear_interpolation(x, data->x, data->dfx, data->points);
 }
-
 
 void CustomInteraction::get_settings(input_file &inp) {
 	IBaseInteraction::get_settings(inp);
@@ -60,7 +56,6 @@ void CustomInteraction::get_settings(input_file &inp) {
 	getInputInt(&inp, "custom_points", &_bonded_points, 0);
 	getInputNumber(&inp, "custom_rcut", &this->_rcut, 1);
 }
-
 
 void CustomInteraction::init() {
 	std::ifstream lt_file(_lt_filename, ios::in);
@@ -96,7 +91,7 @@ void CustomInteraction::init() {
 			data.fx[i] = atof(spl[1].c_str());
 			data.dfx[i] = atof(spl[2].c_str());
 
-			if(i > 0 && data.x[i] <= data.x[i-1]) throw oxDNAException("The x values of the lookup table should be monotonically increasing (found x[%d] = %f <= %f = x[%d])", i, data.x[i], i-1, data.x[i-1]);
+			if(i > 0 && data.x[i] <= data.x[i - 1]) throw oxDNAException("The x values of the lookup table should be monotonically increasing (found x[%d] = %f <= %f = x[%d])", i, data.x[i], i - 1, data.x[i - 1]);
 			i++;
 		}
 	}
@@ -105,7 +100,7 @@ void CustomInteraction::init() {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i - 1];
 
-	this->_build_mesh(this, &CustomInteraction::_fx, &CustomInteraction::_dfx, (void *)(&data), _bonded_points, lowlimit, uplimit, _non_bonded_mesh);
+	this->_build_mesh(this, &CustomInteraction::_fx, &CustomInteraction::_dfx, (void *) (&data), _bonded_points, lowlimit, uplimit, _non_bonded_mesh);
 
 	delete[] data.x;
 	delete[] data.fx;
@@ -117,11 +112,10 @@ void CustomInteraction::init() {
 	OX_LOG(Logger::LOG_INFO, "custom: rcut = %lf, Ecut = %lf", this->_rcut, _Ecut);
 }
 
-
 void CustomInteraction::allocate_particles(BaseParticle **particles, int N) {
-	for(int i = 0; i < N; i++) particles[i] = new CustomParticle();
+	for(int i = 0; i < N; i++)
+		particles[i] = new CustomParticle();
 }
-
 
 void CustomInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	*N_strands = N;
@@ -133,7 +127,7 @@ void CustomInteraction::read_topology(int N, int *N_strands, BaseParticle **part
 	topology.close();
 
 	allocate_particles(particles, N);
-	for (int i = 0; i < N; i ++) {
+	for(int i = 0; i < N; i++) {
 		particles[i]->index = particles[i]->strand_id = i;
 	}
 
@@ -141,12 +135,10 @@ void CustomInteraction::read_topology(int N, int *N_strands, BaseParticle **part
 //	p->add_bonded_neigh((CustomParticle *) particles[1]);
 }
 
-
 number CustomInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
 	else return pair_interaction_nonbonded(p, q, r, update_forces);
 }
-
 
 number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(!p->is_bonded(q)) return 0.;
@@ -156,7 +148,7 @@ number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle 
 	number energy = (number) 0.f;
 	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
-		if (q != P_VIRTUAL && p != P_VIRTUAL) {
+		if(q != P_VIRTUAL && p != P_VIRTUAL) {
 			computed_r = q->pos - p->pos;
 			r = &computed_r;
 		}
@@ -167,14 +159,13 @@ number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle 
 
 	if(update_forces) {
 		number force_mod = -this->_query_meshD(dist, _bonded_mesh);
-		LR_vector force = *r * (force_mod/dist);
+		LR_vector force = *r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;
 	}
 
 	return energy;
 }
-
 
 number CustomInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return 0.;
@@ -202,10 +193,6 @@ number CustomInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 	return energy;
 }
 
-
 void CustomInteraction::check_input_sanity(BaseParticle **particles, int N) {
 
 }
-
-template class CustomInteraction<float>;
-template class CustomInteraction<double>;

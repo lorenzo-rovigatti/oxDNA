@@ -96,15 +96,17 @@ SET(lists_SOURCES
 
 SET(interactions_SOURCES
 	Interactions/InteractionFactory.cpp
+	Interactions/InteractionUtils.cpp
 	Interactions/BaseInteraction.cpp
 	Interactions/LJInteraction.cpp
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
+	Interactions/DNAInteraction_nomesh.cpp
+	Interactions/DNAInteraction_relax.cpp
+	Interactions/DNAInteraction_relax2.cpp
 	Interactions/RNAInteraction.cpp
 	Interactions/RNAInteraction2.cpp
-)
-
-SET(roba 
+	Interactions/RNAInteraction_relax.cpp
 	Interactions/JordanInteraction.cpp
 	Interactions/TEPInteraction.cpp
 	Interactions/TSPInteraction.cpp
@@ -116,10 +118,6 @@ SET(roba
 	Interactions/PatchyInteraction.cpp
 	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
-	Interactions/RNAInteraction_relax.cpp
-	Interactions/DNAInteraction_nomesh.cpp
-	Interactions/DNAInteraction_relax.cpp
-	Interactions/DNAInteraction_relax2.cpp
 	Interactions/CustomInteraction.cpp
 )
 

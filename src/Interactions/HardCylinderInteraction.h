@@ -25,7 +25,7 @@ height = <float> (cylinder length)
 @endverbatim
  */
 
-class HardCylinderInteraction: public BaseInteraction<number, HardCylinderInteraction > {
+class HardCylinderInteraction: public BaseInteraction<HardCylinderInteraction > {
 protected:
 	inline number _hc_pot (BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 

@@ -31,7 +31,7 @@ KF_cosmax = <float> (angular half-width of the patches)
 @endverbatim
  */
 
-class KFInteraction: public BaseInteraction<number, KFInteraction > {
+class KFInteraction: public BaseInteraction<KFInteraction > {
 protected:
 	/// Number of patches per particle
 	int _N_patches;

@@ -18,9 +18,9 @@
  * interaction_type = HS
  */
 
-class HSInteraction: public BaseInteraction<number, HSInteraction > {
+class HSInteraction: public BaseInteraction<HSInteraction> {
 protected:
-	inline number _hs_pot (BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline number _hs_pot(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 public:
 	enum {
@@ -35,10 +35,10 @@ public:
 
 	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
@@ -47,15 +47,14 @@ public:
 	//virtual void generate_random_configuration(BaseParticle **particles, int N, number box_side);
 };
 
-
-number HSInteraction::_hs_pot (BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
+number HSInteraction::_hs_pot(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	if(update_forces) throw oxDNAException("No forces, figlio di ndrocchia");
 
 	number rnorm = r->norm();
 	number energy = 0;
 
-	if (rnorm < (number) 1.) {
-		this->set_is_infinite (true);
+	if(rnorm < (number) 1.) {
+		this->set_is_infinite(true);
 		//this->is_infinite = true;
 		energy = (number) 1.e12;
 	}
@@ -63,7 +62,6 @@ number HSInteraction::_hs_pot (BaseParticle *p, BaseParticle *q, LR_vector *r, b
 
 	return energy;
 }
-
 
 #endif /* HSINTERACTION_H_ */
 

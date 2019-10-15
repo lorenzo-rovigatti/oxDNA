@@ -39,7 +39,7 @@
  */
 
 
-class PatchyInteractionDan : public BaseInteraction<number, PatchyInteractionDan > {
+class PatchyInteractionDan : public BaseInteraction<PatchyInteractionDan > {
 protected:
         /*//Flag to denote when initialisation of pointers is complete
          bool _initialised;*/

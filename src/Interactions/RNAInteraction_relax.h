@@ -22,13 +22,13 @@
  * This interaction is selected with
  * interaction_type = RNA_relax
  *
-@verbatim
-relax_type = <string> (Possible values: constant_force, harmonic_force; Relaxation algorithm used)
-relax_strength = <float> (Force constant for the replacement of the FENE potential)
-@endverbatim
+ @verbatim
+ relax_type = <string> (Possible values: constant_force, harmonic_force; Relaxation algorithm used)
+ relax_strength = <float> (Force constant for the replacement of the FENE potential)
+ @endverbatim
  */
 
-class RNAInteraction_relax : public RNAInteraction {
+class RNAInteraction_relax: public RNAInteraction {
 protected:
 	inline virtual number _backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	int _backbone_type;

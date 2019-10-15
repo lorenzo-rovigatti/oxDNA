@@ -17,19 +17,19 @@
  * interaction_type = jordan
  *
  * @verbatim
-JORDAN_N_patches = <int> (number of patches)
-[JORDAN_s = <float> (sigma of the gaussian modulation, defaults to 0.3)]
-[JORDAN_m = <float> (exponent to the 2m-m lennard-jones part)]
-[JORDAN_phi = <float> (angle below the equator for the rest position of the patches, defaults to PI/6)]
-[JORDAN_int_k = <float> (stiffness of the internal spring, defaults to 0., i.e., free patches)]
-@endverbatim
+ JORDAN_N_patches = <int> (number of patches)
+ [JORDAN_s = <float> (sigma of the gaussian modulation, defaults to 0.3)]
+ [JORDAN_m = <float> (exponent to the 2m-m lennard-jones part)]
+ [JORDAN_phi = <float> (angle below the equator for the rest position of the patches, defaults to PI/6)]
+ [JORDAN_int_k = <float> (stiffness of the internal spring, defaults to 0., i.e., free patches)]
+ @endverbatim
  */
 
-class JordanInteraction: public BaseInteraction<number, JordanInteraction > {
+class JordanInteraction: public BaseInteraction<JordanInteraction> {
 protected:
 	/// number of patches on each particle
 	int _n_patches;
-	
+
 	/// sigma of the gaussian modulation
 	number _s;
 
@@ -46,7 +46,7 @@ protected:
 	number _int_k;
 
 	/// interaction
-	number _jordan_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	number _jordan_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
 
 	/// number of particles with N3 patches and of particles in general
 	int _my_N3, _my_N;
@@ -67,10 +67,10 @@ public:
 
 	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 

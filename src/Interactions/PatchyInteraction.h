@@ -31,7 +31,7 @@ PATCHY_N = <int> (number of patches)
 @endverbatim
  */
 
-class PatchyInteraction: public BaseInteraction<number, PatchyInteraction > {
+class PatchyInteraction: public BaseInteraction<PatchyInteraction > {
 protected:
 	/// Number of patches per particle
 	int _N_patches;

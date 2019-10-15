@@ -10,56 +10,54 @@
 #include "DNAInteraction_relax2.h"
 #include "../Particles/DNANucleotide.h"
 
-
-DNAInteraction_relax2::DNAInteraction_relax2() : DNAInteraction() {
+DNAInteraction_relax2::DNAInteraction_relax2() :
+				DNAInteraction() {
 	OX_LOG(Logger::LOG_INFO, "Using non-diverging backbone potential (DNA_relax2 interaction)");
 	_fmax = 10.0f;
 }
-
 
 DNAInteraction_relax2::~DNAInteraction_relax2() {
 
 }
 
-
 number DNAInteraction_relax2::_backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(!this->_check_bonded_neighbour(&p, &q, r)) {
-	    return (number) 0.f;
+		return (number) 0.f;
 	}
 
 	LR_vector computed_r;
-	if (r == NULL) {
+	if(r == NULL) {
 		computed_r = q->pos - p->pos;
 		r = &computed_r;
 	}
 
 	LR_vector rback = *r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
-	
+
 	number rbackmod = rback.module();
 	number rbackr0 = rbackmod - FENE_R0_OXDNA;
 	number energy = 0.;
 
 	// compute the x for which the potential becomes a straight line
 	number xmax = (-FENE_EPS + sqrt(FENE_EPS * FENE_EPS + 4.f * _fmax * _fmax * FENE_DELTA2)) / (2.f * _fmax);
-	number fenemax = - (FENE_EPS / 2.f) * log (1.f - SQR(xmax) / FENE_DELTA2);
+	number fenemax = -(FENE_EPS / 2.f) * log(1.f - SQR(xmax) / FENE_DELTA2);
 	//OX_LOG(Logger::LOG_INFO, "relax: xmax = %g ", xmax);
 
 	LR_vector force;
-	
-	if (fabs(rbackr0) < xmax) {
-		// we use the standard FENE
-		energy = - (FENE_EPS / 2.f) * log(1.f - SQR(rbackr0) / FENE_DELTA2);
 
-		if (update_forces) force = rback * (-(FENE_EPS * rbackr0  / (FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
+	if(fabs(rbackr0) < xmax) {
+		// we use the standard FENE
+		energy = -(FENE_EPS / 2.f) * log(1.f - SQR(rbackr0) / FENE_DELTA2);
+
+		if(update_forces) force = rback * (-(FENE_EPS * rbackr0 / (FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
 	}
 	else {
 		// we use the straight potential
-		energy = fenemax + _fmax * (fabs(rbackr0) - xmax);  
+		energy = fenemax + _fmax * (fabs(rbackr0) - xmax);
 
-		if (update_forces) force = rback * (- _fmax * copysign(1., rbackr0) / rbackmod);
+		if(update_forces) force = rback * (-_fmax * copysign(1., rbackr0) / rbackmod);
 	}
 
-	if (update_forces) {
+	if(update_forces) {
 		p->force -= force;
 		q->force += force;
 
@@ -70,7 +68,6 @@ number DNAInteraction_relax2::_backbone(BaseParticle *p, BaseParticle *q, LR_vec
 	return energy;
 }
 
-
 void DNAInteraction_relax2::check_input_sanity(BaseParticle **particles, int N) {
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];
@@ -79,14 +76,10 @@ void DNAInteraction_relax2::check_input_sanity(BaseParticle **particles, int N) 
 	}
 }
 
-
 void DNAInteraction_relax2::get_settings(input_file &inp) {
 	DNAInteraction::get_settings(inp);
 
-	getInputNumber (&inp, "relax_fmax", &_fmax, 0);
+	getInputNumber(&inp, "relax_fmax", &_fmax, 0);
 
 	OX_LOG(Logger::LOG_INFO, "relax_fmax = %g ", _fmax);
 }
-
-template class DNAInteraction_relax2<float>;
-template class DNAInteraction_relax2<double>;
