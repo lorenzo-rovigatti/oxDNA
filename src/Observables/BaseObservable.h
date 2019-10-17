@@ -56,4 +56,6 @@ public:
 	}
 };
 
+using ObservablePtr = std::shared_ptr<BaseObservable>;
+
 #endif /* BASEOBSERVABLE_H_ */

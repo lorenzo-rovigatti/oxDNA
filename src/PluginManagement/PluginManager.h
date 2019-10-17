@@ -108,9 +108,9 @@ public:
 	/**
 	 * @brief Looks for an {@link BaseObservable observable} plugin in the current plugin path and, if found, builds it and returns it as a pointer
 	 * @param name Case-sensitive name of the plugin
-	 * @return a pointer to the newly built plugin
+	 * @return a shared_ptr to the newly built plugin
 	 */
-	BaseObservable *get_observable(std::string name);
+	ObservablePtr get_observable(std::string name);
 
 	/**
 	 * @brief Looks for an {@link BaseInteraction interaction} plugin in the current plugin path and, if found, builds it and returns it as a pointer

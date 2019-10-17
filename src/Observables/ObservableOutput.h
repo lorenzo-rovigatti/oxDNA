@@ -42,7 +42,7 @@
  */
 class ObservableOutput {
 protected:
-	std::vector<BaseObservable *> _obss;
+	std::vector<ObservablePtr> _obss;
 	std::ofstream _output_stream;
 	std::ostream *_output;
 	llint _print_every;

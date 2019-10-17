@@ -121,7 +121,7 @@ void *PluginManager::_get_entry_point(void *handle, string name, vector<string> 
 }
 
 
-BaseObservable *PluginManager::get_observable(string name) {
+ObservablePtr PluginManager::get_observable(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
@@ -141,7 +141,7 @@ BaseObservable *PluginManager::get_observable(string name) {
 	}
 
 	// now we cast it back to the type required by the code
-	return static_cast<BaseObservable *>(temp_obs);
+	return static_cast<ObservablePtr>(ObservablePtr((BaseObservable *)temp_obs));
 }
 
 
