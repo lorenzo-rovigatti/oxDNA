@@ -101,4 +101,6 @@ public:
 	}
 };
 
+using ListPtr = std::shared_ptr<BaseList>;
+
 #endif /* BASELIST_H_ */

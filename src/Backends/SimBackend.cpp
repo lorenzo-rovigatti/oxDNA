@@ -46,9 +46,9 @@ SimBackend::SimBackend() {
 	_custom_conf_name = false;
 	_read_conf_step = 0;
 	_start_step_from_file = 0;
-	_obs_output_last_conf_bin = NULL;
+	_obs_output_last_conf_bin = nullptr;
 	_P = (number) 0.;
-	_lists = NULL;
+	_lists = nullptr;
 	_box = nullptr;
 	_max_io = 1.e30;
 	_read_conf_step = -1;
@@ -104,9 +104,6 @@ SimBackend::~SimBackend() {
 	 fclose(timings_file);
 	 }
 	 */
-
-	// destroy lists;
-	if(_lists != NULL) delete _lists;
 
 	PluginManager::clear();
 	ConfigInfo::clear();
@@ -340,9 +337,9 @@ void SimBackend::init() {
 		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, _box.get());
 	}
 
-	this->_U = (number) 0;
-	this->_K = (number) 0;
-	this->_U_stack = (number) 0;
+	_U = (number) 0;
+	_K = (number) 0;
+	_U_stack = (number) 0;
 
 	_interaction->set_box(_box.get());
 
@@ -350,7 +347,7 @@ void SimBackend::init() {
 
 	// initializes the observable output machinery. This part has to follow
 	// read_topology() since _particles has to be initialized
-	_config_info->set(_particles, _interaction, &_N, &_backend_info, _lists, _box.get());
+	_config_info->set(_particles, _interaction, &_N, &_backend_info, _lists.get(), _box.get());
 
 	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		(*it)->init(*_config_info);
@@ -465,7 +462,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 
 	i = 0;
 	while(!_conf_input.eof() && i < _N) {
-		BaseParticle *p = this->_particles[i];
+		BaseParticle *p = _particles[i];
 
 		tmp_poss[i] = _read_next_vector(binary);
 		k = p->strand_id;
@@ -529,7 +526,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 		scdm[k] /= (double) nins[k];
 
 	for(i = 0; i < _N; i++) {
-		BaseParticle *p = this->_particles[i];
+		BaseParticle *p = _particles[i];
 		k = p->strand_id;
 
 		LR_vector p_pos = tmp_poss[i];
@@ -585,12 +582,12 @@ void SimBackend::print_observables(llint curr_step) {
 void SimBackend::fix_diffusion() {
 	if(!_enable_fix_diffusion) return;
 
-	number E_before = this->_interaction->get_system_energy(_particles, _N, _lists);
+	number E_before = _interaction->get_system_energy(_particles, _N, _lists.get());
 	LR_vector * stored_pos = new LR_vector[_N];
 	LR_matrix * stored_or = new LR_matrix[_N];
 	LR_matrix * stored_orT = new LR_matrix[_N];
 	for(int i = 0; i < _N; i++) {
-		BaseParticle *p = this->_particles[i];
+		BaseParticle *p = _particles[i];
 		stored_pos[i] = p->pos;
 		stored_or[i] = p->orientation;
 		stored_orT[i] = p->orientationT;
@@ -605,7 +602,7 @@ void SimBackend::fix_diffusion() {
 
 	// compute com for each strand;
 	for(int i = 0; i < _N; i++) {
-		BaseParticle *p = this->_particles[i];
+		BaseParticle *p = _particles[i];
 		scdm[p->strand_id] += p->pos;
 		ninstrand[p->strand_id]++;
 	}
@@ -615,19 +612,19 @@ void SimBackend::fix_diffusion() {
 
 	// change particle position and fix orientation matrix;
 	for(int i = 0; i < _N; i++) {
-		BaseParticle *p = this->_particles[i];
+		BaseParticle *p = _particles[i];
 		_box->shift_particle(p, scdm[p->strand_id]);
 		p->orientation.orthonormalize();
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
 	}
 
-	number E_after = this->_interaction->get_system_energy(_particles, _N, _lists);
-	if(this->_interaction->get_is_infinite() == true || fabs(E_before - E_after) > 1.e-6 * fabs(E_before)) {
-		OX_LOG(Logger::LOG_INFO, "Fix diffusion went too far... %g, %g, %d, (%g>%g)", E_before, E_after, this->_interaction->get_is_infinite(), fabs(E_before - E_after), 1.e-6 * fabs(E_before));
-		this->_interaction->set_is_infinite(false);
+	number E_after = _interaction->get_system_energy(_particles, _N, _lists.get());
+	if(_interaction->get_is_infinite() == true || fabs(E_before - E_after) > 1.e-6 * fabs(E_before)) {
+		OX_LOG(Logger::LOG_INFO, "Fix diffusion went too far... %g, %g, %d, (%g>%g)", E_before, E_after, _interaction->get_is_infinite(), fabs(E_before - E_after), 1.e-6 * fabs(E_before));
+		_interaction->set_is_infinite(false);
 		for (int i = 0; i < _N; i ++) {
-			BaseParticle *p = this->_particles[i];
+			BaseParticle *p = _particles[i];
 			LR_vector dscdm = scdm[p->strand_id] * (number)-1.;
 			_box->shift_particle(p, dscdm);
 			p->orientation = stored_or[i];
@@ -642,19 +639,19 @@ void SimBackend::fix_diffusion() {
 		else apply.push_back(0);
 
 		for (int i = 0; i < _N; i ++) {
-			BaseParticle *p = this->_particles[i];
+			BaseParticle *p = _particles[i];
 			if (apply[p->strand_id]) {
 				p->orientation.orthonormalize();
 				p->orientationT = p->orientation.get_transpose();
 				p->set_positions();
 			}
 		}
-		number E_after2 = this->_interaction->get_system_energy(_particles, _N, _lists);
-		if (this->_interaction->get_is_infinite() == true || fabs(E_before - E_after2) > 1.e-6 * fabs(E_before)) {
-			OX_LOG(Logger::LOG_INFO, " *** Fix diffusion hopeless... %g, %g, %d, (%g>%g)", E_before, E_after2, this->_interaction->get_is_infinite(), fabs(E_before - E_after2), 1.e-6 * fabs(E_before));
-			this->_interaction->set_is_infinite(false);
+		number E_after2 = _interaction->get_system_energy(_particles, _N, _lists.get());
+		if (_interaction->get_is_infinite() == true || fabs(E_before - E_after2) > 1.e-6 * fabs(E_before)) {
+			OX_LOG(Logger::LOG_INFO, " *** Fix diffusion hopeless... %g, %g, %d, (%g>%g)", E_before, E_after2, _interaction->get_is_infinite(), fabs(E_before - E_after2), 1.e-6 * fabs(E_before));
+			_interaction->set_is_infinite(false);
 			for (int i = 0; i < _N; i ++) {
-				BaseParticle *p = this->_particles[i];
+				BaseParticle *p = _particles[i];
 				if (apply[p->strand_id]) {
 					p->pos = stored_pos[i];
 					p->orientation = stored_or[i];

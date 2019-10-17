@@ -10,7 +10,7 @@
 
 MC_CPUBackend2::MC_CPUBackend2() :
 				MCBackend() {
-	this->_is_CUDA_sim = false;
+	_is_CUDA_sim = false;
 	_info_str = std::string("dummy");
 	_N_moves = -1;
 	_MC_Info = NULL;
@@ -38,10 +38,10 @@ void MC_CPUBackend2::add_move(std::string move_string, input_file &sim_inp) {
 void MC_CPUBackend2::get_settings(input_file &inp) {
 	MCBackend::get_settings(inp);
 
-	//_MC_Info = ConfigInfo(this->_particles, &(this->_box_side), this->_interaction, &(this->_N), &_info_str, this->_lists);
-	_MC_Info->set(this->_particles, this->_interaction, &(this->_N), &_info_str, this->_lists, this->_box.get());
+	//_MC_Info = ConfigInfo(_particles, &(_box_side), _interaction, &(_N), &_info_str, _lists);
+	_MC_Info->set(_particles, _interaction, &(_N), &_info_str, _lists.get(), _box.get());
 
-	//_MC_Info.lists = this->_lists;
+	//_MC_Info.lists = _lists;
 
 	std::vector<std::string> move_strings;
 	_N_moves = getInputKeys(&inp, std::string("move_"), &move_strings, 0);
@@ -69,33 +69,33 @@ void MC_CPUBackend2::init() {
 	//OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing backend...");
 	MCBackend::init();
 
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < _N; i++) {
 		// this is needed for the first _compute_energy()
-		this->_particles[i]->set_positions();
-		this->_particles[i]->orientationT = this->_particles[i]->orientation.get_transpose();
+		_particles[i]->set_positions();
+		_particles[i]->orientationT = _particles[i]->orientation.get_transpose();
 	}
 
 	// needed to fill un the pointers....
-	_MC_Info->particles = this->_particles;
-	_MC_Info->N = &this->_N;
-	_MC_Info->interaction = this->_interaction;
-	_MC_Info->box = this->_box.get();
+	_MC_Info->particles = _particles;
+	_MC_Info->N = &_N;
+	_MC_Info->interaction = _interaction;
+	_MC_Info->box = _box.get();
 
-	this->_lists->global_update();
+	_lists->global_update();
 
-	this->_U = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists);
-	if(this->_interaction->get_is_infinite() == true) {
-		this->_interaction->set_is_infinite(false);
-		for(int i = 0; i < this->_N; i++) {
+	_U = _interaction->get_system_energy(_particles, _N, _lists.get());
+	if(_interaction->get_is_infinite() == true) {
+		_interaction->set_is_infinite(false);
+		for(int i = 0; i < _N; i++) {
 			for(int j = 0; j < i; j++) {
-				BaseParticle * p = this->_particles[i];
-				BaseParticle * q = this->_particles[j];
-				this->_interaction->pair_interaction(p, q);
-				if(this->_interaction->get_is_infinite() == true) {
+				BaseParticle * p = _particles[i];
+				BaseParticle * q = _particles[j];
+				_interaction->pair_interaction(p, q);
+				if(_interaction->get_is_infinite() == true) {
 					OX_LOG(Logger::LOG_INFO, "   overlap %d %d", i, j);
 					//printf ("%g %g %g\n", p->pos.x, p->pos.y, p->pos.z);
 					//printf ("%g %g %g %g %g %g\n", q->pos.x, q->pos.y, q->pos.z, q->orientation.v3.x, q->orientation.v3.y, q->orientation.v3.z);
-					this->_interaction->set_is_infinite(false);
+					_interaction->set_is_infinite(false);
 				}
 			}
 		}
@@ -111,7 +111,7 @@ void MC_CPUBackend2::init() {
 }
 
 void MC_CPUBackend2::sim_step(llint curr_step) {
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < _N; i++) {
 		// pick a move with a given probability
 		number choice = drand48() * _accumulated_prob;
 		int j = 0;
@@ -134,7 +134,7 @@ void MC_CPUBackend2::print_observables(llint curr_step) {
 		number ratio = (*it)->get_acceptance();
 		tmpstr += Utils::sformat(" %5.3f", ratio);
 	}
-	this->_backend_info.insert(0, tmpstr + "  ");
+	_backend_info.insert(0, tmpstr + "  ");
 
 	SimBackend::print_observables(curr_step);
 }

@@ -243,7 +243,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				_timer_lists->pause();
 			}
 
-			number newE = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists);
+			number newE = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists.get());
 			number dE = newE - oldE + dExt;
 			number V = this->_box->V();
 			number dV = V - oldV;

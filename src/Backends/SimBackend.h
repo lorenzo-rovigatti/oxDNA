@@ -124,7 +124,7 @@ protected:
 	IBaseInteraction *_interaction;
 
 	/// Pointer to the list manager
-	BaseList *_lists;
+	ListPtr _lists;
 
 	number _rcut;
 	number _sqr_rcut;
