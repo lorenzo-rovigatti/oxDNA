@@ -68,8 +68,7 @@ SimBackend::~SimBackend() {
 			delete _particles[i];
 		delete[] _particles;
 	}
-	if(_interaction != NULL)
-		delete _interaction;
+	if(_interaction != NULL) delete _interaction;
 
 	ForceFactory::instance()->clear();
 
@@ -80,10 +79,8 @@ SimBackend::~SimBackend() {
 	for(typename vector<ObservableOutput *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		llint now = (*it)->get_bytes_written();
 		auto fname = (*it)->get_output_name();
-		if(!strcmp(fname.c_str(), "stderr") || !strcmp(fname.c_str(), "stdout"))
-			total_stderr += now;
-		else
-			total_file += now;
+		if(!strcmp(fname.c_str(), "stderr") || !strcmp(fname.c_str(), "stdout")) total_stderr += now;
+		else total_file += now;
 		std::string mybytes = Utils::bytes_to_human(now);
 		OX_DEBUG("  on %s: %s", fname.c_str(), mybytes.c_str());
 	}
@@ -93,28 +90,27 @@ SimBackend::~SimBackend() {
 	if(_mytimer != NULL) {
 		double time_passed = (double) _mytimer->get_time() / (double) CLOCKS_PER_SEC;
 		if(time_passed > 0.)
-			OX_LOG(Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
-		}
+		OX_LOG(Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
+	}
 
-		/* TODO
-		 * to implement: optional file output for timer
-		 OX_LOG(Logger::LOG_INFO, "Timings informations:");
-		 print_times(&_timer, Logger::instance()->get_log_stream());
-		 OX_LOG(Logger::LOG_NOTHING, "");
+	/* TODO
+	 * to implement: optional file output for timer
+	 OX_LOG(Logger::LOG_INFO, "Timings informations:");
+	 print_times(&_timer, Logger::instance()->get_log_stream());
+	 OX_LOG(Logger::LOG_NOTHING, "");
 
-		 if(_print_timings == true) {
-		 FILE *timings_file = fopen(_timings_filename, "a");
-		 fprintf(timings_file, "%d %lf\n", _N, _timer.timings[0]);
-		 fclose(timings_file);
-		 }
-		 */
+	 if(_print_timings == true) {
+	 FILE *timings_file = fopen(_timings_filename, "a");
+	 fprintf(timings_file, "%d %lf\n", _N, _timer.timings[0]);
+	 fclose(timings_file);
+	 }
+	 */
 
 	for(typename vector<ObservableOutput *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++)
 		delete *it;
 
 	// destroy lists;
-	if(_lists != NULL)
-		delete _lists;
+	if(_lists != NULL) delete _lists;
 
 	PluginManager::clear();
 	ConfigInfo::clear();
@@ -149,16 +145,13 @@ void SimBackend::get_settings(input_file &inp) {
 
 		// check that conf_file is not specified
 		std::string tmpstring;
-		if(getInputString(&inp, "conf_file", tmpstring, 0) == KEY_FOUND)
-			throw oxDNAException("Input file error: \"conf_file\" cannot be specified if \"reload_from\" is specified");
+		if(getInputString(&inp, "conf_file", tmpstring, 0) == KEY_FOUND) throw oxDNAException("Input file error: \"conf_file\" cannot be specified if \"reload_from\" is specified");
 
 		// check that restart_step_counter is set to 0
-		if(_restart_step_counter)
-			throw oxDNAException("Input file error: \"restart_step_counter\" must be set to false if \"reload_from\" is specified");
+		if(_restart_step_counter) throw oxDNAException("Input file error: \"restart_step_counter\" must be set to false if \"reload_from\" is specified");
 
 		int my_seed;
-		if(getInputInt(&inp, "seed", &my_seed, 0) == KEY_FOUND)
-			throw oxDNAException("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
+		if(getInputInt(&inp, "seed", &my_seed, 0) == KEY_FOUND) throw oxDNAException("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
 
 		_conf_filename = std::string(reload_from);
 	}
@@ -190,16 +183,14 @@ void SimBackend::get_settings(input_file &inp) {
 			getInputString(&inp, "external_forces_file", _external_filename, 1);
 		}
 	}
-	else if(val == KEY_INVALID)
-		throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
+	else if(val == KEY_INVALID) throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
 
 	if(getInputBoolAsInt(&inp, "print_timings", &tmp, 0) == KEY_FOUND) {
 		_print_timings = (tmp != 0);
 		if(_print_timings) {
 			getInputString(&inp, "timings_filename", _timings_filename, 1);
 			FILE *timings_file = fopen(_timings_filename, "a");
-			if(timings_file == NULL)
-				throw oxDNAException("Timings file '%s' is not writable\n", _timings_filename);
+			if(timings_file == NULL) throw oxDNAException("Timings file '%s' is not writable\n", _timings_filename);
 			fclose(timings_file);
 		}
 	}
@@ -219,8 +210,7 @@ void SimBackend::get_settings(input_file &inp) {
 			ObservableOutput *new_obs_out = new ObservableOutput(obs_string, inp);
 			_obs_outputs.push_back(new_obs_out);
 		}
-		else
-			found = false;
+		else found = false;
 
 		i++;
 	}
@@ -228,16 +218,16 @@ void SimBackend::get_settings(input_file &inp) {
 	if(getInputBoolAsInt(&inp, "back_in_box", &tmp, 0) == KEY_FOUND) {
 		_back_in_box = (tmp != 0);
 		if(_back_in_box)
-			OX_LOG(Logger::LOG_INFO, "ascii configuration files will have the particles put back in the box");
-		}
+		OX_LOG(Logger::LOG_INFO, "ascii configuration files will have the particles put back in the box");
+	}
 
-		// just to print the message
+	// just to print the message
 	if(getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) == KEY_FOUND) {
 		if(tmp != 0)
-			OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
-		}
+		OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
+	}
 
-		// we build the default stream of observables for trajectory and last configuration
+	// we build the default stream of observables for trajectory and last configuration
 	std::string traj_file;
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
@@ -294,26 +284,23 @@ void SimBackend::get_settings(input_file &inp) {
 			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);
 		}
 
-		if(tmp1 != KEY_FOUND && tmp2 != KEY_FOUND)
-			throw oxDNAException("Input file error: At least one of \"checkpoint_file\" or \"checkpoint_trajectory\" must be specified if \"checkpoint_every\" is specified.");
+		if(tmp1 != KEY_FOUND && tmp2 != KEY_FOUND) throw oxDNAException("Input file error: At least one of \"checkpoint_file\" or \"checkpoint_trajectory\" must be specified if \"checkpoint_every\" is specified.");
 	}
 
 	// set the max IO
 	if(getInputNumber(&inp, "max_io", &_max_io, 0) == KEY_FOUND) {
-		if(_max_io < 0)
-			throw oxDNAException("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
+		if(_max_io < 0) throw oxDNAException("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
 		else
-			OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
-		}
-		else {
-			_max_io = 1.; // default value for a simulation is 1 MB/s;
-		}
+		OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
 	}
+	else {
+		_max_io = 1.; // default value for a simulation is 1 MB/s;
+	}
+}
 
 void SimBackend::init() {
 	_conf_input.open(_conf_filename.c_str());
-	if(_conf_input.good() == false)
-		throw oxDNAException("Can't read configuration file '%s'", _conf_filename.c_str());
+	if(_conf_input.good() == false) throw oxDNAException("Can't read configuration file '%s'", _conf_filename.c_str());
 
 	_interaction->init();
 
@@ -328,9 +315,7 @@ void SimBackend::init() {
 	// check that the interaction has filled the array of "affected" particles
 	for(int i = 0; i < _N; i++) {
 		BaseParticle * p = _particles[i];
-		if(p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL)
-			if(p->affected.size() < 1)
-				throw oxDNAException("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
+		if(p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL) if(p->affected.size() < 1) throw oxDNAException("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
 	}
 
 	_conf_input.seekg(0, ios::beg);
@@ -350,8 +335,7 @@ void SimBackend::init() {
 
 	bool check = false;
 	check = _read_next_configuration(_initial_conf_is_binary);
-	if(!check)
-		throw oxDNAException("Could not read the initial configuration, aborting");
+	if(!check) throw oxDNAException("Could not read the initial configuration, aborting");
 
 	_start_step_from_file = (_restart_step_counter) ? 0 : _read_conf_step;
 	_config_info->curr_step = _start_step_from_file;
@@ -390,8 +374,7 @@ LR_vector SimBackend::_read_next_vector(bool binary) {
 		_conf_input.read((char *) &tmpf, sizeof(double));
 		res.z = tmpf;
 	}
-	else
-		_conf_input >> res.x >> res.y >> res.z;
+	else _conf_input >> res.x >> res.y >> res.z;
 
 	return res;
 }
@@ -516,8 +499,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 			p->orientation.v3 = _read_next_vector(binary);
 		}
 		// v1, v2 and v3 should have length 1. If they don't it means that they are null vectors
-		if(p->orientation.v1.module() < 0.9 || p->orientation.v2.module() < 0.9 || p->orientation.v3.module() < 0.9)
-			throw oxDNAException("Invalid orientation for particle %d: at least one of the vectors is a null vector", p->index);
+		if(p->orientation.v1.module() < 0.9 || p->orientation.v2.module() < 0.9 || p->orientation.v3.module() < 0.9) throw oxDNAException("Invalid orientation for particle %d: at least one of the vectors is a null vector", p->index);
 		p->orientation.transpone();
 
 		p->vel = _read_next_vector(binary);
@@ -543,10 +525,8 @@ bool SimBackend::_read_next_configuration(bool binary) {
 	}
 
 	if(i != _N) {
-		if(_confs_to_skip > 0)
-			throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
-		else
-			throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, _N);
+		if(_confs_to_skip > 0) throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
+		else throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, _N);
 	}
 
 	for(k = 0; k < _N_strands; k++)
@@ -594,8 +574,7 @@ void SimBackend::_print_ready_observables(llint curr_step) {
 	if(time_passed > 30) {
 		double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
 		OX_DEBUG("Current data production rate: %g MB/s (total bytes: %lld, time_passed: %g)" , MBps, total_bytes, time_passed);
-		if(MBps > _max_io)
-			throw oxDNAException("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
+		if(MBps > _max_io) throw oxDNAException("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
 	}
 }
 
@@ -603,17 +582,14 @@ void SimBackend::print_observables(llint curr_step) {
 	bool someone_ready = false;
 	typename vector<ObservableOutput *>::iterator it;
 	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		if((*it)->is_ready(curr_step))
-			someone_ready = true;
+		if((*it)->is_ready(curr_step)) someone_ready = true;
 	}
-	if(someone_ready)
-		_print_ready_observables(curr_step);
+	if(someone_ready) _print_ready_observables(curr_step);
 	_backend_info = std::string("");
 }
 
 void SimBackend::fix_diffusion() {
-	if(!_enable_fix_diffusion)
-		return;
+	if(!_enable_fix_diffusion) return;
 
 	number E_before = this->_interaction->get_system_energy(_particles, _N, _lists);
 	LR_vector * stored_pos = new LR_vector[_N];
@@ -716,11 +692,9 @@ void SimBackend::print_conf(llint curr_step, bool reduced, bool only_last) {
 		_obs_output_reduced_conf->print_output(curr_step);
 	}
 	else {
-		if(!only_last)
-			_obs_output_trajectory->print_output(curr_step);
+		if(!only_last) _obs_output_trajectory->print_output(curr_step);
 		_obs_output_last_conf->print_output(curr_step);
-		if(_obs_output_last_conf_bin != NULL)
-			_obs_output_last_conf_bin->print_output(curr_step);
+		if(_obs_output_last_conf_bin != NULL) _obs_output_last_conf_bin->print_output(curr_step);
 	}
 }
 

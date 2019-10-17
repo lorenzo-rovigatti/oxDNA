@@ -8,8 +8,8 @@
 #include "MC_CPUBackend2.h"
 #include <sstream>
 
-
-MC_CPUBackend2::MC_CPUBackend2() : MCBackend() {
+MC_CPUBackend2::MC_CPUBackend2() :
+				MCBackend() {
 	this->_is_CUDA_sim = false;
 	_info_str = std::string("dummy");
 	_N_moves = -1;
@@ -19,23 +19,21 @@ MC_CPUBackend2::MC_CPUBackend2() : MCBackend() {
 	_MC_Info = ConfigInfo::instance();
 }
 
-
 MC_CPUBackend2::~MC_CPUBackend2() {
-	for(typename std::vector <BaseMove *>::iterator it = _moves.begin(); it != _moves.end(); it++) delete *it;
+	for(typename std::vector<BaseMove *>::iterator it = _moves.begin(); it != _moves.end(); it++)
+		delete *it;
 }
 
-
-void MC_CPUBackend2::add_move (std::string move_string, input_file &sim_inp) {
+void MC_CPUBackend2::add_move(std::string move_string, input_file &sim_inp) {
 	input_file * move_inp = Utils::get_input_file_from_string(move_string);
 
-	BaseMove * new_move = MoveFactory::make_move (*move_inp, sim_inp);
+	BaseMove * new_move = MoveFactory::make_move(*move_inp, sim_inp);
 
-	_moves.push_back (new_move);
+	_moves.push_back(new_move);
 
 	cleanInputFile(move_inp);
 	delete move_inp;
 }
-
 
 void MC_CPUBackend2::get_settings(input_file &inp) {
 	MCBackend::get_settings(inp);
@@ -46,26 +44,26 @@ void MC_CPUBackend2::get_settings(input_file &inp) {
 	//_MC_Info.lists = this->_lists;
 
 	std::vector<std::string> move_strings;
-	_N_moves = getInputKeys (&inp, std::string("move_"), &move_strings, 0);
-	if (_N_moves < 1) throw oxDNAException ("(MC_CPUBackend2) No moves found in the input file");
-	for (int i = 0; i < _N_moves; i ++) {
+	_N_moves = getInputKeys(&inp, std::string("move_"), &move_strings, 0);
+	if(_N_moves < 1) throw oxDNAException("(MC_CPUBackend2) No moves found in the input file");
+	for(int i = 0; i < _N_moves; i++) {
 		std::string tmps;
-		getInputString (&inp, move_strings[i].c_str(), tmps, 1);
-		add_move (tmps, inp);
+		getInputString(&inp, move_strings[i].c_str(), tmps, 1);
+		add_move(tmps, inp);
 	}
 
 	typename vector<BaseMove *>::iterator it;
 	//for(it = _moves.begin(); it != _moves.end(); it ++) (*it)->get_settings(inp);
 	//for(it = _moves.begin(); it != _moves.end(); it ++) (*it)->get_settings(inp);
 
-	for(it = _moves.begin(); it != _moves.end(); it ++) _accumulated_prob += (*it)->prob;
+	for(it = _moves.begin(); it != _moves.end(); it++)
+		_accumulated_prob += (*it)->prob;
 
-	OX_LOG (Logger::LOG_INFO, "(MC_CPUBackend2.cpp) accumulated prob: %g", _accumulated_prob);
+	OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2.cpp) accumulated prob: %g", _accumulated_prob);
 
 	//printf ("aborting here %s %d...\n", __FILE__, __LINE__);
 	//abort ();
 }
-
 
 void MC_CPUBackend2::init() {
 	//OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing backend...");
@@ -85,15 +83,15 @@ void MC_CPUBackend2::init() {
 
 	this->_lists->global_update();
 
-	this->_U = this->_interaction->get_system_energy (this->_particles, this->_N, this->_lists);
+	this->_U = this->_interaction->get_system_energy(this->_particles, this->_N, this->_lists);
 	if(this->_interaction->get_is_infinite() == true) {
 		this->_interaction->set_is_infinite(false);
-		for (int i = 0; i < this->_N; i ++) {
-			for (int j = 0; j < i; j ++) {
+		for(int i = 0; i < this->_N; i++) {
+			for(int j = 0; j < i; j++) {
 				BaseParticle * p = this->_particles[i];
 				BaseParticle * q = this->_particles[j];
 				this->_interaction->pair_interaction(p, q);
-				if (this->_interaction->get_is_infinite() == true) {
+				if(this->_interaction->get_is_infinite() == true) {
 					OX_LOG(Logger::LOG_INFO, "   overlap %d %d", i, j);
 					//printf ("%g %g %g\n", p->pos.x, p->pos.y, p->pos.z);
 					//printf ("%g %g %g %g %g %g\n", q->pos.x, q->pos.y, q->pos.z, q->orientation.v3.x, q->orientation.v3.y, q->orientation.v3.z);
@@ -106,12 +104,11 @@ void MC_CPUBackend2::init() {
 
 	// we initialize the moves
 	typename vector<BaseMove *>::iterator it;
-	for(it = _moves.begin(); it != _moves.end(); it ++) {
+	for(it = _moves.begin(); it != _moves.end(); it++) {
 		//OX_LOG(Logger::LOG_DEBUG, "(MC_CPUBackend2) Initializing move...");
 		(*it)->init();
 	}
 }
-
 
 void MC_CPUBackend2::sim_step(llint curr_step) {
 	for(int i = 0; i < this->_N; i++) {
@@ -119,40 +116,37 @@ void MC_CPUBackend2::sim_step(llint curr_step) {
 		number choice = drand48() * _accumulated_prob;
 		int j = 0;
 		number tmp = _moves[0]->prob;
-		while (choice > tmp) {
+		while(choice > tmp) {
 			j++;
 			tmp += _moves[j]->prob;
 		}
 
 		// now j is the chosen move
-		_moves[j]->apply (curr_step);
+		_moves[j]->apply(curr_step);
 
 	}
 }
 
-
 void MC_CPUBackend2::print_observables(llint curr_step) {
 	std::string tmpstr("");
 	typename std::vector<BaseMove *>::iterator it;
-	for(it = _moves.begin(); it != _moves.end(); it ++) {
+	for(it = _moves.begin(); it != _moves.end(); it++) {
 		number ratio = (*it)->get_acceptance();
-		tmpstr += Utils::sformat (" %5.3f", ratio);
+		tmpstr += Utils::sformat(" %5.3f", ratio);
 	}
 	this->_backend_info.insert(0, tmpstr + "  ");
 
 	SimBackend::print_observables(curr_step);
 }
 
-
 void MC_CPUBackend2::print_equilibration_info() {
 	typename std::vector<BaseMove *>::iterator it;
-	for(it = _moves.begin(); it != _moves.end(); it ++) {
+	for(it = _moves.begin(); it != _moves.end(); it++) {
 		(*it)->log_parameters();
 	}
 }
 
-
 void MC_CPUBackend2::_compute_energy() {
-	printf ("somebody called me...\n");
-	abort ();
+	printf("somebody called me...\n");
+	abort();
 }

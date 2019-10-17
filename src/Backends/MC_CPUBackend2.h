@@ -19,7 +19,7 @@
 
 class MC_CPUBackend2: public MCBackend {
 protected:
-	std::vector <BaseMove *> _moves;
+	std::vector<BaseMove *> _moves;
 	int _N_moves;
 	ConfigInfo *_MC_Info;
 	std::string _info_str;
@@ -35,7 +35,7 @@ public:
 	void init();
 
 	void sim_step(llint cur_step);
-	void add_move (std::string move_string, input_file &sim_inp);
+	void add_move(std::string move_string, input_file &sim_inp);
 
 	void print_observables(llint curr_step);
 

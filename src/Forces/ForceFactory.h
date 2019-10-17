@@ -47,7 +47,7 @@ public:
 
 	/// adds forces. Used by SimBackend and GeneratorManager
 	void read_external_forces(std::string external_filename, BaseParticle ** particles, int N, bool is_CUDA, BaseBox * box_ptr);
-	void clear ();
+	void clear();
 };
 
 #endif /* FORCEFACTORY_H_ */

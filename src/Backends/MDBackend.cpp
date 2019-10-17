@@ -10,8 +10,9 @@
 #include "MDBackend.h"
 #include "../Observables/ObservableOutput.h"
 
-
-MDBackend::MDBackend() : SimBackend(), _refresh_velocities(false) {
+MDBackend::MDBackend() :
+				SimBackend(),
+				_refresh_velocities(false) {
 	this->_sim_type = SIM_MD;
 	_reset_initial_com_momentum = false;
 	_reset_com_momentum = false;
@@ -25,11 +26,9 @@ MDBackend::MDBackend() : SimBackend(), _refresh_velocities(false) {
 	_shear_rate = -0.f;
 }
 
-
 MDBackend::~MDBackend() {
 
 }
-
 
 void MDBackend::get_settings(input_file &inp) {
 	SimBackend::get_settings(inp);
@@ -90,15 +89,13 @@ void MDBackend::get_settings(input_file &inp) {
 	}
 }
 
-
 void MDBackend::init() {
 	SimBackend::init();
 
 	if(_refresh_velocities) _generate_vel();
 	else {
-	    for(int i = 0; i < this->_N; i ++) {
-	    	if(this->_particles[i]->L.module() < 1.e-10)
-	    		throw oxDNAException("Particle %i has 0 angular momentum in initial configuration.\n\tset \"refresh_vel = 1\" in input file. Aborting now.", i);
+		for(int i = 0; i < this->_N; i++) {
+			if(this->_particles[i]->L.module() < 1.e-10) throw oxDNAException("Particle %i has 0 angular momentum in initial configuration.\n\tset \"refresh_vel = 1\" in input file. Aborting now.", i);
 		}
 	}
 
@@ -114,27 +111,24 @@ void MDBackend::init() {
 	if(_use_barostat) _timer_barostat = TimingManager::instance()->new_timer(string("Barostat"), string("SimBackend"));
 }
 
-
 bool MDBackend::_is_barostat_active() {
 	if(!_use_barostat) return false;
 	return _barostat_probability > drand48();
 }
 
-
 void MDBackend::_reset_momentum() {
 	LR_vector com_v(0, 0, 0);
-	for(int i = 0; i < this->_N; i ++) {
+	for(int i = 0; i < this->_N; i++) {
 		BaseParticle *p = this->_particles[i];
 		com_v += p->vel;
 	}
 	com_v /= this->_N;
 
-	for(int i = 0; i < this->_N; i ++) {
+	for(int i = 0; i < this->_N; i++) {
 		BaseParticle *p = this->_particles[i];
 		p->vel -= com_v;
 	}
 }
-
 
 void MDBackend::_generate_vel() {
 	OX_LOG(Logger::LOG_INFO, "Using randomly distributed velocities");
@@ -164,12 +158,10 @@ void MDBackend::_generate_vel() {
 	OX_LOG(Logger::LOG_INFO, "Initial kinetic energy: %f", initial_K);
 }
 
-
 void MDBackend::fix_diffusion() {
 	if(_reset_com_momentum) MDBackend::_reset_momentum();
 	SimBackend::fix_diffusion();
 }
-
 
 void MDBackend::print_observables(llint curr_step) {
 	if(_use_barostat) this->_backend_info.insert(0, Utils::sformat(" %5.3lf", _barostat_acceptance));

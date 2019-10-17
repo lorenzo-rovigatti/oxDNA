@@ -20,12 +20,12 @@ using namespace std;
  * takes care of the most basic input/output operations associated with MD simulations.
  *
  * @verbatim
-[reset_initial_com_momentum = <bool> (if true the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to false to enforce the reproducibility of the trajectory)]
-[reset_com_momentum = <bool> (if true the momentum of the centre of mass will be set to 0 each time fix_diffusion is performed. Defaults to false to enforce the reproducibility of the trajectory)]
-[use_barostat = <bool> (apply an MC-like barostat to the simulation)]
-[P = <float> (the pressure of the simulation)]
-[delta_L = <float> (controls the box side change by the MC-like barostat)]
-@endverbatim
+ [reset_initial_com_momentum = <bool> (if true the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to false to enforce the reproducibility of the trajectory)]
+ [reset_com_momentum = <bool> (if true the momentum of the centre of mass will be set to 0 each time fix_diffusion is performed. Defaults to false to enforce the reproducibility of the trajectory)]
+ [use_barostat = <bool> (apply an MC-like barostat to the simulation)]
+ [P = <float> (the pressure of the simulation)]
+ [delta_L = <float> (controls the box side change by the MC-like barostat)]
+ @endverbatim
  */
 
 class MDBackend: public SimBackend {

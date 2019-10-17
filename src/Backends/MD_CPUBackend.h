@@ -12,7 +12,7 @@
 #include "MDBackend.h"
 #include "MCMoves/VolumeMove.h"
 
- class BaseThermostat;
+class BaseThermostat;
 
 /**
  * @brief Manages a MD simulation on CPU. It supports NVE and NVT simulations
@@ -40,7 +40,7 @@ public:
 	virtual ~MD_CPUBackend();
 
 	void init();
-	void get_settings (input_file &inp);
+	void get_settings(input_file &inp);
 	void sim_step(llint cur_step);
 	void activate_thermostat();
 };
