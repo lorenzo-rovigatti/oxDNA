@@ -17,7 +17,6 @@
 #include "../Boxes/BoxFactory.h"
 #include "../PluginManagement/PluginManager.h"
 #include "../Particles/BaseParticle.h"
-#include "../Observables/ObservableOutput.h"
 #include "../Utilities/Timings.h"
 
 SimBackend::SimBackend() {
@@ -76,7 +75,7 @@ SimBackend::~SimBackend() {
 	llint total_file = 0;
 	llint total_stderr = 0;
 	OX_LOG(Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
-	for(typename vector<ObservableOutput *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
+	for(typename vector<ObservableOutputPtr>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		llint now = (*it)->get_bytes_written();
 		auto fname = (*it)->get_output_name();
 		if(!strcmp(fname.c_str(), "stderr") || !strcmp(fname.c_str(), "stdout")) total_stderr += now;
@@ -105,9 +104,6 @@ SimBackend::~SimBackend() {
 	 fclose(timings_file);
 	 }
 	 */
-
-	for(typename vector<ObservableOutput *>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++)
-		delete *it;
 
 	// destroy lists;
 	if(_lists != NULL) delete _lists;
@@ -207,7 +203,7 @@ void SimBackend::get_settings(input_file &inp) {
 		ss << "data_output_" << i;
 		string obs_string;
 		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
-			ObservableOutput *new_obs_out = new ObservableOutput(obs_string, inp);
+			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string, inp);
 			_obs_outputs.push_back(new_obs_out);
 		}
 		else found = false;
@@ -232,7 +228,7 @@ void SimBackend::get_settings(input_file &inp) {
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
-	_obs_output_trajectory = new ObservableOutput(fake, inp);
+	_obs_output_trajectory = std::make_shared<ObservableOutput>(fake, inp);
 	_obs_output_trajectory->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_trajectory);
 
@@ -240,7 +236,7 @@ void SimBackend::get_settings(input_file &inp) {
 	std::string lastconf_file = "last_conf.dat";
 	getInputString(&inp, "lastconf_file", lastconf_file, 0);
 	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
-	_obs_output_last_conf = new ObservableOutput(fake, inp);
+	_obs_output_last_conf = std::make_shared<ObservableOutput>(fake, inp);
 	_obs_output_last_conf->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_last_conf);
 
@@ -248,7 +244,7 @@ void SimBackend::get_settings(input_file &inp) {
 	std::string lastconf_file_bin;
 	if((getInputString(&inp, "lastconf_file_bin", lastconf_file_bin, 0) == KEY_FOUND)) {
 		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
-		_obs_output_last_conf_bin = new ObservableOutput(fake, inp);
+		_obs_output_last_conf_bin = std::make_shared<ObservableOutput>(fake, inp);
 		_obs_output_last_conf_bin->add_observable("type = binary_configuration");
 		_obs_outputs.push_back(_obs_output_last_conf_bin);
 	}
@@ -258,7 +254,7 @@ void SimBackend::get_settings(input_file &inp) {
 	if(getInputLLInt(&inp, "print_reduced_conf_every", &reduced_conf_every, 0) == KEY_FOUND && reduced_conf_every > 0) {
 		getInputString(&inp, "reduced_conf_output_dir", _reduced_conf_output_dir, 1);
 		fake = Utils::sformat("{\n\tname = reduced_conf.dat\n\tprint_every = %lld\n\tonly_last = 1\n}\n", reduced_conf_every);
-		_obs_output_reduced_conf = new ObservableOutput(fake, inp);
+		_obs_output_reduced_conf = std::make_shared<ObservableOutput>(fake, inp);
 		_obs_output_reduced_conf->add_observable("type = configuration\nreduced = true");
 		_obs_outputs.push_back(_obs_output_reduced_conf);
 	}
@@ -269,7 +265,7 @@ void SimBackend::get_settings(input_file &inp) {
 		int tmp1 = getInputString(&inp, "checkpoint_trajectory", _checkpoint_traj, 0);
 		if(tmp1 == KEY_FOUND) {
 			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
-			_obs_output_checkpoints = new ObservableOutput(fake, inp);
+			_obs_output_checkpoints = std::make_shared<ObservableOutput>(fake, inp);
 			_obs_output_checkpoints->add_observable("type = checkpoint");
 			_obs_outputs.push_back(_obs_output_checkpoints);
 			OX_LOG(Logger::LOG_INFO, "Setting up a trajectory of checkpoints to file %s every %lld steps",_checkpoint_traj.c_str(), checkpoint_every);
@@ -278,7 +274,7 @@ void SimBackend::get_settings(input_file &inp) {
 		int tmp2 = getInputString(&inp, "checkpoint_file", _checkpoint_file, 0);
 		if(tmp2 == KEY_FOUND) {
 			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
-			_obs_output_last_checkpoint = new ObservableOutput(fake, inp);
+			_obs_output_last_checkpoint = std::make_shared<ObservableOutput>(fake, inp);
 			_obs_output_last_checkpoint->add_observable("type = checkpoint");
 			_obs_outputs.push_back(_obs_output_last_checkpoint);
 			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);
@@ -356,9 +352,9 @@ void SimBackend::init() {
 	// read_topology() since _particles has to be initialized
 	_config_info->set(_particles, _interaction, &_N, &_backend_info, _lists, _box.get());
 
-	typename vector<ObservableOutput *>::iterator it;
-	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++)
+	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		(*it)->init(*_config_info);
+	}
 
 	OX_LOG(Logger::LOG_INFO, "N: %d", _N);
 }
@@ -560,8 +556,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 
 void SimBackend::_print_ready_observables(llint curr_step) {
 	llint total_bytes = 0;
-	typename vector<ObservableOutput *>::iterator it;
-	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
+	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		if((*it)->is_ready(curr_step)) {
 			(*it)->print_output(curr_step);
 		}
@@ -580,8 +575,7 @@ void SimBackend::_print_ready_observables(llint curr_step) {
 
 void SimBackend::print_observables(llint curr_step) {
 	bool someone_ready = false;
-	typename vector<ObservableOutput *>::iterator it;
-	for(it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
+	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		if((*it)->is_ready(curr_step)) someone_ready = true;
 	}
 	if(someone_ready) _print_ready_observables(curr_step);

@@ -139,4 +139,6 @@ public:
 	}
 };
 
+using ObservableOutputPtr = std::shared_ptr<ObservableOutput>;
+
 #endif /* OBSERVABLEOUTPUT_H_ */

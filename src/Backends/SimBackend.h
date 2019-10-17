@@ -12,14 +12,13 @@
 #define SIM_MD 0
 #define SIM_MC 1
 
+#include "../defs.h"
+#include "../Observables/ObservableOutput.h"
+
 #include <cmath>
 #include <fstream>
 #include <cfloat>
 #include <vector>
-
-#include "../defs.h"
-
-using namespace std;
 
 class IBaseInteraction;
 class BaseBox;
@@ -111,15 +110,15 @@ protected:
 	bool _restart_step_counter;
 
 	/// Vector of ObservableOutput used to manage the simulation output
-	vector<ObservableOutput *> _obs_outputs;
-	ObservableOutput *_obs_output_stdout;
-	ObservableOutput *_obs_output_file;
-	ObservableOutput *_obs_output_trajectory;
-	ObservableOutput *_obs_output_last_conf;
-	ObservableOutput *_obs_output_last_conf_bin;
-	ObservableOutput *_obs_output_reduced_conf;
-	ObservableOutput *_obs_output_checkpoints;
-	ObservableOutput *_obs_output_last_checkpoint;
+	std::vector<ObservableOutputPtr> _obs_outputs;
+	ObservableOutputPtr _obs_output_stdout;
+	ObservableOutputPtr _obs_output_file;
+	ObservableOutputPtr _obs_output_trajectory;
+	ObservableOutputPtr _obs_output_last_conf;
+	ObservableOutputPtr _obs_output_last_conf_bin;
+	ObservableOutputPtr _obs_output_reduced_conf;
+	ObservableOutputPtr _obs_output_checkpoints;
+	ObservableOutputPtr _obs_output_last_checkpoint;
 
 	/// Pointer to the interaction manager
 	IBaseInteraction *_interaction;
