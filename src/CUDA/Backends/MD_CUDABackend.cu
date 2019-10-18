@@ -35,8 +35,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvla"
 
-template<typename number, typename number4>
-MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend(), CUDABaseBackend<number, number4>(), _max_ext_forces(0), _error_conf_file("error_conf.dat") {
+
+MD_CUDABackend::MD_CUDABackend() : MDBackend(), CUDABaseBackend(), _max_ext_forces(0), _error_conf_file("error_conf.dat") {
 	this->_is_CUDA_sim = true;
 	_use_edge = false;
 	_any_rigid_body = false;
@@ -63,8 +63,8 @@ MD_CUDABackend<number, number4>::MD_CUDABackend() : MDBackend(), CUDABaseBackend
 	_obs_output_error_conf = NULL;
 }
 
-template<typename number, typename number4>
-MD_CUDABackend<number, number4>::~MD_CUDABackend() {
+
+MD_CUDABackend::~MD_CUDABackend() {
 	if(_d_vels != NULL) {
 		CUDA_SAFE_CALL( cudaFree(_d_vels) );
 		CUDA_SAFE_CALL( cudaFree(_d_Ls) );
@@ -101,24 +101,24 @@ MD_CUDABackend<number, number4>::~MD_CUDABackend() {
 	if(_obs_output_error_conf != NULL) delete _obs_output_error_conf;
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_host_to_gpu() {
-	CUDABaseBackend<number, number4>::_host_to_gpu();
+
+void MD_CUDABackend::_host_to_gpu() {
+	CUDABaseBackend::_host_to_gpu();
 	CUDA_SAFE_CALL( cudaMemcpy(_d_vels, _h_vels, this->_vec_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_Ls, _h_Ls, this->_vec_size, cudaMemcpyHostToDevice) );
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_gpu_to_host() {
-	CUDABaseBackend<number, number4>::_gpu_to_host();
+
+void MD_CUDABackend::_gpu_to_host() {
+	CUDABaseBackend::_gpu_to_host();
 	CUDA_SAFE_CALL( cudaMemcpy(_h_vels, _d_vels, this->_vec_size, cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL( cudaMemcpy(_h_Ls, _d_Ls, this->_vec_size, cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL( cudaMemcpy(_h_forces, _d_forces, this->_vec_size, cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL( cudaMemcpy(_h_torques, _d_torques, this->_vec_size, cudaMemcpyDeviceToHost) );
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_host_particles_to_gpu() {
+
+void MD_CUDABackend::_host_particles_to_gpu() {
 	for(int i = 0; i < this->_N; i++) {
 		int gpu_index = _h_gpu_index[i];
 		BaseParticle *p = this->_particles[gpu_index];
@@ -186,8 +186,8 @@ void MD_CUDABackend<number, number4>::_host_particles_to_gpu() {
 	this->_host_to_gpu();
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_gpu_to_host_particles() {
+
+void MD_CUDABackend::_gpu_to_host_particles() {
 	this->_gpu_to_host();
 
 	for(int i = 0; i < this->_N; i++) {
@@ -253,8 +253,8 @@ void MD_CUDABackend<number, number4>::_gpu_to_host_particles() {
 	}
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_init_CUDA_MD_symbols() {
+
+void MD_CUDABackend::_init_CUDA_MD_symbols() {
 	float f_copy = this->_sqr_verlet_skin;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &f_copy, sizeof(float)) );
 	f_copy = this->_dt;
@@ -262,30 +262,30 @@ void MD_CUDABackend<number, number4>::_init_CUDA_MD_symbols() {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &this->_N, sizeof(int)) );
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_first_step() {
-	first_step<number, number4>
+
+void MD_CUDABackend::_first_step() {
+	first_step
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_poss, this->_d_orientations, this->_d_list_poss, _d_vels, _d_Ls, _d_forces, _d_torques, this->_d_are_lists_old);
 	CUT_CHECK_ERROR("_first_step error");
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_rescale_positions(number4 new_Ls, number4 old_Ls) {
+
+void MD_CUDABackend::_rescale_positions(number4 new_Ls, number4 old_Ls) {
 	number4 ratio = {new_Ls.x/old_Ls.x, new_Ls.y/old_Ls.y, new_Ls.z/old_Ls.z, 0.};
-	rescale_positions<number, number4>
+	rescale_positions
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_poss, ratio);
 	CUT_CHECK_ERROR("_rescale_positions error");
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_apply_barostat(llint curr_step) {
+
+void MD_CUDABackend::_apply_barostat(llint curr_step) {
 	_barostat_attempts++;
 
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
-	double old_energy = GpuUtils::sum_number4_to_double_on_GPU<number4>(this->_d_forces, this->_N)/2.;
+	double old_energy = GpuUtils::sum_number4_to_double_on_GPU(this->_d_forces, this->_N)/2.;
 	number old_V = this->_h_cuda_box.V();
 	number4 old_Ls = this->_h_cuda_box.box_sides();
 
@@ -304,13 +304,13 @@ void MD_CUDABackend<number, number4>::_apply_barostat(llint curr_step) {
 		new_Ls.z += this->_delta_L*(drand48() - (number)0.5);
 	}
 	this->_h_cuda_box.change_sides(new_Ls.x, new_Ls.y, new_Ls.z);
-	CUDA_SAFE_CALL( cudaMemcpy(this->_d_cuda_box, &this->_h_cuda_box, sizeof(CUDABox<number, number4>), cudaMemcpyHostToDevice) );
+	CUDA_SAFE_CALL( cudaMemcpy(this->_d_cuda_box, &this->_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice) );
 	_rescale_positions(new_Ls, old_Ls);
 	this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
 
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
-	double new_energy = GpuUtils::sum_number4_to_double_on_GPU<number4>(this->_d_forces, this->_N)/2.;
+	double new_energy = GpuUtils::sum_number4_to_double_on_GPU(this->_d_forces, this->_N)/2.;
 	number new_V = this->_h_cuda_box.V();
 
 	// acceptance
@@ -325,36 +325,36 @@ void MD_CUDABackend<number, number4>::_apply_barostat(llint curr_step) {
 	// rejected
 	else {
 		this->_h_cuda_box.change_sides(old_Ls.x, old_Ls.y, old_Ls.z);
-		CUDA_SAFE_CALL( cudaMemcpy(this->_d_cuda_box, &this->_h_cuda_box, sizeof(CUDABox<number, number4>), cudaMemcpyHostToDevice) );
+		CUDA_SAFE_CALL( cudaMemcpy(this->_d_cuda_box, &this->_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice) );
 		_rescale_positions(old_Ls, new_Ls);
 		this->_cuda_lists->update(this->_d_poss, this->_d_list_poss, this->_d_bonds);
 	}
 	this->_barostat_acceptance = _barostat_accepted/(number)_barostat_attempts;
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_forces_second_step() {
+
+void MD_CUDABackend::_forces_second_step() {
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
 
-	second_step<number, number4>
+	second_step
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_vels, this->_d_Ls, this->_d_forces, this->_d_torques);
 		CUT_CHECK_ERROR("second_step");
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_set_external_forces() {
-	set_external_forces<number, number4>
+
+void MD_CUDABackend::_set_external_forces() {
+	set_external_forces
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_poss, this->_d_orientations, _d_ext_forces, _d_forces, _d_torques, _curr_step, _max_ext_forces, this->_d_cuda_box);
 	CUT_CHECK_ERROR("set_external_forces");
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_sort_particles() {
-	CUDABaseBackend<number, number4>::_sort_index();
-	permute_particles<number, number4>
+
+void MD_CUDABackend::_sort_particles() {
+	CUDABaseBackend::_sort_index();
+	permute_particles
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_sorted_hindex, this->_d_inv_sorted_hindex, this->_d_poss, _d_vels, _d_Ls, this->_d_orientations, this->_d_bonds, this->_d_buff_poss, _d_buff_vels, _d_buff_Ls, 				this->_d_buff_orientations, this->_d_buff_bonds);
 		CUT_CHECK_ERROR("_permute_particles error");
@@ -367,13 +367,13 @@ void MD_CUDABackend<number, number4>::_sort_particles() {
 	CUDA_SAFE_CALL( cudaMemcpy(_d_Ls, _d_buff_Ls, this->_vec_size, cudaMemcpyDeviceToDevice) );
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_thermalize(llint curr_step) {
+
+void MD_CUDABackend::_thermalize(llint curr_step) {
 	_cuda_thermostat->apply_cuda(this->_d_poss, this->_d_orientations, _d_vels, _d_Ls, curr_step);
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::sim_step(llint curr_step) {
+
+void MD_CUDABackend::sim_step(llint curr_step) {
 	this->_mytimer->resume();
 	_curr_step = curr_step;
 
@@ -416,7 +416,7 @@ void MD_CUDABackend<number, number4>::sim_step(llint curr_step) {
 	this->_timer_forces->resume();
 	_forces_second_step();
 	if(_print_energy) {
-		number energy = GpuUtils::sum_number4_to_double_on_GPU<number4>(_d_forces, this->_N);
+		number energy = GpuUtils::sum_number4_to_double_on_GPU(_d_forces, this->_N);
 		this->_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / this->_N);
 	}
 	cudaThreadSynchronize();
@@ -430,10 +430,10 @@ void MD_CUDABackend<number, number4>::sim_step(llint curr_step) {
 	this->_mytimer->pause();
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
+
+void MD_CUDABackend::get_settings(input_file &inp) {
 	MDBackend::get_settings(inp);
-	CUDABaseBackend<number, number4>::get_settings(inp);
+	CUDABaseBackend::get_settings(inp);
 
 	if(getInputBool(&inp, "use_edge", &_use_edge, 0) == KEY_FOUND) {
 		if(_use_edge && sizeof(number) == sizeof(double)) throw oxDNAException("use_edge and double precision are not compatible");
@@ -445,7 +445,7 @@ void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
 
 	getInputBool(&inp, "CUDA_print_energy", &_print_energy, 0);
 
-	_cuda_thermostat = CUDAThermostatFactory::make_thermostat<number, number4>(inp, this->_box);
+	_cuda_thermostat = CUDAThermostatFactory::make_thermostat(inp, _box.get());
 	_cuda_thermostat->get_settings(inp);
 
 	std::string init_string = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", _error_conf_file.c_str());
@@ -469,10 +469,10 @@ void MD_CUDABackend<number, number4>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::init(){
+
+void MD_CUDABackend::init(){
 	MDBackend::init();
-	CUDABaseBackend<number, number4>::init_cuda();
+	CUDABaseBackend::init_cuda();
 
 	_timer_sorting = TimingManager::instance()->new_timer(std::string("Hilbert sorting"), std::string("SimBackend"));
 
@@ -681,30 +681,26 @@ void MD_CUDABackend<number, number4>::init(){
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::print_conf(llint curr_step, bool reduced, bool only_last) {
+
+void MD_CUDABackend::print_conf(llint curr_step, bool reduced, bool only_last) {
 	_gpu_to_host_particles();
 	MDBackend::print_conf(curr_step, reduced, only_last);
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::_print_ready_observables(llint curr_step) {
+
+void MD_CUDABackend::_print_ready_observables(llint curr_step) {
 	_gpu_to_host_particles();
 	if(!_avoid_cpu_calculations) this->_lists->global_update(true);
 	MDBackend::_print_ready_observables(curr_step);
 	_host_particles_to_gpu();
 }
 
-template<typename number, typename number4>
-void MD_CUDABackend<number, number4>::fix_diffusion() {
+
+void MD_CUDABackend::fix_diffusion() {
 	_gpu_to_host_particles();
 	if(!_avoid_cpu_calculations) this->_lists->global_update(true);
 	MDBackend::fix_diffusion();
 	_host_particles_to_gpu();
 }
-
-// template instantiations
-template class MD_CUDABackend<float, float4>;
-template class MD_CUDABackend<double, LR_double4>;
 
 #pragma GCC diagnostic pop

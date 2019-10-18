@@ -59,89 +59,99 @@ typedef struct CUDA_kernel_cfg {
 /**
  * @brief We need this struct because the fourth element of such a structure must be a float or _float_as_int will not work.
  */
-typedef struct __align__(16) {
-	double x, y, z;
-	float w;
-} LR_double4;
+typedef struct
+	__align__(16) {
+		double x, y, z;
+		float w;
+	} LR_double4;
 
-/**
- * @brief It keeps track of neighbours along 3" and 5" directions.
- */
-typedef struct __align__(8) {
-	int n3, n5;
-} LR_bonds;
-
-
-struct __align__(16) GPU_quat {
-	number x, y, z, w;
-};
-
-/**
- * @brief Used when use_edge = true. It stores information associated to a single bond.
- */
-typedef struct __align__(16) edge_bond {
-	int from;
-	int to;
-	int n_from;
-	int n_to;
-} edge_bond;
-
-/**
- * @brief Static class. It stores many utility functions used by CUDA classes. It could probably be turned into a namespace...
- */
-class GpuUtils {
-protected:
-	static size_t _allocated_dev_mem;
-
-public:
-	template<typename number, typename number4>
-	static number sum_4th_comp(number4 *v, int N) {
-		number res = 0;
-		for(int i = 0; i < N; i++) res += v[i].w;
-		return res;
-	}
-
-	template<typename number4>
-	static number4 sum_number4_on_GPU(number4 *dv, int N);
-	template<typename number4>
-	static double sum_number4_to_double_on_GPU(number4 *dv, int N);
-
-	static float int_as_float(const int a) {
-		union {
-			int a;
-			float b;
-		} u;
-
-		u.a = a;
-		return u.b;
-	}
-
-	static int float_as_int(const float a) {
-		union {
-			float a;
-			int b;
-		} u;
-
-		u.a = a;
-		return u.b;
-	}
-
-#ifndef OLD_ARCH
-	template<typename T> static void print_device_array(T *, int);
-	template<typename T> static void check_device_thresold(T *, int, int);
+#ifdef FLOAT_PRECISION
+using number4 = float4;
+#else
+	using number4 = LR_double4;
 #endif
 
-	static size_t get_allocated_mem() { return _allocated_dev_mem; }
-	static double get_allocated_mem_mb() { return get_allocated_mem() / 1048576.; }
+	/**
+	 * @brief It keeps track of neighbours along 3" and 5" directions.
+	 */
+	typedef struct
+		__align__(8) {
+			int n3, n5;
+		} LR_bonds;
 
-	template<typename T>
-	static cudaError_t LR_cudaMalloc(T **devPtr, size_t size);
-};
+		struct __align__(16) GPU_quat {
+			number x, y, z, w;
+		};
 
-template<typename T>
-cudaError_t GpuUtils::LR_cudaMalloc(T **devPtr, size_t size) {
-	GpuUtils::_allocated_dev_mem += size;
-	return cudaMalloc(devPtr, size);
-}
+		/**
+		 * @brief Used when use_edge = true. It stores information associated to a single bond.
+		 */
+		typedef struct __align__(16) edge_bond {
+			int from;
+			int to;
+			int n_from;
+			int n_to;
+		} edge_bond;
+
+		/**
+		 * @brief Static class. It stores many utility functions used by CUDA classes. It could probably be turned into a namespace...
+		 */
+		class GpuUtils {
+		protected:
+			static size_t _allocated_dev_mem;
+
+		public:
+			static number sum_4th_comp(number4 *v, int N) {
+				number res = 0;
+				for(int i = 0; i < N; i++)
+					res += v[i].w;
+				return res;
+			}
+
+			static number4 sum_number4_on_GPU(number4 *dv, int N);
+
+			static double sum_number4_to_double_on_GPU(number4 *dv, int N);
+
+			static float int_as_float(const int a) {
+				union {
+					int a;
+					float b;
+				} u;
+
+				u.a = a;
+				return u.b;
+			}
+
+			static int float_as_int(const float a) {
+				union {
+					float a;
+					int b;
+				} u;
+
+				u.a = a;
+				return u.b;
+			}
+
+#ifndef OLD_ARCH
+			template<typename T> static void print_device_array(T *, int);
+			template<typename T> static void check_device_thresold(T *, int, int);
+#endif
+
+			static size_t get_allocated_mem() {
+				return _allocated_dev_mem;
+			}
+			static double get_allocated_mem_mb() {
+				return get_allocated_mem() / 1048576.;
+			}
+
+			template<typename T>
+			static cudaError_t LR_cudaMalloc(T **devPtr, size_t size);
+		};
+
+		template<typename T>
+		cudaError_t GpuUtils::LR_cudaMalloc(T **devPtr, size_t size) {
+			GpuUtils::_allocated_dev_mem += size;
+			return cudaMalloc(devPtr, size);
+		}
 
 #endif /* GPUUTILS_H_ */

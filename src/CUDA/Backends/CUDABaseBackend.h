@@ -31,7 +31,7 @@
 [threads_per_block = <int> (Number of threads per block on the CUDA grid. defaults to 2 * the size of a warp.)]
 @endverbatim
  */
-template<typename number, typename number4>
+
 class CUDABaseBackend {
 protected:
 	/// if 0 then do not sort. If it's > 1 then sort particles every _sort_every updates
@@ -39,10 +39,10 @@ protected:
 	int _device_number;
 	cudaDeviceProp _device_prop;
 	CUDA_kernel_cfg _particles_kernel_cfg;
-	CUDABaseList<number, number4> *_cuda_lists;
+	CUDABaseList*_cuda_lists;
 	size_t _vec_size, _bonds_size, _orient_size;
 	number _sqr_verlet_skin;
-	CUDABox<number, number4> _h_cuda_box, *_d_cuda_box;
+	CUDABox _h_cuda_box, *_d_cuda_box;
 
 	/// used for sorting
 	number4 *_d_buff_poss;
@@ -57,7 +57,7 @@ protected:
 	/// It is stored in pinned memory, i.e. on the host but it can be accessed directly from the device
 	bool *_d_are_lists_old;
 
-	CUDABaseInteraction<number, number4> *_cuda_interaction;
+	CUDABaseInteraction*_cuda_interaction;
 
 	virtual void _host_to_gpu();
 	virtual void _gpu_to_host();

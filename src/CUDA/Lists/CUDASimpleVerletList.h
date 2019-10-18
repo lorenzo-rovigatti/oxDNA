@@ -14,8 +14,8 @@
 /**
  * @brief CUDA implementation of a {@link VerletList Verlet list}.
  */
-template<typename number, typename number4>
-class CUDASimpleVerletList: public CUDABaseList<number, number4> {
+
+class CUDASimpleVerletList: public CUDABaseList{
 protected:
 	int _max_neigh;
 	int _N_cells_side[3];
@@ -47,7 +47,7 @@ public:
 	CUDASimpleVerletList();
 	virtual ~CUDASimpleVerletList();
 
-	void init(int N, number rcut, CUDABox<number, number4> *h_cuda_box, CUDABox<number, number4> *d_cuda_box);
+	void init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box);
 	void update(number4 *poss, number4 *list_poss, LR_bonds *bonds);
 	void clean();
 

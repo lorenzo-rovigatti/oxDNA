@@ -14,8 +14,8 @@
 /**
  * @brief CUDA implementation of a {@link SRDThermostat SRD thermostat}.
  */
-template<typename number, typename number4>
-class CUDASRDThermostat: public CUDABaseThermostat<number, number4>, public SRDThermostat {
+
+class CUDASRDThermostat: public CUDABaseThermostat, public SRDThermostat {
 protected:
 	int *_d_cells;
 	int *_d_counters_cells;

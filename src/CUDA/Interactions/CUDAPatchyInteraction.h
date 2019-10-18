@@ -16,8 +16,8 @@
 /**
  * @brief CUDA implementation of the {@link PatchyInteraction patchy interaction}.
  */
-template<typename number, typename number4>
-class CUDAPatchyInteraction: public CUDABaseInteraction<number, number4>, public PatchyInteraction {
+
+class CUDAPatchyInteraction: public CUDABaseInteraction, public PatchyInteraction {
 public:
 	CUDAPatchyInteraction();
 	virtual ~CUDAPatchyInteraction();
@@ -26,7 +26,7 @@ public:
 	void cuda_init(number box_side, int N);
 	number get_cuda_rcut() { return this->get_rcut(); }
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
+	void compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 };
 
 #endif /* CUDAPATCHYINTERACTION_H_ */

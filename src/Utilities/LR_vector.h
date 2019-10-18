@@ -11,7 +11,11 @@
 #include <cmath>
 #include <iostream>
 
+#ifdef FLOAT_PRECISION
+using number = float;
+#else
 using number = double;
+#endif
 
 /**
  * @brief A three-dimensional vector with built-in basic vectorial operations.

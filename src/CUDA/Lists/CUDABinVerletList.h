@@ -10,8 +10,8 @@
 
 #include "CUDASimpleVerletList.h"
 
-template<typename number, typename number4>
-class CUDABinVerletList: public CUDASimpleVerletList<number, number4> {
+
+class CUDABinVerletList: public CUDASimpleVerletList{
 protected:
 	int _max_neigh[2];
 	// we need 4 cells: 0 is for 0-type, 1 is for mixed interactions, used by 0-type (so there are only 1-type),
@@ -40,7 +40,7 @@ public:
 	CUDABinVerletList();
 	virtual ~CUDABinVerletList();
 
-	void init(int N, number rcut, CUDABox<number, number4> *h_cuda_box, CUDABox<number, number4> *d_cuda_box);
+	void init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box);
 	void update(number4 *poss, number4 *list_poss, LR_bonds *bonds);
 	void clean();
 

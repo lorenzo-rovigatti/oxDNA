@@ -10,6 +10,7 @@ OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
 OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
+OPTION(DOUBLE "Set the numerical precision to double" ON)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have
 # problems at linking time
@@ -61,6 +62,10 @@ ENDIF(MOSIX)
 IF(SIGNAL)
 	ADD_DEFINITIONS(-DSIGNAL)
 ENDIF(SIGNAL)
+
+IF(NOT DOUBLE)
+	ADD_DEFINITIONS(-DFLOAT_PRECISION)
+ENDIF()
 
 ADD_DEFINITIONS(-Wall -Wshadow)
 

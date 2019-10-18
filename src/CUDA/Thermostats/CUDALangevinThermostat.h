@@ -13,8 +13,8 @@
 #include "../cuda_utils/cuda_device_utils.h"
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-template<typename number, typename number4>
-class CUDALangevinThermostat: public CUDABaseThermostat<number, number4>, public LangevinThermostat {
+
+class CUDALangevinThermostat: public CUDABaseThermostat, public LangevinThermostat {
 protected:
 public:
 	CUDALangevinThermostat();

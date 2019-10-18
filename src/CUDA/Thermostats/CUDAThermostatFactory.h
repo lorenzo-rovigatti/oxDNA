@@ -16,8 +16,8 @@
  */
 class CUDAThermostatFactory {
 public:
-	CUDAThermostatFactory();
-	virtual ~CUDAThermostatFactory();
+	CUDAThermostatFactory() = delete;
+	virtual ~CUDAThermostatFactory() = delete;
 
 	/**
 	 * @brief Method that returns a pointer to a CUDABaseThermostat object
@@ -32,8 +32,8 @@ public:
 	 * @return a pointer to a CUDA thermostat Object, which must be of a class derived
 	 * from BaseThermostat
 	 */
-	template<typename number, typename number4>
-	static CUDABaseThermostat<number, number4> *make_thermostat(input_file &inp, BaseBox * box);
+	
+	static CUDABaseThermostat*make_thermostat(input_file &inp, BaseBox * box);
 };
 
 #endif /* CUDATHERMOSTATFACTORY_H_ */

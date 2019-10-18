@@ -19,12 +19,11 @@
  */
 class CUDAListFactory {
 private:
-	CUDAListFactory();
 public:
-	virtual ~CUDAListFactory();
+	CUDAListFactory() = delete;
+	virtual ~CUDAListFactory() = delete;
 
-	template <typename number, typename number4>
-	static CUDABaseList<number, number4> *make_list(input_file &inp);
+	static CUDABaseList *make_list(input_file &inp);
 };
 
 #endif /* CUDALISTFACTORY_H_ */

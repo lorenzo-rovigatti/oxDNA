@@ -15,10 +15,10 @@ __constant__ float4 MD_base_patches[2][CUDA_MAX_PATCHES];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, number4 &a1, number4 &a2, number4 &a3, number4 &b1, number4 &b2, number4 &b3, number4 &F, number4 &torque, CUDABox<number, number4> *box) {
-	int ptype = get_particle_type<number, number4>(ppos);
-	int qtype = get_particle_type<number, number4>(qpos);
+
+__device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, number4 &a1, number4 &a2, number4 &a3, number4 &b1, number4 &b2, number4 &b3, number4 &F, number4 &torque, CUDABox*box) {
+	int ptype = get_particle_type(ppos);
+	int qtype = get_particle_type(qpos);
 	int type = ptype + qtype;
 
 	number4 r = box->minimum_image(ppos, qpos);
@@ -66,7 +66,7 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 
 				number4 tmp_force = patch_dist*(5.f*exp_part*r8b10);
 
-				torque -= _cross<number, number4>(ppatch, tmp_force);
+				torque -= _cross(ppatch, tmp_force);
 				F.x -= tmp_force.x;
 				F.y -= tmp_force.y;
 				F.z -= tmp_force.z;
@@ -76,12 +76,12 @@ __device__ void _particle_particle_interaction(number4 &ppos, number4 &qpos, num
 }
 
 // forces + second step without lists
-template <typename number, typename number4>
-__global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, CUDABox<number, number4> *box) {
+
+__global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, CUDABox*box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
-	number4 T = make_number4<number, number4>(0, 0, 0, 0);
+	number4 T = make_number4(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	GPU_quat po = orientations[IND];
 	number4 a1, a2, a3, b1, b2, b3;
@@ -92,7 +92,7 @@ __global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *fo
 			number4 qpos = poss[j];
 			GPU_quat qo = orientations[j];
 			get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
-			_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
+			_particle_particle_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
 		}
 	}
 
@@ -102,12 +102,12 @@ __global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *fo
 	torques[IND] = T;
 }
 
-template <typename number, typename number4>
-__global__ void patchy_forces_edge(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, edge_bond *edge_list,  int n_edges, CUDABox<number, number4> *box) {
+
+__global__ void patchy_forces_edge(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, edge_bond *edge_list,  int n_edges, CUDABox*box) {
 	if(IND >= n_edges) return;
 
-	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
-	number4 dT = make_number4<number, number4>(0, 0, 0, 0);
+	number4 dF = make_number4(0, 0, 0, 0);
+	number4 dT = make_number4(0, 0, 0, 0);
 
 	edge_bond b = edge_list[IND];
 
@@ -123,7 +123,7 @@ __global__ void patchy_forces_edge(number4 *poss, GPU_quat *orientations, number
 	get_vectors_from_quat<number,number4>(po, a1, a2, a3);
 	get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
 
-	_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, dF, dT, box);
+	_particle_particle_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, dF, dT, box);
 
 	int from_index = MD_N[0]*(IND % MD_n_forces[0]) + b.from;
 	if((dF.x*dF.x + dF.y*dF.y + dF.z*dF.z) > (number)0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
@@ -131,7 +131,7 @@ __global__ void patchy_forces_edge(number4 *poss, GPU_quat *orientations, number
 
 	// Allen Eq. 6 pag 3:
 	number4 dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
-	number4 crx = _cross<number, number4>(dr, dF);
+	number4 crx = _cross(dr, dF);
 	dT.x = -dT.x + crx.x;
 	dT.y = -dT.y + crx.y;
 	dT.z = -dT.z + crx.z;
@@ -145,12 +145,12 @@ __global__ void patchy_forces_edge(number4 *poss, GPU_quat *orientations, number
 	if((dT.x*dT.x + dT.y*dT.y + dT.z*dT.z) > (number)0.f) LR_atomicAddXYZ(&(torques[to_index]), _vectors_transpose_number4_product(b1, b2, b3, dT));
 }
 //Forces + second step with verlet lists
-template <typename number, typename number4>
-__global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, CUDABox<number, number4> *box) {
+
+__global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, CUDABox*box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
-	number4 T = make_number4<number, number4>(0, 0, 0, 0);
+	number4 T = make_number4(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	GPU_quat po = orientations[IND];
 	number4 a1, a2, a3, b1, b2, b3;
@@ -164,7 +164,7 @@ __global__ void patchy_forces(number4 *poss, GPU_quat *orientations, number4 *fo
 		number4 qpos = poss[k_index];
 		GPU_quat qo = orientations[k_index];
 		get_vectors_from_quat<number,number4>(qo, b1, b2, b3);
-		_particle_particle_interaction<number, number4>(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
+		_particle_particle_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
 	}
 
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);

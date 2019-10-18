@@ -28,7 +28,7 @@ __forceinline__ __device__ int compute_cell_index(LR_double4 &r) {
 	return (cz * N_cells_side[0] + cy) * N_cells_side[0] + cx;
 }
 
-template<typename number, typename number4>
+
 __global__ void SRD_fill_cells_and_refresh(number4 *poss, number4 *vels, int *cells, int *counters_cells, number4 *cells_dp, bool *cell_overflow, curandState *rand_state, number rescale_factor) {
 	if(IND >= N_tot[0]) return;
 
@@ -80,7 +80,7 @@ __global__ void SRD_fill_cells_and_refresh(number4 *poss, number4 *vels, int *ce
 	rand_state[IND] = state;
 }
 
-template<typename number, typename number4>
+
 __global__ void SRD_update_velocities(number4 *poss, number4 *vels, number4 *reduced_cells_dp) {
 	if(IND >= N_tot[0]) return;
 
@@ -100,7 +100,7 @@ __global__ void SRD_update_velocities(number4 *poss, number4 *vels, number4 *red
 	vels[IND] = v;
 }
 
-template<typename number, typename number4>
+
 __global__ void SRD_init_particles(number4 *poss, number4 *vels, curandState *rand_state, number rescale_factor) {
 	if(IND >= N_solvent[0]) return;
 

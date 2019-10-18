@@ -13,8 +13,8 @@ __constant__ int hilb_depth[1];
 __constant__ float hilb_box_side[1];
 
 /****************************************************************************************
-taken by Journal of Computational Physics, Vol. 227, No. 10. (01 May 2008), pp. 5342-5359
-****************************************************************************************/
+ taken by Journal of Computational Physics, Vol. 227, No. 10. (01 May 2008), pp. 5342-5359
+ ****************************************************************************************/
 
 /**
  * swap Hilbert spacing-filling curve vertices
@@ -33,7 +33,7 @@ __device__ void vertex_swap(int *v, int *a, int *b, int const mask) {
 /**
  * map 3-dimensional point to 1-dimensional point on Hilbert space curve
  */
-template<typename number4>
+
 __device__ int hilbert_code(number4 *r) {
 	//
 	// Jun Wang & Jie Shan, Space-Filling Curve Based Point Clouds Index,
@@ -58,7 +58,7 @@ __device__ int hilbert_code(number4 *r) {
 #define MASK ((1 << 3) - 1)
 
 	// 32-bit integer for 3D Hilbert code allows a maximum of 10 levels
-	for (int i = 0; i < *hilb_depth; ++i) {
+	for(int i = 0; i < *hilb_depth; ++i) {
 		// determine Hilbert vertex closest to particle
 		x = __signbitf(r->x) & 1;
 		y = __signbitf(r->y) & 1;
@@ -71,23 +71,27 @@ __device__ int hilbert_code(number4 *r) {
 		r->y = 2 * r->y - (0.5f - y);
 		r->z = 2 * r->z - (0.5f - z);
 		// apply permutation rule according to Hilbert code
-		if (v == 0) {
+		if(v == 0) {
 			vertex_swap(&vc, &b, &h, MASK);
 			vertex_swap(&vc, &c, &e, MASK);
-		} else if (v == 1 || v == 2) {
+		}
+		else if(v == 1 || v == 2) {
 			vertex_swap(&vc, &c, &g, MASK);
 			vertex_swap(&vc, &d, &h, MASK);
-		} else if (v == 3 || v == 4) {
+		}
+		else if(v == 3 || v == 4) {
 			vertex_swap(&vc, &a, &c, MASK);
 #ifdef USE_HILBERT_ALT_3D
 			vertex_swap(&vc, &b, &d, MASK);
 			vertex_swap(&vc, &e, &g, MASK);
 #endif
 			vertex_swap(&vc, &f, &h, MASK);
-		} else if (v == 5 || v == 6) {
+		}
+		else if(v == 5 || v == 6) {
 			vertex_swap(&vc, &a, &e, MASK);
 			vertex_swap(&vc, &b, &f, MASK);
-		} else if (v == 7) {
+		}
+		else if(v == 7) {
 			vertex_swap(&vc, &a, &g, MASK);
 			vertex_swap(&vc, &d, &f, MASK);
 		}
@@ -99,7 +103,6 @@ __device__ int hilbert_code(number4 *r) {
 	return hcode;
 }
 
-template<typename number4>
 __global__ void hilbert_curve(const number4 *pos, int *hindex) {
 	if(IND >= hilb_N[0]) return;
 	//
@@ -135,20 +138,17 @@ __global__ void hilbert_curve(const number4 *pos, int *hindex) {
 	r.z -= 0.5f;
 
 	// compute Hilbert code for particle
-	const int code = (IND < hilb_N_unsortable[0]) ? IND : hilbert_code<number4>(&r) + hilb_N_unsortable[0];
+	const int code = (IND < hilb_N_unsortable[0]) ? IND : hilbert_code(&r) + hilb_N_unsortable[0];
 	hindex[IND] = code;
 }
 
-template<typename number, typename number4> 
-__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, number4 *poss, number4 *vels, number4 *Ls,
-		GPU_quat *orientations, LR_bonds *bonds, number4 *buff_poss, number4 *buff_vels,
-		number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds) {
+__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, number4 *poss, number4 *vels, number4 *Ls, GPU_quat *orientations, LR_bonds *bonds, number4 *buff_poss, number4 *buff_vels, number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds) {
 	if(IND >= hilb_N[0]) return;
 
 	const int j = sorted_hindex[IND];
 
 	LR_bonds b = bonds[j];
-	LR_bonds buff_b = {P_INVALID, P_INVALID};
+	LR_bonds buff_b = { P_INVALID, P_INVALID };
 	if(b.n3 != P_INVALID) buff_b.n3 = inv_sorted_hindex[b.n3];
 	if(b.n5 != P_INVALID) buff_b.n5 = inv_sorted_hindex[b.n5];
 
@@ -159,7 +159,6 @@ __global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, nu
 	buff_Ls[IND] = Ls[j];
 }
 
-template<typename number, typename number4>
 __global__ void permute_particles(int *sorted_hindex, number4 *poss, number4 *vels, number4 *buff_poss, number4 *buff_vels) {
 	if(IND >= hilb_N[0]) return;
 
@@ -168,7 +167,6 @@ __global__ void permute_particles(int *sorted_hindex, number4 *poss, number4 *ve
 	buff_vels[IND] = vels[j];
 }
 
-template<typename number, typename number4>
 __global__ void permute_particles(int *sorted_hindex, number4 *poss, number4 *buff_poss) {
 	if(IND >= hilb_N[0]) return;
 
@@ -189,26 +187,8 @@ __global__ void reset_sorted_hindex(int *sorted_hindex) {
 }
 
 void init_hilb_symbols(int N, int N_unsortable, int depth, float box_side) {
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(hilb_N, &N, sizeof(int)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(hilb_depth, &depth, sizeof(int)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(hilb_box_side, &box_side, sizeof(float)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(hilb_N_unsortable, &N_unsortable, sizeof(int)) );
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(hilb_N, &N, sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(hilb_depth, &depth, sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(hilb_box_side, &box_side, sizeof(float)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(hilb_N_unsortable, &N_unsortable, sizeof(int)));
 }
-
-template
-__global__ void permute_particles<float, float4>(int *sorted_hindex, int *inv_sorted_hindex, float4 *poss, float4 *vels,	float4 *Ls, GPU_quat<float> *orientations, LR_bonds *bonds, float4 *buff_poss, float4 *buff_vels, float4 *buff_Ls, GPU_quat<float> *buff_orientations, LR_bonds *buff_bonds);
-template 
-
-__global__ void permute_particles<double, LR_double4>(int *sorted_hindex, int *inv_sorted_hindex, LR_double4 *poss, LR_double4 *vels, LR_double4 *Ls, GPU_quat<double> *orientations, LR_bonds *bonds, LR_double4 *buff_poss, LR_double4 *buff_vels, LR_double4 *buff_Ls, GPU_quat<double> *buff_orientations, LR_bonds *buff_bonds);
-template
-__global__ void permute_particles<float, float4>(int *sorted_hindex, float4 *poss, float4 *vels, float4 *buff_poss, float4 *buff_vels);
-template 
-__global__ void permute_particles<double, LR_double4>(int *sorted_hindex, LR_double4 *poss, LR_double4 *vels, LR_double4 *buff_poss, LR_double4 *buff_vels);
-template 
-__global__ void permute_particles<float, float4>(int *sorted_hindex, float4 *poss, float4 *buff_poss);
-template 
-__global__ void permute_particles<double, LR_double4>(int *sorted_hindex, LR_double4 *poss, LR_double4 *buff_poss);
-template 
-__global__ void hilbert_curve<float4>(const float4 *pos, int *hindex);
-template 
-__global__ void hilbert_curve<LR_double4>(const LR_double4 *pos, int *hindex);

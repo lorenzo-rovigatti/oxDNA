@@ -12,18 +12,18 @@
 #include "../Lists/CUDANoList.h"
 #include "../../Interactions/DNA2Interaction.h"
 
-template<typename number, typename number4>
-CUDADNAInteraction<number, number4>::CUDADNAInteraction() {
+
+CUDADNAInteraction::CUDADNAInteraction() {
 
 }
 
-template<typename number, typename number4>
-CUDADNAInteraction<number, number4>::~CUDADNAInteraction() {
+
+CUDADNAInteraction::~CUDADNAInteraction() {
 
 }
 
-template<typename number, typename number4>
-void CUDADNAInteraction<number, number4>::get_settings(input_file &inp) {
+
+void CUDADNAInteraction::get_settings(input_file &inp) {
 	_use_debye_huckel = false;
 	_use_oxDNA2_coaxial_stacking = false;
 	_use_oxDNA2_FENE = false;
@@ -64,9 +64,9 @@ void CUDADNAInteraction<number, number4>::get_settings(input_file &inp) {
 	DNAInteraction::get_settings(inp);
 }
 	
-template<typename number, typename number4>
-void CUDADNAInteraction<number, number4>::cuda_init(number box_side, int N) {
-	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
+
+void CUDADNAInteraction::cuda_init(number box_side, int N) {
+	CUDABaseInteraction::cuda_init(box_side, N);
 	DNAInteraction::init();
 
 	float f_copy = this->_hb_multiplier;
@@ -149,12 +149,12 @@ void CUDADNAInteraction<number, number4>::cuda_init(number box_side, int N) {
 	}
 }
 
-template<typename number, typename number4>
-void CUDADNAInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
-	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
+
+void CUDADNAInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
-				dna_forces_edge_nonbonded<number, number4>
+				dna_forces_edge_nonbonded
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
 					(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, d_box);
 
@@ -164,44 +164,41 @@ void CUDADNAInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 				cudaThreadSynchronize();
 				CUT_CHECK_ERROR("forces_second_step error -- after non-bonded");
 
-				dna_forces_edge_bonded<number, number4>
+				dna_forces_edge_bonded
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 					(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_grooving, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf);
 			}
 			else {
-				dna_forces<number, number4>
+				dna_forces
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 					(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box);
 				CUT_CHECK_ERROR("forces_second_step simple_lists error");
 			}
 	}
 
-	CUDANoList<number, number4> *_no_lists = dynamic_cast<CUDANoList<number, number4> *>(lists);
+	CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
 	if(_no_lists != NULL) {
-		dna_forces<number, number4>
+		dna_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box);
 		CUT_CHECK_ERROR("forces_second_step no_lists error");
 	}
 }
 
-template<typename number, typename number4>
-void CUDADNAInteraction<number, number4>::_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
+
+void CUDADNAInteraction::_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
 	hb_op_precalc<<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, hb_energies, n_threads, region_is_nearhb, d_box);
 	CUT_CHECK_ERROR("hb_op_precalc error");
 }
 
-template<typename number, typename number4>
-void CUDADNAInteraction<number, number4>::_near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg  _ffs_hb_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
+
+void CUDADNAInteraction::_near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg  _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
 	near_hb_op_precalc<<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, nearly_bonded_array, n_threads, region_is_nearhb, d_box);
 	CUT_CHECK_ERROR("nearhb_op_precalc error");
 }
 
-template<typename number, typename number4>
-void CUDADNAInteraction<number, number4>::_dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg, CUDABox<number, number4> *d_box) {
+
+void CUDADNAInteraction::_dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg, CUDABox*d_box) {
 	dist_op_precalc<<<_ffs_dist_precalc_kernel_cfg.blocks, _ffs_dist_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, op_dists, n_threads, d_box);
 	CUT_CHECK_ERROR("dist_op_precalc error");
 }
-
-template class CUDADNAInteraction<float, float4>;
-template class CUDADNAInteraction<double, LR_double4>;

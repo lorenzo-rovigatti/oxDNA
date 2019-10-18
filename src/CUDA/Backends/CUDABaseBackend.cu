@@ -20,8 +20,8 @@ using namespace std;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvla"
 
-template<typename number, typename number4>
-CUDABaseBackend<number, number4>::CUDABaseBackend() : _device_number(0), _sort_every(0) {
+
+CUDABaseBackend::CUDABaseBackend() : _device_number(0), _sort_every(0) {
 	_particles_kernel_cfg.blocks = dim3(1, 1, 1);
 	_particles_kernel_cfg.threads_per_block = 0;
 	_particles_kernel_cfg.shared_mem = 0;
@@ -52,8 +52,8 @@ CUDABaseBackend<number, number4>::CUDABaseBackend() : _device_number(0), _sort_e
 	_orient_size = 0;
 }
 
-template<typename number, typename number4>
-CUDABaseBackend<number, number4>::~CUDABaseBackend() {
+
+CUDABaseBackend::~CUDABaseBackend() {
 	if (_cuda_lists != NULL) {
 		_cuda_lists->clean();
 		delete _cuda_lists;
@@ -84,28 +84,28 @@ CUDABaseBackend<number, number4>::~CUDABaseBackend() {
 	if (_h_bonds != NULL) delete[] _h_bonds;
 }
 
-template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::_host_to_gpu() {
+
+void CUDABaseBackend::_host_to_gpu() {
 	CUDA_SAFE_CALL( cudaMemcpy(_d_poss, _h_poss, _vec_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_bonds, _h_bonds, _bonds_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_orientations, _h_orientations, _orient_size, cudaMemcpyHostToDevice) );
 
 	_h_cuda_box.set_CUDA_from_CPU(CONFIG_INFO->box);
-	CUDA_SAFE_CALL( cudaMemcpy(_d_cuda_box, &_h_cuda_box, sizeof(CUDABox<number, number4>), cudaMemcpyHostToDevice) );
+	CUDA_SAFE_CALL( cudaMemcpy(_d_cuda_box, &_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice) );
 }
 
-template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::_gpu_to_host() {
+
+void CUDABaseBackend::_gpu_to_host() {
 	CUDA_SAFE_CALL( cudaMemcpy(_h_poss, _d_poss, _vec_size, cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL( cudaMemcpy(_h_bonds, _d_bonds, _bonds_size, cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL( cudaMemcpy(_h_orientations, _d_orientations, _orient_size, cudaMemcpyDeviceToHost) );
 
-	CUDA_SAFE_CALL( cudaMemcpy(&_h_cuda_box, _d_cuda_box, sizeof(CUDABox<number, number4>), cudaMemcpyDeviceToHost) );
+	CUDA_SAFE_CALL( cudaMemcpy(&_h_cuda_box, _d_cuda_box, sizeof(CUDABox), cudaMemcpyDeviceToHost) );
 	_h_cuda_box.set_CPU_from_CUDA(CONFIG_INFO->box);
 }
 
-template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::get_settings(input_file &inp) {
+
+void CUDABaseBackend::get_settings(input_file &inp) {
 	if(getInputInt(&inp, "CUDA_device", &_device_number, 0) == KEY_NOT_FOUND) {
 		OX_LOG(Logger::LOG_INFO, "CUDA device not specified");
 		_device_number = -1;
@@ -120,19 +120,19 @@ void CUDABaseBackend<number, number4>::get_settings(input_file &inp) {
 	float verlet_skin;
 	if(getInputFloat(&inp, "verlet_skin", &verlet_skin, 0) == KEY_FOUND) _sqr_verlet_skin = SQR(verlet_skin);
 
-	_cuda_interaction = CUDAInteractionFactory::make_interaction<number, number4>(inp);
+	_cuda_interaction = CUDAInteractionFactory::make_interaction(inp);
 	_cuda_interaction->get_settings(inp);
 	_cuda_interaction->get_cuda_settings(inp);
 
-	_cuda_lists = CUDAListFactory::make_list<number, number4>(inp);
+	_cuda_lists = CUDAListFactory::make_list(inp);
 	_cuda_lists->get_settings(inp);
 
 	string reload_from;
 	if(getInputString(&inp, "reload_from", reload_from, 0) == KEY_FOUND) throw oxDNAException("The CUDA backend does not support reloading checkpoints, owing to its intrisincally stochastic nature");
 }
 
-template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::_choose_device () {
+
+void CUDABaseBackend::_choose_device () {
 	OX_LOG(Logger::LOG_INFO, "Choosing device automatically");
 
 	int ndev = -1, trydev = 0;
@@ -171,8 +171,8 @@ void CUDABaseBackend<number, number4>::_choose_device () {
 	// gpu device chosen
 }
 
-template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::init_cuda() {
+
+void CUDABaseBackend::init_cuda() {
 	if(_device_number < 0) _choose_device();
 	set_device(_device_number);
 	_device_prop = get_device_prop(_device_number);
@@ -195,7 +195,7 @@ void CUDABaseBackend<number, number4>::init_cuda() {
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat  >(&_d_orientations, _orient_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_list_poss, _vec_size) );
 	// the CUDA_SAFE_CALL macro does not support templates with more than one argument
-	GpuUtils::LR_cudaMalloc<CUDABox<number, number4> >(&_d_cuda_box, sizeof(CUDABox<number, number4>));
+	GpuUtils::LR_cudaMalloc<CUDABox>(&_d_cuda_box, sizeof(CUDABox));
 	CUDA_SAFE_CALL( cudaMallocHost(&_d_are_lists_old, sizeof(bool), cudaHostAllocDefault) );
 
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_list_poss, _vec_size) );
@@ -230,8 +230,8 @@ void CUDABaseBackend<number, number4>::init_cuda() {
 	}
 }
 
-template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::_init_CUDA_kernel_cfgs() {
+
+void CUDABaseBackend::_init_CUDA_kernel_cfgs() {
 	if(_particles_kernel_cfg.threads_per_block == 0) {
 		_particles_kernel_cfg.threads_per_block = 2*_device_prop.warpSize;
 		OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
@@ -248,14 +248,14 @@ void CUDABaseBackend<number, number4>::_init_CUDA_kernel_cfgs() {
 			_particles_kernel_cfg.blocks.x, _particles_kernel_cfg.blocks.y, _particles_kernel_cfg.blocks.z);
 }
 
-template<typename number, typename number4>
-void CUDABaseBackend<number, number4>::_sort_index() {
+
+void CUDABaseBackend::_sort_index() {
 	reset_sorted_hindex
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_sorted_hindex);
 	CUT_CHECK_ERROR("reset_sorted_hindex error");
 
-	hilbert_curve<number4>
+	hilbert_curve
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, _d_hindex);
 	CUT_CHECK_ERROR("hilbert_curve error");
@@ -268,10 +268,6 @@ void CUDABaseBackend<number, number4>::_sort_index() {
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_sorted_hindex, _d_inv_sorted_hindex);
 }
-
-// template instantiations
-template class CUDABaseBackend<float, float4>;
-template class CUDABaseBackend<double, LR_double4>;
 
 #pragma GCC diagnostic pop
 

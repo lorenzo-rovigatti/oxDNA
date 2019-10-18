@@ -37,7 +37,7 @@ __constant__ float MD_TEP_spring_offset[1];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-template<typename number, typename number4>
+
 __device__ void _repulsive_lj2(number prefactor, number4 &r, number4 &F, number sigma, number rstar, number b, number rc) {
 	number rnorm = CUDA_DOT(r, r);
 	if(rnorm < SQR(rc)) {
@@ -62,7 +62,7 @@ __device__ void _repulsive_lj2(number prefactor, number4 &r, number4 &F, number 
 	}
 }
 
-template<typename number, typename number4>
+
 __device__ void _bonded_double_bending(number4 &up, number4 &uq, number kb1, number kb2, number tu, number tk, number4 &F, number4 &T) {
 	number4 torque;
 
@@ -83,13 +83,13 @@ __device__ void _bonded_double_bending(number4 &up, number4 &uq, number kb1, num
 
 	// unkinked bending regime
 	if(angle < tu) {
-		torque = MD_kb[0]*kb1*_cross<number, number4>(up, uq);
+		torque = MD_kb[0]*kb1*_cross(up, uq);
 		F.w += MD_kb[0]*(1.f - cosine)*kb1;
 	}
 	// intermediate regime
 	else if(angle < tk) {
-		number4 sin_vector = _cross<number, number4>(up, uq);
-		number sin_module = _module<number, number4>(sin_vector);
+		number4 sin_vector = _cross(up, uq);
+		number sin_module = _module(sin_vector);
 		sin_vector.x /= sin_module;
 		sin_vector.y /= sin_module;
 		sin_vector.z /= sin_module;
@@ -99,7 +99,7 @@ __device__ void _bonded_double_bending(number4 &up, number4 &uq, number kb1, num
 	}
 	// kinked bending regime - same as unkinked, but with an additive term to the energy and with a different bending.
 	else {
-		torque = MD_kb[0]*kb2*_cross<number, number4>(up, uq);
+		torque = MD_kb[0]*kb2*_cross(up, uq);
 		F.w += MD_kb[0]*(D - cosine)*kb2;
 	}
 
@@ -111,7 +111,7 @@ __device__ void _bonded_double_bending(number4 &up, number4 &uq, number kb1, num
 template<typename number, typename number4, bool torque_on_p>
 __device__ void _bonded_particle_particle(number4 &n3_pos, number4 &up, number4 &fp, number4 &vp,
 										number4 &n5_pos, number4 &uq, number4 &fq, number4 &vq,
-										number4 &F, number4 &T, CUDABox<number, number4> *box,
+										number4 &F, number4 &T, CUDABox*box,
 								        number kb1, number kb2, number tu, number tk, number kt_pref,
 										bool alignment_only=false) {
 	number4 r = box->minimum_image(n3_pos, n5_pos);
@@ -138,7 +138,7 @@ __device__ void _bonded_particle_particle(number4 &n3_pos, number4 &up, number4 
 		
 		if(-cos_alpha_plus_gamma >= MD_twist_b[0]) printf("We have an issue with the twist angle (%lf) in thread %d\n", cos_alpha_plus_gamma, IND);
 		else {
-			number4 torque = (MD_kt[0]/L)*(_cross<number, number4>(fp, fq) + _cross<number, number4>(vp, vq) - cos_alpha_plus_gamma*_cross<number, number4>(up, uq))*kt_pref;
+			number4 torque = (MD_kt[0]/L)*(_cross(fp, fq) + _cross(vp, vq) - cos_alpha_plus_gamma*_cross(up, uq))*kt_pref;
 			if (-cos_alpha_plus_gamma <= MD_twist_a[0]) {
 				energy += MD_kt[0]*(1.f - cos_alpha_plus_gamma);
 			}
@@ -159,7 +159,7 @@ __device__ void _bonded_particle_particle(number4 &n3_pos, number4 &up, number4 
 		// bonded bending
 		_bonded_double_bending(up, uq, kb1, kb2, tu, tk, F, T);
 		// this is the old "single" bending
-		/*number4 torque = MD_kb[0]*kb1*_cross<number, number4>(up, uq);
+		/*number4 torque = MD_kb[0]*kb1*_cross(up, uq);
 		T.x += torque.x;
 		T.y += torque.y;
 		T.z += torque.z;
@@ -178,20 +178,20 @@ __device__ void _bonded_particle_particle(number4 &n3_pos, number4 &up, number4 
 	F.z += force.z;
 	F.w += MD_ka[0]*(1.f - CUDA_DOT(ba_up, ba_tp)/rmod);
 	if(torque_on_p) {
-		number4 torque = -(MD_ka[0]*_cross<number, number4>(ba_tp, ba_up))/rmod;
+		number4 torque = -(MD_ka[0]*_cross(ba_tp, ba_up))/rmod;
 		T.x += torque.x;
 		T.y += torque.y;
 		T.z += torque.z;
 	}
 }
 
-template<typename number, typename number4>
+
 __device__ number4 rotate_vector_around_versor(number4 &vector, number4 &versor, number angle){
 	number costh = cosf(angle);
 	number sinth = sinf(angle);
 	number scalar = CUDA_DOT(vector, versor);
-	number4 cross = _cross<number, number4>(versor, vector);
-	return make_number4<number, number4>(
+	number4 cross = _cross(versor, vector);
+	return make_number4(
 		versor.x*scalar*(1.f - costh) + vector.x*costh + cross.x*sinth,
 		versor.y*scalar*(1.f - costh) + vector.y*costh + cross.y*sinth,
 		versor.z*scalar*(1.f - costh) + vector.z*costh + cross.z*sinth,
@@ -199,26 +199,26 @@ __device__ number4 rotate_vector_around_versor(number4 &vector, number4 &versor,
 	);
 }
 
-template<typename number, typename number4>
+
 __device__ void _twist_boundary_particle(number4 &v1, number4& v3, number4 &T, number4 &o_vect, number4 &w_vect, llint step, number o_modulus) {
 	if(MD_twist_boundary_stiff[0] == 0.f) return;
 	number4 wt = rotate_vector_around_versor(w_vect, o_vect, step*o_modulus);
 
-	number4 torque_w = MD_twist_boundary_stiff[0]*(_cross<number, number4>(v3, wt));
-	number4 torque_o = MD_twist_boundary_stiff[0]*(_cross<number, number4>(v1, o_vect));
+	number4 torque_w = MD_twist_boundary_stiff[0]*(_cross(v3, wt));
+	number4 torque_o = MD_twist_boundary_stiff[0]*(_cross(v1, o_vect));
 	T += torque_w + torque_o;
 }
 
 // forces + second step without lists
-template <typename number, typename number4>
+
 __global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques,
-						LR_bonds *bonds, CUDABox<number, number4> *box, number *kb1_pref, number *kb2_pref,
+						LR_bonds *bonds, CUDABox*box, number *kb1_pref, number *kb2_pref,
 						number *xk_bending, number *xu_bending, number *kt_pref,
 						number4 *o_vects, number4 *w_vects, llint step) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
-	number4 T = make_number4<number, number4>(0, 0, 0, 0);
+	number4 T = make_number4(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	LR_bonds pbonds = bonds[IND];
 
@@ -239,7 +239,7 @@ __global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *force
 		// if this bead is the last of the strand
 		if(pbonds.n5 == P_INVALID) _bonded_particle_particle<number, number4, true>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
 	}
-	else _twist_boundary_particle<number, number4>(a1, a3, T, o_vects[0], w_vects[0], step, MD_o_modulus[0]);
+	else _twist_boundary_particle(a1, a3, T, o_vects[0], w_vects[0], step, MD_o_modulus[0]);
 
 	if(pbonds.n5 != P_INVALID) {
 		number4 b1, b2, b3;
@@ -255,7 +255,7 @@ __global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *force
 		LR_bonds qbonds = bonds[pbonds.n5];
 		if(qbonds.n5 == P_INVALID) {
 			_bonded_particle_particle<number, number4, false>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
-			_twist_boundary_particle<number, number4>(a1, a3, T, o_vects[1], w_vects[1], step, MD_o_modulus[1]);
+			_twist_boundary_particle(a1, a3, T, o_vects[1], w_vects[1], step, MD_o_modulus[1]);
 		}
 	}
 
@@ -276,15 +276,15 @@ __global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *force
 }
 
 // forces + second step with verlet lists
-template <typename number, typename number4>
+
 __global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques,
-						int *matrix_neighs, int *number_neighs, LR_bonds *bonds, CUDABox<number, number4> *box,
+						int *matrix_neighs, int *number_neighs, LR_bonds *bonds, CUDABox*box,
 						number *kb1_pref, number *kb2_pref,	number *xk_bending, number *xu_bending,
 						number *kt_pref, number4 *o_vects, number4 *w_vects, llint step) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
-	number4 T = make_number4<number, number4>(0, 0, 0, 0);
+	number4 T = make_number4(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	LR_bonds pbonds = bonds[IND];
 
@@ -305,7 +305,7 @@ __global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *force
 		// if this bead is the last of the strand
 		if(pbonds.n5 == P_INVALID) _bonded_particle_particle<number, number4, true>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
 	}
-	else _twist_boundary_particle<number, number4>(a1, a3, T, o_vects[0], w_vects[0], step, MD_o_modulus[0]);
+	else _twist_boundary_particle(a1, a3, T, o_vects[0], w_vects[0], step, MD_o_modulus[0]);
 
 	if(pbonds.n5 != P_INVALID) {
 		number4 b1, b2, b3;
@@ -321,7 +321,7 @@ __global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *force
 		LR_bonds qbonds = bonds[pbonds.n5];
 		if(qbonds.n5 == P_INVALID) {
 			_bonded_particle_particle<number, number4, false>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
-			_twist_boundary_particle<number, number4>(a1, a3, T, o_vects[1], w_vects[1], step, MD_o_modulus[1]);
+			_twist_boundary_particle(a1, a3, T, o_vects[1], w_vects[1], step, MD_o_modulus[1]);
 		}
 	}
 
@@ -345,15 +345,15 @@ __global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *force
 #include "../Lists/CUDASimpleVerletList.h"
 #include "../Lists/CUDANoList.h"
 
-template<typename number, typename number4>
-CUDATEPInteraction<number, number4>::CUDATEPInteraction() {
+
+CUDATEPInteraction::CUDATEPInteraction() {
 	_d_kb1_pref = _d_kb2_pref =_d_kt_pref = _d_xk_bending = _d_xu_bending = NULL;
 	_d_o_vects = _d_w_vects = NULL;
 	_steps = 0;
 }
 
-template<typename number, typename number4>
-CUDATEPInteraction<number, number4>::~CUDATEPInteraction() {
+
+CUDATEPInteraction::~CUDATEPInteraction() {
 	if(_d_kb1_pref != NULL) CUDA_SAFE_CALL( cudaFree(_d_kb1_pref) );
 	if(_d_kb2_pref != NULL) CUDA_SAFE_CALL( cudaFree(_d_kb2_pref) );
 	if(_d_xk_bending != NULL) CUDA_SAFE_CALL( cudaFree(_d_xk_bending) );
@@ -363,8 +363,8 @@ CUDATEPInteraction<number, number4>::~CUDATEPInteraction() {
 	if(_d_w_vects != NULL) CUDA_SAFE_CALL( cudaFree(_d_w_vects) );
 }
 
-template<typename number, typename number4>
-void CUDATEPInteraction<number, number4>::get_settings(input_file &inp) {
+
+void CUDATEPInteraction::get_settings(input_file &inp) {
 	TEPInteraction::get_settings(inp);
 
 	int sort_every;
@@ -375,9 +375,9 @@ void CUDATEPInteraction<number, number4>::get_settings(input_file &inp) {
 	if(this->_prefer_harmonic_over_fene) throw oxDNAException("The 'prefer_harmonic_over_fene' option is not compatible with CUDA");
 }
 
-template<typename number, typename number4>
-void CUDATEPInteraction<number, number4>::cuda_init(number box_side, int N) {
-	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
+
+void CUDATEPInteraction::cuda_init(number box_side, int N) {
+	CUDABaseInteraction::cuda_init(box_side, N);
 	TEPInteraction::init();
 
 	BaseParticle **particles = new BaseParticle *[N];
@@ -438,30 +438,27 @@ void CUDATEPInteraction<number, number4>::cuda_init(number box_side, int N) {
 	COPY_NUMBER_TO_FLOAT(MD_TEP_spring_offset, this->_TEP_spring_offset);
 }
 
-template<typename number, typename number4>
-void CUDATEPInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
+
+void CUDATEPInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	_steps++;
 
 	this->update_increment(_steps);
 	this->_time_var = this->update_time_variable(this->_time_var);
 
-	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
+	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) throw oxDNAException("use_edge unsupported by TEPInteraction");
-		TEP_forces<number, number4>
+		TEP_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
 		CUT_CHECK_ERROR("forces_second_step TEP simple_lists error");
 	}
 
-	CUDANoList<number, number4> *_no_lists = dynamic_cast<CUDANoList<number, number4> *>(lists);
+	CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
 	if(_no_lists != NULL) {
-		TEP_forces<number, number4>
+		TEP_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
 		CUT_CHECK_ERROR("forces_second_step TEP no_lists error");
 	}
 }
-
-template class CUDATEPInteraction<float, float4>;
-template class CUDATEPInteraction<double, LR_double4>;

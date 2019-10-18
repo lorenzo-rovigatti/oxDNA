@@ -30,7 +30,7 @@ __constant__ float MD_F5_PHI_B[4];
 __constant__ float MD_F5_PHI_XC[4];
 __constant__ float MD_F5_PHI_XS[4];
 
-template<typename number, typename number4>
+
 __forceinline__ __device__ void _excluded_volume(const number4 &r, number4 &F, number sigma, number rstar, number b, number rc) {
 	number rsqr = CUDA_DOT(r, r);
 

@@ -40,7 +40,7 @@ __constant__ bool MD_dh_half_charged_ends[1];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-template<typename number, typename number4>
+
 __forceinline__ __device__ void _excluded_volume(const number4 &r, number4 &F, number sigma, number rstar, number b, number rc) {
 	number rsqr = CUDA_DOT(r, r);
 
@@ -247,19 +247,19 @@ __device__ void _bonded_excluded_volume(number4 &r, number4 &n3pos_base, number4
 	// BASE-BASE
 	number4 rcenter = r + n3pos_base - n5pos_base;
 	_excluded_volume(rcenter, Ftmp, EXCL_S2, EXCL_R2, EXCL_B2, EXCL_RC2);
-	number4 torquep1 = (qIsN3) ? _cross<number, number4>(n5pos_base, Ftmp) : _cross<number, number4>(n3pos_base, Ftmp);
+	number4 torquep1 = (qIsN3) ? _cross(n5pos_base, Ftmp) : _cross(n3pos_base, Ftmp);
 	F += Ftmp;
 
 	// n5-BASE vs. n3-BACK
 	rcenter = r + n3pos_back - n5pos_base;
 	_excluded_volume(rcenter, Ftmp, EXCL_S3, EXCL_R3, EXCL_B3, EXCL_RC3);
-	number4 torquep2 = (qIsN3) ? _cross<number, number4>(n5pos_base, Ftmp) : _cross<number, number4>(n3pos_back, Ftmp);
+	number4 torquep2 = (qIsN3) ? _cross(n5pos_base, Ftmp) : _cross(n3pos_back, Ftmp);
 	F += Ftmp;
 
 	// n5-BACK vs. n3-BASE
 	rcenter = r + n3pos_base - n5pos_back;
 	_excluded_volume(rcenter, Ftmp, EXCL_S4, EXCL_R4, EXCL_B4, EXCL_RC4);
-	number4 torquep3 = (qIsN3) ? _cross<number, number4>(n5pos_back, Ftmp) : _cross<number, number4>(n3pos_base, Ftmp);
+	number4 torquep3 = (qIsN3) ? _cross(n5pos_back, Ftmp) : _cross(n3pos_base, Ftmp);
 	F += Ftmp;
 
 	T += torquep1 + torquep2 + torquep3;
@@ -270,10 +270,10 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 			     number4 &n3x, number4 &n3y, number4 &n3z, number4 &F, number4 &T, bool grooving, bool use_oxDNA2_FENE,
                  bool use_mbf, number mbf_xmax, number mbf_finf) {
 
-	int n3type = get_particle_type<number, number4>(n3pos);
-	int n5type = get_particle_type<number, number4>(n5pos);
+	int n3type = get_particle_type(n3pos);
+	int n5type = get_particle_type(n5pos);
 
-	number4 r = make_number4<number, number4>(n3pos.x - n5pos.x, n3pos.y - n5pos.y, n3pos.z - n5pos.z, (number) 0);
+	number4 r = make_number4(n3pos.x - n5pos.x, n3pos.y - n5pos.y, n3pos.z - n5pos.z, (number) 0);
 
 	number4 n5pos_back;
 	if(grooving) n5pos_back = n5x * POS_MM_BACK1 + n5y * POS_MM_BACK2;
@@ -289,7 +289,7 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 	number4 n3pos_stack = n3x * POS_STACK;
 
 	number4 rback = r + n3pos_back - n5pos_back;
-	number rbackmod = _module<number, number4>(rback);
+	number rbackmod = _module(rback);
 	number rbackr0;
 	if (use_oxDNA2_FENE) rbackr0 = rbackmod - FENE_R0_OXDNA2;
 	else rbackr0 = rbackmod - FENE_R0_OXDNA;
@@ -308,7 +308,7 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 		Ftmp.w = -FENE_EPS * ((number)0.5f) * logf(1 - SQR(rbackr0) / FENE_DELTA2);
 	}
 
-	number4 Ttmp = (qIsN3) ? _cross<number, number4>(n5pos_back, Ftmp) : _cross<number, number4>(n3pos_back, Ftmp);
+	number4 Ttmp = (qIsN3) ? _cross(n5pos_back, Ftmp) : _cross(n3pos_back, Ftmp);
 	// EXCLUDED VOLUME
 	_bonded_excluded_volume<number, number4, qIsN3>(r, n3pos_base, n3pos_back, n5pos_base, n5pos_back, Ftmp, Ttmp);
 
@@ -323,14 +323,14 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 
 	// STACKING
 	number4 rstack = r + n3pos_stack - n5pos_stack;
-	number rstackmod = _module<number, number4>(rstack);
-	number4 rstackdir = make_number4<number, number4>(rstack.x / rstackmod, rstack.y / rstackmod, rstack.z / rstackmod, 0);
+	number rstackmod = _module(rstack);
+	number4 rstackdir = make_number4(rstack.x / rstackmod, rstack.y / rstackmod, rstack.z / rstackmod, 0);
 	// This is the position the backbone would have with major-minor grooves the same width.
 	// We need to do this to implement different major-minor groove widths because rback is
 	// used as a reference point for things that have nothing to do with the actual backbone
 	// position (in this case, the stacking interaction).
 	number4 rbackref = r + n3x * POS_BACK - n5x * POS_BACK;
-	number rbackrefmod = _module<number, number4>(rbackref);
+	number rbackrefmod = _module(rbackref);
 
 	number t4 = CUDA_LRACOS(CUDA_DOT(n3z, n5z));
 	number t5 = CUDA_LRACOS(CUDA_DOT(n5z, rstackdir));
@@ -406,43 +406,43 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 				(n3x - rstackdir * ra1) * dcosphi2dra1 +
 				(n5x - rstackdir * rb1) * dcosphi2drb1) / rstackmod) * force_part_phi2;
 
-		if(qIsN3) Ttmp = _cross<number, number4>(n5pos_stack, Ftmp);
-		else Ttmp = _cross<number, number4>(n3pos_stack, Ftmp);
+		if(qIsN3) Ttmp = _cross(n5pos_stack, Ftmp);
+		else Ttmp = _cross(n3pos_stack, Ftmp);
 
 		// THETA 4
-		Ttmp += _cross<number, number4>(n3z, n5z) * (-energy * f4t4Dsin / f4t4);
+		Ttmp += _cross(n3z, n5z) * (-energy * f4t4Dsin / f4t4);
 
 		// PHI 1 & PHI 2
 		if(qIsN3) {
-			Ttmp += (-force_part_phi1 * dcosphi1dra2) * _cross<number, number4>(rstackdir, n5y)
-				-_cross<number, number4>(rstackdir, n5x) * force_part_phi1 * dcosphi1dra1;
+			Ttmp += (-force_part_phi1 * dcosphi1dra2) * _cross(rstackdir, n5y)
+				-_cross(rstackdir, n5x) * force_part_phi1 * dcosphi1dra1;
 
-			Ttmp += (-force_part_phi2 * dcosphi2drb1) * _cross<number, number4>(rstackdir, n5x);
+			Ttmp += (-force_part_phi2 * dcosphi2drb1) * _cross(rstackdir, n5x);
 		}
 		else {
-			Ttmp += force_part_phi1 * dcosphi1drb1 * _cross<number, number4>(rstackdir, n3x);
+			Ttmp += force_part_phi1 * dcosphi1drb1 * _cross(rstackdir, n3x);
 
-			Ttmp += force_part_phi2 * dcosphi2dra2 * _cross<number, number4>(rstackdir, n3y) +
-				force_part_phi2 * dcosphi2dra1 * _cross<number, number4>(rstackdir, n3x);
+			Ttmp += force_part_phi2 * dcosphi2dra2 * _cross(rstackdir, n3y) +
+				force_part_phi2 * dcosphi2dra1 * _cross(rstackdir, n3x);
 		}
 
-		Ttmp += force_part_phi1 * dcosphi1da2b1 * _cross<number, number4>(n5y, n3x)
-			+ _cross<number, number4>(n5x, n3x) * force_part_phi1 * dcosphi1da1b1;
+		Ttmp += force_part_phi1 * dcosphi1da2b1 * _cross(n5y, n3x)
+			+ _cross(n5x, n3x) * force_part_phi1 * dcosphi1da1b1;
 
-		Ttmp += force_part_phi2 * dcosphi2da2b1 * _cross<number, number4>(n5x, n3y) +
-			_cross<number, number4>(n5x, n3x) * force_part_phi2 * dcosphi2da1b1;
+		Ttmp += force_part_phi2 * dcosphi2da2b1 * _cross(n5x, n3y) +
+			_cross(n5x, n3x) * force_part_phi2 * dcosphi2da1b1;
 
 		Ftmp.w = energy;
 		if(qIsN3) {
 			// THETA 5
-			Ttmp += _cross<number, number4>(rstackdir, n5z) * energy * f4t5Dsin / f4t5;
+			Ttmp += _cross(rstackdir, n5z) * energy * f4t5Dsin / f4t5;
 
 			T += Ttmp;
 			F += Ftmp;
 		}
 		else {
 			// THETA 6
-			Ttmp += _cross<number, number4>(rstackdir, n3z) * (-energy * f4t6Dsin / f4t6);
+			Ttmp += _cross(rstackdir, n3z) * (-energy * f4t6Dsin / f4t6);
 
 			T -= Ttmp;
 			F -= Ftmp;
@@ -450,12 +450,12 @@ __device__ void _bonded_part(number4 &n5pos, number4 &n5x, number4 &n5y, number4
 	}
 }
 
-template <typename number, typename number4>
-__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind, CUDABox<number, number4> *box) {
-	int ptype = get_particle_type<number, number4>(ppos);
-	int qtype = get_particle_type<number, number4>(qpos);
-	int pbtype = get_particle_btype<number, number4>(ppos);
-	int qbtype = get_particle_btype<number, number4>(qpos);
+
+__device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4 a2, number4 a3, number4 qpos, number4 b1, number4 b2, number4 b3, number4 &F, number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind, CUDABox*box) {
+	int ptype = get_particle_type(ppos);
+	int qtype = get_particle_type(qpos);
+	int pbtype = get_particle_btype(ppos);
+	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
 
 	number4 r = box->minimum_image(ppos, qpos);
@@ -476,10 +476,10 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 
 	// excluded volume
 	// BACK-BACK
-	number4 Ftmp = make_number4<number, number4>(0, 0, 0, 0);
+	number4 Ftmp = make_number4(0, 0, 0, 0);
 	number4 rbackbone = r + qpos_back - ppos_back;
 	_excluded_volume(rbackbone, Ftmp, EXCL_S1, EXCL_R1, EXCL_B1, EXCL_RC1);
-	number4 Ttmp = _cross<number, number4>(ppos_back, Ftmp);
+	number4 Ttmp = _cross(ppos_back, Ftmp);
 	_bonded_excluded_volume<number, number4, true>(r, qpos_base, qpos_back, ppos_base, ppos_back, Ftmp, Ttmp);
 
 	F += Ftmp;
@@ -527,10 +527,10 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			Ftmp = rhydrodir * hb_energy * f1D / f1;
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			Ttmp -= _cross<number, number4>(a3, b3) * (-hb_energy * f4t4Dsin / f4t4);
+			Ttmp -= _cross(a3, b3) * (-hb_energy * f4t4Dsin / f4t4);
 
 			// TETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= _cross<number, number4>(a1, b1) * (- hb_energy * f4t1Dsin / f4t1);
+			Ttmp -= _cross(a1, b1) * (- hb_energy * f4t1Dsin / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
 			Ftmp -= (b1 + rhydrodir * cosf(t2)) * (hb_energy * f4t2Dsin / (f4t2 * rhydromod));
@@ -538,7 +538,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
 			number part = - hb_energy * f4t3Dsin / f4t3;
 			Ftmp -= (a1 - rhydrodir * cosf(t3)) * (-part / rhydromod);
-			Ttmp += _cross<number, number4>(rhydrodir, a1) * part;
+			Ttmp += _cross(rhydrodir, a1) * part;
 
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
 			Ftmp -= (b3 + rhydrodir * cosf(t7)) * (hb_energy * f4t7Dsin / (f4t7 * rhydromod));
@@ -546,9 +546,9 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			part = - hb_energy * f4t8Dsin / f4t8;
 			Ftmp -= (a3 - rhydrodir * cosf(t8)) * (-part / rhydromod);
-		  	Ttmp += _cross<number, number4>(rhydrodir, a3) * part;
+		  	Ttmp += _cross(rhydrodir, a3) * part;
 
-			Ttmp += _cross<number, number4>(ppos_base, Ftmp);
+			Ttmp += _cross(ppos_base, Ftmp);
 
 			Ftmp.w = hb_energy;
 			F += Ftmp;
@@ -602,7 +602,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			Ftmp = rcstackdir * (cstk_energy * f2D / f2);
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= _cross<number, number4>(a1, b1) * (-cstk_energy * f4t1Dsin / f4t1);
+			Ttmp -= _cross(a1, b1) * (-cstk_energy * f4t1Dsin / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
 			Ftmp -= (b1 + rcstackdir * cosf(t2)) * (cstk_energy * f4t2Dsin / (f4t2 * rcstackmod));
@@ -610,10 +610,10 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
 			number part = -cstk_energy * f4t3Dsin / f4t3;
 			Ftmp -= (a1 - rcstackdir * cosf(t3)) * (-part / rcstackmod);
-			Ttmp += _cross<number, number4>(rcstackdir, a1) * part;
+			Ttmp += _cross(rcstackdir, a1) * part;
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			Ttmp -= _cross<number, number4>(a3, b3) * (-cstk_energy * f4t4Dsin / f4t4);
+			Ttmp -= _cross(a3, b3) * (-cstk_energy * f4t4Dsin / f4t4);
 
 			// THETA7; t7 = LRACOS (-rcsrackir * b3);
 			Ftmp -= (b3 + rcstackdir * cosf(t7)) * (cstk_energy * f4t7Dsin / (f4t7 * rcstackmod));
@@ -621,9 +621,9 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			part = -cstk_energy * f4t8Dsin / f4t8;
 			Ftmp -= (a3 - rcstackdir * cosf(t8)) * (-part / rcstackmod);
-			Ttmp += _cross<number, number4>(rcstackdir, a3) * part;
+			Ttmp += _cross(rcstackdir, a3) * part;
 
-			Ttmp += _cross<number, number4>(ppos_base, Ftmp);
+			Ttmp += _cross(ppos_base, Ftmp);
 
 			Ftmp.w = cstk_energy;
 			F += Ftmp;
@@ -671,20 +671,20 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 				Ftmp = rstackdir * (cxst_energy * f2D / f2);
 
 				// THETA1; t1 = LRACOS (-a1 * b1);
-				Ttmp -= _cross<number, number4>(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
+				Ttmp -= _cross(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
 
 				// TETA4; t4 = LRACOS (a3 * b3);
-				Ttmp -= _cross<number, number4>(a3, b3) * (-cxst_energy * f4t4Dsin / f4t4);
+				Ttmp -= _cross(a3, b3) * (-cxst_energy * f4t4Dsin / f4t4);
 
 				// THETA5; t5 = LRACOS ( a3 * rstackdir);
 				number part = cxst_energy * f4t5Dsin / f4t5;
 				Ftmp -= (a3 - rstackdir * cosf(t5)) / rstackmod * part;
-				Ttmp -= _cross<number, number4>(rstackdir, a3) * part;
+				Ttmp -= _cross(rstackdir, a3) * part;
 
 				// THETA6; t6 = LRACOS (-b3 * rstackdir);
 				Ftmp -= (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
 
-				Ttmp += _cross<number, number4>(ppos_stack, Ftmp);
+				Ttmp += _cross(ppos_stack, Ftmp);
 
 				Ftmp.w = cxst_energy;
 				F += Ftmp;
@@ -709,9 +709,9 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 			// used as a reference point for things that have nothing to do with the actual backbone
 			// position (in this case, the coaxial stacking interaction).
 			number4 rbackboneref = r + POS_BACK * b1 - POS_BACK * a1;
-			number rbackrefmod = _module<number, number4>(rbackboneref);
+			number rbackrefmod = _module(rbackboneref);
 			number4 rbackbonerefdir = rbackboneref / rbackrefmod;
-			number cosphi3 = CUDA_DOT(rstackdir, (_cross<number, number4>(rbackbonerefdir, a1)));
+			number cosphi3 = CUDA_DOT(rstackdir, (_cross(rbackbonerefdir, a1)));
 
 			// functions called at their relevant arguments
 			number f2 = _f2(rstackmod, CXST_F2);
@@ -742,15 +742,15 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 				Ftmp = rstackdir * (cxst_energy * f2D / f2);
 
 				// THETA1; t1 = LRACOS (-a1 * b1);
-				Ttmp -= _cross<number, number4>(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
+				Ttmp -= _cross(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
 
 				// TETA4; t4 = LRACOS (a3 * b3);
-				Ttmp -= _cross<number, number4>(a3, b3) * (-cxst_energy * f4t4Dsin / f4t4);
+				Ttmp -= _cross(a3, b3) * (-cxst_energy * f4t4Dsin / f4t4);
 
 				// THETA5; t5 = LRACOS ( a3 * rstackdir);
 				number part = cxst_energy * f4t5Dsin / f4t5;
 				Ftmp -= (a3 - rstackdir * cosf(t5)) / rstackmod * part;
-				Ttmp -= _cross<number, number4>(rstackdir, a3) * part;
+				Ttmp -= _cross(rstackdir, a3) * part;
 
 				// THETA6; t6 = LRACOS (-b3 * rstackdir);
 				Ftmp -= (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
@@ -784,15 +784,15 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 								(a3 - rstackdir * ra3) * dcdra3 +
 								(b1 - rstackdir * rb1) * dcdrb1) / rstackmod);
 
-				Ttmp += part * (_cross<number, number4>(rstackdir, a1) * dcdra1 +
-							    _cross<number, number4>(rstackdir, a2) * dcdra2 +
-							    _cross<number, number4>(rstackdir ,a3) * dcdra3);
+				Ttmp += part * (_cross(rstackdir, a1) * dcdra1 +
+							    _cross(rstackdir, a2) * dcdra2 +
+							    _cross(rstackdir ,a3) * dcdra3);
 
-				Ttmp -= part * (_cross<number, number4>(a1, b1) * dcda1b1 +
-							    _cross<number, number4>(a2, b1) * dcda2b1 +
-							    _cross<number, number4>(a3, b1) * dcda3b1);
+				Ttmp -= part * (_cross(a1, b1) * dcda1b1 +
+							    _cross(a2, b1) * dcda2b1 +
+							    _cross(a3, b1) * dcda3b1);
 
-				Ttmp += _cross<number, number4>(ppos_stack, Ftmp);
+				Ttmp += _cross(ppos_stack, Ftmp);
 
 				Ftmp.w = cxst_energy;
 				F += Ftmp;
@@ -802,7 +802,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 	
 	// DEBYE HUCKEL
 	if (use_debye_huckel){
-		number rbackmod = _module<number, number4>(rbackbone);
+		number rbackmod = _module(rbackbone);
 		if (rbackmod < MD_dh_RC[0]){
 			number4 rbackdir = rbackbone / rbackmod;
 			if(rbackmod < MD_dh_RHIGH[0]){
@@ -822,7 +822,7 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 				Ftmp *= 0.5f;
 			}
 
-			Ttmp -= _cross<number, number4>(ppos_back, Ftmp);
+			Ttmp -= _cross(ppos_back, Ftmp);
 			F -= Ftmp;
 		}
 	}
@@ -834,12 +834,12 @@ __device__ void _particle_particle_interaction(number4 ppos, number4 a1, number4
 }
 
 // forces + second step without lists
-template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
+
+__global__ void dna_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox*box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
-	number4 T = make_number4<number, number4>(0, 0, 0, 0);
+	number4 T = make_number4(0, 0, 0, 0);
 	LR_bonds bs = bonds[IND];
 	number4 ppos = poss[IND];
 
@@ -867,7 +867,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat *orientations, number4 *force
                              use_mbf, mbf_xmax, mbf_finf);
 	}
 
-	const int type = get_particle_type<number, number4>(ppos);
+	const int type = get_particle_type(ppos);
 	T.w = (number) 0;
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND && bs.n3 != j && bs.n5 != j) {
@@ -876,7 +876,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat *orientations, number4 *force
 			get_vectors_from_quat<number,number4>(orientations[j], b1, b2, b3);
 			LR_bonds qbonds = bonds[j];
 
-			_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds, IND, j, box);
+			_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds, IND, j, box);
 		}
 	}
 
@@ -886,12 +886,12 @@ __global__ void dna_forces(number4 *poss, GPU_quat *orientations, number4 *force
 	torques[IND] = T;
 }
 
-template <typename number, typename number4>
-__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, CUDABox<number, number4> *box) {
+
+__global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, CUDABox*box) {
 	if(IND >= n_edges) return;
 
-	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
-	number4 dT = make_number4<number, number4>(0, 0, 0, 0);
+	number4 dF = make_number4(0, 0, 0, 0);
+	number4 dT = make_number4(0, 0, 0, 0);
 
 	edge_bond b = edge_list[IND];
 
@@ -907,7 +907,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat *orientations,
 	get_vectors_from_quat<number,number4>(orientations[b.to], b1, b2, b3);
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
-	_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, box);
+	_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, box);
 
 	int from_index = MD_N[0]*(IND % MD_n_forces[0]) + b.from;
 	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
@@ -916,7 +916,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat *orientations,
 
 	// Allen Eq. 6 pag 3:
 	number4 dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
-	number4 crx = _cross<number, number4> (dr, dF);
+	number4 crx = _cross(dr, dF);
 	dT.x = -dT.x + crx.x;
 	dT.y = -dT.y + crx.y;
 	dT.z = -dT.z + crx.z;
@@ -932,7 +932,7 @@ __global__ void dna_forces_edge_nonbonded(number4 *poss, GPU_quat *orientations,
 }
 
 // bonded interactions for edge-based approach
-template <typename number, typename number4>
+
 __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat *orientations,  number4 *forces, number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf) {
 	if(IND >= MD_N[0]) return;
 
@@ -947,8 +947,8 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat *orientations,  n
 	T0.z = torques[IND].z;
 	T0.w = torques[IND].w;
 
-	number4 dF = make_number4<number, number4>(0, 0, 0, 0);
-	number4 dT = make_number4<number, number4>(0, 0, 0, 0);
+	number4 dF = make_number4(0, 0, 0, 0);
+	number4 dT = make_number4(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
 	// particle axes according to Allen's paper
@@ -979,12 +979,12 @@ __global__ void dna_forces_edge_bonded(number4 *poss, GPU_quat *orientations,  n
 }
 
 // forces + second step with verlet lists
-template <typename number, typename number4>
-__global__ void dna_forces(number4 *poss, GPU_quat *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox<number, number4> *box) {
+
+__global__ void dna_forces(number4 *poss, GPU_quat *orientations,  number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, number mbf_xmax, number mbf_finf, CUDABox*box) {
 	if(IND >= MD_N[0]) return;
 
 	number4 F = forces[IND];
-	number4 T = make_number4<number, number4>(0, 0, 0, 0);
+	number4 T = make_number4(0, 0, 0, 0);
 	number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
 
@@ -1005,7 +1005,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat *orientations,  number4 *forc
 		_bonded_part<number, number4, false>(qpos, b1, b2, b3, ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 
-	const int type = get_particle_type<number, number4>(ppos);
+	const int type = get_particle_type(ppos);
 	const int num_neighs = number_neighs[IND];
 
 	T.w = (number) 0;
@@ -1017,7 +1017,7 @@ __global__ void dna_forces(number4 *poss, GPU_quat *orientations,  number4 *forc
 		get_vectors_from_quat<number,number4>(orientations[k_index], b1, b2, b3);
 		LR_bonds pbonds = bonds[IND];
 		LR_bonds qbonds = bonds[k_index];
-		_particle_particle_interaction<number, number4>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index, box);
+		_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index, box);
 	}
 	
 	T = _vectors_transpose_number4_product(a1, a2, a3, T);
@@ -1030,8 +1030,8 @@ __global__ void dna_forces(number4 *poss, GPU_quat *orientations,  number4 *forc
 //FFS order parameter pre-calculations
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
-template <typename number, typename number4>
-__global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
+
+__global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox*box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1043,10 +1043,10 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pai
 	number4 r = box->minimum_image(ppos, qpos);
 
 	// check whether hb energy is below a certain threshold for this nucleotide pair
-	int ptype = get_particle_type<number, number4>(ppos);
-	int qtype = get_particle_type<number, number4>(qpos);
-	int pbtype = get_particle_btype<number, number4>(ppos);
-	int qbtype = get_particle_btype<number, number4>(qpos);
+	int ptype = get_particle_type(ppos);
+	int qtype = get_particle_type(qpos);
+	int pbtype = get_particle_btype(ppos);
+	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
 
 	GPU_quat po = orientations[pind];
@@ -1094,8 +1094,8 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pai
 	hb_energies[IND] = hb_energy;
 }
 
-template <typename number, typename number4>
-__global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDABox<number, number4> *box)
+
+__global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDABox*box)
 {
 	if(IND >= n_threads) return;
 	
@@ -1107,10 +1107,10 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *o
 	number4 r = box->minimum_image(ppos, qpos);
 
 	// check whether hb energy is below a certain threshold for this nucleotide pair
-	int ptype = get_particle_type<number, number4>(ppos);
-	int qtype = get_particle_type<number, number4>(qpos);
-	int pbtype = get_particle_btype<number, number4>(ppos);
-	int qbtype = get_particle_btype<number, number4>(qpos);
+	int ptype = get_particle_type(ppos);
+	int qtype = get_particle_type(qpos);
+	int pbtype = get_particle_btype(ppos);
+	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
 
 	GPU_quat po = orientations[pind];
@@ -1169,8 +1169,8 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *o
 }
 
 // compute the distance between a pair of particles
-template <typename number, typename number4>
-__global__ void dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDABox<number, number4> *box)
+
+__global__ void dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDABox*box)
 {
 	if(IND >= n_threads) return;
 
@@ -1194,5 +1194,5 @@ __global__ void dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_p
 	number4 qpos_base = POS_BASE * b1;
 	
 	number4 rbase = r + qpos_base - ppos_base;
-	op_dists[IND] = _module<number, number4>(rbase);
+	op_dists[IND] = _module(rbase);
 }

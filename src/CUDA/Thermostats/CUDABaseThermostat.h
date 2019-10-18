@@ -22,7 +22,7 @@
  * For this reason, this inheritance must be virtual to avoid compilation errors. More on this can be
  * found at http://en.wikipedia.org/wiki/Virtual_inheritance.
  */
-template<typename number, typename number4>
+
 class CUDABaseThermostat: public virtual IBaseThermostat {
 protected:
 	CUDA_kernel_cfg _launch_cfg;

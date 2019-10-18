@@ -18,7 +18,7 @@ __constant__ float MD_F1_SHIFT[50];
 __constant__ float MD_box_side[1];
 
 // to be included from a common file one day...
-template <typename number, typename number4>
+
 __device__ number4 minimum_image(const number4 &r_i, const number4 &r_j) {
 	number dx = r_j.x - r_i.x;
 	number dy = r_j.y - r_i.y;
@@ -28,11 +28,11 @@ __device__ number4 minimum_image(const number4 &r_i, const number4 &r_j) {
 	dy -= floorf(dy/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
 	dz -= floorf(dz/MD_box_side[0] + (number) 0.5f) * MD_box_side[0];
 
-	return make_number4<number, number4>(dx, dy, dz, (number) 0.f);
+	return make_number4(dx, dy, dz, (number) 0.f);
 }
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
-template <typename number, typename number4>
+
 __global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb)
 {
 	if(IND >= n_threads) return;
@@ -43,13 +43,13 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pai
 	// get distance between this nucleotide pair's "com"s
 	number4 ppos = poss[pind];
 	number4 qpos = poss[qind];
-	number4 r = minimum_image<number, number4>(ppos, qpos);
+	number4 r = minimum_image(ppos, qpos);
 
 	// check whether hb energy is below a certain threshold for this nucleotide pair
-	int ptype = get_particle_type<number, number4>(ppos);
-	int qtype = get_particle_type<number, number4>(qpos);
-	int pbtype = get_particle_btype<number, number4>(ppos);
-	int qbtype = get_particle_btype<number, number4>(qpos);
+	int ptype = get_particle_type(ppos);
+	int qtype = get_particle_type(qpos);
+	int pbtype = get_particle_btype(ppos);
+	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
 
 	GPU_quat po = orientations[pind];
@@ -99,7 +99,7 @@ __global__ void hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pai
 }
 
 // check whether a particular pair of particles have a 'nearly' hydrogen bond, where all or all but one of the energy factors are non-zero
-template <typename number, typename number4>
+
 __global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb)
 {
 	if(IND >= n_threads) return;
@@ -110,13 +110,13 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *o
 	// get distance between this nucleotide pair's "com"s
 	number4 ppos = poss[pind];
 	number4 qpos = poss[qind];
-	number4 r = minimum_image<number, number4>(ppos, qpos);
+	number4 r = minimum_image(ppos, qpos);
 
 	// check whether hb energy is below a certain threshold for this nucleotide pair
-	int ptype = get_particle_type<number, number4>(ppos);
-	int qtype = get_particle_type<number, number4>(qpos);
-	int pbtype = get_particle_btype<number, number4>(ppos);
-	int qbtype = get_particle_btype<number, number4>(qpos);
+	int ptype = get_particle_type(ppos);
+	int qtype = get_particle_type(qpos);
+	int pbtype = get_particle_btype(ppos);
+	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
 
 	GPU_quat po = orientations[pind];
@@ -175,7 +175,7 @@ __global__ void near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *o
 }
 
 // compute the distance between a pair of particles
-template <typename number, typename number4>
+
 __global__ void dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads)
 {
 	if(IND >= n_threads) return;
@@ -186,7 +186,7 @@ __global__ void dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_p
 	// get distance between this nucleotide pair's "com"s
 	number4 ppos = poss[pind];
 	number4 qpos = poss[qind];
-	number4 r = minimum_image<number, number4>(ppos, qpos);
+	number4 r = minimum_image(ppos, qpos);
 
 	GPU_quat po = orientations[pind];
 	GPU_quat qo = orientations[qind];
@@ -200,10 +200,10 @@ __global__ void dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_p
 	number4 qpos_base = POS_BASE * b1;
 	
 	number4 rbase = r + qpos_base - ppos_base;
-	op_dists[IND] = _module<number, number4>(rbase);
+	op_dists[IND] = _module(rbase);
 }
 // find the minimum distances for a region and check against the stopping conditions for that region
-template <typename number, typename number4>
+
 __global__ void dist_op_eval(number *op_dists, int *region_lens, int *region_rows, int *cond_lens, int *cond_rows, number *mags, int *types, bool *stop, int n_threads, int stop_element_offset)
 {
 	if(IND >= n_threads) return;
@@ -259,7 +259,7 @@ __global__ void dist_op_eval(number *op_dists, int *region_lens, int *region_row
 }
 
 // count up the number of hydrogen bonds in each region and check against the stopping conditions for that region
-template <typename number, typename number4>
+
 __global__ void hb_op_eval(float *hb_energies, int *region_lens, int *region_rows, int *cond_lens, int *cond_rows, number *mags, int *types, bool *stop, int n_threads, float *hb_cutoffs)
 {
 	if(IND >= n_threads) return;
@@ -304,7 +304,7 @@ __global__ void hb_op_eval(float *hb_energies, int *region_lens, int *region_row
 	}
 }
 
-template <typename number, typename number4>
+
 __global__ void nearhb_op_eval(bool *nearhb_states, int *region_lens, int *region_rows, int *cond_lens, int *cond_rows, number *mags, int *types, bool *stop, int n_threads, int stop_element_offset)
 {
 	if(IND >= n_threads) return;

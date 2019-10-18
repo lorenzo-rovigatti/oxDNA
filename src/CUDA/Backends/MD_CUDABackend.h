@@ -26,8 +26,8 @@
 /**
  * @brief Manages a MD simulation on GPU with CUDA.
  */
-template<typename number, typename number4>
-class MD_CUDABackend: public MDBackend, public CUDABaseBackend<number, number4> {
+
+class MD_CUDABackend: public MDBackend, public CUDABaseBackend{
 protected:
 	bool _use_edge;
 	bool _any_rigid_body;
@@ -53,7 +53,7 @@ protected:
 	ObservableOutput *_obs_output_error_conf;
 	std::string _error_conf_file;
 
-	CUDABaseThermostat<number, number4> *_cuda_thermostat;
+	CUDABaseThermostat*_cuda_thermostat;
 
 	//constant_rate_force *_h_ext_forces, *_d_ext_forces;
 	//mutual_trap *_h_ext_forces, *_d_ext_forces;

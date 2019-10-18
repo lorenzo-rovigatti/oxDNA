@@ -215,27 +215,27 @@ IF(CUDA)
 		CUDA/cuda_utils/cuda_device_utils.cu
 		CUDA/Backends/CUDABaseBackend.cu
 		CUDA/Backends/MD_CUDABackend.cu
-		CUDA/Backends/MD_CUDAMixedBackend.cu
-		CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
+		#CUDA/Backends/MD_CUDAMixedBackend.cu
+		#CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
-		CUDA/Interactions/CUDADNAInteraction.cu
+		#CUDA/Interactions/CUDADNAInteraction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
-		CUDA/Interactions/CUDARNAInteraction.cu
-		CUDA/Interactions/CUDAPatchyInteraction.cu
-		CUDA/Interactions/CUDATSPInteraction.cu
-		CUDA/Interactions/CUDATEPInteraction.cu
+		#CUDA/Interactions/CUDARNAInteraction.cu
+		#CUDA/Interactions/CUDAPatchyInteraction.cu
+		#CUDA/Interactions/CUDATSPInteraction.cu
+		#CUDA/Interactions/CUDATEPInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
+		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu
 		CUDA/Lists/CUDASimpleVerletList.cu
-		CUDA/Lists/CUDABinVerletList.cu
-		CUDA/Lists/CUDAListFactory.cu
+		#CUDA/Lists/CUDABinVerletList.cu
 		CUDA/Thermostats/CUDABaseThermostat.cu
 		CUDA/Thermostats/CUDANoThermostat.cu
 		CUDA/Thermostats/CUDAThermostatFactory.cu
-		CUDA/Thermostats/CUDABrownianThermostat.cu
-		CUDA/Thermostats/CUDASRDThermostat.cu
-		CUDA/Thermostats/CUDALangevinThermostat.cu
-		CUDA/Thermostats/CUDABussiThermostat.cu
+		#CUDA/Thermostats/CUDABrownianThermostat.cu
+		#CUDA/Thermostats/CUDASRDThermostat.cu
+		#CUDA/Thermostats/CUDALangevinThermostat.cu
+		#CUDA/Thermostats/CUDABussiThermostat.cu
 		Utilities/Timings.cpp
 	)
 	

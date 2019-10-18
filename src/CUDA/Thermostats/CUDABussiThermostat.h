@@ -15,8 +15,8 @@
 /**
  * @brief CUDA implementation of the {@link BussiThermostat thermostat} by Bussi et al.
  */
-template<typename number, typename number4>
-class CUDABussiThermostat: public CUDABaseThermostat<number, number4>, public BussiThermostat {
+
+class CUDABussiThermostat: public CUDABaseThermostat, public BussiThermostat {
 protected:
 public:
 	CUDABussiThermostat();

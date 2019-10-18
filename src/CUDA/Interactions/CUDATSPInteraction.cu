@@ -12,13 +12,13 @@
 #include "../Lists/CUDANoList.h"
 #include "../../Particles/TSPParticle.h"
 
-template<typename number, typename number4>
-CUDATSPInteraction<number, number4>::CUDATSPInteraction() : _h_anchors(NULL), _h_anchor_neighs(NULL) {
+
+CUDATSPInteraction::CUDATSPInteraction() : _h_anchors(NULL), _h_anchor_neighs(NULL) {
 
 }
 
-template<typename number, typename number4>
-CUDATSPInteraction<number, number4>::~CUDATSPInteraction() {
+
+CUDATSPInteraction::~CUDATSPInteraction() {
 	if(_h_anchors != NULL) {
 		delete[] _h_anchors;
 		delete[] _h_anchor_neighs;
@@ -28,8 +28,8 @@ CUDATSPInteraction<number, number4>::~CUDATSPInteraction() {
 	}
 }
 
-template<typename number, typename number4>
-void CUDATSPInteraction<number, number4>::get_settings(input_file &inp) {
+
+void CUDATSPInteraction::get_settings(input_file &inp) {
 	TSPInteraction::get_settings(inp);
 
 	int sort_every;
@@ -38,9 +38,9 @@ void CUDATSPInteraction<number, number4>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number, typename number4>
-void CUDATSPInteraction<number, number4>::cuda_init(number box_side, int N) {
-	CUDABaseInteraction<number, number4>::cuda_init(box_side, N);
+
+void CUDATSPInteraction::cuda_init(number box_side, int N) {
+	CUDABaseInteraction::cuda_init(box_side, N);
 	TSPInteraction::init();
 
 	_setup_anchors();
@@ -66,8 +66,8 @@ void CUDATSPInteraction<number, number4>::cuda_init(number box_side, int N) {
 	if(this->_use_edge) CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)) );
 }
 
-template<typename number, typename number4>
-void CUDATSPInteraction<number, number4>::_setup_anchors() {
+
+void CUDATSPInteraction::_setup_anchors() {
 	BaseParticle **particles = new BaseParticle *[this->_N];
 	TSPInteraction::allocate_particles(particles, this->_N);
 	TSPInteraction::read_topology(this->_N, &this->_N_stars, particles);
@@ -98,12 +98,12 @@ void CUDATSPInteraction<number, number4>::_setup_anchors() {
 	delete[] particles;
 }
 
-template<typename number, typename number4>
-void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box) {
-	CUDASimpleVerletList<number, number4> *_v_lists = dynamic_cast<CUDASimpleVerletList<number, number4> *>(lists);
+
+void CUDATSPInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
-				tsp_forces_edge_nonbonded<number, number4>
+				tsp_forces_edge_nonbonded
 					<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
 					(d_poss, this->_d_edge_forces, _v_lists->_d_edge_list, _v_lists->_N_edges, d_box);
 
@@ -113,33 +113,30 @@ void CUDATSPInteraction<number, number4>::compute_forces(CUDABaseList<number, nu
 				cudaThreadSynchronize();
 				CUT_CHECK_ERROR("forces_second_step error -- after non-bonded");
 
-				tsp_forces_edge_bonded<number, number4>
+				tsp_forces_edge_bonded
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 					(d_poss, d_forces, d_bonds);
 			}
 			else {
-				tsp_forces<number, number4>
+				tsp_forces
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 					(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, d_box);
 				CUT_CHECK_ERROR("forces_second_step simple_lists error");
 			}
 	}
 	else {
-		CUDANoList<number, number4> *_no_lists = dynamic_cast<CUDANoList<number, number4> *>(lists);
+		CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
 
 		if(_no_lists != NULL) {
-			tsp_forces<number, number4>
+			tsp_forces
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 				(d_poss,  d_forces, d_bonds, d_box);
 			CUT_CHECK_ERROR("forces_second_step no_lists error");
 		}
 	}
 
-	tsp_anchor_forces<number, number4>
+	tsp_anchor_forces
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 		(d_poss, d_forces, _d_anchors, _d_anchor_neighs);
 	CUT_CHECK_ERROR("forces_second_step simple_lists error");
 }
-
-template class CUDATSPInteraction<float, float4>;
-template class CUDATSPInteraction<double, LR_double4>;

@@ -14,18 +14,20 @@
 #include <vector_functions.h>
 #include "../CUDAUtils.h"
 
-template<typename number, typename number4>
 class CUDABox {
 protected:
 	number _Lx, _Ly, _Lz;
 	bool _cubic;
 
 public:
-	__host__ __device__ CUDABox() : _cubic(false) {
+	__host__ __device__
+	CUDABox() :
+					_cubic(false) {
 
 	}
 
-	__host__ __device__ CUDABox(const CUDABox<number, number4> &b) {
+	__host__ __device__
+	CUDABox(const CUDABox &b) {
 		_cubic = b._cubic;
 		_Lx = b._Lx;
 		_Ly = b._Ly;
@@ -55,33 +57,33 @@ public:
 	}
 
 	__forceinline__ __device__ int compute_cell_index(int N_cells_side[3], float4 &r) {
-		int cx = ((r.x/_Lx - floorf(r.x/_Lx)) * (1.f - FLT_EPSILON))*N_cells_side[0];
-		int cy = ((r.y/_Ly - floorf(r.y/_Ly)) * (1.f - FLT_EPSILON))*N_cells_side[1];
-		int cz = ((r.z/_Lz - floorf(r.z/_Lz)) * (1.f - FLT_EPSILON))*N_cells_side[2];
+		int cx = ((r.x / _Lx - floorf(r.x / _Lx)) * (1.f - FLT_EPSILON)) * N_cells_side[0];
+		int cy = ((r.y / _Ly - floorf(r.y / _Ly)) * (1.f - FLT_EPSILON)) * N_cells_side[1];
+		int cz = ((r.z / _Lz - floorf(r.z / _Lz)) * (1.f - FLT_EPSILON)) * N_cells_side[2];
 
-		return (cz*N_cells_side[1] + cy)*N_cells_side[0] + cx;
+		return (cz * N_cells_side[1] + cy) * N_cells_side[0] + cx;
 	}
 
 	__forceinline__ __device__ int3 compute_cell_spl_idx(int N_cells_side[3], float4 &r) {
-		int cx = (r.x/_Lx - floorf(r.x/_Lx)) * (1.f - FLT_EPSILON)*N_cells_side[0];
-		int cy = (r.y/_Ly - floorf(r.y/_Ly)) * (1.f - FLT_EPSILON)*N_cells_side[1];
-		int cz = (r.z/_Lz - floorf(r.z/_Lz)) * (1.f - FLT_EPSILON)*N_cells_side[2];
+		int cx = (r.x / _Lx - floorf(r.x / _Lx)) * (1.f - FLT_EPSILON) * N_cells_side[0];
+		int cy = (r.y / _Ly - floorf(r.y / _Ly)) * (1.f - FLT_EPSILON) * N_cells_side[1];
+		int cz = (r.z / _Lz - floorf(r.z / _Lz)) * (1.f - FLT_EPSILON) * N_cells_side[2];
 
 		return make_int3(cx, cy, cz);
 	}
 
 	__forceinline__ __device__ int compute_cell_index(int N_cells_side[3], LR_double4 &r) {
-		int cx = (r.x/_Lx - floor(r.x/_Lx)) * (1. - DBL_EPSILON)*N_cells_side[0];
-		int cy = (r.y/_Ly - floor(r.y/_Ly)) * (1. - DBL_EPSILON)*N_cells_side[1];
-		int cz = (r.z/_Lz - floor(r.z/_Lz)) * (1. - DBL_EPSILON)*N_cells_side[2];
+		int cx = (r.x / _Lx - floor(r.x / _Lx)) * (1. - DBL_EPSILON) * N_cells_side[0];
+		int cy = (r.y / _Ly - floor(r.y / _Ly)) * (1. - DBL_EPSILON) * N_cells_side[1];
+		int cz = (r.z / _Lz - floor(r.z / _Lz)) * (1. - DBL_EPSILON) * N_cells_side[2];
 
-		return (cz*N_cells_side[1] + cy)*N_cells_side[0] + cx;
+		return (cz * N_cells_side[1] + cy) * N_cells_side[0] + cx;
 	}
 
 	__forceinline__ __device__ int3 compute_cell_spl_idx(int N_cells_side[3], LR_double4 &r) {
-		int cx = (r.x/_Lx - floor(r.x/_Lx)) * (1. - DBL_EPSILON)*N_cells_side[0];
-		int cy = (r.y/_Ly - floor(r.y/_Ly)) * (1. - DBL_EPSILON)*N_cells_side[1];
-		int cz = (r.z/_Lz - floor(r.z/_Lz)) * (1. - DBL_EPSILON)*N_cells_side[2];
+		int cx = (r.x / _Lx - floor(r.x / _Lx)) * (1. - DBL_EPSILON) * N_cells_side[0];
+		int cy = (r.y / _Ly - floor(r.y / _Ly)) * (1. - DBL_EPSILON) * N_cells_side[1];
+		int cz = (r.z / _Lz - floor(r.z / _Lz)) * (1. - DBL_EPSILON) * N_cells_side[2];
 
 		return make_int3(cx, cy, cz);
 	}
@@ -105,7 +107,8 @@ public:
 		box->init(_Lx, _Ly, _Lz);
 	}
 
-	__host__ __device__ number4 box_sides() {
+	__host__ __device__
+	number4 box_sides() {
 		number4 res;
 		res.x = _Lx;
 		res.y = _Ly;
@@ -122,7 +125,7 @@ public:
 	}
 
 	number V() {
-		return _Lx*_Ly*_Lz;
+		return _Lx * _Ly * _Lz;
 	}
 };
 

@@ -14,8 +14,8 @@
 /**
  * @brief Implements a NVE simulation (no thermalisation).
  */
-template<typename number, typename number4>
-class CUDANoThermostat: public CUDABaseThermostat<number, number4>, public NoThermostat {
+
+class CUDANoThermostat: public CUDABaseThermostat, public NoThermostat {
 public:
 	CUDANoThermostat();
 	virtual ~CUDANoThermostat();

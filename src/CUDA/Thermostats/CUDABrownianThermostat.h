@@ -15,8 +15,8 @@
 /**
  * @brief CUDA implementation of a {@link BrownianThermostat brownian thermostat}.
  */
-template<typename number, typename number4>
-class CUDABrownianThermostat: public CUDABaseThermostat<number, number4>, public BrownianThermostat {
+
+class CUDABrownianThermostat: public CUDABaseThermostat, public BrownianThermostat {
 protected:
 public:
 	CUDABrownianThermostat();

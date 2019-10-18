@@ -14,8 +14,8 @@
 /**
  * @brief Implements a O(N^2) type of simulation (each particle interact with each other) with CUDA.
  */
-template<typename number, typename number4>
-class CUDANoList: public CUDABaseList<number, number4> {
+
+class CUDANoList: public CUDABaseList{
 public:
 	CUDANoList();
 	virtual ~CUDANoList();
