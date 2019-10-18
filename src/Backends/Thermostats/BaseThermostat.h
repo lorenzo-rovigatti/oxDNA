@@ -68,4 +68,6 @@ public:
 	virtual void apply(BaseParticle **particles, llint curr_step) = 0;
 };
 
+using ThermostatPtr = std::shared_ptr<BaseThermostat>;
+
 #endif // BASE_THERMOSTAT_

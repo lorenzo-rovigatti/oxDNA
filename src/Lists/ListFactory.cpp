@@ -13,15 +13,6 @@
 #include "BinVerletList.h"
 #include "RodCells.h"
 
-ListFactory::ListFactory() {
-
-}
-
-ListFactory::~ListFactory() {
-
-}
-
-
 ListPtr ListFactory::make_list(input_file &inp, int &N, BaseBox *box) {
 	// the default list is verlet
 	char list_type[512] = "verlet";

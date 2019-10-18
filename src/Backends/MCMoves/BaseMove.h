@@ -92,4 +92,6 @@ class BaseMove {
 		}
 };
 
+using MovePtr = std::shared_ptr<BaseMove>;
+
 #endif

@@ -30,63 +30,57 @@
 
 using namespace std;
 
-
 ForceFactory * ForceFactory::_ForceFactoryPtr = NULL;
-
 
 ForceFactory::ForceFactory() {
 
 }
 
-
 ForceFactory::~ForceFactory() {
 
 }
 
-
 ForceFactory *ForceFactory::instance() {
-	if (_ForceFactoryPtr == NULL) _ForceFactoryPtr = new ForceFactory();
+	if(_ForceFactoryPtr == NULL) _ForceFactoryPtr = new ForceFactory();
 
 	return _ForceFactoryPtr;
 }
 
-
 void ForceFactory::add_force(input_file &inp, BaseParticle **particles, int N, bool is_CUDA, BaseBox * box_ptr) {
 
 	string type_str;
-	getInputString (&inp, "type", type_str, 1);
+	getInputString(&inp, "type", type_str, 1);
 
 	ForcePtr extF;
-	
-	if (type_str.compare("string") == 0) extF = std::make_shared<ConstantRateForce>();
-	else if (type_str.compare("sawtooth") == 0) extF = std::make_shared<SawtoothForce>();
-	else if (type_str.compare("twist") == 0) extF = std::make_shared<ConstantRateTorque>();
-	else if (type_str.compare("trap") == 0) extF = std::make_shared<MovingTrap>();
-	else if (type_str.compare("repulsion_plane") == 0) extF = std::make_shared<RepulsionPlane>();
-	else if (type_str.compare("repulsion_plane_moving") == 0) extF = std::make_shared<RepulsionPlaneMoving>();
-	else if (type_str.compare("mutual_trap") == 0) extF = std::make_shared<MutualTrap>();
-	else if (type_str.compare("lowdim_trap") == 0) extF = std::make_shared<LowdimMovingTrap>();
-	else if (type_str.compare("constant_trap") == 0) extF = std::make_shared<ConstantTrap>();
-	else if (type_str.compare("sphere") == 0) extF = std::make_shared<RepulsiveSphere>();
-	else if (type_str.compare("sphere_smooth") == 0) extF = std::make_shared<RepulsiveSphereSmooth>();
-	else if (type_str.compare("com") == 0) extF = std::make_shared<COMForce>();
-	else if (type_str.compare("LJ_wall") == 0) extF = std::make_shared<LJWall>();
-	else if (type_str.compare("hard_wall") == 0) extF = std::make_shared<HardWall>();
-	else if (type_str.compare("alignment_field") == 0) extF = std::make_shared<AlignmentField>();
-	else if (type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
-	else if (type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
-	else throw oxDNAException ("Invalid force type `%s\'", type_str.c_str());
+
+	if(type_str.compare("string") == 0) extF = std::make_shared<ConstantRateForce>();
+	else if(type_str.compare("sawtooth") == 0) extF = std::make_shared<SawtoothForce>();
+	else if(type_str.compare("twist") == 0) extF = std::make_shared<ConstantRateTorque>();
+	else if(type_str.compare("trap") == 0) extF = std::make_shared<MovingTrap>();
+	else if(type_str.compare("repulsion_plane") == 0) extF = std::make_shared<RepulsionPlane>();
+	else if(type_str.compare("repulsion_plane_moving") == 0) extF = std::make_shared<RepulsionPlaneMoving>();
+	else if(type_str.compare("mutual_trap") == 0) extF = std::make_shared<MutualTrap>();
+	else if(type_str.compare("lowdim_trap") == 0) extF = std::make_shared<LowdimMovingTrap>();
+	else if(type_str.compare("constant_trap") == 0) extF = std::make_shared<ConstantTrap>();
+	else if(type_str.compare("sphere") == 0) extF = std::make_shared<RepulsiveSphere>();
+	else if(type_str.compare("sphere_smooth") == 0) extF = std::make_shared<RepulsiveSphereSmooth>();
+	else if(type_str.compare("com") == 0) extF = std::make_shared<COMForce>();
+	else if(type_str.compare("LJ_wall") == 0) extF = std::make_shared<LJWall>();
+	else if(type_str.compare("hard_wall") == 0) extF = std::make_shared<HardWall>();
+	else if(type_str.compare("alignment_field") == 0) extF = std::make_shared<AlignmentField>();
+	else if(type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
+	else if(type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
+	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
 	getInputString(&inp, "group_name", group, 0);
-	
+
 	extF->get_settings(inp);
 	extF->init(particles, N, box_ptr); // here the force is added to the particle
 	extF->set_group_name(group);
 }
 
-
-void ForceFactory::read_external_forces(std::string external_filename, BaseParticle ** particles, int N, bool is_CUDA,BaseBox * box) {
+void ForceFactory::read_external_forces(std::string external_filename, BaseParticle ** particles, int N, bool is_CUDA, BaseBox * box) {
 	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
 
 	//char line[512], typestr[512];
@@ -102,25 +96,25 @@ void ForceFactory::read_external_forces(std::string external_filename, BaseParti
 	while(external.good()) {
 		justopen = 0;
 		switch(a) {
-		case '#':
+			case '#':
 			is_commented = true;
 			break;
-		case '\n':
+			case '\n':
 			is_commented = false;
 			break;
-		case '{':
+			case '{':
 			if(!is_commented) {
 				open++;
 				justopen = 1;
 			}
 			break;
-		case '}':
+			case '}':
 			if(!is_commented) {
 				if(justopen) throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
 				open--;
 			}
 			break;
-		default:
+			default:
 			break;
 		}
 
@@ -157,9 +151,8 @@ void ForceFactory::read_external_forces(std::string external_filename, BaseParti
 	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());
 }
 
-
-void ForceFactory::clear () {
-	if (_ForceFactoryPtr != NULL) delete _ForceFactoryPtr; // this if is to make oxDNA not segfault if an exception is thrown in the code
+void ForceFactory::clear() {
+	if(_ForceFactoryPtr != NULL) delete _ForceFactoryPtr; // this if is to make oxDNA not segfault if an exception is thrown in the code
 
 	return;
 }

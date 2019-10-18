@@ -120,8 +120,8 @@ protected:
 	ObservableOutputPtr _obs_output_checkpoints;
 	ObservableOutputPtr _obs_output_last_checkpoint;
 
-	/// Pointer to the interaction manager
-	IBaseInteraction *_interaction;
+	/// Shared pointer to the interaction manager
+	InteractionPtr _interaction;
 
 	/// Pointer to the list manager
 	ListPtr _lists;

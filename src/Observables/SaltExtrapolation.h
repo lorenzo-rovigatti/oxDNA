@@ -30,8 +30,8 @@ class SaltExtrapolation: public BaseObservable {
 protected:
 	std::vector<number> _salts;
 	std::vector<number> _temps;
-	std::vector<std::vector<IBaseInteraction *> > _interactions;
-	IBaseInteraction *_ref_interaction;
+	std::vector<std::vector<InteractionPtr>> _interactions;
+	InteractionPtr _ref_interaction;
 	OrderParameters _op;
 	Weights _weights;
 	std::string _op_file, _weights_file;

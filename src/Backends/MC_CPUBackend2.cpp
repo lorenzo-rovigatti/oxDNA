@@ -20,15 +20,13 @@ MC_CPUBackend2::MC_CPUBackend2() :
 }
 
 MC_CPUBackend2::~MC_CPUBackend2() {
-	for(typename std::vector<BaseMove *>::iterator it = _moves.begin(); it != _moves.end(); it++)
-		delete *it;
+
 }
 
 void MC_CPUBackend2::add_move(std::string move_string, input_file &sim_inp) {
-	input_file * move_inp = Utils::get_input_file_from_string(move_string);
+	input_file *move_inp = Utils::get_input_file_from_string(move_string);
 
-	BaseMove * new_move = MoveFactory::make_move(*move_inp, sim_inp);
-
+	MovePtr new_move = MoveFactory::make_move(*move_inp, sim_inp);
 	_moves.push_back(new_move);
 
 	cleanInputFile(move_inp);
@@ -39,7 +37,7 @@ void MC_CPUBackend2::get_settings(input_file &inp) {
 	MCBackend::get_settings(inp);
 
 	//_MC_Info = ConfigInfo(_particles, &(_box_side), _interaction, &(_N), &_info_str, _lists);
-	_MC_Info->set(_particles, _interaction, &(_N), &_info_str, _lists.get(), _box.get());
+	_MC_Info->set(_particles, _interaction.get(), &(_N), &_info_str, _lists.get(), _box.get());
 
 	//_MC_Info.lists = _lists;
 
@@ -52,12 +50,9 @@ void MC_CPUBackend2::get_settings(input_file &inp) {
 		add_move(tmps, inp);
 	}
 
-	typename vector<BaseMove *>::iterator it;
-	//for(it = _moves.begin(); it != _moves.end(); it ++) (*it)->get_settings(inp);
-	//for(it = _moves.begin(); it != _moves.end(); it ++) (*it)->get_settings(inp);
-
-	for(it = _moves.begin(); it != _moves.end(); it++)
-		_accumulated_prob += (*it)->prob;
+	for(auto move : _moves) {
+		_accumulated_prob += move->prob;
+	}
 
 	OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2.cpp) accumulated prob: %g", _accumulated_prob);
 
@@ -78,7 +73,7 @@ void MC_CPUBackend2::init() {
 	// needed to fill un the pointers....
 	_MC_Info->particles = _particles;
 	_MC_Info->N = &_N;
-	_MC_Info->interaction = _interaction;
+	_MC_Info->interaction = _interaction.get();
 	_MC_Info->box = _box.get();
 
 	_lists->global_update();
@@ -103,10 +98,8 @@ void MC_CPUBackend2::init() {
 	}
 
 	// we initialize the moves
-	typename vector<BaseMove *>::iterator it;
-	for(it = _moves.begin(); it != _moves.end(); it++) {
-		//OX_LOG(Logger::LOG_DEBUG, "(MC_CPUBackend2) Initializing move...");
-		(*it)->init();
+	for(auto move : _moves) {
+		move->init();
 	}
 }
 
@@ -129,9 +122,8 @@ void MC_CPUBackend2::sim_step(llint curr_step) {
 
 void MC_CPUBackend2::print_observables(llint curr_step) {
 	std::string tmpstr("");
-	typename std::vector<BaseMove *>::iterator it;
-	for(it = _moves.begin(); it != _moves.end(); it++) {
-		number ratio = (*it)->get_acceptance();
+	for(auto move : _moves) {
+		number ratio = move->get_acceptance();
 		tmpstr += Utils::sformat(" %5.3f", ratio);
 	}
 	_backend_info.insert(0, tmpstr + "  ");
@@ -140,9 +132,8 @@ void MC_CPUBackend2::print_observables(llint curr_step) {
 }
 
 void MC_CPUBackend2::print_equilibration_info() {
-	typename std::vector<BaseMove *>::iterator it;
-	for(it = _moves.begin(); it != _moves.end(); it++) {
-		(*it)->log_parameters();
+	for(auto move : _moves) {
+		move->log_parameters();
 	}
 }
 

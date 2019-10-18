@@ -57,14 +57,6 @@
 #include "Configurations/TEPxyzOutput.h"
 #include "Configurations/JordanOutput.h"
 
-ObservableFactory::ObservableFactory() {
-
-}
-
-ObservableFactory::~ObservableFactory() {
-
-}
-
 ObservablePtr ObservableFactory::make_observable(input_file &obs_inp, input_file &sim_inp) {
 	char obs_type[512];
 	getInputString(&obs_inp, "type", obs_type, 1);

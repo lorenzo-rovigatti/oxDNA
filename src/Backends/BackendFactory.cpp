@@ -26,14 +26,6 @@
 #include "PT_VMMC_CPUBackend.h"
 #endif
 
-BackendFactory::BackendFactory() {
-
-}
-
-BackendFactory::~BackendFactory() {
-
-}
-
 std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 	char backend_opt[256], backend_prec[256], sim_type[256];
 	getInputString(&inp, "backend", backend_opt, 1);
@@ -51,7 +43,8 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 	else OX_LOG(Logger::LOG_INFO, "Simulation type: %s", sim_type);
 
 	if(backend_prec != std::string("") && !strcmp(backend_opt, "CPU")) {
-		OX_LOG(Logger::LOG_WARNING, "\nThe 'backend_precision' option cannot be set by input file when running on CPU\n");
+		OX_LOG(Logger::LOG_NOTHING, "");
+		OX_LOG(Logger::LOG_WARNING, "The 'backend_precision' option cannot be set by input file when running on CPU\n");
 	}
 
 	SimBackend *new_backend = NULL;

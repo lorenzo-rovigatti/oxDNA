@@ -372,7 +372,7 @@ inline number VMMC_CPUBackend::_particle_particle_bonded_interaction_n3_VMMC(Bas
 	// check for overlaps;
 	LR_vector rback = r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 	number rbackr0;
-	if(dynamic_cast<DNA2Interaction *>(this->_interaction) != NULL) {
+	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
 		rbackr0 = rback.module() - FENE_R0_OXDNA2;
 	}
 	else {
@@ -429,13 +429,13 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	energy += this->_interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, &r, false);
 
 	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
-	if(dynamic_cast<DNA2Interaction *>(this->_interaction) == NULL) energy += this->_interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, &r, false);
+	if(dynamic_cast<DNA2Interaction *>(this->_interaction.get()) == NULL) energy += this->_interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, &r, false);
 
-	if(dynamic_cast<DNA2Interaction *>(this->_interaction) != NULL) {
+	if(dynamic_cast<DNA2Interaction *>(this->_interaction.get()) != NULL) {
 		energy += this->_interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, &r, false);
 		energy += this->_interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, &r, false);
 	}
-	else if(dynamic_cast<RNA2Interaction *>(this->_interaction) != NULL) {
+	else if(dynamic_cast<RNA2Interaction *>(this->_interaction.get()) != NULL) {
 
 		energy += this->_interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, &r, false);
 	}

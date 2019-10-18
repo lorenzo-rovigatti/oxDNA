@@ -20,23 +20,23 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	// first we look for an x in argv[2]
 	std::string tmpstr = argv[2];
 	size_t found_x = tmpstr.find('x');
-	if (found_x != std::string::npos) {
-		std::vector< std::string > sides_str = Utils::split(tmpstr, 'x');
+	if(found_x != std::string::npos) {
+		std::vector<std::string> sides_str = Utils::split(tmpstr, 'x');
 		_box_side_x = atof(sides_str[0].c_str());
 		_box_side_y = atof(sides_str[1].c_str());
 		_box_side_z = atof(sides_str[2].c_str());
 
 		_box_side = _box_side_x;
-		if (_box_side_y < _box_side) _box_side = _box_side_y;
-		if (_box_side_z < _box_side) _box_side = _box_side_z;
-		
-		OX_LOG (Logger::LOG_INFO, "Detected non cubic box; box sides %g, %g, %g", _box_side_x, _box_side_y, _box_side_z);
+		if(_box_side_y < _box_side) _box_side = _box_side_y;
+		if(_box_side_z < _box_side) _box_side = _box_side_z;
+
+		OX_LOG(Logger::LOG_INFO, "Detected non cubic box; box sides %g, %g, %g", _box_side_x, _box_side_y, _box_side_z);
 		_use_density = false;
 	}
 	else {
-		double argv2 = atof (argv[2]);
-		if (argv2 <= 0.) throw oxDNAException ("Refusing to run with box_side/density = %g (converted from \"%s\")", argv2, argv[2]);
-		if (argv2 < 2.) {
+		double argv2 = atof(argv[2]);
+		if(argv2 <= 0.) throw oxDNAException("Refusing to run with box_side/density = %g (converted from \"%s\")", argv2, argv[2]);
+		if(argv2 < 2.) {
 			_use_density = true;
 			_density = argv2;
 			OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g", _density);
@@ -52,7 +52,7 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	loadInputFile(&_input, argv[1]);
 	if(_input.state == ERROR) throw oxDNAException("Caught an error while opening the input file");
 	argc -= 3;
-	if(argc > 0) addCommandLineArguments(&_input, argc, argv+3);
+	if(argc > 0) addCommandLineArguments(&_input, argc, argv + 3);
 
 	_N = 0;
 	_particles = NULL;
@@ -68,29 +68,33 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 GeneratorManager::~GeneratorManager() {
 	cleanInputFile(&_input);
 	if(_init_completed) {
-		delete _interaction;
-		for(int i = 0; i < _N; i++) delete _particles[i];
+		for(int i = 0; i < _N; i++)
+			delete _particles[i];
 		delete[] _particles;
 	}
 
-	if (_external_forces) ForceFactory::instance()->clear();
+	if(_external_forces) {
+		ForceFactory::instance()->clear();
+	}
 }
 
 void GeneratorManager::load_options() {
 	getInputString(&_input, "trajectory_file", _trajectory, 1);
 	getInputString(&_input, "conf_file", _output_conf, 1);
-	
+
 	// read wether to use external forces
 	getInputBool(&_input, "external_forces", &_external_forces, 0);
-	if (_external_forces) getInputString(&_input, "external_forces_file", _external_filename, 0);
+	if(_external_forces) {
+		getInputString(&_input, "external_forces_file", _external_filename, 0);
+	}
 
 	// seed;
 	int seed;
-	if (getInputInt(&_input, "seed", &seed, 0) == KEY_NOT_FOUND) {
+	if(getInputInt(&_input, "seed", &seed, 0) == KEY_NOT_FOUND) {
 		seed = time(NULL);
 		int rand_seed = 0;
 		FILE *f = fopen("/dev/urandom", "rb");
-		if (f == NULL) {
+		if(f == NULL) {
 			OX_LOG(Logger::LOG_INFO, "Can't open /dev/urandom, using system time as a random seed");
 		}
 		else {
@@ -100,7 +104,7 @@ void GeneratorManager::load_options() {
 		}
 	}
 	OX_LOG(Logger::LOG_INFO, "Setting the random number generator with seed = %d", seed);
-	srand48((long int)seed);
+	srand48((long int) seed);
 
 	Logger::instance()->get_settings(_input);
 
@@ -122,25 +126,25 @@ void GeneratorManager::init() {
 	int N_strands;
 	_interaction->read_topology(_N, &N_strands, _particles);
 
-	if (_use_density){
-		 _box_side = pow(_N / _density, 1. / 3.);
-		 _box_side_x = _box_side_y = _box_side_z = _box_side;
+	if(_use_density) {
+		_box_side = pow(_N / _density, 1. / 3.);
+		_box_side_x = _box_side_y = _box_side_z = _box_side;
 		OX_LOG(Logger::LOG_INFO, "Generating cubic configuration with box_side %g", _box_side);
 	}
 	else {
 		_density = _N / (_box_side_x * _box_side_y * _box_side_z);
 		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g (%d particles, box sides %g %g %g)", _density, _N, _box_side_x, _box_side_y, _box_side_z);
 	}
-	
+
 	// setting the box or the interaction
 	_mybox->init(_box_side_x, _box_side_y, _box_side_z);
 	_interaction->set_box(_mybox.get());
 
 	// initializing external forces
-	if (_external_forces) { 
+	if(_external_forces) {
 		ForceFactory::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox.get());
 	}
- 
+
 	_init_completed = true;
 }
 

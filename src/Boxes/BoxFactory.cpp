@@ -11,15 +11,6 @@
 #include "OrthogonalBox.h"
 #include "LeesEdwardsCubicBox.h"
 
-BoxFactory::BoxFactory() {
-
-}
-
-BoxFactory::~BoxFactory() {
-
-}
-
-
 BoxPtr BoxFactory::make_box(input_file &inp) {
 	// the default box is the cubic one
 	char box_type[512] = "cubic";

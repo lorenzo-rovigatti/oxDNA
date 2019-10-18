@@ -23,8 +23,9 @@ typedef BaseObservable* make_obs();
 typedef IBaseInteraction* make_inter();
 typedef BaseMove* make_move();
 
-
-PluginManager::PluginManager() : _initialised(false), _do_cleanup(true) {
+PluginManager::PluginManager() :
+				_initialised(false),
+				_do_cleanup(true) {
 	_path.push_back(string("."));
 }
 
@@ -41,24 +42,28 @@ void PluginManager::init(input_file &sim_inp) {
 	string ppath;
 	if(getInputString(&sim_inp, "plugin_search_path", ppath, 0) == KEY_FOUND) {
 		vector<string> paths = Utils::split(ppath, ':');
-		for(vector<string>::iterator it = paths.begin(); it < paths.end(); it++) add_to_path(*it);
+		for(vector<string>::iterator it = paths.begin(); it < paths.end(); it++)
+			add_to_path(*it);
 	}
 
 	string entries;
 	// for observables
 	if(getInputString(&sim_inp, "plugin_observable_entry_points", entries, 0) == KEY_FOUND) {
 		vector<string> v_entries = Utils::split(entries, ':');
-		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _obs_entry_points.push_back(*it);
+		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++)
+			_obs_entry_points.push_back(*it);
 	}
 	// for interactions
 	if(getInputString(&sim_inp, "plugin_interaction_entry_points", entries, 0) == KEY_FOUND) {
 		vector<string> v_entries = Utils::split(entries, ':');
-		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _inter_entry_points.push_back(*it);
+		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++)
+			_inter_entry_points.push_back(*it);
 	}
 
 	if(getInputString(&sim_inp, "plugin_move_entry_points", entries, 0) == KEY_FOUND) {
-			vector<string> v_entries = Utils::split(entries, ':');
-			for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _move_entry_points.push_back(*it);
+		vector<string> v_entries = Utils::split(entries, ':');
+		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++)
+			_move_entry_points.push_back(*it);
 	}
 
 	// these are the default entry point names
@@ -120,7 +125,6 @@ void *PluginManager::_get_entry_point(void *handle, string name, vector<string> 
 	return res;
 }
 
-
 ObservablePtr PluginManager::get_observable(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
@@ -141,39 +145,10 @@ ObservablePtr PluginManager::get_observable(string name) {
 	}
 
 	// now we cast it back to the type required by the code
-	return static_cast<ObservablePtr>(ObservablePtr((BaseObservable *)temp_obs));
+	return ObservablePtr((BaseObservable *) temp_obs);
 }
 
-
-
-
-BaseMove *PluginManager::get_move(std::string name)
-{
-	void *handle = _get_handle(name);
-	if(handle == NULL) return NULL;
-
-	// we do this c-like because dynamic linking can be done only in c and thus
-	// we have no way of using templates
-	void *temp_move;
-	bool found = false;
-	make_move *make_new_move = (make_move *) _get_entry_point(handle, name, _move_entry_points, string("float"));
-	if(make_new_move != NULL) {
-		temp_move = (void *) make_new_move();
-		found = true;
-	}
-
-	if(!found) {
-		OX_LOG(Logger::LOG_WARNING, "Cannot load symbol from plugin interaction library '%s'", name.c_str());
-		return NULL;
-	}
-
-	// now we cast it back to the type required by the code
-	return static_cast<BaseMove *>(temp_move);
-
-}
-
-
-IBaseInteraction *PluginManager::get_interaction(string name) {
+InteractionPtr PluginManager::get_interaction(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
@@ -193,7 +168,31 @@ IBaseInteraction *PluginManager::get_interaction(string name) {
 	}
 
 	// now we cast it back to the type required by the code
-	return static_cast<IBaseInteraction *>(temp_inter);
+	return InteractionPtr((IBaseInteraction *)temp_inter);
+}
+
+MovePtr PluginManager::get_move(std::string name) {
+	void *handle = _get_handle(name);
+	if(handle == NULL) return NULL;
+
+	// we do this c-like because dynamic linking can be done only in c and thus
+	// we have no way of using templates
+	void *temp_move;
+	bool found = false;
+	make_move *make_new_move = (make_move *) _get_entry_point(handle, name, _move_entry_points, string("float"));
+	if(make_new_move != NULL) {
+		temp_move = (void *) make_new_move();
+		found = true;
+	}
+
+	if(!found) {
+		OX_LOG(Logger::LOG_WARNING, "Cannot load symbol from plugin interaction library '%s'", name.c_str());
+		return NULL;
+	}
+
+	// now we cast it back to the type required by the code
+	return MovePtr((BaseMove *)temp_move);
+
 }
 
 void PluginManager::clear() {

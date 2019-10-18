@@ -19,7 +19,7 @@
 
 class MC_CPUBackend2: public MCBackend {
 protected:
-	std::vector<BaseMove *> _moves;
+	std::vector<MovePtr> _moves;
 	int _N_moves;
 	ConfigInfo *_MC_Info;
 	std::string _info_str;

@@ -22,7 +22,7 @@ protected:
 	char _output_conf[256];
 	char _trajectory[256];
 
-	IBaseInteraction *_interaction;
+	InteractionPtr _interaction;
 
 	bool _init_completed;
 	bool _use_density;
@@ -34,7 +34,7 @@ protected:
 
 	bool _external_forces;
 	std::string _external_filename;
-	
+
 	std::shared_ptr<BaseBox> _mybox;
 
 public:

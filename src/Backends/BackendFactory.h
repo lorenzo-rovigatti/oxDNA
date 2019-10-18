@@ -23,10 +23,9 @@ backend = CPU|CUDA (simulation backend. Defaults to CPU)
 @endverbatim
  */
 class BackendFactory {
-private:
-	BackendFactory();
 public:
-	virtual ~BackendFactory();
+	BackendFactory() = delete;
+	virtual ~BackendFactory() = delete;
 
 	/**
 	 * @brief Builds the backend.

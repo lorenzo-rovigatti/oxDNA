@@ -20,8 +20,8 @@ class BaseThermostat;
 
 class MD_CPUBackend: public MDBackend {
 protected:
-	BaseThermostat * _thermostat;
-	BaseMove *_V_move;
+	std::shared_ptr<BaseThermostat> _thermostat;
+	MovePtr _V_move;
 	bool _compute_stress_tensor;
 	int _stress_tensor_avg_every;
 	int _stress_tensor_counter;

@@ -225,13 +225,13 @@ number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p
 	energy += this->_interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, r, update_forces);
 
 	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
-	if(dynamic_cast<DNA2Interaction *>(this->_interaction) == NULL) energy += this->_interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, r, update_forces);
+	if(dynamic_cast<DNA2Interaction *>(this->_interaction.get()) == NULL) energy += this->_interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, r, update_forces);
 
-	if(dynamic_cast<DNA2Interaction *>(this->_interaction) != NULL) {
+	if(dynamic_cast<DNA2Interaction *>(this->_interaction.get()) != NULL) {
 		energy += this->_interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, r, update_forces);
 		energy += this->_interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, r, update_forces);
 	}
-	else if(dynamic_cast<RNA2Interaction *>(this->_interaction) != NULL) {
+	else if(dynamic_cast<RNA2Interaction *>(this->_interaction.get()) != NULL) {
 		energy += this->_interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, r, update_forces);
 	}
 

@@ -17,12 +17,7 @@ SaltExtrapolation::SaltExtrapolation() {
 }
 
 SaltExtrapolation::~SaltExtrapolation() {
-	unsigned int i, j;
-	for(i = 0; i < _temps.size(); i++) {
-		for(j = 0; j < _salts.size(); j++) {
-			delete _interactions[i][j];
-		}
-	}
+
 }
 
 void SaltExtrapolation::init(ConfigInfo &config_info) {
@@ -81,7 +76,7 @@ void SaltExtrapolation::get_settings(input_file &my_inp, input_file &sim_inp) {
 	OX_LOG(Logger::LOG_INFO, "(SaltExtrapolation.cpp) Getting order parameter from file %s and weights from file %s...", _op_file.c_str(), _weights_file.c_str());
 
 	// find the interaction with the largest cutoff
-	_interactions = std::vector<std::vector<IBaseInteraction *> >(_temps.size(), std::vector<IBaseInteraction *>(_salts.size()));
+	_interactions = std::vector<std::vector<InteractionPtr> >(_temps.size(), std::vector<InteractionPtr>(_salts.size()));
 
 	// we read the topology to set up the interactions...
 	std::string topology;
@@ -113,7 +108,6 @@ void SaltExtrapolation::get_settings(input_file &my_inp, input_file &sim_inp) {
 	// we store the interaction that has the largest cutoff
 	// [! maybe we should check that the real interaction does not have anything to do with it
 	_ref_interaction = _interactions[larger_temp][smaller_salt];
-
 }
 
 std::string SaltExtrapolation::get_output_string(llint curr_step) {

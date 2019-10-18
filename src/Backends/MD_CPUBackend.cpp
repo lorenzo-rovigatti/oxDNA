@@ -14,16 +14,15 @@
 MD_CPUBackend::MD_CPUBackend() :
 				MDBackend() {
 	this->_is_CUDA_sim = false;
-	_thermostat = NULL;
-	_V_move = NULL;
+	_thermostat = nullptr;
+	_V_move = nullptr;
 	_compute_stress_tensor = false;
 	_stress_tensor_avg_every = -1;
 	_stress_tensor_counter = 0;
 }
 
 MD_CPUBackend::~MD_CPUBackend() {
-	delete _thermostat;
-	if(this->_use_barostat) delete _V_move;
+
 }
 
 void MD_CPUBackend::_first_step(llint curr_step) {

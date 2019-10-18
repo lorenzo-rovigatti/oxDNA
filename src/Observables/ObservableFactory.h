@@ -17,13 +17,9 @@
  * This class can be used to produce BaseObservable instances.
  */
 class ObservableFactory {
-private:
-	/**
-	 * @brief The constructor is private because our factories have just one single static method
-	 */
-	ObservableFactory();
 public:
-	virtual ~ObservableFactory();
+	ObservableFactory() = delete;
+	virtual ~ObservableFactory() = delete;
 
 	/**
 	 * @brief Creates an observable given an input file containing its definition

@@ -48,7 +48,9 @@ SimManager::~SimManager() {
 	for(std::vector<std::string>::iterator it = _input.unread_keys.begin(); it != _input.unread_keys.end(); it++) {
 		unread += string("\n\t") + *it;
 	}
-	if(unread.size() > 0) OX_DEBUG("The following keys found in the input file were not used: %s", unread.c_str());
+	if(unread.size() > 0) {
+		OX_DEBUG("The following keys found in the input file were not used: %s", unread.c_str());
+	}
 
 	cleanInputFile(&_input);
 	cleanTimeScale(&_time_scale_manager);

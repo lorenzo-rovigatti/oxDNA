@@ -32,7 +32,7 @@ private:
 public:
 	virtual ~ForceFactory();
 
-	static ForceFactory * instance();
+	static ForceFactory *instance();
 
 	/**
 	 * @brief Produces and adds the force specified in the input file inp to the right particles.

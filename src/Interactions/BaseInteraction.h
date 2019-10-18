@@ -213,6 +213,8 @@ public:
 	virtual void generate_random_configuration (BaseParticle **particles, int N);
 };
 
+using InteractionPtr = std::shared_ptr<IBaseInteraction>;
+
 /**
  * @brief Base class for managing particle-particle interactions. It is an abstract class.
  *

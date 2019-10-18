@@ -67,7 +67,6 @@ SimBackend::~SimBackend() {
 			delete _particles[i];
 		delete[] _particles;
 	}
-	if(_interaction != NULL) delete _interaction;
 
 	ForceFactory::instance()->clear();
 
@@ -347,7 +346,7 @@ void SimBackend::init() {
 
 	// initializes the observable output machinery. This part has to follow
 	// read_topology() since _particles has to be initialized
-	_config_info->set(_particles, _interaction, &_N, &_backend_info, _lists.get(), _box.get());
+	_config_info->set(_particles, _interaction.get(), &_N, &_backend_info, _lists.get(), _box.get());
 
 	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		(*it)->init(*_config_info);
