@@ -10,8 +10,7 @@
 
 #include "CUDASimpleVerletList.h"
 
-
-class CUDABinVerletList: public CUDASimpleVerletList{
+class CUDABinVerletList: public CUDASimpleVerletList {
 protected:
 	int _max_neigh[2];
 	// we need 4 cells: 0 is for 0-type, 1 is for mixed interactions, used by 0-type (so there are only 1-type),

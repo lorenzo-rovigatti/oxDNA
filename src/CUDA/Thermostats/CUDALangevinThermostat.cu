@@ -64,8 +64,8 @@ bool CUDALangevinThermostat::would_activate(llint curr_step) {
 
 void CUDALangevinThermostat::apply_cuda(number4 *d_poss, GPU_quat *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
-	//printf("%d \n",this->_N_part);
-langevin_thermostat
-<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-(this->_d_rand_state, d_vels, d_Ls, this->_dt, this->_gamma_trans, this-> _rescale_factor_trans, this->_gamma_rot, this->_rescale_factor_rot, this->_N_part);
+
+	langevin_thermostat
+	<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+	(this->_d_rand_state, d_vels, d_Ls, this->_dt, this->_gamma_trans, this-> _rescale_factor_trans, this->_gamma_rot, this->_rescale_factor_rot, this->_N_part);
 }

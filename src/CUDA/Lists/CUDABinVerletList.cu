@@ -124,24 +124,24 @@ void CUDABinVerletList::update(number4 *poss, number4 *list_poss, LR_bonds *bond
 	CUDA_SAFE_CALL(cudaMemset(this->_d_counters_cells, 0, _counters_mem));
 
 	// fill cells
-bin_fill_cells
+	bin_fill_cells
 		<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
 		(poss, this->_d_cells, this->_d_counters_cells, this->_d_cell_overflow);
-		CUT_CHECK_ERROR("fill_cells (BinVerlet) error");
+	CUT_CHECK_ERROR("fill_cells (BinVerlet) error");
 	cudaThreadSynchronize();
 
 	if(this->_d_cell_overflow[0] == true) throw oxDNAException("A cell contains more than _max_n_per_cell (%d, %d, %d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell[0], _max_N_per_cell[1], _max_N_per_cell[2]);
 
 	// generate Verlet's lists
-bin_update_self_neigh_list
+	bin_update_self_neigh_list
 		<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
 		(poss, list_poss, this->_d_cells, this->_d_counters_cells, this->_d_matrix_neighs, this->_d_number_neighs);
-		CUT_CHECK_ERROR("bin_update_self_neigh_list (BinVerlet) error");
+	CUT_CHECK_ERROR("bin_update_self_neigh_list (BinVerlet) error");
 
-bin_update_mixed_neigh_list
+	bin_update_mixed_neigh_list
 		<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
 		(poss, this->_d_cells, this->_d_counters_cells, this->_d_matrix_neighs, this->_d_number_neighs);
-		CUT_CHECK_ERROR("bin_update_mixed_neigh_list (BinVerlet) error");
+	CUT_CHECK_ERROR("bin_update_mixed_neigh_list (BinVerlet) error");
 }
 
 void CUDABinVerletList::clean() {

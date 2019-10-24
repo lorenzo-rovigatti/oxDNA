@@ -83,8 +83,8 @@ void CUDABussiThermostat::apply_cuda(number4 *d_poss, GPU_quat *d_orientations, 
 	thrust::device_ptr<number4> t_Ls = thrust::device_pointer_cast(d_Ls);
 
 	number4 zero = { 0., 0., 0., 0. };
-	number4 K_now_t = thrust::transform_reduce(t_vels, t_vels + this->_N_part, compute_K<number4>(), zero, sum_K<number4>());
-	number4 K_now_r = thrust::transform_reduce(t_Ls, t_Ls + this->_N_part, compute_K<number4>(), zero, sum_K<number4>());
+	number4 K_now_t = thrust::transform_reduce(t_vels, t_vels + this->_N_part, compute_K(), zero, sum_K());
+	number4 K_now_r = thrust::transform_reduce(t_Ls, t_Ls + this->_N_part, compute_K(), zero, sum_K());
 
 	this->_update_K(this->_K_t);
 	this->_update_K(this->_K_r);
@@ -93,7 +93,7 @@ void CUDABussiThermostat::apply_cuda(number4 *d_poss, GPU_quat *d_orientations, 
 	number rescale_factor_r = sqrt(this->_K_r / K_now_r.w);
 	//printf("%lf %lf %lf %lf\n", K_now_t.w, K_now_r.w, rescale_factor_t, rescale_factor_r);
 
-bussi_thermostat
-<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-(d_vels, d_Ls, rescale_factor_t, rescale_factor_r, this->_N_part);
+	bussi_thermostat
+	<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+	(d_vels, d_Ls, rescale_factor_t, rescale_factor_r, this->_N_part);
 }

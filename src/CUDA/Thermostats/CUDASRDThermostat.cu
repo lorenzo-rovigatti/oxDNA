@@ -12,6 +12,7 @@
 #include "CUDASRDThermostat.h"
 #include "CUDA_SRD.cuh"
 #include "../CUDAUtils.h"
+#include "../../Boxes/BaseBox.h"
 
 CUDASRDThermostat::CUDASRDThermostat(BaseBox *box) :
 				CUDABaseThermostat(),
@@ -87,17 +88,17 @@ void CUDASRDThermostat::init(int N) {
 
 	// initialse SRD particles' positions and velocities
 	int n_blocks = this->_N_particles / this->_launch_cfg.threads_per_block + 1;
-SRD_init_particles
+	SRD_init_particles
 		<<<n_blocks, this->_launch_cfg.threads_per_block>>>
 		(_d_poss, _d_vels, this->_d_rand_state, this->_rescale_factor);
-			CUT_CHECK_ERROR("SRD_init_particles error");
+	CUT_CHECK_ERROR("SRD_init_particles error");
 
 	// initialise the keys used to reduce the _d_cells_dp array
 	n_blocks = (this->_N_cells * _max_N_per_cell) / this->_launch_cfg.threads_per_block + 1;
-SRD_init_cell_keys
+	SRD_init_cell_keys
 		<<<n_blocks, this->_launch_cfg.threads_per_block>>>
 		(_d_reduce_keys, this->_N_cells);
-			CUT_CHECK_ERROR("init_cell_keys error");
+	CUT_CHECK_ERROR("init_cell_keys error");
 }
 
 bool CUDASRDThermostat::would_activate(llint curr_step) {
@@ -116,10 +117,10 @@ void CUDASRDThermostat::apply_cuda(number4 *d_poss, GPU_quat *d_orientations, nu
 	CUDA_SAFE_CALL(cudaMemcpy(_d_vels + this->_N_particles, d_vels, _N_vec_size, cudaMemcpyDeviceToDevice));
 
 	// fill all the cell-related arrays and refresh the velocities
-SRD_fill_cells_and_refresh
+	SRD_fill_cells_and_refresh
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 		(_d_poss, _d_vels, _d_cells, _d_counters_cells, _d_cells_dp, _d_cell_overflow, this->_d_rand_state, this->_rescale_factor);
-			CUT_CHECK_ERROR("fill_cells (SRD) error");
+	CUT_CHECK_ERROR("fill_cells (SRD) error");
 
 	if(_d_cell_overflow[0] == true) throw oxDNAException("An SRD cell contains more than _max_n_per_cell (%d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell);
 
@@ -136,10 +137,10 @@ SRD_fill_cells_and_refresh
 	//exit(1);
 
 	// apply the thermostat
-SRD_update_velocities
+	SRD_update_velocities
 		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 		(_d_poss, _d_vels, _d_reduced_cells_dp);
-			CUT_CHECK_ERROR("SRD_thermostat error");
+	CUT_CHECK_ERROR("SRD_thermostat error");
 
 	// copy back the velocities
 	CUDA_SAFE_CALL(cudaMemcpy(d_vels, _d_vels + this->_N_particles, _N_vec_size, cudaMemcpyDeviceToDevice));
