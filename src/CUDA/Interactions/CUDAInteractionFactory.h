@@ -25,7 +25,7 @@ public:
 	 * @param inp
 	 * @return a pointer to the newly created interaction
 	 */
-	
+
 	static CUDABaseInteraction *make_interaction(input_file &inp);
 };
 

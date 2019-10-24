@@ -11,12 +11,12 @@
 
 #include "../../PluginManagement/PluginManager.h"
 
-//#include "CUDADNAInteraction.h"
+#include "CUDADNAInteraction.h"
 #include "CUDALJInteraction.h"
-/*#include "CUDAPatchyInteraction.h"
+#include "CUDAPatchyInteraction.h"
 #include "CUDATSPInteraction.h"
 #include "CUDATEPInteraction.h"
-#include "CUDARNAInteraction.h"*/
+#include "CUDARNAInteraction.h"
 
 #include "../../Utilities/Utils.h"
 
@@ -34,12 +34,12 @@ CUDABaseInteraction *CUDAInteractionFactory::make_interaction(input_file &inp) {
 	string inter_type("DNA");
 	getInputString(&inp, "interaction_type", inter_type, 0);
 
-	/*if(!inter_type.compare("DNA") || !inter_type.compare("DNA_nomesh") || !inter_type.compare("DNA2")) return new CUDADNAInteraction();
+	if(!inter_type.compare("DNA") || !inter_type.compare("DNA_nomesh") || !inter_type.compare("DNA2")) return new CUDADNAInteraction();
 	else if(!inter_type.compare("RNA") || !inter_type.compare("RNA2")  ) return new CUDARNAInteraction();
-	else*/ if(!inter_type.compare("LJ")) return new CUDALJInteraction();
-	/*else if(!inter_type.compare("patchy")) return new CUDAPatchyInteraction();
+	else if(!inter_type.compare("LJ")) return new CUDALJInteraction();
+	else if(!inter_type.compare("patchy")) return new CUDAPatchyInteraction();
 	else if(!inter_type.compare("TSP")) return new CUDATSPInteraction();
-	else if(inter_type.compare("TEP") == 0) return new CUDATEPInteraction();*/
+	else if(inter_type.compare("TEP") == 0) return new CUDATEPInteraction();
 	else {
 		std::string cuda_name(inter_type);
 		cuda_name = "CUDA" + cuda_name;

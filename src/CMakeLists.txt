@@ -218,12 +218,12 @@ IF(CUDA)
 		#CUDA/Backends/MD_CUDAMixedBackend.cu
 		#CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
-		#CUDA/Interactions/CUDADNAInteraction.cu
+		CUDA/Interactions/CUDADNAInteraction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
-		#CUDA/Interactions/CUDARNAInteraction.cu
-		#CUDA/Interactions/CUDAPatchyInteraction.cu
-		#CUDA/Interactions/CUDATSPInteraction.cu
-		#CUDA/Interactions/CUDATEPInteraction.cu
+		CUDA/Interactions/CUDARNAInteraction.cu
+		CUDA/Interactions/CUDAPatchyInteraction.cu
+		CUDA/Interactions/CUDATSPInteraction.cu
+		CUDA/Interactions/CUDATEPInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu

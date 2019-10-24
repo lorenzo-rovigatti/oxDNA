@@ -17,16 +17,15 @@
 
 class CUDARNAInteraction: public CUDABaseInteraction, public RNAInteraction {
 public:
-
 	bool _grooving;
 	bool _use_debye_huckel;
 	bool _mismatch_repulsion;
-    // copied from DNA2Interaction.h (CPU) (and change number -> float), the least bad way of doing things
+	// copied from DNA2Interaction.h (CPU) (and change number -> float), the least bad way of doing things
 	float _salt_concentration;
 	bool _debye_huckel_half_charged_ends;
 	float _debye_huckel_prefactor;
 	float _debye_huckel_lambdafactor;
-	float _RNA_HYDR_MIS ;
+	float _RNA_HYDR_MIS;
 
 	//the following values are calculated
 	float _debye_huckel_RC; // this is the maximum interaction distance between backbones to interact with DH
@@ -40,7 +39,9 @@ public:
 
 	void get_settings(input_file &inp);
 	void cuda_init(number box_side, int N);
-	number get_cuda_rcut() { return this->get_rcut(); }
+	number get_cuda_rcut() {
+		return this->get_rcut();
+	}
 
 	void compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 	void _hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox*d_box);

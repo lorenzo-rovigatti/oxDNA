@@ -156,23 +156,20 @@ __forceinline__ __device__ number _module(const float3 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
-//Necessary to for calculating the torque without storing a seperate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
-template<typename number4>
+// Necessary to for calculating the torque without storing a separate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
 __forceinline__ __device__ number4 _vectors_number4_product(const number4 a1, const number4 a2, const number4 a3, const number4 v) {
 	number4 res = { a1.x * v.x + a2.x * v.y + a3.x * v.z, a1.y * v.x + a2.y * v.y + a3.y * v.z, a1.z * v.x + a2.z * v.y + a3.z * v.z, v.w };
 
 	return res;
 }
 
-//Necessary to for calculating the torque without storing a seperate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
-template<typename number4>
+// Necessary to for calculating the torque without storing a separate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
 __forceinline__ __device__ number4 _vectors_transpose_number4_product(const number4 a1, const number4 a2, const number4 a3, const number4 v) {
 	number4 res = { a1.x * v.x + a1.y * v.y + a1.z * v.z, a2.x * v.x + a2.y * v.y + a2.z * v.z, a3.x * v.x + a3.y * v.y + a3.z * v.z, v.w };
 
 	return res;
 }
 
-template<typename number, typename number4>
 __forceinline__ __device__ number4 _cross(const number4 v, const number4 w) {
 	return make_number4(v.y * w.z - v.z * w.y, v.z * w.x - v.x * w.z, v.x * w.y - v.y * w.x, (number) 0);
 }

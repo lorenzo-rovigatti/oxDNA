@@ -16,7 +16,8 @@
 /**
  * @brief Contains information about anchors' bonded neighbours
  */
-typedef struct __align__(8) {
+typedef struct
+__align__(8) {
 	int n[TSP_MAX_ARMS];
 } TSP_anchor_bonds;
 
@@ -34,7 +35,9 @@ public:
 	CUDATSPInteraction();
 	virtual ~CUDATSPInteraction();
 
-	number get_cuda_rcut() { return this->get_rcut(); }
+	number get_cuda_rcut() {
+		return this->get_rcut();
+	}
 	void get_settings(input_file &inp);
 
 	void cuda_init(number box_side, int N);
