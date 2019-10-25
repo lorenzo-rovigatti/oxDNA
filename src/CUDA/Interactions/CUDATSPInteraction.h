@@ -35,14 +35,14 @@ public:
 	CUDATSPInteraction();
 	virtual ~CUDATSPInteraction();
 
-	number get_cuda_rcut() {
+	c_number get_cuda_rcut() {
 		return this->get_rcut();
 	}
 	void get_settings(input_file &inp);
 
-	void cuda_init(number box_side, int N);
+	void cuda_init(c_number box_side, int N);
 
-	void compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
+	void compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 };
 
 #endif /* CUDATSPINTERACTION_H_ */

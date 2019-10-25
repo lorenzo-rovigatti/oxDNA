@@ -34,7 +34,7 @@ protected:
 	 *
 	 * This optional method must be called if the child thermostat class needs to use _d_rand_state.
 	 * It is better to call it from within the init(int N) inherited method.
-	 * @param N size of the _d_rand_state. It is usually just the number of particles
+	 * @param N size of the _d_rand_state. It is usually just the c_number of particles
 	 */
 	virtual void _setup_rand(int N);
 
@@ -44,7 +44,7 @@ public:
 
 	virtual void set_seed(llint seed) { _seed = seed; }
 	virtual void get_cuda_settings(input_file &inp);
-	virtual void apply_cuda(number4 *d_pos, GPU_quat *d_orientations, number4 *d_vel, number4 *d_L, llint curr_step) = 0;
+	virtual void apply_cuda(tmpnmbr *d_pos, GPU_quat *d_orientations, tmpnmbr *d_vel, tmpnmbr *d_L, llint curr_step) = 0;
 	virtual bool would_activate(llint curr_step) = 0;
 };
 

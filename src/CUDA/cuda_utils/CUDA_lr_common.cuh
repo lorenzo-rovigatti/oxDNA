@@ -23,17 +23,17 @@
 #endif
 
 //This is the most commonly called quaternion to matrix conversion. 
-__forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, number4 &a1, number4 &a2, number4 &a3) {
-	number sqx = q.x * q.x;
-	number sqy = q.y * q.y;
-	number sqz = q.z * q.z;
-	number sqw = q.w * q.w;
-	number xy = q.x * q.y;
-	number xz = q.x * q.z;
-	number xw = q.x * q.w;
-	number yz = q.y * q.z;
-	number yw = q.y * q.w;
-	number zw = q.z * q.w;
+__forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, tmpnmbr &a1, tmpnmbr &a2, tmpnmbr &a3) {
+	c_number sqx = q.x * q.x;
+	c_number sqy = q.y * q.y;
+	c_number sqz = q.z * q.z;
+	c_number sqw = q.w * q.w;
+	c_number xy = q.x * q.y;
+	c_number xz = q.x * q.z;
+	c_number xw = q.x * q.w;
+	c_number yz = q.y * q.z;
+	c_number yw = q.y * q.w;
+	c_number zw = q.z * q.w;
 
 	a1.x = (sqx - sqy - sqz + sqw);
 	a2.x = 2 * (xy - zw);
@@ -89,14 +89,14 @@ __forceinline__ __device__ double atomicAdd(double* address, double val) {
 }
 #endif
 
-__forceinline__ __device__ void LR_atomicAdd(number4 *dst, number4 delta) {
+__forceinline__ __device__ void LR_atomicAdd(tmpnmbr *dst, tmpnmbr delta) {
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
 	atomicAdd(&(dst->w), delta.w);
 }
 
-__forceinline__ __device__ void LR_atomicAddXYZ(number4 *dst, number4 delta) {
+__forceinline__ __device__ void LR_atomicAddXYZ(tmpnmbr *dst, tmpnmbr delta) {
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
@@ -105,26 +105,26 @@ __forceinline__ __device__ void LR_atomicAddXYZ(number4 *dst, number4 delta) {
 /**
  * @brief returns the btype (i.e. the fake nucleotide type used to make only certain pairs of particle interacting through HB)
  */
-__forceinline__ __device__ int get_particle_btype(const number4 &r_i) {
+__forceinline__ __device__ int get_particle_btype(const tmpnmbr &r_i) {
 	return __float_as_int(r_i.w) >> 22;
 }
 
-__forceinline__ __device__ number quad_distance(const number4 &r_i, const number4 &r_j) {
-	const number dx = r_j.x - r_i.x;
-	const number dy = r_j.y - r_i.y;
-	const number dz = r_j.z - r_i.z;
+__forceinline__ __device__ c_number quad_distance(const tmpnmbr &r_i, const tmpnmbr &r_j) {
+	const c_number dx = r_j.x - r_i.x;
+	const c_number dy = r_j.y - r_i.y;
+	const c_number dz = r_j.z - r_i.z;
 
 	return dx * dx + dy * dy + dz * dz;
 }
 
-__forceinline__ __device__ int get_particle_type(const number4 &r_i) {
+__forceinline__ __device__ int get_particle_type(const tmpnmbr &r_i) {
 	int my_btype = __float_as_int(r_i.w) >> 22;
 	if(my_btype >= 0 && my_btype <= 3) return my_btype;
 	if(my_btype > 0) return my_btype % 4;
 	else return 3 - ((3 - (my_btype)) % 4);
 }
 
-__forceinline__ __device__ int get_particle_index(const number4 &r_i) {
+__forceinline__ __device__ int get_particle_index(const tmpnmbr &r_i) {
 	int msk = -1 << 22;
 	return __float_as_int(r_i.w) & (~msk);
 }
@@ -139,44 +139,48 @@ __forceinline__ __device__ LR_double4 make_LR_double4(const float4 &v) {
 	return ret;
 }
 
-__forceinline__ __host__ __device__ number4 make_number4(const number x, const number y, const number z, const number w) {
-#ifdef FLOAT_PRECISION
-	number4 res = { x, y, z, w };
-#else
-	number4 res = { x, y, z, (float) w };
-#endif
-	return res;
+__forceinline__ __host__ __device__ tmpnmbr make_tmpnmbr(const c_number x, const c_number y, const c_number z, const c_number w) {
+	tmpnmbr ret;
+	ret.x = x;
+	ret.y = y;
+	ret.z = z;
+	ret.w = (float) w;
+	return ret;
 }
 
-__forceinline__ __device__ number _module(const number4 v) {
+__forceinline__ __device__ c_number _module(const tmpnmbr v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
-__forceinline__ __device__ number _module(const float3 v) {
+__forceinline__ __device__ c_number _module(const float3 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
 // Necessary to for calculating the torque without storing a separate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
-__forceinline__ __device__ number4 _vectors_number4_product(const number4 a1, const number4 a2, const number4 a3, const number4 v) {
-	number4 res = { a1.x * v.x + a2.x * v.y + a3.x * v.z, a1.y * v.x + a2.y * v.y + a3.y * v.z, a1.z * v.x + a2.z * v.y + a3.z * v.z, v.w };
+__forceinline__ __device__ tmpnmbr _vectors_tmpnmbr_product(const tmpnmbr a1, const tmpnmbr a2, const tmpnmbr a3, const tmpnmbr v) {
+	tmpnmbr res = { a1.x * v.x + a2.x * v.y + a3.x * v.z, a1.y * v.x + a2.y * v.y + a3.y * v.z, a1.z * v.x + a2.z * v.y + a3.z * v.z, v.w };
 
 	return res;
 }
 
 // Necessary to for calculating the torque without storing a separate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
-__forceinline__ __device__ number4 _vectors_transpose_number4_product(const number4 a1, const number4 a2, const number4 a3, const number4 v) {
-	number4 res = { a1.x * v.x + a1.y * v.y + a1.z * v.z, a2.x * v.x + a2.y * v.y + a2.z * v.z, a3.x * v.x + a3.y * v.y + a3.z * v.z, v.w };
+__forceinline__ __device__ tmpnmbr _vectors_transpose_tmpnmbr_product(const tmpnmbr a1, const tmpnmbr a2, const tmpnmbr a3, const tmpnmbr v) {
+	tmpnmbr res = { a1.x * v.x + a1.y * v.y + a1.z * v.z, a2.x * v.x + a2.y * v.y + a2.z * v.z, a3.x * v.x + a3.y * v.y + a3.z * v.z, v.w };
 
 	return res;
 }
 
-__forceinline__ __device__ number4 _cross(const number4 v, const number4 w) {
-	return make_number4(v.y * w.z - v.z * w.y, v.z * w.x - v.x * w.z, v.x * w.y - v.y * w.x, (number) 0);
+__forceinline__ __device__ tmpnmbr _cross(const tmpnmbr v, const tmpnmbr w) {
+	return make_tmpnmbr(v.y * w.z - v.z * w.y, v.z * w.x - v.x * w.z, v.x * w.y - v.y * w.x, (c_number) 0);
 }
 
 // LR_DOUBLE4
 __forceinline__ __device__ LR_double4 operator*(LR_double4 v, double c) {
-	return make_number4(v.x * c, v.y * c, v.z * c, v.w * c);
+	v.x *= c;
+	v.y *= c;
+	v.z *= c;
+	v.w *= c;
+	return v;
 }
 
 __forceinline__ __device__ LR_double4 operator/(LR_double4 v, double c) {
@@ -185,19 +189,31 @@ __forceinline__ __device__ LR_double4 operator/(LR_double4 v, double c) {
 }
 
 __forceinline__ __device__ LR_double4 operator*(double c, LR_double4 v) {
-	return make_number4(v.x * c, v.y * c, v.z * c, v.w * c);
+	v.x *= c;
+	v.y *= c;
+	v.z *= c;
+	v.w *= c;
+	return v;
 }
 
 __forceinline__ __device__ LR_double4 operator-(LR_double4 a) {
-	return make_number4(-a.x, -a.y, -a.z, -a.w);
+	a.x = -a.x;
+	a.y = -a.y;
+	a.z = -a.z;
+	a.w = -a.w;
+	return a;
 }
 
 __forceinline__ __device__ LR_double4 operator+(LR_double4 a) {
-	return make_number4(a.x, a.y, a.z, a.w);
+	return a;
 }
 
 __forceinline__ __device__ LR_double4 operator+(LR_double4 a, LR_double4 b) {
-	return make_number4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+	a.x += b.x;
+	a.y += b.y;
+	a.z += b.z;
+	a.w += b.w;
+	return a;
 }
 
 __forceinline__ __device__ void operator+=(LR_double4 &a, LR_double4 b) {
@@ -217,7 +233,11 @@ __forceinline__ __device__ void operator*=(LR_double4 &a, double b) {
 // these two functions add the fourth component (because it doesn't make sense
 // to substract them as they contain the energy)
 __forceinline__ __device__ LR_double4 operator-(LR_double4 a, LR_double4 b) {
-	return make_number4(a.x - b.x, a.y - b.y, a.z - b.z, a.w + b.w);
+	a.x -= b.x;
+	a.y -= b.y;
+	a.z -= b.z;
+	a.w += b.w;
+	return a;
 }
 
 __forceinline__ __device__ void operator-=(LR_double4 &a, LR_double4 b) {
@@ -236,11 +256,11 @@ __forceinline__ __device__ float3 operator-(float3 a) {
 	return make_float3(-a.x, -a.y, -a.z);
 }
 
-__forceinline__ __device__ float3 operator*(number a, float3 b) {
+__forceinline__ __device__ float3 operator*(c_number a, float3 b) {
 	return make_float3(a * b.x, a * b.y, a * b.z);
 }
 
-__forceinline__ __device__ float3 operator*(float3 b, number a) {
+__forceinline__ __device__ float3 operator*(float3 b, c_number a) {
 	return make_float3(a * b.x, a * b.y, a * b.z);
 }
 

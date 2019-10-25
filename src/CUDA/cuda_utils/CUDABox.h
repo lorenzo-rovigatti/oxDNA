@@ -16,7 +16,7 @@
 
 class CUDABox {
 protected:
-	number _Lx, _Ly, _Lz;
+	c_number _Lx, _Ly, _Lz;
 	bool _cubic;
 
 public:
@@ -38,8 +38,8 @@ public:
 
 	}
 
-	__forceinline__ __device__ number4 minimum_image(number4 &r_i, number4 &r_j) {
-		number4 res;
+	__forceinline__ __device__ tmpnmbr minimum_image(tmpnmbr &r_i, tmpnmbr &r_j) {
+		tmpnmbr res;
 		res.x = r_j.x - r_i.x;
 		res.y = r_j.y - r_i.y;
 		res.z = r_j.z - r_i.z;
@@ -51,8 +51,8 @@ public:
 		return res;
 	}
 
-	__forceinline__ __device__ number sqr_minimum_image(number4 &r_i, number4 &r_j) {
-		number4 mi = minimum_image(r_i, r_j);
+	__forceinline__ __device__ c_number sqr_minimum_image(tmpnmbr &r_i, tmpnmbr &r_j) {
+		tmpnmbr mi = minimum_image(r_i, r_j);
 		return SQR(mi.x) + SQR(mi.y) + SQR(mi.z);
 	}
 
@@ -108,8 +108,8 @@ public:
 	}
 
 	__host__ __device__
-	number4 box_sides() {
-		number4 res;
+	tmpnmbr box_sides() {
+		tmpnmbr res;
 		res.x = _Lx;
 		res.y = _Ly;
 		res.z = _Lz;
@@ -117,14 +117,14 @@ public:
 		return res;
 	}
 
-	void change_sides(number nLx, number nLy, number nLz) {
+	void change_sides(c_number nLx, c_number nLy, c_number nLz) {
 		_Lx = nLx;
 		_Ly = nLy;
 		_Lz = nLz;
 		if(nLx == nLy && nLy == nLz) _cubic = true;
 	}
 
-	number V() {
+	c_number V() {
 		return _Lx * _Ly * _Lz;
 	}
 };

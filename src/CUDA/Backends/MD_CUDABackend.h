@@ -38,12 +38,12 @@ protected:
 
 	Timer *_timer_sorting;
 
-	number4 *_d_vels, *_h_vels;
-	number4 *_d_Ls, *_h_Ls;
-	number4 *_d_forces, *_h_forces;
-	number4 *_d_torques, *_h_torques;
+	tmpnmbr *_d_vels, *_h_vels;
+	tmpnmbr *_d_Ls, *_h_Ls;
+	tmpnmbr *_d_forces, *_h_forces;
+	tmpnmbr *_d_torques, *_h_torques;
 
-	number4 *_d_buff_vels, *_d_buff_Ls;
+	tmpnmbr *_d_buff_vels, *_d_buff_Ls;
 	llint _curr_step;
 
 	llint _barostat_attempts, _barostat_accepted;
@@ -67,7 +67,7 @@ protected:
 	virtual void _gpu_to_host_particles();
 
 	virtual void _sort_particles();
-	virtual void _rescale_positions(number4 new_Ls, number4 old_Ls);
+	virtual void _rescale_positions(tmpnmbr new_Ls, tmpnmbr old_Ls);
 
 	virtual void _first_step();
 	virtual void _apply_barostat(llint curr_step);

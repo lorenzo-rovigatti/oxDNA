@@ -23,7 +23,7 @@ void CUDALJInteraction::get_settings(input_file &inp) {
 	LJInteraction::get_settings(inp);
 }
 
-void CUDALJInteraction::cuda_init(number box_side, int N) {
+void CUDALJInteraction::cuda_init(c_number box_side, int N) {
 	CUDABaseInteraction::cuda_init(box_side, N);
 	LJInteraction::init();
 
@@ -38,7 +38,7 @@ void CUDALJInteraction::cuda_init(number box_side, int N) {
 	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
 }
 
-void CUDALJInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+void CUDALJInteraction::compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
@@ -55,7 +55,7 @@ void CUDALJInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_
 		else {
 			lj_forces
 					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_box);
+					(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
 							CUT_CHECK_ERROR("forces_second_step lj simple_lists error");
 		}
 	}

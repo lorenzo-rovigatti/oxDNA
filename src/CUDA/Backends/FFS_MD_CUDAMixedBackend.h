@@ -67,7 +67,7 @@ struct SimpleConditions{
 	int *d_dist_cond_types;
 
 	// each set holds the indices of all the conditions of that type
-	// stop_set_count is the total number of stopping conditions
+	// stop_set_count is the total c_number of stopping conditions
 	int *nearhb_cond_set;
 	int *hb_cond_set;
 	int *dist_cond_set;
@@ -239,7 +239,7 @@ protected:
 	 * @brief Configure the kernel used to check stopping conditions
 	 *
 	 * @param kernel_cfg pointer to CUDA kernel config
-	 * @param total_threads total number of threads required
+	 * @param total_threads total c_number of threads required
 	 */
 	void _init_ffs_kernel_config(CUDA_kernel_cfg *kernel_cfg, int total_threads);
 
@@ -251,7 +251,7 @@ protected:
 	/**
 	 * @brief Return a pointer to an array of indices for the beginning of each row for a variable-width 2D array A using an array storing the lengths of each row of A
 	 *
-	 * @param rows_len number of rows
+	 * @param rows_len c_number of rows
 	 * @param lens array containing length of each row
 	 */
 	int *_get_2D_rows(int rows_len, int *lens);
@@ -293,7 +293,7 @@ protected:
 	void _master_conditions_prepare_simple_conditions(vector<master_condition> *master_conditions, const char *fname);
 
 	/**
-	 * @brief For a given set of simple conditions, return the total number of conditions satisfied. Useful for master condition element evaluation
+	 * @brief For a given set of simple conditions, return the total c_number of conditions satisfied. Useful for master condition element evaluation
 	 *
 	 * @param sc contains the simple conditions to check
 	 * @param suppress_logging optionally don't print to stdout when condition is satisfied (currently on for flux generation, off for master condition evaluation)
@@ -329,7 +329,7 @@ protected:
 
 	/**
 	 * @brief For each element of a particular master condition, check the state of all of the element's condition sets.
-	 * If the right number of each element's conditions are satisfied, return true, otherwise return false
+	 * If the right c_number of each element's conditions are satisfied, return true, otherwise return false
 	 *
 	 * @param master_condition the master condition to test
 	 */

@@ -8,17 +8,17 @@
 #include <curand_kernel.h>
 #include "CUDALangevinThermostat.h"
 
-__global__ void langevin_thermostat(curandState *rand_state, number4 *vels, number4 *Ls, number _dt, number gamma_trans, number rescale_factor_trans, number gamma_rot, number rescale_factor_rot, int N) {
+__global__ void langevin_thermostat(curandState *rand_state, tmpnmbr *vels, tmpnmbr *Ls, c_number _dt, c_number gamma_trans, c_number rescale_factor_trans, c_number gamma_rot, c_number rescale_factor_rot, int N) {
 	if(IND < N) {
 		curandState state = rand_state[IND];
-		number4 vFuzz;
-		number4 LFuzz;
+		tmpnmbr vFuzz;
+		tmpnmbr LFuzz;
 		gaussian(state, vFuzz.x, vFuzz.y);
 		gaussian(state, vFuzz.z, LFuzz.x);
 		gaussian(state, LFuzz.y, LFuzz.z);
 
-		number4 v = vels[IND];
-		number4 L = Ls[IND];
+		tmpnmbr v = vels[IND];
+		tmpnmbr L = Ls[IND];
 
 		//Could define operators for GPU_quat
 		v.x += _dt * (-gamma_trans * v.x + vFuzz.x * rescale_factor_trans);
@@ -62,7 +62,7 @@ bool CUDALangevinThermostat::would_activate(llint curr_step) {
 	return 1;
 }
 
-void CUDALangevinThermostat::apply_cuda(number4 *d_poss, GPU_quat *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step) {
+void CUDALangevinThermostat::apply_cuda(tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_vels, tmpnmbr *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
 	langevin_thermostat

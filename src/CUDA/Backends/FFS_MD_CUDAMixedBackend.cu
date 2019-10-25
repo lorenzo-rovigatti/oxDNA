@@ -334,7 +334,7 @@ void FFS_MD_CUDAMixedBackend::init(){
 	// check for any 'nearly hydrogen bonded' order parameters
 	for (int ii=0 ; ii < _n_hb_regions ; ii++){
 		if ((int)h_hb_cutoffs[ii] == 64){
-			OX_LOG(Logger::LOG_INFO, "Using near hbond for bond order parameter number %d", ii+1);
+			OX_LOG(Logger::LOG_INFO, "Using near hbond for bond order parameter c_number %d", ii+1);
 			_h_region_is_nearhb[ii] = true;
 		}
 		else{
@@ -410,7 +410,7 @@ SimpleConditions FFS_MD_CUDAMixedBackend::_get_simple_conditions(std::vector<par
 	SimpleConditions sc;
 
 	strcpy(sc.type, type);
-	// _dist_cond_len: total number of distance conditions
+	// _dist_cond_len: total c_number of distance conditions
 	// _h_dist_cond_lens: array of distance condition length for each distance region (order parameter).
 	sc.dist_cond_len = 0;
 	sc.h_dist_cond_lens = (int *)malloc(_n_dist_regions * sizeof(int));
@@ -427,12 +427,12 @@ SimpleConditions FFS_MD_CUDAMixedBackend::_get_simple_conditions(std::vector<par
 
 
 	// it might be possible to do this in a better way
-	// count up the number of conditions for each region/(order parameter name)
+	// count up the c_number of conditions for each region/(order parameter name)
 
 	sc.stop_set_count = 0;
 	int par_ind;
 	for (vector<parsed_condition>::iterator jj = conditions.begin() ; jj != conditions.end() ; jj++){
-		sc.stop_set_count += 1; // count up the number of sets of stopping conditions
+		sc.stop_set_count += 1; // count up the c_number of sets of stopping conditions
 		for (vector<parsed_expression>::iterator i = (*jj).all_expressions.begin() ; i != (*jj).all_expressions.end() ; i++){
 			if ((*i).expression_type == 0){
 				par_ind = (*i).parameter_index;
@@ -708,7 +708,7 @@ void FFS_MD_CUDAMixedBackend::_eval_stop_conditions(SimpleConditions sc){
 }
 
 int FFS_MD_CUDAMixedBackend::_test_crossing(SimpleConditions sc, bool suppress_logging){
-	// returns the number of conditions that are satisfied
+	// returns the c_number of conditions that are satisfied
 	// this could be done on the device to reduce the memory transfer per step - is it worth it?
 	int success_count = 0;
 	// there are (potentially) many sets of stopping conditions; stop if a particular set's conditions are all true
@@ -747,7 +747,7 @@ int FFS_MD_CUDAMixedBackend::_test_crossing(SimpleConditions sc, bool suppress_l
 
 bool FFS_MD_CUDAMixedBackend::_test_master_condition(master_condition master_condition){
 	// for each element of a particular master condition, check the state of all of the element's conditions
-	// if the right number of each element's conditions are satisfied, return true, otherwise return false
+	// if the right c_number of each element's conditions are satisfied, return true, otherwise return false
 	SimpleConditions simple_conditions;
 	int current_value;
 	int this_value;

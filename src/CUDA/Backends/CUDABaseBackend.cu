@@ -21,12 +21,12 @@ using namespace std;
 #pragma GCC diagnostic ignored "-Wvla"
 
 
-CUDABaseBackend::CUDABaseBackend() : _device_number(0), _sort_every(0) {
+CUDABaseBackend::CUDABaseBackend() : _device_c_number(0), _sort_every(0) {
 	_particles_kernel_cfg.blocks = dim3(1, 1, 1);
 	_particles_kernel_cfg.threads_per_block = 0;
 	_particles_kernel_cfg.shared_mem = 0;
 
-	_device_number = -1;
+	_device_c_number = -1;
 	_sqr_verlet_skin = 0.f;
 
 	_cuda_lists = NULL;
@@ -106,11 +106,11 @@ void CUDABaseBackend::_gpu_to_host() {
 
 
 void CUDABaseBackend::get_settings(input_file &inp) {
-	if(getInputInt(&inp, "CUDA_device", &_device_number, 0) == KEY_NOT_FOUND) {
+	if(getInputInt(&inp, "CUDA_device", &_device_c_number, 0) == KEY_NOT_FOUND) {
 		OX_LOG(Logger::LOG_INFO, "CUDA device not specified");
-		_device_number = -1;
+		_device_c_number = -1;
 	}
-	else OX_LOG(Logger::LOG_INFO, "Using CUDA device %d", _device_number);
+	else OX_LOG(Logger::LOG_INFO, "Using CUDA device %d", _device_c_number);
 
 	if(getInputInt(&inp, "CUDA_sort_every", &_sort_every, 0) == KEY_NOT_FOUND)
 		OX_LOG(Logger::LOG_INFO, "CUDA sort_every not specified, using 0");
@@ -167,43 +167,43 @@ void CUDABaseBackend::_choose_device () {
 
 	OX_LOG(Logger::LOG_INFO, " --- Running on device %i", trydev);
 	_device_prop = get_device_prop(trydev);
-	_device_number = trydev;
+	_device_c_number = trydev;
 	// gpu device chosen
 }
 
 
 void CUDABaseBackend::init_cuda() {
-	if(_device_number < 0) _choose_device();
-	set_device(_device_number);
-	_device_prop = get_device_prop(_device_number);
+	if(_device_c_number < 0) _choose_device();
+	set_device(_device_c_number);
+	_device_prop = get_device_prop(_device_c_number);
 
 	CUDA_SAFE_CALL( cudaThreadSetCacheConfig(cudaFuncCachePreferL1) );
 
-	number box_side = CONFIG_INFO->box->box_sides().x;
+	c_number box_side = CONFIG_INFO->box->box_sides().x;
 	int N = *CONFIG_INFO->N;
 	_h_cuda_box.set_CUDA_from_CPU(CONFIG_INFO->box);
 
 	_cuda_interaction->cuda_init(box_side, N);
 
-	_vec_size = sizeof(number4) * N;
+	_vec_size = sizeof(tmpnmbr) * N;
 	_orient_size = sizeof(GPU_quat) * N;
 	_bonds_size = sizeof(LR_bonds) * N;
 
 	// GPU memory allocations
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_poss, _vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_poss, _vec_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_bonds, _bonds_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat  >(&_d_orientations, _orient_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_list_poss, _vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_list_poss, _vec_size) );
 	// the CUDA_SAFE_CALL macro does not support templates with more than one argument
 	GpuUtils::LR_cudaMalloc<CUDABox>(&_d_cuda_box, sizeof(CUDABox));
 	CUDA_SAFE_CALL( cudaMallocHost(&_d_are_lists_old, sizeof(bool), cudaHostAllocDefault) );
 
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_list_poss, _vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_list_poss, _vec_size) );
 
 	CUDA_SAFE_CALL( cudaMemset(_d_list_poss, 0, _vec_size) );
 
 	// CPU memory allocations
-	_h_poss = new number4[N];
+	_h_poss = new tmpnmbr[N];
 	_h_orientations = new GPU_quat[N];
 	_h_bonds = new LR_bonds[N];
 
@@ -220,7 +220,7 @@ void CUDABaseBackend::init_cuda() {
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_hindex, N*sizeof(int)) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_sorted_hindex, N*sizeof(int)) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_inv_sorted_hindex, N*sizeof(int)) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<number4>(&_d_buff_poss, _vec_size) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_buff_poss, _vec_size) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_buff_bonds, _bonds_size) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat  >(&_d_buff_orientations, _orient_size) );
 

@@ -271,7 +271,7 @@ void CUDARNAInteraction::get_settings(input_file &inp) {
 	RNAInteraction::get_settings(inp);
 }
 
-void CUDARNAInteraction::cuda_init(number box_side, int N) {
+void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
 	CUDABaseInteraction::cuda_init(box_side, N);
 	RNAInteraction::init();
 
@@ -287,7 +287,7 @@ void CUDARNAInteraction::cuda_init(number box_side, int N) {
 		this->F1_SHIFT[RNA_HYDR_F1][0][0] *= tempmis;
 	}
 
-	number tmp[50];
+	c_number tmp[50];
 	for(int i = 0; i < 2; i++)
 		for(int j = 0; j < 5; j++)
 			for(int k = 0; k < 5; k++)
@@ -335,21 +335,21 @@ void CUDARNAInteraction::cuda_init(number box_side, int N) {
 	if(_use_debye_huckel) {
 		// copied from DNA2Interaction::init() (CPU), the least bad way of doing things, adapted for RNA
 		// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide this->_T by 0.1
-		number lambda = _debye_huckel_lambdafactor * sqrt(this->_T / 0.1f) / sqrt(_salt_concentration);
+		c_number lambda = _debye_huckel_lambdafactor * sqrt(this->_T / 0.1f) / sqrt(_salt_concentration);
 		// RHIGH gives the distance at which the smoothing begins
 		_debye_huckel_RHIGH = 3.0 * lambda;
 		_minus_kappa = -1.0 / lambda;
 
 		// these are just for convenience for the smoothing parameter computation
-		number x = _debye_huckel_RHIGH;
-		number q = _debye_huckel_prefactor;
-		number l = lambda;
+		c_number x = _debye_huckel_RHIGH;
+		c_number q = _debye_huckel_prefactor;
+		c_number l = lambda;
 
 		// compute the some smoothing parameters
 		_debye_huckel_B = -(exp(-x / l) * q * q * (x + l) * (x + l)) / (-4. * x * x * x * l * l * q);
 		_debye_huckel_RC = x * (q * x + 3. * q * l) / (q * (x + l));
 
-		number debyecut = 2. * sqrt(SQR(this->model->RNA_POS_BACK_a1) + SQR(this->model->RNA_POS_BACK_a2) + SQR(this->model->RNA_POS_BACK_a3)) + _debye_huckel_RC;
+		c_number debyecut = 2. * sqrt(SQR(this->model->RNA_POS_BACK_a1) + SQR(this->model->RNA_POS_BACK_a2) + SQR(this->model->RNA_POS_BACK_a3)) + _debye_huckel_RC;
 
 		// the cutoff radius for the potential should be the larger of rcut and debyecut
 		if(debyecut > this->_rcut) {
@@ -367,7 +367,7 @@ void CUDARNAInteraction::cuda_init(number box_side, int N) {
 
 }
 
-void CUDARNAInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+void CUDARNAInteraction::compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 
 	//this->_grooving = this->_average;
@@ -390,7 +390,7 @@ void CUDARNAInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU
 	else {
 		rna_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
+			(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
 }
@@ -404,17 +404,17 @@ CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
 	}
 }
 
-void CUDARNAInteraction::_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
+void CUDARNAInteraction::_hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
 	rna_hb_op_precalc<<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, hb_energies, n_threads, region_is_nearhb, d_box);
 	CUT_CHECK_ERROR("hb_op_precalc error");
 }
 
-void CUDARNAInteraction::_near_hb_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
+void CUDARNAInteraction::_near_hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
 	rna_near_hb_op_precalc<<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, nearly_bonded_array, n_threads, region_is_nearhb, d_box);
 	CUT_CHECK_ERROR("nearhb_op_precalc error");
 }
 
-void CUDARNAInteraction::_dist_op_precalc(number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg, CUDABox*d_box) {
+void CUDARNAInteraction::_dist_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg, CUDABox*d_box) {
 	rna_dist_op_precalc<<<_ffs_dist_precalc_kernel_cfg.blocks, _ffs_dist_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, op_dists, n_threads, d_box);
 	CUT_CHECK_ERROR("dist_op_precalc error");
 }

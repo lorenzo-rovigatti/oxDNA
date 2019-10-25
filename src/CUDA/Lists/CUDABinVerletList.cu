@@ -51,28 +51,28 @@ void CUDABinVerletList::get_settings(input_file &inp) {
 	}
 }
 
-void CUDABinVerletList::init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box) {
+void CUDABinVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box) {
 	CUDABaseList::init(N, rcut, h_cuda_box, d_cuda_box);
 	size_t cells_mem = 0;
 	size_t matrix_mem = 0;
-	size_t number_mem = 0;
+	size_t c_number_mem = 0;
 
 	this->_sqr_verlet_skin = SQR(this->_verlet_skin);
-	_vec_size = N * sizeof(number4);
+	_vec_size = N * sizeof(tmpnmbr);
 
-	number4 box_sides = h_cuda_box->box_sides();
+	tmpnmbr box_sides = h_cuda_box->box_sides();
 	if(box_sides.x != box_sides.y || box_sides.y != box_sides.z) throw oxDNAException("CUDA_list = bin_verlet can work only with cubic boxes");
 	_box_side = box_sides.x;
 
-	number density = N / h_cuda_box->V();
-	number density_factor = density * 5. * this->_max_density_multiplier;
+	c_number density = N / h_cuda_box->V();
+	c_number density_factor = density * 5. * this->_max_density_multiplier;
 
-	// the maximum number of neighbours per particle is just the overall density times the volume of the
+	// the maximum c_number of neighbours per particle is just the overall density times the volume of the
 	// verlet sphere times a constant that, by default, is 5.
 	_max_neigh[0] = (int) ((4 * M_PI * pow(sqrt(_sqr_rverlet[0]), 3) / 3.) * density_factor);
 	_max_neigh[1] = (int) ((4 * M_PI * pow(sqrt(_sqr_rverlet[2]), 3) / 3.) * density_factor);
 
-	number_mem += N * sizeof(int);
+	c_number_mem += N * sizeof(int);
 	matrix_mem += N * max(_max_neigh[0], _max_neigh[1]) * sizeof(int);
 
 	OX_DEBUG("max_neigh[0]: %d, max_neigh[1]: %d", _max_neigh[0], _max_neigh[1]);
@@ -85,7 +85,7 @@ void CUDABinVerletList::init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*d_c
 
 		_N_cells[i] = _N_cells_side[i] * _N_cells_side[i] * _N_cells_side[i];
 		_rcell[i] = _box_side / _N_cells_side[i];
-		_max_N_per_cell[i] = density_factor * pow(_rcell[i], (number) 3.f);
+		_max_N_per_cell[i] = density_factor * pow(_rcell[i], (c_number) 3.f);
 		// for value < 11 every now and then the program crashes
 		if(_max_N_per_cell[i] < 11) _max_N_per_cell[i] = 11;
 
@@ -99,9 +99,9 @@ void CUDABinVerletList::init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*d_c
 		}
 	}
 
-	OX_LOG(Logger::LOG_INFO, "Cells mem: %.2lf MBs, lists mem: %.2lf MBs", (cells_mem+_counters_mem)/1048576., (matrix_mem+number_mem)/1048576.);
+	OX_LOG(Logger::LOG_INFO, "Cells mem: %.2lf MBs, lists mem: %.2lf MBs", (cells_mem+_counters_mem)/1048576., (matrix_mem+c_number_mem)/1048576.);
 
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_number_neighs, number_mem));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_c_number_neighs, c_number_mem));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_matrix_neighs, matrix_mem));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_counters_cells, _counters_mem));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_cells, cells_mem));
@@ -119,7 +119,7 @@ void CUDABinVerletList::init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*d_c
 	_init_CUDA_verlet_symbols();
 }
 
-void CUDABinVerletList::update(number4 *poss, number4 *list_poss, LR_bonds *bonds) {
+void CUDABinVerletList::update(tmpnmbr *poss, tmpnmbr *list_poss, LR_bonds *bonds) {
 	// reset cells
 	CUDA_SAFE_CALL(cudaMemset(this->_d_counters_cells, 0, _counters_mem));
 
@@ -135,12 +135,12 @@ void CUDABinVerletList::update(number4 *poss, number4 *list_poss, LR_bonds *bond
 	// generate Verlet's lists
 	bin_update_self_neigh_list
 		<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-		(poss, list_poss, this->_d_cells, this->_d_counters_cells, this->_d_matrix_neighs, this->_d_number_neighs);
+		(poss, list_poss, this->_d_cells, this->_d_counters_cells, this->_d_matrix_neighs, this->_d_c_number_neighs);
 	CUT_CHECK_ERROR("bin_update_self_neigh_list (BinVerlet) error");
 
 	bin_update_mixed_neigh_list
 		<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-		(poss, this->_d_cells, this->_d_counters_cells, this->_d_matrix_neighs, this->_d_number_neighs);
+		(poss, this->_d_cells, this->_d_counters_cells, this->_d_matrix_neighs, this->_d_c_number_neighs);
 	CUT_CHECK_ERROR("bin_update_mixed_neigh_list (BinVerlet) error");
 }
 

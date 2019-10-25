@@ -25,7 +25,7 @@ void CUDAPatchyInteraction::get_settings(input_file &inp) {
 	PatchyInteraction::get_settings(inp);
 }
 
-void CUDAPatchyInteraction::cuda_init(number box_side, int N) {
+void CUDAPatchyInteraction::cuda_init(c_number box_side, int N) {
 	CUDABaseInteraction::cuda_init(box_side, N);
 	PatchyInteraction::init();
 
@@ -61,8 +61,8 @@ void CUDAPatchyInteraction::cuda_init(number box_side, int N) {
 			break;
 		}
 		case 3: {
-			number cos30 = cos(M_PI / 6.);
-			number sin30 = sin(M_PI / 6.);
+			c_number cos30 = cos(M_PI / 6.);
+			c_number sin30 = sin(M_PI / 6.);
 
 			base_patches[0] = make_float4(0, 1, 0, 0);
 			base_patches[1] = make_float4(cos30, -sin30, 0, 0);
@@ -85,11 +85,11 @@ void CUDAPatchyInteraction::cuda_init(number box_side, int N) {
 			break;
 		}
 		default:
-			throw oxDNAException("Unsupported number of patches %d", n_patches);
+			throw oxDNAException("Unsupported c_number of patches %d", n_patches);
 		}
 
 		for(int j = 0; j < n_patches; j++) {
-			number factor = 0.5 / sqrt(CUDA_DOT(base_patches[j], base_patches[j]));
+			c_number factor = 0.5 / sqrt(CUDA_DOT(base_patches[j], base_patches[j]));
 			base_patches[j].x *= factor;
 			base_patches[j].y *= factor;
 			base_patches[j].z *= factor;
@@ -104,7 +104,7 @@ void CUDAPatchyInteraction::cuda_init(number box_side, int N) {
 	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
 }
 
-void CUDAPatchyInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+void CUDAPatchyInteraction::compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
@@ -121,7 +121,7 @@ void CUDAPatchyInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, 
 		else {
 			patchy_forces
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_box);
+				(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
 			CUT_CHECK_ERROR("forces_second_step patchy simple_lists error");
 		}
 	}

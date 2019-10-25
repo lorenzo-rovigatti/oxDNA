@@ -11,6 +11,8 @@ OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
 OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
 OPTION(DOUBLE "Set the numerical precision to double" ON)
+OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" OFF)
+OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have
 # problems at linking time
@@ -67,6 +69,10 @@ IF(NOT DOUBLE)
 	ADD_DEFINITIONS(-DFLOAT_PRECISION)
 ENDIF()
 
+IF(CUDA_DOUBLE)
+	ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
+ENDIF()
+
 ADD_DEFINITIONS(-Wall -Wshadow)
 
 IF(NOT CMAKE_BUILD_TYPE MATCHES Debug)
@@ -80,8 +86,6 @@ ENDIF()
 IF(CUDA)
 	CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 	FIND_PACKAGE(CUDA)
-	
-	OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
 	
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 

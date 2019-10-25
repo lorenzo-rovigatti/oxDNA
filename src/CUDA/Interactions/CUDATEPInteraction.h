@@ -17,20 +17,20 @@
 
 class CUDATEPInteraction: public CUDABaseInteraction, public TEPInteraction {
 protected:
-	number *_d_kt_pref, *_d_kb1_pref, *_d_kb2_pref, *_d_xk_bending, *_d_xu_bending;
-	number4 *_d_o_vects, *_d_w_vects;
+	c_number *_d_kt_pref, *_d_kb1_pref, *_d_kb2_pref, *_d_xk_bending, *_d_xu_bending;
+	tmpnmbr *_d_o_vects, *_d_w_vects;
 	llint _steps;
 public:
 	CUDATEPInteraction();
 	virtual ~CUDATEPInteraction();
 
 	void get_settings(input_file &inp);
-	void cuda_init(number box_side, int N);
-	number get_cuda_rcut() {
+	void cuda_init(c_number box_side, int N);
+	c_number get_cuda_rcut() {
 		return this->get_rcut();
 	}
 
-	void compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
+	void compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 };
 
 #endif /* CUDATEPINTERACTION_H_ */

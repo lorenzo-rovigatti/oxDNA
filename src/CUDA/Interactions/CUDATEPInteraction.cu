@@ -37,21 +37,21 @@ __constant__ float MD_TEP_spring_offset[1];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-__device__ void _repulsive_lj2(number prefactor, number4 &r, number4 &F, number sigma, number rstar, number b, number rc) {
-	number rnorm = CUDA_DOT(r, r);
+__device__ void _repulsive_lj2(c_number prefactor, tmpnmbr &r, tmpnmbr &F, c_number sigma, c_number rstar, c_number b, c_number rc) {
+	c_number rnorm = CUDA_DOT(r, r);
 	if(rnorm < SQR(rc)) {
 		if(rnorm > SQR(rstar)) {
-			number rmod = sqrtf(rnorm);
-			number rrc = rmod - rc;
-			number part = prefactor * b * rrc;
+			c_number rmod = sqrtf(rnorm);
+			c_number rrc = rmod - rc;
+			c_number part = prefactor * b * rrc;
 			F.x += r.x * (2.f * part / rmod);
 			F.y += r.y * (2.f * part / rmod);
 			F.z += r.z * (2.f * part / rmod);
 			F.w += part * rrc;
 		}
 		else {
-			number tmp = SQR(sigma) / rnorm;
-			number lj_part = tmp * tmp * tmp;
+			c_number tmp = SQR(sigma) / rnorm;
+			c_number lj_part = tmp * tmp * tmp;
 			// the additive term was added by me to mimick Davide's implementation
 			F.x += r.x * (24.f * prefactor * (lj_part - 2.f * SQR(lj_part)) / rnorm);
 			F.y += r.y * (24.f * prefactor * (lj_part - 2.f * SQR(lj_part)) / rnorm);
@@ -61,23 +61,23 @@ __device__ void _repulsive_lj2(number prefactor, number4 &r, number4 &F, number 
 	}
 }
 
-__device__ void _bonded_double_bending(number4 &up, number4 &uq, number kb1, number kb2, number tu, number tk, number4 &F, number4 &T) {
-	number4 torque;
+__device__ void _bonded_double_bending(tmpnmbr &up, tmpnmbr &uq, c_number kb1, c_number kb2, c_number tu, c_number tk, tmpnmbr &F, tmpnmbr &T) {
+	tmpnmbr torque;
 
 	// end of added block
-	number cosine = CUDA_DOT(up, uq);
+	c_number cosine = CUDA_DOT(up, uq);
 
-	number gu = cosf(tu);
-	number angle = LRACOS(cosine);
+	c_number gu = cosf(tu);
+	c_number angle = LRACOS(cosine);
 
-	number A = (kb2 * sinf(tk) - kb1 * sinf(tu)) / (tk - tu);
-	number B = kb1 * sinf(tu);
-	number C = kb1 * (1.f - gu) - (A * SQR(tu) / 2.f + tu * (B - tu * A));
-	number D = cosf(tk) + (A * SQR(tk) * 0.5f + tk * (B - tu * A) + C) / kb2;
+	c_number A = (kb2 * sinf(tk) - kb1 * sinf(tu)) / (tk - tu);
+	c_number B = kb1 * sinf(tu);
+	c_number C = kb1 * (1.f - gu) - (A * SQR(tu) / 2.f + tu * (B - tu * A));
+	c_number D = cosf(tk) + (A * SQR(tk) * 0.5f + tk * (B - tu * A) + C) / kb2;
 
-	number g1 = (angle - tu) * A + B;
-	number g_ = A * SQR(angle) / 2.f + angle * (B - tu * A);
-	number g = g_ + C;
+	c_number g1 = (angle - tu) * A + B;
+	c_number g_ = A * SQR(angle) / 2.f + angle * (B - tu * A);
+	c_number g = g_ + C;
 
 	// unkinked bending regime
 	if(angle < tu) {
@@ -86,8 +86,8 @@ __device__ void _bonded_double_bending(number4 &up, number4 &uq, number kb1, num
 	}
 	// intermediate regime
 	else if(angle < tk) {
-		number4 sin_vector = _cross(up, uq);
-		number sin_module = _module(sin_vector);
+		tmpnmbr sin_vector = _cross(up, uq);
+		c_number sin_module = _module(sin_vector);
 		sin_vector.x /= sin_module;
 		sin_vector.y /= sin_module;
 		sin_vector.z /= sin_module;
@@ -106,10 +106,10 @@ __device__ void _bonded_double_bending(number4 &up, number4 &uq, number kb1, num
 	T.z += torque.z;
 }
 
-template<typename number, typename number4, bool torque_on_p>
-__device__ void _bonded_particle_particle(number4 &n3_pos, number4 &up, number4 &fp, number4 &vp, number4 &n5_pos, number4 &uq, number4 &fq, number4 &vq, number4 &F, number4 &T, CUDABox*box, number kb1, number kb2, number tu, number tk, number kt_pref, bool alignment_only = false) {
-	number4 r = box->minimum_image(n3_pos, n5_pos);
-	number rmod = sqrtf(CUDA_DOT(r, r));
+template<typename c_number, typename tmpnmbr, bool torque_on_p>
+__device__ void _bonded_particle_particle(tmpnmbr &n3_pos, tmpnmbr &up, tmpnmbr &fp, tmpnmbr &vp, tmpnmbr &n5_pos, tmpnmbr &uq, tmpnmbr &fq, tmpnmbr &vq, tmpnmbr &F, tmpnmbr &T, CUDABox*box, c_number kb1, c_number kb2, c_number tu, c_number tk, c_number kt_pref, bool alignment_only = false) {
+	tmpnmbr r = box->minimum_image(n3_pos, n5_pos);
+	c_number rmod = sqrtf(CUDA_DOT(r, r));
 
 	if(!alignment_only) {
 		// excluded volume
@@ -117,28 +117,28 @@ __device__ void _bonded_particle_particle(number4 &n3_pos, number4 &up, number4 
 		F.w += MD_TEP_spring_offset[0];
 
 		// spring
-		number r0 = rmod - MD_TEP_FENE_R0[0];
-		number force_module = (MD_TEP_FENE_EPS[0] * r0 / (MD_TEP_FENE_DELTA2[0] - SQR(r0))) / rmod;
+		c_number r0 = rmod - MD_TEP_FENE_R0[0];
+		c_number force_module = (MD_TEP_FENE_EPS[0] * r0 / (MD_TEP_FENE_DELTA2[0] - SQR(r0))) / rmod;
 		F.x += r.x * force_module;
 		F.y += r.y * force_module;
 		F.z += r.z * force_module;
 		F.w += -MD_TEP_FENE_EPS[0] * 0.5f * logf(1.f - SQR(r0) / MD_TEP_FENE_DELTA2[0]);
 
 		// bonded twist
-		number M = CUDA_DOT(fp, fq) + CUDA_DOT(vp, vq);
-		number L = 1.f + CUDA_DOT(up, uq);
-		number cos_alpha_plus_gamma = M / L;
-		number energy = 0.;
+		c_number M = CUDA_DOT(fp, fq) + CUDA_DOT(vp, vq);
+		c_number L = 1.f + CUDA_DOT(up, uq);
+		c_number cos_alpha_plus_gamma = M / L;
+		c_number energy = 0.;
 
 		if(-cos_alpha_plus_gamma >= MD_twist_b[0]) printf("We have an issue with the twist angle (%lf) in thread %d\n", cos_alpha_plus_gamma, IND);
 		else {
-			number4 torque = (MD_kt[0] / L) * (_cross(fp, fq) + _cross(vp, vq) - cos_alpha_plus_gamma * _cross(up, uq)) * kt_pref;
+			tmpnmbr torque = (MD_kt[0] / L) * (_cross(fp, fq) + _cross(vp, vq) - cos_alpha_plus_gamma * _cross(up, uq)) * kt_pref;
 			if(-cos_alpha_plus_gamma <= MD_twist_a[0]) {
 				energy += MD_kt[0] * (1.f - cos_alpha_plus_gamma);
 			}
 			else {
-				number A = SQR(MD_twist_b[0] - MD_twist_a[0]) * CUB(MD_twist_b[0] - MD_twist_a[0]) * 0.25f;	//A = (b - a)^5/4
-				number C = 0.25f * (MD_twist_a[0] - MD_twist_b[0]) + MD_twist_a[0];	// C = (a - b)/4 + a
+				c_number A = SQR(MD_twist_b[0] - MD_twist_a[0]) * CUB(MD_twist_b[0] - MD_twist_a[0]) * 0.25f;	//A = (b - a)^5/4
+				c_number C = 0.25f * (MD_twist_a[0] - MD_twist_b[0]) + MD_twist_a[0];	// C = (a - b)/4 + a
 				torque *= 4.f * A / (SQR(MD_twist_b[0] + cos_alpha_plus_gamma) * CUB(MD_twist_b[0] + cos_alpha_plus_gamma));
 				energy += MD_kt[0] * (1.f + A / (CUB(-cos_alpha_plus_gamma - MD_twist_b[0])) + C);
 			}
@@ -153,7 +153,7 @@ __device__ void _bonded_particle_particle(number4 &n3_pos, number4 &up, number4 
 		// bonded bending
 		_bonded_double_bending(up, uq, kb1, kb2, tu, tk, F, T);
 		// this is the old "single" bending
-		/*number4 torque = MD_kb[0]*kb1*_cross(up, uq);
+		/*tmpnmbr torque = MD_kb[0]*kb1*_cross(up, uq);
 		 T.x += torque.x;
 		 T.y += torque.y;
 		 T.z += torque.z;
@@ -163,163 +163,163 @@ __device__ void _bonded_particle_particle(number4 &n3_pos, number4 &up, number4 
 	// bonded alignment
 	// here we have to take into account the intrinsic directionality of the model (i.e. forces and torques have different expressions if we go from 3' to 5' or vice versa)
 	bool keep_r = ((torque_on_p && !alignment_only) || (!torque_on_p && alignment_only));
-	number4 ba_tp = (keep_r) ? r : -r;
-	number4 ba_up = (torque_on_p) ? up : uq;
-	number4 force = MD_ka[0] * (ba_up - ba_tp * CUDA_DOT(ba_up, ba_tp) / SQR(rmod)) / rmod;
+	tmpnmbr ba_tp = (keep_r) ? r : -r;
+	tmpnmbr ba_up = (torque_on_p) ? up : uq;
+	tmpnmbr force = MD_ka[0] * (ba_up - ba_tp * CUDA_DOT(ba_up, ba_tp) / SQR(rmod)) / rmod;
 	if(keep_r) force = -force;
 	F.x += force.x;
 	F.y += force.y;
 	F.z += force.z;
 	F.w += MD_ka[0] * (1.f - CUDA_DOT(ba_up, ba_tp) / rmod);
 	if(torque_on_p) {
-		number4 torque = -(MD_ka[0] * _cross(ba_tp, ba_up)) / rmod;
+		tmpnmbr torque = -(MD_ka[0] * _cross(ba_tp, ba_up)) / rmod;
 		T.x += torque.x;
 		T.y += torque.y;
 		T.z += torque.z;
 	}
 }
 
-__device__ number4 rotate_vector_around_versor(number4 &vector, number4 &versor, number angle) {
-	number costh = cosf(angle);
-	number sinth = sinf(angle);
-	number scalar = CUDA_DOT(vector, versor);
-	number4 cross = _cross(versor, vector);
-	return make_number4(versor.x * scalar * (1.f - costh) + vector.x * costh + cross.x * sinth, versor.y * scalar * (1.f - costh) + vector.y * costh + cross.y * sinth, versor.z * scalar * (1.f - costh) + vector.z * costh + cross.z * sinth, 0.f);
+__device__ tmpnmbr rotate_vector_around_versor(tmpnmbr &vector, tmpnmbr &versor, c_number angle) {
+	c_number costh = cosf(angle);
+	c_number sinth = sinf(angle);
+	c_number scalar = CUDA_DOT(vector, versor);
+	tmpnmbr cross = _cross(versor, vector);
+	return make_tmpnmbr(versor.x * scalar * (1.f - costh) + vector.x * costh + cross.x * sinth, versor.y * scalar * (1.f - costh) + vector.y * costh + cross.y * sinth, versor.z * scalar * (1.f - costh) + vector.z * costh + cross.z * sinth, 0.f);
 }
 
-__device__ void _twist_boundary_particle(number4 &v1, number4& v3, number4 &T, number4 &o_vect, number4 &w_vect, llint step, number o_modulus) {
+__device__ void _twist_boundary_particle(tmpnmbr &v1, tmpnmbr& v3, tmpnmbr &T, tmpnmbr &o_vect, tmpnmbr &w_vect, llint step, c_number o_modulus) {
 	if(MD_twist_boundary_stiff[0] == 0.f) return;
-	number4 wt = rotate_vector_around_versor(w_vect, o_vect, step * o_modulus);
+	tmpnmbr wt = rotate_vector_around_versor(w_vect, o_vect, step * o_modulus);
 
-	number4 torque_w = MD_twist_boundary_stiff[0] * (_cross(v3, wt));
-	number4 torque_o = MD_twist_boundary_stiff[0] * (_cross(v1, o_vect));
+	tmpnmbr torque_w = MD_twist_boundary_stiff[0] * (_cross(v3, wt));
+	tmpnmbr torque_o = MD_twist_boundary_stiff[0] * (_cross(v1, o_vect));
 	T += torque_w + torque_o;
 }
 
 // forces + second step without lists
 
-__global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, LR_bonds *bonds, CUDABox*box, number *kb1_pref, number *kb2_pref, number *xk_bending, number *xu_bending, number *kt_pref, number4 *o_vects, number4 *w_vects, llint step) {
+__global__ void TEP_forces(tmpnmbr *poss, GPU_quat *orientations, tmpnmbr *forces, tmpnmbr *torques, LR_bonds *bonds, CUDABox*box, c_number *kb1_pref, c_number *kb2_pref, c_number *xk_bending, c_number *xu_bending, c_number *kt_pref, tmpnmbr *o_vects, tmpnmbr *w_vects, llint step) {
 	if(IND >= MD_N[0]) return;
 
-	number4 F = forces[IND];
-	number4 T = make_number4(0, 0, 0, 0);
-	number4 ppos = poss[IND];
+	tmpnmbr F = forces[IND];
+	tmpnmbr T = make_tmpnmbr(0, 0, 0, 0);
+	tmpnmbr ppos = poss[IND];
 	LR_bonds pbonds = bonds[IND];
 
-	number4 a1, a2, a3;
+	tmpnmbr a1, a2, a3;
 	get_vectors_from_quat(orientations[IND], a1, a2, a3);
 
 	if(pbonds.n3 != P_INVALID) {
 		int n3_index = pbonds.n3;
-		number4 b1, b2, b3;
+		tmpnmbr b1, b2, b3;
 		get_vectors_from_quat(orientations[pbonds.n3], b1, b2, b3);
 
-		number kb1 = kb1_pref[n3_index];
-		number kb2 = kb2_pref[n3_index];
-		number xk = xk_bending[n3_index];
-		number xu = xu_bending[n3_index];
-		number kt = kt_pref[n3_index];
-		_bonded_particle_particle<number, number4, false>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
+		c_number kb1 = kb1_pref[n3_index];
+		c_number kb2 = kb2_pref[n3_index];
+		c_number xk = xk_bending[n3_index];
+		c_number xu = xu_bending[n3_index];
+		c_number kt = kt_pref[n3_index];
+		_bonded_particle_particle<c_number, tmpnmbr, false>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
 		// if this bead is the last of the strand
-		if(pbonds.n5 == P_INVALID) _bonded_particle_particle<number, number4, true>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
+		if(pbonds.n5 == P_INVALID) _bonded_particle_particle<c_number, tmpnmbr, true>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
 	}
 	else _twist_boundary_particle(a1, a3, T, o_vects[0], w_vects[0], step, MD_o_modulus[0]);
 
 	if(pbonds.n5 != P_INVALID) {
-		number4 b1, b2, b3;
+		tmpnmbr b1, b2, b3;
 		get_vectors_from_quat(orientations[pbonds.n5], b1, b2, b3);
 
-		number kb1 = kb1_pref[IND];
-		number kb2 = kb2_pref[IND];
-		number xk = xk_bending[IND];
-		number xu = xu_bending[IND];
-		number kt = kt_pref[IND];
-		_bonded_particle_particle<number, number4, true>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
+		c_number kb1 = kb1_pref[IND];
+		c_number kb2 = kb2_pref[IND];
+		c_number xk = xk_bending[IND];
+		c_number xu = xu_bending[IND];
+		c_number kt = kt_pref[IND];
+		_bonded_particle_particle<c_number, tmpnmbr, true>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
 		// we have to check whether n5 is the last of the strand
 		LR_bonds qbonds = bonds[pbonds.n5];
 		if(qbonds.n5 == P_INVALID) {
-			_bonded_particle_particle<number, number4, false>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
+			_bonded_particle_particle<c_number, tmpnmbr, false>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
 			_twist_boundary_particle(a1, a3, T, o_vects[1], w_vects[1], step, MD_o_modulus[1]);
 		}
 	}
 
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND && pbonds.n3 != j && pbonds.n5 != j) {
-			number4 qpos = poss[j];
+			tmpnmbr qpos = poss[j];
 
-			number4 r = box->minimum_image(ppos, qpos);
+			tmpnmbr r = box->minimum_image(ppos, qpos);
 			_repulsive_lj2(MD_TEP_EXCL_EPS_NONBONDED[0], r, F, MD_TEP_EXCL_S2[0], MD_TEP_EXCL_R2[0], MD_TEP_EXCL_B2[0], MD_TEP_EXCL_RC2[0]);
 		}
 	}
 
-	F.w *= (number) 0.5f;
+	F.w *= (c_number) 0.5f;
 	forces[IND] = F;
 
-	T = _vectors_transpose_number4_product(a1, a2, a3, T);
+	T = _vectors_transpose_tmpnmbr_product(a1, a2, a3, T);
 	torques[IND] = T;
 }
 
 // forces + second step with verlet lists
 
-__global__ void TEP_forces(number4 *poss, GPU_quat *orientations, number4 *forces, number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, CUDABox*box, number *kb1_pref, number *kb2_pref, number *xk_bending, number *xu_bending, number *kt_pref, number4 *o_vects, number4 *w_vects, llint step) {
+__global__ void TEP_forces(tmpnmbr *poss, GPU_quat *orientations, tmpnmbr *forces, tmpnmbr *torques, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox*box, c_number *kb1_pref, c_number *kb2_pref, c_number *xk_bending, c_number *xu_bending, c_number *kt_pref, tmpnmbr *o_vects, tmpnmbr *w_vects, llint step) {
 	if(IND >= MD_N[0]) return;
 
-	number4 F = forces[IND];
-	number4 T = make_number4(0, 0, 0, 0);
-	number4 ppos = poss[IND];
+	tmpnmbr F = forces[IND];
+	tmpnmbr T = make_tmpnmbr(0, 0, 0, 0);
+	tmpnmbr ppos = poss[IND];
 	LR_bonds pbonds = bonds[IND];
 
-	number4 a1, a2, a3;
+	tmpnmbr a1, a2, a3;
 	get_vectors_from_quat(orientations[IND], a1, a2, a3);
 
 	if(pbonds.n3 != P_INVALID) {
 		int n3_index = pbonds.n3;
-		number4 b1, b2, b3;
+		tmpnmbr b1, b2, b3;
 		get_vectors_from_quat(orientations[pbonds.n3], b1, b2, b3);
 
-		number kb1 = kb1_pref[n3_index];
-		number kb2 = kb2_pref[n3_index];
-		number xk = xk_bending[n3_index];
-		number xu = xu_bending[n3_index];
-		number kt = kt_pref[n3_index];
-		_bonded_particle_particle<number, number4, false>(ppos, a1, a2, a3, poss[n3_index], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
+		c_number kb1 = kb1_pref[n3_index];
+		c_number kb2 = kb2_pref[n3_index];
+		c_number xk = xk_bending[n3_index];
+		c_number xu = xu_bending[n3_index];
+		c_number kt = kt_pref[n3_index];
+		_bonded_particle_particle<c_number, tmpnmbr, false>(ppos, a1, a2, a3, poss[n3_index], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
 		// if this bead is the last of the strand
-		if(pbonds.n5 == P_INVALID) _bonded_particle_particle<number, number4, true>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
+		if(pbonds.n5 == P_INVALID) _bonded_particle_particle<c_number, tmpnmbr, true>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
 	}
 	else _twist_boundary_particle(a1, a3, T, o_vects[0], w_vects[0], step, MD_o_modulus[0]);
 
 	if(pbonds.n5 != P_INVALID) {
-		number4 b1, b2, b3;
+		tmpnmbr b1, b2, b3;
 		get_vectors_from_quat(orientations[pbonds.n5], b1, b2, b3);
 
-		number kb1 = kb1_pref[IND];
-		number kb2 = kb2_pref[IND];
-		number xk = xk_bending[IND];
-		number xu = xu_bending[IND];
-		number kt = kt_pref[IND];
-		_bonded_particle_particle<number, number4, true>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
+		c_number kb1 = kb1_pref[IND];
+		c_number kb2 = kb2_pref[IND];
+		c_number xk = xk_bending[IND];
+		c_number xu = xu_bending[IND];
+		c_number kt = kt_pref[IND];
+		_bonded_particle_particle<c_number, tmpnmbr, true>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
 		// we have to check whether n5 is the last of the strand
 		LR_bonds qbonds = bonds[pbonds.n5];
 		if(qbonds.n5 == P_INVALID) {
-			_bonded_particle_particle<number, number4, false>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
+			_bonded_particle_particle<c_number, tmpnmbr, false>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
 			_twist_boundary_particle(a1, a3, T, o_vects[1], w_vects[1], step, MD_o_modulus[1]);
 		}
 	}
 
-	int num_neighs = number_neighs[IND];
+	int num_neighs = c_number_neighs[IND];
 
 	for(int j = 0; j < num_neighs; j++) {
 		int k_index = matrix_neighs[j * MD_N[0] + IND];
 
-		number4 qpos = poss[k_index];
-		number4 r = box->minimum_image(ppos, qpos);
+		tmpnmbr qpos = poss[k_index];
+		tmpnmbr r = box->minimum_image(ppos, qpos);
 		_repulsive_lj2(MD_TEP_EXCL_EPS_NONBONDED[0], r, F, MD_TEP_EXCL_S2[0], MD_TEP_EXCL_R2[0], MD_TEP_EXCL_B2[0], MD_TEP_EXCL_RC2[0]);
 	}
 
-	F.w *= (number) 0.5f;
+	F.w *= (c_number) 0.5f;
 	forces[IND] = F;
 
-	T = _vectors_transpose_number4_product(a1, a2, a3, T);
+	T = _vectors_transpose_tmpnmbr_product(a1, a2, a3, T);
 	torques[IND] = T;
 }
 
@@ -353,7 +353,7 @@ void CUDATEPInteraction::get_settings(input_file &inp) {
 	if(this->_prefer_harmonic_over_fene) throw oxDNAException("The 'prefer_harmonic_over_fene' option is not compatible with CUDA");
 }
 
-void CUDATEPInteraction::cuda_init(number box_side, int N) {
+void CUDATEPInteraction::cuda_init(c_number box_side, int N) {
 	CUDABaseInteraction::cuda_init(box_side, N);
 	TEPInteraction::init();
 
@@ -361,7 +361,7 @@ void CUDATEPInteraction::cuda_init(number box_side, int N) {
 	int my_N_strands;
 	TEPInteraction::read_topology(N, &my_N_strands, particles);
 
-	size_t k_size = N * sizeof(number);
+	size_t k_size = N * sizeof(c_number);
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_kb1_pref, k_size));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_kb2_pref, k_size));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_xk_bending, k_size));
@@ -374,43 +374,44 @@ void CUDATEPInteraction::cuda_init(number box_side, int N) {
 	CUDA_SAFE_CALL(cudaMemcpy(_d_xu_bending, this->_xu_bending, k_size, cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_d_kt_pref, this->_kt_pref, k_size, cudaMemcpyHostToDevice));
 
-	for(int i = 0; i < N; i++)
+	for(int i = 0; i < N; i++) {
 		delete particles[i];
+	}
 	delete[] particles;
 
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<number4>(&_d_o_vects, 2 * sizeof(number4)));
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<number4>(&_d_w_vects, 2 * sizeof(number4)));
-	number4 h_o_vects[2] = { { this->_o1.x, this->_o1.y, this->_o1.z, 0. }, { this->_o2.x, this->_o2.y, this->_o2.z, 0. } };
-	number4 h_w_vects[2] = { { this->_w1.x, this->_w1.y, this->_w1.z, 0. }, { this->_w2.x, this->_w2.y, this->_w2.z, 0. } };
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_o_vects, 2 * sizeof(tmpnmbr)));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_w_vects, 2 * sizeof(tmpnmbr)));
+	tmpnmbr h_o_vects[2] = { { (c_number) _o1.x, (c_number) _o1.y, (c_number) _o1.z, (float) 0. }, { (c_number) _o2.x, (c_number) _o2.y, (c_number) _o2.z, (float) 0. } };
+	tmpnmbr h_w_vects[2] = { { (c_number) _w1.x, (c_number) _w1.y, (c_number) _w1.z, (float) 0. }, { (c_number) _w2.x, (c_number) _w2.y, (c_number) _w2.z, (float) 0. } };
 
-	CUDA_SAFE_CALL(cudaMemcpy(_d_o_vects, h_o_vects, 2 * sizeof(number4), cudaMemcpyHostToDevice));
-	CUDA_SAFE_CALL(cudaMemcpy(_d_w_vects, h_w_vects, 2 * sizeof(number4), cudaMemcpyHostToDevice));
-	COPY_NUMBER_TO_FLOAT(MD_twist_boundary_stiff, this->_twist_boundary_stiff);
+	CUDA_SAFE_CALL(cudaMemcpy(_d_o_vects, h_o_vects, 2 * sizeof(tmpnmbr), cudaMemcpyHostToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_w_vects, h_w_vects, 2 * sizeof(tmpnmbr), cudaMemcpyHostToDevice));
+	COPY_c_number_TO_FLOAT(MD_twist_boundary_stiff, this->_twist_boundary_stiff);
 	float o_modulus[2] = { (float) this->_o1_modulus, (float) this->_o2_modulus };
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_o_modulus, o_modulus, 2 * sizeof(float)));
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
 
-	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, this->_sqr_rcut);
-	COPY_NUMBER_TO_FLOAT(MD_ka, this->_ka);
-	COPY_NUMBER_TO_FLOAT(MD_kb, this->_kb);
-	COPY_NUMBER_TO_FLOAT(MD_kt, this->_kt);
-	COPY_NUMBER_TO_FLOAT(MD_twist_a, this->_twist_a);
-	COPY_NUMBER_TO_FLOAT(MD_twist_b, this->_twist_b);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_FENE_DELTA, this->_TEP_FENE_DELTA);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_FENE_DELTA2, this->_TEP_FENE_DELTA2);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_FENE_EPS, this->_TEP_FENE_EPS);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_FENE_R0, this->_TEP_FENE_R0);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_EXCL_EPS_BONDED, this->_TEP_EXCL_EPS_BONDED);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_EXCL_EPS_NONBONDED, this->_TEP_EXCL_EPS_NONBONDED);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_EXCL_S2, this->_TEP_EXCL_S2);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_EXCL_R2, this->_TEP_EXCL_R2);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_EXCL_B2, this->_TEP_EXCL_B2);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_EXCL_RC2, this->_TEP_EXCL_RC2);
-	COPY_NUMBER_TO_FLOAT(MD_TEP_spring_offset, this->_TEP_spring_offset);
+	COPY_c_number_TO_FLOAT(MD_sqr_rcut, this->_sqr_rcut);
+	COPY_c_number_TO_FLOAT(MD_ka, this->_ka);
+	COPY_c_number_TO_FLOAT(MD_kb, this->_kb);
+	COPY_c_number_TO_FLOAT(MD_kt, this->_kt);
+	COPY_c_number_TO_FLOAT(MD_twist_a, this->_twist_a);
+	COPY_c_number_TO_FLOAT(MD_twist_b, this->_twist_b);
+	COPY_c_number_TO_FLOAT(MD_TEP_FENE_DELTA, this->_TEP_FENE_DELTA);
+	COPY_c_number_TO_FLOAT(MD_TEP_FENE_DELTA2, this->_TEP_FENE_DELTA2);
+	COPY_c_number_TO_FLOAT(MD_TEP_FENE_EPS, this->_TEP_FENE_EPS);
+	COPY_c_number_TO_FLOAT(MD_TEP_FENE_R0, this->_TEP_FENE_R0);
+	COPY_c_number_TO_FLOAT(MD_TEP_EXCL_EPS_BONDED, this->_TEP_EXCL_EPS_BONDED);
+	COPY_c_number_TO_FLOAT(MD_TEP_EXCL_EPS_NONBONDED, this->_TEP_EXCL_EPS_NONBONDED);
+	COPY_c_number_TO_FLOAT(MD_TEP_EXCL_S2, this->_TEP_EXCL_S2);
+	COPY_c_number_TO_FLOAT(MD_TEP_EXCL_R2, this->_TEP_EXCL_R2);
+	COPY_c_number_TO_FLOAT(MD_TEP_EXCL_B2, this->_TEP_EXCL_B2);
+	COPY_c_number_TO_FLOAT(MD_TEP_EXCL_RC2, this->_TEP_EXCL_RC2);
+	COPY_c_number_TO_FLOAT(MD_TEP_spring_offset, this->_TEP_spring_offset);
 }
 
-void CUDATEPInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU_quat *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+void CUDATEPInteraction::compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	_steps++;
 
 	this->update_increment(_steps);
@@ -421,7 +422,7 @@ void CUDATEPInteraction::compute_forces(CUDABaseList*lists, number4 *d_poss, GPU
 		if(_v_lists->use_edge()) throw oxDNAException("use_edge unsupported by TEPInteraction");
 		TEP_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_number_neighs, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
+			(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
 			CUT_CHECK_ERROR("forces_second_step TEP simple_lists error");
 	}
 

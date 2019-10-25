@@ -13,7 +13,6 @@
 
 size_t GpuUtils::_allocated_dev_mem = 0;
 
-#ifndef OLD_ARCH
 __global__ void print_array(int *v, int N) {
 	for(int i = 0; i < N; i++)
 		printf("%d %d\n", i, v[i]);
@@ -62,12 +61,11 @@ check_thresold<T>
 		CUT_CHECK_ERROR("check_device_thresold error");
 	cudaThreadSynchronize();
 }
-#endif
 
-struct sum_number4 {
+struct sum_tmpnmbr {
 	__device__
-	number4 operator()(const number4& a, const number4& b) const {
-		number4 res;
+	tmpnmbr operator()(const tmpnmbr& a, const tmpnmbr& b) const {
+		tmpnmbr res;
 		res.x = a.x + b.x;
 		res.y = a.y + b.y;
 		res.z = a.z + b.z;
@@ -76,20 +74,20 @@ struct sum_number4 {
 	}
 };
 
-struct number4_to_double {
+struct tmpnmbr_to_double {
 	__device__
-	double operator()(const number4 &a) {
+	double operator()(const tmpnmbr &a) {
 		return (double) a.w;
 	}
 };
 
-number4 GpuUtils::sum_number4_on_GPU(number4 *dv, int N) {
-	thrust::device_ptr<number4> t_dv = thrust::device_pointer_cast(dv);
-	number4 zero = { 0., 0., 0., 0. };
-	return thrust::reduce(t_dv, t_dv + N, zero, sum_number4());
+tmpnmbr GpuUtils::sum_tmpnmbr_on_GPU(tmpnmbr *dv, int N) {
+	thrust::device_ptr<tmpnmbr> t_dv = thrust::device_pointer_cast(dv);
+	tmpnmbr zero = { 0., 0., 0., 0. };
+	return thrust::reduce(t_dv, t_dv + N, zero, sum_tmpnmbr());
 }
 
-double GpuUtils::sum_number4_to_double_on_GPU(number4 *dv, int N) {
-	thrust::device_ptr<number4> t_dv = thrust::device_pointer_cast(dv);
-	return thrust::transform_reduce(t_dv, t_dv + N, number4_to_double(), 0., thrust::plus<double>());
+double GpuUtils::sum_tmpnmbr_to_double_on_GPU(tmpnmbr *dv, int N) {
+	thrust::device_ptr<tmpnmbr> t_dv = thrust::device_pointer_cast(dv);
+	return thrust::transform_reduce(t_dv, t_dv + N, tmpnmbr_to_double(), 0., thrust::plus<double>());
 }

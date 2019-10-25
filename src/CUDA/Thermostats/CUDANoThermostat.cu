@@ -16,6 +16,6 @@ CUDANoThermostat::~CUDANoThermostat() {
 
 }
 
-void CUDANoThermostat::apply_cuda(number4 *d_poss, GPU_quat *d_orientationss, number4 *d_vels, number4 *d_Ls, llint curr_step) {
+void CUDANoThermostat::apply_cuda(tmpnmbr *d_poss, GPU_quat *d_orientationss, tmpnmbr *d_vels, tmpnmbr *d_Ls, llint curr_step) {
 	return;
 }

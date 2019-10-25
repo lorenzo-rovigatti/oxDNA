@@ -21,12 +21,12 @@ protected:
 	int *_d_counters_cells;
 	bool *_d_cell_overflow;
 
-	number4 *_d_poss;
-	number4 *_d_vels;
+	tmpnmbr *_d_poss;
+	tmpnmbr *_d_vels;
 
 	/// the fourth component of each element stores the mass of the particle
-	number4 *_d_cells_dp;
-	number4 *_d_reduced_cells_dp;
+	tmpnmbr *_d_cells_dp;
+	tmpnmbr *_d_reduced_cells_dp;
 	int *_d_reduce_keys;
 	int *_d_reduced_cells_keys;
 
@@ -41,7 +41,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init(int N);
 
-	virtual void apply_cuda(number4 *d_poss, GPU_quat *d_orientations, number4 *d_vels, number4 *d_Ls, llint curr_step);
+	virtual void apply_cuda(tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_vels, tmpnmbr *d_Ls, llint curr_step);
 	virtual bool would_activate(llint curr_step);
 };
 

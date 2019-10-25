@@ -20,7 +20,7 @@ public:
 	CUDANoList();
 	virtual ~CUDANoList();
 
-	void update(number4 *poss, number4 *list_poss, LR_bonds *bonds) {}
+	void update(tmpnmbr *poss, tmpnmbr *list_poss, LR_bonds *bonds) {}
 	void clean() {}
 
 	void get_settings(input_file &inp) {}

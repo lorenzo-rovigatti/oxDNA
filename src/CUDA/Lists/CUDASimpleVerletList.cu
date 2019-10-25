@@ -20,12 +20,12 @@ CUDASimpleVerletList::CUDASimpleVerletList() :
 	this->_use_edge = false;
 	_N_cells = _old_N_cells = -1;
 
-	_d_cells = _d_counters_cells = _d_matrix_neighs = _d_number_neighs = NULL;
+	_d_cells = _d_counters_cells = _d_matrix_neighs = _d_c_number_neighs = NULL;
 }
 
 CUDASimpleVerletList::~CUDASimpleVerletList() {
 	_d_matrix_neighs = NULL;
-	_d_number_neighs = NULL;
+	_d_c_number_neighs = NULL;
 }
 
 void CUDASimpleVerletList::clean() {
@@ -33,13 +33,13 @@ void CUDASimpleVerletList::clean() {
 		CUDA_SAFE_CALL(cudaFree(_d_cells));
 		CUDA_SAFE_CALL(cudaFree(_d_counters_cells));
 		CUDA_SAFE_CALL(cudaFree(_d_matrix_neighs));
-		CUDA_SAFE_CALL(cudaFree(_d_number_neighs));
+		CUDA_SAFE_CALL(cudaFree(_d_c_number_neighs));
 		CUDA_SAFE_CALL(cudaFreeHost(_d_cell_overflow));
 	}
 
 	if(this->_use_edge) {
 		CUDA_SAFE_CALL(cudaFree(_d_edge_list));
-		CUDA_SAFE_CALL(cudaFree(_d_number_neighs_no_doubles));
+		CUDA_SAFE_CALL(cudaFree(_d_c_number_neighs_no_doubles));
 	}
 }
 
@@ -52,9 +52,9 @@ void CUDASimpleVerletList::get_settings(input_file &inp) {
 }
 
 void CUDASimpleVerletList::_init_cells() {
-	number4 box_sides_n4 = this->_h_cuda_box->box_sides();
-	number box_sides[3] = { box_sides_n4.x, box_sides_n4.y, box_sides_n4.z };
-	number max_factor = pow(2. * this->_N / this->_h_cuda_box->V(), 1. / 3.);
+	tmpnmbr box_sides_n4 = this->_h_cuda_box->box_sides();
+	c_number box_sides[3] = { box_sides_n4.x, box_sides_n4.y, box_sides_n4.z };
+	c_number max_factor = pow(2. * this->_N / this->_h_cuda_box->V(), 1. / 3.);
 
 	for(int i = 0; i < 3; i++) {
 		_N_cells_side[i] = (int) (floor(box_sides[i] / sqrt(_sqr_rverlet)) + 0.1);
@@ -64,10 +64,10 @@ void CUDASimpleVerletList::_init_cells() {
 
 	_N_cells = _N_cells_side[0] * _N_cells_side[1] * _N_cells_side[2];
 
-	number V_cell = this->_h_cuda_box->V() / (number) _N_cells;
-	number density = this->_N / this->_h_cuda_box->V();
+	c_number V_cell = this->_h_cuda_box->V() / (c_number) _N_cells;
+	c_number density = this->_N / this->_h_cuda_box->V();
 	if(density < 0.1) density = 0.1;
-	number density_factor = density * 5. * _max_density_multiplier;
+	c_number density_factor = density * 5. * _max_density_multiplier;
 	_max_N_per_cell = (int) (V_cell * density_factor);
 	if(_max_N_per_cell > this->_N) _max_N_per_cell = this->_N;
 	if(_max_N_per_cell < 5) _max_N_per_cell = 5;
@@ -89,18 +89,18 @@ void CUDASimpleVerletList::_init_cells() {
 	_old_N_cells = _N_cells;
 }
 
-void CUDASimpleVerletList::init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box) {
+void CUDASimpleVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box) {
 	CUDABaseList::init(N, rcut, h_cuda_box, d_cuda_box);
 
-	number rverlet = rcut + 2 * _verlet_skin;
+	c_number rverlet = rcut + 2 * _verlet_skin;
 	_sqr_rverlet = SQR(rverlet);
 	_sqr_verlet_skin = SQR(_verlet_skin);
-	_vec_size = N * sizeof(number4);
+	_vec_size = N * sizeof(tmpnmbr);
 
 	// volume of a sphere whose radius is ceil(rverlet) times the maximum density (sqrt(2)).
-	number density = N / h_cuda_box->V();
+	c_number density = N / h_cuda_box->V();
 	if(density < 0.1) density = 0.1;
-	number density_factor = density * 5. * _max_density_multiplier;
+	c_number density_factor = density * 5. * _max_density_multiplier;
 	_max_neigh = (int) ((4 * M_PI * pow(ceil(rverlet), 3) / 3.) * density_factor);
 	if(_max_neigh >= N) _max_neigh = N - 1;
 
@@ -109,7 +109,7 @@ void CUDASimpleVerletList::init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*
 	OX_LOG(Logger::LOG_INFO, "CUDA max_neigh: %d, max_N_per_cell: %d, N_cells: %d (per side: %d %d %d)", _max_neigh, _max_N_per_cell, _N_cells, _N_cells_side[0], _N_cells_side[1], _N_cells_side[2]);
 	OX_LOG(Logger::LOG_INFO, "CUDA Cells mem: %.2lf MBs, lists mem: %.2lf MBs", (double) _N_cells*(1 + _max_N_per_cell) * sizeof(int)/1048576., (double) this->_N * (1 + _max_neigh) * sizeof(int)/1048576.);
 
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_number_neighs, (size_t ) this->_N * sizeof(int)));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_c_number_neighs, (size_t ) this->_N * sizeof(int)));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_matrix_neighs, (size_t ) this->_N * _max_neigh * sizeof(int)));
 
 	CUDA_SAFE_CALL(cudaMallocHost(&_d_cell_overflow, sizeof(bool), cudaHostAllocDefault));
@@ -117,7 +117,7 @@ void CUDASimpleVerletList::init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*
 
 	if(this->_use_edge) {
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_edge_list, (size_t ) this->_N * _max_neigh * sizeof(edge_bond)));
-		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_number_neighs_no_doubles, (size_t ) (this->_N + 1) * sizeof(int)));
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_c_number_neighs_no_doubles, (size_t ) (this->_N + 1) * sizeof(int)));
 	}
 
 	if(_cells_kernel_cfg.threads_per_block == 0) _cells_kernel_cfg.threads_per_block = 64;
@@ -132,7 +132,7 @@ void CUDASimpleVerletList::init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(verlet_N, &this->_N, sizeof(int)));
 }
 
-void CUDASimpleVerletList::update(number4 *poss, number4 *list_poss, LR_bonds *bonds) {
+void CUDASimpleVerletList::update(tmpnmbr *poss, tmpnmbr *list_poss, LR_bonds *bonds) {
 	_init_cells();
 	CUDA_SAFE_CALL(cudaMemset(_d_counters_cells, 0, _N_cells * sizeof(int)));
 
@@ -145,31 +145,31 @@ simple_fill_cells
 	cudaThreadSynchronize();
 	if(_d_cell_overflow[0] == true) throw oxDNAException("A cell contains more than _max_n_per_cell (%d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell);
 
-	// texture binding for the number of particles contained in each cell
+	// texture binding for the c_number of particles contained in each cell
 	cudaBindTexture(0, counters_cells_tex, _d_counters_cells, sizeof(int) * _N_cells);
 
 	// for edge based approach
 	if(this->_use_edge) {
 edge_update_neigh_list
 			<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-			(poss, list_poss, _d_cells, _d_matrix_neighs, _d_number_neighs, _d_number_neighs_no_doubles, bonds, this->_d_cuda_box);
+			(poss, list_poss, _d_cells, _d_matrix_neighs, _d_c_number_neighs, _d_c_number_neighs_no_doubles, bonds, this->_d_cuda_box);
 						CUT_CHECK_ERROR("edge_update_neigh_list (SimpleVerlet) error");
 
 		// thrust operates on the GPU
-		thrust::device_ptr<int> _d_number_neighs_no_doubles_w(_d_number_neighs_no_doubles);
-		_d_number_neighs_no_doubles_w[this->_N] = 0;
-		thrust::exclusive_scan(_d_number_neighs_no_doubles_w, _d_number_neighs_no_doubles_w + this->_N + 1, _d_number_neighs_no_doubles_w);
-		_N_edges = _d_number_neighs_no_doubles_w[this->_N];
+		thrust::device_ptr<int> _d_c_number_neighs_no_doubles_w(_d_c_number_neighs_no_doubles);
+		_d_c_number_neighs_no_doubles_w[this->_N] = 0;
+		thrust::exclusive_scan(_d_c_number_neighs_no_doubles_w, _d_c_number_neighs_no_doubles_w + this->_N + 1, _d_c_number_neighs_no_doubles_w);
+		_N_edges = _d_c_number_neighs_no_doubles_w[this->_N];
 		// get edge list from matrix_neighs
 compress_matrix_neighs
 			<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-			(_d_matrix_neighs, _d_number_neighs, _d_number_neighs_no_doubles, _d_edge_list);
+			(_d_matrix_neighs, _d_c_number_neighs, _d_c_number_neighs_no_doubles, _d_edge_list);
 						CUT_CHECK_ERROR("compress_matrix_neighs error");
 	}
 	else {
 simple_update_neigh_list
 			<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-			(poss, list_poss, _d_cells, _d_matrix_neighs, _d_number_neighs, bonds, this->_d_cuda_box);
+			(poss, list_poss, _d_cells, _d_matrix_neighs, _d_c_number_neighs, bonds, this->_d_cuda_box);
 						CUT_CHECK_ERROR("update_neigh_list (SimpleVerlet) error");
 	}
 

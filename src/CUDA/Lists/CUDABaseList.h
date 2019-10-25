@@ -38,13 +38,13 @@ public:
 	;
 
 	virtual void get_settings(input_file &inp) = 0;
-	virtual void init(int N, number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box) {
+	virtual void init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box) {
 		_h_cuda_box = h_cuda_box;
 		_d_cuda_box = d_cuda_box;
 		_N = N;
 	}
 
-	virtual void update(number4 *poss, number4 *list_poss, LR_bonds *bonds) = 0;
+	virtual void update(tmpnmbr *poss, tmpnmbr *list_poss, LR_bonds *bonds) = 0;
 	bool use_edge() {
 		return _use_edge;
 	}

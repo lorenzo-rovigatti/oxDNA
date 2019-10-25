@@ -28,10 +28,10 @@
 
 struct constant_rate_force {
 	int type;
-	number x, y, z;
+	c_number x, y, z;
 	bool dir_as_centre;
-	number rate;
-	number F0;
+	c_number rate;
+	c_number F0;
 };
 
 /**
@@ -40,11 +40,11 @@ struct constant_rate_force {
 
 struct mutual_trap {
 	int type;
-	number stiff;
-	number r0;
+	c_number stiff;
+	c_number r0;
 	int p_ind;
 	bool PBC;
-	number rate;
+	c_number rate;
 };
 
 /**
@@ -53,8 +53,8 @@ struct mutual_trap {
 
 struct moving_trap {
 	int type;
-	number stiff;
-	number rate;
+	c_number stiff;
+	c_number rate;
 	float3 pos0;
 	float3 dir;
 };
@@ -65,8 +65,8 @@ struct moving_trap {
 
 struct lowdim_moving_trap {
 	int type;
-	number stiff;
-	number rate;
+	c_number stiff;
+	c_number rate;
 	float3 pos0;
 	float3 dir;
 	bool visX;
@@ -80,8 +80,8 @@ struct lowdim_moving_trap {
 
 struct repulsion_plane {
 	int type;
-	number stiff;
-	number position;
+	c_number stiff;
+	c_number position;
 	float3 dir;
 };
 
@@ -91,7 +91,7 @@ struct repulsion_plane {
 
 struct repulsion_plane_moving {
 	int type;
-	number stiff;
+	c_number stiff;
 	int low_idx, high_idx;
 	float3 dir;
 };
@@ -102,10 +102,10 @@ struct repulsion_plane_moving {
 
 struct repulsive_sphere {
 	int type;
-	number stiff;
-	number r0;
-	number rate;
-	number r_ext;
+	c_number stiff;
+	c_number r0;
+	c_number rate;
+	c_number r_ext;
 	float3 centre;
 };
 
@@ -115,11 +115,11 @@ struct repulsive_sphere {
 
 struct repulsive_sphere_smooth {
 	int type;
-	number r0;
-	number r_ext;
-	number smooth;
-	number alpha;
-	number stiff;
+	c_number r0;
+	c_number r_ext;
+	c_number smooth;
+	c_number alpha;
+	c_number stiff;
 	float3 centre;
 };
 
@@ -129,10 +129,10 @@ struct repulsive_sphere_smooth {
 
 struct LJ_wall {
 	int type;
-	number stiff;
-	number position;
-	number cutoff;
-	number sigma;
+	c_number stiff;
+	c_number position;
+	c_number cutoff;
+	c_number sigma;
 	int n;
 	float3 dir;
 };
@@ -144,9 +144,9 @@ struct LJ_wall {
 struct constant_rate_torque {
 	int type;
 	float3 center, pos0, axis, mask;
-	number rate;
-	number stiff;
-	number F0;
+	c_number rate;
+	c_number stiff;
+	c_number F0;
 };
 
 /**
@@ -155,10 +155,10 @@ struct constant_rate_torque {
 
 struct generic_constant_force {
 	int type;
-	number x, y, z;
-	number F0;
-	number inner_cut_off_sqr;
-	number outer_cut_off_sqr;
+	c_number x, y, z;
+	c_number F0;
+	c_number inner_cut_off_sqr;
+	c_number outer_cut_off_sqr;
 };
 
 /**
@@ -168,11 +168,11 @@ struct generic_constant_force {
 struct LJ_cone {
 	int type;
 	float3 dir, pos0;
-	number stiff;
-	number cutoff;
-	number sigma;
-	number alpha;
-	number sin_alpha;
+	c_number stiff;
+	c_number cutoff;
+	c_number sigma;
+	c_number alpha;
+	c_number sin_alpha;
 	int n;
 };
 
