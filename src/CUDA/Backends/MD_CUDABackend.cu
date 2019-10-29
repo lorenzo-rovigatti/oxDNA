@@ -35,7 +35,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvla"
 
-
 MD_CUDABackend::MD_CUDABackend() : MDBackend(), CUDABaseBackend(), _max_ext_forces(0), _error_conf_file("error_conf.dat") {
 	this->_is_CUDA_sim = true;
 	_use_edge = false;
@@ -62,7 +61,6 @@ MD_CUDABackend::MD_CUDABackend() : MDBackend(), CUDABaseBackend(), _max_ext_forc
 
 	_obs_output_error_conf = NULL;
 }
-
 
 MD_CUDABackend::~MD_CUDABackend() {
 	if(_d_vels != NULL) {
@@ -101,13 +99,11 @@ MD_CUDABackend::~MD_CUDABackend() {
 	if(_obs_output_error_conf != NULL) delete _obs_output_error_conf;
 }
 
-
 void MD_CUDABackend::_host_to_gpu() {
 	CUDABaseBackend::_host_to_gpu();
 	CUDA_SAFE_CALL( cudaMemcpy(_d_vels, _h_vels, this->_vec_size, cudaMemcpyHostToDevice) );
 	CUDA_SAFE_CALL( cudaMemcpy(_d_Ls, _h_Ls, this->_vec_size, cudaMemcpyHostToDevice) );
 }
-
 
 void MD_CUDABackend::_gpu_to_host() {
 	CUDABaseBackend::_gpu_to_host();
@@ -116,7 +112,6 @@ void MD_CUDABackend::_gpu_to_host() {
 	CUDA_SAFE_CALL( cudaMemcpy(_h_forces, _d_forces, this->_vec_size, cudaMemcpyDeviceToHost) );
 	CUDA_SAFE_CALL( cudaMemcpy(_h_torques, _d_torques, this->_vec_size, cudaMemcpyDeviceToHost) );
 }
-
 
 void MD_CUDABackend::_host_particles_to_gpu() {
 	for(int i = 0; i < this->_N; i++) {
@@ -186,7 +181,6 @@ void MD_CUDABackend::_host_particles_to_gpu() {
 	this->_host_to_gpu();
 }
 
-
 void MD_CUDABackend::_gpu_to_host_particles() {
 	this->_gpu_to_host();
 
@@ -253,7 +247,6 @@ void MD_CUDABackend::_gpu_to_host_particles() {
 	}
 }
 
-
 void MD_CUDABackend::_init_CUDA_MD_symbols() {
 	float f_copy = this->_sqr_verlet_skin;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &f_copy, sizeof(float)) );
@@ -262,14 +255,12 @@ void MD_CUDABackend::_init_CUDA_MD_symbols() {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &this->_N, sizeof(int)) );
 }
 
-
 void MD_CUDABackend::_first_step() {
 	first_step
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_poss, this->_d_orientations, this->_d_list_poss, _d_vels, _d_Ls, _d_forces, _d_torques, this->_d_are_lists_old);
 	CUT_CHECK_ERROR("_first_step error");
 }
-
 
 void MD_CUDABackend::_rescale_positions(tmpnmbr new_Ls, tmpnmbr old_Ls) {
 	tmpnmbr ratio = {new_Ls.x/old_Ls.x, new_Ls.y/old_Ls.y, new_Ls.z/old_Ls.z, 0.};
@@ -278,7 +269,6 @@ void MD_CUDABackend::_rescale_positions(tmpnmbr new_Ls, tmpnmbr old_Ls) {
 		(this->_d_poss, ratio);
 	CUT_CHECK_ERROR("_rescale_positions error");
 }
-
 
 void MD_CUDABackend::_apply_barostat(llint curr_step) {
 	_barostat_attempts++;
@@ -332,7 +322,6 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 	this->_barostat_acceptance = _barostat_accepted/(c_number)_barostat_attempts;
 }
 
-
 void MD_CUDABackend::_forces_second_step() {
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
@@ -343,14 +332,12 @@ void MD_CUDABackend::_forces_second_step() {
 		CUT_CHECK_ERROR("second_step");
 }
 
-
 void MD_CUDABackend::_set_external_forces() {
 	set_external_forces
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_poss, this->_d_orientations, _d_ext_forces, _d_forces, _d_torques, _curr_step, _max_ext_forces, this->_d_cuda_box);
 	CUT_CHECK_ERROR("set_external_forces");
 }
-
 
 void MD_CUDABackend::_sort_particles() {
 	CUDABaseBackend::_sort_index();
@@ -367,11 +354,9 @@ void MD_CUDABackend::_sort_particles() {
 	CUDA_SAFE_CALL( cudaMemcpy(_d_Ls, _d_buff_Ls, this->_vec_size, cudaMemcpyDeviceToDevice) );
 }
 
-
 void MD_CUDABackend::_thermalize(llint curr_step) {
 	_cuda_thermostat->apply_cuda(this->_d_poss, this->_d_orientations, _d_vels, _d_Ls, curr_step);
 }
-
 
 void MD_CUDABackend::sim_step(llint curr_step) {
 	this->_mytimer->resume();
@@ -430,7 +415,6 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 	this->_mytimer->pause();
 }
 
-
 void MD_CUDABackend::get_settings(input_file &inp) {
 	MDBackend::get_settings(inp);
 	CUDABaseBackend::get_settings(inp);
@@ -469,8 +453,7 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 	}
 }
 
-
-void MD_CUDABackend::init(){
+void MD_CUDABackend::init() {
 	MDBackend::init();
 	CUDABaseBackend::init_cuda();
 
@@ -681,12 +664,10 @@ void MD_CUDABackend::init(){
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
 }
 
-
 void MD_CUDABackend::print_conf(llint curr_step, bool reduced, bool only_last) {
 	_gpu_to_host_particles();
 	MDBackend::print_conf(curr_step, reduced, only_last);
 }
-
 
 void MD_CUDABackend::_print_ready_observables(llint curr_step) {
 	_gpu_to_host_particles();
@@ -694,7 +675,6 @@ void MD_CUDABackend::_print_ready_observables(llint curr_step) {
 	MDBackend::_print_ready_observables(curr_step);
 	_host_particles_to_gpu();
 }
-
 
 void MD_CUDABackend::fix_diffusion() {
 	_gpu_to_host_particles();

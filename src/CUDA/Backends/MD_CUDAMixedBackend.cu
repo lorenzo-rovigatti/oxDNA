@@ -42,8 +42,12 @@ void CUDAMixedBackend::init() {
 
 void CUDAMixedBackend::_init_CUDA_MD_symbols() {
 	MD_CUDABackend::_init_CUDA_MD_symbols();
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &_sqr_verlet_skin, sizeof(float)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dt, &_dt, sizeof(float)) );
+
+	float f_copy = _sqr_verlet_skin;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &f_copy, sizeof(float)) );
+	f_copy = _dt;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dt, &f_copy, sizeof(float)) );
+
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &_N, sizeof(int)) );
 }
 
@@ -65,14 +69,14 @@ void CUDAMixedBackend::_quat_float_to_quat_double(GPU_quat *src, GPU_quat_double
 	float4_to_LR_double4
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(src, dest);
-	CUT_CHECK_ERROR("LR_matrix_float_to_matrix_double error");
+	CUT_CHECK_ERROR("_quat_float_to_quat_double error");
 }
 
 void CUDAMixedBackend::_quat_double_to_quat_float(GPU_quat_double *src, GPU_quat *dest) {
 	LR_double4_to_float4
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(src, dest);
-	CUT_CHECK_ERROR("LR_matrix_double_to_matrix_float error");
+	CUT_CHECK_ERROR("_quat_double_to_quat_float error");
 }
 
 void CUDAMixedBackend::_first_step() {

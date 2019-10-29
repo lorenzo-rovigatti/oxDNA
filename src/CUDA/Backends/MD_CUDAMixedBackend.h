@@ -32,7 +32,7 @@ protected:
 	void _quat_double_to_quat_float(GPU_quat_double *src, GPU_quat *dest);
 	void _quat_float_to_quat_double(GPU_quat *src, GPU_quat_double *dest);
 
-	void _init_CUDA_MD_symbols();
+	void _init_CUDA_MD_symbols() override;
 
 	virtual void _sort_particles();
 	virtual void _rescale_positions(float4 new_Ls, float4 old_Ls);

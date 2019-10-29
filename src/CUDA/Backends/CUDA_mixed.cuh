@@ -1,13 +1,10 @@
 __constant__ float MD_sqr_verlet_skin[1];
-/* System constants */
-__constant__ int MD_N[1];
 __constant__ float MD_dt[1];
+__constant__ int MD_N[1];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
 // this function modifies L
-
-
 __device__ GPU_quat_double _get_updated_orientation(LR_double4 &L, GPU_quat_double &old_o) {
 	double norm = sqrt(CUDA_DOT(L, L));
 	L.x /= norm;
