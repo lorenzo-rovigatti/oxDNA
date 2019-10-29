@@ -65,9 +65,11 @@ __align__(16) {
 #ifdef CUDA_DOUBLE_PRECISION
 using tmpnmbr = LR_double4;
 using c_number = double;
+using GPU_quat = double4;
 #else
 using tmpnmbr = float4;
 using c_number = float;
+using GPU_quat = float4;
 #endif
 
 /**
@@ -77,10 +79,6 @@ typedef struct
 __align__(8) {
 	int n3, n5;
 } LR_bonds;
-
-struct __align__(16) GPU_quat {
-c_number x, y, z, w;
-};
 
 /**
 * @brief Used when use_edge = true. It stores information associated to a single bond.

@@ -17,8 +17,10 @@
 #include "FIREBackend.h"
 #ifndef NOCUDA
 #include "../CUDA/Backends/MD_CUDABackend.h"
-//#include "../CUDA/Backends/MD_CUDAMixedBackend.h"
+#ifndef CUDA_DOUBLE_PRECISION
+#include "../CUDA/Backends/MD_CUDAMixedBackend.h"
 //#include "../CUDA/Backends/FFS_MD_CUDAMixedBackend.h"
+#endif
 #endif
 
 #ifdef HAVE_MPI
@@ -30,7 +32,7 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 	getInputString(&inp, "backend", backend_opt, 1);
 
 	if(getInputString(&inp, "backend_precision", backend_prec, 0) == KEY_NOT_FOUND) {
-		OX_LOG(Logger::LOG_INFO, "Backend precision not speficied, using double");
+		OX_LOG(Logger::LOG_INFO, "Backend precision not specified, using double");
 		sprintf(backend_prec, "%s", "double");
 	}
 	else OX_LOG(Logger::LOG_INFO, "Backend precision: %s", backend_prec);
@@ -53,10 +55,14 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 		}
 #ifndef NOCUDA
 		else if(!strcmp(backend_opt, "CUDA")) {
-			// LR_double4 is defined in CUDAUtils.h
-			/*if(!strcmp(backend_prec, "mixed")) new_backend = new CUDAMixedBackend();
-			else*/ new_backend = new MD_CUDABackend();
-			//else throw oxDNAException("Backend precision '%s' is not supported", backend_prec);
+#ifndef CUDA_DOUBLE_PRECISION
+			if(!strcmp(backend_prec, "mixed")) new_backend = new CUDAMixedBackend();
+			else if(!strcmp(backend_prec, "float")) new_backend = new MD_CUDABackend();
+			else throw oxDNAException("Backend precision '%s' is not allowed, as the code has been compiled with 'float' and 'mixed' support only", backend_prec);
+#else
+			if(!strcmp(backend_prec, "double")) new_backend = new MD_CUDABackend();
+			else throw oxDNAException("Backend precision '%s' is not allowed, as the code has been compiled with 'double' support only", backend_prec);
+#endif
 		}
 #endif
 		else throw oxDNAException("Backend '%s' not supported", backend_opt);

@@ -46,8 +46,9 @@ __forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, tmpnmbr &a1, 
 	a3.z = (-sqx - sqy + sqz + sqw);
 }
 
-__forceinline__ __device__ GPU_quat quat_multiply(GPU_quat &a, GPU_quat &b) {
-	GPU_quat p;
+template<typename t_quat>
+__forceinline__ __device__ t_quat quat_multiply(t_quat &a, t_quat &b) {
+	t_quat p;
 	p.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
 	p.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
 	p.y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x;

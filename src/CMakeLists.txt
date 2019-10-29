@@ -215,8 +215,6 @@ IF(CUDA)
 		CUDA/cuda_utils/cuda_device_utils.cu
 		CUDA/Backends/CUDABaseBackend.cu
 		CUDA/Backends/MD_CUDABackend.cu
-		#CUDA/Backends/MD_CUDAMixedBackend.cu
-		#CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
 		CUDA/Interactions/CUDADNAInteraction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
@@ -238,6 +236,13 @@ IF(CUDA)
 		CUDA/Thermostats/CUDABussiThermostat.cu
 		Utilities/Timings.cpp
 	)
+	
+	IF(NOT CUDA_DOUBLE)
+		LIST(APPEND oxDNA_CUDASOURCES
+			CUDA/Backends/MD_CUDAMixedBackend.cu 
+			#CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
+		)
+	ENDIF(NOT CUDA_DOUBLE)
 	
 	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES} ${oxDNA_CUDASOURCES})
 	CUDA_ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)

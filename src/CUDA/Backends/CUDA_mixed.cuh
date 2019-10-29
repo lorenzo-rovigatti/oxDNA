@@ -8,7 +8,7 @@ __constant__ float MD_dt[1];
 // this function modifies L
 
 
-__device__ GPU_quat<double> _get_updated_orientation(LR_double4 &L, GPU_quat<double> &old_o) {
+__device__ GPU_quat_double _get_updated_orientation(LR_double4 &L, GPU_quat_double &old_o) {
 	double norm = sqrt(CUDA_DOT(L, L));
 	L.x /= norm;
 	L.y /= norm;
@@ -18,12 +18,12 @@ __device__ GPU_quat<double> _get_updated_orientation(LR_double4 &L, GPU_quat<dou
 	sincos(MD_dt[0] * norm, &sintheta, &costheta);
 	double qw = 0.5*sqrt(max(0., 2. + 2.*costheta));
 	double winv = (double)1.0 /qw;
-	GPU_quat<double> R = {0.5*L.x*sintheta*winv, 0.5*L.y*sintheta*winv, 0.5*L.z*sintheta*winv, qw};
+	GPU_quat_double R = {0.5*L.x*sintheta*winv, 0.5*L.y*sintheta*winv, 0.5*L.z*sintheta*winv, qw};
 	
-	return quat_multiply(old_o,R);
+	return quat_multiply(old_o, R);
 }
 
-__global__ void first_step_mixed(float4 *poss, GPU_quat<float> *orientations, LR_double4 *possd, GPU_quat<double> *orientationsd, float4 *list_poss, LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool *are_lists_old, bool any_rigid_body) {
+__global__ void first_step_mixed(float4 *poss, GPU_quat *orientations, LR_double4 *possd, GPU_quat_double *orientationsd, float4 *list_poss, LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool *are_lists_old, bool any_rigid_body) {
 	if(IND >= MD_N[0]) return;
 
 	float4 F = forces[IND];
@@ -57,15 +57,15 @@ __global__ void first_step_mixed(float4 *poss, GPU_quat<float> *orientations, LR
 		
 		Lsd[IND] = L;
 		
-		GPU_quat<double> new_o = _get_updated_orientation(L, orientationsd[IND]);
+		GPU_quat_double new_o = _get_updated_orientation(L, orientationsd[IND]);
 		orientationsd[IND] = new_o;
 
-		GPU_quat<float> new_of = {(float)new_o.x, (float)new_o.y, (float)new_o.z, (float)new_o.w};
+		GPU_quat new_of = {(float)new_o.x, (float)new_o.y, (float)new_o.z, (float)new_o.w};
 		orientations[IND] = new_of; 
 	}
 
 	// do verlet lists need to be updated?
-	if(quad_distance<float, float4>(rf, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
+	if(quad_distance(rf, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
 }
 
 __global__ void second_step_mixed(LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool any_rigid_body) {
@@ -106,18 +106,18 @@ __global__ void LR_double4_to_float4(LR_double4 *src, float4 *dest) {
 	dest[IND] = make_float4((float)tmp.x, (float)tmp.y, (float)tmp.z, tmp.w);
 }
 
-__global__ void float4_to_LR_double4(GPU_quat<float> *src, GPU_quat<double> *dest) {
+__global__ void float4_to_LR_double4(GPU_quat *src, GPU_quat_double *dest) {
 	if(IND >= MD_N[0]) return;
 
-	GPU_quat<float> tmp = src[IND];
-	GPU_quat<double> res = {(double)tmp.x, (double)tmp.y, (double)tmp.z, (double)tmp.w};
+	GPU_quat tmp = src[IND];
+	GPU_quat_double res = {(double)tmp.x, (double)tmp.y, (double)tmp.z, (double)tmp.w};
 	dest[IND] = res;
 }
 
-__global__ void LR_double4_to_float4(GPU_quat<double> *src, GPU_quat<float> *dest) {
+__global__ void LR_double4_to_float4(GPU_quat_double *src, GPU_quat *dest) {
 	if(IND >= MD_N[0]) return;
 
-	GPU_quat<double> tmp = src[IND];
-	GPU_quat<float> res = {(float)tmp.x, (float)tmp.y, (float)tmp.z, (float)tmp.w};
+	GPU_quat_double tmp = src[IND];
+	GPU_quat res = {(float)tmp.x, (float)tmp.y, (float)tmp.z, (float)tmp.w};
 	dest[IND] = res;
 }
