@@ -240,7 +240,7 @@ IF(CUDA)
 	IF(NOT CUDA_DOUBLE)
 		LIST(APPEND oxDNA_CUDASOURCES
 			CUDA/Backends/MD_CUDAMixedBackend.cu 
-			#CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
+			CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
 		)
 	ENDIF(NOT CUDA_DOUBLE)
 	

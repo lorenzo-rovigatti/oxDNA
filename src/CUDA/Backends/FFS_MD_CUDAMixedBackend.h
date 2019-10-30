@@ -15,7 +15,6 @@
 #include "../../Utilities/OrderParameters.h"
 #include "../../Backends/FFS_MD_CPUBackend.h" // for parsed_condition and parsed_expression defs
 
-
 /* This struct holds all the data (mostly host and device pointers) for a set of
  * conditions. We use a struct to do this because there might be different sets
  * of conditions e.g. for flux generation there is a set of forward conditions 
@@ -23,10 +22,10 @@
  * will have its own SimpleConditions struct containing to the conditions it is 
  * responsible for.
  */
-struct SimpleConditions{
+struct SimpleConditions {
 	// string containing name of condition set
 	char type[256];
-	
+
 	// variables needed to record host 2d variable-width arrays for hb_cond, 
 	// nearhb_cond and dist_cond
 	int hb_cond_len;
@@ -47,7 +46,7 @@ struct SimpleConditions{
 	int *h_hb_cond_types;
 	float *h_nearhb_cond_mags;
 	int *h_nearhb_cond_types;
-	
+
 	// variables needed to record device 2d variable-width arrays for hb_cond, 
 	// nearhb_cond and dist_cond
 	int *d_dist_cond_lens;
@@ -92,7 +91,7 @@ struct SimpleConditions{
  * }
  *
  */
-struct master_condition_element{
+struct master_condition_element {
 	// simple conditions that this master condition will check
 	SimpleConditions simple_conditions;
 
@@ -127,7 +126,7 @@ struct master_condition_element{
  * }
  * ...
  */
-struct master_condition{
+struct master_condition {
 	std::vector<master_condition_element> elements;
 	char name[256];
 	bool parse_master_condition(const char *expression, const char *fname);
@@ -145,20 +144,20 @@ struct master_condition{
  * Input options:
  * 
  * @verbatim
-backend = CUDA (For CUDA FFS -- NB unlike the CPU implementation, the CUDA implementation does not print extra columns with the current order parameter values whenever the energy is printed)
-backend_precision = mixed (CUDA FFS is currently only implemented for mixed precision)
-sim_type = FFS_MD (This must be set for an FFS simulation)
-order_parameters_file = <string> (path to the order parameters file)
-ffs_file = <string> (path to the file with the simulation stopping conditions. Optionally, one may use 'master conditions' (CUDA FFS only), which allow one to more easily handle very high dimensional order parameters. See the EXAMPLES/CUDA_FFS/README file for more information)
-[ffs_generate_flux = <bool> (CUDA FFS only. Default: False; if False, the simulation will run until a stopping condition is reached; if True, a flux generation simulation will be run, in which case reaching a condition will cause a configuration to be saved but will not terminate the simulation. In the stopping condition file, the conditions must be labelled forward1, forward2, ... (for the forward conditions); and backward1, backward2, ... (for the backward conditions), ... instead of condition1, condition2, ... . To get standard flux generation, set the forward and backward conditions to correspond to crossing the same interface (and use conditions corresponding to different interfaces for Tom's flux generation). As with the single shooting run mode, the name of the condition crossed will be printed to stderr each time.)]
-[gen_flux_save_every = <integer> (CUDA FFS only. Mandatory if ffs_generate_flux is True; save a configuration for 1 in every N forward crossings)]
-[gen_flux_total_crossings = <integer> (CUDA FFS only. Mandatory if ffs_generate_flux is True; stop the simulation after N crossings achieved)]
-[gen_flux_conf_prefix = <string> (CUDA FFS only. Mandatory if ffs_generate_flux is True; the prefix used for the file names of configurations corresponding to the saved forward crossings. Counting starts at zero so the 3rd crossing configuration will be saved as MY_PREFIX_N2.dat)]
-[gen_flux_debug = <bool> (CUDA FFS only. Default: False; In a flux generation simulation, set to true to save backward-crossing configurations for debugging)]
-[check_initial_state = <bool> (CUDA FFS only. Default: False; in a flux generation simulation, set to true to turn on initial state checking. In this mode an initial configuration that crosses the forward conditions after only 1 step will cause the code to complain and exit. Useful for checking that a flux generation simulation does not start out of the A-state)]
-[die_on_unexpected_master = <bool> (CUDA FFS only. Default: False; in a flux generation simulation that uses master conditions, set to true to cause the simulation to die if any master conditions except master_forward1 or master_backward1 are reached. Useful for checking that a flux generation simulation does not enter any unwanted free energy basins (i.e. other than the initial state and the desired final state))]
-[unexpected_master_prefix = <string> (CUDA FFS only. Mandatory if die_on_unexpected_master is True; the prefix used for the file names of configurations corresponding to reaching any unexpected master conditions (see die_on_unexpected_master).)]
-@endverbatim
+ backend = CUDA (For CUDA FFS -- NB unlike the CPU implementation, the CUDA implementation does not print extra columns with the current order parameter values whenever the energy is printed)
+ backend_precision = mixed (CUDA FFS is currently only implemented for mixed precision)
+ sim_type = FFS_MD (This must be set for an FFS simulation)
+ order_parameters_file = <string> (path to the order parameters file)
+ ffs_file = <string> (path to the file with the simulation stopping conditions. Optionally, one may use 'master conditions' (CUDA FFS only), which allow one to more easily handle very high dimensional order parameters. See the EXAMPLES/CUDA_FFS/README file for more information)
+ [ffs_generate_flux = <bool> (CUDA FFS only. Default: False; if False, the simulation will run until a stopping condition is reached; if True, a flux generation simulation will be run, in which case reaching a condition will cause a configuration to be saved but will not terminate the simulation. In the stopping condition file, the conditions must be labelled forward1, forward2, ... (for the forward conditions); and backward1, backward2, ... (for the backward conditions), ... instead of condition1, condition2, ... . To get standard flux generation, set the forward and backward conditions to correspond to crossing the same interface (and use conditions corresponding to different interfaces for Tom's flux generation). As with the single shooting run mode, the name of the condition crossed will be printed to stderr each time.)]
+ [gen_flux_save_every = <integer> (CUDA FFS only. Mandatory if ffs_generate_flux is True; save a configuration for 1 in every N forward crossings)]
+ [gen_flux_total_crossings = <integer> (CUDA FFS only. Mandatory if ffs_generate_flux is True; stop the simulation after N crossings achieved)]
+ [gen_flux_conf_prefix = <string> (CUDA FFS only. Mandatory if ffs_generate_flux is True; the prefix used for the file names of configurations corresponding to the saved forward crossings. Counting starts at zero so the 3rd crossing configuration will be saved as MY_PREFIX_N2.dat)]
+ [gen_flux_debug = <bool> (CUDA FFS only. Default: False; In a flux generation simulation, set to true to save backward-crossing configurations for debugging)]
+ [check_initial_state = <bool> (CUDA FFS only. Default: False; in a flux generation simulation, set to true to turn on initial state checking. In this mode an initial configuration that crosses the forward conditions after only 1 step will cause the code to complain and exit. Useful for checking that a flux generation simulation does not start out of the A-state)]
+ [die_on_unexpected_master = <bool> (CUDA FFS only. Default: False; in a flux generation simulation that uses master conditions, set to true to cause the simulation to die if any master conditions except master_forward1 or master_backward1 are reached. Useful for checking that a flux generation simulation does not enter any unwanted free energy basins (i.e. other than the initial state and the desired final state))]
+ [unexpected_master_prefix = <string> (CUDA FFS only. Mandatory if die_on_unexpected_master is True; the prefix used for the file names of configurations corresponding to reaching any unexpected master conditions (see die_on_unexpected_master).)]
+ @endverbatim
  */
 class FFS_MD_CUDAMixedBackend: public CUDAMixedBackend {
 protected:
@@ -189,7 +188,7 @@ protected:
 	SimpleConditions _sc_fwd;
 	SimpleConditions _sc_bwd;
 
-	ObservableOutput<float> *_obs_output_custom_conf;
+	ObservableOutputPtr _obs_output_custom_conf;
 
 	// for init_from_ffs_file
 	std::vector<parsed_condition> _conditions;
@@ -367,7 +366,6 @@ protected:
 	 */
 	bool _check_stop();
 
-
 public:
 	/**
 	 * @brief Constructor. Sets a load of default values
@@ -388,7 +386,7 @@ public:
 	 * @param inp input file
 	 */
 	void get_settings(input_file &inp);
-	
+
 	/**
 	 * @brief Move the simulation forward by one step; check for a stopping condition with _check_stop() 
 	 * and end the simulation if it returns True.
@@ -408,7 +406,7 @@ public:
 	 * @param curr_step current step
 	 */
 	virtual void print_observables(llint curr_step);
-	
+
 	/**
 	 * @brief Print a list of order parameter names and values to the string str. Designed to reproduce
 	 * the output at the end of a CPU FFS simulation 31/12/14
