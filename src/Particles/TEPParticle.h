@@ -14,8 +14,8 @@
 /**
  * @brief A particle of the TEP model. Used by TEPInteraction.
  */
-template<typename number>
-class TEPParticle: public BaseParticle<number> {
+
+class TEPParticle: public BaseParticle {
 protected:
 
 public:
@@ -31,7 +31,7 @@ public:
 		return true;
 	}
 
-	virtual bool is_bonded(BaseParticle<number> *q) {
+	virtual bool is_bonded(BaseParticle *q) {
 		return (this->n3 == q || this->n5 == q);
 	}
 };

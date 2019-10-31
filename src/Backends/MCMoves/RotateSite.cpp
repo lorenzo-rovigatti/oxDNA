@@ -9,19 +9,19 @@
 #include "RotateSite.h"
 #include "../../Particles/JordanParticle.h"
 
-template<typename number>
-RotateSite<number>::RotateSite () {
+
+RotateSite::RotateSite () {
 
 }
 
-template<typename number>
-RotateSite<number>::~RotateSite () {
+
+RotateSite::~RotateSite () {
 
 }
 
-template<typename number>
-void RotateSite<number>::get_settings (input_file &inp, input_file &sim_inp) {
-	BaseMove<number>::get_settings (inp, sim_inp);
+
+void RotateSite::get_settings (input_file &inp, input_file &sim_inp) {
+	BaseMove::get_settings (inp, sim_inp);
 
 	getInputNumber (&inp, "delta", &_delta, 1);
 	getInputNumber (&inp, "prob", &this->prob, 1);
@@ -29,13 +29,13 @@ void RotateSite<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	OX_LOG(Logger::LOG_INFO, "(RotateSite.cpp) RotateSite initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
-template<typename number>
-void RotateSite<number>::apply (llint curr_step) {
+
+void RotateSite::apply (llint curr_step) {
 
 	this->_attempted ++;
 
 	int pi = (int) (drand48() * (*this->_Info->N));
-	JordanParticle<number> *p = (JordanParticle<number> *)this->_Info->particles[pi];
+	JordanParticle *p = (JordanParticle *)this->_Info->particles[pi];
 
 	number delta_E;
 	if (this->_compute_energy_before) delta_E = -this->particle_energy(p);
@@ -46,10 +46,10 @@ void RotateSite<number>::apply (llint curr_step) {
 
 	// select site
 	int i_patch = (int) (drand48() * (p->N_int_centers));
-	LR_matrix<number> site_store = p->get_patch_rotation(i_patch);
+	LR_matrix site_store = p->get_patch_rotation(i_patch);
 
 	number t = drand48() * _delta;
-	LR_vector<number> axis = Utils::get_random_vector<number>();
+	LR_vector axis = Utils::get_random_vector();
 
 	number sintheta = sin(t);
 	number costheta = cos(t);
@@ -62,7 +62,7 @@ void RotateSite<number>::apply (llint curr_step) {
 	number ysin = axis.y * sintheta;
 	number zsin = axis.z * sintheta;
 
-	LR_matrix<number> R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin,
+	LR_matrix R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin,
 				xyo + zsin, axis.y * axis.y * olcos + costheta, yzo - xsin,
 				xzo - ysin, yzo + xsin, axis.z * axis.z * olcos + costheta);
 
@@ -108,6 +108,3 @@ void RotateSite<number>::apply (llint curr_step) {
 
 	return;
 }
-
-template class RotateSite<float>;
-template class RotateSite<double>;

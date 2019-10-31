@@ -15,35 +15,35 @@
  *
  * example section in the external forces file:
 
-\n
-{\n
-  particle = -1    # acts on all particles\n
-  type = sphere \n
-  r0 = 7.          # radius is 7 simulation unit lengths\n
-  stiff = 50.      # quite stiff. Good for MC, not for MD\n
-  rate = 0.        # constant radius\n
-  center = 0,0,0
-}\n\n
+ \n
+ {\n
+ particle = -1    # acts on all particles\n
+ type = sphere \n
+ r0 = 7.          # radius is 7 simulation unit lengths\n
+ stiff = 50.      # quite stiff. Good for MC, not for MD\n
+ rate = 0.        # constant radius\n
+ center = 0,0,0
+ }\n\n
 
  * @verbatim
-stiff = <float> (stiffness of the repulsion.)
-r0 = <float> (radius of the sphere, in simulation units.)
-rate = <float> (rate of growth of the radius. Note that the growth is linear in timesteps/MC steps, not reduced time units.)
-particle = <int> (index of the particle on which the force shall be applied. If -1, the force will be exerted on all the particles)
-[center = <float>,<float>,<float> (centre of the sphere, defaults to 0,0,0)]
-@endverbatim
-*/
-template<typename number>
-class RepulsiveSphere : public BaseForce<number> {
+ stiff = <float> (stiffness of the repulsion.)
+ r0 = <float> (radius of the sphere, in simulation units.)
+ rate = <float> (rate of growth of the radius. Note that the growth is linear in timesteps/MC steps, not reduced time units.)
+ particle = <int> (index of the particle on which the force shall be applied. If -1, the force will be exerted on all the particles)
+ [center = <float>,<float>,<float> (centre of the sphere, defaults to 0,0,0)]
+ @endverbatim
+ */
+
+class RepulsiveSphere: public BaseForce {
 private:
 	std::string _particles_string;
 
 	/// pointer to the box side
-	BaseBox<number> *_box_ptr;
+	BaseBox *_box_ptr;
 
 public:
 	/// center of the sphere
-	LR_vector<number> _center;
+	LR_vector _center;
 
 	/// initial radius of the sphere and rate of growth (linear in timesteps/MC steps, not reduced time units)
 	number _r0, _rate;
@@ -51,13 +51,14 @@ public:
 	number _r_ext;
 
 	RepulsiveSphere();
-	virtual ~RepulsiveSphere() {}
+	virtual ~RepulsiveSphere() {
+	}
 
-	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void get_settings(input_file &);
+	void init(BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif // REPULSIVESPHERE

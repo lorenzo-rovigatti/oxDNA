@@ -3,11 +3,11 @@
 #include "../Particles/DNANucleotide.h"
 
 
-template<typename number>
-DNA2Interaction<number>::DNA2Interaction() : DNAInteraction<number>() {
-	this->_int_map[DEBYE_HUCKEL] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_debye_huckel;
+
+DNA2Interaction::DNA2Interaction() : DNAInteraction() {
+	this->_int_map[DEBYE_HUCKEL] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)) &DNA2Interaction::_debye_huckel;
 	// I assume these are needed. I think the interaction map is used for when the observables want to print energy
-	this->_int_map[this->COAXIAL_STACKING] = (number (DNAInteraction<number>::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)) &DNA2Interaction<number>::_coaxial_stacking;
+	this->_int_map[this->COAXIAL_STACKING] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)) &DNA2Interaction::_coaxial_stacking;
 
 	this->F2_K[1] = CXST_K_OXDNA2;
 
@@ -22,9 +22,9 @@ DNA2Interaction<number>::DNA2Interaction() : DNAInteraction<number>() {
 	this->_fene_r0 = FENE_R0_OXDNA2;
 }
 
-template<typename number>
-number DNA2Interaction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+
+number DNA2Interaction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		if (q != P_VIRTUAL && p != P_VIRTUAL) {
 			computed_r = q->pos - p->pos;
@@ -42,9 +42,9 @@ number DNA2Interaction<number>::pair_interaction_bonded(BaseParticle<number> *p,
 	return energy;
 }
 
-template<typename number>
-number DNA2Interaction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+
+number DNA2Interaction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -63,9 +63,9 @@ number DNA2Interaction<number>::pair_interaction_nonbonded(BaseParticle<number> 
 	return energy;
 }
 
-template<typename number>
-void DNA2Interaction<number>::get_settings(input_file &inp) {
-	DNAInteraction<number>::get_settings(inp);
+
+void DNA2Interaction::get_settings(input_file &inp) {
+	DNAInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "salt_concentration", &_salt_concentration, 1);
 	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt concentration =  %g", this->_salt_concentration);
@@ -97,9 +97,9 @@ void DNA2Interaction<number>::get_settings(input_file &inp) {
 	if (this->_grooving && (getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) != KEY_FOUND)) OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
 }
 
-template<typename number>
-void DNA2Interaction<number>::init() {
-	DNAInteraction<number>::init();
+
+void DNA2Interaction::init() {
+	DNAInteraction::init();
 
 	// set the default values for the stacking and hbonding well depths for oxDNA2
 	// we overwrite the values set by DNAInteraction
@@ -155,15 +155,15 @@ void DNA2Interaction<number>::init() {
 
 }
 
-template<typename number>
-number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNA2Interaction::_debye_huckel(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number cut_factor = 1.0f;
 	if(p->is_bonded(q)) return (number) 0.f;
 	// for each particle that is on a terminus, halve the charge
 	if (this->_debye_huckel_half_charged_ends && (p->n3 == P_VIRTUAL || p->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
 	if (this->_debye_huckel_half_charged_ends && (q->n3 == P_VIRTUAL || q->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
 	
-	LR_vector<number> rback = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BACK];
+	LR_vector rback = *r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 	number rbackmod = rback.module();
 	number energy = (number) 0.f;
 
@@ -179,10 +179,10 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 		energy *= cut_factor; 
 
 		if(update_forces) {
-			LR_vector<number> force(0.,0.,0.);
-			LR_vector<number> torqueq(0.,0.,0.);
-			LR_vector<number> torquep(0.,0.,0.);
-			LR_vector<number> rbackdir = rback / rbackmod;
+			LR_vector force(0.,0.,0.);
+			LR_vector torqueq(0.,0.,0.);
+			LR_vector torquep(0.,0.,0.);
+			LR_vector rbackdir = rback / rbackmod;
 			
 			if(rbackmod < _debye_huckel_RHIGH){
 				force =  rbackdir *  ( -1.0f *  (_debye_huckel_prefactor * exp(_minus_kappa * rbackmod) ) *  (  _minus_kappa / rbackmod   - 1.0f /SQR(rbackmod) ) );
@@ -192,8 +192,8 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 			}
 			force *= cut_factor;
 			
-			torqueq = q->int_centers[DNANucleotide<number>::BACK].cross(force);
-			torquep = -p->int_centers[DNANucleotide<number>::BACK].cross(force);
+			torqueq = q->int_centers[DNANucleotide::BACK].cross(force);
+			torquep = -p->int_centers[DNANucleotide::BACK].cross(force);
 			
 			p->force -= force;
 			q->force += force;
@@ -207,22 +207,22 @@ number DNA2Interaction<number>::_debye_huckel(BaseParticle<number> *p, BaseParti
 }
 
 
-template<typename number>
-number DNA2Interaction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNA2Interaction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
-	LR_vector<number> rstack = *r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
+	LR_vector rstack = *r + q->int_centers[DNANucleotide::STACK] - p->int_centers[DNANucleotide::STACK];
 	number rstackmod = rstack.module();
 	number energy = (number) 0.f;
 
 	if(CXST_RCLOW < rstackmod && rstackmod < CXST_RCHIGH) {
-		LR_vector<number> rstackdir = rstack / rstackmod;
+		LR_vector rstackdir = rstack / rstackmod;
 
 		// particle axes according to Allen's paper
-		LR_vector<number> &a1 = p->orientationT.v1;
-		LR_vector<number> &a3 = p->orientationT.v3;
-		LR_vector<number> &b1 = q->orientationT.v1;
-		LR_vector<number> &b3 = q->orientationT.v3;
+		LR_vector &a1 = p->orientationT.v1;
+		LR_vector &a3 = p->orientationT.v3;
+		LR_vector &b1 = q->orientationT.v1;
+		LR_vector &b3 = q->orientationT.v3;
 
 		// angles involved in the CXST interaction
 		number cost1 = -a1 * b1;
@@ -241,9 +241,9 @@ number DNA2Interaction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseP
 
 		// makes sense since the above f? can return exacly 0.
 		if(update_forces && energy != 0.) {
-			LR_vector<number> force(0, 0, 0);
-			LR_vector<number> torquep(0, 0, 0);
-			LR_vector<number> torqueq(0, 0, 0);
+			LR_vector force(0, 0, 0);
+			LR_vector torquep(0, 0, 0);
+			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
 			number f2D      =  this->_f2D(rstackmod, CXST_F2);
@@ -256,7 +256,7 @@ number DNA2Interaction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseP
 			force = - rstackdir * (f2D * f4t1 * f4t4 * f4t5 * f4t6);
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			LR_vector<number> dir = a1.cross(b1);
+			LR_vector dir = a1.cross(b1);
 			number torquemod = - f2 * f4t1Dsin * f4t4 * f4t5 * f4t6;
 
 			torquep -= dir * torquemod;
@@ -286,8 +286,8 @@ number DNA2Interaction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseP
 			p->force -= force;
 			q->force += force;
 
-			torquep -= p->int_centers[DNANucleotide<number>::STACK].cross(force);
-			torqueq += q->int_centers[DNANucleotide<number>::STACK].cross(force);
+			torquep -= p->int_centers[DNANucleotide::STACK].cross(force);
+			torqueq += q->int_centers[DNANucleotide::STACK].cross(force);
 
 			// we need torques in the reference system of the particle
 			p->torque += p->orientationT * torquep;
@@ -298,22 +298,22 @@ number DNA2Interaction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseP
 	return energy;
 }
 
-template<typename number>
-number DNA2Interaction<number>::_fakef4_cxst_t1(number t, void * par) {
+
+number DNA2Interaction::_fakef4_cxst_t1(number t, void * par) {
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNA2Interaction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return this->_f4(acos(t), *((int*)par)) + _f4_pure_harmonic(acos(t), *((int*)par));
 }
 
-template<typename number>
-number DNA2Interaction<number>::_fakef4D_cxst_t1(number t, void * par) {
+
+number DNA2Interaction::_fakef4D_cxst_t1(number t, void * par) {
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNA2Interaction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return -this->_f4Dsin(acos(t), *((int*)par)) - _f4Dsin_pure_harmonic (acos(t), *((int*)par));
 }
 
-template<typename number>
-number DNA2Interaction<number>::_f4_pure_harmonic(number t, int type) {
+
+number DNA2Interaction::_f4_pure_harmonic(number t, int type) {
 	// for getting a f4t1 function with a continuous derivative that is less disruptive to the potential
 	number val = (number) 0;
 	t -= F4_THETA_SB[type];
@@ -323,8 +323,8 @@ number DNA2Interaction<number>::_f4_pure_harmonic(number t, int type) {
 	return val;
 }
 
-template<typename number>
-number DNA2Interaction<number>::_f4Dsin_pure_harmonic(number t, int type) {
+
+number DNA2Interaction::_f4Dsin_pure_harmonic(number t, int type) {
 	// for getting f4t1 function with a continuous derivative that is less disruptive to the potential
 	number val = (number) 0;
 	number tt0 = t - F4_THETA_SB[type];
@@ -338,8 +338,8 @@ number DNA2Interaction<number>::_f4Dsin_pure_harmonic(number t, int type) {
 	return val;
 }
 
-template<typename number>
-number DNA2Interaction<number>::_f4D_pure_harmonic(number t, int type) {
+
+number DNA2Interaction::_f4D_pure_harmonic(number t, int type) {
 	// for getting f4t1 function with a continuous derivative that is less disruptive to the potential
 	number val = (number) 0;
 	number tt0 = t - F4_THETA_SB[type];
@@ -348,9 +348,3 @@ number DNA2Interaction<number>::_f4D_pure_harmonic(number t, int type) {
 
 	return val;
 }
-
-template class DNA2Interaction<float>;
-template class DNA2Interaction<double>;
-
-template class DNA2Interaction_nomesh<float>;
-template class DNA2Interaction_nomesh<double>;

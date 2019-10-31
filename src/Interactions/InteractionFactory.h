@@ -15,16 +15,13 @@
  * @brief Static factory class. Its only public method builds an {@link IBaseInteraction interaction}.
  *
  * @verbatim
-[interaction_type = DNA|RNA|HS|LJ|patchy|patchyDan|TSP|DNA_relax|DNA_nomesh|Box|HardCylinder|HardSpheroCylinder|DHS|Dirk (Particle-particle interaction of choice. Check the documentation relative to the specific interaction for more details. Defaults to dna.)]
-@endverbatim
+ [interaction_type = DNA|RNA|HS|LJ|patchy|patchyDan|TSP|DNA_relax|DNA_nomesh|Box|HardCylinder|HardSpheroCylinder|DHS|Dirk (Particle-particle interaction of choice. Check the documentation relative to the specific interaction for more details. Defaults to dna.)]
+ @endverbatim
  */
 class InteractionFactory {
-private:
-	InteractionFactory();
 public:
-	virtual ~InteractionFactory();
-
-	template<typename number>
+	InteractionFactory() = delete;
+	virtual ~InteractionFactory() = delete;
 
 	/**
 	 * @brief Builds the interaction instance.
@@ -32,7 +29,7 @@ public:
 	 * @param inp
 	 * @return a pointer to the newly built interaction
 	 */
-	static IBaseInteraction<number> *make_interaction(input_file &inp);
+	static InteractionPtr make_interaction(input_file &inp);
 };
 
 #endif /* INTERACTIONFACTORY_H_ */

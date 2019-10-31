@@ -15,8 +15,8 @@
 /**
  * @brief Manages some kind of potential energy minimization
  */
-template<typename number>
-class MinBackend: public MDBackend<number> {
+
+class MinBackend: public MDBackend {
 protected:
 	void _compute_forces();
 	void _evolve();
@@ -28,7 +28,7 @@ public:
 	virtual ~MinBackend();
 
 	void init();
-	void get_settings (input_file &inp);
+	void get_settings(input_file &inp);
 	void sim_step(llint cur_step);
 	void activate_thermostat();
 };

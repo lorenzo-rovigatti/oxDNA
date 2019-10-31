@@ -20,15 +20,15 @@
  * All units are oxDNA units (time, force = energy / distance, ...)
  *
  * arguments:
-@verbatim
-particle = <int> (particle to apply the force to. -1 applies it to all particles.)
-F0 = <float> (Initial force)
-wait_time = <float> (time interval over which the force is constant. Units are (MD/MC) steps.)
-increment = <float> (amount by which to increment the force every wait_time steps.)
-@endverbatim
+ @verbatim
+ particle = <int> (particle to apply the force to. -1 applies it to all particles.)
+ F0 = <float> (Initial force)
+ wait_time = <float> (time interval over which the force is constant. Units are (MD/MC) steps.)
+ increment = <float> (amount by which to increment the force every wait_time steps.)
+ @endverbatim
  */
-template<typename number>
-class SawtoothForce : public BaseForce<number> {
+
+class SawtoothForce: public BaseForce {
 private:
 	int _particle;
 	float _wait_time;
@@ -38,11 +38,11 @@ public:
 	SawtoothForce();
 	virtual ~SawtoothForce();
 
-	void get_settings (input_file &);
-	void init (BaseParticle<number> **, int, BaseBox<number> *);
+	void get_settings(input_file &);
+	void init(BaseParticle **, int, BaseBox *);
 
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential (llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif /* SAWTOOTHFORCE_H_ */

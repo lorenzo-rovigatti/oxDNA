@@ -21,16 +21,16 @@
  * periodically. The constructor requires a string containing all the key=values associated to the instance.
  * The supported syntax is (optional values are between [])
  * @verbatim
-name = <string> (name of the output stream. stdout or stderr are accepted values)
-print_every = <integer> (frequency of output, in number steps for oxDNA, in number of configurations for DNAnalysis)
-[start_from = <integer> (start outputing from the given step, defaults to 0)]
-[stop_at = <integer> (stop outputing at this step, defaults to -1 (which means never))]
-[only_last = <bool> (if true, the output will not be appended to the stream, but it will overwrite the previous output each time, defaults to false)]
-[binary = <bool> (if true, the output will be printed in binary, defaults to false)]
-[linear = <bool> (if true the OutputObservable will save in linear scale, otherwise will use the logline scale by FS. Defaults to true)]
-[update_name_with_time = <bool> (if true the output filename will be changed by using the 'name' key as a prefix and the current step as a suffix. Defaults to false)]
-col_<n> = {\ntype = name of the first observable\n[other observable options as lines of 'key = value']\n} (this syntax specifies the column of the output file. Note that <n> is the column index and should start from 1)
-@endverbatim
+ name = <string> (name of the output stream. stdout or stderr are accepted values)
+ print_every = <integer> (frequency of output, in number steps for oxDNA, in number of configurations for DNAnalysis)
+ [start_from = <integer> (start outputing from the given step, defaults to 0)]
+ [stop_at = <integer> (stop outputing at this step, defaults to -1 (which means never))]
+ [only_last = <bool> (if true, the output will not be appended to the stream, but it will overwrite the previous output each time, defaults to false)]
+ [binary = <bool> (if true, the output will be printed in binary, defaults to false)]
+ [linear = <bool> (if true the OutputObservable will save in linear scale, otherwise will use the logline scale by FS. Defaults to true)]
+ [update_name_with_time = <bool> (if true the output filename will be changed by using the 'name' key as a prefix and the current step as a suffix. Defaults to false)]
+ col_<n> = {\ntype = name of the first observable\n[other observable options as lines of 'key = value']\n} (this syntax specifies the column of the output file. Note that <n> is the column index and should start from 1)
+ @endverbatim
  * You can have as many observables (columns) as you want. You can put them in any order, but there has to be a col_1 key.
  * In addition, in order to have, e.g., a col_4, you have to also have col_1, col_2 and col_3.
  *
@@ -40,10 +40,9 @@ col_<n> = {\ntype = name of the first observable\n[other observable options as l
  * For oxDNA, streams can be specified with 'data_output_\<n\>' keys, whereas for DNAnalysis, streams can be specified
  * with 'analysis_data_output_\<n\>' keys. In both cases, \<n\> is an integer starting from 1.
  */
-template<typename number>
 class ObservableOutput {
 protected:
-	std::vector<BaseObservable<number> *> _obss;
+	std::vector<ObservablePtr> _obss;
 	std::ofstream _output_stream;
 	std::ostream *_output;
 	llint _print_every;
@@ -85,7 +84,7 @@ public:
 	 * @brief Initialize the object
 	 * @param config_info an instance of {@link ConfigInfo} containing all the values stored in the backend which may be required by the observables
 	 */
-	void init(ConfigInfo<number> &config_info);
+	void init(ConfigInfo &config_info);
 
 	/**
 	 * @brief Adds the observable defined by obs_string to the list
@@ -127,13 +126,19 @@ public:
 	 * @brief Returns the number of bytes written to the output file
 	 *
 	 */
-	llint get_bytes_written() { return _bytes_written; }
+	llint get_bytes_written() {
+		return _bytes_written;
+	}
 
 	/**
 	 * @brief Returns the name of the file being written to as a string
 	 *
 	 */
-	std::string get_output_name () { return _output_name; }
+	std::string get_output_name() {
+		return _output_name;
+	}
 };
+
+using ObservableOutputPtr = std::shared_ptr<ObservableOutput>;
 
 #endif /* OBSERVABLEOUTPUT_H_ */

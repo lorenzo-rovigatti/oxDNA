@@ -38,13 +38,13 @@ max_q = 6.
  *
  *
  */
-template<typename number>
-class StructureFactor : public BaseObservable<number> {
+
+class StructureFactor : public BaseObservable {
 private:
 	long int _nconf;
 	number _max_q;
 	std::vector<long double> _sq, _sq_cos, _sq_sin;
-	std::list<LR_vector<double> > _qs;
+	std::list<LR_vector> _qs;
 	int _type;
 	int _max_qs_in_interval;
 	number _max_qs_delta;
@@ -55,7 +55,7 @@ public:
 	virtual ~StructureFactor();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 	virtual std::string get_output_string(llint curr_step);
 };
 

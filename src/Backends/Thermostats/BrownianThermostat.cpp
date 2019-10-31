@@ -8,8 +8,8 @@
 #include "BrownianThermostat.h"
 #include "../../Utilities/Utils.h"
 
-template<typename number>
-BrownianThermostat<number>::BrownianThermostat () : BaseThermostat<number>(){
+
+BrownianThermostat::BrownianThermostat () : BaseThermostat(){
 	_newtonian_steps = 0;
 	_pt = (number) 0.f;
 	_pr = (number) 0.f;
@@ -18,14 +18,14 @@ BrownianThermostat<number>::BrownianThermostat () : BaseThermostat<number>(){
 	_rescale_factor = (number) 0.f;
 }
 
-template<typename number>
-BrownianThermostat<number>::~BrownianThermostat () {
+
+BrownianThermostat::~BrownianThermostat () {
 
 }
 
-template<typename number>
-void BrownianThermostat<number>::get_settings (input_file &inp) {
-	BaseThermostat<number>::get_settings(inp);
+
+void BrownianThermostat::get_settings (input_file &inp) {
+	BaseThermostat::get_settings(inp);
 	getInputInt(&inp, "newtonian_steps", &_newtonian_steps, 1);
 	if(_newtonian_steps < 1) throw oxDNAException ("'newtonian_steps' must be > 0");
 	float tmp_pt, tmp_diff_coeff, tmp_dt;
@@ -39,9 +39,9 @@ void BrownianThermostat<number>::get_settings (input_file &inp) {
 	_dt = (number) tmp_dt;
 }
 
-template<typename number>
-void BrownianThermostat<number>::init(int N_part) {
-    BaseThermostat<number>::init(N_part);
+
+void BrownianThermostat::init(int N_part) {
+    BaseThermostat::init(N_part);
 	if(_pt == (number) 0.) _pt = (2 * this->_T *  _newtonian_steps * _dt)/(this->_T * _newtonian_steps * _dt + 2 * _diff_coeff);
 	if(_pt >= (number) 1.) throw oxDNAException ("pt (%f) must be smaller than 1", _pt);
 
@@ -53,21 +53,17 @@ void BrownianThermostat<number>::init(int N_part) {
 	_rescale_factor = sqrt(this->_T);
 }
 
-template<typename number>
-void BrownianThermostat<number>::apply (BaseParticle<number> **particles, llint curr_step) {
+
+void BrownianThermostat::apply (BaseParticle **particles, llint curr_step) {
 	if (!(curr_step % _newtonian_steps) == 0) return;
 
 	for(int i = 0; i < this->_N_part; i++) {
-		BaseParticle<number> *p = particles[i];
+		BaseParticle *p = particles[i];
 		if(drand48() < _pt) {
-			p->vel = LR_vector<number>(Utils::gaussian<number>(), Utils::gaussian<number>(), Utils::gaussian<number>()) * _rescale_factor;
+			p->vel = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
 		}
 		if(drand48() < _pr) {
-			p->L = LR_vector<number>(Utils::gaussian<number>(), Utils::gaussian<number>(), Utils::gaussian<number>()) * _rescale_factor;
+			p->L = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
 		}
 	}
 }
-
-template class BrownianThermostat<float>;
-template class BrownianThermostat<double>;
-

@@ -11,11 +11,11 @@
 
 #include "BaseMove.h"
 
-template<typename number>
-class ShapeMove : public BaseMove<number> {
+
+class ShapeMove : public BaseMove {
 	protected:
 		number _delta;
-		std::vector<LR_vector<number> > _pos_old;
+		std::vector<LR_vector > _pos_old;
 
 		number _verlet_skin;
 		number _P;

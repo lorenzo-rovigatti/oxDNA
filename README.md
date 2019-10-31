@@ -47,6 +47,8 @@ in the build/bin folder.
 * `-DSIGNAL=OFF` Handling system signals is not always supported. Set this flag to OFF to remove this feature
 * `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
 * `-DPYTHON=ON` Enables Python bindings
+* `-DDOUBLE=OFF` Set the numerical precision of the CPU backends to `float`
+* `-DCUDA_DOUBLE=ON` Set the numerical precision of the CUDA backends to `double`, which is not compatible with the `mixed` precision.
 
 ## `make` targets
 

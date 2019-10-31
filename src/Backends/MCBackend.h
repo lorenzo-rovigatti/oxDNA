@@ -27,21 +27,21 @@
  * takes care of the most basic input/output operations associated with MC simulations.
  *
  * @verbatim
-ensemble = nvt|npt (ensemble of the simulation)
-[check_energy_every = <float> (oxDNA will compute the energy from scratch, compare it with the current energy and throw an error if the difference is larger then check_energy_threshold. Defaults to 10.)]
-[check_energy_threshold = <float> (threshold for the energy check. Defaults to 1e-2f for single precision and 1e-6 for double precision.)]
+ ensemble = nvt|npt (ensemble of the simulation)
+ [check_energy_every = <float> (oxDNA will compute the energy from scratch, compare it with the current energy and throw an error if the difference is larger then check_energy_threshold. Defaults to 10.)]
+ [check_energy_threshold = <float> (threshold for the energy check. Defaults to 1e-2f for single precision and 1e-6 for double precision.)]
 
-delta_translation = <float> (controls the trial translational displacement, which is a randomly chosen number between -0.5*delta and 0.5*delta for each direction.)
-delta_rotation = <float> (controls the angular rotational displacement, given by a randomly chosen angle between -0.5*delta and 0.5*delta radians.)
-delta_volume = <float> (controls the volume change in npt simulations.)
+ delta_translation = <float> (controls the trial translational displacement, which is a randomly chosen number between -0.5*delta and 0.5*delta for each direction.)
+ delta_rotation = <float> (controls the angular rotational displacement, given by a randomly chosen angle between -0.5*delta and 0.5*delta radians.)
+ delta_volume = <float> (controls the volume change in npt simulations.)
 
-P = <float> (the pressure of the simulation. Used only if ensemble == npt.)
+ P = <float> (the pressure of the simulation. Used only if ensemble == npt.)
 
-[adjust_moves = <bool> (if true, oxDNA will run for equilibration_steps time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if equilibration_steps is 0 or not given. Defaults to false)]
-@endverbatim
+ [adjust_moves = <bool> (if true, oxDNA will run for equilibration_steps time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if equilibration_steps is 0 or not given. Defaults to false)]
+ @endverbatim
  */
-template<typename number>
-class MCBackend: public SimBackend<number> {
+
+class MCBackend: public SimBackend {
 protected:
 	int _MC_moves;
 	bool _overlap;
@@ -55,7 +55,6 @@ protected:
 	int _check_energy_counter;
 	number _check_energy_threshold;
 
-	void _get_number_settings(input_file &inp);
 	virtual void _compute_energy() = 0;
 
 public:

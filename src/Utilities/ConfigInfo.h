@@ -8,16 +8,16 @@
 #ifndef SRC_UTILITIES_CONFIGINFO_H_
 #define SRC_UTILITIES_CONFIGINFO_H_
 
-#define CONFIG_INFO ConfigInfo<number>::instance()
+#define CONFIG_INFO ConfigInfo::instance()
 
 #include "oxDNAException.h"
 
 #include <string>
 
-template <typename number> class IBaseInteraction;
-template <typename number> class BaseParticle;
-template <typename number> class BaseList;
-template <typename number> class BaseBox;
+ class IBaseInteraction;
+ class BaseParticle;
+ class BaseList;
+ class BaseBox;
 
 /**
  * @brief Utility class. It is used by observables to have access to SimBackend's private members.
@@ -28,7 +28,7 @@ template <typename number> class BaseBox;
  * doing it, but having a class like this allows us to easily pass information to the observables without having
  * to change the overall design.
  */
-template<typename number>
+
 class ConfigInfo {
 private:
 	static ConfigInfo *_config_info;
@@ -46,7 +46,7 @@ public:
 	 * @param info
 	 * @param l pointer to list object
 	 */
-	void set(BaseParticle<number> **p, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l, BaseBox<number> *abox);
+	void set(BaseParticle **p, IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox);
 
 	/**
 	 * @brief Returns a reference to the actual object. Static method to enforce the singleton pattern.
@@ -66,11 +66,11 @@ public:
 	static void clear();
 
 	///Pointer to the array which stores all the particles' information.
-	BaseParticle<number> **particles;
+	BaseParticle **particles;
 
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
-	IBaseInteraction<number> *interaction;
+	IBaseInteraction *interaction;
 
 	/// Number of particles.
 	int *N;
@@ -79,22 +79,22 @@ public:
 	std::string *backend_info;
 
 	/// Pointer to lists
-	BaseList<number> *lists;
+	BaseList *lists;
 
 	/// Pointer to box object
-	BaseBox<number> *box;
+	BaseBox *box;
 
 	/// Current simulation step
 	long long int curr_step;
 };
 
-template<typename number>
-inline ConfigInfo<number> &ConfigInfo<number>::ref_instance() {
+
+inline ConfigInfo &ConfigInfo::ref_instance() {
 	return *instance();
 }
 
-template<typename number>
-inline ConfigInfo<number> *ConfigInfo<number>::instance() {
+
+inline ConfigInfo *ConfigInfo::instance() {
 	if(_config_info == NULL) throw oxDNAException("Trying to access an uninitialised ConfigInfo object");
 
 	return _config_info;

@@ -7,15 +7,10 @@
 
 #include "CUDANoList.h"
 
-template<typename number, typename number4>
-CUDANoList<number, number4>::CUDANoList() {
+CUDANoList::CUDANoList() {
 
 }
 
-template<typename number, typename number4>
-CUDANoList<number, number4>::~CUDANoList() {
+CUDANoList::~CUDANoList() {
 
 }
-
-template class CUDANoList<float, float4>;
-template class CUDANoList<double, LR_double4>;

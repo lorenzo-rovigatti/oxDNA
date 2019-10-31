@@ -9,21 +9,21 @@
 #include "MCTras.h"
 
 /// traslation
-template<typename number>
-MCTras<number>::MCTras()  {
-	pos_old = LR_vector<number> (0., 0., 0.);
+
+MCTras::MCTras()  {
+	pos_old = LR_vector (0., 0., 0.);
 
 	_verlet_skin = -1.f;
 }
 
-template<typename number>
-MCTras<number>::~MCTras () {
+
+MCTras::~MCTras () {
 
 }
 
-template<typename number>
-void MCTras<number>::get_settings (input_file &inp, input_file &sim_inp) {
-	BaseMove<number>::get_settings (inp, sim_inp);
+
+void MCTras::get_settings (input_file &inp, input_file &sim_inp) {
+	BaseMove::get_settings (inp, sim_inp);
 
 	getInputNumber (&inp, "delta", &_delta, 1);
 
@@ -35,21 +35,21 @@ void MCTras<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	}
 }
 
-template<typename number>
-void MCTras<number>::init() {
-	BaseMove<number>::init();
+
+void MCTras::init() {
+	BaseMove::init();
 	OX_LOG(Logger::LOG_INFO, "(MCTras.cpp) MCtras initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
-template<typename number>
-void MCTras<number>::apply (llint curr_step) {
+
+void MCTras::apply (llint curr_step) {
 
 	// we increase the attempted count
 	this->_attempted += 1;
 
 	// we select the particle to translate
 	int pi = (int) (drand48() * (*this->_Info->N));
-	BaseParticle<number> *p = this->_Info->particles[pi];
+	BaseParticle *p = this->_Info->particles[pi];
 	if (this->_restrict_to_type >= 0) {
 		while(p->type != this->_restrict_to_type) {
 			pi = (int) (drand48() * (*this->_Info->N));
@@ -106,11 +106,8 @@ void MCTras<number>::apply (llint curr_step) {
 	return;
 }
 
-template<typename number>
-void MCTras<number>::log_parameters() {
-	BaseMove<number>::log_parameters();
+
+void MCTras::log_parameters() {
+	BaseMove::log_parameters();
 	OX_LOG(Logger::LOG_INFO, "\tdelta = %g", _delta);
 }
-
-template class MCTras<float>;
-template class MCTras<double>;

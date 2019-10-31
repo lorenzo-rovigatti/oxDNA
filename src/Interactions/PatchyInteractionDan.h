@@ -38,8 +38,8 @@
  *
  */
 
-template<typename number>
-class PatchyInteractionDan : public BaseInteraction<number, PatchyInteractionDan<number> > {
+
+class PatchyInteractionDan : public BaseInteraction<PatchyInteractionDan > {
 protected:
         /*//Flag to denote when initialisation of pointers is complete
          bool _initialised;*/
@@ -62,9 +62,9 @@ protected:
 	//Number of patches on each particle
         int *_patches_on_particle;
 	//Patch vector of each patch on each particle type
-        LR_vector<number> **_patch_vectors_type;
+        LR_vector **_patch_vectors_type;
 	//Patch vector of each patch on each particle
-        LR_vector<number> **_patch_vectors_particle;
+        LR_vector **_patch_vectors_particle;
 	//Patch type of each patch on each particle type
         int **_patch_type_of;
         //sigma_ang for each patch type
@@ -73,9 +73,9 @@ protected:
         number **_epsilon_patch;
 
 	//Reference vector for each patch on each particle type
-        LR_vector<number> **_ref_vectors_type;
+        LR_vector **_ref_vectors_type;
 	//Reference vector for each patch on each particle
-        LR_vector<number> **_ref_vectors_particle;
+        LR_vector **_ref_vectors_particle;
         //sigma_tor for each patch type interacting with each patch type
         number **_sigma_tor_patch;
 	//Number of equivalent offset angles for each patch type-patch type pair
@@ -102,7 +102,7 @@ protected:
 	 * @return
 	 */
 
-	inline number _patchy_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline number _patchy_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 public:
 //DT - bond type (irrelevant for me as all bonds are the same type; I use 4 = hydrogen bond as this allows me to use Observable/HBList & HBEnergy)
@@ -117,23 +117,23 @@ public:
 //All in main PatchyInteractionDan.cpp file
         virtual void get_settings(input_file &inp);
 	virtual void init();
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r = NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r = NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r = NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r = NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces=false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	/*16-06-07virtual void generate_random_configuration(BaseParticle<number> **particles, int N, number box_side);*/
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	/*16-06-07virtual void generate_random_configuration(BaseParticle **particles, int N, number box_side);*/
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 
 };
 
-template<typename number>
-number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number PatchyInteractionDan::_patchy_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
         //printf("PID.h, _patchy_interaction\n");
 
         //printf("PID.h (0) p->index (%d), q->index (%d), r-vector %f, %f, %f\n", p->index, q->index, r->x, r->y, r->z);
@@ -180,7 +180,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	/*Old code - think it is irrelevant
 	 //Update forces is always false
 	 if(update_forces) {
-	   LR_vector<number> force = *r * (PATCHY_POWER * part / sqr_r_dist);
+	   LR_vector force = *r * (PATCHY_POWER * part / sqr_r_dist);
 	   p->force -= force;
 	   q->force += force;
 	 }
@@ -188,8 +188,8 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	 //??Some sort of counter?
 	 int c = 0;
 
-	 LR_vector<number> tmptorquep(0, 0, 0);
-	 LR_vector<number> tmptorqueq(0, 0, 0);*/
+	 LR_vector tmptorquep(0, 0, 0);
+	 LR_vector tmptorqueq(0, 0, 0);*/
 
 	//Piecemeal potential; length units of sigma_LJ
 	if(r_dist < _r_crossover) {
@@ -207,7 +207,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	number V_tor;
 	/*number V_ang_p, V_ang_q, V_ang, V_ang_epsilon, V_tor, V_ang_V_tor_epsilon;
 	  number angle_r_p, angle_r_q;
-	  LR_vector<number> qpatch;*/
+	  LR_vector qpatch;*/
 	/*May be used later
 	 int max_patch_index[2] = {-1, -1};*/
 
@@ -216,8 +216,8 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	//FOR COMPARISONnumber max_V_tor = (number) 0.0;
 
 	//Recast BaseParticle's as PatchyParticleDan's, so can access members specific to PatchyParticleDan (in particular, _ref_vectors)
-	PatchyParticleDan<number> * pp = (PatchyParticleDan<number> *) p;
-	PatchyParticleDan<number> * qq = (PatchyParticleDan<number> *) q;
+	PatchyParticleDan * pp = (PatchyParticleDan *) p;
+	PatchyParticleDan * qq = (PatchyParticleDan *) q;
 
 	//Calculate cutoff values for cos of angle_r_p and angle_r_q, for each patch type; if angle_r_p or angle_r_q is such that G_ij or G_ji is less than cos_ang_cutoffs, we can avoid some expensive calculations
 	number min2_ln_Gcutoff = -2.0 * log(G_CUTOFF);
@@ -230,7 +230,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	/*number *V_ang_ps = new number[pp->N_int_centers];
 	  for(int p_patch = 0; p_patch < pp->N_int_centers; p_patch++) {
 	    //Define patch vectors; ppatch are vectors to patches from centre of particle
-	    LR_vector<number> ppatch = pp->int_centers[p_patch];
+	    LR_vector ppatch = pp->int_centers[p_patch];
 	    //Calculate angle between r and patch vector on p; second '*' in numerator is dot product
 	    number angle_r_p = LRACOS((*r * ppatch) / (r_dist * ppatch.module()));
 	    //Calculate G_ij and G_ji terms in patch-patch interaction
@@ -242,7 +242,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	number *V_ang_qs = new number[qq->N_int_centers];
 	for(int q_patch = 0; q_patch < qq->N_int_centers; q_patch++) {
 	  //Define patch vector; qpatch is vector to patch from centre of particle
-	  LR_vector<number> qpatch = qq->int_centers[q_patch];
+	  LR_vector qpatch = qq->int_centers[q_patch];
 	  //Calculate cosine of angle between REVERSE of r and patch vector on q (r is from p to q); second '*' in numerator is dot product
 	  number cos_angle_r_q = -(*r * qpatch) / (r_dist * qpatch.module());
 	  //If cos_angle_r_q is is less than cos_angle_cutoffs (for the given sigma_ang), we can avoid expensive acos and exp calculations
@@ -258,9 +258,9 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	for(int p_patch = 0; p_patch < pp->N_int_centers; p_patch++) {
 
 	  //Define patch vector and reference vector (ppatch is vector to patch from centre of particle, pref is reference vector for patch), and projection of particle reference vector onto the plane perpendicular to the interparticle vector, r ('*' between vectors is dot product)
-	  LR_vector<number> ppatch = pp->int_centers[p_patch];
-	  LR_vector<number> pref;
-	  LR_vector<number> proj_pref;
+	  LR_vector ppatch = pp->int_centers[p_patch];
+	  LR_vector pref;
+	  LR_vector proj_pref;
 	  if (_tor_flag == true) {
 	    pref = pp->_ref_vectors[p_patch];
 	    proj_pref = pref - (*r * ((pref * *r) / sqr_r_dist));
@@ -369,7 +369,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	      
 	      /*//Variables (explained when used)
 	      number dot_proj_pref_proj_qref, sign, angle_diff, sqr_angle_diff, angle_tor; // V_tor_offset;
-	      LR_vector<number> proj_pref, proj_qref, cross_proj_pref_proj_qref;
+	      LR_vector proj_pref, proj_qref, cross_proj_pref_proj_qref;
 	      */
 	      
 	      //Current minimum of square of angle_diff (difference between angle_tor and offset angle), across equivalent offset angles
@@ -412,8 +412,8 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 	      } else {
 		
 		//Define reference vector for patch on q, and projection of particle reference vector onto the plane perpendicular to the interparticle vector, r ('*' between vectors is dot product)
-		LR_vector<number> qref = qq->_ref_vectors[q_patch];
-		LR_vector<number> proj_qref = qref - (*r * ((qref * *r) / sqr_r_dist));
+		LR_vector qref = qq->_ref_vectors[q_patch];
+		LR_vector proj_qref = qref - (*r * ((qref * *r) / sqr_r_dist));
 		
 		/*printf(" qref .x %f .y %f .z %f\n", qref.x, qref.y, qref.z);
 		  printf(" proj_qref .x %f .y %f .z %f\n", proj_qref.x, proj_qref.y, proj_qref.z);*/
@@ -447,7 +447,7 @@ number PatchyInteractionDan<number>::_patchy_interaction(BaseParticle<number> *p
 		  number angle_tor;
 
 		  //Cross product of these projected vectors
-		  LR_vector<number> cross_proj_pref_proj_qref = proj_pref.cross(proj_qref);
+		  LR_vector cross_proj_pref_proj_qref = proj_pref.cross(proj_qref);
 		  
 		  /*printf("PID.h (9) cross_proj_pref_proj_qref.x (%.16lf), .y (%.16lf), .z (%.16lf)\n", cross_proj_pref_proj_qref.x, cross_proj_pref_proj_qref.y, cross_proj_pref_proj_qref.z);
 		    fflush(stdout);*/

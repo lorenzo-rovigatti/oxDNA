@@ -8,7 +8,7 @@
 
 #include "CUDA_mixed.cuh"
 
-CUDAMixedBackend::CUDAMixedBackend() : MD_CUDABackend<float, float4>() {
+CUDAMixedBackend::CUDAMixedBackend() : MD_CUDABackend() {
 	_d_possd = NULL;
 	_d_velsd = NULL;
 	_d_Lsd = NULL;
@@ -25,14 +25,14 @@ CUDAMixedBackend::~CUDAMixedBackend(){
 }
 
 void CUDAMixedBackend::init() {
-	MD_CUDABackend<float, float4>::init();
+	MD_CUDABackend::init();
 
 	_vec_sized = ((size_t)_N) * sizeof(LR_double4);
-	_orient_sized = ((size_t)_N) * sizeof(GPU_quat<double>);
+	_orient_sized = ((size_t)_N) * sizeof(GPU_quat_double);
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_possd, _vec_sized) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_velsd, _vec_sized) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_Lsd, _vec_sized) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat<double> >(&_d_orientationsd, _orient_sized) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat_double>(&_d_orientationsd, _orient_sized) );
 
 	_float4_to_LR_double4(_d_poss, _d_possd);
 	_quat_float_to_quat_double(_d_orientations, _d_orientationsd); 
@@ -41,9 +41,13 @@ void CUDAMixedBackend::init() {
 }
 
 void CUDAMixedBackend::_init_CUDA_MD_symbols() {
-	MD_CUDABackend<float, float4>::_init_CUDA_MD_symbols();
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &_sqr_verlet_skin, sizeof(float)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dt, &_dt, sizeof(float)) );
+	MD_CUDABackend::_init_CUDA_MD_symbols();
+
+	float f_copy = _sqr_verlet_skin;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &f_copy, sizeof(float)) );
+	f_copy = _dt;
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dt, &f_copy, sizeof(float)) );
+
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &_N, sizeof(int)) );
 }
 
@@ -61,18 +65,18 @@ void CUDAMixedBackend::_LR_double4_to_float4(LR_double4 *src, float4 *dest) {
 	CUT_CHECK_ERROR("LR_double4_to_float4 error");
 }
 
-void CUDAMixedBackend::_quat_float_to_quat_double(GPU_quat<float> *src, GPU_quat<double> *dest) {
+void CUDAMixedBackend::_quat_float_to_quat_double(GPU_quat *src, GPU_quat_double *dest) {
 	float4_to_LR_double4
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(src, dest);
-	CUT_CHECK_ERROR("LR_matrix_float_to_matrix_double error");
+	CUT_CHECK_ERROR("_quat_float_to_quat_double error");
 }
 
-void CUDAMixedBackend::_quat_double_to_quat_float(GPU_quat<double> *src, GPU_quat<float> *dest) {
+void CUDAMixedBackend::_quat_double_to_quat_float(GPU_quat_double *src, GPU_quat *dest) {
 	LR_double4_to_float4
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(src, dest);
-	CUT_CHECK_ERROR("LR_matrix_double_to_matrix_float error");
+	CUT_CHECK_ERROR("_quat_double_to_quat_float error");
 }
 
 void CUDAMixedBackend::_first_step() {
@@ -82,7 +86,7 @@ void CUDAMixedBackend::_first_step() {
 }
 
 void CUDAMixedBackend::_rescale_positions(float4 new_Ls, float4 old_Ls) {
-	MD_CUDABackend<float, float4>::_rescale_positions(new_Ls, old_Ls);
+	MD_CUDABackend::_rescale_positions(new_Ls, old_Ls);
 	_float4_to_LR_double4(_d_poss, _d_possd);
 }
 
@@ -91,7 +95,7 @@ void CUDAMixedBackend::_sort_particles() {
 	_LR_double4_to_float4(_d_velsd, _d_vels);
 	_LR_double4_to_float4(_d_Lsd, _d_Ls);
 	_quat_double_to_quat_float(_d_orientationsd, _d_orientations);
-	MD_CUDABackend<float, float4>::_sort_particles();
+	MD_CUDABackend::_sort_particles();
 	_quat_float_to_quat_double(_d_orientations, _d_orientationsd);
 	_float4_to_LR_double4(_d_poss, _d_possd);
 	_float4_to_LR_double4(_d_vels, _d_velsd);
@@ -117,11 +121,11 @@ void CUDAMixedBackend::_gpu_to_host_particles() {
 		_LR_double4_to_float4(_d_Lsd, _d_Ls);
 	}
 
-	MD_CUDABackend<float, float4>::_gpu_to_host_particles();
+	MD_CUDABackend::_gpu_to_host_particles();
 }
 
 void CUDAMixedBackend::_host_particles_to_gpu() {
-	MD_CUDABackend<float, float4>::_host_particles_to_gpu();
+	MD_CUDABackend::_host_particles_to_gpu();
 
 	// the first time this method gets called all these arrays have not been
 	// allocated yet. It's a bit of a hack but it's needed
@@ -137,7 +141,7 @@ void CUDAMixedBackend::_thermalize(llint curr_step) {
 	if(_cuda_thermostat->would_activate(curr_step)) {
 		_LR_double4_to_float4(_d_velsd, _d_vels);
 		_LR_double4_to_float4(_d_Lsd, _d_Ls);
-		MD_CUDABackend<float, float4>::_thermalize(curr_step);
+		MD_CUDABackend::_thermalize(curr_step);
 		_float4_to_LR_double4(_d_vels, _d_velsd);
 		_float4_to_LR_double4(_d_Ls, _d_Lsd);
 	}

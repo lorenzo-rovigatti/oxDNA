@@ -14,20 +14,20 @@
 /**
  * @brief Represents a RNA nucleotide. Used by RNAInteraction.
  */
-template<typename number>
-class RNANucleotide: public BaseParticle<number> {
+
+class RNANucleotide: public BaseParticle {
 protected:
 	static Model *model; //structure with all model constants
-	LR_vector<number> _principal_axis;
-	LR_vector<number> _stack_axis;
-	LR_vector<number> _third_axis;
+	LR_vector _principal_axis;
+	LR_vector _stack_axis;
+	LR_vector _third_axis;
 
 	void _set_back_position() {
 		this->orientationT = this->orientation.get_transpose();
 
-		LR_vector<number> a1 = this->orientationT.v1; // * _principal_axis;
-		LR_vector<number> a3 = this->orientationT.v3; // * _stack_axis;
-		LR_vector<number> a2 = this->orientationT.v2; //third_axis
+		LR_vector a1 = this->orientationT.v1; // * _principal_axis;
+		LR_vector a3 = this->orientationT.v3; // * _stack_axis;
+		LR_vector a2 = this->orientationT.v2; //third_axis
 
 		this->int_centers[BACK] =  a1 * model->RNA_POS_BACK_a1 + a2 * model->RNA_POS_BACK_a2 + a3 * model->RNA_POS_BACK_a3;
 		this->int_centers[BBVECTOR_3]  = a1 * model->p3_x + a2*model->p3_y  + a3 *model->p3_z;
@@ -35,8 +35,8 @@ protected:
 
 	}
 	void _set_stack_position() {
-		LR_vector<number> a1 = this->orientationT.v1; // * _principal_axis;
-		LR_vector<number> a2 = this->orientationT.v2; // * _stack_axis;
+		LR_vector a1 = this->orientationT.v1; // * _principal_axis;
+		LR_vector a2 = this->orientationT.v2; // * _stack_axis;
 
 		/*
 		a1 = orientation *_principal_axis;
@@ -71,7 +71,7 @@ public:
 
 	virtual ~RNANucleotide();
 
-	virtual bool is_bonded(BaseParticle<number> *q);
+	virtual bool is_bonded(BaseParticle *q);
 	virtual void set_positions();
 
 	virtual bool is_rigid_body() {

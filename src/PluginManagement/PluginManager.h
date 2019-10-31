@@ -32,17 +32,17 @@
  * this observable in two files, MyObservable.cpp and MyObservable.h. In order to provide the
  * required entry points we  add the following two lines at the end of the MyObservable.h file
  *
-@code
-extern "C" BaseObservable<float> *make_MyObservable_float() { return new MyObservable<float>(); }
-extern "C" BaseObservable<double> *make_MyObservable_double() { return new MyObservable<double>(); }
-@endcode
+ @code
+ extern "C" BaseObservable<float> *make_MyObservable_float() { return new MyObservable<float>(); }
+ extern "C" BaseObservable<double> *make_MyObservable_double() { return new MyObservable<double>(); }
+ @endcode
  *
  * Observable plugins should be compiled as dynamic libraries. On linux systems and with the gcc
  * compiler this can be done as follows
-@code
-g++ -O3 -fpic -c -lm MyObservable.cpp -I/PATH/TO/OXDNA/src/Observables/
-g++ -shared -o MyObservable.so MyObservable.o
-@endcode
+ @code
+ g++ -O3 -fpic -c -lm MyObservable.cpp -I/PATH/TO/OXDNA/src/Observables/
+ g++ -shared -o MyObservable.so MyObservable.o
+ @endcode
  * The final shared library, MyObservable.so, should be placed in a folder contained in the plugin
  * search path. This, by default, is the directory you run your simulation in. You can specify
  * additional paths by using the plugin_search_path key in the input file (see below for details).
@@ -54,16 +54,16 @@ g++ -shared -o MyObservable.so MyObservable.o
  * entry functions should be defined as follows (with the new class being named MyInteraction)
  *
  * @code
-extern "C" IBaseInteraction<float> *make_float() { return new MyInteraction<float>(); }
-extern "C" IBaseInteraction<double> *make_double() { return new MyInteraction<double>(); }
-@endcode
+ extern "C" IBaseInteraction<float> *make_float() { return new MyInteraction<float>(); }
+ extern "C" IBaseInteraction<double> *make_double() { return new MyInteraction<double>(); }
+ @endcode
  *
  * @verbatim
-[plugin_search_path = <string> (a semicolon-separated list of directories where plugins are looked for in, in addition to the current directory.)]
-[plugin_observable_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing observables, followed by either float or double.)]
-[plugin_interaction_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing interactions, followed by either float or double.)]
-[plugin_do_cleanup = <bool> (whether the PluginManager should perform a clean up at the end of the run. It should be set to false only when profiling code, since otherwise callgrind cannot read plugins' source files. It defaults to true.)]
-@endverbatim
+ [plugin_search_path = <string> (a semicolon-separated list of directories where plugins are looked for in, in addition to the current directory.)]
+ [plugin_observable_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing observables, followed by either float or double.)]
+ [plugin_interaction_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing interactions, followed by either float or double.)]
+ [plugin_do_cleanup = <bool> (whether the PluginManager should perform a clean up at the end of the run. It should be set to false only when profiling code, since otherwise callgrind cannot read plugins' source files. It defaults to true.)]
+ @endverbatim
  */
 class PluginManager {
 protected:
@@ -106,24 +106,25 @@ public:
 	void add_to_path(std::string s);
 
 	/**
-	 * @brief Looks for an {@link BaseObservable observable} plugin in the current plugin path and, if found, builds it and returns it as a pointer
+	 * @brief Looks for an {@link BaseObservable observable} plugin in the current plugin path and, if found, builds it and returns it as a shared pointer
 	 * @param name Case-sensitive name of the plugin
-	 * @return a pointer to the newly built plugin
+	 * @return a shared_ptr to the newly built plugin
 	 */
-	template<typename number>
-	BaseObservable<number> *get_observable(std::string name);
+	ObservablePtr get_observable(std::string name);
 
 	/**
-	 * @brief Looks for an {@link BaseInteraction interaction} plugin in the current plugin path and, if found, builds it and returns it as a pointer
+	 * @brief Looks for an {@link BaseInteraction interaction} plugin in the current plugin path and, if found, builds it and returns it as a shared pointer
 	 * @param name Case-sensitive name of the plugin
-	 * @return a pointer to the newly built plugin
+	 * @return a shared_ptr to the newly built plugin
 	 */
-	template<typename number>
-	IBaseInteraction<number> *get_interaction(std::string name);
+	InteractionPtr get_interaction(std::string name);
 
-	template<typename number>
-	BaseMove<number> *get_move(std::string name);
-
+	/**
+	 * @brief Looks for an {@link BaseInteraction interaction} plugin in the current plugin path and, if found, builds it and returns it as a shared pointer
+	 * @param name Case-sensitive name of the plugin
+	 * @return a shared_ptr to the newly built plugin
+	 */
+	MovePtr get_move(std::string name);
 
 	/**
 	 * @brief Cleans up the manager.

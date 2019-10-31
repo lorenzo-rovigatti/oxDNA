@@ -9,27 +9,27 @@
 #include "ShapeMove.h"
 
 /// traslation
-template<typename number>
-ShapeMove<number>::ShapeMove () {
+
+ShapeMove::ShapeMove () {
 	_verlet_skin = -1.f;
 }
 
-template<typename number>
-ShapeMove<number>::~ShapeMove () {
+
+ShapeMove::~ShapeMove () {
 
 }
 
-template<typename number>
-void ShapeMove<number>::init () {
-	BaseMove<number>::init();
+
+void ShapeMove::init () {
+	BaseMove::init();
 	_pos_old.resize (*this->_Info->N);
 	if (this->_restrict_to_type > 0) OX_LOG(Logger::LOG_WARNING, "(ShapeMove.cpp) Cant use ShapeMove with restrict_to_type. Ignoring");
 	OX_LOG(Logger::LOG_INFO, "(ShapeMove.cpp) ShapeMove initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
-template<typename number>
-void ShapeMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
-	BaseMove<number>::get_settings (inp, sim_inp);
+
+void ShapeMove::get_settings (input_file &inp, input_file &sim_inp) {
+	BaseMove::get_settings (inp, sim_inp);
 
 	getInputNumber (&inp, "delta", &_delta, 1);
 	getInputNumber (&inp, "prob", &this->prob, 0);
@@ -42,12 +42,12 @@ void ShapeMove<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	}
 }
 
-template<typename number>
-void ShapeMove<number>::apply (llint curr_step) {
+
+void ShapeMove::apply (llint curr_step) {
 	// we increase the attempted count
 	this->_attempted += 1;
 
-	BaseParticle<number> ** particles = this->_Info->particles;
+	BaseParticle ** particles = this->_Info->particles;
 	int N = *(this->_Info->N);
 
 	// select axis NOT to change
@@ -65,8 +65,8 @@ void ShapeMove<number>::apply (llint curr_step) {
 	//printf ("@#@@ preserving axis %d, changing %d and %d\n", preserved_axis, change_axis_1, change_axis_2);
 
 	number dL = _delta * (drand48() - (number) 0.5);
-	LR_vector<number> box_sides = this->_Info->box->box_sides();
-	LR_vector<number> old_box_sides = this->_Info->box->box_sides();
+	LR_vector box_sides = this->_Info->box->box_sides();
+	LR_vector old_box_sides = this->_Info->box->box_sides();
 
 	number oldE;
 	if (this->_compute_energy_before) oldE = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
@@ -86,7 +86,7 @@ void ShapeMove<number>::apply (llint curr_step) {
 
 	number dExt = (number) 0.f;
 	for (int k = 0; k < N; k ++) {
-		BaseParticle<number> *p = particles[k];
+		BaseParticle *p = particles[k];
 		dExt -= -p->ext_potential;
 		_pos_old[k] = p->pos;
 		// p->pos *= (1. + dL / box_sides[0]);
@@ -119,7 +119,7 @@ void ShapeMove<number>::apply (llint curr_step) {
 	else {
 		//printf ("reject: dE = %g\n", dE);
 		for (int k = 0; k < N; k ++) {
-			BaseParticle<number> *p = particles[k];
+			BaseParticle *p = particles[k];
 			p->pos = _pos_old[k];
 			p->set_ext_potential(curr_step, this->_Info->box);
 		}
@@ -138,11 +138,8 @@ void ShapeMove<number>::apply (llint curr_step) {
 	return;
 }
 
-template<typename number>
-void ShapeMove<number>::log_parameters() {
-	BaseMove<number>::log_parameters();
+
+void ShapeMove::log_parameters() {
+	BaseMove::log_parameters();
 	OX_LOG(Logger::LOG_INFO, "\tdelta = %g", _delta);
 }
-
-template class ShapeMove<float>;
-template class ShapeMove<double>;

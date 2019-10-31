@@ -9,7 +9,7 @@
 
 #include "mpi.h"
 
-template<typename number> PT_VMMC_CPUBackend<number>::PT_VMMC_CPUBackend() : VMMC_CPUBackend<number> () {
+PT_VMMC_CPUBackend::PT_VMMC_CPUBackend() : VMMC_CPUBackend () {
 	// parallel tempering
 	_npttemps = 4;
 	_pttemps = NULL;
@@ -21,19 +21,19 @@ template<typename number> PT_VMMC_CPUBackend<number>::PT_VMMC_CPUBackend() : VMM
 	_U_ext = (number) 0.;
 }
 
-template<typename number>
-PT_VMMC_CPUBackend<number>::~PT_VMMC_CPUBackend() {
+
+PT_VMMC_CPUBackend::~PT_VMMC_CPUBackend() {
 	delete [] _exchange_conf;
 	delete [] _pttemps;
 }
 
-template<typename number>
-void PT_VMMC_CPUBackend<number>::init () {
-	//VMMC_CPUBackend<number>::init(conf_input);
+
+void PT_VMMC_CPUBackend::init () {
+	//VMMC_CPUBackend::init(conf_input);
 
 	if(_oxRNA_stacking)
 	{
-		RNAInteraction<number> *it = dynamic_cast<RNAInteraction<number> *>(this->_interaction);
+		RNAInteraction *it = dynamic_cast<RNAInteraction *>(this->_interaction);
 		this->model = it->get_model();
 	}
 
@@ -46,9 +46,9 @@ void PT_VMMC_CPUBackend<number>::init () {
 	this->_conf_filename = string(my_conf_filename);
 
 	fprintf (stderr, "REPLICA %d: reading configuration from %s\n", _my_mpi_id, my_conf_filename);
-	VMMC_CPUBackend<number>::init();
+	VMMC_CPUBackend::init();
 
-	_exchange_conf = new PT_serialized_particle_info<number>[this->_N];
+	_exchange_conf = new PT_serialized_particle_info[this->_N];
 
 	// check that temperatures are in order...
 	bool check2 = true;
@@ -79,8 +79,8 @@ void PT_VMMC_CPUBackend<number>::init () {
 	//throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
 	// here we should create our own lists...
 
-	//VMMC_CPUBackend<number>::_compute_energy();
-	MC_CPUBackend<number>::_compute_energy();
+	//VMMC_CPUBackend::_compute_energy();
+	MC_CPUBackend::_compute_energy();
 
 	//fprintf (stderr, "REPLICA %d: Running at T=%g\n", _my_mpi_id, this->_T);
 
@@ -116,9 +116,9 @@ void PT_VMMC_CPUBackend<number>::init () {
 	}
 }
 
-template<typename number>
-void PT_VMMC_CPUBackend<number>::get_settings(input_file & inp) {
-	VMMC_CPUBackend<number>::get_settings(inp);
+
+void PT_VMMC_CPUBackend::get_settings(input_file & inp) {
+	VMMC_CPUBackend::get_settings(inp);
 	// let's get the temperatures at which to run PT
 	char tstring[512];
 
@@ -191,14 +191,14 @@ void PT_VMMC_CPUBackend<number>::get_settings(input_file & inp) {
 	if(inter_type.compare("RNA2") == 0 || inter_type.compare("RNA2") == 0) _oxRNA_stacking = true;
 }
 
-template <typename number>
-void PT_serialized_particle_info<number>::read_from (BaseParticle<number> * par) {
+
+void PT_serialized_particle_info::read_from (BaseParticle * par) {
 	pos = par->pos;
 	orientation= par->orientation;
 }
 
-template <typename number>
-void PT_serialized_particle_info<number>::write_to (BaseParticle<number> * par) {
+
+void PT_serialized_particle_info::write_to (BaseParticle * par) {
 	par->pos = pos;
 	par->orientation = orientation;
 
@@ -212,17 +212,17 @@ void PT_serialized_particle_info<number>::write_to (BaseParticle<number> * par) 
 
 }
 
-template<typename number>
-void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
+
+void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 	//printf("This is a step %ld in process %d, with ene %f \n",curr_step,_my_mpi_id,this->_U);
-	VMMC_CPUBackend<number>::sim_step(curr_step);
+	VMMC_CPUBackend::sim_step(curr_step);
 
 	if (curr_step % _pt_move_every == 0 && curr_step > 2) {
 
 		// if we have forces, we should compute the external potential
 		_U_ext = (number) 0.;
 		if (this->_external_forces) {
-			BaseParticle<number> * p;
+			BaseParticle * p;
 			for (int i = 0; i < this->_N; i ++) {
 				p = this->_particles[i];
 				p->set_ext_potential(curr_step, this->_box);
@@ -314,9 +314,9 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 					// send my conf over there
 					// store the other guy's
 					//printf ("(from %d) accepting exchange...\n", _my_mpi_id);
-					PT_serialized_particle_info<number> * buffer_conf;
-					PT_energy_info<number> buffer_energy;
-					buffer_conf = new PT_serialized_particle_info<number>[this->_N];
+					PT_serialized_particle_info * buffer_conf;
+					PT_energy_info buffer_energy;
+					buffer_conf = new PT_serialized_particle_info[this->_N];
 					for (int i = 0; i < this->_N; i ++) {
 						buffer_conf[i].pos = _exchange_conf[i].pos;
 						buffer_conf[i].orientation = _exchange_conf[i].orientation;
@@ -366,7 +366,7 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 					// send back either its old one or my old one;
 				}
 				//fprintf (stderr, "(replica %d) got %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
-				VMMC_CPUBackend<number>::_compute_energy ();
+				VMMC_CPUBackend::_compute_energy ();
 				//fprintf (stderr, "(replica %d) now %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
 			}
 		}
@@ -389,7 +389,7 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 				_rebuild_exchange_energy ();
 				_rebuild_exchange_conf ();
 				//fprintf (stdout, "(replica %d) got %lf %lf %lf AAA\n", _my_mpi_id, this->_U, this->_U_hydr, this->_U_stack);
-				VMMC_CPUBackend<number>::_compute_energy ();
+				VMMC_CPUBackend::_compute_energy ();
 				//printf("Received the following positions in process %d\n",_my_mpi_id);
 				//for (int kk = 0; kk < this->_N; kk++)
 			//	{
@@ -406,7 +406,7 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 		}
 		// we should se the forces again if we have swapped conf
 		if (this->_external_forces) {
-			BaseParticle<number> *p;
+			BaseParticle *p;
 			for (int i = 0; i < this->_N; i ++) {
 				p = this->_particles[i];
 				p->set_ext_potential(curr_step, this->_box);
@@ -418,41 +418,41 @@ void PT_VMMC_CPUBackend<number>::sim_step(llint curr_step) {
 	return;
 }
 
-template <typename number>
-void PT_VMMC_CPUBackend<number>::_send_exchange_energy (int other_id) {
+
+void PT_VMMC_CPUBackend::_send_exchange_energy (int other_id) {
 	//fprintf (stderr, "(replica %d) simian %lf %lf %lf\n", _my_mpi_id, _exchange_energy.U, _exchange_energy.U_hydr, _exchange_energy.U_stack);
 	//printf ("(from %d) sending energy info to %d\n", _my_mpi_id, other_id);
-	_MPI_send_block_data ((void *)(&_exchange_energy), sizeof(PT_energy_info<number>), other_id);
+	_MPI_send_block_data ((void *)(&_exchange_energy), sizeof(PT_energy_info), other_id);
 }
 
-template <typename number>
-void PT_VMMC_CPUBackend<number>::_get_exchange_energy (int other_id) {
+
+void PT_VMMC_CPUBackend::_get_exchange_energy (int other_id) {
 	//printf ("(from %d) waiting energy info from %d\n", _my_mpi_id, other_id);
-	_MPI_receive_block_data ((void *)(&_exchange_energy), sizeof(PT_energy_info<number>), other_id);
+	_MPI_receive_block_data ((void *)(&_exchange_energy), sizeof(PT_energy_info), other_id);
 }
 
-template <typename number>
-void PT_VMMC_CPUBackend<number>::_send_exchange_conf (int other_id) {
+
+void PT_VMMC_CPUBackend::_send_exchange_conf (int other_id) {
 	//printf ("(from %d) sending conf info to %d\n", _my_mpi_id, other_id);
-	_MPI_send_block_data ((void *)(_exchange_conf), this->_N * sizeof(PT_serialized_particle_info<number>), other_id);
+	_MPI_send_block_data ((void *)(_exchange_conf), this->_N * sizeof(PT_serialized_particle_info), other_id);
 }
 
-template <typename number>
-void PT_VMMC_CPUBackend<number>::_get_exchange_conf (int other_id) {
+
+void PT_VMMC_CPUBackend::_get_exchange_conf (int other_id) {
 	//printf ("(from %d) waiting conf info from %d\n", _my_mpi_id, other_id);
-	_MPI_receive_block_data ((void *)(_exchange_conf), this->_N * sizeof(PT_serialized_particle_info<number>), other_id);
+	_MPI_receive_block_data ((void *)(_exchange_conf), this->_N * sizeof(PT_serialized_particle_info), other_id);
 }
 
-template <typename number>
-void PT_VMMC_CPUBackend<number>::_build_exchange_conf() {
+
+void PT_VMMC_CPUBackend::_build_exchange_conf() {
 	for (int i = 0; i < this->_N; i ++) {
 		_exchange_conf[i].read_from(this->_particles[i]);
 	}
 	return;
 }
 
-template <typename number>
-void PT_VMMC_CPUBackend<number>::_build_exchange_energy() {
+
+void PT_VMMC_CPUBackend::_build_exchange_energy() {
 	_exchange_energy.U = this->_U;
 	_exchange_energy.U_hydr = this->_U_hydr;
 	_exchange_energy.U_stack = this->_U_stack;
@@ -463,8 +463,8 @@ void PT_VMMC_CPUBackend<number>::_build_exchange_energy() {
 }
 
 
-template <typename number>
-void PT_VMMC_CPUBackend<number>::_rebuild_exchange_energy() {
+
+void PT_VMMC_CPUBackend::_rebuild_exchange_energy() {
 	/*
 	this->_U = _exchange_energy.U;
 	this->_U_hydr = _exchange_energy.U_hydr;
@@ -484,20 +484,20 @@ void PT_VMMC_CPUBackend<number>::_rebuild_exchange_energy() {
 	// or not, but we don't want to overwrite our current one
 }
 
-template <typename number>
-void PT_VMMC_CPUBackend<number>::_rebuild_exchange_conf() {
-	BaseParticle<number> * p;
+
+void PT_VMMC_CPUBackend::_rebuild_exchange_conf() {
+	BaseParticle * p;
 	for (int i = 0; i < this->_N; i ++) {
 		p = this->_particles[i];
 		_exchange_conf[i].write_to(p);
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions ();
 	}
-	VMMC_CPUBackend<number>::_delete_cells ();
-	VMMC_CPUBackend<number>::_init_cells ();
+	VMMC_CPUBackend::_delete_cells ();
+	VMMC_CPUBackend::_init_cells ();
 
 	number tmpf,epq;
-	BaseParticle<number>  *q;
+	BaseParticle  *q;
 	for (int k = 0; k < this->_N; k ++) {
 			p = this->_particles[k];
 			if (p->n3 != P_VIRTUAL) {
@@ -544,12 +544,12 @@ void PT_VMMC_CPUBackend<number>::_rebuild_exchange_conf() {
 
         this->_op.fill_distance_parameters(this->_particles, this->_box);
 
-	//VMMC_CPUBackend<number>::_update_metainfo ();
+	//VMMC_CPUBackend::_update_metainfo ();
 	return;
 }
 
-template <typename number>
-int PT_VMMC_CPUBackend<number>::_MPI_send_block_data (void * data, size_t size, int node_to, int TAG) {
+
+int PT_VMMC_CPUBackend::_MPI_send_block_data (void * data, size_t size, int node_to, int TAG) {
 	int ret = MPI_Send((void *)data, size, MPI_CHAR, node_to, TAG, MPI_COMM_WORLD);
 	if(ret != MPI_SUCCESS) {
 		throw oxDNAException("Error while sending MPI message");
@@ -560,8 +560,8 @@ int PT_VMMC_CPUBackend<number>::_MPI_send_block_data (void * data, size_t size, 
 	}
 }
 
-template <typename number>
-int PT_VMMC_CPUBackend<number>::_MPI_receive_block_data (void *data, size_t size, int node_from, int TAG) {
+
+int PT_VMMC_CPUBackend::_MPI_receive_block_data (void *data, size_t size, int node_from, int TAG) {
 	MPI_Status stat;
 	int ret = MPI_Recv((void *)data, size, MPI_CHAR, node_from, TAG, MPI_COMM_WORLD, &stat);
 
@@ -574,8 +574,8 @@ int PT_VMMC_CPUBackend<number>::_MPI_receive_block_data (void *data, size_t size
 	}
 }
 
-template<typename number>
-number PT_VMMC_CPUBackend<number>::get_pt_acc () {
+
+number PT_VMMC_CPUBackend::get_pt_acc () {
 	if (_my_mpi_id == (_mpi_nprocs - 1)) {
 		// I am never responsible, so by definition...
 		return 0.;
@@ -585,8 +585,8 @@ number PT_VMMC_CPUBackend<number>::get_pt_acc () {
 	}
 }
 
-template<typename number>
-char * PT_VMMC_CPUBackend<number>::get_replica_info_str() {
+
+char * PT_VMMC_CPUBackend::get_replica_info_str() {
 	sprintf (_replica_info, "%d %d", _my_mpi_id, _which_replica);
 	return _replica_info;
 }

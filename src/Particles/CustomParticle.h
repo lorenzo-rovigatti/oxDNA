@@ -14,8 +14,8 @@
 /**
  * @brief A customisable particle. Used by CustomInteraction.
  */
-template<typename number>
-class CustomParticle: public BaseParticle<number> {
+
+class CustomParticle: public BaseParticle {
 protected:
 
 public:
@@ -24,10 +24,10 @@ public:
 
 	virtual bool is_rigid_body() { return false; }
 
-	virtual bool is_bonded(BaseParticle<number> *q);
-	virtual void add_bonded_neigh(CustomParticle<number> *nn);
+	virtual bool is_bonded(BaseParticle *q);
+	virtual void add_bonded_neigh(CustomParticle *nn);
 
-	std::set<CustomParticle<number> *> bonded_neighs;
+	std::set<CustomParticle *> bonded_neighs;
 };
 
 #endif /* CUSTOMPARTICLE_H_ */

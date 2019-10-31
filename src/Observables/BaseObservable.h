@@ -16,14 +16,19 @@
 /**
  * @brief Abstract class defining the basic interface for observables.
  */
-template <typename number>
+
 class BaseObservable {
 protected:
 	/// Stores all the backend's information that may be needed by the observable
-	ConfigInfo<number> &_config_info;
+	ConfigInfo &_config_info;
 public:
-	BaseObservable() : _config_info(ConfigInfo<number>::ref_instance()) {};
-	virtual ~BaseObservable() {};
+	BaseObservable() :
+					_config_info(ConfigInfo::ref_instance()) {
+	}
+	;
+	virtual ~BaseObservable() {
+	}
+	;
 
 	/**
 	 * @brief Returns the string to be printed in the output stream.
@@ -39,14 +44,18 @@ public:
 	 * @param my_inp
 	 * @param sim_inp
 	 */
-	virtual void get_settings (input_file &my_inp, input_file &sim_inp) {}
+	virtual void get_settings(input_file &my_inp, input_file &sim_inp) {
+	}
 
 	/**
 	 * @brief Initializes the observable. This basic implementation copies the passed config_info.
 	 *
 	 * @param config_info
 	 */
-	virtual void init(ConfigInfo<number> &config_info) { }
+	virtual void init(ConfigInfo &config_info) {
+	}
 };
+
+using ObservablePtr = std::shared_ptr<BaseObservable>;
 
 #endif /* BASEOBSERVABLE_H_ */

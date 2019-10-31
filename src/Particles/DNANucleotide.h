@@ -13,14 +13,14 @@
 /**
  * @brief Represents a DNA nucleotide. Used by DNAInteraction.
  */
-template<typename number>
-class DNANucleotide: public BaseParticle<number> {
+
+class DNANucleotide: public BaseParticle {
 protected:
 	bool _grooving;
 public:
-	const static LR_vector<number> principal_axis;
-	const static LR_vector<number> stack_axis;
-	const static LR_vector<number> third_axis;
+	const static LR_vector principal_axis;
+	const static LR_vector stack_axis;
+	const static LR_vector third_axis;
 
 	enum {
 		BACK = 0,
@@ -31,7 +31,7 @@ public:
 	DNANucleotide(bool grooving);
 	virtual ~DNANucleotide();
 
-	virtual bool is_bonded(BaseParticle<number> *q);
+	virtual bool is_bonded(BaseParticle *q);
 	virtual void set_positions();
 
 	virtual bool is_rigid_body() {

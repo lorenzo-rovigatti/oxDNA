@@ -19,17 +19,13 @@ using std::vector;
 
 PluginManager *PluginManager::_manager = NULL;
 
-typedef BaseObservable<float>* make_float_obs();
-typedef BaseObservable<double>* make_double_obs();
+typedef BaseObservable* make_obs();
+typedef IBaseInteraction* make_inter();
+typedef BaseMove* make_move();
 
-typedef IBaseInteraction<float>* make_float_inter();
-typedef IBaseInteraction<double>* make_double_inter();
-
-typedef BaseMove<float>* make_float_move();
-typedef BaseMove<double>* make_double_move();
-
-
-PluginManager::PluginManager() : _initialised(false), _do_cleanup(true) {
+PluginManager::PluginManager() :
+				_initialised(false),
+				_do_cleanup(true) {
 	_path.push_back(string("."));
 }
 
@@ -46,24 +42,28 @@ void PluginManager::init(input_file &sim_inp) {
 	string ppath;
 	if(getInputString(&sim_inp, "plugin_search_path", ppath, 0) == KEY_FOUND) {
 		vector<string> paths = Utils::split(ppath, ':');
-		for(vector<string>::iterator it = paths.begin(); it < paths.end(); it++) add_to_path(*it);
+		for(vector<string>::iterator it = paths.begin(); it < paths.end(); it++)
+			add_to_path(*it);
 	}
 
 	string entries;
 	// for observables
 	if(getInputString(&sim_inp, "plugin_observable_entry_points", entries, 0) == KEY_FOUND) {
 		vector<string> v_entries = Utils::split(entries, ':');
-		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _obs_entry_points.push_back(*it);
+		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++)
+			_obs_entry_points.push_back(*it);
 	}
 	// for interactions
 	if(getInputString(&sim_inp, "plugin_interaction_entry_points", entries, 0) == KEY_FOUND) {
 		vector<string> v_entries = Utils::split(entries, ':');
-		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _inter_entry_points.push_back(*it);
+		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++)
+			_inter_entry_points.push_back(*it);
 	}
 
 	if(getInputString(&sim_inp, "plugin_move_entry_points", entries, 0) == KEY_FOUND) {
-			vector<string> v_entries = Utils::split(entries, ':');
-			for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++) _move_entry_points.push_back(*it);
+		vector<string> v_entries = Utils::split(entries, ':');
+		for(vector<string>::iterator it = v_entries.begin(); it < v_entries.end(); it++)
+			_move_entry_points.push_back(*it);
 	}
 
 	// these are the default entry point names
@@ -125,8 +125,7 @@ void *PluginManager::_get_entry_point(void *handle, string name, vector<string> 
 	return res;
 }
 
-template<typename number>
-BaseObservable<number> *PluginManager::get_observable(string name) {
+ObservablePtr PluginManager::get_observable(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
@@ -134,20 +133,10 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 	// we have no way of using templates
 	void *temp_obs;
 	bool found = false;
-	// choose between float and double
-	if(sizeof(number) == 4) {
-		make_float_obs *make_obs = (make_float_obs *) _get_entry_point(handle, name, _obs_entry_points, string("float"));
-		if(make_obs != NULL) {
-			temp_obs = (void *)make_obs();
-			found = true;
-		}
-	}
-	else {
-		make_double_obs *make_obs = (make_double_obs *) _get_entry_point(handle, name, _obs_entry_points, string("double"));
-		if(make_obs != NULL) {
-			temp_obs = (void *)make_obs();
-			found = true;
-		}
+	make_obs *make_new_obs = (make_obs *) _get_entry_point(handle, name, _obs_entry_points, string("float"));
+	if(make_new_obs != NULL) {
+		temp_obs = (void *) make_new_obs();
+		found = true;
 	}
 
 	if(!found) {
@@ -156,49 +145,10 @@ BaseObservable<number> *PluginManager::get_observable(string name) {
 	}
 
 	// now we cast it back to the type required by the code
-	return static_cast<BaseObservable<number> *>(temp_obs);
+	return ObservablePtr((BaseObservable *) temp_obs);
 }
 
-
-
-template<typename number>
-BaseMove<number> *PluginManager::get_move(std::string name)
-{
-	void *handle = _get_handle(name);
-	if(handle == NULL) return NULL;
-
-	// we do this c-like because dynamic linking can be done only in c and thus
-	// we have no way of using templates
-	void *temp_move;
-	bool found = false;
-	// choose between float and double
-	if(sizeof(number) == 4) {
-		make_float_move *make_move = (make_float_move *) _get_entry_point(handle, name, _move_entry_points, string("float"));
-		if(make_move != NULL) {
-			temp_move = (void *)make_move();
-			found = true;
-		}
-	}
-	else {
-		make_double_move *make_move = (make_double_move *) _get_entry_point(handle, name, _move_entry_points, string("double"));
-		if(make_move != NULL) {
-			temp_move = (void *)make_move();
-			found = true;
-		}
-	}
-
-	if(!found) {
-		OX_LOG(Logger::LOG_WARNING, "Cannot load symbol from plugin interaction library '%s'", name.c_str());
-		return NULL;
-	}
-
-	// now we cast it back to the type required by the code
-	return static_cast<BaseMove<number> *>(temp_move);
-
-}
-
-template<typename number>
-IBaseInteraction<number> *PluginManager::get_interaction(string name) {
+InteractionPtr PluginManager::get_interaction(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
@@ -206,20 +156,10 @@ IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 	// we have no way of using templates
 	void *temp_inter;
 	bool found = false;
-	// choose between float and double
-	if(sizeof(number) == 4) {
-		make_float_inter *make_inter = (make_float_inter *) _get_entry_point(handle, name, _inter_entry_points, string("float"));
-		if(make_inter != NULL) {
-			temp_inter = (void *)make_inter();
-			found = true;
-		}
-	}
-	else {
-		make_double_inter *make_inter = (make_double_inter *) _get_entry_point(handle, name, _inter_entry_points, string("double"));
-		if(make_inter != NULL) {
-			temp_inter = (void *)make_inter();
-			found = true;
-		}
+	make_inter *make_new_inter = (make_inter *) _get_entry_point(handle, name, _inter_entry_points, string("float"));
+	if(make_new_inter != NULL) {
+		temp_inter = (void *) make_new_inter();
+		found = true;
 	}
 
 	if(!found) {
@@ -228,7 +168,31 @@ IBaseInteraction<number> *PluginManager::get_interaction(string name) {
 	}
 
 	// now we cast it back to the type required by the code
-	return static_cast<IBaseInteraction<number> *>(temp_inter);
+	return InteractionPtr((IBaseInteraction *)temp_inter);
+}
+
+MovePtr PluginManager::get_move(std::string name) {
+	void *handle = _get_handle(name);
+	if(handle == NULL) return NULL;
+
+	// we do this c-like because dynamic linking can be done only in c and thus
+	// we have no way of using templates
+	void *temp_move;
+	bool found = false;
+	make_move *make_new_move = (make_move *) _get_entry_point(handle, name, _move_entry_points, string("float"));
+	if(make_new_move != NULL) {
+		temp_move = (void *) make_new_move();
+		found = true;
+	}
+
+	if(!found) {
+		OX_LOG(Logger::LOG_WARNING, "Cannot load symbol from plugin interaction library '%s'", name.c_str());
+		return NULL;
+	}
+
+	// now we cast it back to the type required by the code
+	return MovePtr((BaseMove *)temp_move);
+
 }
 
 void PluginManager::clear() {
@@ -247,14 +211,3 @@ PluginManager *PluginManager::instance() {
 
 	return _manager;
 }
-
-template BaseObservable<float> *PluginManager::get_observable(string name);
-template BaseObservable<double> *PluginManager::get_observable(string name);
-
-template IBaseInteraction<float> *PluginManager::get_interaction(string name);
-template IBaseInteraction<double> *PluginManager::get_interaction(string name);
-
-
-
-template BaseMove<float> *PluginManager::get_move(string name);
-template BaseMove<double> *PluginManager::get_move(string name);

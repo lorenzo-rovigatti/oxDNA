@@ -25,8 +25,8 @@
 
 #include "DNAInteraction.h"
 
-template<typename number>
-class DNA2Interaction: public DNAInteraction<number> {
+
+class DNA2Interaction: public DNAInteraction {
 
 protected:
 	float _salt_concentration;
@@ -67,7 +67,7 @@ protected:
 	}
 
 public:
-	virtual number _debye_huckel(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
         enum {
 		DEBYE_HUCKEL = 7
@@ -75,8 +75,8 @@ public:
 	DNA2Interaction();
 	virtual ~DNA2Interaction() {}
     
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
 
 	virtual void get_settings(input_file &inp);
 	virtual void init();
@@ -84,7 +84,7 @@ public:
 	number _fakef4_cxst_t1(number t, void * par);
 	number _fakef4D_cxst_t1(number t, void * par);
 
-	virtual number _coaxial_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 	number F4_THETA_SA[13];
 	number F4_THETA_SB[13];
@@ -96,8 +96,8 @@ public:
  * This interaction is selected with
  * interaction_type = DNA2_nomesh
  */
-template <typename number>
-class DNA2Interaction_nomesh : public DNA2Interaction<number> {
+
+class DNA2Interaction_nomesh : public DNA2Interaction {
 protected:
 
 	/**

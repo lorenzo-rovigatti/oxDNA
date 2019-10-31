@@ -14,10 +14,10 @@
 /**
  * @brief CUDA implementation of the oxDNA model, as provided by DNAInteraction.
  */
-template<typename number, typename number4>
-class CUDADNAInteraction: public CUDABaseInteraction<number, number4>, public DNAInteraction<number> {
+
+class CUDADNAInteraction: public CUDABaseInteraction, public DNAInteraction {
 public:
-        enum {
+	enum {
 		DEBYE_HUCKEL = 7
 	};
 	CUDADNAInteraction();
@@ -26,7 +26,7 @@ public:
 	bool _use_debye_huckel;
 	bool _use_oxDNA2_coaxial_stacking;
 	bool _use_oxDNA2_FENE;
-	// copied from DNA2Interaction.h (CPU) (and change number -> float), the least bad way of doing things
+	// copied from DNA2Interaction.h (CPU) (and change c_number -> float), the least bad way of doing things
 	float _salt_concentration;
 	bool _debye_huckel_half_charged_ends;
 	float _debye_huckel_prefactor;
@@ -40,13 +40,15 @@ public:
 	// End copy from DNA2Interaction.h
 
 	void get_settings(input_file &inp);
-	void cuda_init(number box_side, int N);
-	number get_cuda_rcut() { return this->get_rcut(); }
+	void cuda_init(c_number box_side, int N);
+	c_number get_cuda_rcut() {
+		return this->get_rcut();
+	}
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_qorientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
-	void _hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox<number, number4> *d_box);
-	void _near_hb_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox<number, number4> *d_box);
-	void _dist_op_precalc(number4 *poss, GPU_quat<number> *orientations, int *op_pairs1, int *op_pairs2, number *op_dists, int n_threads, CUDA_kernel_cfg dist_kernel_cfg, CUDABox<number, number4> *d_box);
+	void compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_qorientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
+	void _hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox*d_box);
+	void _near_hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox*d_box);
+	void _dist_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads, CUDA_kernel_cfg dist_kernel_cfg, CUDABox*d_box);
 };
 
 #endif /* CUDADNAINTERACTION_H_ */

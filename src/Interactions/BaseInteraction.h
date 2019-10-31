@@ -31,10 +31,10 @@ using namespace std;
  * http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern) and therefore
  * we have to keep this class and BaseInteraction separated.
  */
-template <typename number>
+
 class IBaseInteraction {
 protected:
-	BaseBox<number> *_box;
+	BaseBox *_box;
 
 	/// This is useful for "hard" potentials
 	bool _is_infinite;
@@ -53,7 +53,7 @@ public:
 	IBaseInteraction();
 	virtual ~IBaseInteraction();
 
-	virtual void set_box(BaseBox<number> *box) { _box = box; }
+	virtual void set_box(BaseBox *box) { _box = box; }
 
 	virtual void get_settings(input_file &inp);
 
@@ -68,7 +68,7 @@ public:
 	 * @param particles
 	 * @param N
 	 */
-	virtual void allocate_particles(BaseParticle<number> **particles, int N) = 0;
+	virtual void allocate_particles(BaseParticle **particles, int N) = 0;
 
 	/**
 	 * @brief Returns the maximum cut-off associated to the interaction
@@ -84,7 +84,7 @@ public:
 	 * @param particles
 	 * @param N
 	 */
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N) = 0;
+	virtual void check_input_sanity(BaseParticle **particles, int N) = 0;
 
 	/**
 	 * @brief Computes the total interaction between particles p and q.
@@ -96,21 +96,21 @@ public:
 	 * @param update_forces
 	 * @return pair-interaction energy
 	 */
-	virtual number pair_interaction (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) = 0;
+	virtual number pair_interaction (BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) = 0;
 
 	/**
 	 * @brief Computes the bonded part interaction between particles p and q.
 	 *
 	 * See {\@link pair_interaction} for a description of the parameters.
 	 */
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) = 0;
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) = 0;
 
 	/**
 	 * @brief Computed the non bonded part of the interaction between particles p and q.
 	 *
 	 * See {\@link pair_interaction} for a description of the parameters.
 	 */
-	virtual number pair_interaction_nonbonded (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) = 0;
+	virtual number pair_interaction_nonbonded (BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) = 0;
 
 	/**
 	 * @brief Computes the requested term of the interaction energy between p and q.
@@ -122,7 +122,7 @@ public:
 	 * @param update_forces
 	 * @return
 	 */
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) = 0;
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) = 0;
 
 	/**
 	 * @brief Returns the total potential energy of the system, given a box size
@@ -131,7 +131,7 @@ public:
 	 * @param N
 	 * @return
 	 */
-	virtual number get_system_energy(BaseParticle<number> **particles, int N, BaseList<number> *lists);
+	virtual number get_system_energy(BaseParticle **particles, int N, BaseList *lists);
 
 	/**
 	 * @brief Like get_system_energy_term, just that the box size can be specified in this case
@@ -141,7 +141,7 @@ public:
 	 * @param N
 	 * @return the required energy contribution
 	 */
-	virtual number get_system_energy_term(int name, BaseParticle<number> **particles, int N, BaseList<number> *lists);
+	virtual number get_system_energy_term(int name, BaseParticle **particles, int N, BaseList *lists);
 
 	/**
 	 * @brief Read the topology of the interactions. The defaut
@@ -157,7 +157,7 @@ public:
 	 * number of "strands" (unbreakable clusters of connected particles)
 	 * @param particles array of particles.
 	 */
-	virtual void read_topology (int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void read_topology (int N, int *N_strands, BaseParticle **particles);
 
 	/**
 	 * @brief Returns the number of particles, as written in the topology.
@@ -172,7 +172,7 @@ public:
 	 *
 	 * @return map of the energy contributions
 	 */
-	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N, BaseList<number> *lists) = 0;
+	virtual map<int, number> get_system_energy_split(BaseParticle **particles, int N, BaseList *lists) = 0;
 
 	/**
 	 * @brief Returns the state of the interaction
@@ -197,7 +197,7 @@ public:
 	 * @param q
 	 * @return bool whether the two particles overlap
 	 */
-	virtual bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q);
+	virtual bool generate_random_configuration_overlap (BaseParticle * p, BaseParticle *q);
 
 
 	/**
@@ -210,171 +210,10 @@ public:
 	 * @param particles
 	 * @param N
 	 */
-	virtual void generate_random_configuration (BaseParticle<number> **particles, int N);
+	virtual void generate_random_configuration (BaseParticle **particles, int N);
 };
 
-template<typename number>
-IBaseInteraction<number>::IBaseInteraction() {
-	_energy_threshold = (number) 100.f;
-	_is_infinite = false;
-	_box = NULL;
-	_generate_consider_bonded_interactions = false;
-	_generate_bonded_cutoff = 2.0;
-}
-
-template<typename number>
-IBaseInteraction<number>::~IBaseInteraction() {
-
-}
-
-template<typename number>
-void IBaseInteraction<number>::get_settings(input_file &inp) {
-	getInputString(&inp, "topology", this->_topology_filename, 1);
-	getInputNumber(&inp, "energy_threshold", &_energy_threshold, 0);
-	getInputNumber(&inp, "T", &_temperature, 1);
-	getInputBool(&inp, "generate_consider_bonded_interactions", &_generate_consider_bonded_interactions, 0);
-	if(_generate_consider_bonded_interactions) {
-		getInputNumber (&inp, "generate_bonded_cutoff", &_generate_bonded_cutoff, 0);
-		OX_LOG(Logger::LOG_INFO, "The generator will try to take into account bonded interactions by choosing distances between bonded neighbours no larger than %lf", _generate_bonded_cutoff);
-	}
-}
-
-template<typename number>
-int IBaseInteraction<number>::get_N_from_topology() {
-	char line[512];
-	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
-	topology.getline(line, 512);
-	topology.close();
-	int ret;
-	sscanf(line, "%d %*d\n", &ret);
-	return ret;
-}
-
-template<typename number>
-void IBaseInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
-	*N_strands = N;
-	allocate_particles(particles, N);
-	for (int i = 0; i < N; i ++) {
-	   particles[i]->index = i;
-	   particles[i]->type = 0;
-	   particles[i]->strand_id = i;
-	}
-}
-
-template<typename number>
-number IBaseInteraction<number>::get_system_energy(BaseParticle<number> **particles, int N, BaseList<number> *lists) {
-	double energy = 0.;
-
-	vector<ParticlePair<number> > pairs = lists->get_potential_interactions();
-	typename std::vector<ParticlePair<number> >::iterator it;
-	for(it = pairs.begin(); it != pairs.end(); it++ ) {
-		BaseParticle<number> *p = (*it).first;
-		BaseParticle<number> *q = (*it).second;
-		energy += (double) pair_interaction(p, q);
-		if(this->get_is_infinite()) return energy;
-	}
-
-	return (number) energy;
-}
-
-template<typename number>
-number IBaseInteraction<number>::get_system_energy_term(int name, BaseParticle<number> **particles, int N, BaseList<number> *lists) {
-	number energy = (number) 0.f;
-
-	for (int i = 0; i < N; i ++) {
-		BaseParticle<number> *p = particles[i];
-		vector<BaseParticle<number> *> neighs = lists->get_all_neighbours(p);
-
-		for(unsigned int n = 0; n < neighs.size(); n++) {
-			BaseParticle<number> *q = neighs[n];
-			if(p->index > q->index) energy += pair_interaction_term(name, p, q);
-			if(this->get_is_infinite()) return energy;
-		}
-	}
-
-	return energy;
-}
-
-template<typename number>
-bool IBaseInteraction<number>::generate_random_configuration_overlap(BaseParticle<number> * p, BaseParticle<number> * q) {
-	LR_vector<number> dr = _box->min_image(p, q);
-
-	if (dr.norm() >= this->_sqr_rcut) return false;
-
-	// number energy = pair_interaction(p, q, &dr, false);
-	number energy = pair_interaction_nonbonded(p, q, &dr, false);
-
-	// in case we create an overlap, we reset the interaction state
-	this->set_is_infinite(false);
-
-	// if energy too large, reject
-	if (energy > _energy_threshold) return true;
-	else return false;
-}
-
-template<typename number>
-void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N) {
-	Cells<number> c(N, _box);
-	c.init(particles, _rcut);
-
-	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = particles[i];
-		p->pos = LR_vector<number> (drand48()*_box->box_sides().x, drand48()*_box->box_sides().y, drand48()*_box->box_sides().z);
-	}
-
-	c.global_update();
-
-	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = particles[i];
-		bool same_strand = (_generate_consider_bonded_interactions && i > 0 && p->is_bonded(particles[i - 1]));
-
-		bool inserted = false;
-		do {
-			if(same_strand)	p->pos = particles[i - 1]->pos + LR_vector<number> ((drand48() - 0.5), (drand48() - 0.5), (drand48() - 0.5))*_generate_bonded_cutoff;
-			else p->pos = LR_vector<number> (drand48()*_box->box_sides().x, drand48()*_box->box_sides().y, drand48()*_box->box_sides().z);
-			// random orientation
-			//p->orientation = Utils::get_random_rotation_matrix<number> (2.*M_PI);
-			p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (acos(2. * (drand48() - 0.5)));
-			p->orientation.orthonormalize();
-			p->orientationT = p->orientation.get_transpose();
-
-			p->set_positions();
-			p->set_ext_potential(0, this->_box);
-			c.single_update(p);
-
-			inserted = true;
-
-			// we take into account the bonded neighbours
-			for (unsigned int n = 0; n < p->affected.size(); n ++) {
-				BaseParticle<number> * p1 = p->affected[n].first;
-				BaseParticle<number> * p2 = p->affected[n].second;
-				if(p1->index <= p->index && p2->index <= p->index) {
-					number e = pair_interaction_bonded (p1, p2);
-					if(std::isnan(e) || e > _energy_threshold) inserted = false;
-				}
-			}
-
-			// here we take into account the non-bonded interactions
-			vector<BaseParticle<number> *> neighs = c.get_complete_neigh_list(p);
-			for(unsigned int n = 0; n < neighs.size(); n++) {
-				BaseParticle<number> *q = neighs[n];
-				// particles with an index larger than p->index have not been inserted yet
-				if(q->index < p->index && generate_random_configuration_overlap (p, q)) inserted = false;
-			}
-
-			// we take into account the external potential
-			number boltzmann_factor = exp(-p->ext_potential / _temperature);
-			if(std::isnan(p->ext_potential) || drand48() > boltzmann_factor) {
-				inserted = false;
-			}
-
-		} while(!inserted);
-
-		if(i > 0 && N > 10 && i % (N/10) == 0) OX_LOG(Logger::LOG_INFO, "Inserted %d%% of the particles (%d/%d)", i*100/N, i, N);
-	}
-}
+using InteractionPtr = std::shared_ptr<IBaseInteraction>;
 
 /**
  * @brief Base class for managing particle-particle interactions. It is an abstract class.
@@ -389,9 +228,9 @@ void IBaseInteraction<number>::generate_random_configuration(BaseParticle<number
  * This class lacks a .cpp because we do not want to have template
  * instantiation of the children classes from within here.
  */
-template <typename number, typename child>
-class BaseInteraction : public IBaseInteraction<number> {
-	typedef std::map<int, number (child::*)(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces)> interaction_map;
+template<typename child>
+class BaseInteraction : public IBaseInteraction {
+	typedef std::map<int, number (child::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)> interaction_map;
 
 private:
 
@@ -413,7 +252,7 @@ protected:
 	 * @param update_forces
 	 * @return pair-interaction energy
 	 */
-	virtual number _pair_interaction_term_wrapper(child *that, int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	virtual number _pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 	/**
 	 * @brief Build a mesh by using a function and its derivative.
@@ -428,9 +267,9 @@ protected:
 	 * @param xupp Upper end of the mesh interval
 	 * @param m mesh to be built
 	 */
-	virtual void _build_mesh(child *that, number (child::*f)(number, void*), number (child::*der) (number, void*), void *pars, int npoints, number xlow, number xupp, Mesh<number> &m);
-	inline number _query_mesh(number x, Mesh<number> &m);
-	inline number _query_meshD(number x, Mesh<number> &m);
+	virtual void _build_mesh(child *that, number (child::*f)(number, void*), number (child::*der) (number, void*), void *pars, int npoints, number xlow, number xupp, Mesh &m);
+	inline number _query_mesh(number x, Mesh &m);
+	inline number _query_meshD(number x, Mesh &m);
 
 public:
 	/**
@@ -446,24 +285,24 @@ public:
 	 * @param N
 	 * @return a map storing all the potential energy contributions.
 	 */
-	virtual map<int, number> get_system_energy_split(BaseParticle<number> **particles, int N, BaseList<number> *lists);
+	virtual map<int, number> get_system_energy_split(BaseParticle **particles, int N, BaseList *lists);
 
 };
 
-template<typename number, typename child>
-BaseInteraction<number, child>::BaseInteraction() : IBaseInteraction<number>() {
+template<typename child>
+BaseInteraction<child>::BaseInteraction() : IBaseInteraction() {
 	this->_rcut = 2.5;
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
-template<typename number, typename child>
-BaseInteraction<number, child>::~BaseInteraction() {
+template<typename child>
+BaseInteraction<child>::~BaseInteraction() {
 
 }
 
-template<typename number, typename child>
-number BaseInteraction<number, child>::_pair_interaction_term_wrapper(child *that, int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r;
+template<typename child>
+number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r;
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -482,8 +321,8 @@ number BaseInteraction<number, child>::_pair_interaction_term_wrapper(child *tha
 	return (that->*(interaction->second))(p, q, r, update_forces);
 }
 
-template<typename number, typename child>
-inline number BaseInteraction<number, child>::_query_meshD(number x, Mesh<number> &m) {
+template<typename child>
+inline number BaseInteraction<child>::_query_meshD(number x, Mesh &m) {
 	if (x < m.xlow) return m.B[0];
 	if (x >= m.xupp) x = m.xupp - FLT_EPSILON;
 	int i = (int) ((x - m.xlow)/m.delta);
@@ -491,8 +330,8 @@ inline number BaseInteraction<number, child>::_query_meshD(number x, Mesh<number
 	return (m.B[i] + (2*dx*m.C[i] + 3*dx*dx*m.D[i]) * m.inv_sqr_delta);
 }
 
-template<typename number, typename child>
-inline number BaseInteraction<number, child>::_query_mesh(number x, Mesh<number> &m) {
+template<typename child>
+inline number BaseInteraction<child>::_query_mesh(number x, Mesh &m) {
 	if (x <= m.xlow) return m.A[0];
 	if (x >= m.xupp) x = m.xupp - FLT_EPSILON;
 	int i = (int) ((x - m.xlow)/m.delta);
@@ -500,8 +339,8 @@ inline number BaseInteraction<number, child>::_query_mesh(number x, Mesh<number>
 	return (m.A[i] + dx*(m.B[i] + dx*(m.C[i] + dx*m.D[i]) * m.inv_sqr_delta));
 }
 
-template<typename number, typename child>
-void BaseInteraction<number, child>::_build_mesh(child *that, number (child::*f)(number, void*), number (child::*der) (number, void*), void * args, int npoints, number xlow, number xupp, Mesh<number> &m) {
+template<typename child>
+void BaseInteraction<child>::_build_mesh(child *that, number (child::*f)(number, void*), number (child::*der) (number, void*), void * args, int npoints, number xlow, number xupp, Mesh &m) {
     assert (xlow < xupp);
 	int i;
 	number x;
@@ -531,8 +370,8 @@ void BaseInteraction<number, child>::_build_mesh(child *that, number (child::*f)
     }
 }
 
-template<typename number, typename child>
-map<int, number> BaseInteraction<number, child>::get_system_energy_split(BaseParticle<number> **particles, int N, BaseList<number> *lists) {
+template<typename child>
+map<int, number> BaseInteraction<child>::get_system_energy_split(BaseParticle **particles, int N, BaseList *lists) {
 	std::map<int, number> energy_map;
 
 	for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
@@ -541,11 +380,11 @@ map<int, number> BaseInteraction<number, child>::get_system_energy_split(BasePar
 	}
 
 	for (int i = 0; i < N; i ++) {
-		BaseParticle<number> *p = particles[i];
-		vector<BaseParticle<number> *> neighs = lists->get_all_neighbours(p);
+		BaseParticle *p = particles[i];
+		vector<BaseParticle *> neighs = lists->get_all_neighbours(p);
 
 		for(unsigned int n = 0; n < neighs.size(); n++) {
-			BaseParticle<number> *q = neighs[n];
+			BaseParticle *q = neighs[n];
 			if(p->index > q->index) {
 				for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
 					int name = it->first;

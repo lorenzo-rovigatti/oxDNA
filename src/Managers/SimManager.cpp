@@ -29,7 +29,7 @@ SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000) {
 	_print_input = 0;
 	_pid = getpid();
 	_seed = -1;
-	_backend = NULL;
+	_backend = nullptr;
 	_fix_diffusion_every = 100000;
 	_max_steps = -1;
 	_time_scale = -1;
@@ -48,16 +48,16 @@ SimManager::~SimManager() {
 	for(std::vector<std::string>::iterator it = _input.unread_keys.begin(); it != _input.unread_keys.end(); it++) {
 		unread += string("\n\t") + *it;
 	}
-	if(unread.size() > 0) OX_DEBUG("The following keys found in the input file were not used: %s", unread.c_str());
+	if(unread.size() > 0) {
+		OX_DEBUG("The following keys found in the input file were not used: %s", unread.c_str());
+	}
 
 	cleanInputFile(&_input);
 	cleanTimeScale(&_time_scale_manager);
 
-	if(_backend != NULL) {
+	if(_backend != nullptr) {
 		int updated = _backend->get_N_updates();
 		if(updated > 0) OX_LOG(Logger::LOG_INFO, "Lists updated %d times (every ~%lf steps)", updated, (_cur_step - _start_step) / (double)updated);
-
-		delete _backend;
 	}
 }
 

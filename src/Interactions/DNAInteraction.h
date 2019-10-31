@@ -20,8 +20,8 @@
 [max_backbone_force_far = <float> (defaults to 0.04, only read if max_backbone_force is set, has to be > 0) (limit value of the force exerted by the bonded interactions for large separations, in reduced units. Used in the computation of A and B above. The default value is set to be very weak (0.04 = ~2pN), so that two neighbours will eventually get close without ever breaking base pairs)]
 @endverbatim
  */
-template <typename number>
-class DNAInteraction : public BaseInteraction<number, DNAInteraction<number> > {
+
+class DNAInteraction : public BaseInteraction<DNAInteraction > {
 protected:
 	bool _average;
 	std::string _seq_filename;
@@ -41,7 +41,7 @@ protected:
 	number _mbf_finf;
 
 	int MESH_F4_POINTS[13];
-	Mesh<number> _mesh_f4[13];
+	Mesh _mesh_f4[13];
 
 	number _f1(number r, int type, int n3, int n5);
 	number _f1D(number r, int type, int n3, int n5);
@@ -58,14 +58,14 @@ protected:
 	number _fakef4_cxst_t1(number t, void * par);
 	number _fakef4D_cxst_t1(number t, void * par);
 
-	virtual number _backbone(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _bonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	virtual number _backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
-	virtual number _nonbonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _hydrogen_bonding(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _cross_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _coaxial_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	virtual number _nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _hydrogen_bonding(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _cross_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 	/**
 	 * @brief Custom function that returns f4. This was added to add the possibility to avoid the use of meshes in classes that inherit from this.
@@ -83,7 +83,7 @@ protected:
 	 */
 	virtual number _custom_f4D (number cost, int i) { return this->_query_meshD (cost, this->_mesh_f4[i]); }
 
-	inline number _repulsive_lj(const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces);
+	inline number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 
 	/**
 	 * @brief Check the relation between p and q. Used by the bonded interaction terms.
@@ -96,7 +96,7 @@ protected:
 	 * @param r
 	 * @return false if the two particles are not bonded neighbours, true otherwise
 	 */
-	bool _check_bonded_neighbour(BaseParticle<number> **p, BaseParticle<number> **q, LR_vector<number> *r);
+	bool _check_bonded_neighbour(BaseParticle **p, BaseParticle **q, LR_vector *r);
 
 public:
 	enum {
@@ -114,18 +114,18 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 
-	virtual void read_topology(int N_from_conf, int *N_strands, BaseParticle<number> **particles);
+	virtual void read_topology(int N_from_conf, int *N_strands, BaseParticle **particles);
 
 	// model constants
 	number F1_EPS[2][5][5];
@@ -162,8 +162,8 @@ public:
 	number F5_PHI_XS[4];
 };
 
-template<typename number>
-number DNAInteraction<number>::_repulsive_lj(const LR_vector<number> &r, LR_vector<number> &force, number sigma, number rstar, number b, number rc, bool update_forces) {
+
+number DNAInteraction::_repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
 	// this is a bit faster than calling r.norm()
 	number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
 	number energy = (number) 0;

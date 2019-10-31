@@ -586,8 +586,8 @@ static const char *_cudaGetErrorEnum(NppStatus error)
         case NPP_BAD_ARG_ERROR:
             return "NPP_BAD_ARG_ERROR";
 
-        case NPP_LUT_NUMBER_OF_LEVELS_ERROR:
-            return "NPP_LUT_NUMBER_OF_LEVELS_ERROR";
+        case NPP_LUT_c_number_OF_LEVELS_ERROR:
+            return "NPP_LUT_c_number_OF_LEVELS_ERROR";
 
         case NPP_TEXTURE_BIND_ERROR:
             return "NPP_TEXTURE_BIND_ERROR";
@@ -628,8 +628,8 @@ static const char *_cudaGetErrorEnum(NppStatus error)
         case NPP_MEM_ALLOC_ERR:
             return "NPP_MEM_ALLOC_ERR";
 
-        case NPP_HISTO_NUMBER_OF_LEVELS_ERROR:
-            return "NPP_HISTO_NUMBER_OF_LEVELS_ERROR";
+        case NPP_HISTO_c_number_OF_LEVELS_ERROR:
+            return "NPP_HISTO_c_number_OF_LEVELS_ERROR";
 
         case NPP_MIRROR_FLIP_ERR:
             return "NPP_MIRROR_FLIP_ERR";
@@ -916,7 +916,7 @@ inline int findCudaDevice(int argc, const char **argv)
     cudaDeviceProp deviceProp;
     int devID = 0;
 
-    // If the command-line has a device number specified, use it
+    // If the command-line has a device c_number specified, use it
     if (checkCmdLineFlag(argc, argv, "device"))
     {
         devID = getCmdLineArgumentInt(argc, argv, "device=");

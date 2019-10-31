@@ -17,13 +17,13 @@
  *
  * this observable is selected with type = chimera_script
  *
-@verbatim
-[colour_by_sequece = <bool> (Default: false; whether to coulour the bases according to the base type (A, C, G, T)]
-@endverbatim
+ @verbatim
+ [colour_by_sequece = <bool> (Default: false; whether to coulour the bases according to the base type (A, C, G, T)]
+ @endverbatim
  *
  */
-template<typename number>
-class ChimeraOutput: public Configuration<number> {
+
+class ChimeraOutput: public Configuration {
 protected:
 	bool _colour_by_seq;
 

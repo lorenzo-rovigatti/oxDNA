@@ -11,31 +11,28 @@
 #include "./Thermostats/ThermostatFactory.h"
 #include "MCMoves/MoveFactory.h"
 
-template<typename number>
-MD_CPUBackend<number>::MD_CPUBackend() : MDBackend<number>() {
+MD_CPUBackend::MD_CPUBackend() :
+				MDBackend() {
 	this->_is_CUDA_sim = false;
-	_thermostat = NULL;
-	_V_move = NULL;
+	_thermostat = nullptr;
+	_V_move = nullptr;
 	_compute_stress_tensor = false;
 	_stress_tensor_avg_every = -1;
 	_stress_tensor_counter = 0;
 }
 
-template<typename number>
-MD_CPUBackend<number>::~MD_CPUBackend() {
-	delete _thermostat;
-	if(this->_use_barostat) delete _V_move;
+MD_CPUBackend::~MD_CPUBackend() {
+
 }
 
-template<typename number>
-void MD_CPUBackend<number>::_first_step(llint curr_step) {
+void MD_CPUBackend::_first_step(llint curr_step) {
 	bool is_warning = false;
 	std::vector<int> w_ps;
 	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 
-		p->vel += p->force*(this->_dt*(number)0.5);
-		LR_vector<number> dr = p->vel*this->_dt;
+		p->vel += p->force * (this->_dt * (number) 0.5);
+		LR_vector dr = p->vel * this->_dt;
 		if(dr.norm() > 0.01) {
 			is_warning = true;
 			w_ps.push_back(p->index);
@@ -43,34 +40,34 @@ void MD_CPUBackend<number>::_first_step(llint curr_step) {
 		p->pos += dr;
 		// if Lees-Edwards boundaries are enabled, we have to check for crossings along the y axis
 		if(this->_lees_edwards) {
-			const LR_vector<number> &L = this->_box->box_sides();
+			const LR_vector &L = this->_box->box_sides();
 			int y_new = floor(p->pos.y / L.y);
-			int y_old = floor((p->pos.y - dr.y)/ L.y);
+			int y_old = floor((p->pos.y - dr.y) / L.y);
 			// we crossed the boundary along y
 			if(y_new != y_old) {
 				number delta_x = this->_shear_rate * L.y * curr_step * this->_dt;
-				delta_x -= floor(delta_x/L.x)*L.x;
+				delta_x -= floor(delta_x / L.x) * L.x;
 				if(y_new > y_old) {
 					p->pos.x -= delta_x;
 					p->pos.y -= L.y;
-					p->vel.x -= this->_shear_rate*L.y;
+					p->vel.x -= this->_shear_rate * L.y;
 				}
 				else {
 					p->pos.x += delta_x;
 					p->pos.y += L.y;
-					p->vel.x += this->_shear_rate*L.y;
+					p->vel.x += this->_shear_rate * L.y;
 				}
 			}
 		}
 
 		if(p->is_rigid_body()) {
-			p->L += p->torque*(this->_dt*(number)0.5);
+			p->L += p->torque * (this->_dt * (number) 0.5);
 			// update of the orientation
 			number norm = p->L.module();
-			LR_vector<number> LVersor(p->L/norm);
+			LR_vector LVersor(p->L / norm);
 
-			number sintheta = sin(this->_dt*norm);
-			number costheta = cos(this->_dt*norm);
+			number sintheta = sin(this->_dt * norm);
+			number costheta = cos(this->_dt * norm);
 			number olcos = 1. - costheta;
 
 			number xyo = LVersor[0] * LVersor[1] * olcos;
@@ -80,11 +77,9 @@ void MD_CPUBackend<number>::_first_step(llint curr_step) {
 			number ysin = LVersor[1] * sintheta;
 			number zsin = LVersor[2] * sintheta;
 
-			LR_matrix<number> R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin,
-						xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin,
-						xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
+			LR_matrix R(LVersor[0] * LVersor[0] * olcos + costheta, xyo - zsin, xzo + ysin, xyo + zsin, LVersor[1] * LVersor[1] * olcos + costheta, yzo - xsin, xzo - ysin, yzo + xsin, LVersor[2] * LVersor[2] * olcos + costheta);
 
-			p->orientation = p->orientation*R;
+			p->orientation = p->orientation * R;
 			p->orientationT = p->orientation.get_transpose();
 			p->set_positions();
 		}
@@ -96,36 +91,35 @@ void MD_CPUBackend<number>::_first_step(llint curr_step) {
 
 	if(is_warning) {
 		std::stringstream ss;
-		for(vector<int>::iterator it = w_ps.begin(); it != w_ps.end(); it++) ss << *it << " ";
+		for(vector<int>::iterator it = w_ps.begin(); it != w_ps.end(); it++)
+			ss << *it << " ";
 		OX_LOG(Logger::LOG_WARNING, "The following particles had a displacement greater than 0.1 in this step: %s", ss.str().c_str());
 	}
 }
 
-template<typename number>
-void MD_CPUBackend<number>::_compute_forces() {
+void MD_CPUBackend::_compute_forces() {
 	this->_U = this->_U_hydr = (number) 0;
 	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 
-		typename vector<ParticlePair<number> >::iterator it = p->affected.begin();
+		typename vector<ParticlePair>::iterator it = p->affected.begin();
 		for(; it != p->affected.end(); it++) {
 			if(it->first == p) this->_U += this->_interaction->pair_interaction_bonded(it->first, it->second, NULL, true);
 		}
 
-		std::vector<BaseParticle<number> *> neighs = this->_lists->get_neigh_list(p);
+		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
-			BaseParticle<number> *q = neighs[n];
-			if(!_compute_stress_tensor)	this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
+			BaseParticle *q = neighs[n];
+			if(!_compute_stress_tensor) this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
 			else _update_forces_and_stress_tensor(p, q);
 		}
 	}
 }
 
-template<typename number>
-void MD_CPUBackend<number>::_second_step() {
+void MD_CPUBackend::_second_step() {
 	this->_K = (number) 0.f;
 	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+		BaseParticle *p = this->_particles[i];
 
 		p->vel += p->force * this->_dt * (number) 0.5f;
 		if(p->is_rigid_body()) p->L += p->torque * this->_dt * (number) 0.5f;
@@ -136,19 +130,18 @@ void MD_CPUBackend<number>::_second_step() {
 	}
 }
 
-template<typename number>
-void MD_CPUBackend<number>::_update_forces_and_stress_tensor(BaseParticle<number> *p, BaseParticle<number> *q) {
+void MD_CPUBackend::_update_forces_and_stress_tensor(BaseParticle *p, BaseParticle *q) {
 	// pair_interaction_nonbonded will change these vectors, but we still need them in the next
 	// first integration step. For this reason we copy and then restore their values
 	// after the calculation
-	LR_vector<number> old_p_force(p->force);
-	LR_vector<number> old_q_force(q->force);
-	LR_vector<number> old_p_torque(p->torque);
-	LR_vector<number> old_q_torque(q->torque);
+	LR_vector old_p_force(p->force);
+	LR_vector old_q_force(q->force);
+	LR_vector old_p_torque(p->torque);
+	LR_vector old_q_torque(q->torque);
 
-	p->force = q->force = p->torque = q->torque = LR_vector<number>();
+	p->force = q->force = p->torque = q->torque = LR_vector();
 
-	LR_vector<number> r = this->_box->min_image(p->pos, q->pos);
+	LR_vector r = this->_box->min_image(p->pos, q->pos);
 	this->_interaction->pair_interaction_nonbonded(p, q, &r, true);
 
 	_stress_tensor.v1.x += r.x * q->force.x;
@@ -167,13 +160,12 @@ void MD_CPUBackend<number>::_update_forces_and_stress_tensor(BaseParticle<number
 	q->torque += old_q_torque;
 }
 
-template<typename number>
-void MD_CPUBackend<number>::_update_kinetic_stress_tensor(BaseParticle<number> *p) {
-	LR_vector<number> vel = p->vel;
+void MD_CPUBackend::_update_kinetic_stress_tensor(BaseParticle *p) {
+	LR_vector vel = p->vel;
 	if(this->_shear_rate > 0.) {
 		number Ly = this->_box->box_sides().y;
-		number y_in_box = p->pos.y - floor(p->pos.y/Ly)*Ly - 0.5*Ly;
-		number flow_vx = y_in_box*this->_shear_rate;
+		number y_in_box = p->pos.y - floor(p->pos.y / Ly) * Ly - 0.5 * Ly;
+		number flow_vx = y_in_box * this->_shear_rate;
 		vel.x -= flow_vx;
 	}
 	_stress_tensor.v1.x += SQR(vel.x);
@@ -187,16 +179,14 @@ void MD_CPUBackend<number>::_update_kinetic_stress_tensor(BaseParticle<number> *
 	_stress_tensor.v3.z += SQR(vel.z);
 }
 
-template<typename number>
-void MD_CPUBackend<number>::_update_backend_info() {
-	_stress_tensor /= 3*this->_box->V();
+void MD_CPUBackend::_update_backend_info() {
+	_stress_tensor /= 3 * this->_box->V();
 	double P = _stress_tensor.v1.x + _stress_tensor.v2.y + _stress_tensor.v3.z;
 	this->_backend_info = Utils::sformat("% 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf", P, _stress_tensor.v1.x, _stress_tensor.v1.y, _stress_tensor.v1.z, _stress_tensor.v2.x, _stress_tensor.v2.y, _stress_tensor.v2.z, _stress_tensor.v3.x, _stress_tensor.v3.y, _stress_tensor.v3.z);
-	_stress_tensor = LR_matrix<double>();
+	_stress_tensor = LR_matrix();
 }
 
-template<typename number>
-void MD_CPUBackend<number>::sim_step(llint curr_step) {
+void MD_CPUBackend::sim_step(llint curr_step) {
 	this->_mytimer->resume();
 
 	CONFIG_INFO->curr_step = curr_step;
@@ -241,11 +231,10 @@ void MD_CPUBackend<number>::sim_step(llint curr_step) {
 	this->_mytimer->pause();
 }
 
-template<typename number>
-void MD_CPUBackend<number>::get_settings (input_file &inp) {
-	MDBackend<number>::get_settings(inp);
+void MD_CPUBackend::get_settings(input_file &inp) {
+	MDBackend::get_settings(inp);
 
-	_thermostat = ThermostatFactory::make_thermostat<number>(inp, this->_box);
+	_thermostat = ThermostatFactory::make_thermostat(inp, this->_box.get());
 	_thermostat->get_settings(inp);
 
 	getInputBool(&inp, "MD_compute_stress_tensor", &_compute_stress_tensor, 0);
@@ -256,28 +245,24 @@ void MD_CPUBackend<number>::get_settings (input_file &inp) {
 	}
 
 	if(this->_use_barostat) {
-		string str_inp = Utils::sformat("type = volume\ndelta = %lf\nisotropic = %d", this->_delta_L, (int) this->_barostat_isotropic);
+		auto str_inp = Utils::sformat("type = volume\ndelta = %lf\nisotropic = %d", this->_delta_L, (int) this->_barostat_isotropic);
 		input_file *move_inp = Utils::get_input_file_from_string(str_inp);
-		_V_move = MoveFactory::make_move<number>(*move_inp, inp);
+		_V_move = MoveFactory::make_move(*move_inp, inp);
 		cleanInputFile(move_inp);
 	}
 }
 
-template<typename number>
-void MD_CPUBackend<number>::init() {
-	MDBackend<number>::init();
-	_thermostat->init (this->_N);
+void MD_CPUBackend::init() {
+	MDBackend::init();
+	_thermostat->init(this->_N);
 	if(this->_use_barostat) _V_move->init();
 
 	_compute_forces();
 	if(_compute_stress_tensor) {
 		for(int i = 0; i < this->_N; i++) {
-			BaseParticle<number> *p = this->_particles[i];
+			BaseParticle *p = this->_particles[i];
 			_update_kinetic_stress_tensor(p);
 		}
 		_update_backend_info();
 	}
 }
-
-template class MD_CPUBackend<float>;
-template class MD_CPUBackend<double>;

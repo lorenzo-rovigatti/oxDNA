@@ -15,33 +15,33 @@
 //#include <mpi>
 
 
-template<typename number> struct Serialized_particle_position
+struct Serialized_particle_position
 {
 	int index;
-	LR_vector<number> pos;
+	LR_vector pos;
 	/// these are the positions of backbone, base and stack sites relative to the center of mass
-	LR_vector<number> pos_back;
-	LR_vector<number> pos_stack;
-	LR_vector<number> pos_base;
-	LR_matrix<number> orientation;
+	LR_vector pos_back;
+	LR_vector pos_stack;
+	LR_vector pos_base;
+	LR_matrix orientation;
 	/// transpose (= inverse) orientational matrix
-	LR_matrix<number> orientationT;
+	LR_matrix orientationT;
 	int _N_neigh;
-	void read_from(BaseParticle<number> &par);
-	int write_to(BaseParticle<number> &par);
+	void read_from(BaseParticle &par);
+	int write_to(BaseParticle &par);
 };
 
-template<typename number> struct Serialized_particle_force_torque
+struct Serialized_particle_force_torque
 {
 	int index;
-	LR_vector<number> torque;
-	LR_vector<number> force;
+	LR_vector torque;
+	LR_vector force;
 
 	Serialized_particle_force_torque(int _index = -1)
-	{torque = LR_vector<number>(0,0,0); force = LR_vector<number>(0,0,0); index = _index;}
+	{torque = LR_vector(0,0,0); force = LR_vector(0,0,0); index = _index;}
 
-	void read_from(BaseParticle<number> &par);
-	int add_to(BaseParticle<number> &par);
+	void read_from(BaseParticle &par);
+	int add_to(BaseParticle &par);
 
 };
 
@@ -56,7 +56,7 @@ struct Master_to_node_info {
     int no_change(void) {return particle_count == -1 ? 1 : 0; }
 };
 
-template <typename number> struct Energy_info
+ struct Energy_info
 {
  number U_hydr;
  number U;
@@ -65,8 +65,8 @@ template <typename number> struct Energy_info
 
 
 
-template <typename number>
-class MD_MPIBackend: public MD_CPUBackend<number> {
+
+class MD_MPIBackend: public MD_CPUBackend {
 protected:
 	int _myid; ///id of the machine
 	int _proc_size; ///total number of cores in the simulation
@@ -74,8 +74,8 @@ protected:
    // int *_particles_to_process; //list of particle indices that will be processed by this processor
    // int *_communicate_particles; //communicate_particles is a list of particles to process, which is sent by master node
 
-    Serialized_particle_position<number> *_serialized_particles;
-    Serialized_particle_force_torque<number> *_serialized_forces;
+    Serialized_particle_position *_serialized_particles;
+    Serialized_particle_force_torque *_serialized_forces;
     Master_to_node_info _info_process;
     int _total_no_of_interactions;
     int _interaction_per_node;
@@ -85,8 +85,8 @@ protected:
     int _MPI_send_block_data(void *data,size_t size,int node_to,int TAG=1);
     int _MPI_receive_block_data(void *data, size_t size, int node_from, int TAG=1);
 
-	//number _MPI_particle_particle_bonded_interaction(BaseParticle<number> *p);
-	//number _MPI_particle_particle_interaction(BaseParticle<number> *p, BaseParticle<number> *q);
+	//number _MPI_particle_particle_bonded_interaction(BaseParticle *p);
+	//number _MPI_particle_particle_interaction(BaseParticle *p, BaseParticle *q);
 
     void _Serialize_all_particles(void);
     void _Serialize_all_forces(void);
@@ -95,8 +95,8 @@ protected:
     int _MPI_receive_master_to_slave_info(Master_to_node_info& inf,int rec_from=0);
 
 	//int _MPI_send_all_serialized_particles_to_slave(int slave_id); //sends a particle with all its neighbors
-	int _MPI_send_serialized_particle_to_slave(Serialized_particle_position<number>& part,int slave_id);
-    int _MPI_send_serialized_particle_with_neighbors_to_slave(Serialized_particle_position<number> &part,int slave_id);
+	int _MPI_send_serialized_particle_to_slave(Serialized_particle_position& part,int slave_id);
+    int _MPI_send_serialized_particle_with_neighbors_to_slave(Serialized_particle_position &part,int slave_id);
     int _MPI_send_all_serialized_particles_with_neighbors_to_slave(int slave_id);
 
 

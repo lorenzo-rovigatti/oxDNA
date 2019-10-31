@@ -14,8 +14,8 @@
  * This interaction is selected with
  * interaction_type = DNA_nomesh
  */
-template <typename number>
-class DNAInteraction_nomesh : public DNAInteraction<number> {
+
+class DNAInteraction_nomesh : public DNAInteraction {
 protected:
 
 	/**

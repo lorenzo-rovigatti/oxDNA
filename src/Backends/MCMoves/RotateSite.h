@@ -10,8 +10,8 @@
 
 #include "BaseMove.h"
 
-template<typename number>
-class RotateSite : public BaseMove<number> {
+
+class RotateSite : public BaseMove {
 	protected:
 		number _delta;
 		std::vector<int> allowed_sites;

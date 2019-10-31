@@ -17,21 +17,20 @@
 
 #include "../defs.h"
 #include "../Forces/BaseForce.h"
-#include "../Boxes/BaseBox.h"
 
-template <typename number> class ParticlePair;
+ class ParticlePair;
+ class BaseBox;
 
 /**
  * @brief Base particle class. All particles must inherit from this class.
  */
-template<typename number>
+
 class BaseParticle {
 protected:
 	void _check();
 
 public:
-	int N_ext_forces;
-	BaseForce<number> *ext_forces[MAX_EXT_FORCES];
+	std::vector<std::shared_ptr<BaseForce>> ext_forces;
 	int next_particle;
 	int strand_id;
 	int N_int_centers;
@@ -39,15 +38,15 @@ public:
 	BaseParticle();
 	virtual ~BaseParticle();
 
-	std::vector<ParticlePair<number> > affected;
+	std::vector<ParticlePair > affected;
 
 	virtual void set_positions() { }
 	
 	/// number of boxes the particle has diffused in each direction
 	int _pos_shift[3];
 
-	virtual void copy_from(const BaseParticle<number> &);
-	inline void soft_copy_from(const BaseParticle<number> * p) {
+	virtual void copy_from(const BaseParticle &);
+	inline void soft_copy_from(const BaseParticle * p) {
 		pos = p->pos;
 		orientation = p->orientation;
 		orientationT = p->orientationT;
@@ -71,24 +70,9 @@ public:
 	 * @param f
 	 * @return true if the force was added, false otherwise
 	 */
-	bool add_ext_force(BaseForce<number> *f);
+	bool add_ext_force(ForcePtr f);
 
-	void set_initial_forces (llint step, BaseBox<number> * box) {
-		LR_vector<number> abs_pos = box->get_abs_pos(this);
-		if (this->is_rigid_body()) this->torque = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
-		this->force = LR_vector<number>((number)0.f, (number)0.f, (number)0.f);
-		for(int i = 0; i < N_ext_forces; i++) {
-			this->force += ext_forces[i]->value(step, abs_pos);
-		}
-	}
-
-	/**
-	 * @brief Add an external potential.
-	 *
-	 * @param f
-	 * @return true if the external potential was added, false otherwise
-	 */
-	bool add_ext_potential (BaseForce<number> *f);
+	void set_initial_forces(llint step, const std::shared_ptr<BaseBox> &box);
 
 	/**
 	 * @brief Computes the interaction resulting from all the external forces acting on the particle. Stores the result in the ext_potential member.
@@ -97,13 +81,7 @@ public:
 	 * @param box pointer to the box object
 	 * @return true if the external potential was added, false otherwise
 	 */
-	void set_ext_potential (llint step, BaseBox<number> * box) {
-		LR_vector<number> abs_pos = box->get_abs_pos(this);
-		this->ext_potential = (number) 0.;
-		for(int i = 0; i < N_ext_forces; i++) {
-			this->ext_potential += ext_forces[i]->potential(step, abs_pos);
-		}
-	}
+	void set_ext_potential(llint step, BaseBox *box);
 
 	/**
 	 * @brief Checks whether q and the current particle are bonded neighbours (such as neighbouring particles on a DNA strand).
@@ -111,7 +89,7 @@ public:
 	 * @param q candidate bonded neighbour
 	 * @return true if the current particle and q are bonded neighbours, false otherwise
 	 */
-	virtual bool is_bonded(BaseParticle<number> *q) {
+	virtual bool is_bonded(BaseParticle *q) {
 		return false;
 	}
 
@@ -146,47 +124,47 @@ public:
 	int btype;
 
 	/// DNA bonded neighbours
-	BaseParticle<number> *n3, *n5;
+	BaseParticle *n3, *n5;
 
-	LR_vector<number> pos_list;
+	LR_vector pos_list;
 	/// Torque exerted on the particle in its own reference system
-	LR_vector<number> torque;
+	LR_vector torque;
 
 	/// Force exerted on the particle
-	LR_vector<number> force;
+	LR_vector force;
 
 	/// Total potential energy due to external forces
 	number ext_potential;
 
 	/// Particle position inside the box
-	LR_vector<number> pos;
+	LR_vector pos;
 
 	/// Positions of all interaction centers. This array must be initialized by child classes
-	LR_vector<number> *int_centers;
+	LR_vector *int_centers;
 
 	/// Angular momentum of the particle
-	LR_vector<number> L;
+	LR_vector L;
 
 	/// Velocity of the particle
-	LR_vector<number> vel;
+	LR_vector vel;
 
 	/// BaseParticle orientational matrix
-	LR_matrix<number> orientation;
+	LR_matrix orientation;
 
 	/// transpose (= inverse) orientational matrix
-	LR_matrix<number> orientationT;
+	LR_matrix orientationT;
 };
 
 /*
  * helpers
  */
-template <typename number>
+
 class ParticlePair {
 public:
-	BaseParticle<number> *first;
-	BaseParticle<number> *second;
+	BaseParticle *first;
+	BaseParticle *second;
 
-	ParticlePair (BaseParticle<number> *p, BaseParticle<number> *q) {
+	ParticlePair (BaseParticle *p, BaseParticle *q) {
 		if(p == q) throw oxDNAException("ParticlePair: p == q is not allowed");
 		if (p->index < q->index) {
 			first = p;

@@ -26,8 +26,8 @@
 /**
  * @brief Manages a MD simulation on GPU with CUDA.
  */
-template<typename number, typename number4>
-class MD_CUDABackend: public MDBackend<number>, public CUDABaseBackend<number, number4> {
+
+class MD_CUDABackend: public MDBackend, public CUDABaseBackend{
 protected:
 	bool _use_edge;
 	bool _any_rigid_body;
@@ -38,26 +38,26 @@ protected:
 
 	Timer *_timer_sorting;
 
-	number4 *_d_vels, *_h_vels;
-	number4 *_d_Ls, *_h_Ls;
-	number4 *_d_forces, *_h_forces;
-	number4 *_d_torques, *_h_torques;
+	tmpnmbr *_d_vels, *_h_vels;
+	tmpnmbr *_d_Ls, *_h_Ls;
+	tmpnmbr *_d_forces, *_h_forces;
+	tmpnmbr *_d_torques, *_h_torques;
 
-	number4 *_d_buff_vels, *_d_buff_Ls;
+	tmpnmbr *_d_buff_vels, *_d_buff_Ls;
 	llint _curr_step;
 
 	llint _barostat_attempts, _barostat_accepted;
 
 	bool _print_energy;
 
-	ObservableOutput<number> *_obs_output_error_conf;
+	ObservableOutput *_obs_output_error_conf;
 	std::string _error_conf_file;
 
-	CUDABaseThermostat<number, number4> *_cuda_thermostat;
+	CUDABaseThermostat*_cuda_thermostat;
 
-	//constant_rate_force<number> *_h_ext_forces, *_d_ext_forces;
-	//mutual_trap<number> *_h_ext_forces, *_d_ext_forces;
-	CUDA_trap<number> *_h_ext_forces, *_d_ext_forces;
+	//constant_rate_force *_h_ext_forces, *_d_ext_forces;
+	//mutual_trap *_h_ext_forces, *_d_ext_forces;
+	CUDA_trap *_h_ext_forces, *_d_ext_forces;
 	int _max_ext_forces;
 
 	virtual void _host_to_gpu();
@@ -67,7 +67,7 @@ protected:
 	virtual void _gpu_to_host_particles();
 
 	virtual void _sort_particles();
-	virtual void _rescale_positions(number4 new_Ls, number4 old_Ls);
+	virtual void _rescale_positions(tmpnmbr new_Ls, tmpnmbr old_Ls);
 
 	virtual void _first_step();
 	virtual void _apply_barostat(llint curr_step);

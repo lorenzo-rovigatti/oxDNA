@@ -14,7 +14,7 @@
  * It is useful when dealing with interactions having computationally expensive
  * functional forms, such as Gaussian functions.
  */
-template<typename number>
+
 class Mesh {
 public:
 	Mesh() : N(0), A(NULL), B(NULL), C(NULL), D(NULL) {};

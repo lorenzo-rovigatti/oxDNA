@@ -20,7 +20,7 @@
 class AnalysisManager {
 protected:
 	input_file _input;
-	AnalysisBackend *_backend;
+	std::shared_ptr<AnalysisBackend> _backend;
 
 public:
 	AnalysisManager(int argc, char *argv[]);

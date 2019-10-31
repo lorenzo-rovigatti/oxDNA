@@ -10,7 +10,9 @@ OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
 OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
-OPTION(CXX11 "Compile with C++11 support" OFF)
+OPTION(DOUBLE "Set the numerical precision to double" ON)
+OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" OFF)
+OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have
 # problems at linking time
@@ -37,15 +39,12 @@ PROJECT(oxDNA)
 # The default behaviour is to compile with optimisations
 SET(CMAKE_BUILD_TYPE Release)
 
-IF(CXX11)
-	MESSAGE(STATUS "Compiling with c++11 support")
-	IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
-		SET(CMAKE_CXX_STANDARD 11)
-		SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-	ELSE()
-		ADD_COMPILE_OPTIONS(-std=c++11)
-	ENDIF()
-ENDIF(CXX11)
+IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
+	SET(CMAKE_CXX_STANDARD 14)
+	SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+ELSE()
+	ADD_COMPILE_OPTIONS(-std=c++14)
+ENDIF()
 
 IF(Debug)
 	SET(CMAKE_BUILD_TYPE Debug)
@@ -66,6 +65,14 @@ IF(SIGNAL)
 	ADD_DEFINITIONS(-DSIGNAL)
 ENDIF(SIGNAL)
 
+IF(NOT DOUBLE)
+	ADD_DEFINITIONS(-DFLOAT_PRECISION)
+ENDIF()
+
+IF(CUDA_DOUBLE)
+	ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
+ENDIF()
+
 ADD_DEFINITIONS(-Wall -Wshadow)
 
 IF(NOT CMAKE_BUILD_TYPE MATCHES Debug)
@@ -79,8 +86,6 @@ ENDIF()
 IF(CUDA)
 	CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 	FIND_PACKAGE(CUDA)
-	
-	OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
 	
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 

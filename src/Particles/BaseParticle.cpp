@@ -7,8 +7,10 @@
 
 #include "BaseParticle.h"
 
-template<typename number>
-BaseParticle<number>::BaseParticle() : N_ext_forces(0), index(-1), type(P_INVALID), n3(P_VIRTUAL), n5(P_VIRTUAL) {
+#include "../Boxes/BaseBox.h"
+
+
+BaseParticle::BaseParticle() : index(-1), type(P_INVALID), n3(P_VIRTUAL), n5(P_VIRTUAL) {
 	en3 = (number) 0;
 	en5 = (number) 0;
 	esn3 = (number) 0;
@@ -17,17 +19,17 @@ BaseParticle<number>::BaseParticle() : N_ext_forces(0), index(-1), type(P_INVALI
 	ext_potential = (number) 0.;
 	strand_id = -1;
 	N_int_centers = 0;
-	//_pos_shift = LR_vector<number>(0., 0., 0.);
+	//_pos_shift = LR_vector(0., 0., 0.);
 	_pos_shift[0] = 0; _pos_shift[1] = 0; _pos_shift[2] = 0;
-	force = LR_vector<number>(0., 0., 0.);
-	torque = LR_vector<number>(0., 0., 0.);
+	force = LR_vector(0., 0., 0.);
+	torque = LR_vector(0., 0., 0.);
 	int_centers = NULL;
 	btype = 0;
 	next_particle = P_INVALID;
 }
 
-template<typename number>
-void BaseParticle<number>::copy_from(const BaseParticle<number> &p) {
+
+void BaseParticle::copy_from(const BaseParticle &p) {
 	index = p.index;
 	type = p.type;
 	btype = p.btype;
@@ -49,35 +51,44 @@ void BaseParticle<number>::copy_from(const BaseParticle<number> &p) {
 	ext_potential = p.ext_potential;
 }
 
-template<typename number>
-BaseParticle<number>::~BaseParticle() {
+
+BaseParticle::~BaseParticle() {
 	if(int_centers != NULL) delete[] int_centers;
 }
 
-template<typename number>
-bool BaseParticle<number>::add_ext_force(BaseForce<number> *f) {
-	if(N_ext_forces == MAX_EXT_FORCES) {
-		throw oxDNAException("Particle %d cannot have more than %d associated external forces. This hard limit can be increased by changing the value of the MAX_EXT_FORCES macro in src/defs.h", this->index, MAX_EXT_FORCES);
-	}
 
-	ext_forces[N_ext_forces] = f;
-	N_ext_forces++;
+void BaseParticle::set_initial_forces(llint step, const BoxPtr &box) {
+	LR_vector abs_pos = box->get_abs_pos(this);
+	if (this->is_rigid_body()) this->torque = LR_vector((number)0.f, (number)0.f, (number)0.f);
+	this->force = LR_vector((number)0.f, (number)0.f, (number)0.f);
+	for(auto ext_force : ext_forces) {
+		this->force += ext_force->value(step, abs_pos);
+	}
+}
+
+void BaseParticle::set_ext_potential(llint step, BaseBox *box) {
+	LR_vector abs_pos = box->get_abs_pos(this);
+	this->ext_potential = (number) 0.;
+	for(auto ext_force: ext_forces) {
+		this->ext_potential += ext_force->potential(step, abs_pos);
+	}
+}
+
+bool BaseParticle::add_ext_force(ForcePtr f) {
+	ext_forces.push_back(f);
 
 	return true;
 }
 
-template<typename number>
-void BaseParticle<number>::init() {
-	force = LR_vector<number>(0., 0., 0.);
-	torque = LR_vector<number>(0., 0., 0.);
+
+void BaseParticle::init() {
+	force = LR_vector(0., 0., 0.);
+	torque = LR_vector(0., 0., 0.);
 	_check();
 }
 
-template<typename number>
-void BaseParticle<number>::_check() {
+
+void BaseParticle::_check() {
 	assert(index >= 0);
 	assert(type != P_INVALID);
 }
-
-template class BaseParticle<double>;
-template class BaseParticle<float>;

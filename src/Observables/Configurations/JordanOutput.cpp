@@ -9,51 +9,41 @@
 #include "JordanOutput.h"
 #include "../../Particles/JordanParticle.h"
 
-template<typename number>
-JordanOutput<number>::JordanOutput() : Configuration<number>() {
+JordanOutput::JordanOutput() :
+				Configuration() {
 
 }
 
-template<typename number>
-JordanOutput<number>::~JordanOutput() {
+JordanOutput::~JordanOutput() {
 
 }
 
-template<typename number>
-void JordanOutput<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	Configuration<number>::get_settings(my_inp, sim_inp);
+void JordanOutput::get_settings(input_file &my_inp, input_file &sim_inp) {
+	Configuration::get_settings(my_inp, sim_inp);
 }
 
-template<typename number>
-std::string JordanOutput<number>::_headers(llint step) {
+std::string JordanOutput::_headers(llint step) {
 	std::stringstream headers;
-	
+
 	return headers.str();
 }
 
-template<typename number>
-std::string JordanOutput<number>::_particle(BaseParticle<number> *p) {
+std::string JordanOutput::_particle(BaseParticle *p) {
 	std::stringstream res;
-	
-	JordanParticle<number> * me = reinterpret_cast<JordanParticle<number> *> (p);
+
+	JordanParticle * me = reinterpret_cast<JordanParticle *>(p);
 
 	res << me->get_output_string();
-	
+
 	return res.str();
 }
 
-
-template<typename number>
-std::string JordanOutput<number>::_configuration(llint step) {
+std::string JordanOutput::_configuration(llint step) {
 	stringstream conf;
-	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it ++) {
+	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << endl;
-		BaseParticle<number> *p = this->_config_info.particles[*it];
+		BaseParticle *p = this->_config_info.particles[*it];
 		conf << _particle(p);
 	}
 	return conf.str();
 }
-
-template class JordanOutput<float>;
-template class JordanOutput<double>;
-
