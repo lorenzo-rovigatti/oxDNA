@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <memory>
 
 #ifndef CPS
 #define CPS (CLOCKS_PER_SEC)
@@ -56,11 +57,6 @@ public:
 		return (double) _time / (double) CPS;
 	}
 
-	/// returns the time passed, converted in seconds, as a float
-	float get_secondsf() {
-		return (float) get_seconds();
-	}
-
 	/// returns the description of the clock
 	std::string get_desc() {
 		return _desc;
@@ -72,15 +68,16 @@ public:
 	}
 };
 
+using TimerPtr = std::shared_ptr<Timer>;
+
 /// new attempt at a singleton to be able to add from anywhere within the code a timer and have it do what expected
 class TimingManager {
 private:
-	std::vector<Timer> _allocated_timers;
-	std::vector<Timer *> _timers;
-	std::map<Timer *, Timer *> _parents;
-	std::map<std::string, Timer *> _desc_map;
+	std::vector<TimerPtr> _timers;
+	std::map<TimerPtr, TimerPtr> _parents;
+	std::map<std::string, TimerPtr> _desc_map;
 
-	static TimingManager * _timingManager;
+	static TimingManager *_timingManager;
 
 	/**
 	 * @brief Default constructor. It is kept private to enforce the singleton pattern.
@@ -89,36 +86,28 @@ private:
 	 */
 	TimingManager();
 
-	/**
-	 * @brief Copy constructor. It is kept private to enforce the singleton pattern.
-	 *
-	 * @param
-	 * @return
-	 */
-	TimingManager(TimingManager const&) {
-	}
-	;
-
 public:
-	/// creates a new orphan timer
-	Timer * new_timer(std::string desc);
+	TimingManager(TimingManager const&) = delete;
 
 	/// creates a new orphan timer
-	Timer * new_timer(std::string desc, std::string parent_desc);
+	TimerPtr new_timer(std::string desc);
+
+	/// creates a new orphan timer
+	TimerPtr new_timer(std::string desc, std::string parent_desc);
 
 	/// adds the timer to the manager, using the description to set the parent
-	void add_timer(Timer * arg, std::string parent_desc);
+	void add_timer(TimerPtr arg, std::string parent_desc);
 
 	/// adds the timer to the manager, setting no parent
-	void add_timer(Timer * arg);
+	void add_timer(TimerPtr arg);
 
 	/// return the Timer pointer associated to a given description
-	Timer * get_timer_by_desc(std::string desc) {
+	TimerPtr get_timer_by_desc(std::string desc) {
 		return _desc_map[desc];
 	}
 
 	/// singleton
-	static TimingManager * instance();
+	static TimingManager *instance();
 
 	/// init function
 	static void init();

@@ -36,7 +36,7 @@ protected:
 
 	int *_h_gpu_index, *_h_cpu_index;
 
-	Timer *_timer_sorting;
+	std::shared_ptr<Timer> _timer_sorting;
 
 	tmpnmbr *_d_vels, *_h_vels;
 	tmpnmbr *_d_Ls, *_h_Ls;

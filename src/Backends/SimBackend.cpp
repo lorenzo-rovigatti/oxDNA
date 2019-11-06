@@ -54,7 +54,7 @@ SimBackend::SimBackend() {
 	_read_conf_step = -1;
 	_conf_interval = -1;
 	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = _obs_output_checkpoints = _obs_output_last_checkpoint = NULL;
-	_mytimer = NULL;
+	_mytimer = nullptr;
 	_restart_step_counter = false;
 
 	ConfigInfo::init();
@@ -85,7 +85,7 @@ SimBackend::~SimBackend() {
 	OX_LOG(Logger::LOG_NOTHING, "\t%s written to files" , Utils::bytes_to_human(total_file).c_str());
 	OX_LOG(Logger::LOG_NOTHING, "\t%s written to stdout/stderr" , Utils::bytes_to_human(total_stderr).c_str());
 
-	if(_mytimer != NULL) {
+	if(_mytimer != nullptr) {
 		double time_passed = (double) _mytimer->get_time() / (double) CLOCKS_PER_SEC;
 		if(time_passed > 0.)
 		OX_LOG(Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
