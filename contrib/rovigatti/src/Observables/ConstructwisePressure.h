@@ -27,7 +27,7 @@ protected:
 	number _shear_rate;
 	int _construct_size;
 	int _N_constructs;
-	vector<LR_vector> _construct_coms;
+	std::vector<LR_vector> _construct_coms;
 
 public:
 	ConstructwisePressure();

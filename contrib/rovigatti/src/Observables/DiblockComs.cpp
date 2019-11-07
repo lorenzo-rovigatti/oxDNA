@@ -47,7 +47,7 @@ std::string DiblockComs::get_output_string(llint curr_step) {
 		for(int j = 0; j < 2; j++)
 			coms[i][j] /= counters[i][j];
 
-	stringstream ret;
+	std::stringstream ret;
 	if(!_only_intra) {
 		number r_AA = sqrt(this->_config_info.box->sqr_min_image_distance(coms[1][P_A], coms[0][P_A]));
 		number r_AB = sqrt(this->_config_info.box->sqr_min_image_distance(coms[1][P_B], coms[0][P_A]));

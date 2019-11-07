@@ -59,15 +59,15 @@ void PolydisperseLTInteraction::get_settings(input_file &inp) {
 }
 
 void PolydisperseLTInteraction::init() {
-	std::ifstream lt_file(_lt_filename, ios::in);
+	std::ifstream lt_file(_lt_filename, std::ios::in);
 	if(!lt_file.good()) throw oxDNAException("Can't read lookup file '%s'. Aborting", _lt_filename);
 
-	string line;
+	std::string line;
 	int n_lines = 0;
 	bool stop = false;
 	while(!stop) {
 		getline(lt_file, line);
-		vector<string> spl = Utils::split(line);
+		std::vector<std::string> spl = Utils::split(line);
 		if(spl.size() != 3 || lt_file.eof()) stop = true;
 		else n_lines++;
 	}
@@ -81,12 +81,12 @@ void PolydisperseLTInteraction::init() {
 	data.points = n_lines;
 
 	lt_file.clear();
-	lt_file.seekg(0, ios::beg);
+	lt_file.seekg(0, std::ios::beg);
 	int i = 0;
 	stop = false;
 	while(!stop) {
 		getline(lt_file, line);
-		vector<string> spl = Utils::split(line);
+		std::vector<std::string> spl = Utils::split(line);
 		if(spl.size() != 3 || lt_file.eof()) stop = true;
 		else {
 			data.x[i] = atof(spl[0].c_str());
@@ -120,7 +120,7 @@ void PolydisperseLTInteraction::allocate_particles(BaseParticle **particles, int
 void PolydisperseLTInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	*N_strands = N;
 
-	std::ifstream topology(this->_topology_filename, ios::in);
+	std::ifstream topology(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[512];
 	topology.getline(line, 512);

@@ -29,7 +29,7 @@ NathanInteraction::~NathanInteraction() {
 int NathanInteraction::get_N_from_topology() {
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	topology.getline(line, 512);
 	topology.close();
@@ -211,7 +211,7 @@ number NathanInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 
 void NathanInteraction::generate_random_configuration(BaseParticle **particles, int N) {
 	int N_per_side = ceil(pow(_N_per_chain - 0.001, 1. / 3.));
-	vector<LR_vector> lattice_poss;
+	std::vector<LR_vector> lattice_poss;
 	LR_vector box_sides = this->_box->box_sides();
 
 	number x_dir = 1.;
@@ -258,7 +258,7 @@ void NathanInteraction::generate_random_configuration(BaseParticle **particles, 
 	a1 *= cell_side;
 	a2 *= cell_side;
 	a3 *= cell_side;
-	vector<LR_vector> fcc_points;
+	std::vector<LR_vector> fcc_points;
 	for(number nx = -tot_N; nx < tot_N; nx++) {
 		for(number ny = -tot_N; ny < tot_N; ny++) {
 			for(number nz = -tot_N; nz < tot_N; nz++) {

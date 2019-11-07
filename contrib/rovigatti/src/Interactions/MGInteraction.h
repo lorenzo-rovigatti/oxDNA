@@ -24,7 +24,7 @@ protected:
 	number _MG_alpha, _MG_beta, _MG_gamma;
 	int _MG_n;
 
-	string _bond_filename;
+	std::string _bond_filename;
 
 	number _fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	number _nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);

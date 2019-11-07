@@ -88,7 +88,7 @@ protected:
 	// used if we also have polymers in the simulation
 	bool _with_polymers;
 	int _N_in_polymers;
-	string _bond_filename;
+	std::string _bond_filename;
 	number _polymer_length_scale, _polymer_length_scale_sqr;
 	number _polymer_rfene, _polymer_rfene_sqr;
 	number _polymer_alpha, _polymer_beta, _polymer_gamma;

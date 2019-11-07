@@ -17,15 +17,15 @@
 
 class LevyDelta: public BaseObservable {
 protected:
-	vector<BaseParticle *> _tetramer;
-	vector<BaseParticle *> _dimer;
+	std::vector<BaseParticle *> _tetramer;
+	std::vector<BaseParticle *> _dimer;
 	int _tries;
 	number _temperature;
 	number _patchy_rcut;
 	LevyInteraction *_inter;
 
-	BaseParticle *_get_random_particle(vector<BaseParticle *> &, int);
-	void _rototranslate(vector<BaseParticle *> &, LR_vector &, BaseParticle *, LR_matrix &);
+	BaseParticle *_get_random_particle(std::vector<BaseParticle *> &, int);
+	void _rototranslate(std::vector<BaseParticle *> &, LR_vector &, BaseParticle *, LR_matrix &);
 
 public:
 	LevyDelta();

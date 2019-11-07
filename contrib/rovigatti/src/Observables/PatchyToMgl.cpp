@@ -47,15 +47,15 @@ std::string PatchyToMgl::_headers(llint step) {
 
 	LR_vector mybox = this->_config_info.box->box_sides();
 
-	headers << ".Box:" << mybox.x << "," << mybox.y << "," << mybox.z << endl;
+	headers << ".Box:" << mybox.x << "," << mybox.y << "," << mybox.z << std::endl;
 
 	return headers.str();
 }
 
-string PatchyToMgl::_mgl_patchy_line(BaseParticle *p, const char *color, bool print_p, const char *p_color) {
+std::string PatchyToMgl::_mgl_patchy_line(BaseParticle *p, const char *color, bool print_p, const char *p_color) {
 	if(_printed.find(p) != _printed.end()) return "";
 	_printed.insert(p);
-	string res = Utils::sformat("%lf %lf %lf @ 0.5 C[%s] M", p->pos.x, p->pos.y, p->pos.z, color);
+	std::string res = Utils::sformat("%lf %lf %lf @ 0.5 C[%s] M", p->pos.x, p->pos.y, p->pos.z, color);
 
 	if(print_p) {
 		for(int i = 0; i < p->N_int_centers; i++) {
@@ -74,20 +74,18 @@ std::string PatchyToMgl::_particle(BaseParticle *p) {
 	else res << _mgl_patchy_line(p, "0,1,0", true, "1,0,0");
 
 	if(_first_neighbours) {
-		vector<BaseParticle *> particles = this->_config_info.lists->get_all_neighbours(p);
-		for(typename std::vector<BaseParticle *>::iterator it = particles.begin(); it != particles.end(); it++) {
-			BaseParticle *q = *it;
+		std::vector<BaseParticle *> particles = this->_config_info.lists->get_all_neighbours(p);
+		for(auto q: particles) {
 			if(this->_config_info.interaction->pair_interaction(p, q) < _threshold) {
-				res << endl;
+				res << std::endl;
 				res << _mgl_patchy_line(q, "0,1,0,0.5", true, "0.5,0,0,0.5");
 
 				if(_second_neighbours) {
-					vector<BaseParticle *> s_particles = this->_config_info.lists->get_all_neighbours(q);
-					for(typename std::vector<BaseParticle *>::iterator s_it = s_particles.begin(); s_it != s_particles.end(); s_it++) {
-						BaseParticle *s_q = *s_it;
+					std::vector<BaseParticle *> s_particles = this->_config_info.lists->get_all_neighbours(q);
+					for(auto s_q: s_particles) {
 						if(this->_config_info.interaction->pair_interaction(q, s_q) < _threshold) {
 							std::string tmp = _mgl_patchy_line(s_q, "0.6,0.6,0.6,0.3", false);
-							if(tmp.size() != 0) res << endl;
+							if(tmp.size() != 0) res << std::endl;
 							res << tmp;
 						}
 					}

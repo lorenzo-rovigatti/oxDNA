@@ -47,7 +47,7 @@ std::string SPBAnalysis::get_output_string(llint curr_step) {
 	}
 	_confs++;
 
-	stringstream ss;
+	std::stringstream ss;
 	for(int i = 0; i < _N_bins; i++) {
 		number factor = _bin * _confs;
 		ss << (i + 0.5) * _bin << " ";

@@ -17,8 +17,8 @@
 
 class Patch {
 protected:
-	set<int> _arms;
-	vector<TSPParticle *> _particles;
+	std::set<int> _arms;
+	std::vector<TSPParticle *> _particles;
 	LR_vector _pos;
 
 public:
@@ -44,7 +44,7 @@ protected:
 	ConfigInfo *_config_info;
 	bool _is_SPB;
 
-	void _flip_neighs(int arm, vector<vector<int> > &bond_map, vector<int> &arm_to_patch);
+	void _flip_neighs(int arm, std::vector<std::vector<int> > &bond_map, std::vector<int> &arm_to_patch);
 	void _compute_eigenvalues();
 
 public:

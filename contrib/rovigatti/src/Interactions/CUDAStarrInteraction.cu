@@ -347,9 +347,9 @@ void CUDAStarrInteraction::_setup_hubs() {
 
 			// now load all the hub_bonds structures by looping over all the bonded neighbours
 			int nn = 0;
-			for(typename set<CustomParticle *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++) {
-				if((*it) != p->n5) {
-					h_hub_neighs[rel_idx_hub].n[nn] = (*it)->index;
+			for(auto particle: p->bonded_neighs) {
+				if(particle != p->n5) {
+					h_hub_neighs[rel_idx_hub].n[nn] = particle->index;
 					nn++;
 				}
 			}

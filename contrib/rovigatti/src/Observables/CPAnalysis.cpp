@@ -121,7 +121,7 @@ std::string CPAnalysis::get_output_string(llint curr_step) {
 	_cells->global_update(true);
 	number current_sigma = _cells->assign_density_to_cells();
 
-	stringstream ss;
+	std::stringstream ss;
 	for(int i = 0; i < _cells->get_N_cells(); i++)
 		ss << _cells->coarse_grained_cell_density[i] << " " << _cells->cell_density[i] << " " << current_sigma << std::endl;
 

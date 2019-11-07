@@ -399,7 +399,7 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 	CUDABaseInteraction::cuda_init(box_side, N);
 	FSInteraction::init();
 
-	std::ifstream topology(this->_topology_filename, ios::in);
+	std::ifstream topology(this->_topology_filename, std::ios::in);
 	if(!topology.good()) {
 		throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	}

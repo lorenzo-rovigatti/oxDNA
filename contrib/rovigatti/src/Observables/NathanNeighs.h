@@ -18,7 +18,7 @@ struct NateParticle {
 	std::vector<LR_vector> vs;
 	std::vector<LR_vector> v1;
 	std::vector<LR_vector> v2;
-	std::vector<complex<number>> q4, q6;
+	std::vector<std::complex<number>> q4, q6;
 	bool is_crystalline;
 
 	number avg_q4() {

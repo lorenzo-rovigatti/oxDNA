@@ -115,8 +115,8 @@ number PolymerInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle
 	// if q == P_VIRTUAL we have to compute the bonded interactions acting between p and all its bonded neighbours
 	if(q == P_VIRTUAL) {
 		TSPParticle *TSPp = (TSPParticle *) p;
-		for(typename set<TSPParticle *>::iterator it = TSPp->bonded_neighs.begin(); it != TSPp->bonded_neighs.end(); it++) {
-			energy += pair_interaction_bonded(p, *it, r, update_forces);
+		for(auto neigh: TSPp->bonded_neighs) {
+			energy += pair_interaction_bonded(p, neigh, r, update_forces);
 		}
 	}
 	else if(p->is_bonded(q)) {
@@ -181,7 +181,7 @@ void PolymerInteraction::allocate_particles(BaseParticle **particles, int N) {
 int PolymerInteraction::get_N_from_topology() {
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 
 	topology.getline(line, 512);
@@ -207,7 +207,7 @@ void PolymerInteraction::read_topology(int N_from_conf, int *N_chains, BaseParti
 	int my_N_chains;
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 

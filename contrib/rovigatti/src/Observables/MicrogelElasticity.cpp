@@ -24,15 +24,15 @@ MicrogelElasticity::~MicrogelElasticity() {
 }
 
 void MicrogelElasticity::get_settings(input_file &my_inp, input_file &sim_inp) {
-	string inter;
+	std::string inter;
 	getInputString(&sim_inp, "interaction_type", inter, 1);
 	if(inter != "MGInteraction") throw oxDNAException("MicrogelElasticity is not compatible with the interaction '%s'", inter.c_str());
 
 	getInputBool(&my_inp, "crosslinkers_only", &_crosslinkers_only, 0);
 	if(_crosslinkers_only) {
-		string topology;
+		std::string topology;
 		getInputString(&sim_inp, "topology", topology, 1);
-		ifstream topology_file(topology.c_str());
+		std::ifstream topology_file(topology.c_str());
 		int N;
 		topology_file >> N >> _N_crosslinkers;
 		topology_file.close();
@@ -54,13 +54,13 @@ LR_vector MicrogelElasticity::_com() {
 }
 
 std::string MicrogelElasticity::get_output_string(llint curr_step) {
-	stringstream ss;
+	std::stringstream ss;
 
 	// Convex hull
 	LR_vector com = _com();
 	int N = (_crosslinkers_only) ? _N_crosslinkers : *this->_config_info.N;
 
-	vector<qh_vertex_t> vertices(N);
+	std::vector<qh_vertex_t> vertices(N);
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = this->_config_info.particles[i];
 		LR_vector p_pos = this->_config_info.box->get_abs_pos(p) - com;

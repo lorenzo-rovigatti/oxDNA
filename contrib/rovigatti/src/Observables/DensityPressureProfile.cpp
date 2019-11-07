@@ -87,7 +87,7 @@ std::string DensityPressureProfile::get_output_string(llint curr_step) {
 		}
 	}
 
-	stringstream ret;
+	std::stringstream ret;
 	ret.precision(9);
 	int tot_NA = 0;
 	int tot_NB = 0;
@@ -108,13 +108,13 @@ std::string DensityPressureProfile::get_output_string(llint curr_step) {
 		double x = _concentration_profile[i] / _nconfs;
 		double P = _pressure_profile[i] / _nconfs;
 
-		ret << myx << " " << rho << " " << " " << x << " " << P << endl;
+		ret << myx << " " << rho << " " << " " << x << " " << P << std::endl;
 		myx += _bin_size;
 
 		tot_NA += _current_NA_profile[i];
 		tot_NB += _current_N_profile[i] - _current_NA_profile[i];
 	}
-	ret << endl;
+	ret << std::endl;
 
 	return ret.str();
 }

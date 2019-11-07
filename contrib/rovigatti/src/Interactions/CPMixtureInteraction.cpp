@@ -32,7 +32,7 @@ void CPMixtureInteraction::get_settings(input_file &inp) {
 		sprintf(key, "CP_epsilon[%d]", i);
 		getInputNumber(&inp, key, &_epsilon[i], 1);
 		sprintf(key, "CP_type[%d]", i);
-		string int_type;
+		std::string int_type;
 		getInputString(&inp, key, int_type, 1);
 
 		if(int_type == "power_law") {
@@ -92,7 +92,7 @@ void CPMixtureInteraction::allocate_particles(BaseParticle **particles, int N) {
 void CPMixtureInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	*N_strands = N;
 
-	std::ifstream topology(this->_topology_filename, ios::in);
+	std::ifstream topology(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[512];
 	topology.getline(line, 512);

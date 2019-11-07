@@ -30,7 +30,7 @@ void NathanNeighs::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&sim_inp, "NATHAN_alpha", &_patch_length, 1);
 	_patch_length += 0.5;
 
-	string my_mode;
+	std::string my_mode;
 	getInputString(&my_inp, "mode", my_mode, 1);
 	if(my_mode == "mgl") _mode = MGL;
 	else if(my_mode == "tot_bonds") _mode = TOT_BONDS;
@@ -50,14 +50,14 @@ std::string NathanNeighs::_headers(llint step) {
 
 	if(_mode == MGL) {
 		LR_vector mybox = this->_config_info.box->box_sides();
-		headers << ".Box:" << mybox.x << "," << mybox.y << "," << mybox.z << endl;
+		headers << ".Box:" << mybox.x << "," << mybox.y << "," << mybox.z << std::endl;
 	}
 
 	return headers.str();
 }
 
 void NathanNeighs::_compute_qn(NateParticle &np, int n) {
-	vector<complex<number>> qm(2 * n + 1);
+	std::vector<std::complex<number>> qm(2 * n + 1);
 	number norm = 0.;
 
 	for(int m = -n; m <= n; m++) {
@@ -65,14 +65,12 @@ void NathanNeighs::_compute_qn(NateParticle &np, int n) {
 		int am = abs(m);
 		qm[mm] = 0.;
 
-		typename vector<LR_vector>::iterator it;
-		for(it = np.vs.begin(); it != np.vs.end(); it++) {
-			LR_vector v = *it;
+		for(auto v: np.vs) {
 			number Plm = gsl_sf_legendre_sphPlm(n, am, v[2]);
 			number phi = atan2(v[1], v[0]);
 			if(phi < 0.) phi += 2 * M_PI;
 
-			complex<number> qtemp(Plm * cos(am * phi), Plm * sin(am * phi));
+			std::complex<number> qtemp(Plm * cos(am * phi), Plm * sin(am * phi));
 
 			if(m < 0) {
 				qtemp = conj(qtemp);
@@ -110,9 +108,8 @@ std::string NathanNeighs::_particle(BaseParticle *p) {
 	LR_vector p_axis = p->orientationT.v3;
 	// this is the number of particles which are no more than 1 + alpha far apart from p
 	int n_within = 0;
-	vector<BaseParticle *> particles = this->_config_info.lists->get_all_neighbours(p);
-	for(typename std::vector<BaseParticle *>::iterator it = particles.begin(); it != particles.end(); it++) {
-		BaseParticle *q = *it;
+	std::vector<BaseParticle *> particles = this->_config_info.lists->get_all_neighbours(p);
+	for(auto q: particles) {
 		if(q->type == 0) {
 			LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
 			number r_mod = r.module();
@@ -174,7 +171,7 @@ std::string NathanNeighs::_particle(BaseParticle *p) {
 		if(_mode == MGL) {
 			LR_vector p1 = p_axis * _patch_length;
 			LR_vector p2 = -p_axis * _patch_length;
-			string str = Utils::sformat("%lf %lf %lf @ 0.5 C[red] M %lf %lf %lf %lf C[blue] %lf %lf %lf %lf C[blue]", p->pos.x, p->pos.y, p->pos.z, p1.x, p1.y, p1.z, 0.7, p2.x, p2.y, p2.z, 0.7);
+			std::string str = Utils::sformat("%lf %lf %lf @ 0.5 C[red] M %lf %lf %lf %lf C[blue] %lf %lf %lf %lf C[blue]", p->pos.x, p->pos.y, p->pos.z, p1.x, p1.y, p1.z, 0.7, p2.x, p2.y, p2.z, 0.7);
 			res << str;
 		}
 		if(_mode == MIN_THETA) res << avg_min_theta;
@@ -198,23 +195,21 @@ std::string NathanNeighs::_configuration(llint step) {
 		return Utils::sformat("%d %lf %d", _total_bonds, avg_theta, _n_crystalline);
 	}
 	else if(_mode == QS) {
-		stringstream ss;
+		std::stringstream ss;
 		bool first = true;
 		for(int i = 0; i < *this->_config_info.N; i++) {
 			NateParticle *np = &_nate_particles[i];
 			if(np->is_crystalline) {
-				typename vector<NateParticle *>::iterator it;
-				for(it = np->neighs.begin(); it != np->neighs.end(); it++) {
-					NateParticle *nq = *it;
+				for(auto nq: np->neighs) {
 					// q4
-					complex<number> qiqj;
+					std::complex<number> qiqj;
 					for(uint32_t di = 0; di < np->q4.size(); di++)
 						qiqj += np->q4[di] * conj(nq->q4[di]);
-					if(!first) ss << endl;
+					if(!first) ss << std::endl;
 					else first = false;
 					ss << qiqj.real();
 					// q6
-					qiqj = complex<number>();
+					qiqj = std::complex<number>();
 					for(uint32_t di = 0; di < np->q6.size(); di++)
 						qiqj += np->q6[di] * conj(nq->q6[di]);
 					ss << " " << qiqj.real();
@@ -225,22 +220,21 @@ std::string NathanNeighs::_configuration(llint step) {
 		return ss.str();
 	}
 	else if(_mode == QS_AVG) {
-		stringstream ss;
+		std::stringstream ss;
 		ss << "# " << _n_crystalline;
 		for(int i = 0; i < *this->_config_info.N; i++) {
 			NateParticle *np = &_nate_particles[i];
 			if(np->is_crystalline) {
-				vector<complex<number>> q4(np->q4);
-				vector<complex<number>> q6(np->q6);
-				typename vector<NateParticle *>::iterator it;
-				for(it = np->neighs.begin(); it != np->neighs.end(); it++) {
+				std::vector<std::complex<number>> q4(np->q4);
+				std::vector<std::complex<number>> q6(np->q6);
+				for(auto nq: np->neighs) {
 					for(int m = -4; m <= 4; m++) {
 						int mm = 4 + m;
-						q4[mm] += (*it)->q4[mm];
+						q4[mm] += nq->q4[mm];
 					}
 					for(int m = -6; m <= 6; m++) {
 						int mm = 6 + m;
-						q6[mm] += (*it)->q6[mm];
+						q6[mm] += nq->q6[mm];
 					}
 				}
 
@@ -258,7 +252,7 @@ std::string NathanNeighs::_configuration(llint step) {
 				}
 				avg_q6 *= 4 * M_PI / (13. * SQR(np->neighs.size()));
 
-				ss << endl << np->p->index << " " << avg_q4 << " " << avg_q6;
+				ss << std::endl << np->p->index << " " << avg_q4 << " " << avg_q6;
 			}
 		}
 

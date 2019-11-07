@@ -55,15 +55,14 @@ void ConstructwisePressure::update_pressure() {
 		_construct_coms[i] /= _construct_size;
 	}
 
-	vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
+	std::vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
 
 	double virial = 0;
 	double energy = 0.;
 	// we loop over all the pairs in order to update the forces
-	typename vector<ParticlePair>::iterator it;
-	for(it = pairs.begin(); it != pairs.end(); it++) {
-		BaseParticle *p = (*it).first;
-		BaseParticle *q = (*it).second;
+	for(auto &pair: pairs) {
+		BaseParticle *p = pair.first;
+		BaseParticle *q = pair.second;
 
 		int p_construct = p->index / _construct_size;
 		int q_construct = q->index / _construct_size;
@@ -96,7 +95,7 @@ void ConstructwisePressure::update_pressure() {
 	_P = _T * (_N_constructs / V) + virial / (3. * V);
 }
 
-string ConstructwisePressure::get_output_string(llint curr_step) {
+std::string ConstructwisePressure::get_output_string(llint curr_step) {
 	update_pressure();
 	return Utils::sformat("% .8e", get_P());
 }

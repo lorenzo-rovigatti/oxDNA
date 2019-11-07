@@ -45,7 +45,7 @@ NathanStarInteraction::~NathanStarInteraction() {
 int NathanStarInteraction::get_N_from_topology() {
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	topology.getline(line, 512);
 	topology.close();
@@ -215,14 +215,14 @@ void NathanStarInteraction::_setup_interp() {
 	gsl_spline_init(_spl_patchy_star, rs, f_ys, _interp_size);
 
 	// print out the "real" derivative, its interpolation and their relative difference
-	ofstream out_der("tabulated_patchy_star.dat");
+	std::ofstream out_der("tabulated_patchy_star.dat");
 	for(int i = 0; i < _interp_size - 1; i++) {
 		r = rs[0] + 0.001 + bin * i;
 		number real_der;
 		if(_is_marzi) real_der = _patchy_star_marzi_derivative(r, marzi_spline, marzi_accel, bin);
 		else real_der = _patchy_star_derivative(r);
 		number interp_der = gsl_spline_eval(_spl_patchy_star, r, _acc_patchy_star);
-		out_der << r << " " << real_der << " " << interp_der << " " << (real_der - interp_der) / real_der << endl;
+		out_der << r << " " << real_der << " " << interp_der << " " << (real_der - interp_der) / real_der << std::endl;
 	}
 	out_der.close();
 
@@ -615,7 +615,7 @@ void NathanStarInteraction::generate_random_configuration(BaseParticle **particl
 			}
 
 			// here we take into account the non-bonded interactions
-			vector<BaseParticle *> neighs = c.get_complete_neigh_list(p);
+			std::vector<BaseParticle *> neighs = c.get_complete_neigh_list(p);
 			for(unsigned int n = 0; n < neighs.size(); n++) {
 				BaseParticle *q = neighs[n];
 				// particles with an index larger than p->index have not been inserted yet

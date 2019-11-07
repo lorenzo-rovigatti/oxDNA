@@ -26,7 +26,7 @@ MGAnalysis::~MGAnalysis() {
 }
 
 void MGAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
-	string inter;
+	std::string inter;
 	getInputString(&sim_inp, "interaction_type", inter, 1);
 	if(inter != "MGInteraction") throw oxDNAException("ElasticConstantTensor is not compatible with the interaction '%s'", inter.c_str());
 
@@ -71,15 +71,14 @@ void MGAnalysis::init(ConfigInfo &config_info) {
 	_beta = 2 * M_PI - 2.25 * _gamma;
 }
 
-pair<number, number> MGAnalysis::_lame_coefficients() {
-	vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
+std::pair<number, number> MGAnalysis::_lame_coefficients() {
+	std::vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
 
 	number lambda = 0.;
 	number mu = 0.;
-	typename vector<ParticlePair>::iterator it;
-	for(it = pairs.begin(); it != pairs.end(); it++) {
-		BaseParticle *p = (*it).first;
-		BaseParticle *q = (*it).second;
+	for(auto &pair: pairs) {
+		BaseParticle *p = pair.first;
+		BaseParticle *q = pair.second;
 		LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
 		number r_sqr = r.norm();
 		number r_mod = sqrt(r_sqr);
@@ -121,14 +120,14 @@ pair<number, number> MGAnalysis::_lame_coefficients() {
 	mu /= 6.;
 	mu += 2 * _T * *this->_config_info.N;
 
-	return pair<number, number>(lambda, mu);
+	return std::pair<number, number>(lambda, mu);
 }
 
 number MGAnalysis::_volume() {
 	int N = *this->_config_info.N;
 	LR_vector com = _com(0, N);
 
-	vector<qh_vertex_t> vertices(N);
+	std::vector<qh_vertex_t> vertices(N);
 	int curr_idx = 0;
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = this->_config_info.particles[i];
@@ -168,8 +167,8 @@ LR_vector MGAnalysis::_com(int from_idx, int to_idx) {
 	return com / N;
 }
 
-vector<number> MGAnalysis::_rg_eigenvalues(int from_idx, int to_idx) {
-	vector<number> res;
+std::vector<number> MGAnalysis::_rg_eigenvalues(int from_idx, int to_idx) {
+	std::vector<number> res;
 	LR_vector com = _com(from_idx, to_idx);
 	int N = to_idx - from_idx;
 
@@ -229,7 +228,7 @@ vector<number> MGAnalysis::_rg_eigenvalues(int from_idx, int to_idx) {
 }
 
 std::string MGAnalysis::get_output_string(llint curr_step) {
-	string to_ret;
+	std::string to_ret;
 
 	if(_volume_only) {
 		double volume = _volume();
@@ -251,7 +250,7 @@ std::string MGAnalysis::get_output_string(llint curr_step) {
 	}
 	else {
 		double volume = _volume();
-		pair<number, number> lame = _lame_coefficients();
+		std::pair<number, number> lame = _lame_coefficients();
 		number lambda = lame.first / volume;
 		number mu = lame.second / volume;
 		to_ret = Utils::sformat("%lf %lf", lambda, mu);

@@ -149,8 +149,8 @@ std::string DiblockGr::get_output_string(llint curr_step) {
 		}
 	}
 
-	stringstream ret;
-	ret << "# r g_AA g_AB g_BB g_intra" << endl;
+	std::stringstream ret;
+	ret << "# r g_AA g_AB g_BB g_intra" << std::endl;
 	number norm = (4. * M_PI) / (3. * this->_config_info.box->V()) * 2;
 	for(int i = 0; i < _n_bins; i++) {
 		number x0 = i * _bin;
@@ -163,7 +163,7 @@ std::string DiblockGr::get_output_string(llint curr_step) {
 			ret << _inter_hist[AB][i] / (tot_norm * _inter_norm[AB]) << " ";
 			ret << _inter_hist[BB][i] / (tot_norm * _inter_norm[BB]) << " ";
 		}
-		ret << _intra_hist[i] / _intra_norm << " " << _intra_hist[i] / (_intra_norm * tot_norm) << endl;
+		ret << _intra_hist[i] / _intra_norm << " " << _intra_hist[i] / (_intra_norm * tot_norm) << std::endl;
 	}
 
 	return ret.str();
