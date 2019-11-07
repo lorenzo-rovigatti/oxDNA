@@ -13,37 +13,39 @@
 
 #define HUB_SIZE 4
 
-typedef struct __align__(8) {
-	int n[HUB_SIZE-1];
-} hub_bonds;
+typedef struct
+	__align__(8) {
+		int n[HUB_SIZE - 1];
+	} hub_bonds;
 
-/**
- * @brief Handles interactions between Starr tetramers on CUDA.
- */
-template<typename number, typename number4>
-class CUDAStarrInteraction: public CUDABaseInteraction<number, number4>, public StarrInteraction<number> {
-protected:
-	int _N_hubs;
-	int *_d_hubs;
-	int *_d_strand_ids;
-	hub_bonds *_d_hub_neighs;
-	number4 *_d_n3_forces, *_d_n5_forces;
+	/**
+	 * @brief Handles interactions between Starr tetramers on CUDA.
+	 */
 
-	void _setup_strand_ids();
-	void _setup_hubs();
-public:
-	CUDAStarrInteraction();
-	virtual ~CUDAStarrInteraction();
+	class CUDAStarrInteraction: public CUDABaseInteraction, public StarrInteraction {
+	protected:
+		int _N_hubs;
+		int *_d_hubs;
+		int *_d_strand_ids;
+		hub_bonds *_d_hub_neighs;
+		c_number4 *_d_n3_forces, *_d_n5_forces;
 
-	number get_cuda_rcut() { return this->get_rcut(); }
-	void get_settings(input_file &inp);
+		void _setup_strand_ids();
+		void _setup_hubs();
+	public:
+		CUDAStarrInteraction();
+		virtual ~CUDAStarrInteraction();
 
-	void cuda_init(number box_side, int N);
+		c_number get_cuda_rcut() {
+			return this->get_rcut();
+		}
+		void get_settings(input_file &inp);
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
-};
+		void cuda_init(c_number box_side, int N);
 
-extern "C" IBaseInteraction<float> *make_CUDAStarrInteraction_float();
-extern "C" IBaseInteraction<double> *make_CUDAStarrInteraction_double();
+		void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
+	};
+
+	extern "C" IBaseInteraction *make_CUDAStarrInteraction();
 
 #endif /* CUDASTARRINTERACTION_H_ */

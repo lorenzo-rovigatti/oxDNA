@@ -11,13 +11,12 @@
 #include "Observables/BaseObservable.h"
 #include "Lists/Cells.h"
 
-template<typename number>
-class CPCells : public Cells<number> {
+class CPCells: public Cells {
 public:
-	vector<number> cell_density;
-	vector<number> coarse_grained_cell_density;
+	std::vector<number> cell_density;
+	std::vector<number> coarse_grained_cell_density;
 
-	CPCells(int &N, BaseBox<number> *box);
+	CPCells(int &N, BaseBox *box);
 	virtual ~CPCells();
 
 	virtual number assign_density_to_cells();
@@ -27,24 +26,25 @@ public:
 /**
  * @brief Outputs the total kinetic energy of the system.
  */
-template<typename number>
-class CPAnalysis : public BaseObservable<number> {
+
+class CPAnalysis: public BaseObservable {
 protected:
 	int _type;
 	number _sigma;
-	CPCells<number> *_cells;
+	CPCells *_cells;
 
 public:
 	CPAnalysis();
 	virtual ~CPAnalysis();
 
-	void get_settings (input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	void get_settings(input_file &my_inp, input_file &sim_inp);
+	virtual void init(ConfigInfo &config_info);
 
 	std::string get_output_string(llint curr_step);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new CPAnalysis<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new CPAnalysis<double>(); }
+extern "C" BaseObservable *make_CPAnalysis() {
+	return new CPAnalysis();
+}
 
 #endif /* CPANALYSIS_H_ */

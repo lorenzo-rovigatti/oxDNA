@@ -8,30 +8,26 @@
 #include "SPBAnalysis.h"
 #include <sstream>
 
-template<typename number>
-SPBAnalysis<number>::SPBAnalysis(): BaseObservable<number>() {
+SPBAnalysis::SPBAnalysis() :
+				BaseObservable() {
 	_N_bins = -1;
 	_confs = 0;
 }
 
-template<typename number>
-SPBAnalysis<number>::~SPBAnalysis() {
+SPBAnalysis::~SPBAnalysis() {
 
 }
 
-
-template<typename number>
-void SPBAnalysis<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	BaseObservable<number>::get_settings(my_inp, sim_inp);
+void SPBAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
 
 	getInputNumber(&my_inp, "bin", &_bin, 1);
 
 	CHECK_BOX("SPBAnalysis", my_inp);
 }
 
-template<typename number>
-void SPBAnalysis<number>::init(ConfigInfo<number> &config_info) {
-	BaseObservable<number>::init(config_info);
+void SPBAnalysis::init(ConfigInfo &config_info) {
+	BaseObservable::init(config_info);
 
 	number box_side = config_info.box->box_sides().x;
 	_N_bins = ceil(box_side / _bin / 2.);
@@ -40,12 +36,11 @@ void SPBAnalysis<number>::init(ConfigInfo<number> &config_info) {
 	_cz.resize(_N_bins, 0.);
 }
 
-template<typename number>
-std::string SPBAnalysis<number>::get_output_string(llint curr_step) {
-	LR_vector<number> c_pos = this->_config_info.particles[0]->pos;
+std::string SPBAnalysis::get_output_string(llint curr_step) {
+	LR_vector c_pos = this->_config_info.particles[0]->pos;
 
 	for(int i = 1; i < *this->_config_info.N; i++) {
-		LR_vector<number> rel_pos = c_pos - this->_config_info.particles[i]->pos;
+		LR_vector rel_pos = c_pos - this->_config_info.particles[i]->pos;
 		_cx[floor(fabs(rel_pos.x) / _bin)]++;
 		_cy[floor(fabs(rel_pos.y) / _bin)]++;
 		_cz[floor(fabs(rel_pos.z) / _bin)]++;
@@ -58,11 +53,8 @@ std::string SPBAnalysis<number>::get_output_string(llint curr_step) {
 		ss << (i + 0.5) * _bin << " ";
 		ss << _cx[i] / factor << " ";
 		ss << _cy[i] / factor << " ";
-		ss << _cz[i] / factor << endl;
+		ss << _cz[i] / factor << std::endl;
 	}
 
 	return ss.str();
 }
-
-template class SPBAnalysis<float>;
-template class SPBAnalysis<double>;

@@ -12,9 +12,10 @@
 
 using namespace std;
 
-template <typename number>
-mWInteraction<number>::mWInteraction() : BaseInteraction<number, mWInteraction<number> >(), _N(-1) {
-	this->_int_map[mW] = &mWInteraction<number>::_two_body;
+mWInteraction::mWInteraction() :
+				BaseInteraction<mWInteraction>(),
+				_N(-1) {
+	this->_int_map[mW] = &mWInteraction::_two_body;
 
 	_lambda = 1.;
 	_gamma = 1.2;
@@ -24,14 +25,12 @@ mWInteraction<number>::mWInteraction() : BaseInteraction<number, mWInteraction<n
 	_theta0 = 1.9106119321581925;
 }
 
-template <typename number>
-mWInteraction<number>::~mWInteraction() {
+mWInteraction::~mWInteraction() {
 
 }
 
-template<typename number>
-void mWInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+void mWInteraction::get_settings(input_file &inp) {
+	IBaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "mW_lambda", &_lambda, 0);
 	getInputNumber(&inp, "mW_gamma", &_gamma, 0);
@@ -41,8 +40,7 @@ void mWInteraction<number>::get_settings(input_file &inp) {
 	getInputNumber(&inp, "mW_B", &_B, 0);
 }
 
-template<typename number>
-void mWInteraction<number>::init() {
+void mWInteraction::init() {
 	this->_rcut = _a;
 	this->_sqr_rcut = SQR(this->_rcut);
 	_cos_theta0 = cos(_theta0);
@@ -50,35 +48,32 @@ void mWInteraction<number>::init() {
 	OX_LOG(Logger::LOG_INFO, "mW parameters: lambda = %lf, A = %lf, B = %lf, gamma = %lf, theta0 = %lf, a = %lf", _lambda, _A, _B, _gamma, _theta0, _a);
 }
 
-template<typename number>
-void mWInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
+void mWInteraction::allocate_particles(BaseParticle **particles, int N) {
 	for(int i = 0; i < N; i++) {
-		particles[i] = new BaseParticle<number>();
+		particles[i] = new BaseParticle();
 	}
 	_bonds.resize(N);
 	_N = N;
 }
 
-template<typename number>
-number mWInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number mWInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number energy = pair_interaction_bonded(p, q, r, update_forces);
 	energy += pair_interaction_nonbonded(p, q, r, update_forces);
 	return energy;
 }
 
-template<typename number>
-number mWInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number mWInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	// reset _bonds. This is beyond horrible
 	if(q == P_VIRTUAL && p->index == 0) {
-		for(int i = 0; i < _N; i++)	_bonds[i].clear();
+		for(int i = 0; i < _N; i++)
+			_bonds[i].clear();
 	}
 
 	return (number) 0.f;
 }
 
-template<typename number>
-number mWInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+number mWInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -87,31 +82,22 @@ number mWInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p
 	return _two_body(p, q, r, update_forces);
 }
 
-template<typename number>
-void mWInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+void mWInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	*N_strands = N;
 
 	allocate_particles(particles, N);
-	for (int i = 0; i < N; i ++) {
-	   particles[i]->index = i;
-	   particles[i]->type = P_A;
-	   particles[i]->btype = P_A;
-	   particles[i]->strand_id = i;
+	for(int i = 0; i < N; i++) {
+		particles[i]->index = i;
+		particles[i]->type = P_A;
+		particles[i]->btype = P_A;
+		particles[i]->strand_id = i;
 	}
 }
 
-template<typename number>
-void mWInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
+void mWInteraction::check_input_sanity(BaseParticle **particles, int N) {
 
 }
 
-extern "C" mWInteraction<float> *make_float() {
-	return new mWInteraction<float>();
+extern "C" mWInteraction *make_mWInteraction() {
+	return new mWInteraction();
 }
-
-extern "C" mWInteraction<double> *make_double() {
-	return new mWInteraction<double>();
-}
-
-template class mWInteraction<float>;
-template class mWInteraction<double>;

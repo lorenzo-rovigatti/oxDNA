@@ -15,18 +15,17 @@
 
 #include "../Interactions/LevyInteraction.h"
 
-template<typename number>
-class LevyDelta : public BaseObservable<number>  {
+class LevyDelta: public BaseObservable {
 protected:
-	vector<BaseParticle<number> *> _tetramer;
-	vector<BaseParticle<number> *> _dimer;
+	vector<BaseParticle *> _tetramer;
+	vector<BaseParticle *> _dimer;
 	int _tries;
 	number _temperature;
 	number _patchy_rcut;
-	LevyInteraction<number> *_inter;
+	LevyInteraction *_inter;
 
-	BaseParticle<number> *_get_random_particle(vector<BaseParticle<number> *> &, int);
-	void _rototranslate(vector<BaseParticle<number> *> &, LR_vector<number> &, BaseParticle<number> *, LR_matrix<number> &);
+	BaseParticle *_get_random_particle(vector<BaseParticle *> &, int);
+	void _rototranslate(vector<BaseParticle *> &, LR_vector &, BaseParticle *, LR_matrix &);
 
 public:
 	LevyDelta();
@@ -35,10 +34,11 @@ public:
 	std::string get_output_string(llint curr_step);
 
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new LevyDelta<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new LevyDelta<double>(); }
+extern "C" BaseObservable *make_LevyDelta() {
+	return new LevyDelta();
+}
 
 #endif /* LEVY_H_ */

@@ -10,10 +10,9 @@
 
 #include "Observables/BaseObservable.h"
 
-template<typename number>
-class MicrogelElasticity : public BaseObservable<number> {
+class MicrogelElasticity: public BaseObservable {
 protected:
-	LR_vector<number> _com();
+	LR_vector _com();
 	bool _crosslinkers_only;
 	int _N_crosslinkers;
 
@@ -21,12 +20,13 @@ public:
 	MicrogelElasticity();
 	virtual ~MicrogelElasticity();
 
-	void get_settings (input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo<number> &config_info);
+	void get_settings(input_file &my_inp, input_file &sim_inp);
+	void init(ConfigInfo &config_info);
 	std::string get_output_string(llint curr_step);
 };
 
-extern "C" BaseObservable<float> *make_MicrogelElasticity_float() { return new MicrogelElasticity<float>(); }
-extern "C" BaseObservable<double> *make_MicrogelElasticity_double() { return new MicrogelElasticity<double>(); }
+extern "C" BaseObservable *make_MicrogelElasticity() {
+	return new MicrogelElasticity();
+}
 
 #endif /* MICROGELELASTICITY_H_ */

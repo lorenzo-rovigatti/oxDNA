@@ -16,23 +16,20 @@
 /**
  * @brief Handles the interaction between coarse-grained DNA tetramers.
  */
-template <typename number>
-class ManfredoInteraction: public BaseInteraction<number, ManfredoInteraction<number> > {
+class ManfredoInteraction: public BaseInteraction<ManfredoInteraction> {
 protected:
 	enum {
-		CENTRE,
-		ARM,
-		STICKY
+		CENTRE, ARM, STICKY
 	};
 
 	// look up tables for intra-tetramer potentials
 	char _intra_filename[3][512];
-	Mesh<number> _intra_mesh[3];
+	Mesh _intra_mesh[3];
 	int _intra_points[3];
 
 	// look up tables for inter-tetramer potentials
 	char _inter_filename[3][512];
-	Mesh<number> _inter_mesh[3];
+	Mesh _inter_mesh[3];
 	int _inter_points[3];
 
 	number _T;
@@ -75,19 +72,23 @@ protected:
 	 */
 	number _dfx(number x, void *par);
 
-	void _build_lt(Mesh<number> &mesh, int points, char *filename);
+	void _build_lt(Mesh &mesh, int points, char *filename);
 
 	int _N_tetramers;
 	const int _N_per_tetramer;
 
-	DNAInteraction<number> _DNA_inter;
+	DNAInteraction _DNA_inter;
 
 	// helper functions
-	bool _any(int p_type, int q_type, int to_test) { return (p_type == to_test || q_type == to_test); }
-	bool _both(int p_type, int q_type, int to_test) { return (p_type == to_test && q_type == to_test); }
+	bool _any(int p_type, int q_type, int to_test) {
+		return (p_type == to_test || q_type == to_test);
+	}
+	bool _both(int p_type, int q_type, int to_test) {
+		return (p_type == to_test && q_type == to_test);
+	}
 
-	int _get_p_type(BaseParticle<number> *p);
-	int _get_inter_type(BaseParticle<number> *p, BaseParticle<number> *q);
+	int _get_p_type(BaseParticle *p);
+	int _get_inter_type(BaseParticle *p, BaseParticle *q);
 
 	/**
 	 * @brief Query the given mesh at the value x.
@@ -98,7 +99,7 @@ protected:
 	 * @param m
 	 * @return
 	 */
-	number _query_mesh(number x, Mesh<number> &m);
+	number _query_mesh(number x, Mesh &m);
 	/**
 	 * @brief Query the derivative of the given mesh at the value x.
 	 *
@@ -108,21 +109,14 @@ protected:
 	 * @param m
 	 * @return
 	 */
-	number _query_meshD(number x, Mesh<number> &m);
+	number _query_meshD(number x, Mesh &m);
 public:
 	enum {
-		CENTRE_ARM_INTRA,
-		ARM_ARM_NEAR,
-		ARM_ARM_FAR,
+		CENTRE_ARM_INTRA, ARM_ARM_NEAR, ARM_ARM_FAR,
 	};
 
 	enum {
-		CENTRE_ARM_INTER,
-		ARM_ARM_INTER,
-		CENTRE_CENTRE,
-		CENTRE_STICKY,
-		ARM_STICKY,
-		STICKY_STICKY
+		CENTRE_ARM_INTER, ARM_ARM_INTER, CENTRE_CENTRE, CENTRE_STICKY, ARM_STICKY, STICKY_STICKY
 	};
 
 	ManfredoInteraction();
@@ -131,42 +125,47 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void allocate_particles(BaseParticle **particles, int N);
+	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
-	virtual void generate_random_configuration(BaseParticle<number> **particles, int N);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
+	virtual void generate_random_configuration(BaseParticle **particles, int N);
 };
 
 // Arms are composed by 7 particles. The last six, which constitute the sticky end, are regular
 // DNA nucleotides. The first one, on the other hand, is a DNA nucleotide but it also interacts
 // via user-defined potentials with tetramers' centres and other arms
-template<typename number>
-class CustomArmParticle: public CustomParticle<number> {
+
+class CustomArmParticle: public CustomParticle {
 protected:
-	LR_vector<number> _principal_DNA_axis;
+	LR_vector _principal_DNA_axis;
 public:
 	CustomArmParticle();
-	virtual ~CustomArmParticle() {};
+	virtual ~CustomArmParticle() {
+	}
+	;
 
-	virtual bool is_rigid_body() { return true; }
+	virtual bool is_rigid_body() {
+		return true;
+	}
 
-	virtual bool is_bonded(BaseParticle<number> *q) {
+	virtual bool is_bonded(BaseParticle *q) {
 		if(q == this->n3 || q == this->n5) return true;
-		return CustomParticle<number>::is_bonded(q);
+		return CustomParticle::is_bonded(q);
 	}
 
 	void set_positions();
 };
 
-extern "C" ManfredoInteraction<float> *make_float() { return new ManfredoInteraction<float>(); }
-extern "C" ManfredoInteraction<double> *make_double() { return new ManfredoInteraction<double>(); }
+extern "C" ManfredoInteraction *make_ManfredoInteractiont() {
+	return new ManfredoInteraction();
+}
 
 #endif /* MANFREDOINTERACTION_H_ */

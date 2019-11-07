@@ -11,22 +11,24 @@
 #include "CUDA/Interactions/CUDABaseInteraction.h"
 #include "PolymerInteraction.h"
 
-template<typename number, typename number4>
-class CUDAPolymerInteraction: public CUDABaseInteraction<number, number4>, public PolymerInteraction<number> {
+class CUDAPolymerInteraction: public CUDABaseInteraction, public PolymerInteraction {
 protected:
 public:
 	CUDAPolymerInteraction();
 	virtual ~CUDAPolymerInteraction();
 
-	number get_cuda_rcut() { return this->get_rcut(); }
+	c_number get_cuda_rcut() {
+		return this->get_rcut();
+	}
 	void get_settings(input_file &inp);
 
-	void cuda_init(number box_side, int N);
+	void cuda_init(c_number box_side, int N);
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
+	void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
 };
 
-extern "C" IBaseInteraction<float> *make_CUDAPolymerInteraction_float() { return new CUDAPolymerInteraction<float, float4>(); }
-extern "C" IBaseInteraction<double> *make_CUDAPolymerInteraction_double() { return new CUDAPolymerInteraction<double, LR_double4>(); }
+extern "C" IBaseInteraction *make_CUDAPolymerInteraction() {
+	return new CUDAPolymerInteraction();
+}
 
 #endif /* CUDAPOLYMERINTERACTION_H_ */

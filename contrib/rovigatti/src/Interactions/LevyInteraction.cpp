@@ -12,10 +12,10 @@
 
 using namespace std;
 
-template <typename number>
-LevyInteraction<number>::LevyInteraction() : BaseInteraction<number, LevyInteraction<number> >() {
-	this->_int_map[BONDED] = &LevyInteraction<number>::pair_interaction_bonded;
-	this->_int_map[NONBONDED] = &LevyInteraction<number>::pair_interaction_nonbonded;
+LevyInteraction::LevyInteraction() :
+				BaseInteraction<LevyInteraction>() {
+	this->_int_map[BONDED] = &LevyInteraction::pair_interaction_bonded;
+	this->_int_map[NONBONDED] = &LevyInteraction::pair_interaction_nonbonded;
 
 	_N_tetramers = _N_dimers = _N_monomers = 0;
 	_N_per_tetramer = 5;
@@ -35,14 +35,12 @@ LevyInteraction<number>::LevyInteraction() : BaseInteraction<number, LevyInterac
 	_patch_alpha = 0.12;
 }
 
-template <typename number>
-LevyInteraction<number>::~LevyInteraction() {
+LevyInteraction::~LevyInteraction() {
 
 }
 
-template<typename number>
-void LevyInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+void LevyInteraction::get_settings(input_file &inp) {
+	IBaseInteraction::get_settings(inp);
 
 	getInputBool(&inp, "LEVY_rigid", &_rigid_model, 0);
 	getInputNumber(&inp, "LEVY_monomer_epsilon", &_monomer_epsilon, 0);
@@ -50,22 +48,21 @@ void LevyInteraction<number>::get_settings(input_file &inp) {
 	if(_rigid_model) getInputNumber(&inp, "LEVY_terminal_lin_k", &_terminal_lin_k, 1);
 }
 
-template<typename number>
-void LevyInteraction<number>::init() {
-	number patch_rcut = _patch_alpha*1.5;
+void LevyInteraction::init() {
+	number patch_rcut = _patch_alpha * 1.5;
 	_sqr_patch_rcut = SQR(patch_rcut);
 	_patch_pow_alpha = powf(_patch_alpha, (number) 10.f);
 	number r8b10 = powf(patch_rcut, (number) 8.f) / _patch_pow_alpha;
-	_patch_E_cut = -1.001f*_epsilon*expf(-(number)0.5f*r8b10*_sqr_patch_rcut);
-	_patch_monomer_E_cut = -1.001f*_monomer_epsilon*expf(-(number)0.5f*r8b10*_sqr_patch_rcut);
+	_patch_E_cut = -1.001f * _epsilon * expf(-(number) 0.5f * r8b10 * _sqr_patch_rcut);
+	_patch_monomer_E_cut = -1.001f * _monomer_epsilon * expf(-(number) 0.5f * r8b10 * _sqr_patch_rcut);
 
 	this->_rcut = 0;
 	for(int i = 0; i < 3; i++) {
-		number rcut = _sigma[i]*1.05 + patch_rcut;
+		number rcut = _sigma[i] * 1.05 + patch_rcut;
 		if(rcut > this->_rcut) this->_rcut = rcut;
 		_sqr_tot_rcut[i] = SQR(rcut);
 		_sqr_sigma[i] = SQR(_sigma[i]);
-		_E_cut[i] = powf((number) _sigma[i]/rcut, _patchy_power);
+		_E_cut[i] = powf((number) _sigma[i] / rcut, _patchy_power);
 	}
 
 	this->_sqr_rcut = SQR(this->_rcut);
@@ -74,15 +71,14 @@ void LevyInteraction<number>::init() {
 	this->_generate_bonded_cutoff = sqrt(_fene_sqr_r0);
 }
 
-template<typename number>
-void LevyInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
-	int N_in_tetramers = _N_tetramers*_N_per_tetramer;
-	CustomParticle<number> *current_centre = NULL;
+void LevyInteraction::allocate_particles(BaseParticle **particles, int N) {
+	int N_in_tetramers = _N_tetramers * _N_per_tetramer;
+	CustomParticle *current_centre = NULL;
 	for(int i = 0; i < N_in_tetramers; i++) {
 		bool is_patchy = (i % _N_per_tetramer > 0);
 
-		particles[i] = (is_patchy) ? new PatchySite<number>() : new CustomParticle<number>();
-		CustomParticle<number> *p = static_cast<CustomParticle<number> *>(particles[i]);
+		particles[i] = (is_patchy) ? new PatchySite() : new CustomParticle();
+		CustomParticle *p = static_cast<CustomParticle *>(particles[i]);
 		p->type = P_A;
 		p->n3 = p->n5 = P_VIRTUAL;
 
@@ -97,17 +93,17 @@ void LevyInteraction<number>::allocate_particles(BaseParticle<number> **particle
 		}
 
 		p->index = i;
-		p->strand_id = i/_N_per_tetramer;
+		p->strand_id = i / _N_per_tetramer;
 	}
 
-	int N_in_dimers = _N_dimers*_N_per_dimer;
+	int N_in_dimers = _N_dimers * _N_per_dimer;
 	for(int i = N_in_tetramers; i < N_in_tetramers + N_in_dimers; i++) {
 		int base_idx = i - N_in_tetramers;
 		int rel_idx = base_idx % _N_per_dimer;
 		bool is_patchy = (rel_idx == 0 || rel_idx == (_N_per_dimer - 1));
 
-		particles[i] = (is_patchy) ? new PatchySite<number>() : new CustomParticle<number>();
-		CustomParticle<number> *p = static_cast<CustomParticle<number> *>(particles[i]);
+		particles[i] = (is_patchy) ? new PatchySite() : new CustomParticle();
+		CustomParticle *p = static_cast<CustomParticle *>(particles[i]);
 
 		p->n3 = p->n5 = P_VIRTUAL;
 
@@ -115,7 +111,7 @@ void LevyInteraction<number>::allocate_particles(BaseParticle<number> **particle
 			p->type = P_A;
 			p->btype = DIMER_PATCHY;
 			if(rel_idx != 0) {
-				CustomParticle<number> *q = static_cast<CustomParticle<number> *>(particles[i - 1]);
+				CustomParticle *q = static_cast<CustomParticle *>(particles[i - 1]);
 				p->add_bonded_neigh(q);
 				p->n3 = q;
 				q->n5 = p;
@@ -124,31 +120,30 @@ void LevyInteraction<number>::allocate_particles(BaseParticle<number> **particle
 		else {
 			p->type = P_B;
 			p->btype = DIMER_CENTRE;
-			CustomParticle<number> *q = static_cast<CustomParticle<number> *>(particles[i - 1]);
+			CustomParticle *q = static_cast<CustomParticle *>(particles[i - 1]);
 			p->add_bonded_neigh(q);
 			p->n3 = q;
 			q->n5 = p;
 		}
 
 		p->index = i;
-		p->strand_id = N_in_tetramers/_N_per_tetramer + base_idx/_N_per_dimer;
+		p->strand_id = N_in_tetramers / _N_per_tetramer + base_idx / _N_per_dimer;
 	}
 
 	for(int i = N_in_tetramers + N_in_dimers; i < N; i++) {
 		int base_idx = i - N_in_tetramers - N_in_dimers;
-		PatchySite<number> *p = new PatchySite<number>();
+		PatchySite *p = new PatchySite();
 		p->type = P_A;
 		p->btype = MONOMER;
 		p->n3 = p->n5 = NULL;
 		p->index = i;
-		p->strand_id = N_in_tetramers/_N_per_tetramer + N_in_dimers/_N_per_dimer + base_idx;
+		p->strand_id = N_in_tetramers / _N_per_tetramer + N_in_dimers / _N_per_dimer + base_idx;
 
 		particles[i] = p;
 	}
 }
 
-template<typename number>
-void LevyInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+void LevyInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[2048];
@@ -161,8 +156,7 @@ void LevyInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<
 	allocate_particles(particles, N);
 }
 
-template<typename number>
-number LevyInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number LevyInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm();
 
 	if(sqr_r > _fene_sqr_r0) {
@@ -170,12 +164,12 @@ number LevyInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<numb
 		else return 1e10;
 	}
 
-	number energy = -0.5*_fene_K*_fene_sqr_r0*log(1. - sqr_r/_fene_sqr_r0);
+	number energy = -0.5 * _fene_K * _fene_sqr_r0 * log(1. - sqr_r / _fene_sqr_r0);
 
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
-		number force_mod = -_fene_K*_fene_sqr_r0/(_fene_sqr_r0 - sqr_r);
+		number force_mod = -_fene_K * _fene_sqr_r0 / (_fene_sqr_r0 - sqr_r);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -183,8 +177,7 @@ number LevyInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<numb
 	return energy;
 }
 
-template<typename number>
-number LevyInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number LevyInteraction::_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm();
 	int type = p->type + q->type;
 	int btype = p->btype + q->btype;
@@ -192,21 +185,21 @@ number LevyInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<
 
 	number energy = (number) 0.f;
 
-	number part = powf(_sqr_sigma[type]/sqr_r, _patchy_power*0.5f);
+	number part = powf(_sqr_sigma[type] / sqr_r, _patchy_power * 0.5f);
 	energy = part - _E_cut[type];
 
 	if(update_forces) {
-		LR_vector<number> force = *r * (_patchy_power*part/sqr_r);
+		LR_vector force = *r * (_patchy_power * part / sqr_r);
 		p->force -= force;
 		q->force += force;
 	}
 
 	// a patchy interaction is possible
 	if(btype == (TETRA_PATCHY + DIMER_PATCHY) || btype == (TETRA_PATCHY + MONOMER) || btype == (DIMER_PATCHY + MONOMER)) {
-		LR_vector<number> ppatch = p->int_centers[0];
-		LR_vector<number> qpatch = q->int_centers[0];
+		LR_vector ppatch = p->int_centers[0];
+		LR_vector qpatch = q->int_centers[0];
 
-		LR_vector<number> patch_dist = *r + qpatch - ppatch;
+		LR_vector patch_dist = *r + qpatch - ppatch;
 		number sqr_dist = patch_dist.norm();
 		if(sqr_dist < _sqr_patch_rcut) {
 			number interaction_strength = _epsilon;
@@ -216,15 +209,15 @@ number LevyInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<
 				E_cut = _patch_monomer_E_cut;
 			}
 			number r8b10 = SQR(SQR(sqr_dist)) / _patch_pow_alpha;
-			number exp_part = -1.001f*interaction_strength*exp(-(number)0.5f*r8b10*sqr_dist);
+			number exp_part = -1.001f * interaction_strength * exp(-(number) 0.5f * r8b10 * sqr_dist);
 
 			energy += exp_part - E_cut;
 
 			if(update_forces) {
-				LR_vector<number> tmp_force = patch_dist*(5*exp_part*r8b10);
+				LR_vector tmp_force = patch_dist * (5 * exp_part * r8b10);
 
-				p->torque -= p->orientationT*ppatch.cross(tmp_force);
-				q->torque += q->orientationT*qpatch.cross(tmp_force);
+				p->torque -= p->orientationT * ppatch.cross(tmp_force);
+				q->torque += q->orientationT * qpatch.cross(tmp_force);
 
 				p->force -= tmp_force;
 				q->force += tmp_force;
@@ -235,8 +228,7 @@ number LevyInteraction<number>::_two_body(BaseParticle<number> *p, BaseParticle<
 	return energy;
 }
 
-template<typename number>
-number LevyInteraction<number>::_three_body(BaseParticle<number> *p, BaseParticle<number> *n3, BaseParticle<number> *n5, bool update_forces) {
+number LevyInteraction::_three_body(BaseParticle *p, BaseParticle *n3, BaseParticle *n5, bool update_forces) {
 	if(n3 == P_VIRTUAL || n5 == P_VIRTUAL) return 0.;
 
 	number curr_lin_k = _lin_k;
@@ -246,39 +238,37 @@ number LevyInteraction<number>::_three_body(BaseParticle<number> *p, BaseParticl
 		else curr_lin_k = _terminal_lin_k;
 	}
 
-	LR_vector<number> dist_pn3 = this->_box->min_image(p->pos, n3->pos);
-	LR_vector<number> dist_pn5 = this->_box->min_image(n5->pos, p->pos);
+	LR_vector dist_pn3 = this->_box->min_image(p->pos, n3->pos);
+	LR_vector dist_pn5 = this->_box->min_image(n5->pos, p->pos);
 
 	number sqr_dist_pn3 = dist_pn3.norm();
 	number sqr_dist_pn5 = dist_pn5.norm();
-	number i_pn3_pn5 = 1. / sqrt(sqr_dist_pn3*sqr_dist_pn5);
-	number cost = (dist_pn3*dist_pn5)*i_pn3_pn5;
+	number i_pn3_pn5 = 1. / sqrt(sqr_dist_pn3 * sqr_dist_pn5);
+	number cost = (dist_pn3 * dist_pn5) * i_pn3_pn5;
 
 	if(update_forces) {
-		number cost_n3 = cost/sqr_dist_pn3;
-		number cost_n5 = cost/sqr_dist_pn5;
+		number cost_n3 = cost / sqr_dist_pn3;
+		number cost_n5 = cost / sqr_dist_pn5;
 		number force_mod_n3 = i_pn3_pn5 + cost_n3;
 		number force_mod_n5 = i_pn3_pn5 + cost_n5;
 
-		p->force += dist_pn3*(force_mod_n3*curr_lin_k) - dist_pn5*(force_mod_n5*curr_lin_k);
-		n3->force -= dist_pn3*(cost_n3*curr_lin_k) - dist_pn5*(i_pn3_pn5*curr_lin_k);
-		n5->force -= dist_pn3*(i_pn3_pn5*curr_lin_k) - dist_pn5*(cost_n5*curr_lin_k);
+		p->force += dist_pn3 * (force_mod_n3 * curr_lin_k) - dist_pn5 * (force_mod_n5 * curr_lin_k);
+		n3->force -= dist_pn3 * (cost_n3 * curr_lin_k) - dist_pn5 * (i_pn3_pn5 * curr_lin_k);
+		n5->force -= dist_pn3 * (i_pn3_pn5 * curr_lin_k) - dist_pn5 * (cost_n5 * curr_lin_k);
 	}
 
-	return curr_lin_k*(1. - cost);
+	return curr_lin_k * (1. - cost);
 }
 
-template<typename number>
-number LevyInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number LevyInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
 	else return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
-template<typename number>
-number LevyInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number LevyInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(!p->is_bonded(q)) return 0.;
 
-	LR_vector<number> computed_r(0, 0, 0);
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = q->pos - p->pos;
 		r = &computed_r;
@@ -286,13 +276,13 @@ number LevyInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p,
 
 	number energy = _fene(p, q, r, update_forces);
 	energy += _two_body(p, q, r, update_forces);
-	
+
 	if(p->n3 == q && p->n5 != NULL) energy += _three_body(p, p->n3, p->n5, update_forces);
 	if(p->n5 == q && p->n3 != NULL) energy += _three_body(p, p->n3, p->n5, update_forces);
 	if(p->btype == TETRA_CENTRE || q->btype == TETRA_CENTRE) {
-		CustomParticle<number> *centre = (p->btype == TETRA_CENTRE) ? static_cast<CustomParticle<number> *>(p) : static_cast<CustomParticle<number> *>(q);
-		BaseParticle<number> *other = (p->btype == TETRA_CENTRE) ? q : p;
-		for(typename std::set<CustomParticle<number> *>::iterator it = centre->bonded_neighs.begin(); it != centre->bonded_neighs.end(); it++) {
+		CustomParticle *centre = (p->btype == TETRA_CENTRE) ? static_cast<CustomParticle *>(p) : static_cast<CustomParticle *>(q);
+		BaseParticle *other = (p->btype == TETRA_CENTRE) ? q : p;
+		for(typename std::set<CustomParticle *>::iterator it = centre->bonded_neighs.begin(); it != centre->bonded_neighs.end(); it++) {
 			if(*it != other) if(other->index > (*it)->index) energy += _three_body(centre, other, *it, update_forces);
 		}
 	}
@@ -300,11 +290,10 @@ number LevyInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p,
 	return energy;
 }
 
-template<typename number>
-number LevyInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number LevyInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return 0.f;
 
-	LR_vector<number> computed_r(0, 0, 0);
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -313,19 +302,11 @@ number LevyInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> 
 	return _two_body(p, q, r, update_forces);
 }
 
-template<typename number>
-void LevyInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
-	int computed_N = _N_tetramers*_N_per_tetramer + _N_dimers*_N_per_dimer + _N_monomers;
+void LevyInteraction::check_input_sanity(BaseParticle **particles, int N) {
+	int computed_N = _N_tetramers * _N_per_tetramer + _N_dimers * _N_per_dimer + _N_monomers;
 	if(computed_N != N) throw oxDNAException("The number of particles found in the topology (%d) is not compatible with the one computed from the numbers of tetramers and dimers (%d)", N, computed_N);
 }
 
-extern "C" LevyInteraction<float> *make_LevyInteraction_float() {
-	return new LevyInteraction<float>();
+extern "C" LevyInteraction *make_LevyInteraction() {
+	return new LevyInteraction();
 }
-
-extern "C" LevyInteraction<double> *make_LevyInteraction_double() {
-	return new LevyInteraction<double>();
-}
-
-template class LevyInteraction<float>;
-template class LevyInteraction<double>;
