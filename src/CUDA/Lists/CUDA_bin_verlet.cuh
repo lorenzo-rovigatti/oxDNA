@@ -20,7 +20,7 @@ __constant__ int bverlet_max_N_per_cell[3];
 __constant__ int bverlet_cells_offset[3];
 __constant__ int bverlet_counters_offset[3];
 
-__device__ c_number quad_minimum_image_dist(const tmpnmbr &r_i, const tmpnmbr &r_j) {
+__device__ c_number quad_minimum_image_dist(const c_number4 &r_i, const c_number4 &r_j) {
 	c_number dx = r_j.x - r_i.x;
 	c_number dy = r_j.y - r_i.y;
 	c_number dz = r_j.z - r_i.z;
@@ -60,12 +60,12 @@ __device__ int get_neigh_cell(const int index, const int3 &offset, const int cel
 	return (z * bverlet_N_cells_side[cell_type] + y) * bverlet_N_cells_side[cell_type] + x;
 }
 
-__device__ void update_cell_neigh_list(tmpnmbr *poss, const int cell_ind, int *cells, int *counters_cells, tmpnmbr &r, int *matrix_neighs, int &N_neigh, int p_type, int cell_type) {
+__device__ void update_cell_neigh_list(c_number4 *poss, const int cell_ind, int *cells, int *counters_cells, c_number4 &r, int *matrix_neighs, int &N_neigh, int p_type, int cell_type) {
 	for(int i = 0; i < counters_cells[bverlet_counters_offset[cell_type] + cell_ind]; i++) {
 		const int m = cells[bverlet_cells_offset[cell_type] + cell_ind * bverlet_max_N_per_cell[cell_type] + i];
 		if(IND == m) continue;
 
-		tmpnmbr rm = poss[m];
+		c_number4 rm = poss[m];
 		int m_type = get_particle_btype(rm);
 		// if cell_type == 1 then we only want cross-species interactions
 		bool good = (cell_type != 1) || (p_type != m_type);
@@ -77,10 +77,10 @@ __device__ void update_cell_neigh_list(tmpnmbr *poss, const int cell_ind, int *c
 	}
 }
 
-__global__ void bin_update_self_neigh_list(tmpnmbr *poss, tmpnmbr *list_poss, int *cells, int *counters_cells, int *matrix_neighs, int *c_number_neighs) {
+__global__ void bin_update_self_neigh_list(c_number4 *poss, c_number4 *list_poss, int *cells, int *counters_cells, int *matrix_neighs, int *c_number_neighs) {
 	if(IND >= bverlet_N[0]) return;
 
-	tmpnmbr r = poss[IND];
+	c_number4 r = poss[IND];
 	int N_neighs = 0;
 	int p_type = get_particle_btype(r);
 	int cell_type = 2 * p_type;
@@ -122,10 +122,10 @@ __global__ void bin_update_self_neigh_list(tmpnmbr *poss, tmpnmbr *list_poss, in
 	c_number_neighs[IND] = N_neighs;
 }
 
-__global__ void bin_update_mixed_neigh_list(tmpnmbr *poss, int *cells, int *counters_cells, int *matrix_neighs, int *c_number_neighs) {
+__global__ void bin_update_mixed_neigh_list(c_number4 *poss, int *cells, int *counters_cells, int *matrix_neighs, int *c_number_neighs) {
 	if(IND >= bverlet_N[0]) return;
 
-	tmpnmbr r = poss[IND];
+	c_number4 r = poss[IND];
 	int N_neighs = c_number_neighs[IND];
 	int p_type = get_particle_btype(r);
 	int cell_type = 1;
@@ -163,10 +163,10 @@ __global__ void bin_update_mixed_neigh_list(tmpnmbr *poss, int *cells, int *coun
 	c_number_neighs[IND] = N_neighs;
 }
 
-__global__ void bin_fill_cells(tmpnmbr *poss, int *cells, int *counters_cells, bool *cell_overflow) {
+__global__ void bin_fill_cells(c_number4 *poss, int *cells, int *counters_cells, bool *cell_overflow) {
 	if(IND >= bverlet_N[0]) return;
 
-	const tmpnmbr r = poss[IND];
+	const c_number4 r = poss[IND];
 	int cell_type = 2 * get_particle_btype(r);
 	// index of the cell of the given type
 	int index = compute_cell_index(r, cell_type);

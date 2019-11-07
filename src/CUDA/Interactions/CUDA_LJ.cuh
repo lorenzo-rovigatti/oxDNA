@@ -9,12 +9,12 @@ __constant__ int MD_LJ_n[3];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-__device__ void _particle_particle_interaction(tmpnmbr &ppos, tmpnmbr &qpos, tmpnmbr &F, CUDABox*box) {
+__device__ void _particle_particle_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox*box) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int type = ptype + qtype;
 
-	tmpnmbr r = box->minimum_image(ppos, qpos);
+	c_number4 r = box->minimum_image(ppos, qpos);
 
 	c_number sqr_r = CUDA_DOT(r, r);
 
@@ -35,15 +35,15 @@ __device__ void _particle_particle_interaction(tmpnmbr &ppos, tmpnmbr &qpos, tmp
 }
 
 // forces + second step without lists
-__global__ void lj_forces(tmpnmbr *poss, tmpnmbr *forces, CUDABox*box) {
+__global__ void lj_forces(c_number4 *poss, c_number4 *forces, CUDABox*box) {
 	if(IND >= MD_N[0]) return;
 
-	tmpnmbr F = forces[IND];
-	tmpnmbr ppos = poss[IND];
+	c_number4 F = forces[IND];
+	c_number4 ppos = poss[IND];
 
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND) {
-			tmpnmbr qpos = poss[j];
+			c_number4 qpos = poss[j];
 
 			_particle_particle_interaction(ppos, qpos, F, box);
 		}
@@ -52,18 +52,18 @@ __global__ void lj_forces(tmpnmbr *poss, tmpnmbr *forces, CUDABox*box) {
 	forces[IND] = F;
 }
 
-__global__ void lj_forces_edge(tmpnmbr *poss, tmpnmbr *forces, edge_bond *edge_list, int n_edges, CUDABox*box) {
+__global__ void lj_forces_edge(c_number4 *poss, c_number4 *forces, edge_bond *edge_list, int n_edges, CUDABox*box) {
 	if(IND >= n_edges) return;
 
-	tmpnmbr dF = make_tmpnmbr(0.f, 0.f, 0.f, 0.f);
+	c_number4 dF = make_c_number4(0.f, 0.f, 0.f, 0.f);
 
 	edge_bond b = edge_list[IND];
 
 	// get info for particle 1
-	tmpnmbr ppos = poss[b.from];
+	c_number4 ppos = poss[b.from];
 
 	// get info for particle 2
-	tmpnmbr qpos = poss[b.to];
+	c_number4 qpos = poss[b.to];
 
 	_particle_particle_interaction(ppos, qpos, dF, box);
 	dF.w *= (c_number) 0.5f;
@@ -80,18 +80,18 @@ __global__ void lj_forces_edge(tmpnmbr *poss, tmpnmbr *forces, edge_bond *edge_l
 }
 
 // forces + second step with verlet lists
-__global__ void lj_forces(tmpnmbr *poss, tmpnmbr *forces, int *matrix_neighs, int *c_number_neighs, CUDABox*box) {
+__global__ void lj_forces(c_number4 *poss, c_number4 *forces, int *matrix_neighs, int *c_number_neighs, CUDABox*box) {
 	if(IND >= MD_N[0]) return;
 
-	tmpnmbr F = forces[IND];
-	tmpnmbr ppos = poss[IND];
+	c_number4 F = forces[IND];
+	c_number4 ppos = poss[IND];
 
 	int num_neighs = c_number_neighs[IND];
 
 	for(int j = 0; j < num_neighs; j++) {
 		int k_index = matrix_neighs[j * MD_N[0] + IND];
 
-		tmpnmbr qpos = poss[k_index];
+		c_number4 qpos = poss[k_index];
 		_particle_particle_interaction(ppos, qpos, F, box);
 	}
 

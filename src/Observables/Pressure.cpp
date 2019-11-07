@@ -52,7 +52,7 @@ LR_vector Pressure::_get_com() {
 
 void Pressure::update_pressure() {
 	int N = *this->_config_info.N;
-	vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
+	std::vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
 
 	LR_vector com = (_spherical) ? _get_com() : LR_vector();
 	_P_norm = 0.;
@@ -61,10 +61,9 @@ void Pressure::update_pressure() {
 	_stress_tensor = LR_matrix();
 	double energy = 0.;
 	// we loop over all the pairs in order to update the forces
-	typename vector<ParticlePair>::iterator it;
-	for(it = pairs.begin(); it != pairs.end(); it++) {
-		BaseParticle *p = (*it).first;
-		BaseParticle *q = (*it).second;
+	for(auto &pair : pairs) {
+		BaseParticle *p = pair.first;
+		BaseParticle *q = pair.second;
 		if(!(_nonbonded_only && p->is_bonded(q))) {
 			LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
 
@@ -148,10 +147,10 @@ void Pressure::update_pressure() {
 	_P_norm = _T * (N / V) + _P_norm / (3. * V);
 }
 
-string Pressure::get_output_string(llint curr_step) {
+std::string Pressure::get_output_string(llint curr_step) {
 	update_pressure();
 
-	string to_ret;
+	std::string to_ret;
 
 	if(_with_stress_tensor) {
 		to_ret += Utils::sformat("% .8e % .8e % .8e % .8e % .8e % .8e % .8e % .8e % .8e % .8e", get_P(), _stress_tensor.v1.x, _stress_tensor.v1.y, _stress_tensor.v1.z, _stress_tensor.v2.x, _stress_tensor.v2.y, _stress_tensor.v2.z, _stress_tensor.v3.x, _stress_tensor.v3.y, _stress_tensor.v3.z);

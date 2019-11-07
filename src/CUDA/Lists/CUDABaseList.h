@@ -44,7 +44,7 @@ public:
 		_N = N;
 	}
 
-	virtual void update(tmpnmbr *poss, tmpnmbr *list_poss, LR_bonds *bonds) = 0;
+	virtual void update(c_number4 *poss, c_number4 *list_poss, LR_bonds *bonds) = 0;
 	bool use_edge() {
 		return _use_edge;
 	}

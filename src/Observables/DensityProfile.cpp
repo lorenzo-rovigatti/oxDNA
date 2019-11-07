@@ -42,14 +42,14 @@ std::string DensityProfile::get_output_string(llint curr_step) {
 		}
 	}
 
-	stringstream ret;
+	std::stringstream ret;
 	ret.precision(9);
 	double myx = _bin_size / 2.;
-	for(std::vector<long int>::iterator it = _profile.begin(); it != _profile.end(); it++) {
-		ret << myx << " " << *it << endl;
+	for(auto value: _profile) {
+		ret << myx << " " << value << std::endl;
 		myx += _bin_size;
 	}
-	ret << endl;
+	ret << std::endl;
 
 	return ret.str();
 }

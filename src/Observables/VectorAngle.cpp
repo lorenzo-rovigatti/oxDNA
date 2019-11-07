@@ -86,7 +86,7 @@ void VectorAngle::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 std::string VectorAngle::get_output_string(llint curr_step) {
 	int sign, number_of_values = 0;
-	string result;
+	std::string result;
 	BaseParticle **p = this->_config_info.particles;
 	double delta_omega = 0;
 	number result_number = 0;
@@ -167,36 +167,7 @@ std::string VectorAngle::get_output_string(llint curr_step) {
 			}
 
 		}
-		// some of the things that MeanVectorCosine chose to output instead.
-		// kept here just in case they are needed.
-		/*
-		 else if ( _angle_index == 2){
-		 // u * t
-		 u = p[i]->orientationT.v1;
-		 LR_vector t = p[i]->n5->pos - p[i]->pos;
-		 average += u*t/t.module();
-		 }else if ( _angle_index == 3){
-		 if( p[i]->n5->n5 != P_VIRTUAL){
-		 // t * t
-		 LR_vector t = p[i]->n5->pos - p[i]->pos;
-		 LR_vector tp = p[i]->n5->n5->pos - p[i]->n5->pos;
-		 average += t*tp/(t.module()*tp.module());
-		 }
 
-
-		 } else {
-		 u =	p[i]->orientationT.v1;
-		 up = p[i]->n5->orientationT.v1;
-
-		 f = p[i]->orientationT.v2;
-		 fp = p[i]->n5->orientationT.v2;
-
-		 v = p[i]->orientationT.v3;
-		 vp = p[i]->n5->orientationT.v3;
-
-		 average +=( f*fp + v*vp )/(1 + u*up);
-		 }
-		 */
 		i = p[i]->n5->index;
 		number_of_values++;
 	} while(i != _last_particle_index);
@@ -211,58 +182,3 @@ std::string VectorAngle::get_output_string(llint curr_step) {
 
 	return result;
 }
-/*
-
- std::string VectorAngle::OLD_get_output_string(llint curr_step) {
-
- string result; number average = 0.;
- BaseParticle **p = this->_config_info.particles;
- for( int i = _first_particle_id; i <= _last_particle_id; i++){
- if ( _vector_to_average == 1){
- _u =	p[i]->orientationT.v1;
- _up = p[i]->n5->orientationT.v1;
-
- average += _u*_up;
- } else if (_vector_to_average == 2){
- _f =	p[i]->orientationT.v2;
- _fp = p[i]->n5->orientationT.v2;
-
- average += _f*_fp;
- } else if (_vector_to_average == 3){
- _v =	p[i]->orientationT.v3;
- _vp = p[i]->n5->orientationT.v3;
-
- average += _v*_vp;
- } else if (_vector_to_average == 0){
- _u =	p[i]->orientationT.v1;
- _up = p[i]->n5->orientationT.v1;
-
- _f = p[i]->orientationT.v2;
- _fp = p[i]->n5->orientationT.v2;
-
- _v = p[i]->orientationT.v3;
- _vp = p[i]->n5->orientationT.v3;
-
- average +=( _f*_fp + _v*_vp )/(1 + _u*_up);
- }
- //TODO: remove the -1 thing after we are sure it's equivalent to the 0 one
- else if (_vector_to_average == -1){
- _u =	p[i]->orientationT.v2;
- _up = p[i]->n5->orientationT.v2;
- _v =	p[i]->orientationT.v3;
- _vp = p[i]->n5->orientationT.v3;
- average += (_u*_up)*(_v*_vp) - _u.cross(_up).module()*_v.cross(_vp).module();
- }
- *//*
- printf("VectorAngle\ti = %d p[i]->pos.x %lf u.x %lf u'.x %lf u*u' %lf \n",i,p[i]->pos.x, u.x, up.x, u * up);
- printf("u.x %lf u.y %lf u.z %lf\n",u.x,u.y,u.z);
- printf("up.x %lf up.y %lf up.z %lf\n",up.x,up.y,up.z);
- printf("thex %lf they %lf thez %lf total %lf\n",u.x*up.x,u.y*up.y,u.z*up.z,u.x*up.x+u.y*up.y+u.z*up.z);
- *//*
- //		printf("average %lf\n",average);
- }
- //		printf("average %lf\n",average*_one_over_number_of_values);
- result  =  Utils::sformat("%14.4lf", average*_one_over_number_of_values);
- return result;
- }
- */

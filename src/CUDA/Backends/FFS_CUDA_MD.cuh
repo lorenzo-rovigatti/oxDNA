@@ -17,7 +17,7 @@ __constant__ float MD_F1_SHIFT[50];
 __constant__ float MD_box_side[1];
 
 // to be included from a common file one day...
-__device__ tmpnmbr minimum_image(const tmpnmbr &r_i, const tmpnmbr &r_j) {
+__device__ c_number4 minimum_image(const c_number4 &r_i, const c_number4 &r_j) {
 	c_number dx = r_j.x - r_i.x;
 	c_number dy = r_j.y - r_i.y;
 	c_number dz = r_j.z - r_i.z;
@@ -26,7 +26,7 @@ __device__ tmpnmbr minimum_image(const tmpnmbr &r_i, const tmpnmbr &r_j) {
 	dy -= floorf(dy / MD_box_side[0] + (c_number) 0.5f) * MD_box_side[0];
 	dz -= floorf(dz / MD_box_side[0] + (c_number) 0.5f) * MD_box_side[0];
 
-	return make_tmpnmbr(dx, dy, dz, (c_number) 0.f);
+	return make_c_number4(dx, dy, dz, (c_number) 0.f);
 }
 
 __forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
@@ -65,16 +65,16 @@ __forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc
 }
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
-__global__ void hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb) {
+__global__ void hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb) {
 	if(IND >= n_threads) return;
 // for now no test for op type	if(region_is_nearhb[IND]) return;
 
 	int pind = op_pairs1[IND];
 	int qind = op_pairs2[IND];
 	// get distance between this nucleotide pair's "com"s
-	tmpnmbr ppos = poss[pind];
-	tmpnmbr qpos = poss[qind];
-	tmpnmbr r = minimum_image(ppos, qpos);
+	c_number4 ppos = poss[pind];
+	c_number4 qpos = poss[qind];
+	c_number4 r = minimum_image(ppos, qpos);
 
 	// check whether hb energy is below a certain threshold for this nucleotide pair
 	int ptype = get_particle_type(ppos);
@@ -87,23 +87,23 @@ __global__ void hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pai
 	GPU_quat qo = orientations[qind];
 
 	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
-	tmpnmbr a1, a2, a3, b1, b2, b3;
+	c_number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat(po, a1, a2, a3);
 //	printf("\n");
 
 	get_vectors_from_quat(qo, b1, b2, b3);
 
-	tmpnmbr ppos_base = POS_BASE * a1;
-	tmpnmbr qpos_base = POS_BASE * b1;
+	c_number4 ppos_base = POS_BASE * a1;
+	c_number4 qpos_base = POS_BASE * b1;
 
 	// HYDROGEN BONDING
 	c_number hb_energy = (c_number) 0;
-	tmpnmbr rhydro = r + qpos_base - ppos_base;
+	c_number4 rhydro = r + qpos_base - ppos_base;
 	c_number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
 	if(int_type == 3 && SQR(HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(HYDR_RCHIGH)) {
 		// versor and magnitude of the base-base separation
 		c_number rhydromod = sqrtf(rhydromodsqr);
-		tmpnmbr rhydrodir = rhydro / rhydromod;
+		c_number4 rhydrodir = rhydro / rhydromod;
 
 		// angles involved in the HB interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
@@ -130,16 +130,16 @@ __global__ void hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pai
 }
 
 // check whether a particular pair of particles have a 'nearly' hydrogen bond, where all or all but one of the energy factors are non-zero
-__global__ void near_hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb) {
+__global__ void near_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb) {
 	if(IND >= n_threads) return;
 //for now no test for op type	if(!region_is_nearhb[IND]) return; 
 
 	int pind = op_pairs1[IND];
 	int qind = op_pairs2[IND];
 	// get distance between this nucleotide pair's "com"s
-	tmpnmbr ppos = poss[pind];
-	tmpnmbr qpos = poss[qind];
-	tmpnmbr r = minimum_image(ppos, qpos);
+	c_number4 ppos = poss[pind];
+	c_number4 qpos = poss[qind];
+	c_number4 r = minimum_image(ppos, qpos);
 
 	// check whether hb energy is below a certain threshold for this nucleotide pair
 	int ptype = get_particle_type(ppos);
@@ -152,15 +152,15 @@ __global__ void near_hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *o
 	GPU_quat qo = orientations[qind];
 
 	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
-	tmpnmbr a1, a2, a3, b1, b2, b3;
+	c_number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat(po, a1, a2, a3);
 	get_vectors_from_quat(qo, b1, b2, b3);
 
-	tmpnmbr ppos_base = POS_BASE * a1;
-	tmpnmbr qpos_base = POS_BASE * b1;
+	c_number4 ppos_base = POS_BASE * a1;
+	c_number4 qpos_base = POS_BASE * b1;
 
 	// HYDROGEN BONDING
-	tmpnmbr rhydro = r + qpos_base - ppos_base;
+	c_number4 rhydro = r + qpos_base - ppos_base;
 	c_number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
 
 	int total_nonzero;
@@ -168,7 +168,7 @@ __global__ void near_hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *o
 	if(int_type == 3 && SQR(HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(HYDR_RCHIGH)) {
 		// versor and magnitude of the base-base separation
 		c_number rhydromod = sqrtf(rhydromodsqr);
-		tmpnmbr rhydrodir = rhydro / rhydromod;
+		c_number4 rhydrodir = rhydro / rhydromod;
 
 		// angles involved in the HB interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
@@ -205,29 +205,29 @@ __global__ void near_hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *o
 
 // compute the distance between a pair of particles
 
-__global__ void dist_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads) {
+__global__ void dist_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads) {
 	if(IND >= n_threads) return;
 
 	int pind = op_pairs1[IND];
 	int qind = op_pairs2[IND];
 
 	// get distance between this nucleotide pair's "com"s
-	tmpnmbr ppos = poss[pind];
-	tmpnmbr qpos = poss[qind];
-	tmpnmbr r = minimum_image(ppos, qpos);
+	c_number4 ppos = poss[pind];
+	c_number4 qpos = poss[qind];
+	c_number4 r = minimum_image(ppos, qpos);
 
 	GPU_quat po = orientations[pind];
 	GPU_quat qo = orientations[qind];
 
 	//This gets an extra two vectors that are not needed, but the function doesn't seem to be called at all, so should make little difference. 
-	tmpnmbr a1, a2, a3, b1, b2, b3;
+	c_number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat(po, a1, a2, a3);
 	get_vectors_from_quat(qo, b1, b2, b3);
 
-	tmpnmbr ppos_base = POS_BASE * a1;
-	tmpnmbr qpos_base = POS_BASE * b1;
+	c_number4 ppos_base = POS_BASE * a1;
+	c_number4 qpos_base = POS_BASE * b1;
 
-	tmpnmbr rbase = r + qpos_base - ppos_base;
+	c_number4 rbase = r + qpos_base - ppos_base;
 	op_dists[IND] = _module(rbase);
 }
 

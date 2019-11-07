@@ -18,7 +18,7 @@
 class CUDATEPInteraction: public CUDABaseInteraction, public TEPInteraction {
 protected:
 	c_number *_d_kt_pref, *_d_kb1_pref, *_d_kb2_pref, *_d_xk_bending, *_d_xu_bending;
-	tmpnmbr *_d_o_vects, *_d_w_vects;
+	c_number4 *_d_o_vects, *_d_w_vects;
 	llint _steps;
 public:
 	CUDATEPInteraction();
@@ -30,7 +30,7 @@ public:
 		return this->get_rcut();
 	}
 
-	void compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
+	void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 };
 
 #endif /* CUDATEPINTERACTION_H_ */

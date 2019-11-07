@@ -1389,7 +1389,7 @@ void DNAInteraction::read_topology(int N_from_conf, int *N_strands, BaseParticle
 
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 

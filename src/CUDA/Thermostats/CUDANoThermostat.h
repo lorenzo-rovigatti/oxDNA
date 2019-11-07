@@ -20,7 +20,7 @@ public:
 	CUDANoThermostat();
 	virtual ~CUDANoThermostat();
 
-	virtual void apply_cuda(tmpnmbr *d_poss, GPU_quat *d_orientationss, tmpnmbr *d_vels, tmpnmbr *d_Ls, llint curr_step);
+	virtual void apply_cuda(c_number4 *d_poss, GPU_quat *d_orientationss, c_number4 *d_vels, c_number4 *d_Ls, llint curr_step);
 	virtual bool would_activate(llint curr_step) {
 		return false;
 	}

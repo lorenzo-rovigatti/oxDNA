@@ -22,7 +22,7 @@ void Checkpoint::init(ConfigInfo &config_info) {
 	this->_config_info = config_info;
 }
 
-string Checkpoint::get_output_string(llint curr_step) {
+std::string Checkpoint::get_output_string(llint curr_step) {
 	this->_config_info.lists->global_update(true);
 	return _conf.get_output_string(curr_step);
 }

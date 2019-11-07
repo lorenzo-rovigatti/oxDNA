@@ -146,7 +146,7 @@ number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, 
 
 void JordanInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("(JordanInteraction.cpp) Can't read topology file '%s'. Aborting", this->_topology_filename);
 	std::string line;
 	std::getline(topology, line);

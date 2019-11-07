@@ -46,7 +46,7 @@ SimManager::~SimManager() {
 	setUnreadKeys(&_input);
 	std::string unread;
 	for(std::vector<std::string>::iterator it = _input.unread_keys.begin(); it != _input.unread_keys.end(); it++) {
-		unread += string("\n\t") + *it;
+		unread += std::string("\n\t") + *it;
 	}
 	if(unread.size() > 0) {
 		OX_DEBUG("The following keys found in the input file were not used: %s", unread.c_str());

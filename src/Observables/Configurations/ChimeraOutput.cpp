@@ -35,18 +35,18 @@ std::string ChimeraOutput::_headers(llint step) {
 }
 
 std::string ChimeraOutput::_configuration(llint step) {
-	stringstream conf;
+	std::stringstream conf;
 	//conf.precision(15);
 	this->_fill_strands_cdm();
 
-	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
+	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		char buf[128];
 		BaseParticle *p = this->_config_info.particles[*it];
 		sprintf(buf, "bond #0:%i\n", p->get_index());
 		conf << buf;
 	}
 
-	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
+	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		BaseParticle *p = this->_config_info.particles[*it];
 		if(p->n5 != P_VIRTUAL) {
 			BaseParticle *q = p->n5;
@@ -77,7 +77,7 @@ std::string ChimeraOutput::_configuration(llint step) {
 		conf << buf2;
 	}
 
-	conf << "aniso scale 0.75 smoothing 4" << endl << "setattr m stickScale 0.6 #0" << endl;
+	conf << "aniso scale 0.75 smoothing 4" << std::endl << "setattr m stickScale 0.6 #0" << std::endl;
 
 	return conf.str();
 }

@@ -18,10 +18,10 @@ KineticEnergy::~KineticEnergy() {
 }
 
 void KineticEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
-	string dirs = "0,1,2";
+	std::string dirs = "0,1,2";
 	getInputString(&my_inp, "velocity_directions", dirs, 0);
-	vector<string> tokens = Utils::split(dirs, ',');
-	for(vector<string>::iterator it = tokens.begin(); it != tokens.end(); it++) {
+	std::vector<std::string> tokens = Utils::split(dirs, ',');
+	for(auto it = tokens.begin(); it != tokens.end(); it++) {
 		if(!Utils::is_integer(*it)) throw oxDNAException("The '%s' token extracted from the 'velocity_directions' key is not a valid integer", it->c_str());
 		int c = atoi(it->c_str());
 		if(c < 0 || c > 2) throw oxDNAException("The '%s' token extracted from the 'velocity_directions' should lay within the [0:2] range", it->c_str());
@@ -37,8 +37,8 @@ number KineticEnergy::get_kinetic_energy() {
 		BaseParticle *p = this->_config_info.particles[i];
 		if(p->is_rigid_body()) K += p->L.norm() * (number) 0.5f;
 
-		for(set<int>::iterator it = _directions.begin(); it != _directions.end(); it++) {
-			K += SQR(p->vel[*it]) * factor;
+		for(auto dir: _directions) {
+			K += SQR(p->vel[dir]) * factor;
 		}
 	}
 	K /= *this->_config_info.N;

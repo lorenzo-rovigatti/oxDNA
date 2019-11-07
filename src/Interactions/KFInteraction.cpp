@@ -109,7 +109,7 @@ number KFInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 void KFInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	*N_strands = N;
 
-	std::ifstream topology(this->_topology_filename, ios::in);
+	std::ifstream topology(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[512];
 	topology.getline(line, 512);

@@ -108,15 +108,15 @@ inline number MC_CPUBackend::_particle_energy(BaseParticle *p, bool reuse) {
 	if(reuse) {
 		// slightly better than a direct loop, since in this way we don't have to build
 		// ParticlePair objects every time
-		typename vector<ParticlePair >::iterator it = p->affected.begin();
-		for(; it != p->affected.end(); it++) res += _stored_bonded_interactions[*it];
+		for(auto &pair: p->affected) {
+			res += _stored_bonded_interactions[pair];
+		}
 	}
 	else {
-		typename vector<ParticlePair >::iterator it = p->affected.begin();
-		for(; it != p->affected.end(); it++) {
-			number de = this->_interaction->pair_interaction_bonded(it->first, it->second);
+		for(auto &pair: p->affected) {
+			number de = this->_interaction->pair_interaction_bonded(pair.first, pair.second);
 			res += de;
-			_stored_bonded_tmp[*it] = de;
+			_stored_bonded_tmp[pair] = de;
 		}
 	}
 
@@ -266,10 +266,9 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				_stored_bonded_interactions.clear();
 				for (int k = 0; k < this->_N; k ++) {
 					BaseParticle *p = this->_particles[k];
-					typename vector<ParticlePair >::iterator it = p->affected.begin();
-					for(; it != p->affected.end(); it++) {
-						number e = this->_interaction->pair_interaction_bonded(it->first, it->second);
-						if(_stored_bonded_interactions.count(*it) == 0) _stored_bonded_interactions[*it] = e;
+					for(auto &pair: p->affected) {
+						number e = this->_interaction->pair_interaction_bonded(pair.first, pair.second);
+						if(_stored_bonded_interactions.count(pair) == 0) _stored_bonded_interactions[pair] = e;
 					}
 				}
 			}
@@ -357,9 +356,8 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				}
 
 				// slightly faster than doing a loop over the indexes of affected
-				typename map<ParticlePair, number>::iterator it = _stored_bonded_tmp.begin();
-				for(; it != _stored_bonded_tmp.end(); it++) {
-					_stored_bonded_interactions[it->first] = it->second;
+				for(auto &pair: _stored_bonded_tmp) {
+					_stored_bonded_interactions[pair.first] = pair.second;
 				}
 
 			}

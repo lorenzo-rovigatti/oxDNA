@@ -63,7 +63,7 @@ void MeanVectorCosine::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 std::string MeanVectorCosine::get_output_string(llint curr_step) {
 	int sign;
-	string result;
+	std::string result;
 	double average = 0.;
 	BaseParticle **p = this->_config_info.particles;
 	double delta_omega = 0;
@@ -126,17 +126,6 @@ std::string MeanVectorCosine::get_output_string(llint curr_step) {
 		}
 	}
 
-// Previous version 
-	/*
-	 if(_vector_to_average !=3){
-	 result  =  Utils::sformat("%14.4lf", average/(*this->_config_info.N-1));
-	 }
-	 else {
-	 result  =  Utils::sformat("%14.4lf", average/(*this->_config_info.N-2));
-	 }
-	 */
-
-//		printf("average %lf\n",average*_one_over_number_of_values);
 	if(_vector_to_average == -1) {
 		if(average > M_PI || average < -M_PI) result = Utils::sformat("%14.4lf", -50.0);
 		else result = Utils::sformat("%14.14lf", cos(average));
@@ -150,61 +139,6 @@ std::string MeanVectorCosine::get_output_string(llint curr_step) {
 	//fclose(fp);abort();//TODO: comment this line when the problem is solved
 	return result;
 }
-/*
-
- std::string MeanVectorCosine::OLD_get_output_string(llint curr_step) {
-
- string result; number average = 0.;
- BaseParticle **p = this->_config_info.particles;
- for( int i = _first_particle_id; i <= _last_particle_id; i++){
- if ( _vector_to_average == 1){
- _u =	p[i]->orientationT.v1;
- _up = p[i]->n5->orientationT.v1;
-
- average += _u*_up;
- } else if (_vector_to_average == 2){
- _f =	p[i]->orientationT.v2;
- _fp = p[i]->n5->orientationT.v2;
-
- average += _f*_fp;
- } else if (_vector_to_average == 3){
- _v =	p[i]->orientationT.v3;
- _vp = p[i]->n5->orientationT.v3;
-
- average += _v*_vp;
- } else if (_vector_to_average == 0){
- _u =	p[i]->orientationT.v1;
- _up = p[i]->n5->orientationT.v1;
-
- _f = p[i]->orientationT.v2;
- _fp = p[i]->n5->orientationT.v2;
-
- _v = p[i]->orientationT.v3;
- _vp = p[i]->n5->orientationT.v3;
-
- average +=( _f*_fp + _v*_vp )/(1 + _u*_up);
- }
- //TODO: remove the -1 thing after we are sure it's equivalent to the 0 one
- else if (_vector_to_average == -1){
- _u =	p[i]->orientationT.v2;
- _up = p[i]->n5->orientationT.v2;
- _v =	p[i]->orientationT.v3;
- _vp = p[i]->n5->orientationT.v3;
- average += (_u*_up)*(_v*_vp) - _u.cross(_up).module()*_v.cross(_vp).module();
- }
- *//*
- printf("MeanVectorCosine\ti = %d p[i]->pos.x %lf u.x %lf u'.x %lf u*u' %lf \n",i,p[i]->pos.x, u.x, up.x, u * up);
- printf("u.x %lf u.y %lf u.z %lf\n",u.x,u.y,u.z);
- printf("up.x %lf up.y %lf up.z %lf\n",up.x,up.y,up.z);
- printf("thex %lf they %lf thez %lf total %lf\n",u.x*up.x,u.y*up.y,u.z*up.z,u.x*up.x+u.y*up.y+u.z*up.z);
- *//*
- //		printf("average %lf\n",average);
- }
- //		printf("average %lf\n",average*_one_over_number_of_values);
- result  =  Utils::sformat("%14.4lf", average*_one_over_number_of_values);
- return result;
- }
- */
 
 void MeanVectorCosine::set_first_last_particle_id() {
 	//int N = *this->_config_info.N;

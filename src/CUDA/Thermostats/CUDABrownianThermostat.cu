@@ -9,12 +9,12 @@
 
 #include "CUDABrownianThermostat.h"
 
-__global__ void brownian_thermostat(curandState *rand_state, tmpnmbr *vels, tmpnmbr *Ls, c_number rescale_factor, c_number pt, c_number pr, int N) {
+__global__ void brownian_thermostat(curandState *rand_state, c_number4 *vels, c_number4 *Ls, c_number rescale_factor, c_number pt, c_number pr, int N) {
 	if(IND < N) {
 		curandState state = rand_state[IND];
 
 		if(curand_uniform(&state) < pt) {
-			tmpnmbr v;
+			c_number4 v;
 			c_number trash;
 
 			gaussian(state, v.x, v.y);
@@ -29,7 +29,7 @@ __global__ void brownian_thermostat(curandState *rand_state, tmpnmbr *vels, tmpn
 		}
 
 		if(curand_uniform(&state) < pr) {
-			tmpnmbr L;
+			c_number4 L;
 			c_number trash;
 
 			gaussian(state, L.x, L.y);
@@ -72,7 +72,7 @@ bool CUDABrownianThermostat::would_activate(llint curr_step) {
 	return (curr_step % this->_newtonian_steps == 0);
 }
 
-void CUDABrownianThermostat::apply_cuda(tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_vels, tmpnmbr *d_Ls, llint curr_step) {
+void CUDABrownianThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_vels, c_number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
 brownian_thermostat

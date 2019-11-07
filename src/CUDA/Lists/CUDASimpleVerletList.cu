@@ -52,7 +52,7 @@ void CUDASimpleVerletList::get_settings(input_file &inp) {
 }
 
 void CUDASimpleVerletList::_init_cells() {
-	tmpnmbr box_sides_n4 = this->_h_cuda_box->box_sides();
+	c_number4 box_sides_n4 = this->_h_cuda_box->box_sides();
 	c_number box_sides[3] = { box_sides_n4.x, box_sides_n4.y, box_sides_n4.z };
 	c_number max_factor = pow(2. * this->_N / this->_h_cuda_box->V(), 1. / 3.);
 
@@ -95,7 +95,7 @@ void CUDASimpleVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABo
 	c_number rverlet = rcut + 2 * _verlet_skin;
 	_sqr_rverlet = SQR(rverlet);
 	_sqr_verlet_skin = SQR(_verlet_skin);
-	_vec_size = N * sizeof(tmpnmbr);
+	_vec_size = N * sizeof(c_number4);
 
 	// volume of a sphere whose radius is ceil(rverlet) times the maximum density (sqrt(2)).
 	c_number density = N / h_cuda_box->V();
@@ -132,7 +132,7 @@ void CUDASimpleVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABo
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(verlet_N, &this->_N, sizeof(int)));
 }
 
-void CUDASimpleVerletList::update(tmpnmbr *poss, tmpnmbr *list_poss, LR_bonds *bonds) {
+void CUDASimpleVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bonds *bonds) {
 	_init_cells();
 	CUDA_SAFE_CALL(cudaMemset(_d_counters_cells, 0, _N_cells * sizeof(int)));
 

@@ -35,7 +35,7 @@ void TotalEnergy::init(ConfigInfo &config_info) {
 	_kin_energy.init(config_info);
 }
 
-string TotalEnergy::get_output_string(llint curr_step) {
+std::string TotalEnergy::get_output_string(llint curr_step) {
 	number U = get_U(curr_step);
 	number K = get_K(curr_step);
 

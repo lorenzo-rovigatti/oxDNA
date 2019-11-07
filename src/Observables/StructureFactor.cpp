@@ -108,14 +108,14 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 		_sq[nq] += (SQR(sq_cos) + SQR(sq_sin)) / N_type;
 	}
 
-	stringstream ret;
+	std::stringstream ret;
 	ret.precision(9);
 	int q_count = 0;
 	double avg_q_mod = 0.;
 	double sq_mean = 0.;
 	double first_q = -1;
 	nq = 0;
-	for(typename std::list<LR_vector >::iterator it = _qs.begin(); it != _qs.end(); nq++) {
+	for(auto it = _qs.begin(); it != _qs.end(); nq++) {
 		q_count++;
 		double q_mod = it->module();
 		if(first_q < 0.) first_q = q_mod;
@@ -125,7 +125,7 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 		if(nq + 1 == _qs.size() || fabs(it->norm() - SQR(first_q)) > _max_qs_delta) {
 			avg_q_mod /= q_count;
 			sq_mean /= q_count * _nconf;
-			ret << avg_q_mod << " " << sq_mean << endl;
+			ret << avg_q_mod << " " << sq_mean << std::endl;
 			q_count = 0;
 			avg_q_mod = sq_mean = 0.;
 			first_q = -1.;

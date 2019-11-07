@@ -198,7 +198,7 @@ void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **p
 	double tmp1, tmp2, tmp3;
 
 	//Tries to open topology file (filename obtained in get_settings)
-	std::ifstream topology(this->_topology_filename, ios::in);
+	std::ifstream topology(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("[In PatchyInteractionDan::get_settings] Can't read topology file '%s' . Aborting\n", this->_topology_filename);
 
 	/*getInputString(&inp, "patch_file", this->_patch_filename, 1);

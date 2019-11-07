@@ -185,25 +185,25 @@ void CUDABaseBackend::init_cuda() {
 
 	_cuda_interaction->cuda_init(box_side, N);
 
-	_vec_size = sizeof(tmpnmbr) * N;
+	_vec_size = sizeof(c_number4) * N;
 	_orient_size = sizeof(GPU_quat) * N;
 	_bonds_size = sizeof(LR_bonds) * N;
 
 	// GPU memory allocations
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_poss, _vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_poss, _vec_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_bonds, _bonds_size) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat  >(&_d_orientations, _orient_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_list_poss, _vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_list_poss, _vec_size) );
 	// the CUDA_SAFE_CALL macro does not support templates with more than one argument
 	GpuUtils::LR_cudaMalloc<CUDABox>(&_d_cuda_box, sizeof(CUDABox));
 	CUDA_SAFE_CALL( cudaMallocHost(&_d_are_lists_old, sizeof(bool), cudaHostAllocDefault) );
 
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_list_poss, _vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_list_poss, _vec_size) );
 
 	CUDA_SAFE_CALL( cudaMemset(_d_list_poss, 0, _vec_size) );
 
 	// CPU memory allocations
-	_h_poss = new tmpnmbr[N];
+	_h_poss = new c_number4[N];
 	_h_orientations = new GPU_quat[N];
 	_h_bonds = new LR_bonds[N];
 
@@ -220,7 +220,7 @@ void CUDABaseBackend::init_cuda() {
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_hindex, N*sizeof(int)) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_sorted_hindex, N*sizeof(int)) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<int>(&_d_inv_sorted_hindex, N*sizeof(int)) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_buff_poss, _vec_size) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_poss, _vec_size) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_buff_bonds, _bonds_size) );
 		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<GPU_quat  >(&_d_buff_orientations, _orient_size) );
 

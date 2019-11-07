@@ -30,11 +30,11 @@ protected:
 	int _N;
 	c_number _box_side;
 
-	tmpnmbr *_d_edge_forces;
-	tmpnmbr *_d_edge_torques;
+	c_number4 *_d_edge_forces;
+	c_number4 *_d_edge_torques;
 
-	virtual void _sum_edge_forces(tmpnmbr *d_forces);
-	virtual void _sum_edge_forces_torques(tmpnmbr *d_forces, tmpnmbr *d_torques);
+	virtual void _sum_edge_forces(c_number4 *d_forces);
+	virtual void _sum_edge_forces_torques(c_number4 *d_forces, c_number4 *d_torques);
 public:
 	CUDABaseInteraction();
 	virtual ~CUDABaseInteraction();
@@ -46,10 +46,10 @@ public:
 
 	void set_launch_cfg(CUDA_kernel_cfg &launch_cfg);
 
-	virtual void compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box) = 0;
-	virtual void _hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox*d_box);
-	virtual void _near_hb_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox*d_box);
-	virtual void _dist_op_precalc(tmpnmbr *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads, CUDA_kernel_cfg dist_kernel_cfg, CUDABox*d_box);
+	virtual void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) = 0;
+	virtual void _hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox*d_box);
+	virtual void _near_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox*d_box);
+	virtual void _dist_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads, CUDA_kernel_cfg dist_kernel_cfg, CUDABox*d_box);
 };
 
 #endif /* CUDABASEINTERACTION_H_ */

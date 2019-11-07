@@ -21,23 +21,21 @@
  * @brief Manages oxDNA plugins. As of now it only supports {@link BaseObservable observables} and {@link IBaseInteraction interactions}.
  * It implements the singleton pattern (see http://en.wikipedia.org/wiki/Singleton_pattern).
  *
- * As of now, only {@link BaseObservable observable} and {@link IBaseInteraction interaction}
- * plugins are supported. In order to write a plugin you should write a regular observable
- * or interaction class and add two simple functions that serve as entry points for the plugin
- * manager. Note that the default names for the entry points are make_NAME_\<precision\> for
- * both observables and interactions or make_\<precision\> and make_observable_\<precision\> for
- * observables and make_\<precision\> and make_interaction\<precision\> for the interactions,
- * where \<precision\> should be either float or double.
+ * As of now, only {@link BaseObservable observable}, {@link IBaseInteraction interaction} and
+ * {@link BaseMove move}
+ * plugins are supported. In order to write a plugin you should write a regular observable, interaction
+ * or move class and add a simple function that serves as entry point for the plugin manager.
+ * Note that the default name for the entry points is make_NAME, but make, make_observable, make_interaction
+ * and make_move should also work (but be aware that they may cause name collisions).
  * As an example, we will assume that the new plugin is an observable named MyObservable. We write
  * this observable in two files, MyObservable.cpp and MyObservable.h. In order to provide the
- * required entry points we  add the following two lines at the end of the MyObservable.h file
+ * required entry points we  add the following line at the end of the MyObservable.h file
  *
  @code
- extern "C" BaseObservable<float> *make_MyObservable_float() { return new MyObservable<float>(); }
- extern "C" BaseObservable<double> *make_MyObservable_double() { return new MyObservable<double>(); }
+ extern "C" BaseObservable *make_MyObservable() { return new MyObservable(); }
  @endcode
  *
- * Observable plugins should be compiled as dynamic libraries. On linux systems and with the gcc
+ * Plugins should be compiled as dynamic libraries. On linux systems and with the gcc
  * compiler this can be done as follows
  @code
  g++ -O3 -fpic -c -lm MyObservable.cpp -I/PATH/TO/OXDNA/src/Observables/
@@ -50,18 +48,17 @@
  * an observable specifier (as you would do for a regular observable). Note that the 'type' specifier
  * should match the case-sensitive filename and NOT the class name.
  *
- * The exact same procedure described above holds true for interactions. In this case, the two
- * entry functions should be defined as follows (with the new class being named MyInteraction)
+ * The exact same procedure described above holds true for interactions and moves. For instance, the
+ * entry function should be defined as follows (with the new class being named MyInteraction)
  *
  * @code
- extern "C" IBaseInteraction<float> *make_float() { return new MyInteraction<float>(); }
- extern "C" IBaseInteraction<double> *make_double() { return new MyInteraction<double>(); }
+ extern "C" IBaseInteraction *make_MyInteraction() { return new MyInteraction(); }
  @endcode
  *
  * @verbatim
  [plugin_search_path = <string> (a semicolon-separated list of directories where plugins are looked for in, in addition to the current directory.)]
- [plugin_observable_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing observables, followed by either float or double.)]
- [plugin_interaction_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing interactions, followed by either float or double.)]
+ [plugin_observable_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing observables.)]
+ [plugin_interaction_entry_points = <string> (a semicolon-separated list of prefixes which will be used to look for entry points in shared libraries containing interactions..)]
  [plugin_do_cleanup = <bool> (whether the PluginManager should perform a clean up at the end of the run. It should be set to false only when profiling code, since otherwise callgrind cannot read plugins' source files. It defaults to true.)]
  @endverbatim
  */
@@ -78,7 +75,7 @@ protected:
 	std::vector<std::string> _move_entry_points;
 
 	void *_get_handle(std::string &name);
-	void *_get_entry_point(void *handle, std::string name, std::vector<std::string> entry_points, std::string suffix);
+	void *_get_entry_point(void *handle, std::string name, std::vector<std::string> entry_points);
 
 private:
 	/**

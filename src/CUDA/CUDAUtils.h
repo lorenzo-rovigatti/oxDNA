@@ -25,16 +25,16 @@ public:
 	template<typename T> static void print_device_array(T *, int);
 	template<typename T> static void check_device_thresold(T *, int, int);
 
-	static c_number sum_4th_comp(tmpnmbr *v, int N) {
+	static c_number sum_4th_comp(c_number4 *v, int N) {
 		c_number res = 0;
 		for(int i = 0; i < N; i++)
 			res += v[i].w;
 		return res;
 	}
 
-	static tmpnmbr sum_tmpnmbr_on_GPU(tmpnmbr *dv, int N);
+	static c_number4 sum_c_number4_on_GPU(c_number4 *dv, int N);
 
-	static double sum_tmpnmbr_to_double_on_GPU(tmpnmbr *dv, int N);
+	static double sum_c_number4_to_double_on_GPU(c_number4 *dv, int N);
 
 	static float int_as_float(const int a) {
 		union {

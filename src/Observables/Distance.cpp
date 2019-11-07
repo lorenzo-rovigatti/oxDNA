@@ -24,29 +24,29 @@ void Distance::init(ConfigInfo &config_info) {
 	int N = *config_info.N;
 	BaseParticle **particles = config_info.particles;
 
-	vector<int> p1_indexes = Utils::getParticlesFromString(particles, N, _p1_string, "Distance observable");
-	for(vector<int>::iterator it = p1_indexes.begin(); it != p1_indexes.end(); it++) {
-		_check_index(*it, N);
-		_p1_list.insert(particles[*it]);
+	std::vector<int> p1_indexes = Utils::getParticlesFromString(particles, N, _p1_string, "Distance observable");
+	for(auto idx: p1_indexes) {
+		_check_index(idx, N);
+		_p1_list.insert(particles[idx]);
 	}
 
-	vector<int> p2_indexes = Utils::getParticlesFromString(particles, N, _p2_string, "Distance observable");
-	for(vector<int>::iterator it = p2_indexes.begin(); it != p2_indexes.end(); it++) {
-		_check_index(*it, N);
-		_p2_list.insert(particles[*it]);
+	std::vector<int> p2_indexes = Utils::getParticlesFromString(particles, N, _p2_string, "Distance observable");
+	for(auto idx: p2_indexes) {
+		_check_index(idx, N);
+		_p2_list.insert(particles[idx]);
 	}
 }
 
 std::string Distance::get_output_string(llint curr_step) {
 	LR_vector dist;
 	LR_vector p1_com, p2_com;
-	for(typename set<BaseParticle *>::iterator it = _p1_list.begin(); it != _p1_list.end(); it++) {
-		p1_com += this->_config_info.box->get_abs_pos(*it);
+	for(auto particle : _p1_list) {
+		p1_com += this->_config_info.box->get_abs_pos(particle);
 	}
 	p1_com /= _p1_list.size();
 
-	for(typename set<BaseParticle *>::iterator it = _p2_list.begin(); it != _p2_list.end(); it++) {
-		p2_com += this->_config_info.box->get_abs_pos(*it);
+	for(auto particle : _p2_list) {
+		p2_com += this->_config_info.box->get_abs_pos(particle);
 	}
 	p2_com /= _p2_list.size();
 

@@ -22,14 +22,14 @@ __forceinline__ __device__ int neigh_cell(int3 index, int3 offset) {
 	return (index.z * verlet_N_cells_side[1] + index.y) * verlet_N_cells_side[0] + index.x;
 }
 
-__device__ void update_cell_neigh_list(tmpnmbr *poss, int cell_ind, int *cells, tmpnmbr r, int *neigh, int &N_neigh, LR_bonds b, CUDABox*box) {
+__device__ void update_cell_neigh_list(c_number4 *poss, int cell_ind, int *cells, c_number4 r, int *neigh, int &N_neigh, LR_bonds b, CUDABox*box) {
 	int size = tex1Dfetch(counters_cells_tex, cell_ind);
 	for(int i = 0; i < size; i++) {
 		int m = cells[cell_ind * verlet_max_N_per_cell[0] + i];
 		// no bonded neighbours in our list!
 		if(m == IND || b.n3 == m || b.n5 == m) continue;
 
-		tmpnmbr rm = poss[m];
+		c_number4 rm = poss[m];
 
 		c_number sqr_dist = box->sqr_minimum_image(r, rm);
 		if(sqr_dist < verlet_sqr_rverlet[0]) {
@@ -39,10 +39,10 @@ __device__ void update_cell_neigh_list(tmpnmbr *poss, int cell_ind, int *cells, 
 	}
 }
 
-__global__ void simple_update_neigh_list(tmpnmbr *poss, tmpnmbr *list_poss, int *cells, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox*box) {
+__global__ void simple_update_neigh_list(c_number4 *poss, c_number4 *list_poss, int *cells, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox*box) {
 	if(IND >= verlet_N[0]) return;
 
-	tmpnmbr r = poss[IND];
+	c_number4 r = poss[IND];
 	LR_bonds b = bonds[IND];
 	int N_neighs = 0;
 
@@ -83,10 +83,10 @@ __global__ void simple_update_neigh_list(tmpnmbr *poss, tmpnmbr *list_poss, int 
 	c_number_neighs[IND] = N_neighs;
 }
 
-__global__ void simple_fill_cells(tmpnmbr *poss, int *cells, int *counters_cells, bool *cell_overflow, CUDABox*box) {
+__global__ void simple_fill_cells(c_number4 *poss, int *cells, int *counters_cells, bool *cell_overflow, CUDABox*box) {
 	if(IND >= verlet_N[0]) return;
 
-	tmpnmbr r = poss[IND];
+	c_number4 r = poss[IND];
 	// index of the cell
 	int index = box->compute_cell_index(verlet_N_cells_side, r);
 
@@ -117,7 +117,7 @@ __global__ void compress_matrix_neighs(int *matrix, int *nneighs, int *offsets, 
 	}
 }
 
-__device__ void edge_update_cell_neigh_list(tmpnmbr *poss, int cell_ind, int *cells, tmpnmbr &r, int *neigh, int &N_n, LR_bonds b, int &N_n_no_doubles, CUDABox*box) {
+__device__ void edge_update_cell_neigh_list(c_number4 *poss, int cell_ind, int *cells, c_number4 &r, int *neigh, int &N_n, LR_bonds b, int &N_n_no_doubles, CUDABox*box) {
 	int size = tex1Dfetch(counters_cells_tex, cell_ind);
 	for(int i = 0; i < size; i++) {
 		int m = cells[cell_ind * verlet_max_N_per_cell[0] + i];
@@ -125,7 +125,7 @@ __device__ void edge_update_cell_neigh_list(tmpnmbr *poss, int cell_ind, int *ce
 		// no bonded neighbours in our list!
 		if(m == IND || b.n3 == m || b.n5 == m) continue;
 
-		tmpnmbr rm = poss[m];
+		c_number4 rm = poss[m];
 
 		c_number sqr_dist = box->sqr_minimum_image(r, rm);
 		if(sqr_dist < verlet_sqr_rverlet[0]) {
@@ -136,10 +136,10 @@ __device__ void edge_update_cell_neigh_list(tmpnmbr *poss, int cell_ind, int *ce
 	}
 }
 
-__global__ void edge_update_neigh_list(tmpnmbr *poss, tmpnmbr *list_poss, int *cells, int *matrix_neighs, int *nn, int *nn_no_doubles, LR_bonds *bonds, CUDABox*box) {
+__global__ void edge_update_neigh_list(c_number4 *poss, c_number4 *list_poss, int *cells, int *matrix_neighs, int *nn, int *nn_no_doubles, LR_bonds *bonds, CUDABox*box) {
 	if(IND >= verlet_N[0]) return;
 
-	tmpnmbr r = poss[IND];
+	c_number4 r = poss[IND];
 	LR_bonds b = bonds[IND];
 	int N_n = 0;
 	int N_n_no_doubles = 0;

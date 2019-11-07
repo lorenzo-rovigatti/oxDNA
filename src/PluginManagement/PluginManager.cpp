@@ -67,14 +67,14 @@ void PluginManager::init(input_file &sim_inp) {
 	}
 
 	// these are the default entry point names
-	_obs_entry_points.push_back(string("make_"));
-	_obs_entry_points.push_back(string("make_observable_"));
+	_obs_entry_points.push_back(string("make"));
+	_obs_entry_points.push_back(string("make_observable"));
 
-	_inter_entry_points.push_back(string("make_"));
-	_inter_entry_points.push_back(string("make_interaction_"));
+	_inter_entry_points.push_back(string("make"));
+	_inter_entry_points.push_back(string("make_interaction"));
 
-	_move_entry_points.push_back(string("make_"));
-	_move_entry_points.push_back(string("make_move_"));
+	_move_entry_points.push_back(string("make"));
+	_move_entry_points.push_back(string("make_move"));
 }
 
 void PluginManager::add_to_path(string s) {
@@ -107,19 +107,18 @@ void *PluginManager::_get_handle(string &name) {
 	return handle;
 }
 
-void *PluginManager::_get_entry_point(void *handle, string name, vector<string> entry_points, string suffix) {
+void *PluginManager::_get_entry_point(void *handle, string name, vector<string> entry_points) {
 	void *res = NULL;
 
-	// we add the make_NAME_ entry to the list of possible entry point names
-	string named_entry = string("make_") + name + string("_");
+	// we add the make_NAME entry to the list of possible entry point names
+	string named_entry = string("make_") + name;
 	entry_points.insert(entry_points.begin(), named_entry);
 
-	bool found = false;
-	for(vector<string>::iterator it = entry_points.begin(); it != entry_points.end() && !found; it++) {
-		string to_try = *it + suffix;
-		res = dlsym(handle, to_try.c_str());
-		const char *dlsym_error = dlerror();
-		found = (!dlsym_error);
+	for(auto entry_point : entry_points) {
+		res = dlsym(handle, entry_point.c_str());
+		if(!dlerror()) {
+			return res;
+		}
 	}
 
 	return res;
@@ -133,7 +132,7 @@ ObservablePtr PluginManager::get_observable(string name) {
 	// we have no way of using templates
 	void *temp_obs;
 	bool found = false;
-	make_obs *make_new_obs = (make_obs *) _get_entry_point(handle, name, _obs_entry_points, string("float"));
+	make_obs *make_new_obs = (make_obs *) _get_entry_point(handle, name, _obs_entry_points);
 	if(make_new_obs != NULL) {
 		temp_obs = (void *) make_new_obs();
 		found = true;
@@ -156,7 +155,7 @@ InteractionPtr PluginManager::get_interaction(string name) {
 	// we have no way of using templates
 	void *temp_inter;
 	bool found = false;
-	make_inter *make_new_inter = (make_inter *) _get_entry_point(handle, name, _inter_entry_points, string("float"));
+	make_inter *make_new_inter = (make_inter *) _get_entry_point(handle, name, _inter_entry_points);
 	if(make_new_inter != NULL) {
 		temp_inter = (void *) make_new_inter();
 		found = true;
@@ -179,7 +178,7 @@ MovePtr PluginManager::get_move(std::string name) {
 	// we have no way of using templates
 	void *temp_move;
 	bool found = false;
-	make_move *make_new_move = (make_move *) _get_entry_point(handle, name, _move_entry_points, string("float"));
+	make_move *make_new_move = (make_move *) _get_entry_point(handle, name, _move_entry_points);
 	if(make_new_move != NULL) {
 		temp_move = (void *) make_new_move();
 		found = true;

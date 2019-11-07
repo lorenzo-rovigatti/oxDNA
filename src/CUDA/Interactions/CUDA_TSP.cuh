@@ -23,7 +23,7 @@ __device__ bool is_anchor(int index) {
 	return ((index % MD_N_per_star[0]) == 0);
 }
 
-__device__ void _nonbonded(tmpnmbr &r, int int_type, tmpnmbr &F) {
+__device__ void _nonbonded(c_number4 &r, int int_type, c_number4 &F) {
 	c_number sqr_r = CUDA_DOT(r, r);
 
 	c_number energy = 0.f;
@@ -63,7 +63,7 @@ __device__ void _nonbonded(tmpnmbr &r, int int_type, tmpnmbr &F) {
 	F.w += energy;
 }
 
-__device__ void _fene(tmpnmbr &r, tmpnmbr &F, bool anchor = false) {
+__device__ void _fene(c_number4 &r, c_number4 &F, bool anchor = false) {
 	c_number sqr_r = CUDA_DOT(r, r);
 	c_number sqr_rfene = (anchor && !MD_TSP_only_chains[0]) ? MD_sqr_rfene_anchor[0] : MD_sqr_rfene[0];
 
@@ -78,46 +78,46 @@ __device__ void _fene(tmpnmbr &r, tmpnmbr &F, bool anchor = false) {
 	F.w += energy;
 }
 
-__device__ void _particle_particle_bonded_interaction(tmpnmbr &ppos, tmpnmbr &qpos, tmpnmbr &F, bool anchor = false) {
+__device__ void _particle_particle_bonded_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &F, bool anchor = false) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int int_type = ptype + qtype;
 
-	tmpnmbr r = qpos - ppos;
+	c_number4 r = qpos - ppos;
 	_nonbonded(r, int_type, F);
 	_fene(r, F, anchor);
 }
 
-__device__ void _TSP_particle_particle_interaction(tmpnmbr &ppos, tmpnmbr &qpos, tmpnmbr &F, CUDABox *box) {
+__device__ void _TSP_particle_particle_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *box) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int int_type = ptype + qtype;
 
-	tmpnmbr r = box->minimum_image(ppos, qpos);
+	c_number4 r = box->minimum_image(ppos, qpos);
 	_nonbonded(r, int_type, F);
 }
 
 // forces + second step without lists
-__global__ void tsp_forces(tmpnmbr *poss, tmpnmbr *forces, LR_bonds *bonds, CUDABox *box) {
+__global__ void tsp_forces(c_number4 *poss, c_number4 *forces, LR_bonds *bonds, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
-	tmpnmbr F = forces[IND];
+	c_number4 F = forces[IND];
 	LR_bonds bs = bonds[IND];
-	tmpnmbr ppos = poss[IND];
+	c_number4 ppos = poss[IND];
 
 	if(bs.n3 != P_INVALID) {
-		tmpnmbr qpos = poss[bs.n3];
+		c_number4 qpos = poss[bs.n3];
 		_particle_particle_bonded_interaction(ppos, qpos, F, is_anchor(bs.n3));
 	}
 
 	if(bs.n5 != P_INVALID) {
-		tmpnmbr qpos = poss[bs.n5];
+		c_number4 qpos = poss[bs.n5];
 		_particle_particle_bonded_interaction(ppos, qpos, F, is_anchor(bs.n5));
 	}
 
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND && bs.n3 != j && bs.n5 != j) {
-			tmpnmbr qpos = poss[j];
+			c_number4 qpos = poss[j];
 			_TSP_particle_particle_interaction(ppos, qpos, F, box);
 		}
 	}
@@ -125,18 +125,18 @@ __global__ void tsp_forces(tmpnmbr *poss, tmpnmbr *forces, LR_bonds *bonds, CUDA
 	forces[IND] = F;
 }
 
-__global__ void tsp_forces_edge_nonbonded(tmpnmbr *poss, tmpnmbr *forces, edge_bond *edge_list, int n_edges, CUDABox *box) {
+__global__ void tsp_forces_edge_nonbonded(c_number4 *poss, c_number4 *forces, edge_bond *edge_list, int n_edges, CUDABox *box) {
 	if(IND >= n_edges) return;
 
-	tmpnmbr dF = make_tmpnmbr(0, 0, 0, 0);
+	c_number4 dF = make_c_number4(0, 0, 0, 0);
 
 	edge_bond b = edge_list[IND];
 
 	// get info for particle 1
-	tmpnmbr ppos = poss[b.from];
+	c_number4 ppos = poss[b.from];
 
 	// get info for particle 2
-	tmpnmbr qpos = poss[b.to];
+	c_number4 qpos = poss[b.to];
 
 	_TSP_particle_particle_interaction(ppos, qpos, dF, box);
 
@@ -147,8 +147,8 @@ __global__ void tsp_forces_edge_nonbonded(tmpnmbr *poss, tmpnmbr *forces, edge_b
 	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
 
 	// Allen Eq. 6 pag 3:
-	tmpnmbr dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
-	tmpnmbr crx = _cross(dr, dF);
+	c_number4 dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
+	c_number4 crx = _cross(dr, dF);
 
 	dF.x = -dF.x;
 	dF.y = -dF.y;
@@ -159,26 +159,26 @@ __global__ void tsp_forces_edge_nonbonded(tmpnmbr *poss, tmpnmbr *forces, edge_b
 }
 
 // bonded interactions for edge-based approach
-__global__ void tsp_forces_edge_bonded(tmpnmbr *poss, tmpnmbr *forces, LR_bonds *bonds) {
+__global__ void tsp_forces_edge_bonded(c_number4 *poss, c_number4 *forces, LR_bonds *bonds) {
 	if(IND >= MD_N[0]) return;
 
-	tmpnmbr F0;
+	c_number4 F0;
 
 	F0.x = forces[IND].x;
 	F0.y = forces[IND].y;
 	F0.z = forces[IND].z;
 	F0.w = forces[IND].w;
 
-	tmpnmbr dF = make_tmpnmbr(0, 0, 0, 0);
-	tmpnmbr ppos = poss[IND];
+	c_number4 dF = make_c_number4(0, 0, 0, 0);
+	c_number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
 
 	if(bs.n3 != P_INVALID) {
-		tmpnmbr qpos = poss[bs.n3];
+		c_number4 qpos = poss[bs.n3];
 		_particle_particle_bonded_interaction(ppos, qpos, dF, is_anchor(bs.n3));
 	}
 	if(bs.n5 != P_INVALID) {
-		tmpnmbr qpos = poss[bs.n5];
+		c_number4 qpos = poss[bs.n5];
 		_particle_particle_bonded_interaction(ppos, qpos, dF, is_anchor(bs.n5));
 	}
 
@@ -186,19 +186,19 @@ __global__ void tsp_forces_edge_bonded(tmpnmbr *poss, tmpnmbr *forces, LR_bonds 
 }
 
 // forces + second step with verlet lists
-__global__ void tsp_forces(tmpnmbr *poss, tmpnmbr *forces, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox *box) {
+__global__ void tsp_forces(c_number4 *poss, c_number4 *forces, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
-	tmpnmbr F = forces[IND];
-	tmpnmbr ppos = poss[IND];
+	c_number4 F = forces[IND];
+	c_number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
 
 	if(bs.n3 != P_INVALID) {
-		tmpnmbr qpos = poss[bs.n3];
+		c_number4 qpos = poss[bs.n3];
 		_particle_particle_bonded_interaction(ppos, qpos, F, is_anchor(bs.n3));
 	}
 	if(bs.n5 != P_INVALID) {
-		tmpnmbr qpos = poss[bs.n5];
+		c_number4 qpos = poss[bs.n5];
 		_particle_particle_bonded_interaction(ppos, qpos, F, is_anchor(bs.n5));
 	}
 
@@ -206,20 +206,20 @@ __global__ void tsp_forces(tmpnmbr *poss, tmpnmbr *forces, int *matrix_neighs, i
 	for(int j = 0; j < num_neighs; j++) {
 		const int k_index = matrix_neighs[j * MD_N[0] + IND];
 
-		tmpnmbr qpos = poss[k_index];
+		c_number4 qpos = poss[k_index];
 		_TSP_particle_particle_interaction(ppos, qpos, F, box);
 	}
 
 	forces[IND] = F;
 }
 
-__global__ void tsp_anchor_forces(tmpnmbr *poss, tmpnmbr *forces, int *anchors, TSP_anchor_bonds *bonds) {
+__global__ void tsp_anchor_forces(c_number4 *poss, c_number4 *forces, int *anchors, TSP_anchor_bonds *bonds) {
 	if(IND >= MD_N_stars[0]) return;
 
 	int anchor = anchors[IND];
 	TSP_anchor_bonds anchor_bonds = bonds[IND];
-	tmpnmbr r_anchor = poss[anchor];
-	tmpnmbr F = forces[anchor];
+	c_number4 r_anchor = poss[anchor];
+	c_number4 F = forces[anchor];
 
 	for(int an = 0; an < TSP_MAX_ARMS; an++) {
 		int bonded_neigh = anchor_bonds.n[an];
@@ -227,7 +227,7 @@ __global__ void tsp_anchor_forces(tmpnmbr *poss, tmpnmbr *forces, int *anchors, 
 			// since bonded neighbours of anchors are in the anchor's neighbouring list, the non-bonded interaction between
 			// the two, from the point of view of the anchor, has been already computed and hence the anchor-particle
 			// interaction reduces to just the fene
-			tmpnmbr r = poss[bonded_neigh] - r_anchor;
+			c_number4 r = poss[bonded_neigh] - r_anchor;
 			_fene(r, F, true);
 		}
 		else break;

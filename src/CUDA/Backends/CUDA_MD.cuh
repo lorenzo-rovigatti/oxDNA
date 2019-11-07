@@ -8,7 +8,7 @@ __constant__ float MD_dt[1];
 
 // this function modifies L
 // Conversion of the R matrix in _get_updated_orientation above into a quaternion simplifies into the qR quaternion used in _get_updated_orientation. This is then multiplied by the original orientation quaternion to produce the updated quaternion. Quaternion multiplication is the cross_product - dot_product and is therefore non-commutative
-__device__ GPU_quat _get_updated_orientation(tmpnmbr &L, GPU_quat &old_o) {
+__device__ GPU_quat _get_updated_orientation(c_number4 &L, GPU_quat &old_o) {
 	c_number norm = _module(L);
 	L.x /= norm;
 	L.y /= norm;
@@ -23,13 +23,13 @@ __device__ GPU_quat _get_updated_orientation(tmpnmbr &L, GPU_quat &old_o) {
 	return quat_multiply(old_o, R);
 }
 
-__global__ void first_step(tmpnmbr *poss, GPU_quat *orientations, tmpnmbr *list_poss, tmpnmbr *vels, tmpnmbr *Ls, tmpnmbr *forces, tmpnmbr *torques, bool *are_lists_old) {
+__global__ void first_step(c_number4 *poss, GPU_quat *orientations, c_number4 *list_poss, c_number4 *vels, c_number4 *Ls, c_number4 *forces, c_number4 *torques, bool *are_lists_old) {
 	if(IND >= MD_N[0]) return;
 
-	const tmpnmbr F = forces[IND];
+	const c_number4 F = forces[IND];
 
-	tmpnmbr r = poss[IND];
-	tmpnmbr v = vels[IND];
+	c_number4 r = poss[IND];
+	c_number4 v = vels[IND];
 
 	v.x += F.x * (MD_dt[0] * (c_number) 0.5f);
 	v.y += F.y * (MD_dt[0] * (c_number) 0.5f);
@@ -42,8 +42,8 @@ __global__ void first_step(tmpnmbr *poss, GPU_quat *orientations, tmpnmbr *list_
 	vels[IND] = v;
 	poss[IND] = r;
 
-	const tmpnmbr T = torques[IND];
-	tmpnmbr L = Ls[IND];
+	const c_number4 T = torques[IND];
+	c_number4 L = Ls[IND];
 
 	L.x += T.x * (MD_dt[0] * (c_number) 0.5f);
 	L.y += T.y * (MD_dt[0] * (c_number) 0.5f);
@@ -59,27 +59,27 @@ __global__ void first_step(tmpnmbr *poss, GPU_quat *orientations, tmpnmbr *list_
 	if(quad_distance(r, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
 }
 
-__global__ void rescale_positions(tmpnmbr *poss, tmpnmbr ratio) {
+__global__ void rescale_positions(c_number4 *poss, c_number4 ratio) {
 	if(IND >= MD_N[0]) return;
-	tmpnmbr ppos = poss[IND];
+	c_number4 ppos = poss[IND];
 	ppos.x *= ratio.x;
 	ppos.y *= ratio.y;
 	ppos.z *= ratio.z;
 	poss[IND] = ppos;
 }
 
-__global__ void set_external_forces(tmpnmbr *poss, GPU_quat *orientations, CUDA_trap *ext_forces, tmpnmbr *forces, tmpnmbr *torques, llint step, int max_ext_forces, CUDABox*box) {
+__global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUDA_trap *ext_forces, c_number4 *forces, c_number4 *torques, llint step, int max_ext_forces, CUDABox*box) {
 	if(IND >= MD_N[0]) return;
 	// if there are no external forces then just put the force to 0
 	if(max_ext_forces == 0) {
-		forces[IND] = make_tmpnmbr(0, 0, 0, 0);
-		torques[IND] = make_tmpnmbr(0, 0, 0, 0);
+		forces[IND] = make_c_number4(0, 0, 0, 0);
+		torques[IND] = make_c_number4(0, 0, 0, 0);
 		return;
 	}
 
-	tmpnmbr ppos = poss[IND];
-	tmpnmbr F = make_tmpnmbr(0, 0, 0, 0);
-	tmpnmbr T = make_tmpnmbr(0, 0, 0, 0);
+	c_number4 ppos = poss[IND];
+	c_number4 F = make_c_number4(0, 0, 0, 0);
+	c_number4 T = make_c_number4(0, 0, 0, 0);
 
 	for(int i = 0; i < max_ext_forces; i++) {
 		// coalesced
@@ -103,12 +103,12 @@ __global__ void set_external_forces(tmpnmbr *poss, GPU_quat *orientations, CUDA_
 				break;
 			}
 			case CUDA_TRAP_MUTUAL: {
-				tmpnmbr qpos = poss[extF.mutual.p_ind];
+				c_number4 qpos = poss[extF.mutual.p_ind];
 
-				tmpnmbr dr = (extF.mutual.PBC) ? box->minimum_image(ppos, qpos) : qpos - ppos;
+				c_number4 dr = (extF.mutual.PBC) ? box->minimum_image(ppos, qpos) : qpos - ppos;
 				c_number dr_abs = _module(dr);
 
-				tmpnmbr force = dr * ((dr_abs - (extF.mutual.r0 + extF.mutual.rate * step)) * extF.mutual.stiff / dr_abs);
+				c_number4 force = dr * ((dr_abs - (extF.mutual.r0 + extF.mutual.rate * step)) * extF.mutual.stiff / dr_abs);
 
 				F.x += force.x;
 				F.y += force.y;
@@ -146,7 +146,7 @@ __global__ void set_external_forces(tmpnmbr *poss, GPU_quat *orientations, CUDA_
 			}
 			case CUDA_REPULSION_PLANE_MOVING: {
 				for(int idx = extF.repulsionplanemoving.low_idx; idx <= extF.repulsionplanemoving.high_idx; idx++) {
-					tmpnmbr qpos = poss[idx];
+					c_number4 qpos = poss[idx];
 					c_number distance = extF.repulsionplanemoving.dir.x*(ppos.x-qpos.x) + extF.repulsionplanemoving.dir.y*(ppos.y-qpos.y) + extF.repulsionplanemoving.dir.z*(ppos.z-qpos.z);
 					if(distance < 0.0f) {
 						F.x += -distance * extF.repulsionplanemoving.stiff * extF.repulsionplanemoving.dir.x;
@@ -157,8 +157,8 @@ __global__ void set_external_forces(tmpnmbr *poss, GPU_quat *orientations, CUDA_
 				break;
 			}
 			case CUDA_REPULSIVE_SPHERE: {
-				tmpnmbr centre = make_tmpnmbr(extF.repulsivesphere.centre.x, extF.repulsivesphere.centre.y, extF.repulsivesphere.centre.z, 0.);
-				tmpnmbr dist = box->minimum_image(centre, ppos);
+				c_number4 centre = make_c_number4(extF.repulsivesphere.centre.x, extF.repulsivesphere.centre.y, extF.repulsivesphere.centre.z, 0.);
+				c_number4 dist = box->minimum_image(centre, ppos);
 				c_number mdist = _module(dist);
 				c_number radius = extF.repulsivesphere.r0 + extF.repulsivesphere.rate*(c_number) step;
 				c_number radius_ext = extF.repulsivesphere.r_ext;
@@ -171,8 +171,8 @@ __global__ void set_external_forces(tmpnmbr *poss, GPU_quat *orientations, CUDA_
 				break;
 			}
 			case CUDA_REPULSIVE_SPHERE_SMOOTH: {
-				tmpnmbr centre = make_tmpnmbr(extF.repulsivespheresmooth.centre.x, extF.repulsivespheresmooth.centre.y, extF.repulsivespheresmooth.centre.z, 0.);
-				tmpnmbr dist = box->minimum_image(centre, ppos);
+				c_number4 centre = make_c_number4(extF.repulsivespheresmooth.centre.x, extF.repulsivespheresmooth.centre.y, extF.repulsivespheresmooth.centre.z, 0.);
+				c_number4 dist = box->minimum_image(centre, ppos);
 				c_number mdist = _module(dist);
 				c_number r0 = extF.repulsivespheresmooth.r0;
 				c_number r_ext = extF.repulsivespheresmooth.r_ext;
@@ -240,7 +240,7 @@ __global__ void set_external_forces(tmpnmbr *poss, GPU_quat *orientations, CUDA_
 			}
 			case CUDA_GENERIC_CENTRAL_FORCE: {
 				c_number strength = extF.genericconstantforce.F0;
-				tmpnmbr dir = make_tmpnmbr(
+				c_number4 dir = make_c_number4(
 						extF.genericconstantforce.x - ppos.x,
 						extF.genericconstantforce.y - ppos.y,
 						extF.genericconstantforce.z - ppos.z, (c_number) 0.f);
@@ -301,11 +301,11 @@ __global__ void set_external_forces(tmpnmbr *poss, GPU_quat *orientations, CUDA_
 	torques[IND] = T;
 }
 
-__global__ void second_step(tmpnmbr *vels, tmpnmbr *Ls, tmpnmbr *forces, tmpnmbr *torques) {
+__global__ void second_step(c_number4 *vels, c_number4 *Ls, c_number4 *forces, c_number4 *torques) {
 	if(IND >= MD_N[0]) return;
 
-	tmpnmbr F = forces[IND];
-	tmpnmbr v = vels[IND];
+	c_number4 F = forces[IND];
+	c_number4 v = vels[IND];
 
 	v.x += F.x * MD_dt[0] * (c_number) 0.5f;
 	v.y += F.y * MD_dt[0] * (c_number) 0.5f;
@@ -314,8 +314,8 @@ __global__ void second_step(tmpnmbr *vels, tmpnmbr *Ls, tmpnmbr *forces, tmpnmbr
 
 	vels[IND] = v;
 
-	tmpnmbr T = torques[IND];
-	tmpnmbr L = Ls[IND];
+	c_number4 T = torques[IND];
+	c_number4 L = Ls[IND];
 
 	L.x += T.x * MD_dt[0] * (c_number) 0.5f;
 	L.y += T.y * MD_dt[0] * (c_number) 0.5f;

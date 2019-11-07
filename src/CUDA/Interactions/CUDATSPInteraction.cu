@@ -47,19 +47,19 @@ void CUDATSPInteraction::cuda_init(c_number box_side, int N) {
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_per_star, &N_per_star, sizeof(int)));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_stars, &this->_N_stars, sizeof(int)));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
-	COPY_c_number_TO_FLOAT(MD_sqr_rfene, this->_sqr_rfene);
-	COPY_c_number_TO_FLOAT(MD_sqr_rfene_anchor, this->_sqr_rfene_anchor);
-	COPY_c_number_TO_FLOAT(MD_sqr_rcut, this->_sqr_rcut);
-	COPY_c_number_TO_FLOAT(MD_sqr_rep_rcut, this->_TSP_sqr_rep_rcut);
-	COPY_c_number_TO_FLOAT(MD_TSP_lambda, this->_TSP_lambda);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rfene, this->_sqr_rfene);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rfene_anchor, this->_sqr_rfene_anchor);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, this->_sqr_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, this->_TSP_sqr_rep_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_TSP_lambda, this->_TSP_lambda);
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_TSP_n, &this->_TSP_n, sizeof(int)));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_TSP_only_chains, &this->_only_chains, sizeof(bool)));
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_yukawa_repulsion, &this->_yukawa_repulsion, sizeof(bool)));
-	COPY_c_number_TO_FLOAT(MD_TSP_yukawa_A, this->_TSP_yukawa_A);
-	COPY_c_number_TO_FLOAT(MD_TSP_yukawa_xi, this->_TSP_yukawa_xi);
-	COPY_c_number_TO_FLOAT(MD_yukawa_E_cut, this->_yukawa_E_cut);
+	COPY_NUMBER_TO_FLOAT(MD_TSP_yukawa_A, this->_TSP_yukawa_A);
+	COPY_NUMBER_TO_FLOAT(MD_TSP_yukawa_xi, this->_TSP_yukawa_xi);
+	COPY_NUMBER_TO_FLOAT(MD_yukawa_E_cut, this->_yukawa_E_cut);
 
 	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
 }
@@ -81,8 +81,8 @@ void CUDATSPInteraction::_setup_anchors() {
 
 		// now load all the TSP_anchor_bonds structures by first looping over all the bonded neighbours
 		int nn = 0;
-		for(typename set<TSPParticle *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++, nn++) {
-			_h_anchor_neighs[i].n[nn] = (*it)->index;
+		for(auto neigh: p->bonded_neighs) {
+			_h_anchor_neighs[i].n[nn] = neigh->index;
 		}
 		// and then by putting P_INVALID for all the other arms
 		for(int j = nn; j < TSP_MAX_ARMS; j++)
@@ -97,7 +97,7 @@ void CUDATSPInteraction::_setup_anchors() {
 	delete[] particles;
 }
 
-void CUDATSPInteraction::compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+void CUDATSPInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {

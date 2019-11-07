@@ -25,7 +25,7 @@ void ExternalTorque::get_settings(input_file &my_inp, input_file &sim_inp) {
 	std::string direction;
 	double x, y, z;
 	getInputString(&my_inp, "print_group", group_name, 0);
-	_group_name = string(group_name);
+	_group_name = std::string(group_name);
 
 	getInputString(&my_inp, "origin", origin, 1);
 	sscanf(origin, "%lf,%lf,%lf", &x, &y, &z);
@@ -51,7 +51,7 @@ std::string ExternalTorque::get_output_string(llint curr_step) {
 			// minus the projection on the line of the distance vector between the point and the origin
 			distvec -= (distvec * _direction) * _direction;
 		}
-		if(string(_group_name) == "") {
+		if(std::string(_group_name) == "") {
 			LR_vector total_force = LR_vector((number) 0., (number) 0., (number) 0.);
 			exit(1);
 			for(auto ext_force : p->ext_forces) {
@@ -62,7 +62,7 @@ std::string ExternalTorque::get_output_string(llint curr_step) {
 		else {
 			for(auto ext_force : p->ext_forces) {
 				//printf("CURRENT GROUP NAME %s, searching for: %s\n",f->get_group_name().c_str(),_group_name.c_str());
-				if(ext_force->get_group_name() == string(_group_name)) {
+				if(ext_force->get_group_name() == std::string(_group_name)) {
 					//printf("Adding torque on particle %i\n", i);
 					tau += distvec.cross(ext_force->value(curr_step, abs_pos));
 				}

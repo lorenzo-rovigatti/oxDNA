@@ -12,16 +12,16 @@
 //#include <cutil.h>
 
 
-__global__ void hilbert_curve(const tmpnmbr *pos, int *hindex);
+__global__ void hilbert_curve(const c_number4 *pos, int *hindex);
 
 
-__global__ void permute_particles(int *sorted_hindex, tmpnmbr *poss, tmpnmbr *vels, tmpnmbr *buff_poss, tmpnmbr *buff_vels);
+__global__ void permute_particles(int *sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *buff_poss, c_number4 *buff_vels);
 
 
-__global__ void permute_particles(int *sorted_hindex, tmpnmbr *poss, tmpnmbr *buff_poss);
+__global__ void permute_particles(int *sorted_hindex, c_number4 *poss, c_number4 *buff_poss);
 
 
-__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, tmpnmbr *poss, tmpnmbr *vels, tmpnmbr *Ls, GPU_quat *orientations, LR_bonds *bonds, tmpnmbr *buff_poss, tmpnmbr *buff_vels, tmpnmbr *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds);
+__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *Ls, GPU_quat *orientations, LR_bonds *bonds, c_number4 *buff_poss, c_number4 *buff_vels, c_number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds);
 __global__ void get_inverted_sorted_hindex(int *sorted_hindex, int *inv_sorted_hindex);
 __global__ void reset_sorted_hindex(int *sorted_hindex);
 

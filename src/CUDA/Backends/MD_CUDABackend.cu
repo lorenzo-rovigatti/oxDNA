@@ -262,8 +262,8 @@ void MD_CUDABackend::_first_step() {
 	CUT_CHECK_ERROR("_first_step error");
 }
 
-void MD_CUDABackend::_rescale_positions(tmpnmbr new_Ls, tmpnmbr old_Ls) {
-	tmpnmbr ratio = {new_Ls.x/old_Ls.x, new_Ls.y/old_Ls.y, new_Ls.z/old_Ls.z, 0.};
+void MD_CUDABackend::_rescale_positions(c_number4 new_Ls, c_number4 old_Ls) {
+	c_number4 ratio = {new_Ls.x/old_Ls.x, new_Ls.y/old_Ls.y, new_Ls.z/old_Ls.z, 0.};
 	rescale_positions
 		<<<this->_particles_kernel_cfg.blocks, this->_particles_kernel_cfg.threads_per_block>>>
 		(this->_d_poss, ratio);
@@ -275,11 +275,11 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
-	double old_energy = GpuUtils::sum_tmpnmbr_to_double_on_GPU(this->_d_forces, this->_N)/2.;
+	double old_energy = GpuUtils::sum_c_number4_to_double_on_GPU(this->_d_forces, this->_N)/2.;
 	c_number old_V = this->_h_cuda_box.V();
-	tmpnmbr old_Ls = this->_h_cuda_box.box_sides();
+	c_number4 old_Ls = this->_h_cuda_box.box_sides();
 
-	tmpnmbr new_Ls = old_Ls;
+	c_number4 new_Ls = old_Ls;
 	if(this->_barostat_isotropic) {
 		c_number dL = this->_delta_L*(drand48() - (c_number)0.5);
 		new_Ls.x += dL;
@@ -300,7 +300,7 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
-	double new_energy = GpuUtils::sum_tmpnmbr_to_double_on_GPU(this->_d_forces, this->_N)/2.;
+	double new_energy = GpuUtils::sum_c_number4_to_double_on_GPU(this->_d_forces, this->_N)/2.;
 	c_number new_V = this->_h_cuda_box.V();
 
 	// acceptance
@@ -401,7 +401,7 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 	this->_timer_forces->resume();
 	_forces_second_step();
 	if(_print_energy) {
-		c_number energy = GpuUtils::sum_tmpnmbr_to_double_on_GPU(_d_forces, this->_N);
+		c_number energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, this->_N);
 		this->_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / this->_N);
 	}
 	cudaThreadSynchronize();
@@ -459,18 +459,18 @@ void MD_CUDABackend::init() {
 
 	_timer_sorting = TimingManager::instance()->new_timer(std::string("Hilbert sorting"), std::string("SimBackend"));
 
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_vels, this->_vec_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_Ls, this->_vec_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_forces, this->_vec_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_torques, this->_vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_vels, this->_vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_Ls, this->_vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_forces, this->_vec_size) );
+	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_torques, this->_vec_size) );
 
 	CUDA_SAFE_CALL( cudaMemset(_d_forces, 0, this->_vec_size) );
 	CUDA_SAFE_CALL( cudaMemset(_d_torques, 0, this->_vec_size) );
 
-	_h_vels = new tmpnmbr[this->_N];
-	_h_Ls = new tmpnmbr[this->_N];
-	_h_forces = new tmpnmbr[this->_N];
-	_h_torques = new tmpnmbr[this->_N];
+	_h_vels = new c_number4[this->_N];
+	_h_Ls = new c_number4[this->_N];
+	_h_forces = new c_number4[this->_N];
+	_h_torques = new c_number4[this->_N];
 
 	_obs_output_error_conf->init(*this->_config_info);
 
@@ -630,8 +630,8 @@ void MD_CUDABackend::init() {
 
 	// used in the hilbert curve sorting
 	if(this->_sort_every > 0)	{
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_buff_vels, this->_vec_size) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<tmpnmbr>(&_d_buff_Ls, this->_vec_size) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_vels, this->_vec_size) );
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_Ls, this->_vec_size) );
 	}
 
 	// these values are changed only if the curve sorting is enabled

@@ -42,7 +42,7 @@ public:
 
 	void cuda_init(c_number box_side, int N);
 
-	void compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
+	void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 };
 
 #endif /* CUDATSPINTERACTION_H_ */
