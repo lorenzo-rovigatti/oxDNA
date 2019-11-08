@@ -47,7 +47,8 @@ in the build/bin folder.
 * `-DCXX11=ON` Compiles oxDNA with c++11 support
 * `-DSIGNAL=OFF` Handling system signals is not always supported. Set this flag to OFF to remove this feature
 * `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
-* `-DDOUBLE=OFF` Set the numerical precision to `float`
+* `-DDOUBLE=OFF` Set the numerical precision of the CPU backend to `float`
+* `-DCUDA_DOUBLE=ON` Set the numerical precision of the CUDA backend to `double`. This is incompatible with the `mixed` precision
 
 ## `make` targets
 
