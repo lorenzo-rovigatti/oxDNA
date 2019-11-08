@@ -246,6 +246,8 @@ IF(CUDA)
 	
 	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES} ${oxDNA_CUDASOURCES})
 	CUDA_ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)
+	
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
 ELSE()
 	SET(common_SOURCES
 		${common_SOURCES}

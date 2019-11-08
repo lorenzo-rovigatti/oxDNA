@@ -64,7 +64,7 @@
  */
 class PluginManager {
 protected:
-	static PluginManager *_manager;
+	static std::shared_ptr<PluginManager> _manager;
 	std::vector<std::string> _path;
 	bool _initialised;
 	bool _do_cleanup;
@@ -82,13 +82,10 @@ private:
 	 * @brief The default constructor is private because this is a singleton class.
 	 */
 	PluginManager();
-	/**
-	 * @brief The copy constructor is private because this is a singleton class.
-	 * @param
-	 */
-	PluginManager(PluginManager const &);
 public:
 	virtual ~PluginManager();
+
+	PluginManager(PluginManager const &) = delete;
 
 	/**
 	 * @brief Initialises the singleton. Must be called before actually asking for plugins.
@@ -124,15 +121,10 @@ public:
 	MovePtr get_move(std::string name);
 
 	/**
-	 * @brief Cleans up the manager.
-	 */
-	static void clear();
-
-	/**
 	 * @brief Returns a pointer to the current instance of PluginManager. Implements the singleton pattern.
 	 * @return
 	 */
-	static PluginManager *instance();
+	static std::shared_ptr<PluginManager> instance();
 };
 
 #endif /* PLUGINMANAGER_H_ */

@@ -27,8 +27,7 @@ AnalysisBackend::~AnalysisBackend() {
 
 void AnalysisBackend::get_settings(input_file &inp) {
 	// initialise the plugin manager with the input file
-	PluginManager *pm = PluginManager::instance();
-	pm->init(inp);
+	PluginManager::instance()->init(inp);
 
 	_interaction = InteractionFactory::make_interaction(inp);
 	_interaction->get_settings(inp);

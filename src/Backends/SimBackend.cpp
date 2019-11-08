@@ -63,8 +63,9 @@ SimBackend::SimBackend() {
 
 SimBackend::~SimBackend() {
 	if(_particles != NULL) {
-		for(int i = 0; i < _N; i++)
+		for(int i = 0; i < _N; i++) {
 			delete _particles[i];
+		}
 		delete[] _particles;
 	}
 
@@ -104,7 +105,6 @@ SimBackend::~SimBackend() {
 	 }
 	 */
 
-	PluginManager::clear();
 	ConfigInfo::clear();
 }
 
@@ -112,8 +112,7 @@ void SimBackend::get_settings(input_file &inp) {
 	int tmp;
 
 	// initialise the plugin manager with the input file
-	PluginManager *pm = PluginManager::instance();
-	pm->init(inp);
+	PluginManager::instance()->init(inp);
 
 	// initialise the timer
 	_mytimer = TimingManager::instance()->new_timer(std::string("SimBackend"));

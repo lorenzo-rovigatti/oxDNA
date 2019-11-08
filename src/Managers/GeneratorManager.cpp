@@ -108,10 +108,8 @@ void GeneratorManager::load_options() {
 
 	Logger::instance()->get_settings(_input);
 
-	PluginManager *pm = PluginManager::instance();
-	pm->init(_input);
+	PluginManager::instance()->init(_input);
 
-	// added by FR
 	_mybox = std::shared_ptr<BaseBox>(BoxFactory::make_box(_input));
 
 	_interaction = InteractionFactory::make_interaction(_input);

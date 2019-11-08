@@ -17,7 +17,7 @@
 using std::string;
 using std::vector;
 
-PluginManager *PluginManager::_manager = NULL;
+std::shared_ptr<PluginManager> PluginManager::_manager = nullptr;
 
 typedef BaseObservable* make_obs();
 typedef IBaseInteraction* make_inter();
@@ -30,7 +30,12 @@ PluginManager::PluginManager() :
 }
 
 PluginManager::~PluginManager() {
-
+	if(_manager != nullptr && _manager->_do_cleanup) {
+		while(!_manager->_handles.empty()) {
+			dlclose(_manager->_handles.top());
+			_manager->_handles.pop();
+		}
+	}
 }
 
 void PluginManager::init(input_file &sim_inp) {
@@ -90,16 +95,24 @@ void *PluginManager::_get_handle(string &name) {
 		string path = *it + "/" + name + ".so";
 		OX_DEBUG("Looking for plugin '%s' in '%s'", name.c_str(), it->c_str());
 		struct stat buffer;
-		if(stat(path.c_str(), &buffer) == 0) possible_paths.push_back(path);
+		if(stat(path.c_str(), &buffer) == 0) {
+			possible_paths.push_back(path);
+		}
 	}
 
-	if(possible_paths.size() == 0) OX_LOG(Logger::LOG_WARNING, "Plugin shared library '%s.so' not found", name.c_str());
+	if(possible_paths.size() == 0) {
+		OX_LOG(Logger::LOG_WARNING, "Plugin shared library '%s.so' not found", name.c_str());
+	}
 	else {
-		if(possible_paths.size() > 1) OX_LOG(Logger::LOG_WARNING, "Multiple (%d) plugin shared libraries named '%s.so' were found. Using %s", possible_paths.size(), name.c_str(), possible_paths[0].c_str());
+		if(possible_paths.size() > 1) {
+			OX_LOG(Logger::LOG_WARNING, "Multiple (%d) plugin shared libraries named '%s.so' were found. Using %s", possible_paths.size(), name.c_str(), possible_paths[0].c_str());
+		}
 
 		handle = dlopen(possible_paths[0].c_str(), RTLD_LAZY);
 		const char *dl_error = dlerror();
-		if(dl_error != NULL) throw oxDNAException("Caught an error while opening shared library '%s.so': %s", name.c_str(), dl_error);
+		if(dl_error != NULL) {
+			throw oxDNAException("Caught an error while opening shared library '%s.so': %s", name.c_str(), dl_error);
+		}
 
 		_handles.push(handle);
 	}
@@ -194,19 +207,11 @@ MovePtr PluginManager::get_move(std::string name) {
 
 }
 
-void PluginManager::clear() {
-	if(_manager != NULL && _manager->_do_cleanup) {
-		while(!_manager->_handles.empty()) {
-			dlclose(_manager->_handles.top());
-			_manager->_handles.pop();
-		}
-		delete _manager;
-		_manager = NULL;
+std::shared_ptr<PluginManager> PluginManager::instance() {
+	if(_manager == nullptr) {
+		// we can't use std::make_shared because PluginManager's constructor is private
+		_manager = std::shared_ptr<PluginManager>(new PluginManager());
 	}
-}
-
-PluginManager *PluginManager::instance() {
-	if(_manager == NULL) _manager = new PluginManager();
 
 	return _manager;
 }
