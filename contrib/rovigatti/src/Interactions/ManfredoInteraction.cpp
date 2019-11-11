@@ -401,8 +401,7 @@ void ManfredoInteraction::generate_random_configuration(BaseParticle **particles
 CustomArmParticle::CustomArmParticle() :
 				CustomParticle(),
 				_principal_DNA_axis(LR_vector(1, 0, 0)) {
-	this->int_centers = new LR_vector[3];
-	this->N_int_centers = 3;
+	this->int_centers.resize(3);
 }
 ;
 

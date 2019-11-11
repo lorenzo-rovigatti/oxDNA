@@ -9,9 +9,7 @@
 
 
 RNANucleotide::RNANucleotide() : BaseParticle(), _principal_axis(1,0,0), _stack_axis(0,0,1), _third_axis(0,1,0) {
-	//
-	this->int_centers = new LR_vector[7];
-	this->N_int_centers = 7;
+	this->int_centers.resize(7);
 }
 
 

@@ -12,8 +12,7 @@
 
 JordanParticle::JordanParticle(int npatches, number phi, number int_k) : BaseParticle() {
 	int N_patches = npatches;
-	this->N_int_centers = N_patches;
-	this->int_centers = new LR_vector[N_patches];
+	int_centers.resize(N_patches);
 	_base_patches = new LR_vector[N_patches];
 	_patch_rotations = new LR_matrix[N_patches];
 	
@@ -29,7 +28,7 @@ JordanParticle::~JordanParticle() {
 
 
 void JordanParticle::_set_base_patches(number phi) {
-	switch(this->N_int_centers) {
+	switch(N_int_centers()) {
 		/*
 		case 2: {
 			_base_patches[0] = LR_vector(0, 1, 0);
@@ -53,10 +52,10 @@ void JordanParticle::_set_base_patches(number phi) {
 			break;
 		}
 		default:
-			throw oxDNAException("Unsupported number of patches %d\n", this->N_int_centers);
+			throw oxDNAException("Unsupported number of patches %d\n", N_int_centers());
 	}
 
-	for(int i = 0; i < this->N_int_centers; i++) {
+	for(uint i = 0; i < N_int_centers(); i++) {
 		_base_patches[i].normalize();
 		_base_patches[i] *= 0.5;
 		_patch_rotations[i] = LR_matrix (1., 0., 0.,  0., 1., 0.,  0., 0., 1.);
@@ -69,7 +68,7 @@ void JordanParticle::_set_base_patches(number phi) {
 number JordanParticle::int_potential() {
 	number energy = 0.f;
 	
-	for (int i = 0; i < this->N_int_centers; i ++) {
+	for(uint i = 0; i < N_int_centers(); i ++) {
 		// the trace of a rotation matrix == 1. + 2.cos(t)
 		number arg = _patch_rotations[i].v1.x + _patch_rotations[i].v2.y + _patch_rotations[i].v3.z;
 		arg = arg - 1.f;
@@ -83,13 +82,15 @@ number JordanParticle::int_potential() {
 
 
 void JordanParticle::set_positions() {
-	for(int i = 0; i < this->N_int_centers; i++) this->int_centers[i] = this->orientation * (_patch_rotations[i] * _base_patches[i]);
+	for(uint i = 0; i < N_int_centers(); i++) {
+		this->int_centers[i] = this->orientation * (_patch_rotations[i] * _base_patches[i]);
+	}
 }
 
 
 std::string JordanParticle::get_output_string () {
 	std::string ret = Utils::sformat("%g %g %g ", this->pos.x, this->pos.y, this->pos.z);
-	for (int i = 0; i < this->N_int_centers; i ++) {
+	for (uint i = 0; i < N_int_centers(); i ++) {
 		LR_vector patch = _patch_rotations[i] * _base_patches[i]; 
 		ret += Utils::sformat("%g %g %g ", patch.x, patch.y, patch.z);
 	}

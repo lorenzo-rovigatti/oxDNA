@@ -128,9 +128,9 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vect
 	}
 
 	if(_attraction_allowed(p->type, q->type)) {
-		for(int pi = 0; pi < p->N_int_centers; pi++) {
+		for(uint pi = 0; pi < p->N_int_centers(); pi++) {
 			LR_vector ppatch = p->int_centers[pi];
-			for(int pj = 0; pj < q->N_int_centers; pj++) {
+			for(uint pj = 0; pj < q->N_int_centers(); pj++) {
 				LR_vector qpatch = q->int_centers[pj];
 
 				LR_vector patch_dist = *r + qpatch - ppatch;
@@ -414,7 +414,7 @@ void FSInteraction::allocate_particles(BaseParticle **particles, int N) {
 			int i_patches = (i < (_N_in_polymers + _N_A)) ? _N_patches : _N_patches_B;
 			particles[i] = new PatchyParticle(i_patches, 0, 1.);
 			if(i < _N_def_A) {
-				particles[i]->N_int_centers--;
+				particles[i]->int_centers.resize(particles[i]->N_int_centers() - 1);
 			}
 		}
 	}

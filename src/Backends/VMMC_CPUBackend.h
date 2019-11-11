@@ -143,7 +143,7 @@ protected:
 		return nind[0] + nind[1] * _vmmc_N_cells_side + nind[2] * _vmmc_N_cells_side * _vmmc_N_cells_side;
 	}
 
-	number * new_en3s, *new_stn3s, *new_en5s, *new_stn5s;
+	std::vector<number> new_en3s, new_stn3s, new_en5s, new_stn5s;
 
 	llint _equilibration_steps;
 

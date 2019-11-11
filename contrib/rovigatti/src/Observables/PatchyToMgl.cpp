@@ -58,7 +58,7 @@ std::string PatchyToMgl::_mgl_patchy_line(BaseParticle *p, const char *color, bo
 	std::string res = Utils::sformat("%lf %lf %lf @ 0.5 C[%s] M", p->pos.x, p->pos.y, p->pos.z, color);
 
 	if(print_p) {
-		for(int i = 0; i < p->N_int_centers; i++) {
+		for(uint i = 0; i < p->N_int_centers(); i++) {
 			LR_vector p_pos = p->int_centers[i] * 1.1;
 			res += Utils::sformat(" %lf %lf %lf %lf C[%s]", p_pos.x, p_pos.y, p_pos.z, _patch_size, p_color);
 		}

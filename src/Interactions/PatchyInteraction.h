@@ -129,11 +129,8 @@ number PatchyInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, 
 	int c = 0;
 	LR_vector tmptorquep(0, 0, 0);
 	LR_vector tmptorqueq(0, 0, 0);
-	for(int pi = 0; pi < p->N_int_centers; pi++) {
-		LR_vector ppatch = p->int_centers[pi];
-		for(int pj = 0; pj < q->N_int_centers; pj++) {
-			LR_vector qpatch = q->int_centers[pj];
-
+	for(auto &ppatch: p->int_centers) {
+		for(auto &qpatch: q->int_centers) {
 			LR_vector patch_dist = *r + qpatch - ppatch;
 			number dist = patch_dist.norm();
 			if(dist < _sqr_patch_rcut) {

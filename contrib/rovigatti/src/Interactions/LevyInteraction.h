@@ -81,8 +81,7 @@ protected:
 
 public:
 	PatchySite() {
-		this->N_int_centers = 1;
-		this->int_centers = new LR_vector[1];
+		this->int_centers.resize(1);
 		_sigma = 1.;
 		_radius = _sigma * 0.5;
 	}

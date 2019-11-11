@@ -469,7 +469,7 @@ void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **p
 	 patch_file.ignore(256, '\n');
 	 }
 	 }
-	 this->N_int_centers = N_patches;
+	 this->N_int_centers() = N_patches;
 
 	 input_file.close();*/
 
@@ -621,7 +621,7 @@ number PatchyInteractionDan::pair_interaction_nonbonded(BaseParticle *p, BasePar
 		r = &computed_r;
 	}
 
-	/*printf("particle1 %d, patches1 %d, particle type1 %d, particle2 %d, patches2 %d, particle type2 %d\n", p->index, p->N_int_centers, p->type, q->index, q->N_int_centers, q->type);
+	/*printf("particle1 %d, patches1 %d, particle type1 %d, particle2 %d, patches2 %d, particle type2 %d\n", p->index, p->N_int_centers(), p->type, q->index, q->N_int_centers(), q->type);
 	 return 0;*/
 
 	return _patchy_interaction(p, q, r, update_forces);

@@ -90,8 +90,8 @@ std::string FSConf::_particle(BaseParticle *p) {
 
 	res << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 	if(_also_patch) {
-		for(int i = 0; i < p->N_int_centers; i++) {
-			LR_vector p_pos = mypos + p->int_centers[i];
+		for(auto &patch: p->int_centers) {
+			LR_vector p_pos = mypos + patch;
 			res << endl;
 			res << p_pos.x << " " << p_pos.y << " " << p_pos.z << " ";
 		}
@@ -143,7 +143,7 @@ string FSConf::_configuration(llint step) {
 		else {
 			conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
 			if(_also_patch) {
-				for(int j = 0; j < p->N_int_centers; j++) {
+				for(uint j = 0; j < p->N_int_centers(); j++) {
 					conf << endl;
 					conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
 				}

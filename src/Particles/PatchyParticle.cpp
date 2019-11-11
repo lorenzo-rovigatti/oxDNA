@@ -13,8 +13,7 @@
 
 PatchyParticle::PatchyParticle(int N_patches, int nt, number sigma) : BaseParticle(), _sigma(sigma) {
 	this->type = nt;
-	this->N_int_centers = N_patches;
-	this->int_centers = new LR_vector[N_patches];
+	this->int_centers.resize(N_patches);
 	_base_patches = new LR_vector[N_patches];
 
 	_set_base_patches();
@@ -27,7 +26,7 @@ PatchyParticle::~PatchyParticle() {
 
 
 void PatchyParticle::_set_base_patches() {
-	switch(this->N_int_centers) {
+	switch(N_int_centers()) {
 	case 1: {
 		_base_patches[0] = LR_vector(1, 0, 0);
 		break;
@@ -64,10 +63,10 @@ void PatchyParticle::_set_base_patches() {
 		break;
 	}
 	default:
-		throw oxDNAException("Unsupported number of patches %d\n", this->N_int_centers);
+		throw oxDNAException("Unsupported number of patches %d\n", N_int_centers());
 	}
 
-	for(int i = 0; i < this->N_int_centers; i++) {
+	for(uint i = 0; i < N_int_centers(); i++) {
 		_base_patches[i].normalize();
 		_base_patches[i] *= 0.5;
 	}
@@ -75,5 +74,7 @@ void PatchyParticle::_set_base_patches() {
 
 
 void PatchyParticle::set_positions() {
-	for(int i = 0; i < this->N_int_centers; i++) this->int_centers[i] = (this->orientation*_base_patches[i])*_sigma;
+	for(uint i = 0; i < N_int_centers(); i++) {
+		this->int_centers[i] = (this->orientation*_base_patches[i])*_sigma;
+	}
 }

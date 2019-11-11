@@ -245,8 +245,7 @@ void GraftedInteraction::generate_random_configuration(BaseParticle **particles,
 
 Colloid::Colloid(std::vector<LR_vector> &anchor_poss) :
 				TSPParticle() {
-	this->N_int_centers = anchor_poss.size();
-	this->int_centers = new LR_vector[this->N_int_centers];
+	this->int_centers.resize(anchor_poss.size());
 
 	_base_anchors = anchor_poss;
 }
@@ -256,6 +255,6 @@ Colloid::~Colloid() {
 }
 
 void Colloid::set_positions() {
-	for(int i = 0; i < this->N_int_centers; i++)
+	for(uint i = 0; i < N_int_centers(); i++)
 		this->int_centers[i] = this->orientation * _base_anchors[i];
 }
