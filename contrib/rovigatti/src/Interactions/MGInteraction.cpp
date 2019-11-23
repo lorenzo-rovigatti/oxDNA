@@ -146,20 +146,6 @@ void MGInteraction::allocate_particles(BaseParticle **particles, int N) {
 	}
 }
 
-int MGInteraction::get_N_from_topology() {
-	char line[512];
-	std::ifstream topology;
-	topology.open(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
-
-	topology.getline(line, 512);
-
-	int N;
-	sscanf(line, "%d\n", &N);
-
-	return N;
-}
-
 void MGInteraction::read_topology(int N_from_conf, int *N_strands, BaseParticle **particles) {
 	IBaseInteraction::read_topology(N_from_conf, N_strands, particles);
 

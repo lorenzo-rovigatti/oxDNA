@@ -48,7 +48,6 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual int get_N_from_topology();
 	virtual void read_topology(int N_from_conf, int *N_stars, BaseParticle **particles);
 	virtual void check_input_sanity(BaseParticle **particles, int N);
 };

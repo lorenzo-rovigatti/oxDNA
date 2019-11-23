@@ -1,6 +1,7 @@
-#include <fstream>
-
 #include "PolymerInteraction.h"
+
+#include "../Interactions/TSPInteraction.h"
+#include <fstream>
 
 PolymerInteraction::PolymerInteraction() :
 				BaseInteraction<PolymerInteraction>() {

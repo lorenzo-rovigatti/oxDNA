@@ -8,8 +8,9 @@
 #include <sstream>
 
 #include "GrByInsertion.h"
+
+#include "../Interactions/TSPInteraction.h"
 #include "Utilities/Utils.h"
-#include "Interactions/TSPInteraction.h"
 
 using namespace std;
 

@@ -10,8 +10,8 @@
 
 #define TSP_MAX_ARMS 20
 
-#include "CUDABaseInteraction.h"
-#include "../../Interactions/TSPInteraction.h"
+#include "CUDA/Interactions/CUDABaseInteraction.h"
+#include "TSPInteraction.h"
 
 /**
  * @brief Contains information about anchors' bonded neighbours
@@ -44,5 +44,9 @@ public:
 
 	void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 };
+
+extern "C" IBaseInteraction *make_CUDATSPInteraction() {
+	return new CUDATSPInteraction();
+}
 
 #endif /* CUDATSPINTERACTION_H_ */

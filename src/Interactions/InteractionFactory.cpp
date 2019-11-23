@@ -19,7 +19,6 @@
 #include "PatchyInteractionDan.h"
 #include "KFInteraction.h"
 #include "DNAInteraction_relax.h"
-#include "TSPInteraction.h"
 #include "HSInteraction.h"
 #include "DHSInteraction.h"
 #include "BoxInteraction.h"
@@ -60,7 +59,6 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("patchy") == 0) return std::make_shared<PatchyInteraction>();
 	else if(inter_type.compare("patchyDan") == 0) return std::make_shared<PatchyInteractionDan>();
 	else if(inter_type.compare("KF") == 0) return std::make_shared<KFInteraction>();
-	else if(inter_type.compare("TSP") == 0) return std::make_shared<TSPInteraction>();
 	else if(inter_type.compare("HS") == 0) return std::make_shared<HSInteraction>();
 	else if(inter_type.compare("Box") == 0) return std::make_shared<BoxInteraction>();
 	else if(inter_type.compare("HardCylinder") == 0) return std::make_shared<HardCylinderInteraction>();
