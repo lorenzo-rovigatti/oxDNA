@@ -37,6 +37,10 @@ public:
 
 	}
 
+	LR_matrix(const LR_matrix &) = default;
+	LR_matrix(LR_matrix &&) = default;
+	LR_matrix &operator=(const LR_matrix &) = default;
+
 	// Operator Overloads
 	inline LR_matrix operator+(const LR_matrix& m) const {
 		return LR_matrix(v1 + m.v1, v2 + m.v2, v3 + m.v3);

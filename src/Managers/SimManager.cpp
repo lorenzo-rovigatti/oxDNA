@@ -61,7 +61,9 @@ SimManager::~SimManager() {
 	}
 }
 
-void SimManager::_get_options() {
+void SimManager::load_options() {
+	Logger::instance()->get_settings(_input);
+
 	getInputBoolAsInt(&_input, "print_input", &_print_input, 0);
 	getInputInt(&_input, "print_energy_every", &_print_energy_every, 0);
 	getInputLLInt(&_input, "steps", &_steps, 1);
@@ -90,11 +92,6 @@ void SimManager::_get_options() {
 	}
 
 	getInputInt(&_input, "fix_diffusion_every", &_fix_diffusion_every, 0);
-}
-
-void SimManager::load_options() {
-	Logger::instance()->get_settings(_input);
-	_get_options();
 }
 
 void SimManager::init() {
