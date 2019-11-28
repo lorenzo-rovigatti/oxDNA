@@ -18,12 +18,10 @@ BaseParticle::BaseParticle() : index(-1), type(P_INVALID), n3(P_VIRTUAL), n5(P_V
 	inclust = false;
 	ext_potential = (number) 0.;
 	strand_id = -1;
-	N_int_centers = 0;
 	//_pos_shift = LR_vector(0., 0., 0.);
 	_pos_shift[0] = 0; _pos_shift[1] = 0; _pos_shift[2] = 0;
 	force = LR_vector(0., 0., 0.);
 	torque = LR_vector(0., 0., 0.);
-	int_centers = NULL;
 	btype = 0;
 	next_particle = P_INVALID;
 }
@@ -46,14 +44,14 @@ void BaseParticle::copy_from(const BaseParticle &p) {
 	n3 = p.n3;
 	n5 = p.n5;
 
-	for(int i = 0; i < N_int_centers; i++) int_centers[i] = p.int_centers[i];
+	int_centers = p.int_centers;
 
 	ext_potential = p.ext_potential;
 }
 
 
 BaseParticle::~BaseParticle() {
-	if(int_centers != NULL) delete[] int_centers;
+
 }
 
 

@@ -46,9 +46,9 @@ protected:
 	int _MC_moves;
 	bool _overlap;
 	bool _adjust_moves;
-	number *_delta;
-	llint *_tries;
-	llint *_accepted;
+	std::vector<number> _delta;
+	std::vector<llint> _tries;
+	std::vector<llint> _accepted;
 	llint _MC_equilibration_steps;
 	int _ensemble;
 	int _check_energy_every;

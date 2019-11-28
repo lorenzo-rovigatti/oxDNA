@@ -1,11 +1,8 @@
-
 #ifndef MG_INTERACTION_H
 #define MG_INTERACTION_H
 
 #include <vector>
 #include "Interactions/BaseInteraction.h"
-
-#define MAX_INSERTION_TRIES 1000000
 
 /**
  * @brief Handles interactions in microgel systems.
@@ -17,10 +14,9 @@
  *
  * @verbatim
 
-@endverbatim
+ @endverbatim
  */
-template <typename number>
-class MGInteraction : public BaseInteraction<number, MGInteraction<number> > {
+class MGInteraction: public BaseInteraction<MGInteraction> {
 protected:
 	number _rfene, _sqr_rfene;
 
@@ -28,15 +24,14 @@ protected:
 	number _MG_alpha, _MG_beta, _MG_gamma;
 	int _MG_n;
 
-	string _bond_filename;
+	std::string _bond_filename;
 
-	number _fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	number _nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	number _fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
 public:
 	enum {
-		BONDED = 0,
-		NONBONDED = 1
+		BONDED = 0, NONBONDED = 1
 	};
 	MGInteraction();
 	virtual ~MGInteraction();
@@ -44,21 +39,19 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(BaseParticle **particles, int N);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual int get_N_from_topology();
-	virtual void read_topology(int N_from_conf, int *N_stars, BaseParticle<number> **particles);
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void read_topology(int N_from_conf, int *N_stars, BaseParticle **particles);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 };
 
-extern "C" MGInteraction<float> *make_MGInteraction_float();
-extern "C" MGInteraction<double> *make_MGInteraction_double();
+extern "C" MGInteraction *make_MGInteraction();
 
 #endif /* MG_INTERACTION_H */

@@ -13,8 +13,8 @@
 /**
  * @brief Outputs the total kinetic energy of the system.
  */
-template<typename number>
-class SPBAnalysis : public BaseObservable<number> {
+
+class SPBAnalysis: public BaseObservable {
 protected:
 	number _bin;
 	int _N_bins;
@@ -25,13 +25,14 @@ public:
 	SPBAnalysis();
 	virtual ~SPBAnalysis();
 
-	void get_settings (input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	void get_settings(input_file &my_inp, input_file &sim_inp);
+	virtual void init(ConfigInfo &config_info);
 
 	std::string get_output_string(llint curr_step);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new SPBAnalysis<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new SPBAnalysis<double>(); }
+extern "C" BaseObservable *make_SPBAnalysis() {
+	return new SPBAnalysis();
+}
 
 #endif /* SPBANALYSIS_H_ */

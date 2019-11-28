@@ -38,12 +38,9 @@ public:
 					z(0) {
 	}
 
-	LR_vector(number * arg) :
-					x(arg[0]),
-					y(arg[1]),
-					z(arg[2]) {
-
-	}
+	LR_vector(const LR_vector &) = default;
+	LR_vector(LR_vector &&) = default;
+	LR_vector &operator=(const LR_vector &) = default;
 
 	// Operator Overloads
 	inline LR_vector operator+(const LR_vector& V2) const {

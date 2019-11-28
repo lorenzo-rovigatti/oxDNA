@@ -45,7 +45,7 @@ void RotateSite::apply (llint curr_step) {
 	number delta_E_ext = -p->ext_potential;
 
 	// select site
-	int i_patch = (int) (drand48() * (p->N_int_centers));
+	int i_patch = (int) (drand48() * (p->N_int_centers()));
 	LR_matrix site_store = p->get_patch_rotation(i_patch);
 
 	number t = drand48() * _delta;

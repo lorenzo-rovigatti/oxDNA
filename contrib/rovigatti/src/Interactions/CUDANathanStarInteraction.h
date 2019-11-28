@@ -15,8 +15,8 @@
 /**
  * @brief CUDA implementation of the {@link NathanStarInteraction}.
  */
-template<typename number, typename number4>
-class CUDANathanStarInteraction: public CUDABaseInteraction<number, number4>, public NathanStarInteraction<number> {
+
+class CUDANathanStarInteraction: public CUDABaseInteraction, public NathanStarInteraction {
 protected:
 	float *_d_patchy_star;
 
@@ -26,13 +26,16 @@ public:
 	virtual ~CUDANathanStarInteraction();
 
 	void get_settings(input_file &inp);
-	void cuda_init(number box_side, int N);
-	number get_cuda_rcut() { return this->get_rcut(); }
+	void cuda_init(c_number box_side, int N);
+	c_number get_cuda_rcut() {
+		return this->get_rcut();
+	}
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
+	void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
 };
 
-extern "C" IBaseInteraction<float> *make_CUDANathanStarInteraction_float() { return new CUDANathanStarInteraction<float, float4>(); }
-extern "C" IBaseInteraction<double> *make_CUDANathanStarInteraction_double() { return new CUDANathanStarInteraction<double, LR_double4>(); }
+extern "C" IBaseInteraction *make_CUDANathanStarInteraction() {
+	return new CUDANathanStarInteraction();
+}
 
 #endif /* CUDANATHANSTARINTERACTION_H_ */

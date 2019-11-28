@@ -62,10 +62,10 @@ check_thresold<T>
 	cudaThreadSynchronize();
 }
 
-struct sum_tmpnmbr {
+struct sum_c_number4 {
 	__device__
-	tmpnmbr operator()(const tmpnmbr& a, const tmpnmbr& b) const {
-		tmpnmbr res;
+	c_number4 operator()(const c_number4& a, const c_number4& b) const {
+		c_number4 res;
 		res.x = a.x + b.x;
 		res.y = a.y + b.y;
 		res.z = a.z + b.z;
@@ -74,20 +74,20 @@ struct sum_tmpnmbr {
 	}
 };
 
-struct tmpnmbr_to_double {
+struct c_number4_to_double {
 	__device__
-	double operator()(const tmpnmbr &a) {
+	double operator()(const c_number4 &a) {
 		return (double) a.w;
 	}
 };
 
-tmpnmbr GpuUtils::sum_tmpnmbr_on_GPU(tmpnmbr *dv, int N) {
-	thrust::device_ptr<tmpnmbr> t_dv = thrust::device_pointer_cast(dv);
-	tmpnmbr zero = { 0., 0., 0., 0. };
-	return thrust::reduce(t_dv, t_dv + N, zero, sum_tmpnmbr());
+c_number4 GpuUtils::sum_c_number4_on_GPU(c_number4 *dv, int N) {
+	thrust::device_ptr<c_number4> t_dv = thrust::device_pointer_cast(dv);
+	c_number4 zero = { 0., 0., 0., 0. };
+	return thrust::reduce(t_dv, t_dv + N, zero, sum_c_number4());
 }
 
-double GpuUtils::sum_tmpnmbr_to_double_on_GPU(tmpnmbr *dv, int N) {
-	thrust::device_ptr<tmpnmbr> t_dv = thrust::device_pointer_cast(dv);
-	return thrust::transform_reduce(t_dv, t_dv + N, tmpnmbr_to_double(), 0., thrust::plus<double>());
+double GpuUtils::sum_c_number4_to_double_on_GPU(c_number4 *dv, int N) {
+	thrust::device_ptr<c_number4> t_dv = thrust::device_pointer_cast(dv);
+	return thrust::transform_reduce(t_dv, t_dv + N, c_number4_to_double(), 0., thrust::plus<double>());
 }

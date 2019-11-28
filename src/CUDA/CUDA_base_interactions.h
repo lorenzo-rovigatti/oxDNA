@@ -31,7 +31,7 @@ __constant__ float MD_F5_PHI_XC[4];
 __constant__ float MD_F5_PHI_XS[4];
 
 
-__forceinline__ __device__ void _excluded_volume(const tmpnmbr &r, tmpnmbr &F, c_number sigma, c_number rstar, c_number b, c_number rc) {
+__forceinline__ __device__ void _excluded_volume(const c_number4 &r, c_number4 &F, c_number sigma, c_number rstar, c_number b, c_number rc) {
 	c_number rsqr = CUDA_DOT(r, r);
 
 	F.x = F.y = F.z = F.w = (c_number) 0.f;

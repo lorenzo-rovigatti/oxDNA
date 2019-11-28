@@ -33,14 +33,15 @@ public:
 	std::vector<std::shared_ptr<BaseForce>> ext_forces;
 	int next_particle;
 	int strand_id;
-	int N_int_centers;
 
 	BaseParticle();
 	virtual ~BaseParticle();
 
 	std::vector<ParticlePair > affected;
 
-	virtual void set_positions() { }
+	virtual void set_positions() {
+
+	}
 	
 	/// number of boxes the particle has diffused in each direction
 	int _pos_shift[3];
@@ -114,6 +115,10 @@ public:
 		arg[2] = _pos_shift[2];
 	}
 
+	uint N_int_centers() {
+		return int_centers.size();
+	}
+
 	/// Index of the particle. Usually it is a useful way of accessing arrays of particles
 	int index;
 
@@ -140,7 +145,7 @@ public:
 	LR_vector pos;
 
 	/// Positions of all interaction centers. This array must be initialized by child classes
-	LR_vector *int_centers;
+	std::vector<LR_vector> int_centers;
 
 	/// Angular momentum of the particle
 	LR_vector L;

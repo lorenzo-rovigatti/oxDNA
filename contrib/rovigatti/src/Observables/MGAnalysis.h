@@ -10,8 +10,7 @@
 
 #include "Observables/BaseObservable.h"
 
-template<typename number>
-class MGAnalysis : public BaseObservable<number> {
+class MGAnalysis: public BaseObservable {
 protected:
 	int _exponent;
 	number _sqr_rep_rcut;
@@ -27,19 +26,20 @@ protected:
 
 	std::pair<number, number> _lame_coefficients();
 	std::vector<number> _rg_eigenvalues(int from_idx, int to_idx);
-	LR_vector<number> _com(int from_idx, int to_idx);
+	LR_vector _com(int from_idx, int to_idx);
 	number _volume();
 
 public:
 	MGAnalysis();
 	virtual ~MGAnalysis();
 
-	void get_settings (input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo<number> &config_info);
+	void get_settings(input_file &my_inp, input_file &sim_inp);
+	void init(ConfigInfo &config_info);
 	std::string get_output_string(llint curr_step);
 };
 
-extern "C" BaseObservable<float> *make_MGAnalysis_float() { return new MGAnalysis<float>(); }
-extern "C" BaseObservable<double> *make_MGAnalysis_double() { return new MGAnalysis<double>(); }
+extern "C" BaseObservable *make_MGAnalysis() {
+	return new MGAnalysis();
+}
 
 #endif /* MGANALYSIS_H_ */

@@ -78,12 +78,14 @@ number JordanInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 
 number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 
-	if(update_forces) throw oxDNAException("JordanInteraction cannot compute forces. Use MC/MC2/VMMC to simulate.");
+	if(update_forces)
+		throw oxDNAException("JordanInteraction cannot compute forces. Use MC/MC2/VMMC to simulate.");
 
 	number rnorm = r->norm();
 
 	// if outside of rcut, we return here
-	if(rnorm > this->_sqr_rcut) return (number) 0.f;
+	if(rnorm > this->_sqr_rcut)
+		return (number) 0.f;
 
 	number rm = sqrt(rnorm);
 
@@ -92,12 +94,13 @@ number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, 
 
 	number energy = 4.f * (r_to_m * r_to_m - r_to_m);
 
-	if(rm <= 1.f) return energy; // we do not consider the patches if r < 1
+	if(rm <= 1.f)
+		return energy; // we do not consider the patches if r < 1
 
 	// here we look for the closest patch on particle p;
 	int imax1 = -1, imax2 = -1;
 	number max1 = -2.f;
-	for(int i = 0; i < p->N_int_centers; i++) {
+	for(uint i = 0; i < p->N_int_centers(); i++) {
 		number tmp = ((p->int_centers[i] * (*r)) / (0.5 * rm));
 		if(tmp > max1) {
 			max1 = tmp;
@@ -105,7 +108,7 @@ number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, 
 		}
 	}
 	number max2 = -2.f;
-	for(int i = 0; i < q->N_int_centers; i++) {
+	for(uint i = 0; i < q->N_int_centers(); i++) {
 		number tmp = (-(q->int_centers[i] * (*r)) / (0.5 * rm));
 		if(tmp > max2) {
 			max2 = tmp;
@@ -114,8 +117,12 @@ number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, 
 	}
 
 	// now max1 and max2 are ready to be acos'd
-	if(fabs(max1) >= 1.) max1 = copysign(1., max1);
-	if(fabs(max2) >= 1.) max2 = copysign(1., max2);
+	if(fabs(max1) >= 1.) {
+		max1 = copysign(1., max1);
+	}
+	if(fabs(max2) >= 1.) {
+		max2 = copysign(1., max2);
+	}
 
 	number theta1 = acos(max1);
 	number theta2 = acos(max2);
@@ -127,15 +134,10 @@ number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, 
 	LR_vector pprime = p->int_centers[imax1] - (*r) * ((p->int_centers[imax1] * (*r)) / (rm * rm));
 	LR_vector qprime = q->int_centers[imax2] - (*r) * ((q->int_centers[imax2] * (*r)) / (rm * rm));
 
-	/* // check that pprime and qprime have no residual component on r
-	 number chk1 = pprime * (*r);
-	 number chk2 = qprime * (*r);
-	 if (fabs(chk1) > 1.e-12) printf ("Non ci siamo... %g\n", chk1);
-	 if (fabs(chk2) > 1.e-12) printf ("Non ci siamo proprio... %g\n", chk2);
-	 */
-
 	number Gamma_arg = (pprime * qprime) * (1.f / (pprime.module() * qprime.module()));
-	if(fabs(Gamma_arg) > 1.f) Gamma_arg = copysign(1.f, Gamma_arg);
+	if(fabs(Gamma_arg) > 1.f) {
+		Gamma_arg = copysign(1.f, Gamma_arg);
+	}
 	number Gamma = acos(Gamma_arg);
 
 	number fact_SB = exp(-Gamma * Gamma / (2.f * _SB_s * _SB_s));  // could be optimized joining with previous exponential
@@ -146,12 +148,14 @@ number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, 
 
 void JordanInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
-	if(!topology.good()) throw oxDNAException("(JordanInteraction.cpp) Can't read topology file '%s'. Aborting", this->_topology_filename);
+	topology.open(this->_topology_filename, std::ios::in);
+	if(!topology.good())
+		throw oxDNAException("(JordanInteraction.cpp) Can't read topology file '%s'. Aborting", this->_topology_filename);
 	std::string line;
 	std::getline(topology, line);
 	int check = sscanf(line.c_str(), "%d %d\n", &_my_N, &_my_N3);
-	if(check != 2) throw oxDNAException("(JordanInteraction.cpp) Wrong content in topology file '%s'. Expecting <N> and <N3>", this->_topology_filename);
+	if(check != 2)
+		throw oxDNAException("(JordanInteraction.cpp) Wrong content in topology file '%s'. Expecting <N> and <N3>", this->_topology_filename);
 	topology.close();
 
 	*N_strands = N;

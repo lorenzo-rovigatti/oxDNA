@@ -36,7 +36,7 @@
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol((dest), val, (size)*sizeof(float)))\
 		delete[] val; }
 
-#define COPY_c_number_TO_FLOAT(dest, src) {\
+#define COPY_NUMBER_TO_FLOAT(dest, src) {\
 		float tmp = src;\
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol((dest), &tmp, sizeof(float)));\
 		}
@@ -63,11 +63,11 @@ __align__(16) {
 } LR_double4;
 
 #ifdef CUDA_DOUBLE_PRECISION
-using tmpnmbr = LR_double4;
+using c_number4 = LR_double4;
 using c_number = double;
 using GPU_quat = double4;
 #else
-using tmpnmbr = float4;
+using c_number4 = float4;
 using c_number = float;
 using GPU_quat = float4;
 #endif

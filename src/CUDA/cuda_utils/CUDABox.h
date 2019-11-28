@@ -38,8 +38,8 @@ public:
 
 	}
 
-	__forceinline__ __device__ tmpnmbr minimum_image(tmpnmbr &r_i, tmpnmbr &r_j) {
-		tmpnmbr res;
+	__forceinline__ __device__ c_number4 minimum_image(c_number4 &r_i, c_number4 &r_j) {
+		c_number4 res;
 		res.x = r_j.x - r_i.x;
 		res.y = r_j.y - r_i.y;
 		res.z = r_j.z - r_i.z;
@@ -51,8 +51,8 @@ public:
 		return res;
 	}
 
-	__forceinline__ __device__ c_number sqr_minimum_image(tmpnmbr &r_i, tmpnmbr &r_j) {
-		tmpnmbr mi = minimum_image(r_i, r_j);
+	__forceinline__ __device__ c_number sqr_minimum_image(c_number4 &r_i, c_number4 &r_j) {
+		c_number4 mi = minimum_image(r_i, r_j);
 		return SQR(mi.x) + SQR(mi.y) + SQR(mi.z);
 	}
 
@@ -108,8 +108,8 @@ public:
 	}
 
 	__host__ __device__
-	tmpnmbr box_sides() {
-		tmpnmbr res;
+	c_number4 box_sides() {
+		c_number4 res;
 		res.x = _Lx;
 		res.y = _Ly;
 		res.z = _Lz;

@@ -13,11 +13,10 @@
 /**
  * @brief A look-up table interaction that can manage polydisperse systems
  */
-template <typename number>
-class PolydisperseLTInteraction: public BaseInteraction<number, PolydisperseLTInteraction<number> > {
+class PolydisperseLTInteraction: public BaseInteraction<PolydisperseLTInteraction> {
 protected:
 	char _lt_filename[512];
-	Mesh<number> _lookup_table;
+	Mesh _lookup_table;
 	int _lt_points;
 	number _Ecut;
 	number _rcut_base;
@@ -63,8 +62,7 @@ protected:
 	number _dfx(number x, void *par);
 public:
 	enum {
-		BONDED = 0,
-		NONBONDED = 1
+		BONDED = 0, NONBONDED = 1
 	};
 
 	PolydisperseLTInteraction();
@@ -73,20 +71,19 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void allocate_particles(BaseParticle **particles, int N);
+	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 };
 
-extern "C" PolydisperseLTInteraction<float> *make_PolydisperseLTInteraction_float();
-extern "C" PolydisperseLTInteraction<double> *make_PolydisperseLTInteraction_double();
+extern "C" PolydisperseLTInteraction *make_PolydisperseLTInteraction();
 
 #endif /* CUSTOMINTERACTION_H_ */

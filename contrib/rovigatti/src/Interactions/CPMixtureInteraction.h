@@ -13,8 +13,7 @@
 /**
  *
  */
-template <typename number>
-class CPMixtureInteraction: public BaseInteraction<number, CPMixtureInteraction<number> > {
+class CPMixtureInteraction: public BaseInteraction<CPMixtureInteraction> {
 protected:
 	number _E_cut[3];
 	int _CP_int_type[3];
@@ -34,9 +33,7 @@ public:
 	};
 
 	enum {
-		POWER_LAW = 0,
-		GAUSSIAN = 1,
-		LOUIS
+		POWER_LAW = 0, GAUSSIAN = 1, LOUIS
 	};
 
 	CPMixtureInteraction();
@@ -45,20 +42,19 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void allocate_particles(BaseParticle **particles, int N);
+	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void check_input_sanity(BaseParticle **particles, int N);
 };
 
-extern "C" CPMixtureInteraction<float> *make_CPMixtureInteraction_float();
-extern "C" CPMixtureInteraction<double> *make_CPMixtureInteraction_double();
+extern "C" CPMixtureInteraction *make_CPMixtureInteraction();
 
 #endif /* CPMIXTUREINTERACTION_H_ */

@@ -106,7 +106,6 @@ SET(interactions_SOURCES
 	Interactions/RNAInteraction_relax.cpp
 	Interactions/JordanInteraction.cpp
 	Interactions/TEPInteraction.cpp
-	Interactions/TSPInteraction.cpp
 	Interactions/HSInteraction.cpp
 	Interactions/DHSInteraction.cpp
 	Interactions/HardCylinderInteraction.cpp
@@ -167,7 +166,6 @@ SET(common_SOURCES
 	Particles/DNANucleotide.cpp
 	Particles/PatchyParticle.cpp
 	Particles/PatchyParticleDan.cpp
-	Particles/TSPParticle.cpp
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Managers/SimManager.cpp
@@ -220,7 +218,6 @@ IF(CUDA)
 		CUDA/Interactions/CUDALJInteraction.cu
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu
-		CUDA/Interactions/CUDATSPInteraction.cu
 		CUDA/Interactions/CUDATEPInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
 		CUDA/Lists/CUDAListFactory.cu
@@ -246,6 +243,8 @@ IF(CUDA)
 	
 	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES} ${oxDNA_CUDASOURCES})
 	CUDA_ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)
+	
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
 ELSE()
 	SET(common_SOURCES
 		${common_SOURCES}

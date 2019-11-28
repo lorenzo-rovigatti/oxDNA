@@ -1,6 +1,7 @@
+#include "TSPInteraction.h"
+
 #include <fstream>
 
-#include "TSPInteraction.h"
 
 TSPInteraction::TSPInteraction() :
 				BaseInteraction<TSPInteraction>() {
@@ -154,8 +155,8 @@ number TSPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	// if q == P_VIRTUAL we have to compute the bonded interactions acting between p and all its bonded neighbours
 	if(q == P_VIRTUAL) {
 		TSPParticle *TSPp = (TSPParticle *) p;
-		for(typename set<TSPParticle *>::iterator it = TSPp->bonded_neighs.begin(); it != TSPp->bonded_neighs.end(); it++) {
-			energy += pair_interaction_bonded(p, *it, r, update_forces);
+		for(auto neigh: TSPp->bonded_neighs) {
+			energy += pair_interaction_bonded(p, neigh, r, update_forces);
 		}
 	}
 	else if(p->is_bonded(q)) {
@@ -223,7 +224,7 @@ void TSPInteraction::allocate_particles(BaseParticle **particles, int N) {
 int TSPInteraction::get_N_from_topology() {
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 
 	topology.getline(line, 512);
@@ -250,7 +251,7 @@ void TSPInteraction::read_topology(int N_from_conf, int *N_stars, BaseParticle *
 	int my_N_stars;
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 
@@ -340,7 +341,7 @@ bool TSPInteraction::_insert_anchor(BaseParticle **particles, BaseParticle *p, C
 
 bool TSPInteraction::_does_overlap(BaseParticle **particles, BaseParticle *p, Cells *c) {
 	// here we take into account the non-bonded interactions
-	vector<BaseParticle *> neighs = c->get_complete_neigh_list(p);
+	std::vector<BaseParticle *> neighs = c->get_complete_neigh_list(p);
 	for(unsigned int n = 0; n < neighs.size(); n++) {
 		BaseParticle *q = neighs[n];
 		// particles with an index larger than p->index have not been inserted yet
@@ -437,3 +438,31 @@ void TSPInteraction::generate_random_configuration(BaseParticle **particles, int
 	}
 	OX_LOG(Logger::LOG_INFO, "Max distance: %f", max_dist);
 }
+
+TSPParticle::TSPParticle() : BaseParticle(), _is_anchor(false)  {
+	_arm = -1;
+}
+
+TSPParticle::~TSPParticle() {
+
+}
+
+void TSPParticle::add_bonded_neigh(TSPParticle *nn) {
+	bonded_neighs.insert(nn);
+	nn->bonded_neighs.insert(this);
+
+	ParticlePair new_pair(this, nn);
+	this->affected.push_back(new_pair);
+	nn->affected.push_back(new_pair);
+}
+
+
+bool TSPParticle::is_bonded(BaseParticle *q) {
+	TSPParticle *TSPq = (TSPParticle *) q;
+	return !(bonded_neighs.find(TSPq) == bonded_neighs.end());
+}
+
+extern "C" TSPInteraction *make_TSPInteraction() {
+	return new TSPInteraction();
+}
+

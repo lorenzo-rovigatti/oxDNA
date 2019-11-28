@@ -14,7 +14,6 @@
 #include "CUDADNAInteraction.h"
 #include "CUDALJInteraction.h"
 #include "CUDAPatchyInteraction.h"
-#include "CUDATSPInteraction.h"
 #include "CUDATEPInteraction.h"
 #include "CUDARNAInteraction.h"
 
@@ -28,7 +27,6 @@ CUDAInteractionFactory::~CUDAInteractionFactory() {
 
 }
 
-
 CUDABaseInteraction *CUDAInteractionFactory::make_interaction(input_file &inp) {
 	// The default interaction is DNAInteraction
 	string inter_type("DNA");
@@ -38,7 +36,6 @@ CUDABaseInteraction *CUDAInteractionFactory::make_interaction(input_file &inp) {
 	else if(!inter_type.compare("RNA") || !inter_type.compare("RNA2")  ) return new CUDARNAInteraction();
 	else if(!inter_type.compare("LJ")) return new CUDALJInteraction();
 	else if(!inter_type.compare("patchy")) return new CUDAPatchyInteraction();
-	else if(!inter_type.compare("TSP")) return new CUDATSPInteraction();
 	else if(inter_type.compare("TEP") == 0) return new CUDATEPInteraction();
 	else {
 		std::string cuda_name(inter_type);

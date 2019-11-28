@@ -177,7 +177,7 @@ protected:
 	inline llint update_time_variable(llint time) {
 		// if we're twisting in a specified direction for a specified time, update it until you reach it
 		if(_max_twisting_time != 0) {
-			return min(time + 1, _max_twisting_time);
+			return std::min(time + 1, _max_twisting_time);
 		}
 		// otherwise, increase or decrease it as needed
 		else if(_choose_direction_time != 0) {

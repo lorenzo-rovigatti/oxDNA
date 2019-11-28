@@ -43,11 +43,11 @@ protected:
 	number _barostat_acceptance;
 
 	// timers
-	Timer *_timer_first_step;
-	Timer *_timer_forces;
-	Timer *_timer_lists;
-	Timer *_timer_thermostat;
-	Timer *_timer_barostat;
+	std::shared_ptr<Timer> _timer_first_step;
+	std::shared_ptr<Timer> _timer_forces;
+	std::shared_ptr<Timer> _timer_lists;
+	std::shared_ptr<Timer> _timer_thermostat;
+	std::shared_ptr<Timer> _timer_barostat;
 
 	bool _lees_edwards;
 	number _shear_rate;

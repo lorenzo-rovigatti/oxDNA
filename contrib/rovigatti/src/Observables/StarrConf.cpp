@@ -13,44 +13,40 @@
 
 using namespace std;
 
-template<typename number>
-StarrConf<number>::StarrConf() : Configuration<number>() {
+StarrConf::StarrConf() :
+				Configuration() {
 	_N_strands_per_tetramer = 4;
 	_N_per_strand = 17;
-	_N_per_tetramer = _N_strands_per_tetramer*_N_per_strand;
+	_N_per_tetramer = _N_strands_per_tetramer * _N_per_strand;
 	_N_tetramers = -1;
 	_print_bonds = false;
 	_dt = 0.;
 }
 
-template<typename number>
-StarrConf<number>::~StarrConf() {
+StarrConf::~StarrConf() {
 
 }
 
-template<typename number>
-void StarrConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	Configuration<number>::get_settings(my_inp, sim_inp);
+void StarrConf::get_settings(input_file &my_inp, input_file &sim_inp) {
+	Configuration::get_settings(my_inp, sim_inp);
 
 	getInputBool(&my_inp, "print_bonds", &_print_bonds, 0);
 	getInputNumber(&sim_inp, "dt", &_dt, 0);
 }
 
-template<typename number>
-void StarrConf<number>::init(ConfigInfo<number> &config_info) {
-   Configuration<number>::init(config_info);
+void StarrConf::init(ConfigInfo &config_info) {
+	Configuration::init(config_info);
 
-   _N_tetramers = *config_info.N / _N_per_tetramer;
-   _tetra_poss.resize(_N_tetramers);
-   _tetra_vels.resize(_N_tetramers);
-   if(_print_bonds) _tetra_bonds.resize(_N_tetramers);
+	_N_tetramers = *config_info.N / _N_per_tetramer;
+	_tetra_poss.resize(_N_tetramers);
+	_tetra_vels.resize(_N_tetramers);
+	if(_print_bonds) _tetra_bonds.resize(_N_tetramers);
 }
 
-template<typename number>
-std::string StarrConf<number>::_headers(llint step) {
+std::string StarrConf::_headers(llint step) {
 	std::stringstream headers;
 
-	LR_vector<number> mybox = this->_config_info.box->box_sides();
+	LR_vector mybox = this->_config_info.box->box_sides();
 
 	headers << step << " " << step << " " << _N_tetramers << " " << _N_tetramers << " " << _dt << endl;
 	headers << mybox.x << " " << mybox.y << " " << mybox.z << " " << 0. << " " << 0. << " " << 0.;
@@ -58,19 +54,18 @@ std::string StarrConf<number>::_headers(llint step) {
 	return headers.str();
 }
 
-template<typename number>
-string StarrConf<number>::_configuration(llint step) {
+string StarrConf::_configuration(llint step) {
 	stringstream conf;
 	conf.precision(15);
 
 	for(int i = 0; i < _N_tetramers; i++) {
-		_tetra_poss[i] = _tetra_vels[i] = LR_vector<number>(0., 0., 0.);
+		_tetra_poss[i] = _tetra_vels[i] = LR_vector(0., 0., 0.);
 		if(_print_bonds) _tetra_bonds[i].clear();
-		int base_idx = i*_N_per_tetramer;
+		int base_idx = i * _N_per_tetramer;
 		for(int j = 0; j < _N_strands_per_tetramer; j++) {
 			for(int k = 0; k < _N_per_strand; k++) {
 				int idx = base_idx + k;
-				BaseParticle<number> *p = this->_config_info.particles[idx];
+				BaseParticle *p = this->_config_info.particles[idx];
 
 				_tetra_poss[i] += this->_config_info.box->get_abs_pos(p);
 				_tetra_vels[i] += p->vel;
@@ -87,9 +82,9 @@ string StarrConf<number>::_configuration(llint step) {
 
 	// compute the bonding pattern
 	if(_print_bonds) {
-		vector<ParticlePair<number> > inter_pairs = this->_config_info.lists->get_potential_interactions();
+		vector<ParticlePair> inter_pairs = this->_config_info.lists->get_potential_interactions();
 
-		for(typename vector<ParticlePair<number> >::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
+		for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
 			number energy = this->_config_info.interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
 			if(energy < 0.) {
 				int p_tetra = it->first->index / _N_per_tetramer;
@@ -111,14 +106,12 @@ string StarrConf<number>::_configuration(llint step) {
 				if(er_it->second < 4) _tetra_bonds[i].erase(er_it++);
 				else er_it++;
 			}
-			conf << i+1 << " " << _tetra_bonds[i].size() << endl;
-			for(map<int, int>::iterator it = _tetra_bonds[i].begin(); it != _tetra_bonds[i].end(); it++) conf << it->first+1 << " ";
+			conf << i + 1 << " " << _tetra_bonds[i].size() << endl;
+			for(map<int, int>::iterator it = _tetra_bonds[i].begin(); it != _tetra_bonds[i].end(); it++)
+				conf << it->first + 1 << " ";
 		}
 		else conf << _tetra_vels[i].x << " " << _tetra_vels[i].y << " " << _tetra_vels[i].z;
 	}
 
 	return conf.str();
 }
-
-template class StarrConf<float>;
-template class StarrConf<double>;

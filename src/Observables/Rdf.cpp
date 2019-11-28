@@ -52,15 +52,15 @@ std::string Rdf::get_output_string(llint curr_step) {
 		}
 	}
 
-	stringstream ret;
+	std::stringstream ret;
 	ret.precision(9);
 	double myx = _bin_size / 2.;
 	double norm_factor = 4 * M_PI * _nconf * n_pairs * _bin_size / this->_config_info.box->V();
-	for(std::vector<long double>::iterator it = _profile.begin(); it != _profile.end(); it++) {
-		ret << myx << " " << (*it) / (norm_factor * myx * myx) << endl;
+	for(auto value: _profile) {
+		ret << myx << " " << value / (norm_factor * myx * myx) << std::endl;
 		myx += _bin_size;
 	}
-	ret << endl;
+	ret << std::endl;
 
 	return ret.str();
 }

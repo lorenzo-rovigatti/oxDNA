@@ -52,26 +52,26 @@
 //
 
 typedef struct qh_vertex {
-    union {
-        float v[3];
-        struct {
-            float x;
-            float y;
-            float z;
-        };
-    };
+	union {
+		float v[3];
+		struct {
+			float x;
+			float y;
+			float z;
+		};
+	};
 } qh_vertex_t;
 
 typedef qh_vertex_t qh_vec3_t;
 
 typedef struct qh_mesh {
-    qh_vertex_t* vertices;
-    qh_vec3_t* normals;
-    unsigned int* indices;
-    unsigned int* normalindices;
-    unsigned int nindices;
-    unsigned int nvertices;
-    unsigned int nnormals;
+	qh_vertex_t* vertices;
+	qh_vec3_t* normals;
+	unsigned int* indices;
+	unsigned int* normalindices;
+	unsigned int nindices;
+	unsigned int nvertices;
+	unsigned int nnormals;
 } qh_mesh_t;
 
 qh_mesh_t qh_quickhull3d(qh_vertex_t const* vertices, unsigned int nvertices);

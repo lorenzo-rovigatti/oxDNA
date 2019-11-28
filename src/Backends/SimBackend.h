@@ -73,7 +73,7 @@ class SimBackend {
 protected:
 	std::string _backend_info;
 
-	Timer * _mytimer;
+	std::shared_ptr<Timer> _mytimer;
 
 	number _max_io;
 
@@ -103,7 +103,7 @@ protected:
 	bool _back_in_box;
 	bool _custom_conf_name;
 	char _custom_conf_str[256];
-	ifstream _conf_input;
+	std::ifstream _conf_input;
 	llint _read_conf_step;
 	std::string _checkpoint_file;
 	std::string _checkpoint_traj;
@@ -178,7 +178,7 @@ protected:
 	 */
 	bool _read_next_configuration(bool binary = false);
 
-	int _get_N_from_conf(ifstream &conf_input);
+	int _get_N_from_conf(std::ifstream &conf_input);
 
 	/**
 	 * @brief Prints all the observables that are ready, i.e. whose is_ready(curr_step) method returns true.

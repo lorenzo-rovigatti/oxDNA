@@ -102,12 +102,12 @@ std::string PdbOutput::_particle(BaseParticle *p, std::string strtype) {
 }
 
 std::string PdbOutput::_configuration(llint step) {
-	stringstream conf;
+	std::stringstream conf;
 	//conf.precision(15);
 	if(_back_in_box) this->_fill_strands_cdm();
 
-	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
-		if(it != this->_visible_particles.begin()) conf << endl;
+	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
+		if(it != this->_visible_particles.begin()) conf << std::endl;
 		BaseParticle *p = this->_config_info.particles[*it];
 		std::string cur_strtype = strtypes[(p->strand_id + 1) % 17];
 		conf << _particle(p, cur_strtype);

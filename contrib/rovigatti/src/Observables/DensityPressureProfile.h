@@ -11,8 +11,7 @@
 #include "Observables/BaseObservable.h"
 #include <sstream>
 
-template<typename number>
-class DensityPressureProfile : public BaseObservable<number> {
+class DensityPressureProfile: public BaseObservable {
 private:
 	int _axis;
 	number _max_value;
@@ -30,10 +29,11 @@ public:
 	virtual ~DensityPressureProfile();
 
 	virtual std::string get_output_string(llint curr_step);
-	void get_settings (input_file &my_inp, input_file &sim_inp);
+	void get_settings(input_file &my_inp, input_file &sim_inp);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new DensityPressureProfile<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new DensityPressureProfile<double>(); }
+extern "C" BaseObservable *make_DensityPressureProfile() {
+	return new DensityPressureProfile();
+}
 
 #endif /* DENSITYPRESSUREPROFILE_H_ */

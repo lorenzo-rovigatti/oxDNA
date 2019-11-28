@@ -38,7 +38,7 @@ void CUDALJInteraction::cuda_init(c_number box_side, int N) {
 	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
 }
 
-void CUDALJInteraction::compute_forces(CUDABaseList*lists, tmpnmbr *d_poss, GPU_quat *d_orientations, tmpnmbr *d_forces, tmpnmbr *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+void CUDALJInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {

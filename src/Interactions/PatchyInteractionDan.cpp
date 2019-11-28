@@ -198,7 +198,7 @@ void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **p
 	double tmp1, tmp2, tmp3;
 
 	//Tries to open topology file (filename obtained in get_settings)
-	std::ifstream topology(this->_topology_filename, ios::in);
+	std::ifstream topology(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("[In PatchyInteractionDan::get_settings] Can't read topology file '%s' . Aborting\n", this->_topology_filename);
 
 	/*getInputString(&inp, "patch_file", this->_patch_filename, 1);
@@ -469,7 +469,7 @@ void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **p
 	 patch_file.ignore(256, '\n');
 	 }
 	 }
-	 this->N_int_centers = N_patches;
+	 this->N_int_centers() = N_patches;
 
 	 input_file.close();*/
 
@@ -621,7 +621,7 @@ number PatchyInteractionDan::pair_interaction_nonbonded(BaseParticle *p, BasePar
 		r = &computed_r;
 	}
 
-	/*printf("particle1 %d, patches1 %d, particle type1 %d, particle2 %d, patches2 %d, particle type2 %d\n", p->index, p->N_int_centers, p->type, q->index, q->N_int_centers, q->type);
+	/*printf("particle1 %d, patches1 %d, particle type1 %d, particle2 %d, patches2 %d, particle type2 %d\n", p->index, p->N_int_centers(), p->type, q->index, q->N_int_centers(), q->type);
 	 return 0;*/
 
 	return _patchy_interaction(p, q, r, update_forces);

@@ -13,34 +13,36 @@
 
 #define CENTRE_N_NEIGHS 4
 
-typedef struct __align__(8) {
-	int n[CENTRE_N_NEIGHS-1];
-} centre_bonds;
+typedef struct
+	__align__(8) {
+		int n[CENTRE_N_NEIGHS - 1];
+	} centre_bonds;
 
-/**
- * @brief Handles interactions between Levy tetramers on CUDA.
- */
-template<typename number, typename number4>
-class CUDALevyInteraction: public CUDABaseInteraction<number, number4>, public LevyInteraction<number> {
-protected:
-	int *_d_centres;
-	centre_bonds *_d_centre_neighs;
-	number4 *_d_n3_forces, *_d_n5_forces;
+	/**
+	 * @brief Handles interactions between Levy tetramers on CUDA.
+	 */
 
-	void _setup_centres();
-public:
-	CUDALevyInteraction();
-	virtual ~CUDALevyInteraction();
+	class CUDALevyInteraction: public CUDABaseInteraction, public LevyInteraction {
+	protected:
+		int *_d_centres;
+		centre_bonds *_d_centre_neighs;
+		c_number4 *_d_n3_forces, *_d_n5_forces;
 
-	number get_cuda_rcut() { return this->get_rcut(); }
-	void get_settings(input_file &inp);
+		void _setup_centres();
+	public:
+		CUDALevyInteraction();
+		virtual ~CUDALevyInteraction();
 
-	void cuda_init(number box_side, int N);
+		c_number get_cuda_rcut() {
+			return this->get_rcut();
+		}
+		void get_settings(input_file &inp);
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
-};
+		void cuda_init(c_number box_side, int N);
 
-extern "C" IBaseInteraction<float> *make_CUDALevyInteraction_float();
-extern "C" IBaseInteraction<double> *make_CUDALevyInteraction_double();
+		void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
+	};
+
+	extern "C" IBaseInteraction *make_CUDALevyInteraction();
 
 #endif /* CUDALEVYINTERACTION_H_ */

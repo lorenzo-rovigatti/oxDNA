@@ -16,22 +16,20 @@
 
 using namespace std;
 
-template<typename number>
-FSConf<number>::FSConf() : Configuration<number>() {
+FSConf::FSConf() :
+				Configuration() {
 	_N = _N_A = _N_B = -1;
 	_in_box = false;
 	_also_patch = false;
 	_print_bonds = false;
 }
 
-template<typename number>
-FSConf<number>::~FSConf() {
+FSConf::~FSConf() {
 
 }
 
-template<typename number>
-void FSConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	Configuration<number>::get_settings(my_inp, sim_inp);
+void FSConf::get_settings(input_file &my_inp, input_file &sim_inp) {
+	Configuration::get_settings(my_inp, sim_inp);
 
 	string topology_file;
 	getInputString(&sim_inp, "topology", topology_file, 0);
@@ -54,49 +52,46 @@ void FSConf<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_N_B = _N - _N_A;
 }
 
-template<typename number>
-void FSConf<number>::init(ConfigInfo<number> &config_info) {
-   Configuration<number>::init(config_info);
+void FSConf::init(ConfigInfo &config_info) {
+	Configuration::init(config_info);
 
-   if(_print_bonds) _bonds.resize(*config_info.N);
+	if(_print_bonds) _bonds.resize(*config_info.N);
 }
 
-template<typename number>
-std::string FSConf<number>::_headers(llint step) {
-        std::stringstream headers;
+std::string FSConf::_headers(llint step) {
+	std::stringstream headers;
 
-        int tot_N = 5*_N_A + 3*_N_B;
-        int tot_N_A = 5*_N_A;
-        if(!_also_patch) {
-                tot_N = _N_A + _N_B;
-                tot_N_A = _N_A;
-        }
+	int tot_N = 5 * _N_A + 3 * _N_B;
+	int tot_N_A = 5 * _N_A;
+	if(!_also_patch) {
+		tot_N = _N_A + _N_B;
+		tot_N_A = _N_A;
+	}
 
-        LR_vector<number> &sides = this->_config_info.box->box_sides();
+	LR_vector &sides = this->_config_info.box->box_sides();
 
-        headers << step << " " << step << " " << tot_N << " " << tot_N_A << " " << 0 << endl;
-        headers << sides.x << " " << sides.y << " " << sides.z << " " << 0. << " " << 0. << " " << 0.;
+	headers << step << " " << step << " " << tot_N << " " << tot_N_A << " " << 0 << endl;
+	headers << sides.x << " " << sides.y << " " << sides.z << " " << 0. << " " << 0. << " " << 0.;
 
-        return headers.str();
+	return headers.str();
 }
 
-template<typename number>
-std::string FSConf<number>::_particle(BaseParticle<number> *p) {
+std::string FSConf::_particle(BaseParticle *p) {
 	std::stringstream res;
 	res.precision(15);
 
-	LR_vector<number> mybox = this->_config_info.box->box_sides();
-	LR_vector<number> mypos = this->_config_info.box->get_abs_pos(p);
+	LR_vector mybox = this->_config_info.box->box_sides();
+	LR_vector mypos = this->_config_info.box->get_abs_pos(p);
 	if(_in_box) {
-		mypos.x -= floor(mypos.x/mybox.x)*mybox.x + 0.5*mybox.x;
-		mypos.y -= floor(mypos.y/mybox.y)*mybox.y + 0.5*mybox.y;
-		mypos.z -= floor(mypos.z/mybox.z)*mybox.z + 0.5*mybox.z;
+		mypos.x -= floor(mypos.x / mybox.x) * mybox.x + 0.5 * mybox.x;
+		mypos.y -= floor(mypos.y / mybox.y) * mybox.y + 0.5 * mybox.y;
+		mypos.z -= floor(mypos.z / mybox.z) * mybox.z + 0.5 * mybox.z;
 	}
 
 	res << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 	if(_also_patch) {
-		for(int i = 0; i < p->N_int_centers; i++) {
-			LR_vector<number> p_pos = mypos + p->int_centers[i];
+		for(auto &patch: p->int_centers) {
+			LR_vector p_pos = mypos + patch;
 			res << endl;
 			res << p_pos.x << " " << p_pos.y << " " << p_pos.z << " ";
 		}
@@ -105,22 +100,20 @@ std::string FSConf<number>::_particle(BaseParticle<number> *p) {
 	return res.str();
 }
 
-template<typename number>
-string FSConf<number>::_configuration(llint step) {
+string FSConf::_configuration(llint step) {
 	stringstream conf;
 	conf.precision(15);
 
-	FSInteraction<number> *fint = dynamic_cast<FSInteraction<number> *>(this->_config_info.interaction);
+	FSInteraction *fint = dynamic_cast<FSInteraction *>(this->_config_info.interaction);
 	bool old_three_body = false;
 	if(fint != NULL) {
 		old_three_body = fint->no_three_body;
 		fint->no_three_body = true;
 	}
-		
 
 	for(int i = 0; i < _N; i++) {
 		if(_print_bonds) _bonds[i].clear();
-		BaseParticle<number> *p = this->_config_info.particles[i];
+		BaseParticle *p = this->_config_info.particles[i];
 		string p_str = _particle(p);
 		conf << endl;
 		conf << p_str;
@@ -128,9 +121,9 @@ string FSConf<number>::_configuration(llint step) {
 
 	// compute the bonding pattern
 	if(_print_bonds) {
-		vector<ParticlePair<number> > inter_pairs = this->_config_info.lists->get_potential_interactions();
+		vector<ParticlePair> inter_pairs = this->_config_info.lists->get_potential_interactions();
 
-		for(typename vector<ParticlePair<number> >::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
+		for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
 			number energy = this->_config_info.interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
 			if(energy < _bond_threshold) {
 				_bonds[it->first->index][it->second->index]++;
@@ -140,16 +133,17 @@ string FSConf<number>::_configuration(llint step) {
 	}
 
 	for(int i = 0; i < _N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
+		BaseParticle *p = this->_config_info.particles[i];
 		conf << endl;
 		if(_print_bonds) {
-			conf << i+1 << " " << _bonds[i].size() << endl;
-			for(map<int, int>::iterator it = _bonds[i].begin(); it != _bonds[i].end(); it++) conf << it->first+1 << " ";
+			conf << i + 1 << " " << _bonds[i].size() << endl;
+			for(map<int, int>::iterator it = _bonds[i].begin(); it != _bonds[i].end(); it++)
+				conf << it->first + 1 << " ";
 		}
 		else {
 			conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
 			if(_also_patch) {
-				for(int j = 0; j < p->N_int_centers; j++) {
+				for(uint j = 0; j < p->N_int_centers(); j++) {
 					conf << endl;
 					conf << p->vel.x << " " << p->vel.y << " " << p->vel.z;
 				}
@@ -161,6 +155,3 @@ string FSConf<number>::_configuration(llint step) {
 
 	return conf.str();
 }
-
-template class FSConf<float>;
-template class FSConf<double>;

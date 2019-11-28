@@ -34,7 +34,7 @@ __device__ void vertex_swap(int *v, int *a, int *b, int const mask) {
  * map 3-dimensional point to 1-dimensional point on Hilbert space curve
  */
 
-__device__ int hilbert_code(tmpnmbr *r) {
+__device__ int hilbert_code(c_number4 *r) {
 	//
 	// Jun Wang & Jie Shan, Space-Filling Curve Based Point Clouds Index,
 	// GeoComputation, 2005
@@ -103,7 +103,7 @@ __device__ int hilbert_code(tmpnmbr *r) {
 	return hcode;
 }
 
-__global__ void hilbert_curve(const tmpnmbr *pos, int *hindex) {
+__global__ void hilbert_curve(const c_number4 *pos, int *hindex) {
 	if(IND >= hilb_N[0]) return;
 	//
 	// We need to avoid ambiguities during the assignment of a particle
@@ -116,7 +116,7 @@ __global__ void hilbert_curve(const tmpnmbr *pos, int *hindex) {
 	// and round the particle position to the nearest center of a cell.
 	//
 
-	tmpnmbr r = pos[IND];
+	c_number4 r = pos[IND];
 	// Hilbert cells per dimension at deepest recursion level
 	const int n = 1UL << *hilb_depth;
 	// fractional index of particle's Hilbert cell in [0, n)
@@ -142,7 +142,7 @@ __global__ void hilbert_curve(const tmpnmbr *pos, int *hindex) {
 	hindex[IND] = code;
 }
 
-__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, tmpnmbr *poss, tmpnmbr *vels, tmpnmbr *Ls, GPU_quat *orientations, LR_bonds *bonds, tmpnmbr *buff_poss, tmpnmbr *buff_vels, tmpnmbr *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds) {
+__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *Ls, GPU_quat *orientations, LR_bonds *bonds, c_number4 *buff_poss, c_number4 *buff_vels, c_number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds) {
 	if(IND >= hilb_N[0]) return;
 
 	const int j = sorted_hindex[IND];
@@ -159,7 +159,7 @@ __global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, tm
 	buff_Ls[IND] = Ls[j];
 }
 
-__global__ void permute_particles(int *sorted_hindex, tmpnmbr *poss, tmpnmbr *vels, tmpnmbr *buff_poss, tmpnmbr *buff_vels) {
+__global__ void permute_particles(int *sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *buff_poss, c_number4 *buff_vels) {
 	if(IND >= hilb_N[0]) return;
 
 	const int j = sorted_hindex[IND];
@@ -167,7 +167,7 @@ __global__ void permute_particles(int *sorted_hindex, tmpnmbr *poss, tmpnmbr *ve
 	buff_vels[IND] = vels[j];
 }
 
-__global__ void permute_particles(int *sorted_hindex, tmpnmbr *poss, tmpnmbr *buff_poss) {
+__global__ void permute_particles(int *sorted_hindex, c_number4 *poss, c_number4 *buff_poss) {
 	if(IND >= hilb_N[0]) return;
 
 	const int j = sorted_hindex[IND];

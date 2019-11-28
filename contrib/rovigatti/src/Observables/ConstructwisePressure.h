@@ -15,33 +15,36 @@
  *
  * The supported syntax is
  * @verbatim
-type = pressure (an observable that computes the osmotic pressure of the system)
-construct_size = <int> (the size of the constructs)
-@endverbatim
+ type = pressure (an observable that computes the osmotic pressure of the system)
+ construct_size = <int> (the size of the constructs)
+ @endverbatim
  */
-template<typename number>
-class ConstructwisePressure: public BaseObservable<number> {
+
+class ConstructwisePressure: public BaseObservable {
 protected:
 	number _T;
 	double _P;
 	number _shear_rate;
 	int _construct_size;
 	int _N_constructs;
-	vector<LR_vector<number> > _construct_coms;
+	std::vector<LR_vector> _construct_coms;
 
 public:
 	ConstructwisePressure();
 	virtual ~ConstructwisePressure();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo<number> &Info);
+	void init(ConfigInfo &Info);
 
 	void update_pressure();
-	number get_P() { return _P; }
+	number get_P() {
+		return _P;
+	}
 	std::string get_output_string(llint curr_step);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new ConstructwisePressure<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new ConstructwisePressure<double>(); }
+extern "C" BaseObservable *make_ConstructwisePressure() {
+	return new ConstructwisePressure();
+}
 
 #endif /* CONSTRUCTWISEPRESSURE_H_ */

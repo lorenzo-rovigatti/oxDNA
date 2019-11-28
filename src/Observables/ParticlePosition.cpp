@@ -39,12 +39,11 @@ void ParticlePosition::init(ConfigInfo &config_info) {
 }
 
 std::string ParticlePosition::get_output_string(llint curr_step) {
-	string result;
 	LR_vector mypos;
 	if(_absolute) mypos = this->_config_info.box->get_abs_pos(this->_config_info.particles[_particle_id]);
 	else mypos = this->_config_info.particles[_particle_id]->pos;
 
-	result = Utils::sformat("%10.6lf %10.6lf %10.6lf ", mypos.x, mypos.y, mypos.z);
+	std::string result = Utils::sformat("%10.6lf %10.6lf %10.6lf ", mypos.x, mypos.y, mypos.z);
 
 	if(_orientation) {
 		LR_matrix oT = this->_config_info.particles[_particle_id]->orientation.get_transpose();

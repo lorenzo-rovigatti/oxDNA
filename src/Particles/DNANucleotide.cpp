@@ -17,8 +17,7 @@ DNANucleotide::DNANucleotide(bool grooving) : BaseParticle() {
 	// _stack_axis is not used anywhere in the code apart from for major-minor grooving so the change should not affect anything
 	// unfortunately the third axis does not in fact point along the z-axis which might be more intuitive.
 	// -- Ben 1/8/13
-	this->int_centers = new LR_vector[3];
-	this->N_int_centers = 3;
+	this->int_centers.resize(3);
 	_grooving = grooving;
 }
 

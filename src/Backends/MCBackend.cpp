@@ -17,21 +17,21 @@ MCBackend::MCBackend() :
 				_check_energy_counter(0) {
 	this->_sim_type = SIM_MC;
 
-	_delta = new number[_MC_moves];
-	_tries = new llint[_MC_moves];
-	_accepted = new llint[_MC_moves];
+	_delta.resize(_MC_moves);
+	_tries.resize(_MC_moves);
+	_accepted.resize(_MC_moves);
 	_adjust_moves = false;
 	_MC_equilibration_steps = 0;
 	_check_energy_every = 10;
+	_ensemble = -1;
+	_check_energy_threshold = 1e-6;
 
 	for(int i = 0; i < _MC_moves; i++)
 		_tries[i] = _accepted[i] = 0;
 }
 
 MCBackend::~MCBackend() {
-	delete[] _delta;
-	delete[] _tries;
-	delete[] _accepted;
+
 }
 
 void MCBackend::get_settings(input_file &inp) {

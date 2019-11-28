@@ -9,22 +9,19 @@
 
 #include "Utilities/Utils.h"
 
-template<typename number>
-DensityPressureProfile<number>::DensityPressureProfile() {
+DensityPressureProfile::DensityPressureProfile() {
 	_axis = -1;
 	_nbins = -1;
 	_nconfs = 0;
-	_bin_size = (number) -1.;
-	_max_value = (number) -1.;
+	_bin_size = (number) - 1.;
+	_max_value = (number) - 1.;
 }
 
-template<typename number>
-DensityPressureProfile<number>::~DensityPressureProfile() {
+DensityPressureProfile::~DensityPressureProfile() {
 
 }
 
-template<typename number>
-void DensityPressureProfile<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void DensityPressureProfile::get_settings(input_file &my_inp, input_file &sim_inp) {
 	char tmps[512];
 	getInputString(&my_inp, "axis", tmps, 1);
 	if(!strncasecmp(tmps, "x", 512)) _axis = 0;
@@ -36,7 +33,7 @@ void DensityPressureProfile<number>::get_settings(input_file &my_inp, input_file
 	if(getInputNumber(&my_inp, "g_species_B", &_g_species_B, 0) == KEY_NOT_FOUND) {
 		_g_species_B = _g_species_A;
 	}
-	
+
 	getInputNumber(&my_inp, "max_value", &_max_value, 1);
 	getInputNumber(&my_inp, "bin_size", &_bin_size, 1);
 	_nbins = (int) (floor(_max_value / _bin_size) + 0.01);
@@ -51,15 +48,14 @@ void DensityPressureProfile<number>::get_settings(input_file &my_inp, input_file
 	_current_N_profile.resize(_nbins);
 }
 
-template<typename number>
-std::string DensityPressureProfile<number>::get_output_string(llint curr_step) {
+std::string DensityPressureProfile::get_output_string(llint curr_step) {
 	int N = *this->_config_info.N;
 	_nconfs++;
-	std::fill(_current_NA_profile.begin(),  _current_NA_profile.end(), 0.);
-	std::fill(_current_N_profile.begin(),  _current_N_profile.end(), 0.);
+	std::fill(_current_NA_profile.begin(), _current_NA_profile.end(), 0.);
+	std::fill(_current_N_profile.begin(), _current_N_profile.end(), 0.);
 
 	// get smallest side
-	LR_vector<number> sides = this->_config_info.box->box_sides();
+	LR_vector sides = this->_config_info.box->box_sides();
 	double bin_area = 1.;
 	for(int i = 0; i < 3; i++) {
 		if(i != _axis) {
@@ -71,8 +67,8 @@ std::string DensityPressureProfile<number>::get_output_string(llint curr_step) {
 	int NA = 0;
 	int NB = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector<number> mypos = this->_config_info.box->get_abs_pos(p);
+		BaseParticle *p = this->_config_info.particles[i];
+		LR_vector mypos = this->_config_info.box->get_abs_pos(p);
 		mypos.x -= sides.x * floor(mypos.x / sides.x);
 		mypos.y -= sides.y * floor(mypos.y / sides.y);
 		mypos.z -= sides.z * floor(mypos.z / sides.z);
@@ -91,14 +87,14 @@ std::string DensityPressureProfile<number>::get_output_string(llint curr_step) {
 		}
 	}
 
-	stringstream ret;
+	std::stringstream ret;
 	ret.precision(9);
 	int tot_NA = 0;
 	int tot_NB = 0;
 	double myx = _bin_size / 2.;
 	for(int i = 0; i < _nbins; i++) {
 		double current_rho = _current_N_profile[i] / bin_volume;
-		double current_x = (_current_N_profile[i] > 0) ?_current_NA_profile[i] / (double) _current_N_profile[i] : 0;
+		double current_x = (_current_N_profile[i] > 0) ? _current_NA_profile[i] / (double) _current_N_profile[i] : 0;
 		// we use only half of the particles of the bin for the computation of the pressure
 		double NA_pressure = NA - (tot_NA + _current_NA_profile[i] / 2.);
 		double NB_pressure = NB - (tot_NB + (_current_N_profile[i] - _current_NA_profile[i]) / 2.);
@@ -112,16 +108,13 @@ std::string DensityPressureProfile<number>::get_output_string(llint curr_step) {
 		double x = _concentration_profile[i] / _nconfs;
 		double P = _pressure_profile[i] / _nconfs;
 
-		ret << myx << " " << rho << " " << " " << x << " " << P << endl;
+		ret << myx << " " << rho << " " << " " << x << " " << P << std::endl;
 		myx += _bin_size;
 
 		tot_NA += _current_NA_profile[i];
 		tot_NB += _current_N_profile[i] - _current_NA_profile[i];
 	}
-	ret << endl;
+	ret << std::endl;
 
 	return ret.str();
 }
-
-template class DensityPressureProfile<float> ;
-template class DensityPressureProfile<double> ;

@@ -164,7 +164,7 @@ void Writhe::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 std::string Writhe::get_output_string(llint curr_step) {
-	string result;
+	std::string result;
 	BaseParticle **p = this->_config_info.particles;
 	int time = this->_config_info.curr_step;
 	LR_vector r, rp, t, tp;

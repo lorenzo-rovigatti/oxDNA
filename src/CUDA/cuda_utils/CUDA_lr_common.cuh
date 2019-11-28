@@ -23,7 +23,7 @@
 #endif
 
 //This is the most commonly called quaternion to matrix conversion. 
-__forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, tmpnmbr &a1, tmpnmbr &a2, tmpnmbr &a3) {
+__forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, c_number4 &a1, c_number4 &a2, c_number4 &a3) {
 	c_number sqx = q.x * q.x;
 	c_number sqy = q.y * q.y;
 	c_number sqz = q.z * q.z;
@@ -90,14 +90,14 @@ __forceinline__ __device__ double atomicAdd(double* address, double val) {
 }
 #endif
 
-__forceinline__ __device__ void LR_atomicAdd(tmpnmbr *dst, tmpnmbr delta) {
+__forceinline__ __device__ void LR_atomicAdd(c_number4 *dst, c_number4 delta) {
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
 	atomicAdd(&(dst->w), delta.w);
 }
 
-__forceinline__ __device__ void LR_atomicAddXYZ(tmpnmbr *dst, tmpnmbr delta) {
+__forceinline__ __device__ void LR_atomicAddXYZ(c_number4 *dst, c_number4 delta) {
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
@@ -106,11 +106,11 @@ __forceinline__ __device__ void LR_atomicAddXYZ(tmpnmbr *dst, tmpnmbr delta) {
 /**
  * @brief returns the btype (i.e. the fake nucleotide type used to make only certain pairs of particle interacting through HB)
  */
-__forceinline__ __device__ int get_particle_btype(const tmpnmbr &r_i) {
+__forceinline__ __device__ int get_particle_btype(const c_number4 &r_i) {
 	return __float_as_int(r_i.w) >> 22;
 }
 
-__forceinline__ __device__ c_number quad_distance(const tmpnmbr &r_i, const tmpnmbr &r_j) {
+__forceinline__ __device__ c_number quad_distance(const c_number4 &r_i, const c_number4 &r_j) {
 	const c_number dx = r_j.x - r_i.x;
 	const c_number dy = r_j.y - r_i.y;
 	const c_number dz = r_j.z - r_i.z;
@@ -118,14 +118,14 @@ __forceinline__ __device__ c_number quad_distance(const tmpnmbr &r_i, const tmpn
 	return dx * dx + dy * dy + dz * dz;
 }
 
-__forceinline__ __device__ int get_particle_type(const tmpnmbr &r_i) {
+__forceinline__ __device__ int get_particle_type(const c_number4 &r_i) {
 	int my_btype = __float_as_int(r_i.w) >> 22;
 	if(my_btype >= 0 && my_btype <= 3) return my_btype;
 	if(my_btype > 0) return my_btype % 4;
 	else return 3 - ((3 - (my_btype)) % 4);
 }
 
-__forceinline__ __device__ int get_particle_index(const tmpnmbr &r_i) {
+__forceinline__ __device__ int get_particle_index(const c_number4 &r_i) {
 	int msk = -1 << 22;
 	return __float_as_int(r_i.w) & (~msk);
 }
@@ -140,8 +140,8 @@ __forceinline__ __device__ LR_double4 make_LR_double4(const float4 &v) {
 	return ret;
 }
 
-__forceinline__ __host__ __device__ tmpnmbr make_tmpnmbr(const c_number x, const c_number y, const c_number z, const c_number w) {
-	tmpnmbr ret;
+__forceinline__ __host__ __device__ c_number4 make_c_number4(const c_number x, const c_number y, const c_number z, const c_number w) {
+	c_number4 ret;
 	ret.x = x;
 	ret.y = y;
 	ret.z = z;
@@ -149,7 +149,7 @@ __forceinline__ __host__ __device__ tmpnmbr make_tmpnmbr(const c_number x, const
 	return ret;
 }
 
-__forceinline__ __device__ c_number _module(const tmpnmbr v) {
+__forceinline__ __device__ c_number _module(const c_number4 v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
@@ -158,21 +158,21 @@ __forceinline__ __device__ c_number _module(const float3 v) {
 }
 
 // Necessary to for calculating the torque without storing a separate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
-__forceinline__ __device__ tmpnmbr _vectors_tmpnmbr_product(const tmpnmbr a1, const tmpnmbr a2, const tmpnmbr a3, const tmpnmbr v) {
-	tmpnmbr res = { a1.x * v.x + a2.x * v.y + a3.x * v.z, a1.y * v.x + a2.y * v.y + a3.y * v.z, a1.z * v.x + a2.z * v.y + a3.z * v.z, v.w };
+__forceinline__ __device__ c_number4 _vectors_c_number4_product(const c_number4 a1, const c_number4 a2, const c_number4 a3, const c_number4 v) {
+	c_number4 res = { a1.x * v.x + a2.x * v.y + a3.x * v.z, a1.y * v.x + a2.y * v.y + a3.y * v.z, a1.z * v.x + a2.z * v.y + a3.z * v.z, v.w };
 
 	return res;
 }
 
 // Necessary to for calculating the torque without storing a separate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
-__forceinline__ __device__ tmpnmbr _vectors_transpose_tmpnmbr_product(const tmpnmbr a1, const tmpnmbr a2, const tmpnmbr a3, const tmpnmbr v) {
-	tmpnmbr res = { a1.x * v.x + a1.y * v.y + a1.z * v.z, a2.x * v.x + a2.y * v.y + a2.z * v.z, a3.x * v.x + a3.y * v.y + a3.z * v.z, v.w };
+__forceinline__ __device__ c_number4 _vectors_transpose_c_number4_product(const c_number4 a1, const c_number4 a2, const c_number4 a3, const c_number4 v) {
+	c_number4 res = { a1.x * v.x + a1.y * v.y + a1.z * v.z, a2.x * v.x + a2.y * v.y + a2.z * v.z, a3.x * v.x + a3.y * v.y + a3.z * v.z, v.w };
 
 	return res;
 }
 
-__forceinline__ __device__ tmpnmbr _cross(const tmpnmbr v, const tmpnmbr w) {
-	return make_tmpnmbr(v.y * w.z - v.z * w.y, v.z * w.x - v.x * w.z, v.x * w.y - v.y * w.x, (c_number) 0);
+__forceinline__ __device__ c_number4 _cross(const c_number4 v, const c_number4 w) {
+	return make_c_number4(v.y * w.z - v.z * w.y, v.z * w.x - v.x * w.z, v.x * w.y - v.y * w.x, (c_number) 0);
 }
 
 // LR_DOUBLE4

@@ -14,7 +14,6 @@
 
 VMMC_CPUBackend::VMMC_CPUBackend() :
 				MC_CPUBackend() {
-	//_op = NULL;
 	_have_us = false;
 	_netemps = 0;
 	_etemps = NULL;
@@ -34,10 +33,6 @@ VMMC_CPUBackend::VMMC_CPUBackend() :
 	_default_weight = (number) 1.f;
 	_safe_weights = true;
 	_skip_hist_zeros = false;
-	new_en3s = NULL;
-	new_en5s = NULL;
-	new_stn3s = NULL;
-	new_stn5s = NULL;
 	_vmmc_N_cells = 0;
 	_vmmc_box_side = -1.;
 	_equilibration_steps = 0;
@@ -49,12 +44,9 @@ VMMC_CPUBackend::VMMC_CPUBackend() :
 VMMC_CPUBackend::~VMMC_CPUBackend() {
 	_delete_cells();
 
-	delete[] new_en3s;
-	delete[] new_en5s;
-	delete[] new_stn3s;
-	delete[] new_stn5s;
-
-	if(_netemps > 0) delete[] _etemps;
+	if(_netemps > 0) {
+		delete[] _etemps;
+	}
 
 	if(_small_system) {
 		if(eijm != NULL) {
@@ -118,14 +110,10 @@ void VMMC_CPUBackend::init() {
 		OX_LOG(Logger::LOG_INFO, "Not attempting to preserve topology; max_move_size = %g", _max_move_size);
 	}
 
-	new_en3s = new number[this->_N];
-	new_en5s = new number[this->_N];
-	new_stn3s = new number[this->_N];
-	new_stn5s = new number[this->_N];
-	for(int k = 0; k < this->_N; k++) {
-		new_en3s[k] = new_en5s[k] = (number) 0.;
-		new_stn3s[k] = new_stn5s[k] = (number) 0.;
-	}
+	new_en3s.resize(_N, 0.);
+	new_en5s.resize(_N, 0.);
+	new_stn3s.resize(_N, 0.);
+	new_stn5s.resize(_N, 0.);
 	number tmpf, epq;
 	BaseParticle * p, *q;
 	for(int k = 0; k < this->_N; k++) {

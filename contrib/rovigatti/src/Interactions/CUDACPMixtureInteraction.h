@@ -14,20 +14,23 @@
 /**
  * @brief CUDA implementation of the {@link CPMixtureInteraction Colloid-polymer mixture interaction}.
  */
-template<typename number, typename number4>
-class CUDACPMixtureInteraction: public CUDABaseInteraction<number, number4>, public CPMixtureInteraction<number> {
+
+class CUDACPMixtureInteraction: public CUDABaseInteraction, public CPMixtureInteraction {
 public:
 	CUDACPMixtureInteraction();
 	virtual ~CUDACPMixtureInteraction();
 
 	void get_settings(input_file &inp);
-	void cuda_init(number box_side, int N);
-	number get_cuda_rcut() { return this->get_rcut(); }
+	void cuda_init(c_number box_side, int N);
+	c_number get_cuda_rcut() {
+		return this->get_rcut();
+	}
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
+	void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
 };
 
-extern "C" IBaseInteraction<float> *make_CUDACPMixtureInteraction_float() { return new CUDACPMixtureInteraction<float, float4>(); }
-extern "C" IBaseInteraction<double> *make_CUDACPMixtureInteraction_double() { return new CUDACPMixtureInteraction<double, LR_double4>(); }
+extern "C" IBaseInteraction *make_CUDACPMixtureInteraction() {
+	return new CUDACPMixtureInteraction();
+}
 
 #endif /* CUDACPMIXTUREINTERACTION_H_ */

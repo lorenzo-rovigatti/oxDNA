@@ -44,7 +44,7 @@ public:
 
 	virtual void set_seed(llint seed) { _seed = seed; }
 	virtual void get_cuda_settings(input_file &inp);
-	virtual void apply_cuda(tmpnmbr *d_pos, GPU_quat *d_orientations, tmpnmbr *d_vel, tmpnmbr *d_L, llint curr_step) = 0;
+	virtual void apply_cuda(c_number4 *d_pos, GPU_quat *d_orientations, c_number4 *d_vel, c_number4 *d_L, llint curr_step) = 0;
 	virtual bool would_activate(llint curr_step) = 0;
 };
 

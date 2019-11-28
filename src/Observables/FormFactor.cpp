@@ -48,7 +48,7 @@ void FormFactor::init(ConfigInfo &config_info) {
 }
 
 std::string FormFactor::get_output_string(llint curr_step) {
-	stringstream ret;
+	std::stringstream ret;
 	ret.precision(9);
 
 	int N = *this->_config_info.N;
@@ -82,7 +82,7 @@ std::string FormFactor::get_output_string(llint curr_step) {
 			sq_avg += (SQR(sq_cos) + SQR(sq_sin)) / N_type;
 		}
 		sq_avg /= _n_qs;
-		ret << curr_mod << " " << sq_avg << endl;
+		ret << curr_mod << " " << sq_avg << std::endl;
 
 		curr_mod *= _mult_q;
 	}

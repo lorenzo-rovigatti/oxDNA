@@ -74,28 +74,28 @@ std::string TEPxyzOutput::_headers(llint step) {
 	const number mybox = this->_config_info.box->box_sides()[0];
 	const int N = *this->_config_info.N * 3;
 
-	headers << N << endl;
-	headers << "#" << mybox << " " << mybox << " " << mybox << endl;
+	headers << N << std::endl;
+	headers << "#" << mybox << " " << mybox << " " << mybox << std::endl;
 	/* // Previous headers TODO remove them when the observable is finished
-	 headers << "color Display Background white" << endl;
-	 headers << "mol new" << endl;
+	 headers << "color Display Background white" << std::endl;
+	 headers << "mol new" << std::endl;
 	 // we might want to be able to change these in the future...
 	 double _box_radius = 0.1;
 	 int _box_resolution = _resolution;
 
 	 number mybox = *this->_config_info.box_side;
-	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" <<  mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" <<  mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" <<  mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
+	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" <<  mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" <<  mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" <<  mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " <<  mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
 
 	 */
 	return headers.str();
@@ -117,7 +117,7 @@ std::string TEPxyzOutput::_particle(BaseParticle *p) {
 	 int colorid = p->strand_id;
 	 if (colorid >= 8) colorid ++;
 	 colorid = colorid % 33;
-	 res << "graphics 0 color " << colorid << endl;
+	 res << "graphics 0 color " << colorid << std::endl;
 	 */
 
 	BaseBox * mybox = this->_config_info.box;
@@ -131,21 +131,21 @@ std::string TEPxyzOutput::_particle(BaseParticle *p) {
 
 	/*
 	 //This was used to print labels in tcl. I don't think there's a way of doing it in xyz.
-	 if (_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << core.x << " " << core.y << " " << core.z << "} \"" << me->strand_id << "\" size 1.5 " << endl;
+	 if (_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << core.x << " " << core.y << " " << core.z << "} \"" << me->strand_id << "\" size 1.5 " << std::endl;
 	 */
 
 	// core
 	if(_bead_types[me->index] == 1) {
-		res << "Po" << " " << core.x << " " << core.y << " " << core.z << endl;
+		res << "Po" << " " << core.x << " " << core.y << " " << core.z << std::endl;
 	}
 	else if(_bead_types[me->index] == 2) {
-		res << "Fe" << " " << core.x << " " << core.y << " " << core.z << endl;
+		res << "Fe" << " " << core.x << " " << core.y << " " << core.z << std::endl;
 	}
 	else {
-		res << "Cr" << " " << core.x << " " << core.y << " " << core.z << endl;
+		res << "Cr" << " " << core.x << " " << core.y << " " << core.z << std::endl;
 	}
 	// base
-	res << "H" << " " << side.x << " " << side.y << " " << side.z << endl;
+	res << "H" << " " << side.x << " " << side.y << " " << side.z << std::endl;
 	// front 
 	res << "He" << " " << front.x << " " << front.y << " " << front.z;
 
@@ -155,12 +155,12 @@ std::string TEPxyzOutput::_particle(BaseParticle *p) {
 }
 
 std::string TEPxyzOutput::_configuration(llint step) {
-	stringstream conf;
+	std::stringstream conf;
 	//conf.precision(15);
 	if(_back_in_box) this->_fill_strands_cdm();
 	//return Configuration::_configuration(step);
-	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
-		if(it != this->_visible_particles.begin()) conf << endl;
+	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
+		if(it != this->_visible_particles.begin()) conf << std::endl;
 		BaseParticle *p = this->_config_info.particles[*it];
 		conf << _particle(p);
 	}

@@ -35,18 +35,19 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 		OX_LOG(Logger::LOG_INFO, "Backend precision not specified, using double");
 		sprintf(backend_prec, "%s", "double");
 	}
-	else OX_LOG(Logger::LOG_INFO, "Backend precision: %s", backend_prec);
+	else if(!strcmp(backend_opt, "CPU")) {
+		OX_LOG(Logger::LOG_NOTHING, "");
+		OX_LOG(Logger::LOG_WARNING, "The 'backend_precision' option cannot be set by input file when running on CPU\n");
+	}
+	else {
+		OX_LOG(Logger::LOG_INFO, "Backend precision: %s", backend_prec);
+	}
 
 	if(getInputString(&inp, "sim_type", sim_type, 0) == KEY_NOT_FOUND) {
 		OX_LOG(Logger::LOG_INFO, "Simulation type not specified, using MD");
 		sprintf(sim_type, "%s", "MD");
 	}
 	else OX_LOG(Logger::LOG_INFO, "Simulation type: %s", sim_type);
-
-	if(backend_prec != std::string("") && !strcmp(backend_opt, "CPU")) {
-		OX_LOG(Logger::LOG_NOTHING, "");
-		OX_LOG(Logger::LOG_WARNING, "The 'backend_precision' option cannot be set by input file when running on CPU\n");
-	}
 
 	SimBackend *new_backend = NULL;
 	if(!strcmp(sim_type, "MD")) {
@@ -86,7 +87,6 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 			else throw oxDNAException("Backend '%s' not supported", backend_opt);
 
 	}
-
 #ifdef HAVE_MPI
 	else if(!strcmp (sim_type, "PT_VMMC")) {
 			if(!strcmp(backend_opt, "CPU")) {

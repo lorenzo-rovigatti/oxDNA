@@ -38,26 +38,26 @@ void TclOutput::get_settings(input_file &my_inp, input_file &sim_inp) {
 std::string TclOutput::_headers(llint step) {
 	std::stringstream headers;
 
-	headers << "color Display Background white" << endl;
-	headers << "mol new" << endl;
+	headers << "color Display Background white" << std::endl;
+	headers << "mol new" << std::endl;
 
 	// we might want to be able to change these in the future...
 	double _box_radius = 0.1;
 	int _box_resolution = _resolution;
 
 	number mybox = this->_config_info.box->box_sides()[0];
-	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} {" << mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
-	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << endl;
+	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} {" << mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
+	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
 
 	return headers.str();
 }
@@ -78,7 +78,7 @@ std::string TclOutput::_particle(BaseParticle *p) {
 	if(colorid >= 8) colorid++;
 	colorid = colorid % 33;
 
-	res << "graphics 0 color " << colorid << endl;
+	res << "graphics 0 color " << colorid << std::endl;
 
 	//number mybox = *this->_config_info.box_side;
 	LR_vector my_strand_cdm = this->_strands_cdm[me->strand_id];
@@ -87,18 +87,18 @@ std::string TclOutput::_particle(BaseParticle *p) {
 	LR_vector back = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[0];
 	LR_vector base = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[2];
 
-	if(_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << back.x << " " << back.y << " " << back.z << "} \"" << me->strand_id << "\" size 1.5 " << endl;
+	if(_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << back.x << " " << back.y << " " << back.z << "} \"" << me->strand_id << "\" size 1.5 " << std::endl;
 
 	// backbone
-	res << "graphics 0 sphere {" << back.x << " " << back.y << " " << back.z << "} radius " << _back_radius << " resolution " << _resolution << endl;
+	res << "graphics 0 sphere {" << back.x << " " << back.y << " " << back.z << "} radius " << _back_radius << " resolution " << _resolution << std::endl;
 	// base
-	res << "graphics 0 sphere {" << base.x << " " << base.y << " " << base.z << "} radius " << _base_radius << " resolution " << _resolution << endl;
+	res << "graphics 0 sphere {" << base.x << " " << base.y << " " << base.z << "} radius " << _base_radius << " resolution " << _resolution << std::endl;
 	// backbone-base cilinder
-	res << "graphics 0 cylinder {" << base.x << " " << base.y << " " << base.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backbase_radius << " resolution " << _resolution << " filled yes" << endl;
+	res << "graphics 0 cylinder {" << base.x << " " << base.y << " " << base.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backbase_radius << " resolution " << _resolution << " filled yes" << std::endl;
 
 	if(next != P_VIRTUAL) {
 		LR_vector nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0];
-		res << "graphics 0 cylinder {" << nextback.x << " " << nextback.y << " " << nextback.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backback_radius << " resolution " << _resolution << " filled yes" << endl;
+		res << "graphics 0 cylinder {" << nextback.x << " " << nextback.y << " " << nextback.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backback_radius << " resolution " << _resolution << " filled yes" << std::endl;
 	}
 	else {
 		// we draw the cone
@@ -109,7 +109,7 @@ std::string TclOutput::_particle(BaseParticle *p) {
 			LR_vector start = back;
 			LR_vector end = back + dir * (2.75 / 3.);
 			dir.normalize();
-			res << "graphics 0 cone {" << start.x << " " << start.y << " " << start.z << "} {" << end.x << " " << end.y << " " << end.z << "} radius " << _back_radius - 0.01 << " resolution " << _resolution << endl;
+			res << "graphics 0 cone {" << start.x << " " << start.y << " " << start.z << "} {" << end.x << " " << end.y << " " << end.z << "} radius " << _back_radius - 0.01 << " resolution " << _resolution << std::endl;
 			//ret += "graphics 0 cone {%lf %lf %lf} {%lf %lf %lf} radius 0.35 resolution 20\n" % (start[0], start[1], start[2], end[0], end[1], end[2]);
 		}
 	}
@@ -120,12 +120,12 @@ std::string TclOutput::_particle(BaseParticle *p) {
 }
 
 std::string TclOutput::_configuration(llint step) {
-	stringstream conf;
+	std::stringstream conf;
 	//conf.precision(15);
 	if(_back_in_box) this->_fill_strands_cdm();
 	//return Configuration::_configuration(step);
-	for(set<int>::iterator it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
-		if(it != this->_visible_particles.begin()) conf << endl;
+	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
+		if(it != this->_visible_particles.begin()) conf << std::endl;
 		BaseParticle *p = this->_config_info.particles[*it];
 		conf << _particle(p);
 	}

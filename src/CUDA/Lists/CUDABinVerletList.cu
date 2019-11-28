@@ -58,9 +58,9 @@ void CUDABinVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d
 	size_t c_number_mem = 0;
 
 	this->_sqr_verlet_skin = SQR(this->_verlet_skin);
-	_vec_size = N * sizeof(tmpnmbr);
+	_vec_size = N * sizeof(c_number4);
 
-	tmpnmbr box_sides = h_cuda_box->box_sides();
+	c_number4 box_sides = h_cuda_box->box_sides();
 	if(box_sides.x != box_sides.y || box_sides.y != box_sides.z) throw oxDNAException("CUDA_list = bin_verlet can work only with cubic boxes");
 	_box_side = box_sides.x;
 
@@ -119,7 +119,7 @@ void CUDABinVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d
 	_init_CUDA_verlet_symbols();
 }
 
-void CUDABinVerletList::update(tmpnmbr *poss, tmpnmbr *list_poss, LR_bonds *bonds) {
+void CUDABinVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bonds *bonds) {
 	// reset cells
 	CUDA_SAFE_CALL(cudaMemset(this->_d_counters_cells, 0, _counters_mem));
 

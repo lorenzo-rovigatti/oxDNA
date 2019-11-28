@@ -40,7 +40,7 @@ public:
 	virtual ~CUDABinVerletList();
 
 	void init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box);
-	void update(tmpnmbr *poss, tmpnmbr *list_poss, LR_bonds *bonds);
+	void update(c_number4 *poss, c_number4 *list_poss, LR_bonds *bonds);
 	void clean();
 
 	void get_settings(input_file &inp);

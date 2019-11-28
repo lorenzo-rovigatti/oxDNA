@@ -7,31 +7,27 @@
 
 #include "AOInteraction.h"
 
-template<typename number>
-AOInteraction<number>::AOInteraction() :
-				BaseInteraction<number, AOInteraction<number> >() {
-	this->_int_map[AO] = &AOInteraction<number>::pair_interaction_nonbonded;
-	_colloid_sigma_sqr = 1./SQR(1.01557);
+AOInteraction::AOInteraction() :
+				BaseInteraction<AOInteraction>() {
+	this->_int_map[AO] = &AOInteraction::pair_interaction_nonbonded;
+	_colloid_sigma_sqr = 1. / SQR(1.01557);
 	_h_zausch_4 = SQR(SQR(0.01)*_colloid_sigma_sqr);
 	_rep_rcut_sqr = pow(2., 1. / 3.) * _colloid_sigma_sqr;
 	_rep_rcut = sqrt(_rep_rcut_sqr);
 }
 
-template<typename number>
-AOInteraction<number>::~AOInteraction() {
+AOInteraction::~AOInteraction() {
 
 }
 
-template<typename number>
-void AOInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+void AOInteraction::get_settings(input_file &inp) {
+	IBaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "AO_strength", &_attraction_strength, 1);
 	getInputNumber(&inp, "AO_q", &_q, 1);
 }
 
-template<typename number>
-void AOInteraction<number>::init() {
+void AOInteraction::init() {
 	_sigma_colloid_polymer = (1 + _q) / 2.;
 	this->_rcut = 1 + _q;
 	if(this->_rcut < _rep_rcut) {
@@ -42,14 +38,12 @@ void AOInteraction<number>::init() {
 	OX_LOG(Logger::LOG_INFO, "AO: rcut = %lf, rep_rcut = %lf", this->_rcut, _rep_rcut);
 }
 
-template<typename number>
-void AOInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
+void AOInteraction::allocate_particles(BaseParticle **particles, int N) {
 	for(int i = 0; i < N; i++)
-		particles[i] = new BaseParticle<number>();
+		particles[i] = new BaseParticle();
 }
 
-template<typename number>
-void AOInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+void AOInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
 	*N_strands = N;
 
 	allocate_particles(particles, N);
@@ -59,19 +53,16 @@ void AOInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<nu
 	}
 }
 
-template<typename number>
-number AOInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number AOInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
-template<typename number>
-number AOInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number AOInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	return (number) 0.f;
 }
 
-template<typename number>
-number AOInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+number AOInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -111,18 +102,10 @@ number AOInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p
 	return energy;
 }
 
-template<typename number>
-void AOInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
+void AOInteraction::check_input_sanity(BaseParticle **particles, int N) {
 
 }
 
-extern "C" AOInteraction<float> *make_AOInteraction_float() {
-	return new AOInteraction<float>();
+extern "C" AOInteraction *make_AOInteraction() {
+	return new AOInteraction();
 }
-
-extern "C" AOInteraction<double> *make_AOInteraction_double() {
-	return new AOInteraction<double>();
-}
-
-template class AOInteraction<float> ;
-template class AOInteraction<double> ;

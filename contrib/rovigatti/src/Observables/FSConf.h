@@ -14,11 +14,10 @@
  * @brief Prints a configuration in the FS format.
  *
  * @verbatim
-[in_box = <bool> (if true all the positions are brought back between -L/2 and L/2. Defaults to false)]
-@endverbatim
+ [in_box = <bool> (if true all the positions are brought back between -L/2 and L/2. Defaults to false)]
+ @endverbatim
  */
-template<typename number>
-class FSConf: public Configuration<number>  {
+class FSConf: public Configuration {
 protected:
 	int _N, _N_A, _N_B;
 	bool _in_box;
@@ -29,19 +28,20 @@ protected:
 	std::vector<std::map<int, int> > _bonds;
 
 	virtual std::string _headers(llint step);
-	virtual std::string _particle(BaseParticle<number> *p);
+	virtual std::string _particle(BaseParticle *p);
 
 public:
 	FSConf();
 	virtual ~FSConf();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo<number> &config_info);
+	void init(ConfigInfo &config_info);
 
 	std::string _configuration(llint step);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new FSConf<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new FSConf<double>(); }
+extern "C" BaseObservable *make_FSConf() {
+	return new FSConf();
+}
 
 #endif /* FSCONF_H_ */
