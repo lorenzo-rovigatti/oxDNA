@@ -27,7 +27,6 @@ void OxpyContext::enter() {
 
 void OxpyContext::exit(py::object exc_type, py::object exc_value, py::object traceback) {
 	TimingManager::clear();
-	Logger::clear();
 }
 
 void export_OxpyContext(py::module &m) {

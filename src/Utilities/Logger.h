@@ -12,6 +12,7 @@
 #define OX_DEBUG Logger::instance()->debug
 
 #include <cstdarg>
+#include <memory>
 
 #include "parse_input/parse_input.h"
 
@@ -24,7 +25,7 @@
 class Logger {
 private:
 	/// Static pointer to the only allowed Logger instance
-	static Logger *_logger;
+	static std::shared_ptr<Logger> _logger;
 	/// If true, the logger prints also debug informations
 	bool _debug;
 	/// If false, the logger won't print anything
@@ -71,11 +72,6 @@ public:
 	static void init();
 
 	/**
-	 * @brief Destroy the logger
-	 */
-	static void clear();
-
-	/**
 	 * @brief Variadic method. Does the actual logging
 	 *
 	 * @param log_level it should be one of the log_levels
@@ -112,7 +108,7 @@ public:
 	 *
 	 * @return Pointer to an already initialized logger
 	 */
-	static Logger *instance();
+	static std::shared_ptr<Logger> instance();
 
 	virtual ~Logger();
 };

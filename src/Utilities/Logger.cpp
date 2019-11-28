@@ -8,7 +8,7 @@
 #include "oxDNAException.h"
 #include "Logger.h"
 
-Logger* Logger::_logger = nullptr;
+std::shared_ptr<Logger> Logger::_logger = nullptr;
 
 Logger::Logger() {
 	_log_open = false;
@@ -69,14 +69,10 @@ void Logger::get_settings(input_file &inp) {
 void Logger::init() {
 	if(_logger != nullptr) throw oxDNAException("The logger has been already initialised");
 
-	_logger = new Logger();
+	_logger = std::shared_ptr<Logger>(new Logger());
 }
 
-void Logger::clear() {
-	delete _logger;
-}
-
-Logger *Logger::instance() {
+std::shared_ptr<Logger> Logger::instance() {
 	if(_logger == nullptr) throw oxDNAException("Trying to access an uninitialised logger");
 
 	return _logger;

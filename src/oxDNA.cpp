@@ -59,7 +59,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	TimingManager::clear();
-	Logger::clear();
 
 	return 0;
 }
