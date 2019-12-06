@@ -96,14 +96,14 @@ void UnstackedList::get_settings(input_file &my_inp, input_file &sim_inp) {
 std::string UnstackedList::get_output_string(llint curr_step) {
 	std::stringstream outstr;
 
-	int N = *this->_config_info.N;
+	int N = *_config_info->N;
 	for(int i = 0; i < N - 1; i++) {
-		BaseParticle * p = this->_config_info.particles[i];
-		BaseParticle * q = this->_config_info.particles[i + 1];
+		BaseParticle * p = _config_info->particles[i];
+		BaseParticle * q = _config_info->particles[i + 1];
 
 		//the following line don't need to be different for every interaction, assuming that all these interactions have the same values of STACKING and COAXIAL_STACKING, which is true
 		// for any interaction that inherits from DNAInteraction (unless it's changed explicitly).
-		number stacking_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction::STACKING, p, q) + this->_config_info.interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q);
+		number stacking_energy = _config_info->interaction->pair_interaction_term(DNAInteraction::STACKING, p, q) + _config_info->interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q);
 		if(stacking_energy > _threshold_energies[p->type][q->type]) outstr << i << " ";
 	}
 	return outstr.str();

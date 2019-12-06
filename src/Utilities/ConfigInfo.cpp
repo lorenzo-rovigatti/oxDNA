@@ -9,7 +9,7 @@
 
 #include "oxDNAException.h"
 
-ConfigInfo *ConfigInfo::_config_info = NULL;
+std::shared_ptr<ConfigInfo> ConfigInfo::_config_info = nullptr;
 
 ConfigInfo::ConfigInfo() :
 				particles(NULL),
@@ -36,11 +36,9 @@ void ConfigInfo::set(BaseParticle **p, IBaseInteraction *i, int *Nn, std::string
 }
 
 void ConfigInfo::init() {
-	if(_config_info != NULL) throw oxDNAException("The ConfigInfo object have been already initialised");
+	if(_config_info != nullptr) {
+		throw oxDNAException("The ConfigInfo object have been already initialised");
+	}
 
-	_config_info = new ConfigInfo();
-}
-
-void ConfigInfo::clear() {
-	if(_config_info != NULL) delete _config_info;
+	_config_info = std::shared_ptr<ConfigInfo>(new ConfigInfo());
 }

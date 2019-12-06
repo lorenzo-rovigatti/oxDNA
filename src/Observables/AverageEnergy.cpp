@@ -50,8 +50,8 @@ std::string AverageEnergy::get_output_string(llint curr_step) {
 
 	std::stringstream outstr;
 
-	std::map<int, number> split_energies = this->_config_info.interaction->get_system_energy_split(this->_config_info.particles, *this->_config_info.N, this->_config_info.lists);
-	std::vector<ParticlePair> neighbour_pairs = this->_config_info.lists->get_potential_interactions();
+	std::map<int, number> split_energies = _config_info->interaction->get_system_energy_split(_config_info->particles, *_config_info->N, _config_info->lists);
+	std::vector<ParticlePair> neighbour_pairs = _config_info->lists->get_potential_interactions();
 
 	BaseParticle *p;
 	BaseParticle *q;
@@ -64,7 +64,7 @@ std::string AverageEnergy::get_output_string(llint curr_step) {
 			typename std::map<int, number>::iterator it = split_energies.begin();
 			for(; it != split_energies.end(); it++) {
 				int k = it->first;
-				number k_th_interaction = this->_config_info.interaction->pair_interaction_term(k, q, p);
+				number k_th_interaction = _config_info->interaction->pair_interaction_term(k, q, p);
 				total_energy += k_th_interaction;
 			}
 		}

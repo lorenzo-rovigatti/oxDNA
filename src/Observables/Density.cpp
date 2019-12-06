@@ -17,8 +17,8 @@ Density::~Density() {
 }
 
 std::string Density::get_output_string(llint curr_step) {
-	int N = *this->_config_info.N;
-	number V = this->_config_info.box->V();
+	int N = *_config_info->N;
+	number V = _config_info->box->V();
 	return Utils::sformat("%# 10.8g", N / V);
 }
 

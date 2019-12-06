@@ -46,12 +46,12 @@ std::string CoaxVariables::get_output_string(llint curr_step) {
 
 	BaseParticle *p;
 	BaseParticle *q;
-	p = this->_config_info.particles[_particle1_id];
-	q = this->_config_info.particles[_particle2_id];
+	p = _config_info->particles[_particle1_id];
+	q = _config_info->particles[_particle2_id];
 	output_str << p->index << " " << q->index << " ";
 
 	// Modified version of coaxial stacking calculation code
-	LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
+	LR_vector r = _config_info->box->min_image(p->pos, q->pos);
 	LR_vector rstack = r + q->int_centers[DNANucleotide::STACK] - p->int_centers[DNANucleotide::STACK];
 	number rstackmod = rstack.module();
 

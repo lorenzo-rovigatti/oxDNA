@@ -13,6 +13,7 @@
 #include "oxDNAException.h"
 
 #include <string>
+#include <memory>
 
  class IBaseInteraction;
  class BaseParticle;
@@ -31,7 +32,7 @@
 
 class ConfigInfo {
 private:
-	static ConfigInfo *_config_info;
+	static std::shared_ptr<ConfigInfo> _config_info;
 
 	ConfigInfo();
 public:
@@ -49,13 +50,6 @@ public:
 	void set(BaseParticle **p, IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox);
 
 	/**
-	 * @brief Returns a reference to the actual object. Static method to enforce the singleton pattern.
-	 *
-	 * @return Reference to the ConfigInfo object
-	 */
-	static ConfigInfo &ref_instance();
-
-	/**
 	 * @brief Returns a pointer to the actual object. Static method to enforce the singleton pattern.
 	 *
 	 * @return Pointer to the ConfigInfo object
@@ -63,7 +57,6 @@ public:
 	static ConfigInfo *instance();
 
 	static void init();
-	static void clear();
 
 	///Pointer to the array which stores all the particles' information.
 	BaseParticle **particles;
@@ -89,15 +82,10 @@ public:
 };
 
 
-inline ConfigInfo &ConfigInfo::ref_instance() {
-	return *instance();
-}
-
-
 inline ConfigInfo *ConfigInfo::instance() {
-	if(_config_info == NULL) throw oxDNAException("Trying to access an uninitialised ConfigInfo object");
+	if(_config_info == nullptr) throw oxDNAException("Trying to access an uninitialised ConfigInfo object");
 
-	return _config_info;
+	return _config_info.get();
 }
 
 #endif /* SRC_UTILITIES_CONFIGINFO_H_ */

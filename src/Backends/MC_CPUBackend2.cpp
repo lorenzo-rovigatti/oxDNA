@@ -37,7 +37,7 @@ void MC_CPUBackend2::get_settings(input_file &inp) {
 	MCBackend::get_settings(inp);
 
 	//_MC_Info = ConfigInfo(_particles, &(_box_side), _interaction, &(_N), &_info_str, _lists);
-	_MC_Info->set(_particles, _interaction.get(), &(_N), &_info_str, _lists.get(), _box.get());
+	_MC_Info->set(_particles.data(), _interaction.get(), &(_N), &_info_str, _lists.get(), _box.get());
 
 	//_MC_Info.lists = _lists;
 
@@ -71,14 +71,14 @@ void MC_CPUBackend2::init() {
 	}
 
 	// needed to fill un the pointers....
-	_MC_Info->particles = _particles;
+	_MC_Info->particles = _particles.data();
 	_MC_Info->N = &_N;
 	_MC_Info->interaction = _interaction.get();
 	_MC_Info->box = _box.get();
 
 	_lists->global_update();
 
-	_U = _interaction->get_system_energy(_particles, _N, _lists.get());
+	_U = _interaction->get_system_energy(_particles.data(), _N, _lists.get());
 	if(_interaction->get_is_infinite() == true) {
 		_interaction->set_is_infinite(false);
 		for(int i = 0; i < _N; i++) {

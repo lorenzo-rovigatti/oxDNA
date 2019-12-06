@@ -42,17 +42,17 @@ void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 LR_vector Pressure::_get_com() {
 	LR_vector com;
-	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		com += this->_config_info.box->get_abs_pos(p);
+	for(int i = 0; i < *_config_info->N; i++) {
+		BaseParticle *p = _config_info->particles[i];
+		com += _config_info->box->get_abs_pos(p);
 	}
-	com /= *this->_config_info.N;
+	com /= *_config_info->N;
 	return com;
 }
 
 void Pressure::update_pressure() {
-	int N = *this->_config_info.N;
-	std::vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
+	int N = *_config_info->N;
+	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 
 	LR_vector com = (_spherical) ? _get_com() : LR_vector();
 	_P_norm = 0.;
@@ -65,7 +65,7 @@ void Pressure::update_pressure() {
 		BaseParticle *p = pair.first;
 		BaseParticle *q = pair.second;
 		if(!(_nonbonded_only && p->is_bonded(q))) {
-			LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
+			LR_vector r = _config_info->box->min_image(p->pos, q->pos);
 
 			// pair_interaction will change these vectors, but we still need them in the next
 			// first integration step. For this reason we copy and then restore their values
@@ -78,7 +78,7 @@ void Pressure::update_pressure() {
 			p->force = q->force = p->torque = q->torque = LR_vector();
 
 			LR_vector r_mutable(r);
-			energy += (double) this->_config_info.interaction->pair_interaction(p, q, &r_mutable, true);
+			energy += (double) _config_info->interaction->pair_interaction(p, q, &r_mutable, true);
 
 			_stress_tensor.v1.x -= r.x * p->force.x;
 			_stress_tensor.v1.y -= r.x * p->force.y;
@@ -94,8 +94,8 @@ void Pressure::update_pressure() {
 
 			// see http://dx.doi.org/10.1080/102866202100002518a
 			if(_spherical) {
-				LR_vector rp_rel = this->_config_info.box->min_image(p->pos, com);
-				LR_vector rq_rel = this->_config_info.box->min_image(q->pos, com);
+				LR_vector rp_rel = _config_info->box->min_image(p->pos, com);
+				LR_vector rq_rel = _config_info->box->min_image(q->pos, com);
 				number l0 = sqrt(rp_rel.norm() - SQR(rp_rel*r) / r.norm());
 				// check that the arguments of the square roots are non-negative (it does happen for finite-accuracy reasons)
 				double delta_rp_sqr_l0_sqr = rp_rel.norm() - SQR(l0);
@@ -114,8 +114,8 @@ void Pressure::update_pressure() {
 		}
 	}
 
-	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+	for(int i = 0; i < *_config_info->N; i++) {
+		BaseParticle *p = _config_info->particles[i];
 		LR_vector vel = p->vel;
 		if(_shear_rate > 0.) {
 			number Ly = CONFIG_INFO->box->box_sides().y;
@@ -134,14 +134,14 @@ void Pressure::update_pressure() {
 		_stress_tensor.v3.z += SQR(vel.z);
 
 //		if(_spherical) {
-//			LR_vector rp_rel = this->_config_info.box->min_image(p->pos, com);
+//			LR_vector rp_rel = _config_info->box->min_image(p->pos, com);
 //			rp_rel.normalize();
 //			_P_norm += 3*SQR(vel*rp_rel);
 //			printf("%e %e\n", SQR(vel*rp_rel), vel.norm());
 //		}
 	}
 
-	double V = (_PV_only) ? 1 : this->_config_info.box->V();
+	double V = (_PV_only) ? 1 : _config_info->box->V();
 	_P = _T * (N / V) + virial / (3. * V);
 	_stress_tensor /= 3. * V;
 	_P_norm = _T * (N / V) + _P_norm / (3. * V);

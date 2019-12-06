@@ -14,14 +14,14 @@
 PatchyParticle::PatchyParticle(int N_patches, int nt, number sigma) : BaseParticle(), _sigma(sigma) {
 	this->type = nt;
 	this->int_centers.resize(N_patches);
-	_base_patches = new LR_vector[N_patches];
+	_base_patches.resize(N_patches);
 
 	_set_base_patches();
 }
 
 
 PatchyParticle::~PatchyParticle() {
-	delete[] _base_patches;
+
 }
 
 

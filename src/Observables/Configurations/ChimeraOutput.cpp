@@ -41,13 +41,13 @@ std::string ChimeraOutput::_configuration(llint step) {
 
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		char buf[128];
-		BaseParticle *p = this->_config_info.particles[*it];
+		BaseParticle *p = _config_info->particles[*it];
 		sprintf(buf, "bond #0:%i\n", p->get_index());
 		conf << buf;
 	}
 
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
-		BaseParticle *p = this->_config_info.particles[*it];
+		BaseParticle *p = _config_info->particles[*it];
 		if(p->n5 != P_VIRTUAL) {
 			BaseParticle *q = p->n5;
 			if(this->_visible_particles.find(q->get_index()) != this->_visible_particles.end()) {

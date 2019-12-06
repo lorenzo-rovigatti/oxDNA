@@ -26,7 +26,7 @@ void HBEnergy::init(ConfigInfo &config_info) {
 
 	switch(_mode) {
 	case PAIRS_FROM_OP_FILE:
-		_op.init_from_file(_list_file, this->_config_info.particles, *(this->_config_info.N));
+		_op.init_from_file(_list_file, _config_info->particles, *(_config_info->N));
 		break;
 	case BASES_FROM_FILE: {
 		ifstream inp(_list_file);
@@ -52,26 +52,26 @@ std::string HBEnergy::get_output_string(llint curr_step) {
 		for(vector_of_pairs::iterator i = inds.begin(); i != inds.end(); i++) {
 			int p_ind = (*i).first;
 			int q_ind = (*i).second;
-			BaseParticle *p = this->_config_info.particles[p_ind];
-			BaseParticle *q = this->_config_info.particles[q_ind];
-			energy += this->_config_info.interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
+			BaseParticle *p = _config_info->particles[p_ind];
+			BaseParticle *q = _config_info->particles[q_ind];
+			energy += _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 		}
 		energy *= (number) 2.f;
 		break;
 	}
 	case BASES_FROM_FILE: {
 		for(std::set<int>::iterator it = _list.begin(); it != _list.end(); it++) {
-			BaseParticle *p = this->_config_info.particles[*it];
-			std::vector<BaseParticle *> neighs = this->_config_info.lists->get_all_neighbours(p);
+			BaseParticle *p = _config_info->particles[*it];
+			std::vector<BaseParticle *> neighs = _config_info->lists->get_all_neighbours(p);
 
 			for(unsigned int j = 0; j < neighs.size(); j++) {
-				energy += this->_config_info.interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, neighs[j]);
+				energy += _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, neighs[j]);
 			}
 		}
 		break;
 	}
 	default:
-		energy = this->_config_info.interaction->get_system_energy_term(DNAInteraction::HYDROGEN_BONDING, this->_config_info.particles, *this->_config_info.N, this->_config_info.lists);
+		energy = _config_info->interaction->get_system_energy_term(DNAInteraction::HYDROGEN_BONDING, _config_info->particles, *_config_info->N, _config_info->lists);
 		break;
 	}
 

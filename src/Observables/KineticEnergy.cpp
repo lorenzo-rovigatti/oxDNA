@@ -33,15 +33,15 @@ void KineticEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 number KineticEnergy::get_kinetic_energy() {
 	number factor = 1.5 / _directions.size();
 	number K = 0.f;
-	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+	for(int i = 0; i < *_config_info->N; i++) {
+		BaseParticle *p = _config_info->particles[i];
 		if(p->is_rigid_body()) K += p->L.norm() * (number) 0.5f;
 
 		for(auto dir: _directions) {
 			K += SQR(p->vel[dir]) * factor;
 		}
 	}
-	K /= *this->_config_info.N;
+	K /= *_config_info->N;
 
 	return K;
 }

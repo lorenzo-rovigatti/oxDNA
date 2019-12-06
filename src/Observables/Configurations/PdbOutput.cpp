@@ -52,13 +52,13 @@ std::string PdbOutput::_particle(BaseParticle *p, std::string strtype) {
 	anis.v2.y = (I_l.v1.x + I_l.v3.z - I_l.v2.y) / 2.0;
 	anis.v3.z = (I_l.v1.x + I_l.v2.y - I_l.v3.z) / 2.0;
 
-	BaseBox * mybox = this->_config_info.box;
+	BaseBox * mybox = _config_info->box;
 	LR_vector my_strand_cdm = this->_strands_cdm[p->strand_id];
 	LR_vector zero(0., 0., 0.);
-	if(_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_config_info.particles[_ref_particle_id]->pos;
+	if(_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = _config_info->particles[_ref_particle_id]->pos;
 
-	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = this->_config_info.particles[_ref_particle_id]->pos;
-	else zero = this->_config_info.particles[0]->pos;
+	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = _config_info->particles[_ref_particle_id]->pos;
+	else zero = _config_info->particles[0]->pos;
 
 	LR_vector origin(0., 0., 0.);
 	origin = zero;
@@ -108,7 +108,7 @@ std::string PdbOutput::_configuration(llint step) {
 
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << std::endl;
-		BaseParticle *p = this->_config_info.particles[*it];
+		BaseParticle *p = _config_info->particles[*it];
 		std::string cur_strtype = strtypes[(p->strand_id + 1) % 17];
 		conf << _particle(p, cur_strtype);
 	}

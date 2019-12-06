@@ -27,7 +27,6 @@ SimBackend::SimBackend() {
 	_external_forces = false;
 	_N_updates = 0;
 	_confs_to_skip = 0;
-	_particles = NULL;
 	_sim_type = -1;
 	_is_CUDA_sim = false;
 	_interaction = NULL;
@@ -62,14 +61,9 @@ SimBackend::SimBackend() {
 }
 
 SimBackend::~SimBackend() {
-	if(_particles != NULL) {
-		for(int i = 0; i < _N; i++) {
-			delete _particles[i];
-		}
-		delete[] _particles;
+	for(auto particle: _particles) {
+		delete particle;
 	}
-
-	ForceFactory::instance()->clear();
 
 	// here we print the input output information
 	llint total_file = 0;
@@ -109,8 +103,6 @@ SimBackend::~SimBackend() {
 	 fclose(timings_file);
 	 }
 	 */
-
-	ConfigInfo::clear();
 }
 
 void SimBackend::get_settings(input_file &inp) {
@@ -311,8 +303,8 @@ void SimBackend::init() {
 
 	// check number of particles
 	_N = _interaction->get_N_from_topology();
-	_particles = new BaseParticle*[_N];
-	_interaction->read_topology(_N, &_N_strands, _particles);
+	_particles.resize(_N);
+	_interaction->read_topology(_N, &_N_strands, _particles.data());
 
 	_rcut = _interaction->get_rcut();
 	_sqr_rcut = SQR(_rcut);
@@ -349,7 +341,7 @@ void SimBackend::init() {
 	_config_info->curr_step = _start_step_from_file;
 
 	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, _box.get());
+		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles.data(), _N, _is_CUDA_sim, _box.get());
 	}
 
 	_U = (number) 0;
@@ -358,11 +350,11 @@ void SimBackend::init() {
 
 	_interaction->set_box(_box.get());
 
-	_lists->init(_particles, _rcut);
+	_lists->init(_particles.data(), _rcut);
 
 	// initializes the observable output machinery. This part has to follow
 	// read_topology() since _particles has to be initialized
-	_config_info->set(_particles, _interaction.get(), &_N, &_backend_info, _lists.get(), _box.get());
+	_config_info->set(_particles.data(), _interaction.get(), &_N, &_backend_info, _lists.get(), _box.get());
 
 	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		(*it)->init(*_config_info);
@@ -560,7 +552,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 		p->pos = LR_vector(p_pos.x, p_pos.y, p_pos.z);
 	}
 
-	_interaction->check_input_sanity(_particles, _N);
+	_interaction->check_input_sanity(_particles.data(), _N);
 
 	return true;
 }
@@ -591,8 +583,9 @@ void SimBackend::print_observables(llint curr_step) {
 		if((*it)->is_ready(curr_step))
 			someone_ready = true;
 	}
-	if(someone_ready)
+	if(someone_ready) {
 		_print_ready_observables(curr_step);
+	}
 	_backend_info = std::string("");
 }
 
@@ -617,7 +610,7 @@ void SimBackend::fix_diffusion() {
 	std::fill(scdm.begin(), scdm.end(), LR_vector());
 	std::fill(ninstrand.begin(), ninstrand.end(), 0);
 
-	number E_before = _interaction->get_system_energy(_particles, _N, _lists.get());
+	number E_before = _interaction->get_system_energy(_particles.data(), _N, _lists.get());
 	for(int i = 0; i < _N; i++) {
 		BaseParticle *p = _particles[i];
 		stored_pos[i] = p->pos;
@@ -645,7 +638,7 @@ void SimBackend::fix_diffusion() {
 		p->set_positions();
 	}
 
-	number E_after = _interaction->get_system_energy(_particles, _N, _lists.get());
+	number E_after = _interaction->get_system_energy(_particles.data(), _N, _lists.get());
 	if(_interaction->get_is_infinite() == true || fabs(E_before - E_after) > 1.e-6 * fabs(E_before)) {
 		OX_LOG(Logger::LOG_INFO, "Fix diffusion went too far... %g, %g, %d, (%g>%g)", E_before, E_after, _interaction->get_is_infinite(), fabs(E_before - E_after), 1.e-6 * fabs(E_before));
 		_interaction->set_is_infinite(false);
@@ -674,7 +667,7 @@ void SimBackend::fix_diffusion() {
 			}
 		}
 
-		number E_after2 = _interaction->get_system_energy(_particles, _N, _lists.get());
+		number E_after2 = _interaction->get_system_energy(_particles.data(), _N, _lists.get());
 		if(_interaction->get_is_infinite() == true || fabs(E_before - E_after2) > 1.e-6 * fabs(E_before)) {
 			OX_LOG(Logger::LOG_INFO, " *** Fix diffusion hopeless... %g, %g, %d, (%g>%g)", E_before, E_after2, _interaction->get_is_infinite(), fabs(E_before - E_after2), 1.e-6 * fabs(E_before));
 			_interaction->set_is_infinite(false);

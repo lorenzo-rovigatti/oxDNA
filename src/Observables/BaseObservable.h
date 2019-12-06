@@ -20,10 +20,10 @@
 class BaseObservable {
 protected:
 	/// Stores all the backend's information that may be needed by the observable
-	ConfigInfo &_config_info;
+	ConfigInfo *_config_info;
 public:
 	BaseObservable() :
-					_config_info(ConfigInfo::ref_instance()) {
+					_config_info(ConfigInfo::instance()) {
 	}
 	;
 	virtual ~BaseObservable() {

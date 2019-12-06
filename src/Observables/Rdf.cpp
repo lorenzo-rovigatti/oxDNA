@@ -21,10 +21,10 @@ Rdf::~Rdf() {
 }
 
 std::string Rdf::get_output_string(llint curr_step) {
-	int N = *this->_config_info.N;
+	int N = *_config_info->N;
 
 	// get smallest side
-	LR_vector sides = this->_config_info.box->box_sides();
+	LR_vector sides = _config_info->box->box_sides();
 	number box_side = sides[0];
 	if(sides[1] < box_side) box_side = sides[1];
 	if(sides[2] < box_side) box_side = sides[2];
@@ -35,12 +35,12 @@ std::string Rdf::get_output_string(llint curr_step) {
 
 	int n_pairs = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+		BaseParticle *p = _config_info->particles[i];
 		for(int j = 0; j < i; j++) {
-			BaseParticle *q = this->_config_info.particles[j];
+			BaseParticle *q = _config_info->particles[j];
 			int type = p->type + q->type;
 			if(_type == -1 || type == _type) {
-				LR_vector dr = this->_config_info.box->min_image(q->pos, p->pos);
+				LR_vector dr = _config_info->box->min_image(q->pos, p->pos);
 				dr = LR_vector(dr.x * _mask.x, dr.y * _mask.y, dr.z * _mask.z);
 				number drmod = dr.module();
 				if(drmod < _max_value) {
@@ -55,7 +55,7 @@ std::string Rdf::get_output_string(llint curr_step) {
 	std::stringstream ret;
 	ret.precision(9);
 	double myx = _bin_size / 2.;
-	double norm_factor = 4 * M_PI * _nconf * n_pairs * _bin_size / this->_config_info.box->V();
+	double norm_factor = 4 * M_PI * _nconf * n_pairs * _bin_size / _config_info->box->V();
 	for(auto value: _profile) {
 		ret << myx << " " << value / (norm_factor * myx * myx) << std::endl;
 		myx += _bin_size;

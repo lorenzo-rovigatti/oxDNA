@@ -25,8 +25,8 @@ VectorAngle::~VectorAngle() {
 void VectorAngle::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	BaseParticle **p = this->_config_info.particles;
-	const int N = *this->_config_info.N;
+	BaseParticle **p = _config_info->particles;
+	const int N = *_config_info->N;
 
 	// check that _first_particle_index is in [0,N) and not the terminal particle
 	if(_first_particle_index < 0 || _first_particle_index > N - 1) throw oxDNAException("VectorAngle: first_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.", N, _first_particle_index);
@@ -87,7 +87,7 @@ void VectorAngle::get_settings(input_file &my_inp, input_file &sim_inp) {
 std::string VectorAngle::get_output_string(llint curr_step) {
 	int sign, number_of_values = 0;
 	std::string result;
-	BaseParticle **p = this->_config_info.particles;
+	BaseParticle **p = _config_info->particles;
 	double delta_omega = 0;
 	number result_number = 0;
 	LR_vector u, up, v, vp, f, fp;
