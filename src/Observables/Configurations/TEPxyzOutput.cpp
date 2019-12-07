@@ -52,17 +52,17 @@ void TEPxyzOutput::get_settings(input_file &my_inp, input_file &sim_inp) {
 void TEPxyzOutput::init(ConfigInfo &config_info) {
 	Configuration::init(config_info);
 
-	int N = *this->_config_info.N;
+	int N = *_config_info->N;
 	_bead_types = new int[N];
 	for(int i = 0; i < N; i++) {
 		_bead_types[i] = 0;
 	}
 
-	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(this->_config_info.particles, N, _particles_type1_string, "force string (TEPxyzOutput.cpp)");
+	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, N, _particles_type1_string, "force string (TEPxyzOutput.cpp)");
 	for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 		_bead_types[particle_indices_vector[i]] = 1;
 	}
-	particle_indices_vector = Utils::getParticlesFromString(this->_config_info.particles, N, _particles_type2_string, "force string (TEPxyzOutput.cpp)");
+	particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, N, _particles_type2_string, "force string (TEPxyzOutput.cpp)");
 	for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 		_bead_types[particle_indices_vector[i]] = 2;
 	}
@@ -71,8 +71,8 @@ void TEPxyzOutput::init(ConfigInfo &config_info) {
 std::string TEPxyzOutput::_headers(llint step) {
 	std::stringstream headers;
 
-	const number mybox = this->_config_info.box->box_sides()[0];
-	const int N = *this->_config_info.N * 3;
+	const number mybox = _config_info->box->box_sides()[0];
+	const int N = *_config_info->N * 3;
 
 	headers << N << std::endl;
 	headers << "#" << mybox << " " << mybox << " " << mybox << std::endl;
@@ -83,7 +83,7 @@ std::string TEPxyzOutput::_headers(llint step) {
 	 double _box_radius = 0.1;
 	 int _box_resolution = _resolution;
 
-	 number mybox = *this->_config_info.box_side;
+	 number mybox = *_config_info->box_side;
 	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
 	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} {" <<  mybox / 2. << " " << -mybox / 2. << " " <<  mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
 	 headers << "graphics 0 cylinder {" << -mybox / 2. << " " <<  mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
@@ -109,7 +109,7 @@ std::string TEPxyzOutput::_particle(BaseParticle *p) {
 	//next = reinterpret_cast<TEPParticle *> (p->n5);
 
 	LR_vector zero(0., 0., 0.);
-	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = this->_config_info.particles[_ref_particle_id]->pos;
+	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = _config_info->particles[_ref_particle_id]->pos;
 	if(_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_strands_cdm[_ref_strand_id];
 
 	// set the colour according to the strand id
@@ -120,7 +120,7 @@ std::string TEPxyzOutput::_particle(BaseParticle *p) {
 	 res << "graphics 0 color " << colorid << std::endl;
 	 */
 
-	BaseBox * mybox = this->_config_info.box;
+	BaseBox * mybox = _config_info->box;
 	LR_vector my_strand_cdm = this->_strands_cdm[me->strand_id];
 	LR_vector origin(0., 0., 0.);
 	origin = zero;
@@ -161,7 +161,7 @@ std::string TEPxyzOutput::_configuration(llint step) {
 	//return Configuration::_configuration(step);
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << std::endl;
-		BaseParticle *p = this->_config_info.particles[*it];
+		BaseParticle *p = _config_info->particles[*it];
 		conf << _particle(p);
 	}
 	return conf.str();

@@ -32,13 +32,13 @@ std::string StretchedBonds::get_output_string(llint curr_step) {
 	std::string ret;
 	std::vector<int> stretched;
 	int num = 0;
-	int N = *this->_config_info.N;
+	int N = *_config_info->N;
 	for(int i = 0; i < N; i++) {
-		BaseParticle * p = this->_config_info.particles[i];
+		BaseParticle * p = _config_info->particles[i];
 		number energy;
 		if(p->n3 == P_VIRTUAL) continue;
 
-		energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction::BACKBONE, p, p->n3);
+		energy = _config_info->interaction->pair_interaction_term(DNAInteraction::BACKBONE, p, p->n3);
 
 		if(energy > _threshold) {
 			num++;

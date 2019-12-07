@@ -80,18 +80,18 @@ string Configuration::_headers(llint step) {
 	if(_reduced) {
 		set<int> strands;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle *p = this->_config_info.particles[*it];
+			BaseParticle *p = _config_info->particles[*it];
 			strands.insert(p->strand_id);
 		}
 
-		headers << strands.size() << " " << this->_config_info.box->box_sides().x << " " << this->_config_info.box->box_sides().y << " " << this->_config_info.box->box_sides().z << endl;
+		headers << strands.size() << " " << _config_info->box->box_sides().x << " " << _config_info->box->box_sides().y << " " << _config_info->box->box_sides().z << endl;
 	}
 	else {
 		number U = _tot_energy.get_U(step);
 		number K = _tot_energy.get_K(step);
 
 		headers << "t = " << step << endl;
-		headers << "b = " << this->_config_info.box->box_sides().x << " " << this->_config_info.box->box_sides().y << " " << this->_config_info.box->box_sides().z << endl;
+		headers << "b = " << _config_info->box->box_sides().x << " " << _config_info->box->box_sides().y << " " << _config_info->box->box_sides().z << endl;
 		headers << "E = " << U + K << " " << U << " " << K << endl;
 	}
 
@@ -102,7 +102,7 @@ string Configuration::_particle(BaseParticle *p) {
 	stringstream conf;
 	conf.precision(15);
 
-	LR_vector box_sides = this->_config_info.box->box_sides();
+	LR_vector box_sides = _config_info->box->box_sides();
 
 	LR_vector mypos;
 	if(_back_in_box) {
@@ -111,7 +111,7 @@ string Configuration::_particle(BaseParticle *p) {
 		mypos.z = p->pos.z - floor(_strands_cdm[p->strand_id].z / box_sides.z) * box_sides.z;
 	}
 	else {
-		LR_vector number_pos = this->_config_info.box->get_abs_pos(p);
+		LR_vector number_pos = _config_info->box->get_abs_pos(p);
 		mypos.x = number_pos.x;
 		mypos.y = number_pos.y;
 		mypos.z = number_pos.z;
@@ -137,8 +137,8 @@ string Configuration::_configuration(llint step) {
 		map<int, int> counters;
 
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle *p = this->_config_info.particles[*it];
-			coms[p->strand_id] += this->_config_info.box->get_abs_pos(p);
+			BaseParticle *p = _config_info->particles[*it];
+			coms[p->strand_id] += _config_info->box->get_abs_pos(p);
 			counters[p->strand_id]++;
 		}
 
@@ -154,7 +154,7 @@ string Configuration::_configuration(llint step) {
 		// this is used to avoid printing empty lines
 		bool empty = true;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle *p = this->_config_info.particles[*it];
+			BaseParticle *p = _config_info->particles[*it];
 			bool visible = (_only_type == -1 || p->type == _only_type);
 			if(visible) {
 				if(it != _visible_particles.begin() && !empty) conf << endl;
@@ -176,7 +176,7 @@ void Configuration::_fill_strands_cdm() {
 	std::map<int, int> nin;
 	_strands_cdm.clear();
 	for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-		BaseParticle *p = this->_config_info.particles[*it];
+		BaseParticle *p = _config_info->particles[*it];
 		if(_strands_cdm.count(p->strand_id) == 0) {
 			nin[p->strand_id] = 1;
 			_strands_cdm[p->strand_id] = p->pos;

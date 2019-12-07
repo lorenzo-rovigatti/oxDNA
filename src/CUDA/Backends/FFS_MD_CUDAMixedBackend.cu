@@ -285,7 +285,7 @@ void FFS_MD_CUDAMixedBackend::get_settings(input_file &inp) {
 
 void FFS_MD_CUDAMixedBackend::init() {
 	CUDAMixedBackend::init();
-	_op.init_from_file(_order_parameters_file, this->_particles, this->_N);
+	_op.init_from_file(_order_parameters_file, _particles.data(), _N);
 
 	// initialise the order parameter region arrays (variable width, pseudo-2D arrays)
 	int *h_dist_region_lens;

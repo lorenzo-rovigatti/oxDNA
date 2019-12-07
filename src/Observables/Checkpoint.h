@@ -23,7 +23,6 @@ public:
 	Checkpoint();
 	virtual ~Checkpoint();
 
-	virtual void init(ConfigInfo &config_info);
 	virtual std::string get_output_string(llint curr_step);
 };
 

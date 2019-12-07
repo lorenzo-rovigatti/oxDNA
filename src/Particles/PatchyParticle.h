@@ -16,7 +16,7 @@
 
 class PatchyParticle : public BaseParticle {
 protected:
-	LR_vector *_base_patches;
+	std::vector<LR_vector> _base_patches;
 	number _sigma;
 
 	void _set_base_patches();

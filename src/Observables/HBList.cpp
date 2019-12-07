@@ -22,7 +22,7 @@ HBList::~HBList() {
 void HBList::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 	if(_read_op) {
-		_op.init_from_file(_order_parameters_file, this->_config_info.particles, *(this->_config_info.N));
+		_op.init_from_file(_order_parameters_file, _config_info->particles, *(_config_info->N));
 	}
 }
 
@@ -75,9 +75,9 @@ std::string HBList::get_output_string(llint curr_step) {
 		for(vector_of_pairs::iterator i = inds.begin(); i != inds.end(); i++) {
 			int p_ind = (*i).first;
 			int q_ind = (*i).second;
-			BaseParticle *p = this->_config_info.particles[p_ind];
-			BaseParticle *q = this->_config_info.particles[q_ind];
-			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
+			BaseParticle *p = _config_info->particles[p_ind];
+			BaseParticle *q = _config_info->particles[q_ind];
+			number hb_energy = _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 			//
 			if(hb_energy < HB_CUTOFF) {
 				if(_only_count) N_bonds++;
@@ -88,23 +88,23 @@ std::string HBList::get_output_string(llint curr_step) {
 	}
 	// checking all particle pairs
 	else {
-		std::vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
+		std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 		typename std::vector<ParticlePair>::iterator it;
 		for(it = pairs.begin(); it != pairs.end(); it++) {
 			BaseParticle * p = (*it).first;
 			BaseParticle * q = (*it).second;
 			int p_ind = p->get_index();
 			int q_ind = q->get_index();
-			number hb_energy = this->_config_info.interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
+			number hb_energy = _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 			// what to do if it's unbound
-			int complementary_ind = *this->_config_info.N - 1 - p_ind;
+			int complementary_ind = *_config_info->N - 1 - p_ind;
 			if(hb_energy < HB_CUTOFF) {
 				if(_only_count) N_bonds++;
 				else if(!_measure_mean_shift) outstr << p_ind << " " << q_ind << "\n";
 			}
 			else if(_measure_mean_shift && complementary_ind == q_ind) {
 				//this always takes into account periodic boundary conditions, which makes sense.
-				LR_vector distance_vector = this->_config_info.box->min_image(p->pos, q->pos);
+				LR_vector distance_vector = _config_info->box->min_image(p->pos, q->pos);
 				double distance = distance_vector * distance_vector;
 				BaseParticle * ahead = q;
 				BaseParticle * before = q;
@@ -114,7 +114,7 @@ std::string HBList::get_output_string(llint curr_step) {
 					double newdist = -1;
 					if(ahead->n5 != P_VIRTUAL) {
 						ahead = ahead->n5;
-						LR_vector newdist_vector = this->_config_info.box->min_image(p->pos, ahead->pos);
+						LR_vector newdist_vector = _config_info->box->min_image(p->pos, ahead->pos);
 						newdist = newdist_vector * newdist_vector;
 						if(newdist < distance) {
 							distance = newdist;
@@ -123,7 +123,7 @@ std::string HBList::get_output_string(llint curr_step) {
 					}
 					if(before->n3 != P_VIRTUAL) {
 						before = before->n3;
-						LR_vector newdist_vector = this->_config_info.box->min_image(p->pos, before->pos);
+						LR_vector newdist_vector = _config_info->box->min_image(p->pos, before->pos);
 						newdist = newdist_vector * newdist_vector;
 						if(newdist < distance) {
 							distance = newdist;

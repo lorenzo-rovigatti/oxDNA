@@ -8,7 +8,7 @@
 #include "BaseMove.h"
 
 BaseMove::BaseMove() :
-				_Info(&ConfigInfo::ref_instance()) {
+				_Info(ConfigInfo::instance()) {
 	_attempted = 0;
 	_accepted = 0;
 	_T = -1.;
@@ -63,7 +63,9 @@ number BaseMove::particle_energy(BaseParticle * p) {
 		number de = _Info->interaction->pair_interaction_bonded(it->first, it->second);
 		res += de;
 	}
-	if(_Info->interaction->get_is_infinite() == true) return (number) 1.e12;
+	if(_Info->interaction->get_is_infinite() == true){
+		return (number) 1.e12;
+	}
 
 	std::vector<BaseParticle *> neighs = _Info->lists->get_neigh_list(p);
 	for(unsigned int n = 0; n < neighs.size(); n++) {
@@ -88,7 +90,9 @@ number BaseMove::system_energy() {
 			BaseParticle *q = neighs[n];
 			if(p->index < q->index) {
 				res += _Info->interaction->pair_interaction_nonbonded(p, q);
-				if(_Info->interaction->get_is_infinite() == true) return (number) 1.e12;
+				if(_Info->interaction->get_is_infinite() == true) {
+					return (number) 1.e12;
+				}
 			}
 		}
 	}

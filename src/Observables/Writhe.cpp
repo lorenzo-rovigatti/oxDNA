@@ -44,8 +44,8 @@ Writhe::~Writhe() {
 void Writhe::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	BaseParticle **p = this->_config_info.particles;
-	_N = *this->_config_info.N;
+	BaseParticle **p = _config_info->particles;
+	_N = *_config_info->N;
 
 	//allocate the arrays - these take up unnecessary memory when the subdomain is smaller than N, but I don't think I care.
 	_writhe_integrand_values = new number*[_N];
@@ -165,8 +165,8 @@ void Writhe::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 std::string Writhe::get_output_string(llint curr_step) {
 	std::string result;
-	BaseParticle **p = this->_config_info.particles;
-	int time = this->_config_info.curr_step;
+	BaseParticle **p = _config_info->particles;
+	int time = _config_info->curr_step;
 	LR_vector r, rp, t, tp;
 	/*
 	 LR_vector *positions = new LR_vector[_N];
@@ -271,7 +271,7 @@ std::string Writhe::get_output_string(llint curr_step) {
 					result += std::string(temp);
 					// compute the size of the plectoneme
 					if(_print_size or _print_left_right) {
-						if((peak_position - _minimum_plectoneme_size) >= 0 && (peak_position + _minimum_plectoneme_size) < *this->_config_info.N) {		//TODO: probably remove this if statement - the pointers should keep track of things by checking for P_VIRTUAL
+						if((peak_position - _minimum_plectoneme_size) >= 0 && (peak_position + _minimum_plectoneme_size) < *_config_info->N) {		//TODO: probably remove this if statement - the pointers should keep track of things by checking for P_VIRTUAL
 						//--old way
 						//BaseParticle *left = p[peak_position - _minimum_plectoneme_size];
 						//BaseParticle *right = p[peak_position + _minimum_plectoneme_size];
@@ -294,7 +294,7 @@ std::string Writhe::get_output_string(llint curr_step) {
 								BaseParticle *curr_left = left->n3;
 								for(int pleft = 1; pleft < _size_outer_threshold && curr_left != P_VIRTUAL; pleft++) {
 									//--old if statement
-									//for(int pright = 1; pright < _size_outer_threshold && (right->index + pright) < *this->_config_info.N; pright++) {
+									//for(int pright = 1; pright < _size_outer_threshold && (right->index + pright) < *_config_info->N; pright++) {
 									//BaseParticle *curr_right = p[right->index + pright];
 									BaseParticle *curr_right = right->n5;
 									for(int pright = 1; pright < _size_outer_threshold && curr_right != P_VIRTUAL; pright++) {
@@ -319,13 +319,13 @@ std::string Writhe::get_output_string(llint curr_step) {
 
 							//--old size
 							//int size = right->index - left->index;
-							int size = 0, max_size = *this->_config_info.N + 10;
+							int size = 0, max_size = *_config_info->N + 10;
 							BaseParticle * step_counter = left;
 							for(int l = 1; (l <= max_size and step_counter != right); l++) {
 								size = l;
 								step_counter = step_counter->n5;
 							}
-							if(size == 0) size = *this->_config_info.N;
+							if(size == 0) size = *_config_info->N;
 							//printf("Just computed: peak %d size %d left %d right %d\n",peak_position, size, left->index, right->index);
 							if(size == max_size) {
 								OX_LOG(Logger::LOG_INFO,"Obsevrable writhe: problem with plectoneme on position %d: size is equal to max_size (%d). Left = %d Right = %d.",peak_position, size, left->index, right->index);

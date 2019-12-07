@@ -88,14 +88,14 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 	}
 	else _nconf += 1;
 
-	int N = *this->_config_info.N;
+	int N = *_config_info->N;
 	uint32_t nq = 0;
 	for(typename std::list<LR_vector >::iterator it = _qs.begin(); it != _qs.end(); nq++, it++) {
 		double sq_cos = 0.;
 		double sq_sin = 0.;
 		int N_type = 0;
 		for(int i = 0; i < N; i++) {
-			BaseParticle *p = this->_config_info.particles[i];
+			BaseParticle *p = _config_info->particles[i];
 			if(_type == -1 || p->type == _type) {
 				LR_vector r(p->pos.x, p->pos.y, p->pos.z);
 				number qr = *it * r;

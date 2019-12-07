@@ -41,16 +41,16 @@ std::string Distance::get_output_string(llint curr_step) {
 	LR_vector dist;
 	LR_vector p1_com, p2_com;
 	for(auto particle : _p1_list) {
-		p1_com += this->_config_info.box->get_abs_pos(particle);
+		p1_com += _config_info->box->get_abs_pos(particle);
 	}
 	p1_com /= _p1_list.size();
 
 	for(auto particle : _p2_list) {
-		p2_com += this->_config_info.box->get_abs_pos(particle);
+		p2_com += _config_info->box->get_abs_pos(particle);
 	}
 	p2_com /= _p2_list.size();
 
-	if(_PBC) dist = this->_config_info.box->min_image(p1_com, p2_com);
+	if(_PBC) dist = _config_info->box->min_image(p1_com, p2_com);
 	else dist = p2_com - p1_com;
 
 	number sign = 1.;

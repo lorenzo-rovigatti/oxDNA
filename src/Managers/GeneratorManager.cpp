@@ -72,10 +72,6 @@ GeneratorManager::~GeneratorManager() {
 			delete _particles[i];
 		delete[] _particles;
 	}
-
-	if(_external_forces) {
-		ForceFactory::instance()->clear();
-	}
 }
 
 void GeneratorManager::load_options() {
