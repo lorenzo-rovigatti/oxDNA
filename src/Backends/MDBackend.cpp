@@ -67,7 +67,7 @@ void MDBackend::get_settings(input_file &inp) {
 	// we build the default stream of observables;
 	// we use a helper string for that
 	string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n}\n", energy_file, print_every);
-	_obs_output_file = std::make_shared<ObservableOutput>(fake, inp);
+	_obs_output_file = std::make_shared<ObservableOutput>(fake);
 	_obs_outputs.push_back(_obs_output_file);
 	_obs_output_file->add_observable("type = step\nunits = MD");
 	_obs_output_file->add_observable("type = total_energy");
@@ -79,7 +79,7 @@ void MDBackend::get_settings(input_file &inp) {
 	getInputBoolAsInt(&inp, "no_stdout_energy", &no_stdout_energy, 0);
 	if(!no_stdout_energy) {
 		fake = Utils::sformat("{\n\tname = stdout\n\tprint_every = %lld\n}\n", print_every);
-		_obs_output_stdout = std::make_shared<ObservableOutput>(fake, inp);
+		_obs_output_stdout = std::make_shared<ObservableOutput>(fake);
 		_obs_outputs.push_back(this->_obs_output_stdout);
 		_obs_output_stdout->add_observable("type = step");
 		_obs_output_stdout->add_observable("type = step\nunits = MD");

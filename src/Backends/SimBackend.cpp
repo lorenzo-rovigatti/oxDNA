@@ -61,7 +61,7 @@ SimBackend::SimBackend() {
 }
 
 SimBackend::~SimBackend() {
-	for(auto particle: _particles) {
+	for(auto particle : _particles) {
 		delete particle;
 	}
 
@@ -107,6 +107,8 @@ SimBackend::~SimBackend() {
 
 void SimBackend::get_settings(input_file &inp) {
 	int tmp;
+
+	_config_info->sim_input = &inp;
 
 	// initialise the plugin manager with the input file
 	PluginManager::instance()->init(inp);
@@ -200,7 +202,7 @@ void SimBackend::get_settings(input_file &inp) {
 		ss << "data_output_" << i;
 		string obs_string;
 		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
-			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string, inp);
+			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string);
 			_obs_outputs.push_back(new_obs_out);
 		}
 		else
@@ -209,24 +211,24 @@ void SimBackend::get_settings(input_file &inp) {
 		i++;
 	}
 
-	if(getInputBoolAsInt(&inp, "back_in_box", &tmp, 0) == KEY_FOUND) {
-		_back_in_box = (tmp != 0);
-		if(_back_in_box)
-			OX_LOG(Logger::LOG_INFO, "ascii configuration files will have the particles put back in the box");
-		}
+	getInputBool(&inp, "back_in_box", &_back_in_box, 0);
+	if(_back_in_box) {
+		OX_LOG(Logger::LOG_INFO, "ascii configuration files will have the particles put back in the box");
+	}
 
-		// just to print the message
+	// just to print the message
 	if(getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) == KEY_FOUND) {
-		if(tmp != 0)
+		if(tmp != 0) {
 			OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
 		}
+	}
 
-		// we build the default stream of observables for trajectory and last configuration
+	// we build the default stream of observables for trajectory and last configuration
 	std::string traj_file;
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
-	_obs_output_trajectory = std::make_shared<ObservableOutput>(fake, inp);
+	_obs_output_trajectory = std::make_shared<ObservableOutput>(fake);
 	_obs_output_trajectory->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_trajectory);
 
@@ -234,7 +236,7 @@ void SimBackend::get_settings(input_file &inp) {
 	std::string lastconf_file = "last_conf.dat";
 	getInputString(&inp, "lastconf_file", lastconf_file, 0);
 	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
-	_obs_output_last_conf = std::make_shared<ObservableOutput>(fake, inp);
+	_obs_output_last_conf = std::make_shared<ObservableOutput>(fake);
 	_obs_output_last_conf->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_last_conf);
 
@@ -242,7 +244,7 @@ void SimBackend::get_settings(input_file &inp) {
 	std::string lastconf_file_bin;
 	if((getInputString(&inp, "lastconf_file_bin", lastconf_file_bin, 0) == KEY_FOUND)) {
 		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
-		_obs_output_last_conf_bin = std::make_shared<ObservableOutput>(fake, inp);
+		_obs_output_last_conf_bin = std::make_shared<ObservableOutput>(fake);
 		_obs_output_last_conf_bin->add_observable("type = binary_configuration");
 		_obs_outputs.push_back(_obs_output_last_conf_bin);
 	}
@@ -252,7 +254,7 @@ void SimBackend::get_settings(input_file &inp) {
 	if(getInputLLInt(&inp, "print_reduced_conf_every", &reduced_conf_every, 0) == KEY_FOUND && reduced_conf_every > 0) {
 		getInputString(&inp, "reduced_conf_output_dir", _reduced_conf_output_dir, 1);
 		fake = Utils::sformat("{\n\tname = reduced_conf.dat\n\tprint_every = %lld\n\tonly_last = 1\n}\n", reduced_conf_every);
-		_obs_output_reduced_conf = std::make_shared<ObservableOutput>(fake, inp);
+		_obs_output_reduced_conf = std::make_shared<ObservableOutput>(fake);
 		_obs_output_reduced_conf->add_observable("type = configuration\nreduced = true");
 		_obs_outputs.push_back(_obs_output_reduced_conf);
 	}
@@ -263,7 +265,7 @@ void SimBackend::get_settings(input_file &inp) {
 		int tmp1 = getInputString(&inp, "checkpoint_trajectory", _checkpoint_traj, 0);
 		if(tmp1 == KEY_FOUND) {
 			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
-			_obs_output_checkpoints = std::make_shared<ObservableOutput>(fake, inp);
+			_obs_output_checkpoints = std::make_shared<ObservableOutput>(fake);
 			_obs_output_checkpoints->add_observable("type = checkpoint");
 			_obs_outputs.push_back(_obs_output_checkpoints);
 			OX_LOG(Logger::LOG_INFO, "Setting up a trajectory of checkpoints to file %s every %lld steps",_checkpoint_traj.c_str(), checkpoint_every);
@@ -272,7 +274,7 @@ void SimBackend::get_settings(input_file &inp) {
 		int tmp2 = getInputString(&inp, "checkpoint_file", _checkpoint_file, 0);
 		if(tmp2 == KEY_FOUND) {
 			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
-			_obs_output_last_checkpoint = std::make_shared<ObservableOutput>(fake, inp);
+			_obs_output_last_checkpoint = std::make_shared<ObservableOutput>(fake);
 			_obs_output_last_checkpoint->add_observable("type = checkpoint");
 			_obs_outputs.push_back(_obs_output_last_checkpoint);
 			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);

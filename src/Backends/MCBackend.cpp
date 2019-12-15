@@ -76,7 +76,7 @@ void MCBackend::get_settings(input_file &inp) {
 	// we build the default stream of observables;
 	// we build a helper string for that
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n}\n", energy_file, print_every);
-	_obs_output_file = std::make_shared<ObservableOutput>(fake, inp);
+	_obs_output_file = std::make_shared<ObservableOutput>(fake);
 	_obs_output_file->add_observable("type = step");
 	_obs_output_file->add_observable("type = potential_energy");
 	if(_ensemble == MC_ENSEMBLE_NPT) _obs_output_file->add_observable("type = density");
@@ -88,7 +88,7 @@ void MCBackend::get_settings(input_file &inp) {
 	getInputBoolAsInt(&inp, "no_stdout_energy", &no_stdout_energy, 0);
 	if(!no_stdout_energy) {
 		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n}\n", "stdout", print_every);
-		_obs_output_stdout = std::make_shared<ObservableOutput>(fake, inp);
+		_obs_output_stdout = std::make_shared<ObservableOutput>(fake);
 		_obs_outputs.push_back(_obs_output_stdout);
 		_obs_output_stdout->add_observable("type = step");
 		_obs_output_stdout->add_observable("type = potential_energy");
