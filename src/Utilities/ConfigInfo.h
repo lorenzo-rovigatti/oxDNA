@@ -15,10 +15,11 @@
 #include <string>
 #include <memory>
 
- class IBaseInteraction;
- class BaseParticle;
- class BaseList;
- class BaseBox;
+class IBaseInteraction;
+class BaseParticle;
+class BaseList;
+class BaseBox;
+class input_file;
 
 /**
  * @brief Utility class. It is used by observables to have access to SimBackend's private members.
@@ -79,6 +80,8 @@ public:
 
 	/// Current simulation step
 	long long int curr_step;
+
+	input_file *sim_input;
 };
 
 

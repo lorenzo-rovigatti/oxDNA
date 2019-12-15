@@ -93,7 +93,7 @@ void AnalysisBackend::get_settings(input_file &inp) {
 		ss << "analysis_data_output_" << i;
 		string obs_string;
 		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
-			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string, inp);
+			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string);
 			_obs_outputs.push_back(new_obs_out);
 		}
 		else found = false;

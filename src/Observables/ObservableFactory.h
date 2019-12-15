@@ -31,7 +31,7 @@ public:
 	 * @return pointer to the newly created observable
 	 */
 
-	static ObservablePtr make_observable(input_file &obs_inp, input_file &sim_inp);
+	static ObservablePtr make_observable(input_file &obs_inp);
 };
 
 #endif /* OBSERVABLEFACTORY_H_ */

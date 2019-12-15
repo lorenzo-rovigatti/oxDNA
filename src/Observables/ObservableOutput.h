@@ -54,7 +54,6 @@ protected:
 	std::string _prefix;
 	std::string _output_name;
 	std::string _base_name;
-	input_file _sim_inp;
 	bool _linear;
 	int _log_ppc;
 	int _log_n0;
@@ -77,7 +76,7 @@ public:
 	 * @param stream_string a string containing all the key=values lines related to the object and to its associated observables
 	 * @param sim_inp simulation input file
 	 */
-	ObservableOutput(std::string &stream_string, input_file &sim_inp);
+	ObservableOutput(std::string &stream_string);
 	virtual ~ObservableOutput();
 
 	/**
