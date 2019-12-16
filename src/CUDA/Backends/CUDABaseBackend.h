@@ -57,7 +57,7 @@ protected:
 	/// It is stored in pinned memory, i.e. on the host but it can be accessed directly from the device
 	bool *_d_are_lists_old;
 
-	CUDABaseInteraction*_cuda_interaction;
+	std::shared_ptr<CUDABaseInteraction> _cuda_interaction = nullptr;
 
 	virtual void _host_to_gpu();
 	virtual void _gpu_to_host();

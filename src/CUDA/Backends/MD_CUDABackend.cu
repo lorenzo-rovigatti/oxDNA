@@ -156,20 +156,23 @@ void MD_CUDABackend::_host_particles_to_gpu() {
 			this->_h_orientations[i].x = (p->orientation.v3.y-p->orientation.v2.z)*s;
 			this->_h_orientations[i].y = (p->orientation.v1.z-p->orientation.v3.x)*s;
 			this->_h_orientations[i].z = (p->orientation.v2.x-p->orientation.v1.y)*s;
-		} else {    //Finding largest diagonal element
+		}
+		else {    //Finding largest diagonal element
 			if ( (p->orientation.v1.x > p->orientation.v2.y) && (p->orientation.v1.x > p->orientation.v3.z) ) { 
 				c_number s = .5/sqrt(1+p->orientation.v1.x-p->orientation.v2.y-p->orientation.v3.z);
 				this->_h_orientations[i].w = (p->orientation.v3.y-p->orientation.v2.z)*s;
 				this->_h_orientations[i].x = .25/s;
 				this->_h_orientations[i].y = (p->orientation.v1.y+p->orientation.v2.x)*s;
 				this->_h_orientations[i].z = (p->orientation.v1.z+p->orientation.v3.x)*s;
-			} else if (p->orientation.v2.y > p->orientation.v3.z) {
+			}
+			else if (p->orientation.v2.y > p->orientation.v3.z) {
 				c_number s = .5/sqrt(1+p->orientation.v2.y-p->orientation.v1.x-p->orientation.v3.z);
 				this->_h_orientations[i].w = (p->orientation.v1.z-p->orientation.v3.x)*s;
 				this->_h_orientations[i].x = (p->orientation.v1.y+p->orientation.v2.x)*s;
 				this->_h_orientations[i].y = .25/s;
 				this->_h_orientations[i].z = (p->orientation.v2.z+p->orientation.v3.y)*s;
-			} else {
+			}
+			else {
 				c_number s = .5/sqrt(1+p->orientation.v3.z-p->orientation.v1.x-p->orientation.v2.y);
 				this->_h_orientations[i].w = (p->orientation.v2.x-p->orientation.v1.y)*s;
 				this->_h_orientations[i].x = (p->orientation.v1.z+p->orientation.v3.x)*s;
