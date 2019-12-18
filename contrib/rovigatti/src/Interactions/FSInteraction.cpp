@@ -370,7 +370,8 @@ void FSInteraction::_parse_bond_file(BaseParticle **particles) {
 		idx--;
 		CustomParticle *p = static_cast<CustomParticle *>(particles[idx]);
 		p->n3 = p->n5 = P_VIRTUAL;
-		p->btype = n_bonds;
+		// CUDA backend's get_particle_btype will return btype % 4
+		p->btype = 4 + n_bonds;
 		for(int j = 0; j < n_bonds; j++) {
 			int n_idx;
 			bond_file >> n_idx;

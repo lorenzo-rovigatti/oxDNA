@@ -113,8 +113,8 @@ __device__ bool _attraction_allowed(int p_type, int q_type) {
 }
 
 __device__ void _patchy_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &a1, c_number4 &a2, c_number4 &a3, c_number4 &b1, c_number4 &b2, c_number4 &b3, c_number4 &F, c_number4 &torque, CUDA_FS_bond_list<c_number4> *bonds, int q_idx, CUDABox *box) {
-	int ptype = get_particle_type(ppos);
-	int qtype = get_particle_type(qpos);
+	int ptype = get_particle_btype(ppos);
+	int qtype = get_particle_btype(qpos);
 
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
@@ -264,14 +264,13 @@ __device__ void _fene(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *b
 }
 
 // bonded forces
-
 __global__ void FS_bonded_forces(c_number4 *poss, c_number4 *forces, int *bonded_neighs, CUDABox *box) {
 	if(IND >= MD_N_in_polymers[0]) return;
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
 	// this is set in the _parse_bond_file method of FSInteraction
-	int n_bonded_neighs = get_particle_btype(ppos);
+	int n_bonded_neighs = get_particle_btype(ppos) - 4;
 
 	for(int i = 0; i < n_bonded_neighs; i++) {
 		int n_idx = bonded_neighs[MD_N[0] * i + IND];
@@ -283,7 +282,6 @@ __global__ void FS_bonded_forces(c_number4 *poss, c_number4 *forces, int *bonded
 }
 
 // forces + second step without lists
-
 __global__ void FS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *three_body_forces, c_number4 *torques, c_number4 *three_body_torques, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
@@ -300,7 +298,8 @@ __global__ void FS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 		if(j != IND) {
 			c_number4 qpos = poss[j];
 
-			if(get_particle_type(ppos) != FSInteraction::POLYMER && get_particle_type(qpos) != FSInteraction::POLYMER) {
+			// type == 0 and 1 are for particles of type patchy-A and patchy-B, respectively
+			if(get_particle_btype(ppos) < 2 && get_particle_btype(qpos) < 2) {
 				GPU_quat qo = orientations[j];
 				get_vectors_from_quat(qo, b1, b2, b3);
 				_patchy_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
@@ -318,7 +317,6 @@ __global__ void FS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 }
 
 // forces + second step with verlet lists
-
 __global__ void FS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *three_body_forces, c_number4 *torques, c_number4 *three_body_torques, int *matrix_neighs, int *c_number_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
@@ -337,7 +335,8 @@ __global__ void FS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 
 		c_number4 qpos = poss[k_index];
 
-		if(get_particle_type(ppos) != FSInteraction::POLYMER && get_particle_type(qpos) != FSInteraction::POLYMER) {
+		// type == 0 and 1 are for particles of type patchy-A and patchy-B, respectively
+		if(get_particle_btype(ppos) < 2 && get_particle_btype(qpos) < 2) {
 			GPU_quat qo = orientations[k_index];
 			get_vectors_from_quat(qo, b1, b2, b3);
 			_patchy_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, k_index, box);
@@ -449,8 +448,9 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 
 		CUDA_SAFE_CALL(cudaMemcpy(_d_bonded_neighs, h_bonded_neighs, n_elems * sizeof(int), cudaMemcpyHostToDevice));
 		delete[] h_bonded_neighs;
-		for(int i = 0; i < N; i++)
+		for(int i = 0; i < N; i++) {
 			delete particles[i];
+		}
 		delete[] particles;
 	}
 
@@ -562,13 +562,14 @@ void CUDAFSInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, G
 			CUT_CHECK_ERROR("FS_forces simple_lists error");
 		}
 	}
-
-	CUDANoList *_no_lists = dynamic_cast<CUDANoList *>(lists);
-	if(_no_lists != NULL) {
-		FS_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, d_box);
-		CUT_CHECK_ERROR("FS_forces no_lists error");
+	else {
+		CUDANoList *_no_lists = dynamic_cast<CUDANoList *>(lists);
+		if(_no_lists != NULL) {
+			FS_forces
+				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, d_box);
+			CUT_CHECK_ERROR("FS_forces no_lists error");
+		}
 	}
 
 	// add the three body contributions to the two-body forces and torques
