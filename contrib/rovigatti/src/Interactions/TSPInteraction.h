@@ -2,11 +2,13 @@
 #define TSP_INTERACTION_H
 
 #include <vector>
-#include "BaseInteraction.h"
-#include "../Particles/TSPParticle.h"
-#include "../Lists/Cells.h"
+#include "Interactions/BaseInteraction.h"
+#include "Particles/BaseParticle.h"
+#include "Lists/Cells.h"
 
 #define MAX_INSERTION_TRIES 1000000
+
+class TSPParticle;
 
 /**
  * @brief Handles interactions between TSPs.
@@ -27,7 +29,6 @@
  [TSP_only_intra = <bool> (if true monomers belonging to different stars will not interact. Defaults to false)]
  @endverbatim
  */
-
 class TSPInteraction: public BaseInteraction<TSPInteraction> {
 protected:
 	number _rfene, _sqr_rfene;
@@ -88,5 +89,28 @@ public:
 		_only_intra = value;
 	}
 };
+
+class TSPParticle: public BaseParticle {
+protected:
+	bool _is_anchor;
+	int _arm;
+
+public:
+	TSPParticle();
+	virtual ~TSPParticle();
+
+	virtual bool is_rigid_body() { return false; }
+	virtual bool is_bonded(BaseParticle *q);
+	virtual bool is_anchor() { return _is_anchor; }
+	virtual int arm() { return _arm; }
+
+	virtual void add_bonded_neigh(TSPParticle *nn);
+	virtual void flag_as_anchor() { _is_anchor = true; }
+	virtual void set_arm(int na) { _arm = na; }
+
+	std::set<TSPParticle *> bonded_neighs;
+};
+
+extern "C" TSPInteraction *make_TSPInteraction();
 
 #endif /* TSP_INTERACTION_H */

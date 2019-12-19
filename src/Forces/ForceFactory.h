@@ -26,13 +26,13 @@
 
 class ForceFactory {
 private:
-	static ForceFactory * _ForceFactoryPtr;
+	static std::shared_ptr<ForceFactory> _ForceFactoryPtr;
 	ForceFactory();
 
 public:
 	virtual ~ForceFactory();
 
-	static ForceFactory *instance();
+	static std::shared_ptr<ForceFactory>  instance();
 
 	/**
 	 * @brief Produces and adds the force specified in the input file inp to the right particles.
@@ -47,7 +47,6 @@ public:
 
 	/// adds forces. Used by SimBackend and GeneratorManager
 	void read_external_forces(std::string external_filename, BaseParticle ** particles, int N, bool is_CUDA, BaseBox * box_ptr);
-	void clear();
 };
 
 #endif /* FORCEFACTORY_H_ */

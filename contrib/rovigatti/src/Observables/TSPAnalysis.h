@@ -9,7 +9,7 @@
 #define TSPANALYSIS_H_
 
 #include "Observables/BaseObservable.h"
-#include "Particles/TSPParticle.h"
+#include "../Interactions/TSPInteraction.h"
 
 #include <vector>
 #include <map>

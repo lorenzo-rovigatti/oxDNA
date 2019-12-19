@@ -34,11 +34,11 @@ std::string TEPPlectonemePosition::get_output_string(llint curr_step) {
 	int left_max_size = -1;
 	int left_max_plectoneme_start = -1;
 	int left_max_plectoneme_end = -1;
-	for(int i = 0; i < *this->_config_info.N - _bead_minimum_distance; ++i) {
+	for(int i = 0; i < *_config_info->N - _bead_minimum_distance; ++i) {
 		int cur_plecto_start = -1;
 		int cur_plecto_end = -1;
-		for(int j = i + _bead_minimum_distance; j < *this->_config_info.N; ++j) {
-			LR_vector cur_distvec = this->_config_info.particles[j]->pos - this->_config_info.particles[i]->pos;
+		for(int j = i + _bead_minimum_distance; j < *_config_info->N; ++j) {
+			LR_vector cur_distvec = _config_info->particles[j]->pos - _config_info->particles[i]->pos;
 			if(cur_distvec.module() < _distance_threshold) {
 				if(cur_plecto_start == -1) cur_plecto_start = i;
 			}
@@ -61,11 +61,11 @@ std::string TEPPlectonemePosition::get_output_string(llint curr_step) {
 	int right_max_size = -1;
 	int right_max_plectoneme_start = -1;
 	int right_max_plectoneme_end = -1;
-	for(int i = *this->_config_info.N - _bead_minimum_distance; i >= 0; --i) {
+	for(int i = *_config_info->N - _bead_minimum_distance; i >= 0; --i) {
 		int cur_plecto_start = -1;
 		int cur_plecto_end = -1;
 		for(int j = i - _bead_minimum_distance; j >= 0; --j) {
-			LR_vector cur_distvec = this->_config_info.particles[j]->pos - this->_config_info.particles[i]->pos;
+			LR_vector cur_distvec = _config_info->particles[j]->pos - _config_info->particles[i]->pos;
 			if(cur_distvec.module() < _distance_threshold) {
 				if(cur_plecto_start == -1) cur_plecto_start = i;
 			}
@@ -118,8 +118,8 @@ std::string TEPPlectonemePosition::get_output_string(llint curr_step) {
 	if(_print_pos) {
 		int idx = round(plecto_pos);
 		LR_vector pos(0., 0., 0.);
-		if(idx > 0 && idx < *this->_config_info.N) {
-			BaseParticle *p = this->_config_info.particles[idx];
+		if(idx > 0 && idx < *_config_info->N) {
+			BaseParticle *p = _config_info->particles[idx];
 			pos = p->pos;
 		}
 		ss << " " << pos.x << " " << pos.y << " " << pos.z;

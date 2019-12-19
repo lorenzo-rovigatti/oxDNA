@@ -31,14 +31,12 @@ void IBaseInteraction::get_settings(input_file &inp) {
 }
 
 int IBaseInteraction::get_N_from_topology() {
-	char line[512];
 	std::ifstream topology;
 	topology.open(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
-	topology.getline(line, 512);
-	topology.close();
 	int ret;
-	sscanf(line, "%d %*d\n", &ret);
+	topology >> ret;
+	topology.close();
 	return ret;
 }
 

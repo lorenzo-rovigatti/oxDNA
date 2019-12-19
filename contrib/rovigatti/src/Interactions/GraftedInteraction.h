@@ -11,7 +11,7 @@
 #define P_COLLOID 2
 
 #include "Interactions/BaseInteraction.h"
-#include "Interactions/TSPInteraction.h"
+#include "TSPInteraction.h"
 
 /**
  * @brief Handles the interaction between coarse-grained DNA tetramers.

@@ -39,12 +39,12 @@ void Pitch::get_settings(input_file &my_inp, input_file &sim_inp) {
 std::string Pitch::get_output_string(llint curr_step) {
 	std::stringstream output_str;
 
-	BaseParticle *bp1a = this->_config_info.particles[_bp1a_id];
-	BaseParticle *bp1b = this->_config_info.particles[_bp1b_id];
-	BaseParticle *bp2a = this->_config_info.particles[_bp2a_id];
-	BaseParticle *bp2b = this->_config_info.particles[_bp2b_id];
+	BaseParticle *bp1a = _config_info->particles[_bp1a_id];
+	BaseParticle *bp1b = _config_info->particles[_bp1b_id];
+	BaseParticle *bp2a = _config_info->particles[_bp2a_id];
+	BaseParticle *bp2b = _config_info->particles[_bp2b_id];
 
-	BaseBox * mybox = this->_config_info.box;
+	BaseBox * mybox = _config_info->box;
 
 	// base-base vector for each base pair; vector from a to b
 	LR_vector bp1_rbase = mybox->min_image(bp1a->pos, bp1b->pos) + bp1b->int_centers[DNANucleotide::BASE] - bp1a->int_centers[DNANucleotide::BASE];

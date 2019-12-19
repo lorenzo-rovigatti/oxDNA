@@ -225,7 +225,7 @@ void MD_CPUBackend::sim_step(llint curr_step) {
 	this->_timer_forces->pause();
 
 	this->_timer_thermostat->resume();
-	_thermostat->apply(this->_particles, curr_step);
+	_thermostat->apply(_particles.data(), curr_step);
 	this->_timer_thermostat->pause();
 
 	this->_mytimer->pause();

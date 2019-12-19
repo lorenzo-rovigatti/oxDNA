@@ -31,7 +31,7 @@ std::string BinaryConfiguration::_headers(llint step) {
 	// print out the number
 	headers.write((char *) rndseed, 3 * sizeof(unsigned short));
 
-	LR_vector my_box_sides(this->_config_info.box->box_sides().x, this->_config_info.box->box_sides().y, this->_config_info.box->box_sides().z);
+	LR_vector my_box_sides(_config_info->box->box_sides().x, _config_info->box->box_sides().y, _config_info->box->box_sides().z);
 	headers.write((char *) (&my_box_sides.x), sizeof(double));
 	headers.write((char *) (&my_box_sides.y), sizeof(double));
 	headers.write((char *) (&my_box_sides.z), sizeof(double));
@@ -49,8 +49,8 @@ std::string BinaryConfiguration::_headers(llint step) {
 std::string BinaryConfiguration::_configuration(llint step) {
 	std::stringstream conf;
 
-	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+	for(int i = 0; i < *_config_info->N; i++) {
+		BaseParticle *p = _config_info->particles[i];
 
 		LR_vector mypos(p->pos.x, p->pos.y, p->pos.z);
 
@@ -107,8 +107,8 @@ std::string BinaryConfiguration::_configuration(llint step) {
 
 	// renormalization part
 	/* 
-	 for(int i = 0; i < *this->_config_info.N; i++) {
-	 BaseParticle *p = this->_config_info.particles[i];
+	 for(int i = 0; i < *_config_info->N; i++) {
+	 BaseParticle *p = _config_info->particles[i];
 
 	 LR_matrix oT = p->orientation.get_transpose();
 

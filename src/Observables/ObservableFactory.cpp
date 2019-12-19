@@ -57,7 +57,7 @@
 #include "Configurations/TEPxyzOutput.h"
 #include "Configurations/JordanOutput.h"
 
-ObservablePtr ObservableFactory::make_observable(input_file &obs_inp, input_file &sim_inp) {
+ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	char obs_type[512];
 	getInputString(&obs_inp, "type", obs_type, 1);
 
@@ -114,7 +114,7 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp, input_file
 		if(res == NULL) throw oxDNAException("Observable '%s' not found. Aborting", obs_type);
 	}
 
-	res->get_settings(obs_inp, sim_inp);
+	res->get_settings(obs_inp, *(CONFIG_INFO->sim_input));
 
 	return res;
 }

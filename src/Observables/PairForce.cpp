@@ -33,7 +33,7 @@ std::string PairForce::get_output_string(llint curr_step) {
 	std::stringstream output_str;
 	output_str << "#id1 id2 force.x force.y force.z torque.x torque.y torque.z, t = " << curr_step << "\n";
 
-	std::vector<ParticlePair> neighbour_pairs = this->_config_info.lists->get_potential_interactions();
+	std::vector<ParticlePair> neighbour_pairs = _config_info->lists->get_potential_interactions();
 
 	for(int i = 0; i < (int) neighbour_pairs.size(); i++) {
 		p = neighbour_pairs[i].first;
@@ -54,7 +54,7 @@ std::string PairForce::get_output_string(llint curr_step) {
 		p->torque = LR_vector(0.0f, 0.0f, 0.0f);
 		q->torque = LR_vector(0.0f, 0.0f, 0.0f);
 
-		number pq_interaction = this->_config_info.interaction->pair_interaction(q, p, NULL, true);
+		number pq_interaction = _config_info->interaction->pair_interaction(q, p, NULL, true);
 		if(pq_interaction != (number) 0.f) {
 			pair_string << p->index << " " << q->index;
 			pair_string << " " << p->force.x << " " << p->force.y << " " << p->force.z << " " << p->torque.x << " " << p->torque.y << " " << p->torque.z << "\n";

@@ -30,7 +30,7 @@
 
 using namespace std;
 
-ForceFactory * ForceFactory::_ForceFactoryPtr = NULL;
+std::shared_ptr<ForceFactory> ForceFactory::_ForceFactoryPtr = nullptr;
 
 ForceFactory::ForceFactory() {
 
@@ -40,8 +40,11 @@ ForceFactory::~ForceFactory() {
 
 }
 
-ForceFactory *ForceFactory::instance() {
-	if(_ForceFactoryPtr == NULL) _ForceFactoryPtr = new ForceFactory();
+std::shared_ptr<ForceFactory> ForceFactory::instance() {
+	// we can't use std::make_shared because ForceFactory's constructor is private
+	if(_ForceFactoryPtr == nullptr) {
+		_ForceFactoryPtr = std::shared_ptr<ForceFactory>(new ForceFactory());
+	}
 
 	return _ForceFactoryPtr;
 }
@@ -149,10 +152,4 @@ void ForceFactory::read_external_forces(std::string external_filename, BaseParti
 		fclose (temp);
 	}
 	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());
-}
-
-void ForceFactory::clear() {
-	if(_ForceFactoryPtr != NULL) delete _ForceFactoryPtr; // this if is to make oxDNA not segfault if an exception is thrown in the code
-
-	return;
 }

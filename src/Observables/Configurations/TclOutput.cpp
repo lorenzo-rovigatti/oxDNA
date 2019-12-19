@@ -45,7 +45,7 @@ std::string TclOutput::_headers(llint step) {
 	double _box_radius = 0.1;
 	int _box_resolution = _resolution;
 
-	number mybox = this->_config_info.box->box_sides()[0];
+	number mybox = _config_info->box->box_sides()[0];
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
@@ -70,7 +70,7 @@ std::string TclOutput::_particle(BaseParticle *p) {
 	next = reinterpret_cast<DNANucleotide *>(p->n5);
 
 	LR_vector zero(0., 0., 0.);
-	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = this->_config_info.particles[_ref_particle_id]->pos;
+	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = _config_info->particles[_ref_particle_id]->pos;
 	if(_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_strands_cdm[_ref_strand_id];
 
 	// set the colour according to the strand id
@@ -80,12 +80,12 @@ std::string TclOutput::_particle(BaseParticle *p) {
 
 	res << "graphics 0 color " << colorid << std::endl;
 
-	//number mybox = *this->_config_info.box_side;
+	//number mybox = *_config_info->box_side;
 	LR_vector my_strand_cdm = this->_strands_cdm[me->strand_id];
 	LR_vector origin(0., 0., 0.);
 	origin = zero;
-	LR_vector back = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[0];
-	LR_vector base = (me->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + me->int_centers[2];
+	LR_vector back = (me->pos - my_strand_cdm) + _config_info->box->min_image(origin, my_strand_cdm) + me->int_centers[0];
+	LR_vector base = (me->pos - my_strand_cdm) + _config_info->box->min_image(origin, my_strand_cdm) + me->int_centers[2];
 
 	if(_print_labels && p->n5 != P_VIRTUAL && p->n3 == P_VIRTUAL) res << "graphics 0 text {" << back.x << " " << back.y << " " << back.z << "} \"" << me->strand_id << "\" size 1.5 " << std::endl;
 
@@ -97,14 +97,14 @@ std::string TclOutput::_particle(BaseParticle *p) {
 	res << "graphics 0 cylinder {" << base.x << " " << base.y << " " << base.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backbase_radius << " resolution " << _resolution << " filled yes" << std::endl;
 
 	if(next != P_VIRTUAL) {
-		LR_vector nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0];
+		LR_vector nextback = (next->pos - my_strand_cdm) + _config_info->box->min_image(origin, my_strand_cdm) + next->int_centers[0];
 		res << "graphics 0 cylinder {" << nextback.x << " " << nextback.y << " " << nextback.z << "} {" << back.x << " " << back.y << " " << back.z << "} radius " << _backback_radius << " resolution " << _resolution << " filled yes" << std::endl;
 	}
 	else {
 		// we draw the cone
 		if(me->n3 != P_VIRTUAL) {
 			next = reinterpret_cast<DNANucleotide *>(me->n3);
-			LR_vector nextback = (next->pos - my_strand_cdm) + this->_config_info.box->min_image(origin, my_strand_cdm) + next->int_centers[0];
+			LR_vector nextback = (next->pos - my_strand_cdm) + _config_info->box->min_image(origin, my_strand_cdm) + next->int_centers[0];
 			LR_vector dir = back - nextback;
 			LR_vector start = back;
 			LR_vector end = back + dir * (2.75 / 3.);
@@ -126,7 +126,7 @@ std::string TclOutput::_configuration(llint step) {
 	//return Configuration::_configuration(step);
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << std::endl;
-		BaseParticle *p = this->_config_info.particles[*it];
+		BaseParticle *p = _config_info->particles[*it];
 		conf << _particle(p);
 	}
 	return conf.str();

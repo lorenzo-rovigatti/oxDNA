@@ -87,7 +87,7 @@ void VMMC_CPUBackend::init() {
 	}
 
 	if(_have_us) {
-		_op.init_from_file(_op_file, this->_particles, this->_N);
+		_op.init_from_file(_op_file, _particles.data(), this->_N);
 		_w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);
 		if(_reload_hist) _h.init(_init_hist_file, &_op, _etemps, _netemps);
 		else _h.init(&_op, _etemps, _netemps);
@@ -1428,7 +1428,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 			pprime *= exp(-(1. / this->_T) * delta_E_ext);
 		}
 
-		_op.fill_distance_parameters(this->_particles, this->_box.get());
+		_op.fill_distance_parameters(_particles.data(), _box.get());
 
 		windex = oldwindex;
 		weight = oldweight;
@@ -1601,7 +1601,7 @@ void VMMC_CPUBackend::check_ops() {
 			}
 		}
 	}
-	_op.fill_distance_parameters(this->_particles, this->_box.get());
+	_op.fill_distance_parameters(_particles.data(), _box.get());
 
 	int * new_state = _op.get_all_states();
 	int check = 0;
@@ -1657,7 +1657,7 @@ void VMMC_CPUBackend::_update_ops() {
 	}
 
 	// distances
-	_op.fill_distance_parameters(this->_particles, this->_box.get());
+	_op.fill_distance_parameters(_particles.data(), _box.get());
 
 	//exit(-1);
 	return;
@@ -1889,7 +1889,7 @@ void VMMC_CPUBackend::fix_diffusion() {
 			}
 		}
 	}
-	_op.fill_distance_parameters(this->_particles, this->_box.get());
+	_op.fill_distance_parameters(_particles.data(), _box.get());
 
 	int * new_state = _op.get_all_states();
 

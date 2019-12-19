@@ -22,13 +22,13 @@ std::string StrandwiseBonds::get_output_string(llint curr_step) {
 	outstr << "# step " << curr_step << "\n";
 
 	std::map<std::pair<int, int>, int> hbmap;
-	std::vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
+	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 	typename std::vector<ParticlePair>::iterator it;
 	for(it = pairs.begin(); it != pairs.end(); it++) {
 		BaseParticle * p = (*it).first;
 		BaseParticle * q = (*it).second;
 		if(p->strand_id < q->strand_id) {
-			number ene = this->_config_info.interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
+			number ene = _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 			if(ene < HB_CUTOFF) {
 				std::pair<int, int> k(p->strand_id, q->strand_id);
 				if(hbmap.count(k) == 0) hbmap[k] = 1;

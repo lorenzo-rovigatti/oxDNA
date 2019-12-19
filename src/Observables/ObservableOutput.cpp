@@ -14,20 +14,20 @@
 
 using namespace std;
 
-ObservableOutput::ObservableOutput(std::string &stream_string, input_file &sim_inp) :
+ObservableOutput::ObservableOutput(std::string &stream_string) :
 				_prefix("") {
-	_sim_inp = sim_inp;
 	_start_from = 0;
 	_stop_at = -1;
 	_bytes_written = 0;
 	_output_name = std::string("");
 	input_file *obs_input = Utils::get_input_file_from_string(stream_string);
+	input_file *sim_inp = CONFIG_INFO->sim_input;
 
 	string out_name;
 	getInputString(obs_input, "name", out_name, 1);
 	// the prefix should be used only when the output is nor stdout nor stderr
 	if(out_name != "stdout" && out_name != "stderr") {
-		getInputString(&sim_inp, "output_prefix", _prefix, 0);
+		getInputString(sim_inp, "output_prefix", _prefix, 0);
 	}
 	//sprintf(_output_name, "%s%s", _prefix.c_str(), out_name.c_str());
 	_output_name = _prefix + out_name;
@@ -36,7 +36,7 @@ ObservableOutput::ObservableOutput(std::string &stream_string, input_file &sim_i
 	getInputLLInt(obs_input, "stop_at", &_stop_at, 0);
 
 	int restart_step_counter = 0;
-	getInputBoolAsInt(&sim_inp, "restart_step_counter", &restart_step_counter, 0);
+	getInputBoolAsInt(sim_inp, "restart_step_counter", &restart_step_counter, 0);
 	_append = !restart_step_counter;
 
 	_only_last = 0;
@@ -134,7 +134,7 @@ void ObservableOutput::clear() {
 void ObservableOutput::add_observable(std::string obs_string) {
 	input_file *obs_inp = Utils::get_input_file_from_string(obs_string);
 
-	ObservablePtr new_obs = ObservableFactory::make_observable(*obs_inp, _sim_inp);
+	ObservablePtr new_obs = ObservableFactory::make_observable(*obs_inp);
 	_obss.push_back(new_obs);
 
 	cleanInputFile(obs_inp);

@@ -50,7 +50,7 @@ std::string TEPtclOutput::_headers(llint step) {
 	double _box_radius = 0.1;
 	int _box_resolution = _resolution;
 
-	number mybox = this->_config_info.box->box_sides()[0];
+	number mybox = _config_info->box->box_sides()[0];
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} {" << mybox / 2. << " " << -mybox / 2. << " " << mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
 	headers << "graphics 0 cylinder {" << -mybox / 2. << " " << mybox / 2. << " " << -mybox / 2. << "} {" << -mybox / 2. << " " << -mybox / 2. << " " << -mybox / 2. << "} radius " << _box_radius << " resolution " << _box_resolution << " filled yes" << std::endl;
@@ -75,7 +75,7 @@ std::string TEPtclOutput::_particle(BaseParticle *p) {
 	//next = reinterpret_cast<TEPParticle *> (p->n5);
 
 	LR_vector zero(0., 0., 0.);
-	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = this->_config_info.particles[_ref_particle_id]->pos;
+	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = _config_info->particles[_ref_particle_id]->pos;
 	if(_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_strands_cdm[_ref_strand_id];
 
 	// set the colour according to the strand id
@@ -84,7 +84,7 @@ std::string TEPtclOutput::_particle(BaseParticle *p) {
 	colorid = colorid % 33;
 
 	res << "graphics 0 color " << colorid << std::endl;
-	BaseBox * mybox = this->_config_info.box;
+	BaseBox * mybox = _config_info->box;
 	LR_vector my_strand_cdm = this->_strands_cdm[me->strand_id];
 	LR_vector origin(0., 0., 0.);
 	origin = zero;
@@ -114,7 +114,7 @@ std::string TEPtclOutput::_configuration(llint step) {
 	//return Configuration::_configuration(step);
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << std::endl;
-		BaseParticle *p = this->_config_info.particles[*it];
+		BaseParticle *p = _config_info->particles[*it];
 		conf << _particle(p);
 	}
 	return conf.str();

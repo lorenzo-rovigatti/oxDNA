@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "Interactions/BaseInteraction.h"
-#include "Particles/TSPParticle.h"
 #include "Lists/Cells.h"
 
 #include <numeric>

@@ -14,7 +14,6 @@
 #include "CUDADNAInteraction.h"
 #include "CUDALJInteraction.h"
 #include "CUDAPatchyInteraction.h"
-#include "CUDATSPInteraction.h"
 #include "CUDATEPInteraction.h"
 #include "CUDARNAInteraction.h"
 
@@ -37,7 +36,6 @@ std::shared_ptr<CUDABaseInteraction> CUDAInteractionFactory::make_interaction(in
 	else if(!inter_type.compare("RNA") || !inter_type.compare("RNA2")  ) return std::make_shared<CUDARNAInteraction>();
 	else if(!inter_type.compare("LJ")) return std::make_shared<CUDALJInteraction>();
 	else if(!inter_type.compare("patchy")) return std::make_shared<CUDAPatchyInteraction>();
-	else if(!inter_type.compare("TSP")) return std::make_shared<CUDATSPInteraction>();
 	else if(inter_type.compare("TEP") == 0) return std::make_shared<CUDATEPInteraction>();
 	else {
 		std::string cuda_name(inter_type);

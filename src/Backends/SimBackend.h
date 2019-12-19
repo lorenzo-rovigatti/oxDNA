@@ -148,7 +148,7 @@ protected:
 	number _dU;
 
 	/// array of pointers to particle objects
-	BaseParticle **_particles;
+	std::vector<BaseParticle *> _particles;
 
 	/// object that stores pointers to a few important variables that need to be shared with other objects
 	ConfigInfo *_config_info;
@@ -176,7 +176,7 @@ protected:
 	 * @param binary whether conf_file is to be parsed in ascii or binary format
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool _read_next_configuration(bool binary = false);
+	bool _read_next_configuration(bool binary=false);
 
 	int _get_N_from_conf(std::ifstream &conf_input);
 
@@ -223,7 +223,7 @@ public:
 	 */
 	virtual void print_observables(llint curr_step);
 
-	virtual void print_conf(llint curr_step, bool reduced = false, bool only_last = false);
+	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
 
 	/**
 	 * @brief Performs a simulation step.
