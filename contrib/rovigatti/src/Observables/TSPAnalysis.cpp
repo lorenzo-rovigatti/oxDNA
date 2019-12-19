@@ -70,7 +70,7 @@ void TSPAnalysis::init(ConfigInfo &config_info) {
 	}
 
 	for(int i = 0; i < _N_stars; i++)
-		_stars[i].set_config_info(&this->_config_info);
+		_stars[i].set_config_info(_config_info);
 }
 
 string TSPAnalysis::get_output_string(llint curr_step) {
@@ -119,7 +119,7 @@ string TSPAnalysis::get_output_string(llint curr_step) {
 			typename map<int, Patch>::iterator it;
 			for(it = _stars[i].patches.begin(); it != _stars[i].patches.end(); it++) {
 				Patch &patch = it->second;
-				LR_vector rel_pos_1 = this->_config_info.box->min_image(patch.pos(), star_pos);
+				LR_vector rel_pos_1 = _config_info->box->min_image(patch.pos(), star_pos);
 				number dist_1 = sqrt(SQR(rel_pos_1));
 				avg_star_distance += dist_1;
 				avg_star_patch_size += patch.n_arms();
@@ -132,7 +132,7 @@ string TSPAnalysis::get_output_string(llint curr_step) {
 				for(jt = it; jt != _stars[i].patches.end(); jt++) {
 					if(it != jt) {
 						Patch &patch_2 = jt->second;
-						LR_vector rel_pos_2 = this->_config_info.box->min_image(patch_2.pos(), star_pos);
+						LR_vector rel_pos_2 = _config_info->box->min_image(patch_2.pos(), star_pos);
 						rel_pos_2 /= sqrt(SQR(rel_pos_2));
 						number angle = acos(rel_pos_1 * rel_pos_2);
 

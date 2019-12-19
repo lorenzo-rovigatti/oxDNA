@@ -45,10 +45,10 @@ void MicrogelElasticity::init(ConfigInfo &config_info) {
 
 LR_vector MicrogelElasticity::_com() {
 	LR_vector com;
-	int N = (_crosslinkers_only) ? _N_crosslinkers : *this->_config_info.N;
+	int N = (_crosslinkers_only) ? _N_crosslinkers : *_config_info->N;
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		com += this->_config_info.box->get_abs_pos(p);
+		BaseParticle *p = _config_info->particles[i];
+		com += _config_info->box->get_abs_pos(p);
 	}
 	return com / N;
 }
@@ -58,12 +58,12 @@ std::string MicrogelElasticity::get_output_string(llint curr_step) {
 
 	// Convex hull
 	LR_vector com = _com();
-	int N = (_crosslinkers_only) ? _N_crosslinkers : *this->_config_info.N;
+	int N = (_crosslinkers_only) ? _N_crosslinkers : *_config_info->N;
 
 	std::vector<qh_vertex_t> vertices(N);
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		LR_vector p_pos = this->_config_info.box->get_abs_pos(p) - com;
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector p_pos = _config_info->box->get_abs_pos(p) - com;
 
 		vertices[i].x = p_pos.x;
 		vertices[i].y = p_pos.y;

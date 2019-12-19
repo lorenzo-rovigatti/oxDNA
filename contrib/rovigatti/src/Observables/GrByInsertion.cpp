@@ -75,7 +75,7 @@ void GrByInsertion::init(ConfigInfo &config_info) {
 	}
 
 	for(int i = 0; i < *config_info.N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+		BaseParticle *p = _config_info->particles[i];
 		if(p->strand_id > 1) throw oxDNAException("The system should contain only two chains");
 		if(p->type != P_A && p->type != P_B) throw oxDNAException("Only particles of type A and B are allowed");
 		_particles[p->strand_id][p->type].push_back(p);
@@ -109,7 +109,7 @@ LR_vector GrByInsertion::_get_com(int chain, int type) {
 
 	typename vector<BaseParticle *>::iterator it;
 	for(it = _particles[chain][type].begin(); it != _particles[chain][type].end(); it++) {
-		res = this->_config_info.box->get_abs_pos(*it);
+		res = _config_info->box->get_abs_pos(*it);
 	}
 	res /= _particles[chain][type].size();
 
@@ -121,11 +121,11 @@ void GrByInsertion::_set_random_orientation(int chain) {
 
 	typename vector<BaseParticle *>::iterator it;
 	for(it = _particles[chain][0].begin(); it != _particles[chain][0].end(); it++) {
-		(*it)->pos = R * this->_config_info.box->get_abs_pos(*it);
+		(*it)->pos = R * _config_info->box->get_abs_pos(*it);
 	}
 	// we have to move the whole chain
 	for(it = _particles[chain][1].begin(); it != _particles[chain][1].end(); it++) {
-		(*it)->pos = R * this->_config_info.box->get_abs_pos(*it);
+		(*it)->pos = R * _config_info->box->get_abs_pos(*it);
 	}
 }
 
@@ -146,7 +146,7 @@ void GrByInsertion::_put_randomly_at_r(int chain, int type, LR_vector &r0, numbe
 }
 
 std::string GrByInsertion::get_output_string(llint curr_step) {
-	int N = *this->_config_info.N;
+	int N = *_config_info->N;
 	_n_conf++;
 
 	LR_vector coms[2][2];
@@ -154,8 +154,8 @@ std::string GrByInsertion::get_output_string(llint curr_step) {
 		for(int t = 0; t < 2; t++)
 			coms[c][t] = _get_com(c, t);
 
-	number ref_energy = this->_config_info.interaction->get_system_energy(this->_config_info.particles, N, this->_config_info.lists);
-	TSPInteraction *_TSP_inter = (TSPInteraction *) this->_config_info.interaction;
+	number ref_energy = _config_info->interaction->get_system_energy(_config_info->particles, N, _config_info->lists);
+	TSPInteraction *_TSP_inter = (TSPInteraction *) _config_info->interaction;
 	_TSP_inter->set_only_intra(false);
 	for(int i = 0; i < _n_bins; i++) {
 		number x0 = i * _bin + _min;
@@ -163,7 +163,7 @@ std::string GrByInsertion::get_output_string(llint curr_step) {
 			// random distance between x0 and x0+bin
 			number distance = pow(x0 * x0 * x0 + drand48() * (_bin * _bin * _bin + 3. * SQR(_bin) * x0 + 3. * _bin * SQR(x0)), 1. / 3.);
 			_put_randomly_at_r(1, _movable, coms[0][_fixed], distance);
-			number energy = _TSP_inter->get_system_energy(this->_config_info.particles, N, this->_config_info.lists);
+			number energy = _TSP_inter->get_system_energy(_config_info->particles, N, _config_info->lists);
 			// arbitrary threshold
 			if(energy < 10000.) {
 				number delta_E = energy - ref_energy;

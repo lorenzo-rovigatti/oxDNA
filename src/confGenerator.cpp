@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 		OX_DEBUG("Initializing");
 		mygenerator.init();
 
-		OX_LOG(Logger::LOG_INFO, "GIT CODE VERSION: %s", GIT_VERSION);
+		OX_LOG(Logger::LOG_INFO, "GIT COMMIT: %s", GIT_VERSION);
 		OX_LOG(Logger::LOG_INFO, "COMPILED ON: %s", BUILD_TIME);
 
 		OX_DEBUG("Running");

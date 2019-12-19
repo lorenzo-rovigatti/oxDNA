@@ -217,7 +217,7 @@ void VoidPercolation::init(ConfigInfo &config_info) {
 
 string VoidPercolation::get_output_string(llint curr_step) {
 	stringstream outstr;
-	LR_vector box = this->_config_info.box->box_sides();
+	LR_vector box = _config_info->box->box_sides();
 
 	_cells->global_update();
 	for(int i = 0; i < _insertions; i++) {
@@ -232,7 +232,7 @@ string VoidPercolation::get_output_string(llint curr_step) {
 			typename vector<BaseParticle *>::iterator it;
 			for(it = neighs.begin(); it != neighs.end() && !overlap; it++) {
 				BaseParticle *q = *it;
-				LR_vector dr = this->_config_info.box->min_image(_probe, q);
+				LR_vector dr = _config_info->box->min_image(_probe, q);
 				if(dr.norm() < _sqr_rcut) overlap = true;
 			}
 			tries++;

@@ -46,16 +46,16 @@ void ConstructwisePressure::init(ConfigInfo &info) {
 
 void ConstructwisePressure::update_pressure() {
 	fill(_construct_coms.begin(), _construct_coms.end(), LR_vector());
-	for(int i = 0; i < *this->_config_info.N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+	for(int i = 0; i < *_config_info->N; i++) {
+		BaseParticle *p = _config_info->particles[i];
 		int p_construct = p->index / _construct_size;
-		_construct_coms[p_construct] += this->_config_info.box->get_abs_pos(p);
+		_construct_coms[p_construct] += _config_info->box->get_abs_pos(p);
 	}
 	for(int i = 0; i < _N_constructs; i++) {
 		_construct_coms[i] /= _construct_size;
 	}
 
-	std::vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
+	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 
 	double virial = 0;
 	double energy = 0.;
@@ -68,7 +68,7 @@ void ConstructwisePressure::update_pressure() {
 		int q_construct = q->index / _construct_size;
 
 		if(p_construct != q_construct) {
-			LR_vector r = this->_config_info.box->min_image(_construct_coms[p_construct], _construct_coms[q_construct]);
+			LR_vector r = _config_info->box->min_image(_construct_coms[p_construct], _construct_coms[q_construct]);
 
 			// pair_interaction will change these vectors, but we still need them in the next
 			// first integration step. For this reason we copy and then restore their values
@@ -80,7 +80,7 @@ void ConstructwisePressure::update_pressure() {
 
 			p->force = q->force = p->torque = q->torque = LR_vector();
 
-			energy += (double) this->_config_info.interaction->pair_interaction(p, q, NULL, true);
+			energy += (double) _config_info->interaction->pair_interaction(p, q, NULL, true);
 
 			virial -= (r * p->force);
 
@@ -91,7 +91,7 @@ void ConstructwisePressure::update_pressure() {
 		}
 	}
 
-	double V = this->_config_info.box->V();
+	double V = _config_info->box->V();
 	_P = _T * (_N_constructs / V) + virial / (3. * V);
 }
 

@@ -49,13 +49,13 @@ void DensityPressureProfile::get_settings(input_file &my_inp, input_file &sim_in
 }
 
 std::string DensityPressureProfile::get_output_string(llint curr_step) {
-	int N = *this->_config_info.N;
+	int N = *_config_info->N;
 	_nconfs++;
 	std::fill(_current_NA_profile.begin(), _current_NA_profile.end(), 0.);
 	std::fill(_current_N_profile.begin(), _current_N_profile.end(), 0.);
 
 	// get smallest side
-	LR_vector sides = this->_config_info.box->box_sides();
+	LR_vector sides = _config_info->box->box_sides();
 	double bin_area = 1.;
 	for(int i = 0; i < 3; i++) {
 		if(i != _axis) {
@@ -67,8 +67,8 @@ std::string DensityPressureProfile::get_output_string(llint curr_step) {
 	int NA = 0;
 	int NB = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		LR_vector mypos = this->_config_info.box->get_abs_pos(p);
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector mypos = _config_info->box->get_abs_pos(p);
 		mypos.x -= sides.x * floor(mypos.x / sides.x);
 		mypos.y -= sides.y * floor(mypos.y / sides.y);
 		mypos.z -= sides.z * floor(mypos.z / sides.z);

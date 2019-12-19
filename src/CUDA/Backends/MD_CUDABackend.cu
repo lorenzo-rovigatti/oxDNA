@@ -436,7 +436,7 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 	_cuda_thermostat->get_settings(inp);
 
 	std::string init_string = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", _error_conf_file.c_str());
-	_obs_output_error_conf = new ObservableOutput(init_string, inp);
+	_obs_output_error_conf = new ObservableOutput(init_string);
 	_obs_output_error_conf->add_observable("type = configuration");
 
 	// if we want to limt the calculations done on CPU we clear the default ObservableOutputs and tell them to just print the timesteps (and, for constant-pressure, simulations, also the density)

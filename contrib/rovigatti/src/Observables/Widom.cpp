@@ -67,7 +67,7 @@ string Widom::get_output_string(llint curr_step) {
 	_cells->global_update();
 	number widom = 0.;
 	for(int i = 0; i < _tries; i++) {
-		_probe->pos = LR_vector(drand48() * this->_config_info.box->box_sides().x, drand48() * this->_config_info.box->box_sides().y, drand48() * this->_config_info.box->box_sides().z);
+		_probe->pos = LR_vector(drand48() * _config_info->box->box_sides().x, drand48() * _config_info->box->box_sides().y, drand48() * _config_info->box->box_sides().z);
 		_cells->single_update(_probe);
 
 		vector<BaseParticle *> neighs = _cells->get_complete_neigh_list(_probe);
@@ -75,7 +75,7 @@ string Widom::get_output_string(llint curr_step) {
 		number energy = 0.;
 		for(it = neighs.begin(); it != neighs.end(); it++) {
 			BaseParticle *q = *it;
-			energy += this->_config_info.interaction->pair_interaction(_probe, q);
+			energy += _config_info->interaction->pair_interaction(_probe, q);
 		}
 		widom += exp(-energy / _temperature);
 	}

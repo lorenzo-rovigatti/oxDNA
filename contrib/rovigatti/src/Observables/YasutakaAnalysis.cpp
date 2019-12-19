@@ -45,10 +45,10 @@ std::string YasutakaAnalysis::_particle(BaseParticle *p) {
 
 	number avg_angle = 0.;
 	int bonded_neighs = 0;
-	std::vector<BaseParticle *> particles = this->_config_info.lists->get_all_neighbours(p);
+	std::vector<BaseParticle *> particles = _config_info->lists->get_all_neighbours(p);
 	for(auto q: particles) {
-		LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
-		if(this->_config_info.interaction->pair_interaction(p, q, &r) < _threshold) {
+		LR_vector r = _config_info->box->min_image(p->pos, q->pos);
+		if(_config_info->interaction->pair_interaction(p, q, &r) < _threshold) {
 			bonded_neighs++;
 			avg_angle += LRACOS(4. * (q->int_centers[0] * p->int_centers[0]));
 		}
@@ -68,7 +68,7 @@ std::string YasutakaAnalysis::_configuration(llint step) {
 
 	bool written = false;
 	for(auto idx: _visible_particles) {
-		BaseParticle *p = this->_config_info.particles[idx];
+		BaseParticle *p = _config_info->particles[idx];
 		bool visible = (this->_only_type == -1 || p->type == this->_only_type);
 		if(visible) {
 			std::string str_p = _particle(p);

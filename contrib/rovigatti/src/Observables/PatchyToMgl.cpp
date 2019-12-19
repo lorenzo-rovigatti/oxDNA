@@ -45,7 +45,7 @@ void PatchyToMgl::init(ConfigInfo &config_info) {
 std::string PatchyToMgl::_headers(llint step) {
 	std::stringstream headers;
 
-	LR_vector mybox = this->_config_info.box->box_sides();
+	LR_vector mybox = _config_info->box->box_sides();
 
 	headers << ".Box:" << mybox.x << "," << mybox.y << "," << mybox.z << std::endl;
 
@@ -74,16 +74,16 @@ std::string PatchyToMgl::_particle(BaseParticle *p) {
 	else res << _mgl_patchy_line(p, "0,1,0", true, "1,0,0");
 
 	if(_first_neighbours) {
-		std::vector<BaseParticle *> particles = this->_config_info.lists->get_all_neighbours(p);
+		std::vector<BaseParticle *> particles = _config_info->lists->get_all_neighbours(p);
 		for(auto q: particles) {
-			if(this->_config_info.interaction->pair_interaction(p, q) < _threshold) {
+			if(_config_info->interaction->pair_interaction(p, q) < _threshold) {
 				res << std::endl;
 				res << _mgl_patchy_line(q, "0,1,0,0.5", true, "0.5,0,0,0.5");
 
 				if(_second_neighbours) {
-					std::vector<BaseParticle *> s_particles = this->_config_info.lists->get_all_neighbours(q);
+					std::vector<BaseParticle *> s_particles = _config_info->lists->get_all_neighbours(q);
 					for(auto s_q: s_particles) {
-						if(this->_config_info.interaction->pair_interaction(q, s_q) < _threshold) {
+						if(_config_info->interaction->pair_interaction(q, s_q) < _threshold) {
 							std::string tmp = _mgl_patchy_line(s_q, "0.6,0.6,0.6,0.3", false);
 							if(tmp.size() != 0) res << std::endl;
 							res << tmp;

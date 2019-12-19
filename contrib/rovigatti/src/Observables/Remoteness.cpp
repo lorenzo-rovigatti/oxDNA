@@ -74,7 +74,7 @@ string Remoteness::get_output_string(llint curr_step) {
 
 	_cells->global_update();
 	for(int i = 0; i < _tries; i++) {
-		_probe->pos = LR_vector(drand48() * this->_config_info.box->box_sides().x, drand48() * this->_config_info.box->box_sides().y, drand48() * this->_config_info.box->box_sides().z);
+		_probe->pos = LR_vector(drand48() * _config_info->box->box_sides().x, drand48() * _config_info->box->box_sides().y, drand48() * _config_info->box->box_sides().z);
 		_cells->single_update(_probe);
 
 		vector<BaseParticle *> neighs = _cells->get_complete_neigh_list(_probe);
@@ -83,7 +83,7 @@ string Remoteness::get_output_string(llint curr_step) {
 		bool overlap = false;
 		for(it = neighs.begin(); it != neighs.end() && !overlap; it++) {
 			BaseParticle *q = *it;
-			number sqr_r = this->_config_info.box->sqr_min_image_distance(_probe->pos, q->pos);
+			number sqr_r = _config_info->box->sqr_min_image_distance(_probe->pos, q->pos);
 			if(sqr_r <= 0.5) overlap = true;
 			else if(sqr_r < sqr_min_dist) sqr_min_dist = sqr_r;
 		}

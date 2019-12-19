@@ -68,7 +68,7 @@ string EmptyVolume::get_output_string(llint curr_step) {
 	_cells->global_update();
 	int n_overlaps = 0;
 	for(int i = 0; i < _tries; i++) {
-		_probe->pos = LR_vector(drand48() * this->_config_info.box->box_sides().x, drand48() * this->_config_info.box->box_sides().y, drand48() * this->_config_info.box->box_sides().z);
+		_probe->pos = LR_vector(drand48() * _config_info->box->box_sides().x, drand48() * _config_info->box->box_sides().y, drand48() * _config_info->box->box_sides().z);
 		_cells->single_update(_probe);
 
 		vector<BaseParticle *> neighs = _cells->get_complete_neigh_list(_probe);
@@ -76,7 +76,7 @@ string EmptyVolume::get_output_string(llint curr_step) {
 		bool overlap = false;
 		for(it = neighs.begin(); it != neighs.end() && !overlap; it++) {
 			BaseParticle *q = *it;
-			LR_vector dr = this->_config_info.box->min_image(_probe, q);
+			LR_vector dr = _config_info->box->min_image(_probe, q);
 			if(dr.norm() < _sqr_rcut) {
 				overlap = true;
 				n_overlaps++;

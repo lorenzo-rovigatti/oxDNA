@@ -64,7 +64,7 @@ void GenericGrByInsertion::init(ConfigInfo &config_info) {
 		_gr[i] = 0.;
 
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+		BaseParticle *p = _config_info->particles[i];
 		if(_second_starts_from == -1) _particles[(int) (i / (N / 2))].push_back(p);
 		else {
 			int idx = 1;
@@ -79,7 +79,7 @@ LR_vector GenericGrByInsertion::_get_com(int obj) {
 
 	typename vector<BaseParticle *>::iterator it;
 	for(it = _particles[obj].begin(); it != _particles[obj].end(); it++) {
-		res += this->_config_info.box->get_abs_pos(*it);
+		res += _config_info->box->get_abs_pos(*it);
 	}
 	res /= _particles[obj].size();
 
@@ -92,7 +92,7 @@ void GenericGrByInsertion::_set_random_orientation(int obj) {
 	typename vector<BaseParticle *>::iterator it;
 
 	for(it = _particles[obj].begin(); it != _particles[obj].end(); it++) {
-		(*it)->pos = R * this->_config_info.box->get_abs_pos(*it);
+		(*it)->pos = R * _config_info->box->get_abs_pos(*it);
 		(*it)->orientation = R * (*it)->orientation;
 		(*it)->set_positions();
 		(*it)->orientationT = (*it)->orientation.get_transpose();
@@ -112,7 +112,7 @@ void GenericGrByInsertion::_put_randomly_at_r(int obj, LR_vector &r0, number dis
 }
 
 std::string GenericGrByInsertion::get_output_string(llint step) {
-	int N = *this->_config_info.N;
+	int N = *_config_info->N;
 
 	_n_conf++;
 
@@ -120,14 +120,14 @@ std::string GenericGrByInsertion::get_output_string(llint step) {
 	for(int t = 0; t < 2; t++)
 		coms[t] = _get_com(t);
 
-	number ref_energy = this->_config_info.interaction->get_system_energy(this->_config_info.particles, N, this->_config_info.lists);
+	number ref_energy = _config_info->interaction->get_system_energy(_config_info->particles, N, _config_info->lists);
 	for(int i = 0; i < _n_bins; i++) {
 		number x0 = i * _bin + _min;
 		for(int j = 0; j < _insertions; j++) {
 
 			_put_randomly_at_r(0, coms[1], x0);
-			this->_config_info.lists->global_update(true);
-			number energy = this->_config_info.interaction->get_system_energy(this->_config_info.particles, N, this->_config_info.lists);
+			_config_info->lists->global_update(true);
+			number energy = _config_info->interaction->get_system_energy(_config_info->particles, N, _config_info->lists);
 			// arbitrary threshold
 			if(energy / N < 1000.) {
 				number delta_E = energy - ref_energy;
@@ -140,7 +140,7 @@ std::string GenericGrByInsertion::get_output_string(llint step) {
 	}
 	// now we move the objects very far apart
 	_put_randomly_at_r(0, coms[1], 100);
-	this->_config_info.lists->global_update(true);
+	_config_info->lists->global_update(true);
 
 	stringstream myret;
 
