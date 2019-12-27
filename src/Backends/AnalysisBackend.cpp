@@ -26,6 +26,8 @@ AnalysisBackend::~AnalysisBackend() {
 }
 
 void AnalysisBackend::get_settings(input_file &inp) {
+	_config_info->sim_input = &inp;
+
 	// initialise the plugin manager with the input file
 	PluginManager::instance()->init(inp);
 
