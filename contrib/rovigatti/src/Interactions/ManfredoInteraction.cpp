@@ -137,7 +137,7 @@ void ManfredoInteraction::init() {
 		_build_lt(_inter_mesh[i], _inter_points[i], _inter_filename[i]);
 }
 
-void ManfredoInteraction::allocate_particles(BaseParticle **particles, int N) {
+void ManfredoInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	int ind = 0;
 	// for each tetramer
 	for(int i = 0; i < _N_tetramers; i++) {
@@ -151,7 +151,7 @@ void ManfredoInteraction::allocate_particles(BaseParticle **particles, int N) {
 	}
 }
 
-void ManfredoInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void ManfredoInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[512];
@@ -332,11 +332,11 @@ number ManfredoInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePart
 	return energy;
 }
 
-void ManfredoInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void ManfredoInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 
 }
 
-void ManfredoInteraction::generate_random_configuration(BaseParticle **particles, int N) {
+void ManfredoInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles, int N) {
 	number sqr_limit = SQR(20.);
 	LR_vector arm_poss[4] = { LR_vector(-3.66451, -2.22875, -7.98832), LR_vector(3.83406, 7.82627, 1.45587), LR_vector(-3.6474, 2.70588, 7.63758), LR_vector(3.41029, -7.53441, -3.37317) };
 

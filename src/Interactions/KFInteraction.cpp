@@ -80,7 +80,7 @@ void KFInteraction::init() {
 	else OX_LOG(Logger::LOG_INFO, "Simulating a pure patchy system (N patch: %d, rcut: %lf, patch_delta: %lf, patch_cosmax: %lf)", _N_patches, this->_rcut, _patch_delta, _patch_cosmax);
 }
 
-void KFInteraction::allocate_particles(BaseParticle **particles, int N) {
+void KFInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) {
 		if(i < _N_A) particles[i] = new PatchyParticle(_N_patches, P_A, _sigma[2 * P_A]);
 		else particles[i] = new PatchyParticle(_N_patches_B, P_B, _sigma[2 * P_B]);
@@ -106,7 +106,7 @@ number KFInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	else return _KF_interaction(p, q, r, update_forces);
 }
 
-void KFInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void KFInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, std::ios::in);
@@ -127,6 +127,6 @@ void KFInteraction::read_topology(int N, int *N_strands, BaseParticle **particle
 	}
 }
 
-void KFInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void KFInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 
 }

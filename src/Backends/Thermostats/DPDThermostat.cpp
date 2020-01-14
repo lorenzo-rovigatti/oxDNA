@@ -49,7 +49,7 @@ void DPDThermostat::init(int N_part) {
 	OX_LOG(Logger::LOG_INFO, "DPD thermostat parameters: zeta = %g, rcut = %g, exponent =  %g", _zeta, _rcut, _exponent);
 }
 
-void DPDThermostat::apply(BaseParticle **particles, llint curr_step) {
+void DPDThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	vector<ParticlePair> pairs = CONFIG_INFO->lists->get_potential_interactions();
 	BaseBox *box = CONFIG_INFO->box;
 

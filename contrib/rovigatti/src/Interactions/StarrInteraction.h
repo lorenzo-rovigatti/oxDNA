@@ -45,13 +45,13 @@ protected:
 	virtual number _two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	virtual number _three_body(BaseParticle *p, BaseParticle *n3, BaseParticle *n5, bool update_forces);
 
-	virtual void _read_strand_topology(int N, int *N_strands, BaseParticle **particles);
-	virtual void _read_tetramer_topology(int N, int *N_strands, BaseParticle **particles);
-	virtual void _read_vitrimer_topology(int N, int *N_strands, BaseParticle **particles);
+	virtual void _read_strand_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void _read_tetramer_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void _read_vitrimer_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles);
 
-	virtual void _generate_strands(BaseParticle **particles, int N, Cells &c);
-	virtual void _generate_tetramers(BaseParticle **particles, int N, Cells &c);
-	virtual void _generate_vitrimers(BaseParticle **particles, int N, Cells &c);
+	virtual void _generate_strands(std::vector<BaseParticle *> &particles, int N, Cells &c);
+	virtual void _generate_tetramers(std::vector<BaseParticle *> &particles, int N, Cells &c);
+	virtual void _generate_vitrimers(std::vector<BaseParticle *> &particles, int N, Cells &c);
 
 public:
 	enum {
@@ -68,7 +68,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle **particles, int N);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles, int N);
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
@@ -77,10 +77,10 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
-	virtual void check_input_sanity(BaseParticle **particles, int N);
+	virtual void read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles, int N);
 
-	virtual void generate_random_configuration(BaseParticle **particles, int N);
+	virtual void generate_random_configuration(std::vector<BaseParticle *> &particles, int N);
 };
 
 extern "C" StarrInteraction *make_StarrInteraction();

@@ -425,7 +425,7 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 			throw oxDNAException("CUDAFSInteraction does not support FS_polymer_alpha > 0");
 		}
 
-		BaseParticle **particles = new BaseParticle *[N];
+		std::vector<BaseParticle *> particles(N);
 		FSInteraction::allocate_particles(particles, N);
 		int tmp_N_strands;
 		FSInteraction::read_topology(N, &tmp_N_strands, particles);
@@ -448,10 +448,9 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 
 		CUDA_SAFE_CALL(cudaMemcpy(_d_bonded_neighs, h_bonded_neighs, n_elems * sizeof(int), cudaMemcpyHostToDevice));
 		delete[] h_bonded_neighs;
-		for(int i = 0; i < N; i++) {
-			delete particles[i];
+		for(auto particle: particles) {
+			delete particle;
 		}
-		delete[] particles;
 	}
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));

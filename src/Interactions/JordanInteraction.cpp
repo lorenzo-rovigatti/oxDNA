@@ -50,7 +50,7 @@ void JordanInteraction::init() {
 	OX_LOG(Logger::LOG_INFO,"(JordanInteraction.cpp) Running Jordan interaction with s=%g, rcut=%g, m=%d, phi=%g, int_k=%g", _s, this->_rcut, _m, _phi, _int_k, _my_N3);
 }
 
-void JordanInteraction::allocate_particles(BaseParticle **particles, int N) {
+void JordanInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	OX_LOG(Logger::LOG_INFO,"(JordanInteraction.cpp) Allocating %d particles with 3 patches and %d with 4 patches", _my_N3, N - _my_N3);
 	for(int i = 0; i < N; i++) {
 		if (i > _my_N3 && _my_N3 >= 0) particles[i] = new JordanParticle(4, _phi, _int_k);
@@ -146,7 +146,7 @@ number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, 
 
 }
 
-void JordanInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void JordanInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	std::ifstream topology;
 	topology.open(this->_topology_filename, std::ios::in);
 	if(!topology.good())
@@ -169,6 +169,6 @@ void JordanInteraction::read_topology(int N, int *N_strands, BaseParticle **part
 	}
 }
 
-void JordanInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void JordanInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 
 }

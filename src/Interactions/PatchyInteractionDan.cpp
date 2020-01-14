@@ -187,7 +187,7 @@ void PatchyInteractionDan::init() {
 
 //Where is it called from, and so what are N, N_strands, etc.?
 
-void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void PatchyInteractionDan::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	//printf("PI, read_topology\n");
 
 	//Reads lines from topology file into this
@@ -500,7 +500,7 @@ void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **p
 
 /*OLD 3/6/16
 
- void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **particles) {
+ void PatchyInteractionDan::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
  //printf("PI, read_topology\n");
 
  //Is this needed?
@@ -518,7 +518,7 @@ void PatchyInteractionDan::read_topology(int N, int *N_strands, BaseParticle **p
 
  }*/
 
-void PatchyInteractionDan::allocate_particles(BaseParticle **particles, int N) {
+void PatchyInteractionDan::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	//printf("PI, allocate_particles\n");
 
 	int particle_number = 0;
@@ -630,7 +630,7 @@ number PatchyInteractionDan::pair_interaction_nonbonded(BaseParticle *p, BasePar
 /*16-06-07
  //?? Don't think this is used
 
- void PatchyInteractionDan::generate_random_configuration(BaseParticle **particles, int N, number box_side) {
+ void PatchyInteractionDan::generate_random_configuration(std::vector<BaseParticle *> &particles, int N, number box_side) {
  //printf("PI, generate_random_configuration\n");
 
  number old_rcut = this->_rcut;
@@ -676,5 +676,5 @@ number PatchyInteractionDan::pair_interaction_nonbonded(BaseParticle *p, BasePar
  }
  */
 
-void PatchyInteractionDan::check_input_sanity(BaseParticle **particles, int N) {
+void PatchyInteractionDan::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 }

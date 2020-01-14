@@ -1346,7 +1346,7 @@ number DNAInteraction::_f5D(number f, int type) {
 }
 
 
-void DNAInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void DNAInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];
 		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
@@ -1378,12 +1378,12 @@ void DNAInteraction::check_input_sanity(BaseParticle **particles, int N) {
 }
 
 
-void DNAInteraction::allocate_particles(BaseParticle **particles, int N) {
+void DNAInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) particles[i] = new DNANucleotide(_grooving);
 }
 
 
-void DNAInteraction::read_topology(int N_from_conf, int *N_strands, BaseParticle **particles) {
+void DNAInteraction::read_topology(int N_from_conf, int *N_strands, std::vector<BaseParticle *> &particles) {
 	IBaseInteraction::read_topology(N_from_conf, N_strands, particles);
 	int my_N, my_N_strands;
 

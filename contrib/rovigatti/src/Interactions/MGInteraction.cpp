@@ -131,7 +131,7 @@ number MGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	return _nonbonded(p, q, r, update_forces);
 }
 
-void MGInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void MGInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) {
 		CustomParticle *p = static_cast<CustomParticle *>(particles[i]);
 		for(typename std::set<CustomParticle *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++) {
@@ -140,13 +140,13 @@ void MGInteraction::check_input_sanity(BaseParticle **particles, int N) {
 	}
 }
 
-void MGInteraction::allocate_particles(BaseParticle **particles, int N) {
+void MGInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) {
 		particles[i] = new CustomParticle();
 	}
 }
 
-void MGInteraction::read_topology(int N_from_conf, int *N_strands, BaseParticle **particles) {
+void MGInteraction::read_topology(int N_from_conf, int *N_strands, std::vector<BaseParticle *> &particles) {
 	IBaseInteraction::read_topology(N_from_conf, N_strands, particles);
 
 	char line[512];

@@ -35,7 +35,7 @@ void RepulsiveSphere::get_settings(input_file &inp) {
 	}
 }
 
-void RepulsiveSphere::init(BaseParticle ** particles, int N, BaseBox * box_ptr) {
+void RepulsiveSphere::init(std::vector<BaseParticle *> & particles, int N, BaseBox * box_ptr) {
 	std::string force_description = Utils::sformat("RepulsiveSphere (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g)", this->_stiff, this->_r0, this->_rate, this->_center.x, this->_center.y, this->_center.z);
 	this->_add_self_to_particles(particles, N, _particles_string, force_description);
 

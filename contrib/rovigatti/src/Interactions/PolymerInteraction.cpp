@@ -148,7 +148,7 @@ number PolymerInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParti
 	return _nonbonded(p, q, r, update_forces);
 }
 
-void PolymerInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void PolymerInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) {
 		TSPParticle *p = (TSPParticle *) particles[i];
 		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
@@ -173,7 +173,7 @@ void PolymerInteraction::check_input_sanity(BaseParticle **particles, int N) {
 	}
 }
 
-void PolymerInteraction::allocate_particles(BaseParticle **particles, int N) {
+void PolymerInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) {
 		particles[i] = new TSPParticle();
 	}
@@ -203,7 +203,7 @@ int PolymerInteraction::get_N_from_topology() {
 	return N_from_topology;
 }
 
-void PolymerInteraction::read_topology(int N_from_conf, int *N_chains, BaseParticle **particles) {
+void PolymerInteraction::read_topology(int N_from_conf, int *N_chains, std::vector<BaseParticle *> &particles) {
 	IBaseInteraction::read_topology(N_from_conf, N_chains, particles);
 	int my_N_chains;
 	char line[512];
@@ -266,7 +266,7 @@ void PolymerInteraction::read_topology(int N_from_conf, int *N_chains, BaseParti
 	*N_chains = my_N_chains;
 }
 
-void PolymerInteraction::generate_random_configuration(BaseParticle **particles, int N) {
+void PolymerInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles, int N) {
 	this->_generate_consider_bonded_interactions = true;
 	this->_generate_bonded_cutoff = _rfene;
 	IBaseInteraction::generate_random_configuration(particles, N);

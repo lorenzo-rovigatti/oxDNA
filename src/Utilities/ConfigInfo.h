@@ -14,6 +14,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 class IBaseInteraction;
 class BaseParticle;
@@ -35,7 +36,8 @@ class ConfigInfo {
 private:
 	static std::shared_ptr<ConfigInfo> _config_info;
 
-	ConfigInfo();
+	ConfigInfo(std::vector<BaseParticle *> &ps);
+	ConfigInfo() = delete;
 public:
 	virtual ~ConfigInfo();
 
@@ -48,7 +50,7 @@ public:
 	 * @param info
 	 * @param l pointer to list object
 	 */
-	void set(BaseParticle **p, IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox);
+	void set(IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox);
 
 	/**
 	 * @brief Returns a pointer to the actual object. Static method to enforce the singleton pattern.
@@ -57,31 +59,30 @@ public:
 	 */
 	static ConfigInfo *instance();
 
-	static void init();
+	static void init(std::vector<BaseParticle *> &ps);
 
-	///Pointer to the array which stores all the particles' information.
-	BaseParticle **particles;
-
+	/// Pointer to the array which stores all the particles' information.
+	std::vector<BaseParticle *> &particles;
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
-	IBaseInteraction *interaction;
+	IBaseInteraction *interaction = nullptr;
 
 	/// Number of particles.
-	int *N;
+	int *N = nullptr;
 
 	/// Used by BackendInfo to print backend-related information such as Monte Carlo acceptance ratios.
-	std::string *backend_info;
+	std::string *backend_info = nullptr;
 
 	/// Pointer to lists
-	BaseList *lists;
+	BaseList *lists = nullptr;
 
 	/// Pointer to box object
-	BaseBox *box;
+	BaseBox *box = nullptr;
 
 	/// Current simulation step
-	long long int curr_step;
+	long long int curr_step = 0;
 
-	input_file *sim_input;
+	input_file *sim_input = nullptr;
 };
 
 

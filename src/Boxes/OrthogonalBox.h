@@ -32,7 +32,7 @@ public:
 	virtual LR_vector &box_sides() ;
 	virtual number V() { return _sides.x*_sides.y*_sides.z; }
 
-	virtual void apply_boundary_conditions(BaseParticle **particles, int N);
+	virtual void apply_boundary_conditions(std::vector<BaseParticle *> &particles, int N);
 	
 	virtual LR_vector get_abs_pos(BaseParticle * p); 
 	virtual void shift_particle (BaseParticle *p, LR_vector &amount);

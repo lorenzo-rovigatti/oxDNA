@@ -39,7 +39,7 @@ public:
 
 	void get_settings(input_file &inp);
 	void init(int N_part);
-	void apply(BaseParticle **particles, llint curr_step);
+	void apply(std::vector<BaseParticle *> &particles, llint curr_step);
 };
 
 #endif // DPD_THERMOSTAT_

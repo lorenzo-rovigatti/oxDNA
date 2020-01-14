@@ -21,7 +21,7 @@ protected:
 	number _rcut, _sqr_rcut;
 	Cells *_cells;
 	BaseParticle *_probe;
-	BaseParticle **_particles;
+	std::vector<BaseParticle *> _particles;
 	int _N;
 	int _tries;
 

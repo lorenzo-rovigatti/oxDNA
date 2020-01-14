@@ -40,7 +40,7 @@ public:
 	DNAInteraction_relax2();
 	virtual ~DNAInteraction_relax2();
 
-	void check_input_sanity(BaseParticle **particles, int N);
+	void check_input_sanity(std::vector<BaseParticle *> &particles, int N);
 	void get_settings(input_file &inp);
 };
 

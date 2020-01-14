@@ -351,7 +351,7 @@ number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	}
 }
 
-void FSInteraction::_parse_bond_file(BaseParticle **particles) {
+void FSInteraction::_parse_bond_file(std::vector<BaseParticle *> &particles) {
 	std::ifstream bond_file(_bond_filename.c_str());
 
 	if(!bond_file.good()) throw oxDNAException("Can't read bond file '%s'. Aborting", _bond_filename.c_str());
@@ -405,7 +405,7 @@ bool FSInteraction::_is_patchy_patchy(int p_type, int q_type) {
 	return p_type != POLYMER && q_type != POLYMER;
 }
 
-void FSInteraction::allocate_particles(BaseParticle **particles, int N) {
+void FSInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	_bonds.resize(N);
 	for(int i = 0; i < N; i++) {
 		if(i < _N_in_polymers) {
@@ -422,7 +422,7 @@ void FSInteraction::allocate_particles(BaseParticle **particles, int N) {
 	_N = N;
 }
 
-void FSInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void FSInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, ios::in);
@@ -475,7 +475,7 @@ void FSInteraction::read_topology(int N, int *N_strands, BaseParticle **particle
 	}
 }
 
-void FSInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void FSInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 	if(_N_B > 0 && _one_component) throw oxDNAException("One component simulations should have topologies implying that no B-particles are present");
 }
 

@@ -143,7 +143,7 @@ void CUDAMGInteraction::cuda_init(c_number box_side, int N) {
 	CUDABaseInteraction::cuda_init(box_side, N);
 	MGInteraction::init();
 
-	BaseParticle **particles = new BaseParticle *[this->_N];
+	std::vector<BaseParticle *> particles(_N);
 	MGInteraction::allocate_particles(particles, this->_N);
 	int tmp_N_strands;
 	MGInteraction::read_topology(this->_N, &tmp_N_strands, particles);
@@ -164,9 +164,9 @@ void CUDAMGInteraction::cuda_init(c_number box_side, int N) {
 
 	CUDA_SAFE_CALL(cudaMemcpy(_d_bonded_neighs, h_bonded_neighs, n_elems * sizeof(int), cudaMemcpyHostToDevice));
 	delete[] h_bonded_neighs;
-	for(int i = 0; i < this->_N; i++)
-		delete particles[i];
-	delete[] particles;
+	for(auto particle: particles) {
+		delete particle;
+	}
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n, &this->_MG_n, sizeof(int)));

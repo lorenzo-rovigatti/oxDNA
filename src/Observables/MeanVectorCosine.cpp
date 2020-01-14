@@ -65,7 +65,7 @@ std::string MeanVectorCosine::get_output_string(llint curr_step) {
 	int sign;
 	std::string result;
 	double average = 0.;
-	BaseParticle **p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles;
 	double delta_omega = 0;
 
 	//FILE *fp = fopen("myv-1.txt","w");//TODO: comment this line when the problem is solved
@@ -143,7 +143,7 @@ std::string MeanVectorCosine::get_output_string(llint curr_step) {
 void MeanVectorCosine::set_first_last_particle_id() {
 	//int N = *_config_info->N;
 	int N = *_config_info->N;
-	BaseParticle **p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles;
 	int chain_counter = 0;
 	int particle_counter = 0;
 	int number_of_values = 0;

@@ -61,11 +61,11 @@ void LJInteraction::init() {
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
-void LJInteraction::allocate_particles(BaseParticle **particles, int N) {
+void LJInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) particles[i] = new BaseParticle();
 }
 
-void LJInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void LJInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, std::ios::in);
@@ -101,6 +101,6 @@ number LJInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	return _lennard_jones(p, q, r, update_forces);
 }
 
-void LJInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void LJInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 
 }

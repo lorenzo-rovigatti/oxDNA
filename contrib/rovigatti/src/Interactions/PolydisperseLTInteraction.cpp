@@ -112,12 +112,12 @@ void PolydisperseLTInteraction::init() {
 	_Ecut = this->_query_mesh(_rcut_base, _lookup_table);
 }
 
-void PolydisperseLTInteraction::allocate_particles(BaseParticle **particles, int N) {
+void PolydisperseLTInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++)
 		particles[i] = new CustomParticle();
 }
 
-void PolydisperseLTInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void PolydisperseLTInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, std::ios::in);
@@ -180,7 +180,7 @@ number PolydisperseLTInteraction::pair_interaction_nonbonded(BaseParticle *p, Ba
 	return energy;
 }
 
-void PolydisperseLTInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void PolydisperseLTInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 
 }
 

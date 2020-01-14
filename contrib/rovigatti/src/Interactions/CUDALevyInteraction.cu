@@ -325,7 +325,7 @@ void CUDALevyInteraction::cuda_init(c_number box_side, int N) {
 }
 
 void CUDALevyInteraction::_setup_centres() {
-	BaseParticle **particles = new BaseParticle *[this->_N];
+	std::vector<BaseParticle *> particles(_N);
 	LevyInteraction::allocate_particles(particles, this->_N);
 	int N_strands;
 	LevyInteraction::read_topology(this->_N, &N_strands, particles);
@@ -363,9 +363,9 @@ void CUDALevyInteraction::_setup_centres() {
 	CUDA_SAFE_CALL(cudaMemcpy(_d_centre_neighs, h_centre_neighs, N_centres * sizeof(centre_bonds), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_centres, &N_centres, sizeof(int)));
 
-	for(int i = 0; i < this->_N; i++)
-		delete particles[i];
-	delete[] particles;
+	for(auto particle: particles) {
+		delete particle;
+	}
 	delete[] h_centres;
 	delete[] h_centre_neighs;
 }

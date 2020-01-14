@@ -44,7 +44,7 @@ Writhe::~Writhe() {
 void Writhe::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	BaseParticle **p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles;
 	_N = *_config_info->N;
 
 	//allocate the arrays - these take up unnecessary memory when the subdomain is smaller than N, but I don't think I care.
@@ -165,7 +165,7 @@ void Writhe::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 std::string Writhe::get_output_string(llint curr_step) {
 	std::string result;
-	BaseParticle **p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles;
 	int time = _config_info->curr_step;
 	LR_vector r, rp, t, tp;
 	/*

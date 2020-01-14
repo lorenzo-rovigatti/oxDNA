@@ -162,7 +162,7 @@ void GenericCentralForce::get_settings(input_file &inp) {
 	}
 }
 
-void GenericCentralForce::init(BaseParticle **particles, int N, BaseBox *box_ptr) {
+void GenericCentralForce::init(std::vector<BaseParticle *> &particles, int N, BaseBox *box_ptr) {
 	std::string force_description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
 	this->_add_self_to_particles(particles, N, _particles_string, force_description);
 

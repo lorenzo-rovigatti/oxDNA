@@ -105,7 +105,7 @@ int SRDThermostat::_get_cell_index(LR_vector &r) {
 	return (ind[0] * _N_cells_side + ind[1]) * _N_cells_side + ind[2];
 }
 
-void SRDThermostat::apply(BaseParticle **particles, llint curr_step) {
+void SRDThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	if(_is_cuda) throw oxDNAException("The apply method of the SRD thermostat has been called on the CPU on a CUDA-enabled simulation. This should not happen.");
 
 	apply1(particles, curr_step);
@@ -117,7 +117,7 @@ void SRDThermostat::apply(BaseParticle **particles, llint curr_step) {
 // conserves linear momentum, does not conserve angular momentum
 // angular momenta of the solute particles are refreshed
 
-void SRDThermostat::apply1(BaseParticle **particles, llint curr_step) {
+void SRDThermostat::apply1(std::vector<BaseParticle *> &particles, llint curr_step) {
 	if(!(curr_step % _apply_every == 0)) return;
 
 	number L = _box->box_sides()[0];
@@ -222,7 +222,7 @@ void SRDThermostat::apply1(BaseParticle **particles, llint curr_step) {
 
 // non working at the moment... 
 //
-//void SRDThermostat::apply2(BaseParticle **particles, llint curr_step) {
+//void SRDThermostat::apply2(std::vector<BaseParticle *> &particles, llint curr_step) {
 //	if (!(curr_step % _apply_every == 0)) return;
 //
 //	for(int i = 0; i < _N_cells; i++) {

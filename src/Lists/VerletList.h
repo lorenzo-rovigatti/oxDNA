@@ -30,11 +30,12 @@ protected:
 	Cells _cells;
 
 public:
-	VerletList(int &N, BaseBox *box);
+	VerletList(std::vector<BaseParticle *> &ps, BaseBox *box);
+	VerletList() = delete;
 	virtual ~VerletList();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(BaseParticle **particles, number rcut);
+	virtual void init(number rcut);
 
 	virtual bool is_updated();
 	virtual void single_update(BaseParticle *p);

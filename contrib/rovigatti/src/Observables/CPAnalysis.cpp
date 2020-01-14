@@ -8,8 +8,8 @@
 #include "CPAnalysis.h"
 #include <sstream>
 
-CPCells::CPCells(int &N, BaseBox *box) :
-				Cells(N, box) {
+CPCells::CPCells(std::vector<BaseParticle *> &ps, BaseBox *box) :
+				Cells(ps, box) {
 
 }
 
@@ -112,9 +112,9 @@ void CPAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
 void CPAnalysis::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_cells = new CPCells(*config_info.N, config_info.box);
+	_cells = new CPCells(config_info.particles, config_info.box);
 	if(_type != -1) _cells->set_allowed_type(_type);
-	_cells->init(config_info.particles, _sigma);
+	_cells->init(_sigma);
 }
 
 std::string CPAnalysis::get_output_string(llint curr_step) {

@@ -105,9 +105,9 @@ public:
 
 	virtual void get_settings(input_file &inp);
 	virtual void init();
-	virtual void allocate_particles(BaseParticle **particles, int N);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles, int N);
 
-	virtual void check_input_sanity(BaseParticle **particles, int N);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles, int N);
 
 	Model *get_model() {return model;}
 
@@ -118,7 +118,7 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void read_topology(int N_from_conf, int *N_strands, BaseParticle **particles);
+	virtual void read_topology(int N_from_conf, int *N_strands, std::vector<BaseParticle *> &particles);
 
 	// model constants
 	number F1_EPS[2][5][5];

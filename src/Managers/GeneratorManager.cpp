@@ -55,22 +55,18 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	if(argc > 0) addCommandLineArguments(&_input, argc, argv + 3);
 
 	_N = 0;
-	_particles = NULL;
 	_interaction = NULL;
-	_init_completed = false;
 
 	_external_forces = false;
 	_external_filename = std::string("");
 
-	ConfigInfo::init();
+	ConfigInfo::init(_particles);
 }
 
 GeneratorManager::~GeneratorManager() {
 	cleanInputFile(&_input);
-	if(_init_completed) {
-		for(int i = 0; i < _N; i++)
-			delete _particles[i];
-		delete[] _particles;
+	for(auto particle: _particles) {
+		delete particle;
 	}
 }
 
@@ -116,7 +112,7 @@ void GeneratorManager::init() {
 	_interaction->init();
 
 	_N = _interaction->get_N_from_topology();
-	_particles = new BaseParticle*[_N];
+	_particles.resize(_N);
 	int N_strands;
 	_interaction->read_topology(_N, &N_strands, _particles);
 
@@ -138,8 +134,6 @@ void GeneratorManager::init() {
 	if(_external_forces) {
 		ForceFactory::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox.get());
 	}
-
-	_init_completed = true;
 }
 
 void GeneratorManager::generate() {

@@ -31,7 +31,7 @@ public:
 	 * @return a pointer to the newly built list
 	 */
 
-	static ListPtr make_list(input_file &inp, int &N, BaseBox *box);
+	static ListPtr make_list(input_file &inp, std::vector<BaseParticle *> &ps, BaseBox *box);
 };
 
 #endif /* LISTFACTORY_H_ */

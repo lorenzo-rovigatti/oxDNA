@@ -22,7 +22,7 @@ BaseForce::~BaseForce() {
 
 }
 
-void BaseForce::_add_self_to_particles(BaseParticle **particles, int N, std::string particle_string, std::string force_description) {
+void BaseForce::_add_self_to_particles(std::vector<BaseParticle *> &particles, int N, std::string particle_string, std::string force_description) {
 	auto particle_indices_vector = Utils::getParticlesFromString(particles, N, particle_string, force_description.c_str());
 
 	if(particle_indices_vector[0] != -1) {

@@ -20,10 +20,11 @@ protected:
 
 	std::vector<BaseParticle *> _get_neigh_list(BaseParticle *p, bool all);
 public:
-	NoList(int &N, BaseBox *box);
+	NoList(std::vector<BaseParticle *> &ps, BaseBox *box);
+	NoList() = delete;
 	virtual ~NoList();
 
-	virtual void init(BaseParticle **particles, number rcut);
+	virtual void init(std::vector<BaseParticle *> &particles, number rcut);
 
 	virtual bool is_updated() { return true; }
 	virtual void single_update(BaseParticle *p);

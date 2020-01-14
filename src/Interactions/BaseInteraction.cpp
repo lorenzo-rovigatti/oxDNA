@@ -40,7 +40,7 @@ int IBaseInteraction::get_N_from_topology() {
 	return ret;
 }
 
-void IBaseInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void IBaseInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	*N_strands = N;
 	allocate_particles(particles, N);
 	for(int i = 0; i < N; i++) {
@@ -50,7 +50,7 @@ void IBaseInteraction::read_topology(int N, int *N_strands, BaseParticle **parti
 	}
 }
 
-number IBaseInteraction::get_system_energy(BaseParticle **particles, int N, BaseList *lists) {
+number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, int N, BaseList *lists) {
 	double energy = 0.;
 
 	std::vector<ParticlePair> pairs = lists->get_potential_interactions();
@@ -65,7 +65,7 @@ number IBaseInteraction::get_system_energy(BaseParticle **particles, int N, Base
 	return (number) energy;
 }
 
-number IBaseInteraction::get_system_energy_term(int name, BaseParticle **particles, int N, BaseList *lists) {
+number IBaseInteraction::get_system_energy_term(int name, std::vector<BaseParticle *> &particles, int N, BaseList *lists) {
 	number energy = (number) 0.f;
 
 	for(int i = 0; i < N; i++) {
@@ -98,9 +98,9 @@ bool IBaseInteraction::generate_random_configuration_overlap(BaseParticle * p, B
 	else return false;
 }
 
-void IBaseInteraction::generate_random_configuration(BaseParticle **particles, int N) {
-	Cells c(N, _box);
-	c.init(particles, _rcut);
+void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles, int N) {
+	Cells c(particles, _box);
+	c.init(_rcut);
 
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];

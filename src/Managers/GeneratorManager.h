@@ -24,13 +24,12 @@ protected:
 
 	InteractionPtr _interaction;
 
-	bool _init_completed;
 	bool _use_density;
 	double _box_side;
 	double _box_side_x, _box_side_y, _box_side_z;
 	double _density;
 	int _N;
-	BaseParticle **_particles;
+	std::vector<BaseParticle *> _particles;
 
 	bool _external_forces;
 	std::string _external_filename;

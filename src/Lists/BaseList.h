@@ -24,24 +24,25 @@
 
 class BaseList {
 protected:
-	int &_N;
 	BaseBox *_box;
-	BaseParticle **_particles;
+	std::vector<BaseParticle *> &_particles;
 	number _rcut;
 	bool _is_MC;
 	LR_vector _box_sides;
 
 public:
-	BaseList(int &N, BaseBox *box) : _N(N), _box(box), _particles(NULL), _rcut(0), _is_MC(false) {
+	BaseList(std::vector<BaseParticle *> &ps, BaseBox *box) : _box(box), _particles(ps), _rcut(0), _is_MC(false) {
 		_box_sides = box->box_sides();
 	};
+	BaseList() = delete;
 
-	virtual ~BaseList() { };
+	virtual ~BaseList() {
+
+	};
 
 	virtual void get_settings(input_file &inp);
 
-	virtual void init(BaseParticle **particles, number rcut) {
-		_particles = particles;
+	virtual void init(number rcut) {
 		_rcut = rcut;
 	}
 

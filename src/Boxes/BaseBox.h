@@ -110,7 +110,7 @@ public:
 	 * @param particles
 	 * @param N
 	 */
-	virtual void apply_boundary_conditions(BaseParticle **particles, int N) = 0;
+	virtual void apply_boundary_conditions(std::vector<BaseParticle *> &particles, int N) = 0;
 
 	/**
 	 * @brief Returns the "absolute" position of a particle

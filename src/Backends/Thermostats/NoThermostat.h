@@ -16,7 +16,7 @@ public:
 	NoThermostat();
 	virtual ~NoThermostat();
 
-	void apply(BaseParticle **particles, llint curr_step);
+	void apply(std::vector<BaseParticle *> &particles, llint curr_step);
 };
 
 #endif // NO_THERMOSTAT_

@@ -34,7 +34,7 @@ RNAInteraction::~RNAInteraction() {
 	delete model;
 }
 
-void RNAInteraction::allocate_particles(BaseParticle **particles, int N) {
+void RNAInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	RNANucleotide::set_model(model);
 	for(int i = 0; i < N; i++)
 		particles[i] = new RNANucleotide();
@@ -1794,7 +1794,7 @@ number RNAInteraction::_f5D(number f, int type) {
 	return val;
 }
 
-void RNAInteraction::read_topology(int N_from_conf, int * N_strands, BaseParticle **particles) {
+void RNAInteraction::read_topology(int N_from_conf, int * N_strands, std::vector<BaseParticle *> &particles) {
 	IBaseInteraction::read_topology(N_from_conf, N_strands, particles);
 	int my_N, my_N_strands;
 
@@ -1861,7 +1861,7 @@ void RNAInteraction::read_topology(int N_from_conf, int * N_strands, BaseParticl
 	*N_strands = my_N_strands;
 }
 
-void RNAInteraction::check_input_sanity(BaseParticle **_particles, int _N) {
+void RNAInteraction::check_input_sanity(std::vector<BaseParticle *> &_particles, int _N) {
 	for(int i = 0; i < _N; i++) {
 		BaseParticle *p = _particles[i];
 		if(p->n3 != P_VIRTUAL && p->n3->index >= _N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, _N);

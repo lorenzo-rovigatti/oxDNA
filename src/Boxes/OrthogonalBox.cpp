@@ -72,7 +72,7 @@ number OrthogonalBox::sqr_min_image_distance(const LR_vector &v1, const LR_vecto
 }
 
 
-void OrthogonalBox::apply_boundary_conditions(BaseParticle **particles, int N) {
+void OrthogonalBox::apply_boundary_conditions(std::vector<BaseParticle *> &particles, int N) {
 
 }
 

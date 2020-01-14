@@ -37,7 +37,7 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	_box = BoxFactory::make_box(inp);
 	_box->get_settings(inp);
 
-	_lists = ListFactory::make_list(inp, _N, _box.get());
+	_lists = ListFactory::make_list(inp, _particles, _box.get());
 	_lists->get_settings(inp);
 
 	// initialise the timer

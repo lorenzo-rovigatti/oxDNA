@@ -23,7 +23,8 @@ class VPCells: public Cells {
 public:
 	vector<int> csd;
 
-	VPCells(int &N, BaseBox *box);
+	VPCells(std::vector<BaseParticle *> &ps, BaseBox *box);
+	VPCells() = delete;
 	virtual ~VPCells();
 
 	void compute_csd();
@@ -38,9 +39,9 @@ protected:
 	Cells *_cells;
 	VPCells *_probe_cells;
 	VPCells *_replica_probe_cells;
-	BaseParticle **_probes;
-	BaseParticle **_replica_probes;
-	BaseParticle **_particles;
+	std::vector<BaseParticle *> _probes;
+	std::vector<BaseParticle *> _replica_probes;
+	std::vector<BaseParticle *> _particles;
 	BaseParticle *_probe;
 	BoxPtr _replica_box;
 	int _N, _N_replica;

@@ -38,7 +38,7 @@ void RepulsiveSphereSmooth::get_settings(input_file &inp) {
 	}
 }
 
-void RepulsiveSphereSmooth::init(BaseParticle ** particles, int N, BaseBox *box_ptr) {
+void RepulsiveSphereSmooth::init(std::vector<BaseParticle *> & particles, int N, BaseBox *box_ptr) {
 	if(this->_particle >= N || N < -1) throw oxDNAException("Trying to add a RepulsiveSphereSmooth on non-existent particle %d. Aborting", this->_particle);
 	if(this->_particle != -1) {
 		OX_LOG(Logger::LOG_INFO, "Adding RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g) on particle %d", this->_stiff, this->_r0, this->_center.x, this->_center.y, this->_center.z, _particle);

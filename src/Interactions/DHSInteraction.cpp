@@ -40,7 +40,7 @@ void DHSInteraction::init() {
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
-void DHSInteraction::allocate_particles(BaseParticle **particles, int N) {
+void DHSInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++)
 		particles[i] = new BaseParticle();
 }
@@ -63,6 +63,6 @@ number DHSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	return _dhs_pot(p, q, r, update_forces);
 }
 
-void DHSInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void DHSInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 
 }

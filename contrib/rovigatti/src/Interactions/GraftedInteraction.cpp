@@ -56,7 +56,7 @@ void GraftedInteraction::set_box(BaseBox *box) {
 	if(_walls && box->box_sides().x < 2 * _wall_distance) throw oxDNAException("The box side (%lf) is too small to contain walls separated by %lf", box->box_sides().x, _wall_distance);
 }
 
-void GraftedInteraction::allocate_particles(BaseParticle **particles, int N) {
+void GraftedInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	// we need to parse the file storing the anchors' positions
 	FILE *af = fopen(_anchor_file, "r");
 	if(af == NULL) throw oxDNAException("The anchor file '%s' is not readable", _anchor_file);
@@ -80,7 +80,7 @@ void GraftedInteraction::allocate_particles(BaseParticle **particles, int N) {
 	}
 }
 
-void GraftedInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void GraftedInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[512];
@@ -210,11 +210,11 @@ number GraftedInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParti
 	return 0.f;
 }
 
-void GraftedInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void GraftedInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 
 }
 
-void GraftedInteraction::generate_random_configuration(BaseParticle **particles, int N) {
+void GraftedInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles, int N) {
 	BaseParticle *colloid = particles[0];
 	colloid->orientation = Utils::get_random_rotation_matrix_from_angle(M_PI);
 	colloid->orientation.orthonormalize();

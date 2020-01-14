@@ -68,7 +68,7 @@ public:
 	 * @param particles
 	 * @param N
 	 */
-	virtual void allocate_particles(BaseParticle **particles, int N) = 0;
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles, int N) = 0;
 
 	/**
 	 * @brief Returns the maximum cut-off associated to the interaction
@@ -86,7 +86,7 @@ public:
 	 * @param particles
 	 * @param N
 	 */
-	virtual void check_input_sanity(BaseParticle **particles, int N) = 0;
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles, int N) = 0;
 
 	/**
 	 * @brief Computes the total interaction between particles p and q.
@@ -133,7 +133,7 @@ public:
 	 * @param N
 	 * @return
 	 */
-	virtual number get_system_energy(BaseParticle **particles, int N, BaseList *lists);
+	virtual number get_system_energy(std::vector<BaseParticle *> &particles, int N, BaseList *lists);
 
 	/**
 	 * @brief Like get_system_energy_term, just that the box size can be specified in this case
@@ -143,7 +143,7 @@ public:
 	 * @param N
 	 * @return the required energy contribution
 	 */
-	virtual number get_system_energy_term(int name, BaseParticle **particles, int N, BaseList *lists);
+	virtual number get_system_energy_term(int name, std::vector<BaseParticle *> &particles, int N, BaseList *lists);
 
 	/**
 	 * @brief Read the topology of the interactions. The defaut
@@ -159,7 +159,7 @@ public:
 	 * number of "strands" (unbreakable clusters of connected particles)
 	 * @param particles array of particles.
 	 */
-	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
+	virtual void read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles);
 
 	/**
 	 * @brief Returns the number of particles, as written in the topology.
@@ -174,7 +174,7 @@ public:
 	 *
 	 * @return map of the energy contributions
 	 */
-	virtual std::map<int, number> get_system_energy_split(BaseParticle **particles, int N, BaseList *lists) = 0;
+	virtual std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, int N, BaseList *lists) = 0;
 
 	/**
 	 * @brief Returns the state of the interaction
@@ -215,7 +215,7 @@ public:
 	 * @param particles
 	 * @param N
 	 */
-	virtual void generate_random_configuration(BaseParticle **particles, int N);
+	virtual void generate_random_configuration(std::vector<BaseParticle *> &particles, int N);
 };
 
 using InteractionPtr = std::shared_ptr<IBaseInteraction>;
@@ -290,7 +290,7 @@ public:
 	 * @param N
 	 * @return a map storing all the potential energy contributions.
 	 */
-	virtual std::map<int, number> get_system_energy_split(BaseParticle **particles, int N, BaseList *lists);
+	virtual std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, int N, BaseList *lists);
 
 };
 
@@ -377,7 +377,7 @@ void BaseInteraction<child>::_build_mesh(child *that, number (child::*f)(number,
 }
 
 template<typename child>
-std::map<int, number> BaseInteraction<child>::get_system_energy_split(BaseParticle **particles, int N, BaseList *lists) {
+std::map<int, number> BaseInteraction<child>::get_system_energy_split(std::vector<BaseParticle *> &particles, int N, BaseList *lists) {
 	std::map<int, number> energy_map;
 
 	for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {

@@ -71,7 +71,7 @@ void LevyInteraction::init() {
 	this->_generate_bonded_cutoff = sqrt(_fene_sqr_r0);
 }
 
-void LevyInteraction::allocate_particles(BaseParticle **particles, int N) {
+void LevyInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	int N_in_tetramers = _N_tetramers * _N_per_tetramer;
 	CustomParticle *current_centre = NULL;
 	for(int i = 0; i < N_in_tetramers; i++) {
@@ -143,7 +143,7 @@ void LevyInteraction::allocate_particles(BaseParticle **particles, int N) {
 	}
 }
 
-void LevyInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void LevyInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[2048];
@@ -302,7 +302,7 @@ number LevyInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle
 	return _two_body(p, q, r, update_forces);
 }
 
-void LevyInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void LevyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 	int computed_N = _N_tetramers * _N_per_tetramer + _N_dimers * _N_per_dimer + _N_monomers;
 	if(computed_N != N) throw oxDNAException("The number of particles found in the topology (%d) is not compatible with the one computed from the numbers of tetramers and dimers (%d)", N, computed_N);
 }

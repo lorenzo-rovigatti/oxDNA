@@ -71,7 +71,7 @@ void LangevinThermostat::init(int N_part) {
 
 }
 
-void LangevinThermostat::apply(BaseParticle **particles, llint curr_step) {
+void LangevinThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	for(int i = 0; i < this->_N_part; i++) {
 		BaseParticle *p = particles[i];
 		p->vel += _dt * (-_gamma_trans * p->vel + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_trans);

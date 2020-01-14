@@ -30,7 +30,7 @@ void RefreshThermostat::init(int N_part) {
 	_rescale_factor = sqrt(this->_T);
 }
 
-void RefreshThermostat::apply(BaseParticle **particles, llint curr_step) {
+void RefreshThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	if(!(curr_step % _newtonian_steps) == 0) return;
 
 	for(int i = 0; i < this->_N_part; i++) {

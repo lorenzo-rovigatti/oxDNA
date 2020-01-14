@@ -233,7 +233,7 @@ void Utils::get_seed(unsigned short * seedptr) {
 
 // zeroes the velocity of the centre of mass
 
-void Utils::stop_com(BaseParticle **particles, int N) {
+void Utils::stop_com(std::vector<BaseParticle *> &particles, int N) {
 	LR_vector vcom = LR_vector((number) 0., (number) 0., (number) 0.);
 
 	for(int i = 0; i < N; i++)
@@ -284,7 +284,7 @@ bool Utils::is_integer(std::string s) {
 }
 
 
-std::vector<int> Utils::getParticlesFromString(BaseParticle **particles, int N, std::string particle_string, char const *identifier) {
+std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &particles, int N, std::string particle_string, char const *identifier) {
 	// first remove all the spaces from the string, so that the parsing goes well.
 	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int (*)(int)>( isspace )), particle_string.end());
 

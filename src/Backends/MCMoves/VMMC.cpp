@@ -16,7 +16,6 @@
 #define VMMC_TRANSLATION (2)
 
 /// traslation
-
 VMMC::VMMC ()  {
 	_max_move_size_sqr = -1.;
 	_max_move_size = 1.;
@@ -25,7 +24,7 @@ VMMC::VMMC ()  {
 
 
 VMMC::~VMMC () {
-	delete _particles_old;
+
 }
 
 
@@ -65,7 +64,7 @@ void VMMC::init() {
 
 	// here we only use this array as a storage place for positions and orientations;
 	// the topology is not set for _particles_old
-	_particles_old = new BaseParticle*[*this->_Info->N];
+	_particles_old.resize(*this->_Info->N);
 	for (int i = 0; i < *this->_Info->N; i ++) _particles_old[i] = new BaseParticle();
 
 	OX_LOG(Logger::LOG_INFO, "(VMMC.cpp) VMMC move initialized with T=%g, delta_tras=%g, delta_rot=%g, prob=%g, max_move_size=%g, max_cluster_size=%d", this->_T, _delta_tras, _delta_rot, this->prob, _max_move_size, _max_cluster_size);

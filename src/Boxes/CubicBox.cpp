@@ -74,7 +74,7 @@ number CubicBox::sqr_min_image_distance(const LR_vector &v1, const LR_vector &v2
 }
 
 
-void CubicBox::apply_boundary_conditions(BaseParticle **particles, int N) {
+void CubicBox::apply_boundary_conditions(std::vector<BaseParticle *> &particles, int N) {
 
 }
 

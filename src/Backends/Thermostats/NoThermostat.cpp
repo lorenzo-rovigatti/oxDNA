@@ -18,7 +18,7 @@ NoThermostat::~NoThermostat () {
 
 
 
-void NoThermostat::apply (BaseParticle **particles, llint curr_step) {
+void NoThermostat::apply (std::vector<BaseParticle *> &particles, llint curr_step) {
 	return;
 }
 

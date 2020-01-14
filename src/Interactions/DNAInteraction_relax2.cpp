@@ -68,7 +68,7 @@ number DNAInteraction_relax2::_backbone(BaseParticle *p, BaseParticle *q, LR_vec
 	return energy;
 }
 
-void DNAInteraction_relax2::check_input_sanity(BaseParticle **particles, int N) {
+void DNAInteraction_relax2::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];
 		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);

@@ -50,7 +50,7 @@ void BussiThermostat::_update_K(number &K) {
 	K += dK;
 }
 
-void BussiThermostat::apply(BaseParticle **particles, llint curr_step) {
+void BussiThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	if(!(curr_step % _newtonian_steps) == 0) return;
 
 	// compute the total kinetic energy

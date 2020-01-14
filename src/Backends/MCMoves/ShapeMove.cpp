@@ -47,7 +47,7 @@ void ShapeMove::apply (llint curr_step) {
 	// we increase the attempted count
 	this->_attempted += 1;
 
-	BaseParticle ** particles = this->_Info->particles;
+	std::vector<BaseParticle *> & particles = this->_Info->particles;
 	int N = *(this->_Info->N);
 
 	// select axis NOT to change

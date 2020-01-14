@@ -277,10 +277,10 @@ void FFS_MD_CPUBackend::sim_step(llint curr_step) {
 	this->_timer_forces->pause();
 
 	this->_timer_thermostat->resume();
-	this->_thermostat->apply(_particles.data(), curr_step);
+	this->_thermostat->apply(_particles, curr_step);
 	this->_timer_thermostat->pause();
 
-	_op.fill_distance_parameters(_particles.data(), _box.get());
+	_op.fill_distance_parameters(_particles, _box.get());
 
 	//cout << "I just stepped and bond parameter is " << _op.get_hb_parameter(0) << " and distance is " << _op.get_distance_parameter(0) << endl;
 	if(this->check_stop_conditions()) {
@@ -299,10 +299,10 @@ void FFS_MD_CPUBackend::init() {
 
 	this->_sqr_rcut = this->_interaction->get_rcut() * this->_interaction->get_rcut();
 
-	_op.init_from_file(_order_parameters_file.c_str(), _particles.data(), _N);
+	_op.init_from_file(_order_parameters_file.c_str(), _particles, _N);
 	init_ffs_from_file(_ffs_file.c_str());
 	OX_LOG(Logger::LOG_INFO, "Setting initial value for the order parameter...");
-	_op.fill_distance_parameters(_particles.data(), _box.get());
+	_op.fill_distance_parameters(_particles, _box.get());
 
 }
 

@@ -75,7 +75,7 @@ void PatchyInteraction::init() {
 	else OX_LOG(Logger::LOG_INFO, "Simulating a pure patchy system (N patch: %d, rcut: %lf, patch_alpha: %lf)", _N_patches, this->_rcut);
 }
 
-void PatchyInteraction::allocate_particles(BaseParticle **particles, int N) {
+void PatchyInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
 	for(int i = 0; i < N; i++) {
 		if(i < _N_A) particles[i] = new PatchyParticle(_N_patches, P_A, _sigma[2 * P_A]);
 		else particles[i] = new PatchyParticle(_N_patches_B, P_B, _sigma[2 * P_B]);
@@ -100,7 +100,7 @@ number PatchyInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 	return _patchy_interaction(p, q, r, update_forces);
 }
 
-void PatchyInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void PatchyInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, std::ios::in);
@@ -121,6 +121,6 @@ void PatchyInteraction::read_topology(int N, int *N_strands, BaseParticle **part
 	}
 }
 
-void PatchyInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void PatchyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
 
 }

@@ -65,7 +65,7 @@ public:
 	 * @param particles array of BaseParticle objects
 	 * @param curr_step current step of the simulation.
 	 */
-	virtual void apply(BaseParticle **particles, llint curr_step) = 0;
+	virtual void apply(std::vector<BaseParticle *> &particles, llint curr_step) = 0;
 };
 
 using ThermostatPtr = std::shared_ptr<BaseThermostat>;

@@ -11,14 +11,8 @@
 
 std::shared_ptr<ConfigInfo> ConfigInfo::_config_info = nullptr;
 
-ConfigInfo::ConfigInfo() :
-				particles(NULL),
-				interaction(NULL),
-				N(NULL),
-				backend_info(NULL),
-				lists(NULL),
-				box(NULL),
-				curr_step(0) {
+ConfigInfo::ConfigInfo(std::vector<BaseParticle *> &ps) :
+				particles(ps) {
 
 }
 
@@ -26,8 +20,7 @@ ConfigInfo::~ConfigInfo() {
 
 }
 
-void ConfigInfo::set(BaseParticle **p, IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox) {
-	particles = p;
+void ConfigInfo::set(IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox) {
 	interaction = i;
 	N = Nn;
 	backend_info = info;
@@ -35,10 +28,10 @@ void ConfigInfo::set(BaseParticle **p, IBaseInteraction *i, int *Nn, std::string
 	box = abox;
 }
 
-void ConfigInfo::init() {
+void ConfigInfo::init(std::vector<BaseParticle *> &ps) {
 	if(_config_info != nullptr) {
 		throw oxDNAException("The ConfigInfo object have been already initialised");
 	}
 
-	_config_info = std::shared_ptr<ConfigInfo>(new ConfigInfo());
+	_config_info = std::shared_ptr<ConfigInfo>(new ConfigInfo(ps));
 }
