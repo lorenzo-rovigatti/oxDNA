@@ -96,7 +96,7 @@ public:
 
 	number get_alpha() { return _patch_alpha; }
 
-	virtual void allocate_particles(std::vector<BaseParticle *> &particles, int N);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
@@ -105,8 +105,8 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles);
-	virtual void check_input_sanity(std::vector<BaseParticle *> &particles, int N);
+	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 };
 
 

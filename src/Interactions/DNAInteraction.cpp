@@ -1346,13 +1346,18 @@ number DNAInteraction::_f5D(number f, int type) {
 }
 
 
-void DNAInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
+void DNAInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];
-		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
-		if(p->n5 != P_VIRTUAL && p->n5->index >= N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
+		if(p->n3 != P_VIRTUAL && p->n3->index >= N) {
+			throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
+		}
+		if(p->n5 != P_VIRTUAL && p->n5->index >= N) {
+			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
+		}
 
-		if (this->_use_mbf) continue;
+		if(this->_use_mbf) continue;
 
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 		number mind = _fene_r0 - FENE_DELTA;
@@ -1378,13 +1383,16 @@ void DNAInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, 
 }
 
 
-void DNAInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
-	for(int i = 0; i < N; i++) particles[i] = new DNANucleotide(_grooving);
+void DNAInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(uint i = 0; i < particles.size(); i++) {
+		particles[i] = new DNANucleotide(_grooving);
+	}
 }
 
 
-void DNAInteraction::read_topology(int N_from_conf, int *N_strands, std::vector<BaseParticle *> &particles) {
-	IBaseInteraction::read_topology(N_from_conf, N_strands, particles);
+void DNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N_from_conf = particles.size();
+	IBaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 
 	char line[512];

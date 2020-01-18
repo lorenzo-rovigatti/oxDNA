@@ -359,7 +359,7 @@ void CUDATEPInteraction::cuda_init(c_number box_side, int N) {
 
 	std::vector<BaseParticle *> particles(N);
 	int my_N_strands;
-	TEPInteraction::read_topology(N, &my_N_strands, particles);
+	TEPInteraction::read_topology(&my_N_strands, particles);
 
 	size_t k_size = N * sizeof(c_number);
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_kb1_pref, k_size));

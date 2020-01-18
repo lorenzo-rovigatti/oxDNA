@@ -36,7 +36,7 @@ std::string PairEnergy::get_output_string(llint curr_step) {
 
 	number total_energy = 0.;
 	number total_energy_diff = 0.;
-	std::map<int, number> split_energies = _config_info->interaction->get_system_energy_split(_config_info->particles, _config_info->N(), _config_info->lists);
+	std::map<int, number> split_energies = _config_info->interaction->get_system_energy_split(_config_info->particles, _config_info->lists);
 
 	if(_print_header) {
 		if((int) split_energies.size() == 7) output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK total, t = " << curr_step << "\n";

@@ -54,7 +54,7 @@ void MC_CPUBackend::init() {
 	_timer_lists = TimingManager::instance()->new_timer(std::string("Lists"));
 
 	_particles_old.resize(N());
-	this->_interaction->read_topology(N(), &this->_N_strands, _particles_old);
+	this->_interaction->read_topology(&this->_N_strands, _particles_old);
 	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles_old[i];
 
@@ -237,7 +237,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				_timer_lists->pause();
 			}
 
-			number newE = this->_interaction->get_system_energy(_particles, N(), _lists.get());
+			number newE = this->_interaction->get_system_energy(_particles, _lists.get());
 			number dE = newE - oldE + dExt;
 			number V = this->_box->V();
 			number dV = V - oldV;

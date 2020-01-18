@@ -114,7 +114,7 @@ void GeneratorManager::init() {
 	_N = _interaction->get_N_from_topology();
 	_particles.resize(_N);
 	int N_strands;
-	_interaction->read_topology(_N, &N_strands, _particles);
+	_interaction->read_topology(&N_strands, _particles);
 
 	if(_use_density) {
 		_box_side = pow(_N / _density, 1. / 3.);
@@ -137,7 +137,7 @@ void GeneratorManager::init() {
 }
 
 void GeneratorManager::generate() {
-	_interaction->generate_random_configuration(_particles, _N);
+	_interaction->generate_random_configuration(_particles);
 
 	ofstream conf_output(_output_conf);
 	conf_output.precision(15);

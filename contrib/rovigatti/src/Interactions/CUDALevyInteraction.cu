@@ -326,9 +326,9 @@ void CUDALevyInteraction::cuda_init(c_number box_side, int N) {
 
 void CUDALevyInteraction::_setup_centres() {
 	std::vector<BaseParticle *> particles(_N);
-	LevyInteraction::allocate_particles(particles, this->_N);
+	LevyInteraction::allocate_particles(particles);
 	int N_strands;
-	LevyInteraction::read_topology(this->_N, &N_strands, particles);
+	LevyInteraction::read_topology(&N_strands, particles);
 
 	int N_centres = this->_N_tetramers;
 	int *h_centres = new int[N_centres];

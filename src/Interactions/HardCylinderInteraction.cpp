@@ -38,9 +38,10 @@ void HardCylinderInteraction::init() {
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
-void HardCylinderInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
-	for(int i = 0; i < N; i++)
+void HardCylinderInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(uint i = 0; i < particles.size(); i++) {
 		particles[i] = new BaseParticle();
+	}
 }
 
 number HardCylinderInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
@@ -61,6 +62,6 @@ number HardCylinderInteraction::pair_interaction_nonbonded(BaseParticle *p, Base
 	return _hc_pot(p, q, r, update_forces);
 }
 
-void HardCylinderInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
+void HardCylinderInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }

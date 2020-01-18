@@ -308,9 +308,9 @@ void CUDAStarrInteraction::cuda_init(c_number box_side, int N) {
 
 void CUDAStarrInteraction::_setup_strand_ids() {
 	std::vector<BaseParticle *> particles(_N);
-	StarrInteraction::allocate_particles(particles, this->_N);
+	StarrInteraction::allocate_particles(particles);
 	int N_strands;
-	StarrInteraction::read_topology(this->_N, &N_strands, particles);
+	StarrInteraction::read_topology(&N_strands, particles);
 
 	int *h_strand_ids = new int[this->_N];
 
@@ -328,9 +328,9 @@ void CUDAStarrInteraction::_setup_strand_ids() {
 
 void CUDAStarrInteraction::_setup_hubs() {
 	std::vector<BaseParticle *> particles(_N);
-	StarrInteraction::allocate_particles(particles, this->_N);
+	StarrInteraction::allocate_particles(particles);
 	int N_strands;
-	StarrInteraction::read_topology(this->_N, &N_strands, particles);
+	StarrInteraction::read_topology(&N_strands, particles);
 
 	_N_hubs = this->_N_tetramers * 4 + this->_N_dimers * this->_N_dimer_spacers;
 	int *h_hubs = new int[_N_hubs];

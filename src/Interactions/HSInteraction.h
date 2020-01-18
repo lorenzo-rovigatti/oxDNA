@@ -33,7 +33,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(std::vector<BaseParticle *> &particles, int N);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
@@ -42,9 +42,9 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(std::vector<BaseParticle *> &particles, int N);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
-	//virtual void generate_random_configuration(std::vector<BaseParticle *> &particles, int N, number box_side);
+	//virtual void generate_random_configuration(std::vector<BaseParticle *> &particles, number box_side);
 };
 
 number HSInteraction::_hs_pot(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {

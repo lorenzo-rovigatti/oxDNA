@@ -144,9 +144,9 @@ void CUDAMGInteraction::cuda_init(c_number box_side, int N) {
 	MGInteraction::init();
 
 	std::vector<BaseParticle *> particles(_N);
-	MGInteraction::allocate_particles(particles, this->_N);
+	MGInteraction::allocate_particles(particles);
 	int tmp_N_strands;
-	MGInteraction::read_topology(this->_N, &tmp_N_strands, particles);
+	MGInteraction::read_topology(&tmp_N_strands, particles);
 
 	int max_n_neighs = 5;
 	int n_elems = max_n_neighs * this->_N;

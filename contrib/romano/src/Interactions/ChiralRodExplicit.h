@@ -91,7 +91,7 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void read_topology(int *N_strands, BaseParticle<number> **particles);
 	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
 
 	bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q);

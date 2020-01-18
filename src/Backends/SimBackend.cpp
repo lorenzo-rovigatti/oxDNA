@@ -311,7 +311,7 @@ void SimBackend::init() {
 	// check number of particles
 	int N = _interaction->get_N_from_topology();
 	_particles.resize(N);
-	_interaction->read_topology(N, &_N_strands, _particles);
+	_interaction->read_topology(&_N_strands, _particles);
 
 	_rcut = _interaction->get_rcut();
 	_sqr_rcut = SQR(_rcut);
@@ -558,7 +558,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 		p->pos = LR_vector(p_pos.x, p_pos.y, p_pos.z);
 	}
 
-	_interaction->check_input_sanity(_particles, N());
+	_interaction->check_input_sanity(_particles);
 
 	return true;
 }
@@ -616,7 +616,7 @@ void SimBackend::fix_diffusion() {
 	std::fill(scdm.begin(), scdm.end(), LR_vector());
 	std::fill(ninstrand.begin(), ninstrand.end(), 0);
 
-	number E_before = _interaction->get_system_energy(_particles, N(), _lists.get());
+	number E_before = _interaction->get_system_energy(_particles, _lists.get());
 	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
 		stored_pos[i] = p->pos;
@@ -644,7 +644,7 @@ void SimBackend::fix_diffusion() {
 		p->set_positions();
 	}
 
-	number E_after = _interaction->get_system_energy(_particles, N(), _lists.get());
+	number E_after = _interaction->get_system_energy(_particles, _lists.get());
 	if(_interaction->get_is_infinite() == true || fabs(E_before - E_after) > 1.e-6 * fabs(E_before)) {
 		OX_LOG(Logger::LOG_INFO, "Fix diffusion went too far... %g, %g, %d, (%g>%g)", E_before, E_after, _interaction->get_is_infinite(), fabs(E_before - E_after), 1.e-6 * fabs(E_before));
 		_interaction->set_is_infinite(false);
@@ -673,7 +673,7 @@ void SimBackend::fix_diffusion() {
 			}
 		}
 
-		number E_after2 = _interaction->get_system_energy(_particles, N(), _lists.get());
+		number E_after2 = _interaction->get_system_energy(_particles, _lists.get());
 		if(_interaction->get_is_infinite() == true || fabs(E_before - E_after2) > 1.e-6 * fabs(E_before)) {
 			OX_LOG(Logger::LOG_INFO, " *** Fix diffusion hopeless... %g, %g, %d, (%g>%g)", E_before, E_after2, _interaction->get_is_infinite(), fabs(E_before - E_after2), 1.e-6 * fabs(E_before));
 			_interaction->set_is_infinite(false);

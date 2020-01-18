@@ -84,12 +84,14 @@ void CPMixtureInteraction::init() {
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
-void CPMixtureInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
-	for(int i = 0; i < N; i++)
+void CPMixtureInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(uint i = 0; i < particles.size(); i++) {
 		particles[i] = new BaseParticle();
+	}
 }
 
-void CPMixtureInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
+void CPMixtureInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, std::ios::in);
@@ -100,7 +102,7 @@ void CPMixtureInteraction::read_topology(int N, int *N_strands, std::vector<Base
 	sscanf(line, "%*d %d\n", &_N_B);
 	_N_A = N - _N_B;
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 	for(int i = 0; i < N; i++) {
 		particles[i]->index = particles[i]->strand_id = i;
 		particles[i]->type = particles[i]->btype = (i < _N_A) ? P_A : P_B;
@@ -163,7 +165,7 @@ number CPMixtureInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePar
 	return energy;
 }
 
-void CPMixtureInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
+void CPMixtureInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
 

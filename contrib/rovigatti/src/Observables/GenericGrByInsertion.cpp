@@ -120,14 +120,14 @@ std::string GenericGrByInsertion::get_output_string(llint step) {
 	for(int t = 0; t < 2; t++)
 		coms[t] = _get_com(t);
 
-	number ref_energy = _config_info->interaction->get_system_energy(_config_info->particles, N, _config_info->lists);
+	number ref_energy = _config_info->interaction->get_system_energy(_config_info->particles, _config_info->lists);
 	for(int i = 0; i < _n_bins; i++) {
 		number x0 = i * _bin + _min;
 		for(int j = 0; j < _insertions; j++) {
 
 			_put_randomly_at_r(0, coms[1], x0);
 			_config_info->lists->global_update(true);
-			number energy = _config_info->interaction->get_system_energy(_config_info->particles, N, _config_info->lists);
+			number energy = _config_info->interaction->get_system_energy(_config_info->particles, _config_info->lists);
 			// arbitrary threshold
 			if(energy / N < 1000.) {
 				number delta_E = energy - ref_energy;

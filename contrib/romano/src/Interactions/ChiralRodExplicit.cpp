@@ -76,7 +76,7 @@ void ChiralRodExplicit<number>::allocate_particles(BaseParticle<number> **partic
 }
 
 template<typename number>
-void ChiralRodExplicit<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+void ChiralRodExplicit<number>::read_topology(int *N_strands, BaseParticle<number> **particles) {
 	*N_strands = N;
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
@@ -90,7 +90,7 @@ void ChiralRodExplicit<number>::read_topology(int N, int *N_strands, BaseParticl
 
 	if (my_N != my_N_rods + my_N_solv) throw oxDNAException ("Inconsistent topology file!");
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 
 	for (int i = 0; i < N; i ++) {
 		SpheroCylinder<number> * p = static_cast<SpheroCylinder<number> *> (particles[i]);

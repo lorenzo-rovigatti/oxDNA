@@ -405,7 +405,8 @@ bool FSInteraction::_is_patchy_patchy(int p_type, int q_type) {
 	return p_type != POLYMER && q_type != POLYMER;
 }
 
-void FSInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
+void FSInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	_bonds.resize(N);
 	for(int i = 0; i < N; i++) {
 		if(i < _N_in_polymers) {
@@ -422,7 +423,8 @@ void FSInteraction::allocate_particles(std::vector<BaseParticle *> &particles, i
 	_N = N;
 }
 
-void FSInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
+void FSInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, ios::in);
@@ -451,7 +453,7 @@ void FSInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticl
 
 	OX_LOG(Logger::LOG_INFO, "FSInteraction: simulating %d A-particles (of which %d are defective) and %d B-particles", _N_A, _N_def_A, _N_B);
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 	for(int i = 0; i < N; i++) {
 		particles[i]->index = i;
 		if(i < _N_in_polymers) {
@@ -475,7 +477,7 @@ void FSInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticl
 	}
 }
 
-void FSInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
+void FSInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 	if(_N_B > 0 && _one_component) throw oxDNAException("One component simulations should have topologies implying that no B-particles are present");
 }
 

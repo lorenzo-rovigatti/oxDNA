@@ -77,7 +77,7 @@ void MC_CPUBackend2::init() {
 
 	_lists->global_update();
 
-	_U = _interaction->get_system_energy(_particles, N(), _lists.get());
+	_U = _interaction->get_system_energy(_particles, _lists.get());
 	if(_interaction->get_is_infinite() == true) {
 		_interaction->set_is_infinite(false);
 		for(int i = 0; i < N(); i++) {

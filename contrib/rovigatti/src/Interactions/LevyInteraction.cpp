@@ -71,7 +71,7 @@ void LevyInteraction::init() {
 	this->_generate_bonded_cutoff = sqrt(_fene_sqr_r0);
 }
 
-void LevyInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
+void LevyInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 	int N_in_tetramers = _N_tetramers * _N_per_tetramer;
 	CustomParticle *current_centre = NULL;
 	for(int i = 0; i < N_in_tetramers; i++) {
@@ -130,7 +130,7 @@ void LevyInteraction::allocate_particles(std::vector<BaseParticle *> &particles,
 		p->strand_id = N_in_tetramers / _N_per_tetramer + base_idx / _N_per_dimer;
 	}
 
-	for(int i = N_in_tetramers + N_in_dimers; i < N; i++) {
+	for(int i = N_in_tetramers + N_in_dimers; i < (int) particles.size(); i++) {
 		int base_idx = i - N_in_tetramers - N_in_dimers;
 		PatchySite *p = new PatchySite();
 		p->type = P_A;
@@ -143,17 +143,17 @@ void LevyInteraction::allocate_particles(std::vector<BaseParticle *> &particles,
 	}
 }
 
-void LevyInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
+void LevyInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[2048];
 	topology.getline(line, 2048);
 	sscanf(line, "%*d %d %d %d\n", &_N_tetramers, &_N_dimers, &_N_monomers);
-	*N_strands = N;
+	*N_strands = particles.size();
 
 	if(_N_monomers > 0) OX_LOG(Logger::LOG_INFO, "Adding %d monomers with interaction strength %lf", _N_monomers, _monomer_epsilon);
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 }
 
 number LevyInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
@@ -302,9 +302,12 @@ number LevyInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle
 	return _two_body(p, q, r, update_forces);
 }
 
-void LevyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
+void LevyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 	int computed_N = _N_tetramers * _N_per_tetramer + _N_dimers * _N_per_dimer + _N_monomers;
-	if(computed_N != N) throw oxDNAException("The number of particles found in the topology (%d) is not compatible with the one computed from the numbers of tetramers and dimers (%d)", N, computed_N);
+	int N = particles.size();
+	if(computed_N != N) {
+		throw oxDNAException("The number of particles found in the topology (%d) is not compatible with the one computed from the numbers of tetramers and dimers (%d)", N, computed_N);
+	}
 }
 
 extern "C" LevyInteraction *make_LevyInteraction() {

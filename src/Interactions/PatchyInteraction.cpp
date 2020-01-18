@@ -75,8 +75,8 @@ void PatchyInteraction::init() {
 	else OX_LOG(Logger::LOG_INFO, "Simulating a pure patchy system (N patch: %d, rcut: %lf, patch_alpha: %lf)", _N_patches, this->_rcut);
 }
 
-void PatchyInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
-	for(int i = 0; i < N; i++) {
+void PatchyInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(int i = 0; i < (int) particles.size(); i++) {
 		if(i < _N_A) particles[i] = new PatchyParticle(_N_patches, P_A, _sigma[2 * P_A]);
 		else particles[i] = new PatchyParticle(_N_patches_B, P_B, _sigma[2 * P_B]);
 	}
@@ -100,7 +100,8 @@ number PatchyInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 	return _patchy_interaction(p, q, r, update_forces);
 }
 
-void PatchyInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
+void PatchyInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, std::ios::in);
@@ -112,7 +113,7 @@ void PatchyInteraction::read_topology(int N, int *N_strands, std::vector<BasePar
 	if(_N_B > 0) if(_N_patches_B == -1) throw oxDNAException("Number of patches of species B not specified");
 	_N_A = N - _N_B;
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 	for(int i = 0; i < N; i++) {
 		particles[i]->index = i;
 		particles[i]->type = (i < _N_A) ? P_A : P_B;
@@ -121,6 +122,6 @@ void PatchyInteraction::read_topology(int N, int *N_strands, std::vector<BasePar
 	}
 }
 
-void PatchyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
+void PatchyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }

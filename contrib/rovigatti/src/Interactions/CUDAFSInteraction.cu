@@ -426,9 +426,9 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 		}
 
 		std::vector<BaseParticle *> particles(N);
-		FSInteraction::allocate_particles(particles, N);
+		FSInteraction::allocate_particles(particles);
 		int tmp_N_strands;
-		FSInteraction::read_topology(N, &tmp_N_strands, particles);
+		FSInteraction::read_topology(&tmp_N_strands, particles);
 
 		int max_n_neighs = 5;
 		int n_elems = max_n_neighs * N;

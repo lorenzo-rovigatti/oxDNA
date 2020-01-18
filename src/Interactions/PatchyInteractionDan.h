@@ -116,8 +116,8 @@ public:
 //All in main PatchyInteractionDan.cpp file
 	virtual void get_settings(input_file &inp);
 	virtual void init();
-	virtual void read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles);
-	virtual void allocate_particles(std::vector<BaseParticle *> &particles, int N);
+	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
@@ -126,8 +126,8 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	/*16-06-07virtual void generate_random_configuration(std::vector<BaseParticle *> &particles, int N, number box_side);*/
-	virtual void check_input_sanity(std::vector<BaseParticle *> &particles, int N);
+	/*16-06-07virtual void generate_random_configuration(std::vector<BaseParticle *> &particles, number box_side);*/
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
 };
 

@@ -71,7 +71,7 @@ std::string HBEnergy::get_output_string(llint curr_step) {
 		break;
 	}
 	default:
-		energy = _config_info->interaction->get_system_energy_term(DNAInteraction::HYDROGEN_BONDING, _config_info->particles, _config_info->N(), _config_info->lists);
+		energy = _config_info->interaction->get_system_energy_term(DNAInteraction::HYDROGEN_BONDING, _config_info->particles, _config_info->lists);
 		break;
 	}
 

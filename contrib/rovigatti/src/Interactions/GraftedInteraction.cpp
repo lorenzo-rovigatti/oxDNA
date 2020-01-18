@@ -56,7 +56,7 @@ void GraftedInteraction::set_box(BaseBox *box) {
 	if(_walls && box->box_sides().x < 2 * _wall_distance) throw oxDNAException("The box side (%lf) is too small to contain walls separated by %lf", box->box_sides().x, _wall_distance);
 }
 
-void GraftedInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
+void GraftedInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 	// we need to parse the file storing the anchors' positions
 	FILE *af = fopen(_anchor_file, "r");
 	if(af == NULL) throw oxDNAException("The anchor file '%s' is not readable", _anchor_file);
@@ -80,7 +80,8 @@ void GraftedInteraction::allocate_particles(std::vector<BaseParticle *> &particl
 	}
 }
 
-void GraftedInteraction::read_topology(int N, int *N_strands, std::vector<BaseParticle *> &particles) {
+void GraftedInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[512];
@@ -89,9 +90,11 @@ void GraftedInteraction::read_topology(int N, int *N_strands, std::vector<BasePa
 	int res = sscanf(line, "%*d %d %d\n", &_N_arms, &_N_per_arm);
 	if(res != 2) throw oxDNAException("Incorrect topology");
 	*N_strands = _N_arms + 1;
-	if((_N_arms * _N_per_arm + 1) != N) throw oxDNAException("Incoherent topology: the total number of particles should be equal to the number of arms (%d) times the number of particles in an arm (%d) plus one", _N_arms, _N_per_arm);
+	if((_N_arms * _N_per_arm + 1) != N) {
+		throw oxDNAException("Incoherent topology: the total number of particles should be equal to the number of arms (%d) times the number of particles in an arm (%d) plus one", _N_arms, _N_per_arm);
+	}
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 
 	particles[0]->type = P_COLLOID;
 	particles[0]->index = 0;
@@ -210,11 +213,11 @@ number GraftedInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParti
 	return 0.f;
 }
 
-void GraftedInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
+void GraftedInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
 
-void GraftedInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles, int N) {
+void GraftedInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	BaseParticle *colloid = particles[0];
 	colloid->orientation = Utils::get_random_rotation_matrix_from_angle(M_PI);
 	colloid->orientation.orthonormalize();

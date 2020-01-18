@@ -28,9 +28,10 @@ void HSInteraction::init() {
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
-void HSInteraction::allocate_particles(std::vector<BaseParticle *> &particles, int N) {
-	for(int i = 0; i < N; i++)
+void HSInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(uint i = 0; i < particles.size(); i++) {
 		particles[i] = new BaseParticle();
+	}
 }
 
 number HSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
@@ -62,6 +63,6 @@ number HSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	 }*/
 }
 
-void HSInteraction::check_input_sanity(std::vector<BaseParticle *> &particles, int N) {
+void HSInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
