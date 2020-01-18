@@ -21,7 +21,7 @@ Rdf::~Rdf() {
 }
 
 std::string Rdf::get_output_string(llint curr_step) {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 
 	// get smallest side
 	LR_vector sides = _config_info->box->box_sides();

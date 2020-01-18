@@ -42,7 +42,7 @@ void BinVerletList::get_settings(input_file &inp) {
 
 void BinVerletList::init(number rcut) {
 	int N_part[2] = { 0, 0 };
-	for(int i = 0; i < _particles.size(); i++) {
+	for(uint i = 0; i < _particles.size(); i++) {
 		BaseParticle *p = _particles[i];
 		if(p->type != 0 && p->type != 1) throw oxDNAException("bin_verlet expects particles to be either of species 0 or 1, found %d", p->type);
 		N_part[p->type]++;
@@ -84,7 +84,7 @@ void BinVerletList::global_update(bool force_update) {
 			_cells[i]->global_update();
 	}
 
-	for(int i = 0; i < _particles.size(); i++) {
+	for(uint i = 0; i < _particles.size(); i++) {
 		BaseParticle *p = this->_particles[i];
 		if(p->type == 0 || !_is_AO) _lists[p->index] = _cells[2 * p->type]->get_neigh_list(p);
 		else _lists[p->index].clear();

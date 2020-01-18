@@ -27,7 +27,7 @@ void Contacts::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
 	std::vector<BaseParticle *> &p = _config_info->particles;
-	const int N = *_config_info->N;
+	const int N = _config_info->N();
 
 	// check that _first_particle_index is in [0,N) and not the terminal particle
 	if(_first_particle_index < 0 || _first_particle_index > N - 1) throw oxDNAException("Contacts: first_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.", N, _first_particle_index);

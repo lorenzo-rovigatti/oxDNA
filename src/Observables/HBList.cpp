@@ -22,7 +22,7 @@ HBList::~HBList() {
 void HBList::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 	if(_read_op) {
-		_op.init_from_file(_order_parameters_file, _config_info->particles, *(_config_info->N));
+		_op.init_from_file(_order_parameters_file, _config_info->particles, _config_info->N());
 	}
 }
 
@@ -97,7 +97,7 @@ std::string HBList::get_output_string(llint curr_step) {
 			int q_ind = q->get_index();
 			number hb_energy = _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 			// what to do if it's unbound
-			int complementary_ind = *_config_info->N - 1 - p_ind;
+			int complementary_ind = _config_info->N() - 1 - p_ind;
 			if(hb_energy < HB_CUTOFF) {
 				if(_only_count) N_bonds++;
 				else if(!_measure_mean_shift) outstr << p_ind << " " << q_ind << "\n";

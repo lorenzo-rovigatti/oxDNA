@@ -53,7 +53,7 @@ int GenericGrByInsertion::_get_bin(number sqr_dist) {
 
 void GenericGrByInsertion::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
-	int N = *config_info.N;
+	int N = config_info.N();
 
 	if(_max == 0.) _max = config_info.box->box_sides().x * 0.5;
 	_n_bins = (_max - _min) / _bin;
@@ -112,7 +112,7 @@ void GenericGrByInsertion::_put_randomly_at_r(int obj, LR_vector &r0, number dis
 }
 
 std::string GenericGrByInsertion::get_output_string(llint step) {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 
 	_n_conf++;
 

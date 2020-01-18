@@ -23,7 +23,7 @@ VolumeMove::~VolumeMove () {
 
 void VolumeMove::init () {
 	BaseMove::init();
-	_pos_old.resize (*this->_Info->N);
+	_pos_old.resize (_Info->N());
 	if (this->_restrict_to_type > 0) OX_LOG (Logger::LOG_WARNING, "(VolumeMove.cpp) Cant use VolumeMove with restrict_to_type. Ignoring");
 	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) VolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, this->_T, _delta, this->prob);
 }
@@ -51,13 +51,15 @@ void VolumeMove::apply (llint curr_step) {
 	this->_attempted += 1;
 
 	std::vector<BaseParticle *> & particles = this->_Info->particles;
-	int N = *(this->_Info->N);
+	int N = _Info->N();
 
 	LR_vector box_sides = this->_Info->box->box_sides();
 	LR_vector old_box_sides = box_sides;
 
 	number oldE;
-	if (this->_compute_energy_before) oldE = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
+	if(this->_compute_energy_before) {
+		oldE = this->_Info->interaction->get_system_energy(this->_Info->particles, N, this->_Info->lists);
+	}
 	else oldE = (number) 0.f;
 	number oldV = this->_Info->box->V();
 
@@ -92,7 +94,7 @@ void VolumeMove::apply (llint curr_step) {
 	this->_Info->lists->change_box();
 	if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
 
-	number newE = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
+	number newE = this->_Info->interaction->get_system_energy(this->_Info->particles, N, this->_Info->lists);
 	number dE = newE - oldE + dExt;
 	number V = this->_Info->box->V();
 	number dV = V - oldV;

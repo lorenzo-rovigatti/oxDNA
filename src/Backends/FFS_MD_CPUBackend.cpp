@@ -240,8 +240,7 @@ number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p
 
 void FFS_MD_CPUBackend::_ffs_compute_forces(void) {
 	this->_U = this->_U_hydr = (number) 0;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		typename vector<ParticlePair>::iterator it = p->affected.begin();
 		for(; it != p->affected.end(); it++) {
 			if(it->first == p) this->_U += this->_interaction->pair_interaction_bonded(it->first, it->second, NULL, true);
@@ -299,7 +298,7 @@ void FFS_MD_CPUBackend::init() {
 
 	this->_sqr_rcut = this->_interaction->get_rcut() * this->_interaction->get_rcut();
 
-	_op.init_from_file(_order_parameters_file.c_str(), _particles, _N);
+	_op.init_from_file(_order_parameters_file.c_str(), _particles, N());
 	init_ffs_from_file(_ffs_file.c_str());
 	OX_LOG(Logger::LOG_INFO, "Setting initial value for the order parameter...");
 	_op.fill_distance_parameters(_particles, _box.get());

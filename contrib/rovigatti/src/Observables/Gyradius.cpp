@@ -29,7 +29,7 @@ void Gyradius::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 std::string Gyradius::get_output_string(llint curr_step) {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 
 	number rg2 = 0;
 	int N_type = 0;

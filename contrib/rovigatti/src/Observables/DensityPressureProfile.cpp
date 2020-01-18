@@ -49,7 +49,7 @@ void DensityPressureProfile::get_settings(input_file &my_inp, input_file &sim_in
 }
 
 std::string DensityPressureProfile::get_output_string(llint curr_step) {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 	_nconfs++;
 	std::fill(_current_NA_profile.begin(), _current_NA_profile.end(), 0.);
 	std::fill(_current_N_profile.begin(), _current_N_profile.end(), 0.);

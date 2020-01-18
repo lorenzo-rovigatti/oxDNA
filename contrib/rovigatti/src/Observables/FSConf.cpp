@@ -55,7 +55,9 @@ void FSConf::get_settings(input_file &my_inp, input_file &sim_inp) {
 void FSConf::init(ConfigInfo &config_info) {
 	Configuration::init(config_info);
 
-	if(_print_bonds) _bonds.resize(*config_info.N);
+	if(_print_bonds) {
+		_bonds.resize(config_info.N());
+	}
 }
 
 std::string FSConf::_headers(llint step) {

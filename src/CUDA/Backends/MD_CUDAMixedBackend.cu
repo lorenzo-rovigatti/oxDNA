@@ -27,8 +27,8 @@ CUDAMixedBackend::~CUDAMixedBackend(){
 void CUDAMixedBackend::init() {
 	MD_CUDABackend::init();
 
-	_vec_sized = ((size_t)_N) * sizeof(LR_double4);
-	_orient_sized = ((size_t)_N) * sizeof(GPU_quat_double);
+	_vec_sized = ((size_t) N()) * sizeof(LR_double4);
+	_orient_sized = ((size_t) N()) * sizeof(GPU_quat_double);
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_possd, _vec_sized) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_velsd, _vec_sized) );
 	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<LR_double4>(&_d_Lsd, _vec_sized) );
@@ -47,8 +47,8 @@ void CUDAMixedBackend::_init_CUDA_MD_symbols() {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &f_copy, sizeof(float)) );
 	f_copy = _dt;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dt, &f_copy, sizeof(float)) );
-
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &_N, sizeof(int)) );
+	int myN = N();
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &myN, sizeof(int)) );
 }
 
 void CUDAMixedBackend::_float4_to_LR_double4(float4 *src, LR_double4 *dest) {

@@ -50,7 +50,7 @@ std::string AverageEnergy::get_output_string(llint curr_step) {
 
 	std::stringstream outstr;
 
-	std::map<int, number> split_energies = _config_info->interaction->get_system_energy_split(_config_info->particles, *_config_info->N, _config_info->lists);
+	std::map<int, number> split_energies = _config_info->interaction->get_system_energy_split(_config_info->particles, _config_info->N(), _config_info->lists);
 	std::vector<ParticlePair> neighbour_pairs = _config_info->lists->get_potential_interactions();
 
 	BaseParticle *p;

@@ -23,7 +23,7 @@ RadialDensityProfile::~RadialDensityProfile() {
 }
 
 std::string RadialDensityProfile::get_output_string(llint curr_step) {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 
 	if(_always_reset) {
 		_nconfs = 1;

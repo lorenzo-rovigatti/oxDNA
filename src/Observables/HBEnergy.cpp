@@ -26,7 +26,7 @@ void HBEnergy::init(ConfigInfo &config_info) {
 
 	switch(_mode) {
 	case PAIRS_FROM_OP_FILE:
-		_op.init_from_file(_list_file, _config_info->particles, *(_config_info->N));
+		_op.init_from_file(_list_file, _config_info->particles, _config_info->N());
 		break;
 	case BASES_FROM_FILE: {
 		ifstream inp(_list_file);
@@ -71,7 +71,7 @@ std::string HBEnergy::get_output_string(llint curr_step) {
 		break;
 	}
 	default:
-		energy = _config_info->interaction->get_system_energy_term(DNAInteraction::HYDROGEN_BONDING, _config_info->particles, *_config_info->N, _config_info->lists);
+		energy = _config_info->interaction->get_system_energy_term(DNAInteraction::HYDROGEN_BONDING, _config_info->particles, _config_info->N(), _config_info->lists);
 		break;
 	}
 

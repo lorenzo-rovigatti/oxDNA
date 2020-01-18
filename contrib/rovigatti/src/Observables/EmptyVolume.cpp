@@ -34,7 +34,7 @@ void EmptyVolume::get_settings(input_file &my_inp, input_file &sim_inp) {
 void EmptyVolume::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_N = *config_info.N + 1;
+	_N = config_info.N() + 1;
 
 	_probe = new BaseParticle();
 	_probe->init();

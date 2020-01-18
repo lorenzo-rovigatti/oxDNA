@@ -35,7 +35,9 @@ void ParticlePosition::get_settings(input_file &my_inp, input_file &sim_inp) {
 void ParticlePosition::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	if(_particle_id < 0 || _particle_id >= *config_info.N) throw oxDNAException("ParticlePosition: invalid id %d", _particle_id);
+	if(_particle_id < 0 || _particle_id >= config_info.N()) {
+		throw oxDNAException("ParticlePosition: invalid id %d", _particle_id);
+	}
 }
 
 std::string ParticlePosition::get_output_string(llint curr_step) {

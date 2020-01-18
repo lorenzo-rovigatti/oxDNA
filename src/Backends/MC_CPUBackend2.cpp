@@ -37,7 +37,7 @@ void MC_CPUBackend2::get_settings(input_file &inp) {
 	MCBackend::get_settings(inp);
 
 	//_MC_Info = ConfigInfo(_particles, &(_box_side), _interaction, &(_N), &_info_str, _lists);
-	_MC_Info->set(_interaction.get(), &(_N), &_info_str, _lists.get(), _box.get());
+	_MC_Info->set(_interaction.get(), &_info_str, _lists.get(), _box.get());
 
 	//_MC_Info.lists = _lists;
 
@@ -64,24 +64,23 @@ void MC_CPUBackend2::init() {
 	//OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend2) Initializing backend...");
 	MCBackend::init();
 
-	for(int i = 0; i < _N; i++) {
+	for(auto p: _particles) {
 		// this is needed for the first _compute_energy()
-		_particles[i]->set_positions();
-		_particles[i]->orientationT = _particles[i]->orientation.get_transpose();
+		p->set_positions();
+		p->orientationT = p->orientation.get_transpose();
 	}
 
 	// needed to fill un the pointers....
 	_MC_Info->particles = _particles;
-	_MC_Info->N = &_N;
 	_MC_Info->interaction = _interaction.get();
 	_MC_Info->box = _box.get();
 
 	_lists->global_update();
 
-	_U = _interaction->get_system_energy(_particles, _N, _lists.get());
+	_U = _interaction->get_system_energy(_particles, N(), _lists.get());
 	if(_interaction->get_is_infinite() == true) {
 		_interaction->set_is_infinite(false);
-		for(int i = 0; i < _N; i++) {
+		for(int i = 0; i < N(); i++) {
 			for(int j = 0; j < i; j++) {
 				BaseParticle * p = _particles[i];
 				BaseParticle * q = _particles[j];
@@ -104,7 +103,7 @@ void MC_CPUBackend2::init() {
 }
 
 void MC_CPUBackend2::sim_step(llint curr_step) {
-	for(int i = 0; i < _N; i++) {
+	for(int i = 0; i < N(); i++) {
 		// pick a move with a given probability
 		number choice = drand48() * _accumulated_prob;
 		int j = 0;

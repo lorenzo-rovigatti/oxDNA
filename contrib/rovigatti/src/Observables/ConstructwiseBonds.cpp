@@ -32,8 +32,7 @@ void ConstructwiseBonds::init(ConfigInfo &config_info) {
 
 	// we first count the number of constructs in the system so that we can
 	// initialize the vector storing their centres of mass
-	for(int i = 0; i < *config_info.N; i++) {
-		BaseParticle *p = config_info.particles[i];
+	for(auto p: config_info.particles) {
 		int p_construct_id = p->strand_id / _construct_strand_size;
 		if(p_construct_id >= _construct_number) {
 			_construct_number = p_construct_id + 1;
@@ -52,8 +51,7 @@ string ConstructwiseBonds::get_output_string(llint curr_step) {
 	for(int i = 0; i < _construct_number; i++)
 		_construct_coms[i] = LR_vector(0., 0., 0.);
 
-	for(int i = 0; i < *_config_info->N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+	for(auto p: _config_info->particles) {
 		int p_construct_id = p->strand_id / _construct_strand_size;
 		_construct_coms[p_construct_id] += _config_info->box->get_abs_pos(p);
 	}

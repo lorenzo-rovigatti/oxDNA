@@ -46,11 +46,14 @@ public:
 	 *
 	 * @param p
 	 * @param i
-	 * @param Nn number of particles
 	 * @param info
 	 * @param l pointer to list object
 	 */
-	void set(IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox);
+	void set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox);
+
+	int N() {
+		return particles.size();
+	}
 
 	/**
 	 * @brief Returns a pointer to the actual object. Static method to enforce the singleton pattern.
@@ -66,9 +69,6 @@ public:
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
 	IBaseInteraction *interaction = nullptr;
-
-	/// Number of particles.
-	int *N = nullptr;
 
 	/// Used by BackendInfo to print backend-related information such as Monte Carlo acceptance ratios.
 	std::string *backend_info = nullptr;

@@ -49,7 +49,7 @@ std::string BinaryConfiguration::_headers(llint step) {
 std::string BinaryConfiguration::_configuration(llint step) {
 	std::stringstream conf;
 
-	for(int i = 0; i < *_config_info->N; i++) {
+	for(int i = 0; i < _config_info->N(); i++) {
 		BaseParticle *p = _config_info->particles[i];
 
 		LR_vector mypos(p->pos.x, p->pos.y, p->pos.z);

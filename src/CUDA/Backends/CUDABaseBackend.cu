@@ -178,7 +178,7 @@ void CUDABaseBackend::init_cuda() {
 	CUDA_SAFE_CALL(cudaThreadSetCacheConfig(cudaFuncCachePreferL1));
 
 	c_number box_side = CONFIG_INFO->box->box_sides().x;
-	int N = *CONFIG_INFO->N;
+	int N = CONFIG_INFO->N();
 	_h_cuda_box.set_CUDA_from_CPU(CONFIG_INFO->box);
 
 	_cuda_interaction->cuda_init(box_side, N);
@@ -229,29 +229,29 @@ void CUDABaseBackend::init_cuda() {
 }
 
 void CUDABaseBackend::_init_CUDA_kernel_cfgs() {
-if(_particles_kernel_cfg.threads_per_block == 0) {
-	_particles_kernel_cfg.threads_per_block = 2 * _device_prop.warpSize;
-	OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
-}
+	if(_particles_kernel_cfg.threads_per_block == 0) {
+		_particles_kernel_cfg.threads_per_block = 2 * _device_prop.warpSize;
+		OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
+	}
 
-int N = *CONFIG_INFO->N;
-_particles_kernel_cfg.blocks.x = N / _particles_kernel_cfg.threads_per_block + ((N % _particles_kernel_cfg.threads_per_block == 0) ? 0 : 1);
-if(_particles_kernel_cfg.blocks.x == 0) _particles_kernel_cfg.blocks.x = 1;
-_particles_kernel_cfg.blocks.y = _particles_kernel_cfg.blocks.z = 1;
+	int N = CONFIG_INFO->N();
+	_particles_kernel_cfg.blocks.x = N / _particles_kernel_cfg.threads_per_block + ((N % _particles_kernel_cfg.threads_per_block == 0) ? 0 : 1);
+	if(_particles_kernel_cfg.blocks.x == 0) _particles_kernel_cfg.blocks.x = 1;
+	_particles_kernel_cfg.blocks.y = _particles_kernel_cfg.blocks.z = 1;
 
-_cuda_interaction->set_launch_cfg(_particles_kernel_cfg);
+	_cuda_interaction->set_launch_cfg(_particles_kernel_cfg);
 
-OX_DEBUG("Particle kernel cfg: threads_per_block = %d, blocks = (%d, %d, %d)", _particles_kernel_cfg.threads_per_block,
-		_particles_kernel_cfg.blocks.x, _particles_kernel_cfg.blocks.y, _particles_kernel_cfg.blocks.z);
+	OX_DEBUG("Particle kernel cfg: threads_per_block = %d, blocks = (%d, %d, %d)", _particles_kernel_cfg.threads_per_block,
+			_particles_kernel_cfg.blocks.x, _particles_kernel_cfg.blocks.y, _particles_kernel_cfg.blocks.z);
 }
 
 void CUDABaseBackend::_sort_index() {
-reset_sorted_hindex
+	reset_sorted_hindex
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_sorted_hindex);
 		CUT_CHECK_ERROR("reset_sorted_hindex error");
 
-hilbert_curve
+	hilbert_curve
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, _d_hindex);
 		CUT_CHECK_ERROR("hilbert_curve error");
@@ -259,10 +259,10 @@ hilbert_curve
 	thrust::device_ptr<int> _d_hindex_p(_d_hindex);
 	thrust::device_ptr<int> _d_sorted_hindex_p(_d_sorted_hindex);
 	// sort d_sorted_hindex by using d_hindex
-	thrust::sort_by_key(_d_hindex_p, _d_hindex_p + *CONFIG_INFO->N, _d_sorted_hindex_p);
-get_inverted_sorted_hindex
-<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
-(_d_sorted_hindex, _d_inv_sorted_hindex);
+	thrust::sort_by_key(_d_hindex_p, _d_hindex_p + CONFIG_INFO->N(), _d_sorted_hindex_p);
+	get_inverted_sorted_hindex
+		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
+		(_d_sorted_hindex, _d_inv_sorted_hindex);
 }
 
 #pragma GCC diagnostic pop

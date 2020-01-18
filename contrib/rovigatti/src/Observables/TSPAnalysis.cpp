@@ -57,7 +57,7 @@ void TSPAnalysis::init(ConfigInfo &config_info) {
 	else _N_stars = 1;
 
 	_stars.resize(_N_stars, TSP(_is_SPB));
-	for(int i = 0; i < *(config_info.N); i++) {
+	for(int i = 0; i < config_info.N(); i++) {
 		TSPParticle *p = (TSPParticle *) config_info.particles[i];
 		int ns = (!_is_SPB) ? p->strand_id : 0;
 		if(ns >= _N_stars) throw oxDNAException("ns (%d) >= _N_stars (%d)", ns, _N_stars);

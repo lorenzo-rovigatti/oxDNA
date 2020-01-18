@@ -60,8 +60,7 @@ void FIREBackend::_first_step(llint cur_step) {
 	number max_f = -1.f;
 	number max_t = -1.f;
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		number tmp = p->force.norm();
 		if(tmp > max_f) max_f = tmp;
 
@@ -88,9 +87,7 @@ void FIREBackend::_first_step(llint cur_step) {
 	std::vector<LR_matrix> dRs;
 	std::vector<number> dthetas;
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
-
+	for(auto p: _particles) {
 		p->vel += p->force * this->_dt * (number) 0.5;
 		LR_vector dr = p->vel * this->_dt;
 		if(dr.norm() > 0.01) {
@@ -130,9 +127,7 @@ void FIREBackend::_first_step(llint cur_step) {
 
 	_allow_dt_increase = true;
 	number fact = -1.f;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
-
+	for(auto p: _particles) {
 		LR_vector mydr = drs.back();
 		drs.pop_back();
 		if(mydr.module() > _max_step) {
@@ -156,9 +151,7 @@ void FIREBackend::_first_step(llint cur_step) {
 	printf("halfway fact: %g\n", fact);
 
 	// here we increment coordinates
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
-
+	for(auto p: _particles) {
 		p->pos += p->vel * (this->_dt / fact);
 
 		if(p->is_rigid_body()) {
@@ -185,9 +178,7 @@ void FIREBackend::_first_step(llint cur_step) {
 
 void FIREBackend::_second_step() {
 	this->_K = (number) 0.f;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
-
+	for(auto p: _particles) {
 		p->vel += p->force * this->_dt * (number) 0.5f;
 		if(p->is_rigid_body()) p->L += p->torque * this->_dt * (number) 0.5f;
 
@@ -197,8 +188,7 @@ void FIREBackend::_second_step() {
 
 void FIREBackend::_compute_forces() {
 	this->_U = this->_U_hydr = (number) 0;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
 
 		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
@@ -214,8 +204,7 @@ void FIREBackend::_evolve() {
 	number max_f = -1.f;
 	number max_t = -1.f;
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		number tmp = p->force.norm();
 		if(tmp > max_f) max_f = tmp;
 
@@ -234,8 +223,7 @@ void FIREBackend::_evolve() {
 	if(fact_l < 1.f) fact_l = 1.f;
 
 	// we evolve all the particles' position
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		p->pos = p->pos + p->force / fact_r;
 		if(p->is_rigid_body()) {
 			// update of the orientation
@@ -290,14 +278,12 @@ void FIREBackend::sim_step(llint curr_step) {
 
 	// calculate P
 	number P = 0.;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle * p = this->_particles[i];
+	for(auto p: _particles) {
 		P += p->force * p->vel;
 		if(p->is_rigid_body()) P += p->L * p->torque;
 	}
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle * p = this->_particles[i];
+	for(auto p: _particles) {
 		p->vel = p->vel * (1. - _alpha) + p->force * (_alpha * p->vel.module() / p->force.module());
 		if(p->is_rigid_body()) {
 			p->L = p->L * (1. - _alpha) + p->torque * (_alpha * p->L.module() / p->torque.module());
@@ -314,8 +300,7 @@ void FIREBackend::sim_step(llint curr_step) {
 	else if(P <= (number) 0.f) {
 		this->_dt = this->_dt * _f_dec;
 		_alpha = _alpha_start;
-		for(int i = 0; i < this->_N; i++) {
-			BaseParticle * p = this->_particles[i];
+		for(auto p: _particles) {
 			p->vel.x = (number) 0.f;
 			p->vel.y = (number) 0.f;
 			p->vel.z = (number) 0.f;

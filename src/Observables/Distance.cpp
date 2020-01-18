@@ -21,7 +21,7 @@ Distance::~Distance() {
 void Distance::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	int N = *config_info.N;
+	int N = config_info.N();
 	std::vector<BaseParticle *> &particles = config_info.particles;
 
 	std::vector<int> p1_indexes = Utils::getParticlesFromString(particles, N, _p1_string, "Distance observable");

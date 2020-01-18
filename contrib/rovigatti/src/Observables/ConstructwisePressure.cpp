@@ -37,7 +37,7 @@ void ConstructwisePressure::get_settings(input_file &my_inp, input_file &sim_inp
 void ConstructwisePressure::init(ConfigInfo &info) {
 	BaseObservable::init(info);
 
-	int N = *info.N;
+	int N = info.N();
 
 	if(N % _construct_size) throw oxDNAException("ConstructwisePressure: the total number of particles (%d) is not a multiple of the construct size specified in the input file (%d)", N, _construct_size);
 	_N_constructs = N / _construct_size;
@@ -46,8 +46,7 @@ void ConstructwisePressure::init(ConfigInfo &info) {
 
 void ConstructwisePressure::update_pressure() {
 	fill(_construct_coms.begin(), _construct_coms.end(), LR_vector());
-	for(int i = 0; i < *_config_info->N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+	for(auto p: _config_info->particles) {
 		int p_construct = p->index / _construct_size;
 		_construct_coms[p_construct] += _config_info->box->get_abs_pos(p);
 	}

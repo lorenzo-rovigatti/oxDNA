@@ -31,7 +31,6 @@ SimBackend::SimBackend() {
 	_is_CUDA_sim = false;
 	_interaction = NULL;
 	_N_strands = -1;
-	_N = 0;
 	// here to avoid valgrind's "Conditional jump or move depends on
 	// uninitialised value"
 	_start_step_from_file = (llint) 0;
@@ -310,15 +309,15 @@ void SimBackend::init() {
 	_interaction->init();
 
 	// check number of particles
-	_N = _interaction->get_N_from_topology();
-	_particles.resize(_N);
-	_interaction->read_topology(_N, &_N_strands, _particles);
+	int N = _interaction->get_N_from_topology();
+	_particles.resize(N);
+	_interaction->read_topology(N, &_N_strands, _particles);
 
 	_rcut = _interaction->get_rcut();
 	_sqr_rcut = SQR(_rcut);
 
 	// check that the interaction has filled the array of "affected" particles
-	for(int i = 0; i < _N; i++) {
+	for(int i = 0; i < N; i++) {
 		BaseParticle * p = _particles[i];
 		if(p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL)
 			if(p->affected.size() < 1)
@@ -349,7 +348,7 @@ void SimBackend::init() {
 	_config_info->curr_step = _start_step_from_file;
 
 	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _N, _is_CUDA_sim, _box.get());
+		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, N, _is_CUDA_sim, _box.get());
 	}
 
 	_U = (number) 0;
@@ -360,14 +359,14 @@ void SimBackend::init() {
 
 	_lists->init(_rcut);
 
-	_config_info->set(_interaction.get(), &_N, &_backend_info, _lists.get(), _box.get());
+	_config_info->set(_interaction.get(), &_backend_info, _lists.get(), _box.get());
 
 	// initializes the observable output machinery. This part has to follow read_topology() since _particles has to be initialized
 	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
 		(*it)->init(*_config_info);
 	}
 
-	OX_LOG(Logger::LOG_INFO, "N: %d", _N);
+	OX_LOG(Logger::LOG_INFO, "N: %d", N);
 }
 
 LR_vector SimBackend::_read_next_vector(bool binary) {
@@ -466,7 +465,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 	// later
 	int k, i;
 	std::vector<int> nins(_N_strands);
-	std::vector<LR_vector> tmp_poss(_N);
+	std::vector<LR_vector> tmp_poss(_particles.size());
 	std::vector<LR_vector> scdm(_N_strands);
 
 	for(k = 0; k < _N_strands; k++) {
@@ -475,7 +474,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 	}
 
 	i = 0;
-	while(!_conf_input.eof() && i < _N) {
+	while(!_conf_input.eof() && i < N()) {
 		BaseParticle *p = _particles[i];
 
 		tmp_poss[i] = _read_next_vector(binary);
@@ -532,17 +531,17 @@ bool SimBackend::_read_next_configuration(bool binary) {
 		_conf_input.read((char *) &tmpc, sizeof(char));
 	}
 
-	if(i != _N) {
+	if(i != N()) {
 		if(_confs_to_skip > 0)
 			throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
 		else
-			throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, _N);
+			throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, N());
 	}
 
 	for(k = 0; k < _N_strands; k++)
 		scdm[k] /= (double) nins[k];
 
-	for(i = 0; i < _N; i++) {
+	for(i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
 		k = p->strand_id;
 
@@ -559,7 +558,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 		p->pos = LR_vector(p_pos.x, p_pos.y, p_pos.z);
 	}
 
-	_interaction->check_input_sanity(_particles, _N);
+	_interaction->check_input_sanity(_particles, N());
 
 	return true;
 }
@@ -601,24 +600,24 @@ void SimBackend::fix_diffusion() {
 		return;
 	}
 
-	static std::vector<LR_vector> stored_pos(_N);
-	static std::vector<LR_matrix> stored_or(_N);
-	static std::vector<LR_matrix> stored_orT(_N);
+	static std::vector<LR_vector> stored_pos(N());
+	static std::vector<LR_matrix> stored_or(N());
+	static std::vector<LR_matrix> stored_orT(N());
 	static std::vector<LR_vector> scdm(_N_strands);
 	static std::vector<int> ninstrand(_N_strands);
 
-	// we don't rule out the possibility that _N and _N_strands might change during the course of the simulation
-	stored_pos.resize(_N);
-	stored_or.resize(_N);
-	stored_orT.resize(_N);
+	// we don't rule out the possibility that N() and _N_strands might change during the course of the simulation
+	stored_pos.resize(N());
+	stored_or.resize(N());
+	stored_orT.resize(N());
 	scdm.resize(_N_strands);
 	ninstrand.resize(_N_strands);
 
 	std::fill(scdm.begin(), scdm.end(), LR_vector());
 	std::fill(ninstrand.begin(), ninstrand.end(), 0);
 
-	number E_before = _interaction->get_system_energy(_particles, _N, _lists.get());
-	for(int i = 0; i < _N; i++) {
+	number E_before = _interaction->get_system_energy(_particles, N(), _lists.get());
+	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
 		stored_pos[i] = p->pos;
 		stored_or[i] = p->orientation;
@@ -626,7 +625,7 @@ void SimBackend::fix_diffusion() {
 	}
 
 	// compute com for each strand;
-	for(int i = 0; i < _N; i++) {
+	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
 		scdm[p->strand_id] += p->pos;
 		ninstrand[p->strand_id]++;
@@ -637,7 +636,7 @@ void SimBackend::fix_diffusion() {
 	}
 
 	// change particle position and fix orientation matrix;
-	for(int i = 0; i < _N; i++) {
+	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
 		_box->shift_particle(p, scdm[p->strand_id]);
 		p->orientation.orthonormalize();
@@ -645,11 +644,11 @@ void SimBackend::fix_diffusion() {
 		p->set_positions();
 	}
 
-	number E_after = _interaction->get_system_energy(_particles, _N, _lists.get());
+	number E_after = _interaction->get_system_energy(_particles, N(), _lists.get());
 	if(_interaction->get_is_infinite() == true || fabs(E_before - E_after) > 1.e-6 * fabs(E_before)) {
 		OX_LOG(Logger::LOG_INFO, "Fix diffusion went too far... %g, %g, %d, (%g>%g)", E_before, E_after, _interaction->get_is_infinite(), fabs(E_before - E_after), 1.e-6 * fabs(E_before));
 		_interaction->set_is_infinite(false);
-		for (int i = 0; i < _N; i ++) {
+		for (int i = 0; i < N(); i ++) {
 			BaseParticle *p = _particles[i];
 			LR_vector dscdm = scdm[p->strand_id] * (number)-1.;
 			_box->shift_particle(p, dscdm);
@@ -665,7 +664,7 @@ void SimBackend::fix_diffusion() {
 			else apply.push_back(0);
 		}
 
-		for (int i = 0; i < _N; i ++) {
+		for (int i = 0; i < N(); i ++) {
 			BaseParticle *p = _particles[i];
 			if(apply[p->strand_id]) {
 				p->orientation.orthonormalize();
@@ -674,11 +673,11 @@ void SimBackend::fix_diffusion() {
 			}
 		}
 
-		number E_after2 = _interaction->get_system_energy(_particles, _N, _lists.get());
+		number E_after2 = _interaction->get_system_energy(_particles, N(), _lists.get());
 		if(_interaction->get_is_infinite() == true || fabs(E_before - E_after2) > 1.e-6 * fabs(E_before)) {
 			OX_LOG(Logger::LOG_INFO, " *** Fix diffusion hopeless... %g, %g, %d, (%g>%g)", E_before, E_after2, _interaction->get_is_infinite(), fabs(E_before - E_after2), 1.e-6 * fabs(E_before));
 			_interaction->set_is_infinite(false);
-			for (int i = 0; i < _N; i ++) {
+			for (int i = 0; i < N(); i ++) {
 				BaseParticle *p = _particles[i];
 				if (apply[p->strand_id]) {
 					p->pos = stored_pos[i];

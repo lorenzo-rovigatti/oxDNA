@@ -28,9 +28,7 @@ MD_CPUBackend::~MD_CPUBackend() {
 void MD_CPUBackend::_first_step(llint curr_step) {
 	bool is_warning = false;
 	std::vector<int> w_ps;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
-
+	for(auto p: _particles) {
 		p->vel += p->force * (this->_dt * (number) 0.5);
 		LR_vector dr = p->vel * this->_dt;
 		if(dr.norm() > 0.01) {
@@ -99,9 +97,7 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 
 void MD_CPUBackend::_compute_forces() {
 	this->_U = this->_U_hydr = (number) 0;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
-
+	for(auto p: _particles) {
 		typename vector<ParticlePair>::iterator it = p->affected.begin();
 		for(; it != p->affected.end(); it++) {
 			if(it->first == p) this->_U += this->_interaction->pair_interaction_bonded(it->first, it->second, NULL, true);
@@ -118,9 +114,7 @@ void MD_CPUBackend::_compute_forces() {
 
 void MD_CPUBackend::_second_step() {
 	this->_K = (number) 0.f;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
-
+	for(auto p: _particles) {
 		p->vel += p->force * this->_dt * (number) 0.5f;
 		if(p->is_rigid_body()) p->L += p->torque * this->_dt * (number) 0.5f;
 
@@ -254,13 +248,12 @@ void MD_CPUBackend::get_settings(input_file &inp) {
 
 void MD_CPUBackend::init() {
 	MDBackend::init();
-	_thermostat->init(this->_N);
+	_thermostat->init(N());
 	if(this->_use_barostat) _V_move->init();
 
 	_compute_forces();
 	if(_compute_stress_tensor) {
-		for(int i = 0; i < this->_N; i++) {
-			BaseParticle *p = this->_particles[i];
+		for(auto p: _particles) {
 			_update_kinetic_stress_tensor(p);
 		}
 		_update_backend_info();

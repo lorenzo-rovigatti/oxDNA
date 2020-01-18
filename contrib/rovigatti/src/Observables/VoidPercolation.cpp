@@ -151,7 +151,7 @@ void VoidPercolation::get_settings(input_file &my_inp, input_file &sim_inp) {
 void VoidPercolation::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_N = *config_info.N + 1;
+	_N = config_info.N() + 1;
 	_N_replica = 8 * _insertions;
 
 	_probes.resize(_insertions);

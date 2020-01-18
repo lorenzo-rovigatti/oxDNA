@@ -183,7 +183,7 @@ std::string NathanNeighs::_particle(BaseParticle *p) {
 
 std::string NathanNeighs::_configuration(llint step) {
 	_nate_particles.clear();
-	_nate_particles.resize(*_config_info->N);
+	_nate_particles.resize(_config_info->N());
 
 	_total_bonds = 0;
 	_n_crystalline = 0;
@@ -197,7 +197,7 @@ std::string NathanNeighs::_configuration(llint step) {
 	else if(_mode == QS) {
 		std::stringstream ss;
 		bool first = true;
-		for(int i = 0; i < *_config_info->N; i++) {
+		for(int i = 0; i < _config_info->N(); i++) {
 			NateParticle *np = &_nate_particles[i];
 			if(np->is_crystalline) {
 				for(auto nq: np->neighs) {
@@ -222,7 +222,7 @@ std::string NathanNeighs::_configuration(llint step) {
 	else if(_mode == QS_AVG) {
 		std::stringstream ss;
 		ss << "# " << _n_crystalline;
-		for(int i = 0; i < *_config_info->N; i++) {
+		for(int i = 0; i < _config_info->N(); i++) {
 			NateParticle *np = &_nate_particles[i];
 			if(np->is_crystalline) {
 				std::vector<std::complex<number>> q4(np->q4);

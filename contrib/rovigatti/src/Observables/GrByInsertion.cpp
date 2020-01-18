@@ -74,8 +74,7 @@ void GrByInsertion::init(ConfigInfo &config_info) {
 		_inter_hist[BB][i] = 0.;
 	}
 
-	for(int i = 0; i < *config_info.N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+	for(auto p: _config_info->particles) {
 		if(p->strand_id > 1) throw oxDNAException("The system should contain only two chains");
 		if(p->type != P_A && p->type != P_B) throw oxDNAException("Only particles of type A and B are allowed");
 		_particles[p->strand_id][p->type].push_back(p);
@@ -146,7 +145,7 @@ void GrByInsertion::_put_randomly_at_r(int chain, int type, LR_vector &r0, numbe
 }
 
 std::string GrByInsertion::get_output_string(llint curr_step) {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 	_n_conf++;
 
 	LR_vector coms[2][2];

@@ -32,7 +32,7 @@ std::string StretchedBonds::get_output_string(llint curr_step) {
 	std::string ret;
 	std::vector<int> stretched;
 	int num = 0;
-	int N = *_config_info->N;
+	int N = _config_info->N();
 	for(int i = 0; i < N; i++) {
 		BaseParticle * p = _config_info->particles[i];
 		number energy;

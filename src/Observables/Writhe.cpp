@@ -15,7 +15,6 @@ Writhe::Writhe() {
 	_last_particle_index = -1;
 
 	_subdomain_size = -1;
-	_N = -1;
 	_use_default_go_around = true;
 	_locate_plectonemes = false;
 	_writhe_threshold = 0.28;
@@ -28,12 +27,14 @@ Writhe::Writhe() {
 	_minimum_plectoneme_size = 1;
 	_bending_angle_number_segments = 0;
 	_particles_are_bases = true;
+
+	_writhe_integrand_values = nullptr;
 }
 
 Writhe::~Writhe() {
 	//deallocate them only if they have been allocated
-	if(_N != -1) {
-		for(int i = 0; i < _N; i++) {
+	if(_writhe_integrand_values != nullptr) {
+		for(int i = 0; i < _config_info->N(); i++) {
 			delete[] _writhe_integrand_values[i];
 		}
 		delete[] _writhe_integrand_values;
@@ -45,21 +46,21 @@ void Writhe::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
 	std::vector<BaseParticle *> &p = _config_info->particles;
-	_N = *_config_info->N;
+	int N = _config_info->N();
 
 	//allocate the arrays - these take up unnecessary memory when the subdomain is smaller than N, but I don't think I care.
-	_writhe_integrand_values = new number*[_N];
-	for(int i = 0; i < _N; i++) {
-		_writhe_integrand_values[i] = new number[_N];
+	_writhe_integrand_values = new number*[N];
+	for(int i = 0; i < N; i++) {
+		_writhe_integrand_values[i] = new number[N];
 	}
-	for(int i = 0; i < _N; i++) {
-		for(int j = 0; j < _N; j++) {
+	for(int i = 0; i < N; i++) {
+		for(int j = 0; j < N; j++) {
 			_writhe_integrand_values[i][j] = -1e9;
 		}
 	}
 	// check that _first_particle_index is in [0,N) and not the terminal particle
-	if(_first_particle_index < 0 || _first_particle_index > _N - 1) {
-		throw oxDNAException("Writhe: first_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.", _N, _first_particle_index);
+	if(_first_particle_index < 0 || _first_particle_index > N - 1) {
+		throw oxDNAException("Writhe: first_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.", N, _first_particle_index);
 	}
 	if(p[_first_particle_index]->n5 == P_VIRTUAL) {
 		throw oxDNAException("Writhe: first_particle_index must not be the index of the last particle of a strand, otherwise which particle should be last_particle_index referring to?");
@@ -76,8 +77,8 @@ void Writhe::init(ConfigInfo &config_info) {
 		_last_particle_index = p[_first_particle_index]->n3->index;
 	}
 	// check that _last_particle_index is in [0,N)
-	if(_last_particle_index < 0 || _last_particle_index > _N - 1) {
-		throw oxDNAException("Writhe: last_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.", _N, _last_particle_index);
+	if(_last_particle_index < 0 || _last_particle_index > N - 1) {
+		throw oxDNAException("Writhe: last_particle_index must be greater or equal to 0 and less than the total number of particles (%d, in this simulation), but it is %d.", N, _last_particle_index);
 	}
 	// check that _first_particle_index is different than _last_particle_index
 	if(_first_particle_index == _last_particle_index) {
@@ -168,13 +169,6 @@ std::string Writhe::get_output_string(llint curr_step) {
 	std::vector<BaseParticle *> &p = _config_info->particles;
 	int time = _config_info->curr_step;
 	LR_vector r, rp, t, tp;
-	/*
-	 LR_vector *positions = new LR_vector[_N];
-	 delete[] positions;
-	 // get the positions of the array - will later have to be done with the get_helical_axis_from_duplex
-	 for (int i = 0; i <= _last_particle_index - _first_particle_index; i++){
-	 positions[i] = p[i]->pos;
-	 }*/
 
 	number writhe = 0;
 	//number writhetemp = 0;
@@ -271,7 +265,7 @@ std::string Writhe::get_output_string(llint curr_step) {
 					result += std::string(temp);
 					// compute the size of the plectoneme
 					if(_print_size or _print_left_right) {
-						if((peak_position - _minimum_plectoneme_size) >= 0 && (peak_position + _minimum_plectoneme_size) < *_config_info->N) {		//TODO: probably remove this if statement - the pointers should keep track of things by checking for P_VIRTUAL
+						if((peak_position - _minimum_plectoneme_size) >= 0 && (peak_position + _minimum_plectoneme_size) < _config_info->N()) {		//TODO: probably remove this if statement - the pointers should keep track of things by checking for P_VIRTUAL
 						//--old way
 						//BaseParticle *left = p[peak_position - _minimum_plectoneme_size];
 						//BaseParticle *right = p[peak_position + _minimum_plectoneme_size];
@@ -319,13 +313,13 @@ std::string Writhe::get_output_string(llint curr_step) {
 
 							//--old size
 							//int size = right->index - left->index;
-							int size = 0, max_size = *_config_info->N + 10;
+							int size = 0, max_size = _config_info->N() + 10;
 							BaseParticle * step_counter = left;
 							for(int l = 1; (l <= max_size and step_counter != right); l++) {
 								size = l;
 								step_counter = step_counter->n5;
 							}
-							if(size == 0) size = *_config_info->N;
+							if(size == 0) size = _config_info->N();
 							//printf("Just computed: peak %d size %d left %d right %d\n",peak_position, size, left->index, right->index);
 							if(size == max_size) {
 								OX_LOG(Logger::LOG_INFO,"Obsevrable writhe: problem with plectoneme on position %d: size is equal to max_size (%d). Left = %d Right = %d.",peak_position, size, left->index, right->index);

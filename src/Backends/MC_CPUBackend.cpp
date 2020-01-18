@@ -53,9 +53,9 @@ void MC_CPUBackend::init() {
 	if(this->_ensemble == MC_ENSEMBLE_NPT) _timer_box = TimingManager::instance()->new_timer(std::string("Volume Moves"), std::string("SimBackend"));
 	_timer_lists = TimingManager::instance()->new_timer(std::string("Lists"));
 
-	_particles_old.resize(_N);
-	this->_interaction->read_topology(this->_N, &this->_N_strands, _particles_old);
-	for(int i = 0; i < this->_N; i++) {
+	_particles_old.resize(N());
+	this->_interaction->read_topology(N(), &this->_N_strands, _particles_old);
+	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles_old[i];
 
 		p->index = i;
@@ -72,9 +72,8 @@ void MC_CPUBackend::init() {
 		this->_particles[i]->orientationT = this->_particles[i]->orientation.get_transpose();
 	}
 
-	// qui ci facciamo la lista delle interazioni bonded
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	// here we build the list of bonded interactions
+	for(auto p: _particles) {
 		for(unsigned int n = 0; n < p->affected.size(); n++) {
 			BaseParticle * p1 = p->affected[n].first;
 			BaseParticle * p2 = p->affected[n].second;
@@ -85,11 +84,17 @@ void MC_CPUBackend::init() {
 
 	// check that target_box makes sense and output details
 	if(_target_box > 0.f) {
-		if(_target_box < 2. * this->_interaction->get_rcut()) throw oxDNAException("Cannot run box adjustment with target_box (%g) <  2 * rcut (2 * %g)", _target_box, this->_interaction->get_rcut());
-		if(_e_tolerance < 0.f) _e_tolerance = 0.3 * this->_T * this->_N;
-		else _e_tolerance *= this->_N;
+		if(_target_box < 2. * this->_interaction->get_rcut()) {
+			throw oxDNAException("Cannot run box adjustment with target_box (%g) <  2 * rcut (2 * %g)", _target_box, this->_interaction->get_rcut());
+		}
+		if(_e_tolerance < 0.f) {
+			_e_tolerance = 0.3 * N();
+		}
+		else {
+			_e_tolerance *= N();
+		}
 
-		OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Working to achieve taget_box=%g (Volume: %g), tolerance=%g, energy tolerance=%g (e/N)=%g", _target_box, pow(_target_box,3.), _box_tolerance, _e_tolerance, _e_tolerance / this->_N);
+		OX_LOG(Logger::LOG_INFO, "(MC_CPUBackend) Working to achieve taget_box=%g (Volume: %g), tolerance=%g, energy tolerance=%g (e/N)=%g", _target_box, pow(_target_box,3.), _box_tolerance, _e_tolerance, _e_tolerance / N());
 	}
 
 	_compute_energy();
@@ -134,8 +139,7 @@ inline number MC_CPUBackend::_particle_energy(BaseParticle *p, bool reuse) {
 
 void MC_CPUBackend::_compute_energy() {
 	this->_U = (number) 0;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		this->_U += this->_particle_energy(p);
 	}
 
@@ -183,9 +187,11 @@ inline void MC_CPUBackend::_rotate_particle(BaseParticle *p) {
 void MC_CPUBackend::sim_step(llint curr_step) {
 	this->_mytimer->resume();
 
-	for(int i = 0; i < this->_N; i++) {
-		if(i > 0 && this->_interaction->get_is_infinite() == true) throw oxDNAException("should not happen %d", i);
-		if(this->_ensemble == MC_ENSEMBLE_NPT && drand48() < 1. / this->_N) {
+	for(int i = 0; i < N(); i++) {
+		if(i > 0 && this->_interaction->get_is_infinite() == true) {
+			throw oxDNAException("should not happen %d", i);
+		}
+		if(this->_ensemble == MC_ENSEMBLE_NPT && drand48() < 1. / N()) {
 			_timer_box->resume();
 			// do npt move
 
@@ -212,7 +218,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 			this->_lists->change_box();
 
 			number dExt = (number) 0.;
-			for(int k = 0; k < this->_N; k++) {
+			for(int k = 0; k < N(); k++) {
 				BaseParticle *p = this->_particles[k];
 				dExt = -p->ext_potential;
 				_particles_old[k]->pos = p->pos;
@@ -231,7 +237,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				_timer_lists->pause();
 			}
 
-			number newE = this->_interaction->get_system_energy(_particles, _N, _lists.get());
+			number newE = this->_interaction->get_system_energy(_particles, N(), _lists.get());
 			number dE = newE - oldE + dExt;
 			number V = this->_box->V();
 			number dV = V - oldV;
@@ -243,7 +249,9 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				number V_target = _target_box * _target_box * _target_box;
 				second_factor = fabs(V - V_target) < fabs(oldV - V_target) && dE < _e_tolerance;
 			}
-			else second_factor = exp(-(dE + this->_P * dV - this->_N * this->_T * log(V / oldV)) / this->_T) > drand48();
+			else {
+				second_factor = exp(-(dE + this->_P * dV - N() * this->_T * log(V / oldV)) / this->_T) > drand48();
+			}
 
 			if(this->_interaction->get_is_infinite() == false && second_factor) {
 				// volume move accepted
@@ -252,8 +260,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				if((curr_step < this->_MC_equilibration_steps && this->_adjust_moves) || _target_box > 0.f) this->_delta[MC_MOVE_VOLUME] *= 1.03;
 
 				_stored_bonded_interactions.clear();
-				for(int k = 0; k < this->_N; k++) {
-					BaseParticle *p = this->_particles[k];
+				for(auto p: _particles) {
 					for(auto &pair : p->affected) {
 						number e = this->_interaction->pair_interaction_bonded(pair.first, pair.second);
 						if(_stored_bonded_interactions.count(pair) == 0) _stored_bonded_interactions[pair] = e;
@@ -264,7 +271,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				// volume move rejected
 				this->_box->init(old_box_sides.x, old_box_sides.y, old_box_sides.z);
 				this->_lists->change_box();
-				for(int k = 0; k < this->_N; k++) {
+				for(int k = 0; k < N(); k++) {
 					BaseParticle *p = this->_particles[k];
 					//p->pos /= this->_box_side / old_box_side;
 					p->pos = _particles_old[k]->pos;
@@ -287,7 +294,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 		else {
 			_timer_move->resume();
 			// do normal move
-			int pi = (int) (drand48() * this->_N);
+			int pi = (int) (drand48() * N());
 			BaseParticle *p = this->_particles[pi];
 
 			int move = (drand48() < (number) 0.5f) ? MC_MOVE_TRANSLATION : MC_MOVE_ROTATION;

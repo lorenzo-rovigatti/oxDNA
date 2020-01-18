@@ -42,16 +42,15 @@ void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 LR_vector Pressure::_get_com() {
 	LR_vector com;
-	for(int i = 0; i < *_config_info->N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+	for(auto p: _config_info->particles) {
 		com += _config_info->box->get_abs_pos(p);
 	}
-	com /= *_config_info->N;
+	com /= _config_info->N();
 	return com;
 }
 
 void Pressure::update_pressure() {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 
 	LR_vector com = (_spherical) ? _get_com() : LR_vector();
@@ -114,8 +113,7 @@ void Pressure::update_pressure() {
 		}
 	}
 
-	for(int i = 0; i < *_config_info->N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+	for(auto p: _config_info->particles) {
 		LR_vector vel = p->vel;
 		if(_shear_rate > 0.) {
 			number Ly = CONFIG_INFO->box->box_sides().y;

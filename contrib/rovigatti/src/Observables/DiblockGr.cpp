@@ -82,7 +82,7 @@ int DiblockGr::_get_bin(number sqr_dist) {
 }
 
 std::string DiblockGr::get_output_string(llint curr_step) {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 	_n_conf++;
 
 	LR_vector coms[2][2];

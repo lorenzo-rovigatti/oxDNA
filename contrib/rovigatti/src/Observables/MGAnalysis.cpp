@@ -118,13 +118,13 @@ std::pair<number, number> MGAnalysis::_lame_coefficients() {
 
 	lambda /= 6.;
 	mu /= 6.;
-	mu += 2 * _T * *_config_info->N;
+	mu += 2 * _T * _config_info->N();
 
 	return std::pair<number, number>(lambda, mu);
 }
 
 number MGAnalysis::_volume() {
-	int N = *_config_info->N;
+	int N = _config_info->N();
 	LR_vector com = _com(0, N);
 
 	std::vector<qh_vertex_t> vertices(N);
@@ -235,7 +235,7 @@ std::string MGAnalysis::get_output_string(llint curr_step) {
 		to_ret = Utils::sformat("%lf", volume);
 	}
 	else if(_rg_only) {
-		int N = *_config_info->N;
+		int N = _config_info->N();
 		if(!_two_microgels) {
 			auto eigenvalues = _rg_eigenvalues(0, N);
 			to_ret = Utils::sformat("%lf %lf %lf %lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2], eigenvalues[3], eigenvalues[4], eigenvalues[5]);

@@ -20,9 +20,8 @@ ConfigInfo::~ConfigInfo() {
 
 }
 
-void ConfigInfo::set(IBaseInteraction *i, int *Nn, std::string *info, BaseList *l, BaseBox *abox) {
+void ConfigInfo::set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox) {
 	interaction = i;
-	N = Nn;
 	backend_info = info;
 	lists = l;
 	box = abox;

@@ -40,8 +40,7 @@ void MinBackend::init() {
 
 void MinBackend::_compute_forces() {
 	this->_U = this->_U_hydr = (number) 0;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
 
 		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
@@ -57,8 +56,7 @@ void MinBackend::_evolve() {
 	number max_f = -1.f;
 	number max_t = -1.f;
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		number tmp = p->force.norm();
 		if(tmp > max_f) max_f = tmp;
 
@@ -77,8 +75,7 @@ void MinBackend::_evolve() {
 	//if (fact_l < 1.f) fact_l = 1.f;
 
 	// we evolve all the particles' position
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		p->pos = p->pos + p->force / fact_r;
 		if(p->is_rigid_body()) {
 			// update of the orientation
@@ -113,8 +110,8 @@ void MinBackend::_evolve() {
 void MinBackend::sim_step(llint curr_step) {
 	this->_mytimer->resume();
 
-	for(int i = 0; i < this->_N; i++) {
-		this->_particles[i]->set_initial_forces(curr_step, this->_box);
+	for(auto p: _particles) {
+		p->set_initial_forces(curr_step, this->_box);
 	}
 
 	this->_timer_lists->resume();

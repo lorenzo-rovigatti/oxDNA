@@ -51,7 +51,7 @@ std::string FormFactor::get_output_string(llint curr_step) {
 	std::stringstream ret;
 	ret.precision(9);
 
-	int N = *_config_info->N;
+	int N = _config_info->N();
 
 	LR_vector com(0., 0., 0.);
 	for(int j = 0; j < N; j++) {

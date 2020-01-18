@@ -55,17 +55,19 @@ void VMMC::init() {
 
 	// fix maxclust if evidently wrong
 	if (_max_cluster_size < 1) {
-		_max_cluster_size = *this->_Info->N;
+		_max_cluster_size = _Info->N();
 	}
-	if (_max_cluster_size > *this->_Info->N) {
-		OX_LOG(Logger::LOG_WARNING, "(VMMC.cpp) maxclust > N does not make sense, setting it to N = %i", this->_Info->N);
-		_max_cluster_size = *this->_Info->N;
+	if (_max_cluster_size > _Info->N()) {
+		OX_LOG(Logger::LOG_WARNING, "(VMMC.cpp) maxclust > N does not make sense, setting it to N = %i", _Info->N());
+		_max_cluster_size = _Info->N();
 	}
 
 	// here we only use this array as a storage place for positions and orientations;
 	// the topology is not set for _particles_old
-	_particles_old.resize(*this->_Info->N);
-	for (int i = 0; i < *this->_Info->N; i ++) _particles_old[i] = new BaseParticle();
+	_particles_old.resize(_Info->N());
+	for (int i = 0; i < _Info->N(); i ++) {
+		_particles_old[i] = new BaseParticle();
+	}
 
 	OX_LOG(Logger::LOG_INFO, "(VMMC.cpp) VMMC move initialized with T=%g, delta_tras=%g, delta_rot=%g, prob=%g, max_move_size=%g, max_cluster_size=%d", this->_T, _delta_tras, _delta_rot, this->prob, _max_move_size, _max_cluster_size);
 	printf ("adjust: %d\n", this->_adjust_moves);
@@ -288,7 +290,7 @@ void VMMC::apply (llint curr_step) {
 	if (_clust.size() > 0) _clust.clear();
 
 	// generate the move
-	int pi = (int) (drand48() * (*this->_Info->N));
+	int pi = (int) (drand48() * _Info->N());
 	BaseParticle *p = this->_Info->particles[pi];
 	movestr move;
 	move.seed = pi;

@@ -117,8 +117,9 @@ void AnalysisBackend::analyse() {
 	if(!_read_next_configuration(_initial_conf_is_binary)) _done = true;
 	else _n_conf++;
 
-	for(int i = 0; i < this->_N; i++)
-		this->_lists->single_update(this->_particles[i]);
+	for(auto p: _particles) {
+		this->_lists->single_update(p);
+	}
 	this->_lists->global_update();
 
 	_mytimer->pause();
