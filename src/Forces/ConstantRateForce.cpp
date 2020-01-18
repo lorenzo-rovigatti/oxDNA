@@ -41,9 +41,9 @@ void ConstantRateForce::get_settings(input_file &inp) {
 	if(!dir_as_centre) this->_direction.normalize();
 }
 
-void ConstantRateForce::init(std::vector<BaseParticle *> &particles, int N, BaseBox * box_ptr) {
+void ConstantRateForce::init(std::vector<BaseParticle *> &particles, BaseBox *box_ptr) {
 	std::string force_description = Utils::sformat("ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g)", this->_F0, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z);
-	this->_add_self_to_particles(particles, N, _particles_string, force_description);
+	this->_add_self_to_particles(particles, _particles_string, force_description);
 }
 
 LR_vector ConstantRateForce::value(llint step, LR_vector &pos) {

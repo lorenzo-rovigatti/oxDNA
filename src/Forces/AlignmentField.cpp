@@ -33,7 +33,8 @@ void AlignmentField::get_settings(input_file &inp) {
 	this->_direction.normalize();
 }
 
-void AlignmentField::init(std::vector<BaseParticle *> & particles, int N, BaseBox * box_ptr) {
+void AlignmentField::init(std::vector<BaseParticle *> & particles, BaseBox * box_ptr) {
+	int N = particles.size();
 	if(_particle >= N || N < 0) throw oxDNAException("Trying to add a AlignmentField on non-existent particle %d. Aborting", _particle);
 	//if (_particle != -1) {
 	OX_LOG(Logger::LOG_INFO, "Adding AlignmentField (F=%g, dir=%g,%g,%g) on particle %d", _F, this->_direction.x, this->_direction.y, this->_direction.z, _particle);

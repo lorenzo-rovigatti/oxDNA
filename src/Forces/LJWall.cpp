@@ -45,7 +45,8 @@ void LJWall::get_settings(input_file &inp) {
 	this->_direction.normalize();
 }
 
-void LJWall::init(std::vector<BaseParticle *> & particles, int N, BaseBox *box_ptr) {
+void LJWall::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
+	int N = particles.size();
 	if(_particle >= N || N < -1) throw oxDNAException("Trying to add a LJWall on non-existent particle %d. Aborting", _particle);
 	if(_particle != -1) {
 		OX_LOG(Logger::LOG_INFO, "Adding LJWall (stiff=%g, position=%g, dir=%g,%g,%g, sigma=%g, n=%d) on particle %d", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n, _particle);

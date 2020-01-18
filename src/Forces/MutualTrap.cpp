@@ -31,7 +31,8 @@ void MutualTrap::get_settings (input_file &inp) {
 }
 
 
-void MutualTrap::init (std::vector<BaseParticle *> & particles, int N, BaseBox * box_ptr){
+void MutualTrap::init (std::vector<BaseParticle *> & particles, BaseBox * box_ptr){
+	int N = particles.size();
 	if (_ref_id < 0 || _ref_id >= N) throw oxDNAException ("Invalid reference particle %d for Mutual Trap", _ref_id);
 	_p_ptr = particles[_ref_id];
 

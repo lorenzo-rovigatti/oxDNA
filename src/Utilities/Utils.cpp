@@ -232,21 +232,21 @@ void Utils::get_seed(unsigned short * seedptr) {
 }
 
 // zeroes the velocity of the centre of mass
-
-void Utils::stop_com(std::vector<BaseParticle *> &particles, int N) {
+void Utils::stop_com(std::vector<BaseParticle *> &particles) {
 	LR_vector vcom = LR_vector((number) 0., (number) 0., (number) 0.);
 
-	for(int i = 0; i < N; i++)
-		vcom += particles[i]->vel;
+	for(auto p: particles) {
+		vcom += p->vel;
+	}
 
-	vcom = vcom / (number) N;
+	vcom = vcom / (number) particles.size();
 
-	for(int i = 0; i < N; i++)
-		particles[i]->vel -= vcom;
+	for(auto p: particles) {
+		p->vel -= vcom;
+	}
 
 	return;
 }
-
 
 number Utils::gamma(number alpha, number beta) {
 	number x, v, u;
@@ -283,8 +283,7 @@ bool Utils::is_integer(std::string s) {
 
 }
 
-
-std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &particles, int N, std::string particle_string, char const *identifier) {
+std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier) {
 	// first remove all the spaces from the string, so that the parsing goes well.
 	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int (*)(int)>( isspace )), particle_string.end());
 
@@ -311,10 +310,10 @@ std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &part
 			for (int ii = 0; ii < 2; ii++) {
 				if ( Utils::is_integer(p0_p1_index[ii])) {
 					p[ii] = atoi(p0_p1_index[ii].c_str());
-					Utils::assert_is_valid_particle(p[ii],N,identifier);
+					Utils::assert_is_valid_particle(p[ii], particles.size(), identifier);
 				}
 				if ( ! Utils::is_integer(p0_p1_index[ii])) {
-					if(p0_p1_index[ii] == "last") p[ii] = N - 1;
+					if(p0_p1_index[ii] == "last") p[ii] = particles.size() - 1;
 					else {
 						throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\" used as a boundary particle.",identifier,p0_p1_index[ii].c_str());
 					}
@@ -350,7 +349,7 @@ std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &part
 
 		}
 		else if ( temp[i] == "last") {
-			particles_index.push_back(N-1);
+			particles_index.push_back(particles.size() - 1);
 		}
 		else if ( temp[i] == "all") {
 			particles_index.push_back(-1);
@@ -363,7 +362,7 @@ std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &part
 			}
 			int j = atoi(temp[i].c_str());
 
-			Utils::assert_is_valid_particle(j,N,identifier);
+			Utils::assert_is_valid_particle(j, particles.size(), identifier);
 			particles_index.push_back(j);
 		}
 

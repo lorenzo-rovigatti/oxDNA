@@ -182,7 +182,7 @@ public:
 	 * @param N number of particles
 	 */
 	
-	static void stop_com(std::vector<BaseParticle *> &particles, int N);
+	static void stop_com(std::vector<BaseParticle *> &particles);
 
 	/**
 	 * @brief Utility function that reads a string like "10-16,18" and returns a vector of integers.
@@ -192,7 +192,7 @@ public:
 	 * @param identifier the identifier of the calling item (to display to the user in case problems arise).
 	 */
 	
-	static std::vector<int> getParticlesFromString(std::vector<BaseParticle *> &particles, int N, std::string particle_string, char const *identifier);
+	static std::vector<int> getParticlesFromString(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier);
 
 	/**
 	 * @brief Utility function that checks if an integer is a valid particle index, or -1.

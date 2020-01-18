@@ -24,13 +24,13 @@ void Distance::init(ConfigInfo &config_info) {
 	int N = config_info.N();
 	std::vector<BaseParticle *> &particles = config_info.particles;
 
-	std::vector<int> p1_indexes = Utils::getParticlesFromString(particles, N, _p1_string, "Distance observable");
+	std::vector<int> p1_indexes = Utils::getParticlesFromString(particles, _p1_string, "Distance observable");
 	for(auto idx: p1_indexes) {
 		_check_index(idx, N);
 		_p1_list.insert(particles[idx]);
 	}
 
-	std::vector<int> p2_indexes = Utils::getParticlesFromString(particles, N, _p2_string, "Distance observable");
+	std::vector<int> p2_indexes = Utils::getParticlesFromString(particles, _p2_string, "Distance observable");
 	for(auto idx: p2_indexes) {
 		_check_index(idx, N);
 		_p2_list.insert(particles[idx]);

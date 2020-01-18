@@ -126,13 +126,13 @@ void GeneratorManager::init() {
 		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g (%d particles, box sides %g %g %g)", _density, _N, _box_side_x, _box_side_y, _box_side_z);
 	}
 
-	// setting the box or the interaction
+	// setting the box of the interaction
 	_mybox->init(_box_side_x, _box_side_y, _box_side_z);
 	_interaction->set_box(_mybox.get());
 
 	// initializing external forces
 	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox.get());
+		ForceFactory::instance()->read_external_forces(_external_filename, _particles, false, _mybox.get());
 	}
 }
 

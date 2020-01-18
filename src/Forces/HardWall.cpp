@@ -33,7 +33,8 @@ void HardWall::get_settings(input_file &inp) {
 	this->_direction.normalize();
 }
 
-void HardWall::init(std::vector<BaseParticle *> & particles, int N, BaseBox *box_ptr) {
+void HardWall::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
+	int N = particles.size();
 	if(_particle >= N || N < -1) throw oxDNAException("Trying to add a HardWall on non-existent particle %d. Aborting", _particle);
 	if(_particle != -1) {
 		OX_LOG(Logger::LOG_INFO, "Adding HardWall (position=%g, dir=%g,%g,%g, sigma=%g) on particle %d", this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _particle);

@@ -46,11 +46,10 @@ protected:
 	 * and then use it to initialise all the particles contained therein.
 	 *
 	 * @param particles particle array
-	 * @param N number of particles
 	 * @param particle_string a list of particles
 	 * @param force_description an optional description (defaults to "generic force") that will be used in the logging messages
 	 */
-	void _add_self_to_particles(std::vector<BaseParticle *> &particles, int N, std::string particle_string, std::string force_description = std::string("force"));
+	void _add_self_to_particles(std::vector<BaseParticle *> &particles, std::string particle_string, std::string force_description = std::string("force"));
 
 public:
 	/**
@@ -84,7 +83,7 @@ public:
 	 * This function initialises the force object and assignes 
 	 * it to the relevant particles.
 	 */
-	virtual void init(std::vector<BaseParticle *> &particles, int N, BaseBox * box) = 0;
+	virtual void init(std::vector<BaseParticle *> &particles, BaseBox * box) = 0;
 
 	virtual void set_group_name(std::string &name) {
 		_group_name = name;

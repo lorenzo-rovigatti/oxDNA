@@ -36,11 +36,12 @@ void RepulsionPlaneMoving::get_settings(input_file &inp) {
 	this->_direction.normalize();
 }
 
-void RepulsionPlaneMoving::init(std::vector<BaseParticle *> & particles, int N, BaseBox * box_ptr) {
+void RepulsionPlaneMoving::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
+	int N = particles.size();
 	_box_ptr = box_ptr;
 
-	auto particle_indices_vector = Utils::getParticlesFromString(particles, N, _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
-	auto ref_particle_indices_vector = Utils::getParticlesFromString(particles, N, _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	auto particle_indices_vector = Utils::getParticlesFromString(particles, _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	auto ref_particle_indices_vector = Utils::getParticlesFromString(particles, _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
 
 	sort(ref_particle_indices_vector.begin(), ref_particle_indices_vector.end());
 	low_idx = ref_particle_indices_vector.front();

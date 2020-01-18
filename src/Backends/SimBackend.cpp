@@ -348,7 +348,7 @@ void SimBackend::init() {
 	_config_info->curr_step = _start_step_from_file;
 
 	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, N, _is_CUDA_sim, _box.get());
+		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _is_CUDA_sim, _box.get());
 	}
 
 	_U = (number) 0;

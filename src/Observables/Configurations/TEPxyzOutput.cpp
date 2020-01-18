@@ -58,11 +58,11 @@ void TEPxyzOutput::init(ConfigInfo &config_info) {
 		_bead_types[i] = 0;
 	}
 
-	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, N, _particles_type1_string, "force string (TEPxyzOutput.cpp)");
+	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, _particles_type1_string, "force string (TEPxyzOutput.cpp)");
 	for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 		_bead_types[particle_indices_vector[i]] = 1;
 	}
-	particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, N, _particles_type2_string, "force string (TEPxyzOutput.cpp)");
+	particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, _particles_type2_string, "force string (TEPxyzOutput.cpp)");
 	for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 		_bead_types[particle_indices_vector[i]] = 2;
 	}
