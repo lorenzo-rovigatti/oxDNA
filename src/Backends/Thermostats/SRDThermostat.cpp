@@ -8,6 +8,7 @@
 #include "SRDThermostat.h"
 
 #include "../../Boxes/BaseBox.h"
+#include "../../Utilities/ConfigInfo.h"
 
 #include <cfloat>
 
@@ -62,8 +63,8 @@ void SRDThermostat::get_settings(input_file &inp) {
 	OX_LOG(Logger::LOG_INFO, "SRD thermostat: T=%g, r_cell: %g, N_per_cell: %d, rescale_factor: %g", _T, _r_cell, _N_per_cell, _rescale_factor);
 }
 
-void SRDThermostat::init(int N_part) {
-	BaseThermostat::init(N_part);
+void SRDThermostat::init() {
+	BaseThermostat::init();
 
 	number L = _box->box_sides()[0];
 	_N_cells_side = (int) (floor(L / _r_cell) + 0.1);
@@ -78,7 +79,7 @@ void SRDThermostat::init(int N_part) {
 	// we allocate memory only if we simulate on the CPU
 	if(!_is_cuda) {
 		_cells = new SRDCell[_N_cells];
-		_srd_particles = new SRDParticle[_N_particles + N_part];
+		_srd_particles = new SRDParticle[_N_particles + CONFIG_INFO->N()];
 
 		number rescale_factor = sqrt(_T / _m);
 		for(int i = 0; i < _N_particles; i++) {
@@ -161,9 +162,8 @@ void SRDThermostat::apply1(std::vector<BaseParticle *> &particles, llint curr_st
 		c->head = p;
 	}
 
-	for(int i = 0; i < this->_N_part; i++) {
+	for(uint i = 0; i < particles.size(); i++) {
 		BaseParticle *p = particles[i];
-
 		int ind = _get_cell_index(p->pos);
 		SRDCell *c = _cells + ind;
 
@@ -211,7 +211,7 @@ void SRDThermostat::apply1(std::vector<BaseParticle *> &particles, llint curr_st
 	// update velocities and angular momenta
 	// of solute particles
 	//return;
-	for(int i = 0; i < this->_N_part; i++) {
+	for(uint i = 0; i < particles.size(); i++) {
 		BaseParticle *p = particles[i];
 		SRDParticle *fake_p = _srd_particles + (_N_particles + i);
 		SRDCell *c = _cells + fake_p->cell_index;

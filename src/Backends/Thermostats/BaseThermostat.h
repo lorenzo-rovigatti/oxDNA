@@ -26,10 +26,8 @@ public:
 
 	/**
 	 * @brief init function for the thermostats.
-	 *
-	 * @param N number of particles
 	 */
-	virtual void init(int N) = 0;
+	virtual void init() = 0;
 };
 
 /**
@@ -39,7 +37,6 @@ public:
 
 class BaseThermostat: public virtual IBaseThermostat {
 protected:
-	int _N_part;
 	number _T;
 	bool _supports_shear;
 	bool _lees_edwards;
@@ -51,8 +48,8 @@ public:
 	}
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(int N) {
-		_N_part = N;
+	virtual void init() {
+
 	}
 
 	/**

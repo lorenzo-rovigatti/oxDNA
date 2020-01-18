@@ -29,7 +29,7 @@ public:
 	virtual ~BrownianThermostat ();
 
 	void get_settings(input_file &inp);
-	void init(int N_part);
+	void init();
 	void apply(std::vector<BaseParticle *> &particles, llint curr_step);
 };
 

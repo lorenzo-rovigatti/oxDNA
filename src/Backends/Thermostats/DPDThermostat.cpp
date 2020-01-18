@@ -40,8 +40,8 @@ void DPDThermostat::get_settings(input_file &inp) {
 	_sqrt_dt = sqrt(_dt);
 }
 
-void DPDThermostat::init(int N_part) {
-	BaseThermostat::init(N_part);
+void DPDThermostat::init() {
+	BaseThermostat::init();
 
 	number inter_rcut = CONFIG_INFO->interaction->get_rcut();
 	if(inter_rcut < _rcut) throw oxDNAException("DPD thermostat: the DPD cut-off (%lf) may not be larger than the interaction's cutoff (%lf)", _rcut, inter_rcut);

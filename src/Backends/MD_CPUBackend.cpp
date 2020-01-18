@@ -248,7 +248,7 @@ void MD_CPUBackend::get_settings(input_file &inp) {
 
 void MD_CPUBackend::init() {
 	MDBackend::init();
-	_thermostat->init(N());
+	_thermostat->init();
 	if(this->_use_barostat) _V_move->init();
 
 	_compute_forces();

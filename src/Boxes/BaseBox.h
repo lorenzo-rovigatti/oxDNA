@@ -105,14 +105,6 @@ public:
 	virtual number V() = 0;
 
 	/**
-	 * @brief Currently not implemented.
-	 *
-	 * @param particles
-	 * @param N
-	 */
-	virtual void apply_boundary_conditions(std::vector<BaseParticle *> &particles, int N) = 0;
-
-	/**
 	 * @brief Returns the "absolute" position of a particle
 	 *
 	 * @param p pointer to the particle object

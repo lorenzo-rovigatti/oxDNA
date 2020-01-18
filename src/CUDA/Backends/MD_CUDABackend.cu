@@ -658,7 +658,7 @@ void MD_CUDABackend::init() {
 	_init_CUDA_MD_symbols();
 
 	_cuda_thermostat->set_seed(lrand48());
-	_cuda_thermostat->init(N());
+	_cuda_thermostat->init();
 
 	OX_LOG(Logger::LOG_INFO, "Allocated CUDA memory: %.2lf MBs", GpuUtils::get_allocated_mem_mb());
 

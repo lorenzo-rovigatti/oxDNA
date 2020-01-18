@@ -32,8 +32,6 @@ public:
 	virtual LR_vector normalised_in_box(const LR_vector &v);
 	virtual LR_vector &box_sides() ;
 	virtual number V() { return _side*_side*_side; }
-
-	virtual void apply_boundary_conditions(std::vector<BaseParticle *> &particles, int N);
 	
 	virtual LR_vector get_abs_pos(BaseParticle * p); 
 	virtual void shift_particle (BaseParticle * p, LR_vector &amount);

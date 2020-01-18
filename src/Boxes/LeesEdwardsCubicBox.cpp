@@ -9,16 +9,14 @@
 
 #include "../Utilities/ConfigInfo.h"
 
-
-LeesEdwardsCubicBox::LeesEdwardsCubicBox() {
+LeesEdwardsCubicBox::LeesEdwardsCubicBox() :
+				CubicBox() {
 
 }
-
 
 LeesEdwardsCubicBox::~LeesEdwardsCubicBox() {
 
 }
-
 
 void LeesEdwardsCubicBox::get_settings(input_file &inp) {
 	number dt, shear_rate;
@@ -27,13 +25,11 @@ void LeesEdwardsCubicBox::get_settings(input_file &inp) {
 	_factor = dt * shear_rate;
 }
 
-
 void LeesEdwardsCubicBox::init(number Lx, number Ly, number Lz) {
 	CubicBox::init(Lx, Ly, Lz);
 
 	_factor *= Ly;
 }
-
 
 LR_vector LeesEdwardsCubicBox::min_image(const LR_vector &v1, const LR_vector &v2) const {
 	static llint last_step = -1;
@@ -41,7 +37,8 @@ LR_vector LeesEdwardsCubicBox::min_image(const LR_vector &v1, const LR_vector &v
 
 	llint curr_step = CONFIG_INFO->curr_step;
 	if(curr_step != last_step) {
-		delta_x = _factor*curr_step;;
+		delta_x = _factor * curr_step;
+		;
 		last_step = curr_step;
 	}
 
@@ -49,22 +46,9 @@ LR_vector LeesEdwardsCubicBox::min_image(const LR_vector &v1, const LR_vector &v
 	number cy = rint(ny / this->_side);
 	number nx = v2.x - v1.x - cy * delta_x;
 
-	return LR_vector(
-			nx - rint(nx / this->_side) * this->_side,
-			ny - cy * this->_side,
-			v2.z - v1.z - rint((v2.z - v1.z) / this->_side) * this->_side
-	);
+	return LR_vector(nx - rint(nx / this->_side) * this->_side, ny - cy * this->_side, v2.z - v1.z - rint((v2.z - v1.z) / this->_side) * this->_side);
 }
-
 
 number LeesEdwardsCubicBox::sqr_min_image_distance(const LR_vector &v1, const LR_vector &v2) const {
 	return min_image(v1, v2).norm();
 }
-
-//
-//void LeesEdwardsCubicBox::shift_particle (BaseParticle *p, LR_vector &amount) {
-//	p->_pos_shift[0] += (int) floor(amount.x / this->_side);
-//	p->_pos_shift[2] += (int) floor(amount.z / this->_side);
-//	p->pos.x -= this->_side * floor(amount.x / this->_side);
-//	p->pos.z -= this->_side * floor(amount.z / this->_side);
-//}

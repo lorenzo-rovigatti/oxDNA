@@ -14,21 +14,18 @@
 
 using namespace std;
 
-
-OrthogonalBox::OrthogonalBox() {
+OrthogonalBox::OrthogonalBox() :
+				BaseBox() {
 
 }
-
 
 OrthogonalBox::~OrthogonalBox() {
 
 }
 
-
 void OrthogonalBox::get_settings(input_file &inp) {
 
 }
-
 
 void OrthogonalBox::init(number Lx, number Ly, number Lz) {
 	_sides.x = Lx;
@@ -37,27 +34,16 @@ void OrthogonalBox::init(number Lx, number Ly, number Lz) {
 }
 
 LR_vector OrthogonalBox::normalised_in_box(const LR_vector &v) {
-	return LR_vector(
-		(v.x / _sides.x - floor(v.x / _sides.x)) * (1.f - std::numeric_limits<number>::epsilon()),
-		(v.y / _sides.y - floor(v.y / _sides.y)) * (1.f - std::numeric_limits<number>::epsilon()),
-		(v.z / _sides.z - floor(v.z / _sides.z)) * (1.f - std::numeric_limits<number>::epsilon())
-	);
+	return LR_vector((v.x / _sides.x - floor(v.x / _sides.x)) * (1.f - std::numeric_limits<number>::epsilon()), (v.y / _sides.y - floor(v.y / _sides.y)) * (1.f - std::numeric_limits<number>::epsilon()), (v.z / _sides.z - floor(v.z / _sides.z)) * (1.f - std::numeric_limits<number>::epsilon()));
 }
 
-
-LR_vector &OrthogonalBox::box_sides()  {
+LR_vector &OrthogonalBox::box_sides() {
 	return _sides;
 }
 
-
 LR_vector OrthogonalBox::min_image(const LR_vector &v1, const LR_vector &v2) const {
-	return LR_vector (
-		v2.x - v1.x - rint((v2.x - v1.x) / _sides.x) * _sides.x,
-		v2.y - v1.y - rint((v2.y - v1.y) / _sides.y) * _sides.y,
-		v2.z - v1.z - rint((v2.z - v1.z) / _sides.z) * _sides.z
-	);
+	return LR_vector(v2.x - v1.x - rint((v2.x - v1.x) / _sides.x) * _sides.x, v2.y - v1.y - rint((v2.y - v1.y) / _sides.y) * _sides.y, v2.z - v1.z - rint((v2.z - v1.z) / _sides.z) * _sides.z);
 }
-
 
 number OrthogonalBox::sqr_min_image_distance(const LR_vector &v1, const LR_vector &v2) const {
 	number nx = v2.x - v1.x;
@@ -68,22 +54,12 @@ number OrthogonalBox::sqr_min_image_distance(const LR_vector &v1, const LR_vecto
 	ny -= rint(ny / _sides.y) * _sides.y;
 	nz -= rint(nz / _sides.z) * _sides.z;
 
-	return nx*nx + ny*ny + nz*nz;
+	return nx * nx + ny * ny + nz * nz;
 }
-
-
-void OrthogonalBox::apply_boundary_conditions(std::vector<BaseParticle *> &particles, int N) {
-
-}
-
 
 LR_vector OrthogonalBox::get_abs_pos(BaseParticle * p) {
-	return p->pos + LR_vector (
-			_sides.x * (number)p->_pos_shift[0],
-			_sides.y * (number)p->_pos_shift[1],
-			_sides.z * (number)p->_pos_shift[2]);
+	return p->pos + LR_vector(_sides.x * (number) p->_pos_shift[0], _sides.y * (number) p->_pos_shift[1], _sides.z * (number) p->_pos_shift[2]);
 }
-
 
 void OrthogonalBox::shift_particle(BaseParticle * p, LR_vector &amount) {
 	p->_pos_shift[0] += (int) floor(amount.x / _sides.x);
