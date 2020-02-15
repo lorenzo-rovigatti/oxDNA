@@ -51,7 +51,7 @@ SimBackend::SimBackend() {
 	_max_io = 1.e30;
 	_read_conf_step = -1;
 	_conf_interval = -1;
-	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = _obs_output_checkpoints = _obs_output_last_checkpoint = NULL;
+	_obs_output_trajectory = _obs_output_stdout = _obs_output_file = _obs_output_reduced_conf = _obs_output_last_conf = _obs_output_checkpoints = _obs_output_last_checkpoint = nullptr;
 	_mytimer = nullptr;
 	_restart_step_counter = false;
 	_rcut = -1.;
