@@ -7,6 +7,8 @@
 
 #include "CUDABussiThermostat.h"
 
+#include "../../Utilities/ConfigInfo.h"
+
 #include <curand_kernel.h>
 #include <thrust/sort.h>
 #include <thrust/device_ptr.h>
@@ -65,10 +67,10 @@ void CUDABussiThermostat::get_settings(input_file &inp) {
 	CUDABaseThermostat::get_cuda_settings(inp);
 }
 
-void CUDABussiThermostat::init(int N) {
-	BussiThermostat::init(N);
+void CUDABussiThermostat::init() {
+	BussiThermostat::init();
 
-	this->_setup_rand(N);
+	this->_setup_rand(CONFIG_INFO->N());
 }
 
 bool CUDABussiThermostat::would_activate(llint curr_step) {
@@ -78,13 +80,15 @@ bool CUDABussiThermostat::would_activate(llint curr_step) {
 void CUDABussiThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_vels, c_number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
+	int N = CONFIG_INFO->N();
+
 	// we first calculate the current kinetic energy
 	thrust::device_ptr<c_number4> t_vels = thrust::device_pointer_cast(d_vels);
 	thrust::device_ptr<c_number4> t_Ls = thrust::device_pointer_cast(d_Ls);
 
 	c_number4 zero = { 0., 0., 0., 0. };
-	c_number4 K_now_t = thrust::transform_reduce(t_vels, t_vels + this->_N_part, compute_K(), zero, sum_K());
-	c_number4 K_now_r = thrust::transform_reduce(t_Ls, t_Ls + this->_N_part, compute_K(), zero, sum_K());
+	c_number4 K_now_t = thrust::transform_reduce(t_vels, t_vels + N, compute_K(), zero, sum_K());
+	c_number4 K_now_r = thrust::transform_reduce(t_Ls, t_Ls + N, compute_K(), zero, sum_K());
 
 	this->_update_K(this->_K_t);
 	this->_update_K(this->_K_r);
@@ -94,6 +98,6 @@ void CUDABussiThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientations
 	//printf("%lf %lf %lf %lf\n", K_now_t.w, K_now_r.w, rescale_factor_t, rescale_factor_r);
 
 	bussi_thermostat
-	<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-	(d_vels, d_Ls, rescale_factor_t, rescale_factor_r, this->_N_part);
+		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+		(d_vels, d_Ls, rescale_factor_t, rescale_factor_r, N);
 }

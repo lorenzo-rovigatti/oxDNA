@@ -25,7 +25,7 @@ void PatchyHSC::get_settings(input_file &inp) {
 	CHECK_BOX("PatchyHSC", inp);
 }
 
-void PatchyHSC::allocate_particles(BaseParticle **particles, int N) {
+void PatchyHSC::allocate_particles(std::vector<BaseParticle *> &particles) {
 	for(int i = 0; i < N; i++)
 		particles[i] = new PatchySpherocylinder(_centre_patch_dist);
 }

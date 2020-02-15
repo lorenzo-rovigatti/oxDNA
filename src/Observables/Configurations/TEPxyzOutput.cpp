@@ -52,17 +52,17 @@ void TEPxyzOutput::get_settings(input_file &my_inp, input_file &sim_inp) {
 void TEPxyzOutput::init(ConfigInfo &config_info) {
 	Configuration::init(config_info);
 
-	int N = *_config_info->N;
+	int N = _config_info->N();
 	_bead_types = new int[N];
 	for(int i = 0; i < N; i++) {
 		_bead_types[i] = 0;
 	}
 
-	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, N, _particles_type1_string, "force string (TEPxyzOutput.cpp)");
+	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, _particles_type1_string, "force string (TEPxyzOutput.cpp)");
 	for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 		_bead_types[particle_indices_vector[i]] = 1;
 	}
-	particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, N, _particles_type2_string, "force string (TEPxyzOutput.cpp)");
+	particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, _particles_type2_string, "force string (TEPxyzOutput.cpp)");
 	for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 		_bead_types[particle_indices_vector[i]] = 2;
 	}
@@ -72,7 +72,7 @@ std::string TEPxyzOutput::_headers(llint step) {
 	std::stringstream headers;
 
 	const number mybox = _config_info->box->box_sides()[0];
-	const int N = *_config_info->N * 3;
+	const int N = _config_info->N() * 3;
 
 	headers << N << std::endl;
 	headers << "#" << mybox << " " << mybox << " " << mybox << std::endl;

@@ -42,17 +42,18 @@ void COMForce::_check_index(int idx, int N) {
 	if(idx < 0 || idx >= N) throw oxDNAException("COMForce: invalid id %d", idx);
 }
 
-void COMForce::init(BaseParticle **particles, int N, BaseBox * box_ptr) {
+void COMForce::init(std::vector<BaseParticle *> &particles, BaseBox * box_ptr) {
+	int N = particles.size();
 	_box_ptr = box_ptr;
 
-	auto com_indexes = Utils::getParticlesFromString(particles, N, _com_string, "COMForce");
+	auto com_indexes = Utils::getParticlesFromString(particles, _com_string, "COMForce");
 	for(auto it = com_indexes.begin(); it != com_indexes.end(); it++) {
 		_check_index(*it, N);
 		_com_list.insert(particles[*it]);
 		particles[*it]->add_ext_force(ForcePtr(this));
 	}
 
-	auto ref_indexes = Utils::getParticlesFromString(particles, N, _ref_string, "COMForce");
+	auto ref_indexes = Utils::getParticlesFromString(particles, _ref_string, "COMForce");
 	for(auto it = ref_indexes.begin(); it != ref_indexes.end(); it++) {
 		_check_index(*it, N);
 		_ref_list.insert(particles[*it]);

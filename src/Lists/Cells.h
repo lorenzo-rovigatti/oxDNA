@@ -23,8 +23,8 @@ class Cells: public BaseList {
 protected:
 	int _allowed_type;
 	bool _unlike_type_only;
-	BaseParticle **_heads;
-	BaseParticle **_next;
+	std::vector<BaseParticle *> _heads;
+	std::vector<BaseParticle *> _next;
 	int *_cells;
 	int _N_cells;
 	int _N_cells_side[3];
@@ -37,11 +37,12 @@ protected:
 	void _set_N_cells_side_from_box(int N_cells_side[3], BaseBox *box);
 	std::vector<BaseParticle *> _get_neigh_list(BaseParticle *p, bool all);
 public:
-	Cells(int &N, BaseBox *box);
+	Cells(std::vector<BaseParticle *> &ps, BaseBox *box);
+	Cells() = delete;
 	virtual ~Cells();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(BaseParticle **particles, number rcut);
+	virtual void init(number rcut);
 
 	virtual bool is_updated();
 	virtual void single_update(BaseParticle *p);

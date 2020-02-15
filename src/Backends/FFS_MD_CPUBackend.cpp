@@ -240,8 +240,7 @@ number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p
 
 void FFS_MD_CPUBackend::_ffs_compute_forces(void) {
 	this->_U = this->_U_hydr = (number) 0;
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		typename vector<ParticlePair>::iterator it = p->affected.begin();
 		for(; it != p->affected.end(); it++) {
 			if(it->first == p) this->_U += this->_interaction->pair_interaction_bonded(it->first, it->second, NULL, true);
@@ -277,10 +276,10 @@ void FFS_MD_CPUBackend::sim_step(llint curr_step) {
 	this->_timer_forces->pause();
 
 	this->_timer_thermostat->resume();
-	this->_thermostat->apply(_particles.data(), curr_step);
+	this->_thermostat->apply(_particles, curr_step);
 	this->_timer_thermostat->pause();
 
-	_op.fill_distance_parameters(_particles.data(), _box.get());
+	_op.fill_distance_parameters(_particles, _box.get());
 
 	//cout << "I just stepped and bond parameter is " << _op.get_hb_parameter(0) << " and distance is " << _op.get_distance_parameter(0) << endl;
 	if(this->check_stop_conditions()) {
@@ -299,10 +298,10 @@ void FFS_MD_CPUBackend::init() {
 
 	this->_sqr_rcut = this->_interaction->get_rcut() * this->_interaction->get_rcut();
 
-	_op.init_from_file(_order_parameters_file.c_str(), _particles.data(), _N);
+	_op.init_from_file(_order_parameters_file.c_str(), _particles, N());
 	init_ffs_from_file(_ffs_file.c_str());
 	OX_LOG(Logger::LOG_INFO, "Setting initial value for the order parameter...");
-	_op.fill_distance_parameters(_particles.data(), _box.get());
+	_op.fill_distance_parameters(_particles, _box.get());
 
 }
 

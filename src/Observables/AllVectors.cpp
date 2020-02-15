@@ -21,12 +21,12 @@ void AllVectors::init(ConfigInfo &config_info) {
 }
 
 std::string AllVectors::get_output_string(llint curr_step) {
-	int n = *_config_info->N;
+	int N = _config_info->N();
 
 	int k = 0;
 	std::stringstream outstr;
-	for(int i = 0; i < n; i++) {
-		for(int j = i + 1; j < n; j++) {
+	for(int i = 0; i < N; i++) {
+		for(int j = i + 1; j < N; j++) {
 			LR_vector dist;
 			LR_vector p1_com, p2_com;
 			p1_com = _config_info->box->get_abs_pos(_config_info->particles[i]);

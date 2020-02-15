@@ -307,10 +307,10 @@ void CUDAStarrInteraction::cuda_init(c_number box_side, int N) {
 }
 
 void CUDAStarrInteraction::_setup_strand_ids() {
-	BaseParticle **particles = new BaseParticle *[this->_N];
-	StarrInteraction::allocate_particles(particles, this->_N);
+	std::vector<BaseParticle *> particles(_N);
+	StarrInteraction::allocate_particles(particles);
 	int N_strands;
-	StarrInteraction::read_topology(this->_N, &N_strands, particles);
+	StarrInteraction::read_topology(&N_strands, particles);
 
 	int *h_strand_ids = new int[this->_N];
 
@@ -321,16 +321,16 @@ void CUDAStarrInteraction::_setup_strand_ids() {
 
 	delete[] h_strand_ids;
 
-	for(int i = 0; i < this->_N; i++)
-		delete particles[i];
-	delete[] particles;
+	for(auto particle: particles) {
+		delete particle;
+	}
 }
 
 void CUDAStarrInteraction::_setup_hubs() {
-	BaseParticle **particles = new BaseParticle *[this->_N];
-	StarrInteraction::allocate_particles(particles, this->_N);
+	std::vector<BaseParticle *> particles(_N);
+	StarrInteraction::allocate_particles(particles);
 	int N_strands;
-	StarrInteraction::read_topology(this->_N, &N_strands, particles);
+	StarrInteraction::read_topology(&N_strands, particles);
 
 	_N_hubs = this->_N_tetramers * 4 + this->_N_dimers * this->_N_dimer_spacers;
 	int *h_hubs = new int[_N_hubs];
@@ -366,9 +366,10 @@ void CUDAStarrInteraction::_setup_hubs() {
 	CUDA_SAFE_CALL(cudaMemcpy(_d_hub_neighs, h_hub_neighs, _N_hubs * sizeof(hub_bonds), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_hubs, &_N_hubs, sizeof(int)));
 
-	for(int i = 0; i < this->_N; i++)
-		delete particles[i];
-	delete[] particles;
+	for(auto particle: particles) {
+		delete particle;
+	}
+
 	delete[] h_hubs;
 	delete[] h_hub_neighs;
 }

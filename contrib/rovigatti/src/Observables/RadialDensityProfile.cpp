@@ -23,7 +23,7 @@ RadialDensityProfile::~RadialDensityProfile() {
 }
 
 std::string RadialDensityProfile::get_output_string(llint curr_step) {
-	int N = *this->_config_info.N;
+	int N = _config_info->N();
 
 	if(_always_reset) {
 		_nconfs = 1;
@@ -32,7 +32,7 @@ std::string RadialDensityProfile::get_output_string(llint curr_step) {
 	else _nconfs += 1;
 
 	// get smallest side
-	LR_vector sides = this->_config_info.box->box_sides();
+	LR_vector sides = _config_info->box->box_sides();
 	number min_box_side = sides[0];
 	if(sides[1] < min_box_side) min_box_side = sides[1];
 	if(sides[2] < min_box_side) min_box_side = sides[2];
@@ -41,16 +41,16 @@ std::string RadialDensityProfile::get_output_string(llint curr_step) {
 
 	LR_vector com(0., 0., 0.);
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		LR_vector mypos = this->_config_info.box->get_abs_pos(p);
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector mypos = _config_info->box->get_abs_pos(p);
 		com += mypos;
 	}
 	com /= N;
 
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+		BaseParticle *p = _config_info->particles[i];
 		if(_btype == -1 || p->btype == _btype) {
-			number sqr_dist = this->_config_info.box->sqr_min_image_distance(this->_config_info.box->get_abs_pos(p), com);
+			number sqr_dist = _config_info->box->sqr_min_image_distance(_config_info->box->get_abs_pos(p), com);
 			if(sqr_dist < SQR(_max_value)) {
 				number dist = sqrt(sqr_dist);
 				int mybin = (int) (0.01 + floor(dist / _bin_size));

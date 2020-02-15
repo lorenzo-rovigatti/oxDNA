@@ -16,7 +16,8 @@ public:
 	std::vector<number> cell_density;
 	std::vector<number> coarse_grained_cell_density;
 
-	CPCells(int &N, BaseBox *box);
+	CPCells(std::vector<BaseParticle *> &ps, BaseBox *box);
+	CPCells() = delete;
 	virtual ~CPCells();
 
 	virtual number assign_density_to_cells();

@@ -39,7 +39,6 @@ private:
 	int _first_particle_index;
 	int _last_particle_index;
 	int _subdomain_size;
-	int _N;
 	bool _particles_are_bases;
 
 	bool _go_around;

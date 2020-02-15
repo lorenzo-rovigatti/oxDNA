@@ -53,14 +53,14 @@ int NathanStarInteraction::get_N_from_topology() {
 	return _N_patchy + _N_stars;
 }
 
-void NathanStarInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void NathanStarInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
 	// the number of "strands" is given by the number of chains + the number of patchy particles
 	// since those are not linked to anything else
 	*N_strands = _N_stars + _N_patchy;
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 }
 
-void NathanStarInteraction::allocate_particles(BaseParticle **particles, int N) {
+void NathanStarInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 	for(int i = 0; i < _N_patchy; i++) {
 		NathanPatchyParticle *new_p = new NathanPatchyParticle();
 		new_p->index = i;
@@ -70,7 +70,7 @@ void NathanStarInteraction::allocate_particles(BaseParticle **particles, int N) 
 		particles[i] = new_p;
 	}
 
-	for(int i = _N_patchy; i < N; i++) {
+	for(int i = _N_patchy; i < (int)particles.size(); i++) {
 		NathanPolymerParticle *new_p = new NathanPolymerParticle();
 		new_p->index = i;
 		new_p->type = new_p->btype = POLYMER;
@@ -287,7 +287,7 @@ void NathanStarInteraction::init() {
 	OX_LOG(Logger::LOG_INFO, "patchy rcut: %lf, patchy-star rcut: %lf, star-star rcut: %lf", _patchy_rcut, _patchy_star_rcut, _star_rcut);
 }
 
-void NathanStarInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void NathanStarInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
 
@@ -439,14 +439,14 @@ number NathanStarInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePa
 	else return _star_star_interaction(p, q, r, update_forces);
 }
 
-void NathanStarInteraction::generate_random_configuration(BaseParticle **particles, int N) {
+void NathanStarInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	if(!_make_crystal) {
-		BaseInteraction<NathanStarInteraction>::generate_random_configuration(particles, N);
+		BaseInteraction<NathanStarInteraction>::generate_random_configuration(particles);
 		return;
 	}
 	// from here on it is implied that _make_crystal == true
-
 	if(_N_in_crystal == -1) _N_in_crystal = _N_patchy;
+	int N = particles.size();
 
 	// check on the number of particles
 	if(_N_in_crystal % 4 != 0) throw oxDNAException("The number of patchy particles should be a multiple of 4");
@@ -575,8 +575,8 @@ void NathanStarInteraction::generate_random_configuration(BaseParticle **particl
 	else throw oxDNAException("The crystal type be should be either 'hT' or 'cT' and not '%s'", _crystal_type.c_str());
 
 	// now we add the polymers
-	Cells c(N, this->_box);
-	c.init(particles, this->_rcut);
+	Cells c(particles, _box);
+	c.init(_rcut);
 
 	for(int i = _N_in_crystal; i < N; i++) {
 		BaseParticle *p = particles[i];

@@ -74,13 +74,14 @@ void StarrInteraction::init() {
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
-void StarrInteraction::allocate_particles(BaseParticle **particles, int N) {
-	for(int i = 0; i < N; i++) {
+void StarrInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(uint i = 0; i < particles.size(); i++) {
 		particles[i] = new CustomParticle();
 	}
 }
 
-void StarrInteraction::_read_strand_topology(int N, int *N_strands, BaseParticle **particles) {
+void StarrInteraction::_read_strand_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[2048];
@@ -128,7 +129,8 @@ void StarrInteraction::_read_strand_topology(int N, int *N_strands, BaseParticle
 	topology.close();
 }
 
-void StarrInteraction::_read_tetramer_topology(int N, int *N_strands, BaseParticle **particles) {
+void StarrInteraction::_read_tetramer_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	_N_per_strand = 17;
 	*N_strands = N / _N_per_strand;
 	int N_per_tetramer = 4 * _N_per_strand;
@@ -181,7 +183,8 @@ void StarrInteraction::_read_tetramer_topology(int N, int *N_strands, BasePartic
 	}
 }
 
-void StarrInteraction::_read_vitrimer_topology(int N, int *N_strands, BaseParticle **particles) {
+void StarrInteraction::_read_vitrimer_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[2048];
@@ -279,21 +282,21 @@ void StarrInteraction::_read_vitrimer_topology(int N, int *N_strands, BasePartic
 	}
 }
 
-void StarrInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
-	allocate_particles(particles, N);
+void StarrInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	allocate_particles(particles);
 
 	switch(_mode) {
 	case TETRAMERS:
 		OX_LOG(Logger::LOG_INFO, "StarrInteraction: tetramers mode");
-		_read_tetramer_topology(N, N_strands, particles);
+		_read_tetramer_topology(N_strands, particles);
 		break;
 		case VITRIMERS:
 		OX_LOG(Logger::LOG_INFO, "StarrInteraction: vitrimers mode, using %d dimer spacers", _N_dimer_spacers);
-		_read_vitrimer_topology(N, N_strands, particles);
+		_read_vitrimer_topology(N_strands, particles);
 		break;
 		default:
 		OX_LOG(Logger::LOG_INFO, "StarrInteraction: strands mode");
-		_read_strand_topology(N, N_strands, particles);
+		_read_strand_topology(N_strands, particles);
 		break;
 	}
 }
@@ -409,21 +412,21 @@ number StarrInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticl
 	return _two_body(p, q, r, update_forces);
 }
 
-void StarrInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void StarrInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
 
-void StarrInteraction::_generate_strands(BaseParticle **particles, int N, Cells &c) {
-	BaseInteraction<StarrInteraction>::generate_random_configuration(particles, N);
+void StarrInteraction::_generate_strands(std::vector<BaseParticle *> &particles, Cells &c) {
+	BaseInteraction<StarrInteraction>::generate_random_configuration(particles);
 }
 
-void StarrInteraction::_generate_tetramers(BaseParticle **particles, int N, Cells &c) {
+void StarrInteraction::_generate_tetramers(std::vector<BaseParticle *> &particles, Cells &c) {
 	_N_per_strand = 17;
 	int N_per_tetramer = 4 * _N_per_strand;
-	int N_tetramers = N / N_per_tetramer;
+	int N_tetramers = particles.size() / N_per_tetramer;
 
 	// we begin by generating a single tetramer
-	BaseInteraction<StarrInteraction>::generate_random_configuration(particles, N_per_tetramer);
+	BaseInteraction<StarrInteraction>::generate_random_configuration(particles);
 	// and then we correct all the coordinates so that the tetramer is not split by the pbc
 	LR_vector com;
 	for(int i = 0; i < N_per_tetramer; i++) {
@@ -494,16 +497,15 @@ void StarrInteraction::_generate_tetramers(BaseParticle **particles, int N, Cell
 	}
 }
 
-void StarrInteraction::_generate_vitrimers(BaseParticle **particles, int N, Cells &c) {
+void StarrInteraction::_generate_vitrimers(std::vector<BaseParticle *> &particles, Cells &c) {
 
 }
 
-void StarrInteraction::generate_random_configuration(BaseParticle **particles, int N) {
-	Cells c(N, this->_box);
-	c.init(particles, this->_rcut);
+void StarrInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
+	Cells c(particles, _box);
+	c.init(_rcut);
 
-	for(int i = 0; i < N; i++) {
-		BaseParticle *p = particles[i];
+	for(auto p: particles) {
 		p->pos = LR_vector(0., 0., 0.);
 	}
 
@@ -511,13 +513,13 @@ void StarrInteraction::generate_random_configuration(BaseParticle **particles, i
 
 	switch(_mode) {
 	case TETRAMERS:
-		_generate_tetramers(particles, N, c);
+		_generate_tetramers(particles, c);
 		break;
 	case VITRIMERS:
-//		_generate_vitrimers(particles, N, c);
+//		_generate_vitrimers(particles, c);
 //		break;
 	default:
-		_generate_strands(particles, N, c);
+		_generate_strands(particles, c);
 		break;
 	}
 }

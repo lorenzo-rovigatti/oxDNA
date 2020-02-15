@@ -15,14 +15,12 @@ EmptyVolume::EmptyVolume() {
 	_probe_diameter = _particle_diameter = 1.;
 	_cells = NULL;
 	_probe = NULL;
-	_particles = NULL;
 	_tries = _N = 0;
 }
 
 EmptyVolume::~EmptyVolume() {
 	if(_cells != NULL) delete _cells;
 	if(_probe != NULL) delete _probe;
-	if(_particles != NULL) delete _particles;
 }
 
 void EmptyVolume::get_settings(input_file &my_inp, input_file &sim_inp) {
@@ -36,7 +34,7 @@ void EmptyVolume::get_settings(input_file &my_inp, input_file &sim_inp) {
 void EmptyVolume::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_N = *config_info.N + 1;
+	_N = config_info.N() + 1;
 
 	_probe = new BaseParticle();
 	_probe->init();
@@ -44,15 +42,15 @@ void EmptyVolume::init(ConfigInfo &config_info) {
 	_probe->type = P_A;
 
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
-	_particles = new BaseParticle *[_N];
+	_particles.resize(_N);
 	for(int i = 0; i < _N - 1; i++)
 		_particles[i] = config_info.particles[i];
 	_particles[_N - 1] = _probe;
 
 	_rcut = (_probe_diameter + _particle_diameter) / 2.;
 	_sqr_rcut = SQR(_rcut);
-	_cells = new Cells(_N, config_info.box);
-	_cells->init(_particles, _rcut);
+	_cells = new Cells(_particles, config_info.box);
+	_cells->init(_rcut);
 
 	if(_tries == 0) {
 		number tot_V = config_info.box->box_sides().x * config_info.box->box_sides().y * config_info.box->box_sides().z;
@@ -68,7 +66,7 @@ string EmptyVolume::get_output_string(llint curr_step) {
 	_cells->global_update();
 	int n_overlaps = 0;
 	for(int i = 0; i < _tries; i++) {
-		_probe->pos = LR_vector(drand48() * this->_config_info.box->box_sides().x, drand48() * this->_config_info.box->box_sides().y, drand48() * this->_config_info.box->box_sides().z);
+		_probe->pos = LR_vector(drand48() * _config_info->box->box_sides().x, drand48() * _config_info->box->box_sides().y, drand48() * _config_info->box->box_sides().z);
 		_cells->single_update(_probe);
 
 		vector<BaseParticle *> neighs = _cells->get_complete_neigh_list(_probe);
@@ -76,7 +74,7 @@ string EmptyVolume::get_output_string(llint curr_step) {
 		bool overlap = false;
 		for(it = neighs.begin(); it != neighs.end() && !overlap; it++) {
 			BaseParticle *q = *it;
-			LR_vector dr = this->_config_info.box->min_image(_probe, q);
+			LR_vector dr = _config_info->box->min_image(_probe, q);
 			if(dr.norm() < _sqr_rcut) {
 				overlap = true;
 				n_overlaps++;

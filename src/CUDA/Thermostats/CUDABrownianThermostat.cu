@@ -5,9 +5,11 @@
  *      Author: rovigatti
  */
 
-#include <curand_kernel.h>
-
 #include "CUDABrownianThermostat.h"
+
+#include "../../Utilities/ConfigInfo.h"
+
+#include <curand_kernel.h>
 
 __global__ void brownian_thermostat(curandState *rand_state, c_number4 *vels, c_number4 *Ls, c_number rescale_factor, c_number pt, c_number pr, int N) {
 	if(IND < N) {
@@ -62,10 +64,10 @@ void CUDABrownianThermostat::get_settings(input_file &inp) {
 	CUDABaseThermostat::get_cuda_settings(inp);
 }
 
-void CUDABrownianThermostat::init(int N) {
-	BrownianThermostat::init(N);
+void CUDABrownianThermostat::init() {
+	BrownianThermostat::init();
 
-	this->_setup_rand(N);
+	this->_setup_rand(CONFIG_INFO->N());
 }
 
 bool CUDABrownianThermostat::would_activate(llint curr_step) {
@@ -75,7 +77,7 @@ bool CUDABrownianThermostat::would_activate(llint curr_step) {
 void CUDABrownianThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_vels, c_number4 *d_Ls, llint curr_step) {
 	if(!would_activate(curr_step)) return;
 
-brownian_thermostat
-<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-(this->_d_rand_state, d_vels, d_Ls, this->_rescale_factor, this->_pt, this->_pr, this->_N_part);
+	brownian_thermostat
+		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+		(this->_d_rand_state, d_vels, d_Ls, this->_rescale_factor, this->_pt, this->_pr, CONFIG_INFO->N());
 }

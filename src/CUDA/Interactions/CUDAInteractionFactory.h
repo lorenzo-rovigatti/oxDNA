@@ -26,7 +26,7 @@ public:
 	 * @return a pointer to the newly created interaction
 	 */
 
-	static CUDABaseInteraction *make_interaction(input_file &inp);
+	static std::shared_ptr<CUDABaseInteraction> make_interaction(input_file &inp);
 };
 
 #endif /* CUDAINTERACTIONFACTORY_H_ */

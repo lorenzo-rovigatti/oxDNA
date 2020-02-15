@@ -34,8 +34,7 @@ void LevyDelta::init(ConfigInfo &config_info) {
 	_inter = dynamic_cast<LevyInteraction *>(config_info.interaction);
 	if(_inter == NULL) throw oxDNAException("LevyDelta can be used with LevyInteraction simulations only");
 
-	for(int i = 0; i < *config_info.N; i++) {
-		BaseParticle *p = config_info.particles[i];
+	for(auto p: config_info.particles) {
 		if(p->btype == _inter->TETRA_CENTRE || p->btype == _inter->TETRA_PATCHY) _tetramer.push_back(p);
 		else _dimer.push_back(p);
 	}
@@ -72,7 +71,7 @@ string LevyDelta::get_output_string(llint curr_step) {
 	BaseParticle *rec = _get_random_particle(_tetramer, _inter->TETRA_PATCHY);
 	BaseParticle *p = _get_random_particle(_dimer, _inter->DIMER_PATCHY);
 
-	number intra_energy = _inter->get_system_energy_term(LevyInteraction::NONBONDED, this->_config_info.particles, *this->_config_info.N, this->_config_info.lists);
+	number intra_energy = _inter->get_system_energy_term(LevyInteraction::NONBONDED, _config_info->particles, _config_info->lists);
 
 	number integrand = 0.;
 	for(int i = 0; i < _tries; i++) {
@@ -83,24 +82,20 @@ string LevyDelta::get_output_string(llint curr_step) {
 
 		LR_matrix R = Utils::get_random_rotation_matrix_from_angle(2 * M_PI);
 		_rototranslate(_dimer, disp, p, R);
-		this->_config_info.lists->global_update(true);
+		_config_info->lists->global_update(true);
 
-//		LR_vector diff = p->pos + p->int_centers[0] - (rec->pos + rec->int_centers[0]);
-//		printf("%lf %lf\n", diff.module(), disp.module());
-
-		number energy = _inter->get_system_energy_term(LevyInteraction::NONBONDED, this->_config_info.particles, *this->_config_info.N, this->_config_info.lists);
+		number energy = _inter->get_system_energy_term(LevyInteraction::NONBONDED, _config_info->particles, _config_info->lists);
 		number delta_energy = energy - intra_energy;
 		if(delta_energy < 100) {
-//			printf("%lf %lf\n", intra_energy, energy);
 			integrand += exp(-delta_energy / _temperature) - 1.;
 		}
 	}
 
-	LR_vector disp = this->_config_info.box->box_sides() / 2 + rec->pos;
+	LR_vector disp = _config_info->box->box_sides() / 2 + rec->pos;
 	for(typename vector<BaseParticle *>::iterator it = _dimer.begin(); it != _dimer.end(); it++) {
 		(*it)->pos += disp;
 	}
-	this->_config_info.lists->global_update(true);
+	_config_info->lists->global_update(true);
 
 	integrand *= 4 * M_PI * CUB(_patchy_rcut) / 3.;
 	outstr << integrand / (number) _tries;

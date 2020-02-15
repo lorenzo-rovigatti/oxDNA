@@ -50,22 +50,22 @@ VMMC_CPUBackend::~VMMC_CPUBackend() {
 
 	if(_small_system) {
 		if(eijm != NULL) {
-			for(int k = 0; k < this->_N; k++)
+			for(int k = 0; k < N(); k++)
 				delete[] eijm[k];
 			delete[] eijm;
 		}
 		if(eijm_old != NULL) {
-			for(int k = 0; k < this->_N; k++)
+			for(int k = 0; k < N(); k++)
 				delete[] eijm_old[k];
 			delete[] eijm_old;
 		}
 		if(hbijm != NULL) {
-			for(int k = 0; k < this->_N; k++)
+			for(int k = 0; k < N(); k++)
 				delete[] hbijm[k];
 			delete[] hbijm;
 		}
 		if(hbijm_old != NULL) {
-			for(int k = 0; k < this->_N; k++)
+			for(int k = 0; k < N(); k++)
 				delete[] hbijm_old[k];
 			delete[] hbijm_old;
 		}
@@ -78,16 +78,16 @@ void VMMC_CPUBackend::init() {
 
 	// fix maxclust if evidently wrong
 	if(_maxclust < 1) {
-		OX_LOG(Logger::LOG_WARNING, "maxclust < 0, setting it to N = %i", this->_N);
-		_maxclust = this->_N;
+		OX_LOG(Logger::LOG_WARNING, "maxclust < 0, setting it to N = %i", N());
+		_maxclust = N();
 	}
-	if(_maxclust > this->_N) {
-		OX_LOG(Logger::LOG_WARNING, "maxclust > N does not make sense, setting it to N = %i", this->_N);
-		_maxclust = this->_N;
+	if(_maxclust > N()) {
+		OX_LOG(Logger::LOG_WARNING, "maxclust > N does not make sense, setting it to N = %i", N());
+		_maxclust = N();
 	}
 
 	if(_have_us) {
-		_op.init_from_file(_op_file, _particles.data(), this->_N);
+		_op.init_from_file(_op_file, _particles, N());
 		_w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);
 		if(_reload_hist) _h.init(_init_hist_file, &_op, _etemps, _netemps);
 		else _h.init(&_op, _etemps, _netemps);
@@ -110,13 +110,13 @@ void VMMC_CPUBackend::init() {
 		OX_LOG(Logger::LOG_INFO, "Not attempting to preserve topology; max_move_size = %g", _max_move_size);
 	}
 
-	new_en3s.resize(_N, 0.);
-	new_en5s.resize(_N, 0.);
-	new_stn3s.resize(_N, 0.);
-	new_stn5s.resize(_N, 0.);
+	new_en3s.resize(N(), 0.);
+	new_en5s.resize(N(), 0.);
+	new_stn3s.resize(N(), 0.);
+	new_stn5s.resize(N(), 0.);
 	number tmpf, epq;
 	BaseParticle * p, *q;
-	for(int k = 0; k < this->_N; k++) {
+	for(int k = 0; k < N(); k++) {
 		p = this->_particles[k];
 		if(p->n3 != P_VIRTUAL) {
 			q = p->n3;
@@ -129,18 +129,18 @@ void VMMC_CPUBackend::init() {
 	}
 
 	if(_small_system) {
-		eijm = new number*[this->_N];
-		eijm_old = new number*[this->_N];
-		hbijm = new bool*[this->_N];
-		hbijm_old = new bool*[this->_N];
-		for(int k = 0; k < this->_N; k++) {
-			eijm[k] = new number[this->_N];
-			eijm_old[k] = new number[this->_N];
-			hbijm[k] = new bool[this->_N];
-			hbijm_old[k] = new bool[this->_N];
+		eijm = new number*[N()];
+		eijm_old = new number*[N()];
+		hbijm = new bool*[N()];
+		hbijm_old = new bool*[N()];
+		for(int k = 0; k < N(); k++) {
+			eijm[k] = new number[N()];
+			eijm_old[k] = new number[N()];
+			hbijm[k] = new bool[N()];
+			hbijm_old[k] = new bool[N()];
 		}
 
-		for(int k = 0; k < this->_N; k++) {
+		for(int k = 0; k < N(); k++) {
 			for(int l = 0; l < k; l++) {
 				p = this->_particles[k];
 				q = this->_particles[l];
@@ -605,7 +605,7 @@ inline number VMMC_CPUBackend::build_cluster_small(movestr * moveptr, int maxsiz
 		}
 
 		number tmpf = (number) 0.;
-		for(neigh = 0; neigh < this->_N; neigh++) {
+		for(neigh = 0; neigh < N(); neigh++) {
 			qq = this->_particles[neigh]; //qq is my neighbor
 			if((!qq->inclust) && (pp->n3 != qq) && (pp->n5 != qq) && (qq != pp)) {
 
@@ -727,7 +727,7 @@ inline number VMMC_CPUBackend::build_cluster_small(movestr * moveptr, int maxsiz
 			}
 		}
 
-		for(neigh = 0; neigh < this->_N; neigh++) {
+		for(neigh = 0; neigh < N(); neigh++) {
 			qq = this->_particles[neigh]; //qq is my neighbor
 			if((!qq->inclust) && (pp->n3 != qq) && (pp->n5 != qq) && (qq != pp)) {
 				epq_old = eijm_old[pp->index][qq->index];
@@ -1319,13 +1319,13 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 	//printf ("checking metainfo at the beginning: PASSED\n");
 
 	//	_compute_energy();
-	//	printf("%lf %lf\n", this->_U/this->_N, this->_U_hydr);
+	//	printf("%lf %lf\n", this->_U/N(), this->_U_hydr);
 	//	exit(1);
 
 	//get_time(&this->_timer, 0);
 
 	int * clust, nclust;
-	clust = new int[this->_N];
+	clust = new int[N()];
 
 	double oldweight, weight;
 	int windex, oldwindex;
@@ -1342,27 +1342,27 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 
 	// set the potential due to external forces
 	_U_ext = (number) 0.f;
-	for(int k = 0; k < this->_N; k++) {
+	for(int k = 0; k < N(); k++) {
 		BaseParticle *p = this->_particles[k];
 		p->set_ext_potential(curr_step, this->_box.get());
 		_U_ext += p->ext_potential;
 	}
 
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < N(); i++) {
 		if(_have_us) _op.store();
 		this->_dU_stack = 0.;
 		//printf ("\n##A %lf %lf \n", this->_U_stack, this->_dU_stack);
 
 		// check of ext // works with TWO traps, not with one
 		//number ov_c = (number) 0;
-		//for (int l = 0; l < this->_N; l ++) {
+		//for (int l = 0; l < N(); l ++) {
 		//	BaseParticle * pp = &(this->_particles[l]);
 		//	pp->set_ext_potential(curr_step);
 		//	ov_c += pp->ext_potential;
 		//}
 
 		// seed particle;
-		int pi = (int) (drand48() * this->_N);
+		int pi = (int) (drand48() * N());
 		BaseParticle *p = this->_particles[pi];
 
 		// this gives a random number distributed ~ 1/x (x real)
@@ -1428,7 +1428,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 			pprime *= exp(-(1. / this->_T) * delta_E_ext);
 		}
 
-		_op.fill_distance_parameters(_particles.data(), _box.get());
+		_op.fill_distance_parameters(_particles, _box.get());
 
 		windex = oldwindex;
 		weight = oldweight;
@@ -1482,7 +1482,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 				}
 
 				if(_small_system) {
-					for(int c = 0; c < this->_N; c++) {
+					for(int c = 0; c < N(); c++) {
 						qq = this->_particles[c];
 						if(pp != qq && pp->n3 != qq && pp->n5 != qq && qq->inclust == false) {
 							eijm_old[pp->index][qq->index] = eijm_old[qq->index][pp->index] = eijm[qq->index][pp->index];
@@ -1532,7 +1532,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 		 // check ext potential
 		 number c_ext = 0.;
 		 number c_ext_fs = 0.;
-		 for (int l = 0; l < this->_N; l ++) {
+		 for (int l = 0; l < N(); l ++) {
 		 BaseParticle * pp;
 		 pp = &(this->_particles[l]);
 		 c_ext += pp->ext_potential;
@@ -1589,7 +1589,7 @@ void VMMC_CPUBackend::check_ops() {
 	int i, j;
 	BaseParticle *p, *q;
 	number hpq;
-	for(i = 0; i < this->_N; i++) {
+	for(i = 0; i < N(); i++) {
 		p = this->_particles[i];
 		for(j = 0; j < i; j++) {
 			q = this->_particles[j];
@@ -1601,7 +1601,7 @@ void VMMC_CPUBackend::check_ops() {
 			}
 		}
 	}
-	_op.fill_distance_parameters(_particles.data(), _box.get());
+	_op.fill_distance_parameters(_particles, _box.get());
 
 	int * new_state = _op.get_all_states();
 	int check = 0;
@@ -1639,7 +1639,7 @@ void VMMC_CPUBackend::_update_ops() {
 	int i, j, c;
 	BaseParticle *p, *q;
 	number hpq;
-	for(i = 0; i < this->_N; i++) {
+	for(i = 0; i < N(); i++) {
 		p = this->_particles[i];
 		for(c = 0; c < 27; c++) {
 			j = _vmmc_heads[_neighcells[_cells[p->index]][c]];
@@ -1657,7 +1657,7 @@ void VMMC_CPUBackend::_update_ops() {
 	}
 
 	// distances
-	_op.fill_distance_parameters(_particles.data(), _box.get());
+	_op.fill_distance_parameters(_particles, _box.get());
 
 	//exit(-1);
 	return;
@@ -1676,7 +1676,7 @@ inline void VMMC_CPUBackend::check_overlaps() {
 	BaseParticle *p, *q;
 
 	noverlaps = 0;
-	for(i = 0; i < this->_N; i++) {
+	for(i = 0; i < N(); i++) {
 		p = this->_particles[i];
 		if(p->n3 != P_VIRTUAL) {
 			this->_overlap = false;
@@ -1742,7 +1742,7 @@ void VMMC_CPUBackend::_compute_energy() {
 
 	this->_U = this->_U_hydr = (number) 0;
 
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < N(); i++) {
 		p = this->_particles[i];
 		if(p->n3 != P_VIRTUAL) {
 			q = p->n3;
@@ -1787,17 +1787,17 @@ void VMMC_CPUBackend::_init_cells() {
 	_vmmc_N_cells = _vmmc_N_cells_side * _vmmc_N_cells_side * _vmmc_N_cells_side;
 
 	_vmmc_heads = new int[_vmmc_N_cells];
-	_cells = new int[this->_N];
+	_cells = new int[N()];
 	_neighcells = new int *[_vmmc_N_cells];
 
 	for(int i = 0; i < _vmmc_N_cells; i++)
 		_vmmc_heads[i] = P_INVALID;
 
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < N(); i++) {
 		this->_particles[i]->next_particle = P_INVALID;
 	}
 
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = this->_particles[i];
 		int cell_index = _get_cell_index(p->pos);
 		int old_head = _vmmc_heads[cell_index];
@@ -1867,7 +1867,7 @@ void VMMC_CPUBackend::fix_diffusion() {
 	// To avoid this, we store the system before fix_diffusion and restore it 
 	// if the order parameter value has changed.
 
-	for(int i = 0; i < this->_N; i++)
+	for(int i = 0; i < N(); i++)
 		store_particle(this->_particles[i]);
 
 	// check of order parameter
@@ -1878,7 +1878,7 @@ void VMMC_CPUBackend::fix_diffusion() {
 	SimBackend::fix_diffusion();
 
 	_op.reset();
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < N(); i++) {
 		BaseParticle * p = this->_particles[i];
 		for(int j = 0; j < i; j++) {
 			BaseParticle * q = this->_particles[j];
@@ -1889,7 +1889,7 @@ void VMMC_CPUBackend::fix_diffusion() {
 			}
 		}
 	}
-	_op.fill_distance_parameters(_particles.data(), _box.get());
+	_op.fill_distance_parameters(_particles, _box.get());
 
 	int * new_state = _op.get_all_states();
 
@@ -1899,7 +1899,7 @@ void VMMC_CPUBackend::fix_diffusion() {
 
 	if(check != 0) {
 		OX_LOG(Logger::LOG_DEBUG, "(VMMC_CPUBackend) fix_diffusion() changed the value of the order parameter. Restoring simulation status before fix_diffusion()");
-		for (int i = 0; i < this->_N; i ++) restore_particle (this->_particles[i]);
+		for (int i = 0; i < N(); i ++) restore_particle (this->_particles[i]);
 	}
 }
 
@@ -1907,7 +1907,7 @@ void VMMC_CPUBackend::print_observables(llint curr_step) {
 	this->_lists->global_update(true);
 	this->_backend_info += get_op_state_str();
 	MCBackend::print_observables(curr_step);
-	//if ((curr_step % (10 * this->_N)) == 0) this->fix_diffusion();
+	//if ((curr_step % (10 * N())) == 0) this->fix_diffusion();
 }
 
 inline int VMMC_CPUBackend::_get_cell_index(const LR_vector &pos) {

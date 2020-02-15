@@ -49,9 +49,10 @@ void BoxInteraction::init() {
 	this->_sqr_rcut = SQR(this->_rcut);
 }
 
-void BoxInteraction::allocate_particles(BaseParticle **particles, int N) {
-	for(int i = 0; i < N; i++)
+void BoxInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(uint i = 0; i < particles.size(); i++) {
 		particles[i] = new BaseParticle();
+	}
 }
 
 number BoxInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
@@ -72,7 +73,7 @@ number BoxInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	return _box_pot(p, q, r, update_forces);
 }
 
-void BoxInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void BoxInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
 

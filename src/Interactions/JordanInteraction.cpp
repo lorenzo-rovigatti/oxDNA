@@ -50,7 +50,8 @@ void JordanInteraction::init() {
 	OX_LOG(Logger::LOG_INFO,"(JordanInteraction.cpp) Running Jordan interaction with s=%g, rcut=%g, m=%d, phi=%g, int_k=%g", _s, this->_rcut, _m, _phi, _int_k, _my_N3);
 }
 
-void JordanInteraction::allocate_particles(BaseParticle **particles, int N) {
+void JordanInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	OX_LOG(Logger::LOG_INFO,"(JordanInteraction.cpp) Allocating %d particles with 3 patches and %d with 4 patches", _my_N3, N - _my_N3);
 	for(int i = 0; i < N; i++) {
 		if (i > _my_N3 && _my_N3 >= 0) particles[i] = new JordanParticle(4, _phi, _int_k);
@@ -146,21 +147,24 @@ number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, 
 
 }
 
-void JordanInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void JordanInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
 	std::ifstream topology;
 	topology.open(this->_topology_filename, std::ios::in);
-	if(!topology.good())
+	if(!topology.good()) {
 		throw oxDNAException("(JordanInteraction.cpp) Can't read topology file '%s'. Aborting", this->_topology_filename);
+	}
 	std::string line;
 	std::getline(topology, line);
 	int check = sscanf(line.c_str(), "%d %d\n", &_my_N, &_my_N3);
-	if(check != 2)
+	if(check != 2) {
 		throw oxDNAException("(JordanInteraction.cpp) Wrong content in topology file '%s'. Expecting <N> and <N3>", this->_topology_filename);
+	}
 	topology.close();
 
+	int N = particles.size();
 	*N_strands = N;
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 	for(int i = 0; i < N; i++) {
 		particles[i]->index = i;
 		particles[i]->type = 0;
@@ -169,6 +173,6 @@ void JordanInteraction::read_topology(int N, int *N_strands, BaseParticle **part
 	}
 }
 
-void JordanInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void JordanInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }

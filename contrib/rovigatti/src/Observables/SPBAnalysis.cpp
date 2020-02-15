@@ -37,10 +37,10 @@ void SPBAnalysis::init(ConfigInfo &config_info) {
 }
 
 std::string SPBAnalysis::get_output_string(llint curr_step) {
-	LR_vector c_pos = this->_config_info.particles[0]->pos;
+	LR_vector c_pos = _config_info->particles[0]->pos;
 
-	for(int i = 1; i < *this->_config_info.N; i++) {
-		LR_vector rel_pos = c_pos - this->_config_info.particles[i]->pos;
+	for(int i = 1; i < _config_info->N(); i++) {
+		LR_vector rel_pos = c_pos - _config_info->particles[i]->pos;
 		_cx[floor(fabs(rel_pos.x) / _bin)]++;
 		_cy[floor(fabs(rel_pos.y) / _bin)]++;
 		_cz[floor(fabs(rel_pos.z) / _bin)]++;

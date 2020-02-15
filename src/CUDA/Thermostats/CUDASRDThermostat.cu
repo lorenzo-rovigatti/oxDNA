@@ -13,6 +13,7 @@
 #include "CUDA_SRD.cuh"
 #include "../CUDAUtils.h"
 #include "../../Boxes/BaseBox.h"
+#include "../../Utilities/ConfigInfo.h"
 
 CUDASRDThermostat::CUDASRDThermostat(BaseBox *box) :
 				CUDABaseThermostat(),
@@ -47,8 +48,10 @@ void CUDASRDThermostat::get_settings(input_file &inp) {
 	CUDABaseThermostat::get_cuda_settings(inp);
 }
 
-void CUDASRDThermostat::init(int N) {
-	SRDThermostat::init(N);
+void CUDASRDThermostat::init() {
+	SRDThermostat::init();
+
+	int N = CONFIG_INFO->N();
 
 	_max_N_per_cell = this->_N_per_cell * 10;
 	_N_tot = N + this->_N_particles;

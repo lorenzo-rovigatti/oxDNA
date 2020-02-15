@@ -7,16 +7,16 @@
 
 #include "VerletList.h"
 
-
-VerletList::VerletList(int &N, BaseBox *box) : BaseList(N, box), _updated(false), _cells(N, box) {
+VerletList::VerletList(std::vector<BaseParticle *> &ps, BaseBox *box) :
+				BaseList(ps, box),
+				_updated(false),
+				_cells(ps, box) {
 
 }
-
 
 VerletList::~VerletList() {
 
 }
-
 
 void VerletList::get_settings(input_file &inp) {
 	BaseList::get_settings(inp);
@@ -32,36 +32,32 @@ void VerletList::get_settings(input_file &inp) {
 	}
 }
 
-
-void VerletList::init(BaseParticle **particles, number rcut) {
-	rcut += 2*_skin;
-	BaseList::init(particles, rcut);
+void VerletList::init(number rcut) {
+	rcut += 2 * _skin;
+	BaseList::init(rcut);
 
 	_sqr_rcut = SQR(rcut);
 
-	_lists.resize(this->_N, std::vector<BaseParticle *>());
-	_list_poss.resize(this->_N, LR_vector(0, 0, 0));
+	_lists.resize(_particles.size(), std::vector<BaseParticle *>());
+	_list_poss.resize(_particles.size(), LR_vector(0, 0, 0));
 
-	_cells.init(particles, rcut);
+	_cells.init(rcut);
 	global_update();
 }
-
 
 bool VerletList::is_updated() {
 	return (_updated);
 }
-
 
 void VerletList::single_update(BaseParticle *p) {
 	_cells.single_update(p);
 	if(_list_poss[p->index].sqr_distance(p->pos) > _sqr_skin) _updated = false;
 }
 
-
 void VerletList::global_update(bool force_update) {
 	if(!_cells.is_updated() || force_update) _cells.global_update();
 
-	for(int i = 0; i < this->_N; i++) {
+	for(uint i = 0; i < _particles.size(); i++) {
 		BaseParticle *p = this->_particles[i];
 		_lists[p->index] = _cells.get_neigh_list(p);
 		_list_poss[p->index] = p->pos;
@@ -69,24 +65,21 @@ void VerletList::global_update(bool force_update) {
 	_updated = true;
 }
 
-
 std::vector<BaseParticle *> VerletList::get_neigh_list(BaseParticle *p) {
 	return _lists[p->index];
 }
-
 
 std::vector<BaseParticle *> VerletList::get_complete_neigh_list(BaseParticle *p) {
 	return _cells.get_complete_neigh_list(p);
 }
 
-
-void VerletList::change_box () {
+void VerletList::change_box() {
 	LR_vector new_box_sides = this->_box->box_sides();
-	number fx = new_box_sides.x/this->_box_sides.x;
-	number fy = new_box_sides.y/this->_box_sides.y;
-	number fz = new_box_sides.z/this->_box_sides.z;
+	number fx = new_box_sides.x / this->_box_sides.x;
+	number fy = new_box_sides.y / this->_box_sides.y;
+	number fz = new_box_sides.z / this->_box_sides.z;
 
-	for(int i = 0; i < this->_N; i++) {
+	for(uint i = 0; i < _particles.size(); i++) {
 		BaseParticle *p = this->_particles[i];
 		_list_poss[p->index].x *= fx;
 		_list_poss[p->index].z *= fy;

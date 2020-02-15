@@ -37,7 +37,7 @@ void StarrConf::get_settings(input_file &my_inp, input_file &sim_inp) {
 void StarrConf::init(ConfigInfo &config_info) {
 	Configuration::init(config_info);
 
-	_N_tetramers = *config_info.N / _N_per_tetramer;
+	_N_tetramers = config_info.N() / _N_per_tetramer;
 	_tetra_poss.resize(_N_tetramers);
 	_tetra_vels.resize(_N_tetramers);
 	if(_print_bonds) _tetra_bonds.resize(_N_tetramers);
@@ -46,7 +46,7 @@ void StarrConf::init(ConfigInfo &config_info) {
 std::string StarrConf::_headers(llint step) {
 	std::stringstream headers;
 
-	LR_vector mybox = this->_config_info.box->box_sides();
+	LR_vector mybox = _config_info->box->box_sides();
 
 	headers << step << " " << step << " " << _N_tetramers << " " << _N_tetramers << " " << _dt << endl;
 	headers << mybox.x << " " << mybox.y << " " << mybox.z << " " << 0. << " " << 0. << " " << 0.;
@@ -65,9 +65,9 @@ string StarrConf::_configuration(llint step) {
 		for(int j = 0; j < _N_strands_per_tetramer; j++) {
 			for(int k = 0; k < _N_per_strand; k++) {
 				int idx = base_idx + k;
-				BaseParticle *p = this->_config_info.particles[idx];
+				BaseParticle *p = _config_info->particles[idx];
 
-				_tetra_poss[i] += this->_config_info.box->get_abs_pos(p);
+				_tetra_poss[i] += _config_info->box->get_abs_pos(p);
 				_tetra_vels[i] += p->vel;
 			}
 			base_idx += _N_per_strand;
@@ -82,10 +82,10 @@ string StarrConf::_configuration(llint step) {
 
 	// compute the bonding pattern
 	if(_print_bonds) {
-		vector<ParticlePair> inter_pairs = this->_config_info.lists->get_potential_interactions();
+		vector<ParticlePair> inter_pairs = _config_info->lists->get_potential_interactions();
 
 		for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
-			number energy = this->_config_info.interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+			number energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
 			if(energy < 0.) {
 				int p_tetra = it->first->index / _N_per_tetramer;
 				int q_tetra = it->second->index / _N_per_tetramer;

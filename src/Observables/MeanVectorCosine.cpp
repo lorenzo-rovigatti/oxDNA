@@ -65,12 +65,12 @@ std::string MeanVectorCosine::get_output_string(llint curr_step) {
 	int sign;
 	std::string result;
 	double average = 0.;
-	BaseParticle **p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles;
 	double delta_omega = 0;
 
 	//FILE *fp = fopen("myv-1.txt","w");//TODO: comment this line when the problem is solved
 
-	for(int i = 0; i < *_config_info->N - 2; i++) {
+	for(int i = 0; i < _config_info->N() - 2; i++) {
 		if(_vector_to_average == -1) {
 			_u = p[i]->orientationT.v1;
 			_up = p[i]->n5->orientationT.v1;
@@ -131,19 +131,18 @@ std::string MeanVectorCosine::get_output_string(llint curr_step) {
 		else result = Utils::sformat("%14.14lf", cos(average));
 	}
 	else if(_vector_to_average == 3) {
-		result = Utils::sformat("%14.14lf", average / (*_config_info->N - 2));
+		result = Utils::sformat("%14.14lf", average / (_config_info->N() - 2));
 	}
 	else {
-		result = Utils::sformat("%14.14lf", average / (*_config_info->N - 2));
+		result = Utils::sformat("%14.14lf", average / (_config_info->N() - 2));
 	}
 	//fclose(fp);abort();//TODO: comment this line when the problem is solved
 	return result;
 }
 
 void MeanVectorCosine::set_first_last_particle_id() {
-	//int N = *_config_info->N;
-	int N = *_config_info->N;
-	BaseParticle **p = _config_info->particles;
+	int N = _config_info->N();
+	std::vector<BaseParticle *> &p = _config_info->particles;
 	int chain_counter = 0;
 	int particle_counter = 0;
 	int number_of_values = 0;

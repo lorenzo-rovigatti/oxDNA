@@ -72,14 +72,14 @@ void MGAnalysis::init(ConfigInfo &config_info) {
 }
 
 std::pair<number, number> MGAnalysis::_lame_coefficients() {
-	std::vector<ParticlePair> pairs = this->_config_info.lists->get_potential_interactions();
+	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 
 	number lambda = 0.;
 	number mu = 0.;
 	for(auto &pair: pairs) {
 		BaseParticle *p = pair.first;
 		BaseParticle *q = pair.second;
-		LR_vector r = this->_config_info.box->min_image(p->pos, q->pos);
+		LR_vector r = _config_info->box->min_image(p->pos, q->pos);
 		number r_sqr = r.norm();
 		number r_mod = sqrt(r_sqr);
 
@@ -118,20 +118,20 @@ std::pair<number, number> MGAnalysis::_lame_coefficients() {
 
 	lambda /= 6.;
 	mu /= 6.;
-	mu += 2 * _T * *this->_config_info.N;
+	mu += 2 * _T * _config_info->N();
 
 	return std::pair<number, number>(lambda, mu);
 }
 
 number MGAnalysis::_volume() {
-	int N = *this->_config_info.N;
+	int N = _config_info->N();
 	LR_vector com = _com(0, N);
 
 	std::vector<qh_vertex_t> vertices(N);
 	int curr_idx = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		LR_vector p_pos = this->_config_info.box->get_abs_pos(p) - com;
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector p_pos = _config_info->box->get_abs_pos(p) - com;
 
 		if(_volume_threshold == 0. || p_pos.norm() < _volume_threshold_sqr) {
 			vertices[curr_idx].x = p_pos.x;
@@ -161,8 +161,8 @@ LR_vector MGAnalysis::_com(int from_idx, int to_idx) {
 	LR_vector com;
 	int N = to_idx - from_idx;
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		com += this->_config_info.box->get_abs_pos(p);
+		BaseParticle *p = _config_info->particles[i];
+		com += _config_info->box->get_abs_pos(p);
 	}
 	return com / N;
 }
@@ -174,8 +174,8 @@ std::vector<number> MGAnalysis::_rg_eigenvalues(int from_idx, int to_idx) {
 
 	double IM[3][3] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		LR_vector i_pos = this->_config_info.box->get_abs_pos(p) - com;
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector i_pos = _config_info->box->get_abs_pos(p) - com;
 
 		IM[0][0] += SQR(i_pos[1]) + SQR(i_pos[2]);
 		IM[0][1] += -i_pos[0] * i_pos[1];
@@ -210,8 +210,8 @@ std::vector<number> MGAnalysis::_rg_eigenvalues(int from_idx, int to_idx) {
 	LR_vector min_along_EVs(1.e6, 1.e6, 1.e6);
 
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
-		LR_vector p_pos = this->_config_info.box->get_abs_pos(p) - com;
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector p_pos = _config_info->box->get_abs_pos(p) - com;
 
 		for(int d = 0; d < 3; d++) {
 			number abs = p_pos * EVs[d];
@@ -235,7 +235,7 @@ std::string MGAnalysis::get_output_string(llint curr_step) {
 		to_ret = Utils::sformat("%lf", volume);
 	}
 	else if(_rg_only) {
-		int N = *this->_config_info.N;
+		int N = _config_info->N();
 		if(!_two_microgels) {
 			auto eigenvalues = _rg_eigenvalues(0, N);
 			to_ret = Utils::sformat("%lf %lf %lf %lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2], eigenvalues[3], eigenvalues[4], eigenvalues[5]);

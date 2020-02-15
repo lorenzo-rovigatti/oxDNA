@@ -82,17 +82,17 @@ int DiblockGr::_get_bin(number sqr_dist) {
 }
 
 std::string DiblockGr::get_output_string(llint curr_step) {
-	int N = *this->_config_info.N;
+	int N = _config_info->N();
 	_n_conf++;
 
 	LR_vector coms[2][2];
 	int counters[2][2] = { { 0, 0 }, { 0, 0 } };
 
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = this->_config_info.particles[i];
+		BaseParticle *p = _config_info->particles[i];
 		if(p->strand_id > 1) throw oxDNAException("The system should contain just two chains");
 		if(p->type != P_A && p->type != P_B) throw oxDNAException("Only particles of type A and B are allowed");
-		coms[p->strand_id][p->type] += this->_config_info.box->get_abs_pos(p);
+		coms[p->strand_id][p->type] += _config_info->box->get_abs_pos(p);
 		counters[p->strand_id][p->type]++;
 	}
 	for(int i = 0; i < 2; i++)
@@ -112,22 +112,22 @@ std::string DiblockGr::get_output_string(llint curr_step) {
 	// inter
 	int bin;
 	if(!_only_intra) {
-		bin = _get_bin(this->_config_info.box->sqr_min_image_distance(coms[1][P_A], coms[0][P_A]));
+		bin = _get_bin(_config_info->box->sqr_min_image_distance(coms[1][P_A], coms[0][P_A]));
 		if(bin != -1) {
 			_inter_hist[AA][bin] += factor;
 			_inter_norm[AA] += factor;
 		}
-		bin = _get_bin(this->_config_info.box->sqr_min_image_distance(coms[1][P_B], coms[0][P_A]));
+		bin = _get_bin(_config_info->box->sqr_min_image_distance(coms[1][P_B], coms[0][P_A]));
 		if(bin != -1) {
 			_inter_hist[AB][bin] += factor * 0.5;
 			_inter_norm[AB] += factor * 0.5;
 		}
-		bin = _get_bin(this->_config_info.box->sqr_min_image_distance(coms[1][P_A], coms[0][P_B]));
+		bin = _get_bin(_config_info->box->sqr_min_image_distance(coms[1][P_A], coms[0][P_B]));
 		if(bin != -1) {
 			_inter_hist[AB][bin] += factor * 0.5;
 			_inter_norm[AB] += factor * 0.5;
 		}
-		bin = _get_bin(this->_config_info.box->sqr_min_image_distance(coms[1][P_B], coms[0][P_B]));
+		bin = _get_bin(_config_info->box->sqr_min_image_distance(coms[1][P_B], coms[0][P_B]));
 		if(bin != -1) {
 			_inter_hist[BB][bin] += factor;
 			_inter_norm[BB] += factor;
@@ -135,14 +135,14 @@ std::string DiblockGr::get_output_string(llint curr_step) {
 	}
 
 	// intra
-	bin = _get_bin(this->_config_info.box->sqr_min_image_distance(coms[0][P_B], coms[0][P_A]));
+	bin = _get_bin(_config_info->box->sqr_min_image_distance(coms[0][P_B], coms[0][P_A]));
 	if(bin != -1) {
 		_intra_hist[bin] += factor * 0.5;
 		_intra_norm += factor * 0.5;
 	}
 
 	if(!_only_intra) {
-		bin = _get_bin(this->_config_info.box->sqr_min_image_distance(coms[1][P_B], coms[1][P_A]));
+		bin = _get_bin(_config_info->box->sqr_min_image_distance(coms[1][P_B], coms[1][P_A]));
 		if(bin != -1) {
 			_intra_hist[bin] += factor * 0.5;
 			_intra_norm += factor * 0.5;
@@ -151,7 +151,7 @@ std::string DiblockGr::get_output_string(llint curr_step) {
 
 	std::stringstream ret;
 	ret << "# r g_AA g_AB g_BB g_intra" << std::endl;
-	number norm = (4. * M_PI) / (3. * this->_config_info.box->V()) * 2;
+	number norm = (4. * M_PI) / (3. * _config_info->box->V()) * 2;
 	for(int i = 0; i < _n_bins; i++) {
 		number x0 = i * _bin;
 		number x1 = (i + 1) * _bin;

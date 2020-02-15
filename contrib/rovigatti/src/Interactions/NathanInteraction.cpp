@@ -38,14 +38,14 @@ int NathanInteraction::get_N_from_topology() {
 	return _N_patchy + _N_polymers;
 }
 
-void NathanInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void NathanInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
 	// the number of "strands" is given by the number of chains + the number of patchy particles
 	// since those are not linked to anything else
 	*N_strands = _N_chains + _N_patchy;
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 
 	// set up the polymers' topology
-	for(int i = _N_patchy; i < N; i++) {
+	for(int i = _N_patchy; i < (int) particles.size(); i++) {
 		NathanPolymerParticle *p = static_cast<NathanPolymerParticle *>(particles[i]);
 
 		int pol_idx = i - _N_patchy;
@@ -55,7 +55,7 @@ void NathanInteraction::read_topology(int N, int *N_strands, BaseParticle **part
 	}
 }
 
-void NathanInteraction::allocate_particles(BaseParticle **particles, int N) {
+void NathanInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 	for(int i = 0; i < _N_patchy; i++) {
 		NathanPatchyParticle *new_p = new NathanPatchyParticle();
 		new_p->index = i;
@@ -65,7 +65,7 @@ void NathanInteraction::allocate_particles(BaseParticle **particles, int N) {
 		particles[i] = new_p;
 	}
 
-	for(int i = _N_patchy; i < N; i++) {
+	for(int i = _N_patchy; i < (int) particles.size(); i++) {
 		NathanPolymerParticle *new_p = new NathanPolymerParticle();
 		new_p->index = i;
 		new_p->type = POLYMER;
@@ -112,8 +112,8 @@ void NathanInteraction::init() {
 	_patch_E_cut = 0.;
 }
 
-void NathanInteraction::check_input_sanity(BaseParticle **particles, int N) {
-	for(int i = _N_patchy; i < N; i++) {
+void NathanInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
+	for(int i = _N_patchy; i < (int) particles.size(); i++) {
 		BaseParticle *p = particles[i];
 
 		if(p->n3 != P_VIRTUAL) {
@@ -209,7 +209,7 @@ number NathanInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 	else return _nonbonded(p, q, r, update_forces);
 }
 
-void NathanInteraction::generate_random_configuration(BaseParticle **particles, int N) {
+void NathanInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	int N_per_side = ceil(pow(_N_per_chain - 0.001, 1. / 3.));
 	std::vector<LR_vector> lattice_poss;
 	LR_vector box_sides = this->_box->box_sides();

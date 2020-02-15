@@ -42,7 +42,7 @@ std::vector<BaseParticle *> BaseList::get_all_neighbours(BaseParticle *p) {
 std::vector<ParticlePair > BaseList::get_potential_interactions() {
 	std::vector<ParticlePair > list;
 
-	for(int i = 0; i < _N; i++) {
+	for(uint i = 0; i < _particles.size(); i++) {
 		BaseParticle *p = _particles[i];
 //		std::vector<BaseParticle *> neighs = std::move(get_all_neighbours(p));
 		std::vector<BaseParticle *> neighs = get_all_neighbours(p);

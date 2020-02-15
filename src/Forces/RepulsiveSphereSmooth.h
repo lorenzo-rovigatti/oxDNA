@@ -59,7 +59,7 @@ public:
 	}
 
 	void get_settings(input_file &);
-	void init(BaseParticle **, int, BaseBox *);
+	void init(std::vector<BaseParticle *> &, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

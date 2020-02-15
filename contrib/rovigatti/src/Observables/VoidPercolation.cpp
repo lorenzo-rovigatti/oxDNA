@@ -14,11 +14,11 @@
 
 using namespace std;
 
-VPCells::VPCells(int &N, BaseBox *box) :
-				Cells(N, box) {
-	_clusters.resize(this->_N, 0);
-	_sizes.resize(this->_N + 1, 0);
-	csd.resize(this->_N + 1, 0);
+VPCells::VPCells(std::vector<BaseParticle *> &ps, BaseBox *box) :
+				Cells(ps, box) {
+	_clusters.resize(ps.size(), 0);
+	_sizes.resize(ps.size() + 1, 0);
+	csd.resize(ps.size() + 1, 0);
 }
 
 VPCells::~VPCells() {
@@ -58,11 +58,11 @@ void VPCells::_flip_neighs(BaseParticle *p) {
 
 void VPCells::compute_csd() {
 	fill(_clusters.begin(), _clusters.end(), 0);
-	for(int i = 0; i < this->_N; i++)
+	for(uint i = 0; i < _particles.size(); i++) {
 		_clusters[i] = i;
+	}
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		_flip_neighs(p);
 	}
 
@@ -98,8 +98,7 @@ string VPCells::get_coloured_mgl(number diameter) {
 	colors.push_back(LR_vector(0.98f, 0.855f, 0.867f));
 	typename vector<LR_vector>::iterator curr_color_it = colors.begin();
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle *p = this->_particles[i];
+	for(auto p: _particles) {
 		int c_id = _clusters[p->index];
 		if(_color_map.find(c_id) == _color_map.end()) {
 			_color_map[c_id] = *curr_color_it;
@@ -118,9 +117,7 @@ VoidPercolation::VoidPercolation() {
 	_probe_diameter = _particle_diameter = 1.;
 	_cells = NULL;
 	_probe_cells = _replica_probe_cells = NULL;
-	_probes = _replica_probes = NULL;
 	_probe = NULL;
-	_particles = NULL;
 	_insertions = _N = _N_replica = 0;
 	_replica_box = NULL;
 	_print_mgl = false;
@@ -130,18 +127,13 @@ VoidPercolation::~VoidPercolation() {
 	if(_cells != NULL) delete _cells;
 	if(_probe_cells != NULL) delete _probe_cells;
 	if(_replica_probe_cells != NULL) delete _replica_probe_cells;
-	if(_probes != NULL) {
-		for(int i = 0; i < _insertions; i++)
-			delete _probes[i];
-		delete _probes;
-	}
-	if(_replica_probes != NULL) {
-		for(int i = 0; i < 8 * _insertions; i++)
-			delete _replica_probes[i];
-		delete _replica_probes;
-	}
+		for(auto probe: _probes) {
+			delete probe;
+		}
+		for(auto replica_probe: _replica_probes) {
+			delete replica_probe;
+		}
 	if(_probe != NULL) delete _probe;
-	if(_particles != NULL) delete _particles;
 }
 
 void VoidPercolation::get_settings(input_file &my_inp, input_file &sim_inp) {
@@ -159,11 +151,11 @@ void VoidPercolation::get_settings(input_file &my_inp, input_file &sim_inp) {
 void VoidPercolation::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_N = *config_info.N + 1;
+	_N = config_info.N() + 1;
 	_N_replica = 8 * _insertions;
 
-	_probes = new BaseParticle*[_insertions];
-	_replica_probes = new BaseParticle*[_N_replica];
+	_probes.resize(_insertions);
+	_replica_probes.resize(_N_replica);
 	for(int i = 0; i < _insertions; i++) {
 		_probes[i] = new BaseParticle();
 		BaseParticle *p = _probes[i];
@@ -189,23 +181,24 @@ void VoidPercolation::init(ConfigInfo &config_info) {
 	_probe->type = P_A;
 
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
-	_particles = new BaseParticle *[_N];
-	for(int i = 0; i < _N - 1; i++)
+	_particles.resize(_N);
+	for(int i = 0; i < _N - 1; i++) {
 		_particles[i] = config_info.particles[i];
+	}
 	_particles[_N - 1] = _probe;
 
 	_rcut = (_probe_diameter + _particle_diameter) / 2.;
 	_sqr_rcut = SQR(_rcut);
-	_cells = new Cells(_N, config_info.box);
-	_cells->init(_particles, _rcut);
+	_cells = new Cells(_particles, config_info.box);
+	_cells->init(_rcut);
 
-	_probe_cells = new VPCells(_insertions, config_info.box);
-	_probe_cells->init(_probes, _probe_diameter);
+	_probe_cells = new VPCells(_probes, config_info.box);
+	_probe_cells->init(_probe_diameter);
 
 	LR_vector box = config_info.box->box_sides();
 	_replica_box->init(2. * box.x, 2. * box.y, 2. * box.z);
-	_replica_probe_cells = new VPCells(_N_replica, _replica_box.get());
-	_replica_probe_cells->init(_replica_probes, _probe_diameter);
+	_replica_probe_cells = new VPCells(_replica_probes, _replica_box.get());
+	_replica_probe_cells->init(_probe_diameter);
 
 	if(_insertions == 0) {
 		number tot_V = config_info.box->box_sides().x * config_info.box->box_sides().y * config_info.box->box_sides().z;
@@ -217,7 +210,7 @@ void VoidPercolation::init(ConfigInfo &config_info) {
 
 string VoidPercolation::get_output_string(llint curr_step) {
 	stringstream outstr;
-	LR_vector box = this->_config_info.box->box_sides();
+	LR_vector box = _config_info->box->box_sides();
 
 	_cells->global_update();
 	for(int i = 0; i < _insertions; i++) {
@@ -232,7 +225,7 @@ string VoidPercolation::get_output_string(llint curr_step) {
 			typename vector<BaseParticle *>::iterator it;
 			for(it = neighs.begin(); it != neighs.end() && !overlap; it++) {
 				BaseParticle *q = *it;
-				LR_vector dr = this->_config_info.box->min_image(_probe, q);
+				LR_vector dr = _config_info->box->min_image(_probe, q);
 				if(dr.norm() < _sqr_rcut) overlap = true;
 			}
 			tries++;

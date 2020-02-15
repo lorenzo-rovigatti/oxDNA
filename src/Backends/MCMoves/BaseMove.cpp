@@ -81,8 +81,7 @@ number BaseMove::particle_energy(BaseParticle * p) {
 number BaseMove::system_energy() {
 	number res = (number) 0.f;
 
-	for(int i = 0; i < *_Info->N; i++) {
-		BaseParticle *p = _Info->particles[i];
+	for(auto p: _Info->particles) {
 		if(p->n3 != P_VIRTUAL) res += _Info->interaction->pair_interaction_bonded(p, p->n3);
 		// we omit E(p,p->n5) because it gets counted as E(q, q->n3);
 		std::vector<BaseParticle *> neighs = _Info->lists->get_neigh_list(p);

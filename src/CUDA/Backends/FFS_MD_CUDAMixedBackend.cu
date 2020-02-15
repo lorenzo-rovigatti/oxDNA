@@ -278,14 +278,14 @@ void FFS_MD_CUDAMixedBackend::get_settings(input_file &inp) {
 	// so we can put whatever we want
 	char customconf_file[256] = "custom.dat";
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", customconf_file);
-	_obs_output_custom_conf = std::make_shared<ObservableOutput>(fake, inp);
+	_obs_output_custom_conf = std::make_shared<ObservableOutput>(fake);
 	_obs_output_custom_conf->add_observable("type = configuration");
 	_obs_outputs.push_back(_obs_output_custom_conf);
 }
 
 void FFS_MD_CUDAMixedBackend::init() {
 	CUDAMixedBackend::init();
-	_op.init_from_file(_order_parameters_file, _particles.data(), _N);
+	_op.init_from_file(_order_parameters_file, _particles, N());
 
 	// initialise the order parameter region arrays (variable width, pseudo-2D arrays)
 	int *h_dist_region_lens;
@@ -935,8 +935,8 @@ void FFS_MD_CUDAMixedBackend::_prepare_configuration(char *conf_str) {
 	_obs_output_custom_conf->change_output_file(conf_str);
 	// these 3 lines to get the correct energy in the configuration file
 	_gpu_to_host_particles();
-	_U = GpuUtils::sum_4th_comp(_h_forces, _N);
-	_K = GpuUtils::sum_4th_comp(_h_vels, _N) + GpuUtils::sum_4th_comp(_h_Ls, _N);
+	_U = GpuUtils::sum_4th_comp(_h_forces, N());
+	_K = GpuUtils::sum_4th_comp(_h_vels, N()) + GpuUtils::sum_4th_comp(_h_Ls, N());
 }
 
 int *FFS_MD_CUDAMixedBackend::_get_2D_rows(int rows_len, int *lens) {

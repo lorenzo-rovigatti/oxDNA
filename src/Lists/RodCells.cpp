@@ -10,8 +10,8 @@
 #include "../Utilities/ConfigInfo.h"
 #include <algorithm>
 
-
-RodCells::RodCells(int &N, BaseBox *box) : BaseList(N, box) {
+RodCells::RodCells(std::vector<BaseParticle *> &ps, BaseBox *box) :
+				BaseList(ps, box) {
 	_heads = NULL;
 	_next = NULL;
 	_cells = NULL;
@@ -22,7 +22,7 @@ RodCells::RodCells(int &N, BaseBox *box) : BaseList(N, box) {
 	_rod_length = (number) -1.f;
 	_n_virtual_sites = NULL;
 	_max_size = 20;
-	_added = std::vector<bool> ();
+	_added = std::vector<bool>();
 	_n_part_types = 1;
 	_n_virtual_sites_max = -1;
 	_restrict_to_type = -1;
@@ -31,14 +31,12 @@ RodCells::RodCells(int &N, BaseBox *box) : BaseList(N, box) {
 	//_neighs = std::list<int> ();
 }
 
-
 RodCells::~RodCells() {
 	if(_heads != NULL) delete[] _heads;
 	if(_next != NULL) delete[] _next;
 	if(_cells != NULL) delete[] _cells;
 	if(_n_virtual_sites != NULL) delete[] _n_virtual_sites;
- }
-
+}
 
 void RodCells::get_settings(input_file &inp) {
 	BaseList::get_settings(inp);
@@ -48,50 +46,48 @@ void RodCells::get_settings(input_file &inp) {
 	getInputInt(&inp, "rod_cell_restrict_to_type", &_restrict_to_type, 0);
 }
 
-
-void RodCells::init(BaseParticle **particles, number rcut) {
-	BaseList::init(particles, rcut);
+void RodCells::init(number rcut) {
+	BaseList::init(rcut);
 
 	_sqr_rcut = rcut * rcut;
 
 	// we want to be SURE that there is at least one site per cell
 	_n_virtual_sites = new int[_n_part_types];
 	_n_virtual_sites[0] = 1;
-	while ((_rod_length / _n_virtual_sites[0]) + (number) 0.01 >= _rod_cell_rcut) _n_virtual_sites[0] += 1;
+	while((_rod_length / _n_virtual_sites[0]) + (number) 0.01 >= _rod_cell_rcut)
+		_n_virtual_sites[0] += 1;
 
-	if (_n_part_types == 2) _n_virtual_sites[1] = 1;
+	if(_n_part_types == 2) _n_virtual_sites[1] = 1;
 	//if (_n_part_types == 2) _n_virtual_sites[1] = _n_virtual_sites[0];
 
-	if (_n_part_types > 2) throw oxDNAException ("RodCells.ccp can handle at most 2 particle types for now");
+	if(_n_part_types > 2) throw oxDNAException("RodCells.ccp can handle at most 2 particle types for now");
 
-	for (int i = 0; i < this->_N; i ++) {
-		if (particles[i]->type >= _n_part_types) throw oxDNAException ("Found particle with index %d and type %d, but RodCell is set up with only %d particle types", particles[i]->index, particles[i]->type, _n_part_types);
+	for(uint i = 0; i < _particles.size(); i++) {
+		if(_particles[i]->type >= _n_part_types) throw oxDNAException("Found particle with index %d and type %d, but RodCell is set up with only %d particle types", _particles[i]->index, _particles[i]->type, _n_part_types);
 	}
 
 	_n_virtual_sites_max = _n_virtual_sites[0];
 
-	for (int i = 0; i < this->_N; i ++) _added.push_back(false);
+	for(uint i = 0; i < _particles.size(); i++)
+		_added.push_back(false);
 
 	global_update(true);
 
 	OX_LOG(Logger::LOG_INFO, "(RodCells.cpp) N_cells_side: %d, %d, %d; rcut=%g, rod_cell_size=%g, _n_virtual_sites=%d, restrict_to_type=%d, IS_MC: %d",_N_cells_side[0], _N_cells_side[1], _N_cells_side[2], this->_rcut, _rod_cell_rcut, _n_virtual_sites[0], _restrict_to_type, this->_is_MC);
 }
 
-
 void RodCells::_set_N_cells_side_from_box(int N_cells_side[3], BaseBox *box) {
 	LR_vector box_sides = box->box_sides();  // TODO: perhaps use pointer instead of copying?
 	for(int i = 0; i < 3; i++) {
 		N_cells_side[i] = (int) (floor(box_sides[i] / _rod_cell_rcut) + 0.1);
-		if(N_cells_side[i] < 3)
-			N_cells_side[i] = 3;
+		if(N_cells_side[i] < 3) N_cells_side[i] = 3;
 	}
-	while ( (N_cells_side[0] * N_cells_side[1] * N_cells_side[2]) > 2 * this->_N * _n_virtual_sites_max ) {
-		N_cells_side[0] --;
-		N_cells_side[1] --;
-		N_cells_side[2] --;
+	while((N_cells_side[0] * N_cells_side[1] * N_cells_side[2]) > (int) (2 * _particles.size() * _n_virtual_sites_max)) {
+		N_cells_side[0]--;
+		N_cells_side[1]--;
+		N_cells_side[2]--;
 	}
 }
-
 
 bool RodCells::is_updated() {
 	int new_N_cells_side[3];
@@ -99,23 +95,22 @@ bool RodCells::is_updated() {
 	return (new_N_cells_side[0] == _N_cells_side[0] && new_N_cells_side[1] == _N_cells_side[1] && new_N_cells_side[2] == _N_cells_side[2]);
 }
 
-
 void RodCells::single_update(BaseParticle *p) {
 
 	//if (_restrict_to_type >= 0 && p->type != _restrict_to_type) return;
 
 	// remove from old cells
-	for (int k = 0; k < _n_virtual_sites[p->type]; k++) {
+	for(int k = 0; k < _n_virtual_sites[p->type]; k++) {
 		int site_idx = p->index * _n_virtual_sites_max + k;
 		int old_cell = _cells[site_idx];
 
 		int previous = -1;
 		int current = _heads[old_cell];
-		while (current != site_idx) {
+		while(current != site_idx) {
 			previous = current;
 			current = _next[current];
 		}
-		if (previous == -1) _heads[old_cell] = _next[site_idx];
+		if(previous == -1) _heads[old_cell] = _next[site_idx];
 		else _next[previous] = _next[site_idx];
 	}
 
@@ -124,8 +119,8 @@ void RodCells::single_update(BaseParticle *p) {
 	LR_vector * u = &p->orientation.v3;
 	LR_vector stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * (*u);
 	LR_vector site_pos = (*r) - (_rod_length / (number) 2.f) * (*u);
-	if (_n_virtual_sites[p->type] < 2) site_pos = *r;
-	for (int k = 0; k < _n_virtual_sites[p->type]; k ++) {
+	if(_n_virtual_sites[p->type] < 2) site_pos = *r;
+	for(int k = 0; k < _n_virtual_sites[p->type]; k++) {
 		int site_idx = p->index * _n_virtual_sites_max + k;
 		int new_cell = get_cell_index(site_pos);
 		_cells[site_idx] = new_cell;
@@ -138,7 +133,6 @@ void RodCells::single_update(BaseParticle *p) {
 	return;
 }
 
-
 void RodCells::global_update(bool force_update) {
 	this->_box_sides = this->_box->box_sides();
 	_set_N_cells_side_from_box(_N_cells_side, this->_box);
@@ -150,20 +144,25 @@ void RodCells::global_update(bool force_update) {
 		delete[] _next;
 		delete[] _cells;
 	}
-	_heads = new int [_N_cells];
-	_cells = new int [this->_N * _n_virtual_sites_max];
-	_next = new int [this->_N * _n_virtual_sites_max];
+	_heads = new int[_N_cells];
+	_cells = new int[_particles.size() * _n_virtual_sites_max];
+	_next = new int[_particles.size() * _n_virtual_sites_max];
 
-	for(int i = 0; i < _N_cells; i++) _heads[i] = -1;
-	for(int i = 0; i < this->_N * _n_virtual_sites_max; i++) _next[i] = -1;
+	for(int i = 0; i < _N_cells; i++) {
+		_heads[i] = -1;
+	}
 
-	for(int i = 0; i < this->_N; i++) {
+	for(uint i = 0; i < _particles.size() * _n_virtual_sites_max; i++) {
+		_next[i] = -1;
+	}
+
+	for(uint i = 0; i < _particles.size(); i++) {
 		BaseParticle *p = this->_particles[i];
 		//if (_restrict_to_type >= 0 && p->type != _restrict_to_type) continue;
 		LR_vector stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * p->orientation.v3;
 		LR_vector site_pos = p->pos - (_rod_length / (number) 2.f) * p->orientation.v3;
-		if (_n_virtual_sites[p->type] < 2) site_pos = p->pos;
-		for (int k = 0; k < _n_virtual_sites[p->type]; k ++) {
+		if(_n_virtual_sites[p->type] < 2) site_pos = p->pos;
+		for(int k = 0; k < _n_virtual_sites[p->type]; k++) {
 			int site_idx = i * _n_virtual_sites_max + k;
 			int cell_index = get_cell_index(site_pos);
 			_cells[site_idx] = cell_index;
@@ -174,13 +173,12 @@ void RodCells::global_update(bool force_update) {
 	}
 }
 
-
 std::vector<BaseParticle *> RodCells::_get_neigh_list(BaseParticle *p, bool all) {
 	std::vector<BaseParticle *> res;
 
 	int want_type = -1;
-	if (_restrict_to_type >= 0) {
-	 	if (p->type == _restrict_to_type) want_type = -1; // we want 'em all
+	if(_restrict_to_type >= 0) {
+		if(p->type == _restrict_to_type) want_type = -1; // we want 'em all
 		else want_type = _restrict_to_type;               // we just want the other type
 	}
 
@@ -194,49 +192,45 @@ std::vector<BaseParticle *> RodCells::_get_neigh_list(BaseParticle *p, bool all)
 
 	int last_inserted = -4;
 
-	for (int s = 0; s < _n_virtual_sites[p->type]; s ++) {
+	for(int s = 0; s < _n_virtual_sites[p->type]; s++) {
 		int site_idx = p->index * _n_virtual_sites_max + s;
 		int cind = _cells[site_idx];
-		int ind[3] = {
-			cind % _N_cells_side[0],
-			(cind / _N_cells_side[0]) % _N_cells_side[1],
-			cind / (_N_cells_side[0]*_N_cells_side[1])
-		};
+		int ind[3] = { cind % _N_cells_side[0], (cind / _N_cells_side[0]) % _N_cells_side[1], cind / (_N_cells_side[0] * _N_cells_side[1]) };
 		int loop_ind[3];
 
-		for (int i = -1; i < 2; i ++) {
+		for(int i = -1; i < 2; i++) {
 			loop_ind[0] = (ind[0] + i) % _N_cells_side[0];
-			if (loop_ind[0] < 0) loop_ind[0] += _N_cells_side[0];
-			for (int j = -1; j < 2; j ++) {
+			if(loop_ind[0] < 0) loop_ind[0] += _N_cells_side[0];
+			for(int j = -1; j < 2; j++) {
 				loop_ind[1] = (ind[1] + j) % _N_cells_side[1];
-				if (loop_ind[1] < 0) loop_ind[1] += _N_cells_side[1];
-				for (int k = -1; k < 2; k ++) {
+				if(loop_ind[1] < 0) loop_ind[1] += _N_cells_side[1];
+				for(int k = -1; k < 2; k++) {
 					loop_ind[2] = (ind[2] + k) % _N_cells_side[2];
-					if (loop_ind[2] < 0) loop_ind[2] += _N_cells_side[2];
-					int other_cell_index = loop_ind[0] + _N_cells_side[0]*(loop_ind[1] + _N_cells_side[1]*loop_ind[2]);
+					if(loop_ind[2] < 0) loop_ind[2] += _N_cells_side[2];
+					int other_cell_index = loop_ind[0] + _N_cells_side[0] * (loop_ind[1] + _N_cells_side[1] * loop_ind[2]);
 
 					int n = _heads[other_cell_index];
 
 					/*
-					// this cycle works well with sets
-					while (n != -1) {
-						//_neighs.insert(n / _n_virtual_sites); // simple version
-						it = _neighs.insert(it, n / _n_virtual_sites);
-						n = _next[n];
-					}
+					 // this cycle works well with sets
+					 while (n != -1) {
+					 //_neighs.insert(n / _n_virtual_sites); // simple version
+					 it = _neighs.insert(it, n / _n_virtual_sites);
+					 n = _next[n];
+					 }
 
-					// cycle to work with lists
-					while (n != -1) {
-						_neighs.push_back(n / _n_virtual_sites);
-						n = _next[n];
-					}*/
+					 // cycle to work with lists
+					 while (n != -1) {
+					 _neighs.push_back(n / _n_virtual_sites);
+					 n = _next[n];
+					 }*/
 
-					while (n != -1) {
+					while(n != -1) {
 						int m = n / _n_virtual_sites_max;
-						if (m != p->index && m != last_inserted) {
-							if (all || this->_is_MC || p->index > m) {
-								if (want_type < 0 || this->_particles[m]->type == want_type) {
-									if (_added[m] == false) {
+						if(m != p->index && m != last_inserted) {
+							if(all || this->_is_MC || p->index > m) {
+								if(want_type < 0 || this->_particles[m]->type == want_type) {
+									if(_added[m] == false) {
 										res.push_back(this->_particles[m]);
 										last_inserted = m;
 										_added[m] = true;
@@ -251,7 +245,7 @@ std::vector<BaseParticle *> RodCells::_get_neigh_list(BaseParticle *p, bool all)
 		}
 	}
 
-	if (res.size() > _max_size) {
+	if(res.size() > _max_size) {
 		// this will adjust the size of the reserved vector
 		_max_size = res.size();
 		//printf ("## new size: %d\n", (int) _max_size );
@@ -262,67 +256,63 @@ std::vector<BaseParticle *> RodCells::_get_neigh_list(BaseParticle *p, bool all)
 	//res.erase(std::unique(res.begin(), res.end()), res.end());
 
 	typename std::vector<BaseParticle *>::iterator it;
-	for (it = res.begin(); it != res.end(); ++it) _added[(*it)->index] = false;
+	for(it = res.begin(); it != res.end(); ++it)
+		_added[(*it)->index] = false;
 
 	/*
 	 // this was needed for ordered sets
-	for (it = _neighs.begin(); it != _neighs.end(); it ++) {
-		if (*it == p->index)
-			continue;
-		if (all || this->_is_MC || p->index > *it) {
-			//if (this->_box->sqr_min_image_distance(p->pos, this->_particles[*it]->pos) < _sqr_rcut)
-			res.push_back(this->_particles[*it]);
-		}
-	}
+	 for (it = _neighs.begin(); it != _neighs.end(); it ++) {
+	 if (*it == p->index)
+	 continue;
+	 if (all || this->_is_MC || p->index > *it) {
+	 //if (this->_box->sqr_min_image_distance(p->pos, this->_particles[*it]->pos) < _sqr_rcut)
+	 res.push_back(this->_particles[*it]);
+	 }
+	 }
 
-	//lists
-	_neighs.sort();
-	last_inserted = -4;
-	for (it = _neighs.begin(); it != _neighs.end(); it ++) {
-		if (*it == p->index || *it == last_inserted)
-			continue;
+	 //lists
+	 _neighs.sort();
+	 last_inserted = -4;
+	 for (it = _neighs.begin(); it != _neighs.end(); it ++) {
+	 if (*it == p->index || *it == last_inserted)
+	 continue;
 
-		if (all || this->_is_MC || p->index > *it) {
-			//if (this->_box->sqr_min_image_distance(p->pos, this->_particles[*it]->pos) < _sqr_rcut)
-			res.push_back(this->_particles[*it]);
-			last_inserted = *it;
-		}
-	}
-	*/
+	 if (all || this->_is_MC || p->index > *it) {
+	 //if (this->_box->sqr_min_image_distance(p->pos, this->_particles[*it]->pos) < _sqr_rcut)
+	 res.push_back(this->_particles[*it]);
+	 last_inserted = *it;
+	 }
+	 }
+	 */
 
 	return res;
 }
 
-
 std::vector<BaseParticle *> RodCells::whos_there(int idx) {
-	if (idx >= _N_cells) throw oxDNAException ("wrong cell idx");
+	if(idx >= _N_cells) throw oxDNAException("wrong cell idx");
 
 	std::vector<BaseParticle *> res;
 	res.reserve(_max_size);
 
-	int ind[3] = {
-		idx % _N_cells_side[0],
-		(idx / _N_cells_side[0]) % _N_cells_side[1],
-		idx / (_N_cells_side[0]*_N_cells_side[1])
-	};
+	int ind[3] = { idx % _N_cells_side[0], (idx / _N_cells_side[0]) % _N_cells_side[1], idx / (_N_cells_side[0] * _N_cells_side[1]) };
 
 	int loop_ind[3];
-	for (int i = -1; i < 2; i ++) {
+	for(int i = -1; i < 2; i++) {
 		loop_ind[0] = (ind[0] + i) % _N_cells_side[0];
-		if (loop_ind[0] < 0) loop_ind[0] += _N_cells_side[0];
-		for (int j = -1; j < 2; j ++) {
+		if(loop_ind[0] < 0) loop_ind[0] += _N_cells_side[0];
+		for(int j = -1; j < 2; j++) {
 			loop_ind[1] = (ind[1] + j) % _N_cells_side[1];
-			if (loop_ind[1] < 0) loop_ind[1] += _N_cells_side[1];
-			for (int k = -1; k < 2; k ++) {
+			if(loop_ind[1] < 0) loop_ind[1] += _N_cells_side[1];
+			for(int k = -1; k < 2; k++) {
 				loop_ind[2] = (ind[2] + k) % _N_cells_side[2];
-				if (loop_ind[2] < 0) loop_ind[2] += _N_cells_side[2];
-				int other_cell_index = loop_ind[0] + _N_cells_side[0]*(loop_ind[1] + _N_cells_side[1]*loop_ind[2]);
+				if(loop_ind[2] < 0) loop_ind[2] += _N_cells_side[2];
+				int other_cell_index = loop_ind[0] + _N_cells_side[0] * (loop_ind[1] + _N_cells_side[1] * loop_ind[2]);
 
 				int n = _heads[other_cell_index];
 
-				while (n != -1) {
+				while(n != -1) {
 					int m = n / _n_virtual_sites_max;
-					if (_added[m] == false) {
+					if(_added[m] == false) {
 						res.push_back(this->_particles[m]);
 						_added[m] = true;
 					}
@@ -333,16 +323,15 @@ std::vector<BaseParticle *> RodCells::whos_there(int idx) {
 	}
 
 	typename std::vector<BaseParticle *>::iterator it;
-	for (it = res.begin(); it != res.end(); ++it) _added[(*it)->index] = false;
+	for(it = res.begin(); it != res.end(); ++it)
+		_added[(*it)->index] = false;
 
 	return res;
 }
 
-
 std::vector<BaseParticle *> RodCells::get_neigh_list(BaseParticle *p) {
 	return _get_neigh_list(p, false);
 }
-
 
 std::vector<BaseParticle *> RodCells::get_complete_neigh_list(BaseParticle *p) {
 	return _get_neigh_list(p, true);

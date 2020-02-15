@@ -33,7 +33,7 @@ class VMMC : public BaseMove {
 
 		std::vector<bool> _inclust();
 
-		BaseParticle ** _particles_old;
+		std::vector<BaseParticle *>  _particles_old;
 		std::vector<int> _clust;
 		
 		inline void _store_particle(BaseParticle * src); 

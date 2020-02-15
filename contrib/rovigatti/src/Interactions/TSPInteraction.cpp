@@ -191,7 +191,8 @@ number TSPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	return _nonbonded(p, q, r, update_forces);
 }
 
-void TSPInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void TSPInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	for(int i = 0; i < N; i++) {
 		TSPParticle *p = (TSPParticle *) particles[i];
 		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
@@ -216,9 +217,10 @@ void TSPInteraction::check_input_sanity(BaseParticle **particles, int N) {
 	}
 }
 
-void TSPInteraction::allocate_particles(BaseParticle **particles, int N) {
-	for(int i = 0; i < N; i++)
+void TSPInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(int i = 0; i < (int) particles.size(); i++) {
 		particles[i] = new TSPParticle();
+	}
 }
 
 int TSPInteraction::get_N_from_topology() {
@@ -246,8 +248,9 @@ int TSPInteraction::get_N_from_topology() {
 	return N_from_topology;
 }
 
-void TSPInteraction::read_topology(int N_from_conf, int *N_stars, BaseParticle **particles) {
-	IBaseInteraction::read_topology(N_from_conf, N_stars, particles);
+void TSPInteraction::read_topology(int *N_stars, std::vector<BaseParticle *> &particles) {
+	int N_from_conf = particles.size();
+	IBaseInteraction::read_topology(N_stars, particles);
 	int my_N_stars;
 	char line[512];
 	std::ifstream topology;
@@ -322,7 +325,7 @@ void TSPInteraction::read_topology(int N_from_conf, int *N_stars, BaseParticle *
 	_N_stars = my_N_stars;
 }
 
-bool TSPInteraction::_insert_anchor(BaseParticle **particles, BaseParticle *p, Cells *c) {
+bool TSPInteraction::_insert_anchor(std::vector<BaseParticle *> &particles, BaseParticle *p, Cells *c) {
 	int i = 0;
 	bool inserted = false;
 
@@ -339,7 +342,7 @@ bool TSPInteraction::_insert_anchor(BaseParticle **particles, BaseParticle *p, C
 	return (i != MAX_INSERTION_TRIES);
 }
 
-bool TSPInteraction::_does_overlap(BaseParticle **particles, BaseParticle *p, Cells *c) {
+bool TSPInteraction::_does_overlap(std::vector<BaseParticle *> &particles, BaseParticle *p, Cells *c) {
 	// here we take into account the non-bonded interactions
 	std::vector<BaseParticle *> neighs = c->get_complete_neigh_list(p);
 	for(unsigned int n = 0; n < neighs.size(); n++) {
@@ -351,19 +354,18 @@ bool TSPInteraction::_does_overlap(BaseParticle **particles, BaseParticle *p, Ce
 	return false;
 }
 
-void TSPInteraction::generate_random_configuration(BaseParticle **particles, int N) {
+void TSPInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	if(_only_chains) {
 		this->_generate_consider_bonded_interactions = true;
 		this->_generate_bonded_cutoff = _rfene;
-		IBaseInteraction::generate_random_configuration(particles, N);
+		IBaseInteraction::generate_random_configuration(particles);
 		return;
 	}
 
-	Cells c(N, this->_box);
-	c.init(particles, this->_rcut);
+	Cells c(particles, this->_box);
+	c.init(this->_rcut);
 
-	for(int i = 0; i < N; i++) {
-		BaseParticle *p = particles[i];
+	for(auto p: particles) {
 		p->pos = LR_vector(0., 0., 0.);
 	}
 

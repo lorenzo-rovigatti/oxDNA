@@ -168,7 +168,7 @@ struct MinDistanceParameter {
 		name = newname;
 	}
 
-	int calculate_state(BaseParticle **particle_list, BaseBox * box) {
+	int calculate_state(std::vector<BaseParticle *> &particle_list, BaseBox * box) {
 		// if mindistance
 		if (_sub_type == 0){
 			LR_vector dist;
@@ -479,7 +479,7 @@ public:
 	/// to be called in order to evaluate order_parameters:
 	/// calculates all minimal distances from list of particles
 	
-	void fill_distance_parameters(BaseParticle **particles, BaseBox * box) {
+	void fill_distance_parameters(std::vector<BaseParticle *> &particles, BaseBox * box) {
 		for (int i = 0; i < _distance_parameters_count; i++) {
 			//_distance_parameters[i].calculate_value(particles, box_side);
 			// the next line also updates current_value
@@ -507,7 +507,7 @@ public:
 	 * @return
 	 */
 	
-	int init_from_file(const char *_external_filename, BaseParticle **particles, int max_N) {
+	int init_from_file(const char *_external_filename, std::vector<BaseParticle *> &particles, int max_N) {
 		OX_LOG(_log_level, "Parsing order parameter file %s", _external_filename);
 
 		//char line[512], typestr[512];

@@ -5,8 +5,11 @@
  *      Author: mzimmer
  */
 
-#include <curand_kernel.h>
 #include "CUDALangevinThermostat.h"
+
+#include "../../Utilities/ConfigInfo.h"
+
+#include <curand_kernel.h>
 
 __global__ void langevin_thermostat(curandState *rand_state, c_number4 *vels, c_number4 *Ls, c_number _dt, c_number gamma_trans, c_number rescale_factor_trans, c_number gamma_rot, c_number rescale_factor_rot, int N) {
 	if(IND < N) {
@@ -52,10 +55,10 @@ void CUDALangevinThermostat::get_settings(input_file &inp) {
 	CUDABaseThermostat::get_cuda_settings(inp);
 }
 
-void CUDALangevinThermostat::init(int N) {
-	LangevinThermostat::init(N);
+void CUDALangevinThermostat::init() {
+	LangevinThermostat::init();
 
-	this->_setup_rand(N);
+	this->_setup_rand(CONFIG_INFO->N());
 }
 
 bool CUDALangevinThermostat::would_activate(llint curr_step) {
@@ -66,6 +69,6 @@ void CUDALangevinThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientati
 	if(!would_activate(curr_step)) return;
 
 	langevin_thermostat
-	<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-	(this->_d_rand_state, d_vels, d_Ls, this->_dt, this->_gamma_trans, this-> _rescale_factor_trans, this->_gamma_rot, this->_rescale_factor_rot, this->_N_part);
+		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+		(this->_d_rand_state, d_vels, d_Ls, this->_dt, this->_gamma_trans, this-> _rescale_factor_trans, this->_gamma_rot, this->_rescale_factor_rot, CONFIG_INFO->N());
 }

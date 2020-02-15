@@ -42,8 +42,8 @@ public:
 
 	virtual void set_box(BaseBox *box);
 
-	virtual void allocate_particles(BaseParticle **particles, int N);
-	virtual void read_topology(int N, int *N_strands, BaseParticle **particles);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
+	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 
 	virtual number _wall_interaction(BaseParticle *p, bool update_forces);
 
@@ -54,8 +54,8 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle **particles, int N);
-	virtual void generate_random_configuration(BaseParticle **particles, int N);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
+	virtual void generate_random_configuration(std::vector<BaseParticle *> &particles);
 };
 
 class Colloid: public TSPParticle {

@@ -49,7 +49,7 @@ std::shared_ptr<ForceFactory> ForceFactory::instance() {
 	return _ForceFactoryPtr;
 }
 
-void ForceFactory::add_force(input_file &inp, BaseParticle **particles, int N, bool is_CUDA, BaseBox * box_ptr) {
+void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &particles, bool is_CUDA, BaseBox * box_ptr) {
 
 	string type_str;
 	getInputString(&inp, "type", type_str, 1);
@@ -79,11 +79,11 @@ void ForceFactory::add_force(input_file &inp, BaseParticle **particles, int N, b
 	getInputString(&inp, "group_name", group, 0);
 
 	extF->get_settings(inp);
-	extF->init(particles, N, box_ptr); // here the force is added to the particle
+	extF->init(particles, box_ptr); // here the force is added to the particle
 	extF->set_group_name(group);
 }
 
-void ForceFactory::read_external_forces(std::string external_filename, BaseParticle ** particles, int N, bool is_CUDA, BaseBox * box) {
+void ForceFactory::read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, bool is_CUDA, BaseBox * box) {
 	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
 
 	//char line[512], typestr[512];
@@ -146,7 +146,7 @@ void ForceFactory::read_external_forces(std::string external_filename, BaseParti
 		input_file input;
 		loadInput(&input, temp);
 
-		ForceFactory::instance()->add_force(input, particles, N, is_CUDA, box);
+		ForceFactory::instance()->add_force(input, particles, is_CUDA, box);
 
 		cleanInputFile (&input);
 		fclose (temp);

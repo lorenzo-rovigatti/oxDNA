@@ -1316,7 +1316,7 @@ void PatchyShapeInteraction<number>::generate_random_configuration(BaseParticle<
 }
 */
 template<typename number>
-void PatchyShapeInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+void PatchyShapeInteraction<number>::read_topology(int *N_strands, BaseParticle<number> **particles) {
 	*N_strands = N;
     int N_types;
 	std::ifstream topology(this->_topology_filename, ios::in);
@@ -1326,7 +1326,7 @@ void PatchyShapeInteraction<number>::read_topology(int N, int *N_strands, BasePa
 	topology.getline(line, 512);
 
 	sscanf(line, "%*d %d\n", &N_types);
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 
 	//second line specifies numbero f particles of each  type
 	topology.getline(line,3*N);

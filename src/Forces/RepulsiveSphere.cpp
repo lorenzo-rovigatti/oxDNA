@@ -35,19 +35,10 @@ void RepulsiveSphere::get_settings(input_file &inp) {
 	}
 }
 
-void RepulsiveSphere::init(BaseParticle ** particles, int N, BaseBox * box_ptr) {
+void RepulsiveSphere::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
 	std::string force_description = Utils::sformat("RepulsiveSphere (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g)", this->_stiff, this->_r0, this->_rate, this->_center.x, this->_center.y, this->_center.z);
-	this->_add_self_to_particles(particles, N, _particles_string, force_description);
+	this->_add_self_to_particles(particles, _particles_string, force_description);
 
-//	if (this->_particle >= N || N < -1) throw oxDNAException ("Trying to add a RepulsiveSphere on non-existent particle %d. Aborting", this->_particle);
-//	if (this->_particle != -1) {
-//		OX_LOG (Logger::LOG_INFO, "Adding RepulsiveSphere force (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g) on particle %d", this->_stiff, this->_r0, this->_rate, this->_center.x, this->_center.y, this->_center.z, _particle);
-//		particles[_particle]->add_ext_force(this);
-//	}
-//	else { // force affects all particles
-//		OX_LOG (Logger::LOG_INFO, "Adding RepulsiveSphere force (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g) on ALL particles", this->_stiff, this->_r0, this->_rate, this->_center.x, this->_center.y, this->_center.z);
-//		for (int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
-//	}
 	_box_ptr = box_ptr;
 }
 

@@ -114,7 +114,7 @@ void MD_CUDABackend::_gpu_to_host() {
 }
 
 void MD_CUDABackend::_host_particles_to_gpu() {
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < N(); i++) {
 		int gpu_index = _h_gpu_index[i];
 		BaseParticle *p = this->_particles[gpu_index];
 
@@ -156,20 +156,23 @@ void MD_CUDABackend::_host_particles_to_gpu() {
 			this->_h_orientations[i].x = (p->orientation.v3.y-p->orientation.v2.z)*s;
 			this->_h_orientations[i].y = (p->orientation.v1.z-p->orientation.v3.x)*s;
 			this->_h_orientations[i].z = (p->orientation.v2.x-p->orientation.v1.y)*s;
-		} else {    //Finding largest diagonal element
+		}
+		else {    //Finding largest diagonal element
 			if ( (p->orientation.v1.x > p->orientation.v2.y) && (p->orientation.v1.x > p->orientation.v3.z) ) { 
 				c_number s = .5/sqrt(1+p->orientation.v1.x-p->orientation.v2.y-p->orientation.v3.z);
 				this->_h_orientations[i].w = (p->orientation.v3.y-p->orientation.v2.z)*s;
 				this->_h_orientations[i].x = .25/s;
 				this->_h_orientations[i].y = (p->orientation.v1.y+p->orientation.v2.x)*s;
 				this->_h_orientations[i].z = (p->orientation.v1.z+p->orientation.v3.x)*s;
-			} else if (p->orientation.v2.y > p->orientation.v3.z) {
+			}
+			else if (p->orientation.v2.y > p->orientation.v3.z) {
 				c_number s = .5/sqrt(1+p->orientation.v2.y-p->orientation.v1.x-p->orientation.v3.z);
 				this->_h_orientations[i].w = (p->orientation.v1.z-p->orientation.v3.x)*s;
 				this->_h_orientations[i].x = (p->orientation.v1.y+p->orientation.v2.x)*s;
 				this->_h_orientations[i].y = .25/s;
 				this->_h_orientations[i].z = (p->orientation.v2.z+p->orientation.v3.y)*s;
-			} else {
+			}
+			else {
 				c_number s = .5/sqrt(1+p->orientation.v3.z-p->orientation.v1.x-p->orientation.v2.y);
 				this->_h_orientations[i].w = (p->orientation.v2.x-p->orientation.v1.y)*s;
 				this->_h_orientations[i].x = (p->orientation.v1.z+p->orientation.v3.x)*s;
@@ -184,7 +187,7 @@ void MD_CUDABackend::_host_particles_to_gpu() {
 void MD_CUDABackend::_gpu_to_host_particles() {
 	this->_gpu_to_host();
 
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < N(); i++) {
 		// since we may have been sorted all the particles in a different order
 		// we first take the particle index from the 4th component of its
 		// position, and then use that index to access the right BaseParticle pointer
@@ -252,7 +255,8 @@ void MD_CUDABackend::_init_CUDA_MD_symbols() {
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &f_copy, sizeof(float)) );
 	f_copy = this->_dt;
 	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dt, &f_copy, sizeof(float)) );
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &this->_N, sizeof(int)) );
+	int myN = N();
+	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &myN, sizeof(int)) );
 }
 
 void MD_CUDABackend::_first_step() {
@@ -275,7 +279,7 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
-	double old_energy = GpuUtils::sum_c_number4_to_double_on_GPU(this->_d_forces, this->_N)/2.;
+	double old_energy = GpuUtils::sum_c_number4_to_double_on_GPU(this->_d_forces, N())/2.;
 	c_number old_V = this->_h_cuda_box.V();
 	c_number4 old_Ls = this->_h_cuda_box.box_sides();
 
@@ -300,16 +304,16 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 
 	_set_external_forces();
 	this->_cuda_interaction->compute_forces(this->_cuda_lists, this->_d_poss, this->_d_orientations, _d_forces, _d_torques, this->_d_bonds, this->_d_cuda_box);
-	double new_energy = GpuUtils::sum_c_number4_to_double_on_GPU(this->_d_forces, this->_N)/2.;
+	double new_energy = GpuUtils::sum_c_number4_to_double_on_GPU(this->_d_forces, N())/2.;
 	c_number new_V = this->_h_cuda_box.V();
 
 	// acceptance
 	c_number dE = new_energy - old_energy;
 	c_number dV = new_V - old_V;
-	c_number acc = exp(-(dE + this->_P*dV - (this->_N + 1)*this->_T*log(new_V/old_V))/this->_T);
+	c_number acc = exp(-(dE + this->_P*dV - (N() + 1)*this->_T*log(new_V/old_V))/this->_T);
 	// accepted
 	if(acc > drand48()) {
-		//printf("B %lld %lf ---- %lf %lf %lf %lf\n", curr_step, new_energy/this->_N, dE, dV, acc, this->_P*dV);
+		//printf("B %lld %lf ---- %lf %lf %lf %lf\n", curr_step, new_energy/N(), dE, dV, acc, this->_P*dV);
 		_barostat_accepted++;
 	}
 	// rejected
@@ -401,8 +405,8 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 	this->_timer_forces->resume();
 	_forces_second_step();
 	if(_print_energy) {
-		c_number energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, this->_N);
-		this->_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / this->_N);
+		c_number energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N());
+		this->_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / N());
 	}
 	cudaThreadSynchronize();
 	this->_timer_forces->pause();
@@ -433,7 +437,7 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 	_cuda_thermostat->get_settings(inp);
 
 	std::string init_string = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", _error_conf_file.c_str());
-	_obs_output_error_conf = new ObservableOutput(init_string, inp);
+	_obs_output_error_conf = new ObservableOutput(init_string);
 	_obs_output_error_conf->add_observable("type = configuration");
 
 	// if we want to limt the calculations done on CPU we clear the default ObservableOutputs and tell them to just print the timesteps (and, for constant-pressure, simulations, also the density)
@@ -467,19 +471,21 @@ void MD_CUDABackend::init() {
 	CUDA_SAFE_CALL( cudaMemset(_d_forces, 0, this->_vec_size) );
 	CUDA_SAFE_CALL( cudaMemset(_d_torques, 0, this->_vec_size) );
 
-	_h_vels = new c_number4[this->_N];
-	_h_Ls = new c_number4[this->_N];
-	_h_forces = new c_number4[this->_N];
-	_h_torques = new c_number4[this->_N];
+	_h_vels = new c_number4[N()];
+	_h_Ls = new c_number4[N()];
+	_h_forces = new c_number4[N()];
+	_h_torques = new c_number4[N()];
 
 	_obs_output_error_conf->init(*this->_config_info);
 
 	if(this->_external_forces) {
 		if(this->_sort_every > 0) throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
-		_h_ext_forces = new CUDA_trap[this->_N * MAX_EXT_FORCES];
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, this->_N * MAX_EXT_FORCES * sizeof(CUDA_trap)) );
+		_h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
+		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)) );
 
-		for(int i = 0; i < this->_N*MAX_EXT_FORCES; i++) _h_ext_forces[i].type = -1;
+		for(int i = 0; i < N()*MAX_EXT_FORCES; i++) {
+			_h_ext_forces[i].type = -1;
+		}
 
 		ConstantRateForce const_force;
 		MutualTrap mutual_trap;
@@ -494,13 +500,13 @@ void MD_CUDABackend::init() {
 		GenericCentralForce generic_central;
 		LJCone LJ_cone;
 
-		for(int i = 0; i < this->_N; i++) {
+		for(int i = 0; i < N(); i++) {
 			BaseParticle *p = this->_particles[i];
 
 			for(uint j = 0; j < p->ext_forces.size(); j++) {
 				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
 
-				CUDA_trap *force = &(_h_ext_forces[j*this->_N + i]);
+				CUDA_trap *force = &(_h_ext_forces[j*N() + i]);
 				if(typeid(*(p->ext_forces[j].get())) == typeid(const_force) ) {
 					ConstantRateForce *p_force = (ConstantRateForce *) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_CONSTANT;
@@ -625,7 +631,7 @@ void MD_CUDABackend::init() {
 			}
 		}
 
-		CUDA_SAFE_CALL( cudaMemcpy(_d_ext_forces, _h_ext_forces, this->_N * MAX_EXT_FORCES * sizeof (CUDA_trap), cudaMemcpyHostToDevice) );
+		CUDA_SAFE_CALL( cudaMemcpy(_d_ext_forces, _h_ext_forces, N() * MAX_EXT_FORCES * sizeof (CUDA_trap), cudaMemcpyHostToDevice) );
 	}
 
 	// used in the hilbert curve sorting
@@ -635,14 +641,14 @@ void MD_CUDABackend::init() {
 	}
 
 	// these values are changed only if the curve sorting is enabled
-	_h_gpu_index = new int[this->_N];
-	_h_cpu_index = new int[this->_N];
-	for(int i = 0; i < this->_N; i++) {
+	_h_gpu_index = new int[N()];
+	_h_cpu_index = new int[N()];
+	for(int i = 0; i < N(); i++) {
 		_h_gpu_index[i] = i;
 		_h_cpu_index[i] = i;
 	}
 
-	for(int i = 0; i < this->_N; i++) {
+	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = this->_particles[i];
 		if(p->is_rigid_body()) _any_rigid_body = true;
 	}
@@ -652,7 +658,7 @@ void MD_CUDABackend::init() {
 	_init_CUDA_MD_symbols();
 
 	_cuda_thermostat->set_seed(lrand48());
-	_cuda_thermostat->init(this->_N);
+	_cuda_thermostat->init();
 
 	OX_LOG(Logger::LOG_INFO, "Allocated CUDA memory: %.2lf MBs", GpuUtils::get_allocated_mem_mb());
 

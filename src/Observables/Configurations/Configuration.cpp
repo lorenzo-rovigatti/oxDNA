@@ -51,12 +51,15 @@ void Configuration::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
 	// if no 'show' options is found then the default behaviour is to show all the particles
-	if(_visible_particles.size() == 0) for(int i = 0; i < *config_info.N; i++)
-		_visible_particles.insert(i);
+	if(_visible_particles.size() == 0) {
+		for(int i = 0; i < config_info.N(); i++) {
+			_visible_particles.insert(i);
+		}
+	}
 	// otherwise we have to check that all the particles the user wants to show exist
 	else {
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			if(*it < 0 || *it >= *config_info.N) {
+			if(*it < 0 || *it >= config_info.N()) {
 				OX_LOG(Logger::LOG_WARNING, "Observable '%s': Particle '%d' cannot be shown because it does not exist", typeid(*this).name(), *it);
 				_visible_particles.erase(*it);
 			}

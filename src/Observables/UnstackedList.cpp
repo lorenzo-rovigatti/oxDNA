@@ -96,7 +96,7 @@ void UnstackedList::get_settings(input_file &my_inp, input_file &sim_inp) {
 std::string UnstackedList::get_output_string(llint curr_step) {
 	std::stringstream outstr;
 
-	int N = *_config_info->N;
+	int N = _config_info->N();
 	for(int i = 0; i < N - 1; i++) {
 		BaseParticle * p = _config_info->particles[i];
 		BaseParticle * q = _config_info->particles[i + 1];

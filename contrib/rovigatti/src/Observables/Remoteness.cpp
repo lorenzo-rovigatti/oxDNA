@@ -14,7 +14,6 @@ using namespace std;
 Remoteness::Remoteness() {
 	_cells = NULL;
 	_probe = NULL;
-	_particles = NULL;
 	_tries = _N = 0;
 	_n_bins = -1;
 	_n_confs = 0;
@@ -23,7 +22,6 @@ Remoteness::Remoteness() {
 Remoteness::~Remoteness() {
 	if(_cells != NULL) delete _cells;
 	if(_probe != NULL) delete _probe;
-	if(_particles != NULL) delete _particles;
 }
 
 void Remoteness::get_settings(input_file &my_inp, input_file &sim_inp) {
@@ -37,7 +35,7 @@ void Remoteness::get_settings(input_file &my_inp, input_file &sim_inp) {
 void Remoteness::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_N = *config_info.N + 1;
+	_N = config_info.N() + 1;
 
 	_probe = new BaseParticle();
 	_probe->index = _N - 1;
@@ -46,14 +44,14 @@ void Remoteness::init(ConfigInfo &config_info) {
 	_probe->pos = LR_vector(0., 0., 0.);
 
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
-	_particles = new BaseParticle *[_N];
+	_particles.resize(_N);
 	for(int i = 0; i < _N - 1; i++)
 		_particles[i] = config_info.particles[i];
 	_particles[_N - 1] = _probe;
 
 	number rcut = _max_distance;
-	_cells = new Cells(_N, config_info.box);
-	_cells->init(_particles, rcut);
+	_cells = new Cells(_particles, config_info.box);
+	_cells->init(rcut);
 
 	_bin_size = _max_distance / _n_bins;
 	_total_histo.resize(_n_bins, 0.);
@@ -74,7 +72,7 @@ string Remoteness::get_output_string(llint curr_step) {
 
 	_cells->global_update();
 	for(int i = 0; i < _tries; i++) {
-		_probe->pos = LR_vector(drand48() * this->_config_info.box->box_sides().x, drand48() * this->_config_info.box->box_sides().y, drand48() * this->_config_info.box->box_sides().z);
+		_probe->pos = LR_vector(drand48() * _config_info->box->box_sides().x, drand48() * _config_info->box->box_sides().y, drand48() * _config_info->box->box_sides().z);
 		_cells->single_update(_probe);
 
 		vector<BaseParticle *> neighs = _cells->get_complete_neigh_list(_probe);
@@ -83,7 +81,7 @@ string Remoteness::get_output_string(llint curr_step) {
 		bool overlap = false;
 		for(it = neighs.begin(); it != neighs.end() && !overlap; it++) {
 			BaseParticle *q = *it;
-			number sqr_r = this->_config_info.box->sqr_min_image_distance(_probe->pos, q->pos);
+			number sqr_r = _config_info->box->sqr_min_image_distance(_probe->pos, q->pos);
 			if(sqr_r <= 0.5) overlap = true;
 			else if(sqr_r < sqr_min_dist) sqr_min_dist = sqr_r;
 		}

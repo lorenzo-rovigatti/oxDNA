@@ -301,7 +301,7 @@ void CUDATSPInteraction::cuda_init(c_number box_side, int N) {
 }
 
 void CUDATSPInteraction::_setup_anchors() {
-	BaseParticle **particles = new BaseParticle *[this->_N];
+	std::vector<BaseParticle *> &particles = new BaseParticle *[this->_N];
 	TSPInteraction::allocate_particles(particles, this->_N);
 	TSPInteraction::read_topology(this->_N, &this->_N_stars, particles);
 

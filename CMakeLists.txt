@@ -121,12 +121,12 @@ IF(MPI)
 	ADD_DEFINITIONS(-DHAVE_MPI)
 ENDIF(MPI)
 
-# get the current svn version, if svn is installed. Avoid warnings if it isn't
-FIND_PACKAGE(Subversion)
-IF(Subversion_FOUND)
-	EXECUTE_PROCESS(COMMAND "svnversion" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE revision OUTPUT_STRIP_TRAILING_WHITESPACE)
+# get the current git revision, if git is installed. Avoid warnings if it isn't
+FIND_PACKAGE(Git)
+IF(Git_FOUND)
+	EXECUTE_PROCESS(COMMAND "git rev-parse --short HEAD" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE revision OUTPUT_STRIP_TRAILING_WHITESPACE)
 ELSE()
-	SET(revision SVN_NOT_FOUND)
+	SET(revision GIT_NOT_FOUND)
 ENDIF()
 
 # return the current date as day/month/year
@@ -144,7 +144,7 @@ MACRO(CURRENT_DATE result)
 ENDMACRO(CURRENT_DATE)
 
 CURRENT_DATE(today)
-ADD_DEFINITIONS(-D'SVN_VERSION="${revision}"' -D'BUILD_TIME="${today}"')
+ADD_DEFINITIONS(-D'GIT_VERSION="${revision}"' -D'BUILD_TIME="${today}"')
 
 # take care of the 'make docs' target in the makefile
 find_package(Doxygen)

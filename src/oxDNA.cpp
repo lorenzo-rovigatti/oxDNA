@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 		OX_DEBUG("Initializing");
 		mysim.init();
 
-		OX_LOG(Logger::LOG_INFO, "SVN CODE VERSION: %s", SVN_VERSION);
+		OX_LOG(Logger::LOG_INFO, "GIT COMMIT: %s", GIT_VERSION);
 		OX_LOG(Logger::LOG_INFO, "COMPILED ON: %s", BUILD_TIME);
 
 		OX_DEBUG("Running");

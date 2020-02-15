@@ -24,17 +24,16 @@ void RefreshThermostat::get_settings(input_file &inp) {
 	if(_newtonian_steps < 1) throw oxDNAException("'newtonian_steps' must be > 0");
 }
 
-void RefreshThermostat::init(int N_part) {
-	BaseThermostat::init(N_part);
+void RefreshThermostat::init() {
+	BaseThermostat::init();
 	// assuming mass and inertia moment == 1.
 	_rescale_factor = sqrt(this->_T);
 }
 
-void RefreshThermostat::apply(BaseParticle **particles, llint curr_step) {
+void RefreshThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	if(!(curr_step % _newtonian_steps) == 0) return;
 
-	for(int i = 0; i < this->_N_part; i++) {
-		BaseParticle *p = particles[i];
+	for(auto p: particles) {
 		p->vel = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
 		p->L = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
 	}

@@ -22,8 +22,8 @@ BaseForce::~BaseForce() {
 
 }
 
-void BaseForce::_add_self_to_particles(BaseParticle **particles, int N, std::string particle_string, std::string force_description) {
-	auto particle_indices_vector = Utils::getParticlesFromString(particles, N, particle_string, force_description.c_str());
+void BaseForce::_add_self_to_particles(std::vector<BaseParticle *> &particles, std::string particle_string, std::string force_description) {
+	auto particle_indices_vector = Utils::getParticlesFromString(particles, particle_string, force_description.c_str());
 
 	if(particle_indices_vector[0] != -1) {
 		for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
@@ -33,8 +33,8 @@ void BaseForce::_add_self_to_particles(BaseParticle **particles, int N, std::str
 	}
 	else { // force affects all particles
 		OX_LOG (Logger::LOG_INFO, "Adding a %s on ALL particles", force_description.c_str());
-		for (int i = 0; i < N; i ++) {
-			particles[i]->add_ext_force(ForcePtr(this));
+		for(auto p: particles) {
+			p->add_ext_force(ForcePtr(this));
 		}
 	}
 }

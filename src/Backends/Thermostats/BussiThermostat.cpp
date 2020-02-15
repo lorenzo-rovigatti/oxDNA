@@ -31,33 +31,32 @@ void BussiThermostat::get_settings(input_file &inp) {
 	if(_newtonian_steps < 1) throw oxDNAException("'newtonian_steps' must be > 0");
 }
 
-void BussiThermostat::init(int N_part) {
-	BaseThermostat::init(N_part);
+void BussiThermostat::init() {
+	BaseThermostat::init();
 
-	_K_t = ((3. / 2.) * this->_N_part * this->_T);
-	_K_r = ((3. / 2.) * this->_N_part * this->_T);
+	_K_t = ((3. / 2.) * CONFIG_INFO->N() * this->_T);
+	_K_r = ((3. / 2.) * CONFIG_INFO->N() * this->_T);
 
 	_exp_dt_tau = exp(-_newtonian_steps / (number) _tau);
 }
 
 void BussiThermostat::_update_K(number &K) {
 	// dynamics for the kinetic energy
-	number K_target = ((3. / 2.) * this->_N_part * this->_T);
-	int N_deg = 3. * this->_N_part;
+	number K_target = ((3. / 2.) * CONFIG_INFO->N() * this->_T);
+	int N_deg = 3. * CONFIG_INFO->N();
 
 	number rr = Utils::gaussian();
 	number dK = (1.0 - _exp_dt_tau) * (K_target * (_sum_noises(N_deg - 1) + rr * rr) / N_deg - K) + 2.0 * rr * sqrt(K * K_target / N_deg * (1.0 - _exp_dt_tau) * _exp_dt_tau);
 	K += dK;
 }
 
-void BussiThermostat::apply(BaseParticle **particles, llint curr_step) {
+void BussiThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	if(!(curr_step % _newtonian_steps) == 0) return;
 
 	// compute the total kinetic energy
 	number K_now_t = (number) 0.;
 	number K_now_r = (number) 0.;
-	for(int i = 0; i < this->_N_part; i++) {
-		BaseParticle *p = particles[i];
+	for(auto p: particles) {
 		if(this->_lees_edwards) {
 			// we compute the instant kinetic energy considering only two out of three dimensions, leaving out the flow direction x
 			K_now_t += (SQR(p->vel.y) + SQR(p->vel.z)) * 3. / 4.;
@@ -72,8 +71,7 @@ void BussiThermostat::apply(BaseParticle **particles, llint curr_step) {
 	number rescale_factor_t = sqrt(_K_t / K_now_t);
 	number rescale_factor_r = sqrt(_K_r / K_now_r);
 
-	for(int i = 0; i < this->_N_part; i++) {
-		BaseParticle *p = particles[i];
+	for(auto p: particles) {
 		if(this->_lees_edwards) {
 			number Ly = CONFIG_INFO->box->box_sides().y;
 			number y_in_box = p->pos.y - floor(p->pos.y / Ly) * Ly - 0.5 * Ly;

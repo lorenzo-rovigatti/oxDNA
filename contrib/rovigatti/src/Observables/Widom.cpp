@@ -14,7 +14,6 @@ using namespace std;
 Widom::Widom() {
 	_cells = NULL;
 	_probe = NULL;
-	_particles = NULL;
 	_tries = _N = 0;
 	_probe_type = 0;
 }
@@ -22,7 +21,6 @@ Widom::Widom() {
 Widom::~Widom() {
 	if(_cells != NULL) delete _cells;
 	if(_probe != NULL) delete _probe;
-	if(_particles != NULL) delete _particles;
 }
 
 void Widom::get_settings(input_file &my_inp, input_file &sim_inp) {
@@ -36,7 +34,7 @@ void Widom::get_settings(input_file &my_inp, input_file &sim_inp) {
 void Widom::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_N = *config_info.N + 1;
+	_N = config_info.N() + 1;
 
 	_probe = new BaseParticle();
 	_probe->index = _N - 1;
@@ -44,14 +42,15 @@ void Widom::init(ConfigInfo &config_info) {
 	_probe->init();
 
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
-	_particles = new BaseParticle *[_N];
-	for(int i = 0; i < _N - 1; i++)
+	_particles.resize(_N);
+	for(int i = 0; i < _N - 1; i++) {
 		_particles[i] = config_info.particles[i];
+	}
 	_particles[_N - 1] = _probe;
 
 	number rcut = config_info.interaction->get_rcut();
-	_cells = new Cells(_N, config_info.box);
-	_cells->init(_particles, rcut);
+	_cells = new Cells(_particles, config_info.box);
+	_cells->init( rcut);
 
 	if(_tries == 0) {
 		number tot_V = config_info.box->V();
@@ -67,7 +66,7 @@ string Widom::get_output_string(llint curr_step) {
 	_cells->global_update();
 	number widom = 0.;
 	for(int i = 0; i < _tries; i++) {
-		_probe->pos = LR_vector(drand48() * this->_config_info.box->box_sides().x, drand48() * this->_config_info.box->box_sides().y, drand48() * this->_config_info.box->box_sides().z);
+		_probe->pos = LR_vector(drand48() * _config_info->box->box_sides().x, drand48() * _config_info->box->box_sides().y, drand48() * _config_info->box->box_sides().z);
 		_cells->single_update(_probe);
 
 		vector<BaseParticle *> neighs = _cells->get_complete_neigh_list(_probe);
@@ -75,7 +74,7 @@ string Widom::get_output_string(llint curr_step) {
 		number energy = 0.;
 		for(it = neighs.begin(); it != neighs.end(); it++) {
 			BaseParticle *q = *it;
-			energy += this->_config_info.interaction->pair_interaction(_probe, q);
+			energy += _config_info->interaction->pair_interaction(_probe, q);
 		}
 		widom += exp(-energy / _temperature);
 	}

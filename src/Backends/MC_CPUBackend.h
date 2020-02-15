@@ -20,7 +20,7 @@
 class MC_CPUBackend: public MCBackend {
 protected:
 	number _verlet_skin;
-	BaseParticle **_particles_old;
+	std::vector<BaseParticle *> _particles_old;
 
 	bool _enable_flip;
 

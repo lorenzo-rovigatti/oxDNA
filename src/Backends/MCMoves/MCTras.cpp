@@ -48,11 +48,11 @@ void MCTras::apply (llint curr_step) {
 	this->_attempted += 1;
 
 	// we select the particle to translate
-	int pi = (int) (drand48() * (*this->_Info->N));
+	int pi = (int) (drand48() * this->_Info->N());
 	BaseParticle *p = this->_Info->particles[pi];
 	if (this->_restrict_to_type >= 0) {
 		while(p->type != this->_restrict_to_type) {
-			pi = (int) (drand48() * (*this->_Info->N));
+			pi = (int) (drand48() * this->_Info->N());
 			p = this->_Info->particles[pi];
 		}
 	}

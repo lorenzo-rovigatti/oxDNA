@@ -91,7 +91,6 @@ protected:
 
 	bool _reseed;
 
-	int _N;
 	int _N_strands;
 	number _T;
 	number _P;
@@ -203,6 +202,10 @@ public:
 	 * @param path
 	 */
 	virtual void init();
+
+	int N() {
+		return _particles.size();
+	}
 
 	/**
 	 * @brief Returns how many times verlet lists have been updated.

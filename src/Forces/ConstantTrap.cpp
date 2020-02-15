@@ -29,7 +29,8 @@ void ConstantTrap::get_settings(input_file &inp) {
 	getInputBool(&inp, "PBC", &PBC, 0);
 }
 
-void ConstantTrap::init(BaseParticle ** particles, int N, BaseBox * box_ptr) {
+void ConstantTrap::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
+	int N = particles.size();
 	if(_ref_id < 0 || _ref_id >= N) throw oxDNAException("Invalid reference particle %d for ConstantTrap", _ref_id);
 	_p_ptr = particles[_ref_id];
 

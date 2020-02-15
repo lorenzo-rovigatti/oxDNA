@@ -55,22 +55,18 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	if(argc > 0) addCommandLineArguments(&_input, argc, argv + 3);
 
 	_N = 0;
-	_particles = NULL;
 	_interaction = NULL;
-	_init_completed = false;
 
 	_external_forces = false;
 	_external_filename = std::string("");
 
-	ConfigInfo::init();
+	ConfigInfo::init(_particles);
 }
 
 GeneratorManager::~GeneratorManager() {
 	cleanInputFile(&_input);
-	if(_init_completed) {
-		for(int i = 0; i < _N; i++)
-			delete _particles[i];
-		delete[] _particles;
+	for(auto particle: _particles) {
+		delete particle;
 	}
 }
 
@@ -116,9 +112,9 @@ void GeneratorManager::init() {
 	_interaction->init();
 
 	_N = _interaction->get_N_from_topology();
-	_particles = new BaseParticle*[_N];
+	_particles.resize(_N);
 	int N_strands;
-	_interaction->read_topology(_N, &N_strands, _particles);
+	_interaction->read_topology(&N_strands, _particles);
 
 	if(_use_density) {
 		_box_side = pow(_N / _density, 1. / 3.);
@@ -130,20 +126,18 @@ void GeneratorManager::init() {
 		OX_LOG(Logger::LOG_INFO, "Generating configuration with density %g (%d particles, box sides %g %g %g)", _density, _N, _box_side_x, _box_side_y, _box_side_z);
 	}
 
-	// setting the box or the interaction
+	// setting the box of the interaction
 	_mybox->init(_box_side_x, _box_side_y, _box_side_z);
 	_interaction->set_box(_mybox.get());
 
 	// initializing external forces
 	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(_external_filename, _particles, this->_N, false, _mybox.get());
+		ForceFactory::instance()->read_external_forces(_external_filename, _particles, false, _mybox.get());
 	}
-
-	_init_completed = true;
 }
 
 void GeneratorManager::generate() {
-	_interaction->generate_random_configuration(_particles, _N);
+	_interaction->generate_random_configuration(_particles);
 
 	ofstream conf_output(_output_conf);
 	conf_output.precision(15);

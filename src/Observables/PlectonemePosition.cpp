@@ -27,20 +27,20 @@ void PlectonemePosition::get_settings(input_file &my_inp, input_file &sim_inp) {
 void PlectonemePosition::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_midpoints = new LR_vector[*_config_info->N / 2];
+	_midpoints = new LR_vector[_config_info->N() / 2];
 }
 
 std::string PlectonemePosition::get_output_string(llint curr_step) {
 
 	int max_size = -1, max_plectoneme_start = -1, max_plectoneme_end = -1;
 
-	for(int i = 0; i < *_config_info->N / 2; i++) {
-		_midpoints[i] = (_config_info->particles[i]->pos + _config_info->particles[*_config_info->N - 1 - i]->pos);
+	for(int i = 0; i < _config_info->N() / 2; i++) {
+		_midpoints[i] = (_config_info->particles[i]->pos + _config_info->particles[_config_info->N() - 1 - i]->pos);
 	}
 
-	for(int i = 0; i < *_config_info->N / 2 - _critical_bp_distance; ++i) {
+	for(int i = 0; i < _config_info->N() / 2 - _critical_bp_distance; ++i) {
 		int cur_plecto_start = -1, cur_plecto_end = -1;
-		for(int j = i + _critical_bp_distance; j < *_config_info->N / 2; ++j) {
+		for(int j = i + _critical_bp_distance; j < _config_info->N() / 2; ++j) {
 			LR_vector cur_distvec = _midpoints[j] - _midpoints[i];
 			if(cur_distvec.module() < _critical_strand_distance) {
 

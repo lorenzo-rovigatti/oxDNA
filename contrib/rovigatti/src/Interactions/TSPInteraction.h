@@ -57,8 +57,8 @@ protected:
 	number _fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	number _nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
-	bool _insert_anchor(BaseParticle **particles, BaseParticle *p, Cells *c);
-	bool _does_overlap(BaseParticle **particles, BaseParticle *p, Cells *c);
+	bool _insert_anchor(std::vector<BaseParticle *> &particles, BaseParticle *p, Cells *c);
+	bool _does_overlap(std::vector<BaseParticle *> &particles, BaseParticle *p, Cells *c);
 
 public:
 	enum {
@@ -70,7 +70,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle **particles, int N);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
@@ -80,10 +80,10 @@ public:
 	}
 
 	virtual int get_N_from_topology();
-	virtual void read_topology(int N_from_conf, int *N_stars, BaseParticle **particles);
-	virtual void check_input_sanity(BaseParticle **particles, int N);
+	virtual void read_topology(int *N_stars, std::vector<BaseParticle *> &particles);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
-	virtual void generate_random_configuration(BaseParticle **particles, int N);
+	virtual void generate_random_configuration(std::vector<BaseParticle *> &particles);
 
 	void set_only_intra(bool value) {
 		_only_intra = value;

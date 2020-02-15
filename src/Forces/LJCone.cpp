@@ -51,7 +51,8 @@ void LJCone::get_settings(input_file &inp) {
 	this->_pos0 = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 }
 
-void LJCone::init(BaseParticle ** particles, int N, BaseBox *box_ptr) {
+void LJCone::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
+	int N = particles.size();
 	_box = box_ptr;
 	_sin_alpha = sin(_alpha);
 	_cos_alpha = cos(_alpha);

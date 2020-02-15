@@ -34,9 +34,9 @@ RNAInteraction::~RNAInteraction() {
 	delete model;
 }
 
-void RNAInteraction::allocate_particles(BaseParticle **particles, int N) {
+void RNAInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 	RNANucleotide::set_model(model);
-	for(int i = 0; i < N; i++)
+	for(uint i = 0; i < particles.size(); i++)
 		particles[i] = new RNANucleotide();
 }
 
@@ -1794,8 +1794,9 @@ number RNAInteraction::_f5D(number f, int type) {
 	return val;
 }
 
-void RNAInteraction::read_topology(int N_from_conf, int * N_strands, BaseParticle **particles) {
-	IBaseInteraction::read_topology(N_from_conf, N_strands, particles);
+void RNAInteraction::read_topology(int * N_strands, std::vector<BaseParticle *> &particles) {
+	int N_from_conf = particles.size();
+	IBaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 
 	char line[512];
@@ -1861,17 +1862,18 @@ void RNAInteraction::read_topology(int N_from_conf, int * N_strands, BaseParticl
 	*N_strands = my_N_strands;
 }
 
-void RNAInteraction::check_input_sanity(BaseParticle **_particles, int _N) {
-	for(int i = 0; i < _N; i++) {
-		BaseParticle *p = _particles[i];
-		if(p->n3 != P_VIRTUAL && p->n3->index >= _N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, _N);
-		if(p->n5 != P_VIRTUAL && p->n5->index >= _N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, _N);
+void RNAInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
+	for(int i = 0; i < N; i++) {
+		BaseParticle *p = particles[i];
+		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
+		if(p->n5 != P_VIRTUAL && p->n5->index >= N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 
 		if(this->_use_mbf) continue;
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 		number mind = model->RNA_FENE_R0 - model->RNA_FENE_DELTA;
 		number maxd = model->RNA_FENE_R0 + model->RNA_FENE_DELTA;
-		if(_particles[i]->n3 != P_VIRTUAL) {
+		if(particles[i]->n3 != P_VIRTUAL) {
 			BaseParticle *q = p->n3;
 			q->set_positions();
 			LR_vector rv = p->pos + p->int_centers[RNANucleotide::BACK] - (q->pos + q->int_centers[RNANucleotide::BACK]);
@@ -1879,7 +1881,7 @@ void RNAInteraction::check_input_sanity(BaseParticle **_particles, int _N) {
 			if(r > maxd || r < mind) throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
 		}
 
-		if(_particles[i]->n5 != P_VIRTUAL) {
+		if(particles[i]->n5 != P_VIRTUAL) {
 			BaseParticle *q = p->n5;
 			q->set_positions();
 			LR_vector rv = p->pos + p->int_centers[RNANucleotide::BACK] - (q->pos + q->int_centers[RNANucleotide::BACK]);

@@ -72,11 +72,11 @@ public:
 	virtual ~SRDThermostat();
 
 	void get_settings(input_file &inp);
-	void init(int N_part);
-	void apply(BaseParticle **particles, llint curr_step);
-	void apply1(BaseParticle **particles, llint curr_step);
-	void apply2(BaseParticle **particles, llint curr_step);
-	void apply3(BaseParticle **particles, llint curr_step);
+	void init();
+	void apply(std::vector<BaseParticle *> &particles, llint curr_step);
+	void apply1(std::vector<BaseParticle *> &particles, llint curr_step);
+	void apply2(std::vector<BaseParticle *> &particles, llint curr_step);
+	void apply3(std::vector<BaseParticle *> &particles, llint curr_step);
 };
 
 #endif /* SRDTHERMOSTAT_H_ */

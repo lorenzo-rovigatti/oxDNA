@@ -1064,7 +1064,7 @@ number TEPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	return energy;
 }
 
-void TEPInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void TEPInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 	//TODO: implement this for the TEP model (sanity check of the topology file)
 	/*
 	 for(int i = 0; i < N; i++) {
@@ -1098,14 +1098,16 @@ void TEPInteraction::check_input_sanity(BaseParticle **particles, int N) {
 	 */
 }
 
-void TEPInteraction::allocate_particles(BaseParticle **particles, int N) {
+void TEPInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 //	OX_LOG(Logger::LOG_INFO,"allocating %d particles",N);
-	for(int i = 0; i < N; i++)
+	for(uint i = 0; i < particles.size(); i++) {
 		particles[i] = new TEPParticle();
+	}
 }
 
-void TEPInteraction::read_topology(int N_from_conf, int *N_strands, BaseParticle **particles) {
-	IBaseInteraction::read_topology(N_from_conf, N_strands, particles);
+void TEPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N_from_conf = particles.size();
+	IBaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 	_kt_pref = new number[N_from_conf];
 	_kb1_pref = new number[N_from_conf];
@@ -1141,7 +1143,7 @@ void TEPInteraction::read_topology(int N_from_conf, int *N_strands, BaseParticle
 		int max_n_fields = 8;
 		// if these many fields are given, specific beads are being edited
 		if(res >= 3 && res <= max_n_fields) {
-			std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles, added_particles, temp_string, "interaction TEP (TEPInteraction.cpp)");
+			std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles, temp_string, "interaction TEP (TEPInteraction.cpp)");
 			for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 				int temp_index = particle_indices_vector[i];
 				OX_LOG(Logger::LOG_INFO, "Interaction modifiers for particle %d found", temp_index);

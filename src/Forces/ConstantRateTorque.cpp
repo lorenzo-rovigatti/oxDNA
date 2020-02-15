@@ -48,7 +48,8 @@ void ConstantRateTorque::get_settings(input_file &inp) {
 	else this->_mask = LR_vector(0., 0., 0.);
 }
 
-void ConstantRateTorque::init(BaseParticle ** particles, int N, BaseBox *box_ptr) {
+void ConstantRateTorque::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
+	int N = particles.size();
 	if(_particle >= N || N < -1) throw oxDNAException("Trying to add a ConstantRateTorque on non-existent particle %d. Aborting", _particle);
 	if(_particle != -1) {
 		OX_LOG(Logger::LOG_INFO, "Adding ConstantRateTorque (F0==%g, rate=%g, pos0=%g,%g,%g, axis=%g,%g,%g, center=%g,%g,%g, mask=%g,%g,%g on particle %d", this->_F0, this->_rate, this->_pos0.x, this->_pos0.y, this->_pos0.z, this->_axis.x, this->_axis.y, this->_axis.z, this->_center.x, this->_center.y, this->_center.z, this->_mask.x, this->_mask.y, this->_mask.z, _particle);

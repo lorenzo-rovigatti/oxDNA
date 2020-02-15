@@ -50,11 +50,12 @@ protected:
 	void _set_N_cells_side_from_box(int N_cells_side[3], BaseBox *box);
 	std::vector<BaseParticle *> _get_neigh_list(BaseParticle *p, bool all);
 public:
-	RodCells(int &N, BaseBox *box);
+	RodCells(std::vector<BaseParticle *> &ps, BaseBox *box);
+	RodCells() = delete;
 	virtual ~RodCells();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(BaseParticle **particles, number rcut);
+	virtual void init(number rcut);
 
 	virtual bool is_updated();
 	virtual void single_update(BaseParticle *p);

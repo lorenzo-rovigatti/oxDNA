@@ -27,7 +27,7 @@ void SaltExtrapolation::init(ConfigInfo &config_info) {
 	if(!tmpf.good()) throw oxDNAException("(SaltExtrapolation.cpp) Can't read file '%s'", _op_file.c_str());
 
 	_op.set_log_level(Logger::LOG_DEBUG);
-	_op.init_from_file(_op_file.c_str(), _config_info->particles, *(_config_info->N));
+	_op.init_from_file(_op_file.c_str(), _config_info->particles, _config_info->N());
 
 	_weights.init((const char *) _weights_file.c_str(), &_op, false, 1.);
 
@@ -161,8 +161,7 @@ std::string SaltExtrapolation::get_output_string(llint curr_step) {
 
 	// here we take care of the external energy
 	number eext = 0.;
-	for(k = 0; k < (unsigned int) *_config_info->N; k++) {
-		BaseParticle *p = _config_info->particles[k];
+	for(auto p: _config_info->particles) {
 		p->set_ext_potential(curr_step, _config_info->box);
 		eext += p->ext_potential;
 	}

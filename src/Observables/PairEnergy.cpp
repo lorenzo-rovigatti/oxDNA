@@ -36,7 +36,7 @@ std::string PairEnergy::get_output_string(llint curr_step) {
 
 	number total_energy = 0.;
 	number total_energy_diff = 0.;
-	std::map<int, number> split_energies = _config_info->interaction->get_system_energy_split(_config_info->particles, *_config_info->N, _config_info->lists);
+	std::map<int, number> split_energies = _config_info->interaction->get_system_energy_split(_config_info->particles, _config_info->lists);
 
 	if(_print_header) {
 		if((int) split_energies.size() == 7) output_str << "#id1 id2 FENE BEXC STCK NEXC HB CRSTCK CXSTCK total, t = " << curr_step << "\n";
@@ -71,11 +71,15 @@ std::string PairEnergy::get_output_string(llint curr_step) {
 			pair_string << " " << pair_interaction << '\n';
 			if(interaction_exists) output_str << pair_string.str();
 		}
-		output_str << "#Total energy per particle is  " << total_energy / *_config_info->N << " and should be " << total_energy_diff / *_config_info->N << '\n' * _print_header;
+		output_str << "#Total energy per particle is  " << total_energy / _config_info->N() << " and should be " << total_energy_diff / _config_info->N() << '\n' * _print_header;
 	}
 	else {
-		if(_particle1_id > *_config_info->N) throw oxDNAException("PairEnergy: particle1_id (%d) is invalid", _particle1_id);
-		if(_particle2_id > *_config_info->N) throw oxDNAException("PairEnergy: particle2_id (%d) is invalid", _particle2_id);
+		if(_particle1_id > _config_info->N()) {
+			throw oxDNAException("PairEnergy: particle1_id (%d) is invalid", _particle1_id);
+		}
+		if(_particle2_id > _config_info->N()) {
+			throw oxDNAException("PairEnergy: particle2_id (%d) is invalid", _particle2_id);
+		}
 
 		p = _config_info->particles[_particle1_id];
 		q = _config_info->particles[_particle2_id];

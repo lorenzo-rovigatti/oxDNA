@@ -38,15 +38,17 @@ void AOInteraction::init() {
 	OX_LOG(Logger::LOG_INFO, "AO: rcut = %lf, rep_rcut = %lf", this->_rcut, _rep_rcut);
 }
 
-void AOInteraction::allocate_particles(BaseParticle **particles, int N) {
-	for(int i = 0; i < N; i++)
+void AOInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(uint i = 0; i < particles.size(); i++) {
 		particles[i] = new BaseParticle();
+	}
 }
 
-void AOInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void AOInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	*N_strands = N;
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 	for(int i = 0; i < N; i++) {
 		particles[i]->index = particles[i]->strand_id = i;
 		particles[i]->type = particles[i]->btype = P_A;
@@ -102,7 +104,7 @@ number AOInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	return energy;
 }
 
-void AOInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void AOInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
 

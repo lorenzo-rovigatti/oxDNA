@@ -33,11 +33,12 @@ protected:
 	std::vector<Cells *> _cells;
 
 public:
-	BinVerletList(int &N, BaseBox *box);
+	BinVerletList(std::vector<BaseParticle *> &ps, BaseBox *box);
+	BinVerletList() = delete;
 	virtual ~BinVerletList();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(BaseParticle **particles, number rcut);
+	virtual void init(number rcut);
 
 	virtual bool is_updated();
 	virtual void single_update(BaseParticle *p);

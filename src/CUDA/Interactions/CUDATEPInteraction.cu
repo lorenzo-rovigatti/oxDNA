@@ -357,9 +357,9 @@ void CUDATEPInteraction::cuda_init(c_number box_side, int N) {
 	CUDABaseInteraction::cuda_init(box_side, N);
 	TEPInteraction::init();
 
-	BaseParticle **particles = new BaseParticle *[N];
+	std::vector<BaseParticle *> particles(N);
 	int my_N_strands;
-	TEPInteraction::read_topology(N, &my_N_strands, particles);
+	TEPInteraction::read_topology(&my_N_strands, particles);
 
 	size_t k_size = N * sizeof(c_number);
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_kb1_pref, k_size));
@@ -377,7 +377,6 @@ void CUDATEPInteraction::cuda_init(c_number box_side, int N) {
 	for(int i = 0; i < N; i++) {
 		delete particles[i];
 	}
-	delete[] particles;
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_o_vects, 2 * sizeof(c_number4)));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_w_vects, 2 * sizeof(c_number4)));

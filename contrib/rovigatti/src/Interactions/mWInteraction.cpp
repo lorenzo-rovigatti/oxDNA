@@ -48,7 +48,8 @@ void mWInteraction::init() {
 	OX_LOG(Logger::LOG_INFO, "mW parameters: lambda = %lf, A = %lf, B = %lf, gamma = %lf, theta0 = %lf, a = %lf", _lambda, _A, _B, _gamma, _theta0, _a);
 }
 
-void mWInteraction::allocate_particles(BaseParticle **particles, int N) {
+void mWInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	for(int i = 0; i < N; i++) {
 		particles[i] = new BaseParticle();
 	}
@@ -82,10 +83,11 @@ number mWInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	return _two_body(p, q, r, update_forces);
 }
 
-void mWInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
+void mWInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	*N_strands = N;
 
-	allocate_particles(particles, N);
+	allocate_particles(particles);
 	for(int i = 0; i < N; i++) {
 		particles[i]->index = i;
 		particles[i]->type = P_A;
@@ -94,7 +96,7 @@ void mWInteraction::read_topology(int N, int *N_strands, BaseParticle **particle
 	}
 }
 
-void mWInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void mWInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
 

@@ -8,7 +8,6 @@
 #include "BaseThermostat.h"
 
 BaseThermostat::BaseThermostat() :
-				_N_part(0),
 				_T((number) 0.f),
 				_supports_shear(false),
 				_lees_edwards(false) {
@@ -28,4 +27,3 @@ void BaseThermostat::get_settings(input_file &inp) {
 		getInputNumber(&inp, "lees_edwards_shear_rate", &_shear_rate, 1);
 	}
 }
-

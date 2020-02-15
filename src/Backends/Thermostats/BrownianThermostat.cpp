@@ -40,8 +40,8 @@ void BrownianThermostat::get_settings (input_file &inp) {
 }
 
 
-void BrownianThermostat::init(int N_part) {
-    BaseThermostat::init(N_part);
+void BrownianThermostat::init() {
+    BaseThermostat::init();
 	if(_pt == (number) 0.) _pt = (2 * this->_T *  _newtonian_steps * _dt)/(this->_T * _newtonian_steps * _dt + 2 * _diff_coeff);
 	if(_pt >= (number) 1.) throw oxDNAException ("pt (%f) must be smaller than 1", _pt);
 
@@ -54,11 +54,10 @@ void BrownianThermostat::init(int N_part) {
 }
 
 
-void BrownianThermostat::apply (BaseParticle **particles, llint curr_step) {
+void BrownianThermostat::apply (std::vector<BaseParticle *> &particles, llint curr_step) {
 	if (!(curr_step % _newtonian_steps) == 0) return;
 
-	for(int i = 0; i < this->_N_part; i++) {
-		BaseParticle *p = particles[i];
+	for(auto p: particles) {
 		if(drand48() < _pt) {
 			p->vel = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
 		}

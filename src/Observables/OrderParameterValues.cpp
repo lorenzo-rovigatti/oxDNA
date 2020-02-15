@@ -23,7 +23,7 @@ void OrderParameterValues::init(ConfigInfo &config_info) {
 	ifstream tmpf(_order_parameters_file);
 	if(!tmpf.good()) throw oxDNAException("(OrderParameterValues.cpp) Can't read file '%s'", _order_parameters_file);
 
-	_op.init_from_file(_order_parameters_file, _config_info->particles, *(_config_info->N));
+	_op.init_from_file(_order_parameters_file, _config_info->particles, _config_info->N());
 
 }
 
