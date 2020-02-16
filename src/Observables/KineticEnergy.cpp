@@ -33,7 +33,7 @@ void KineticEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 number KineticEnergy::get_kinetic_energy() {
 	number factor = 1.5 / _directions.size();
 	number K = 0.f;
-	for(auto p: _config_info->particles) {
+	for(auto p: _config_info->particles()) {
 		if(p->is_rigid_body()) K += p->L.norm() * (number) 0.5f;
 
 		for(auto dir: _directions) {

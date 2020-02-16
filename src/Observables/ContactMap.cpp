@@ -30,8 +30,8 @@ std::string ContactMap::get_output_string(llint curr_step) {
 		for(int j = i + 1; j < N; j++) {
 			LR_vector dist;
 			LR_vector p1_com, p2_com;
-			p1_com = _config_info->box->get_abs_pos(_config_info->particles[i]);
-			p2_com = _config_info->box->get_abs_pos(_config_info->particles[j]);
+			p1_com = _config_info->box->get_abs_pos(_config_info->particles()[i]);
+			p2_com = _config_info->box->get_abs_pos(_config_info->particles()[j]);
 			cmap[k] = _config_info->box->min_image(p1_com, p2_com).module();
 			k++;
 		}

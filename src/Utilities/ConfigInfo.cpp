@@ -11,8 +11,8 @@
 
 std::shared_ptr<ConfigInfo> ConfigInfo::_config_info = nullptr;
 
-ConfigInfo::ConfigInfo(std::vector<BaseParticle *> &ps) :
-				particles(ps) {
+ConfigInfo::ConfigInfo(std::vector<BaseParticle *> *ps) :
+				particles_pointer(ps) {
 
 }
 
@@ -27,7 +27,7 @@ void ConfigInfo::set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBo
 	box = abox;
 }
 
-void ConfigInfo::init(std::vector<BaseParticle *> &ps) {
+void ConfigInfo::init(std::vector<BaseParticle *> *ps) {
 	if(_config_info != nullptr) {
 		throw oxDNAException("The ConfigInfo object have been already initialised");
 	}

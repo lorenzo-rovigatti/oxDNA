@@ -42,7 +42,7 @@ std::string JordanOutput::_configuration(llint step) {
 	std::stringstream conf;
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << std::endl;
-		BaseParticle *p = _config_info->particles[*it];
+		BaseParticle *p = _config_info->particles()[*it];
 		conf << _particle(p);
 	}
 	return conf.str();

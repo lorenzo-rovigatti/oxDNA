@@ -70,7 +70,7 @@ std::string TclOutput::_particle(BaseParticle *p) {
 	next = reinterpret_cast<DNANucleotide *>(p->n5);
 
 	LR_vector zero(0., 0., 0.);
-	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = _config_info->particles[_ref_particle_id]->pos;
+	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = _config_info->particles()[_ref_particle_id]->pos;
 	if(_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_strands_cdm[_ref_strand_id];
 
 	// set the colour according to the strand id
@@ -126,7 +126,7 @@ std::string TclOutput::_configuration(llint step) {
 	//return Configuration::_configuration(step);
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << std::endl;
-		BaseParticle *p = _config_info->particles[*it];
+		BaseParticle *p = _config_info->particles()[*it];
 		conf << _particle(p);
 	}
 	return conf.str();

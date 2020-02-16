@@ -21,7 +21,7 @@ void ForceEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 std::string ForceEnergy::get_output_string(llint curr_step) {
 	number U = (number) 0.f;
-	for(auto p: _config_info->particles) {
+	for(auto p: _config_info->particles()) {
 		if(_group_name == "") {
 			p->set_ext_potential(curr_step, _config_info->box);
 			U += p->ext_potential;

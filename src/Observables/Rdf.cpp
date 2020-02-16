@@ -35,9 +35,9 @@ std::string Rdf::get_output_string(llint curr_step) {
 
 	int n_pairs = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		for(int j = 0; j < i; j++) {
-			BaseParticle *q = _config_info->particles[j];
+			BaseParticle *q = _config_info->particles()[j];
 			int type = p->type + q->type;
 			if(_type == -1 || type == _type) {
 				LR_vector dr = _config_info->box->min_image(q->pos, p->pos);

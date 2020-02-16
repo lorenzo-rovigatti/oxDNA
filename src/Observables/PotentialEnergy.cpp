@@ -17,7 +17,7 @@ PotentialEnergy::~PotentialEnergy() {
 }
 
 number PotentialEnergy::get_potential_energy() {
-	number energy = _config_info->interaction->get_system_energy(_config_info->particles, _config_info->lists);
+	number energy = _config_info->interaction->get_system_energy(_config_info->particles(), _config_info->lists);
 	energy /= _config_info->N();
 
 	return energy;
@@ -35,7 +35,7 @@ std::string PotentialEnergy::get_output_string(llint curr_step) {
 	}
 	else {
 		std::string res("");
-		std::map<int, number> energies = _config_info->interaction->get_system_energy_split(_config_info->particles, _config_info->lists);
+		std::map<int, number> energies = _config_info->interaction->get_system_energy_split(_config_info->particles(), _config_info->lists);
 		for(auto it = energies.begin(); it != energies.end(); it++) {
 			number contrib = it->second / _config_info->N();
 			res = Utils::sformat("%s % 10.6lf", res.c_str(), contrib);

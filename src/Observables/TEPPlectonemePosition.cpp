@@ -38,7 +38,7 @@ std::string TEPPlectonemePosition::get_output_string(llint curr_step) {
 		int cur_plecto_start = -1;
 		int cur_plecto_end = -1;
 		for(int j = i + _bead_minimum_distance; j < _config_info->N(); ++j) {
-			LR_vector cur_distvec = _config_info->particles[j]->pos - _config_info->particles[i]->pos;
+			LR_vector cur_distvec = _config_info->particles()[j]->pos - _config_info->particles()[i]->pos;
 			if(cur_distvec.module() < _distance_threshold) {
 				if(cur_plecto_start == -1) cur_plecto_start = i;
 			}
@@ -65,7 +65,7 @@ std::string TEPPlectonemePosition::get_output_string(llint curr_step) {
 		int cur_plecto_start = -1;
 		int cur_plecto_end = -1;
 		for(int j = i - _bead_minimum_distance; j >= 0; --j) {
-			LR_vector cur_distvec = _config_info->particles[j]->pos - _config_info->particles[i]->pos;
+			LR_vector cur_distvec = _config_info->particles()[j]->pos - _config_info->particles()[i]->pos;
 			if(cur_distvec.module() < _distance_threshold) {
 				if(cur_plecto_start == -1) cur_plecto_start = i;
 			}
@@ -119,7 +119,7 @@ std::string TEPPlectonemePosition::get_output_string(llint curr_step) {
 		int idx = round(plecto_pos);
 		LR_vector pos(0., 0., 0.);
 		if(idx > 0 && idx < _config_info->N()) {
-			BaseParticle *p = _config_info->particles[idx];
+			BaseParticle *p = _config_info->particles()[idx];
 			pos = p->pos;
 		}
 		ss << " " << pos.x << " " << pos.y << " " << pos.z;

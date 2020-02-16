@@ -83,7 +83,7 @@ string Configuration::_headers(llint step) {
 	if(_reduced) {
 		set<int> strands;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle *p = _config_info->particles[*it];
+			BaseParticle *p = _config_info->particles()[*it];
 			strands.insert(p->strand_id);
 		}
 
@@ -140,7 +140,7 @@ string Configuration::_configuration(llint step) {
 		map<int, int> counters;
 
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle *p = _config_info->particles[*it];
+			BaseParticle *p = _config_info->particles()[*it];
 			coms[p->strand_id] += _config_info->box->get_abs_pos(p);
 			counters[p->strand_id]++;
 		}
@@ -157,7 +157,7 @@ string Configuration::_configuration(llint step) {
 		// this is used to avoid printing empty lines
 		bool empty = true;
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			BaseParticle *p = _config_info->particles[*it];
+			BaseParticle *p = _config_info->particles()[*it];
 			bool visible = (_only_type == -1 || p->type == _only_type);
 			if(visible) {
 				if(it != _visible_particles.begin() && !empty) conf << endl;
@@ -179,7 +179,7 @@ void Configuration::_fill_strands_cdm() {
 	std::map<int, int> nin;
 	_strands_cdm.clear();
 	for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-		BaseParticle *p = _config_info->particles[*it];
+		BaseParticle *p = _config_info->particles()[*it];
 		if(_strands_cdm.count(p->strand_id) == 0) {
 			nin[p->strand_id] = 1;
 			_strands_cdm[p->strand_id] = p->pos;

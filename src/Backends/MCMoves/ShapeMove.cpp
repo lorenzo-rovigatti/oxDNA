@@ -47,7 +47,7 @@ void ShapeMove::apply (llint curr_step) {
 	// we increase the attempted count
 	this->_attempted += 1;
 
-	std::vector<BaseParticle *> & particles = this->_Info->particles;
+	std::vector<BaseParticle *> & particles = this->_Info->particles();
 	int N = this->_Info->N();
 
 	// select axis NOT to change
@@ -69,7 +69,7 @@ void ShapeMove::apply (llint curr_step) {
 	LR_vector old_box_sides = this->_Info->box->box_sides();
 
 	number oldE;
-	if (this->_compute_energy_before) oldE = this->_Info->interaction->get_system_energy(this->_Info->particles, this->_Info->lists);
+	if (this->_compute_energy_before) oldE = this->_Info->interaction->get_system_energy(this->_Info->particles(), this->_Info->lists);
 	else oldE = (number) 0.f;
 	if (this->_Info->interaction->get_is_infinite()) printf ("WHAAT\n");
 	number oldV = (box_sides[0]) * (box_sides[1]) * (box_sides[2]);
@@ -102,7 +102,7 @@ void ShapeMove::apply (llint curr_step) {
 		this->_Info->lists->global_update();
 	}
 
-	number newE = this->_Info->interaction->get_system_energy(this->_Info->particles, this->_Info->lists);
+	number newE = this->_Info->interaction->get_system_energy(this->_Info->particles(), this->_Info->lists);
 	number dE = newE - oldE + dExt;
 	number V = box_sides.x * box_sides.y * box_sides.z;
 	number dV = V - oldV;

@@ -26,7 +26,7 @@ Contacts::~Contacts() {
 void Contacts::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	std::vector<BaseParticle *> &p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles();
 	const int N = _config_info->N();
 
 	// check that _first_particle_index is in [0,N) and not the terminal particle
@@ -92,7 +92,7 @@ void Contacts::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 std::string Contacts::get_output_string(llint curr_step) {
-	std::vector<BaseParticle *> &p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles();
 	std::string result;
 
 	int first_but_last_particle = p[_last_particle_index]->n3->index;

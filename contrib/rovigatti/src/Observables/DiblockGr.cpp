@@ -89,7 +89,7 @@ std::string DiblockGr::get_output_string(llint curr_step) {
 	int counters[2][2] = { { 0, 0 }, { 0, 0 } };
 
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		if(p->strand_id > 1) throw oxDNAException("The system should contain just two chains");
 		if(p->type != P_A && p->type != P_B) throw oxDNAException("Only particles of type A and B are allowed");
 		coms[p->strand_id][p->type] += _config_info->box->get_abs_pos(p);

@@ -65,7 +65,7 @@ string StarrConf::_configuration(llint step) {
 		for(int j = 0; j < _N_strands_per_tetramer; j++) {
 			for(int k = 0; k < _N_per_strand; k++) {
 				int idx = base_idx + k;
-				BaseParticle *p = _config_info->particles[idx];
+				BaseParticle *p = _config_info->particles()[idx];
 
 				_tetra_poss[i] += _config_info->box->get_abs_pos(p);
 				_tetra_vels[i] += p->vel;

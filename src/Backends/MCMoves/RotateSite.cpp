@@ -35,7 +35,7 @@ void RotateSite::apply (llint curr_step) {
 	this->_attempted ++;
 
 	int pi = (int) (drand48() * this->_Info->N());
-	JordanParticle *p = (JordanParticle *)this->_Info->particles[pi];
+	JordanParticle *p = (JordanParticle *)this->_Info->particles()[pi];
 
 	number delta_E;
 	if (this->_compute_energy_before) delta_E = -this->particle_energy(p);

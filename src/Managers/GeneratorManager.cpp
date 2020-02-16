@@ -60,7 +60,7 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	_external_forces = false;
 	_external_filename = std::string("");
 
-	ConfigInfo::init(_particles);
+	ConfigInfo::init(&_particles);
 }
 
 GeneratorManager::~GeneratorManager() {

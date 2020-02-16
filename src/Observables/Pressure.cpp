@@ -42,7 +42,7 @@ void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 LR_vector Pressure::_get_com() {
 	LR_vector com;
-	for(auto p: _config_info->particles) {
+	for(auto p: _config_info->particles()) {
 		com += _config_info->box->get_abs_pos(p);
 	}
 	com /= _config_info->N();
@@ -113,7 +113,7 @@ void Pressure::update_pressure() {
 		}
 	}
 
-	for(auto p: _config_info->particles) {
+	for(auto p: _config_info->particles()) {
 		LR_vector vel = p->vel;
 		if(_shear_rate > 0.) {
 			number Ly = CONFIG_INFO->box->box_sides().y;

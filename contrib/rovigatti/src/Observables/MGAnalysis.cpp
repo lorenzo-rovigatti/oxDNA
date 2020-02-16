@@ -130,7 +130,7 @@ number MGAnalysis::_volume() {
 	std::vector<qh_vertex_t> vertices(N);
 	int curr_idx = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		LR_vector p_pos = _config_info->box->get_abs_pos(p) - com;
 
 		if(_volume_threshold == 0. || p_pos.norm() < _volume_threshold_sqr) {
@@ -161,7 +161,7 @@ LR_vector MGAnalysis::_com(int from_idx, int to_idx) {
 	LR_vector com;
 	int N = to_idx - from_idx;
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		com += _config_info->box->get_abs_pos(p);
 	}
 	return com / N;
@@ -174,7 +174,7 @@ std::vector<number> MGAnalysis::_rg_eigenvalues(int from_idx, int to_idx) {
 
 	double IM[3][3] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		LR_vector i_pos = _config_info->box->get_abs_pos(p) - com;
 
 		IM[0][0] += SQR(i_pos[1]) + SQR(i_pos[2]);
@@ -210,7 +210,7 @@ std::vector<number> MGAnalysis::_rg_eigenvalues(int from_idx, int to_idx) {
 	LR_vector min_along_EVs(1.e6, 1.e6, 1.e6);
 
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		LR_vector p_pos = _config_info->box->get_abs_pos(p) - com;
 
 		for(int d = 0; d < 3; d++) {

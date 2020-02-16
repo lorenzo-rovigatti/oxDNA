@@ -39,10 +39,10 @@ void Pitch::get_settings(input_file &my_inp, input_file &sim_inp) {
 std::string Pitch::get_output_string(llint curr_step) {
 	std::stringstream output_str;
 
-	BaseParticle *bp1a = _config_info->particles[_bp1a_id];
-	BaseParticle *bp1b = _config_info->particles[_bp1b_id];
-	BaseParticle *bp2a = _config_info->particles[_bp2a_id];
-	BaseParticle *bp2b = _config_info->particles[_bp2b_id];
+	BaseParticle *bp1a = _config_info->particles()[_bp1a_id];
+	BaseParticle *bp1b = _config_info->particles()[_bp1b_id];
+	BaseParticle *bp2a = _config_info->particles()[_bp2a_id];
+	BaseParticle *bp2b = _config_info->particles()[_bp2b_id];
 
 	BaseBox * mybox = _config_info->box;
 

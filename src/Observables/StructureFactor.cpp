@@ -95,7 +95,7 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 		double sq_sin = 0.;
 		int N_type = 0;
 		for(int i = 0; i < N; i++) {
-			BaseParticle *p = _config_info->particles[i];
+			BaseParticle *p = _config_info->particles()[i];
 			if(_type == -1 || p->type == _type) {
 				LR_vector r(p->pos.x, p->pos.y, p->pos.z);
 				number qr = *it * r;

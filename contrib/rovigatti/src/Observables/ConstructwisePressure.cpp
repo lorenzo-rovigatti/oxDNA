@@ -46,7 +46,7 @@ void ConstructwisePressure::init(ConfigInfo &info) {
 
 void ConstructwisePressure::update_pressure() {
 	fill(_construct_coms.begin(), _construct_coms.end(), LR_vector());
-	for(auto p: _config_info->particles) {
+	for(auto p: _config_info->particles()) {
 		int p_construct = p->index / _construct_size;
 		_construct_coms[p_construct] += _config_info->box->get_abs_pos(p);
 	}

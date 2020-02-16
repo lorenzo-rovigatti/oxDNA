@@ -115,7 +115,7 @@ string FSConf::_configuration(llint step) {
 
 	for(int i = 0; i < _N; i++) {
 		if(_print_bonds) _bonds[i].clear();
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		string p_str = _particle(p);
 		conf << endl;
 		conf << p_str;
@@ -135,7 +135,7 @@ string FSConf::_configuration(llint step) {
 	}
 
 	for(int i = 0; i < _N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		conf << endl;
 		if(_print_bonds) {
 			conf << i + 1 << " " << _bonds[i].size() << endl;

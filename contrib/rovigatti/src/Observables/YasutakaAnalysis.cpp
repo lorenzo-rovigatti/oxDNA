@@ -68,7 +68,7 @@ std::string YasutakaAnalysis::_configuration(llint step) {
 
 	bool written = false;
 	for(auto idx: _visible_particles) {
-		BaseParticle *p = _config_info->particles[idx];
+		BaseParticle *p = _config_info->particles()[idx];
 		bool visible = (this->_only_type == -1 || p->type == this->_only_type);
 		if(visible) {
 			std::string str_p = _particle(p);

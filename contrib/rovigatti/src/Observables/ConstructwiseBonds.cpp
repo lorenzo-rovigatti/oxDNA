@@ -51,7 +51,7 @@ string ConstructwiseBonds::get_output_string(llint curr_step) {
 	for(int i = 0; i < _construct_number; i++)
 		_construct_coms[i] = LR_vector(0., 0., 0.);
 
-	for(auto p: _config_info->particles) {
+	for(auto p: _config_info->particles()) {
 		int p_construct_id = p->strand_id / _construct_strand_size;
 		_construct_coms[p_construct_id] += _config_info->box->get_abs_pos(p);
 	}

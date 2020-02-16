@@ -67,7 +67,7 @@ std::string DensityPressureProfile::get_output_string(llint curr_step) {
 	int NA = 0;
 	int NB = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		LR_vector mypos = _config_info->box->get_abs_pos(p);
 		mypos.x -= sides.x * floor(mypos.x / sides.x);
 		mypos.y -= sides.y * floor(mypos.y / sides.y);

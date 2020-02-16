@@ -61,7 +61,7 @@ SimBackend::SimBackend() {
 	_U_stack = 0.;
 	_dU_stack = 0.;
 
-	ConfigInfo::init(_particles);
+	ConfigInfo::init(&_particles);
 	_config_info = ConfigInfo::instance();
 }
 

@@ -64,7 +64,7 @@ string StarrHubConf::_configuration(llint step) {
 		if(_print_bonds) _tetra_bonds[i].clear();
 		int base_idx = i * _N_per_tetramer;
 		for(int j = 0; j < _N_strands_per_tetramer; j++) {
-			BaseParticle *p = _config_info->particles[base_idx];
+			BaseParticle *p = _config_info->particles()[base_idx];
 
 			_tetra_poss[i] += _config_info->box->get_abs_pos(p);
 			_tetra_vels[i] += p->vel;

@@ -34,11 +34,11 @@ std::string Gyradius::get_output_string(llint curr_step) {
 	number rg2 = 0;
 	int N_type = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		if(p->type != 2 && (_type == -1 || p->type == _type)) {
 			N_type++;
 			for(int j = i + 1; j < N; j++) {
-				BaseParticle *q = _config_info->particles[j];
+				BaseParticle *q = _config_info->particles()[j];
 				if(_type == -1 || q->type == _type) rg2 += _config_info->box->sqr_min_image_distance(q->pos, p->pos);
 			}
 		}

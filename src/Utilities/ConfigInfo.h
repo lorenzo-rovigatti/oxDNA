@@ -36,7 +36,7 @@ class ConfigInfo {
 private:
 	static std::shared_ptr<ConfigInfo> _config_info;
 
-	ConfigInfo(std::vector<BaseParticle *> &ps);
+	ConfigInfo(std::vector<BaseParticle *> *ps);
 	ConfigInfo() = delete;
 public:
 	virtual ~ConfigInfo();
@@ -52,7 +52,7 @@ public:
 	void set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox);
 
 	int N() {
-		return particles.size();
+		return particles_pointer->size();
 	}
 
 	/**
@@ -62,10 +62,14 @@ public:
 	 */
 	static ConfigInfo *instance();
 
-	static void init(std::vector<BaseParticle *> &ps);
+	static void init(std::vector<BaseParticle *> *ps);
+
+	std::vector<BaseParticle *> &particles() {
+		return *particles_pointer;
+	}
 
 	/// Pointer to the array which stores all the particles' information.
-	std::vector<BaseParticle *> &particles;
+	std::vector<BaseParticle *> *particles_pointer;
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
 	IBaseInteraction *interaction = nullptr;

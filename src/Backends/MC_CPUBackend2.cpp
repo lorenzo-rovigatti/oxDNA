@@ -70,8 +70,8 @@ void MC_CPUBackend2::init() {
 		p->orientationT = p->orientation.get_transpose();
 	}
 
-	// needed to fill un the pointers....
-	_MC_Info->particles = _particles;
+	// needed to fill up the pointers....
+	_MC_Info->particles_pointer = &_particles;
 	_MC_Info->interaction = _interaction.get();
 	_MC_Info->box = _box.get();
 
@@ -82,8 +82,8 @@ void MC_CPUBackend2::init() {
 		_interaction->set_is_infinite(false);
 		for(int i = 0; i < N(); i++) {
 			for(int j = 0; j < i; j++) {
-				BaseParticle * p = _particles[i];
-				BaseParticle * q = _particles[j];
+				BaseParticle *p = _particles[i];
+				BaseParticle *q = _particles[j];
 				_interaction->pair_interaction(p, q);
 				if(_interaction->get_is_infinite() == true) {
 					OX_LOG(Logger::LOG_INFO, "   overlap %d %d", i, j);
