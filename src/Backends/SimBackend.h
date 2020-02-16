@@ -150,7 +150,7 @@ protected:
 	std::vector<BaseParticle *> _particles;
 
 	/// object that stores pointers to a few important variables that need to be shared with other objects
-	ConfigInfo *_config_info;
+	std::shared_ptr<ConfigInfo> _config_info;
 
 	void _get_number_settings(input_file &inp);
 

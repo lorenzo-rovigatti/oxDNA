@@ -21,11 +21,10 @@ class MC_CPUBackend2: public MCBackend {
 protected:
 	std::vector<MovePtr> _moves;
 	int _N_moves;
-	ConfigInfo *_MC_Info;
+	std::shared_ptr<ConfigInfo> _config_info;
 	std::string _info_str;
 	void _compute_energy(); // to silence compiler, for now
 	number _accumulated_prob;
-	number _verlet_skin;
 
 public:
 	MC_CPUBackend2();

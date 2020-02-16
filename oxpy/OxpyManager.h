@@ -15,6 +15,8 @@ class OxpyManager: public SimManager {
 public:
 	OxpyManager(std::vector<std::string> args);
 	virtual ~OxpyManager();
+
+	std::shared_ptr<ConfigInfo> config_info();
 };
 
 void export_SimManager(py::module &m);

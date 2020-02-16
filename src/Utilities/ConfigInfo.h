@@ -60,7 +60,7 @@ public:
 	 *
 	 * @return Pointer to the ConfigInfo object
 	 */
-	static ConfigInfo *instance();
+	static std::shared_ptr<ConfigInfo> instance();
 
 	static void init(std::vector<BaseParticle *> *ps);
 
@@ -90,10 +90,10 @@ public:
 };
 
 
-inline ConfigInfo *ConfigInfo::instance() {
+inline std::shared_ptr<ConfigInfo> ConfigInfo::instance() {
 	if(_config_info == nullptr) throw oxDNAException("Trying to access an uninitialised ConfigInfo object");
 
-	return _config_info.get();
+	return _config_info;
 }
 
 #endif /* SRC_UTILITIES_CONFIGINFO_H_ */

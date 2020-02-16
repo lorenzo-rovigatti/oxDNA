@@ -41,7 +41,7 @@ void export_ConfigInfo(py::module &m) {
 
 	conf_info
 		.def("N", &ConfigInfo::N)
-		.def("particles", &ConfigInfo::particles)
+		.def("particles", &ConfigInfo::particles, pybind11::return_value_policy::reference)
 		.def_readwrite("interaction", &ConfigInfo::interaction);
 }
 

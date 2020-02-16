@@ -30,7 +30,7 @@ class BaseMove {
 		number _T;
 
 		/// Information on the system.
-		ConfigInfo * _Info;
+		std::shared_ptr<ConfigInfo> _Info;
 
 		/// should the move compute the energy before acting (default=true, use false only for hard potentials with no attraction)
 		bool _compute_energy_before;

@@ -39,6 +39,10 @@ OxpyManager::~OxpyManager() {
 
 }
 
+std::shared_ptr<ConfigInfo> OxpyManager::config_info() {
+	return CONFIG_INFO;
+}
+
 void export_SimManager(py::module &m) {
 	pybind11::class_<SimManager, std::shared_ptr<SimManager>> manager(m, "SimManager");
 
@@ -52,5 +56,6 @@ void export_OxpyManager(py::module &m) {
 	pybind11::class_<OxpyManager, SimManager, std::shared_ptr<OxpyManager>> manager(m, "OxpyManager");
 
 	manager
-		.def(py::init<std::vector<std::string>>());
+		.def(py::init<std::vector<std::string>>())
+		.def("config_info", &OxpyManager::config_info);
 }
