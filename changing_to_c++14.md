@@ -6,3 +6,8 @@
 * SimBackend's `_N` and ConfigInfo's `N` members have been removed. Both classes now possess a `N()` method that directly returns the number of particles.
 * ConfigInfo's `particles` is now a method that returns a reference to the particles' `std::vector`
 * ConfigInfo's `instance` returns a `std::shared_ptr` rather than a bare pointer
+
+## Python bindings
+
+* The memory layout of `LR_vector` and `LR_matrix` should be changed if we want to have transparent bindings to numpy's arrays. In particular, both classes should store the actual data contiguously. A better alternative (which would probably break *a lot* of code) would be using `glm`.
+

@@ -13,6 +13,7 @@
 #include <Particles/BaseParticle.h>
 #include <Interactions/BaseInteraction.h>
 #include <Utilities/ConfigInfo.h>
+#include "vector_matrix_casters.h"
 
 void export_BaseParticle(py::module &m);
 void export_IBaseInteraction(py::module &m);
@@ -33,7 +34,21 @@ void export_BaseParticle(py::module &m) {
 	pybind11::class_<BaseParticle, std::shared_ptr<BaseParticle>> particle(m, "BaseParticle");
 
 	particle
-		.def(py::init<>());
+		.def(py::init<>())
+		.def("is_bonded", &BaseParticle::is_bonded)
+		.def_readwrite("index", &BaseParticle::index)
+		.def_readwrite("type", &BaseParticle::type)
+		.def_readwrite("btype", &BaseParticle::btype)
+		.def_readwrite("strand_id", &BaseParticle::strand_id)
+		.def_readwrite("pos", &BaseParticle::pos)
+		.def_readwrite("orientation", &BaseParticle::orientation)
+		.def_readwrite("vel", &BaseParticle::vel)
+		.def_readwrite("L", &BaseParticle::L)
+		.def_readwrite("force", &BaseParticle::force)
+		.def_readwrite("torque", &BaseParticle::torque)
+		.def_readwrite("ext_potential", &BaseParticle::ext_potential)
+		.def_readwrite("n3", &BaseParticle::n3, pybind11::return_value_policy::reference)
+		.def_readwrite("n5", &BaseParticle::n5, pybind11::return_value_policy::reference);
 }
 
 void export_ConfigInfo(py::module &m) {

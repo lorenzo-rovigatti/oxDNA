@@ -9,8 +9,11 @@
 
 #include "../Boxes/BaseBox.h"
 
-
-BaseParticle::BaseParticle() : index(-1), type(P_INVALID), n3(P_VIRTUAL), n5(P_VIRTUAL) {
+BaseParticle::BaseParticle() :
+				index(-1),
+				type(P_INVALID),
+				n3(P_VIRTUAL),
+				n5(P_VIRTUAL) {
 	en3 = (number) 0;
 	en5 = (number) 0;
 	esn3 = (number) 0;
@@ -19,13 +22,14 @@ BaseParticle::BaseParticle() : index(-1), type(P_INVALID), n3(P_VIRTUAL), n5(P_V
 	ext_potential = (number) 0.;
 	strand_id = -1;
 	//_pos_shift = LR_vector(0., 0., 0.);
-	_pos_shift[0] = 0; _pos_shift[1] = 0; _pos_shift[2] = 0;
+	_pos_shift[0] = 0;
+	_pos_shift[1] = 0;
+	_pos_shift[2] = 0;
 	force = LR_vector(0., 0., 0.);
 	torque = LR_vector(0., 0., 0.);
 	btype = 0;
 	next_particle = P_INVALID;
 }
-
 
 void BaseParticle::copy_from(const BaseParticle &p) {
 	index = p.index;
@@ -35,7 +39,6 @@ void BaseParticle::copy_from(const BaseParticle &p) {
 	vel = p.vel;
 	orientation = p.orientation;
 	orientationT = p.orientationT;
-	pos_list = p.pos_list;
 	force = p.force;
 	en3 = p.en3;
 	en5 = p.en5;
@@ -49,16 +52,15 @@ void BaseParticle::copy_from(const BaseParticle &p) {
 	ext_potential = p.ext_potential;
 }
 
-
 BaseParticle::~BaseParticle() {
 
 }
 
-
 void BaseParticle::set_initial_forces(llint step, const BoxPtr &box) {
 	LR_vector abs_pos = box->get_abs_pos(this);
-	if (this->is_rigid_body()) this->torque = LR_vector((number)0.f, (number)0.f, (number)0.f);
-	this->force = LR_vector((number)0.f, (number)0.f, (number)0.f);
+	if(this->is_rigid_body())
+		this->torque = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
+	this->force = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
 	for(auto ext_force : ext_forces) {
 		this->force += ext_force->value(step, abs_pos);
 	}
@@ -67,7 +69,7 @@ void BaseParticle::set_initial_forces(llint step, const BoxPtr &box) {
 void BaseParticle::set_ext_potential(llint step, BaseBox *box) {
 	LR_vector abs_pos = box->get_abs_pos(this);
 	this->ext_potential = (number) 0.;
-	for(auto ext_force: ext_forces) {
+	for(auto ext_force : ext_forces) {
 		this->ext_potential += ext_force->potential(step, abs_pos);
 	}
 }
@@ -78,13 +80,11 @@ bool BaseParticle::add_ext_force(ForcePtr f) {
 	return true;
 }
 
-
 void BaseParticle::init() {
 	force = LR_vector(0., 0., 0.);
 	torque = LR_vector(0., 0., 0.);
 	_check();
 }
-
 
 void BaseParticle::_check() {
 	assert(index >= 0);

@@ -18,8 +18,8 @@
 #include "../defs.h"
 #include "../Forces/BaseForce.h"
 
- class ParticlePair;
- class BaseBox;
+class ParticlePair;
+class BaseBox;
 
 /**
  * @brief Base particle class. All particles must inherit from this class.
@@ -37,12 +37,12 @@ public:
 	BaseParticle();
 	virtual ~BaseParticle();
 
-	std::vector<ParticlePair > affected;
+	std::vector<ParticlePair> affected;
 
 	virtual void set_positions() {
 
 	}
-	
+
 	/// number of boxes the particle has diffused in each direction
 	int _pos_shift[3];
 
@@ -61,9 +61,10 @@ public:
 	bool inclust;
 
 	void init();
-	void is_neighbour(const BaseParticle &p);
 
-	int get_index() const { return index; }
+	int get_index() const {
+		return index;
+	}
 
 	/**
 	 * @brief Add an external force.
@@ -103,13 +104,13 @@ public:
 		return false;
 	}
 
-	inline void set_pos_shift (int x, int y, int z) {
+	inline void set_pos_shift(int x, int y, int z) {
 		_pos_shift[0] = x;
 		_pos_shift[1] = y;
 		_pos_shift[2] = z;
 	}
-	
-	void get_pos_shift (int * arg) {
+
+	void get_pos_shift(int *arg) {
 		arg[0] = _pos_shift[0];
 		arg[1] = _pos_shift[1];
 		arg[2] = _pos_shift[2];
@@ -131,7 +132,6 @@ public:
 	/// DNA bonded neighbours
 	BaseParticle *n3, *n5;
 
-	LR_vector pos_list;
 	/// Torque exerted on the particle in its own reference system
 	LR_vector torque;
 
@@ -169,9 +169,10 @@ public:
 	BaseParticle *first;
 	BaseParticle *second;
 
-	ParticlePair (BaseParticle *p, BaseParticle *q) {
-		if(p == q) throw oxDNAException("ParticlePair: p == q is not allowed");
-		if (p->index < q->index) {
+	ParticlePair(BaseParticle *p, BaseParticle *q) {
+		if(p == q)
+			throw oxDNAException("ParticlePair: p == q is not allowed");
+		if(p->index < q->index) {
 			first = p;
 			second = q;
 		}
@@ -181,14 +182,16 @@ public:
 		}
 	}
 
-	bool operator< (ParticlePair q) const {
+	bool operator<(ParticlePair q) const {
 		int p1 = first->index;
 		int p2 = second->index;
 		int q1 = q.first->index;
 		int q2 = q.second->index;
 
-		if(p1 == q1) return (p2 < q2);
-		else return (p1 < q1);
+		if(p1 == q1)
+			return (p2 < q2);
+		else
+			return (p1 < q1);
 	}
 };
 
