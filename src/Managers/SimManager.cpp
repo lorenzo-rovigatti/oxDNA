@@ -165,14 +165,19 @@ void SimManager::run() {
 			if(_cur_step > _start_step) _backend->print_conf(_cur_step);
 			setTSNextStep(&_time_scale_manager);
 		}
-		if (_cur_step > 1 && _cur_step % _fix_diffusion_every == 0) _backend->fix_diffusion();
+
+		if(_cur_step > 0 && _cur_step % _fix_diffusion_every == 0) {
+			_backend->fix_diffusion();
+		}
 
 		_backend->print_observables(_cur_step);
 		_backend->sim_step(_cur_step);
 	}
 	// this is in case _cur_step, after being increased by 1 before exiting the loop,
 	// has become a multiple of print_conf_every
-	if (_cur_step > 1 && _cur_step % _fix_diffusion_every == 0) _backend->fix_diffusion();
+	if (_cur_step > 1 && _cur_step % _fix_diffusion_every == 0) {
+		_backend->fix_diffusion();
+	}
 
 	if(_cur_step == _time_scale_manager.next_step) {
 		if(_cur_step > _start_step) _backend->print_conf(_cur_step);

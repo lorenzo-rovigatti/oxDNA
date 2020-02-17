@@ -704,11 +704,13 @@ void SimBackend::print_conf(llint curr_step, bool reduced, bool only_last) {
 		_obs_output_reduced_conf->print_output(curr_step);
 	}
 	else {
-		if(!only_last)
+		if(!only_last) {
 			_obs_output_trajectory->print_output(curr_step);
+		}
 		_obs_output_last_conf->print_output(curr_step);
-		if(_obs_output_last_conf_bin != NULL)
+		if(_obs_output_last_conf_bin != nullptr) {
 			_obs_output_last_conf_bin->print_output(curr_step);
+		}
 	}
 }
 

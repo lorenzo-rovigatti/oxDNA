@@ -17,6 +17,8 @@ public:
 	virtual ~OxpyManager();
 
 	std::shared_ptr<ConfigInfo> config_info();
+
+	void run(llint steps, bool print_output=true);
 };
 
 void export_SimManager(py::module &m);

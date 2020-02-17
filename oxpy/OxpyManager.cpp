@@ -43,13 +43,38 @@ std::shared_ptr<ConfigInfo> OxpyManager::config_info() {
 	return CONFIG_INFO;
 }
 
+void OxpyManager::run(llint steps, bool print_output) {
+	if(_cur_step < _start_step) {
+		_cur_step = _start_step;
+	}
+
+	for(llint i = 0; i < steps && !SimManager::stop; i++, _cur_step++) {
+		if(_cur_step == _time_scale_manager.next_step) {
+			if(print_output && _cur_step > _start_step) {
+				_backend->print_conf(_cur_step);
+			}
+			setTSNextStep(&_time_scale_manager);
+		}
+
+		if(_cur_step > 0 && _cur_step % _fix_diffusion_every == 0) {
+			_backend->fix_diffusion();
+		}
+
+		if(print_output) {
+			_backend->print_observables(_cur_step);
+		}
+
+		_backend->sim_step(_cur_step);
+	}
+}
+
 void export_SimManager(py::module &m) {
 	pybind11::class_<SimManager, std::shared_ptr<SimManager>> manager(m, "SimManager");
 
 	manager
 		.def("load_options", &SimManager::load_options)
 		.def("init", &SimManager::init)
-		.def("run", &SimManager::run);
+		.def("run_complete", &SimManager::run);
 }
 
 void export_OxpyManager(py::module &m) {
@@ -57,5 +82,6 @@ void export_OxpyManager(py::module &m) {
 
 	manager
 		.def(py::init<std::vector<std::string>>())
-		.def("config_info", &OxpyManager::config_info);
+		.def("config_info", &OxpyManager::config_info)
+		.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true);
 }
