@@ -7,20 +7,19 @@ The development of this software has been partially supported by the European Co
 
 ## Requirements
 
-Without CUDA support:
+The code requires `cmake` and a c++-14-compliant `g++` (any version >= 4.9 *should* work). The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions. 
 
-* `cmake` >= 2.6
-* `make`
-* `gcc` >= 4.2 / `icc` >= 11.0
+### CUDA
 
-With CUDA support:
+Compiling with CUDA support requires `cmake` >= 3.5 and the CUDA toolkit (>= 4.0).
 
-* `cmake` >= 3.5
-* `make`
-* `gcc` >= 4.2
-* CUDA toolkit >= 4.0
+### Python bindings
 
-Generating the documentation (with `make docs`, see below) requires doxygen. 
+Python bindings require `Python 3`'s binaries, libraries and include files. On Debian-derived distros these can be installed by installing the `libpython3-dev` package. 
+
+### Documentation
+
+Generating the documentation (with `make docs`, see below) requires [doxygen](http://www.doxygen.nl/). 
 
 ## Compiling oxDNA
 
@@ -34,10 +33,11 @@ cmake ..         # here you can specify additional options, see next section
 make -j4         # compile oxDNA. The -jX make option makes it compile the code in parallel by using X threads.
 ```
 
-At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed
-in the build/bin folder.
+At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed in the `build/bin` directory. 
 
-## `cmake` option
+Compiling with Python bindings will also generate a `oxpy.so` library file in the `build/oxpy/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy this library to the local user's module directory.
+
+## `cmake` options
 
 * `-DCUDA=ON` Enables CUDA support
 * `-DCUDA_COMMON_ARCH=ON` Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.
@@ -45,7 +45,6 @@ in the build/bin folder.
 * `-DG=ON` Compiles with debug symbols + optimisation flags
 * `-DINTEL=ON` Uses INTEL's compiler suite
 * `-DMPI=ON` Compiles oxDNA with MPI support
-* `-DCXX11=ON` Compiles oxDNA with c++11 support
 * `-DSIGNAL=OFF` Handling system signals is not always supported. Set this flag to OFF to remove this feature
 * `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
 * `-DPYTHON=ON` Enables Python bindings
@@ -67,7 +66,37 @@ in the build/bin folder.
 
 ## Usage
 
-`oxDNA input_file`
+### Binaries
+
+* `oxDNA input_file`
+* `confGenerator input_file [box_size|density]` the second argument will be interpreted as a number density (number of particles divided by volume) if it is less than 2.0
+* `DNAnalysis input_file`
+
+### Python Bindings
+
+The API are still unstable, and only few features are exposed through this interface. The following snippet shows a very simple example:
+
+```python
+import numpy as np
+import oxpy
+
+with oxpy.Context():
+    # init the manager with the given input file
+    manager = oxpy.OxpyManager(["input"])
+    manager.load_options()
+    manager.init()
+
+    # run 1k steps
+    manager.run(1000)
+
+    # run 10k steps more
+    manager.run(10000)
+
+    # do some computation with the current configuration
+    particles = manager.config_info().particles()
+    avg_pos = np.average(list(map(lambda p: p.pos, particles)), axis=0)
+    print("Average final position:", avg_pos)
+```
 
 ## Output files
 
