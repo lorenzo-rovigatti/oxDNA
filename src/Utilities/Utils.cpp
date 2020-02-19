@@ -292,11 +292,17 @@ std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &part
 
 	// try to understand whether we are dealing with a strand-based system or not
 	bool has_strands = false;
-	if(dynamic_cast<DNANucleotide *>(particles[0]) != NULL) has_strands = true;
-	else if(dynamic_cast<RNANucleotide *>(particles[0]) != NULL) has_strands = true;
-	else if(dynamic_cast<TEPParticle *>(particles[0]) != NULL) has_strands = true;
+	if(dynamic_cast<DNANucleotide *>(particles[0]) != NULL) {
+		has_strands = true;
+	}
+	else if(dynamic_cast<RNANucleotide *>(particles[0]) != NULL) {
+		has_strands = true;
+	}
+	else if(dynamic_cast<TEPParticle *>(particles[0]) != NULL) {
+		has_strands = true;
+	}
 
-	for( std::vector<std::string>::size_type i = 0; i < temp.size(); i++) {
+	for(std::vector<std::string>::size_type i = 0; i < temp.size(); i++) {
 		bool found_dash = temp[i].find('-') != std::string::npos;
 		// if the string contains a dash, then it has to be interpreted as a list of particles
 		// unless it's a negative number

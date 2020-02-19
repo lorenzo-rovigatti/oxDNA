@@ -36,8 +36,6 @@
 
 class RepulsiveSphere: public BaseForce {
 private:
-	std::string _particles_string;
-
 	/// pointer to the box side
 	BaseBox *_box_ptr;
 
@@ -54,8 +52,7 @@ public:
 	virtual ~RepulsiveSphere() {
 	}
 
-	void get_settings(input_file &);
-	void init(std::vector<BaseParticle *> &, BaseBox *);
+	std::vector<int> init(input_file &inp, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

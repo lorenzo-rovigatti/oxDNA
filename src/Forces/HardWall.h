@@ -33,9 +33,6 @@
  @endverbatim
  */
 class HardWall: public BaseForce {
-private:
-	int _particle;
-
 public:
 	number _position;
 	number _sigma;
@@ -44,8 +41,7 @@ public:
 	virtual ~HardWall() {
 	}
 
-	void get_settings(input_file &);
-	void init(std::vector<BaseParticle *> &, BaseBox *);
+	std::vector<int> init(input_file &inp, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

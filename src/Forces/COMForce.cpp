@@ -5,13 +5,12 @@
  *      Author: lorenzo
  */
 
-#include <vector>
-
 #include "COMForce.h"
 
 #include "../Utilities/Utils.h"
-
 #include "../Boxes/BaseBox.h"
+
+#include <vector>
 
 using namespace std;
 
@@ -25,41 +24,27 @@ COMForce::~COMForce() {
 
 }
 
-void COMForce::get_settings(input_file &inp) {
+std::vector<int> COMForce::init(input_file &inp, BaseBox *box_ptr) {
 	getInputString(&inp, "com_list", _com_string, 1);
 	getInputString(&inp, "ref_list", _ref_string, 1);
+	getInputDouble(&inp, "stiff", &_stiff, 1);
+	getInputDouble(&inp, "r0", &_r0, 1);
 
-	double stiff;
-	getInputDouble(&inp, "stiff", &stiff, 1);
-	this->_stiff = stiff;
-
-	double r0;
-	getInputDouble(&inp, "r0", &r0, 1);
-	_r0 = r0;
-}
-
-void COMForce::_check_index(int idx, int N) {
-	if(idx < 0 || idx >= N) throw oxDNAException("COMForce: invalid id %d", idx);
-}
-
-void COMForce::init(std::vector<BaseParticle *> &particles, BaseBox * box_ptr) {
-	int N = particles.size();
 	_box_ptr = box_ptr;
 
-	auto com_indexes = Utils::getParticlesFromString(particles, _com_string, "COMForce");
+	auto com_indexes = Utils::getParticlesFromString(CONFIG_INFO->particles, _com_string, "COMForce");
 	for(auto it = com_indexes.begin(); it != com_indexes.end(); it++) {
-		_check_index(*it, N);
-		_com_list.insert(particles[*it]);
-		particles[*it]->add_ext_force(ForcePtr(this));
+		_com_list.insert(CONFIG_INFO->particles[*it]);
 	}
 
-	auto ref_indexes = Utils::getParticlesFromString(particles, _ref_string, "COMForce");
+	auto ref_indexes = Utils::getParticlesFromString(CONFIG_INFO->particles, _ref_string, "COMForce");
 	for(auto it = ref_indexes.begin(); it != ref_indexes.end(); it++) {
-		_check_index(*it, N);
-		_ref_list.insert(particles[*it]);
+		_ref_list.insert(CONFIG_INFO->particles[*it]);
 	}
 
 	OX_LOG(Logger::LOG_INFO, "Adding a COM force of stiffness = %lf and r0 = %lf", this->_stiff, _r0);
+
+	return com_indexes;
 }
 
 void COMForce::_compute_coms(llint step) {

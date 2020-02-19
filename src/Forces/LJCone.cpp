@@ -12,8 +12,7 @@
 
 LJCone::LJCone() :
 				BaseForce() {
-	_particle = -1;
-	this->_stiff = 1;
+	_stiff = 1;
 	_n = 6;
 	_sigma = 1.;
 	_cutoff = 1e6;
@@ -22,10 +21,11 @@ LJCone::LJCone() :
 	_box = NULL;
 }
 
-void LJCone::get_settings(input_file &inp) {
-	getInputInt(&inp, "particle", &_particle, 1);
+std::vector<int> LJCone::init(input_file &inp, BaseBox *box_ptr) {
+	std::string particles_string;
+	getInputString(&inp, "particle", particles_string, 1);
 
-	getInputNumber(&inp, "stiff", &this->_stiff, 0);
+	getInputNumber(&inp, "stiff", &_stiff, 0);
 	getInputNumber(&inp, "sigma", &_sigma, 0);
 	getInputNumber(&inp, "alpha", &_alpha, 1);
 	getInputInt(&inp, "n", &_n, 0);
@@ -41,41 +41,32 @@ void LJCone::get_settings(input_file &inp) {
 	std::string str_vector;
 	getInputString(&inp, "dir", str_vector, 1);
 	tmpi = sscanf(str_vector.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
-	if(tmpi != 3) throw oxDNAException("RepulsiveCone: could not parse dir %s in external forces file. Aborting", str_vector.c_str());
-	this->_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
-	this->_direction.normalize();
+	if(tmpi != 3) {
+		throw oxDNAException("RepulsiveCone: could not parse dir %s in external forces file. Aborting", str_vector.c_str());
+	}
+	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
+	_direction.normalize();
 
 	getInputString(&inp, "pos0", str_vector, 1);
 	tmpi = sscanf(str_vector.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
-	if(tmpi != 3) throw oxDNAException("RepulsiveCone: could not parse pos0 %s in external forces file. Aborting", str_vector.c_str());
-	this->_pos0 = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
-}
+	if(tmpi != 3) {
+		throw oxDNAException("RepulsiveCone: could not parse pos0 %s in external forces file. Aborting", str_vector.c_str());
+	}
+	_pos0 = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 
-void LJCone::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
-	int N = particles.size();
 	_box = box_ptr;
 	_sin_alpha = sin(_alpha);
 	_cos_alpha = cos(_alpha);
 	_tan_alpha = tan(_alpha);
 
-	if(_particle >= N || N < -1) throw oxDNAException("Trying to add a RepulsiveCone on non-existent particle %d. Aborting", _particle);
-	if(_particle != -1) {
-		OX_LOG(Logger::LOG_INFO, "Adding RepulsiveCone (stiff=%g, pos0=%g,%g,%g, dir=%g,%g,%g, sigma=%g, n=%d) on particle %d", this->_stiff, this->_pos0.x, this->_pos0.y, this->_pos0.z, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n, _particle);
-		particles[_particle]->add_ext_force(ForcePtr(this));
-	}
-	else { // force affects all particles
-		OX_LOG(Logger::LOG_INFO, "Adding RepulsiveCone (stiff=%g, pos0=%g,%g,%g, dir=%g,%g,%g, sigma=%g, n=%d) on ALL particles", this->_stiff, this->_pos0.x, this->_pos0.y, this->_pos0.z, this->_direction.x, this->_direction.y, this->_direction.z, _sigma, _n);
-		for (int i = 0; i < N; i ++) {
-			particles[i]->add_ext_force(ForcePtr(this));
-		}
-	}
+	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
 }
 
 LR_vector LJCone::value(llint step, LR_vector &pos) {
-	LR_vector v_from_apex = pos - this->_pos0;
+	LR_vector v_from_apex = pos - _pos0;
 
-	number d_along_axis = v_from_apex * this->_direction;
-	LR_vector v_along_axis = this->_direction * d_along_axis;
+	number d_along_axis = v_from_apex * _direction;
+	LR_vector v_along_axis = _direction * d_along_axis;
 
 	LR_vector v_from_axis = v_along_axis - v_from_apex;
 	number d_from_axis = v_from_axis.module();
@@ -86,19 +77,19 @@ LR_vector LJCone::value(llint step, LR_vector &pos) {
 
 	// now we compute the normal to the cone
 	number C = d_from_axis * _tan_alpha;
-	LR_vector C_v = (d_along_axis + C) * this->_direction;
+	LR_vector C_v = (d_along_axis + C) * _direction;
 	LR_vector normal = C_v - v_from_apex;
 	normal.normalize();
 
 	number lj_part = pow(rel_distance, -_n);
-	return normal * (4 * _n * this->_stiff * (2 * SQR(lj_part) - lj_part) / d_from_cone);
+	return normal * (4 * _n * _stiff * (2 * SQR(lj_part) - lj_part) / d_from_cone);
 }
 
 number LJCone::potential(llint step, LR_vector &pos) {
-	LR_vector v_from_apex = pos - this->_pos0;
+	LR_vector v_from_apex = pos - _pos0;
 
-	number d_along_axis = v_from_apex * this->_direction;
-	LR_vector v_along_axis = this->_direction * d_along_axis;
+	number d_along_axis = v_from_apex * _direction;
+	LR_vector v_along_axis = _direction * d_along_axis;
 	LR_vector v_from_axis = v_from_apex - v_along_axis;
 	number d_from_cone = d_along_axis * _sin_alpha - v_from_axis.module() * _cos_alpha;
 	number rel_distance = d_from_cone / _sigma; // distance from the plane in units of _sigma
@@ -106,5 +97,5 @@ number LJCone::potential(llint step, LR_vector &pos) {
 	if(_generate_inside && rel_distance < 0.) return 10e8;
 	if(rel_distance > _cutoff) rel_distance = _cutoff;
 	number lj_part = pow(rel_distance, -_n);
-	return 4 * this->_stiff * (SQR(lj_part) - lj_part);
+	return 4 * _stiff * (SQR(lj_part) - lj_part);
 }

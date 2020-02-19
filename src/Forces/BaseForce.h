@@ -12,6 +12,7 @@
 #include "../defs.h"
 #include "../Utilities/oxDNAException.h"
 #include "../Utilities/Utils.h"
+#include "../Utilities/ConfigInfo.h"
 
 // forward declarations of BaseParticle and BaseBox; needed to compile
 class BaseParticle;
@@ -70,24 +71,19 @@ public:
 	BaseForce();
 	virtual ~BaseForce();
 
-	/**
-	 * @brief get_settings function
-	 *
-	 * this function parses the input file
-	 */
-	virtual void get_settings(input_file &inp) = 0;
-
 	/** 
 	 * @brief init function
 	 *
-	 * This function initialises the force object and assignes 
-	 * it to the relevant particles.
+	 * @return the list of particles it will act on
+	 *
+	 * This function initialises the force object and returns the list of particles it will act on
 	 */
-	virtual void init(std::vector<BaseParticle *> &particles, BaseBox * box) = 0;
+	virtual std::vector<int> init(input_file &inp, BaseBox *box) = 0;
 
 	virtual void set_group_name(std::string &name) {
 		_group_name = name;
 	}
+
 	virtual std::string get_group_name() {
 		return _group_name;
 	}

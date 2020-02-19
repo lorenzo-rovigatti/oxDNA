@@ -29,6 +29,8 @@ private:
 	static std::shared_ptr<ForceFactory> _ForceFactoryPtr;
 	ForceFactory();
 
+	void _add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_type);
+
 public:
 	virtual ~ForceFactory();
 

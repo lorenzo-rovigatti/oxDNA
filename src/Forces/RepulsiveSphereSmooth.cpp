@@ -12,7 +12,6 @@
 
 RepulsiveSphereSmooth::RepulsiveSphereSmooth() :
 				BaseForce() {
-	_particle = -1;
 	_r0 = -1.;
 	_r_ext = 1e10;
 	_center = LR_vector(0., 0., 0.);
@@ -21,13 +20,17 @@ RepulsiveSphereSmooth::RepulsiveSphereSmooth() :
 	_box_ptr = NULL;
 }
 
-void RepulsiveSphereSmooth::get_settings(input_file &inp) {
+std::vector<int>RepulsiveSphereSmooth::init(input_file &inp, BaseBox *box_ptr) {
 	getInputNumber(&inp, "stiff", &this->_stiff, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
 	getInputNumber(&inp, "r_ext", &_r_ext, 0);
 	getInputNumber(&inp, "r_ext", &_smooth, 1);
 	getInputNumber(&inp, "r_ext", &_alpha, 1);
-	getInputInt(&inp, "particle", &_particle, 1);
+
+	std::string particles_string;
+	getInputString(&inp, "particle", particles_string, 1);
+
+	_box_ptr = box_ptr;
 
 	std::string strdir;
 	if(getInputString(&inp, "center", strdir, 0) == KEY_FOUND) {
@@ -36,22 +39,8 @@ void RepulsiveSphereSmooth::get_settings(input_file &inp) {
 		if(tmpi != 3) throw oxDNAException("Could not parse center %s in external forces file. Aborting", strdir.c_str());
 		this->_center = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	}
-}
 
-void RepulsiveSphereSmooth::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
-	int N = particles.size();
-	if(this->_particle >= N || N < -1) throw oxDNAException("Trying to add a RepulsiveSphereSmooth on non-existent particle %d. Aborting", this->_particle);
-	if(this->_particle != -1) {
-		OX_LOG(Logger::LOG_INFO, "Adding RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g) on particle %d", this->_stiff, this->_r0, this->_center.x, this->_center.y, this->_center.z, _particle);
-		particles[_particle]->add_ext_force(ForcePtr(this));
-	}
-	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g) on ALL particles", this->_stiff, this->_r0, this->_center.x, this->_center.y, this->_center.z);
-		for (int i = 0; i < N; i ++) {
-			particles[i]->add_ext_force(ForcePtr(this));
-		}
-	}
-	_box_ptr = box_ptr;
+	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "RepulsiveSphereSmooth");
 }
 
 LR_vector RepulsiveSphereSmooth::value(llint step, LR_vector &pos) {

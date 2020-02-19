@@ -26,19 +26,14 @@
  [dir_as_centre = <bool> (if true the "dir" parameter will be interpreted as the origin of the force, so that the true direction will be dir - p->pos)]
  @endverbatim
  */
-
 class ConstantRateForce: public BaseForce {
-private:
-	std::string _particles_string;
-
 public:
 	bool dir_as_centre;
 
 	ConstantRateForce();
 	virtual ~ConstantRateForce();
 
-	void get_settings(input_file &);
-	void init(std::vector<BaseParticle *> &, BaseBox *);
+	std::vector<int> init(input_file &inp, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

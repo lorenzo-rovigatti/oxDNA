@@ -14,7 +14,6 @@ class BaseParticle;
 
 class ConstantTrap: public BaseForce {
 private:
-	int _particle;
 	int _ref_id;
 
 public:
@@ -27,8 +26,7 @@ public:
 	virtual ~ConstantTrap() {
 	}
 
-	void get_settings(input_file &);
-	void init(std::vector<BaseParticle *> &, BaseBox *);
+	std::vector<int> init(input_file &inp, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);
