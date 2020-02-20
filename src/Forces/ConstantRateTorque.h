@@ -20,7 +20,7 @@ public:
 	}
 
 	void get_settings(input_file &);
-	std::vector<int> init(input_file &inp, BaseBox *);
+	std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

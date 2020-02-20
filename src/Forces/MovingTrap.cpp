@@ -14,7 +14,7 @@ MovingTrap::MovingTrap() :
 
 }
 
-std::vector<int> MovingTrap::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> MovingTrap::init(input_file &inp, BaseBox *box_ptr) {
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 
@@ -39,7 +39,10 @@ std::vector<int> MovingTrap::init(input_file &inp, BaseBox *box_ptr) {
 	}
 	_pos0 = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 
-	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "MovingTrap");
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "MovingTrap");
+	std::string description = Utils::sformat("MovingTrap (stiff=%g, rate=%g, dir=%g,%g,%g, pos0=%g,%g,%g", _stiff, _rate, _direction.x, _direction.y, _direction.z, _pos0.x, _pos0.y, _pos0.z);
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector MovingTrap::value(llint step, LR_vector &pos) {

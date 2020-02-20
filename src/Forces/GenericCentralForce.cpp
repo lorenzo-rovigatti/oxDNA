@@ -125,7 +125,7 @@ GenericCentralForce::~GenericCentralForce() {
 
 }
 
-std::vector<int> GenericCentralForce::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> GenericCentralForce::init(input_file &inp, BaseBox *box_ptr) {
 	string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 
@@ -171,8 +171,10 @@ std::vector<int> GenericCentralForce::init(input_file &inp, BaseBox *box_ptr) {
 		break;
 	}
 
-	std::string force_description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
-	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
+	std::string description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector GenericCentralForce::value(llint step, LR_vector &pos) {

@@ -13,7 +13,7 @@ LowdimMovingTrap::LowdimMovingTrap() :
 				BaseForce() {
 }
 
-std::vector<int> LowdimMovingTrap::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> LowdimMovingTrap::init(input_file &inp, BaseBox *box_ptr) {
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 	getInputNumber(&inp, "stiff", &_stiff, 1);
@@ -47,7 +47,10 @@ std::vector<int> LowdimMovingTrap::init(input_file &inp, BaseBox *box_ptr) {
 	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	_direction.normalize();
 
-	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "LowdimMovingTrap");
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "LowdimMovingTrap");
+	std::string description = Utils::sformat("LowdimMovingTrap (stiff=stiffness %lf and pos=[%g,%g,%g] + (%g * t) [%g,%g,%g] and visX=%i visY=%i visZ=%i on particle %d", _stiff, _pos0.x, _pos0.y, _pos0.z, _rate, _direction.x, _direction.y, _direction.z, _visX, _visY, _visZ);
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector LowdimMovingTrap::value(llint step, LR_vector &pos) {

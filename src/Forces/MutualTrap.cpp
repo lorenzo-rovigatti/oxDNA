@@ -19,7 +19,7 @@ MutualTrap::MutualTrap() :
 	_box_ptr = NULL;
 }
 
-std::vector<int> MutualTrap::init(input_file &inp, BaseBox * box_ptr) {
+std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp, BaseBox * box_ptr) {
 	getInputInt(&inp, "particle", &_particle, 1);
 	getInputInt(&inp, "ref_particle", &_ref_id, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
@@ -43,9 +43,9 @@ std::vector<int> MutualTrap::init(input_file &inp, BaseBox * box_ptr) {
 		throw oxDNAException("Cannot apply MutualTrap to all particles. Aborting");
 	}
 
-	OX_LOG(Logger::LOG_INFO, "Adding MutualTrap (stiff=%g, rate=%g, r0=%g, ref_particle=%d, PBC=%d on particle %d", _stiff, _rate, _r0, _ref_id, PBC, _particle);
+	std::string description = Utils::sformat("MutualTrap (stiff=%g, rate=%g, r0=%g, ref_particle=%d, PBC=%d)", _stiff, _rate, _r0, _ref_id, PBC);
 
-	return std::vector<int> {_particle};
+	return std::make_tuple(std::vector<int>{_particle}, description);
 }
 
 LR_vector MutualTrap::_distance(LR_vector u, LR_vector v) {

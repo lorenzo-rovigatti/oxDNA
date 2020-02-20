@@ -17,7 +17,7 @@ AlignmentField::AlignmentField() :
 	_v_ptr = NULL;
 }
 
-std::vector<int> AlignmentField::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> AlignmentField::init(input_file &inp, BaseBox *box_ptr) {
 	getInputInt(&inp, "particle", &_particle, 0);
 	getInputInt(&inp, "v_idx", &_v_idx, 1);
 	getInputNumber(&inp, "F", &_F, 1);
@@ -31,14 +31,13 @@ std::vector<int> AlignmentField::init(input_file &inp, BaseBox *box_ptr) {
 	if(tmpi != 3) {
 		throw oxDNAException("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
 	}
-	this->_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
-	this->_direction.normalize();
+	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
+	_direction.normalize();
 
 	std::vector<BaseParticle *> & particles = CONFIG_INFO->particles;
 
 	int N = particles.size();
 	if(_particle >= N || N < 0) throw oxDNAException("Trying to add a AlignmentField on non-existent particle %d. Aborting", _particle);
-	OX_LOG(Logger::LOG_INFO, "Adding AlignmentField (F=%g, dir=%g,%g,%g) on particle %d", _F, this->_direction.x, this->_direction.y, this->_direction.z, _particle);
 	switch(_v_idx) {
 	case 0:
 		_v_ptr = &(particles[_particle]->orientation.v1);
@@ -63,7 +62,8 @@ std::vector<int> AlignmentField::init(input_file &inp, BaseBox *box_ptr) {
 		break;
 	}
 
-	return std::vector<int> {_particle};
+	std::string description = Utils::sformat("AlignmentField (F=%g, dir=%g,%g,%g)", _F, _direction.x, _direction.y, _direction.z);
+	return std::make_tuple(std::vector<int>{_particle}, description);
 }
 
 LR_vector AlignmentField::value(llint step, LR_vector &pos) {
@@ -71,5 +71,5 @@ LR_vector AlignmentField::value(llint step, LR_vector &pos) {
 }
 
 number AlignmentField::potential(llint step, LR_vector &pos) {
-	return _F * (1.f - ((*_v_ptr) * (this->_direction)));
+	return _F * (1.f - ((*_v_ptr) * (_direction)));
 }

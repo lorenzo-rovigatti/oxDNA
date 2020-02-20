@@ -19,7 +19,7 @@ RepulsiveSphere::RepulsiveSphere() :
 	_box_ptr = NULL;
 }
 
-std::vector<int> RepulsiveSphere::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> RepulsiveSphere::init(input_file &inp, BaseBox *box_ptr) {
 	getInputNumber(&inp, "stiff", &_stiff, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
 	getInputNumber(&inp, "rate", &_rate, 0);
@@ -38,8 +38,10 @@ std::vector<int> RepulsiveSphere::init(input_file &inp, BaseBox *box_ptr) {
 		_center = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	}
 
-	std::string force_description = Utils::sformat("RepulsiveSphere (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g)", _stiff, _r0, _rate, _center.x, _center.y, _center.z);
-	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "RepulsiveSphere");
+	std::string description = Utils::sformat("RepulsiveSphere (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g)", _stiff, _r0, _rate, _center.x, _center.y, _center.z);
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "RepulsiveSphere");
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector RepulsiveSphere::value(llint step, LR_vector &pos) {

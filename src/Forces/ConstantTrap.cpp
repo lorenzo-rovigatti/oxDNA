@@ -20,7 +20,7 @@ ConstantTrap::ConstantTrap() :
 	_box_ptr = NULL;
 }
 
-std::vector<int> ConstantTrap::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> ConstantTrap::init(input_file &inp, BaseBox *box_ptr) {
 	int particle;
 	getInputInt(&inp, "particle", &particle, 1);
 	getInputInt(&inp, "ref_particle", &_ref_id, 1);
@@ -37,9 +37,9 @@ std::vector<int> ConstantTrap::init(input_file &inp, BaseBox *box_ptr) {
 	if(particle >= N || N < -1) throw oxDNAException("Trying to add a ConstantTrap on non-existent particle %d. Aborting", particle);
 	if(particle == -1) throw oxDNAException("Cannot apply ConstantTrap to all particles. Aborting");
 
-	OX_LOG(Logger::LOG_INFO, "Adding ConstantTrap (stiff=%g, r0=%g, ref_particle=%d, PBC=%d on particle %d", _stiff, _r0, _ref_id, PBC, particle);
+	std::string description = Utils::sformat("ConstantTrap (stiff=%g, r0=%g, ref_particle=%d, PBC=%d", _stiff, _r0, _ref_id, PBC);
 
-	return std::vector<int> {particle};
+	return std::make_tuple(std::vector<int> {particle}, description);
 }
 
 LR_vector ConstantTrap::_distance(LR_vector u, LR_vector v) {

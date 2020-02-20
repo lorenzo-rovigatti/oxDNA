@@ -18,7 +18,7 @@ SawtoothForce::~SawtoothForce() {
 
 }
 
-std::vector<int> SawtoothForce::init(input_file &inp, BaseBox *box_side) {
+std::tuple<std::vector<int>, std::string> SawtoothForce::init(input_file &inp, BaseBox *box_side) {
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 
@@ -34,7 +34,10 @@ std::vector<int> SawtoothForce::init(input_file &inp, BaseBox *box_side) {
 	_direction = LR_vector((number) x, (number) y, number(z));
 	_direction.normalize();
 
-	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "SawtoothForce");
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "SawtoothForce");
+	std::string description = Utils::sformat("SawtoothForce (F==%g, wait_time=%g, increment=%g, dir=%g,%g,%g", _F0, _wait_time, _increment, _direction.x, _direction.y, _direction.z);
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector SawtoothForce::value(llint step, LR_vector &pos) {

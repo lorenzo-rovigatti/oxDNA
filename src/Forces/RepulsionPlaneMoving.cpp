@@ -20,7 +20,7 @@ RepulsionPlaneMoving::RepulsionPlaneMoving() :
 	low_idx = high_idx = -1;
 }
 
-std::vector<int> RepulsionPlaneMoving::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file &inp, BaseBox *box_ptr) {
 	getInputString(&inp, "particle", _particles_string, 1);
 	getInputString(&inp, "ref_particle", _ref_particles_string, 1);
 
@@ -49,7 +49,9 @@ std::vector<int> RepulsionPlaneMoving::init(input_file &inp, BaseBox *box_ptr) {
 		ref_p_ptr.push_back(CONFIG_INFO->particles[ref_particle_indices_vector[i]]);
 	}
 
-	return particle_indices_vector;
+	std::string description = Utils::sformat("RepulsionPlaneMoving force (RepulsionPlaneMoving.cpp) with stiffness %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]", _stiff, _direction.x, _direction.y, _direction.z);
+
+	return std::make_tuple(particle_indices_vector, description);
 }
 
 LR_vector RepulsionPlaneMoving::value(llint step, LR_vector &pos) {

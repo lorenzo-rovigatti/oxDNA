@@ -34,7 +34,7 @@ private:
 public:
 	virtual ~ForceFactory();
 
-	static std::shared_ptr<ForceFactory>  instance();
+	static std::shared_ptr<ForceFactory> instance();
 
 	/**
 	 * @brief Produces and adds the force specified in the input file inp to the right particles.

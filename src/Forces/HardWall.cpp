@@ -16,7 +16,7 @@ HardWall::HardWall() :
 	_sigma = 1.;
 }
 
-std::vector<int> HardWall::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> HardWall::init(input_file &inp, BaseBox *box_ptr) {
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 
@@ -34,7 +34,10 @@ std::vector<int> HardWall::init(input_file &inp, BaseBox *box_ptr) {
 	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	_direction.normalize();
 
-	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "HardWall");
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "HardWall");
+	std::string description = Utils::sformat("HardWall (position=%g, dir=%g,%g,%g, sigma=%g)", _position, _direction.x, _direction.y, _direction.z, _sigma);
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector HardWall::value(llint step, LR_vector &pos) {

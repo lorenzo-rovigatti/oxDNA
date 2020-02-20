@@ -20,7 +20,7 @@ ConstantRateForce::~ConstantRateForce() {
 
 }
 
-std::vector<int> ConstantRateForce::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> ConstantRateForce::init(input_file &inp, BaseBox *box_ptr) {
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 
@@ -43,8 +43,10 @@ std::vector<int> ConstantRateForce::init(input_file &inp, BaseBox *box_ptr) {
 		_direction.normalize();
 	}
 
-	OX_LOG(Logger::LOG_INFO, "ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g)", _F0, _rate, _direction.x, _direction.y, _direction.z);
-	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
+	std::string description = Utils::sformat("ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g)", _F0, _rate, _direction.x, _direction.y, _direction.z);
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector ConstantRateForce::value(llint step, LR_vector &pos) {

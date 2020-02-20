@@ -74,11 +74,11 @@ public:
 	/** 
 	 * @brief init function
 	 *
-	 * @return the list of particles it will act on
+	 * @return the list of particles it will act on and the force description
 	 *
 	 * This function initialises the force object and returns the list of particles it will act on
 	 */
-	virtual std::vector<int> init(input_file &inp, BaseBox *box) = 0;
+	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box) = 0;
 
 	virtual void set_group_name(std::string &name) {
 		_group_name = name;

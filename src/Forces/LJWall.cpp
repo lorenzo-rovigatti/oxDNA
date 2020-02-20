@@ -20,7 +20,7 @@ LJWall::LJWall() :
 	_only_repulsive = false;
 }
 
-std::vector<int> LJWall::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> LJWall::init(input_file &inp, BaseBox *box_ptr) {
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 
@@ -48,7 +48,10 @@ std::vector<int> LJWall::init(input_file &inp, BaseBox *box_ptr) {
 	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	_direction.normalize();
 
-	return Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "LJWall");
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "LJWall");
+	std::string description = Utils::sformat("LJWall (stiff=%g, position=%g, dir=%g,%g,%g, sigma=%g, n=%d)", _stiff, _position, _direction.x, _direction.y, _direction.z, _sigma, _n);
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector LJWall::value(llint step, LR_vector &pos) {

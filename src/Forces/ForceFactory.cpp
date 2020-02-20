@@ -49,15 +49,15 @@ std::shared_ptr<ForceFactory> ForceFactory::instance() {
 	return _ForceFactoryPtr;
 }
 
-void ForceFactory::_add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_type) {
+void ForceFactory::_add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_description) {
 	if(particle_ids[0] != -1) {
 		for(auto id: particle_ids) {
 			particles[id]->add_ext_force(force);
-			OX_LOG(Logger::LOG_INFO, "Adding a %s on particle %d", force_type.c_str(), id);
+			OX_LOG(Logger::LOG_INFO, "Adding a %s on particle %d", force_description.c_str(), id);
 		}
 	}
 	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding a %s on ALL particles", force_type.c_str());
+		OX_LOG (Logger::LOG_INFO, "Adding a %s on ALL particles", force_description.c_str());
 		for(auto p: particles) {
 			p->add_ext_force(force);
 		}
@@ -91,9 +91,13 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 
 	string group = string("default");
 	getInputString(&inp, "group_name", group, 0);
-
-	auto particle_ids = extF->init(inp, box_ptr); // here the force is added to the particle
 	extF->set_group_name(group);
+
+	std::vector<int> particle_ids;
+	std::string description;
+	std::tie(particle_ids, description) = extF->init(inp, box_ptr); // here the force is added to the particle
+
+	_add_force_to_particles(extF, particle_ids, particles, description);
 }
 
 void ForceFactory::read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, bool is_CUDA, BaseBox * box) {
