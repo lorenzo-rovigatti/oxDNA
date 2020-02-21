@@ -5,13 +5,12 @@
  *      Author: lorenzo
  */
 
-#include <vector>
-
 #include "COMForce.h"
 
 #include "../Utilities/Utils.h"
-
 #include "../Boxes/BaseBox.h"
+
+#include <vector>
 
 using namespace std;
 
@@ -25,41 +24,26 @@ COMForce::~COMForce() {
 
 }
 
-void COMForce::get_settings(input_file &inp) {
+std::tuple<std::vector<int>, std::string> COMForce::init(input_file &inp, BaseBox *box_ptr) {
 	getInputString(&inp, "com_list", _com_string, 1);
 	getInputString(&inp, "ref_list", _ref_string, 1);
+	getInputDouble(&inp, "stiff", &_stiff, 1);
+	getInputDouble(&inp, "r0", &_r0, 1);
 
-	double stiff;
-	getInputDouble(&inp, "stiff", &stiff, 1);
-	this->_stiff = stiff;
-
-	double r0;
-	getInputDouble(&inp, "r0", &r0, 1);
-	_r0 = r0;
-}
-
-void COMForce::_check_index(int idx, int N) {
-	if(idx < 0 || idx >= N) throw oxDNAException("COMForce: invalid id %d", idx);
-}
-
-void COMForce::init(std::vector<BaseParticle *> &particles, BaseBox * box_ptr) {
-	int N = particles.size();
 	_box_ptr = box_ptr;
 
-	auto com_indexes = Utils::getParticlesFromString(particles, _com_string, "COMForce");
+	auto com_indexes = Utils::getParticlesFromString(CONFIG_INFO->particles, _com_string, "COMForce");
 	for(auto it = com_indexes.begin(); it != com_indexes.end(); it++) {
-		_check_index(*it, N);
-		_com_list.insert(particles[*it]);
-		particles[*it]->add_ext_force(ForcePtr(this));
+		_com_list.insert(CONFIG_INFO->particles[*it]);
 	}
 
-	auto ref_indexes = Utils::getParticlesFromString(particles, _ref_string, "COMForce");
+	auto ref_indexes = Utils::getParticlesFromString(CONFIG_INFO->particles, _ref_string, "COMForce");
 	for(auto it = ref_indexes.begin(); it != ref_indexes.end(); it++) {
-		_check_index(*it, N);
-		_ref_list.insert(particles[*it]);
+		_ref_list.insert(CONFIG_INFO->particles[*it]);
 	}
 
-	OX_LOG(Logger::LOG_INFO, "Adding a COM force of stiffness = %lf and r0 = %lf", this->_stiff, _r0);
+	std::string description = Utils::sformat("COM force of stiffness = %lf and r0 = %lf", _stiff, _r0);
+	return std::make_tuple(com_indexes, description);
 }
 
 void COMForce::_compute_coms(llint step) {
@@ -83,12 +67,12 @@ LR_vector COMForce::value(llint step, LR_vector &pos) {
 	_compute_coms(step);
 	LR_vector dist = (_ref_com - _com);
 	number d_com = dist.module();
-	number force = (d_com - _r0) * this->_stiff / _com_list.size();
+	number force = (d_com - _r0) * _stiff / _com_list.size();
 
 	return dist * (force / d_com);
 }
 
 number COMForce::potential(llint step, LR_vector &pos) {
 	_compute_coms(step);
-	return 0.5 * this->_stiff * SQR((_ref_com - _com).module() - _r0) / _com_list.size();
+	return 0.5 * _stiff * SQR((_ref_com - _com).module() - _r0) / _com_list.size();
 }

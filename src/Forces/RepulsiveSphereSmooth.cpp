@@ -12,7 +12,6 @@
 
 RepulsiveSphereSmooth::RepulsiveSphereSmooth() :
 				BaseForce() {
-	_particle = -1;
 	_r0 = -1.;
 	_r_ext = 1e10;
 	_center = LR_vector(0., 0., 0.);
@@ -21,41 +20,34 @@ RepulsiveSphereSmooth::RepulsiveSphereSmooth() :
 	_box_ptr = NULL;
 }
 
-void RepulsiveSphereSmooth::get_settings(input_file &inp) {
-	getInputNumber(&inp, "stiff", &this->_stiff, 1);
+std::tuple<std::vector<int>, std::string> RepulsiveSphereSmooth::init(input_file &inp, BaseBox *box_ptr) {
+	getInputNumber(&inp, "stiff", &_stiff, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
 	getInputNumber(&inp, "r_ext", &_r_ext, 0);
 	getInputNumber(&inp, "r_ext", &_smooth, 1);
 	getInputNumber(&inp, "r_ext", &_alpha, 1);
-	getInputInt(&inp, "particle", &_particle, 1);
+
+	std::string particles_string;
+	getInputString(&inp, "particle", particles_string, 1);
+
+	_box_ptr = box_ptr;
 
 	std::string strdir;
 	if(getInputString(&inp, "center", strdir, 0) == KEY_FOUND) {
 		double tmpf[3];
 		int tmpi = sscanf(strdir.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
 		if(tmpi != 3) throw oxDNAException("Could not parse center %s in external forces file. Aborting", strdir.c_str());
-		this->_center = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
+		_center = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	}
-}
 
-void RepulsiveSphereSmooth::init(std::vector<BaseParticle *> & particles, BaseBox *box_ptr) {
-	int N = particles.size();
-	if(this->_particle >= N || N < -1) throw oxDNAException("Trying to add a RepulsiveSphereSmooth on non-existent particle %d. Aborting", this->_particle);
-	if(this->_particle != -1) {
-		OX_LOG(Logger::LOG_INFO, "Adding RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g) on particle %d", this->_stiff, this->_r0, this->_center.x, this->_center.y, this->_center.z, _particle);
-		particles[_particle]->add_ext_force(ForcePtr(this));
-	}
-	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g) on ALL particles", this->_stiff, this->_r0, this->_center.x, this->_center.y, this->_center.z);
-		for (int i = 0; i < N; i ++) {
-			particles[i]->add_ext_force(ForcePtr(this));
-		}
-	}
-	_box_ptr = box_ptr;
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "RepulsiveSphereSmooth");
+	std::string description = Utils::sformat("RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g)", _stiff, _r0, _center.x, _center.y, _center.z);
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector RepulsiveSphereSmooth::value(llint step, LR_vector &pos) {
-	LR_vector dist = _box_ptr->min_image(this->_center, pos);
+	LR_vector dist = _box_ptr->min_image(_center, pos);
 	number mdist = dist.module();
 
 	if(mdist < _r0 || mdist > _r_ext) {
@@ -63,21 +55,21 @@ LR_vector RepulsiveSphereSmooth::value(llint step, LR_vector &pos) {
 	}
 	else {
 		if(mdist >= _alpha && mdist <= _r_ext) {
-			return dist * (-(this->_stiff * 0.5 * exp((mdist - _alpha) / _smooth)) / mdist);
+			return dist * (-(_stiff * 0.5 * exp((mdist - _alpha) / _smooth)) / mdist);
 		}
 		else {
-			return dist * (-(this->_stiff * mdist - this->_stiff * 0.5 * exp(-(mdist - _alpha) / _smooth)) / mdist);
+			return dist * (-(_stiff * mdist - _stiff * 0.5 * exp(-(mdist - _alpha) / _smooth)) / mdist);
 		}
 	}
 }
 
 number RepulsiveSphereSmooth::potential(llint step, LR_vector &pos) {
-	LR_vector dist = _box_ptr->min_image(this->_center, pos);
+	LR_vector dist = _box_ptr->min_image(_center, pos);
 	number mdist = dist.module();
 
 	if(mdist < _r0 || mdist > _r_ext) return 0.;
 	else {
-		if(mdist >= _alpha && mdist <= _r_ext) return (this->_stiff * 0.5 * _smooth * exp((mdist - _alpha) / _smooth));
-		else return (this->_stiff * mdist + this->_stiff * 0.5 * _smooth * exp(-(mdist - _alpha) / _smooth));
+		if(mdist >= _alpha && mdist <= _r_ext) return (_stiff * 0.5 * _smooth * exp((mdist - _alpha) / _smooth));
+		else return (_stiff * mdist + _stiff * 0.5 * _smooth * exp(-(mdist - _alpha) / _smooth));
 	}
 }

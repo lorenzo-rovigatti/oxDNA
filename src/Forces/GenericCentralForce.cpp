@@ -111,7 +111,6 @@ inline number LookupTable::query_derivative(number x) {
 
 GenericCentralForce::GenericCentralForce() :
 				BaseForce() {
-	_particles_string = "\0";
 	_type = -1;
 	_table_N = -1;
 	_E_shift = 0.;
@@ -126,9 +125,9 @@ GenericCentralForce::~GenericCentralForce() {
 
 }
 
-void GenericCentralForce::get_settings(input_file &inp) {
+std::tuple<std::vector<int>, std::string> GenericCentralForce::init(input_file &inp, BaseBox *box_ptr) {
 	string particles_string;
-	getInputString(&inp, "particle", _particles_string, 1);
+	getInputString(&inp, "particle", particles_string, 1);
 
 	getInputNumber(&inp, "E_shift", &_E_shift, 0);
 
@@ -149,7 +148,7 @@ void GenericCentralForce::get_settings(input_file &inp) {
 	_type = res->second;
 	switch(_type) {
 	case GRAVITY:
-		getInputNumber(&inp, "F0", &this->_F0, 1);
+		getInputNumber(&inp, "F0", &_F0, 1);
 		getInputNumber(&inp, "inner_cut_off", &inner_cut_off, 0);
 		getInputNumber(&inp, "outer_cut_off", &outer_cut_off, 0);
 		break;
@@ -160,11 +159,6 @@ void GenericCentralForce::get_settings(input_file &inp) {
 	default:
 		break;
 	}
-}
-
-void GenericCentralForce::init(std::vector<BaseParticle *> &particles, BaseBox *box_ptr) {
-	std::string force_description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
-	this->_add_self_to_particles(particles, _particles_string, force_description);
 
 	inner_cut_off_sqr = SQR(inner_cut_off);
 	outer_cut_off_sqr = SQR(outer_cut_off);
@@ -176,6 +170,11 @@ void GenericCentralForce::init(std::vector<BaseParticle *> &particles, BaseBox *
 	default:
 		break;
 	}
+
+	std::string description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector GenericCentralForce::value(llint step, LR_vector &pos) {
@@ -192,7 +191,7 @@ LR_vector GenericCentralForce::value(llint step, LR_vector &pos) {
 			return LR_vector(0., 0., 0.);
 		}
 
-		return this->_F0 * dir;
+		return _F0 * dir;
 	case INTERPOLATED:
 		return _table.query_derivative(sqrt(dist_sqr)) * dir;
 	}
@@ -214,7 +213,7 @@ number GenericCentralForce::potential(llint step, LR_vector &pos) {
 			energy = 0.;
 		}
 		else {
-			energy = this->_F0 * dist - this->_F0 * inner_cut_off + _E_shift;
+			energy = _F0 * dist - _F0 * inner_cut_off + _E_shift;
 		}
 		break;
 	case INTERPOLATED:

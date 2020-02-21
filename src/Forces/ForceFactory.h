@@ -29,10 +29,12 @@ private:
 	static std::shared_ptr<ForceFactory> _ForceFactoryPtr;
 	ForceFactory();
 
+	void _add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_type);
+
 public:
 	virtual ~ForceFactory();
 
-	static std::shared_ptr<ForceFactory>  instance();
+	static std::shared_ptr<ForceFactory> instance();
 
 	/**
 	 * @brief Produces and adds the force specified in the input file inp to the right particles.

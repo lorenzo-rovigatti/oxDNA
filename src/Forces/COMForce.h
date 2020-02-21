@@ -39,7 +39,7 @@ protected:
 	number _r0;
 	llint _last_step;
 
-	BaseBox * _box_ptr;
+	BaseBox *_box_ptr;
 
 	LR_vector _com;
 	LR_vector _ref_com;
@@ -51,15 +51,12 @@ protected:
 	std::set<BaseParticle *> _ref_list;
 
 	void _compute_coms(llint step);
-	void _check_index(int idx, int N);
 
 public:
 	COMForce();
 	virtual ~COMForce();
 
-	virtual void get_settings(input_file &inp);
-
-	virtual void init(std::vector<BaseParticle *> &particles, BaseBox * box_side);
+	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box_side);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

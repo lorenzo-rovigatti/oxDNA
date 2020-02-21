@@ -11,16 +11,12 @@
 #include "BaseForce.h"
 
 class MovingTrap: public BaseForce {
-private:
-	int _particle;
-
 public:
 	MovingTrap();
 	virtual ~MovingTrap() {
 	}
 
-	void get_settings(input_file &);
-	void init(std::vector<BaseParticle *> &, BaseBox *);
+	std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *);
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);
