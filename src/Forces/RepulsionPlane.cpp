@@ -32,7 +32,7 @@ std::tuple<std::vector<int>, std::string> RepulsionPlane::init(input_file &inp, 
 	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	_direction.normalize();
 
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "RepulsionPlane");
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles(), particles_string, "RepulsionPlane");
 	std::string description = Utils::sformat("RepulsionPlane (stiff=%g, position=%g, dir=%g,%g,%g", _stiff, _position, _direction.x, _direction.y, _direction.z);
 
 	return std::make_tuple(particle_ids, description);

@@ -44,7 +44,7 @@ std::tuple<std::vector<int>, std::string> ConstantRateForce::init(input_file &in
 	}
 
 	std::string description = Utils::sformat("ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g)", _F0, _rate, _direction.x, _direction.y, _direction.z);
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles(), particles_string, "ConstantRateForce");
 
 	return std::make_tuple(particle_ids, description);
 }

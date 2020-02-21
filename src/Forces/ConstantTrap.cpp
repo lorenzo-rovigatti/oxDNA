@@ -28,9 +28,9 @@ std::tuple<std::vector<int>, std::string> ConstantTrap::init(input_file &inp, Ba
 	getInputNumber(&inp, "stiff", &_stiff, 1);
 	getInputBool(&inp, "PBC", &PBC, 0);
 
-	int N = CONFIG_INFO->particles.size();
+	int N = CONFIG_INFO->particles().size();
 	if(_ref_id < 0 || _ref_id >= N) throw oxDNAException("Invalid reference particle %d for ConstantTrap", _ref_id);
-	_p_ptr = CONFIG_INFO->particles[_ref_id];
+	_p_ptr = CONFIG_INFO->particles()[_ref_id];
 
 	_box_ptr = box_ptr;
 

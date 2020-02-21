@@ -57,7 +57,7 @@ std::tuple<std::vector<int>, std::string> ConstantRateTorque::init(input_file &i
 		_mask = LR_vector(0., 0., 0.);
 	}
 
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateTorque");
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles(), particles_string, "ConstantRateTorque");
 	std::string description = Utils::sformat("ConstantRateTorque (F0==%g, rate=%g, pos0=%g,%g,%g, axis=%g,%g,%g, center=%g,%g,%g, mask=%g,%g,%g on particle %d", _F0, _rate, _pos0.x, _pos0.y, _pos0.z, _axis.x, _axis.y, _axis.z, _center.x, _center.y, _center.z, _mask.x, _mask.y, _mask.z);
 
 	return std::make_tuple(particle_ids, description);
