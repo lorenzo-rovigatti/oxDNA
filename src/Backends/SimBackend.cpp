@@ -586,8 +586,7 @@ void SimBackend::print_observables(llint curr_step) {
 			total_bytes += (*it)->get_bytes_written();
 		}
 
-		// here we control the timings; we leave the code a 30-second grace time
-		// to print the initial configuration
+		// here we control the timings; we leave the code a 30-second grace time to print the initial configuration
 		double time_passed = (double) _mytimer->get_time() / (double) CLOCKS_PER_SEC;
 		if(time_passed > 30) {
 			double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
@@ -597,9 +596,10 @@ void SimBackend::print_observables(llint curr_step) {
 			}
 		}
 
-		_backend_info = std::string("");
 		apply_changes_to_simulation_data();
 	}
+
+	_backend_info = std::string("");
 }
 
 void SimBackend::fix_diffusion() {

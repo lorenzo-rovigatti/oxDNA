@@ -1,11 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import threading
-import Queue
+import queue
 import os
 import subprocess as sp
 import math
+import traceback
 
 from multiprocessing import Lock
 
@@ -33,21 +34,20 @@ class Logger():
         if level < Logger.debug_level: return
 
         Logger.log_lock.acquire()
-        print >> sys.stderr, "%s%s: %s" % (prepend, Logger.messages[level], msg)
+        print("%s%s: %s" % (prepend, Logger.messages[level], msg), file=sys.stderr)
         Logger.log_lock.release()
 
 
 class Runner(threading.Thread):
-    queue = Queue.Queue(1)
+    queue = queue.Queue(1)
     
     def __init__(self, tid):
         threading.Thread.__init__(self)
         self.tid = tid
-        self.base_folder = os.getcwd()
         
     def run(self):
         while True:
-            details = Runner.queue.get(True)
+            details = Runner.queue.get()
             
             system = details["system"]
             folder = system.folder
@@ -55,12 +55,13 @@ class Runner(threading.Thread):
             to_execute = "%s %s log_file=%s no_stdout_energy=0" % (details["executable"], system.input_name, log_file)
             
             try:
+                Logger.log("Executing '%s' in %s" % (to_execute, folder), Logger.DEBUG)
                 p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, cwd=folder)
                 p.wait()
                 system.simulation_done(p)
                 
             except Exception as e:
-                Logger.log(e, Logger.WARNING)
+                Logger.log(traceback.format_exc(), Logger.WARNING)
             
             Runner.queue.task_done()
             
@@ -238,7 +239,7 @@ class System(object):
         
         # check the standard output for nans and infs
         for l in p.stdout.readlines():
-            tokens = ["nan", "inf"]
+            tokens = [b"nan", b"inf"]
             for t in tokens: 
                 if t in l: 
                     Logger.log("%s %s generated a '%s': %s" % (self.executable_name, t, l), Logger.WARNING)
@@ -246,7 +247,8 @@ class System(object):
         
         # we don't run tests if the simulation was not successful. We put this here so that all
         # above messages can be printed independently of each other
-        if error: return
+        if error: 
+            return
         
         Logger.log("%s %s run completed and successful" % (self.executable_name, self.log_prefix), Logger.DEBUG)
         
@@ -289,7 +291,7 @@ class TestManager(object):
             runner.start()
         
         for system in self.systems:
-            Logger.log("%s starting %s in '%s'" % (self.executable_name, self.log_prefix, system.folder), Logger.DEBUG)
+            Logger.log("%s adding the following job: %s to be run in '%s'" % (self.log_prefix, self.executable_name, system.folder), Logger.DEBUG)
             
             details = {
                        "system" : system,
@@ -297,7 +299,7 @@ class TestManager(object):
                        "level" : self.level
                        }
             
-            Runner.queue.put(details, block=True)
+            Runner.queue.put(details)
             
         Runner.queue.join()
         
@@ -313,15 +315,15 @@ class TestManager(object):
     
 def main():
     def print_usage():
-        print "USAGE:"
-        print "\t%s folder_list_file executable test_level [-d|--debug] [-h|--help] [-v|--version] [--threads=N_threads]" % sys.argv[0]
+        print("USAGE:")
+        print("\t%s folder_list_file executable test_level [-d|--debug] [-h|--help] [-v|--version] [--threads=N_threads]" % sys.argv[0])
         exit(1)
 
     def print_version():
-        print "oxDNA Test Suite v 0.1"
-        print "Copyright (C) 2015 oxDNA"
-        print "This is free software; see the source for copying conditions.  There is NO"
-        print "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+        print("oxDNA Test Suite v 0.1")
+        print("Copyright (C) 2015 oxDNA")
+        print("This is free software; see the source for copying conditions. There is NO")
+        print("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n")
         exit(1)
 
     shortArgs = 'dhv'
@@ -339,7 +341,7 @@ def main():
             if k[0] == '--threads': threads = int(k[1])
             
     except Exception as e:
-        print e
+        Logger.log(traceback.format_exc(), Logger.ERROR)
         print_usage()
         
     if len(sys.argv) < 4:

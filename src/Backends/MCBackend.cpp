@@ -15,7 +15,7 @@ MCBackend::MCBackend() :
 				_MC_moves(3),
 				_overlap(false),
 				_check_energy_counter(0) {
-	this->_sim_type = SIM_MC;
+	_sim_type = SIM_MC;
 
 	_delta.resize(_MC_moves);
 	_tries.resize(_MC_moves);
@@ -45,16 +45,20 @@ void MCBackend::get_settings(input_file &inp) {
 		_ensemble = MC_ENSEMBLE_NPT;
 		//throw oxDNAException("Ensemble NPT will be implemented soon");
 		int check = getInputString(&inp, "list_type", tmp, 0);
-		if(check == KEY_NOT_FOUND || (strncasecmp(tmp, "cells", 256) != 0 && strncasecmp(tmp, "no", 256) != 0 && strncasecmp(tmp, "rodcells", 256) != 0)) throw oxDNAException("NPT ensemble requires no lists or cells to handle interaction lists; set list_type=cells in the input file");
+		if(check == KEY_NOT_FOUND || (strncasecmp(tmp, "cells", 256) != 0 && strncasecmp(tmp, "no", 256) != 0 && strncasecmp(tmp, "rodcells", 256) != 0))
+			throw oxDNAException("NPT ensemble requires no lists or cells to handle interaction lists; set list_type=cells in the input file");
 
 	}
-	else if(strncasecmp(tmp, "nvt", 256) == 0) _ensemble = MC_ENSEMBLE_NVT;
-	else throw oxDNAException("Ensemble '%s' not supported\n", tmp);
+	else if(strncasecmp(tmp, "nvt", 256) == 0)
+		_ensemble = MC_ENSEMBLE_NVT;
+	else
+		throw oxDNAException("Ensemble '%s' not supported\n", tmp);
 
 	int tmpi;
 	if(getInputBoolAsInt(&inp, "adjust_moves", &tmpi, 0) == KEY_FOUND) {
 		_adjust_moves = (tmpi > 0);
-		if(_adjust_moves) OX_LOG(Logger::LOG_INFO, "(MCBackend) adjusting moves in the equilibration phase");
+		if(_adjust_moves)
+			OX_LOG(Logger::LOG_INFO, "(MCBackend) adjusting moves in the equilibration phase");
 		getInputLLInt(&inp, "equilibration_steps", &_MC_equilibration_steps, 1);
 	}
 
@@ -65,7 +69,7 @@ void MCBackend::get_settings(input_file &inp) {
 	getInputNumber(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
 	getInputNumber(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
 	if(_ensemble == MC_ENSEMBLE_NPT) {
-		getInputNumber(&inp, "P", &(this->_P), 1);
+		getInputNumber(&inp, "P", &(_P), 1);
 		getInputNumber(&inp, "delta_volume", &_delta[MC_MOVE_VOLUME], 1);
 	}
 
@@ -79,7 +83,9 @@ void MCBackend::get_settings(input_file &inp) {
 	_obs_output_file = std::make_shared<ObservableOutput>(fake);
 	_obs_output_file->add_observable("type = step");
 	_obs_output_file->add_observable("type = potential_energy");
-	if(_ensemble == MC_ENSEMBLE_NPT) _obs_output_file->add_observable("type = density");
+	if(_ensemble == MC_ENSEMBLE_NPT) {
+		_obs_output_file->add_observable("type = density");
+	}
 	_obs_output_file->add_observable("type = backend_info");
 	_obs_outputs.push_back(_obs_output_file);
 
@@ -92,7 +98,9 @@ void MCBackend::get_settings(input_file &inp) {
 		_obs_outputs.push_back(_obs_output_stdout);
 		_obs_output_stdout->add_observable("type = step");
 		_obs_output_stdout->add_observable("type = potential_energy");
-		if(_ensemble == MC_ENSEMBLE_NPT) _obs_output_stdout->add_observable("type = density");
+		if(_ensemble == MC_ENSEMBLE_NPT) {
+			_obs_output_stdout->add_observable("type = density");
+		}
 		_obs_output_stdout->add_observable("type = backend_info");
 	}
 }
@@ -100,11 +108,11 @@ void MCBackend::get_settings(input_file &inp) {
 void MCBackend::print_observables(llint curr_step) {
 	std::string tmpstr("");
 	for(int i = 0; i < _MC_moves; i++) {
-		number ratio = (this->_tries[i] > 0) ? this->_accepted[i] / (float) this->_tries[i] : 0;
-		//this->_backend_info += Utils::sformat("  %5.3lf", ratio);
+		number ratio = (_tries[i] > 0) ? _accepted[i] / (float) _tries[i] : 0;
+		//_backend_info += Utils::sformat("  %5.3lf", ratio);
 		tmpstr += Utils::sformat("  %5.3lf", ratio);
 	}
-	this->_backend_info.insert(0, tmpstr + "  ");
+	_backend_info.insert(0, tmpstr + "  ");
 
 	SimBackend::print_observables(curr_step);
 }
