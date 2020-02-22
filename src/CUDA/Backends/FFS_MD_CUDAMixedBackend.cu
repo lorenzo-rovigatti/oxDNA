@@ -934,7 +934,7 @@ void FFS_MD_CUDAMixedBackend::_prepare_configuration(char *conf_str) {
 	// set config name and set the correct energy
 	_obs_output_custom_conf->change_output_file(conf_str);
 	// these 3 lines to get the correct energy in the configuration file
-	_gpu_to_host_particles();
+	apply_simulation_data_changes();
 	_U = GpuUtils::sum_4th_comp(_h_forces, N());
 	_K = GpuUtils::sum_4th_comp(_h_vels, N()) + GpuUtils::sum_4th_comp(_h_Ls, N());
 }

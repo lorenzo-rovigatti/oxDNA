@@ -124,7 +124,7 @@ void SimManager::init() {
 
 	_backend->init();
 
-	_start_step = _backend->_start_step_from_file;
+	_start_step = _backend->start_step_from_file;
 
 	// init time_scale_manager
 	initTimeScale(&_time_scale_manager, _time_scale);
@@ -147,6 +147,8 @@ void SimManager::init() {
 }
 
 void SimManager::run() {
+	_backend->apply_changes_to_simulation_data();
+
 	SimManager::started = true;
 	// equilibration loop
 	if(_equilibration_steps > 0) {
@@ -189,5 +191,7 @@ void SimManager::run() {
 	_backend->print_conf(_cur_step, false, true);
 
 	TimingManager::instance()->print(_cur_step - _start_step);
+
+	_backend->apply_simulation_data_changes();
 }
 

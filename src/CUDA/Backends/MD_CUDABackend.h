@@ -60,11 +60,8 @@ protected:
 	CUDA_trap *_h_ext_forces, *_d_ext_forces;
 	int _max_ext_forces;
 
-	virtual void _host_to_gpu();
 	virtual void _gpu_to_host();
-
-	virtual void _host_particles_to_gpu();
-	virtual void _gpu_to_host_particles();
+	virtual void _host_to_gpu();
 
 	virtual void _sort_particles();
 	virtual void _rescale_positions(c_number4 new_Ls, c_number4 old_Ls);
@@ -78,8 +75,6 @@ protected:
 
 	virtual void _init_CUDA_MD_symbols();
 
-	virtual void _print_ready_observables(llint curr_step);
-
 public:
 	MD_CUDABackend();
 	virtual ~MD_CUDABackend();
@@ -88,9 +83,9 @@ public:
 	virtual void init();
 
 	virtual void sim_step(llint curr_step);
-	virtual void fix_diffusion();
 
-	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
+	virtual void apply_simulation_data_changes();
+	virtual void apply_changes_to_simulation_data();
 };
 
 #endif /* MD_CUDABACKEND_H_ */

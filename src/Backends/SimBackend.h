@@ -179,13 +179,6 @@ protected:
 
 	int _get_N_from_conf(std::ifstream &conf_input);
 
-	/**
-	 * @brief Prints all the observables that are ready, i.e. whose is_ready(curr_step) method returns true.
-	 *
-	 * @param curr_step
-	 */
-	virtual void _print_ready_observables(llint curr_step);
-
 public:
 	SimBackend();
 	virtual ~SimBackend();
@@ -235,7 +228,17 @@ public:
 	 */
 	virtual void sim_step(llint curr_step) = 0;
 
-	llint _start_step_from_file;
+	/**
+	 * @brief Synchronize the simulation data with the data structures that are used to analyse/print the current simulation status.
+	 */
+	virtual void apply_simulation_data_changes();
+
+	/**
+	 * @brief Update the simulation data, so that changes done to the data structures are taken into account by the simulation engine.
+	 */
+	virtual void apply_changes_to_simulation_data();
+
+	llint start_step_from_file;
 };
 
 #endif /* SIMBACKEND_H_ */

@@ -48,6 +48,8 @@ void OxpyManager::run(llint steps, bool print_output) {
 		_cur_step = _start_step;
 	}
 
+	_backend->apply_changes_to_simulation_data();
+
 	for(llint i = 0; i < steps && !SimManager::stop; i++, _cur_step++) {
 		if(_cur_step == _time_scale_manager.next_step) {
 			if(print_output && _cur_step > _start_step) {
@@ -66,6 +68,8 @@ void OxpyManager::run(llint steps, bool print_output) {
 
 		_backend->sim_step(_cur_step);
 	}
+
+	_backend->apply_simulation_data_changes();
 }
 
 void export_SimManager(py::module &m) {

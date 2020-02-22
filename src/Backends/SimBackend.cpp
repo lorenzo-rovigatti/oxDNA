@@ -31,9 +31,7 @@ SimBackend::SimBackend() {
 	_is_CUDA_sim = false;
 	_interaction = NULL;
 	_N_strands = -1;
-	// here to avoid valgrind's "Conditional jump or move depends on
-	// uninitialised value"
-	_start_step_from_file = (llint) 0;
+	start_step_from_file = (llint) 0;
 	_U = (number) 0.f;
 	_K = (number) 0.f;
 	_U_hydr = (number) 0.f;
@@ -43,7 +41,6 @@ SimBackend::SimBackend() {
 	_back_in_box = false;
 	_custom_conf_name = false;
 	_read_conf_step = 0;
-	_start_step_from_file = 0;
 	_obs_output_last_conf_bin = nullptr;
 	_P = (number) 0.;
 	_lists = nullptr;
@@ -344,8 +341,8 @@ void SimBackend::init() {
 	if(!check)
 		throw oxDNAException("Could not read the initial configuration, aborting");
 
-	_start_step_from_file = (_restart_step_counter) ? 0 : _read_conf_step;
-	_config_info->curr_step = _start_step_from_file;
+	start_step_from_file = (_restart_step_counter) ? 0 : _read_conf_step;
+	_config_info->curr_step = start_step_from_file;
 
 	if(_external_forces) {
 		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _is_CUDA_sim, _box.get());
@@ -563,24 +560,12 @@ bool SimBackend::_read_next_configuration(bool binary) {
 	return true;
 }
 
-void SimBackend::_print_ready_observables(llint curr_step) {
-	llint total_bytes = 0;
-	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		if((*it)->is_ready(curr_step)) {
-			(*it)->print_output(curr_step);
-		}
-		total_bytes += (*it)->get_bytes_written();
-	}
+void SimBackend::apply_simulation_data_changes() {
 
-	// here we control the timings; we leave the code a 30-second grace time
-	// to print the initial configuration
-	double time_passed = (double) _mytimer->get_time() / (double) CLOCKS_PER_SEC;
-	if(time_passed > 30) {
-		double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
-		OX_DEBUG("Current data production rate: %g MB/s (total bytes: %lld, time_passed: %g)" , MBps, total_bytes, time_passed);
-		if(MBps > _max_io)
-			throw oxDNAException("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
-	}
+}
+
+void SimBackend::apply_changes_to_simulation_data() {
+
 }
 
 void SimBackend::print_observables(llint curr_step) {
@@ -589,16 +574,40 @@ void SimBackend::print_observables(llint curr_step) {
 		if((*it)->is_ready(curr_step))
 			someone_ready = true;
 	}
+
 	if(someone_ready) {
-		_print_ready_observables(curr_step);
+		apply_simulation_data_changes();
+
+		llint total_bytes = 0;
+		for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
+			if((*it)->is_ready(curr_step)) {
+				(*it)->print_output(curr_step);
+			}
+			total_bytes += (*it)->get_bytes_written();
+		}
+
+		// here we control the timings; we leave the code a 30-second grace time
+		// to print the initial configuration
+		double time_passed = (double) _mytimer->get_time() / (double) CLOCKS_PER_SEC;
+		if(time_passed > 30) {
+			double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
+			OX_DEBUG("Current data production rate: %g MB/s (total bytes: %lld, time_passed: %g)" , MBps, total_bytes, time_passed);
+			if(MBps > _max_io) {
+				throw oxDNAException("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
+			}
+		}
+
+		_backend_info = std::string("");
+		apply_changes_to_simulation_data();
 	}
-	_backend_info = std::string("");
 }
 
 void SimBackend::fix_diffusion() {
 	if(!_enable_fix_diffusion) {
 		return;
 	}
+
+	apply_simulation_data_changes();
 
 	static std::vector<LR_vector> stored_pos(N());
 	static std::vector<LR_matrix> stored_or(N());
@@ -694,9 +703,13 @@ void SimBackend::fix_diffusion() {
 	else {
 		OX_LOG(Logger::LOG_INFO, "diffusion fixed.. %g %g", E_before, E_after);
 	}
+
+	apply_changes_to_simulation_data();
 }
 
 void SimBackend::print_conf(llint curr_step, bool reduced, bool only_last) {
+	apply_simulation_data_changes();
+
 	if(reduced) {
 		std::stringstream conf_name;
 		conf_name << _reduced_conf_output_dir << "/reduced_conf" << curr_step << ".dat";
