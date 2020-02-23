@@ -12,6 +12,6 @@ setup(
         '': '${CMAKE_CURRENT_BINARY_DIR}'
     },
     package_data = {
-        '': ['oxpy.so']
+        '': ['core.so']
     }
 )

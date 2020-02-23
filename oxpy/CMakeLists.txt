@@ -27,14 +27,14 @@ IF(Python)
 	# we need the oxDNA "common" library to be compiled so that the resulting code is position-independent and the library can be linked dynamically
 	SET_TARGET_PROPERTIES(common PROPERTIES POSITION_INDEPENDENT_CODE ON)
 	
-	ADD_LIBRARY(_oxpy STATIC ${oxpy_SOURCES})
-	TARGET_LINK_LIBRARIES(_oxpy ${PYTHON_LIBRARIES} common)
-	SET_TARGET_PROPERTIES(_oxpy PROPERTIES POSITION_INDEPENDENT_CODE ON)
-	pybind11_add_module(oxpy SHARED bindings.cpp)
-	TARGET_LINK_LIBRARIES(oxpy PRIVATE _oxpy)
+	ADD_LIBRARY(_oxpy_lib STATIC ${oxpy_SOURCES})
+	TARGET_LINK_LIBRARIES(_oxpy_lib ${PYTHON_LIBRARIES} common)
+	SET_TARGET_PROPERTIES(_oxpy_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
+	pybind11_add_module(core SHARED bindings.cpp)
+	TARGET_LINK_LIBRARIES(core PRIVATE _oxpy_lib)
 	
 	# the library should be in a folder with the same name to make it easier to use Python's distutils
-	SET_TARGET_PROPERTIES(oxpy 
+	SET_TARGET_PROPERTIES(core 
 		PROPERTIES 
 			SUFFIX ".so"
 			LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/oxpy"

@@ -82,10 +82,15 @@ void export_SimManager(py::module &m) {
 }
 
 void export_OxpyManager(py::module &m) {
-	pybind11::class_<OxpyManager, SimManager, std::shared_ptr<OxpyManager>> manager(m, "OxpyManager");
+	pybind11::class_<OxpyManager, SimManager, std::shared_ptr<OxpyManager>> manager(m, "OxpyManager", R"pbdoc(
+		 The object in charge of initialising and running a simulation. 
+	)pbdoc");
 
-	manager
-		.def(py::init<std::vector<std::string>>())
-		.def("config_info", &OxpyManager::config_info)
-		.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true);
+	manager.def(py::init<std::vector<std::string>>());
+	manager.def("config_info", &OxpyManager::config_info, R"pbdoc(
+		 Return the simulation's :py:class:`~oxpy.ConfigInfo` 
+	)pbdoc");
+	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(
+		 Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not. 
+	)pbdoc");
 }
