@@ -1,0 +1,261 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Core classes &#8212; oxpy 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-oxpy.core"></span><div class="section" id="core-classes">
+<h1>Core classes<a class="headerlink" href="#core-classes" title="Permalink to this headline">¶</a></h1>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-obj docutils literal"><span class="pre">BaseParticle</span></code></a></td>
+<td>A simulation particle</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-obj docutils literal"><span class="pre">ConfigInfo</span></code></a></td>
+<td>This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction"><code class="xref py py-obj docutils literal"><span class="pre">IBaseInteraction</span></code></a></td>
+<td>The object that takes care of computing the interaction between the particles</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager"><code class="xref py py-obj docutils literal"><span class="pre">OxpyManager</span></code></a></td>
+<td>The object in charge of initialising and running a simulation.</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="oxpy.core.BaseParticle">
+<em class="property">class </em><code class="descclassname">oxpy.core.</code><code class="descname">BaseParticle</code><a class="headerlink" href="#oxpy.core.BaseParticle" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simulation particle</p>
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.L">
+<code class="descname">L</code><a class="headerlink" href="#oxpy.core.BaseParticle.L" title="Permalink to this definition">¶</a></dt>
+<dd><p>The angular momentum of the particle</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.btype">
+<code class="descname">btype</code><a class="headerlink" href="#oxpy.core.BaseParticle.btype" title="Permalink to this definition">¶</a></dt>
+<dd><p>The btype of the particle</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.ext_potential">
+<code class="descname">ext_potential</code><a class="headerlink" href="#oxpy.core.BaseParticle.ext_potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>The potential energy due to the external forces acting on the particle</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.force">
+<code class="descname">force</code><a class="headerlink" href="#oxpy.core.BaseParticle.force" title="Permalink to this definition">¶</a></dt>
+<dd><p>The force exerted on the particle</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.index">
+<code class="descname">index</code><a class="headerlink" href="#oxpy.core.BaseParticle.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>The index of the particle</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.BaseParticle.is_bonded">
+<code class="descname">is_bonded</code><span class="sig-paren">(</span><em>self: oxpy.core.BaseParticle</em>, <em>arg0: oxpy.core.BaseParticle</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#oxpy.core.BaseParticle.is_bonded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the current particle and arg0 are bonded neighbours</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arg0</strong> – The other particle</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.n3">
+<code class="descname">n3</code><a class="headerlink" href="#oxpy.core.BaseParticle.n3" title="Permalink to this definition">¶</a></dt>
+<dd><p>The n3 neighbour</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.n5">
+<code class="descname">n5</code><a class="headerlink" href="#oxpy.core.BaseParticle.n5" title="Permalink to this definition">¶</a></dt>
+<dd><p>The n5 neighbour</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.orientation">
+<code class="descname">orientation</code><a class="headerlink" href="#oxpy.core.BaseParticle.orientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The orientation of the particle as a 3x3 matrix</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.pos">
+<code class="descname">pos</code><a class="headerlink" href="#oxpy.core.BaseParticle.pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>The position of the particle</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.strand_id">
+<code class="descname">strand_id</code><a class="headerlink" href="#oxpy.core.BaseParticle.strand_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The id of the strand to which the particle belongs</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.torque">
+<code class="descname">torque</code><a class="headerlink" href="#oxpy.core.BaseParticle.torque" title="Permalink to this definition">¶</a></dt>
+<dd><p>The torque exerted on the particle</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.type">
+<code class="descname">type</code><a class="headerlink" href="#oxpy.core.BaseParticle.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The type of the particle</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.BaseParticle.vel">
+<code class="descname">vel</code><a class="headerlink" href="#oxpy.core.BaseParticle.vel" title="Permalink to this definition">¶</a></dt>
+<dd><p>The velocity of the particle</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oxpy.core.ConfigInfo">
+<em class="property">class </em><code class="descclassname">oxpy.core.</code><code class="descname">ConfigInfo</code><a class="headerlink" href="#oxpy.core.ConfigInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction)</p>
+<dl class="method">
+<dt id="oxpy.core.ConfigInfo.N">
+<code class="descname">N</code><span class="sig-paren">(</span><em>self: oxpy.core.ConfigInfo</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#oxpy.core.ConfigInfo.N" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current number of particles</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="oxpy.core.ConfigInfo.interaction">
+<code class="descname">interaction</code><a class="headerlink" href="#oxpy.core.ConfigInfo.interaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>The simulation’s <code class="xref py py-class docutils literal"><span class="pre">IBaseInteraction</span></code> object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.ConfigInfo.particles">
+<code class="descname">particles</code><span class="sig-paren">(</span><em>self: oxpy.core.ConfigInfo</em><span class="sig-paren">)</span> &#x2192; List[oxpy.core.BaseParticle]<a class="headerlink" href="#oxpy.core.ConfigInfo.particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all the particles</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oxpy.core.IBaseInteraction">
+<em class="property">class </em><code class="descclassname">oxpy.core.</code><code class="descname">IBaseInteraction</code><a class="headerlink" href="#oxpy.core.IBaseInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>The object that takes care of computing the interaction between the particles</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="oxpy.core.OxpyManager">
+<em class="property">class </em><code class="descclassname">oxpy.core.</code><code class="descname">OxpyManager</code><a class="headerlink" href="#oxpy.core.OxpyManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>The object in charge of initialising and running a simulation.</p>
+<dl class="method">
+<dt id="oxpy.core.OxpyManager.config_info">
+<code class="descname">config_info</code><span class="sig-paren">(</span><em>self: oxpy.core.OxpyManager</em><span class="sig-paren">)</span> &#x2192; ConfigInfo<a class="headerlink" href="#oxpy.core.OxpyManager.config_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the simulation’s <code class="xref py py-class docutils literal"><span class="pre">ConfigInfo</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.OxpyManager.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>self: oxpy.core.OxpyManager</em>, <em>steps: int</em>, <em>print_output: bool=True</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.OxpyManager.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Lorenzo Rovigatti.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

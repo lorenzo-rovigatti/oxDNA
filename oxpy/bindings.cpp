@@ -31,7 +31,9 @@ PYBIND11_MODULE(core, m) {
 
            BaseParticle
            ConfigInfo
+           IBaseInteraction
            OxpyManager
+
     )pbdoc";
 
 	export_OxpyContext(m);
@@ -49,7 +51,9 @@ void export_BaseParticle(py::module &m) {
         A simulation particle
 	)pbdoc");
 
-	particle.def(py::init<>());
+	particle.def(py::init<>(), R"pbdoc(
+		 Default constructor 
+	)pbdoc");
 	particle.def("is_bonded", &BaseParticle::is_bonded, R"pbdoc(
         Return whether the current particle and arg0 are bonded neighbours
 
@@ -111,7 +115,7 @@ void export_ConfigInfo(py::module &m) {
 		 Return a list of all the particles 
 	)pbdoc");
 	conf_info.def_readwrite("interaction", &ConfigInfo::interaction, R"pbdoc(
-		 Return the interaction object 
+		 The simulation's :py:class:`~oxpy.IBaseInteraction` object 
 	)pbdoc");
 }
 
@@ -223,8 +227,11 @@ public:
 };
 
 void export_IBaseInteraction(py::module &m) {
-	pybind11::class_<IBaseInteraction, PyIBaseInteraction, std::shared_ptr<IBaseInteraction>> interaction(m, "IBaseInteraction");
+	pybind11::class_<IBaseInteraction, PyIBaseInteraction, std::shared_ptr<IBaseInteraction>> interaction(m, "IBaseInteraction", R"pbdoc(
+		 The object that takes care of computing the interaction between the particles 
+	)pbdoc");
 
-	interaction
-		.def(py::init<>());
+	interaction.def(py::init<>(), R"pbdoc(
+		 Default constructor 
+	)pbdoc");
 }

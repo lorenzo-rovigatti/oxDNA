@@ -86,7 +86,9 @@ void export_OxpyManager(py::module &m) {
 		 The object in charge of initialising and running a simulation. 
 	)pbdoc");
 
-	manager.def(py::init<std::vector<std::string>>());
+	manager.def(py::init<std::vector<std::string>>(), R"pbdoc(
+		 Constructor 
+	)pbdoc");
 	manager.def("config_info", &OxpyManager::config_info, R"pbdoc(
 		 Return the simulation's :py:class:`~oxpy.ConfigInfo` 
 	)pbdoc");
