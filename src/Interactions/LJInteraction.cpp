@@ -8,7 +8,7 @@
 #include "LJInteraction.h"
 
 LJInteraction::LJInteraction() : BaseInteraction<LJInteraction>() {
-	this->_int_map[LENNARD_JONES] = &LJInteraction::_lennard_jones;
+	_int_map[LENNARD_JONES] = &LJInteraction::_lennard_jones;
 	_is_ka_mixture = false;
 	_sigma[0] = _sigma[1] = _sigma[2] = 1.;
 	_epsilon[0] = _epsilon[1] = _epsilon[2] = 1.;
@@ -39,7 +39,7 @@ void LJInteraction::get_settings(input_file &inp) {
 
 	float rcut = 2.5f;
 	getInputFloat(&inp, "LJ_rcut", &rcut, 0);
-	this->_rcut = (number) rcut;
+	_rcut = (number) rcut;
 }
 
 void LJInteraction::init() {
@@ -51,14 +51,14 @@ void LJInteraction::init() {
 	}
 
 	for(int i = 0; i < 3; i++) {
-		number rcut = this->_rcut * _sigma[i];
+		number rcut = _rcut * _sigma[i];
 		_sqr_LJ_rcut[i] = SQR(rcut);
 		_E_cut[i] = 4. * _epsilon[i] * (pow(_sigma[i]/rcut, (number)2*_n[i]) - pow(_sigma[i]/rcut, (number)_n[i]));
 		_sqr_sigma[i] = SQR(_sigma[i]);
 	}
 
-	if(_sigma[2] > _sigma[0]) this->_rcut *= _sigma[2];
-	this->_sqr_rcut = SQR(this->_rcut);
+	if(_sigma[2] > _sigma[0]) _rcut *= _sigma[2];
+	_sqr_rcut = SQR(_rcut);
 }
 
 void LJInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
@@ -71,8 +71,8 @@ void LJInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &p
 	int N = particles.size();
 	*N_strands = N;
 
-	std::ifstream topology(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	std::ifstream topology(_topology_filename, std::ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	char line[512];
 	topology.getline(line, 512);
 	topology.close();
@@ -97,7 +97,7 @@ number LJInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 number LJInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
+		computed_r = _box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 
