@@ -12,6 +12,7 @@
 #define OX_DEBUG Logger::instance()->debug
 
 #include <cstdarg>
+#include <memory>
 
 #include "parse_input/parse_input.h"
 
@@ -24,7 +25,7 @@
 class Logger {
 private:
 	/// Static pointer to the only allowed Logger instance
-	static Logger *_logger;
+	static std::shared_ptr<Logger> _logger;
 	/// If true, the logger prints also debug informations
 	bool _debug;
 	/// If false, the logger won't print anything
@@ -47,22 +48,16 @@ private:
 	 */
 	Logger();
 
-	/**
-	 * @brief Copy constructor. It is kept private to enforce the singleton pattern.
-	 *
-	 * @param
-	 * @return
-	 */
-	Logger(Logger const&) {};
-
 public:
-	enum {
+	enum log_levels {
 		LOG_INFO = 0,
 		LOG_WARNING = 1,
 		LOG_DEBUG = 2,
 		LOG_ERROR = 3,
 		LOG_NOTHING = 4
-	} log_levels;
+	};
+
+	Logger(Logger const&) = delete;
 
 	/**
 	 * @brief Read options from the input file
@@ -75,11 +70,6 @@ public:
 	 * @brief Initialize the logger. It is static to avoid more than one instantiation
 	 */
 	static void init();
-
-	/**
-	 * @brief Destroy the logger
-	 */
-	static void clear();
 
 	/**
 	 * @brief Variadic method. Does the actual logging
@@ -118,7 +108,7 @@ public:
 	 *
 	 * @return Pointer to an already initialized logger
 	 */
-	static Logger *instance();
+	static std::shared_ptr<Logger> instance();
 
 	virtual ~Logger();
 };

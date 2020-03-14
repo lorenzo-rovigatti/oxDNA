@@ -12,11 +12,11 @@
  * See Peters, Europhys. Lett. 66 (3), pp. 311-317 (2004).
  *
  * @verbatim
-DPD_zeta = <float> (translational damping coefficient for the DPD thermostat.)
-@endverbatim
+ DPD_zeta = <float> (translational damping coefficient for the DPD thermostat.)
+ @endverbatim
  */
-template<typename number>
-class DPDThermostat : public BaseThermostat<number> {
+
+class DPDThermostat: public BaseThermostat {
 protected:
 	/// Integration time step
 	number _dt, _sqrt_dt;
@@ -34,12 +34,12 @@ protected:
 	number _exponent;
 
 public:
-	DPDThermostat ();
-	virtual ~DPDThermostat ();
+	DPDThermostat();
+	virtual ~DPDThermostat();
 
-	void get_settings (input_file &inp);
-	void init(int N_part);
-	void apply(BaseParticle<number> **particles, llint curr_step);
+	void get_settings(input_file &inp);
+	void init();
+	void apply(std::vector<BaseParticle *> &particles, llint curr_step);
 };
 
 #endif // DPD_THERMOSTAT_

@@ -17,13 +17,13 @@
  *
  *
  * the parameters are as follows:
-@verbatim
-@endverbatim
+ @verbatim
+ @endverbatim
  *
  *
  */
-template<typename number>
-class FormFactor : public BaseObservable<number> {
+
+class FormFactor: public BaseObservable {
 private:
 	number _min_q, _max_q, _mult_q;
 	int _type;
@@ -34,7 +34,7 @@ public:
 	virtual ~FormFactor();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 	virtual std::string get_output_string(llint curr_step);
 };
 

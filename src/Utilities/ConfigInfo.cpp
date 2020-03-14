@@ -9,47 +9,28 @@
 
 #include "oxDNAException.h"
 
-template<typename number>
-ConfigInfo<number> *ConfigInfo<number>::_config_info = NULL;
+std::shared_ptr<ConfigInfo> ConfigInfo::_config_info = nullptr;
 
-template<typename number>
-ConfigInfo<number>::ConfigInfo() :
-				particles(NULL),
-				interaction(NULL),
-				N(NULL),
-				backend_info(NULL),
-				lists(NULL),
-				box(NULL),
-				curr_step(0) {
+ConfigInfo::ConfigInfo(std::vector<BaseParticle *> &ps) :
+				particles(ps) {
 
 }
 
-template<typename number>
-ConfigInfo<number>::~ConfigInfo() {
+ConfigInfo::~ConfigInfo() {
 
 }
 
-template<typename number>
-void ConfigInfo<number>::set(BaseParticle<number> **p, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l, BaseBox<number> *abox) {
-	particles = p;
+void ConfigInfo::set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox) {
 	interaction = i;
-	N = Nn;
 	backend_info = info;
 	lists = l;
 	box = abox;
 }
 
-template<typename number>
-void ConfigInfo<number>::init() {
-	if(_config_info != NULL) throw oxDNAException("The ConfigInfo object have been already initialised");
+void ConfigInfo::init(std::vector<BaseParticle *> &ps) {
+	if(_config_info != nullptr) {
+		throw oxDNAException("The ConfigInfo object have been already initialised");
+	}
 
-	_config_info = new ConfigInfo();
+	_config_info = std::shared_ptr<ConfigInfo>(new ConfigInfo(ps));
 }
-
-template<typename number>
-void ConfigInfo<number>::clear() {
-	if(_config_info != NULL) delete _config_info;
-}
-
-template class ConfigInfo<float> ;
-template class ConfigInfo<double> ;

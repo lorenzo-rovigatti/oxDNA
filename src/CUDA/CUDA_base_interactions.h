@@ -30,24 +30,24 @@ __constant__ float MD_F5_PHI_B[4];
 __constant__ float MD_F5_PHI_XC[4];
 __constant__ float MD_F5_PHI_XS[4];
 
-template<typename number, typename number4>
-__forceinline__ __device__ void _excluded_volume(const number4 &r, number4 &F, number sigma, number rstar, number b, number rc) {
-	number rsqr = CUDA_DOT(r, r);
 
-	F.x = F.y = F.z = F.w = (number) 0.f;
+__forceinline__ __device__ void _excluded_volume(const c_number4 &r, c_number4 &F, c_number sigma, c_number rstar, c_number b, c_number rc) {
+	c_number rsqr = CUDA_DOT(r, r);
+
+	F.x = F.y = F.z = F.w = (c_number) 0.f;
 	if(rsqr < SQR(rc)) {
 		if(rsqr > SQR(rstar)) {
-			number rmod = sqrt(rsqr);
-			number rrc = rmod - rc;
-			number fmod = 2.f * EXCL_EPS * b * rrc / rmod;
+			c_number rmod = sqrt(rsqr);
+			c_number rrc = rmod - rc;
+			c_number fmod = 2.f * EXCL_EPS * b * rrc / rmod;
 			F.x = r.x * fmod;
 			F.y = r.y * fmod;
 			F.z = r.z * fmod;
 			F.w = EXCL_EPS * b * SQR(rrc);
 		}
 		else {
-			number lj_part = CUB(SQR(sigma)/rsqr);
-			number fmod = 24.f * EXCL_EPS * (lj_part - 2.f*SQR(lj_part)) / rsqr;
+			c_number lj_part = CUB(SQR(sigma)/rsqr);
+			c_number fmod = 24.f * EXCL_EPS * (lj_part - 2.f*SQR(lj_part)) / rsqr;
 			F.x = r.x * fmod;
 			F.y = r.y * fmod;
 			F.z = r.z * fmod;
@@ -56,16 +56,16 @@ __forceinline__ __device__ void _excluded_volume(const number4 &r, number4 &F, n
 	}
 }
 
-template<typename number>
-__forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
-	number val = (number) 0.f;
+
+__forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
+	c_number val = (c_number) 0.f;
 	if(r < MD_F1_RCHIGH[type]) {
 		int eps_index = 25 * type + n3 * 5 + n5;
 		if(r > MD_F1_RHIGH[type]) {
 			val = MD_F1_EPS[eps_index] * MD_F1_BHIGH[type] * SQR(r - MD_F1_RCHIGH[type]);
 		}
 		else if(r > MD_F1_RLOW[type]) {
-			number tmp = 1.f - expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
+			c_number tmp = 1.f - expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
 			val = MD_F1_EPS[eps_index] * SQR(tmp) - MD_F1_SHIFT[eps_index];
 		}
 		else if(r > MD_F1_RCLOW[type]) {
@@ -76,9 +76,9 @@ __forceinline__ __device__ number _f1(number r, int type, int n3, int n5) {
 	return val;
 }
 
-template<typename number>
-__forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
-	number val = (number) 0.f;
+
+__forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
+	c_number val = (c_number) 0.f;
 	int eps_index = 0;
 	if(r < MD_F1_RCHIGH[type]) {
 		eps_index = 25 * type + n3 * 5 + n5;
@@ -86,7 +86,7 @@ __forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
 			val = 2.f * MD_F1_BHIGH[type] * (r - MD_F1_RCHIGH[type]);
 		}
 		else if(r > MD_F1_RLOW[type]) {
-			number tmp = expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
+			c_number tmp = expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
 			val = 2.f * (1.f - tmp) * tmp * MD_F1_A[type];
 		}
 		else if(r > MD_F1_RCLOW[type]) {
@@ -97,9 +97,9 @@ __forceinline__ __device__ number _f1D(number r, int type, int n3, int n5) {
 	return MD_F1_EPS[eps_index] * val;
 }
 
-template<typename number>
-__forceinline__ __device__ number _f2(number r, int type) {
-    number val = (number) 0.f;
+
+__forceinline__ __device__ c_number _f2(c_number r, int type) {
+    c_number val = (c_number) 0.f;
     if (r < MD_F2_RCHIGH[type]) {
 	    if (r > MD_F2_RHIGH[type]) {
 		    val = MD_F2_K[type] * MD_F2_BHIGH[type] * SQR(r - MD_F2_RCHIGH[type]);
@@ -114,9 +114,9 @@ __forceinline__ __device__ number _f2(number r, int type) {
     return val;
 }
 
-template<typename number>
-__forceinline__ __device__ number _f2D(number r, int type) {
-    number val = (number) 0.f;
+
+__forceinline__ __device__ c_number _f2D(c_number r, int type) {
+    c_number val = (c_number) 0.f;
     if (r < MD_F2_RCHIGH[type]) {
 	    if (r > MD_F2_RHIGH[type]) {
 		    val = 2.f * MD_F2_K[type] * MD_F2_BHIGH[type] * (r - MD_F2_RCHIGH[type]);
@@ -131,9 +131,9 @@ __forceinline__ __device__ number _f2D(number r, int type) {
     return val;
 }
 
-template<typename number>
-__forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, float a, float b) {
-	number val = (number) 0.f;
+
+__forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc, float a, float b) {
+	c_number val = (c_number) 0.f;
 	t -= t0;
 	if(t < 0) t = -t;
 
@@ -142,23 +142,23 @@ __forceinline__ __device__ number _f4(number t, float t0, float ts, float tc, fl
 			// smoothing
 			val = b * SQR(tc - t);
 		}
-		else val = (number) 1.f - a * SQR(t);
+		else val = (c_number) 1.f - a * SQR(t);
 	}
 
 	return val;
 }
 
-template<typename number>
-__forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc, float a, float b) {
-	number val = (number) 0.f;
-	number tt0 = t - t0;
+
+__forceinline__ __device__ c_number _f4Dsin(c_number t, float t0, float ts, float tc, float a, float b) {
+	c_number val = (c_number) 0.f;
+	c_number tt0 = t - t0;
 	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
 	// is the same but the value of its derivative has the opposite sign, so m = -1
-	number m = copysignf((number)1.f, tt0);
-	tt0 = copysignf(tt0, (number)1.f);
+	c_number m = copysignf((c_number)1.f, tt0);
+	tt0 = copysignf(tt0, (c_number)1.f);
 
 	if(tt0 < tc) {
-		number sint = sinf(t);
+		c_number sint = sinf(t);
 		if(tt0 > ts) {
 			// smoothing
 			val = b * (tt0 - tc) / sint;
@@ -172,16 +172,16 @@ __forceinline__ __device__ number _f4Dsin(number t, float t0, float ts, float tc
 	return 2.f * m * val;
 }
 
-template<typename number>
-__forceinline__ __device__ number _f5(number f, int type) {
-	number val = (number) 0.f;
+
+__forceinline__ __device__ c_number _f5(c_number f, int type) {
+	c_number val = (c_number) 0.f;
 
 	if(f > MD_F5_PHI_XC[type]) {
 		if(f < MD_F5_PHI_XS[type]) {
 			val = MD_F5_PHI_B[type] * SQR(MD_F5_PHI_XC[type] - f);
 		}
 		else if(f < 0.f) {
-			val = (number) 1.f - MD_F5_PHI_A[type] * SQR(f);
+			val = (c_number) 1.f - MD_F5_PHI_A[type] * SQR(f);
 		}
 		else val = 1.f;
 	}
@@ -189,16 +189,16 @@ __forceinline__ __device__ number _f5(number f, int type) {
 	return val;
 }
 
-template<typename number>
-__forceinline__ __device__ number _f5D(number f, int type) {
-	number val = (number) 0.f;
+
+__forceinline__ __device__ c_number _f5D(c_number f, int type) {
+	c_number val = (c_number) 0.f;
 
 	if(f > MD_F5_PHI_XC[type]) {
 		if(f < MD_F5_PHI_XS[type]) {
 			val = 2.f * MD_F5_PHI_B[type] * (f - MD_F5_PHI_XC[type]);
 		}
 		else if(f < 0.f) {
-			val = (number) -2.f * MD_F5_PHI_A[type] * f;
+			val = (c_number) -2.f * MD_F5_PHI_A[type] * f;
 		}
 	}
 

@@ -20,8 +20,7 @@
  * This interaction is selected with
  * interaction_type = StarrInteraction
  */
-template <typename number>
-class StarrInteraction: public BaseInteraction<number, StarrInteraction<number> > {
+class StarrInteraction: public BaseInteraction<StarrInteraction> {
 protected:
 	int _N_per_strand;
 	int _N_strands, _N_tetramers, _N_dimers;
@@ -42,28 +41,25 @@ protected:
 
 	number _lin_k;
 
-	virtual number _fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
-	virtual number _three_body(BaseParticle<number> *p, BaseParticle<number> *n3, BaseParticle<number> *n5, bool update_forces);
+	virtual number _fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _three_body(BaseParticle *p, BaseParticle *n3, BaseParticle *n5, bool update_forces);
 
-	virtual void _read_strand_topology(int N, int *N_strands, BaseParticle<number> **particles);
-	virtual void _read_tetramer_topology(int N, int *N_strands, BaseParticle<number> **particles);
-	virtual void _read_vitrimer_topology(int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void _read_strand_topology(int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void _read_tetramer_topology(int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void _read_vitrimer_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 
-	virtual void _generate_strands(BaseParticle<number> **particles, int N, Cells<number> &c);
-	virtual void _generate_tetramers(BaseParticle<number> **particles, int N, Cells<number> &c);
-	virtual void _generate_vitrimers(BaseParticle<number> **particles, int N, Cells<number> &c);
+	virtual void _generate_strands(std::vector<BaseParticle *> &particles, Cells &c);
+	virtual void _generate_tetramers(std::vector<BaseParticle *> &particles, Cells &c);
+	virtual void _generate_vitrimers(std::vector<BaseParticle *> &particles, Cells &c);
 
 public:
 	enum {
-		BONDED = 0,
-		NONBONDED = 4
+		BONDED = 0, NONBONDED = 4
 	};
 
 	enum {
-		STRANDS = 0,
-		TETRAMERS = 1,
-		VITRIMERS = 2
+		STRANDS = 0, TETRAMERS = 1, VITRIMERS = 2
 	};
 
 	StarrInteraction();
@@ -72,22 +68,21 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
+	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
-	virtual void generate_random_configuration(BaseParticle<number> **particles, int N);
+	virtual void generate_random_configuration(std::vector<BaseParticle *> &particles);
 };
 
-extern "C" StarrInteraction<float> *make_StarrInteraction_float();
-extern "C" StarrInteraction<double> *make_StarrInteraction_double();
+extern "C" StarrInteraction *make_StarrInteraction();
 
 #endif /* STARRINTERACTION */

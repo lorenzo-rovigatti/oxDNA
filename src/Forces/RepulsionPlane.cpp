@@ -9,55 +9,43 @@
 #include "../Utilities/oxDNAException.h"
 #include "../Particles/BaseParticle.h"
 
-template<typename number>
-RepulsionPlane<number>::RepulsionPlane() : BaseForce<number>() {
-	_particle = -1;
+RepulsionPlane::RepulsionPlane() :
+				BaseForce() {
 	_position = -1.;
 }
 
-template<typename number>
-void RepulsionPlane<number>::get_settings (input_file &inp) {
-	getInputInt (&inp, "particle", &_particle, 1);
+std::tuple<std::vector<int>, std::string> RepulsionPlane::init(input_file &inp, BaseBox *box_ptr) {
+	std::string particles_string;
+	getInputString(&inp, "particle", particles_string, 1);
 
-	getInputNumber(&inp, "stiff", &this->_stiff, 1);
-	getInputNumber(&inp, "position", &this->_position, 1);
+	getInputNumber(&inp, "stiff", &_stiff, 1);
+	getInputNumber(&inp, "position", &_position, 1);
 
 	int tmpi;
 	double tmpf[3];
 	std::string strdir;
-	getInputString (&inp, "dir", strdir, 1);
+	getInputString(&inp, "dir", strdir, 1);
 	tmpi = sscanf(strdir.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
-	if(tmpi != 3) throw oxDNAException ("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
-	this->_direction = LR_vector<number> ((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
-	this->_direction.normalize();
-}
-
-template<typename number>
-void RepulsionPlane<number>::init (BaseParticle<number> ** particles, int N, BaseBox<number> * box_ptr) {
-	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a RepulsionPlane on non-existent particle %d. Aborting", _particle);
-	if (_particle != -1) {
-		OX_LOG (Logger::LOG_INFO, "Adding RepulsionPlane (stiff=%g, position=%g, dir=%g,%g,%g, on particle %d", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _particle);
-		particles[_particle]->add_ext_force(this);
+	if(tmpi != 3) {
+		throw oxDNAException("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
 	}
-	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding RepulsionPlane (stiff=%g, position=%g, dir=%g,%g,%g, on ALL particles", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z);
-		for(int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
-	}
+	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
+	_direction.normalize();
+
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "RepulsionPlane");
+	std::string description = Utils::sformat("RepulsionPlane (stiff=%g, position=%g, dir=%g,%g,%g", _stiff, _position, _direction.x, _direction.y, _direction.z);
+
+	return std::make_tuple(particle_ids, description);
 }
 
-template<typename number>
-LR_vector<number> RepulsionPlane<number>::value(llint step, LR_vector<number> &pos) {
-	number distance = this->_direction*pos + this->_position;
-	if(distance >=  0.) return LR_vector<number>(0., 0., 0.);
-	else return -(distance*this->_stiff)*this->_direction;
+LR_vector RepulsionPlane::value(llint step, LR_vector &pos) {
+	number distance = _direction * pos + _position;
+	if(distance >= 0.) return LR_vector(0., 0., 0.);
+	else return -(distance * _stiff) * _direction;
 }
 
-template<typename number>
-number RepulsionPlane<number>::potential(llint step, LR_vector<number> &pos) {
-	number distance = this->_direction*pos + this->_position; // distance from the plane
+number RepulsionPlane::potential(llint step, LR_vector &pos) {
+	number distance = _direction * pos + _position; // distance from the plane
 	if(distance >= 0.) return 0.;
-	else return (number) (0.5*this->_stiff*SQR(distance));
+	else return (number) (0.5 * _stiff * SQR(distance));
 }
-
-template class RepulsionPlane<double>;
-template class RepulsionPlane<float>;

@@ -9,9 +9,14 @@
 #include "../Particles/PatchyParticle.h"
 #include "../Utilities/Utils.h"
 
-template <typename number>
-PatchyInteraction<number>::PatchyInteraction() : BaseInteraction<number, PatchyInteraction<number> >(), _N_patches(0), _N_patches_B(-1), _N_A(0), _N_B(0), _is_binary(false) {
-	this->_int_map[PATCHY] = &PatchyInteraction<number>::_patchy_interaction;
+PatchyInteraction::PatchyInteraction() :
+				BaseInteraction<PatchyInteraction>(),
+				_N_patches(0),
+				_N_patches_B(-1),
+				_N_A(0),
+				_N_B(0),
+				_is_binary(false) {
+	this->_int_map[PATCHY] = &PatchyInteraction::_patchy_interaction;
 
 	for(int i = 0; i < 3; i++) {
 		_sigma[i] = 1.;
@@ -22,49 +27,46 @@ PatchyInteraction<number>::PatchyInteraction() : BaseInteraction<number, PatchyI
 	_patch_alpha = 0.12;
 }
 
-template <typename number>
-PatchyInteraction<number>::~PatchyInteraction() {
+PatchyInteraction::~PatchyInteraction() {
 
 }
 
-template<typename number>
-void PatchyInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+void PatchyInteraction::get_settings(input_file &inp) {
+	IBaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "PATCHY_N", &_N_patches, 1);
 	if(getInputInt(&inp, "PATCHY_N_B", &_N_patches_B, 0) == KEY_FOUND) _is_binary = true;
 
 	if(_is_binary) {
-		getInputNumber<number>(&inp, "PATCHY_sigma_AA", _sigma, 0);
-		getInputNumber<number>(&inp, "PATCHY_sigma_BB", _sigma + 2, 0);
-		if(getInputNumber<number>(&inp, "PATCHY_sigma_AB", _sigma + 1, 0) == KEY_NOT_FOUND) {
-			_sigma[1] = (_sigma[0] + _sigma[2])*0.5;
+		getInputNumber(&inp, "PATCHY_sigma_AA", _sigma, 0);
+		getInputNumber(&inp, "PATCHY_sigma_BB", _sigma + 2, 0);
+		if(getInputNumber(&inp, "PATCHY_sigma_AB", _sigma + 1, 0) == KEY_NOT_FOUND) {
+			_sigma[1] = (_sigma[0] + _sigma[2]) * 0.5;
 		}
 
-		getInputNumber<number>(&inp, "PATCHY_epsilon_AA", _epsilon, 0);
-		getInputNumber<number>(&inp, "PATCHY_epsilon_BB", _epsilon + 2, 0);
-		if(getInputNumber<number>(&inp, "PATCHY_epsilon_AB", _epsilon + 1, 0) == KEY_NOT_FOUND) {
-			_epsilon[1] = sqrt(_epsilon[0]*_epsilon[2]);
+		getInputNumber(&inp, "PATCHY_epsilon_AA", _epsilon, 0);
+		getInputNumber(&inp, "PATCHY_epsilon_BB", _epsilon + 2, 0);
+		if(getInputNumber(&inp, "PATCHY_epsilon_AB", _epsilon + 1, 0) == KEY_NOT_FOUND) {
+			_epsilon[1] = sqrt(_epsilon[0] * _epsilon[2]);
 		}
 	}
 
-	getInputNumber<number>(&inp, "PATCHY_alpha", &_patch_alpha, 0);
+	getInputNumber(&inp, "PATCHY_alpha", &_patch_alpha, 0);
 }
 
-template<typename number>
-void PatchyInteraction<number>::init() {
-	number patch_rcut = _patch_alpha*1.5;
+void PatchyInteraction::init() {
+	number patch_rcut = _patch_alpha * 1.5;
 	_sqr_patch_rcut = SQR(patch_rcut);
 	_patch_pow_alpha = powf(_patch_alpha, (number) 10.f);
 	number r8b10 = powf(patch_rcut, (number) 8.f) / _patch_pow_alpha;
 	this->_rcut = 0;
 	for(int i = 0; i < 3; i++) {
-		number rcut = _sigma[i]*1.05 + patch_rcut;
+		number rcut = _sigma[i] * 1.05 + patch_rcut;
 		if(rcut > this->_rcut) this->_rcut = rcut;
 		_sqr_tot_rcut[i] = SQR(rcut);
 		_sqr_sigma[i] = SQR(_sigma[i]);
-		_patch_E_cut[i] = -1.001f*_epsilon[i]*expf(-(number)0.5f*r8b10*_sqr_patch_rcut);
-		_E_cut[i] = powf((number) _sigma[i]/rcut, PATCHY_POWER);
+		_patch_E_cut[i] = -1.001f * _epsilon[i] * expf(-(number) 0.5f * r8b10 * _sqr_patch_rcut);
+		_E_cut[i] = powf((number) _sigma[i] / rcut, PATCHY_POWER);
 	}
 
 	this->_sqr_rcut = SQR(this->_rcut);
@@ -73,27 +75,23 @@ void PatchyInteraction<number>::init() {
 	else OX_LOG(Logger::LOG_INFO, "Simulating a pure patchy system (N patch: %d, rcut: %lf, patch_alpha: %lf)", _N_patches, this->_rcut);
 }
 
-template<typename number>
-void PatchyInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
-	for(int i = 0; i < N; i++) {
-		if(i < _N_A) particles[i] = new PatchyParticle<number>(_N_patches, P_A, _sigma[2*P_A]);
-		else particles[i] = new PatchyParticle<number>(_N_patches_B, P_B, _sigma[2*P_B]);
+void PatchyInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(int i = 0; i < (int) particles.size(); i++) {
+		if(i < _N_A) particles[i] = new PatchyParticle(_N_patches, P_A, _sigma[2 * P_A]);
+		else particles[i] = new PatchyParticle(_N_patches_B, P_B, _sigma[2 * P_B]);
 	}
 }
 
-template<typename number>
-number PatchyInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number PatchyInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
-template<typename number>
-number PatchyInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number PatchyInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	return (number) 0.f;
 }
 
-template<typename number>
-number PatchyInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+number PatchyInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -102,11 +100,11 @@ number PatchyInteraction<number>::pair_interaction_nonbonded(BaseParticle<number
 	return _patchy_interaction(p, q, r, update_forces);
 }
 
-template<typename number>
-void PatchyInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+void PatchyInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	*N_strands = N;
 
-	std::ifstream topology(this->_topology_filename, ios::in);
+	std::ifstream topology(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char line[512];
 	topology.getline(line, 512);
@@ -115,19 +113,15 @@ void PatchyInteraction<number>::read_topology(int N, int *N_strands, BaseParticl
 	if(_N_B > 0) if(_N_patches_B == -1) throw oxDNAException("Number of patches of species B not specified");
 	_N_A = N - _N_B;
 
-	allocate_particles(particles, N);
-	for (int i = 0; i < N; i ++) {
-	   particles[i]->index = i;
-	   particles[i]->type = (i < _N_A) ? P_A : P_B;
-	   particles[i]->btype = (i < _N_A) ? P_A : P_B;
-	   particles[i]->strand_id = i;
+	allocate_particles(particles);
+	for(int i = 0; i < N; i++) {
+		particles[i]->index = i;
+		particles[i]->type = (i < _N_A) ? P_A : P_B;
+		particles[i]->btype = (i < _N_A) ? P_A : P_B;
+		particles[i]->strand_id = i;
 	}
 }
 
-template<typename number>
-void PatchyInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
+void PatchyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
-
-template class PatchyInteraction<float>;
-template class PatchyInteraction<double>;

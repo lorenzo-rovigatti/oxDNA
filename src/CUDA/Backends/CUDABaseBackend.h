@@ -26,38 +26,38 @@
  * This class does not actually do any computation but provides basic CUDA facilities.
  *
  * @verbatim
-[CUDA_device = <int> (CUDA-enabled device to run the simulation on. If it is not specified or it is given a negative number, a suitable device will be automatically chosen.)]
+[CUDA_device = <int> (CUDA-enabled device to run the simulation on. If it is not specified or it is given a negative c_number, a suitable device will be automatically chosen.)]
 [CUDA_sort_every = <int> (sort particles according to a 3D Hilbert curve every CUDA_sort_every time steps. This will greatly enhnance performances for some types of interaction. Defaults to 0, which disables sorting.)]
-[threads_per_block = <int> (Number of threads per block on the CUDA grid. defaults to 2 * the size of a warp.)]
+[threads_per_block = <int> (c_number of threads per block on the CUDA grid. defaults to 2 * the size of a warp.)]
 @endverbatim
  */
-template<typename number, typename number4>
+
 class CUDABaseBackend {
 protected:
 	/// if 0 then do not sort. If it's > 1 then sort particles every _sort_every updates
 	int _sort_every;
-	int _device_number;
+	int _device_c_number;
 	cudaDeviceProp _device_prop;
 	CUDA_kernel_cfg _particles_kernel_cfg;
-	CUDABaseList<number, number4> *_cuda_lists;
+	CUDABaseList*_cuda_lists;
 	size_t _vec_size, _bonds_size, _orient_size;
-	number _sqr_verlet_skin;
-	CUDABox<number, number4> _h_cuda_box, *_d_cuda_box;
+	c_number _sqr_verlet_skin;
+	CUDABox _h_cuda_box, *_d_cuda_box;
 
 	/// used for sorting
-	number4 *_d_buff_poss;
-	GPU_quat<number> *_d_buff_orientations;
+	c_number4 *_d_buff_poss;
+	GPU_quat *_d_buff_orientations;
 	LR_bonds *_d_buff_bonds;
 	int *_d_hindex, *_d_sorted_hindex, *_d_inv_sorted_hindex;
 
-	number4 *_d_poss, *_h_poss;
+	c_number4 *_d_poss, *_h_poss;
 	LR_bonds *_d_bonds, *_h_bonds;
-	GPU_quat<number> *_d_orientations, *_h_orientations;
-	number4 *_d_list_poss;
+	GPU_quat *_d_orientations, *_h_orientations;
+	c_number4 *_d_list_poss;
 	/// It is stored in pinned memory, i.e. on the host but it can be accessed directly from the device
 	bool *_d_are_lists_old;
 
-	CUDABaseInteraction<number, number4> *_cuda_interaction;
+	std::shared_ptr<CUDABaseInteraction> _cuda_interaction = nullptr;
 
 	virtual void _host_to_gpu();
 	virtual void _gpu_to_host();

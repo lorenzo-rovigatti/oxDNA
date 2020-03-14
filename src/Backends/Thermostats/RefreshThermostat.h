@@ -11,11 +11,11 @@
  * @brief Incapsulates a simple Brownian thermostat that refreshes each particle's momenta every n timesteps.
  *
  * @verbatim
-newtonian_steps = <int> (number of integration timesteps after which momenta are refreshed)
-@endverbatim
+ newtonian_steps = <int> (number of integration timesteps after which momenta are refreshed)
+ @endverbatim
  */
-template<typename number>
-class RefreshThermostat : public BaseThermostat<number> {
+
+class RefreshThermostat: public BaseThermostat {
 private:
 	int _newtonian_steps;
 	number _rescale_factor;
@@ -24,8 +24,8 @@ public:
 	virtual ~RefreshThermostat();
 
 	void get_settings(input_file &inp);
-	void init(int N_part);
-	void apply(BaseParticle<number> **particles, llint curr_step);
+	void init();
+	void apply(std::vector<BaseParticle *> &particles, llint curr_step);
 };
 
 #endif // REFRESH_THERMOSTAT_

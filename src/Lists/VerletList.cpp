@@ -7,19 +7,19 @@
 
 #include "VerletList.h"
 
-template<typename number>
-VerletList<number>::VerletList(int &N, BaseBox<number> *box) : BaseList<number>(N, box), _updated(false), _cells(N, box) {
+VerletList::VerletList(std::vector<BaseParticle *> &ps, BaseBox *box) :
+				BaseList(ps, box),
+				_updated(false),
+				_cells(ps, box) {
 
 }
 
-template<typename number>
-VerletList<number>::~VerletList() {
+VerletList::~VerletList() {
 
 }
 
-template<typename number>
-void VerletList<number>::get_settings(input_file &inp) {
-	BaseList<number>::get_settings(inp);
+void VerletList::get_settings(input_file &inp) {
+	BaseList::get_settings(inp);
 	_cells.get_settings(inp);
 
 	getInputNumber(&inp, "verlet_skin", &_skin, 1);
@@ -32,62 +32,55 @@ void VerletList<number>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number>
-void VerletList<number>::init(BaseParticle<number> **particles, number rcut) {
-	rcut += 2*_skin;
-	BaseList<number>::init(particles, rcut);
+void VerletList::init(number rcut) {
+	rcut += 2 * _skin;
+	BaseList::init(rcut);
 
 	_sqr_rcut = SQR(rcut);
 
-	_lists.resize(this->_N, std::vector<BaseParticle<number> *>());
-	_list_poss.resize(this->_N, LR_vector<number>(0, 0, 0));
+	_lists.resize(_particles.size(), std::vector<BaseParticle *>());
+	_list_poss.resize(_particles.size(), LR_vector(0, 0, 0));
 
-	_cells.init(particles, rcut);
+	_cells.init(rcut);
 	global_update();
 }
 
-template<typename number>
-bool VerletList<number>::is_updated() {
+bool VerletList::is_updated() {
 	return (_updated);
 }
 
-template<typename number>
-void VerletList<number>::single_update(BaseParticle<number> *p) {
+void VerletList::single_update(BaseParticle *p) {
 	_cells.single_update(p);
 	if(_list_poss[p->index].sqr_distance(p->pos) > _sqr_skin) _updated = false;
 }
 
-template<typename number>
-void VerletList<number>::global_update(bool force_update) {
+void VerletList::global_update(bool force_update) {
 	if(!_cells.is_updated() || force_update) _cells.global_update();
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+	for(uint i = 0; i < _particles.size(); i++) {
+		BaseParticle *p = this->_particles[i];
 		_lists[p->index] = _cells.get_neigh_list(p);
 		_list_poss[p->index] = p->pos;
 	}
 	_updated = true;
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> VerletList<number>::get_neigh_list(BaseParticle<number> *p) {
+std::vector<BaseParticle *> VerletList::get_neigh_list(BaseParticle *p) {
 	return _lists[p->index];
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> VerletList<number>::get_complete_neigh_list(BaseParticle<number> *p) {
+std::vector<BaseParticle *> VerletList::get_complete_neigh_list(BaseParticle *p) {
 	return _cells.get_complete_neigh_list(p);
 }
 
-template<typename number>
-void VerletList<number>::change_box () {
-	LR_vector<number> new_box_sides = this->_box->box_sides();
-	number fx = new_box_sides.x/this->_box_sides.x;
-	number fy = new_box_sides.y/this->_box_sides.y;
-	number fz = new_box_sides.z/this->_box_sides.z;
+void VerletList::change_box() {
+	LR_vector new_box_sides = this->_box->box_sides();
+	number fx = new_box_sides.x / this->_box_sides.x;
+	number fy = new_box_sides.y / this->_box_sides.y;
+	number fz = new_box_sides.z / this->_box_sides.z;
 
-	for(int i = 0; i < this->_N; i++) {
-		BaseParticle<number> *p = this->_particles[i];
+	for(uint i = 0; i < _particles.size(); i++) {
+		BaseParticle *p = this->_particles[i];
 		_list_poss[p->index].x *= fx;
 		_list_poss[p->index].z *= fy;
 		_list_poss[p->index].y *= fz;
@@ -96,8 +89,5 @@ void VerletList<number>::change_box () {
 	}
 
 	_cells.change_box();
-	BaseList<number>::change_box();
+	BaseList::change_box();
 }
-
-template class VerletList<float>;
-template class VerletList<double>;

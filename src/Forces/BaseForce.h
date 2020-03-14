@@ -12,10 +12,11 @@
 #include "../defs.h"
 #include "../Utilities/oxDNAException.h"
 #include "../Utilities/Utils.h"
+#include "../Utilities/ConfigInfo.h"
 
 // forward declarations of BaseParticle and BaseBox; needed to compile
-template <typename number> class BaseParticle;
-template <typename number> class BaseBox;
+class BaseParticle;
+class BaseBox;
 
 /**
  * @brief Base class for external forces. All external forces inherit from here.
@@ -25,7 +26,7 @@ template <typename number> class BaseBox;
  * require access to these members.
  *
  */
-template<typename number>
+
 class BaseForce {
 private:
 	/**
@@ -46,11 +47,10 @@ protected:
 	 * and then use it to initialise all the particles contained therein.
 	 *
 	 * @param particles particle array
-	 * @param N number of particles
 	 * @param particle_string a list of particles
 	 * @param force_description an optional description (defaults to "generic force") that will be used in the logging messages
 	 */
-	void _add_self_to_particles(BaseParticle<number> **particles, int N, std::string particle_string, std::string force_description=std::string("force"));
+	void _add_self_to_particles(std::vector<BaseParticle *> &particles, std::string particle_string, std::string force_description = std::string("force"));
 
 public:
 	/**
@@ -62,32 +62,31 @@ public:
 	 */
 	number _rate;
 	number _F0;
-	LR_vector<number> _direction;
-	LR_vector<number> _pos0;
+	LR_vector _direction;
+	LR_vector _pos0;
 	number _stiff;
 	int _site;
-	BaseParticle<number> * _p_ptr;
+	BaseParticle * _p_ptr;
 
 	BaseForce();
 	virtual ~BaseForce();
 
-	/**
-	 * @brief get_settings function
-	 *
-	 * this function parses the input file
-	 */
-	virtual void get_settings(input_file &inp) = 0;
-
 	/** 
 	 * @brief init function
 	 *
-	 * This function initialises the force object and assignes 
-	 * it to the relevant particles.
+	 * @return the list of particles it will act on and the force description
+	 *
+	 * This function initialises the force object and returns the list of particles it will act on
 	 */
-	virtual void init(BaseParticle<number> **particles, int N, BaseBox<number> * box) = 0; 
+	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box) = 0;
 
-	virtual void set_group_name(std::string &name) { _group_name = name; }
-	virtual std::string get_group_name() { return _group_name; }
+	virtual void set_group_name(std::string &name) {
+		_group_name = name;
+	}
+
+	virtual std::string get_group_name() {
+		return _group_name;
+	}
 
 	/**
 	 * @brief returns value of the force (a vector)
@@ -95,15 +94,17 @@ public:
 	 * @param step useful for forces that depend on time
 	 * @param pos position of the particle
 	 */
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos) = 0;
-	
+	virtual LR_vector value(llint step, LR_vector &pos) = 0;
+
 	/**
 	 * @brief returns value of the potential associated to the force (a number)
 	 *
 	 * @param step useful for forces that depend on time
 	 * @param pos position of the particle
 	 */
-	virtual number potential (llint step, LR_vector<number> &pos) = 0;
+	virtual number potential(llint step, LR_vector &pos) = 0;
 };
+
+using ForcePtr = std::shared_ptr<BaseForce>;
 
 #endif /* BASEFORCE_H_ */

@@ -15,13 +15,13 @@
  * @brief Thermostat factory class.
  *
  * @verbatim
-[thermostat = no|refresh|brownian|langevin|srd (Select the simulation thermostat for MD simulations. 'no' means constant-energy simulations. 'refresh' is the Anderson thermostat. 'brownian' is an Anderson-like thermostat that refreshes momenta of randomly chosen particles. 'langevin' implements a regular Langevin thermostat. 'srd' is an (experimental) implementation of a stochastic rotational dynamics algorithm. 'no' and 'brownian' are also available on CUDA. Defaults to 'no'.)]
+[thermostat = no|refresh|brownian|langevin|srd|bussi (Select the simulation thermostat for MD simulations. 'no' means constant-energy simulations. 'refresh' is the Andersen thermostat. 'brownian' is an Anderson-like thermostat that refreshes momenta of randomly chosen particles. 'langevin' implements a regular Langevin thermostat. 'srd' is an (experimental) implementation of a stochastic rotational dynamics algorithm, 'bussi' is the Bussi-Donadio-Parrinello thermostat. 'no', 'brownian' and 'bussi' are also available on CUDA. Defaults to 'no'.)]
 @endverbatim
  */
 class ThermostatFactory {
 public:
-	ThermostatFactory();
-	virtual ~ThermostatFactory();
+	ThermostatFactory() = delete;
+	virtual ~ThermostatFactory() = delete;
 
 	/**
 	 * @brief Method that returns a pointer to a thermostat object
@@ -37,8 +37,8 @@ public:
 	 * @return the Thermostat Object, which must be of a class derived
 	 * from BaseThermostat
 	 */
-	template<typename number>
-	static BaseThermostat<number> *make_thermostat(input_file &inp, BaseBox<number> * box);
+	
+	static ThermostatPtr make_thermostat(input_file &inp, BaseBox *box);
 };
 
 #endif /* THERMOSTATFACTORY_H_ */

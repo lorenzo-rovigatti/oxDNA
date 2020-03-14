@@ -13,19 +13,19 @@
 /**
  * @brief Prints an mgl configuration for patchy systems.
  */
-template<typename number>
-class PatchyToMgl: public Configuration<number>  {
+
+class PatchyToMgl: public Configuration {
 protected:
 	bool _first_neighbours;
 	bool _second_neighbours;
 	number _patch_size;
 	number _threshold;
 
-	std::set<BaseParticle<number> *> _printed;
+	std::set<BaseParticle *> _printed;
 
-	std::string _mgl_patchy_line(BaseParticle<number> *p, const char *color, bool print_p, const char *p_color="");
+	std::string _mgl_patchy_line(BaseParticle *p, const char *color, bool print_p, const char *p_color = "");
 	virtual std::string _headers(llint step);
-	virtual std::string _particle(BaseParticle<number> *p);
+	virtual std::string _particle(BaseParticle *p);
 	virtual std::string _configuration(llint step);
 
 public:
@@ -33,10 +33,11 @@ public:
 	virtual ~PatchyToMgl();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo<number> &config_info);
+	void init(ConfigInfo &config_info);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new PatchyToMgl<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new PatchyToMgl<double>(); }
+extern "C" BaseObservable *make_PatchyToMgl() {
+	return new PatchyToMgl();
+}
 
 #endif /* PATCHYTOMGL_H_ */

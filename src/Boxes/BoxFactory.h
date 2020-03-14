@@ -11,28 +11,25 @@
 #include "BaseBox.h"
 
 /**
- * @brief Static factory class. Its only public method builds a {@link BaseBox list}.
+ * @brief Static factory class. Its only public method builds a {@link BaseBox}.
  *
  * @verbatim
-[list_type = cubic (Type of simulation box for CPU simulations.)]
-@endverbatim
+ [list_type = cubic (Type of simulation box for CPU simulations.)]
+ @endverbatim
  */
 class BoxFactory {
-private:
-	BoxFactory();
 public:
-	virtual ~BoxFactory();
+	BoxFactory() = delete;
+	virtual ~BoxFactory() = delete;
 
 	/**
 	 * @brief Builds the box instance.
 	 *
 	 * @param inp
-	 * @param N
-	 * @param box
 	 * @return a pointer to the newly built box
 	 */
-	template<typename number>
-	static BaseBox<number> *make_box(input_file &inp);
+
+	static BoxPtr make_box(input_file &inp);
 };
 
 #endif /* BOXFACTORY_H_ */

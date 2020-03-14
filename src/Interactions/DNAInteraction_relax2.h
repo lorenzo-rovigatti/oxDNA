@@ -25,22 +25,22 @@
  * This interaction is selected with
  * interaction_type = DNA_relax2
  *
-@verbatim
-relax_type = <string> (Possible values: constant_force, harmonic_force; Relaxation algorithm used)
-relax_strength = <float> (Force constant for the replacement of the FENE potential)
-@endverbatim
+ @verbatim
+ relax_type = <string> (Possible values: constant_force, harmonic_force; Relaxation algorithm used)
+ relax_strength = <float> (Force constant for the replacement of the FENE potential)
+ @endverbatim
  */
-template <typename number>
-class DNAInteraction_relax2 : public DNAInteraction<number> {
+
+class DNAInteraction_relax2: public DNAInteraction {
 protected:
-	inline virtual number _backbone(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces);
+	inline virtual number _backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	number _fmax;
 
 public:
 	DNAInteraction_relax2();
 	virtual ~DNAInteraction_relax2();
 
-	void check_input_sanity(BaseParticle<number> **particles, int N);
+	void check_input_sanity(std::vector<BaseParticle *> &particles);
 	void get_settings(input_file &inp);
 };
 

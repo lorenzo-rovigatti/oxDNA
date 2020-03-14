@@ -17,8 +17,8 @@ pt = <float> (probability of refreshing the momenta of each particle)
 diff_coeff = <float> (base diffusion coefficient. Either pt or diff_coeff should be specified in the input file)
 @endverbatim
  */
-template<typename number>
-class BrownianThermostat : public BaseThermostat<number> {
+
+class BrownianThermostat : public BaseThermostat {
 protected:
 	int _newtonian_steps;
 	number _pt, _pr, _dt;
@@ -29,8 +29,8 @@ public:
 	virtual ~BrownianThermostat ();
 
 	void get_settings(input_file &inp);
-	void init(int N_part);
-	void apply(BaseParticle<number> **particles, llint curr_step);
+	void init();
+	void apply(std::vector<BaseParticle *> &particles, llint curr_step);
 };
 
 #endif // BROWNIAN_THERMOSTAT_

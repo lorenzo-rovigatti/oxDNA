@@ -3,16 +3,16 @@
 #include "DNAInteraction.h"
 #include "../Particles/DNANucleotide.h"
 
-template<typename number>
-DNAInteraction<number>::DNAInteraction() : BaseInteraction<number, DNAInteraction<number> >(), _average(true) {
-	this->_int_map[BACKBONE] = &DNAInteraction<number>::_backbone;
-	this->_int_map[BONDED_EXCLUDED_VOLUME] = &DNAInteraction<number>::_bonded_excluded_volume;
-	this->_int_map[STACKING] = &DNAInteraction<number>::_stacking;
 
-	this->_int_map[NONBONDED_EXCLUDED_VOLUME] = &DNAInteraction<number>::_nonbonded_excluded_volume;
-	this->_int_map[HYDROGEN_BONDING] = &DNAInteraction<number>::_hydrogen_bonding;
-	this->_int_map[CROSS_STACKING] = &DNAInteraction<number>::_cross_stacking;
-	this->_int_map[COAXIAL_STACKING] = &DNAInteraction<number>::_coaxial_stacking;
+DNAInteraction::DNAInteraction() : BaseInteraction<DNAInteraction >(), _average(true) {
+	this->_int_map[BACKBONE] = &DNAInteraction::_backbone;
+	this->_int_map[BONDED_EXCLUDED_VOLUME] = &DNAInteraction::_bonded_excluded_volume;
+	this->_int_map[STACKING] = &DNAInteraction::_stacking;
+
+	this->_int_map[NONBONDED_EXCLUDED_VOLUME] = &DNAInteraction::_nonbonded_excluded_volume;
+	this->_int_map[HYDROGEN_BONDING] = &DNAInteraction::_hydrogen_bonding;
+	this->_int_map[CROSS_STACKING] = &DNAInteraction::_cross_stacking;
+	this->_int_map[COAXIAL_STACKING] = &DNAInteraction::_coaxial_stacking;
 
 	F1_A[0] = HYDR_A;
 	F1_A[1] = STCK_A;
@@ -218,14 +218,14 @@ DNAInteraction<number>::DNAInteraction() : BaseInteraction<number, DNAInteractio
 	_mbf_finf = 0.f; // roughly 2pN 
 }
 
-template<typename number>
-DNAInteraction<number>::~DNAInteraction() {
+
+DNAInteraction::~DNAInteraction() {
 
 }
 
-template<typename number>
-void DNAInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+
+void DNAInteraction::get_settings(input_file &inp) {
+	IBaseInteraction::get_settings(inp);
 
 	int avg_seq;
 	if(getInputInt(&inp, "use_average_seq", &avg_seq, 0) == KEY_FOUND) {
@@ -240,7 +240,7 @@ void DNAInteraction<number>::get_settings(input_file &inp) {
 
 	char T[256];
 	getInputString(&inp, "T", T, 1);
-	_T = Utils::get_temperature<number>(T);
+	_T = Utils::get_temperature(T);
 
 	int tmp;
 	if(getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) == KEY_FOUND){
@@ -261,8 +261,8 @@ void DNAInteraction<number>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number>
-void DNAInteraction<number>::init() {
+
+void DNAInteraction::init() {
 	// we choose rcut as the max of the range interaction of excluded
 	// volume between backbones and hydrogen bonding
 	number rcutback;
@@ -345,13 +345,13 @@ void DNAInteraction<number>::init() {
 	if (_use_mbf) OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g  (the corresponding mbf_xmax is %g) and a far value of %g", _mbf_fmax, _mbf_xmax, _mbf_finf);
 }
 
-template<typename number>
-bool DNAInteraction<number>::_check_bonded_neighbour(BaseParticle<number> **p, BaseParticle<number> **q, LR_vector<number> *r) {
+
+bool DNAInteraction::_check_bonded_neighbour(BaseParticle **p, BaseParticle **q, LR_vector *r) {
 	if(*q == P_VIRTUAL) *q = (*p)->n3;
 	else {
 		if(*q != (*p)->n3) {
 			if(*p == (*q)->n3) {
-				BaseParticle<number> *tmp = *q;
+				BaseParticle *tmp = *q;
 				*q = *p;
 				*p = tmp;
 				if (r != NULL) *r = ((*r) * (-1.0f));
@@ -364,23 +364,23 @@ bool DNAInteraction<number>::_check_bonded_neighbour(BaseParticle<number> **p, B
 	return true;
 }
 
-template<typename number>
-number DNAInteraction<number>::_backbone(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNAInteraction::_backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(!_check_bonded_neighbour(&p, &q, r)) {
 	    return (number) 0.f;
 	}
 
-	LR_vector<number> computed_r;
+	LR_vector computed_r;
 	if (r == NULL) {
 		computed_r = q->pos - p->pos;
 		r = &computed_r;
 	}
 
-	LR_vector<number> rback = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BACK];
+	LR_vector rback = *r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 	number rbackmod = rback.module();
 	number rbackr0 = rbackmod - _fene_r0;
 
-	LR_vector<number> force;
+	LR_vector force;
 	number energy;
 
 	if(_use_mbf && fabs(rbackr0) > _mbf_xmax) {
@@ -409,60 +409,60 @@ number DNAInteraction<number>::_backbone(BaseParticle<number> *p, BaseParticle<n
 		p->force -= force;
 		q->force += force;
 
-		p->torque -= p->orientationT * p->int_centers[DNANucleotide<number>::BACK].cross(force);
-		q->torque += q->orientationT * q->int_centers[DNANucleotide<number>::BACK].cross(force);
+		p->torque -= p->orientationT * p->int_centers[DNANucleotide::BACK].cross(force);
+		q->torque += q->orientationT * q->int_centers[DNANucleotide::BACK].cross(force);
 	}
 
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::_bonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNAInteraction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(!_check_bonded_neighbour(&p, &q, r)) {
 		return (number) 0.f;
 	}
 
-	LR_vector<number> computed_r;
+	LR_vector computed_r;
 	if (r == NULL) {
 		computed_r = q->pos - p->pos;
 		r = &computed_r;
 	}
 
 	// BASE-BASE
-	LR_vector<number> force;
-	LR_vector<number> torqueq(0, 0, 0);
-	LR_vector<number> torquep(0, 0, 0);
+	LR_vector force;
+	LR_vector torqueq(0, 0, 0);
+	LR_vector torquep(0, 0, 0);
 
-	LR_vector<number> rcenter = *r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BASE];
+	LR_vector rcenter = *r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
 	number energy = _repulsive_lj(rcenter, force, EXCL_S2, EXCL_R2, EXCL_B2, EXCL_RC2, update_forces);
 
 	if(update_forces) {
-		torquep -= p->int_centers[DNANucleotide<number>::BASE].cross(force);
-		torqueq += q->int_centers[DNANucleotide<number>::BASE].cross(force);
+		torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
+		torqueq += q->int_centers[DNANucleotide::BASE].cross(force);
 
 		p->force -= force;
 		q->force += force;
 	}
 
 	// P-BASE vs. Q-BACK
-	rcenter = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BASE];
+	rcenter = *r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BASE];
 	energy += _repulsive_lj(rcenter, force, EXCL_S3, EXCL_R3, EXCL_B3, EXCL_RC3, update_forces);
 
 	if(update_forces) {
-		torquep -= p->int_centers[DNANucleotide<number>::BASE].cross(force);
-		torqueq += q->int_centers[DNANucleotide<number>::BACK].cross(force);
+		torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
+		torqueq += q->int_centers[DNANucleotide::BACK].cross(force);
 
 		p->force -= force;
 		q->force += force;
 	}
 
 	// P-BACK vs. Q-BASE
-	rcenter = *r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BACK];
+	rcenter = *r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BACK];
 	energy += _repulsive_lj(rcenter, force, EXCL_S4, EXCL_R4, EXCL_B4, EXCL_RC4, update_forces);
 
 	if(update_forces) {
-		torquep -= p->int_centers[DNANucleotide<number>::BACK].cross(force);
-		torqueq += q->int_centers[DNANucleotide<number>::BASE].cross(force);
+		torquep -= p->int_centers[DNANucleotide::BACK].cross(force);
+		torqueq += q->int_centers[DNANucleotide::BASE].cross(force);
 
 		p->force -= force;
 		q->force += force;
@@ -475,20 +475,20 @@ number DNAInteraction<number>::_bonded_excluded_volume(BaseParticle<number> *p, 
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNAInteraction::_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(!_check_bonded_neighbour(&p, &q, r)) {
 		return (number) 0.f;
 	}
 
-	LR_vector<number> &a1 = p->orientationT.v1;
-	LR_vector<number> &a2 = p->orientationT.v2;
-	LR_vector<number> &a3 = p->orientationT.v3;
-	LR_vector<number> &b1 = q->orientationT.v1;
-	LR_vector<number> &b2 = q->orientationT.v2;
-	LR_vector<number> &b3 = q->orientationT.v3;
+	LR_vector &a1 = p->orientationT.v1;
+	LR_vector &a2 = p->orientationT.v2;
+	LR_vector &a3 = p->orientationT.v3;
+	LR_vector &b1 = q->orientationT.v1;
+	LR_vector &b2 = q->orientationT.v2;
+	LR_vector &b3 = q->orientationT.v3;
 
-	LR_vector<number> computed_r;
+	LR_vector computed_r;
 	if (r == NULL) {
 		computed_r = q->pos - p->pos;
 		r = &computed_r;
@@ -498,12 +498,12 @@ number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<n
 	// We need to do this to implement different major-minor groove widths because rback is
 	// used as a reference point for things that have nothing to do with the actual backbone
 	// position (in this case, the stacking interaction).
-	LR_vector<number> rbackref = *r + b1 * POS_BACK - a1 * POS_BACK;
+	LR_vector rbackref = *r + b1 * POS_BACK - a1 * POS_BACK;
 	number rbackrefmod = rbackref.module();
 
-	LR_vector<number> rstack = *r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
+	LR_vector rstack = *r + q->int_centers[DNANucleotide::STACK] - p->int_centers[DNANucleotide::STACK];
 	number rstackmod = rstack.module();
-	LR_vector<number> rstackdir = rstack / rstackmod;
+	LR_vector rstackdir = rstack / rstackmod;
 
 	number cost4 =  a3 * b3;
 	number cost5 =  a3 * rstackdir;
@@ -522,8 +522,8 @@ number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<n
 	number energy = f1 * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2;
 
 	if(update_forces && energy != (number) 0.f) {
-		LR_vector<number> torquep(0, 0, 0);
-		LR_vector<number> torqueq(0, 0, 0);
+		LR_vector torquep(0, 0, 0);
+		LR_vector torqueq(0, 0, 0);
 
 		// these are the derivatives of f4 with respect to t4, t5 and t6 over sin(t*). If t* is too small
 		// we have numerical instabilities so we use the fact that sin(x) = x for x -> 0
@@ -535,7 +535,7 @@ number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<n
 		number f5phi2D  = this->_f5D(cosphi2, STCK_F5_PHI2);
 
 		// RADIAL
-		LR_vector<number> force = -rstackdir * (f1D * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2);
+		LR_vector force = -rstackdir * (f1D * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2);
 
 		// THETA 5
 		force += -(a3 - rstackdir * cost5) * (f1 * f4t4 * f4t5Dsin * f4t6 * f5phi1 * f5phi2 / rstackmod);
@@ -601,24 +601,24 @@ number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<n
 		p->force -= force;
 		q->force += force;
 
-		torquep -= p->int_centers[DNANucleotide<number>::STACK].cross(force);
-		torqueq += q->int_centers[DNANucleotide<number>::STACK].cross(force);
+		torquep -= p->int_centers[DNANucleotide::STACK].cross(force);
+		torqueq += q->int_centers[DNANucleotide::STACK].cross(force);
 
 		// handle the part on theta4
-		LR_vector<number> t4dir = b3.cross(a3);
+		LR_vector t4dir = b3.cross(a3);
 		number torquemod = f1 * f4t4Dsin * f4t5 * f4t6 * f5phi1 * f5phi2;
 
 		torquep -= t4dir * torquemod;
 		torqueq += t4dir * torquemod;
 
 		// handle the part on theta5
-		LR_vector<number> t5dir = rstackdir.cross(a3);
+		LR_vector t5dir = rstackdir.cross(a3);
 		torquemod = -f1 * f4t4 * f4t5Dsin * f4t6 * f5phi1 * f5phi2;
 
 		torquep -= t5dir * torquemod;
 
 		// handle the part on theta6
-		LR_vector<number> t6dir = rstackdir.cross(b3);
+		LR_vector t6dir = rstackdir.cross(b3);
 		torquemod = f1 * f4t4 * f4t5 * f4t6Dsin * f5phi1 * f5phi2;
 
 		torqueq += t6dir * torquemod;
@@ -628,7 +628,7 @@ number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<n
 				rstackdir.cross(a1) * force_part_phi1 * dcosphi1dra1;
 		torqueq += rstackdir.cross(b1) * force_part_phi1 * dcosphi1drb1;
 
-		LR_vector<number> puretorque = a2.cross(b1) * force_part_phi1 * dcosphi1da2b1 +
+		LR_vector puretorque = a2.cross(b1) * force_part_phi1 * dcosphi1da2b1 +
 				a1.cross(b1) * force_part_phi1 * dcosphi1da1b1;
 
 		torquep -= puretorque;
@@ -653,57 +653,57 @@ number DNAInteraction<number>::_stacking(BaseParticle<number> *p, BaseParticle<n
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::_nonbonded_excluded_volume(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNAInteraction::_nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
-	LR_vector<number> force(0, 0, 0);
-	LR_vector<number> torquep(0, 0, 0);
-	LR_vector<number> torqueq(0, 0, 0);
+	LR_vector force(0, 0, 0);
+	LR_vector torquep(0, 0, 0);
+	LR_vector torqueq(0, 0, 0);
 
 	// BASE-BASE
-	LR_vector<number> rcenter = *r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BASE];
+	LR_vector rcenter = *r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
 	number energy = _repulsive_lj(rcenter, force, EXCL_S2, EXCL_R2, EXCL_B2, EXCL_RC2, update_forces);
 
 	if(update_forces) {
-		torquep = -p->int_centers[DNANucleotide<number>::BASE].cross(force);
-		torqueq = q->int_centers[DNANucleotide<number>::BASE].cross(force);
+		torquep = -p->int_centers[DNANucleotide::BASE].cross(force);
+		torqueq = q->int_centers[DNANucleotide::BASE].cross(force);
 
 		p->force -= force;
 		q->force += force;
 	}
 
 	// P-BACK vs. Q-BASE
-	rcenter = *r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BACK];
+	rcenter = *r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BACK];
 	energy += _repulsive_lj(rcenter, force, EXCL_S4, EXCL_R4, EXCL_B4, EXCL_RC4, update_forces);
 
 	if(update_forces) {
-		torquep += -p->int_centers[DNANucleotide<number>::BACK].cross(force);
-		torqueq +=  q->int_centers[DNANucleotide<number>::BASE].cross(force);
+		torquep += -p->int_centers[DNANucleotide::BACK].cross(force);
+		torqueq +=  q->int_centers[DNANucleotide::BASE].cross(force);
 
 		p->force -= force;
 		q->force += force;
 	}
 
 	// P-BASE vs. Q-BACK
-	rcenter = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BASE];
+	rcenter = *r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BASE];
 	energy += _repulsive_lj(rcenter, force, EXCL_S3, EXCL_R3, EXCL_B3, EXCL_RC3, update_forces);
 
 	if(update_forces) {
-		torquep += -p->int_centers[DNANucleotide<number>::BASE].cross(force);
-		torqueq += q->int_centers[DNANucleotide<number>::BACK].cross(force);
+		torquep += -p->int_centers[DNANucleotide::BASE].cross(force);
+		torqueq += q->int_centers[DNANucleotide::BACK].cross(force);
 
 		p->force -= force;
 		q->force += force;
 	}
 
 	// BACK-BACK
-	rcenter = *r + q->int_centers[DNANucleotide<number>::BACK] - p->int_centers[DNANucleotide<number>::BACK];
+	rcenter = *r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 	energy += _repulsive_lj(rcenter, force, EXCL_S1, EXCL_R1, EXCL_B1, EXCL_RC1, update_forces);
 
 	if(update_forces) {
-		torquep += -p->int_centers[DNANucleotide<number>::BACK].cross(force);
-		torqueq +=  q->int_centers[DNANucleotide<number>::BACK].cross(force);
+		torquep += -p->int_centers[DNANucleotide::BACK].cross(force);
+		torqueq +=  q->int_centers[DNANucleotide::BACK].cross(force);
 
 		p->force -= force;
 		q->force += force;
@@ -716,26 +716,26 @@ number DNAInteraction<number>::_nonbonded_excluded_volume(BaseParticle<number> *
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNAInteraction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
 	// true if p and q are Watson-Crick-like pairs
 	bool is_pair = (q->btype + p->btype == 3);
 	number hb_multi = (abs(q->btype) >= 300 && abs(p->btype) >= 300) ? _hb_multiplier : 1.f;
 
-	LR_vector<number> rhydro = *r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BASE];
+	LR_vector rhydro = *r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
 	number rhydromod = rhydro.module();
 	number energy = (number) 0.f;
 	if (is_pair && HYDR_RCLOW < rhydromod && rhydromod < HYDR_RCHIGH) {
 		// vector, versor and magnitude of the base-base separation
-		LR_vector<number> rhydrodir = rhydro / rhydromod;
+		LR_vector rhydrodir = rhydro / rhydromod;
 
 		// particle axes according to Allen's paper
-		LR_vector<number> &a1 = p->orientationT.v1;
-		LR_vector<number> &a3 = p->orientationT.v3;
-		LR_vector<number> &b1 = q->orientationT.v1;
-		LR_vector<number> &b3 = q->orientationT.v3;
+		LR_vector &a1 = p->orientationT.v1;
+		LR_vector &a3 = p->orientationT.v3;
+		LR_vector &b1 = q->orientationT.v1;
+		LR_vector &b3 = q->orientationT.v3;
 
 		// angles involved in the HB interaction
 		number cost1 = -a1 * b1;
@@ -760,9 +760,9 @@ number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BasePa
 
 		// makes sense, since the above functions may return 0. exactly
 		if(update_forces && energy != 0.) {
-			LR_vector<number> force(0, 0, 0);
-			LR_vector<number> torquep(0, 0, 0);
-			LR_vector<number> torqueq(0, 0, 0);
+			LR_vector force(0, 0, 0);
+			LR_vector torquep(0, 0, 0);
+			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
 			number f1D      =  hb_multi * this->_f1D(rhydromod, HYDR_F1, q->type, p->type);
@@ -778,7 +778,7 @@ number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BasePa
 			force = - rhydrodir * (f1D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
 
 			// THETA4; t4 = LRACOS (a3 * b3);
-			LR_vector<number> dir = a3.cross(b3);
+			LR_vector dir = a3.cross(b3);
 			number torquemod = - f1 * f4t1 * f4t2 * f4t3 * f4t4Dsin * f4t7 * f4t8 ;
 
 			torquep -= dir * torquemod;
@@ -801,7 +801,7 @@ number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BasePa
 			// THETA3; t3 = LRACOS (a1 * rhydrodir);
 			force += (a1 - rhydrodir * cost3) * (f1 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8 / rhydromod);
 
-			LR_vector<number> t3dir = rhydrodir.cross(a1);
+			LR_vector t3dir = rhydrodir.cross(a1);
 			torquemod = - f1 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8;
 
 			torquep += t3dir * torquemod;
@@ -809,7 +809,7 @@ number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BasePa
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
 			force += (b3 + rhydrodir * cost7) * (f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7Dsin * f4t8 / rhydromod);
 
-			LR_vector<number> t7dir = rhydrodir.cross(b3);
+			LR_vector t7dir = rhydrodir.cross(b3);
 			torquemod = - f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7Dsin * f4t8;
 
 			torqueq += t7dir * torquemod;
@@ -817,7 +817,7 @@ number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BasePa
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			force +=  (a3 - rhydrodir * cost8) * (f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin / rhydromod);
 
-			LR_vector<number> t8dir = rhydrodir.cross(a3);
+			LR_vector t8dir = rhydrodir.cross(a3);
 			torquemod = - f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin;
 
 			torquep += t8dir * torquemod;
@@ -826,8 +826,8 @@ number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BasePa
 			p->force -= force;
 			q->force += force;
 
-			torquep -= p->int_centers[DNANucleotide<number>::BASE].cross(force);
-			torqueq += q->int_centers[DNANucleotide<number>::BASE].cross(force);
+			torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
+			torqueq += q->int_centers[DNANucleotide::BASE].cross(force);
 
 			// we need torques in the reference system of the particle
 			p->torque += p->orientationT * torquep;
@@ -838,22 +838,22 @@ number DNAInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, BasePa
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNAInteraction::_cross_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
-	LR_vector<number> rcstack = *r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BASE];
+	LR_vector rcstack = *r + q->int_centers[DNANucleotide::BASE] - p->int_centers[DNANucleotide::BASE];
 	number rcstackmod = rcstack.module();
 	number energy = (number) 0.f;
 
 	if (CRST_RCLOW < rcstackmod && rcstackmod < CRST_RCHIGH) {
-		LR_vector<number> rcstackdir = rcstack / rcstackmod;
+		LR_vector rcstackdir = rcstack / rcstackmod;
 
 		// particle axes according to Allen's paper
-		LR_vector<number> &a1 = p->orientationT.v1;
-		LR_vector<number> &a3 = p->orientationT.v3;
-		LR_vector<number> &b1 = q->orientationT.v1;
-		LR_vector<number> &b3 = q->orientationT.v3;
+		LR_vector &a1 = p->orientationT.v1;
+		LR_vector &a3 = p->orientationT.v3;
+		LR_vector &b1 = q->orientationT.v1;
+		LR_vector &b3 = q->orientationT.v3;
 
 		// angles involved in the CRST interaction
 		number cost1 = -a1 * b1;
@@ -876,9 +876,9 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 
 		// makes sense since the above functions can return exactly 0
 		if(update_forces && energy != (number) 0.f) {
-			LR_vector<number> force(0, 0, 0);
-			LR_vector<number> torquep(0, 0, 0);
-			LR_vector<number> torqueq(0, 0, 0);
+			LR_vector force(0, 0, 0);
+			LR_vector torquep(0, 0, 0);
+			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
 			number f2D      =  this->_f2D(rcstackmod, CRST_F2);
@@ -893,7 +893,7 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 			force = - rcstackdir * (f2D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			LR_vector<number> t1dir = a1.cross(b1);
+			LR_vector t1dir = a1.cross(b1);
 			number torquemod = - f2 * f4t1Dsin * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
 			torquep -= t1dir * torquemod;
@@ -902,7 +902,7 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 			// THETA2; t2 = LRACOS (-b1 * rhydrodir);
 			force += (b1 + rcstackdir * cost2) * (f2 * f4t1 * f4t2Dsin * f4t3 * f4t4 * f4t7 * f4t8 / rcstackmod);
 
-			LR_vector<number> t2dir = rcstackdir.cross(b1);
+			LR_vector t2dir = rcstackdir.cross(b1);
 			torquemod = - f2 * f4t1 * f4t2Dsin * f4t3 * f4t4 * f4t7 * f4t8;
 
 			torqueq += t2dir * torquemod;
@@ -910,13 +910,13 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 			// THETA3; t3 = LRACOS (a1 * rhydrodir);
 			force += (a1 - rcstackdir * cost3) * (f2 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8 / rcstackmod);
 
-			LR_vector<number> t3dir = rcstackdir.cross(a1);
+			LR_vector t3dir = rcstackdir.cross(a1);
 			torquemod = - f2 * f4t1 * f4t2 * f4t3Dsin * f4t4 * f4t7 * f4t8;
 
 			torquep += t3dir * torquemod;
 
 			// THETA4; t4 = LRACOS (a3 * b3);
-			LR_vector<number> t4dir = a3.cross(b3);
+			LR_vector t4dir = a3.cross(b3);
 			torquemod = - f2 * f4t1 * f4t2 * f4t3 * f4t4Dsin * f4t7 * f4t8 ;
 
 			torquep -= t4dir * torquemod;
@@ -925,7 +925,7 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 			// THETA7; t7 = LRACOS (-rcsrackir * b3);
 			force += (b3 + rcstackdir * cost7) * (f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7Dsin * f4t8 / rcstackmod);
 
-			LR_vector<number> t7dir = rcstackdir.cross(b3);
+			LR_vector t7dir = rcstackdir.cross(b3);
 			torquemod = - f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7Dsin * f4t8;
 
 			torqueq += t7dir * torquemod;
@@ -933,7 +933,7 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			force +=  (a3 - rcstackdir * cost8) * (f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin / rcstackmod);
 
-			LR_vector<number> t8dir = rcstackdir.cross(a3);
+			LR_vector t8dir = rcstackdir.cross(a3);
 			torquemod = - f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8Dsin;
 
 			torquep += t8dir * torquemod;
@@ -942,8 +942,8 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 			p->force -= force;
 			q->force += force;
 
-			torquep -= p->int_centers[DNANucleotide<number>::BASE].cross(force);
-			torqueq += q->int_centers[DNANucleotide<number>::BASE].cross(force);
+			torquep -= p->int_centers[DNANucleotide::BASE].cross(force);
+			torqueq += q->int_centers[DNANucleotide::BASE].cross(force);
 
 			// we need torques in the reference system of the particle
 			p->torque += p->orientationT * torquep;
@@ -954,23 +954,23 @@ number DNAInteraction<number>::_cross_stacking(BaseParticle<number> *p, BasePart
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNAInteraction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
-	LR_vector<number> rstack = *r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
+	LR_vector rstack = *r + q->int_centers[DNANucleotide::STACK] - p->int_centers[DNANucleotide::STACK];
 	number rstackmod = rstack.module();
 	number energy = (number) 0.f;
 
 	if(CXST_RCLOW < rstackmod && rstackmod < CXST_RCHIGH) {
-		LR_vector<number> rstackdir = rstack / rstackmod;
+		LR_vector rstackdir = rstack / rstackmod;
 
 		// particle axes according to Allen's paper
-		LR_vector<number> &a1 = p->orientationT.v1;
-		LR_vector<number> &a2 = p->orientationT.v2;
-		LR_vector<number> &a3 = p->orientationT.v3;
-		LR_vector<number> &b1 = q->orientationT.v1;
-		LR_vector<number> &b3 = q->orientationT.v3;
+		LR_vector &a1 = p->orientationT.v1;
+		LR_vector &a2 = p->orientationT.v2;
+		LR_vector &a3 = p->orientationT.v3;
+		LR_vector &b1 = q->orientationT.v1;
+		LR_vector &b3 = q->orientationT.v3;
 
 		// angles involved in the CXST interaction
 		number cost1 = -a1 * b1;
@@ -982,10 +982,10 @@ number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BasePa
 		// We need to do this to implement different major-minor groove widths because rback is
 		// used as a reference point for things that have nothing to do with the actual backbone
 		// position (in this case, the coaxial stacking interaction).
-		LR_vector<number> rbackboneref = *r + b1 * POS_BACK - a1 * POS_BACK;
+		LR_vector rbackboneref = *r + b1 * POS_BACK - a1 * POS_BACK;
 
 		number rbackrefmod = rbackboneref.module();
-		LR_vector<number> rbackbonerefdir = rbackboneref / rbackrefmod;
+		LR_vector rbackbonerefdir = rbackboneref / rbackrefmod;
 		number cosphi3 = rstackdir * (rbackbonerefdir.cross(a1));
 
 		// functions called at their relevant arguments
@@ -1000,9 +1000,9 @@ number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BasePa
 
 		// makes sense since the above f? can return exacly 0.
 		if(update_forces && energy != 0.) {
-			LR_vector<number> force(0, 0, 0);
-			LR_vector<number> torquep(0, 0, 0);
-			LR_vector<number> torqueq(0, 0, 0);
+			LR_vector force(0, 0, 0);
+			LR_vector torquep(0, 0, 0);
+			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
 			number f2D      =  this->_f2D(rstackmod, CXST_F2);
@@ -1017,7 +1017,7 @@ number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BasePa
 			force = - rstackdir * (f2D * f4t1 * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3));
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			LR_vector<number> dir = a1.cross(b1);
+			LR_vector dir = a1.cross(b1);
 			number torquemod = - f2 * f4t1Dsin * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3);
 
 			torquep -= dir * torquemod;
@@ -1080,7 +1080,7 @@ number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BasePa
 						  rstackdir.cross(a3) * dcdra3);
 			torqueq += force_c * (rstackdir.cross(b1) * dcdrb1);
 
-			LR_vector<number> puretorque = force_c * (a1.cross(b1) * dcda1b1 +
+			LR_vector puretorque = force_c * (a1.cross(b1) * dcda1b1 +
 								  a2.cross(b1) * dcda2b1 +
 								  a3.cross(b1) * dcda3b1);
 			torquep -= puretorque;
@@ -1090,8 +1090,8 @@ number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BasePa
 			p->force -= force;
 			q->force += force;
 
-			torquep -= p->int_centers[DNANucleotide<number>::STACK].cross(force);
-			torqueq += q->int_centers[DNANucleotide<number>::STACK].cross(force);
+			torquep -= p->int_centers[DNANucleotide::STACK].cross(force);
+			torqueq += q->int_centers[DNANucleotide::STACK].cross(force);
 
 			// we need torques in the reference system of the particle
 			p->torque += p->orientationT * torquep;
@@ -1102,15 +1102,15 @@ number DNAInteraction<number>::_coaxial_stacking(BaseParticle<number> *p, BasePa
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+
+number DNAInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
 	else return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
-template<typename number>
-number DNAInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+
+number DNAInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		if (q != P_VIRTUAL && p != P_VIRTUAL) {
 			computed_r = q->pos - p->pos;
@@ -1126,9 +1126,9 @@ number DNAInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+
+number DNAInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -1144,8 +1144,8 @@ number DNAInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *
 	return energy;
 }
 
-template<typename number>
-number DNAInteraction<number>::_f1(number r, int type, int n3, int n5) {
+
+number DNAInteraction::_f1(number r, int type, int n3, int n5) {
 	number val = (number) 0;
 	if(r < F1_RCHIGH[type]) {
 		if(r > F1_RHIGH[type]) {
@@ -1163,8 +1163,8 @@ number DNAInteraction<number>::_f1(number r, int type, int n3, int n5) {
 	return val;
 }
 
-template<typename number>
-number DNAInteraction<number>::_f1D(number r, int type, int n3, int n5) {
+
+number DNAInteraction::_f1D(number r, int type, int n3, int n5) {
 	number val = (number) 0;
 	if(r < F1_RCHIGH[type]) {
 		if(r > F1_RHIGH[type]) {
@@ -1182,8 +1182,8 @@ number DNAInteraction<number>::_f1D(number r, int type, int n3, int n5) {
 	return F1_EPS[type][n3][n5] * val;
 }
 
-template<typename number>
-number DNAInteraction<number>::_f2(number r, int type) {
+
+number DNAInteraction::_f2(number r, int type) {
     number val = (number) 0.;
     if (r < F2_RCHIGH[type]) {
 	  if (r > F2_RHIGH[type]) {
@@ -1199,8 +1199,8 @@ number DNAInteraction<number>::_f2(number r, int type) {
     return val;
 }
 
-template<typename number>
-number DNAInteraction<number>::_f2D(number r, int type) {
+
+number DNAInteraction::_f2D(number r, int type) {
     number val = (number) 0.;
     if (r < F2_RCHIGH[type]) {
 		if (r > F2_RHIGH[type]) {
@@ -1216,36 +1216,36 @@ number DNAInteraction<number>::_f2D(number r, int type) {
     return val;
 }
 
-template<typename number>
-number DNAInteraction<number>::_fakef4(number t, void * par) {
+
+number DNAInteraction::_fakef4(number t, void * par) {
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return _f4(acos(t), *((int*)par));
 }
 
-template<typename number>
-number DNAInteraction<number>::_fakef4D(number t, void * par) {
+
+number DNAInteraction::_fakef4D(number t, void * par) {
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return -_f4Dsin (acos(t), *((int*)par));
 }
 
-template<typename number>
-number DNAInteraction<number>::_fakef4_cxst_t1(number t, void * par) {
+
+number DNAInteraction::_fakef4_cxst_t1(number t, void * par) {
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return _f4(acos(t), *((int*)par)) + _f4(2 * PI - acos(t), *((int*)par));
 }
 
-template<typename number>
-number DNAInteraction<number>::_fakef4D_cxst_t1(number t, void * par) {
+
+number DNAInteraction::_fakef4D_cxst_t1(number t, void * par) {
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1.0001)) throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if ((*(int*)par == CXST_F4_THETA1) && (t*t > 1)) t = (number) copysign(1, t);
 	return -_f4Dsin (acos(t), *((int*)par)) - _f4Dsin(2 * PI - acos(t), *((int*)par));
 }
 
-template<typename number>
-number DNAInteraction<number>::_f4(number t, int type) {
+
+number DNAInteraction::_f4(number t, int type) {
 	number val = (number) 0;
 	t -= F4_THETA_T0[type];
 	if(t < 0) t *= -1;
@@ -1261,8 +1261,8 @@ number DNAInteraction<number>::_f4(number t, int type) {
 	return val;
 }
 
-template<typename number>
-number DNAInteraction<number>::_f4D(number t, int type) {
+
+number DNAInteraction::_f4D(number t, int type) {
 	number val = (number) 0;
 	number m = (number) 1;
 	t -= F4_THETA_T0[type];
@@ -1284,8 +1284,8 @@ number DNAInteraction<number>::_f4D(number t, int type) {
 	return val;
 }
 
-template<typename number>
-number DNAInteraction<number>::_f4Dsin(number t, int type) {
+
+number DNAInteraction::_f4Dsin(number t, int type) {
 	number val = (number) 0;
 	number m = (number) 1;
 	number tt0 = t - F4_THETA_T0[type];
@@ -1311,8 +1311,8 @@ number DNAInteraction<number>::_f4Dsin(number t, int type) {
 	return val;
 }
 
-template<typename number>
-number DNAInteraction<number>::_f5(number f, int type) {
+
+number DNAInteraction::_f5(number f, int type) {
 	number val = (number) 0;
 
 	if(f > F5_PHI_XC[type]) {
@@ -1328,8 +1328,8 @@ number DNAInteraction<number>::_f5(number f, int type) {
 	return val;
 }
 
-template<typename number>
-number DNAInteraction<number>::_f5D(number f, int type) {
+
+number DNAInteraction::_f5D(number f, int type) {
 	number val = (number) 0;
 
 	if(f > F5_PHI_XC[type]) {
@@ -1345,31 +1345,36 @@ number DNAInteraction<number>::_f5D(number f, int type) {
 	return val;
 }
 
-template<typename number>
-void DNAInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
-	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = particles[i];
-		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
-		if(p->n5 != P_VIRTUAL && p->n5->index >= N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 
-		if (this->_use_mbf) continue;
+void DNAInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
+	for(int i = 0; i < N; i++) {
+		BaseParticle *p = particles[i];
+		if(p->n3 != P_VIRTUAL && p->n3->index >= N) {
+			throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
+		}
+		if(p->n5 != P_VIRTUAL && p->n5->index >= N) {
+			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
+		}
+
+		if(this->_use_mbf) continue;
 
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 		number mind = _fene_r0 - FENE_DELTA;
 		number maxd = _fene_r0 + FENE_DELTA;
 		if(p->n3 != P_VIRTUAL) {
-			BaseParticle<number> *q = p->n3;
+			BaseParticle *q = p->n3;
 			q->set_positions();
-			LR_vector<number> rv = p->pos + p->int_centers[DNANucleotide<number>::BACK] - (q->pos + q->int_centers[DNANucleotide<number>::BACK]);
+			LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
 			number r = sqrt(rv*rv);
 			if(r > maxd || r < mind)
 				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
 		}
 
 		if(p->n5 != P_VIRTUAL) {
-			BaseParticle<number> *q = p->n5;
+			BaseParticle *q = p->n5;
 			q->set_positions();
-			LR_vector<number> rv = p->pos + p->int_centers[DNANucleotide<number>::BACK] - (q->pos + q->int_centers[DNANucleotide<number>::BACK]);
+			LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
 			number r = sqrt(rv*rv);
 			if(r > maxd || r < mind)
 				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n5->index, r);
@@ -1377,19 +1382,22 @@ void DNAInteraction<number>::check_input_sanity(BaseParticle<number> **particles
 	}
 }
 
-template<typename number>
-void DNAInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
-	for(int i = 0; i < N; i++) particles[i] = new DNANucleotide<number>(_grooving);
+
+void DNAInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(uint i = 0; i < particles.size(); i++) {
+		particles[i] = new DNANucleotide(_grooving);
+	}
 }
 
-template<typename number>
-void DNAInteraction<number>::read_topology(int N_from_conf, int *N_strands, BaseParticle<number> **particles) {
-	IBaseInteraction<number>::read_topology(N_from_conf, N_strands, particles);
+
+void DNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N_from_conf = particles.size();
+	IBaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 
@@ -1409,7 +1417,7 @@ void DNAInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 
 		if(res < 4) throw oxDNAException("Line %d of the topology file has an invalid syntax", i+2);
 
-		BaseParticle<number> *p = particles[i];
+		BaseParticle *p = particles[i];
 
 		if(tmpn3 < 0) p->n3 = P_VIRTUAL;
 		else p->n3 = particles[tmpn3];
@@ -1437,8 +1445,8 @@ void DNAInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 		i++;
 
 		// here we fill the affected vector
-		if (p->n3 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p->n3, p));
-		if (p->n5 != P_VIRTUAL) p->affected.push_back(ParticlePair<number>(p, p->n5));
+		if (p->n3 != P_VIRTUAL) p->affected.push_back(ParticlePair(p->n3, p));
+		if (p->n5 != P_VIRTUAL) p->affected.push_back(ParticlePair(p, p->n5));
 	}
 
 	if(i < N_from_conf) throw oxDNAException ("Not enough particles found in the topology file (should be %d). Aborting", N_from_conf);
@@ -1449,7 +1457,3 @@ void DNAInteraction<number>::read_topology(int N_from_conf, int *N_strands, Base
 
 	*N_strands = my_N_strands;
 }
-
-template class DNAInteraction<float>;
-template class DNAInteraction<double>;
-

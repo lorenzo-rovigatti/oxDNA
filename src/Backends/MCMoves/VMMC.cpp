@@ -16,21 +16,20 @@
 #define VMMC_TRANSLATION (2)
 
 /// traslation
-template<typename number>
-VMMC<number>::VMMC ()  {
+VMMC::VMMC ()  {
 	_max_move_size_sqr = -1.;
 	_max_move_size = 1.;
 	_max_cluster_size = -1;
 }
 
-template<typename number>
-VMMC<number>::~VMMC () {
-	delete _particles_old;
+
+VMMC::~VMMC () {
+
 }
 
-template<typename number>
-void VMMC<number>::get_settings (input_file &inp, input_file &sim_inp) {
-	BaseMove<number>::get_settings (inp, sim_inp);
+
+void VMMC::get_settings (input_file &inp, input_file &sim_inp) {
+	BaseMove::get_settings (inp, sim_inp);
 
 	getInputNumber (&inp, "delta_tras", &_delta_tras, 1);
 	getInputNumber (&inp, "delta_rot", &_delta_rot, 1);
@@ -47,31 +46,33 @@ void VMMC<number>::get_settings (input_file &inp, input_file &sim_inp) {
 
 }
 
-template<typename number>
-void VMMC<number>::init() {
-	BaseMove<number>::init();
+
+void VMMC::init() {
+	BaseMove::init();
 
 	// setting the maximum displacement
 	_max_move_size_sqr = _max_move_size * _max_move_size;
 
 	// fix maxclust if evidently wrong
 	if (_max_cluster_size < 1) {
-		_max_cluster_size = *this->_Info->N;
+		_max_cluster_size = _Info->N();
 	}
-	if (_max_cluster_size > *this->_Info->N) {
-		OX_LOG(Logger::LOG_WARNING, "(VMMC.cpp) maxclust > N does not make sense, setting it to N = %i", this->_Info->N);
-		_max_cluster_size = *this->_Info->N;
+	if (_max_cluster_size > _Info->N()) {
+		OX_LOG(Logger::LOG_WARNING, "(VMMC.cpp) maxclust > N does not make sense, setting it to N = %i", _Info->N());
+		_max_cluster_size = _Info->N();
 	}
 
 	// here we only use this array as a storage place for positions and orientations;
 	// the topology is not set for _particles_old
-	_particles_old = new BaseParticle<number>*[*this->_Info->N];
-	for (int i = 0; i < *this->_Info->N; i ++) _particles_old[i] = new BaseParticle<number>();
+	_particles_old.resize(_Info->N());
+	for (int i = 0; i < _Info->N(); i ++) {
+		_particles_old[i] = new BaseParticle();
+	}
 
 	OX_LOG(Logger::LOG_INFO, "(VMMC.cpp) VMMC move initialized with T=%g, delta_tras=%g, delta_rot=%g, prob=%g, max_move_size=%g, max_cluster_size=%d", this->_T, _delta_tras, _delta_rot, this->prob, _max_move_size, _max_cluster_size);
 	printf ("adjust: %d\n", this->_adjust_moves);
 
-	if( ! dynamic_cast<Cells<number> *> (this->_Info->lists) )
+	if( ! dynamic_cast<Cells *> (this->_Info->lists) )
 			throw oxDNAException ("Cannot run MC2 VMMC with selected lists. Set list_type = cells in the input file");
 	//throw oxDNAException ("Aborting at the end of VMMC::init for debugging purposes...");
 	//abort();
@@ -80,22 +81,9 @@ void VMMC<number>::init() {
 }
 
 // TODO: define store, restore, rerestore
-template<typename number>
-inline void VMMC<number>::_store_particle(BaseParticle<number> * src) {
-	BaseParticle<number> * dst = _particles_old[src->index];
 
-	dst->orientation = src->orientation;
-	dst->orientationT = src->orientationT;
-	dst->pos = src->pos;
-	dst->set_positions();
-	dst->ext_potential = src->ext_potential;
-
-	return;
-}
-
-template<typename number>
-inline void VMMC<number>::_restore_particle (BaseParticle<number> * dst) {
-	BaseParticle<number> *src = _particles_old[dst->index];
+inline void VMMC::_store_particle(BaseParticle * src) {
+	BaseParticle * dst = _particles_old[src->index];
 
 	dst->orientation = src->orientation;
 	dst->orientationT = src->orientationT;
@@ -107,12 +95,25 @@ inline void VMMC<number>::_restore_particle (BaseParticle<number> * dst) {
 }
 
 
-template<typename number>
-number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
+inline void VMMC::_restore_particle (BaseParticle * dst) {
+	BaseParticle *src = _particles_old[dst->index];
+
+	dst->orientation = src->orientation;
+	dst->orientationT = src->orientationT;
+	dst->pos = src->pos;
+	dst->set_positions();
+	dst->ext_potential = src->ext_potential;
+
+	return;
+}
+
+
+
+number VMMC::build_cluster (movestr * moveptr, int maxsize) {
 	int nclust = 1;
 	_clust.push_back(moveptr->seed);
 
-	BaseParticle<number> * pp, * qq;
+	BaseParticle * pp, * qq;
 
 	set<int> prelinked_particles; //number of prelinked particles
 
@@ -120,31 +121,31 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 	pp = this->_Info->particles[_clust[0]];
 	pp->inclust = true;
 
-	std::set<ParticlePair<number> > possible_links;
+	std::set<ParticlePair > possible_links;
 
-	typename vector<ParticlePair<number> >::iterator itb = pp->affected.begin();
+	typename vector<ParticlePair >::iterator itb = pp->affected.begin();
 	for(; itb != pp->affected.end(); itb++) {
 		if (pp != itb->first && pp != itb->second) continue;
 		if (pp == itb->first) qq = itb->second;
 		else qq = itb->first;
-		if (qq->inclust == false) possible_links.insert(ParticlePair<number>(pp, qq));
+		if (qq->inclust == false) possible_links.insert(ParticlePair(pp, qq));
 	}
-	std::vector<BaseParticle<number> *> neighs1 = this->_Info->lists->get_neigh_list(pp);
+	std::vector<BaseParticle *> neighs1 = this->_Info->lists->get_neigh_list(pp);
 	_store_particle(pp);
 	_move_particle(moveptr, pp);
 	this->_Info->lists->single_update(pp);
-	std::vector<BaseParticle<number> *> neighs2 = this->_Info->lists->get_neigh_list(pp);
+	std::vector<BaseParticle *> neighs2 = this->_Info->lists->get_neigh_list(pp);
 	_restore_particle (pp);
 	this->_Info->lists->single_update(pp);
-	typename std::vector<BaseParticle<number> *>::iterator itt = neighs1.begin();
-	for (itt = neighs1.begin(); itt != neighs1.end(); itt ++) possible_links.insert(ParticlePair<number>(pp, *itt));
-	for (itt = neighs2.begin(); itt != neighs2.end(); itt ++) possible_links.insert(ParticlePair<number>(pp, *itt));
+	typename std::vector<BaseParticle *>::iterator itt = neighs1.begin();
+	for (itt = neighs1.begin(); itt != neighs1.end(); itt ++) possible_links.insert(ParticlePair(pp, *itt));
+	for (itt = neighs2.begin(); itt != neighs2.end(); itt ++) possible_links.insert(ParticlePair(pp, *itt));
 
 	number  E_pp_moved, E_qq_moved, E_old;
 
 	while (possible_links.size() > 0 && nclust <= maxsize) {
 		// get a random link
-		typename std::set<ParticlePair<number> >::iterator itc = possible_links.begin();
+		typename std::set<ParticlePair >::iterator itc = possible_links.begin();
 
 		itc = possible_links.begin();
 		int n = rand() % ((int)possible_links.size());
@@ -157,14 +158,14 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 		// we remove this link and select a new one if both
 		// particles are in the cluster
 		if (pp->inclust && qq->inclust) {
-			possible_links.erase(ParticlePair<number>(pp, qq));
+			possible_links.erase(ParticlePair(pp, qq));
 			continue;
 		}
 
 		// invertiamo se le particelle sono ordinate male
 		// after this, now pp is in the cluster, qq is NOT in the cluster
 		if (!pp->inclust) {
-			BaseParticle<number> * tmp = qq;
+			BaseParticle * tmp = qq;
 			qq = pp;
 			pp = tmp;
 		}
@@ -172,8 +173,8 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 		// now we check if pp and qq are bonded; if so, we store two auxiliary pointers
 		// fpp and fqq to preserve the order of the particles when calling bonded interactions
 		bool pp_qq_bonded = false;
-		BaseParticle<number> * fpp = pp;
-		BaseParticle<number> * fqq = qq;
+		BaseParticle * fpp = pp;
+		BaseParticle * fqq = qq;
 		for(itb = pp->affected.begin(); itb != pp->affected.end(); itb++) {
 			if ((*itb).first == pp && (*itb).second == qq) {
 				fpp = pp;
@@ -221,11 +222,11 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 				nclust ++;
 
 				for(itb = qq->affected.begin(); itb != qq->affected.end(); itb++) {
-					BaseParticle<number> * tmp;
+					BaseParticle * tmp;
 					if (qq != itb->first && qq != itb->second) continue;
 					if (qq == itb->first) tmp = itb->second;
 					else tmp = itb->first;
-					if (tmp->inclust == false) possible_links.insert(ParticlePair<number>(qq, tmp));
+					if (tmp->inclust == false) possible_links.insert(ParticlePair(qq, tmp));
 				}
 
 				neighs1 = this->_Info->lists->get_neigh_list(qq);
@@ -237,10 +238,10 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 				this->_Info->lists->single_update(qq);
 				for (itt = neighs1.begin(); itt != neighs1.end(); itt ++)
 					if (!(*itt)->inclust)
-						possible_links.insert(ParticlePair<number>(qq, *itt));
+						possible_links.insert(ParticlePair(qq, *itt));
 				for (itt = neighs2.begin(); itt != neighs2.end(); itt ++)
 					if (!(*itt)->inclust)
-						possible_links.insert(ParticlePair<number>(qq, *itt));
+						possible_links.insert(ParticlePair(qq, *itt));
 			}
 			else {
 				prelinked_particles.insert(qq->index);
@@ -249,7 +250,7 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 		else {
 			;
 		}
-		possible_links.erase(ParticlePair<number>(pp, qq));
+		possible_links.erase(ParticlePair(pp, qq));
 	}
 
 	// we break here if the cluster is too large
@@ -281,31 +282,31 @@ number VMMC<number>::build_cluster (movestr<number> * moveptr, int maxsize) {
 }
 
 
-template<typename number>
-void VMMC<number>::apply (llint curr_step) {
+
+void VMMC::apply (llint curr_step) {
 	this->_attempted += 1;
 
 	// clear the cluster
 	if (_clust.size() > 0) _clust.clear();
 
 	// generate the move
-	int pi = (int) (drand48() * (*this->_Info->N));
-	BaseParticle<number> *p = this->_Info->particles[pi];
-	movestr<number> move;
+	int pi = (int) (drand48() * _Info->N());
+	BaseParticle *p = this->_Info->particles[pi];
+	movestr move;
 	move.seed = pi;
 	move.seed_strand_id = p->strand_id;
 	//move.type = (drand48() < 0.5) ? VMMC_TRANSLATION : VMMC_ROTATION;
 	move.type = VMMC_TRANSLATION;
 	if (p->is_rigid_body() && (drand48() > 0.5)) move.type = VMMC_ROTATION;
 	if (move.type == VMMC_TRANSLATION) {
-		move.t = LR_vector<number> (Utils::gaussian<number>(), Utils::gaussian<number>(), Utils::gaussian<number>()) *_delta_tras;
+		move.t = LR_vector (Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) *_delta_tras;
 	}
 	else {
 		// the translation vector is then interpreted as the point around which we rotate
-		move.R = Utils::get_random_rotation_matrix_from_angle<number> (_delta_rot * Utils::gaussian<number>());
+		move.R = Utils::get_random_rotation_matrix_from_angle (_delta_rot * Utils::gaussian());
 		move.Rt = (move.R).get_transpose();
-		// WAS THIS move.t = this->_particles[move.seed]->int_centers[DNANucleotide<number>::BACK];
-		// WE MAY WANT THIS move.t = this->_particles[move.seed]->int_centers[DNANucleotide<number>::BACK] + this->_particles[move.seed]->pos;
+		// WAS THIS move.t = this->_particles[move.seed]->int_centers[DNANucleotide::BACK];
+		// WE MAY WANT THIS move.t = this->_particles[move.seed]->int_centers[DNANucleotide::BACK] + this->_particles[move.seed]->pos;
 		move.t = this->_Info->particles[move.seed]->pos;
 	}
 
@@ -349,7 +350,7 @@ void VMMC<number>::apply (llint curr_step) {
 	else {
 		//move rejected
 		for (int l = 0; l < nclust; l ++) {
-			BaseParticle<number> * pp = this->_Info->particles[_clust[l]];
+			BaseParticle * pp = this->_Info->particles[_clust[l]];
 			_restore_particle (pp);
 			this->_Info->lists->single_update(pp);
 			pp->set_ext_potential(curr_step, this->_Info->box);
@@ -367,17 +368,17 @@ void VMMC<number>::apply (llint curr_step) {
 	return;
 }
 
-template<typename number>
-inline void VMMC<number>::_move_particle(movestr<number> * moveptr, BaseParticle< number> *q) {
+
+inline void VMMC::_move_particle(movestr * moveptr, BaseParticle *q) {
 	if (moveptr->type == VMMC_TRANSLATION) {
 		q->pos += moveptr->t;
 	}
 	else if (moveptr->type == VMMC_ROTATION) {
-		LR_vector<number> dr;
+		LR_vector dr;
 		if (moveptr->seed_strand_id == q->strand_id) dr = q->pos - moveptr->t;
 		else dr = this->_Info->box->min_image(moveptr->t, q->pos);
 
-		LR_vector<number> drp = moveptr->R * dr;
+		LR_vector drp = moveptr->R * dr;
 		q->pos = moveptr->t + drp;
 		q->orientation = moveptr->R * q->orientation;
 		q->orientationT = q->orientation.get_transpose();
@@ -389,7 +390,3 @@ inline void VMMC<number>::_move_particle(movestr<number> * moveptr, BaseParticle
 
 	return;
 }
-
-
-template class VMMC<float>;
-template class VMMC<double>;

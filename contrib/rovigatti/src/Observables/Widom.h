@@ -14,13 +14,12 @@
 #include "Interactions/DNAInteraction.h"
 #include "Utilities/OrderParameters.h"
 
-template<typename number>
-class Widom : public BaseObservable<number>  {
+class Widom: public BaseObservable {
 protected:
 	int _probe_type;
-	Cells<number> *_cells;
-	BaseParticle<number> *_probe;
-	BaseParticle<number> **_particles;
+	Cells *_cells;
+	BaseParticle *_probe;
+	std::vector<BaseParticle *> _particles;
 	int _N;
 	int _tries;
 	number _temperature;
@@ -32,10 +31,11 @@ public:
 	std::string get_output_string(llint curr_step);
 
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new Widom<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new Widom<double>(); }
+extern "C" BaseObservable *make_Widom() {
+	return new Widom();
+}
 
 #endif /* WIDOM_H_ */

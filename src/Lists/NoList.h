@@ -13,23 +13,24 @@
 /**
  * @brief Implements a O(N^2) type of simulation (each particle interact with each other).
  */
-template<typename number>
-class NoList: public BaseList<number> {
-protected:
-	std::vector<BaseParticle<number> *> _all_particles;
 
-	std::vector<BaseParticle<number> *> _get_neigh_list(BaseParticle<number> *p, bool all);
+class NoList: public BaseList {
+protected:
+	std::vector<BaseParticle *> _all_particles;
+
+	std::vector<BaseParticle *> _get_neigh_list(BaseParticle *p, bool all);
 public:
-	NoList(int &N, BaseBox<number> *box);
+	NoList(std::vector<BaseParticle *> &ps, BaseBox *box);
+	NoList() = delete;
 	virtual ~NoList();
 
-	virtual void init(BaseParticle<number> **particles, number rcut);
+	virtual void init(std::vector<BaseParticle *> &particles, number rcut);
 
 	virtual bool is_updated() { return true; }
-	virtual void single_update(BaseParticle<number> *p);
+	virtual void single_update(BaseParticle *p);
 	virtual void global_update(bool force_update=false);
-	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p);
-	virtual std::vector<BaseParticle<number> *> get_complete_neigh_list(BaseParticle<number> *p);
+	virtual std::vector<BaseParticle *> get_neigh_list(BaseParticle *p);
+	virtual std::vector<BaseParticle *> get_complete_neigh_list(BaseParticle *p);
 };
 
 #endif /* NOLIST_H_ */

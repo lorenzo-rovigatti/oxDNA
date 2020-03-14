@@ -23,17 +23,18 @@
  * This class is implemented as a singleton. See the comments in Logger.h/cpp for the singleton structure.
  *
  */
-template<typename number>
+
 class ForceFactory {
 private:
-	static ForceFactory * _ForceFactoryPtr;
+	static std::shared_ptr<ForceFactory> _ForceFactoryPtr;
 	ForceFactory();
-	std::vector<BaseForce<number> *> _forces;
+
+	void _add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_type);
 
 public:
 	virtual ~ForceFactory();
 
-	static ForceFactory * instance();
+	static std::shared_ptr<ForceFactory> instance();
 
 	/**
 	 * @brief Produces and adds the force specified in the input file inp to the right particles.
@@ -44,11 +45,10 @@ public:
 	 * @param is_CUDA
 	 * @param box_side_ptr pointer to the box side. We use a pointer since the box size can change 
 	 */
-	void add_force(input_file &inp, BaseParticle<number> **particles, int N, bool is_CUDA, BaseBox<number> * box_ptr);
+	void add_force(input_file &inp, std::vector<BaseParticle *> &particles, bool is_CUDA, BaseBox * box_ptr);
 
 	/// adds forces. Used by SimBackend and GeneratorManager
-	void read_external_forces(std::string external_filename, BaseParticle<number> ** particles, int N, bool is_CUDA, BaseBox<number> * box_ptr);
-	void clear ();
+	void read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, bool is_CUDA, BaseBox * box_ptr);
 };
 
 #endif /* FORCEFACTORY_H_ */

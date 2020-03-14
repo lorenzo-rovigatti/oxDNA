@@ -14,37 +14,36 @@
 #include "Interactions/DNAInteraction.h"
 #include "Utilities/OrderParameters.h"
 
-template<typename number>
-class VPCells : public Cells<number> {
+class VPCells: public Cells {
 	vector<int> _clusters;
 	vector<int> _sizes;
-	map<int, LR_vector<number> > _color_map;
+	map<int, LR_vector> _color_map;
 
-	void _flip_neighs(BaseParticle<number> *);
+	void _flip_neighs(BaseParticle *);
 public:
 	vector<int> csd;
 
-	VPCells(int &N, BaseBox<number> *box);
+	VPCells(std::vector<BaseParticle *> &ps, BaseBox *box);
+	VPCells() = delete;
 	virtual ~VPCells();
 
 	void compute_csd();
 	std::string get_coloured_mgl(number);
 };
 
-template<typename number>
-class VoidPercolation : public BaseObservable<number>  {
+class VoidPercolation: public BaseObservable {
 protected:
 	number _probe_diameter;
 	number _particle_diameter;
 	number _rcut, _sqr_rcut;
-	Cells<number> *_cells;
-	VPCells<number> *_probe_cells;
-	VPCells<number> *_replica_probe_cells;
-	BaseParticle<number> **_probes;
-	BaseParticle<number> **_replica_probes;
-	BaseParticle<number> **_particles;
-	BaseParticle<number> *_probe;
-	BaseBox<number> *_replica_box;
+	Cells *_cells;
+	VPCells *_probe_cells;
+	VPCells *_replica_probe_cells;
+	std::vector<BaseParticle *> _probes;
+	std::vector<BaseParticle *> _replica_probes;
+	std::vector<BaseParticle *> _particles;
+	BaseParticle *_probe;
+	BoxPtr _replica_box;
 	int _N, _N_replica;
 	int _insertions;
 	bool _print_mgl;
@@ -56,10 +55,11 @@ public:
 	std::string get_output_string(llint curr_step);
 
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init(ConfigInfo &config_info);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new VoidPercolation<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new VoidPercolation<double>(); }
+extern "C" BaseObservable *make_VoidPercolation() {
+	return new VoidPercolation();
+}
 
 #endif /* VOIDPERCOLATION_H_ */

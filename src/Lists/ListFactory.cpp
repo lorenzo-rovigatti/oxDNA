@@ -13,27 +13,15 @@
 #include "BinVerletList.h"
 #include "RodCells.h"
 
-ListFactory::ListFactory() {
-
-}
-
-ListFactory::~ListFactory() {
-
-}
-
-template<typename number>
-BaseList<number> *ListFactory::make_list(input_file &inp, int &N, BaseBox<number> *box) {
+ListPtr ListFactory::make_list(input_file &inp, std::vector<BaseParticle *> &ps, BaseBox *box) {
 	// the default list is verlet
 	char list_type[512] = "verlet";
 	getInputString(&inp, "list_type", list_type, 0);
 
-	if(!strncmp(list_type, "verlet", 512)) return new VerletList<number>(N, box);
-	if(!strncmp(list_type, "bin_verlet", 512)) return new BinVerletList<number>(N, box);
-	else if(!strncmp(list_type, "no", 512)) return new NoList<number>(N, box);
-	else if(!strncmp(list_type, "cells", 512)) return new Cells<number>(N, box);
-	else if(!strncmp(list_type, "rodcells", 512)) return new RodCells<number>(N, box);
+	if(!strncmp(list_type, "verlet", 512)) return std::make_shared<VerletList>(ps, box);
+	else if(!strncmp(list_type, "bin_verlet", 512)) return std::make_shared<BinVerletList>(ps, box);
+	else if(!strncmp(list_type, "no", 512)) return std::make_shared<NoList>(ps, box);
+	else if(!strncmp(list_type, "cells", 512)) return std::make_shared<Cells>(ps, box);
+	else if(!strncmp(list_type, "rodcells", 512)) return std::make_shared<RodCells>(ps, box);
 	else throw oxDNAException("Invalid list '%s'", list_type);
 }
-
-template BaseList<float> *ListFactory::make_list(input_file &inp, int &N, BaseBox<float> *box);
-template BaseList<double> *ListFactory::make_list(input_file &inp, int &N, BaseBox<double> *box);

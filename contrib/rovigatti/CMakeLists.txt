@@ -1,7 +1,7 @@
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(rovigatti
-	DEPENDS MGAssemblyConf PolymerInteraction DensityPressureProfile PolydisperseLTInteraction ConstructwisePressure MicrogelElasticity MGAnalysis AOInteraction RadialDensityProfile MGInteraction GenericGrByInsertion YasutakaAnalysis VoidPercolation Remoteness CPAnalysis Widom LevyDelta LevyInteraction CPMixtureInteraction StarrInteraction NathanInteraction mWInteraction ManfredoInteraction GraftedInteraction FSInteraction TSPAnalysis StarrConf SPBAnalysis PatchyToMgl Diblock ConstructwiseBonds DiblockComs EmptyVolume FSConf GrByInsertion Gyradius PatchyToMgl  
+	DEPENDS TSPInteraction MGAssemblyConf PolymerInteraction DensityPressureProfile PolydisperseLTInteraction ConstructwisePressure MicrogelElasticity MGAnalysis AOInteraction RadialDensityProfile MGInteraction GenericGrByInsertion YasutakaAnalysis VoidPercolation Remoteness CPAnalysis Widom LevyDelta LevyInteraction CPMixtureInteraction StarrInteraction NathanInteraction mWInteraction ManfredoInteraction GraftedInteraction FSInteraction TSPAnalysis StarrConf SPBAnalysis PatchyToMgl Diblock ConstructwiseBonds DiblockComs EmptyVolume FSConf GrByInsertion Gyradius PatchyToMgl  
 )
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -31,8 +31,10 @@ ADD_LIBRARY(MicrogelElasticity SHARED EXCLUDE_FROM_ALL src/Observables/MicrogelE
 ADD_LIBRARY(ConstructwisePressure SHARED EXCLUDE_FROM_ALL src/Observables/ConstructwisePressure.cpp)
 ADD_LIBRARY(DensityPressureProfile SHARED EXCLUDE_FROM_ALL src/Observables/DensityPressureProfile.cpp)
 ADD_LIBRARY(MGAssemblyConf SHARED EXCLUDE_FROM_ALL src/Observables/MGAssemblyConf.cpp)
+TARGET_LINK_LIBRARIES(MGAssemblyConf FSInteraction)
 
 # Interactions
+ADD_LIBRARY(TSPInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/TSPInteraction.cpp)
 ADD_LIBRARY(PolymerInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolymerInteraction.cpp)
 ADD_LIBRARY(FSInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/FSInteraction.cpp)
 ADD_LIBRARY(GraftedInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/GraftedInteraction.cpp)
@@ -61,6 +63,8 @@ IF(PkgConfig_FOUND)
 ENDIF(PkgConfig_FOUND)
 
 IF(CUDA)
+	SET(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} -rdynamic")
+
 	CUDA_ADD_LIBRARY(CUDAFSInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAFSInteraction.cu src/Interactions/FSInteraction.cpp)
 	CUDA_ADD_LIBRARY(CUDAmWInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAmWInteraction.cu src/Interactions/mWInteraction.cpp)
 	CUDA_ADD_LIBRARY(CUDAStarrInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAStarrInteraction.cu src/Interactions/StarrInteraction.cpp)

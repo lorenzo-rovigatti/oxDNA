@@ -11,15 +11,14 @@
 #define P_COLLOID 2
 
 #include "Interactions/BaseInteraction.h"
-#include "Interactions/TSPInteraction.h"
+#include "TSPInteraction.h"
 
 /**
  * @brief Handles the interaction between coarse-grained DNA tetramers.
  */
-template <typename number>
-class GraftedInteraction: public BaseInteraction<number, GraftedInteraction<number> > {
+class GraftedInteraction: public BaseInteraction<GraftedInteraction> {
 protected:
-	TSPInteraction<number> _TSP_inter;
+	TSPInteraction _TSP_inter;
 
 	int _N_arms, _N_per_arm;
 	number _alpha;
@@ -41,39 +40,41 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void set_box(BaseBox<number> *box);
+	virtual void set_box(BaseBox *box);
 
-	virtual void allocate_particles(BaseParticle<number> **particles, int N);
-	virtual void read_topology(int N, int *N_strands, BaseParticle<number> **particles);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
+	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 
-	virtual number _wall_interaction(BaseParticle<number> *p, bool update_forces);
+	virtual number _wall_interaction(BaseParticle *p, bool update_forces);
 
-	virtual number pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
 	}
 
-	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
-	virtual void generate_random_configuration(BaseParticle<number> **particles, int N);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
+	virtual void generate_random_configuration(std::vector<BaseParticle *> &particles);
 };
 
-template<typename number>
-class Colloid: public TSPParticle<number> {
+class Colloid: public TSPParticle {
 protected:
-	std::vector<LR_vector<number> > _base_anchors;
+	std::vector<LR_vector> _base_anchors;
 
 public:
-	Colloid(std::vector<LR_vector<number> > &anchor_poss);
+	Colloid(std::vector<LR_vector> &anchor_poss);
 	virtual ~Colloid();
 
-	virtual bool is_rigid_body() { return true; }
+	virtual bool is_rigid_body() {
+		return true;
+	}
 
 	void set_positions();
 };
 
-extern "C" GraftedInteraction<float> *make_float() { return new GraftedInteraction<float>(); }
-extern "C" GraftedInteraction<double> *make_double() { return new GraftedInteraction<double>(); }
+extern "C" GraftedInteraction *make_GraftedInteraction() {
+	return new GraftedInteraction();
+}
 
 #endif /* GRAFTEDINTERACTION_H_ */

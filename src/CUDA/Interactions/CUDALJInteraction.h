@@ -14,17 +14,19 @@
 /**
  * @brief CUDA implementation of the {@link LJInteraction Lennard-Jones interaction}.
  */
-template<typename number, typename number4>
-class CUDALJInteraction: public CUDABaseInteraction<number, number4>, public LJInteraction<number> {
+
+class CUDALJInteraction: public CUDABaseInteraction, public LJInteraction {
 public:
 	CUDALJInteraction();
 	virtual ~CUDALJInteraction();
 
 	void get_settings(input_file &inp);
-	void cuda_init(number box_side, int N);
-	number get_cuda_rcut() { return this->get_rcut(); }
+	void cuda_init(c_number box_side, int N);
+	c_number get_cuda_rcut() {
+		return this->get_rcut();
+	}
 
-	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_orientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
+	void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 };
 
 #endif /* CUDALJINTERACTION_H_ */

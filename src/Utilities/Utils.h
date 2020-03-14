@@ -21,7 +21,7 @@
 
 #include "../defs.h"
 
-template<typename number> class BaseParticle;
+class BaseParticle;
 
 /**
  * @brief Utility class. It mostly contains static methods.
@@ -34,9 +34,9 @@ public:
 	static int decode_base(char c);
 	static char encode_base(int b);
 
-	template<typename number> static number gaussian();
-	template<typename number> static number gamma(number alpha, number beta);
-	template<typename number> static number sum(number *v, int N) {
+	static number gaussian();
+	static number gamma(number alpha, number beta);
+	static number sum(number *v, int N) {
 		number res = (number) 0.;
 		for(int i = 0; i < N; i++)
 			res += v[i];
@@ -91,7 +91,7 @@ public:
 	 *
 	 * @return
 	 */
-	template<typename number> static LR_vector<number> get_random_vector();
+	static LR_vector get_random_vector();
 
 	/**
 	 * @brief Generates a random vector inside a sphere of given radius.
@@ -99,14 +99,14 @@ public:
 	 * @param r sphere radius
 	 * @return
 	 */
-	template<typename number> static LR_vector<number> get_random_vector_in_sphere(number r);
+	static LR_vector get_random_vector_in_sphere(number r);
 
 	/**
 	 * @brief Applies the Gram-Schmidt orthonormalization to the given matrix.
 	 *
 	 * @param M the matrix to be orthonormalized
 	 */
-	template<typename number> static void orthonormalize_matrix(LR_matrix<number> &M);
+	static void orthonormalize_matrix(LR_matrix &M);
 
 	/**
 	 * @brief Returns a matrix which generates a rotation around a random axis of a random angle, extracted between 0 and max_angle.
@@ -114,7 +114,7 @@ public:
 	 * @param max_angle
 	 * @return
 	 */
-	template<typename number> static LR_matrix<number> get_random_rotation_matrix(number max_angle = 2 * M_PI);
+	static LR_matrix get_random_rotation_matrix(number max_angle = 2 * M_PI);
 
 	/**
 	 * @brief Returns a matrix which generates a rotation around a random axis of the given angle.
@@ -122,7 +122,7 @@ public:
 	 * @param angle
 	 * @return
 	 */
-	template<typename number> static LR_matrix<number> get_random_rotation_matrix_from_angle(number angle);
+	static LR_matrix get_random_rotation_matrix_from_angle(number angle);
 
 	/**
 	 * @brief Creates a temporary file and loads it in an input_file.
@@ -153,7 +153,7 @@ public:
 	 * @param raw_T c-string containing the text to be parsed
 	 * @return
 	 */
-	template<typename number> static number get_temperature(char *raw_T);
+	static number get_temperature(char *raw_T);
 
 	/**
 	 * @brief fills the memory pointed to by seedptr with the current
@@ -181,8 +181,8 @@ public:
 	 * @param particles pointer to array of particle pointers
 	 * @param N number of particles
 	 */
-	template<typename number>
-	static void stop_com(BaseParticle<number> **particles, int N);
+	
+	static void stop_com(std::vector<BaseParticle *> &particles);
 
 	/**
 	 * @brief Utility function that reads a string like "10-16,18" and returns a vector of integers.
@@ -191,8 +191,8 @@ public:
 	 * @param particles_string string to process
 	 * @param identifier the identifier of the calling item (to display to the user in case problems arise).
 	 */
-	template<typename number>
-	static std::vector<int> getParticlesFromString(BaseParticle<number> **particles, int N, std::string particle_string, char const *identifier);
+	
+	static std::vector<int> getParticlesFromString(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier);
 
 	/**
 	 * @brief Utility function that checks if an integer is a valid particle index, or -1.
@@ -209,8 +209,7 @@ public:
 
 };
 
-template<typename number>
-inline LR_vector<number> Utils::get_random_vector() {
+inline LR_vector Utils::get_random_vector() {
 	number ransq = 1.;
 	number ran1, ran2;
 
@@ -221,42 +220,22 @@ inline LR_vector<number> Utils::get_random_vector() {
 	}
 
 	number ranh = 2. * sqrt(1. - ransq);
-	return LR_vector<number>(ran1 * ranh, ran2 * ranh, 1. - 2. * ransq);
+	return LR_vector(ran1 * ranh, ran2 * ranh, 1. - 2. * ransq);
 }
 
-template<typename number>
-inline LR_vector<number> Utils::get_random_vector_in_sphere(number r) {
+inline LR_vector Utils::get_random_vector_in_sphere(number r) {
 	number r2 = SQR(r);
-	LR_vector<number> res = LR_vector<number>(r, r, r);
+	LR_vector res = LR_vector(r, r, r);
 
 	while(res.norm() > r2) {
-		res = LR_vector<number>(2. * r * (drand48() - 0.5), 2. * r * (drand48() - 0.5), 2. * r * (drand48() - 0.5));
+		res = LR_vector(2. * r * (drand48() - 0.5), 2. * r * (drand48() - 0.5), 2. * r * (drand48() - 0.5));
 	}
 
 	return res;
 }
 
-template<typename number>
-void Utils::orthonormalize_matrix(LR_matrix<number> &m) {
-	number v1_norm2 = m.v1 * m.v1;
-	number v2_v1 = m.v2 * m.v1;
-
-	m.v2 -= (v2_v1 / v1_norm2) * m.v1;
-
-	number v3_v1 = m.v3 * m.v1;
-	number v3_v2 = m.v3 * m.v2;
-	number v2_norm2 = m.v2 * m.v2;
-
-	m.v3 -= (v3_v1 / v1_norm2) * m.v1 + (v3_v2 / v2_norm2) * m.v2;
-
-	m.v1.normalize();
-	m.v2.normalize();
-	m.v3.normalize();
-}
-
-template<typename number>
-inline LR_matrix<number> Utils::get_random_rotation_matrix_from_angle(number angle) {
-	LR_vector<number> axis = Utils::get_random_vector<number>();
+inline LR_matrix Utils::get_random_rotation_matrix_from_angle(number angle) {
+	LR_vector axis = Utils::get_random_vector();
 
 	number t = angle;
 	number sintheta = sin(t);
@@ -270,18 +249,16 @@ inline LR_matrix<number> Utils::get_random_rotation_matrix_from_angle(number ang
 	number ysin = axis.y * sintheta;
 	number zsin = axis.z * sintheta;
 
-	LR_matrix<number> R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin, xyo + zsin, axis.y * axis.y * olcos + costheta, yzo - xsin, xzo - ysin, yzo + xsin, axis.z * axis.z * olcos + costheta);
+	LR_matrix R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin, xyo + zsin, axis.y * axis.y * olcos + costheta, yzo - xsin, xzo - ysin, yzo + xsin, axis.z * axis.z * olcos + costheta);
 
 	return R;
 }
 
-template<typename number>
-inline LR_matrix<number> Utils::get_random_rotation_matrix(number max_angle) {
+inline LR_matrix Utils::get_random_rotation_matrix(number max_angle) {
 	number t = max_angle * (drand48() - 0.5);
 	return get_random_rotation_matrix_from_angle(t);
 }
 
-template<typename number>
 inline number Utils::gaussian() {
 	static unsigned int isNextG = 0;
 	static number nextG;

@@ -8,16 +8,19 @@
 #ifndef SRC_UTILITIES_CONFIGINFO_H_
 #define SRC_UTILITIES_CONFIGINFO_H_
 
-#define CONFIG_INFO ConfigInfo<number>::instance()
+#define CONFIG_INFO ConfigInfo::instance()
 
 #include "oxDNAException.h"
 
 #include <string>
+#include <memory>
+#include <vector>
 
-template <typename number> class IBaseInteraction;
-template <typename number> class BaseParticle;
-template <typename number> class BaseList;
-template <typename number> class BaseBox;
+class IBaseInteraction;
+class BaseParticle;
+class BaseList;
+class BaseBox;
+class input_file;
 
 /**
  * @brief Utility class. It is used by observables to have access to SimBackend's private members.
@@ -28,12 +31,13 @@ template <typename number> class BaseBox;
  * doing it, but having a class like this allows us to easily pass information to the observables without having
  * to change the overall design.
  */
-template<typename number>
+
 class ConfigInfo {
 private:
-	static ConfigInfo *_config_info;
+	static std::shared_ptr<ConfigInfo> _config_info;
 
-	ConfigInfo();
+	ConfigInfo(std::vector<BaseParticle *> &ps);
+	ConfigInfo() = delete;
 public:
 	virtual ~ConfigInfo();
 
@@ -42,18 +46,14 @@ public:
 	 *
 	 * @param p
 	 * @param i
-	 * @param Nn number of particles
 	 * @param info
 	 * @param l pointer to list object
 	 */
-	void set(BaseParticle<number> **p, IBaseInteraction<number> *i, int *Nn, std::string *info, BaseList<number> *l, BaseBox<number> *abox);
+	void set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox);
 
-	/**
-	 * @brief Returns a reference to the actual object. Static method to enforce the singleton pattern.
-	 *
-	 * @return Reference to the ConfigInfo object
-	 */
-	static ConfigInfo &ref_instance();
+	int N() {
+		return particles.size();
+	}
 
 	/**
 	 * @brief Returns a pointer to the actual object. Static method to enforce the singleton pattern.
@@ -62,42 +62,34 @@ public:
 	 */
 	static ConfigInfo *instance();
 
-	static void init();
-	static void clear();
+	static void init(std::vector<BaseParticle *> &ps);
 
-	///Pointer to the array which stores all the particles' information.
-	BaseParticle<number> **particles;
-
+	/// Pointer to the array which stores all the particles' information.
+	std::vector<BaseParticle *> &particles;
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
-	IBaseInteraction<number> *interaction;
-
-	/// Number of particles.
-	int *N;
+	IBaseInteraction *interaction = nullptr;
 
 	/// Used by BackendInfo to print backend-related information such as Monte Carlo acceptance ratios.
-	std::string *backend_info;
+	std::string *backend_info = nullptr;
 
 	/// Pointer to lists
-	BaseList<number> *lists;
+	BaseList *lists = nullptr;
 
 	/// Pointer to box object
-	BaseBox<number> *box;
+	BaseBox *box = nullptr;
 
 	/// Current simulation step
-	long long int curr_step;
+	long long int curr_step = 0;
+
+	input_file *sim_input = nullptr;
 };
 
-template<typename number>
-inline ConfigInfo<number> &ConfigInfo<number>::ref_instance() {
-	return *instance();
-}
 
-template<typename number>
-inline ConfigInfo<number> *ConfigInfo<number>::instance() {
-	if(_config_info == NULL) throw oxDNAException("Trying to access an uninitialised ConfigInfo object");
+inline ConfigInfo *ConfigInfo::instance() {
+	if(_config_info == nullptr) throw oxDNAException("Trying to access an uninitialised ConfigInfo object");
 
-	return _config_info;
+	return _config_info.get();
 }
 
 #endif /* SRC_UTILITIES_CONFIGINFO_H_ */

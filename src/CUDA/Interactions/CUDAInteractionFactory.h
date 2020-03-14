@@ -25,8 +25,8 @@ public:
 	 * @param inp
 	 * @return a pointer to the newly created interaction
 	 */
-	template<typename number, typename number4>
-	static CUDABaseInteraction<number, number4> *make_interaction(input_file &inp);
+
+	static std::shared_ptr<CUDABaseInteraction> make_interaction(input_file &inp);
 };
 
 #endif /* CUDAINTERACTIONFACTORY_H_ */

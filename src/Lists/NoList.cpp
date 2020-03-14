@@ -7,56 +7,46 @@
 
 #include "NoList.h"
 
-template<typename number>
-NoList<number>::NoList(int &N, BaseBox<number> *box) : BaseList<number>(N, box) {
+NoList::NoList(std::vector<BaseParticle *> &ps, BaseBox *box) :
+				BaseList(ps, box) {
 
 }
 
-template<typename number>
-NoList<number>::~NoList() {
+NoList::~NoList() {
 
 }
 
-template<typename number>
-void NoList<number>::init(BaseParticle<number> **particles, number rcut) {
-	BaseList<number>::init(particles, rcut);
+void NoList::init(std::vector<BaseParticle *> &particles, number rcut) {
+	BaseList::init(rcut);
 
 	global_update(true);
 }
 
-template<typename number>
-void NoList<number>::single_update(BaseParticle<number> *p) {
+void NoList::single_update(BaseParticle *p) {
 
 }
 
-template<typename number>
-void NoList<number>::global_update(bool force_update) {
+void NoList::global_update(bool force_update) {
 
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> NoList<number>::_get_neigh_list(BaseParticle<number> *p, bool all) {
-	std::vector<BaseParticle<number> *> res;
+std::vector<BaseParticle *> NoList::_get_neigh_list(BaseParticle *p, bool all) {
+	std::vector<BaseParticle *> res;
 
-	int last = (all) ? this->_N : p->index;
+	int last = (all) ? _particles.size() : p->index;
 
 	for(int i = 0; i < last; i++) {
-		BaseParticle<number> *q = this->_particles[i];
+		BaseParticle *q = this->_particles[i];
 		if(p != q && !p->is_bonded(q)) res.push_back(this->_particles[i]);
 	}
 
 	return res;
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> NoList<number>::get_neigh_list(BaseParticle<number> *p) {
+std::vector<BaseParticle *> NoList::get_neigh_list(BaseParticle *p) {
 	return _get_neigh_list(p, this->_is_MC);
 }
 
-template<typename number>
-std::vector<BaseParticle<number> *> NoList<number>::get_complete_neigh_list(BaseParticle<number> *p) {
+std::vector<BaseParticle *> NoList::get_complete_neigh_list(BaseParticle *p) {
 	return _get_neigh_list(p, true);
 }
-
-template class NoList<float>;
-template class NoList<double>;

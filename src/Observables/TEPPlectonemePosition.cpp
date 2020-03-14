@@ -12,40 +12,35 @@
 
 #include <sstream>
 
-template<typename number>
-TEPPlectonemePosition<number>::TEPPlectonemePosition() {
+TEPPlectonemePosition::TEPPlectonemePosition() {
 	_bead_minimum_distance = 7;
 	_distance_threshold = 2.;
 	_old_pos = -1.;
 	_print_pos = false;
 }
 
-template<typename number>
-TEPPlectonemePosition<number>::~TEPPlectonemePosition() {
+TEPPlectonemePosition::~TEPPlectonemePosition() {
 
 }
 
-template<typename number>
-void TEPPlectonemePosition<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
+void TEPPlectonemePosition::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputInt(&my_inp, "bead_minimum_distance", &_bead_minimum_distance, 0);
 	getInputNumber(&my_inp, "distance_threshold", &_distance_threshold, 0);
 	getInputBool(&my_inp, "print_position", &_print_pos, 0);
 }
 
-template<typename number>
-std::string TEPPlectonemePosition<number>::get_output_string(llint curr_step) {
+std::string TEPPlectonemePosition::get_output_string(llint curr_step) {
 	// going from left to right
 	int left_max_size = -1;
 	int left_max_plectoneme_start = -1;
 	int left_max_plectoneme_end = -1;
-	for(int i = 0; i < *this->_config_info.N - _bead_minimum_distance; ++i) {
+	for(int i = 0; i < _config_info->N() - _bead_minimum_distance; ++i) {
 		int cur_plecto_start = -1;
 		int cur_plecto_end = -1;
-		for(int j = i + _bead_minimum_distance; j < *this->_config_info.N; ++j) {
-			LR_vector<number> cur_distvec = this->_config_info.particles[j]->pos - this->_config_info.particles[i]->pos;
+		for(int j = i + _bead_minimum_distance; j < _config_info->N(); ++j) {
+			LR_vector cur_distvec = _config_info->particles[j]->pos - _config_info->particles[i]->pos;
 			if(cur_distvec.module() < _distance_threshold) {
-				if(cur_plecto_start == -1)
-					cur_plecto_start = i;
+				if(cur_plecto_start == -1) cur_plecto_start = i;
 			}
 			else {
 				if(cur_plecto_start != -1) {
@@ -66,14 +61,13 @@ std::string TEPPlectonemePosition<number>::get_output_string(llint curr_step) {
 	int right_max_size = -1;
 	int right_max_plectoneme_start = -1;
 	int right_max_plectoneme_end = -1;
-	for(int i = *this->_config_info.N - _bead_minimum_distance; i >= 0 ; --i) {
+	for(int i = _config_info->N() - _bead_minimum_distance; i >= 0; --i) {
 		int cur_plecto_start = -1;
 		int cur_plecto_end = -1;
 		for(int j = i - _bead_minimum_distance; j >= 0; --j) {
-			LR_vector<number> cur_distvec = this->_config_info.particles[j]->pos - this->_config_info.particles[i]->pos;
+			LR_vector cur_distvec = _config_info->particles[j]->pos - _config_info->particles[i]->pos;
 			if(cur_distvec.module() < _distance_threshold) {
-				if(cur_plecto_start == -1)
-					cur_plecto_start = i;
+				if(cur_plecto_start == -1) cur_plecto_start = i;
 			}
 			else {
 				if(cur_plecto_start != -1) {
@@ -97,13 +91,13 @@ std::string TEPPlectonemePosition<number>::get_output_string(llint curr_step) {
 	number right_plecto_pos = -1;
 	number plecto_size = -1;
 	if(left_max_plectoneme_start != -1 && left_max_plectoneme_end != -1 && right_max_plectoneme_start != -1 && right_max_plectoneme_end != -1) {
-		left_plecto_pos = 0.5*((number)left_max_plectoneme_start + (number)left_max_plectoneme_end);
-		number left_plecto_size = (number)left_max_plectoneme_end - (number) left_max_plectoneme_start;
-		right_plecto_pos = 0.5*((number)right_max_plectoneme_start + (number)right_max_plectoneme_end);
-		number right_plecto_size = (number)right_max_plectoneme_end - (number)right_max_plectoneme_start;
+		left_plecto_pos = 0.5 * ((number) left_max_plectoneme_start + (number) left_max_plectoneme_end);
+		number left_plecto_size = (number) left_max_plectoneme_end - (number) left_max_plectoneme_start;
+		right_plecto_pos = 0.5 * ((number) right_max_plectoneme_start + (number) right_max_plectoneme_end);
+		number right_plecto_size = (number) right_max_plectoneme_end - (number) right_max_plectoneme_start;
 		if(_old_pos < 0.) {
-			plecto_pos = (left_plecto_pos + right_plecto_pos)/2.;
-			plecto_size = (left_plecto_size + right_plecto_size)/2.;
+			plecto_pos = (left_plecto_pos + right_plecto_pos) / 2.;
+			plecto_size = (left_plecto_size + right_plecto_size) / 2.;
 		}
 		else {
 			int delta_left = abs(left_plecto_pos - _old_pos);
@@ -123,9 +117,9 @@ std::string TEPPlectonemePosition<number>::get_output_string(llint curr_step) {
 	ss << plecto_pos << " " << left_plecto_pos << " " << right_plecto_pos << " " << plecto_size;
 	if(_print_pos) {
 		int idx = round(plecto_pos);
-		LR_vector<number> pos(0., 0., 0.);
-		if(idx > 0 && idx < *this->_config_info.N) {
-			BaseParticle<number> *p = this->_config_info.particles[idx];
+		LR_vector pos(0., 0., 0.);
+		if(idx > 0 && idx < _config_info->N()) {
+			BaseParticle *p = _config_info->particles[idx];
 			pos = p->pos;
 		}
 		ss << " " << pos.x << " " << pos.y << " " << pos.z;
@@ -133,6 +127,3 @@ std::string TEPPlectonemePosition<number>::get_output_string(llint curr_step) {
 	return ss.str();
 
 }
-
-template class TEPPlectonemePosition<float> ;
-template class TEPPlectonemePosition<double> ;

@@ -31,8 +31,6 @@ void print_version() {
 }
 
 int main(int argc, char *argv[]) {
-	SimManager *mysim;
-
 	try {
 		Logger::init();
 		SignalManager::manage_segfault();
@@ -41,17 +39,17 @@ int main(int argc, char *argv[]) {
 		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
 		if(!strcmp(argv[1], "-v")) print_version();
 
-		mysim = new SimManager(argc, argv);
-		mysim->load_options();
+		SimManager mysim(argc, argv);
+		mysim.load_options();
 
 		OX_DEBUG("Initializing");
-		mysim->init();
+		mysim.init();
 
-		OX_LOG(Logger::LOG_INFO, "SVN CODE VERSION: %s", SVN_VERSION);
+		OX_LOG(Logger::LOG_INFO, "GIT COMMIT: %s", GIT_VERSION);
 		OX_LOG(Logger::LOG_INFO, "COMPILED ON: %s", BUILD_TIME);
 
 		OX_DEBUG("Running");
-		mysim->run();
+		mysim.run();
 
 		OX_LOG(Logger::LOG_INFO, "END OF THE SIMULATION, everything went OK!");
 	}
@@ -60,9 +58,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	delete mysim;
 	TimingManager::clear();
-	Logger::clear();
 
 	return 0;
 }

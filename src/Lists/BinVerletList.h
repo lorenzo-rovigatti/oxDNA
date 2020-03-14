@@ -17,11 +17,11 @@
 verlet_skin = <float> (width of the skin that controls the maximum displacement after which Verlet lists need to be updated.)
 @endverbatim
  */
-template<typename number>
-class BinVerletList: public BaseList<number> {
+
+class BinVerletList: public BaseList {
 protected:
-	std::vector<std::vector<BaseParticle<number> *> > _lists;
-	std::vector<LR_vector<number> > _list_poss;
+	std::vector<std::vector<BaseParticle *> > _lists;
+	std::vector<LR_vector > _list_poss;
 	number _skin;
 	number _sqr_skin;
 	bool _updated;
@@ -30,20 +30,21 @@ protected:
 	number _rcut[3];
 	number _sqr_rcut[3];
 	// this has to be a vector of pointers because Cells is not copy-constructible
-	std::vector<Cells<number> *> _cells;
+	std::vector<Cells *> _cells;
 
 public:
-	BinVerletList(int &N, BaseBox<number> *box);
+	BinVerletList(std::vector<BaseParticle *> &ps, BaseBox *box);
+	BinVerletList() = delete;
 	virtual ~BinVerletList();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init(BaseParticle<number> **particles, number rcut);
+	virtual void init(number rcut);
 
 	virtual bool is_updated();
-	virtual void single_update(BaseParticle<number> *p);
+	virtual void single_update(BaseParticle *p);
 	virtual void global_update(bool force_update = false);
-	virtual std::vector<BaseParticle<number> *> get_neigh_list(BaseParticle<number> *p);
-	virtual std::vector<BaseParticle<number> *> get_complete_neigh_list(BaseParticle<number> *p);
+	virtual std::vector<BaseParticle *> get_neigh_list(BaseParticle *p);
+	virtual std::vector<BaseParticle *> get_complete_neigh_list(BaseParticle *p);
 };
 
 #endif /* BINVERLETLIST_H_ */

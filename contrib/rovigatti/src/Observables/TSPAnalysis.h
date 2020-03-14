@@ -9,68 +9,85 @@
 #define TSPANALYSIS_H_
 
 #include "Observables/BaseObservable.h"
-#include "Particles/TSPParticle.h"
+#include "../Interactions/TSPInteraction.h"
 
 #include <vector>
 #include <map>
 #include <set>
 
-template<typename number>
 class Patch {
 protected:
-	set<int> _arms;
-	vector<TSPParticle<number> *> _particles;
-	LR_vector<number> _pos;
+	std::set<int> _arms;
+	std::vector<TSPParticle *> _particles;
+	LR_vector _pos;
 
 public:
 	Patch();
-	virtual ~Patch() {};
+	virtual ~Patch() {
+	}
+	;
 
-	void add_particle(TSPParticle<number> *p);
-	LR_vector<number> &pos() { return _pos; }
-	int n_arms() { return _arms.size(); }
+	void add_particle(TSPParticle *p);
+	LR_vector &pos() {
+		return _pos;
+	}
+	int n_arms() {
+		return _arms.size();
+	}
 	bool empty();
-	void done(BaseBox<number> *box);
+	void done(BaseBox *box);
 };
 
-template<typename number>
 class TSP {
 protected:
-	TSPParticle<number> *_anchor;
-	ConfigInfo<number> *_config_info;
+	TSPParticle *_anchor;
+	ConfigInfo *_config_info;
 	bool _is_SPB;
 
-	void _flip_neighs(int arm, vector<vector<int> > &bond_map, vector<int> &arm_to_patch);
+	void _flip_neighs(int arm, std::vector<std::vector<int> > &bond_map, std::vector<int> &arm_to_patch);
 	void _compute_eigenvalues();
 
 public:
-	std::vector<std::vector<TSPParticle<number> *> > arms;
-	std::map<int, Patch<number> > patches;
+	std::vector<std::vector<TSPParticle *> > arms;
+	std::map<int, Patch> patches;
 	number l1, l2, l3;
 
-	TSP(bool is_SPB) : _anchor(NULL), _is_SPB(is_SPB) {};
-	virtual ~TSP() {};
+	TSP(bool is_SPB) :
+					_anchor(NULL),
+					_is_SPB(is_SPB) {
+	}
+	;
+	virtual ~TSP() {
+	}
+	;
 
-	void set_anchor(TSPParticle<number> *p) { _anchor = p; }
-	void set_config_info(ConfigInfo<number> *ci) { _config_info = ci; }
+	void set_anchor(TSPParticle *p) {
+		_anchor = p;
+	}
+	void set_config_info(ConfigInfo *ci) {
+		_config_info = ci;
+	}
 
-	LR_vector<number> pos() { return _config_info->box->get_abs_pos(_anchor); };
+	LR_vector pos() {
+		return _config_info->box->get_abs_pos(_anchor);
+	}
+	;
 
-	int n_arms() { return (int)arms.size(); }
+	int n_arms() {
+		return (int) arms.size();
+	}
 	void set_n_arms(int na);
 
-	void add_particle(TSPParticle<number> *p, int arm) { arms[arm].push_back(p); }
+	void add_particle(TSPParticle *p, int arm) {
+		arms[arm].push_back(p);
+	}
 	void update();
 };
 
-template<typename number>
-class TSPAnalysis : public BaseObservable<number>{
+class TSPAnalysis: public BaseObservable {
 protected:
 	enum {
-		TSP_ALL,
-		TSP_SP,
-		TSP_ALL_ANGLES,
-		TSP_EIGENVALUES
+		TSP_ALL, TSP_SP, TSP_ALL_ANGLES, TSP_EIGENVALUES
 	};
 
 	int _mode;
@@ -79,7 +96,7 @@ protected:
 	int _N_stars;
 	std::string _topology_filename;
 
-	std::vector<TSP<number> > _stars;
+	std::vector<TSP> _stars;
 
 	/// used when mode == eigenvalues
 	int _t;
@@ -90,15 +107,16 @@ public:
 	TSPAnalysis();
 	virtual ~TSPAnalysis();
 
-	void get_settings (input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo<number> &config_info);
+	void get_settings(input_file &my_inp, input_file &sim_inp);
+	virtual void init(ConfigInfo &config_info);
 
 	std::string get_output_string(llint curr_step);
 };
 
 void eigen_decomposition(double A[3][3], double V[3][3], double d[3]);
 
-extern "C" BaseObservable<float> *make_float() { return new TSPAnalysis<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new TSPAnalysis<double>(); }
+extern "C" BaseObservable *make_TSPAnalysis() {
+	return new TSPAnalysis();
+}
 
 #endif /* TSPANALYSIS_H_ */

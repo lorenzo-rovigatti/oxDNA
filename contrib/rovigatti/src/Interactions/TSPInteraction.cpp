@@ -1,11 +1,12 @@
-#include <fstream>
-
 #include "TSPInteraction.h"
 
-template<typename number>
-TSPInteraction<number>::TSPInteraction() : BaseInteraction<number, TSPInteraction<number> >() {
-	this->_int_map[BONDED] = &TSPInteraction<number>::pair_interaction_bonded;
-	this->_int_map[NONBONDED] = &TSPInteraction<number>::pair_interaction_nonbonded;
+#include <fstream>
+
+
+TSPInteraction::TSPInteraction() :
+				BaseInteraction<TSPInteraction>() {
+	this->_int_map[BONDED] = &TSPInteraction::pair_interaction_bonded;
+	this->_int_map[NONBONDED] = &TSPInteraction::pair_interaction_nonbonded;
 
 	_alpha = NULL;
 	_N_arms = _N_monomer_per_arm = NULL;
@@ -17,16 +18,14 @@ TSPInteraction<number>::TSPInteraction() : BaseInteraction<number, TSPInteractio
 	_yukawa_repulsion = false;
 }
 
-template<typename number>
-TSPInteraction<number>::~TSPInteraction() {
+TSPInteraction::~TSPInteraction() {
 	if(_alpha != NULL) delete[] _alpha;
 	if(_N_arms != NULL) delete[] _N_arms;
 	if(_N_monomer_per_arm != NULL) delete[] _N_monomer_per_arm;
 }
 
-template<typename number>
-void TSPInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+void TSPInteraction::get_settings(input_file &inp) {
+	IBaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "TSP_rfene", &_rfene, 1);
 
@@ -54,12 +53,11 @@ void TSPInteraction<number>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number>
-void TSPInteraction<number>::init() {
+void TSPInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
 	_sqr_rfene_anchor = SQR(_rfene_anchor);
 
-	number rep_rcut = pow(2., 1./_TSP_n);
+	number rep_rcut = pow(2., 1. / _TSP_n);
 	_TSP_sqr_rep_rcut = SQR(rep_rcut);
 	OX_LOG(Logger::LOG_INFO, "TSP: repulsive rcut: %lf (%lf)", rep_rcut, _TSP_sqr_rep_rcut);
 	this->_sqr_rcut = SQR(this->_rcut);
@@ -72,9 +70,8 @@ void TSPInteraction<number>::init() {
 	}
 }
 
-template<typename number>
-number TSPInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	bool anchor = ((TSPParticle<number> *)p)->is_anchor() || ((TSPParticle<number> *)q)->is_anchor();
+number TSPInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	bool anchor = ((TSPParticle *) p)->is_anchor() || ((TSPParticle *) q)->is_anchor();
 
 	number sqr_r = r->norm();
 	number sqr_rfene = (anchor && !_only_chains) ? _sqr_rfene_anchor : _sqr_rfene;
@@ -85,12 +82,12 @@ number TSPInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<numbe
 		return 10e10;
 	}
 
-	number energy = -15*sqr_rfene*log(1. - sqr_r/sqr_rfene);
+	number energy = -15 * sqr_rfene * log(1. - sqr_r / sqr_rfene);
 
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
-		number force_mod = -30*sqr_rfene/(sqr_rfene - sqr_r);
+		number force_mod = -30 * sqr_rfene / (sqr_rfene - sqr_r);
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -98,8 +95,7 @@ number TSPInteraction<number>::_fene(BaseParticle<number> *p, BaseParticle<numbe
 	return energy;
 }
 
-template<typename number>
-number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number TSPInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	int int_type = q->type + p->type;
 
 	number sqr_r = r->norm();
@@ -112,9 +108,9 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 	number energy = 0;
 	// cut-off for all the repulsive interactions
 	if(sqr_r < _TSP_sqr_rep_rcut) {
-		number part = pow(1./sqr_r, _TSP_n/2.);
+		number part = pow(1. / sqr_r, _TSP_n / 2.);
 		energy += 4 * (part * (part - 1.)) + 1.;
-		if(update_forces) force_mod += 4*_TSP_n*part*(2*part - 1)/sqr_r;
+		if(update_forces) force_mod += 4 * _TSP_n * part * (2 * part - 1) / sqr_r;
 	}
 
 	// telechelic monomers
@@ -122,20 +118,20 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 		if(sqr_r < _TSP_sqr_rep_rcut) energy -= _TSP_lambda;
 		// same as before except for a lambda in front of both energy and force
 		else {
-			number part = pow(1./sqr_r, _TSP_n/2.);
-			energy += 4*_TSP_lambda*part*(part - 1.);
+			number part = pow(1. / sqr_r, _TSP_n / 2.);
+			energy += 4 * _TSP_lambda * part * (part - 1.);
 
-			if(update_forces) force_mod += 4*_TSP_lambda*_TSP_n*part*(2*part - 1.) / sqr_r;
+			if(update_forces) force_mod += 4 * _TSP_lambda * _TSP_n * part * (2 * part - 1.) / sqr_r;
 		}
 
 		if(_yukawa_repulsion) {
 			number mod_r = sqrt(sqr_r);
-			number r_over_xi = mod_r/_TSP_yukawa_xi;
+			number r_over_xi = mod_r / _TSP_yukawa_xi;
 			number exp_part = exp(-r_over_xi);
-			number yukawa_energy = _TSP_yukawa_A*exp_part/r_over_xi;
+			number yukawa_energy = _TSP_yukawa_A * exp_part / r_over_xi;
 			energy += yukawa_energy - _yukawa_E_cut;
 
-			if(update_forces) force_mod += yukawa_energy*(1. - 1./r_over_xi)/(mod_r*_TSP_yukawa_xi);
+			if(update_forces) force_mod += yukawa_energy * (1. - 1. / r_over_xi) / (mod_r * _TSP_yukawa_xi);
 		}
 	}
 
@@ -148,27 +144,25 @@ number TSPInteraction<number>::_nonbonded(BaseParticle<number> *p, BaseParticle<
 	return energy;
 }
 
-template<typename number>
-number TSPInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number TSPInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
 	else return pair_interaction_nonbonded(p, q, r, update_forces);
 }
 
-template<typename number>
-number TSPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number TSPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number energy = (number) 0.f;
 
 	// if q == P_VIRTUAL we have to compute the bonded interactions acting between p and all its bonded neighbours
 	if(q == P_VIRTUAL) {
-		TSPParticle<number> *TSPp = (TSPParticle<number> *) p;
-		for(typename set<TSPParticle<number> *>::iterator it = TSPp->bonded_neighs.begin(); it != TSPp->bonded_neighs.end(); it++) {
-			energy += pair_interaction_bonded(p, *it, r, update_forces);
+		TSPParticle *TSPp = (TSPParticle *) p;
+		for(auto neigh: TSPp->bonded_neighs) {
+			energy += pair_interaction_bonded(p, neigh, r, update_forces);
 		}
 	}
 	else if(p->is_bonded(q)) {
-		LR_vector<number> computed_r;
+		LR_vector computed_r;
 		if(r == NULL) {
-			if (q != P_VIRTUAL && p != P_VIRTUAL) {
+			if(q != P_VIRTUAL && p != P_VIRTUAL) {
 				computed_r = q->pos - p->pos;
 				r = &computed_r;
 			}
@@ -181,15 +175,14 @@ number TSPInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, 
 	return energy;
 }
 
-template<typename number>
-number TSPInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number TSPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
 	// if p and q don't belong to the same star AND the user enabled the TSP_only_intra option then
 	// the interaction should be 0
 	if(_only_intra && p->strand_id != q->strand_id) return 0.;
 
-	LR_vector<number> computed_r(0, 0, 0);
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -198,10 +191,10 @@ number TSPInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *
 	return _nonbonded(p, q, r, update_forces);
 }
 
-template<typename number>
-void TSPInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
-	for(int i = 0; i < N; i++) {	
-		TSPParticle<number> *p = (TSPParticle<number> *)particles[i];
+void TSPInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
+	for(int i = 0; i < N; i++) {
+		TSPParticle *p = (TSPParticle *) particles[i];
 		if(p->n3 != P_VIRTUAL && p->n3->index >= N) throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
 		if(p->n5 != P_VIRTUAL && p->n5->index >= N) throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 
@@ -209,33 +202,31 @@ void TSPInteraction<number>::check_input_sanity(BaseParticle<number> **particles
 		number mind = 0.5;
 		number maxd = _rfene;
 		if(p->n3 != P_VIRTUAL && p->n3->n5 != P_VIRTUAL) {
-			BaseParticle<number> *q = p->n3;
-			LR_vector<number> rv = p->pos - q->pos;
-			number r = sqrt(rv*rv);
-			if(r > maxd || r < mind)
-				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
+			BaseParticle *q = p->n3;
+			LR_vector rv = p->pos - q->pos;
+			number r = sqrt(rv * rv);
+			if(r > maxd || r < mind) throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
 		}
 
 		if(p->n5 != P_VIRTUAL && p->n5->n3 != P_VIRTUAL) {
-			BaseParticle<number> *q = p->n5;
-			LR_vector<number> rv = p->pos - q->pos;
-			number r = sqrt(rv*rv);
-			if(r > maxd || r < mind)
-				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n5->index, r);
+			BaseParticle *q = p->n5;
+			LR_vector rv = p->pos - q->pos;
+			number r = sqrt(rv * rv);
+			if(r > maxd || r < mind) throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n5->index, r);
 		}
 	}
 }
 
-template<typename number>
-void TSPInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
-	for(int i = 0; i < N; i++) particles[i] = new TSPParticle<number>();
+void TSPInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	for(int i = 0; i < (int) particles.size(); i++) {
+		particles[i] = new TSPParticle();
+	}
 }
 
-template<typename number>
-int TSPInteraction<number>::get_N_from_topology() {
+int TSPInteraction::get_N_from_topology() {
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 
 	topology.getline(line, 512);
@@ -257,13 +248,13 @@ int TSPInteraction<number>::get_N_from_topology() {
 	return N_from_topology;
 }
 
-template<typename number>
-void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BaseParticle<number> **particles) {
-	IBaseInteraction<number>::read_topology(N_from_conf, N_stars, particles);
+void TSPInteraction::read_topology(int *N_stars, std::vector<BaseParticle *> &particles) {
+	int N_from_conf = particles.size();
+	IBaseInteraction::read_topology(N_stars, particles);
 	int my_N_stars;
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, ios::in);
+	topology.open(this->_topology_filename, std::ios::in);
 
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 
@@ -290,7 +281,7 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 	for(int ns = 0; ns < my_N_stars; ns++) {
 		int attractive_from = (int) round(_N_monomer_per_arm[ns] * (1. - _alpha[ns]));
 		OX_DEBUG("Adding a TSP with %d arms, %d monomers per arm (of which %d repulsive)", _N_arms[ns], _N_monomer_per_arm[ns], attractive_from);
-		TSPParticle<number> *anchor = (TSPParticle<number> *) particles[p_ind];
+		TSPParticle *anchor = (TSPParticle *) particles[p_ind];
 		anchor->flag_as_anchor();
 		// this is an anchor: it has n_arms FENE neighbours since it is attached to each arm
 		anchor->btype = anchor->type = (_attractive_anchor) ? P_B : P_A;
@@ -303,7 +294,7 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 		for(int na = 0; na < _N_arms[ns]; na++) {
 			for(int nm = 0; nm < _N_monomer_per_arm[ns]; nm++) {
 				int type = (nm >= attractive_from) ? P_B : P_A;
-				TSPParticle<number> *p = (TSPParticle<number> *) particles[p_ind];
+				TSPParticle *p = (TSPParticle *) particles[p_ind];
 				p->type = p->btype = type;
 				p->strand_id = ns;
 				p->n3 = p->n5 = P_VIRTUAL;
@@ -315,7 +306,7 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 					p->n3 = anchor;
 				}
 				else {
-					TSPParticle<number> *p_n = (TSPParticle<number> *) particles[p_ind-1];
+					TSPParticle *p_n = (TSPParticle *) particles[p_ind - 1];
 					p->n3 = p_n;
 					p_n->n5 = p;
 					p->add_bonded_neigh(p_n);
@@ -326,7 +317,7 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 		}
 	}
 
-	if(N_from_topology < N_from_conf) throw oxDNAException ("Not enough particles found in the topology file (should be %d). Aborting", N_from_conf);
+	if(N_from_topology < N_from_conf) throw oxDNAException("Not enough particles found in the topology file (should be %d). Aborting", N_from_conf);
 
 	topology.close();
 
@@ -334,30 +325,28 @@ void TSPInteraction<number>::read_topology(int N_from_conf, int *N_stars, BasePa
 	_N_stars = my_N_stars;
 }
 
-template<typename number>
-bool TSPInteraction<number>::_insert_anchor(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c) {
+bool TSPInteraction::_insert_anchor(std::vector<BaseParticle *> &particles, BaseParticle *p, Cells *c) {
 	int i = 0;
 	bool inserted = false;
 
-	LR_vector<number> box_sides = this->_box->box_sides();
+	LR_vector box_sides = this->_box->box_sides();
 
 	do {
-		p->pos = LR_vector<number>(drand48()*box_sides.x, drand48()*box_sides.y, drand48()*box_sides.z);
+		p->pos = LR_vector(drand48() * box_sides.x, drand48() * box_sides.y, drand48() * box_sides.z);
 		inserted = !_does_overlap(particles, p, c);
 		i++;
 	} while(!inserted && i < MAX_INSERTION_TRIES);
 
-	p->orientation = Utils::get_random_rotation_matrix_from_angle<number> (M_PI);
+	p->orientation = Utils::get_random_rotation_matrix_from_angle(M_PI);
 
 	return (i != MAX_INSERTION_TRIES);
 }
 
-template<typename number>
-bool TSPInteraction<number>::_does_overlap(BaseParticle<number> **particles, BaseParticle<number> *p, Cells<number> *c) {
+bool TSPInteraction::_does_overlap(std::vector<BaseParticle *> &particles, BaseParticle *p, Cells *c) {
 	// here we take into account the non-bonded interactions
-	vector<BaseParticle<number> *> neighs = c->get_complete_neigh_list(p);
+	std::vector<BaseParticle *> neighs = c->get_complete_neigh_list(p);
 	for(unsigned int n = 0; n < neighs.size(); n++) {
-		BaseParticle<number> *q = neighs[n];
+		BaseParticle *q = neighs[n];
 		// particles with an index larger than p->index have not been inserted yet
 		if(q->index < p->index && this->generate_random_configuration_overlap(p, q)) return true;
 	}
@@ -365,21 +354,19 @@ bool TSPInteraction<number>::_does_overlap(BaseParticle<number> **particles, Bas
 	return false;
 }
 
-template<typename number>
-void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> **particles, int N) {
+void TSPInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	if(_only_chains) {
 		this->_generate_consider_bonded_interactions = true;
 		this->_generate_bonded_cutoff = _rfene;
-		IBaseInteraction<number>::generate_random_configuration(particles, N);
+		IBaseInteraction::generate_random_configuration(particles);
 		return;
 	}
 
-	Cells<number> c(N, this->_box);
-	c.init(particles, this->_rcut);
+	Cells c(particles, this->_box);
+	c.init(this->_rcut);
 
-	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = particles[i];
-		p->pos = LR_vector<number>(0., 0., 0.);
+	for(auto p: particles) {
+		p->pos = LR_vector(0., 0., 0.);
 	}
 
 	c.global_update();
@@ -392,16 +379,16 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 	if(_N_stars > 1 && !_only_chains) OX_LOG(Logger::LOG_WARNING, "Can't reliably generate TSP configurations containing more than one star. Be careful.");
 
 	for(int ns = 0; ns < _N_stars; ns++) {
-		BaseParticle<number> *anchor = particles[i];
+		BaseParticle *anchor = particles[i];
 		anchor->index = i;
 		if(!_insert_anchor(particles, anchor, &c)) throw oxDNAException("Can't insert particle number %d", i);
 		c.single_update(anchor);
 		i++;
 
-		LR_vector<number> anchor_pos = anchor->pos;
+		LR_vector anchor_pos = anchor->pos;
 
 		for(int na = 0; na < _N_arms[ns]; na++) {
-			LR_vector<number> dir = Utils::get_random_vector<number>();
+			LR_vector dir = Utils::get_random_vector();
 			number arm_dist = 1.;
 			// if we simulate TSPs then the distance between an anchor and the first monomer of each arm
 			// should be more than one sigma to avoid overlaps
@@ -409,23 +396,23 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 			// if we simulate chains then we want monomers to be more than one sigma apart
 			else dir *= 1.01;
 
-			LR_vector<number> last_pos = anchor_pos;
+			LR_vector last_pos = anchor_pos;
 			for(int nm = 0; nm < _N_monomer_per_arm[ns]; nm++) {
-				BaseParticle<number> *p = particles[i];
+				BaseParticle *p = particles[i];
 				p->pos = last_pos;
-				if(nm == 0) p->pos += dir*arm_dist;
+				if(nm == 0) p->pos += dir * arm_dist;
 				else {
 					if(nm < straight_till && !_only_chains) p->pos += dir;
 					else {
-						number angle = drand48() * (2*M_PI-0.2) + 0.2;
-						LR_matrix<number> R = Utils::get_random_rotation_matrix_from_angle<number>(angle);
-						p->pos += R*dir;
+						number angle = drand48() * (2 * M_PI - 0.2) + 0.2;
+						LR_matrix R = Utils::get_random_rotation_matrix_from_angle(angle);
+						p->pos += R * dir;
 					}
 				}
 
 				// if there are only chains then we want to generate non-straight chains
 				// and hence we extract a new random direction
-				if(_only_chains) dir = Utils::get_random_vector<number>();
+				if(_only_chains) dir = Utils::get_random_vector();
 
 				p->index = i;
 				// if we simulate TSPs then we check for overlaps only for the first monomer
@@ -441,7 +428,7 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 					continue;
 				}
 
-				p->orientation = Utils::get_random_rotation_matrix_from_angle<number>(M_PI);
+				p->orientation = Utils::get_random_rotation_matrix_from_angle(M_PI);
 				c.single_update(p);
 				last_pos = p->pos;
 				number dist = sqrt(p->pos.sqr_distance(anchor_pos));
@@ -454,6 +441,30 @@ void TSPInteraction<number>::generate_random_configuration(BaseParticle<number> 
 	OX_LOG(Logger::LOG_INFO, "Max distance: %f", max_dist);
 }
 
-template class TSPInteraction<float>;
-template class TSPInteraction<double>;
+TSPParticle::TSPParticle() : BaseParticle(), _is_anchor(false)  {
+	_arm = -1;
+}
+
+TSPParticle::~TSPParticle() {
+
+}
+
+void TSPParticle::add_bonded_neigh(TSPParticle *nn) {
+	bonded_neighs.insert(nn);
+	nn->bonded_neighs.insert(this);
+
+	ParticlePair new_pair(this, nn);
+	this->affected.push_back(new_pair);
+	nn->affected.push_back(new_pair);
+}
+
+
+bool TSPParticle::is_bonded(BaseParticle *q) {
+	TSPParticle *TSPq = (TSPParticle *) q;
+	return !(bonded_neighs.find(TSPq) == bonded_neighs.end());
+}
+
+extern "C" TSPInteraction *make_TSPInteraction() {
+	return new TSPInteraction();
+}
 

@@ -14,9 +14,16 @@
 
 using namespace std;
 
-template <typename number>
-FSInteraction<number>::FSInteraction() : BaseInteraction<number, FSInteraction<number> >(), _N_patches(-1), _N_patches_B(-1), _N_A(0), _N_B(0), _N(-1), _N_def_A(0), _one_component(false) {
-	this->_int_map[FS] = &FSInteraction<number>::_patchy_two_body;
+FSInteraction::FSInteraction() :
+				BaseInteraction<FSInteraction>(),
+				_N_patches(-1),
+				_N_patches_B(-1),
+				_N_A(0),
+				_N_B(0),
+				_N(-1),
+				_N_def_A(0),
+				_one_component(false) {
+	this->_int_map[FS] = &FSInteraction::_patchy_two_body;
 
 	_lambda = 1.;
 	no_three_body = false;
@@ -33,14 +40,12 @@ FSInteraction<number>::FSInteraction() : BaseInteraction<number, FSInteraction<n
 	_polymer_energy_scale = 1.;
 }
 
-template <typename number>
-FSInteraction<number>::~FSInteraction() {
+FSInteraction::~FSInteraction() {
 
 }
 
-template<typename number>
-void FSInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+void FSInteraction::get_settings(input_file &inp) {
+	BaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "FS_N", &_N_patches, 1);
 	getInputInt(&inp, "FS_N_B", &_N_patches_B, 0);
@@ -68,13 +73,12 @@ void FSInteraction<number>::get_settings(input_file &inp) {
 	}
 }
 
-template<typename number>
-void FSInteraction<number>::init() {
-	_rep_rcut = pow(2., 1./6.);
+void FSInteraction::init() {
+	_rep_rcut = pow(2., 1. / 6.);
 	_sqr_rep_rcut = SQR(_rep_rcut);
-	_rep_E_cut = -4./pow(_sqr_rep_rcut, 6) + 4./pow(_sqr_rep_rcut, 3);
+	_rep_E_cut = -4. / pow(_sqr_rep_rcut, 6) + 4. / pow(_sqr_rep_rcut, 3);
 
-	_rcut_ss = 1.5*_sigma_ss;
+	_rcut_ss = 1.5 * _sigma_ss;
 
 	_patch_rcut = _rcut_ss;
 	_sqr_patch_rcut = SQR(_patch_rcut);
@@ -96,15 +100,14 @@ void FSInteraction<number>::init() {
 	_polymer_length_scale_sqr = SQR(_polymer_length_scale);
 	_polymer_rfene_sqr = SQR(_polymer_rfene);
 
-	number B_ss = 1. / (1. + 4.*SQR(1. - _rcut_ss/_sigma_ss));
-	_A_part = -1. / (B_ss - 1.) / exp(1. / (1. - _rcut_ss/_sigma_ss));
+	number B_ss = 1. / (1. + 4. * SQR(1. - _rcut_ss / _sigma_ss));
+	_A_part = -1. / (B_ss - 1.) / exp(1. / (1. - _rcut_ss / _sigma_ss));
 	_B_part = B_ss * pow(_sigma_ss, 4.);
 
 	OX_LOG(Logger::LOG_INFO, "FS parameters: lambda = %lf, A_part = %lf, B_part = %lf", _lambda, _A_part, _B_part);
 }
 
-template<typename number>
-number FSInteraction<number>::_patchy_two_body(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm();
 	if(sqr_r > this->_sqr_rcut) return (number) 0.f;
 
@@ -113,10 +116,10 @@ number FSInteraction<number>::_patchy_two_body(BaseParticle<number> *p, BasePart
 	// centre-centre
 	if(sqr_r < _sqr_rep_rcut) {
 		number ir2 = 1. / sqr_r;
-		number lj_part = ir2*ir2*ir2;
+		number lj_part = ir2 * ir2 * ir2;
 		energy = 4 * (SQR(lj_part) - lj_part) + _rep_E_cut;
 		if(update_forces) {
-			LR_vector<number> force = *r * (-24. * (lj_part - 2*SQR(lj_part)) / sqr_r);
+			LR_vector force = *r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 			p->force -= force;
 			q->force += force;
 
@@ -125,29 +128,29 @@ number FSInteraction<number>::_patchy_two_body(BaseParticle<number> *p, BasePart
 	}
 
 	if(_attraction_allowed(p->type, q->type)) {
-		for(int pi = 0; pi < p->N_int_centers; pi++) {
-			LR_vector<number> ppatch = p->int_centers[pi];
-			for(int pj = 0; pj < q->N_int_centers; pj++) {
-				LR_vector<number> qpatch = q->int_centers[pj];
+		for(uint pi = 0; pi < p->N_int_centers(); pi++) {
+			LR_vector ppatch = p->int_centers[pi];
+			for(uint pj = 0; pj < q->N_int_centers(); pj++) {
+				LR_vector qpatch = q->int_centers[pj];
 
-				LR_vector<number> patch_dist = *r + qpatch - ppatch;
+				LR_vector patch_dist = *r + qpatch - ppatch;
 				number dist = patch_dist.norm();
 				if(dist < _sqr_patch_rcut) {
 					number r_p = sqrt(dist);
 					number exp_part = exp(_sigma_ss / (r_p - _rcut_ss));
-					number tmp_energy = _A_part * exp_part * (_B_part/SQR(dist) - 1.);
+					number tmp_energy = _A_part * exp_part * (_B_part / SQR(dist) - 1.);
 
 					energy += tmp_energy;
 
-					FSBond<number> p_bond(q, *r, r_p, pi, pj, tmp_energy);
-					FSBond<number> q_bond(p, -*r, r_p, pj, pi, tmp_energy);
+					FSBond p_bond(q, *r, r_p, pi, pj, tmp_energy);
+					FSBond q_bond(p, -*r, r_p, pj, pi, tmp_energy);
 
 					if(update_forces) {
-						number force_mod  = _A_part * exp_part * (4.*_B_part/(SQR(dist)*r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
-						LR_vector<number> tmp_force = patch_dist * (force_mod / r_p);
+						number force_mod = _A_part * exp_part * (4. * _B_part / (SQR(dist) * r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
+						LR_vector tmp_force = patch_dist * (force_mod / r_p);
 
-						LR_vector<number> p_torque = p->orientationT * ppatch.cross(tmp_force);
-						LR_vector<number> q_torque = q->orientationT * qpatch.cross(tmp_force);
+						LR_vector p_torque = p->orientationT * ppatch.cross(tmp_force);
+						LR_vector q_torque = q->orientationT * qpatch.cross(tmp_force);
 
 						p->force -= tmp_force;
 						q->force += tmp_force;
@@ -181,8 +184,7 @@ number FSInteraction<number>::_patchy_two_body(BaseParticle<number> *p, BasePart
 	return energy;
 }
 
-template<typename number>
-number FSInteraction<number>::_polymer_fene(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm() / _polymer_length_scale_sqr;
 
 	if(sqr_r > _polymer_rfene_sqr) {
@@ -197,7 +199,7 @@ number FSInteraction<number>::_polymer_fene(BaseParticle<number> *p, BaseParticl
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
 		number force_mod = -30. * _polymer_rfene_sqr / (_polymer_rfene_sqr - sqr_r);
-		force_mod *= _polymer_energy_scale /  _polymer_length_scale_sqr;
+		force_mod *= _polymer_energy_scale / _polymer_length_scale_sqr;
 		p->force -= *r * force_mod;
 		q->force += *r * force_mod;
 	}
@@ -207,8 +209,7 @@ number FSInteraction<number>::_polymer_fene(BaseParticle<number> *p, BaseParticl
 	return energy;
 }
 
-template<typename number>
-number FSInteraction<number>::_polymer_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number FSInteraction::_polymer_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm() / _polymer_length_scale_sqr;
 	if(sqr_r > this->_sqr_rcut) return (number) 0.;
 
@@ -242,12 +243,11 @@ number FSInteraction<number>::_polymer_nonbonded(BaseParticle<number> *p, BasePa
 	return energy;
 }
 
-template<typename number>
-number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number> &new_bond, bool update_forces) {
+number FSInteraction::_three_body(BaseParticle *p, FSBond &new_bond, bool update_forces) {
 	number energy = 0.;
 	_needs_reset = true;
-	
-	typename std::set<FSBond<number> >::iterator it = _bonds[p->index].begin();
+
+	typename std::set<FSBond>::iterator it = _bonds[p->index].begin();
 	for(; it != _bonds[p->index].end(); it++) {
 		// three-body interactions happen only when the same patch is involved in more than a bond
 		if(it->other != new_bond.other && it->p_patch == new_bond.p_patch) {
@@ -265,10 +265,10 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 
 			if(update_forces) {
 				if(new_bond.r_p > _sigma_ss) {
-					BaseParticle<number> *other = new_bond.other;
+					BaseParticle *other = new_bond.other;
 
 					number factor = -_lambda * other_energy;
-					LR_vector<number> tmp_force = factor * new_bond.force;
+					LR_vector tmp_force = factor * new_bond.force;
 
 					p->force -= tmp_force;
 					other->force += tmp_force;
@@ -280,10 +280,10 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 				}
 
 				if(it->r_p > _sigma_ss) {
-					BaseParticle<number> *other = it->other;
+					BaseParticle *other = it->other;
 
 					number factor = -_lambda * curr_energy;
-					LR_vector<number> tmp_force = factor * it->force;
+					LR_vector tmp_force = factor * it->force;
 
 					p->force -= factor * it->force;
 					other->force += factor * it->force;
@@ -300,29 +300,27 @@ number FSInteraction<number>::_three_body(BaseParticle<number> *p, FSBond<number
 	return energy;
 }
 
-template<typename number>
-number FSInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number FSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number energy = pair_interaction_bonded(p, q, r, update_forces);
 	energy += pair_interaction_nonbonded(p, q, r, update_forces);
 	return energy;
 }
 
-template<typename number>
-number FSInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
+number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	// patchy-patchy interactions don't have bonded part. We set up a fake one at the beginning just to reset some data structures every step
 	if(_is_patchy_patchy(p->type, q->type) && _needs_reset) {
 		for(int i = _N_in_polymers; i < _N; i++) {
 			_bonds[i].clear();
 		}
 
-		_stress_tensor = vector<vector<number> >(3, vector<number>(3, (number) 0));
+		_stress_tensor = vector<vector<number>>(3, vector<number>(3, (number) 0));
 		_needs_reset = false;
 	}
 
 	number energy = 0.;
 
 	if(p->is_bonded(q)) {
-		LR_vector<number> computed_r;
+		LR_vector computed_r;
 		if(r == NULL) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
 				computed_r = this->_box->min_image(p->pos, q->pos);
@@ -337,9 +335,8 @@ number FSInteraction<number>::pair_interaction_bonded(BaseParticle<number> *p, B
 	return energy;
 }
 
-template<typename number>
-number FSInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	LR_vector<number> computed_r(0, 0, 0);
+number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
 		r = &computed_r;
@@ -354,8 +351,7 @@ number FSInteraction<number>::pair_interaction_nonbonded(BaseParticle<number> *p
 	}
 }
 
-template<typename number>
-void FSInteraction<number>::_parse_bond_file(BaseParticle<number> **particles) {
+void FSInteraction::_parse_bond_file(std::vector<BaseParticle *> &particles) {
 	std::ifstream bond_file(_bond_filename.c_str());
 
 	if(!bond_file.good()) throw oxDNAException("Can't read bond file '%s'. Aborting", _bond_filename.c_str());
@@ -372,41 +368,63 @@ void FSInteraction<number>::_parse_bond_file(BaseParticle<number> **particles) {
 		int idx, n_bonds;
 		bond_file >> idx >> n_bonds;
 		idx--;
-		CustomParticle<number> *p = static_cast<CustomParticle<number> *>(particles[idx]);
+		CustomParticle *p = static_cast<CustomParticle *>(particles[idx]);
 		p->n3 = p->n5 = P_VIRTUAL;
-		p->btype = n_bonds;
+		// CUDA backend's get_particle_btype will return btype % 4
+		p->btype = 4 + n_bonds;
 		for(int j = 0; j < n_bonds; j++) {
 			int n_idx;
 			bond_file >> n_idx;
 			n_idx--;
-			CustomParticle<number> *q = static_cast<CustomParticle<number> *>(particles[n_idx]);
+			CustomParticle *q = static_cast<CustomParticle *>(particles[n_idx]);
 			p->add_bonded_neigh(q);
 		}
 		if(i != idx) throw oxDNAException("There is something wrong with the bond file. Expected index %d, found %d\n", i, idx);
 	}
 }
 
+void FSInteraction::_update_stress_tensor(LR_vector r, LR_vector f) {
+	for(int i = 0; i < 3; i++) {
+		for(int j = 0; j < 3; j++) {
+			number ri = r[i];
+			number fj = f[j];
+			_stress_tensor[i][j] += ri * fj;
+		}
+	}
+}
 
-template<typename number>
-void FSInteraction<number>::allocate_particles(BaseParticle<number> **particles, int N) {
+bool FSInteraction::_attraction_allowed(int p_type, int q_type) {
+	if(_same_patches) return true;
+	if(_one_component) return true;
+	if(p_type != q_type) return true;
+	if(_B_attraction && p_type == PATCHY_B && q_type == PATCHY_B) return true;
+	return false;
+}
+
+bool FSInteraction::_is_patchy_patchy(int p_type, int q_type) {
+	return p_type != POLYMER && q_type != POLYMER;
+}
+
+void FSInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	_bonds.resize(N);
 	for(int i = 0; i < N; i++) {
 		if(i < _N_in_polymers) {
-			particles[i] = new CustomParticle<number>();
+			particles[i] = new CustomParticle();
 		}
 		else {
 			int i_patches = (i < (_N_in_polymers + _N_A)) ? _N_patches : _N_patches_B;
-			particles[i] = new PatchyParticle<number>(i_patches, 0, 1.);
+			particles[i] = new PatchyParticle(i_patches, 0, 1.);
 			if(i < _N_def_A) {
-				particles[i]->N_int_centers--;
+				particles[i]->int_centers.resize(particles[i]->N_int_centers() - 1);
 			}
 		}
 	}
 	_N = N;
 }
 
-template<typename number>
-void FSInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<number> **particles) {
+void FSInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+	int N = particles.size();
 	*N_strands = N;
 
 	std::ifstream topology(this->_topology_filename, ios::in);
@@ -434,24 +452,24 @@ void FSInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<nu
 	if(_N_B > 0 && _N_patches_B == -1) throw oxDNAException("Number of patches of species B not specified");
 
 	OX_LOG(Logger::LOG_INFO, "FSInteraction: simulating %d A-particles (of which %d are defective) and %d B-particles", _N_A, _N_def_A, _N_B);
-	
-	allocate_particles(particles, N);
-	for (int i = 0; i < N; i ++) {
-	   particles[i]->index = i;
-	   if(i < _N_in_polymers) {
-		   particles[i]->type = particles[i]->btype = POLYMER;
-	   }
-	   else if (i < (_N_in_polymers + _N_A)) {
-		   particles[i]->type = particles[i]->btype = PATCHY_A;
-	   }
-	   else {
-		   particles[i]->type = particles[i]->btype = PATCHY_B;
-	   }
-	   particles[i]->strand_id = i;
+
+	allocate_particles(particles);
+	for(int i = 0; i < N; i++) {
+		particles[i]->index = i;
+		if(i < _N_in_polymers) {
+			particles[i]->type = particles[i]->btype = POLYMER;
+		}
+		else if(i < (_N_in_polymers + _N_A)) {
+			particles[i]->type = particles[i]->btype = PATCHY_A;
+		}
+		else {
+			particles[i]->type = particles[i]->btype = PATCHY_B;
+		}
+		particles[i]->strand_id = i;
 	}
 	// we want to call the pair_interaction_bonded (which does nothing but resetting some data structures) to be called just once
 	if((N - _N_in_polymers) > 1) {
-		particles[_N_in_polymers]->affected.push_back(ParticlePair<number>(particles[_N_in_polymers], particles[_N_in_polymers + 1]));
+		particles[_N_in_polymers]->affected.push_back(ParticlePair(particles[_N_in_polymers], particles[_N_in_polymers + 1]));
 	}
 
 	if(_with_polymers) {
@@ -459,18 +477,10 @@ void FSInteraction<number>::read_topology(int N, int *N_strands, BaseParticle<nu
 	}
 }
 
-template<typename number>
-void FSInteraction<number>::check_input_sanity(BaseParticle<number> **particles, int N) {
+void FSInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 	if(_N_B > 0 && _one_component) throw oxDNAException("One component simulations should have topologies implying that no B-particles are present");
 }
 
-extern "C" FSInteraction<float> *make_FSInteraction_float() {
-	return new FSInteraction<float>();
+extern "C" FSInteraction *make_FSInteraction() {
+	return new FSInteraction();
 }
-
-extern "C" FSInteraction<double> *make_FSInteraction_double() {
-	return new FSInteraction<double>();
-}
-
-template class FSInteraction<float>;
-template class FSInteraction<double>;

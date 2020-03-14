@@ -17,11 +17,11 @@
  * with that id will be printed. To use this observable, use type = pair_force.
  *
  * @verbatim
-[particle_id = <int> (Optional argument. particle id.)]
-@endverbatim
+ [particle_id = <int> (Optional argument. particle id.)]
+ @endverbatim
  */
-template<typename number>
-class PairForce: public BaseObservable<number> {
+
+class PairForce: public BaseObservable {
 protected:
 	int _particle_id;
 	bool _print_all_particles;

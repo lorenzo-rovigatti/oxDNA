@@ -8,27 +8,19 @@
 #include "Density.h"
 #include "../Utilities/Utils.h"
 
-template<typename number>
-Density<number>::Density() {
+Density::Density() {
 
 }
 
-template<typename number>
-Density<number>::~Density() {
+Density::~Density() {
 
 }
 
-template<typename number>
-std::string Density<number>::get_output_string(llint curr_step) {
-	int N = *this->_config_info.N;
-	number V = this->_config_info.box->V();
-	return Utils::sformat ("%# 10.8g", N / V);
+std::string Density::get_output_string(llint curr_step) {
+	number V = _config_info->box->V();
+	return Utils::sformat("%# 10.8g", _config_info->N() / V);
 }
 
-template<typename number>
-void Density<number>::get_settings (input_file &my_inp, input_file &sim_inp) {
+void Density::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 }
-
-template class Density<float>;
-template class Density<double>;

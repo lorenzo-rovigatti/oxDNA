@@ -8,7 +8,7 @@
 #include "oxDNAException.h"
 #include "Logger.h"
 
-Logger* Logger::_logger = NULL;
+std::shared_ptr<Logger> Logger::_logger = nullptr;
 
 Logger::Logger() {
 	_log_open = false;
@@ -39,7 +39,7 @@ void Logger::_log(int log_level, const char *format, va_list &ap) {
 
 void Logger::_set_stream(const char *filename) {
 	FILE *buff = fopen(filename, "w");
-	if(buff == NULL) throw oxDNAException("Log file '%s' is not writable", filename);
+	if(buff == nullptr) throw oxDNAException("Log file '%s' is not writable", filename);
 
 	_log_stream = buff;
 	_log_open = true;
@@ -67,17 +67,13 @@ void Logger::get_settings(input_file &inp) {
 }
 
 void Logger::init() {
-	if(_logger != NULL) throw oxDNAException("The logger have been already initialised");
+	if(_logger != nullptr) throw oxDNAException("The logger has been already initialised");
 
-	_logger = new Logger();
+	_logger = std::shared_ptr<Logger>(new Logger());
 }
 
-void Logger::clear() {
-	delete _logger;
-}
-
-Logger *Logger::instance() {
-	if(_logger == NULL) throw oxDNAException("Trying to access an uninitialised logger");
+std::shared_ptr<Logger> Logger::instance() {
+	if(_logger == nullptr) throw oxDNAException("Trying to access an uninitialised logger");
 
 	return _logger;
 }

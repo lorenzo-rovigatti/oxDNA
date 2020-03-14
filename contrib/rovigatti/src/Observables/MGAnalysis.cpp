@@ -13,8 +13,7 @@
 #include "quickhull.h"
 #include "diagonalise_3x3.h"
 
-template<typename number>
-MGAnalysis<number>::MGAnalysis() :
+MGAnalysis::MGAnalysis() :
 				_exponent(6),
 				_alpha(0.),
 				_volume_only(true),
@@ -22,14 +21,12 @@ MGAnalysis<number>::MGAnalysis() :
 	_two_microgels = false;
 }
 
-template<typename number>
-MGAnalysis<number>::~MGAnalysis() {
+MGAnalysis::~MGAnalysis() {
 
 }
 
-template<typename number>
-void MGAnalysis<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
-	string inter;
+void MGAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
+	std::string inter;
 	getInputString(&sim_inp, "interaction_type", inter, 1);
 	if(inter != "MGInteraction") throw oxDNAException("ElasticConstantTensor is not compatible with the interaction '%s'", inter.c_str());
 
@@ -66,8 +63,7 @@ void MGAnalysis<number>::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 }
 
-template<typename number>
-void MGAnalysis<number>::init(ConfigInfo<number> &config_info) {
+void MGAnalysis::init(ConfigInfo &config_info) {
 	number rep_rcut = pow(2., 1. / _exponent);
 	_sqr_rep_rcut = SQR(rep_rcut);
 
@@ -75,17 +71,15 @@ void MGAnalysis<number>::init(ConfigInfo<number> &config_info) {
 	_beta = 2 * M_PI - 2.25 * _gamma;
 }
 
-template<typename number>
-pair<number, number> MGAnalysis<number>::_lame_coefficients() {
-	vector<ParticlePair<number> > pairs = this->_config_info.lists->get_potential_interactions();
+std::pair<number, number> MGAnalysis::_lame_coefficients() {
+	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 
 	number lambda = 0.;
 	number mu = 0.;
-	typename vector<ParticlePair<number> >::iterator it;
-	for(it = pairs.begin(); it != pairs.end(); it++) {
-		BaseParticle<number> *p = (*it).first;
-		BaseParticle<number> *q = (*it).second;
-		LR_vector<number> r = this->_config_info.box->min_image(p->pos, q->pos);
+	for(auto &pair: pairs) {
+		BaseParticle *p = pair.first;
+		BaseParticle *q = pair.second;
+		LR_vector r = _config_info->box->min_image(p->pos, q->pos);
 		number r_sqr = r.norm();
 		number r_mod = sqrt(r_sqr);
 
@@ -124,21 +118,20 @@ pair<number, number> MGAnalysis<number>::_lame_coefficients() {
 
 	lambda /= 6.;
 	mu /= 6.;
-	mu += 2 * _T * *this->_config_info.N;
+	mu += 2 * _T * _config_info->N();
 
-	return pair<number, number>(lambda, mu);
+	return std::pair<number, number>(lambda, mu);
 }
 
-template<typename number>
-number MGAnalysis<number>::_volume() {
-	int N = *this->_config_info.N;
-	LR_vector<number> com = _com(0, N);
+number MGAnalysis::_volume() {
+	int N = _config_info->N();
+	LR_vector com = _com(0, N);
 
-	vector<qh_vertex_t> vertices(N);
+	std::vector<qh_vertex_t> vertices(N);
 	int curr_idx = 0;
 	for(int i = 0; i < N; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector<number> p_pos = this->_config_info.box->get_abs_pos(p) - com;
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector p_pos = _config_info->box->get_abs_pos(p) - com;
 
 		if(_volume_threshold == 0. || p_pos.norm() < _volume_threshold_sqr) {
 			vertices[curr_idx].x = p_pos.x;
@@ -151,10 +144,10 @@ number MGAnalysis<number>::_volume() {
 	qh_mesh_t mesh = qh_quickhull3d(vertices.data(), curr_idx);
 
 	number volume = 0.;
-	for(int i = 0, j = 0; i < (int)mesh.nindices; i += 3, j++) {
-		LR_vector<number> p1(mesh.vertices[mesh.indices[i + 0]].x, mesh.vertices[mesh.indices[i + 0]].y, mesh.vertices[mesh.indices[i + 0]].z);
-		LR_vector<number> p2(mesh.vertices[mesh.indices[i + 1]].x, mesh.vertices[mesh.indices[i + 1]].y, mesh.vertices[mesh.indices[i + 1]].z);
-		LR_vector<number> p3(mesh.vertices[mesh.indices[i + 2]].x, mesh.vertices[mesh.indices[i + 2]].y, mesh.vertices[mesh.indices[i + 2]].z);
+	for(int i = 0, j = 0; i < (int) mesh.nindices; i += 3, j++) {
+		LR_vector p1(mesh.vertices[mesh.indices[i + 0]].x, mesh.vertices[mesh.indices[i + 0]].y, mesh.vertices[mesh.indices[i + 0]].z);
+		LR_vector p2(mesh.vertices[mesh.indices[i + 1]].x, mesh.vertices[mesh.indices[i + 1]].y, mesh.vertices[mesh.indices[i + 1]].z);
+		LR_vector p3(mesh.vertices[mesh.indices[i + 2]].x, mesh.vertices[mesh.indices[i + 2]].y, mesh.vertices[mesh.indices[i + 2]].z);
 
 		volume += (p1 * (p2.cross(p3))) / 6.;
 	}
@@ -164,41 +157,41 @@ number MGAnalysis<number>::_volume() {
 	return volume;
 }
 
-template<typename number>
-LR_vector<number> MGAnalysis<number>::_com(int from_idx, int to_idx) {
-	LR_vector<number> com;
+LR_vector MGAnalysis::_com(int from_idx, int to_idx) {
+	LR_vector com;
 	int N = to_idx - from_idx;
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		com += this->_config_info.box->get_abs_pos(p);
+		BaseParticle *p = _config_info->particles[i];
+		com += _config_info->box->get_abs_pos(p);
 	}
 	return com / N;
 }
 
-template<typename number>
-vector<number> MGAnalysis<number>::_rg_eigenvalues(int from_idx, int to_idx) {
-	vector<number> res;
-	LR_vector<number> com = _com(from_idx, to_idx);
+std::vector<number> MGAnalysis::_rg_eigenvalues(int from_idx, int to_idx) {
+	std::vector<number> res;
+	LR_vector com = _com(from_idx, to_idx);
 	int N = to_idx - from_idx;
 
-	double IM[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	double IM[3][3] = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector<number> i_pos = this->_config_info.box->get_abs_pos(p) - com;
-		
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector i_pos = _config_info->box->get_abs_pos(p) - com;
+
 		IM[0][0] += SQR(i_pos[1]) + SQR(i_pos[2]);
 		IM[0][1] += -i_pos[0] * i_pos[1];
 		IM[0][2] += -i_pos[0] * i_pos[2];
-		
+
 		IM[1][1] += SQR(i_pos[0]) + SQR(i_pos[2]);
 		IM[1][2] += -i_pos[1] * i_pos[2];
-		
+
 		IM[2][2] += SQR(i_pos[0]) + SQR(i_pos[1]);
 	}
 	IM[1][0] = IM[0][1];
 	IM[2][0] = IM[0][2];
 	IM[2][1] = IM[1][2];
-	for(int i = 0; i < 3; i++) for(int j = 0; j < 3; j++) IM[i][j] /= N;
+	for(int i = 0; i < 3; i++)
+		for(int j = 0; j < 3; j++)
+			IM[i][j] /= N;
 
 	double EV[3][3];
 	double val[3];
@@ -208,24 +201,20 @@ vector<number> MGAnalysis<number>::_rg_eigenvalues(int from_idx, int to_idx) {
 	res.push_back(sqrt(val[1]));
 	res.push_back(sqrt(val[2]));
 
-	LR_vector<number> EVs[3] = {
-		LR_vector<number>(EV[0][0], EV[0][1], EV[0][2]),
-		LR_vector<number>(EV[1][0], EV[1][1], EV[1][2]),
-		LR_vector<number>(EV[2][0], EV[2][1], EV[2][2])
-	};
+	LR_vector EVs[3] = { LR_vector(EV[0][0], EV[0][1], EV[0][2]), LR_vector(EV[1][0], EV[1][1], EV[1][2]), LR_vector(EV[2][0], EV[2][1], EV[2][2]) };
 	EVs[0].normalize();
 	EVs[1].normalize();
 	EVs[2].normalize();
 
-	LR_vector<number> max_along_EVs(-1.e6, -1.e6, -1.e6);
-	LR_vector<number> min_along_EVs(1.e6, 1.e6, 1.e6);
+	LR_vector max_along_EVs(-1.e6, -1.e6, -1.e6);
+	LR_vector min_along_EVs(1.e6, 1.e6, 1.e6);
 
 	for(int i = from_idx; i < to_idx; i++) {
-		BaseParticle<number> *p = this->_config_info.particles[i];
-		LR_vector<number> p_pos = this->_config_info.box->get_abs_pos(p) - com;
+		BaseParticle *p = _config_info->particles[i];
+		LR_vector p_pos = _config_info->box->get_abs_pos(p) - com;
 
 		for(int d = 0; d < 3; d++) {
-			number abs = p_pos*EVs[d];
+			number abs = p_pos * EVs[d];
 			if(abs > max_along_EVs[d]) max_along_EVs[d] = abs;
 			else if(abs < min_along_EVs[d]) min_along_EVs[d] = abs;
 		}
@@ -234,27 +223,26 @@ vector<number> MGAnalysis<number>::_rg_eigenvalues(int from_idx, int to_idx) {
 	res.push_back(max_along_EVs[0] - min_along_EVs[0]);
 	res.push_back(max_along_EVs[1] - min_along_EVs[1]);
 	res.push_back(max_along_EVs[2] - min_along_EVs[2]);
-	
+
 	return res;
 }
 
-template<typename number>
-std::string MGAnalysis<number>::get_output_string(llint curr_step) {
-	string to_ret;
+std::string MGAnalysis::get_output_string(llint curr_step) {
+	std::string to_ret;
 
 	if(_volume_only) {
 		double volume = _volume();
 		to_ret = Utils::sformat("%lf", volume);
 	}
 	else if(_rg_only) {
-		int N = *this->_config_info.N;
+		int N = _config_info->N();
 		if(!_two_microgels) {
-			vector<number> eigenvalues = _rg_eigenvalues(0, N);
+			auto eigenvalues = _rg_eigenvalues(0, N);
 			to_ret = Utils::sformat("%lf %lf %lf %lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2], eigenvalues[3], eigenvalues[4], eigenvalues[5]);
 		}
 		else {
 			int N_half = N / 2;
-			vector<number> eigenvalues = _rg_eigenvalues(0, N_half);
+			auto eigenvalues = _rg_eigenvalues(0, N_half);
 			to_ret = Utils::sformat("%lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2]);
 			eigenvalues = _rg_eigenvalues(N_half, N);
 			to_ret += Utils::sformat(" %lf %lf %lf", eigenvalues[0], eigenvalues[1], eigenvalues[2]);
@@ -262,7 +250,7 @@ std::string MGAnalysis<number>::get_output_string(llint curr_step) {
 	}
 	else {
 		double volume = _volume();
-		pair<number, number> lame = _lame_coefficients();
+		std::pair<number, number> lame = _lame_coefficients();
 		number lambda = lame.first / volume;
 		number mu = lame.second / volume;
 		to_ret = Utils::sformat("%lf %lf", lambda, mu);
@@ -270,6 +258,3 @@ std::string MGAnalysis<number>::get_output_string(llint curr_step) {
 
 	return to_ret;
 }
-
-template class MGAnalysis<float> ;
-template class MGAnalysis<double> ;

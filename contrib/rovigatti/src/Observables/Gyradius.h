@@ -14,8 +14,8 @@
  * @brief Computes the gyration radius of a single chain
  *
  */
-template<typename number>
-class Gyradius : public BaseObservable<number> {
+
+class Gyradius: public BaseObservable {
 protected:
 	bool _accumulate;
 	number _avg_gr2;
@@ -26,11 +26,12 @@ public:
 	Gyradius();
 	virtual ~Gyradius();
 
-	void get_settings (input_file &my_inp, input_file &sim_inp);
+	void get_settings(input_file &my_inp, input_file &sim_inp);
 	virtual std::string get_output_string(llint curr_step);
 };
 
-extern "C" BaseObservable<float> *make_float() { return new Gyradius<float>(); }
-extern "C" BaseObservable<double> *make_double() { return new Gyradius<double>(); }
+extern "C" BaseObservable *make_Gyradius() {
+	return new Gyradius();
+}
 
 #endif /* GYRADIUS_H_ */

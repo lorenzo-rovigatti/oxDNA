@@ -1,8 +1,9 @@
 # oxDNA
 
-**This repository contains a new (and ) version of oxDNA. If you are not a developer or a tester we advise you to use the [sourceforge](https://sourceforge.net/projects/oxdna/) repo.**
+**This repository contains a new (and not fully tested) version of oxDNA. If you are not a developer or a tester we advise you to use the [sourceforge](https://sourceforge.net/projects/oxdna/) repo.**
 
-oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by [T. E. Ouldridge, J. P. K. Doye and A. A. Louis](http://dx.doi.org/10.1063/1.3552946). It has been since reworked and it is now an extensible simulation+analysis framework. It natively supports DNA, RNA, Lennard-Jones and patchy particle simulations on both CPU and NVIDIA GPUs.
+oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by [T. E. Ouldridge, J. P. K. Doye and A. A. Louis](http://dx.doi.org/10.1063/1.3552946). It has been since reworked and it is now an extensible simulation+analysis framework. It natively supports DNA, RNA, Lennard-Jones and patchy particle simulations of different kinds on both CPU and NVIDIA GPUs.
+
 The development of this software has been partially supported by the European Commission through the Marie Skłodowska−Curie Fellowship No. 702298-DELTAS.
 
 ## Requirements
@@ -49,6 +50,8 @@ in the build/bin folder.
 * `-DCXX11=ON` Compiles oxDNA with c++11 support
 * `-DSIGNAL=OFF` Handling system signals is not always supported. Set this flag to OFF to remove this feature
 * `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
+* `-DDOUBLE=OFF` Set the numerical precision of the CPU backend to `float`
+* `-DCUDA_DOUBLE=ON` Set the numerical precision of the CUDA backend to `double`. This is incompatible with the `mixed` precision
 
 ## `make` targets
 

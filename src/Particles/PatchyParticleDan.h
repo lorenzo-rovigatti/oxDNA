@@ -14,25 +14,25 @@
  * @brief Encapsulates a patchy particle. Used by PatchyInteractionDan.
  */
 
-template<typename number>
-class PatchyParticleDan : public BaseParticle<number> {
+
+class PatchyParticleDan : public BaseParticle {
 protected:
         //Base (i.e. for particles in their original orientation) patch vectors and reference vectors
-	LR_vector<number> * _base_patch_vectors;
-	LR_vector<number> * _base_ref_vectors;
+	LR_vector * _base_patch_vectors;
+	LR_vector * _base_ref_vectors;
 
 	//bool tor_flag;
 
 public:
-        LR_vector<number> * _ref_vectors;   
+        LR_vector * _ref_vectors;   
 
-	PatchyParticleDan(int N_patches, LR_vector<number> * _inp_patch_vectors, LR_vector<number> * _inp_ref_vectors, bool tor_flag);
+	PatchyParticleDan(int N_patches, LR_vector * _inp_patch_vectors, LR_vector * _inp_ref_vectors, bool tor_flag);
 
 	virtual ~PatchyParticleDan();
 
 	void set_positions();
 
-	virtual void copy_from(const PatchyParticleDan<number> &);
+	virtual void copy_from(const PatchyParticleDan &);
 
 	virtual bool is_rigid_body() {
 		return true;

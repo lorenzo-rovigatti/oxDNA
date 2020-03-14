@@ -22,18 +22,18 @@
  print_group = <str> (name of the group of forces to print)
  origin = <float>, <float>, <float> (position of the origin with respect to whom the torque is to be measured, when the key direction is not set OR origin of the line with which respect the torque is to be measured)
  */
-template<typename number>
-class ExternalTorque : public BaseObservable<number> {
+
+class ExternalTorque: public BaseObservable {
 protected:
 	std::string _group_name;
-	LR_vector<number> _origin;
-	LR_vector<number> _direction;
+	LR_vector _origin;
+	LR_vector _direction;
 	bool _respect_to_line;
 public:
 	ExternalTorque();
 	virtual ~ExternalTorque();
 
-	virtual void get_settings (input_file &my_inp, input_file &sim_inp);
+	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	std::string get_output_string(llint curr_step);
 };

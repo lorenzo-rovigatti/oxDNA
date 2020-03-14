@@ -14,8 +14,8 @@
 /**
  * @brief Outputs the radial density profile of the system with respect to its centre of mass
  */
-template<typename number>
-class RadialDensityProfile : public BaseObservable<number> {
+
+class RadialDensityProfile: public BaseObservable {
 private:
 	number _max_value;
 	number _bin_size;
@@ -30,10 +30,11 @@ public:
 	virtual ~RadialDensityProfile();
 
 	virtual std::string get_output_string(llint curr_step);
-	void get_settings (input_file &my_inp, input_file &sim_inp);
+	void get_settings(input_file &my_inp, input_file &sim_inp);
 };
 
-extern "C" BaseObservable<float> *make_RadialDensityProfile_float() { return new RadialDensityProfile<float>(); }
-extern "C" BaseObservable<double> *make_RadialDensityProfile_double() { return new RadialDensityProfile<double>(); }
+extern "C" BaseObservable *make_RadialDensityProfile() {
+	return new RadialDensityProfile();
+}
 
 #endif /* RADIALDENSITYPROFILE_H_ */

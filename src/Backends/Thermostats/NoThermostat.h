@@ -10,13 +10,13 @@
 /**
  * @brief Incapsulates a lack of thermostat, if that makes any sense.
  */
-template<typename number>
-class NoThermostat : public BaseThermostat<number> {
+
+class NoThermostat : public BaseThermostat {
 public:
 	NoThermostat();
 	virtual ~NoThermostat();
 
-	void apply(BaseParticle<number> **particles, llint curr_step);
+	void apply(std::vector<BaseParticle *> &particles, llint curr_step);
 };
 
 #endif // NO_THERMOSTAT_

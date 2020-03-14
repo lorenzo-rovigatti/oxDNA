@@ -11,11 +11,11 @@
 
 #include "BaseMove.h"
 
-template<typename number>
-class MCTras : public BaseMove<number> {
+
+class MCTras : public BaseMove {
 	protected:
 		number _delta;
-		LR_vector<number> pos_old;
+		LR_vector pos_old;
 
 		number _verlet_skin;
 

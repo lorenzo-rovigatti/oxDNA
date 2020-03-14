@@ -14,16 +14,15 @@
 /**
  * @brief Outputs the total (kinetic + potential) energy of the system.
  */
-template<typename number>
-class Checkpoint: public BaseObservable<number> {
+
+class Checkpoint: public BaseObservable {
 private:
-	BinaryConfiguration<number> _conf;
+	BinaryConfiguration _conf;
 
 public:
 	Checkpoint();
 	virtual ~Checkpoint();
 
-	virtual void init(ConfigInfo<number> &config_info);
 	virtual std::string get_output_string(llint curr_step);
 };
 

@@ -25,36 +25,36 @@
 /**
  * @brief CUDA version of a ConstantRateForce.
  */
-template<typename number>
+
 struct constant_rate_force {
 	int type;
-	number x, y, z;
+	c_number x, y, z;
 	bool dir_as_centre;
-	number rate;
-	number F0;
+	c_number rate;
+	c_number F0;
 };
 
 /**
  * @brief CUDA version of a MutualTrap.
  */
-template<typename number>
+
 struct mutual_trap {
 	int type;
-	number stiff;
-	number r0;
+	c_number stiff;
+	c_number r0;
 	int p_ind;
 	bool PBC;
-	number rate;
+	c_number rate;
 };
 
 /**
  * @brief CUDA version of a MovingTrap.
  */
-template<typename number>
+
 struct moving_trap {
 	int type;
-	number stiff;
-	number rate;
+	c_number stiff;
+	c_number rate;
 	float3 pos0;
 	float3 dir;
 };
@@ -62,11 +62,11 @@ struct moving_trap {
 /**
  * @brief CUDA version of a LowdimMovingTrap.
  */
-template<typename number>
+
 struct lowdim_moving_trap {
 	int type;
-	number stiff;
-	number rate;
+	c_number stiff;
+	c_number rate;
 	float3 pos0;
 	float3 dir;
 	bool visX;
@@ -77,21 +77,21 @@ struct lowdim_moving_trap {
 /**
  * @brief CUDA version of a RepulsionPlane.
  */
-template<typename number>
+
 struct repulsion_plane {
 	int type;
-	number stiff;
-	number position;
+	c_number stiff;
+	c_number position;
 	float3 dir;
 };
 
 /**
  * @brief CUDA version of a RepulsionPlaneMoving.
  */
-template<typename number>
+
 struct repulsion_plane_moving {
 	int type;
-	number stiff;
+	c_number stiff;
 	int low_idx, high_idx;
 	float3 dir;
 };
@@ -99,40 +99,40 @@ struct repulsion_plane_moving {
 /**
  * @brief CUDA version of a RepulsiveSphere.
  */
-template<typename number>
+
 struct repulsive_sphere {
 	int type;
-	number stiff;
-	number r0;
-	number rate;
-	number r_ext;
+	c_number stiff;
+	c_number r0;
+	c_number rate;
+	c_number r_ext;
 	float3 centre;
 };
 
 /**
  * @brief CUDA version of a RepulsiveSphereSmooth.
  */
-template<typename number>
+
 struct repulsive_sphere_smooth {
 	int type;
-	number r0;
-	number r_ext;
-	number smooth;
-	number alpha;
-	number stiff;
+	c_number r0;
+	c_number r_ext;
+	c_number smooth;
+	c_number alpha;
+	c_number stiff;
 	float3 centre;
 };
 
 /**
  * @brief CUDA version of an LJWall.
  */
-template<typename number>
+
 struct LJ_wall {
 	int type;
-	number stiff;
-	number position;
-	number cutoff;
-	number sigma;
+	c_number stiff;
+	c_number position;
+	c_number cutoff;
+	c_number sigma;
 	int n;
 	float3 dir;
 };
@@ -140,60 +140,60 @@ struct LJ_wall {
 /**
  * @brief CUDA version of a ConstantRateTorque.
  */
-template<typename number>
+
 struct constant_rate_torque {
 	int type;
 	float3 center, pos0, axis, mask;
-	number rate;
-	number stiff;
-	number F0;
+	c_number rate;
+	c_number stiff;
+	c_number F0;
 };
 
 /**
  * @brief CUDA version of a GenericCentralForce.
  */
-template<typename number>
+
 struct generic_constant_force {
 	int type;
-	number x, y, z;
-	number F0;
-	number inner_cut_off_sqr;
-	number outer_cut_off_sqr;
+	c_number x, y, z;
+	c_number F0;
+	c_number inner_cut_off_sqr;
+	c_number outer_cut_off_sqr;
 };
 
 /**
  * @brief CUDA version of an LJCone.
  */
-template<typename number>
+
 struct LJ_cone {
 	int type;
 	float3 dir, pos0;
-	number stiff;
-	number cutoff;
-	number sigma;
-	number alpha;
-	number sin_alpha;
+	c_number stiff;
+	c_number cutoff;
+	c_number sigma;
+	c_number alpha;
+	c_number sin_alpha;
 	int n;
 };
 
 /**
  * @brief Used internally by CUDA classes to provide an inheritance-like mechanism for external forces.
  */
-template<typename number>
+
 union CUDA_trap {
 	int type;
-	constant_rate_force<number> constant;
-	mutual_trap<number> mutual;
-	moving_trap<number> moving;
-	lowdim_moving_trap<number> lowdim;
-	repulsion_plane<number> repulsionplane;
-	repulsion_plane_moving<number> repulsionplanemoving;
-	repulsive_sphere<number> repulsivesphere;
-	repulsive_sphere_smooth<number> repulsivespheresmooth;
-	LJ_wall<number> ljwall;
-	constant_rate_torque<number> constantratetorque;
-	generic_constant_force<number> genericconstantforce;
-	LJ_cone<number> ljcone;
+	constant_rate_force constant;
+	mutual_trap mutual;
+	moving_trap moving;
+	lowdim_moving_trap lowdim;
+	repulsion_plane repulsionplane;
+	repulsion_plane_moving repulsionplanemoving;
+	repulsive_sphere repulsivesphere;
+	repulsive_sphere_smooth repulsivespheresmooth;
+	LJ_wall ljwall;
+	constant_rate_torque constantratetorque;
+	generic_constant_force genericconstantforce;
+	LJ_cone ljcone;
 };
 
 #endif /* CUDAFORCES_H_ */

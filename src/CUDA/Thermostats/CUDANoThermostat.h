@@ -14,14 +14,16 @@
 /**
  * @brief Implements a NVE simulation (no thermalisation).
  */
-template<typename number, typename number4>
-class CUDANoThermostat: public CUDABaseThermostat<number, number4>, public NoThermostat<number> {
+
+class CUDANoThermostat: public CUDABaseThermostat, public NoThermostat {
 public:
 	CUDANoThermostat();
 	virtual ~CUDANoThermostat();
 
-	virtual void apply_cuda(number4 *d_poss, GPU_quat<number> *d_orientationss, number4 *d_vels, number4 *d_Ls, llint curr_step);
-	virtual bool would_activate(llint curr_step) { return false; }
+	virtual void apply_cuda(c_number4 *d_poss, GPU_quat *d_orientationss, c_number4 *d_vels, c_number4 *d_Ls, llint curr_step);
+	virtual bool would_activate(llint curr_step) {
+		return false;
+	}
 };
 
 #endif /* CUDANOTHERMOSTAT_H_ */

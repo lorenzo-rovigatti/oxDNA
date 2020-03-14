@@ -27,42 +27,39 @@
  * to the "com_list" list.
  *
  * @verbatim
-stiff = <float> (stiffness of the spring)
-r0 = <float> (equilibrium elongation of the spring)
-com_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is subject to the force)
-ref_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is the reference point for the force acting on the other group of particles)
-@endverbatim
+ stiff = <float> (stiffness of the spring)
+ r0 = <float> (equilibrium elongation of the spring)
+ com_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is subject to the force)
+ ref_list = <string> (comma-separated list containing the ids of all the particles whose centre of mass is the reference point for the force acting on the other group of particles)
+ @endverbatim
  */
-template<typename number>
-class COMForce : public BaseForce<number> {
+
+class COMForce: public BaseForce {
 protected:
 	number _r0;
 	llint _last_step;
 
-	BaseBox<number> * _box_ptr;
+	BaseBox *_box_ptr;
 
-	LR_vector<number> _com;
-	LR_vector<number> _ref_com;
+	LR_vector _com;
+	LR_vector _ref_com;
 
 	std::string _com_string;
 	std::string _ref_string;
 
-	std::set<BaseParticle<number> *> _com_list;
-	std::set<BaseParticle<number> *> _ref_list;
+	std::set<BaseParticle *> _com_list;
+	std::set<BaseParticle *> _ref_list;
 
 	void _compute_coms(llint step);
-	void _check_index(int idx, int N);
 
 public:
 	COMForce();
 	virtual ~COMForce();
 
-	virtual void get_settings(input_file &inp);
+	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box_side);
 
-	virtual void init(BaseParticle<number> **particles, int N, BaseBox<number> * box_side);
-
-	virtual LR_vector<number> value(llint step, LR_vector<number> &pos);
-	virtual number potential(llint step, LR_vector<number> &pos);
+	virtual LR_vector value(llint step, LR_vector &pos);
+	virtual number potential(llint step, LR_vector &pos);
 };
 
 #endif /* COMFORCE_H_ */

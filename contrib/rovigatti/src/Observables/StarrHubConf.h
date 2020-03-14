@@ -14,11 +14,11 @@
  * @brief Prints a configuration in the Starr format.
  *
  * @verbatim
-[in_box = <bool> (if true all the positions are brought back between -L/2 and L/2. Defaults to false)]
-@endverbatim
+ [in_box = <bool> (if true all the positions are brought back between -L/2 and L/2. Defaults to false)]
+ @endverbatim
  */
-template<typename number>
-class StarrHubConf: public Configuration<number>  {
+
+class StarrHubConf: public Configuration {
 protected:
 	int _N_per_strand;
 	int _N_strands_per_tetramer;
@@ -28,8 +28,8 @@ protected:
 	bool _print_bonds;
 	number _dt;
 
-	std::vector<LR_vector<number> > _tetra_poss;
-	std::vector<LR_vector<number> > _tetra_vels;
+	std::vector<LR_vector> _tetra_poss;
+	std::vector<LR_vector> _tetra_vels;
 
 	std::vector<std::map<int, int> > _tetra_bonds;
 
@@ -41,10 +41,11 @@ public:
 	virtual ~StarrHubConf();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo<number> &config_info);
+	void init(ConfigInfo &config_info);
 };
 
-extern "C" BaseObservable<float> *make_StarrHubConf_float() { return new StarrHubConf<float>(); }
-extern "C" BaseObservable<double> *make_StarrHubConf_double() { return new StarrHubConf<double>(); }
+extern "C" BaseObservable *make_StarrHubConf() {
+	return new StarrHubConf();
+}
 
 #endif /* STARRCONF_H_ */

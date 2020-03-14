@@ -14,15 +14,13 @@
  * @brief Static factory class. Its only public method builds an {@link BaseMove move}.
  *
  * @verbatim
-[type = rotation|traslation|possibly other as they get added (move to perform. No Defaults)]
-@endverbatim
+ [type = rotation|traslation|possibly other as they get added (move to perform. No Defaults)]
+ @endverbatim
  */
 class MoveFactory {
-private:
-	MoveFactory();
 public:
-	virtual ~MoveFactory();
-
+	MoveFactory() = delete;
+	virtual ~MoveFactory() = delete;
 
 	/**
 	 * @brief Builds the interaction instance.
@@ -33,8 +31,8 @@ public:
 	 *
 	 * @return a pointer to the newly built interaction
 	 */
-	template <typename number>
-	static BaseMove<number> * make_move (input_file &inp, input_file &sim_inp);
+
+	static MovePtr make_move(input_file &inp, input_file &sim_inp);
 };
 
 #endif /* INTERACTIONFACTORY_H_ */

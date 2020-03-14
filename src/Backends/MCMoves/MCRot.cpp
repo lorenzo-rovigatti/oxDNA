@@ -8,20 +8,20 @@
 
 #include "MCRot.h"
 
-template<typename number>
-MCRot<number>::MCRot () : BaseMove<number>() {
-	_orientation_old = LR_matrix<number> (1., 0., 0., 0., 1., 0., 0., 0., 1.);
-	_orientationT_old = LR_matrix<number> (1., 0., 0., 0., 1., 0., 0., 0., 1.);
+
+MCRot::MCRot () : BaseMove() {
+	_orientation_old = LR_matrix (1., 0., 0., 0., 1., 0., 0., 0., 1.);
+	_orientationT_old = LR_matrix (1., 0., 0., 0., 1., 0., 0., 0., 1.);
 }
 
-template<typename number>
-MCRot<number>::~MCRot () {
+
+MCRot::~MCRot () {
 
 }
 
-template<typename number>
-void MCRot<number>::get_settings (input_file &inp, input_file &sim_inp) {
-	BaseMove<number>::get_settings (inp, sim_inp);
+
+void MCRot::get_settings (input_file &inp, input_file &sim_inp) {
+	BaseMove::get_settings (inp, sim_inp);
 
 	// the following "double" parsing is for backwards compatibility
 	if (getInputNumber (&inp, "delta_rot", &_delta, 0) == KEY_NOT_FOUND) {
@@ -30,22 +30,22 @@ void MCRot<number>::get_settings (input_file &inp, input_file &sim_inp) {
 	getInputNumber (&inp, "prob", &this->prob, 1);
 }
 
-template<typename number>
-void MCRot<number>::init () {
-	BaseMove<number>::init();
+
+void MCRot::init () {
+	BaseMove::init();
 	OX_LOG(Logger::LOG_INFO, "(MCRot.cpp) MCRot initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
-template<typename number>
-void MCRot<number>::apply (llint curr_step) {
+
+void MCRot::apply (llint curr_step) {
 
 	this->_attempted ++;
 
-	int pi = (int) (drand48() * (*this->_Info->N));
-	BaseParticle<number> *p = this->_Info->particles[pi];
+	int pi = (int) (drand48() * this->_Info->N());
+	BaseParticle *p = this->_Info->particles[pi];
 	if (this->_restrict_to_type >= 0) {
 		while(p->type != this->_restrict_to_type) {
-			pi = (int) (drand48() * (*this->_Info->N));
+			pi = (int) (drand48() * this->_Info->N());
 			p = this->_Info->particles[pi];
 		}
 	}
@@ -61,7 +61,7 @@ void MCRot<number>::apply (llint curr_step) {
 
 	//number t = (drand48() - (number)0.5f) * _delta;
 	number t = drand48() * _delta;
-	LR_vector<number> axis = Utils::get_random_vector<number>();
+	LR_vector axis = Utils::get_random_vector();
 
 	number sintheta = sin(t);
 	number costheta = cos(t);
@@ -74,7 +74,7 @@ void MCRot<number>::apply (llint curr_step) {
 	number ysin = axis.y * sintheta;
 	number zsin = axis.z * sintheta;
 
-	LR_matrix<number> R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin,
+	LR_matrix R(axis.x * axis.x * olcos + costheta, xyo - zsin, xzo + ysin,
 				xyo + zsin, axis.y * axis.y * olcos + costheta, yzo - xsin,
 				xzo - ysin, yzo + xsin, axis.z * axis.z * olcos + costheta);
 
@@ -122,11 +122,8 @@ void MCRot<number>::apply (llint curr_step) {
 	return;
 }
 
-template<typename number>
-void MCRot<number>::log_parameters() {
-	BaseMove<number>::log_parameters();
+
+void MCRot::log_parameters() {
+	BaseMove::log_parameters();
 	OX_LOG(Logger::LOG_INFO, "\tdelta = %g", _delta);
 }
-
-template class MCRot<float>;
-template class MCRot<double>;

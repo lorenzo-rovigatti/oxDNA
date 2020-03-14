@@ -7,21 +7,14 @@
 
 #include "BackendInfo.h"
 
-template<typename number>
-BackendInfo<number>::BackendInfo() {
+BackendInfo::BackendInfo() {
 
 }
 
-template<typename number>
-BackendInfo<number>::~BackendInfo() {
+BackendInfo::~BackendInfo() {
 
 }
 
-template<typename number>
-std::string BackendInfo<number>::get_output_string(llint curr_step) {
-	return *(this->_config_info.backend_info);
+std::string BackendInfo::get_output_string(llint curr_step) {
+	return *(_config_info->backend_info);
 }
-
-template class BackendInfo<float>;
-template class BackendInfo<double>;
-

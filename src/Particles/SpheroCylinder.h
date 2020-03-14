@@ -13,8 +13,8 @@
 /**
  * @brief Spherocylinder.
  */
-template<typename number>
-class SpheroCylinder: public BaseParticle<number> {
+
+class SpheroCylinder: public BaseParticle {
 protected:
 
 public:
@@ -22,7 +22,7 @@ public:
 	virtual ~SpheroCylinder();
 
 	number length;
-	LR_vector<number> * dir;
+	LR_vector * dir;
 
 	enum {
 		TOP = 0,
@@ -31,8 +31,8 @@ public:
 	virtual void set_positions();
 	virtual bool is_rigid_body() { return true; }
 
-	void set_initial_forces (llint step, BaseBox<number> * box); 
-	void set_ext_potential (llint step, BaseBox<number> * box); 
+	void set_initial_forces (llint step, BaseBox * box); 
+	void set_ext_potential (llint step, BaseBox * box); 
 
 	void set_length (number arg);
 };

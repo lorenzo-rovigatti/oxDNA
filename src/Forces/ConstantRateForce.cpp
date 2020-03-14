@@ -11,65 +11,59 @@
 
 using namespace std;
 
-template<typename number>
-ConstantRateForce<number>::ConstantRateForce() : BaseForce<number>() {
-	_particles_string = "\0";
+ConstantRateForce::ConstantRateForce() :
+				BaseForce() {
 	dir_as_centre = false;
 }
 
-template<typename number>
-ConstantRateForce<number>::~ConstantRateForce() {
+ConstantRateForce::~ConstantRateForce() {
 
 }
 
-template<typename number>
-void ConstantRateForce<number>::get_settings(input_file &inp) {
+std::tuple<std::vector<int>, std::string> ConstantRateForce::init(input_file &inp, BaseBox *box_ptr) {
 	std::string particles_string;
-	getInputString (&inp, "particle", _particles_string, 1);
+	getInputString(&inp, "particle", particles_string, 1);
 
-	getInputNumber (&inp, "F0", &this->_F0, 1);
-	getInputNumber (&inp, "rate", &this->_rate, 1);
-	getInputBool(&inp, "dir_as_centre", &this->dir_as_centre, 0);
+	getInputNumber(&inp, "F0", &_F0, 1);
+	getInputNumber(&inp, "rate", &_rate, 1);
+	getInputBool(&inp, "dir_as_centre", &dir_as_centre, 0);
 
 	string strdir;
-	getInputString (&inp, "dir", strdir, 1);
+	getInputString(&inp, "dir", strdir, 1);
 	vector<string> spl = Utils::split(strdir, ',');
-	if(spl.size() != 3) throw oxDNAException("Could not parse 'dir' in external_forces_file. Dying badly");
+	if(spl.size() != 3) {
+		throw oxDNAException("Could not parse 'dir' in external_forces_file. Dying badly");
+	}
 
-	this->_direction.x = atof(spl[0].c_str());
-	this->_direction.y = atof(spl[1].c_str());
-	this->_direction.z = atof(spl[2].c_str());
+	_direction.x = atof(spl[0].c_str());
+	_direction.y = atof(spl[1].c_str());
+	_direction.z = atof(spl[2].c_str());
 
-	if(!dir_as_centre) this->_direction.normalize();
+	if(!dir_as_centre) {
+		_direction.normalize();
+	}
+
+	std::string description = Utils::sformat("ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g)", _F0, _rate, _direction.x, _direction.y, _direction.z);
+	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
+
+	return std::make_tuple(particle_ids, description);
 }
 
-template<typename number>
-void ConstantRateForce<number>::init(BaseParticle<number> **particles, int N, BaseBox<number> * box_ptr) {
-	std::string force_description = Utils::sformat("ConstantRateForce (F=%g, rate=%g, dir=%g,%g,%g)", this->_F0, this->_rate, this->_direction.x, this->_direction.y, this->_direction.z);
-	this->_add_self_to_particles(particles, N, _particles_string, force_description);
-}
-
-template<typename number>
-LR_vector<number> ConstantRateForce<number>::value(llint step, LR_vector<number> &pos) {
-	LR_vector<number> dir = this->_direction;
+LR_vector ConstantRateForce::value(llint step, LR_vector &pos) {
+	LR_vector dir = _direction;
 	if(dir_as_centre) {
 		dir -= pos;
 		dir.normalize();
 	}
-	LR_vector<number> force = (this->_F0 + this->_rate*step)*dir;
+	LR_vector force = (_F0 + _rate * step) * dir;
 	return force;
 }
 
-template<typename number>
-number ConstantRateForce<number>::potential(llint step, LR_vector<number> &pos) {
-	number strength = -(this->_F0 + this->_rate * step);
+number ConstantRateForce::potential(llint step, LR_vector &pos) {
+	number strength = -(_F0 + _rate * step);
 	if(dir_as_centre) {
-		number dist = (this->_direction - pos).module();
+		number dist = (_direction - pos).module();
 		return strength * dist;
 	}
-	return strength * (pos * this->_direction);
+	return strength * (pos * _direction);
 }
-
-template class ConstantRateForce<double>;
-template class ConstantRateForce<float>;
-

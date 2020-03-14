@@ -11,7 +11,7 @@
 #include "SimBackend.h"
 
 /**
- * @brief Static factory class. It exposes a single static method that builds a {@link ISimBackend simulation backend}.
+ * @brief Static factory class. It exposes a single static method that builds a {@link SimBackend simulation backend}.
  *
  * This class can not be instantiated. It provides a single method that
  * parses the input file and builds the right simulation backend.
@@ -23,10 +23,9 @@ backend = CPU|CUDA (simulation backend. Defaults to CPU)
 @endverbatim
  */
 class BackendFactory {
-private:
-	BackendFactory();
 public:
-	virtual ~BackendFactory();
+	BackendFactory() = delete;
+	virtual ~BackendFactory() = delete;
 
 	/**
 	 * @brief Builds the backend.
@@ -34,7 +33,7 @@ public:
 	 * @param inp
 	 * @return a pointer to the newly created backend
 	 */
-	static ISimBackend *make_backend(input_file &inp);
+	static std::shared_ptr<SimBackend> make_backend(input_file &inp);
 };
 
 #endif /* BACKENDFACTORY_H_ */
