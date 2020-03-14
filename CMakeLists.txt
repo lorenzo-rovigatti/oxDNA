@@ -124,10 +124,10 @@ ENDIF(MPI)
 # get the current git revision, if git is installed. Avoid warnings if it isn't
 FIND_PACKAGE(Git)
 IF(Git_FOUND)
-	EXECUTE_PROCESS(COMMAND "git rev-parse --short HEAD" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE revision OUTPUT_STRIP_TRAILING_WHITESPACE)
+	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE revision OUTPUT_STRIP_TRAILING_WHITESPACE)
 ELSE()
 	SET(revision GIT_NOT_FOUND)
-ENDIF()
+ENDIF(Git_FOUND)
 
 # return the current date as day/month/year
 MACRO(CURRENT_DATE result)
@@ -140,7 +140,7 @@ MACRO(CURRENT_DATE result)
     ELSE(WIN32)
         MESSAGE(SEND_ERROR "date not implemented")
         SET(${result} 000000)
-    ENDIF (WIN32)
+    ENDIF(WIN32)
 ENDMACRO(CURRENT_DATE)
 
 CURRENT_DATE(today)
