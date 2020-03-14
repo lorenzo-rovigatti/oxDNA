@@ -4,4 +4,4 @@
 * For plugins: before this change, one had to write two entry points, one for each precision (`float` and `double`). Now only one is required, which should be called `make_MyPlugin`, where `MyPlugin` is the name of the plugin class (and file).
 * `BaseParticle`: `int_centers` is now a `std::vector` and hence it does not have to be allocated but `resize`'d. The number of interaction centers can be accessed with the `N_int_centers()` helper method.
 * SimBackend's `_N` and ConfigInfo's `N` members have been removed. Both classes now possess a `N()` method that directly returns the number of particles.
- 
+* The `RELEASE` macro defined in `src/defs.h` **must** match the current git tag or it won't be possible to commit changes to the repository. This is to make sure that the version printed by the executables is (at least decently) up to date.

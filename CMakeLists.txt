@@ -144,7 +144,7 @@ MACRO(CURRENT_DATE result)
 ENDMACRO(CURRENT_DATE)
 
 CURRENT_DATE(today)
-ADD_DEFINITIONS(-D'GIT_VERSION="${revision}"' -D'BUILD_TIME="${today}"')
+ADD_DEFINITIONS(-D'GIT_COMMIT="${revision}"' -D'BUILD_TIME="${today}"')
 
 # take care of the 'make docs' target in the makefile
 find_package(Doxygen)

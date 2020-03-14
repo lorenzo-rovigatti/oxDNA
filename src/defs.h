@@ -9,9 +9,7 @@
 #ifndef DEFS_H_
 #define DEFS_H_
 
-#define VERSION_MAJOR 2
-#define VERSION_MINOR 3
-#define VERSION_STAGE 2 // 0 alpha, 1 beta, 2 stable
+#define RELEASE "v3.0.0-alpha"
 
 #define MAX_EXT_FORCES 15
 
