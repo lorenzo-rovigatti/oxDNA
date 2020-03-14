@@ -34,9 +34,9 @@
 build
 cuda
 
-TEST_LR/**/*energy.dat
-TEST_LR/**/last_conf.dat
-TEST_LR/**/*log.dat
-TEST_LR/**/trajectory.dat
+test/**/*energy.dat
+test/**/last_conf.dat
+test/**/*log.dat
+test/**/trajectory.dat
 
 **/*pyc

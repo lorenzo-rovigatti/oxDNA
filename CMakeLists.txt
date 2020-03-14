@@ -149,8 +149,8 @@ ADD_DEFINITIONS(-D'GIT_COMMIT="${revision}"' -D'BUILD_TIME="${today}"')
 # take care of the 'make docs' target in the makefile
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-	CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/DOCS/Doxyfile_oxDNA ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-	CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/DOCS/oxDNA.css ${CMAKE_CURRENT_BINARY_DIR}/oxDNA.css @ONLY)
+	CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile_oxDNA ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+	CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/docs/oxDNA.css ${CMAKE_CURRENT_BINARY_DIR}/oxDNA.css @ONLY)
 	ADD_CUSTOM_TARGET(docs 
 		${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -159,21 +159,21 @@ if(DOXYGEN_FOUND)
 ENDIF(DOXYGEN_FOUND)
 
 ADD_CUSTOM_TARGET(test_run
-    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA run
-    COMMAND ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/DNAnalysis analysis
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA run
+    COMMAND ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/DNAnalysis analysis
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running build integration tests" VERBATIM
 )
 
 ADD_CUSTOM_TARGET(test_quick
-    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA quick
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA quick
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running quick tests" VERBATIM
 )
 
 ADD_CUSTOM_TARGET(test_scientific
-    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA scientific
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA scientific
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running scientific tests" VERBATIM
 )
 
