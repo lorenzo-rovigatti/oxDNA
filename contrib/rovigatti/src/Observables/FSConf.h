@@ -19,11 +19,13 @@
  */
 class FSConf: public Configuration {
 protected:
-	int _N, _N_A, _N_B;
-	bool _in_box;
-	bool _also_patch;
-	bool _print_bonds;
-	number _bond_threshold;
+	int _N = -1;
+	int _N_A = -1;
+	int _N_B = -1;
+	bool _in_box = false;
+	bool _also_patch = false;
+	bool _print_bonds = false;
+	number _bond_threshold = -0.2;
 
 	std::vector<std::map<int, int> > _bonds;
 

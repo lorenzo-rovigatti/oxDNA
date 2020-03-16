@@ -18,10 +18,7 @@ using namespace std;
 
 FSConf::FSConf() :
 				Configuration() {
-	_N = _N_A = _N_B = -1;
-	_in_box = false;
-	_also_patch = false;
-	_print_bonds = false;
+
 }
 
 FSConf::~FSConf() {
@@ -38,7 +35,6 @@ void FSConf::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputBool(&my_inp, "also_patch", &_also_patch, 0);
 	getInputBool(&my_inp, "print_bonds", &_print_bonds, 0);
 	if(_print_bonds) {
-		_bond_threshold = -0.2;
 		getInputNumber(&my_inp, "bond_threshold", &_bond_threshold, 0);
 	}
 

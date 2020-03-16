@@ -12,6 +12,7 @@ ADD_LIBRARY(ConstructwiseBonds SHARED EXCLUDE_FROM_ALL src/Observables/Construct
 ADD_LIBRARY(DiblockComs SHARED EXCLUDE_FROM_ALL src/Observables/DiblockComs.cpp)
 ADD_LIBRARY(EmptyVolume SHARED EXCLUDE_FROM_ALL src/Observables/EmptyVolume.cpp)
 ADD_LIBRARY(FSConf SHARED EXCLUDE_FROM_ALL src/Observables/FSConf.cpp)
+TARGET_LINK_LIBRARIES(FSConf FSInteraction)
 ADD_LIBRARY(GrByInsertion SHARED EXCLUDE_FROM_ALL src/Observables/GrByInsertion.cpp)
 ADD_LIBRARY(Gyradius SHARED EXCLUDE_FROM_ALL src/Observables/Gyradius.cpp)
 ADD_LIBRARY(PatchyToMgl SHARED EXCLUDE_FROM_ALL src/Observables/PatchyToMgl.cpp)
