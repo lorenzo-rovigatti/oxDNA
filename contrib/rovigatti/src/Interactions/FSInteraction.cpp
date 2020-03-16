@@ -16,7 +16,8 @@ using namespace std;
 
 FSInteraction::FSInteraction() :
 				BaseInteraction<FSInteraction>() {
-	_int_map[FS] = &FSInteraction::_patchy_two_body;
+	_int_map[PATCHY] = &FSInteraction::_patchy_two_body;
+	_int_map[SPHERICAL] = &FSInteraction::_spherical_patchy_two_body;
 
 }
 
@@ -97,7 +98,7 @@ void FSInteraction::init() {
 	OX_LOG(Logger::LOG_INFO, "FS parameters: lambda = %lf, A_part = %lf, B_part = %lf", _lambda, _A_part, _B_part);
 }
 
-number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm();
 	if(sqr_r > _sqr_rcut) {
 		return (number) 0.f;
@@ -135,6 +136,17 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vect
 			}
 		}
 	}
+
+	return energy;
+}
+
+number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	number sqr_r = r->norm();
+	if(sqr_r > _sqr_rcut) {
+		return (number) 0.f;
+	}
+
+	number energy = (number) 0.f;
 
 	if(_attraction_allowed(p->type, q->type)) {
 		for(uint pi = 0; pi < p->N_int_centers(); pi++) {
@@ -352,7 +364,7 @@ number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	}
 
 	if(_is_patchy_patchy(p->type, q->type)) {
-		return _patchy_two_body(p, q, r, update_forces);
+		return _spherical_patchy_two_body(p, q, r, update_forces) + _patchy_two_body(p, q, r, update_forces);
 	}
 	else {
 		if(p->is_bonded(q)) return (number) 0.f;

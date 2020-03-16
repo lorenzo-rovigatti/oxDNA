@@ -122,8 +122,8 @@ protected:
 	 * @return
 	 */
 	number _patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _patchy_polymer_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _polymer_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+
 
 	number _polymer_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 	number _polymer_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
@@ -142,7 +142,8 @@ protected:
 
 public:
 	enum {
-		FS = 0
+		PATCHY = 0,
+		SPHERICAL = 1
 	};
 
 	enum {

@@ -25,6 +25,7 @@ protected:
 	bool _in_box = false;
 	bool _also_patch = false;
 	bool _print_bonds = false;
+	int _energy_term_id = -1;
 	number _bond_threshold = -0.2;
 
 	std::vector<std::map<int, int> > _bonds;
