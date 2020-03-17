@@ -111,7 +111,7 @@ void ChiralRodExplicit<number>::read_topology(int *N_strands, BaseParticle<numbe
 
 template<typename number>
 number ChiralRodExplicit<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
 template<typename number>

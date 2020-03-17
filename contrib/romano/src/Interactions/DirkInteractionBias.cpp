@@ -87,8 +87,8 @@ void DirkInteractionBias<number>::init() {
 
 template<typename number>
 number DirkInteractionBias<number>::pair_interaction (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	if(p->n3 == q || p->n5 == q) return pair_interaction_bonded (p, q, r, update_forces);
-	else return pair_interaction_nonbonded (p, q, r, update_forces);
+	if(p->n3 == q || p->n5 == q) return pair_interaction_bonded (p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded (p, q, compute_r, update_forces);
 }
 
 template<typename number>
@@ -102,9 +102,9 @@ number DirkInteractionBias<number>::pair_interaction_bonded(BaseParticle<number>
 	}
 	
 	//return (number) 0.;
-	number energy = _hard (p, q, r, update_forces);
-	energy += _dipolar (p, q, r, update_forces);
-	energy += _chain (p, q, r, update_forces);
+	number energy = _hard (p, q, compute_r, update_forces);
+	energy += _dipolar (p, q, compute_r, update_forces);
+	energy += _chain (p, q, compute_r, update_forces);
 	
 	return energy;
 }
@@ -121,8 +121,8 @@ number DirkInteractionBias<number>::pair_interaction_nonbonded(BaseParticle<numb
 
 	if(r->norm() >= this->_sqr_rcut) return (number) 0;
 
-	number energy = _hard(p, q, r, update_forces);
-	energy += _dipolar (p, q, r, update_forces); 
+	number energy = _hard(p, q, compute_r, update_forces);
+	energy += _dipolar (p, q, compute_r, update_forces); 
 
 	return energy;
 }

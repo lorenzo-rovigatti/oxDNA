@@ -1239,7 +1239,7 @@ void PatchyShapeInteraction<number>::allocate_particles(BaseParticle<number> **p
 
 template<typename number>
 number PatchyShapeInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
 
@@ -1258,14 +1258,14 @@ number PatchyShapeInteraction<number>::pair_interaction_nonbonded(BaseParticle<n
 	}
 
 	/*
-	number energy = _exc_vol_hs (p, q, r, update_forces);
+	number energy = _exc_vol_hs (p, q, compute_r, update_forces);
 	if (this->get_is_infinite() == false)
-		energy += _patchy_interaction_kf (p, q, r, update_forces);
+		energy += _patchy_interaction_kf (p, q, compute_r, update_forces);
 	*/
 
-	number energy = this->_pair_interaction_term_wrapper(this, EXCVOL, p, q, r, update_forces);
+	number energy = this->_pair_interaction_term_wrapper(this, EXCVOL, p, q, compute_r, update_forces);
 	if (this->get_is_infinite() == false)
-		energy += this->_pair_interaction_term_wrapper(this, PATCHY, p, q, r, update_forces);
+		energy += this->_pair_interaction_term_wrapper(this, PATCHY, p, q, compute_r, update_forces);
 
 	return energy;
 }

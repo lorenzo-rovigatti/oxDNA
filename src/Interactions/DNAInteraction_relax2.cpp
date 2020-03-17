@@ -20,18 +20,16 @@ DNAInteraction_relax2::~DNAInteraction_relax2() {
 
 }
 
-number DNAInteraction_relax2::_backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(!this->_check_bonded_neighbour(&p, &q, r)) {
+number DNAInteraction_relax2::_backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(!this->_check_bonded_neighbour(&p, &q, compute_r)) {
 		return (number) 0.f;
 	}
 
-	LR_vector computed_r;
-	if(r == NULL) {
-		computed_r = q->pos - p->pos;
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = q->pos - p->pos;
 	}
 
-	LR_vector rback = *r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
+	LR_vector rback = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 
 	number rbackmod = rback.module();
 	number rbackr0 = rbackmod - FENE_R0_OXDNA;

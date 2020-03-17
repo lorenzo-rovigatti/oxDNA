@@ -254,17 +254,17 @@ inline number ManfredoInteraction::_query_meshD(number x, Mesh &m) {
 	return BaseInteraction<ManfredoInteraction>::_query_meshD(x, m);
 }
 
-number ManfredoInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number ManfredoInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number ManfredoInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number ManfredoInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0.f;
 	if(q == P_VIRTUAL) {
 		// if the particle is a sticky end nucleotide then we have to invoke the DNA_inter method to handle all
 		// its bonded interactions
-		if(_get_p_type(p) == STICKY) return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
+		if(_get_p_type(p) == STICKY) return _DNA_inter.pair_interaction_bonded(p, q, compute_r, update_forces);
 
 		CustomParticle *cp = (CustomParticle *) p;
 		for(typename set<CustomParticle *>::iterator it = cp->bonded_neighs.begin(); it != cp->bonded_neighs.end(); it++) {
@@ -279,7 +279,7 @@ number ManfredoInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticl
 
 		if(type == STICKY_STICKY || type == ARM_STICKY) {
 			if(update_forces) throw oxDNAException("STICKY_STICKY and ARM_STICKY should always be handled in the q == P_VIRTUAL portion\n");
-			return _DNA_inter.pair_interaction_bonded(p, q, r, update_forces);
+			return _DNA_inter.pair_interaction_bonded(p, q, compute_r, update_forces);
 		}
 		LR_vector computed_r(0, 0, 0);
 		if(r == NULL) {
@@ -303,7 +303,7 @@ number ManfredoInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticl
 	return energy;
 }
 
-number ManfredoInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number ManfredoInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0.f;
 
 	LR_vector computed_r(0, 0, 0);
@@ -317,7 +317,7 @@ number ManfredoInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePart
 
 	int type = _get_inter_type(p, q);
 
-	if(type == STICKY_STICKY || type == ARM_STICKY) return _DNA_inter.pair_interaction_nonbonded(p, q, r, update_forces);
+	if(type == STICKY_STICKY || type == ARM_STICKY) return _DNA_inter.pair_interaction_nonbonded(p, q, compute_r, update_forces);
 
 	// if there are no sticky ends involved and if the two particles belong to two different tetramers
 	if(!_any(p_type, q_type, STICKY) && p->strand_id != q->strand_id) {

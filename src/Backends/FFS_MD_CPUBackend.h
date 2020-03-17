@@ -119,7 +119,7 @@ protected:
 
 	number _sqr_rcut;
 	void _ffs_compute_forces(void);
-	number pair_interaction_nonbonded_DNA_with_op(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces = false);
+	number pair_interaction_nonbonded_DNA_with_op(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces = false);
 
 public:
 	FFS_MD_CPUBackend();

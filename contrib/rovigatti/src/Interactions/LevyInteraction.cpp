@@ -156,7 +156,7 @@ void LevyInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> 
 	allocate_particles(particles);
 }
 
-number LevyInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number LevyInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 
 	if(sqr_r > _fene_sqr_r0) {
@@ -177,7 +177,7 @@ number LevyInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bo
 	return energy;
 }
 
-number LevyInteraction::_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number LevyInteraction::_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 	int type = p->type + q->type;
 	int btype = p->btype + q->btype;
@@ -260,12 +260,12 @@ number LevyInteraction::_three_body(BaseParticle *p, BaseParticle *n3, BaseParti
 	return curr_lin_k * (1. - cost);
 }
 
-number LevyInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number LevyInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number LevyInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number LevyInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(!p->is_bonded(q)) return 0.;
 
 	LR_vector computed_r(0, 0, 0);
@@ -274,8 +274,8 @@ number LevyInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q
 		r = &computed_r;
 	}
 
-	number energy = _fene(p, q, r, update_forces);
-	energy += _two_body(p, q, r, update_forces);
+	number energy = _fene(p, q, compute_r, update_forces);
+	energy += _two_body(p, q, compute_r, update_forces);
 
 	if(p->n3 == q && p->n5 != NULL) energy += _three_body(p, p->n3, p->n5, update_forces);
 	if(p->n5 == q && p->n3 != NULL) energy += _three_body(p, p->n3, p->n5, update_forces);
@@ -290,7 +290,7 @@ number LevyInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q
 	return energy;
 }
 
-number LevyInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number LevyInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return 0.f;
 
 	LR_vector computed_r(0, 0, 0);
@@ -299,7 +299,7 @@ number LevyInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle
 		r = &computed_r;
 	}
 
-	return _two_body(p, q, r, update_forces);
+	return _two_body(p, q, compute_r, update_forces);
 }
 
 void LevyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

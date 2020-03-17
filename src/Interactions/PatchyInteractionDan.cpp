@@ -49,10 +49,14 @@ PatchyInteractionDan::~PatchyInteractionDan() {
 	/*Template
 	 if(_something != NULL) delete[] _something;
 	 For pointers to pointers (etc.), you could do what is commented out for _patch_vectors_particle and _ref_vectors_particle, but that would be meaningful IFF all _patch_vectors_particle[i] were initialised to NULL just after you allocate memory for _patch_vectors_particle itself. i.e. In the code, after "_patch_vectors_particle = new LR_vector*[_N_particles];", I would have to loop through and set "_patch_vectors_particle[i] = NULL" for all i. There is no strong/immediate need to do this, so I haven't.*/
-	if(_N_particles_of_type != NULL) delete[] _N_particles_of_type;
-	if(_particle_type_of != NULL) delete[] _particle_type_of;
-	if(_N_patches_type != NULL) delete[] _N_patches_type;
-	if(_patches_on_particle != NULL) delete[] _patches_on_particle;
+	if(_N_particles_of_type != NULL)
+		delete[] _N_particles_of_type;
+	if(_particle_type_of != NULL)
+		delete[] _particle_type_of;
+	if(_N_patches_type != NULL)
+		delete[] _N_patches_type;
+	if(_patches_on_particle != NULL)
+		delete[] _patches_on_particle;
 	if(_patch_vectors_type != NULL) {
 		for(int part_type = 0; part_type < _N_particle_types; part_type++)
 			delete[] _patch_vectors_type[part_type];
@@ -71,7 +75,8 @@ PatchyInteractionDan::~PatchyInteractionDan() {
 			delete[] _patch_type_of[part_type];
 		delete[] _patch_type_of;
 	}
-	if(_sigma_ang_patch != NULL) delete[] _sigma_ang_patch;
+	if(_sigma_ang_patch != NULL)
+		delete[] _sigma_ang_patch;
 	if(_epsilon_patch != NULL) {
 		for(int patch_type = 0; patch_type < _N_patch_types; patch_type++)
 			delete[] _epsilon_patch[patch_type];
@@ -187,7 +192,7 @@ void PatchyInteractionDan::init() {
 
 //Where is it called from, and so what are N, N_strands, etc.?
 
-void PatchyInteractionDan::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+void PatchyInteractionDan::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	//printf("PI, read_topology\n");
 
 	//Reads lines from topology file into this
@@ -199,7 +204,8 @@ void PatchyInteractionDan::read_topology(int *N_strands, std::vector<BaseParticl
 
 	//Tries to open topology file (filename obtained in get_settings)
 	std::ifstream topology(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("[In PatchyInteractionDan::get_settings] Can't read topology file '%s' . Aborting\n", this->_topology_filename);
+	if(!topology.good())
+		throw oxDNAException("[In PatchyInteractionDan::get_settings] Can't read topology file '%s' . Aborting\n", this->_topology_filename);
 
 	/*getInputString(&inp, "patch_file", this->_patch_filename, 1);
 	 ifstream input_file;
@@ -288,7 +294,8 @@ void PatchyInteractionDan::read_topology(int *N_strands, std::vector<BaseParticl
 			}
 
 			//Check correct number of patches defined for this particle type [instance 1]
-			if(patch_count_check != _N_patches_type[part_type]) throw oxDNAException("Number of patches (%d) of particle type %d specified in topology file '%s' does not equal total number of patches (%d) specified above the list of patches [instance 1]. Aborting\n", patch_count_check, part_type, this->_topology_filename, _N_patches_type[part_type]);
+			if(patch_count_check != _N_patches_type[part_type])
+				throw oxDNAException("Number of patches (%d) of particle type %d specified in topology file '%s' does not equal total number of patches (%d) specified above the list of patches [instance 1]. Aborting\n", patch_count_check, part_type, this->_topology_filename, _N_patches_type[part_type]);
 
 			patch_count_check = 0;
 
@@ -310,7 +317,8 @@ void PatchyInteractionDan::read_topology(int *N_strands, std::vector<BaseParticl
 				}
 
 				//Check correct number of patches defined for this particle type [instance 2]
-				if(patch_count_check != _N_patches_type[part_type]) throw oxDNAException("Number of patches (%d) of particle type %d specified in topology file '%s' does not equal total number of patches (%d) specified above the list of patches [instance 2]. Aborting\n", patch_count_check, part_type, this->_topology_filename, _N_patches_type[part_type]);
+				if(patch_count_check != _N_patches_type[part_type])
+					throw oxDNAException("Number of patches (%d) of particle type %d specified in topology file '%s' does not equal total number of patches (%d) specified above the list of patches [instance 2]. Aborting\n", patch_count_check, part_type, this->_topology_filename, _N_patches_type[part_type]);
 
 			}
 
@@ -325,8 +333,10 @@ void PatchyInteractionDan::read_topology(int *N_strands, std::vector<BaseParticl
 		 printf("*** _sigma_ang_patch[0] %f\n", _sigma_ang_patch[0]);//&tmp1*/
 
 		//Check correct number of particles and particle types defined
-		if(particle_count_check != _N_particles) throw oxDNAException("Sum of number of particles of each type (%d) in topology file '%s' does not equal total number of particles (%d) at top of file. Aborting\n", particle_count_check, this->_topology_filename, _N_particles);
-		if(part_type_count_check != _N_particle_types) throw oxDNAException("Number of types of particles (%d) specified in topology file '%s' does not equal total number of particle types (%d) at top of file. Aborting\n", part_type_count_check, this->_topology_filename, _N_particle_types);
+		if(particle_count_check != _N_particles)
+			throw oxDNAException("Sum of number of particles of each type (%d) in topology file '%s' does not equal total number of particles (%d) at top of file. Aborting\n", particle_count_check, this->_topology_filename, _N_particles);
+		if(part_type_count_check != _N_particle_types)
+			throw oxDNAException("Number of types of particles (%d) specified in topology file '%s' does not equal total number of particle types (%d) at top of file. Aborting\n", part_type_count_check, this->_topology_filename, _N_particle_types);
 
 		//Iterate through patch types
 		for(int patch_type = 0; patch_type < _N_patch_types; patch_type++) {
@@ -425,7 +435,8 @@ void PatchyInteractionDan::read_topology(int *N_strands, std::vector<BaseParticl
 						topology >> _offset_angle_patch[patch_type1][patch_type2][offset_angle];
 
 						//[Revise this?] Check offset angle is in correct range
-						if((_offset_angle_patch[patch_type1][patch_type2][offset_angle] > M_PI) || (_offset_angle_patch[patch_type1][patch_type2][offset_angle] <= -M_PI)) throw oxDNAException("Offset angle %f, between patch type %d and patch type %d and offset angle number %d, specified in topology file '%s', is greater than PI or less than or equal to -PI. (Beware rounding of PI and -PI.) Aborting\n", _offset_angle_patch[patch_type1][patch_type2][offset_angle], patch_type1, patch_type2, offset_angle, this->_topology_filename);
+						if((_offset_angle_patch[patch_type1][patch_type2][offset_angle] > M_PI) || (_offset_angle_patch[patch_type1][patch_type2][offset_angle] <= -M_PI))
+							throw oxDNAException("Offset angle %f, between patch type %d and patch type %d and offset angle number %d, specified in topology file '%s', is greater than PI or less than or equal to -PI. (Beware rounding of PI and -PI.) Aborting\n", _offset_angle_patch[patch_type1][patch_type2][offset_angle], patch_type1, patch_type2, offset_angle, this->_topology_filename);
 
 						std::cout << " " << _offset_angle_patch[patch_type1][patch_type2][offset_angle] << ",";
 
@@ -518,7 +529,7 @@ void PatchyInteractionDan::read_topology(int *N_strands, std::vector<BaseParticl
 
  }*/
 
-void PatchyInteractionDan::allocate_particles(std::vector<BaseParticle *> &particles) {
+void PatchyInteractionDan::allocate_particles(std::vector<BaseParticle*> &particles) {
 	//printf("PI, allocate_particles\n");
 
 	int particle_number = 0;
@@ -561,7 +572,8 @@ void PatchyInteractionDan::allocate_particles(std::vector<BaseParticle *> &parti
 	}
 
 	//Check correct number of particles defined
-	if(particle_number != _N_particles) throw oxDNAException("Number of particles allocated (%d) in 'allocate_particles' does not equal total number of particles %d. Aborting\n", particle_number, _N_particles);
+	if(particle_number != _N_particles)
+		throw oxDNAException("Number of particles allocated (%d) in 'allocate_particles' does not equal total number of particles %d. Aborting\n", particle_number, _N_particles);
 
 	/*int part_type = 0;
 	 int type_particle_count = 0;
@@ -591,90 +603,33 @@ void PatchyInteractionDan::allocate_particles(std::vector<BaseParticle *> &parti
 }
 
 //All interactions are nonbonded
-
-number PatchyInteractionDan::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PatchyInteractionDan::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	//printf("PI, pair_interaction\n");
 
 	//Currently only MC (not MD) simulations supported
-	if(update_forces) throw oxDNAException("PatchyInteractionDan does not support the calculation of forces and torques. Aborting\n");
+	if(update_forces) {
+		throw oxDNAException("PatchyInteractionDan does not support the calculation of forces and torques. Aborting\n");
+	}
 
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
 //No bonded interaction, so always 0
-
-number PatchyInteractionDan::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	//printf("PI, pair_interaction_bonded\n");
-
+number PatchyInteractionDan::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return (number) 0.f;
 }
 
-number PatchyInteractionDan::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	//printf("PI, pair_interaction_nonbonded\n");
-
+number PatchyInteractionDan::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	LR_vector computed_r(0, 0, 0);
 
 	//?? If r is not given, it computes it itself
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		//Old version computed_r = q->pos.minimum_image(p->pos, this->_box_side);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = this->_box->min_image(p->pos, q->pos);
 	}
 
-	/*printf("particle1 %d, patches1 %d, particle type1 %d, particle2 %d, patches2 %d, particle type2 %d\n", p->index, p->N_int_centers(), p->type, q->index, q->N_int_centers(), q->type);
-	 return 0;*/
-
-	return _patchy_interaction(p, q, r, update_forces);
+	return _patchy_interaction(p, q, compute_r, update_forces);
 }
 
-/*16-06-07
- //?? Don't think this is used
+void PatchyInteractionDan::check_input_sanity(std::vector<BaseParticle*> &particles) {
 
- void PatchyInteractionDan::generate_random_configuration(std::vector<BaseParticle *> &particles, number box_side) {
- //printf("PI, generate_random_configuration\n");
-
- number old_rcut = this->_rcut;
-
- this->_rcut = 1;
-
- this->_create_cells(particles, N, box_side, true);
-
- for(int i = 0; i < N; i++) {
- BaseParticle *p = particles[i];
- bool inserted = false;
- int cell_index;
- do {
- p->pos = LR_vector(drand48()*box_side, drand48()*box_side, drand48()*box_side);
- cell_index = (int) ((p->pos.x / box_side - floor(p->pos.x / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side);
- cell_index += this->_cells_N_side * ((int) ((p->pos.y / box_side - floor(p->pos.y / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
- cell_index += this->_cells_N_side * this->_cells_N_side * ((int) ((p->pos.z / box_side - floor(p->pos.z / box_side)) * (1.f - FLT_EPSILON) * this->_cells_N_side));
-
- inserted = true;
- for(int c = 0; c < 27; c ++) {
- int j = this->_cells_head[this->_cells_neigh[cell_index][c]];
- while (j != P_INVALID) {
- BaseParticle *q = particles[j];
- if(p->pos.minimum_image(q->pos, box_side).norm() < SQR(this->_rcut)) inserted = false;
- j = this->_cells_next[q->index];
- }
- }
- } while(!inserted);
-
- int old_head = this->_cells_head[cell_index];
- this->_cells_head[cell_index] = i;
- this->_cells_index[i] = cell_index;
- this->_cells_next[i] = old_head;
-
- p->orientation.v1 = Utils::get_random_vector();
- p->orientation.v2 = Utils::get_random_vector();
- p->orientation.v3 = Utils::get_random_vector();
- Utils::orthonormalize_matrix(p->orientation);
- }
-
- this->_rcut = old_rcut;
- this->_delete_cell_neighs();
- }
- */
-
-void PatchyInteractionDan::check_input_sanity(std::vector<BaseParticle *> &particles) {
 }

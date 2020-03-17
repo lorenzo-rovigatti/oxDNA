@@ -33,7 +33,7 @@
 
 class DNAInteraction_relax: public DNAInteraction {
 protected:
-	inline virtual number _backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	int _backbone_type;
 	float _backbone_k;
 

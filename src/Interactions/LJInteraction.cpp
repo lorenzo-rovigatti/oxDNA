@@ -8,7 +8,7 @@
 #include "LJInteraction.h"
 
 LJInteraction::LJInteraction() : BaseInteraction<LJInteraction>() {
-	_int_map[LENNARD_JONES] = &LJInteraction::_lennard_jones;
+	_int_map[LENNARD_JONES] = &LJInteraction::pair_interaction_nonbonded;
 	_is_ka_mixture = false;
 	_sigma[0] = _sigma[1] = _sigma[2] = 1.;
 	_epsilon[0] = _epsilon[1] = _epsilon[2] = 1.;
@@ -86,22 +86,20 @@ void LJInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &p
 	}
 }
 
-number LJInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+number LJInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number LJInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number LJInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return (number) 0.f;
 }
 
-number LJInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = _box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number LJInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _lennard_jones(p, q, r, update_forces);
+	return _lennard_jones(p, q, update_forces);
 }
 
 void LJInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

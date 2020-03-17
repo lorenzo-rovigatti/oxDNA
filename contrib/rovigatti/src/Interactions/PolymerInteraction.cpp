@@ -41,7 +41,7 @@ void PolymerInteraction::init() {
 	_Polymer_lambda_E_cut = 4 * _Polymer_lambda * part * (part - 1.);
 }
 
-number PolymerInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PolymerInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 	if(sqr_r > _sqr_rfene) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)\n", p->index, q->index, sqrt(sqr_r), sqrt(_sqr_rfene));
@@ -62,7 +62,7 @@ number PolymerInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r,
 	return energy;
 }
 
-number PolymerInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PolymerInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	int int_type = q->type + p->type;
 
 	number sqr_r = r->norm();
@@ -105,12 +105,12 @@ number PolymerInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vecto
 	return energy;
 }
 
-number PolymerInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number PolymerInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number PolymerInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PolymerInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
 
 	// if q == P_VIRTUAL we have to compute the bonded interactions acting between p and all its bonded neighbours
@@ -129,14 +129,14 @@ number PolymerInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle
 			}
 		}
 
-		energy = _fene(p, q, r, update_forces);
-		energy += _nonbonded(p, q, r, update_forces);
+		energy = _fene(p, q, compute_r, update_forces);
+		energy += _nonbonded(p, q, compute_r, update_forces);
 	}
 
 	return energy;
 }
 
-number PolymerInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PolymerInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
 	LR_vector computed_r(0, 0, 0);
@@ -145,7 +145,7 @@ number PolymerInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParti
 		r = &computed_r;
 	}
 
-	return _nonbonded(p, q, r, update_forces);
+	return _nonbonded(p, q, compute_r, update_forces);
 }
 
 void PolymerInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

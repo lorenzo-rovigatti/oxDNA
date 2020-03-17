@@ -76,8 +76,8 @@ void Pressure::update_pressure() {
 
 			p->force = q->force = p->torque = q->torque = LR_vector();
 
-			LR_vector r_mutable(r);
-			energy += (double) _config_info->interaction->pair_interaction(p, q, &r_mutable, true);
+			_config_info->interaction->set_computed_r(r);
+			energy += (double) _config_info->interaction->pair_interaction(p, q, false, true);
 
 			_stress_tensor.v1.x -= r.x * p->force.x;
 			_stress_tensor.v1.y -= r.x * p->force.y;

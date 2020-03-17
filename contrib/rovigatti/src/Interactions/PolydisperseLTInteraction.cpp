@@ -143,16 +143,16 @@ void PolydisperseLTInteraction::read_topology(int *N_strands, std::vector<BasePa
 	OX_LOG(Logger::LOG_INFO, "custom: rcut = %lf, Ecut = %lf", this->_rcut, _Ecut);
 }
 
-number PolydisperseLTInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number PolydisperseLTInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number PolydisperseLTInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PolydisperseLTInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return 0.;
 }
 
-number PolydisperseLTInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PolydisperseLTInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return 0.;
 
 	LR_vector computed_r(0, 0, 0);

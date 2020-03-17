@@ -20,7 +20,7 @@ protected:
 	number _spherocylinder_length, _sqr_spherocylinder_length;
 
 	inline number _patchy_energy(LR_vector r);
-	inline number _patchy(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline number _patchy(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 public:
 	enum {
 		HSC, PATCHY
@@ -33,7 +33,7 @@ public:
 	virtual void init();
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 };
 
 number PatchyHSC::_patchy_energy(LR_vector r) {
@@ -43,7 +43,7 @@ number PatchyHSC::_patchy_energy(LR_vector r) {
 	return 0.0;
 }
 
-number PatchyHSC::_patchy(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PatchyHSC::_patchy(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0.;
 	// here we try pp + pq and -(pp + pq)
 	LR_vector ppq = p->int_centers[0] + q->int_centers[0];

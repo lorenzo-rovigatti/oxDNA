@@ -46,7 +46,7 @@ protected:
 	number _int_k;
 
 	/// interaction
-	number _jordan_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
+	number _jordan_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 
 	/// number of particles with N3 patches and of particles in general
 	int _my_N3, _my_N;
@@ -67,11 +67,11 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);

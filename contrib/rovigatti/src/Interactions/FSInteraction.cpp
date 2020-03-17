@@ -98,7 +98,7 @@ void FSInteraction::init() {
 	OX_LOG(Logger::LOG_INFO, "FS parameters: lambda = %lf, A_part = %lf, B_part = %lf", _lambda, _A_part, _B_part);
 }
 
-number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 	if(sqr_r > _sqr_rcut) {
 		return (number) 0.f;
@@ -140,7 +140,7 @@ number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *
 	return energy;
 }
 
-number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 	if(sqr_r > _sqr_rcut) {
 		return (number) 0.f;
@@ -205,7 +205,7 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vect
 	return energy;
 }
 
-number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm() / _polymer_length_scale_sqr;
 
 	if(sqr_r > _polymer_rfene_sqr) {
@@ -230,7 +230,7 @@ number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, LR_vector 
 	return energy;
 }
 
-number FSInteraction::_polymer_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number FSInteraction::_polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm() / _polymer_length_scale_sqr;
 	if(sqr_r > _sqr_rcut) return (number) 0.;
 
@@ -321,13 +321,13 @@ number FSInteraction::_three_body(BaseParticle *p, FSBond &new_bond, bool update
 	return energy;
 }
 
-number FSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	number energy = pair_interaction_bonded(p, q, r, update_forces);
-	energy += pair_interaction_nonbonded(p, q, r, update_forces);
+number FSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	number energy = pair_interaction_bonded(p, q, compute_r, update_forces);
+	energy += pair_interaction_nonbonded(p, q, compute_r, update_forces);
 	return energy;
 }
 
-number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	// patchy-patchy interactions don't have bonded part. We set up a fake one at the beginning just to reset some data structures every step
 	if(_is_patchy_patchy(p->type, q->type) && _needs_reset) {
 		for(int i = _N_in_polymers; i < _N; i++) {
@@ -349,14 +349,14 @@ number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 			}
 		}
 
-		energy = _polymer_fene(p, q, r, update_forces);
-		energy += _polymer_nonbonded(p, q, r, update_forces);
+		energy = _polymer_fene(p, q, compute_r, update_forces);
+		energy += _polymer_nonbonded(p, q, compute_r, update_forces);
 	}
 
 	return energy;
 }
 
-number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = _box->min_image(p->pos, q->pos);
@@ -364,11 +364,11 @@ number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 	}
 
 	if(_is_patchy_patchy(p->type, q->type)) {
-		return _spherical_patchy_two_body(p, q, r, update_forces) + _patchy_two_body(p, q, r, update_forces);
+		return _spherical_patchy_two_body(p, q, compute_r, update_forces) + _patchy_two_body(p, q, compute_r, update_forces);
 	}
 	else {
 		if(p->is_bonded(q)) return (number) 0.f;
-		return _polymer_nonbonded(p, q, r, update_forces);
+		return _polymer_nonbonded(p, q, compute_r, update_forces);
 	}
 }
 

@@ -81,7 +81,7 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	inline number _patchy_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline number _patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 public:
 	enum {
@@ -98,11 +98,11 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) {
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
@@ -110,8 +110,8 @@ public:
 };
 
 
-number PatchyInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	number sqr_r = r->norm();
+number PatchyInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	number sqr_r = _computed_r.norm();
 	int type = p->type + q->type;
 	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
 
@@ -121,7 +121,7 @@ number PatchyInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, 
 	energy = part - _E_cut[type];
 
 	if(update_forces) {
-		LR_vector force = *r * (PATCHY_POWER*part/sqr_r);
+		LR_vector force = _computed_r * (PATCHY_POWER*part/sqr_r);
 		p->force -= force;
 		q->force += force;
 	}
@@ -131,7 +131,7 @@ number PatchyInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, 
 	LR_vector tmptorqueq(0, 0, 0);
 	for(auto &ppatch: p->int_centers) {
 		for(auto &qpatch: q->int_centers) {
-			LR_vector patch_dist = *r + qpatch - ppatch;
+			LR_vector patch_dist = _computed_r + qpatch - ppatch;
 			number dist = patch_dist.norm();
 			if(dist < _sqr_patch_rcut) {
 				c++;

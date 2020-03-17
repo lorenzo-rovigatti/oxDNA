@@ -135,13 +135,13 @@ std::string SaltExtrapolation::get_output_string(llint curr_step) {
 
 		// interaction terms that do not depend on temperature... they are the
 		// same for all the interactions
-		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::BACKBONE, p, q, NULL, false);
-		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::BONDED_EXCLUDED_VOLUME, p, q, NULL, false);
-		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::NONBONDED_EXCLUDED_VOLUME, p, q, NULL, false);
-		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::CROSS_STACKING, p, q, NULL, false);
-		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, NULL, false);
+		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::BACKBONE, p, q, true, false);
+		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::BONDED_EXCLUDED_VOLUME, p, q, true, false);
+		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::NONBONDED_EXCLUDED_VOLUME, p, q, true, false);
+		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::CROSS_STACKING, p, q, true, false);
+		e0 += _config_info->interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, true, false);
 		// the following line also updates the state of the order parameter
-		number hb_energy = _config_info->interaction->pair_interaction_term(DNA2Interaction::HYDROGEN_BONDING, p, q, NULL, false);
+		number hb_energy = _config_info->interaction->pair_interaction_term(DNA2Interaction::HYDROGEN_BONDING, p, q, true, false);
 		if(hb_energy < HB_CUTOFF) _op.add_hb(p->index, q->index);
 		e0 += hb_energy;
 
@@ -149,14 +149,14 @@ std::string SaltExtrapolation::get_output_string(llint curr_step) {
 		for(i = 0; i < _temps.size(); i++) {
 			// the following line uses _interactions[i][0] since all the interactions with the 
 			// same i have the same temperature
-			es[i] += _interactions[i][0]->pair_interaction_term(DNA2Interaction::STACKING, p, q, NULL, false);
+			es[i] += _interactions[i][0]->pair_interaction_term(DNA2Interaction::STACKING, p, q, true, false);
 			for(j = 0; j < _salts.size(); j++)
-				edhs[i][j] += _interactions[i][j]->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, NULL, false);
+				edhs[i][j] += _interactions[i][j]->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, true, false);
 		}
 
 		// we update stacking and electrostatic for the simulation energy
-		e_sim += _config_info->interaction->pair_interaction_term(DNA2Interaction::STACKING, p, q, NULL, false);
-		e_sim += _config_info->interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, NULL, false);
+		e_sim += _config_info->interaction->pair_interaction_term(DNA2Interaction::STACKING, p, q, true, false);
+		e_sim += _config_info->interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, true, false);
 	}
 
 	// here we take care of the external energy

@@ -137,31 +137,29 @@ void CustomInteraction::read_topology(int *N_strands, std::vector<BaseParticle *
 //	p->add_bonded_neigh((CustomParticle *) particles[1]);
 }
 
-number CustomInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number CustomInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(!p->is_bonded(q)) return 0.;
 
 	throw oxDNAException("Custom bonded interactions are not supported");
 
 	number energy = (number) 0.f;
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
+	if(compute_r) {
 		if(q != P_VIRTUAL && p != P_VIRTUAL) {
-			computed_r = q->pos - p->pos;
-			r = &computed_r;
+			_computed_r = q->pos - p->pos;
 		}
 	}
 
-	number dist = r->module();
+	number dist = _computed_r.module();
 	energy = this->_query_mesh(dist, _bonded_mesh);
 
 	if(update_forces) {
 		number force_mod = -this->_query_meshD(dist, _bonded_mesh);
-		LR_vector force = *r * (force_mod / dist);
+		LR_vector force = _computed_r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;
 	}
@@ -169,16 +167,14 @@ number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle 
 	return energy;
 }
 
-number CustomInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number CustomInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return 0.;
 
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = this->_box->min_image(p->pos, q->pos);
 	}
 
-	number dist = r->module();
+	number dist = _computed_r.module();
 	if(dist > this->_rcut) return 0.;
 
 	number energy = this->_query_mesh(dist, _non_bonded_mesh) - _Ecut;
@@ -187,7 +183,7 @@ number CustomInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 
 	if(update_forces) {
 		number force_mod = -this->_query_meshD(dist, _non_bonded_mesh);
-		LR_vector force = *r * (force_mod / dist);
+		LR_vector force = _computed_r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;
 	}

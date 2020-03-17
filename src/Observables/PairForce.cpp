@@ -54,7 +54,7 @@ std::string PairForce::get_output_string(llint curr_step) {
 		p->torque = LR_vector(0.0f, 0.0f, 0.0f);
 		q->torque = LR_vector(0.0f, 0.0f, 0.0f);
 
-		number pq_interaction = _config_info->interaction->pair_interaction(q, p, NULL, true);
+		number pq_interaction = _config_info->interaction->pair_interaction(q, p, true, true);
 		if(pq_interaction != (number) 0.f) {
 			pair_string << p->index << " " << q->index;
 			pair_string << " " << p->force.x << " " << p->force.y << " " << p->force.z << " " << p->torque.x << " " << p->torque.y << " " << p->torque.z << "\n";

@@ -184,7 +184,7 @@ bool parsed_condition::parse_condition(const char *expression, OrderParameters *
 }
 
 bool parsed_condition::eval_condition(OrderParameters *op) {
-	for(vector<parsed_expression>::iterator i = this->all_expressions.begin(); i != this->all_expressions.end(); i++) {
+	for(vector<parsed_expression>::iterator i = all_expressions.begin(); i != all_expressions.end(); i++) {
 		if(!(*i).eval_expression(op)) return false;
 	}
 
@@ -208,81 +208,85 @@ void FFS_MD_CPUBackend::get_settings(input_file &inp) {
 	getInputString(&inp, "ffs_file", _ffs_file, 1);
 }
 
-number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	LR_vector computed_r;
+	if(compute_r) {
+		computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	if(r->norm() >= this->_sqr_rcut) return (number) 0.f;
+	if(computed_r.norm() >= _sqr_rcut) {
+		return (number) 0.f;
+	}
 
-	number energy = this->_interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q, r, update_forces);
+	_interaction->set_computed_r(computed_r);
+	number energy = _interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q, false, update_forces);
 	if(energy <= MAX_BOND_CUTOFF) {
-		this->_op.add_hb(q->index, p->index, energy);
+		_op.add_hb(q->index, p->index, energy);
 	}
-	energy += this->_interaction->pair_interaction_term(DNAInteraction::NONBONDED_EXCLUDED_VOLUME, p, q, r, update_forces);
-	energy += this->_interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, r, update_forces);
+	energy += _interaction->pair_interaction_term(DNAInteraction::NONBONDED_EXCLUDED_VOLUME, p, q, false, update_forces);
+	energy += _interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, false, update_forces);
 
 	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
-	if(dynamic_cast<DNA2Interaction *>(this->_interaction.get()) == NULL) energy += this->_interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, r, update_forces);
+	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL) energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, update_forces);
 
-	if(dynamic_cast<DNA2Interaction *>(this->_interaction.get()) != NULL) {
-		energy += this->_interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, r, update_forces);
-		energy += this->_interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, r, update_forces);
+	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
+		energy += _interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, false, update_forces);
+		energy += _interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, false, update_forces);
 	}
-	else if(dynamic_cast<RNA2Interaction *>(this->_interaction.get()) != NULL) {
-		energy += this->_interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, r, update_forces);
+	else if(dynamic_cast<RNA2Interaction *>(_interaction.get()) != NULL) {
+		energy += _interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, false, update_forces);
 	}
 
 	return energy;
 }
 
 void FFS_MD_CPUBackend::_ffs_compute_forces(void) {
-	this->_U = this->_U_hydr = (number) 0;
+	_U = _U_hydr = (number) 0;
 	for(auto p: _particles) {
 		typename vector<ParticlePair>::iterator it = p->affected.begin();
 		for(; it != p->affected.end(); it++) {
-			if(it->first == p) this->_U += this->_interaction->pair_interaction_bonded(it->first, it->second, NULL, true);
+			if(it->first == p) {
+				_U += _interaction->pair_interaction_bonded(it->first, it->second, true, true);
+			}
 		}
 
-		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
+		std::vector<BaseParticle *> neighs = _lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
-			this->_U += this->pair_interaction_nonbonded_DNA_with_op(p, q, NULL, true);
+			_U += pair_interaction_nonbonded_DNA_with_op(p, q, true, true);
 		}
 	}
 }
 
 void FFS_MD_CPUBackend::sim_step(llint curr_step) {
-	this->_mytimer->resume();
+	_mytimer->resume();
 
-	this->_op.reset();
+	_op.reset();
 
-	this->_timer_first_step->resume();
-	this->_first_step(curr_step);
-	this->_timer_first_step->pause();
+	_timer_first_step->resume();
+	_first_step(curr_step);
+	_timer_first_step->pause();
 
-	this->_timer_lists->resume();
-	if(!this->_lists->is_updated()) {
-		this->_lists->global_update();
-		this->_N_updates++;
+	_timer_lists->resume();
+	if(!_lists->is_updated()) {
+		_lists->global_update();
+		_N_updates++;
 	}
-	this->_timer_lists->pause();
+	_timer_lists->pause();
 
-	this->_timer_forces->resume();
-	this->_ffs_compute_forces();
-	this->_second_step();
-	this->_timer_forces->pause();
+	_timer_forces->resume();
+	_ffs_compute_forces();
+	_second_step();
+	_timer_forces->pause();
 
-	this->_timer_thermostat->resume();
-	this->_thermostat->apply(_particles, curr_step);
-	this->_timer_thermostat->pause();
+	_timer_thermostat->resume();
+	_thermostat->apply(_particles, curr_step);
+	_timer_thermostat->pause();
 
 	_op.fill_distance_parameters(_particles, _box.get());
 
 	//cout << "I just stepped and bond parameter is " << _op.get_hb_parameter(0) << " and distance is " << _op.get_distance_parameter(0) << endl;
-	if(this->check_stop_conditions()) {
+	if(check_stop_conditions()) {
 		SimManager::stop = true;
 		OX_LOG(Logger::LOG_INFO, "Reached stop conditions, stopping in step %lld", curr_step);
 		char tmp[1024];
@@ -290,13 +294,13 @@ void FFS_MD_CPUBackend::sim_step(llint curr_step) {
 		OX_LOG(Logger::LOG_INFO, "FFS final values: %s", tmp);
 	}
 
-	this->_mytimer->pause();
+	_mytimer->pause();
 }
 
 void FFS_MD_CPUBackend::init() {
 	MD_CPUBackend::init();
 
-	this->_sqr_rcut = this->_interaction->get_rcut() * this->_interaction->get_rcut();
+	_sqr_rcut = _interaction->get_rcut() * _interaction->get_rcut();
 
 	_op.init_from_file(_order_parameters_file.c_str(), _particles, N());
 	init_ffs_from_file(_ffs_file.c_str());
@@ -335,7 +339,7 @@ void FFS_MD_CPUBackend::init_ffs_from_file(const char *fname) {
 		//cout << "Parsing " << strexpr << endl;
 		if(!newcondition.parse_condition(strexpr.c_str(), &_op)) throw oxDNAException("Failed to parse condition %s, please check the file format and parameter names ", pairname);
 
-		this->_conditions.push_back(newcondition);
+		_conditions.push_back(newcondition);
 		pairid++;
 		sprintf(pairname, "condition%d", pairid);
 	}
@@ -361,14 +365,14 @@ char * FFS_MD_CPUBackend::get_op_state_str(void) {
 }
 
 void FFS_MD_CPUBackend::print_observables(llint curr_step) {
-	this->_backend_info = get_op_state_str();
+	_backend_info = get_op_state_str();
 	MDBackend::print_observables(curr_step);
 }
 
 bool FFS_MD_CPUBackend::check_stop_conditions(void) {
 	//check if any of the stop conditions is true
-	for(auto i = this->_conditions.begin(); i != this->_conditions.end(); i++) {
-		if((*i).eval_condition(&(this->_op))) {
+	for(auto i = _conditions.begin(); i != _conditions.end(); i++) {
+		if((*i).eval_condition(&(_op))) {
 			OX_LOG(Logger::LOG_INFO,"Reached condition%d",1+std::distance(_conditions.begin(), i));
 			return true;
 		}

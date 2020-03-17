@@ -130,12 +130,12 @@ void NathanInteraction::check_input_sanity(std::vector<BaseParticle *> &particle
 	}
 }
 
-number NathanInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number NathanInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number NathanInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 
 	if(sqr_r > _sqr_rfene) {
@@ -156,7 +156,7 @@ number NathanInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, 
 	return energy;
 }
 
-number NathanInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	int type = p->type + q->type;
 	assert(type != PATCHY_PATCHY);
 	number sqr_sigma = (type == POLYMER_POLYMER) ? _sqr_pol_sigma : _sqr_pol_patchy_sigma;
@@ -177,7 +177,7 @@ number NathanInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector
 	return energy;
 }
 
-number NathanInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->type == PATCHY_PARTICLE) return (number) 0.f;
 
 	if(q == P_VIRTUAL) {
@@ -191,13 +191,13 @@ number NathanInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle 
 		r = &computed_r;
 	}
 
-	number energy = _fene(p, q, r, update_forces);
-	energy += _nonbonded(p, q, r, update_forces);
+	number energy = _fene(p, q, compute_r, update_forces);
+	energy += _nonbonded(p, q, compute_r, update_forces);
 
 	return (number) energy;
 }
 
-number NathanInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
@@ -205,8 +205,8 @@ number NathanInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 	}
 
 	int type = p->type + q->type;
-	if(type == PATCHY_PATCHY) return _patchy_interaction(p, q, r, update_forces);
-	else return _nonbonded(p, q, r, update_forces);
+	if(type == PATCHY_PATCHY) return _patchy_interaction(p, q, compute_r, update_forces);
+	else return _nonbonded(p, q, compute_r, update_forces);
 }
 
 void NathanInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {

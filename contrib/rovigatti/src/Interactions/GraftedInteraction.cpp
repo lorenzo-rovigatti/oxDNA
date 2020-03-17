@@ -118,9 +118,9 @@ void GraftedInteraction::read_topology(int *N_strands, std::vector<BaseParticle 
 	}
 }
 
-number GraftedInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number GraftedInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
 number GraftedInteraction::_wall_interaction(BaseParticle *p, bool update_forces) {
@@ -143,7 +143,7 @@ number GraftedInteraction::_wall_interaction(BaseParticle *p, bool update_forces
 	return energy;
 }
 
-number GraftedInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number GraftedInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0.f;
 	if(q == P_VIRTUAL) {
 		if(_walls) energy += _wall_interaction(p, update_forces);
@@ -153,7 +153,7 @@ number GraftedInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle
 		}
 		return energy;
 	}
-	else if(p->type != P_COLLOID && q->type != P_COLLOID) return _TSP_inter.pair_interaction_bonded(p, q, r, update_forces);
+	else if(p->type != P_COLLOID && q->type != P_COLLOID) return _TSP_inter.pair_interaction_bonded(p, q, compute_r, update_forces);
 
 	// if we are here then we have to compute the interaction between a regular monomer and the colloid.
 	// we have two possibilities: either the monomer is at the beginning of the chain or it's not.
@@ -208,8 +208,8 @@ number GraftedInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle
 	return energy;
 }
 
-number GraftedInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->type != P_COLLOID && q->type != P_COLLOID) return _TSP_inter.pair_interaction_nonbonded(p, q, r, update_forces);
+number GraftedInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->type != P_COLLOID && q->type != P_COLLOID) return _TSP_inter.pair_interaction_nonbonded(p, q, compute_r, update_forces);
 	return 0.f;
 }
 

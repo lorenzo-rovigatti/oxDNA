@@ -144,14 +144,14 @@ public:
 		);
 	}
 
-	number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) override {
+	number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				number,
 				IBaseInteraction,
 				pair_interaction,
 				p,
 				q,
-				r,
+				compute_r,
 				update_forces
 		);
 
@@ -159,14 +159,14 @@ public:
 		return 0.;
 	}
 
-	number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) override {
+	number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				number,
 				IBaseInteraction,
 				pair_interaction_bonded,
 				p,
 				q,
-				r,
+				compute_r,
 				update_forces
 		);
 
@@ -174,14 +174,14 @@ public:
 		return 0.;
 	}
 
-	number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) override {
+	number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				number,
 				IBaseInteraction,
 				pair_interaction_nonbonded,
 				p,
 				q,
-				r,
+				compute_r,
 				update_forces
 		);
 
@@ -189,7 +189,7 @@ public:
 		return 0.;
 	}
 
-	number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) override {
+	number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				number,
 				IBaseInteraction,
@@ -197,7 +197,7 @@ public:
 				name,
 				p,
 				q,
-				r,
+				compute_r,
 				update_forces
 		);
 
@@ -228,13 +228,13 @@ void export_IBaseInteraction(py::module &m) {
 	interaction.def(py::init<>(), R"pbdoc(
 		The default constructor takes no parameters. 
 	)pbdoc");
-	interaction.def("pair_interaction", &IBaseInteraction::pair_interaction, py::arg("p"), py::arg("q"), py::arg("r") = NULL, py::arg("update_forces") = false, R"pbdoc(
+	interaction.def("pair_interaction", &IBaseInteraction::pair_interaction, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
         Compute the pair interaction between p and q.
     )pbdoc");
-	interaction.def("pair_interaction_bonded", &IBaseInteraction::pair_interaction_bonded, py::arg("p"), py::arg("q"), py::arg("r") = NULL, py::arg("update_forces") = false, R"pbdoc(
+	interaction.def("pair_interaction_bonded", &IBaseInteraction::pair_interaction_bonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
         Compute the bonded pair interaction between p and q.
 	)pbdoc");
-	interaction.def("pair_interaction_nonbonded", &IBaseInteraction::pair_interaction_nonbonded, py::arg("p"), py::arg("q"), py::arg("r") = NULL, py::arg("update_forces") = false, R"pbdoc(
+	interaction.def("pair_interaction_nonbonded", &IBaseInteraction::pair_interaction_nonbonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
         Compute the unbonded pair interaction between p and q.
 	)pbdoc");
 }

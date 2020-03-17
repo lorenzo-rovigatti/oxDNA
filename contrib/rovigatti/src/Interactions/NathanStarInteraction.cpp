@@ -291,7 +291,7 @@ void NathanStarInteraction::check_input_sanity(std::vector<BaseParticle *> &part
 
 }
 
-number NathanStarInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanStarInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->type != PATCHY_PARTICLE && q->type != PATCHY_PARTICLE) return 0.f;
 	number rnorm = r->norm();
 	if(rnorm > _sqr_patchy_rcut) return (number) 0.f;
@@ -363,7 +363,7 @@ number NathanStarInteraction::_patchy_interaction(BaseParticle *p, BaseParticle 
 	return energy;
 }
 
-number NathanStarInteraction::_patchy_star_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanStarInteraction::_patchy_star_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
 	number sqr_r = r->norm();
 	if(sqr_r > _sqr_patchy_star_rcut) return (number) 0.f;
@@ -383,7 +383,7 @@ number NathanStarInteraction::_patchy_star_interaction(BaseParticle *p, BasePart
 	return energy;
 }
 
-number NathanStarInteraction::_star_star_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanStarInteraction::_star_star_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
 	number sqr_r = r->norm();
 	if(sqr_r > _sqr_star_rcut) return (number) 0.f;
@@ -418,15 +418,15 @@ number NathanStarInteraction::_star_star_interaction(BaseParticle *p, BasePartic
 	return common_fact * energy;
 }
 
-number NathanStarInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+number NathanStarInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number NathanStarInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanStarInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return (number) 0.;
 }
 
-number NathanStarInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number NathanStarInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
 		computed_r = this->_box->min_image(p->pos, q->pos);
@@ -434,9 +434,9 @@ number NathanStarInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePa
 	}
 
 	int type = p->type + q->type;
-	if(type == PATCHY_PATCHY) return _patchy_interaction(p, q, r, update_forces);
-	else if(type == PATCHY_POLYMER) return _patchy_star_interaction(p, q, r, update_forces);
-	else return _star_star_interaction(p, q, r, update_forces);
+	if(type == PATCHY_PATCHY) return _patchy_interaction(p, q, compute_r, update_forces);
+	else if(type == PATCHY_POLYMER) return _patchy_star_interaction(p, q, compute_r, update_forces);
+	else return _star_star_interaction(p, q, compute_r, update_forces);
 }
 
 void NathanStarInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {

@@ -70,7 +70,7 @@ void TSPInteraction::init() {
 	}
 }
 
-number TSPInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number TSPInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	bool anchor = ((TSPParticle *) p)->is_anchor() || ((TSPParticle *) q)->is_anchor();
 
 	number sqr_r = r->norm();
@@ -95,7 +95,7 @@ number TSPInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, boo
 	return energy;
 }
 
-number TSPInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number TSPInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	int int_type = q->type + p->type;
 
 	number sqr_r = r->norm();
@@ -144,12 +144,12 @@ number TSPInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r
 	return energy;
 }
 
-number TSPInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number TSPInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number TSPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number TSPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
 
 	// if q == P_VIRTUAL we have to compute the bonded interactions acting between p and all its bonded neighbours
@@ -168,14 +168,14 @@ number TSPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 			}
 		}
 
-		energy = _fene(p, q, r, update_forces);
-		energy += _nonbonded(p, q, r, update_forces);
+		energy = _fene(p, q, compute_r, update_forces);
+		energy += _nonbonded(p, q, compute_r, update_forces);
 	}
 
 	return energy;
 }
 
-number TSPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number TSPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
 	// if p and q don't belong to the same star AND the user enabled the TSP_only_intra option then
@@ -188,7 +188,7 @@ number TSPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 		r = &computed_r;
 	}
 
-	return _nonbonded(p, q, r, update_forces);
+	return _nonbonded(p, q, compute_r, update_forces);
 }
 
 void TSPInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

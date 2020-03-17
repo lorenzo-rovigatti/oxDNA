@@ -13,7 +13,7 @@
 
 MD_CPUBackend::MD_CPUBackend() :
 				MDBackend() {
-	this->_is_CUDA_sim = false;
+	_is_CUDA_sim = false;
 	_thermostat = nullptr;
 	_V_move = nullptr;
 	_compute_stress_tensor = false;
@@ -29,43 +29,43 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 	bool is_warning = false;
 	std::vector<int> w_ps;
 	for(auto p: _particles) {
-		p->vel += p->force * (this->_dt * (number) 0.5);
-		LR_vector dr = p->vel * this->_dt;
+		p->vel += p->force * (_dt * (number) 0.5);
+		LR_vector dr = p->vel * _dt;
 		if(dr.norm() > 0.01) {
 			is_warning = true;
 			w_ps.push_back(p->index);
 		}
 		p->pos += dr;
 		// if Lees-Edwards boundaries are enabled, we have to check for crossings along the y axis
-		if(this->_lees_edwards) {
-			const LR_vector &L = this->_box->box_sides();
+		if(_lees_edwards) {
+			const LR_vector &L = _box->box_sides();
 			int y_new = floor(p->pos.y / L.y);
 			int y_old = floor((p->pos.y - dr.y) / L.y);
 			// we crossed the boundary along y
 			if(y_new != y_old) {
-				number delta_x = this->_shear_rate * L.y * curr_step * this->_dt;
+				number delta_x = _shear_rate * L.y * curr_step * _dt;
 				delta_x -= floor(delta_x / L.x) * L.x;
 				if(y_new > y_old) {
 					p->pos.x -= delta_x;
 					p->pos.y -= L.y;
-					p->vel.x -= this->_shear_rate * L.y;
+					p->vel.x -= _shear_rate * L.y;
 				}
 				else {
 					p->pos.x += delta_x;
 					p->pos.y += L.y;
-					p->vel.x += this->_shear_rate * L.y;
+					p->vel.x += _shear_rate * L.y;
 				}
 			}
 		}
 
 		if(p->is_rigid_body()) {
-			p->L += p->torque * (this->_dt * (number) 0.5);
+			p->L += p->torque * (_dt * (number) 0.5);
 			// update of the orientation
 			number norm = p->L.module();
 			LR_vector LVersor(p->L / norm);
 
-			number sintheta = sin(this->_dt * norm);
-			number costheta = cos(this->_dt * norm);
+			number sintheta = sin(_dt * norm);
+			number costheta = cos(_dt * norm);
 			number olcos = 1. - costheta;
 
 			number xyo = LVersor[0] * LVersor[1] * olcos;
@@ -82,9 +82,9 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 			p->set_positions();
 		}
 
-		p->set_initial_forces(curr_step, this->_box);
+		p->set_initial_forces(curr_step, _box);
 
-		this->_lists->single_update(p);
+		_lists->single_update(p);
 	}
 
 	if(is_warning) {
@@ -96,29 +96,33 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 }
 
 void MD_CPUBackend::_compute_forces() {
-	this->_U = this->_U_hydr = (number) 0;
+	_U = _U_hydr = (number) 0;
 	for(auto p: _particles) {
 		typename vector<ParticlePair>::iterator it = p->affected.begin();
 		for(; it != p->affected.end(); it++) {
-			if(it->first == p) this->_U += this->_interaction->pair_interaction_bonded(it->first, it->second, NULL, true);
+			if(it->first == p) {
+				_U += _interaction->pair_interaction_bonded(it->first, it->second, true, true);
+			}
 		}
 
-		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
+		std::vector<BaseParticle *> neighs = _lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
-			if(!_compute_stress_tensor) this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
+			if(!_compute_stress_tensor) {
+				_U += _interaction->pair_interaction_nonbonded(p, q, true, true);
+			}
 			else _update_forces_and_stress_tensor(p, q);
 		}
 	}
 }
 
 void MD_CPUBackend::_second_step() {
-	this->_K = (number) 0.f;
+	_K = (number) 0.f;
 	for(auto p: _particles) {
-		p->vel += p->force * this->_dt * (number) 0.5f;
-		if(p->is_rigid_body()) p->L += p->torque * this->_dt * (number) 0.5f;
+		p->vel += p->force * _dt * (number) 0.5f;
+		if(p->is_rigid_body()) p->L += p->torque * _dt * (number) 0.5f;
 
-		this->_K += (p->vel.norm() + p->L.norm()) * (number) 0.5f;
+		_K += (p->vel.norm() + p->L.norm()) * (number) 0.5f;
 
 		if(_compute_stress_tensor) _update_kinetic_stress_tensor(p);
 	}
@@ -135,8 +139,9 @@ void MD_CPUBackend::_update_forces_and_stress_tensor(BaseParticle *p, BasePartic
 
 	p->force = q->force = p->torque = q->torque = LR_vector();
 
-	LR_vector r = this->_box->min_image(p->pos, q->pos);
-	this->_interaction->pair_interaction_nonbonded(p, q, &r, true);
+	LR_vector r = _box->min_image(p->pos, q->pos);
+	_interaction->set_computed_r(r);
+	_interaction->pair_interaction_nonbonded(p, q, false, true);
 
 	_stress_tensor.v1.x += r.x * q->force.x;
 	_stress_tensor.v1.y += r.x * q->force.y;
@@ -156,10 +161,10 @@ void MD_CPUBackend::_update_forces_and_stress_tensor(BaseParticle *p, BasePartic
 
 void MD_CPUBackend::_update_kinetic_stress_tensor(BaseParticle *p) {
 	LR_vector vel = p->vel;
-	if(this->_shear_rate > 0.) {
-		number Ly = this->_box->box_sides().y;
+	if(_shear_rate > 0.) {
+		number Ly = _box->box_sides().y;
 		number y_in_box = p->pos.y - floor(p->pos.y / Ly) * Ly - 0.5 * Ly;
-		number flow_vx = y_in_box * this->_shear_rate;
+		number flow_vx = y_in_box * _shear_rate;
 		vel.x -= flow_vx;
 	}
 	_stress_tensor.v1.x += SQR(vel.x);
@@ -174,36 +179,36 @@ void MD_CPUBackend::_update_kinetic_stress_tensor(BaseParticle *p) {
 }
 
 void MD_CPUBackend::_update_backend_info() {
-	_stress_tensor /= 3 * this->_box->V();
+	_stress_tensor /= 3 * _box->V();
 	double P = _stress_tensor.v1.x + _stress_tensor.v2.y + _stress_tensor.v3.z;
-	this->_backend_info = Utils::sformat("% 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf", P, _stress_tensor.v1.x, _stress_tensor.v1.y, _stress_tensor.v1.z, _stress_tensor.v2.x, _stress_tensor.v2.y, _stress_tensor.v2.z, _stress_tensor.v3.x, _stress_tensor.v3.y, _stress_tensor.v3.z);
+	_backend_info = Utils::sformat("% 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf", P, _stress_tensor.v1.x, _stress_tensor.v1.y, _stress_tensor.v1.z, _stress_tensor.v2.x, _stress_tensor.v2.y, _stress_tensor.v2.z, _stress_tensor.v3.x, _stress_tensor.v3.y, _stress_tensor.v3.z);
 	_stress_tensor = LR_matrix();
 }
 
 void MD_CPUBackend::sim_step(llint curr_step) {
-	this->_mytimer->resume();
+	_mytimer->resume();
 
 	CONFIG_INFO->curr_step = curr_step;
 
-	this->_timer_first_step->resume();
+	_timer_first_step->resume();
 	_first_step(curr_step);
-	this->_timer_first_step->pause();
+	_timer_first_step->pause();
 
-	this->_timer_lists->resume();
-	if(!this->_lists->is_updated()) {
-		this->_lists->global_update();
-		this->_N_updates++;
+	_timer_lists->resume();
+	if(!_lists->is_updated()) {
+		_lists->global_update();
+		_N_updates++;
 	}
-	this->_timer_lists->pause();
+	_timer_lists->pause();
 
-	if(this->_is_barostat_active()) {
-		this->_timer_barostat->resume();
+	if(_is_barostat_active()) {
+		_timer_barostat->resume();
 		_V_move->apply(curr_step);
-		this->_barostat_acceptance = _V_move->get_acceptance();
-		this->_timer_barostat->pause();
+		_barostat_acceptance = _V_move->get_acceptance();
+		_timer_barostat->pause();
 	}
 
-	this->_timer_forces->resume();
+	_timer_forces->resume();
 	_compute_forces();
 	_second_step();
 
@@ -216,19 +221,19 @@ void MD_CPUBackend::sim_step(llint curr_step) {
 		}
 	}
 
-	this->_timer_forces->pause();
+	_timer_forces->pause();
 
-	this->_timer_thermostat->resume();
+	_timer_thermostat->resume();
 	_thermostat->apply(_particles, curr_step);
-	this->_timer_thermostat->pause();
+	_timer_thermostat->pause();
 
-	this->_mytimer->pause();
+	_mytimer->pause();
 }
 
 void MD_CPUBackend::get_settings(input_file &inp) {
 	MDBackend::get_settings(inp);
 
-	_thermostat = ThermostatFactory::make_thermostat(inp, this->_box.get());
+	_thermostat = ThermostatFactory::make_thermostat(inp, _box.get());
 	_thermostat->get_settings(inp);
 
 	getInputBool(&inp, "MD_compute_stress_tensor", &_compute_stress_tensor, 0);
@@ -238,8 +243,8 @@ void MD_CPUBackend::get_settings(input_file &inp) {
 		if(_stress_tensor_avg_every < 1) throw oxDNAException("MD_stress_tensor_avg_every should be larger than 0");
 	}
 
-	if(this->_use_barostat) {
-		auto str_inp = Utils::sformat("type = volume\ndelta = %lf\nisotropic = %d", this->_delta_L, (int) this->_barostat_isotropic);
+	if(_use_barostat) {
+		auto str_inp = Utils::sformat("type = volume\ndelta = %lf\nisotropic = %d", _delta_L, (int) _barostat_isotropic);
 		input_file *move_inp = Utils::get_input_file_from_string(str_inp);
 		_V_move = MoveFactory::make_move(*move_inp, inp);
 		cleanInputFile(move_inp);
@@ -249,7 +254,7 @@ void MD_CPUBackend::get_settings(input_file &inp) {
 void MD_CPUBackend::init() {
 	MDBackend::init();
 	_thermostat->init();
-	if(this->_use_barostat) _V_move->init();
+	if(_use_barostat) _V_move->init();
 
 	_compute_forces();
 	if(_compute_stress_tensor) {

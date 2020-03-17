@@ -86,20 +86,20 @@ number IBaseInteraction::get_system_energy_term(int name, std::vector<BasePartic
 	return energy;
 }
 
-bool IBaseInteraction::generate_random_configuration_overlap(BaseParticle * p, BaseParticle * q) {
-	LR_vector dr = _box->min_image(p, q);
+bool IBaseInteraction::generate_random_configuration_overlap(BaseParticle *p, BaseParticle *q) {
+	_computed_r = _box->min_image(p, q);
 
-	if(dr.norm() >= _sqr_rcut) return false;
+	if(_computed_r.norm() >= _sqr_rcut) {
+		return false;
+	}
 
-	// number energy = pair_interaction(p, q, &dr, false);
-	number energy = pair_interaction_nonbonded(p, q, &dr, false);
+	number energy = pair_interaction_nonbonded(p, q, false, false);
 
 	// in case we create an overlap, we reset the interaction state
 	set_is_infinite(false);
 
 	// if energy too large, reject
-	if(energy > _energy_threshold) return true;
-	else return false;
+	return energy > _energy_threshold;
 }
 
 void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {

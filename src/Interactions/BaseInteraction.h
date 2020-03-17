@@ -47,6 +47,9 @@ protected:
 	number _rcut, _sqr_rcut;
 
 	char _topology_filename[256];
+
+	LR_vector _computed_r;
+
 public:
 	IBaseInteraction();
 	virtual ~IBaseInteraction();
@@ -98,21 +101,21 @@ public:
 	 * @param update_forces
 	 * @return pair-interaction energy
 	 */
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) = 0;
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
 
 	/**
 	 * @brief Computes the bonded part interaction between particles p and q.
 	 *
 	 * See {\@link pair_interaction} for a description of the parameters.
 	 */
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) = 0;
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
 
 	/**
 	 * @brief Computed the non bonded part of the interaction between particles p and q.
 	 *
 	 * See {\@link pair_interaction} for a description of the parameters.
 	 */
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) = 0;
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
 
 	/**
 	 * @brief Computes the requested term of the interaction energy between p and q.
@@ -124,7 +127,7 @@ public:
 	 * @param update_forces
 	 * @return
 	 */
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) = 0;
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
 
 	/**
 	 * @brief Returns the total potential energy of the system, given a box size
@@ -190,6 +193,10 @@ public:
 		_is_infinite = arg;
 	}
 
+	void set_computed_r(LR_vector &r) {
+		_computed_r =r;
+	}
+
 	/**
 	 * @brief overlap criterion. Used only in the generation of configurations. Can be overloaded.
 	 *
@@ -233,7 +240,7 @@ using InteractionPtr = std::shared_ptr<IBaseInteraction>;
  */
 template<typename child>
 class BaseInteraction: public IBaseInteraction {
-	typedef std::map<int, number (child::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)> interaction_map;
+	typedef std::map<int, number (child::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)> interaction_map;
 
 private:
 
@@ -255,7 +262,7 @@ protected:
 	 * @param update_forces
 	 * @return pair-interaction energy
 	 */
-	virtual number _pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	/**
 	 * @brief Build a mesh by using a function and its derivative.
@@ -289,7 +296,6 @@ public:
 	 * @return a map storing all the potential energy contributions.
 	 */
 	virtual std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists);
-
 };
 
 template<typename child>
@@ -305,11 +311,9 @@ BaseInteraction<child>::~BaseInteraction() {
 }
 
 template<typename child>
-number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	LR_vector computed_r;
-	if(r == NULL) {
-		computed_r = _box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	// _int_map.find(name) returns an iterator which points to the
@@ -322,7 +326,7 @@ number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int n
 		throw oxDNAException("%s, line %d: Interaction term '%d' not found", __FILE__, __LINE__, name);
 	}
 
-	return (that->*(interaction->second))(p, q, r, update_forces);
+	return (that->*(interaction->second))(p, q, false, update_forces);
 }
 
 template<typename child>

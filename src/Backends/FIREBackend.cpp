@@ -189,12 +189,12 @@ void FIREBackend::_second_step() {
 void FIREBackend::_compute_forces() {
 	this->_U = this->_U_hydr = (number) 0;
 	for(auto p: _particles) {
-		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
+		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, true, true);
 
 		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
-			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
+			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, true, true);
 		}
 	}
 }

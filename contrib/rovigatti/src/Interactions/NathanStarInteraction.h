@@ -77,9 +77,9 @@ protected:
 	number _patchy_star_marzi_derivative(number, gsl_spline *, gsl_interp_accel *, number);
 	void _setup_interp();
 
-	number _patchy_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _patchy_star_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _star_star_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _patchy_star_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _star_star_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 public:
 	enum {
 		PATCHY_PATCHY = 0, PATCHY_POLYMER = 1, POLYMER_POLYMER = 2
@@ -99,11 +99,11 @@ public:
 	virtual int get_N_from_topology();
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);

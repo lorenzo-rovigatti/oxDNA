@@ -58,14 +58,14 @@ protected:
 	number _fakef4_cxst_t1(number t, void * par);
 	number _fakef4D_cxst_t1(number t, void * par);
 
-	virtual number _backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
-	virtual number _nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _hydrogen_bonding(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _cross_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	/**
 	 * @brief Custom function that returns f4. This was added to add the possibility to avoid the use of meshes in classes that inherit from this.
@@ -93,10 +93,10 @@ protected:
 	 * if the two particles are not bonded neighbours, true otherwise.
 	 * @param p
 	 * @param q
-	 * @param r
+	 * @param compute_r
 	 * @return false if the two particles are not bonded neighbours, true otherwise
 	 */
-	bool _check_bonded_neighbour(BaseParticle **p, BaseParticle **q, LR_vector *r);
+	bool _check_bonded_neighbour(BaseParticle **p, BaseParticle **q, bool compute_r);
 
 public:
 	enum {
@@ -116,11 +116,11 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) {
+		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);

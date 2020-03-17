@@ -301,7 +301,7 @@ void StarrInteraction::read_topology(int *N_strands, std::vector<BaseParticle *>
 	}
 }
 
-number StarrInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number StarrInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 
 	if(sqr_r > _fene_sqr_r0) {
@@ -322,7 +322,7 @@ number StarrInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, b
 	return energy;
 }
 
-number StarrInteraction::_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number StarrInteraction::_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	int int_type = p->type + q->type;
 	int int_btype = p->btype + q->btype;
 	if(int_type == 2 && (int_btype != 3 || (p->strand_id == q->strand_id && abs(p->index - q->index) == 2))) int_type = 1;
@@ -367,13 +367,13 @@ number StarrInteraction::_three_body(BaseParticle *p, BaseParticle *n3, BasePart
 	return _lin_k * (1. - cost);
 }
 
-number StarrInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	number energy = pair_interaction_bonded(p, q, r, update_forces);
-	energy += pair_interaction_nonbonded(p, q, r, update_forces);
+number StarrInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	number energy = pair_interaction_bonded(p, q, compute_r, update_forces);
+	energy += pair_interaction_nonbonded(p, q, compute_r, update_forces);
 	return energy;
 }
 
-number StarrInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number StarrInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0.;
 	if(!p->is_bonded(q) || p->index > q->index) return energy;
 
@@ -394,13 +394,13 @@ number StarrInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *
 		r = &computed_r;
 	}
 
-	energy += _fene(p, q, r, update_forces);
-	energy += _two_body(p, q, r, update_forces);
+	energy += _fene(p, q, compute_r, update_forces);
+	energy += _two_body(p, q, compute_r, update_forces);
 
 	return energy;
 }
 
-number StarrInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number StarrInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return 0.f;
 
 	LR_vector computed_r(0, 0, 0);
@@ -409,7 +409,7 @@ number StarrInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticl
 		r = &computed_r;
 	}
 
-	return _two_body(p, q, r, update_forces);
+	return _two_body(p, q, compute_r, update_forces);
 }
 
 void StarrInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

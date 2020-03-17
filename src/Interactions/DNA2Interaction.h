@@ -67,7 +67,7 @@ protected:
 	}
 
 public:
-	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
         enum {
 		DEBYE_HUCKEL = 7
@@ -75,8 +75,8 @@ public:
 	DNA2Interaction();
 	virtual ~DNA2Interaction() {}
     
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 
 	virtual void get_settings(input_file &inp);
 	virtual void init();
@@ -84,7 +84,7 @@ public:
 	number _fakef4_cxst_t1(number t, void * par);
 	number _fakef4D_cxst_t1(number t, void * par);
 
-	virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	number F4_THETA_SA[13];
 	number F4_THETA_SB[13];

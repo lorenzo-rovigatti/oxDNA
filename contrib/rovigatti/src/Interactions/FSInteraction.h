@@ -121,12 +121,12 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	number _patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 
-	number _polymer_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _polymer_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _polymer_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	number _three_body(BaseParticle *p, FSBond &new_bond, bool update_forces);
 
@@ -164,11 +164,11 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);

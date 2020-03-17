@@ -43,7 +43,7 @@ void MGInteraction::init() {
 	}
 }
 
-number MGInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number MGInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 
 	if(sqr_r > _sqr_rfene) {
@@ -65,7 +65,7 @@ number MGInteraction::_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool
 	return energy;
 }
 
-number MGInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number MGInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = r->norm();
 	if(sqr_r > this->_sqr_rcut) return (number) 0.;
 
@@ -95,12 +95,12 @@ number MGInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r,
 	return energy;
 }
 
-number MGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number MGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
+	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number MGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number MGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
 
 	if(p->is_bonded(q)) {
@@ -112,14 +112,14 @@ number MGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 			}
 		}
 
-		energy = _fene(p, q, r, update_forces);
-		energy += _nonbonded(p, q, r, update_forces);
+		energy = _fene(p, q, compute_r, update_forces);
+		energy += _nonbonded(p, q, compute_r, update_forces);
 	}
 
 	return energy;
 }
 
-number MGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number MGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
 	LR_vector computed_r;
@@ -128,7 +128,7 @@ number MGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 		r = &computed_r;
 	}
 
-	return _nonbonded(p, q, r, update_forces);
+	return _nonbonded(p, q, compute_r, update_forces);
 }
 
 void MGInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

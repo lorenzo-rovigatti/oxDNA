@@ -46,7 +46,7 @@ void PatchyHSC::init() {
 	OX_LOG(Logger::LOG_INFO, "Initialized PatchyHSC interaction with rcut %g", this->_rcut);
 }
 
-number PatchyHSC::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PatchyHSC::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(this->_box->box_sides()[0] > 0.1 && this->_box->box_sides()[0] < 2 * this->_rcut) throw oxDNAException("The box should be larger than twice the effective diameter of the particles (%lf)\n", 2 * this->_rcut);
 
 	LR_vector computed_r(0, 0, 0);
@@ -61,7 +61,7 @@ number PatchyHSC::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, L
 		this->set_is_infinite(true);
 		return 1.0e12;
 	}
-	if(sqr_r < this->_sqr_rcut) return _patchy(p, q, r, update_forces);
+	if(sqr_r < this->_sqr_rcut) return _patchy(p, q, compute_r, update_forces);
 
 	return 0.;
 }
