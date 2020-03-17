@@ -20,22 +20,6 @@ void export_IBaseInteraction(py::module &m);
 void export_ConfigInfo(py::module &m);
 
 PYBIND11_MODULE(core, m) {
-	m.doc() = R"pbdoc(
-        Core classes
-        ------------
-
-        .. currentmodule:: oxpy.core
-
-        .. autosummary::
-           :nosignatures:
-
-           BaseParticle
-           ConfigInfo
-           IBaseInteraction
-           OxpyManager
-
-    )pbdoc";
-
 	export_OxpyContext(m);
 
 	export_SimManager(m);
@@ -48,58 +32,58 @@ PYBIND11_MODULE(core, m) {
 
 void export_BaseParticle(py::module &m) {
 	pybind11::class_<BaseParticle, std::shared_ptr<BaseParticle>> particle(m, "BaseParticle", R"pbdoc(
-        A simulation particle
+        A simulation particle.
 	)pbdoc");
 
 	particle.def(py::init<>(), R"pbdoc(
-		 Default constructor 
+		 The default constructor takes no parameters.
 	)pbdoc");
-	particle.def("is_bonded", &BaseParticle::is_bonded, R"pbdoc(
-        Return whether the current particle and arg0 are bonded neighbours
+	particle.def("is_bonded", &BaseParticle::is_bonded, py::arg("q"), R"pbdoc(
+        Return whether the current particle and q are bonded neighbours.
 
         Parameters
         ----------
-        arg0
-            The other particle
+        q
+            The other Particle.
     )pbdoc");
 	particle.def_readwrite("index", &BaseParticle::index, R"pbdoc(
-        The index of the particle
+        The index of the particle.
     )pbdoc");
 	particle.def_readwrite("type", &BaseParticle::type, R"pbdoc(
-        The type of the particle
+        The type of the particle.
 	)pbdoc");
 	particle.def_readwrite("btype", &BaseParticle::btype, R"pbdoc(
-		The btype of the particle
+		The btype of the particle.
 	)pbdoc");
 	particle.def_readwrite("strand_id", &BaseParticle::strand_id, R"pbdoc(
-		The id of the strand to which the particle belongs
+		The id of the strand to which the particle belongs.
 	)pbdoc");
 	particle.def_readwrite("pos", &BaseParticle::pos, R"pbdoc(
-		The position of the particle
+		The position of the particle.
 	)pbdoc");
 	particle.def_readwrite("orientation", &BaseParticle::orientation, R"pbdoc(
-		The orientation of the particle as a 3x3 matrix
+		The orientation of the particle as a 3x3 matrix.
 	)pbdoc");
 	particle.def_readwrite("vel", &BaseParticle::vel, R"pbdoc(
-		The velocity of the particle
+		The velocity of the particle.
 	)pbdoc");
 	particle.def_readwrite("L", &BaseParticle::L, R"pbdoc(
-		The angular momentum of the particle
+		The angular momentum of the particle.
 	)pbdoc");
 	particle.def_readwrite("force", &BaseParticle::force, R"pbdoc(
-		The force exerted on the particle
+		The force exerted on the particle.
 	)pbdoc");
 	particle.def_readwrite("torque", &BaseParticle::torque, R"pbdoc(
-		The torque exerted on the particle
+		The torque exerted on the particle.
 	)pbdoc");
 	particle.def_readwrite("ext_potential", &BaseParticle::ext_potential, R"pbdoc(
-		The potential energy due to the external forces acting on the particle
+		The potential energy due to the external forces acting on the particle.
 	)pbdoc");
 	particle.def_readwrite("n3", &BaseParticle::n3, pybind11::return_value_policy::reference, R"pbdoc(
-		The n3 neighbour
+		The n3 neighbour.
 	)pbdoc");
 	particle.def_readwrite("n5", &BaseParticle::n5, pybind11::return_value_policy::reference, R"pbdoc(
-		The n5 neighbour
+		The n5 neighbour.
 	)pbdoc");
 }
 
@@ -109,13 +93,23 @@ void export_ConfigInfo(py::module &m) {
 	)pbdoc");
 
 	conf_info.def("N", &ConfigInfo::N, R"pbdoc(
-         Return the current number of particles 
+         Return the current number of particles.
+
+         Returns
+         -------
+         int
+             The number of particles in the simulation box.
 	)pbdoc");
 	conf_info.def("particles", &ConfigInfo::particles, pybind11::return_value_policy::reference, R"pbdoc(
-		 Return a list of all the particles 
+		 Return a list of all the particles.
+
+         Returns
+         -------
+         list(:py:class:`BaseParticle`)
+             A list containing all the particles in the simulation box.
 	)pbdoc");
 	conf_info.def_readwrite("interaction", &ConfigInfo::interaction, R"pbdoc(
-		 The simulation's :py:class:`~oxpy.IBaseInteraction` object 
+		 The simulation's :py:class:`IBaseInteraction` object.
 	)pbdoc");
 }
 
@@ -228,10 +222,19 @@ public:
 
 void export_IBaseInteraction(py::module &m) {
 	pybind11::class_<IBaseInteraction, PyIBaseInteraction, std::shared_ptr<IBaseInteraction>> interaction(m, "IBaseInteraction", R"pbdoc(
-		 The object that takes care of computing the interaction between the particles 
+		The object that takes care of computing the interaction between the particles.
 	)pbdoc");
 
 	interaction.def(py::init<>(), R"pbdoc(
-		 Default constructor 
+		The default constructor takes no parameters. 
+	)pbdoc");
+	interaction.def("pair_interaction", &IBaseInteraction::pair_interaction, py::arg("p"), py::arg("q"), py::arg("r") = NULL, py::arg("update_forces") = false, R"pbdoc(
+        Compute the pair interaction between p and q.
+    )pbdoc");
+	interaction.def("pair_interaction_bonded", &IBaseInteraction::pair_interaction_bonded, py::arg("p"), py::arg("q"), py::arg("r") = NULL, py::arg("update_forces") = false, R"pbdoc(
+        Compute the bonded pair interaction between p and q.
+	)pbdoc");
+	interaction.def("pair_interaction_nonbonded", &IBaseInteraction::pair_interaction_nonbonded, py::arg("p"), py::arg("q"), py::arg("r") = NULL, py::arg("update_forces") = false, R"pbdoc(
+        Compute the unbonded pair interaction between p and q.
 	)pbdoc");
 }

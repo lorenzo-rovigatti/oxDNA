@@ -13,6 +13,9 @@ IBaseInteraction::IBaseInteraction() {
 	_box = NULL;
 	_generate_consider_bonded_interactions = false;
 	_generate_bonded_cutoff = 2.0;
+	_temperature = 1.0;
+	_rcut = 0.;
+	_sqr_rcut = 0.;
 }
 
 IBaseInteraction::~IBaseInteraction() {

@@ -8,7 +8,7 @@ The development of this software has been partially supported by the European Co
 
 ## Requirements
 
-The code requires `cmake` and a c++-14-compliant `g++` (any version >= 4.9 *should* work). The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions. 
+The code requires `cmake` and a c++-14-compliant `g++` (any version >= 4.9 *should* work). The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
 
 ### CUDA
 
@@ -16,7 +16,9 @@ Compiling with CUDA support requires `cmake` >= 3.5 and the CUDA toolkit (>= 4.0
 
 ### Python bindings
 
-Python bindings require `Python 3`'s binaries, libraries and include files. On Debian-derived distros these can be installed by installing the `libpython3-dev` package. 
+Python bindings require `Python 3`'s binaries, libraries and include files. On Debian-derived distros these can be installed by installing the `libpython3-dev` package.
+
+[Sphinx](https://www.sphinx-doc.org/en/master), [sphinx_rtd_theme](https://github.com/readthedocs/sphinx_rtd_theme) and [recommonmark](https://recommonmark.readthedocs.io/en/latest/) are required to generate the Python bindings' documentation.
 
 ### Documentation
 

@@ -44,6 +44,16 @@ IF(Python)
 	CONFIGURE_FILE(__init__.py
 		${CMAKE_CURRENT_BINARY_DIR}/oxpy/__init__.py
 	)
+	
+	# read the whole defs.h file
+	FILE(READ ${PROJECT_SOURCE_DIR}/src/defs.h all_defs)
+	# extract the release version
+	STRING(REGEX MATCH "#define RELEASE \"([^\"]+)\"" _ ${all_defs})
+	SET(release ${CMAKE_MATCH_1})
+	CONFIGURE_FILE(__version__.py
+		${CMAKE_CURRENT_BINARY_DIR}/oxpy/__version__.py
+	)
+	MESSAGE(STATUS "Parsed release: ${release}")
 
 	SET(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/oxpy/setup.py")
 	CONFIGURE_FILE(setup.py

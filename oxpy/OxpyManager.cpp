@@ -90,7 +90,7 @@ void export_OxpyManager(py::module &m) {
 		 Constructor 
 	)pbdoc");
 	manager.def("config_info", &OxpyManager::config_info, R"pbdoc(
-		 Return the simulation's :py:class:`~oxpy.ConfigInfo` 
+		 Return the simulation's :py:class:`ConfigInfo` 
 	)pbdoc");
 	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(
 		 Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not. 
