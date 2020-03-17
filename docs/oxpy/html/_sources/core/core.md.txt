@@ -12,7 +12,6 @@ This module contains the Python bindings of the C++ code. All the objects descri
     :nosignatures:
 
     Context
-    SimManager
     OxpyManager
     BaseParticle
     IBaseInteraction
