@@ -163,9 +163,9 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.Context" title="oxpy.core.Context"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Context</span></code></a></p></td>
-<td><p></p></td>
+<td><p>A <a class="reference external" href="https://book.pythontips.com/en/latest/context_managers.html">context manager</a> that performs some initialisation and clean up.Use it with a <code class="code docutils literal notranslate"><span class="pre">with</span></code> command before using any of the <code class="code docutils literal notranslate"><span class="pre">oxpy</span></code> functionalities::.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.SimManager" title="oxpy.core.SimManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimManager</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimManager</span></code></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OxpyManager</span></code></a></p></td>
@@ -186,45 +186,77 @@
 <dt id="oxpy.core.Context">
 <em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.Context</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
-</dd></dl>
-
-<dl class="class">
-<dt id="oxpy.core.SimManager">
-<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">SimManager</code><a class="headerlink" href="#oxpy.core.SimManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
-<dl class="method">
-<dt id="oxpy.core.SimManager.init">
-<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.SimManager</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.SimManager.init" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="oxpy.core.SimManager.load_options">
-<code class="sig-name descname">load_options</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.SimManager</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.SimManager.load_options" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="oxpy.core.SimManager.run_complete">
-<code class="sig-name descname">run_complete</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.SimManager</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.SimManager.run_complete" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<p>A <a class="reference external" href="https://book.pythontips.com/en/latest/context_managers.html">context manager</a> that
+performs some initialisation and clean up. Use it with a <code class="code docutils literal notranslate"><span class="pre">with</span></code> command before using
+any of the <code class="code docutils literal notranslate"><span class="pre">oxpy</span></code> functionalities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
+    <span class="c1"># your code using oxpy goes here</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="class">
 <dt id="oxpy.core.OxpyManager">
-<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">OxpyManager</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.OxpyManager, arg0: List[str]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.OxpyManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#oxpy.core.SimManager" title="oxpy.core.SimManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">oxpy.core.SimManager</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">OxpyManager</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.OxpyManager, args: List[str]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.OxpyManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">oxpy.core.SimManager</span></code></p>
 <p>The object in charge of initialising and running a simulation.</p>
-<p>Constructor</p>
+<blockquote>
+<div><p>The default constructor takes a list of strings as its only parameter.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<em>List</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – The list or arguments to be passed to the manager. The first element should be the name of the input file,
+while the others should be key=value pairs.</p>
+</dd>
+</dl>
 <dl class="method">
 <dt id="oxpy.core.OxpyManager.config_info">
 <code class="sig-name descname">config_info</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.OxpyManager</em><span class="sig-paren">)</span> &#x2192; ConfigInfo<a class="headerlink" href="#oxpy.core.OxpyManager.config_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the simulation’s <a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a></p>
+<dd><blockquote>
+<div><p>Return the simulation’s <a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a>.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The object that stores all the simulation’s details (particles, interaction, <cite>etc</cite>).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.OxpyManager.init">
+<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.SimManager</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.OxpyManager.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialise the simulation manager.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.OxpyManager.load_options">
+<code class="sig-name descname">load_options</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.SimManager</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.OxpyManager.load_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the options from the input file.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="oxpy.core.OxpyManager.run">
 <code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.OxpyManager</em>, <em class="sig-param">steps: int</em>, <em class="sig-param">print_output: bool=True</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.OxpyManager.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not.</p>
+<dd><blockquote>
+<div><p>Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>steps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The number of steps to be run.</p></li>
+<li><p><strong>print_output</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True (the default value) the simulation output will be printed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.OxpyManager.run_complete">
+<code class="sig-name descname">run_complete</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.SimManager</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.OxpyManager.run_complete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the simulation till completion (that is, till the simulation has run number of steps specified in the input file).</p>
 </dd></dl>
 
 </dd></dl>
@@ -271,7 +303,7 @@
 <dd><p>Return whether the current particle and q are bonded neighbours.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>q</strong> – The other Particle.</p>
+<dd class="field-odd"><p><strong>q</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The other Particle.</p>
 </dd>
 </dl>
 </dd></dl>

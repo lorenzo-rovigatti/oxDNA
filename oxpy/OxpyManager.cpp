@@ -75,24 +75,51 @@ void OxpyManager::run(llint steps, bool print_output) {
 void export_SimManager(py::module &m) {
 	pybind11::class_<SimManager, std::shared_ptr<SimManager>> manager(m, "SimManager");
 
-	manager
-		.def("load_options", &SimManager::load_options)
-		.def("init", &SimManager::init)
-		.def("run_complete", &SimManager::run);
+	manager.def("load_options", &SimManager::load_options, R"pbdoc(
+		Load the options from the input file.
+	)pbdoc");
+
+	manager.def("init", &SimManager::init, R"pbdoc(
+		Initialise the simulation manager.
+	)pbdoc");
+
+	manager.def("run_complete", &SimManager::run, R"pbdoc(
+        Run the simulation till completion (that is, till the simulation has run number of steps specified in the input file).
+	)pbdoc");
 }
 
 void export_OxpyManager(py::module &m) {
-	pybind11::class_<OxpyManager, SimManager, std::shared_ptr<OxpyManager>> manager(m, "OxpyManager", R"pbdoc(
-		 The object in charge of initialising and running a simulation. 
+	py::class_<OxpyManager, SimManager, std::shared_ptr<OxpyManager>> manager(m, "OxpyManager", R"pbdoc(
+		The object in charge of initialising and running a simulation. 
 	)pbdoc");
 
-	manager.def(py::init<std::vector<std::string>>(), R"pbdoc(
-		 Constructor 
+	manager.def(py::init<std::vector<std::string>>(), py::arg("args"), R"pbdoc(
+		The default constructor takes a list of strings as its only parameter.
+
+        Parameters
+        ----------
+        args: List(str)
+            The list or arguments to be passed to the manager. The first element should be the name of the input file,
+            while the others should be key=value pairs.
 	)pbdoc");
+
 	manager.def("config_info", &OxpyManager::config_info, R"pbdoc(
-		 Return the simulation's :py:class:`ConfigInfo` 
+		Return the simulation's :class:`ConfigInfo`.
+
+        Returns
+        -------
+        :class:`ConfigInfo`
+            The object that stores all the simulation's details (particles, interaction, `etc`).
 	)pbdoc");
+
 	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(
-		 Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not. 
+		Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not.
+
+        Parameters
+        ----------
+            steps: int
+                The number of steps to be run.
+            print_output: bool
+                If True (the default value) the simulation output will be printed.
 	)pbdoc");
 }

@@ -23,7 +23,7 @@ IBaseInteraction::~IBaseInteraction() {
 }
 
 void IBaseInteraction::get_settings(input_file &inp) {
-	getInputString(&inp, "topology", this->_topology_filename, 1);
+	getInputString(&inp, "topology", _topology_filename, 1);
 	getInputNumber(&inp, "energy_threshold", &_energy_threshold, 0);
 	getInputNumber(&inp, "T", &_temperature, 1);
 	getInputBool(&inp, "generate_consider_bonded_interactions", &_generate_consider_bonded_interactions, 0);
@@ -35,8 +35,8 @@ void IBaseInteraction::get_settings(input_file &inp) {
 
 int IBaseInteraction::get_N_from_topology() {
 	std::ifstream topology;
-	topology.open(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	topology.open(_topology_filename, std::ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	int ret;
 	topology >> ret;
 	topology.close();
@@ -64,7 +64,7 @@ number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particle
 		BaseParticle *p = (*it).first;
 		BaseParticle *q = (*it).second;
 		energy += (double) pair_interaction(p, q);
-		if(this->get_is_infinite()) return energy;
+		if(get_is_infinite()) return energy;
 	}
 
 	return (number) energy;
@@ -79,7 +79,7 @@ number IBaseInteraction::get_system_energy_term(int name, std::vector<BasePartic
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
 			if(p->index > q->index) energy += pair_interaction_term(name, p, q);
-			if(this->get_is_infinite()) return energy;
+			if(get_is_infinite()) return energy;
 		}
 	}
 
@@ -89,13 +89,13 @@ number IBaseInteraction::get_system_energy_term(int name, std::vector<BasePartic
 bool IBaseInteraction::generate_random_configuration_overlap(BaseParticle * p, BaseParticle * q) {
 	LR_vector dr = _box->min_image(p, q);
 
-	if(dr.norm() >= this->_sqr_rcut) return false;
+	if(dr.norm() >= _sqr_rcut) return false;
 
 	// number energy = pair_interaction(p, q, &dr, false);
 	number energy = pair_interaction_nonbonded(p, q, &dr, false);
 
 	// in case we create an overlap, we reset the interaction state
-	this->set_is_infinite(false);
+	set_is_infinite(false);
 
 	// if energy too large, reject
 	if(energy > _energy_threshold) return true;
@@ -128,7 +128,7 @@ void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *>
 			p->orientationT = p->orientation.get_transpose();
 
 			p->set_positions();
-			p->set_ext_potential(0, this->_box);
+			p->set_ext_potential(0, _box);
 			c.single_update(p);
 
 			inserted = true;

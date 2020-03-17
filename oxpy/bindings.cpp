@@ -43,7 +43,7 @@ void export_BaseParticle(py::module &m) {
 
         Parameters
         ----------
-        q
+        q: :class:`BaseParticle`
             The other Particle.
     )pbdoc");
 	particle.def_readwrite("index", &BaseParticle::index, R"pbdoc(
@@ -105,7 +105,7 @@ void export_ConfigInfo(py::module &m) {
 
          Returns
          -------
-         list(:py:class:`BaseParticle`)
+         List(:py:class:`BaseParticle`)
              A list containing all the particles in the simulation box.
 	)pbdoc");
 	conf_info.def_readwrite("interaction", &ConfigInfo::interaction, R"pbdoc(

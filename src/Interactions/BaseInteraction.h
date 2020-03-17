@@ -201,7 +201,7 @@ public:
 	 * @param q
 	 * @return bool whether the two particles overlap
 	 */
-	virtual bool generate_random_configuration_overlap(BaseParticle * p, BaseParticle *q);
+	virtual bool generate_random_configuration_overlap(BaseParticle *p, BaseParticle *q);
 
 	/**
 	 * @brief generation of initial configurations. Can be overloaded.
@@ -295,8 +295,8 @@ public:
 template<typename child>
 BaseInteraction<child>::BaseInteraction() :
 				IBaseInteraction() {
-	this->_rcut = 2.5;
-	this->_sqr_rcut = SQR(this->_rcut);
+	_rcut = 2.5;
+	_sqr_rcut = SQR(_rcut);
 }
 
 template<typename child>
@@ -308,7 +308,7 @@ template<typename child>
 number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	LR_vector computed_r;
 	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
+		computed_r = _box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 
@@ -391,7 +391,7 @@ std::map<int, number> BaseInteraction<child>::get_system_energy_split(std::vecto
 			if(p->index > q->index) {
 				for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
 					int name = it->first;
-					energy_map[name] += this->pair_interaction_term(name, p, q);
+					energy_map[name] += pair_interaction_term(name, p, q);
 				}
 			}
 		}

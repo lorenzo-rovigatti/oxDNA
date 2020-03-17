@@ -20,9 +20,8 @@ This module contains the Python bindings of the C++ code. All the objects descri
     
 .. autoclass:: Context
     
-.. autoclass:: SimManager
-    
 .. autoclass:: OxpyManager
+    :inherited-members:
 
 .. autoclass:: BaseParticle
 
