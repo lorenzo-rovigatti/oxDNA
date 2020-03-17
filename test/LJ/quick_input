@@ -1,0 +1,43 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+debug = 0
+#seed = 104123
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+sim_type = MD
+ensemble = NVT
+thermostat = brownian
+newtonian_steps = 53
+diff_coeff = 0.1
+
+steps = 20000
+check_energy_every = 10000
+check_energy_threshold = 1.e-4
+
+T = 1.5
+dt = 0.001
+verlet_skin = 0.2
+
+interaction_type = LJ
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = topology.dat
+conf_file = init_conf.dat
+trajectory_file = trajectory.dat
+refresh_vel = 0
+#log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+conf_output_dir = confs
+print_conf_interval = 5000000
+print_energy_every = 100
+time_scale = linear
+max_io = 10

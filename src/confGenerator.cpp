@@ -15,7 +15,7 @@
  */
 
 void print_version() {
-	fprintf(stdout, "Configuration generator for oxDNA %d.%d.%d by Lorenzo Rovigatti, Flavio Romano, Petr Sulc and Benedict Snodin (c) 2013\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STAGE);
+	fprintf(stdout, "Configuration generator for oxDNA %s by Lorenzo Rovigatti, Flavio Romano, Petr Sulc and Benedict Snodin (c) 2013\n", RELEASE);
 	exit(-1);
 }
 
@@ -33,7 +33,8 @@ int main(int argc, char *argv[]) {
 		OX_DEBUG("Initializing");
 		mygenerator.init();
 
-		OX_LOG(Logger::LOG_INFO, "GIT COMMIT: %s", GIT_VERSION);
+		OX_LOG(Logger::LOG_INFO, "RELEASE: %s", RELEASE);
+		OX_LOG(Logger::LOG_INFO, "GIT COMMIT: %s", GIT_COMMIT);
 		OX_LOG(Logger::LOG_INFO, "COMPILED ON: %s", BUILD_TIME);
 
 		OX_DEBUG("Running");

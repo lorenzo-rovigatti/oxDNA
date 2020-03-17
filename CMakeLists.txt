@@ -124,10 +124,10 @@ ENDIF(MPI)
 # get the current git revision, if git is installed. Avoid warnings if it isn't
 FIND_PACKAGE(Git)
 IF(Git_FOUND)
-	EXECUTE_PROCESS(COMMAND "git rev-parse --short HEAD" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE revision OUTPUT_STRIP_TRAILING_WHITESPACE)
+	EXECUTE_PROCESS(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE revision OUTPUT_STRIP_TRAILING_WHITESPACE)
 ELSE()
 	SET(revision GIT_NOT_FOUND)
-ENDIF()
+ENDIF(Git_FOUND)
 
 # return the current date as day/month/year
 MACRO(CURRENT_DATE result)
@@ -140,11 +140,11 @@ MACRO(CURRENT_DATE result)
     ELSE(WIN32)
         MESSAGE(SEND_ERROR "date not implemented")
         SET(${result} 000000)
-    ENDIF (WIN32)
+    ENDIF(WIN32)
 ENDMACRO(CURRENT_DATE)
 
 CURRENT_DATE(today)
-ADD_DEFINITIONS(-D'GIT_VERSION="${revision}"' -D'BUILD_TIME="${today}"')
+ADD_DEFINITIONS(-D'GIT_COMMIT="${revision}"' -D'BUILD_TIME="${today}"')
 
 # take care of the 'make docs' target in the makefile
 find_package(Doxygen)
@@ -159,21 +159,21 @@ if(DOXYGEN_FOUND)
 ENDIF(DOXYGEN_FOUND)
 
 ADD_CUSTOM_TARGET(test_run
-    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA run
-    COMMAND ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/DNAnalysis analysis
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA run
+    COMMAND ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/DNAnalysis analysis
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running build integration tests" VERBATIM
 )
 
 ADD_CUSTOM_TARGET(test_quick
-    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA quick
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA quick
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running quick tests" VERBATIM
 )
 
 ADD_CUSTOM_TARGET(test_scientific
-    ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA scientific
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TEST_LR
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA scientific
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running scientific tests" VERBATIM
 )
 

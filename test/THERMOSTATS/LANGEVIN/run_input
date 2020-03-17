@@ -1,0 +1,29 @@
+backend = CPU
+backend_precision = double
+
+sim_type = MD
+steps = 10 
+
+thermostat = langevin
+diff_coeff = 1.
+
+dt = 0.001
+
+verlet_skin = 0.15
+
+T = 2.
+interaction_type = LJ
+
+conf_file = init.dat
+topology = lj1000.top
+energy_file = energy.dat
+trajectory_file = trajectory.dat
+print_energy_every = 1e3
+print_conf_interval = 1e4
+restart_step_counter = 1
+
+time_scale = linear
+refresh_vel = 1
+
+no_stdout_energy = 1
+log_file = log.dat

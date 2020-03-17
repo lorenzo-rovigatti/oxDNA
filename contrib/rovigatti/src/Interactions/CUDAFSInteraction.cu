@@ -33,7 +33,7 @@ __constant__ float MD_sigma_ss[1];
 __constant__ float MD_rcut_ss[1];
 __constant__ float MD_lambda[1];
 __constant__ float MD_A_part[1], MD_B_part[1];
-__constant__ float MD_rep_E_cut[1];
+__constant__ float MD_spherical_attraction_strength[1], MD_spherical_E_cut[1];
 __constant__ float4 MD_base_patches[2][CUDA_MAX_FS_PATCHES];
 
 __constant__ int MD_N_in_polymers[1];
@@ -120,20 +120,27 @@ __device__ void _patchy_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c
 	c_number sqr_r = CUDA_DOT(r, r);
 	if(sqr_r >= MD_sqr_rcut[0]) return;
 
-	// centre-centre
-	c_number ir2 = 1.f / sqr_r;
-	c_number lj_part = ir2 * ir2 * ir2;
-	c_number force_module = -24.f * (lj_part - 2.f * SQR(lj_part)) / sqr_r;
-	c_number rep_energy = 4.f * (SQR(lj_part) - lj_part) + MD_rep_E_cut[0];
+	c_number force_module = 0.;
+	c_number spherical_energy = 0.;
 
+	// centre-centre
 	if(sqr_r >= MD_sqr_rep_rcut[0]) {
-		force_module = rep_energy = 0.f;
+		c_number ir2 = 1.f / sqr_r;
+		c_number lj_part = ir2 * ir2 * ir2;
+		force_module = -24.f * MD_spherical_attraction_strength[0] * (lj_part - 2.f * SQR(lj_part)) / sqr_r;
+		spherical_energy = 4.f * MD_spherical_attraction_strength[0] * (SQR(lj_part) - lj_part);
+	}
+	else {
+		c_number ir2 = 1.f / sqr_r;
+		c_number lj_part = ir2 * ir2 * ir2;
+		force_module = -24.f * (lj_part - 2.f * SQR(lj_part)) / sqr_r;
+		spherical_energy = 4.f * (SQR(lj_part) - lj_part) + 1 - MD_spherical_attraction_strength[0];
 	}
 
 	F.x -= r.x * force_module;
 	F.y -= r.y * force_module;
 	F.z -= r.z * force_module;
-	F.w += rep_energy;
+	F.w += spherical_energy - MD_spherical_E_cut[0];
 
 	if(!_attraction_allowed(ptype, qtype)) return;
 
@@ -390,7 +397,7 @@ void CUDAFSInteraction::get_settings(input_file &inp) {
 
 	if(sort_every > 0) {
 		if(_analyse_bonds) throw oxDNAException("CUDAFSInteraction: FS_analyse_bonds and CUDA_sort_every > 0 are incompatible");
-		if(this->_N_def_A > 0) throw oxDNAException("CUDAFSInteraction: Defective A-particles and CUDA_sort_every > 0 are incompatible");
+		if(_N_def_A > 0) throw oxDNAException("CUDAFSInteraction: Defective A-particles and CUDA_sort_every > 0 are incompatible");
 	}
 }
 
@@ -398,15 +405,15 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 	CUDABaseInteraction::cuda_init(box_side, N);
 	FSInteraction::init();
 
-	std::ifstream topology(this->_topology_filename, std::ios::in);
+	std::ifstream topology(_topology_filename, std::ios::in);
 	if(!topology.good()) {
-		throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+		throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	}
 	char line[512];
 	topology.getline(line, 512);
 	topology.close();
-	if(sscanf(line, "%*d %*d %d\n", &this->_N_def_A) == 0) {
-		this->_N_def_A = 0;
+	if(sscanf(line, "%*d %*d %d\n", &_N_def_A) == 0) {
+		_N_def_A = 0;
 	}
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_forces, N * sizeof(c_number4)));
@@ -420,8 +427,8 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 		CUDA_SAFE_CALL(cudaHostGetDevicePointer(&_d_events, _h_events, 0));
 	}
 
-	if(this->_with_polymers) {
-		if(this->_polymer_alpha != 0.) {
+	if(_with_polymers) {
+		if(_polymer_alpha != 0.) {
 			throw oxDNAException("CUDAFSInteraction does not support FS_polymer_alpha > 0");
 		}
 
@@ -435,7 +442,7 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&_d_bonded_neighs, n_elems * sizeof(int)));
 		int *h_bonded_neighs = new int[n_elems];
 
-		for(int i = 0; i < this->_N_in_polymers; i++) {
+		for(int i = 0; i < _N_in_polymers; i++) {
 			CustomParticle *p = static_cast<CustomParticle *>(particles[i]);
 			int nb = 0;
 			for(typename std::set<CustomParticle *>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++, nb++) {
@@ -454,36 +461,37 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 	}
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_in_polymers, &this->_N_in_polymers, sizeof(int)));
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_def_A, &this->_N_def_A, sizeof(int)));
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_one_component, &this->_one_component, sizeof(bool)));
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_same_patches, &this->_same_patches, sizeof(bool)));
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_B_attraction, &this->_B_attraction, sizeof(bool)));
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patches, &this->_N_patches, sizeof(int)));
-	if(!this->_one_component) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patches, &this->_N_patches_B, sizeof(int), sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_in_polymers, &_N_in_polymers, sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_def_A, &_N_def_A, sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_one_component, &_one_component, sizeof(bool)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_same_patches, &_same_patches, sizeof(bool)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_B_attraction, &_B_attraction, sizeof(bool)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patches, &_N_patches, sizeof(int)));
+	if(!_one_component) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patches, &_N_patches_B, sizeof(int), sizeof(int)));
 
-	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, this->_sqr_rcut);
-	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, this->_sqr_rep_rcut);
-	COPY_NUMBER_TO_FLOAT(MD_sqr_patch_rcut, this->_sqr_patch_rcut);
-	COPY_NUMBER_TO_FLOAT(MD_sigma_ss, this->_sigma_ss);
-	COPY_NUMBER_TO_FLOAT(MD_rcut_ss, this->_rcut_ss);
-	COPY_NUMBER_TO_FLOAT(MD_lambda, this->_lambda);
-	COPY_NUMBER_TO_FLOAT(MD_A_part, this->_A_part);
-	COPY_NUMBER_TO_FLOAT(MD_B_part, this->_B_part);
-	COPY_NUMBER_TO_FLOAT(MD_rep_E_cut, this->_rep_E_cut);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, _sqr_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, _sqr_rep_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_patch_rcut, _sqr_patch_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_sigma_ss, _sigma_ss);
+	COPY_NUMBER_TO_FLOAT(MD_rcut_ss, _rcut_ss);
+	COPY_NUMBER_TO_FLOAT(MD_lambda, _lambda);
+	COPY_NUMBER_TO_FLOAT(MD_A_part, _A_part);
+	COPY_NUMBER_TO_FLOAT(MD_B_part, _B_part);
+	COPY_NUMBER_TO_FLOAT(MD_spherical_E_cut, _spherical_E_cut);
+	COPY_NUMBER_TO_FLOAT(MD_spherical_attraction_strength, _spherical_attraction_strength);
 
-	COPY_NUMBER_TO_FLOAT(MD_polymer_length_scale_sqr, this->_polymer_length_scale_sqr);
-	COPY_NUMBER_TO_FLOAT(MD_polymer_energy_scale, this->_polymer_energy_scale);
-	COPY_NUMBER_TO_FLOAT(MD_sqr_rfene, this->_polymer_rfene_sqr);
-	COPY_NUMBER_TO_FLOAT(MD_polymer_alpha, this->_polymer_alpha);
-	COPY_NUMBER_TO_FLOAT(MD_polymer_beta, this->_polymer_beta);
-	COPY_NUMBER_TO_FLOAT(MD_polymer_gamma, this->_polymer_gamma);
+	COPY_NUMBER_TO_FLOAT(MD_polymer_length_scale_sqr, _polymer_length_scale_sqr);
+	COPY_NUMBER_TO_FLOAT(MD_polymer_energy_scale, _polymer_energy_scale);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rfene, _polymer_rfene_sqr);
+	COPY_NUMBER_TO_FLOAT(MD_polymer_alpha, _polymer_alpha);
+	COPY_NUMBER_TO_FLOAT(MD_polymer_beta, _polymer_beta);
+	COPY_NUMBER_TO_FLOAT(MD_polymer_gamma, _polymer_gamma);
 
 	float4 base_patches[CUDA_MAX_FS_PATCHES];
 
 	// ugly...
-	int limit = (this->_one_component) ? 1 : 2;
-	int n_patches = this->_N_patches;
+	int limit = (_one_component) ? 1 : 2;
+	int n_patches = _N_patches;
 	for(int i = 0; i < limit; i++) {
 		switch(n_patches) {
 		case 2: {
@@ -528,11 +536,11 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 
 		// fourth argument is the offset
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_base_patches, base_patches, sizeof(float4)*n_patches, i*sizeof(float4)*CUDA_MAX_FS_PATCHES));
-		n_patches = this->_N_patches_B;
+		n_patches = _N_patches_B;
 	}
 
-	if(this->_N_patches > CUDA_MAX_FS_PATCHES) throw oxDNAException("The CUDAFSInteraction supports only particles with up to %d patches", CUDA_MAX_FS_PATCHES);
-	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
+	if(_N_patches > CUDA_MAX_FS_PATCHES) throw oxDNAException("The CUDAFSInteraction supports only particles with up to %d patches", CUDA_MAX_FS_PATCHES);
+	if(_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &_n_forces, sizeof(int)));
 }
 
 void CUDAFSInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
@@ -544,9 +552,9 @@ void CUDAFSInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, G
 	thrust::fill_n(t_three_body_forces, N, make_c_number4(0, 0, 0, 0));
 	thrust::fill_n(t_three_body_torques, N, make_c_number4(0, 0, 0, 0));
 
-	if(this->_with_polymers) {
+	if(_with_polymers) {
 		FS_bonded_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_forces, _d_bonded_neighs, d_box);
 		CUT_CHECK_ERROR("FS_bonded_forces error");
 	}
@@ -556,7 +564,7 @@ void CUDAFSInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, G
 		if(_v_lists->use_edge()) throw oxDNAException("CUDAFSInteraction: use_edge is unsupported");
 		else {
 			FS_forces
-				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+				<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
 			CUT_CHECK_ERROR("FS_forces simple_lists error");
 		}
@@ -565,7 +573,7 @@ void CUDAFSInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, G
 		CUDANoList *_no_lists = dynamic_cast<CUDANoList *>(lists);
 		if(_no_lists != NULL) {
 			FS_forces
-				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+				<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, d_box);
 			CUT_CHECK_ERROR("FS_forces no_lists error");
 		}

@@ -15,29 +15,10 @@
 using namespace std;
 
 FSInteraction::FSInteraction() :
-				BaseInteraction<FSInteraction>(),
-				_N_patches(-1),
-				_N_patches_B(-1),
-				_N_A(0),
-				_N_B(0),
-				_N(-1),
-				_N_def_A(0),
-				_one_component(false) {
-	this->_int_map[FS] = &FSInteraction::_patchy_two_body;
+				BaseInteraction<FSInteraction>() {
+	_int_map[PATCHY] = &FSInteraction::_patchy_two_body;
+	_int_map[SPHERICAL] = &FSInteraction::_spherical_patchy_two_body;
 
-	_lambda = 1.;
-	no_three_body = false;
-	_B_attraction = false;
-	_same_patches = false;
-	_needs_reset = true;
-	_sigma_ss = 0.4;
-
-	_with_polymers = false;
-	_N_in_polymers = 0;
-	_polymer_alpha = _polymer_beta = _polymer_gamma = 0.;
-	_polymer_rfene = 1.5;
-	_polymer_length_scale = 1.;
-	_polymer_energy_scale = 1.;
 }
 
 FSInteraction::~FSInteraction() {
@@ -55,9 +36,6 @@ void FSInteraction::get_settings(input_file &inp) {
 
 	string backend;
 	getInputString(&inp, "backend", backend, 0);
-//	if(backend == "CUDA") {
-//		no_three_body = true;
-//	}
 
 	getInputNumber(&inp, "FS_lambda", &_lambda, 0);
 	getInputNumber(&inp, "FS_sigma_ss", &_sigma_ss, 0);
@@ -71,24 +49,37 @@ void FSInteraction::get_settings(input_file &inp) {
 		getInputNumber(&inp, "T", &_polymer_energy_scale, 1);
 		getInputNumber(&inp, "FS_polymer_energy_scale", &_polymer_energy_scale, 0);
 	}
+
+	getInputNumber(&inp, "FS_spherical_attraction_strength", &_spherical_attraction_strength, 0.);
+	if(_spherical_attraction_strength > 0.) {
+		getInputNumber(&inp, "FS_spherical_rcut", &_spherical_rcut, 1.);
+	}
 }
 
 void FSInteraction::init() {
 	_rep_rcut = pow(2., 1. / 6.);
 	_sqr_rep_rcut = SQR(_rep_rcut);
-	_rep_E_cut = -4. / pow(_sqr_rep_rcut, 6) + 4. / pow(_sqr_rep_rcut, 3);
 
 	_rcut_ss = 1.5 * _sigma_ss;
 
 	_patch_rcut = _rcut_ss;
 	_sqr_patch_rcut = SQR(_patch_rcut);
 
-	this->_rcut = 1. + _patch_rcut;
-	if(_with_polymers && (_rep_rcut * _polymer_length_scale) > this->_rcut) {
-		this->_rcut = _rep_rcut * _polymer_length_scale;
+	_rcut = 1. + _patch_rcut;
+	if(_with_polymers && (_rep_rcut * _polymer_length_scale) > _rcut) {
+		_rcut = _rep_rcut * _polymer_length_scale;
 	}
 
-	this->_sqr_rcut = SQR(this->_rcut);
+	if(_spherical_attraction_strength > 0.) {
+		_sqr_spherical_rcut = SQR(_spherical_rcut);
+		_spherical_E_cut = 4. * _spherical_attraction_strength * (1. / pow(_sqr_spherical_rcut, 6) - 1. / pow(_sqr_spherical_rcut, 3));
+	}
+
+	if(_spherical_rcut > _rcut) {
+		_rcut = _spherical_rcut;
+	}
+
+	_sqr_rcut = SQR(_rcut);
 
 	if(_polymer_alpha != 0) {
 		if(_polymer_alpha < 0.) throw oxDNAException("polymer_alpha may not be negative");
@@ -107,25 +98,55 @@ void FSInteraction::init() {
 	OX_LOG(Logger::LOG_INFO, "FS parameters: lambda = %lf, A_part = %lf, B_part = %lf", _lambda, _A_part, _B_part);
 }
 
-number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm();
-	if(sqr_r > this->_sqr_rcut) return (number) 0.f;
+	if(sqr_r > _sqr_rcut) {
+		return (number) 0.f;
+	}
 
 	number energy = (number) 0.f;
 
-	// centre-centre
-	if(sqr_r < _sqr_rep_rcut) {
-		number ir2 = 1. / sqr_r;
-		number lj_part = ir2 * ir2 * ir2;
-		energy = 4 * (SQR(lj_part) - lj_part) + _rep_E_cut;
-		if(update_forces) {
-			LR_vector force = *r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
-			p->force -= force;
-			q->force += force;
+	// attraction
+	if(sqr_r < _sqr_spherical_rcut) {
+		// centre-centre
+		if(sqr_r < _sqr_rep_rcut) {
+			number ir2 = 1. / sqr_r;
+			number lj_part = ir2 * ir2 * ir2;
+			energy = 4 * (SQR(lj_part) - lj_part) + 1.0 - _spherical_attraction_strength - _spherical_E_cut;
+			if(update_forces) {
+				LR_vector force = *r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
+				p->force -= force;
+				q->force += force;
 
-			_update_stress_tensor(*r, force);
+				_update_stress_tensor(*r, force);
+			}
+		}
+		else {
+			if(_spherical_attraction_strength > 0.) {
+				number ir2 = 1. / sqr_r;
+				number lj_part = ir2 * ir2 * ir2;
+				energy = 4 * _spherical_attraction_strength * (SQR(lj_part) - lj_part) - _spherical_E_cut;
+				if(update_forces) {
+					LR_vector force = *r * (-24. * _spherical_attraction_strength * (lj_part - 2 * SQR(lj_part)) / sqr_r);
+					p->force -= force;
+					q->force += force;
+
+					_update_stress_tensor(*r, force);
+				}
+			}
 		}
 	}
+
+	return energy;
+}
+
+number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+	number sqr_r = r->norm();
+	if(sqr_r > _sqr_rcut) {
+		return (number) 0.f;
+	}
+
+	number energy = (number) 0.f;
 
 	if(_attraction_allowed(p->type, q->type)) {
 		for(uint pi = 0; pi < p->N_int_centers(); pi++) {
@@ -189,7 +210,7 @@ number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, LR_vector 
 
 	if(sqr_r > _polymer_rfene_sqr) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _polymer_rfene);
-		this->set_is_infinite(true);
+		set_is_infinite(true);
 		return 10e10;
 	}
 
@@ -211,7 +232,7 @@ number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, LR_vector 
 
 number FSInteraction::_polymer_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	number sqr_r = r->norm() / _polymer_length_scale_sqr;
-	if(sqr_r > this->_sqr_rcut) return (number) 0.;
+	if(sqr_r > _sqr_rcut) return (number) 0.;
 
 	// this number is the module of the force over r, so we don't have to divide the distance vector by its module
 	number force_mod = 0.;
@@ -323,7 +344,7 @@ number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 		LR_vector computed_r;
 		if(r == NULL) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
-				computed_r = this->_box->min_image(p->pos, q->pos);
+				computed_r = _box->min_image(p->pos, q->pos);
 				r = &computed_r;
 			}
 		}
@@ -338,12 +359,12 @@ number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
 	LR_vector computed_r(0, 0, 0);
 	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
+		computed_r = _box->min_image(p->pos, q->pos);
 		r = &computed_r;
 	}
 
 	if(_is_patchy_patchy(p->type, q->type)) {
-		return _patchy_two_body(p, q, r, update_forces);
+		return _spherical_patchy_two_body(p, q, r, update_forces) + _patchy_two_body(p, q, r, update_forces);
 	}
 	else {
 		if(p->is_bonded(q)) return (number) 0.f;
@@ -427,8 +448,8 @@ void FSInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &p
 	int N = particles.size();
 	*N_strands = N;
 
-	std::ifstream topology(this->_topology_filename, ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	std::ifstream topology(_topology_filename, ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	char line[512];
 	topology.getline(line, 512);
 	if(sscanf(line, "%*d %d %d\n", &_N_A, &_N_def_A) == 1) {

@@ -18,10 +18,7 @@ using namespace std;
 
 FSConf::FSConf() :
 				Configuration() {
-	_N = _N_A = _N_B = -1;
-	_in_box = false;
-	_also_patch = false;
-	_print_bonds = false;
+
 }
 
 FSConf::~FSConf() {
@@ -38,8 +35,8 @@ void FSConf::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputBool(&my_inp, "also_patch", &_also_patch, 0);
 	getInputBool(&my_inp, "print_bonds", &_print_bonds, 0);
 	if(_print_bonds) {
-		_bond_threshold = -0.2;
 		getInputNumber(&my_inp, "bond_threshold", &_bond_threshold, 0);
+		getInputInt(&my_inp, "bond_energy_term_id", &_energy_term_id, 0);
 	}
 
 	if(_also_patch && _print_bonds) throw oxDNAException("FSConf: the options 'also_patch' and 'print_bonds' are incompatible");
@@ -126,7 +123,13 @@ string FSConf::_configuration(llint step) {
 		vector<ParticlePair> inter_pairs = _config_info->lists->get_potential_interactions();
 
 		for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
-			number energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+			number energy;
+			if(_energy_term_id == -1) {
+				energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+			}
+			else {
+				energy = _config_info->interaction->pair_interaction_term(_energy_term_id, it->first, it->second, NULL);
+			}
 			if(energy < _bond_threshold) {
 				_bonds[it->first->index][it->second->index]++;
 				_bonds[it->second->index][it->first->index]++;
@@ -153,7 +156,9 @@ string FSConf::_configuration(llint step) {
 		}
 	}
 
-	if(fint != NULL) fint->no_three_body = old_three_body;
+	if(fint != NULL) {
+		fint->no_three_body = old_three_body;
+	}
 
 	return conf.str();
 }
