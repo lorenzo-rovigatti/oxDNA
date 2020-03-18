@@ -14,7 +14,7 @@ ManfredoInteraction::ManfredoInteraction() :
 				BaseInteraction<ManfredoInteraction>(),
 				_N_per_tetramer(29) {
 	_N_tetramers = 0;
-	this->_int_map[0] = &ManfredoInteraction::pair_interaction;
+	_int_map[0] = &ManfredoInteraction::pair_interaction;
 }
 
 ManfredoInteraction::~ManfredoInteraction() {
@@ -47,7 +47,7 @@ void ManfredoInteraction::get_settings(input_file &inp) {
 	getInputString(&inp, "lt_arm_arm", _inter_filename[ARM_ARM_INTER], 1);
 	getInputInt(&inp, "lt_arm_arm_points", &_inter_points[ARM_ARM_INTER], 1);
 
-	this->_rcut = 25.;
+	_rcut = 25.;
 }
 
 number ManfredoInteraction::_linear_interpolation(number x, number *x_data, number *fx_data, int points) {
@@ -121,7 +121,7 @@ void ManfredoInteraction::_build_lt(Mesh &mesh, int points, char *filename) {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i - 1];
 
-	this->_build_mesh(this, &ManfredoInteraction::_fx, &ManfredoInteraction::_dfx, (void *) (&data), points, lowlimit, uplimit, mesh);
+	_build_mesh(this, &ManfredoInteraction::_fx, &ManfredoInteraction::_dfx, (void *) (&data), points, lowlimit, uplimit, mesh);
 
 	delete[] data.x;
 	delete[] data.fx;
@@ -153,8 +153,8 @@ void ManfredoInteraction::allocate_particles(std::vector<BaseParticle *> &partic
 
 void ManfredoInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
 	int N = particles.size();
-	std::ifstream topology(this->_topology_filename, ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	std::ifstream topology(_topology_filename, ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	char line[512];
 	topology.getline(line, 512);
 	topology.close();
@@ -255,8 +255,12 @@ inline number ManfredoInteraction::_query_meshD(number x, Mesh &m) {
 }
 
 number ManfredoInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(p->is_bonded(q)) {
+		return pair_interaction_bonded(p, q, compute_r, update_forces);
+	}
+	else {
+		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number ManfredoInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -268,7 +272,9 @@ number ManfredoInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticl
 
 		CustomParticle *cp = (CustomParticle *) p;
 		for(typename set<CustomParticle *>::iterator it = cp->bonded_neighs.begin(); it != cp->bonded_neighs.end(); it++) {
-			if(p->index > (*it)->index) energy += pair_interaction_bonded(p, *it, r, update_forces);
+			if(p->index > (*it)->index) {
+				energy += pair_interaction_bonded(p, *it, true, update_forces);
+			}
 		}
 	}
 	else if(p->is_bonded(q)) {
@@ -278,24 +284,24 @@ number ManfredoInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticl
 		int type = _get_inter_type(p, q);
 
 		if(type == STICKY_STICKY || type == ARM_STICKY) {
-			if(update_forces) throw oxDNAException("STICKY_STICKY and ARM_STICKY should always be handled in the q == P_VIRTUAL portion\n");
+			if(update_forces) {
+				throw oxDNAException("STICKY_STICKY and ARM_STICKY should always be handled in the q == P_VIRTUAL portion\n");
+			}
 			return _DNA_inter.pair_interaction_bonded(p, q, compute_r, update_forces);
 		}
-		LR_vector computed_r(0, 0, 0);
-		if(r == NULL) {
+		if(compute_r) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
 				// no periodic boundary conditions here, by choice
-				computed_r = q->pos - p->pos;
-				r = &computed_r;
+				_computed_r = q->pos - p->pos;
 			}
 		}
 
-		number dist = r->module();
-		energy = this->_query_mesh(dist, _intra_mesh[type]);
+		number dist = _computed_r.module();
+		energy = _query_mesh(dist, _intra_mesh[type]);
 
 		if(update_forces) {
-			number force_mod = -this->_query_meshD(dist, _intra_mesh[type]);
-			LR_vector force = *r * (force_mod / dist);
+			number force_mod = -_query_meshD(dist, _intra_mesh[type]);
+			LR_vector force = _computed_r * (force_mod / dist);
 			p->force -= force;
 			q->force += force;
 		}
@@ -306,10 +312,8 @@ number ManfredoInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticl
 number ManfredoInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0.f;
 
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	int p_type = _get_p_type(p);
@@ -317,16 +321,18 @@ number ManfredoInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePart
 
 	int type = _get_inter_type(p, q);
 
-	if(type == STICKY_STICKY || type == ARM_STICKY) return _DNA_inter.pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(type == STICKY_STICKY || type == ARM_STICKY) {
+		return _DNA_inter.pair_interaction_nonbonded(p, q, false, update_forces);
+	}
 
 	// if there are no sticky ends involved and if the two particles belong to two different tetramers
 	if(!_any(p_type, q_type, STICKY) && p->strand_id != q->strand_id) {
-		number dist = r->module();
-		energy = this->_query_mesh(dist, _inter_mesh[type]);
+		number dist = _computed_r.module();
+		energy = _query_mesh(dist, _inter_mesh[type]);
 
 		if(update_forces) {
-			number force_mod = -this->_query_meshD(dist, _inter_mesh[type]);
-			LR_vector force = *r * (force_mod / dist);
+			number force_mod = -_query_meshD(dist, _inter_mesh[type]);
+			LR_vector force = _computed_r * (force_mod / dist);
 			p->force -= force;
 			q->force += force;
 		}
@@ -343,7 +349,7 @@ void ManfredoInteraction::generate_random_configuration(std::vector<BaseParticle
 	number sqr_limit = SQR(20.);
 	LR_vector arm_poss[4] = { LR_vector(-3.66451, -2.22875, -7.98832), LR_vector(3.83406, 7.82627, 1.45587), LR_vector(-3.6474, 2.70588, 7.63758), LR_vector(3.41029, -7.53441, -3.37317) };
 
-	LR_vector box_sides = this->_box->box_sides();
+	LR_vector box_sides = _box->box_sides();
 	std::vector<LR_vector> tetra_centres;
 	int p_ind = 0;
 	for(int nt = 0; nt < _N_tetramers; nt++) {
@@ -357,7 +363,7 @@ void ManfredoInteraction::generate_random_configuration(std::vector<BaseParticle
 			centre->pos.z *= box_sides.z;
 			typename std::vector<LR_vector>::iterator it;
 			for(it = tetra_centres.begin(); it != tetra_centres.end() && found; it++) {
-				number sqr_dist = this->_box->sqr_min_image_distance(*it, centre->pos);
+				number sqr_dist = _box->sqr_min_image_distance(*it, centre->pos);
 				if(sqr_dist < sqr_limit) found = false;
 			}
 		}
@@ -404,7 +410,7 @@ void ManfredoInteraction::generate_random_configuration(std::vector<BaseParticle
 CustomArmParticle::CustomArmParticle() :
 				CustomParticle(),
 				_principal_DNA_axis(LR_vector(1, 0, 0)) {
-	this->int_centers.resize(3);
+	int_centers.resize(3);
 }
 ;
 
@@ -412,7 +418,7 @@ CustomArmParticle::CustomArmParticle() :
 // not a pretty way of doing it, but it works. Sorry.
 
 void CustomArmParticle::set_positions() {
-	this->int_centers[DNANucleotide::BACK] = this->orientation * _principal_DNA_axis * POS_BACK;
-	this->int_centers[DNANucleotide::STACK] = this->int_centers[DNANucleotide::BACK] * (POS_STACK / POS_BACK);
-	this->int_centers[DNANucleotide::BASE] = this->int_centers[DNANucleotide::STACK] * (POS_BASE / POS_STACK);
+	int_centers[DNANucleotide::BACK] = orientation * _principal_DNA_axis * POS_BACK;
+	int_centers[DNANucleotide::STACK] = int_centers[DNANucleotide::BACK] * (POS_STACK / POS_BACK);
+	int_centers[DNANucleotide::BASE] = int_centers[DNANucleotide::STACK] * (POS_BASE / POS_STACK);
 }

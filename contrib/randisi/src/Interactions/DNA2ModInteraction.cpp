@@ -277,12 +277,12 @@ number DNA2ModInteraction<number>::_stacking(BaseParticle<number> *p, BasePartic
 	// We need to do this to implement different major-minor groove widths because rback is
 	// used as a reference point for things that have nothing to do with the actual backbone
 	// position (in this case, the stacking interaction).
-	LR_vector<number> rbackref = *r + b1 * POS_BACK - a1 * POS_BACK;
+	LR_vector<number> rbackref = _computed_r + b1 * POS_BACK - a1 * POS_BACK;
 	if (q_in_group_1) rbackref = rotateVectorAroundVersor(rbackref, q->orientationT.v1, _mod_stacking_r_roll_1);
 	else if (q_in_group_2) rbackref = rotateVectorAroundVersor(rbackref, q->orientationT.v1, _mod_stacking_r_roll_2);
 	number rbackrefmod = rbackref.module();
 
-	LR_vector<number> rstack = *r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
+	LR_vector<number> rstack = _computed_r + q->int_centers[DNANucleotide<number>::STACK] - p->int_centers[DNANucleotide<number>::STACK];
 	if (q_in_group_1) rstack = rotateVectorAroundVersor(rstack, q->orientationT.v1, _mod_stacking_r_roll_1);
 	else if (q_in_group_2) rstack = rotateVectorAroundVersor(rstack, q->orientationT.v1, _mod_stacking_r_roll_2);
 	number rstackmod = rstack.module();
@@ -444,7 +444,7 @@ number DNA2ModInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, Ba
 	bool is_pair = (q->btype + p->btype == 3);
 	number hb_multi = get_hb_multiplier(p,q);
 
-	LR_vector<number> rhydro = *r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BASE];
+	LR_vector<number> rhydro = _computed_r + q->int_centers[DNANucleotide<number>::BASE] - p->int_centers[DNANucleotide<number>::BASE];
 	number rhydromod = rhydro.module();
 	number energy = (number) 0.f;
 	if (is_pair && HYDR_RCLOW < rhydromod && rhydromod < HYDR_RCHIGH) {

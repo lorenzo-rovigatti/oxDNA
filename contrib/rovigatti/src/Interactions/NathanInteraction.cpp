@@ -8,7 +8,7 @@
 #include "NathanInteraction.h"
 
 NathanInteraction::NathanInteraction() {
-	this->_int_map[PATCHY_PATCHY] = &NathanInteraction::_patchy_interaction;
+	_int_map[PATCHY_PATCHY] = &NathanInteraction::_patchy_interaction;
 
 	_rep_E_cut = 0.;
 	_rep_power = 200;
@@ -29,8 +29,8 @@ NathanInteraction::~NathanInteraction() {
 int NathanInteraction::get_N_from_topology() {
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	topology.open(_topology_filename, std::ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	topology.getline(line, 512);
 	topology.close();
 	sscanf(line, "%d %d %d\n", &_N_patchy, &_N_chains, &_N_per_chain);
@@ -99,11 +99,11 @@ void NathanInteraction::init() {
 	_sqr_pol_rcut = SQR(_pol_rcut);
 
 	_patch_cutoff = _patch_alpha * 1.5;
-	this->_rcut = 1. + _patch_cutoff;
-	if(_pol_rcut * _pol_patchy_sigma > this->_rcut) this->_rcut = _pol_rcut * _pol_patchy_sigma;
-	this->_sqr_rcut = SQR(this->_rcut);
+	_rcut = 1. + _patch_cutoff;
+	if(_pol_rcut * _pol_patchy_sigma > _rcut) _rcut = _pol_rcut * _pol_patchy_sigma;
+	_sqr_rcut = SQR(_rcut);
 
-	_rep_E_cut = pow((number) this->_rcut, -_rep_power);
+	_rep_E_cut = pow((number) _rcut, -_rep_power);
 
 	_patch_pow_sigma = pow(_patch_cosmax, _patch_power);
 	_patch_pow_alpha = pow(_patch_alpha, (number) 10.);
@@ -131,12 +131,16 @@ void NathanInteraction::check_input_sanity(std::vector<BaseParticle *> &particle
 }
 
 number NathanInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(p->is_bonded(q)) {
+		return pair_interaction_bonded(p, q, compute_r, update_forces);
+	}
+	else {
+		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number NathanInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 
 	if(sqr_r > _sqr_rfene) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)\n", p->index, q->index, sqrt(sqr_r), sqrt(_sqr_rfene));
@@ -149,8 +153,8 @@ number NathanInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
 		number force_mod = -30. * _sqr_rfene / (_sqr_rfene - sqr_r) / _sqr_pol_sigma;
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	return energy;
@@ -161,7 +165,7 @@ number NathanInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool comp
 	assert(type != PATCHY_PATCHY);
 	number sqr_sigma = (type == POLYMER_POLYMER) ? _sqr_pol_sigma : _sqr_pol_patchy_sigma;
 
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	if(sqr_r > _sqr_pol_rcut * sqr_sigma) return (number) 0.;
 
 	number part = pow(sqr_sigma / sqr_r, _pol_n / 2.);
@@ -170,8 +174,8 @@ number NathanInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool comp
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector for its module
 		number force_mod = 4. * _pol_n * part * (2. * part - 1.) / sqr_r;
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	return energy;
@@ -185,34 +189,34 @@ number NathanInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle 
 		q = p->n3;
 	}
 
-	LR_vector computed_r;
-	if(r == NULL) {
-		computed_r = q->pos - p->pos;
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = q->pos - p->pos;
 	}
 
-	number energy = _fene(p, q, compute_r, update_forces);
-	energy += _nonbonded(p, q, compute_r, update_forces);
+	number energy = _fene(p, q, false, update_forces);
+	energy += _nonbonded(p, q, false, update_forces);
 
 	return (number) energy;
 }
 
 number NathanInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	int type = p->type + q->type;
-	if(type == PATCHY_PATCHY) return _patchy_interaction(p, q, compute_r, update_forces);
-	else return _nonbonded(p, q, compute_r, update_forces);
+	if(type == PATCHY_PATCHY) {
+		return _patchy_interaction(p, q, false, update_forces);
+	}
+	else {
+		return _nonbonded(p, q, false, update_forces);
+	}
 }
 
 void NathanInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	int N_per_side = ceil(pow(_N_per_chain - 0.001, 1. / 3.));
 	std::vector<LR_vector> lattice_poss;
-	LR_vector box_sides = this->_box->box_sides();
+	LR_vector box_sides = _box->box_sides();
 
 	number x_dir = 1.;
 	number y_dir = 1.;

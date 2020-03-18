@@ -34,7 +34,7 @@ void LevyDelta::init(ConfigInfo &config_info) {
 	_inter = dynamic_cast<LevyInteraction *>(config_info.interaction);
 	if(_inter == NULL) throw oxDNAException("LevyDelta can be used with LevyInteraction simulations only");
 
-	for(auto p: config_info.particles) {
+	for(auto p: config_info.particles()) {
 		if(p->btype == _inter->TETRA_CENTRE || p->btype == _inter->TETRA_PATCHY) _tetramer.push_back(p);
 		else _dimer.push_back(p);
 	}

@@ -118,13 +118,11 @@ number CPMixtureInteraction::pair_interaction_bonded(BaseParticle *p, BasePartic
 }
 
 number CPMixtureInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = this->_box->min_image(p->pos, q->pos);
 	}
 
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	number energy = 0.;
 
 	int type = p->type + q->type;
@@ -156,7 +154,7 @@ number CPMixtureInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePar
 		}
 
 		if(update_forces) {
-			LR_vector tot_force = computed_r * force_mod;
+			LR_vector tot_force = _computed_r * force_mod;
 			p->force -= tot_force;
 			q->force += tot_force;
 		}

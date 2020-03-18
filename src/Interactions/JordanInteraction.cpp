@@ -74,7 +74,7 @@ number JordanInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _jordan_interaction(p, q, compute_r, update_forces);
+	return _jordan_interaction(p, q, false, update_forces);
 }
 
 number JordanInteraction::_jordan_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {

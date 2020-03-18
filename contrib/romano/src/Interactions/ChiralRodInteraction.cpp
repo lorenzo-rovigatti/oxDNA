@@ -107,7 +107,7 @@ template<typename number>
 number ChiralRodInteraction<number>::_chiral_pot(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
 
-	number rnorm = (*r).norm();
+	number rnorm = _computed_r.norm();
 	if (rnorm > this->_sqr_rcut) return (number) 0.f;
 
 	LR_vector<number> my_r;

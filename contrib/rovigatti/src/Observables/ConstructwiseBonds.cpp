@@ -32,7 +32,7 @@ void ConstructwiseBonds::init(ConfigInfo &config_info) {
 
 	// we first count the number of constructs in the system so that we can
 	// initialize the vector storing their centres of mass
-	for(auto p: config_info.particles) {
+	for(auto p: config_info.particles()) {
 		int p_construct_id = p->strand_id / _construct_strand_size;
 		if(p_construct_id >= _construct_number) {
 			_construct_number = p_construct_id + 1;

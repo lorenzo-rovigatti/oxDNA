@@ -130,12 +130,12 @@ number DirkInteractionBias<number>::pair_interaction_nonbonded(BaseParticle<numb
 template<typename number>
 number DirkInteractionBias<number>::_hard(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 
-	number rnorm = (*r).norm(); 
+	number rnorm = _computed_r.norm(); 
 	
 	// overlap between DHS
 	LR_vector<number> pdhs = p->orientation.v3 * _length / 2.;
 	LR_vector<number> qdhs = q->orientation.v3 * _length / 2.;
-	LR_vector<number> drdhs = *r + qdhs - pdhs;
+	LR_vector<number> drdhs = _computed_r + qdhs - pdhs;
 	number drdhsnorm = drdhs.norm();
 
 	if (rnorm < _hard_sqr_rcut) {
@@ -158,7 +158,7 @@ number DirkInteractionBias<number>::_hard(BaseParticle<number> *p, BaseParticle<
 		number compar = _DHS_radius * _DHS_radius + diag_cyl * diag_cyl + 2. * _DHS_radius * diag_cyl;
 		
 		// dhsq - cylinderp
-		LR_vector<number> drcyl = *r + qdhs;
+		LR_vector<number> drcyl = _computed_r + qdhs;
 		if (drcyl.norm () < compar) {
 			if (InteractionUtils::cylinder_sphere_overlap (drcyl, p->orientation.v3, _length, _DHS_radius)) {
 				this->set_is_infinite(true);
@@ -167,7 +167,7 @@ number DirkInteractionBias<number>::_hard(BaseParticle<number> *p, BaseParticle<
 		}
 	
 		// dhsp - cylinderq
-		drcyl = -(*r - pdhs); 
+		drcyl = -(_computed_r - pdhs); 
 		if (drcyl.norm () < compar) {
 			if (InteractionUtils::cylinder_sphere_overlap (drcyl, q->orientation.v3, _length, _DHS_radius)) {
 				this->set_is_infinite(true);
@@ -183,7 +183,7 @@ number DirkInteractionBias<number>::_dipolar (BaseParticle<number> *p, BaseParti
 	
 	LR_vector<number> pdhs = p->orientation.v3 * _length / 2.;
 	LR_vector<number> qdhs = q->orientation.v3 * _length / 2.;
-	LR_vector<number> drdhs = *r + qdhs - pdhs;
+	LR_vector<number> drdhs = _computed_r + qdhs - pdhs;
 	number drdhsnorm = drdhs.norm();
 	
 	if (drdhsnorm > _DHS_sqr_rcut) return (number) 0.f;
@@ -201,7 +201,7 @@ number DirkInteractionBias<number>::_chain (BaseParticle<number> *p, BaseParticl
 	if (p->n3 == q || p->n5 == q) {
 		LR_vector<number> pdhs = p->orientation.v3 * _length / 2.;
 		LR_vector<number> qdhs = q->orientation.v3 * _length / 2.;
-		LR_vector<number> drdhs = *r + qdhs - pdhs;
+		LR_vector<number> drdhs = _computed_r + qdhs - pdhs;
 		number dr = sqrt(drdhs.norm());
 		energy += _chain_stiff * (dr *dr - 2. * dr * _chain_r0 + _chain_r0 * _chain_r0) / (number) 2.;
 	}

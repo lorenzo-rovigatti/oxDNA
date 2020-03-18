@@ -107,10 +107,12 @@ number KFInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	if(_is_continuous)
-		return _continuous_KF_interaction(p, q, compute_r, update_forces);
-	else
-		return _KF_interaction(p, q, compute_r, update_forces);
+	if(_is_continuous) {
+		return _continuous_KF_interaction(p, q, false, update_forces);
+	}
+	else {
+		return _KF_interaction(p, q, false, update_forces);
+	}
 }
 
 void KFInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {

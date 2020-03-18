@@ -204,41 +204,6 @@ number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *
 	return energy;
 }
 
-//
-//number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-//	number sqr_r = r->norm();
-//	int type = p->type + q->type;
-//	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
-//
-//	number energy = (number) 0.f;
-//
-//	number part = pow(_sqr_sigma[type]/sqr_r, _rep_power*0.5);
-//	energy = part - _E_cut[type];
-//
-//	if(update_forces) {
-//		LR_vector force = *r*(_rep_power*part/sqr_r);
-//		p->force -= force;
-//		q->force += force;
-//	}
-//
-//	// here everything is done as in Allen's paper
-//	number rmod = sqrt(sqr_r);
-//	LR_vector r_versor = *r/(-rmod);
-//
-//	number sqr_surf_dist = SQR(rmod - 1.);
-//	number r8b10 = SQR(SQR(sqr_surf_dist)) / _patch_pow_delta;
-//	number exp_part = -1.001*exp(-(number)0.5*r8b10*sqr_surf_dist);
-//	energy += exp_part;
-//
-//	if(update_forces) {
-//		LR_vector tmp_force = r_versor*(5.*(rmod - 1.)*exp_part*r8b10);
-//		p->force += tmp_force;
-//		q->force -= tmp_force;
-//	}
-//
-//	return energy;
-//}
-
 number KFInteraction::_KF_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(update_forces)
 		throw oxDNAException("KFInteraction: forces are not defined in non-continuous KF interactions");

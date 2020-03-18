@@ -47,8 +47,6 @@ void RNAInteraction::get_settings(input_file &inp) {
 
 	int avg_seq;
 
-	//getInputString(&inp, "topology", _topology_filename, 1);
-
 	if(getInputInt(&inp, "use_average_seq", &avg_seq, 0) == KEY_FOUND) {
 		_average = (bool) avg_seq;
 		if(!_average) {
@@ -80,22 +78,17 @@ void RNAInteraction::get_settings(input_file &inp) {
 	}
 
 	RNANucleotide::set_model(model);
-
 }
 
 void RNAInteraction::init() {
 	// we choose rcut as the max of the range interaction of excluded
 	// volume between backbones and hydrogen bonding
-	//number rcutback = 2 * fabs(model->RNA_POS_BACK) + model->RNA_EXCL_RC1;
-	//_T = T;
-
 	number rcutback = 2 * sqrt(SQR(model->RNA_POS_BACK_a1) + SQR(model->RNA_POS_BACK_a2) + SQR(model->RNA_POS_BACK_a3)) + model->RNA_EXCL_RC1;
 	number rcutbaseA = 2 * fabs(model->RNA_POS_BASE) + model->RNA_HYDR_RCHIGH;
 	number rcutbaseB = 2 * fabs(model->RNA_POS_BASE) + model->RNA_CRST_RCHIGH;
 	number rcutbase = fmax(rcutbaseA, rcutbaseB);
 	_rcut = fmax(rcutback, rcutbase);
 	_sqr_rcut = SQR(_rcut);
-	//printf("Rcut is %g \n",_rcut);
 
 	F1_A[0] = model->RNA_HYDR_A;
 	F1_A[1] = model->RNA_STCK_A;
@@ -341,15 +334,11 @@ void RNAInteraction::init() {
 			}
 		}
 		// cross-stacking
-		//getInputFloat(&seq_file, "ST_T_DEP", &stck_fact_eps, 1);
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < 4; j++) {
 				sprintf(key, "CROSS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
 				getInputFloat(&seq_file, key, &tmp_value, 1);
 				_cross_seq_dep_K[i][j] = tmp_value / model->RNA_CRST_K;
-				//printf(" Loaded for CROSS %d %d %f \n",i,j, tmp_value / model->RNA_CRST_K);
-				//F1_EPS[RNA_STCK_F1][i][j] =  tmp_value * ( 1.0 + _T*stck_fact_eps  ); //F1_EPS[RNA_STCK_F1][i][j] = tmp_value + stck_fact_eps * T;
-				//F1_SHIFT[RNA_STCK_F1][i][j] = F1_EPS[RNA_STCK_F1][i][j] * SQR(1 - exp(-(model->RNA_STCK_RC - model->RNA_STCK_R0) * model->RNA_STCK_A));
 			}
 		}
 
@@ -430,8 +419,7 @@ number RNAInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	else {
 		energy = -model->RNA_FENE_EPS * 0.5 * log(1 - SQR(rbackr0) / model->RNA_FENE_DELTA2);
 
-		//printf("Calling FENE for %d %d returning %f with EPS=%f, R0 = %f, rbackmod = %f, qposx=%f %f %f, ppos.x= %f %f %f, rback= %f %f %f, rmod=%f r= %f %f %f\n",p->index,q->index,energy,model->RNA_FENE_EPS,model->RNA_FENE_R0,rbackmod,q->int_centers[RNANucleotide::BACK].x,q->int_centers[RNANucleotide::BACK].y,q->int_centers[RNANucleotide::BACK].z, p->int_centers[RNANucleotide::BACK].x, p->int_centers[RNANucleotide::BACK].y, p->int_centers[RNANucleotide::BACK].z,rback.x,rback.y,rback.z,(*r).module(),(*r).x,(*r).y,(*r).z);
-		// we check wheter we ended up OUTSIDE of the FENE range
+		// we check whether we ended up OUTSIDE of the FENE range
 		if(fabs(rbackr0) > model->RNA_FENE_DELTA - DBL_EPSILON)
 			return (number) (1.e12);
 
@@ -511,14 +499,11 @@ number RNAInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_
 	}
 
 	// STACKING
-	//LR_vector &a1 = p->orientationT.v1;
 	LR_vector &a2 = p->orientationT.v2;
 	LR_vector &a3 = p->orientationT.v3;
-	//LR_vector &b1 = q->orientationT.v1;
 	LR_vector &b2 = q->orientationT.v2;
 	LR_vector &b3 = q->orientationT.v3;
 
-	//LR_vector rstack = *r + q->int_centers[RNANucleotide::STACK] - p->int_centers[RNANucleotide::STACK];
 	LR_vector rstack = _computed_r + q->int_centers[RNANucleotide::STACK_5] - p->int_centers[RNANucleotide::STACK_3];
 	number rstackmod = rstack.module();
 	LR_vector rstackdir = rstack / rstackmod;
@@ -546,8 +531,6 @@ number RNAInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_
 	number f4t5 = _f4(PI - t5, RNA_STCK_F4_THETA5);
 	number f4t6 = _f4(t6, RNA_STCK_F4_THETA6);
 
-	//extension
-
 	number tB1 = LRACOS(costB1); // both with minus
 	number tB2 = LRACOS(costB2);
 	number f4tB1 = _f4(tB1, RNA_STCK_F4_THETAB1);
@@ -556,7 +539,6 @@ number RNAInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_
 	number f5phi1 = _f5(cosphi1, RNA_STCK_F5_PHI1);
 	number f5phi2 = _f5(cosphi2, RNA_STCK_F5_PHI2);
 
-	//number energy = f1 * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2;
 	number energy = f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2;
 
 	//forces not updated !!!
@@ -567,11 +549,7 @@ number RNAInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_
 		// these are the derivatives of f4 with respect to t4, t5 and t6 over sin(t*). If t* is too small
 		// we have numerical instabilities so we use the fact that sin(x) = x for x -> 0
 		number f1D = _f1D(rstackmod, RNA_STCK_F1, q->type, p->type);
-		//number f4t4Dsin = -_query_meshD (cost4, _mesh_f4[RNA_STCK_F4_THETA4]);
-		//number f4t5Dsin = -_query_meshD (-cost5, _mesh_f4[RNA_STCK_F4_THETA5]);
-		//number f4t6Dsin = -_query_meshD (cost6, _mesh_f4[RNA_STCK_F4_THETA6]);
 
-		//number f4t4Dsin = -_f4Dsin (t4, RNA_STCK_F4_THETA4);
 		number f4t5Dsin = _f4Dsin(PI - t5, RNA_STCK_F4_THETA5);
 		number f4t6Dsin = _f4Dsin(t6, RNA_STCK_F4_THETA6);
 		number f4tB1Dsin = _f4Dsin(tB1, RNA_STCK_F4_THETAB1);
@@ -599,66 +577,16 @@ number RNAInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_
 
 		// COS PHI 1
 		// here particle p is referred to using the a while particle q is referred with the b
-		/*
-		 number gamma = model->RNA_POS_STACK - model->RNA_POS_BACK;
-		 number rbackmodcub = rbackmod * rbackmod * rbackmod;
 
-		 number ra2 = rstackdir*a2;
-		 number ra1 = rstackdir*a1;
-		 number rb1 = rstackdir*b1;
-		 number a2b1 = a2*b1;
-
-		 number parentesi = rstackmod*ra2 - a2b1*gamma;
-
-		 number dcosphi1dr    = (SQR(rstackmod)*ra2 - ra2*SQR(rbackmod) - rstackmod*(a2b1 + ra2*(-ra1 + rb1))*gamma + a2b1*(-ra1 + rb1)*SQR(gamma))/ rbackmodcub;
-		 number dcosphi1dra1  =  rstackmod * gamma * parentesi / rbackmodcub;
-		 number dcosphi1dra2  = -rstackmod / rbackmod;
-		 number dcosphi1drb1  = -rstackmod * gamma * parentesi / rbackmodcub;
-		 number dcosphi1da1b1 = -SQR(gamma) * parentesi / rbackmodcub;
-		 number dcosphi1da2b1 =  gamma / rbackmod;
-
-		 // this force part has a minus because of the definition of cos(phi1)
-		 // which is not consistent with the derivatives above (i.e. all the
-		 // derivatives should have a minus sign in front and the force below shouldn't)
-		 */
+		// this force part has a minus because of the definition of cos(phi1)
+		// which is not consistent with the derivatives above (i.e. all the
+		// derivatives should have a minus sign in front and the force below shouldn't)
 		number force_part_phi1 = -f1 * f4t5 * f4t6 * f5phi1D * f5phi2 * f4tB1 * f4tB2;
 		posbackforce += (a2 - rback * (cosphi1 / rbackmod)) * (force_part_phi1 / rbackmod);
 
-		/*
-		 force += -(rstackdir * dcosphi1dr +
-		 ((a2 - rstackdir * ra2) * dcosphi1dra2 +
-		 (a1 - rstackdir * ra1) * dcosphi1dra1 +
-		 (b1 - rstackdir * rb1) * dcosphi1drb1) / rstackmod) * force_part_phi1;
-		 */
-
-		// COS PHI 2
-		// here particle p -> b, particle q -> a
-		/*
-		 ra2 = rstackdir*b2;
-		 ra1 = rstackdir*b1;
-		 rb1 = rstackdir*a1;
-		 a2b1 = b2*a1;
-
-		 parentesi = rstackmod*ra2 + a2b1*gamma;
-
-		 number dcosphi2dr    =  (parentesi * (rstackmod + (rb1 - ra1)*gamma) - ra2*SQR(rbackmod)) / rbackmodcub;
-		 number dcosphi2dra1  = -rstackmod*gamma*(rstackmod*ra2 + a2b1*gamma) / rbackmodcub;
-		 number dcosphi2dra2  = -rstackmod / rbackmod;
-		 number dcosphi2drb1  =  rstackmod*gamma* parentesi / rbackmodcub;
-		 number dcosphi2da1b1 = -SQR(gamma)* parentesi / rbackmodcub;
-		 number dcosphi2da2b1 = -gamma / rbackmod;
-
-		 // this force part has a minus because of the definition of cos(phi2) which is not consistent with the derivatives
-		 // above (i.e. all the derivatives should have a minus sign in front and the force below shouldn't)
-		 */
 		number force_part_phi2 = -f1 * f4t5 * f4t6 * f5phi1 * f5phi2D;
 		posbackforce += (b2 - rback * (cosphi2 / rbackmod)) * (force_part_phi2 / rbackmod);
 
-		/*		force += -force_part_phi2 * (rstackdir * dcosphi2dr +
-		 ((b2 - rstackdir * ra2) * dcosphi2dra2 +
-		 (b1 - rstackdir * ra1) * dcosphi2dra1 +
-		 (a1 - rstackdir * rb1) * dcosphi2drb1) / rstackmod);
-		 */
 		// Add the contribution from all the forces to the stored particles' forces
 		p->force -= force;
 		q->force += force;
@@ -670,13 +598,6 @@ number RNAInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_
 
 		torquep -= p->int_centers[RNANucleotide::BACK].cross(posbackforce);
 		torqueq += q->int_centers[RNANucleotide::BACK].cross(posbackforce);
-
-		// handle the part on theta4
-		//LR_vector t4dir = b3.cross(a3);
-		//number torquemod = f1 * f4t4Dsin * f4t5 * f4t6 * f5phi1 * f5phi2;
-
-		//torquep -= t4dir * torquemod;
-		//torqueq += t4dir * torquemod;
 
 		// handle the part on theta5
 		LR_vector t5dir = rstackdir.cross(a3);
@@ -948,10 +869,7 @@ number RNAInteraction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool co
 		if(!_average) {
 			prefactor = _cross_seq_dep_K[p->type][q->type];
 			f2 *= prefactor;
-
 		}
-
-		//energy = f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
 		energy = f2 * f4t1 * f4t2 * f4t3 * f4t7 * f4t8;
 
@@ -962,14 +880,6 @@ number RNAInteraction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool co
 			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
-//			number f2D      =  _f2D(rcstackmod, RNA_CRST_F2);
-//			number f4t1Dsin =  _query_meshD (cost1, _mesh_f4[RNA_CRST_F4_THETA1]);
-//			number f4t2Dsin =  _query_meshD (cost2, _mesh_f4[RNA_CRST_F4_THETA2]);
-//			number f4t3Dsin = -_query_meshD (cost3, _mesh_f4[RNA_CRST_F4_THETA3]);
-//			number f4t4Dsin = -_query_meshD (cost4, _mesh_f4[RNA_CRST_F4_THETA4]) + _query_meshD (-cost4, _mesh_f4[RNA_CRST_F4_THETA4]);
-//			number f4t7Dsin =  _query_meshD (cost7, _mesh_f4[RNA_CRST_F4_THETA7]) - _query_meshD (-cost7, _mesh_f4[RNA_CRST_F4_THETA7]);
-//			number f4t8Dsin = -_query_meshD (cost8, _mesh_f4[RNA_CRST_F4_THETA8]) + _query_meshD (-cost8, _mesh_f4[RNA_CRST_F4_THETA8]);
-
 			number f4t4 = 1;
 			number f2D = prefactor * _f2D(rcstackmod, RNA_CRST_F2);
 			number f4t1Dsin = -_f4Dsin(t1, RNA_CRST_F4_THETA1);
@@ -1059,14 +969,11 @@ number RNAInteraction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool 
 
 		// particle axes according to Allen's paper
 		LR_vector &a1 = p->orientationT.v1;
-		//LR_vector &a2 = p->orientationT.v2;
 		LR_vector &a3 = p->orientationT.v3;
 		LR_vector &b1 = q->orientationT.v1;
 		LR_vector &b3 = q->orientationT.v3;
 
 		// angles involved in the CXST interaction
-		//number cost1 = -a1 * b1;
-		//number cost4 =  a3 * b3;
 		number cost5 = a3 * rstackdir;
 		number cost6 = -b3 * rstackdir;
 
@@ -1083,35 +990,16 @@ number RNAInteraction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool 
 		// functions called at their relevant arguments
 		number f2 = _f2(rstackmod, RNA_CXST_F2);
 
-		/*
-		 for(double x = 0.1; x < 0.8; x += 0.005)
-		 {
-		 printf("%f %f \n",x,_f2(x,RNA_CXST_F2));
-		 }
-		 exit(8);
-		 */
 		number f4t1 = _f4(t1, RNA_CXST_F4_THETA1) + _f4(2 * PI - t1, RNA_CXST_F4_THETA1);
 		number f4t4 = _f4(t4, RNA_CXST_F4_THETA4);
 		number f4t5 = _f4(t5, RNA_CXST_F4_THETA5) + _f4(PI - t5, RNA_CXST_F4_THETA5);
 		number f4t6 = _f4(t6, RNA_CXST_F4_THETA6) + _f4(PI - t6, RNA_CXST_F4_THETA6);
 
-		/*
-		 number f4t1 = _query_mesh (cost1, _mesh_f4[RNA_CXST_F4_THETA1]);
-		 number f4t4 = _query_mesh (cost4, _mesh_f4[RNA_CXST_F4_THETA4]);
-		 number f4t5 = _query_mesh (cost5, _mesh_f4[RNA_CXST_F4_THETA5]) + _query_mesh (-cost5, _mesh_f4[RNA_CXST_F4_THETA5]);
-		 number f4t6 = _query_mesh (cost6, _mesh_f4[RNA_CXST_F4_THETA6]) + _query_mesh (-cost6, _mesh_f4[RNA_CXST_F4_THETA6]);
-		 */
 		number f5cosphi3 = _f5(cosphi3, RNA_CXST_F5_PHI3);
 		number f5cosphi4 = _f5(cosphi4, RNA_CXST_F5_PHI4);
 
 		//energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3);
 		energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3 * f5cosphi4;
-
-//		if(energy != 0)
-//		{
-//				printf("Called CX for %d %d and returned %g, with %g %g %g %g %g %g \n",p->index,q->index,energy,f4t1,f4t4 ,f4t5,f4t6,f5cosphi3,f5cosphi4);
-//
-//		}
 
 		// makes sense since the above f? can return exacly 0.
 		if(update_forces && energy != 0.) {
@@ -1127,12 +1015,6 @@ number RNAInteraction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool 
 			number f4t5Dsin = _f4Dsin(t5, RNA_CXST_F4_THETA5) - _f4Dsin(PI - t5, RNA_CXST_F4_THETA5);
 			number f4t6Dsin = -_f4Dsin(t6, RNA_CXST_F4_THETA6) + _f4Dsin(PI - t6, RNA_CXST_F4_THETA6);
 
-			/*
-			 number f4t1Dsin = _query_meshD (cost1, _mesh_f4[RNA_CXST_F4_THETA1]);
-			 number f4t4Dsin = -_query_meshD (cost4, _mesh_f4[RNA_CXST_F4_THETA4]);
-			 number f4t5Dsin = -_query_meshD (cost5, _mesh_f4[RNA_CXST_F4_THETA5]) + _query_meshD (-cost5, _mesh_f4[RNA_CXST_F4_THETA5]);
-			 number f4t6Dsin =  _query_meshD (cost6, _mesh_f4[RNA_CXST_F4_THETA6]) - _query_meshD (-cost6, _mesh_f4[RNA_CXST_F4_THETA6]);
-			 */
 			number f5Dcosphi3 = _f5D(cosphi3, RNA_CXST_F5_PHI3);
 			number f5Dcosphi4 = _f5D(cosphi4, RNA_CXST_F5_PHI4);
 
@@ -1222,105 +1104,6 @@ number RNAInteraction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool 
 			force += myforce;
 			torquep += mytorque1;
 			torqueq += mytorque2;
-			/*
-			 //cosphi3
-			 number force_c = f2 * f4t1 * f4t4 * f4t5 * f4t6  * f5cosphi4 * f5Dcosphi3;
-			 LR_vector rba1 =  rbackbonedir.cross(a1);
-			 LR_vector a1rs =  a1.cross(rstackdir);
-			 number rb_dot_a1rs = rbackbonedir * a1rs;
-			 number rs_dot_rba1 = rstackdir * rba1;
-
-			 LR_vector forcestack =- (rba1  - rstackdir * rs_dot_rba1) *  (force_c / rstackmod);
-			 LR_vector forceback = -(a1rs - rbackbonedir * rb_dot_a1rs) * (force_c   / rbackmod);
-			 force +=  forcestack;
-			 force +=  forceback;
-
-			 // for p
-			 LR_vector torque1  =  - p->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
-			 torque1 -=  p->int_centers[RNANucleotide::BACK].cross(forceback);
-
-			 // for q
-			 LR_vector torque2  =   q->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
-			 torque2 +=  q->int_centers[RNANucleotide::BACK].cross(forceback);
-
-			 torque1 -=  force_c  * a1.cross(rstackdir.cross(rbackbonedir)); //rstackdir * (rbackbonedir * a1) - rbackbonedir * (rstackdir * a1);
-
-			 torquep += torque1;
-			 torqueq += torque2;
-
-			 //cosphi4
-			 force_c = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3 * f5Dcosphi4;
-
-			 rba1 =  rbackbonedir.cross(b1);
-			 a1rs =  b1.cross(rstackdir);
-			 rb_dot_a1rs = rbackbonedir * a1rs;
-			 rs_dot_rba1 = rstackdir * rba1;
-
-			 forcestack = -(rba1  - rstackdir * rs_dot_rba1) *  (force_c / rstackmod);
-			 forceback = -(a1rs - rbackbonedir * rb_dot_a1rs) * (force_c   / rbackmod);
-			 force +=  forcestack;
-			 force +=  forceback;
-
-			 // for q
-			 torque2  =  q->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
-			 torque2  +=  q->int_centers[RNANucleotide::BACK].cross(forceback);
-
-			 // for p
-			 torque1  =  -  p->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
-			 torque1 -=  p->int_centers[RNANucleotide::BACK].cross(forceback);
-
-			 torque2 -=  force_c  *  b1.cross(rstackdir.cross(rbackbonedir));//rstackdir * (rbackbonedir * b1) - rbackbonedir * (rstackdir * b1);
-
-			 torquep += torque1;
-			 torqueq += torque2;
-
-
-			 */
-
-			/*
-			 // Cosphi3 (qui son dolori...) (meno male che cosphi4 = cosphi3)
-			 // Definition used:
-			 // cosphi3 = gamma * (ra3 * a2b1 - ra2 * a3b1)/ rbackmod
-			 number gamma = model->RNA_POS_STACK - model->RNA_POS_BACK;
-			 number gammacub = gamma * gamma * gamma;
-			 number rbackmodcub = rbackmod * rbackmod * rbackmod;
-			 number a2b1 = a2 * b1;
-			 number a3b1 = a3 * b1;
-			 number ra1 = rstackdir * a1;
-			 number ra2 = rstackdir * a2;
-			 number ra3 = rstackdir * a3;
-			 number rb1 = rstackdir * b1;
-
-			 number parentesi = (ra3 * a2b1 - ra2 * a3b1);
-
-			 number dcdr    = -gamma * parentesi * (gamma * (ra1 - rb1) + rstackmod) / rbackmodcub;
-			 number dcda1b1 =  gammacub * parentesi / rbackmodcub;
-			 number dcda2b1 =  gamma * ra3 / rbackmod;
-			 number dcda3b1 = -gamma * ra2 / rbackmod;
-			 number dcdra1  = -SQR(gamma) * parentesi * rstackmod / rbackmodcub;
-			 number dcdra2  = -gamma * a3b1 / rbackmod;
-			 number dcdra3  =  gamma * a2b1 / rbackmod;
-			 number dcdrb1  =  SQR(gamma) * parentesi * rstackmod / rbackmodcub;
-
-			 number force_c = f2 * f4t1 * f4t4 * f4t5 * f4t6 * 2 * f5cosphi3 * f5Dcosphi3;
-
-			 force += - force_c * (rstackdir * dcdr +
-			 ((a1 - rstackdir * ra1) * dcdra1 +
-			 (a2 - rstackdir * ra2) * dcdra2 +
-			 (a3 - rstackdir * ra3) * dcdra3 +
-			 (b1 - rstackdir * rb1) * dcdrb1) / rstackmod);
-
-			 torquep += force_c * (rstackdir.cross(a1) * dcdra1 +
-			 rstackdir.cross(a2) * dcdra2 +
-			 rstackdir.cross(a3) * dcdra3);
-			 torqueq += force_c * (rstackdir.cross(b1) * dcdrb1);
-
-			 LR_vector puretorque = force_c * (a1.cross(b1) * dcda1b1 +
-			 a2.cross(b1) * dcda2b1 +
-			 a3.cross(b1) * dcda3b1);
-			 torquep -= puretorque;
-			 torqueq += puretorque;
-			 */
 			// final update of forces and torques for CXST
 			p->force -= force;
 			q->force += force;
@@ -1332,19 +1115,16 @@ number RNAInteraction::_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool 
 		}
 	}
 
-//	if(energy != 0)
-//	{
-//		printf("Called CX for %d %d and returned %g \n",p->index,q->index,energy);
-//
-//	}
 	return energy;
 }
 
 number RNAInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->n3 == q || p->n5 == q)
+	if(p->n3 == q || p->n5 == q) {
 		return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else
+	}
+	else {
 		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number RNAInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {

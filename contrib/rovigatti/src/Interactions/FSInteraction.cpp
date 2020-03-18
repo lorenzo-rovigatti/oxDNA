@@ -99,7 +99,7 @@ void FSInteraction::init() {
 }
 
 number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	if(sqr_r > _sqr_rcut) {
 		return (number) 0.f;
 	}
@@ -114,11 +114,11 @@ number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *
 			number lj_part = ir2 * ir2 * ir2;
 			energy = 4 * (SQR(lj_part) - lj_part) + 1.0 - _spherical_attraction_strength - _spherical_E_cut;
 			if(update_forces) {
-				LR_vector force = *r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
+				LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 				p->force -= force;
 				q->force += force;
 
-				_update_stress_tensor(*r, force);
+				_update_stress_tensor(_computed_r, force);
 			}
 		}
 		else {
@@ -127,11 +127,11 @@ number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *
 				number lj_part = ir2 * ir2 * ir2;
 				energy = 4 * _spherical_attraction_strength * (SQR(lj_part) - lj_part) - _spherical_E_cut;
 				if(update_forces) {
-					LR_vector force = *r * (-24. * _spherical_attraction_strength * (lj_part - 2 * SQR(lj_part)) / sqr_r);
+					LR_vector force = _computed_r * (-24. * _spherical_attraction_strength * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 					p->force -= force;
 					q->force += force;
 
-					_update_stress_tensor(*r, force);
+					_update_stress_tensor(_computed_r, force);
 				}
 			}
 		}
@@ -141,7 +141,7 @@ number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *
 }
 
 number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	if(sqr_r > _sqr_rcut) {
 		return (number) 0.f;
 	}
@@ -154,7 +154,7 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool co
 			for(uint pj = 0; pj < q->N_int_centers(); pj++) {
 				LR_vector qpatch = q->int_centers[pj];
 
-				LR_vector patch_dist = *r + qpatch - ppatch;
+				LR_vector patch_dist = _computed_r + qpatch - ppatch;
 				number dist = patch_dist.norm();
 				if(dist < _sqr_patch_rcut) {
 					number r_p = sqrt(dist);
@@ -163,8 +163,8 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool co
 
 					energy += tmp_energy;
 
-					FSBond p_bond(q, *r, r_p, pi, pj, tmp_energy);
-					FSBond q_bond(p, -*r, r_p, pj, pi, tmp_energy);
+					FSBond p_bond(q, _computed_r, r_p, pi, pj, tmp_energy);
+					FSBond q_bond(p, -_computed_r, r_p, pj, pi, tmp_energy);
 
 					if(update_forces) {
 						number force_mod = _A_part * exp_part * (4. * _B_part / (SQR(dist) * r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
@@ -187,7 +187,7 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool co
 						q_bond.p_torque = -q_torque;
 						q_bond.q_torque = -p_torque;
 
-						_update_stress_tensor(*r, tmp_force);
+						_update_stress_tensor(_computed_r, tmp_force);
 					}
 
 					if(!no_three_body) {
@@ -206,7 +206,7 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool co
 }
 
 number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm() / _polymer_length_scale_sqr;
+	number sqr_r = _computed_r.norm() / _polymer_length_scale_sqr;
 
 	if(sqr_r > _polymer_rfene_sqr) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _polymer_rfene);
@@ -221,8 +221,8 @@ number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, bool compu
 		// vector by its module
 		number force_mod = -30. * _polymer_rfene_sqr / (_polymer_rfene_sqr - sqr_r);
 		force_mod *= _polymer_energy_scale / _polymer_length_scale_sqr;
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	energy *= _polymer_energy_scale;
@@ -231,7 +231,7 @@ number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, bool compu
 }
 
 number FSInteraction::_polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm() / _polymer_length_scale_sqr;
+	number sqr_r = _computed_r.norm() / _polymer_length_scale_sqr;
 	if(sqr_r > _sqr_rcut) return (number) 0.;
 
 	// this number is the module of the force over r, so we don't have to divide the distance vector by its module
@@ -257,8 +257,8 @@ number FSInteraction::_polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool 
 	energy *= _polymer_energy_scale;
 
 	if(update_forces) {
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	return energy;
@@ -322,8 +322,14 @@ number FSInteraction::_three_body(BaseParticle *p, FSBond &new_bond, bool update
 }
 
 number FSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number energy = pair_interaction_bonded(p, q, compute_r, update_forces);
-	energy += pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(compute_r) {
+		if(q != P_VIRTUAL && p != P_VIRTUAL) {
+			_computed_r = _box->min_image(p->pos, q->pos);
+		}
+	}
+
+	number energy = pair_interaction_bonded(p, q, false, update_forces);
+	energy += pair_interaction_nonbonded(p, q, false, update_forces);
 	return energy;
 }
 
@@ -341,11 +347,9 @@ number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 	number energy = 0.;
 
 	if(p->is_bonded(q)) {
-		LR_vector computed_r;
-		if(r == NULL) {
+		if(compute_r) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
-				computed_r = _box->min_image(p->pos, q->pos);
-				r = &computed_r;
+				_computed_r = _box->min_image(p->pos, q->pos);
 			}
 		}
 
@@ -357,18 +361,16 @@ number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 }
 
 number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = _box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	if(_is_patchy_patchy(p->type, q->type)) {
-		return _spherical_patchy_two_body(p, q, compute_r, update_forces) + _patchy_two_body(p, q, compute_r, update_forces);
+		return _spherical_patchy_two_body(p, q, false, update_forces) + _patchy_two_body(p, q, false, update_forces);
 	}
 	else {
 		if(p->is_bonded(q)) return (number) 0.f;
-		return _polymer_nonbonded(p, q, compute_r, update_forces);
+		return _polymer_nonbonded(p, q, false, update_forces);
 	}
 }
 

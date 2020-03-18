@@ -19,10 +19,10 @@ number RNA2Interaction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle
 		return (number) 0.f;
 	}
 	// compute the interaction energy as always ...
-	number energy = RNAInteraction::pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	number energy = RNAInteraction::pair_interaction_nonbonded(p, q, false, update_forces);
 
 	// ... and then add the debye_huckel energy
-	energy += _debye_huckel(p, q, compute_r, update_forces);
+	energy += _debye_huckel(p, q, false, update_forces);
 
 	return energy;
 }

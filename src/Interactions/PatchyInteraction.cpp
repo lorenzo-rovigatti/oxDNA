@@ -101,7 +101,7 @@ number PatchyInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _patchy_interaction(p, q, compute_r, update_forces);
+	return _patchy_interaction(p, q, false, update_forces);
 }
 
 void PatchyInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {

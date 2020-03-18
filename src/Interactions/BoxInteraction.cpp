@@ -10,7 +10,7 @@
 
 BoxInteraction::BoxInteraction() :
 				BaseInteraction<BoxInteraction>() {
-	this->_int_map[Box] = &BoxInteraction::_box_pot;
+	_int_map[Box] = &BoxInteraction::_box_pot;
 }
 
 BoxInteraction::~BoxInteraction() {
@@ -40,13 +40,13 @@ void BoxInteraction::get_settings(input_file &inp) {
 
 	OX_LOG(Logger::LOG_INFO, "Using box sides %g, %g, %g (%g, %g)", _sides[0], _sides[1], _sides[2], _smallest, _largest);
 
-	this->_rcut = (number) 1.001 * sqrt(_sides[0] * _sides[0] + _sides[1] * _sides[1] + _sides[2] * _sides[2]);
-	OX_LOG(Logger::LOG_INFO, "Using r_cut of %g", this->_rcut);
+	_rcut = (number) 1.001 * sqrt(_sides[0] * _sides[0] + _sides[1] * _sides[1] + _sides[2] * _sides[2]);
+	OX_LOG(Logger::LOG_INFO, "Using r_cut of %g", _rcut);
 	//throw oxDNAException ("stopped here...");
 }
 
 void BoxInteraction::init() {
-	this->_sqr_rcut = SQR(this->_rcut);
+	_sqr_rcut = SQR(_rcut);
 }
 
 void BoxInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
@@ -65,10 +65,10 @@ number BoxInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 
 number BoxInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(compute_r) {
-		_computed_r = this->_box->min_image(p->pos, q->pos);
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _box_pot(p, q, compute_r, update_forces);
+	return _box_pot(p, q, false, update_forces);
 }
 
 void BoxInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
@@ -76,6 +76,6 @@ void BoxInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) 
 }
 
 bool BoxInteraction::generate_random_configuration_overlap(BaseParticle *p, BaseParticle *q) {
-	LR_vector dr = this->_box->min_image(q->pos, p->pos);
+	LR_vector dr = _box->min_image(q->pos, p->pos);
 	return InteractionUtils::box_overlap(p, q, dr, _lx, _ly, _lz);
 }

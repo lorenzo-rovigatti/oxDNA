@@ -76,7 +76,7 @@ public:
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
+		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
@@ -84,24 +84,26 @@ public:
 };
 
 number mWInteraction::_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
-	if(sqr_r > this->_sqr_rcut) return (number) 0.f;
+	number sqr_r = _computed_r.norm();
+	if(sqr_r > _sqr_rcut) {
+		return (number) 0.f;
+	}
 
 	number energy = (number) 0.f;
 
 	// centre-centre
-	if(sqr_r < this->_sqr_rcut) {
+	if(sqr_r < _sqr_rcut) {
 		number ir4 = 1. / SQR(sqr_r);
 		number mod_r = sqrt(sqr_r);
 		number mod_r_a = mod_r - _a;
 		number exp_part = exp(1. / mod_r_a);
 		energy = _A * (_B * ir4 - 1.) * exp_part;
 
-		mWBond p_bond(q, *r, mod_r);
-		mWBond q_bond(p, -(*r), mod_r);
+		mWBond p_bond(q, _computed_r, mod_r);
+		mWBond q_bond(p, -_computed_r, mod_r);
 
 		if(update_forces) {
-			LR_vector force = *r * ((_A * 4. * exp_part * _B * ir4 / mod_r + energy / SQR(mod_r_a)) / mod_r);
+			LR_vector force = _computed_r * ((_A * 4. * exp_part * _B * ir4 / mod_r + energy / SQR(mod_r_a)) / mod_r);
 			p->force -= force;
 			q->force += force;
 		}

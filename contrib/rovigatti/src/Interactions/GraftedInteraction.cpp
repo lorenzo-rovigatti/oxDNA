@@ -119,8 +119,12 @@ void GraftedInteraction::read_topology(int *N_strands, std::vector<BaseParticle 
 }
 
 number GraftedInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(p->is_bonded(q)) {
+		return pair_interaction_bonded(p, q, compute_r, update_forces);
+	}
+	else {
+		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number GraftedInteraction::_wall_interaction(BaseParticle *p, bool update_forces) {
@@ -146,10 +150,12 @@ number GraftedInteraction::_wall_interaction(BaseParticle *p, bool update_forces
 number GraftedInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0.f;
 	if(q == P_VIRTUAL) {
-		if(_walls) energy += _wall_interaction(p, update_forces);
+		if(_walls) {
+			energy += _wall_interaction(p, update_forces);
+		}
 		TSPParticle *TSPp = (TSPParticle *) p;
 		for(typename set<TSPParticle *>::iterator it = TSPp->bonded_neighs.begin(); it != TSPp->bonded_neighs.end(); it++) {
-			energy += pair_interaction_bonded(p, *it, r, update_forces);
+			energy += pair_interaction_bonded(p, *it, true, update_forces);
 		}
 		return energy;
 	}
@@ -185,23 +191,21 @@ number GraftedInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle
 		}
 	}
 
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
+	if(compute_r) {
 		if(q != P_VIRTUAL && p != P_VIRTUAL) {
-			computed_r = q->pos - p->pos;
-			r = &computed_r;
+			_computed_r = q->pos - p->pos;
 		}
 	}
 
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	// the repulsion is cut off at the minimum
 	if(sqr_r < _colloid_monomer_sqr_rep_rcut) {
 		number part = pow(_colloid_monomer_sqr_sigma / sqr_r, _colloid_n / 2.);
 		energy += 4 * (part * (part - 1.)) + 1.;
 		if(update_forces) {
 			number force_mod = 4 * _colloid_n * part * (2 * part - 1) / sqr_r;
-			p->force -= *r * force_mod;
-			q->force += *r * force_mod;
+			p->force -= _computed_r * force_mod;
+			q->force += _computed_r * force_mod;
 		}
 	}
 
@@ -209,7 +213,9 @@ number GraftedInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle
 }
 
 number GraftedInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->type != P_COLLOID && q->type != P_COLLOID) return _TSP_inter.pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(p->type != P_COLLOID && q->type != P_COLLOID) {
+		return _TSP_inter.pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 	return 0.f;
 }
 

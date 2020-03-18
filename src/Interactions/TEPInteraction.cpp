@@ -319,20 +319,6 @@ number TEPInteraction::_nonbonded_debye_huckel(BaseParticle *p, BaseParticle *q,
 	return 0.;
 }
 
-/* //previous version - replaced because probably 3-body (badly handled by MC)
- 
- number TEPInteraction::_bonded_bending(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
-
- if (p->n5 == P_VIRTUAL || q->n5 == P_VIRTUAL ) return 0.;
-
- LR_vector tp = p->n5->pos - p->pos;
- LR_vector tq = q->n5->pos - q->pos;
-
- return _kb*(1 - (tp*tq)/(tp.module()*tq.module()));
-
- }
- */
-
 number TEPInteraction::_bonded_bending(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	LR_vector torque(0., 0., 0.);
 	if(!_are_bonded(p, q)) {
@@ -356,8 +342,8 @@ number TEPInteraction::_bonded_bending(BaseParticle *p, BaseParticle *q, bool co
 	return energy;
 
 }
-/////////// double-harmonic bending potential / currently under development
 
+/////////// double-harmonic bending potential / currently under development
 number TEPInteraction::_bonded_double_bending(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0;
 	LR_vector torque(0., 0., 0.);
@@ -453,35 +439,6 @@ number TEPInteraction::_bonded_twist(BaseParticle *p, BaseParticle *q, bool comp
 
 	LR_vector torque(0., 0., 0.);
 	number energy = 0;
-//begin of added block
-	/*
-
-	 fflush(stdout);
-	 // The following are few orientation matrices for particles  with v1 in a given direction.
-	 LR_matrix face_right( 1.,0.,0.,  0.,1. ,0.,  0.,0.,1.); //face right
-	 char buffer [50];
-	 sprintf(buffer,"mytwist.dat");
-	 FILE *ffp = fopen(buffer,"w");
-	 p->orientationT = face_right;
-	 q->orientationT = face_right;
-
-	 p->orientation = p->orientationT.get_transpose();
-	 q->orientation = q->orientationT.get_transpose();
-	 printf("p: vector v1 : %g %g %g\n",p->orientationT.v1.x,p->orientationT.v1.y,p->orientationT.v1.z);
-
-	 printf("q: vector v1 : %g %g %g\n",q->orientationT.v1.x,q->orientationT.v1.y,q->orientationT.v1.z);
-
-
-	 p->pos = LR_vector(0.,0.,0.) ;
-	 q->pos = LR_vector(1,0.,0.) ;
-
-	 for (double rr = -acos(-_twist_b)+0.001; rr <= acos(-_twist_b)-0.001; rr+=0.001){
-	 //for (double rr = -3.1415+0.001; rr <= 3.1415-0.001; rr+=0.001){
-	 q->orientationT = LR_matrix( 1.,0.,0.,  0.,cos(rr),-sin(rr),  0.,sin(rr),cos(rr));
-	 q->orientation = q->orientationT.get_transpose();
-	 energy = (number) 0.f;
-	 */
-	// end of added block
 	number M = fp * fq + vp * vq;
 	number L = 1 + up * uq;
 	number cos_alpha_plus_gamma = M / L;
@@ -535,13 +492,7 @@ number TEPInteraction::_bonded_twist(BaseParticle *p, BaseParticle *q, bool comp
 			energy = _kt * (1. + A / (SQR( -cos_alpha_plus_gamma - _twist_b) * SQR(-cos_alpha_plus_gamma - _twist_b)) + C);
 		}
 	}
-//begin of added block
-	/*
-	 fprintf(ffp,"%14.14lf %14.14lf %14.14lf %14.14lf\n",rr,cos(rr),energy,torque.module());
-	 }
-	 abort();
-	 */
-//end of added block	
+
 	energy *= _kt_pref[p->index];
 	return energy;
 }
@@ -598,18 +549,12 @@ number TEPInteraction::_bonded_alignment(BaseParticle *p, BaseParticle *q, bool 
 	}
 	number tpm = tp.module();
 	if(update_forces) {
-		// prima che inizi e' 
-		// LR_vector force = _ka*(up - tp*(up*tp)/SQR(tpm))/tpm;
 		LR_vector force = _ka * (up - tp * (up * tp) / SQR(tpm)) / tpm;
 		backp->force -= force;
 		frontp->force += force;
 		//only the torque on p is updated, since this interaction term is basically a self-interaction
 		//that keeps a particle's u vector aligned with  its tangent vector.
-		// prima che inizi e' 
-		//backp->torque -= backp->orientationT*((_ka*tp.cross(up))/tpm);
 		backp->torque -= backp->orientationT * ((_ka * tp.cross(up)) / tpm);
-		//LR_vector temp=((_ka*tp.cross(up))/tp.module());
-		//printf("%lf %lf %lf %lf %lf %lf\n",temp.x,temp.y,temp.z, tp.cross(force).x, tp.cross(force).y,tp.cross(force).z);
 	}
 
 	return _ka * (1 - (up * tp) / tpm);
@@ -712,24 +657,26 @@ number TEPInteraction::_index_twist_boundary_particles(BaseParticle *p, BasePart
 }
 
 number TEPInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q))
+	if(p->is_bonded(q)) {
 		return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else
+	}
+	else {
 		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number TEPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(!p->is_bonded(q))
+	if(!p->is_bonded(q)) {
 		return 0.;
-	LR_vector computed_r(0, 0, 0);
+	}
 	number energy = 0;
 	BaseParticle *qq = q;
 
 	if(p->n3 == P_VIRTUAL) {
-		energy += _index_twist_boundary_particles(p, P_VIRTUAL, compute_r, update_forces);
+		energy += _index_twist_boundary_particles(p, P_VIRTUAL, true, update_forces);
 	}
 	if(p->n5 != P_VIRTUAL && p->n5->n5 == P_VIRTUAL) {
-		energy += _index_twist_boundary_particles(p, P_VIRTUAL, compute_r, update_forces);
+		energy += _index_twist_boundary_particles(p, P_VIRTUAL, true, update_forces);
 	}
 
 	if(compute_r) {
@@ -738,15 +685,14 @@ number TEPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 		}
 	}
 
-	energy += _spring(p, qq, compute_r, update_forces);
-	energy += _bonded_twist(p, qq, compute_r, update_forces);
-	//energy += _bonded_bending(p,qq,r,update_forces);
-	energy += _bonded_double_bending(p, qq, compute_r, update_forces);
-	energy += _bonded_alignment(p, qq, compute_r, update_forces);
+	energy += _spring(p, qq, false, update_forces);
+	energy += _bonded_twist(p, qq, false, update_forces);
+	energy += _bonded_double_bending(p, qq, false, update_forces);
+	energy += _bonded_alignment(p, qq, false, update_forces);
 	//usually the interactions are called in an ordered fashion, but if qq is actually the last particle then it has to be aligned as well
 	// To make the alignment term behave as usual, just comment the following three lines.
 	if(qq->n5 == P_VIRTUAL) {
-		energy += _bonded_alignment(qq, p, compute_r, update_forces);
+		energy += _bonded_alignment(qq, p, false, update_forces);
 	}
 	return energy;
 
@@ -760,8 +706,9 @@ number TEPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	if(_computed_r.norm() >= this->_sqr_rcut) {
 		return (number) 0;
 	}
+
 	number energy = 0.;
-	energy += _nonbonded_excluded_volume(p, q, compute_r, update_forces);
+	energy += _nonbonded_excluded_volume(p, q, false, update_forces);
 	return energy;
 }
 

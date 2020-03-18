@@ -59,7 +59,7 @@ number HardSpheroCylinderInteraction::pair_interaction_nonbonded(BaseParticle *p
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _hsc_pot(p, q, compute_r, update_forces);
+	return _hsc_pot(p, q, false, update_forces);
 }
 
 void HardSpheroCylinderInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {

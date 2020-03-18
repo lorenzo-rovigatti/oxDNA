@@ -46,21 +46,22 @@ int NathanStarInteraction::get_N_from_topology() {
 	char line[512];
 	std::ifstream topology;
 	topology.open(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	if(!topology.good())
+		throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	topology.getline(line, 512);
 	topology.close();
 	sscanf(line, "%d %d\n", &_N_patchy, &_N_stars);
 	return _N_patchy + _N_stars;
 }
 
-void NathanStarInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+void NathanStarInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	// the number of "strands" is given by the number of chains + the number of patchy particles
 	// since those are not linked to anything else
 	*N_strands = _N_stars + _N_patchy;
 	allocate_particles(particles);
 }
 
-void NathanStarInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
+void NathanStarInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	for(int i = 0; i < _N_patchy; i++) {
 		NathanPatchyParticle *new_p = new NathanPatchyParticle();
 		new_p->index = i;
@@ -70,7 +71,7 @@ void NathanStarInteraction::allocate_particles(std::vector<BaseParticle *> &part
 		particles[i] = new_p;
 	}
 
-	for(int i = _N_patchy; i < (int)particles.size(); i++) {
+	for(int i = _N_patchy; i < (int) particles.size(); i++) {
 		NathanPolymerParticle *new_p = new NathanPolymerParticle();
 		new_p->index = i;
 		new_p->type = new_p->btype = POLYMER;
@@ -93,7 +94,8 @@ void NathanStarInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "NATHAN_size_ratio", &size_ratio, 1);
 	_star_sigma_g = 1. / size_ratio;
 
-	if(_star_sigma_g > 1.) _is_marzi = true;
+	if(_star_sigma_g > 1.)
+		_is_marzi = true;
 
 	getInputInt(&inp, "NATHAN_f", &_star_f, 1);
 	getInputNumber(&inp, "NATHAN_star_factor", &_star_factor, 0);
@@ -107,7 +109,8 @@ void NathanStarInteraction::get_settings(input_file &inp) {
 }
 
 void NathanStarInteraction::_setup_lambda_kappa() {
-	if(_star_f < 2 || _star_f > 1e5) throw oxDNAException("NATHAN_f (%d) should be > 1 and < 10e5", _star_f);
+	if(_star_f < 2 || _star_f > 1e5)
+		throw oxDNAException("NATHAN_f (%d) should be > 1 and < 10e5", _star_f);
 
 	int fs[12] = { 2, 5, 10, 15, 18, 30, 40, 50, 65, 80, 100, 100000 };
 	number lambdas[12] = { 0.46, 0.35, 0.30, 0.28, 0.27, 0.24, 0.24, 0.23, 0.23, 0.22, 0.22, 0.139 };
@@ -147,8 +150,10 @@ number NathanStarInteraction::_patchy_star_derivative(number r) {
 
 	number derivative = -_T * _pi_lambda * _star_f3_2 * _patch_r / sqr_r;
 
-	if(z < _star_rs) derivative *= (sqr_r - _sqr_patch_r) * (0.5 / SQR(z) - 0.5 / _sqr_star_rs + _psi_1(_star_rs, smax)) - log(z / _star_rs) + _psi_2(_star_rs, smax);
-	else derivative *= (sqr_r - _sqr_patch_r) * _psi_1(z, smax) + _psi_2(z, smax);
+	if(z < _star_rs)
+		derivative *= (sqr_r - _sqr_patch_r) * (0.5 / SQR(z) - 0.5 / _sqr_star_rs + _psi_1(_star_rs, smax)) - log(z / _star_rs) + _psi_2(_star_rs, smax);
+	else
+		derivative *= (sqr_r - _sqr_patch_r) * _psi_1(z, smax) + _psi_2(z, smax);
 
 	return derivative;
 }
@@ -178,15 +183,18 @@ number NathanStarInteraction::_patchy_star_marzi_derivative(number r, gsl_spline
 
 	number smax = sqrt(z * (z + 1.));
 	number smax_used = (_interp_size - 0.5) * bin;
-	if(smax > smax_used) smax = smax_used;
-	if(z > smax) return 0.f;
+	if(smax > smax_used)
+		smax = smax_used;
+	if(z > smax)
+		return 0.f;
 
 	return factor * gsl_spline_eval_integ(spl, z, smax, acc);
 }
 
 number NathanStarInteraction::_pressure(number s) {
 	number common_factor = _T * _pi_lambda * _star_f3_2 / M_PI;
-	if(s < _star_rs) return common_factor / CUB(s);
+	if(s < _star_rs)
+		return common_factor / CUB(s);
 
 	number sqr_s = SQR(s);
 	number sqr_kappa = SQR(_kappa);
@@ -209,8 +217,10 @@ void NathanStarInteraction::_setup_interp() {
 	gsl_interp_accel *marzi_accel = NULL;
 	for(int i = 0; i < _interp_size; i++, r += bin) {
 		rs[i] = r;
-		if(_is_marzi) f_ys[i] = _patchy_star_marzi_derivative(r, marzi_spline, marzi_accel, bin);
-		else f_ys[i] = _patchy_star_derivative(r);
+		if(_is_marzi)
+			f_ys[i] = _patchy_star_marzi_derivative(r, marzi_spline, marzi_accel, bin);
+		else
+			f_ys[i] = _patchy_star_derivative(r);
 	}
 	gsl_spline_init(_spl_patchy_star, rs, f_ys, _interp_size);
 
@@ -219,8 +229,10 @@ void NathanStarInteraction::_setup_interp() {
 	for(int i = 0; i < _interp_size - 1; i++) {
 		r = rs[0] + 0.001 + bin * i;
 		number real_der;
-		if(_is_marzi) real_der = _patchy_star_marzi_derivative(r, marzi_spline, marzi_accel, bin);
-		else real_der = _patchy_star_derivative(r);
+		if(_is_marzi)
+			real_der = _patchy_star_marzi_derivative(r, marzi_spline, marzi_accel, bin);
+		else
+			real_der = _patchy_star_derivative(r);
 		number interp_der = gsl_spline_eval(_spl_patchy_star, r, _acc_patchy_star);
 		out_der << r << " " << real_der << " " << interp_der << " " << (real_der - interp_der) / real_der << std::endl;
 	}
@@ -272,7 +284,8 @@ void NathanStarInteraction::init() {
 	_patchy_rcut = 1. + _patch_cutoff;
 	_sqr_patchy_rcut = SQR(_patchy_rcut);
 	this->_rcut = 1. + _patch_cutoff;
-	if(_star_rcut > this->_rcut) this->_rcut = _star_rcut;
+	if(_star_rcut > this->_rcut)
+		this->_rcut = _star_rcut;
 	this->_sqr_rcut = SQR(this->_rcut);
 	_patch_angular_cutoff = _patch_cosmax * 1.5;
 
@@ -287,18 +300,22 @@ void NathanStarInteraction::init() {
 	OX_LOG(Logger::LOG_INFO, "patchy rcut: %lf, patchy-star rcut: %lf, star-star rcut: %lf", _patchy_rcut, _patchy_star_rcut, _star_rcut);
 }
 
-void NathanStarInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
+void NathanStarInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 
 }
 
 number NathanStarInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->type != PATCHY_PARTICLE && q->type != PATCHY_PARTICLE) return 0.f;
-	number rnorm = r->norm();
-	if(rnorm > _sqr_patchy_rcut) return (number) 0.f;
+	if(p->type != PATCHY_PARTICLE && q->type != PATCHY_PARTICLE) {
+		return 0.f;
+	}
+	number rnorm = _computed_r.norm();
+	if(rnorm > _sqr_patchy_rcut) {
+		return (number) 0.f;
+	}
 
 	// here everything is done as in Allen's paper
 	number rmod = sqrt(rnorm);
-	LR_vector r_versor = *r / (-rmod);
+	LR_vector r_versor = _computed_r / (-rmod);
 
 	// repulsion
 	number rep_part = 1. / pow(rnorm, _rep_power / 2);
@@ -323,7 +340,8 @@ number NathanStarInteraction::_patchy_interaction(BaseParticle *p, BaseParticle 
 		q_axis = -q_axis;
 		cosqr = -cosqr;
 	}
-	if(cospr < _patch_angular_cutoff || cosqr < _patch_angular_cutoff) return energy;
+	if(cospr < _patch_angular_cutoff || cosqr < _patch_angular_cutoff)
+		return energy;
 
 	number cospr_base = pow(cospr - 1., _patch_power - 1);
 	// we do this so that later we don't have to divide this number by (cospr - 1), which could be 0
@@ -365,28 +383,35 @@ number NathanStarInteraction::_patchy_interaction(BaseParticle *p, BaseParticle 
 
 number NathanStarInteraction::_patchy_star_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
-	number sqr_r = r->norm();
-	if(sqr_r > _sqr_patchy_star_rcut) return (number) 0.f;
+	number sqr_r = _computed_r.norm();
+	if(sqr_r > _sqr_patchy_star_rcut) {
+		return (number) 0.f;
+	}
 
 	number mod_r = sqrt(sqr_r);
 
 	// this is just to avoid spitting out NaNs and it should occur very rarely, and only during equilibration
-	if(mod_r < _spl_patchy_star->interp->xmin) energy = 1e6;
+	if(mod_r < _spl_patchy_star->interp->xmin)
+		energy = 1e6;
 	// this can happen only in single precision
-	else if(mod_r > _spl_patchy_star->interp->xmax) return (number) 0.f;
-	else energy = gsl_spline_eval(_spl_patchy_star, mod_r, _acc_patchy_star);
+	else if(mod_r > _spl_patchy_star->interp->xmax)
+		return (number) 0.f;
+	else
+		energy = gsl_spline_eval(_spl_patchy_star, mod_r, _acc_patchy_star);
 	if(update_forces) {
 		number force_mod = (mod_r < _spl_patchy_star->interp->xmin) ? 100 : -gsl_spline_eval_deriv(_spl_patchy_star, mod_r, _acc_patchy_star) / mod_r;
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 	return energy;
 }
 
 number NathanStarInteraction::_star_star_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
-	number sqr_r = r->norm();
-	if(sqr_r > _sqr_star_rcut) return (number) 0.f;
+	number sqr_r = _computed_r.norm();
+	if(sqr_r > _sqr_star_rcut) {
+		return (number) 0.f;
+	}
 
 	number mod_r = sqrt(sqr_r);
 
@@ -399,8 +424,8 @@ number NathanStarInteraction::_star_star_interaction(BaseParticle *p, BasePartic
 		if(update_forces) {
 			// force over r
 			number force_mod = common_fact / sqr_r;
-			p->force -= *r * force_mod;
-			q->force += *r * force_mod;
+			p->force -= _computed_r * force_mod;
+			q->force += _computed_r * force_mod;
 		}
 	}
 	else {
@@ -410,8 +435,8 @@ number NathanStarInteraction::_star_star_interaction(BaseParticle *p, BasePartic
 		if(update_forces) {
 			// force over r
 			number force_mod = common_fact * i_f * exp_factor * (_star_sigma_s / (sqr_r * mod_r) + _star_f1_2 / (2. * sqr_r));
-			p->force -= *r * force_mod;
-			q->force += *r * force_mod;
+			p->force -= _computed_r * force_mod;
+			q->force += _computed_r * force_mod;
 		}
 	}
 
@@ -427,32 +452,39 @@ number NathanStarInteraction::pair_interaction_bonded(BaseParticle *p, BaseParti
 }
 
 number NathanStarInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = this->_box->min_image(p->pos, q->pos);
 	}
 
 	int type = p->type + q->type;
-	if(type == PATCHY_PATCHY) return _patchy_interaction(p, q, compute_r, update_forces);
-	else if(type == PATCHY_POLYMER) return _patchy_star_interaction(p, q, compute_r, update_forces);
-	else return _star_star_interaction(p, q, compute_r, update_forces);
+	if(type == PATCHY_PATCHY) {
+		return _patchy_interaction(p, q, false, update_forces);
+	}
+	else if(type == PATCHY_POLYMER) {
+		return _patchy_star_interaction(p, q, false, update_forces);
+	}
+	else {
+		return _star_star_interaction(p, q, false, update_forces);
+	}
 }
 
-void NathanStarInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
+void NathanStarInteraction::generate_random_configuration(std::vector<BaseParticle*> &particles) {
 	if(!_make_crystal) {
 		BaseInteraction<NathanStarInteraction>::generate_random_configuration(particles);
 		return;
 	}
 	// from here on it is implied that _make_crystal == true
-	if(_N_in_crystal == -1) _N_in_crystal = _N_patchy;
+	if(_N_in_crystal == -1)
+		_N_in_crystal = _N_patchy;
 	int N = particles.size();
 
 	// check on the number of particles
-	if(_N_in_crystal % 4 != 0) throw oxDNAException("The number of patchy particles should be a multiple of 4");
+	if(_N_in_crystal % 4 != 0)
+		throw oxDNAException("The number of patchy particles should be a multiple of 4");
 	int cxcycz = _N_in_crystal / 4;
 	int cell_side = round(cbrt(cxcycz));
-	if(CUB(cell_side) != cxcycz) throw oxDNAException("The number of patchy particles should be equal to 4*i^3, where i is an integer. For this specific case you may want to use %d", 4 * CUB(cell_side));
+	if(CUB(cell_side) != cxcycz)
+		throw oxDNAException("The number of patchy particles should be equal to 4*i^3, where i is an integer. For this specific case you may want to use %d", 4 * CUB(cell_side));
 
 	OX_LOG(Logger::LOG_INFO, "Crystal cell_side: %d", cell_side);
 
@@ -477,7 +509,8 @@ void NathanStarInteraction::generate_random_configuration(std::vector<BasePartic
 	for(int i = 0; i < 4; i++) {
 		LR_vector axis(0, 0, 0);
 		for(int j = 0; j < 4; j++) {
-			if(j != i) axis += tetrahedron_up[j];
+			if(j != i)
+				axis += tetrahedron_up[j];
 		}
 		axis /= 3;
 		axis -= tetrahedron_up[i];
@@ -503,7 +536,8 @@ void NathanStarInteraction::generate_random_configuration(std::vector<BasePartic
 		for(int i = 0; i < 4; i++) {
 			LR_vector axis(0, 0, 0);
 			for(int j = 0; j < 4; j++) {
-				if(j != i) axis += tetrahedron_down[j];
+				if(j != i)
+					axis += tetrahedron_down[j];
 			}
 			axis /= 3;
 			axis -= tetrahedron_down[i];
@@ -520,7 +554,8 @@ void NathanStarInteraction::generate_random_configuration(std::vector<BasePartic
 			number tot_zshift = zc * zshift;
 			for(int yc = 0; yc < cells[1]; yc++) {
 				number tot_yshift = yc * yshift;
-				if(zc % 2 != 0) tot_yshift += yshift;
+				if(zc % 2 != 0)
+					tot_yshift += yshift;
 				for(int xc = 0; xc < cells[2]; xc++) {
 					number tot_xshift = (yc % 2 + 2 * xc) * xshift;
 					// loop over the tetrahedron
@@ -551,11 +586,14 @@ void NathanStarInteraction::generate_random_configuration(std::vector<BasePartic
 
 			for(int yc = 0; yc < cells[1]; yc++) {
 				number tot_yshift = yc * yshift;
-				if(zc % 3 == 1) tot_yshift -= 2. * yshift / 3.;
-				else if(zc % 3 == 2) tot_yshift += 2. * yshift / 3.;
+				if(zc % 3 == 1)
+					tot_yshift -= 2. * yshift / 3.;
+				else if(zc % 3 == 2)
+					tot_yshift += 2. * yshift / 3.;
 				for(int xc = 0; xc < cells[2]; xc++) {
 					number tot_xshift = xc * xshift;
-					if(yc % 2 == 1) tot_xshift += 0.5 * xshift;
+					if(yc % 2 == 1)
+						tot_xshift += 0.5 * xshift;
 					// loop over the tetrahedron
 					for(int t = 0; t < 4; t++, inserted++) {
 						BaseParticle *p = particles[inserted];
@@ -572,7 +610,8 @@ void NathanStarInteraction::generate_random_configuration(std::vector<BasePartic
 			}
 		}
 	}
-	else throw oxDNAException("The crystal type be should be either 'hT' or 'cT' and not '%s'", _crystal_type.c_str());
+	else
+		throw oxDNAException("The crystal type be should be either 'hT' or 'cT' and not '%s'", _crystal_type.c_str());
 
 	// now we add the polymers
 	Cells c(particles, _box);
@@ -605,21 +644,23 @@ void NathanStarInteraction::generate_random_configuration(std::vector<BasePartic
 
 			// we take into account the bonded neighbours
 			for(unsigned int n = 0; n < p->affected.size(); n++) {
-				BaseParticle * p1 = p->affected[n].first;
-				BaseParticle * p2 = p->affected[n].second;
+				BaseParticle *p1 = p->affected[n].first;
+				BaseParticle *p2 = p->affected[n].second;
 				number e = 0.;
 				if(p1->index <= p->index && p2->index <= p->index) {
 					e = pair_interaction_bonded(p1, p2);
 				}
-				if(e > this->_energy_threshold) inserted = false;
+				if(e > this->_energy_threshold)
+					inserted = false;
 			}
 
 			// here we take into account the non-bonded interactions
-			std::vector<BaseParticle *> neighs = c.get_complete_neigh_list(p);
+			std::vector<BaseParticle*> neighs = c.get_complete_neigh_list(p);
 			for(unsigned int n = 0; n < neighs.size(); n++) {
 				BaseParticle *q = neighs[n];
 				// particles with an index larger than p->index have not been inserted yet
-				if(q->index < p->index && this->generate_random_configuration_overlap(p, q)) inserted = false;
+				if(q->index < p->index && this->generate_random_configuration_overlap(p, q))
+					inserted = false;
 			}
 
 			// we take into account the external potential
@@ -629,10 +670,11 @@ void NathanStarInteraction::generate_random_configuration(std::vector<BasePartic
 
 		} while(!inserted);
 
-		if(i > 0 && i % (N / 10) == 0) OX_LOG(Logger::LOG_INFO, "Inserted %d%% of the particles (%d/%d)", i*100/N, i, N);
+		if(i > 0 && i % (N / 10) == 0)
+			OX_LOG(Logger::LOG_INFO, "Inserted %d%% of the particles (%d/%d)", i*100/N, i, N);
 	}
 }
 
-extern "C" NathanStarInteraction *make_NathanStarInteraction() {
+extern "C" NathanStarInteraction* make_NathanStarInteraction() {
 	return new NathanStarInteraction();
 }

@@ -68,7 +68,7 @@ public:
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
+		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
@@ -76,8 +76,10 @@ public:
 
 number NathanInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->type != PATCHY_PARTICLE && q->type != PATCHY_PARTICLE) return 0.f;
-	number rnorm = r->norm();
-	if(rnorm > this->_sqr_rcut) return (number) 0.f;
+	number rnorm = _computed_r.norm();
+	if(rnorm > _sqr_rcut) {
+		return (number) 0.f;
+	}
 
 	number energy = (number) 0.f;
 
@@ -86,7 +88,7 @@ number NathanInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, 
 	energy = part - _rep_E_cut;
 
 	if(update_forces) {
-		LR_vector force = *r * (_rep_power * part / rnorm);
+		LR_vector force = _computed_r * (_rep_power * part / rnorm);
 		p->force -= force;
 		q->force += force;
 	}
@@ -95,7 +97,7 @@ number NathanInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, 
 	number rmod = sqrt(rnorm);
 	LR_vector p_axis = p->orientationT.v3;
 	LR_vector q_axis = q->orientationT.v3;
-	LR_vector r_versor = *r / (-rmod);
+	LR_vector r_versor = _computed_r / (-rmod);
 
 	number cospr = -(p_axis * r_versor);
 	if(cospr < 0.) {
@@ -171,7 +173,7 @@ public:
 	}
 	virtual bool is_bonded(BaseParticle *q) {
 		if(q->type == NathanInteraction::POLYMER) {
-			return (q == this->n3 || q == this->n5);
+			return (q == n3 || q == n5);
 		}
 		return false;
 	}

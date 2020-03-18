@@ -5,8 +5,8 @@
 
 MGInteraction::MGInteraction() :
 				BaseInteraction<MGInteraction>() {
-	this->_int_map[BONDED] = &MGInteraction::pair_interaction_bonded;
-	this->_int_map[NONBONDED] = &MGInteraction::pair_interaction_nonbonded;
+	_int_map[BONDED] = &MGInteraction::pair_interaction_bonded;
+	_int_map[NONBONDED] = &MGInteraction::pair_interaction_nonbonded;
 
 	_MG_n = 0;
 	_MG_alpha = _MG_beta = _MG_gamma = 0.;
@@ -20,7 +20,7 @@ void MGInteraction::get_settings(input_file &inp) {
 	IBaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "MG_rfene", &_rfene, 1);
-	getInputNumber(&inp, "MG_rcut", &this->_rcut, 1);
+	getInputNumber(&inp, "MG_rcut", &_rcut, 1);
 	getInputNumber(&inp, "MG_alpha", &_MG_alpha, 0);
 	getInputInt(&inp, "MG_n", &_MG_n, 1);
 	getInputString(&inp, "MG_bond_file", _bond_filename, 1);
@@ -31,9 +31,9 @@ void MGInteraction::init() {
 
 	number rep_rcut = pow(2., 1. / _MG_n);
 	_MG_sqr_rep_rcut = SQR(rep_rcut);
-	this->_sqr_rcut = SQR(this->_rcut);
+	_sqr_rcut = SQR(_rcut);
 
-	OX_LOG(Logger::LOG_INFO, "MG: repulsive rcut: %lf (%lf), total rcut: %lf (%lf)", rep_rcut, _MG_sqr_rep_rcut, this->_rcut, this->_sqr_rcut);
+	OX_LOG(Logger::LOG_INFO, "MG: repulsive rcut: %lf (%lf), total rcut: %lf (%lf)", rep_rcut, _MG_sqr_rep_rcut, _rcut, _sqr_rcut);
 
 	if(_MG_alpha != 0) {
 		if(_MG_alpha < 0.) throw oxDNAException("MG_alpha may not be negative");
@@ -44,11 +44,11 @@ void MGInteraction::init() {
 }
 
 number MGInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 
 	if(sqr_r > _sqr_rfene) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), sqrt(_sqr_rfene));
-		this->set_is_infinite(true);
+		set_is_infinite(true);
 		return 10e10;
 	}
 
@@ -58,16 +58,18 @@ number MGInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bo
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
 		number force_mod = -30 * _sqr_rfene / (_sqr_rfene - sqr_r);
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	return energy;
 }
 
 number MGInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
-	if(sqr_r > this->_sqr_rcut) return (number) 0.;
+	number sqr_r = _computed_r.norm();
+	if(sqr_r > _sqr_rcut) {
+		return (number) 0.;
+	}
 
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector for its module
@@ -88,47 +90,49 @@ number MGInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_
 	}
 
 	if(update_forces) {
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	return energy;
 }
 
 number MGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(p->is_bonded(q)) {
+		return pair_interaction_bonded(p, q, compute_r, update_forces);
+	}
+	else {
+		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number MGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
 
 	if(p->is_bonded(q)) {
-		LR_vector computed_r;
-		if(r == NULL) {
+		if(compute_r) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
-				computed_r = this->_box->min_image(p->pos, q->pos);
-				r = &computed_r;
+				_computed_r = _box->min_image(p->pos, q->pos);
 			}
 		}
 
-		energy = _fene(p, q, compute_r, update_forces);
-		energy += _nonbonded(p, q, compute_r, update_forces);
+		energy = _fene(p, q, false, update_forces);
+		energy += _nonbonded(p, q, false, update_forces);
 	}
 
 	return energy;
 }
 
 number MGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) return (number) 0.f;
-
-	LR_vector computed_r;
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(p->is_bonded(q)) {
+		return (number) 0.f;
 	}
 
-	return _nonbonded(p, q, compute_r, update_forces);
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
+	}
+
+	return _nonbonded(p, q, false, update_forces);
 }
 
 void MGInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

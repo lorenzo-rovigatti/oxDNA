@@ -104,7 +104,7 @@ template<typename number>
 number DirkInteractionSin<number>::_dirk_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
 	
-	number rnorm = (*r).norm(); 
+	number rnorm = _computed_r.norm(); 
 	if (rnorm > this->_sqr_rcut) return (number) 0.f;
 
 	if (rnorm < _hard_sqr_rcut) {
@@ -137,7 +137,7 @@ number DirkInteractionSin<number>::_dirk_pot (BaseParticle<number> *p, BaseParti
 	//  DHS; the DHS's are set on the top interaction site
 	LR_vector<number> pdhs = p->int_centers[SpheroCylinder<number>::TOP];
 	LR_vector<number> qdhs = q->int_centers[SpheroCylinder<number>::TOP];
-	LR_vector<number> drdhs = *r + qdhs - pdhs;
+	LR_vector<number> drdhs = _computed_r + qdhs - pdhs;
 	number drdhsnorm = drdhs.norm();
 	
 	// DHS potential;

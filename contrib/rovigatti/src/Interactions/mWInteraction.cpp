@@ -15,7 +15,7 @@ using namespace std;
 mWInteraction::mWInteraction() :
 				BaseInteraction<mWInteraction>(),
 				_N(-1) {
-	this->_int_map[mW] = &mWInteraction::_two_body;
+	_int_map[mW] = &mWInteraction::_two_body;
 
 	_lambda = 1.;
 	_gamma = 1.2;
@@ -41,8 +41,8 @@ void mWInteraction::get_settings(input_file &inp) {
 }
 
 void mWInteraction::init() {
-	this->_rcut = _a;
-	this->_sqr_rcut = SQR(this->_rcut);
+	_rcut = _a;
+	_sqr_rcut = SQR(_rcut);
 	_cos_theta0 = cos(_theta0);
 
 	OX_LOG(Logger::LOG_INFO, "mW parameters: lambda = %lf, A = %lf, B = %lf, gamma = %lf, theta0 = %lf, a = %lf", _lambda, _A, _B, _gamma, _theta0, _a);
@@ -58,8 +58,14 @@ void mWInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 }
 
 number mWInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number energy = pair_interaction_bonded(p, q, compute_r, update_forces);
-	energy += pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(compute_r) {
+		if(q != P_VIRTUAL && p != P_VIRTUAL) {
+			_computed_r = _box->min_image(p->pos, q->pos);
+		}
+	}
+
+	number energy = pair_interaction_bonded(p, q, false, update_forces);
+	energy += pair_interaction_nonbonded(p, q, false, update_forces);
 	return energy;
 }
 
@@ -74,13 +80,11 @@ number mWInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 }
 
 number mWInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _two_body(p, q, compute_r, update_forces);
+	return _two_body(p, q, false, update_forces);
 }
 
 void mWInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {

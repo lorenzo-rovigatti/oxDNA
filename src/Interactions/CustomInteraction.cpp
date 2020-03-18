@@ -12,8 +12,8 @@ CustomInteraction::CustomInteraction() :
 				BaseInteraction<CustomInteraction>() {
 	_bonded_points = 100;
 
-	this->_int_map[BONDED] = &CustomInteraction::pair_interaction_bonded;
-	this->_int_map[NONBONDED] = &CustomInteraction::pair_interaction_nonbonded;
+	_int_map[BONDED] = &CustomInteraction::pair_interaction_bonded;
+	_int_map[NONBONDED] = &CustomInteraction::pair_interaction_nonbonded;
 }
 
 CustomInteraction::~CustomInteraction() {
@@ -54,7 +54,7 @@ void CustomInteraction::get_settings(input_file &inp) {
 
 	getInputString(&inp, "custom_lt_file", _lt_filename, 1);
 	getInputInt(&inp, "custom_points", &_bonded_points, 0);
-	getInputNumber(&inp, "custom_rcut", &this->_rcut, 1);
+	getInputNumber(&inp, "custom_rcut", &_rcut, 1);
 }
 
 void CustomInteraction::init() {
@@ -100,16 +100,16 @@ void CustomInteraction::init() {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i - 1];
 
-	this->_build_mesh(this, &CustomInteraction::_fx, &CustomInteraction::_dfx, (void *) (&data), _bonded_points, lowlimit, uplimit, _non_bonded_mesh);
+	_build_mesh(this, &CustomInteraction::_fx, &CustomInteraction::_dfx, (void *) (&data), _bonded_points, lowlimit, uplimit, _non_bonded_mesh);
 
 	delete[] data.x;
 	delete[] data.fx;
 	delete[] data.dfx;
 
-	_Ecut = this->_query_mesh(this->_rcut, _non_bonded_mesh);
-	this->_sqr_rcut = SQR(this->_rcut);
+	_Ecut = _query_mesh(_rcut, _non_bonded_mesh);
+	_sqr_rcut = SQR(_rcut);
 
-	OX_LOG(Logger::LOG_INFO, "custom: rcut = %lf, Ecut = %lf", this->_rcut, _Ecut);
+	OX_LOG(Logger::LOG_INFO, "custom: rcut = %lf, Ecut = %lf", _rcut, _Ecut);
 }
 
 void CustomInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
@@ -122,8 +122,8 @@ void CustomInteraction::read_topology(int *N_strands, std::vector<BaseParticle *
 	int N = particles.size();
 	*N_strands = N;
 
-	std::ifstream topology(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	std::ifstream topology(_topology_filename, std::ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	char line[512];
 	topology.getline(line, 512);
 	topology.close();
@@ -132,14 +132,15 @@ void CustomInteraction::read_topology(int *N_strands, std::vector<BaseParticle *
 	for(int i = 0; i < N; i++) {
 		particles[i]->index = particles[i]->strand_id = i;
 	}
-
-//	CustomParticle *p = (CustomParticle *) particles[0];
-//	p->add_bonded_neigh((CustomParticle *) particles[1]);
 }
 
 number CustomInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(p->is_bonded(q)) {
+		return pair_interaction_bonded(p, q, compute_r, update_forces);
+	}
+	else {
+		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -155,10 +156,10 @@ number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle 
 	}
 
 	number dist = _computed_r.module();
-	energy = this->_query_mesh(dist, _bonded_mesh);
+	energy = _query_mesh(dist, _bonded_mesh);
 
 	if(update_forces) {
-		number force_mod = -this->_query_meshD(dist, _bonded_mesh);
+		number force_mod = -_query_meshD(dist, _bonded_mesh);
 		LR_vector force = _computed_r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;
@@ -171,18 +172,18 @@ number CustomInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 	if(p->is_bonded(q)) return 0.;
 
 	if(compute_r) {
-		_computed_r = this->_box->min_image(p->pos, q->pos);
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	number dist = _computed_r.module();
-	if(dist > this->_rcut) return 0.;
+	if(dist > _rcut) return 0.;
 
-	number energy = this->_query_mesh(dist, _non_bonded_mesh) - _Ecut;
+	number energy = _query_mesh(dist, _non_bonded_mesh) - _Ecut;
 
 	if(dist < _non_bonded_mesh.xlow) fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _non_bonded_mesh.xlow);
 
 	if(update_forces) {
-		number force_mod = -this->_query_meshD(dist, _non_bonded_mesh);
+		number force_mod = -_query_meshD(dist, _non_bonded_mesh);
 		LR_vector force = _computed_r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;

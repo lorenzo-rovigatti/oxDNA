@@ -14,8 +14,8 @@ using namespace std;
 
 LevyInteraction::LevyInteraction() :
 				BaseInteraction<LevyInteraction>() {
-	this->_int_map[BONDED] = &LevyInteraction::pair_interaction_bonded;
-	this->_int_map[NONBONDED] = &LevyInteraction::pair_interaction_nonbonded;
+	_int_map[BONDED] = &LevyInteraction::pair_interaction_bonded;
+	_int_map[NONBONDED] = &LevyInteraction::pair_interaction_nonbonded;
 
 	_N_tetramers = _N_dimers = _N_monomers = 0;
 	_N_per_tetramer = 5;
@@ -56,19 +56,19 @@ void LevyInteraction::init() {
 	_patch_E_cut = -1.001f * _epsilon * expf(-(number) 0.5f * r8b10 * _sqr_patch_rcut);
 	_patch_monomer_E_cut = -1.001f * _monomer_epsilon * expf(-(number) 0.5f * r8b10 * _sqr_patch_rcut);
 
-	this->_rcut = 0;
+	_rcut = 0;
 	for(int i = 0; i < 3; i++) {
 		number rcut = _sigma[i] * 1.05 + patch_rcut;
-		if(rcut > this->_rcut) this->_rcut = rcut;
+		if(rcut > _rcut) _rcut = rcut;
 		_sqr_tot_rcut[i] = SQR(rcut);
 		_sqr_sigma[i] = SQR(_sigma[i]);
 		_E_cut[i] = powf((number) _sigma[i] / rcut, _patchy_power);
 	}
 
-	this->_sqr_rcut = SQR(this->_rcut);
+	_sqr_rcut = SQR(_rcut);
 
-	this->_generate_consider_bonded_interactions = true;
-	this->_generate_bonded_cutoff = sqrt(_fene_sqr_r0);
+	_generate_consider_bonded_interactions = true;
+	_generate_bonded_cutoff = sqrt(_fene_sqr_r0);
 }
 
 void LevyInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
@@ -144,8 +144,8 @@ void LevyInteraction::allocate_particles(std::vector<BaseParticle *> &particles)
 }
 
 void LevyInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
-	std::ifstream topology(this->_topology_filename, ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	std::ifstream topology(_topology_filename, ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	char line[2048];
 	topology.getline(line, 2048);
 	sscanf(line, "%*d %d %d %d\n", &_N_tetramers, &_N_dimers, &_N_monomers);
@@ -157,7 +157,7 @@ void LevyInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> 
 }
 
 number LevyInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 
 	if(sqr_r > _fene_sqr_r0) {
 		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)\n", p->index, q->index, sqrt(sqr_r), sqrt(_fene_sqr_r0));
@@ -170,15 +170,15 @@ number LevyInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, 
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
 		number force_mod = -_fene_K * _fene_sqr_r0 / (_fene_sqr_r0 - sqr_r);
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	return energy;
 }
 
 number LevyInteraction::_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	int type = p->type + q->type;
 	int btype = p->btype + q->btype;
 	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
@@ -189,7 +189,7 @@ number LevyInteraction::_two_body(BaseParticle *p, BaseParticle *q, bool compute
 	energy = part - _E_cut[type];
 
 	if(update_forces) {
-		LR_vector force = *r * (_patchy_power * part / sqr_r);
+		LR_vector force = _computed_r * (_patchy_power * part / sqr_r);
 		p->force -= force;
 		q->force += force;
 	}
@@ -199,7 +199,7 @@ number LevyInteraction::_two_body(BaseParticle *p, BaseParticle *q, bool compute
 		LR_vector ppatch = p->int_centers[0];
 		LR_vector qpatch = q->int_centers[0];
 
-		LR_vector patch_dist = *r + qpatch - ppatch;
+		LR_vector patch_dist = _computed_r + qpatch - ppatch;
 		number sqr_dist = patch_dist.norm();
 		if(sqr_dist < _sqr_patch_rcut) {
 			number interaction_strength = _epsilon;
@@ -238,8 +238,8 @@ number LevyInteraction::_three_body(BaseParticle *p, BaseParticle *n3, BaseParti
 		else curr_lin_k = _terminal_lin_k;
 	}
 
-	LR_vector dist_pn3 = this->_box->min_image(p->pos, n3->pos);
-	LR_vector dist_pn5 = this->_box->min_image(n5->pos, p->pos);
+	LR_vector dist_pn3 = _box->min_image(p->pos, n3->pos);
+	LR_vector dist_pn5 = _box->min_image(n5->pos, p->pos);
 
 	number sqr_dist_pn3 = dist_pn3.norm();
 	number sqr_dist_pn5 = dist_pn5.norm();
@@ -261,21 +261,25 @@ number LevyInteraction::_three_body(BaseParticle *p, BaseParticle *n3, BaseParti
 }
 
 number LevyInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(p->is_bonded(q)) {
+		return pair_interaction_bonded(p, q, compute_r, update_forces);
+	}
+	else {
+		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number LevyInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(!p->is_bonded(q)) return 0.;
-
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = q->pos - p->pos;
-		r = &computed_r;
+	if(!p->is_bonded(q)) {
+		return 0.;
 	}
 
-	number energy = _fene(p, q, compute_r, update_forces);
-	energy += _two_body(p, q, compute_r, update_forces);
+	if(compute_r) {
+		_computed_r = q->pos - p->pos;
+	}
+
+	number energy = _fene(p, q, false, update_forces);
+	energy += _two_body(p, q, false, update_forces);
 
 	if(p->n3 == q && p->n5 != NULL) energy += _three_body(p, p->n3, p->n5, update_forces);
 	if(p->n5 == q && p->n3 != NULL) energy += _three_body(p, p->n3, p->n5, update_forces);
@@ -293,13 +297,11 @@ number LevyInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q
 number LevyInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return 0.f;
 
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _two_body(p, q, compute_r, update_forces);
+	return _two_body(p, q, false, update_forces);
 }
 
 void LevyInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

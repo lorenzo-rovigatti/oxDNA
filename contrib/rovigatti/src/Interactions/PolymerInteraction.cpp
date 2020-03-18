@@ -5,8 +5,8 @@
 
 PolymerInteraction::PolymerInteraction() :
 				BaseInteraction<PolymerInteraction>() {
-	this->_int_map[BONDED] = &PolymerInteraction::pair_interaction_bonded;
-	this->_int_map[NONBONDED] = &PolymerInteraction::pair_interaction_nonbonded;
+	_int_map[BONDED] = &PolymerInteraction::pair_interaction_bonded;
+	_int_map[NONBONDED] = &PolymerInteraction::pair_interaction_nonbonded;
 
 	_rfene = 1.5;
 }
@@ -26,7 +26,7 @@ void PolymerInteraction::get_settings(input_file &inp) {
 		_Polymer_lambda = 0.;
 	}
 
-	getInputNumber(&inp, "Polymer_rcut", &this->_rcut, 1);
+	getInputNumber(&inp, "Polymer_rcut", &_rcut, 1);
 }
 
 void PolymerInteraction::init() {
@@ -35,17 +35,19 @@ void PolymerInteraction::init() {
 	number rep_rcut = pow(2., 1. / 6.);
 	_Polymer_sqr_rep_rcut = SQR(rep_rcut);
 	OX_LOG(Logger::LOG_INFO, "Polymer: repulsive rcut: %lf (%lf)", rep_rcut, _Polymer_sqr_rep_rcut);
-	this->_sqr_rcut = SQR(this->_rcut);
+	_sqr_rcut = SQR(_rcut);
 
-	number part = CUB(1. / this->_sqr_rcut);
+	number part = CUB(1. / _sqr_rcut);
 	_Polymer_lambda_E_cut = 4 * _Polymer_lambda * part * (part - 1.);
 }
 
 number PolymerInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	if(sqr_r > _sqr_rfene) {
-		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)\n", p->index, q->index, sqrt(sqr_r), sqrt(_sqr_rfene));
-		this->set_is_infinite(true);
+		if(update_forces) {
+			throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)\n", p->index, q->index, sqrt(sqr_r), sqrt(_sqr_rfene));
+		}
+		set_is_infinite(true);
 		return 10e10;
 	}
 
@@ -55,8 +57,8 @@ number PolymerInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_
 		// this number is the module of the force over r, so we don't have to divide the distance
 		// vector by its module
 		number force_mod = -30. * _sqr_rfene / (_sqr_rfene - sqr_r);
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	return energy;
@@ -65,9 +67,11 @@ number PolymerInteraction::_fene(BaseParticle *p, BaseParticle *q, bool compute_
 number PolymerInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	int int_type = q->type + p->type;
 
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	// cut-off for the telechelic monomers
-	if(sqr_r > this->_sqr_rcut) return (number) 0.;
+	if(sqr_r > _sqr_rcut) {
+		return (number) 0.;
+	}
 
 	// this number is the module of the force over r, so we don't have to divide the distance
 	// vector for its module
@@ -98,16 +102,20 @@ number PolymerInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool com
 
 	if(update_forces) {
 		if(sqr_r < 0.5) force_mod = 1000.;
-		p->force -= *r * force_mod;
-		q->force += *r * force_mod;
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
 	}
 
 	return energy;
 }
 
 number PolymerInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, compute_r, update_forces);
-	else return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	if(p->is_bonded(q)) {
+		return pair_interaction_bonded(p, q, compute_r, update_forces);
+	}
+	else {
+		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
 number PolymerInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -117,20 +125,18 @@ number PolymerInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle
 	if(q == P_VIRTUAL) {
 		TSPParticle *TSPp = (TSPParticle *) p;
 		for(auto neigh: TSPp->bonded_neighs) {
-			energy += pair_interaction_bonded(p, neigh, r, update_forces);
+			energy += pair_interaction_bonded(p, neigh, true, update_forces);
 		}
 	}
 	else if(p->is_bonded(q)) {
-		LR_vector computed_r;
-		if(r == NULL) {
+		if(compute_r) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
-				computed_r = q->pos - p->pos;
-				r = &computed_r;
+				_computed_r = q->pos - p->pos;
 			}
 		}
 
-		energy = _fene(p, q, compute_r, update_forces);
-		energy += _nonbonded(p, q, compute_r, update_forces);
+		energy = _fene(p, q, false, update_forces);
+		energy += _nonbonded(p, q, false, update_forces);
 	}
 
 	return energy;
@@ -139,13 +145,11 @@ number PolymerInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle
 number PolymerInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return (number) 0.f;
 
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _nonbonded(p, q, compute_r, update_forces);
+	return _nonbonded(p, q, false, update_forces);
 }
 
 void PolymerInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
@@ -183,8 +187,8 @@ void PolymerInteraction::allocate_particles(std::vector<BaseParticle *> &particl
 int PolymerInteraction::get_N_from_topology() {
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	topology.open(_topology_filename, std::ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 
 	topology.getline(line, 512);
 
@@ -210,9 +214,9 @@ void PolymerInteraction::read_topology(int *N_chains, std::vector<BaseParticle *
 	int my_N_chains;
 	char line[512];
 	std::ifstream topology;
-	topology.open(this->_topology_filename, std::ios::in);
+	topology.open(_topology_filename, std::ios::in);
 
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 
 	topology.getline(line, 512);
 	sscanf(line, "%d\n", &my_N_chains);
@@ -269,8 +273,8 @@ void PolymerInteraction::read_topology(int *N_chains, std::vector<BaseParticle *
 }
 
 void PolymerInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
-	this->_generate_consider_bonded_interactions = true;
-	this->_generate_bonded_cutoff = _rfene;
+	_generate_consider_bonded_interactions = true;
+	_generate_bonded_cutoff = _rfene;
 	IBaseInteraction::generate_random_configuration(particles);
 }
 

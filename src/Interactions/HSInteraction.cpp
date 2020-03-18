@@ -48,7 +48,7 @@ number HSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _hs_pot(p, q, compute_r, update_forces);
+	return _hs_pot(p, q, false, update_forces);
 }
 
 void HSInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {

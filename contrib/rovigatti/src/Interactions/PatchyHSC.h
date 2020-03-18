@@ -47,14 +47,14 @@ number PatchyHSC::_patchy(BaseParticle *p, BaseParticle *q, bool compute_r, bool
 	number energy = 0.;
 	// here we try pp + pq and -(pp + pq)
 	LR_vector ppq = p->int_centers[0] + q->int_centers[0];
-	energy += _patchy_energy(*r + ppq);
-	energy += _patchy_energy(*r - ppq);
+	energy += _patchy_energy(_computed_r + ppq);
+	energy += _patchy_energy(_computed_r - ppq);
 	if(energy < 0.) return energy;
 
 	// and here pp - pq and -(pp - pq)
 	LR_vector pmq = p->int_centers[0] - q->int_centers[0];
-	energy += _patchy_energy(*r + pmq);
-	energy += _patchy_energy(*r - pmq);
+	energy += _patchy_energy(_computed_r + pmq);
+	energy += _patchy_energy(_computed_r - pmq);
 
 	return energy;
 }

@@ -627,7 +627,7 @@ number PatchyInteractionDan::pair_interaction_nonbonded(BaseParticle *p, BasePar
 		_computed_r = this->_box->min_image(p->pos, q->pos);
 	}
 
-	return _patchy_interaction(p, q, compute_r, update_forces);
+	return _patchy_interaction(p, q, false, update_forces);
 }
 
 void PatchyInteractionDan::check_input_sanity(std::vector<BaseParticle*> &particles) {
