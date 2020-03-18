@@ -48,7 +48,8 @@ std::string YasutakaAnalysis::_particle(BaseParticle *p) {
 	std::vector<BaseParticle *> particles = _config_info->lists->get_all_neighbours(p);
 	for(auto q: particles) {
 		LR_vector r = _config_info->box->min_image(p->pos, q->pos);
-		if(_config_info->interaction->pair_interaction(p, q, &r) < _threshold) {
+		_config_info->interaction->set_computed_r(r);
+		if(_config_info->interaction->pair_interaction(p, q, false) < _threshold) {
 			bonded_neighs++;
 			avg_angle += LRACOS(4. * (q->int_centers[0] * p->int_centers[0]));
 		}

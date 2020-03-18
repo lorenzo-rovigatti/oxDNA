@@ -178,7 +178,7 @@ SET(common_SOURCES
 	Utilities/oxDNAException.cpp
 	Utilities/Logger.cpp
 	Utilities/parse_input/parse_input.cpp
-	Utilities/time_scales/time_scales.c
+	Utilities/time_scales/time_scales.cpp
 	Utilities/SignalManager.cpp
 	Utilities/ConfigInfo.cpp
 	PluginManagement/PluginManager.cpp

@@ -1,9 +1,8 @@
 /**
  * @file    time_scales.h
  *
- *
- *
  */
+
 #ifndef TIME_SCALES_H_
 #define TIME_SCALES_H_
 
