@@ -23,8 +23,13 @@ The following snippet imports the `oxpy` module, initialises the simulation mach
 	
 	    # do some computation with the current configuration
 	    particles = manager.config_info().particles()
+	    
+	    # compute the average position
 	    avg_pos = np.average(list(map(lambda p: p.pos, particles)), axis=0)
 	    print("Average final position:", avg_pos)
+	    
+	    # and the interaction energy between the first two particles
+	    print("Interaction energy between particle 0 and particle 1:", manager.config_info().interaction.pair_interaction(particles[0], particles[1]))
 	
 ## Library API
 

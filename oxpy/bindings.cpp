@@ -222,19 +222,44 @@ public:
 
 void export_IBaseInteraction(py::module &m) {
 	pybind11::class_<IBaseInteraction, PyIBaseInteraction, std::shared_ptr<IBaseInteraction>> interaction(m, "IBaseInteraction", R"pbdoc(
-		The object that takes care of computing the interaction between the particles.
+		The class that takes care of computing the interaction between the particles.
 	)pbdoc");
 
 	interaction.def(py::init<>(), R"pbdoc(
 		The default constructor takes no parameters. 
 	)pbdoc");
+	interaction.def("set_computed_r", &IBaseInteraction::set_computed_r, py::arg("r"), R"pbdoc(
+        Set the distance vector used by the `pair_interaction_*` methods when they are called with `compute_r = False` (see :meth:`pair_interaction` for additional details).
+
+        Parameters
+        ----------
+        r : numpy.ndarray
+            The distance vector to be stored.
+	)pbdoc");
 	interaction.def("pair_interaction", &IBaseInteraction::pair_interaction, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
         Compute the pair interaction between p and q.
+
+        Parameters
+        ----------
+        p : :class:`BaseParticle`
+            The first particle of the pair. Note that some interactions require that the two particles are passed to the method with a specific order.
+        q : :class:`BaseParticle`
+            The second particle of the pair.
+        compute_r : bool
+            If True (default value), the distance between :attr:`p` and :attr:`q` will be computed from scratch. If not, it will use a private member that can be
+            set through the :meth:`set_computed_r` method.
+        update_forces : bool
+            If True, the forces and torques acting on the two particles will be updated (defaults to False).
+
+        Returns
+        -------
+        float
+            The energy of the pair interaction.
     )pbdoc");
 	interaction.def("pair_interaction_bonded", &IBaseInteraction::pair_interaction_bonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
-        Compute the bonded pair interaction between p and q.
+        Compute the bonded pair interaction between p and q. See :meth:`pair_interaction` for details on the parameters and on the return value.
 	)pbdoc");
 	interaction.def("pair_interaction_nonbonded", &IBaseInteraction::pair_interaction_nonbonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
-        Compute the unbonded pair interaction between p and q.
+        Compute the unbonded pair interaction between p and q. See :meth:`pair_interaction` for details on the parameters and on the return value.
 	)pbdoc");
 }

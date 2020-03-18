@@ -174,8 +174,13 @@
 
     <span class="c1"># do some computation with the current configuration</span>
     <span class="n">particles</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">particles</span><span class="p">()</span>
+    
+    <span class="c1"># compute the average position</span>
     <span class="n">avg_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">particles</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average final position:&quot;</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
+    
+    <span class="c1"># and the interaction energy between the first two particles</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interaction energy between particle 0 and particle 1:&quot;</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">pair_interaction</span><span class="p">(</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">particles</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>
