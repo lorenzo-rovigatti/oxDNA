@@ -65,7 +65,9 @@ char Utils::encode_base(int b) {
 
 std::vector<std::string> Utils::split(const string &s, char delim) {
 	string s_copy(s);
-	if(delim == ' ') Utils::trim(s_copy);
+	if(delim == ' ') {
+		Utils::trim(s_copy);
+	}
 	std::vector<string> elems;
 	std::stringstream ss(s_copy);
 	string item;
@@ -73,7 +75,9 @@ std::vector<std::string> Utils::split(const string &s, char delim) {
 	while(getline(ss, item, delim)) {
 		if(delim == ' ') {
 			Utils::trim(item);
-			if(item.length() > 0) elems.push_back(item);
+			if(item.length() > 0) {
+				elems.push_back(item);
+			}
 		}
 		else elems.push_back(item);
 	}

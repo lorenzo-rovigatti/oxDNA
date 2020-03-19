@@ -181,7 +181,6 @@ public:
 	 * @param particles pointer to array of particle pointers
 	 * @param N number of particles
 	 */
-	
 	static void stop_com(std::vector<BaseParticle *> &particles);
 
 	/**
@@ -191,7 +190,6 @@ public:
 	 * @param particles_string string to process
 	 * @param identifier the identifier of the calling item (to display to the user in case problems arise).
 	 */
-	
 	static std::vector<int> getParticlesFromString(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier);
 
 	/**
