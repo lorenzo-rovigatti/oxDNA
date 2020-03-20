@@ -10,14 +10,16 @@
 #include "OxpyContext.h"
 #include "OxpyManager.h"
 
-#include <Particles/BaseParticle.h>
 #include <Interactions/BaseInteraction.h>
+#include <Observables/BaseObservable.h>
+#include <Particles/BaseParticle.h>
 #include <Utilities/ConfigInfo.h>
 #include "vector_matrix_casters.h"
 
+void export_BaseObservable(py::module &m);
 void export_BaseParticle(py::module &m);
-void export_IBaseInteraction(py::module &m);
 void export_ConfigInfo(py::module &m);
+void export_IBaseInteraction(py::module &m);
 
 PYBIND11_MODULE(core, m) {
 	export_OxpyContext(m);
@@ -25,13 +27,73 @@ PYBIND11_MODULE(core, m) {
 	export_SimManager(m);
 	export_OxpyManager(m);
 
+	export_BaseObservable(m);
 	export_BaseParticle(m);
-	export_IBaseInteraction(m);
 	export_ConfigInfo(m);
+	export_IBaseInteraction(m);
+}
+
+// trampoline class for BaseObservable
+class PyBaseObservable : public BaseObservable {
+public:
+	using BaseObservable::BaseObservable;
+
+	std::string get_output_string(llint curr_step) override {
+		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
+				std::string,
+				BaseObservable,
+				get_output_string,
+				curr_step
+		);
+	}
+};
+
+void export_BaseObservable(py::module &m) {
+	py::class_<BaseObservable, PyBaseObservable, std::shared_ptr<BaseObservable>> obs(m, "BaseObservable", R"pbdoc(
+		The interface class for observables.
+	)pbdoc");
+
+	obs.def(py::init<>(), R"pbdoc(
+        The default constructor takes no parameters.
+	)pbdoc");
+
+	obs.def("get_settings", &BaseObservable::get_settings, py::arg("my_inp"), py::arg("sim_inp"), R"pbdoc(
+		Computes the quantity/quantities of interest and returns the output string.
+
+		Parameters
+		---------- 
+		my_inp: :class:`input_file`
+			The input file of the observable.
+		sim_inp: :class:`input_file`
+			The general input file of the simulation.
+	)pbdoc");
+
+	obs.def("init", &BaseObservable::init, py::arg("config_info"), R"pbdoc(
+		Initialises the observable.
+
+		Parameters
+		---------- 
+		config_info: :class:`ConfigInfo`
+			The singleton object storing the simulation details.
+	)pbdoc");
+
+	obs.def("get_output_string", &BaseObservable::get_output_string, py::arg("curr_step"), R"pbdoc(
+		Computes the quantity/quantities of interest and returns the output string.
+
+        Parameters
+        ---------- 
+        curr_step: int
+            The current simulation step.
+
+        Returns
+        -------
+        str
+            The output of the observable.
+	)pbdoc");
 }
 
 void export_BaseParticle(py::module &m) {
-	pybind11::class_<BaseParticle, std::shared_ptr<BaseParticle>> particle(m, "BaseParticle", R"pbdoc(
+	py::class_<BaseParticle, std::shared_ptr<BaseParticle>> particle(m, "BaseParticle", R"pbdoc(
         A simulation particle.
 	)pbdoc");
 
@@ -45,6 +107,11 @@ void export_BaseParticle(py::module &m) {
         ----------
         q: :class:`BaseParticle`
             The other Particle.
+
+        Returns
+        -------
+        bool
+            True if the current particle and :attr:`q` are bonded neighbours.
     )pbdoc");
 	particle.def_readwrite("index", &BaseParticle::index, R"pbdoc(
         The index of the particle.
@@ -79,16 +146,16 @@ void export_BaseParticle(py::module &m) {
 	particle.def_readwrite("ext_potential", &BaseParticle::ext_potential, R"pbdoc(
 		The potential energy due to the external forces acting on the particle.
 	)pbdoc");
-	particle.def_readwrite("n3", &BaseParticle::n3, pybind11::return_value_policy::reference, R"pbdoc(
+	particle.def_readwrite("n3", &BaseParticle::n3, py::return_value_policy::reference, R"pbdoc(
 		The n3 neighbour.
 	)pbdoc");
-	particle.def_readwrite("n5", &BaseParticle::n5, pybind11::return_value_policy::reference, R"pbdoc(
+	particle.def_readwrite("n5", &BaseParticle::n5, py::return_value_policy::reference, R"pbdoc(
 		The n5 neighbour.
 	)pbdoc");
 }
 
 void export_ConfigInfo(py::module &m) {
-	pybind11::class_<ConfigInfo, std::shared_ptr<ConfigInfo>> conf_info(m, "ConfigInfo", R"pbdoc(
+	py::class_<ConfigInfo, std::shared_ptr<ConfigInfo>> conf_info(m, "ConfigInfo", R"pbdoc(
 		 This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction) 
 	)pbdoc");
 
@@ -100,7 +167,7 @@ void export_ConfigInfo(py::module &m) {
          int
              The number of particles in the simulation box.
 	)pbdoc");
-	conf_info.def("particles", &ConfigInfo::particles, pybind11::return_value_policy::reference, R"pbdoc(
+	conf_info.def("particles", &ConfigInfo::particles, py::return_value_policy::reference, R"pbdoc(
 		 Return a list of all the particles.
 
          Returns
@@ -221,7 +288,7 @@ public:
 };
 
 void export_IBaseInteraction(py::module &m) {
-	pybind11::class_<IBaseInteraction, PyIBaseInteraction, std::shared_ptr<IBaseInteraction>> interaction(m, "IBaseInteraction", R"pbdoc(
+	py::class_<IBaseInteraction, PyIBaseInteraction, std::shared_ptr<IBaseInteraction>> interaction(m, "IBaseInteraction", R"pbdoc(
 		The class that takes care of computing the interaction between the particles.
 	)pbdoc");
 
