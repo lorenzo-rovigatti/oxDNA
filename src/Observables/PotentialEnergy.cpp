@@ -17,8 +17,13 @@ PotentialEnergy::~PotentialEnergy() {
 }
 
 number PotentialEnergy::get_potential_energy() {
+	_config_info->interaction->set_is_infinite(false);
 	number energy = _config_info->interaction->get_system_energy(_config_info->particles(), _config_info->lists);
 	energy /= _config_info->N();
+
+	if(_config_info->interaction->get_is_infinite()) {
+		OX_LOG(Logger::LOG_WARNING, "The computation of the total potential energy raised the 'is_infinite' flag");
+	}
 
 	return energy;
 }
@@ -35,9 +40,9 @@ std::string PotentialEnergy::get_output_string(llint curr_step) {
 	}
 	else {
 		std::string res("");
-		std::map<int, number> energies = _config_info->interaction->get_system_energy_split(_config_info->particles(), _config_info->lists);
-		for(auto it = energies.begin(); it != energies.end(); it++) {
-			number contrib = it->second / _config_info->N();
+		auto energies = _config_info->interaction->get_system_energy_split(_config_info->particles(), _config_info->lists);
+		for(auto energy_item : energies) {
+			number contrib = energy_item.second / _config_info->N();
 			res = Utils::sformat("%s % 10.6lf", res.c_str(), contrib);
 		}
 

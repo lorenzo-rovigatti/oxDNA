@@ -79,7 +79,7 @@ void ConstructwisePressure::update_pressure() {
 
 			p->force = q->force = p->torque = q->torque = LR_vector();
 
-			energy += (double) _config_info->interaction->pair_interaction(p, q, NULL, true);
+			energy += (double) _config_info->interaction->pair_interaction(p, q, false, true);
 
 			virial -= (r * p->force);
 

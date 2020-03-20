@@ -342,6 +342,7 @@ number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, 
 
 		_stress_tensor = vector<vector<number>>(3, vector<number>(3, (number) 0));
 		_needs_reset = false;
+		return 0.;
 	}
 
 	number energy = 0.;

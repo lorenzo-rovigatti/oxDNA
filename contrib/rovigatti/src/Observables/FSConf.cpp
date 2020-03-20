@@ -125,10 +125,10 @@ string FSConf::_configuration(llint step) {
 		for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
 			number energy;
 			if(_energy_term_id == -1) {
-				energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+				energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second);
 			}
 			else {
-				energy = _config_info->interaction->pair_interaction_term(_energy_term_id, it->first, it->second, NULL);
+				energy = _config_info->interaction->pair_interaction_term(_energy_term_id, it->first, it->second);
 			}
 			if(energy < _bond_threshold) {
 				_bonds[it->first->index][it->second->index]++;

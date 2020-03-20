@@ -109,7 +109,7 @@ string MGAssemblyConf::_configuration(llint step) {
 	vector<ParticlePair> inter_pairs = _config_info->lists->get_potential_interactions();
 
 	for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
-		number energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+		number energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second);
 		if(energy < _bond_threshold) {
 			_bonds[it->first->index][it->second->index]++;
 			_bonds[it->second->index][it->first->index]++;

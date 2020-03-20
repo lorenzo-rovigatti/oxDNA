@@ -26,13 +26,11 @@ MD_CPUBackend::~MD_CPUBackend() {
 }
 
 void MD_CPUBackend::_first_step(llint curr_step) {
-	bool is_warning = false;
 	std::vector<int> w_ps;
-	for(auto p: _particles) {
+	for(auto p : _particles) {
 		p->vel += p->force * (_dt * (number) 0.5);
 		LR_vector dr = p->vel * _dt;
 		if(dr.norm() > 0.01) {
-			is_warning = true;
 			w_ps.push_back(p->index);
 		}
 		p->pos += dr;
@@ -87,44 +85,48 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 		_lists->single_update(p);
 	}
 
-	if(is_warning) {
+	if(w_ps.size() > 0) {
 		std::stringstream ss;
-		for(vector<int>::iterator it = w_ps.begin(); it != w_ps.end(); it++)
-			ss << *it << " ";
+		for(auto idx : w_ps) {
+			ss << idx << " ";
+		}
 		OX_LOG(Logger::LOG_WARNING, "The following particles had a displacement greater than 0.1 in this step: %s", ss.str().c_str());
 	}
 }
 
 void MD_CPUBackend::_compute_forces() {
 	_U = _U_hydr = (number) 0;
-	for(auto p: _particles) {
-		typename vector<ParticlePair>::iterator it = p->affected.begin();
-		for(; it != p->affected.end(); it++) {
-			if(it->first == p) {
-				_U += _interaction->pair_interaction_bonded(it->first, it->second, true, true);
+	for(auto p : _particles) {
+		for(auto &pair : p->affected) {
+			if(pair.first == p) {
+				_U += _interaction->pair_interaction_bonded(pair.first, pair.second, true, true);
 			}
 		}
 
-		std::vector<BaseParticle *> neighs = _lists->get_neigh_list(p);
-		for(unsigned int n = 0; n < neighs.size(); n++) {
-			BaseParticle *q = neighs[n];
+		for(auto q : _lists->get_neigh_list(p)) {
 			if(!_compute_stress_tensor) {
 				_U += _interaction->pair_interaction_nonbonded(p, q, true, true);
 			}
-			else _update_forces_and_stress_tensor(p, q);
+			else {
+				_update_forces_and_stress_tensor(p, q);
+			}
 		}
 	}
 }
 
 void MD_CPUBackend::_second_step() {
 	_K = (number) 0.f;
-	for(auto p: _particles) {
+	for(auto p : _particles) {
 		p->vel += p->force * _dt * (number) 0.5f;
-		if(p->is_rigid_body()) p->L += p->torque * _dt * (number) 0.5f;
+		if(p->is_rigid_body()) {
+			p->L += p->torque * _dt * (number) 0.5f;
+		}
 
 		_K += (p->vel.norm() + p->L.norm()) * (number) 0.5f;
 
-		if(_compute_stress_tensor) _update_kinetic_stress_tensor(p);
+		if(_compute_stress_tensor) {
+			_update_kinetic_stress_tensor(p);
+		}
 	}
 }
 
@@ -240,7 +242,9 @@ void MD_CPUBackend::get_settings(input_file &inp) {
 	if(_compute_stress_tensor) {
 		OX_LOG(Logger::LOG_INFO, "Computing the stress tensor directly in the backend");
 		getInputInt(&inp, "MD_stress_tensor_avg_every", &_stress_tensor_avg_every, 1);
-		if(_stress_tensor_avg_every < 1) throw oxDNAException("MD_stress_tensor_avg_every should be larger than 0");
+		if(_stress_tensor_avg_every < 1) {
+			throw oxDNAException("MD_stress_tensor_avg_every should be larger than 0");
+		}
 	}
 
 	if(_use_barostat) {
@@ -254,11 +258,12 @@ void MD_CPUBackend::get_settings(input_file &inp) {
 void MD_CPUBackend::init() {
 	MDBackend::init();
 	_thermostat->init();
-	if(_use_barostat) _V_move->init();
+	if(_use_barostat)
+		_V_move->init();
 
 	_compute_forces();
 	if(_compute_stress_tensor) {
-		for(auto p: _particles) {
+		for(auto p : _particles) {
 			_update_kinetic_stress_tensor(p);
 		}
 		_update_backend_info();

@@ -7,6 +7,7 @@ PolymerSwapInteraction::PolymerSwapInteraction() :
 				BaseInteraction<PolymerSwapInteraction>() {
 	_int_map[BONDED] = &PolymerSwapInteraction::pair_interaction_bonded;
 	_int_map[NONBONDED] = &PolymerSwapInteraction::pair_interaction_nonbonded;
+
 }
 
 PolymerSwapInteraction::~PolymerSwapInteraction() {
@@ -20,6 +21,10 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputInt(&inp, "PS_n", &_PS_n, 0);
 	getInputString(&inp, "PS_bond_file", _bond_filename, 1);
 	getInputBool(&inp, "PS_only_links_in_bondfile", &_only_links_in_bondfile, 0);
+
+	getInputNumber(&inp, "PS_3b_sigma", &_3b_sigma, 0);
+	getInputNumber(&inp, "PS_3b_lambda", &_3b_lambda, 0);
+	getInputNumber(&inp, "PS_3b_epsilon", &_3b_epsilon, 0);
 
 	for(int i = 0; i < 3; i++) {
 		std::string key = Utils::sformat("PS_rfene[%d]", i);
@@ -61,6 +66,12 @@ void PolymerSwapInteraction::init() {
 		_PS_beta = 2 * M_PI - _sqr_rfene[0] * _PS_gamma;
 		OX_LOG(Logger::LOG_INFO, "MG: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
 	}
+
+	_3b_rcut = 1.8 * _3b_sigma;
+	_sqr_3b_rcut = SQR(_3b_rcut);
+	number B_ss = 1. / (1. + 4. * SQR(1. - _3b_rcut / _3b_sigma));
+	_3b_A_part = -_3b_epsilon / (B_ss - 1.) / exp(1. / (1. - _3b_rcut / _3b_sigma));
+	_3b_B_part = B_ss * pow(_3b_sigma, 4.);
 }
 
 number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool update_forces) {
@@ -99,40 +110,123 @@ number PolymerSwapInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool
 
 	int int_type = p->type + q->type;
 	// sticky sites don't interact with nonbonded monomers
-	if(!p->is_bonded(q) && int_type > 0) {
+	if(!p->is_bonded(q) && int_type == 1) {
 		return (number) 0.;
 	}
 
-	// this number is the module of the force over r, so we don't have to divide the distance
-	// vector for its module
-	number force_mod = 0;
 	number energy = 0;
-	// cut-off for all the repulsive interactions
-	if(sqr_r < _PS_sqr_rep_rcut[int_type]) {
-		number part = 1.;
-		for(int i = 0; i < _PS_n / 2; i++) {
-			part *= SQR(_WCA_sigma[int_type]) / sqr_r;
+
+	// monomer-monomer
+	if(int_type == 0) {
+		// this number is the module of the force over r, so we don't have to divide the distance
+		// vector for its module
+		number force_mod = 0;
+
+		// cut-off for all the repulsive interactions
+		if(sqr_r < _PS_sqr_rep_rcut[int_type]) {
+			number part = 1.;
+			for(int i = 0; i < _PS_n / 2; i++) {
+				part *= SQR(_WCA_sigma[int_type]) / sqr_r;
+			}
+			energy += 4. * (part * (part - 1.)) + 1. - _PS_alpha;
+			if(update_forces) {
+				force_mod += 4. * _PS_n * part * (2. * part - 1.) / sqr_r;
+			}
 		}
-		energy += 4. * (part * (part - 1.)) + 1. - _PS_alpha;
+		// attraction
+		else if(int_type == 0 && _PS_alpha != 0.) {
+			energy += 0.5 * _PS_alpha * (cos(_PS_gamma * sqr_r + _PS_beta) - 1.0);
+			if(update_forces) {
+				force_mod += _PS_alpha * _PS_gamma * sin(_PS_gamma * sqr_r + _PS_beta);
+			}
+		}
+
 		if(update_forces) {
-			force_mod += 4. * _PS_n * part * (2. * part - 1.) / sqr_r;
+			p->force -= _computed_r * force_mod;
+			q->force += _computed_r * force_mod;
 		}
 	}
-	// attraction
-	else if(int_type == 0 && _PS_alpha != 0.) {
-		energy += 0.5 * _PS_alpha * (cos(_PS_gamma * sqr_r + _PS_beta) - 1.0);
-		if(update_forces) {
-			force_mod += _PS_alpha * _PS_gamma * sin(_PS_gamma * sqr_r + _PS_beta);
+	// sticky-sticky
+	else if(int_type == 2) {
+		if(sqr_r < _sqr_3b_rcut) {
+			number r_mod = sqrt(sqr_r);
+			number exp_part = exp(_3b_sigma / (r_mod - _3b_rcut));
+			number tmp_energy = _3b_A_part * exp_part * (_3b_B_part / SQR(sqr_r) - 1.);
+
+			energy += tmp_energy;
+
+			PSBond p_bond(q, _computed_r, r_mod, tmp_energy);
+			PSBond q_bond(p, -_computed_r, r_mod, tmp_energy);
+
+			if(update_forces) {
+				number force_mod = _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * tmp_energy / SQR(r_mod - _3b_rcut);
+				LR_vector tmp_force = _computed_r * (force_mod / r_mod);
+
+				p->force -= tmp_force;
+				q->force += tmp_force;
+
+				p_bond.force = tmp_force;
+				q_bond.force = -tmp_force;
+			}
+
+			if(!no_three_body) {
+				energy += _three_body(p, p_bond, update_forces);
+				energy += _three_body(q, q_bond, update_forces);
+
+				_bonds[p->index].insert(p_bond);
+				_bonds[q->index].insert(q_bond);
+			}
 		}
 	}
 
-	if(update_forces) {
-		p->force -= _computed_r * force_mod;
-		q->force += _computed_r * force_mod;
-	}
+	return energy;
+}
 
-	if(energy > 100) {
-		printf("%d %d %lf %d\n", p->index, q->index, sqrt(sqr_r), int_type);
+number PolymerSwapInteraction::_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces) {
+	number energy = 0.;
+	_needs_reset = true;
+
+	for(auto &other_bond : _bonds[p->index]) {
+		if(other_bond.other != new_bond.other) {
+			number curr_energy = -new_bond.energy;
+			if(new_bond.r_mod < _3b_sigma) {
+				curr_energy = 1.;
+			}
+
+			number other_energy = -other_bond.energy;
+			if(other_bond.r_mod < _3b_sigma) {
+				other_energy = 1.;
+			}
+
+			energy += _3b_lambda * curr_energy * other_energy;
+
+			if(update_forces) {
+				if(new_bond.r_mod > _3b_sigma) {
+					BaseParticle *other = new_bond.other;
+
+					number factor = -_3b_lambda * other_energy;
+					LR_vector tmp_force = factor * new_bond.force;
+
+					p->force -= tmp_force;
+					other->force += tmp_force;
+
+					p->torque -= factor * new_bond.p_torque;
+					other->torque += factor * new_bond.q_torque;
+				}
+
+				if(other_bond.r_mod > _3b_sigma) {
+					BaseParticle *other = other_bond.other;
+
+					number factor = -_3b_lambda * curr_energy;
+
+					p->force -= factor * other_bond.force;
+					other->force += factor * other_bond.force;
+
+					p->torque -= factor * other_bond.p_torque;
+					other->torque += factor * other_bond.q_torque;
+				}
+			}
+		}
 	}
 
 	return energy;
@@ -148,6 +242,13 @@ number PolymerSwapInteraction::pair_interaction(BaseParticle *p, BaseParticle *q
 }
 
 number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	// we set up a fake sticky-sticky bonded interaction at the beginning just to reset some data structures at every step
+	if((p->type + q->type == 2) && _needs_reset) {
+		_bonds.clear();
+		_needs_reset = false;
+		return 0.;
+	}
+
 	number energy = (number) 0.f;
 
 	if(p->is_bonded(q)) {
@@ -178,10 +279,10 @@ number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseP
 
 void PolymerSwapInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 	for(uint i = 0; i < particles.size(); i++) {
-		CustomParticle *p = static_cast<CustomParticle*>(particles[i]);
-		for(typename std::set<CustomParticle*>::iterator it = p->bonded_neighs.begin(); it != p->bonded_neighs.end(); it++) {
+		/*CustomParticle *p = static_cast<CustomParticle*>(particles[i]);
+		for(auto q : p->bonded_neighs) {
 
-		}
+		}*/
 	}
 }
 
@@ -211,6 +312,12 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 	topology.close();
 
 	OX_LOG(Logger::LOG_INFO, "PolymerSwap: %d sticky particles found in the topology", sticky_particles.size());
+
+	// if there are more than 2 sticky particles, 3 body interactions are possible. We need to have a fake bonded interaction
+	// between sticky sites to reset some data structures
+	if(sticky_particles.size() > 2) {
+		particles[sticky_particles[0]]->affected.push_back(ParticlePair(particles[sticky_particles[0]], particles[sticky_particles[1]]));
+	}
 
 	std::ifstream bond_file(_bond_filename.c_str());
 
@@ -260,8 +367,7 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		for(int j = 0; j < n_bonds; j++) {
 			int n_idx;
 			bond_file >> n_idx;
-			// the >> operator always leaves '\n', which is subsequently picked up by getline if
-			// we don't explicitly ignore it
+			// the >> operator always leaves '\n', which is subsequently picked up by getline if we don't explicitly ignore it
 			bond_file.ignore();
 			n_idx--;
 			CustomParticle *q = static_cast<CustomParticle*>(particles[n_idx]);

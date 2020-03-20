@@ -59,12 +59,13 @@ number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particle
 	double energy = 0.;
 
 	std::vector<ParticlePair> pairs = lists->get_potential_interactions();
-	typename std::vector<ParticlePair>::iterator it;
-	for(it = pairs.begin(); it != pairs.end(); it++) {
-		BaseParticle *p = (*it).first;
-		BaseParticle *q = (*it).second;
+	for(auto &pair : pairs) {
+		BaseParticle *p = pair.first;
+		BaseParticle *q = pair.second;
 		energy += (double) pair_interaction(p, q);
-		if(get_is_infinite()) return energy;
+		if(get_is_infinite()) {
+			return energy;
+		}
 	}
 
 	return (number) energy;

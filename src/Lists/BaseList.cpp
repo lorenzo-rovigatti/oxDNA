@@ -29,10 +29,13 @@ std::vector<BaseParticle *> BaseList::get_all_neighbours(BaseParticle *p) {
 	std::vector<BaseParticle *> neighs = get_complete_neigh_list(p);
 
 	std::set<BaseParticle *> bonded_neighs;
-	typename std::vector<ParticlePair >::iterator it = p->affected.begin();
-	for(; it != p->affected.end(); it++) {
-		if(it->first != p) bonded_neighs.insert(it->first);
-		if(it->second != p) bonded_neighs.insert(it->second);
+	for(auto &pair : p->affected) {
+		if(pair.first != p) {
+			bonded_neighs.insert(pair.first);
+		}
+		if(pair.second != p) {
+			bonded_neighs.insert(pair.second);
+		}
 	}
 
 	neighs.insert(neighs.end(), bonded_neighs.begin(), bonded_neighs.end());
@@ -42,14 +45,13 @@ std::vector<BaseParticle *> BaseList::get_all_neighbours(BaseParticle *p) {
 std::vector<ParticlePair > BaseList::get_potential_interactions() {
 	std::vector<ParticlePair > list;
 
-	for(uint i = 0; i < _particles.size(); i++) {
-		BaseParticle *p = _particles[i];
+	for(auto p : _particles) {
 //		std::vector<BaseParticle *> neighs = std::move(get_all_neighbours(p));
 		std::vector<BaseParticle *> neighs = get_all_neighbours(p);
-		typename std::vector<BaseParticle *>::iterator it = neighs.begin();
-		for(; it != neighs.end(); it++) {
-			BaseParticle *q = *it;
-			if(p->index > q->index) list.push_back(ParticlePair(p, q));
+		for(auto q : neighs) {
+			if(p->index > q->index) {
+				list.push_back(ParticlePair(p, q));
+			}
 		}
 	}
 

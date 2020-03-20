@@ -6,6 +6,29 @@
 #include <vector>
 #include <array>
 
+struct PSBond {
+	BaseParticle *other;
+	LR_vector r;
+	number r_mod;
+	number energy;
+	LR_vector force;
+	LR_vector p_torque, q_torque;
+
+	PSBond(BaseParticle *o, LR_vector my_r, number my_r_mod, number e) :
+					other(o),
+					r(my_r),
+					r_mod(my_r_mod),
+					energy(e) {
+	}
+};
+
+struct PSBondCompare {
+	bool operator()(const PSBond &lhs, const PSBond &rhs) {
+		if(lhs.other->index == rhs.other->index) return false;
+		else return true;
+	}
+};
+
 /**
  * @brief Handles interactions in microgel systems.
  *
@@ -29,12 +52,25 @@ protected:
 	number _PS_gamma = 0.;
 	int _PS_n = 6;
 
+	/// Three-body potential stuff
+	number _3b_rcut = -1.;
+	number _sqr_3b_rcut = -1.;
+	number _3b_sigma = 0.3;
+	number _3b_lambda = 1.0;
+	number _3b_epsilon = 50.;
+	number _3b_A_part = 0.;
+	number _3b_B_part = 0.;
+
+	bool _needs_reset = true;
+	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
+
 	std::string _bond_filename;
 
 	bool _only_links_in_bondfile = true;
 
 	number _fene(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _nonbonded(BaseParticle *p, BaseParticle *q, bool update_forces);
+	number _three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
 
 public:
 	enum {
@@ -43,6 +79,9 @@ public:
 	enum {
 		MONOMER = 0, STICKY = 1
 	};
+
+	bool no_three_body = false;
+
 	PolymerSwapInteraction();
 	virtual ~PolymerSwapInteraction();
 
