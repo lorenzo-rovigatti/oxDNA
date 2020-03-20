@@ -177,6 +177,9 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a></p></td>
 <td><p>This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction)</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.BaseObservable" title="oxpy.core.BaseObservable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseObservable</span></code></a></p></td>
+<td><p>The interface class for observables.</p></td>
+</tr>
 </tbody>
 </table>
 <dl class="class">
@@ -301,6 +304,12 @@ while the others should be key=value pairs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>q</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The other Particle.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the current particle and <code class="xref py py-attr docutils literal notranslate"><span class="pre">q</span></code> are bonded neighbours.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -446,6 +455,58 @@ set through the <a class="reference internal" href="#oxpy.core.IBaseInteraction.
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>List(<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oxpy.core.BaseObservable">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">BaseObservable</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.BaseObservable</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.BaseObservable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>The interface class for observables.</p>
+<p>The default constructor takes no parameters.</p>
+<dl class="method">
+<dt id="oxpy.core.BaseObservable.get_output_string">
+<code class="sig-name descname">get_output_string</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.BaseObservable</em>, <em class="sig-param">curr_step: int</em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#oxpy.core.BaseObservable.get_output_string" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Computes the quantity/quantities of interest and returns the output string.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>curr_step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The current simulation step.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The output of the observable.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.BaseObservable.get_settings">
+<code class="sig-name descname">get_settings</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.BaseObservable</em>, <em class="sig-param">my_inp: input_file</em>, <em class="sig-param">sim_inp: input_file</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.BaseObservable.get_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the quantity/quantities of interest and returns the output string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>my_inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The input file of the observable.</p></li>
+<li><p><strong>sim_inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The general input file of the simulation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.BaseObservable.init">
+<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.BaseObservable</em>, <em class="sig-param">config_info: ConfigInfo</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.BaseObservable.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialises the observable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_info</strong> (<a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a>) – The singleton object storing the simulation details.</p>
 </dd>
 </dl>
 </dd></dl>
