@@ -7,6 +7,7 @@ ELSE()
 ENDIF()
 
 SET(observables_SOURCES
+	Observables/BaseObservable.cpp
 	Observables/ObservableFactory.cpp
 	Observables/ObservableOutput.cpp
 	Observables/Step.cpp

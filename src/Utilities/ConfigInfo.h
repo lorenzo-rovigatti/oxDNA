@@ -89,7 +89,6 @@ public:
 	input_file *sim_input = nullptr;
 };
 
-
 inline std::shared_ptr<ConfigInfo> ConfigInfo::instance() {
 	if(_config_info == nullptr) throw oxDNAException("Trying to access an uninitialised ConfigInfo object");
 

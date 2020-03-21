@@ -13,6 +13,7 @@ OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
 OPTION(DOUBLE "Set the numerical precision to double" ON)
 OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" OFF)
 OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
+OPTION(Python "Enable Python bindings" OFF)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have
 # problems at linking time
@@ -35,6 +36,14 @@ if(INTEL)
 ENDIF(INTEL) 
 
 PROJECT(oxDNA)
+
+# c++-14 support is mandatory
+IF(CMAKE_VERSION VERSION_LESS "3.1")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+ELSE()
+	SET(CMAKE_CXX_STANDARD 14)
+	SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+ENDIF()
 
 # The default behaviour is to compile with optimisations
 SET(CMAKE_BUILD_TYPE Release)
@@ -73,7 +82,7 @@ IF(CUDA_DOUBLE)
 	ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
 ENDIF()
 
-ADD_DEFINITIONS(-Wall -Wshadow)
+ADD_DEFINITIONS(-Wall -Wshadow -Wextra -Wno-unused-parameter)
 
 IF(NOT CMAKE_BUILD_TYPE MATCHES Debug)
 	IF(INTEL)
@@ -181,6 +190,4 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(contrib)
-
-OPTION(Python "Enable Python bindings" OFF)
 ADD_SUBDIRECTORY(oxpy)

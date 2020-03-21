@@ -17,6 +17,7 @@ This module contains the Python bindings of the C++ code. All the objects descri
     IBaseInteraction
     ConfigInfo
     BaseObservable
+    BaseForce
     
 .. autoclass:: Context
     
@@ -30,5 +31,7 @@ This module contains the Python bindings of the C++ code. All the objects descri
 .. autoclass:: ConfigInfo
 
 .. autoclass:: BaseObservable
+
+.. autoclass:: BaseForce
 
 ```

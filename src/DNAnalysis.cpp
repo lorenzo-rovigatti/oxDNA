@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 		OX_LOG(Logger::LOG_INFO, "END OF THE ANALYSIS, everything went OK!");
 	}
 	catch (oxDNAException &e) {
-		OX_LOG(Logger::LOG_ERROR, "%s", e.error());
+		OX_LOG(Logger::LOG_ERROR, "%s", e.what());
 	}
 
 	TimingManager::clear();

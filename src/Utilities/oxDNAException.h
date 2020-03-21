@@ -27,7 +27,7 @@ public:
 	 *
 	 * @return error message associated to the exception
 	 */
-	virtual const char* error() const throw();
+	virtual const char* what() const throw();
 };
 
 #endif /* OXDNAEXCEPTION_H_ */

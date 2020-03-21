@@ -15,6 +15,6 @@ oxDNAException::oxDNAException(const std::string &ss, ...) {
 	va_end(ap);
 }
 
-const char* oxDNAException::error() const throw() {
+const char* oxDNAException::what() const throw() {
 	return _error.c_str();
 }

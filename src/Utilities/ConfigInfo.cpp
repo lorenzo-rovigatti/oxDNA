@@ -8,6 +8,8 @@
 #include "ConfigInfo.h"
 
 #include "oxDNAException.h"
+#include "../Particles/BaseParticle.h"
+#include "../Interactions/BaseInteraction.h"
 
 std::shared_ptr<ConfigInfo> ConfigInfo::_config_info = nullptr;
 
