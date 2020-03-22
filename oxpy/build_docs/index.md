@@ -24,8 +24,8 @@ The following snippet imports the `oxpy` module, initialises the simulation mach
 	    # do some computation with the current configuration
 	    particles = manager.config_info().particles()
 	    
-	    # compute the average position
-	    avg_pos = np.average(list(map(lambda p: p.pos, particles)), axis=0)
+	    # compute the average position of the particles' backbones
+	    avg_pos = np.average(list(map(lambda p: p.backbone_site(), particles)), axis=0)
 	    print("Average final position:", avg_pos)
 	    
 	    # and the interaction energy between the first two particles
@@ -40,5 +40,10 @@ The following snippet imports the `oxpy` module, initialises the simulation mach
    core/core.md
 ```
 
+## Exceptions
+
+The oxDNA code raises `oxDNAException`s when the simulation cannot be correctly initialised or when it incurs in an unrecoverable error. These exceptions are automatically translated into Python exceptions of type `oxpy.core.OxDNAError`, which can then be handled in a regular [`try except` block](https://docs.python.org/3/tutorial/errors.html).  
+
 ## Extending Oxpy
 
+To be written.

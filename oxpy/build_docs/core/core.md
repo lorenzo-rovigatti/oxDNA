@@ -14,6 +14,8 @@ This module contains the Python bindings of the C++ code. All the objects descri
     Context
     OxpyManager
     BaseParticle
+    DNANucleotide
+    RNANucleotide
     IBaseInteraction
     ConfigInfo
     BaseObservable
@@ -25,6 +27,10 @@ This module contains the Python bindings of the C++ code. All the objects descri
     :inherited-members:
 
 .. autoclass:: BaseParticle
+
+.. autoclass:: DNANucleotide
+
+.. autoclass:: RNANucleotide
 
 .. autoclass:: IBaseInteraction
 

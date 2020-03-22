@@ -16,7 +16,9 @@
 #include "bindings_includes/BaseObservable.h"
 #include "bindings_includes/BaseParticle.h"
 #include "bindings_includes/ConfigInfo.h"
+#include "bindings_includes/DNANucleotide.h"
 #include "bindings_includes/IBaseInteraction.h"
+#include "bindings_includes/RNANucleotide.h"
 
 void export_BaseForce(py::module &m);
 void export_BaseParticle(py::module &m);
@@ -33,7 +35,9 @@ PYBIND11_MODULE(core, m) {
 	export_BaseParticle(m);
 	export_BaseForce(m);
 	export_ConfigInfo(m);
+	export_DNANucleotide(m);
 	export_IBaseInteraction(m);
+	export_RNANucleotide(m);
 
 	py::register_exception<oxDNAException>(m, "OxDNAError");
 }

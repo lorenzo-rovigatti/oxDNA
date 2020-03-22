@@ -175,8 +175,8 @@
     <span class="c1"># do some computation with the current configuration</span>
     <span class="n">particles</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">particles</span><span class="p">()</span>
     
-    <span class="c1"># compute the average position</span>
-    <span class="n">avg_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">particles</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># compute the average position of the particles&#39; backbones</span>
+    <span class="n">avg_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">backbone_site</span><span class="p">(),</span> <span class="n">particles</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average final position:&quot;</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
     
     <span class="c1"># and the interaction energy between the first two particles</span>
@@ -194,8 +194,13 @@
 </ul>
 </div>
 </div>
+<div class="section" id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<p>The oxDNA code raises <code class="docutils literal notranslate"><span class="pre">oxDNAException</span></code>s when the simulation cannot be correctly initialised or when it incurs in an unrecoverable error. These exceptions are automatically translated into Python exceptions of type <code class="docutils literal notranslate"><span class="pre">oxpy.core.OxDNAError</span></code>, which can then be handled in a regular <a class="reference external" href="https://docs.python.org/3/tutorial/errors.html"><code class="docutils literal notranslate"><span class="pre">try</span> <span class="pre">except</span></code> block</a>.</p>
+</div>
 <div class="section" id="extending-oxpy">
 <h2>Extending Oxpy<a class="headerlink" href="#extending-oxpy" title="Permalink to this headline">¶</a></h2>
+<p>To be written.</p>
 </div>
 </div>
 

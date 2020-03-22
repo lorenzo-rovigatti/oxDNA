@@ -72,6 +72,9 @@ void export_BaseParticle(py::module &m) {
 	particle.def_readwrite("n5", &BaseParticle::n5, py::return_value_policy::reference, R"pbdoc(
 		The n5 neighbour.
 	)pbdoc");
+	particle.def_readwrite("int_centers", &BaseParticle::int_centers, R"pbdoc(
+		The interaction sites of the particle.
+	)pbdoc");
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_BASEPARTICLE_H_ */
