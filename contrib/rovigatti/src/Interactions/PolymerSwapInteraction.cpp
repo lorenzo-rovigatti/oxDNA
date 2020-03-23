@@ -44,7 +44,7 @@ void PolymerSwapInteraction::init() {
 	});
 
 	std::transform(_WCA_sigma.begin(), _WCA_sigma.end(), _PS_sqr_rep_rcut.begin(), [this](number sigma) {
-		return pow(2. * sigma, 1. / this->_PS_n);
+		return pow(2. * sigma, 2. / this->_PS_n);
 	});
 
 	_rcut = sqrt(*std::max_element(_PS_sqr_rep_rcut.begin(), _PS_sqr_rep_rcut.end()));
@@ -102,52 +102,53 @@ number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool upda
 	return energy;
 }
 
-number PolymerSwapInteraction::_nonbonded(BaseParticle *p, BaseParticle *q, bool update_forces) {
+number PolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
-	if(sqr_r > _sqr_rcut) {
-		return (number) 0.;
-	}
-
 	int int_type = p->type + q->type;
-	// sticky sites don't interact with nonbonded monomers
-	if(!p->is_bonded(q) && int_type == 1) {
+	if(sqr_r > _PS_sqr_rep_rcut[int_type]) {
 		return (number) 0.;
 	}
 
 	number energy = 0;
+	// this number is the module of the force over r, so we don't have to divide the distance
+	// vector for its module
+	number force_mod = 0;
 
-	// monomer-monomer
-	if(int_type == 0) {
-		// this number is the module of the force over r, so we don't have to divide the distance
-		// vector for its module
-		number force_mod = 0;
-
-		// cut-off for all the repulsive interactions
-		if(sqr_r < _PS_sqr_rep_rcut[int_type]) {
-			number part = 1.;
-			for(int i = 0; i < _PS_n / 2; i++) {
-				part *= SQR(_WCA_sigma[int_type]) / sqr_r;
-			}
-			energy += 4. * (part * (part - 1.)) + 1. - _PS_alpha;
-			if(update_forces) {
-				force_mod += 4. * _PS_n * part * (2. * part - 1.) / sqr_r;
-			}
+	// cut-off for all the repulsive interactions
+	if(sqr_r < _PS_sqr_rep_rcut[int_type]) {
+		number part = 1.;
+		number ir2_scaled = SQR(_WCA_sigma[int_type]) / sqr_r;
+		for(int i = 0; i < _PS_n / 2; i++) {
+			part *= ir2_scaled;
 		}
-		// attraction
-		else if(int_type == 0 && _PS_alpha != 0.) {
-			energy += 0.5 * _PS_alpha * (cos(_PS_gamma * sqr_r + _PS_beta) - 1.0);
-			if(update_forces) {
-				force_mod += _PS_alpha * _PS_gamma * sin(_PS_gamma * sqr_r + _PS_beta);
-			}
-		}
-
+		energy += 4. * (part * (part - 1.)) + 1. - _PS_alpha;
 		if(update_forces) {
-			p->force -= _computed_r * force_mod;
-			q->force += _computed_r * force_mod;
+			force_mod += 4. * _PS_n * part * (2. * part - 1.) / sqr_r;
 		}
 	}
+	// attraction
+	/*else if(int_type == 0 && _PS_alpha != 0.) {
+		energy += 0.5 * _PS_alpha * (cos(_PS_gamma * sqr_r + _PS_beta) - 1.0);
+		if(update_forces) {
+			force_mod += _PS_alpha * _PS_gamma * sin(_PS_gamma * sqr_r + _PS_beta);
+		}
+	}*/
+
+	if(update_forces) {
+		p->force -= _computed_r * force_mod;
+		q->force += _computed_r * force_mod;
+	}
+
+	return energy;
+}
+
+number PolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool update_forces) {
+	number sqr_r = _computed_r.norm();
+	number energy = 0.;
+
+	int int_type = p->type + q->type;
 	// sticky-sticky
-	else if(int_type == 2) {
+	if(int_type == 2) {
 		if(sqr_r < _sqr_3b_rcut) {
 			number r_mod = sqrt(sqr_r);
 			number exp_part = exp(_3b_sigma / (r_mod - _3b_rcut));
@@ -259,7 +260,7 @@ number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BasePart
 		}
 
 		energy = _fene(p, q, update_forces);
-		energy += _nonbonded(p, q, update_forces);
+		energy += _WCA(p, q, update_forces);
 	}
 
 	return energy;
@@ -274,7 +275,16 @@ number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseP
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _nonbonded(p, q, update_forces);
+	int int_type = p->type + q->type;
+	if(int_type == 0) {
+		return _WCA(p, q, update_forces);
+	}
+	else if(int_type == 2) {
+		return _sticky(p, q, update_forces);
+	}
+	else {
+		return 0.;
+	}
 }
 
 void PolymerSwapInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {

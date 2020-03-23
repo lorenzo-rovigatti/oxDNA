@@ -69,7 +69,8 @@ protected:
 	bool _only_links_in_bondfile = true;
 
 	number _fene(BaseParticle *p, BaseParticle *q, bool update_forces);
-	number _nonbonded(BaseParticle *p, BaseParticle *q, bool update_forces);
+	number _WCA(BaseParticle *p, BaseParticle *q, bool update_forces);
+	number _sticky(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
 
 public:

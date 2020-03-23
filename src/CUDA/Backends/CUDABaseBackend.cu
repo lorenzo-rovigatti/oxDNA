@@ -77,9 +77,12 @@ CUDABaseBackend::~CUDABaseBackend() {
 		}
 	}
 
-	if(_h_poss != NULL) delete[] _h_poss;
-	if(_h_orientations != NULL) delete[] _h_orientations;
-	if(_h_bonds != NULL) delete[] _h_bonds;
+	if(_h_poss != NULL)
+		delete[] _h_poss;
+	if(_h_orientations != NULL)
+		delete[] _h_orientations;
+	if(_h_bonds != NULL)
+		delete[] _h_bonds;
 }
 
 void CUDABaseBackend::_host_to_gpu() {
@@ -105,7 +108,8 @@ void CUDABaseBackend::get_settings(input_file &inp) {
 		OX_LOG(Logger::LOG_INFO, "CUDA device not specified");
 		_device_c_number = -1;
 	}
-	else OX_LOG(Logger::LOG_INFO, "Using CUDA device %d", _device_c_number);
+	else
+		OX_LOG(Logger::LOG_INFO, "Using CUDA device %d", _device_c_number);
 
 	if(getInputInt(&inp, "CUDA_sort_every", &_sort_every, 0) == KEY_NOT_FOUND) {
 		OX_LOG(Logger::LOG_INFO, "CUDA sort_every not specified, using 0");
@@ -137,23 +141,23 @@ void CUDABaseBackend::_choose_device() {
 	int ndev = -1, trydev = 0;
 	cudaDeviceProp tryprop;
 
-	cudaGetDeviceCount (&ndev);
+	cudaGetDeviceCount(&ndev);
 	OX_LOG(Logger::LOG_INFO, "Computer has %i devices", ndev);
-	while (trydev < ndev) {
+	while(trydev < ndev) {
 		OX_LOG(Logger::LOG_INFO, " - Trying device %i", trydev);
-		tryprop = get_device_prop (trydev);
+		tryprop = get_device_prop(trydev);
 		OX_LOG(Logger::LOG_INFO, " -- device %i has properties %i.%i", trydev, tryprop.major, tryprop.minor);
-		if (tryprop.major < 2 && tryprop.minor <= 2) {
+		if(tryprop.major < 2 && tryprop.minor <= 2) {
 			OX_LOG(Logger::LOG_INFO, " -- Device properties are not good. Skipping it", trydev);
-			trydev ++;
+			trydev++;
 			continue;
 		}
-		set_device (trydev);
+		set_device(trydev);
 		int *dummyptr = NULL;
-		cudaError_t ggg = GpuUtils::LR_cudaMalloc<int> (&dummyptr, (size_t)sizeof(int));
+		cudaError_t ggg = GpuUtils::LR_cudaMalloc<int>(&dummyptr, (size_t) sizeof(int));
 		if(ggg == cudaSuccess) {
 			OX_LOG(Logger::LOG_INFO, " -- using device %i", trydev);
-			cudaFree (dummyptr);
+			cudaFree(dummyptr);
 			break;
 		}
 		else {
@@ -162,7 +166,8 @@ void CUDABaseBackend::_choose_device() {
 		trydev++;
 	}
 
-	if (trydev == ndev) throw oxDNAException("No suitable devices available");
+	if(trydev == ndev)
+		throw oxDNAException("No suitable devices available");
 
 	OX_LOG(Logger::LOG_INFO, " --- Running on device %i", trydev);
 	_device_prop = get_device_prop(trydev);
@@ -171,7 +176,8 @@ void CUDABaseBackend::_choose_device() {
 }
 
 void CUDABaseBackend::init_cuda() {
-	if(_device_c_number < 0) _choose_device();
+	if(_device_c_number < 0)
+		_choose_device();
 	set_device(_device_c_number);
 	_device_prop = get_device_prop(_device_c_number);
 
@@ -229,40 +235,41 @@ void CUDABaseBackend::init_cuda() {
 }
 
 void CUDABaseBackend::_init_CUDA_kernel_cfgs() {
-	if(_particles_kernel_cfg.threads_per_block == 0) {
-		_particles_kernel_cfg.threads_per_block = 2 * _device_prop.warpSize;
-		OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
-	}
+if(_particles_kernel_cfg.threads_per_block == 0) {
+	_particles_kernel_cfg.threads_per_block = 2 * _device_prop.warpSize;
+	OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
+}
 
-	int N = CONFIG_INFO->N();
-	_particles_kernel_cfg.blocks.x = N / _particles_kernel_cfg.threads_per_block + ((N % _particles_kernel_cfg.threads_per_block == 0) ? 0 : 1);
-	if(_particles_kernel_cfg.blocks.x == 0) _particles_kernel_cfg.blocks.x = 1;
-	_particles_kernel_cfg.blocks.y = _particles_kernel_cfg.blocks.z = 1;
+int N = CONFIG_INFO->N();
+_particles_kernel_cfg.blocks.x = N / _particles_kernel_cfg.threads_per_block + ((N % _particles_kernel_cfg.threads_per_block == 0) ? 0 : 1);
+if(_particles_kernel_cfg.blocks.x == 0)
+	_particles_kernel_cfg.blocks.x = 1;
+_particles_kernel_cfg.blocks.y = _particles_kernel_cfg.blocks.z = 1;
 
-	_cuda_interaction->set_launch_cfg(_particles_kernel_cfg);
+_cuda_interaction->set_launch_cfg(_particles_kernel_cfg);
 
-	OX_DEBUG("Particle kernel cfg: threads_per_block = %d, blocks = (%d, %d, %d)", _particles_kernel_cfg.threads_per_block,
-			_particles_kernel_cfg.blocks.x, _particles_kernel_cfg.blocks.y, _particles_kernel_cfg.blocks.z);
+OX_DEBUG("Particle kernel cfg: threads_per_block = %d, blocks = (%d, %d, %d)", _particles_kernel_cfg.threads_per_block,
+_particles_kernel_cfg.blocks.x, _particles_kernel_cfg.blocks.y, _particles_kernel_cfg.blocks.z);
 }
 
 void CUDABaseBackend::_sort_index() {
-	reset_sorted_hindex
+reset_sorted_hindex
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_sorted_hindex);
 		CUT_CHECK_ERROR("reset_sorted_hindex error");
 
-	hilbert_curve
+hilbert_curve
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, _d_hindex);
 		CUT_CHECK_ERROR("hilbert_curve error");
 
-	thrust::device_ptr<int> _d_hindex_p(_d_hindex);
-	thrust::device_ptr<int> _d_sorted_hindex_p(_d_sorted_hindex);
-	// sort d_sorted_hindex by using d_hindex
-	thrust::sort_by_key(_d_hindex_p, _d_hindex_p + CONFIG_INFO->N(), _d_sorted_hindex_p);
-	get_inverted_sorted_hindex
-		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
-		(_d_sorted_hindex, _d_inv_sorted_hindex);
+thrust::device_ptr<int> _d_hindex_p(_d_hindex);
+thrust::device_ptr<int> _d_sorted_hindex_p(_d_sorted_hindex);
+// sort d_sorted_hindex by using d_hindex
+thrust::sort_by_key(_d_hindex_p, _d_hindex_p + CONFIG_INFO->N(), _d_sorted_hindex_p);
+get_inverted_sorted_hindex
+<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
+(_d_sorted_hindex, _d_inv_sorted_hindex);
 }
 
 #pragma GCC diagnostic pop
