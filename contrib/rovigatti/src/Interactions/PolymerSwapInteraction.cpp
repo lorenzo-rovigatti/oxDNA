@@ -17,10 +17,14 @@ PolymerSwapInteraction::~PolymerSwapInteraction() {
 void PolymerSwapInteraction::get_settings(input_file &inp) {
 	IBaseInteraction::get_settings(inp);
 
-	getInputNumber(&inp, "PS_alpha", &_PS_alpha, 0);
 	getInputInt(&inp, "PS_n", &_PS_n, 0);
 	getInputString(&inp, "PS_bond_file", _bond_filename, 1);
 	getInputBool(&inp, "PS_only_links_in_bondfile", &_only_links_in_bondfile, 0);
+	getInputNumber(&inp, "PS_alpha", &_PS_alpha, 0);
+
+	if(_PS_alpha != 0.) {
+		throw oxDNAException("PolymerSwap: PS_alpha != 0 is not supported yet!");
+	}
 
 	getInputNumber(&inp, "PS_3b_sigma", &_3b_sigma, 0);
 	getInputNumber(&inp, "PS_3b_lambda", &_3b_lambda, 0);
@@ -92,8 +96,7 @@ number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool upda
 	number energy = -Kfene * sqr_rfene * log(1. - sqr_r / sqr_rfene);
 
 	if(update_forces) {
-		// this number is the module of the force over r, so we don't have to divide the distance
-		// vector by its module
+		// this number is the module of the force over r, so we don't have to divide the distance vector by its module
 		number force_mod = -2 * Kfene * sqr_rfene / (sqr_rfene - sqr_r);
 		p->force -= _computed_r * force_mod;
 		q->force += _computed_r * force_mod;
@@ -371,7 +374,7 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		if(std::find(sticky_particles.begin(), sticky_particles.end(), p->index) != sticky_particles.end()) {
 			p->type = STICKY;
 		}
-		p->btype = n_bonds;
+		p->btype = p->type;
 		p->strand_id = 0;
 		p->n3 = p->n5 = P_VIRTUAL;
 		for(int j = 0; j < n_bonds; j++) {

@@ -667,18 +667,18 @@ void FFS_MD_CUDAMixedBackend::_init_ffs_from_file(const char *fname) {
 }
 
 void FFS_MD_CUDAMixedBackend::_init_ffs_kernel_config(CUDA_kernel_cfg *kernel_cfg, int total_threads) {
-	(*kernel_cfg).threads_per_block = 2 * this->_device_prop.warpSize;
+	(*kernel_cfg).threads_per_block = 2 * _device_prop.warpSize;
 	(*kernel_cfg).blocks.x = total_threads / (*kernel_cfg).threads_per_block + ((total_threads % (*kernel_cfg).threads_per_block == 0) ? 0 : 1);
 	if((*kernel_cfg).blocks.x == 0) (*kernel_cfg).blocks.x = 1;
 	(*kernel_cfg).blocks.y = (*kernel_cfg).blocks.z = 1;
 }
 
 void FFS_MD_CUDAMixedBackend::_eval_order_parameter_states() {
-	this->_cuda_interaction->_hb_op_precalc(_d_poss, _d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_hb_energies, _n_hb_pairs, _d_region_is_nearhb, _ffs_hb_precalc_kernel_cfg, _d_cuda_box);
+	_cuda_interaction->_hb_op_precalc(_d_poss, _d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_hb_energies, _n_hb_pairs, _d_region_is_nearhb, _ffs_hb_precalc_kernel_cfg, _d_cuda_box);
 
-	this->_cuda_interaction->_near_hb_op_precalc(_d_poss, _d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_nearhb_states, _n_hb_pairs, _d_region_is_nearhb, _ffs_hb_precalc_kernel_cfg, _d_cuda_box);
+	_cuda_interaction->_near_hb_op_precalc(_d_poss, _d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_nearhb_states, _n_hb_pairs, _d_region_is_nearhb, _ffs_hb_precalc_kernel_cfg, _d_cuda_box);
 
-	this->_cuda_interaction->_dist_op_precalc(_d_poss, _d_orientations, _d_dist_pairs1, _d_dist_pairs2, _d_op_dists, _n_dist_pairs, _ffs_dist_precalc_kernel_cfg, _d_cuda_box);
+	_cuda_interaction->_dist_op_precalc(_d_poss, _d_orientations, _d_dist_pairs1, _d_dist_pairs2, _d_op_dists, _n_dist_pairs, _ffs_dist_precalc_kernel_cfg, _d_cuda_box);
 	cudaThreadSynchronize();
 }
 
@@ -829,11 +829,11 @@ void FFS_MD_CUDAMixedBackend::_log_master_state(master_condition master_conditio
 
 void FFS_MD_CUDAMixedBackend::_handle_unexpected_master() {
 	// call when an unexpected master condition is reached: print a configuration and print a message to screen
-	char conf_str[256];
-	sprintf(conf_str, "%s_%s_N%d.dat", _unexpected_master_prefix, _unexpected_master_name, this->_gen_flux_saved_cross_count);
+	char conf_str[1024];
+	sprintf(conf_str, "%s_%s_N%d.dat", _unexpected_master_prefix, _unexpected_master_name, _gen_flux_saved_cross_count);
 	_prepare_configuration(conf_str);
 	_obs_output_custom_conf->print_output(_curr_step);
-	OX_LOG(Logger::LOG_INFO, "saved configuration %s at step %d", conf_str, this->_curr_step);
+	OX_LOG(Logger::LOG_INFO, "saved configuration %s at step %d", conf_str, _curr_step);
 	_gen_flux_saved_cross_count += 1;
 	OX_LOG(Logger::LOG_INFO, "Crossed interface with master condition integer other than 1 and die_on_unexpected_master is set; exiting now");
 }
@@ -855,9 +855,9 @@ bool FFS_MD_CUDAMixedBackend::_check_stop() {
 				crossing = _test_crossing(_sc_fwd);
 			}
 			if(crossing) {
-				// check whether we began the simulation with the system already in the astate (and the relevant flag is set in the input file)
-				if(this->_curr_step == 0 && _check_initial_state) {
-					OX_LOG(Logger::LOG_INFO, "Began simulation out of the astate, but the check_initial_state option is set; terminating simulation");
+				// check whether we began the simulation with the system already in the state (and the relevant flag is set in the input file)
+				if(_curr_step == 0 && _check_initial_state) {
+					OX_LOG(Logger::LOG_INFO, "Began simulation out of the state, but the check_initial_state option is set; terminating simulation");
 					return true;
 				}
 
@@ -868,17 +868,17 @@ bool FFS_MD_CUDAMixedBackend::_check_stop() {
 				}
 
 				if ((_gen_flux_cross_count % _gen_flux_save_every) == 0) {
-					char conf_str[256];
-					sprintf(conf_str, "%s_N%d.dat", _conf_prefix, this->_gen_flux_saved_cross_count);
+					char conf_str[300];
+					sprintf(conf_str, "%s_N%d.dat", _conf_prefix, _gen_flux_saved_cross_count);
 					_prepare_configuration(conf_str);
 					_obs_output_custom_conf->print_output(_curr_step);
-					OX_LOG(Logger::LOG_INFO, "saved configuration %s at step %d", conf_str, this->_curr_step);
+					OX_LOG(Logger::LOG_INFO, "saved configuration %s at step %d", conf_str, _curr_step);
 					_gen_flux_saved_cross_count += 1;
 
 					if (_gen_flux_saved_cross_count == _gen_flux_desired_cc) stop_sim = true;
 				}
 				else {
-					OX_LOG(Logger::LOG_INFO, "Forwards condition reached at step %d", this->_curr_step);
+					OX_LOG(Logger::LOG_INFO, "Forwards condition reached at step %d", _curr_step);
 				}
 				_gen_flux_cross_count += 1;
 				_flux_direction = BACKWARD;
@@ -901,13 +901,13 @@ bool FFS_MD_CUDAMixedBackend::_check_stop() {
 
 				if (_gen_flux_debug) {
 					char conf_str[256];
-					sprintf(conf_str, "debug_backwards_N%d.dat", this->_gen_flux_cross_count);
+					sprintf(conf_str, "debug_backwards_N%d.dat", _gen_flux_cross_count);
 					_prepare_configuration(conf_str);
 					_obs_output_custom_conf->print_output(_curr_step);
-					OX_LOG(Logger::LOG_INFO, "saved debug configuration %s at step %d", conf_str, this->_curr_step);
+					OX_LOG(Logger::LOG_INFO, "saved debug configuration %s at step %d", conf_str, _curr_step);
 				}
 				else {
-					OX_LOG(Logger::LOG_INFO, "Backwards condition reached at step %d", this->_curr_step);
+					OX_LOG(Logger::LOG_INFO, "Backwards condition reached at step %d", _curr_step);
 				}
 				_flux_direction = FORWARD;
 			}
@@ -1052,6 +1052,6 @@ void FFS_MD_CUDAMixedBackend::sprintf_names_and_values(char *str) {
 }
 
 void FFS_MD_CUDAMixedBackend::print_observables(llint curr_step) {
-	if(_curr_step % _print_energy_every == _print_energy_every - 1) this->_backend_info = get_op_state_str();
+	if(_curr_step % _print_energy_every == _print_energy_every - 1) _backend_info = get_op_state_str();
 	CUDAMixedBackend::print_observables(curr_step);
 }
