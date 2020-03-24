@@ -46,34 +46,6 @@ __constant__ float MD_polymer_gamma[1];
 
 #include "CUDA/cuda_utils/CUDA_lr_common.cuh"
 
-struct __align__(16) swap_event {
-	bool active;
-	int old_n_neighs;
-	int old_neighs[CUDA_MAX_FS_PATCHES * CUDA_MAX_FS_NEIGHS];
-	int new_n_neighs;
-	int new_neighs[CUDA_MAX_FS_PATCHES * CUDA_MAX_FS_NEIGHS];
-
-	__device__
-	__host__ swap_event() :
-					active(false),
-					old_n_neighs(0),
-					new_n_neighs(0) {
-	}
-	__device__ __host__
-	swap_event &operator=(const swap_event & rhs) {
-		active = rhs.active;
-		old_n_neighs = rhs.old_n_neighs;
-		for(int i = 0; i < old_n_neighs; i++)
-			old_neighs[i] = rhs.old_neighs[i];
-		new_n_neighs = rhs.new_n_neighs;
-		for(int i = 0; i < new_n_neighs; i++)
-			new_neighs[i] = rhs.new_neighs[i];
-
-		return *this;
-	}
-};
-
-template<typename c_number4>
 struct __align__(16) CUDA_FS_bond {
 	int q;
 	bool r_p_less_than_sigma;
@@ -82,17 +54,16 @@ struct __align__(16) CUDA_FS_bond {
 	c_number4 q_torque_ref_frame;
 };
 
-template<typename c_number4>
 struct __align__(16) CUDA_FS_bond_list {
 	int n_bonds;
-	CUDA_FS_bond<c_number4> bonds[CUDA_MAX_FS_NEIGHS];
+	CUDA_FS_bond bonds[CUDA_MAX_FS_NEIGHS];
 
 	__device__
 	CUDA_FS_bond_list() :
 					n_bonds(0) {
 	}
 	__device__
-	CUDA_FS_bond<c_number4> &new_bond() {
+	CUDA_FS_bond &new_bond() {
 		n_bonds++;
 		if(n_bonds > CUDA_MAX_FS_NEIGHS) {
 			printf("TOO MANY BONDED NEIGHBOURS, TRAGEDY\nHere is the list of neighbours:\n");
@@ -112,7 +83,7 @@ __device__ bool _attraction_allowed(int p_type, int q_type) {
 	return false;
 }
 
-__device__ void _patchy_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &a1, c_number4 &a2, c_number4 &a3, c_number4 &b1, c_number4 &b2, c_number4 &b3, c_number4 &F, c_number4 &torque, CUDA_FS_bond_list<c_number4> *bonds, int q_idx, CUDABox *box) {
+__device__ void _patchy_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &a1, c_number4 &a2, c_number4 &a3, c_number4 &b1, c_number4 &b2, c_number4 &b3, c_number4 &F, c_number4 &torque, CUDA_FS_bond_list *bonds, int q_idx, CUDABox *box) {
 	int ptype = get_particle_btype(ppos);
 	int qtype = get_particle_btype(qpos);
 
@@ -165,8 +136,8 @@ __device__ void _patchy_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c
 					c_number force_mod = MD_A_part[0] * exp_part * (4.f * MD_B_part[0] / (SQR(dist) * r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
 					c_number4 tmp_force = patch_dist * (force_mod / r_p);
 
-					CUDA_FS_bond_list<c_number4> &bond_list = bonds[pi];
-					CUDA_FS_bond<c_number4> &my_bond = bond_list.new_bond();
+					CUDA_FS_bond_list &bond_list = bonds[pi];
+					CUDA_FS_bond &my_bond = bond_list.new_bond();
 
 					my_bond.force = tmp_force;
 					my_bond.force.w = energy_part;
@@ -215,14 +186,14 @@ __device__ void _polymer_interaction(c_number4 &ppos, c_number4 &qpos, c_number4
 	F.w += energy;
 }
 
-__device__ void _three_body(CUDA_FS_bond_list<c_number4> *bonds, c_number4 &F, c_number4 &T, c_number4 *forces, c_number4 *torques) {
+__device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T, c_number4 *forces, c_number4 *torques) {
 	for(int pi = 0; pi < CUDA_MAX_FS_PATCHES; pi++) {
-		CUDA_FS_bond_list<c_number4> &bond_list = bonds[pi];
+		CUDA_FS_bond_list &bond_list = bonds[pi];
 
 		for(int bi = 0; bi < bond_list.n_bonds; bi++) {
-			CUDA_FS_bond<c_number4> &b1 = bond_list.bonds[bi];
+			CUDA_FS_bond &b1 = bond_list.bonds[bi];
 			for(int bj = bi + 1; bj < bond_list.n_bonds; bj++) {
-				CUDA_FS_bond<c_number4> &b2 = bond_list.bonds[bj];
+				CUDA_FS_bond &b2 = bond_list.bonds[bj];
 
 				c_number curr_energy = (b1.r_p_less_than_sigma) ? 1.f : -b1.force.w;
 				c_number other_energy = (b2.r_p_less_than_sigma) ? 1.f : -b2.force.w;
@@ -299,7 +270,7 @@ __global__ void FS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 	c_number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat(po, a1, a2, a3);
 
-	CUDA_FS_bond_list<c_number4> bonds[CUDA_MAX_FS_PATCHES];
+	CUDA_FS_bond_list bonds[CUDA_MAX_FS_PATCHES];
 
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND) {
@@ -334,7 +305,7 @@ __global__ void FS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 	c_number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat(po, a1, a2, a3);
 
-	CUDA_FS_bond_list<c_number4> bonds[CUDA_MAX_FS_PATCHES];
+	CUDA_FS_bond_list bonds[CUDA_MAX_FS_PATCHES];
 
 	int num_neighs = c_number_neighs[IND];
 	for(int j = 0; j < num_neighs; j++) {
@@ -366,10 +337,6 @@ __global__ void FS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 CUDAFSInteraction::CUDAFSInteraction() :
 				CUDABaseInteraction(),
 				FSInteraction() {
-	_analyse_bonds = false;
-	_called_once = false;
-	_d_bonds = _d_new_bonds = NULL;
-	_h_events = _d_events = NULL;
 	_d_three_body_forces = _d_three_body_torques = NULL;
 	_step = 0;
 
@@ -377,11 +344,8 @@ CUDAFSInteraction::CUDAFSInteraction() :
 }
 
 CUDAFSInteraction::~CUDAFSInteraction() {
-	if(_d_bonds != NULL) CUDA_SAFE_CALL(cudaFree(_d_bonds));
-	if(_d_new_bonds != NULL) CUDA_SAFE_CALL(cudaFree(_d_new_bonds));
 	if(_d_three_body_forces != NULL) CUDA_SAFE_CALL(cudaFree(_d_three_body_forces));
 	if(_d_three_body_torques != NULL) CUDA_SAFE_CALL(cudaFree(_d_three_body_torques));
-	if(_analyse_bonds) CUDA_SAFE_CALL(cudaFreeHost(_h_events));
 
 	if(_d_bonded_neighs != NULL) {
 		CUDA_SAFE_CALL(cudaFree(_d_bonded_neighs));
@@ -393,11 +357,11 @@ void CUDAFSInteraction::get_settings(input_file &inp) {
 
 	int sort_every = 0;
 	getInputInt(&inp, "CUDA_sort_every", &sort_every, 0);
-	getInputBool(&inp, "FS_analyse_bonds", &_analyse_bonds, 0);
 
 	if(sort_every > 0) {
-		if(_analyse_bonds) throw oxDNAException("CUDAFSInteraction: FS_analyse_bonds and CUDA_sort_every > 0 are incompatible");
-		if(_N_def_A > 0) throw oxDNAException("CUDAFSInteraction: Defective A-particles and CUDA_sort_every > 0 are incompatible");
+		if(_N_def_A > 0) {
+			throw oxDNAException("CUDAFSInteraction: Defective A-particles and CUDA_sort_every > 0 are incompatible");
+		}
 	}
 }
 
@@ -418,14 +382,6 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_forces, N * sizeof(c_number4)));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_torques, N * sizeof(c_number4)));
-
-	if(_analyse_bonds) {
-		CUDA_SAFE_CALL(cudaHostAlloc(&_h_events, N*sizeof(swap_event), cudaHostAllocMapped));
-		for(int i = 0; i < N; i++) {
-			_h_events[i].active = false;
-		}
-		CUDA_SAFE_CALL(cudaHostGetDevicePointer(&_d_events, _h_events, 0));
-	}
 
 	if(_with_polymers) {
 		if(_polymer_alpha != 0.) {
@@ -539,8 +495,12 @@ void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
 		n_patches = _N_patches_B;
 	}
 
-	if(_N_patches > CUDA_MAX_FS_PATCHES) throw oxDNAException("The CUDAFSInteraction supports only particles with up to %d patches", CUDA_MAX_FS_PATCHES);
-	if(_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &_n_forces, sizeof(int)));
+	if(_N_patches > CUDA_MAX_FS_PATCHES) {
+		throw oxDNAException("The CUDAFSInteraction supports only particles with up to %d patches", CUDA_MAX_FS_PATCHES);
+	}
+	if(_use_edge) {
+		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &_n_forces, sizeof(int)));
+	}
 }
 
 void CUDAFSInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
@@ -582,6 +542,4 @@ void CUDAFSInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, G
 	// add the three body contributions to the two-body forces and torques
 	thrust::transform(t_forces, t_forces + N, t_three_body_forces, t_forces, thrust::plus<c_number4>());
 	thrust::transform(t_torques, t_torques + N, t_three_body_torques, t_torques, thrust::plus<c_number4>());
-
-	_called_once = true;
 }

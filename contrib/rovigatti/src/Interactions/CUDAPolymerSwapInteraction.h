@@ -17,6 +17,7 @@
 
 class CUDAPolymerSwapInteraction: public CUDABaseInteraction, public PolymerSwapInteraction {
 private:
+	c_number4 *_d_three_body_forces;
 	int *_d_bonded_neighs;
 public:
 	CUDAPolymerSwapInteraction();
