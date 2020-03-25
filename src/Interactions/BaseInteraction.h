@@ -29,7 +29,6 @@
  * http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern) and therefore
  * we have to keep this class and BaseInteraction separated.
  */
-
 class IBaseInteraction {
 protected:
 	BaseBox *_box;
