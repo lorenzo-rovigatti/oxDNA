@@ -41,10 +41,10 @@ struct PSBondCompare {
  */
 class PolymerSwapInteraction: public BaseInteraction<PolymerSwapInteraction> {
 protected:
-	std::array<number, 3> _Kfene = {15., 15., 15.};
-	std::array<number, 3> _rfene = {1.5, 1.0, 1.5};
-	std::array<number, 3> _sqr_rfene = {2.25, 1.0, 2.25};
-	std::array<number, 3> _WCA_sigma = {1.0, 1.0, 1.0};
+	std::array<number, 3> _Kfene = { {15., 15., 15.} };
+	std::array<number, 3> _rfene = { {1.5, 1.0, 1.5} };
+	std::array<number, 3> _sqr_rfene = { {2.25, 1.0, 2.25} };
+	std::array<number, 3> _WCA_sigma = { {1.0, 1.0, 1.0} };
 	std::array<number, 3> _PS_sqr_rep_rcut;
 
 	number _PS_alpha = 0.;
