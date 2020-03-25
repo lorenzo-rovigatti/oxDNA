@@ -73,10 +73,10 @@ void FSInteraction::init() {
 	if(_spherical_attraction_strength > 0.) {
 		_sqr_spherical_rcut = SQR(_spherical_rcut);
 		_spherical_E_cut = 4. * _spherical_attraction_strength * (1. / pow(_sqr_spherical_rcut, 6) - 1. / pow(_sqr_spherical_rcut, 3));
-	}
 
-	if(_spherical_rcut > _rcut) {
-		_rcut = _spherical_rcut;
+		if(_spherical_rcut > _rcut) {
+			_rcut = _spherical_rcut;
+		}
 	}
 
 	_sqr_rcut = SQR(_rcut);
@@ -209,7 +209,9 @@ number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, bool compu
 	number sqr_r = _computed_r.norm() / _polymer_length_scale_sqr;
 
 	if(sqr_r > _polymer_rfene_sqr) {
-		if(update_forces) throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _polymer_rfene);
+		if(update_forces) {
+			throw oxDNAException("The distance between particles %d and %d (%lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _polymer_rfene);
+		}
 		set_is_infinite(true);
 		return 10e10;
 	}
@@ -370,7 +372,9 @@ number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 		return _spherical_patchy_two_body(p, q, false, update_forces) + _patchy_two_body(p, q, false, update_forces);
 	}
 	else {
-		if(p->is_bonded(q)) return (number) 0.f;
+		if(p->is_bonded(q)) {
+			return (number) 0.f;
+		}
 		return _polymer_nonbonded(p, q, false, update_forces);
 	}
 }
@@ -378,7 +382,9 @@ number FSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 void FSInteraction::_parse_bond_file(std::vector<BaseParticle *> &particles) {
 	std::ifstream bond_file(_bond_filename.c_str());
 
-	if(!bond_file.good()) throw oxDNAException("Can't read bond file '%s'. Aborting", _bond_filename.c_str());
+	if(!bond_file.good()) {
+		throw oxDNAException("Can't read bond file '%s'. Aborting", _bond_filename.c_str());
+	}
 
 	char line[512];
 	// skip the headers and the particle positions
@@ -386,7 +392,9 @@ void FSInteraction::_parse_bond_file(std::vector<BaseParticle *> &particles) {
 	for(int i = 0; i < to_skip; i++) {
 		bond_file.getline(line, 512);
 	}
-	if(!bond_file.good()) throw oxDNAException("The bond file '%s' does not contain the right number of lines. Aborting", _bond_filename.c_str());
+	if(!bond_file.good()) {
+		throw oxDNAException("The bond file '%s' does not contain the right number of lines. Aborting", _bond_filename.c_str());
+	}
 
 	for(int i = 0; i < _N_in_polymers; i++) {
 		int idx, n_bonds;

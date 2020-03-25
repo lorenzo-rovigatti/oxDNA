@@ -9,116 +9,122 @@
 #include "VolumeMove.h"
 
 /// traslation
-
-VolumeMove::VolumeMove ()  {
+VolumeMove::VolumeMove() {
 	_verlet_skin = -1.f;
 	_isotropic = true;
 }
 
-
-VolumeMove::~VolumeMove () {
+VolumeMove::~VolumeMove() {
 
 }
 
-
-void VolumeMove::init () {
+void VolumeMove::init() {
 	BaseMove::init();
-	_pos_old.resize (_Info->N());
-	if (this->_restrict_to_type > 0) OX_LOG (Logger::LOG_WARNING, "(VolumeMove.cpp) Cant use VolumeMove with restrict_to_type. Ignoring");
-	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) VolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, this->_T, _delta, this->prob);
+	_pos_old.resize(_Info->N());
+	if(_restrict_to_type > 0) {
+		OX_LOG(Logger::LOG_WARNING, "(VolumeMove.cpp) Cant use VolumeMove with restrict_to_type. Ignoring");
+	}
+	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) VolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, _T, _delta, prob);
 }
 
-
-void VolumeMove::get_settings (input_file &inp, input_file &sim_inp) {
-	BaseMove::get_settings (inp, sim_inp);
+void VolumeMove::get_settings(input_file &inp, input_file &sim_inp) {
+	BaseMove::get_settings(inp, sim_inp);
 
 	getInputBool(&inp, "isotropic", &_isotropic, 0);
 	getInputNumber(&inp, "delta", &_delta, 1);
-	getInputNumber(&inp, "prob", &this->prob, 0);
+	getInputNumber(&inp, "prob", &prob, 0);
 	getInputNumber(&sim_inp, "P", &_P, 1);
 
 	std::string tmps;
-	if (getInputString (&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
-		if (!tmps.compare ("verlet")) {
-			getInputNumber (&sim_inp, "verlet_skin", &_verlet_skin, 1);
+	if(getInputString(&sim_inp, "list_type", tmps, 0) == KEY_FOUND) {
+		if(!tmps.compare("verlet")) {
+			getInputNumber(&sim_inp, "verlet_skin", &_verlet_skin, 1);
 		}
 	}
 }
 
-
-void VolumeMove::apply (llint curr_step) {
+void VolumeMove::apply(llint curr_step) {
 	// we increase the attempted count
-	this->_attempted += 1;
+	_attempted += 1;
 
-	std::vector<BaseParticle *> & particles = this->_Info->particles();
+	std::vector<BaseParticle*> &particles = _Info->particles();
 	int N = _Info->N();
 
-	LR_vector box_sides = this->_Info->box->box_sides();
+	LR_vector box_sides = _Info->box->box_sides();
 	LR_vector old_box_sides = box_sides;
 
 	number oldE;
-	if(this->_compute_energy_before) {
-		oldE = this->_Info->interaction->get_system_energy(this->_Info->particles(), this->_Info->lists);
+	if(_compute_energy_before) {
+		oldE = _Info->interaction->get_system_energy(_Info->particles(), _Info->lists);
 	}
-	else oldE = (number) 0.f;
-	number oldV = this->_Info->box->V();
+	else {
+		oldE = (number) 0.f;
+	}
+	number oldV = _Info->box->V();
 
 	if(_isotropic) {
-		number dL = _delta*(drand48() - (number) 0.5);
+		number dL = _delta * (drand48() - (number) 0.5);
 		box_sides.x += dL;
 		box_sides.y += dL;
 		box_sides.z += dL;
 		/*number newL = pow(exp(log(oldV) + _delta*(drand48() - (number) 0.5)), 1./3.);
-		  box_sides.x = box_sides.y = box_sides.z = newL;*/
+		 box_sides.x = box_sides.y = box_sides.z = newL;*/
 	}
 	else {
-		box_sides.x += _delta*(drand48() - (number) 0.5);
-		box_sides.y += _delta*(drand48() - (number) 0.5);
-		box_sides.z += _delta*(drand48() - (number) 0.5);
+		box_sides.x += _delta * (drand48() - (number) 0.5);
+		box_sides.y += _delta * (drand48() - (number) 0.5);
+		box_sides.z += _delta * (drand48() - (number) 0.5);
 	}
 
-	this->_Info->box->init(box_sides[0], box_sides[1], box_sides[2]);
+	_Info->box->init(box_sides[0], box_sides[1], box_sides[2]);
 	number dExt = (number) 0.f;
-	for(int k = 0; k < N; k ++) {
+	for(int k = 0; k < N; k++) {
 		BaseParticle *p = particles[k];
 		dExt -= p->ext_potential;
 		_pos_old[k] = p->pos;
-		p->pos.x *= box_sides[0]/old_box_sides[0];
-		p->pos.y *= box_sides[1]/old_box_sides[1];
-		p->pos.z *= box_sides[2]/old_box_sides[2];
-		p->set_ext_potential(curr_step, this->_Info->box);
+		p->pos.x *= box_sides[0] / old_box_sides[0];
+		p->pos.y *= box_sides[1] / old_box_sides[1];
+		p->pos.z *= box_sides[2] / old_box_sides[2];
+		p->set_ext_potential(curr_step, _Info->box);
 		dExt += p->ext_potential;
 	}
 
 	// this bit has to come after the update of particles' positions
-	this->_Info->lists->change_box();
-	if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
+	_Info->lists->change_box();
+	if(!_Info->lists->is_updated()) {
+		_Info->lists->global_update();
+	}
 
-	number newE = this->_Info->interaction->get_system_energy(this->_Info->particles(), this->_Info->lists);
+	number newE = _Info->interaction->get_system_energy(_Info->particles(), _Info->lists);
 	number dE = newE - oldE + dExt;
-	number V = this->_Info->box->V();
+	number V = _Info->box->V();
 	number dV = V - oldV;
 
-	if (this->_Info->interaction->get_is_infinite() == false && exp(-(dE + _P*dV - (N + 1)*this->_T*log(V/oldV))/this->_T) > drand48()) {
-		//printf("B %lld %lf ---- %lf %lf %lf\n", curr_step, newE/N, dE, dV, exp(-(dE + _P*dV - N*this->_T*log(V/oldV))/this->_T));
-		this->_accepted++;
-		if(curr_step < this->_equilibration_steps && this->_adjust_moves) _delta *= this->_acc_fact;
+	if(_Info->interaction->get_is_infinite() == false && exp(-(dE + _P * dV - (N + 1) * _T * log(V / oldV)) / _T) > drand48()) {
+		//printf("B %lld %lf ---- %lf %lf %lf\n", curr_step, newE/N, dE, dV, exp(-(dE + _P*dV - N*_T*log(V/oldV))/_T));
+		_accepted++;
+		if(curr_step < _equilibration_steps && _adjust_moves) {
+			_delta *= _acc_fact;
+		}
 	}
 	else {
-		for (int k = 0; k < N; k ++) {
+		for(int k = 0; k < N; k++) {
 			BaseParticle *p = particles[k];
 			p->pos = _pos_old[k];
-			p->set_ext_potential(curr_step, this->_Info->box);
+			p->set_ext_potential(curr_step, _Info->box);
 		}
-		this->_Info->interaction->set_is_infinite(false);
-		this->_Info->box->init(old_box_sides[0], old_box_sides[1], old_box_sides[2]);
-		this->_Info->lists->change_box();
-		if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
-		if(curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
+		_Info->interaction->set_is_infinite(false);
+		_Info->box->init(old_box_sides[0], old_box_sides[1], old_box_sides[2]);
+		_Info->lists->change_box();
+		if(!_Info->lists->is_updated()) {
+			_Info->lists->global_update();
+		}
+		if(curr_step < _equilibration_steps && _adjust_moves) {
+			_delta /= _rej_fact;
+		}
 	}
 	return;
 }
-
 
 void VolumeMove::log_parameters() {
 	BaseMove::log_parameters();
