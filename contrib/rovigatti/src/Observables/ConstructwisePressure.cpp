@@ -31,7 +31,9 @@ void ConstructwisePressure::get_settings(input_file &my_inp, input_file &sim_inp
 
 	bool lees_edwards = false;
 	getInputBool(&sim_inp, "lees_edwards", &lees_edwards, 0);
-	if(lees_edwards) getInputNumber(&sim_inp, "lees_edwards_shear_rate", &_shear_rate, 0);
+	if(lees_edwards) {
+		getInputNumber(&sim_inp, "lees_edwards_shear_rate", &_shear_rate, 0);
+	}
 }
 
 void ConstructwisePressure::init(ConfigInfo &info) {
@@ -39,7 +41,9 @@ void ConstructwisePressure::init(ConfigInfo &info) {
 
 	int N = info.N();
 
-	if(N % _construct_size) throw oxDNAException("ConstructwisePressure: the total number of particles (%d) is not a multiple of the construct size specified in the input file (%d)", N, _construct_size);
+	if(N % _construct_size) {
+		throw oxDNAException("ConstructwisePressure: the total number of particles (%d) is not a multiple of the construct size specified in the input file (%d)", N, _construct_size);
+	}
 	_N_constructs = N / _construct_size;
 	_construct_coms.resize(_N_constructs);
 }
@@ -79,6 +83,7 @@ void ConstructwisePressure::update_pressure() {
 
 			p->force = q->force = p->torque = q->torque = LR_vector();
 
+			_config_info->interaction->set_computed_r(r);
 			energy += (double) _config_info->interaction->pair_interaction(p, q, false, true);
 
 			virial -= (r * p->force);

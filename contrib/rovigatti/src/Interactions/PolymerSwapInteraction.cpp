@@ -27,6 +27,7 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 	}
 
 	getInputNumber(&inp, "PS_3b_sigma", &_3b_sigma, 0);
+	getInputNumber(&inp, "PS_3b_range", &_3b_range, 0);
 	getInputNumber(&inp, "PS_3b_lambda", &_3b_lambda, 0);
 	getInputNumber(&inp, "PS_3b_epsilon", &_3b_epsilon, 0);
 
@@ -71,7 +72,7 @@ void PolymerSwapInteraction::init() {
 		OX_LOG(Logger::LOG_INFO, "MG: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
 	}
 
-	_3b_rcut = 1.8 * _3b_sigma;
+	_3b_rcut = _3b_range * _3b_sigma;
 	_sqr_3b_rcut = SQR(_3b_rcut);
 	number B_ss = 1. / (1. + 4. * SQR(1. - _3b_rcut / _3b_sigma));
 	_3b_A_part = -_3b_epsilon / (B_ss - 1.) / exp(1. / (1. - _3b_rcut / _3b_sigma));

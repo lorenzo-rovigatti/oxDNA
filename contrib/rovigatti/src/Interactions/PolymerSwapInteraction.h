@@ -42,8 +42,8 @@ struct PSBondCompare {
 class PolymerSwapInteraction: public BaseInteraction<PolymerSwapInteraction> {
 protected:
 	std::array<number, 3> _Kfene = { {15., 15., 15.} };
-	std::array<number, 3> _rfene = { {1.5, 1.0, 1.5} };
-	std::array<number, 3> _sqr_rfene = { {2.25, 1.0, 2.25} };
+	std::array<number, 3> _rfene = { {1.5, 1.5, 1.5} };
+	std::array<number, 3> _sqr_rfene = { {2.25, 2.25, 2.25} };
 	std::array<number, 3> _WCA_sigma = { {1.0, 1.0, 1.0} };
 	std::array<number, 3> _PS_sqr_rep_rcut;
 
@@ -55,9 +55,10 @@ protected:
 	/// Three-body potential stuff
 	number _3b_rcut = -1.;
 	number _sqr_3b_rcut = -1.;
-	number _3b_sigma = 0.3;
+	number _3b_sigma = 1.05;
+	number _3b_range = 1.6;
 	number _3b_lambda = 1.0;
-	number _3b_epsilon = 50.;
+	number _3b_epsilon = 10.;
 	number _3b_A_part = 0.;
 	number _3b_B_part = 0.;
 
