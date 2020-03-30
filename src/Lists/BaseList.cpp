@@ -17,7 +17,7 @@ void BaseList::get_settings(input_file &inp) {
 	else if(strncmp("MC", sim_type, 512) == 0) _is_MC = true;
 	else if(strncmp("MC2", sim_type, 512) == 0) _is_MC = true;
 	else if(strncmp("VMMC", sim_type, 512) == 0) _is_MC = true;
-		else if(strncmp("PT_VMMC", sim_type, 512) == 0) _is_MC = true;
+	else if(strncmp("PT_VMMC", sim_type, 512) == 0) _is_MC = true;
 	else if(strncmp("FFS_MD", sim_type, 512) == 0) _is_MC = false;
 	else if(strncmp("min", sim_type, 512) == 0) _is_MC = false;
 	else if(strncmp("FIRE", sim_type, 512) == 0) _is_MC = false;
@@ -25,7 +25,6 @@ void BaseList::get_settings(input_file &inp) {
 }
 
 std::vector<BaseParticle *> BaseList::get_all_neighbours(BaseParticle *p) {
-//	std::vector<BaseParticle *> neighs = std::move(get_complete_neigh_list(p));
 	std::vector<BaseParticle *> neighs = get_complete_neigh_list(p);
 
 	std::set<BaseParticle *> bonded_neighs;
@@ -46,9 +45,7 @@ std::vector<ParticlePair > BaseList::get_potential_interactions() {
 	std::vector<ParticlePair > list;
 
 	for(auto p : _particles) {
-//		std::vector<BaseParticle *> neighs = std::move(get_all_neighbours(p));
-		std::vector<BaseParticle *> neighs = get_all_neighbours(p);
-		for(auto q : neighs) {
+		for(auto q : get_all_neighbours(p)) {
 			if(p->index > q->index) {
 				list.push_back(ParticlePair(p, q));
 			}

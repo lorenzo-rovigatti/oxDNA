@@ -15,7 +15,7 @@
 #include <thrust/fill.h>
 #include <thrust/transform.h>
 
-#define CUDA_MAX_SWAP_NEIGHS 5
+#define CUDA_MAX_SWAP_NEIGHS 20
 
 /* System constants */
 __constant__ int MD_N[1];
@@ -31,17 +31,17 @@ __constant__ float MD_gamma[1];
 
 __constant__ float MD_sqr_3b_rcut[1];
 __constant__ float MD_3b_sigma[1];
-__constant__ float MD_3b_lambda[1];
+__constant__ float MD_3b_prefactor[1];
 __constant__ float MD_3b_rcut[1];
+__constant__ float MD_3b_epsilon[1];
 __constant__ float MD_3b_A_part[1];
 __constant__ float MD_3b_B_part[1];
 
 #include "CUDA/cuda_utils/CUDA_lr_common.cuh"
 
 struct __align__(16) CUDA_FS_bond {
-	int q;
-	bool r_mod_less_than_sigma;
 	c_number4 force;
+	int q;
 };
 
 struct __align__(16) CUDA_FS_bond_list {
@@ -53,7 +53,7 @@ struct __align__(16) CUDA_FS_bond_list {
 					n_bonds(0) {
 	}
 	__device__
-	CUDA_FS_bond &new_bond() {
+	void add_bond(c_number4 &force, int q) {
 		n_bonds++;
 		if(n_bonds > CUDA_MAX_SWAP_NEIGHS) {
 			printf("TOO MANY SWAP NEIGHBOURS, TRAGEDY\nHere is the list of neighbours:\n");
@@ -61,8 +61,11 @@ struct __align__(16) CUDA_FS_bond_list {
 				printf("%d ", bonds[i].q);
 			}
 			printf("\n");
+			// this will invalidate the status of the simulation without crashing it
+			n_bonds--;
 		}
-		return bonds[n_bonds - 1];
+		bonds[n_bonds - 1].force = force;
+		bonds[n_bonds - 1].q = q;
 	}
 };
 
@@ -71,7 +74,7 @@ __device__ void _WCA(c_number4 &ppos, c_number4 &qpos, int int_type, c_number4 &
 	c_number sqr_r = CUDA_DOT(r, r);
 
 	c_number energy = 0.f;
-	// this c_number is the module of the force over r, so we don't have to divide the distance vector by its module
+	// this is the module of the force over r, so we don't have to divide the distance vector by its module
 	c_number force_mod = 0.f;
 
 	if(sqr_r < MD_sqr_rep_rcut[int_type]) {
@@ -86,11 +89,11 @@ __device__ void _WCA(c_number4 &ppos, c_number4 &qpos, int int_type, c_number4 &
 	/*else {
 		energy += 0.5f * MD_alpha[0] * (cosf(MD_gamma[0] * sqr_r + MD_beta[0]) - 1.f);
 		force_mod += MD_alpha[0] * MD_gamma[0] * sinf(MD_gamma[0] * sqr_r + MD_beta[0]);
-	}*/
+	}
 
 	if(sqr_r > MD_sqr_rcut[0]) {
 		energy = force_mod = (c_number) 0.f;
-	}
+		}*/
 
 	F.x -= r.x * force_mod;
 	F.y -= r.y * force_mod;
@@ -108,38 +111,23 @@ __device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int q_idx, c_number4 &
 
 	if(sqr_r < MD_sqr_3b_rcut[0]) {
 		c_number r_mod = sqrtf(sqr_r);
-		c_number exp_part = expf(MD_3b_sigma[0] / (r_mod - MD_3b_rcut[0]));
-		c_number tmp_energy = MD_3b_A_part[0] * exp_part * (MD_3b_B_part[0] / SQR(sqr_r) - 1.);
+		c_number delta_r = r_mod - MD_3b_rcut[0];
+		// given the finite precision of floating point numbers, this might be equal to or ever-so-slightly larger than 0
+		if(delta_r < 0.f) {
+			c_number exp_part = expf(MD_3b_sigma[0] / delta_r);
+			c_number tmp_energy = MD_3b_epsilon[0] * MD_3b_A_part[0] * exp_part * (MD_3b_B_part[0] / SQR(sqr_r) - 1.f);
+			
+			energy += tmp_energy;
+			
+			force_mod = (MD_3b_epsilon[0] * MD_3b_A_part[0] * exp_part * (4.f * MD_3b_B_part[0] / (SQR(sqr_r) * r_mod)) + MD_3b_sigma[0] * tmp_energy / SQR(delta_r)) / r_mod;	
 
-		energy += tmp_energy;
-
-		force_mod = MD_3b_A_part[0] * exp_part * (4. * MD_3b_B_part[0] / (SQR(sqr_r) * r_mod)) + MD_3b_sigma[0] * tmp_energy / SQR(r_mod - MD_3b_rcut[0]);
-		c_number4 tmp_force = r * (force_mod / r_mod);
-
-		CUDA_FS_bond &my_bond = bond_list.new_bond();
-
-		my_bond.force = tmp_force;
-		my_bond.force.w = tmp_energy;
-		my_bond.q = q_idx;
-		my_bond.r_mod_less_than_sigma = r_mod < MD_3b_sigma[0];
-
-		/*
-		PSBond p_bond(q, _computed_r, r_mod, tmp_energy);
-		PSBond q_bond(p, -_computed_r, r_mod, tmp_energy);
-
-		if(!no_three_body) {
-			energy += _three_body(p, p_bond, update_forces);
-			energy += _three_body(q, q_bond, update_forces);
-
-			_bonds[p->index].insert(p_bond);
-			_bonds[q->index].insert(q_bond);
-		}*/
+			c_number4 tmp_force = r * force_mod;
+			tmp_force.w = (r_mod < MD_3b_sigma[0]) ? MD_3b_epsilon[0] : -tmp_energy;
+			
+			bond_list.add_bond(tmp_force, q_idx);
+		}
 	}
-
-	if(sqr_r > MD_sqr_3b_rcut[0]) {
-		energy = force_mod = (c_number) 0.f;
-	}
-
+	
 	F.x -= r.x * force_mod;
 	F.y -= r.y * force_mod;
 	F.z -= r.z * force_mod;
@@ -152,6 +140,10 @@ __device__ void _FENE(c_number4 &ppos, c_number4 &qpos, int int_type, c_number4 
 
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
+
+	if(sqr_r > sqr_rfene) {
+		printf("WARNING: the distance between particles %d and %d (%lf) exceeds the FENE R0 (%lf)\n", get_particle_index(ppos), get_particle_index(qpos), sqrtf(sqr_r), sqrtf(sqr_rfene));
+	}
 
 	c_number energy = -Kfene * sqr_rfene * logf(1.f - sqr_r / sqr_rfene);
 	// this c_number is the module of the force over r, so we don't have to divide the distance vector by its module
@@ -166,42 +158,44 @@ __device__ void _FENE(c_number4 &ppos, c_number4 &qpos, int int_type, c_number4 
 __device__ void _three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c_number4 *forces) {
 	for(int bi = 0; bi < bond_list.n_bonds; bi++) {
 		CUDA_FS_bond &b1 = bond_list.bonds[bi];
+		c_number curr_energy = b1.force.w;
+		
 		for(int bj = bi + 1; bj < bond_list.n_bonds; bj++) {
 			CUDA_FS_bond &b2 = bond_list.bonds[bj];
+			c_number other_energy = b2.force.w;
 
-			c_number curr_energy = (b1.r_mod_less_than_sigma) ? 1.f : -b1.force.w;
-			c_number other_energy = (b2.r_mod_less_than_sigma) ? 1.f : -b2.force.w;
+			// the factor 2 takes into account the fact that the pair energy is always counted twice
+			F.w += 2.f * MD_3b_prefactor[0] * curr_energy * other_energy;
 
-			// the factor 2 takes into account the fact that the pair energy is counted twice
-			F.w += 2.f * MD_3b_lambda[0] * curr_energy * other_energy;
+			if(curr_energy != MD_3b_epsilon[0]) {
+				c_number factor = -MD_3b_prefactor[0] * other_energy;
+				c_number4 force = factor * b1.force;
+				force.w = 0.f;
 
-			if(!b1.r_mod_less_than_sigma) {
-				c_number factor = -MD_3b_lambda[0] * other_energy;
-
-				F -= factor * b1.force;
-				LR_atomicAddXYZ(forces + b1.q, factor * b1.force);
+				F -= force;
+				LR_atomicAddXYZ(forces + b1.q, force);
 			}
 
-			if(!b2.r_mod_less_than_sigma) {
-				c_number factor = -MD_3b_lambda[0] * curr_energy;
+			if(other_energy != MD_3b_epsilon[0]) {
+				c_number factor = -MD_3b_prefactor[0] * curr_energy;
+				c_number4 force = factor * b2.force;
+				force.w = 0.f;
 
-				F -= factor * b2.force;
-				LR_atomicAddXYZ(forces + b2.q, factor * b2.force);
+				F -= force;
+				LR_atomicAddXYZ(forces + b2.q, force);
 			}
 		}
 	}
 }
 
-// this kernel is called "some bonded forces" because it computes the FENE potential between all bonded pair, but the WCA potential
-// only between monomer-sticky pairs. The monomer-monomer bonded WCA interaction is handled by the ps_forces function
-__global__ void ps_some_bonded_forces(c_number4 *poss, c_number4 *forces, int *bonded_neighs, CUDABox *box) {
+__global__ void ps_FENE_forces(c_number4 *poss, c_number4 *forces, int *bonded_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
 	int ptype = get_particle_btype(ppos);
 
-	// the first vale of each column is just the number of bonded neighbours
+	// the first value of each column is the number of bonded neighbours
 	int n_bonded_neighs = bonded_neighs[IND];
 
 	for(int i = 1; i <= n_bonded_neighs; i++) {
@@ -211,9 +205,6 @@ __global__ void ps_some_bonded_forces(c_number4 *poss, c_number4 *forces, int *b
 		int int_type = ptype + qtype;
 
 		_FENE(ppos, qpos, int_type, F, box);
-		if(int_type == 1) {
-			_WCA(ppos, qpos, int_type, F, box);
-		}
 	}
 
 	forces[IND] = F;
@@ -235,14 +226,15 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 			int qtype = get_particle_btype(qpos);
 			int int_type = ptype + qtype;
 
-			if(int_type == 0) {
-				_WCA(ppos, qpos, int_type, F, box);
-			}
-			else if(int_type == 2) {
+			_WCA(ppos, qpos, int_type, F, box);
+			
+			if(int_type == 2) {
 				_sticky(ppos, qpos, j, F, bonds, box);
 			}
 		}
 	}
+
+	_three_body(bonds, F, three_body_forces);
 
 	forces[IND] = F;
 }
@@ -266,10 +258,9 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 		int qtype = get_particle_btype(qpos);
 		int int_type = ptype + qtype;
 
-		if(int_type == 0) {
-			_WCA(ppos, qpos, int_type, F, box);
-		}
-		else if(int_type == 2) {
+		_WCA(ppos, qpos, int_type, F, box);
+		
+		if(int_type == 2) {
 			_sticky(ppos, qpos, q_index, F, bonds, box);
 		}
 	}
@@ -346,30 +337,33 @@ void CUDAPolymerSwapInteraction::cuda_init(c_number box_side, int N) {
 	COPY_NUMBER_TO_FLOAT(MD_gamma, _PS_gamma);
 	COPY_NUMBER_TO_FLOAT(MD_sqr_3b_rcut, _sqr_3b_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_3b_sigma, _3b_sigma);
-	COPY_NUMBER_TO_FLOAT(MD_3b_lambda, _3b_lambda);
+	COPY_NUMBER_TO_FLOAT(MD_3b_prefactor, _3b_prefactor);
 	COPY_NUMBER_TO_FLOAT(MD_3b_rcut, _3b_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_3b_epsilon, _3b_epsilon);
 	COPY_NUMBER_TO_FLOAT(MD_3b_A_part, _3b_A_part);
 	COPY_NUMBER_TO_FLOAT(MD_3b_B_part, _3b_B_part);
 }
 
 void CUDAPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
-	thrust::device_ptr < c_number4 > t_forces = thrust::device_pointer_cast(d_forces);
-	thrust::device_ptr < c_number4 > t_three_body_forces = thrust::device_pointer_cast(_d_three_body_forces);
+	thrust::device_ptr<c_number4> t_forces = thrust::device_pointer_cast(d_forces);
+	thrust::device_ptr<c_number4> t_three_body_forces = thrust::device_pointer_cast(_d_three_body_forces);
 	thrust::fill_n(t_three_body_forces, _N, make_c_number4(0, 0, 0, 0));
 
-	ps_some_bonded_forces
+	ps_FENE_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 		(d_poss, d_forces, _d_bonded_neighs, d_box);
-	CUT_CHECK_ERROR("forces_second_step MG simple_lists error");
+	CUT_CHECK_ERROR("forces_second_step PolymerSwap simple_lists error");
 
 	CUDASimpleVerletList *_v_lists = dynamic_cast<CUDASimpleVerletList *>(lists);
 	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) throw oxDNAException("use_edge unsupported by CPMixtureInteraction");
+		if(_v_lists->use_edge()) {
+			throw oxDNAException("use_edge unsupported by PolymerSwapInteraction");
+		}
 
 		ps_forces
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_forces, _d_three_body_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
-		CUT_CHECK_ERROR("forces_second_step MG simple_lists error");
+		CUT_CHECK_ERROR("forces_second_step PolymerSwap simple_lists error");
 	}
 
 	CUDANoList *_no_lists = dynamic_cast<CUDANoList *>(lists);
@@ -377,12 +371,13 @@ void CUDAPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *
 		ps_forces
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_forces, _d_three_body_forces, d_box);
-		CUT_CHECK_ERROR("forces_second_step MG no_lists error");
+		CUT_CHECK_ERROR("forces_second_step PolymerSwap no_lists error");
 	}
 
 	// add the three body contributions to the two-body forces
 	thrust::transform(t_forces, t_forces + _N, t_three_body_forces, t_forces, thrust::plus<c_number4>());
 
-//	number energy = GpuUtils::sum_c_number4_to_double_on_GPU(d_forces, _N);
-//	printf("U: %lf\n", energy / _N / 2.);
+	/*number energy = GpuUtils::sum_c_number4_to_double_on_GPU(d_forces, _N);
+	auto energy_string = Utils::sformat("%lf ", energy / _N / 2.);
+	*CONFIG_INFO->backend_info += energy_string;*/
 }

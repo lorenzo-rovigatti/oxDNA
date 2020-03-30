@@ -8,24 +8,23 @@
 
 struct PSBond {
 	BaseParticle *other;
-	LR_vector r;
-	number r_mod;
 	number energy;
 	LR_vector force;
-	LR_vector p_torque, q_torque;
 
-	PSBond(BaseParticle *o, LR_vector my_r, number my_r_mod, number e) :
+	PSBond(BaseParticle *o, number e) :
 					other(o),
-					r(my_r),
-					r_mod(my_r_mod),
 					energy(e) {
 	}
 };
 
 struct PSBondCompare {
 	bool operator()(const PSBond &lhs, const PSBond &rhs) {
-		if(lhs.other->index == rhs.other->index) return false;
-		else return true;
+		if(lhs.other->index == rhs.other->index) {
+			return false;
+		}
+		else {
+			return true;
+		}
 	}
 };
 
@@ -59,6 +58,7 @@ protected:
 	number _3b_range = 1.6;
 	number _3b_lambda = 1.0;
 	number _3b_epsilon = 10.;
+	number _3b_prefactor = 0.1;
 	number _3b_A_part = 0.;
 	number _3b_B_part = 0.;
 
@@ -73,6 +73,7 @@ protected:
 	number _WCA(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _sticky(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
+	void _reset_three_body();
 
 public:
 	enum {
@@ -97,6 +98,21 @@ public:
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
 		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
+	}
+
+	number get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) override {
+		_reset_three_body();
+		return BaseInteraction::get_system_energy(particles, lists);
+	}
+	
+	number get_system_energy_term(int name, std::vector<BaseParticle *> &particles, BaseList *lists) override {
+		_reset_three_body();
+		return BaseInteraction::get_system_energy_term(name, particles, lists);
+	}
+	
+	std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) override {
+		_reset_three_body();
+		return BaseInteraction::get_system_energy_split(particles, lists);
 	}
 
 	virtual void read_topology(int *N_stars, std::vector<BaseParticle *> &particles);

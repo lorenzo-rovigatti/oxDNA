@@ -12,7 +12,7 @@ The code requires `cmake` and a c++-14-compliant `g++` (any version >= 4.9 *shou
 
 ### CUDA
 
-Compiling with CUDA support requires `cmake` >= 3.5 and the CUDA toolkit (>= 4.0).
+Compiling with CUDA support requires `cmake` >= 3.5 and a CUDA toolkit >= 9.0.
 
 ### Python bindings
 
@@ -22,7 +22,7 @@ Python bindings require `Python 3`'s binaries, libraries and include files. On D
 
 ### Documentation
 
-Generating the documentation (with `make docs`, see below) requires [doxygen](http://www.doxygen.nl/). 
+Generating the documentation of the C++ code (with `make docs`, see below) requires [doxygen](http://www.doxygen.nl/). 
 
 ## Compiling oxDNA
 

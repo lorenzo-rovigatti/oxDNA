@@ -323,6 +323,15 @@ number FSInteraction::_three_body(BaseParticle *p, FSBond &new_bond, bool update
 	return energy;
 }
 
+void FSInteraction::_reset_three_body() {
+	for(int i = _N_in_polymers; i < _N; i++) {
+		_bonds[i].clear();
+	}
+	
+	_stress_tensor = vector<vector<number>>(3, vector<number>(3, (number) 0));
+	_needs_reset = false;
+}
+
 number FSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(compute_r) {
 		if(q != P_VIRTUAL && p != P_VIRTUAL) {
@@ -336,14 +345,9 @@ number FSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool co
 }
 
 number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	// patchy-patchy interactions don't have bonded part. We set up a fake one at the beginning just to reset some data structures every step
+	// patchy-patchy interactions don't have a bonded part. We set up a fake one at the beginning just to reset some data structures every step
 	if(_is_patchy_patchy(p->type, q->type) && _needs_reset) {
-		for(int i = _N_in_polymers; i < _N; i++) {
-			_bonds[i].clear();
-		}
-
-		_stress_tensor = vector<vector<number>>(3, vector<number>(3, (number) 0));
-		_needs_reset = false;
+		_reset_three_body();
 		return 0.;
 	}
 

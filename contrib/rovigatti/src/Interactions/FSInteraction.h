@@ -129,6 +129,7 @@ protected:
 	number _polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	number _three_body(BaseParticle *p, FSBond &new_bond, bool update_forces);
+	void _reset_three_body();
 
 	void _update_stress_tensor(LR_vector r, LR_vector f);
 
@@ -169,6 +170,21 @@ public:
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
 		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
+	}
+
+	number get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) override {
+		_reset_three_body();
+		return BaseInteraction::get_system_energy(particles, lists);
+	}
+	
+	number get_system_energy_term(int name, std::vector<BaseParticle *> &particles, BaseList *lists) override {
+		_reset_three_body();
+		return BaseInteraction::get_system_energy_term(name, particles, lists);
+	}
+	
+	std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) override {
+		_reset_three_body();
+		return BaseInteraction::get_system_energy_split(particles, lists);
 	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
