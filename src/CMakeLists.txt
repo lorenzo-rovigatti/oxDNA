@@ -1,6 +1,9 @@
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
 	SET(exe_name oxDNA_debug)
 	SET(lib_name common_debug)
+ELSEIF(MPI)
+	SET(exe_name oxDNA_mpi)
+	SET(lib_name common)
 ELSE()
 	SET(exe_name oxDNA)
 	SET(lib_name common)
@@ -192,10 +195,6 @@ SET(common_SOURCES
 	${box_SOURCES}
 )
 
-SET(oxDNA_SOURCES
-	oxDNA.cpp 
-)
-
 SET(DNAnalysis_SOURCES
 	DNAnalysis.cpp
 	Managers/AnalysisManager.cpp
@@ -206,6 +205,24 @@ SET(confGenerator_SOURCES
 	confGenerator.cpp
 	Managers/GeneratorManager.cpp
 )
+
+IF(MPI)
+	FIND_PACKAGE(MPI REQUIRED)
+	INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+	
+	LIST(APPEND common_SOURCES
+		Backends/PT_VMMC_CPUBackend.cpp
+		Managers/ParallelManager.cpp
+	)
+	
+	SET(oxDNA_SOURCES
+		oxDNA_mpi.cpp 
+	)
+ELSE()
+	SET(oxDNA_SOURCES
+		oxDNA.cpp 
+	)
+ENDIF()
 	
 IF(CUDA)
 	SET(oxDNA_CUDASOURCES
@@ -259,7 +276,13 @@ ENDIF(CUDA)
 ADD_EXECUTABLE(confGenerator ${confGenerator_SOURCES})
 
 ADD_LIBRARY(${lib_name} ${common_SOURCES})
-TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
+
+IF(MPI)
+	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS} ${MPI_LIBRARIES})
+ELSE()
+	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
+ENDIF()
+
 TARGET_LINK_LIBRARIES(${exe_name} ${lib_name})
 TARGET_LINK_LIBRARIES(DNAnalysis ${lib_name})
 TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
@@ -268,17 +291,3 @@ TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
 ADD_DEPENDENCIES(test_run ${exe_name} DNAnalysis confGenerator)
 ADD_DEPENDENCIES(test_quick ${exe_name} DNAnalysis confGenerator)
 ADD_DEPENDENCIES(test_scientific ${exe_name} DNAnalysis confGenerator)
-
-IF(MPI)
-	FIND_PACKAGE(MPI REQUIRED)
-	INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
-
-	SET(mpi_SOURCES
-		oxDNA_mpi
-		Managers/ParallelManager.cpp
-                Backends/PT_VMMC_CPUBackend.cpp
-	)
-	ADD_EXECUTABLE(oxDNA_mpi ${mpi_SOURCES})
-        SET(exe_name oxDNA_mpi)
-	TARGET_LINK_LIBRARIES(oxDNA_mpi ${lib_name} ${MPI_LIBRARIES})
-ENDIF()
