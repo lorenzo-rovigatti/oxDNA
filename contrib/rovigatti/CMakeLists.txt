@@ -35,6 +35,7 @@ ADD_LIBRARY(RadialDensityProfile SHARED EXCLUDE_FROM_ALL src/Observables/RadialD
 ADD_LIBRARY(MGAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/MGAnalysis.cpp)
 ADD_LIBRARY(MicrogelElasticity SHARED EXCLUDE_FROM_ALL src/Observables/MicrogelElasticity.cpp)
 ADD_LIBRARY(ConstructwisePressure SHARED EXCLUDE_FROM_ALL src/Observables/ConstructwisePressure.cpp)
+TARGET_LINK_LIBRARIES(ConstructwisePressure PolymerSwapInteraction)
 ADD_LIBRARY(DensityPressureProfile SHARED EXCLUDE_FROM_ALL src/Observables/DensityPressureProfile.cpp)
 ADD_LIBRARY(MGAssemblyConf SHARED EXCLUDE_FROM_ALL src/Observables/MGAssemblyConf.cpp)
 TARGET_LINK_LIBRARIES(MGAssemblyConf FSInteraction)

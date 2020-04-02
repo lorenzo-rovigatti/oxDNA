@@ -28,6 +28,7 @@ protected:
 	int _construct_size;
 	int _N_constructs;
 	std::vector<LR_vector> _construct_coms;
+	bool _is_polymer_swap = false;
 
 public:
 	ConstructwisePressure();
@@ -37,6 +38,8 @@ public:
 	void init(ConfigInfo &Info);
 
 	void update_pressure();
+	void update_pressure_PolymerSwap();
+	
 	number get_P() {
 		return _P;
 	}

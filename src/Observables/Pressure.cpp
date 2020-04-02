@@ -113,7 +113,7 @@ void Pressure::update_pressure() {
 		}
 	}
 
-	for(auto p: _config_info->particles()) {
+	for(auto p : _config_info->particles()) {
 		LR_vector vel = p->vel;
 		if(_shear_rate > 0.) {
 			number Ly = CONFIG_INFO->box->box_sides().y;

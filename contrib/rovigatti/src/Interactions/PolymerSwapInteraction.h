@@ -10,10 +10,13 @@ struct PSBond {
 	BaseParticle *other;
 	number energy;
 	LR_vector force;
+	LR_vector r;
 
-	PSBond(BaseParticle *o, number e) :
-					other(o),
-					energy(e) {
+	PSBond(BaseParticle *o, number e, LR_vector &nr) :
+		other(o),
+		energy(e),
+		r(nr) {
+			
 	}
 };
 
@@ -62,18 +65,24 @@ protected:
 	number _3b_A_part = 0.;
 	number _3b_B_part = 0.;
 
+	std::vector<LR_vector> _inter_chain_forces;
+
 	bool _needs_reset = true;
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
 	std::string _bond_filename;
 
 	bool _only_links_in_bondfile = true;
+	int _chain_size = -1;
+	int _N_chains = -1;
+	number _T;
+
+	void _update_inter_chain_forces(BaseParticle *p, BaseParticle *q, LR_vector p_force, const LR_vector &pq_r);
 
 	number _fene(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _WCA(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _sticky(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
-	void _reset_three_body();
 
 public:
 	enum {
@@ -91,6 +100,9 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
+	number P_inter_chain();
+	void reset_three_body();
+
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
@@ -101,17 +113,17 @@ public:
 	}
 
 	number get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) override {
-		_reset_three_body();
+		reset_three_body();
 		return BaseInteraction::get_system_energy(particles, lists);
 	}
 	
 	number get_system_energy_term(int name, std::vector<BaseParticle *> &particles, BaseList *lists) override {
-		_reset_three_body();
+		reset_three_body();
 		return BaseInteraction::get_system_energy_term(name, particles, lists);
 	}
 	
 	std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) override {
-		_reset_three_body();
+		reset_three_body();
 		return BaseInteraction::get_system_energy_split(particles, lists);
 	}
 

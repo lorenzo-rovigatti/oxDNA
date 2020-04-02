@@ -20,6 +20,8 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputInt(&inp, "PS_n", &_PS_n, 0);
 	getInputString(&inp, "PS_bond_file", _bond_filename, 1);
 	getInputBool(&inp, "PS_only_links_in_bondfile", &_only_links_in_bondfile, 0);
+	getInputInt(&inp, "PS_chain_size", &_chain_size, 1);
+	
 	getInputNumber(&inp, "PS_alpha", &_PS_alpha, 0);
 
 	if(_PS_alpha != 0.) {
@@ -30,6 +32,8 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "PS_3b_range", &_3b_range, 0);
 	getInputNumber(&inp, "PS_3b_lambda", &_3b_lambda, 0);
 	getInputNumber(&inp, "PS_3b_epsilon", &_3b_epsilon, 0);
+
+	getInputNumber(&inp, "T", &_T, 1);
 
 	for(int i = 0; i < 3; i++) {
 		std::string key = Utils::sformat("PS_rfene[%d]", i);
@@ -87,6 +91,73 @@ void PolymerSwapInteraction::init() {
 	}
 }
 
+void PolymerSwapInteraction::_update_inter_chain_forces(BaseParticle *p, BaseParticle *q, LR_vector p_force, const LR_vector &pq_r) {
+	if(p->strand_id == q->strand_id) {
+		return;
+	}
+	
+	int min_id = p->strand_id;
+	int max_id = q->strand_id;
+	if(min_id > max_id) {
+		min_id = q->strand_id;
+		max_id = p->strand_id;
+	}
+
+	int idx = min_id * _N_chains + max_id;
+	_inter_chain_forces[idx] += p_force;
+}
+
+number PolymerSwapInteraction::P_inter_chain() {
+	std::vector<LR_vector> coms(_N_chains, LR_vector(0., 0., 0.));
+
+	int curr_idx = 0;
+	for(int curr_chain = 0; curr_chain < _N_chains; curr_chain++) {
+		LR_vector prev_r = CONFIG_INFO->particles()[curr_idx]->pos;
+		LR_vector delta_r(0., 0., 0.);
+		coms[curr_chain] = _chain_size * prev_r;
+		curr_idx++;
+		for(int i = 1; i < _chain_size; i++) {
+			BaseParticle *pi = CONFIG_INFO->particles()[curr_idx];
+			LR_vector ri = pi->pos;
+			delta_r += _box->min_image(prev_r, ri);
+			coms[curr_chain] += delta_r;
+			prev_r = ri;
+
+			if(pi->strand_id != curr_chain) {
+				throw oxDNAException("mismatch detected between chain ids during the computation of P (%d != %d)", pi->strand_id, curr_chain);
+			}
+			
+			curr_idx++;
+		}
+		coms[curr_chain] /= _chain_size;
+	}
+
+	number virial = 0.;
+	for(int c_i = 0; c_i < _N_chains; c_i++) {
+		LR_vector r_i = coms[c_i];
+		for(int c_j = c_i + 1; c_j < _N_chains; c_j++) {
+			LR_vector r_j = coms[c_j];
+
+			LR_vector delta_r_mol = _box->min_image(r_i, r_j);
+			
+			int idx = c_i * _N_chains + c_j;
+			virial -= delta_r_mol * _inter_chain_forces[idx];
+		}
+	}
+
+	number V = CONFIG_INFO->box->V();
+	number P = _T * _N_chains / V + virial / (3. * V);
+
+	return P;
+}
+
+void PolymerSwapInteraction::reset_three_body() {
+	_inter_chain_forces.resize(_N_chains * _N_chains);
+	std::fill(_inter_chain_forces.begin(), _inter_chain_forces.end(), LR_vector(0., 0., 0.));
+	_bonds.clear();
+	_needs_reset = false;
+}
+
 number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 
@@ -107,8 +178,11 @@ number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool upda
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance vector by its module
 		number force_mod = -2 * Kfene * sqr_rfene / (sqr_rfene - sqr_r);
-		p->force -= _computed_r * force_mod;
-		q->force += _computed_r * force_mod;
+		auto force = -_computed_r * force_mod;
+		p->force += force;
+		q->force -= force;
+
+		_update_inter_chain_forces(p, q, force, _computed_r);
 	}
 
 	return energy;
@@ -147,8 +221,11 @@ number PolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool updat
 	}*/
 
 	if(update_forces) {
-		p->force -= _computed_r * force_mod;
-		q->force += _computed_r * force_mod;
+		auto force = -_computed_r * force_mod;
+		p->force += force;
+		q->force -= force;
+
+		_update_inter_chain_forces(p, q, force, _computed_r);
 	}
 
 	return energy;
@@ -170,18 +247,20 @@ number PolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool up
 
 			number tb_energy = (r_mod < _3b_sigma) ? _3b_epsilon : -tmp_energy;
 			
-			PSBond p_bond(q, tb_energy);
-			PSBond q_bond(p, tb_energy);
+			PSBond p_bond(q, tb_energy, _computed_r);
+			PSBond q_bond(p, tb_energy, _computed_r);
 
 			if(update_forces) {
 				number force_mod = _3b_epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * tmp_energy / SQR(r_mod - _3b_rcut);
-				LR_vector tmp_force = _computed_r * (force_mod / r_mod);
+				LR_vector tmp_force = -_computed_r * (force_mod / r_mod);
 
-				p->force -= tmp_force;
-				q->force += tmp_force;
+				p->force += tmp_force;
+				q->force -= tmp_force;
 
-				p_bond.force = tmp_force;
-				q_bond.force = -tmp_force;
+				p_bond.force = -tmp_force;
+				q_bond.force = +tmp_force;
+
+				_update_inter_chain_forces(p, q, tmp_force, _computed_r);
 			}
 
 			if(!no_three_body) {
@@ -213,20 +292,24 @@ number PolymerSwapInteraction::_three_body(BaseParticle *p, PSBond &new_bond, bo
 					BaseParticle *other = new_bond.other;
 
 					number factor = -_3b_prefactor * other_energy;
-					LR_vector tmp_force = factor * new_bond.force;
+					LR_vector tmp_force = -factor * new_bond.force;
 
-					p->force -= tmp_force;
-					other->force += tmp_force;
+					p->force += tmp_force;
+					other->force -= tmp_force;
+
+					_update_inter_chain_forces(p, other, tmp_force, new_bond.r);
 				}
 
 				if(other_energy != _3b_epsilon) {
 					BaseParticle *other = other_bond.other;
 
 					number factor = -_3b_prefactor * curr_energy;
-					LR_vector tmp_force = factor * other_bond.force;
+					LR_vector tmp_force = -factor * other_bond.force;
 
-					p->force -= tmp_force;
-					other->force += tmp_force;
+					p->force += tmp_force;
+					other->force -= tmp_force;
+
+					_update_inter_chain_forces(p, other, tmp_force, other_bond.r);
 				}
 			}
 		}
@@ -249,10 +332,10 @@ number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BasePart
 
 	if(p->is_bonded(q)) {
 		// we set up a fake sticky-sticky bonded interaction at the beginning just to reset some data structures at every step
-		if((p->type + q->type == 2) && _needs_reset) {
-			_reset_three_body();
+		/*if((p->type + q->type == 2) && _needs_reset) {
+			reset_three_body();
 			return 0.;
-		}
+			}*/
 		
 		if(compute_r) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
@@ -283,11 +366,6 @@ number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseP
 	}
 
 	return energy;
-}
-
-void PolymerSwapInteraction::_reset_three_body() {
-	_bonds.clear();
-	_needs_reset = false;
 }
 
 void PolymerSwapInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
@@ -380,7 +458,7 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 			p->type = STICKY;
 		}
 		p->btype = p->type;
-		p->strand_id = 0;
+		p->strand_id = p_idx / _chain_size;
 		p->n3 = p->n5 = P_VIRTUAL;
 		for(int j = 0; j < n_bonds; j++) {
 			int n_idx;
@@ -398,7 +476,10 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		}
 	}
 
-	*N_strands = N_from_conf;
+	*N_strands = N_from_conf / _chain_size;
+	_N_chains = *N_strands;
+
+	reset_three_body();
 }
 
 extern "C" PolymerSwapInteraction* make_PolymerSwapInteraction() {
