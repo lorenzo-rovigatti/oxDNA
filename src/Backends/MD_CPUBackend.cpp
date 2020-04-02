@@ -95,6 +95,8 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 }
 
 void MD_CPUBackend::_compute_forces() {
+	_interaction->begin_energy_computation();
+
 	_U = _U_hydr = (number) 0;
 	for(auto p : _particles) {
 		for(auto &pair : p->affected) {

@@ -117,8 +117,6 @@ number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *
 				LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 				p->force -= force;
 				q->force += force;
-
-				_update_stress_tensor(_computed_r, force);
 			}
 		}
 		else {
@@ -130,8 +128,6 @@ number FSInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *
 					LR_vector force = _computed_r * (-24. * _spherical_attraction_strength * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 					p->force -= force;
 					q->force += force;
-
-					_update_stress_tensor(_computed_r, force);
 				}
 			}
 		}
@@ -163,8 +159,10 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool co
 
 					energy += tmp_energy;
 
-					FSBond p_bond(q, _computed_r, r_p, pi, pj, tmp_energy);
-					FSBond q_bond(p, -_computed_r, r_p, pj, pi, tmp_energy);
+					number tb_energy = (r_p < _sigma_ss) ? 1 : -tmp_energy;
+
+					FSBond p_bond(q, r_p, pi, pj, tb_energy);
+					FSBond q_bond(p, r_p, pj, pi, tb_energy);
 
 					if(update_forces) {
 						number force_mod = _A_part * exp_part * (4. * _B_part / (SQR(dist) * r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
@@ -186,16 +184,14 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool co
 						q_bond.force = -tmp_force;
 						q_bond.p_torque = -q_torque;
 						q_bond.q_torque = -p_torque;
-
-						_update_stress_tensor(_computed_r, tmp_force);
 					}
 
 					if(!no_three_body) {
 						energy += _three_body(p, p_bond, update_forces);
 						energy += _three_body(q, q_bond, update_forces);
 
-						_bonds[p->index].insert(p_bond);
-						_bonds[q->index].insert(q_bond);
+						_bonds[p->index].emplace_back(p_bond);
+						_bonds[q->index].emplace_back(q_bond);
 					}
 				}
 			}
@@ -203,6 +199,56 @@ number FSInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool co
 	}
 
 	return energy;
+}
+
+number FSInteraction::_three_body(BaseParticle *p, FSBond &new_bond, bool update_forces) {
+	number energy = 0.;
+
+	number curr_energy = new_bond.energy;
+	for(auto &other_bond : _bonds[p->index]) {
+		// three-body interactions happen only when the same patch is involved in more than a bond
+		if(other_bond.other != new_bond.other && other_bond.p_patch == new_bond.p_patch) {
+			number other_energy = other_bond.energy;
+
+			energy += _lambda * curr_energy * other_energy;
+
+			if(update_forces) {
+				if(new_bond.r_p > _sigma_ss) {
+					BaseParticle *other = new_bond.other;
+
+					number factor = -_lambda * other_energy;
+					LR_vector tmp_force = factor * new_bond.force;
+
+					p->force -= tmp_force;
+					other->force += tmp_force;
+
+					p->torque -= factor * new_bond.p_torque;
+					other->torque += factor * new_bond.q_torque;
+				}
+
+				if(other_bond.r_p > _sigma_ss) {
+					BaseParticle *other = other_bond.other;
+
+					number factor = -_lambda * curr_energy;
+					LR_vector tmp_force = factor * other_bond.force;
+
+					p->force -= tmp_force;
+					other->force += tmp_force;
+
+					p->torque -= factor * other_bond.p_torque;
+					other->torque += factor * other_bond.q_torque;
+				}
+			}
+		}
+	}
+
+	return energy;
+}
+
+void FSInteraction::begin_energy_computation() {
+	for(int i = _N_in_polymers; i < _N; i++) {
+		_bonds[i].clear();
+	}
 }
 
 number FSInteraction::_polymer_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -266,72 +312,6 @@ number FSInteraction::_polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool 
 	return energy;
 }
 
-number FSInteraction::_three_body(BaseParticle *p, FSBond &new_bond, bool update_forces) {
-	number energy = 0.;
-	_needs_reset = true;
-
-	typename std::set<FSBond>::iterator it = _bonds[p->index].begin();
-	for(; it != _bonds[p->index].end(); it++) {
-		// three-body interactions happen only when the same patch is involved in more than a bond
-		if(it->other != new_bond.other && it->p_patch == new_bond.p_patch) {
-			number curr_energy = -new_bond.energy;
-			if(new_bond.r_p < _sigma_ss) {
-				curr_energy = 1.;
-			}
-
-			number other_energy = -it->energy;
-			if(it->r_p < _sigma_ss) {
-				other_energy = 1.;
-			}
-
-			energy += _lambda * curr_energy * other_energy;
-
-			if(update_forces) {
-				if(new_bond.r_p > _sigma_ss) {
-					BaseParticle *other = new_bond.other;
-
-					number factor = -_lambda * other_energy;
-					LR_vector tmp_force = factor * new_bond.force;
-
-					p->force -= tmp_force;
-					other->force += tmp_force;
-
-					_update_stress_tensor(new_bond.r, tmp_force);
-
-					p->torque -= factor * new_bond.p_torque;
-					other->torque += factor * new_bond.q_torque;
-				}
-
-				if(it->r_p > _sigma_ss) {
-					BaseParticle *other = it->other;
-
-					number factor = -_lambda * curr_energy;
-					LR_vector tmp_force = factor * it->force;
-
-					p->force -= factor * it->force;
-					other->force += factor * it->force;
-
-					_update_stress_tensor(it->r, tmp_force);
-
-					p->torque -= factor * it->p_torque;
-					other->torque += factor * it->q_torque;
-				}
-			}
-		}
-	}
-
-	return energy;
-}
-
-void FSInteraction::_reset_three_body() {
-	for(int i = _N_in_polymers; i < _N; i++) {
-		_bonds[i].clear();
-	}
-	
-	_stress_tensor = vector<vector<number>>(3, vector<number>(3, (number) 0));
-	_needs_reset = false;
-}
-
 number FSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(compute_r) {
 		if(q != P_VIRTUAL && p != P_VIRTUAL) {
@@ -345,12 +325,6 @@ number FSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool co
 }
 
 number FSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	// patchy-patchy interactions don't have a bonded part. We set up a fake one at the beginning just to reset some data structures every step
-	if(_is_patchy_patchy(p->type, q->type) && _needs_reset) {
-		_reset_three_body();
-		return 0.;
-	}
-
 	number energy = 0.;
 
 	if(p->is_bonded(q)) {
@@ -416,16 +390,6 @@ void FSInteraction::_parse_bond_file(std::vector<BaseParticle *> &particles) {
 			p->add_bonded_neigh(q);
 		}
 		if(i != idx) throw oxDNAException("There is something wrong with the bond file. Expected index %d, found %d\n", i, idx);
-	}
-}
-
-void FSInteraction::_update_stress_tensor(LR_vector r, LR_vector f) {
-	for(int i = 0; i < 3; i++) {
-		for(int j = 0; j < 3; j++) {
-			number ri = r[i];
-			number fj = f[j];
-			_stress_tensor[i][j] += ri * fj;
-		}
 	}
 }
 
@@ -502,10 +466,6 @@ void FSInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &p
 			particles[i]->type = particles[i]->btype = PATCHY_B;
 		}
 		particles[i]->strand_id = i;
-	}
-	// we want to call the pair_interaction_bonded (which does nothing but resetting some data structures) to be called just once
-	if((N - _N_in_polymers) > 1) {
-		particles[_N_in_polymers]->affected.push_back(ParticlePair(particles[_N_in_polymers], particles[_N_in_polymers + 1]));
 	}
 
 	if(_with_polymers) {

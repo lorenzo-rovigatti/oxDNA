@@ -67,7 +67,6 @@ protected:
 
 	std::vector<LR_vector> _inter_chain_forces;
 
-	bool _needs_reset = true;
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
 	std::string _bond_filename;
@@ -101,30 +100,16 @@ public:
 	virtual void init();
 
 	number P_inter_chain();
-	void reset_three_body();
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
+
+	void begin_energy_computation() override;
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
 		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
-	}
-
-	number get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) override {
-		reset_three_body();
-		return BaseInteraction::get_system_energy(particles, lists);
-	}
-	
-	number get_system_energy_term(int name, std::vector<BaseParticle *> &particles, BaseList *lists) override {
-		reset_three_body();
-		return BaseInteraction::get_system_energy_term(name, particles, lists);
-	}
-	
-	std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) override {
-		reset_three_body();
-		return BaseInteraction::get_system_energy_split(particles, lists);
 	}
 
 	virtual void read_topology(int *N_stars, std::vector<BaseParticle *> &particles);

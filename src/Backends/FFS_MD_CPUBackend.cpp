@@ -241,6 +241,8 @@ number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p
 }
 
 void FFS_MD_CPUBackend::_ffs_compute_forces(void) {
+	_interaction->begin_energy_computation();
+
 	_U = _U_hydr = (number) 0;
 	for(auto p: _particles) {
 		typename vector<ParticlePair>::iterator it = p->affected.begin();

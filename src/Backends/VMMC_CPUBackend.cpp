@@ -1751,11 +1751,13 @@ void VMMC_CPUBackend::print_conf(llint curr_step, bool only_last) {
 }
 
 void VMMC_CPUBackend::_compute_energy() {
+	_interaction->begin_energy_computation();
 	// Since this function is called by MC_CPUBackend::init() but it uses cells initialized
 	// by VMMC_CPUBackend::init(), we do nothing if it's called too early
 
-	if(_vmmc_heads == NULL)
+	if(_vmmc_heads == NULL) {
 		return;
+	}
 	BaseParticle * p, *q;
 	_overlap = false;
 	number res = (number) 0;

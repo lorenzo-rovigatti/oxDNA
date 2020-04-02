@@ -139,6 +139,8 @@ inline number MC_CPUBackend::_particle_energy(BaseParticle *p, bool reuse) {
 }
 
 void MC_CPUBackend::_compute_energy() {
+	_interaction->begin_energy_computation();
+
 	_U = (number) 0;
 	for(auto p: _particles) {
 		_U += _particle_energy(p);

@@ -72,6 +72,8 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
+	void begin_energy_computation() override;
+
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);

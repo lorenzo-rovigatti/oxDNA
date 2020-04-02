@@ -111,7 +111,7 @@ void ConstructwisePressure::update_pressure() {
 
 void ConstructwisePressure::update_pressure_PolymerSwap() {
 	PolymerSwapInteraction *interaction = dynamic_cast<PolymerSwapInteraction *>(_config_info->interaction);
-	interaction->reset_three_body();
+	interaction->begin_energy_computation();
 
 	std::vector<LR_vector> forces;
 	forces.reserve(CONFIG_INFO->N());

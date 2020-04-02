@@ -57,6 +57,12 @@ void mWInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 	_N = N;
 }
 
+void mWInteraction::begin_energy_computation() {
+	for(int i = 0; i < _N; i++) {
+		_bonds[i].clear();
+	}
+}
+
 number mWInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(compute_r) {
 		if(q != P_VIRTUAL && p != P_VIRTUAL) {
@@ -70,12 +76,6 @@ number mWInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool co
 }
 
 number mWInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	// reset _bonds. This is beyond horrible
-	if(q == P_VIRTUAL && p->index == 0) {
-		for(int i = 0; i < _N; i++)
-			_bonds[i].clear();
-	}
-
 	return (number) 0.f;
 }
 

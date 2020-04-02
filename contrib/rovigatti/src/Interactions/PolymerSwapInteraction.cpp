@@ -151,11 +151,10 @@ number PolymerSwapInteraction::P_inter_chain() {
 	return P;
 }
 
-void PolymerSwapInteraction::reset_three_body() {
+void PolymerSwapInteraction::begin_energy_computation() {
 	_inter_chain_forces.resize(_N_chains * _N_chains);
 	std::fill(_inter_chain_forces.begin(), _inter_chain_forces.end(), LR_vector(0., 0., 0.));
 	_bonds.clear();
-	_needs_reset = false;
 }
 
 number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool update_forces) {
@@ -278,7 +277,6 @@ number PolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool up
 
 number PolymerSwapInteraction::_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces) {
 	number energy = 0.;
-	_needs_reset = true;
 
 	number curr_energy = new_bond.energy;
 	for(auto &other_bond : _bonds[p->index]) {
@@ -331,12 +329,6 @@ number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BasePart
 	number energy = (number) 0.f;
 
 	if(p->is_bonded(q)) {
-		// we set up a fake sticky-sticky bonded interaction at the beginning just to reset some data structures at every step
-		/*if((p->type + q->type == 2) && _needs_reset) {
-			reset_three_body();
-			return 0.;
-			}*/
-		
 		if(compute_r) {
 			if(q != P_VIRTUAL && p != P_VIRTUAL) {
 				_computed_r = _box->min_image(p->pos, q->pos);
@@ -478,8 +470,6 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 
 	*N_strands = N_from_conf / _chain_size;
 	_N_chains = *N_strands;
-
-	reset_three_body();
 }
 
 extern "C" PolymerSwapInteraction* make_PolymerSwapInteraction() {

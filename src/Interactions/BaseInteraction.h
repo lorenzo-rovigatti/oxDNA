@@ -91,6 +91,15 @@ public:
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles) = 0;
 
 	/**
+	 * @brief Signals the interaction that an energy (or force) computation is about to begin.
+	 *
+	 * By default this method does nothing, but interactions inheriting from this interface may need to initialise
+	 * or reset data structures before computing the energy or the force acting on all particles.
+	 *
+	 */
+	virtual void begin_energy_computation();
+
+	/**
 	 * @brief Computes the total interaction between particles p and q.
 	 *
 	 * If r is not given or NULL, it is computed from scratch. It can optionally update forces and torques exerted on p and q.
@@ -169,8 +178,7 @@ public:
 	virtual int get_N_from_topology();
 
 	/**
-	 * @brief Like get_system_energy_split, just that the box size can be
-	 * specified in this case.
+	 * @brief Computed the system energy, split into different terms, which depend on the specific interaction considered.
 	 *
 	 * @return map of the energy contributions
 	 */
@@ -192,12 +200,17 @@ public:
 		_is_infinite = arg;
 	}
 
+	/**
+	 * @brief Sets the distance between particles to be used by the pair_interaction_* methods.
+	 *
+	 * @param r the new particle distance
+	 */
 	void set_computed_r(LR_vector &r) {
 		_computed_r =r;
 	}
 
 	/**
-	 * @brief overlap criterion. Used only in the generation of configurations. Can be overloaded.
+	 * @brief Check whether the two particles overlaps. Used only in the generation of configurations. Can be overloaded.
 	 *
 	 * The default implementation does not allow two particles to have an
 	 * interaction strength greater than 100. More subtle implementations
@@ -210,7 +223,7 @@ public:
 	virtual bool generate_random_configuration_overlap(BaseParticle *p, BaseParticle *q);
 
 	/**
-	 * @brief generation of initial configurations. Can be overloaded.
+	 * @brief Generate an initial configuration. Can be overloaded.
 	 *
 	 * The default function creates a random configuration in the most simple way possible:
 	 * puts particles in one at a time, and using {\@link generate_random_configuration_overlap}
@@ -379,6 +392,8 @@ void BaseInteraction<child>::_build_mesh(child *that, number (child::*f)(number,
 
 template<typename child>
 std::map<int, number> BaseInteraction<child>::get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) {
+	begin_energy_computation();
+
 	std::map<int, number> energy_map;
 
 	for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {

@@ -55,9 +55,14 @@ void IBaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *>
 	}
 }
 
-number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
-	double energy = 0.;
+void IBaseInteraction::begin_energy_computation() {
 
+}
+
+number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
+	begin_energy_computation();
+
+	double energy = 0.;
 	std::vector<ParticlePair> pairs = lists->get_potential_interactions();
 	for(auto &pair : pairs) {
 		BaseParticle *p = pair.first;
@@ -72,8 +77,9 @@ number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particle
 }
 
 number IBaseInteraction::get_system_energy_term(int name, std::vector<BaseParticle *> &particles, BaseList *lists) {
-	number energy = (number) 0.f;
+	begin_energy_computation();
 
+	number energy = (number) 0.f;
 	for(auto p: particles) {
 		std::vector<BaseParticle *> neighs = lists->get_all_neighbours(p);
 
