@@ -225,7 +225,7 @@ ELSE()
 ENDIF()
 	
 IF(CUDA)
-	SET(oxDNA_CUDASOURCES
+	LIST(APPEND common_SOURCES
 		CUDA/CUDA_sort.cu
 		CUDA/CUDAUtils.cu
 		CUDA/cuda_utils/cuda_device_utils.cu
@@ -253,13 +253,15 @@ IF(CUDA)
 	)
 	
 	IF(NOT CUDA_DOUBLE)
-		LIST(APPEND oxDNA_CUDASOURCES
+		LIST(APPEND common_SOURCES
 			CUDA/Backends/MD_CUDAMixedBackend.cu 
 			CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
 		)
 	ENDIF(NOT CUDA_DOUBLE)
 	
-	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES} ${oxDNA_CUDASOURCES})
+	# we need the library to be shared or the oxpy compilation fails
+	CUDA_ADD_LIBRARY(${lib_name} SHARED ${common_SOURCES})
+	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
 	CUDA_ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)
 	
 	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
@@ -271,11 +273,10 @@ ELSE()
 
 	ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
 	ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES})
+	ADD_LIBRARY(${lib_name} ${common_SOURCES})
 ENDIF(CUDA)
 
 ADD_EXECUTABLE(confGenerator ${confGenerator_SOURCES})
-
-ADD_LIBRARY(${lib_name} ${common_SOURCES})
 
 IF(MPI)
 	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS} ${MPI_LIBRARIES})
