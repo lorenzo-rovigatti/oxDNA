@@ -1,0 +1,42 @@
+sim_type = VMMC
+backend = CPU
+
+seed = 42
+
+steps = 100000000
+
+list_type = cells
+ensemble = nvt
+delta_translation = 0.22
+delta_rotation = 0.22
+
+T = 334 K
+dt = 0.003
+verlet_skin = 0.5
+
+topology = hairpin.top
+conf_file = hairpin.conf
+
+lastconf_file = last_conf.dat
+trajectory_file = trajectory.dat
+
+refresh_vel = true
+log_file = log.dat
+
+restart_step_counter = true
+energy_file = energy.dat
+print_conf_interval = 100000000
+print_energy_every = 100000
+time_scale = linear
+external_forces = false
+
+data_output_1 = {
+	print_every = 10000
+	name = hb_energy.dat
+	col_1 = {
+		type = step
+	}
+	col_2 = {
+		type = hb_energy
+	}
+}
