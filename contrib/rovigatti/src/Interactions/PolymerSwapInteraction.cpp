@@ -389,7 +389,7 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 	std::vector<int> sticky_particles;
 	while(topology.good()) {
 		std::getline(topology, line);
-		auto ps = Utils::getParticlesFromString(particles, line, "PolymerSwapInteraction");
+		auto ps = Utils::get_particles_from_string(particles, line, "PolymerSwapInteraction");
 		sticky_particles.insert(sticky_particles.begin(), ps.begin(), ps.end());
 	}
 	topology.close();

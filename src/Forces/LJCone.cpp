@@ -59,7 +59,7 @@ std::tuple<std::vector<int>, std::string> LJCone::init(input_file &inp, BaseBox 
 	_cos_alpha = cos(_alpha);
 	_tan_alpha = tan(_alpha);
 
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles(), particles_string, "ConstantRateForce");
+	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "ConstantRateForce");
 	std::string description = Utils::sformat("RepulsiveCone (stiff=%g, pos0=%g,%g,%g, dir=%g,%g,%g, sigma=%g, n=%d)", _stiff, _pos0.x, _pos0.y, _pos0.z, _direction.x, _direction.y, _direction.z, _sigma, _n);
 
 	return std::make_tuple(particle_ids, description);

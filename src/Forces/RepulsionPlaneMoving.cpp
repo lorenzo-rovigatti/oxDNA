@@ -37,8 +37,8 @@ std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file 
 
 	_box_ptr = box_ptr;
 
-	auto particle_indices_vector = Utils::getParticlesFromString(CONFIG_INFO->particles(), _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
-	auto ref_particle_indices_vector = Utils::getParticlesFromString(CONFIG_INFO->particles(), _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	auto particle_indices_vector = Utils::get_particles_from_string(CONFIG_INFO->particles(), _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	auto ref_particle_indices_vector = Utils::get_particles_from_string(CONFIG_INFO->particles(), _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
 
 	sort(ref_particle_indices_vector.begin(), ref_particle_indices_vector.end());
 	low_idx = ref_particle_indices_vector.front();

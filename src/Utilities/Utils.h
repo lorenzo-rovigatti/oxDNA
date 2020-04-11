@@ -24,188 +24,187 @@
 class BaseParticle;
 
 /**
- * @brief Utility class. It mostly contains static methods.
+ * @brief Utility namespace.
  */
-class Utils {
-public:
-	Utils();
-	virtual ~Utils();
+namespace Utils {
 
-	static int decode_base(char c);
-	static char encode_base(int b);
+int decode_base(char c);
+char encode_base(int b);
 
-	static number gaussian();
-	static number gamma(number alpha, number beta);
-	static number sum(number *v, int N) {
-		number res = (number) 0.;
-		for(int i = 0; i < N; i++)
-			res += v[i];
-		return res;
+number gaussian();
+number gamma(number alpha, number beta);
+
+inline number sum(number *v, int N) {
+	number res = (number) 0.;
+	for(int i = 0; i < N; i++) {
+		res += v[i];
 	}
+	return res;
+}
 
-	/**
-	 * @brief split a string into tokens, according to the given delimiter
-	 *
-	 * @param s string to be splitted
-	 * @param delim delimiter, defaults to a space
-	 * @return a vector of strings containing all the tokens
-	 */
-	static std::vector<std::string> split(const std::string &s, char delim = ' ');
+// trim from start
+inline std::string &ltrim(std::string &s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+	return s;
+}
 
-	// trim from both ends, it works like Python's own trim
-	static inline std::string &trim(std::string &s) {
-		return ltrim(rtrim(s));
-	}
+// trim from end
+inline std::string &rtrim(std::string &s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	return s;
+}
 
-	// trim from start
-	static inline std::string &ltrim(std::string &s) {
-		s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-		return s;
-	}
+/**
+ * @brief split a string into tokens, according to the given delimiter
+ *
+ * @param s string to be splitted
+ * @param delim delimiter, defaults to a space
+ * @return a vector of strings containing all the tokens
+ */
+std::vector<std::string> split(const std::string &s, char delim = ' ');
 
-	// trim from end
-	static inline std::string &rtrim(std::string &s) {
-		s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-		return s;
-	}
+// trim from both ends, it works like Python's own trim
+inline std::string &trim(std::string &s) {
+	return ltrim(rtrim(s));
+}
 
-	/**
-	 * @brief sprintf c++ wrapper (I love c++...).
-	 *
-	 * @param fmt
-	 * @return
-	 */
-	static std::string sformat(const std::string &fmt, ...);
-	/**
-	 * @brief vsprintf c++ wrapper.
-	 *
-	 * This method can be called by other variadic. It is used, for example, by oxDNAException
-	 * @param fmt format string
-	 * @param ap variadic parameter list initialized by the caller
-	 * @return
-	 */
-	static std::string sformat_ap(const std::string &fmt, va_list &ap);
+/**
+ * @brief sprintf c++ wrapper (I love c++...).
+ *
+ * @param fmt
+ * @return
+ */
+std::string sformat(const std::string &fmt, ...);
+/**
+ * @brief vsprintf c++ wrapper.
+ *
+ * This method can be called by other variadic. It is used, for example, by oxDNAException
+ * @param fmt format string
+ * @param ap variadic parameter list initialized by the caller
+ * @return
+ */
+std::string sformat_ap(const std::string &fmt, va_list &ap);
 
-	/**
-	 * @brief Generates a random vector having module 1.
-	 *
-	 * @return
-	 */
-	static LR_vector get_random_vector();
+/**
+ * @brief Generates a random vector having module 1.
+ *
+ * @return
+ */
+LR_vector get_random_vector();
 
-	/**
-	 * @brief Generates a random vector inside a sphere of given radius.
-	 *
-	 * @param r sphere radius
-	 * @return
-	 */
-	static LR_vector get_random_vector_in_sphere(number r);
+/**
+ * @brief Generates a random vector inside a sphere of given radius.
+ *
+ * @param r sphere radius
+ * @return
+ */
+LR_vector get_random_vector_in_sphere(number r);
 
-	/**
-	 * @brief Applies the Gram-Schmidt orthonormalization to the given matrix.
-	 *
-	 * @param M the matrix to be orthonormalized
-	 */
-	static void orthonormalize_matrix(LR_matrix &M);
+/**
+ * @brief Applies the Gram-Schmidt orthonormalization to the given matrix.
+ *
+ * @param M the matrix to be orthonormalized
+ */
+void orthonormalize_matrix(LR_matrix &M);
 
-	/**
-	 * @brief Returns a matrix which generates a rotation around a random axis of a random angle, extracted between 0 and max_angle.
-	 *
-	 * @param max_angle
-	 * @return
-	 */
-	static LR_matrix get_random_rotation_matrix(number max_angle = 2 * M_PI);
+/**
+ * @brief Returns a matrix which generates a rotation around a random axis of a random angle, extracted between 0 and max_angle.
+ *
+ * @param max_angle
+ * @return
+ */
+LR_matrix get_random_rotation_matrix(number max_angle = 2 * M_PI);
 
-	/**
-	 * @brief Returns a matrix which generates a rotation around a random axis of the given angle.
-	 *
-	 * @param angle
-	 * @return
-	 */
-	static LR_matrix get_random_rotation_matrix_from_angle(number angle);
+/**
+ * @brief Returns a matrix which generates a rotation around a random axis of the given angle.
+ *
+ * @param angle
+ * @return
+ */
+LR_matrix get_random_rotation_matrix_from_angle(number angle);
 
-	/**
-	 * @brief Creates a temporary file and loads it in an input_file.
-	 *
-	 * If the string parameter starts with a curly opening bracket, this method will print in the temporary file
-	 * only the part of the string which is enclosed by the outer bracket pair.
-	 * The calling method is responsible for the calling of cleanInputFile and the deletion of the returned pointer
-	 * @param inp string to be written in the temporary file and then loaded in the input_file
-	 * @return pointer to the newly loaded input_file
-	 */
-	static input_file *get_input_file_from_string(const std::string &inp);
+/**
+ * @brief Creates a temporary file and loads it in an input_file.
+ *
+ * If the string parameter starts with a curly opening bracket, this method will print in the temporary file
+ * only the part of the string which is enclosed by the outer bracket pair.
+ * The calling method is responsible for the calling of cleanInputFile and the deletion of the returned pointer
+ * @param inp string to be written in the temporary file and then loaded in the input_file
+ * @return pointer to the newly loaded input_file
+ */
+input_file *get_input_file_from_string(const std::string &inp);
 
-	/**
-	 * @brief Parses the string passed as the only argument and try to interpret it as a temperature.
-	 *
-	 * This static method tries to convert raw_T into a temperature. This is mostly used in DNA and
-	 * RNA simulations, as the temperature for these can be specified in Celsius or Kelvin degrees.
-	 *
-	 * For DNA, for example, all the following are equivalent:
-	 *
-	 * Value 	Simulation Units
-	 * 0.1		0.1
-	 * 300 K	0.1
-	 * 300k		0.1
-	 * 26.85c	0.1
-	 * 26.85 C	0.1
-	 *
-	 * @param raw_T c-string containing the text to be parsed
-	 * @return
-	 */
-	static number get_temperature(char *raw_T);
+/**
+ * @brief Parses the string passed as the only argument and try to interpret it as a temperature.
+ *
+ * This method tries to convert raw_T into a temperature. This is mostly used in DNA and
+ * RNA simulations, as the temperature for these can be specified in Celsius or Kelvin degrees.
+ *
+ * For DNA, for example, all the following are equivalent:
+ *
+ * Value 	Simulation Units
+ * 0.1		0.1
+ * 300 K	0.1
+ * 300k		0.1
+ * 26.85c	0.1
+ * 26.85 C	0.1
+ *
+ * @param raw_T c-string containing the text to be parsed
+ * @return
+ */
+number get_temperature(char *raw_T);
 
-	/**
-	 * @brief fills the memory pointed to by seedptr with the current
-	 * state of the random number generator.
-	 *
-	 * This method does not handle the memory: it assumes that it can overwrite the first 48 bit of the
-	 * memory.
-	 *
-	 * @param seedptr the memory address to store the 48 bits of the
-	 * seed into.
-	 */
-	static void get_seed(unsigned short * seedptr);
+/**
+ * @brief fills the memory pointed to by seedptr with the current
+ * state of the random number generator.
+ *
+ * This method does not handle the memory: it assumes that it can overwrite the first 48 bit of the
+ * memory.
+ *
+ * @param seedptr the memory address to store the 48 bits of the
+ * seed into.
+ */
+void get_seed(unsigned short * seedptr);
 
-	/**
-	 * @brief Utility function that returns a string from a number converting to megabytes,
-	 * kilobytes, etc. Examples: 1010813664 --> "963.987 MB", 783989 --> "765.614 kB" 
-	 *
-	 * @param arg number to be coverted, assumed in bytes
-	 */
-	static std::string bytes_to_human(llint arg);
+/**
+ * @brief Utility function that returns a string from a number converting to megabytes,
+ * kilobytes, etc. Examples: 1010813664 --> "963.987 MB", 783989 --> "765.614 kB"
+ *
+ * @param arg number to be coverted, assumed in bytes
+ */
+std::string bytes_to_human(llint arg);
 
-	/**
-	 * @brief Utility function that sets the centre of mass velocity of the system to 0.
-	 *
-	 * @param particles pointer to array of particle pointers
-	 * @param N number of particles
-	 */
-	static void stop_com(std::vector<BaseParticle *> &particles);
+/**
+ * @brief Utility function that sets the centre of mass velocity of the system to 0.
+ *
+ * @param particles pointer to array of particle pointers
+ * @param N number of particles
+ */
+void stop_com(std::vector<BaseParticle *> &particles);
 
-	/**
-	 * @brief Utility function that reads a string like "10-16,18" and returns a vector of integers.
-	 * @param particles pointer to array of particle pointers
-	 * @param N number of particles
-	 * @param particles_string string to process
-	 * @param identifier the identifier of the calling item (to display to the user in case problems arise).
-	 */
-	static std::vector<int> getParticlesFromString(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier);
+/**
+ * @brief Utility function that reads a string like "10-16,18" and returns a vector of integers.
+ * @param particles pointer to array of particle pointers
+ * @param N number of particles
+ * @param particles_string string to process
+ * @param identifier the identifier of the calling item (to display to the user in case problems arise).
+ */
+std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier);
 
-	/**
-	 * @brief Utility function that checks if an integer is a valid particle index, or -1.
-	 * @param n integer to check.
-	 * @param N number of particles
-	 * @param identifier the identifier of the calling item (to display to the user in case problems arise).
-	 */
-	static void assert_is_valid_particle(int n, int N, char const * identifier);
-	/**
-	 *	@brief Utility function that returns true if a string only contains digits, and false otherwise.
-	 *	@param s string to be checked.
-	 */
-	static bool is_integer(std::string s);
+/**
+ * @brief Utility function that checks if an integer is a valid particle index, or -1.
+ * @param n integer to check.
+ * @param N number of particles
+ * @param identifier the identifier of the calling item (to display to the user in case problems arise).
+ */
+void assert_is_valid_particle(int n, int N, char const * identifier);
+/**
+ *	@brief Utility function that returns true if a string only contains digits, and false otherwise.
+ *	@param s string to be checked.
+ */
+bool is_integer(std::string s);
 
-};
+}
 
 inline LR_vector Utils::get_random_vector() {
 	number ransq = 1.;
@@ -258,8 +257,8 @@ inline LR_matrix Utils::get_random_rotation_matrix(number max_angle) {
 }
 
 inline number Utils::gaussian() {
-	static unsigned int isNextG = 0;
-	static number nextG;
+	unsigned int isNextG = 0;
+	number nextG;
 	number toRet;
 	number u, v, w;
 

@@ -32,12 +32,12 @@ std::tuple<std::vector<int>, std::string> COMForce::init(input_file &inp, BaseBo
 
 	_box_ptr = box_ptr;
 
-	auto com_indexes = Utils::getParticlesFromString(CONFIG_INFO->particles(), _com_string, "COMForce");
+	auto com_indexes = Utils::get_particles_from_string(CONFIG_INFO->particles(), _com_string, "COMForce");
 	for(auto it = com_indexes.begin(); it != com_indexes.end(); it++) {
 		_com_list.insert(CONFIG_INFO->particles()[*it]);
 	}
 
-	auto ref_indexes = Utils::getParticlesFromString(CONFIG_INFO->particles(), _ref_string, "COMForce");
+	auto ref_indexes = Utils::get_particles_from_string(CONFIG_INFO->particles(), _ref_string, "COMForce");
 	for(auto it = ref_indexes.begin(); it != ref_indexes.end(); it++) {
 		_ref_list.insert(CONFIG_INFO->particles()[*it]);
 	}

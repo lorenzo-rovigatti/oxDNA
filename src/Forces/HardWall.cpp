@@ -34,7 +34,7 @@ std::tuple<std::vector<int>, std::string> HardWall::init(input_file &inp, BaseBo
 	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	_direction.normalize();
 
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles(), particles_string, "HardWall");
+	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "HardWall");
 	std::string description = Utils::sformat("HardWall (position=%g, dir=%g,%g,%g, sigma=%g)", _position, _direction.x, _direction.y, _direction.z, _sigma);
 
 	return std::make_tuple(particle_ids, description);

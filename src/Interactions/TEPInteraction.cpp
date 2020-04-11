@@ -762,7 +762,7 @@ void TEPInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 		int max_n_fields = 8;
 		// if these many fields are given, specific beads are being edited
 		if(res >= 3 && res <= max_n_fields) {
-			std::vector<int> particle_indices_vector = Utils::getParticlesFromString(particles, temp_string, "interaction TEP (TEPInteraction.cpp)");
+			std::vector<int> particle_indices_vector = Utils::get_particles_from_string(particles, temp_string, "interaction TEP (TEPInteraction.cpp)");
 			for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 				int temp_index = particle_indices_vector[i];
 				OX_LOG(Logger::LOG_INFO, "Interaction modifiers for particle %d found", temp_index);
