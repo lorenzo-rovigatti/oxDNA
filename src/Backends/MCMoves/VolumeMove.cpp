@@ -67,8 +67,6 @@ void VolumeMove::apply(llint curr_step) {
 		box_sides.x += dL;
 		box_sides.y += dL;
 		box_sides.z += dL;
-		/*number newL = pow(exp(log(oldV) + _delta*(drand48() - (number) 0.5)), 1./3.);
-		 box_sides.x = box_sides.y = box_sides.z = newL;*/
 	}
 	else {
 		box_sides.x += _delta * (drand48() - (number) 0.5);
@@ -100,8 +98,7 @@ void VolumeMove::apply(llint curr_step) {
 	number V = _Info->box->V();
 	number dV = V - oldV;
 
-	if(_Info->interaction->get_is_infinite() == false && exp(-(dE + _P * dV - (N + 1) * _T * log(V / oldV)) / _T) > drand48()) {
-		//printf("B %lld %lf ---- %lf %lf %lf\n", curr_step, newE/N, dE, dV, exp(-(dE + _P*dV - N*_T*log(V/oldV))/_T));
+	if(_Info->interaction->get_is_infinite() == false && exp(-(dE + _P * dV - N * _T * log(V / oldV)) / _T) > drand48()) {
 		_accepted++;
 		if(curr_step < _equilibration_steps && _adjust_moves) {
 			_delta *= _acc_fact;

@@ -86,7 +86,7 @@ class StrandGenerator (object):
                 sequence = [base.base_to_number[x] for x in sequence]
             except KeyError:
                 base.Logger.die("Key Error: sequence is invalid" % n)
-        if sequence == None:
+        if sequence is None:
             sequence = np.random.randint(0, 4, bp)
         elif len(sequence) != bp:
             n = bp - len(sequence)

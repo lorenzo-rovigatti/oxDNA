@@ -35,7 +35,11 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvla"
 
-MD_CUDABackend::MD_CUDABackend() : MDBackend(), CUDABaseBackend(), _max_ext_forces(0), _error_conf_file("error_conf.dat") {
+MD_CUDABackend::MD_CUDABackend() :
+				MDBackend(),
+				CUDABaseBackend(),
+				_max_ext_forces(0),
+				_error_conf_file("error_conf.dat") {
 	_is_CUDA_sim = true;
 	_use_edge = false;
 	_any_rigid_body = false;
@@ -64,15 +68,15 @@ MD_CUDABackend::MD_CUDABackend() : MDBackend(), CUDABaseBackend(), _max_ext_forc
 
 MD_CUDABackend::~MD_CUDABackend() {
 	if(_d_vels != NULL) {
-		CUDA_SAFE_CALL( cudaFree(_d_vels) );
-		CUDA_SAFE_CALL( cudaFree(_d_Ls) );
-		CUDA_SAFE_CALL( cudaFree(_d_forces) );
-		CUDA_SAFE_CALL( cudaFree(_d_torques) );
+		CUDA_SAFE_CALL(cudaFree(_d_vels));
+		CUDA_SAFE_CALL(cudaFree(_d_Ls));
+		CUDA_SAFE_CALL(cudaFree(_d_forces));
+		CUDA_SAFE_CALL(cudaFree(_d_torques));
 	}
 
 	if(_sort_every > 0 && _d_buff_vels != NULL) {
-		CUDA_SAFE_CALL( cudaFree(_d_buff_vels) );
-		CUDA_SAFE_CALL( cudaFree(_d_buff_Ls) );
+		CUDA_SAFE_CALL(cudaFree(_d_buff_vels));
+		CUDA_SAFE_CALL(cudaFree(_d_buff_Ls));
 	}
 
 	if(_h_gpu_index != NULL) {
@@ -84,7 +88,7 @@ MD_CUDABackend::~MD_CUDABackend() {
 		if(_h_ext_forces != NULL)
 			delete[] _h_ext_forces;
 		if(_d_ext_forces != NULL)
-			CUDA_SAFE_CALL( cudaFree(_d_ext_forces) );
+			CUDA_SAFE_CALL(cudaFree(_d_ext_forces));
 	}
 
 	if(_h_vels != NULL) {
@@ -94,23 +98,25 @@ MD_CUDABackend::~MD_CUDABackend() {
 		delete[] _h_torques;
 	}
 
-	if(_cuda_thermostat != NULL) delete _cuda_thermostat;
+	if(_cuda_thermostat != NULL)
+		delete _cuda_thermostat;
 
-	if(_obs_output_error_conf != NULL) delete _obs_output_error_conf;
+	if(_obs_output_error_conf != NULL)
+		delete _obs_output_error_conf;
 }
 
 void MD_CUDABackend::_host_to_gpu() {
 	CUDABaseBackend::_host_to_gpu();
-	CUDA_SAFE_CALL( cudaMemcpy(_d_vels, _h_vels, _vec_size, cudaMemcpyHostToDevice) );
-	CUDA_SAFE_CALL( cudaMemcpy(_d_Ls, _h_Ls, _vec_size, cudaMemcpyHostToDevice) );
+	CUDA_SAFE_CALL(cudaMemcpy(_d_vels, _h_vels, _vec_size, cudaMemcpyHostToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_Ls, _h_Ls, _vec_size, cudaMemcpyHostToDevice));
 }
 
 void MD_CUDABackend::_gpu_to_host() {
 	CUDABaseBackend::_gpu_to_host();
-	CUDA_SAFE_CALL( cudaMemcpy(_h_vels, _d_vels, _vec_size, cudaMemcpyDeviceToHost) );
-	CUDA_SAFE_CALL( cudaMemcpy(_h_Ls, _d_Ls, _vec_size, cudaMemcpyDeviceToHost) );
-	CUDA_SAFE_CALL( cudaMemcpy(_h_forces, _d_forces, _vec_size, cudaMemcpyDeviceToHost) );
-	CUDA_SAFE_CALL( cudaMemcpy(_h_torques, _d_torques, _vec_size, cudaMemcpyDeviceToHost) );
+	CUDA_SAFE_CALL(cudaMemcpy(_h_vels, _d_vels, _vec_size, cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(_h_Ls, _d_Ls, _vec_size, cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(_h_forces, _d_forces, _vec_size, cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(_h_torques, _d_torques, _vec_size, cudaMemcpyDeviceToHost));
 }
 
 void MD_CUDABackend::apply_changes_to_simulation_data() {
@@ -123,23 +129,31 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		_h_poss[i].z = p->pos.z;
 
 		// convert index and type into a float
-		int msk = -1 << 22;// bynary mask: all 1's and 22 0's;
+		int msk = -1 << 22; // bynary mask: all 1's and 22 0's;
 		// btype has a sign, and thus has to go first
-		_h_poss[i].w = GpuUtils::int_as_float( (p->btype << 22) | ((~msk) & p->index) );
+		_h_poss[i].w = GpuUtils::int_as_float((p->btype << 22) | ((~msk) & p->index));
 		// we immediately check that the index and base type that we read are sensible
 		int mybtype = (GpuUtils::float_as_int(_h_poss[i].w)) >> 22;
 		int myindex = (GpuUtils::float_as_int(_h_poss[i].w)) & (~msk);
-		if (p->btype != mybtype) {
-			throw oxDNAException ("Could not treat the type (A, C, G, T or something specific) of particle %d; On CUDA, the maximum \"unique\" identity is 512");
+		if(p->btype != mybtype) {
+			throw oxDNAException("Could not treat the type (A, C, G, T or something specific) of particle %d; On CUDA, the maximum \"unique\" identity is 512");
 		}
-		if (p->index != myindex) {
-			throw oxDNAException ("Could not treat the index of particle %d; remember that on CUDA the maximum c_number of particles is 2^21", p->index);
+		if(p->index != myindex) {
+			throw oxDNAException("Could not treat the index of particle %d; remember that on CUDA the maximum c_number of particles is 2^21", p->index);
 		}
 
-		if (p->n3 == P_VIRTUAL) _h_bonds[i].n3 = P_INVALID;
-		else _h_bonds[i].n3 = _h_cpu_index[p->n3->index];
-		if (p->n5 == P_VIRTUAL) _h_bonds[i].n5 = P_INVALID;
-		else _h_bonds[i].n5 = _h_cpu_index[p->n5->index];
+		if(p->n3 == P_VIRTUAL) {
+			_h_bonds[i].n3 = P_INVALID;
+		}
+		else {
+			_h_bonds[i].n3 = _h_cpu_index[p->n3->index];
+		}
+		if(p->n5 == P_VIRTUAL) {
+			_h_bonds[i].n5 = P_INVALID;
+		}
+		else {
+			_h_bonds[i].n5 = _h_cpu_index[p->n5->index];
+		}
 
 		_h_vels[i].x = p->vel.x;
 		_h_vels[i].y = p->vel.y;
@@ -148,39 +162,39 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		_h_Ls[i].x = p->L.x;
 		_h_Ls[i].y = p->L.y;
 		_h_Ls[i].z = p->L.z;
-	
-		c_number trace = p->orientation.v1.x+p->orientation.v2.y+p->orientation.v3.z;
+
+		c_number trace = p->orientation.v1.x + p->orientation.v2.y + p->orientation.v3.z;
 		if(trace > 0) {
-			c_number s = .5/sqrt(trace + 1);
-			_h_orientations[i].w = .25/s;
-			_h_orientations[i].x = (p->orientation.v3.y-p->orientation.v2.z)*s;
-			_h_orientations[i].y = (p->orientation.v1.z-p->orientation.v3.x)*s;
-			_h_orientations[i].z = (p->orientation.v2.x-p->orientation.v1.y)*s;
+			c_number s = .5 / sqrt(trace + 1);
+			_h_orientations[i].w = .25 / s;
+			_h_orientations[i].x = (p->orientation.v3.y - p->orientation.v2.z) * s;
+			_h_orientations[i].y = (p->orientation.v1.z - p->orientation.v3.x) * s;
+			_h_orientations[i].z = (p->orientation.v2.x - p->orientation.v1.y) * s;
 		}
-		else {    //Finding largest diagonal element
-			if ( (p->orientation.v1.x > p->orientation.v2.y) && (p->orientation.v1.x > p->orientation.v3.z) ) { 
-				c_number s = .5/sqrt(1+p->orientation.v1.x-p->orientation.v2.y-p->orientation.v3.z);
-				_h_orientations[i].w = (p->orientation.v3.y-p->orientation.v2.z)*s;
-				_h_orientations[i].x = .25/s;
-				_h_orientations[i].y = (p->orientation.v1.y+p->orientation.v2.x)*s;
-				_h_orientations[i].z = (p->orientation.v1.z+p->orientation.v3.x)*s;
+		else { // Finding largest diagonal element
+			if((p->orientation.v1.x > p->orientation.v2.y) && (p->orientation.v1.x > p->orientation.v3.z)) {
+				c_number s = .5 / sqrt(1 + p->orientation.v1.x - p->orientation.v2.y - p->orientation.v3.z);
+				_h_orientations[i].w = (p->orientation.v3.y - p->orientation.v2.z) * s;
+				_h_orientations[i].x = .25 / s;
+				_h_orientations[i].y = (p->orientation.v1.y + p->orientation.v2.x) * s;
+				_h_orientations[i].z = (p->orientation.v1.z + p->orientation.v3.x) * s;
 			}
-			else if (p->orientation.v2.y > p->orientation.v3.z) {
-				c_number s = .5/sqrt(1+p->orientation.v2.y-p->orientation.v1.x-p->orientation.v3.z);
-				_h_orientations[i].w = (p->orientation.v1.z-p->orientation.v3.x)*s;
-				_h_orientations[i].x = (p->orientation.v1.y+p->orientation.v2.x)*s;
-				_h_orientations[i].y = .25/s;
-				_h_orientations[i].z = (p->orientation.v2.z+p->orientation.v3.y)*s;
+			else if(p->orientation.v2.y > p->orientation.v3.z) {
+				c_number s = .5 / sqrt(1 + p->orientation.v2.y - p->orientation.v1.x - p->orientation.v3.z);
+				_h_orientations[i].w = (p->orientation.v1.z - p->orientation.v3.x) * s;
+				_h_orientations[i].x = (p->orientation.v1.y + p->orientation.v2.x) * s;
+				_h_orientations[i].y = .25 / s;
+				_h_orientations[i].z = (p->orientation.v2.z + p->orientation.v3.y) * s;
 			}
 			else {
-				c_number s = .5/sqrt(1+p->orientation.v3.z-p->orientation.v1.x-p->orientation.v2.y);
-				_h_orientations[i].w = (p->orientation.v2.x-p->orientation.v1.y)*s;
-				_h_orientations[i].x = (p->orientation.v1.z+p->orientation.v3.x)*s;
-				_h_orientations[i].y = (p->orientation.v2.z+p->orientation.v3.y)*s;
-				_h_orientations[i].z = .25/s;
+				c_number s = .5 / sqrt(1 + p->orientation.v3.z - p->orientation.v1.x - p->orientation.v2.y);
+				_h_orientations[i].w = (p->orientation.v2.x - p->orientation.v1.y) * s;
+				_h_orientations[i].x = (p->orientation.v1.z + p->orientation.v3.x) * s;
+				_h_orientations[i].y = (p->orientation.v2.z + p->orientation.v3.y) * s;
+				_h_orientations[i].z = .25 / s;
 			}
 		}
-	} 
+	}
 	_host_to_gpu();
 }
 
@@ -204,12 +218,14 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 		// get index and type for the fourth component of the position
 		p->btype = (GpuUtils::float_as_int(_h_poss[i].w)) >> 22;
 
-		if (_h_bonds[i].n3 == P_INVALID) p->n3 = P_VIRTUAL;
+		if(_h_bonds[i].n3 == P_INVALID)
+			p->n3 = P_VIRTUAL;
 		else {
 			int n3index = ((GpuUtils::float_as_int(_h_poss[_h_bonds[i].n3].w)) & (~msk));
 			p->n3 = _particles[n3index];
 		}
-		if (_h_bonds[i].n5 == P_INVALID) p->n5 = P_VIRTUAL;
+		if(_h_bonds[i].n5 == P_INVALID)
+			p->n5 = P_VIRTUAL;
 		else {
 			int n5index = ((GpuUtils::float_as_int(_h_poss[_h_bonds[i].n5].w)) & (~msk));
 			p->n5 = _particles[n5index];
@@ -223,27 +239,27 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 		p->L.y = _h_Ls[i].y;
 		p->L.z = _h_Ls[i].z;
 
-		c_number sqx = _h_orientations[i].x*_h_orientations[i].x;
-		c_number sqy = _h_orientations[i].y*_h_orientations[i].y;
-		c_number sqz = _h_orientations[i].z*_h_orientations[i].z;
-		c_number sqw = _h_orientations[i].w*_h_orientations[i].w;
-		c_number xy = _h_orientations[i].x*_h_orientations[i].y;
-		c_number xz = _h_orientations[i].x*_h_orientations[i].z;
-		c_number xw = _h_orientations[i].x*_h_orientations[i].w;
-		c_number yz = _h_orientations[i].y*_h_orientations[i].z;
-		c_number yw = _h_orientations[i].y*_h_orientations[i].w;
-		c_number zw = _h_orientations[i].z*_h_orientations[i].w;
+		c_number sqx = _h_orientations[i].x * _h_orientations[i].x;
+		c_number sqy = _h_orientations[i].y * _h_orientations[i].y;
+		c_number sqz = _h_orientations[i].z * _h_orientations[i].z;
+		c_number sqw = _h_orientations[i].w * _h_orientations[i].w;
+		c_number xy = _h_orientations[i].x * _h_orientations[i].y;
+		c_number xz = _h_orientations[i].x * _h_orientations[i].z;
+		c_number xw = _h_orientations[i].x * _h_orientations[i].w;
+		c_number yz = _h_orientations[i].y * _h_orientations[i].z;
+		c_number yw = _h_orientations[i].y * _h_orientations[i].w;
+		c_number zw = _h_orientations[i].z * _h_orientations[i].w;
 		c_number invs = 1 / (sqx + sqy + sqz + sqw);
 
-		p->orientation.v1.x = (sqx-sqy-sqz+sqw)*invs;
-		p->orientation.v1.y = 2*(xy-zw)*invs;
-		p->orientation.v1.z = 2*(xz+yw)*invs;
-		p->orientation.v2.x = 2*(xy+zw)*invs;
-		p->orientation.v2.y = (-sqx+sqy-sqz+sqw)*invs;
-		p->orientation.v2.z = 2*(yz-xw)*invs;
-		p->orientation.v3.x = 2*(xz-yw)*invs;
-		p->orientation.v3.y = 2*(yz+xw)*invs;
-		p->orientation.v3.z = (-sqx-sqy+sqz+sqw)*invs;
+		p->orientation.v1.x = (sqx - sqy - sqz + sqw) * invs;
+		p->orientation.v1.y = 2 * (xy - zw) * invs;
+		p->orientation.v1.z = 2 * (xz + yw) * invs;
+		p->orientation.v2.x = 2 * (xy + zw) * invs;
+		p->orientation.v2.y = (-sqx + sqy - sqz + sqw) * invs;
+		p->orientation.v2.z = 2 * (yz - xw) * invs;
+		p->orientation.v3.x = 2 * (xz - yw) * invs;
+		p->orientation.v3.y = 2 * (yz + xw) * invs;
+		p->orientation.v3.z = (-sqx - sqy + sqz + sqw) * invs;
 
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
@@ -256,26 +272,26 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 
 void MD_CUDABackend::_init_CUDA_MD_symbols() {
 	float f_copy = _sqr_verlet_skin;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_sqr_verlet_skin, &f_copy, sizeof(float)) );
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_sqr_verlet_skin, &f_copy, sizeof(float)));
 	f_copy = _dt;
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_dt, &f_copy, sizeof(float)) );
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dt, &f_copy, sizeof(float)));
 	int myN = N();
-	CUDA_SAFE_CALL( cudaMemcpyToSymbol(MD_N, &myN, sizeof(int)) );
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &myN, sizeof(int)));
 }
 
 void MD_CUDABackend::_first_step() {
-	first_step
+first_step
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, _d_orientations, _d_list_poss, _d_vels, _d_Ls, _d_forces, _d_torques, _d_are_lists_old);
-	CUT_CHECK_ERROR("_first_step error");
+		CUT_CHECK_ERROR("_first_step error");
 }
 
 void MD_CUDABackend::_rescale_positions(c_number4 new_Ls, c_number4 old_Ls) {
-	c_number4 ratio = {new_Ls.x/old_Ls.x, new_Ls.y/old_Ls.y, new_Ls.z/old_Ls.z, 0.};
-	rescale_positions
+	c_number4 ratio = { new_Ls.x / old_Ls.x, new_Ls.y / old_Ls.y, new_Ls.z / old_Ls.z, 0. };
+rescale_positions
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, ratio);
-	CUT_CHECK_ERROR("_rescale_positions error");
+		CUT_CHECK_ERROR("_rescale_positions error");
 }
 
 void MD_CUDABackend::_apply_barostat(llint curr_step) {
@@ -283,83 +299,80 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 
 	_set_external_forces();
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
-	double old_energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N())/2.;
+	double old_energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N()) / 2.;
 	c_number old_V = _h_cuda_box.V();
 	c_number4 old_Ls = _h_cuda_box.box_sides();
 
 	c_number4 new_Ls = old_Ls;
 	if(_barostat_isotropic) {
-		c_number dL = _delta_L*(drand48() - (c_number)0.5);
+		c_number dL = _delta_L * (drand48() - (c_number) 0.5);
 		new_Ls.x += dL;
 		new_Ls.y += dL;
 		new_Ls.z += dL;
-		/*c_number newL = powf(expf(logf(old_V) + _delta_L*(drand48() - (c_number) 0.5)), 1./3.);
-		  new_Ls.x = new_Ls.y = new_Ls.z = newL;*/
 	}
 	else {
-		new_Ls.x += _delta_L*(drand48() - (c_number)0.5);
-		new_Ls.y += _delta_L*(drand48() - (c_number)0.5);
-		new_Ls.z += _delta_L*(drand48() - (c_number)0.5);
+		new_Ls.x += _delta_L * (drand48() - (c_number) 0.5);
+		new_Ls.y += _delta_L * (drand48() - (c_number) 0.5);
+		new_Ls.z += _delta_L * (drand48() - (c_number) 0.5);
 	}
 	_h_cuda_box.change_sides(new_Ls.x, new_Ls.y, new_Ls.z);
-	CUDA_SAFE_CALL( cudaMemcpy(_d_cuda_box, &_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice) );
+	CUDA_SAFE_CALL(cudaMemcpy(_d_cuda_box, &_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice));
 	_rescale_positions(new_Ls, old_Ls);
 	_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
 
 	_set_external_forces();
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
-	double new_energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N())/2.;
+	double new_energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N()) / 2.;
 	c_number new_V = _h_cuda_box.V();
 
 	// acceptance
 	c_number dE = new_energy - old_energy;
 	c_number dV = new_V - old_V;
-	c_number acc = exp(-(dE + _P*dV - (N() + 1)*_T*log(new_V/old_V))/_T);
+	c_number acc = exp(-(dE + _P * dV - N() * _T * log(new_V / old_V)) / _T);
 	// accepted
 	if(acc > drand48()) {
-		//printf("B %lld %lf ---- %lf %lf %lf %lf\n", curr_step, new_energy/N(), dE, dV, acc, _P*dV);
 		_barostat_accepted++;
 	}
 	// rejected
 	else {
 		_h_cuda_box.change_sides(old_Ls.x, old_Ls.y, old_Ls.z);
-		CUDA_SAFE_CALL( cudaMemcpy(_d_cuda_box, &_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice) );
+		CUDA_SAFE_CALL(cudaMemcpy(_d_cuda_box, &_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice));
 		_rescale_positions(old_Ls, new_Ls);
 		_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
 	}
-	_barostat_acceptance = _barostat_accepted/(c_number)_barostat_attempts;
+	_barostat_acceptance = _barostat_accepted / (c_number) _barostat_attempts;
 }
 
 void MD_CUDABackend::_forces_second_step() {
 	_set_external_forces();
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
 
-	second_step
+second_step
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_vels, _d_Ls, _d_forces, _d_torques);
-		CUT_CHECK_ERROR("second_step");
+			CUT_CHECK_ERROR("second_step");
 }
 
 void MD_CUDABackend::_set_external_forces() {
-	set_external_forces
+set_external_forces
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, _d_orientations, _d_ext_forces, _d_forces, _d_torques, _curr_step, _max_ext_forces, _d_cuda_box);
-	CUT_CHECK_ERROR("set_external_forces");
+		CUT_CHECK_ERROR("set_external_forces");
 }
 
 void MD_CUDABackend::_sort_particles() {
 	CUDABaseBackend::_sort_index();
-	permute_particles
+permute_particles
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_sorted_hindex, _d_inv_sorted_hindex, _d_poss, _d_vels, _d_Ls, _d_orientations, _d_bonds, _d_buff_poss, _d_buff_vels, _d_buff_Ls, 				_d_buff_orientations, _d_buff_bonds);
-		CUT_CHECK_ERROR("_permute_particles error");
-		CUDA_SAFE_CALL( cudaMemcpy(_d_orientations, _d_buff_orientations, _orient_size, cudaMemcpyDeviceToDevice) );
+			CUT_CHECK_ERROR("_permute_particles error");
+	CUDA_SAFE_CALL(cudaMemcpy(_d_orientations, _d_buff_orientations, _orient_size, cudaMemcpyDeviceToDevice));
 
 	// copy back the sorted vectors
-	CUDA_SAFE_CALL( cudaMemcpy(_d_poss, _d_buff_poss, _vec_size, cudaMemcpyDeviceToDevice) );
-	CUDA_SAFE_CALL( cudaMemcpy(_d_bonds, _d_buff_bonds, _bonds_size, cudaMemcpyDeviceToDevice) );
-	CUDA_SAFE_CALL( cudaMemcpy(_d_vels, _d_buff_vels, _vec_size, cudaMemcpyDeviceToDevice) );
-	CUDA_SAFE_CALL( cudaMemcpy(_d_Ls, _d_buff_Ls, _vec_size, cudaMemcpyDeviceToDevice) );
+	CUDA_SAFE_CALL(cudaMemcpy(_d_poss, _d_buff_poss, _vec_size, cudaMemcpyDeviceToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_bonds, _d_buff_bonds, _bonds_size, cudaMemcpyDeviceToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_vels, _d_buff_vels, _vec_size, cudaMemcpyDeviceToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_Ls, _d_buff_Ls, _vec_size, cudaMemcpyDeviceToDevice));
 }
 
 void MD_CUDABackend::_thermalize(llint curr_step) {
@@ -428,10 +441,14 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 	CUDABaseBackend::get_settings(inp);
 
 	if(getInputBool(&inp, "use_edge", &_use_edge, 0) == KEY_FOUND) {
-		if(_use_edge && sizeof(c_number) == sizeof(double)) throw oxDNAException("use_edge and double precision are not compatible");
-		if(_use_edge && _use_barostat) throw oxDNAException("use_edge and use_barostat are not compatible");
+		if(_use_edge && sizeof(c_number) == sizeof(double)) {
+			throw oxDNAException("use_edge and double precision are not compatible");
+		}
+		if(_use_edge && _use_barostat) {
+			throw oxDNAException("use_edge and use_barostat are not compatible");
+		}
 	}
-	
+
 	getInputBool(&inp, "restart_step_counter", &_restart_step_counter, 1);
 	getInputBool(&inp, "CUDA_avoid_cpu_calculations", &_avoid_cpu_calculations, 0);
 
@@ -448,7 +465,9 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 	if(_avoid_cpu_calculations) {
 		_obs_output_file->clear();
 		_obs_output_file->add_observable("type = step\nunits = MD");
-		if(_use_barostat) _obs_output_file->add_observable("type = density");
+		if(_use_barostat) {
+			_obs_output_file->add_observable("type = density");
+		}
 
 		bool no_stdout_energy = false;
 		getInputBool(&inp, "no_stdout_energy", &no_stdout_energy, 0);
@@ -456,7 +475,9 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 			_obs_output_stdout->clear();
 			_obs_output_stdout->add_observable("type = step");
 			_obs_output_stdout->add_observable("type = step\nunits = MD");
-			if(_use_barostat) _obs_output_stdout->add_observable("type = density");
+			if(_use_barostat) {
+				_obs_output_stdout->add_observable("type = density");
+			}
 		}
 	}
 }
@@ -467,13 +488,13 @@ void MD_CUDABackend::init() {
 
 	_timer_sorting = TimingManager::instance()->new_timer(std::string("Hilbert sorting"), std::string("SimBackend"));
 
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_vels, _vec_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_Ls, _vec_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_forces, _vec_size) );
-	CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_torques, _vec_size) );
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_vels, _vec_size));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_Ls, _vec_size));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_forces, _vec_size));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_torques, _vec_size));
 
-	CUDA_SAFE_CALL( cudaMemset(_d_forces, 0, _vec_size) );
-	CUDA_SAFE_CALL( cudaMemset(_d_torques, 0, _vec_size) );
+	CUDA_SAFE_CALL(cudaMemset(_d_forces, 0, _vec_size));
+	CUDA_SAFE_CALL(cudaMemset(_d_torques, 0, _vec_size));
 
 	_h_vels = new c_number4[N()];
 	_h_Ls = new c_number4[N()];
@@ -483,11 +504,13 @@ void MD_CUDABackend::init() {
 	_obs_output_error_conf->init(*_config_info);
 
 	if(_external_forces) {
-		if(_sort_every > 0) throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
+		if(_sort_every > 0) {
+			throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
+		}
 		_h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)) );
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)));
 
-		for(int i = 0; i < N()*MAX_EXT_FORCES; i++) {
+		for(int i = 0; i < N() * MAX_EXT_FORCES; i++) {
 			_h_ext_forces[i].type = -1;
 		}
 
@@ -510,9 +533,9 @@ void MD_CUDABackend::init() {
 			for(uint j = 0; j < p->ext_forces.size(); j++) {
 				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
 
-				CUDA_trap *force = &(_h_ext_forces[j*N() + i]);
-				if(typeid(*(p->ext_forces[j].get())) == typeid(const_force) ) {
-					ConstantRateForce *p_force = (ConstantRateForce *) p->ext_forces[j].get();
+				CUDA_trap *force = &(_h_ext_forces[j * N() + i]);
+				if(typeid(*(p->ext_forces[j].get())) == typeid(const_force)) {
+					ConstantRateForce *p_force = (ConstantRateForce*) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_CONSTANT;
 					force->constant.F0 = p_force->_F0;
 					force->constant.dir_as_centre = p_force->dir_as_centre;
@@ -521,8 +544,8 @@ void MD_CUDABackend::init() {
 					force->constant.y = p_force->_direction.y;
 					force->constant.z = p_force->_direction.z;
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(mutual_trap) ) {
-					MutualTrap *p_force = (MutualTrap *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(mutual_trap)) {
+					MutualTrap *p_force = (MutualTrap*) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_MUTUAL;
 					force->mutual.rate = p_force->_rate;
 					force->mutual.stiff = p_force->_stiff;
@@ -530,61 +553,61 @@ void MD_CUDABackend::init() {
 					force->mutual.p_ind = p_force->_p_ptr->index;
 					force->mutual.PBC = p_force->PBC;
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(moving_trap) ) {
-					MovingTrap *p_force = (MovingTrap *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(moving_trap)) {
+					MovingTrap *p_force = (MovingTrap*) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_MOVING;
 					force->moving.stiff = p_force->_stiff;
 					force->moving.rate = p_force->_rate;
-					force->moving.pos0 = make_float3 (p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
-					force->moving.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
+					force->moving.pos0 = make_float3(p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
+					force->moving.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(lowdim_moving_trap) ) {
-					LowdimMovingTrap *p_force = (LowdimMovingTrap *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(lowdim_moving_trap)) {
+					LowdimMovingTrap *p_force = (LowdimMovingTrap*) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_MOVING_LOWDIM;
 					force->lowdim.stiff = p_force->_stiff;
 					force->lowdim.rate = p_force->_rate;
-					force->lowdim.pos0 = make_float3 (p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
-					force->lowdim.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
+					force->lowdim.pos0 = make_float3(p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
+					force->lowdim.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 					force->lowdim.visX = p_force->_visX;
 					force->lowdim.visY = p_force->_visY;
 					force->lowdim.visZ = p_force->_visZ;
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsion_plane) ) {
-					RepulsionPlane *p_force = (RepulsionPlane *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsion_plane)) {
+					RepulsionPlane *p_force = (RepulsionPlane*) p->ext_forces[j].get();
 					force->type = CUDA_REPULSION_PLANE;
 					force->repulsionplane.stiff = p_force->_stiff;
 					force->repulsionplane.position = p_force->_position;
-					force->repulsionplane.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
+					force->repulsionplane.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsion_plane_moving) ) {
-					RepulsionPlaneMoving *p_force = (RepulsionPlaneMoving *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsion_plane_moving)) {
+					RepulsionPlaneMoving *p_force = (RepulsionPlaneMoving*) p->ext_forces[j].get();
 					force->type = CUDA_REPULSION_PLANE_MOVING;
 					force->repulsionplanemoving.stiff = p_force->_stiff;
-					force->repulsionplanemoving.dir = make_float3 (p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
+					force->repulsionplanemoving.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 					force->repulsionplanemoving.low_idx = p_force->low_idx;
 					force->repulsionplanemoving.high_idx = p_force->high_idx;
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsive_sphere) ) {
-					RepulsiveSphere *p_force = (RepulsiveSphere *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsive_sphere)) {
+					RepulsiveSphere *p_force = (RepulsiveSphere*) p->ext_forces[j].get();
 					force->type = CUDA_REPULSIVE_SPHERE;
 					force->repulsivesphere.stiff = p_force->_stiff;
-					force->repulsivesphere.rate= p_force->_rate;
+					force->repulsivesphere.rate = p_force->_rate;
 					force->repulsivesphere.r0 = p_force->_r0;
 					force->repulsivesphere.r_ext = p_force->_r_ext;
-					force->repulsivesphere.centre = make_float3 (p_force->_center.x, p_force->_center.y, p_force->_center.z);
+					force->repulsivesphere.centre = make_float3(p_force->_center.x, p_force->_center.y, p_force->_center.z);
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsive_sphere_smooth) ) {
-					RepulsiveSphereSmooth *p_force = (RepulsiveSphereSmooth *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsive_sphere_smooth)) {
+					RepulsiveSphereSmooth *p_force = (RepulsiveSphereSmooth*) p->ext_forces[j].get();
 					force->type = CUDA_REPULSIVE_SPHERE_SMOOTH;
 					force->repulsivespheresmooth.r0 = p_force->_r0;
 					force->repulsivespheresmooth.r_ext = p_force->_r_ext;
 					force->repulsivespheresmooth.smooth = p_force->_smooth;
 					force->repulsivespheresmooth.alpha = p_force->_alpha;
 					force->repulsivespheresmooth.stiff = p_force->_stiff;
-					force->repulsivespheresmooth.centre = make_float3 (p_force->_center.x, p_force->_center.y, p_force->_center.z);
+					force->repulsivespheresmooth.centre = make_float3(p_force->_center.x, p_force->_center.y, p_force->_center.z);
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(LJ_wall) ) {
-					LJWall *p_force = (LJWall *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(LJ_wall)) {
+					LJWall *p_force = (LJWall*) p->ext_forces[j].get();
 					force->type = CUDA_LJ_WALL;
 					force->ljwall.stiff = p_force->_stiff;
 					force->ljwall.position = p_force->_position;
@@ -594,8 +617,8 @@ void MD_CUDABackend::init() {
 					force->ljwall.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 
 				}
-				else if(typeid(*(p->ext_forces[j].get())) == typeid(const_rate_torque) ) {
-					ConstantRateTorque *p_force = (ConstantRateTorque *) p->ext_forces[j].get();
+				else if(typeid(*(p->ext_forces[j].get())) == typeid(const_rate_torque)) {
+					ConstantRateTorque *p_force = (ConstantRateTorque*) p->ext_forces[j].get();
 					force->type = CUDA_CONSTANT_RATE_TORQUE;
 					force->constantratetorque.stiff = p_force->_stiff;
 					force->constantratetorque.F0 = p_force->_F0;
@@ -605,8 +628,8 @@ void MD_CUDABackend::init() {
 					force->constantratetorque.axis = make_float3(p_force->_axis.x, p_force->_axis.y, p_force->_axis.z);
 					force->constantratetorque.mask = make_float3(p_force->_mask.x, p_force->_mask.y, p_force->_mask.z);
 				}
-				else if(typeid(*(p->ext_forces[j].get())) == typeid(generic_central) ) {
-					GenericCentralForce *p_force = (GenericCentralForce *) p->ext_forces[j].get();
+				else if(typeid(*(p->ext_forces[j].get())) == typeid(generic_central)) {
+					GenericCentralForce *p_force = (GenericCentralForce*) p->ext_forces[j].get();
 					force->type = CUDA_GENERIC_CENTRAL_FORCE;
 					force->genericconstantforce.F0 = p_force->_F0;
 					force->genericconstantforce.inner_cut_off_sqr = p_force->inner_cut_off_sqr;
@@ -615,8 +638,8 @@ void MD_CUDABackend::init() {
 					force->genericconstantforce.y = p_force->center.y;
 					force->genericconstantforce.z = p_force->center.z;
 				}
-				else if(typeid (*(p->ext_forces[j].get())) == typeid(LJ_cone) ) {
-					LJCone *p_force = (LJCone *) p->ext_forces[j].get();
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(LJ_cone)) {
+					LJCone *p_force = (LJCone*) p->ext_forces[j].get();
 					force->type = CUDA_LJ_CONE;
 					force->ljcone.stiff = p_force->_stiff;
 					force->ljcone.n = p_force->_n;
@@ -628,20 +651,20 @@ void MD_CUDABackend::init() {
 					force->ljcone.pos0 = make_float3(p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
 				}
 				else {
-					throw oxDNAException ("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
+					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
 							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque and GenericCentralForce "
 							"forces are supported on CUDA at the moment.\n");
 				}
 			}
 		}
 
-		CUDA_SAFE_CALL( cudaMemcpy(_d_ext_forces, _h_ext_forces, N() * MAX_EXT_FORCES * sizeof (CUDA_trap), cudaMemcpyHostToDevice) );
+		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, _h_ext_forces, N() * MAX_EXT_FORCES * sizeof (CUDA_trap), cudaMemcpyHostToDevice));
 	}
 
 	// used in the hilbert curve sorting
-	if(_sort_every > 0)	{
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_vels, _vec_size) );
-		CUDA_SAFE_CALL( GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_Ls, _vec_size) );
+	if(_sort_every > 0) {
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_vels, _vec_size));
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_Ls, _vec_size));
 	}
 
 	// these values are changed only if the curve sorting is enabled
@@ -654,7 +677,8 @@ void MD_CUDABackend::init() {
 
 	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
-		if(p->is_rigid_body()) _any_rigid_body = true;
+		if(p->is_rigid_body())
+			_any_rigid_body = true;
 	}
 
 	// copy all the particle related stuff and the constants to device memory
@@ -669,7 +693,8 @@ void MD_CUDABackend::init() {
 	// initialise lists and compute the forces for the first step
 	_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
 	_curr_step = _read_conf_step;
-	if (_restart_step_counter) _curr_step = 0;
+	if(_restart_step_counter)
+		_curr_step = 0;
 	_set_external_forces();
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
 }
