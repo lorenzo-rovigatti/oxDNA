@@ -84,6 +84,8 @@ void MC_CPUBackend2::init() {
 }
 
 void MC_CPUBackend2::sim_step(llint curr_step) {
+	_mytimer->resume();
+
 	for(int i = 0; i < N(); i++) {
 		// pick a move with a given probability
 		number choice = drand48() * _accumulated_prob;
@@ -96,8 +98,9 @@ void MC_CPUBackend2::sim_step(llint curr_step) {
 
 		// now j is the chosen move
 		_moves[j]->apply(curr_step);
-
 	}
+
+	_mytimer->pause();
 }
 
 void MC_CPUBackend2::print_observables(llint curr_step) {

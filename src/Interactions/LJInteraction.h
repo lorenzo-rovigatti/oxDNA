@@ -26,7 +26,6 @@ LJ_rcut = <float> (interaction cutoff)
 [LJ_n = <int> (Generalised LJ exponent. Defaults to 6, which is the classic LJ value.)]
 @endverbatim
  */
-
 class LJInteraction: public BaseInteraction<LJInteraction> {
 protected:
 	number _E_cut[3];
@@ -63,7 +62,6 @@ public:
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 };
-
 
 number LJInteraction::_lennard_jones(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number rnorm = _computed_r.norm();

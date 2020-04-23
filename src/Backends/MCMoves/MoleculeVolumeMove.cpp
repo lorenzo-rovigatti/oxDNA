@@ -1,35 +1,31 @@
 /**
- * @file    VolumeMove.cpp
- * @date    30/may/2015
- * @author  flavio
- *
- *
+ * @file    MoleculeMoleculeVolumeMove.cpp
+ * @date    21/apr/2020
+ * @author  lorenzo
  */
 
-#include "VolumeMove.h"
+#include "MoleculeVolumeMove.h"
+
+#include "../../Particles/Molecule.h"
 
 /// traslation
-VolumeMove::VolumeMove() {
-	_verlet_skin = -1.f;
-	_isotropic = true;
-	_P = 0.;
-	_delta = 0.;
-}
-
-VolumeMove::~VolumeMove() {
+MoleculeVolumeMove::MoleculeVolumeMove() {
 
 }
 
-void VolumeMove::init() {
+MoleculeVolumeMove::~MoleculeVolumeMove() {
+
+}
+
+void MoleculeVolumeMove::init() {
 	BaseMove::init();
-	_pos_old.resize(_Info->N());
 	if(_restrict_to_type > 0) {
-		OX_LOG(Logger::LOG_WARNING, "(VolumeMove.cpp) Cant use VolumeMove with restrict_to_type. Ignoring");
+		OX_LOG(Logger::LOG_WARNING, "(MoleculeVolumeMove.cpp) Cant use MoleculeMoleculeVolumeMove with restrict_to_type. Ignoring");
 	}
-	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) VolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, _T, _delta, prob);
+	OX_LOG(Logger::LOG_INFO, "(VolumeMove.cpp) MoleculeVolumeMove (isotropic = %d) initiated with T %g, delta %g, prob: %g", _isotropic, _T, _delta, prob);
 }
 
-void VolumeMove::get_settings(input_file &inp, input_file &sim_inp) {
+void MoleculeVolumeMove::get_settings(input_file &inp, input_file &sim_inp) {
 	BaseMove::get_settings(inp, sim_inp);
 
 	getInputBool(&inp, "isotropic", &_isotropic, 0);
@@ -45,12 +41,12 @@ void VolumeMove::get_settings(input_file &inp, input_file &sim_inp) {
 	}
 }
 
-void VolumeMove::apply(llint curr_step) {
+void MoleculeVolumeMove::apply(llint curr_step) {
 	// we increase the attempted count
 	_attempted += 1;
 
 	std::vector<BaseParticle*> &particles = _Info->particles();
-	int N = _Info->N();
+	int N_molecules = CONFIG_INFO->molecules().size();
 
 	LR_vector box_sides = _Info->box->box_sides();
 	LR_vector old_box_sides = box_sides;
@@ -66,30 +62,45 @@ void VolumeMove::apply(llint curr_step) {
 
 	if(_isotropic) {
 		number dL = _delta * (drand48() - (number) 0.5);
-		box_sides.x += dL;
-		box_sides.y += dL;
-		box_sides.z += dL;
+		box_sides[0] += dL;
+		box_sides[1] += dL;
+		box_sides[2] += dL;
 	}
 	else {
-		box_sides.x += _delta * (drand48() - (number) 0.5);
-		box_sides.y += _delta * (drand48() - (number) 0.5);
-		box_sides.z += _delta * (drand48() - (number) 0.5);
+		box_sides[0] += _delta * (drand48() - (number) 0.5);
+		box_sides[1] += _delta * (drand48() - (number) 0.5);
+		box_sides[2] += _delta * (drand48() - (number) 0.5);
 	}
 
 	_Info->box->init(box_sides[0], box_sides[1], box_sides[2]);
 	number dExt = (number) 0.f;
-	for(int k = 0; k < N; k++) {
-		BaseParticle *p = particles[k];
+
+	LR_vector rescale_factor(
+			box_sides[0] / old_box_sides[0],
+			box_sides[1] / old_box_sides[1],
+			box_sides[2] / old_box_sides[2]);
+
+	static std::vector<LR_vector> shifts(N_molecules);
+	// we account for possible changes to the number of molecules
+	shifts.resize(N_molecules);
+	int i = 0;
+	for(auto mol : CONFIG_INFO->molecules()) {
+		mol->update_com();
+		shifts[i] = LR_vector(
+				mol->com[0] * (rescale_factor[0] - 1.),
+				mol->com[1] * (rescale_factor[1] - 1.),
+				mol->com[2] * (rescale_factor[2] - 1.));
+		i++;
+	}
+
+	for(auto p : particles) {
 		dExt -= p->ext_potential;
-		_pos_old[k] = p->pos;
-		p->pos.x *= box_sides[0] / old_box_sides[0];
-		p->pos.y *= box_sides[1] / old_box_sides[1];
-		p->pos.z *= box_sides[2] / old_box_sides[2];
+		p->pos += shifts[p->strand_id];
 		p->set_ext_potential(curr_step, _Info->box);
 		dExt += p->ext_potential;
 	}
 
-	// this bit has to come after the update of particles' positions
+	// this bit must be executed after updating the particles' positions
 	_Info->lists->change_box();
 	if(!_Info->lists->is_updated()) {
 		_Info->lists->global_update();
@@ -100,16 +111,15 @@ void VolumeMove::apply(llint curr_step) {
 	number V = _Info->box->V();
 	number dV = V - oldV;
 
-	if(_Info->interaction->get_is_infinite() == false && exp(-(dE + _P * dV - N * _T * log(V / oldV)) / _T) > drand48()) {
+	if(_Info->interaction->get_is_infinite() == false && exp(-(dE + _P * dV - N_molecules * _T * log(V / oldV)) / _T) > drand48()) {
 		_accepted++;
 		if(curr_step < _equilibration_steps && _adjust_moves) {
 			_delta *= _acc_fact;
 		}
 	}
 	else {
-		for(int k = 0; k < N; k++) {
-			BaseParticle *p = particles[k];
-			p->pos = _pos_old[k];
+		for(auto p : particles) {
+			p->pos -= shifts[p->strand_id];
 			p->set_ext_potential(curr_step, _Info->box);
 		}
 		_Info->interaction->set_is_infinite(false);
@@ -125,7 +135,7 @@ void VolumeMove::apply(llint curr_step) {
 	return;
 }
 
-void VolumeMove::log_parameters() {
+void MoleculeVolumeMove::log_parameters() {
 	BaseMove::log_parameters();
 	OX_LOG(Logger::LOG_INFO, "\tdelta %g", _delta);
 }

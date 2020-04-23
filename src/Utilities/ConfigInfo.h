@@ -21,6 +21,7 @@ class BaseParticle;
 class BaseList;
 class BaseBox;
 class input_file;
+class Molecule;
 
 /**
  * @brief Utility class. It is used by observables to have access to SimBackend's private members.
@@ -36,7 +37,7 @@ class ConfigInfo {
 private:
 	static std::shared_ptr<ConfigInfo> _config_info;
 
-	ConfigInfo(std::vector<BaseParticle *> *ps);
+	ConfigInfo(std::vector<BaseParticle *> *ps, std::vector<std::shared_ptr<Molecule>> *mols);
 	ConfigInfo() = delete;
 public:
 	virtual ~ConfigInfo();
@@ -62,14 +63,20 @@ public:
 	 */
 	static std::shared_ptr<ConfigInfo> instance();
 
-	static void init(std::vector<BaseParticle *> *ps);
+	static void init(std::vector<BaseParticle *> *ps, std::vector<std::shared_ptr<Molecule>> *mols);
 
 	std::vector<BaseParticle *> &particles() {
 		return *particles_pointer;
 	}
 
+	std::vector<std::shared_ptr<Molecule>> &molecules() {
+		return *molecules_pointer;
+	}
+
 	/// Pointer to the array which stores all the particles' information.
 	std::vector<BaseParticle *> *particles_pointer;
+
+	std::vector<std::shared_ptr<Molecule>> *molecules_pointer;
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
 	IBaseInteraction *interaction = nullptr;

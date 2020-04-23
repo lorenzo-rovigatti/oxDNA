@@ -109,17 +109,16 @@ public:
 	 *
 	 * @param p pointer to the particle object
 	 */
-	virtual LR_vector get_abs_pos(BaseParticle * p) = 0; 
-	
+	virtual LR_vector get_abs_pos(BaseParticle *p) = 0;
+
 	/**
 	 * @brief Shifts the particle's position and stores internally the shift. Used in the fix_diffusion procedure
 	 *
 	 * @param p particle 
 	 * @param amount displacement 
 	 */
-	virtual void shift_particle (BaseParticle * p, LR_vector &amount) = 0;
+	virtual void shift_particle(BaseParticle *p, LR_vector &amount) = 0;
 };
-
 
 using BoxPtr = std::shared_ptr<BaseBox>;
 

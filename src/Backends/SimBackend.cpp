@@ -58,7 +58,7 @@ SimBackend::SimBackend() {
 	_U_stack = 0.;
 	_dU_stack = 0.;
 
-	ConfigInfo::init(&_particles);
+	ConfigInfo::init(&_particles, &_molecules);
 	_config_info = ConfigInfo::instance();
 }
 
@@ -137,16 +137,13 @@ void SimBackend::get_settings(input_file &inp) {
 
 		// check that conf_file is not specified
 		std::string tmpstring;
-		if(getInputString(&inp, "conf_file", tmpstring, 0) == KEY_FOUND)
-			throw oxDNAException("Input file error: \"conf_file\" cannot be specified if \"reload_from\" is specified");
+		if(getInputString(&inp, "conf_file", tmpstring, 0) == KEY_FOUND) throw oxDNAException("Input file error: \"conf_file\" cannot be specified if \"reload_from\" is specified");
 
 		// check that restart_step_counter is set to 0
-		if(_restart_step_counter)
-			throw oxDNAException("Input file error: \"restart_step_counter\" must be set to false if \"reload_from\" is specified");
+		if(_restart_step_counter) throw oxDNAException("Input file error: \"restart_step_counter\" must be set to false if \"reload_from\" is specified");
 
 		int my_seed;
-		if(getInputInt(&inp, "seed", &my_seed, 0) == KEY_FOUND)
-			throw oxDNAException("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
+		if(getInputInt(&inp, "seed", &my_seed, 0) == KEY_FOUND) throw oxDNAException("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
 
 		_conf_filename = std::string(reload_from);
 	}
@@ -178,16 +175,14 @@ void SimBackend::get_settings(input_file &inp) {
 			getInputString(&inp, "external_forces_file", _external_filename, 1);
 		}
 	}
-	else if(val == KEY_INVALID)
-		throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
+	else if(val == KEY_INVALID) throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
 
 	if(getInputBoolAsInt(&inp, "print_timings", &tmp, 0) == KEY_FOUND) {
 		_print_timings = (tmp != 0);
 		if(_print_timings) {
 			getInputString(&inp, "timings_filename", _timings_filename, 1);
 			FILE *timings_file = fopen(_timings_filename, "a");
-			if(timings_file == NULL)
-				throw oxDNAException("Timings file '%s' is not writable\n", _timings_filename);
+			if(timings_file == NULL) throw oxDNAException("Timings file '%s' is not writable\n", _timings_filename);
 			fclose(timings_file);
 		}
 	}
@@ -207,8 +202,7 @@ void SimBackend::get_settings(input_file &inp) {
 			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string);
 			_obs_outputs.push_back(new_obs_out);
 		}
-		else
-			found = false;
+		else found = false;
 
 		i++;
 	}
@@ -282,26 +276,26 @@ void SimBackend::get_settings(input_file &inp) {
 			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);
 		}
 
-		if(tmp1 != KEY_FOUND && tmp2 != KEY_FOUND)
-			throw oxDNAException("Input file error: At least one of \"checkpoint_file\" or \"checkpoint_trajectory\" must be specified if \"checkpoint_every\" is specified.");
+		if(tmp1 != KEY_FOUND && tmp2 != KEY_FOUND) throw oxDNAException(
+				"Input file error: At least one of \"checkpoint_file\" or \"checkpoint_trajectory\" must be specified if \"checkpoint_every\" is specified.");
 	}
 
 	// set the max IO
 	if(getInputNumber(&inp, "max_io", &_max_io, 0) == KEY_FOUND) {
-		if(_max_io < 0)
-			throw oxDNAException("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
+		if(_max_io < 0) throw oxDNAException("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
 		else
-			OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
-		}
-		else {
-			_max_io = 1.; // default value for a simulation is 1 MB/s;
-		}
+		OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
 	}
+	else {
+		_max_io = 1.; // default value for a simulation is 1 MB/s;
+	}
+}
 
 void SimBackend::init() {
 	_conf_input.open(_conf_filename.c_str());
-	if(_conf_input.good() == false)
+	if(_conf_input.good() == false) {
 		throw oxDNAException("Can't read configuration file '%s'", _conf_filename.c_str());
+	}
 
 	_interaction->init();
 
@@ -315,10 +309,10 @@ void SimBackend::init() {
 
 	// check that the interaction has filled the array of "affected" particles
 	for(int i = 0; i < N; i++) {
-		BaseParticle * p = _particles[i];
-		if(p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL)
-			if(p->affected.size() < 1)
-				throw oxDNAException("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
+		BaseParticle *p = _particles[i];
+		if(p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL) {
+			if(p->affected.size() < 1) throw oxDNAException("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
+		}
 	}
 
 	_conf_input.seekg(0, ios::beg);
@@ -330,16 +324,34 @@ void SimBackend::init() {
 		int i;
 		for(i = 0; i < _confs_to_skip && _conf_input.good(); i++) {
 			bool check = false;
-			if (_initial_conf_is_binary) check = _read_next_configuration(true);
-			else check = _read_next_configuration();
-			if(!check) throw oxDNAException("Skipping %d configuration(s) is not possible, as the initial configuration file only contains %d.", _confs_to_skip, i);
+			if (_initial_conf_is_binary) {
+				check = _read_next_configuration(true);
+			}
+			else {
+				check = _read_next_configuration();
+			}
+			if(!check) {
+				throw oxDNAException("Skipping %d configuration(s) is not possible, as the initial trajectory file only contains %d configurations", _confs_to_skip, i);
+			}
 		}
 	}
 
 	bool check = false;
 	check = _read_next_configuration(_initial_conf_is_binary);
-	if(!check)
+	if(!check) {
 		throw oxDNAException("Could not read the initial configuration, aborting");
+	}
+
+	// initialise the molecules
+	_molecules.resize(_N_strands, std::make_shared<Molecule>());
+	for(auto p : _particles) {
+		int mol_id = p->strand_id;
+		_molecules[mol_id]->add_particle(p);
+	}
+
+	if((int)_molecules.size() != _N_strands) {
+		throw oxDNAException("There is a mismatch between the number of strands (molecules) reported in the topology file (%d) and the number that results from parsing the particle information (%u)", _N_strands, _molecules.size());
+	}
 
 	start_step_from_file = (_restart_step_counter) ? 0 : _read_conf_step;
 	_config_info->curr_step = start_step_from_file;
@@ -363,7 +375,7 @@ void SimBackend::init() {
 		(*it)->init(*_config_info);
 	}
 
-	OX_LOG(Logger::LOG_INFO, "N: %d", N);
+	OX_LOG(Logger::LOG_INFO, "N: %d, N molecules: %d", N, _molecules.size());
 }
 
 LR_vector SimBackend::_read_next_vector(bool binary) {
@@ -377,8 +389,9 @@ LR_vector SimBackend::_read_next_vector(bool binary) {
 		_conf_input.read((char *) &tmpf, sizeof(double));
 		res.z = tmpf;
 	}
-	else
+	else {
 		_conf_input >> res.x >> res.y >> res.z;
+	}
 
 	return res;
 }
@@ -456,15 +469,14 @@ bool SimBackend::_read_next_configuration(bool binary) {
 
 	_box->init(Lx, Ly, Lz);
 
-	// the following part is in double precision since
-	// we want to be able to restart from confs that have
-	// large numbers in the conf file and use float precision
-	// later
+	// the following part is always carried out in double precision since we want to be able to restart from confs that have
+	// large numbers in the conf file and use float precision later
 	int k, i;
 	std::vector<int> nins(_N_strands);
 	std::vector<LR_vector> tmp_poss(_particles.size());
 	std::vector<LR_vector> scdm(_N_strands);
 
+	// here we cannot use _molecules because it has not been initialised yet
 	for(k = 0; k < _N_strands; k++) {
 		nins[k] = 0;
 		scdm[k] = LR_vector((double) 0., (double) 0., (double) 0.);
@@ -502,8 +514,9 @@ bool SimBackend::_read_next_configuration(bool binary) {
 			p->orientation.v3 = _read_next_vector(binary);
 		}
 		// v1, v2 and v3 should have length 1. If they don't it means that they are null vectors
-		if(p->orientation.v1.module() < 0.9 || p->orientation.v2.module() < 0.9 || p->orientation.v3.module() < 0.9)
+		if(p->orientation.v1.module() < 0.9 || p->orientation.v2.module() < 0.9 || p->orientation.v3.module() < 0.9) {
 			throw oxDNAException("Invalid orientation for particle %d: at least one of the vectors is a null vector", p->index);
+		}
 		p->orientation.transpone();
 
 		p->vel = _read_next_vector(binary);
@@ -529,14 +542,13 @@ bool SimBackend::_read_next_configuration(bool binary) {
 	}
 
 	if(i != N()) {
-		if(_confs_to_skip > 0)
-			throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
-		else
-			throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, N());
+		if(_confs_to_skip > 0) throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
+		else throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, N());
 	}
 
-	for(k = 0; k < _N_strands; k++)
+	for(k = 0; k < _N_strands; k++) {
 		scdm[k] /= (double) nins[k];
+	}
 
 	for(i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
@@ -544,8 +556,7 @@ bool SimBackend::_read_next_configuration(bool binary) {
 
 		LR_vector p_pos = tmp_poss[i];
 		if(_enable_fix_diffusion && !binary) {
-			// we need to manually set the particle shift so that the particle absolute position
-			// is the right one
+			// we need to manually set the particle shift so that the particle absolute position is the right one
 			LR_vector scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
 			_box->shift_particle(p, scdm_number);
 			p_pos.x -= _box->box_sides().x * (floor(scdm[k].x / _box->box_sides().x));
@@ -571,8 +582,7 @@ void SimBackend::apply_changes_to_simulation_data() {
 void SimBackend::print_observables(llint curr_step) {
 	bool someone_ready = false;
 	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		if((*it)->is_ready(curr_step))
-			someone_ready = true;
+		if((*it)->is_ready(curr_step)) someone_ready = true;
 	}
 
 	if(someone_ready) {
@@ -592,7 +602,9 @@ void SimBackend::print_observables(llint curr_step) {
 			double MBps = (total_bytes / (1024. * 1024.)) / time_passed;
 			OX_DEBUG("Current data production rate: %g MB/s (total bytes: %lld, time_passed: %g)" , MBps, total_bytes, time_passed);
 			if(MBps > _max_io) {
-				throw oxDNAException("Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.", MBps, _max_io);
+				throw oxDNAException(
+						"Aborting because the program is generating too much data (%g MB/s).\n\t\t\tThe current limit is set to %g MB/s;\n\t\t\tyou can change it by setting max_io=<float> in the input file.",
+						MBps, _max_io);
 			}
 		}
 
@@ -609,21 +621,18 @@ void SimBackend::fix_diffusion() {
 
 	apply_simulation_data_changes();
 
+	for(auto mol : _molecules) {
+		mol->update_com();
+	}
+
 	static std::vector<LR_vector> stored_pos(N());
 	static std::vector<LR_matrix> stored_or(N());
 	static std::vector<LR_matrix> stored_orT(N());
-	static std::vector<LR_vector> scdm(_N_strands);
-	static std::vector<int> ninstrand(_N_strands);
 
-	// we don't rule out the possibility that N() and _N_strands might change during the course of the simulation
+	// we don't rule out the possibility that N() might change during the course of the simulation
 	stored_pos.resize(N());
 	stored_or.resize(N());
 	stored_orT.resize(N());
-	scdm.resize(_N_strands);
-	ninstrand.resize(_N_strands);
-
-	std::fill(scdm.begin(), scdm.end(), LR_vector());
-	std::fill(ninstrand.begin(), ninstrand.end(), 0);
 
 	number E_before = _interaction->get_system_energy(_particles, _lists.get());
 	for(int i = 0; i < N(); i++) {
@@ -633,21 +642,10 @@ void SimBackend::fix_diffusion() {
 		stored_orT[i] = p->orientationT;
 	}
 
-	// compute com for each strand;
-	for(int i = 0; i < N(); i++) {
-		BaseParticle *p = _particles[i];
-		scdm[p->strand_id] += p->pos;
-		ninstrand[p->strand_id]++;
-	}
-
-	for(int k = 0; k < _N_strands; k++) {
-		scdm[k] = scdm[k] / (number) ninstrand[k];
-	}
-
 	// change particle position and fix orientation matrix;
 	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
-		_box->shift_particle(p, scdm[p->strand_id]);
+		_box->shift_particle(p, _molecules[p->strand_id]->com);
 		p->orientation.orthonormalize();
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
@@ -659,7 +657,7 @@ void SimBackend::fix_diffusion() {
 		_interaction->set_is_infinite(false);
 		for (int i = 0; i < N(); i ++) {
 			BaseParticle *p = _particles[i];
-			LR_vector dscdm = scdm[p->strand_id] * (number)-1.;
+			LR_vector dscdm = -_molecules[p->strand_id]->com;
 			_box->shift_particle(p, dscdm);
 			p->orientation = stored_or[i];
 			p->orientationT = stored_orT[i];
@@ -668,12 +666,14 @@ void SimBackend::fix_diffusion() {
 
 		// we try to normalize a few of them...
 		std::vector<int> apply;
-		for(int i = 0; i < _N_strands; i ++) {
-			if(drand48() < 0.005) apply.push_back(1);
+		for(auto molecule : _molecules) {
+			if(drand48() < 0.005) {
+				apply.push_back(1);
+			}
 			else apply.push_back(0);
 		}
 
-		for (int i = 0; i < N(); i ++) {
+		for(int i = 0; i < N(); i ++) {
 			BaseParticle *p = _particles[i];
 			if(apply[p->strand_id]) {
 				p->orientation.orthonormalize();

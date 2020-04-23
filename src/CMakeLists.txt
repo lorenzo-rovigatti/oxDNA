@@ -128,6 +128,7 @@ SET(move_SOURCES
 	Backends/MCMoves/MCRot.cpp
 	Backends/MCMoves/VMMC.cpp
 	Backends/MCMoves/VolumeMove.cpp
+	Backends/MCMoves/MoleculeVolumeMove.cpp
 	Backends/MCMoves/ShapeMove.cpp
 	Backends/MCMoves/RotateSite.cpp
 )
@@ -172,6 +173,7 @@ SET(common_SOURCES
 	Particles/PatchyParticleDan.cpp
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
+	Particles/Molecule.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp

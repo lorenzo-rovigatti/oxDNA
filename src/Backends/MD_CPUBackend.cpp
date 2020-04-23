@@ -250,10 +250,15 @@ void MD_CPUBackend::get_settings(input_file &inp) {
 	}
 
 	if(_use_barostat) {
-		auto str_inp = Utils::sformat("type = volume\ndelta = %lf\nisotropic = %d", _delta_L, (int) _barostat_isotropic);
+		std::string move_name("volume");
+		if(_barostat_molecular) {
+			move_name = "molecule_volume";
+		}
+		auto str_inp = Utils::sformat("type = %s\ndelta = %lf\nisotropic = %d", move_name.c_str(), _delta_L, (int) _barostat_isotropic);
 		input_file *move_inp = Utils::get_input_file_from_string(str_inp);
 		_V_move = MoveFactory::make_move(*move_inp, inp);
 		cleanInputFile(move_inp);
+		delete move_inp;
 	}
 }
 

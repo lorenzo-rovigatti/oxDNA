@@ -30,6 +30,7 @@ protected:
 	double _density;
 	int _N;
 	std::vector<BaseParticle *> _particles;
+	std::vector<std::shared_ptr<Molecule>> _molecules;
 
 	bool _external_forces;
 	std::string _external_filename;

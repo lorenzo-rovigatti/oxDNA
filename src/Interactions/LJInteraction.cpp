@@ -7,7 +7,8 @@
 
 #include "LJInteraction.h"
 
-LJInteraction::LJInteraction() : BaseInteraction<LJInteraction>() {
+LJInteraction::LJInteraction() :
+				BaseInteraction<LJInteraction>() {
 	_int_map[LENNARD_JONES] = &LJInteraction::pair_interaction_nonbonded;
 	_is_ka_mixture = false;
 	_sigma[0] = _sigma[1] = _sigma[2] = 1.;
@@ -15,7 +16,6 @@ LJInteraction::LJInteraction() : BaseInteraction<LJInteraction>() {
 	_n[0] = _n[1] = _n[2] = 6;
 	_N_A = _N_B = 0;
 }
-
 
 LJInteraction::~LJInteraction() {
 
@@ -34,7 +34,7 @@ void LJInteraction::get_settings(input_file &inp) {
 	double sigma;
 	if(getInputDouble(&inp, "LJ_sigma[2]", &sigma, 0) == KEY_FOUND) {
 		_sigma[2] = sigma;
-		_sigma[1] = 0.5*(1. + _sigma[2]);
+		_sigma[1] = 0.5 * (1. + _sigma[2]);
 	}
 
 	float rcut = 2.5f;
@@ -53,7 +53,7 @@ void LJInteraction::init() {
 	for(int i = 0; i < 3; i++) {
 		number rcut = _rcut * _sigma[i];
 		_sqr_LJ_rcut[i] = SQR(rcut);
-		_E_cut[i] = 4. * _epsilon[i] * (pow(_sigma[i]/rcut, (number)2*_n[i]) - pow(_sigma[i]/rcut, (number)_n[i]));
+		_E_cut[i] = 4. * _epsilon[i] * (pow(_sigma[i] / rcut, (number) 2 * _n[i]) - pow(_sigma[i] / rcut, (number) _n[i]));
 		_sqr_sigma[i] = SQR(_sigma[i]);
 	}
 
@@ -80,9 +80,9 @@ void LJInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &p
 	_N_A = N - _N_B;
 
 	allocate_particles(particles);
-	for(int i = 0; i < N; i ++) {
-	   particles[i]->index = particles[i]->strand_id = i;
-	   particles[i]->type = particles[i]->btype = (i < _N_A) ? P_A : P_B;
+	for(int i = 0; i < N; i++) {
+		particles[i]->index = particles[i]->strand_id = i;
+		particles[i]->type = particles[i]->btype = (i < _N_A) ? P_A : P_B;
 	}
 }
 

@@ -377,7 +377,7 @@ void PolymerSwapInteraction::allocate_particles(std::vector<BaseParticle*> &part
 
 void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	std::string line;
-	int N_from_conf = particles.size();
+	unsigned int N_from_conf = particles.size();
 	IBaseInteraction::read_topology(N_strands, particles);
 
 	std::ifstream topology;
@@ -418,13 +418,18 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		}
 	}
 
-	for(int i = 0; i < N_from_conf; i++) {
+	for(unsigned int i = 0; i < N_from_conf; i++) {
 		std::getline(bond_file, line);
+
+		if(!bond_file.good()) {
+			throw oxDNAException("The bond file should contain two lines per particle, but it seems there are info for only %d particles\n", i);
+		}
+
 		auto line_spl = Utils::split(line, ' ');
 		CustomParticle *p;
 		int n_bonds;
 
-		int p_idx;
+		unsigned int p_idx;
 		if(line_spl.size() == 2) {
 			p_idx = std::stoi(line_spl[0]);
 			p_idx--;
@@ -453,7 +458,7 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		p->strand_id = p_idx / _chain_size;
 		p->n3 = p->n5 = P_VIRTUAL;
 		for(int j = 0; j < n_bonds; j++) {
-			int n_idx;
+			unsigned int n_idx;
 			bond_file >> n_idx;
 			// the >> operator always leaves '\n', which is subsequently picked up by getline if we don't explicitly ignore it
 			bond_file.ignore();

@@ -47,7 +47,7 @@ void IBaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *>
 	*N_strands = particles.size();
 	allocate_particles(particles);
 	int idx = 0;
-	for(auto p: particles) {
+	for(auto p : particles) {
 		p->index = idx;
 		p->type = 0;
 		p->strand_id = idx;
@@ -80,7 +80,7 @@ number IBaseInteraction::get_system_energy_term(int name, std::vector<BasePartic
 	begin_energy_computation();
 
 	number energy = (number) 0.f;
-	for(auto p: particles) {
+	for(auto p : particles) {
 		std::vector<BaseParticle *> neighs = lists->get_all_neighbours(p);
 
 		for(unsigned int n = 0; n < neighs.size(); n++) {
@@ -113,7 +113,7 @@ void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *>
 	Cells c(particles, _box);
 	c.init(_rcut);
 
-	for(auto p: particles) {
+	for(auto p : particles) {
 		p->pos = LR_vector(drand48() * _box->box_sides().x, drand48() * _box->box_sides().y, drand48() * _box->box_sides().z);
 	}
 
@@ -126,8 +126,12 @@ void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *>
 
 		bool inserted = false;
 		do {
-			if(same_strand) p->pos = particles[i - 1]->pos + LR_vector((drand48() - 0.5), (drand48() - 0.5), (drand48() - 0.5)) * _generate_bonded_cutoff;
-			else p->pos = LR_vector(drand48() * _box->box_sides().x, drand48() * _box->box_sides().y, drand48() * _box->box_sides().z);
+			if(same_strand) {
+				p->pos = particles[i - 1]->pos + LR_vector((drand48() - 0.5), (drand48() - 0.5), (drand48() - 0.5)) * _generate_bonded_cutoff;
+			}
+			else {
+				p->pos = LR_vector(drand48() * _box->box_sides().x, drand48() * _box->box_sides().y, drand48() * _box->box_sides().z);
+			}
 			// random orientation
 			//p->orientation = Utils::get_random_rotation_matrix (2.*M_PI);
 			p->orientation = Utils::get_random_rotation_matrix_from_angle(acos(2. * (drand48() - 0.5)));

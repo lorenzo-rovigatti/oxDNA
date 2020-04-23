@@ -14,6 +14,7 @@
 
 #include "../defs.h"
 #include "../Observables/ObservableOutput.h"
+#include "../Particles/Molecule.h"
 
 #include <cmath>
 #include <fstream>
@@ -148,6 +149,8 @@ protected:
 
 	/// array of pointers to particle objects
 	std::vector<BaseParticle *> _particles;
+
+	std::vector<std::shared_ptr<Molecule>> _molecules;
 
 	/// object that stores pointers to a few important variables that need to be shared with other objects
 	std::shared_ptr<ConfigInfo> _config_info;

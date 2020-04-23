@@ -60,7 +60,7 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 	_external_forces = false;
 	_external_filename = std::string("");
 
-	ConfigInfo::init(&_particles);
+	ConfigInfo::init(&_particles, &_molecules);
 }
 
 GeneratorManager::~GeneratorManager() {
@@ -115,6 +115,13 @@ void GeneratorManager::init() {
 	_particles.resize(_N);
 	int N_strands;
 	_interaction->read_topology(&N_strands, _particles);
+
+	// initialise the molecules
+	_molecules.resize(N_strands, std::make_shared<Molecule>());
+	for(auto p : _particles) {
+		int mol_id = p->strand_id;
+		_molecules[mol_id]->add_particle(p);
+	}
 
 	if(_use_density) {
 		_box_side = pow(_N / _density, 1. / 3.);
