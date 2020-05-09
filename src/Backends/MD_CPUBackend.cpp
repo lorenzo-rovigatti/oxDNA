@@ -8,7 +8,8 @@
 #include <sstream>
 
 #include "MD_CPUBackend.h"
-#include "./Thermostats/ThermostatFactory.h"
+#include "Thermostats/ThermostatFactory.h"
+#include "Thermostats/NoThermostat.h"
 #include "MCMoves/MoveFactory.h"
 
 MD_CPUBackend::MD_CPUBackend() :
@@ -25,13 +26,78 @@ MD_CPUBackend::~MD_CPUBackend() {
 
 }
 
+void MD_CPUBackend::get_settings(input_file &inp) {
+	MDBackend::get_settings(inp);
+
+	getInputBool(&inp, "MD_compute_stress_tensor", &_compute_stress_tensor, 0);
+	if(_compute_stress_tensor) {
+		OX_LOG(Logger::LOG_INFO, "Computing the stress tensor directly in the backend");
+		getInputInt(&inp, "MD_stress_tensor_avg_every", &_stress_tensor_avg_every, 1);
+		if(_stress_tensor_avg_every < 1) {
+			throw oxDNAException("MD_stress_tensor_avg_every should be larger than 0");
+		}
+	}
+
+	if(_use_barostat) {
+		std::string move_name("volume");
+		if(_barostat_molecular) {
+			move_name = "molecule_volume";
+		}
+		auto str_inp = Utils::sformat("type = %s\ndelta = %lf\nisotropic = %d", move_name.c_str(), _delta_L, (int) _barostat_isotropic);
+		input_file *move_inp = Utils::get_input_file_from_string(str_inp);
+		_V_move = MoveFactory::make_move(*move_inp, inp);
+		cleanInputFile(move_inp);
+		delete move_inp;
+	}
+
+	getInputBool(&inp, "MD_use_builtin_langevin_thermostat", &_use_builtin_langevin_thermostat, 0);
+	if(_use_builtin_langevin_thermostat) {
+		OX_LOG(Logger::LOG_INFO, "Using the built-in Langevin thermostat");
+		_thermostat = std::shared_ptr<BaseThermostat>(new NoThermostat());
+
+		number gamma;
+		getInputNumber(&inp, "MD_langevin_gamma", &gamma, 1);
+		_langevin_c1 = std::exp(-gamma * (_dt / 2.));
+		_langevin_c2 = std::sqrt((1. - SQR(_langevin_c1)) * _T);
+	}
+	else {
+		_thermostat = ThermostatFactory::make_thermostat(inp, _box.get());
+		_thermostat->get_settings(inp);
+	}
+}
+
+void MD_CPUBackend::init() {
+	MDBackend::init();
+	_thermostat->init();
+	if(_use_barostat) {
+		_V_move->init();
+	}
+
+	_compute_forces();
+	if(_compute_stress_tensor) {
+		for(auto p : _particles) {
+			_update_kinetic_stress_tensor(p);
+		}
+		_update_backend_info();
+	}
+}
+
 void MD_CPUBackend::_first_step(llint curr_step) {
-	std::vector<int> w_ps;
+	std::vector<int> particles_with_warning;
+	LR_vector dr;
 	for(auto p : _particles) {
-		p->vel += p->force * (_dt * (number) 0.5);
-		LR_vector dr = p->vel * _dt;
+		if(_use_builtin_langevin_thermostat) {
+			LR_vector p_plus = _langevin_c1 * p->vel + _langevin_c2 * LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian());
+			LR_vector dv = p->force * (_dt * (number) 0.5);
+			p->vel = p_plus + dv;
+			dr = (p_plus + dv) * _dt;
+		}
+		else {
+			p->vel += p->force * (_dt * (number) 0.5);
+			dr = p->vel * _dt;
+		}
 		if(dr.norm() > 0.01) {
-			w_ps.push_back(p->index);
+			particles_with_warning.push_back(p->index);
 		}
 		p->pos += dr;
 		// if Lees-Edwards boundaries are enabled, we have to check for crossings along the y axis
@@ -85,9 +151,9 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 		_lists->single_update(p);
 	}
 
-	if(w_ps.size() > 0) {
+	if(particles_with_warning.size() > 0) {
 		std::stringstream ss;
-		for(auto idx : w_ps) {
+		for(auto idx : particles_with_warning) {
 			ss << idx << " ";
 		}
 		OX_LOG(Logger::LOG_WARNING, "The following particles had a displacement greater than 0.1 in this step: %s", ss.str().c_str());
@@ -120,6 +186,10 @@ void MD_CPUBackend::_second_step() {
 	_K = (number) 0.f;
 	for(auto p : _particles) {
 		p->vel += p->force * _dt * (number) 0.5f;
+		if(_use_builtin_langevin_thermostat) {
+			p->vel = _langevin_c1 * p->vel + _langevin_c2 * LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian());
+		}
+
 		if(p->is_rigid_body()) {
 			p->L += p->torque * _dt * (number) 0.5f;
 		}
@@ -232,47 +302,4 @@ void MD_CPUBackend::sim_step(llint curr_step) {
 	_timer_thermostat->pause();
 
 	_mytimer->pause();
-}
-
-void MD_CPUBackend::get_settings(input_file &inp) {
-	MDBackend::get_settings(inp);
-
-	_thermostat = ThermostatFactory::make_thermostat(inp, _box.get());
-	_thermostat->get_settings(inp);
-
-	getInputBool(&inp, "MD_compute_stress_tensor", &_compute_stress_tensor, 0);
-	if(_compute_stress_tensor) {
-		OX_LOG(Logger::LOG_INFO, "Computing the stress tensor directly in the backend");
-		getInputInt(&inp, "MD_stress_tensor_avg_every", &_stress_tensor_avg_every, 1);
-		if(_stress_tensor_avg_every < 1) {
-			throw oxDNAException("MD_stress_tensor_avg_every should be larger than 0");
-		}
-	}
-
-	if(_use_barostat) {
-		std::string move_name("volume");
-		if(_barostat_molecular) {
-			move_name = "molecule_volume";
-		}
-		auto str_inp = Utils::sformat("type = %s\ndelta = %lf\nisotropic = %d", move_name.c_str(), _delta_L, (int) _barostat_isotropic);
-		input_file *move_inp = Utils::get_input_file_from_string(str_inp);
-		_V_move = MoveFactory::make_move(*move_inp, inp);
-		cleanInputFile(move_inp);
-		delete move_inp;
-	}
-}
-
-void MD_CPUBackend::init() {
-	MDBackend::init();
-	_thermostat->init();
-	if(_use_barostat)
-		_V_move->init();
-
-	_compute_forces();
-	if(_compute_stress_tensor) {
-		for(auto p : _particles) {
-			_update_kinetic_stress_tensor(p);
-		}
-		_update_backend_info();
-	}
 }
