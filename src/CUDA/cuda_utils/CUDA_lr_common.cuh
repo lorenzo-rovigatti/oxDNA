@@ -176,7 +176,7 @@ __forceinline__ __device__ c_number4 _cross(const c_number4 v, const c_number4 w
 }
 
 // LR_DOUBLE4
-__forceinline__ __device__ LR_double4 operator*(LR_double4 v, double c) {
+__forceinline__ __host__ __device__ LR_double4 operator*(LR_double4 v, double c) {
 	v.x *= c;
 	v.y *= c;
 	v.z *= c;
@@ -184,12 +184,12 @@ __forceinline__ __device__ LR_double4 operator*(LR_double4 v, double c) {
 	return v;
 }
 
-__forceinline__ __device__ LR_double4 operator/(LR_double4 v, double c) {
+__forceinline__ __host__ __device__ LR_double4 operator/(LR_double4 v, double c) {
 	double inv = 1. / c;
 	return v * inv;
 }
 
-__forceinline__ __device__ LR_double4 operator*(double c, LR_double4 v) {
+__forceinline__ __host__ __device__ LR_double4 operator*(double c, LR_double4 v) {
 	v.x *= c;
 	v.y *= c;
 	v.z *= c;
@@ -197,7 +197,7 @@ __forceinline__ __device__ LR_double4 operator*(double c, LR_double4 v) {
 	return v;
 }
 
-__forceinline__ __device__ LR_double4 operator-(LR_double4 a) {
+__forceinline__ __host__ __device__ LR_double4 operator-(LR_double4 a) {
 	a.x = -a.x;
 	a.y = -a.y;
 	a.z = -a.z;
@@ -205,11 +205,11 @@ __forceinline__ __device__ LR_double4 operator-(LR_double4 a) {
 	return a;
 }
 
-__forceinline__ __device__ LR_double4 operator+(LR_double4 a) {
+__forceinline__ __host__ __device__ LR_double4 operator+(LR_double4 a) {
 	return a;
 }
 
-__forceinline__ __device__ LR_double4 operator+(LR_double4 a, LR_double4 b) {
+__forceinline__ __host__ __device__ LR_double4 operator+(LR_double4 a, LR_double4 b) {
 	a.x += b.x;
 	a.y += b.y;
 	a.z += b.z;
@@ -217,14 +217,14 @@ __forceinline__ __device__ LR_double4 operator+(LR_double4 a, LR_double4 b) {
 	return a;
 }
 
-__forceinline__ __device__ void operator+=(LR_double4 &a, LR_double4 b) {
+__forceinline__ __host__ __device__ void operator+=(LR_double4 &a, LR_double4 b) {
 	a.x += b.x;
 	a.y += b.y;
 	a.z += b.z;
 	a.w += b.w;
 }
 
-__forceinline__ __device__ void operator*=(LR_double4 &a, double b) {
+__forceinline__ __host__ __device__ void operator*=(LR_double4 &a, double b) {
 	a.x *= b;
 	a.y *= b;
 	a.z *= b;
@@ -286,39 +286,39 @@ __forceinline__ __device__ void operator-=(float3 &a, float3 b) {
 }
 
 // FLOAT4
-__forceinline__ __device__ float4 operator*(float4 v, float c) {
+__forceinline__ __host__ __device__ float4 operator*(float4 v, float c) {
 	return make_float4(v.x * c, v.y * c, v.z * c, v.w * c);
 }
 
-__forceinline__ __device__ float4 operator/(float4 v, float c) {
+__forceinline__ __host__ __device__ float4 operator/(float4 v, float c) {
 	float inv = 1.f / c;
 	return v * inv;
 }
 
-__forceinline__ __device__ float4 operator*(float c, float4 v) {
+__forceinline__ __host__ __device__ float4 operator*(float c, float4 v) {
 	return make_float4(v.x * c, v.y * c, v.z * c, v.w * c);
 }
 
-__forceinline__ __device__ float4 operator-(float4 a) {
+__forceinline__ __host__ __device__ float4 operator-(float4 a) {
 	return make_float4(-a.x, -a.y, -a.z, -a.w);
 }
 
-__forceinline__ __device__ float4 operator+(float4 a) {
+__forceinline__ __host__ __device__ float4 operator+(float4 a) {
 	return make_float4(a.x, a.y, a.z, a.w);
 }
 
-__forceinline__ __device__ float4 operator+(float4 a, float4 b) {
+__forceinline__ __host__ __device__ float4 operator+(float4 a, float4 b) {
 	return make_float4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 }
 
-__forceinline__ __device__ void operator+=(float4 &a, float4 b) {
+__forceinline__ __host__ __device__ void operator+=(float4 &a, float4 b) {
 	a.x += b.x;
 	a.y += b.y;
 	a.z += b.z;
 	a.w += b.w;
 }
 
-__forceinline__ __device__ void operator*=(float4 &a, float b) {
+__forceinline__ __host__ __device__ void operator*=(float4 &a, float b) {
 	a.x *= b;
 	a.y *= b;
 	a.z *= b;

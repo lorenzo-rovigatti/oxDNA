@@ -43,11 +43,13 @@ protected:
 	/// stored value for the stochastic dynamic of the kinetic energy associated to rotations
 	number _K_r;
 
-	void _update_K(number &K);
+	void _update_K(number &K, int degrees_of_freedom);
 
 	// Bussi's methods
 	number _sum_noises(int nn);
 	number _gamdev(const int ia);
+	int _current_translational_degrees_of_freedom();
+	int _current_rotational_degrees_of_freedom();
 
 public:
 	BussiThermostat();
