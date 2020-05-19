@@ -474,6 +474,9 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 	}
 
 	*N_strands = N_from_conf / _chain_size;
+	if(*N_strands == 0) {
+		*N_strands = 1;
+	}
 	_N_chains = *N_strands;
 }
 
