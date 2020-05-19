@@ -82,9 +82,9 @@ IF(CUDA)
 	CUDA_ADD_LIBRARY(CUDAAOInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAAOInteraction.cu src/Interactions/AOInteraction.cpp)
 	CUDA_ADD_LIBRARY(CUDAPolymerInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAPolymerInteraction.cu src/Interactions/PolymerInteraction.cpp)
 	CUDA_ADD_LIBRARY(CUDAPolymerSwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAPolymerSwapInteraction.cu src/Interactions/PolymerSwapInteraction.cpp)
+	CUDA_ADD_LIBRARY(CUDATSPInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDATSPInteraction.cu src/Interactions/TSPInteraction.cpp)
 	
-	ADD_DEPENDENCIES(rovigatti CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction 
-							CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction)
+	ADD_DEPENDENCIES(rovigatti CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction CUDATSPInteraction)
 	
 	IF(GSL_FOUND)
 		CUDA_ADD_LIBRARY(CUDANathanStarInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDANathanStarInteraction.cu src/Interactions/NathanStarInteraction.cpp)

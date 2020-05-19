@@ -242,7 +242,9 @@ __global__ void tsp_anchor_forces(c_number4 *poss, c_number4 *forces, int *ancho
 			c_number4 r = poss[bonded_neigh] - r_anchor;
 			_fene(r, F, true);
 		}
-		else break;
+		else {
+			break;
+		}
 	}
 
 	forces[anchor] = F;
@@ -301,9 +303,9 @@ void CUDATSPInteraction::cuda_init(c_number box_side, int N) {
 }
 
 void CUDATSPInteraction::_setup_anchors() {
-	std::vector<BaseParticle *> &particles = new BaseParticle *[this->_N];
-	TSPInteraction::allocate_particles(particles, this->_N);
-	TSPInteraction::read_topology(this->_N, &this->_N_stars, particles);
+	std::vector<BaseParticle *> particles(this->_N);
+	TSPInteraction::allocate_particles(particles);
+	TSPInteraction::read_topology(&this->_N_stars, particles);
 
 	_h_anchors = new int[this->_N_stars];
 	_h_anchor_neighs = new TSP_anchor_bonds[this->_N_stars * TSP_MAX_ARMS];
@@ -319,21 +321,23 @@ void CUDATSPInteraction::_setup_anchors() {
 		int nn = 0;
 		for(auto neigh: p->bonded_neighs) {
 			_h_anchor_neighs[i].n[nn] = neigh->index;
+			nn++;
 		}
 		// and then by putting P_INVALID for all the other arms
-		for(int j = nn; j < TSP_MAX_ARMS; j++)
+		for(int j = nn; j < TSP_MAX_ARMS; j++) {
 			_h_anchor_neighs[i].n[j] = P_INVALID;
+		}
 	}
 
 	CUDA_SAFE_CALL(cudaMemcpy(_d_anchors, _h_anchors, this->_N_stars * sizeof(int), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_d_anchor_neighs, _h_anchor_neighs, this->_N_stars*TSP_MAX_ARMS*sizeof(TSP_anchor_bonds), cudaMemcpyHostToDevice));
 
-	for(int i = 0; i < this->_N; i++)
+	for(int i = 0; i < this->_N; i++) {
 		delete particles[i];
-	delete[] particles;
+	}
 }
 
-void CUDATSPInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+void CUDATSPInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
 	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
