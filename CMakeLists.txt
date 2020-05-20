@@ -101,7 +101,7 @@ IF(CUDA)
 	INCLUDE_DIRECTORIES(${CUDA_INSTALL_PREFIX}/include/)
 	LINK_DIRECTORIES(${CUDA_INSTALL_PREFIX}/lib)
 	
-	INCLUDE(select_compute_arch_laptop.cmake)
+	INCLUDE(select_compute_arch.cmake)
 	
 	IF(CUDA_COMMON_ARCH)
 		CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Common)
