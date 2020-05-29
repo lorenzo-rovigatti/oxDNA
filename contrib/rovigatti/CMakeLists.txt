@@ -1,27 +1,23 @@
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(rovigatti
-	DEPENDS PolymerSwapInteraction TSPInteraction MGAssemblyConf PolymerInteraction DensityPressureProfile 
-			PolydisperseLTInteraction ConstructwisePressure MicrogelElasticity MGAnalysis AOInteraction 
-			RadialDensityProfile MGInteraction GenericGrByInsertion YasutakaAnalysis VoidPercolation Remoteness 
-			CPAnalysis Widom LevyDelta LevyInteraction CPMixtureInteraction StarrInteraction 
-			mWInteraction GraftedInteraction FSInteraction TSPAnalysis StarrConf SPBAnalysis 
-			PatchyToMgl Diblock ConstructwiseBonds DiblockComs EmptyVolume FSConf GrByInsertion Gyradius
+	DEPENDS PolymerSwapInteraction TSPInteraction MGAssemblyConf PolymerInteraction 
+			DensityPressureProfile PolydisperseLTInteraction ConstructwisePressure 
+			MicrogelElasticity MGAnalysis AOInteraction RadialDensityProfile MGInteraction 
+			GenericGrByInsertion VoidPercolation Remoteness CPAnalysis Widom LevyDelta 
+			LevyInteraction CPMixtureInteraction StarrInteraction mWInteraction 
+			GraftedInteraction FSInteraction TSPAnalysis StarrConf ConstructwiseBonds 
+			EmptyVolume FSConf Gyradius
 )
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 # Observables
-ADD_LIBRARY(Diblock SHARED EXCLUDE_FROM_ALL src/Observables/DiblockGr.cpp)
 ADD_LIBRARY(ConstructwiseBonds SHARED EXCLUDE_FROM_ALL src/Observables/ConstructwiseBonds.cpp)
-ADD_LIBRARY(DiblockComs SHARED EXCLUDE_FROM_ALL src/Observables/DiblockComs.cpp)
 ADD_LIBRARY(EmptyVolume SHARED EXCLUDE_FROM_ALL src/Observables/EmptyVolume.cpp)
 ADD_LIBRARY(FSConf SHARED EXCLUDE_FROM_ALL src/Observables/FSConf.cpp)
 TARGET_LINK_LIBRARIES(FSConf FSInteraction)
-ADD_LIBRARY(GrByInsertion SHARED EXCLUDE_FROM_ALL src/Observables/GrByInsertion.cpp)
 ADD_LIBRARY(Gyradius SHARED EXCLUDE_FROM_ALL src/Observables/Gyradius.cpp)
-ADD_LIBRARY(PatchyToMgl SHARED EXCLUDE_FROM_ALL src/Observables/PatchyToMgl.cpp)
-ADD_LIBRARY(SPBAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/SPBAnalysis.cpp)
 ADD_LIBRARY(StarrConf SHARED EXCLUDE_FROM_ALL src/Observables/StarrConf.cpp)
 ADD_LIBRARY(TSPAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/TSPAnalysis.cpp)
 ADD_LIBRARY(Widom SHARED EXCLUDE_FROM_ALL src/Observables/Widom.cpp)
@@ -29,7 +25,6 @@ ADD_LIBRARY(LevyDelta SHARED EXCLUDE_FROM_ALL src/Observables/LevyDelta.cpp)
 ADD_LIBRARY(CPAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/CPAnalysis.cpp)
 ADD_LIBRARY(Remoteness SHARED EXCLUDE_FROM_ALL src/Observables/Remoteness.cpp)
 ADD_LIBRARY(VoidPercolation SHARED EXCLUDE_FROM_ALL src/Observables/VoidPercolation.cpp)
-ADD_LIBRARY(YasutakaAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/YasutakaAnalysis.cpp)
 ADD_LIBRARY(GenericGrByInsertion SHARED EXCLUDE_FROM_ALL src/Observables/GenericGrByInsertion.cpp)
 ADD_LIBRARY(RadialDensityProfile SHARED EXCLUDE_FROM_ALL src/Observables/RadialDensityProfile.cpp)
 ADD_LIBRARY(MGAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/MGAnalysis.cpp)
