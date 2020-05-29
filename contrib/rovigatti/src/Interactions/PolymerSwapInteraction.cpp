@@ -91,7 +91,7 @@ void PolymerSwapInteraction::init() {
 	}
 }
 
-void PolymerSwapInteraction::_update_inter_chain_forces(BaseParticle *p, BaseParticle *q, LR_vector p_force, const LR_vector &pq_r) {
+void PolymerSwapInteraction::_update_inter_chain_forces(BaseParticle *p, BaseParticle *q, LR_vector p_force) {
 	if(p->strand_id == q->strand_id) {
 		return;
 	}
@@ -152,9 +152,15 @@ number PolymerSwapInteraction::P_inter_chain() {
 }
 
 void PolymerSwapInteraction::begin_energy_computation() {
+	BaseInteraction<PolymerSwapInteraction>::begin_energy_computation();
+
 	_inter_chain_forces.resize(_N_chains * _N_chains);
 	std::fill(_inter_chain_forces.begin(), _inter_chain_forces.end(), LR_vector(0., 0., 0.));
 	_bonds.clear();
+}
+
+bool PolymerSwapInteraction::has_custom_stress_tensor() const {
+	return true;
 }
 
 number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool update_forces) {
@@ -181,7 +187,9 @@ number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool upda
 		p->force += force;
 		q->force -= force;
 
-		_update_inter_chain_forces(p, q, force, _computed_r);
+		_update_inter_chain_forces(p, q, force);
+		_update_stress_tensor(p->pos, force);
+		_update_stress_tensor(p->pos + _computed_r, -force);
 	}
 
 	return energy;
@@ -224,7 +232,9 @@ number PolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool updat
 		p->force += force;
 		q->force -= force;
 
-		_update_inter_chain_forces(p, q, force, _computed_r);
+		_update_inter_chain_forces(p, q, force);
+		_update_stress_tensor(p->pos, force);
+		_update_stress_tensor(p->pos + _computed_r, -force);
 	}
 
 	return energy;
@@ -259,7 +269,9 @@ number PolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool up
 				p_bond.force = -tmp_force;
 				q_bond.force = +tmp_force;
 
-				_update_inter_chain_forces(p, q, tmp_force, _computed_r);
+				_update_inter_chain_forces(p, q, tmp_force);
+				_update_stress_tensor(p->pos, tmp_force);
+				_update_stress_tensor(p->pos + _computed_r, -tmp_force);
 			}
 
 			if(!no_three_body) {
@@ -295,7 +307,10 @@ number PolymerSwapInteraction::_three_body(BaseParticle *p, PSBond &new_bond, bo
 					p->force += tmp_force;
 					other->force -= tmp_force;
 
-					_update_inter_chain_forces(p, other, tmp_force, new_bond.r);
+					_update_inter_chain_forces(p, other, tmp_force);
+
+					_update_stress_tensor(p->pos, tmp_force);
+					_update_stress_tensor(p->pos + new_bond.r, -tmp_force);
 				}
 
 				if(other_energy != _3b_epsilon) {
@@ -307,7 +322,10 @@ number PolymerSwapInteraction::_three_body(BaseParticle *p, PSBond &new_bond, bo
 					p->force += tmp_force;
 					other->force -= tmp_force;
 
-					_update_inter_chain_forces(p, other, tmp_force, other_bond.r);
+					_update_inter_chain_forces(p, other, tmp_force);
+
+					_update_stress_tensor(p->pos, tmp_force);
+					_update_stress_tensor(p->pos + other_bond.r, -tmp_force);
 				}
 			}
 		}

@@ -4,9 +4,9 @@ ADD_CUSTOM_TARGET(rovigatti
 	DEPENDS PolymerSwapInteraction TSPInteraction MGAssemblyConf PolymerInteraction DensityPressureProfile 
 			PolydisperseLTInteraction ConstructwisePressure MicrogelElasticity MGAnalysis AOInteraction 
 			RadialDensityProfile MGInteraction GenericGrByInsertion YasutakaAnalysis VoidPercolation Remoteness 
-			CPAnalysis Widom LevyDelta LevyInteraction CPMixtureInteraction StarrInteraction NathanInteraction 
-			mWInteraction ManfredoInteraction GraftedInteraction FSInteraction TSPAnalysis StarrConf SPBAnalysis 
-			PatchyToMgl Diblock ConstructwiseBonds DiblockComs EmptyVolume FSConf GrByInsertion Gyradius PatchyToMgl  
+			CPAnalysis Widom LevyDelta LevyInteraction CPMixtureInteraction StarrInteraction 
+			mWInteraction GraftedInteraction FSInteraction TSPAnalysis StarrConf SPBAnalysis 
+			PatchyToMgl Diblock ConstructwiseBonds DiblockComs EmptyVolume FSConf GrByInsertion Gyradius
 )
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -45,9 +45,7 @@ ADD_LIBRARY(TSPInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/TSPInteracti
 ADD_LIBRARY(PolymerInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolymerInteraction.cpp)
 ADD_LIBRARY(FSInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/FSInteraction.cpp)
 ADD_LIBRARY(GraftedInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/GraftedInteraction.cpp src/Interactions/TSPInteraction.cpp)
-ADD_LIBRARY(ManfredoInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/ManfredoInteraction.cpp)
 ADD_LIBRARY(mWInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/mWInteraction.cpp)
-ADD_LIBRARY(NathanInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/NathanInteraction.cpp)
 ADD_LIBRARY(StarrInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/StarrInteraction.cpp)
 ADD_LIBRARY(CPMixtureInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CPMixtureInteraction.cpp)
 ADD_LIBRARY(LevyInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/LevyInteraction.cpp)
@@ -62,11 +60,6 @@ IF(PkgConfig_FOUND)
 	IF(GSL_FOUND)
 		ADD_LIBRARY(NathanNeighs SHARED EXCLUDE_FROM_ALL src/Observables/NathanNeighs.cpp)
 		TARGET_LINK_LIBRARIES(NathanNeighs ${GSL_LIBRARIES})
-	
-		ADD_LIBRARY(NathanStarInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/NathanStarInteraction.cpp)
-		TARGET_LINK_LIBRARIES(NathanStarInteraction ${GSL_LIBRARIES})
-	
-		ADD_DEPENDENCIES(rovigatti NathanNeighs NathanStarInteraction)
 	ENDIF(GSL_FOUND)
 ENDIF(PkgConfig_FOUND)
 
@@ -85,10 +78,4 @@ IF(CUDA)
 	CUDA_ADD_LIBRARY(CUDATSPInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDATSPInteraction.cu src/Interactions/TSPInteraction.cpp)
 	
 	ADD_DEPENDENCIES(rovigatti CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction CUDATSPInteraction)
-	
-	IF(GSL_FOUND)
-		CUDA_ADD_LIBRARY(CUDANathanStarInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDANathanStarInteraction.cu src/Interactions/NathanStarInteraction.cpp)
-		TARGET_LINK_LIBRARIES(CUDANathanStarInteraction ${GSL_LIBRARIES})
-		ADD_DEPENDENCIES(rovigatti CUDANathanStarInteraction)
-	ENDIF(GSL_FOUND)
 ENDIF(CUDA)

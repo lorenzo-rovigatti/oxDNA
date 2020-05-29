@@ -56,7 +56,22 @@ void IBaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *>
 }
 
 void IBaseInteraction::begin_energy_computation() {
+	if(has_custom_stress_tensor()) {
+		reset_stress_tensor();
+	}
+}
 
+void IBaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force) {
+	_stress_tensor[0] += r_p[0] * group_force[0];
+	_stress_tensor[1] += r_p[1] * group_force[1];
+	_stress_tensor[2] += r_p[2] * group_force[2];
+	_stress_tensor[3] += r_p[0] * group_force[1];
+	_stress_tensor[4] += r_p[0] * group_force[2];
+	_stress_tensor[5] += r_p[1] * group_force[2];
+}
+
+void IBaseInteraction::reset_stress_tensor() {
+	std::fill(_stress_tensor.begin(), _stress_tensor.end(), 0.);
 }
 
 number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {

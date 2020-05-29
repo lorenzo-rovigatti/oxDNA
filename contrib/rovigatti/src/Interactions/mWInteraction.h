@@ -74,6 +74,10 @@ public:
 
 	void begin_energy_computation() override;
 
+	virtual bool has_custom_stress_tensor() const {
+		return true;
+	}
+
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
@@ -84,68 +88,6 @@ public:
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 };
-
-number mWInteraction::_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = _computed_r.norm();
-	if(sqr_r > _sqr_rcut) {
-		return (number) 0.f;
-	}
-
-	number energy = (number) 0.f;
-
-	// centre-centre
-	if(sqr_r < _sqr_rcut) {
-		number ir4 = 1. / SQR(sqr_r);
-		number mod_r = sqrt(sqr_r);
-		number mod_r_a = mod_r - _a;
-		number exp_part = exp(1. / mod_r_a);
-		energy = _A * (_B * ir4 - 1.) * exp_part;
-
-		mWBond p_bond(q, _computed_r, mod_r);
-		mWBond q_bond(p, -_computed_r, mod_r);
-
-		if(update_forces) {
-			LR_vector force = _computed_r * ((_A * 4. * exp_part * _B * ir4 / mod_r + energy / SQR(mod_r_a)) / mod_r);
-			p->force -= force;
-			q->force += force;
-		}
-
-		energy += _three_body(p, p_bond, update_forces);
-		energy += _three_body(q, q_bond, update_forces);
-
-		_bonds[p->index].push_back(p_bond);
-		_bonds[q->index].push_back(q_bond);
-	}
-
-	return energy;
-}
-
-number mWInteraction::_three_body(BaseParticle *p, mWBond &new_bond, bool update_forces) {
-	number energy = 0.;
-
-	typename std::vector<mWBond>::iterator it = _bonds[p->index].begin();
-	for(; it != _bonds[p->index].end(); it++) {
-		number irpq = it->mod_r * new_bond.mod_r;
-		number cos_theta = it->r * new_bond.r / irpq;
-		number diff_cos = cos_theta - _cos_theta0;
-		number exp_part = exp(_gamma / (it->mod_r - _a)) * exp(_gamma / (new_bond.mod_r - _a));
-		number l_diff_exp = _lambda * diff_cos * exp_part;
-		number U3 = l_diff_exp * diff_cos;
-		energy += U3;
-
-		if(update_forces) {
-			LR_vector p_it_force = it->r * (U3 * _gamma / SQR(it->mod_r - _a) / it->mod_r + 2. * cos_theta * l_diff_exp / SQR(it->mod_r)) - new_bond.r * (2. * l_diff_exp / irpq);
-			p->force -= p_it_force;
-			it->other->force += p_it_force;
-
-			LR_vector q_it_force = new_bond.r * (U3 * _gamma / SQR(new_bond.mod_r - _a) / new_bond.mod_r + 2. * cos_theta * l_diff_exp / SQR(new_bond.mod_r)) - it->r * (2. * l_diff_exp / irpq);
-			p->force -= q_it_force;
-			new_bond.other->force += q_it_force;
-		}
-	}
-
-	return energy;
-}
 
 extern "C" mWInteraction *make_mWInteraction();
 

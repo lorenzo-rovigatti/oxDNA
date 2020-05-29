@@ -246,6 +246,8 @@ number FSInteraction::_three_body(BaseParticle *p, FSBond &new_bond, bool update
 }
 
 void FSInteraction::begin_energy_computation() {
+	BaseInteraction<FSInteraction>::begin_energy_computation();
+
 	for(int i = _N_in_polymers; i < _N; i++) {
 		_bonds[i].clear();
 	}

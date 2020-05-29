@@ -76,7 +76,7 @@ protected:
 	int _N_chains = -1;
 	number _T = 0.;
 
-	void _update_inter_chain_forces(BaseParticle *p, BaseParticle *q, LR_vector p_force, const LR_vector &pq_r);
+	void _update_inter_chain_forces(BaseParticle *p, BaseParticle *q, LR_vector p_force);
 
 	number _fene(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _WCA(BaseParticle *p, BaseParticle *q, bool update_forces);
@@ -104,6 +104,8 @@ public:
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
 	void begin_energy_computation() override;
+
+	bool has_custom_stress_tensor() const override;
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);

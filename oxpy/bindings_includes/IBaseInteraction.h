@@ -161,6 +161,17 @@ void export_IBaseInteraction(py::module &m) {
 	interaction.def("pair_interaction_nonbonded", &IBaseInteraction::pair_interaction_nonbonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
         Compute the unbonded pair interaction between p and q. See :meth:`pair_interaction` for details on the parameters and on the return value.
 	)pbdoc");
+	interaction.def("has_custom_stress_tensor", &IBaseInteraction::has_custom_stress_tensor, R"pbdoc(
+		Returns whether the interaction computes the stress tensor internally or not.
+
+		Returns
+		-------
+		bool
+			True if the interaction computes the stress tensor internally, False otherwise.
+    )pbdoc");
+	interaction.def("begin_energy_computation", &IBaseInteraction::begin_energy_computation, R"pbdoc(
+		Signals the interaction that an energy (or force) computation is about to begin.
+    )pbdoc");
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_IBASEINTERACTION_H_ */

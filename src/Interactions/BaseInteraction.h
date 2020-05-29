@@ -6,21 +6,24 @@
 #ifndef BASE_INTERACTION_H
 #define BASE_INTERACTION_H
 
-#include <map>
-#include <cfloat>
-#include <fstream>
-#include <set>
-#include <vector>
-
 #include "../defs.h"
 #include "../Particles/BaseParticle.h"
 #include "../Boxes/BaseBox.h"
 #include "../Lists/BaseList.h"
 #include "../Utilities/Utils.h"
 #include "../Utilities/oxDNAException.h"
-#include "./Mesh.h"
+#include "Mesh.h"
 
 #include "../Lists/Cells.h"
+
+#include <map>
+#include <cfloat>
+#include <fstream>
+#include <set>
+#include <vector>
+#include <array>
+
+using StressTensor = std::array<number, 6>;
 
 /**
  * @brief Abstract class defining the interaction interface.
@@ -48,6 +51,10 @@ protected:
 	char _topology_filename[256];
 
 	LR_vector _computed_r;
+
+	StressTensor _stress_tensor;
+
+	virtual void _update_stress_tensor(LR_vector r_p, LR_vector group_force);
 
 public:
 	IBaseInteraction();
@@ -85,6 +92,7 @@ public:
 	 * @brief Check whether the initial configuration makes sense.
 	 *
 	 * Since this operation is interaction-dependent, each interaction must provide its own implementation.
+	 *
 	 * @param particles
 	 * @param N
 	 */
@@ -93,11 +101,28 @@ public:
 	/**
 	 * @brief Signals the interaction that an energy (or force) computation is about to begin.
 	 *
-	 * By default this method does nothing, but interactions inheriting from this interface may need to initialise
-	 * or reset data structures before computing the energy or the force acting on all particles.
+	 * By default this method resets the stress tensor data structures and nothing else, but interactions inheriting from this interface may
+	 * need to initialise or reset other data structures before computing the energy or the force acting on all particles.
 	 *
 	 */
 	virtual void begin_energy_computation();
+
+	/**
+	 * @brief Returns true if the interaction computes the stress tensor internally, false otherwise.
+	 *
+	 * This method will return false if not overridden.
+	 *
+	 * @return
+	 */
+	virtual bool has_custom_stress_tensor() const {
+		return false;
+	}
+
+	void reset_stress_tensor();
+
+	StressTensor stress_tensor() const {
+		return _stress_tensor;
+	}
 
 	/**
 	 * @brief Computes the total interaction between particles p and q.
