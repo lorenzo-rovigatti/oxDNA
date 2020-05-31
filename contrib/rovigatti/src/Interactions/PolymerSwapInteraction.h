@@ -12,7 +12,7 @@ struct PSBond {
 	LR_vector force;
 	LR_vector r;
 
-	PSBond(BaseParticle *o, number e, LR_vector &nr) :
+	PSBond(BaseParticle *o, number e, LR_vector nr) :
 		other(o),
 		energy(e),
 		r(nr) {
@@ -49,6 +49,8 @@ protected:
 	std::array<number, 3> _WCA_sigma = { {1.0, 1.0, 1.0} };
 	std::array<number, 3> _PS_sqr_rep_rcut;
 
+	std::vector<LR_vector> _chain_coms;
+
 	number _PS_alpha = 0.;
 	number _PS_beta = 0.;
 	number _PS_gamma = 0.;
@@ -65,8 +67,6 @@ protected:
 	number _3b_A_part = 0.;
 	number _3b_B_part = 0.;
 
-	std::vector<LR_vector> _inter_chain_forces;
-
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
 	std::string _bond_filename;
@@ -76,7 +76,9 @@ protected:
 	int _N_chains = -1;
 	number _T = 0.;
 
-	void _update_inter_chain_forces(BaseParticle *p, BaseParticle *q, LR_vector p_force);
+	StressTensor _inter_chain_stress_tensor;
+
+	void _update_inter_chain_stress_tensor(int chain, int ref_chain, LR_vector group_force);
 
 	number _fene(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _WCA(BaseParticle *p, BaseParticle *q, bool update_forces);
