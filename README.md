@@ -22,7 +22,9 @@ Python bindings require `Python 3`'s binaries, libraries and include files. On D
 
 ### Documentation
 
-Generating the documentation of the C++ code (with `make docs`, see below) requires [doxygen](http://www.doxygen.nl/). 
+Generating the documentation of the C++ code (with `make docs`, see below) requires [doxygen](http://www.doxygen.nl/).
+
+Doc files for the Python bindings can be browsed by opening the `docs/oxpy/html/index.html` file with a web browser.
 
 ## Compiling oxDNA
 
@@ -50,7 +52,7 @@ Compiling with Python bindings will also generate a `oxpy.so` library file in th
 * `-DMPI=ON` Compiles oxDNA with MPI support
 * `-DSIGNAL=OFF` Handling system signals is not always supported. Set this flag to OFF to remove this feature
 * `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
-* `-DPYTHON=ON` Enables Python bindings
+* `-DPython=ON` Enables Python bindings
 * `-DDOUBLE=OFF` Set the numerical precision of the CPU backends to `float`
 * `-DCUDA_DOUBLE=ON` Set the numerical precision of the CUDA backends to `double`, which is not compatible with the `mixed` precision.
 
