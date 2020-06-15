@@ -65,6 +65,8 @@ public:
 
 	static void init(std::vector<BaseParticle *> *ps, std::vector<std::shared_ptr<Molecule>> *mols);
 
+	static void clear();
+
 	std::vector<BaseParticle *> &particles() {
 		return *particles_pointer;
 	}

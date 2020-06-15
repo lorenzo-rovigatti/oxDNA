@@ -37,3 +37,8 @@ void ConfigInfo::init(std::vector<BaseParticle *> *ps, std::vector<std::shared_p
 
 	_config_info = std::shared_ptr<ConfigInfo>(new ConfigInfo(ps, mols));
 }
+
+void ConfigInfo::clear() {
+	_config_info.reset();
+	_config_info = nullptr;
+}

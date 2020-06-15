@@ -72,7 +72,7 @@ long long int Timer::get_time() {
 /***************** END OF TIMER CLASS *********************/
 
 // singleton
-TimingManager *TimingManager::_timingManager = NULL;
+TimingManager *TimingManager::_timingManager = nullptr;
 
 // time manager class
 TimingManager::TimingManager() {
@@ -84,20 +84,21 @@ TimingManager::~TimingManager() {
 }
 
 void TimingManager::init() {
-	if(_timingManager != NULL) {
+	if(_timingManager != nullptr) {
 		throw oxDNAException("initializing an already initialized TimingManager");
 	}
 	_timingManager = new TimingManager();
 }
 
 void TimingManager::clear() {
-	if(_timingManager != NULL) {
+	if(_timingManager != nullptr) {
 		delete _timingManager;
 	}
+	_timingManager = nullptr;
 }
 
 TimingManager *TimingManager::instance() {
-	if(_timingManager == NULL) {
+	if(_timingManager == nullptr) {
 		throw oxDNAException("accessing uninitialized TimingManager");
 	}
 	return _timingManager;
@@ -117,7 +118,7 @@ TimerPtr TimingManager::new_timer(std::string desc) {
 	TimerPtr timer = std::make_shared<Timer>(desc);
 
 	_timers.push_back(timer);
-	_parents[timer] = (TimerPtr) NULL;
+	_parents[timer] = (TimerPtr) nullptr;
 	_desc_map[desc] = timer;
 
 	OX_DEBUG("Adding new timer with description %s and no parent", desc.c_str());
@@ -154,7 +155,7 @@ void TimingManager::add_timer(TimerPtr arg, std::string parent_desc) {
 	else {
 		OX_LOG(Logger::LOG_WARNING, "Trying to add timer \"%s\" with an unknown parent \"%s\". Setting parent to \"None\"", arg->get_desc().c_str(), parent_desc.c_str());
 		my_parent_desc = std::string("None");
-		my_parent_ptr = NULL;
+		my_parent_ptr = nullptr;
 	}
 
 	_timers.push_back(arg);
@@ -176,7 +177,7 @@ void TimingManager::print(long long int total_steps) {
 	for(unsigned int i = 0; i < _timers.size(); i++) {
 		TimerPtr t = _timers[i];
 		TimerPtr p = _parents[t];
-		while(p != NULL) {
+		while(p != nullptr) {
 			sum_of_children[p] += totaltimes[t];
 			p = _parents[p];
 		}
@@ -196,7 +197,7 @@ void TimingManager::print(long long int total_steps) {
 			TimerPtr t = _timers[i];
 			TimerPtr p = _parents[t];
 
-			if(p == NULL) {
+			if(p == nullptr) {
 				mylist.push_back(t->get_desc());
 			}
 			else {
@@ -225,7 +226,7 @@ void TimingManager::print(long long int total_steps) {
 		TimerPtr t = get_timer_by_desc(mylist[i]);
 		TimerPtr p = _parents[t];
 		int generations = 0;
-		while(p != NULL) {
+		while(p != nullptr) {
 			generations++;
 			p = _parents[p];
 		}

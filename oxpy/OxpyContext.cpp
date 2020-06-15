@@ -10,6 +10,7 @@
 #include <Utilities/Logger.h>
 #include <Utilities/SignalManager.h>
 #include <Utilities/Timings.h>
+#include <Utilities/ConfigInfo.h>
 
 OxpyContext::OxpyContext() {
 
@@ -20,13 +21,19 @@ OxpyContext::~OxpyContext() {
 }
 
 void OxpyContext::enter() {
-	Logger::init();
+	try {
+		Logger::init();
+	}
+	catch (oxDNAException &e) {
+		// the Logger object may be initialised only once
+	}
 	SignalManager::manage_segfault();
 	TimingManager::init();
 }
 
 void OxpyContext::exit(py::object exc_type, py::object exc_value, py::object traceback) {
 	TimingManager::clear();
+	ConfigInfo::clear();
 }
 
 void export_OxpyContext(py::module &m) {
