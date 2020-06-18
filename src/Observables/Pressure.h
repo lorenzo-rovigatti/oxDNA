@@ -27,7 +27,7 @@ protected:
 	bool _with_stress_tensor;
 	bool _PV_only;
 	double _P;
-	LR_matrix _stress_tensor;
+	StressTensor _stress_tensor;
 	number _shear_rate;
 
 public:

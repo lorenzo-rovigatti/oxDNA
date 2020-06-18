@@ -44,7 +44,7 @@ void Pressure::update_pressure() {
 	_config_info->interaction->begin_energy_computation();
 
 	double virial = 0;
-	_stress_tensor = LR_matrix();
+	_stress_tensor = { 0., 0., 0., 0., 0., 0. };
 	double energy = 0.;
 	// we loop over all the pairs in order to update the forces
 	for(auto &pair : pairs) {
@@ -65,15 +65,12 @@ void Pressure::update_pressure() {
 		_config_info->interaction->set_computed_r(r);
 		energy += (double) _config_info->interaction->pair_interaction(p, q, false, true);
 
-		_stress_tensor.v1.x -= r.x * p->force.x;
-		_stress_tensor.v1.y -= r.x * p->force.y;
-		_stress_tensor.v1.z -= r.x * p->force.z;
-		_stress_tensor.v2.x -= r.y * p->force.x;
-		_stress_tensor.v2.y -= r.y * p->force.y;
-		_stress_tensor.v2.z -= r.y * p->force.z;
-		_stress_tensor.v3.x -= r.z * p->force.x;
-		_stress_tensor.v3.y -= r.z * p->force.y;
-		_stress_tensor.v3.z -= r.z * p->force.z;
+		_stress_tensor[0] -= r.x * p->force.x;
+		_stress_tensor[1] -= r.y * p->force.y;
+		_stress_tensor[2] -= r.z * p->force.z;
+		_stress_tensor[3] -= r.x * p->force.y;
+		_stress_tensor[4] -= r.x * p->force.z;
+		_stress_tensor[5] -= r.y * p->force.z;
 
 		virial -= (r * p->force);
 
@@ -83,6 +80,7 @@ void Pressure::update_pressure() {
 		q->torque = old_q_torque;
 	}
 
+	/*
 	for(auto p : _config_info->particles()) {
 		LR_vector vel = p->vel;
 		if(_shear_rate > 0.) {
@@ -101,10 +99,13 @@ void Pressure::update_pressure() {
 		_stress_tensor.v3.y += vel.z * vel.y;
 		_stress_tensor.v3.z += SQR(vel.z);
 	}
+	*/
 
 	double V = (_PV_only) ? 1 : _config_info->box->V();
 	_P = _T * (N / V) + virial / (3. * V);
-	_stress_tensor /= 3. * V;
+	for(auto &v : _stress_tensor) {
+		v /= 3. * V;
+	}
 }
 
 void Pressure::update_pressure_with_custom_stress_tensor() {
@@ -124,9 +125,12 @@ void Pressure::update_pressure_with_custom_stress_tensor() {
 		_config_info->interaction->pair_interaction(p, q, true, true);
 	}
 
-	StressTensor st = _config_info->interaction->stress_tensor();
 	double V = (_PV_only) ? 1 : _config_info->box->V();
-	_P = _T * (N / V) + (st[0] + st[1] + st[2]) / (3. * V);
+	_stress_tensor = _config_info->interaction->stress_tensor();
+	for(auto &v : _stress_tensor) {
+		v /= 3. * V;
+	}
+	_P = _T * (N / V) + (_stress_tensor[0] + _stress_tensor[1] + _stress_tensor[2]);
 }
 
 std::string Pressure::get_output_string(llint curr_step) {
@@ -140,7 +144,7 @@ std::string Pressure::get_output_string(llint curr_step) {
 	std::string to_ret;
 
 	if(_with_stress_tensor) {
-		to_ret += Utils::sformat("% .8e % .8e % .8e % .8e % .8e % .8e % .8e % .8e % .8e % .8e", _P, _stress_tensor.v1.x, _stress_tensor.v1.y, _stress_tensor.v1.z, _stress_tensor.v2.x, _stress_tensor.v2.y, _stress_tensor.v2.z, _stress_tensor.v3.x, _stress_tensor.v3.y, _stress_tensor.v3.z);
+		to_ret += Utils::sformat("% .8e % .8e % .8e % .8e % .8e % .8e % .8e", _P, _stress_tensor[0], _stress_tensor[1], _stress_tensor[2], _stress_tensor[3], _stress_tensor[4], _stress_tensor[5]);
 	}
 	else {
 		to_ret += Utils::sformat("% .8e", _P);

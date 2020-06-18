@@ -16,7 +16,7 @@
 #include "../../Backends/MDBackend.h"
 
 #include "../CUDAUtils.h"
-#include "../Thermostats/CUDABaseThermostat.h"
+#include "../Thermostats/CUDABrownianThermostat.h"
 #include "../cuda_utils/cuda_device_utils.h"
 #include "../Lists/CUDANoList.h"
 #include "../Lists/CUDASimpleVerletList.h"
@@ -53,10 +53,11 @@ protected:
 	ObservableOutput *_obs_output_error_conf;
 	std::string _error_conf_file;
 
-	CUDABaseThermostat*_cuda_thermostat;
+	std::shared_ptr<CUDABaseThermostat> _cuda_thermostat;
 
-	//constant_rate_force *_h_ext_forces, *_d_ext_forces;
-	//mutual_trap *_h_ext_forces, *_d_ext_forces;
+	bool _cuda_barostat_always_refresh = false;
+	std::shared_ptr<CUDABrownianThermostat> _cuda_barostat_thermostat;
+
 	CUDA_trap *_h_ext_forces, *_d_ext_forces;
 	int _max_ext_forces;
 

@@ -79,7 +79,7 @@ void PolymerSwapInteraction::init() {
 	}
 	_sqr_rcut = SQR(_rcut);
 
-	OX_LOG(Logger::LOG_INFO, "PolymerSwap: total rcut: %lf (%lf)", _rcut, _sqr_rcut);
+	OX_LOG(Logger::LOG_INFO, "PolymerSwap: A_part: %lf, B_part: %lf, 3b_eps: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _3b_epsilon, _rcut, _sqr_rcut);
 
 	if(_PS_alpha != 0) {
 		if(_PS_alpha < 0.) {
@@ -361,7 +361,7 @@ number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BasePart
 }
 
 number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(p->is_bonded(q) and (p->type + q->type) != 2) {
+	if(p->is_bonded(q)) {
 		return (number) 0.f;
 	}
 
@@ -413,12 +413,6 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 	topology.close();
 
 	OX_LOG(Logger::LOG_INFO, "PolymerSwap: %d sticky particles found in the topology", sticky_particles.size());
-
-	// if there are more than 2 sticky particles, 3 body interactions are possible. We need to have a fake bonded interaction
-	// between the first two sticky sites to reset some data structures
-	if(sticky_particles.size() > 2) {
-		particles[sticky_particles[0]]->affected.push_back(ParticlePair(particles[sticky_particles[0]], particles[sticky_particles[1]]));
-	}
 
 	std::ifstream bond_file(_bond_filename.c_str());
 

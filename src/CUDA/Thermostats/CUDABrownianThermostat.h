@@ -10,7 +10,6 @@
 
 #include "CUDABaseThermostat.h"
 #include "../../Backends/Thermostats/BrownianThermostat.h"
-#include "../cuda_utils/CUDA_lr_common.cuh"
 
 /**
  * @brief CUDA implementation of a {@link BrownianThermostat brownian thermostat}.

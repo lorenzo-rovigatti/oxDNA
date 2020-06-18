@@ -33,7 +33,7 @@ public:
 	 * from BaseThermostat
 	 */
 	
-	static CUDABaseThermostat*make_thermostat(input_file &inp, BaseBox * box);
+	static std::shared_ptr<CUDABaseThermostat> make_thermostat(input_file &inp, BaseBox * box);
 };
 
 #endif /* CUDATHERMOSTATFACTORY_H_ */

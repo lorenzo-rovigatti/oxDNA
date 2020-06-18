@@ -43,7 +43,7 @@ void BrownianThermostat::get_settings (input_file &inp) {
 void BrownianThermostat::init() {
     BaseThermostat::init();
 	if(_pt == (number) 0.) _pt = (2 * this->_T *  _newtonian_steps * _dt)/(this->_T * _newtonian_steps * _dt + 2 * _diff_coeff);
-	if(_pt >= (number) 1.) throw oxDNAException ("pt (%f) must be smaller than 1", _pt);
+	if(_pt > (number) 1.) throw oxDNAException ("pt (%f) must be smaller than 1", _pt);
 
 	// initialize pr (considering Dr = 3Dt)
 	_diff_coeff = this->_T * _newtonian_steps * _dt * (1./_pt - 1./2.);

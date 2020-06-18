@@ -48,8 +48,6 @@ MD_CUDABackend::MD_CUDABackend() :
 	_h_vels = _h_Ls = _h_forces = _h_torques = _d_buff_Ls = NULL;
 	_h_gpu_index = _h_cpu_index = NULL;
 
-	_cuda_thermostat = NULL;
-
 	_h_ext_forces = NULL;
 	_d_ext_forces = NULL;
 
@@ -98,11 +96,9 @@ MD_CUDABackend::~MD_CUDABackend() {
 		delete[] _h_torques;
 	}
 
-	if(_cuda_thermostat != NULL)
-		delete _cuda_thermostat;
-
-	if(_obs_output_error_conf != NULL)
+	if(_obs_output_error_conf != NULL) {
 		delete _obs_output_error_conf;
+	}
 }
 
 void MD_CUDABackend::_host_to_gpu() {
@@ -341,6 +337,11 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 		_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
 	}
 	_barostat_acceptance = _barostat_accepted / (c_number) _barostat_attempts;
+
+	if(_cuda_barostat_always_refresh) {
+		// if the user wishes so, we refresh all the velocities after each barostat attempt
+		_cuda_barostat_thermostat->apply_cuda(_d_poss, _d_orientations, _d_vels, _d_Ls, curr_step);
+	}
 }
 
 void MD_CUDABackend::_forces_second_step() {
@@ -451,11 +452,18 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 
 	getInputBool(&inp, "restart_step_counter", &_restart_step_counter, 1);
 	getInputBool(&inp, "CUDA_avoid_cpu_calculations", &_avoid_cpu_calculations, 0);
-
+	getInputBool(&inp, "CUDA_barostat_always_refresh", &_cuda_barostat_always_refresh, 0);
 	getInputBool(&inp, "CUDA_print_energy", &_print_energy, 0);
 
 	_cuda_thermostat = CUDAThermostatFactory::make_thermostat(inp, _box.get());
 	_cuda_thermostat->get_settings(inp);
+
+	if(_use_barostat) {
+		std::string input_string = Utils::sformat("newtonian_steps = 1\npt = 1.0\ndt = %lf\nT = %lf", this->_dt, this->_T);
+		input_file *inp_file = Utils::get_input_file_from_string(input_string);
+		_cuda_barostat_thermostat = std::make_shared<CUDABrownianThermostat>();
+		_cuda_barostat_thermostat->get_settings(*inp_file);
+	}
 
 	std::string init_string = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", _error_conf_file.c_str());
 	_obs_output_error_conf = new ObservableOutput(init_string);
@@ -687,6 +695,11 @@ void MD_CUDABackend::init() {
 
 	_cuda_thermostat->set_seed(lrand48());
 	_cuda_thermostat->init();
+
+	if(_use_barostat) {
+		_cuda_barostat_thermostat->set_seed(lrand48());
+		_cuda_barostat_thermostat->init();
+	}
 
 	OX_LOG(Logger::LOG_INFO, "Allocated CUDA memory: %.2lf MBs", GpuUtils::get_allocated_mem_mb());
 
