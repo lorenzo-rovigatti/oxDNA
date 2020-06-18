@@ -15,6 +15,7 @@
 #include "Utilities/SignalManager.h"
 #include "Utilities/oxDNAException.h"
 #include "Utilities/Timings.h"
+#include "Utilities/parse_input/parse_input.h"
 
 using namespace std;
 
@@ -29,10 +30,17 @@ int main(int argc, char *argv[]) {
 		SignalManager::manage_segfault();
 		TimingManager::init();
 
-		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
-		if(!strcmp(argv[1], "-v")) print_version();
+		if(argc < 2) {
+			throw oxDNAException("Usage is '%s input_file'", argv[0]);
+		}
+		if(!strcmp(argv[1], "-v")) {
+			print_version();
+		}
 
-		AnalysisManager myanalysis(argc, argv);
+		input_file input;
+		loadInputFileFromCommandLineArguments(&input, argc, argv);
+
+		AnalysisManager myanalysis(input);
 		myanalysis.load_options();
 
 		OX_DEBUG("Initializing");

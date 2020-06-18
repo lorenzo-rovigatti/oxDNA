@@ -8,16 +8,13 @@
 #include "OxpyManager.h"
 
 /**
- * Converts the argument to a vector of char * to be consumed by the SimManager constructor. The first element
- * of the new vector is initialised to "oxpy" because SimManager expectes an argv-like vector, with the first element
- * containing the name of the program.
- *
- * We need this because pybind11 does not support binding methods that take double pointers.
+ * First converts the argument to an array of char * and then builds the input_file with it. The first element of the new array is
+ * initialised to "oxpy" because SimManager expectes an argv-like vector, with the first element containing the name of the program.
  *
  * @param to_convert
  * @return
  */
-char **_convert_to_SimManager_argv(std::vector<std::string> to_convert) {
+input_file *input_file_from_args(std::vector<std::string> to_convert) {
 	static char exe_name[10];
 	sprintf(exe_name, "oxpy");
 	std::vector<char *> argv;
@@ -27,11 +24,14 @@ char **_convert_to_SimManager_argv(std::vector<std::string> to_convert) {
 		argv.push_back(const_cast<char *>(str.c_str()));
 	}
 
-	return argv.data();
+	input_file *input = new input_file();
+	loadInputFileFromCommandLineArguments(input, argv.size(), argv.data());
+
+	return input;
 }
 
 OxpyManager::OxpyManager(std::vector<std::string> args) :
-				SimManager(args.size() + 1, _convert_to_SimManager_argv(args)) {
+				SimManager(*input_file_from_args(args)) {
 
 }
 

@@ -12,7 +12,7 @@
 #include "../Utilities/oxDNAException.h"
 #include "../Utilities/Timings.h"
 
-void gbl_terminate (int arg) {
+void gbl_terminate(int arg) {
 	// if the simulation has not started yet, then we make it so pressing ctrl+c twice
 	// kills the program no matter what.
 	if(!SimManager::started) signal(arg, SIG_DFL);
@@ -23,7 +23,9 @@ void gbl_terminate (int arg) {
 bool SimManager::stop = false;
 bool SimManager::started = false;
 
-SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000) {
+SimManager::SimManager(input_file &input) :
+				_input(input),
+				_print_energy_every(1000) {
 	_start_step = _cur_step = _steps = _equilibration_steps = 0;
 	_time_scale_manager.state = 0;
 	_print_input = 0;
@@ -33,12 +35,6 @@ SimManager::SimManager(int argc, char *argv[]) : _print_energy_every(1000) {
 	_fix_diffusion_every = 100000;
 	_max_steps = -1;
 	_time_scale = -1;
-
-	loadInputFile(&_input, argv[1]);
-	if(_input.state == ERROR) throw oxDNAException("Caught an error while opening the input file");
-	argc -= 2;
-	if(argc > 0) addCommandLineArguments(&_input, argc, argv+2);
-
 }
 
 SimManager::~SimManager() {
@@ -68,20 +64,20 @@ void SimManager::load_options() {
 	getInputInt(&_input, "print_energy_every", &_print_energy_every, 0);
 	getInputLLInt(&_input, "steps", &_steps, 1);
 	getInputLLInt(&_input, "equilibration_steps", &_equilibration_steps, 0);
-	
+
 	// check that equilibration is only run on a simulation 
 	bool my_restart_step_counter = false;
 	getInputBool(&_input, "restart_step_counter", &my_restart_step_counter, 0);
-	if (my_restart_step_counter == false && _equilibration_steps > 0) {
+	if(my_restart_step_counter == false && _equilibration_steps > 0) {
 		throw oxDNAException("Incompatible key values found:\n\tif equilibration_steps > 0, restart_step_counter must be set to true.\n\tAborting");
 	}
 
-	if (_equilibration_steps < 0) throw oxDNAException ("Equilibration steps can not be < 0. Aborting");
-	if (getInputInt(&_input, "seed", &_seed, 0) == KEY_NOT_FOUND) {
+	if(_equilibration_steps < 0) throw oxDNAException("Equilibration steps can not be < 0. Aborting");
+	if(getInputInt(&_input, "seed", &_seed, 0) == KEY_NOT_FOUND) {
 		_seed = time(NULL);
 		int rand_seed = 0;
 		FILE *f = fopen("/dev/urandom", "rb");
-		if (f == NULL) {
+		if(f == NULL) {
 			OX_LOG(Logger::LOG_INFO, "Can't open /dev/urandom, using system time as a random seed");
 		}
 		else {
@@ -177,7 +173,7 @@ void SimManager::run() {
 	}
 	// this is in case _cur_step, after being increased by 1 before exiting the loop,
 	// has become a multiple of print_conf_every
-	if (_cur_step > 1 && _cur_step % _fix_diffusion_every == 0) {
+	if(_cur_step > 1 && _cur_step % _fix_diffusion_every == 0) {
 		_backend->fix_diffusion();
 	}
 

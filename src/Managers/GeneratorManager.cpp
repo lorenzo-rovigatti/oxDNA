@@ -11,14 +11,15 @@
 #include "../PluginManagement/PluginManager.h"
 #include "../Boxes/BoxFactory.h"
 
-GeneratorManager::GeneratorManager(int argc, char *argv[]) {
+GeneratorManager::GeneratorManager(input_file &input, char *third_argument) :
+				_input(input) {
 	_use_density = false;
 	_density = -1.;
 	_box_side = -1.;
 	_box_side_x = _box_side_y = _box_side_z = -1.;
 
 	// first we look for an x in argv[2]
-	std::string tmpstr = argv[2];
+	std::string tmpstr(third_argument);
 	size_t found_x = tmpstr.find('x');
 	if(found_x != std::string::npos) {
 		std::vector<std::string> sides_str = Utils::split(tmpstr, 'x');
@@ -34,8 +35,10 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 		_use_density = false;
 	}
 	else {
-		double argv2 = atof(argv[2]);
-		if(argv2 <= 0.) throw oxDNAException("Refusing to run with box_side/density = %g (converted from \"%s\")", argv2, argv[2]);
+		double argv2 = atof(tmpstr.c_str());
+		if(argv2 <= 0.) {
+			throw oxDNAException("Refusing to run with box_side/density = %g (converted from \"%s\")", argv2, tmpstr.c_str());
+		}
 		if(argv2 < 2.) {
 			_use_density = true;
 			_density = argv2;
@@ -49,11 +52,6 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 		}
 	}
 
-	loadInputFile(&_input, argv[1]);
-	if(_input.state == ERROR) throw oxDNAException("Caught an error while opening the input file");
-	argc -= 3;
-	if(argc > 0) addCommandLineArguments(&_input, argc, argv + 3);
-
 	_N = 0;
 	_interaction = NULL;
 
@@ -65,7 +63,7 @@ GeneratorManager::GeneratorManager(int argc, char *argv[]) {
 
 GeneratorManager::~GeneratorManager() {
 	cleanInputFile(&_input);
-	for(auto particle: _particles) {
+	for(auto particle : _particles) {
 		delete particle;
 	}
 }

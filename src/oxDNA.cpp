@@ -36,10 +36,17 @@ int main(int argc, char *argv[]) {
 		SignalManager::manage_segfault();
 		TimingManager::init();
 
-		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
-		if(!strcmp(argv[1], "-v")) print_version();
+		if(argc < 2) {
+			throw oxDNAException("Usage is '%s input_file'", argv[0]);
+		}
+		if(!strcmp(argv[1], "-v")) {
+			print_version();
+		}
 
-		SimManager mysim(argc, argv);
+		input_file input;
+		loadInputFileFromCommandLineArguments(&input, argc, argv);
+
+		SimManager mysim(input);
 		mysim.load_options();
 
 		OX_DEBUG("Initializing");

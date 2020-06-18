@@ -155,8 +155,6 @@ protected:
 	/// object that stores pointers to a few important variables that need to be shared with other objects
 	std::shared_ptr<ConfigInfo> _config_info;
 
-	void _get_number_settings(input_file &inp);
-
 	int _N_updates;
 	int _confs_to_skip;
 

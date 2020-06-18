@@ -23,10 +23,17 @@ int main(int argc, char *argv[]) {
 	try {
 		Logger::init();
 		SignalManager::manage_segfault();
-		if(argc < 3) throw oxDNAException("Usage is '%s input_file [box_size|density]'\nthe third argument will be interpreted as a density if it is less than 2.0", argv[0]);
-		else if(argc > 1 && !strcmp(argv[1], "-v")) print_version();
+		if(argc < 3) {
+			throw oxDNAException("Usage is '%s input_file [box_size|density]'\nthe third argument will be interpreted as a density if it is less than 2.0", argv[0]);
+		}
+		else if(argc > 1 && !strcmp(argv[1], "-v")) {
+			print_version();
+		}
 
-		GeneratorManager mygenerator(argc, argv);
+		input_file input;
+		loadInputFileFromCommandLineArguments(&input, argc, argv);
+
+		GeneratorManager mygenerator(input, argv[2]);
 		OX_DEBUG("Loading options");
 		mygenerator.load_options();
 

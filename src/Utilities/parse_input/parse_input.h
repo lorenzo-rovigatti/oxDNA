@@ -47,9 +47,23 @@ struct input_file {
 };
 
 /**
+ * @brief Load keys and values from command line's argc and argv variables
+ *
+ * This function will build an input file out of argv. The first non-zero element should be
+ * the name of the input file, while the rest of the elements will be interpreted as key=value pairs.
+ *
+ * @param inp
+ * @param argc
+ * @param argv
+ */
+void loadInputFileFromCommandLineArguments(input_file *inp, int argc, char *argv[]);
+
+/**
  * @brief Load the keys and values found in the filename into the given input_file
+ *
  * This function is a simple wrapper around loadInput so that it is possible to accept a
  * filename instead of a file descriptor as input.
+ *
  * @param inp
  * @param filename
  */

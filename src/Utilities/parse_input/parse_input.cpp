@@ -21,6 +21,15 @@ input_file::input_file() {
 	false_values.insert("no");
 	false_values.insert("nope");
 	false_values.insert("are you crazy?");
+
+	state = UNPARSED;
+}
+
+void loadInputFileFromCommandLineArguments(input_file *inp, int argc, char *argv[]) {
+	loadInputFile(inp, argv[1]);
+	if(inp->state == ERROR) throw oxDNAException("Caught an error while opening the input file");
+	argc -= 2;
+	if(argc > 0) addCommandLineArguments(inp, argc, argv+2);
 }
 
 void printInput(input_file *inp, char *filename) {
@@ -48,8 +57,62 @@ void loadInputFile(input_file *inp, const char *filename) {
 
 void addCommandLineArguments(input_file *inp, int argc, char *argv[]) {
 	string s_inp("");
-	for(int i = 0; i < argc; i++) s_inp += string(argv[i]) + string("\n");
+	for(int i = 0; i < argc; i++) {
+		s_inp += string(argv[i]) + string("\n");
+	}
 	addInput(inp, s_inp);
+}
+
+void loadInput(input_file *inp, FILE *inp_file) {
+	inp->state = UNPARSED;
+	addInput(inp, inp_file);
+	inp->state = PARSED;
+}
+
+void addInput(input_file *inp, std::string s_inp) {
+	vector<string> tot_lines = Utils::split(s_inp, '\n');
+	vector<string> lines;
+
+	for(vector<string>::iterator it = tot_lines.begin(); it != tot_lines.end(); it++) {
+		// remove in-line comments
+		size_t comment_start = it->find('#');
+		if(comment_start != string::npos) it->erase (comment_start, it->size() - comment_start);
+
+		// split the string using ; as a delimiter
+		std::vector<string> to_add = Utils::split(*it, ';');
+
+		lines.insert(lines.end(), to_add.begin(), to_add.end());
+	}
+
+	std::vector<string>::iterator l_end = lines.end();
+	for(std::vector<string>::iterator it = lines.begin(); it != lines.end(); it++) {
+		string key, value;
+		int res = _readLine(it, l_end, key, value);
+
+		if(res == KEY_READ){
+			input_value new_value(value);
+
+			input_map::iterator old_val = inp->keys.find(key);
+			if(old_val != inp->keys.end()) OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
+			inp->keys[key] = value;
+		}
+	}
+}
+
+void addInput(input_file *inp, FILE *inp_file) {
+	size_t alloc_size;
+	char *c_option = NULL;
+	string file_contents("");
+
+	int count = 0;
+	while(count != -1) {
+		count = getline(&c_option, &alloc_size, inp_file);
+		if(count != -1) file_contents += string(c_option);
+		free(c_option);
+		c_option = NULL;
+	}
+
+	addInput(inp, file_contents);
 }
 
 int _readLine(std::vector<string>::iterator &it, std::vector<string>::iterator &end, string &key, string &value) {
@@ -117,58 +180,6 @@ int _readLine(std::vector<string>::iterator &it, std::vector<string>::iterator &
 	else return NOTHING_READ;
 
 	return KEY_READ;
-}
-
-void loadInput(input_file *inp, FILE *inp_file) {
-	inp->state = UNPARSED;
-	addInput(inp, inp_file);
-	inp->state = PARSED;
-}
-
-void addInput(input_file *inp, std::string s_inp) {
-	vector<string> tot_lines = Utils::split(s_inp, '\n');
-	vector<string> lines;
-
-	for(vector<string>::iterator it = tot_lines.begin(); it != tot_lines.end(); it++) {
-		// remove in-line comments
-		size_t comment_start = it->find('#');
-		if(comment_start != string::npos) it->erase (comment_start, it->size() - comment_start);
-
-		// split the string using ; as a delimiter
-		std::vector<string> to_add = Utils::split(*it, ';');
-
-		lines.insert(lines.end(), to_add.begin(), to_add.end());
-	}
-
-	std::vector<string>::iterator l_end = lines.end();
-	for(std::vector<string>::iterator it = lines.begin(); it != lines.end(); it++) {
-		string key, value;
-		int res = _readLine(it, l_end, key, value);
-
-		if(res == KEY_READ){
-			input_value new_value(value);
-
-			input_map::iterator old_val = inp->keys.find(key);
-			if(old_val != inp->keys.end()) OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
-			inp->keys[key] = value;
-		}
-	}
-}
-
-void addInput(input_file *inp, FILE *inp_file) {
-	size_t alloc_size;
-	char *c_option = NULL;
-	string file_contents("");
-
-	int count = 0;
-	while(count != -1) {
-		count = getline(&c_option, &alloc_size, inp_file);
-		if(count != -1) file_contents += string(c_option);
-		free(c_option);
-		c_option = NULL;
-	}
-
-	addInput(inp, file_contents);
 }
 
 input_map::iterator getInputValue(input_file *inp, const char *skey, int mandatory)  {

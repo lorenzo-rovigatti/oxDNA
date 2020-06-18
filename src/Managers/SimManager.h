@@ -39,7 +39,7 @@ print_conf_ppc = <int> (mandatory only if time_scale == log_line. This is the nu
 class SimManager {
 protected:
 	std::shared_ptr<SimBackend> _backend;
-	input_file _input;
+	input_file &_input;
 	time_scale _time_scale_manager;
 	int _time_scale;
 	llint _steps, _equilibration_steps;
@@ -53,7 +53,7 @@ protected:
 	int _fix_diffusion_every;
 
 public:
-	SimManager(int argc, char *argv[]);
+	SimManager(input_file &input);
 	virtual ~SimManager();
 
 	static bool stop;
