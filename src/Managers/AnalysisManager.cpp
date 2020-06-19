@@ -9,7 +9,7 @@
 
 #include "../Utilities/oxDNAException.h"
 
-AnalysisManager::AnalysisManager(input_file &input) :
+AnalysisManager::AnalysisManager(input_file input) :
 				_input(input) {
 	_backend = std::make_shared<AnalysisBackend>();
 }

@@ -11,7 +11,7 @@
 #include "../PluginManagement/PluginManager.h"
 #include "../Boxes/BoxFactory.h"
 
-GeneratorManager::GeneratorManager(input_file &input, char *third_argument) :
+GeneratorManager::GeneratorManager(input_file input, char *third_argument) :
 				_input(input) {
 	_use_density = false;
 	_density = -1.;

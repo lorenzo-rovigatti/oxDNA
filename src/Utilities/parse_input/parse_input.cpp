@@ -52,10 +52,10 @@ void input_file::init_from_command_line_args(int argc, char *argv[]) {
 	if(state == ERROR) {
 		throw oxDNAException("Caught an error while opening the input file");
 	}
-	argc -= 2;
-	if(argc > 0) {
+
+	if(argc > 2) {
 		string s_inp("");
-		for(int i = 0; i < argc; i++) {
+		for(int i = 2; i < argc; i++) {
 			s_inp += string(argv[i]) + string("\n");
 		}
 		add_input_source(s_inp);

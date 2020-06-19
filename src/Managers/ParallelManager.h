@@ -18,7 +18,7 @@ protected:
 	int _mpi_rank;
 	int _mpi_size;
 public:
-	ParallelManager(int argc, char *argv[]);
+	ParallelManager(input_file input);
 	virtual ~ParallelManager();
 
 	virtual void load_options();

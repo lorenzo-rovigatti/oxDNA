@@ -18,7 +18,7 @@
  */
 class GeneratorManager {
 protected:
-	input_file &_input;
+	input_file _input;
 	char _output_conf[256];
 	char _trajectory[256];
 
@@ -38,7 +38,7 @@ protected:
 	std::shared_ptr<BaseBox> _mybox;
 
 public:
-	GeneratorManager(input_file &input, char *third_argument);
+	GeneratorManager(input_file input, char *third_argument);
 	virtual ~GeneratorManager();
 
 	void load_options();

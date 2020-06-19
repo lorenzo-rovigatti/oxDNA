@@ -36,7 +36,7 @@ OxpyManager::OxpyManager(std::vector<std::string> args) :
 }
 
 OxpyManager::~OxpyManager() {
-
+	delete &_input;
 }
 
 std::shared_ptr<ConfigInfo> OxpyManager::config_info() {

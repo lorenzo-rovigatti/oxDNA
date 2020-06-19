@@ -23,7 +23,7 @@ protected:
 	std::shared_ptr<AnalysisBackend> _backend;
 
 public:
-	AnalysisManager(input_file &input);
+	AnalysisManager(input_file input);
 	virtual ~AnalysisManager();
 
 	void load_options();

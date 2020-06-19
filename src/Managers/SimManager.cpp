@@ -23,7 +23,7 @@ void gbl_terminate(int arg) {
 bool SimManager::stop = false;
 bool SimManager::started = false;
 
-SimManager::SimManager(input_file &input) :
+SimManager::SimManager(input_file input) :
 				_input(input),
 				_print_energy_every(1000) {
 	_start_step = _cur_step = _steps = _equilibration_steps = 0;
