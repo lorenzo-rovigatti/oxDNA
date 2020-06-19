@@ -161,12 +161,11 @@ void ForceFactory::read_external_forces(std::string external_filename, std::vect
 		}
 		rewind(temp);
 		input_file input;
-		loadInput(&input, temp);
+		input.init_from_file(temp);
 
 		ForceFactory::instance()->add_force(input, particles, is_CUDA, box);
 
-		cleanInputFile (&input);
-		fclose (temp);
+		fclose(temp);
 	}
 
 	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());

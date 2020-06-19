@@ -153,7 +153,7 @@ input_file *get_input_file_from_string(const std::string &inp) {
 	if(errno == ENOSPC) throw oxDNAException("Failed to write to temporary file. No space left on device. maybe /tmp has no space left? Aborting");
 
 	input_file *ret = new input_file;
-	loadInput(ret, temp);
+	ret->init_from_file(temp);
 
 	fclose(temp);
 

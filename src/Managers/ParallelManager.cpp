@@ -21,7 +21,7 @@ ParallelManager::~ParallelManager() {
 
 void ParallelManager::load_options() {
 	std::string new_prefix = Utils::sformat("output_prefix = mpi_%d_", _mpi_rank);
-	addInput(&_input, new_prefix);
+	_input.add_input_source(new_prefix);
 
 	SimManager::load_options();
 }

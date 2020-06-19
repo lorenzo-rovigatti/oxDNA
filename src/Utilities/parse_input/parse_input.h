@@ -44,66 +44,49 @@ struct input_file {
 	std::set<std::string> false_values;
 
 	input_file();
+	virtual ~input_file();
+
+	/**
+	 * @brief Initialise the structure from the given input file, given as a file descriptor.
+	 * @param inp_file
+	 */
+	void init_from_file(FILE *inp_file);
+
+	/**
+	 * @brief Initialise the structure from the given input file, given as a filename.
+	 * @param filename
+	 */
+	void init_from_file(const char *filename);
+
+	/**
+	 * @brief Load keys and values from command line's argc and argv variables
+	 *
+	 * This function will build the data strctures out of argv. The first non-zero element should be
+	 * the name of the input file, while the rest of the elements will be interpreted as key=value pairs.
+	 *
+	 * @param argc
+	 * @param argv
+	 */
+	void init_from_command_line_args(int argc, char *argv[]);
+
+	/**
+	 * @brief Add the keys and values found in the desc file.
+	 * @param desc input file to be parsed
+	 */
+	void add_input_source(FILE *desc);
+
+	/**
+	 * @brief Add the keys and values found in the string.
+	 * @param s_inp string to be parsed
+	 */
+	void add_input_source(std::string s_inp);
+
+	/**
+	 * @brief Print out all the keys and values stored.
+	 * @param filename
+	 */
+	void print(char *filename);
 };
-
-/**
- * @brief Load keys and values from command line's argc and argv variables
- *
- * This function will build an input file out of argv. The first non-zero element should be
- * the name of the input file, while the rest of the elements will be interpreted as key=value pairs.
- *
- * @param inp
- * @param argc
- * @param argv
- */
-void loadInputFileFromCommandLineArguments(input_file *inp, int argc, char *argv[]);
-
-/**
- * @brief Load the keys and values found in the filename into the given input_file
- *
- * This function is a simple wrapper around loadInput so that it is possible to accept a
- * filename instead of a file descriptor as input.
- *
- * @param inp
- * @param filename
- */
-void loadInputFile(input_file *inp, const char *filename);
-
-/**
- * @brief Load the keys and values found in the desc file into the given input_file
- * @param inp
- * @param desc
- */
-void loadInput(input_file *inp, FILE *desc);
-
-/**
- * @brief Add the keys and values found in the desc file to the given input_file.
- * @param inp target input_file structure
- * @param desc input file to be parsed
- */
-void addInput(input_file *inp, FILE *desc);
-
-/**
- * @brief Add the keys and values found in the string to the given input_file.
- * @param inp target input_file structure
- * @param s_inp string to be parsed
- */
-void addInput(input_file *inp, std::string s_inp);
-
-/**
- * @brief Print out all the keys and values stored in the given input_file structure.
- * @param inp
- * @param filename
- */
-void printInput(input_file *inp, char *filename);
-
-/**
- * @brief Add the keys and values stored in argv to the given input_file
- * @param inp target input_file structure
- * @param argc number of options
- * @param argv array of options
- */
-void addCommandLineArguments(input_file *inp, int argc, char *argv[]);
 
 /**
  * @brief Parse a line of the input file
@@ -137,7 +120,7 @@ int getInputChar(input_file *inp, const char *skey, char *dest, int mandatory);
  * @param mandatory whether at least one of these strings should be mandatory
  * @return the number of keys matching the string.
  */
-int getInputKeys (input_file *inp, std::string begins_with, std::vector<std::string> * dest, int mandatory);
+int getInputKeys(input_file *inp, std::string begins_with, std::vector<std::string> * dest, int mandatory);
 
 /**
  * @brief Strip whitespace from the beginning and end of src
@@ -149,11 +132,5 @@ int getInputKeys (input_file *inp, std::string begins_with, std::vector<std::str
 void getTrimmedString(const char *src, char *dest);
 
 void setUnreadKeys(input_file *inp);
-
-/**
- * @brief Clean up the given input_file structure
- * @param inp
- */
-void cleanInputFile(input_file *inp);
 
 #endif

@@ -559,7 +559,7 @@ public:
 			std::string name_str;
 			int type;
 			int sub_type = 0;
-			loadInput(&input, temp);
+			input.init_from_file(temp);
 			getInputString(&input, "order_parameter", type_str, 1);
 			type = -1;
 			if (strcmp(type_str.c_str(), "bond") == 0) type = 0;
@@ -797,7 +797,6 @@ public:
 				OX_LOG(Logger::LOG_WARNING, "Probably should't reach this point. Hoping for the best");
 				break;
 			}
-			cleanInputFile(&input);
 			fclose(temp);
 		}
 

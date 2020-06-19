@@ -48,7 +48,6 @@ SimManager::~SimManager() {
 		OX_DEBUG("The following keys found in the input file were not used: %s", unread.c_str());
 	}
 
-	cleanInputFile(&_input);
 	cleanTimeScale(&_time_scale_manager);
 
 	if(_backend != nullptr) {
@@ -107,7 +106,7 @@ void SimManager::init() {
 	if(_print_input) {
 		char out_name[512];
 		sprintf(out_name, "input.%d", _pid);
-		printInput(&_input, out_name);
+		_input.print(out_name);
 	}
 	OX_LOG(Logger::LOG_INFO, "pid: %d", _pid);
 

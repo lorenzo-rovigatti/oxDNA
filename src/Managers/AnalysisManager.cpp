@@ -15,7 +15,7 @@ AnalysisManager::AnalysisManager(input_file &input) :
 }
 
 AnalysisManager::~AnalysisManager() {
-	cleanInputFile(&_input);
+
 }
 
 void AnalysisManager::load_options() {

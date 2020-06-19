@@ -557,8 +557,7 @@ bool FFS_MD_CUDAMixedBackend::_read_conditions(const char *fname, const char *co
 	if(fin == NULL) throw oxDNAException("Cannot open %s", fname);
 
 	input_file input;
-
-	loadInput(&input, fin);
+	input.init_from_file(fin);
 
 	char pairname[512];
 	string strexpr;
@@ -584,7 +583,6 @@ bool FFS_MD_CUDAMixedBackend::_read_conditions(const char *fname, const char *co
 
 	if((*conditions).size() == 0) throw oxDNAException("Found no conditions while parsing conditions of type %s, dying now\n", condition_set_type);
 
-	cleanInputFile(&input);
 	fclose(fin);
 	return return_val;
 }
@@ -597,7 +595,7 @@ bool FFS_MD_CUDAMixedBackend::_read_conditions(const char *fname, const char *co
 	if(fin == NULL) throw oxDNAException("Cannot open %s", fname);
 
 	input_file input;
-	loadInput(&input, fin);
+	input.init_from_file(fin);
 
 	char pairname[512];
 	string strexpr;
@@ -624,7 +622,6 @@ bool FFS_MD_CUDAMixedBackend::_read_conditions(const char *fname, const char *co
 		}
 	}
 
-	cleanInputFile(&input);
 	fclose(fin);
 	return return_val;
 }

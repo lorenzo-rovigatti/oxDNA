@@ -98,7 +98,6 @@ void SaltExtrapolation::get_settings(input_file &my_inp, input_file &sim_inp) {
 			_interactions[i][j]->get_settings(*fake_input);
 			_interactions[i][j]->init();
 
-			cleanInputFile(fake_input);
 			delete fake_input;
 
 			if(_salts[j] < smaller_salt) smaller_salt = _salts[j];

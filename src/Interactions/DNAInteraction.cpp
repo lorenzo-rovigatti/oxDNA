@@ -299,7 +299,7 @@ void DNAInteraction::init() {
 		float tmp_value, stck_fact_eps;
 
 		input_file seq_file;
-		loadInputFile(&seq_file, _seq_filename.c_str());
+		seq_file.init_from_file(_seq_filename.c_str());
 		if(seq_file.state == ERROR)
 			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename.c_str());
 
@@ -340,8 +340,6 @@ void DNAInteraction::init() {
 		}
 		F1_EPS[HYDR_F1][N_G][N_C] = F1_EPS[HYDR_F1][N_C][N_G] = tmp_value;
 		F1_SHIFT[HYDR_F1][N_G][N_C] = F1_SHIFT[HYDR_F1][N_C][N_G] = F1_EPS[HYDR_F1][N_G][N_C] * SQR(1 - exp(-(HYDR_RC - HYDR_R0) * HYDR_A));
-
-		cleanInputFile(&seq_file);
 	}
 
 	// if we use mbf, we should tell the user

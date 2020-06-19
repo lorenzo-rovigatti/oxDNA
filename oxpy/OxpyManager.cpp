@@ -25,7 +25,7 @@ input_file *input_file_from_args(std::vector<std::string> to_convert) {
 	}
 
 	input_file *input = new input_file();
-	loadInputFileFromCommandLineArguments(input, argv.size(), argv.data());
+	input->init_from_command_line_args(argv.size(), argv.data());
 
 	return input;
 }

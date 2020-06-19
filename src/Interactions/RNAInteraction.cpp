@@ -319,7 +319,7 @@ void RNAInteraction::init() {
 		float tmp_value, stck_fact_eps;
 
 		input_file seq_file;
-		loadInputFile(&seq_file, _seq_filename);
+		seq_file.init_from_file(_seq_filename);
 		if(seq_file.state == ERROR)
 			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename);
 
@@ -362,8 +362,6 @@ void RNAInteraction::init() {
 		}
 		F1_EPS[RNA_HYDR_F1][N_G][N_T] = F1_EPS[RNA_HYDR_F1][N_T][N_G] = tmp_value;
 		F1_SHIFT[RNA_HYDR_F1][N_G][N_T] = F1_SHIFT[RNA_HYDR_F1][N_T][N_G] = F1_EPS[RNA_HYDR_F1][N_G][N_T] * SQR(1 - exp(-(model->RNA_HYDR_RC - model->RNA_HYDR_R0) * model->RNA_HYDR_A));
-
-		cleanInputFile(&seq_file);
 	}
 
 	if(_use_mbf) {

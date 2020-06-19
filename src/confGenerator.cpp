@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		input_file input;
-		loadInputFileFromCommandLineArguments(&input, argc, argv);
+		input.init_from_command_line_args(argc, argv);
 
 		GeneratorManager mygenerator(input, argv[2]);
 		OX_DEBUG("Loading options");

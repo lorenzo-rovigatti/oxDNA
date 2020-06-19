@@ -328,8 +328,7 @@ void FFS_MD_CPUBackend::init_ffs_from_file(const char *fname) {
 	if(fin == NULL) throw oxDNAException("Cannot open %s", fname);
 
 	input_file input;
-
-	loadInput(&input, fin);
+	input.init_from_file(fin);
 
 	char pairname[512];
 	string strexpr;

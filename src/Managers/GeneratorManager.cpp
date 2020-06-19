@@ -62,7 +62,6 @@ GeneratorManager::GeneratorManager(input_file &input, char *third_argument) :
 }
 
 GeneratorManager::~GeneratorManager() {
-	cleanInputFile(&_input);
 	for(auto particle : _particles) {
 		delete particle;
 	}

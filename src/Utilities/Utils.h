@@ -128,7 +128,6 @@ LR_matrix get_random_rotation_matrix_from_angle(number angle);
  *
  * If the string parameter starts with a curly opening bracket, this method will print in the temporary file
  * only the part of the string which is enclosed by the outer bracket pair.
- * The calling method is responsible for the calling of cleanInputFile and the deletion of the returned pointer
  * @param inp string to be written in the temporary file and then loaded in the input_file
  * @return pointer to the newly loaded input_file
  */
@@ -258,7 +257,7 @@ inline LR_matrix Utils::get_random_rotation_matrix(number max_angle) {
 
 inline number Utils::gaussian() {
 	unsigned int isNextG = 0;
-	number nextG;
+	number nextG = -1e6;
 	number toRet;
 	number u, v, w;
 

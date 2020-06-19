@@ -799,7 +799,7 @@ PatchyShapeInteraction<number>::_load_patchy_particle_files(std::string& patchy_
 		throw oxDNAException("Could not open file %s ",patchy_file.c_str());
 	}
 	input_file obs_input;
-	loadInput(&obs_input,fpatch);
+	obs_input.init_from_file(fpatch);
 
 	int no = 0;
 	char patch_no[1024];
@@ -827,7 +827,7 @@ PatchyShapeInteraction<number>::_load_patchy_particle_files(std::string& patchy_
 			throw oxDNAException("Could not open file %s ",particle_file.c_str());
 	}
 	input_file p_input;
-	loadInput(&p_input, fparticle);
+	p_input.init_from_file(fparticle);
 
 	int p_no = 0;
 	char particle_no[1024];

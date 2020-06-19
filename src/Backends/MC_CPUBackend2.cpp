@@ -25,8 +25,6 @@ void MC_CPUBackend2::add_move(std::string move_string, input_file &sim_inp) {
 
 	MovePtr new_move = MoveFactory::make_move(*move_inp, sim_inp);
 	_moves.push_back(new_move);
-
-	cleanInputFile(move_inp);
 	delete move_inp;
 }
 
