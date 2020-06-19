@@ -14,7 +14,7 @@
  * @param to_convert
  * @return
  */
-input_file *input_file_from_args(std::vector<std::string> to_convert) {
+input_file input_file_from_args(std::vector<std::string> to_convert) {
 	static char exe_name[10];
 	sprintf(exe_name, "oxpy");
 	std::vector<char *> argv;
@@ -24,19 +24,19 @@ input_file *input_file_from_args(std::vector<std::string> to_convert) {
 		argv.push_back(const_cast<char *>(str.c_str()));
 	}
 
-	input_file *input = new input_file();
-	input->init_from_command_line_args(argv.size(), argv.data());
+	input_file input;
+	input.init_from_command_line_args(argv.size(), argv.data());
 
 	return input;
 }
 
 OxpyManager::OxpyManager(std::vector<std::string> args) :
-				SimManager(*input_file_from_args(args)) {
+				SimManager(input_file_from_args(args)) {
 
 }
 
 OxpyManager::~OxpyManager() {
-	delete &_input;
+
 }
 
 std::shared_ptr<ConfigInfo> OxpyManager::config_info() {
