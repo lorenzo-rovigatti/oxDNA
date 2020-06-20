@@ -163,7 +163,7 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.Context" title="oxpy.core.Context"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Context</span></code></a></p></td>
-<td><p>A <a class="reference external" href="https://book.pythontips.com/en/latest/context_managers.html">context manager</a> that performs some initialisation and clean up.Use it with a <code class="code docutils literal notranslate"><span class="pre">with</span></code> command before using any of the <code class="code docutils literal notranslate"><span class="pre">oxpy</span></code> functionalities::.</p></td>
+<td><p>A <a class="reference external" href="https://book.pythontips.com/en/latest/context_managers.html">context manager</a> that performs some initialisation and clean up.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OxpyManager</span></code></a></p></td>
 <td><p>The object in charge of initialising and running a simulation.</p></td>
@@ -189,6 +189,9 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseForce</span></code></a></p></td>
 <td><p>The interface class for forces.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InputFile</span></code></a></p></td>
+<td><p>Handles the options provided by the user to control and tune the behaviour of the simulation/analysis/generation of the initial configuration.</p></td>
+</tr>
 </tbody>
 </table>
 <dl class="class">
@@ -196,7 +199,8 @@
 <em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.Context</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <p>A <a class="reference external" href="https://book.pythontips.com/en/latest/context_managers.html">context manager</a> that
-performs some initialisation and clean up. Use it with a <code class="code docutils literal notranslate"><span class="pre">with</span></code> command before using
+performs some initialisation and clean up.</p>
+<p>Use it with a <code class="code docutils literal notranslate"><span class="pre">with</span></code> command before using
 any of the <code class="code docutils literal notranslate"><span class="pre">oxpy</span></code> functionalities:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
     <span class="c1"># your code using oxpy goes here</span>
@@ -206,16 +210,26 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 
 <dl class="class">
 <dt id="oxpy.core.OxpyManager">
-<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">OxpyManager</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.OxpyManager, args: List[str]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.OxpyManager" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">OxpyManager</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.core.OxpyManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">oxpy.core.SimManager</span></code></p>
 <p>The object in charge of initialising and running a simulation.</p>
-<blockquote>
-<div><p>The default constructor takes a list of strings as its only parameter.</p>
-</div></blockquote>
+<p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>__init__(self: oxpy.core.OxpyManager, args: str) -&gt; None</p></li>
+</ol>
+<p>The default constructor takes the input filename as its only parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>args</strong> (<em>List</em><em>(</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>)</em>) – The list or arguments to be passed to the manager. The first element should be the name of the input file,
-while the others should be key=value pairs.</p>
+<dd class="field-odd"><p><strong>input_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The name of the input file that will be used to run the simulation</p>
+</dd>
+</dl>
+<ol class="arabic simple" start="2">
+<li><p>__init__(self: oxpy.core.OxpyManager, input: input_file) -&gt; None</p></li>
+</ol>
+<p>This constructor takes an <a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputFile</span></code></a> as its only argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input</strong> (<a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputFile</span></code></a>) – The object storing the simulations’ options.</p>
 </dd>
 </dl>
 <dl class="method">
@@ -399,7 +413,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -413,7 +427,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -427,7 +441,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -449,7 +463,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -463,7 +477,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -477,7 +491,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -491,7 +505,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -505,7 +519,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -519,7 +533,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -533,7 +547,7 @@ while the others should be key=value pairs.</p>
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -546,6 +560,26 @@ while the others should be key=value pairs.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <p>The class that takes care of computing the interaction between the particles.</p>
 <p>The default constructor takes no parameters.</p>
+<dl class="method">
+<dt id="oxpy.core.IBaseInteraction.begin_energy_computation">
+<code class="sig-name descname">begin_energy_computation</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.IBaseInteraction</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.IBaseInteraction.begin_energy_computation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signals the interaction that an energy (or force) computation is about to begin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="oxpy.core.IBaseInteraction.has_custom_stress_tensor">
+<code class="sig-name descname">has_custom_stress_tensor</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.IBaseInteraction</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#oxpy.core.IBaseInteraction.has_custom_stress_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether the interaction computes the stress tensor internally or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the interaction computes the stress tensor internally, False otherwise.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="method">
 <dt id="oxpy.core.IBaseInteraction.pair_interaction">
 <code class="sig-name descname">pair_interaction</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.IBaseInteraction</em>, <em class="sig-param">p: oxpy.core.BaseParticle</em>, <em class="sig-param">q: oxpy.core.BaseParticle</em>, <em class="sig-param">compute_r: bool=True</em>, <em class="sig-param">update_forces: bool=False</em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#oxpy.core.IBaseInteraction.pair_interaction" title="Permalink to this definition">¶</a></dt>
@@ -587,7 +621,7 @@ set through the <a class="reference internal" href="#oxpy.core.IBaseInteraction.
 <dd><p>Set the distance vector used by the <cite>pair_interaction_*</cite> methods when they are called with <cite>compute_r = False</cite> (see <a class="reference internal" href="#oxpy.core.IBaseInteraction.pair_interaction" title="oxpy.core.IBaseInteraction.pair_interaction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pair_interaction()</span></code></a> for additional details).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>r</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><em>numpy.ndarray</em></a>) – The distance vector to be stored.</p>
+<dd class="field-odd"><p><strong>r</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)"><em>numpy.ndarray</em></a>) – The distance vector to be stored.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -731,7 +765,7 @@ set through the <a class="reference internal" href="#oxpy.core.IBaseInteraction.
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The current time step.</p></li>
-<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
+<li><p><strong>pos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -762,14 +796,37 @@ set through the <a class="reference internal" href="#oxpy.core.IBaseInteraction.
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The current time step.</p></li>
-<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
+<li><p><strong>pos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The computed force vector.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.17)">numpy.ndarray</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.18)">numpy.ndarray</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="oxpy.core.InputFile">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">InputFile</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.InputFile</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.InputFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Handles the options provided by the user to control and tune the behaviour of the simulation/analysis/generation of the initial configuration.</p>
+<p>Options can be read, set or overwritten by using square brackets:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_input</span><span class="p">[</span><span class="s2">&quot;sim_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;VMMC&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_input</span><span class="p">[</span><span class="s2">&quot;sim_type&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="oxpy.core.InputFile.init_from_filename">
+<code class="sig-name descname">init_from_filename</code><span class="sig-paren">(</span><em class="sig-param">self: oxpy.core.InputFile</em>, <em class="sig-param">filename: str</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.InputFile.init_from_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialise the object with the input file passed as parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The name of the input file whence the options will be loaded.</p>
 </dd>
 </dl>
 </dd></dl>

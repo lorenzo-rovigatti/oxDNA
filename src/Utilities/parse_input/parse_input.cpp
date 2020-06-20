@@ -35,10 +35,10 @@ void input_file::init_from_file(FILE *inp_file) {
 	state = PARSED;
 }
 
-void input_file::init_from_file(const char *filename) {
-	FILE *inp_file = fopen(filename, "r");
+void input_file::init_from_filename(std::string filename) {
+	FILE *inp_file = fopen(filename.c_str(), "r");
 	if(inp_file == NULL) {
-		fprintf(stderr, "Input file '%s' not found\n", filename);
+		fprintf(stderr, "Input file '%s' not found\n", filename.c_str());
 		state = ERROR;
 		return;
 	}
@@ -48,7 +48,7 @@ void input_file::init_from_file(const char *filename) {
 }
 
 void input_file::init_from_command_line_args(int argc, char *argv[]) {
-	init_from_file(argv[1]);
+	init_from_filename(argv[1]);
 	if(state == ERROR) {
 		throw oxDNAException("Caught an error while opening the input file");
 	}
@@ -85,13 +85,7 @@ void input_file::add_input_source(std::string s_inp) {
 		int res = _readLine(it, l_end, key, value);
 
 		if(res == KEY_READ) {
-			input_value new_value(value);
-
-			input_map::iterator old_val = keys.find(key);
-			if(old_val != keys.end()) {
-				OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
-			}
-			keys[key] = value;
+			set_value(key, value);
 		}
 	}
 }
@@ -123,6 +117,36 @@ void input_file::print(char *filename) {
 	}
 
 	fclose(out);
+}
+
+void input_file::set_unread_keys() {
+	for(input_map::iterator it = keys.begin(); it != keys.end(); it++) {
+		if(it->second.read == 0) {
+			unread_keys.push_back(it->first);
+		}
+	}
+}
+
+std::string input_file::get_value(std::string key) {
+	std::map<string, input_value>::iterator it = keys.find(key);
+	if(it != keys.end()) {
+		it->second.read++;
+	}
+	else  {
+		throw oxDNAException("Key `%s' not found", key.c_str());
+	}
+
+	return it->second.value;
+}
+
+void input_file::set_value(std::string key, std::string value) {
+	input_value new_value(value);
+
+	input_map::iterator old_val = keys.find(key);
+	if(old_val != keys.end()) {
+		OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
+	}
+	keys[key] = value;
 }
 
 int _readLine(std::vector<string>::iterator &it, std::vector<string>::iterator &end, string &key, string &value) {
@@ -352,14 +376,6 @@ int getInputNumber(input_file *inp, const char *skey, number *dest, int mandator
 }
 template int getInputNumber(input_file *inp, const char *skey, float *dest, int mandatory);
 template int getInputNumber(input_file *inp, const char *skey, double *dest, int mandatory);
-
-void setUnreadKeys(input_file *inp) {
-	for(input_map::iterator it = inp->keys.begin(); it != inp->keys.end(); it++) {
-		if(it->second.read == 0) {
-			inp->unread_keys.push_back(it->first);
-		}
-	}
-}
 
 int getInputKeys(input_file *inp, string begins_with, vector<string> *dest, int mandatory) {
 	int ret = 0;

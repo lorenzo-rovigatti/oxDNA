@@ -36,7 +36,7 @@ void UnstackedList::get_settings(input_file &my_inp, input_file &sim_inp) {
 		if(!average) {
 			std::string seq_filename;
 			getInputString(&sim_inp, "seq_dep_file", seq_filename, 1);
-			seq_file.init_from_file(seq_filename.c_str());
+			seq_file.init_from_filename(seq_filename.c_str());
 		}
 	}
 

@@ -319,7 +319,7 @@ void RNAInteraction::init() {
 		float tmp_value, stck_fact_eps;
 
 		input_file seq_file;
-		seq_file.init_from_file(_seq_filename);
+		seq_file.init_from_filename(_seq_filename);
 		if(seq_file.state == ERROR)
 			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename);
 

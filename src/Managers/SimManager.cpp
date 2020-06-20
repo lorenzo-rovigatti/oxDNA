@@ -39,7 +39,7 @@ SimManager::SimManager(input_file input) :
 
 SimManager::~SimManager() {
 	// print unread (i.e. unused) keys
-	setUnreadKeys(&_input);
+	_input.set_unread_keys();
 	std::string unread;
 	for(std::vector<std::string>::iterator it = _input.unread_keys.begin(); it != _input.unread_keys.end(); it++) {
 		unread += std::string("\n\t") + *it;

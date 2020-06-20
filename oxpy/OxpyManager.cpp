@@ -1,4 +1,4 @@
-/*
+/*2
  * OxpyManager.cpp
  *
  *  Created on: Sep 13, 2019
@@ -14,24 +14,20 @@
  * @param to_convert
  * @return
  */
-input_file input_file_from_args(std::vector<std::string> to_convert) {
-	static char exe_name[10];
-	sprintf(exe_name, "oxpy");
-	std::vector<char *> argv;
-	argv.reserve(to_convert.size() + 1);
-	argv.push_back(exe_name);
-	for(auto &str : to_convert) {
-		argv.push_back(const_cast<char *>(str.c_str()));
-	}
-
+input_file _input_file_from_filename(std::string input_filename) {
 	input_file input;
-	input.init_from_command_line_args(argv.size(), argv.data());
+	input.init_from_filename(input_filename.c_str());
 
 	return input;
 }
 
-OxpyManager::OxpyManager(std::vector<std::string> args) :
-				SimManager(input_file_from_args(args)) {
+OxpyManager::OxpyManager(std::string input_filename) :
+				SimManager(_input_file_from_filename(input_filename)) {
+
+}
+
+OxpyManager::OxpyManager(input_file input) :
+				SimManager(input) {
 
 }
 
@@ -93,14 +89,22 @@ void export_OxpyManager(py::module &m) {
 		The object in charge of initialising and running a simulation. 
 	)pbdoc");
 
-	manager.def(py::init<std::vector<std::string>>(), py::arg("args"), R"pbdoc(
-		The default constructor takes a list of strings as its only parameter.
+	manager.def(py::init<std::string>(), py::arg("args"), R"pbdoc(
+The default constructor takes the input filename as its only parameter.
 
-        Parameters
-        ----------
-        args: List(str)
-            The list or arguments to be passed to the manager. The first element should be the name of the input file,
-            while the others should be key=value pairs.
+Parameters
+----------
+input_filename: str
+    The name of the input file that will be used to run the simulation
+	)pbdoc");
+
+	manager.def(py::init<input_file>(), py::arg("input"), R"pbdoc(
+This constructor takes an :class:`InputFile` as its only argument.
+
+Parameters
+----------
+input: :class:`InputFile`
+    The object storing the simulations' options.
 	)pbdoc");
 
 	manager.def("config_info", &OxpyManager::config_info, R"pbdoc(

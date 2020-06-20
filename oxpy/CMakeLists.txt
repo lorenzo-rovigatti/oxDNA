@@ -38,6 +38,10 @@ IF(Python)
 		${CMAKE_CURRENT_BINARY_DIR}/oxpy/__init__.py
 	)
 	
+	CONFIGURE_FILE(InputGenerator.py
+		${CMAKE_CURRENT_BINARY_DIR}/oxpy/InputGenerator.py
+	)
+	
 	# read the whole defs.h file
 	FILE(READ ${PROJECT_SOURCE_DIR}/src/defs.h all_defs)
 	# extract the release version

@@ -56,7 +56,7 @@ struct input_file {
 	 * @brief Initialise the structure from the given input file, given as a filename.
 	 * @param filename
 	 */
-	void init_from_file(const char *filename);
+	void init_from_filename(std::string);
 
 	/**
 	 * @brief Load keys and values from command line's argc and argv variables
@@ -86,6 +86,11 @@ struct input_file {
 	 * @param filename
 	 */
 	void print(char *filename);
+
+	void set_unread_keys();
+
+	std::string get_value(std::string key);
+	void set_value(std::string key, std::string value);
 };
 
 /**
@@ -121,16 +126,5 @@ int getInputChar(input_file *inp, const char *skey, char *dest, int mandatory);
  * @return the number of keys matching the string.
  */
 int getInputKeys(input_file *inp, std::string begins_with, std::vector<std::string> * dest, int mandatory);
-
-/**
- * @brief Strip whitespace from the beginning and end of src
- * src is left unchanged and the resulting, trimmed string is stored in dest. This function
- * does not allocate memory for dest.
- * @param src
- * @param dest
- */
-void getTrimmedString(const char *src, char *dest);
-
-void setUnreadKeys(input_file *inp);
 
 #endif

@@ -156,13 +156,13 @@
 <p>Oxpy is a Python3 library that makes it possible to use oxDNA from Python.</p>
 <div class="section" id="a-simple-example">
 <h2>A simple example<a class="headerlink" href="#a-simple-example" title="Permalink to this headline">¶</a></h2>
-<p>The following snippet imports the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> module, initialises the simulation machinery, runs a short simulation and computes the average position of the final configuration:</p>
+<p>The following snippet imports the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> module, initialises the simulation machinery, runs a short simulation using the input file <code class="docutils literal notranslate"><span class="pre">input</span></code> and computes the average position of the final configuration:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">oxpy</span>
 
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
     <span class="c1"># init the manager with the given input file</span>
-    <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">([</span><span class="s2">&quot;input&quot;</span><span class="p">])</span>
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
     <span class="n">manager</span><span class="o">.</span><span class="n">load_options</span><span class="p">()</span>
     <span class="n">manager</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 
@@ -181,6 +181,14 @@
     
     <span class="c1"># and the interaction energy between the first two particles</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interaction energy between particle 0 and particle 1:&quot;</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">pair_interaction</span><span class="p">(</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">particles</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>If you want, you can initialise the input file yourself, change some of the options and then run the simulation as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>	<span class="n">my_input</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
+	<span class="n">my_input</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+	<span class="n">my_input</span><span class="p">[</span><span class="s2">&quot;backend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;CUDA&quot;</span>
+	<span class="n">my_input</span><span class="p">[</span><span class="s2">&quot;steps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1e9&quot;</span>
+	<span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="n">my_input</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

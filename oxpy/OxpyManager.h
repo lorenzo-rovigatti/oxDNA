@@ -13,7 +13,8 @@
 
 class OxpyManager: public SimManager {
 public:
-	OxpyManager(std::vector<std::string> args);
+	OxpyManager(std::string input_filename);
+	OxpyManager(input_file input);
 	virtual ~OxpyManager();
 
 	std::shared_ptr<ConfigInfo> config_info();

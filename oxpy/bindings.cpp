@@ -18,6 +18,7 @@
 #include "bindings_includes/ConfigInfo.h"
 #include "bindings_includes/DNANucleotide.h"
 #include "bindings_includes/IBaseInteraction.h"
+#include "bindings_includes/input_file.h"
 #include "bindings_includes/RNANucleotide.h"
 
 void export_BaseForce(py::module &m);
@@ -38,6 +39,8 @@ PYBIND11_MODULE(core, m) {
 	export_DNANucleotide(m);
 	export_IBaseInteraction(m);
 	export_RNANucleotide(m);
+
+	export_input_file(m);
 
 	py::register_exception<oxDNAException>(m, "OxDNAError");
 }

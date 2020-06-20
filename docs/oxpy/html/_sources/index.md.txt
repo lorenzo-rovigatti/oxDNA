@@ -4,14 +4,14 @@ Oxpy is a Python3 library that makes it possible to use oxDNA from Python.
 
 ## A simple example
 
-The following snippet imports the `oxpy` module, initialises the simulation machinery, runs a short simulation and computes the average position of the final configuration:
+The following snippet imports the `oxpy` module, initialises the simulation machinery, runs a short simulation using the input file `input` and computes the average position of the final configuration:
 
 	import numpy as np
 	import oxpy
 	
 	with oxpy.Context():
 	    # init the manager with the given input file
-	    manager = oxpy.OxpyManager(["input"])
+	    manager = oxpy.OxpyManager("input")
 	    manager.load_options()
 	    manager.init()
 	
@@ -30,6 +30,14 @@ The following snippet imports the `oxpy` module, initialises the simulation mach
 	    
 	    # and the interaction energy between the first two particles
 	    print("Interaction energy between particle 0 and particle 1:", manager.config_info().interaction.pair_interaction(particles[0], particles[1]))
+	    
+If you want, you can initialise the input file yourself, change some of the options and then run the simulation as follows:
+
+		my_input = oxpy.InputFile()
+    	my_input.init_from_filename("input")
+    	my_input["backend"] = "CUDA"
+    	my_input["steps"] = "1e9"
+    	manager = oxpy.OxpyManager(my_input)
 	
 ## Library API
 
