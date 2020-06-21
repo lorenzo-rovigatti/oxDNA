@@ -31,13 +31,13 @@ The following snippet imports the `oxpy` module, initialises the simulation mach
 	    # and the interaction energy between the first two particles
 	    print("Interaction energy between particle 0 and particle 1:", manager.config_info().interaction.pair_interaction(particles[0], particles[1]))
 	    
-If you want, you can initialise the input file yourself, change some of the options and then run the simulation as follows:
+If you want, you can initialise the input file yourself and change some of the options before initialising the manager:
 
-		my_input = oxpy.InputFile()
-    	my_input.init_from_filename("input")
-    	my_input["backend"] = "CUDA"
-    	my_input["steps"] = "1e9"
-    	manager = oxpy.OxpyManager(my_input)
+	my_input = oxpy.InputFile()
+	my_input.init_from_filename("input")
+	my_input["backend"] = "CUDA"
+	my_input["steps"] = "1e9"
+	manager = oxpy.OxpyManager(my_input)
 	
 ## Library API
 
