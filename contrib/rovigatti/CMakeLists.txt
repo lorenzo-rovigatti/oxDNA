@@ -7,7 +7,7 @@ ADD_CUSTOM_TARGET(rovigatti
 			GenericGrByInsertion VoidPercolation Remoteness CPAnalysis Widom LevyDelta 
 			LevyInteraction CPMixtureInteraction StarrInteraction mWInteraction 
 			GraftedInteraction FSInteraction TSPAnalysis StarrConf ConstructwiseBonds 
-			EmptyVolume FSConf Gyradius
+			EmptyVolume FSConf Gyradius PatchySwapInteraction
 )
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -48,6 +48,7 @@ ADD_LIBRARY(MGInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/MGInteraction
 ADD_LIBRARY(AOInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/AOInteraction.cpp)
 ADD_LIBRARY(PolydisperseLTInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolydisperseLTInteraction.cpp)
 ADD_LIBRARY(PolymerSwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolymerSwapInteraction.cpp)
+ADD_LIBRARY(PatchySwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PatchySwapInteraction.cpp)
 
 FIND_PACKAGE(PkgConfig)
 IF(PkgConfig_FOUND)

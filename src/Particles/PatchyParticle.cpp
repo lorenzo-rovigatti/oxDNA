@@ -10,23 +10,29 @@
 
 #define HALF_ISQRT3 0.28867513459481292f
 
+PatchyParticle::PatchyParticle(std::vector<LR_vector> base_patches, int nt, number sigma) :
+				BaseParticle(),
+				_sigma(sigma),
+				_base_patches(base_patches) {
+	type = nt;
+	int_centers.resize(base_patches.size());
 
-PatchyParticle::PatchyParticle(int N_patches, int nt, number sigma) : BaseParticle(), _sigma(sigma) {
-	this->type = nt;
-	this->int_centers.resize(N_patches);
+	for(uint i = 0; i < N_int_centers(); i++) {
+		_base_patches[i].normalize();
+		_base_patches[i] *= 0.5;
+	}
+}
+
+PatchyParticle::PatchyParticle(int N_patches, int nt, number sigma) :
+				BaseParticle(),
+				_sigma(sigma) {
+	type = nt;
+	int_centers.resize(N_patches);
 	_base_patches.resize(N_patches);
 
-	_set_base_patches();
-}
-
-
-PatchyParticle::~PatchyParticle() {
-
-}
-
-
-void PatchyParticle::_set_base_patches() {
 	switch(N_int_centers()) {
+	case 0:
+		break;
 	case 1: {
 		_base_patches[0] = LR_vector(1, 0, 0);
 		break;
@@ -48,10 +54,10 @@ void PatchyParticle::_set_base_patches() {
 		break;
 	}
 	case 4: {
-		_base_patches[0] = LR_vector(-HALF_ISQRT3, -HALF_ISQRT3,  HALF_ISQRT3);
+		_base_patches[0] = LR_vector(-HALF_ISQRT3, -HALF_ISQRT3, HALF_ISQRT3);
 		_base_patches[1] = LR_vector( HALF_ISQRT3, -HALF_ISQRT3, -HALF_ISQRT3);
-		_base_patches[2] = LR_vector( HALF_ISQRT3,  HALF_ISQRT3,  HALF_ISQRT3);
-		_base_patches[3] = LR_vector(-HALF_ISQRT3,  HALF_ISQRT3, -HALF_ISQRT3);
+		_base_patches[2] = LR_vector( HALF_ISQRT3, HALF_ISQRT3, HALF_ISQRT3);
+		_base_patches[3] = LR_vector(-HALF_ISQRT3, HALF_ISQRT3, -HALF_ISQRT3);
 		break;
 	}
 	case 5: {
@@ -72,9 +78,12 @@ void PatchyParticle::_set_base_patches() {
 	}
 }
 
+PatchyParticle::~PatchyParticle() {
+
+}
 
 void PatchyParticle::set_positions() {
 	for(uint i = 0; i < N_int_centers(); i++) {
-		this->int_centers[i] = (this->orientation*_base_patches[i])*_sigma;
+		int_centers[i] = (orientation * _base_patches[i]) * _sigma;
 	}
 }

@@ -34,9 +34,6 @@ void FSInteraction::get_settings(input_file &inp) {
 	getInputBool(&inp, "FS_B_attraction", &_B_attraction, 0);
 	getInputBool(&inp, "FS_same_patches", &_same_patches, 0);
 
-	string backend;
-	getInputString(&inp, "backend", backend, 0);
-
 	getInputNumber(&inp, "FS_lambda", &_lambda, 0);
 	getInputNumber(&inp, "FS_sigma_ss", &_sigma_ss, 0);
 
