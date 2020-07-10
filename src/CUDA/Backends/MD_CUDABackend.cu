@@ -44,71 +44,86 @@ MD_CUDABackend::MD_CUDABackend() :
 	_use_edge = false;
 	_any_rigid_body = false;
 
-	_d_vels = _d_Ls = _d_forces = _d_torques = _d_buff_vels = NULL;
-	_h_vels = _h_Ls = _h_forces = _h_torques = _d_buff_Ls = NULL;
-	_h_gpu_index = _h_cpu_index = NULL;
+	_d_vels = _d_Ls = _d_forces = _d_torques = _d_buff_vels = nullptr;
+	_h_vels = _h_Ls = _h_forces = _h_torques = _d_buff_Ls = nullptr;
+	_h_gpu_index = _h_cpu_index = nullptr;
 
-	_h_ext_forces = NULL;
-	_d_ext_forces = NULL;
+	_d_particles_to_mols = nullptr;
+	_d_molecular_coms = nullptr;
+
+	_h_ext_forces = nullptr;
+	_d_ext_forces = nullptr;
 
 	_restart_step_counter = false;
 	_avoid_cpu_calculations = false;
 
-	_timer_sorting = NULL;
+	_timer_sorting = nullptr;
 
 	_curr_step = -1;
 	_barostat_attempts = _barostat_accepted = 0;
 
 	_print_energy = false;
 
-	_obs_output_error_conf = NULL;
+	_obs_output_error_conf = nullptr;
 }
 
 MD_CUDABackend::~MD_CUDABackend() {
-	if(_d_vels != NULL) {
+	if(_d_particles_to_mols != nullptr) {
+		CUDA_SAFE_CALL(cudaFree(_d_particles_to_mols));
+	}
+
+	if(_d_vels != nullptr) {
 		CUDA_SAFE_CALL(cudaFree(_d_vels));
 		CUDA_SAFE_CALL(cudaFree(_d_Ls));
 		CUDA_SAFE_CALL(cudaFree(_d_forces));
 		CUDA_SAFE_CALL(cudaFree(_d_torques));
 	}
 
-	if(_sort_every > 0 && _d_buff_vels != NULL) {
+	if(_d_molecular_coms != nullptr) {
+		CUDA_SAFE_CALL(cudaFree(_d_molecular_coms));
+	}
+
+	if(_sort_every > 0 && _d_buff_vels != nullptr) {
 		CUDA_SAFE_CALL(cudaFree(_d_buff_vels));
 		CUDA_SAFE_CALL(cudaFree(_d_buff_Ls));
 	}
 
-	if(_h_gpu_index != NULL) {
+	if(_h_gpu_index != nullptr) {
 		delete[] _h_gpu_index;
 		delete[] _h_cpu_index;
 	}
 
 	if(_external_forces) {
-		if(_h_ext_forces != NULL)
+		if(_h_ext_forces != nullptr) {
 			delete[] _h_ext_forces;
-		if(_d_ext_forces != NULL)
+		}
+		if(_d_ext_forces != nullptr) {
 			CUDA_SAFE_CALL(cudaFree(_d_ext_forces));
+		}
 	}
 
-	if(_h_vels != NULL) {
+	if(_h_vels != nullptr) {
 		delete[] _h_vels;
 		delete[] _h_Ls;
 		delete[] _h_forces;
 		delete[] _h_torques;
 	}
 
-	if(_obs_output_error_conf != NULL) {
+	if(_obs_output_error_conf != nullptr) {
 		delete _obs_output_error_conf;
 	}
 }
 
 void MD_CUDABackend::_host_to_gpu() {
 	CUDABaseBackend::_host_to_gpu();
+	CUDA_SAFE_CALL(cudaMemcpy(_d_particles_to_mols, _h_particles_to_mols.data(), sizeof(int) * _h_particles_to_mols.size(), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_d_vels, _h_vels, _vec_size, cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_d_Ls, _h_Ls, _vec_size, cudaMemcpyHostToDevice));
 }
 
 void MD_CUDABackend::_gpu_to_host() {
 	CUDABaseBackend::_gpu_to_host();
+	CUDA_SAFE_CALL(cudaMemcpy(_h_particles_to_mols.data(), _d_particles_to_mols, sizeof(int) * _h_particles_to_mols.size(), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_h_vels, _d_vels, _vec_size, cudaMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(cudaMemcpy(_h_Ls, _d_Ls, _vec_size, cudaMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(cudaMemcpy(_h_forces, _d_forces, _vec_size, cudaMemcpyDeviceToHost));
@@ -123,6 +138,8 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		_h_poss[i].x = p->pos.x;
 		_h_poss[i].y = p->pos.y;
 		_h_poss[i].z = p->pos.z;
+
+		_h_particles_to_mols[i] = p->strand_id;
 
 		// convert index and type into a float
 		int msk = -1 << 22; // bynary mask: all 1's and 22 0's;
@@ -211,6 +228,9 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 		p->pos.x = _h_poss[i].x;
 		p->pos.y = _h_poss[i].y;
 		p->pos.z = _h_poss[i].z;
+
+		p->strand_id = _h_particles_to_mols[i];
+
 		// get index and type for the fourth component of the position
 		p->btype = (GpuUtils::float_as_int(_h_poss[i].w)) >> 22;
 
@@ -276,15 +296,19 @@ void MD_CUDABackend::_init_CUDA_MD_symbols() {
 }
 
 void MD_CUDABackend::_first_step() {
-first_step
+	first_step
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, _d_orientations, _d_list_poss, _d_vels, _d_Ls, _d_forces, _d_torques, _d_are_lists_old);
 		CUT_CHECK_ERROR("_first_step error");
 }
 
+void MD_CUDABackend::_rescale_molecular_positions(c_number4 new_Ls, c_number4 old_Ls, bool recompute_coms) {
+
+}
+
 void MD_CUDABackend::_rescale_positions(c_number4 new_Ls, c_number4 old_Ls) {
 	c_number4 ratio = { new_Ls.x / old_Ls.x, new_Ls.y / old_Ls.y, new_Ls.z / old_Ls.z, 0. };
-rescale_positions
+	rescale_positions
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, ratio);
 		CUT_CHECK_ERROR("_rescale_positions error");
@@ -313,7 +337,12 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 	}
 	_h_cuda_box.change_sides(new_Ls.x, new_Ls.y, new_Ls.z);
 	CUDA_SAFE_CALL(cudaMemcpy(_d_cuda_box, &_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice));
-	_rescale_positions(new_Ls, old_Ls);
+	if(_barostat_molecular) {
+		_rescale_molecular_positions(new_Ls, old_Ls, false);
+	}
+	else {
+		_rescale_positions(new_Ls, old_Ls);
+	}
 	_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
 
 	_set_external_forces();
@@ -324,7 +353,8 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 	// acceptance
 	c_number dE = new_energy - old_energy;
 	c_number dV = new_V - old_V;
-	c_number acc = exp(-(dE + _P * dV - N() * _T * log(new_V / old_V)) / _T);
+	int N_objs = (_barostat_molecular) ? _molecules.size() : N();
+	c_number acc = exp(-(dE + _P * dV - N_objs * _T * log(new_V / old_V)) / _T);
 	// accepted
 	if(acc > drand48()) {
 		_barostat_accepted++;
@@ -333,7 +363,12 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 	else {
 		_h_cuda_box.change_sides(old_Ls.x, old_Ls.y, old_Ls.z);
 		CUDA_SAFE_CALL(cudaMemcpy(_d_cuda_box, &_h_cuda_box, sizeof(CUDABox), cudaMemcpyHostToDevice));
-		_rescale_positions(old_Ls, new_Ls);
+		if(_barostat_molecular) {
+			_rescale_molecular_positions(new_Ls, old_Ls, true);
+		}
+		else {
+			_rescale_positions(old_Ls, new_Ls);
+		}
 		_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
 	}
 	_barostat_acceptance = _barostat_accepted / (c_number) _barostat_attempts;
@@ -500,10 +535,13 @@ void MD_CUDABackend::init() {
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_Ls, _vec_size));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_forces, _vec_size));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_torques, _vec_size));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&_d_particles_to_mols, sizeof(int) * _molecules.size()));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_molecular_coms, sizeof(c_number4) * _molecules.size()));
 
 	CUDA_SAFE_CALL(cudaMemset(_d_forces, 0, _vec_size));
 	CUDA_SAFE_CALL(cudaMemset(_d_torques, 0, _vec_size));
 
+	_h_particles_to_mols.resize(_molecules.size());
 	_h_vels = new c_number4[N()];
 	_h_Ls = new c_number4[N()];
 	_h_forces = new c_number4[N()];

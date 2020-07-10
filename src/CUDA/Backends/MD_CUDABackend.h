@@ -43,6 +43,10 @@ protected:
 	c_number4 *_d_forces, *_h_forces;
 	c_number4 *_d_torques, *_h_torques;
 
+	std::vector<int> _h_particles_to_mols;
+	int *_d_particles_to_mols;
+	c_number4 *_d_molecular_coms;
+
 	c_number4 *_d_buff_vels, *_d_buff_Ls;
 	llint _curr_step;
 
@@ -65,6 +69,7 @@ protected:
 	virtual void _host_to_gpu();
 
 	virtual void _sort_particles();
+	virtual void _rescale_molecular_positions(c_number4 new_Ls, c_number4 old_Ls, bool is_reverse_move);
 	virtual void _rescale_positions(c_number4 new_Ls, c_number4 old_Ls);
 
 	virtual void _first_step();

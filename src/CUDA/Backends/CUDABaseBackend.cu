@@ -77,12 +77,15 @@ CUDABaseBackend::~CUDABaseBackend() {
 		}
 	}
 
-	if(_h_poss != NULL)
+	if(_h_poss != NULL) {
 		delete[] _h_poss;
-	if(_h_orientations != NULL)
+	}
+	if(_h_orientations != NULL) {
 		delete[] _h_orientations;
-	if(_h_bonds != NULL)
+	}
+	if(_h_bonds != NULL) {
 		delete[] _h_bonds;
+	}
 }
 
 void CUDABaseBackend::_host_to_gpu() {
@@ -228,10 +231,10 @@ void CUDABaseBackend::init_cuda() {
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_buff_bonds, _bonds_size));
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<GPU_quat>(&_d_buff_orientations, _orient_size));
 
-	reset_sorted_hindex
-	<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
-	(_d_sorted_hindex);
-}
+		reset_sorted_hindex
+		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
+		(_d_sorted_hindex);
+	}
 }
 
 void CUDABaseBackend::_init_CUDA_kernel_cfgs() {
@@ -253,23 +256,23 @@ _particles_kernel_cfg.blocks.x, _particles_kernel_cfg.blocks.y, _particles_kerne
 }
 
 void CUDABaseBackend::_sort_index() {
-reset_sorted_hindex
+	reset_sorted_hindex
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_sorted_hindex);
 		CUT_CHECK_ERROR("reset_sorted_hindex error");
 
-hilbert_curve
+	hilbert_curve
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, _d_hindex);
 		CUT_CHECK_ERROR("hilbert_curve error");
 
-thrust::device_ptr<int> _d_hindex_p(_d_hindex);
-thrust::device_ptr<int> _d_sorted_hindex_p(_d_sorted_hindex);
-// sort d_sorted_hindex by using d_hindex
-thrust::sort_by_key(_d_hindex_p, _d_hindex_p + CONFIG_INFO->N(), _d_sorted_hindex_p);
-get_inverted_sorted_hindex
-<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
-(_d_sorted_hindex, _d_inv_sorted_hindex);
+	thrust::device_ptr<int> _d_hindex_p(_d_hindex);
+	thrust::device_ptr<int> _d_sorted_hindex_p(_d_sorted_hindex);
+	// sort d_sorted_hindex by using d_hindex
+	thrust::sort_by_key(_d_hindex_p, _d_hindex_p + CONFIG_INFO->N(), _d_sorted_hindex_p);
+	get_inverted_sorted_hindex
+		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
+		(_d_sorted_hindex, _d_inv_sorted_hindex);
 }
 
 #pragma GCC diagnostic pop

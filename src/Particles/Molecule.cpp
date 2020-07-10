@@ -23,7 +23,7 @@ void Molecule::add_particle(BaseParticle *p) {
 }
 
 void Molecule::normalise() {
-
+	throw oxDNAException("The Molecule::normalise() method has not been implemented yet!");
 }
 
 unsigned int Molecule::N() {

@@ -86,7 +86,9 @@ void MDBackend::get_settings(input_file &inp) {
 		_obs_output_stdout->add_observable("type = step");
 		_obs_output_stdout->add_observable("type = step\nunits = MD");
 		_obs_output_stdout->add_observable("type = total_energy");
-		if(_use_barostat) _obs_output_stdout->add_observable("type = density");
+		if(_use_barostat) {
+			_obs_output_stdout->add_observable("type = density");
+		}
 		_obs_output_stdout->add_observable("type = backend_info");
 	}
 }
@@ -112,11 +114,15 @@ void MDBackend::init() {
 	_timer_forces = TimingManager::instance()->new_timer(string("Forces"), string("SimBackend"));
 	_timer_thermostat = TimingManager::instance()->new_timer(string("Thermostat"), string("SimBackend"));
 	_timer_lists = TimingManager::instance()->new_timer(string("Lists"), string("SimBackend"));
-	if(_use_barostat) _timer_barostat = TimingManager::instance()->new_timer(string("Barostat"), string("SimBackend"));
+	if(_use_barostat) {
+		_timer_barostat = TimingManager::instance()->new_timer(string("Barostat"), string("SimBackend"));
+	}
 }
 
 bool MDBackend::_is_barostat_active() {
-	if(!_use_barostat) return false;
+	if(!_use_barostat) {
+		return false;
+	}
 	return _barostat_probability > drand48();
 }
 
@@ -165,7 +171,9 @@ void MDBackend::fix_diffusion() {
 }
 
 void MDBackend::print_observables(llint curr_step) {
-	if(_use_barostat) this->_backend_info.insert(0, Utils::sformat(" %5.3lf", _barostat_acceptance));
+	if(_use_barostat) {
+		this->_backend_info.insert(0, Utils::sformat(" %5.3lf", _barostat_acceptance));
+	}
 
 	SimBackend::print_observables(curr_step);
 }
