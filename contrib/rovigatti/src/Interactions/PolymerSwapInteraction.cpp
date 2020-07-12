@@ -1,6 +1,8 @@
 #include "PolymerSwapInteraction.h"
 
+#include "Particles/Molecule.h"
 #include "Particles/CustomParticle.h"
+
 #include <fstream>
 
 PolymerSwapInteraction::PolymerSwapInteraction() :
@@ -116,27 +118,32 @@ void PolymerSwapInteraction::begin_energy_computation() {
 	std::fill(_inter_chain_stress_tensor.begin(), _inter_chain_stress_tensor.end(), 0.);
 	_chain_coms.resize(_N_chains, LR_vector(0., 0., 0.));
 
-	int curr_idx = 0;
-	for(int curr_chain = 0; curr_chain < _N_chains; curr_chain++) {
-		LR_vector prev_r = CONFIG_INFO->particles()[curr_idx]->pos;
-		LR_vector delta_r(0., 0., 0.);
-		_chain_coms[curr_chain] = _chain_size * prev_r;
-		curr_idx++;
-		for(int i = 1; i < _chain_size; i++) {
-			BaseParticle *pi = CONFIG_INFO->particles()[curr_idx];
-			LR_vector ri = pi->pos;
-			delta_r += _box->min_image(prev_r, ri);
-			_chain_coms[curr_chain] += delta_r;
-			prev_r = ri;
-
-			if(pi->strand_id != curr_chain) {
-				throw oxDNAException("mismatch detected between chain ids during the computation of P (%d != %d)", pi->strand_id, curr_chain);
-			}
-
-			curr_idx++;
-		}
-		_chain_coms[curr_chain] /= _chain_size;
+	for(int i = 0; i < _N_chains; i++) {
+		CONFIG_INFO->molecules()[i]->update_com();
+		_chain_coms[i] = CONFIG_INFO->molecules()[i]->com;
 	}
+
+//	int curr_idx = 0;
+//	for(int curr_chain = 0; curr_chain < _N_chains; curr_chain++) {
+//		LR_vector prev_r = CONFIG_INFO->particles()[curr_idx]->pos;
+//		LR_vector delta_r(0., 0., 0.);
+//		_chain_coms[curr_chain] = _chain_size * prev_r;
+//		curr_idx++;
+//		for(int i = 1; i < _chain_size; i++) {
+//			BaseParticle *pi = CONFIG_INFO->particles()[curr_idx];
+//			LR_vector ri = pi->pos;
+//			delta_r += _box->min_image(prev_r, ri);
+//			_chain_coms[curr_chain] += delta_r;
+//			prev_r = ri;
+//
+//			if(pi->strand_id != curr_chain) {
+//				throw oxDNAException("mismatch detected between chain ids during the computation of P (%d != %d)", pi->strand_id, curr_chain);
+//			}
+//
+//			curr_idx++;
+//		}
+//		_chain_coms[curr_chain] /= _chain_size;
+//	}
 
 	_bonds.clear();
 }

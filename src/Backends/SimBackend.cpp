@@ -343,7 +343,10 @@ void SimBackend::init() {
 	}
 
 	// initialise the molecules
-	_molecules.resize(_N_strands, std::make_shared<Molecule>());
+	for(int i = 0; i < _N_strands; i++) {
+		_molecules.push_back(std::make_shared<Molecule>());
+	}
+
 	for(auto p : _particles) {
 		int mol_id = p->strand_id;
 		_molecules[mol_id]->add_particle(p);

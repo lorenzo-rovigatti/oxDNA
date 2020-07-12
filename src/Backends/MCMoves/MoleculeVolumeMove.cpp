@@ -46,7 +46,7 @@ void MoleculeVolumeMove::apply(llint curr_step) {
 	_attempted += 1;
 
 	std::vector<BaseParticle*> &particles = _Info->particles();
-	int N_molecules = CONFIG_INFO->molecules().size();
+	int N_molecules = _Info->molecules().size();
 
 	LR_vector box_sides = _Info->box->box_sides();
 	LR_vector old_box_sides = box_sides;
@@ -75,27 +75,35 @@ void MoleculeVolumeMove::apply(llint curr_step) {
 	_Info->box->init(box_sides[0], box_sides[1], box_sides[2]);
 	number dExt = (number) 0.f;
 
-	LR_vector rescale_factor(
-			box_sides[0] / old_box_sides[0],
-			box_sides[1] / old_box_sides[1],
-			box_sides[2] / old_box_sides[2]);
+	LR_vector shift_factor(
+		box_sides[0] / old_box_sides[0] - 1.,
+		box_sides[1] / old_box_sides[1] - 1.,
+		box_sides[2] / old_box_sides[2] - 1.
+	);
 
 	static std::vector<LR_vector> shifts(N_molecules);
 	// we account for possible changes to the number of molecules
 	shifts.resize(N_molecules);
 	int i = 0;
-	for(auto mol : CONFIG_INFO->molecules()) {
+	for(auto mol : _Info->molecules()) {
 		mol->update_com();
 		shifts[i] = LR_vector(
-				mol->com[0] * (rescale_factor[0] - 1.),
-				mol->com[1] * (rescale_factor[1] - 1.),
-				mol->com[2] * (rescale_factor[2] - 1.));
+			mol->com[0] * shift_factor[0],
+			mol->com[1] * shift_factor[1],
+			mol->com[2] * shift_factor[2]
+		);
 		i++;
 	}
 
 	for(auto p : particles) {
 		dExt -= p->ext_potential;
+	}
+
+	for(auto p : particles) {
 		p->pos += shifts[p->strand_id];
+	}
+
+	for(auto p : particles) {
 		p->set_ext_potential(curr_step, _Info->box);
 		dExt += p->ext_potential;
 	}
@@ -111,7 +119,7 @@ void MoleculeVolumeMove::apply(llint curr_step) {
 	number V = _Info->box->V();
 	number dV = V - oldV;
 
-	if(_Info->interaction->get_is_infinite() == false && exp(-(dE + _P * dV - N_molecules * _T * log(V / oldV)) / _T) > drand48()) {
+	if(_Info->interaction->get_is_infinite() == false && exp(-(dE + _P * dV - (N_molecules + 1) * _T * log(V / oldV)) / _T) > drand48()) {
 		_accepted++;
 		if(curr_step < _equilibration_steps && _adjust_moves) {
 			_delta *= _acc_fact;
@@ -120,14 +128,20 @@ void MoleculeVolumeMove::apply(llint curr_step) {
 	else {
 		for(auto p : particles) {
 			p->pos -= shifts[p->strand_id];
+		}
+
+		for(auto p : particles) {
 			p->set_ext_potential(curr_step, _Info->box);
 		}
+
 		_Info->interaction->set_is_infinite(false);
 		_Info->box->init(old_box_sides[0], old_box_sides[1], old_box_sides[2]);
+
 		_Info->lists->change_box();
 		if(!_Info->lists->is_updated()) {
 			_Info->lists->global_update();
 		}
+
 		if(curr_step < _equilibration_steps && _adjust_moves) {
 			_delta /= _rej_fact;
 		}
