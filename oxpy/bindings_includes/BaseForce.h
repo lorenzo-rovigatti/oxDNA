@@ -26,6 +26,9 @@ public:
 				inp,
 				box
 		);
+
+		// suppress warnings
+		return std::tuple<std::vector<int>, std::string>();
 	}
 
 	LR_vector value(llint step, LR_vector &pos) override {
@@ -36,6 +39,9 @@ public:
 				step,
 				pos
 		);
+
+		// suppress warnings
+		return LR_vector();
 	}
 
 	number potential(llint step, LR_vector &pos) override {
@@ -46,6 +52,9 @@ public:
 				step,
 				pos
 		);
+
+		// suppress warnings
+		return 0.;
 	}
 };
 

@@ -47,15 +47,15 @@ void input_file::init_from_filename(std::string filename) {
 	return;
 }
 
-void input_file::init_from_command_line_args(int argc, char *argv[]) {
+void input_file::init_from_command_line_args(int argc, char *argv[], int args_to_skip) {
 	init_from_filename(argv[1]);
 	if(state == ERROR) {
 		throw oxDNAException("Caught an error while opening the input file");
 	}
 
-	if(argc > 2) {
+	if(argc > (2 + args_to_skip)) {
 		string s_inp("");
-		for(int i = 2; i < argc; i++) {
+		for(int i = (2 + args_to_skip); i < argc; i++) {
 			s_inp += string(argv[i]) + string("\n");
 		}
 		add_input_source(s_inp);

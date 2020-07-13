@@ -24,6 +24,8 @@ public:
 				get_output_string,
 				curr_step
 		);
+
+		return std::string();
 	}
 };
 

@@ -35,6 +35,7 @@ struct input_value {
 };
 
 typedef std::map<std::string, input_value> input_map;
+
 struct input_file {
 	input_map keys;
 	std::vector<std::string> unread_keys;
@@ -61,13 +62,16 @@ struct input_file {
 	/**
 	 * @brief Load keys and values from command line's argc and argv variables
 	 *
-	 * This function will build the data strctures out of argv. The first non-zero element should be
+	 * This function will build the data structures out of argv. The first non-zero element should be
 	 * the name of the input file, while the rest of the elements will be interpreted as key=value pairs.
+	 * This method can optional skip additional argv elements that come after the input file and that
+	 * should not interpreted as key=value pairs.
 	 *
 	 * @param argc
 	 * @param argv
+	 * @param args_to_skip optional parameter that sets the number of argv elements that should not be considered key=value pairs (in addition to the first one)
 	 */
-	void init_from_command_line_args(int argc, char *argv[]);
+	void init_from_command_line_args(int argc, char *argv[], int args_to_skip=0);
 
 	/**
 	 * @brief Add the keys and values found in the desc file.
