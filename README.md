@@ -81,7 +81,9 @@ Most of the options that can be specified in the input file can be found in the 
 
 ### Python Bindings
 
-The API are still unstable, and only few features are exposed through this interface. The following snippet shows a very simple example:
+The API are still unstable, and only few features are exposed through this interface. A basic documentation can be accessed by browsing `docs/oxpy/html/index.html`.  
+
+The following snippet shows a very simple example:
 
 ```python
 import numpy as np
