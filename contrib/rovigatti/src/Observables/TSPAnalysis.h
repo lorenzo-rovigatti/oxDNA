@@ -64,6 +64,7 @@ public:
 	void set_anchor(TSPParticle *p) {
 		_anchor = p;
 	}
+
 	void set_config_info(ConfigInfo *ci) {
 		_config_info = ci;
 	}

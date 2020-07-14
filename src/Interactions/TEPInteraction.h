@@ -66,9 +66,9 @@ protected:
 	/// true by default; set this to false if you want the code to not die when bonded backbones are found to be outside the acceptable FENE range
 	bool _allow_broken_fene;
 
-// false by default: set this to true if you want neighbouring particles to be bound by a quadratic potential instead of a FENE
+	// false by default: set this to true if you want neighbouring particles to be bound by a quadratic potential instead of a FENE
 	bool _prefer_harmonic_over_fene;
-// zero by default: if nonzero, the beads with a virtual neighbour will be twisted (e.g. will try and align the potential v2 vector to a spinning vector). This twist means that the twist_extremal_particles interaction will be used.
+	// zero by default: if nonzero, the beads with a virtual neighbour will be twisted (e.g. will try and align the potential v2 vector to a spinning vector). This twist means that the twist_extremal_particles interaction will be used.
 	number _twist_boundary_stiff;
 
 	LR_vector _o1;
@@ -78,7 +78,6 @@ protected:
 	LR_vector _w1;
 	LR_vector _w2;
 	int _time_increment;
-//	int _max_delta_lk;
 	llint _my_time1;
 	llint _my_time2;
 	llint _time_var;
@@ -86,15 +85,15 @@ protected:
 	llint _choose_direction_time;
 	llint _print_torques_every;
 
-	virtual number _spring(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _bonded_bending(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _bonded_double_bending(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _bonded_twist(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _bonded_alignment(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _bonded_debye_huckel(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _nonbonded_debye_huckel(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	virtual number _nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _spring(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _bonded_bending(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _bonded_double_bending(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _bonded_twist(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _bonded_alignment(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _bonded_debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _nonbonded_debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	inline number _repulsive_lj2(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 	int setNonNegativeNumber(input_file *inp, const char * skey, number *dest, int mandatory, const char * arg_description);
@@ -203,8 +202,8 @@ protected:
 	// The following are all the functions used to implement the twisting of the extremal beads. Hopefully to be removed when torques are programmed properly.
 	int getInputDirection(input_file *inp, const char * skey, LR_vector *dest, int mandatory);
 	LR_vector rotateVectorAroundVersor(const LR_vector vector, const LR_vector versor, const number angle);
-	number _twist_boundary_particles(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _index_twist_boundary_particles(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _twist_boundary_particles(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _index_twist_boundary_particles(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 public:
 	enum {
 		SPRING = 0, BONDED_BENDING = 1, BONDED_TWIST = 2, BONDED_ALIGNMENT = 3, NONBONDED_EXCLUDED_VOLUME = 4, BONDED_DEBYE_HUCKEL = 5, NONBONDED_DEBYE_HUCKEL = 6
@@ -217,11 +216,11 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
+		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);

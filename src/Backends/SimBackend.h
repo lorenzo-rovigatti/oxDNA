@@ -14,6 +14,7 @@
 
 #include "../defs.h"
 #include "../Observables/ObservableOutput.h"
+#include "../Particles/Molecule.h"
 
 #include <cmath>
 #include <fstream>
@@ -149,10 +150,10 @@ protected:
 	/// array of pointers to particle objects
 	std::vector<BaseParticle *> _particles;
 
-	/// object that stores pointers to a few important variables that need to be shared with other objects
-	ConfigInfo *_config_info;
+	std::vector<std::shared_ptr<Molecule>> _molecules;
 
-	void _get_number_settings(input_file &inp);
+	/// object that stores pointers to a few important variables that need to be shared with other objects
+	std::shared_ptr<ConfigInfo> _config_info;
 
 	int _N_updates;
 	int _confs_to_skip;
@@ -178,13 +179,6 @@ protected:
 	bool _read_next_configuration(bool binary=false);
 
 	int _get_N_from_conf(std::ifstream &conf_input);
-
-	/**
-	 * @brief Prints all the observables that are ready, i.e. whose is_ready(curr_step) method returns true.
-	 *
-	 * @param curr_step
-	 */
-	virtual void _print_ready_observables(llint curr_step);
 
 public:
 	SimBackend();
@@ -235,7 +229,17 @@ public:
 	 */
 	virtual void sim_step(llint curr_step) = 0;
 
-	llint _start_step_from_file;
+	/**
+	 * @brief Synchronize the simulation data with the data structures that are used to analyse/print the current simulation status.
+	 */
+	virtual void apply_simulation_data_changes();
+
+	/**
+	 * @brief Update the simulation data, so that changes done to the data structures are taken into account by the simulation engine.
+	 */
+	virtual void apply_changes_to_simulation_data();
+
+	llint start_step_from_file;
 };
 
 #endif /* SIMBACKEND_H_ */

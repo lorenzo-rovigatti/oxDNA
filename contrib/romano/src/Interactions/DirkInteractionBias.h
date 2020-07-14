@@ -89,7 +89,7 @@ public:
 	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
@@ -102,13 +102,13 @@ template<typename number>
 number DirkInteractionBias<number>::_dirk_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
 	
-	number rnorm = (*r).norm(); 
+	number rnorm = _computed_r.norm(); 
 	if (rnorm > this->_sqr_rcut) return (number) 0.f;
 
 	// overlap between DHS
 	LR_vector<number> pdhs = p->orientation.v3 * _length / 2.;
 	LR_vector<number> qdhs = q->orientation.v3 * _length / 2.;
-	LR_vector<number> drdhs = *r + qdhs - pdhs;
+	LR_vector<number> drdhs = _computed_r + qdhs - pdhs;
 	number drdhsnorm = drdhs.norm();
 
 	if (rnorm < _hard_sqr_rcut) {
@@ -131,7 +131,7 @@ number DirkInteractionBias<number>::_dirk_pot (BaseParticle<number> *p, BasePart
 		number compar = _DHS_radius * _DHS_radius + diag_cyl * diag_cyl + 2. * _DHS_radius * diag_cyl;
 		
 		// dhsq - cylinderp
-		LR_vector<number> drcyl = *r + qdhs;
+		LR_vector<number> drcyl = _computed_r + qdhs;
 		if (drcyl.norm () < compar) {
 			if (InteractionUtils::cylinder_sphere_overlap (drcyl, p->orientation.v3, _length, _DHS_radius)) {
 				this->set_is_infinite(true);
@@ -140,7 +140,7 @@ number DirkInteractionBias<number>::_dirk_pot (BaseParticle<number> *p, BasePart
 		}
 	
 		// dhsp - cylinderq
-		drcyl = -(*r - pdhs); 
+		drcyl = -(_computed_r - pdhs); 
 		if (drcyl.norm () < compar) {
 			if (InteractionUtils::cylinder_sphere_overlap (drcyl, q->orientation.v3, _length, _DHS_radius)) {
 				this->set_is_infinite(true);

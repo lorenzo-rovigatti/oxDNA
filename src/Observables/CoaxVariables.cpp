@@ -46,8 +46,8 @@ std::string CoaxVariables::get_output_string(llint curr_step) {
 
 	BaseParticle *p;
 	BaseParticle *q;
-	p = _config_info->particles[_particle1_id];
-	q = _config_info->particles[_particle2_id];
+	p = _config_info->particles()[_particle1_id];
+	q = _config_info->particles()[_particle2_id];
 	output_str << p->index << " " << q->index << " ";
 
 	// Modified version of coaxial stacking calculation code

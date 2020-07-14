@@ -112,7 +112,7 @@ void CPAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
 void CPAnalysis::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	_cells = new CPCells(config_info.particles, config_info.box);
+	_cells = new CPCells(config_info.particles(), config_info.box);
 	if(_type != -1) _cells->set_allowed_type(_type);
 	_cells->init(_sigma);
 }

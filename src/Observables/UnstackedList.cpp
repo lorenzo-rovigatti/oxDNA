@@ -36,7 +36,7 @@ void UnstackedList::get_settings(input_file &my_inp, input_file &sim_inp) {
 		if(!average) {
 			std::string seq_filename;
 			getInputString(&sim_inp, "seq_dep_file", seq_filename, 1);
-			loadInputFile(&seq_file, seq_filename.c_str());
+			seq_file.init_from_filename(seq_filename.c_str());
 		}
 	}
 
@@ -98,8 +98,8 @@ std::string UnstackedList::get_output_string(llint curr_step) {
 
 	int N = _config_info->N();
 	for(int i = 0; i < N - 1; i++) {
-		BaseParticle * p = _config_info->particles[i];
-		BaseParticle * q = _config_info->particles[i + 1];
+		BaseParticle * p = _config_info->particles()[i];
+		BaseParticle * q = _config_info->particles()[i + 1];
 
 		//the following line don't need to be different for every interaction, assuming that all these interactions have the same values of STACKING and COAXIAL_STACKING, which is true
 		// for any interaction that inherits from DNAInteraction (unless it's changed explicitly).

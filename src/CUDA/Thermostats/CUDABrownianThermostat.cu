@@ -7,6 +7,7 @@
 
 #include "CUDABrownianThermostat.h"
 
+#include "../cuda_utils/CUDA_lr_common.cuh"
 #include "../../Utilities/ConfigInfo.h"
 
 #include <curand_kernel.h>

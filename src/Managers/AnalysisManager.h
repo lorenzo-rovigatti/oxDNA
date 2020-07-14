@@ -19,11 +19,11 @@
  */
 class AnalysisManager {
 protected:
-	input_file _input;
+	input_file &_input;
 	std::shared_ptr<AnalysisBackend> _backend;
 
 public:
-	AnalysisManager(int argc, char *argv[]);
+	AnalysisManager(input_file input);
 	virtual ~AnalysisManager();
 
 	void load_options();

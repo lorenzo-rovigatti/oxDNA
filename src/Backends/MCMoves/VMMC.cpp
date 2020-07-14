@@ -118,7 +118,7 @@ number VMMC::build_cluster (movestr * moveptr, int maxsize) {
 	set<int> prelinked_particles; //number of prelinked particles
 
 	// CLUSTER GENERATION
-	pp = this->_Info->particles[_clust[0]];
+	pp = this->_Info->particles()[_clust[0]];
 	pp->inclust = true;
 
 	std::set<ParticlePair > possible_links;
@@ -266,7 +266,7 @@ number VMMC::build_cluster (movestr * moveptr, int maxsize) {
 	}
 
 	for (int i = 0; i < nclust; i++) {
-		pp = this->_Info->particles[_clust[i]];
+		pp = this->_Info->particles()[_clust[i]];
 		_store_particle(pp);
 		_move_particle(moveptr, pp);
 		if (pp->pos.sqr_distance(this->_particles_old[pp->index]->pos) > this->_max_move_size_sqr) {
@@ -291,7 +291,7 @@ void VMMC::apply (llint curr_step) {
 
 	// generate the move
 	int pi = (int) (drand48() * _Info->N());
-	BaseParticle *p = this->_Info->particles[pi];
+	BaseParticle *p = this->_Info->particles()[pi];
 	movestr move;
 	move.seed = pi;
 	move.seed_strand_id = p->strand_id;
@@ -307,7 +307,7 @@ void VMMC::apply (llint curr_step) {
 		move.Rt = (move.R).get_transpose();
 		// WAS THIS move.t = this->_particles[move.seed]->int_centers[DNANucleotide::BACK];
 		// WE MAY WANT THIS move.t = this->_particles[move.seed]->int_centers[DNANucleotide::BACK] + this->_particles[move.seed]->pos;
-		move.t = this->_Info->particles[move.seed]->pos;
+		move.t = this->_Info->particles()[move.seed]->pos;
 	}
 
 	// build the cluster;
@@ -323,7 +323,7 @@ void VMMC::apply (llint curr_step) {
 	// forces. Otherwise, there is no point.
 	if (this->_Info->interaction->get_is_infinite() == false && pprime > 0.) {
 		for (int l = 0; l < nclust; l++) {
-			p = this->_Info->particles[_clust[l]];
+			p = this->_Info->particles()[_clust[l]];
 			delta_E_ext += - p->ext_potential;
 			p->set_ext_potential(curr_step, this->_Info->box);
 			delta_E_ext += + p->ext_potential;
@@ -350,7 +350,7 @@ void VMMC::apply (llint curr_step) {
 	else {
 		//move rejected
 		for (int l = 0; l < nclust; l ++) {
-			BaseParticle * pp = this->_Info->particles[_clust[l]];
+			BaseParticle * pp = this->_Info->particles()[_clust[l]];
 			_restore_particle (pp);
 			this->_Info->lists->single_update(pp);
 			pp->set_ext_potential(curr_step, this->_Info->box);
@@ -363,7 +363,7 @@ void VMMC::apply (llint curr_step) {
 		}
 	}
 
-	for (int l = 0; l < nclust; l ++) this->_Info->particles[_clust[l]]->inclust = false;
+	for (int l = 0; l < nclust; l ++) this->_Info->particles()[_clust[l]]->inclust = false;
 
 	return;
 }

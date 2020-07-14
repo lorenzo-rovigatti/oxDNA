@@ -43,7 +43,7 @@ protected:
 	/**
 	 * @brief Adds the current force to the particle(s) listed in particle_string
 	 *
-	 * This method internally uses Utils::getParticlesFromString to extract a list of particles from the particle_string parameter
+	 * This method internally uses Utils::get_particles_from_string to extract a list of particles from the particle_string parameter
 	 * and then use it to initialise all the particles contained therein.
 	 *
 	 * @param particles particle array

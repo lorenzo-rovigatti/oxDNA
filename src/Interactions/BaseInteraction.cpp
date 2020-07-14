@@ -13,6 +13,9 @@ IBaseInteraction::IBaseInteraction() {
 	_box = NULL;
 	_generate_consider_bonded_interactions = false;
 	_generate_bonded_cutoff = 2.0;
+	_temperature = 1.0;
+	_rcut = 0.;
+	_sqr_rcut = 0.;
 }
 
 IBaseInteraction::~IBaseInteraction() {
@@ -20,7 +23,7 @@ IBaseInteraction::~IBaseInteraction() {
 }
 
 void IBaseInteraction::get_settings(input_file &inp) {
-	getInputString(&inp, "topology", this->_topology_filename, 1);
+	getInputString(&inp, "topology", _topology_filename, 1);
 	getInputNumber(&inp, "energy_threshold", &_energy_threshold, 0);
 	getInputNumber(&inp, "T", &_temperature, 1);
 	getInputBool(&inp, "generate_consider_bonded_interactions", &_generate_consider_bonded_interactions, 0);
@@ -32,8 +35,8 @@ void IBaseInteraction::get_settings(input_file &inp) {
 
 int IBaseInteraction::get_N_from_topology() {
 	std::ifstream topology;
-	topology.open(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	topology.open(_topology_filename, std::ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	int ret;
 	topology >> ret;
 	topology.close();
@@ -44,7 +47,7 @@ void IBaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *>
 	*N_strands = particles.size();
 	allocate_particles(particles);
 	int idx = 0;
-	for(auto p: particles) {
+	for(auto p : particles) {
 		p->index = idx;
 		p->type = 0;
 		p->strand_id = idx;
@@ -52,58 +55,80 @@ void IBaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *>
 	}
 }
 
-number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
-	double energy = 0.;
+void IBaseInteraction::begin_energy_computation() {
+	if(has_custom_stress_tensor()) {
+		reset_stress_tensor();
+	}
+}
 
+void IBaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force) {
+	_stress_tensor[0] += r_p[0] * group_force[0];
+	_stress_tensor[1] += r_p[1] * group_force[1];
+	_stress_tensor[2] += r_p[2] * group_force[2];
+	_stress_tensor[3] += r_p[0] * group_force[1];
+	_stress_tensor[4] += r_p[0] * group_force[2];
+	_stress_tensor[5] += r_p[1] * group_force[2];
+}
+
+void IBaseInteraction::reset_stress_tensor() {
+	std::fill(_stress_tensor.begin(), _stress_tensor.end(), 0.);
+}
+
+number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
+	begin_energy_computation();
+
+	double energy = 0.;
 	std::vector<ParticlePair> pairs = lists->get_potential_interactions();
-	typename std::vector<ParticlePair>::iterator it;
-	for(it = pairs.begin(); it != pairs.end(); it++) {
-		BaseParticle *p = (*it).first;
-		BaseParticle *q = (*it).second;
+	for(auto &pair : pairs) {
+		BaseParticle *p = pair.first;
+		BaseParticle *q = pair.second;
 		energy += (double) pair_interaction(p, q);
-		if(this->get_is_infinite()) return energy;
+		if(get_is_infinite()) {
+			return energy;
+		}
 	}
 
 	return (number) energy;
 }
 
 number IBaseInteraction::get_system_energy_term(int name, std::vector<BaseParticle *> &particles, BaseList *lists) {
-	number energy = (number) 0.f;
+	begin_energy_computation();
 
-	for(auto p: particles) {
+	number energy = (number) 0.f;
+	for(auto p : particles) {
 		std::vector<BaseParticle *> neighs = lists->get_all_neighbours(p);
 
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
 			if(p->index > q->index) energy += pair_interaction_term(name, p, q);
-			if(this->get_is_infinite()) return energy;
+			if(get_is_infinite()) return energy;
 		}
 	}
 
 	return energy;
 }
 
-bool IBaseInteraction::generate_random_configuration_overlap(BaseParticle * p, BaseParticle * q) {
-	LR_vector dr = _box->min_image(p, q);
+bool IBaseInteraction::generate_random_configuration_overlap(BaseParticle *p, BaseParticle *q) {
+	_computed_r = _box->min_image(p, q);
 
-	if(dr.norm() >= this->_sqr_rcut) return false;
+	if(_computed_r.norm() >= _sqr_rcut) {
+		return false;
+	}
 
-	// number energy = pair_interaction(p, q, &dr, false);
-	number energy = pair_interaction_nonbonded(p, q, &dr, false);
+	number energy = pair_interaction_nonbonded(p, q, false, false);
 
 	// in case we create an overlap, we reset the interaction state
-	this->set_is_infinite(false);
+	set_is_infinite(false);
 
 	// if energy too large, reject
-	if(energy > _energy_threshold) return true;
-	else return false;
+	return energy > _energy_threshold;
 }
 
 void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	Cells c(particles, _box);
 	c.init(_rcut);
 
-	for(auto p: particles) {
+	for(auto p : particles) {
 		p->pos = LR_vector(drand48() * _box->box_sides().x, drand48() * _box->box_sides().y, drand48() * _box->box_sides().z);
 	}
 
@@ -116,8 +141,12 @@ void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *>
 
 		bool inserted = false;
 		do {
-			if(same_strand) p->pos = particles[i - 1]->pos + LR_vector((drand48() - 0.5), (drand48() - 0.5), (drand48() - 0.5)) * _generate_bonded_cutoff;
-			else p->pos = LR_vector(drand48() * _box->box_sides().x, drand48() * _box->box_sides().y, drand48() * _box->box_sides().z);
+			if(same_strand) {
+				p->pos = particles[i - 1]->pos + LR_vector((drand48() - 0.5), (drand48() - 0.5), (drand48() - 0.5)) * _generate_bonded_cutoff;
+			}
+			else {
+				p->pos = LR_vector(drand48() * _box->box_sides().x, drand48() * _box->box_sides().y, drand48() * _box->box_sides().z);
+			}
 			// random orientation
 			//p->orientation = Utils::get_random_rotation_matrix (2.*M_PI);
 			p->orientation = Utils::get_random_rotation_matrix_from_angle(acos(2. * (drand48() - 0.5)));
@@ -125,7 +154,7 @@ void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *>
 			p->orientationT = p->orientation.get_transpose();
 
 			p->set_positions();
-			p->set_ext_potential(0, this->_box);
+			p->set_ext_potential(0, _box);
 			c.single_update(p);
 
 			inserted = true;

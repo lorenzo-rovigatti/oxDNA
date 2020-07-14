@@ -79,7 +79,7 @@ public:
 	virtual number pair_interaction_bonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_term(int name, BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r=NULL, bool update_forces=false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(BaseParticle<number> **particles, int N);
@@ -92,10 +92,10 @@ template<typename number>
 number DirkInteraction<number>::_dirk_pot_old (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
 	
-	if ((*r).norm() > this->_sqr_rcut) return (number) 0.f;
+	if (_computed_r.norm() > this->_sqr_rcut) return (number) 0.f;
 	
 	// overlap between cylinders
-	bool cylinder_overlap = InteractionUtils::cylinder_overlap (p, q, (*r), _length);
+	bool cylinder_overlap = InteractionUtils::cylinder_overlap (p, q, _computed_r, _length);
 	if (cylinder_overlap) {
 		this->set_is_infinite (true);
 		return (number) 1.e12;
@@ -105,7 +105,7 @@ number DirkInteraction<number>::_dirk_pot_old (BaseParticle<number> *p, BasePart
 	LR_vector<number> dhsp = p->orientation.v3 * (_length / 2.); 
 	LR_vector<number> dhsq = q->orientation.v3 * (_length / 2.); 
 
-	LR_vector<number> dhsdr = (*r) + dhsq - dhsp; 
+	LR_vector<number> dhsdr = _computed_r + dhsq - dhsp; 
 	number dhsdrnorm = dhsdr.norm();
 	if (dhsdrnorm <= (4. * _DHS_radius * _DHS_radius)) {
 		this->set_is_infinite(true);
@@ -113,21 +113,21 @@ number DirkInteraction<number>::_dirk_pot_old (BaseParticle<number> *p, BasePart
 				p->pos.x, p->pos.y, p->pos.z,
 				p->orientationT.v3.x, p->orientationT.v3.y, p->orientationT.v3.z,
 				q->pos.x, q->pos.y, q->pos.z,
-				q->orientationT.v3.x, q->orientationT.v3.y, q->orientationT.v3.z, sqrt(dhsdrnorm), sqrt((*r).norm()));
+				q->orientationT.v3.x, q->orientationT.v3.y, q->orientationT.v3.z, sqrt(dhsdrnorm), sqrt(_computed_r.norm()));
 		return (number) 1.e12;
 	}
 	
 	// dhsq - cylinderp
-	bool ov1 = InteractionUtils::sphere_spherocylinder_overlap (-((*r) + dhsq), _DHS_radius, p->orientation.v3, _length, (number)0.5f);
-	if (!ov1) ov1 = InteractionUtils::sphere_box_overlap (-((*r) + dhsq), _DHS_radius, p->orientation, (number)1.f, (number)1.f, _length);
+	bool ov1 = InteractionUtils::sphere_spherocylinder_overlap (-(_computed_r + dhsq), _DHS_radius, p->orientation.v3, _length, (number)0.5f);
+	if (!ov1) ov1 = InteractionUtils::sphere_box_overlap (-(_computed_r + dhsq), _DHS_radius, p->orientation, (number)1.f, (number)1.f, _length);
 	if (ov1) {
 		this->set_is_infinite(true);
 		return (number) 1.e12;
 	}
 	
 	// dhsq - cylinderp
-	bool ov2 = InteractionUtils::sphere_spherocylinder_overlap ( ((*r) - dhsp), _DHS_radius, q->orientation.v3, _length, (number)0.5f);
-	if (!ov2) ov2 = InteractionUtils::sphere_box_overlap ( ((*r) - dhsp), _DHS_radius, q->orientation, (number)1.f, (number)1.f, _length);
+	bool ov2 = InteractionUtils::sphere_spherocylinder_overlap ( (_computed_r - dhsp), _DHS_radius, q->orientation.v3, _length, (number)0.5f);
+	if (!ov2) ov2 = InteractionUtils::sphere_box_overlap ( (_computed_r - dhsp), _DHS_radius, q->orientation, (number)1.f, (number)1.f, _length);
 	if (ov2) {
 		this->set_is_infinite(true);
 		return (number) 1.e12;
@@ -137,13 +137,13 @@ number DirkInteraction<number>::_dirk_pot_old (BaseParticle<number> *p, BasePart
 	if (dhsdrnorm > _DHS_sqr_rcut) return 0.f;
 	
 	// direct part
-	//number energy = - (1. / (dhsdrnorm * sqrt(dhsdrnorm))) * (3.f * (*r).z * (*r).z / dhsdrnorm - (number) 1.f);
+	//number energy = - (1. / (dhsdrnorm * sqrt(dhsdrnorm))) * (3.f * _computed_r.z * _computed_r.z / dhsdrnorm - (number) 1.f);
 
 	// reaction field part
 	//energy += - _DHS_rf_fact; 
 	
 	//number dot = p->orientation.v3 * q->orientation.v3;
-	//number energy = - (1. / (dhsdrnorm * sqrt(dhsdrnorm))) * (3 * (p->orientation.v3 * (*r)) * (q->orientation.v3 * (*r)) / dhsdrnorm - dot); 
+	//number energy = - (1. / (dhsdrnorm * sqrt(dhsdrnorm))) * (3 * (p->orientation.v3 * _computed_r) * (q->orientation.v3 * _computed_r) / dhsdrnorm - dot); 
 	//energy += - _DHS_rf_fact * dot; 
 	
 	number dot = p->orientation.v1 * q->orientation.v1;
@@ -158,7 +158,7 @@ template<typename number>
 number DirkInteraction<number>::_dirk_pot (BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
 	
-	number rnorm = (*r).norm(); 
+	number rnorm = _computed_r.norm(); 
 	if (rnorm > this->_sqr_rcut) return (number) 0.f;
 
 	// overlap between DHS
@@ -170,7 +170,7 @@ number DirkInteraction<number>::_dirk_pot (BaseParticle<number> *p, BaseParticle
 	LR_vector<number> pcyl = p->orientation.v3 * _length / 2.;
 	LR_vector<number> qcyl = q->orientation.v3 * _length / 2.;
 	// overlap between cylinders
-	LR_vector<number> drcyl = (*r) + qcyl - pcyl; 
+	LR_vector<number> drcyl = _computed_r + qcyl - pcyl; 
 	if (drcyl.norm() < _length * _length + 0.25 + 0.01) {
 		bool cylinder_overlap = InteractionUtils::cylinder_overlap (p, q, drcyl, _length);
 		if (cylinder_overlap) {
@@ -181,7 +181,7 @@ number DirkInteraction<number>::_dirk_pot (BaseParticle<number> *p, BaseParticle
 	
 	
 	// dhsq - cylinderp
-	drcyl = *r - pcyl;
+	drcyl = _computed_r - pcyl;
 	if (drcyl.norm () < _compar) {
 		if (InteractionUtils::cylinder_sphere_overlap (drcyl, p->orientation.v3, _length, _DHS_radius)) {
 			this->set_is_infinite(true);
@@ -190,7 +190,7 @@ number DirkInteraction<number>::_dirk_pot (BaseParticle<number> *p, BaseParticle
 	}
 	
 	// dhsp - cylinderq
-	drcyl =  (*r + qcyl);
+	drcyl =  (_computed_r + qcyl);
 	if (drcyl.norm () < _compar) {
 		if (InteractionUtils::cylinder_sphere_overlap (drcyl, q->orientation.v3, _length, _DHS_radius)) {
 			this->set_is_infinite(true);
@@ -202,12 +202,12 @@ number DirkInteraction<number>::_dirk_pot (BaseParticle<number> *p, BaseParticle
 	if (rnorm > _DHS_sqr_rcut) return 0.f;
 	
 	// direct part
-	number energy = - (1. / (rnorm * sqrt(rnorm))) * (3.f * (*r).z * (*r).z / rnorm - (number) 1.f);
+	number energy = - (1. / (rnorm * sqrt(rnorm))) * (3.f * _computed_r.z * _computed_r.z / rnorm - (number) 1.f);
 	energy += - _DHS_rf_fact; 
 	
 	// real dipolar hard spheres...	
 	//number dot = p->orientation.v1 * q->orientation.v1;
-	//number energy = - (1. / (rnorm * sqrt(rnorm))) * (3 * (p->orientation.v1 * (*r)) * (q->orientation.v1 * (*r)) / rnorm - dot); 
+	//number energy = - (1. / (rnorm * sqrt(rnorm))) * (3 * (p->orientation.v1 * _computed_r) * (q->orientation.v1 * _computed_r) / rnorm - dot); 
 	//energy += - _DHS_rf_fact * dot; 
 	
 	return energy;

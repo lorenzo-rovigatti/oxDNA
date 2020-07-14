@@ -93,7 +93,7 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	inline number _KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline number _KF_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	/**
 	 * @brief Continuous KF interaction between two particles.
@@ -104,7 +104,7 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	inline number _continuous_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline number _continuous_KF_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 public:
 	enum {
@@ -119,19 +119,19 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 };
 
-number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	number sqr_r = r->norm();
+number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	number sqr_r = _computed_r.norm();
 	int type = p->type + q->type;
 	if(sqr_r > _sqr_tot_rcut[type])
 		return (number) 0.f;
@@ -142,14 +142,14 @@ number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *
 	energy = part - _E_cut[type];
 
 	if(update_forces) {
-		LR_vector force = *r * (_rep_power * part / sqr_r);
+		LR_vector force = _computed_r * (_rep_power * part / sqr_r);
 		p->force -= force;
 		q->force += force;
 	}
 
 	// here everything is done as in Allen's paper
 	number rmod = sqrt(sqr_r);
-	LR_vector r_versor = *r / (-rmod);
+	LR_vector r_versor = _computed_r / (-rmod);
 
 	number sqr_surf_dist = SQR(rmod - 1.);
 	number r8b10 = SQR(SQR(sqr_surf_dist)) / _patch_pow_delta;
@@ -204,46 +204,11 @@ number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *
 	return energy;
 }
 
-//
-//number KFInteraction::_continuous_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-//	number sqr_r = r->norm();
-//	int type = p->type + q->type;
-//	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
-//
-//	number energy = (number) 0.f;
-//
-//	number part = pow(_sqr_sigma[type]/sqr_r, _rep_power*0.5);
-//	energy = part - _E_cut[type];
-//
-//	if(update_forces) {
-//		LR_vector force = *r*(_rep_power*part/sqr_r);
-//		p->force -= force;
-//		q->force += force;
-//	}
-//
-//	// here everything is done as in Allen's paper
-//	number rmod = sqrt(sqr_r);
-//	LR_vector r_versor = *r/(-rmod);
-//
-//	number sqr_surf_dist = SQR(rmod - 1.);
-//	number r8b10 = SQR(SQR(sqr_surf_dist)) / _patch_pow_delta;
-//	number exp_part = -1.001*exp(-(number)0.5*r8b10*sqr_surf_dist);
-//	energy += exp_part;
-//
-//	if(update_forces) {
-//		LR_vector tmp_force = r_versor*(5.*(rmod - 1.)*exp_part*r8b10);
-//		p->force += tmp_force;
-//		q->force -= tmp_force;
-//	}
-//
-//	return energy;
-//}
-
-number KFInteraction::_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number KFInteraction::_KF_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(update_forces)
 		throw oxDNAException("KFInteraction: forces are not defined in non-continuous KF interactions");
 
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	int type = p->type + q->type;
 
 	if(sqr_r > _sqr_tot_rcut[type]) {
@@ -255,7 +220,7 @@ number KFInteraction::_KF_interaction(BaseParticle *p, BaseParticle *q, LR_vecto
 	}
 
 	number energy = (number) 0.f;
-	LR_vector r_versor(*r / sqrt(sqr_r));
+	LR_vector r_versor(_computed_r / sqrt(sqr_r));
 	for(uint pi = 0; pi < p->N_int_centers(); pi++) {
 		// the factor of two comes from the fact that patches are normalised to 0.5
 		LR_vector ppatch = p->int_centers[pi] * 2.;

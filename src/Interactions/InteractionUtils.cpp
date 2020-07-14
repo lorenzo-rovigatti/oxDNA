@@ -807,14 +807,7 @@ bool InteractionUtils::sphere_box_overlap(LR_vector dr, number sphere_radius, LR
 // TODO: perhaps remove the copying of Ca to C
 LR_vector InteractionUtils::gauss_elim_solve(LR_matrix &C, LR_vector &rhs) {
 	int keys[3] = { -1, -1, -1 };
-	/*
-	 printf ("{ ");
-	 for (int i = 0; i < 3; i++) {
-	 printf ("{ %g, %g, %g},", C[i][0], C[i][1], C[i][2]);
-	 }
-	 printf(" }\n");
-	 printf ("{ %g, %g, %g }\n", rhs.x, rhs.y, rhs.z);
-	 */
+
 	// find maximum of the first column
 	int maxid = 0;
 	if(fabs(C[0][0]) > fabs(C[1][0])) maxid = (fabs(C[0][0]) > fabs(C[2][0]) ? 0 : 2);
@@ -832,35 +825,21 @@ LR_vector InteractionUtils::gauss_elim_solve(LR_matrix &C, LR_vector &rhs) {
 	LR_vector w(C[keys[2]][0], C[keys[2]][1], C[keys[2]][2]);
 	LR_vector r(rhs[keys[0]], rhs[keys[1]], rhs[keys[2]]);
 
-	//printf ("%8.5g %8.5g %8.5g u \n", u.x, u.y, u.z);
-	//printf ("%8.5g %8.5g %8.5g v \n", v.x, v.y, v.z);
-	//printf ("%8.5g %8.5g %8.5g w \n", w.x, w.y, w.z);
-
 	number f = (u[0] / v[0]);
 	v = u - f * v;
 	r[1] = r[0] - f * r[1];
 	f = (u[0] / w[0]);
 	w = u - f * w;
 	r[2] = r[0] - f * r[2];
-	//printf ("%8.5g %8.5g %8.5g u \n", u.x, u.y, u.z);
-	//printf ("%8.5g %8.5g %8.5g v \n", v.x, v.y, v.z);
-	//printf ("%8.5g %8.5g %8.5g w \n", w.x, w.y, w.z);
 
 	f = (v[1] / w[1]);
 	w = v - f * w;
 	r[2] = r[1] - f * r[2];
-	//printf ("%8.5g %8.5g %8.5g u \n", u.x, u.y, u.z);
-	//printf ("%8.5g %8.5g %8.5g v \n", v.x, v.y, v.z);
-	//printf ("%8.5g %8.5g %8.5g w \n", w.x, w.y, w.z);
 
 	number z = r[2] / w[2];
 	number y = (r[1] - v[2] * z) / v[1];
 	number x = (r[0] - u[1] * y - u[2] * z) / u[0];
 
-	//for (int k = 0; k<3; k++) free(C[k]);
-	//free(C);
-
-	//printf("sol: %g %g %g\n\n", x, y, z);
 	return LR_vector(x, y, z);
 }
 
@@ -870,15 +849,6 @@ bool InteractionUtils::edge_triangle_intersection(LR_vector &S1, LR_vector &S2, 
 	LR_vector rhs;
 	LR_vector res;
 
-	/*
-	 LR_vector p1 = P2 - P1;
-	 LR_vector p3 = P1 - P3;
-	 LR_vector e = S2 - S1;
-
-	 LR_matrix C (p1.x, -p3.x, -e.x,
-	 p1.y, -p3.y, -e.y,
-	 p1.z, -p3.z, -e.z );
-	 */
 	LR_matrix C(P2.x - P1.x, P3.x - P1.x, S1.x - S2.x, P2.y - P1.y, P3.y - P1.y, S1.y - S2.y, P2.z - P1.z, P3.z - P1.z, S1.z - S2.z);
 
 	rhs = S1 - P1;
@@ -890,45 +860,12 @@ bool InteractionUtils::edge_triangle_intersection(LR_vector &S1, LR_vector &S2, 
 	return false;
 }
 
-/*
-
- bool InteractionUtils::edge_triangle_intersection (
- LR_vector &S1, LR_vector &S2,
- LR_vector &P1, LR_vector &P2, LR_vector &P3) {
- LR_matrix C;
- LR_vector rhs, res;
-
- LR_vector P[3] = {P1, P2, P3};
- LR_vector p[3] = {P2 - P1, P3 - P2, P1 - P3};
- LR_vector e = S2 - S1;
-
- // maybe one check is enough
- for (int i = 0; i < 3; i ++) {
- C = LR_matrix(	p[i].x, -p[(i+2)%3].x, -e.x,
- p[i].y, -p[(i+2)%3].y, -e.y,
- p[i].z, -p[(i+2)%3].z, -e.z );
- rhs = S1 - P[i];
- res = InteractionUtils::gauss_elim_solve(C, rhs);
- if (res[0] >= (number)0. &&
- res[1] >= (number)0. &&
- res[0] + res[1] <= (number)1. &&
- res[2] >= (number)0. &&
- res[2] <= (number)1.) {
- ///printf ("overlappppp %g %g %g....\n", res[0], res[1], res[2]);
- return true;
- }
- }
-
- return false;
- }
- */
-
 // test for the intersection between two triangles, the first
 // has vertexes v1,v2,v3 and the second has vertexes u1,u2,u3.
 // TODO: perhaps implement faster test presented
 // in the paper http://webee.technion.ac.il/~ayellet/Ps/TroppTalShimshoni.pdf
 // DOI 10.1002/cav.115
-// // TODO: not tested!!!!
+// TODO: not tested!!!!
 bool triangle_intersection(LR_vector * P1, LR_vector * P2, LR_vector * P3, LR_vector * Q1, LR_vector * Q2, LR_vector * Q3) {
 	// for each vertex of face 1, we need to see if it intersects face 2
 	// this will happen if, by solving the equation
@@ -978,5 +915,8 @@ bool triangle_intersection(LR_vector * P1, LR_vector * P2, LR_vector * P3, LR_ve
 			if(res[0] >= (number) 0. && res[1] >= (number) 0. && res[0] + res[1] <= 1. && res[2] >= (number) 0. && res[2] <= (number) 1.) return true;
 		}
 	}
+
+	// the next line has been added to get rid of a warning
+	return false;
 }
 

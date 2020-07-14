@@ -491,8 +491,8 @@ number PatchyShapeInteraction<number>::_patchy_interaction_kf(BaseParticle<numbe
 	for(int pi = 0; pi < pp->N_patches; pi++) {
 		for(int qi = 0; qi < qq->N_patches; qi++) {
 			if(this->_bonding_allowed(pp, qq, pi, qi)) {
-				number my_cos_p =  ((*r) * p->int_centers[pi] / (0.5 * rmod));
-				number my_cos_q = -((*r) * q->int_centers[qi] / (0.5 * rmod));
+				number my_cos_p =  (_computed_r * p->int_centers[pi] / (0.5 * rmod));
+				number my_cos_q = -(_computed_r * q->int_centers[qi] / (0.5 * rmod));
 				if (my_cos_p > _kf_cosmax && my_cos_q > _kf_cosmax) {
 					energy += -1.f * pp->patches[pi].strength;
 				}
@@ -518,7 +518,7 @@ number PatchyShapeInteraction<number>::_patchy_interaction_notorsion(BaseParticl
 	energy = part - _E_cut;
 
 	if(update_forces) {
-		LR_vector<number> force = *r * (PATCHY_POWER * part / rnorm);
+		LR_vector<number> force = _computed_r * (PATCHY_POWER * part / rnorm);
 		p->force -= force;
 		q->force += force;
 	}
@@ -545,11 +545,11 @@ number PatchyShapeInteraction<number>::_patchy_interaction_notorsion(BaseParticl
 				number K = pp->patches[pi].strength;
 			    LR_vector<number> qpatch = q->int_centers[pj];
 
-			    LR_vector<number> patch_dist = *r + qpatch - ppatch;
+			    LR_vector<number> patch_dist = _computed_r + qpatch - ppatch;
 			    number dist = patch_dist.norm();
 			    //LR_vector<number> patch_dist_dir = patch_dist / sqrt(dist);
 			    //number rdist = sqrt(rnorm);
-			    //LR_vector<number> r_dist_dir = *r / rdist;
+			    //LR_vector<number> r_dist_dir = _computed_r / rdist;
 
                 //printf("Patches %d and %d distance %f  cutoff is: %f,\n",pp->patches[pi].id,qq->patches[pj].id,dist,SQR(PATCHY_CUTOFF));
 
@@ -799,7 +799,7 @@ PatchyShapeInteraction<number>::_load_patchy_particle_files(std::string& patchy_
 		throw oxDNAException("Could not open file %s ",patchy_file.c_str());
 	}
 	input_file obs_input;
-	loadInput(&obs_input,fpatch);
+	obs_input.init_from_file(fpatch);
 
 	int no = 0;
 	char patch_no[1024];
@@ -827,7 +827,7 @@ PatchyShapeInteraction<number>::_load_patchy_particle_files(std::string& patchy_
 			throw oxDNAException("Could not open file %s ",particle_file.c_str());
 	}
 	input_file p_input;
-	loadInput(&p_input, fparticle);
+	p_input.init_from_file(fparticle);
 
 	int p_no = 0;
 	char particle_no[1024];
@@ -1239,7 +1239,7 @@ void PatchyShapeInteraction<number>::allocate_particles(BaseParticle<number> **p
 
 template<typename number>
 number PatchyShapeInteraction<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
 
@@ -1258,14 +1258,14 @@ number PatchyShapeInteraction<number>::pair_interaction_nonbonded(BaseParticle<n
 	}
 
 	/*
-	number energy = _exc_vol_hs (p, q, r, update_forces);
+	number energy = _exc_vol_hs (p, q, compute_r, update_forces);
 	if (this->get_is_infinite() == false)
-		energy += _patchy_interaction_kf (p, q, r, update_forces);
+		energy += _patchy_interaction_kf (p, q, compute_r, update_forces);
 	*/
 
-	number energy = this->_pair_interaction_term_wrapper(this, EXCVOL, p, q, r, update_forces);
+	number energy = this->_pair_interaction_term_wrapper(this, EXCVOL, p, q, compute_r, update_forces);
 	if (this->get_is_infinite() == false)
-		energy += this->_pair_interaction_term_wrapper(this, PATCHY, p, q, r, update_forces);
+		energy += this->_pair_interaction_term_wrapper(this, PATCHY, p, q, compute_r, update_forces);
 
 	return energy;
 }
@@ -1415,11 +1415,11 @@ number PatchyShapeInteraction<number>::just_two_patch_interaction(PatchyShapePar
 				number K = pp->patches[pi].strength;
 			    LR_vector<number> qpatch = q->int_centers[qi];
 
-			    LR_vector<number> patch_dist = *r + qpatch - ppatch;
+			    LR_vector<number> patch_dist = _computed_r + qpatch - ppatch;
 			    number dist = patch_dist.norm();
 			    //LR_vector<number> patch_dist_dir = patch_dist / sqrt(dist);
 			    //number rdist = sqrt(rnorm);
-			    //LR_vector<number> r_dist_dir = *r / rdist;
+			    //LR_vector<number> r_dist_dir = _computed_r / rdist;
 
 			    if(dist < SQR(PATCHY_CUTOFF)) {
 				    //distance part of attractive interaction

@@ -6,21 +6,24 @@
 #ifndef BASE_INTERACTION_H
 #define BASE_INTERACTION_H
 
-#include <map>
-#include <cfloat>
-#include <fstream>
-#include <set>
-#include <vector>
-
 #include "../defs.h"
 #include "../Particles/BaseParticle.h"
 #include "../Boxes/BaseBox.h"
 #include "../Lists/BaseList.h"
 #include "../Utilities/Utils.h"
 #include "../Utilities/oxDNAException.h"
-#include "./Mesh.h"
+#include "Mesh.h"
 
 #include "../Lists/Cells.h"
+
+#include <map>
+#include <cfloat>
+#include <fstream>
+#include <set>
+#include <vector>
+#include <array>
+
+using StressTensor = std::array<number, 6>;
 
 /**
  * @brief Abstract class defining the interaction interface.
@@ -29,7 +32,6 @@
  * http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern) and therefore
  * we have to keep this class and BaseInteraction separated.
  */
-
 class IBaseInteraction {
 protected:
 	BaseBox *_box;
@@ -47,6 +49,13 @@ protected:
 	number _rcut, _sqr_rcut;
 
 	char _topology_filename[256];
+
+	LR_vector _computed_r;
+
+	StressTensor _stress_tensor;
+
+	virtual void _update_stress_tensor(LR_vector r_p, LR_vector group_force);
+
 public:
 	IBaseInteraction();
 	virtual ~IBaseInteraction();
@@ -83,10 +92,37 @@ public:
 	 * @brief Check whether the initial configuration makes sense.
 	 *
 	 * Since this operation is interaction-dependent, each interaction must provide its own implementation.
+	 *
 	 * @param particles
 	 * @param N
 	 */
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles) = 0;
+
+	/**
+	 * @brief Signals the interaction that an energy (or force) computation is about to begin.
+	 *
+	 * By default this method resets the stress tensor data structures and nothing else, but interactions inheriting from this interface may
+	 * need to initialise or reset other data structures before computing the energy or the force acting on all particles.
+	 *
+	 */
+	virtual void begin_energy_computation();
+
+	/**
+	 * @brief Returns true if the interaction computes the stress tensor internally, false otherwise.
+	 *
+	 * This method will return false if not overridden.
+	 *
+	 * @return
+	 */
+	virtual bool has_custom_stress_tensor() const {
+		return false;
+	}
+
+	void reset_stress_tensor();
+
+	StressTensor stress_tensor() const {
+		return _stress_tensor;
+	}
 
 	/**
 	 * @brief Computes the total interaction between particles p and q.
@@ -98,21 +134,21 @@ public:
 	 * @param update_forces
 	 * @return pair-interaction energy
 	 */
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) = 0;
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
 
 	/**
 	 * @brief Computes the bonded part interaction between particles p and q.
 	 *
 	 * See {\@link pair_interaction} for a description of the parameters.
 	 */
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) = 0;
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
 
 	/**
 	 * @brief Computed the non bonded part of the interaction between particles p and q.
 	 *
 	 * See {\@link pair_interaction} for a description of the parameters.
 	 */
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) = 0;
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
 
 	/**
 	 * @brief Computes the requested term of the interaction energy between p and q.
@@ -124,7 +160,7 @@ public:
 	 * @param update_forces
 	 * @return
 	 */
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) = 0;
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
 
 	/**
 	 * @brief Returns the total potential energy of the system, given a box size
@@ -167,8 +203,7 @@ public:
 	virtual int get_N_from_topology();
 
 	/**
-	 * @brief Like get_system_energy_split, just that the box size can be
-	 * specified in this case.
+	 * @brief Computed the system energy, split into different terms, which depend on the specific interaction considered.
 	 *
 	 * @return map of the energy contributions
 	 */
@@ -191,7 +226,16 @@ public:
 	}
 
 	/**
-	 * @brief overlap criterion. Used only in the generation of configurations. Can be overloaded.
+	 * @brief Sets the distance between particles to be used by the pair_interaction_* methods.
+	 *
+	 * @param r the new particle distance
+	 */
+	void set_computed_r(LR_vector &r) {
+		_computed_r =r;
+	}
+
+	/**
+	 * @brief Check whether the two particles overlaps. Used only in the generation of configurations. Can be overloaded.
 	 *
 	 * The default implementation does not allow two particles to have an
 	 * interaction strength greater than 100. More subtle implementations
@@ -201,10 +245,10 @@ public:
 	 * @param q
 	 * @return bool whether the two particles overlap
 	 */
-	virtual bool generate_random_configuration_overlap(BaseParticle * p, BaseParticle *q);
+	virtual bool generate_random_configuration_overlap(BaseParticle *p, BaseParticle *q);
 
 	/**
-	 * @brief generation of initial configurations. Can be overloaded.
+	 * @brief Generate an initial configuration. Can be overloaded.
 	 *
 	 * The default function creates a random configuration in the most simple way possible:
 	 * puts particles in one at a time, and using {\@link generate_random_configuration_overlap}
@@ -233,7 +277,7 @@ using InteractionPtr = std::shared_ptr<IBaseInteraction>;
  */
 template<typename child>
 class BaseInteraction: public IBaseInteraction {
-	typedef std::map<int, number (child::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)> interaction_map;
+	typedef std::map<int, number (child::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)> interaction_map;
 
 private:
 
@@ -255,7 +299,7 @@ protected:
 	 * @param update_forces
 	 * @return pair-interaction energy
 	 */
-	virtual number _pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	/**
 	 * @brief Build a mesh by using a function and its derivative.
@@ -289,14 +333,13 @@ public:
 	 * @return a map storing all the potential energy contributions.
 	 */
 	virtual std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists);
-
 };
 
 template<typename child>
 BaseInteraction<child>::BaseInteraction() :
 				IBaseInteraction() {
-	this->_rcut = 2.5;
-	this->_sqr_rcut = SQR(this->_rcut);
+	_rcut = 2.5;
+	_sqr_rcut = SQR(_rcut);
 }
 
 template<typename child>
@@ -305,11 +348,9 @@ BaseInteraction<child>::~BaseInteraction() {
 }
 
 template<typename child>
-number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	LR_vector computed_r;
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	// _int_map.find(name) returns an iterator which points to the
@@ -322,7 +363,7 @@ number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int n
 		throw oxDNAException("%s, line %d: Interaction term '%d' not found", __FILE__, __LINE__, name);
 	}
 
-	return (that->*(interaction->second))(p, q, r, update_forces);
+	return (that->*(interaction->second))(p, q, false, update_forces);
 }
 
 template<typename child>
@@ -376,6 +417,8 @@ void BaseInteraction<child>::_build_mesh(child *that, number (child::*f)(number,
 
 template<typename child>
 std::map<int, number> BaseInteraction<child>::get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) {
+	begin_energy_computation();
+
 	std::map<int, number> energy_map;
 
 	for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
@@ -391,7 +434,7 @@ std::map<int, number> BaseInteraction<child>::get_system_energy_split(std::vecto
 			if(p->index > q->index) {
 				for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
 					int name = it->first;
-					energy_map[name] += this->pair_interaction_term(name, p, q);
+					energy_map[name] += pair_interaction_term(name, p, q);
 				}
 			}
 		}

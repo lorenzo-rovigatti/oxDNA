@@ -111,7 +111,7 @@ void ChiralRodExplicit<number>::read_topology(int *N_strands, BaseParticle<numbe
 
 template<typename number>
 number ChiralRodExplicit<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
 template<typename number>
@@ -181,9 +181,9 @@ inline number ChiralRodExplicit<number>::_solv_solv(BaseParticle<number> *p, Bas
 template <typename number>
 inline number ChiralRodExplicit<number>::_rod_solv(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	// inside here, p is the cylinder and q the solvent, r goes from p to q;
-	number rdotu = ((*r) * p->orientation.v3);
+	number rdotu = (_computed_r * p->orientation.v3);
 	LR_vector<number> r_on_axis = rdotu * p->orientation.v3;
-	LR_vector<number> r_off_axis = (*r) - r_on_axis;
+	LR_vector<number> r_off_axis = _computed_r - r_on_axis;
 
 	if (fabs(rdotu) < (_length / (number)2.f + _sigma_solv)) {
 		if (r_off_axis.norm() < (((number) 0.5f + _sigma_solv)*((number) 0.5f + _sigma_solv)) ) {
@@ -199,7 +199,7 @@ template<typename number>
 number ChiralRodExplicit<number>::_chiral_pot(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
 	if (update_forces) throw oxDNAException ("No forces, figlio di ndrocchia");
 
-	number rnorm = (*r).norm();
+	number rnorm = _computed_r.norm();
 	if (rnorm > this->_sqr_rcut) return (number) 0.f;
 
 	LR_vector<number> my_r = *r;

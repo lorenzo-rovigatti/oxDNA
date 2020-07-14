@@ -236,7 +236,7 @@ void MD_MPIBackend::_Evaluate_my_particles(void)
 		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
-			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
+			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, true, true);
 		}
 	}
 	//this can be optimized

@@ -39,7 +39,7 @@ std::tuple<std::vector<int>, std::string> RepulsiveSphere::init(input_file &inp,
 	}
 
 	std::string description = Utils::sformat("RepulsiveSphere (stiff=%g, r0=%g, rate=%g, center=%g,%g,%g)", _stiff, _r0, _rate, _center.x, _center.y, _center.z);
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "RepulsiveSphere");
+	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "RepulsiveSphere");
 
 	return std::make_tuple(particle_ids, description);
 }

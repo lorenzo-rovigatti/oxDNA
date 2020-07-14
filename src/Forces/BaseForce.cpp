@@ -6,7 +6,12 @@
  */
 
 #include "BaseForce.h"
-#include "../Particles/BaseParticle.h"
+
+#include "../Boxes/BaseBox.h"
+
+#include <vector>
+#include <string>
+#include <tuple>
 
 BaseForce::BaseForce() {
 	_F0 = -1.;

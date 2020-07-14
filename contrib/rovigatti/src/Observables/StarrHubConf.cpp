@@ -64,7 +64,7 @@ string StarrHubConf::_configuration(llint step) {
 		if(_print_bonds) _tetra_bonds[i].clear();
 		int base_idx = i * _N_per_tetramer;
 		for(int j = 0; j < _N_strands_per_tetramer; j++) {
-			BaseParticle *p = _config_info->particles[base_idx];
+			BaseParticle *p = _config_info->particles()[base_idx];
 
 			_tetra_poss[i] += _config_info->box->get_abs_pos(p);
 			_tetra_vels[i] += p->vel;
@@ -83,7 +83,7 @@ string StarrHubConf::_configuration(llint step) {
 		vector<ParticlePair> inter_pairs = _config_info->lists->get_potential_interactions();
 
 		for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
-			number energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+			number energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second);
 			if(energy < 0.) {
 				int p_tetra = it->first->index / _N_per_tetramer;
 				int q_tetra = it->second->index / _N_per_tetramer;

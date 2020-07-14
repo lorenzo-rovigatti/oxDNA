@@ -53,7 +53,10 @@ int main(int argc, char *argv[]) {
 		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
 		if(!strcmp(argv[1], "-v")) print_version();
 
-		ParallelManager mysim(argc, argv);
+		input_file input;
+		input.init_from_command_line_args(argc, argv);
+
+		ParallelManager mysim(input);
 		mysim.load_options();
 		MPI_Barrier(MPI_COMM_WORLD);
 
@@ -75,7 +78,7 @@ int main(int argc, char *argv[]) {
 		OX_LOG(Logger::LOG_INFO, "END OF THE SIMULATION, everything went OK!");
 	}
 	catch (oxDNAException &e) {
-		OX_LOG(Logger::LOG_ERROR, "%s", e.error());
+		OX_LOG(Logger::LOG_ERROR, "%s", e.what());
 		return 1;
 	}
 

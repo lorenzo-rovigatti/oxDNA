@@ -106,6 +106,9 @@ void Cells::global_update(bool force_update) {
 		BaseParticle *p = this->_particles[i];
 		if(_allowed_type == -1 || p->type == _allowed_type) {
 			int cell_index = get_cell_index(p->pos);
+			if(cell_index < 0 || cell_index > _N_cells || std::isnan(cell_index) || std::isinf(cell_index)) {
+				throw oxDNAException("Invalid cell %d for particle %d (pos: %lf %lf %lf)", cell_index, p->index, p->pos[0], p->pos[1], p->pos[2]);
+			}
 			BaseParticle *old_head = _heads[cell_index];
 			_heads[cell_index] = p;
 			_cells[i] = cell_index;

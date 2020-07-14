@@ -37,8 +37,8 @@ std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file 
 
 	_box_ptr = box_ptr;
 
-	auto particle_indices_vector = Utils::getParticlesFromString(CONFIG_INFO->particles, _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
-	auto ref_particle_indices_vector = Utils::getParticlesFromString(CONFIG_INFO->particles, _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	auto particle_indices_vector = Utils::get_particles_from_string(CONFIG_INFO->particles(), _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
+	auto ref_particle_indices_vector = Utils::get_particles_from_string(CONFIG_INFO->particles(), _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
 
 	sort(ref_particle_indices_vector.begin(), ref_particle_indices_vector.end());
 	low_idx = ref_particle_indices_vector.front();
@@ -46,7 +46,7 @@ std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file 
 
 	if((high_idx - low_idx + 1) != (int) ref_particle_indices_vector.size()) throw oxDNAException("RepulsionPlaneMoving requires the list of ref_particle indices to be contiguous");
 	for(std::vector<int>::size_type i = 0; i < ref_particle_indices_vector.size(); i++) {
-		ref_p_ptr.push_back(CONFIG_INFO->particles[ref_particle_indices_vector[i]]);
+		ref_p_ptr.push_back(CONFIG_INFO->particles()[ref_particle_indices_vector[i]]);
 	}
 
 	std::string description = Utils::sformat("RepulsionPlaneMoving force (RepulsionPlaneMoving.cpp) with stiffness %lf and pos=[%g *x + %g * y +  %g * z + d = 0 ]", _stiff, _direction.x, _direction.y, _direction.z);

@@ -31,9 +31,9 @@ void CUDADNAInteraction::get_settings(input_file &inp) {
 			_use_oxDNA2_coaxial_stacking = true;
 			_use_oxDNA2_FENE = true;
 			// copy-pasted from the DNA2Interaction constructor
-			_int_map[DEBYE_HUCKEL] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)) &DNA2Interaction::_debye_huckel;
+			_int_map[DEBYE_HUCKEL] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)) &DNA2Interaction::_debye_huckel;
 			// I assume these are needed. I think the interaction map is used for when the observables want to print energy
-			_int_map[this->COAXIAL_STACKING] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)) &DNA2Interaction::_coaxial_stacking;
+			_int_map[this->COAXIAL_STACKING] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)) &DNA2Interaction::_coaxial_stacking;
 
 			// we don't need the F4_... terms as the macros are used in the CUDA_DNA.cuh file; this doesn't apply for the F2_K term
 			F2_K[1] = CXST_K_OXDNA2;

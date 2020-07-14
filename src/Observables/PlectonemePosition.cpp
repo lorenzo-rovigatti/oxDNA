@@ -35,7 +35,7 @@ std::string PlectonemePosition::get_output_string(llint curr_step) {
 	int max_size = -1, max_plectoneme_start = -1, max_plectoneme_end = -1;
 
 	for(int i = 0; i < _config_info->N() / 2; i++) {
-		_midpoints[i] = (_config_info->particles[i]->pos + _config_info->particles[_config_info->N() - 1 - i]->pos);
+		_midpoints[i] = (_config_info->particles()[i]->pos + _config_info->particles()[_config_info->N() - 1 - i]->pos);
 	}
 
 	for(int i = 0; i < _config_info->N() / 2 - _critical_bp_distance; ++i) {

@@ -1,8 +1,8 @@
 /*
- * StrandwiseBonds.h
+ * ConstructwiseBonds.h
  *
  *  Created on: Jun 11, 2013
- *      Author: Flavio Romano
+ *      Author: Lorenzo Rovigatti
  */
 
 #ifndef CONSTRUCTWISEBONDS_H_
@@ -18,10 +18,11 @@
 
 class ConstructwiseBonds: public BaseObservable {
 protected:
-	int _construct_strand_size;
-	int _construct_number;
-	std::vector<int> _construct_size;
+	int _construct_size = -1;
+	int _construct_number = 0;
+	std::vector<int> _construct_sizes;
 	std::vector<LR_vector> _construct_coms;
+	int _energy_term_id = -1;
 
 public:
 	ConstructwiseBonds();

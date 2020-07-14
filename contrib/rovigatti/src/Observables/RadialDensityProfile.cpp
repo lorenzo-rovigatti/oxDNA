@@ -41,14 +41,14 @@ std::string RadialDensityProfile::get_output_string(llint curr_step) {
 
 	LR_vector com(0., 0., 0.);
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		LR_vector mypos = _config_info->box->get_abs_pos(p);
 		com += mypos;
 	}
 	com /= N;
 
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		if(_btype == -1 || p->btype == _btype) {
 			number sqr_dist = _config_info->box->sqr_min_image_distance(_config_info->box->get_abs_pos(p), com);
 			if(sqr_dist < SQR(_max_value)) {

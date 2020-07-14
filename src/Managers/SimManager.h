@@ -12,12 +12,9 @@
 #include <cstring>
 #include <ctime>
 
-extern "C" {
-#include "../Utilities/time_scales/time_scales.h"
-}
-
 #include "../defs.h"
 #include "../Backends/SimBackend.h"
+#include "../Utilities/time_scales/time_scales.h"
 
 struct double4;
 struct float4;
@@ -56,7 +53,7 @@ protected:
 	int _fix_diffusion_every;
 
 public:
-	SimManager(int argc, char *argv[]);
+	SimManager(input_file input);
 	virtual ~SimManager();
 
 	static bool stop;

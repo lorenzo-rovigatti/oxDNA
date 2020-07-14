@@ -12,16 +12,14 @@
 
 struct FSBond {
 	BaseParticle *other;
-	LR_vector r;
 	number r_p;
 	int p_patch, q_patch;
 	number energy;
 	LR_vector force;
 	LR_vector p_torque, q_torque;
 
-	FSBond(BaseParticle *o, LR_vector my_r, number my_r_p, int pp, int qp, number e) :
+	FSBond(BaseParticle *o, number my_r_p, int pp, int qp, number e) :
 					other(o),
-					r(my_r),
 					r_p(my_r_p),
 					p_patch(pp),
 					q_patch(qp),
@@ -73,8 +71,6 @@ protected:
 	/// true if the two types of particle bear the same patches
 	bool _same_patches = false;
 
-	bool _needs_reset = true;
-
 	/// Repulsive interaction energy at the cut-off
 	number _rep_rcut = 0.;
 	number _sqr_rep_rcut = -1.;
@@ -108,9 +104,8 @@ protected:
 	/// this quantity rescales the energy of the WCA and FENE parts. It is set to the thermal energy by default
 	number _polymer_energy_scale = 1.0;
 
-	std::vector<std::set<FSBond, FSBondCompare> > _bonds;
-
-	std::vector<std::vector<number>> _stress_tensor;
+//	std::vector<std::set<FSBond, FSBondCompare> > _bonds;
+	std::vector<std::vector<FSBond>> _bonds;
 
 	/**
 	 * @brief FS interaction between two particles.
@@ -121,16 +116,14 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	number _patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 
-	number _polymer_fene(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	number _polymer_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _polymer_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	number _three_body(BaseParticle *p, FSBond &new_bond, bool update_forces);
-
-	void _update_stress_tensor(LR_vector r, LR_vector f);
 
 	void _parse_bond_file(std::vector<BaseParticle *> &particles);
 
@@ -152,10 +145,6 @@ public:
 
 	bool no_three_body = false;
 
-	std::vector<std::vector<number>> get_stress_tensor() {
-		return _stress_tensor;
-	}
-
 	FSInteraction();
 	virtual ~FSInteraction();
 
@@ -164,11 +153,13 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	void begin_energy_computation() override;
+
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);

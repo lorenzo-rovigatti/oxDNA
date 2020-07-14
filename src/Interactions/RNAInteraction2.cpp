@@ -3,26 +3,26 @@
 RNA2Interaction::RNA2Interaction() :
 				RNAInteraction() {
 
-	this->_int_map[DEBYE_HUCKEL] = (number (RNAInteraction::*)(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces)) &RNA2Interaction::_debye_huckel;_RNA_HYDR_MIS = 1;
+	_int_map[DEBYE_HUCKEL] = (number (RNAInteraction::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)) &RNA2Interaction::_debye_huckel;
+	_RNA_HYDR_MIS = 1;
 	// log the interaction type
 	OX_LOG(Logger::LOG_INFO,"Running modification of oxRNA with additional Debye-Huckel potential");
 }
 
-number RNA2Interaction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number RNA2Interaction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	// if the distance is beyond the cutoff, return 0
-	if(r->norm() >= this->_sqr_rcut) return (number) 0.f;
+	if(_computed_r.norm() >= _sqr_rcut) {
+		return (number) 0.f;
+	}
 	// compute the interaction energy as always ...
-	number energy = RNAInteraction::pair_interaction_nonbonded(p, q, r, update_forces);
+	number energy = RNAInteraction::pair_interaction_nonbonded(p, q, false, update_forces);
 
 	// ... and then add the debye_huckel energy
-	energy += _debye_huckel(p, q, r, update_forces);
+	energy += _debye_huckel(p, q, false, update_forces);
 
 	return energy;
 }
@@ -37,14 +37,14 @@ void RNA2Interaction::get_settings(input_file &inp) {
 	float rh;
 	int lambda_T_dependent = 0;
 	int half_charged_ends = 0;
-	//getInputString(&inp, "topology", this->_topology_filename, 1);
+	//getInputString(&inp, "topology", _topology_filename, 1);
 
 	// read salt concentration from file, or set it to the default value
 	if(getInputFloat(&inp, "salt_concentration", &salt, 0) == KEY_FOUND) {
-		this->_salt_concentration = (float) salt;
+		_salt_concentration = (float) salt;
 	}
 	else {
-		this->_salt_concentration = 1.0f;
+		_salt_concentration = 1.0f;
 	}
 
 	// read lambda-factor (the dh length at I = 1.0), or set it to the default value
@@ -56,8 +56,8 @@ void RNA2Interaction::get_settings(input_file &inp) {
 	}
 
 	if(getInputBoolAsInt(&inp, "lambda_T_dependent", &lambda_T_dependent, 0) == KEY_FOUND && lambda_T_dependent) {
-		OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel with temperature dependent lambda at T = %f",this->_T);
-		_debye_huckel_lambdafactor *= sqrt(this->_T / 0.1f);
+		OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel with temperature dependent lambda at T = %f",_T);
+		_debye_huckel_lambdafactor *= sqrt(_T / 0.1f);
 	}
 
 	// read the prefactor to the potential, or set it to the default value
@@ -69,7 +69,7 @@ void RNA2Interaction::get_settings(input_file &inp) {
 	}
 	// read the cutoff distance (todo - set the default value to something 
 	// which makes sense, maybe that depends on lambdafactor and salt concentration
-	number lambda = _debye_huckel_lambdafactor * sqrt(this->_T / 0.1f) / sqrt(_salt_concentration);
+	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
 	if(getInputFloat(&inp, "debye_huckel_rhigh", &rh, 0) == KEY_FOUND) {
 		_debye_huckel_RHIGH = (float) rh;
 	}
@@ -78,29 +78,29 @@ void RNA2Interaction::get_settings(input_file &inp) {
 	}
 	// read the mismatch_repulsion flag (not implemented yet)
 	if(getInputBoolAsInt(&inp, "mismatch_repulsion", &mismatches, 0) == KEY_FOUND) {
-		this->_mismatch_repulsion = (bool) mismatches;
+		_mismatch_repulsion = (bool) mismatches;
 	}
 	else {
-		this->_mismatch_repulsion = false;
+		_mismatch_repulsion = false;
 	}
 	// whether to halve the charge on the terminus of the strand or not (default true)
 	if(getInputBoolAsInt(&inp, "dh_half_charged_ends", &half_charged_ends, 0) == KEY_FOUND) {
-		this->_debye_huckel_half_charged_ends = (bool) half_charged_ends;
+		_debye_huckel_half_charged_ends = (bool) half_charged_ends;
 	}
 	else {
-		this->_debye_huckel_half_charged_ends = true;
+		_debye_huckel_half_charged_ends = true;
 	}
 
 	//log it 
-	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt_concentration =  %g",this->_salt_concentration);
+	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt_concentration =  %g",_salt_concentration);
 
-	if(this->_mismatch_repulsion) {
+	if(_mismatch_repulsion) {
 		float temp;
 		if(getInputFloat(&inp, "mismatch_repulsion_strength", &temp, 0) == KEY_FOUND) {
-			this->_RNA_HYDR_MIS = temp;
+			_RNA_HYDR_MIS = temp;
 		}
 		else {
-			this->_RNA_HYDR_MIS = 1;
+			_RNA_HYDR_MIS = 1;
 		}
 
 	}
@@ -109,11 +109,10 @@ void RNA2Interaction::get_settings(input_file &inp) {
 
 //initialise the interaction
 void RNA2Interaction::init() {
-
 	// we choose rcut as the max of the range interaction of excluded
 	// volume between backbones and hydrogen bonding
 	//number rcutback = 2 * fabs(model->RNA_POS_BACK) + model->RNA_EXCL_RC1;
-	//this->_T = T;
+	//_T = T;
 
 	//perform the initialisation as in RNAinteraction
 	RNAInteraction::init();
@@ -135,15 +134,15 @@ void RNA2Interaction::init() {
 	_debye_huckel_B = -(exp(-x / l) * q * q * (x + l) * (x + l)) / (4. * x * x * x * l * l * (-q + exp(x / l) * V * x));
 	_debye_huckel_RC = x * (q * x + 3. * q * l - 2.0 * exp(x / l) * V * x * l) / (q * (x + l));
 
-	number debyecut = 2. * sqrt(SQR(this->model->RNA_POS_BACK_a1) + SQR(this->model->RNA_POS_BACK_a2) + SQR(this->model->RNA_POS_BACK_a3)) + _debye_huckel_RC;
+	number debyecut = 2. * sqrt(SQR(model->RNA_POS_BACK_a1) + SQR(model->RNA_POS_BACK_a2) + SQR(model->RNA_POS_BACK_a3)) + _debye_huckel_RC;
 	//number debyecut = 2. * sqrt(SQR(POS_BACK) ) + _debye_huckel_RC;
-	if(debyecut > this->_rcut) {
-		this->_rcut = debyecut;
-		this->_sqr_rcut = debyecut * debyecut;
+	if(debyecut > _rcut) {
+		_rcut = debyecut;
+		_sqr_rcut = debyecut * debyecut;
 	}
 	// log the parameters of the Debye-Huckel
 
-	OX_LOG(Logger::LOG_INFO,"DEBUGGING: rhigh is %g, Cutoff is %g, RC huckel is %g, B huckel is %g, V is %g, lambda is %g ",_debye_huckel_RHIGH,this->_rcut,_debye_huckel_RC, _debye_huckel_B,_debye_huckel_Vrc,lambda);
+	OX_LOG(Logger::LOG_INFO,"DEBUGGING: rhigh is %g, Cutoff is %g, RC huckel is %g, B huckel is %g, V is %g, lambda is %g ",_debye_huckel_RHIGH,_rcut,_debye_huckel_RC, _debye_huckel_B,_debye_huckel_Vrc,lambda);
 	OX_LOG(Logger::LOG_INFO,"DEBUGGING: dh_half_charged_ends = %s", _debye_huckel_half_charged_ends ? "true" : "false");
 
 //
@@ -153,16 +152,16 @@ void RNA2Interaction::init() {
 	 printf("# Rh = %g\n",_debye_huckel_RHIGH);
 	 for (double x = 0.01; x <= _debye_huckel_RC +0.02;  x += 0.02)
 	 {
-	 //energy = _debye_huckel(this->partic)
+	 //energy = _debye_huckel(partic)
 	 printf("%g %g \n",x,test_huckel(x));
 	 }
 	 exit(1);
 	 */
 
 	if(_mismatch_repulsion) {
-		float temp = -1.0f * _RNA_HYDR_MIS / this->model->RNA_HYDR_EPS;
-		this->F1_EPS[RNA_HYDR_F1][0][0] *= temp;
-		this->F1_SHIFT[RNA_HYDR_F1][0][0] *= temp;
+		float temp = -1.0f * _RNA_HYDR_MIS / model->RNA_HYDR_EPS;
+		F1_EPS[RNA_HYDR_F1][0][0] *= temp;
+		F1_SHIFT[RNA_HYDR_F1][0][0] *= temp;
 		OX_LOG(Logger::LOG_INFO,"Using mismatch repulsion with strength %f",_RNA_HYDR_MIS);
 
 	}
@@ -170,7 +169,6 @@ void RNA2Interaction::init() {
 }
 
 //to be removed later, the following function is just for debugging
-
 number RNA2Interaction::test_huckel(number rbackmod) {
 	number energy = 0;
 	if(rbackmod < _debye_huckel_RC) {
@@ -186,14 +184,19 @@ number RNA2Interaction::test_huckel(number rbackmod) {
 	return energy;
 }
 
-number RNA2Interaction::_debye_huckel(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number RNA2Interaction::_debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number cut_factor = 1.0f;
-	if(this->_are_bonded(p, q)) return (number) 0.f;
-	// for each particle that is on a terminus, halve the charge
-	if(this->_debye_huckel_half_charged_ends && (p->n3 == P_VIRTUAL || p->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
-	if(this->_debye_huckel_half_charged_ends && (q->n3 == P_VIRTUAL || q->n5 == P_VIRTUAL)) cut_factor *= 0.5f;
+	if(_are_bonded(p, q)) {
+		return (number) 0.f;
+	}
 
-	LR_vector rback = *r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
+	// for each particle that is on a terminus, halve the charge
+	if(_debye_huckel_half_charged_ends && (p->n3 == P_VIRTUAL || p->n5 == P_VIRTUAL))
+		cut_factor *= 0.5f;
+	if(_debye_huckel_half_charged_ends && (q->n3 == P_VIRTUAL || q->n5 == P_VIRTUAL))
+		cut_factor *= 0.5f;
+
+	LR_vector rback = _computed_r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
 	number rbackmod = rback.module();
 	number energy = (number) 0.f;
 
@@ -240,16 +243,16 @@ number RNA2Interaction::_debye_huckel(BaseParticle *p, BaseParticle *q, LR_vecto
 
 number RNA2Interaction::_fX(number r, int type, int n3, int n5) {
 	number val = (number) 0;
-	if(r < this->F1_RCHIGH[type]) {
-		if(r > this->F1_RHIGH[type]) {
-			val = this->F1_EPS[type][n3][n5] * this->F1_BHIGH[type] * SQR(r - this->F1_RCHIGH[type]);
+	if(r < F1_RCHIGH[type]) {
+		if(r > F1_RHIGH[type]) {
+			val = F1_EPS[type][n3][n5] * F1_BHIGH[type] * SQR(r - F1_RCHIGH[type]);
 		}
-		else if(r > this->F1_R0[type]) {
-			number tmp = 1 - exp(-(r - this->F1_R0[type]) * this->F1_A[type]);
-			val = this->F1_EPS[type][n3][n5] * SQR(tmp) - this->F1_SHIFT[type][n3][n5];
+		else if(r > F1_R0[type]) {
+			number tmp = 1 - exp(-(r - F1_R0[type]) * F1_A[type]);
+			val = F1_EPS[type][n3][n5] * SQR(tmp) - F1_SHIFT[type][n3][n5];
 		}
 		else {
-			val = -this->F1_SHIFT[type][n3][n5];
+			val = -F1_SHIFT[type][n3][n5];
 		}
 
 	}
@@ -259,36 +262,38 @@ number RNA2Interaction::_fX(number r, int type, int n3, int n5) {
 
 number RNA2Interaction::_fXD(number r, int type, int n3, int n5) {
 	number val = (number) 0;
-	if(r < this->F1_RCHIGH[type]) {
-		if(r > this->F1_RHIGH[type]) {
-			val = 2 * this->F1_BHIGH[type] * (r - this->F1_RCHIGH[type]);
+	if(r < F1_RCHIGH[type]) {
+		if(r > F1_RHIGH[type]) {
+			val = 2 * F1_BHIGH[type] * (r - F1_RCHIGH[type]);
 		}
-		else if(r > this->F1_R0[type]) {
-			number tmp = exp(-(r - this->F1_R0[type]) * this->F1_A[type]);
-			val = 2 * (1 - tmp) * tmp * this->F1_A[type];
+		else if(r > F1_R0[type]) {
+			number tmp = exp(-(r - F1_R0[type]) * F1_A[type]);
+			val = 2 * (1 - tmp) * tmp * F1_A[type];
 		}
 		//else if(r > F1_RCLOW[type]) {
 		//	val = 2 * F1_BLOW[type] * (r - F1_RCLOW[type]);
 		//}
 	}
 
-	return this->F1_EPS[type][n3][n5] * val;
+	return F1_EPS[type][n3][n5] * val;
 }
 
-number RNA2Interaction::_hydrogen_bonding_repulsion(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(this->_are_bonded(p, q)) return (number) 0.f;
+number RNA2Interaction::_hydrogen_bonding_repulsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(_are_bonded(p, q))
+		return (number) 0.f;
 
 	// true if p and q are Watson-Crick-like pairs
 	bool is_pair = (q->btype + p->btype == 3);
-	if(!this->_average) //allow for wobble bp
+	if(!_average) //allow for wobble bp
 	{
-		if(q->btype + p->btype == 4 && ((q->type == N_T && p->type == N_G) || (q->type == N_G && p->type == N_T))) is_pair = true;
+		if(q->btype + p->btype == 4 && ((q->type == N_T && p->type == N_G) || (q->type == N_G && p->type == N_T)))
+			is_pair = true;
 	}
 	if(is_pair) {
 		return 0;
 	}
 
-	LR_vector rhydro = *r + q->int_centers[RNANucleotide::BASE] - p->int_centers[RNANucleotide::BASE];
+	LR_vector rhydro = _computed_r + q->int_centers[RNANucleotide::BASE] - p->int_centers[RNANucleotide::BASE];
 	number rhydromod = rhydro.module();
 	number energy = (number) 0.f;
 
@@ -298,7 +303,7 @@ number RNA2Interaction::_hydrogen_bonding_repulsion(BaseParticle *p, BaseParticl
 	//}
 	//exit(1);
 
-	if(rhydromod < this->model->RNA_HYDR_RCHIGH) {
+	if(rhydromod < model->RNA_HYDR_RCHIGH) {
 		// vector, versor and magnitude of the base-base separation
 		LR_vector rhydrodir = rhydro / rhydromod;
 
@@ -319,15 +324,15 @@ number RNA2Interaction::_hydrogen_bonding_repulsion(BaseParticle *p, BaseParticl
 
 		// functions called at their relevant arguments
 
-		number f1 = this->_fX(rhydromod, RNA_HYDR_F1, 0, 0);
+		number f1 = _fX(rhydromod, RNA_HYDR_F1, 0, 0);
 
-		number f4t1 = this->_query_mesh(cost1, this->_mesh_f4[RNA_HYDR_F4_THETA1]);
-		number f4t2 = this->_query_mesh(cost2, this->_mesh_f4[RNA_HYDR_F4_THETA2]);
-		number f4t3 = this->_query_mesh(cost3, this->_mesh_f4[RNA_HYDR_F4_THETA3]);
+		number f4t1 = _query_mesh(cost1, _mesh_f4[RNA_HYDR_F4_THETA1]);
+		number f4t2 = _query_mesh(cost2, _mesh_f4[RNA_HYDR_F4_THETA2]);
+		number f4t3 = _query_mesh(cost3, _mesh_f4[RNA_HYDR_F4_THETA3]);
 
-		number f4t4 = this->_query_mesh(cost4, this->_mesh_f4[RNA_HYDR_F4_THETA4]);
-		number f4t7 = this->_query_mesh(cost7, this->_mesh_f4[RNA_HYDR_F4_THETA7]);
-		number f4t8 = this->_query_mesh(cost8, this->_mesh_f4[RNA_HYDR_F4_THETA8]);
+		number f4t4 = _query_mesh(cost4, _mesh_f4[RNA_HYDR_F4_THETA4]);
+		number f4t7 = _query_mesh(cost7, _mesh_f4[RNA_HYDR_F4_THETA7]);
+		number f4t8 = _query_mesh(cost8, _mesh_f4[RNA_HYDR_F4_THETA8]);
 
 		energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
@@ -339,15 +344,15 @@ number RNA2Interaction::_hydrogen_bonding_repulsion(BaseParticle *p, BaseParticl
 
 			// derivatives called at the relevant arguments
 			number f1D;
-			f1D = this->_fXD(rhydromod, RNA_HYDR_F1, 0, 0);
+			f1D = _fXD(rhydromod, RNA_HYDR_F1, 0, 0);
 
-			number f4t1Dsin = this->_query_meshD(cost1, this->_mesh_f4[RNA_HYDR_F4_THETA1]);
-			number f4t2Dsin = this->_query_meshD(cost2, this->_mesh_f4[RNA_HYDR_F4_THETA2]);
-			number f4t3Dsin = -this->_query_meshD(cost3, this->_mesh_f4[RNA_HYDR_F4_THETA3]);
+			number f4t1Dsin = _query_meshD(cost1, _mesh_f4[RNA_HYDR_F4_THETA1]);
+			number f4t2Dsin = _query_meshD(cost2, _mesh_f4[RNA_HYDR_F4_THETA2]);
+			number f4t3Dsin = -_query_meshD(cost3, _mesh_f4[RNA_HYDR_F4_THETA3]);
 
-			number f4t4Dsin = -this->_query_meshD(cost4, this->_mesh_f4[RNA_HYDR_F4_THETA4]);
-			number f4t7Dsin = this->_query_meshD(cost7, this->_mesh_f4[RNA_HYDR_F4_THETA7]);
-			number f4t8Dsin = -this->_query_meshD(cost8, this->_mesh_f4[RNA_HYDR_F4_THETA8]);
+			number f4t4Dsin = -_query_meshD(cost4, _mesh_f4[RNA_HYDR_F4_THETA4]);
+			number f4t7Dsin = _query_meshD(cost7, _mesh_f4[RNA_HYDR_F4_THETA7]);
+			number f4t8Dsin = -_query_meshD(cost8, _mesh_f4[RNA_HYDR_F4_THETA8]);
 
 			// RADIAL PART
 			force = -rhydrodir * f1D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
@@ -413,21 +418,23 @@ number RNA2Interaction::_hydrogen_bonding_repulsion(BaseParticle *p, BaseParticl
 	return energy;
 }
 
-number RNA2Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(this->_are_bonded(p, q)) return (number) 0.f;
+number RNA2Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(_are_bonded(p, q))
+		return (number) 0.f;
 
 	// true if p and q are Watson-Crick-like pairs
 	bool is_pair = (q->btype + p->btype == 3);
-	if(!this->_average) //allow for wobble bp
+	if(!_average) //allow for wobble bp
 	{
-		if(q->btype + p->btype == 4 && ((q->type == N_T && p->type == N_G) || (q->type == N_G && p->type == N_T))) is_pair = true;
+		if(q->btype + p->btype == 4 && ((q->type == N_T && p->type == N_G) || (q->type == N_G && p->type == N_T)))
+			is_pair = true;
 	}
 
 	if(is_pair) {
-		return this->RNAInteraction::_hydrogen_bonding(p, q, r, update_forces);
+		return RNAInteraction::_hydrogen_bonding(p, q, compute_r, update_forces);
 	}
 	else if(_mismatch_repulsion) {
-		return _hydrogen_bonding_repulsion(p, q, r, update_forces);
+		return _hydrogen_bonding_repulsion(p, q, compute_r, update_forces);
 	}
 	else {
 		return 0;

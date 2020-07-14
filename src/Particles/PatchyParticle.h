@@ -16,12 +16,11 @@
 
 class PatchyParticle : public BaseParticle {
 protected:
-	std::vector<LR_vector> _base_patches;
 	number _sigma;
-
-	void _set_base_patches();
+	std::vector<LR_vector> _base_patches;
 
 public:
+	PatchyParticle(std::vector<LR_vector> base_patches, int nt, number sigma);
 	PatchyParticle(int N_patches, int nt, number sigma);
 	virtual ~PatchyParticle();
 

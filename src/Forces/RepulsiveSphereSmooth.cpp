@@ -40,7 +40,7 @@ std::tuple<std::vector<int>, std::string> RepulsiveSphereSmooth::init(input_file
 		_center = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	}
 
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "RepulsiveSphereSmooth");
+	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "RepulsiveSphereSmooth");
 	std::string description = Utils::sformat("RepulsiveSphereSmooth force (stiff=%g, r0=%g,  center=%g,%g,%g)", _stiff, _r0, _center.x, _center.y, _center.z);
 
 	return std::make_tuple(particle_ids, description);

@@ -9,10 +9,7 @@
 #include "../Utilities/Utils.h"
 
 DensityProfile::DensityProfile() {
-	_axis = -1;
-	_nbins = -1;
-	_bin_size = (number) -1.;
-	_max_value = (number) -1.;
+
 }
 
 DensityProfile::~DensityProfile() {
@@ -21,32 +18,57 @@ DensityProfile::~DensityProfile() {
 
 std::string DensityProfile::get_output_string(llint curr_step) {
 	int N = _config_info->N();
+	_nconfs++;
 
-	// get smallest side
 	LR_vector sides = _config_info->box->box_sides();
-	number min_box_side = sides[0];
-	if(sides[1] < min_box_side) min_box_side = sides[1];
-	if(sides[2] < min_box_side) min_box_side = sides[2];
-
-	if(_max_value > min_box_side) OX_LOG(Logger::LOG_WARNING, "Observable DensityProfile: computing profile with max_value > box_size (%g > %g)", _max_value, min_box_side);
+	std::vector<long int> conf_profile(_nbins, 0);
 
 	for(int i = 0; i < N; i++) {
-		BaseParticle *p = _config_info->particles[i];
-		LR_vector mypos = _config_info->box->get_abs_pos(p);
-		mypos.x -= sides.x * floor(mypos.x / sides.x);
-		mypos.y -= sides.y * floor(mypos.y / sides.y);
-		mypos.z -= sides.z * floor(mypos.z / sides.z);
-		if(mypos[_axis] < _max_value) {
-			int mybin = (int) (0.01 + floor(mypos[_axis] / _bin_size));
-			_profile[mybin]++;
+		BaseParticle *p = _config_info->particles()[i];
+		if(_type == -1 || p->type == _type) {
+			LR_vector mypos = _config_info->box->get_abs_pos(p);
+			mypos.x -= sides.x * floor(mypos.x / sides.x);
+			mypos.y -= sides.y * floor(mypos.y / sides.y);
+			mypos.z -= sides.z * floor(mypos.z / sides.z);
+			if(mypos[_axis] < _max_value) {
+				int mybin = (int) (0.01 + floor(mypos[_axis] / _bin_size));
+				conf_profile[mybin]++;
+			}
 		}
+	}
+
+	int shift_by = 0;
+	if(_shift_by_average_position) {
+		// this feature is useful when simulating a direct coexistence between phases with different density.
+		// in this case we first want to shift the minimum of the profile so that it coincides with the origin.
+		// In this way we can correctly compute the average even when the high-density phase sits around the
+		// the origin (that is, when it appears split in two in the profile)
+		int min_idx = std::min_element(conf_profile.begin(), conf_profile.end()) - conf_profile.begin();
+
+		// now we compute the index relative to the average of the profile
+		number xPx_sum = 0.;
+		number Px_sum = 0.;
+		for(int i = 0; i < _nbins; i++) {
+			int idx = (i + min_idx) % _nbins;
+			xPx_sum += conf_profile[idx] * idx;
+			Px_sum += conf_profile[idx];
+		}
+		shift_by = (int) (std::round(xPx_sum / Px_sum)) + _nbins / 2;
+	}
+
+	for(int i = 0; i < _nbins; i++) {
+		int idx = (i + shift_by) % _nbins;
+		_profile[i] += conf_profile[idx];
 	}
 
 	std::stringstream ret;
 	ret.precision(9);
 	double myx = _bin_size / 2.;
+	number volume = _config_info->box->V();
+	number bin_volume = volume / sides[_axis] * _bin_size;
+	number factor = 1. / (_nconfs * bin_volume);
 	for(auto value: _profile) {
-		ret << myx << " " << value << std::endl;
+		ret << myx << " " << value * factor << std::endl;
 		myx += _bin_size;
 	}
 	ret << std::endl;
@@ -57,21 +79,33 @@ std::string DensityProfile::get_output_string(llint curr_step) {
 void DensityProfile::get_settings(input_file &my_inp, input_file &sim_inp) {
 	char tmps[512];
 	getInputString(&my_inp, "axis", tmps, 1);
-	if(!strncasecmp(tmps, "x", 512)) _axis = 0;
-	else if(!strncasecmp(tmps, "y", 512)) _axis = 1;
-	else if(!strncasecmp(tmps, "z", 512)) _axis = 2;
-	else throw oxDNAException("DensityProfile observable: unknown axis %s; use x, y or z", tmps);
+	if(!strncasecmp(tmps, "x", 512)) {
+		_axis = 0;
+	}
+	else if(!strncasecmp(tmps, "y", 512)) {
+		_axis = 1;
+	}
+	else if(!strncasecmp(tmps, "z", 512)) {
+		_axis = 2;
+	}
+	else {
+		throw oxDNAException("DensityProfile observable: unknown axis %s; use x, y or z", tmps);
+	}
 
-	float tmpf;
-	getInputFloat(&my_inp, "max_value", &tmpf, 1);
-	_max_value = (number) tmpf;
-	getInputFloat(&my_inp, "bin_size", &tmpf, 1);
-	_nbins = (int) (floor(_max_value / tmpf) + 0.01);
+	getInputNumber(&my_inp, "max_value", &_max_value, 1);
+	if(getInputNumber(&my_inp, "bin_size", &_bin_size, 0) == KEY_FOUND) {
+		_nbins = (int) (floor(_max_value / _bin_size) + 0.01);
+	}
+	else {
+	    getInputInt(&my_inp, "n_bins", &_nbins, 1);
+		
+	}
 	_bin_size = (number) _max_value / _nbins;
 
-	OX_LOG(Logger::LOG_INFO, "Observable DensityProfile initialized with axis %d, max_value %g, bin_size %g (%g), nbins %d", _axis, _max_value, _bin_size, tmpf, _nbins);
+	getInputBool(&my_inp, "shift_by_average_position", &_shift_by_average_position, 0);
+	getInputInt(&my_inp, "particle_type", &_type, 0);
+
+	OX_LOG(Logger::LOG_INFO, "Observable DensityProfile initialized with axis %d, max_value %g, bin_size %g, nbins %d, type %d", _axis, _max_value, _bin_size, _nbins, _type);
 
 	_profile.resize(_nbins);
-
-	//throw oxDNAException ("oh well");
 }

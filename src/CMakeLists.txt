@@ -1,12 +1,16 @@
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
 	SET(exe_name oxDNA_debug)
 	SET(lib_name common_debug)
+ELSEIF(MPI)
+	SET(exe_name oxDNA_mpi)
+	SET(lib_name common)
 ELSE()
 	SET(exe_name oxDNA)
 	SET(lib_name common)
 ENDIF()
 
 SET(observables_SOURCES
+	Observables/BaseObservable.cpp
 	Observables/ObservableFactory.cpp
 	Observables/ObservableOutput.cpp
 	Observables/Step.cpp
@@ -124,6 +128,7 @@ SET(move_SOURCES
 	Backends/MCMoves/MCRot.cpp
 	Backends/MCMoves/VMMC.cpp
 	Backends/MCMoves/VolumeMove.cpp
+	Backends/MCMoves/MoleculeVolumeMove.cpp
 	Backends/MCMoves/ShapeMove.cpp
 	Backends/MCMoves/RotateSite.cpp
 )
@@ -168,6 +173,7 @@ SET(common_SOURCES
 	Particles/PatchyParticleDan.cpp
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
+	Particles/Molecule.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp
@@ -178,7 +184,7 @@ SET(common_SOURCES
 	Utilities/oxDNAException.cpp
 	Utilities/Logger.cpp
 	Utilities/parse_input/parse_input.cpp
-	Utilities/time_scales/time_scales.c
+	Utilities/time_scales/time_scales.cpp
 	Utilities/SignalManager.cpp
 	Utilities/ConfigInfo.cpp
 	PluginManagement/PluginManager.cpp
@@ -191,10 +197,6 @@ SET(common_SOURCES
 	${box_SOURCES}
 )
 
-SET(oxDNA_SOURCES
-	oxDNA.cpp 
-)
-
 SET(DNAnalysis_SOURCES
 	DNAnalysis.cpp
 	Managers/AnalysisManager.cpp
@@ -205,9 +207,27 @@ SET(confGenerator_SOURCES
 	confGenerator.cpp
 	Managers/GeneratorManager.cpp
 )
+
+IF(MPI)
+	FIND_PACKAGE(MPI REQUIRED)
+	INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+	
+	LIST(APPEND common_SOURCES
+		Backends/PT_VMMC_CPUBackend.cpp
+		Managers/ParallelManager.cpp
+	)
+	
+	SET(oxDNA_SOURCES
+		oxDNA_mpi.cpp 
+	)
+ELSE()
+	SET(oxDNA_SOURCES
+		oxDNA.cpp 
+	)
+ENDIF()
 	
 IF(CUDA)
-	SET(oxDNA_CUDASOURCES
+	LIST(APPEND common_SOURCES
 		CUDA/CUDA_sort.cu
 		CUDA/CUDAUtils.cu
 		CUDA/cuda_utils/cuda_device_utils.cu
@@ -235,13 +255,15 @@ IF(CUDA)
 	)
 	
 	IF(NOT CUDA_DOUBLE)
-		LIST(APPEND oxDNA_CUDASOURCES
+		LIST(APPEND common_SOURCES
 			CUDA/Backends/MD_CUDAMixedBackend.cu 
 			CUDA/Backends/FFS_MD_CUDAMixedBackend.cu
 		)
 	ENDIF(NOT CUDA_DOUBLE)
 	
-	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES} ${oxDNA_CUDASOURCES})
+	# we need the library to be shared or the oxpy compilation fails
+	CUDA_ADD_LIBRARY(${lib_name} SHARED ${common_SOURCES})
+	CUDA_ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
 	CUDA_ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES} Utilities/Timings.cpp)
 	
 	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -rdynamic")
@@ -253,12 +275,17 @@ ELSE()
 
 	ADD_EXECUTABLE(${exe_name} ${oxDNA_SOURCES})
 	ADD_EXECUTABLE(DNAnalysis ${DNAnalysis_SOURCES})
+	ADD_LIBRARY(${lib_name} ${common_SOURCES})
 ENDIF(CUDA)
 
 ADD_EXECUTABLE(confGenerator ${confGenerator_SOURCES})
 
-ADD_LIBRARY(${lib_name} ${common_SOURCES})
-TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
+IF(MPI)
+	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS} ${MPI_LIBRARIES})
+ELSE()
+	TARGET_LINK_LIBRARIES(${lib_name} ${CMAKE_DL_LIBS})
+ENDIF()
+
 TARGET_LINK_LIBRARIES(${exe_name} ${lib_name})
 TARGET_LINK_LIBRARIES(DNAnalysis ${lib_name})
 TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
@@ -267,17 +294,3 @@ TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
 ADD_DEPENDENCIES(test_run ${exe_name} DNAnalysis confGenerator)
 ADD_DEPENDENCIES(test_quick ${exe_name} DNAnalysis confGenerator)
 ADD_DEPENDENCIES(test_scientific ${exe_name} DNAnalysis confGenerator)
-
-IF(MPI)
-	FIND_PACKAGE(MPI REQUIRED)
-	INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
-
-	SET(mpi_SOURCES
-		oxDNA_mpi
-		Managers/ParallelManager.cpp
-                Backends/PT_VMMC_CPUBackend.cpp
-	)
-	ADD_EXECUTABLE(oxDNA_mpi ${mpi_SOURCES})
-        SET(exe_name oxDNA_mpi)
-	TARGET_LINK_LIBRARIES(oxDNA_mpi ${lib_name} ${MPI_LIBRARIES})
-ENDIF()

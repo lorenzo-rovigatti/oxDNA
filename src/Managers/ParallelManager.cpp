@@ -10,7 +10,8 @@
 #include "ParallelManager.h"
 #include "../Utilities/Utils.h"
 
-ParallelManager::ParallelManager(int argc, char *argv[]) : SimManager(argc, argv) {
+ParallelManager::ParallelManager(input_file input) :
+				SimManager(input) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &_mpi_rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &_mpi_size);
 }
@@ -21,7 +22,7 @@ ParallelManager::~ParallelManager() {
 
 void ParallelManager::load_options() {
 	std::string new_prefix = Utils::sformat("output_prefix = mpi_%d_", _mpi_rank);
-	addInput(&_input, new_prefix);
+	_input.add_input_source(new_prefix);
 
 	SimManager::load_options();
 }

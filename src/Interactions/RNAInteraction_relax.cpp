@@ -20,24 +20,26 @@ RNAInteraction_relax::RNAInteraction_relax() :
 RNAInteraction_relax::~RNAInteraction_relax() {
 }
 
-number RNAInteraction_relax::_backbone(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(!this->_check_bonded_neighbour(&p, &q, r)) {
+number RNAInteraction_relax::_backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(!_check_bonded_neighbour(&p, &q, compute_r)) {
 		return (number) 0.f;
 	}
 
-	LR_vector computed_r;
-	if(r == NULL) {
-		computed_r = q->pos - p->pos;
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = q->pos - p->pos;
 	}
 
-	LR_vector rback = *r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
+	LR_vector rback = _computed_r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
 	number rbackmod = rback.module();
-	number rbackr0 = rbackmod - this->model->RNA_FENE_R0;
+	number rbackr0 = rbackmod - model->RNA_FENE_R0;
 
 	number energy = 0;
-	if(_backbone_type == _constant_force) energy = _backbone_k * fabs(rbackr0);
-	else if(_backbone_type == _harmonic_force) energy = 0.5 * _backbone_k * rbackr0 * rbackr0;
+	if(_backbone_type == _constant_force) {
+		energy = _backbone_k * fabs(rbackr0);
+	}
+	else if(_backbone_type == _harmonic_force) {
+		energy = 0.5 * _backbone_k * rbackr0 * rbackr0;
+	}
 
 	if(update_forces) {
 		LR_vector force;

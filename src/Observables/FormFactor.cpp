@@ -55,7 +55,7 @@ std::string FormFactor::get_output_string(llint curr_step) {
 
 	LR_vector com(0., 0., 0.);
 	for(int j = 0; j < N; j++) {
-		BaseParticle *p = _config_info->particles[j];
+		BaseParticle *p = _config_info->particles()[j];
 		com += _config_info->box->get_abs_pos(p);
 	}
 	com /= N;
@@ -69,7 +69,7 @@ std::string FormFactor::get_output_string(llint curr_step) {
 			double sq_cos = 0.;
 			double sq_sin = 0.;
 			for(int j = 0; j < N; j++) {
-				BaseParticle *p = _config_info->particles[j];
+				BaseParticle *p = _config_info->particles()[j];
 				if(_type == -1 || p->type == _type) {
 					LR_vector my_pos = _config_info->box->get_abs_pos(p) - com;
 					LR_vector r(my_pos.x, my_pos.y, my_pos.z);

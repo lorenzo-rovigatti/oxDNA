@@ -27,6 +27,11 @@ protected:
 	int _stress_tensor_counter;
 	LR_matrix _stress_tensor;
 
+	// thermostat introduced in https://journals.aps.org/pre/abstract/10.1103/PhysRevE.75.056707
+	bool _use_builtin_langevin_thermostat = false;
+	number _langevin_c1 = 0.;
+	number _langevin_c2 = 0.;
+
 	void _first_step(llint cur_step);
 	void _compute_forces();
 	void _second_step();

@@ -13,7 +13,7 @@
 
 FIREBackend::FIREBackend() :
 				MDBackend() {
-	this->_is_CUDA_sim = false;
+	_is_CUDA_sim = false;
 
 	_N_min = 5;
 	_f_inc = 1.1;
@@ -37,8 +37,8 @@ FIREBackend::~FIREBackend() {
 void FIREBackend::get_settings(input_file &inp) {
 	MDBackend::get_settings(inp);
 
-	getInputNumber(&inp, "dt", &(this->_dt), 1);
-	_dt_restart = this->_dt;
+	getInputNumber(&inp, "dt", &(_dt), 1);
+	_dt_restart = _dt;
 
 	getInputNumber(&inp, "minimization_max_step", &_max_step, 0);
 
@@ -88,8 +88,8 @@ void FIREBackend::_first_step(llint cur_step) {
 	std::vector<number> dthetas;
 
 	for(auto p: _particles) {
-		p->vel += p->force * this->_dt * (number) 0.5;
-		LR_vector dr = p->vel * this->_dt;
+		p->vel += p->force * _dt * (number) 0.5;
+		LR_vector dr = p->vel * _dt;
 		if(dr.norm() > 0.01) {
 			is_warning = true;
 			w_ps.push_back(p->index);
@@ -98,14 +98,14 @@ void FIREBackend::_first_step(llint cur_step) {
 		drs.push_back(LR_vector(dr.x, dr.y, dr.z));
 
 		if(p->is_rigid_body()) {
-			p->L += p->torque * this->_dt * (number) 0.5;
+			p->L += p->torque * _dt * (number) 0.5;
 			// update of the orientation
 			number norm = p->L.module();
 			LR_vector LVersor(p->L / norm);
-			dthetas.push_back(this->_dt * norm);
+			dthetas.push_back(_dt * norm);
 
-			number sintheta = sin(this->_dt * norm);
-			number costheta = cos(this->_dt * norm);
+			number sintheta = sin(_dt * norm);
+			number costheta = cos(_dt * norm);
 			number olcos = 1. - costheta;
 
 			number xyo = LVersor[0] * LVersor[1] * olcos;
@@ -152,7 +152,7 @@ void FIREBackend::_first_step(llint cur_step) {
 
 	// here we increment coordinates
 	for(auto p: _particles) {
-		p->pos += p->vel * (this->_dt / fact);
+		p->pos += p->vel * (_dt / fact);
 
 		if(p->is_rigid_body()) {
 			LR_matrix myR = dRs.back();
@@ -163,9 +163,9 @@ void FIREBackend::_first_step(llint cur_step) {
 			p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 
 		}
-		p->set_initial_forces(cur_step, this->_box);
+		p->set_initial_forces(cur_step, _box);
 
-		this->_lists->single_update(p);
+		_lists->single_update(p);
 	}
 
 	if(is_warning) {
@@ -177,24 +177,30 @@ void FIREBackend::_first_step(llint cur_step) {
 }
 
 void FIREBackend::_second_step() {
-	this->_K = (number) 0.f;
+	_K = (number) 0.f;
 	for(auto p: _particles) {
-		p->vel += p->force * this->_dt * (number) 0.5f;
-		if(p->is_rigid_body()) p->L += p->torque * this->_dt * (number) 0.5f;
+		p->vel += p->force * _dt * (number) 0.5f;
+		if(p->is_rigid_body()) p->L += p->torque * _dt * (number) 0.5f;
 
-		this->_K += (p->vel.norm() + p->L.norm()) * (number) 0.5f;
+		_K += (p->vel.norm() + p->L.norm()) * (number) 0.5f;
 	}
 }
 
 void FIREBackend::_compute_forces() {
-	this->_U = this->_U_hydr = (number) 0;
-	for(auto p: _particles) {
-		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
+	_interaction->begin_energy_computation();
 
-		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
+	_U = _U_hydr = (number) 0;
+	for(auto p: _particles) {
+		for(auto &pair : p->affected) {
+			if(pair.first == p) {
+				_U += _interaction->pair_interaction_bonded(pair.first, pair.second, true, true);
+			}
+		}
+
+		std::vector<BaseParticle *> neighs = _lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
-			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
+			_U += _interaction->pair_interaction_nonbonded(p, q, true, true);
 		}
 	}
 }
@@ -249,32 +255,32 @@ void FIREBackend::_evolve() {
 			p->orientationT = p->orientation.get_transpose();
 			p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 		}
-		this->_lists->single_update(p);
+		_lists->single_update(p);
 	}
 
 	return;
 }
 
 void FIREBackend::sim_step(llint curr_step) {
-	this->_mytimer->resume();
+	_mytimer->resume();
 
-	this->_timer_first_step->resume();
+	_timer_first_step->resume();
 	_first_step(curr_step);
-	this->_timer_first_step->pause();
+	_timer_first_step->pause();
 
-	this->_timer_lists->resume();
-	if(!this->_lists->is_updated()) {
-		this->_lists->global_update();
-		this->_N_updates++;
+	_timer_lists->resume();
+	if(!_lists->is_updated()) {
+		_lists->global_update();
+		_N_updates++;
 	}
-	this->_timer_lists->pause();
+	_timer_lists->pause();
 
-	this->_timer_forces->resume();
+	_timer_forces->resume();
 	_compute_forces();
 	_second_step();
-	this->_timer_forces->pause();
+	_timer_forces->pause();
 
-	this->_timer_thermostat->resume();
+	_timer_thermostat->resume();
 
 	// calculate P
 	number P = 0.;
@@ -293,12 +299,12 @@ void FIREBackend::sim_step(llint curr_step) {
 	_step_last_reset += 1;
 
 	if(P > (number) 0.f && _step_last_reset > _N_min && _allow_dt_increase) {
-		this->_dt = this->_dt * _f_inc;
-		if(this->_dt > _dt_max) this->_dt = _dt_max;
+		_dt = _dt * _f_inc;
+		if(_dt > _dt_max) _dt = _dt_max;
 		_alpha = _alpha * _f_alpha;
 	}
 	else if(P <= (number) 0.f) {
-		this->_dt = this->_dt * _f_dec;
+		_dt = _dt * _f_dec;
 		_alpha = _alpha_start;
 		for(auto p: _particles) {
 			p->vel.x = (number) 0.f;
@@ -312,8 +318,8 @@ void FIREBackend::sim_step(llint curr_step) {
 		}
 		_step_last_reset = 0;
 	}
-	this->_timer_thermostat->pause();
+	_timer_thermostat->pause();
 
-	this->_mytimer->pause();
-	printf("P, alpha, dt = %g, %g, %g\n", P, _alpha, this->_dt);
+	_mytimer->pause();
+	printf("P, alpha, dt = %g, %g, %g\n", P, _alpha, _dt);
 }

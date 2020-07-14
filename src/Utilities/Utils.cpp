@@ -18,15 +18,9 @@ extern int errno;
 
 using std::string;
 
-Utils::Utils() {
+namespace Utils {
 
-}
-
-Utils::~Utils() {
-
-}
-
-int Utils::decode_base(char c) {
+int decode_base(char c) {
 	c = toupper(c);
 	switch(c) {
 	case 'A':
@@ -46,7 +40,7 @@ int Utils::decode_base(char c) {
 	}
 }
 
-char Utils::encode_base(int b) {
+char encode_base(int b) {
 	switch(b) {
 	case N_A:
 		return 'A';
@@ -63,17 +57,21 @@ char Utils::encode_base(int b) {
 	}
 }
 
-std::vector<std::string> Utils::split(const string &s, char delim) {
+std::vector<std::string> split(const string &s, char delim) {
 	string s_copy(s);
-	if(delim == ' ') Utils::trim(s_copy);
+	if(delim == ' ') {
+		trim(s_copy);
+	}
 	std::vector<string> elems;
 	std::stringstream ss(s_copy);
 	string item;
 
 	while(getline(ss, item, delim)) {
 		if(delim == ' ') {
-			Utils::trim(item);
-			if(item.length() > 0) elems.push_back(item);
+			trim(item);
+			if(item.length() > 0) {
+				elems.push_back(item);
+			}
 		}
 		else elems.push_back(item);
 	}
@@ -81,16 +79,16 @@ std::vector<std::string> Utils::split(const string &s, char delim) {
 	return elems;
 }
 
-std::string Utils::sformat(const std::string &fmt, ...) {
+std::string sformat(const std::string &fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
-	std::string str = Utils::sformat_ap(fmt, ap);
+	std::string str = sformat_ap(fmt, ap);
 	va_end(ap);
 	return str;
 }
 
 // c++ wrapper around sprintf (WTF?)
-std::string Utils::sformat_ap(const std::string &fmt, va_list &ap) {
+std::string sformat_ap(const std::string &fmt, va_list &ap) {
 	int size = 500;
 	std::string str;
 	while(1) {
@@ -109,7 +107,7 @@ std::string Utils::sformat_ap(const std::string &fmt, va_list &ap) {
 	return str;
 }
 
-void Utils::orthonormalize_matrix(LR_matrix &m) {
+void orthonormalize_matrix(LR_matrix &m) {
 	number v1_norm2 = m.v1 * m.v1;
 	number v2_v1 = m.v2 * m.v1;
 
@@ -126,7 +124,7 @@ void Utils::orthonormalize_matrix(LR_matrix &m) {
 	m.v3.normalize();
 }
 
-input_file *Utils::get_input_file_from_string(const std::string &inp) {
+input_file *get_input_file_from_string(const std::string &inp) {
 	std::string real_inp(inp);
 
 	if(inp[0] == '{') {
@@ -155,7 +153,7 @@ input_file *Utils::get_input_file_from_string(const std::string &inp) {
 	if(errno == ENOSPC) throw oxDNAException("Failed to write to temporary file. No space left on device. maybe /tmp has no space left? Aborting");
 
 	input_file *ret = new input_file;
-	loadInput(ret, temp);
+	ret->init_from_file(temp);
 
 	fclose(temp);
 
@@ -163,7 +161,7 @@ input_file *Utils::get_input_file_from_string(const std::string &inp) {
 }
 
 
-number Utils::get_temperature(char * raw_T) {
+number get_temperature(char * raw_T) {
 	char deg;
 	double tmp_T;
 	number T;
@@ -187,7 +185,7 @@ number Utils::get_temperature(char * raw_T) {
 	return T;
 }
 
-std::string Utils::bytes_to_human(llint bytes) {
+std::string bytes_to_human(llint bytes) {
 	llint base = 1024;
 	int ctr = 0;
 	while(bytes / base > 0 && ctr < 4) {
@@ -195,7 +193,7 @@ std::string Utils::bytes_to_human(llint bytes) {
 		ctr++;
 	}
 	base /= 1024;
-	std::string ret = Utils::sformat("%7.3lf ", bytes / (double) base);
+	std::string ret = sformat("%7.3lf ", bytes / (double) base);
 	switch(ctr) {
 	case 0:
 		ret += std::string(" B");
@@ -222,7 +220,7 @@ std::string Utils::bytes_to_human(llint bytes) {
  *
  * @param seedptr the memory address to store the 48 bits of the seed into.
  */
-void Utils::get_seed(unsigned short * seedptr) {
+void get_seed(unsigned short * seedptr) {
 	unsigned short seme[3] = { 0, 0, 0 };
 	unsigned short * tmpptr;
 	tmpptr = seed48(seme);
@@ -232,7 +230,7 @@ void Utils::get_seed(unsigned short * seedptr) {
 }
 
 // zeroes the velocity of the centre of mass
-void Utils::stop_com(std::vector<BaseParticle *> &particles) {
+void stop_com(std::vector<BaseParticle *> &particles) {
 	LR_vector vcom = LR_vector((number) 0., (number) 0., (number) 0.);
 
 	for(auto p: particles) {
@@ -248,7 +246,7 @@ void Utils::stop_com(std::vector<BaseParticle *> &particles) {
 	return;
 }
 
-number Utils::gamma(number alpha, number beta) {
+number gamma(number alpha, number beta) {
 	number x, v, u;
 	double d = alpha - 1. / 3.;
 	double c = (1. / 3.) / sqrt(d);
@@ -257,7 +255,7 @@ number Utils::gamma(number alpha, number beta) {
 
 	while(true) {
 		do {
-			x = Utils::gaussian();
+			x = gaussian();
 			v = 1. + c * x;
 		} while(v <= 0);
 
@@ -272,23 +270,23 @@ number Utils::gamma(number alpha, number beta) {
 	return beta * d * v;
 }
 
-void Utils::assert_is_valid_particle(int index, int N, char const *identifier) {
+void assert_is_valid_particle(int index, int N, char const *identifier) {
 	if(index >= N || index < -1) {
 		throw oxDNAException("Trying to add a %s on non-existent particle %d. Aborting", identifier, index);
 	}
 }
 
-bool Utils::is_integer(std::string s) {
+bool is_integer(std::string s) {
 	return s.find_first_not_of("0123456789") == string::npos;
 
 }
 
-std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier) {
+std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier) {
 	// first remove all the spaces from the string, so that the parsing goes well.
 	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int (*)(int)>( isspace )), particle_string.end());
 
-	std::vector<std::string> temp = Utils::split (particle_string.c_str(), ',');
-	std::vector<int> particles_index; //declare as empty
+	std::vector<std::string> temp = split(particle_string.c_str(), ',');
+	std::vector<int> particles_index;
 
 	// try to understand whether we are dealing with a strand-based system or not
 	bool has_strands = false;
@@ -309,19 +307,21 @@ std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &part
 
 		if (found_dash && '-'!= temp[i].c_str()[0] ) {
 			// get the two indices p0 and p1 and check they make sense
-			std::vector<std::string> p0_p1_index = Utils::split(temp[i].c_str(),'-');
+			std::vector<std::string> p0_p1_index = split(temp[i].c_str(), '-');
 
 			int p[2]= {0};
 			// check whether the p0 and p1 keys can be understood, and set them
 			for (int ii = 0; ii < 2; ii++) {
-				if ( Utils::is_integer(p0_p1_index[ii])) {
+				if ( is_integer(p0_p1_index[ii])) {
 					p[ii] = atoi(p0_p1_index[ii].c_str());
-					Utils::assert_is_valid_particle(p[ii], particles.size(), identifier);
+					assert_is_valid_particle(p[ii], particles.size(), identifier);
 				}
-				if ( ! Utils::is_integer(p0_p1_index[ii])) {
-					if(p0_p1_index[ii] == "last") p[ii] = particles.size() - 1;
+				else {
+					if(p0_p1_index[ii] == "last") {
+						p[ii] = particles.size() - 1;
+					}
 					else {
-						throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\" used as a boundary particle.",identifier,p0_p1_index[ii].c_str());
+						throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\" used as a boundary particle.", identifier,p0_p1_index[ii].c_str());
 					}
 				}
 			}
@@ -362,13 +362,13 @@ std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &part
 		}
 		// add it to the vector, and make sure that the identifier is not an unidentified string
 		else {
-			if ( temp[i] != "-1" && ! Utils::is_integer(temp[i])) {
+			if ( temp[i] != "-1" && ! is_integer(temp[i])) {
 				throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\".",identifier,temp[i].c_str());
 
 			}
 			int j = atoi(temp[i].c_str());
 
-			Utils::assert_is_valid_particle(j, particles.size(), identifier);
+			assert_is_valid_particle(j, particles.size(), identifier);
 			particles_index.push_back(j);
 		}
 
@@ -389,3 +389,6 @@ std::vector<int> Utils::getParticlesFromString(std::vector<BaseParticle *> &part
 	// finally return the vector.
 	return particles_index;
 }
+
+}
+

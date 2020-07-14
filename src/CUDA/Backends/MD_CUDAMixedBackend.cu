@@ -112,7 +112,7 @@ void CUDAMixedBackend::_forces_second_step() {
 	CUT_CHECK_ERROR("second_step_mixed");
 }
 
-void CUDAMixedBackend::_gpu_to_host_particles() {
+void CUDAMixedBackend::apply_simulation_data_changes() {
 	// probably useless
 	if(_d_possd != NULL) {
 		_LR_double4_to_float4(_d_possd, _d_poss);
@@ -121,11 +121,11 @@ void CUDAMixedBackend::_gpu_to_host_particles() {
 		_LR_double4_to_float4(_d_Lsd, _d_Ls);
 	}
 
-	MD_CUDABackend::_gpu_to_host_particles();
+	MD_CUDABackend::apply_simulation_data_changes();
 }
 
-void CUDAMixedBackend::_host_particles_to_gpu() {
-	MD_CUDABackend::_host_particles_to_gpu();
+void CUDAMixedBackend::apply_changes_to_simulation_data() {
+	MD_CUDABackend::apply_changes_to_simulation_data();
 
 	// the first time this method gets called all these arrays have not been
 	// allocated yet. It's a bit of a hack but it's needed

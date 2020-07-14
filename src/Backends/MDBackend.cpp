@@ -11,15 +11,8 @@
 #include "../Observables/ObservableOutput.h"
 
 MDBackend::MDBackend() :
-				SimBackend(),
-				_refresh_velocities(false) {
+				SimBackend() {
 	this->_sim_type = SIM_MD;
-	_reset_initial_com_momentum = false;
-	_reset_com_momentum = false;
-	_use_barostat = false;
-	_barostat_isotropic = true;
-	_barostat_acceptance = 0.;
-
 	_timer_first_step = _timer_forces = _timer_lists = _timer_thermostat = _timer_barostat = NULL;
 
 	_lees_edwards = false;
@@ -50,13 +43,20 @@ void MDBackend::get_settings(input_file &inp) {
 
 	getInputBool(&inp, "use_barostat", &_use_barostat, 0);
 	if(_use_barostat) {
-		if(_lees_edwards) throw oxDNAException("Lees-Edwards boundaries are not compatible with isobaric simulations");
+		if(_lees_edwards) {
+			throw oxDNAException("Lees-Edwards boundaries are not compatible with isobaric simulations");
+		}
 		getInputBool(&inp, "barostat_isotropic", &_barostat_isotropic, 0);
 		getInputNumber(&inp, "P", &this->_P, 1);
 		getInputNumber(&inp, "delta_L", &_delta_L, 1);
-		_barostat_probability = 1.;
 		getInputNumber(&inp, "barostat_probability", &_barostat_probability, 0);
-		OX_LOG(Logger::LOG_INFO, "Enabling the MC-like barostat (isotropic = %d) with P = %lf, delta_L = %lf and activation probability = %lf", _barostat_isotropic, this->_P, _delta_L, _barostat_probability);
+		getInputBool(&inp, "barostat_molecular", &_barostat_molecular, 0);
+		std::string barostat_type("atomic");
+		if(_barostat_molecular) {
+			barostat_type = "molecular";
+		}
+
+		OX_LOG(Logger::LOG_INFO, "Enabling the MC-like %s barostat (isotropic = %d) with P = %lf, delta_L = %lf and activation probability = %lf", barostat_type.c_str(), _barostat_isotropic, this->_P, _delta_L, _barostat_probability);
 	}
 
 	char energy_file[512];
@@ -71,7 +71,9 @@ void MDBackend::get_settings(input_file &inp) {
 	_obs_outputs.push_back(_obs_output_file);
 	_obs_output_file->add_observable("type = step\nunits = MD");
 	_obs_output_file->add_observable("type = total_energy");
-	if(_use_barostat) _obs_output_file->add_observable("type = density");
+	if(_use_barostat) {
+		_obs_output_file->add_observable("type = density");
+	}
 	_obs_output_file->add_observable("type = backend_info");
 
 	// now we do the same thing for stdout
@@ -84,7 +86,9 @@ void MDBackend::get_settings(input_file &inp) {
 		_obs_output_stdout->add_observable("type = step");
 		_obs_output_stdout->add_observable("type = step\nunits = MD");
 		_obs_output_stdout->add_observable("type = total_energy");
-		if(_use_barostat) _obs_output_stdout->add_observable("type = density");
+		if(_use_barostat) {
+			_obs_output_stdout->add_observable("type = density");
+		}
 		_obs_output_stdout->add_observable("type = backend_info");
 	}
 }
@@ -95,7 +99,9 @@ void MDBackend::init() {
 	if(_refresh_velocities) _generate_vel();
 	else {
 		for(auto p: _particles) {
-			if(p->L.module() < 1.e-10) throw oxDNAException("Particle %i has 0 angular momentum in initial configuration.\n\tset \"refresh_vel = 1\" in input file. Aborting now.", p->index);
+			if(p->L.module() < 1.e-10) {
+				throw oxDNAException("Particle %i has 0 angular momentum in initial configuration.\n\tset \"refresh_vel = true\" in input file. Aborting now.", p->index);
+			}
 		}
 	}
 
@@ -108,11 +114,15 @@ void MDBackend::init() {
 	_timer_forces = TimingManager::instance()->new_timer(string("Forces"), string("SimBackend"));
 	_timer_thermostat = TimingManager::instance()->new_timer(string("Thermostat"), string("SimBackend"));
 	_timer_lists = TimingManager::instance()->new_timer(string("Lists"), string("SimBackend"));
-	if(_use_barostat) _timer_barostat = TimingManager::instance()->new_timer(string("Barostat"), string("SimBackend"));
+	if(_use_barostat) {
+		_timer_barostat = TimingManager::instance()->new_timer(string("Barostat"), string("SimBackend"));
+	}
 }
 
 bool MDBackend::_is_barostat_active() {
-	if(!_use_barostat) return false;
+	if(!_use_barostat) {
+		return false;
+	}
 	return _barostat_probability > drand48();
 }
 
@@ -161,7 +171,9 @@ void MDBackend::fix_diffusion() {
 }
 
 void MDBackend::print_observables(llint curr_step) {
-	if(_use_barostat) this->_backend_info.insert(0, Utils::sformat(" %5.3lf", _barostat_acceptance));
+	if(_use_barostat) {
+		this->_backend_info.insert(0, Utils::sformat(" %5.3lf", _barostat_acceptance));
+	}
 
 	SimBackend::print_observables(curr_step);
 }

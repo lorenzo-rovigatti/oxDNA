@@ -41,14 +41,15 @@ protected:
 	virtual void _forces_second_step();
 
 	virtual void _thermalize(llint curr_step);
-	virtual void _gpu_to_host_particles();
-	virtual void _host_particles_to_gpu();
 
 public:
 	CUDAMixedBackend();
 	virtual ~CUDAMixedBackend();
 
 	void init();
+
+	virtual void apply_simulation_data_changes();
+	virtual void apply_changes_to_simulation_data();
 };
 
 #endif /* MD_CUDAMIXEDBACKEND_H_ */

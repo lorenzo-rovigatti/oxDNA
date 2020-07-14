@@ -14,7 +14,7 @@
 
 MinBackend::MinBackend() :
 				MDBackend() {
-	this->_is_CUDA_sim = false;
+	_is_CUDA_sim = false;
 
 	_max_step = 0.005;
 }
@@ -39,14 +39,20 @@ void MinBackend::init() {
 }
 
 void MinBackend::_compute_forces() {
-	this->_U = this->_U_hydr = (number) 0;
-	for(auto p: _particles) {
-		this->_U += this->_interaction->pair_interaction_bonded(p, P_VIRTUAL, NULL, true);
+	_interaction->begin_energy_computation();
 
-		std::vector<BaseParticle *> neighs = this->_lists->get_neigh_list(p);
+	_U = _U_hydr = (number) 0;
+	for(auto p: _particles) {
+		for(auto &pair : p->affected) {
+			if(pair.first == p) {
+				_U += _interaction->pair_interaction_bonded(pair.first, pair.second, true, true);
+			}
+		}
+
+		std::vector<BaseParticle *> neighs = _lists->get_neigh_list(p);
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
-			this->_U += this->_interaction->pair_interaction_nonbonded(p, q, NULL, true);
+			_U += _interaction->pair_interaction_nonbonded(p, q, true, true);
 		}
 	}
 }
@@ -101,38 +107,38 @@ void MinBackend::_evolve() {
 			p->orientationT = p->orientation.get_transpose();
 			p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 		}
-		this->_lists->single_update(p);
+		_lists->single_update(p);
 	}
 
 	return;
 }
 
 void MinBackend::sim_step(llint curr_step) {
-	this->_mytimer->resume();
+	_mytimer->resume();
 
 	for(auto p: _particles) {
-		p->set_initial_forces(curr_step, this->_box);
+		p->set_initial_forces(curr_step, _box);
 	}
 
-	this->_timer_lists->resume();
-	if(!this->_lists->is_updated()) {
-		this->_lists->global_update();
-		this->_N_updates++;
+	_timer_lists->resume();
+	if(!_lists->is_updated()) {
+		_lists->global_update();
+		_N_updates++;
 	}
-	this->_timer_lists->pause();
+	_timer_lists->pause();
 
-	this->_timer_forces->resume();
+	_timer_forces->resume();
 	_compute_forces();
-	this->_timer_forces->pause();
+	_timer_forces->pause();
 
 	// here we normalize forces
-	//for (int i = 0; i < this->_N; i ++) {
-	//	BaseParticle * p = this->_particles[i];
+	//for (int i = 0; i < _N; i ++) {
+	//	BaseParticle * p = _particles[i];
 	//	if (p->force.module() > 0.1) p->force = p->force * (0.1 / p->force.module());
 	//}
 
 	_evolve();
 
-	this->_mytimer->pause();
+	_mytimer->pause();
 }
 

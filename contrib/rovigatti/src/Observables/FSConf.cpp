@@ -112,7 +112,7 @@ string FSConf::_configuration(llint step) {
 
 	for(int i = 0; i < _N; i++) {
 		if(_print_bonds) _bonds[i].clear();
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		string p_str = _particle(p);
 		conf << endl;
 		conf << p_str;
@@ -125,10 +125,10 @@ string FSConf::_configuration(llint step) {
 		for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
 			number energy;
 			if(_energy_term_id == -1) {
-				energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+				energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second);
 			}
 			else {
-				energy = _config_info->interaction->pair_interaction_term(_energy_term_id, it->first, it->second, NULL);
+				energy = _config_info->interaction->pair_interaction_term(_energy_term_id, it->first, it->second);
 			}
 			if(energy < _bond_threshold) {
 				_bonds[it->first->index][it->second->index]++;
@@ -138,7 +138,7 @@ string FSConf::_configuration(llint step) {
 	}
 
 	for(int i = 0; i < _N; i++) {
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		conf << endl;
 		if(_print_bonds) {
 			conf << i + 1 << " " << _bonds[i].size() << endl;

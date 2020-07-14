@@ -668,7 +668,7 @@ struct Model {
 		//char name_str[512];
 		float tmp_value;
 	//	int type;
-		loadInput(&input, f);
+		input.init_from_file(f);
 /*
 		if (getInputFloat(&input, "order_parameter", &tmp_value, 0) == KEY_FOUND
 			)

@@ -58,11 +58,11 @@ void TEPxyzOutput::init(ConfigInfo &config_info) {
 		_bead_types[i] = 0;
 	}
 
-	std::vector<int> particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, _particles_type1_string, "force string (TEPxyzOutput.cpp)");
+	std::vector<int> particle_indices_vector = Utils::get_particles_from_string(_config_info->particles(), _particles_type1_string, "force string (TEPxyzOutput.cpp)");
 	for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 		_bead_types[particle_indices_vector[i]] = 1;
 	}
-	particle_indices_vector = Utils::getParticlesFromString(_config_info->particles, _particles_type2_string, "force string (TEPxyzOutput.cpp)");
+	particle_indices_vector = Utils::get_particles_from_string(_config_info->particles(), _particles_type2_string, "force string (TEPxyzOutput.cpp)");
 	for(std::vector<int>::size_type i = 0; i < particle_indices_vector.size(); i++) {
 		_bead_types[particle_indices_vector[i]] = 2;
 	}
@@ -109,7 +109,7 @@ std::string TEPxyzOutput::_particle(BaseParticle *p) {
 	//next = reinterpret_cast<TEPParticle *> (p->n5);
 
 	LR_vector zero(0., 0., 0.);
-	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = _config_info->particles[_ref_particle_id]->pos;
+	if(_ref_particle_id >= 0 && this->_visible_particles.count(_ref_particle_id) == 1) zero = _config_info->particles()[_ref_particle_id]->pos;
 	if(_ref_strand_id >= 0 && this->_strands_cdm.count(_ref_strand_id) == 1) zero = this->_strands_cdm[_ref_strand_id];
 
 	// set the colour according to the strand id
@@ -161,7 +161,7 @@ std::string TEPxyzOutput::_configuration(llint step) {
 	//return Configuration::_configuration(step);
 	for(auto it = this->_visible_particles.begin(); it != this->_visible_particles.end(); it++) {
 		if(it != this->_visible_particles.begin()) conf << std::endl;
-		BaseParticle *p = _config_info->particles[*it];
+		BaseParticle *p = _config_info->particles()[*it];
 		conf << _particle(p);
 	}
 	return conf.str();

@@ -49,11 +49,11 @@ void MCTras::apply (llint curr_step) {
 
 	// we select the particle to translate
 	int pi = (int) (drand48() * this->_Info->N());
-	BaseParticle *p = this->_Info->particles[pi];
+	BaseParticle *p = this->_Info->particles()[pi];
 	if (this->_restrict_to_type >= 0) {
 		while(p->type != this->_restrict_to_type) {
 			pi = (int) (drand48() * this->_Info->N());
-			p = this->_Info->particles[pi];
+			p = this->_Info->particles()[pi];
 		}
 	}
 
@@ -96,7 +96,7 @@ void MCTras::apply (llint curr_step) {
 		}
 	}
 	else {
-		this->_Info->particles[pi]->pos = pos_old;
+		this->_Info->particles()[pi]->pos = pos_old;
 		this->_Info->lists->single_update(p);
 		this->_Info->interaction->set_is_infinite(false);
 

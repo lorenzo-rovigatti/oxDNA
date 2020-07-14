@@ -29,8 +29,8 @@ std::string AllVectors::get_output_string(llint curr_step) {
 		for(int j = i + 1; j < N; j++) {
 			LR_vector dist;
 			LR_vector p1_com, p2_com;
-			p1_com = _config_info->box->get_abs_pos(_config_info->particles[i]);
-			p2_com = _config_info->box->get_abs_pos(_config_info->particles[j]);
+			p1_com = _config_info->box->get_abs_pos(_config_info->particles()[i]);
+			p2_com = _config_info->box->get_abs_pos(_config_info->particles()[j]);
 			LR_vector vec(0, 0, 0);
 			vec = _config_info->box->min_image(p1_com, p2_com);
 			outstr << vec.x << " " << vec.y << " " << vec.z << "\n";

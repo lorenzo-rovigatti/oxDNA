@@ -27,7 +27,7 @@
 
 class BoxInteraction: public BaseInteraction<BoxInteraction> {
 protected:
-	inline number _box_pot(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline number _box_pot(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	number _sides[3];
 	number _lx, _ly, _lz;
@@ -46,11 +46,11 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
@@ -58,10 +58,10 @@ public:
 	bool generate_random_configuration_overlap(BaseParticle * p, BaseParticle *q);
 };
 
-number BoxInteraction::_box_pot(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number BoxInteraction::_box_pot(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(update_forces) throw oxDNAException("No forces, figlio di ndrocchia");
 
-	number rnorm = r->norm();
+	number rnorm = _computed_r.norm();
 
 	// outside of the bounding sphere
 	if(rnorm > this->_sqr_rcut) return (number) 0.;
@@ -107,7 +107,7 @@ number BoxInteraction::_box_pot(BaseParticle *p, BaseParticle *q, LR_vector *r, 
 		Ra = fabs(p->orientation.v1 * sep[k]) * _lx / 2. + fabs(p->orientation.v2 * sep[k]) * _ly / 2. + fabs(p->orientation.v3 * sep[k]) * _lz / 2.;
 
 		Rb = fabs(q->orientation.v1 * sep[k]) * _lx / 2. + fabs(q->orientation.v2 * sep[k]) * _ly / 2. + fabs(q->orientation.v3 * sep[k]) * _lz / 2.;
-		if(fabs((*r) * sep[k]) > (Ra + Rb)) {
+		if(fabs((_computed_r) * sep[k]) > (Ra + Rb)) {
 			// no overlap
 			return (number) 0.;
 		}

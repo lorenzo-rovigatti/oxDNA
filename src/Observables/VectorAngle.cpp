@@ -25,7 +25,7 @@ VectorAngle::~VectorAngle() {
 void VectorAngle::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 
-	std::vector<BaseParticle *> &p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles();
 	const int N = _config_info->N();
 
 	// check that _first_particle_index is in [0,N) and not the terminal particle
@@ -87,7 +87,7 @@ void VectorAngle::get_settings(input_file &my_inp, input_file &sim_inp) {
 std::string VectorAngle::get_output_string(llint curr_step) {
 	int sign, number_of_values = 0;
 	std::string result;
-	std::vector<BaseParticle *> &p = _config_info->particles;
+	std::vector<BaseParticle *> &p = _config_info->particles();
 	double delta_omega = 0;
 	number result_number = 0;
 	LR_vector u, up, v, vp, f, fp;

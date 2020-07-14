@@ -12,8 +12,8 @@ PolydisperseLTInteraction::PolydisperseLTInteraction() {
 	_lt_points = 100;
 	_is_polydisperse = true;
 
-	this->_int_map[BONDED] = &PolydisperseLTInteraction::pair_interaction_bonded;
-	this->_int_map[NONBONDED] = &PolydisperseLTInteraction::pair_interaction_nonbonded;
+	_int_map[BONDED] = &PolydisperseLTInteraction::pair_interaction_bonded;
+	_int_map[NONBONDED] = &PolydisperseLTInteraction::pair_interaction_nonbonded;
 }
 
 PolydisperseLTInteraction::~PolydisperseLTInteraction() {
@@ -102,14 +102,14 @@ void PolydisperseLTInteraction::init() {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i - 1];
 
-	this->_build_mesh(this, &PolydisperseLTInteraction::_fx, &PolydisperseLTInteraction::_dfx, (void *) (&data), _lt_points, lowlimit, uplimit, _lookup_table);
+	_build_mesh(this, &PolydisperseLTInteraction::_fx, &PolydisperseLTInteraction::_dfx, (void *) (&data), _lt_points, lowlimit, uplimit, _lookup_table);
 
 	delete[] data.x;
 	delete[] data.fx;
 	delete[] data.dfx;
 
-	this->_rcut = _rcut_base;
-	_Ecut = this->_query_mesh(_rcut_base, _lookup_table);
+	_rcut = _rcut_base;
+	_Ecut = _query_mesh(_rcut_base, _lookup_table);
 }
 
 void PolydisperseLTInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
@@ -121,8 +121,8 @@ void PolydisperseLTInteraction::read_topology(int *N_strands, std::vector<BasePa
 	int N = particles.size();
 	*N_strands = N;
 
-	std::ifstream topology(this->_topology_filename, std::ios::in);
-	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
+	std::ifstream topology(_topology_filename, std::ios::in);
+	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	char line[512];
 	topology.getline(line, 512);
 
@@ -134,46 +134,50 @@ void PolydisperseLTInteraction::read_topology(int *N_strands, std::vector<BasePa
 		if(_is_polydisperse) {
 			topology >> _sigmas[i];
 			if(_sigmas[i] <= (number) 0.) throw oxDNAException("The %d-th particle has either no associated diameter or the diameter is <= 0", i);
-			if(_sigmas[i] > this->_rcut) this->_rcut = _rcut_base * _sigmas[i];
+			if(_sigmas[i] > _rcut) _rcut = _rcut_base * _sigmas[i];
 		}
 	}
 	topology.close();
 
-	this->_sqr_rcut = SQR(this->_rcut);
-	OX_LOG(Logger::LOG_INFO, "custom: rcut = %lf, Ecut = %lf", this->_rcut, _Ecut);
+	_sqr_rcut = SQR(_rcut);
+	OX_LOG(Logger::LOG_INFO, "custom: rcut = %lf, Ecut = %lf", _rcut, _Ecut);
 }
 
-number PolydisperseLTInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	if(p->is_bonded(q)) return pair_interaction_bonded(p, q, r, update_forces);
-	else return pair_interaction_nonbonded(p, q, r, update_forces);
+number PolydisperseLTInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) {
+		return pair_interaction_bonded(p, q, compute_r, update_forces);
+	}
+	else {
+		return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	}
 }
 
-number PolydisperseLTInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PolydisperseLTInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return 0.;
 }
 
-number PolydisperseLTInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PolydisperseLTInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) return 0.;
 
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
 	number sigma = (_is_polydisperse) ? (_sigmas[p->index] + _sigmas[q->index]) / 2. : 1;
-	*r /= sigma;
+	_computed_r /= sigma;
 
-	number dist = r->module();
+	number dist = _computed_r.module();
 	if(dist > _rcut_base) return 0.;
 
-	number energy = this->_query_mesh(dist, _lookup_table) - _Ecut;
+	number energy = _query_mesh(dist, _lookup_table) - _Ecut;
 
-	if(dist < _lookup_table.xlow) fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _lookup_table.xlow);
+	if(dist < _lookup_table.xlow) {
+		fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _lookup_table.xlow);
+	}
 
 	if(update_forces) {
-		number force_mod = -this->_query_meshD(dist, _lookup_table) / sigma;
-		LR_vector force = *r * (force_mod / dist);
+		number force_mod = -_query_meshD(dist, _lookup_table) / sigma;
+		LR_vector force = _computed_r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;
 	}

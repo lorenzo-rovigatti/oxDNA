@@ -34,7 +34,7 @@ std::string StretchedBonds::get_output_string(llint curr_step) {
 	int num = 0;
 	int N = _config_info->N();
 	for(int i = 0; i < N; i++) {
-		BaseParticle * p = _config_info->particles[i];
+		BaseParticle * p = _config_info->particles()[i];
 		number energy;
 		if(p->n3 == P_VIRTUAL) continue;
 

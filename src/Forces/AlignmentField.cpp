@@ -34,7 +34,7 @@ std::tuple<std::vector<int>, std::string> AlignmentField::init(input_file &inp, 
 	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	_direction.normalize();
 
-	std::vector<BaseParticle *> & particles = CONFIG_INFO->particles;
+	std::vector<BaseParticle *> & particles = CONFIG_INFO->particles();
 
 	int N = particles.size();
 	if(_particle >= N || N < 0) throw oxDNAException("Trying to add a AlignmentField on non-existent particle %d. Aborting", _particle);

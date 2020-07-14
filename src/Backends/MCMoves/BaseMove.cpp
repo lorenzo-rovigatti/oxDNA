@@ -12,13 +12,14 @@ BaseMove::BaseMove() :
 	_attempted = 0;
 	_accepted = 0;
 	_T = -1.;
-	//_Info = Info;
 	prob = (number) 1.f;
 	_target_acc_rate = 0.25;
 	_equilibration_steps = 0;
 	_adjust_moves = false;
 	_compute_energy_before = true;
 	_restrict_to_type = -1;
+	_rej_fact = 1.001;
+	_acc_fact = 0.;
 }
 
 BaseMove::~BaseMove() {
@@ -40,7 +41,6 @@ void BaseMove::get_settings(input_file &inp, input_file &sim_inp) {
 }
 
 void BaseMove::init() {
-	_rej_fact = 1.001;
 	_acc_fact = 1. + 0.001 * (_target_acc_rate - 1.) / (0.001 - _target_acc_rate);
 	OX_LOG(Logger::LOG_INFO, "(BaseMove.h) BaseMove init for move type %s;", _name.c_str());
 	OX_LOG(Logger::LOG_INFO, "(BaseMove.h)               (b, a) = (%g, %g), target_acc_rate=%g, adjust_moves=%d,", (_rej_fact - 1.), (_acc_fact - 1.), _target_acc_rate, _adjust_moves);
@@ -81,7 +81,7 @@ number BaseMove::particle_energy(BaseParticle * p) {
 number BaseMove::system_energy() {
 	number res = (number) 0.f;
 
-	for(auto p: _Info->particles) {
+	for(auto p: _Info->particles()) {
 		if(p->n3 != P_VIRTUAL) res += _Info->interaction->pair_interaction_bonded(p, p->n3);
 		// we omit E(p,p->n5) because it gets counted as E(q, q->n3);
 		std::vector<BaseParticle *> neighs = _Info->lists->get_neigh_list(p);

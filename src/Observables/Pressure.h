@@ -22,16 +22,13 @@
 
 class Pressure: public BaseObservable {
 protected:
-	number _T;
+	number _T = 0.;
+	bool _custom_stress_tensor;
 	bool _with_stress_tensor;
-	bool _spherical;
-	bool _nonbonded_only;
 	bool _PV_only;
-	double _P, _P_norm;
-	LR_matrix _stress_tensor;
+	double _P;
+	StressTensor _stress_tensor;
 	number _shear_rate;
-
-	LR_vector _get_com();
 
 public:
 	Pressure();
@@ -40,9 +37,8 @@ public:
 	void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	void update_pressure();
-	number get_P() {
-		return _P;
-	}
+	void update_pressure_with_custom_stress_tensor();
+
 	std::string get_output_string(llint curr_step);
 };
 

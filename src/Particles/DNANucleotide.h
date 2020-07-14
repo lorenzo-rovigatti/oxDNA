@@ -22,12 +22,13 @@ public:
 	const static LR_vector stack_axis;
 	const static LR_vector third_axis;
 
-	enum {
+	enum Site {
 		BACK = 0,
 		STACK = 1,
 		BASE = 2
 	};
 
+	DNANucleotide() = delete;
 	DNANucleotide(bool grooving);
 	virtual ~DNANucleotide();
 

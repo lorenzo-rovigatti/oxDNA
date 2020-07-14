@@ -109,22 +109,20 @@ void CPMixtureInteraction::read_topology(int *N_strands, std::vector<BaseParticl
 	}
 }
 
-number CPMixtureInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+number CPMixtureInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number CPMixtureInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number CPMixtureInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return (number) 0.f;
 }
 
-number CPMixtureInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number CPMixtureInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(compute_r) {
+		_computed_r = this->_box->min_image(p->pos, q->pos);
 	}
 
-	number sqr_r = r->norm();
+	number sqr_r = _computed_r.norm();
 	number energy = 0.;
 
 	int type = p->type + q->type;
@@ -156,7 +154,7 @@ number CPMixtureInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePar
 		}
 
 		if(update_forces) {
-			LR_vector tot_force = computed_r * force_mod;
+			LR_vector tot_force = _computed_r * force_mod;
 			p->force -= tot_force;
 			q->force += tot_force;
 		}

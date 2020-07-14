@@ -28,11 +28,11 @@ std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp, Base
 	_rate = 0.f; //default rate is 0
 	getInputNumber(&inp, "rate", &_rate, 0);
 
-	int N = CONFIG_INFO->particles.size();
+	int N = CONFIG_INFO->particles().size();
 	if(_ref_id < 0 || _ref_id >= N) {
 		throw oxDNAException("Invalid reference particle %d for Mutual Trap", _ref_id);
 	}
-	_p_ptr = CONFIG_INFO->particles[_ref_id];
+	_p_ptr = CONFIG_INFO->particles()[_ref_id];
 
 	_box_ptr = box_ptr;
 

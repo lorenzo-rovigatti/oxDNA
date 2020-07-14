@@ -55,22 +55,20 @@ void AOInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &p
 	}
 }
 
-number AOInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+number AOInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number AOInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number AOInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return (number) 0.f;
 }
 
-number AOInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number AOInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(compute_r) {
+		_computed_r = this->_box->min_image(p->pos, q->pos);
 	}
 
-	number r_norm = r->norm();
+	number r_norm = _computed_r.norm();
 	number energy = 0;
 
 	if(r_norm < this->_sqr_rcut) {
@@ -86,8 +84,8 @@ number AOInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 				number WCA_der = 24. * (WCA_part - 2 * SQR(WCA_part)) / r_mod;
 				number S_der = (1 - S) * (4 * CUB(r_mod - _rep_rcut)) / (_h_zausch_4 + S_part);
 				number force = -(WCA_der * S + WCA * S_der);
-				p->force -= *r * (force / r_mod);
-				q->force += *r * (force / r_mod);
+				p->force -= _computed_r * (force / r_mod);
+				q->force += _computed_r * (force / r_mod);
 			}
 		}
 
@@ -96,8 +94,8 @@ number AOInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *
 
 		if(update_forces) {
 			number force = -_attraction_strength * (3. / 4. - 3. * SQR(r_rescaled) / 16.) / _sigma_colloid_polymer;
-			p->force -= *r * (force / r_mod);
-			q->force += *r * (force / r_mod);
+			p->force -= _computed_r * (force / r_mod);
+			q->force += _computed_r * (force / r_mod);
 		}
 	}
 

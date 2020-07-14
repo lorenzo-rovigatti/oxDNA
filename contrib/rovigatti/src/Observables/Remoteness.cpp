@@ -45,8 +45,9 @@ void Remoteness::init(ConfigInfo &config_info) {
 
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
 	_particles.resize(_N);
-	for(int i = 0; i < _N - 1; i++)
-		_particles[i] = config_info.particles[i];
+	for(int i = 0; i < _N - 1; i++) {
+		_particles[i] = config_info.particles()[i];
+	}
 	_particles[_N - 1] = _probe;
 
 	number rcut = _max_distance;

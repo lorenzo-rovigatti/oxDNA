@@ -43,32 +43,36 @@ Timer::~Timer() {
 }
 
 void Timer::resume() {
-	if(_active)
+	if(_active) {
 		throw oxDNAException("resuming already active timer %s", _desc.c_str());
+	}
 	_last = OXDNA_CLOCK();
 	_active = true;
 }
 
 void Timer::pause() {
 	SYNCHRONIZE();
-	if(!_active)
+	if(!_active) {
 		throw oxDNAException("pausing resuming already inactive timer %s", _desc.c_str());
+	}
 	_time += (OXDNA_CLOCK() - _last);
 	_active = false;
 }
 
 // this should work regardless of the timers being active
 long long int Timer::get_time() {
-	if(_active)
+	if(_active) {
 		return (long long int) (_time + (OXDNA_CLOCK() - _last));
-	else
+	}
+	else {
 		return (long long int) _time;
+	}
 }
 
 /***************** END OF TIMER CLASS *********************/
 
 // singleton
-TimingManager *TimingManager::_timingManager = NULL;
+TimingManager *TimingManager::_timingManager = nullptr;
 
 // time manager class
 TimingManager::TimingManager() {
@@ -80,19 +84,23 @@ TimingManager::~TimingManager() {
 }
 
 void TimingManager::init() {
-	if(_timingManager != NULL)
+	if(_timingManager != nullptr) {
 		throw oxDNAException("initializing an already initialized TimingManager");
+	}
 	_timingManager = new TimingManager();
 }
 
 void TimingManager::clear() {
-	if(_timingManager != NULL)
+	if(_timingManager != nullptr) {
 		delete _timingManager;
+	}
+	_timingManager = nullptr;
 }
 
 TimingManager *TimingManager::instance() {
-	if(_timingManager == NULL)
+	if(_timingManager == nullptr) {
 		throw oxDNAException("accessing uninitialized TimingManager");
+	}
 	return _timingManager;
 }
 
@@ -103,13 +111,14 @@ void TimingManager::add_timer(TimerPtr arg) {
 }
 
 TimerPtr TimingManager::new_timer(std::string desc) {
-	if(_desc_map.count(desc) != 0)
+	if(_desc_map.count(desc) != 0) {
 		throw oxDNAException("timer %s already used! Aborting", desc.c_str());
+	}
 
 	TimerPtr timer = std::make_shared<Timer>(desc);
 
 	_timers.push_back(timer);
-	_parents[timer] = (TimerPtr) NULL;
+	_parents[timer] = (TimerPtr) nullptr;
 	_desc_map[desc] = timer;
 
 	OX_DEBUG("Adding new timer with description %s and no parent", desc.c_str());
@@ -118,10 +127,12 @@ TimerPtr TimingManager::new_timer(std::string desc) {
 }
 
 TimerPtr TimingManager::new_timer(std::string desc, std::string parent_desc) {
-	if(_desc_map.count(desc) != 0)
+	if(_desc_map.count(desc) != 0) {
 		throw oxDNAException("timer %s already used! Aborting", desc.c_str());
-	if(_desc_map.count(parent_desc) == 0)
+	}
+	if(_desc_map.count(parent_desc) == 0) {
 		throw oxDNAException("Cannot add timer %s because parent timer %s does not exist", desc.c_str(), parent_desc.c_str());
+	}
 
 	TimerPtr timer = std::make_shared<Timer>(desc);
 
@@ -144,7 +155,7 @@ void TimingManager::add_timer(TimerPtr arg, std::string parent_desc) {
 	else {
 		OX_LOG(Logger::LOG_WARNING, "Trying to add timer \"%s\" with an unknown parent \"%s\". Setting parent to \"None\"", arg->get_desc().c_str(), parent_desc.c_str());
 		my_parent_desc = std::string("None");
-		my_parent_ptr = NULL;
+		my_parent_ptr = nullptr;
 	}
 
 	_timers.push_back(arg);
@@ -160,12 +171,13 @@ void TimingManager::print(long long int total_steps) {
 
 	// times in children 
 	std::map<TimerPtr, long long int> sum_of_children;
-	for(unsigned int i = 0; i < _timers.size(); i++)
+	for(unsigned int i = 0; i < _timers.size(); i++) {
 		sum_of_children[_timers[i]] = 0;
+	}
 	for(unsigned int i = 0; i < _timers.size(); i++) {
 		TimerPtr t = _timers[i];
 		TimerPtr p = _parents[t];
-		while(p != NULL) {
+		while(p != nullptr) {
 			sum_of_children[p] += totaltimes[t];
 			p = _parents[p];
 		}
@@ -185,7 +197,7 @@ void TimingManager::print(long long int total_steps) {
 			TimerPtr t = _timers[i];
 			TimerPtr p = _parents[t];
 
-			if(p == NULL) {
+			if(p == nullptr) {
 				mylist.push_back(t->get_desc());
 			}
 			else {
@@ -214,7 +226,7 @@ void TimingManager::print(long long int total_steps) {
 		TimerPtr t = get_timer_by_desc(mylist[i]);
 		TimerPtr p = _parents[t];
 		int generations = 0;
-		while(p != NULL) {
+		while(p != nullptr) {
 			generations++;
 			p = _parents[p];
 		}

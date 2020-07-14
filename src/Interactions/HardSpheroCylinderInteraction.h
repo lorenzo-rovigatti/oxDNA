@@ -34,7 +34,7 @@ protected:
 	/// length of the line segment 
 	number _length;
 
-	inline number _hsc_pot(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline number _hsc_pot(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	inline number _vega_distance_sq(LR_vector dr, LR_vector u1, LR_vector u2, number length);
 
@@ -47,11 +47,11 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, r, update_forces);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
+		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
@@ -108,14 +108,16 @@ number HardSpheroCylinderInteraction::_vega_distance_sq(LR_vector dr, LR_vector 
 	return dr.norm() + lambda * lambda + mu * mu - 2.f * lambda * mu * u1dotu2 + 2.f * mu * drdotu2 - 2.f * lambda * drdotu1;
 }
 
-number HardSpheroCylinderInteraction::_hsc_pot(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number HardSpheroCylinderInteraction::_hsc_pot(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(update_forces) throw oxDNAException("No forces, figlio di ndrocchia");
 
-	if((*r).norm() > this->_sqr_rcut) return (number) 0.f;
+	if(_computed_r.norm() > _sqr_rcut) {
+		return (number) 0.f;
+	}
 
-	//if (this->_vega_distance_sq(*r, p->orientation.v1, q->orientation.v1, _length) > (number)1.f) return (number) 0.f;
-	//if (this->_vega_distance_sq(*r, p->orientation.v3, q->orientation.v3, _length) > (number)1.f) return (number) 0.f;
-	if(InteractionUtils::spherocylinder_overlap(*r, p->orientation.v3, q->orientation.v3, _length) == false) return false;
+	if(InteractionUtils::spherocylinder_overlap(_computed_r, p->orientation.v3, q->orientation.v3, _length) == false) {
+		return false;
+	}
 
 	this->set_is_infinite(true);
 	return 1.e12;

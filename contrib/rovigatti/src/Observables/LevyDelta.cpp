@@ -34,7 +34,7 @@ void LevyDelta::init(ConfigInfo &config_info) {
 	_inter = dynamic_cast<LevyInteraction *>(config_info.interaction);
 	if(_inter == NULL) throw oxDNAException("LevyDelta can be used with LevyInteraction simulations only");
 
-	for(auto p: config_info.particles) {
+	for(auto p: config_info.particles()) {
 		if(p->btype == _inter->TETRA_CENTRE || p->btype == _inter->TETRA_PATCHY) _tetramer.push_back(p);
 		else _dimer.push_back(p);
 	}
@@ -71,7 +71,7 @@ string LevyDelta::get_output_string(llint curr_step) {
 	BaseParticle *rec = _get_random_particle(_tetramer, _inter->TETRA_PATCHY);
 	BaseParticle *p = _get_random_particle(_dimer, _inter->DIMER_PATCHY);
 
-	number intra_energy = _inter->get_system_energy_term(LevyInteraction::NONBONDED, _config_info->particles, _config_info->lists);
+	number intra_energy = _inter->get_system_energy_term(LevyInteraction::NONBONDED, _config_info->particles(), _config_info->lists);
 
 	number integrand = 0.;
 	for(int i = 0; i < _tries; i++) {
@@ -84,7 +84,7 @@ string LevyDelta::get_output_string(llint curr_step) {
 		_rototranslate(_dimer, disp, p, R);
 		_config_info->lists->global_update(true);
 
-		number energy = _inter->get_system_energy_term(LevyInteraction::NONBONDED, _config_info->particles, _config_info->lists);
+		number energy = _inter->get_system_energy_term(LevyInteraction::NONBONDED, _config_info->particles(), _config_info->lists);
 		number delta_energy = energy - intra_energy;
 		if(delta_energy < 100) {
 			integrand += exp(-delta_energy / _temperature) - 1.;

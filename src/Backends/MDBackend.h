@@ -31,17 +31,18 @@ using namespace std;
 
 class MDBackend: public SimBackend {
 protected:
-	number _dt;
-	bool _refresh_velocities;
-	bool _reset_initial_com_momentum;
-	bool _reset_com_momentum;
+	number _dt = 0.;
+	bool _refresh_velocities = false;
+	bool _reset_initial_com_momentum = false;
+	bool _reset_com_momentum = false;
 
 	// Stuff needed by the barostat
-	bool _use_barostat;
-	bool _barostat_isotropic;
-	number _delta_L;
-	number _barostat_probability;
-	number _barostat_acceptance;
+	bool _use_barostat = false;
+	bool _barostat_isotropic = true;
+	bool _barostat_molecular = false;
+	number _delta_L = 0.;
+	number _barostat_probability = 1.;
+	number _barostat_acceptance = 0.;
 
 	// timers
 	std::shared_ptr<Timer> _timer_first_step;

@@ -16,7 +16,7 @@
 #include "../../Backends/MDBackend.h"
 
 #include "../CUDAUtils.h"
-#include "../Thermostats/CUDABaseThermostat.h"
+#include "../Thermostats/CUDABrownianThermostat.h"
 #include "../cuda_utils/cuda_device_utils.h"
 #include "../Lists/CUDANoList.h"
 #include "../Lists/CUDASimpleVerletList.h"
@@ -43,6 +43,10 @@ protected:
 	c_number4 *_d_forces, *_h_forces;
 	c_number4 *_d_torques, *_h_torques;
 
+	std::vector<int> _h_particles_to_mols;
+	int *_d_particles_to_mols, *_d_mol_sizes;
+	c_number4 *_d_molecular_coms;
+
 	c_number4 *_d_buff_vels, *_d_buff_Ls;
 	llint _curr_step;
 
@@ -53,20 +57,19 @@ protected:
 	ObservableOutput *_obs_output_error_conf;
 	std::string _error_conf_file;
 
-	CUDABaseThermostat*_cuda_thermostat;
+	std::shared_ptr<CUDABaseThermostat> _cuda_thermostat;
 
-	//constant_rate_force *_h_ext_forces, *_d_ext_forces;
-	//mutual_trap *_h_ext_forces, *_d_ext_forces;
+	bool _cuda_barostat_always_refresh = false;
+	std::shared_ptr<CUDABrownianThermostat> _cuda_barostat_thermostat;
+
 	CUDA_trap *_h_ext_forces, *_d_ext_forces;
 	int _max_ext_forces;
 
-	virtual void _host_to_gpu();
 	virtual void _gpu_to_host();
-
-	virtual void _host_particles_to_gpu();
-	virtual void _gpu_to_host_particles();
+	virtual void _host_to_gpu();
 
 	virtual void _sort_particles();
+	virtual void _rescale_molecular_positions(c_number4 new_Ls, c_number4 old_Ls, bool is_reverse_move);
 	virtual void _rescale_positions(c_number4 new_Ls, c_number4 old_Ls);
 
 	virtual void _first_step();
@@ -78,8 +81,6 @@ protected:
 
 	virtual void _init_CUDA_MD_symbols();
 
-	virtual void _print_ready_observables(llint curr_step);
-
 public:
 	MD_CUDABackend();
 	virtual ~MD_CUDABackend();
@@ -88,9 +89,9 @@ public:
 	virtual void init();
 
 	virtual void sim_step(llint curr_step);
-	virtual void fix_diffusion();
 
-	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
+	virtual void apply_simulation_data_changes();
+	virtual void apply_changes_to_simulation_data();
 };
 
 #endif /* MD_CUDABACKEND_H_ */

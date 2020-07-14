@@ -172,7 +172,7 @@ std::tuple<std::vector<int>, std::string> GenericCentralForce::init(input_file &
 	}
 
 	std::string description = Utils::sformat("GenericCentralForce (center=%g,%g,%g)", center.x, center.y, center.z);
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "ConstantRateForce");
+	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "ConstantRateForce");
 
 	return std::make_tuple(particle_ids, description);
 }

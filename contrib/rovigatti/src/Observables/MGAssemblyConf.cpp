@@ -99,7 +99,7 @@ string MGAssemblyConf::_configuration(llint step) {
 
 	for(int i = 0; i < _N; i++) {
 		_bonds[i].clear();
-		BaseParticle *p = _config_info->particles[i];
+		BaseParticle *p = _config_info->particles()[i];
 		string p_str = _particle(p);
 		conf << endl;
 		conf << p_str;
@@ -109,7 +109,7 @@ string MGAssemblyConf::_configuration(llint step) {
 	vector<ParticlePair> inter_pairs = _config_info->lists->get_potential_interactions();
 
 	for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
-		number energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second, NULL);
+		number energy = _config_info->interaction->pair_interaction_nonbonded(it->first, it->second);
 		if(energy < _bond_threshold) {
 			_bonds[it->first->index][it->second->index]++;
 			_bonds[it->second->index][it->first->index]++;
@@ -120,7 +120,7 @@ string MGAssemblyConf::_configuration(llint step) {
 		conf << endl;
 
 		if(i < _N_in_polymers) {
-			CustomParticle *p = dynamic_cast<CustomParticle *>(_config_info->particles[i]);
+			CustomParticle *p = dynamic_cast<CustomParticle *>(_config_info->particles()[i]);
 			if(p == NULL) {
 				throw oxDNAException("Caught an error while type-casting particle %d, which is supposed to be a polymer bead", i);
 			}

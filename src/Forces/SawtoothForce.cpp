@@ -34,7 +34,7 @@ std::tuple<std::vector<int>, std::string> SawtoothForce::init(input_file &inp, B
 	_direction = LR_vector((number) x, (number) y, number(z));
 	_direction.normalize();
 
-	auto particle_ids = Utils::getParticlesFromString(CONFIG_INFO->particles, particles_string, "SawtoothForce");
+	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "SawtoothForce");
 	std::string description = Utils::sformat("SawtoothForce (F==%g, wait_time=%g, increment=%g, dir=%g,%g,%g", _F0, _wait_time, _increment, _direction.x, _direction.y, _direction.z);
 
 	return std::make_tuple(particle_ids, description);

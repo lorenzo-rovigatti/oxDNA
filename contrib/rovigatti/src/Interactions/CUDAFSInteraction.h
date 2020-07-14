@@ -21,10 +21,6 @@ struct swap_event;
 
 class CUDAFSInteraction: public CUDABaseInteraction, public FSInteraction {
 protected:
-	bool _analyse_bonds;
-	bool _called_once;
-	CUDA_FS_bonding_pattern *_d_bonds, *_d_new_bonds;
-	swap_event *_h_events, *_d_events;
 	c_number4 *_d_three_body_forces, *_d_three_body_torques;
 	llint _step;
 

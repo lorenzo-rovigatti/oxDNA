@@ -73,7 +73,7 @@ LR_vector CubicBox::get_abs_pos(BaseParticle * p) {
 			_side * (number)p->_pos_shift[2]);
 }
 
-void CubicBox::shift_particle (BaseParticle * p, LR_vector &amount) {
+void CubicBox::shift_particle(BaseParticle * p, LR_vector &amount) {
 	p->_pos_shift[0] += (int) floor(amount.x / _side);
 	p->_pos_shift[1] += (int) floor(amount.y / _side);
 	p->_pos_shift[2] += (int) floor(amount.z / _side);

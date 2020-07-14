@@ -83,7 +83,6 @@ ObservableOutput::ObservableOutput(std::string &stream_string) :
 		i++;
 	}
 
-	cleanInputFile(obs_input);
 	delete obs_input;
 }
 
@@ -137,7 +136,6 @@ void ObservableOutput::add_observable(std::string obs_string) {
 	ObservablePtr new_obs = ObservableFactory::make_observable(*obs_inp);
 	_obss.push_back(new_obs);
 
-	cleanInputFile(obs_inp);
 	delete obs_inp;
 }
 

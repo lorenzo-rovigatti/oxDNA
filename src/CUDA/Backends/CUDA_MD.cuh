@@ -59,8 +59,34 @@ __global__ void first_step(c_number4 *poss, GPU_quat *orientations, c_number4 *l
 	if(quad_distance(r, list_poss[IND]) > MD_sqr_verlet_skin[0]) are_lists_old[0] = true;
 }
 
+__global__ void compute_molecular_coms(c_number4 *mol_coms, int *particles_to_mols, int *mol_sizes, c_number4 *poss) {
+	if(IND >= MD_N[0]) {
+		return;
+	}
+
+	int mol_id = particles_to_mols[IND];
+	c_number4 p_contrib = poss[IND] / (c_number) mol_sizes[mol_id];
+
+	LR_atomicAddXYZ(&(mol_coms[mol_id]), p_contrib);
+}
+
+__global__ void rescale_molecular_positions(c_number4 *mol_coms, int *particles_to_mols, c_number4 *poss, c_number4 shift_factor) {
+	if(IND >= MD_N[0]) {
+		return;
+	}
+
+	c_number4 ppos = poss[IND];
+	c_number4 mol_com = mol_coms[particles_to_mols[IND]];
+	ppos.x += mol_com.x * shift_factor.x;
+	ppos.y += mol_com.y * shift_factor.y;
+	ppos.z += mol_com.z * shift_factor.z;
+	poss[IND] = ppos;
+}
+
 __global__ void rescale_positions(c_number4 *poss, c_number4 ratio) {
-	if(IND >= MD_N[0]) return;
+	if(IND >= MD_N[0]) {
+		return;
+	}
 	c_number4 ppos = poss[IND];
 	ppos.x *= ratio.x;
 	ppos.y *= ratio.y;

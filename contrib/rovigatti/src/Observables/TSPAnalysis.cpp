@@ -58,7 +58,7 @@ void TSPAnalysis::init(ConfigInfo &config_info) {
 
 	_stars.resize(_N_stars, TSP(_is_SPB));
 	for(int i = 0; i < config_info.N(); i++) {
-		TSPParticle *p = (TSPParticle *) config_info.particles[i];
+		TSPParticle *p = (TSPParticle *) config_info.particles()[i];
 		int ns = (!_is_SPB) ? p->strand_id : 0;
 		if(ns >= _N_stars) throw oxDNAException("ns (%d) >= _N_stars (%d)", ns, _N_stars);
 
@@ -69,8 +69,9 @@ void TSPAnalysis::init(ConfigInfo &config_info) {
 		}
 	}
 
-	for(int i = 0; i < _N_stars; i++)
-		_stars[i].set_config_info(_config_info);
+	for(int i = 0; i < _N_stars; i++) {
+		_stars[i].set_config_info(_config_info.get());
+	}
 }
 
 string TSPAnalysis::get_output_string(llint curr_step) {
@@ -251,7 +252,7 @@ void TSP::update() {
 				// particles should be attractive, non bonded, on the same star but not on the same arm
 				bool same_star = (!_is_SPB) ? (p->strand_id == q->strand_id) : true;
 				if(q->type == P_B && !p->is_bonded(q) && same_star && (p->arm() != q->arm())) {
-					number energy = _config_info->interaction->pair_interaction_nonbonded(p, q, NULL, true);
+					number energy = _config_info->interaction->pair_interaction_nonbonded(p, q, true, true);
 					if(energy < 0.) bond_map[p->arm()][q->arm()] = bond_map[q->arm()][p->arm()] = 1;
 				}
 			}

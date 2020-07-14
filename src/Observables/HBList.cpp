@@ -22,7 +22,7 @@ HBList::~HBList() {
 void HBList::init(ConfigInfo &config_info) {
 	BaseObservable::init(config_info);
 	if(_read_op) {
-		_op.init_from_file(_order_parameters_file, _config_info->particles, _config_info->N());
+		_op.init_from_file(_order_parameters_file, _config_info->particles(), _config_info->N());
 	}
 }
 
@@ -75,8 +75,8 @@ std::string HBList::get_output_string(llint curr_step) {
 		for(vector_of_pairs::iterator i = inds.begin(); i != inds.end(); i++) {
 			int p_ind = (*i).first;
 			int q_ind = (*i).second;
-			BaseParticle *p = _config_info->particles[p_ind];
-			BaseParticle *q = _config_info->particles[q_ind];
+			BaseParticle *p = _config_info->particles()[p_ind];
+			BaseParticle *q = _config_info->particles()[q_ind];
 			number hb_energy = _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 			//
 			if(hb_energy < HB_CUTOFF) {

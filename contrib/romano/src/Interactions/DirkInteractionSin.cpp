@@ -80,7 +80,7 @@ void DirkInteractionSin<number>::allocate_particles(BaseParticle<number> **parti
 
 template<typename number>
 number DirkInteractionSin<number>::pair_interaction(BaseParticle<number> *p, BaseParticle<number> *q, LR_vector<number> *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
 template<typename number>
@@ -96,7 +96,7 @@ number DirkInteractionSin<number>::pair_interaction_nonbonded(BaseParticle<numbe
 		r = &computed_r;
 	}
 	
-	return _dirk_pot (p, q, r, update_forces);
+	return _dirk_pot (p, q, compute_r, update_forces);
 }
 
 template<typename number>

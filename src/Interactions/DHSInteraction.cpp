@@ -9,7 +9,7 @@
 
 DHSInteraction::DHSInteraction() :
 				BaseInteraction<DHSInteraction>() {
-	this->_int_map[DHS] = &DHSInteraction::_dhs_pot;
+	_int_map[DHS] = &DHSInteraction::_dhs_pot;
 }
 
 DHSInteraction::~DHSInteraction() {
@@ -25,19 +25,19 @@ void DHSInteraction::get_settings(input_file &inp) {
 	// rcut for dipolar (and Reaction Field)
 	float tmpf;
 	getInputFloat(&inp, "DHS_rcut", &tmpf, 1);
-	this->_rcut = (number) tmpf;
+	_rcut = (number) tmpf;
 
 	// Reaction field medium epsilon
 	getInputFloat(&inp, "DHS_eps", &tmpf, 1);
 	_eps = (number) tmpf;
 
-	_rf_fact = (_eps - 1.) / (2. * _eps + 1.) / (this->_rcut * this->_rcut * this->_rcut);
+	_rf_fact = (_eps - 1.) / (2. * _eps + 1.) / (_rcut * _rcut * _rcut);
 
-	OX_LOG(Logger::LOG_INFO, "Initializing Dipolar Hard Sphere potential with rcut = %g and dielectric constant %g", this->_rcut, this->_rf_fact);
+	OX_LOG(Logger::LOG_INFO, "Initializing Dipolar Hard Sphere potential with rcut = %g and dielectric constant %g", _rcut, _rf_fact);
 }
 
 void DHSInteraction::init() {
-	this->_sqr_rcut = SQR(this->_rcut);
+	_sqr_rcut = SQR(_rcut);
 }
 
 void DHSInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
@@ -46,22 +46,20 @@ void DHSInteraction::allocate_particles(std::vector<BaseParticle *> &particles) 
 	}
 }
 
-number DHSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+number DHSInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number DHSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number DHSInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return (number) 0.f;
 }
 
-number DHSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number DHSInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _dhs_pot(p, q, r, update_forces);
+	return _dhs_pot(p, q, false, update_forces);
 }
 
 void DHSInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {

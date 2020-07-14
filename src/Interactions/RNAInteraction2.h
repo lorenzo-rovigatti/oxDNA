@@ -46,9 +46,9 @@ protected:
 	float _RNA_HYDR_MIS;
 	number _fX(number r, int type, int n3, int n5);
 	number _fXD(number r, int type, int n3, int n5);
-	number _hydrogen_bonding_repulsion(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _hydrogen_bonding_repulsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
-	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 public:
 	enum {
@@ -58,8 +58,8 @@ public:
 	virtual ~RNA2Interaction() {
 	} // Destructor
 
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r = NULL, bool update_forces = false);
-	virtual number _hydrogen_bonding(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number _hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	virtual void get_settings(input_file &inp); //get settings from input file
 	virtual void init(); // initialisation

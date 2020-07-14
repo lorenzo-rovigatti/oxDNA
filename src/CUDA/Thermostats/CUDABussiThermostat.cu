@@ -34,13 +34,31 @@ struct compute_K {
 	}
 };
 
-__global__ void bussi_thermostat(c_number4 *vels, c_number4 *Ls, c_number rescale_factor_t, c_number rescale_factor_r, int N) {
+struct compute_K_without_com {
+	c_number4 v_com;
+
+	compute_K_without_com(c_number4 my_v_com) : v_com(my_v_com) {
+
+	}
+
+	__device__
+	c_number4 operator()(const c_number4& v) const {
+		c_number4 v_rel = v - v_com;
+		c_number4 res;
+		res.x = res.y = res.z = 0;
+		res.w = 0.5f * CUDA_DOT(v_rel, v_rel);
+		return res;
+	}
+};
+
+
+__global__ void bussi_thermostat(c_number4 *vels, c_number4 *Ls, c_number4 v_com, c_number rescale_factor_t, c_number rescale_factor_r, int N) {
 	if(IND >= N) return;
 
 	c_number4 v = vels[IND];
-	v.x *= rescale_factor_t;
-	v.y *= rescale_factor_t;
-	v.z *= rescale_factor_t;
+	v.x = (v.x - v_com.x) * rescale_factor_t + v_com.x;
+	v.y = (v.y - v_com.y) * rescale_factor_t + v_com.y;
+	v.z = (v.z - v_com.z) * rescale_factor_t + v_com.z;
 	v.w = (v.x * v.x + v.y * v.y + v.z * v.z) * (c_number) 0.5f;
 	vels[IND] = v;
 
@@ -70,11 +88,11 @@ void CUDABussiThermostat::get_settings(input_file &inp) {
 void CUDABussiThermostat::init() {
 	BussiThermostat::init();
 
-	this->_setup_rand(CONFIG_INFO->N());
+	_setup_rand(CONFIG_INFO->N());
 }
 
 bool CUDABussiThermostat::would_activate(llint curr_step) {
-	return (curr_step % this->_newtonian_steps == 0);
+	return (curr_step % _newtonian_steps == 0);
 }
 
 void CUDABussiThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_vels, c_number4 *d_Ls, llint curr_step) {
@@ -87,17 +105,19 @@ void CUDABussiThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientations
 	thrust::device_ptr<c_number4> t_Ls = thrust::device_pointer_cast(d_Ls);
 
 	c_number4 zero = { 0., 0., 0., 0. };
-	c_number4 K_now_t = thrust::transform_reduce(t_vels, t_vels + N, compute_K(), zero, sum_K());
+	c_number4 v_com = thrust::reduce(t_vels, t_vels + N, zero);
+	v_com *= 1. /  N;
+	c_number4 K_now_t = thrust::transform_reduce(t_vels, t_vels + N, compute_K_without_com(v_com), zero, sum_K());
 	c_number4 K_now_r = thrust::transform_reduce(t_Ls, t_Ls + N, compute_K(), zero, sum_K());
 
-	this->_update_K(this->_K_t);
-	this->_update_K(this->_K_r);
+	_update_K(_K_t, _current_translational_degrees_of_freedom());
+	_update_K(_K_r, _current_rotational_degrees_of_freedom());
 
-	c_number rescale_factor_t = sqrt(this->_K_t / K_now_t.w);
-	c_number rescale_factor_r = sqrt(this->_K_r / K_now_r.w);
+	c_number rescale_factor_t = std::sqrt(_K_t / K_now_t.w);
+	c_number rescale_factor_r = std::sqrt(_K_r / K_now_r.w);
 	//printf("%lf %lf %lf %lf\n", K_now_t.w, K_now_r.w, rescale_factor_t, rescale_factor_r);
 
 	bussi_thermostat
-		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-		(d_vels, d_Ls, rescale_factor_t, rescale_factor_r, N);
+		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+		(d_vels, d_Ls, v_com, rescale_factor_t, rescale_factor_r, N);
 }
