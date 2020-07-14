@@ -95,6 +95,8 @@ struct input_file {
 
 	std::string get_value(std::string key);
 	void set_value(std::string key, std::string value);
+
+	std::string to_string() const;
 };
 
 /**

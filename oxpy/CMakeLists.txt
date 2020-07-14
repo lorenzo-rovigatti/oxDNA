@@ -38,8 +38,8 @@ IF(Python)
 		${CMAKE_CURRENT_BINARY_DIR}/oxpy/__init__.py
 	)
 	
-	CONFIGURE_FILE(InputGenerator.py
-		${CMAKE_CURRENT_BINARY_DIR}/oxpy/InputGenerator.py
+	CONFIGURE_FILE(utils.py
+		${CMAKE_CURRENT_BINARY_DIR}/oxpy/utils.py
 	)
 	
 	# read the whole defs.h file

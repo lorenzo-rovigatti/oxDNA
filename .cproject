@@ -25,11 +25,11 @@
 							</builder>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1077011929" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.815417760" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.469611944" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.incpaths.469611944" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/lorenzo/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.210666884" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.210666884" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__global__"/>
 									<listOptionValue builtIn="false" value="__shared__"/>
 									<listOptionValue builtIn="false" value="__host__"/>
@@ -41,11 +41,11 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.869278986" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1252022651" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.885926998" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.incpaths.885926998" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/lorenzo/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.2118654173" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.2118654173" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__global__"/>
 									<listOptionValue builtIn="false" value="__shared__"/>
 									<listOptionValue builtIn="false" value="__host__"/>
@@ -58,11 +58,11 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.655505622" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.2035167716" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.894900351" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.incpaths.894900351" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/lorenzo/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.2068353104" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.2068353104" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__global__"/>
 									<listOptionValue builtIn="false" value="__shared__"/>
 									<listOptionValue builtIn="false" value="__host__"/>
@@ -104,7 +104,7 @@
 							<builder arguments="" buildPath="${workspace_loc:/oxDNA}/build" command="make" id="org.eclipse.cdt.build.core.settings.default.builder.2079233642" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1301075779" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.780806539" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.634889017" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.634889017" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="SVN_VERSION"/>
 									<listOptionValue builtIn="false" value="BUILD_TIME"/>
 									<listOptionValue builtIn="false" value="GIT_VERSION"/>
@@ -113,11 +113,11 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.361536062" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.815999029" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.801217325" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.incpaths.801217325" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/lorenzo/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1054110619" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.1054110619" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__global__"/>
 									<listOptionValue builtIn="false" value="__shared__"/>
 									<listOptionValue builtIn="false" value="__constant__"/>
@@ -130,7 +130,7 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.413810694" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1942489745" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.2050022388" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.2050022388" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GIT_VERSION"/>
 									<listOptionValue builtIn="false" value="GIT_COMMIT=&quot;dummy&quot;"/>
 								</option>
@@ -167,7 +167,7 @@
 							<builder arguments="" buildPath="${workspace_loc:/oxDNA}/cuda" command="make" id="org.eclipse.cdt.build.core.settings.default.builder.1109392261" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1479087004" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.2142088439" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1057461805" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.1057461805" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="BUILD_TIME"/>
 									<listOptionValue builtIn="false" value="GIT_VERSION=&quot;&quot;"/>
 									<listOptionValue builtIn="false" value="GIT_COMMIT=&quot;dummy&quot;"/>
@@ -175,11 +175,11 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.717096650" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.172777032" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.353234971" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.incpaths.353234971" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/lorenzo/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.646021737" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.646021737" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__global__"/>
 									<listOptionValue builtIn="false" value="__shared__"/>
 									<listOptionValue builtIn="false" value="__constant__"/>
@@ -192,7 +192,7 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.804181087" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.2007082652" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.19977555" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.19977555" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GIT_VERSION"/>
 									<listOptionValue builtIn="false" value="GIT_COMMIT=&quot;dummy&quot;"/>
 								</option>
@@ -229,7 +229,7 @@
 							<builder arguments="rovigatti" buildPath="${workspace_loc:/oxDNA}/build" command="make" id="org.eclipse.cdt.build.core.settings.default.builder.1073147455" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1641637952" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.499806394" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.528064678" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.528064678" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="SVN_VERSION"/>
 									<listOptionValue builtIn="false" value="BUILD_TIME"/>
 									<listOptionValue builtIn="false" value="GIT_VERSION"/>
@@ -238,11 +238,11 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1837318519" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1915703671" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1190159422" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.incpaths.1190159422" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/lorenzo/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1900241749" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.1900241749" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__global__"/>
 									<listOptionValue builtIn="false" value="__shared__"/>
 									<listOptionValue builtIn="false" value="__constant__"/>
@@ -255,7 +255,7 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.548129169" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.652545215" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.914779553" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.914779553" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GIT_VERSION"/>
 									<listOptionValue builtIn="false" value="GIT_COMMIT=&quot;dummy&quot;"/>
 								</option>
@@ -292,7 +292,7 @@
 							<builder arguments="install" buildPath="${workspace_loc:/oxDNA}/build" command="make" id="org.eclipse.cdt.build.core.settings.default.builder.1117877457" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1085080903" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.112120459" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.209636097" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.209636097" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="SVN_VERSION"/>
 									<listOptionValue builtIn="false" value="BUILD_TIME"/>
 									<listOptionValue builtIn="false" value="GIT_VERSION"/>
@@ -300,11 +300,11 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1152297594" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1717232026" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.2091143884" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.incpaths.2091143884" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/local/cuda/include"/>
 									<listOptionValue builtIn="false" value="/home/lorenzo/NVIDIA_GPU_Computing_SDK/C/common/inc"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1725359067" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.1725359067" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__global__"/>
 									<listOptionValue builtIn="false" value="__shared__"/>
 									<listOptionValue builtIn="false" value="__constant__"/>
@@ -316,7 +316,7 @@
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1431024375" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.196013281" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1725878793" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="org.eclipse.cdt.build.core.settings.holder.symbols.1725878793" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="GIT_VERSION"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.757106749" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
@@ -324,7 +324,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="Observables|src/Backends|Backends" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="Backends|Observables|src/Backends" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

@@ -1,6 +1,15 @@
 from .core import InputFile
 
 def generate_default_input(options=[]):
+    '''Build and return a minimal input file
+    
+    The returned input file contains the minimum amount of options required to start a simulation. 
+    You can list them by printing the input file after generation::
+    
+        my_input = oxpy.generate_default_input()
+        print(my_input)
+    
+    '''
     default_input = InputFile()
     
     default_input["backend"] = "CPU"

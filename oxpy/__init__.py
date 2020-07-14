@@ -4,7 +4,7 @@ sys.setdlopenflags(os.RTLD_GLOBAL | os.RTLD_LAZY)
 
 from .core import *
 
-from .InputGenerator import generate_default_input
+from . import utils
 
 from .__version__ import __title__, __description__, __url__, __version__
 from .__version__ import __author__, __author_email__, __license__, __copyright__

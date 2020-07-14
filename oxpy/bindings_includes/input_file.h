@@ -25,6 +25,7 @@ void export_input_file(py::module &m) {
 	input.def(py::init<>());
 	input.def("__getitem__", &input_file::get_value);
 	input.def("__setitem__", &input_file::set_value);
+	input.def("__str__", &input_file::to_string);
 	input.def("init_from_filename", &input_file::init_from_filename, py::arg("filename"), R"pbdoc(
         Initialise the object from the input file passed as parameter.
 

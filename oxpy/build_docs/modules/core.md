@@ -1,6 +1,6 @@
 # The core module
 
-This module contains the Python bindings of the C++ code. All the objects described here are contained in the same module and should be accessed as `oxpy.core.*`.
+This module contains the Python bindings of the C++ code. Every `object` described here is contained in the same module and can be accessed as `oxpy.core.object` or as `oxpy.object`.
 
 ```eval_rst
 .. toctree::

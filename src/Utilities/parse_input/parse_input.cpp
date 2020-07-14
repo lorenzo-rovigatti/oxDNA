@@ -149,6 +149,19 @@ void input_file::set_value(std::string key, std::string value) {
 	keys[key] = value;
 }
 
+std::string input_file::to_string() const {
+	std::string ret;
+
+	for(auto key : keys) {
+		ret += Utils::sformat("%s = %s\n", key.first.c_str(), key.second.value.c_str());
+	}
+
+	// remove the last \n
+	ret.pop_back();
+
+	return ret;
+}
+
 int _readLine(std::vector<string>::iterator &it, std::vector<string>::iterator &end, string &key, string &value) {
 	string option(*it);
 	option = Utils::trim(option);

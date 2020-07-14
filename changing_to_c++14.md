@@ -10,7 +10,3 @@
 * ConfigInfo's `instance` returns a `std::shared_ptr` rather than a bare pointer.
 * The `RELEASE` macro defined in `src/defs.h` **must** match the current git tag or it won't be possible to commit changes to the repository. This is to make sure that the version printed by the executables is (at least decently) up to date.
 * The functions that used to initialise, clean and print the `input_file` structure have now been included as methods in the class itself. 
-
-## Python bindings
-
-* The memory layout of `LR_vector` and `LR_matrix` should be changed if we want to have transparent bindings to numpy's arrays. In particular, both classes should store the actual data contiguously. A better alternative (which would probably break *a lot* of code) would be using `glm`.

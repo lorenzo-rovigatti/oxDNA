@@ -18,7 +18,7 @@ Compiling with CUDA support requires `cmake` >= 3.5 and a CUDA toolkit >= 9.0.
 
 Python bindings require `Python 3`'s binaries, libraries and include files. On Debian-derived distros these can be installed by installing the `libpython3-dev` package.
 
-[Sphinx](https://www.sphinx-doc.org/en/master), [sphinx_rtd_theme](https://github.com/readthedocs/sphinx_rtd_theme) and [recommonmark](https://recommonmark.readthedocs.io/en/latest/) are required to generate the Python bindings' documentation.
+[Sphinx](https://www.sphinx-doc.org/en/master), [sphinx_rtd_theme](https://github.com/readthedocs/sphinx_rtd_theme) and [recommonmark](https://recommonmark.readthedocs.io/en/latest/) are required to generate the Python bindings' documentation. Those can all be installed by using `pip` (for instance with the command `pip3 install --user sphinx sphinx_rtd_theme recommonmark`).
 
 ### Documentation
 
@@ -117,6 +117,15 @@ If you want, you can initialise the input file yourself and change some of the o
 	my_input.init_from_filename("input")
 	my_input["backend"] = "CUDA"
 	my_input["steps"] = "1e9"
+	manager = oxpy.OxpyManager(my_input)
+```
+
+Finally, you can also generate a default input file and then update or add custom options before initialising the manager:
+
+```python
+	my_input = oxpy.utils.generate_default_input()
+	my_input["steps"] = "1e9"
+	my_input["log_file"] = "log.dat" 
 	manager = oxpy.OxpyManager(my_input)
 ```
 

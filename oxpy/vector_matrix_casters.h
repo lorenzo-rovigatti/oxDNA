@@ -24,7 +24,7 @@ template<>
 struct type_caster<LR_vector> {
 public:
 
-PYBIND11_TYPE_CASTER(LR_vector, _("LR_vector"));
+	PYBIND11_TYPE_CASTER(LR_vector, _("LR_vector"));
 
 	// Python -> c++ conversion
 	bool load(handle src, bool convert) {
@@ -52,8 +52,7 @@ PYBIND11_TYPE_CASTER(LR_vector, _("LR_vector"));
 
 	// c++ -> Python conversion
 	static handle cast(const LR_vector &src, return_value_policy /* policy */, handle /* parent */) {
-		number data[3] = {src.x, src.y, src.z};
-		return array(3, data).release();
+		return array(3, &(src.x)).release();
 	}
 };
 
@@ -61,7 +60,7 @@ template<>
 struct type_caster<LR_matrix> {
 public:
 
-PYBIND11_TYPE_CASTER(LR_matrix, _("LR_matrix"));
+	PYBIND11_TYPE_CASTER(LR_matrix, _("LR_matrix"));
 
 	// Python -> c++ conversion
 	bool load(handle src, bool convert) {
@@ -74,11 +73,11 @@ PYBIND11_TYPE_CASTER(LR_matrix, _("LR_matrix"));
 			return false;
 		}
 
-		if(buf.ndim() != 1) {
+		if(buf.ndim() != 2) {
 			return false;
 		}
 
-		if(buf.shape(0) != 9) {
+		if(buf.shape(0) != 3 || buf.shape(1) != 3) {
 			return false;
 		}
 
@@ -93,11 +92,7 @@ PYBIND11_TYPE_CASTER(LR_matrix, _("LR_matrix"));
 
 	// c++ -> Python conversion
 	static handle cast(const LR_matrix &src, return_value_policy /* policy */, handle /* parent */) {
-		number data[9] = {
-			src.v1.x, src.v1.y, src.v1.z,
-			src.v2.x, src.v2.y, src.v2.z,
-			src.v3.x, src.v3.y, src.v3.z};
-		return array(9, data).release();
+		return array({3, 3}, &(src.v1.x)).release();
 	}
 };
 

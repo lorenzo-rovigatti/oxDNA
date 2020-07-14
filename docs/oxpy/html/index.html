@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,18 @@
   
 
   
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -29,13 +34,9 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="The core module" href="core/core.html" /> 
+    <link rel="next" title="The core module" href="modules/core.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -49,7 +50,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> oxpy
+            <a href="#" class="icon icon-home" alt="Documentation Home"> oxpy
           
 
           
@@ -76,6 +77,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -84,7 +86,10 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="core/core.html">The core module</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="modules/core.html">The core module</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/utils.html">The utils module</a><ul class="simple">
 </ul>
 </li>
 </ul>
@@ -92,6 +97,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -130,7 +136,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
       <li>Oxpy</li>
     
@@ -191,12 +197,37 @@
 <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="n">my_input</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>You can also use the <code class="docutils literal notranslate"><span class="pre">oxpy.utils.generate_default_input()</span></code> to generate the following basic input file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">backend</span> <span class="o">=</span> <span class="n">CPU</span>
+<span class="n">sim_type</span> <span class="o">=</span> <span class="n">MD</span>
+
+<span class="n">verlet_skin</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="mf">0.001</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="n">steps</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">print_energy_every</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">print_conf_interval</span> <span class="o">=</span> <span class="mi">100000</span>
+<span class="n">restart_step_counter</span> <span class="o">=</span> <span class="n">yes</span>
+<span class="n">refresh_vel</span> <span class="o">=</span> <span class="n">true</span>
+<span class="n">time_scale</span> <span class="o">=</span> <span class="n">linear</span>
+
+<span class="n">topology</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">top</span>
+<span class="n">conf_file</span> <span class="o">=</span> <span class="n">init_conf</span><span class="o">.</span><span class="n">dat</span>
+<span class="n">trajectory_file</span> <span class="o">=</span> <span class="n">trajectory</span><span class="o">.</span><span class="n">dat</span>
+<span class="n">energy_file</span> <span class="o">=</span> <span class="n">energy</span><span class="o">.</span><span class="n">dat</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="library-api">
 <h2>Library API<a class="headerlink" href="#library-api" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="core/core.html">The core module</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="modules/core.html">The core module</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/utils.html">The utils module</a><ul class="simple">
 </ul>
 </li>
 </ul>
@@ -220,7 +251,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="core/core.html" class="btn btn-neutral float-right" title="The core module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="modules/core.html" class="btn btn-neutral float-right" title="The core module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -230,11 +261,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2020, Lorenzo Rovigatti, Flavio Romano, Petr Sulc and others
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -245,7 +284,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {
