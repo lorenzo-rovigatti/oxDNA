@@ -99,26 +99,38 @@ __device__ void _patchy_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c
 	int q_N_patches = MD_N_patches[qtype];
 
 	c_number epsilon = MD_patchy_eps[ptype + MD_N_species[0] * qtype];
-	if(epsilon == 0.) {
+	if(epsilon == (c_number) 0.f) {
 		return;
 	}
 
 	for(int pi = 0; pi < p_N_patches; pi++) {
-		c_number4 ppatch = { a1.x * MD_base_patches[ptype][pi].x + a2.x * MD_base_patches[ptype][pi].y + a3.x * MD_base_patches[ptype][pi].z, a1.y * MD_base_patches[ptype][pi].x + a2.y * MD_base_patches[ptype][pi].y + a3.y * MD_base_patches[ptype][pi].z, a1.z * MD_base_patches[ptype][pi].x + a2.z * MD_base_patches[ptype][pi].y + a3.z * MD_base_patches[ptype][pi].z, 0.f };
+		c_number4 ppatch = {
+				a1.x * MD_base_patches[ptype][pi].x + a2.x * MD_base_patches[ptype][pi].y + a3.x * MD_base_patches[ptype][pi].z,
+				a1.y * MD_base_patches[ptype][pi].x + a2.y * MD_base_patches[ptype][pi].y + a3.y * MD_base_patches[ptype][pi].z,
+				a1.z * MD_base_patches[ptype][pi].x + a2.z * MD_base_patches[ptype][pi].y + a3.z * MD_base_patches[ptype][pi].z, 0.f
+		};
 
 		for(int pj = 0; pj < q_N_patches; pj++) {
-			c_number4 qpatch = { b1.x * MD_base_patches[qtype][pj].x + b2.x * MD_base_patches[qtype][pj].y + b3.x * MD_base_patches[qtype][pj].z, b1.y * MD_base_patches[qtype][pj].x + b2.y * MD_base_patches[qtype][pj].y + b3.y * MD_base_patches[qtype][pj].z, b1.z * MD_base_patches[qtype][pj].x + b2.z * MD_base_patches[qtype][pj].y + b3.z * MD_base_patches[qtype][pj].z, 0.f };
+			c_number4 qpatch = {
+					b1.x * MD_base_patches[qtype][pj].x + b2.x * MD_base_patches[qtype][pj].y + b3.x * MD_base_patches[qtype][pj].z,
+					b1.y * MD_base_patches[qtype][pj].x + b2.y * MD_base_patches[qtype][pj].y + b3.y * MD_base_patches[qtype][pj].z,
+					b1.z * MD_base_patches[qtype][pj].x + b2.z * MD_base_patches[qtype][pj].y + b3.z * MD_base_patches[qtype][pj].z, 0.f
+			};
 
-			c_number4 patch_dist = { r.x + qpatch.x - ppatch.x, r.y + qpatch.y - ppatch.y, r.z + qpatch.z - ppatch.z, 0.f };
+			c_number4 patch_dist = {
+					r.x + qpatch.x - ppatch.x,
+					r.y + qpatch.y - ppatch.y,
+					r.z + qpatch.z - ppatch.z, 0.f
+			};
 
 			c_number dist = CUDA_DOT(patch_dist, patch_dist);
 			if(dist < MD_sqr_patch_rcut[0]) {
 				c_number r_p = sqrtf(dist);
 				if((r_p - MD_rcut_ss[0]) < 0.f) {
 					c_number exp_part = expf(MD_sigma_ss[0] / (r_p - MD_rcut_ss[0]));
-					c_number energy_part = MD_A_part[0] * exp_part * (MD_B_part[0] / SQR(dist) - 1.f);
+					c_number energy_part = epsilon * MD_A_part[0] * exp_part * (MD_B_part[0] / SQR(dist) - 1.f);
 
-					c_number force_mod = MD_A_part[0] * exp_part * (4.f * MD_B_part[0] / (SQR(dist) * r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
+					c_number force_mod = epsilon * MD_A_part[0] * exp_part * (4.f * MD_B_part[0] / (SQR(dist) * r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
 					c_number4 tmp_force = patch_dist * (force_mod / r_p);
 
 					CUDA_FS_bond_list &bond_list = bonds[pi];
@@ -275,22 +287,10 @@ void CUDAPatchySwapInteraction::cuda_init(c_number box_side, int N) {
 		throw oxDNAException("PatchySwapInteraction: cannot simulate more than %d species. You can increase this number in the PatchySwapInteraction.h file", MAX_SPECIES);
 	}
 
-	std::ifstream topology(_topology_filename, std::ios::in);
-	if(!topology.good()) {
-		throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
-	}
-	char line[512];
-	topology.getline(line, 512);
-	topology.close();
-
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_forces, N * sizeof(c_number4)));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_torques, N * sizeof(c_number4)));
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_species, &_N_species, sizeof(int)));
-
-	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patches, _N_patches.data(), sizeof(int) * _N_patches.size()));
-	COPY_ARRAY_TO_CONSTANT(MD_patchy_eps, _patchy_eps.data(), _patchy_eps.size());
 
 	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, _sqr_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, _sqr_rep_rcut);
@@ -302,6 +302,18 @@ void CUDAPatchySwapInteraction::cuda_init(c_number box_side, int N) {
 	COPY_NUMBER_TO_FLOAT(MD_B_part, _B_part);
 	COPY_NUMBER_TO_FLOAT(MD_spherical_E_cut, _spherical_E_cut);
 	COPY_NUMBER_TO_FLOAT(MD_spherical_attraction_strength, _spherical_attraction_strength);
+
+	int N_strands;
+	std::vector<BaseParticle *> particles(N);
+	PatchySwapInteraction::read_topology(&N_strands, particles);
+	for(auto particle : particles) {
+		delete particle;
+	}
+
+	// the following quantities are initialised by read_topology and hence have to be copied over to the GPU after its call
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_species, &_N_species, sizeof(int)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patches, _N_patches.data(), sizeof(int) * _N_patches.size()));
+	COPY_ARRAY_TO_CONSTANT(MD_patchy_eps, _patchy_eps.data(), _patchy_eps.size());
 
 	for(int i = 0; i < _N_species; i++) {
 		int n_patches = _base_patches[i].size();

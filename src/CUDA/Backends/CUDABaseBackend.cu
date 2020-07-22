@@ -179,8 +179,9 @@ void CUDABaseBackend::_choose_device() {
 }
 
 void CUDABaseBackend::init_cuda() {
-	if(_device_c_number < 0)
+	if(_device_c_number < 0) {
 		_choose_device();
+	}
 	set_device(_device_c_number);
 	_device_prop = get_device_prop(_device_c_number);
 
@@ -238,21 +239,21 @@ void CUDABaseBackend::init_cuda() {
 }
 
 void CUDABaseBackend::_init_CUDA_kernel_cfgs() {
-if(_particles_kernel_cfg.threads_per_block == 0) {
-	_particles_kernel_cfg.threads_per_block = 2 * _device_prop.warpSize;
-	OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
-}
+	if(_particles_kernel_cfg.threads_per_block == 0) {
+		_particles_kernel_cfg.threads_per_block = 2 * _device_prop.warpSize;
+		OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
+	}
 
-int N = CONFIG_INFO->N();
-_particles_kernel_cfg.blocks.x = N / _particles_kernel_cfg.threads_per_block + ((N % _particles_kernel_cfg.threads_per_block == 0) ? 0 : 1);
-if(_particles_kernel_cfg.blocks.x == 0)
-	_particles_kernel_cfg.blocks.x = 1;
-_particles_kernel_cfg.blocks.y = _particles_kernel_cfg.blocks.z = 1;
+	int N = CONFIG_INFO->N();
+	_particles_kernel_cfg.blocks.x = N / _particles_kernel_cfg.threads_per_block + ((N % _particles_kernel_cfg.threads_per_block == 0) ? 0 : 1);
+	if(_particles_kernel_cfg.blocks.x == 0)
+		_particles_kernel_cfg.blocks.x = 1;
+	_particles_kernel_cfg.blocks.y = _particles_kernel_cfg.blocks.z = 1;
 
-_cuda_interaction->set_launch_cfg(_particles_kernel_cfg);
+	_cuda_interaction->set_launch_cfg(_particles_kernel_cfg);
 
-OX_DEBUG("Particle kernel cfg: threads_per_block = %d, blocks = (%d, %d, %d)", _particles_kernel_cfg.threads_per_block,
-_particles_kernel_cfg.blocks.x, _particles_kernel_cfg.blocks.y, _particles_kernel_cfg.blocks.z);
+	OX_DEBUG("Particle kernel cfg: threads_per_block = %d, blocks = (%d, %d, %d)", _particles_kernel_cfg.threads_per_block,
+	_particles_kernel_cfg.blocks.x, _particles_kernel_cfg.blocks.y, _particles_kernel_cfg.blocks.z);
 }
 
 void CUDABaseBackend::_sort_index() {

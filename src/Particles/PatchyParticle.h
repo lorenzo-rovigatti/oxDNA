@@ -29,6 +29,10 @@ public:
 	virtual bool is_rigid_body() {
 		return true;
 	}
+
+	std::vector<LR_vector> base_patches() {
+		return _base_patches;
+	}
 };
 
 #endif /* PATCHYPARTICLE_H_ */

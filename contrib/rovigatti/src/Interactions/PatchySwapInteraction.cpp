@@ -263,10 +263,14 @@ void PatchySwapInteraction::allocate_particles(std::vector<BaseParticle*> &parti
 			particles[i] = new PatchyParticle(_base_patches[curr_species], curr_species, 1.);
 		}
 		else {
-			particles[i] = new PatchyParticle(_N_patches[curr_species], curr_species, 1.);
+			auto new_particle = new PatchyParticle(_N_patches[curr_species], curr_species, 1.);
+			particles[i] = new_particle;
+			// we need save the base patches so that the CUDA backend can have access to them
+			_base_patches[curr_species] = new_particle->base_patches();
 		}
 		particles[i]->index = i;
 		particles[i]->strand_id = i;
+		particles[i]->type = particles[i]->btype = curr_species;
 	}
 }
 
@@ -283,9 +287,8 @@ void PatchySwapInteraction::_parse_interaction_matrix() {
 	for(int i = 0; i < _N_species; i++) {
 		for(int j = 0; j < _N_species; j++) {
 			number value;
-			char key[20];
-			sprintf(key, "patchy_eps[%d][%d]", i, j);
-			if(getInputNumber(&inter_matrix_file, key, &value, 0) == KEY_FOUND) {
+			std::string key = Utils::sformat("patchy_eps[%d][%d]", i, j);
+			if(getInputNumber(&inter_matrix_file, key.c_str(), &value, 0) == KEY_FOUND) {
 				_patchy_eps[i + _N_species * j] = _patchy_eps[j + _N_species * i] = value;
 			}
 		}

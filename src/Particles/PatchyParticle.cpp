@@ -14,7 +14,7 @@ PatchyParticle::PatchyParticle(std::vector<LR_vector> base_patches, int nt, numb
 				BaseParticle(),
 				_sigma(sigma),
 				_base_patches(base_patches) {
-	type = nt;
+	type = btype = nt;
 	int_centers.resize(base_patches.size());
 
 	for(uint i = 0; i < N_int_centers(); i++) {
@@ -26,7 +26,7 @@ PatchyParticle::PatchyParticle(std::vector<LR_vector> base_patches, int nt, numb
 PatchyParticle::PatchyParticle(int N_patches, int nt, number sigma) :
 				BaseParticle(),
 				_sigma(sigma) {
-	type = nt;
+	type = btype = nt;
 	int_centers.resize(N_patches);
 	_base_patches.resize(N_patches);
 
