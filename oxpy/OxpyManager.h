@@ -18,6 +18,7 @@ public:
 	virtual ~OxpyManager();
 
 	std::shared_ptr<ConfigInfo> config_info();
+	number system_energy();
 
 	void run(llint steps, bool print_output=true);
 };

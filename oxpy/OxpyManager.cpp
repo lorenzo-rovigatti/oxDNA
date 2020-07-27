@@ -39,6 +39,10 @@ std::shared_ptr<ConfigInfo> OxpyManager::config_info() {
 	return CONFIG_INFO;
 }
 
+number OxpyManager::system_energy() {
+	return CONFIG_INFO->interaction->get_system_energy(CONFIG_INFO->particles(), CONFIG_INFO->lists);
+}
+
 void OxpyManager::run(llint steps, bool print_output) {
 	if(_cur_step < _start_step) {
 		_cur_step = _start_step;
@@ -114,6 +118,15 @@ input: :class:`InputFile`
         -------
         :class:`ConfigInfo`
             The object that stores all the simulation's details (particles, interaction, `etc`).
+	)pbdoc");
+
+	manager.def("system_energy", &OxpyManager::system_energy, R"pbdoc(
+		Compute the potential energy of the system in its current state.
+
+        Returns
+        -------
+        float
+            The system's potential energy.
 	)pbdoc");
 
 	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(
