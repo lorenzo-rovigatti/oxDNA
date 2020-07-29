@@ -66,26 +66,7 @@ void AnalysisBackend::get_settings(input_file &inp) {
 
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
-	char deg;
-	double tmp_T;
-	int res = sscanf(raw_T, "%lf %c", &tmp_T, &deg);
-	if(res == 2) {
-		deg = tolower(deg);
-		switch(deg) {
-		case 'c':
-			_T = (tmp_T + 273.15) * 0.1 / 300.; // convert to kelvin and then to simulation units
-			OX_LOG(Logger::LOG_INFO, "Converting temperature from Celsius (%lf C°) to simulation units (%lf)", tmp_T, _T);
-			break;
-			case 'k':
-			_T = tmp_T * 0.1 / 300.; // convert to simulation units
-			OX_LOG(Logger::LOG_INFO, "Converting temperature from Kelvin (%lf K) to simulation units (%lf)", tmp_T, _T);
-			break;
-			default:
-			throw oxDNAException("Unrecognizable temperature '%s'", raw_T);
-			/* no break */
-		}
-	}
-	else _T = tmp_T;
+	_T = Utils::get_temperature(raw_T);
 
 	// here we fill the _obs_outputs vector
 	int i = 1;
@@ -111,13 +92,17 @@ void AnalysisBackend::init() {
 void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
-	if(_n_conf % 100 == 0 && _n_conf > 0) OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
+	if(_n_conf % 100 == 0 && _n_conf > 0) {
+		OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
+	}
 	SimBackend::print_observables(_read_conf_step);
 
-	if(!_read_next_configuration(_initial_conf_is_binary)) _done = true;
+	if(!_read_next_configuration(_initial_conf_is_binary)) {
+		_done = true;
+	}
 	else _n_conf++;
 
-	for(auto p: _particles) {
+	for(auto p : _particles) {
 		this->_lists->single_update(p);
 	}
 	this->_lists->global_update();

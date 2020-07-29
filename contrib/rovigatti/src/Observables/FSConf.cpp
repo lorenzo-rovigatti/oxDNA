@@ -121,6 +121,7 @@ string FSConf::_configuration(llint step) {
 	// compute the bonding pattern
 	if(_print_bonds) {
 		vector<ParticlePair> inter_pairs = _config_info->lists->get_potential_interactions();
+		_config_info->interaction->begin_energy_computation();
 
 		for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
 			number energy;
