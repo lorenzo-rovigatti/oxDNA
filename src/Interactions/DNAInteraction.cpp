@@ -242,6 +242,18 @@ void DNAInteraction::get_settings(input_file &inp) {
 	getInputString(&inp, "T", T, 1);
 	_T = Utils::get_temperature(T);
 
+	number T_in_C = _T * 3000 - 273.15;
+	if(T_in_C <= 0 || T_in_C > 100) {
+		bool force_T = false;
+		getInputBool(&inp, "T_force_value", &force_T, 0);
+		if(!force_T) {
+			throw oxDNAException("The temperature should be between 0° C and 100° C. The value specified in the input file is %lf° C. If you really want to use this value set \"T_force_value = true\"", T_in_C);
+		}
+		else {
+			OX_LOG(Logger::LOG_WARNING, "The value of the temperature (%lf° C) is outside of the recommended range (0° C - 100° C)", T_in_C);
+		}
+	}
+
 	int tmp;
 	if(getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) == KEY_FOUND) {
 		_grooving = (tmp != 0);
@@ -253,14 +265,17 @@ void DNAInteraction::get_settings(input_file &inp) {
 
 	if(getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND) {
 		_use_mbf = true;
-		if(_mbf_fmax < 0.f)
+		if(_mbf_fmax < 0.f) {
 			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
+		}
 		_mbf_xmax = (-FENE_EPS + sqrt(FENE_EPS * FENE_EPS + 4.f * _mbf_fmax * _mbf_fmax * FENE_DELTA2)) / (2.f * _mbf_fmax);
-		if(getInputNumber(&inp, "max_backbone_force_far", &_mbf_finf, 0) != KEY_FOUND)
+		if(getInputNumber(&inp, "max_backbone_force_far", &_mbf_finf, 0) != KEY_FOUND) {
 			_mbf_finf = 0.04f; // roughly 2pN, very weak but still there
+		}
 
-		if(_mbf_finf < 0.f)
+		if(_mbf_finf < 0.f) {
 			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force_far");
+		}
 	}
 }
 
