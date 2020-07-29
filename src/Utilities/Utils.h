@@ -163,7 +163,7 @@ number get_temperature(char *raw_T);
  * @param seedptr the memory address to store the 48 bits of the
  * seed into.
  */
-void get_seed(unsigned short * seedptr);
+void get_seed(unsigned short *seedptr);
 
 /**
  * @brief Utility function that returns a string from a number converting to megabytes,
