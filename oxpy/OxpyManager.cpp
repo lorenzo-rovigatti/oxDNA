@@ -43,6 +43,13 @@ number OxpyManager::system_energy() {
 	return CONFIG_INFO->interaction->get_system_energy(CONFIG_INFO->particles(), CONFIG_INFO->lists);
 }
 
+void OxpyManager::print_configuration(bool also_last) {
+    // prints the trajectory configuration
+    _backend->print_conf(_cur_step);
+    // prints the last configuration
+    _backend->print_conf(_cur_step, false, true);
+}
+
 void OxpyManager::run(llint steps, bool print_output) {
 	if(_cur_step < _start_step) {
 		_cur_step = _start_step;
@@ -109,6 +116,15 @@ Parameters
 ----------
 input: :class:`InputFile`
     The object storing the simulations' options.
+	)pbdoc");
+
+	manager.def("print_configuration", &OxpyManager::print_configuration, py::arg("also_last") = true, R"pbdoc(
+        Append the current configuration to the trajectory file and, by default, print it in the "lastconf_file".
+
+        Parameters
+        ----------
+            also_last : bool
+                If True (default value) prints the current configuration also in the "lastconf_file" file.  
 	)pbdoc");
 
 	manager.def("config_info", &OxpyManager::config_info, R"pbdoc(
