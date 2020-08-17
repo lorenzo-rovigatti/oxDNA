@@ -84,9 +84,8 @@ public:
 	}
 
 	inline void operator/=(number S) {
-		x /= S;
-		y /= S;
-		z /= S;
+		number f = 1 / S;
+		*this *= f;
 	}
 
 	inline void operator*=(number S) {
@@ -110,7 +109,7 @@ public:
 	}
 
 	number module() const {
-		return sqrt(norm());
+		return std::sqrt(norm());
 	}
 
 	number sqr_distance(const LR_vector &V1) const {
@@ -118,18 +117,14 @@ public:
 	}
 
 	number distance(const LR_vector &V1) const {
-		return sqrt(sqr_distance(V1));
+		return std::sqrt(sqr_distance(V1));
 	}
 
 	inline void normalize() {
-		number fMag = (x * x + y * y + z * z);
-		if(fMag == 0) return;
+		number v_norm = norm();
+		if(v_norm == 0) return;
 
-		number fMult = ((number) 1.) / sqrtf(fMag);
-		x *= fMult;
-		y *= fMult;
-		z *= fMult;
-		return;
+		*this /= std::sqrt(v_norm);
 	}
 
 	friend std::ostream &operator<<(std::ostream &stream, const LR_vector &vector) {

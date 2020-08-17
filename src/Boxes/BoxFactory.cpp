@@ -11,6 +11,8 @@
 #include "OrthogonalBox.h"
 #include "LeesEdwardsCubicBox.h"
 
+#include "../Utilities/oxDNAException.h"
+
 BoxPtr BoxFactory::make_box(input_file &inp) {
 	// the default box is the cubic one
 	char box_type[512] = "cubic";

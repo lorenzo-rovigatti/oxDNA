@@ -16,15 +16,14 @@
 #include <stdio.h>
 
 #include "../defs.h"
+#include "../Boxes/BaseBox.h"
 #include "../Forces/BaseForce.h"
 
 class ParticlePair;
-class BaseBox;
 
 /**
  * @brief Base particle class. All particles must inherit from this class.
  */
-
 class BaseParticle {
 protected:
 	void _check();
@@ -74,7 +73,19 @@ public:
 	 */
 	bool add_ext_force(ForcePtr f);
 
-	void set_initial_forces(llint step, const std::shared_ptr<BaseBox> &box);
+	inline void set_initial_forces(llint step, const std::shared_ptr<BaseBox> &box) {
+		if(is_rigid_body()) {
+			torque = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
+		}
+		force = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
+
+		if(ext_forces.size() > 0) {
+			LR_vector abs_pos = box->get_abs_pos(this);
+			for(auto ext_force : ext_forces) {
+				force += ext_force->value(step, abs_pos);
+			}
+		}
+	}
 
 	/**
 	 * @brief Computes the interaction resulting from all the external forces acting on the particle. Stores the result in the ext_potential member.
@@ -83,7 +94,15 @@ public:
 	 * @param box pointer to the box object
 	 * @return true if the external potential was added, false otherwise
 	 */
-	void set_ext_potential(llint step, BaseBox *box);
+	inline void set_ext_potential(llint step, BaseBox *box) {
+		if(ext_forces.size() > 0) {
+			LR_vector abs_pos = box->get_abs_pos(this);
+			ext_potential = (number) 0.;
+			for(auto ext_force : ext_forces) {
+				ext_potential += ext_force->potential(step, abs_pos);
+			}
+		}
+	}
 
 	/**
 	 * @brief Checks whether q and the current particle are bonded neighbours (such as neighbouring particles on a DNA strand).
