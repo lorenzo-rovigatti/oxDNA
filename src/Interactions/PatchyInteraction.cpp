@@ -6,7 +6,6 @@
  */
 
 #include "PatchyInteraction.h"
-#include "../Particles/PatchyParticle.h"
 #include "../Utilities/Utils.h"
 
 PatchyInteraction::PatchyInteraction() :
@@ -25,6 +24,9 @@ PatchyInteraction::PatchyInteraction() :
 	}
 
 	_patch_alpha = 0.12;
+	_patch_pow_alpha = powf(_patch_alpha, (number) 10.f);
+	number patch_rcut = _patch_alpha * 1.5;
+	_sqr_patch_rcut = SQR(patch_rcut);
 }
 
 PatchyInteraction::~PatchyInteraction() {
@@ -73,10 +75,12 @@ void PatchyInteraction::init() {
 
 	_sqr_rcut = SQR(_rcut);
 
-	if(_is_binary)
+	if(_is_binary) {
 		OX_LOG(Logger::LOG_INFO, "Simulating a binary patchy system with diameters AA %lf, BB %lf, AB %lf (N patch: %d %d, rcut: %lf %lf %lf)", _sigma[0], _sigma[2], _sigma[1], _N_patches, _N_patches_B, sqrt(_sqr_tot_rcut[0]), sqrt(_sqr_tot_rcut[1]), sqrt(_sqr_tot_rcut[2]));
-	else
+	}
+	else {
 		OX_LOG(Logger::LOG_INFO, "Simulating a pure patchy system (N patch: %d, rcut: %lf, patch_alpha: %lf)", _N_patches, _rcut);
+	}
 }
 
 void PatchyInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
@@ -85,6 +89,14 @@ void PatchyInteraction::allocate_particles(std::vector<BaseParticle*> &particles
 			particles[i] = new PatchyParticle(_N_patches, P_A, _sigma[2 * P_A]);
 		else
 			particles[i] = new PatchyParticle(_N_patches_B, P_B, _sigma[2 * P_B]);
+	}
+}
+
+void PatchyInteraction::begin_energy_computation() {
+	BaseInteraction<PatchyInteraction>::begin_energy_computation();
+
+	for(int i = 0; i < CONFIG_INFO->N(); i++) {
+		_particle_bonds(CONFIG_INFO->particles()[i]).clear();
 	}
 }
 
@@ -134,4 +146,62 @@ void PatchyInteraction::read_topology(int *N_strands, std::vector<BaseParticle*>
 
 void PatchyInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 
+}
+
+number PatchyInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	number sqr_r = _computed_r.norm();
+	int type = p->type + q->type;
+	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
+
+	number energy = (number) 0.f;
+
+	number part = powf(_sqr_sigma[type]/sqr_r, PATCHY_POWER*0.5f);
+	energy = part - _E_cut[type];
+
+	if(update_forces) {
+		LR_vector force = _computed_r * (PATCHY_POWER*part/sqr_r);
+		p->force -= force;
+		q->force += force;
+	}
+
+	int c = 0;
+	LR_vector tmptorquep(0, 0, 0);
+	LR_vector tmptorqueq(0, 0, 0);
+
+	for(uint pi = 0; pi < p->N_int_centers(); pi++) {
+		LR_vector ppatch = p->int_centers[pi];
+		for(uint pj = 0; pj < q->N_int_centers(); pj++) {
+			LR_vector qpatch = q->int_centers[pj];
+			LR_vector patch_dist = _computed_r + qpatch - ppatch;
+			number dist = patch_dist.norm();
+			if(dist < _sqr_patch_rcut) {
+				c++;
+				number r8b10 = dist*dist*dist*dist / _patch_pow_alpha;
+				number exp_part = -1.001f*_epsilon[type]*exp(-(number)0.5f*r8b10*dist);
+
+				number patch_energy = exp_part - _patch_E_cut[type];
+				energy += patch_energy;
+
+				if(patch_energy < _bond_energy_threshold) {
+					PatchyBond p_bond(q, std::sqrt(dist), pi, pj, patch_energy);
+					PatchyBond q_bond(p, std::sqrt(dist), pj, pi, patch_energy);
+
+					_particle_bonds(p).emplace_back(p_bond);
+					_particle_bonds(q).emplace_back(q_bond);
+				}
+
+				if(update_forces) {
+					LR_vector tmp_force = patch_dist * (5*exp_part*r8b10);
+
+					p->torque -= p->orientationT*ppatch.cross(tmp_force);
+					q->torque += q->orientationT*qpatch.cross(tmp_force);
+
+					p->force -= tmp_force;
+					q->force += tmp_force;
+				}
+			}
+		}
+	}
+
+	return energy;
 }

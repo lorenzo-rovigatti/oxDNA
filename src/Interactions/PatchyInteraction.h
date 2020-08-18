@@ -11,6 +11,7 @@
 #define PATCHY_POWER 200
 
 #include "BaseInteraction.h"
+#include "../Particles/PatchyParticle.h"
 
 /**
  * @brief Manages the interaction between simple patchy particles (as described in http://jcp.aip.org/resource/1/jcpsa6/v131/i1/p014504_s1)
@@ -72,6 +73,8 @@ protected:
 	/// _patch_alpha^10
 	number _patch_pow_alpha;
 
+	number _bond_energy_threshold = -0.1;
+
 	/**
 	 * @brief Patchy interaction between two particles.
 	 *
@@ -81,7 +84,11 @@ protected:
 	 * @param update_forces
 	 * @return
 	 */
-	inline number _patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+
+	inline std::vector<PatchyBond> &_particle_bonds(BaseParticle *p) {
+		return static_cast<PatchyParticle *>(p)->bonds;
+	}
 
 public:
 	enum {
@@ -98,6 +105,8 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
+	void begin_energy_computation() override;
+
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
@@ -108,52 +117,5 @@ public:
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 };
-
-
-number PatchyInteraction::_patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number sqr_r = _computed_r.norm();
-	int type = p->type + q->type;
-	if(sqr_r > _sqr_tot_rcut[type]) return (number) 0.f;
-
-	number energy = (number) 0.f;
-
-	number part = powf(_sqr_sigma[type]/sqr_r, PATCHY_POWER*0.5f);
-	energy = part - _E_cut[type];
-
-	if(update_forces) {
-		LR_vector force = _computed_r * (PATCHY_POWER*part/sqr_r);
-		p->force -= force;
-		q->force += force;
-	}
-
-	int c = 0;
-	LR_vector tmptorquep(0, 0, 0);
-	LR_vector tmptorqueq(0, 0, 0);
-	for(auto &ppatch: p->int_centers) {
-		for(auto &qpatch: q->int_centers) {
-			LR_vector patch_dist = _computed_r + qpatch - ppatch;
-			number dist = patch_dist.norm();
-			if(dist < _sqr_patch_rcut) {
-				c++;
-				number r8b10 = dist*dist*dist*dist / _patch_pow_alpha;
-				number exp_part = -1.001f*_epsilon[type]*exp(-(number)0.5f*r8b10*dist);
-
-				energy += exp_part - _patch_E_cut[type];
-
-				if(update_forces) {
-					LR_vector tmp_force = patch_dist * (5*exp_part*r8b10);
-
-					p->torque -= p->orientationT*ppatch.cross(tmp_force);
-					q->torque += q->orientationT*qpatch.cross(tmp_force);
-
-					p->force -= tmp_force;
-					q->force += tmp_force;
-				}
-			}
-		}
-	}
-
-	return energy;
-}
 
 #endif /* PATCHYINTERACTION_H_ */
