@@ -37,6 +37,9 @@ __constant__ float MD_3b_epsilon[1];
 __constant__ float MD_3b_A_part[1];
 __constant__ float MD_3b_B_part[1];
 
+__constant__ bool MD_enable_semiflexibility[1];
+__constant__ float MD_semiflexibility_k[1];
+
 #include "CUDA/cuda_utils/CUDA_lr_common.cuh"
 
 struct __align__(16) CUDA_FS_bond {
@@ -155,7 +158,7 @@ __device__ void _FENE(c_number4 &ppos, c_number4 &qpos, int int_type, c_number4 
 	F.w += energy;
 }
 
-__device__ void _three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c_number4 *forces) {
+__device__ void _patchy_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c_number4 *forces) {
 	for(int bi = 0; bi < bond_list.n_bonds; bi++) {
 		CUDA_FS_bond &b1 = bond_list.bonds[bi];
 		c_number curr_energy = b1.force.w;
@@ -188,7 +191,30 @@ __device__ void _three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, c_number
 	}
 }
 
-__global__ void ps_FENE_forces(c_number4 *poss, c_number4 *forces, int *bonded_neighs, CUDABox *box) {
+__device__ void _flexibility_three_body(c_number4 &ppos, c_number4 &n1_pos, c_number4 &n2_pos, int n1_idx, int n2_idx, c_number4 &F, c_number4 *poss, c_number4 *three_body_forces, CUDABox *box) {
+	c_number4 dist_pn1 = box->minimum_image(ppos, n1_pos);
+	c_number4 dist_pn2 = box->minimum_image(n2_pos, ppos);
+
+	c_number sqr_dist_pn1 = CUDA_DOT(dist_pn1, dist_pn1);
+	c_number sqr_dist_pn2 = CUDA_DOT(dist_pn2, dist_pn2);
+	c_number i_pn1_pn2 = 1.f / sqrtf(sqr_dist_pn1 * sqr_dist_pn2);
+	c_number cost = CUDA_DOT(dist_pn1, dist_pn2) * i_pn1_pn2;
+
+	c_number cost_n1 = cost / sqr_dist_pn1;
+	c_number cost_n2 = cost / sqr_dist_pn2;
+	c_number force_mod_n1 = i_pn1_pn2 + cost_n1;
+	c_number force_mod_n2 = i_pn1_pn2 + cost_n2;
+
+	F += dist_pn1 * (force_mod_n1 * MD_semiflexibility_k[0]) - dist_pn2 * (force_mod_n2 * MD_semiflexibility_k[0]);
+	F.w += MD_semiflexibility_k[0] * (1.f - cost);
+
+	c_number4 n1_force = dist_pn2 * (i_pn1_pn2 * MD_semiflexibility_k[0]) - dist_pn1 * (cost_n1 * MD_semiflexibility_k[0]);
+	c_number4 n2_force = dist_pn2 * (cost_n2 * MD_semiflexibility_k[0]) - dist_pn1 * (i_pn1_pn2 * MD_semiflexibility_k[0]);
+	LR_atomicAddXYZ(three_body_forces + n1_idx, n1_force);
+	LR_atomicAddXYZ(three_body_forces + n2_idx, n2_force);
+}
+
+__global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -199,12 +225,20 @@ __global__ void ps_FENE_forces(c_number4 *poss, c_number4 *forces, int *bonded_n
 	int n_bonded_neighs = bonded_neighs[IND];
 
 	for(int i = 1; i <= n_bonded_neighs; i++) {
-		int n_idx = bonded_neighs[MD_N[0] * i + IND];
-		c_number4 qpos = poss[n_idx];
-		int qtype = get_particle_btype(qpos);
+		int i_idx = bonded_neighs[MD_N[0] * i + IND];
+		c_number4 i_pos = poss[i_idx];
+		int qtype = get_particle_btype(i_pos);
 		int int_type = ptype + qtype;
 
-		_FENE(ppos, qpos, int_type, F, box);
+		_FENE(ppos, i_pos, int_type, F, box);
+
+		if(MD_enable_semiflexibility[0]) {
+			for(int j = i + 1; j <= n_bonded_neighs; j++) {
+				int j_idx = bonded_neighs[MD_N[0] * j + IND];
+				c_number4 j_pos = poss[j_idx];
+				_flexibility_three_body(ppos, i_pos, j_pos, i_idx, j_idx, F, poss, three_body_forces, box);
+			}
+		}
 	}
 
 	forces[IND] = F;
@@ -234,7 +268,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 		}
 	}
 
-	_three_body(bonds, F, three_body_forces);
+	_patchy_three_body(bonds, F, three_body_forces);
 
 	forces[IND] = F;
 }
@@ -265,7 +299,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 		}
 	}
 
-	_three_body(bonds, F, three_body_forces);
+	_patchy_three_body(bonds, F, three_body_forces);
 
 	forces[IND] = F;
 }
@@ -342,6 +376,9 @@ void CUDAPolymerSwapInteraction::cuda_init(c_number box_side, int N) {
 	COPY_NUMBER_TO_FLOAT(MD_3b_epsilon, _3b_epsilon);
 	COPY_NUMBER_TO_FLOAT(MD_3b_A_part, _3b_A_part);
 	COPY_NUMBER_TO_FLOAT(MD_3b_B_part, _3b_B_part);
+
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_enable_semiflexibility, &_enable_semiflexibility, sizeof(bool)));
+	COPY_NUMBER_TO_FLOAT(MD_semiflexibility_k, _semiflexibility_k);
 }
 
 void CUDAPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
@@ -349,9 +386,9 @@ void CUDAPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *
 	thrust::device_ptr<c_number4> t_three_body_forces = thrust::device_pointer_cast(_d_three_body_forces);
 	thrust::fill_n(t_three_body_forces, _N, make_c_number4(0, 0, 0, 0));
 
-	ps_FENE_forces
+	ps_FENE_flexibility_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_bonded_neighs, d_box);
+		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, d_box);
 	CUT_CHECK_ERROR("forces_second_step PolymerSwap simple_lists error");
 
 	CUDASimpleVerletList *_v_lists = dynamic_cast<CUDASimpleVerletList *>(lists);
