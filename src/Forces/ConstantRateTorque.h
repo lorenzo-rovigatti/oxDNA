@@ -14,7 +14,7 @@
 class ConstantRateTorque: public BaseForce {
 public:
 	LR_vector _center, _pos0, _axis, _mask;
-	number _rate;
+	number _rate = 0;
 	ConstantRateTorque();
 	virtual ~ConstantRateTorque() {
 	}

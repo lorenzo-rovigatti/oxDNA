@@ -162,7 +162,7 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 void MD_CPUBackend::_compute_forces() {
 	_interaction->begin_energy_computation();
 
-	_U = _U_hydr = (number) 0;
+	_U = (number) 0;
 	for(auto p : _particles) {
 		for(auto &pair : p->affected) {
 			if(pair.first == p) {
@@ -182,7 +182,6 @@ void MD_CPUBackend::_compute_forces() {
 }
 
 void MD_CPUBackend::_second_step() {
-	_K = (number) 0.f;
 	for(auto p : _particles) {
 		p->vel += p->force * _dt * (number) 0.5f;
 		if(_use_builtin_langevin_thermostat) {
@@ -192,8 +191,6 @@ void MD_CPUBackend::_second_step() {
 		if(p->is_rigid_body()) {
 			p->L += p->torque * _dt * (number) 0.5f;
 		}
-
-		_K += (p->vel.norm() + p->L.norm()) * (number) 0.5f;
 
 		if(_compute_stress_tensor) {
 			_update_kinetic_stress_tensor(p);

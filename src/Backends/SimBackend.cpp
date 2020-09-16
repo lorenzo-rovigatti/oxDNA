@@ -23,18 +23,14 @@ SimBackend::SimBackend() {
 	// we need to initialize everything so that we can check what we can
 	// and what we can't delete[] in the destructor
 	_enable_fix_diffusion = true;
-	_print_timings = false;
 	_external_forces = false;
 	_N_updates = 0;
 	_confs_to_skip = 0;
-	_sim_type = -1;
 	_is_CUDA_sim = false;
-	_interaction = NULL;
+	_interaction = nullptr;
 	_N_strands = -1;
 	start_step_from_file = (llint) 0;
 	_U = (number) 0.f;
-	_K = (number) 0.f;
-	_U_hydr = (number) 0.f;
 	_backend_info = std::string("");
 	_initial_conf_is_binary = false;
 	_reseed = false;
@@ -53,10 +49,7 @@ SimBackend::SimBackend() {
 	_restart_step_counter = false;
 	_rcut = -1.;
 	_sqr_rcut = -1.;
-	_dU = 0.;
 	_T = -1.;
-	_U_stack = 0.;
-	_dU_stack = 0.;
 
 	ConfigInfo::init(&_particles, &_molecules);
 	_config_info = ConfigInfo::instance();
@@ -92,19 +85,6 @@ SimBackend::~SimBackend() {
 			OX_LOG(Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
 		}
 	}
-
-	/* TODO
-	 * to implement: optional file output for timer
-	 OX_LOG(Logger::LOG_INFO, "Timings informations:");
-	 print_times(&_timer, Logger::instance()->get_log_stream());
-	 OX_LOG(Logger::LOG_NOTHING, "");
-
-	 if(_print_timings == true) {
-	 FILE *timings_file = fopen(_timings_filename, "a");
-	 fprintf(timings_file, "%d %lf\n", _N, _timer.timings[0]);
-	 fclose(timings_file);
-	 }
-	 */
 }
 
 void SimBackend::get_settings(input_file &inp) {
@@ -176,16 +156,6 @@ void SimBackend::get_settings(input_file &inp) {
 		}
 	}
 	else if(val == KEY_INVALID) throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
-
-	if(getInputBoolAsInt(&inp, "print_timings", &tmp, 0) == KEY_FOUND) {
-		_print_timings = (tmp != 0);
-		if(_print_timings) {
-			getInputString(&inp, "timings_filename", _timings_filename, 1);
-			FILE *timings_file = fopen(_timings_filename, "a");
-			if(timings_file == NULL) throw oxDNAException("Timings file '%s' is not writable\n", _timings_filename);
-			fclose(timings_file);
-		}
-	}
 
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
@@ -364,8 +334,6 @@ void SimBackend::init() {
 	}
 
 	_U = (number) 0;
-	_K = (number) 0;
-	_U_stack = (number) 0;
 
 	_interaction->set_box(_box.get());
 

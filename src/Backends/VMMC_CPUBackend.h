@@ -63,6 +63,15 @@ protected:
 	int _last_move;
 	number _U_ext;
 
+	/// potential energy due to stacking
+	number _U_stack;
+
+	/// change in stacking potential energy
+	number _dU_stack;
+
+	/// change in potential energy
+	number _dU;
+
 	inline void store_particle(BaseParticle * src);
 	inline void restore_particle(BaseParticle * src);
 
