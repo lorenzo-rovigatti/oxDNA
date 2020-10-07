@@ -33,6 +33,9 @@ private:
 	/// whether the timer is running or paused
 	bool _active;
 
+	/// whether we should call SYNCHRONIZE() or not
+	bool _sync = false;
+
 public:
 	Timer();
 	Timer(std::string desc);
@@ -65,6 +68,10 @@ public:
 	/// returns whether the timer is active
 	bool is_active() {
 		return _active;
+	}
+
+	void set_sync(bool state) {
+		_sync = state;
 	}
 };
 
@@ -105,6 +112,9 @@ public:
 	TimerPtr get_timer_by_desc(std::string desc) {
 		return _desc_map[desc];
 	}
+
+	void enable_sync();
+	void disable_sync();
 
 	/// singleton
 	static TimingManager *instance();

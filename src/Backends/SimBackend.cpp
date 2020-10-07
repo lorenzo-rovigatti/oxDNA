@@ -115,6 +115,11 @@ void SimBackend::get_settings(input_file &inp) {
 	// initialise the plugin manager with the input file
 	PluginManager::instance()->init(inp);
 
+	// if the simulation is to be run on CUDA then the timers need to be told to synchronise on the GPU
+	if(_is_CUDA_sim) {
+		TimingManager::instance()->enable_sync();
+	}
+
 	// initialise the timer
 	_mytimer = TimingManager::instance()->new_timer(std::string("SimBackend"));
 
