@@ -22,7 +22,7 @@ std::tuple<std::vector<int>, std::string> ConstantRateTorque::init(input_file &i
 	getInputNumber(&inp, "rate", &_rate, 1);
 	getInputNumber(&inp, "base", &_F0, 1);
 
-	std::string (strdir);
+	std::string strdir;
 	double tmpf[3];
 	int tmpi;
 	getInputString(&inp, "axis", strdir, 1);
