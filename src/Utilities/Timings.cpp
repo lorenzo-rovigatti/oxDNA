@@ -51,7 +51,9 @@ void Timer::resume() {
 }
 
 void Timer::pause() {
-	SYNCHRONIZE();
+	if(_sync) {
+		SYNCHRONIZE();
+	}
 	if(!_active) {
 		throw oxDNAException("pausing resuming already inactive timer %s", _desc.c_str());
 	}
@@ -81,6 +83,18 @@ TimingManager::TimingManager() {
 
 TimingManager::~TimingManager() {
 
+}
+
+void TimingManager::enable_sync() {
+	for(auto t: _timers) {
+		t->set_sync(true);
+	}
+}
+
+void TimingManager::disable_sync() {
+	for(auto t: _timers) {
+		t->set_sync(false);
+	}
 }
 
 void TimingManager::init() {

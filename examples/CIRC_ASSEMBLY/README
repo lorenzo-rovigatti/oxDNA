@@ -36,7 +36,7 @@ and aligning them we obtain
 5'-TATCTTGAGGGTCTG-3'
 
 we want to push nucleotide 47 (8th of second strand) on strand 1 and nucleotide
-0 (first of first strand) together, as well as nucleotides 49 (last of first
+0 (first of first strand) together, as well as nucleotides 39 (last of first
 strand) ad 48 (9th of second strand). In principle, any base pair will help,
 but we picked these two because they are the ones that are less likely to
 create topological/geometric traps.
