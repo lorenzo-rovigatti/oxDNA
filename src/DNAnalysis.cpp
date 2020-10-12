@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
 	}
 	catch (oxDNAException &e) {
 		OX_LOG(Logger::LOG_ERROR, "%s", e.what());
+		return 1;
 	}
 
 	TimingManager::clear();
