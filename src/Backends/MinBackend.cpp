@@ -41,7 +41,7 @@ void MinBackend::init() {
 void MinBackend::_compute_forces() {
 	_interaction->begin_energy_computation();
 
-	_U = _U_hydr = (number) 0;
+	_U = (number) 0;
 	for(auto p: _particles) {
 		for(auto &pair : p->affected) {
 			if(pair.first == p) {

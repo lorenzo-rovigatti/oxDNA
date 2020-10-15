@@ -56,7 +56,7 @@ protected:
 	number _PS_gamma = 0.;
 	int _PS_n = 6;
 
-	/// Three-body potential stuff
+	/// three-body potential stuff
 	number _3b_rcut = -1.;
 	number _sqr_3b_rcut = -1.;
 	number _3b_sigma = 1.05;
@@ -66,6 +66,10 @@ protected:
 	number _3b_prefactor = 0.1;
 	number _3b_A_part = 0.;
 	number _3b_B_part = 0.;
+
+	/// three-body flexibility stuff
+	bool _enable_semiflexibility;
+	number _semiflexibility_k;
 
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
@@ -83,7 +87,8 @@ protected:
 	number _fene(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _WCA(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _sticky(BaseParticle *p, BaseParticle *q, bool update_forces);
-	number _three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
+	number _patchy_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
+	number _semiflexibility_three_body(BaseParticle *middle, BaseParticle *n1, BaseParticle *n2, bool update_forces);
 
 public:
 	enum {

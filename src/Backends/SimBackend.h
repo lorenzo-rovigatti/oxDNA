@@ -79,16 +79,12 @@ protected:
 	number _max_io;
 
 	bool _enable_fix_diffusion;
-	bool _print_timings;
-	char _timings_filename[256];
 	bool _is_CUDA_sim;
 
 	bool _external_forces;
 	char _external_filename[256];
 
 	char _reduced_conf_output_dir[256];
-
-	int _sim_type;
 
 	bool _reseed;
 
@@ -131,21 +127,6 @@ protected:
 
 	/// potential energy
 	number _U;
-
-	/// kinetic energy
-	number _K;
-
-	/// potential energy due to hydrogen bonding
-	number _U_hydr;
-
-	/// potential energy due to stacking
-	number _U_stack;
-
-	/// change in stacking potential energy
-	number _dU_stack;
-
-	/// change in potential energy
-	number _dU;
 
 	/// array of pointers to particle objects
 	std::vector<BaseParticle *> _particles;

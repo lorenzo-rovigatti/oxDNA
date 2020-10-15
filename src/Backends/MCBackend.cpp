@@ -15,8 +15,6 @@ MCBackend::MCBackend() :
 				_MC_moves(3),
 				_overlap(false),
 				_check_energy_counter(0) {
-	_sim_type = SIM_MC;
-
 	_delta.resize(_MC_moves);
 	_tries.resize(_MC_moves);
 	_accepted.resize(_MC_moves);

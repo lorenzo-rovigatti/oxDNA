@@ -12,7 +12,6 @@
 
 MDBackend::MDBackend() :
 				SimBackend() {
-	this->_sim_type = SIM_MD;
 	_timer_first_step = _timer_forces = _timer_lists = _timer_thermostat = _timer_barostat = NULL;
 
 	_lees_edwards = false;

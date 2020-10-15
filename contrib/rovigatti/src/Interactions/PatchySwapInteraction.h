@@ -11,41 +11,11 @@
 #include "Interactions/BaseInteraction.h"
 #include "Particles/PatchyParticle.h"
 
-struct FSBond {
-	BaseParticle *other;
-	number r_p;
-	int p_patch, q_patch;
-	number energy;
-	LR_vector force;
-	LR_vector p_torque, q_torque;
-
-	FSBond(BaseParticle *o, number my_r_p, int pp, int qp, number e) :
-					other(o),
-					r_p(my_r_p),
-					p_patch(pp),
-					q_patch(qp),
-					energy(e) {
-	}
-};
-
-struct FSBondCompare {
-	bool operator()(const FSBond &lhs, const FSBond &rhs) {
-		if(lhs.other->index == rhs.other->index && lhs.p_patch == rhs.p_patch && lhs.q_patch == rhs.q_patch) return false;
-		else return true;
-	}
-};
-
 /**
- * @brief Manages the interaction between FS-like patchy particles.
+ * @brief Manages the interaction between generic patchy particles.
  *
  * This interaction is selected with
  * interaction_type = PatchySwapInteraction
- *
- * @verbatim
- FS_N = <int> (number of patches)
- [FS_N_B = <int> (number of patches on species B)]
- [FS_one_component = <bool> (if true then the system will not contain particles of type B and A-A bonds will be allowed. Defaults to false.)]
- @endverbatim
  */
 class PatchySwapInteraction: public BaseInteraction<PatchySwapInteraction> {
 protected:
@@ -80,15 +50,17 @@ protected:
 	number _sqr_spherical_rcut = 6.25;
 	number _spherical_E_cut = 0.;
 
-	std::vector<std::vector<FSBond>> _bonds;
-
 	void _parse_interaction_matrix();
 	std::vector<LR_vector> _parse_base_patches(std::string filename, int N_patches);
 
 	number _patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
-	number _three_body(BaseParticle *p, FSBond &new_bond, bool update_forces);
+	number _three_body(BaseParticle *p, PatchyBond &new_bond, bool update_forces);
+
+	inline std::vector<PatchyBond> &_particle_bonds(BaseParticle *p) {
+		return static_cast<PatchyParticle *>(p)->bonds;
+	}
 
 public:
 	enum {

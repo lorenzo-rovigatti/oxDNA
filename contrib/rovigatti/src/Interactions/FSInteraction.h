@@ -9,30 +9,7 @@
 #define FSINTERACTION_H_
 
 #include "Interactions/BaseInteraction.h"
-
-struct FSBond {
-	BaseParticle *other;
-	number r_p;
-	int p_patch, q_patch;
-	number energy;
-	LR_vector force;
-	LR_vector p_torque, q_torque;
-
-	FSBond(BaseParticle *o, number my_r_p, int pp, int qp, number e) :
-					other(o),
-					r_p(my_r_p),
-					p_patch(pp),
-					q_patch(qp),
-					energy(e) {
-	}
-};
-
-struct FSBondCompare {
-	bool operator()(const FSBond &lhs, const FSBond &rhs) {
-		if(lhs.other->index == rhs.other->index && lhs.p_patch == rhs.p_patch && lhs.q_patch == rhs.q_patch) return false;
-		else return true;
-	}
-};
+#include "Particles/PatchyParticle.h"
 
 /**
  * @brief Manages the interaction between FS-like patchy particles.
@@ -104,9 +81,6 @@ protected:
 	/// this quantity rescales the energy of the WCA and FENE parts. It is set to the thermal energy by default
 	number _polymer_energy_scale = 1.0;
 
-//	std::vector<std::set<FSBond, FSBondCompare> > _bonds;
-	std::vector<std::vector<FSBond>> _bonds;
-
 	/**
 	 * @brief FS interaction between two particles.
 	 *
@@ -119,11 +93,10 @@ protected:
 	number _patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
-
 	number _polymer_fene(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	number _polymer_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
-	number _three_body(BaseParticle *p, FSBond &new_bond, bool update_forces);
+	number _three_body(BaseParticle *p, PatchyBond &new_bond, bool update_forces);
 
 	void _parse_bond_file(std::vector<BaseParticle *> &particles);
 
@@ -132,6 +105,15 @@ protected:
 	inline bool _is_patchy_patchy(int p_type, int q_type);
 	inline bool _is_patchy_polymer(int p_type, int q_type);
 	inline bool _is_polymer_polymer(int p_type, int q_type);
+
+	inline std::vector<PatchyBond> &_particle_bonds(BaseParticle *p) {
+		if(p->type != POLYMER) {
+			return static_cast<PatchyParticle *>(p)->bonds;
+		}
+		else {
+			throw oxDNAException("Cannot get a list of bonds from a particle that is not a PatchyParticle");
+		}
+	}
 
 public:
 	enum {

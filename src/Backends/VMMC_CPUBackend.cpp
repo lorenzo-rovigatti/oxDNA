@@ -39,6 +39,13 @@ VMMC_CPUBackend::VMMC_CPUBackend() :
 	_vmmc_N_cells_side = -1;
 	_reload_hist = false;
 	_just_updated_lists = false;
+
+	_dU = 0.;
+	_U_stack = 0.;
+	_dU_stack = 0.;
+
+	_max_move_size = 0.5;
+	_max_move_size_sqr = SQR(_max_move_size);
 }
 
 VMMC_CPUBackend::~VMMC_CPUBackend() {
@@ -1309,26 +1316,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 	_mytimer->resume();
 	_timer_move->resume();
 
-	//srand48(curr_step);
-	/*
-	 {
-	 unsigned short seednow[3];
-	 Utils::get_seed((unsigned short *)seednow);
-	 printf ("%hu %hu %hu\n", seednow[0], seednow[1], seednow[2]);
-	 }*/
-
 	LR_vector tmp;
-	//BaseParticle *pold;
-
-	//printf ("checking metainfo at the beginning...\n");
-	//_check_metainfo();
-	//printf ("checking metainfo at the beginning: PASSED\n");
-
-	//	_compute_energy();
-	//	printf("%lf %lf\n", _U/N(), _U_hydr);
-	//	exit(1);
-
-	//get_time(&_timer, 0);
 
 	int * clust, nclust;
 	clust = new int[N()];
@@ -1338,14 +1326,6 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 	oldweight = weight = 1.;
 	if(_have_us)
 		oldweight = _w.get_weight(_op.get_all_states(), &oldwindex);
-
-	/*
-	 // normalisation factor for 1/_maxclust
-	 number norm = log(_maxclust) + (number) 0.5772156649 + (number) (1. / 2.)
-	 / (number) _maxclust + (number) (1. / 12.) / _maxclust / _maxclust;
-	 number logmaxclustplusone = (number) log((number) _maxclust + 1.);
-	 number M = (1. / norm) / (1. / (logmaxclustplusone * 2.001));
-	 */
 
 	// set the potential due to external forces
 	_U_ext = (number) 0.f;
@@ -1359,34 +1339,10 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 		if(_have_us)
 			_op.store();
 		_dU_stack = 0.;
-		//printf ("\n##A %lf %lf \n", _U_stack, _dU_stack);
-
-		// check of ext // works with TWO traps, not with one
-		//number ov_c = (number) 0;
-		//for (int l = 0; l < N(); l ++) {
-		//	BaseParticle * pp = &(_particles[l]);
-		//	pp->set_ext_potential(curr_step);
-		//	ov_c += pp->ext_potential;
-		//}
 
 		// seed particle;
 		int pi = (int) (drand48() * N());
 		BaseParticle *p = _particles[pi];
-
-		// this gives a random number distributed ~ 1/x (x real)
-		//number trial = exp(logmaxclustplusone * drand48());
-		// 1/n (n integer) is slightly different from that; to further
-		// improve, we use rejection sampling (almost always accepted
-		// right away).,
-		/*
-		 number u = drand48();
-		 while (!(u < (1. / (norm * int(trial))) / (M * (1.
-		 / (logmaxclustplusone * trial))))) {
-		 trial = exp(logmaxclustplusone * drand48());
-		 u = drand48();
-		 }
-		 maxclust = (int) trial;
-		 */
 
 		//select the move
 		//printf("generating move...\n");
@@ -1763,7 +1719,7 @@ void VMMC_CPUBackend::_compute_energy() {
 	number res = (number) 0;
 	number dres, tmpf;
 
-	_U = _U_hydr = (number) 0;
+	_U = (number) 0;
 
 	for(int i = 0; i < N(); i++) {
 		p = _particles[i];
@@ -1786,7 +1742,6 @@ void VMMC_CPUBackend::_compute_energy() {
 				if(p->n3 != q && p->n5 != q && p->index < q->index) {
 					dres = _particle_particle_nonbonded_interaction_VMMC(p, q, &tmpf);
 					_U += dres;
-					_U_hydr += tmpf;
 				}
 				j = q->next_particle;
 			}

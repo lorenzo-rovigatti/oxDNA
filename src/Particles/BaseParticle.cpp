@@ -56,25 +56,6 @@ BaseParticle::~BaseParticle() {
 
 }
 
-void BaseParticle::set_initial_forces(llint step, const BoxPtr &box) {
-	LR_vector abs_pos = box->get_abs_pos(this);
-	if(is_rigid_body()) {
-		torque = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
-	}
-	force = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
-	for(auto ext_force : ext_forces) {
-		force += ext_force->value(step, abs_pos);
-	}
-}
-
-void BaseParticle::set_ext_potential(llint step, BaseBox *box) {
-	LR_vector abs_pos = box->get_abs_pos(this);
-	ext_potential = (number) 0.;
-	for(auto ext_force : ext_forces) {
-		ext_potential += ext_force->potential(step, abs_pos);
-	}
-}
-
 bool BaseParticle::add_ext_force(ForcePtr f) {
 	ext_forces.push_back(f);
 

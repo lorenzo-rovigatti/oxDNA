@@ -23,7 +23,7 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputString(&inp, "PS_bond_file", _bond_filename, 1);
 	getInputBool(&inp, "PS_only_links_in_bondfile", &_only_links_in_bondfile, 0);
 	getInputInt(&inp, "PS_chain_size", &_chain_size, 1);
-	
+
 	getInputNumber(&inp, "PS_alpha", &_PS_alpha, 0);
 
 	if(_PS_alpha != 0.) {
@@ -36,6 +36,11 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "PS_3b_epsilon", &_3b_epsilon, 0);
 
 	getInputNumber(&inp, "T", &_T, 1);
+
+	getInputBool(&inp, "PS_semiflexibility", &_enable_semiflexibility, 0);
+	if(_enable_semiflexibility) {
+		getInputNumber(&inp, "PS_semiflexibility_k", &_semiflexibility_k, 1);
+	}
 
 	for(int i = 0; i < 3; i++) {
 		std::string key = Utils::sformat("PS_rfene[%d]", i);
@@ -123,28 +128,6 @@ void PolymerSwapInteraction::begin_energy_computation() {
 		_chain_coms[i] = CONFIG_INFO->molecules()[i]->com;
 	}
 
-//	int curr_idx = 0;
-//	for(int curr_chain = 0; curr_chain < _N_chains; curr_chain++) {
-//		LR_vector prev_r = CONFIG_INFO->particles()[curr_idx]->pos;
-//		LR_vector delta_r(0., 0., 0.);
-//		_chain_coms[curr_chain] = _chain_size * prev_r;
-//		curr_idx++;
-//		for(int i = 1; i < _chain_size; i++) {
-//			BaseParticle *pi = CONFIG_INFO->particles()[curr_idx];
-//			LR_vector ri = pi->pos;
-//			delta_r += _box->min_image(prev_r, ri);
-//			_chain_coms[curr_chain] += delta_r;
-//			prev_r = ri;
-//
-//			if(pi->strand_id != curr_chain) {
-//				throw oxDNAException("mismatch detected between chain ids during the computation of P (%d != %d)", pi->strand_id, curr_chain);
-//			}
-//
-//			curr_idx++;
-//		}
-//		_chain_coms[curr_chain] /= _chain_size;
-//	}
-
 	_bonds.clear();
 }
 
@@ -176,11 +159,6 @@ number PolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool upda
 		p->force += force;
 		q->force -= force;
 
-		if(p->strand_id != q->strand_id) {
-			_update_inter_chain_stress_tensor(p->strand_id, p->strand_id, force);
-			_update_inter_chain_stress_tensor(q->strand_id, p->strand_id, -force);
-		}
-
 		_update_stress_tensor(p->pos, force);
 		_update_stress_tensor(p->pos + _computed_r, -force);
 	}
@@ -196,8 +174,7 @@ number PolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool updat
 	}
 
 	number energy = 0;
-	// this number is the module of the force over r, so we don't have to divide the distance
-	// vector for its module
+	// this number is the module of the force over r, so we don't have to divide the distance vector for its module
 	number force_mod = 0;
 
 	// cut-off for all the repulsive interactions
@@ -214,11 +191,11 @@ number PolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool updat
 	}
 	// attraction
 	/*else if(int_type == 0 && _PS_alpha != 0.) {
-		energy += 0.5 * _PS_alpha * (cos(_PS_gamma * sqr_r + _PS_beta) - 1.0);
-		if(update_forces) {
-			force_mod += _PS_alpha * _PS_gamma * sin(_PS_gamma * sqr_r + _PS_beta);
-		}
-	}*/
+	 energy += 0.5 * _PS_alpha * (cos(_PS_gamma * sqr_r + _PS_beta) - 1.0);
+	 if(update_forces) {
+	 force_mod += _PS_alpha * _PS_gamma * sin(_PS_gamma * sqr_r + _PS_beta);
+	 }
+	 }*/
 
 	if(update_forces) {
 		auto force = -_computed_r * force_mod;
@@ -252,7 +229,7 @@ number PolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool up
 			energy += tmp_energy;
 
 			number tb_energy = (r_mod < _3b_sigma) ? _3b_epsilon : -tmp_energy;
-			
+
 			PSBond p_bond(q, tb_energy, _computed_r);
 			PSBond q_bond(p, tb_energy, -_computed_r);
 
@@ -276,8 +253,8 @@ number PolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool up
 			}
 
 			if(!no_three_body) {
-				energy += _three_body(p, p_bond, update_forces);
-				energy += _three_body(q, q_bond, update_forces);
+				energy += _patchy_three_body(p, p_bond, update_forces);
+				energy += _patchy_three_body(q, q_bond, update_forces);
 
 				_bonds[p->index].insert(p_bond);
 				_bonds[q->index].insert(q_bond);
@@ -288,7 +265,7 @@ number PolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool up
 	return energy;
 }
 
-number PolymerSwapInteraction::_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces) {
+number PolymerSwapInteraction::_patchy_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces) {
 	number energy = 0.;
 
 	number curr_energy = new_bond.energy;
@@ -350,6 +327,29 @@ number PolymerSwapInteraction::pair_interaction(BaseParticle *p, BaseParticle *q
 	}
 }
 
+number PolymerSwapInteraction::_semiflexibility_three_body(BaseParticle *middle, BaseParticle *n1, BaseParticle *n2, bool update_forces) {
+	LR_vector dist_pn1 = _box->min_image(middle->pos, n1->pos);
+	LR_vector dist_pn2 = _box->min_image(n2->pos, middle->pos);
+
+	number sqr_dist_pn1 = dist_pn1.norm();
+	number sqr_dist_pn2 = dist_pn2.norm();
+	number i_pn1_pn2 = 1. / sqrt(sqr_dist_pn1 * sqr_dist_pn2);
+	number cost = (dist_pn1 * dist_pn2) * i_pn1_pn2;
+
+	if(update_forces) {
+		number cost_n1 = cost / sqr_dist_pn1;
+		number cost_n2 = cost / sqr_dist_pn2;
+		number force_mod_n1 = i_pn1_pn2 + cost_n1;
+		number force_mod_n2 = i_pn1_pn2 + cost_n2;
+
+		middle->force += dist_pn1 * (force_mod_n1 * _semiflexibility_k) - dist_pn2 * (force_mod_n2 * _semiflexibility_k);
+		n1->force -= dist_pn1 * (cost_n1 * _semiflexibility_k) - dist_pn2 * (i_pn1_pn2 * _semiflexibility_k);
+		n2->force -= dist_pn1 * (i_pn1_pn2 * _semiflexibility_k) - dist_pn2 * (cost_n2 * _semiflexibility_k);
+	}
+
+	return _semiflexibility_k * (1. - cost);
+}
+
 number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
 
@@ -362,6 +362,43 @@ number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BasePart
 
 		energy = _fene(p, q, update_forces);
 		energy += _WCA(p, q, update_forces);
+
+		if(_enable_semiflexibility) {
+			// here things get complicated. We first check whether p is the middle particle of a three-body interaction
+			for(auto pair : p->affected) {
+				// q has always a smaller index than p, so that this condition selects all the other ParticlePair's
+				if(pair.second != q) {
+					BaseParticle *third_p = (pair.first == p) ? pair.second : pair.first;
+					// if third_p's index is smaller than p's then pair_interaction_bonded won't be called with p as its first argument any more, which means
+					// that this is the only possibility of computing the three-body interaction with p being the middle particle
+					if(third_p->index < p->index) {
+						energy += _semiflexibility_three_body(p, q, third_p, update_forces);
+					}
+					// otherwise p will be passed as the first argument one more time, which means we have to make sure that the (p, q, third_p) three-body
+					// interaction is called only once. We do so by adding a condition on the relation between q's and third_p's indexes
+					else if(third_p->index < q->index) {
+						energy += _semiflexibility_three_body(p, q, third_p, update_forces);
+					}
+
+				}
+			}
+			// we have another possibility: q is the middle particle of a three-body interaction, but its index is such that it will never be passed as the
+			// first argument of this method. If this is the case then we need to make sure that its interaction is computed
+			for(auto pair : q->affected) {
+				// we don't consider the pair formed by q and p
+				if(pair.first != p) {
+					BaseParticle *third_p = (pair.first == q) ? pair.second : pair.first;
+					// if this condition is true then q won't be passed as first argument for this pair, which means that we may have to compute the three body
+					// interaction involving q, p and third_p here
+					if(third_p->index < q->index) {
+						// now we have to choose whether this three-body interaction gets computed as (p, q, third_p) or as (third_p, q, p)
+						if(third_p->index < p->index) {
+							energy += _semiflexibility_three_body(q, p, third_p, update_forces);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return energy;
@@ -386,11 +423,10 @@ number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseP
 }
 
 void PolymerSwapInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
-	for(uint i = 0; i < particles.size(); i++) {
-		/*CustomParticle *p = static_cast<CustomParticle*>(particles[i]);
-		for(auto q : p->bonded_neighs) {
-
-		}*/
+	for(auto p : particles) {
+		if(_enable_semiflexibility && p->affected.size() > 2) {
+			throw oxDNAException("PolymerSwapInteraction: PS_enable_semiflexibility can be set to true only if no particle has more than 2 bonded neighbours");
+		}
 	}
 }
 
@@ -464,9 +500,10 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 			p_idx = i;
 		}
 		if(p_idx >= N_from_conf) {
-			throw oxDNAException("There is a mismatch between the configuration and links files: the latter refers to particle %d, which is larger than the largest possible index (%d)", p_idx, N_from_conf - 1);
+			throw oxDNAException("There is a mismatch between the configuration and links files: the latter refers to particle %d, which is larger than the largest possible index (%d)", p_idx,
+					N_from_conf - 1);
 		}
-		
+
 		p = static_cast<CustomParticle*>(particles[p_idx]);
 
 		p->type = MONOMER;
@@ -484,9 +521,11 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 			n_idx--;
 
 			if(n_idx >= N_from_conf) {
-				throw oxDNAException("There is a mismatch between the configuration and links files: the latter contains a link between particles %d and %d, which is not possible since the largest possible index in the configuration is %d", p->index, n_idx, N_from_conf - 1);
+				throw oxDNAException(
+						"There is a mismatch between the configuration and links files: the latter contains a link between particles %d and %d, which is not possible since the largest possible index in the configuration is %d",
+						p->index, n_idx, N_from_conf - 1);
 			}
-			
+
 			CustomParticle *q = static_cast<CustomParticle*>(particles[n_idx]);
 			p->add_bonded_neigh(q);
 		}

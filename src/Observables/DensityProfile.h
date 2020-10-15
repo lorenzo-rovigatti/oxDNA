@@ -49,6 +49,7 @@ private:
 	int _type = -1;
 	int _nconfs = 0;
 	bool _shift_by_average_position = false;
+	bool _average = true;
 	std::vector<long int> _profile;
 public:
 	DensityProfile();

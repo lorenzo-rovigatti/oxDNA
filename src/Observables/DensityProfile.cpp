@@ -50,15 +50,23 @@ std::string DensityProfile::get_output_string(llint curr_step) {
 		number Px_sum = 0.;
 		for(int i = 0; i < _nbins; i++) {
 			int idx = (i + min_idx) % _nbins;
-			xPx_sum += conf_profile[idx] * idx;
+			xPx_sum += conf_profile[idx] * i;
 			Px_sum += conf_profile[idx];
 		}
-		shift_by = (int) (std::round(xPx_sum / Px_sum)) + _nbins / 2;
+		
+		shift_by = (int) (std::round(xPx_sum / Px_sum)) + min_idx + _nbins / 2;
+		//shift_by = min_idx;
+		//printf("%d %d %d\n", shift_by, min_idx, (int) (std::round(xPx_sum / Px_sum)));
 	}
 
 	for(int i = 0; i < _nbins; i++) {
 		int idx = (i + shift_by) % _nbins;
-		_profile[i] += conf_profile[idx];
+		if(_average) {
+			_profile[i] += conf_profile[idx];
+		}
+		else {
+			_profile[i] = conf_profile[idx];
+		}
 	}
 
 	std::stringstream ret;
@@ -66,7 +74,10 @@ std::string DensityProfile::get_output_string(llint curr_step) {
 	double myx = _bin_size / 2.;
 	number volume = _config_info->box->V();
 	number bin_volume = volume / sides[_axis] * _bin_size;
-	number factor = 1. / (_nconfs * bin_volume);
+	number factor = 1. / bin_volume;
+	if(_average) {
+		factor /= _nconfs;
+	}
 	for(auto value: _profile) {
 		ret << myx << " " << value * factor << std::endl;
 		myx += _bin_size;
@@ -103,9 +114,10 @@ void DensityProfile::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_bin_size = (number) _max_value / _nbins;
 
 	getInputBool(&my_inp, "shift_by_average_position", &_shift_by_average_position, 0);
+	getInputBool(&my_inp, "average", &_average, 0);
 	getInputInt(&my_inp, "particle_type", &_type, 0);
 
-	OX_LOG(Logger::LOG_INFO, "Observable DensityProfile initialized with axis %d, max_value %g, bin_size %g, nbins %d, type %d", _axis, _max_value, _bin_size, _nbins, _type);
+	OX_LOG(Logger::LOG_INFO, "Observable DensityProfile initialized with axis %d, max_value %g, bin_size %g, nbins %d, type %d, average %d", _axis, _max_value, _bin_size, _nbins, _type, _average);
 
 	_profile.resize(_nbins);
 }

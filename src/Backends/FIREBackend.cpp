@@ -177,19 +177,18 @@ void FIREBackend::_first_step(llint cur_step) {
 }
 
 void FIREBackend::_second_step() {
-	_K = (number) 0.f;
 	for(auto p: _particles) {
 		p->vel += p->force * _dt * (number) 0.5f;
-		if(p->is_rigid_body()) p->L += p->torque * _dt * (number) 0.5f;
-
-		_K += (p->vel.norm() + p->L.norm()) * (number) 0.5f;
+		if(p->is_rigid_body()) {
+			p->L += p->torque * _dt * (number) 0.5f;
+		}
 	}
 }
 
 void FIREBackend::_compute_forces() {
 	_interaction->begin_energy_computation();
 
-	_U = _U_hydr = (number) 0;
+	_U = (number) 0;
 	for(auto p: _particles) {
 		for(auto &pair : p->affected) {
 			if(pair.first == p) {

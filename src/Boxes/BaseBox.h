@@ -9,13 +9,13 @@
 #define BASEBOX_H_
 
 #include "../defs.h"
-#include "../Particles/BaseParticle.h"
 #include "../Utilities/parse_input/parse_input.h"
+
+class BaseParticle;
 
 /**
  * @brief Abstract class defining a generic simulation box.
  */
-
 class BaseBox {
 public:
 	BaseBox();
@@ -39,9 +39,7 @@ public:
 	 * @param q
 	 * @return
 	 */
-	virtual LR_vector min_image(const BaseParticle &p, const BaseParticle &q) {
-		return min_image(p.pos, q.pos);
-	}
+	virtual LR_vector min_image(const BaseParticle &p, const BaseParticle &q);
 	/**
 	 * @brief Returns the minimum image distance between the two given particles.
 	 *
@@ -49,9 +47,7 @@ public:
 	 * @param q
 	 * @return
 	 */
-	virtual LR_vector min_image(const BaseParticle *p, const BaseParticle *q) {
-		return min_image(p->pos, q->pos);
-	}
+	virtual LR_vector min_image(const BaseParticle *p, const BaseParticle *q);
 
 	/**
 	 * @brief Returns the square of the minimum image distance between the two given vectors.
@@ -68,9 +64,8 @@ public:
 	 * @param v2
 	 * @return
 	 */
-	virtual number sqr_min_image_distance(const BaseParticle &p, const BaseParticle &q) {
-		return sqr_min_image_distance(p.pos, q.pos);
-	}
+	virtual number sqr_min_image_distance(const BaseParticle &p, const BaseParticle &q);
+
 	/**
 	 * @brief Returns the square of the minimum image distance between the two given particles.
 	 *
@@ -78,9 +73,7 @@ public:
 	 * @param v2
 	 * @return
 	 */
-	virtual number sqr_min_image_distance(const BaseParticle *p, const BaseParticle *q) {
-		return sqr_min_image_distance(p->pos, q->pos);
-	}
+	virtual number sqr_min_image_distance(const BaseParticle *p, const BaseParticle *q);
 
 	/**
 	 * @brief Brings back v in the box and returns its normalised components.

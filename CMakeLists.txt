@@ -1,5 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+cmake_policy(SET CMP0054 NEW)
+
 # this is required when working with newer gcc versions (> 5.4)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 
@@ -15,8 +17,7 @@ OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" 
 OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
 OPTION(Python "Enable Python bindings" OFF)
 
-# these operations have to be performed before PROJECT(oxDNA) or we will have
-# problems at linking time
+# these operations have to be performed before PROJECT(oxDNA) or we will have problems at linking time
 if(INTEL)
 	FIND_PROGRAM(CMAKE_C_COMPILER NAMES icc)
 	FIND_PROGRAM(CMAKE_CXX_COMPILER NAMES icpc)
@@ -56,7 +57,7 @@ ELSE()
 ENDIF()
 
 IF(Debug)
-	SET(CMAKE_BUILD_TYPE Debug)
+	SET(CMAKE_BUILD_TYPE "Debug")
 	MESSAGE(STATUS "Compiling in Debug mode")
 ENDIF(Debug)
 
@@ -84,7 +85,7 @@ ENDIF()
 
 ADD_DEFINITIONS(-Wall -Wshadow -Wextra -Wno-unused-parameter)
 
-IF(NOT CMAKE_BUILD_TYPE MATCHES Debug)
+IF(NOT Debug)
 	IF(INTEL)
 		ADD_DEFINITIONS(-fast)
 	ELSE()
@@ -94,7 +95,7 @@ ENDIF()
 
 IF(CUDA)
 	CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
-	FIND_PACKAGE(CUDA)
+	FIND_PACKAGE("CUDA")
 	
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 
