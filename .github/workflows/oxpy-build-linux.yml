@@ -24,6 +24,9 @@ jobs:
         cmake .. -DCUDA=0 -DPython=1
         make -j2
         make install
+        popd
     - name: Check import from Command Line
-      run: python -c 'import oxpy'
+      run: |
+        mkdir test-folder && pushd test-folder
+        python -c 'import oxpy'
 
