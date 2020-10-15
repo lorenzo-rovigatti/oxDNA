@@ -1,0 +1,17 @@
+# Builds using pip and tests using pytest
+
+name: Linux
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: |
+        mkdir build
+        pushd build
+        cmake .. -DCUDA=0
+        make -j2
