@@ -1,0 +1,22 @@
+# Runs the quick_input tests of oxDNA
+# Only used on pull requests
+
+name: Linux CPU Testing Quick Input
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: |
+        mkdir build
+        pushd build
+        cmake .. -DCUDA=0
+        make -j2
+        popd
+    - name: Run Simple Test Script
+      run: |
+        bash ci/oxDNA-quick_input.sh
