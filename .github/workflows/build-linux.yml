@@ -1,6 +1,6 @@
 # Builds using pip and tests using pytest
 
-name: Linux
+name: Linux Basic CPU
 
 on: push
 
@@ -15,3 +15,5 @@ jobs:
         pushd build
         cmake .. -DCUDA=0
         make -j2
+    - name: Run Simple Test Script
+      run: bash ./ci/oxDNA-quick_input.sh
