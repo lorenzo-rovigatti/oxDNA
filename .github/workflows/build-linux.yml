@@ -15,5 +15,7 @@ jobs:
         pushd build
         cmake .. -DCUDA=0
         make -j2
+        popd
     - name: Run Simple Test Script
-      run: bash ./ci/oxDNA-quick_input.sh
+      run: |
+        bash ci/oxDNA-quick_input.sh
