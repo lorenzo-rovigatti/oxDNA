@@ -1,0 +1,27 @@
+# Builds using pip and tests using pytest
+
+name: OxPy Linux
+
+on: push
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Build oxDNA
+      run: |
+        mkdir build && pushd build
+        cmake .. -DCUDA=0 -DPYTHON=1
+        make -j2
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy pybind11
+    - name: Build and Install
+      run: pip install ./oxpy
