@@ -23,7 +23,7 @@ jobs:
         mkdir build && pushd build
         cmake .. -DCUDA=0 -DPython=1
         make -j2
-        make install
+        pip install build/lib/oxpy
         popd
     - name: Check import from Command Line
       run: |
