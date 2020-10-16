@@ -3,7 +3,12 @@
 
 name: Linux CPU Testing Quick Input
 
-on: [pull_request]
+on:
+  push:
+    branches-ignore: oxpy
+  pull_request:
+    branches: [master, rovigatti]
+
 
 jobs:
   build:
@@ -20,4 +25,4 @@ jobs:
     - name: Run Simple Test Script
       run: |
         pushd build
-        make test
+        make test_quick
