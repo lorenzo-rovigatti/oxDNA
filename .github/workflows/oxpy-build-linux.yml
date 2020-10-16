@@ -21,7 +21,7 @@ jobs:
     - name: Build oxDNA and install oxpy
       run: |
         mkdir build && pushd build
-        cmake .. -DCUDA=0 -DPython=1
+        cmake .. -DCUDA=0 -DPython=1 -DPYBIND11_PYTHON_VERSION=3.8
         make -j2
         make install
         popd
