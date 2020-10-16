@@ -17,13 +17,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install numpy pybind11 cmake
+        pip install numpy pybind11
     - name: Build oxDNA and install oxpy
       run: |
         mkdir build && pushd build
         cmake .. -DCUDA=0 -DPython=1
         make -j2
-        pip install oxpy/oxpy
+        make install
         popd
     - name: Check import from Command Line
       run: |
