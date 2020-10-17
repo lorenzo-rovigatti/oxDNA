@@ -19,4 +19,5 @@ jobs:
         popd
     - name: Run Simple Test Script
       run: |
-        bash ci/oxDNA-verify_build.sh
+        pushd build
+        make test_run
