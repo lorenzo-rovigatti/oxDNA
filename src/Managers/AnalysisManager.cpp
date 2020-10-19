@@ -47,6 +47,7 @@ void AnalysisManager::init() {
 }
 
 void AnalysisManager::analysis() {
-	while(!_backend->done())
+	while(!_backend->done()) {
 		_backend->analyse();
+	}
 }

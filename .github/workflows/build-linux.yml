@@ -1,0 +1,23 @@
+# Builds oxDNA and checks binary runs for a simple MD run
+# Runs on every commit
+
+name: Linux CPU Build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: |
+        mkdir build
+        pushd build
+        cmake .. -DCUDA=0
+        make -j2
+        popd
+    - name: Run Simple Test Script
+      run: |
+        pushd build
+        make test_run
