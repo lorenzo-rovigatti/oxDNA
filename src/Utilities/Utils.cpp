@@ -156,7 +156,7 @@ input_file *get_input_file_from_string(const std::string &inp) {
 		// system using <unistd.h>
 		char* temp_fname;
 		if (const char* temp_prefix = std::getenv("TMPDIR")) {
-			if (MKSTEMP == 0) {
+			if (MKSTEMP == 1) {
 				const char* temp_suffix = "/oxdna-tmp-XXXXXX";
 				temp_fname = (char*)malloc(strlen(temp_prefix) + strlen(temp_suffix) + 1);
 				strcpy(temp_fname, temp_prefix);
