@@ -141,11 +141,45 @@ input_file *get_input_file_from_string(const std::string &inp) {
 
 	errno = 0;
 
+	// Create Temporary File object that is automatically closed
 	FILE *temp = NULL;
 	const int max_tries = 100;
 	for(int i = 0; i < max_tries && temp == NULL; i++)
+		// using tmpfile() doesn't work where the user
+		// does not have access to /tmp
 		temp = tmpfile();
-	if(temp == NULL) throw oxDNAException("Failed to create a temporary file, exiting");
+	if (temp == NULL) {
+
+		OX_LOG(Logger::LOG_DEBUG, "Failed to open file with tmpfile(), trying mkstemp()");
+
+		// Try to use mkstemp - this is only possible on unix 
+		// system using <unistd.h>
+		char* temp_fname;
+		if (const char* temp_prefix = std::getenv("TMPDIR")) {
+			if (MKSTEMP == 0) {
+				const char* temp_suffix = "/oxdna-tmp-XXXXXX";
+				temp_fname = (char*)malloc(strlen(temp_prefix) + strlen(temp_suffix) + 1);
+				strcpy(temp_fname, temp_prefix);
+				strcat(temp_fname, temp_suffix);
+				if (mkstemp(temp_fname) != -1) {
+					temp = fopen(temp_fname, "wb+");
+				} else {
+					throw oxDNAException(
+						"Failed to create a temporary file using tmpdir() and then with mkstemp(), Exiting..."
+					);
+				}
+			} else {
+				throw oxDNAException(
+					"Failed to create a temporary file using tmpfile(), found TMPDIR but it can only be used on UNIX systems, Exiting..."
+				);
+			}
+		} else {
+			throw oxDNAException(
+				"Failed to create a temporary file using tmpfile(), try setting TMPDIR to an accessible location, Exiting..."
+			);
+		}
+	}
+	
 	int check = fprintf(temp, "%s", real_inp.c_str());
 	if(check != (int) real_inp.size()) throw oxDNAException("Failed to write to temporary file...; maybe /tmp has no space left? Aborting");
 

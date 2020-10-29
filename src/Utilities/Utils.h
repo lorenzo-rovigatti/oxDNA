@@ -21,6 +21,28 @@
 
 #include "../defs.h"
 
+
+/*
+In the function get_input_file_from_string a temporary file
+is created using tmpfile(). This does not work on some systems
+where the user does not have access to the generic temporary 
+directory e.g. /tmp
+
+When using tmpfile() it is not possible to select the temporary
+directory location. So a workaround is needed to allow a user 
+to set an environment variable called TMPDIR that 
+get_input_file_from_string is able to read. 
+
+We can use MKSTEMP from the unix standard library. The include
+directive for this is stored here.
+*/
+#if defined(unix) || defined(__unix__) || defined(__unix)
+#define MKSTEMP 1
+#include <unistd.h>
+#else 
+#define MKSTEMP 0
+#endif
+
 class BaseParticle;
 
 /**

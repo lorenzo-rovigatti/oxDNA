@@ -40,3 +40,4 @@ test/**/*log.dat
 test/**/trajectory.dat
 
 **/*pyc
+.vscode
