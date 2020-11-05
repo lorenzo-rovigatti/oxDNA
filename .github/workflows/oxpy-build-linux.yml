@@ -28,9 +28,9 @@ jobs:
         cmake .. -DCUDA=0 -DPython=1 -DPYBIND11_PYTHON_VERSION=${{matrix.py}}
         make -j2
         make install
-        popd
         pip uninstall oxpy -y
         make install
+        popd
     - name: Check import from Command Line
       run: |
         mkdir test-folder && pushd test-folder
