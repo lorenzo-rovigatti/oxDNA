@@ -22,13 +22,15 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install numpy
-    - name: Build oxDNA and install oxpy
+    - name: Build oxDNA, install and reinstall oxpy
       run: |
         mkdir build && pushd build
         cmake .. -DCUDA=0 -DPython=1 -DPYBIND11_PYTHON_VERSION=${{matrix.py}}
         make -j2
         make install
         popd
+        pip uninstall oxpy
+        make install
     - name: Check import from Command Line
       run: |
         mkdir test-folder && pushd test-folder
