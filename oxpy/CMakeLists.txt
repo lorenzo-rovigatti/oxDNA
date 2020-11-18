@@ -6,9 +6,17 @@ SET(oxpy_SOURCES
 IF(Python)
 	ADD_SUBDIRECTORY(pybind11)
 	ADD_DEFINITIONS(-DPYTHON_BINDINGS)
-	FIND_PACKAGE( Python 3 REQUIRED )
+	
+	if(CMAKE_VERSION VERSION_LESS "3.12")
+		FIND_PACKAGE( PythonLibs 3 REQUIRED )
+		FIND_PROGRAM( Python_EXECUTABLE "python3" )
+	else()
+		FIND_PACKAGE( Python 3 REQUIRED )
+	endif()
+	
 	INCLUDE_DIRECTORIES( ${PYTHON_INCLUDE_DIRS} )
-	MESSAGE(STATUS ${PYTHON_INCLUDE_DIRS} )
+	MESSAGE(STATUS "The detected Python's include dirs are: ${PYTHON_INCLUDE_DIRS}" )
+	
 	INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/oxpy/pybind11/include )
 	INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/src )
 	
@@ -56,6 +64,6 @@ IF(Python)
 		"${OXPY_DIR}/setup.py"
 	)
 
-	# setup the make install target to run setup.py (in user mode, no root permissions required)
+	# install the package
 	INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_DIR})")
 ENDIF(Python)

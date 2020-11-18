@@ -28,7 +28,7 @@ Doc files for the Python bindings can be browsed by opening the `docs/oxpy/html/
 
 ## Compiling oxDNA
 
-Extract the oxDNA archive and then:
+Clone the [repo](https://github.com/lorenzo-rovigatti/oxDNA.git) or extract the oxDNA archive and then:
 
 ```
 cd oxDNA         # enter the oxDNA folder
@@ -40,7 +40,7 @@ make -j4         # compile oxDNA. The -jX make option makes it compile the code 
 
 At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed in the `build/bin` directory. 
 
-Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package to the local module directory, which is either in the user's home (*e.g.* `.local/lib/python3.8/site-packages`) or the current environment's module folder.
+Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package to the `pip`'s module directory. The specific location will depend on your system's settings. We advise you to use [virtual environments](https://docs.python.org/3/tutorial/venv.html) (see *e.g.* [pipenv](https://docs.pipenv.org/)) to avoid conflicts with other packages and/or dependency and permission issues.
 
 ## `cmake` options
 
@@ -62,7 +62,7 @@ Compiling with Python bindings will also generate an `oxpy` package in the `buil
 * `make docs` Produces html doxygen documentation for oxDNA (`DOCS/html_oxDNA/index.html`) and for the UTILS folder (`DOCS/html_UTILS/index.html`)
 * `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
 * `make romano` Compiles the observables and interactions in contrib/romano
-* `make install` Copies the `oxpy` library to the user's Python library folder
+* `make install` Copies the `oxpy` package to the Python's package folder
 	
 ## Testing
 
