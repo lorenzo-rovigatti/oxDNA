@@ -4,12 +4,11 @@ SET(oxpy_SOURCES
 )
 
 IF(Python)
-	ADD_DEFINITIONS(-DPYTHON_BINDINGS)
-	FIND_PACKAGE( PythonLibs 3 REQUIRED )
-	INCLUDE_DIRECTORIES( ${PYTHON_INCLUDE_DIRS} )
-	
 	ADD_SUBDIRECTORY(pybind11)
-	
+	ADD_DEFINITIONS(-DPYTHON_BINDINGS)
+	FIND_PACKAGE( Python 3 REQUIRED )
+	INCLUDE_DIRECTORIES( ${PYTHON_INCLUDE_DIRS} )
+	MESSAGE(STATUS ${PYTHON_INCLUDE_DIRS} )
 	INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/oxpy/pybind11/include )
 	INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/src )
 	
@@ -52,12 +51,11 @@ IF(Python)
 	)
 	MESSAGE(STATUS "Parsed release: ${release}")
 
-	SET(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/oxpy/setup.py")
+	SET(OXPY_DIR "${CMAKE_CURRENT_BINARY_DIR}/oxpy")
 	CONFIGURE_FILE(setup.py
-		${SETUP_PY}
+		"${OXPY_DIR}/setup.py"
 	)
 
 	# setup the make install target to run setup.py (in user mode, no root permissions required)
-	FIND_PROGRAM(PYTHON "python3")
-	INSTALL(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install --user)")
+	INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_DIR})")
 ENDIF(Python)

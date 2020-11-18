@@ -3,12 +3,9 @@
 
 name: Linux CPU Testing Quick Input
 
-on:
-  push:
-    branches-ignore: oxpy
+on: 
   pull_request:
     branches: [master, rovigatti]
-
 
 jobs:
   build:

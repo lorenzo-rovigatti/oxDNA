@@ -40,7 +40,7 @@ make -j4         # compile oxDNA. The -jX make option makes it compile the code 
 
 At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed in the `build/bin` directory. 
 
-Compiling with Python bindings will also generate a `oxpy.so` library file in the `build/oxpy/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy this library to the local user's module directory.
+Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package to the local module directory, which is either in the user's home (*e.g.* `.local/lib/python3.8/site-packages`) or the current environment's module folder.
 
 ## `cmake` options
 

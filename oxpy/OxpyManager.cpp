@@ -39,6 +39,17 @@ std::shared_ptr<ConfigInfo> OxpyManager::config_info() {
 	return CONFIG_INFO;
 }
 
+number OxpyManager::system_energy() {
+	return CONFIG_INFO->interaction->get_system_energy(CONFIG_INFO->particles(), CONFIG_INFO->lists);
+}
+
+void OxpyManager::print_configuration(bool also_last) {
+    // prints the trajectory configuration
+    _backend->print_conf(_cur_step);
+    // prints the last configuration
+    _backend->print_conf(_cur_step, false, true);
+}
+
 void OxpyManager::run(llint steps, bool print_output) {
 	if(_cur_step < _start_step) {
 		_cur_step = _start_step;
@@ -107,6 +118,15 @@ input: :class:`InputFile`
     The object storing the simulations' options.
 	)pbdoc");
 
+	manager.def("print_configuration", &OxpyManager::print_configuration, py::arg("also_last") = true, R"pbdoc(
+        Append the current configuration to the trajectory file and, by default, print it in the "lastconf_file".
+
+        Parameters
+        ----------
+            also_last : bool
+                If True (default value) prints the current configuration also in the "lastconf_file" file.  
+	)pbdoc");
+
 	manager.def("config_info", &OxpyManager::config_info, R"pbdoc(
 		Return the simulation's :class:`ConfigInfo`.
 
@@ -114,6 +134,15 @@ input: :class:`InputFile`
         -------
         :class:`ConfigInfo`
             The object that stores all the simulation's details (particles, interaction, `etc`).
+	)pbdoc");
+
+	manager.def("system_energy", &OxpyManager::system_energy, R"pbdoc(
+		Compute the potential energy of the system in its current state.
+
+        Returns
+        -------
+        float
+            The system's potential energy.
 	)pbdoc");
 
 	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(
