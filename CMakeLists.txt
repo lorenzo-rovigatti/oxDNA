@@ -1,6 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-cmake_policy(SET CMP0054 NEW)
+if(POLICY CMP0054)
+	cmake_policy(SET CMP0054 NEW)
+endif()
 
 # this is required when working with newer gcc versions (> 5.4)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
