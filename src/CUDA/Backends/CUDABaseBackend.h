@@ -36,7 +36,7 @@ class CUDABaseBackend {
 protected:
 	/// if 0 then do not sort. If it's > 1 then sort particles every _sort_every updates
 	int _sort_every;
-	int _device_c_number;
+	int _device_number;
 	cudaDeviceProp _device_prop;
 	CUDA_kernel_cfg _particles_kernel_cfg;
 	CUDABaseList*_cuda_lists;

@@ -1389,8 +1389,9 @@ void DNAInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 			q->set_positions();
 			LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
 			number r = sqrt(rv * rv);
-			if(r > maxd || r < mind)
+			if(r > maxd || r < mind) {
 				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
+			}
 		}
 
 		if(p->n5 != P_VIRTUAL) {
@@ -1398,8 +1399,9 @@ void DNAInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 			q->set_positions();
 			LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
 			number r = sqrt(rv * rv);
-			if(r > maxd || r < mind)
+			if(r > maxd || r < mind) {
 				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n5->index, r);
+			}
 		}
 	}
 }

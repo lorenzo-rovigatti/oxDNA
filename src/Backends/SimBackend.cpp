@@ -664,7 +664,7 @@ void SimBackend::fix_diffusion() {
 			_interaction->set_is_infinite(false);
 			for (int i = 0; i < N(); i ++) {
 				BaseParticle *p = _particles[i];
-				if (apply[p->strand_id]) {
+				if(apply[p->strand_id]) {
 					p->pos = stored_pos[i];
 					p->orientation = stored_or[i];
 					p->orientationT = stored_orT[i];

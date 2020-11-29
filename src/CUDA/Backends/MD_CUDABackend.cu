@@ -116,14 +116,14 @@ MD_CUDABackend::~MD_CUDABackend() {
 
 void MD_CUDABackend::_host_to_gpu() {
 	CUDABaseBackend::_host_to_gpu();
-	CUDA_SAFE_CALL(cudaMemcpy(_d_particles_to_mols, _h_particles_to_mols.data(), sizeof(int) * _h_particles_to_mols.size(), cudaMemcpyHostToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_particles_to_mols, _h_particles_to_mols.data(), sizeof(int) * N(), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_d_vels, _h_vels, _vec_size, cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_d_Ls, _h_Ls, _vec_size, cudaMemcpyHostToDevice));
 }
 
 void MD_CUDABackend::_gpu_to_host() {
 	CUDABaseBackend::_gpu_to_host();
-	CUDA_SAFE_CALL(cudaMemcpy(_h_particles_to_mols.data(), _d_particles_to_mols, sizeof(int) * _h_particles_to_mols.size(), cudaMemcpyDeviceToHost));
+	CUDA_SAFE_CALL(cudaMemcpy(_h_particles_to_mols.data(), _d_particles_to_mols, sizeof(int) * N(), cudaMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(cudaMemcpy(_h_vels, _d_vels, _vec_size, cudaMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(cudaMemcpy(_h_Ls, _d_Ls, _vec_size, cudaMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(cudaMemcpy(_h_forces, _d_forces, _vec_size, cudaMemcpyDeviceToHost));
@@ -142,7 +142,7 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		_h_particles_to_mols[i] = p->strand_id;
 
 		// convert index and type into a float
-		int msk = -1 << 22; // bynary mask: all 1's and 22 0's;
+		int msk = -1 << 22; // binary mask: all 1's and 22 0's;
 		// btype has a sign, and thus has to go first
 		_h_poss[i].w = GpuUtils::int_as_float((p->btype << 22) | ((~msk) & p->index));
 		// we immediately check that the index and base type that we read are sensible
@@ -154,7 +154,7 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		if(p->index != myindex) {
 			throw oxDNAException("Could not treat the index of particle %d; remember that on CUDA the maximum c_number of particles is 2^21", p->index);
 		}
-
+		
 		if(p->n3 == P_VIRTUAL) {
 			_h_bonds[i].n3 = P_INVALID;
 		}
@@ -186,25 +186,25 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		}
 		else { // Finding largest diagonal element
 			if((p->orientation.v1.x > p->orientation.v2.y) && (p->orientation.v1.x > p->orientation.v3.z)) {
-				c_number s = .5 / sqrt(1 + p->orientation.v1.x - p->orientation.v2.y - p->orientation.v3.z);
+				c_number s = 0.5 / sqrt(1 + p->orientation.v1.x - p->orientation.v2.y - p->orientation.v3.z);
 				_h_orientations[i].w = (p->orientation.v3.y - p->orientation.v2.z) * s;
-				_h_orientations[i].x = .25 / s;
+				_h_orientations[i].x = 0.25 / s;
 				_h_orientations[i].y = (p->orientation.v1.y + p->orientation.v2.x) * s;
 				_h_orientations[i].z = (p->orientation.v1.z + p->orientation.v3.x) * s;
 			}
 			else if(p->orientation.v2.y > p->orientation.v3.z) {
-				c_number s = .5 / sqrt(1 + p->orientation.v2.y - p->orientation.v1.x - p->orientation.v3.z);
+				c_number s = 0.5 / sqrt(1 + p->orientation.v2.y - p->orientation.v1.x - p->orientation.v3.z);
 				_h_orientations[i].w = (p->orientation.v1.z - p->orientation.v3.x) * s;
 				_h_orientations[i].x = (p->orientation.v1.y + p->orientation.v2.x) * s;
-				_h_orientations[i].y = .25 / s;
+				_h_orientations[i].y = 0.25 / s;
 				_h_orientations[i].z = (p->orientation.v2.z + p->orientation.v3.y) * s;
 			}
 			else {
-				c_number s = .5 / sqrt(1 + p->orientation.v3.z - p->orientation.v1.x - p->orientation.v2.y);
+				c_number s = 0.5 / sqrt(1 + p->orientation.v3.z - p->orientation.v1.x - p->orientation.v2.y);
 				_h_orientations[i].w = (p->orientation.v2.x - p->orientation.v1.y) * s;
 				_h_orientations[i].x = (p->orientation.v1.z + p->orientation.v3.x) * s;
 				_h_orientations[i].y = (p->orientation.v2.z + p->orientation.v3.y) * s;
-				_h_orientations[i].z = .25 / s;
+				_h_orientations[i].z = 0.25 / s;
 			}
 		}
 	}
@@ -229,9 +229,10 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 		p->pos.y = _h_poss[i].y;
 		p->pos.z = _h_poss[i].z;
 
+		//printf("%d %d %d\n", p->index, p->strand_id, _h_particles_to_mols[i]);
 		p->strand_id = _h_particles_to_mols[i];
 
-		// get index and type for the fourth component of the position
+		// get index and type from the fourth component of the position
 		p->btype = (GpuUtils::float_as_int(_h_poss[i].w)) >> 22;
 
 		if(_h_bonds[i].n3 == P_INVALID) {
@@ -241,8 +242,9 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 			int n3index = ((GpuUtils::float_as_int(_h_poss[_h_bonds[i].n3].w)) & (~msk));
 			p->n3 = _particles[n3index];
 		}
-		if(_h_bonds[i].n5 == P_INVALID)
+		if(_h_bonds[i].n5 == P_INVALID) {
 			p->n5 = P_VIRTUAL;
+		}
 		else {
 			int n5index = ((GpuUtils::float_as_int(_h_poss[_h_bonds[i].n5].w)) & (~msk));
 			p->n5 = _particles[n5index];
@@ -266,7 +268,7 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 		c_number yz = _h_orientations[i].y * _h_orientations[i].z;
 		c_number yw = _h_orientations[i].y * _h_orientations[i].w;
 		c_number zw = _h_orientations[i].z * _h_orientations[i].w;
-		c_number invs = 1 / (sqx + sqy + sqz + sqw);
+		c_number invs = 1. / (sqx + sqy + sqz + sqw);
 
 		p->orientation.v1.x = (sqx - sqy - sqz + sqw) * invs;
 		p->orientation.v1.y = 2 * (xy - zw) * invs;
@@ -300,7 +302,7 @@ void MD_CUDABackend::_first_step() {
 	first_step
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
 		(_d_poss, _d_orientations, _d_list_poss, _d_vels, _d_Ls, _d_forces, _d_torques, _d_are_lists_old);
-		CUT_CHECK_ERROR("_first_step error");
+	CUT_CHECK_ERROR("_first_step error");
 }
 
 void MD_CUDABackend::_rescale_molecular_positions(c_number4 new_Ls, c_number4 old_Ls, bool recompute_coms) {
@@ -429,7 +431,7 @@ void MD_CUDABackend::_sort_particles() {
 	CUDABaseBackend::_sort_index();
 	permute_particles
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
-		(_d_sorted_hindex, _d_inv_sorted_hindex, _d_poss, _d_vels, _d_Ls, _d_orientations, _d_bonds, _d_buff_poss, _d_buff_vels, _d_buff_Ls, 				_d_buff_orientations, _d_buff_bonds);
+		(_d_sorted_hindex, _d_inv_sorted_hindex, _d_poss, _d_vels, _d_Ls, _d_orientations, _d_bonds, _d_buff_poss, _d_buff_vels, _d_buff_Ls, _d_buff_orientations, _d_buff_bonds);
 	CUT_CHECK_ERROR("_permute_particles error");
 	CUDA_SAFE_CALL(cudaMemcpy(_d_orientations, _d_buff_orientations, _orient_size, cudaMemcpyDeviceToDevice));
 
@@ -533,7 +535,7 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 	_obs_output_error_conf = new ObservableOutput(init_string);
 	_obs_output_error_conf->add_observable("type = configuration");
 
-	// if we want to limt the calculations done on CPU we clear the default ObservableOutputs and tell them to just print the timesteps (and, for constant-pressure, simulations, also the density)
+	// if we want to limit the calculations done on CPU we clear the default ObservableOutputs and tell them to just print the timesteps (and, for constant-pressure, simulations, also the density)
 	if(_avoid_cpu_calculations) {
 		_obs_output_file->clear();
 		_obs_output_file->add_observable("type = step\nunits = MD");
@@ -760,8 +762,9 @@ void MD_CUDABackend::init() {
 
 	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
-		if(p->is_rigid_body())
+		if(p->is_rigid_body()) {
 			_any_rigid_body = true;
+		}
 	}
 
 	// copy all the particle related stuff and the constants to device memory
