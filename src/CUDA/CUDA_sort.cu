@@ -34,7 +34,7 @@ __device__ void vertex_swap(int *v, int *a, int *b, int const mask) {
  * map 3-dimensional point to 1-dimensional point on Hilbert space curve
  */
 
-__device__ int hilbert_code(c_number4 *r) {
+__device__ int hilbert_code(c_number4 &r) {
 	//
 	// Jun Wang & Jie Shan, Space-Filling Curve Based Point Clouds Index,
 	// GeoComputation, 2005
@@ -58,18 +58,18 @@ __device__ int hilbert_code(c_number4 *r) {
 #define MASK ((1 << 3) - 1)
 
 	// 32-bit integer for 3D Hilbert code allows a maximum of 10 levels
-	for(int i = 0; i < *hilb_depth; ++i) {
+	for(int i = 0; i < hilb_depth[0]; ++i) {
 		// determine Hilbert vertex closest to particle
-		x = __signbitf(r->x) & 1;
-		y = __signbitf(r->y) & 1;
-		z = __signbitf(r->z) & 1;
+		x = __signbitf(r.x) & 1;
+		y = __signbitf(r.y) & 1;
+		z = __signbitf(r.z) & 1;
 		// lookup Hilbert code
 		v = (vc >> (3 * (x + (y << 1) + (z << 2))) & MASK);
 
 		// scale particle coordinates to subcell
-		r->x = 2 * r->x - (0.5f - x);
-		r->y = 2 * r->y - (0.5f - y);
-		r->z = 2 * r->z - (0.5f - z);
+		r.x = 2 * r.x - (0.5f - x);
+		r.y = 2 * r.y - (0.5f - y);
+		r.z = 2 * r.z - (0.5f - z);
 		// apply permutation rule according to Hilbert code
 		if(v == 0) {
 			vertex_swap(&vc, &b, &h, MASK);
@@ -103,7 +103,7 @@ __device__ int hilbert_code(c_number4 *r) {
 	return hcode;
 }
 
-__global__ void hilbert_curve(const c_number4 *pos, int *hindex) {
+__global__ void hilbert_curve(const c_number4 *poss, int *hindex) {
 	if(IND >= hilb_N[0]) return;
 	//
 	// We need to avoid ambiguities during the assignment of a particle
@@ -112,13 +112,13 @@ __global__ void hilbert_curve(const c_number4 *pos, int *hindex) {
 	// trouble converging to a definite Hilbert curve.
 	//
 	// Therefore, we use a simple cubic lattice of predefined dimensions
-	// according to the c_number of cells at the deepest recursion level,
+	// according to the number of cells at the deepest recursion level,
 	// and round the particle position to the nearest center of a cell.
 	//
 
-	c_number4 r = pos[IND];
+	c_number4 r = poss[IND];
 	// Hilbert cells per dimension at deepest recursion level
-	const int n = 1UL << *hilb_depth;
+	const int n = 1UL << hilb_depth[0];
 	// fractional index of particle's Hilbert cell in [0, n)
 	r.x /= hilb_box_side[0];
 	r.y /= hilb_box_side[0];
@@ -138,25 +138,31 @@ __global__ void hilbert_curve(const c_number4 *pos, int *hindex) {
 	r.z -= 0.5f;
 
 	// compute Hilbert code for particle
-	const int code = (IND < hilb_N_unsortable[0]) ? IND : hilbert_code(&r) + hilb_N_unsortable[0];
+	const int code = (IND < hilb_N_unsortable[0]) ? IND : hilbert_code(r) + hilb_N_unsortable[0];
+
 	hindex[IND] = code;
 }
 
-__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *Ls, GPU_quat *orientations, LR_bonds *bonds, c_number4 *buff_poss, c_number4 *buff_vels, c_number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds) {
+__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *Ls, GPU_quat *orientations, LR_bonds *bonds, int *particles_to_mols, c_number4 *buff_poss, c_number4 *buff_vels, c_number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds, int *buff_particles_to_mols) {
 	if(IND >= hilb_N[0]) return;
 
 	const int j = sorted_hindex[IND];
 
 	LR_bonds b = bonds[j];
 	LR_bonds buff_b = { P_INVALID, P_INVALID };
-	if(b.n3 != P_INVALID) buff_b.n3 = inv_sorted_hindex[b.n3];
-	if(b.n5 != P_INVALID) buff_b.n5 = inv_sorted_hindex[b.n5];
+	if(b.n3 != P_INVALID) {
+		buff_b.n3 = inv_sorted_hindex[b.n3];
+	}
+	if(b.n5 != P_INVALID) {
+		buff_b.n5 = inv_sorted_hindex[b.n5];
+	}
 
 	buff_bonds[IND] = buff_b;
 	buff_orientations[IND] = orientations[j];
 	buff_poss[IND] = poss[j];
 	buff_vels[IND] = vels[j];
 	buff_Ls[IND] = Ls[j];
+	buff_particles_to_mols[IND] = particles_to_mols[j];
 }
 
 __global__ void permute_particles(int *sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *buff_poss, c_number4 *buff_vels) {

@@ -241,7 +241,7 @@ void CUDABaseBackend::init_cuda() {
 void CUDABaseBackend::_init_CUDA_kernel_cfgs() {
 	if(_particles_kernel_cfg.threads_per_block == 0) {
 		_particles_kernel_cfg.threads_per_block = 2 * _device_prop.warpSize;
-		OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2*_device_prop.warpSize);
+		OX_LOG(Logger::LOG_INFO, "threads_per_block was not specified or set to 0. The default value (%d) will be used", 2 * _device_prop.warpSize);
 	}
 
 	int N = CONFIG_INFO->N();
@@ -274,7 +274,7 @@ void CUDABaseBackend::_sort_index() {
 	thrust::sort_by_key(_d_hindex_p, _d_hindex_p + CONFIG_INFO->N(), _d_sorted_hindex_p);
 	get_inverted_sorted_hindex
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
-	(_d_sorted_hindex, _d_inv_sorted_hindex);
+		(_d_sorted_hindex, _d_inv_sorted_hindex);
 }
 
 #pragma GCC diagnostic pop

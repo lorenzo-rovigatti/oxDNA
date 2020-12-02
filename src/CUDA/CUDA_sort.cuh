@@ -21,7 +21,7 @@ __global__ void permute_particles(int *sorted_hindex, c_number4 *poss, c_number4
 __global__ void permute_particles(int *sorted_hindex, c_number4 *poss, c_number4 *buff_poss);
 
 
-__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *Ls, GPU_quat *orientations, LR_bonds *bonds, c_number4 *buff_poss, c_number4 *buff_vels, c_number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds);
+__global__ void permute_particles(int *sorted_hindex, int *inv_sorted_hindex, c_number4 *poss, c_number4 *vels, c_number4 *Ls, GPU_quat *orientations, LR_bonds *bonds, int *particles_to_mols, c_number4 *buff_poss, c_number4 *buff_vels, c_number4 *buff_Ls, GPU_quat *buff_orientations, LR_bonds *buff_bonds, int *buff_particles_to_mols);
 __global__ void get_inverted_sorted_hindex(int *sorted_hindex, int *inv_sorted_hindex);
 __global__ void reset_sorted_hindex(int *sorted_hindex);
 

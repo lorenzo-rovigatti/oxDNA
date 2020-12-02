@@ -44,7 +44,7 @@ protected:
 	c_number4 *_d_torques, *_h_torques;
 
 	std::vector<int> _h_particles_to_mols;
-	int *_d_particles_to_mols, *_d_mol_sizes;
+	int *_d_particles_to_mols, *_d_mol_sizes, *_d_buff_particles_to_mols;
 	c_number4 *_d_molecular_coms;
 
 	c_number4 *_d_buff_vels, *_d_buff_Ls;

@@ -86,6 +86,7 @@ MD_CUDABackend::~MD_CUDABackend() {
 	if(_sort_every > 0 && _d_buff_vels != nullptr) {
 		CUDA_SAFE_CALL(cudaFree(_d_buff_vels));
 		CUDA_SAFE_CALL(cudaFree(_d_buff_Ls));
+		CUDA_SAFE_CALL(cudaFree(_d_buff_particles_to_mols));
 	}
 
 	if(_h_gpu_index != nullptr) {
@@ -229,7 +230,6 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 		p->pos.y = _h_poss[i].y;
 		p->pos.z = _h_poss[i].z;
 
-		//printf("%d %d %d\n", p->index, p->strand_id, _h_particles_to_mols[i]);
 		p->strand_id = _h_particles_to_mols[i];
 
 		// get index and type from the fourth component of the position
@@ -431,7 +431,8 @@ void MD_CUDABackend::_sort_particles() {
 	CUDABaseBackend::_sort_index();
 	permute_particles
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
-		(_d_sorted_hindex, _d_inv_sorted_hindex, _d_poss, _d_vels, _d_Ls, _d_orientations, _d_bonds, _d_buff_poss, _d_buff_vels, _d_buff_Ls, _d_buff_orientations, _d_buff_bonds);
+		(_d_sorted_hindex, _d_inv_sorted_hindex, _d_poss, _d_vels, _d_Ls, _d_orientations, _d_bonds, _d_particles_to_mols,
+		 _d_buff_poss, _d_buff_vels, _d_buff_Ls, _d_buff_orientations, _d_buff_bonds, _d_buff_particles_to_mols);
 	CUT_CHECK_ERROR("_permute_particles error");
 	CUDA_SAFE_CALL(cudaMemcpy(_d_orientations, _d_buff_orientations, _orient_size, cudaMemcpyDeviceToDevice));
 
@@ -440,6 +441,7 @@ void MD_CUDABackend::_sort_particles() {
 	CUDA_SAFE_CALL(cudaMemcpy(_d_bonds, _d_buff_bonds, _bonds_size, cudaMemcpyDeviceToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_d_vels, _d_buff_vels, _vec_size, cudaMemcpyDeviceToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(_d_Ls, _d_buff_Ls, _vec_size, cudaMemcpyDeviceToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(_d_particles_to_mols, _d_buff_particles_to_mols, sizeof(int) * N(), cudaMemcpyDeviceToDevice));
 }
 
 void MD_CUDABackend::_thermalize(llint curr_step) {
@@ -750,6 +752,7 @@ void MD_CUDABackend::init() {
 	if(_sort_every > 0) {
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_vels, _vec_size));
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_buff_Ls, _vec_size));
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&_d_buff_particles_to_mols, sizeof(int) * N()));
 	}
 
 	// these values are changed only if the curve sorting is enabled
