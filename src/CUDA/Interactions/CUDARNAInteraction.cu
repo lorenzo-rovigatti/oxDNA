@@ -288,17 +288,23 @@ void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
 	}
 
 	c_number tmp[50];
-	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < 5; j++)
-			for(int k = 0; k < 5; k++)
+	for(int i = 0; i < 2; i++) {
+		for(int j = 0; j < 5; j++) {
+			for(int k = 0; k < 5; k++) {
 				tmp[i * 25 + j * 5 + k] = this->F1_EPS[i][j][k];
+			}
+		}
+	}
 
 	COPY_ARRAY_TO_CONSTANT(MD_F1_EPS, tmp, 50);
 
-	for(int i = 0; i < 2; i++)
-		for(int j = 0; j < 5; j++)
-			for(int k = 0; k < 5; k++)
+	for(int i = 0; i < 2; i++) {
+		for(int j = 0; j < 5; j++) {
+			for(int k = 0; k < 5; k++) {
 				tmp[i * 25 + j * 5 + k] = this->F1_SHIFT[i][j][k];
+			}
+		}
+	}
 
 	COPY_ARRAY_TO_CONSTANT(MD_F1_SHIFT, tmp, 50);
 
@@ -364,7 +370,10 @@ void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_minus_kappa, &_minus_kappa, sizeof(float)));
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_half_charged_ends, &_debye_huckel_half_charged_ends, sizeof(bool)));
 	}
+}
 
+void CUDARNAInteraction::_on_T_update() {
+	cuda_init(_box_side, _N);
 }
 
 void CUDARNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {

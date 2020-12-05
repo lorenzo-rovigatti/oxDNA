@@ -30,6 +30,7 @@ RNAInteraction::RNAInteraction() :
 	_mbf_fmax = 0.f;
 	_mbf_finf = 0.f;
 
+	CONFIG_INFO->subscribe("T_updated", [this]() { this->_on_T_update(); });
 }
 
 RNAInteraction::~RNAInteraction() {
@@ -382,6 +383,14 @@ void RNAInteraction::init() {
 	if(_use_mbf) {
 		OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g  (the corresponding mbf_xmax is %g) and a far value of %g", _mbf_fmax, _mbf_xmax, _mbf_finf);
 	}
+}
+
+void RNAInteraction::_on_T_update() {
+	_T = CONFIG_INFO->temperature();
+	number T_in_C = _T * 3000 - 273.15;
+	number T_in_K = _T * 3000;
+	OX_LOG(Logger::LOG_INFO, "Temperature change detected (new temperature: %.2lf C, %.2lf K), re-initialising the RNA interaction", T_in_C, T_in_K);
+	init();
 }
 
 bool RNAInteraction::_check_bonded_neighbour(BaseParticle **p, BaseParticle **q, bool compute_r) {
