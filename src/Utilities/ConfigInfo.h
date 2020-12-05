@@ -10,11 +10,15 @@
 
 #define CONFIG_INFO ConfigInfo::instance()
 
+#include "../defs.h"
 #include "oxDNAException.h"
 
 #include <string>
 #include <memory>
 #include <vector>
+
+#include <functional>
+#include <map>
 
 class IBaseInteraction;
 class BaseParticle;
@@ -32,28 +36,43 @@ class Molecule;
  * doing it, but having a class like this allows us to easily pass information to the observables without having
  * to change the overall design.
  */
-
 class ConfigInfo {
 private:
-	static std::shared_ptr<ConfigInfo> _config_info;
-
 	ConfigInfo(std::vector<BaseParticle *> *ps, std::vector<std::shared_ptr<Molecule>> *mols);
 	ConfigInfo() = delete;
+
+	static std::shared_ptr<ConfigInfo> _config_info;
+
+	/// A map associating list of callbacks to events
+	std::map<std::string, std::vector<std::function<void()>>> _event_callbacks;
+
+	number _temperature;
+
 public:
 	virtual ~ConfigInfo();
 
 	/**
 	 * @brief Allows one to initialize everything at once.
 	 *
-	 * @param p
-	 * @param i
+	 * @param i the interaction object
 	 * @param info
-	 * @param l pointer to list object
+	 * @param l the list object
+	 * @param abox the box object
 	 */
 	void set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox);
 
+	void subscribe(std::string event, std::function<void()> callback);
+
+	void notify(std::string event);
+
 	int N() {
 		return particles_pointer->size();
+	}
+
+	void update_temperature(number new_T);
+
+	number temperature() {
+		return _temperature;
 	}
 
 	/**

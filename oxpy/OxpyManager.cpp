@@ -43,6 +43,10 @@ number OxpyManager::system_energy() {
 	return CONFIG_INFO->interaction->get_system_energy(CONFIG_INFO->particles(), CONFIG_INFO->lists);
 }
 
+void OxpyManager::update_temperature(number new_T) {
+	CONFIG_INFO->update_temperature(new_T);
+}
+
 void OxpyManager::print_configuration(bool also_last) {
     // prints the trajectory configuration
     _backend->print_conf(_cur_step);
@@ -154,5 +158,14 @@ input: :class:`InputFile`
                 The number of steps to be run.
             print_output: bool
                 If True (the default value) the simulation output will be printed.
+	)pbdoc");
+
+	manager.def("update_temperature", &OxpyManager::update_temperature, pybind11::arg("new_T"), R"pbdoc(
+        Change the temperature at which the simulation is run.
+
+        Parameters
+        ----------
+            new_T: float
+                The new temperature.
 	)pbdoc");
 }

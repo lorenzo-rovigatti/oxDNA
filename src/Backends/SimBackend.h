@@ -69,7 +69,6 @@ class Timer;
 
  @endverbatim
  */
-
 class SimBackend {
 protected:
 	std::string _backend_info;
@@ -159,7 +158,7 @@ protected:
 	 */
 	bool _read_next_configuration(bool binary=false);
 
-	int _get_N_from_conf(std::ifstream &conf_input);
+	virtual void _on_T_update();
 
 public:
 	SimBackend();

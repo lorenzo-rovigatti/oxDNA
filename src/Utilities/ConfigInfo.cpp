@@ -23,6 +23,21 @@ ConfigInfo::~ConfigInfo() {
 
 }
 
+void ConfigInfo::update_temperature(number new_T) {
+	_temperature = new_T;
+	notify("T_updated");
+}
+
+void ConfigInfo::subscribe(std::string event, std::function<void()> callback) {
+	_event_callbacks[event].emplace_back(callback);
+}
+
+void ConfigInfo::notify(std::string event) {
+	for(auto callback : _event_callbacks[event]) {
+		callback();
+	}
+}
+
 void ConfigInfo::set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox) {
 	interaction = i;
 	backend_info = info;

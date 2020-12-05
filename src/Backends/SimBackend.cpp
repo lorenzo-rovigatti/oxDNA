@@ -53,6 +53,8 @@ SimBackend::SimBackend() {
 
 	ConfigInfo::init(&_particles, &_molecules);
 	_config_info = ConfigInfo::instance();
+
+	_config_info->subscribe("T_updated", [this]() { this->_on_T_update(); });
 }
 
 SimBackend::~SimBackend() {
@@ -545,6 +547,10 @@ bool SimBackend::_read_next_configuration(bool binary) {
 	_interaction->check_input_sanity(_particles);
 
 	return true;
+}
+
+void SimBackend::_on_T_update() {
+	_T = _config_info->temperature();
 }
 
 void SimBackend::apply_simulation_data_changes() {
