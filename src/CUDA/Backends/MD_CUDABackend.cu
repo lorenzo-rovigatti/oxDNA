@@ -471,10 +471,8 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 		}
 		catch (oxDNAException &e) {
 			apply_simulation_data_changes();
-			std::string filename("list_update_error.dat");
 			_obs_output_error_conf->print_output(curr_step);
-			OX_LOG(Logger::LOG_ERROR, "%s ----> The last configuration has been printed to %s", e.what(), _error_conf_file.c_str());
-			return;
+			throw oxDNAException("%s ----> The last configuration has been printed to %s", e.what(), _error_conf_file.c_str());
 		}
 		_d_are_lists_old[0] = false;
 		_N_updates++;

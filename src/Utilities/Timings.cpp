@@ -24,18 +24,17 @@
 #define OXDNA_CLOCK() clock()
 #endif
 
-Timer::Timer() {
+Timer::Timer(bool sync) {
 	_time = (clock_t) 0;
 	_last = (clock_t) 0;
 	_active = false;
+	_sync = sync;
 	_desc = std::string("Uninitialized timer");
 }
 
-Timer::Timer(std::string arg) {
+Timer::Timer(std::string arg, bool sync) :
+	Timer(sync) {
 	_desc = std::string(arg);
-	_time = (clock_t) 0;
-	_last = (clock_t) 0;
-	_active = false;
 }
 
 Timer::~Timer() {
@@ -86,14 +85,16 @@ TimingManager::~TimingManager() {
 }
 
 void TimingManager::enable_sync() {
+	_sync = true;
 	for(auto t: _timers) {
-		t->set_sync(true);
+		t->set_sync(_sync);
 	}
 }
 
 void TimingManager::disable_sync() {
+	_sync = false;
 	for(auto t: _timers) {
-		t->set_sync(false);
+		t->set_sync(_sync);
 	}
 }
 
@@ -129,10 +130,10 @@ TimerPtr TimingManager::new_timer(std::string desc) {
 		throw oxDNAException("timer %s already used! Aborting", desc.c_str());
 	}
 
-	TimerPtr timer = std::make_shared<Timer>(desc);
+	TimerPtr timer = std::make_shared<Timer>(desc, _sync);
 
 	_timers.push_back(timer);
-	_parents[timer] = (TimerPtr) nullptr;
+	_parents[timer] = nullptr;
 	_desc_map[desc] = timer;
 
 	OX_DEBUG("Adding new timer with description %s and no parent", desc.c_str());
@@ -148,7 +149,7 @@ TimerPtr TimingManager::new_timer(std::string desc, std::string parent_desc) {
 		throw oxDNAException("Cannot add timer %s because parent timer %s does not exist", desc.c_str(), parent_desc.c_str());
 	}
 
-	TimerPtr timer = std::make_shared<Timer>(desc);
+	TimerPtr timer = std::make_shared<Timer>(desc, _sync);
 
 	_timers.push_back(timer);
 	_parents[timer] = get_timer_by_desc(parent_desc);
