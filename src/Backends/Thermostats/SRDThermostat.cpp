@@ -15,8 +15,8 @@
 SRDThermostat::SRDThermostat(BaseBox *box) :
 				BaseThermostat(),
 				_box(box) {
-	_cells = NULL;
-	_srd_particles = NULL;
+	_cells = nullptr;
+	_srd_particles = nullptr;
 	_N_particles = 0;
 	_N_cells = _N_cells_side = _N_per_cell = 0;
 	_apply_every = 0;
@@ -30,8 +30,12 @@ SRDThermostat::SRDThermostat(BaseBox *box) :
 
 SRDThermostat::~SRDThermostat() {
 	if(!_is_cuda) {
-		if(_cells != NULL) delete[] _cells;
-		if(_srd_particles != NULL) delete[] _srd_particles;
+		if(_cells != nullptr) {
+			delete[] _cells;
+		}
+		if(_srd_particles != nullptr) {
+			delete[] _srd_particles;
+		}
 	}
 }
 
@@ -77,7 +81,7 @@ void SRDThermostat::init() {
 	_m = 1. / _N_per_cell;
 
 	// we allocate memory only if we simulate on the CPU
-	if(!_is_cuda) {
+	if(!_is_cuda && _cells == nullptr) {
 		_cells = new SRDCell[_N_cells];
 		_srd_particles = new SRDParticle[_N_particles + CONFIG_INFO->N()];
 
@@ -117,7 +121,6 @@ void SRDThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_ste
 // Andersen-MPCD
 // conserves linear momentum, does not conserve angular momentum
 // angular momenta of the solute particles are refreshed
-
 void SRDThermostat::apply1(std::vector<BaseParticle *> &particles, llint curr_step) {
 	if(!(curr_step % _apply_every == 0)) return;
 
@@ -126,7 +129,7 @@ void SRDThermostat::apply1(std::vector<BaseParticle *> &particles, llint curr_st
 		_cells[i].P = LR_vector(0., 0., 0.);  // total momentum
 		_cells[i].PR = LR_vector(0., 0., 0.); // sum of random components
 		_cells[i].tot_mass = (number) 0.f;
-		_cells[i].head = NULL;
+		_cells[i].head = nullptr;
 		int x, y, z;
 		x = i % _N_cells_side;
 		y = (i / _N_cells_side) % _N_cells_side;

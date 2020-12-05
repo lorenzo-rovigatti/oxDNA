@@ -7,18 +7,15 @@
 
 #include "NoThermostat.h"
 
-
-NoThermostat::NoThermostat () : BaseThermostat(){
+NoThermostat::NoThermostat() :
+				BaseThermostat() {
 }
 
-
-NoThermostat::~NoThermostat () {
+NoThermostat::~NoThermostat() {
 
 }
 
-
-
-void NoThermostat::apply (std::vector<BaseParticle *> &particles, llint curr_step) {
+void NoThermostat::apply(std::vector<BaseParticle*> &particles, llint curr_step) {
 	return;
 }
 

@@ -42,6 +42,8 @@ protected:
 	bool _lees_edwards;
 	number _shear_rate;
 
+	virtual void _on_T_update();
+
 public:
 	BaseThermostat();
 	virtual ~BaseThermostat() {
