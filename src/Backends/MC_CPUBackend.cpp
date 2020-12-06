@@ -13,7 +13,6 @@
 
 MC_CPUBackend::MC_CPUBackend() :
 				MCBackend() {
-	_is_CUDA_sim = false;
 	_enable_flip = false;
 	_target_box = -1.;
 	_box_tolerance = 1.e-8;

@@ -26,7 +26,6 @@ SimBackend::SimBackend() {
 	_external_forces = false;
 	_N_updates = 0;
 	_confs_to_skip = 0;
-	_is_CUDA_sim = false;
 	_interaction = nullptr;
 	_N_strands = -1;
 	start_step_from_file = (llint) 0;
@@ -96,11 +95,6 @@ void SimBackend::get_settings(input_file &inp) {
 
 	// initialise the plugin manager with the input file
 	PluginManager::instance()->init(inp);
-
-	// if the simulation is to be run on CUDA then the timers need to be told to synchronise on the GPU
-	if(_is_CUDA_sim) {
-		TimingManager::instance()->enable_sync();
-	}
 
 	// initialise the timer
 	_mytimer = TimingManager::instance()->new_timer(std::string("SimBackend"));
@@ -337,7 +331,7 @@ void SimBackend::init() {
 	_config_info->curr_step = start_step_from_file;
 
 	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _is_CUDA_sim, _box.get());
+		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _box.get());
 	}
 
 	_U = (number) 0;

@@ -35,7 +35,9 @@ void CUDALJInteraction::cuda_init(c_number box_side, int N) {
 	COPY_ARRAY_TO_CONSTANT(MD_epsilon, this->_epsilon, 3);
 	COPY_ARRAY_TO_CONSTANT(MD_E_cut, this->_E_cut, 3);
 
-	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
+	if(this->_use_edge) {
+		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
+	}
 }
 
 void CUDALJInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
@@ -54,9 +56,9 @@ void CUDALJInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GP
 		}
 		else {
 			lj_forces
-					<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-					(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
-							CUT_CHECK_ERROR("forces_second_step lj simple_lists error");
+				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+				(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
+			CUT_CHECK_ERROR("forces_second_step lj simple_lists error");
 		}
 	}
 
@@ -65,6 +67,6 @@ void CUDALJInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GP
 		lj_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 			(d_poss, d_forces, d_box);
-				CUT_CHECK_ERROR("forces_second_step lj no_lists error");
+		CUT_CHECK_ERROR("forces_second_step lj no_lists error");
 	}
 }

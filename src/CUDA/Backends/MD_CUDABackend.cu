@@ -40,7 +40,6 @@ MD_CUDABackend::MD_CUDABackend() :
 				CUDABaseBackend(),
 				_max_ext_forces(0),
 				_error_conf_file("error_conf.dat") {
-	_is_CUDA_sim = true;
 	_use_edge = false;
 	_any_rigid_body = false;
 
@@ -65,6 +64,9 @@ MD_CUDABackend::MD_CUDABackend() :
 	_print_energy = false;
 
 	_obs_output_error_conf = nullptr;
+
+	// on CUDA the timers need to be told to explicitly synchronise on the GPU
+	TimingManager::instance()->enable_sync();
 }
 
 MD_CUDABackend::~MD_CUDABackend() {

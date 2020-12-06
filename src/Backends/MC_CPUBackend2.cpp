@@ -10,7 +10,6 @@
 
 MC_CPUBackend2::MC_CPUBackend2() :
 				MCBackend() {
-	_is_CUDA_sim = false;
 	_info_str = std::string("dummy");
 	_N_moves = -1;
 	_accumulated_prob = 0.; // total weight

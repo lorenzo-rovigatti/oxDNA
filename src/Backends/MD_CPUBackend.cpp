@@ -14,7 +14,6 @@
 
 MD_CPUBackend::MD_CPUBackend() :
 				MDBackend() {
-	_is_CUDA_sim = false;
 	_thermostat = nullptr;
 	_V_move = nullptr;
 	_compute_stress_tensor = false;

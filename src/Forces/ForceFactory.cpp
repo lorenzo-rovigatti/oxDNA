@@ -64,7 +64,7 @@ void ForceFactory::_add_force_to_particles(ForcePtr force, std::vector<int> part
 	}
 }
 
-void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &particles, bool is_CUDA, BaseBox * box_ptr) {
+void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &particles, BaseBox * box_ptr) {
 	string type_str;
 	getInputString(&inp, "type", type_str, 1);
 
@@ -100,7 +100,7 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	_add_force_to_particles(extF, particle_ids, particles, description);
 }
 
-void ForceFactory::read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, bool is_CUDA, BaseBox * box) {
+void ForceFactory::read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, BaseBox * box) {
 	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
 
 	//char line[512], typestr[512];
@@ -163,7 +163,7 @@ void ForceFactory::read_external_forces(std::string external_filename, std::vect
 		input_file input;
 		input.init_from_file(temp);
 
-		ForceFactory::instance()->add_force(input, particles, is_CUDA, box);
+		ForceFactory::instance()->add_force(input, particles, box);
 
 		fclose(temp);
 	}

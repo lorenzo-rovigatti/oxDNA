@@ -78,7 +78,6 @@ protected:
 	number _max_io;
 
 	bool _enable_fix_diffusion;
-	bool _is_CUDA_sim;
 
 	bool _external_forces;
 	char _external_filename[256];
