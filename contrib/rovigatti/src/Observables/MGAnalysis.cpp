@@ -42,8 +42,6 @@ void MGAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&sim_inp, "MG_rfene", &rfene, 1);
 	_sqr_rfene = SQR(rfene);
 
-	getInputNumber(&sim_inp, "T", &_T, 1);
-
 	getInputBool(&my_inp, "volume_only", &_volume_only, 0);
 	getInputBool(&my_inp, "rg_only", &_rg_only, 0);
 	getInputBool(&my_inp, "two_microgels", &_two_microgels, 0);
@@ -118,7 +116,7 @@ std::pair<number, number> MGAnalysis::_lame_coefficients() {
 
 	lambda /= 6.;
 	mu /= 6.;
-	mu += 2 * _T * _config_info->N();
+	mu += 2 * _config_info->temperature() * _config_info->N();
 
 	return std::pair<number, number>(lambda, mu);
 }

@@ -15,7 +15,6 @@ GenericGrByInsertion::GenericGrByInsertion() {
 	_n_bins = 0;
 	_n_conf = 0;
 	_bin = 0.1;
-	_T = 0.;
 	_gr = NULL;
 	_insertions = 100;
 	_min = 0.0;
@@ -32,10 +31,6 @@ void GenericGrByInsertion::get_settings(input_file &my_inp, input_file &sim_inp)
 	if(getInputFloat(&my_inp, "bin", &tmp, 0) == KEY_FOUND) _bin = tmp;
 
 	getInputInt(&my_inp, "insertions", &_insertions, 0);
-
-	char tmp_T[256];
-	getInputString(&sim_inp, "T", tmp_T, 1);
-	_T = Utils::get_temperature(tmp_T);
 
 	if(getInputFloat(&my_inp, "gr_min", &tmp, 0) == KEY_FOUND) _min = tmp;
 	if(getInputFloat(&my_inp, "gr_max", &tmp, 0) == KEY_FOUND) _max = tmp;
@@ -131,7 +126,7 @@ std::string GenericGrByInsertion::get_output_string(llint step) {
 			// arbitrary threshold
 			if(energy / N < 1000.) {
 				number delta_E = energy - ref_energy;
-				number boltzmann_factor = exp(-delta_E / _T);
+				number boltzmann_factor = exp(-delta_E / _config_info->temperature());
 
 				// center center g(r)
 				_gr[i] += boltzmann_factor;

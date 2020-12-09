@@ -25,8 +25,8 @@ protected:
 	number _diff_coeff;
 	number _rescale_factor;
 public:
-	BrownianThermostat ();
-	virtual ~BrownianThermostat ();
+	BrownianThermostat();
+	virtual ~BrownianThermostat();
 
 	void get_settings(input_file &inp);
 	void init();

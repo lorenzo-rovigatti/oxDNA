@@ -20,10 +20,16 @@ BaseMove::BaseMove() :
 	_restrict_to_type = -1;
 	_rej_fact = 1.001;
 	_acc_fact = 0.;
+
+	CONFIG_INFO->subscribe("T_updated", [this]() { this->_on_T_update(); });
 }
 
 BaseMove::~BaseMove() {
 
+}
+
+void BaseMove::_on_T_update() {
+	_T = _Info->temperature();
 }
 
 void BaseMove::get_settings(input_file &inp, input_file &sim_inp) {

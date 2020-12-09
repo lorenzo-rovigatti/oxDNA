@@ -22,7 +22,6 @@
 
 class ConstructwisePressure: public BaseObservable {
 protected:
-	number _T;
 	double _P;
 	number _shear_rate;
 	int _construct_size;

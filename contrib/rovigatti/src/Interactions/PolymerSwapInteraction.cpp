@@ -35,8 +35,6 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "PS_3b_lambda", &_3b_lambda, 0);
 	getInputNumber(&inp, "PS_3b_epsilon", &_3b_epsilon, 0);
 
-	getInputNumber(&inp, "T", &_T, 1);
-
 	getInputBool(&inp, "PS_semiflexibility", &_enable_semiflexibility, 0);
 	if(_enable_semiflexibility) {
 		getInputNumber(&inp, "PS_semiflexibility_k", &_semiflexibility_k, 1);
@@ -114,7 +112,7 @@ void PolymerSwapInteraction::_update_inter_chain_stress_tensor(int chain, int re
 
 number PolymerSwapInteraction::P_inter_chain() {
 	number V = CONFIG_INFO->box->V();
-	return _T * (_N_chains / V) + (_inter_chain_stress_tensor[0] + _inter_chain_stress_tensor[1] + _inter_chain_stress_tensor[2]) / (3. * V);
+	return CONFIG_INFO->temperature() * (_N_chains / V) + (_inter_chain_stress_tensor[0] + _inter_chain_stress_tensor[1] + _inter_chain_stress_tensor[2]) / (3. * V);
 }
 
 void PolymerSwapInteraction::begin_energy_computation() {

@@ -56,6 +56,8 @@ class BaseMove {
 		/// type of the move
 		std::string _name;
 
+		virtual void _on_T_update();
+
 	public:
 		BaseMove();
 
@@ -71,7 +73,7 @@ class BaseMove {
 		virtual void get_settings(input_file &inp, input_file &sim_inp);
 
 		/// method to do any initialization
-		virtual void init ();
+		virtual void init();
 
 		/// fills a string with the info
 		virtual void log_parameters();
@@ -80,15 +82,19 @@ class BaseMove {
 		number particle_energy (BaseParticle *p);
 
 		/// helper function to compute the system energy; internally, it calls the interaction
-		number system_energy ();
+		number system_energy();
 
 		/// method that applies the move to the system. Each child class must have it.
-		virtual void apply (llint curr_step) = 0;
+		virtual void apply(llint curr_step) = 0;
 
 		/// method that gets the ratio of accepted moves
 		virtual double get_acceptance() {
-			if (_attempted > 0) return _accepted / (double) _attempted;
-			else return 0.;
+			if (_attempted > 0) {
+				return _accepted / (double) _attempted;
+			}
+			else {
+				return 0.;
+			}
 		}
 };
 

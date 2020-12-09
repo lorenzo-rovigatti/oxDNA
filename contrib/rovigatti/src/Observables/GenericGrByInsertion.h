@@ -22,7 +22,6 @@ protected:
 	int _n_conf;
 	number _bin;
 	number *_gr;
-	number _T;
 	std::vector<BaseParticle *> _particles[2];
 	int _insertions;
 	number _min, _max;

@@ -23,7 +23,6 @@ SRDThermostat::SRDThermostat(BaseBox *box) :
 	_rescale_factor = 0.;
 	_m = -1.;
 	_r_cell = -1.;
-	_T = -1.;
 	_is_cuda = false;
 	_dt = -1.;
 }
@@ -58,17 +57,13 @@ void SRDThermostat::get_settings(input_file &inp) {
 	getInputString(&inp, "backend", backend, 1);
 	_is_cuda = (strcmp(backend, "CUDA") == 0);
 
-	char raw_T[256];
-	getInputString(&inp, "T", raw_T, 1);
-	_T = Utils::get_temperature(raw_T);
-
-	_rescale_factor = sqrt(_T); // for particles with mass 1
-
 	OX_LOG(Logger::LOG_INFO, "SRD thermostat: T=%g, r_cell: %g, N_per_cell: %d, rescale_factor: %g", _T, _r_cell, _N_per_cell, _rescale_factor);
 }
 
 void SRDThermostat::init() {
 	BaseThermostat::init();
+
+	_rescale_factor = sqrt(_T);
 
 	number L = _box->box_sides()[0];
 	_N_cells_side = (int) (floor(L / _r_cell) + 0.1);

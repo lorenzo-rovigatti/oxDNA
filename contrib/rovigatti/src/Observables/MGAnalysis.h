@@ -17,7 +17,6 @@ protected:
 	number _sqr_rcut;
 	number _sqr_rfene;
 	number _alpha, _beta, _gamma;
-	number _T;
 	number _volume_threshold, _volume_threshold_sqr;
 
 	bool _volume_only;
