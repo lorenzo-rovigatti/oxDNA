@@ -308,7 +308,6 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 
 					fact *= ((w21 * w12) / (w22 * w11));
 				}
-				//fprintf (stderr, "(replica %d) had %lf %lf %lf AAA\n", _my_mpi_id, _U, _U_hydr, _U_stack);
 
 				// we should take care of the external potential here...
 				if(_external_forces) {
@@ -329,7 +328,6 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 						buffer_conf[i].orientation = _exchange_conf[i].orientation;
 					}
 					buffer_energy.U = _exchange_energy.U;
-					buffer_energy.U_hydr = _exchange_energy.U_hydr;
 					buffer_energy.U_stack = _exchange_energy.U_stack;
 					buffer_energy.T = _exchange_energy.T;
 					buffer_energy.U_ext = _exchange_energy.U_ext;
@@ -348,7 +346,6 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 						_exchange_conf[i].orientation = buffer_conf[i].orientation;
 					}
 					_exchange_energy.U = buffer_energy.U;
-					_exchange_energy.U_hydr = buffer_energy.U_hydr;
 					_exchange_energy.U_stack = buffer_energy.U_stack;
 					_exchange_energy.T = buffer_energy.T;
 					_exchange_energy.U_ext = buffer_energy.U_ext;
@@ -369,16 +366,13 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 					_send_exchange_conf(irresp_id);
 					// send back either its old one or my old one;
 				}
-				//fprintf (stderr, "(replica %d) got %lf %lf %lf AAA\n", _my_mpi_id, _U, _U_hydr, _U_stack);
 				VMMC_CPUBackend::_compute_energy();
-				//fprintf (stderr, "(replica %d) now %lf %lf %lf AAA\n", _my_mpi_id, _U, _U_hydr, _U_stack);
 			}
 		}
 		else {
 			// not responsible. I basically don't know anything, but perhaps
 			// more importantly I have no interest in doing so.
 			if(resp_id >= 0 && resp_id < _mpi_nprocs) {
-				//fprintf (stdout, "(replica %d) had %lf %lf %lf AAA\n", _my_mpi_id, _U, _U_hydr, _U_stack);
 				// send my energy and conf
 				_build_exchange_energy();
 				_send_exchange_energy(resp_id);
@@ -392,7 +386,6 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 
 				_rebuild_exchange_energy();
 				_rebuild_exchange_conf();
-				//fprintf (stdout, "(replica %d) got %lf %lf %lf AAA\n", _my_mpi_id, _U, _U_hydr, _U_stack);
 				VMMC_CPUBackend::_compute_energy();
 				//printf("Received the following positions in process %d\n",_my_mpi_id);
 				//for (int kk = 0; kk < N(); kk++)
@@ -400,7 +393,6 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 				//	_print_pos(kk);
 				//}
 				fflush(stdout);
-				//fprintf (stdout, "(replica %d) now %lf %lf %lf AAA\n", _my_mpi_id, _U, _U_hydr, _U_stack);
 			}
 		}
 		fflush(stdout);
@@ -423,7 +415,6 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 }
 
 void PT_VMMC_CPUBackend::_send_exchange_energy(int other_id) {
-	//fprintf (stderr, "(replica %d) simian %lf %lf %lf\n", _my_mpi_id, _exchange_energy.U, _exchange_energy.U_hydr, _exchange_energy.U_stack);
 	//printf ("(from %d) sending energy info to %d\n", _my_mpi_id, other_id);
 	_MPI_send_block_data((void*) (&_exchange_energy), sizeof(PT_energy_info), other_id);
 }
@@ -452,7 +443,6 @@ void PT_VMMC_CPUBackend::_build_exchange_conf() {
 
 void PT_VMMC_CPUBackend::_build_exchange_energy() {
 	_exchange_energy.U = _U;
-	_exchange_energy.U_hydr = _U_hydr;
 	_exchange_energy.U_stack = _U_stack;
 	_exchange_energy.T = _T;
 	_exchange_energy.U_ext = _U_ext;
@@ -470,7 +460,6 @@ void PT_VMMC_CPUBackend::_rebuild_exchange_energy() {
 		_U_stack = _exchange_energy.U_stack * (STCK_BASE_EPS_OXDNA + STCK_FACT_EPS_OXDNA * _T) / (STCK_BASE_EPS_OXDNA + STCK_FACT_EPS_OXDNA * _exchange_energy.T);
 
 	_U = _exchange_energy.U + _U_stack - _exchange_energy.U_stack;
-	_U_hydr = _exchange_energy.U_hydr;
 	_which_replica = _exchange_energy.replica_id;
 	// N.B. we ignore the temperature, as we need it to decide wether to accept
 	// or not, but we don't want to overwrite our current one
