@@ -200,7 +200,7 @@ int PolymerInteraction::get_N_from_topology() {
 		if(!topology.good()) throw oxDNAException("Not enough chains found in the topology file. There are only %d lines, there should be %d, aborting", i, my_N_chains);
 		topology.getline(line, 512);
 		int bl1, bl2, bl3;
-		if(sscanf(line, "%d %d %d\n", &bl1, &bl2, &bl3) != 3) throw oxDNAException("The topology file does not contain any info on star n.%d", i);
+		if(sscanf(line, "%d %d %d\n", &bl1, &bl2, &bl3) != 3) throw oxDNAException("The topology file does not contain any info on chain n.%d", i);
 
 		N_from_topology += bl1 + bl2 + bl3;
 	}
@@ -223,7 +223,7 @@ void PolymerInteraction::read_topology(int *N_chains, std::vector<BaseParticle *
 
 	int N_from_topology = 0;
 	for(int i = 0; i < my_N_chains; i++) {
-		if(!topology.good()) throw oxDNAException("Not enough stars found in the topology file. There are only %d lines, there should be %d, aborting", i, my_N_chains);
+		if(!topology.good()) throw oxDNAException("Not enough chains found in the topology file. There are only %d lines, there should be %d, aborting", i, my_N_chains);
 		topology.getline(line, 512);
 
 		ChainDetails new_chain;

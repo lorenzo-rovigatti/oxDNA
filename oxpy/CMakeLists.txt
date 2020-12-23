@@ -49,21 +49,21 @@ IF(Python)
 		${CMAKE_CURRENT_BINARY_DIR}/oxpy/utils.py
 	)
 	
+	CONFIGURE_FILE(__init__.py
+		${CMAKE_CURRENT_BINARY_DIR}/oxpy/__init__.py
+	)
+	
 	# read the whole defs.h file
 	FILE(READ ${PROJECT_SOURCE_DIR}/src/defs.h all_defs)
 	# extract the release version
 	STRING(REGEX MATCH "#define RELEASE \"([^\"]+)\"" _ ${all_defs})
-	SET(release ${CMAKE_MATCH_1})
-	CONFIGURE_FILE(__version__.py
-		${CMAKE_CURRENT_BINARY_DIR}/oxpy/__version__.py
-	)
-	MESSAGE(STATUS "Parsed release: ${release}")
+	SET(fallback_release ${CMAKE_MATCH_1})
+	MESSAGE(STATUS "Fallback release parsed from defs.h: ${fallback_release}")
 
-	SET(OXPY_DIR "${CMAKE_CURRENT_BINARY_DIR}/oxpy")
 	CONFIGURE_FILE(setup.py
-		"${OXPY_DIR}/setup.py"
+		"${CMAKE_CURRENT_BINARY_DIR}/oxpy/setup.py"
 	)
 
 	# install the package
-	INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_DIR})")
+	INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}/oxpy)")
 ENDIF(Python)

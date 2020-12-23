@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 import sys
 if sys.version_info < (3,0):
@@ -6,7 +6,11 @@ if sys.version_info < (3,0):
 
 setup(
     name = 'oxpy',
-    version = '${revision}',
+    use_scm_version = {
+        "root": "${CMAKE_SOURCE_DIR}",
+        "fallback_version": "${fallback_release}",
+        },
+    setup_requires = ['setuptools_scm'],
     packages = [ 'oxpy' ],
     package_dir = {
         '': '${CMAKE_CURRENT_BINARY_DIR}'
