@@ -18,7 +18,7 @@ __copyright__ = 'Copyright 2020 Lorenzo Rovigatti, Flavio Romano, Petr Sulc and 
 from pkg_resources import get_distribution, DistributionNotFound
 
 try:
-    __version__ = get_distribution("package-name").version
+    __version__ = get_distribution("oxpy").version
 except DistributionNotFound:
      # package is not installed
     pass
