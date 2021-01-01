@@ -33,24 +33,22 @@ IF(Python)
 	pybind11_add_module(core SHARED bindings.cpp)
 	TARGET_LINK_LIBRARIES(core PRIVATE _oxpy_lib)
 	
+	set(OXPY_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/python/oxpy")
+	
 	# the library should be in a folder with the same name to make it easier to use Python's distutils
 	SET_TARGET_PROPERTIES(core 
 		PROPERTIES 
 			SUFFIX ".so"
-			LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/oxpy"
+			LIBRARY_OUTPUT_DIRECTORY "${OXPY_OUTPUT_DIR}"
 	)
 	
 	# copy the files required to install the library with Python's distutils
 	CONFIGURE_FILE(__init__.py
-		${CMAKE_CURRENT_BINARY_DIR}/oxpy/__init__.py
+		${OXPY_OUTPUT_DIR}/__init__.py
 	)
 	
 	CONFIGURE_FILE(utils.py
-		${CMAKE_CURRENT_BINARY_DIR}/oxpy/utils.py
-	)
-	
-	CONFIGURE_FILE(__init__.py
-		${CMAKE_CURRENT_BINARY_DIR}/oxpy/__init__.py
+		${OXPY_OUTPUT_DIR}/utils.py
 	)
 	
 	# read the whole defs.h file
@@ -60,10 +58,10 @@ IF(Python)
 	SET(fallback_release ${CMAKE_MATCH_1})
 	MESSAGE(STATUS "Fallback release parsed from defs.h: ${fallback_release}")
 
-	CONFIGURE_FILE(setup.py
-		"${CMAKE_CURRENT_BINARY_DIR}/oxpy/setup.py"
+	CONFIGURE_FILE(make_install_setup.py
+		${OXPY_OUTPUT_DIR}/setup.py
 	)
 
 	# install the package
-	INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${CMAKE_CURRENT_BINARY_DIR}/oxpy)")
+	INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_OUTPUT_DIR})")
 ENDIF(Python)

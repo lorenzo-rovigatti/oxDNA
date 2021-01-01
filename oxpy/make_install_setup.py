@@ -13,9 +13,9 @@ setup(
     setup_requires = ['setuptools_scm'],
     packages = [ 'oxpy' ],
     package_dir = {
-        '': '${CMAKE_CURRENT_BINARY_DIR}'
+        'oxpy': '${OXPY_OUTPUT_DIR}'
     },
     package_data = {
-        '': ['core.so']
+        'oxpy': ['core.so']
     }
 )
