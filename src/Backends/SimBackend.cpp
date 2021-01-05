@@ -52,7 +52,6 @@ SimBackend::SimBackend() {
 
 	ConfigInfo::init(&_particles, &_molecules);
 	_config_info = ConfigInfo::instance();
-
 	_config_info->subscribe("T_updated", [this]() { this->_on_T_update(); });
 }
 
@@ -160,7 +159,7 @@ void SimBackend::get_settings(input_file &inp) {
 
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
-	_T = Utils::get_temperature(raw_T);
+	_config_info->update_temperature(Utils::get_temperature(raw_T));
 
 	// here we fill the _obs_outputs vector
 	int i = 1;

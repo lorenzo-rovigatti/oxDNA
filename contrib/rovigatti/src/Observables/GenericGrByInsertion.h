@@ -21,7 +21,7 @@ protected:
 	int _n_bins;
 	int _n_conf;
 	number _bin;
-	number *_gr;
+	std::vector<number> _gr;
 	std::vector<BaseParticle *> _particles[2];
 	int _insertions;
 	number _min, _max;
