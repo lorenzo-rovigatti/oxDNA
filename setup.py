@@ -98,6 +98,8 @@ class CMakeBuild(build_ext):
                 native_generator_args += ["-j{}".format(cpu_cores)]
             else:
                 build_args += ["-j{}".format(cpu_cores)]
+                
+        build_args += native_generator_args
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
