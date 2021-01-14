@@ -1,0 +1,48 @@
+interaction_type=DNA2
+salt_concentration=1.0
+sim_type = MD
+backend = CPU
+backend_precision = mixed 
+mismatch_repulsion = 1
+use_average_seq = no
+CUDA_list = verlet
+CUDA_sort_every = 0
+use_edge = 1
+edge_n_forces = 1
+max_density_multiplier=1000
+
+steps = 20000
+
+ensemble = nvt
+delta_translation = 0.02
+delta_rotation = 0.04
+use_average_seq = no
+seq_dep_file = oxDNA2_sequence_dependent_parameters.txt
+thermostat = john
+T = 25C
+dt = 0.003
+verlet_skin = 0.6
+maxclust = 63
+diff_coeff = 2.5
+newtonian_steps = 103
+max_density_multiplier=10 
+
+topology = init.top 
+conf_file = init.dat 
+
+
+
+max_io = 5
+refresh_vel = 1
+no_stdout_energy = 0
+restart_step_counter = 0
+
+
+print_conf_interval = 5000 
+print_energy_every = 5000 
+
+
+time_scale = linear
+
+pt_temp_list =  290K, 315K, 330K, 345K
+pt_move_every = 5000 
