@@ -63,9 +63,10 @@ class CMakeBuild(build_ext):
         except OSError:
             raise RuntimeError("CMake must be installed to build the following extensions: " + ", ".join(e.name for e in self.extensions))
 
+        self.cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)', out.decode()).group(1))
+        
         if platform.system() == "Windows":
-            cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)', out.decode()).group(1))
-            if cmake_version < '3.1.0':
+            if self.cmake_version < '3.1.0':
                 raise RuntimeError("CMake >= 3.1.0 is required on Windows")
 
         for ext in self.extensions:
@@ -79,11 +80,12 @@ class CMakeBuild(build_ext):
 
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
+        native_generator_args = ['--']
 
         if platform.system() == "Windows":
             if sys.maxsize > 2 ** 32:
                 cmake_args += ['-A', 'x64']
-            build_args += ['--', '/m']
+            native_generator_args += ['/m']
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
                 
@@ -92,7 +94,10 @@ class CMakeBuild(build_ext):
         # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level across all generators.
         if "CMAKE_BUILD_PARALLEL_LEVEL" not in os.environ:
             cpu_cores = multiprocessing.cpu_count()
-            build_args += ["-j{}".format(cpu_cores)]
+            if self.cmake_version < "3.12.0":
+                native_generator_args += ["-j{}".format(cpu_cores)]
+            else:
+                build_args += ["-j{}".format(cpu_cores)]
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
