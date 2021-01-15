@@ -49,7 +49,6 @@ if rank == 0:
 
 def remd_log(pid, *args):
     if pid == rank:
-        pass
         print("x", pid, ":", *args)
 
 
