@@ -30,9 +30,9 @@ void TotalEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_kin_energy.get_settings(my_inp, sim_inp);
 }
 
-void TotalEnergy::init(ConfigInfo &config_info) {
-	_pot_energy.init(config_info);
-	_kin_energy.init(config_info);
+void TotalEnergy::init() {
+	_pot_energy.init();
+	_kin_energy.init();
 }
 
 std::string TotalEnergy::get_output_string(llint curr_step) {

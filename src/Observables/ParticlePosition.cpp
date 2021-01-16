@@ -32,10 +32,10 @@ void ParticlePosition::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_particle_id = tmp;
 }
 
-void ParticlePosition::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void ParticlePosition::init() {
+	BaseObservable::init();
 
-	if(_particle_id < 0 || _particle_id >= config_info.N()) {
+	if(_particle_id < 0 || _particle_id >= _config_info->N()) {
 		throw oxDNAException("ParticlePosition: invalid id %d", _particle_id);
 	}
 }

@@ -38,7 +38,7 @@ public:
 	virtual ~FSConf();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo &config_info);
+	void init();
 
 	std::string _configuration(llint step);
 };

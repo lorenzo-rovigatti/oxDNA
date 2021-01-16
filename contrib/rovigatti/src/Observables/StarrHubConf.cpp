@@ -35,10 +35,10 @@ void StarrHubConf::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&sim_inp, "dt", &_dt, 0);
 }
 
-void StarrHubConf::init(ConfigInfo &config_info) {
+void StarrHubConf::init() {
 	Configuration::init(config_info);
 
-	_N_tetramers = *config_info.N / _N_per_tetramer;
+	_N_tetramers = *_config_info->N / _N_per_tetramer;
 	_tetra_poss.resize(_N_tetramers);
 	_tetra_vels.resize(_N_tetramers);
 	if(_print_bonds) _tetra_bonds.resize(_N_tetramers);

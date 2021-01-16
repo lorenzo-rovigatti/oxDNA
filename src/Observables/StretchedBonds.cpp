@@ -22,8 +22,8 @@ void StretchedBonds::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&my_inp, "threshold", &_threshold, 0);
 }
 
-void StretchedBonds::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void StretchedBonds::init() {
+	BaseObservable::init();
 	OX_LOG(Logger::LOG_INFO, "(StretchedBonds.cpp) Initialized StretchedBonds observables with print_list = %d and threshold = %g", (int)_print_list, _threshold);
 	return;
 }

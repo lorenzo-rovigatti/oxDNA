@@ -18,8 +18,8 @@ UnstackedList::~UnstackedList() {
 	delete model;
 }
 
-void UnstackedList::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void UnstackedList::init() {
+	BaseObservable::init();
 }
 
 void UnstackedList::get_settings(input_file &my_inp, input_file &sim_inp) {

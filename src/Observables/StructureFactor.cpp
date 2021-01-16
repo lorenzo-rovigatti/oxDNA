@@ -35,10 +35,10 @@ struct sort_qs {
 	}
 };
 
-void StructureFactor::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void StructureFactor::init() {
+	BaseObservable::init();
 
-	LR_vector box_sides = config_info.box->box_sides();
+	LR_vector box_sides = _config_info->box->box_sides();
 	number sqr_max_q = SQR(_max_q);
 	LR_vector delta_q(2. * M_PI / box_sides.x, 2. * M_PI / box_sides.y, 2. * M_PI / box_sides.z);
 	for(int nx = 0; nx <= _max_q / delta_q.x; nx++) {

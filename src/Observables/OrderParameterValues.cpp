@@ -17,8 +17,8 @@ OrderParameterValues::~OrderParameterValues() {
 
 }
 
-void OrderParameterValues::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void OrderParameterValues::init() {
+	BaseObservable::init();
 
 	ifstream tmpf(_order_parameters_file);
 	if(!tmpf.good()) throw oxDNAException("(OrderParameterValues.cpp) Can't read file '%s'", _order_parameters_file);

@@ -46,7 +46,7 @@ public:
 	std::string get_output_string(llint curr_step);
 
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo &Info);
+	void init();
 };
 
 #endif /* SALTEXTRAPOLATION_H_ */

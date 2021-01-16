@@ -31,10 +31,10 @@ void EmptyVolume::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&my_inp, "particle_diameter", &_particle_diameter, 0);
 }
 
-void EmptyVolume::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void EmptyVolume::init() {
+	BaseObservable::init();
 
-	_N = config_info.N() + 1;
+	_N = _config_info->N() + 1;
 
 	_probe = new BaseParticle();
 	_probe->init();
@@ -44,17 +44,17 @@ void EmptyVolume::init(ConfigInfo &config_info) {
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
 	_particles.resize(_N);
 	for(int i = 0; i < _N - 1; i++) {
-		_particles[i] = config_info.particles()[i];
+		_particles[i] = _config_info->particles()[i];
 	}
 	_particles[_N - 1] = _probe;
 
 	_rcut = (_probe_diameter + _particle_diameter) / 2.;
 	_sqr_rcut = SQR(_rcut);
-	_cells = new Cells(_particles, config_info.box);
+	_cells = new Cells(_particles, _config_info->box);
 	_cells->init(_rcut);
 
 	if(_tries == 0) {
-		number tot_V = config_info.box->box_sides().x * config_info.box->box_sides().y * config_info.box->box_sides().z;
+		number tot_V = _config_info->box->box_sides().x * _config_info->box->box_sides().y * _config_info->box->box_sides().z;
 		number probe_V = M_PI * pow(_probe_diameter, 3.) / 6.;
 		_tries = (int) (tot_V / probe_V) * 50;
 		OX_LOG(Logger::LOG_INFO, "EmptyVolume: tries = %d", _tries);

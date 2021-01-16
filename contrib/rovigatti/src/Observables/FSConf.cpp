@@ -49,11 +49,11 @@ void FSConf::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_N_B = _N - _N_A;
 }
 
-void FSConf::init(ConfigInfo &config_info) {
-	Configuration::init(config_info);
+void FSConf::init() {
+	Configuration::init();
 
 	if(_print_bonds) {
-		_bonds.resize(config_info.N());
+		_bonds.resize(_config_info->N());
 	}
 }
 

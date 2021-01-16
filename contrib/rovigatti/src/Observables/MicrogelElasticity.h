@@ -21,7 +21,7 @@ public:
 	virtual ~MicrogelElasticity();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo &config_info);
+	void init();
 	std::string get_output_string(llint curr_step);
 };
 

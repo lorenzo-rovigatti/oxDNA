@@ -81,9 +81,8 @@ public:
 
 	/**
 	 * @brief Initialize the object
-	 * @param config_info an instance of {@link ConfigInfo} containing all the values stored in the backend which may be required by the observables
 	 */
-	void init(ConfigInfo &config_info);
+	void init();
 
 	/**
 	 * @brief Adds the observable defined by obs_string to the list

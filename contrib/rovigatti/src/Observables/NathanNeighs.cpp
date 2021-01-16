@@ -41,7 +41,7 @@ void NathanNeighs::get_settings(input_file &my_inp, input_file &sim_inp) {
 	else throw oxDNAException("NathanNeighs: the only acceptable modes are mgl, tot_bonds, min_theta and bonds");
 }
 
-void NathanNeighs::init(ConfigInfo &config_info) {
+void NathanNeighs::init() {
 	Configuration::init(config_info);
 }
 

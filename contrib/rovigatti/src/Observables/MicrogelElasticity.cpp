@@ -39,7 +39,7 @@ void MicrogelElasticity::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 }
 
-void MicrogelElasticity::init(ConfigInfo &config_info) {
+void MicrogelElasticity::init() {
 
 }
 

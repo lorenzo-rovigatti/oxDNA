@@ -26,8 +26,8 @@ void DiblockComs::get_settings(input_file &my_inp, input_file &sim_inp) {
 	CHECK_BOX("DiblockComs", my_inp);
 }
 
-void DiblockComs::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void DiblockComs::init() {
+	BaseObservable::init();
 }
 
 std::string DiblockComs::get_output_string(llint curr_step) {

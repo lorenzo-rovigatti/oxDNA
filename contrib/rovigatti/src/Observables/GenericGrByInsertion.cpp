@@ -45,11 +45,11 @@ int GenericGrByInsertion::_get_bin(number sqr_dist) {
 	return bin;
 }
 
-void GenericGrByInsertion::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
-	int N = config_info.N();
+void GenericGrByInsertion::init() {
+	BaseObservable::init();
+	int N = _config_info->N();
 
-	if(_max == 0.) _max = config_info.box->box_sides().x * 0.5;
+	if(_max == 0.) _max = _config_info->box->box_sides().x * 0.5;
 	_n_bins = (_max - _min) / _bin;
 
 	_gr = std::vector<number>(_n_bins, 0.);

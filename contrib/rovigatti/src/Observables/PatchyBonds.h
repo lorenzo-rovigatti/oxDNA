@@ -24,7 +24,6 @@ public:
 	virtual ~PatchyBonds();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo &config_info);
 
 	std::string _configuration(llint step);
 };

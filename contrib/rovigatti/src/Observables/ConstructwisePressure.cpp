@@ -38,10 +38,10 @@ void ConstructwisePressure::get_settings(input_file &my_inp, input_file &sim_inp
 	_is_polymer_swap = (interaction == "PolymerSwapInteraction");
 }
 
-void ConstructwisePressure::init(ConfigInfo &info) {
-	BaseObservable::init(info);
+void ConstructwisePressure::init() {
+	BaseObservable::init();
 
-	int N = info.N();
+	int N = _config_info->N();
 
 	if(N % _construct_size) {
 		throw oxDNAException("ConstructwisePressure: the total number of particles (%d) is not a multiple of the construct size specified in the input file (%d)", N, _construct_size);

@@ -61,7 +61,7 @@ void MGAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 }
 
-void MGAnalysis::init(ConfigInfo &config_info) {
+void MGAnalysis::init() {
 	number rep_rcut = pow(2., 1. / _exponent);
 	_sqr_rep_rcut = SQR(rep_rcut);
 

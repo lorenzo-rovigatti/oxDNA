@@ -32,10 +32,10 @@ void Remoteness::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&my_inp, "max_distance", &_max_distance, 1);
 }
 
-void Remoteness::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void Remoteness::init() {
+	BaseObservable::init();
 
-	_N = config_info.N() + 1;
+	_N = _config_info->N() + 1;
 
 	_probe = new BaseParticle();
 	_probe->index = _N - 1;
@@ -46,12 +46,12 @@ void Remoteness::init(ConfigInfo &config_info) {
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
 	_particles.resize(_N);
 	for(int i = 0; i < _N - 1; i++) {
-		_particles[i] = config_info.particles()[i];
+		_particles[i] = _config_info->particles()[i];
 	}
 	_particles[_N - 1] = _probe;
 
 	number rcut = _max_distance;
-	_cells = new Cells(_particles, config_info.box);
+	_cells = new Cells(_particles, _config_info->box);
 	_cells->init(rcut);
 
 	_bin_size = _max_distance / _n_bins;
@@ -59,7 +59,7 @@ void Remoteness::init(ConfigInfo &config_info) {
 	_partial_histo.resize(_n_bins, 0.);
 
 	if(_tries == 0) {
-		number tot_V = config_info.box->V();
+		number tot_V = _config_info->box->V();
 		number probe_V = M_PI / 6.;
 		_tries = (int) (tot_V / probe_V) * 50;
 		OX_LOG(Logger::LOG_INFO, "Remoteness: tries = %d", _tries);

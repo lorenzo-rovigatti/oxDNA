@@ -34,7 +34,7 @@ public:
 	virtual ~ConstructwisePressure();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo &Info);
+	void init();
 
 	void update_pressure();
 	void update_pressure_PolymerSwap();

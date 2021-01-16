@@ -38,7 +38,7 @@ void PatchyToMgl::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&my_inp, "costheta", &_patch_size, 0);
 }
 
-void PatchyToMgl::init(ConfigInfo &config_info) {
+void PatchyToMgl::init() {
 	Configuration::init(config_info);
 }
 

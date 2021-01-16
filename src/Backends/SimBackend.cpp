@@ -343,7 +343,7 @@ void SimBackend::init() {
 
 	// initializes the observable output machinery. This part has to follow read_topology() since _particles has to be initialized
 	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		(*it)->init(*_config_info);
+		(*it)->init();
 	}
 
 	OX_LOG(Logger::LOG_INFO, "N: %d, N molecules: %d", N, _molecules.size());

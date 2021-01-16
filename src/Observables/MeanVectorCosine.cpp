@@ -17,8 +17,8 @@ MeanVectorCosine::~MeanVectorCosine() {
 
 }
 
-void MeanVectorCosine::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void MeanVectorCosine::init() {
+	BaseObservable::init();
 
 	// check that _vector_to_average is either 1,2, or 3.
 	if(_vector_to_average > 3 || _vector_to_average < -1) {

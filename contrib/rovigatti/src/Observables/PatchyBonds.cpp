@@ -29,10 +29,6 @@ void PatchyBonds::get_settings(input_file &my_inp, input_file &sim_inp) {
 	Configuration::get_settings(my_inp, sim_inp);
 }
 
-void PatchyBonds::init(ConfigInfo &config_info) {
-	Configuration::init(config_info);
-}
-
 std::string PatchyBonds::_headers(llint step) {
 	std::stringstream headers;
 

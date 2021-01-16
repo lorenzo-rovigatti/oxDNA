@@ -16,8 +16,8 @@ ContactMap::~ContactMap() {
 
 }
 
-void ContactMap::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void ContactMap::init() {
+	BaseObservable::init();
 }
 
 std::string ContactMap::get_output_string(llint curr_step) {

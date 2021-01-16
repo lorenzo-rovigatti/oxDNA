@@ -43,11 +43,9 @@ public:
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	/**
-	 * @brief Initializes the observable. This basic implementation copies the passed config_info.
-	 *
-	 * @param config_info
+	 * @brief Initializes the observable.
 	 */
-	virtual void init(ConfigInfo &config_info);
+	virtual void init();
 };
 
 using ObservablePtr = std::shared_ptr<BaseObservable>;

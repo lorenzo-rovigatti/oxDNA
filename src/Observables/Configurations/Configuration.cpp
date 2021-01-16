@@ -48,19 +48,19 @@ void Configuration::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 }
 
-void Configuration::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void Configuration::init() {
+	BaseObservable::init();
 
 	// if no 'show' options is found then the default behaviour is to show all the particles
 	if(_visible_particles.size() == 0) {
-		for(int i = 0; i < config_info.N(); i++) {
+		for(int i = 0; i < _config_info->N(); i++) {
 			_visible_particles.insert(i);
 		}
 	}
 	// otherwise we have to check that all the particles the user wants to show exist
 	else {
 		for(set<int>::iterator it = _visible_particles.begin(); it != _visible_particles.end(); it++) {
-			if(*it < 0 || *it >= config_info.N()) {
+			if(*it < 0 || *it >= _config_info->N()) {
 				OX_LOG(Logger::LOG_WARNING, "Observable '%s': Particle '%d' cannot be shown because it does not exist", typeid(*this).name(), *it);
 				_visible_particles.erase(*it);
 			}
@@ -74,7 +74,7 @@ void Configuration::init(ConfigInfo &config_info) {
 		}
 	}
 
-	_tot_energy.init(config_info);
+	_tot_energy.init();
 }
 
 string Configuration::_headers(llint step) {

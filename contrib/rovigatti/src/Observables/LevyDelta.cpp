@@ -28,13 +28,13 @@ void LevyDelta::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&sim_inp, "T", &_temperature, 1);
 }
 
-void LevyDelta::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void LevyDelta::init() {
+	BaseObservable::init();
 
-	_inter = dynamic_cast<LevyInteraction *>(config_info.interaction);
+	_inter = dynamic_cast<LevyInteraction *>(_config_info->interaction);
 	if(_inter == NULL) throw oxDNAException("LevyDelta can be used with LevyInteraction simulations only");
 
-	for(auto p: config_info.particles()) {
+	for(auto p: _config_info->particles()) {
 		if(p->btype == _inter->TETRA_CENTRE || p->btype == _inter->TETRA_PATCHY) _tetramer.push_back(p);
 		else _dimer.push_back(p);
 	}
