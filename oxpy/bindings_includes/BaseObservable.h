@@ -49,13 +49,8 @@ void export_BaseObservable(py::module &m) {
 			The general input file of the simulation.
 	)pbdoc");
 
-	obs.def("init", &BaseObservable::init, py::arg("config_info"), R"pbdoc(
+	obs.def("init", &BaseObservable::init, R"pbdoc(
 		Initialises the observable.
-
-		Parameters
-		---------- 
-		config_info: :class:`ConfigInfo`
-			The singleton object storing the simulation details.
 	)pbdoc");
 
 	obs.def("get_output_string", &BaseObservable::get_output_string, py::arg("curr_step"), R"pbdoc(

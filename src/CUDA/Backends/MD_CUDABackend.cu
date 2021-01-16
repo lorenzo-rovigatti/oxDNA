@@ -581,7 +581,7 @@ void MD_CUDABackend::init() {
 	_h_forces = new c_number4[N()];
 	_h_torques = new c_number4[N()];
 
-	_obs_output_error_conf->init(*_config_info);
+	_obs_output_error_conf->init();
 
 	// initialise the GPU array containing the size of the molecules
 	std::vector<int> mol_sizes;
