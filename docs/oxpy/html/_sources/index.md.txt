@@ -80,4 +80,9 @@ The oxDNA code raises `oxDNAException`s when the simulation cannot be correctly 
 
 ## Extending Oxpy
 
-To be written.
+```eval_rst
+.. toctree::
+   :maxdepth: 2
+   
+   extending/observables.md
+```
