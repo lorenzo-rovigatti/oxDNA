@@ -192,6 +192,8 @@ public:
 	virtual void fix_diffusion();
 	virtual void print_equilibration_info();
 
+	void add_output(ObservableOutputPtr new_output);
+
 	/**
 	 * @brief Prints the observables attached to the backend.
 	 *

@@ -130,6 +130,10 @@ void ObservableOutput::clear() {
 	_obss.clear();
 }
 
+void ObservableOutput::add_observable(ObservablePtr new_obs) {
+	_obss.push_back(new_obs);
+}
+
 void ObservableOutput::add_observable(std::string obs_string) {
 	input_file *obs_inp = Utils::get_input_file_from_string(obs_string);
 

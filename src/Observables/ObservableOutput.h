@@ -85,7 +85,14 @@ public:
 	void init();
 
 	/**
-	 * @brief Adds the observable defined by obs_string to the list
+	 * @brief Add the given observable to this output's list of observables
+	 *
+	 * @param obs_string
+	 */
+	void add_observable(ObservablePtr new_obs);
+
+	/**
+	 * @brief Add the observable defined by obs_string to the list
 	 *
 	 * The observable will be appended to the observable list. The output order will reflect the order with which
 	 * observable have been added to the list.

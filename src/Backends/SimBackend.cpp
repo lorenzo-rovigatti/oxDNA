@@ -554,6 +554,10 @@ void SimBackend::apply_changes_to_simulation_data() {
 
 }
 
+void SimBackend::add_output(ObservableOutputPtr new_output) {
+	_obs_outputs.push_back(new_output);
+}
+
 void SimBackend::print_observables(llint curr_step) {
 	bool someone_ready = false;
 	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {

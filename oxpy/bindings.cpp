@@ -27,11 +27,6 @@ void export_ConfigInfo(py::module &m);
 void export_IBaseInteraction(py::module &m);
 
 PYBIND11_MODULE(core, m) {
-	export_OxpyContext(m);
-
-	export_SimManager(m);
-	export_OxpyManager(m);
-
 	export_BaseObservable(m);
 	export_BaseParticle(m);
 	export_BaseForce(m);
@@ -41,6 +36,11 @@ PYBIND11_MODULE(core, m) {
 	export_RNANucleotide(m);
 
 	export_input_file(m);
+
+	export_OxpyContext(m);
+
+	export_SimManager(m);
+	export_OxpyManager(m);
 
 	py::register_exception<oxDNAException>(m, "OxDNAError");
 }
