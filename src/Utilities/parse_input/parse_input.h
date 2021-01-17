@@ -57,7 +57,13 @@ struct input_file {
 	 * @brief Initialise the structure from the given input file, given as a filename.
 	 * @param filename
 	 */
-	void init_from_filename(std::string);
+	void init_from_filename(std::string filename);
+
+	/**
+	 * @brief Initialise the structure from the given string.
+	 * @param s_inp string to be parsed
+	 */
+	void init_from_string(std::string s_inp);
 
 	/**
 	 * @brief Load keys and values from command line's argc and argv variables

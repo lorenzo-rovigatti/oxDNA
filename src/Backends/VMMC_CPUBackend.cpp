@@ -97,14 +97,14 @@ void VMMC_CPUBackend::init() {
 		_op.init_from_file(_op_file, _particles, N());
 		_w.init((const char *) _weights_file, &_op, _safe_weights, _default_weight);
 		if(_reload_hist)
-			_h.init(_init_hist_file, &_op, _etemps, _netemps);
+		_h.init(_init_hist_file, &_op, _etemps, _netemps);
 		else
-			_h.init(&_op, _etemps, _netemps);
+		_h.init(&_op, _etemps, _netemps);
 		_h.set_simtemp(_T);
 	}
 
 	if(_delta[MC_MOVE_TRANSLATION] * sqrt(3) > _verlet_skin)
-		throw oxDNAException("verlet_skin must be > delta_translation times sqrt(3) (the maximum displacement)");
+	throw oxDNAException("verlet_skin must be > delta_translation times sqrt(3) (the maximum displacement)");
 
 	_vmmc_box_side = _box->box_sides()[0];
 
@@ -174,7 +174,7 @@ void VMMC_CPUBackend::init() {
 	}
 
 	if(_overlap == true)
-		throw oxDNAException("There is an overlap in the initial configuration. Dying badly");
+	throw oxDNAException("There is an overlap in the initial configuration. Dying badly");
 }
 
 void VMMC_CPUBackend::get_settings(input_file & inp) {
@@ -247,11 +247,11 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 			}
 			else {
 				_reload_hist = false;
-				FILE * tmpfile = fopen(_traj_hist_file, "w");
-				fclose(tmpfile);
+				FILE *temp_file = fopen(_traj_hist_file, "w");
+				fclose(temp_file);
 			}
 
-			// wether to use unsafe weights
+			// whether to use unsafe weights
 			if(getInputBoolAsInt(&inp, "safe_weights", &tmpi, 0) == KEY_FOUND) {
 				_safe_weights = (tmpi > 0);
 				if(!_safe_weights) {
@@ -261,15 +261,15 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 					OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) Using unsafe weights with default weight = %g", _default_weight);
 				}
 			}
-			// wether to print out zero entries in traj_hist and last_hist 
+			// whether to print out zero entries in traj_hist and last_hist
 			if(getInputBoolAsInt(&inp, "skip_hist_zeros", &tmpi, 0) == KEY_FOUND) {
 				_skip_hist_zeros = tmpi > 0;
 				if(_skip_hist_zeros)
-					OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) Skipping zero entries in traj_hist and last_hist files");
-				}
+				OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) Skipping zero entries in traj_hist and last_hist files");
+			}
 
-				// should we extrapolate the histogram at different
-				// temperatures?
+			// should we extrapolate the histogram at different
+			// temperatures?
 			char tstring[512];
 			if(getInputString(&inp, "extrapolate_hist", tstring, 0) == KEY_FOUND) {
 				OX_LOG(Logger::LOG_INFO, "(VMMC_CPUBackend.cpp) Extrapolating to temperatures .... %s", tstring);
@@ -363,7 +363,7 @@ inline number VMMC_CPUBackend::_particle_particle_bonded_interaction_n3_VMMC(Bas
 	q->n5 = p;
 
 	if(stacking_en != 0)
-		*stacking_en = 0;
+	*stacking_en = 0;
 
 	LR_vector r = q->pos - p->pos;
 
@@ -405,7 +405,7 @@ inline number VMMC_CPUBackend::_particle_particle_bonded_interaction_n3_VMMC(Bas
 
 inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(BaseParticle *p, BaseParticle *q, number *H_energy) {
 	if(H_energy != 0)
-		*H_energy = (number) 0;
+	*H_energy = (number) 0;
 
 	LR_vector r = _box->min_image(p->pos, q->pos);
 
@@ -426,7 +426,7 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 
 	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
 	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL)
-		energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
+	energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
 
 	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, false, false);
@@ -620,7 +620,7 @@ inline number VMMC_CPUBackend::build_cluster_small(movestr * moveptr, int maxsiz
 				E_old = eijm_old[pp->index][qq->index];
 
 				if(E_old == (number) 0.)
-					continue;
+				continue;
 
 				E_pp_moved = _particle_particle_nonbonded_interaction_VMMC(pp, qq, &tmpf);
 				test1 = VMMC_link(E_pp_moved, E_old);
@@ -1046,7 +1046,7 @@ inline number VMMC_CPUBackend::build_cluster_cells(movestr * moveptr, int maxsiz
 	*size = nclust;
 
 	if(_overlap)
-		printf("cera anche qui\n");
+	printf("cera anche qui\n");
 
 	if(nclust > maxsize) {
 		pprime = 0.;
@@ -1111,7 +1111,7 @@ inline number VMMC_CPUBackend::build_cluster_cells(movestr * moveptr, int maxsiz
 			qq = pp->n5;
 			if(qq->inclust == false) {
 				if(_overlap)
-					printf("cera prima\n");
+				printf("cera prima\n");
 				epq_new = _particle_particle_bonded_interaction_n3_VMMC(qq, pp, &tmpf_new);
 				//epq_new = _particle_particle_bonded_interaction_n5_VMMC (pp, qq, &tmpf_new);
 
@@ -1149,7 +1149,7 @@ inline number VMMC_CPUBackend::build_cluster_cells(movestr * moveptr, int maxsiz
 
 					// we have considered this interaction, so we remove it from the list
 					if(fabs(epq_old) > 0.)
-						prev_inter.erase((pp->index > qq->index) ? (base_pair(qq->index, pp->index)) : (base_pair(pp->index, qq->index)));
+					prev_inter.erase((pp->index > qq->index) ? (base_pair(qq->index, pp->index)) : (base_pair(pp->index, qq->index)));
 
 					// check for anomaly of second kind;
 					if(epq_old == 0. && epq_new > 0.) {
@@ -1202,7 +1202,7 @@ inline number VMMC_CPUBackend::build_cluster_cells(movestr * moveptr, int maxsiz
 			epq_old = _particle_particle_nonbonded_interaction_VMMC(_particles_old[pp->index], _particles_old[qq->index], &tmpf);
 			delta_E -= epq_old;
 			if(epq_old > 0.)
-				E_anomaly += epq_old;
+			E_anomaly += epq_old;
 			// if we get to this stage, epq_new has to be 0, so the hydrogen bond
 			// is for sure not present anymore
 			if(_have_us) {
@@ -1325,7 +1325,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 	int windex, oldwindex;
 	oldweight = weight = 1.;
 	if(_have_us)
-		oldweight = _w.get_weight(_op.get_all_states(), &oldwindex);
+	oldweight = _w.get_weight(_op.get_all_states(), &oldwindex);
 
 	// set the potential due to external forces
 	_U_ext = (number) 0.f;
@@ -1337,7 +1337,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 
 	for(int i = 0; i < N(); i++) {
 		if(_have_us)
-			_op.store();
+		_op.store();
 		_dU_stack = 0.;
 
 		// seed particle;
@@ -1366,7 +1366,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 			//move.t = _particles[move.seed]->int_centers[DNANucleotide::BACK] + _particles[move.seed]->pos;
 			move.t = _particles[move.seed]->int_centers[DNANucleotide::BACK];
 			if(fabs((move.t * move.t)) > 0.5)
-				printf("caca");
+			printf("caca");
 		}
 		_last_move = move.type;
 
@@ -1375,9 +1375,9 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 		//printf("building cluster starting from %i...\n", move.seed);
 		number pprime;
 		if(_small_system)
-			pprime = build_cluster_small(&move, _maxclust, clust, &nclust);
+		pprime = build_cluster_small(&move, _maxclust, clust, &nclust);
 		else
-			pprime = build_cluster_cells(&move, _maxclust, clust, &nclust);
+		pprime = build_cluster_cells(&move, _maxclust, clust, &nclust);
 
 		assert(nclust >= 1);
 
@@ -1422,7 +1422,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 		//printf("## U: %lf dU: %lf, p': %lf, nclust: %d \n", _U, _dU, pprime, nclust);
 		if(_overlap == false && pprime > drand48()) {
 			if(nclust <= _maxclust)
-				_accepted[_last_move]++;
+			_accepted[_last_move]++;
 			//if (!_reject_prelinks) _accepted[0]++;
 			_U += _dU;
 			_U_stack += _dU_stack;
@@ -1486,7 +1486,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 			_overlap = false;
 
 			if(_have_us)
-				_op.restore();
+			_op.restore();
 			//_op.print();
 			//printf ("rejected... checking metainfo...\n");
 			//if (_have_us) check_ops();
@@ -1515,7 +1515,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 
 		// add to the histogram
 		if(_have_us && curr_step > _equilibration_steps)
-			_h.add(oldwindex, oldweight, _U, _U_stack, _U_ext);
+		_h.add(oldwindex, oldweight, _U, _U_stack, _U_ext);
 
 		// reset the inclust property to the particles
 		for(int k = 0; k < nclust; k++) {
@@ -1534,7 +1534,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 		number U_from_tally = _U;
 		_compute_energy();
 		if((_U - U_from_tally) > 1.e-4)
-			throw oxDNAException("(VMMC_CPUBackend) Accumulated Energy (%g) and Energy computed from scratch (%g) don't match. Possibly percolating clusters. Your box is too small", U_from_tally, _U);
+		throw oxDNAException("(VMMC_CPUBackend) Accumulated Energy (%g) and Energy computed from scratch (%g) don't match. Possibly percolating clusters. Your box is too small", U_from_tally, _U);
 		//printf ("all ok (%g %g)... \n", U_from_tally, _U);
 	}
 
@@ -1546,7 +1546,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 
 void VMMC_CPUBackend::check_ops() {
 	if(!_have_us)
-		return;
+	return;
 	//printf ("checking OP...\n");
 	assert(_have_us);
 
@@ -1580,7 +1580,7 @@ void VMMC_CPUBackend::check_ops() {
 
 	for(i = 0; i < _op.get_all_parameters_count(); i++) {
 		if(state[i] != new_state[i])
-			printf("%d should be %d \n", state[i], new_state[i]);
+		printf("%d should be %d \n", state[i], new_state[i]);
 		check += abs(new_state[i] - state[i]);
 	}
 
@@ -1639,7 +1639,9 @@ void VMMC_CPUBackend::_update_ops() {
 void VMMC_CPUBackend::_print_pos(int id) {
 	BaseParticle * p;
 	p = _particles[id];
-	printf("%5i - np.array([% 10.6e % 10.6e % 10.6e])\n        np.array([% 10.6e % 10.6e % 10.6e])\n        np.array([% 10.6e % 10.6e % 10.6e])\n        np.array([% 10.6e % 10.6e % 10.6e])\n", id, p->pos.x, p->pos.y, p->pos.z, p->orientationT.v1.x, p->orientationT.v1.y, p->orientationT.v1.z, p->orientationT.v2.x, p->orientationT.v2.y, p->orientationT.v2.z, p->orientationT.v3.x, p->orientationT.v3.y, p->orientationT.v3.z);
+	printf("%5i - np.array([% 10.6e % 10.6e % 10.6e])\n        np.array([% 10.6e % 10.6e % 10.6e])\n        np.array([% 10.6e % 10.6e % 10.6e])\n        np.array([% 10.6e % 10.6e % 10.6e])\n", id,
+			p->pos.x, p->pos.y, p->pos.z, p->orientationT.v1.x, p->orientationT.v1.y, p->orientationT.v1.z, p->orientationT.v2.x, p->orientationT.v2.y, p->orientationT.v2.z, p->orientationT.v3.x,
+			p->orientationT.v3.y, p->orientationT.v3.z);
 	return;
 }
 
@@ -1667,7 +1669,7 @@ inline void VMMC_CPUBackend::check_overlaps() {
 	}
 	assert(noverlaps == 0);
 	if(noverlaps > 0)
-		abort();
+	abort();
 }
 
 char * VMMC_CPUBackend::get_op_state_str() {
@@ -1692,7 +1694,7 @@ void VMMC_CPUBackend::print_conf(llint curr_step, bool reduced, bool only_last) 
 	SimBackend::print_conf(curr_step, reduced, only_last);
 	if(_have_us) {
 		if(!only_last)
-			_h.print_to_file(_traj_hist_file, curr_step, false, _skip_hist_zeros);
+		_h.print_to_file(_traj_hist_file, curr_step, false, _skip_hist_zeros);
 		_h.print_to_file(_last_hist_file, curr_step, true, _skip_hist_zeros);
 	}
 }
@@ -1701,7 +1703,7 @@ void VMMC_CPUBackend::print_conf(llint curr_step, bool only_last) {
 	SimBackend::print_conf(curr_step, only_last);
 	if(_have_us) {
 		if(!only_last)
-			_h.print_to_file(_traj_hist_file, curr_step, false, _skip_hist_zeros);
+		_h.print_to_file(_traj_hist_file, curr_step, false, _skip_hist_zeros);
 		_h.print_to_file(_last_hist_file, curr_step, true, _skip_hist_zeros);
 	}
 }
@@ -1761,7 +1763,7 @@ void VMMC_CPUBackend::_init_cells() {
 	}
 
 	if(_vmmc_N_cells_side < 3)
-		_vmmc_N_cells_side = 3;
+	_vmmc_N_cells_side = 3;
 
 	_vmmc_N_cells = _vmmc_N_cells_side * _vmmc_N_cells_side * _vmmc_N_cells_side;
 
@@ -1864,7 +1866,7 @@ void VMMC_CPUBackend::fix_diffusion() {
 				number hpq;
 				_particle_particle_nonbonded_interaction_VMMC(p, q, &hpq);
 				if(hpq < HB_CUTOFF)
-					_op.add_hb(p->index, q->index);
+				_op.add_hb(p->index, q->index);
 			}
 		}
 	}

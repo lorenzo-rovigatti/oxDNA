@@ -35,12 +35,12 @@ typedef vector<base_pair> vector_of_pairs;
 
 struct classcomp {
 	bool operator()(const base_pair& a, const base_pair& b) const {
-		if (a.first < b.first)
-			return true;
-		else if (a.first == b.first && a.second < b.second)
-			return true;
+		if(a.first < b.first)
+		return true;
+		else if(a.first == b.first && a.second < b.second)
+		return true;
 		else
-			return false;
+		return false;
 	}
 };
 
@@ -92,7 +92,7 @@ struct HBParameter {
 		name = newname;
 	}
 
-	int plus_pair(base_pair& bp,double energy = -16);
+	int plus_pair(base_pair& bp, double energy = -16);
 	int minus_pair(base_pair& bp);
 	void reset(void) {
 		current_value = 0;
@@ -109,13 +109,13 @@ struct MinDistanceParameter {
 	double current_value;
 	double stored_value;
 	std::string name;
-	
+
 	// the sub-type is used to decide what to actually measure 
 	int _sub_type;
 
 	//flag for use of COM-COM distances instead of base-base distances:
 	bool _use_COM;
-    
+
 	// added to discretize it
 	/// index of the state
 	int state_index;
@@ -170,31 +170,31 @@ struct MinDistanceParameter {
 
 	int calculate_state(std::vector<BaseParticle *> &particle_list, BaseBox * box) {
 		// if mindistance
-		if (_sub_type == 0){
+		if(_sub_type == 0) {
 			LR_vector dist;
 			current_value = -1;
 			double candidate;
-			for (vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
+			for(vector_of_pairs::iterator i = counted_pairs.begin(); i != counted_pairs.end(); i++) {
 				BaseParticle *p = particle_list[(*i).first];
 				BaseParticle *q = particle_list[(*i).second];
-				if (p->strand_id == q->strand_id) dist = q->pos - p->pos;
+				if(p->strand_id == q->strand_id) dist = q->pos - p->pos;
 				else dist = box->min_image(p, q);
-				
-				if (_use_COM == false) {
+
+				if(_use_COM == false) {
 					dist += q->int_centers[DNANucleotide::BASE];
 					dist -= p->int_centers[DNANucleotide::BASE];
 				}
 				candidate = dist * dist;
 
-				if (current_value < 0 || candidate < current_value) current_value = candidate;
+				if(current_value < 0 || candidate < current_value) current_value = candidate;
 			}
 			current_value = sqrt(current_value);
 		}
 		// twist
 		// Algorithm described in page 26 of Christian Matek's thesis - Statistical mechanics of Nucleic Acids under Mechanical Stress
-		else if (_sub_type == 1){
+		else if(_sub_type == 1) {
 			double twist = 0;
-			for (vector_of_pairs::iterator i = counted_pairs.begin() + 1; i != counted_pairs.end(); i++) {
+			for(vector_of_pairs::iterator i = counted_pairs.begin() + 1; i != counted_pairs.end(); i++) {
 				// get the position vectors of the current and previous base-pairs
 				BaseParticle *first_curr = particle_list[(*i).first];
 				BaseParticle *second_curr = particle_list[(*i).second];
@@ -209,31 +209,32 @@ struct MinDistanceParameter {
 				LR_vector conn = (bp_curr - bp_prev);
 				conn.normalize();
 				// project the two base-pair vectors onto the plane normal to the conn vector
-				bp_curr  -= (conn * bp_curr) * bp_curr;
-				bp_prev  -= (conn * bp_prev) * bp_prev;
+				bp_curr -= (conn * bp_curr) * bp_curr;
+				bp_prev -= (conn * bp_prev) * bp_prev;
 				// finally, compute the angle between the projections and sum it up
 				twist += LRACOS(bp_curr * bp_prev);
 			}
 			//return the twist, which is defined as the number of turns (i.e. the angle in radians divided by 2pi).
-			current_value = twist / 2*M_PI;
+			current_value = twist / 2 * M_PI;
 		}
 		// unknown order parameter.
 		else {
-			throw oxDNAException("Unknown order parameter subtype %d",_sub_type);
+			throw oxDNAException("Unknown order parameter subtype %d", _sub_type);
 		}
 
-		if (n_states == 0) {
+		if(n_states == 0) {
 			state_index = -1;
 			return state_index;
 		}
 
-		if (n_states == 1) {
+		if(n_states == 1) {
 			state_index = 0;
 			return state_index;
 		}
 
 		int c = 0;
-		while (c < (n_states - 1) && current_value > interfaces[c]) c++;
+		while(c < (n_states - 1) && current_value > interfaces[c])
+			c++;
 		state_index = c;
 
 		return state_index;
@@ -274,7 +275,7 @@ protected:
 	int _all_states_count;
 	int * _all_states;
 
-	int _log_level;	
+	int _log_level;
 
 public:
 	OrderParameters();
@@ -295,11 +296,11 @@ public:
 
 	// functions to extract a list of particle pair ids that are involved in either a hydrogen
 	// bond or a minimum distance order parameter
-	void get_dist_pairs(int *out1, int *out2){
+	void get_dist_pairs(int *out1, int *out2) {
 		int ii = 0;
 		int op_count = get_distance_parameters_count();
-		for (int op_ind=0 ; op_ind < op_count ; op_ind ++){
-			for (vector_of_pairs::iterator i = _distance_parameters[op_ind].counted_pairs.begin();
+		for(int op_ind = 0; op_ind < op_count; op_ind++) {
+			for(vector_of_pairs::iterator i = _distance_parameters[op_ind].counted_pairs.begin();
 					i != _distance_parameters[op_ind].counted_pairs.end(); i++) {
 				out1[ii] = (*i).first;
 				out2[ii] = (*i).second;
@@ -308,11 +309,11 @@ public:
 		}
 	}
 
-	void get_hb_pairs(int *out1, int *out2){
+	void get_hb_pairs(int *out1, int *out2) {
 		int ii = 0;
 		int op_count = get_hb_parameters_count();
-		for (int op_ind=0 ; op_ind < op_count ; op_ind ++){
-			for (set_of_pairs::iterator i = _hb_parameters[op_ind].counted_pairs.begin();
+		for(int op_ind = 0; op_ind < op_count; op_ind++) {
+			for(set_of_pairs::iterator i = _hb_parameters[op_ind].counted_pairs.begin();
 					i != _hb_parameters[op_ind].counted_pairs.end(); i++) {
 				out1[ii] = (*i).first;
 				out2[ii] = (*i).second;
@@ -321,33 +322,33 @@ public:
 		}
 	}
 
-	void get_dist_pairs_count(int *counts){
+	void get_dist_pairs_count(int *counts) {
 		int op_count = get_distance_parameters_count();
-		for (int op_ind=0 ; op_ind < op_count ; op_ind ++){
+		for(int op_ind = 0; op_ind < op_count; op_ind++) {
 			counts[op_ind] = 0;
-			for (vector_of_pairs::iterator i = _distance_parameters[op_ind].counted_pairs.begin();
+			for(vector_of_pairs::iterator i = _distance_parameters[op_ind].counted_pairs.begin();
 					i != _distance_parameters[op_ind].counted_pairs.end(); i++) {
 				counts[op_ind]++;
 			}
 		}
 	}
 
-	void get_hb_pairs_count(int *counts){
+	void get_hb_pairs_count(int *counts) {
 		int op_count = get_hb_parameters_count();
-		for (int op_ind=0 ; op_ind < op_count ; op_ind ++){
+		for(int op_ind = 0; op_ind < op_count; op_ind++) {
 			counts[op_ind] = 0;
-			for (set_of_pairs::iterator i = _hb_parameters[op_ind].counted_pairs.begin();
+			for(set_of_pairs::iterator i = _hb_parameters[op_ind].counted_pairs.begin();
 					i != _hb_parameters[op_ind].counted_pairs.end(); i++) {
 				counts[op_ind]++;
 			}
 		}
 	}
 
-	int get_dist_pairs_total_count(){
+	int get_dist_pairs_total_count() {
 		int ii = 0;
 		int op_count = get_distance_parameters_count();
-		for (int op_ind=0 ; op_ind < op_count ; op_ind ++){
-			for (vector_of_pairs::iterator i = _distance_parameters[op_ind].counted_pairs.begin();
+		for(int op_ind = 0; op_ind < op_count; op_ind++) {
+			for(vector_of_pairs::iterator i = _distance_parameters[op_ind].counted_pairs.begin();
 					i != _distance_parameters[op_ind].counted_pairs.end(); i++) {
 				ii++;
 			}
@@ -355,11 +356,11 @@ public:
 		return ii;
 	}
 
-	int get_hb_pairs_total_count(){
+	int get_hb_pairs_total_count() {
 		int ii = 0;
 		int op_count = get_hb_parameters_count();
-		for (int op_ind=0 ; op_ind < op_count ; op_ind ++){
-			for (set_of_pairs::iterator i = _hb_parameters[op_ind].counted_pairs.begin();
+		for(int op_ind = 0; op_ind < op_count; op_ind++) {
+			for(set_of_pairs::iterator i = _hb_parameters[op_ind].counted_pairs.begin();
 					i != _hb_parameters[op_ind].counted_pairs.end(); i++) {
 				ii++;
 			}
@@ -368,10 +369,10 @@ public:
 	}
 
 	// get a list of all the particle pairs involved in any of the hb order parameters
-	vector_of_pairs get_hb_particle_list(){
+	vector_of_pairs get_hb_particle_list() {
 		vector_of_pairs inds;
-		for (int i = 0; i < _hb_parameters_count; i++){
-			for (set_of_pairs::iterator j = _hb_parameters[i].counted_pairs.begin(); j != _hb_parameters[i].counted_pairs.end(); j++) {
+		for(int i = 0; i < _hb_parameters_count; i++) {
+			for(set_of_pairs::iterator j = _hb_parameters[i].counted_pairs.begin(); j != _hb_parameters[i].counted_pairs.end(); j++) {
 				int p_ind = (*j).first;
 				int q_ind = (*j).second;
 				inds.push_back(std::make_pair(p_ind, q_ind));
@@ -387,25 +388,25 @@ public:
 	 * @return values of ops (indexed by ther id_numbers)
 	 */
 	int get_hb_parameter(int param_id) {
-		if (param_id < _hb_parameters_count)
-			return _hb_parameters[param_id].get_state();
+		if(param_id < _hb_parameters_count)
+		return _hb_parameters[param_id].get_state();
 		else
-			return -1;
+		return -1;
 	}
 
 	double get_hb_cutoff(int param_id)
-	{
-		if (param_id < _hb_parameters_count)
-			return _hb_parameters[param_id].get_cutoff();
+			{
+		if(param_id < _hb_parameters_count)
+		return _hb_parameters[param_id].get_cutoff();
 		else
-			return HB_CUTOFF;
+		return HB_CUTOFF;
 	}
 
 	double get_distance_parameter(int param_id) {
-		if (param_id < _distance_parameters_count)
-			return _distance_parameters[param_id].get_state();
+		if(param_id < _distance_parameters_count)
+		return _distance_parameters[param_id].get_state();
 		else
-			return -1;
+		return -1;
 	}
 
 	/**
@@ -452,35 +453,36 @@ public:
 	void print(void) {
 		int * states;
 		states = get_hb_states();
-		for (int i = 0; i < _hb_parameters_count; i++) {
+		for(int i = 0; i < _hb_parameters_count; i++) {
 			printf("%d ", states[i]);
 		}
-		double * dists = get_distance_states ();
-		for (int i = 0; i < _distance_parameters_count; i ++) printf ("%g ", dists[i]);
+		double * dists = get_distance_states();
+		for(int i = 0; i < _distance_parameters_count; i++)
+			printf("%g ", dists[i]);
 		printf("\n");
 	}
 
 	void sprintf_names_and_values(char * str) {
 		char tmp[1024];
 		*str = '\0';
-		int * states = get_hb_states ();
-		for (int i = 0; i < _hb_parameters_count; i++) {
+		int * states = get_hb_states();
+		for(int i = 0; i < _hb_parameters_count; i++) {
 			sprintf(tmp, "%s: %d; ", get_name_from_hb_id(i), states[i]);
-			strcat (str, tmp);
+			strcat(str, tmp);
 		}
-		double * dists = get_distance_states ();
-		for (int i = 0; i < _distance_parameters_count; i ++) {
+		double * dists = get_distance_states();
+		for(int i = 0; i < _distance_parameters_count; i++) {
 			sprintf(tmp, "%s: %12.9f; ", get_name_from_distance_id(i), dists[i]);
-			strcat (str, tmp);
+			strcat(str, tmp);
 		}
 		//sprintf("\n");
 	}
 
 	/// to be called in order to evaluate order_parameters:
 	/// calculates all minimal distances from list of particles
-	
+
 	void fill_distance_parameters(std::vector<BaseParticle *> &particles, BaseBox * box) {
-		for (int i = 0; i < _distance_parameters_count; i++) {
+		for(int i = 0; i < _distance_parameters_count; i++) {
 			//_distance_parameters[i].calculate_value(particles, box_side);
 			// the next line also updates current_value
 			_distance_parameters[i].calculate_state(particles, box);
@@ -488,7 +490,7 @@ public:
 	}
 
 	/// adds given bonded pair to all values of order parameters
-	void add_hb(int a, int b,double energy = -16);
+	void add_hb(int a, int b, double energy = -16);
 	void remove_hb(int a, int b);
 
 	/// to be called in MC or MD cycles functions
@@ -506,7 +508,7 @@ public:
 	 * @param max_N
 	 * @return
 	 */
-	
+
 	int init_from_file(const char *_external_filename, std::vector<BaseParticle *> &particles, int max_N) {
 		OX_LOG(_log_level, "Parsing order parameter file %s", _external_filename);
 
@@ -542,266 +544,261 @@ public:
 			a = external.get();
 			if (!external.good()) break;
 
-			// this function create a temporary file which is destroyed
-			// upon calling fclose
-			// the temporary file is opened with "wb+" flags
-			FILE *temp = tmpfile();
-			//OX_LOG(Logger::_log_level, "   Using temporary file");
 			a = external.get();
+			std::string input_string;
 			while (a != '}' && external.good()) {
-				fprintf(temp, "%c", a);
+				input_string += a;
 				a = external.get();
 			}
 
-			rewind(temp);
 			input_file input;
+			input.init_from_string(input_string);
+
 			std::string type_str;
 			std::string name_str;
 			int type;
 			int sub_type = 0;
-			input.init_from_file(temp);
 			getInputString(&input, "order_parameter", type_str, 1);
 			type = -1;
 			if (strcmp(type_str.c_str(), "bond") == 0) type = 0;
-			if (strcmp(type_str.c_str(), "mindistance") == 0){
+			if (strcmp(type_str.c_str(), "mindistance") == 0) {
 				type = 1;
 				sub_type = 0;
 			}
-			if (strcmp(type_str.c_str(), "twist") == 0){
+			if (strcmp(type_str.c_str(), "twist") == 0) {
 				type = 1;
 				sub_type = 1;
 			}
-			if (type != 0 && type != 1)	throw oxDNAException("Parameter type %s not implemented. Aborting",	type_str.c_str());
+			if (type != 0 && type != 1) throw oxDNAException("Parameter type %s not implemented. Aborting", type_str.c_str());
 			if (type == 0 || type == 1) {
 				getInputString(&input, "name", name_str, 1);
 			}
 			OX_LOG(_log_level, "Order parameter type %s found, processing", type_str.c_str());
 
 			switch (type) {
-			case 0: {
-				// HB
-				HBParameter newpar;
-				_hb_parnames[string(name_str)] = _hb_parameters_count;
+				case 0: {
+					// HB
+					HBParameter newpar;
+					_hb_parnames[string(name_str)] = _hb_parameters_count;
 
-				double cutoff;
-				if (getInputDouble(&input, "cutoff", &cutoff, 0) == KEY_FOUND) {
-					newpar.set_cutoff(cutoff);
-					OX_LOG(_log_level, "Using custom cutoff (applies to FFS simulations only) %f ", cutoff);
-				}
+					double cutoff;
+					if (getInputDouble(&input, "cutoff", &cutoff, 0) == KEY_FOUND) {
+						newpar.set_cutoff(cutoff);
+						OX_LOG(_log_level, "Using custom cutoff (applies to FFS simulations only) %f ", cutoff);
+					}
 
-				vector<string> pair_strings;
-				int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
+					vector<string> pair_strings;
+					int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
 
-				for (int l = 0; l < n_keys; l ++) {
-					string my_value;
-					getInputString (&input, pair_strings[l].c_str(), my_value, 1);
+					for (int l = 0; l < n_keys; l ++) {
+						string my_value;
+						getInputString (&input, pair_strings[l].c_str(), my_value, 1);
 
-					vector<string> my_values = Utils::split (my_value.c_str(), ',');
+						vector<string> my_values = Utils::split (my_value.c_str(), ',');
 
-					if (my_values.size() != 2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
+						if (my_values.size() != 2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
 
-					// we check if the two strings contain '-'
-					bool found1 = my_values[0].find('-') != string::npos;
-					bool found2 = my_values[1].find('-') != string::npos;
-					if (found1 != found2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
+						// we check if the two strings contain '-'
+						bool found1 = my_values[0].find('-') != string::npos;
+						bool found2 = my_values[1].find('-') != string::npos;
+						if (found1 != found2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
 
-					// handle the case with the list
-					if (found1) {
-						vector<string> tmps1 = Utils::split(my_values[0].c_str(), '-');
-						vector<string> tmps2 = Utils::split(my_values[1].c_str(), '-');
+						// handle the case with the list
+						if (found1) {
+							vector<string> tmps1 = Utils::split(my_values[0].c_str(), '-');
+							vector<string> tmps2 = Utils::split(my_values[1].c_str(), '-');
 
-						if (tmps1.size() != 2 || tmps2.size() != 2) throw oxDNAException ("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting", my_value.c_str());
+							if (tmps1.size() != 2 || tmps2.size() != 2) throw oxDNAException ("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting", my_value.c_str());
 
-						int start1 = atoi(tmps1[0].c_str());
-						int end1 = atoi(tmps1[1].c_str());
-						int start2 = atoi(tmps2[0].c_str());
-						int end2 = atoi(tmps2[1].c_str());
-						//printf ("@@ start1 %d, end1 %d, start2 %d, end2 %d\n", start1, end1, start2, end2); 
+							int start1 = atoi(tmps1[0].c_str());
+							int end1 = atoi(tmps1[1].c_str());
+							int start2 = atoi(tmps2[0].c_str());
+							int end2 = atoi(tmps2[1].c_str());
+							//printf ("@@ start1 %d, end1 %d, start2 %d, end2 %d\n", start1, end1, start2, end2);
 
-						if (start1 - end1 != start2 - end2 || start1 > end1 || start2 > end2) throw oxDNAException ("Syntax error (d) in the order parameter file. Found invalid list `%s'. Perhaps the indexes are not correct?", my_value.c_str(), pair_strings[l].c_str());
-						
-						int cntr = 0;
-						for (int m = start1; m <= end1; m ++) {
-							int id1 = m;
-							int id2 = end2 - cntr;
+							if (start1 - end1 != start2 - end2 || start1 > end1 || start2 > end2) throw oxDNAException ("Syntax error (d) in the order parameter file. Found invalid list `%s'. Perhaps the indexes are not correct?", my_value.c_str(), pair_strings[l].c_str());
+
+							int cntr = 0;
+							for (int m = start1; m <= end1; m ++) {
+								int id1 = m;
+								int id2 = end2 - cntr;
+								if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
+								if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
+								newpar.save_pair_as_parameter (id1, id2);
+								OX_LOG (_log_level, "--> Adding HB pair (%d, %d) from list `%s' to order parameter `%s'", id1, id2, my_value.c_str(), name_str.c_str());
+								cntr ++;
+							}
+						}
+						// handle the normal case, with pairX = <int>, <int>
+						else {
+							int id1 = atoi (my_values[0].c_str());
+							int id2 = atoi (my_values[1].c_str());
 							if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
 							if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
 							newpar.save_pair_as_parameter (id1, id2);
-							OX_LOG (_log_level, "--> Adding HB pair (%d, %d) from list `%s' to order parameter `%s'", id1, id2, my_value.c_str(), name_str.c_str());
-							cntr ++;
+							OX_LOG (_log_level, "--> Adding HB pair (%d, %d) to order parameter `%s'", id1, id2, name_str.c_str());
 						}
 					}
-					// handle the normal case, with pairX = <int>, <int>
-					else {
-						int id1 = atoi (my_values[0].c_str());
-						int id2 = atoi (my_values[1].c_str());
-						if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
-						if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
-						newpar.save_pair_as_parameter (id1, id2);
-						OX_LOG (_log_level, "--> Adding HB pair (%d, %d) to order parameter `%s'", id1, id2, name_str.c_str());
-					}
+
+					/*
+					 int paira, pairb;
+					 char strdir[512];
+					 char pairname[512];
+					 int pairid = 1;
+					 sprintf(pairname, "pair%d", pairid);
+
+					 while (getInputString(&input, pairname, strdir, 0) == KEY_FOUND) {
+					 //fprintf(stderr, "Loaded %s\n", strdir);
+					 tmpi = sscanf(strdir, "%d,%d", &paira, &pairb);
+
+					 if (tmpi != 2)
+					 throw oxDNAException("could not parse pairs in HB parameter in order parameters file");
+					 if (paira >= max_N || pairb >= max_N)
+					 throw oxDNAException("particle index out of range while parsing order parameters");
+
+					 OX_LOG(Logger::LOG_INFO, "--> adding HB pair %d %d ", paira, pairb);
+
+					 newpar.save_pair_as_parameter(paira, pairb);
+
+					 if (particles[paira]->btype + particles[pairb]->btype != 3)
+					 OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", paira, pairb);
+
+					 pairid++;
+					 sprintf(pairname, "pair%d", pairid);
+					 }
+					 if (pairid == 1) throw oxDNAException("Error, did not find any parameters to parse. Are pairs correctly numbered?");
+					 */
+
+					newpar.set_name (name_str);
+
+					_hb_parameters.push_back(newpar);
+					_hb_parameters_count++;
+
+					break;
 				}
+				case 1: {
+					// mindistance
+					MinDistanceParameter newpar;
+					_dist_parnames[string(name_str)] = _distance_parameters_count;
+					newpar._use_COM = false;//defaults to false
+					newpar._sub_type = sub_type;
 
-				/*
-				int paira, pairb;
-				char strdir[512];
-				char pairname[512];
-				int pairid = 1;
-				sprintf(pairname, "pair%d", pairid);
+					vector<string> pair_strings;
+					int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
 
-				while (getInputString(&input, pairname, strdir, 0) == KEY_FOUND) {
-					//fprintf(stderr, "Loaded %s\n", strdir);
-					tmpi = sscanf(strdir, "%d,%d", &paira, &pairb);
+					for (int l = 0; l < n_keys; l ++) {
+						string my_value;
+						getInputString (&input, pair_strings[l].c_str(), my_value, 1);
 
-					if (tmpi != 2)
-						throw oxDNAException("could not parse pairs in HB parameter in order parameters file");
-					if (paira >= max_N || pairb >= max_N)
-						throw oxDNAException("particle index out of range while parsing order parameters");
+						vector<string> my_values = Utils::split (my_value.c_str(), ',');
 
-					OX_LOG(Logger::LOG_INFO, "--> adding HB pair %d %d ", paira, pairb);
+						if (my_values.size() != 2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
 
-					newpar.save_pair_as_parameter(paira, pairb);
+						// we check if the two strings contain '-'
+						bool found1 = my_values[0].find('-') != string::npos;
+						bool found2 = my_values[1].find('-') != string::npos;
+						if (found1 != found2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
 
-					if (particles[paira]->btype + particles[pairb]->btype != 3)
-						OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", paira, pairb);
+						// handle the case with the list
+						if (found1) {
+							vector<string> tmps1 = Utils::split(my_values[0].c_str(), '-');
+							vector<string> tmps2 = Utils::split(my_values[1].c_str(), '-');
 
-					pairid++;
-					sprintf(pairname, "pair%d", pairid);
-				}
-				if (pairid == 1) throw oxDNAException("Error, did not find any parameters to parse. Are pairs correctly numbered?");
-				*/
+							if (tmps1.size() != 2 || tmps2.size() != 2) throw oxDNAException ("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting", my_value.c_str());
 
-				newpar.set_name (name_str);
+							int start1 = atoi(tmps1[0].c_str());
+							int end1 = atoi(tmps1[1].c_str());
+							int start2 = atoi(tmps2[0].c_str());
+							int end2 = atoi(tmps2[1].c_str());
+							printf ("@@ start1 %d, end1 %d, start2 %d, end2 %d\n", start1, end1, start2, end2);
 
-				_hb_parameters.push_back(newpar);
-				_hb_parameters_count++;
+							if (start1 - end1 != start2 - end2 || start1 > end1 || start2 > end2) throw oxDNAException ("Syntax error (d) in the order parameter file. Found invalid list `%s'. Perhaps the indexes are not correct?", my_value.c_str(), pair_strings[l].c_str());
 
-				break;
-			}
-			case 1: {
-				// mindistance
-				MinDistanceParameter newpar;
-				_dist_parnames[string(name_str)] = _distance_parameters_count;
-				newpar._use_COM = false; //defaults to false
-				newpar._sub_type = sub_type;
-
-				vector<string> pair_strings;
-				int n_keys = getInputKeys(&input, "pair", &pair_strings, 1);
-
-				for (int l = 0; l < n_keys; l ++) {
-					string my_value;
-					getInputString (&input, pair_strings[l].c_str(), my_value, 1);
-
-					vector<string> my_values = Utils::split (my_value.c_str(), ',');
-
-					if (my_values.size() != 2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
-
-					// we check if the two strings contain '-'
-					bool found1 = my_values[0].find('-') != string::npos;
-					bool found2 = my_values[1].find('-') != string::npos;
-					if (found1 != found2) throw oxDNAException("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting.", my_value.c_str(), pair_strings[l].c_str());
-
-					// handle the case with the list
-					if (found1) {
-						vector<string> tmps1 = Utils::split(my_values[0].c_str(), '-');
-						vector<string> tmps2 = Utils::split(my_values[1].c_str(), '-');
-
-						if (tmps1.size() != 2 || tmps2.size() != 2) throw oxDNAException ("Syntax error in the order parameter file. Found invalid value `%s' for key `%s'. Aborting", my_value.c_str());
-
-						int start1 = atoi(tmps1[0].c_str());
-						int end1 = atoi(tmps1[1].c_str());
-						int start2 = atoi(tmps2[0].c_str());
-						int end2 = atoi(tmps2[1].c_str());
-						printf ("@@ start1 %d, end1 %d, start2 %d, end2 %d\n", start1, end1, start2, end2); 
-
-						if (start1 - end1 != start2 - end2 || start1 > end1 || start2 > end2) throw oxDNAException ("Syntax error (d) in the order parameter file. Found invalid list `%s'. Perhaps the indexes are not correct?", my_value.c_str(), pair_strings[l].c_str());
-
-						int cntr = 0;
-						for (int m = start1; m <= end1; m ++) {
-							int id1 = m;
-							int id2 = end2 - cntr;
+							int cntr = 0;
+							for (int m = start1; m <= end1; m ++) {
+								int id1 = m;
+								int id2 = end2 - cntr;
+								if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
+								if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
+								newpar.save_pair_as_parameter (id1, id2);
+								OX_LOG (_log_level, "--> Adding HB pair (%d, %d) from list `%s' to order parameter `%s'", id1, id2, my_value.c_str(), name_str.c_str());
+								cntr ++;
+							}
+						}
+						// handle the normal case, with pairX = <int>, <int>
+						else {
+							int id1 = atoi (my_values[0].c_str());
+							int id2 = atoi (my_values[1].c_str());
 							if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
 							if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
 							newpar.save_pair_as_parameter (id1, id2);
-							OX_LOG (_log_level, "--> Adding HB pair (%d, %d) from list `%s' to order parameter `%s'", id1, id2, my_value.c_str(), name_str.c_str());
-							cntr ++;
+							OX_LOG (_log_level, "--> Adding HB pair (%d, %d) to order parameter `%s'", id1, id2, name_str.c_str());
 						}
 					}
-					// handle the normal case, with pairX = <int>, <int>
-					else {
-						int id1 = atoi (my_values[0].c_str());
-						int id2 = atoi (my_values[1].c_str());
-						if (id1 > max_N || id2 >= max_N) throw oxDNAException("Particle index (%d) out of range while parsing order parameters. Aborting", (id1 > id2) ? id1 : id2);
-						if (particles[id1]->btype + particles[id2]->btype != 3) OX_LOG(Logger::LOG_WARNING, "HB pair %d %d not complementary, but still an order parameter", id1, id2);
-						newpar.save_pair_as_parameter (id1, id2);
-						OX_LOG (_log_level, "--> Adding HB pair (%d, %d) to order parameter `%s'", id1, id2, name_str.c_str());
+
+					/*
+					 // parsing of the interfaces...
+					 newpar.n_states = 0;
+					 if (getInputString (&input, "interfaces", strdir, 0) == KEY_FOUND) {
+					 // we need to parse the interfaces; we expect at least one float number.
+					 char * aux = strtok (strdir, ",");
+					 int i = 0;
+					 while (aux != NULL) {
+					 double tmpf;
+					 sscanf(aux, "%lf", &tmpf);
+					 newpar.interfaces.push_back(tmpf);
+					 OX_LOG(_log_level, " ---> found interface %i; %lf", i, newpar.interfaces[i]);
+					 i ++;
+					 aux = strtok (NULL, ",");
+					 }
+					 newpar.n_states = i + 1; // the number of states is the number of interfaces + 1;
+					 }
+					 */
+					string strdir;
+					if (getInputString (&input, "interfaces", strdir, 0) == KEY_FOUND) {
+						std::vector<string> interfaces = Utils::split (strdir.c_str(), ',');
+						for (unsigned int i = 0; i < interfaces.size(); i ++) {
+							newpar.interfaces.push_back (atof(interfaces[i].c_str()));
+							OX_LOG(_log_level, " ---> found interface %i; %lf", i, newpar.interfaces[i]);
+						}
+						newpar.n_states = interfaces.size() + 1;
 					}
+
+					//optional use of COM-COM distance instead of base-base distance
+					/*
+					 char tmpstr2[256];
+					 if (getInputString(&input, "use_COM", tmpstr2, 0) == KEY_FOUND) {
+					 unsigned int COM=0;
+					 sscanf(tmpstr2, "%u", &COM);
+					 if(COM==0) { newpar._use_COM = false; }
+					 else if(COM==1) {
+					 newpar._use_COM = true;
+					 OX_LOG (_log_level, "using COM-COM distances instead of base-base");
+					 }
+					 else { OX_LOG (_log_level, "unsupported value for use_COM"); }
+					 }*/
+
+					// optional use of COM-COM distance instead of base-base distance
+					if (getInputBool(&input, "use_COM", &newpar._use_COM, 0) == KEY_FOUND) {
+						if (newpar._use_COM) OX_LOG (_log_level, "using COM-COM distances instead of base-base");
+					}
+
+					newpar.set_name (name_str);
+					_distance_parameters.push_back(newpar);
+					_distance_parameters_count ++;
+
+					break;
+
 				}
 
-				/*
-				// parsing of the interfaces...
-				newpar.n_states = 0;
-				if (getInputString (&input, "interfaces", strdir, 0) == KEY_FOUND) {
-					// we need to parse the interfaces; we expect at least one float number.
-					char * aux = strtok (strdir, ",");
-					int i = 0;
-					while (aux != NULL) {
-						double tmpf;
-						sscanf(aux, "%lf", &tmpf);
-						newpar.interfaces.push_back(tmpf);
-						OX_LOG(_log_level, " ---> found interface %i; %lf", i, newpar.interfaces[i]);
-						i ++;
-						aux = strtok (NULL, ",");
-					}
-					newpar.n_states = i + 1; // the number of states is the number of interfaces + 1;
-				}
-				*/
-				string strdir;
-				if (getInputString (&input, "interfaces", strdir, 0) == KEY_FOUND) {
-					std::vector<string> interfaces = Utils::split (strdir.c_str(), ',');
-					for (unsigned int i = 0; i < interfaces.size(); i ++) {
-						newpar.interfaces.push_back (atof(interfaces[i].c_str()));
-						OX_LOG(_log_level, " ---> found interface %i; %lf", i, newpar.interfaces[i]);
-					}
-					newpar.n_states = interfaces.size() + 1;
-				}
-				
-				//optional use of COM-COM distance instead of base-base distance
-				/*
-				char tmpstr2[256];
-				if (getInputString(&input, "use_COM", tmpstr2, 0) == KEY_FOUND) {
-					unsigned int COM=0;
-					sscanf(tmpstr2, "%u", &COM);
-					if(COM==0) { newpar._use_COM = false; }
-					else if(COM==1) {
-						newpar._use_COM = true;
-						OX_LOG (_log_level, "using COM-COM distances instead of base-base");
-					}
-					else { OX_LOG (_log_level, "unsupported value for use_COM"); }
-				}*/
-				
-				// optional use of COM-COM distance instead of base-base distance
-				if (getInputBool(&input, "use_COM", &newpar._use_COM, 0) == KEY_FOUND) {
-					if (newpar._use_COM) OX_LOG (_log_level, "using COM-COM distances instead of base-base");
-				}
-                
-				newpar.set_name (name_str);
-				_distance_parameters.push_back(newpar);
-				_distance_parameters_count ++;
-
-				break;
-
-			}
-
-			default:
+				default:
 				OX_LOG(Logger::LOG_WARNING, "Probably should't reach this point. Hoping for the best");
 				break;
 			}
-			fclose(temp);
 		}
 
 		if (_hb_parameters_count > 0) _hb_states = new int[_hb_parameters_count];
-		if (_distance_parameters_count > 0)	_distance_states = new double[_distance_parameters_count];
+		if (_distance_parameters_count > 0) _distance_states = new double[_distance_parameters_count];
 		_all_states_count = _hb_parameters_count + _distance_parameters_count;
 		if (_all_states_count > 0) _all_states = new int[_all_states_count];
 
@@ -810,12 +807,11 @@ public:
 		return 0;
 	}
 
-
 	/**
 	 * @brief Sets the log level;
 	 * @return
 	 */
-	void set_log_level (int arg) { _log_level = arg; }
+	void set_log_level (int arg) {_log_level = arg;}
 
 	virtual ~OrderParameters();
 };
