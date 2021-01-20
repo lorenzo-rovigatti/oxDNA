@@ -31,8 +31,11 @@
 *.out
 *.app
 
-build
-cuda
+# Build directories
+build/
+pybuild/
+cuda/
+docs/oxpy/doctrees
 
 test/**/*energy.dat
 test/**/last_conf.dat
@@ -40,3 +43,21 @@ test/**/*log.dat
 test/**/trajectory.dat
 
 **/*pyc
+
+# Distribution / packaging
+.Python
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
