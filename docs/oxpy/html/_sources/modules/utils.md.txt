@@ -12,7 +12,11 @@ This module contains some utility functions/classes that are directly written in
     :nosignatures:
 
     generate_default_input
+    Kelvin_to_oxDNA
+    Celsius_to_oxDNA
     
 .. autofunction:: generate_default_input
+.. autofunction:: Kelvin_to_oxDNA
+.. autofunction:: Celsius_to_oxDNA
     
 ```
