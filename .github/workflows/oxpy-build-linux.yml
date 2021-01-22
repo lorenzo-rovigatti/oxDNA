@@ -22,11 +22,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip wheel setuptools
         pip install numpy
-    - name: Try to install and uninstall oxpy
+    - name: Install oxpy
       run: |
         python -m pip install .
-        pip uninstall oxpy -y
     - name: Check import from Command Line
       run: |
         mkdir test-folder && pushd test-folder
         python -c 'import oxpy'
+    - name: Uninstall oxpy
+      run: |
+        pip uninstall oxpy -y
