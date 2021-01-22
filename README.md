@@ -24,7 +24,7 @@ Python bindings require `Python 3`'s binaries, libraries and include files. On D
 
 Generating the documentation of the C++ code (with `make docs`, see below) requires [doxygen](http://www.doxygen.nl/).
 
-Doc files for the Python bindings can be browsed by opening the `docs/oxpy/html/index.html` file with a web browser.
+The documentation for the Python bindings can be browsed [here](https://lorenzo-rovigatti.github.io/oxDNA/).
 
 ## Compiling oxDNA
 

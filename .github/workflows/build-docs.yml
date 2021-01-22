@@ -1,0 +1,60 @@
+name: Build the python package's docs and put it online through github pages
+
+on:
+  workflow_dispatch:
+
+  release:    
+    types: [published]
+
+jobs:
+
+  build-docs:
+    runs-on: ubuntu-20.04
+    
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Fetch more info from the repo so that setuptool_scm can parse the current version
+        run: |
+          git fetch --prune --unshallow
+          git tag -d $(git tag --points-at HEAD)
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+        
+      - name: Build oxpy and install it through pip
+        run: pip install .
+        
+      - name: Install the documentation's requirements
+        run: pip install --upgrade -r oxpy/build_docs/requirements.txt
+    
+      - name: Build the docs
+        run: |
+          pushd oxpy/build_docs
+          make html
+          popd
+        
+      - name: Commit documentation changes
+        run: |
+          git clone https://github.com/lorenzo-rovigatti/oxDNA.git --branch gh-pages --single-branch gh-pages
+          cp -r docs/oxpy/build/html/* gh-pages/
+          cd gh-pages
+          touch .nojekyll
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "CI workflow"
+          git add .
+          git commit -m "Update documentation" -a || true
+          # The above command will fail if no changes were present, so we ignore that.
+        
+      - name: Push changes to the gh-pages branch
+        uses: ad-m/github-push-action@master
+        with:
+          branch: gh-pages
+          directory: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
