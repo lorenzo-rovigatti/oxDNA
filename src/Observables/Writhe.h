@@ -62,7 +62,7 @@ public:
 	Writhe();
 	virtual ~Writhe();
 
-	virtual void init(ConfigInfo &config_info);
+	virtual void init();
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 	//virtual std::string get_output_stringOLD(llint curr_step);
 

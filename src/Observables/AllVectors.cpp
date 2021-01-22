@@ -16,8 +16,8 @@ AllVectors::~AllVectors() {
 
 }
 
-void AllVectors::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void AllVectors::init() {
+	BaseObservable::init();
 }
 
 std::string AllVectors::get_output_string(llint curr_step) {

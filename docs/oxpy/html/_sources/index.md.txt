@@ -4,7 +4,7 @@ Oxpy is a Python3 library that makes it possible to use oxDNA from Python.
 
 ## A simple example
 
-The following snippet imports the `oxpy` module, initialises the simulation machinery, runs a short simulation using the input file `input` and computes the average position of the final configuration:
+The following snippet imports the `oxpy` module, initialises the simulation machinery, runs a short simulation using the input file `input`, changes the temperature, runs more simulations steps and computes the average position of the final configuration:
 
 	import numpy as np
 	import oxpy
@@ -17,9 +17,12 @@ The following snippet imports the `oxpy` module, initialises the simulation mach
 	
 	    # run 1k steps
 	    manager.run(1000)
+	    
+	    # change the temperature
+		manager.update_temperature(0.11)
 	
-	    # run 10k steps more
-	    manager.run(10000)
+	    # run 1k steps more
+	    manager.run(1000)
 	
 	    # do some computation with the current configuration
 	    particles = manager.config_info().particles()
@@ -77,4 +80,9 @@ The oxDNA code raises `oxDNAException`s when the simulation cannot be correctly 
 
 ## Extending Oxpy
 
-To be written.
+```eval_rst
+.. toctree::
+   :maxdepth: 2
+   
+   extending/observables.md
+```

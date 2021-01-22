@@ -57,8 +57,12 @@ void LangevinThermostat::get_settings(input_file &inp) {
 void LangevinThermostat::init() {
 	BaseThermostat::init();
 
-	if(_diff_coeff_trans == 0.) _diff_coeff_trans = this->_T / _gamma_trans;
-	else _gamma_trans = this->_T / _diff_coeff_trans;
+	if(_diff_coeff_trans == 0.) {
+		_diff_coeff_trans = this->_T / _gamma_trans;
+	}
+	else {
+		_gamma_trans = this->_T / _diff_coeff_trans;
+	}
 
 	_diff_coeff_rot = 3. * _diff_coeff_trans;
 	_gamma_rot = this->_T / _diff_coeff_rot;
@@ -74,6 +78,8 @@ void LangevinThermostat::init() {
 void LangevinThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	for(auto p: particles) {
 		p->vel += _dt * (-_gamma_trans * p->vel + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_trans);
-		if(p->is_rigid_body()) p->L += _dt * (-_gamma_rot * p->L + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_rot);
+		if(p->is_rigid_body()) {
+			p->L += _dt * (-_gamma_rot * p->L + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_rot);
+		}
 	}
 }

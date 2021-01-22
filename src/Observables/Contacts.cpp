@@ -23,8 +23,8 @@ Contacts::~Contacts() {
 
 }
 
-void Contacts::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void Contacts::init() {
+	BaseObservable::init();
 
 	std::vector<BaseParticle *> &p = _config_info->particles();
 	const int N = _config_info->N();

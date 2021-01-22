@@ -47,6 +47,12 @@ void input_file::init_from_filename(std::string filename) {
 	return;
 }
 
+void input_file::init_from_string(std::string s_inp) {
+	state = UNPARSED;
+	add_input_source(s_inp);
+	state = PARSED;
+}
+
 void input_file::init_from_command_line_args(int argc, char *argv[], int args_to_skip) {
 	init_from_filename(argv[1]);
 	if(state == ERROR) {

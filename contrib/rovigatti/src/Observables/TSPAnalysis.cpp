@@ -42,8 +42,8 @@ void TSPAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 }
 
-void TSPAnalysis::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void TSPAnalysis::init() {
+	BaseObservable::init();
 
 	if(!_is_SPB) {
 		ifstream topology(_topology_filename.c_str(), ios::in);
@@ -57,8 +57,8 @@ void TSPAnalysis::init(ConfigInfo &config_info) {
 	else _N_stars = 1;
 
 	_stars.resize(_N_stars, TSP(_is_SPB));
-	for(int i = 0; i < config_info.N(); i++) {
-		TSPParticle *p = (TSPParticle *) config_info.particles()[i];
+	for(int i = 0; i < _config_info->N(); i++) {
+		TSPParticle *p = (TSPParticle *) _config_info->particles()[i];
 		int ns = (!_is_SPB) ? p->strand_id : 0;
 		if(ns >= _N_stars) throw oxDNAException("ns (%d) >= _N_stars (%d)", ns, _N_stars);
 

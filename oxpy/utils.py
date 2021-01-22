@@ -1,5 +1,6 @@
 from .core import InputFile
 
+
 def generate_default_input(options=[]):
     '''Build and return a minimal input file
     
@@ -33,3 +34,16 @@ def generate_default_input(options=[]):
     default_input["energy_file"] = "energy.dat"
     
     return default_input
+
+
+def Kelvin_to_oxDNA(T):
+    '''Convert the temperature given in Kelvin to oxDNA simulation units
+    '''
+    return float(T) / 3000.0
+
+
+def Celsius_to_oxDNA(T):
+    '''Convert the temperature given in Celsius to oxDNA simulation units
+    '''
+    return Kelvin_to_oxDNA(float(T) + 273.15)
+

@@ -16,7 +16,16 @@ Compiling with CUDA support requires `cmake` >= 3.5 and a CUDA toolkit >= 9.0. I
 
 ### Python bindings
 
-Python bindings require `Python 3`'s binaries, libraries and include files. On Debian-derived distros these can be installed by installing the `libpython3-dev` package.
+The Python bindings are contained in the `oxpy` package, which can be installed either manually after compilation (see [Compiling oxDNA](#compiling-oxdna)) or directly with
+
+```bash
+git clone https://github.com/lorenzo-rovigatti/oxDNA.git
+cd oxDNA
+git checkout oxpy --
+pip install . # you may need to use pip3, depending on your OS
+```
+
+Python bindings require the `setuptools` and `setuptools-scm` packages, as well as `Python 3`'s binaries, libraries and include files. On Debian-derived distros the latter can be installed by installing the `libpython3-dev` package.
 
 [Sphinx](https://www.sphinx-doc.org/en/master), [sphinx_rtd_theme](https://github.com/readthedocs/sphinx_rtd_theme) and [recommonmark](https://recommonmark.readthedocs.io/en/latest/) are required to generate the Python bindings' documentation. Those can all be installed by using `pip` (for instance with the command `pip3 install --user sphinx sphinx_rtd_theme recommonmark`).
 

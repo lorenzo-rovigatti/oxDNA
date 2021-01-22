@@ -57,7 +57,6 @@ protected:
 	SRDParticle *_srd_particles;
 	/// Since this is a reference, srd *should* also work for variable boxes, should we ever implement an MD barostat
 	BaseBox *_box;
-	number _T;
 	number _dt;
 	int _apply_every;
 	/// SRD particle mass

@@ -26,12 +26,12 @@ void ConstructwiseBonds::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputInt(&my_inp, "bond_energy_term_id", &_energy_term_id, 1);
 }
 
-void ConstructwiseBonds::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void ConstructwiseBonds::init() {
+	BaseObservable::init();
 
 	// we first count the number of constructs in the system so that we can
 	// initialize the vector storing their centres of mass
-	for(auto p: config_info.particles()) {
+	for(auto p: _config_info->particles()) {
 		int p_construct_id = p->index / _construct_size;
 		if(p_construct_id >= _construct_number) {
 			_construct_number = p_construct_id + 1;

@@ -51,7 +51,7 @@ std::shared_ptr<ForceFactory> ForceFactory::instance() {
 
 void ForceFactory::_add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_description) {
 	if(particle_ids[0] != -1) {
-		for(auto id: particle_ids) {
+		for(auto id : particle_ids) {
 			particles[id]->add_ext_force(force);
 			OX_LOG(Logger::LOG_INFO, "Adding a %s on particle %d", force_description.c_str(), id);
 		}
@@ -64,7 +64,7 @@ void ForceFactory::_add_force_to_particles(ForcePtr force, std::vector<int> part
 	}
 }
 
-void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &particles, bool is_CUDA, BaseBox * box_ptr) {
+void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &particles, BaseBox * box_ptr) {
 	string type_str;
 	getInputString(&inp, "type", type_str, 1);
 
@@ -100,7 +100,7 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	_add_force_to_particles(extF, particle_ids, particles, description);
 }
 
-void ForceFactory::read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, bool is_CUDA, BaseBox * box) {
+void ForceFactory::read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, BaseBox * box) {
 	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
 
 	//char line[512], typestr[512];
@@ -148,24 +148,23 @@ void ForceFactory::read_external_forces(std::string external_filename, std::vect
 	external_string.seekg(0, ios::beg);
 	a = external_string.get();
 	while(external_string.good()) {
-		while (a != '{' && external_string.good()) a = external_string.get();
-		if(!external_string.good()) break;
-		// this function create a temporary file which is destroyed upon calling fclose
-		// the temporary file is opened with "wb+" flags
-		FILE *temp = tmpfile();
-		OX_LOG(Logger::LOG_INFO, "   Using temporary file");
-		a = external_string.get();
-		while (a != '}' && external_string.good()) {
-			fprintf (temp, "%c", a);
+		while (a != '{' && external_string.good()) {
 			a = external_string.get();
 		}
-		rewind(temp);
+		if(!external_string.good()) {
+			break;
+		}
+
+		a = external_string.get();
+		std::string input_string("");
+		while (a != '}' && external_string.good()) {
+			input_string += a;
+			a = external_string.get();
+		}
 		input_file input;
-		input.init_from_file(temp);
+		input.init_from_string(input_string);
 
-		ForceFactory::instance()->add_force(input, particles, is_CUDA, box);
-
-		fclose(temp);
+		ForceFactory::instance()->add_force(input, particles, box);
 	}
 
 	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());

@@ -25,10 +25,6 @@ ConstructwisePressure::~ConstructwisePressure() {
 void ConstructwisePressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
-	char raw_T[256];
-	getInputString(&sim_inp, "T", raw_T, 1);
-	_T = Utils::get_temperature(raw_T);
-
 	getInputInt(&my_inp, "construct_size", &_construct_size, 1);
 
 	bool lees_edwards = false;
@@ -42,10 +38,10 @@ void ConstructwisePressure::get_settings(input_file &my_inp, input_file &sim_inp
 	_is_polymer_swap = (interaction == "PolymerSwapInteraction");
 }
 
-void ConstructwisePressure::init(ConfigInfo &info) {
-	BaseObservable::init(info);
+void ConstructwisePressure::init() {
+	BaseObservable::init();
 
-	int N = info.N();
+	int N = _config_info->N();
 
 	if(N % _construct_size) {
 		throw oxDNAException("ConstructwisePressure: the total number of particles (%d) is not a multiple of the construct size specified in the input file (%d)", N, _construct_size);
@@ -105,7 +101,7 @@ void ConstructwisePressure::update_pressure() {
 	}
 
 	double V = _config_info->box->V();
-	_P = _T * (_N_constructs / V) + virial / (3. * V);
+	_P = _config_info->temperature() * (_N_constructs / V) + virial / (3. * V);
 }
 
 void ConstructwisePressure::update_pressure_PolymerSwap() {

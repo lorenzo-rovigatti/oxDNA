@@ -36,6 +36,6 @@ cudaDeviceProp get_device_prop(int device) {
 
 cudaError_t set_device(int device) {
 	check_device_existance(device);
-	cudaThreadExit();
+	cudaDeviceReset();
 	return cudaSetDevice(device);
 }

@@ -24,8 +24,8 @@ void PlectonemePosition::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&my_inp, "dist_bet_str", &_critical_strand_distance, 0);
 }
 
-void PlectonemePosition::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void PlectonemePosition::init() {
+	BaseObservable::init();
 
 	_midpoints = new LR_vector[_config_info->N() / 2];
 }

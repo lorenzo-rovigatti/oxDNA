@@ -42,8 +42,8 @@ Writhe::~Writhe() {
 
 }
 
-void Writhe::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void Writhe::init() {
+	BaseObservable::init();
 
 	std::vector<BaseParticle *> &p = _config_info->particles();
 	int N = _config_info->N();

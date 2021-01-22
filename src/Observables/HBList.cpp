@@ -19,8 +19,8 @@ HBList::~HBList() {
 
 }
 
-void HBList::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void HBList::init() {
+	BaseObservable::init();
 	if(_read_op) {
 		_op.init_from_file(_order_parameters_file, _config_info->particles(), _config_info->N());
 	}

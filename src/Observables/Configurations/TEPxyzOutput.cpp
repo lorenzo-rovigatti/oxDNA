@@ -49,8 +49,8 @@ void TEPxyzOutput::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 }
 
-void TEPxyzOutput::init(ConfigInfo &config_info) {
-	Configuration::init(config_info);
+void TEPxyzOutput::init() {
+	Configuration::init();
 
 	int N = _config_info->N();
 	_bead_types = new int[N];

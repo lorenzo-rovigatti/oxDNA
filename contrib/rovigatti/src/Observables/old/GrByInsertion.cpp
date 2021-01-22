@@ -56,10 +56,10 @@ void GrByInsertion::get_settings(input_file &my_inp, input_file &sim_inp) {
 	CHECK_BOX("GrByInsertion", my_inp);
 }
 
-void GrByInsertion::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void GrByInsertion::init() {
+	BaseObservable::init();
 
-	if(_max == 0.) _max = config_info.box->box_sides().x * 0.5;
+	if(_max == 0.) _max = _config_info->box->box_sides().x * 0.5;
 	_n_bins = (_max - _min) / _bin;
 	// rounding
 	_bin = (_max - _min) / _n_bins;

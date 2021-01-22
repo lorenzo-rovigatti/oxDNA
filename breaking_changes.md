@@ -10,3 +10,4 @@
 * ConfigInfo's `instance` returns a `std::shared_ptr` rather than a bare pointer.
 * The `RELEASE` macro defined in `src/defs.h` **must** match the current git tag or it won't be possible to commit changes to the repository. This is to make sure that the version printed by the executables is (at least decently) up to date.
 * The functions that used to initialise, clean and print the `input_file` structure have now been included as methods in the class itself. 
+* The `init` methods of the `ObservableOutput` and `BaseObservable` classes do not require any parameter. This is in contrast with previous versions in which both methods required a `ConfigInfo` object. 

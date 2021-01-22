@@ -51,10 +51,10 @@ void DiblockGr::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 }
 
-void DiblockGr::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void DiblockGr::init() {
+	BaseObservable::init();
 
-	_max_dist = config_info.box->box_sides().x * 0.5;
+	_max_dist = _config_info->box->box_sides().x * 0.5;
 	_n_bins = _max_dist / _bin;
 	// rounding
 	_bin = _max_dist / _n_bins;

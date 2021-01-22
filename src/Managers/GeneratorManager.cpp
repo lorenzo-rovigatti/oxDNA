@@ -136,7 +136,7 @@ void GeneratorManager::init() {
 
 	// initializing external forces
 	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(_external_filename, _particles, false, _mybox.get());
+		ForceFactory::instance()->read_external_forces(_external_filename, _particles, _mybox.get());
 	}
 }
 

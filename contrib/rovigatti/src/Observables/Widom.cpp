@@ -31,10 +31,10 @@ void Widom::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputNumber(&sim_inp, "T", &_temperature, 1);
 }
 
-void Widom::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void Widom::init() {
+	BaseObservable::init();
 
-	_N = config_info.N() + 1;
+	_N = _config_info->N() + 1;
 
 	_probe = new BaseParticle();
 	_probe->index = _N - 1;
@@ -44,16 +44,16 @@ void Widom::init(ConfigInfo &config_info) {
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
 	_particles.resize(_N);
 	for(int i = 0; i < _N - 1; i++) {
-		_particles[i] = config_info.particles()[i];
+		_particles[i] = _config_info->particles()[i];
 	}
 	_particles[_N - 1] = _probe;
 
-	number rcut = config_info.interaction->get_rcut();
-	_cells = new Cells(_particles, config_info.box);
+	number rcut = _config_info->interaction->get_rcut();
+	_cells = new Cells(_particles, _config_info->box);
 	_cells->init( rcut);
 
 	if(_tries == 0) {
-		number tot_V = config_info.box->V();
+		number tot_V = _config_info->box->V();
 		number probe_V = M_PI / 6.;
 		_tries = (int) (tot_V / probe_V) * 50;
 		OX_LOG(Logger::LOG_INFO, "Widom: tries = %d", _tries);

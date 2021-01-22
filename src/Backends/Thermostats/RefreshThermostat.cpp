@@ -21,7 +21,9 @@ RefreshThermostat::~RefreshThermostat() {
 void RefreshThermostat::get_settings(input_file &inp) {
 	BaseThermostat::get_settings(inp);
 	getInputInt(&inp, "newtonian_steps", &_newtonian_steps, 1);
-	if(_newtonian_steps < 1) throw oxDNAException("'newtonian_steps' must be > 0");
+	if(_newtonian_steps < 1) {
+		throw oxDNAException("'newtonian_steps' must be > 0");
+	}
 }
 
 void RefreshThermostat::init() {

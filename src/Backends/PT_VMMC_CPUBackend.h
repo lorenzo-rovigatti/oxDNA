@@ -25,11 +25,10 @@ struct PT_serialized_particle_info {
 
 
 struct PT_energy_info {
-	number U, U_hydr, U_stack, U_ext, T, w;
+	number U, U_stack, U_ext, T, w;
 	int weight_index, replica_id;
-	PT_energy_info (number _U = 0, number _U_hydr = 0, number _U_stack = 0., number _T = 1.) {
+	PT_energy_info (number _U = 0, number _U_stack = 0., number _T = 1.) {
 		U = _U;
-		U_hydr = _U_hydr;
 		U_stack = _U_stack;
 		T = _T;
 		w = (number) 1.;

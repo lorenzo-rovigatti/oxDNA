@@ -29,7 +29,7 @@ public:
 
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
-	virtual void init(ConfigInfo &config_info);
+	virtual void init();
 };
 
 #endif /* ORDERPARAMETERVALUES_H_ */

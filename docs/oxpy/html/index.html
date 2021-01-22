@@ -1,13 +1,13 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html4" lang="en" >
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Oxpy &mdash; oxpy 3.0.0a1.dev158+g88f4bc0.d20210117 documentation</title>
+  <title>Oxpy &mdash; oxpy 3.0.0a1.dev156+g2ca22d0.d20210116 documentation</title>
   
 
   
@@ -26,10 +26,9 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +59,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev158+g88f4bc0.d20210117
+                3.0.0a1.dev156+g2ca22d0.d20210116
               </div>
             
           
@@ -92,6 +91,9 @@
 <li class="toctree-l1"><a class="reference internal" href="modules/utils.html">The utils module</a><ul class="simple">
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="extending/observables.html">Writing observables in Python</a></li>
 </ul>
 
             
@@ -162,7 +164,7 @@
 <p>Oxpy is a Python3 library that makes it possible to use oxDNA from Python.</p>
 <div class="section" id="a-simple-example">
 <h2>A simple example<a class="headerlink" href="#a-simple-example" title="Permalink to this headline">¶</a></h2>
-<p>The following snippet imports the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> module, initialises the simulation machinery, runs a short simulation using the input file <code class="docutils literal notranslate"><span class="pre">input</span></code> and computes the average position of the final configuration:</p>
+<p>The following snippet imports the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> module, initialises the simulation machinery, runs a short simulation using the input file <code class="docutils literal notranslate"><span class="pre">input</span></code>, changes the temperature, runs more simulations steps and computes the average position of the final configuration:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">oxpy</span>
 
@@ -174,9 +176,12 @@
 
     <span class="c1"># run 1k steps</span>
     <span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+    
+    <span class="c1"># change the temperature</span>
+	<span class="n">manager</span><span class="o">.</span><span class="n">update_temperature</span><span class="p">(</span><span class="mf">0.11</span><span class="p">)</span>
 
-    <span class="c1"># run 10k steps more</span>
-    <span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+    <span class="c1"># run 1k steps more</span>
+    <span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
 
     <span class="c1"># do some computation with the current configuration</span>
     <span class="n">particles</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">particles</span><span class="p">()</span>
@@ -239,7 +244,11 @@
 </div>
 <div class="section" id="extending-oxpy">
 <h2>Extending Oxpy<a class="headerlink" href="#extending-oxpy" title="Permalink to this headline">¶</a></h2>
-<p>To be written.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="extending/observables.html">Writing observables in Python</a></li>
+</ul>
+</div>
 </div>
 </div>
 

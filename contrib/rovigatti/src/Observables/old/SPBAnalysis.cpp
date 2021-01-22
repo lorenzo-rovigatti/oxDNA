@@ -26,10 +26,10 @@ void SPBAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
 	CHECK_BOX("SPBAnalysis", my_inp);
 }
 
-void SPBAnalysis::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void SPBAnalysis::init() {
+	BaseObservable::init();
 
-	number box_side = config_info.box->box_sides().x;
+	number box_side = _config_info->box->box_sides().x;
 	_N_bins = ceil(box_side / _bin / 2.);
 	_cx.resize(_N_bins, 0.);
 	_cy.resize(_N_bins, 0.);

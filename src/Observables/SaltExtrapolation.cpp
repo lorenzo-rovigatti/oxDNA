@@ -20,8 +20,8 @@ SaltExtrapolation::~SaltExtrapolation() {
 
 }
 
-void SaltExtrapolation::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void SaltExtrapolation::init() {
+	BaseObservable::init();
 
 	ifstream tmpf(_op_file.c_str());
 	if(!tmpf.good()) throw oxDNAException("(SaltExtrapolation.cpp) Can't read file '%s'", _op_file.c_str());

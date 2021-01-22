@@ -148,10 +148,10 @@ void VoidPercolation::get_settings(input_file &my_inp, input_file &sim_inp) {
 	_replica_box->get_settings(sim_inp);
 }
 
-void VoidPercolation::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void VoidPercolation::init() {
+	BaseObservable::init();
 
-	_N = config_info.N() + 1;
+	_N = _config_info->N() + 1;
 	_N_replica = 8 * _insertions;
 
 	_probes.resize(_insertions);
@@ -183,25 +183,25 @@ void VoidPercolation::init(ConfigInfo &config_info) {
 	// we make a copy of the _particles array and add the probe as an additional particle at the end of it
 	_particles.resize(_N);
 	for(int i = 0; i < _N - 1; i++) {
-		_particles[i] = config_info.particles()[i];
+		_particles[i] = _config_info->particles()[i];
 	}
 	_particles[_N - 1] = _probe;
 
 	_rcut = (_probe_diameter + _particle_diameter) / 2.;
 	_sqr_rcut = SQR(_rcut);
-	_cells = new Cells(_particles, config_info.box);
+	_cells = new Cells(_particles, _config_info->box);
 	_cells->init(_rcut);
 
-	_probe_cells = new VPCells(_probes, config_info.box);
+	_probe_cells = new VPCells(_probes, _config_info->box);
 	_probe_cells->init(_probe_diameter);
 
-	LR_vector box = config_info.box->box_sides();
+	LR_vector box = _config_info->box->box_sides();
 	_replica_box->init(2. * box.x, 2. * box.y, 2. * box.z);
 	_replica_probe_cells = new VPCells(_replica_probes, _replica_box.get());
 	_replica_probe_cells->init(_probe_diameter);
 
 	if(_insertions == 0) {
-		number tot_V = config_info.box->box_sides().x * config_info.box->box_sides().y * config_info.box->box_sides().z;
+		number tot_V = _config_info->box->box_sides().x * _config_info->box->box_sides().y * _config_info->box->box_sides().z;
 		number probe_V = M_PI * pow(_probe_diameter, 3.) / 6.;
 		_insertions = (int) (tot_V / probe_V) * 50;
 		OX_LOG(Logger::LOG_INFO, "VoidPercolation: insertions = %d", _insertions);

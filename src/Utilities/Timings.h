@@ -34,11 +34,11 @@ private:
 	bool _active;
 
 	/// whether we should call SYNCHRONIZE() or not
-	bool _sync = false;
+	bool _sync;
 
 public:
-	Timer();
-	Timer(std::string desc);
+	Timer(bool sync);
+	Timer(std::string desc, bool sync);
 	~Timer();
 
 	/// resumes (or starts) the timer
@@ -83,6 +83,7 @@ private:
 	std::vector<TimerPtr> _timers;
 	std::map<TimerPtr, TimerPtr> _parents;
 	std::map<std::string, TimerPtr> _desc_map;
+	bool _sync = false;
 
 	static TimingManager *_timingManager;
 

@@ -93,7 +93,6 @@ int MD_MPIBackend::_MPI_receive_block_data(void *data, size_t size, int node_fro
 //---------------------------------------------------------------------------------------
 
 MD_MPIBackend::MD_MPIBackend() : MD_CPUBackend() {
-	this->_is_CUDA_sim = false;
 	this->_mpi_lists_are_old = true;
 
 	MPI_Comm_rank (MPI_COMM_WORLD, &(this->_myid));

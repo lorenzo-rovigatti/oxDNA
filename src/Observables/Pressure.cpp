@@ -24,10 +24,6 @@ Pressure::~Pressure() {
 void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
-	char raw_T[256];
-	getInputString(&sim_inp, "T", raw_T, 1);
-	_T = Utils::get_temperature(raw_T);
-
 	getInputBool(&my_inp, "custom_stress_tensor", &_custom_stress_tensor, 0);
 	getInputBool(&my_inp, "stress_tensor", &_with_stress_tensor, 0);
 	getInputBool(&my_inp, "PV_only", &_PV_only, 0);
@@ -102,7 +98,7 @@ void Pressure::update_pressure() {
 	*/
 
 	double V = (_PV_only) ? 1 : _config_info->box->V();
-	_P = _T * (N / V) + virial / (3. * V);
+	_P = _config_info->temperature() * (N / V) + virial / (3. * V);
 	for(auto &v : _stress_tensor) {
 		v /= 3. * V;
 	}
@@ -130,7 +126,7 @@ void Pressure::update_pressure_with_custom_stress_tensor() {
 	for(auto &v : _stress_tensor) {
 		v /= 3. * V;
 	}
-	_P = _T * (N / V) + (_stress_tensor[0] + _stress_tensor[1] + _stress_tensor[2]);
+	_P = _config_info->temperature() * (N / V) + (_stress_tensor[0] + _stress_tensor[1] + _stress_tensor[2]);
 }
 
 std::string Pressure::get_output_string(llint curr_step) {

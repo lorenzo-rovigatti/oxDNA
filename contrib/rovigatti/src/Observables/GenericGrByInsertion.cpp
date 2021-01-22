@@ -15,8 +15,6 @@ GenericGrByInsertion::GenericGrByInsertion() {
 	_n_bins = 0;
 	_n_conf = 0;
 	_bin = 0.1;
-	_T = 0.;
-	_gr = NULL;
 	_insertions = 100;
 	_min = 0.0;
 	_max = 15;
@@ -24,7 +22,7 @@ GenericGrByInsertion::GenericGrByInsertion() {
 }
 
 GenericGrByInsertion::~GenericGrByInsertion() {
-	if(_gr != NULL) delete[] _gr;
+
 }
 
 void GenericGrByInsertion::get_settings(input_file &my_inp, input_file &sim_inp) {
@@ -32,10 +30,6 @@ void GenericGrByInsertion::get_settings(input_file &my_inp, input_file &sim_inp)
 	if(getInputFloat(&my_inp, "bin", &tmp, 0) == KEY_FOUND) _bin = tmp;
 
 	getInputInt(&my_inp, "insertions", &_insertions, 0);
-
-	char tmp_T[256];
-	getInputString(&sim_inp, "T", tmp_T, 1);
-	_T = Utils::get_temperature(tmp_T);
 
 	if(getInputFloat(&my_inp, "gr_min", &tmp, 0) == KEY_FOUND) _min = tmp;
 	if(getInputFloat(&my_inp, "gr_max", &tmp, 0) == KEY_FOUND) _max = tmp;
@@ -51,17 +45,14 @@ int GenericGrByInsertion::_get_bin(number sqr_dist) {
 	return bin;
 }
 
-void GenericGrByInsertion::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
-	int N = config_info.N();
+void GenericGrByInsertion::init() {
+	BaseObservable::init();
+	int N = _config_info->N();
 
-	if(_max == 0.) _max = config_info.box->box_sides().x * 0.5;
+	if(_max == 0.) _max = _config_info->box->box_sides().x * 0.5;
 	_n_bins = (_max - _min) / _bin;
 
-	_gr = new number[_n_bins];
-
-	for(int i = 0; i < _n_bins; i++)
-		_gr[i] = 0.;
+	_gr = std::vector<number>(_n_bins, 0.);
 
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = _config_info->particles()[i];
@@ -77,9 +68,8 @@ void GenericGrByInsertion::init(ConfigInfo &config_info) {
 LR_vector GenericGrByInsertion::_get_com(int obj) {
 	LR_vector res(0., 0., 0.);
 
-	typename vector<BaseParticle *>::iterator it;
-	for(it = _particles[obj].begin(); it != _particles[obj].end(); it++) {
-		res += _config_info->box->get_abs_pos(*it);
+	for(auto p : _particles[obj]) {
+		res += _config_info->box->get_abs_pos(p);
 	}
 	res /= _particles[obj].size();
 
@@ -89,13 +79,11 @@ LR_vector GenericGrByInsertion::_get_com(int obj) {
 void GenericGrByInsertion::_set_random_orientation(int obj) {
 	LR_matrix R = Utils::get_random_rotation_matrix(2 * M_PI);
 
-	typename vector<BaseParticle *>::iterator it;
-
-	for(it = _particles[obj].begin(); it != _particles[obj].end(); it++) {
-		(*it)->pos = R * _config_info->box->get_abs_pos(*it);
-		(*it)->orientation = R * (*it)->orientation;
-		(*it)->set_positions();
-		(*it)->orientationT = (*it)->orientation.get_transpose();
+	for(auto p : _particles[obj]) {
+		p->pos = R * _config_info->box->get_abs_pos(p);
+		p->orientation = R * p->orientation;
+		p->set_positions();
+		p->orientationT = p->orientation.get_transpose();
 	}
 }
 
@@ -105,10 +93,9 @@ void GenericGrByInsertion::_put_randomly_at_r(int obj, LR_vector &r0, number dis
 	LR_vector new_com = r0 + Utils::get_random_vector() * distance;
 	LR_vector diff = new_com - com;
 
-	typename vector<BaseParticle *>::iterator it;
-
-	for(it = _particles[obj].begin(); it != _particles[obj].end(); it++)
-		(*it)->pos += diff;
+	for(auto p : _particles[obj]) {
+		p->pos += diff;
+	}
 }
 
 std::string GenericGrByInsertion::get_output_string(llint step) {
@@ -131,15 +118,15 @@ std::string GenericGrByInsertion::get_output_string(llint step) {
 			// arbitrary threshold
 			if(energy / N < 1000.) {
 				number delta_E = energy - ref_energy;
-				number boltzmann_factor = exp(-delta_E / _T);
+				number boltzmann_factor = exp(-delta_E / _config_info->temperature());
 
 				// center center g(r)
 				_gr[i] += boltzmann_factor;
 			}
 		}
 	}
-	// now we move the objects very far apart
-	_put_randomly_at_r(0, coms[1], 100);
+	// now we move the objects half a box apart
+	_put_randomly_at_r(0, coms[1], _config_info->box->box_sides()[0] / 2.);
 	_config_info->lists->global_update(true);
 
 	stringstream myret;

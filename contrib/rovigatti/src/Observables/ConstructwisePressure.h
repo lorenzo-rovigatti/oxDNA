@@ -22,7 +22,6 @@
 
 class ConstructwisePressure: public BaseObservable {
 protected:
-	number _T;
 	double _P;
 	number _shear_rate;
 	int _construct_size;
@@ -35,7 +34,7 @@ public:
 	virtual ~ConstructwisePressure();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo &Info);
+	void init();
 
 	void update_pressure();
 	void update_pressure_PolymerSwap();

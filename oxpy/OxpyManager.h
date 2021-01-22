@@ -19,7 +19,9 @@ public:
 
 	std::shared_ptr<ConfigInfo> config_info();
 	number system_energy();
+	void update_temperature(number new_T);
 	void print_configuration(bool also_last=true);
+	void add_output(std::string filename, llint print_every, std::vector<ObservablePtr> observables);
 
 	void run(llint steps, bool print_output=true);
 };

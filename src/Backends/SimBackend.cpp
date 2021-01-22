@@ -26,7 +26,6 @@ SimBackend::SimBackend() {
 	_external_forces = false;
 	_N_updates = 0;
 	_confs_to_skip = 0;
-	_is_CUDA_sim = false;
 	_interaction = nullptr;
 	_N_strands = -1;
 	start_step_from_file = (llint) 0;
@@ -53,6 +52,7 @@ SimBackend::SimBackend() {
 
 	ConfigInfo::init(&_particles, &_molecules);
 	_config_info = ConfigInfo::instance();
+	_config_info->subscribe("T_updated", [this]() { this->_on_T_update(); });
 }
 
 SimBackend::~SimBackend() {
@@ -94,11 +94,6 @@ void SimBackend::get_settings(input_file &inp) {
 
 	// initialise the plugin manager with the input file
 	PluginManager::instance()->init(inp);
-
-	// if the simulation is to be run on CUDA then the timers need to be told to synchronise on the GPU
-	if(_is_CUDA_sim) {
-		TimingManager::instance()->enable_sync();
-	}
 
 	// initialise the timer
 	_mytimer = TimingManager::instance()->new_timer(std::string("SimBackend"));
@@ -164,7 +159,7 @@ void SimBackend::get_settings(input_file &inp) {
 
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
-	_T = Utils::get_temperature(raw_T);
+	_config_info->update_temperature(Utils::get_temperature(raw_T));
 
 	// here we fill the _obs_outputs vector
 	int i = 1;
@@ -335,7 +330,7 @@ void SimBackend::init() {
 	_config_info->curr_step = start_step_from_file;
 
 	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _is_CUDA_sim, _box.get());
+		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _box.get());
 	}
 
 	_U = (number) 0;
@@ -348,7 +343,7 @@ void SimBackend::init() {
 
 	// initializes the observable output machinery. This part has to follow read_topology() since _particles has to be initialized
 	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		(*it)->init(*_config_info);
+		(*it)->init();
 	}
 
 	OX_LOG(Logger::LOG_INFO, "N: %d, N molecules: %d", N, _molecules.size());
@@ -547,12 +542,20 @@ bool SimBackend::_read_next_configuration(bool binary) {
 	return true;
 }
 
+void SimBackend::_on_T_update() {
+	_T = _config_info->temperature();
+}
+
 void SimBackend::apply_simulation_data_changes() {
 
 }
 
 void SimBackend::apply_changes_to_simulation_data() {
 
+}
+
+void SimBackend::add_output(ObservableOutputPtr new_output) {
+	_obs_outputs.push_back(new_output);
 }
 
 void SimBackend::print_observables(llint curr_step) {

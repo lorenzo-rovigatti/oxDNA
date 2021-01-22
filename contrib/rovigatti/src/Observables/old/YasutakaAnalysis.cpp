@@ -31,7 +31,7 @@ void YasutakaAnalysis::get_settings(input_file &my_inp, input_file &sim_inp) {
 	}
 }
 
-void YasutakaAnalysis::init(ConfigInfo &config_info) {
+void YasutakaAnalysis::init() {
 	Configuration::init(config_info);
 }
 

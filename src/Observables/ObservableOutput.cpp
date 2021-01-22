@@ -116,18 +116,22 @@ void ObservableOutput::_open_output() {
 	}
 }
 
-void ObservableOutput::init(ConfigInfo &config_info) {
+void ObservableOutput::init() {
 	if(!_update_name_with_time) {
 		_open_output();
 	}
 
 	for(auto it = _obss.begin(); it != _obss.end(); it++) {
-		(*it)->init(config_info);
+		(*it)->init();
 	}
 }
 
 void ObservableOutput::clear() {
 	_obss.clear();
+}
+
+void ObservableOutput::add_observable(ObservablePtr new_obs) {
+	_obss.push_back(new_obs);
 }
 
 void ObservableOutput::add_observable(std::string obs_string) {

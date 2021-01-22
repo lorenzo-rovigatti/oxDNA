@@ -152,7 +152,6 @@ bool parsed_expression::eval_expression(OrderParameters *op) {
 }
 
 bool parsed_condition::parse_condition(const char *expression, OrderParameters *op) {
-	//input_file *obs_input = Utils::get_input_file_from_string(obs_string);
 	string str(expression);
 
 	//remove { and }
@@ -194,7 +193,6 @@ bool parsed_condition::eval_condition(OrderParameters *op) {
 
 FFS_MD_CPUBackend::FFS_MD_CPUBackend() :
 				MD_CPUBackend() {
-	_is_CUDA_sim = false;
 	_sqr_rcut = -1;
 }
 

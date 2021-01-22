@@ -18,8 +18,8 @@ AverageEnergy::~AverageEnergy() {
 
 }
 
-void AverageEnergy::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void AverageEnergy::init() {
+	BaseObservable::init();
 	ifstream list;
 	list.open(_list_file);
 	int n;

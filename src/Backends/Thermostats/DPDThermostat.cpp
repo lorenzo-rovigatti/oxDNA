@@ -38,15 +38,17 @@ void DPDThermostat::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPD_exponent", &_exponent, 0);
 	getInputNumber(&inp, "dt", &_dt, 1);
 	_sqrt_dt = sqrt(_dt);
+
+	OX_LOG(Logger::LOG_INFO, "DPD thermostat parameters: zeta = %g, rcut = %g, exponent =  %g", _zeta, _rcut, _exponent);
 }
 
 void DPDThermostat::init() {
 	BaseThermostat::init();
 
 	number inter_rcut = CONFIG_INFO->interaction->get_rcut();
-	if(inter_rcut < _rcut) throw oxDNAException("DPD thermostat: the DPD cut-off (%lf) may not be larger than the interaction's cutoff (%lf)", _rcut, inter_rcut);
-
-	OX_LOG(Logger::LOG_INFO, "DPD thermostat parameters: zeta = %g, rcut = %g, exponent =  %g", _zeta, _rcut, _exponent);
+	if(inter_rcut < _rcut) {
+		throw oxDNAException("DPD thermostat: the DPD cut-off (%lf) may not be larger than the interaction's cutoff (%lf)", _rcut, inter_rcut);
+	}
 }
 
 void DPDThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {

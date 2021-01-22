@@ -39,7 +39,7 @@ public:
 	virtual ~DiblockGr();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo &config_info);
+	virtual void init();
 	virtual std::string get_output_string(llint curr_step);
 };
 

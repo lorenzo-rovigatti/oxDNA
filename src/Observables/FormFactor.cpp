@@ -34,8 +34,8 @@ struct sort_qs {
 	}
 };
 
-void FormFactor::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void FormFactor::init() {
+	BaseObservable::init();
 
 	double curr_mod = _min_q;
 	int tot_n_qs = 0;

@@ -42,13 +42,12 @@ public:
 	 * @param inp
 	 * @param particles
 	 * @param N
-	 * @param is_CUDA
 	 * @param box_side_ptr pointer to the box side. We use a pointer since the box size can change 
 	 */
-	void add_force(input_file &inp, std::vector<BaseParticle *> &particles, bool is_CUDA, BaseBox * box_ptr);
+	void add_force(input_file &inp, std::vector<BaseParticle *> &particles, BaseBox *box_ptr);
 
 	/// adds forces. Used by SimBackend and GeneratorManager
-	void read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, bool is_CUDA, BaseBox * box_ptr);
+	void read_external_forces(std::string external_filename, std::vector<BaseParticle *> &particles, BaseBox *box_ptr);
 };
 
 #endif /* FORCEFACTORY_H_ */

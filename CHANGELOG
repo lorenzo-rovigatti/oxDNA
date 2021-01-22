@@ -1,3 +1,12 @@
+v. 3.0.0-alpha
+	- Python bindings are now available. It is now possible to run simulations from Python, although not every option is available and most behaviour is still controlled by the input file
+	- Substitute the `number` and `number4` templated stuff with `using` statements (which are equivalent to `typedef`s) chosen at compile time:
+		* on the CPU side the default precision is `double`;
+		* on the CUDA side `number` and `number4` have become `c_number` and `c_number4` and default to `float` and `float4`;
+		* on CUDA the mixed precision can be used only if `-DCUDA_DOUBLE=OFF`, which is the default behaviour.
+	- Plugins now require a single entry point, which should be called `make_MyPlugin`, where `MyPlugin` is the name of the plugin class (and file).
+	- The codebase underwent a substantial cleaning up; compilation time went down and performance went up by a few percent.
+
 v. 2.4 (revision 6963, 27th June 2019)
 	- Added a r_ext option to RepulsiveSphere which acts as an optional outer cut-off
 	- Added a parallel tempering backend for Monte Carlo simulations

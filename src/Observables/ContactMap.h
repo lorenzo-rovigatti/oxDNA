@@ -21,7 +21,7 @@ protected:
 public:
 	ContactMap();
 	virtual ~ContactMap();
-	virtual void init(ConfigInfo &config_info);
+	virtual void init();
 	std::string get_output_string(llint curr_step);
 };
 

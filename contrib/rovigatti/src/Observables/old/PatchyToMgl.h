@@ -33,7 +33,7 @@ public:
 	virtual ~PatchyToMgl();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	void init(ConfigInfo &config_info);
+	void init();
 };
 
 extern "C" BaseObservable *make_PatchyToMgl() {

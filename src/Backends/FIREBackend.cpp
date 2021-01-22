@@ -13,7 +13,6 @@
 
 FIREBackend::FIREBackend() :
 				MDBackend() {
-	_is_CUDA_sim = false;
 
 	_N_min = 5;
 	_f_inc = 1.1;

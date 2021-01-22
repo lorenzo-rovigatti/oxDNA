@@ -14,8 +14,6 @@
 
 MinBackend::MinBackend() :
 				MDBackend() {
-	_is_CUDA_sim = false;
-
 	_max_step = 0.005;
 }
 

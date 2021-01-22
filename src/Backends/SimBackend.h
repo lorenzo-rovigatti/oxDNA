@@ -69,7 +69,6 @@ class Timer;
 
  @endverbatim
  */
-
 class SimBackend {
 protected:
 	std::string _backend_info;
@@ -79,7 +78,6 @@ protected:
 	number _max_io;
 
 	bool _enable_fix_diffusion;
-	bool _is_CUDA_sim;
 
 	bool _external_forces;
 	char _external_filename[256];
@@ -159,7 +157,7 @@ protected:
 	 */
 	bool _read_next_configuration(bool binary=false);
 
-	int _get_N_from_conf(std::ifstream &conf_input);
+	virtual void _on_T_update();
 
 public:
 	SimBackend();
@@ -193,6 +191,8 @@ public:
 
 	virtual void fix_diffusion();
 	virtual void print_equilibration_info();
+
+	void add_output(ObservableOutputPtr new_output);
 
 	/**
 	 * @brief Prints the observables attached to the backend.

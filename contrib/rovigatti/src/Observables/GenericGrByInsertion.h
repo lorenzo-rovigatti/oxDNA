@@ -21,8 +21,7 @@ protected:
 	int _n_bins;
 	int _n_conf;
 	number _bin;
-	number *_gr;
-	number _T;
+	std::vector<number> _gr;
 	std::vector<BaseParticle *> _particles[2];
 	int _insertions;
 	number _min, _max;
@@ -39,7 +38,7 @@ public:
 	virtual ~GenericGrByInsertion();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-	virtual void init(ConfigInfo &config_info);
+	virtual void init();
 	virtual std::string get_output_string(llint curr_step);
 
 };

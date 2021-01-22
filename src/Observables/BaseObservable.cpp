@@ -19,6 +19,6 @@ void BaseObservable::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 }
 
-void BaseObservable::init(ConfigInfo &config_info) {
+void BaseObservable::init() {
 
 }

@@ -55,8 +55,8 @@ CUDABaseInteraction::CUDABaseInteraction() {
 	_use_edge = false;
 	_n_forces = 1;
 
-	_d_edge_forces = NULL;
-	_d_edge_torques = NULL;
+	_d_edge_forces = nullptr;
+	_d_edge_torques = nullptr;
 }
 
 CUDABaseInteraction::~CUDABaseInteraction() {
@@ -95,7 +95,7 @@ void CUDABaseInteraction::cuda_init(c_number box_side, int N) {
 	_N = N;
 	_box_side = box_side;
 
-	if(_use_edge) {
+	if(_use_edge && _d_edge_forces == nullptr) {
 		size_t size = sizeof(c_number4) * _N * _n_forces;
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_edge_forces, size));
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_edge_torques, size));

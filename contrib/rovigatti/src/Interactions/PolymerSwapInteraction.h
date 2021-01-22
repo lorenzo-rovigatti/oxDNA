@@ -78,7 +78,6 @@ protected:
 	bool _only_links_in_bondfile = true;
 	int _chain_size = -1;
 	int _N_chains = -1;
-	number _T = 0.;
 
 	StressTensor _inter_chain_stress_tensor;
 

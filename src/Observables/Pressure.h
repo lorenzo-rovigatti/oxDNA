@@ -22,7 +22,6 @@
 
 class Pressure: public BaseObservable {
 protected:
-	number _T = 0.;
 	bool _custom_stress_tensor;
 	bool _with_stress_tensor;
 	bool _PV_only;

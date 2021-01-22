@@ -18,11 +18,11 @@ Distance::~Distance() {
 
 }
 
-void Distance::init(ConfigInfo &config_info) {
-	BaseObservable::init(config_info);
+void Distance::init() {
+	BaseObservable::init();
 
-	int N = config_info.N();
-	std::vector<BaseParticle *> &particles = config_info.particles();
+	int N = _config_info->N();
+	std::vector<BaseParticle *> &particles = _config_info->particles();
 
 	std::vector<int> p1_indexes = Utils::get_particles_from_string(particles, _p1_string, "Distance observable");
 	for(auto idx: p1_indexes) {
