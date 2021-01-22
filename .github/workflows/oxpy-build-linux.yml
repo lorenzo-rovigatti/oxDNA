@@ -22,11 +22,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip wheel setuptools
         pip install numpy
-    - name: Build oxDNA, install and reinstall oxpy
+    - name: Try to install and uninstall oxpy
       run: |
         python -m pip install .
         pip uninstall oxpy -y
-        python -m pip install .
     - name: Check import from Command Line
       run: |
         mkdir test-folder && pushd test-folder

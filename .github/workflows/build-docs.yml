@@ -43,7 +43,7 @@ jobs:
       - name: Commit documentation changes
         run: |
           git clone https://github.com/lorenzo-rovigatti/oxDNA.git --branch gh-pages --single-branch gh-pages
-          cp -r docs/oxpy/build/html/* gh-pages/
+          cp -r docs/oxpy/html/* gh-pages/
           cd gh-pages
           touch .nojekyll
           git config --local user.email "github-actions@github.com"
