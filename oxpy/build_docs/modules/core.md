@@ -18,6 +18,7 @@ This module contains the Python bindings of the C++ code. Every `object` describ
     RNANucleotide
     IBaseInteraction
     ConfigInfo
+    FlattenedConfigInfo
     BaseObservable
     BaseForce
     InputFile
@@ -36,6 +37,10 @@ This module contains the Python bindings of the C++ code. Every `object` describ
 .. autoclass:: IBaseInteraction
 
 .. autoclass:: ConfigInfo
+
+.. autoclass:: FlattenedConfigInfo
+
+.. autoclass:: FlattenedVectorArray
 
 .. autoclass:: BaseObservable
 

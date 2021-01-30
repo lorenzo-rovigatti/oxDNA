@@ -186,6 +186,7 @@ SET(common_SOURCES
 	Utilities/time_scales/time_scales.cpp
 	Utilities/SignalManager.cpp
 	Utilities/ConfigInfo.cpp
+	Utilities/FlattenedConfigInfo.cpp
 	PluginManagement/PluginManager.cpp
 	${forces_SOURCES}
 	${observables_SOURCES}

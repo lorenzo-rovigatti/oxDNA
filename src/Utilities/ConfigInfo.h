@@ -12,6 +12,7 @@
 
 #include "../defs.h"
 #include "oxDNAException.h"
+#include "FlattenedConfigInfo.h"
 
 #include <string>
 #include <memory>
@@ -47,6 +48,8 @@ private:
 	std::map<std::string, std::vector<std::function<void()>>> _event_callbacks;
 
 	number _temperature;
+
+	FlattenedConfigInfo _flattened_conf;
 
 public:
 	virtual ~ConfigInfo();
@@ -93,6 +96,8 @@ public:
 	std::vector<std::shared_ptr<Molecule>> &molecules() {
 		return *molecules_pointer;
 	}
+
+	const FlattenedConfigInfo &flattened_conf();
 
 	/// Pointer to the array which stores all the particles' information.
 	std::vector<BaseParticle *> *particles_pointer;

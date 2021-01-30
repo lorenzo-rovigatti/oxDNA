@@ -57,3 +57,8 @@ void ConfigInfo::clear() {
 	_config_info.reset();
 	_config_info = nullptr;
 }
+
+const FlattenedConfigInfo &ConfigInfo::flattened_conf() {
+	_flattened_conf.update(curr_step, particles());
+	return _flattened_conf;
+}

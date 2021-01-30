@@ -17,9 +17,6 @@
 namespace pybind11 {
 namespace detail {
 
-using std::cout;
-using std::endl;
-
 template<>
 struct type_caster<LR_vector> {
 public:
