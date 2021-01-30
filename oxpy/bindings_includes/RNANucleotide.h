@@ -22,7 +22,7 @@ void export_RNANucleotide(py::module &m) {
     )pbdoc");
 
 	nucleotide.def("backbone_site", [](RNANucleotide &nucl) {
-		return nucl.int_centers[nucl.BACK];
+		return nucl.pos + nucl.int_centers[nucl.BACK];
 	}, R"pbdoc(
 		Returns the position of the backbone site.
 
@@ -33,7 +33,7 @@ void export_RNANucleotide(py::module &m) {
 	)pbdoc");
 
 	nucleotide.def("stacking_site", [](RNANucleotide &nucl) {
-		return nucl.int_centers[nucl.STACK];
+		return nucl.pos + nucl.int_centers[nucl.STACK];
 	}, R"pbdoc(
         Returns the position of the stacking site.
 
@@ -44,7 +44,7 @@ void export_RNANucleotide(py::module &m) {
 	)pbdoc");
 
 	nucleotide.def("base_site", [](RNANucleotide &nucl) {
-		return nucl.int_centers[nucl.BASE];
+		return nucl.pos + nucl.int_centers[nucl.BASE];
 	}, R"pbdoc(
         Returns the position of the base site.
 
@@ -55,7 +55,7 @@ void export_RNANucleotide(py::module &m) {
 	)pbdoc");
 
 	nucleotide.def("stack3_site", [](RNANucleotide &nucl) {
-		return nucl.int_centers[nucl.STACK_3];
+		return nucl.pos + nucl.int_centers[nucl.STACK_3];
 	}, R"pbdoc(
         Returns the position of the stack3 site.
 
@@ -66,7 +66,7 @@ void export_RNANucleotide(py::module &m) {
 	)pbdoc");
 
 	nucleotide.def("stack5_site", [](RNANucleotide &nucl) {
-		return nucl.int_centers[nucl.STACK_5];
+		return nucl.pos + nucl.int_centers[nucl.STACK_5];
 	}, R"pbdoc(
         Returns the position of the stack5 site.
 
@@ -77,7 +77,7 @@ void export_RNANucleotide(py::module &m) {
 	)pbdoc");
 
 	nucleotide.def("bbvector3_site", [](RNANucleotide &nucl) {
-		return nucl.int_centers[nucl.BBVECTOR_3];
+		return nucl.pos + nucl.int_centers[nucl.BBVECTOR_3];
 	}, R"pbdoc(
         Returns the position of the bbvector3 site.
 
@@ -88,7 +88,7 @@ void export_RNANucleotide(py::module &m) {
 	)pbdoc");
 
 	nucleotide.def("bbvector5_site", [](RNANucleotide &nucl) {
-		return nucl.int_centers[nucl.BBVECTOR_5];
+		return nucl.pos + nucl.int_centers[nucl.BBVECTOR_5];
 	}, R"pbdoc(
         Returns the position of the bbvector5 site.
 

@@ -27,7 +27,7 @@ void export_DNANucleotide(py::module &m) {
     )pbdoc");
 
 	nucleotide.def("backbone_site", [](DNANucleotide &nucl) {
-		return nucl.int_centers[nucl.BACK];
+		return nucl.pos + nucl.int_centers[nucl.BACK];
 	}, R"pbdoc(
         Returns the position of the backbone site.
 
@@ -38,7 +38,7 @@ void export_DNANucleotide(py::module &m) {
 	)pbdoc");
 
 	nucleotide.def("stacking_site", [](DNANucleotide &nucl) {
-		return nucl.int_centers[nucl.STACK];
+		return nucl.pos + nucl.int_centers[nucl.STACK];
 	}, R"pbdoc(
     Returns the position of the stacking site.
 
@@ -49,7 +49,7 @@ void export_DNANucleotide(py::module &m) {
 	)pbdoc");
 
 	nucleotide.def("base_site", [](DNANucleotide &nucl) {
-		return nucl.int_centers[nucl.BASE];
+		return nucl.pos + nucl.int_centers[nucl.BASE];
 	}, R"pbdoc(
     Returns the position of the base site.
 
