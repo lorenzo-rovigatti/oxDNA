@@ -256,8 +256,8 @@ inline LR_matrix Utils::get_random_rotation_matrix(number max_angle) {
 }
 
 inline number Utils::gaussian() {
-	unsigned int isNextG = 0;
-	number nextG = -1e6;
+	static unsigned int isNextG = 0;
+	static number nextG = -1e6;
 	number toRet;
 	number u, v, w;
 

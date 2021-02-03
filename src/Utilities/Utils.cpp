@@ -13,9 +13,6 @@
 
 #include <sstream>
 
-#include <errno.h>
-extern int errno;
-
 using std::string;
 
 namespace Utils {
