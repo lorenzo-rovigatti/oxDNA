@@ -9,8 +9,6 @@
 #ifndef DEFS_H_
 #define DEFS_H_
 
-#define RELEASE "v3.0.0-alpha"
-
 #define MAX_EXT_FORCES 15
 
 #define PI 3.141592653589793238462643f
