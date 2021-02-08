@@ -20,6 +20,7 @@
 #include <fstream>
 #include <cfloat>
 #include <vector>
+#include <map>
 
 class IBaseInteraction;
 class BaseBox;
@@ -104,7 +105,7 @@ protected:
 	bool _restart_step_counter;
 
 	/// Vector of ObservableOutput used to manage the simulation output
-	std::vector<ObservableOutputPtr> _obs_outputs;
+	std::map<std::string, ObservableOutputPtr> _obs_outputs;
 	ObservableOutputPtr _obs_output_stdout;
 	ObservableOutputPtr _obs_output_file;
 	ObservableOutputPtr _obs_output_trajectory;
@@ -193,6 +194,7 @@ public:
 	virtual void print_equilibration_info();
 
 	void add_output(ObservableOutputPtr new_output);
+	void remove_output(std::string output_file);
 
 	/**
 	 * @brief Prints the observables attached to the backend.

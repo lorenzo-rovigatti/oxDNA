@@ -1,13 +1,13 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html4" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The utils module &mdash; oxpy 3.0.0a1.dev171+g314f333.d20210130 documentation</title>
+  <title>The utils module &mdash; oxpy 3.0.0a1.dev174+g7792a6e.d20210208 documentation</title>
   
 
   
@@ -26,9 +26,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -60,7 +61,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev171+g314f333.d20210130
+                3.0.0a1.dev174+g7792a6e.d20210208
               </div>
             
           
@@ -165,26 +166,26 @@
 <p>This module contains some utility functions/classes that are directly written in Python. Every <code class="docutils literal notranslate"><span class="pre">object</span></code> described here is contained in the same module and can be accessed as <code class="docutils literal notranslate"><span class="pre">oxpy.utils.object</span></code>.</p>
 <div class="toctree-wrapper compound">
 </div>
-<table class="longtable docutils align-default">
+<table border="1" class="longtable docutils">
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
+<col width="10%" />
+<col width="90%" />
 </colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.utils.generate_default_input" title="oxpy.utils.generate_default_input"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_default_input</span></code></a></p></td>
-<td><p>Build and return a minimal input file</p></td>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#oxpy.utils.generate_default_input" title="oxpy.utils.generate_default_input"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_default_input</span></code></a></td>
+<td>Build and return a minimal input file</td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.utils.Kelvin_to_oxDNA" title="oxpy.utils.Kelvin_to_oxDNA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Kelvin_to_oxDNA</span></code></a></p></td>
-<td><p>Convert the temperature given in Kelvin to oxDNA simulation units</p></td>
+<tr class="row-even"><td><a class="reference internal" href="#oxpy.utils.Kelvin_to_oxDNA" title="oxpy.utils.Kelvin_to_oxDNA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Kelvin_to_oxDNA</span></code></a></td>
+<td>Convert the temperature given in Kelvin to oxDNA simulation units</td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.utils.Celsius_to_oxDNA" title="oxpy.utils.Celsius_to_oxDNA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Celsius_to_oxDNA</span></code></a></p></td>
-<td><p>Convert the temperature given in Celsius to oxDNA simulation units</p></td>
+<tr class="row-odd"><td><a class="reference internal" href="#oxpy.utils.Celsius_to_oxDNA" title="oxpy.utils.Celsius_to_oxDNA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Celsius_to_oxDNA</span></code></a></td>
+<td>Convert the temperature given in Celsius to oxDNA simulation units</td>
 </tr>
 </tbody>
 </table>
-<dl class="py function">
+<dl class="function">
 <dt id="oxpy.utils.generate_default_input">
-<code class="sig-prename descclassname">oxpy.utils.</code><code class="sig-name descname">generate_default_input</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">options</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.utils.generate_default_input" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">oxpy.utils.</code><code class="descname">generate_default_input</code><span class="sig-paren">(</span><em>options=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.utils.generate_default_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build and return a minimal input file</p>
 <p>The returned input file contains the minimum amount of options required to start a simulation.
 You can list them by printing the input file after generation:</p>
@@ -194,38 +195,40 @@ You can list them by printing the input file after generation:</p>
 </div>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="oxpy.utils.Kelvin_to_oxDNA">
-<code class="sig-prename descclassname">oxpy.utils.</code><code class="sig-name descname">Kelvin_to_oxDNA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.utils.Kelvin_to_oxDNA" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">oxpy.utils.</code><code class="descname">Kelvin_to_oxDNA</code><span class="sig-paren">(</span><em>T</em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.utils.Kelvin_to_oxDNA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert the temperature given in Kelvin to oxDNA simulation units</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>T</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The temperature (in degrees Kelvin) to be converted</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The temperature in oxDNA units</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The temperature (in degrees Kelvin) to be converted</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The temperature in oxDNA units</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="oxpy.utils.Celsius_to_oxDNA">
-<code class="sig-prename descclassname">oxpy.utils.</code><code class="sig-name descname">Celsius_to_oxDNA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.utils.Celsius_to_oxDNA" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">oxpy.utils.</code><code class="descname">Celsius_to_oxDNA</code><span class="sig-paren">(</span><em>T</em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.utils.Celsius_to_oxDNA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert the temperature given in Celsius to oxDNA simulation units</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>T</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The temperature (in degrees Celsius) to be converted</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The temperature in oxDNA units</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></p>
-</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The temperature (in degrees Celsius) to be converted</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The temperature in oxDNA units</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

@@ -1,13 +1,13 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html4" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Oxpy &mdash; oxpy 3.0.0a1.dev171+g314f333.d20210130 documentation</title>
+  <title>Oxpy &mdash; oxpy 3.0.0a1.dev174+g7792a6e.d20210208 documentation</title>
   
 
   
@@ -26,9 +26,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -59,7 +60,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev171+g314f333.d20210130
+                3.0.0a1.dev174+g7792a6e.d20210208
               </div>
             
           
@@ -169,29 +170,29 @@
 <span class="kn">import</span> <span class="nn">oxpy</span>
 
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
-    <span class="c1"># init the manager with the given input file</span>
-    <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
-    <span class="n">manager</span><span class="o">.</span><span class="n">load_options</span><span class="p">()</span>
-    <span class="n">manager</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-
-    <span class="c1"># run 1k steps</span>
-    <span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
-    
-    <span class="c1"># change the temperature</span>
+	<span class="c1"># init the manager with the given input file</span>
+	<span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+	<span class="n">manager</span><span class="o">.</span><span class="n">load_options</span><span class="p">()</span>
+	<span class="n">manager</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+	
+	<span class="c1"># run 1k steps</span>
+	<span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+	
+	<span class="c1"># change the temperature</span>
 	<span class="n">manager</span><span class="o">.</span><span class="n">update_temperature</span><span class="p">(</span><span class="mf">0.11</span><span class="p">)</span>
-
-    <span class="c1"># run 1k steps more</span>
-    <span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
-
-    <span class="c1"># do some computation with the current configuration</span>
-    <span class="n">particles</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">particles</span><span class="p">()</span>
-    
-    <span class="c1"># compute the average position of the particles&#39; backbones</span>
-    <span class="n">avg_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">backbone_site</span><span class="p">(),</span> <span class="n">particles</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average final position:&quot;</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
-    
-    <span class="c1"># and the interaction energy between the first two particles</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interaction energy between particle 0 and particle 1:&quot;</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">pair_interaction</span><span class="p">(</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">particles</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+	
+	<span class="c1"># run 1k steps more</span>
+	<span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+	
+	<span class="c1"># do some computation with the current configuration</span>
+	<span class="n">particles</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">particles</span><span class="p">()</span>
+	
+	<span class="c1"># compute the average position of the particles&#39; backbones</span>
+	<span class="n">avg_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">backbone_site</span><span class="p">(),</span> <span class="n">particles</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Average final position:&quot;</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
+	
+	<span class="c1"># and the interaction energy between the first two particles</span>
+	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interaction energy between particle 0 and particle 1:&quot;</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">pair_interaction</span><span class="p">(</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">particles</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 <p>If you want, you can initialise the input file yourself and change some of the options before initialising the manager:</p>
