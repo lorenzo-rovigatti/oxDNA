@@ -17,7 +17,9 @@ OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
 OPTION(DOUBLE "Set the numerical precision to double" ON)
 OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" OFF)
 OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
+
 OPTION(Python "Enable Python bindings" OFF)
+OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have problems at linking time
 if(INTEL)
