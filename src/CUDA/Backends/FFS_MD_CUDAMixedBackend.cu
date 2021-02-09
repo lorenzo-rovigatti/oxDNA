@@ -280,7 +280,7 @@ void FFS_MD_CUDAMixedBackend::get_settings(input_file &inp) {
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", customconf_file);
 	_obs_output_custom_conf = std::make_shared<ObservableOutput>(fake);
 	_obs_output_custom_conf->add_observable("type = configuration");
-	_obs_outputs.push_back(_obs_output_custom_conf);
+	add_output(_obs_output_custom_conf);
 }
 
 void FFS_MD_CUDAMixedBackend::init() {
