@@ -61,3 +61,5 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+select_compute_arch_laptop.cmake
