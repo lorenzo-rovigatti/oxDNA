@@ -9,7 +9,7 @@
 
 DHSInteraction::DHSInteraction() :
 				BaseInteraction<DHSInteraction>() {
-	_int_map[DHS] = &DHSInteraction::_dhs_pot;
+	ADD_INTERACTION_TO_MAP(DHS, _dhs_pot);
 }
 
 DHSInteraction::~DHSInteraction() {

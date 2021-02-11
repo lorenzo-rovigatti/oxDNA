@@ -9,7 +9,7 @@
 
 HardCylinderInteraction::HardCylinderInteraction() :
 				BaseInteraction<HardCylinderInteraction>() {
-	_int_map[HardCylinder] = &HardCylinderInteraction::_hc_pot;
+	ADD_INTERACTION_TO_MAP(HardCylinder, _hc_pot);
 }
 
 HardCylinderInteraction::~HardCylinderInteraction() {

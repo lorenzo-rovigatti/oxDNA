@@ -16,7 +16,7 @@ KFInteraction::KFInteraction() :
 				_N_A(0),
 				_N_B(0),
 				_is_binary(false) {
-	_int_map[PATCHY] = &KFInteraction::pair_interaction_nonbonded;
+	ADD_INTERACTION_TO_MAP(PATCHY, pair_interaction_nonbonded);
 
 	for(int i = 0; i < 3; i++)
 		_sigma[i] = _sqr_sigma[i] = _epsilon[i] = 1.;

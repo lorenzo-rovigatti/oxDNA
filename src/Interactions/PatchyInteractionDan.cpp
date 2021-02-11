@@ -14,7 +14,7 @@
 
 PatchyInteractionDan::PatchyInteractionDan() :
 				BaseInteraction<PatchyInteractionDan>() {
-	this->_int_map[PATCHY] = &PatchyInteractionDan::_patchy_interaction;
+	ADD_INTERACTION_TO_MAP(PATCHY, _patchy_interaction);
 
 	/*//Set initialisation value to false
 	 _initialised = false;*/

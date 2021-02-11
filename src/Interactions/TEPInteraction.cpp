@@ -5,13 +5,13 @@
 
 TEPInteraction::TEPInteraction() :
 				BaseInteraction<TEPInteraction>() {
-	this->_int_map[SPRING] = &TEPInteraction::_spring;
-	this->_int_map[BONDED_BENDING] = &TEPInteraction::_bonded_bending;
-	this->_int_map[BONDED_TWIST] = &TEPInteraction::_bonded_twist;
-	this->_int_map[BONDED_ALIGNMENT] = &TEPInteraction::_bonded_alignment;
-	this->_int_map[NONBONDED_EXCLUDED_VOLUME] = &TEPInteraction::_nonbonded_excluded_volume;
-	this->_int_map[BONDED_DEBYE_HUCKEL] = &TEPInteraction::_bonded_debye_huckel;
-	this->_int_map[NONBONDED_DEBYE_HUCKEL] = &TEPInteraction::_nonbonded_debye_huckel;
+	ADD_INTERACTION_TO_MAP(SPRING, _spring);
+	ADD_INTERACTION_TO_MAP(BONDED_BENDING, _bonded_bending);
+	ADD_INTERACTION_TO_MAP(BONDED_TWIST, _bonded_twist);
+	ADD_INTERACTION_TO_MAP(BONDED_ALIGNMENT, _bonded_alignment);
+	ADD_INTERACTION_TO_MAP(NONBONDED_EXCLUDED_VOLUME, _nonbonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(BONDED_DEBYE_HUCKEL, _bonded_debye_huckel);
+	ADD_INTERACTION_TO_MAP(NONBONDED_DEBYE_HUCKEL, _nonbonded_debye_huckel);
 
 	_allow_broken_fene = false;
 	_prefer_harmonic_over_fene = false;

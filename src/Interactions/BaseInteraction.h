@@ -22,6 +22,9 @@
 #include <set>
 #include <vector>
 #include <array>
+#include <functional>
+
+#define ADD_INTERACTION_TO_MAP(index, member) {_interaction_map[index] = [this](BaseParticle *p, BaseParticle *q, bool compute_r, bool compute_forces) { return member(p, q, compute_r, compute_forces); };}
 
 using StressTensor = std::array<number, 6>;
 
@@ -277,16 +280,13 @@ using InteractionPtr = std::shared_ptr<IBaseInteraction>;
  */
 template<typename child>
 class BaseInteraction: public IBaseInteraction {
-	typedef std::map<int, number (child::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)> interaction_map;
-
 private:
 
 protected:
-	/**
-	 * Map of function pointers of individual terms of the particle-particle interaction. Note that
-	 * these pointers are of type child::* (i.e. methods defined within the child class).
-	 */
-	interaction_map _int_map;
+
+	using energy_function = std::function<number(BaseParticle *, BaseParticle *, bool, bool)>;
+	using interaction_map = std::map<int, energy_function>;
+	interaction_map _interaction_map;
 
 	/**
 	 * @brief Calls the right interaction-computing method, chosen according to its name.
@@ -358,12 +358,12 @@ number BaseInteraction<child>::_pair_interaction_term_wrapper(child *that, int n
 	// that, which is a pointer to an instance of a class which inherits
 	// from BaseInteraction. We then pass in the required parameters and
 	// return the interaction energy.
-	typename interaction_map::iterator interaction = _int_map.find(name);
-	if(interaction == _int_map.end()) {
+	typename interaction_map::iterator interaction = _interaction_map.find(name);
+	if(interaction == _interaction_map.end()) {
 		throw oxDNAException("%s, line %d: Interaction term '%d' not found", __FILE__, __LINE__, name);
 	}
 
-	return (that->*(interaction->second))(p, q, false, update_forces);
+	return interaction->second(p, q, false, update_forces);
 }
 
 template<typename child>
@@ -421,7 +421,7 @@ std::map<int, number> BaseInteraction<child>::get_system_energy_split(std::vecto
 
 	std::map<int, number> energy_map;
 
-	for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
+	for(auto it = _interaction_map.begin(); it != _interaction_map.end(); it++) {
 		int name = it->first;
 		energy_map[name] = (number) 0.f;
 	}
@@ -432,7 +432,7 @@ std::map<int, number> BaseInteraction<child>::get_system_energy_split(std::vecto
 		for(unsigned int n = 0; n < neighs.size(); n++) {
 			BaseParticle *q = neighs[n];
 			if(p->index > q->index) {
-				for(typename interaction_map::iterator it = _int_map.begin(); it != _int_map.end(); it++) {
+				for(auto it = _interaction_map.begin(); it != _interaction_map.end(); it++) {
 					int name = it->first;
 					energy_map[name] += pair_interaction_term(name, p, q);
 				}

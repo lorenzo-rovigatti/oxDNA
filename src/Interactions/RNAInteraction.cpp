@@ -5,14 +5,14 @@
 RNAInteraction::RNAInteraction() :
 				BaseInteraction<RNAInteraction>(),
 				_average(true) {
-	_int_map[BACKBONE] = &RNAInteraction::_backbone;
-	_int_map[BONDED_EXCLUDED_VOLUME] = &RNAInteraction::_bonded_excluded_volume;
-	_int_map[STACKING] = &RNAInteraction::_stacking;
+	ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
+	ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(STACKING, _stacking);
 
-	_int_map[NONBONDED_EXCLUDED_VOLUME] = &RNAInteraction::_nonbonded_excluded_volume;
-	_int_map[HYDROGEN_BONDING] = &RNAInteraction::_hydrogen_bonding;
-	_int_map[CROSS_STACKING] = &RNAInteraction::_cross_stacking;
-	_int_map[COAXIAL_STACKING] = &RNAInteraction::_coaxial_stacking;
+	ADD_INTERACTION_TO_MAP(NONBONDED_EXCLUDED_VOLUME, _nonbonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(HYDROGEN_BONDING, _hydrogen_bonding);
+	ADD_INTERACTION_TO_MAP(CROSS_STACKING, _cross_stacking);
+	ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 
 	model = new Model();
 

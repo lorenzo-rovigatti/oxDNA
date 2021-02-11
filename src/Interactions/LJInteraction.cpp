@@ -9,7 +9,8 @@
 
 LJInteraction::LJInteraction() :
 				BaseInteraction<LJInteraction>() {
-	_int_map[LENNARD_JONES] = &LJInteraction::pair_interaction_nonbonded;
+	ADD_INTERACTION_TO_MAP(LENNARD_JONES, pair_interaction_nonbonded);
+
 	_is_ka_mixture = false;
 	_sigma[0] = _sigma[1] = _sigma[2] = 1.;
 	_epsilon[0] = _epsilon[1] = _epsilon[2] = 1.;

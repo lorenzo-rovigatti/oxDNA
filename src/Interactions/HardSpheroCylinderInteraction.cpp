@@ -9,7 +9,7 @@
 
 HardSpheroCylinderInteraction::HardSpheroCylinderInteraction() :
 				BaseInteraction<HardSpheroCylinderInteraction>() {
-	_int_map[0] = &HardSpheroCylinderInteraction::_hsc_pot;
+	ADD_INTERACTION_TO_MAP(0, _hsc_pot);
 }
 
 HardSpheroCylinderInteraction::~HardSpheroCylinderInteraction() {

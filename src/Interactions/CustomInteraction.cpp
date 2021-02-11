@@ -12,8 +12,8 @@ CustomInteraction::CustomInteraction() :
 				BaseInteraction<CustomInteraction>() {
 	_bonded_points = 100;
 
-	_int_map[BONDED] = &CustomInteraction::pair_interaction_bonded;
-	_int_map[NONBONDED] = &CustomInteraction::pair_interaction_nonbonded;
+	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
 }
 
 CustomInteraction::~CustomInteraction() {

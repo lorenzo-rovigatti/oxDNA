@@ -11,7 +11,7 @@
 
 JordanInteraction::JordanInteraction() :
 				BaseInteraction<JordanInteraction>() {
-	_int_map[JORDAN] = &JordanInteraction::_jordan_interaction;
+	ADD_INTERACTION_TO_MAP(JORDAN, _jordan_interaction);
 
 	_s = (number) 0.3; // patch width
 	_m = 6;            // LJ exponent

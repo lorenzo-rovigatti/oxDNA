@@ -10,7 +10,7 @@
 
 BoxInteraction::BoxInteraction() :
 				BaseInteraction<BoxInteraction>() {
-	_int_map[Box] = &BoxInteraction::_box_pot;
+	ADD_INTERACTION_TO_MAP(Box, _box_pot);
 }
 
 BoxInteraction::~BoxInteraction() {

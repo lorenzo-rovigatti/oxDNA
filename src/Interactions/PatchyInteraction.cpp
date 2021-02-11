@@ -15,7 +15,7 @@ PatchyInteraction::PatchyInteraction() :
 				_N_A(0),
 				_N_B(0),
 				_is_binary(false) {
-	_int_map[PATCHY] = &PatchyInteraction::_patchy_interaction;
+	ADD_INTERACTION_TO_MAP(PATCHY, _patchy_interaction);
 
 	for(int i = 0; i < 3; i++) {
 		_sigma[i] = 1.;

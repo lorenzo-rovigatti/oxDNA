@@ -6,14 +6,14 @@
 DNAInteraction::DNAInteraction() :
 				BaseInteraction<DNAInteraction>(),
 				_average(true) {
-	_int_map[BACKBONE] = &DNAInteraction::_backbone;
-	_int_map[BONDED_EXCLUDED_VOLUME] = &DNAInteraction::_bonded_excluded_volume;
-	_int_map[STACKING] = &DNAInteraction::_stacking;
+	ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
+	ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(STACKING, _stacking);
 
-	_int_map[NONBONDED_EXCLUDED_VOLUME] = &DNAInteraction::_nonbonded_excluded_volume;
-	_int_map[HYDROGEN_BONDING] = &DNAInteraction::_hydrogen_bonding;
-	_int_map[CROSS_STACKING] = &DNAInteraction::_cross_stacking;
-	_int_map[COAXIAL_STACKING] = &DNAInteraction::_coaxial_stacking;
+	ADD_INTERACTION_TO_MAP(NONBONDED_EXCLUDED_VOLUME, _nonbonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(HYDROGEN_BONDING, _hydrogen_bonding);
+	ADD_INTERACTION_TO_MAP(CROSS_STACKING, _cross_stacking);
+	ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 
 	F1_A[0] = HYDR_A;
 	F1_A[1] = STCK_A;
