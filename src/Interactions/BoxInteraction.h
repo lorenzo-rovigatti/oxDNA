@@ -25,7 +25,7 @@
  @endverbatim
  */
 
-class BoxInteraction: public BaseInteraction<BoxInteraction> {
+class BoxInteraction: public BaseInteraction {
 protected:
 	inline number _box_pot(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
@@ -49,9 +49,6 @@ public:
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
-	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 

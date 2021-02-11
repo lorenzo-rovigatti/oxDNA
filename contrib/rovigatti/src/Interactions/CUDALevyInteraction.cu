@@ -411,6 +411,6 @@ void CUDALevyInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss,
 	}
 }
 
-extern "C" IBaseInteraction *make_CUDALevyInteraction() {
+extern "C" BaseInteraction *make_CUDALevyInteraction() {
 	return new CUDALevyInteraction();
 }

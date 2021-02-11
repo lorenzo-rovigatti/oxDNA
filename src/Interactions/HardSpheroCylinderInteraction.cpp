@@ -8,8 +8,8 @@
 #include "HardSpheroCylinderInteraction.h"
 
 HardSpheroCylinderInteraction::HardSpheroCylinderInteraction() :
-				BaseInteraction<HardSpheroCylinderInteraction>() {
-	_int_map[0] = &HardSpheroCylinderInteraction::_hsc_pot;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(0, _hsc_pot);
 }
 
 HardSpheroCylinderInteraction::~HardSpheroCylinderInteraction() {
@@ -17,7 +17,7 @@ HardSpheroCylinderInteraction::~HardSpheroCylinderInteraction() {
 }
 
 void HardSpheroCylinderInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 	char tmps[512];
 	getInputString(&inp, "sim_type", (char*) tmps, 1);
 	if(strncmp(tmps, "MC", 512))

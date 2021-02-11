@@ -9,8 +9,8 @@
 #include "InteractionUtils.h"
 
 BoxInteraction::BoxInteraction() :
-				BaseInteraction<BoxInteraction>() {
-	_int_map[Box] = &BoxInteraction::_box_pot;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(Box, _box_pot);
 }
 
 BoxInteraction::~BoxInteraction() {
@@ -18,7 +18,7 @@ BoxInteraction::~BoxInteraction() {
 }
 
 void BoxInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 	char tmps[512];
 	getInputString(&inp, "sim_type", (char *) tmps, 1);
 	if(strncmp(tmps, "MC", 512)) throw oxDNAException("Cannot run Box with MD");

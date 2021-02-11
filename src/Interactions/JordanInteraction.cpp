@@ -10,8 +10,8 @@
 #include "../Utilities/Utils.h"
 
 JordanInteraction::JordanInteraction() :
-				BaseInteraction<JordanInteraction>() {
-	_int_map[JORDAN] = &JordanInteraction::_jordan_interaction;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(JORDAN, _jordan_interaction);
 
 	_s = (number) 0.3; // patch width
 	_m = 6;            // LJ exponent
@@ -29,7 +29,7 @@ JordanInteraction::~JordanInteraction() {
 }
 
 void JordanInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	float tmp = 2.5;
 	getInputFloat(&inp, "JORDAN_rcut", &tmp, 0);

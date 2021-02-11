@@ -417,6 +417,6 @@ void CUDAStarrInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss
 	}
 }
 
-extern "C" IBaseInteraction *make_CUDAStarrInteraction() {
+extern "C" BaseInteraction *make_CUDAStarrInteraction() {
 	return new CUDAStarrInteraction();
 }

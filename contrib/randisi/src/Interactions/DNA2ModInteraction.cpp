@@ -558,7 +558,7 @@ number DNA2ModInteraction<number>::_hydrogen_bonding(BaseParticle<number> *p, Ba
 	return energy;
 }
 
-extern "C" IBaseInteraction<float> *make_DNA2ModInteraction_float() { return new DNA2ModInteraction<float>(); }
-extern "C" IBaseInteraction<double> *make_DNA2ModInteraction_double() { return new DNA2ModInteraction<double>(); }
+extern "C" BaseInteraction<float> *make_DNA2ModInteraction_float() { return new DNA2ModInteraction<float>(); }
+extern "C" BaseInteraction<double> *make_DNA2ModInteraction_double() { return new DNA2ModInteraction<double>(); }
 template class DNA2ModInteraction<float>;
 template class DNA2ModInteraction<double>;

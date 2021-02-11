@@ -21,7 +21,7 @@
 #include <functional>
 #include <map>
 
-class IBaseInteraction;
+class BaseInteraction;
 class BaseParticle;
 class BaseList;
 class BaseBox;
@@ -62,7 +62,7 @@ public:
 	 * @param l the list object
 	 * @param abox the box object
 	 */
-	void set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox);
+	void set(BaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox);
 
 	void subscribe(std::string event, std::function<void()> callback);
 
@@ -105,7 +105,7 @@ public:
 	std::vector<std::shared_ptr<Molecule>> *molecules_pointer;
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
-	IBaseInteraction *interaction = nullptr;
+	BaseInteraction *interaction = nullptr;
 
 	/// Used by BackendInfo to print backend-related information such as Monte Carlo acceptance ratios.
 	std::string *backend_info = nullptr;

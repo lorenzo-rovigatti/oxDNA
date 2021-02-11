@@ -78,7 +78,7 @@ void NathanInteraction::allocate_particles(std::vector<BaseParticle *> &particle
 }
 
 void NathanInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "NATHAN_alpha", &_patch_alpha, 0);
 	getInputNumber(&inp, "NATHAN_cosmax", &_patch_cosmax, 1);

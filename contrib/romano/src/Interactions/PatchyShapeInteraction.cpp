@@ -890,7 +890,7 @@ void PatchyShapeInteraction<number>::_load_interaction_tensor(std::string &tenso
 
 template<typename number>
 void PatchyShapeInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+	BaseInteraction<number>::get_settings(inp);
 
 	//getInputInt(&inp, "PATCHY_N", &_N_patches, 1);
 

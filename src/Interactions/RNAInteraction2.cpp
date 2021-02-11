@@ -2,8 +2,8 @@
 
 RNA2Interaction::RNA2Interaction() :
 				RNAInteraction() {
+	ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
 
-	_int_map[DEBYE_HUCKEL] = (number (RNAInteraction::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)) &RNA2Interaction::_debye_huckel;
 	_RNA_HYDR_MIS = 1;
 	// log the interaction type
 	OX_LOG(Logger::LOG_INFO,"Running modification of oxRNA with additional Debye-Huckel potential");

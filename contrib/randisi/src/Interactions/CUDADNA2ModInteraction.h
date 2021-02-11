@@ -51,6 +51,6 @@ public:
 	void compute_forces(CUDABaseList<number, number4> *lists, number4 *d_poss, GPU_quat<number> *d_qorientations, number4 *d_forces, number4 *d_torques, LR_bonds *d_bonds, CUDABox<number, number4> *d_box);
 };
 
-extern "C" IBaseInteraction<float> *make_CUDADNA2ModInteraction_float() { return new CUDADNA2ModInteraction<float, float4>(); } 
-extern "C" IBaseInteraction<double> *make_CUDADNA2ModInteraction_double() { return new CUDADNA2ModInteraction<double, LR_double4>(); }
+extern "C" BaseInteraction<float> *make_CUDADNA2ModInteraction_float() { return new CUDADNA2ModInteraction<float, float4>(); } 
+extern "C" BaseInteraction<double> *make_CUDADNA2ModInteraction_double() { return new CUDADNA2ModInteraction<double, LR_double4>(); }
 #endif /* CUDADNA2MODINTERACTION_H_ */

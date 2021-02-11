@@ -81,7 +81,7 @@ void NathanStarInteraction::allocate_particles(std::vector<BaseParticle*> &parti
 }
 
 void NathanStarInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "T", &_T, 1);
 

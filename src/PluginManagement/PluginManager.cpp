@@ -20,7 +20,7 @@ using std::vector;
 std::shared_ptr<PluginManager> PluginManager::_manager = nullptr;
 
 typedef BaseObservable* make_obs();
-typedef IBaseInteraction* make_inter();
+typedef BaseInteraction* make_inter();
 typedef BaseMove* make_move();
 
 PluginManager::PluginManager() :
@@ -180,7 +180,7 @@ InteractionPtr PluginManager::get_interaction(string name) {
 	}
 
 	// now we cast it back to the type required by the code
-	return InteractionPtr((IBaseInteraction *)temp_inter);
+	return InteractionPtr((BaseInteraction *)temp_inter);
 }
 
 MovePtr PluginManager::get_move(std::string name) {

@@ -38,7 +38,7 @@ void ConfigInfo::notify(std::string event) {
 	}
 }
 
-void ConfigInfo::set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox) {
+void ConfigInfo::set(BaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox) {
 	interaction = i;
 	backend_info = info;
 	lists = l;

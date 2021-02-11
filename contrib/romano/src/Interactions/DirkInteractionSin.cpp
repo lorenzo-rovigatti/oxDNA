@@ -22,7 +22,7 @@ DirkInteractionSin<number>::~DirkInteractionSin() {
 
 template<typename number>
 void DirkInteractionSin<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+	BaseInteraction<number>::get_settings(inp);
 	
 	std::string tmps;
 	getInputString (&inp, "sim_type", tmps, 1);

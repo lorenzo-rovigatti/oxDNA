@@ -31,7 +31,7 @@ public:
 	void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
 };
 
-extern "C" IBaseInteraction *make_CUDAMGInteraction() {
+extern "C" BaseInteraction *make_CUDAMGInteraction() {
 	return new CUDAMGInteraction();
 }
 

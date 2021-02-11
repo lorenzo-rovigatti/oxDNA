@@ -26,7 +26,7 @@ LJ_rcut = <float> (interaction cutoff)
 [LJ_n = <int> (Generalised LJ exponent. Defaults to 6, which is the classic LJ value.)]
 @endverbatim
  */
-class LJInteraction: public BaseInteraction<LJInteraction> {
+class LJInteraction: public BaseInteraction {
 protected:
 	number _E_cut[3];
 	bool _is_ka_mixture;
@@ -56,9 +56,6 @@ public:
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
-	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 };

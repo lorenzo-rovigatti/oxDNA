@@ -4,9 +4,8 @@
 
 DNA2Interaction::DNA2Interaction() :
 				DNAInteraction() {
-	_int_map[DEBYE_HUCKEL] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)) &DNA2Interaction::_debye_huckel;
-	// I assume these are needed. I think the interaction map is used for when the observables want to print energy
-	_int_map[COAXIAL_STACKING] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)) &DNA2Interaction::_coaxial_stacking;
+	ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
+	ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 
 	F2_K[1] = CXST_K_OXDNA2;
 

@@ -28,7 +28,7 @@
 #include "rna_model.h"
 #include "../Particles/RNANucleotide.h"
 
-class RNAInteraction : public BaseInteraction<RNAInteraction > {
+class RNAInteraction : public BaseInteraction {
 protected:
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
@@ -116,9 +116,6 @@ public:
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) {
-		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
-	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 

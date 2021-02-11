@@ -11,8 +11,9 @@
 using namespace std;
 
 GraftedInteraction::GraftedInteraction() :
-				BaseInteraction<GraftedInteraction>() {
-	this->_int_map[0] = &GraftedInteraction::pair_interaction;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(0, pair_interaction);
+
 	_N_arms = _N_per_arm = -1;
 	_colloid_n = -1;
 	_walls = false;
@@ -23,7 +24,7 @@ GraftedInteraction::~GraftedInteraction() {
 }
 
 void GraftedInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 	_TSP_inter.get_settings(inp);
 
 	getInputNumber(&inp, "GRF_alpha", &_alpha, 1);
@@ -50,7 +51,7 @@ void GraftedInteraction::init() {
 }
 
 void GraftedInteraction::set_box(BaseBox *box) {
-	IBaseInteraction::set_box(box);
+	BaseInteraction::set_box(box);
 	_TSP_inter.set_box(box);
 
 	if(_walls && box->box_sides().x < 2 * _wall_distance) throw oxDNAException("The box side (%lf) is too small to contain walls separated by %lf", box->box_sides().x, _wall_distance);

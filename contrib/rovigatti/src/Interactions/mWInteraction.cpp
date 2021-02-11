@@ -13,9 +13,9 @@
 using namespace std;
 
 mWInteraction::mWInteraction() :
-				BaseInteraction<mWInteraction>(),
+				BaseInteraction(),
 				_N(-1) {
-	_int_map[mW] = &mWInteraction::_two_body;
+	ADD_INTERACTION_TO_MAP(mW, _two_body);
 
 	_lambda = 1.;
 	_gamma = 1.2;
@@ -31,7 +31,7 @@ mWInteraction::~mWInteraction() {
 }
 
 void mWInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "mW_lambda", &_lambda, 0);
 	getInputNumber(&inp, "mW_gamma", &_gamma, 0);
@@ -59,7 +59,7 @@ void mWInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 }
 
 void mWInteraction::begin_energy_computation() {
-	BaseInteraction<mWInteraction>::begin_energy_computation();
+	BaseInteraction::begin_energy_computation();
 
 	for(int i = 0; i < _N; i++) {
 		_bonds[i].clear();

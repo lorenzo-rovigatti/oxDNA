@@ -32,7 +32,7 @@ PATCHY_N = <int> (number of patches)
 @endverbatim
  */
 
-class PatchyInteraction: public BaseInteraction<PatchyInteraction > {
+class PatchyInteraction: public BaseInteraction {
 protected:
 	/// Number of patches per particle
 	int _N_patches;
@@ -110,9 +110,6 @@ public:
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
-	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
