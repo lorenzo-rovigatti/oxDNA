@@ -1,26 +1,26 @@
 /*
- * IBaseInteraction.h
+ * BaseInteraction.h
  *
  *  Created on: Mar 21, 2020
  *      Author: lorenzo
  */
 
-#ifndef OXPY_BINDINGS_INCLUDES_IBASEINTERACTION_H_
-#define OXPY_BINDINGS_INCLUDES_IBASEINTERACTION_H_
+#ifndef OXPY_BINDINGS_INCLUDES_BASEINTERACTION_H_
+#define OXPY_BINDINGS_INCLUDES_BASEINTERACTION_H_
 
 #include "../python_defs.h"
 
 #include <Interactions/BaseInteraction.h>
 
-// trampoline class for IBaseInteraction
-class PyIBaseInteraction : public IBaseInteraction {
+// trampoline class for BaseInteraction
+class PyBaseInteraction : public BaseInteraction {
 public:
-	using IBaseInteraction::IBaseInteraction;
+	using BaseInteraction::BaseInteraction;
 
 	void init() override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				void,
-				IBaseInteraction,
+				BaseInteraction,
 				init
 		);
 	}
@@ -28,7 +28,7 @@ public:
 	void allocate_particles(std::vector<BaseParticle *> &particles) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				void,
-				IBaseInteraction,
+				BaseInteraction,
 				allocate_particles,
 				particles
 		);
@@ -37,7 +37,7 @@ public:
 	void check_input_sanity(std::vector<BaseParticle *> &particles) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				void,
-				IBaseInteraction,
+				BaseInteraction,
 				check_input_sanity,
 				particles
 		);
@@ -46,7 +46,7 @@ public:
 	number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				number,
-				IBaseInteraction,
+				BaseInteraction,
 				pair_interaction,
 				p,
 				q,
@@ -61,7 +61,7 @@ public:
 	number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				number,
-				IBaseInteraction,
+				BaseInteraction,
 				pair_interaction_bonded,
 				p,
 				q,
@@ -76,7 +76,7 @@ public:
 	number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				number,
-				IBaseInteraction,
+				BaseInteraction,
 				pair_interaction_nonbonded,
 				p,
 				q,
@@ -89,9 +89,9 @@ public:
 	}
 
 	number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) override {
-		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
+		PYBIND11_OVERLOAD( // @suppress("Unused return value")
 				number,
-				IBaseInteraction,
+				BaseInteraction,
 				pair_interaction_term,
 				name,
 				p,
@@ -108,7 +108,7 @@ public:
 		using ret_type = std::map<int, number>;
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				ret_type,
-				IBaseInteraction,
+				BaseInteraction,
 				get_system_energy_split,
 				particles,
 				lists
@@ -119,15 +119,15 @@ public:
 	}
 };
 
-void export_IBaseInteraction(py::module &m) {
-	py::class_<IBaseInteraction, PyIBaseInteraction, std::shared_ptr<IBaseInteraction>> interaction(m, "IBaseInteraction", R"pbdoc(
+void export_BaseInteraction(py::module &m) {
+	py::class_<BaseInteraction, PyBaseInteraction, std::shared_ptr<BaseInteraction>> interaction(m, "BaseInteraction", R"pbdoc(
 		The class that takes care of computing the interaction between the particles.
 	)pbdoc");
 
 	interaction.def(py::init<>(), R"pbdoc(
 		The default constructor takes no parameters. 
 	)pbdoc");
-	interaction.def("set_computed_r", &IBaseInteraction::set_computed_r, py::arg("r"), R"pbdoc(
+	interaction.def("set_computed_r", &BaseInteraction::set_computed_r, py::arg("r"), R"pbdoc(
         Set the distance vector used by the `pair_interaction_*` methods when they are called with `compute_r = False` (see :meth:`pair_interaction` for additional details).
 
         Parameters
@@ -135,7 +135,7 @@ void export_IBaseInteraction(py::module &m) {
         r : numpy.ndarray
             The distance vector to be stored.
 	)pbdoc");
-	interaction.def("pair_interaction", &IBaseInteraction::pair_interaction, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
+	interaction.def("pair_interaction", &BaseInteraction::pair_interaction, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
         Compute the pair interaction between p and q.
 
         Parameters
@@ -155,13 +155,13 @@ void export_IBaseInteraction(py::module &m) {
         float
             The energy of the pair interaction.
     )pbdoc");
-	interaction.def("pair_interaction_bonded", &IBaseInteraction::pair_interaction_bonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
+	interaction.def("pair_interaction_bonded", &BaseInteraction::pair_interaction_bonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
         Compute the bonded pair interaction between p and q. See :meth:`pair_interaction` for details on the parameters and on the return value.
 	)pbdoc");
-	interaction.def("pair_interaction_nonbonded", &IBaseInteraction::pair_interaction_nonbonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
+	interaction.def("pair_interaction_nonbonded", &BaseInteraction::pair_interaction_nonbonded, py::arg("p"), py::arg("q"), py::arg("compute_r") = true, py::arg("update_forces") = false, R"pbdoc(
         Compute the unbonded pair interaction between p and q. See :meth:`pair_interaction` for details on the parameters and on the return value.
 	)pbdoc");
-	interaction.def("has_custom_stress_tensor", &IBaseInteraction::has_custom_stress_tensor, R"pbdoc(
+	interaction.def("has_custom_stress_tensor", &BaseInteraction::has_custom_stress_tensor, R"pbdoc(
 		Returns whether the interaction computes the stress tensor internally or not.
 
 		Returns
@@ -169,9 +169,9 @@ void export_IBaseInteraction(py::module &m) {
 		bool
 			True if the interaction computes the stress tensor internally, False otherwise.
     )pbdoc");
-	interaction.def("begin_energy_computation", &IBaseInteraction::begin_energy_computation, R"pbdoc(
+	interaction.def("begin_energy_computation", &BaseInteraction::begin_energy_computation, R"pbdoc(
 		Signals the interaction that an energy (or force) computation is about to begin.
     )pbdoc");
 }
 
-#endif /* OXPY_BINDINGS_INCLUDES_IBASEINTERACTION_H_ */
+#endif /* OXPY_BINDINGS_INCLUDES_BASEINTERACTION_H_ */

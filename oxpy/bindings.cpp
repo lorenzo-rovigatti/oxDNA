@@ -13,12 +13,12 @@
 #include "vector_matrix_casters.h"
 
 #include "bindings_includes/BaseForce.h"
+#include "bindings_includes/BaseInteraction.h"
 #include "bindings_includes/BaseObservable.h"
 #include "bindings_includes/BaseParticle.h"
 #include "bindings_includes/FlattenedConfigInfo.h"
 #include "bindings_includes/ConfigInfo.h"
 #include "bindings_includes/DNANucleotide.h"
-#include "bindings_includes/IBaseInteraction.h"
 #include "bindings_includes/input_file.h"
 #include "bindings_includes/RNANucleotide.h"
 
