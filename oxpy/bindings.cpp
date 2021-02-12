@@ -26,7 +26,7 @@ void export_BaseForce(py::module &m);
 void export_BaseParticle(py::module &m);
 void export_ConfigInfo(py::module &m);
 void export_FlattenedConfigInfo(py::module &m);
-void export_IBaseInteraction(py::module &m);
+void export_BaseInteraction(py::module &m);
 
 PYBIND11_MODULE(core, m) {
 	export_BaseObservable(m);
@@ -35,7 +35,7 @@ PYBIND11_MODULE(core, m) {
 	export_FlattenedConfigInfo(m);
 	export_ConfigInfo(m);
 	export_DNANucleotide(m);
-	export_IBaseInteraction(m);
+	export_BaseInteraction(m);
 	export_RNANucleotide(m);
 
 	export_input_file(m);
