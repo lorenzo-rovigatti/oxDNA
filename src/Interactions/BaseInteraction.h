@@ -73,19 +73,6 @@ protected:
 	interaction_map _interaction_map;
 
 	/**
-	 * @brief Calls the right interaction-computing method, chosen according to its name.
-	 *
-	 * @param that instance of the child class that actually calls the right method
-	 * @param name identifier of the interaction method
-	 * @param p
-	 * @param q
-	 * @param r
-	 * @param update_forces
-	 * @return pair-interaction energy
-	 */
-	virtual number _pair_interaction_term_wrapper(int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
-
-	/**
 	 * @brief Build a mesh by using a function and its derivative.
 	 *
 	 * @param f function
@@ -216,7 +203,7 @@ public:
 	 * @param update_forces
 	 * @return
 	 */
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) = 0;
+	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 
 	/**
 	 * @brief Returns the total potential energy of the system, given a box size

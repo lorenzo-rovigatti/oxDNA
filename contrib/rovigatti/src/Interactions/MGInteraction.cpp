@@ -4,9 +4,9 @@
 #include <fstream>
 
 MGInteraction::MGInteraction() :
-				BaseInteraction<MGInteraction>() {
-	_int_map[BONDED] = &MGInteraction::pair_interaction_bonded;
-	_int_map[NONBONDED] = &MGInteraction::pair_interaction_nonbonded;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
 
 	_MG_n = 0;
 	_MG_alpha = _MG_beta = _MG_gamma = 0.;
@@ -17,7 +17,7 @@ MGInteraction::~MGInteraction() {
 }
 
 void MGInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "MG_rfene", &_rfene, 1);
 	getInputNumber(&inp, "MG_rcut", &_rcut, 1);
@@ -152,7 +152,7 @@ void MGInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 
 void MGInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
 	int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_strands, particles);
+	BaseInteraction::read_topology(N_strands, particles);
 
 	char line[512];
 	std::ifstream bond_file(_bond_filename.c_str());

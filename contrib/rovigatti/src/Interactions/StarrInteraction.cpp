@@ -14,9 +14,9 @@
 using namespace std;
 
 StarrInteraction::StarrInteraction() :
-				BaseInteraction<StarrInteraction>() {
-	_int_map[BONDED] = &StarrInteraction::pair_interaction_bonded;
-	_int_map[NONBONDED] = &StarrInteraction::pair_interaction_nonbonded;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
 
 	_N_strands = _N_per_strand = _N_tetramers = _N_dimers = 0;
 	_N_dimer_spacers = 2;
@@ -29,7 +29,7 @@ StarrInteraction::~StarrInteraction() {
 }
 
 void StarrInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputBool(&inp, "FS_starr_model", &_starr_model, 0);
 	getInputInt(&inp, "FS_N_dimer_spacers", &_N_dimer_spacers, 0);
@@ -421,7 +421,7 @@ void StarrInteraction::check_input_sanity(std::vector<BaseParticle *> &particles
 }
 
 void StarrInteraction::_generate_strands(std::vector<BaseParticle *> &particles, Cells &c) {
-	BaseInteraction<StarrInteraction>::generate_random_configuration(particles);
+	BaseInteraction::generate_random_configuration(particles);
 }
 
 void StarrInteraction::_generate_tetramers(std::vector<BaseParticle *> &particles, Cells &c) {
@@ -430,7 +430,7 @@ void StarrInteraction::_generate_tetramers(std::vector<BaseParticle *> &particle
 	int N_tetramers = particles.size() / N_per_tetramer;
 
 	// we begin by generating a single tetramer
-	BaseInteraction<StarrInteraction>::generate_random_configuration(particles);
+	BaseInteraction::generate_random_configuration(particles);
 	// and then we correct all the coordinates so that the tetramer is not split by the pbc
 	LR_vector com;
 	for(int i = 0; i < N_per_tetramer; i++) {

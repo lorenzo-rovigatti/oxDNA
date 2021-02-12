@@ -97,7 +97,7 @@ public:
 	bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q);
 };
 
-extern "C" IBaseInteraction<float> * make_float() { return new ChiralRodExplicit<float> (); }
-extern "C" IBaseInteraction<double> * make_double() { return new ChiralRodExplicit<double> (); }
+extern "C" BaseInteraction<float> * make_float() { return new ChiralRodExplicit<float> (); }
+extern "C" BaseInteraction<double> * make_double() { return new ChiralRodExplicit<double> (); }
 
 #endif /* CHIRALRODEXPLICIT_H_ */

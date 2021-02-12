@@ -12,8 +12,8 @@ PolydisperseLTInteraction::PolydisperseLTInteraction() {
 	_lt_points = 100;
 	_is_polydisperse = true;
 
-	_int_map[BONDED] = &PolydisperseLTInteraction::pair_interaction_bonded;
-	_int_map[NONBONDED] = &PolydisperseLTInteraction::pair_interaction_nonbonded;
+	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
 }
 
 PolydisperseLTInteraction::~PolydisperseLTInteraction() {
@@ -50,7 +50,7 @@ number PolydisperseLTInteraction::_dfx(number x, void *par) {
 }
 
 void PolydisperseLTInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputString(&inp, "custom_lt_file", _lt_filename, 1);
 	getInputInt(&inp, "custom_points", &_lt_points, 0);
@@ -102,7 +102,7 @@ void PolydisperseLTInteraction::init() {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i - 1];
 
-	_build_mesh(this, &PolydisperseLTInteraction::_fx, &PolydisperseLTInteraction::_dfx, (void *) (&data), _lt_points, lowlimit, uplimit, _lookup_table);
+	_build_mesh([this](number x, void *args) { return this->_fx(x, args); }, [this](number x, void *args) { return this->_dfx(x, args); }, (void *) (&data), _lt_points, lowlimit, uplimit, _lookup_table);
 
 	delete[] data.x;
 	delete[] data.fx;

@@ -23,7 +23,7 @@ BaseInteraction::~BaseInteraction() {
 
 }
 
-number BaseInteraction::_pair_interaction_term_wrapper(int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number BaseInteraction::pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(compute_r) {
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}

@@ -29,7 +29,7 @@ class TSPParticle;
  [TSP_only_intra = <bool> (if true monomers belonging to different stars will not interact. Defaults to false)]
  @endverbatim
  */
-class TSPInteraction: public BaseInteraction<TSPInteraction> {
+class TSPInteraction: public BaseInteraction {
 protected:
 	number _rfene, _sqr_rfene;
 	number _rfene_anchor, _sqr_rfene_anchor;
@@ -75,9 +75,6 @@ public:
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
-	}
 
 	virtual int get_N_from_topology();
 	virtual void read_topology(int *N_stars, std::vector<BaseParticle *> &particles);

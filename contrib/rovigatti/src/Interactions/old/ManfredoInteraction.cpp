@@ -22,7 +22,7 @@ ManfredoInteraction::~ManfredoInteraction() {
 }
 
 void ManfredoInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 	_DNA_inter.get_settings(inp);
 
 	char my_T[512];

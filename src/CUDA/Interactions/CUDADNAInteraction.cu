@@ -30,9 +30,6 @@ void CUDADNAInteraction::get_settings(input_file &inp) {
 			_use_debye_huckel = true;
 			_use_oxDNA2_coaxial_stacking = true;
 			_use_oxDNA2_FENE = true;
-			// copy-pasted from the DNA2Interaction constructor
-			ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
-		        ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 
 			// we don't need the F4_... terms as the macros are used in the CUDA_DNA.cuh file; this doesn't apply for the F2_K term
 			F2_K[1] = CXST_K_OXDNA2;
@@ -193,15 +190,15 @@ void CUDADNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 
 void CUDADNAInteraction::_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
 	hb_op_precalc<<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, hb_energies, n_threads, region_is_nearhb, d_box);
-		CUT_CHECK_ERROR("hb_op_precalc error");
+	CUT_CHECK_ERROR("hb_op_precalc error");
 }
 
 void CUDADNAInteraction::_near_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, bool *nearly_bonded_array, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {
 	near_hb_op_precalc<<<_ffs_hb_precalc_kernel_cfg.blocks, _ffs_hb_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, nearly_bonded_array, n_threads, region_is_nearhb, d_box);
-		CUT_CHECK_ERROR("nearhb_op_precalc error");
+	CUT_CHECK_ERROR("nearhb_op_precalc error");
 }
 
 void CUDADNAInteraction::_dist_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads, CUDA_kernel_cfg _ffs_dist_precalc_kernel_cfg, CUDABox*d_box) {
 	dist_op_precalc<<<_ffs_dist_precalc_kernel_cfg.blocks, _ffs_dist_precalc_kernel_cfg.threads_per_block>>>(poss, orientations, op_pairs1, op_pairs2, op_dists, n_threads, d_box);
-		CUT_CHECK_ERROR("dist_op_precalc error");
+	CUT_CHECK_ERROR("dist_op_precalc error");
 }

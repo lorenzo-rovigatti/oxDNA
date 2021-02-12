@@ -29,7 +29,7 @@ ChiralRodExplicit<number>::~ChiralRodExplicit() {
 
 template<typename number>
 void ChiralRodExplicit<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+	BaseInteraction<number>::get_settings(inp);
 
 	std::string tmps;
 	getInputString (&inp, "sim_type", tmps, 1);

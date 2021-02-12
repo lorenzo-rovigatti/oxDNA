@@ -4,9 +4,9 @@
 #include <fstream>
 
 PolymerInteraction::PolymerInteraction() :
-				BaseInteraction<PolymerInteraction>() {
-	_int_map[BONDED] = &PolymerInteraction::pair_interaction_bonded;
-	_int_map[NONBONDED] = &PolymerInteraction::pair_interaction_nonbonded;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
 
 	_rfene = 1.5;
 }
@@ -16,7 +16,7 @@ PolymerInteraction::~PolymerInteraction() {
 }
 
 void PolymerInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "Polymer_rfene", &_rfene, 0);
 
@@ -210,7 +210,7 @@ int PolymerInteraction::get_N_from_topology() {
 
 void PolymerInteraction::read_topology(int *N_chains, std::vector<BaseParticle *> &particles) {
 	int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_chains, particles);
+	BaseInteraction::read_topology(N_chains, particles);
 	int my_N_chains;
 	char line[512];
 	std::ifstream topology;
@@ -275,7 +275,7 @@ void PolymerInteraction::read_topology(int *N_chains, std::vector<BaseParticle *
 void PolymerInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	_generate_consider_bonded_interactions = true;
 	_generate_bonded_cutoff = _rfene;
-	IBaseInteraction::generate_random_configuration(particles);
+	BaseInteraction::generate_random_configuration(particles);
 }
 
 extern "C" PolymerInteraction *make_PolymerInteraction() {

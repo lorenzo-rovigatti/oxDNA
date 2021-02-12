@@ -14,9 +14,9 @@
 using namespace std;
 
 PatchySwapInteraction::PatchySwapInteraction() :
-				BaseInteraction<PatchySwapInteraction>() {
-	_int_map[PATCHY] = &PatchySwapInteraction::_patchy_two_body;
-	_int_map[SPHERICAL] = &PatchySwapInteraction::_spherical_patchy_two_body;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body);
+	ADD_INTERACTION_TO_MAP(SPHERICAL, _spherical_patchy_two_body);
 
 }
 
@@ -218,7 +218,7 @@ number PatchySwapInteraction::_three_body(BaseParticle *p, PatchyBond &new_bond,
 }
 
 void PatchySwapInteraction::begin_energy_computation() {
-	BaseInteraction<PatchySwapInteraction>::begin_energy_computation();
+	BaseInteraction::begin_energy_computation();
 
 	for(int i = 0; i < _N; i++) {
 		_particle_bonds(CONFIG_INFO->particles()[i]).clear();

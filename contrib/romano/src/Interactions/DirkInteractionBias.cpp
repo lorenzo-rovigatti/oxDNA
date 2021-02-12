@@ -27,7 +27,7 @@ DirkInteractionBias<number>::~DirkInteractionBias() {
 
 template<typename number>
 void DirkInteractionBias<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+	BaseInteraction<number>::get_settings(inp);
 	
 	char tmps[512];
 	getInputString (&inp, "sim_type", (char *)tmps, 1);
@@ -234,7 +234,7 @@ bool DirkInteractionBias<number>::generate_random_configuration_overlap (BasePar
 
 template<typename number>
 void DirkInteractionBias<number>::read_topology(int N_from_conf, int *N_strands, BaseParticle<number> **particles) {
-	IBaseInteraction<number>::read_topology(N_from_conf, N_strands, particles);
+	BaseInteraction<number>::read_topology(N_from_conf, N_strands, particles);
 	int my_N, my_N_strands;
 
 	char line[512];

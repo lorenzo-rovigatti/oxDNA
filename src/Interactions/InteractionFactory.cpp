@@ -33,20 +33,18 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	// The default interaction is DNAInteraction
 	std::string inter_type("DNA");
 	getInputString(&inp, "interaction_type", inter_type, 0);
+	std::string backend;
+	getInputString(&inp, "backend", backend, 0);
 
 	if(inter_type.compare("DNA") == 0) {
 		// in order to avoid small mismatches between potential energies computed on the GPU and 
 		// on the CPU we enforce the DNAInteraction_nomesh interaction class
-		std::string backend("");
-		getInputString(&inp, "backend", backend, 0);
-		/*if(backend.compare("CUDA") == 0) return new DNAInteraction_nomesh();
-		 else */return std::make_shared<DNAInteraction>();
+		if(backend.compare("CUDA") == 0) return std::make_shared<DNAInteraction_nomesh>();
+		else return std::make_shared<DNAInteraction>();
 	}
 	else if(inter_type.compare("DNA2") == 0) {
-		std::string backend("");
-		getInputString(&inp, "backend", backend, 0);
-		/*if(backend.compare("CUDA") == 0) return new DNA2Interaction_nomesh();
-		 else */return std::make_shared<DNA2Interaction>();
+		if(backend.compare("CUDA") == 0) return std::make_shared<DNA2Interaction_nomesh>();
+		else return std::make_shared<DNA2Interaction>();
 	}
 	else if(inter_type.compare("LJ") == 0) return std::make_shared<LJInteraction>();
 	else if(inter_type.compare("DNA_nomesh") == 0) return std::make_shared<DNAInteraction_nomesh>();

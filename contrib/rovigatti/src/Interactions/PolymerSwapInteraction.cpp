@@ -6,9 +6,9 @@
 #include <fstream>
 
 PolymerSwapInteraction::PolymerSwapInteraction() :
-				BaseInteraction<PolymerSwapInteraction>() {
-	_int_map[BONDED] = &PolymerSwapInteraction::pair_interaction_bonded;
-	_int_map[NONBONDED] = &PolymerSwapInteraction::pair_interaction_nonbonded;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
 
 }
 
@@ -17,7 +17,7 @@ PolymerSwapInteraction::~PolymerSwapInteraction() {
 }
 
 void PolymerSwapInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "PS_n", &_PS_n, 0);
 	getInputString(&inp, "PS_bond_file", _bond_filename, 1);
@@ -116,7 +116,7 @@ number PolymerSwapInteraction::P_inter_chain() {
 }
 
 void PolymerSwapInteraction::begin_energy_computation() {
-	BaseInteraction<PolymerSwapInteraction>::begin_energy_computation();
+	BaseInteraction::begin_energy_computation();
 
 	std::fill(_inter_chain_stress_tensor.begin(), _inter_chain_stress_tensor.end(), 0.);
 	_chain_coms.resize(_N_chains, LR_vector(0., 0., 0.));
@@ -437,7 +437,7 @@ void PolymerSwapInteraction::allocate_particles(std::vector<BaseParticle*> &part
 void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	std::string line;
 	unsigned int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_strands, particles);
+	BaseInteraction::read_topology(N_strands, particles);
 
 	std::ifstream topology;
 	topology.open(_topology_filename, std::ios::in);

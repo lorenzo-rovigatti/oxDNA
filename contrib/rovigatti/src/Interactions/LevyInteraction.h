@@ -19,7 +19,7 @@
  * This interaction is selected with
  * interaction_type = LevyInteraction
  */
-class LevyInteraction: public BaseInteraction<LevyInteraction> {
+class LevyInteraction: public BaseInteraction {
 protected:
 	int _N_tetramers, _N_dimers, _N_monomers;
 	int _N_per_tetramer, _N_per_dimer;
@@ -65,9 +65,6 @@ public:
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
-	}
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
