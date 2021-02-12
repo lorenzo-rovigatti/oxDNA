@@ -8,7 +8,7 @@
 #include "HardCylinderInteraction.h"
 
 HardCylinderInteraction::HardCylinderInteraction() :
-				BaseInteraction<HardCylinderInteraction>() {
+				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(HardCylinder, _hc_pot);
 }
 
@@ -17,7 +17,7 @@ HardCylinderInteraction::~HardCylinderInteraction() {
 }
 
 void HardCylinderInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 	char tmps[512];
 	getInputString(&inp, "sim_type", (char *) tmps, 1);
 	if(strncmp(tmps, "MC", 512)) throw oxDNAException("Cannot run Hard Cylinders with MD");

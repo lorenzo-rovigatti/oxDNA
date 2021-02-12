@@ -21,7 +21,7 @@
 @endverbatim
  */
 
-class DNAInteraction : public BaseInteraction<DNAInteraction > {
+class DNAInteraction : public BaseInteraction {
 protected:
 	bool _average;
 	std::string _seq_filename;
@@ -122,7 +122,7 @@ public:
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) {
-		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
+		return _pair_interaction_term_wrapper(name, p, q, compute_r, update_forces);
 	}
 
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);

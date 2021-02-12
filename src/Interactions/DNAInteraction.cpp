@@ -4,7 +4,7 @@
 #include "../Particles/DNANucleotide.h"
 
 DNAInteraction::DNAInteraction() :
-				BaseInteraction<DNAInteraction>(),
+				BaseInteraction(),
 				_average(true) {
 	ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
 	ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
@@ -200,9 +200,9 @@ DNAInteraction::DNAInteraction() :
 		number lowlimit = cos(fmin(PI, F4_THETA_T0[i] + F4_THETA_TC[i]));
 
 		if(i != CXST_F4_THETA1)
-			_build_mesh(this, &DNAInteraction::_fakef4, &DNAInteraction::_fakef4D, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
+			_build_mesh([this](number x, void *args) { return this->_fakef4(x, args); }, [this](number x, void *args) { return _fakef4D(x, args); }, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
 		else {
-			_build_mesh(this, &DNAInteraction::_fakef4_cxst_t1, &DNAInteraction::_fakef4D_cxst_t1, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
+			_build_mesh([this](number x, void *args) { return this->_fakef4_cxst_t1(x, args); }, [this](number x, void *args) { return _fakef4D_cxst_t1(x, args); }, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
 		}
 		assert(lowlimit < upplimit);
 	}
@@ -226,7 +226,7 @@ DNAInteraction::~DNAInteraction() {
 }
 
 void DNAInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	int avg_seq;
 	if(getInputInt(&inp, "use_average_seq", &avg_seq, 0) == KEY_FOUND) {
@@ -1425,7 +1425,7 @@ void DNAInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 
 void DNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_strands, particles);
+	BaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 
 	char line[512];

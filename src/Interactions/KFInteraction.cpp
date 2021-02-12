@@ -10,7 +10,7 @@
 #include "../Utilities/Utils.h"
 
 KFInteraction::KFInteraction() :
-				BaseInteraction<KFInteraction>(),
+				BaseInteraction(),
 				_N_patches(0),
 				_N_patches_B(-1),
 				_N_A(0),
@@ -31,7 +31,7 @@ KFInteraction::~KFInteraction() {
 }
 
 void KFInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputBool(&inp, "KF_continuous", &_is_continuous, 1);
 

@@ -8,7 +8,7 @@
 #include "HSInteraction.h"
 
 HSInteraction::HSInteraction() :
-				BaseInteraction<HSInteraction>() {
+				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(HS, _hs_pot);
 }
 
@@ -17,7 +17,7 @@ HSInteraction::~HSInteraction() {
 }
 
 void HSInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 	char tmps[512];
 	getInputString(&inp, "sim_type", (char*) tmps, 1);
 	if(strncmp(tmps, "MC", 512) && strncmp(tmps, "MC2", 512))

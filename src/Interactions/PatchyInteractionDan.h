@@ -38,7 +38,7 @@
  *
  */
 
-class PatchyInteractionDan: public BaseInteraction<PatchyInteractionDan> {
+class PatchyInteractionDan: public BaseInteraction {
 protected:
 	/*//Flag to denote when initialisation of pointers is complete
 	 bool _initialised;*/
@@ -120,7 +120,7 @@ public:
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false) {
-		return _pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
+		return _pair_interaction_term_wrapper(name, p, q, compute_r, update_forces);
 	}
 
 	/*16-06-07virtual void generate_random_configuration(std::vector<BaseParticle *> &particles, number box_side);*/

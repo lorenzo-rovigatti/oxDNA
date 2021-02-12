@@ -3,7 +3,7 @@
 #include <fstream>
 
 RNAInteraction::RNAInteraction() :
-				BaseInteraction<RNAInteraction>(),
+				BaseInteraction(),
 				_average(true) {
 	ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
 	ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
@@ -44,7 +44,7 @@ void RNAInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 }
 
 void RNAInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	int avg_seq;
 
@@ -306,9 +306,9 @@ void RNAInteraction::init() {
 		number lowlimit = cos(fmin(PI, F4_THETA_T0[i] + F4_THETA_TC[i]));
 
 		if(i != RNA_CXST_F4_THETA1)
-			_build_mesh(this, &RNAInteraction::_fakef4, &RNAInteraction::_fakef4D, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
+			_build_mesh([this](number x, void *args) { return this->_fakef4(x, args); }, [this](number x, void *args) { return this->_fakef4D(x, args); }, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
 		else {
-			_build_mesh(this, &RNAInteraction::_fakef4_cxst_t1, &RNAInteraction::_fakef4D_cxst_t1, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
+			_build_mesh([this](number x, void *args) { return this->_fakef4_cxst_t1(x, args); }, [this](number x, void *args) { return this->_fakef4D_cxst_t1(x, args); }, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
 		}
 		assert(lowlimit < upplimit);
 	}
@@ -1396,7 +1396,7 @@ number RNAInteraction::_f5D(number f, int type) {
 
 void RNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_strands, particles);
+	BaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 
 	char line[512];

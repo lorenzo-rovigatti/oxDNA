@@ -9,7 +9,7 @@
 #include "../Particles/CustomParticle.h"
 
 CustomInteraction::CustomInteraction() :
-				BaseInteraction<CustomInteraction>() {
+				BaseInteraction() {
 	_bonded_points = 100;
 
 	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
@@ -50,7 +50,7 @@ number CustomInteraction::_dfx(number x, void *par) {
 }
 
 void CustomInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputString(&inp, "custom_lt_file", _lt_filename, 1);
 	getInputInt(&inp, "custom_points", &_bonded_points, 0);
@@ -100,7 +100,7 @@ void CustomInteraction::init() {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i - 1];
 
-	_build_mesh(this, &CustomInteraction::_fx, &CustomInteraction::_dfx, (void *) (&data), _bonded_points, lowlimit, uplimit, _non_bonded_mesh);
+	_build_mesh([this](number x, void *args) { return this->_fx(x, args); }, [this](number x, void *args) { return this->_dfx(x, args); }, (void *) (&data), _bonded_points, lowlimit, uplimit, _non_bonded_mesh);
 
 	delete[] data.x;
 	delete[] data.fx;

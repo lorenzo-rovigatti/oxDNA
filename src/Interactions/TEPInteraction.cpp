@@ -4,7 +4,7 @@
 #include "TEPInteraction.h"
 
 TEPInteraction::TEPInteraction() :
-				BaseInteraction<TEPInteraction>() {
+				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(SPRING, _spring);
 	ADD_INTERACTION_TO_MAP(BONDED_BENDING, _bonded_bending);
 	ADD_INTERACTION_TO_MAP(BONDED_TWIST, _bonded_twist);
@@ -81,7 +81,7 @@ TEPInteraction::~TEPInteraction() {
 }
 
 void TEPInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	// TEP model parameters
 	setNonNegativeNumber(&inp, "TEP_kb", &_kb, 0, "rod bending energy prefactor");
@@ -724,7 +724,7 @@ void TEPInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 
 void TEPInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_strands, particles);
+	BaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 	_kt_pref = new number[N_from_conf];
 	_kb1_pref = new number[N_from_conf];

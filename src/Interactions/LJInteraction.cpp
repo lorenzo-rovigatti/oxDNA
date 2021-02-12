@@ -8,7 +8,7 @@
 #include "LJInteraction.h"
 
 LJInteraction::LJInteraction() :
-				BaseInteraction<LJInteraction>() {
+				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(LENNARD_JONES, pair_interaction_nonbonded);
 
 	_is_ka_mixture = false;
@@ -23,7 +23,7 @@ LJInteraction::~LJInteraction() {
 }
 
 void LJInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "LJ_n", _n, 0);
 	_n[1] = _n[2] = _n[0];

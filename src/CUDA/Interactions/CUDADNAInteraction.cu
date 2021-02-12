@@ -31,9 +31,8 @@ void CUDADNAInteraction::get_settings(input_file &inp) {
 			_use_oxDNA2_coaxial_stacking = true;
 			_use_oxDNA2_FENE = true;
 			// copy-pasted from the DNA2Interaction constructor
-			_int_map[DEBYE_HUCKEL] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)) &DNA2Interaction::_debye_huckel;
-			// I assume these are needed. I think the interaction map is used for when the observables want to print energy
-			_int_map[this->COAXIAL_STACKING] = (number (DNAInteraction::*)(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces)) &DNA2Interaction::_coaxial_stacking;
+			ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
+		        ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 
 			// we don't need the F4_... terms as the macros are used in the CUDA_DNA.cuh file; this doesn't apply for the F2_K term
 			F2_K[1] = CXST_K_OXDNA2;
@@ -174,20 +173,20 @@ void CUDADNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 			dna_forces_edge_bonded
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 				(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_grooving, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf);
+		}
+		else {
+			dna_forces
+				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box);
+			CUT_CHECK_ERROR("forces_second_step simple_lists error");
+		}
 	}
-	else {
-		dna_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box);
-				CUT_CHECK_ERROR("forces_second_step simple_lists error");
-	}
-}
 
-CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
-if(_no_lists != NULL) {
-		dna_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box);
+	CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
+	if(_no_lists != NULL) {
+			dna_forces
+				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, this->_use_mbf, this->_mbf_xmax, this->_mbf_finf, d_box);
 			CUT_CHECK_ERROR("forces_second_step no_lists error");
 	}
 }

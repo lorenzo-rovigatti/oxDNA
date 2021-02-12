@@ -13,7 +13,7 @@
 //Constructor
 
 PatchyInteractionDan::PatchyInteractionDan() :
-				BaseInteraction<PatchyInteractionDan>() {
+				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(PATCHY, _patchy_interaction);
 
 	/*//Set initialisation value to false
@@ -141,7 +141,7 @@ void PatchyInteractionDan::get_settings(input_file &inp) {
 	_tor_flag = (bool) tmp2;
 
 	//Gets topology filename
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 }
 
