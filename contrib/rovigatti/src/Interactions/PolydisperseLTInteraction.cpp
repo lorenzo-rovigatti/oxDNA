@@ -171,8 +171,8 @@ number PolydisperseLTInteraction::pair_interaction_nonbonded(BaseParticle *p, Ba
 
 	number energy = _query_mesh(dist, _lookup_table) - _Ecut;
 
-	if(dist < _lookup_table.xlow) {
-		fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _lookup_table.xlow);
+	if(dist < _lookup_table._xlow) {
+		fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _lookup_table._xlow);
 	}
 
 	if(update_forces) {

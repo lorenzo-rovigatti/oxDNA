@@ -1,7 +1,8 @@
-#include <fstream>
-
 #include "DNAInteraction.h"
 #include "../Particles/DNANucleotide.h"
+
+#include <fstream>
+#include <cfloat>
 
 DNAInteraction::DNAInteraction() :
 				BaseInteraction(),
@@ -200,9 +201,9 @@ DNAInteraction::DNAInteraction() :
 		number lowlimit = cos(fmin(PI, F4_THETA_T0[i] + F4_THETA_TC[i]));
 
 		if(i != CXST_F4_THETA1)
-			_build_mesh([this](number x, void *args) { return this->_fakef4(x, args); }, [this](number x, void *args) { return _fakef4D(x, args); }, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
+			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4(x, args); }, [this](number x, void *args) { return _fakef4D(x, args); }, (void*) (&i), points, lowlimit, upplimit);
 		else {
-			_build_mesh([this](number x, void *args) { return this->_fakef4_cxst_t1(x, args); }, [this](number x, void *args) { return _fakef4D_cxst_t1(x, args); }, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
+			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4_cxst_t1(x, args); }, [this](number x, void *args) { return _fakef4D_cxst_t1(x, args); }, (void*) (&i), points, lowlimit, upplimit);
 		}
 		assert(lowlimit < upplimit);
 	}

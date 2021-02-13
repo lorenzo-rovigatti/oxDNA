@@ -41,52 +41,6 @@ number BaseInteraction::pair_interaction_term(int name, BaseParticle *p, BasePar
 	return interaction->second(p, q, false, update_forces);
 }
 
-number BaseInteraction::_query_meshD(number x, Mesh &m) {
-	if(x < m.xlow) return m.B[0];
-	if(x >= m.xupp) x = m.xupp - FLT_EPSILON;
-	int i = (int) ((x - m.xlow) / m.delta);
-	number dx = x - m.xlow - m.delta * i;
-	return (m.B[i] + (2 * dx * m.C[i] + 3 * dx * dx * m.D[i]) * m.inv_sqr_delta);
-}
-
-number BaseInteraction::_query_mesh(number x, Mesh &m) {
-	if(x <= m.xlow) return m.A[0];
-	if(x >= m.xupp) x = m.xupp - FLT_EPSILON;
-	int i = (int) ((x - m.xlow) / m.delta);
-	number dx = x - m.xlow - m.delta * i;
-	return (m.A[i] + dx * (m.B[i] + dx * (m.C[i] + dx * m.D[i]) * m.inv_sqr_delta));
-}
-
-void BaseInteraction::_build_mesh(std::function<number(number, void*)> f, std::function<number(number, void*)> der, void *args, int npoints, number xlow, number xupp, Mesh &m) {
-	assert(xlow < xupp);
-	int i;
-	number x;
-
-	m.init(npoints);
-
-	number dx = (xupp - xlow) / (number) npoints;
-	m.delta = dx;
-	m.inv_sqr_delta = 1 / SQR(dx);
-	m.xlow = xlow;
-	m.xupp = xupp;
-
-	number fx0, fx1, derx0, derx1;
-
-	for(i = 0; i < npoints + 1; i++) {
-		x = xlow + i * dx;
-
-		fx0 = f(x, args);
-		fx1 = f(x + dx, args);
-		derx0 = der(x, args);
-		derx1 = der(x + dx, args);
-
-		m.A[i] = fx0;
-		m.B[i] = derx0;
-		m.D[i] = (2 * (fx0 - fx1) + (derx0 + derx1) * dx) / dx;
-		m.C[i] = (fx1 - fx0 + (-derx0 - m.D[i]) * dx);
-	}
-}
-
 std::map<int, number> BaseInteraction::get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) {
 	begin_energy_computation();
 

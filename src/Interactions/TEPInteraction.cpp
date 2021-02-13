@@ -1,7 +1,8 @@
+#include "TEPInteraction.h"
+
 #include <fstream>
 #include <sstream>
-
-#include "TEPInteraction.h"
+#include <cfloat>
 
 TEPInteraction::TEPInteraction() :
 				BaseInteraction() {

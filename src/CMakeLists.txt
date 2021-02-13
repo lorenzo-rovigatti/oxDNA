@@ -98,6 +98,7 @@ SET(lists_SOURCES
 SET(interactions_SOURCES
 	Interactions/InteractionFactory.cpp
 	Interactions/InteractionUtils.cpp
+	Interactions/Mesh.cpp
 	Interactions/BaseInteraction.cpp
 	Interactions/LJInteraction.cpp
 	Interactions/DNAInteraction.cpp
