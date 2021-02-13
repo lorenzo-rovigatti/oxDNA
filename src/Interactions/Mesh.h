@@ -19,17 +19,17 @@
 
 class Mesh {
 public:
-	Mesh() : N(0) {
-		delta = inv_sqr_delta = xlow = xupp = -1.;
+	Mesh() : _N(0) {
+		_delta = _inv_sqr_delta = _xlow = _xupp = -1.;
 	};
 
 	void init(int size) {
-		N = size;
-		delta = 0;
-		A.resize(size + 1);
-		B.resize(size + 1);
-		C.resize(size + 1);
-		D.resize(size + 1);
+		_N = size;
+		_delta = 0;
+		_A.resize(size + 1);
+		_B.resize(size + 1);
+		_C.resize(size + 1);
+		_D.resize(size + 1);
 	}
 
 	~Mesh() {
@@ -50,9 +50,14 @@ public:
 	number query(number x);
 	number query_derivative(number x);
 
-	int N;
-	number delta, inv_sqr_delta, xlow, xupp;
-	std::vector<number> A, B, C, D;
+	number x_low() {
+		return _xlow;
+	}
+
+private:
+	int _N;
+	number _delta, _inv_sqr_delta, _xlow, _xupp;
+	std::vector<number> _A, _B, _C, _D;
 };
 
 #pragma GCC diagnostic pop

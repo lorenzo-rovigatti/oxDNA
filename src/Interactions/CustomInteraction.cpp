@@ -180,7 +180,7 @@ number CustomInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 
 	number energy = _non_bonded_mesh.query(dist) - _Ecut;
 
-	if(dist < _non_bonded_mesh.xlow) fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _non_bonded_mesh.xlow);
+	if(dist < _non_bonded_mesh.x_low()) fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _non_bonded_mesh.x_low());
 
 	if(update_forces) {
 		number force_mod = -_non_bonded_mesh.query_derivative(dist);

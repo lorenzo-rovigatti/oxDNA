@@ -18,10 +18,10 @@ void Mesh::build(std::function<number(number, void*)> f, std::function<number(nu
 	this->init(npoints);
 
 	number dx = (xupp - xlow) / (number) npoints;
-	this->delta = dx;
-	this->inv_sqr_delta = 1 / SQR(dx);
-	this->xlow = xlow;
-	this->xupp = xupp;
+	this->_delta = dx;
+	this->_inv_sqr_delta = 1 / SQR(dx);
+	this->_xlow = xlow;
+	this->_xupp = xupp;
 
 	number fx0, fx1, derx0, derx1;
 
@@ -33,25 +33,25 @@ void Mesh::build(std::function<number(number, void*)> f, std::function<number(nu
 		derx0 = der(x, args);
 		derx1 = der(x + dx, args);
 
-		this->A[i] = fx0;
-		this->B[i] = derx0;
-		this->D[i] = (2 * (fx0 - fx1) + (derx0 + derx1) * dx) / dx;
-		this->C[i] = (fx1 - fx0 + (-derx0 - this->D[i]) * dx);
+		this->_A[i] = fx0;
+		this->_B[i] = derx0;
+		this->_D[i] = (2 * (fx0 - fx1) + (derx0 + derx1) * dx) / dx;
+		this->_C[i] = (fx1 - fx0 + (-derx0 - this->_D[i]) * dx);
 	}
 }
 
 number Mesh::query(number x) {
-	if(x <= this->xlow) return this->A[0];
-	if(x >= this->xupp) x = this->xupp - FLT_EPSILON;
-	int i = (int) ((x - this->xlow) / this->delta);
-	number dx = x - this->xlow - this->delta * i;
-	return (this->A[i] + dx * (this->B[i] + dx * (this->C[i] + dx * this->D[i]) * this->inv_sqr_delta));
+	if(x <= this->_xlow) return this->_A[0];
+	if(x >= this->_xupp) x = this->_xupp - FLT_EPSILON;
+	int i = (int) ((x - this->_xlow) / this->_delta);
+	number dx = x - this->_xlow - this->_delta * i;
+	return (this->_A[i] + dx * (this->_B[i] + dx * (this->_C[i] + dx * this->_D[i]) * this->_inv_sqr_delta));
 }
 
 number Mesh::query_derivative(number x) {
-	if(x < this->xlow) return this->B[0];
-	if(x >= this->xupp) x = this->xupp - FLT_EPSILON;
-	int i = (int) ((x - this->xlow) / this->delta);
-	number dx = x - this->xlow - this->delta * i;
-	return (this->B[i] + (2 * dx * this->C[i] + 3 * dx * dx * this->D[i]) * this->inv_sqr_delta);
+	if(x < this->_xlow) return this->_B[0];
+	if(x >= this->_xupp) x = this->_xupp - FLT_EPSILON;
+	int i = (int) ((x - this->_xlow) / this->_delta);
+	number dx = x - this->_xlow - this->_delta * i;
+	return (this->_B[i] + (2 * dx * this->_C[i] + 3 * dx * dx * this->_D[i]) * this->_inv_sqr_delta);
 }
