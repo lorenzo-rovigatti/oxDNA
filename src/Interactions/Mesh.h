@@ -10,6 +10,8 @@
 
 #include "../defs.h"
 
+#include <functional>
+
 /**
  * @brief Simple implementation of a cubic mesh.
  *
