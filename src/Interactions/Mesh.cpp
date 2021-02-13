@@ -9,6 +9,7 @@
 
 #include <cfloat>
 #include <cassert>
+#include <functional>
 
 void Mesh::build(std::function<number(number, void*)> f, std::function<number(number, void*)> der, void *args, int npoints, number xlow, number xupp) {
 	assert(xlow < xupp);
