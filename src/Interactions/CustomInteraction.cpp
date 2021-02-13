@@ -100,13 +100,13 @@ void CustomInteraction::init() {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i - 1];
 
-	_build_mesh([this](number x, void *args) { return this->_fx(x, args); }, [this](number x, void *args) { return this->_dfx(x, args); }, (void *) (&data), _bonded_points, lowlimit, uplimit, _non_bonded_mesh);
+	_non_bonded_mesh.build([this](number x, void *args) { return this->_fx(x, args); }, [this](number x, void *args) { return this->_dfx(x, args); }, (void *) (&data), _bonded_points, lowlimit, uplimit);
 
 	delete[] data.x;
 	delete[] data.fx;
 	delete[] data.dfx;
 
-	_Ecut = _query_mesh(_rcut, _non_bonded_mesh);
+	_Ecut = _non_bonded_mesh.query(_rcut);
 	_sqr_rcut = SQR(_rcut);
 
 	OX_LOG(Logger::LOG_INFO, "custom: rcut = %lf, Ecut = %lf", _rcut, _Ecut);
@@ -156,10 +156,10 @@ number CustomInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle 
 	}
 
 	number dist = _computed_r.module();
-	energy = _query_mesh(dist, _bonded_mesh);
+	energy = _bonded_mesh.query(dist);
 
 	if(update_forces) {
-		number force_mod = -_query_meshD(dist, _bonded_mesh);
+		number force_mod = -_bonded_mesh.query_derivative(dist);
 		LR_vector force = _computed_r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;
@@ -178,12 +178,12 @@ number CustomInteraction::pair_interaction_nonbonded(BaseParticle *p, BasePartic
 	number dist = _computed_r.module();
 	if(dist > _rcut) return 0.;
 
-	number energy = _query_mesh(dist, _non_bonded_mesh) - _Ecut;
+	number energy = _non_bonded_mesh.query(dist) - _Ecut;
 
 	if(dist < _non_bonded_mesh.xlow) fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _non_bonded_mesh.xlow);
 
 	if(update_forces) {
-		number force_mod = -_query_meshD(dist, _non_bonded_mesh);
+		number force_mod = -_non_bonded_mesh.query_derivative(dist);
 		LR_vector force = _computed_r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;

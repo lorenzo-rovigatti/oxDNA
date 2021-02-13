@@ -75,7 +75,7 @@ protected:
 	 * @param cost  argument of f4
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4 (number cost, int i) { return this->_query_mesh (cost, this->_mesh_f4[i]); }
+	virtual number _custom_f4 (number cost, int i) { return this->_mesh_f4[i].query(cost); }
 
 	/**
 	 * @brief Custom function that returns the derivative of f4. See _custom_f4
@@ -83,7 +83,7 @@ protected:
 	 * @param cost  argument of f4D
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4D (number cost, int i) { return this->_query_meshD (cost, this->_mesh_f4[i]); }
+	virtual number _custom_f4D (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
 
 	inline number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 

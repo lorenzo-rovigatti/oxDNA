@@ -50,7 +50,7 @@ protected:
 	 * @param i     type of the interaction (which mesh to use)
 	 */
 	virtual number _custom_f4(number cost, int i) {
-		if(i != CXST_F4_THETA1) return this->_query_mesh(cost, this->_mesh_f4[i]);
+		if(i != CXST_F4_THETA1) return this->_mesh_f4[i].query(cost);
 		else return this->_fakef4_cxst_t1(cost, (void *) &i);
 	}
 
@@ -61,7 +61,7 @@ protected:
 	 * @param i     type of the interaction (which mesh to use)
 	 */
 	virtual number _custom_f4D(number cost, int i) {
-		if(i != CXST_F4_THETA1) return this->_query_meshD(cost, this->_mesh_f4[i]);
+		if(i != CXST_F4_THETA1) return this->_mesh_f4[i].query_derivative(cost);
 		else return this->_fakef4D_cxst_t1(cost, (void *) &i);
 	}
 

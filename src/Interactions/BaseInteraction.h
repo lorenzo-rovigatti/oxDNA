@@ -17,7 +17,6 @@
 #include "../Lists/Cells.h"
 
 #include <map>
-#include <cfloat>
 #include <fstream>
 #include <set>
 #include <vector>
@@ -30,16 +29,6 @@ using StressTensor = std::array<number, 6>;
 
 /**
  * @brief Base class for managing particle-particle interactions. It is an abstract class.
- *
- * This is the abstract class from which the other interaction classes inherit.
- * The children classes must implement all the public pair_interaction_*
- * methods.  We make use of the Curiously Recurring Template Pattern (see
- * http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern) to make
- * it possible to call a method of any derived class from within this class
- * without knowing any detail of that derived class. Hence, we use the {\@link
- * _int_map} map to store function pointers of type child::*.
- * This class lacks a .cpp because we do not want to have template
- * instantiation of the children classes from within here.
  */
 class BaseInteraction {
 private:
@@ -71,21 +60,6 @@ protected:
 	using energy_function = std::function<number(BaseParticle *, BaseParticle *, bool, bool)>;
 	using interaction_map = std::map<int, energy_function>;
 	interaction_map _interaction_map;
-
-	/**
-	 * @brief Build a mesh by using a function and its derivative.
-	 *
-	 * @param f function
-	 * @param der derivative of f
-	 * @param pars pointer to a structure which contains function parameters
-	 * @param npoints size of the mesh
-	 * @param xlow the mesh is defined on a finite interval. This is the lower end
-	 * @param xupp Upper end of the mesh interval
-	 * @param m mesh to be built
-	 */
-	virtual void _build_mesh(std::function<number(number, void*)> f, std::function<number(number, void*)> der, void *pars, int npoints, number xlow, number xupp, Mesh &m);
-	number _query_mesh(number x, Mesh &m);
-	number _query_meshD(number x, Mesh &m);
 
 public:
 	/**
