@@ -11,6 +11,7 @@
 #include "../defs.h"
 
 #include <functional>
+#include <cfloat>
 
 /**
  * @brief Simple implementation of a cubic mesh.
@@ -18,7 +19,6 @@
  * It is useful when dealing with interactions having computationally expensive
  * functional forms, such as Gaussian functions.
  */
-
 class Mesh {
 public:
 	Mesh() : _N(0) {
@@ -49,8 +49,22 @@ public:
 	 * @param xupp Upper end of the mesh interval
 	 */
 	void build(std::function<number(number, void*)> f, std::function<number(number, void*)> der, void *pars, int npoints, number xlow, number xupp);
-	number query(number x);
-	number query_derivative(number x);
+
+	inline number query(number x) {
+		if(x <= _xlow) return _A[0];
+		if(x >= _xupp) x = _xupp - FLT_EPSILON;
+		int i = (int) ((x - _xlow) / _delta);
+		number dx = x - _xlow - _delta * i;
+		return (_A[i] + dx * (_B[i] + dx * (_C[i] + dx * _D[i]) * _inv_sqr_delta));
+	}
+
+	inline number query_derivative(number x) {
+		if(x < _xlow) return _B[0];
+		if(x >= _xupp) x = _xupp - FLT_EPSILON;
+		int i = (int) ((x - _xlow) / _delta);
+		number dx = x - _xlow - _delta * i;
+		return (_B[i] + (2 * dx * _C[i] + 3 * dx * dx * _D[i]) * _inv_sqr_delta);
+	}
 
 	number x_low() {
 		return _xlow;
