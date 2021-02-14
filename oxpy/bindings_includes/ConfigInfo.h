@@ -35,6 +35,15 @@ void export_ConfigInfo(py::module &m) {
              A list containing all the particles in the simulation box.
 	)pbdoc");
 
+	conf_info.def("molecules", &ConfigInfo::molecules, py::return_value_policy::reference, R"pbdoc(
+		 Return a list of all the molecules.
+
+		 Returns
+		 -------
+		 List(:py:class:`Molecule`)
+			 A list containing all the molecules.
+	)pbdoc");
+
 	conf_info.def_readwrite("interaction", &ConfigInfo::interaction, R"pbdoc(
 		 The simulation's :py:class:`IBaseInteraction` object.
 	)pbdoc");

@@ -16,7 +16,8 @@ This module contains the Python bindings of the C++ code. Every `object` describ
     BaseParticle
     DNANucleotide
     RNANucleotide
-    IBaseInteraction
+    Molecule
+    BaseInteraction
     ConfigInfo
     FlattenedConfigInfo
     BaseObservable
@@ -34,7 +35,9 @@ This module contains the Python bindings of the C++ code. Every `object` describ
 
 .. autoclass:: RNANucleotide
 
-.. autoclass:: IBaseInteraction
+.. autoclass:: Molecule
+
+.. autoclass:: BaseInteraction
 
 .. autoclass:: ConfigInfo
 

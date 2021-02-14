@@ -21,12 +21,7 @@
 #include "bindings_includes/DNANucleotide.h"
 #include "bindings_includes/input_file.h"
 #include "bindings_includes/RNANucleotide.h"
-
-void export_BaseForce(py::module &m);
-void export_BaseParticle(py::module &m);
-void export_ConfigInfo(py::module &m);
-void export_FlattenedConfigInfo(py::module &m);
-void export_BaseInteraction(py::module &m);
+#include "bindings_includes/Molecule.h"
 
 PYBIND11_MODULE(core, m) {
 	export_BaseObservable(m);
@@ -37,6 +32,8 @@ PYBIND11_MODULE(core, m) {
 	export_DNANucleotide(m);
 	export_BaseInteraction(m);
 	export_RNANucleotide(m);
+
+	export_Molecule(m);
 
 	export_input_file(m);
 
