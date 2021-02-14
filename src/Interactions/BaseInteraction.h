@@ -101,7 +101,7 @@ public:
 	 *
 	 * @return Interaction cutoff
 	 */
-	virtual number get_rcut() {
+	virtual number get_rcut() const {
 		return _rcut;
 	}
 
@@ -180,7 +180,7 @@ public:
 	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 
 	/**
-	 * @brief Returns the total potential energy of the system, given a box size
+	 * @brief Returns the total potential energy of the system
 	 *
 	 * @param particles
 	 * @param N
@@ -189,7 +189,7 @@ public:
 	virtual number get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists);
 
 	/**
-	 * @brief Like get_system_energy_term, just that the box size can be specified in this case
+	 * @brief Returns the given energy term computed on all the system
 	 *
 	 * @param name
 	 * @param particles
