@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import threading
-import Queue
+import queue
 import os
 import subprocess as sp
 import math
@@ -33,12 +33,12 @@ class Logger():
         if level < Logger.debug_level: return
 
         Logger.log_lock.acquire()
-        print >> sys.stderr, "%s%s: %s" % (prepend, Logger.messages[level], msg)
+        print("%s%s: %s" % (prepend, Logger.messages[level], msg), file=sys.stderr)
         Logger.log_lock.release()
 
 
 class Runner(threading.Thread):
-    queue = Queue.Queue(1)
+    queue = queue.Queue(1)
     
     def __init__(self, tid):
         threading.Thread.__init__(self)
@@ -238,7 +238,8 @@ class System(object):
         
         # check the standard output for nans and infs
         for l in p.stdout.readlines():
-            tokens = ["nan", "inf"]
+            # we need byte-like objects and not 'str' 
+            tokens = [b"nan", b"inf"]
             for t in tokens: 
                 if t in l: 
                     Logger.log("%s %s generated a '%s': %s" % (self.executable_name, t, l), Logger.WARNING)
@@ -313,15 +314,15 @@ class TestManager(object):
     
 def main():
     def print_usage():
-        print "USAGE:"
-        print "\t%s folder_list_file executable test_level [-d|--debug] [-h|--help] [-v|--version] [--threads=N_threads]" % sys.argv[0]
+        print("USAGE:")
+        print("\t%s folder_list_file executable test_level [-d|--debug] [-h|--help] [-v|--version] [--threads=N_threads]" % sys.argv[0])
         exit(1)
 
     def print_version():
-        print "oxDNA Test Suite v 0.1"
-        print "Copyright (C) 2015 oxDNA"
-        print "This is free software; see the source for copying conditions.  There is NO"
-        print "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+        print("oxDNA Test Suite v 0.1")
+        print("Copyright (C) 2015 oxDNA")
+        print("This is free software; see the source for copying conditions.  There is NO")
+        print("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n")
         exit(1)
 
     shortArgs = 'dhv'
@@ -339,7 +340,7 @@ def main():
             if k[0] == '--threads': threads = int(k[1])
             
     except Exception as e:
-        print e
+        print(e)
         print_usage()
         
     if len(sys.argv) < 4:
