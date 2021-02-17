@@ -45,9 +45,9 @@ void AnalysisBackend::get_settings(input_file &inp) {
 
 	getInputInt(&inp, "analysis_confs_to_skip", &_confs_to_skip, 0);
 
-	getInputString(&inp, "trajectory_file", this->_conf_filename, 1);
+	getInputString(&inp, "trajectory_file", _conf_filename, 1);
 
-	getInputDouble(&inp, "max_io", &this->_max_io, 0);
+	getInputDouble(&inp, "max_io", &_max_io, 0);
 
 	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
 	if(_initial_conf_is_binary) {
@@ -97,15 +97,17 @@ void AnalysisBackend::analyse() {
 	}
 	SimBackend::print_observables(_read_conf_step);
 
-	if(!_read_next_configuration(_initial_conf_is_binary)) {
+	if(!read_next_configuration(_initial_conf_is_binary)) {
 		_done = true;
 	}
-	else _n_conf++;
+	else {
+		_n_conf++;
 
-	for(auto p : _particles) {
-		this->_lists->single_update(p);
+		for(auto p : _particles) {
+			_lists->single_update(p);
+		}
+		_lists->global_update();
 	}
-	this->_lists->global_update();
 
 	_mytimer->pause();
 }

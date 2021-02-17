@@ -303,21 +303,13 @@ void SimBackend::init() {
 		OX_LOG(Logger::LOG_INFO, "Skipping %d configuration(s)", _confs_to_skip);
 		int i;
 		for(i = 0; i < _confs_to_skip && _conf_input.good(); i++) {
-			bool check = false;
-			if(_initial_conf_is_binary) {
-				check = _read_next_configuration(true);
-			}
-			else {
-				check = _read_next_configuration();
-			}
-			if(!check) {
+			if(!read_next_configuration(_initial_conf_is_binary)) {
 				throw oxDNAException("Skipping %d configuration(s) is not possible, as the initial trajectory file only contains %d configurations", _confs_to_skip, i);
 			}
 		}
 	}
 
-	bool check = false;
-	check = _read_next_configuration(_initial_conf_is_binary);
+	bool check = read_next_configuration(_initial_conf_is_binary);
 	if(!check) {
 		throw oxDNAException("Could not read the initial configuration, aborting");
 	}
@@ -377,7 +369,7 @@ LR_vector SimBackend::_read_next_vector(bool binary) {
 	return res;
 }
 
-bool SimBackend::_read_next_configuration(bool binary) {
+bool SimBackend::read_next_configuration(bool binary) {
 	double Lx, Ly, Lz;
 	// parse headers. Binary and ascii configurations have different headers, and hence
 	// we have to separate the two procedures

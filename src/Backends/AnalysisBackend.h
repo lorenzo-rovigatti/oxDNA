@@ -35,15 +35,18 @@ public:
 	 * @param cur_step
 	 */
 	void sim_step(llint cur_step) {
+
 	}
+
 	void print_conf(llint cur_step, bool reduced, bool only_last) {
+
 	}
 
 	void analyse();
+
 	bool done() {
 		return _done;
 	}
-	;
 
 	void get_settings(input_file &inp);
 	void init();

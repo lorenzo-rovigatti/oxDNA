@@ -148,16 +148,6 @@ protected:
 	 */
 	LR_vector _read_next_vector(bool binary);
 
-	/**
-	 * @brief Reads the next configuration from the conf_file.
-	 *
-	 * It can read it either in binary or ascii format.
-	 *
-	 * @param binary whether conf_file is to be parsed in ascii or binary format
-	 * @return true if the operation was successful, false otherwise
-	 */
-	bool _read_next_configuration(bool binary=false);
-
 	virtual void _on_T_update();
 
 public:
@@ -176,6 +166,16 @@ public:
 	 * @param path
 	 */
 	virtual void init();
+
+	/**
+	 * @brief Reads the next configuration from the conf_file.
+	 *
+	 * It can read it either in binary or ascii format.
+	 *
+	 * @param binary whether conf_file is to be parsed in ascii or binary format
+	 * @return true if the operation was successful, false otherwise
+	 */
+	bool read_next_configuration(bool binary=false);
 
 	int N() {
 		return _particles.size();
