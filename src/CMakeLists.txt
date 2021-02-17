@@ -63,7 +63,8 @@ SET(observables_SOURCES
 
 SET(backends_SOURCES
 	Backends/BackendFactory.cpp
-	Backends/SimBackend.cpp 
+	Backends/SimBackend.cpp
+	Backends/AnalysisBackend.cpp 
 	Backends/MDBackend.cpp
 	Backends/MCBackend.cpp
 	Backends/MD_CPUBackend.cpp 
@@ -201,7 +202,6 @@ SET(common_SOURCES
 SET(DNAnalysis_SOURCES
 	DNAnalysis.cpp
 	Managers/AnalysisManager.cpp
-	Backends/AnalysisBackend.cpp
 )
 
 SET(confGenerator_SOURCES

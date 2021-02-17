@@ -1,13 +1,13 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html4" lang="en" >
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Oxpy &mdash; oxpy 3.0.0a1.dev195+gcf62c92.d20210214 documentation</title>
+  <title>Oxpy &mdash; oxpy 3.0.0a1.dev198+gaf139b1.d20210217 documentation</title>
   
 
   
@@ -26,10 +26,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev195+gcf62c92.d20210214
+                3.0.0a1.dev198+gaf139b1.d20210217
               </div>
             
           
@@ -87,6 +87,9 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules/core.html">The core module</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/analysis.html">The analysis module</a><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="modules/utils.html">The utils module</a><ul class="simple">
@@ -163,8 +166,8 @@
   <div class="section" id="oxpy">
 <h1>Oxpy<a class="headerlink" href="#oxpy" title="Permalink to this headline">¶</a></h1>
 <p>Oxpy is a Python3 library that makes it possible to use oxDNA from Python.</p>
-<div class="section" id="a-simple-example">
-<h2>A simple example<a class="headerlink" href="#a-simple-example" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="an-example-of-a-simple-simulation">
+<h2>An example of a simple simulation<a class="headerlink" href="#an-example-of-a-simple-simulation" title="Permalink to this headline">¶</a></h2>
 <p>The following snippet imports the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> module, initialises the simulation machinery, runs a short simulation using the input file <code class="docutils literal notranslate"><span class="pre">input</span></code>, changes the temperature, runs more simulations steps and computes the average position of the final configuration:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">oxpy</span>
@@ -226,11 +229,36 @@
 </pre></div>
 </div>
 </div>
+<div class="section" id="an-example-of-a-simple-analysis">
+<h2>An example of a simple analysis<a class="headerlink" href="#an-example-of-a-simple-analysis" title="Permalink to this headline">¶</a></h2>
+<p>Here we loop over all the configurations stored in an oxDNA trajectory file, printing the position of the first particle.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">oxpy</span>
+
+<span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
+    <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+    <span class="c1"># this object will make it possible to access the trajectory data</span>
+    <span class="n">backend</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">AnalysisBackend</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
+    <span class="c1"># loop over all the configurations stored in the trajectory file</span>
+    <span class="k">while</span> <span class="n">backend</span><span class="o">.</span><span class="n">read_next_configuration</span><span class="p">():</span>
+        <span class="c1"># you can access the particles&#39; details from BaseParticle instances</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+        <span class="c1"># or from the flattened_conf object, which exposes the simulation data as vectors that can be converted to numpy arrays</span>
+        <span class="n">numpy_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="n">flattened_conf</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">numpy_positions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="library-api">
 <h2>Library API<a class="headerlink" href="#library-api" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules/core.html">The core module</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/analysis.html">The analysis module</a><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="modules/utils.html">The utils module</a><ul class="simple">

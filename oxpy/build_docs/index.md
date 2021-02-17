@@ -2,7 +2,7 @@
 
 Oxpy is a Python3 library that makes it possible to use oxDNA from Python.
 
-## A simple example
+## An example of a simple simulation
 
 The following snippet imports the `oxpy` module, initialises the simulation machinery, runs a short simulation using the input file `input`, changes the temperature, runs more simulations steps and computes the average position of the final configuration:
 
@@ -64,6 +64,27 @@ You can also use the `oxpy.utils.generate_default_input()` to generate the follo
 	trajectory_file = trajectory.dat
 	energy_file = energy.dat
 	
+## An example of a simple analysis
+
+Here we loop over all the configurations stored in an oxDNA trajectory file, printing the position of the first particle. 
+
+	import numpy as np
+	import oxpy
+	
+	with oxpy.Context():
+	    inp = oxpy.InputFile()
+	    inp.init_from_filename("input")
+	    # this object will make it possible to access the trajectory data
+	    backend = oxpy.analysis.AnalysisBackend(inp)
+	
+	    # loop over all the configurations stored in the trajectory file
+	    while backend.read_next_configuration():
+	        # you can access the particles' details from BaseParticle instances
+	        print(backend.particles[0].pos)
+	        # or from the flattened_conf object, which exposes the simulation data as vectors that can be converted to numpy arrays
+	        numpy_positions = np.array(backend.flattened_conf.positions, copy=False)
+	        print(numpy_positions[0])
+	
 ## Library API
 
 ```eval_rst
@@ -71,6 +92,7 @@ You can also use the `oxpy.utils.generate_default_input()` to generate the follo
    :maxdepth: 2
    
    modules/core.md
+   modules/analysis.md
    modules/utils.md
 ```
 

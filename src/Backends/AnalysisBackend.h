@@ -23,6 +23,8 @@ protected:
 	bool _done;
 	llint _n_conf;
 
+	FlattenedConfigInfo _flattened_conf;
+
 public:
 	AnalysisBackend();
 	virtual ~AnalysisBackend();
@@ -41,6 +43,14 @@ public:
 	void print_conf(llint cur_step, bool reduced, bool only_last) {
 
 	}
+
+	std::vector<BaseParticle *> &particles() {
+		return _particles;
+	}
+
+	const FlattenedConfigInfo &flattened_conf();
+
+	bool read_next_configuration(bool binary=false) override;
 
 	void analyse();
 

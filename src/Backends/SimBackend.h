@@ -175,7 +175,7 @@ public:
 	 * @param binary whether conf_file is to be parsed in ascii or binary format
 	 * @return true if the operation was successful, false otherwise
 	 */
-	bool read_next_configuration(bool binary=false);
+	virtual bool read_next_configuration(bool binary=false);
 
 	int N() {
 		return _particles.size();

@@ -1,5 +1,5 @@
 import sys, os
-# we need to load the library so that its symbols are visible outside or plugins won't work. see here: https://stackoverflow.com/a/60841073/5140209
+# we need to load the library so that its symbols are visible outside or plugins won't work. See here: https://stackoverflow.com/a/60841073/5140209
 sys.setdlopenflags(os.RTLD_GLOBAL | os.RTLD_LAZY)
 
 from .core import *

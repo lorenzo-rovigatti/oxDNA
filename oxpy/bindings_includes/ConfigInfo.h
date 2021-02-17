@@ -49,7 +49,7 @@ void export_ConfigInfo(py::module &m) {
 	)pbdoc");
 
 	conf_info.def_property_readonly("flattened_conf", &ConfigInfo::flattened_conf, R"pbdoc(
-		 A flattened (that is, composed by arrays rather than class instances) view of the current configuration, stored in a :py:class:`FlattenedConf` object.
+		 A flattened (that is, composed by arrays rather than class instances) view of the current configuration, stored in a :py:class:`FlattenedConfigInfo` object.
 	)pbdoc");
 }
 

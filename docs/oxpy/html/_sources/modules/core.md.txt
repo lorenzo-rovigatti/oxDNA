@@ -28,7 +28,7 @@ This module contains the Python bindings of the C++ code. Every `object` describ
     
 .. autoclass:: OxpyManager
     :inherited-members:
-
+    
 .. autoclass:: BaseParticle
 
 .. autoclass:: DNANucleotide

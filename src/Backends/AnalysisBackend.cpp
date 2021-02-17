@@ -89,6 +89,16 @@ void AnalysisBackend::init() {
 	SimBackend::init();
 }
 
+const FlattenedConfigInfo &AnalysisBackend::flattened_conf() {
+	_flattened_conf.update(_read_conf_step, particles());
+	return _flattened_conf;
+}
+
+bool AnalysisBackend::read_next_configuration(bool binary) {
+	_done = !SimBackend::read_next_configuration(binary);
+	return !_done;
+}
+
 void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
@@ -97,10 +107,7 @@ void AnalysisBackend::analyse() {
 	}
 	SimBackend::print_observables(_read_conf_step);
 
-	if(!read_next_configuration(_initial_conf_is_binary)) {
-		_done = true;
-	}
-	else {
+	if(read_next_configuration(_initial_conf_is_binary)) {
 		_n_conf++;
 
 		for(auto p : _particles) {
