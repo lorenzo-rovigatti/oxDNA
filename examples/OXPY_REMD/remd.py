@@ -161,6 +161,10 @@ with oxpy.Context():
                             rates [talk_to] = exchange[talk_to] / exchange_tries[talk_to]
 
             history.append(locations)
+            with open("history.json", "w") as file:
+                file.write(
+                    json.dumps(history)
+                )
             remd_log(0, "rates:", rates)
         else:
             # notify 0 of update

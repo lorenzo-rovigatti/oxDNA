@@ -35,15 +35,15 @@ class CompareFileGenerator(object):
 
 def main():
     def print_usage():
-        print "USAGE:"
-        print "\t%s path executable test_level [-d|--debug] [-h|--help] [-v|--version]" % sys.argv[0]
+        print("USAGE:")
+        print("\t%s path executable test_level [-d|--debug] [-h|--help] [-v|--version]" % sys.argv[0])
         exit(1)
 
     def print_version():
-        print "oxDNA Test Suite v 0.1"
-        print "Copyright (C) 2015 oxDNA"
-        print "This is free software; see the source for copying conditions.  There is NO"
-        print "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+        print("oxDNA Test Suite v 0.1")
+        print("Copyright (C) 2015 oxDNA")
+        print("This is free software; see the source for copying conditions.  There is NO")
+        print("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n")
         exit(1)
 
     shortArgs = 'dhv'
@@ -58,7 +58,7 @@ def main():
             if k[0] == '-v' or k[0] == '--version': print_version()
             
     except Exception as e:
-        print e
+        print(e)
         print_usage()
         
     if len(sys.argv) < 4:
