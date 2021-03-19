@@ -31,7 +31,6 @@ PATCHY_N = <int> (number of patches)
 [PATCHY_sigma_AB = <float> (diameter controlling the repulsive interaction between particles of different species)]
 @endverbatim
  */
-
 class PatchyInteraction: public BaseInteraction {
 protected:
 	/// Number of patches per particle
@@ -98,21 +97,21 @@ public:
 	PatchyInteraction();
 	virtual ~PatchyInteraction();
 
-	virtual void get_settings(input_file &inp);
-	virtual void init();
+	void get_settings(input_file &inp) override;
+	void init() override;
 
 	number get_alpha() { return _patch_alpha; }
 
-	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
+	void allocate_particles(std::vector<BaseParticle *> &particles) override;
 
 	void begin_energy_computation() override;
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) override;
+	number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) override;
+	number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false) override;
 
-	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
-	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
+	void read_topology(int *N_strands, std::vector<BaseParticle *> &particles) override;
+	void check_input_sanity(std::vector<BaseParticle *> &particles) override;
 };
 
 #endif /* PATCHYINTERACTION_H_ */

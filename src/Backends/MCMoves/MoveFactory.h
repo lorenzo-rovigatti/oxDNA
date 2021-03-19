@@ -6,7 +6,7 @@
  */
 
 #ifndef MOVEFACTORY_H_
-#define MOVEACTORY_H_
+#define MOVEFACTORY_H_
 
 #include "BaseMove.h"
 
@@ -35,4 +35,4 @@ public:
 	static MovePtr make_move(input_file &inp, input_file &sim_inp);
 };
 
-#endif /* INTERACTIONFACTORY_H_ */
+#endif /* MOVEFACTORY_H_ */

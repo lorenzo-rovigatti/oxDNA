@@ -16,13 +16,6 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)>(b))?(b):(a))
 
-struct movestr {
-	int seed, type;
-	LR_vector t;
-	LR_matrix R;
-	LR_matrix Rt;
-};
-
 /**
  *
  * @brief This class implements VMMC for the DNA/RNA models
@@ -47,6 +40,13 @@ struct movestr {
  *
  */
 class VMMC_CPUBackend: public MC_CPUBackend {
+	struct movestr {
+		int seed, type;
+		LR_vector t;
+		LR_matrix R;
+		LR_matrix Rt;
+	};
+
 protected:
 	bool _have_us;
 	bool _reload_hist;
@@ -122,9 +122,9 @@ protected:
 	number _particle_particle_bonded_interaction_n3_VMMC(BaseParticle *p, BaseParticle *q, number *stacking_en = 0);
 	number _particle_particle_nonbonded_interaction_VMMC(BaseParticle *p, BaseParticle *q, number *H_energy = 0);
 
-	number build_cluster(movestr * moveptr, int maxsize, int * clust, int * size);
-	number build_cluster_cells(movestr * moveptr, int maxsize, int * clust, int * size);
-	number build_cluster_small(movestr * moveptr, int maxsize, int * clust, int * size);
+	number build_cluster(movestr *moveptr, int maxsize, int *clust, int *size);
+	number build_cluster_cells(movestr *moveptr, int maxsize, int *clust, int *size);
+	number build_cluster_small(movestr *moveptr, int maxsize, int *clust, int *size);
 
 	number VMMC_link(double E_new, double E_old) {
 		return (1. - exp((1. / this->_T) * (E_old - E_new)));
@@ -134,7 +134,7 @@ protected:
 		return drand48();
 	}
 
-	inline void _move_particle(movestr * moveptr, BaseParticle *p, BaseParticle *q);
+	inline void _move_particle(movestr *moveptr, BaseParticle *p, BaseParticle *q);
 	void _update_ops();
 	void _update_lists();
 

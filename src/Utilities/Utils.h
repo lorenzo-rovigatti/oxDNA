@@ -74,7 +74,7 @@ inline std::string &trim(std::string &s) {
  * @param fmt
  * @return
  */
-std::string sformat(const std::string &fmt, ...);
+std::string sformat(std::string fmt, ...);
 /**
  * @brief vsprintf c++ wrapper.
  *

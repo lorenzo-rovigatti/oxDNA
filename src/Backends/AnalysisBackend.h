@@ -36,11 +36,11 @@ public:
 	 * Yes, it is a design flaw, I am aware of that :-)
 	 * @param cur_step
 	 */
-	void sim_step(llint cur_step) {
+	void sim_step(llint cur_step) override {
 
 	}
 
-	void print_conf(llint cur_step, bool reduced, bool only_last) {
+	void print_conf(llint cur_step, bool reduced, bool only_last) override {
 
 	}
 
@@ -58,8 +58,8 @@ public:
 		return _done;
 	}
 
-	void get_settings(input_file &inp);
-	void init();
+	void get_settings(input_file &inp) override;
+	void init() override;
 };
 
 #endif /* ANALYSISBACKEND_H_ */

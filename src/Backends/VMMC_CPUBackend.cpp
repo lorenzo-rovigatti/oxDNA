@@ -473,7 +473,7 @@ inline void VMMC_CPUBackend::restore_particle(BaseParticle * dst) {
 	return;
 }
 
-inline number VMMC_CPUBackend::build_cluster_small(movestr * moveptr, int maxsize, int * clust, int * size) {
+inline number VMMC_CPUBackend::build_cluster_small(movestr *moveptr, int maxsize, int *clust, int *size) {
 
 	//printf ("before cycle...\n");
 	//if (_have_us) check_ops();
@@ -807,7 +807,7 @@ inline number VMMC_CPUBackend::build_cluster_small(movestr * moveptr, int maxsiz
 // this function is the heart of the VMMC algorithm;this version uses
 // cells to avoid the computation of O(N) interactions.
 
-inline number VMMC_CPUBackend::build_cluster_cells(movestr * moveptr, int maxsize, int * clust, int * size) {
+inline number VMMC_CPUBackend::build_cluster_cells(movestr *moveptr, int maxsize, int *clust, int *size) {
 	int nclust = 1;
 	clust[0] = moveptr->seed;
 	BaseParticle * pp, *qq;

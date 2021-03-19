@@ -25,8 +25,8 @@ class BaseInteraction;
 class BaseParticle;
 class BaseList;
 class BaseBox;
-class input_file;
-class Molecule;
+struct input_file;
+struct Molecule;
 
 /**
  * @brief Utility class. It is used by observables to have access to SimBackend's private members.

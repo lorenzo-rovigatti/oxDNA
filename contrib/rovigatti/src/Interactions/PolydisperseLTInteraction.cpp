@@ -102,14 +102,14 @@ void PolydisperseLTInteraction::init() {
 	number lowlimit = data.x[0];
 	number uplimit = data.x[i - 1];
 
-	_build_mesh([this](number x, void *args) { return this->_fx(x, args); }, [this](number x, void *args) { return this->_dfx(x, args); }, (void *) (&data), _lt_points, lowlimit, uplimit, _lookup_table);
+	_lookup_table.build([this](number x, void *args) { return this->_fx(x, args); }, [this](number x, void *args) { return this->_dfx(x, args); }, (void *) (&data), _lt_points, lowlimit, uplimit);
 
 	delete[] data.x;
 	delete[] data.fx;
 	delete[] data.dfx;
 
 	_rcut = _rcut_base;
-	_Ecut = _query_mesh(_rcut_base, _lookup_table);
+	_Ecut = _lookup_table.query(_rcut_base);
 }
 
 void PolydisperseLTInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
@@ -169,14 +169,14 @@ number PolydisperseLTInteraction::pair_interaction_nonbonded(BaseParticle *p, Ba
 	number dist = _computed_r.module();
 	if(dist > _rcut_base) return 0.;
 
-	number energy = _query_mesh(dist, _lookup_table) - _Ecut;
+	number energy = _lookup_table.query(dist) - _Ecut;
 
-	if(dist < _lookup_table._xlow) {
-		fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _lookup_table._xlow);
+	if(dist < _lookup_table.x_low()) {
+		fprintf(stderr, "Exceeded the lower bound (%lf < %lf)\n", dist, _lookup_table.x_low());
 	}
 
 	if(update_forces) {
-		number force_mod = -_query_meshD(dist, _lookup_table) / sigma;
+		number force_mod = -_lookup_table.query_derivative(dist) / sigma;
 		LR_vector force = _computed_r * (force_mod / dist);
 		p->force -= force;
 		q->force += force;

@@ -52,7 +52,7 @@ void BussiThermostat::_update_K(number &K, int degrees_of_freedom) {
 }
 
 void BussiThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
-	if(!(curr_step % _newtonian_steps) == 0) {
+	if(curr_step % _newtonian_steps) {
 		return;
 	}
 

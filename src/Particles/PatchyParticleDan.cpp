@@ -48,7 +48,6 @@ PatchyParticleDan::PatchyParticleDan(int _N_patches, LR_vector * _inp_patch_vect
 	}
 
 	//printf("PP 9\n");
-
 }
 
 PatchyParticleDan::~PatchyParticleDan() {
@@ -73,15 +72,15 @@ void PatchyParticleDan::set_positions() {
 	}
 
 	//printf("PP 10\n");
-
 }
 
-void PatchyParticleDan::copy_from(const PatchyParticleDan &p) {
-
+void PatchyParticleDan::copy_from(const BaseParticle &p) {
 	//To inherit/extend copy_from from BaseParticle (see Lorenzo email)
 	BaseParticle::copy_from(p);
 	//To add the same functionality for ref_vectors
-	for(uint patch = 0; patch < this->N_int_centers(); patch++)
-		_ref_vectors[patch] = p._ref_vectors[patch];
 
+	const auto ppp = dynamic_cast<const PatchyParticleDan *>(&p);
+	for(uint patch = 0; patch < this->N_int_centers(); patch++) {
+		_ref_vectors[patch] = ppp->_ref_vectors[patch];
+	}
 }

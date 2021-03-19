@@ -33,7 +33,7 @@ void RefreshThermostat::init() {
 }
 
 void RefreshThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
-	if(!(curr_step % _newtonian_steps) == 0) return;
+	if(curr_step % _newtonian_steps) return;
 
 	for(auto p: particles) {
 		p->vel = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
