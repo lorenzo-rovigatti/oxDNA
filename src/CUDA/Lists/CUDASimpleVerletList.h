@@ -11,6 +11,8 @@
 #include "CUDABaseList.h"
 #include "../CUDAUtils.h"
 
+#include <thrust/host_vector.h>
+
 /**
  * @brief CUDA implementation of a {@link VerletList Verlet list}.
  */
@@ -22,6 +24,7 @@ protected:
 	int _max_N_per_cell = 0;
 	size_t _vec_size = 0;
 	bool _auto_optimisation = true;
+	bool _print_problematic_ids = false;
 	c_number _max_density_multiplier = 1;
 	int _N_cells, _old_N_cells;
 
@@ -36,6 +39,7 @@ protected:
 
 	CUDA_kernel_cfg _cells_kernel_cfg;
 
+	std::vector<int> is_large(c_number4 *data);
 	virtual void _init_cells();
 
 public:
@@ -47,7 +51,7 @@ public:
 	CUDASimpleVerletList();
 	virtual ~CUDASimpleVerletList();
 
-	void init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box);
+	void init(int N, c_number rcut, CUDABox *h_cuda_box, CUDABox *d_cuda_box);
 	void update(c_number4 *poss, c_number4 *list_poss, LR_bonds *bonds);
 	void clean();
 

@@ -202,8 +202,7 @@ void CUDABaseBackend::init_cuda() {
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_bonds, _bonds_size));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<GPU_quat>(&_d_orientations, _orient_size));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_list_poss, _vec_size));
-	// the CUDA_SAFE_CALL macro does not support templates with more than one argument
-	GpuUtils::LR_cudaMalloc<CUDABox>(&_d_cuda_box, sizeof(CUDABox));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDABox>(&_d_cuda_box, sizeof(CUDABox)));
 	CUDA_SAFE_CALL(cudaMallocHost(&_d_are_lists_old, sizeof(bool), cudaHostAllocDefault));
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_list_poss, _vec_size));

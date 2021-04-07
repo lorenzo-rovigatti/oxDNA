@@ -7,11 +7,13 @@
 
 #include "CUDASimpleVerletList.h"
 #include "CUDA_simple_verlet.cuh"
+#include "../../Utilities/oxDNAException.h"
+#include "../../Utilities/Utils.h"
+#include "../cuda_utils/CUDA_lr_common.cuh"
+
 #include <thrust/scan.h>
 #include <thrust/device_vector.h>
-#include <thrust/host_vector.h>
 #include <thrust/copy.h>
-#include "../../Utilities/oxDNAException.h"
 
 CUDASimpleVerletList::CUDASimpleVerletList() :
 				_max_density_multiplier(1) {
@@ -41,10 +43,13 @@ void CUDASimpleVerletList::clean() {
 
 void CUDASimpleVerletList::get_settings(input_file &inp) {
 	getInputBool(&inp, "cells_auto_optimisation", &_auto_optimisation, 0);
+	getInputBool(&inp, "print_problematic_ids", &_print_problematic_ids, 0);
 	getInputNumber(&inp, "verlet_skin", &_verlet_skin, 1);
 	getInputNumber(&inp, "max_density_multiplier", &_max_density_multiplier, 0);
 	getInputBool(&inp, "use_edge", &_use_edge, 0);
-	if(_use_edge) OX_LOG(Logger::LOG_INFO, "Using edge-based approach...");
+	if(_use_edge) {
+		OX_LOG(Logger::LOG_INFO, "Using edge-based approach...");
+	}
 }
 
 void CUDASimpleVerletList::_init_cells() {
@@ -95,7 +100,7 @@ void CUDASimpleVerletList::_init_cells() {
 	_old_N_cells = _N_cells;
 }
 
-void CUDASimpleVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box) {
+void CUDASimpleVerletList::init(int N, c_number rcut, CUDABox *h_cuda_box, CUDABox *d_cuda_box) {
 	CUDABaseList::init(N, rcut, h_cuda_box, d_cuda_box);
 
 	c_number rverlet = rcut + 2 * _verlet_skin;
@@ -103,12 +108,10 @@ void CUDASimpleVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABo
 	_sqr_verlet_skin = SQR(_verlet_skin);
 	_vec_size = N * sizeof(c_number4);
 
-	// volume of a sphere whose radius is ceil(rverlet) times the maximum density (sqrt(2)).
-	c_number density = N / h_cuda_box->V();
-	if(density < 0.1) density = 0.1;
+	// volume of a sphere whose radius is ceil(rverlet) times the a density-dependent factor
+	c_number density = std::max((double) N / h_cuda_box->V(), 0.1);
 	c_number density_factor = density * 5. * _max_density_multiplier;
-	_max_neigh = (int) ((4 * M_PI * pow(ceil(rverlet), 3) / 3.) * density_factor);
-	if(_max_neigh >= N) _max_neigh = N - 1;
+	_max_neigh = std::min((int) ((4 * M_PI * pow(ceil(rverlet), 3) / 3.) * density_factor), N - 1);
 
 	_init_cells();
 
@@ -138,6 +141,33 @@ void CUDASimpleVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABo
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(verlet_N, &_N, sizeof(int)));
 }
 
+#define PROBLEMATIC_THRESHOLD 1.e7
+struct check_coord_magnitude {
+    __host__ __device__ bool operator()(const c_number4 &a) const {
+    	return fabsf(a.x) > PROBLEMATIC_THRESHOLD || fabsf(a.y) > PROBLEMATIC_THRESHOLD || fabsf(a.z) > PROBLEMATIC_THRESHOLD;
+    }
+};
+
+std::vector<int> CUDASimpleVerletList::is_large(c_number4 *data) {
+	thrust::device_ptr<c_number4> t_data(data);
+	thrust::host_vector<c_number4> h_data(_N);
+	thrust::device_vector<bool> d_is_large(_N);
+	thrust::host_vector<bool> h_is_large(_N);
+
+	thrust::transform(t_data, t_data + _N, d_is_large.begin(), check_coord_magnitude());
+	thrust::copy(d_is_large.begin(), d_is_large.end(), h_is_large.begin());
+	thrust::copy(t_data, t_data + _N, h_data.begin());
+
+	std::vector<int> large_ids;
+	for(int idx = 0; idx < h_is_large.size(); idx++) {
+		if(h_is_large[idx]) {
+			large_ids.push_back(get_particle_index_host(h_data[idx]));
+		}
+	}
+
+	return large_ids;
+}
+
 void CUDASimpleVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bonds *bonds) {
 	_init_cells();
 	CUDA_SAFE_CALL(cudaMemset(_d_counters_cells, 0, _N_cells * sizeof(int)));
@@ -150,7 +180,25 @@ void CUDASimpleVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bond
 
 	cudaThreadSynchronize();
 	if(_d_cell_overflow[0] == true) {
-		throw oxDNAException("A cell contains more than _max_n_per_cell (%d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell);
+		std::string message = Utils::sformat("A cell contains more than _max_n_per_cell (%d) particles:", _max_N_per_cell);
+
+		auto large_ids = is_large(poss);
+		if(large_ids.size() > 0) {
+			message += " the problem is most likely due to particles with very large coordinates, which may be caused by incorrectly-defined external forces and/or large time steps.\n";
+			if(_print_problematic_ids) {
+				message += " Here is the list:\n";
+				for(auto idx : large_ids) {
+					message += Utils::sformat("%d\n", idx);
+				}
+			}
+			else {
+				message += "You can set 'print_problematic_ids = true' in the input file to print the ids of the problematic particles.\n";
+			}
+		}
+		else {
+			message += " the problem might be solved by increasing the value of max_density_multiplier (which defaults to 1) in the input file\n";
+		}
+		throw oxDNAException(message);
 	}
 
 	// texture binding for the number of particles contained in each cell

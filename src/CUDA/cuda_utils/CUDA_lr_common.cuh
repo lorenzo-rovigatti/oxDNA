@@ -130,6 +130,13 @@ __forceinline__ __device__ int get_particle_index(const c_number4 &r_i) {
 	return __float_as_int(r_i.w) & (~msk);
 }
 
+__forceinline__ __host__ int get_particle_index_host(const c_number4 &r_i) {
+	union {float a; int b;} u;
+	u.a = r_i.w;
+	int msk = -1 << 22;
+	return u.b & (~msk);
+}
+
 __forceinline__ __device__ LR_double4 make_LR_double4(const float4 &v) {
 	LR_double4 ret;
 	ret.x = (double) v.x;
