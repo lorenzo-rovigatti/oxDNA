@@ -347,7 +347,7 @@ void CUDAPatchySwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *d
 		else {
 			PS_forces
 				<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
+				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_box);
 			CUT_CHECK_ERROR("PS_forces simple_lists error");
 		}
 	}

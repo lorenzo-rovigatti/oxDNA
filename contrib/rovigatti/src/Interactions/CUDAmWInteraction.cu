@@ -224,7 +224,7 @@ void CUDAmWInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, G
 		else {
 			mW_forces
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, _d_forces_3body, d_box);
+				(d_poss, d_forces, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, _d_forces_3body, d_box);
 			CUT_CHECK_ERROR("forces_second_step mW simple_lists error");
 		}
 	}

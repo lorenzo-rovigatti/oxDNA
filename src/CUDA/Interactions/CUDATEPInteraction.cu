@@ -421,7 +421,7 @@ void CUDATEPInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 		if(_v_lists->use_edge()) throw oxDNAException("use_edge unsupported by TEPInteraction");
 		TEP_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
+			(d_poss, d_orientations, d_forces, d_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
 			CUT_CHECK_ERROR("forces_second_step TEP simple_lists error");
 	}
 
