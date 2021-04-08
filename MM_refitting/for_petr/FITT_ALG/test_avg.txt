@@ -1,0 +1,1 @@
+SEKVENCE/sekAVG8.txt.CORR ../data/8.FIT.corr

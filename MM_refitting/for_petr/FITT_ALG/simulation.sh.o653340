@@ -1,0 +1,145 @@
+=========================================================
+PBS job: submitted date = Sun Mar 24 18:02:15 GMT 2013
+32 cpus on 32 nodes ( SMP=1 )
+32 hosts used:
+-------------
+comp87 comp87 comp87 comp87
+comp88 comp88 comp88 comp88
+comp88 comp88 comp88 comp89
+comp89 comp89 comp89 comp89
+comp89 comp89 comp90 comp90
+comp90 comp90 comp90 comp90
+comp90 comp91 comp91 comp91
+comp91 comp91 comp98 comp99
+=========================================================
+Job output begins
+-----------------
+
+This is MPI simulation
+This is process 0
+This is process This is process 27
+This is process 8
+This is process 21
+This is process 1
+This is process 12
+This is process 23
+This is process 13
+26
+This is process 9
+This is process This is process This is process 24
+7
+This is process 11
+This is process 10
+25
+This is process 22
+This is process 2
+This is process 3
+This is process 4
+This is process 5
+This is process 6
+Loading parameters from SEKVENCE/old_param.last
+This is process 14
+This is process 15
+This is process 16
+This is process 17
+This is process 18
+This is process 19
+This is process 20
+Error occured Could not load all parameters, please check format of parameter input file 
+This is process 28
+This is process This is process 3130
+
+This is process 29
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H  Allowing changing H 
+ Allowing changing stacking 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 
+ Allowing changing H 
+ Allowing changing stacking 
+ Allowing Watson-Crick base pairs only 

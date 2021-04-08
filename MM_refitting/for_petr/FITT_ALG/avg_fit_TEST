@@ -1,0 +1,14 @@
+#Loaded parameters from avg_fit_HSTAVG.par.last
+#Loaded sequences from SEKVENCE/sekAVG10.tx and states from ../data/10.FIT
+#Loaded sequences from SEKVENCE/sekAVG5.txt and states from ../data/5.FIT
+#Loaded sequences from SEKVENCE/sekAVG12.tx and states from ../data/12.FIT
+#Loaded sequences from SEKVENCE/sekAVG7.txt and states from ../data/7.FIT
+#Loaded sequences from SEKVENCE/sekAVG18.tx and states from ../data/18.FIT
+#Loaded sequences from SEKVENCE/sekAVG8.txt and states from ../data/8.FIT
+#Sequence (difference in kelvin)  melt correct_melt 
+AAAAGCTTGC 0.179191 331.49 331.311
+TAAAT -0.0333799 290.485 290.518
+TTAAAGTTTCGT 0.000735165 337.884 337.883
+TAGCCTCGTGAGGTTGGT -0.340685 348.358 348.699
+AGGCGCCA 0.0313298 321.365 321.334
+#Maxdifference is: 0.340685 and average difference is: 0.117064

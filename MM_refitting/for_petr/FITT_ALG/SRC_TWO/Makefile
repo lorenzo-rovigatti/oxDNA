@@ -1,0 +1,31 @@
+CC=mpicxxintel 
+SINGLECC = icpc -ipo 
+FLAGS= -lgsl -lgslcblas -O3 -DHAVE_MPI -ipo 
+SINGLEFLAGS= -lgsl -lgslcblas -O3  
+LIBS= -L/usr/local/shared/gsl-1.12/lib 
+INC=  -I/usr/local/shared/gsl-1.12/include
+SRC= anneal.cpp pars.cpp fits.cpp
+DEBUGFLAGS= -lgsl -lgslcblas -g -DDBG
+
+simulation: anneal.cpp main.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(CC) -o simulation $(SRC) main.cpp  $(INC) $(LIBS) $(FLAGS) 
+
+Rsimulation: anneal.cpp main_Rsimulation.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(SINGLECC) -o Rsimulation $(SRC) main_Rsimulation.cpp  $(INC) $(LIBS) $(SINGLEFLAGS) 
+
+debug: anneal.cpp main_Rsimulation.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(SINGLECC) -o Debug $(SRC) main_Rsimulation.cpp  $(INC) $(LIBS) $(DEBUGFLAGS) 
+
+rethermsimulation: anneal.cpp main_retherm.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(CC) -o rethermsimulation $(SRC) main_retherm.cpp  $(INC) $(LIBS) $(FLAGS) 
+test: anneal.cpp main_test.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(CC) -o test $(SRC) main_test.cpp  $(INC) $(LIBS) $(FLAGS) 
+widthtest: anneal.cpp main_test_new_widths.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(SINGLECC) -o widthtest $(SRC) main_test_new_widths.cpp  -DWITHWIDTHS $(INC) $(LIBS) $(SINGLEFLAGS) 
+Rsimulationwidth: anneal.cpp main_test_simulate_widths.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(SINGLECC) -o Rsimulationwidth $(SRC) main_test_simulate_widths.cpp -DWITHWIDTHS $(INC) $(LIBS) $(SINGLEFLAGS) 
+singletest: anneal.cpp single_test.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(SINGLECC) -o singletest $(SRC) single_test.cpp  $(INC) $(LIBS) $(SINGLEFLAGS) 
+mpisingletest: anneal.cpp single_test.cpp pars.cpp pars.h anneal.h fits.h fits.cpp
+	$(CC) -o mpisingletest $(SRC) single_test.cpp  $(INC) $(LIBS) $(FLAGS) 
+

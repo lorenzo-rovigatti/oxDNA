@@ -1,0 +1,66 @@
+*** This example shows how to assemble a large structure of which you know already know desired secondary structure ****
+
+
+This directory contains a set of scripts that can be used to assemble such structure
+The necessary input is the following:
+ a) The sequences used
+ b) This list of bases that form complementary base-pairs (ie know the complementary domains)
+
+To make the scripts work, make sure that variable PYTHONPATH points to your oxDNA UTILS directory.
+Also, in scripts check_domains.py and ./run_simulation_and_check.py, edit the PROCESSDIR variable so that it points
+to your UTILS/process_data directory.
+
+
+The example in this directory shows how to assemble a trimer (3-way junction) from 3 DNA strands, but the provided scripts can be used to assemble different 
+structures, starting from single-stranded states.
+
+
+The assembly consists of the following steps:
+
+1) Generate the topology files from sequences (which were pasted, one sequence per line, into file seqs.txt) 
+	 ../UTILS/generate-sa.py 60 seqs.txt
+
+   Notice that the box size is very important: for large structures, you want to choose a box size that is large enough to accommodate it. For the considered trimers,
+   60 in simulations units is enough. 
+
+2) Now, we have generated.dat and generated.top. We now use the file pairs.txt, which denotes which domains will be paired together.
+   The format of the file is for example the following:
+	3 136
+	18 121
+	24 66
+	40 50
+	72 116
+	89 99
+
+   For each domain, we have two lines. The numbers correpond to the indices of nucleotides that are paired in the domain.
+   The pair on the first line for given domain corresponds to the start of the domain, the second pair is the last pair of the domain.
+   In the above example, there are three domains. Please note that in each line, the nucleotides with lower number has to be specified first.
+   The nucleotides in the domains will then be paired together, so if the domain is identified by a pair 3 136 and 18 121, then nucleotide 3 pairs with 136, 4 with with   135, etc until 18 which pairs with 121. 
+
+3) To make the enforced assembly of domains faster, we want to prevent any misbonds. This is done using the following command:
+   ./complement_domains.py generated.dat generated.top pairs.txt > unique_topology.top 
+   
+   which creatres a special topology file that only allows base-pairing between corresponding base pairs in the domains.
+
+4) The input file has to be prepared for your system, which will be launched iteratively by the script that will add mutual traps to the external force file, that
+   will glue the complementary domains together, one by one. You need also to provide starting configuration:
+
+   cp generated.dat last_conf_trap.dat
+
+5) Now the system is ready to be launched:
+
+  ./run_simulation_and_check.py last_conf_trap.dat unique_topology.top pairs.txt
+
+   The program will launch ./oxDNA input (make sure that oxDNA is present in the directory). After the program finishes, it checks if the first domain formed at least 50% of its bonds, and if yes, it adds mutual traps onto the second domain and continues the simulation. If the domain did not form, it does not add any new mutual traps and continues only with traps that is has created so far. This process is done iteratively, until all domains are formed. 
+    To check the status of you simulation, you can do 
+
+    ./check_domains.py input last_conf_trap.dat unique_topology.top pairs.txt
+
+    Which prints out id of the domain and how many bonds of the total domain size have formed. At the end, you should get this number of trimers:
+     0 :  16 / 16
+     1 :  17 / 17
+     2 :  18 / 18
+
+
+
+

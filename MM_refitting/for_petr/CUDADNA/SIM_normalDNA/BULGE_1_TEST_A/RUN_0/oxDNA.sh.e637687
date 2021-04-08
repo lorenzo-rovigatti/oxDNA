@@ -1,0 +1,54 @@
+INFO: Backend precision: double
+INFO: Simulation type: VMMC
+INFO: optional key 'print_reduced_conf_every' not found
+INFO: optional key 'seed' not found
+INFO: optional key 'log_file' not found
+INFO: optional key 'lastconf_file' not found
+INFO: optional key 'print_reduced_conf_every' not found
+INFO: optional key 'debug' not found
+INFO: optional key 'use_average_seq' not found
+INFO: optional key 'confs_to_skip' not found
+INFO: Converting temperature from Celsius (52.000000 C°) to simulation units (0.108383)
+INFO: Using different widths for major and minor grooves
+INFO: Using maxclust = 13
+INFO: Using algorithm N^2 for small system
+INFO: optional key 'preserve_topology' not found
+INFO: optional key 'last_hist_file' not found
+INFO: Using default hist file last_hist.dat
+INFO: optional key 'traj_hist_file' not found
+INFO: Using default traj hist file traj_hist.dat
+INFO: optional key 'init_hist_file' not found
+INFO: Extrapolating temperatures .... 30C, 32C, 34C, 36C, 38C, 40C, 42C, 44C, 46C, 48C, 50C, 52C, 54C, 56C, 58C, 60C, 62C, 64C, 66C, 68C, 70C, 72C, 74C, 76C, 78C, 80C, 82C, 84C
+Extrapolating to temperatures 0.101050 0.101717 0.102383 0.103050 0.103717 0.104383 0.105050 0.105717 0.106383 0.107050 0.107717 0.108383 0.109050 0.109717 0.110383 0.111050 0.111717 0.112383 0.113050 0.113717 0.114383 0.115050 0.115717 0.116383 0.117050 0.117717 0.118383 0.119050 
+INFO: N_cells: 64, N_cells_side: 4
+INFO: N: 21, max_neigh: 20
+INFO: Parsing order parameter file op.txt
+INFO:    Using temporary file
+INFO: Order parameter type bond found, processing
+INFO: --> adding HB pair 0 20 
+INFO: --> adding HB pair 1 19 
+INFO: --> adding HB pair 2 18 
+INFO: --> adding HB pair 3 17 
+INFO: --> adding HB pair 4 16 
+INFO: --> adding HB pair 6 15 
+INFO: --> adding HB pair 7 14 
+INFO: --> adding HB pair 8 13 
+INFO: --> adding HB pair 9 12 
+INFO: --> adding HB pair 10 11 
+INFO: optional key 'pair11' not found
+INFO:  File op.txt parsed
+Weight parser: parsing `wfile.txt'
+Weight found: 1, 11
+Weight parser: parsing done
+INFO: Not attempting to preserve topology; max_move_size = 8
+INFO: SVN CODE VERSION: exported
+INFO: COMPILED ON: 02/19/13 15:08
+INFO: MODEL VERSION: JUNE-2011
+# Caught SIGNAL 15; setting stop = 1
+# Caught SIGNAL 15; setting stop = 1
+INFO: Timings informations:
+
+MC step: 0.635141 ms
+Lists update: 0.000000 ms
+
+INFO: END OF THE SIMULATION, everything went OK!

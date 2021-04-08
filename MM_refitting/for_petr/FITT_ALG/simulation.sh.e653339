@@ -1,0 +1,14 @@
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 0
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 1
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 6
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 4
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 2
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 17
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 20
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 28
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 29
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 12
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 8
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 21
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 23
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 26

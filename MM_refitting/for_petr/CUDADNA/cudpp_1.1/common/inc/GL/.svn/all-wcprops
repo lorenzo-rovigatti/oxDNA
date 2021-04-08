@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/GL
+END
+glut.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/GL/glut.h
+END
+glew.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/GL/glew.h
+END
+wglew.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/GL/wglew.h
+END
+glxew.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/GL/glxew.h
+END

@@ -1,0 +1,2 @@
+  action = stop_and
+  condition1 = all_bonds == 8

@@ -1,0 +1,124 @@
+=========================================================
+PBS job: submitted date = Thu Jul 3 00:40:50 BST 2014
+24 cpus on 24 nodes ( SMP=1 )
+24 hosts used:
+-------------
+comp01 comp01 comp01 comp01
+comp01 comp01 comp01 comp01
+comp02 comp02 comp02 comp02
+comp02 comp02 comp02 comp02
+comp03 comp03 comp03 comp03
+comp03 comp03 comp03 comp03
+=========================================================
+Job output begins
+-----------------
+
+This is process 5This is process 
+2
+This is process 3
+This is process 4
+This is process 14
+This is process 15
+This is process This is process 6This is process 13
+
+This is process 7
+This is process 8
+9
+This is process #This is MPI simulation10
+
+This is process This is process 120
+
+This is process 1This is process 11
+
+This is process 20
+This is process 21
+This is process 23
+This is process 17
+This is process 22
+This is process 19
+This is process 16
+This is process 18
+Loading parameters from new_rescaled.txt
+loaded 0.879 1.2235 1.2235 1.38377 1.42732 1.31803 1.31803 1.30652 1.30652 1.32296 1.32296 1.35911 1.35911 1.37308 1.37308 1.27612 1.34268 1.40431 1.40431 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+There are in total 7
+Loading sequences  and energy data from SEQDEP_sekvence/sek5.txt and SEQDEP_data/5.FIT.corr
+Loaded following simulation parameters from SEQDEP_data/5.FIT.corr
+ Box side: 20, simulation run at beta=10.2454 and will be fitted to 8.54541 up to 100 * 0.05
+ The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek5.txt
+Loaded 948 sequences from file SEQDEP_sekvence/sek5.txt
+Loading sequences  and energy data from SEQDEP_sekvence/sek6.txt and SEQDEP_data/6.FIT.corr
+Loaded following simulation parameters from SEQDEP_data/6.FIT.corr
+ Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 100 * 0.05
+ The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek6.txt
+Loaded 4032 sequences from file SEQDEP_sekvence/sek6.txt
+Loading sequences  and energy data from SEQDEP_sekvence/sek7.txt and SEQDEP_data/7.FIT.corr
+Loaded following simulation parameters from SEQDEP_data/7.FIT.corr
+ Box side: 20, simulation run at beta=9.48807 and will be fitted to 7.78807 up to 100 * 0.05
+ The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek7.txt
+Loaded 16384 sequences from file SEQDEP_sekvence/sek7.txt
+Loading sequences  and energy data from SEQDEP_sekvence/sek8.txt and SEQDEP_data/8.FIT.corr
+Loaded following simulation parameters from SEQDEP_data/8.FIT.corr
+ Box side: 20, simulation run at beta=9.28314 and will be fitted to 7.58314 up to 60 * 0.05
+ The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek8.txt
+ Allowing changing H 
+ Allowing changing H  Allowing changing H 
+ Allowing changing H  Allowing changing H 
+ Allowing changing H 
+
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+Loaded 65280 sequences from file SEQDEP_sekvence/sek8.txt
+Loading sequences  and energy data from SEQDEP_sekvence/sek10.txt and SEQDEP_data/10.FIT.corr
+ Allowing changing H 
+Loaded following simulation parameters from SEQDEP_data/10.FIT.corr
+ Box side: 20, simulation run at beta=9.0048 and will be fitted to 7.3048 up to 100 * 0.05
+ The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek10.txt
+Loaded 2994 sequences from file SEQDEP_sekvence/sek10.txt
+Loading sequences  and energy data from SEQDEP_sekvence/sek12.txt and SEQDEP_data/12.FIT.corr
+Loaded following simulation parameters from SEQDEP_data/12.FIT.corr
+ Box side: 20, simulation run at beta=8.8374 and will be fitted to 7.1374 up to 100 * 0.05
+ The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek12.txt
+Loaded 3000 sequences from file SEQDEP_sekvence/sek12.txt
+Loading sequences  and energy data from SEQDEP_sekvence/sek18.txt and SEQDEP_data/18.FIT.corr
+Loaded following simulation parameters from SEQDEP_data/18.FIT.corr
+ Box side: 20, simulation run at beta=8.57576 and will be fitted to 6.87576 up to 100 * 0.05
+ The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek18.txt
+Loaded 3000 sequences from file SEQDEP_sekvence/sek18.txt
+Loaded number of sequences: 95638
+ Allowing changing H 
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   EXIT CODE: 9
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================
+
+---------------
+Job output ends
+=========================================================
+PBS job: finished date = Thu Jul 3 01:07:23 BST 2014
+Total run time : 0 Hours 26 Minutes 28 Seconds
+=========================================================

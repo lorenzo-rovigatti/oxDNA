@@ -1,0 +1,41 @@
+=========================================================
+PBS job: submitted date = Thu Jul 3 00:39:56 BST 2014
+1 cpus on 1 nodes ( SMP=1 )
+1 hosts used:
+-------------
+comp19
+=========================================================
+Job output begins
+-----------------
+
+There are in total 7
+Loading sequences  and energy data from SEQDEP_sekvence/sek5.txt and SEQDEP_data/5.FIT.corr
+#Loaded following simulation parameters from SEQDEP_data/5.FIT.corr
+# Box side: 20, simulation run at beta=10.2454 and will be fitted to 8.54541 up to 100 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek5.txt
+#Loaded 948 sequences from file SEQDEP_sekvence/sek5.txt
+#Loading all simulation states  from SEQDEP_data/5.FIT.corr
+ simulation states loaded 
+Loading sequences  and energy data from SEQDEP_sekvence/sek6.txt and SEQDEP_data/6.FIT.corr
+#Loaded following simulation parameters from SEQDEP_data/6.FIT.corr
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 100 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek6.txt
+#Loaded 4032 sequences from file SEQDEP_sekvence/sek6.txt
+#Loading all simulation states  from SEQDEP_data/6.FIT.corr
+ simulation states loaded 
+Loading sequences  and energy data from SEQDEP_sekvence/sek7.txt and SEQDEP_data/7.FIT.corr
+#Loaded following simulation parameters from SEQDEP_data/7.FIT.corr
+# Box side: 20, simulation run at beta=9.48807 and will be fitted to 7.78807 up to 100 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek7.txt
+#Loaded 16384 sequences from file SEQDEP_sekvence/sek7.txt
+#Loading all simulation states  from SEQDEP_data/7.FIT.corr
+
+---------------
+Job output ends
+=========================================================
+PBS job: finished date = Sat Jul 5 04:38:52 BST 2014
+Total run time : 34 Hours 43 Minutes 26 Seconds
+=========================================================

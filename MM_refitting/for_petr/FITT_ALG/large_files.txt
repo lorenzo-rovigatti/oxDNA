@@ -1,0 +1,5 @@
+SEKVENCE/seq_6_all_HTg0.txt.CORR ../data/6.FIT.corr
+SEKVENCE/seq_8_2000_HT.txt.CORR ../data/8.FIT.corr
+SEKVENCE/seq_10_2000_HT.txt.CORR ../data/10.FIT.corr
+SEKVENCE/seq_12_2000_HT.txt.CORR ../data/12.FIT.corr 
+SEKVENCE/seq_18_HT_2000.txt.CORR ../data/18.FIT.corr

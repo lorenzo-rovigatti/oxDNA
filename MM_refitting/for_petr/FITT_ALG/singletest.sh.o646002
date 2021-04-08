@@ -1,0 +1,39 @@
+=========================================================
+PBS job: submitted date = Tue Mar 12 19:37:13 GMT 2013
+1 cpus on 1 nodes ( SMP=1 )
+1 hosts used:
+-------------
+comp22
+=========================================================
+Job output begins
+-----------------
+
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+ simulation states loaded 
+Loading sequences  and energy data from SEKVENCE/seq_8_2000_HT.txt.CORR and ../data/8.FIT
+#Loaded following simulation parameters from ../data/8.FIT
+# Box side: 20, simulation run at beta=9.28314 and will be fitted to 7.58314 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_8_2000_HT.txt.CORR
+#Loaded 0 sequences from file SEKVENCE/seq_8_2000_HT.txt.CORR
+#Loading all simulation states  from ../data/8.FIT
+ simulation states loaded 
+Loading sequences  and energy data from SEKVENCE/seq_10_2000_HT.txt.CORR and ../data/10.FIT
+#Loaded following simulation parameters from ../data/10.FIT
+# Box side: 20, simulation run at beta=9.0048 and will be fitted to 7.3048 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_10_2000_HT.txt.CORR
+
+---------------
+Job output ends
+=========================================================
+PBS job: finished date = Wed Mar 13 12:41:43 GMT 2013
+Total run time : 17 Hours 5 Minutes 51 Seconds
+=========================================================

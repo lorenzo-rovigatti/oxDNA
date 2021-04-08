@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES/HAIRPIN_CLOSING_TIME
+END
+input
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES/HAIRPIN_CLOSING_TIME/input
+END
+start.dat
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES/HAIRPIN_CLOSING_TIME/start.dat
+END
+external.conf
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES/HAIRPIN_CLOSING_TIME/external.conf
+END
+sequence.txt
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES/HAIRPIN_CLOSING_TIME/sequence.txt
+END
+hairpin.top
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES/HAIRPIN_CLOSING_TIME/hairpin.top
+END
+ffs.txt
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES/HAIRPIN_CLOSING_TIME/ffs.txt
+END
+op.txt
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES/HAIRPIN_CLOSING_TIME/op.txt
+END

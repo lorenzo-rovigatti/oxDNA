@@ -1,0 +1,91 @@
+INFO: Backend precision: double
+INFO: Simulation type: VMMC
+INFO: External model specified, using a_inc.txt
+POS_STACK_3_a1  = 0.400000 
+POS_STACK_3_a2  = 0.100000 
+POS_STACK_5_a1  = 0.124906 
+POS_STACK_5_a2  = -0.008663 
+p3_x  = -0.462510 
+p3_y  = -0.528218 
+p3_z  = 0.712089 
+p5_x  = -0.104402 
+p5_y  = -0.841783 
+p5_z  = 0.529624 
+POS_BACK_a1  = -0.400000 
+POS_BACK_a2  = 0.000000 
+POS_BACK_a3  = 0.200000 
+FENE_R0  = 0.761071 
+HYDR_EPS  = 0.870439 
+STCK_BASE_EPS  = 1.402060 
+STCK_FACT_EPS  = 2.770000 
+STCK_RC  = 0.930000 
+STCK_R0  = 0.430000 
+STCK_RLOW  = 0.350000 
+STCK_RHIGH  = 0.780000 
+STCK_RCLOW  = 0.262390 
+STCK_RCHIGH  = 0.986000 
+STCK_THETA4_A  = 0.000000 
+STCK_THETA4_B  = 0.000000 
+STCK_THETA5_T0  = 0.000000 
+STCK_THETA6_T0  = 0.000000 
+STCK_THETAB1_A  = 1.300000 
+STCK_THETAB1_B  = 6.438100 
+STCK_THETAB1_T0  = 0.000000 
+STCK_THETAB1_TS  = 0.800000 
+STCK_THETAB1_TC  = 0.961538 
+STCK_THETAB2_A  = 1.300000 
+STCK_THETAB2_B  = 6.438100 
+STCK_THETAB2_T0  = 0.000000 
+STCK_THETAB2_TS  = 0.800000 
+STCK_THETAB2_TC  = 0.961538 
+CRST_R0  = 0.500000 
+CRST_RC  = 0.600000 
+CRST_K  = 59.962601 
+CRST_RLOW  = 0.420000 
+CRST_RCLOW  = 0.375000 
+CRST_RHIGH  = 0.580000 
+CRST_RCHIGH  = 0.625000 
+CRST_THETA1_T0  = 0.505000 
+CRST_THETA2_T0  = 1.266000 
+CRST_THETA3_T0  = 1.266000 
+CRST_THETA4_T0  = 0.000000 
+CRST_THETA7_T0  = 0.309000 
+CRST_THETA8_T0  = 0.309000 
+CXST_K  = 0.000001 
+INFO: Converting temperature from Celsius (62.000000 C°) to simulation units (0.111717)
+INFO: Using algorithm N^2 for small system
+INFO: Using default hist file last_hist.dat
+INFO: Using default traj hist file traj_hist.dat
+INFO: Extrapolating temperatures .... 50C, 52C, 54C, 56C, 58C, 60C, 62C, 64C, 66C, 68C, 70C, 72C, 74C, 76C, 78C, 80C, 82C, 84C
+Extrapolating to temperatures 0.107717 0.108383 0.109050 0.109717 0.110383 0.111050 0.111717 0.112383 0.113050 0.113717 0.114383 0.115050 0.115717 0.116383 0.117050 0.117717 0.118383 0.119050 
+INFO: N_cells: 64, N_cells_side: 4
+INFO: N: 21, max_neigh: 20
+WARNING: maxclust < 0, setting it to N = 21
+INFO: Parsing order parameter file op.txt
+INFO:    Using temporary file
+INFO: Order parameter type bond found, processing
+INFO: --> adding HB pair 0 20 
+INFO: --> adding HB pair 1 19 
+INFO: --> adding HB pair 2 18 
+INFO: --> adding HB pair 3 17 
+INFO: --> adding HB pair 4 16 
+INFO: --> adding HB pair 6 15 
+INFO: --> adding HB pair 7 14 
+INFO: --> adding HB pair 8 13 
+INFO: --> adding HB pair 9 12 
+INFO: --> adding HB pair 10 11 
+INFO:  File op.txt parsed
+Weight parser: parsing `wfile.txt'
+Weight found: 1, 11
+Weight parser: parsing done
+INFO: Not attempting to preserve topology; max_move_size = 8
+INFO: SVN CODE VERSION: 5636M
+INFO: COMPILED ON: 01/31/13 19:40
+INFO: MODEL VERSION: JUNE-2011
+# Caught SIGNAL 15; setting stop = 1
+INFO: Timings informations:
+
+MC step: 0.596279 ms
+Lists update: 0.000000 ms
+
+INFO: END OF THE SIMULATION, everything went OK!

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/jpkd/!svn/ver/5577/CUDADNA/EXAMPLES
+END
+input
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/jpkd/!svn/ver/4344/CUDADNA/EXAMPLES/input
+END
+inputMC
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/jpkd/!svn/ver/4344/CUDADNA/EXAMPLES/inputMC
+END
+inputMD
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/jpkd/!svn/ver/4344/CUDADNA/EXAMPLES/inputMD
+END
+inputFORCES
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/jpkd/!svn/ver/4230/CUDADNA/EXAMPLES/inputFORCES
+END
+inputMD-sq
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/jpkd/!svn/ver/4599/CUDADNA/EXAMPLES/inputMD-sq
+END

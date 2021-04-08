@@ -1,0 +1,75 @@
+=========================================================
+PBS job: submitted date = Sun Mar 24 17:47:49 GMT 2013
+32 cpus on 32 nodes ( SMP=1 )
+32 hosts used:
+-------------
+comp87 comp87 comp87 comp87
+comp88 comp88 comp88 comp88
+comp88 comp88 comp88 comp89
+comp89 comp89 comp89 comp89
+comp89 comp89 comp90 comp90
+comp90 comp90 comp90 comp90
+comp90 comp91 comp91 comp91
+comp91 comp91 comp98 comp99
+=========================================================
+Job output begins
+-----------------
+
+This is MPI simulation
+This is process This is process 0
+This is process 31
+29
+This is process This is process This is process This is process 27
+This is process 14
+3022
+2This is process 15
+
+This is process This is process 3This is process 7
+This is process 125This is process 4
+This is process This is process This is process 9
+
+
+
+1628This is process 10
+This is process 
+This is process 17
+26This is process This is process 20
+This is process 12
+
+5
+This is process This is process 24
+
+
+8This is process This is process This is process 
+216
+19
+This is process 
+This is process 13This is process 23
+
+This is process 11
+18
+Loading parameters from SEKVENCE/old_param.last
+Error occured Could not load all parameters, please check format of parameter input file 
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+Error occured Cannot open SEKVENCE/seq_8_2000_HT.txt.CORR
+
+---------------
+Job output ends
+=========================================================
+PBS job: finished date = Sun Mar 24 17:46:08 GMT 2013
+Total run time : 0 Hours 0 Minutes 1 Seconds
+=========================================================

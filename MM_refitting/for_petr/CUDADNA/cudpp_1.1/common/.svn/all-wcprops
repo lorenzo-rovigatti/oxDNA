@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common
+END
+paramgl_vc90.sln
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/paramgl_vc90.sln
+END
+Makefile_paramgl
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/Makefile_paramgl
+END
+cutil.vcproj
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/cutil.vcproj
+END
+cutil_vc90.vcproj
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/cutil_vc90.vcproj
+END
+paramgl.vcproj
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/paramgl.vcproj
+END
+Cuda.rules
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/Cuda.rules
+END
+paramgl_vc90.vcproj
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/paramgl_vc90.vcproj
+END
+cutil.sln
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/cutil.sln
+END
+cutil_readme.txt
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/cutil_readme.txt
+END
+cutil_vc90.sln
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/cutil_vc90.sln
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/Makefile
+END
+common.mk
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/common.mk
+END
+paramgl.sln
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/paramgl.sln
+END

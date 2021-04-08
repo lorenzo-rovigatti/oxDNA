@@ -1,0 +1,181 @@
+=========================================================
+PBS job: submitted date = Tue Mar 12 18:41:45 GMT 2013
+20 cpus on 20 nodes ( SMP=1 )
+20 hosts used:
+-------------
+comp08 comp08 comp08 comp08
+comp09 comp10 comp10 comp11
+comp13 comp14 comp14 comp19
+comp19 comp19 comp19 comp19
+comp19 comp19 comp19 comp22
+=========================================================
+Job output begins
+-----------------
+
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+#Loaded following simulation parameters from ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+There are in total 5
+Loading sequences  and energy data from SEKVENCE/seq_6_all_HTg0.txt.CORR and ../data/6.FIT
+#Loaded following simulation parameters from ../data/6.FIT
+# Box side: 20, simulation run at beta=9.7853 and will be fitted to 8.0853 up to 60 * 0.05
+# The loaded simulation was generated with parameters: 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+#Loaded 12094 sequences from file SEKVENCE/seq_6_all_HTg0.txt.CORR
+#Loading all simulation states  from ../data/6.FIT
+
+=====================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   EXIT CODE: 15
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+=====================================================================================

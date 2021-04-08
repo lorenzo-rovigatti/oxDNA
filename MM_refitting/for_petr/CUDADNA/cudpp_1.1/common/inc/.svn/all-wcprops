@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc
+END
+cutil_math.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/cutil_math.h
+END
+stopwatch_win.h
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/stopwatch_win.h
+END
+stopwatch_linux.h
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/stopwatch_linux.h
+END
+exception.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/exception.h
+END
+bank_checker.h
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/bank_checker.h
+END
+param.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/param.h
+END
+stopwatch_base.inl
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/stopwatch_base.inl
+END
+stopwatch_base.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/stopwatch_base.h
+END
+cutil_gl_error.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/cutil_gl_error.h
+END
+stopwatch.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/stopwatch.h
+END
+error_checker.h
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/error_checker.h
+END
+cmd_arg_reader.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/cmd_arg_reader.h
+END
+multithreading.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/multithreading.h
+END
+findFile.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/findFile.h
+END
+cutil.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/cutil.h
+END
+paramgl.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/common/inc/paramgl.h
+END

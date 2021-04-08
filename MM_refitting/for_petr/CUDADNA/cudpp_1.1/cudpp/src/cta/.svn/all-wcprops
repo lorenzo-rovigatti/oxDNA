@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cta
+END
+rand_cta.cu
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cta/rand_cta.cu
+END
+scan_cta.cu
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cta/scan_cta.cu
+END
+radixsort_cta.cu
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cta/radixsort_cta.cu
+END
+segmented_scan_cta.cu
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cta/segmented_scan_cta.cu
+END

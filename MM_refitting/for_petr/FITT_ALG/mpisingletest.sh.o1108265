@@ -1,0 +1,72 @@
+=========================================================
+PBS job: submitted date = Thu Jul 3 17:30:06 BST 2014
+16 cpus on 16 nodes ( SMP=1 )
+16 hosts used:
+-------------
+comp02 comp02 comp02 comp02
+comp02 comp02 comp02 comp02
+comp03 comp03 comp03 comp03
+comp03 comp03 comp03 comp03
+=========================================================
+Job output begins
+-----------------
+
+This is process This is process This is process 5
+This is process 11#This is MPI simulation
+This is process 15
+3
+8
+This is process 
+This is process This is process 120
+
+This is process 1
+This is process 9
+7
+This is process 2
+This is process 6
+This is process This is process 10
+4This is process 13
+
+This is process 14
+Loading parameters from new_rescaled.txt
+loaded 0.879 1.2235 1.2235 1.38377 1.42732 1.31803 1.31803 1.30652 1.30652 1.32296 1.32296 1.35911 1.35911 1.37308 1.37308 1.27612 1.34268 1.40431 1.40431 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+There are in total 1
+Loading sequences  and energy data from SEQDEP_sekvence/sek7.txt and SEQDEP_data/7.FIT.corr
+Loaded following simulation parameters from SEQDEP_data/7.FIT.corr
+ Box side: 20, simulation run at beta=9.48807 and will be fitted to 7.78807 up to 100 * 0.05
+ The loaded simulation was generated with parameters: 1.077 1.077 1.077 1.3448 1.3448 1.3448 1.3448 1.3448 1.3488 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 1.3448 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 47.5 1.97561 
+ Loading sequences from file SEQDEP_sekvence/sek7.txt
+ Allowing changing H 
+Loaded 16384 sequences from file SEQDEP_sekvence/sek7.txt
+Loaded number of sequences: 16384
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H  Allowing changing H 
+
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+ Allowing changing H 
+#simbeta accratio simH AvgError MaxError  parameters 
+#Simulation finished, current status is: 
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   EXIT CODE: 1
+=   CLEANING UP REMAINING PROCESSES
+=   YOU CAN IGNORE THE BELOW CLEANUP MESSAGES
+===================================================================================
+
+---------------
+Job output ends
+=========================================================
+PBS job: finished date = Thu Jul 3 18:57:59 BST 2014
+Total run time : 1 Hours 27 Minutes 50 Seconds
+=========================================================

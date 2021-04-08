@@ -1,0 +1,623 @@
+#include "pars.h"
+#include <fstream>
+#include <sstream>
+
+
+int PAR_struct::wc_correspondence[ST_END+1] = {0 ,0 ,0 ,0 ,0 ,1 ,-1 ,1 ,-1 ,1 ,-1 ,1 ,-1 ,1 ,-1 ,0 ,0 ,1 ,-1 };
+
+string PAR_struct::parameter_names[PAR_SIZE] =
+{
+ "HBS_AT",
+ "HBS_CG",
+ "HBS_GT",
+ "STS_GC",
+ "STS_CG",
+ "STS_GG",
+ "STS_CC",
+ "STS_GA",
+ "STS_TC",
+ "STS_AG",
+ "STS_CT",
+ "STS_TG",
+ "STS_CA",
+ "STS_GT",
+ "STS_AC",
+ "STS_AT",
+ "STS_TA",
+ "STS_AA",
+ "STS_TT",
+ "CROSS_AA",
+ "CROSS_AT",
+ "CROSS_AC",
+ "CROSS_AG",
+ "CROSS_GG",
+ "CROSS_GC",
+ "CROSS_GT",
+ "CROSS_CC",
+ "CROSS_CT",
+ "CROSS_TT",
+ "STS_EPS"
+};
+
+//------------------------------------------
+PAR_struct::PAR_struct() 
+{
+    for(int i = 0; i < PAR_SIZE; i++)
+    {
+      allowed_changes[i] = 0;
+      vals[i] = 0;
+    }
+}
+//---------------------------------------------
+double PAR_struct::get_value(int id)
+{
+	  if(id < 0 || id >= PAR_SIZE)
+		  throw "Error, requested invalid ID";
+
+	  return vals[id];
+}
+//----------------------------------------------
+double PAR_struct::get_st_T_dep(void)
+{
+	  return vals[ST_T_PART];
+}
+//-----------------------------------------------
+ostream &PAR_struct::show_parameters(ostream& out)
+{
+   
+	for(int i = 0; i < PAR_SIZE; i++)
+	{
+		out << PAR_struct::parameter_names[i] << " = " << vals[i] << endl;
+	}
+
+    return out;
+}
+
+
+//------------------------------------------
+istream &PAR_struct::load_parameters(istream &in)
+{
+    string type;
+    string equal;
+    double value;
+    int i = 0;
+
+    int loaded_parameters = 0;
+
+    //char buffer[512];
+    //in.getline(buffer,512);
+    for( i = 0; in.good() && i < PAR_SIZE; i++)
+    {
+       //stringstream stin(string(buffer));
+       in >> type >> equal >> value;
+    //   cout << "Loaded" << endl;
+    //   cout << type << ":" << value << endl;
+       for(int j = 0; j < PAR_SIZE; j++)
+       {
+    	   if(PAR_struct::parameter_names[j] == type)
+    	   {
+    		   vals[j] = value;
+    		   loaded_parameters++;
+#ifdef DBG
+    		   cerr << "Loading " << type << " with value " << value << endl;
+#endif
+    	   }
+       }
+
+       
+    }
+
+    if( i != PAR_SIZE || loaded_parameters != PAR_SIZE)
+      throw string ("Could not load all parameters, please check format of parameter input file ");
+    return in;
+}
+
+//-------------------------------------------
+void PAR_struct::load_from_file(const char* fname) 
+{
+    ifstream file(fname);
+    if(file.good())
+    {
+     load_parameters(file);
+    }
+    else 
+    {
+      throw string("Cannot open file ") + string(fname);
+    }
+}
+//------------------------------------------------------
+double PAR_struct::get_scaled_energy(double *contributions, double new_T)
+{
+   
+    //maxAT *= vals[HBS_AT_ID] / original_pars.vals[HBS_AT_ID];
+    //maxCG *= vals[HBS_CG_ID] / original_pars.vals[HBS_CG_ID];
+   
+    double rescaled = 0;
+    //hbonds
+    for(int i = HB_START; i <= HB_END; i++)
+    {  
+        rescaled += contributions[i] * (vals[i] ) ; //    / original_pars.vals[i]);
+      
+    }
+
+    //stacking
+ //   double t_dep_part = 0;
+ //   double t_indep_part = 0;
+
+    for(int i = ST_START; i <= ST_END; i++)
+    {
+
+      rescaled += contributions[i] * (1.0 + vals[ST_T_PART] * new_T ) *  (vals[i]) ; //with temperature dependence
+
+    }
+
+    //cross stacking
+    for(int i = CROSS_START; i <= CROSS_END; i++)
+    {
+           rescaled += contributions[i] * (vals[i]);
+    }
+
+
+    return rescaled;
+}
+
+//-----------------------------------------------------------
+int PAR_struct::check_reasonable_limits(void)
+{
+	int notall_in_limits = 1;
+	for(int i = HB_START; i <= HB_END; i++)
+	{
+		if(vals[i] < 0.2 || vals[i] > 2.5)
+		{
+			notall_in_limits = 0;
+			//break;
+		}
+	}
+
+
+	for(int i = ST_START; i <= ST_END; i++)
+	{
+		if(vals[i] < 0.1 || vals[i] > 3.5)
+		{
+			notall_in_limits = 0;
+			//break;
+		}
+	}
+
+
+	for(int i = CROSS_START; i <= CROSS_END; i++)
+	{
+		if(vals[i] < 1. || vals[i] > 180.)
+		{
+			notall_in_limits = 0;
+			//break;
+		}
+	}
+
+
+
+
+	return notall_in_limits;
+}
+//-----------------------------------------------------------
+void PAR_struct::perturb_parameter(double delta_max)
+{
+
+ int id = rand_0N(PAR_SIZE - 1);
+ while(allowed_changes[id] == 0)
+ {
+     id = rand_0N(PAR_SIZE - 1);
+     //cout << " Trying " << id << endl;
+ }
+ 
+ double pert = 2.0*delta_max*(rand_01() - 0.5);
+ //cout << " perturbing " << id << " by " << pert << endl;
+
+ if(id >= CROSS_START && id <= CROSS_END)
+ {
+	 pert *= CROSS_DELTA_P;
+ }
+ 
+ vals[id] += ( pert);
+
+}
+//-----------------------------------------------------------
+void PAR_struct::perturb_wc_only_parameter(double delta_max)
+{
+
+ int id = rand_0N(PAR_SIZE - 1);
+ while(allowed_changes[id] == 0)
+ {
+     id = rand_0N(PAR_SIZE - 1);
+     //cout << " Trying " << id << endl;
+ }
+
+ double pert = 2.0*delta_max*(rand_01() - 0.5);
+ //cout << " perturbing " << id << " by " << pert << endl;
+
+ if(id >= CROSS_START && id <= CROSS_END)
+ {
+	 pert *= CROSS_DELTA_P;
+ }
+
+ vals[id] += ( pert);
+
+ if(id <= ST_END and wc_correspondence[id] != 0)
+ {
+   int next_id = id + wc_correspondence[id];
+   vals[next_id] += pert;
+ }
+
+}
+//----------------------------------------------------------
+//-----------------------------------------------------------
+void PAR_struct::perturb_parameter(double delta_max,bool average,bool wc_only)
+{
+
+ if (!average)
+ {
+	 if(wc_only)
+	 {
+	   perturb_wc_only_parameter(delta_max);
+	 }
+	 else
+	 {
+	    perturb_parameter(delta_max);
+	 }
+	// cout << "Perturbing NOT average!" << endl;
+ }
+ else
+ {
+	// cout << "Perturbing average!" << endl;
+	 bool perturbed = false;
+	 while(!perturbed)
+	 {
+	   int type = rand_0N(3);
+	   if(type == 0 && allowed_changes[HB_START])
+	   {
+		   perturb_H_only(delta_max);
+		   return;
+	   }
+	   else if(type == 1 && allowed_changes[ST_START])
+	   {
+   		   perturb_ST_only(delta_max);
+   		   return;
+	   }
+	   else if(type == 2 && allowed_changes[CROSS_START])
+	   {
+   		   perturb_CROSS_only(CROSS_DELTA_P*delta_max);
+   		   return;
+	   }
+	   else if(type == 3 && allowed_changes[ST_T_PART])
+	   {
+   	   	   perturb_T_dep_only(delta_max);
+   	   	   return;
+       }
+
+
+
+	 }
+
+ }
+
+
+
+
+}
+//-----------------------------------------------------------
+void PAR_struct::perturb_parameter_average(double delta_max)
+{
+
+ throw string("This method should not be used, it is an old one!");
+ bool perturbed;
+ int index = 0;
+
+ if(allowed_changes[HB_START] == 0)
+ {
+	 perturb_ST_only(delta_max);
+	 return;
+ }
+ else if ( allowed_changes[ST_START] == 0)
+ {
+	 perturb_H_only(delta_max);
+	 return;
+ }
+ else
+ {
+	 int id = rand_0N(1);
+	 if(id == 0)
+	 {
+		 perturb_ST_only(delta_max);
+
+	 }
+	 else
+	 {
+		 perturb_H_only(delta_max);
+	 }
+ }
+
+
+
+}
+
+//---------------------------------------------------
+//-----------------------------------------------------------
+void PAR_struct::perturb_H_only(double delta_max)
+{
+
+
+ double pert = 2.0*delta_max*(rand_01() - 0.5);
+ //cout << " perturbing " << id << " by " << pert << endl;
+
+ for(int id = HB_START; id <= HB_END; id++)
+ {
+    vals[id] += ( pert);
+ }
+
+}
+//----------------------------------------------------
+void PAR_struct::perturb_ST_only(double delta_max)
+{
+ double pert = 2.0*delta_max*(rand_01() - 0.5);
+ //cout << " perturbing " << id << " by " << pert << endl;
+
+ for(int id = ST_START; id <= ST_END; id++)
+ {
+    vals[id] += ( pert);
+ }
+
+
+}
+//----------------------------------------------------
+void PAR_struct::perturb_CROSS_only(double delta_max)
+{
+ double pert = 2.0*delta_max*(rand_01() - 0.5);
+ //cout << " perturbing " << id << " by " << pert << endl;
+
+ for(int id = CROSS_START; id <= CROSS_END; id++)
+ {
+    vals[id] += ( pert);
+ }
+
+
+}
+//------------------------------------------------------------
+void PAR_struct::perturb_T_dep_only(double delta_max)
+{
+ double pert = 2.0*delta_max*(rand_01() - 0.5);
+ //cout << " perturbing " << id << " by " << pert << endl;
+
+ int id = ST_T_PART;
+ vals[id] += ( pert);
+
+
+}
+
+//-------------------------------------------------------
+int PAR_struct::return_corresponding_id(string interaction_type, string pair)
+{
+	string candidate_stringA = interaction_type + string("_") + pair;
+    string inv_pair = "  ";
+
+
+	if (interaction_type == "STS")
+	{
+
+		inv_pair = pair;
+		/*
+		  if(pair ==  "AA" )
+		    inv_pair = "UU";
+		  if (pair == "UU")
+		  	inv_pair = "AA";
+
+		  if(pair ==  "CA" )
+		    inv_pair = "UG";
+		  if (pair == "UG")
+		  	inv_pair = "CA";
+
+		  if(pair ==  "GU" )
+		     inv_pair = "AC";
+		  if(pair == "AC")
+		     inv_pair = "GU";
+
+		  if(pair ==  "CU" )
+			 inv_pair = "AG";
+		  if(pair == "AG")
+		     inv_pair = "CU";
+
+		  if(pair ==  "GA" )
+			 inv_pair = "UC";
+		  if(pair == "UC")
+		     inv_pair = "GA";
+
+		  if(pair ==  "CC" )
+		      inv_pair = "GG";
+		  if(pair == "GG")
+			  inv_pair = "CC";
+	   */
+
+	}
+	else
+	{
+		inv_pair[1] = pair[0];
+	    inv_pair[0] = pair[1];
+	}
+
+	string candidate_stringB = interaction_type + string("_") + inv_pair;
+
+	for (int i = 0; i < PAR_SIZE; i++) {
+			if (parameter_names[i] == candidate_stringA
+					|| parameter_names[i] == candidate_stringB) {
+				return i;
+			}
+	}
+
+		//if we got here, the string was not recognized, it is an error
+		throw string("Error, the interaction type was not recognized: ")
+				+ candidate_stringA + string(" or ") + candidate_stringB;
+
+		return -1;
+}
+
+
+//
+////----------------------------------------------------
+//void PAR_struct::set_relevant_parameters(string sequence)
+//{
+// char temp[3] = {'\0','\0','\0'};
+// string interaction_names[] = { "ATH", "CGH", "GC", "CG","GG", "GA","AG","TG","GT", "AT","TA","AA"};
+// for (int i = 0; i < sequence.length()-1; i++)
+// {
+//   temp[0] = sequence[i];
+//   temp[1] = sequence[i+1];
+//   string pair(temp);
+//   //pair += string(sequence[i])+string(sequence[i+1]);
+//
+//     if(pair ==  "AA" ) { allowed_changes[STS_AA_ID] += 1 ;  }
+//     if (pair == "TT") {  allowed_changes[STS_AA_ID] += 1 ; }
+//
+//     if (pair == "AT") {  allowed_changes[STS_AT_ID] += 1; }
+//
+//     if (pair == "TA") { allowed_changes[STS_TA_ID] += 1; }
+//
+//     if (pair == "CA") {  allowed_changes[STS_TG_ID] += 1; }
+//     if (pair == "TG") { allowed_changes[STS_TG_ID] += 1;  }
+//
+//     if (pair == "GT") {  allowed_changes[STS_GT_ID] += 1; }
+//     if (pair == "AC") { allowed_changes[STS_GT_ID] += 1;  }
+//
+//
+//     if (pair == "CT") {  allowed_changes[STS_AG_ID] += 1; }
+//     if (pair == "AG") { allowed_changes[STS_AG_ID] += 1; }
+//
+//     if (pair == "GA") {  allowed_changes[STS_GA_ID] += 1 ;}
+//     if (pair == "TC") {  allowed_changes[STS_GA_ID] += 1; }
+//
+//
+//     if (pair == "CG") {  allowed_changes[STS_CG_ID] += 1;}
+//
+//     if (pair == "GC") { allowed_changes[STS_GC_ID] += 1;}
+//
+//     if (pair == "GG") { allowed_changes[STS_GG_ID] += 1; }
+//     if (pair == "CC") {  allowed_changes[STS_GG_ID] += 1; }
+//
+//
+//   if(sequence[i] == 'A' || sequence[i] == 'T')
+//   {
+//     allowed_changes[HBS_AT_ID] += 1;
+//   }
+//   else
+//   {
+//     allowed_changes[HBS_CG_ID] += 1;
+//   }
+// }
+//
+// if(sequence[sequence.length()-1] == 'A' || sequence[sequence.length()-1] == 'T')
+// {
+//    allowed_changes[HBS_AT_ID] += 1;
+// }
+// else
+// {
+//    allowed_changes[HBS_CG_ID] += 1;
+// }
+//
+///*
+// for(int i = 0; i < PAR_SIZE ; i++)
+// {
+//
+//   cout << "Parameter " << interaction_names[i] << " was set " <<  allowed_changes[i] << " times " << endl;
+//
+// }
+//*/
+//
+//}
+
+//--------------------------------------------
+void PAR_struct::disallow_all_changes(void)
+{
+	for(int i = 0; i < PAR_SIZE; i++)
+		        allowed_changes[i] = 0;
+
+}
+//---------------------------------------------
+void PAR_struct::allow_H(void)
+{
+	   for(int i = HB_START; i <= HB_END; i++)
+	    	 	 allowed_changes[i] = 1;
+}
+
+//-----------------------------------------------
+void PAR_struct::allow_ST(void)
+{
+
+	for(int i = ST_START; i <= ST_END; i++)
+		allowed_changes[i] = 1;
+
+
+}
+
+void PAR_struct::allow_CROSS(void)
+{
+	  for(int i = CROSS_START; i <= CROSS_END; i++)
+	      allowed_changes[i] = 1;
+
+}
+
+
+void PAR_struct::allow_ST_dep(void)
+{
+	       allowed_changes[ST_T_PART] = 1;
+}
+
+
+//------------------------------------------
+void PAR_struct::allow_H_only(void)
+{
+     for(int i = 0; i < PAR_SIZE; i++)
+	        allowed_changes[i] = 0;
+
+     for(int i = HB_START; i <= HB_END; i++)
+    	 	 allowed_changes[i] = 1;
+}
+//------------------------------------------
+void PAR_struct::allow_ST_only(bool T_dependent)
+{
+    for(int i = 0; i < PAR_SIZE; i++)
+   	  allowed_changes[i] = 0;
+
+    for(int i = ST_START; i <= ST_END; i++)
+      allowed_changes[i] = 1;
+
+    if(T_dependent)
+    {
+       allowed_changes[ST_T_PART] = 1;
+    }
+}
+
+//------------------------------------------
+istream& PAR_struct::readline(istream& in)
+ {
+   for(int i = 0; i < PAR_SIZE; i++)
+   {
+     double val;
+     in >> val;
+     if(in.good())
+       vals[i] = val;
+     else
+     {
+       throw string("Error reading values  ");
+     }
+   }
+   return in;
+ }
+
+//---------------------------------------
+ostream& PAR_struct::printline(ostream& out)
+{
+   for(int i = 0; i < PAR_SIZE; i++)
+   {
+     out << vals[i] << " ";
+   }
+   //out << endl;
+   return out;
+}

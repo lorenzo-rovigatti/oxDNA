@@ -1,0 +1,15 @@
+{
+ type = mutual_trap
+ particle = 0
+ ref_particle = 23
+ stiff = 0.5
+ r0 = 1.2
+}
+{
+ type = mutual_trap
+ particle = 23
+ ref_particle = 0
+ stiff = 0.5
+ r0 = 1.2
+}
+

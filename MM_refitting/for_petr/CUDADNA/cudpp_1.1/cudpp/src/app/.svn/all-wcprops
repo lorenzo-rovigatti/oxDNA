@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/app
+END
+radixsort_app.cu
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/app/radixsort_app.cu
+END
+segmented_scan_app.cu
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/app/segmented_scan_app.cu
+END
+rand_app.cu
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/app/rand_app.cu
+END
+scan_app.cu
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/app/scan_app.cu
+END
+compact_app.cu
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/app/compact_app.cu
+END
+spmvmult_app.cu
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/app/spmvmult_app.cu
+END

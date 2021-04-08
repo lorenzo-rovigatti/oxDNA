@@ -1,0 +1,37 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+backend_precision = double
+#seed = 26176
+external_model = a_inc.txt
+####    SIM PARAMETERS    ####
+sim_type = VMMC
+ensemble = NVT
+steps = 2e9
+check_energy_every = 100000
+check_energy_threshold = 1.e-4
+delta_translation = 0.1
+delta_rotation = 0.2
+T = 52C  
+verlet_skin = 1.00
+
+umbrella_sampling = 1
+op_file = op.txt
+weights_file = wfile.txt
+extrapolate_hist = 30C, 32C, 34C, 36C, 38C, 40C, 42C, 44C, 46C, 48C, 50C, 52C, 54C, 56C, 58C, 60C, 62C, 64C, 66C, 68C, 70C, 72C, 74C, 76C, 78C, 80C, 82C, 84C
+maxclust = 13
+small_system = 1
+####    INPUT / OUTPUT    ####
+topology = init.top
+conf_file = init.conf
+trajectory_file = trajectory.dat
+no_stdout_energy = 0 
+restart_step_counter = 1
+energy_file = energy.dat
+conf_output_dir = confs
+print_conf_interval = 1e6
+print_energy_every = 1e5
+time_scale = linear
+external_forces = 0
+print_timings = yes
+major_minor_grooving = 1
+

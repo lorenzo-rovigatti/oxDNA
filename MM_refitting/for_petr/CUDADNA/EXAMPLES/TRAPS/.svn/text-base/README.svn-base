@@ -1,0 +1,6 @@
+
+examples on pulling a 100 nucleotide ssDNA with harmonic traps.
+
+the forces are on nucleotides 0 and 99 (first and last)
+and are set to the initial position of the nucleotides
+

@@ -1,0 +1,115 @@
+=========================================================
+PBS job: submitted date = Sun Mar 24 13:35:38 GMT 2013
+48 cpus on 48 nodes ( SMP=1 )
+48 hosts used:
+-------------
+comp77 comp78 comp78 comp78
+comp78 comp78 comp79 comp79
+comp79 comp79 comp79 comp80
+comp80 comp80 comp80 comp80
+comp81 comp81 comp81 comp81
+comp81 comp82 comp82 comp82
+comp82 comp83 comp83 comp84
+comp84 comp84 comp84 comp84
+comp84 comp85 comp85 comp85
+comp85 comp86 comp86 comp86
+comp86 comp86 comp87 comp87
+comp87 comp87 comp88 comp88
+=========================================================
+Job output begins
+-----------------
+
+This is process This is process 7
+This is process 9
+6
+This is process 37
+This is process This is process This is process 39
+4710This is process 40
+
+
+This is process 11
+This is process 12
+This is process 32
+Error occured Error processing simulation type, unrecognized option: 
+This is process 13
+This is process 33
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+This is process 34
+Error occured Error processing simulation type, unrecognized option: 
+This is process 35
+Error occured Error processing simulation type, unrecognized option: 
+This is process 41
+Error occured Error processing simulation type, unrecognized option: 
+This is process 36
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+This is process 42
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+This is process 43
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+This is process 44
+Error occured Error processing simulation type, unrecognized option: 
+This is process 45
+Error occured Error processing simulation type, unrecognized option: 
+This is process 46
+Error occured Error processing simulation type, unrecognized option: 
+This is process 21
+This is process 22
+This is process 16
+This is process 17
+This is process 18
+This is process 19
+This is process 20
+This is process 23
+This is process 25
+This is process 26
+This is process 27
+This is process 28
+This is process 29
+This is process This is process 30
+24This is process 31
+
+This is process 2
+This is process 3
+This is process 4
+This is process 5
+This is process 8
+This is process 15
+This is MPI simulation
+This is process 0
+This is process 1
+Loading parameters from 
+Error occured Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error processing simulation type, unrecognized option: 
+Error occured Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Cannot open file 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+Error occured Error processing simulation type, unrecognized option: 
+
+---------------
+Job output ends
+=========================================================
+PBS job: finished date = Sun Mar 24 13:34:04 GMT 2013
+Total run time : 0 Hours 0 Minutes 0 Seconds
+=========================================================

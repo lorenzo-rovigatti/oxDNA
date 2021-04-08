@@ -1,0 +1,243 @@
+oxDNA
+---------------------------------------------
+
+MAKE OPTIONS
+------------
+
+To compile oxDNA you have to change the first rows in the makefile to match your CUDA installation and to specify the architecture (64 or 32 bit) of your machine.
+
+dbg=1
+	oxDNA will be compiled with debug flags (both for nvcc and gcc). The resulting executable will be put in the Debug directory.
+	
+g=1
+	oxDNA will be compiled with both debug and optimization flags. The resulting executable will be put in the Release directory.
+	
+arch=old
+	oxDNA will be compiled with -arch=sm_13, i.e. for the old (1.x) architecture.
+	
+v=1
+	verbose output from nvcc (about ptx).
+	
+cuda=1
+	oxDNA will be compiled with CUDA support (who could have told?).
+	
+intel=1
+	oxDNA will be compile without CUDA support using the Intel icpc compiler. The resulting executable will be named oxDNA_intel.
+
+USAGE
+-----
+
+oxDNA input_file
+
+OUTPUT FILE
+-----------
+
+The energy.dat (default name, can be changed in the configuration file) has this layout for MD:
+time potential_energy kinetic_energy total_energy hydrogen_bonding_energy
+
+The energy.dat (default name, can be changed in the configuration file) has this layout for MC:
+time potential_energy hydrogen_bonding_energy acc_trasl acc_rot
+
+Mind that potential, kinetic and total energies are divided by the number of particles whereas the hydrogen bonding energy is not.
+
+Configurations are saved in the trajectory file.
+
+INPUT FILE OPTIONS
+------------------
+
+As always in UNIX environments, everything is case sensitive.
+The options are in the form key = value. There can be arbitrary spaces before and after both key and value. Line with a leading # will be treated as comments.
+In this part | (pipe) is the separator between the different values that can be used to specify a value for the key.
+Keys between [ and ] are optional, the value after the equal sign is the default value.
+
+GENERIC PROGRAM OPTIONS:
+	The options listed here define the generic behavior of the entire program.
+
+	[sim_type=MD]
+		MD|MC|CMMC
+		MD = Molecular Dynamics, MC = Monte Carlo, CMMC = Cluster Move Monte Carlo
+
+	backend
+		CUDA|CPU
+	
+	backend_precision
+		float|double if backend == CPU.
+		float|double|mixed if backend == CUDA.
+			With mixed precision the most important calculations will be performed in double precision while everything is stored in single precision.
+	
+	[CUDA_device=0]
+		used if backend == CUDA.
+		the GPU where the simulation will be run on.
+		
+	[CUDA_list=no]
+		no|verlet|bin_verlet
+			used if backend == CUDA.
+			no means no lists at all. O(N^2) algorithm.
+			verlet means usual verlet lists. Not fit for very asymmetric binary mixtures.
+			bin_verlet are verlet lists that works particularly well (both in terms of performances and memory usage) for very asymmetric binary mixtures.
+			
+	[threads_per_block=2*warpSize]
+		used if backend == CUDA.
+		number of threads per block used internally by CUDA kernel launches. warpSize (for arch <= 20) is always 32. 
+			
+	[debug=0]
+		0|1
+			1 if you want verbose logs, 0 otherwise.
+			
+SIMULATION OPTIONS
+	The options listed here specify the behaviour of the simulation.
+
+	steps
+		number of steps to be performed.
+		
+	[restart_step_counter=0]
+		0|1
+			0 means that the step counter will start from the value read in the configuration file, 1 otherwise.
+		
+	[CUDA_sort_every=0]
+		used if backend == CUDA.
+		the particles will be reordered (to speed up memory accesses) every CUDA_sort_every list updates.
+			
+	[seed=time(NULL)]
+		seed for the random number generator. On Unix systesm, it will use by default a number from /dev/urandom + time(NULL)
+		
+	T
+		temperature of the simulation. It can be expressed in simulation units or kelvin (append a k or K after the value) or celsius (append a c or C after the value).
+		Examples: 
+			  Value   -> Simulation Units
+			  0.1     -> 0.1
+			  300 K   -> 0.1
+			  300k    -> 0.1
+			  26.85c  -> 0.1
+			  26.85 C -> 0.1
+		
+	verlet_skin
+		if a particle moves more than verlet_skin then the lists will be updated. Its name is misleading: the actual verlet skin is 2*verlet_skin. I'm sorry for that :)
+	
+	[use_average_seq=1]
+		0|1
+			specifies whether to use the default hard-coded average parameters for base-pairing and stacking interaction strengths or not. If sequence dependence is to be used, set this to 0 and specify seq_dep_file.
+	
+	[seq_dep_file]
+		specifies the file from which the sequence dependent parameters should be read. Mandatory if use_average_seq=no, ignored otherwise. A sample file is provided (sequence_dependent_parameters.txt).
+
+	[external_forces=0]
+		0|1
+			specifies whether there are external forces acting on the nucleotides or not. If it is set to 1, then a file which specifies the external forces' configuration has to be provided (see external_forces_file).
+
+	[external_forces_file]
+		specifies the file containing all the external forces' configurations. Currently there are six supported force types (see EXAMPLES/TRAPS for some examples):
+			  - string
+			  - twist
+			  - trap
+			  - repulsion_plane
+			  - repulsion_plane_moving
+			  - mutual_trap
+		Only 'string' forces are supported in CUDA simulations.
+	
+	THESE OPTIONS ARE FOR MD SIMULATIONS ONLY:
+
+	dt
+		time step of the integration.
+
+	thermostat
+		no|refresh|john if backend == CPU
+		no|john if backend == CUDA
+			no means no thermostat will be used.
+			refresh will refresh all the particle's velocities from a maxwellian every newtonian_steps steps. john is an Anderson-like thermostat (see pt).
+
+	newtonian_steps
+		required if thermostat != no.
+		number of steps after which a procedure of thermalization will be performed.
+			
+	pt
+		used if thermostat == john. It's the probability that a particle's velocity will be refreshed during a thermalization procedure.
+		
+	diff_coeff
+		required if pt is not specified.
+		used internally to automatically compute the pt that would be needed if we wanted such a self diffusion coefficient. Not used if pt is set.
+		
+	END MD
+	
+	THESE OPTIONS ARE FOR MC (AND CMMC) SIMULATIONS ONLY
+	
+	[check_energy_every=10]
+		this number times print_energy_every gives the number of steps after which the energy will be computed from scratch and checked against the actual value computed adding energy differences.
+		
+	[check_energy_threshold=1e-4]
+		if abs((old_energy - new_energy)/old_energy) > check_energy_threshold then the program will die and warn the user.
+	
+	ensemble
+		NVT
+			ensemble of the simulation. More ensembles could be added in future versions.
+	
+	delta_translation
+		maximum displacement (per dimension) for translational moves in simulation units.
+	
+	delta_translation
+		maximum displacement for rotational moves in simulation units.
+	
+	END MC
+
+		
+INPUT/OUTPUT
+	The options listed here are used to manage the I/O (read and write configurations, energies and so on)
+	
+	conf_file
+		initial configuration file. 
+		
+	topology
+		file containing the system's topology.
+		
+	trajectory_file
+		the main output of the program. All the configurations will be appended to this file as they are printed.
+		
+	[confs_to_skip=0]
+		valid only if conf_file is a trajectory. Skip the first confs_to_skip configurations and then load in memory the (confs_to_skip+1)th.
+		
+	[lastconf_file=last_conf.dat]
+		This is the file where the last configuration is saved (when the program finishes or is killed). Set to last_conf.dat by default
+
+	[refresh_vel=0]
+		0|1
+			if 1 the initial velocities will be refreshed from a maxwellian.
+	
+	energy_file
+		energy output file.
+		
+	[print_energy_every=1000]
+		this will make the program print the energies every print_energy_every steps.
+		
+	[no_stdout_energy=0]
+		0|1
+			if 1 the energy will be printed just to the energy_file.
+		
+	[time_scale=linear]
+		linear|log_lin
+			with linear the configurations will be saved every print_conf_interval.
+			with log_lin the configurations will be saved logarithmically for print_conf_ppc times. After that the logarithmic sequence will restart.
+	
+	print_conf_interval
+		linear interval if time_scale == linear. First step of the logarithmic scale if time_scale == log_lin.
+		
+	print_conf_ppc
+		used if time_scale == log_lin.
+		points per logarithmic cycle.
+		
+	[print_reduced_conf_every=0]
+		every print_reduced_conf_every steps the program will print out the reduced configurations (i.e. confs containing only the centers of mass of strands).
+
+	reduced_conf_output_dir
+		used if print_reduced_conf_every > 0.
+		output directory for reduced_conf files.
+		
+	[log_file=stderr]
+		file where generic and debug informations will be logged. If not specified then stderr will be used.
+	
+	[print_timings=0]
+		0|1
+			if 1 the MD step timing have be printed to a file.
+			
+	timings_filename
+		used if print_timings == 1.
+		output file where the MD step timing will be appended to.

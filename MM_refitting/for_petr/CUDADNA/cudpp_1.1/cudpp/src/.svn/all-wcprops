@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src
+END
+sharedmem.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/sharedmem.h
+END
+cudpp.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp.cpp
+END
+cudpp_maximal_launch.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_maximal_launch.cpp
+END
+cudpp_util.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_util.h
+END
+cudpp_radixsort.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_radixsort.h
+END
+cudpp_plan_manager.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_plan_manager.cpp
+END
+cudpp_maximal_launch.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_maximal_launch.h
+END
+cudpp_segscan.h
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_segscan.h
+END
+cudpp_globals.h
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_globals.h
+END
+cudpp_scan.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_scan.h
+END
+cudpp_rand.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_rand.h
+END
+cudpp_plan_manager.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_plan_manager.h
+END
+cudpp_plan.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_plan.cpp
+END
+cudpp_compact.h
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_compact.h
+END
+cudpp_spmvmult.h
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_spmvmult.h
+END
+cudpp_plan.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/cudpp_plan.h
+END

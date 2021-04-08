@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC
+END
+anneal.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/anneal.h
+END
+main_test.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/main_test.cpp
+END
+main_test_not.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/main_test_not.cpp
+END
+main.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/main.cpp
+END
+fits.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/fits.cpp
+END
+pars.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/pars.cpp
+END
+fits.h
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/fits.h
+END
+main_retherm.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/main_retherm.cpp
+END
+pars.h
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/pars.h
+END
+main_pert_avg.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/main_pert_avg.cpp
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/Makefile
+END
+anneal.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/anneal.cpp
+END
+main_dbg.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/main_dbg.cpp
+END
+main_test_width.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/jpkd/!svn/ver/5552/users/psulc/next_mpifits/SRC/main_test_width.cpp
+END

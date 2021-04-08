@@ -1,0 +1,35 @@
+seed = 29788
+backend = CPU
+backend_precision = double
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+sim_type = MC
+steps = 1001 
+
+ensemble = NVT
+delta_translation = 0.05
+delta_rotation = 0.25
+
+T = 343K
+#T = 323K
+dt = 0.005
+verlet_skin = 0.2
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = prova.top
+conf_file = inizio.dat
+#conf_file = prova.conf
+trajectory_file = trajectory.dat
+refresh_vel = 0
+no_stdout_energy = 0
+restart_step_counter = 0
+energy_file = energy.dat
+conf_output_dir = confs
+print_conf_interval = 500 
+print_conf_ppc = 51
+print_energy_every = 100 
+time_scale = linear

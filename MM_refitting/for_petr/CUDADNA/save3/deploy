@@ -1,0 +1,4 @@
+Source = .
+Destination = /home/lorenzo/Documenti/programmi/prove/oxDNA
+Overwrite = True
+Ignore = .svn,CUDA,DOCS,cudpp_1.1,cuda_device_utils,*~,*.o,deploy,TODO

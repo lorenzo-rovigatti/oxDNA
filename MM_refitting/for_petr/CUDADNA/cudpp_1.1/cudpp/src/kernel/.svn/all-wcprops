@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/kernel
+END
+radixsort_kernel.cu
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/kernel/radixsort_kernel.cu
+END
+segmented_scan_kernel.cu
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/kernel/segmented_scan_kernel.cu
+END
+vector_kernel.cu
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/kernel/vector_kernel.cu
+END
+rand_kernel.cu
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/kernel/rand_kernel.cu
+END
+scan_kernel.cu
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/kernel/scan_kernel.cu
+END
+compact_kernel.cu
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/kernel/compact_kernel.cu
+END
+spmvmult_kernel.cu
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/jpkd/!svn/ver/4383/CUDADNA/cudpp_1.1/cudpp/src/kernel/spmvmult_kernel.cu
+END

@@ -1,0 +1,10 @@
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 0
+Killed by signal 15.
+Killed by signal 15.
+Killed by signal 15.
+Killed by signal 15.
+[mpiexec@comp99] HYD_pmcd_pmiserv_send_signal (./pm/pmiserv/pmiserv_cb.c:184): assert (!closed) failed
+[mpiexec@comp99] ui_cmd_cb (./pm/pmiserv/pmiserv_pmci.c:74): unable to send SIGUSR1 downstream
+[mpiexec@comp99] HYDT_dmxu_poll_wait_for_event (./tools/demux/demux_poll.c:77): callback returned error status
+[mpiexec@comp99] HYD_pmci_wait_for_completion (./pm/pmiserv/pmiserv_pmci.c:181): error waiting for event
+[mpiexec@comp99] main (./ui/mpich/mpiexec.c:405): process manager error waiting for completion

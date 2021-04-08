@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY
+END
+generated.top
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/generated.top
+END
+input
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/input
+END
+unique_topology.top
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/unique_topology.top
+END
+complement_domains.py
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/complement_domains.py
+END
+generated.dat
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/generated.dat
+END
+seqs.txt
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/seqs.txt
+END
+assembled_conf.dat
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/assembled_conf.dat
+END
+pairs.txt
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/pairs.txt
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/README
+END
+check_domains.py
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/check_domains.py
+END
+run_simulation_and_check.py
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/jpkd/!svn/ver/5544/CUDADNA/EXAMPLES/TRIMER_FORCED_ASSEMBLY/run_simulation_and_check.py
+END

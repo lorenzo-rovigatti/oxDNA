@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/jpkd/!svn/ver/4845/CUDADNA/EXAMPLES/TRAPS
+END
+inputMC
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/jpkd/!svn/ver/4236/CUDADNA/EXAMPLES/TRAPS/inputMC
+END
+inputMD
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/jpkd/!svn/ver/4236/CUDADNA/EXAMPLES/TRAPS/inputMD
+END
+ssdna100.dat
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/jpkd/!svn/ver/4234/CUDADNA/EXAMPLES/TRAPS/ssdna100.dat
+END
+external.conf
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/jpkd/!svn/ver/4234/CUDADNA/EXAMPLES/TRAPS/external.conf
+END
+ssdna100.top
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/jpkd/!svn/ver/4234/CUDADNA/EXAMPLES/TRAPS/ssdna100.top
+END
+external_forces_with_repulsion_plane.txt
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/jpkd/!svn/ver/4845/CUDADNA/EXAMPLES/TRAPS/external_forces_with_repulsion_plane.txt
+END
+external.conf.rotating
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/jpkd/!svn/ver/4637/CUDADNA/EXAMPLES/TRAPS/external.conf.rotating
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/jpkd/!svn/ver/4234/CUDADNA/EXAMPLES/TRAPS/README
+END
