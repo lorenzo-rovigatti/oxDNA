@@ -17,7 +17,7 @@ OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
 OPTION(DOUBLE "Set the numerical precision to double" ON)
 OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" OFF)
 OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
-OPTION(NATIVE_COMPILATION "Set to OFF to not compile with the -march=native flag. This may be required when compiling binaries that will be used elsewhere" ON)
+OPTION(NATIVE_COMPILATION "Set to OFF to compile without the -march=native flag. This may be required when compiling binaries to be used elsewhere" ON)
 
 OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)

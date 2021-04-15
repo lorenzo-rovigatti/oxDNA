@@ -65,6 +65,7 @@ Compiling with Python bindings will also generate an `oxpy` package in the `buil
 * `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
 * `-DDOUBLE=OFF` Set the numerical precision of the CPU backends to `float`
 * `-DCUDA_DOUBLE=ON` Set the numerical precision of the CUDA backends to `double`, which is not compatible with the `mixed` precision.
+* `-DNATIVE_COMPILATION=ON` Set to `OFF` to compile without the `-march=native` flag. This may be required when compiling binaries to be used elsewhere
 
 The following options pertain to `oxpy`:
 
