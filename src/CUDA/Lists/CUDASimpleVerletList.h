@@ -17,7 +17,7 @@
  * @brief CUDA implementation of a {@link VerletList Verlet list}.
  */
 
-class CUDASimpleVerletList: public CUDABaseList{
+class CUDASimpleVerletList: public CUDABaseList {
 protected:
 	int _max_neigh = 0;
 	int _N_cells_side[3];
@@ -25,7 +25,7 @@ protected:
 	size_t _vec_size = 0;
 	bool _auto_optimisation = true;
 	bool _print_problematic_ids = false;
-	c_number _max_density_multiplier = 1;
+	c_number _max_density_multiplier = 1.5;
 	int _N_cells, _old_N_cells;
 
 	c_number _verlet_skin = 0.;
@@ -40,6 +40,9 @@ protected:
 	CUDA_kernel_cfg _cells_kernel_cfg;
 
 	std::vector<int> is_large(c_number4 *data);
+
+	void _compute_N_cells_side(int N_cells_side[3], number min_cell_size);
+	int _largest_N_in_cells(int N, c_number min_cell_size);
 	virtual void _init_cells();
 
 public:

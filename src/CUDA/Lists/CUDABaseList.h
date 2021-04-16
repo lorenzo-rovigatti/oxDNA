@@ -23,7 +23,7 @@ class CUDABaseList {
 protected:
 	bool _use_edge;
 	int _N;
-	CUDABox*_h_cuda_box, *_d_cuda_box;
+	CUDABox *_h_cuda_box, *_d_cuda_box;
 
 public:
 	CUDABaseList() :
@@ -38,7 +38,7 @@ public:
 	;
 
 	virtual void get_settings(input_file &inp) = 0;
-	virtual void init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d_cuda_box) {
+	virtual void init(int N, c_number rcut, CUDABox* h_cuda_box, CUDABox *d_cuda_box) {
 		_h_cuda_box = h_cuda_box;
 		_d_cuda_box = d_cuda_box;
 		_N = N;

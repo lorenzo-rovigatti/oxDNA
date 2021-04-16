@@ -152,11 +152,11 @@ number get_temperature(char *raw_T) {
 		switch(deg) {
 		case 'c':
 			T = (number) ((tmp_T + 273.15) * 0.1 / 300.); // convert to kelvin and then to simulation units
-			OX_LOG(Logger::LOG_INFO, "Converting temperature from Celsius (%lf C°) to simulation units (%lf)", tmp_T, T);
+			OX_DEBUG("Converting temperature from Celsius (%lf C°) to simulation units (%lf)", tmp_T, T);
 			break;
 		case 'k':
 			T = (number) (tmp_T * 0.1 / 300.); // convert to simulation units
-			OX_LOG(Logger::LOG_INFO, "Converting temperature from Kelvin (%lf K) to simulation units (%lf)", tmp_T, T);
+			OX_DEBUG("Converting temperature from Kelvin (%lf K) to simulation units (%lf)", tmp_T, T);
 			break;
 		default:
 			throw oxDNAException("Unrecognizable temperature '%s'", raw_T);
