@@ -65,23 +65,40 @@ __forceinline__ __device__ void _excluded_volume(const c_number4 &r, c_number4 &
 	}
 }
 
-__forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
-	c_number val = (c_number) 0.f;
-	if(r < MD_F1_RCHIGH[type]) {
-		int eps_index = 25 * type + n3 * 5 + n5;
-		if(r > MD_F1_RHIGH[type]) {
-			val = MD_F1_EPS[eps_index] * MD_F1_BHIGH[type] * SQR(r - MD_F1_RCHIGH[type]);
-		}
-		else if(r > MD_F1_RLOW[type]) {
-			c_number tmp = 1.f - expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
-			val = MD_F1_EPS[eps_index] * SQR(tmp) - MD_F1_SHIFT[eps_index];
-		}
-		else if(r > MD_F1_RCLOW[type]) {
-			val = MD_F1_EPS[eps_index] * MD_F1_BLOW[type] * SQR(r - MD_F1_RCLOW[type]);
-		}
-	}
+//__forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
+//	c_number val = (c_number) 0.f;
+//	if(r < MD_F1_RCHIGH[type]) {
+//		int eps_index = 25 * type + n3 * 5 + n5;
+//		if(r > MD_F1_RHIGH[type]) {
+//			val = MD_F1_EPS[eps_index] * MD_F1_BHIGH[type] * SQR(r - MD_F1_RCHIGH[type]);
+//		}
+//		else if(r > MD_F1_RLOW[type]) {
+//			c_number tmp = 1.f - expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
+//			val = MD_F1_EPS[eps_index] * SQR(tmp) - MD_F1_SHIFT[eps_index];
+//		}
+//		else if(r > MD_F1_RCLOW[type]) {
+//			val = MD_F1_EPS[eps_index] * MD_F1_BLOW[type] * SQR(r - MD_F1_RCLOW[type]);
+//		}
+//	}
+//
+//	return val;
+//}
 
-	return val;
+__forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
+	int smaller_rchigh = (r < MD_F1_RCHIGH[type]);
+	int larger_rhigh = (r > MD_F1_RHIGH[type]);
+	int larger_rlow = (r > MD_F1_RLOW[type]);
+	int larger_rclow = (r > MD_F1_RCLOW[type]);
+	int eps_index = 25 * type + n3 * 5 + n5;
+
+	return (smaller_rchigh) * (
+			larger_rhigh * (MD_F1_EPS[eps_index] * MD_F1_BHIGH[type] * SQR(r - MD_F1_RCHIGH[type])) +
+					(!larger_rhigh) * (
+							larger_rlow * (MD_F1_EPS[eps_index] * SQR(1.f - expf(-(r - MD_F1_R0[type]) * MD_F1_A[type])) - MD_F1_SHIFT[eps_index]) +
+									(!larger_rlow) * larger_rclow * (MD_F1_EPS[eps_index] * MD_F1_BLOW[type] * SQR(r - MD_F1_RCLOW[type]))
+							)
+
+			);
 }
 
 __forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
@@ -104,36 +121,68 @@ __forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
 	return MD_F1_EPS[eps_index] * val;
 }
 
+//__forceinline__ __device__ c_number _f2(c_number r, int type) {
+//	c_number val = (c_number) 0.f;
+//	if(r < MD_F2_RCHIGH[type]) {
+//		if(r > MD_F2_RHIGH[type]) {
+//			val = MD_F2_K[type] * MD_F2_BHIGH[type] * SQR(r - MD_F2_RCHIGH[type]);
+//		}
+//		else if(r > MD_F2_RLOW[type]) {
+//			val = (MD_F2_K[type] * 0.5f) * (SQR(r - MD_F2_R0[type]) - SQR(MD_F2_RC[type] - MD_F2_R0[type]));
+//		}
+//		else if(r > MD_F2_RCLOW[type]) {
+//			val = MD_F2_K[type] * MD_F2_BLOW[type] * SQR(r - MD_F2_RCLOW[type]);
+//		}
+//	}
+//	return val;
+//}
+
 __forceinline__ __device__ c_number _f2(c_number r, int type) {
-	c_number val = (c_number) 0.f;
-	if(r < MD_F2_RCHIGH[type]) {
-		if(r > MD_F2_RHIGH[type]) {
-			val = MD_F2_K[type] * MD_F2_BHIGH[type] * SQR(r - MD_F2_RCHIGH[type]);
-		}
-		else if(r > MD_F2_RLOW[type]) {
-			val = (MD_F2_K[type] * 0.5f) * (SQR(r - MD_F2_R0[type]) - SQR(MD_F2_RC[type] - MD_F2_R0[type]));
-		}
-		else if(r > MD_F2_RCLOW[type]) {
-			val = MD_F2_K[type] * MD_F2_BLOW[type] * SQR(r - MD_F2_RCLOW[type]);
-		}
-	}
-	return val;
+	int smaller_rchigh = (r < MD_F2_RCHIGH[type]);
+	int larger_rhigh = (r > MD_F2_RHIGH[type]);
+	int larger_rlow = (r > MD_F2_RLOW[type]);
+	int larger_rclow = (r > MD_F2_RCLOW[type]);
+
+	return (smaller_rchigh) * MD_F2_K[type] * (
+			larger_rhigh * (MD_F2_BHIGH[type] * SQR(r - MD_F2_RCHIGH[type])) +
+					(!larger_rhigh) * (
+							larger_rlow * 0.5f * (SQR(r - MD_F2_R0[type]) - SQR(MD_F2_RC[type] - MD_F2_R0[type])) +
+									(!larger_rlow) * larger_rclow * (MD_F2_BLOW[type] * SQR(r - MD_F2_RCLOW[type]))
+							)
+
+			);
 }
 
+//__forceinline__ __device__ c_number _f2D(c_number r, int type) {
+//	c_number val = (c_number) 0.f;
+//	if(r < MD_F2_RCHIGH[type]) {
+//		if(r > MD_F2_RHIGH[type]) {
+//			val = 2.f * MD_F2_K[type] * MD_F2_BHIGH[type] * (r - MD_F2_RCHIGH[type]);
+//		}
+//		else if(r > MD_F2_RLOW[type]) {
+//			val = MD_F2_K[type] * (r - MD_F2_R0[type]);
+//		}
+//		else if(r > MD_F2_RCLOW[type]) {
+//			val = 2.f * MD_F2_K[type] * MD_F2_BLOW[type] * (r - MD_F2_RCLOW[type]);
+//		}
+//	}
+//	return val;
+//}
+
 __forceinline__ __device__ c_number _f2D(c_number r, int type) {
-	c_number val = (c_number) 0.f;
-	if(r < MD_F2_RCHIGH[type]) {
-		if(r > MD_F2_RHIGH[type]) {
-			val = 2.f * MD_F2_K[type] * MD_F2_BHIGH[type] * (r - MD_F2_RCHIGH[type]);
-		}
-		else if(r > MD_F2_RLOW[type]) {
-			val = MD_F2_K[type] * (r - MD_F2_R0[type]);
-		}
-		else if(r > MD_F2_RCLOW[type]) {
-			val = 2.f * MD_F2_K[type] * MD_F2_BLOW[type] * (r - MD_F2_RCLOW[type]);
-		}
-	}
-	return val;
+	int smaller_rchigh = (r < MD_F2_RCHIGH[type]);
+	int larger_rhigh = (r > MD_F2_RHIGH[type]);
+	int larger_rlow = (r > MD_F2_RLOW[type]);
+	int larger_rclow = (r > MD_F2_RCLOW[type]);
+
+	return (smaller_rchigh) * MD_F2_K[type] * (
+			larger_rhigh * (2.f * MD_F2_BHIGH[type] * (r - MD_F2_RCHIGH[type])) +
+					(!larger_rhigh) * (
+							larger_rlow * (r - MD_F2_R0[type]) +
+									(!larger_rlow) * larger_rclow * (2.f * MD_F2_BLOW[type] * (r - MD_F2_RCLOW[type]))
+							)
+
+			);
 }
 
 __forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc, float a, float b) {
@@ -162,25 +211,46 @@ __forceinline__ __device__ c_number _f4_pure_harmonic(c_number t, float a, float
 	return val;
 }
 
+//__forceinline__ __device__ c_number _f4Dsin(c_number t, float t0, float ts, float tc, float a, float b) {
+//	c_number val = (c_number) 0.f;
+//	c_number tt0 = t - t0;
+//	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
+//	// is the same but the value of its derivative has the opposite sign, so m = -1
+//	c_number m = copysignf((c_number) 1.f, tt0);
+//	tt0 = copysignf(tt0, (c_number) 1.f);
+//
+//	if(tt0 < tc) {
+//		c_number sint = sinf(t);
+//		if(tt0 > ts) {
+//			// smoothing
+//			val = b * (tt0 - tc) / sint;
+//		}
+//		else {
+//			if(SQR(sint) > 1e-12f) val = -a * tt0 / sint;
+//			else val = -a;
+//		}
+//	}
+//
+//	return 2.f * m * val;
+//}
+
 __forceinline__ __device__ c_number _f4Dsin(c_number t, float t0, float ts, float tc, float a, float b) {
-	c_number val = (c_number) 0.f;
 	c_number tt0 = t - t0;
 	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
 	// is the same but the value of its derivative has the opposite sign, so m = -1
 	c_number m = copysignf((c_number) 1.f, tt0);
 	tt0 = copysignf(tt0, (c_number) 1.f);
 
-	if(tt0 < tc) {
-		c_number sint = sinf(t);
-		if(tt0 > ts) {
-			// smoothing
-			val = b * (tt0 - tc) / sint;
-		}
-		else {
-			if(SQR(sint) > 1e-12f) val = -a * tt0 / sint;
-			else val = -a;
-		}
-	}
+	int smaller_tc = (tt0 < tc);
+	int larger_ts (tt0 > ts);
+	c_number sint = sinf(t);
+
+	c_number val = smaller_tc * (
+			larger_ts * (b * (tt0 - tc) / sint) +
+					(!larger_ts) * (-a * tt0 / sint)
+			);
+
+	val = (isfinite(val)) ? val : -a;
 
 	return 2.f * m * val;
 }
@@ -320,8 +390,12 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	c_number rbackrefmod = _module(rbackref);
 
 	c_number t4 = CUDA_LRACOS(CUDA_DOT(n3z, n5z));
-	c_number t5 = CUDA_LRACOS(CUDA_DOT(n5z, rstackdir));
-	c_number t6 = CUDA_LRACOS(-CUDA_DOT(n3z, rstackdir));
+
+	c_number cost5 = CUDA_DOT(n5z, rstackdir);
+	c_number t5 = CUDA_LRACOS(cost5);
+
+	c_number cost6 = -CUDA_DOT(n3z, rstackdir);
+	c_number t6 = CUDA_LRACOS(cost6);
 	c_number cosphi1 = CUDA_DOT(n5y, rbackref) / rbackrefmod;
 	c_number cosphi2 = CUDA_DOT(n3y, rbackref) / rbackrefmod;
 
@@ -348,10 +422,10 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 		Ftmp = rstackdir * (energy * f1D / f1);
 
 		// THETA 5
-		Ftmp += (n5z - cosf(t5) * rstackdir) * (energy * f4t5Dsin / (f4t5 * rstackmod));
+		Ftmp += (n5z - cost5 * rstackdir) * (energy * f4t5Dsin / (f4t5 * rstackmod));
 
 		// THETA 6
-		Ftmp += (n3z + cosf(t6) * rstackdir) * (energy * f4t6Dsin / (f4t6 * rstackmod));
+		Ftmp += (n3z + cost6 * rstackdir) * (energy * f4t6Dsin / (f4t6 * rstackmod));
 
 		// COS PHI 1
 		// here particle p is referred to using the a while particle q is referred with the b
@@ -472,11 +546,20 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 		// angles involved in the HB interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-		c_number t2 = CUDA_LRACOS(-CUDA_DOT(b1, rhydrodir));
-		c_number t3 = CUDA_LRACOS(CUDA_DOT(a1, rhydrodir));
+
+		c_number cost2 = -CUDA_DOT(b1, rhydrodir);
+		c_number t2 = CUDA_LRACOS(cost2);
+
+		c_number cost3 = CUDA_DOT(a1, rhydrodir);
+		c_number t3 = CUDA_LRACOS(cost3);
+
 		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-		c_number t7 = CUDA_LRACOS(-CUDA_DOT(rhydrodir, b3));
-		c_number t8 = CUDA_LRACOS(CUDA_DOT(rhydrodir, a3));
+
+		c_number cost7 = -CUDA_DOT(rhydrodir, b3);
+		c_number t7 = CUDA_LRACOS(cost7);
+
+		c_number cost8 = CUDA_DOT(rhydrodir, a3);
+		c_number t8 = CUDA_LRACOS(cost8);
 
 		// functions called at their relevant arguments
 		c_number f1 = hb_multi * _f1(rhydromod, HYDR_F1, ptype, qtype);
@@ -509,19 +592,19 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 			Ttmp -= _cross(a1, b1) * (-hb_energy * f4t1Dsin / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= (b1 + rhydrodir * cosf(t2)) * (hb_energy * f4t2Dsin / (f4t2 * rhydromod));
+			Ftmp -= (b1 + rhydrodir * cost2) * (hb_energy * f4t2Dsin / (f4t2 * rhydromod));
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
 			c_number part = -hb_energy * f4t3Dsin / f4t3;
-			Ftmp -= (a1 - rhydrodir * cosf(t3)) * (-part / rhydromod);
+			Ftmp -= (a1 - rhydrodir * cost3) * (-part / rhydromod);
 			Ttmp += _cross(rhydrodir, a1) * part;
 
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
-			Ftmp -= (b3 + rhydrodir * cosf(t7)) * (hb_energy * f4t7Dsin / (f4t7 * rhydromod));
+			Ftmp -= (b3 + rhydrodir * cost7) * (hb_energy * f4t7Dsin / (f4t7 * rhydromod));
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			part = -hb_energy * f4t8Dsin / f4t8;
-			Ftmp -= (a3 - rhydrodir * cosf(t8)) * (-part / rhydromod);
+			Ftmp -= (a3 - rhydrodir * cost8) * (-part / rhydromod);
 			Ttmp += _cross(rhydrodir, a3) * part;
 
 			Ttmp += _cross(ppos_base, Ftmp);
@@ -541,11 +624,20 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 		// angles involved in the CSTCK interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-		c_number t2 = CUDA_LRACOS(-CUDA_DOT(b1, rcstackdir));
-		c_number t3 = CUDA_LRACOS(CUDA_DOT(a1, rcstackdir));
+
+		c_number cost2 = -CUDA_DOT(b1, rcstackdir);
+		c_number t2 = CUDA_LRACOS(cost2);
+
+		c_number cost3 = CUDA_DOT(a1, rcstackdir);
+		c_number t3 = CUDA_LRACOS(cost3);
+
 		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-		c_number t7 = CUDA_LRACOS(-CUDA_DOT(rcstackdir, b3));
-		c_number t8 = CUDA_LRACOS(CUDA_DOT(rcstackdir, a3));
+
+		c_number cost7 = -CUDA_DOT(rcstackdir, b3);
+		c_number t7 = CUDA_LRACOS(cost7);
+
+		c_number cost8 = CUDA_DOT(rcstackdir, a3);
+		c_number t8 = CUDA_LRACOS(cost8);
 
 		// functions called at their relevant arguments
 		c_number f2 = _f2(rcstackmod, CRST_F2);
@@ -575,22 +667,22 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 			Ttmp -= _cross(a1, b1) * (-cstk_energy * f4t1Dsin / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= (b1 + rcstackdir * cosf(t2)) * (cstk_energy * f4t2Dsin / (f4t2 * rcstackmod));
+			Ftmp -= (b1 + rcstackdir * cost2) * (cstk_energy * f4t2Dsin / (f4t2 * rcstackmod));
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
 			c_number part = -cstk_energy * f4t3Dsin / f4t3;
-			Ftmp -= (a1 - rcstackdir * cosf(t3)) * (-part / rcstackmod);
+			Ftmp -= (a1 - rcstackdir * cost3) * (-part / rcstackmod);
 			Ttmp += _cross(rcstackdir, a1) * part;
 
 			// TETA4; t4 = LRACOS (a3 * b3);
 			Ttmp -= _cross(a3, b3) * (-cstk_energy * f4t4Dsin / f4t4);
 
 			// THETA7; t7 = LRACOS (-rcsrackir * b3);
-			Ftmp -= (b3 + rcstackdir * cosf(t7)) * (cstk_energy * f4t7Dsin / (f4t7 * rcstackmod));
+			Ftmp -= (b3 + rcstackdir * cost7) * (cstk_energy * f4t7Dsin / (f4t7 * rcstackmod));
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			part = -cstk_energy * f4t8Dsin / f4t8;
-			Ftmp -= (a3 - rcstackdir * cosf(t8)) * (-part / rcstackmod);
+			Ftmp -= (a3 - rcstackdir * cost8) * (-part / rcstackmod);
 			Ttmp += _cross(rcstackdir, a3) * part;
 
 			Ttmp += _cross(ppos_base, Ftmp);
@@ -611,8 +703,12 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 			// angles involved in the CXST interaction
 			c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 			c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-			c_number t5 = CUDA_LRACOS(CUDA_DOT(a3, rstackdir));
-			c_number t6 = CUDA_LRACOS(-CUDA_DOT(b3, rstackdir));
+
+			c_number cost5 = CUDA_DOT(a3, rstackdir);
+			c_number t5 = CUDA_LRACOS(cost5);
+
+			c_number cost6 = -CUDA_DOT(b3, rstackdir);
+			c_number t6 = CUDA_LRACOS(cost6);
 
 			// functions called at their relevant arguments
 			c_number f2 = _f2(rstackmod, CXST_F2);
@@ -642,11 +738,11 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 				// THETA5; t5 = LRACOS ( a3 * rstackdir);
 				c_number part = cxst_energy * f4t5Dsin / f4t5;
-				Ftmp -= (a3 - rstackdir * cosf(t5)) / rstackmod * part;
+				Ftmp -= (a3 - rstackdir * cost5) / rstackmod * part;
 				Ttmp -= _cross(rstackdir, a3) * part;
 
 				// THETA6; t6 = LRACOS (-b3 * rstackdir);
-				Ftmp -= (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
+				Ftmp -= (b3 + rstackdir * cost6) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
 
 				Ttmp += _cross(ppos_stack, Ftmp);
 
@@ -665,8 +761,12 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 			// angles involved in the CXST interaction
 			c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 			c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-			c_number t5 = CUDA_LRACOS(CUDA_DOT(a3, rstackdir));
-			c_number t6 = CUDA_LRACOS(-CUDA_DOT(b3, rstackdir));
+
+			c_number cost5 = CUDA_DOT(a3, rstackdir);
+			c_number t5 = CUDA_LRACOS(cost5);
+
+			c_number cost6 = -CUDA_DOT(b3, rstackdir);
+			c_number t6 = CUDA_LRACOS(cost6);
 
 			// This is the position the backbone would have with major-minor grooves the same width.
 			// We need to do this to implement different major-minor groove widths because rback is
@@ -707,11 +807,11 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 				// THETA5; t5 = LRACOS ( a3 * rstackdir);
 				c_number part = cxst_energy * f4t5Dsin / f4t5;
-				Ftmp -= (a3 - rstackdir * cosf(t5)) / rstackmod * part;
+				Ftmp -= (a3 - rstackdir * cost5) / rstackmod * part;
 				Ttmp -= _cross(rstackdir, a3) * part;
 
 				// THETA6; t6 = LRACOS (-b3 * rstackdir);
-				Ftmp -= (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
+				Ftmp -= (b3 + rstackdir * cost6) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
 
 				// COSPHI3
 				c_number rbackrefmodcub = rbackrefmod * rbackrefmod * rbackrefmod;
@@ -784,7 +884,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 }
 
 // forces + second step without lists
-
 __global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, c_number mbf_xmax, c_number mbf_finf, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
@@ -855,7 +954,6 @@ __global__ void dna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 	_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, box);
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
-	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
 	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
 	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
 
@@ -871,7 +969,6 @@ __global__ void dna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 	dF.z = -dF.z;
 
 	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
-	//int to_index = MD_N[0]*(b.n_to % MD_n_forces[0]) + b.to;
 	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
 	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
 }
@@ -972,7 +1069,6 @@ __global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 //FFS order parameter pre-calculations
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
-
 __global__ void hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox *box) {
 	if(IND >= n_threads) return;
 

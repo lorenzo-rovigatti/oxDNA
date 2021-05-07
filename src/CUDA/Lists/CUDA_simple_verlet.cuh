@@ -105,12 +105,6 @@ __global__ void compress_matrix_neighs(int *matrix, int *nneighs, int *offsets, 
 			edge_bond b;
 			b.from = IND;
 			b.to = matrix[i * verlet_N[0] + IND];
-			b.n_from = i;
-			b.n_to = -1;
-			// we know n_from out of the box, now we have to look for "from" in "to"'s neighbour list
-			// in order to find n_to
-			for(int j = 0; j < nneighs[b.to] && b.n_to == -1; j++)
-				if(matrix[j * verlet_N[0] + b.to] == IND) b.n_to = j;
 			edge_list[offsets[IND] + ctr] = b;
 			ctr++;
 		}

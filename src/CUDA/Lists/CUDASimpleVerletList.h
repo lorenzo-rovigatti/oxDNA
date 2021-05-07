@@ -25,7 +25,7 @@ protected:
 	size_t _vec_size = 0;
 	bool _auto_optimisation = true;
 	bool _print_problematic_ids = false;
-	c_number _max_density_multiplier = 1.5;
+	c_number _max_density_multiplier = 3;
 	int _N_cells, _old_N_cells;
 
 	c_number _verlet_skin = 0.;

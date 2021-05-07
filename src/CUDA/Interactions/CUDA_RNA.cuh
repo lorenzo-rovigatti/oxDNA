@@ -1243,7 +1243,6 @@ __global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 	_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average, use_debye_huckel, mismatch_repulsion, pbonds, qbonds, box);
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
-	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
 	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
 	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
 
@@ -1259,7 +1258,6 @@ __global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 	dF.z = -dF.z;
 
 	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
-	//int to_index = MD_N[0]*(b.n_to % MD_n_forces[0]) + b.to;
 	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
 	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
 }
