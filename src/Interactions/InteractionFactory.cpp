@@ -12,6 +12,7 @@
 #include "LJInteraction.h"
 #include "DNAInteraction.h"
 #include "DNA2Interaction.h"
+#include "DNA3Interaction.h"
 #include "RNAInteraction.h"
 #include "RNAInteraction2.h"
 #include "DNAInteraction_nomesh.h"

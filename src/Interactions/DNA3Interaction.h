@@ -6,7 +6,9 @@ class DNA3Interaction: public DNA2Interaction {
 protected:
 
 public:
-
+	DNA3Interaction(){
+		std::cout << "\n \n \n  using DNA3Interaction \n \n \n" ;
+}
 };
 
 /**
