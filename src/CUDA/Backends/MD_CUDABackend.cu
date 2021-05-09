@@ -456,13 +456,11 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 
 	_timer_first_step->resume();
 	_first_step();
-	cudaThreadSynchronize();
 	_timer_first_step->pause();
 
 	_timer_sorting->resume();
 	if(_d_are_lists_old[0] && _sort_every > 0 && (_N_updates % _sort_every == 0)) {
 		_sort_particles();
-		cudaThreadSynchronize();
 	}
 	_timer_sorting->pause();
 
@@ -478,7 +476,6 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 		}
 		_d_are_lists_old[0] = false;
 		_N_updates++;
-		cudaThreadSynchronize();
 	}
 	_timer_lists->pause();
 
@@ -494,12 +491,10 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 		c_number energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N());
 		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / N());
 	}
-	cudaThreadSynchronize();
 	_timer_forces->pause();
 
 	_timer_thermostat->resume();
 	_thermalize(curr_step);
-	cudaThreadSynchronize();
 	_timer_thermostat->pause();
 
 	_mytimer->pause();
