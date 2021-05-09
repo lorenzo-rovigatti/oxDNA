@@ -501,14 +501,12 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	}
 }
 
-__device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, c_number4 a3, c_number4 qpos, c_number4 b1, c_number4 b2, c_number4 b3, c_number4 &F, c_number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds, int pind, int qind, CUDABox *box) {
+__device__ void _particle_particle_DNA_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, c_number4 a3, c_number4 qpos, c_number4 b1, c_number4 b2, c_number4 b3, c_number4 dr, c_number4 &F, c_number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, LR_bonds pbonds, LR_bonds qbonds) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int pbtype = get_particle_btype(ppos);
 	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
-
-	c_number4 r = box->minimum_image(ppos, qpos);
 
 	c_number4 ppos_back;
 	if(grooving) ppos_back = POS_MM_BACK1 * a1 + POS_MM_BACK2 * a2;
@@ -527,16 +525,20 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 	// excluded volume
 	// BACK-BACK
 	c_number4 Ftmp = make_c_number4(0, 0, 0, 0);
-	c_number4 rbackbone = r + qpos_back - ppos_back;
+	c_number4 rbackbone = dr + qpos_back - ppos_back;
 	_excluded_volume(rbackbone, Ftmp, EXCL_S1, EXCL_R1, EXCL_B1, EXCL_RC1);
 	c_number4 Ttmp = _cross(ppos_back, Ftmp);
-	_bonded_excluded_volume<true>(r, qpos_base, qpos_back, ppos_base, ppos_back, Ftmp, Ttmp);
+	_bonded_excluded_volume<true>(dr, qpos_base, qpos_back, ppos_base, ppos_back, Ftmp, Ttmp);
 
 	F += Ftmp;
 
+	// angles involved in multiple interactions
+	c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
+	c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
+
 	// HYDROGEN BONDING
 	c_number hb_energy = (c_number) 0;
-	c_number4 rhydro = r + qpos_base - ppos_base;
+	c_number4 rhydro = dr + qpos_base - ppos_base;
 	c_number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
 	if(int_type == 3 && SQR(HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(HYDR_RCHIGH)) {
 		c_number hb_multi = (abs(qbtype) >= 300 && abs(pbtype) >= 300) ? MD_hb_multi[0] : 1.f;
@@ -545,15 +547,11 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 		c_number4 rhydrodir = rhydro / rhydromod;
 
 		// angles involved in the HB interaction
-		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-
 		c_number cost2 = -CUDA_DOT(b1, rhydrodir);
 		c_number t2 = CUDA_LRACOS(cost2);
 
 		c_number cost3 = CUDA_DOT(a1, rhydrodir);
 		c_number t3 = CUDA_LRACOS(cost3);
-
-		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
 
 		c_number cost7 = -CUDA_DOT(rhydrodir, b3);
 		c_number t7 = CUDA_LRACOS(cost7);
@@ -623,15 +621,11 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 		c_number4 rcstackdir = rcstack / rcstackmod;
 
 		// angles involved in the CSTCK interaction
-		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-
 		c_number cost2 = -CUDA_DOT(b1, rcstackdir);
 		c_number t2 = CUDA_LRACOS(cost2);
 
 		c_number cost3 = CUDA_DOT(a1, rcstackdir);
 		c_number t3 = CUDA_LRACOS(cost3);
-
-		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
 
 		c_number cost7 = -CUDA_DOT(rcstackdir, b3);
 		c_number t7 = CUDA_LRACOS(cost7);
@@ -694,16 +688,13 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 	// COAXIAL STACKING
 	if(use_oxDNA2_coaxial_stacking) {
-		c_number4 rstack = r + qpos_stack - ppos_stack;
+		c_number4 rstack = dr + qpos_stack - ppos_stack;
 		c_number rstackmodsqr = CUDA_DOT(rstack, rstack);
 		if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
 			c_number rstackmod = sqrtf(rstackmodsqr);
 			c_number4 rstackdir = rstack / rstackmod;
 
 			// angles involved in the CXST interaction
-			c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-			c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-
 			c_number cost5 = CUDA_DOT(a3, rstackdir);
 			c_number t5 = CUDA_LRACOS(cost5);
 
@@ -752,16 +743,13 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 		}
 	}
 	else {
-		c_number4 rstack = r + qpos_stack - ppos_stack;
+		c_number4 rstack = dr + qpos_stack - ppos_stack;
 		c_number rstackmodsqr = CUDA_DOT(rstack, rstack);
 		if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
 			c_number rstackmod = sqrtf(rstackmodsqr);
 			c_number4 rstackdir = rstack / rstackmod;
 
 			// angles involved in the CXST interaction
-			c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-			c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-
 			c_number cost5 = CUDA_DOT(a3, rstackdir);
 			c_number t5 = CUDA_LRACOS(cost5);
 
@@ -772,7 +760,7 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 			// We need to do this to implement different major-minor groove widths because rback is
 			// used as a reference point for things that have nothing to do with the actual backbone
 			// position (in this case, the coaxial stacking interaction).
-			c_number4 rbackboneref = r + POS_BACK * b1 - POS_BACK * a1;
+			c_number4 rbackboneref = dr + POS_BACK * b1 - POS_BACK * a1;
 			c_number rbackrefmod = _module(rbackboneref);
 			c_number4 rbackbonerefdir = rbackboneref / rbackrefmod;
 			c_number cosphi3 = CUDA_DOT(rstackdir, (_cross(rbackbonerefdir, a1)));
@@ -816,7 +804,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 				// COSPHI3
 				c_number rbackrefmodcub = rbackrefmod * rbackrefmod * rbackrefmod;
 
-				//c_number a1b1 = a1 * b1;
 				c_number a2b1 = CUDA_DOT(a2, b1);
 				c_number a3b1 = CUDA_DOT(a3, b1);
 				c_number ra1 = CUDA_DOT(rstackdir, a1);
@@ -916,12 +903,13 @@ __global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 	T.w = (c_number) 0;
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND && bs.n3 != j && bs.n5 != j) {
-			const c_number4 qpos = poss[j];
+			c_number4 qpos = poss[j];
 			c_number4 b1, b2, b3;
 			get_vectors_from_quat(orientations[j], b1, b2, b3);
 			LR_bonds qbonds = bonds[j];
 
-			_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds, IND, j, box);
+			c_number4 dr = box->minimum_image(ppos, qpos);
+			_particle_particle_DNA_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dr, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, bs, qbonds);
 		}
 	}
 
@@ -944,32 +932,32 @@ __global__ void dna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 	// particle axes according to Allen's paper
 	c_number4 a1, a2, a3;
 	get_vectors_from_quat(orientations[b.from], a1, a2, a3);
+
 	// get info for particle 2
 	c_number4 qpos = poss[b.to];
-
 	c_number4 b1, b2, b3;
 	get_vectors_from_quat(orientations[b.to], b1, b2, b3);
+
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
-	_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, box);
+
+	c_number4 dr = box->minimum_image(ppos, qpos);
+	_particle_particle_DNA_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dr, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds);
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
-	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
-	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
+	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
+	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) {
+		LR_atomicAddXYZ(&(forces[from_index]), dF);
+		c_number4 minus_dF(-dF);
+		LR_atomicAddXYZ(&(forces[to_index]), minus_dF);
+	}
 
+	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
 	// Allen Eq. 6 pag 3:
-	c_number4 dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
 	c_number4 crx = _cross(dr, dF);
 	dT.x = -dT.x + crx.x;
 	dT.y = -dT.y + crx.y;
 	dT.z = -dT.z + crx.z;
-
-	dF.x = -dF.x;
-	dF.y = -dF.y;
-	dF.z = -dF.z;
-
-	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
-	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
 	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
 }
 
@@ -1052,12 +1040,13 @@ __global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 	for(int j = 0; j < num_neighs; j++) {
 		const int k_index = matrix_neighs[j * MD_N[0] + IND];
 
-		const c_number4 qpos = poss[k_index];
+		c_number4 qpos = poss[k_index];
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[k_index], b1, b2, b3);
 		LR_bonds pbonds = bonds[IND];
 		LR_bonds qbonds = bonds[k_index];
-		_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index, box);
+		c_number4 dr = box->minimum_image(ppos, qpos);
+		_particle_particle_DNA_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dr, F, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds);
 	}
 
 	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);

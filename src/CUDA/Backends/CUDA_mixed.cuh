@@ -27,9 +27,9 @@ __global__ void first_step_mixed(float4 *poss, GPU_quat *orientations, LR_double
 
 	LR_double4 v = velsd[IND];
 
-	v.x += F.x * MD_dt[0] * 0.5f;
-	v.y += F.y * MD_dt[0] * 0.5f;
-	v.z += F.z * MD_dt[0] * 0.5f;
+	v.x += (F.x * MD_dt[0] * 0.5f);
+	v.y += (F.y * MD_dt[0] * 0.5f);
+	v.z += (F.z * MD_dt[0] * 0.5f);
 
 	velsd[IND] = v;
 
@@ -48,9 +48,9 @@ __global__ void first_step_mixed(float4 *poss, GPU_quat *orientations, LR_double
 		float4 T = torques[IND];
 		LR_double4 L = Lsd[IND];
 		
-		L.x += T.x * MD_dt[0] * 0.5f;
-		L.y += T.y * MD_dt[0] * 0.5f;
-		L.z += T.z * MD_dt[0] * 0.5f;
+		L.x += (T.x * MD_dt[0] * 0.5f);
+		L.y += (T.y * MD_dt[0] * 0.5f);
+		L.z += (T.z * MD_dt[0] * 0.5f);
 		
 		Lsd[IND] = L;
 		

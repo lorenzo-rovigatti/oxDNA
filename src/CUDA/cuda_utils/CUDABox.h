@@ -38,7 +38,7 @@ public:
 
 	}
 
-	__forceinline__ __device__ c_number4 minimum_image(c_number4 &r_i, c_number4 &r_j) {
+	__forceinline__ __device__ c_number4 minimum_image(const c_number4 &r_i, const c_number4 &r_j) {
 		c_number4 res;
 		res.x = r_j.x - r_i.x;
 		res.y = r_j.y - r_i.y;
@@ -51,7 +51,7 @@ public:
 		return res;
 	}
 
-	__forceinline__ __device__ c_number sqr_minimum_image(c_number4 &r_i, c_number4 &r_j) {
+	__forceinline__ __device__ c_number sqr_minimum_image(const c_number4 &r_i, const c_number4 &r_j) {
 		c_number4 mi = minimum_image(r_i, r_j);
 		return SQR(mi.x) + SQR(mi.y) + SQR(mi.z);
 	}
