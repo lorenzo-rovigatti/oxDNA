@@ -17,7 +17,7 @@ DNA2Interaction::DNA2Interaction() :
 
 	_salt_concentration = 0.5;
 	_debye_huckel_half_charged_ends = true;
-	_grooving = true;
+	_grooving = 1;
 	_fene_r0 = FENE_R0_OXDNA2;
 }
 

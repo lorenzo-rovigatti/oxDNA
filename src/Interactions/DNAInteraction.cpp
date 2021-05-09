@@ -206,7 +206,7 @@ DNAInteraction::DNAInteraction() :
 		}
 		assert(lowlimit < upplimit);
 	}
-	_grooving = false;
+	_grooving = 0;
 	_allow_broken_fene = false;
 	_generate_consider_bonded_interactions = true;
 

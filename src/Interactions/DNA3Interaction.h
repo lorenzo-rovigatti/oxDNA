@@ -8,6 +8,7 @@ protected:
 public:
 	DNA3Interaction(){
 		std::cout << "\n \n \n  using DNA3Interaction \n \n \n" ;
+		_grooving = 2; 
 }
 };
 
