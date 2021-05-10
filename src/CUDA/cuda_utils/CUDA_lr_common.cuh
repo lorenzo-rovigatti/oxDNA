@@ -156,14 +156,6 @@ __forceinline__ __host__ __device__ c_number4 make_c_number4(const c_number x, c
 	return ret;
 }
 
-__forceinline__ __device__ c_number _module(const c_number4 v) {
-	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
-}
-
-__forceinline__ __device__ c_number _module(const float3 v) {
-	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
-}
-
 // Necessary to for calculating the torque without storing a separate GPU_matrix on the GPU. Since we have the a1, a2, and a3 vectors anyway, I don't think this is costly. This step might be avoidable if torque and angular momentum were also calculated and stored as quaternions.
 __forceinline__ __device__ c_number4 _vectors_c_number4_product(const c_number4 a1, const c_number4 a2, const c_number4 a3, const c_number4 v) {
 	c_number4 res = { a1.x * v.x + a2.x * v.y + a3.x * v.z, a1.y * v.x + a2.y * v.y + a3.y * v.z, a1.z * v.x + a2.z * v.y + a3.z * v.z, v.w };
@@ -343,6 +335,25 @@ __forceinline__ __device__ void operator-=(float4 &a, float4 b) {
 	a.y -= b.y;
 	a.z -= b.z;
 	a.w += b.w;
+}
+
+__forceinline__ __device__ c_number _module(const c_number4 &v) {
+	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
+}
+
+__forceinline__ __device__ c_number _module(const float3 &v) {
+	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
+}
+
+__forceinline__ __device__ c_number4 _normalised(const c_number4 &v) {
+	c_number v_module = _module(v);
+	return (v_module > 1e-6f) ? v / v_module : c_number4({0.f, 0.f, 0.f, 0.f});
+}
+
+__forceinline__ __device__ void _normalise_vectors(c_number4 &v1, c_number4 &v2) {
+	c_number v_module = _module(v1);
+	v1 = (v_module > 1e-6f) ? v1 / v_module : c_number4({0.f, 0.f, 0.f, 0.f});
+	v2 = (v_module > 1e-6f) ? v2 / v_module : c_number4({0.f, 0.f, 0.f, 0.f});
 }
 
 #endif /* CUDA_LR_COMMON */

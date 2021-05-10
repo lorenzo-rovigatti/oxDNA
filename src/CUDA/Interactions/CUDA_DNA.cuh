@@ -256,7 +256,7 @@ __forceinline__ __device__ c_number _f4_pure_harmonic(c_number t, float a, float
 //	return 2.f * m * val;
 //}
 
-__forceinline__ __device__ c_number _f4Dsin(c_number t, float t0, float ts, float tc, float a, float b) {
+__forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float tc, float a, float b) {
 	c_number tt0 = t - t0;
 	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
 	// is the same but the value of its derivative has the opposite sign, so m = -1
@@ -266,49 +266,19 @@ __forceinline__ __device__ c_number _f4Dsin(c_number t, float t0, float ts, floa
 	int smaller_tc = (tt0 < tc);
 	int larger_ts (tt0 > ts);
 
-	// if the angle is too small then we remember that in this limit sin(x) / x -> 1
-	c_number val = (SQR(t) > 1.e-12f) ? smaller_tc * (
+	c_number val = smaller_tc * (
 			larger_ts * (b * (tt0 - tc)) +
 					(!larger_ts) * (-a * tt0)
-			) / sinf(t) :
-										-a;
+			);
 
 	return 2.f * m * val;
 }
 
-// this function is the same as the one above but here we pass the sin of the angle as a parameter rather than computing it
-__forceinline__ __device__ c_number _f4Dsin_sin(c_number t, c_number sint, float t0, float ts, float tc, float a, float b) {
-	c_number tt0 = t - t0;
-	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
-	// is the same but the value of its derivative has the opposite sign, so m = -1
-	c_number m = copysignf((c_number) 1.f, tt0);
-	tt0 = copysignf(tt0, (c_number) 1.f);
-
-	int smaller_tc = (tt0 < tc);
-	int larger_ts (tt0 > ts);
-
-	// if the angle is too small then we remember that in this limit sin(x) / x -> 1
-	c_number val = (SQR(t) > 1.e-12f) ? smaller_tc * (
-			larger_ts * (b * (tt0 - tc)) +
-					(!larger_ts) * (-a * tt0)
-			) / sint :
-									-a;
-
-	return 2.f * m * val;
-}
-
-__forceinline__ __device__ c_number _f4Dsin_pure_harmonic(c_number t, float a, float b) {
+__forceinline__ __device__ c_number _f4D_pure_harmonic(c_number t, float a, float b) {
 	// for getting a f4t1 function with a continuous derivative that is less disruptive to the potential
-	c_number val = (c_number) 0.f;
 	c_number tt0 = t - b;
-	if(tt0 < 0) val = (c_number) 0.f;
-	else {
-		c_number sint = sin(t);
-		if(SQR(sint) > 1e-12) val = (c_number) 2 * a * tt0 / sint;
-		else val = (c_number) 2 * a;
-	}
 
-	return val;
+	return (tt0 > 0.f) * 2.f * a * tt0;
 }
 
 __forceinline__ __device__ c_number _f5(c_number f, int type) {
@@ -455,9 +425,9 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	if(energy != (c_number) 0) {
 		// and their derivatives
 		c_number f1D = _f1D(rstackmod, STCK_F1, n3type, n5type);
-		c_number f4t4Dsin = _f4Dsin(t4, STCK_THETA4_T0, STCK_THETA4_TS, STCK_THETA4_TC, STCK_THETA4_A, STCK_THETA4_B);
-		c_number f4t5Dsin = _f4Dsin(PI - t5, STCK_THETA5_T0, STCK_THETA5_TS, STCK_THETA5_TC, STCK_THETA5_A, STCK_THETA5_B);
-		c_number f4t6Dsin = _f4Dsin(t6, STCK_THETA6_T0, STCK_THETA6_TS, STCK_THETA6_TC, STCK_THETA6_A, STCK_THETA6_B);
+		c_number f4t4D = _f4D(t4, STCK_THETA4_T0, STCK_THETA4_TS, STCK_THETA4_TC, STCK_THETA4_A, STCK_THETA4_B);
+		c_number f4t5D = _f4D(PI - t5, STCK_THETA5_T0, STCK_THETA5_TS, STCK_THETA5_TC, STCK_THETA5_A, STCK_THETA5_B);
+		c_number f4t6D = _f4D(t6, STCK_THETA6_T0, STCK_THETA6_TS, STCK_THETA6_TC, STCK_THETA6_A, STCK_THETA6_B);
 		c_number f5phi1D = _f5D(cosphi1, STCK_F5_PHI1);
 		c_number f5phi2D = _f5D(cosphi2, STCK_F5_PHI2);
 
@@ -465,10 +435,10 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 		Ftmp = rstackdir * (energy * f1D / f1);
 
 		// THETA 5
-		Ftmp += (n5z - cost5 * rstackdir) * (energy * f4t5Dsin / (f4t5 * rstackmod));
+		Ftmp += _normalised(n5z - cost5 * rstackdir) * (energy * f4t5D / (f4t5 * rstackmod));
 
 		// THETA 6
-		Ftmp += (n3z + cost6 * rstackdir) * (energy * f4t6Dsin / (f4t6 * rstackmod));
+		Ftmp += _normalised(n3z + cost6 * rstackdir) * (energy * f4t6D / (f4t6 * rstackmod));
 
 		// COS PHI 1
 		// here particle p is referred to using the a while particle q is referred with the b
@@ -508,7 +478,7 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 		else Ttmp = _cross(n3pos_stack, Ftmp);
 
 		// THETA 4
-		Ttmp += _cross(n3z, n5z) * (-energy * f4t4Dsin / f4t4);
+		Ttmp += _normalised(_cross(n3z, n5z)) * (-energy * f4t4D / f4t4);
 
 		// PHI 1 & PHI 2
 		if(qIsN3) {
@@ -529,14 +499,14 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 		Ftmp.w = energy;
 		if(qIsN3) {
 			// THETA 5
-			Ttmp += _cross(rstackdir, n5z) * energy * f4t5Dsin / f4t5;
+			Ttmp += _normalised(_cross(rstackdir, n5z)) * energy * f4t5D / f4t5;
 
 			T += Ttmp;
 			F += Ftmp;
 		}
 		else {
 			// THETA 6
-			Ttmp += _cross(rstackdir, n3z) * (-energy * f4t6Dsin / f4t6);
+			Ttmp += _normalised(_cross(rstackdir, n3z)) * (-energy * f4t6D / f4t6);
 
 			T -= Ttmp;
 			F -= Ftmp;
@@ -579,12 +549,12 @@ __device__ void _particle_particle_DNA_interaction(c_number4 ppos, c_number4 a1,
 	c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 	c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
 
-	// cross products computed in multiple interactions;
+	// cross products required by multiple interactions
 	c_number4 a1_times_b1 = _cross(a1, b1);
-	c_number4 a3_times_b3 = _cross(a3, b3);
+	c_number4 a1_times_b1_norm = _normalised(a1_times_b1);
 
-	c_number sint1 = _module(a1_times_b1);
-	c_number sint4 = _module(a3_times_b3);
+	c_number4 a3_times_b3 = _cross(a3, b3);
+	c_number4 a3_times_b3_norm = _normalised(a3_times_b3);
 
 	// HYDROGEN BONDING
 	c_number hb_energy = (c_number) 0;
@@ -623,37 +593,45 @@ __device__ void _particle_particle_DNA_interaction(c_number4 ppos, c_number4 a1,
 		if(hb_energy < (c_number) 0) {
 			// derivatives called at the relevant arguments
 			c_number f1D = hb_multi * _f1D(rhydromod, HYDR_F1, ptype, qtype);
-			c_number f4t1Dsin = -_f4Dsin_sin(t1, sint1, HYDR_THETA1_T0, HYDR_THETA1_TS, HYDR_THETA1_TC, HYDR_THETA1_A, HYDR_THETA1_B);
-			c_number f4t2Dsin = -_f4Dsin(t2, HYDR_THETA2_T0, HYDR_THETA2_TS, HYDR_THETA2_TC, HYDR_THETA2_A, HYDR_THETA2_B);
-			c_number f4t3Dsin = _f4Dsin(t3, HYDR_THETA3_T0, HYDR_THETA3_TS, HYDR_THETA3_TC, HYDR_THETA3_A, HYDR_THETA3_B);
-			c_number f4t4Dsin = _f4Dsin_sin(t4, sint4, HYDR_THETA4_T0, HYDR_THETA4_TS, HYDR_THETA4_TC, HYDR_THETA4_A, HYDR_THETA4_B);
-			c_number f4t7Dsin = -_f4Dsin(t7, HYDR_THETA7_T0, HYDR_THETA7_TS, HYDR_THETA7_TC, HYDR_THETA7_A, HYDR_THETA7_B);
-			c_number f4t8Dsin = _f4Dsin(t8, HYDR_THETA8_T0, HYDR_THETA8_TS, HYDR_THETA8_TC, HYDR_THETA8_A, HYDR_THETA8_B);
+			c_number f4t1D = -_f4D(t1, HYDR_THETA1_T0, HYDR_THETA1_TS, HYDR_THETA1_TC, HYDR_THETA1_A, HYDR_THETA1_B);
+			c_number f4t2D = -_f4D(t2, HYDR_THETA2_T0, HYDR_THETA2_TS, HYDR_THETA2_TC, HYDR_THETA2_A, HYDR_THETA2_B);
+			c_number f4t3D = _f4D(t3, HYDR_THETA3_T0, HYDR_THETA3_TS, HYDR_THETA3_TC, HYDR_THETA3_A, HYDR_THETA3_B);
+			c_number f4t4D = _f4D(t4, HYDR_THETA4_T0, HYDR_THETA4_TS, HYDR_THETA4_TC, HYDR_THETA4_A, HYDR_THETA4_B);
+			c_number f4t7D = -_f4D(t7, HYDR_THETA7_T0, HYDR_THETA7_TS, HYDR_THETA7_TC, HYDR_THETA7_A, HYDR_THETA7_B);
+			c_number f4t8D = _f4D(t8, HYDR_THETA8_T0, HYDR_THETA8_TS, HYDR_THETA8_TC, HYDR_THETA8_A, HYDR_THETA8_B);
 
 			// RADIAL PART
 			Ftmp = rhydrodir * hb_energy * f1D / f1;
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			Ttmp -= a3_times_b3 * (-hb_energy * f4t4Dsin / f4t4);
+			Ttmp -= a3_times_b3_norm * (-hb_energy * f4t4D / f4t4);
 
 			// TETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= a1_times_b1 * (-hb_energy * f4t1Dsin / f4t1);
+			Ttmp -= a1_times_b1_norm * (-hb_energy * f4t1D / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= (b1 + rhydrodir * cost2) * (hb_energy * f4t2Dsin / (f4t2 * rhydromod));
+			Ftmp -= _normalised(b1 + rhydrodir * cost2) * (hb_energy * f4t2D / (f4t2 * rhydromod));
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
-			c_number part = -hb_energy * f4t3Dsin / f4t3;
-			Ftmp -= (a1 - rhydrodir * cost3) * (-part / rhydromod);
-			Ttmp += _cross(rhydrodir, a1) * part;
+			c_number part = -hb_energy * f4t3D / f4t3;
+			c_number4 force_dir = a1 - rhydrodir * cost3;
+			c_number4 torque_dir = _cross(rhydrodir, a1);
+			_normalise_vectors(force_dir, torque_dir);
+
+			Ftmp -= force_dir * (-part / rhydromod);
+			Ttmp += torque_dir * part;
 
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
-			Ftmp -= (b3 + rhydrodir * cost7) * (hb_energy * f4t7Dsin / (f4t7 * rhydromod));
+			Ftmp -= _normalised(b3 + rhydrodir * cost7) * (hb_energy * f4t7D / (f4t7 * rhydromod));
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
-			part = -hb_energy * f4t8Dsin / f4t8;
-			Ftmp -= (a3 - rhydrodir * cost8) * (-part / rhydromod);
-			Ttmp += _cross(rhydrodir, a3) * part;
+			part = -hb_energy * f4t8D / f4t8;
+			force_dir = a3 - rhydrodir * cost8;
+			torque_dir = _cross(rhydrodir, a3);
+			_normalise_vectors(force_dir, torque_dir);
+
+			Ftmp -= force_dir * (-part / rhydromod);
+			Ttmp += torque_dir * part;
 
 			Ttmp += _cross(ppos_base, Ftmp);
 
@@ -697,37 +675,45 @@ __device__ void _particle_particle_DNA_interaction(c_number4 ppos, c_number4 a1,
 		if(cstk_energy < (c_number) 0) {
 			// derivatives called at the relevant arguments
 			c_number f2D = _f2D(rcstackmod, CRST_F2);
-			c_number f4t1Dsin = -_f4Dsin_sin(t1, sint1, CRST_THETA1_T0, CRST_THETA1_TS, CRST_THETA1_TC, CRST_THETA1_A, CRST_THETA1_B);
-			c_number f4t2Dsin = -_f4Dsin(t2, CRST_THETA2_T0, CRST_THETA2_TS, CRST_THETA2_TC, CRST_THETA2_A, CRST_THETA2_B);
-			c_number f4t3Dsin = _f4Dsin(t3, CRST_THETA3_T0, CRST_THETA3_TS, CRST_THETA3_TC, CRST_THETA3_A, CRST_THETA3_B);
-			c_number f4t4Dsin = _f4Dsin_sin(t4, sint4, CRST_THETA4_T0, CRST_THETA4_TS, CRST_THETA4_TC, CRST_THETA4_A, CRST_THETA4_B) - _f4Dsin(PI - t4, CRST_THETA4_T0, CRST_THETA4_TS, CRST_THETA4_TC, CRST_THETA4_A, CRST_THETA4_B);
-			c_number f4t7Dsin = -_f4Dsin(t7, CRST_THETA7_T0, CRST_THETA7_TS, CRST_THETA7_TC, CRST_THETA7_A, CRST_THETA7_B) + _f4Dsin(PI - t7, CRST_THETA7_T0, CRST_THETA7_TS, CRST_THETA7_TC, CRST_THETA7_A, CRST_THETA7_B);
-			c_number f4t8Dsin = _f4Dsin(t8, CRST_THETA8_T0, CRST_THETA8_TS, CRST_THETA8_TC, CRST_THETA8_A, CRST_THETA8_B) - _f4Dsin(PI - t8, CRST_THETA8_T0, CRST_THETA8_TS, CRST_THETA8_TC, CRST_THETA8_A, CRST_THETA8_B);
+			c_number f4t1D = -_f4D(t1, CRST_THETA1_T0, CRST_THETA1_TS, CRST_THETA1_TC, CRST_THETA1_A, CRST_THETA1_B);
+			c_number f4t2D = -_f4D(t2, CRST_THETA2_T0, CRST_THETA2_TS, CRST_THETA2_TC, CRST_THETA2_A, CRST_THETA2_B);
+			c_number f4t3D = _f4D(t3, CRST_THETA3_T0, CRST_THETA3_TS, CRST_THETA3_TC, CRST_THETA3_A, CRST_THETA3_B);
+			c_number f4t4D = _f4D(t4, CRST_THETA4_T0, CRST_THETA4_TS, CRST_THETA4_TC, CRST_THETA4_A, CRST_THETA4_B) - _f4D(PI - t4, CRST_THETA4_T0, CRST_THETA4_TS, CRST_THETA4_TC, CRST_THETA4_A, CRST_THETA4_B);
+			c_number f4t7D = -_f4D(t7, CRST_THETA7_T0, CRST_THETA7_TS, CRST_THETA7_TC, CRST_THETA7_A, CRST_THETA7_B) + _f4D(PI - t7, CRST_THETA7_T0, CRST_THETA7_TS, CRST_THETA7_TC, CRST_THETA7_A, CRST_THETA7_B);
+			c_number f4t8D = _f4D(t8, CRST_THETA8_T0, CRST_THETA8_TS, CRST_THETA8_TC, CRST_THETA8_A, CRST_THETA8_B) - _f4D(PI - t8, CRST_THETA8_T0, CRST_THETA8_TS, CRST_THETA8_TC, CRST_THETA8_A, CRST_THETA8_B);
 
 			// RADIAL PART
 			Ftmp = rcstackdir * (cstk_energy * f2D / f2);
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= a1_times_b1 * (-cstk_energy * f4t1Dsin / f4t1);
+			Ttmp -= a1_times_b1_norm * (-cstk_energy * f4t1D / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= (b1 + rcstackdir * cost2) * (cstk_energy * f4t2Dsin / (f4t2 * rcstackmod));
+			Ftmp -= _normalised(b1 + rcstackdir * cost2) * (cstk_energy * f4t2D / (f4t2 * rcstackmod));
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
-			c_number part = -cstk_energy * f4t3Dsin / f4t3;
-			Ftmp -= (a1 - rcstackdir * cost3) * (-part / rcstackmod);
-			Ttmp += _cross(rcstackdir, a1) * part;
+			c_number part = -cstk_energy * f4t3D / f4t3;
+			c_number4 force_dir = a1 - rcstackdir * cost3;
+			c_number4 torque_dir = _cross(rcstackdir, a1);
+			_normalise_vectors(force_dir, torque_dir);
+
+			Ftmp -= force_dir * (-part / rcstackmod);
+			Ttmp += torque_dir * part;
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			Ttmp -= a3_times_b3 * (-cstk_energy * f4t4Dsin / f4t4);
+			Ttmp -= a3_times_b3_norm * (-cstk_energy * f4t4D / f4t4);
 
 			// THETA7; t7 = LRACOS (-rcsrackir * b3);
-			Ftmp -= (b3 + rcstackdir * cost7) * (cstk_energy * f4t7Dsin / (f4t7 * rcstackmod));
+			Ftmp -= _normalised(b3 + rcstackdir * cost7) * (cstk_energy * f4t7D / (f4t7 * rcstackmod));
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
-			part = -cstk_energy * f4t8Dsin / f4t8;
-			Ftmp -= (a3 - rcstackdir * cost8) * (-part / rcstackmod);
-			Ttmp += _cross(rcstackdir, a3) * part;
+			part = -cstk_energy * f4t8D / f4t8;
+			force_dir = a3 - rcstackdir * cost8;
+			torque_dir = _cross(rcstackdir, a3);
+			_normalise_vectors(force_dir, torque_dir);
+
+			Ftmp -= force_dir * (-part / rcstackmod);
+			Ttmp += torque_dir * part;
 
 			Ttmp += _cross(ppos_base, Ftmp);
 
@@ -763,27 +749,31 @@ __device__ void _particle_particle_DNA_interaction(c_number4 ppos, c_number4 a1,
 			if(cxst_energy < (c_number) 0) {
 				// derivatives called at the relevant arguments
 				c_number f2D = _f2D(rstackmod, CXST_F2);
-				c_number f4t1Dsin = -_f4Dsin_sin(t1, sint1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) - _f4Dsin_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB);
-				c_number f4t4Dsin = _f4Dsin_sin(t4, sint4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
-				c_number f4t5Dsin = _f4Dsin(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) - _f4Dsin(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
-				c_number f4t6Dsin = -_f4Dsin(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4Dsin(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
+				c_number f4t1D = -_f4D(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) - _f4D_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB);
+				c_number f4t4D = _f4D(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
+				c_number f4t5D = _f4D(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) - _f4D(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
+				c_number f4t6D = -_f4D(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4D(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
 
 				// RADIAL PART
 				Ftmp = rstackdir * (cxst_energy * f2D / f2);
 
 				// THETA1; t1 = LRACOS (-a1 * b1);
-				Ttmp -= a1_times_b1 * (-cxst_energy * f4t1Dsin / f4t1);
+				Ttmp -= a1_times_b1_norm * (-cxst_energy * f4t1D / f4t1);
 
 				// TETA4; t4 = LRACOS (a3 * b3);
-				Ttmp -= a3_times_b3 * (-cxst_energy * f4t4Dsin / f4t4);
+				Ttmp -= a3_times_b3_norm * (-cxst_energy * f4t4D / f4t4);
 
 				// THETA5; t5 = LRACOS ( a3 * rstackdir);
-				c_number part = cxst_energy * f4t5Dsin / f4t5;
-				Ftmp -= (a3 - rstackdir * cost5) / rstackmod * part;
-				Ttmp -= _cross(rstackdir, a3) * part;
+				c_number part = cxst_energy * f4t5D / f4t5;
+				c_number4 force_dir = a3 - rstackdir * cost5;
+				c_number4 torque_dir = _cross(rstackdir, a3);
+				_normalise_vectors(force_dir, torque_dir);
+
+				Ftmp -= force_dir / rstackmod * part;
+				Ttmp -= torque_dir * part;
 
 				// THETA6; t6 = LRACOS (-b3 * rstackdir);
-				Ftmp -= (b3 + rstackdir * cost6) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
+				Ftmp -= _normalised(b3 + rstackdir * cost6) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
 
 				Ttmp += _cross(ppos_stack, Ftmp);
 
@@ -828,28 +818,32 @@ __device__ void _particle_particle_DNA_interaction(c_number4 ppos, c_number4 a1,
 			if(cxst_energy < (c_number) 0) {
 				// derivatives called at the relevant arguments
 				c_number f2D = _f2D(rstackmod, CXST_F2);
-				c_number f4t1Dsin = -_f4Dsin_sin(t1, sint1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4Dsin(2 * PI - t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
-				c_number f4t4Dsin = _f4Dsin_sin(t4, sint4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
-				c_number f4t5Dsin = _f4Dsin(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) - _f4Dsin(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
-				c_number f4t6Dsin = -_f4Dsin(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4Dsin(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
+				c_number f4t1D = -_f4D(t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4D(2 * PI - t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
+				c_number f4t4D = _f4D(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
+				c_number f4t5D = _f4D(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) - _f4D(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
+				c_number f4t6D = -_f4D(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4D(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
 				c_number f5cosphi3D = _f5D(cosphi3, CXST_F5_PHI3);
 
 				// RADIAL PART
 				Ftmp = rstackdir * (cxst_energy * f2D / f2);
 
 				// THETA1; t1 = LRACOS (-a1 * b1);
-				Ttmp -= a1_times_b1 * (-cxst_energy * f4t1Dsin / f4t1);
+				Ttmp -= a1_times_b1_norm * (-cxst_energy * f4t1D / f4t1);
 
 				// TETA4; t4 = LRACOS (a3 * b3);
-				Ttmp -= a3_times_b3 * (-cxst_energy * f4t4Dsin / f4t4);
+				Ttmp -= a3_times_b3_norm * (-cxst_energy * f4t4D / f4t4);
 
 				// THETA5; t5 = LRACOS ( a3 * rstackdir);
-				c_number part = cxst_energy * f4t5Dsin / f4t5;
-				Ftmp -= (a3 - rstackdir * cost5) / rstackmod * part;
-				Ttmp -= _cross(rstackdir, a3) * part;
+				c_number part = cxst_energy * f4t5D / f4t5;
+				c_number4 force_dir = a3 - rstackdir * cost5;
+				c_number4 torque_dir = _cross(rstackdir, a3);
+				_normalise_vectors(force_dir, torque_dir);
+
+				Ftmp -= force_dir / rstackmod * part;
+				Ttmp -= torque_dir * part;
 
 				// THETA6; t6 = LRACOS (-b3 * rstackdir);
-				Ftmp -= (b3 + rstackdir * cost6) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
+				Ftmp -= _normalised(b3 + rstackdir * cost6) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
 
 				// COSPHI3
 				c_number rbackrefmodcub = rbackrefmod * rbackrefmod * rbackrefmod;
