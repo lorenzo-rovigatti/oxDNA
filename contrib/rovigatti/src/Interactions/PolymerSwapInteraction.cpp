@@ -30,6 +30,7 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 		throw oxDNAException("PolymerSwap: PS_alpha != 0 is not supported yet!");
 	}
 
+	getInputBool(&inp, "PS_same_sticky_only_interaction", &_same_sticky_only_interaction, 0);
 	getInputNumber(&inp, "PS_3b_sigma", &_3b_sigma, 0);
 	getInputNumber(&inp, "PS_3b_range", &_3b_range, 0);
 	getInputNumber(&inp, "PS_3b_lambda", &_3b_lambda, 0);
@@ -402,6 +403,12 @@ number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BasePart
 	return energy;
 }
 
+bool PolymerSwapInteraction::_sticky_interaction(int p_type, int q_type) {
+	if(!_same_sticky_only_interaction && (p_type + q_type) > 2) return true;
+	if(p_type == q_type) return true;
+	return false;
+}
+
 number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) {
 		return (number) 0.f;
@@ -413,7 +420,7 @@ number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseP
 
 	int int_type = p->type + q->type;
 	number energy = _WCA(p, q, update_forces);
-	if(int_type == 2) {
+	if(_sticky_interaction(p->type, q->type)) {
 		energy += _sticky(p, q, update_forces);
 	}
 
@@ -471,6 +478,7 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		}
 	}
 
+	int next_type = STICKY_A;
 	for(unsigned int i = 0; i < N_from_conf; i++) {
 		std::getline(bond_file, line);
 
@@ -506,7 +514,8 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 
 		p->type = MONOMER;
 		if(std::find(sticky_particles.begin(), sticky_particles.end(), p->index) != sticky_particles.end()) {
-			p->type = STICKY;
+			p->type = next_type;
+			next_type = (next_type == STICKY_A) ? STICKY_B : STICKY_A;
 		}
 		p->btype = p->type;
 		p->strand_id = p_idx / _chain_size;

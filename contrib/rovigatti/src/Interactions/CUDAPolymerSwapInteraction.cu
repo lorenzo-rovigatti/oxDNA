@@ -37,6 +37,7 @@ __constant__ float MD_3b_epsilon[1];
 __constant__ float MD_3b_A_part[1];
 __constant__ float MD_3b_B_part[1];
 
+__constant__ bool MD_same_sticky_only_interaction[1];
 __constant__ bool MD_enable_semiflexibility[1];
 __constant__ float MD_semiflexibility_k[1];
 
@@ -244,6 +245,15 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 	forces[IND] = F;
 }
 
+__device__ bool _sticky_interaction(int p_type, int q_type) {
+	// no branch diverging here, since the condition is the same for all threads
+	if(MD_same_sticky_only_interaction[0]) {
+		return (p_type == q_type);
+	}
+
+	return (p_type + q_type) > 2;
+}
+
 // forces + second step without lists
 __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
@@ -262,7 +272,8 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 
 			_WCA(ppos, qpos, int_type, F, box);
 			
-			if(int_type == 2) {
+
+			if(_sticky_interaction(ptype, qtype)) {
 				_sticky(ppos, qpos, j, F, bonds, box);
 			}
 		}
@@ -294,7 +305,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 
 		_WCA(ppos, qpos, int_type, F, box);
 		
-		if(int_type == 2) {
+		if(_sticky_interaction(ptype, qtype)) {
 			_sticky(ppos, qpos, q_index, F, bonds, box);
 		}
 	}
@@ -378,6 +389,7 @@ void CUDAPolymerSwapInteraction::cuda_init(c_number box_side, int N) {
 	COPY_NUMBER_TO_FLOAT(MD_3b_B_part, _3b_B_part);
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_enable_semiflexibility, &_enable_semiflexibility, sizeof(bool)));
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_same_sticky_only_interaction, &_same_sticky_only_interaction, sizeof(bool)));
 	COPY_NUMBER_TO_FLOAT(MD_semiflexibility_k, _semiflexibility_k);
 }
 
