@@ -217,9 +217,8 @@ number PolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool up
 	number sqr_r = _computed_r.norm();
 	number energy = 0.;
 
-	int int_type = p->type + q->type;
 	// sticky-sticky
-	if(int_type == 2) {
+	if(_sticky_interaction(p->btype, q->btype)) {
 		if(sqr_r < _sqr_3b_rcut) {
 			number r_mod = sqrt(sqr_r);
 			number exp_part = exp(_3b_sigma / (r_mod - _3b_rcut));
@@ -403,10 +402,14 @@ number PolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, BasePart
 	return energy;
 }
 
-bool PolymerSwapInteraction::_sticky_interaction(int p_type, int q_type) {
-	if(!_same_sticky_only_interaction && (p_type + q_type) > 2) return true;
-	if(p_type == q_type) return true;
-	return false;
+bool PolymerSwapInteraction::_sticky_interaction(int p_btype, int q_btype) {
+	if(p_btype == MONOMER || q_btype == MONOMER) return false;
+
+	if(_same_sticky_only_interaction) {
+		return (p_btype == q_btype);
+	}
+
+	return true;
 }
 
 number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -418,9 +421,8 @@ number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseP
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	int int_type = p->type + q->type;
 	number energy = _WCA(p, q, update_forces);
-	if(_sticky_interaction(p->type, q->type)) {
+	if(_sticky_interaction(p->btype, q->btype)) {
 		energy += _sticky(p, q, update_forces);
 	}
 
@@ -478,7 +480,7 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		}
 	}
 
-	int next_type = STICKY_A;
+	int next_btype = STICKY_A;
 	for(unsigned int i = 0; i < N_from_conf; i++) {
 		std::getline(bond_file, line);
 
@@ -512,12 +514,12 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 
 		p = static_cast<CustomParticle*>(particles[p_idx]);
 
-		p->type = MONOMER;
+		p->type = p->btype = MONOMER;
 		if(std::find(sticky_particles.begin(), sticky_particles.end(), p->index) != sticky_particles.end()) {
-			p->type = next_type;
-			next_type = (next_type == STICKY_A) ? STICKY_B : STICKY_A;
+			p->type = STICKY_ANY;
+			p->btype = next_btype;
+			next_btype = (next_btype == STICKY_A) ? STICKY_B : STICKY_A;
 		}
-		p->btype = p->type;
 		p->strand_id = p_idx / _chain_size;
 		p->n3 = p->n5 = P_VIRTUAL;
 		for(int j = 0; j < n_bonds; j++) {
