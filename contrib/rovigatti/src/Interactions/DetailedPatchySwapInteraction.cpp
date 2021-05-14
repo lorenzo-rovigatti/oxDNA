@@ -74,28 +74,26 @@ number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p
 
 	number energy = (number) 0.f;
 
-	if(sqr_r < _sqr_spherical_rcut) {
-		// centre-centre
-		if(sqr_r < _sqr_rep_rcut) {
+	// centre-centre
+	if(sqr_r < _sqr_rep_rcut) {
+		number ir2 = 1. / sqr_r;
+		number lj_part = ir2 * ir2 * ir2;
+		energy = 4 * (SQR(lj_part) - lj_part) + 1.0 - _spherical_attraction_strength - _spherical_E_cut;
+		if(update_forces) {
+			LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
+			p->force -= force;
+			q->force += force;
+		}
+	}
+	else {
+		if(sqr_r < _sqr_spherical_rcut && _spherical_attraction_strength > 0.) {
 			number ir2 = 1. / sqr_r;
 			number lj_part = ir2 * ir2 * ir2;
-			energy = 4 * (SQR(lj_part) - lj_part) + 1.0 - _spherical_attraction_strength - _spherical_E_cut;
+			energy = 4 * _spherical_attraction_strength * (SQR(lj_part) - lj_part) - _spherical_E_cut;
 			if(update_forces) {
-				LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
+				LR_vector force = _computed_r * (-24. * _spherical_attraction_strength * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 				p->force -= force;
 				q->force += force;
-			}
-		}
-		else {
-			if(_spherical_attraction_strength > 0.) {
-				number ir2 = 1. / sqr_r;
-				number lj_part = ir2 * ir2 * ir2;
-				energy = 4 * _spherical_attraction_strength * (SQR(lj_part) - lj_part) - _spherical_E_cut;
-				if(update_forces) {
-					LR_vector force = _computed_r * (-24. * _spherical_attraction_strength * (lj_part - 2 * SQR(lj_part)) / sqr_r);
-					p->force -= force;
-					q->force += force;
-				}
 			}
 		}
 	}
@@ -122,7 +120,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body(BaseParticle *p, BasePart
 				uint q_patch_type = _patch_types[q->type][q_patch];
 				number epsilon = _patchy_eps[p_patch_type + _N_patch_types * q_patch_type];
 
-				if(epsilon != 0.|| 1) {
+				if(epsilon != 0.) {
 					number r_p = sqrt(dist);
 					number exp_part = exp(_sigma_ss / (r_p - _rcut_ss));
 					number tmp_energy = epsilon * _A_part * exp_part * (_B_part / SQR(dist) - 1.);
@@ -283,7 +281,7 @@ void DetailedPatchySwapInteraction::_parse_interaction_matrix() {
 		throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
 	}
 
-	_patchy_eps.resize(_N_patch_types * _N_patch_types, 1.);
+	_patchy_eps.resize(_N_patch_types * _N_patch_types, 0.);
 
 	for(int i = 0; i < _N_patch_types; i++) {
 		for(int j = 0; j < _N_patch_types; j++) {
