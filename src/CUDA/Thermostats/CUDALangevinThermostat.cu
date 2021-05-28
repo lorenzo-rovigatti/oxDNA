@@ -14,29 +14,28 @@
 __global__ void langevin_thermostat(curandState *rand_state, c_number4 *vels, c_number4 *Ls, c_number _dt, c_number gamma_trans, c_number rescale_factor_trans, c_number gamma_rot, c_number rescale_factor_rot, int N) {
 	if(IND < N) {
 		curandState state = rand_state[IND];
-		c_number4 vFuzz;
-		c_number4 LFuzz;
-		gaussian(state, vFuzz.x, vFuzz.y);
-		gaussian(state, vFuzz.z, LFuzz.x);
-		gaussian(state, LFuzz.y, LFuzz.z);
+		c_number f_vx, f_vy, f_vz;
+		c_number f_Lx, f_Ly, f_Lz;
+		gaussian(state, f_vx, f_vy);
+		gaussian(state, f_vz, f_Lx);
+		gaussian(state, f_Ly, f_Lz);
+		rand_state[IND] = state;
 
 		c_number4 v = vels[IND];
 		c_number4 L = Ls[IND];
 
 		//Could define operators for GPU_quat
-		v.x += _dt * (-gamma_trans * v.x + vFuzz.x * rescale_factor_trans);
-		v.y += _dt * (-gamma_trans * v.y + vFuzz.y * rescale_factor_trans);
-		v.z += _dt * (-gamma_trans * v.z + vFuzz.z * rescale_factor_trans);
-		L.x += _dt * (-gamma_rot * L.x + LFuzz.x * rescale_factor_rot);
-		L.y += _dt * (-gamma_rot * L.y + LFuzz.y * rescale_factor_rot);
-		L.z += _dt * (-gamma_rot * L.z + LFuzz.z * rescale_factor_rot);
+		v.x += _dt * (-gamma_trans * v.x + f_vx * rescale_factor_trans);
+		v.y += _dt * (-gamma_trans * v.y + f_vy * rescale_factor_trans);
+		v.z += _dt * (-gamma_trans * v.z + f_vz * rescale_factor_trans);
+		L.x += _dt * (-gamma_rot * L.x + f_Lx * rescale_factor_rot);
+		L.y += _dt * (-gamma_rot * L.y + f_Ly * rescale_factor_rot);
+		L.z += _dt * (-gamma_rot * L.z + f_Lz * rescale_factor_rot);
 
 		//if (IND==5) printf("Diff is: %f %f %f \n",L.x-Ls[IND].x, L.y-Ls[IND].y, L.z-Ls[IND].z);
 
 		vels[IND] = v;
 		Ls[IND] = L;
-
-		rand_state[IND] = state;
 	}
 }
 
