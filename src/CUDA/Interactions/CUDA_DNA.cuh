@@ -65,25 +65,26 @@ __forceinline__ __device__ void _excluded_volume(const c_number4 &r, c_number4 &
 	}
 }
 
-//__forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
-//	c_number val = (c_number) 0.f;
-//	if(r < MD_F1_RCHIGH[type]) {
-//		int eps_index = 25 * type + n3 * 5 + n5;
-//		if(r > MD_F1_RHIGH[type]) {
-//			val = MD_F1_EPS[eps_index] * MD_F1_BHIGH[type] * SQR(r - MD_F1_RCHIGH[type]);
-//		}
-//		else if(r > MD_F1_RLOW[type]) {
-//			c_number tmp = 1.f - expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
-//			val = MD_F1_EPS[eps_index] * SQR(tmp) - MD_F1_SHIFT[eps_index];
-//		}
-//		else if(r > MD_F1_RCLOW[type]) {
-//			val = MD_F1_EPS[eps_index] * MD_F1_BLOW[type] * SQR(r - MD_F1_RCLOW[type]);
-//		}
-//	}
-//
-//	return val;
-//}
+#ifndef CUDA_OPTIMISE_BRANCHES
+__forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
+	c_number val = (c_number) 0.f;
+	if(r < MD_F1_RCHIGH[type]) {
+		int eps_index = 25 * type + n3 * 5 + n5;
+		if(r > MD_F1_RHIGH[type]) {
+			val = MD_F1_EPS[eps_index] * MD_F1_BHIGH[type] * SQR(r - MD_F1_RCHIGH[type]);
+		}
+		else if(r > MD_F1_RLOW[type]) {
+			c_number tmp = 1.f - expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
+			val = MD_F1_EPS[eps_index] * SQR(tmp) - MD_F1_SHIFT[eps_index];
+		}
+		else if(r > MD_F1_RCLOW[type]) {
+			val = MD_F1_EPS[eps_index] * MD_F1_BLOW[type] * SQR(r - MD_F1_RCLOW[type]);
+		}
+	}
 
+	return val;
+}
+#else
 __forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
 	int smaller_rchigh = (r < MD_F1_RCHIGH[type]);
 	int larger_rhigh = (r > MD_F1_RHIGH[type]);
@@ -100,6 +101,7 @@ __forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
 
 			);
 }
+#endif
 
 __forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
 	c_number val = (c_number) 0.f;
@@ -121,22 +123,39 @@ __forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
 	return MD_F1_EPS[eps_index] * val;
 }
 
-//__forceinline__ __device__ c_number _f2(c_number r, int type) {
-//	c_number val = (c_number) 0.f;
-//	if(r < MD_F2_RCHIGH[type]) {
-//		if(r > MD_F2_RHIGH[type]) {
-//			val = MD_F2_K[type] * MD_F2_BHIGH[type] * SQR(r - MD_F2_RCHIGH[type]);
-//		}
-//		else if(r > MD_F2_RLOW[type]) {
-//			val = (MD_F2_K[type] * 0.5f) * (SQR(r - MD_F2_R0[type]) - SQR(MD_F2_RC[type] - MD_F2_R0[type]));
-//		}
-//		else if(r > MD_F2_RCLOW[type]) {
-//			val = MD_F2_K[type] * MD_F2_BLOW[type] * SQR(r - MD_F2_RCLOW[type]);
-//		}
-//	}
-//	return val;
-//}
+#ifndef CUDA_OPTIMISE_BRANCHES
+__forceinline__ __device__ c_number _f2(c_number r, int type) {
+	c_number val = (c_number) 0.f;
+	if(r < MD_F2_RCHIGH[type]) {
+		if(r > MD_F2_RHIGH[type]) {
+			val = MD_F2_K[type] * MD_F2_BHIGH[type] * SQR(r - MD_F2_RCHIGH[type]);
+		}
+		else if(r > MD_F2_RLOW[type]) {
+			val = (MD_F2_K[type] * 0.5f) * (SQR(r - MD_F2_R0[type]) - SQR(MD_F2_RC[type] - MD_F2_R0[type]));
+		}
+		else if(r > MD_F2_RCLOW[type]) {
+			val = MD_F2_K[type] * MD_F2_BLOW[type] * SQR(r - MD_F2_RCLOW[type]);
+		}
+	}
+	return val;
+}
 
+__forceinline__ __device__ c_number _f2D(c_number r, int type) {
+	c_number val = (c_number) 0.f;
+	if(r < MD_F2_RCHIGH[type]) {
+		if(r > MD_F2_RHIGH[type]) {
+			val = 2.f * MD_F2_K[type] * MD_F2_BHIGH[type] * (r - MD_F2_RCHIGH[type]);
+		}
+		else if(r > MD_F2_RLOW[type]) {
+			val = MD_F2_K[type] * (r - MD_F2_R0[type]);
+		}
+		else if(r > MD_F2_RCLOW[type]) {
+			val = 2.f * MD_F2_K[type] * MD_F2_BLOW[type] * (r - MD_F2_RCLOW[type]);
+		}
+	}
+	return val;
+}
+#else
 __forceinline__ __device__ c_number _f2(c_number r, int type) {
 	int smaller_rchigh = (r < MD_F2_RCHIGH[type]);
 	int larger_rhigh = (r > MD_F2_RHIGH[type]);
@@ -153,22 +172,6 @@ __forceinline__ __device__ c_number _f2(c_number r, int type) {
 			);
 }
 
-//__forceinline__ __device__ c_number _f2D(c_number r, int type) {
-//	c_number val = (c_number) 0.f;
-//	if(r < MD_F2_RCHIGH[type]) {
-//		if(r > MD_F2_RHIGH[type]) {
-//			val = 2.f * MD_F2_K[type] * MD_F2_BHIGH[type] * (r - MD_F2_RCHIGH[type]);
-//		}
-//		else if(r > MD_F2_RLOW[type]) {
-//			val = MD_F2_K[type] * (r - MD_F2_R0[type]);
-//		}
-//		else if(r > MD_F2_RCLOW[type]) {
-//			val = 2.f * MD_F2_K[type] * MD_F2_BLOW[type] * (r - MD_F2_RCLOW[type]);
-//		}
-//	}
-//	return val;
-//}
-
 __forceinline__ __device__ c_number _f2D(c_number r, int type) {
 	int smaller_rchigh = (r < MD_F2_RCHIGH[type]);
 	int larger_rhigh = (r > MD_F2_RHIGH[type]);
@@ -184,6 +187,7 @@ __forceinline__ __device__ c_number _f2D(c_number r, int type) {
 
 			);
 }
+#endif
 
 __forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc, float a, float b) {
 	c_number val = (c_number) 0.f;
@@ -210,51 +214,6 @@ __forceinline__ __device__ c_number _f4_pure_harmonic(c_number t, float a, float
 
 	return val;
 }
-
-//__forceinline__ __device__ c_number _f4Dsin(c_number t, float t0, float ts, float tc, float a, float b) {
-//	c_number val = (c_number) 0.f;
-//	c_number tt0 = t - t0;
-//	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
-//	// is the same but the value of its derivative has the opposite sign, so m = -1
-//	c_number m = copysignf((c_number) 1.f, tt0);
-//	tt0 = copysignf(tt0, (c_number) 1.f);
-//
-//	if(tt0 < tc) {
-//		c_number sint = sinf(t);
-//		if(tt0 > ts) {
-//			// smoothing
-//			val = b * (tt0 - tc) / sint;
-//		}
-//		else {
-//			if(SQR(sint) > 1e-12f) val = -a * tt0 / sint;
-//			else val = -a;
-//		}
-//	}
-//
-//	return 2.f * m * val;
-//}
-//
-//__forceinline__ __device__ c_number _f4Dsin_sin(c_number t, c_number sint, float t0, float ts, float tc, float a, float b) {
-//	c_number val = (c_number) 0.f;
-//	c_number tt0 = t - t0;
-//	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
-//	// is the same but the value of its derivative has the opposite sign, so m = -1
-//	c_number m = copysignf((c_number) 1.f, tt0);
-//	tt0 = copysignf(tt0, (c_number) 1.f);
-//
-//	if(tt0 < tc) {
-//		if(tt0 > ts) {
-//			// smoothing
-//			val = b * (tt0 - tc) / sint;
-//		}
-//		else {
-//			if(SQR(sint) > 1e-12f) val = -a * tt0 / sint;
-//			else val = -a;
-//		}
-//	}
-//
-//	return 2.f * m * val;
-//}
 
 __forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float tc, float a, float b) {
 	c_number tt0 = t - t0;
