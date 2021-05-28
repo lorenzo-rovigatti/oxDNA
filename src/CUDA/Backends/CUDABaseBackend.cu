@@ -145,7 +145,12 @@ void CUDABaseBackend::_choose_device() {
 	cudaDeviceProp tryprop;
 
 	cudaGetDeviceCount(&ndev);
-	OX_LOG(Logger::LOG_INFO, "Computer has %i devices", ndev);
+	if(ndev == 1) {
+		OX_LOG(Logger::LOG_INFO, "Computer has %i device", ndev);
+	}
+	else {
+		OX_LOG(Logger::LOG_INFO, "Computer has %i devices", ndev);
+	}
 	while(trydev < ndev) {
 		OX_LOG(Logger::LOG_INFO, " - Trying device %i", trydev);
 		tryprop = get_device_prop(trydev);
@@ -153,29 +158,30 @@ void CUDABaseBackend::_choose_device() {
 		if(tryprop.major < 2 && tryprop.minor <= 2) {
 			OX_LOG(Logger::LOG_INFO, " -- Device properties are not good. Skipping it", trydev);
 			trydev++;
-			continue;
-		}
-		set_device(trydev);
-		int *dummyptr = NULL;
-		cudaError_t ggg = GpuUtils::LR_cudaMalloc<int>(&dummyptr, (size_t) sizeof(int));
-		if(ggg == cudaSuccess) {
-			OX_LOG(Logger::LOG_INFO, " -- using device %i", trydev);
-			cudaFree(dummyptr);
-			break;
 		}
 		else {
-			OX_LOG(Logger::LOG_INFO, " -- device %i not available ...", trydev);
+			set_device(trydev);
+			int *dummyptr = nullptr;
+			cudaError_t result = GpuUtils::LR_cudaMalloc<int>(&dummyptr, (size_t) sizeof(int));
+			if(result == cudaSuccess) {
+				OX_LOG(Logger::LOG_INFO, " -- using device %i", trydev);
+				cudaFree(dummyptr);
+				break;
+			}
+			else {
+				OX_LOG(Logger::LOG_INFO, " -- device %i not available ...", trydev);
+			}
+			trydev++;
 		}
-		trydev++;
 	}
 
-	if(trydev == ndev)
+	if(trydev == ndev) {
 		throw oxDNAException("No suitable devices available");
+	}
 
 	OX_LOG(Logger::LOG_INFO, " --- Running on device %i", trydev);
-	_device_prop = get_device_prop(trydev);
 	_device_number = trydev;
-	// gpu device chosen
+	// device chosen
 }
 
 void CUDABaseBackend::init_cuda() {
@@ -185,7 +191,7 @@ void CUDABaseBackend::init_cuda() {
 	set_device(_device_number);
 	_device_prop = get_device_prop(_device_number);
 
-	CUDA_SAFE_CALL(cudaThreadSetCacheConfig(cudaFuncCachePreferL1));
+	CUDA_SAFE_CALL(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
 
 	c_number box_side = CONFIG_INFO->box->box_sides().x;
 	int N = CONFIG_INFO->N();
