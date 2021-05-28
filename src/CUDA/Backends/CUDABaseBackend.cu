@@ -184,8 +184,6 @@ void CUDABaseBackend::init_cuda() {
 		_choose_device();
 	}
 
-	cudaDeviceSynchronize();
-	cudaDeviceReset();
 	if(set_device(_device_number) != cudaSuccess || cudaDeviceSetCacheConfig(cudaFuncCachePreferL1) != cudaSuccess) {
 		throw oxDNAException("The selected device is not available for computation");
 	}
