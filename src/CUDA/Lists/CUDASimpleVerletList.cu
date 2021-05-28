@@ -37,7 +37,7 @@ void CUDASimpleVerletList::clean() {
 		CUDA_SAFE_CALL(cudaFreeHost(_d_cell_overflow));
 	}
 
-	if(_use_edge) {
+	if(_use_edge && d_edge_list != nullptr) {
 		CUDA_SAFE_CALL(cudaFree(d_edge_list));
 		CUDA_SAFE_CALL(cudaFree(_d_number_neighs_no_doubles));
 	}
@@ -50,7 +50,7 @@ void CUDASimpleVerletList::get_settings(input_file &inp) {
 	getInputNumber(&inp, "max_density_multiplier", &_max_density_multiplier, 0);
 	getInputBool(&inp, "use_edge", &_use_edge, 0);
 	if(_use_edge) {
-		OX_LOG(Logger::LOG_INFO, "Using edge-based approach...");
+		OX_LOG(Logger::LOG_INFO, "Using edge-based approach");
 	}
 }
 

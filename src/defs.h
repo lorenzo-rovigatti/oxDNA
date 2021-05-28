@@ -42,10 +42,7 @@
 #include <string>
 #include <memory>
 
-#if __cplusplus < 201103L
-typedef unsigned int uint32_t;
-#endif
-
+using uint = uint32_t;
 using llint = long long int;
 
 #endif /* DEFS_H_ */

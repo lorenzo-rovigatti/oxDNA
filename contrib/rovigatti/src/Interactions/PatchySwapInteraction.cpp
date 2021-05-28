@@ -350,7 +350,7 @@ void PatchySwapInteraction::read_topology(int *N_strands, std::vector<BasePartic
 		std::getline(topology, line);
 		auto spl = Utils::split(line);
 		if(spl.size() < 2) {
-			throw oxDNAException("The topology line '%s' is malformed, since it should contain at least two integer numbers (number of particles and number of patches");
+			throw oxDNAException("The topology line '%s' is malformed, since it should contain at least two integer numbers (number of particles and number of patches)", line.c_str());
 		}
 		int N_s = atoi(spl[0].c_str());
 		_N_per_species[i] = N_s;
