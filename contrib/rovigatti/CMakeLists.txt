@@ -7,7 +7,8 @@ ADD_CUSTOM_TARGET(rovigatti
 			GenericGrByInsertion VoidPercolation Remoteness CPAnalysis Widom LevyDelta 
 			LevyInteraction CPMixtureInteraction StarrInteraction mWInteraction 
 			GraftedInteraction FSInteraction TSPAnalysis StarrConf ConstructwiseBonds 
-			EmptyVolume FSConf Gyradius PatchySwapInteraction PatchyBonds
+			EmptyVolume FSConf Gyradius PatchySwapInteraction DetailedPatchySwapInteraction 
+			PatchyBonds
 )
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -50,6 +51,7 @@ ADD_LIBRARY(AOInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/AOInteraction
 ADD_LIBRARY(PolydisperseLTInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolydisperseLTInteraction.cpp)
 ADD_LIBRARY(PolymerSwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolymerSwapInteraction.cpp)
 ADD_LIBRARY(PatchySwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PatchySwapInteraction.cpp)
+ADD_LIBRARY(DetailedPatchySwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/DetailedPatchySwapInteraction.cpp)
 
 FIND_PACKAGE(PkgConfig)
 IF(PkgConfig_FOUND)
@@ -63,6 +65,7 @@ ENDIF(PkgConfig_FOUND)
 IF(CUDA)
 	SET(CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINKER_FLAGS} -rdynamic")
 
+	CUDA_ADD_LIBRARY(CUDADetailedPatchySwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDADetailedPatchySwapInteraction.cu src/Interactions/DetailedPatchySwapInteraction.cpp)
 	CUDA_ADD_LIBRARY(CUDAPatchySwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAPatchySwapInteraction.cu src/Interactions/PatchySwapInteraction.cpp)
 	CUDA_ADD_LIBRARY(CUDAFSInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAFSInteraction.cu src/Interactions/FSInteraction.cpp)
 	CUDA_ADD_LIBRARY(CUDAmWInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAmWInteraction.cu src/Interactions/mWInteraction.cpp)
@@ -75,5 +78,5 @@ IF(CUDA)
 	CUDA_ADD_LIBRARY(CUDAPolymerSwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDAPolymerSwapInteraction.cu src/Interactions/PolymerSwapInteraction.cpp)
 	CUDA_ADD_LIBRARY(CUDATSPInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/CUDATSPInteraction.cu src/Interactions/TSPInteraction.cpp)
 	
-	ADD_DEPENDENCIES(rovigatti CUDAPatchySwapInteraction CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction CUDATSPInteraction)
+	ADD_DEPENDENCIES(rovigatti CUDADetailedPatchySwapInteraction CUDAPatchySwapInteraction CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction CUDATSPInteraction)
 ENDIF(CUDA)

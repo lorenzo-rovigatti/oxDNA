@@ -56,6 +56,8 @@ protected:
 	number _PS_gamma = 0.;
 	int _PS_n = 6;
 
+	bool _same_sticky_only_interaction = false;
+
 	/// three-body potential stuff
 	number _3b_rcut = -1.;
 	number _sqr_3b_rcut = -1.;
@@ -68,7 +70,7 @@ protected:
 	number _3b_B_part = 0.;
 
 	/// three-body flexibility stuff
-	bool _enable_semiflexibility;
+	bool _enable_semiflexibility = false;
 	number _semiflexibility_k;
 
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
@@ -83,6 +85,7 @@ protected:
 
 	void _update_inter_chain_stress_tensor(int chain, int ref_chain, LR_vector group_force);
 
+	bool _sticky_interaction(int p_btype, int q_btype);
 	number _fene(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _WCA(BaseParticle *p, BaseParticle *q, bool update_forces);
 	number _sticky(BaseParticle *p, BaseParticle *q, bool update_forces);
@@ -94,7 +97,7 @@ public:
 		BONDED = 0, NONBONDED = 1
 	};
 	enum {
-		MONOMER = 0, STICKY = 1
+		MONOMER = 0, STICKY_ANY = 1, STICKY_A = 5, STICKY_B = 9
 	};
 
 	bool no_three_body = false;

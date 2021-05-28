@@ -4,9 +4,9 @@
 
 int get_device_count() {
 	int deviceCount = 0;
-	if (cudaGetDeviceCount(&deviceCount) != cudaSuccess) {
+	if(cudaGetDeviceCount(&deviceCount) != cudaSuccess) {
 		fprintf(stderr, "cudaGetDeviceCount FAILED, CUDA Driver and Runtime CUDA Driver and Runtime version may be mismatched, exiting.\n");
-		exit(-1);
+		exit(1);
 	}
 
 	return deviceCount;
@@ -15,7 +15,7 @@ int get_device_count() {
 void check_device_existance(int device) {
 	if(device >= get_device_count()) {
 		fprintf(stderr, "The selected device doesn't exist, exiting.\n");
-		exit(-1);
+		exit(1);
 	}
 }
 
