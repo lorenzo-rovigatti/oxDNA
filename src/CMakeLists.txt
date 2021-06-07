@@ -145,6 +145,7 @@ SET(forces_SOURCES
 	Forces/MovingTrap.cpp
 	Forces/LowdimMovingTrap.cpp
 	Forces/MutualTrap.cpp
+	Forces/RepulsiveEllipse.cpp
 	Forces/RepulsionPlane.cpp
 	Forces/RepulsionPlaneMoving.cpp
 	Forces/RepulsiveSphere.cpp
