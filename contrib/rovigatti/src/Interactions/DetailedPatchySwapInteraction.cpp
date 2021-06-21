@@ -255,7 +255,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 							tmp_force += q_ortho * (der_q / rmod);
 
 							LR_vector p_torque = p->orientationT * (r_versor.cross(p_patch_pos) * der_p);
-							LR_vector q_torque = -q->orientationT * (r_versor.cross(q_patch_pos) * der_q);
+							LR_vector q_torque = q->orientationT * (q_patch_pos.cross(r_versor) * der_q);
 
 							p->force -= tmp_force;
 							q->force += tmp_force;
@@ -281,58 +281,6 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 						}
 					}
 				}
-
-//				LR_vector patch_dist = _computed_r + q_patch_pos - p_patch_pos;
-//				number dist = patch_dist.norm();
-//				if(dist < _sqr_patch_rcut) {
-//					uint p_patch_type = _patch_types[p->type][p_patch];
-//					uint q_patch_type = _patch_types[q->type][q_patch];
-//					number epsilon = _patchy_eps[p_patch_type + _N_patch_types * q_patch_type];
-//
-//					if(epsilon != 0.) {
-//						number r_p = sqrt(dist);
-//						number exp_part = exp(_sigma_ss / (r_p - _rcut_ss));
-//						number tmp_energy = epsilon * _A_part * exp_part * (_B_part / SQR(dist) - 1.);
-//
-//						energy += tmp_energy;
-//
-//						number tb_energy = (r_p < _sigma_ss) ? 1 : -tmp_energy;
-//
-//						PatchyBond p_bond(q, r_p, p_patch, q_patch, tb_energy);
-//						PatchyBond q_bond(p, r_p, q_patch, p_patch, tb_energy);
-//
-//						if(update_forces) {
-//							number force_mod = epsilon * _A_part * exp_part * (4. * _B_part / (SQR(dist) * r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
-//							LR_vector tmp_force = patch_dist * (force_mod / r_p);
-//
-//							LR_vector p_torque = p->orientationT * p_patch_pos.cross(tmp_force);
-//							LR_vector q_torque = q->orientationT * q_patch_pos.cross(tmp_force);
-//
-//							p->force -= tmp_force;
-//							q->force += tmp_force;
-//
-//							p->torque -= p_torque;
-//							q->torque += q_torque;
-//
-//							p_bond.force = tmp_force;
-//							p_bond.p_torque = p_torque;
-//							p_bond.q_torque = q_torque;
-//
-//							q_bond.force = -tmp_force;
-//							q_bond.p_torque = -q_torque;
-//							q_bond.q_torque = -p_torque;
-//						}
-//
-//						_particle_bonds(p).emplace_back(p_bond);
-//						_particle_bonds(q).emplace_back(q_bond);
-//
-//						if(!no_three_body) {
-//							energy += _three_body(p, p_bond, update_forces);
-//							energy += _three_body(q, q_bond, update_forces);
-//
-//						}
-//					}
-//				}
 			}
 		}
 	}

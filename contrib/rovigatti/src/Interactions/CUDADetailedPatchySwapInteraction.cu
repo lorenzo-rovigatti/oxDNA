@@ -33,6 +33,13 @@ __constant__ float MD_lambda[1];
 __constant__ float MD_A_part[1], MD_B_part[1];
 __constant__ float MD_spherical_attraction_strength[1], MD_spherical_E_cut[1];
 
+/// KF-related quantities
+__constant__ bool MD_is_KF[1];
+__constant__ int MD_patch_power[1];
+__constant__ float MD_patch_pow_delta[1];
+__constant__ float MD_patch_pow_cosmax[1];
+__constant__ float MD_patch_angular_cutoff[1];
+
 
 #include "CUDA/cuda_utils/CUDA_lr_common.cuh"
 
@@ -66,7 +73,7 @@ struct __align__(16) CUDA_FS_bond_list {
 	}
 };
 
-__device__ void _patchy_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &a1, c_number4 &a2, c_number4 &a3, c_number4 &b1, c_number4 &b2, c_number4 &b3, c_number4 &F, c_number4 &torque, CUDA_FS_bond_list *bonds, int q_idx, CUDABox *box) {
+__device__ void _patchy_point_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &a1, c_number4 &a2, c_number4 &a3, c_number4 &b1, c_number4 &b2, c_number4 &b3, c_number4 &F, c_number4 &torque, CUDA_FS_bond_list *bonds, int q_idx, CUDABox *box) {
 	int ptype = get_particle_btype(ppos);
 	int qtype = get_particle_btype(qpos);
 
@@ -158,6 +165,130 @@ __device__ void _patchy_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c
 	}
 }
 
+__device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &a1, c_number4 &a2, c_number4 &a3, c_number4 &b1, c_number4 &b2, c_number4 &b3, c_number4 &F, c_number4 &torque, CUDA_FS_bond_list *bonds, int q_idx, CUDABox *box) {
+	int ptype = get_particle_btype(ppos);
+	int qtype = get_particle_btype(qpos);
+
+	c_number4 r = box->minimum_image(ppos, qpos);
+	c_number sqr_r = CUDA_DOT(r, r);
+	if(sqr_r >= MD_sqr_rcut[0]) return;
+
+	c_number force_module = 0.;
+	c_number spherical_energy = 0.;
+
+	// centre-centre
+	if(sqr_r >= MD_sqr_rep_rcut[0]) {
+		c_number ir2 = 1.f / sqr_r;
+		c_number lj_part = ir2 * ir2 * ir2;
+		force_module = -24.f * MD_spherical_attraction_strength[0] * (lj_part - 2.f * SQR(lj_part)) / sqr_r;
+		spherical_energy = 4.f * MD_spherical_attraction_strength[0] * (SQR(lj_part) - lj_part);
+	}
+	else {
+		c_number ir2 = 1.f / sqr_r;
+		c_number lj_part = ir2 * ir2 * ir2;
+		force_module = -24.f * (lj_part - 2.f * SQR(lj_part)) / sqr_r;
+		spherical_energy = 4.f * (SQR(lj_part) - lj_part) + 1.f - MD_spherical_attraction_strength[0];
+	}
+
+	F.x -= r.x * force_module;
+	F.y -= r.y * force_module;
+	F.z -= r.z * force_module;
+	F.w += spherical_energy - MD_spherical_E_cut[0];
+
+	// patch-patch part
+	c_number rmod = sqrtf(sqr_r);
+	c_number4 r_versor = r / rmod;
+
+	c_number dist_surf = rmod - 1.f;
+	c_number dist_surf_sqr = SQR(dist_surf);
+	c_number r8b10 = SQR(SQR(dist_surf_sqr)) / MD_patch_pow_delta[0];
+	c_number exp_part = -1.001f * expf(-0.5f * r8b10 * dist_surf_sqr);
+
+	int p_N_patches = MD_N_patches[ptype];
+	int q_N_patches = MD_N_patches[qtype];
+
+	for(int p_patch = 0; p_patch < p_N_patches; p_patch++) {
+		c_number4 p_patch_pos = {
+				a1.x * MD_base_patches[ptype][p_patch].x + a2.x * MD_base_patches[ptype][p_patch].y + a3.x * MD_base_patches[ptype][p_patch].z,
+				a1.y * MD_base_patches[ptype][p_patch].x + a2.y * MD_base_patches[ptype][p_patch].y + a3.y * MD_base_patches[ptype][p_patch].z,
+				a1.z * MD_base_patches[ptype][p_patch].x + a2.z * MD_base_patches[ptype][p_patch].y + a3.z * MD_base_patches[ptype][p_patch].z, 0.f
+		};
+		p_patch_pos *= 2.f;
+
+		c_number cospr = CUDA_DOT(p_patch_pos, r_versor);
+		if(cospr > MD_patch_angular_cutoff[0]) {
+
+			c_number cospr_base = cospr - 1.f;
+			for(int i = 1; i < MD_patch_power[0] - 1; i++) {
+				cospr_base *= cospr - 1.f;
+			}
+			// we do this so that later we don't have to divide this number by (cospr - 1), which could be 0
+			c_number cospr_part = cospr_base * (cospr - 1.f);
+			c_number p_mod = expf(-cospr_part / (2.f * MD_patch_pow_cosmax[0]));
+
+			for(int q_patch = 0; q_patch < q_N_patches; q_patch++) {
+				c_number4 q_patch_pos = {
+						b1.x * MD_base_patches[qtype][q_patch].x + b2.x * MD_base_patches[qtype][q_patch].y + b3.x * MD_base_patches[qtype][q_patch].z,
+						b1.y * MD_base_patches[qtype][q_patch].x + b2.y * MD_base_patches[qtype][q_patch].y + b3.y * MD_base_patches[qtype][q_patch].z,
+						b1.z * MD_base_patches[qtype][q_patch].x + b2.z * MD_base_patches[qtype][q_patch].y + b3.z * MD_base_patches[qtype][q_patch].z, 0.f
+				};
+				q_patch_pos *= 2.f;
+
+				number cosqr = -CUDA_DOT(q_patch_pos, r_versor);
+				if(cosqr > MD_patch_angular_cutoff[0]) {
+					int p_patch_type = MD_patch_types[ptype][p_patch];
+					int q_patch_type = MD_patch_types[qtype][q_patch];
+					c_number epsilon = MD_patchy_eps[p_patch_type + MD_N_patch_types[0] * q_patch_type];
+
+					if(epsilon != 0.f) {
+						c_number cosqr_base = cosqr - 1.f;
+						for(int i = 1; i < MD_patch_power[0] - 1; i++) {
+							cosqr_base *= cosqr - 1.f;
+						}
+						c_number cosqr_part = cosqr_base * (cosqr - 1.f);
+						c_number q_mod = expf(-cosqr_part / (2.f * MD_patch_pow_cosmax[0]));
+
+						c_number energy_part = exp_part * p_mod * q_mod;
+
+						// radial part
+						c_number4 tmp_force = r_versor * (p_mod * q_mod * 5.f * (rmod - 1.f) * exp_part * r8b10);
+
+						// angular p part
+						c_number der_p = exp_part * q_mod * (0.5f * MD_patch_power[0] * p_mod * cospr_base / MD_patch_pow_cosmax[0]);
+						c_number4 p_ortho = p_patch_pos - cospr * r_versor;
+						tmp_force += p_ortho * (der_p / rmod);
+
+						// angular q part
+						c_number der_q = exp_part * p_mod * (-0.5f * MD_patch_power[0] * q_mod * cosqr_base / MD_patch_pow_cosmax[0]);
+						c_number4 q_ortho = q_patch_pos + cosqr * r_versor;
+						tmp_force += q_ortho * (der_q / rmod);
+
+						c_number4 p_torque = _cross(r_versor, p_patch_pos) * der_p;
+						c_number4 q_torque = _cross(q_patch_pos, r_versor) * der_q;
+
+						CUDA_FS_bond_list &bond_list = bonds[p_patch];
+						CUDA_FS_bond &my_bond = bond_list.new_bond();
+
+						my_bond.force = tmp_force;
+						my_bond.force.w = energy_part;
+						my_bond.p_torque = p_torque;
+						my_bond.q_torque_ref_frame = _vectors_transpose_c_number4_product(b1, b2, b3, q_torque);
+						my_bond.q = q_idx;
+						my_bond.r_p_less_than_sigma = dist_surf < MD_sigma_ss[0];
+
+						torque -= my_bond.p_torque;
+						F.x -= tmp_force.x;
+						F.y -= tmp_force.y;
+						F.z -= tmp_force.z;
+						F.w += energy_part;
+					}
+
+				}
+			}
+		}
+	}
+}
+
 __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T, c_number4 *forces, c_number4 *torques) {
 	for(int pi = 0; pi < CUDADetailedPatchySwapInteraction::MAX_PATCHES; pi++) {
 		CUDA_FS_bond_list &bond_list = bonds[pi];
@@ -216,7 +347,13 @@ __global__ void PS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 
 			GPU_quat qo = orientations[j];
 			get_vectors_from_quat(qo, b1, b2, b3);
-			_patchy_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
+
+			if(MD_is_KF[0]) {
+				_patchy_KF_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
+			}
+			else {
+				_patchy_point_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
+			}
 		}
 	}
 
@@ -247,7 +384,12 @@ __global__ void PS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 
 		GPU_quat qo = orientations[k_index];
 		get_vectors_from_quat(qo, b1, b2, b3);
-		_patchy_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, k_index, box);
+		if(MD_is_KF[0]) {
+			_patchy_KF_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
+		}
+		else {
+			_patchy_point_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
+		}
 	}
 
 	_three_body(bonds, F, T, three_body_forces, three_body_torques);
@@ -302,6 +444,16 @@ void CUDADetailedPatchySwapInteraction::cuda_init(c_number box_side, int N) {
 	COPY_NUMBER_TO_FLOAT(MD_B_part, _B_part);
 	COPY_NUMBER_TO_FLOAT(MD_spherical_E_cut, _spherical_E_cut);
 	COPY_NUMBER_TO_FLOAT(MD_spherical_attraction_strength, _spherical_attraction_strength);
+
+	// KF stuff
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_is_KF, &_is_KF, sizeof(bool)));
+
+	if(_is_KF) {
+		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_patch_power, &_patch_power, sizeof(int)));
+		COPY_NUMBER_TO_FLOAT(MD_patch_pow_delta, _patch_pow_delta);
+		COPY_NUMBER_TO_FLOAT(MD_patch_pow_cosmax, _patch_pow_cosmax);
+		COPY_NUMBER_TO_FLOAT(MD_patch_angular_cutoff, _patch_angular_cutoff);
+	}
 
 	int N_strands;
 	std::vector<BaseParticle *> particles(N);
