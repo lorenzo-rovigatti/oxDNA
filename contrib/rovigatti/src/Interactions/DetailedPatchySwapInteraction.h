@@ -47,6 +47,21 @@ protected:
 	number _A_part = 0.;
 	number _B_part = 0.;
 
+	/// KF-related quantities
+	/// Width of the patches
+	bool _is_KF = false;
+	/// Exponent for the Gaussian-like potential well used for the patches
+	int _patch_power = 30;
+	number _patch_delta;
+	/// Angular width of the patches
+	number _patch_cosmax;
+	/// _patch_alpha^10
+	number _patch_pow_delta;
+	/// _patch_cosmax^30
+	number _patch_pow_cosmax;
+	/// Angular cut-off for the patchy attraction
+	number _patch_angular_cutoff;
+
 	/// Optional spherical attraction
 	number _spherical_attraction_strength = 0.;
 	number _spherical_rcut = 2.5;
@@ -56,7 +71,8 @@ protected:
 	void _parse_interaction_matrix();
 	std::vector<LR_vector> _parse_base_patches(std::string filename, int N_patches);
 
-	number _patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _patchy_two_body_point(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	number _patchy_two_body_KF(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	number _three_body(BaseParticle *p, PatchyBond &new_bond, bool update_forces);
