@@ -269,21 +269,23 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 						c_number4 p_torque = _cross(r_versor, p_patch_pos) * der_p;
 						c_number4 q_torque = _cross(q_patch_pos, r_versor) * der_q;
 
-						CUDA_FS_bond_list &bond_list = bonds[p_patch];
-						CUDA_FS_bond &my_bond = bond_list.new_bond();
-
-						my_bond.force = tmp_force;
-						my_bond.force.w = (dist_surf < MD_sigma_ss[0]) ? epsilon * p_mod * q_mod : -energy_part;
-						my_bond.p_torque = p_torque;
-						my_bond.q_torque_ref_frame = _vectors_transpose_c_number4_product(b1, b2, b3, q_torque);
-						my_bond.q = q_idx;
-						my_bond.r_p_less_than_sigma = dist_surf < MD_sigma_ss[0];
-
-						torque -= my_bond.p_torque;
+						torque -= p_torque;
 						F.x -= tmp_force.x;
 						F.y -= tmp_force.y;
 						F.z -= tmp_force.z;
 						F.w += energy_part;
+
+						if(energy_part < 0.f) {
+							CUDA_FS_bond_list &bond_list = bonds[p_patch];
+							CUDA_FS_bond &my_bond = bond_list.new_bond();
+
+							my_bond.force = tmp_force;
+							my_bond.force.w = (dist_surf < MD_sigma_ss[0]) ? epsilon * p_mod * q_mod : -energy_part;
+							my_bond.p_torque = p_torque;
+							my_bond.q_torque_ref_frame = _vectors_transpose_c_number4_product(b1, b2, b3, q_torque);
+							my_bond.q = q_idx;
+							my_bond.r_p_less_than_sigma = dist_surf < MD_sigma_ss[0];
+						}
 					}
 
 				}
