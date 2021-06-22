@@ -81,8 +81,8 @@ __device__ void _patchy_point_two_body_interaction(c_number4 &ppos, c_number4 &q
 	c_number sqr_r = CUDA_DOT(r, r);
 	if(sqr_r >= MD_sqr_rcut[0]) return;
 
-	c_number force_module = 0.;
-	c_number spherical_energy = 0.;
+	c_number force_module = 0.f;
+	c_number spherical_energy = 0.f;
 
 	// centre-centre
 	if(sqr_r >= MD_sqr_rep_rcut[0]) {
@@ -130,7 +130,7 @@ __device__ void _patchy_point_two_body_interaction(c_number4 &ppos, c_number4 &q
 			if(dist < MD_sqr_patch_rcut[0]) {
 				int p_patch_type = MD_patch_types[ptype][p_patch];
 				int q_patch_type = MD_patch_types[qtype][q_patch];
-				number epsilon = MD_patchy_eps[p_patch_type + MD_N_patch_types[0] * q_patch_type];
+				c_number epsilon = MD_patchy_eps[p_patch_type + MD_N_patch_types[0] * q_patch_type];
 
 				if(epsilon != (c_number) 0.f) {
 					c_number r_p = sqrtf(dist);
@@ -171,8 +171,8 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 	c_number sqr_r = CUDA_DOT(r, r);
 	if(sqr_r >= MD_sqr_rcut[0]) return;
 
-	c_number force_module = 0.;
-	c_number spherical_energy = 0.;
+	c_number force_module = 0.f;
+	c_number spherical_energy = 0.f;
 
 	// centre-centre
 	if(sqr_r >= MD_sqr_rep_rcut[0]) {
@@ -216,10 +216,13 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 		c_number cospr = CUDA_DOT(p_patch_pos, r_versor);
 		if(cospr > MD_patch_angular_cutoff[0]) {
 
+			// what follows is a slightly faster way of doing (cospr - 1)^(MD_patch_power - 1) than a regular loop
+			c_number part = SQR(cospr - 1.f);
 			c_number cospr_base = cospr - 1.f;
-			for(int i = 1; i < MD_patch_power[0] - 1; i++) {
-				cospr_base *= cospr - 1.f;
+			for(int i = 0; i < MD_patch_power[0] / 2 - 1; i++) {
+				cospr_base *= part;
 			}
+
 			// we do this so that later we don't have to divide this number by (cospr - 1), which could be 0
 			c_number cospr_part = cospr_base * (cospr - 1.f);
 			c_number p_mod = expf(-cospr_part / (2.f * MD_patch_pow_cosmax[0]));
@@ -232,17 +235,19 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 				};
 				q_patch_pos *= 2.f;
 
-				number cosqr = -CUDA_DOT(q_patch_pos, r_versor);
+				c_number cosqr = -CUDA_DOT(q_patch_pos, r_versor);
 				if(cosqr > MD_patch_angular_cutoff[0]) {
 					int p_patch_type = MD_patch_types[ptype][p_patch];
 					int q_patch_type = MD_patch_types[qtype][q_patch];
 					c_number epsilon = MD_patchy_eps[p_patch_type + MD_N_patch_types[0] * q_patch_type];
 
 					if(epsilon != 0.f) {
+						part = SQR(cosqr - 1.f);
 						c_number cosqr_base = cosqr - 1.f;
-						for(int i = 1; i < MD_patch_power[0] - 1; i++) {
-							cosqr_base *= cosqr - 1.f;
+						for(int i = 0; i < MD_patch_power[0] / 2 - 1; i++) {
+							cosqr_base *= part;
 						}
+
 						c_number cosqr_part = cosqr_base * (cosqr - 1.f);
 						c_number q_mod = expf(-cosqr_part / (2.f * MD_patch_pow_cosmax[0]));
 
