@@ -150,7 +150,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 
 					energy += tmp_energy;
 
-					number tb_energy = (r_p < _sigma_ss) ? 1 : -tmp_energy;
+					number tb_energy = (r_p < _sigma_ss) ? epsilon : -tmp_energy;
 
 					PatchyBond p_bond(q, r_p, p_patch, q_patch, tb_energy);
 					PatchyBond q_bond(p, r_p, q_patch, p_patch, tb_energy);
@@ -236,7 +236,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 						energy += tmp_energy;
 
 						// when we do the swapping the radial part is the one that gets to one beyond the minimum, while the angular part doesn't change
-						number tb_energy = (dist_surf < _sigma_ss) ? p_mod * q_mod : -tmp_energy;
+						number tb_energy = (dist_surf < _sigma_ss) ? epsilon * p_mod * q_mod : -tmp_energy;
 						PatchyBond p_bond(q, dist_surf, p_patch, q_patch, tb_energy);
 						PatchyBond q_bond(p, dist_surf, q_patch, p_patch, tb_energy);
 

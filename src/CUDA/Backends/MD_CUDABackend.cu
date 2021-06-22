@@ -493,7 +493,7 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 	_forces_second_step();
 	if(_print_energy) {
 		c_number energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N());
-		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / N());
+		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / (2. * N()));
 	}
 	cudaThreadSynchronize();
 	_timer_forces->pause();

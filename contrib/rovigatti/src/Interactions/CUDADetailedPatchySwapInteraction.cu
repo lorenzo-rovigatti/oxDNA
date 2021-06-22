@@ -127,14 +127,12 @@ __device__ void _patchy_point_two_body_interaction(c_number4 &ppos, c_number4 &q
 			};
 
 			c_number dist = CUDA_DOT(patch_dist, patch_dist);
-
 			if(dist < MD_sqr_patch_rcut[0]) {
 				int p_patch_type = MD_patch_types[ptype][p_patch];
 				int q_patch_type = MD_patch_types[qtype][q_patch];
 				number epsilon = MD_patchy_eps[p_patch_type + MD_N_patch_types[0] * q_patch_type];
 
 				if(epsilon != (c_number) 0.f) {
-//					printf("%d %d %d %d %lf\n", ptype, p_patch_type, qtype, q_patch_type, epsilon);
 					c_number r_p = sqrtf(dist);
 					if((r_p - MD_rcut_ss[0]) < 0.f) {
 						c_number exp_part = expf(MD_sigma_ss[0] / (r_p - MD_rcut_ss[0]));
@@ -147,7 +145,7 @@ __device__ void _patchy_point_two_body_interaction(c_number4 &ppos, c_number4 &q
 						CUDA_FS_bond &my_bond = bond_list.new_bond();
 
 						my_bond.force = tmp_force;
-						my_bond.force.w = energy_part;
+						my_bond.force.w = (r_p < MD_sigma_ss[0]) ? epsilon : -energy_part;
 						my_bond.p_torque = _cross(p_patch_pos, tmp_force);
 						my_bond.q_torque_ref_frame = _vectors_transpose_c_number4_product(b1, b2, b3, _cross(q_patch_pos, tmp_force));
 						my_bond.q = q_idx;
@@ -270,7 +268,7 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 						CUDA_FS_bond &my_bond = bond_list.new_bond();
 
 						my_bond.force = tmp_force;
-						my_bond.force.w = energy_part;
+						my_bond.force.w = (dist_surf < MD_sigma_ss[0]) ? epsilon * p_mod * q_mod : -energy_part;
 						my_bond.p_torque = p_torque;
 						my_bond.q_torque_ref_frame = _vectors_transpose_c_number4_product(b1, b2, b3, q_torque);
 						my_bond.q = q_idx;
@@ -295,33 +293,39 @@ __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T
 
 		for(int bi = 0; bi < bond_list.n_bonds; bi++) {
 			CUDA_FS_bond &b1 = bond_list.bonds[bi];
+			c_number curr_energy = b1.force.w;
+
 			for(int bj = bi + 1; bj < bond_list.n_bonds; bj++) {
 				CUDA_FS_bond &b2 = bond_list.bonds[bj];
+				c_number other_energy = b2.force.w;
 
-				c_number curr_energy = (b1.r_p_less_than_sigma) ? 1.f : -b1.force.w;
-				c_number other_energy = (b2.r_p_less_than_sigma) ? 1.f : -b2.force.w;
-
-				// the factor 2 takes into account the fact that the pair energy is counted twice
+				// the factor 2 takes into account the fact that the total pair energy is always counted twice
 				F.w += 2.f * MD_lambda[0] * curr_energy * other_energy;
 
 				if(!b1.r_p_less_than_sigma) {
 					c_number factor = -MD_lambda[0] * other_energy;
 
-					F -= factor * b1.force;
-					LR_atomicAddXYZ(forces + b1.q, factor * b1.force);
+					c_number4 tmp_force = b1.force * factor;
+					tmp_force.w = 0.f;
+
+					F -= tmp_force;
+					LR_atomicAddXYZ(forces + b1.q, tmp_force);
 
 					T -= factor * b1.p_torque;
-					LR_atomicAddXYZ(torques + b1.q, factor * b1.q_torque_ref_frame);
+					LR_atomicAddXYZ(torques + b1.q, b1.q_torque_ref_frame * factor);
 				}
 
 				if(!b2.r_p_less_than_sigma) {
 					c_number factor = -MD_lambda[0] * curr_energy;
 
-					F -= factor * b2.force;
-					LR_atomicAddXYZ(forces + b2.q, factor * b2.force);
+					c_number4 tmp_force = b2.force * factor;
+					tmp_force.w = 0.f;
+
+					F -= tmp_force;
+					LR_atomicAddXYZ(forces + b2.q, tmp_force);
 
 					T -= factor * b2.p_torque;
-					LR_atomicAddXYZ(torques + b2.q, factor * b2.q_torque_ref_frame);
+					LR_atomicAddXYZ(torques + b2.q, b2.q_torque_ref_frame * factor);
 				}
 			}
 		}
@@ -385,10 +389,10 @@ __global__ void PS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 		GPU_quat qo = orientations[k_index];
 		get_vectors_from_quat(qo, b1, b2, b3);
 		if(MD_is_KF[0]) {
-			_patchy_KF_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
+			_patchy_KF_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, k_index, box);
 		}
 		else {
-			_patchy_point_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
+			_patchy_point_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, k_index, box);
 		}
 	}
 
