@@ -49,6 +49,7 @@ MD_CUDABackend::MD_CUDABackend() :
 
 	_d_particles_to_mols = _d_mol_sizes = nullptr;
 	_d_molecular_coms = nullptr;
+	_d_buff_particles_to_mols = nullptr;
 
 	_h_ext_forces = nullptr;
 	_d_ext_forces = nullptr;
