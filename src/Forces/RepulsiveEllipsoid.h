@@ -1,12 +1,12 @@
 /**
- * @file    RepulsiveEllipse.h
+ * @file    RepulsiveEllipsoid.h
  * @date    26/mag/2021
  * @author  Andrea
  *
  */
 
-#ifndef REPULSIVEELLIPSE_H_
-#define REPULSIVEELLIPSE_H_
+#ifndef REPULSIVEELLIPSOID_H_
+#define REPULSIVEELLIPSOID_H_
 
 #include "BaseForce.h"
 
@@ -33,14 +33,14 @@
  [center = <float>,<float>,<float> (centre of the sphere, defaults to 0,0,0)]
  @endverbatim
  */
-class RepulsiveEllipse: public BaseForce {
+class RepulsiveEllipsoid: public BaseForce {
 private:
 	/// pointer to the box side
 	BaseBox *_box_ptr;
 
 public:
-	/// center of the sphere
-	LR_vector _center;
+	/// center of the ellipsoid
+	LR_vector _centre;
 
 	/// outer axes of the ellipsoid: for distances smaller than these values particles will not feel any force
 	LR_vector _r_2;
@@ -48,8 +48,8 @@ public:
 	/// inner axes: for distances greater than these values particles will not feel any force
 	LR_vector _r_1;
 
-	RepulsiveEllipse();
-	virtual ~RepulsiveEllipse() {
+	RepulsiveEllipsoid();
+	virtual ~RepulsiveEllipsoid() {
 	}
 
 	void get_settings(input_file&);
@@ -59,4 +59,4 @@ public:
 	virtual number potential(llint step, LR_vector &pos);
 };
 
-#endif // REPULSIVESPHERE
+#endif // REPULSIVEELLIPSOID

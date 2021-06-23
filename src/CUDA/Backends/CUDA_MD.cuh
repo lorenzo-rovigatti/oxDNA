@@ -317,6 +317,36 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				}
 				break;
 			}
+			case CUDA_REPULSIVE_ELLIPSOID: {
+				c_number4 centre = make_c_number4(extF.repulsiveellipsoid.centre.x, extF.repulsiveellipsoid.centre.y, extF.repulsiveellipsoid.centre.z, 0.);
+				c_number4 r_1 = make_c_number4(extF.repulsiveellipsoid.r_1.x, extF.repulsiveellipsoid.r_1.y, extF.repulsiveellipsoid.r_1.z, 0.);
+				c_number4 r_2 = make_c_number4(extF.repulsiveellipsoid.r_2.x, extF.repulsiveellipsoid.r_2.y, extF.repulsiveellipsoid.r_2.z, 0.);
+				c_number4 dist = box->minimum_image(centre, ppos);
+
+				c_number internal_cut = SQR(dist.x) / SQR(r_2.x) + SQR(dist.y) / SQR(r_2.y) + SQR(dist.z) / SQR(r_2.z);
+				c_number external_cut = SQR(dist.x) / SQR(r_1.x) + SQR(dist.y) / SQR(r_1.y) + SQR(dist.z) / SQR(r_1.z);
+
+				if(internal_cut >= 1. || external_cut <= 1.) {
+					c_number mdist = _module(dist);
+
+					c_number force_part = extF.repulsiveellipsoid.stiff / mdist;
+
+					F.x += -dist.x * force_part;
+					F.y += -dist.y * force_part;
+					F.z += -dist.z * force_part;
+				}
+
+				c_number mdist = _module(dist);
+				c_number radius = extF.repulsivesphere.r0 + extF.repulsivesphere.rate*(c_number) step;
+				c_number radius_ext = extF.repulsivesphere.r_ext;
+				if(mdist > radius && mdist < radius_ext) {
+					c_number force_mod = extF.repulsivesphere.stiff*((c_number)1.f - radius/mdist);
+					F.x += -dist.x*force_mod;
+					F.y += -dist.y*force_mod;
+					F.z += -dist.z*force_mod;
+				}
+				break;
+			}
 			default: {
 				break;
 			}
