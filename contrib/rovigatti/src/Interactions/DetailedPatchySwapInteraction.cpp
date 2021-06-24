@@ -31,6 +31,7 @@ void DetailedPatchySwapInteraction::get_settings(input_file &inp) {
 
 	getInputBool(&inp, "DPS_is_KF", &_is_KF, 0);
 	if(_is_KF) {
+		getInputInt(&inp, "DPS_patch_power", &_patch_power, 0);
 		getInputNumber(&inp, "DPS_KF_delta", &_patch_delta, 1);
 		getInputNumber(&inp, "DPS_KF_cosmax", &_patch_cosmax, 1);
 	}
