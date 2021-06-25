@@ -45,7 +45,6 @@ __constant__ float MD_patch_angular_cutoff[1];
 
 struct __align__(16) CUDA_FS_bond {
 	int q;
-	bool r_p_less_than_sigma;
 	c_number4 force;
 	c_number4 p_torque;
 	c_number4 q_torque_ref_frame;
@@ -141,21 +140,28 @@ __device__ void _patchy_point_two_body_interaction(c_number4 &ppos, c_number4 &q
 						c_number force_mod = epsilon * MD_A_part[0] * exp_part * (4.f * MD_B_part[0] / (SQR(dist) * r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
 						c_number4 tmp_force = patch_dist * (force_mod / r_p);
 
-						CUDA_FS_bond_list &bond_list = bonds[p_patch];
-						CUDA_FS_bond &my_bond = bond_list.new_bond();
+						c_number4 p_torque = _cross(p_patch_pos, tmp_force);
 
-						my_bond.force = tmp_force;
-						my_bond.force.w = (r_p < MD_sigma_ss[0]) ? epsilon : -energy_part;
-						my_bond.p_torque = _cross(p_patch_pos, tmp_force);
-						my_bond.q_torque_ref_frame = _vectors_transpose_c_number4_product(b1, b2, b3, _cross(q_patch_pos, tmp_force));
-						my_bond.q = q_idx;
-						my_bond.r_p_less_than_sigma = r_p < MD_sigma_ss[0];
-
-						torque -= my_bond.p_torque;
+						torque -= p_torque;
 						F.x -= tmp_force.x;
 						F.y -= tmp_force.y;
 						F.z -= tmp_force.z;
 						F.w += energy_part;
+
+						CUDA_FS_bond_list &bond_list = bonds[p_patch];
+						CUDA_FS_bond &my_bond = bond_list.new_bond();
+
+						my_bond.q = q_idx;
+
+						if(r_p > MD_sigma_ss[0]) {
+							my_bond.force = tmp_force;
+							my_bond.force.w = -energy_part;
+							my_bond.p_torque = p_torque;
+							my_bond.q_torque_ref_frame = _vectors_transpose_c_number4_product(b1, b2, b3, _cross(q_patch_pos, tmp_force));
+						}
+						else {
+							my_bond.force.w = epsilon;
+						}
 					}
 				}
 			}
@@ -214,17 +220,18 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 		p_patch_pos *= 2.f;
 
 		c_number cospr = CUDA_DOT(p_patch_pos, r_versor);
-		if(cospr > MD_patch_angular_cutoff[0]) {
+		c_number cospr_minus_one = cospr - 1.f;
+		if(cospr_minus_one < MD_patch_angular_cutoff[0]) {
 
 			// what follows is a slightly faster way of doing (cospr - 1)^(MD_patch_power - 1) than a regular loop
-			c_number part = SQR(cospr - 1.f);
-			c_number cospr_base = cospr - 1.f;
+			c_number part = SQR(cospr_minus_one);
+			c_number cospr_base = cospr_minus_one;
 			for(int i = 0; i < MD_patch_power[0] / 2 - 1; i++) {
 				cospr_base *= part;
 			}
 
 			// we do this so that later we don't have to divide this number by (cospr - 1), which could be 0
-			c_number cospr_part = cospr_base * (cospr - 1.f);
+			c_number cospr_part = cospr_base * cospr_minus_one;
 			c_number p_mod = expf(-cospr_part / (2.f * MD_patch_pow_cosmax[0]));
 
 			for(int q_patch = 0; q_patch < q_N_patches; q_patch++) {
@@ -236,55 +243,57 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 				q_patch_pos *= 2.f;
 
 				c_number cosqr = -CUDA_DOT(q_patch_pos, r_versor);
-				if(cosqr > MD_patch_angular_cutoff[0]) {
+				c_number cosqr_minus_one = cosqr - 1.f;
+				if(cosqr_minus_one < MD_patch_angular_cutoff[0]) {
 					int p_patch_type = MD_patch_types[ptype][p_patch];
 					int q_patch_type = MD_patch_types[qtype][q_patch];
 					c_number epsilon = MD_patchy_eps[p_patch_type + MD_N_patch_types[0] * q_patch_type];
 
 					if(epsilon != 0.f) {
-						part = SQR(cosqr - 1.f);
-						c_number cosqr_base = cosqr - 1.f;
+						part = SQR(cosqr_minus_one);
+						c_number cosqr_base = cosqr_minus_one;
 						for(int i = 0; i < MD_patch_power[0] / 2 - 1; i++) {
 							cosqr_base *= part;
 						}
 
-						c_number cosqr_part = cosqr_base * (cosqr - 1.f);
+						c_number cosqr_part = cosqr_base * cosqr_minus_one;
 						c_number q_mod = expf(-cosqr_part / (2.f * MD_patch_pow_cosmax[0]));
 
 						c_number energy_part = exp_part * p_mod * q_mod;
 
 						// radial part
-						c_number4 tmp_force = r_versor * (p_mod * q_mod * 5.f * (rmod - 1.f) * exp_part * r8b10);
+						c_number4 radial_force = r_versor * (p_mod * q_mod * 5.f * (rmod - 1.f) * exp_part * r8b10);
 
 						// angular p part
 						c_number der_p = exp_part * q_mod * (0.5f * MD_patch_power[0] * p_mod * cospr_base / MD_patch_pow_cosmax[0]);
 						c_number4 p_ortho = p_patch_pos - cospr * r_versor;
-						tmp_force += p_ortho * (der_p / rmod);
+						c_number4 angular_force = p_ortho * (der_p / rmod);
 
 						// angular q part
 						c_number der_q = exp_part * p_mod * (-0.5f * MD_patch_power[0] * q_mod * cosqr_base / MD_patch_pow_cosmax[0]);
 						c_number4 q_ortho = q_patch_pos + cosqr * r_versor;
-						tmp_force += q_ortho * (der_q / rmod);
+						angular_force += q_ortho * (der_q / rmod);
 
 						c_number4 p_torque = _cross(r_versor, p_patch_pos) * der_p;
 						c_number4 q_torque = _cross(q_patch_pos, r_versor) * der_q;
 
+						c_number4 tot_force = radial_force + angular_force;
+
 						torque -= p_torque;
-						F.x -= tmp_force.x;
-						F.y -= tmp_force.y;
-						F.z -= tmp_force.z;
+						F.x -= tot_force.x;
+						F.y -= tot_force.y;
+						F.z -= tot_force.z;
 						F.w += energy_part;
 
 						if(energy_part < 0.f) {
 							CUDA_FS_bond_list &bond_list = bonds[p_patch];
 							CUDA_FS_bond &my_bond = bond_list.new_bond();
 
-							my_bond.force = tmp_force;
+							my_bond.force = (dist_surf < MD_sigma_ss[0]) ? angular_force : tot_force;
 							my_bond.force.w = (dist_surf < MD_sigma_ss[0]) ? epsilon * p_mod * q_mod : -energy_part;
 							my_bond.p_torque = p_torque;
 							my_bond.q_torque_ref_frame = _vectors_transpose_c_number4_product(b1, b2, b3, q_torque);
 							my_bond.q = q_idx;
-							my_bond.r_p_less_than_sigma = dist_surf < MD_sigma_ss[0];
 						}
 					}
 
@@ -309,31 +318,29 @@ __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T
 				// the factor 2 takes into account the fact that the total pair energy is always counted twice
 				F.w += 2.f * MD_lambda[0] * curr_energy * other_energy;
 
-				if(!b1.r_p_less_than_sigma) {
-					c_number factor = -MD_lambda[0] * other_energy;
+				// b1
+				c_number factor = -MD_lambda[0] * other_energy;
 
-					c_number4 tmp_force = b1.force * factor;
-					tmp_force.w = 0.f;
+				c_number4 tmp_force = b1.force * factor;
+				tmp_force.w = 0.f;
 
-					F -= tmp_force;
-					LR_atomicAddXYZ(forces + b1.q, tmp_force);
+				F -= tmp_force;
+				LR_atomicAddXYZ(forces + b1.q, tmp_force);
 
-					T -= factor * b1.p_torque;
-					LR_atomicAddXYZ(torques + b1.q, b1.q_torque_ref_frame * factor);
-				}
+				T -= factor * b1.p_torque;
+				LR_atomicAddXYZ(torques + b1.q, b1.q_torque_ref_frame * factor);
 
-				if(!b2.r_p_less_than_sigma) {
-					c_number factor = -MD_lambda[0] * curr_energy;
+				// b2
+				factor = -MD_lambda[0] * curr_energy;
 
-					c_number4 tmp_force = b2.force * factor;
-					tmp_force.w = 0.f;
+				tmp_force = b2.force * factor;
+				tmp_force.w = 0.f;
 
-					F -= tmp_force;
-					LR_atomicAddXYZ(forces + b2.q, tmp_force);
+				F -= tmp_force;
+				LR_atomicAddXYZ(forces + b2.q, tmp_force);
 
-					T -= factor * b2.p_torque;
-					LR_atomicAddXYZ(torques + b2.q, b2.q_torque_ref_frame * factor);
-				}
+				T -= factor * b2.p_torque;
+				LR_atomicAddXYZ(torques + b2.q, b2.q_torque_ref_frame * factor);
 			}
 		}
 	}

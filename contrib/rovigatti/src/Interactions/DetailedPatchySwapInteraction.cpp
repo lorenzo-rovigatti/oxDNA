@@ -58,9 +58,10 @@ void DetailedPatchySwapInteraction::init() {
 		_sigma_ss = 0.;
 		_patch_pow_delta = pow(_patch_delta, (number) 10.);
 		_patch_pow_cosmax = pow(1. - _patch_cosmax, (number) _patch_power);
-		_patch_angular_cutoff = (1. - _patch_cosmax) * 1.5;
+		// this makes sure that at the cutoff the angular modulation is 10^-2
+		_patch_angular_cutoff = (1. - _patch_cosmax) * std::pow(4 * std::log(10), 1. / _patch_power);
 
-		OX_LOG(Logger::LOG_INFO, "FS-KF parameters: lambda = %lf, patch_delta = %lf, patch_cosmax = %lf", _lambda, _patch_delta, _patch_cosmax);
+		OX_LOG(Logger::LOG_INFO, "FS-KF parameters: lambda = %lf, patch_delta = %lf, patch_power = %d, patch_cosmax = %lf, patch_angular_cutoff = %lf", _lambda, _patch_delta, _patch_power, _patch_cosmax, _patch_angular_cutoff);
 	}
 	else {
 		ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body_point);
@@ -169,13 +170,15 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 						p->torque -= p_torque;
 						q->torque += q_torque;
 
-						p_bond.force = tmp_force;
-						p_bond.p_torque = p_torque;
-						p_bond.q_torque = q_torque;
+						if(r_p > _sigma_ss) {
+							p_bond.force = tmp_force;
+							p_bond.p_torque = p_torque;
+							p_bond.q_torque = q_torque;
 
-						q_bond.force = -tmp_force;
-						q_bond.p_torque = -q_torque;
-						q_bond.q_torque = -p_torque;
+							q_bond.force = -tmp_force;
+							q_bond.p_torque = -q_torque;
+							q_bond.q_torque = -p_torque;
+						}
 					}
 
 					_particle_bonds(p).emplace_back(p_bond);
@@ -213,24 +216,26 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 		LR_vector p_patch_pos = p->int_centers[p_patch] * 2;
 
 		number cospr = p_patch_pos * r_versor;
-		if(cospr > _patch_angular_cutoff) {
-			number cospr_base = pow(cospr - 1., _patch_power - 1);
+		number cospr_minus_one = cospr - 1.;
+		if(cospr_minus_one < _patch_angular_cutoff) {
+			number cospr_base = pow(cospr_minus_one, _patch_power - 1);
 			// we do this so that later we don't have to divide this number by (cospr - 1), which could be 0
-			number cospr_part = cospr_base * (cospr - 1.);
+			number cospr_part = cospr_base * cospr_minus_one;
 			number p_mod = exp(-cospr_part / (2. * _patch_pow_cosmax));
 
 			for(uint q_patch = 0; q_patch < q->N_int_centers(); q_patch++) {
 				LR_vector q_patch_pos = q->int_centers[q_patch] * 2;
 
 				number cosqr = -(q_patch_pos * r_versor);
-				if(cosqr > _patch_angular_cutoff) {
+				number cosqr_minus_one = cosqr - 1.;
+				if(cosqr_minus_one < _patch_angular_cutoff) {
 					uint p_patch_type = _patch_types[p->type][p_patch];
 					uint q_patch_type = _patch_types[q->type][q_patch];
 					number epsilon = _patchy_eps[p_patch_type + _N_patch_types * q_patch_type];
 
 					if(epsilon != 0.) {
-						number cosqr_base = pow(cosqr - 1., _patch_power - 1);
-						number cosqr_part = cosqr_base * (cosqr - 1.);
+						number cosqr_base = pow(cosqr_minus_one, _patch_power - 1);
+						number cosqr_part = cosqr_base * cosqr_minus_one;
 						number q_mod = exp(-cosqr_part / (2. * _patch_pow_cosmax));
 
 						number tmp_energy = exp_part * p_mod * q_mod;
@@ -245,32 +250,34 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 
 							if(update_forces) {
 								// radial part
-								LR_vector tmp_force = r_versor * (p_mod * q_mod * 5. * (rmod - 1.) * exp_part * r8b10);
+								LR_vector radial_force = r_versor * (p_mod * q_mod * 5. * (rmod - 1.) * exp_part * r8b10);
 
 								// angular p part
 								number der_p = exp_part * q_mod * (0.5 * _patch_power * p_mod * cospr_base / _patch_pow_cosmax);
 								LR_vector p_ortho = p_patch_pos - cospr * r_versor;
-								tmp_force += p_ortho * (der_p / rmod);
+								LR_vector angular_force = p_ortho * (der_p / rmod);
 
 								// angular q part
 								number der_q = exp_part * p_mod * (-0.5 * _patch_power * q_mod * cosqr_base / _patch_pow_cosmax);
 								LR_vector q_ortho = q_patch_pos + cosqr * r_versor;
-								tmp_force += q_ortho * (der_q / rmod);
+								angular_force += q_ortho * (der_q / rmod);
+
+								LR_vector tot_force = radial_force + angular_force;
 
 								LR_vector p_torque = p->orientationT * (r_versor.cross(p_patch_pos) * der_p);
 								LR_vector q_torque = q->orientationT * (q_patch_pos.cross(r_versor) * der_q);
 
-								p->force -= tmp_force;
-								q->force += tmp_force;
+								p->force -= tot_force;
+								q->force += tot_force;
 
 								p->torque -= p_torque;
 								q->torque += q_torque;
 
-								p_bond.force = tmp_force;
+								p_bond.force = (dist_surf < _sigma_ss) ? angular_force : tot_force;
 								p_bond.p_torque = p_torque;
 								p_bond.q_torque = q_torque;
 
-								q_bond.force = -tmp_force;
+								q_bond.force = (dist_surf < _sigma_ss) ? -angular_force : -tot_force;
 								q_bond.p_torque = -q_torque;
 								q_bond.q_torque = -p_torque;
 							}
@@ -305,7 +312,7 @@ number DetailedPatchySwapInteraction::_three_body(BaseParticle *p, PatchyBond &n
 			energy += _lambda * curr_energy * other_energy;
 
 			if(update_forces) {
-				if(new_bond.r_p > _sigma_ss) {
+				{
 					BaseParticle *other = new_bond.other;
 
 					number factor = -_lambda * other_energy;
@@ -318,7 +325,7 @@ number DetailedPatchySwapInteraction::_three_body(BaseParticle *p, PatchyBond &n
 					other->torque += factor * new_bond.q_torque;
 				}
 
-				if(other_bond.r_p > _sigma_ss) {
+				{
 					BaseParticle *other = other_bond.other;
 
 					number factor = -_lambda * curr_energy;
