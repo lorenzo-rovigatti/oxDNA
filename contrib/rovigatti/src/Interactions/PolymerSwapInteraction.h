@@ -94,7 +94,7 @@ protected:
 
 public:
 	enum {
-		BONDED = 0, NONBONDED = 1
+		BONDED = 0, NONBONDED = 1, STICKY = 2
 	};
 	enum {
 		MONOMER = 0, STICKY_ANY = 1, STICKY_A = 5, STICKY_B = 9
@@ -119,6 +119,9 @@ public:
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+
+	virtual number pair_nonbonded_WCA(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_nonbonded_sticky(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 
 	virtual void read_topology(int *N_stars, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);

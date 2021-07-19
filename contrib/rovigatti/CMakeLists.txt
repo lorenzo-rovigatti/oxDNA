@@ -8,12 +8,13 @@ ADD_CUSTOM_TARGET(rovigatti
 			LevyInteraction CPMixtureInteraction StarrInteraction mWInteraction 
 			GraftedInteraction FSInteraction TSPAnalysis StarrConf ConstructwiseBonds 
 			EmptyVolume FSConf Gyradius PatchySwapInteraction DetailedPatchySwapInteraction 
-			PatchyBonds
+			PatchyBonds Bonds
 )
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 # Observables
+ADD_LIBRARY(Bonds SHARED EXCLUDE_FROM_ALL src/Observables/Bonds.cpp)
 ADD_LIBRARY(PatchyBonds SHARED EXCLUDE_FROM_ALL src/Observables/PatchyBonds.cpp)
 ADD_LIBRARY(ConstructwiseBonds SHARED EXCLUDE_FROM_ALL src/Observables/ConstructwiseBonds.cpp)
 ADD_LIBRARY(EmptyVolume SHARED EXCLUDE_FROM_ALL src/Observables/EmptyVolume.cpp)

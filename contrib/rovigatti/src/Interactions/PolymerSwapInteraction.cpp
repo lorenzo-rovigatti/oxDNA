@@ -8,7 +8,8 @@
 PolymerSwapInteraction::PolymerSwapInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
-	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_nonbonded_WCA);
+	ADD_INTERACTION_TO_MAP(STICKY, pair_nonbonded_sticky);
 
 }
 
@@ -421,7 +422,36 @@ number PolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseP
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
+	number energy = pair_nonbonded_WCA(p, q, false, update_forces);
+	energy += pair_nonbonded_sticky(p, q, false, update_forces);
+
+	return energy;
+}
+
+number PolymerSwapInteraction::pair_nonbonded_WCA(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) {
+		return (number) 0.f;
+	}
+
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
+	}
+
 	number energy = _WCA(p, q, update_forces);
+
+	return energy;
+}
+
+number PolymerSwapInteraction::pair_nonbonded_sticky(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(p->is_bonded(q)) {
+		return (number) 0.f;
+	}
+
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
+	}
+
+	number energy = 0.;
 	if(_sticky_interaction(p->btype, q->btype)) {
 		energy += _sticky(p, q, update_forces);
 	}
