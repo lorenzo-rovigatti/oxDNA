@@ -8,7 +8,7 @@ ADD_CUSTOM_TARGET(rovigatti
 			LevyInteraction CPMixtureInteraction StarrInteraction mWInteraction 
 			GraftedInteraction FSInteraction TSPAnalysis StarrConf ConstructwiseBonds 
 			EmptyVolume FSConf Gyradius PatchySwapInteraction DetailedPatchySwapInteraction 
-			PatchyBonds Bonds
+			PatchyBonds Bonds ValerioInteraction
 )
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -53,6 +53,7 @@ ADD_LIBRARY(PolydisperseLTInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/P
 ADD_LIBRARY(PolymerSwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolymerSwapInteraction.cpp)
 ADD_LIBRARY(PatchySwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PatchySwapInteraction.cpp)
 ADD_LIBRARY(DetailedPatchySwapInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/DetailedPatchySwapInteraction.cpp)
+ADD_LIBRARY(ValerioInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/ValerioInteraction.cpp)
 
 FIND_PACKAGE(PkgConfig)
 IF(PkgConfig_FOUND)

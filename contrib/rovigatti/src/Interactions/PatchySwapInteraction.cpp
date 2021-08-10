@@ -163,7 +163,6 @@ number PatchySwapInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q,
 				if(!no_three_body) {
 					energy += _three_body(p, p_bond, update_forces);
 					energy += _three_body(q, q_bond, update_forces);
-
 				}
 			}
 		}
