@@ -26,8 +26,8 @@ protected:
 	number _E_cut;
 	/// Patchy-related quantities
 	number _sqr_patch_rcut;
-	number _patch_E_cut;
 	number _patch_alpha = 0.11;
+	int _patch_pow = 10;
 	number _patch_pow_alpha;
 
 	/// 3-body semiflexibility
@@ -38,9 +38,7 @@ protected:
 	number _patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	number _spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
-	number _three_body(BaseParticle *p, ValerioBond &new_bond, bool update_forces);
-
-	std::vector<std::vector<ValerioBond>> _all_particle_bonds;
+	std::set<ParticlePair> _bonds;
 
 public:
 	enum {
@@ -64,18 +62,6 @@ public:
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
-};
-
-struct ValerioBond {
-	BaseParticle *other;
-	LR_vector r;
-	number modulation;
-
-	ValerioBond(BaseParticle *o, LR_vector nr, number nm) :
-					other(o),
-					r(nr),
-					modulation(nm) {
-	}
 };
 
 extern "C" ValerioInteraction *make_ValerioInteraction();
