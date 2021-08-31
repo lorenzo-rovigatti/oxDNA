@@ -13,6 +13,8 @@ ADD_CUSTOM_TARGET(rovigatti
 
 SET(CMAKE_SHARED_LIBRARY_PREFIX "")
 
+link_libraries(common)
+
 # Observables
 ADD_LIBRARY(Bonds SHARED EXCLUDE_FROM_ALL src/Observables/Bonds.cpp)
 ADD_LIBRARY(PatchyBonds SHARED EXCLUDE_FROM_ALL src/Observables/PatchyBonds.cpp)
@@ -25,6 +27,7 @@ ADD_LIBRARY(StarrConf SHARED EXCLUDE_FROM_ALL src/Observables/StarrConf.cpp)
 ADD_LIBRARY(TSPAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/TSPAnalysis.cpp)
 ADD_LIBRARY(Widom SHARED EXCLUDE_FROM_ALL src/Observables/Widom.cpp)
 ADD_LIBRARY(LevyDelta SHARED EXCLUDE_FROM_ALL src/Observables/LevyDelta.cpp)
+target_link_libraries(LevyDelta LevyInteraction)
 ADD_LIBRARY(CPAnalysis SHARED EXCLUDE_FROM_ALL src/Observables/CPAnalysis.cpp)
 ADD_LIBRARY(Remoteness SHARED EXCLUDE_FROM_ALL src/Observables/Remoteness.cpp)
 ADD_LIBRARY(VoidPercolation SHARED EXCLUDE_FROM_ALL src/Observables/VoidPercolation.cpp)
@@ -41,6 +44,7 @@ TARGET_LINK_LIBRARIES(MGAssemblyConf FSInteraction)
 # Interactions
 ADD_LIBRARY(TSPInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/TSPInteraction.cpp)
 ADD_LIBRARY(PolymerInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/PolymerInteraction.cpp)
+target_link_libraries(PolymerInteraction TSPInteraction)
 ADD_LIBRARY(FSInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/FSInteraction.cpp)
 ADD_LIBRARY(GraftedInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/GraftedInteraction.cpp src/Interactions/TSPInteraction.cpp)
 ADD_LIBRARY(mWInteraction SHARED EXCLUDE_FROM_ALL src/Interactions/mWInteraction.cpp)
