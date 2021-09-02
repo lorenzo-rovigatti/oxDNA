@@ -1,3 +1,5 @@
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
 	SET(exe_name oxDNA_debug)
 	SET(lib_name common_debug)
