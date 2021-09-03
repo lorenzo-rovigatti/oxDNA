@@ -197,6 +197,19 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 	return energy;
 }
 
+// here we compute x^n as (x*x)^((n-1)/2) * x since we now that n is always an odd number
+inline double _lr_pow(double x, size_t n){
+    double res = x;
+    x *= x;
+
+    n = (n - 1) / 2;
+    while(n-- > 0){
+        res *= x;
+    }
+
+    return res;
+}
+
 number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 	if(sqr_r > _sqr_rcut) {
@@ -218,7 +231,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 		number cospr = p_patch_pos * r_versor;
 		number cospr_minus_one = cospr - 1.;
 		if(cospr_minus_one < _patch_angular_cutoff) {
-			number cospr_base = pow(cospr_minus_one, _patch_power - 1);
+			number cospr_base = _lr_pow(cospr_minus_one, _patch_power - 1);
 			// we do this so that later we don't have to divide this number by (cospr - 1), which could be 0
 			number cospr_part = cospr_base * cospr_minus_one;
 			number p_mod = exp(-cospr_part / (2. * _patch_pow_cosmax));
@@ -234,7 +247,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 					number epsilon = _patchy_eps[p_patch_type + _N_patch_types * q_patch_type];
 
 					if(epsilon != 0.) {
-						number cosqr_base = pow(cosqr_minus_one, _patch_power - 1);
+						number cosqr_base = _lr_pow(cosqr_minus_one, _patch_power - 1);
 						number cosqr_part = cosqr_base * cosqr_minus_one;
 						number q_mod = exp(-cosqr_part / (2. * _patch_pow_cosmax));
 
