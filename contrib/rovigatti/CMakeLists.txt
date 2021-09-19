@@ -11,6 +11,10 @@ ADD_CUSTOM_TARGET(rovigatti
 			PatchyBonds Bonds ValerioInteraction
 )
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	link_libraries(${ARGV0} "-undefined dynamic_lookup")
+endif()
+
 # this removes the prefix from each library. I didn't find any other way of doing it for all 
 # libraries at once if the library type is MODULE
 function(add_library_no_prefix)
