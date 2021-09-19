@@ -11,6 +11,7 @@ ADD_CUSTOM_TARGET(rovigatti
 			PatchyBonds Bonds ValerioInteraction
 )
 
+# without this bit clang-based compilation fails with some "undefined symbols" errors during the linking stage
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	link_libraries(${ARGV0} "-undefined dynamic_lookup")
 endif()
@@ -65,7 +66,7 @@ FIND_PACKAGE(PkgConfig)
 IF(PkgConfig_FOUND)
 	PKG_CHECK_MODULES(GSL gsl)
 	IF(GSL_FOUND)
-		ADD_LIBRARY(NathanNeighs MODULE EXCLUDE_FROM_ALL src/Observables/NathanNeighs.cpp)
+		add_library_no_prefix(NathanNeighs MODULE EXCLUDE_FROM_ALL src/Observables/NathanNeighs.cpp)
 		TARGET_LINK_LIBRARIES(NathanNeighs ${GSL_LIBRARIES})
 	ENDIF(GSL_FOUND)
 ENDIF(PkgConfig_FOUND)
