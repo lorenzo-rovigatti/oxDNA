@@ -215,12 +215,17 @@ __device__ void _flexibility_three_body(c_number4 &ppos, c_number4 &n1_pos, c_nu
 	LR_atomicAddXYZ(three_body_forces + n2_idx, n2_force);
 }
 
+__device__ int get_monomer_type(const c_number4 &r_i) {
+	int my_btype = __float_as_int(r_i.w) >> 22;
+	return my_btype > 0;
+}
+
 __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
-	int ptype = get_particle_type(ppos);
+	int ptype = get_monomer_type(ppos);
 
 	// the first value of each column is the number of bonded neighbours
 	int n_bonded_neighs = bonded_neighs[IND];
@@ -228,7 +233,7 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 	for(int i = 1; i <= n_bonded_neighs; i++) {
 		int i_idx = bonded_neighs[MD_N[0] * i + IND];
 		c_number4 i_pos = poss[i_idx];
-		int qtype = get_particle_type(i_pos);
+		int qtype = get_monomer_type(i_pos);
 		int int_type = ptype + qtype;
 
 		_FENE(ppos, i_pos, int_type, F, box);
@@ -263,7 +268,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
 	int p_btype = get_particle_btype(ppos);
-	int p_type = get_particle_type(ppos);
+	int p_type = get_monomer_type(ppos);
 
 	CUDA_FS_bond_list bonds;
 
@@ -271,7 +276,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 		if(j != IND) {
 			c_number4 qpos = poss[j];
 			int q_btype = get_particle_btype(qpos);
-			int q_type = get_particle_type(qpos);
+			int q_type = get_monomer_type(qpos);
 			int int_type = p_type + q_type;
 
 			_WCA(ppos, qpos, int_type, F, box);
@@ -296,7 +301,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 
 	int num_neighs = c_number_neighs[IND];
 	int p_btype = get_particle_btype(ppos);
-	int p_type = get_particle_type(ppos);
+	int p_type = get_monomer_type(ppos);
 
 	CUDA_FS_bond_list bonds;
 
@@ -305,7 +310,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 
 		c_number4 qpos = poss[q_index];
 		int q_btype = get_particle_btype(qpos);
-		int q_type = get_particle_type(qpos);
+		int q_type = get_monomer_type(qpos);
 		int int_type = p_type + q_type;
 
 		_WCA(ppos, qpos, int_type, F, box);
