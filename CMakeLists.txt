@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 if(POLICY CMP0054)
 	cmake_policy(SET CMP0054 NEW)
@@ -43,17 +43,10 @@ ENDIF(INTEL)
 
 PROJECT(oxDNA)
 
-# c++-14 support is mandatory
-IF(CMAKE_VERSION VERSION_LESS "3.1")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-ELSE()
-	SET(CMAKE_CXX_STANDARD 14)
-	SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-ENDIF()
-
 # The default behaviour is to compile with optimisations
 SET(CMAKE_BUILD_TYPE Release)
 
+# c++-14 support is mandatory
 IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
 	SET(CMAKE_CXX_STANDARD 14)
 	SET(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -96,7 +89,14 @@ IF(NOT Debug)
 	ELSE()
 		ADD_DEFINITIONS(-ffast-math)
 		if(NATIVE_COMPILATION)
-			ADD_DEFINITIONS(-march=native)
+			include(CheckCXXCompilerFlag)
+            unset(COMPILER_SUPPORTS_MARCH_NATIVE CACHE)
+            CHECK_CXX_COMPILER_FLAG(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
+            if(COMPILER_SUPPORTS_MARCH_NATIVE)
+                    ADD_DEFINITIONS(-march=native)
+			else()
+				message(STATUS "The '-march=native' flag is not supported, compiling without it")
+            endif()
 		else()
 			message(STATUS "Compiling without the '-march=native' flag")
 		endif()

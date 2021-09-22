@@ -15,7 +15,6 @@ using namespace std;
 
 DetailedPatchySwapInteraction::DetailedPatchySwapInteraction() :
 				BaseInteraction() {
-	ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body);
 	ADD_INTERACTION_TO_MAP(SPHERICAL, _spherical_patchy_two_body);
 
 }
@@ -28,8 +27,17 @@ void DetailedPatchySwapInteraction::get_settings(input_file &inp) {
 	BaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "DPS_lambda", &_lambda, 0);
-	getInputNumber(&inp, "DPS_sigma_ss", &_sigma_ss, 0);
 	getInputString(&inp, "DPS_interaction_matrix_file", _interaction_matrix_file, 1);
+
+	getInputBool(&inp, "DPS_is_KF", &_is_KF, 0);
+	if(_is_KF) {
+		getInputInt(&inp, "DPS_patch_power", &_patch_power, 0);
+		getInputNumber(&inp, "DPS_KF_delta", &_patch_delta, 1);
+		getInputNumber(&inp, "DPS_KF_cosmax", &_patch_cosmax, 1);
+	}
+	else {
+		getInputNumber(&inp, "DPS_sigma_ss", &_sigma_ss, 0);
+	}
 
 	getInputNumber(&inp, "DPS_spherical_attraction_strength", &_spherical_attraction_strength, 0.);
 	if(_spherical_attraction_strength > 0.) {
@@ -41,11 +49,34 @@ void DetailedPatchySwapInteraction::init() {
 	_rep_rcut = pow(2., 1. / 6.);
 	_sqr_rep_rcut = SQR(_rep_rcut);
 
-	_rcut_ss = 1.5 * _sigma_ss;
+	if(_is_KF) {
+		ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body_KF);
 
-	_patch_rcut = _rcut_ss;
+		_patch_rcut = 1.5 * _patch_delta;
+
+		// the patch-patch radial attraction is centred around 0 (considering that we use the distance between the two surfaces as a variable)
+		_sigma_ss = 0.;
+		_patch_pow_delta = pow(_patch_delta, (number) 10.);
+		_patch_pow_cosmax = pow(1. - _patch_cosmax, (number) _patch_power);
+		// this makes sure that at the cutoff the angular modulation is 10^-2
+		_patch_angular_cutoff = (1. - _patch_cosmax) * std::pow(4 * std::log(10), 1. / _patch_power);
+
+		OX_LOG(Logger::LOG_INFO, "FS-KF parameters: lambda = %lf, patch_delta = %lf, patch_power = %d, patch_cosmax = %lf, patch_angular_cutoff = %lf", _lambda, _patch_delta, _patch_power, _patch_cosmax, _patch_angular_cutoff);
+	}
+	else {
+		ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body_point);
+
+		_rcut_ss = 1.5 * _sigma_ss;
+		_patch_rcut = _rcut_ss;
+
+		number B_ss = 1. / (1. + 4. * SQR(1. - _rcut_ss / _sigma_ss));
+		_A_part = -1. / (B_ss - 1.) / exp(1. / (1. - _rcut_ss / _sigma_ss));
+		_B_part = B_ss * pow(_sigma_ss, 4.);
+
+		OX_LOG(Logger::LOG_INFO, "FS parameters: lambda = %lf, A_part = %lf, B_part = %lf", _lambda, _A_part, _B_part);
+	}
+
 	_sqr_patch_rcut = SQR(_patch_rcut);
-
 	_rcut = 1. + _patch_rcut;
 
 	if(_spherical_attraction_strength > 0.) {
@@ -58,12 +89,6 @@ void DetailedPatchySwapInteraction::init() {
 	}
 
 	_sqr_rcut = SQR(_rcut);
-
-	number B_ss = 1. / (1. + 4. * SQR(1. - _rcut_ss / _sigma_ss));
-	_A_part = -1. / (B_ss - 1.) / exp(1. / (1. - _rcut_ss / _sigma_ss));
-	_B_part = B_ss * pow(_sigma_ss, 4.);
-
-	OX_LOG(Logger::LOG_INFO, "FS parameters: lambda = %lf, A_part = %lf, B_part = %lf", _lambda, _A_part, _B_part);
 }
 
 number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -101,7 +126,7 @@ number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p
 	return energy;
 }
 
-number DetailedPatchySwapInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 	if(sqr_r > _sqr_rcut) {
 		return (number) 0.f;
@@ -127,7 +152,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body(BaseParticle *p, BasePart
 
 					energy += tmp_energy;
 
-					number tb_energy = (r_p < _sigma_ss) ? 1 : -tmp_energy;
+					number tb_energy = (r_p < _sigma_ss) ? epsilon : -tmp_energy;
 
 					PatchyBond p_bond(q, r_p, p_patch, q_patch, tb_energy);
 					PatchyBond q_bond(p, r_p, q_patch, p_patch, tb_energy);
@@ -145,13 +170,15 @@ number DetailedPatchySwapInteraction::_patchy_two_body(BaseParticle *p, BasePart
 						p->torque -= p_torque;
 						q->torque += q_torque;
 
-						p_bond.force = tmp_force;
-						p_bond.p_torque = p_torque;
-						p_bond.q_torque = q_torque;
+						if(r_p > _sigma_ss) {
+							p_bond.force = tmp_force;
+							p_bond.p_torque = p_torque;
+							p_bond.q_torque = q_torque;
 
-						q_bond.force = -tmp_force;
-						q_bond.p_torque = -q_torque;
-						q_bond.q_torque = -p_torque;
+							q_bond.force = -tmp_force;
+							q_bond.p_torque = -q_torque;
+							q_bond.q_torque = -p_torque;
+						}
 					}
 
 					_particle_bonds(p).emplace_back(p_bond);
@@ -161,6 +188,121 @@ number DetailedPatchySwapInteraction::_patchy_two_body(BaseParticle *p, BasePart
 						energy += _three_body(p, p_bond, update_forces);
 						energy += _three_body(q, q_bond, update_forces);
 
+					}
+				}
+			}
+		}
+	}
+
+	return energy;
+}
+
+// here we compute x^n as (x*x)^((n-1)/2) * x since we now that n is always an odd number
+inline double _lr_pow(double x, size_t n){
+    double res = x;
+    x *= x;
+
+    n = (n - 1) / 2;
+    while(n-- > 0){
+        res *= x;
+    }
+
+    return res;
+}
+
+number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	number sqr_r = _computed_r.norm();
+	if(sqr_r > _sqr_rcut) {
+		return (number) 0.f;
+	}
+
+	number rmod = sqrt(sqr_r);
+	LR_vector r_versor = _computed_r / rmod;
+
+	number dist_surf = rmod - 1.;
+	number dist_surf_sqr = SQR(dist_surf);
+	number r8b10 = SQR(SQR(dist_surf_sqr)) / _patch_pow_delta;
+	number exp_part = -1.001 * exp(-(number) 0.5 * r8b10 * dist_surf_sqr);
+
+	number energy = (number) 0.f;
+	for(uint p_patch = 0; p_patch < p->N_int_centers(); p_patch++) {
+		LR_vector p_patch_pos = p->int_centers[p_patch] * 2;
+
+		number cospr = p_patch_pos * r_versor;
+		number cospr_minus_one = cospr - 1.;
+		if(cospr_minus_one < _patch_angular_cutoff) {
+			number cospr_base = _lr_pow(cospr_minus_one, _patch_power - 1);
+			// we do this so that later we don't have to divide this number by (cospr - 1), which could be 0
+			number cospr_part = cospr_base * cospr_minus_one;
+			number p_mod = exp(-cospr_part / (2. * _patch_pow_cosmax));
+
+			for(uint q_patch = 0; q_patch < q->N_int_centers(); q_patch++) {
+				LR_vector q_patch_pos = q->int_centers[q_patch] * 2;
+
+				number cosqr = -(q_patch_pos * r_versor);
+				number cosqr_minus_one = cosqr - 1.;
+				if(cosqr_minus_one < _patch_angular_cutoff) {
+					uint p_patch_type = _patch_types[p->type][p_patch];
+					uint q_patch_type = _patch_types[q->type][q_patch];
+					number epsilon = _patchy_eps[p_patch_type + _N_patch_types * q_patch_type];
+
+					if(epsilon != 0.) {
+						number cosqr_base = _lr_pow(cosqr_minus_one, _patch_power - 1);
+						number cosqr_part = cosqr_base * cosqr_minus_one;
+						number q_mod = exp(-cosqr_part / (2. * _patch_pow_cosmax));
+
+						number tmp_energy = exp_part * p_mod * q_mod;
+
+						if(tmp_energy < 0.) {
+							energy += tmp_energy;
+
+							// when we do the swapping the radial part is the one that gets to one beyond the minimum, while the angular part doesn't change
+							number tb_energy = (dist_surf < _sigma_ss) ? epsilon * p_mod * q_mod : -tmp_energy;
+							PatchyBond p_bond(q, dist_surf, p_patch, q_patch, tb_energy);
+							PatchyBond q_bond(p, dist_surf, q_patch, p_patch, tb_energy);
+
+							if(update_forces) {
+								// radial part
+								LR_vector radial_force = r_versor * (p_mod * q_mod * 5. * (rmod - 1.) * exp_part * r8b10);
+
+								// angular p part
+								number der_p = exp_part * q_mod * (0.5 * _patch_power * p_mod * cospr_base / _patch_pow_cosmax);
+								LR_vector p_ortho = p_patch_pos - cospr * r_versor;
+								LR_vector angular_force = p_ortho * (der_p / rmod);
+
+								// angular q part
+								number der_q = exp_part * p_mod * (-0.5 * _patch_power * q_mod * cosqr_base / _patch_pow_cosmax);
+								LR_vector q_ortho = q_patch_pos + cosqr * r_versor;
+								angular_force += q_ortho * (der_q / rmod);
+
+								LR_vector tot_force = radial_force + angular_force;
+
+								LR_vector p_torque = p->orientationT * (r_versor.cross(p_patch_pos) * der_p);
+								LR_vector q_torque = q->orientationT * (q_patch_pos.cross(r_versor) * der_q);
+
+								p->force -= tot_force;
+								q->force += tot_force;
+
+								p->torque -= p_torque;
+								q->torque += q_torque;
+
+								p_bond.force = (dist_surf < _sigma_ss) ? angular_force : tot_force;
+								p_bond.p_torque = p_torque;
+								p_bond.q_torque = q_torque;
+
+								q_bond.force = (dist_surf < _sigma_ss) ? -angular_force : -tot_force;
+								q_bond.p_torque = -q_torque;
+								q_bond.q_torque = -p_torque;
+							}
+
+							_particle_bonds(p).emplace_back(p_bond);
+							_particle_bonds(q).emplace_back(q_bond);
+
+							if(!no_three_body) {
+								energy += _three_body(p, p_bond, update_forces);
+								energy += _three_body(q, q_bond, update_forces);
+							}
+						}
 					}
 				}
 			}
@@ -183,7 +325,7 @@ number DetailedPatchySwapInteraction::_three_body(BaseParticle *p, PatchyBond &n
 			energy += _lambda * curr_energy * other_energy;
 
 			if(update_forces) {
-				if(new_bond.r_p > _sigma_ss) {
+				{
 					BaseParticle *other = new_bond.other;
 
 					number factor = -_lambda * other_energy;
@@ -196,7 +338,7 @@ number DetailedPatchySwapInteraction::_three_body(BaseParticle *p, PatchyBond &n
 					other->torque += factor * new_bond.q_torque;
 				}
 
-				if(other_bond.r_p > _sigma_ss) {
+				{
 					BaseParticle *other = other_bond.other;
 
 					number factor = -_lambda * curr_energy;
@@ -246,7 +388,16 @@ number DetailedPatchySwapInteraction::pair_interaction_nonbonded(BaseParticle *p
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	return _spherical_patchy_two_body(p, q, false, update_forces) + _patchy_two_body(p, q, false, update_forces);
+	number energy = _spherical_patchy_two_body(p, q, false, update_forces);
+
+	if(_is_KF) {
+		energy += _patchy_two_body_KF(p, q, false, update_forces);
+	}
+	else {
+		energy += _patchy_two_body_point(p, q, false, update_forces);
+	}
+
+	return energy;
 }
 
 void DetailedPatchySwapInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {

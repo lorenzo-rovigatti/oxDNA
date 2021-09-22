@@ -21,6 +21,7 @@
 #define CUDA_GENERIC_CENTRAL_FORCE 9
 #define CUDA_LJ_CONE 10
 #define CUDA_REPULSIVE_SPHERE_SMOOTH 11
+#define CUDA_REPULSIVE_ELLIPSOID 12
 
 /**
  * @brief CUDA version of a ConstantRateForce.
@@ -177,6 +178,15 @@ struct LJ_cone {
 };
 
 /**
+ * @brief CUDA version of a RepulsiveEllipsoid.
+ */
+struct repulsive_ellipsoid {
+	int type;
+	c_number stiff;
+	float3 r_1, r_2, centre;
+};
+
+/**
  * @brief Used internally by CUDA classes to provide an inheritance-like mechanism for external forces.
  */
 
@@ -194,6 +204,7 @@ union CUDA_trap {
 	constant_rate_torque constantratetorque;
 	generic_constant_force genericconstantforce;
 	LJ_cone ljcone;
+	repulsive_ellipsoid repulsiveellipsoid;
 };
 
 #endif /* CUDAFORCES_H_ */
