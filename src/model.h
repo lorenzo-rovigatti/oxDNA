@@ -10,11 +10,18 @@
 #define MODEL_H_
 
 /// POSITIONS OF INTERACTION CENTERS
+
+
+// modified by rahul
 #define POS_BACK -0.4f
 #define POS_MM_BACK1 -0.3400f
 #define POS_MM_BACK2 0.3408f
 #define POS_STACK 0.34f
 #define POS_BASE 0.4f
+
+
+
+
 /// POS_STACK - POS_BACK
 #define GAMMA 0.74f
 

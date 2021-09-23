@@ -1,12 +1,12 @@
 ####  PROGRAM PARAMETERS  ####
 backend = CPU
 backend_precision = double
-seed = 18112
+#seed = 18112
 
 ####    SIM PARAMETERS    ####
 sim_type = VMMC
 ensemble = NVT
-steps = 5e4
+steps = 7e6
 
 delta_translation = 0.22
 delta_rotation = 0.22
@@ -23,7 +23,7 @@ seq_dep_file = seq.txt
 small_system = 1 
 ####    INPUT / OUTPUT    ####
 topology = prova.top
-conf_file = init.dat 
+conf_file = last_conf.dat 
 trajectory_file = trajectory.dat
 no_stdout_energy = 0
 restart_step_counter = 1

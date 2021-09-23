@@ -16,11 +16,24 @@
 
 class DNANucleotide: public BaseParticle {
 protected:
-	bool _grooving;
+//	bool _grooving
+//	enum _grooving {
+//			model_oxDNA1 = 0, 
+//			model_oxDNA2 = 1,
+//			model_oxDNA3 = 2
+//	};
+	int _grooving ;
 public:
 	const static LR_vector principal_axis;
 	const static LR_vector stack_axis;
 	const static LR_vector third_axis;
+
+        float _POS_BACK ;
+        float _POS_MM_BACK1 ;
+        float _POS_MM_BACK2 ;
+        float _POS_STACK ;
+        float _POS_BASE ;
+
 
 	enum Site {
 		BACK = 0,
@@ -29,7 +42,8 @@ public:
 	};
 
 	DNANucleotide() = delete;
-	DNANucleotide(bool grooving);
+//        DNANucleotide(bool grooving);
+	DNANucleotide(int grooving);
 	virtual ~DNANucleotide();
 
 	virtual bool is_bonded(BaseParticle *q);
