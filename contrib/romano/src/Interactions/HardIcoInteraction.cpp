@@ -21,7 +21,7 @@ HardIcoInteraction<number>::~HardIcoInteraction() {
 
 template<typename number>
 void HardIcoInteraction<number>::get_settings(input_file &inp) {
-	IBaseInteraction<number>::get_settings(inp);
+	BaseInteraction<number>::get_settings(inp);
 	char tmps[512];
 	getInputString (&inp, "sim_type", (char *)tmps, 1);
 	if (strncmp(tmps, "MC", 512) && strncmp(tmps, "MC2", 512)) throw oxDNAException ("Cannot run Hard Icos with MD");

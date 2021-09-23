@@ -66,6 +66,10 @@ void OxpyManager::add_output(std::string filename, llint print_every, std::vecto
 	_backend->add_output(output);
 }
 
+void OxpyManager::remove_output(std::string filename) {
+	_backend->remove_output(filename);
+}
+
 void OxpyManager::run(llint steps, bool print_output) {
 	if(_cur_step < _start_step) {
 		_cur_step = _start_step;
@@ -171,7 +175,7 @@ input: :class:`InputFile`
 	)pbdoc");
 
 	manager.def("add_output", &OxpyManager::add_output, pybind11::arg("filename"), pybind11::arg("print_every"), pybind11::arg("observables"), R"pbdoc(
-        Add an output file to the simulation, to be populated with the given observables.
+        Add an output file to the simulation, to be populated with the given observables. Added outputs can be subsequently removed with :meth:`remove_output`.
 
         Parameters
         ----------
@@ -181,6 +185,15 @@ input: :class:`InputFile`
                 The frequency (in simulation time steps) with which the output should be computed and printed. 
             observables : List(:class:`BaseObservable`)
                 A list of observables that will be used to populate the output.
+	)pbdoc");
+
+	manager.def("remove_output", &OxpyManager::remove_output, pybind11::arg("filename"), R"pbdoc(
+		Remove an output file from the simulation. Once an output is removed, the simulation will stop updating it.
+
+		Parameters
+		----------
+			filename : str
+				The name of the output file, which should be the same name used to add it (for instance *via* :meth:`add_output`).
 	)pbdoc");
 
 	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(

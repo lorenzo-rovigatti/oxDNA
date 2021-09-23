@@ -1,17 +1,18 @@
-#include <fstream>
-#include <sstream>
-
 #include "TEPInteraction.h"
 
+#include <fstream>
+#include <sstream>
+#include <cfloat>
+
 TEPInteraction::TEPInteraction() :
-				BaseInteraction<TEPInteraction>() {
-	this->_int_map[SPRING] = &TEPInteraction::_spring;
-	this->_int_map[BONDED_BENDING] = &TEPInteraction::_bonded_bending;
-	this->_int_map[BONDED_TWIST] = &TEPInteraction::_bonded_twist;
-	this->_int_map[BONDED_ALIGNMENT] = &TEPInteraction::_bonded_alignment;
-	this->_int_map[NONBONDED_EXCLUDED_VOLUME] = &TEPInteraction::_nonbonded_excluded_volume;
-	this->_int_map[BONDED_DEBYE_HUCKEL] = &TEPInteraction::_bonded_debye_huckel;
-	this->_int_map[NONBONDED_DEBYE_HUCKEL] = &TEPInteraction::_nonbonded_debye_huckel;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(SPRING, _spring);
+	ADD_INTERACTION_TO_MAP(BONDED_BENDING, _bonded_bending);
+	ADD_INTERACTION_TO_MAP(BONDED_TWIST, _bonded_twist);
+	ADD_INTERACTION_TO_MAP(BONDED_ALIGNMENT, _bonded_alignment);
+	ADD_INTERACTION_TO_MAP(NONBONDED_EXCLUDED_VOLUME, _nonbonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(BONDED_DEBYE_HUCKEL, _bonded_debye_huckel);
+	ADD_INTERACTION_TO_MAP(NONBONDED_DEBYE_HUCKEL, _nonbonded_debye_huckel);
 
 	_allow_broken_fene = false;
 	_prefer_harmonic_over_fene = false;
@@ -81,7 +82,7 @@ TEPInteraction::~TEPInteraction() {
 }
 
 void TEPInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	// TEP model parameters
 	setNonNegativeNumber(&inp, "TEP_kb", &_kb, 0, "rod bending energy prefactor");
@@ -724,7 +725,7 @@ void TEPInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 
 void TEPInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_strands, particles);
+	BaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 	_kt_pref = new number[N_from_conf];
 	_kb1_pref = new number[N_from_conf];

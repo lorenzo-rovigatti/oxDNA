@@ -27,6 +27,7 @@
 #include "../../Forces/LJWall.h"
 #include "../../Forces/GenericCentralForce.h"
 #include "../../Forces/LJCone.h"
+#include "../../Forces/RepulsiveEllipsoid.h"
 
 #include <thrust/sort.h>
 #include <typeinfo>
@@ -49,6 +50,7 @@ MD_CUDABackend::MD_CUDABackend() :
 
 	_d_particles_to_mols = _d_mol_sizes = nullptr;
 	_d_molecular_coms = nullptr;
+	_d_buff_particles_to_mols = nullptr;
 
 	_h_ext_forces = nullptr;
 	_d_ext_forces = nullptr;
@@ -492,7 +494,7 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 	_forces_second_step();
 	if(_print_energy) {
 		c_number energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N());
-		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / N());
+		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / (2. * N()));
 	}
 	cudaThreadSynchronize();
 	_timer_forces->pause();
@@ -613,6 +615,7 @@ void MD_CUDABackend::init() {
 		ConstantRateTorque const_rate_torque;
 		GenericCentralForce generic_central;
 		LJCone LJ_cone;
+		RepulsiveEllipsoid repulsive_ellipsoid;
 
 		for(int i = 0; i < N(); i++) {
 			BaseParticle *p = _particles[i];
@@ -737,9 +740,18 @@ void MD_CUDABackend::init() {
 					force->ljcone.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
 					force->ljcone.pos0 = make_float3(p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
 				}
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(repulsive_ellipsoid)) {
+					RepulsiveEllipsoid *p_force = (RepulsiveEllipsoid *) p->ext_forces[j].get();
+					force->type = CUDA_REPULSIVE_ELLIPSOID;
+					force->repulsiveellipsoid.stiff = p_force->_stiff;
+					force->repulsiveellipsoid.centre = make_float3(p_force->_centre.x, p_force->_centre.y, p_force->_centre.z);
+					force->repulsiveellipsoid.r_1 = make_float3(p_force->_r_1.x, p_force->_r_1.y, p_force->_r_1.z);
+					force->repulsiveellipsoid.r_2 = make_float3(p_force->_r_2.x, p_force->_r_2.y, p_force->_r_2.z);
+				}
 				else {
 					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
-							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque and GenericCentralForce "
+							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce "
+							"and RepulsiveEllipsoid"
 							"forces are supported on CUDA at the moment.\n");
 				}
 			}

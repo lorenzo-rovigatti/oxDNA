@@ -1,6 +1,5 @@
 ####  PROGRAM PARAMETERS  ####
 backend = CPU
-backend_precision = double
 seed = 18112
 
 ####    SIM PARAMETERS    ####

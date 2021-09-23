@@ -14,9 +14,9 @@
 using namespace std;
 
 FSInteraction::FSInteraction() :
-				BaseInteraction<FSInteraction>() {
-	_int_map[PATCHY] = &FSInteraction::_patchy_two_body;
-	_int_map[SPHERICAL] = &FSInteraction::_spherical_patchy_two_body;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(PATCHY,_patchy_two_body);
+	ADD_INTERACTION_TO_MAP(SPHERICAL, _spherical_patchy_two_body);
 
 }
 
@@ -244,7 +244,7 @@ number FSInteraction::_three_body(BaseParticle *p, PatchyBond &new_bond, bool up
 }
 
 void FSInteraction::begin_energy_computation() {
-	BaseInteraction<FSInteraction>::begin_energy_computation();
+	BaseInteraction::begin_energy_computation();
 
 	for(int i = _N_in_polymers; i < _N; i++) {
 		_particle_bonds(CONFIG_INFO->particles()[i]).clear();

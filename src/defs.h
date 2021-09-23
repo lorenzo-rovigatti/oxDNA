@@ -46,7 +46,6 @@
 typedef unsigned int uint32_t;
 #endif
 typedef uint32_t uint;
-
 using llint = long long int;
 
 #endif /* DEFS_H_ */

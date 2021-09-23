@@ -38,7 +38,7 @@ void ConfigInfo::notify(std::string event) {
 	}
 }
 
-void ConfigInfo::set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox) {
+void ConfigInfo::set(BaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox) {
 	interaction = i;
 	backend_info = info;
 	lists = l;
@@ -56,4 +56,9 @@ void ConfigInfo::init(std::vector<BaseParticle *> *ps, std::vector<std::shared_p
 void ConfigInfo::clear() {
 	_config_info.reset();
 	_config_info = nullptr;
+}
+
+const FlattenedConfigInfo &ConfigInfo::flattened_conf() {
+	_flattened_conf.update(curr_step, particles());
+	return _flattened_conf;
 }

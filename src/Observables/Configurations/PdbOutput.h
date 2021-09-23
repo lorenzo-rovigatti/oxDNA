@@ -53,7 +53,7 @@ protected:
 	//	static const char * const strtypes[];//= {"ALA","GLY","CYS","TYR","ARG","PHE","LYS","SER","PRO","VAL","ASN","ASP","CYX","HSP","HSD","MET","LEU"};
 
 	virtual std::string _headers(llint step);
-	virtual std::string _particle(BaseParticle *p, std::string strtype);
+	std::string _pdb_particle(BaseParticle *p, std::string strtype);
 	virtual std::string _configuration(llint step);
 
 public:

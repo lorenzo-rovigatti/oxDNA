@@ -18,11 +18,10 @@
 class PatchyParticleDan : public BaseParticle {
 protected:
         //Base (i.e. for particles in their original orientation) patch vectors and reference vectors
-	LR_vector * _base_patch_vectors;
-	LR_vector * _base_ref_vectors;
+	LR_vector *_base_patch_vectors;
+	LR_vector *_base_ref_vectors;
 
 	//bool tor_flag;
-
 public:
         LR_vector * _ref_vectors;   
 
@@ -32,7 +31,7 @@ public:
 
 	void set_positions();
 
-	virtual void copy_from(const PatchyParticleDan &);
+	virtual void copy_from(const BaseParticle &);
 
 	virtual bool is_rigid_body() {
 		return true;

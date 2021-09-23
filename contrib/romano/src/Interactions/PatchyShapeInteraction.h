@@ -234,8 +234,8 @@ public:
 
 
 #ifndef MCMOVE_CUSTOM
- extern "C" IBaseInteraction<float> * make_float()   { return new PatchyShapeInteraction<float> () ; }
- extern "C" IBaseInteraction<double> * make_double() { return new PatchyShapeInteraction<double> () ; }
+ extern "C" BaseInteraction<float> * make_float()   { return new PatchyShapeInteraction<float> () ; }
+ extern "C" BaseInteraction<double> * make_double() { return new PatchyShapeInteraction<double> () ; }
 #endif
 
 #endif /* PATCHYINTERACTION_H_ */

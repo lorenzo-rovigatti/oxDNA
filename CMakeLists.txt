@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 if(POLICY CMP0054)
 	cmake_policy(SET CMP0054 NEW)
@@ -17,7 +17,10 @@ OPTION(SIGNAL "Enable SignalManager - set to OFF for OSX compatibility" OFF)
 OPTION(DOUBLE "Set the numerical precision to double" ON)
 OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" OFF)
 OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
+OPTION(NATIVE_COMPILATION "Set to OFF to compile without the -march=native flag. This may be required when compiling binaries to be used elsewhere" ON)
+
 OPTION(Python "Enable Python bindings" OFF)
+OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have problems at linking time
 if(INTEL)
@@ -40,17 +43,10 @@ ENDIF(INTEL)
 
 PROJECT(oxDNA)
 
-# c++-14 support is mandatory
-IF(CMAKE_VERSION VERSION_LESS "3.1")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-ELSE()
-	SET(CMAKE_CXX_STANDARD 14)
-	SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-ENDIF()
-
 # The default behaviour is to compile with optimisations
 SET(CMAKE_BUILD_TYPE Release)
 
+# c++-14 support is mandatory
 IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 3.1)
 	SET(CMAKE_CXX_STANDARD 14)
 	SET(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -92,6 +88,18 @@ IF(NOT Debug)
 		ADD_DEFINITIONS(-fast)
 	ELSE()
 		ADD_DEFINITIONS(-ffast-math)
+		if(NATIVE_COMPILATION)
+			include(CheckCXXCompilerFlag)
+            unset(COMPILER_SUPPORTS_MARCH_NATIVE CACHE)
+            CHECK_CXX_COMPILER_FLAG(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
+            if(COMPILER_SUPPORTS_MARCH_NATIVE)
+                    ADD_DEFINITIONS(-march=native)
+			else()
+				message(STATUS "The '-march=native' flag is not supported, compiling without it")
+            endif()
+		else()
+			message(STATUS "Compiling without the '-march=native' flag")
+		endif()
 	ENDIF(INTEL)
 ENDIF()
 

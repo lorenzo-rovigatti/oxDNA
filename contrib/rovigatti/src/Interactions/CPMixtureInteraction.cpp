@@ -8,8 +8,9 @@
 #include "CPMixtureInteraction.h"
 
 CPMixtureInteraction::CPMixtureInteraction() :
-				BaseInteraction<CPMixtureInteraction>() {
-	this->_int_map[CP] = &CPMixtureInteraction::pair_interaction_nonbonded;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(CP, pair_interaction_nonbonded);
+
 	_sigma[0] = _sigma[1] = _sigma[2] = 1.;
 	_epsilon[0] = _epsilon[1] = _epsilon[2] = 1.;
 	_n[0] = _n[1] = _n[2] = 6;
@@ -21,7 +22,7 @@ CPMixtureInteraction::~CPMixtureInteraction() {
 }
 
 void CPMixtureInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	for(int i = 0; i < 3; i++) {
 		char key[256];

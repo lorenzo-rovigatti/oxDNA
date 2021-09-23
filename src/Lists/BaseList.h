@@ -97,7 +97,7 @@ public:
 	/**
 	 * @brief Informs the list object that the box has been changed
 	 */
-	virtual void change_box () {
+	virtual void change_box() {
 		_box_sides = this->_box->box_sides();
 	}
 };

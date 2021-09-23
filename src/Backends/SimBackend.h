@@ -20,6 +20,7 @@
 #include <fstream>
 #include <cfloat>
 #include <vector>
+#include <map>
 
 class IBaseInteraction;
 class BaseBox;
@@ -104,7 +105,7 @@ protected:
 	bool _restart_step_counter;
 
 	/// Vector of ObservableOutput used to manage the simulation output
-	std::vector<ObservableOutputPtr> _obs_outputs;
+	std::map<std::string, ObservableOutputPtr> _obs_outputs;
 	ObservableOutputPtr _obs_output_stdout;
 	ObservableOutputPtr _obs_output_file;
 	ObservableOutputPtr _obs_output_trajectory;
@@ -147,16 +148,6 @@ protected:
 	 */
 	LR_vector _read_next_vector(bool binary);
 
-	/**
-	 * @brief Reads the next configuration from the conf_file.
-	 *
-	 * It can read it either in binary or ascii format.
-	 *
-	 * @param binary whether conf_file is to be parsed in ascii or binary format
-	 * @return true if the operation was successful, false otherwise
-	 */
-	bool _read_next_configuration(bool binary=false);
-
 	virtual void _on_T_update();
 
 public:
@@ -176,6 +167,16 @@ public:
 	 */
 	virtual void init();
 
+	/**
+	 * @brief Reads the next configuration from the conf_file.
+	 *
+	 * It can read it either in binary or ascii format.
+	 *
+	 * @param binary whether conf_file is to be parsed in ascii or binary format
+	 * @return true if the operation was successful, false otherwise
+	 */
+	virtual bool read_next_configuration(bool binary=false);
+
 	int N() {
 		return _particles.size();
 	}
@@ -193,6 +194,7 @@ public:
 	virtual void print_equilibration_info();
 
 	void add_output(ObservableOutputPtr new_output);
+	void remove_output(std::string output_file);
 
 	/**
 	 * @brief Prints the observables attached to the backend.

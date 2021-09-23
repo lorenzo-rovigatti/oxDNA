@@ -56,6 +56,16 @@ class InstallCMakeLibs(install_lib):
 
 
 class CMakeBuild(build_ext):
+    user_options = build_ext.user_options + [
+        ('cuda', None, 'enable CUDA support')
+    ]
+    
+    def initialize_options(self):
+        build_ext.initialize_options(self)
+        self.cuda = None
+
+    def finalize_options(self):
+        build_ext.finalize_options(self)
 
     def run(self):
         try:
@@ -73,7 +83,6 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
             
     def build_extension(self, ext):
-        
         self.announce("Preparing the build environment", level=3)
         
         cmake_args = []
@@ -90,6 +99,8 @@ class CMakeBuild(build_ext):
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
                 
         cmake_args += ['-DPython=On']
+        if self.cuda is not None:
+            cmake_args += ['-DCUDA=On']
         
         # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level across all generators.
         if "CMAKE_BUILD_PARALLEL_LEVEL" not in os.environ:

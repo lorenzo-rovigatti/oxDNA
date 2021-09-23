@@ -24,7 +24,7 @@ public:
 	NoList() = delete;
 	virtual ~NoList();
 
-	virtual void init(std::vector<BaseParticle *> &particles, number rcut);
+	virtual void init(number rcut);
 
 	virtual bool is_updated() { return true; }
 	virtual void single_update(BaseParticle *p);

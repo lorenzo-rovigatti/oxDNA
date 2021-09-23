@@ -9,13 +9,13 @@
 #include "../Utilities/Utils.h"
 
 PatchyInteraction::PatchyInteraction() :
-				BaseInteraction<PatchyInteraction>(),
+				BaseInteraction(),
 				_N_patches(0),
 				_N_patches_B(-1),
 				_N_A(0),
 				_N_B(0),
 				_is_binary(false) {
-	_int_map[PATCHY] = &PatchyInteraction::_patchy_interaction;
+	ADD_INTERACTION_TO_MAP(PATCHY, _patchy_interaction);
 
 	for(int i = 0; i < 3; i++) {
 		_sigma[i] = 1.;
@@ -34,7 +34,7 @@ PatchyInteraction::~PatchyInteraction() {
 }
 
 void PatchyInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "PATCHY_N", &_N_patches, 1);
 	if(getInputInt(&inp, "PATCHY_N_B", &_N_patches_B, 0) == KEY_FOUND)
@@ -93,7 +93,7 @@ void PatchyInteraction::allocate_particles(std::vector<BaseParticle*> &particles
 }
 
 void PatchyInteraction::begin_energy_computation() {
-	BaseInteraction<PatchyInteraction>::begin_energy_computation();
+	BaseInteraction::begin_energy_computation();
 
 	for(int i = 0; i < CONFIG_INFO->N(); i++) {
 		_particle_bonds(CONFIG_INFO->particles()[i]).clear();

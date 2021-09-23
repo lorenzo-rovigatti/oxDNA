@@ -85,7 +85,7 @@ void MCBackend::get_settings(input_file &inp) {
 		_obs_output_file->add_observable("type = density");
 	}
 	_obs_output_file->add_observable("type = backend_info");
-	_obs_outputs.push_back(_obs_output_file);
+	add_output(_obs_output_file);
 
 	// now we do the same thing for stdout
 	int no_stdout_energy = 0;
@@ -93,7 +93,7 @@ void MCBackend::get_settings(input_file &inp) {
 	if(!no_stdout_energy) {
 		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n}\n", "stdout", print_every);
 		_obs_output_stdout = std::make_shared<ObservableOutput>(fake);
-		_obs_outputs.push_back(_obs_output_stdout);
+		add_output(_obs_output_stdout);
 		_obs_output_stdout->add_observable("type = step");
 		_obs_output_stdout->add_observable("type = potential_energy");
 		if(_ensemble == MC_ENSEMBLE_NPT) {

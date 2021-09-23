@@ -85,7 +85,7 @@ public:
 	bool generate_random_configuration_overlap (BaseParticle<number> * p, BaseParticle<number> *q);
 };
 
-extern "C" IBaseInteraction<float> * make_float() { return new ChiralRodInteraction<float> (); }
-extern "C" IBaseInteraction<double> * make_double() { return new ChiralRodInteraction<double> (); }
+extern "C" BaseInteraction<float> * make_float() { return new ChiralRodInteraction<float> (); }
+extern "C" BaseInteraction<double> * make_double() { return new ChiralRodInteraction<double> (); }
 
 #endif /* CHIRALRODINTERACTION_H_ */

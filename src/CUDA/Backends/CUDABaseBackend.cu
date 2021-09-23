@@ -141,51 +141,59 @@ void CUDABaseBackend::get_settings(input_file &inp) {
 void CUDABaseBackend::_choose_device() {
 	OX_LOG(Logger::LOG_INFO, "Choosing device automatically");
 
-	int ndev = -1, trydev = 0;
+	int trydev = 0;
 	cudaDeviceProp tryprop;
 
-	cudaGetDeviceCount(&ndev);
-	OX_LOG(Logger::LOG_INFO, "Computer has %i devices", ndev);
+	int ndev = get_device_count();
+	if(ndev == 1) {
+		OX_LOG(Logger::LOG_INFO, "Computer has %i device", ndev);
+	}
+	else {
+		OX_LOG(Logger::LOG_INFO, "Computer has %i devices", ndev);
+	}
 	while(trydev < ndev) {
 		OX_LOG(Logger::LOG_INFO, " - Trying device %i", trydev);
 		tryprop = get_device_prop(trydev);
 		OX_LOG(Logger::LOG_INFO, " -- device %i has properties %i.%i", trydev, tryprop.major, tryprop.minor);
 		if(tryprop.major < 2 && tryprop.minor <= 2) {
 			OX_LOG(Logger::LOG_INFO, " -- Device properties are not good. Skipping it", trydev);
-			trydev++;
-			continue;
-		}
-		set_device(trydev);
-		int *dummyptr = NULL;
-		cudaError_t ggg = GpuUtils::LR_cudaMalloc<int>(&dummyptr, (size_t) sizeof(int));
-		if(ggg == cudaSuccess) {
-			OX_LOG(Logger::LOG_INFO, " -- using device %i", trydev);
-			cudaFree(dummyptr);
-			break;
 		}
 		else {
-			OX_LOG(Logger::LOG_INFO, " -- device %i not available ...", trydev);
+			set_device(trydev);
+			int *dummyptr = nullptr;
+			cudaError_t result = cudaMalloc(&dummyptr, (size_t) sizeof(int));
+			cudaFree(dummyptr);
+			if(result == cudaSuccess) {
+				cudaGetLastError();
+				OX_LOG(Logger::LOG_INFO, " -- using device %i", trydev);
+				break;
+			}
+			else {
+				OX_LOG(Logger::LOG_INFO, " -- device %i not available ...", trydev);
+			}
 		}
 		trydev++;
 	}
 
-	if(trydev == ndev)
+	if(trydev == ndev) {
 		throw oxDNAException("No suitable devices available");
+	}
 
 	OX_LOG(Logger::LOG_INFO, " --- Running on device %i", trydev);
-	_device_prop = get_device_prop(trydev);
 	_device_number = trydev;
-	// gpu device chosen
+	// device chosen
 }
 
 void CUDABaseBackend::init_cuda() {
 	if(_device_number < 0) {
 		_choose_device();
 	}
-	set_device(_device_number);
-	_device_prop = get_device_prop(_device_number);
 
-	CUDA_SAFE_CALL(cudaThreadSetCacheConfig(cudaFuncCachePreferL1));
+	if(set_device(_device_number) != cudaSuccess || cudaDeviceSetCacheConfig(cudaFuncCachePreferL1) != cudaSuccess) {
+		throw oxDNAException("The selected device is not available for computation");
+	}
+
+	_device_prop = get_device_prop(_device_number);
 
 	c_number box_side = CONFIG_INFO->box->box_sides().x;
 	int N = CONFIG_INFO->N();

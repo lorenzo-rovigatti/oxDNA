@@ -52,7 +52,9 @@ SimBackend::SimBackend() {
 
 	ConfigInfo::init(&_particles, &_molecules);
 	_config_info = ConfigInfo::instance();
-	_config_info->subscribe("T_updated", [this]() { this->_on_T_update(); });
+	_config_info->subscribe("T_updated", [this]() {
+		this->_on_T_update();
+	});
 }
 
 SimBackend::~SimBackend() {
@@ -64,9 +66,9 @@ SimBackend::~SimBackend() {
 	llint total_file = 0;
 	llint total_stderr = 0;
 	OX_LOG(Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
-	for(typename vector<ObservableOutputPtr>::iterator it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		llint now = (*it)->get_bytes_written();
-		auto fname = (*it)->get_output_name();
+	for(auto const &element : _obs_outputs) {
+		llint now = element.second->get_bytes_written();
+		auto fname = element.second->get_output_name();
 		if(!strcmp(fname.c_str(), "stderr") || !strcmp(fname.c_str(), "stdout")) {
 			total_stderr += now;
 		}
@@ -117,13 +119,16 @@ void SimBackend::get_settings(input_file &inp) {
 
 		// check that conf_file is not specified
 		std::string tmpstring;
-		if(getInputString(&inp, "conf_file", tmpstring, 0) == KEY_FOUND) throw oxDNAException("Input file error: \"conf_file\" cannot be specified if \"reload_from\" is specified");
+		if(getInputString(&inp, "conf_file", tmpstring, 0) == KEY_FOUND)
+			throw oxDNAException("Input file error: \"conf_file\" cannot be specified if \"reload_from\" is specified");
 
 		// check that restart_step_counter is set to 0
-		if(_restart_step_counter) throw oxDNAException("Input file error: \"restart_step_counter\" must be set to false if \"reload_from\" is specified");
+		if(_restart_step_counter)
+			throw oxDNAException("Input file error: \"restart_step_counter\" must be set to false if \"reload_from\" is specified");
 
 		int my_seed;
-		if(getInputInt(&inp, "seed", &my_seed, 0) == KEY_FOUND) throw oxDNAException("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
+		if(getInputInt(&inp, "seed", &my_seed, 0) == KEY_FOUND)
+			throw oxDNAException("Input file error: \"seed\" must not be specified if \"reload_from\" is specified");
 
 		_conf_filename = std::string(reload_from);
 	}
@@ -155,7 +160,8 @@ void SimBackend::get_settings(input_file &inp) {
 			getInputString(&inp, "external_forces_file", _external_filename, 1);
 		}
 	}
-	else if(val == KEY_INVALID) throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
+	else if(val == KEY_INVALID)
+		throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
 
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
@@ -170,9 +176,10 @@ void SimBackend::get_settings(input_file &inp) {
 		string obs_string;
 		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
 			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string);
-			_obs_outputs.push_back(new_obs_out);
+			add_output(new_obs_out);
 		}
-		else found = false;
+		else
+			found = false;
 
 		i++;
 	}
@@ -196,7 +203,7 @@ void SimBackend::get_settings(input_file &inp) {
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
 	_obs_output_trajectory = std::make_shared<ObservableOutput>(fake);
 	_obs_output_trajectory->add_observable("type = configuration");
-	_obs_outputs.push_back(_obs_output_trajectory);
+	add_output(_obs_output_trajectory);
 
 	// Last configuration
 	std::string lastconf_file = "last_conf.dat";
@@ -204,7 +211,7 @@ void SimBackend::get_settings(input_file &inp) {
 	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
 	_obs_output_last_conf = std::make_shared<ObservableOutput>(fake);
 	_obs_output_last_conf->add_observable("type = configuration");
-	_obs_outputs.push_back(_obs_output_last_conf);
+	add_output(_obs_output_last_conf);
 
 	// Last configuration in binary, optional
 	std::string lastconf_file_bin;
@@ -212,7 +219,7 @@ void SimBackend::get_settings(input_file &inp) {
 		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
 		_obs_output_last_conf_bin = std::make_shared<ObservableOutput>(fake);
 		_obs_output_last_conf_bin->add_observable("type = binary_configuration");
-		_obs_outputs.push_back(_obs_output_last_conf_bin);
+		add_output(_obs_output_last_conf_bin);
 	}
 
 	// Reduced configurations, optional
@@ -222,7 +229,7 @@ void SimBackend::get_settings(input_file &inp) {
 		fake = Utils::sformat("{\n\tname = reduced_conf.dat\n\tprint_every = %lld\n\tonly_last = 1\n}\n", reduced_conf_every);
 		_obs_output_reduced_conf = std::make_shared<ObservableOutput>(fake);
 		_obs_output_reduced_conf->add_observable("type = configuration\nreduced = true");
-		_obs_outputs.push_back(_obs_output_reduced_conf);
+		add_output(_obs_output_reduced_conf);
 	}
 
 	// checkpoints trajectory, optional
@@ -233,7 +240,7 @@ void SimBackend::get_settings(input_file &inp) {
 			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
 			_obs_output_checkpoints = std::make_shared<ObservableOutput>(fake);
 			_obs_output_checkpoints->add_observable("type = checkpoint");
-			_obs_outputs.push_back(_obs_output_checkpoints);
+			add_output(_obs_output_checkpoints);
 			OX_LOG(Logger::LOG_INFO, "Setting up a trajectory of checkpoints to file %s every %lld steps",_checkpoint_traj.c_str(), checkpoint_every);
 		}
 
@@ -242,19 +249,21 @@ void SimBackend::get_settings(input_file &inp) {
 			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
 			_obs_output_last_checkpoint = std::make_shared<ObservableOutput>(fake);
 			_obs_output_last_checkpoint->add_observable("type = checkpoint");
-			_obs_outputs.push_back(_obs_output_last_checkpoint);
+			add_output(_obs_output_last_checkpoint);
 			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);
 		}
 
-		if(tmp1 != KEY_FOUND && tmp2 != KEY_FOUND) throw oxDNAException(
-				"Input file error: At least one of \"checkpoint_file\" or \"checkpoint_trajectory\" must be specified if \"checkpoint_every\" is specified.");
+		if(tmp1 != KEY_FOUND && tmp2 != KEY_FOUND)
+			throw oxDNAException(
+					"Input file error: At least one of \"checkpoint_file\" or \"checkpoint_trajectory\" must be specified if \"checkpoint_every\" is specified.");
 	}
 
 	// set the max IO
 	if(getInputNumber(&inp, "max_io", &_max_io, 0) == KEY_FOUND) {
-		if(_max_io < 0) throw oxDNAException("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
+		if(_max_io < 0)
+			throw oxDNAException("Cannot run with a negative I/O limit. Set the max_io key to something > 0");
 		else
-		OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
+			OX_LOG(Logger::LOG_INFO, "Setting the maximum IO limit to %g MB/s", _max_io);
 	}
 	else {
 		_max_io = 1.; // default value for a simulation is 1 MB/s;
@@ -281,7 +290,8 @@ void SimBackend::init() {
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = _particles[i];
 		if(p->n3 != P_VIRTUAL || p->n5 != P_VIRTUAL) {
-			if(p->affected.size() < 1) throw oxDNAException("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
+			if(p->affected.size() < 1)
+				throw oxDNAException("Found an interaction with bonded interactions that did not set the affected attribute for particle %d. Aborting\n", p->index);
 		}
 	}
 
@@ -293,21 +303,13 @@ void SimBackend::init() {
 		OX_LOG(Logger::LOG_INFO, "Skipping %d configuration(s)", _confs_to_skip);
 		int i;
 		for(i = 0; i < _confs_to_skip && _conf_input.good(); i++) {
-			bool check = false;
-			if (_initial_conf_is_binary) {
-				check = _read_next_configuration(true);
-			}
-			else {
-				check = _read_next_configuration();
-			}
-			if(!check) {
+			if(!read_next_configuration(_initial_conf_is_binary)) {
 				throw oxDNAException("Skipping %d configuration(s) is not possible, as the initial trajectory file only contains %d configurations", _confs_to_skip, i);
 			}
 		}
 	}
 
-	bool check = false;
-	check = _read_next_configuration(_initial_conf_is_binary);
+	bool check = read_next_configuration(_initial_conf_is_binary);
 	if(!check) {
 		throw oxDNAException("Could not read the initial configuration, aborting");
 	}
@@ -322,7 +324,7 @@ void SimBackend::init() {
 		_molecules[mol_id]->add_particle(p);
 	}
 
-	if((int)_molecules.size() != _N_strands) {
+	if((int) _molecules.size() != _N_strands) {
 		throw oxDNAException("There is a mismatch between the number of strands (molecules) reported in the topology file (%d) and the number that results from parsing the particle information (%u)", _N_strands, _molecules.size());
 	}
 
@@ -342,8 +344,8 @@ void SimBackend::init() {
 	_config_info->set(_interaction.get(), &_backend_info, _lists.get(), _box.get());
 
 	// initializes the observable output machinery. This part has to follow read_topology() since _particles has to be initialized
-	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		(*it)->init();
+	for(auto const &element : _obs_outputs) {
+		element.second->init();
 	}
 
 	OX_LOG(Logger::LOG_INFO, "N: %d, N molecules: %d", N, _molecules.size());
@@ -353,11 +355,11 @@ LR_vector SimBackend::_read_next_vector(bool binary) {
 	LR_vector res;
 	if(binary) {
 		double tmpf;
-		_conf_input.read((char *) &tmpf, sizeof(double));
+		_conf_input.read((char*) &tmpf, sizeof(double));
 		res.x = tmpf;
-		_conf_input.read((char *) &tmpf, sizeof(double));
+		_conf_input.read((char*) &tmpf, sizeof(double));
 		res.y = tmpf;
-		_conf_input.read((char *) &tmpf, sizeof(double));
+		_conf_input.read((char*) &tmpf, sizeof(double));
 		res.z = tmpf;
 	}
 	else {
@@ -367,7 +369,7 @@ LR_vector SimBackend::_read_next_vector(bool binary) {
 	return res;
 }
 
-bool SimBackend::_read_next_configuration(bool binary) {
+bool SimBackend::read_next_configuration(bool binary) {
 	double Lx, Ly, Lz;
 	// parse headers. Binary and ascii configurations have different headers, and hence
 	// we have to separate the two procedures
@@ -376,31 +378,31 @@ bool SimBackend::_read_next_configuration(bool binary) {
 		// first bytes: step
 		// if there's nothing to read, _read_conf_step is unchanged and equal to -1
 		_read_conf_step = -1;
-		_conf_input.read((char *) &_read_conf_step, sizeof(llint));
+		_conf_input.read((char*) &_read_conf_step, sizeof(llint));
 		if(_read_conf_step == -1) {
 			OX_DEBUG("End of binary configuration file reached.");
 			return false;
 		}
 
 		unsigned short rndseed[3];
-		_conf_input.read((char *) rndseed, 3 * sizeof(unsigned short));
+		_conf_input.read((char*) rndseed, 3 * sizeof(unsigned short));
 		// we only use the seed if:
 		// a) seed was not specified;
 		// b) restart_step_counter  == 0;
 		if(_reseed) {
 			OX_LOG(Logger::LOG_INFO,"Overriding seed: restoring seed: %hu %hu %hu from binary conf", rndseed[0], rndseed[1], rndseed[2]);
-			seed48 (rndseed);
+			seed48(rndseed);
 		}
 
 		double tmpf;
-		_conf_input.read((char *) &Lx, sizeof(double));
-		_conf_input.read((char *) &Ly, sizeof(double));
-		_conf_input.read((char *) &Lz, sizeof(double));
+		_conf_input.read((char*) &Lx, sizeof(double));
+		_conf_input.read((char*) &Ly, sizeof(double));
+		_conf_input.read((char*) &Lz, sizeof(double));
 
 		// energies and such; discarded
-		_conf_input.read((char *) &tmpf, sizeof(double));
-		_conf_input.read((char *) &tmpf, sizeof(double));
-		_conf_input.read((char *) &tmpf, sizeof(double));
+		_conf_input.read((char*) &tmpf, sizeof(double));
+		_conf_input.read((char*) &tmpf, sizeof(double));
+		_conf_input.read((char*) &tmpf, sizeof(double));
 	}
 	else {
 		bool malformed_headers = false;
@@ -475,9 +477,9 @@ bool SimBackend::_read_next_configuration(bool binary) {
 		}
 		else {
 			int x, y, z;
-			_conf_input.read((char *) &x, sizeof(int));
-			_conf_input.read((char *) &y, sizeof(int));
-			_conf_input.read((char *) &z, sizeof(int));
+			_conf_input.read((char*) &x, sizeof(int));
+			_conf_input.read((char*) &y, sizeof(int));
+			_conf_input.read((char*) &z, sizeof(int));
 			p->set_pos_shift(x, y, z);
 
 			p->orientation.v1 = _read_next_vector(binary);
@@ -509,12 +511,14 @@ bool SimBackend::_read_next_configuration(bool binary) {
 	// discarding the final '\n' in the binary file...
 	if(binary && !_conf_input.eof()) {
 		char tmpc;
-		_conf_input.read((char *) &tmpc, sizeof(char));
+		_conf_input.read((char*) &tmpc, sizeof(char));
 	}
 
 	if(i != N()) {
-		if(_confs_to_skip > 0) throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
-		else throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, N());
+		if(_confs_to_skip > 0)
+			throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
+		else
+			throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, N());
 	}
 
 	for(k = 0; k < _N_strands; k++) {
@@ -555,24 +559,34 @@ void SimBackend::apply_changes_to_simulation_data() {
 }
 
 void SimBackend::add_output(ObservableOutputPtr new_output) {
-	_obs_outputs.push_back(new_output);
+	_obs_outputs[new_output->get_output_name()] = new_output;
+}
+
+void SimBackend::remove_output(std::string output_file) {
+	auto search = _obs_outputs.find(output_file);
+	if(search == _obs_outputs.end()) {
+		throw oxDNAException("The output '%s' does not exist, can't remove it", output_file.c_str());
+	}
+
+	_obs_outputs.erase(search);
 }
 
 void SimBackend::print_observables(llint curr_step) {
 	bool someone_ready = false;
-	for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-		if((*it)->is_ready(curr_step)) someone_ready = true;
+	for(auto const &element : _obs_outputs) {
+		if(element.second->is_ready(curr_step))
+			someone_ready = true;
 	}
 
 	if(someone_ready) {
 		apply_simulation_data_changes();
 
 		llint total_bytes = 0;
-		for(auto it = _obs_outputs.begin(); it != _obs_outputs.end(); it++) {
-			if((*it)->is_ready(curr_step)) {
-				(*it)->print_output(curr_step);
+		for(auto const &element : _obs_outputs) {
+			if(element.second->is_ready(curr_step)) {
+				element.second->print_output(curr_step);
 			}
-			total_bytes += (*it)->get_bytes_written();
+			total_bytes += element.second->get_bytes_written();
 		}
 
 		// here we control the timings; we leave the code a 30-second grace time to print the initial configuration
@@ -634,7 +648,7 @@ void SimBackend::fix_diffusion() {
 	if(_interaction->get_is_infinite() == true || fabs(E_before - E_after) > 1.e-6 * fabs(E_before)) {
 		OX_LOG(Logger::LOG_INFO, "Fix diffusion went too far... %g, %g, %d, (%g>%g)", E_before, E_after, _interaction->get_is_infinite(), fabs(E_before - E_after), 1.e-6 * fabs(E_before));
 		_interaction->set_is_infinite(false);
-		for (int i = 0; i < N(); i ++) {
+		for(int i = 0; i < N(); i++) {
 			BaseParticle *p = _particles[i];
 			LR_vector dscdm = -_molecules[p->strand_id]->com;
 			_box->shift_particle(p, dscdm);
@@ -649,10 +663,11 @@ void SimBackend::fix_diffusion() {
 			if(drand48() < 0.005) {
 				apply.push_back(1);
 			}
-			else apply.push_back(0);
+			else
+				apply.push_back(0);
 		}
 
-		for(int i = 0; i < N(); i ++) {
+		for(int i = 0; i < N(); i++) {
 			BaseParticle *p = _particles[i];
 			if(apply[p->strand_id]) {
 				p->orientation.orthonormalize();
@@ -665,7 +680,7 @@ void SimBackend::fix_diffusion() {
 		if(_interaction->get_is_infinite() == true || fabs(E_before - E_after2) > 1.e-6 * fabs(E_before)) {
 			OX_LOG(Logger::LOG_INFO, " *** Fix diffusion hopeless... %g, %g, %d, (%g>%g)", E_before, E_after2, _interaction->get_is_infinite(), fabs(E_before - E_after2), 1.e-6 * fabs(E_before));
 			_interaction->set_is_infinite(false);
-			for (int i = 0; i < N(); i ++) {
+			for(int i = 0; i < N(); i++) {
 				BaseParticle *p = _particles[i];
 				if(apply[p->strand_id]) {
 					p->pos = stored_pos[i];

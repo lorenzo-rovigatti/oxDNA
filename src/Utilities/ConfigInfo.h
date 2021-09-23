@@ -12,6 +12,7 @@
 
 #include "../defs.h"
 #include "oxDNAException.h"
+#include "FlattenedConfigInfo.h"
 
 #include <string>
 #include <memory>
@@ -20,12 +21,12 @@
 #include <functional>
 #include <map>
 
-class IBaseInteraction;
+class BaseInteraction;
 class BaseParticle;
 class BaseList;
 class BaseBox;
-class input_file;
-class Molecule;
+struct input_file;
+struct Molecule;
 
 /**
  * @brief Utility class. It is used by observables to have access to SimBackend's private members.
@@ -48,6 +49,8 @@ private:
 
 	number _temperature;
 
+	FlattenedConfigInfo _flattened_conf;
+
 public:
 	virtual ~ConfigInfo();
 
@@ -59,7 +62,7 @@ public:
 	 * @param l the list object
 	 * @param abox the box object
 	 */
-	void set(IBaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox);
+	void set(BaseInteraction *i, std::string *info, BaseList *l, BaseBox *abox);
 
 	void subscribe(std::string event, std::function<void()> callback);
 
@@ -94,13 +97,15 @@ public:
 		return *molecules_pointer;
 	}
 
+	const FlattenedConfigInfo &flattened_conf();
+
 	/// Pointer to the array which stores all the particles' information.
 	std::vector<BaseParticle *> *particles_pointer;
 
 	std::vector<std::shared_ptr<Molecule>> *molecules_pointer;
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
-	IBaseInteraction *interaction = nullptr;
+	BaseInteraction *interaction = nullptr;
 
 	/// Used by BackendInfo to print backend-related information such as Monte Carlo acceptance ratios.
 	std::string *backend_info = nullptr;

@@ -1,18 +1,19 @@
 #include "RNAInteraction.h"
 
 #include <fstream>
+#include <cfloat>
 
 RNAInteraction::RNAInteraction() :
-				BaseInteraction<RNAInteraction>(),
+				BaseInteraction(),
 				_average(true) {
-	_int_map[BACKBONE] = &RNAInteraction::_backbone;
-	_int_map[BONDED_EXCLUDED_VOLUME] = &RNAInteraction::_bonded_excluded_volume;
-	_int_map[STACKING] = &RNAInteraction::_stacking;
+	ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
+	ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(STACKING, _stacking);
 
-	_int_map[NONBONDED_EXCLUDED_VOLUME] = &RNAInteraction::_nonbonded_excluded_volume;
-	_int_map[HYDROGEN_BONDING] = &RNAInteraction::_hydrogen_bonding;
-	_int_map[CROSS_STACKING] = &RNAInteraction::_cross_stacking;
-	_int_map[COAXIAL_STACKING] = &RNAInteraction::_coaxial_stacking;
+	ADD_INTERACTION_TO_MAP(NONBONDED_EXCLUDED_VOLUME, _nonbonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(HYDROGEN_BONDING, _hydrogen_bonding);
+	ADD_INTERACTION_TO_MAP(CROSS_STACKING, _cross_stacking);
+	ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 
 	model = new Model();
 
@@ -44,7 +45,7 @@ void RNAInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 }
 
 void RNAInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	int avg_seq;
 
@@ -306,9 +307,9 @@ void RNAInteraction::init() {
 		number lowlimit = cos(fmin(PI, F4_THETA_T0[i] + F4_THETA_TC[i]));
 
 		if(i != RNA_CXST_F4_THETA1)
-			_build_mesh(this, &RNAInteraction::_fakef4, &RNAInteraction::_fakef4D, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
+			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4(x, args); }, [this](number x, void *args) { return this->_fakef4D(x, args); }, (void*) (&i), points, lowlimit, upplimit);
 		else {
-			_build_mesh(this, &RNAInteraction::_fakef4_cxst_t1, &RNAInteraction::_fakef4D_cxst_t1, (void*) (&i), points, lowlimit, upplimit, _mesh_f4[i]);
+			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4_cxst_t1(x, args); }, [this](number x, void *args) { return this->_fakef4D_cxst_t1(x, args); }, (void*) (&i), points, lowlimit, upplimit);
 		}
 		assert(lowlimit < upplimit);
 	}
@@ -755,13 +756,13 @@ number RNAInteraction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool 
 
 		// functions called at their relevant arguments
 		number f1 = _f1(rhydromod, RNA_HYDR_F1, q->type, p->type);
-		number f4t1 = _query_mesh(cost1, _mesh_f4[RNA_HYDR_F4_THETA1]);
-		number f4t2 = _query_mesh(cost2, _mesh_f4[RNA_HYDR_F4_THETA2]);
-		number f4t3 = _query_mesh(cost3, _mesh_f4[RNA_HYDR_F4_THETA3]);
+		number f4t1 = _mesh_f4[RNA_HYDR_F4_THETA1].query(cost1);
+		number f4t2 = _mesh_f4[RNA_HYDR_F4_THETA2].query(cost2);
+		number f4t3 = _mesh_f4[RNA_HYDR_F4_THETA3].query(cost3);
 
-		number f4t4 = _query_mesh(cost4, _mesh_f4[RNA_HYDR_F4_THETA4]);
-		number f4t7 = _query_mesh(cost7, _mesh_f4[RNA_HYDR_F4_THETA7]);
-		number f4t8 = _query_mesh(cost8, _mesh_f4[RNA_HYDR_F4_THETA8]);
+		number f4t4 = _mesh_f4[RNA_HYDR_F4_THETA4].query(cost4);
+		number f4t7 = _mesh_f4[RNA_HYDR_F4_THETA7].query(cost7);
+		number f4t8 = _mesh_f4[RNA_HYDR_F4_THETA8].query(cost8);
 
 		energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
@@ -773,13 +774,13 @@ number RNAInteraction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool 
 
 			// derivatives called at the relevant arguments
 			number f1D = _f1D(rhydromod, RNA_HYDR_F1, q->type, p->type);
-			number f4t1Dsin = _query_meshD(cost1, _mesh_f4[RNA_HYDR_F4_THETA1]);
-			number f4t2Dsin = _query_meshD(cost2, _mesh_f4[RNA_HYDR_F4_THETA2]);
-			number f4t3Dsin = -_query_meshD(cost3, _mesh_f4[RNA_HYDR_F4_THETA3]);
+			number f4t1Dsin = _mesh_f4[RNA_HYDR_F4_THETA1].query_derivative(cost1);
+			number f4t2Dsin = _mesh_f4[RNA_HYDR_F4_THETA2].query_derivative(cost2);
+			number f4t3Dsin = -_mesh_f4[RNA_HYDR_F4_THETA3].query_derivative(cost3);
 
-			number f4t4Dsin = -_query_meshD(cost4, _mesh_f4[RNA_HYDR_F4_THETA4]);
-			number f4t7Dsin = _query_meshD(cost7, _mesh_f4[RNA_HYDR_F4_THETA7]);
-			number f4t8Dsin = -_query_meshD(cost8, _mesh_f4[RNA_HYDR_F4_THETA8]);
+			number f4t4Dsin = -_mesh_f4[RNA_HYDR_F4_THETA4].query_derivative(cost4);
+			number f4t7Dsin = _mesh_f4[RNA_HYDR_F4_THETA7].query_derivative(cost7);
+			number f4t8Dsin = -_mesh_f4[RNA_HYDR_F4_THETA8].query_derivative(cost8);
 
 			// RADIAL PART
 			force = -rhydrodir * f1D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
@@ -1396,7 +1397,7 @@ number RNAInteraction::_f5D(number f, int type) {
 
 void RNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_strands, particles);
+	BaseInteraction::read_topology(N_strands, particles);
 	int my_N, my_N_strands;
 
 	char line[512];

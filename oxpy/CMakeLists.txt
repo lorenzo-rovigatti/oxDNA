@@ -63,5 +63,10 @@ IF(Python)
 	)
 
 	# install the package
-	INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_OUTPUT_DIR})")
+	if(OxpySystemInstall)
+		INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_OUTPUT_DIR})")
+	else()
+		INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --user ${OXPY_OUTPUT_DIR})")
+	endif()
+	
 ENDIF(Python)

@@ -45,9 +45,9 @@ void AnalysisBackend::get_settings(input_file &inp) {
 
 	getInputInt(&inp, "analysis_confs_to_skip", &_confs_to_skip, 0);
 
-	getInputString(&inp, "trajectory_file", this->_conf_filename, 1);
+	getInputString(&inp, "trajectory_file", _conf_filename, 1);
 
-	getInputDouble(&inp, "max_io", &this->_max_io, 0);
+	getInputDouble(&inp, "max_io", &_max_io, 0);
 
 	getInputBool(&inp, "binary_initial_conf", &_initial_conf_is_binary, 0);
 	if(_initial_conf_is_binary) {
@@ -77,7 +77,7 @@ void AnalysisBackend::get_settings(input_file &inp) {
 		string obs_string;
 		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
 			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string);
-			_obs_outputs.push_back(new_obs_out);
+			add_output(new_obs_out);
 		}
 		else found = false;
 
@@ -89,6 +89,16 @@ void AnalysisBackend::init() {
 	SimBackend::init();
 }
 
+const FlattenedConfigInfo &AnalysisBackend::flattened_conf() {
+	_flattened_conf.update(_read_conf_step, particles());
+	return _flattened_conf;
+}
+
+bool AnalysisBackend::read_next_configuration(bool binary) {
+	_done = !SimBackend::read_next_configuration(binary);
+	return !_done;
+}
+
 void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
@@ -97,15 +107,14 @@ void AnalysisBackend::analyse() {
 	}
 	SimBackend::print_observables(_read_conf_step);
 
-	if(!_read_next_configuration(_initial_conf_is_binary)) {
-		_done = true;
-	}
-	else _n_conf++;
+	if(read_next_configuration(_initial_conf_is_binary)) {
+		_n_conf++;
 
-	for(auto p : _particles) {
-		this->_lists->single_update(p);
+		for(auto p : _particles) {
+			_lists->single_update(p);
+		}
+		_lists->global_update();
 	}
-	this->_lists->global_update();
 
 	_mytimer->pause();
 }

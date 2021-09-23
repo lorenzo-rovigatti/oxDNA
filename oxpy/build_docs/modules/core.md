@@ -16,8 +16,10 @@ This module contains the Python bindings of the C++ code. Every `object` describ
     BaseParticle
     DNANucleotide
     RNANucleotide
-    IBaseInteraction
+    Molecule
+    BaseInteraction
     ConfigInfo
+    FlattenedConfigInfo
     BaseObservable
     BaseForce
     InputFile
@@ -26,16 +28,22 @@ This module contains the Python bindings of the C++ code. Every `object` describ
     
 .. autoclass:: OxpyManager
     :inherited-members:
-
+    
 .. autoclass:: BaseParticle
 
 .. autoclass:: DNANucleotide
 
 .. autoclass:: RNANucleotide
 
-.. autoclass:: IBaseInteraction
+.. autoclass:: Molecule
+
+.. autoclass:: BaseInteraction
 
 .. autoclass:: ConfigInfo
+
+.. autoclass:: FlattenedConfigInfo
+
+.. autoclass:: FlattenedVectorArray
 
 .. autoclass:: BaseObservable
 

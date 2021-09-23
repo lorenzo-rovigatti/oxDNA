@@ -101,8 +101,8 @@ void CUDABinVerletList::init(int N, c_number rcut, CUDABox*h_cuda_box, CUDABox*d
 
 	OX_LOG(Logger::LOG_INFO, "Cells mem: %.2lf MBs, lists mem: %.2lf MBs", (cells_mem+_counters_mem)/1048576., (matrix_mem+c_number_mem)/1048576.);
 
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_c_number_neighs, c_number_mem));
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_matrix_neighs, matrix_mem));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->d_number_neighs, c_number_mem));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->d_matrix_neighs, matrix_mem));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_counters_cells, _counters_mem));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&this->_d_cells, cells_mem));
 
@@ -135,12 +135,12 @@ void CUDABinVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bonds *
 	// generate Verlet's lists
 	bin_update_self_neigh_list
 		<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-		(poss, list_poss, this->_d_cells, this->_d_counters_cells, this->_d_matrix_neighs, this->_d_c_number_neighs);
+		(poss, list_poss, this->_d_cells, this->_d_counters_cells, this->d_matrix_neighs, this->d_number_neighs);
 	CUT_CHECK_ERROR("bin_update_self_neigh_list (BinVerlet) error");
 
 	bin_update_mixed_neigh_list
 		<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
-		(poss, this->_d_cells, this->_d_counters_cells, this->_d_matrix_neighs, this->_d_c_number_neighs);
+		(poss, this->_d_cells, this->_d_counters_cells, this->d_matrix_neighs, this->d_number_neighs);
 	CUT_CHECK_ERROR("bin_update_mixed_neigh_list (BinVerlet) error");
 }
 

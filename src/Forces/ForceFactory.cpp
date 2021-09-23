@@ -24,9 +24,9 @@
 #include "AlignmentField.h"
 #include "GenericCentralForce.h"
 #include "LJCone.h"
-
 #include <fstream>
 #include <sstream>
+#include "RepulsiveEllipsoid.h"
 
 using namespace std;
 
@@ -87,6 +87,7 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("alignment_field") == 0) extF = std::make_shared<AlignmentField>();
 	else if(type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
 	else if(type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
+	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");

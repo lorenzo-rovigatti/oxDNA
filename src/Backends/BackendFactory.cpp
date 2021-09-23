@@ -148,6 +148,7 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 			new_backend = new FFS_MD_CPUBackend();
 		}
 #ifndef NOCUDA
+#ifndef CUDA_DOUBLE_PRECISION
 		else if(backend_opt == "CUDA") {
 			if(backend_prec == "mixed") {
 				new_backend = new FFS_MD_CUDAMixedBackend();
@@ -156,6 +157,7 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 				throw oxDNAException("Backend precision '%s' for FFS simulations with CUDA is not supported", backend_prec.c_str());
 			}
 		}
+#endif
 #endif
 		else {
 			throw oxDNAException("Backend '%s' not supported", backend_opt.c_str());

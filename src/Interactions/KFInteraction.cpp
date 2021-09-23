@@ -10,13 +10,13 @@
 #include "../Utilities/Utils.h"
 
 KFInteraction::KFInteraction() :
-				BaseInteraction<KFInteraction>(),
+				BaseInteraction(),
 				_N_patches(0),
 				_N_patches_B(-1),
 				_N_A(0),
 				_N_B(0),
 				_is_binary(false) {
-	_int_map[PATCHY] = &KFInteraction::pair_interaction_nonbonded;
+	ADD_INTERACTION_TO_MAP(PATCHY, pair_interaction_nonbonded);
 
 	for(int i = 0; i < 3; i++)
 		_sigma[i] = _sqr_sigma[i] = _epsilon[i] = 1.;
@@ -31,7 +31,7 @@ KFInteraction::~KFInteraction() {
 }
 
 void KFInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputBool(&inp, "KF_continuous", &_is_continuous, 1);
 

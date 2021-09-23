@@ -55,7 +55,7 @@ void BrownianThermostat::init() {
 
 
 void BrownianThermostat::apply (std::vector<BaseParticle *> &particles, llint curr_step) {
-	if (!(curr_step % _newtonian_steps) == 0) return;
+	if(curr_step % _newtonian_steps) return;
 
 	for(auto p: particles) {
 		if(drand48() < _pt) {

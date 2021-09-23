@@ -37,6 +37,7 @@ __constant__ float MD_3b_epsilon[1];
 __constant__ float MD_3b_A_part[1];
 __constant__ float MD_3b_B_part[1];
 
+__constant__ bool MD_same_sticky_only_interaction[1];
 __constant__ bool MD_enable_semiflexibility[1];
 __constant__ float MD_semiflexibility_k[1];
 
@@ -219,7 +220,7 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
-	int ptype = get_particle_btype(ppos);
+	int ptype = get_particle_type(ppos);
 
 	// the first value of each column is the number of bonded neighbours
 	int n_bonded_neighs = bonded_neighs[IND];
@@ -227,7 +228,7 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 	for(int i = 1; i <= n_bonded_neighs; i++) {
 		int i_idx = bonded_neighs[MD_N[0] * i + IND];
 		c_number4 i_pos = poss[i_idx];
-		int qtype = get_particle_btype(i_pos);
+		int qtype = get_particle_type(i_pos);
 		int int_type = ptype + qtype;
 
 		_FENE(ppos, i_pos, int_type, F, box);
@@ -244,25 +245,38 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 	forces[IND] = F;
 }
 
+__device__ bool _sticky_interaction(int p_btype, int q_btype) {
+	if(p_btype == PolymerSwapInteraction::MONOMER || q_btype == PolymerSwapInteraction::MONOMER) return false;
+
+	// no branch diverging here, since the condition is the same for all threads
+	if(MD_same_sticky_only_interaction[0]) {
+		return (p_btype == q_btype);
+	}
+
+	return true;
+}
+
 // forces + second step without lists
 __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
-	int ptype = get_particle_btype(ppos);
+	int p_btype = get_particle_btype(ppos);
+	int p_type = get_particle_type(ppos);
 
 	CUDA_FS_bond_list bonds;
 
 	for(int j = 0; j < MD_N[0]; j++) {
 		if(j != IND) {
 			c_number4 qpos = poss[j];
-			int qtype = get_particle_btype(qpos);
-			int int_type = ptype + qtype;
+			int q_btype = get_particle_btype(qpos);
+			int q_type = get_particle_type(qpos);
+			int int_type = p_type + q_type;
 
 			_WCA(ppos, qpos, int_type, F, box);
 			
-			if(int_type == 2) {
+			if(_sticky_interaction(p_btype, q_btype)) {
 				_sticky(ppos, qpos, j, F, bonds, box);
 			}
 		}
@@ -281,7 +295,8 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 	c_number4 ppos = poss[IND];
 
 	int num_neighs = c_number_neighs[IND];
-	int ptype = get_particle_btype(ppos);
+	int p_btype = get_particle_btype(ppos);
+	int p_type = get_particle_type(ppos);
 
 	CUDA_FS_bond_list bonds;
 
@@ -289,12 +304,13 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 		int q_index = matrix_neighs[j * MD_N[0] + IND];
 
 		c_number4 qpos = poss[q_index];
-		int qtype = get_particle_btype(qpos);
-		int int_type = ptype + qtype;
+		int q_btype = get_particle_btype(qpos);
+		int q_type = get_particle_type(qpos);
+		int int_type = p_type + q_type;
 
 		_WCA(ppos, qpos, int_type, F, box);
 		
-		if(int_type == 2) {
+		if(_sticky_interaction(p_btype, q_btype)) {
 			_sticky(ppos, qpos, q_index, F, bonds, box);
 		}
 	}
@@ -377,6 +393,7 @@ void CUDAPolymerSwapInteraction::cuda_init(c_number box_side, int N) {
 	COPY_NUMBER_TO_FLOAT(MD_3b_A_part, _3b_A_part);
 	COPY_NUMBER_TO_FLOAT(MD_3b_B_part, _3b_B_part);
 
+	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_same_sticky_only_interaction, &_same_sticky_only_interaction, sizeof(bool)));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_enable_semiflexibility, &_enable_semiflexibility, sizeof(bool)));
 	COPY_NUMBER_TO_FLOAT(MD_semiflexibility_k, _semiflexibility_k);
 }
@@ -389,7 +406,7 @@ void CUDAPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *
 	ps_FENE_flexibility_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, d_box);
-	CUT_CHECK_ERROR("forces_second_step PolymerSwap simple_lists error");
+	CUT_CHECK_ERROR("ps_FENE_flexibility_forces PolymerSwap error");
 
 	CUDASimpleVerletList *_v_lists = dynamic_cast<CUDASimpleVerletList *>(lists);
 	if(_v_lists != NULL) {
@@ -399,7 +416,7 @@ void CUDAPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *
 
 		ps_forces
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-			(d_poss, d_forces, _d_three_body_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
+			(d_poss, d_forces, _d_three_body_forces, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_box);
 		CUT_CHECK_ERROR("forces_second_step PolymerSwap simple_lists error");
 	}
 

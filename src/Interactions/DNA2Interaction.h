@@ -25,7 +25,6 @@
 
 #include "DNAInteraction.h"
 
-
 class DNA2Interaction: public DNAInteraction {
 
 protected:
@@ -50,9 +49,9 @@ protected:
 	 * @param cost  argument of f4
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4 (number cost, int i) { 
-		if (i != CXST_F4_THETA1) return this->_query_mesh (cost, this->_mesh_f4[i]); 
-		else return this->_fakef4_cxst_t1 (cost, (void *)&i);
+	virtual number _custom_f4(number cost, int i) {
+		if(i != CXST_F4_THETA1) return this->_mesh_f4[i].query(cost);
+		else return this->_fakef4_cxst_t1(cost, (void *) &i);
 	}
 
 	/**
@@ -61,22 +60,23 @@ protected:
 	 * @param cost  argument of f4D
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4D (number cost, int i) { 
-		if (i != CXST_F4_THETA1) return this->_query_meshD (cost, this->_mesh_f4[i]); 
-		else return this->_fakef4D_cxst_t1 (cost, (void *)&i);
+	virtual number _custom_f4D(number cost, int i) {
+		if(i != CXST_F4_THETA1) return this->_mesh_f4[i].query_derivative(cost);
+		else return this->_fakef4D_cxst_t1(cost, (void *) &i);
 	}
 
 public:
 	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
-        enum {
+	enum {
 		DEBYE_HUCKEL = 7
 	};
 	DNA2Interaction();
-	virtual ~DNA2Interaction() {}
-    
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
+	virtual ~DNA2Interaction() {
+	}
+
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 
 	virtual void get_settings(input_file &inp);
 	virtual void init();
@@ -97,7 +97,7 @@ public:
  * interaction_type = DNA2_nomesh
  */
 
-class DNA2Interaction_nomesh : public DNA2Interaction {
+class DNA2Interaction_nomesh: public DNA2Interaction {
 protected:
 
 	/**
@@ -106,9 +106,9 @@ protected:
 	 * @param cost  argument of f4
 	 * @param i     type of the interaction
 	 */
-	virtual number _custom_f4 (number cost, int i) {
-		if (i != CXST_F4_THETA1) return this->_fakef4 (cost, (void *)&i);
-		else return this->_fakef4_cxst_t1 (cost, (void *)&i);
+	virtual number _custom_f4(number cost, int i) {
+		if(i != CXST_F4_THETA1) return this->_fakef4(cost, (void *) &i);
+		else return this->_fakef4_cxst_t1(cost, (void *) &i);
 	}
 
 	/**
@@ -117,14 +117,18 @@ protected:
 	 * @param cost  argument of f4D
 	 * @param i     type of the interaction
 	 */
-	virtual number _custom_f4D (number cost, int i) {
-		if (i != CXST_F4_THETA1) return this->_fakef4D (cost, (void *)&i);
-		else return this->_fakef4D_cxst_t1 (cost, (void *)&i);
+	virtual number _custom_f4D(number cost, int i) {
+		if(i != CXST_F4_THETA1) return this->_fakef4D(cost, (void *) &i);
+		else return this->_fakef4D_cxst_t1(cost, (void *) &i);
 	}
 
 public:
-	DNA2Interaction_nomesh(){};
-	virtual ~DNA2Interaction_nomesh(){};
+	DNA2Interaction_nomesh() {
+	}
+	;
+	virtual ~DNA2Interaction_nomesh() {
+	}
+	;
 
 };
 

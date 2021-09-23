@@ -401,7 +401,7 @@ void CUDAStarrInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss
 		else {
 			Starr_forces
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_bonds, _d_strand_ids, d_box);
+				(d_poss, d_forces, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_bonds, _d_strand_ids, d_box);
 				CUT_CHECK_ERROR("Starr_forces Verlet Lists error");
 		}
 	}
@@ -417,6 +417,6 @@ void CUDAStarrInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss
 	}
 }
 
-extern "C" IBaseInteraction *make_CUDAStarrInteraction() {
+extern "C" BaseInteraction *make_CUDAStarrInteraction() {
 	return new CUDAStarrInteraction();
 }

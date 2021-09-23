@@ -23,6 +23,8 @@ protected:
 	bool _done;
 	llint _n_conf;
 
+	FlattenedConfigInfo _flattened_conf;
+
 public:
 	AnalysisBackend();
 	virtual ~AnalysisBackend();
@@ -34,19 +36,30 @@ public:
 	 * Yes, it is a design flaw, I am aware of that :-)
 	 * @param cur_step
 	 */
-	void sim_step(llint cur_step) {
-	}
-	void print_conf(llint cur_step, bool reduced, bool only_last) {
+	void sim_step(llint cur_step) override {
+
 	}
 
+	void print_conf(llint cur_step, bool reduced, bool only_last) override {
+
+	}
+
+	std::vector<BaseParticle *> &particles() {
+		return _particles;
+	}
+
+	const FlattenedConfigInfo &flattened_conf();
+
+	bool read_next_configuration(bool binary=false) override;
+
 	void analyse();
+
 	bool done() {
 		return _done;
 	}
-	;
 
-	void get_settings(input_file &inp);
-	void init();
+	void get_settings(input_file &inp) override;
+	void init() override;
 };
 
 #endif /* ANALYSISBACKEND_H_ */

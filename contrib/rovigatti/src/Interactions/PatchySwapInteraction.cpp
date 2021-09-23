@@ -14,9 +14,9 @@
 using namespace std;
 
 PatchySwapInteraction::PatchySwapInteraction() :
-				BaseInteraction<PatchySwapInteraction>() {
-	_int_map[PATCHY] = &PatchySwapInteraction::_patchy_two_body;
-	_int_map[SPHERICAL] = &PatchySwapInteraction::_spherical_patchy_two_body;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body);
+	ADD_INTERACTION_TO_MAP(SPHERICAL, _spherical_patchy_two_body);
 
 }
 
@@ -163,7 +163,6 @@ number PatchySwapInteraction::_patchy_two_body(BaseParticle *p, BaseParticle *q,
 				if(!no_three_body) {
 					energy += _three_body(p, p_bond, update_forces);
 					energy += _three_body(q, q_bond, update_forces);
-
 				}
 			}
 		}
@@ -218,7 +217,7 @@ number PatchySwapInteraction::_three_body(BaseParticle *p, PatchyBond &new_bond,
 }
 
 void PatchySwapInteraction::begin_energy_computation() {
-	BaseInteraction<PatchySwapInteraction>::begin_energy_computation();
+	BaseInteraction::begin_energy_computation();
 
 	for(int i = 0; i < _N; i++) {
 		_particle_bonds(CONFIG_INFO->particles()[i]).clear();
@@ -350,7 +349,7 @@ void PatchySwapInteraction::read_topology(int *N_strands, std::vector<BasePartic
 		std::getline(topology, line);
 		auto spl = Utils::split(line);
 		if(spl.size() < 2) {
-			throw oxDNAException("The topology line '%s' is malformed, since it should contain at least two integer numbers (number of particles and number of patches");
+			throw oxDNAException("The topology line '%s' is malformed, since it should contain at least two integer numbers (number of particles and number of patches)", line.c_str());
 		}
 		int N_s = atoi(spl[0].c_str());
 		_N_per_species[i] = N_s;

@@ -13,9 +13,9 @@
 using namespace std;
 
 LevyInteraction::LevyInteraction() :
-				BaseInteraction<LevyInteraction>() {
-	_int_map[BONDED] = &LevyInteraction::pair_interaction_bonded;
-	_int_map[NONBONDED] = &LevyInteraction::pair_interaction_nonbonded;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
 
 	_N_tetramers = _N_dimers = _N_monomers = 0;
 	_N_per_tetramer = 5;
@@ -40,7 +40,7 @@ LevyInteraction::~LevyInteraction() {
 }
 
 void LevyInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputBool(&inp, "LEVY_rigid", &_rigid_model, 0);
 	getInputNumber(&inp, "LEVY_monomer_epsilon", &_monomer_epsilon, 0);

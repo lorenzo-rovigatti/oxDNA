@@ -45,8 +45,8 @@ void CUDALJInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GP
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
 			lj_forces_edge
-				<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-				(d_poss, this->_d_edge_forces, _v_lists->_d_edge_list, _v_lists->_N_edges, d_box);
+				<<<(_v_lists->N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
+				(d_poss, this->_d_edge_forces, _v_lists->d_edge_list, _v_lists->N_edges, d_box);
 
 			this->_sum_edge_forces(d_forces);
 
@@ -57,7 +57,7 @@ void CUDALJInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GP
 		else {
 			lj_forces
 				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_forces, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
+				(d_poss, d_forces, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_box);
 			CUT_CHECK_ERROR("forces_second_step lj simple_lists error");
 		}
 	}

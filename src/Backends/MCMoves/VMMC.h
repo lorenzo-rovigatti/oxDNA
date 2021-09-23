@@ -5,22 +5,19 @@
  *
  *
  */
-
 #ifndef VMMC_H_
 #define VMMC_H_
 
 #include "BaseMove.h"
 
-
-struct movestr {
-    int seed, type, seed_strand_id;
-    LR_vector t;
-    LR_matrix R;
-    LR_matrix Rt;
-};
-
-
 class VMMC : public BaseMove {
+	struct movestr {
+	    int seed, type, seed_strand_id;
+	    LR_vector t;
+	    LR_matrix R;
+	    LR_matrix Rt;
+	};
+
 	protected:
 		number _delta_tras;
 		number _delta_rot;
@@ -36,17 +33,17 @@ class VMMC : public BaseMove {
 		std::vector<BaseParticle *>  _particles_old;
 		std::vector<int> _clust;
 		
-		inline void _store_particle(BaseParticle * src); 
-		inline void _restore_particle(BaseParticle * src); 
-		inline void _re_restore_particle(BaseParticle * src); 
+		inline void _store_particle(BaseParticle *src);
+		inline void _restore_particle(BaseParticle *src);
+		inline void _re_restore_particle(BaseParticle *src);
 
-		inline void _move_particle(movestr * moveptr, BaseParticle * p);
+		inline void _move_particle(movestr *moveptr, BaseParticle *p);
 
 		number VMMC_link(double E_new, double E_old) { return (1. - exp((1. / this->_T) * (E_old - E_new)));}
 		inline number _next_rand () {return drand48();}
 
-		number build_cluster (movestr * moveptr, int maxsize);
-		number build_cluster_old (movestr * moveptr, int maxsize);
+		number build_cluster (movestr *moveptr, int maxsize);
+		number build_cluster_old (movestr *moveptr, int maxsize);
 	
 	public:
 		VMMC();

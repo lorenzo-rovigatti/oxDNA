@@ -140,6 +140,6 @@ LR_matrix<number> DNA2ModInteraction<number>::rotationMatrixAroundVersorByAngle(
 	return identity + K * sin(angle) + K * K * (1.-cos(angle));
 }
 
-extern "C" IBaseInteraction<float> *make_DNA2ModInteraction_float();
-extern "C" IBaseInteraction<double> *make_DNA2ModInteraction_double(); 
+extern "C" BaseInteraction<float> *make_DNA2ModInteraction_float();
+extern "C" BaseInteraction<double> *make_DNA2ModInteraction_double(); 
 #endif /* DNA2MOD_INTERACTION_H */

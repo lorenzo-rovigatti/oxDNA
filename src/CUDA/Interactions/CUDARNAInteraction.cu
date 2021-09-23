@@ -383,8 +383,8 @@ void CUDARNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 	if(_v_lists != NULL) {
 		if(_v_lists->use_edge()) {
 			rna_forces_edge_nonbonded
-				<<<(_v_lists->_N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->_d_edge_list, _v_lists->_N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, d_box);
+				<<<(_v_lists->N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->d_edge_list, _v_lists->N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, d_box);
 
 			this->_sum_edge_forces_torques(d_forces, d_torques);
 
@@ -399,7 +399,7 @@ void CUDARNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 	else {
 		rna_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
+			(d_poss, d_orientations, d_forces, d_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
 }

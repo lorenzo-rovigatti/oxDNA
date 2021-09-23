@@ -44,13 +44,13 @@ inline number sum(number *v, int N) {
 
 // trim from start
 inline std::string &ltrim(std::string &s) {
-	s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int c) { return !std::isspace(c); }));
 	return s;
 }
 
 // trim from end
 inline std::string &rtrim(std::string &s) {
-	s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](int c) { return !std::isspace(c); }).base(), s.end());
 	return s;
 }
 
@@ -74,7 +74,7 @@ inline std::string &trim(std::string &s) {
  * @param fmt
  * @return
  */
-std::string sformat(const std::string &fmt, ...);
+std::string sformat(std::string fmt, ...);
 /**
  * @brief vsprintf c++ wrapper.
  *
@@ -256,8 +256,8 @@ inline LR_matrix Utils::get_random_rotation_matrix(number max_angle) {
 }
 
 inline number Utils::gaussian() {
-	unsigned int isNextG = 0;
-	number nextG = -1e6;
+	static unsigned int isNextG = 0;
+	static number nextG = -1e6;
 	number toRet;
 	number u, v, w;
 

@@ -1,6 +1,5 @@
 ####  PROGRAM PARAMETERS  ####
 backend = CPU
-backend_precision = double
 #seed = 26176
 interaction_type = RNA
 ####    SIM PARAMETERS    ####

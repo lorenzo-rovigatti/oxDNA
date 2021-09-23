@@ -41,7 +41,7 @@ std::string PdbOutput::_headers(llint step) {
 	return headers.str();
 }
 
-std::string PdbOutput::_particle(BaseParticle *p, std::string strtype) {
+std::string PdbOutput::_pdb_particle(BaseParticle *p, std::string strtype) {
 	std::stringstream res;
 	std::string _strtype = strtype;
 	LR_matrix I_b = LR_matrix(LR_vector(1.1, 0, 0), LR_vector(0, 1.5, 0), LR_vector(0, 0, 2.2));
@@ -110,7 +110,7 @@ std::string PdbOutput::_configuration(llint step) {
 		if(it != this->_visible_particles.begin()) conf << std::endl;
 		BaseParticle *p = _config_info->particles()[*it];
 		std::string cur_strtype = strtypes[(p->strand_id + 1) % 17];
-		conf << _particle(p, cur_strtype);
+		conf << _pdb_particle(p, cur_strtype);
 	}
 	conf << "\nREMARK  ######### \n\nTER \nENDMDL \n ";
 	return conf.str();

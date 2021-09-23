@@ -7,22 +7,68 @@
 
 #include "BaseInteraction.h"
 
-IBaseInteraction::IBaseInteraction() {
+BaseInteraction::BaseInteraction() {
 	_energy_threshold = (number) 100.f;
 	_is_infinite = false;
 	_box = NULL;
 	_generate_consider_bonded_interactions = false;
 	_generate_bonded_cutoff = 2.0;
 	_temperature = 1.0;
-	_rcut = 0.;
-	_sqr_rcut = 0.;
+
+	_rcut = 2.5;
+	_sqr_rcut = SQR(_rcut);
 }
 
-IBaseInteraction::~IBaseInteraction() {
+BaseInteraction::~BaseInteraction() {
 
 }
 
-void IBaseInteraction::get_settings(input_file &inp) {
+number BaseInteraction::pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(compute_r) {
+		_computed_r = _box->min_image(p->pos, q->pos);
+	}
+
+	// _int_map.find(name) returns an iterator which points to the
+	// requested function pointer. We dereference it, apply it to the
+	// that, which is a pointer to an instance of a class which inherits
+	// from BaseInteraction. We then pass in the required parameters and
+	// return the interaction energy.
+	typename interaction_map::iterator interaction = _interaction_map.find(name);
+	if(interaction == _interaction_map.end()) {
+		throw oxDNAException("%s, line %d: Interaction term '%d' not found", __FILE__, __LINE__, name);
+	}
+
+	return interaction->second(p, q, false, update_forces);
+}
+
+std::map<int, number> BaseInteraction::get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists) {
+	begin_energy_computation();
+
+	std::map<int, number> energy_map;
+
+	for(auto it = _interaction_map.begin(); it != _interaction_map.end(); it++) {
+		int name = it->first;
+		energy_map[name] = (number) 0.f;
+	}
+
+	for(auto p: particles) {
+		std::vector<BaseParticle *> neighs = lists->get_all_neighbours(p);
+
+		for(unsigned int n = 0; n < neighs.size(); n++) {
+			BaseParticle *q = neighs[n];
+			if(p->index > q->index) {
+				for(auto it = _interaction_map.begin(); it != _interaction_map.end(); it++) {
+					int name = it->first;
+					energy_map[name] += pair_interaction_term(name, p, q);
+				}
+			}
+		}
+	}
+
+	return energy_map;
+}
+
+void BaseInteraction::get_settings(input_file &inp) {
 	getInputString(&inp, "topology", _topology_filename, 1);
 	getInputNumber(&inp, "energy_threshold", &_energy_threshold, 0);
 	getInputNumber(&inp, "T", &_temperature, 1);
@@ -33,7 +79,7 @@ void IBaseInteraction::get_settings(input_file &inp) {
 	}
 }
 
-int IBaseInteraction::get_N_from_topology() {
+int BaseInteraction::get_N_from_topology() {
 	std::ifstream topology;
 	topology.open(_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
@@ -43,7 +89,7 @@ int IBaseInteraction::get_N_from_topology() {
 	return ret;
 }
 
-void IBaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
+void BaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles) {
 	*N_strands = particles.size();
 	allocate_particles(particles);
 	int idx = 0;
@@ -55,13 +101,13 @@ void IBaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *>
 	}
 }
 
-void IBaseInteraction::begin_energy_computation() {
+void BaseInteraction::begin_energy_computation() {
 	if(has_custom_stress_tensor()) {
 		reset_stress_tensor();
 	}
 }
 
-void IBaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force) {
+void BaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force) {
 	_stress_tensor[0] += r_p[0] * group_force[0];
 	_stress_tensor[1] += r_p[1] * group_force[1];
 	_stress_tensor[2] += r_p[2] * group_force[2];
@@ -70,11 +116,11 @@ void IBaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_forc
 	_stress_tensor[5] += r_p[1] * group_force[2];
 }
 
-void IBaseInteraction::reset_stress_tensor() {
+void BaseInteraction::reset_stress_tensor() {
 	std::fill(_stress_tensor.begin(), _stress_tensor.end(), 0.);
 }
 
-number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
+number BaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
 	begin_energy_computation();
 
 	double energy = 0.;
@@ -91,7 +137,7 @@ number IBaseInteraction::get_system_energy(std::vector<BaseParticle *> &particle
 	return (number) energy;
 }
 
-number IBaseInteraction::get_system_energy_term(int name, std::vector<BaseParticle *> &particles, BaseList *lists) {
+number BaseInteraction::get_system_energy_term(int name, std::vector<BaseParticle *> &particles, BaseList *lists) {
 	begin_energy_computation();
 
 	number energy = (number) 0.f;
@@ -108,7 +154,7 @@ number IBaseInteraction::get_system_energy_term(int name, std::vector<BasePartic
 	return energy;
 }
 
-bool IBaseInteraction::generate_random_configuration_overlap(BaseParticle *p, BaseParticle *q) {
+bool BaseInteraction::generate_random_configuration_overlap(BaseParticle *p, BaseParticle *q) {
 	_computed_r = _box->min_image(p, q);
 
 	if(_computed_r.norm() >= _sqr_rcut) {
@@ -124,7 +170,7 @@ bool IBaseInteraction::generate_random_configuration_overlap(BaseParticle *p, Ba
 	return energy > _energy_threshold;
 }
 
-void IBaseInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
+void BaseInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	Cells c(particles, _box);
 	c.init(_rcut);
 

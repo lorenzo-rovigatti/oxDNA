@@ -280,7 +280,7 @@ void FFS_MD_CUDAMixedBackend::get_settings(input_file &inp) {
 	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", customconf_file);
 	_obs_output_custom_conf = std::make_shared<ObservableOutput>(fake);
 	_obs_output_custom_conf->add_observable("type = configuration");
-	_obs_outputs.push_back(_obs_output_custom_conf);
+	add_output(_obs_output_custom_conf);
 }
 
 void FFS_MD_CUDAMixedBackend::init() {
@@ -1018,13 +1018,13 @@ void FFS_MD_CUDAMixedBackend::sprintf_names_and_values(char *str) {
 			for(int j = 0; j < h_hb_region_lens[i]; j++) {
 				if(_h_hb_energies[h_hb_region_rows[i] + j] < _op.get_hb_cutoff(i)) tot_hb += 1;
 			}
-			sprintf(aux, "%s: %d; ", _op.get_name_from_hb_id(i), tot_hb);
+			sprintf(aux, "%s: %d; ", _op.get_name_from_hb_id(i).c_str(), tot_hb);
 		}
 		else {
 			int tot_near_hb = 0;
 			for(int j = 0; j < h_hb_region_lens[i]; j++)
 				tot_near_hb += _h_nearhb_states[h_hb_region_rows[i] + j];
-			sprintf(aux, "%s: %d; ", _op.get_name_from_hb_id(i), tot_near_hb);
+			sprintf(aux, "%s: %d; ", _op.get_name_from_hb_id(i).c_str(), tot_near_hb);
 		}
 		aux = (char *) str + strlen(str);
 	}
@@ -1035,7 +1035,7 @@ void FFS_MD_CUDAMixedBackend::sprintf_names_and_values(char *str) {
 				min_dist = _h_op_dists[h_dist_region_rows[i] + j];
 			}
 		}
-		sprintf(aux, "%s: %12.9f; ", _op.get_name_from_distance_id(i), min_dist);
+		sprintf(aux, "%s: %12.9f; ", _op.get_name_from_distance_id(i).c_str(), min_dist);
 		aux = (char *) str + strlen(str);
 	}
 

@@ -159,7 +159,7 @@ number DirkInteractionBias<number>::_dirk_pot (BaseParticle<number> *p, BasePart
 	return energy;
 }
 
-extern "C" IBaseInteraction<float> * make_float() { return new DirkInteractionBias<float> () ; }
-extern "C" IBaseInteraction<double> * make_double() { return new DirkInteractionBias<double> () ; }
+extern "C" BaseInteraction<float> * make_float() { return new DirkInteractionBias<float> () ; }
+extern "C" BaseInteraction<double> * make_double() { return new DirkInteractionBias<double> () ; }
 
 #endif /* DIRKIINTERACTIONBIAS_H */

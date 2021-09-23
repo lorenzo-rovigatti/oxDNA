@@ -337,8 +337,8 @@ inline number HardIcoInteraction<number>::_hi_pot (BaseParticle<number> *ap, Bas
 	*/
 }
 
-extern "C" IBaseInteraction<float> * make_float() { return new HardIcoInteraction<float> (); }
-extern "C" IBaseInteraction<double> * make_double() { return new HardIcoInteraction<double> (); }
+extern "C" BaseInteraction<float> * make_float() { return new HardIcoInteraction<float> (); }
+extern "C" BaseInteraction<double> * make_double() { return new HardIcoInteraction<double> (); }
 
 #endif /* HARDICOINTERACTION_H_ */
 

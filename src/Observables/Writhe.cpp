@@ -242,21 +242,21 @@ std::string Writhe::get_output_string(llint curr_step) {
 			// If the writhe is higher than the threshold, there's a peak.
 			if(!on_peak) {
 				// don't get on a peak on the last particle index, because you will already have considered that at the beginning
-				if(abs(writhe) > _writhe_threshold and k != final_particle_index) {
+				if(fabs(writhe) > _writhe_threshold and k != final_particle_index) {
 					on_peak = true;
-					peak_value = abs(writhe);
+					peak_value = fabs(writhe);
 					peak_position = k;
 					//printf("Getting on peak at position %d\n",k);
 				}
 			}
 			else {
 				// When on a peak, look for the maximum.
-				if(abs(writhe) > peak_value) {
-					peak_value = abs(writhe);
+				if(fabs(writhe) > peak_value) {
+					peak_value = fabs(writhe);
 					peak_position = (int) (k + _subdomain_size / 2.);
 				}
 				// When the writhe goes below the threshold, or when we have reached the end of the chain, the peak is over.
-				if(abs(writhe) < _writhe_threshold or k == final_particle_index) {
+				if(fabs(writhe) < _writhe_threshold or k == final_particle_index) {
 					on_peak = false;
 					//printf("Getting off peak at position %d\n",k);
 					if(peak_position > _last_particle_index) {

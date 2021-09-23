@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The utils module &mdash; oxpy 3.0.0a1.dev156+g2ca22d0.d20210116 documentation</title>
+  <title>The utils module &mdash; oxpy 3.0.0a1.dev198+gaf139b1.d20210217 documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -36,7 +37,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Writing observables in Python" href="../extending/observables.html" />
-    <link rel="prev" title="The core module" href="core.html" /> 
+    <link rel="prev" title="The analysis module" href="analysis.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -60,7 +61,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev156+g2ca22d0.d20210116
+                3.0.0a1.dev198+gaf139b1.d20210217
               </div>
             
           
@@ -87,6 +88,9 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="core.html">The core module</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">The analysis module</a><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The utils module</a><ul class="simple">
@@ -174,6 +178,12 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.utils.generate_default_input" title="oxpy.utils.generate_default_input"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_default_input</span></code></a></p></td>
 <td><p>Build and return a minimal input file</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.utils.Kelvin_to_oxDNA" title="oxpy.utils.Kelvin_to_oxDNA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Kelvin_to_oxDNA</span></code></a></p></td>
+<td><p>Convert the temperature given in Kelvin to oxDNA simulation units</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.utils.Celsius_to_oxDNA" title="oxpy.utils.Celsius_to_oxDNA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Celsius_to_oxDNA</span></code></a></p></td>
+<td><p>Convert the temperature given in Celsius to oxDNA simulation units</p></td>
+</tr>
 </tbody>
 </table>
 <dl class="py function">
@@ -182,10 +192,44 @@
 <dd><p>Build and return a minimal input file</p>
 <p>The returned input file contains the minimum amount of options required to start a simulation.
 You can list them by printing the input file after generation:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_input</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">generate_default_input</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_input</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">generate_default_input</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">my_input</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxpy.utils.Kelvin_to_oxDNA">
+<code class="sig-prename descclassname">oxpy.utils.</code><code class="sig-name descname">Kelvin_to_oxDNA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.utils.Kelvin_to_oxDNA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the temperature given in Kelvin to oxDNA simulation units</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>T</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The temperature (in degrees Kelvin) to be converted</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The temperature in oxDNA units</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxpy.utils.Celsius_to_oxDNA">
+<code class="sig-prename descclassname">oxpy.utils.</code><code class="sig-name descname">Celsius_to_oxDNA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">T</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxpy.utils.Celsius_to_oxDNA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the temperature given in Celsius to oxDNA simulation units</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>T</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The temperature (in degrees Celsius) to be converted</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The temperature in oxDNA units</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -201,7 +245,7 @@ You can list them by printing the input file after generation:</p>
         <a href="../extending/observables.html" class="btn btn-neutral float-right" title="Writing observables in Python" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="core.html" class="btn btn-neutral float-left" title="The core module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="analysis.html" class="btn btn-neutral float-left" title="The analysis module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

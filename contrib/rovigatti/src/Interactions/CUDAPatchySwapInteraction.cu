@@ -172,21 +172,27 @@ __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T
 				if(!b1.r_p_less_than_sigma) {
 					c_number factor = -MD_lambda[0] * other_energy;
 
-					F -= factor * b1.force;
-					LR_atomicAddXYZ(forces + b1.q, factor * b1.force);
+					c_number4 tmp_force = b1.force * factor;
+					tmp_force.w = 0.f;
+
+					F -= tmp_force;
+					LR_atomicAddXYZ(forces + b1.q, tmp_force);
 
 					T -= factor * b1.p_torque;
-					LR_atomicAddXYZ(torques + b1.q, factor * b1.q_torque_ref_frame);
+					LR_atomicAddXYZ(torques + b1.q, b1.q_torque_ref_frame * factor);
 				}
 
 				if(!b2.r_p_less_than_sigma) {
 					c_number factor = -MD_lambda[0] * curr_energy;
 
-					F -= factor * b2.force;
-					LR_atomicAddXYZ(forces + b2.q, factor * b2.force);
+					c_number4 tmp_force = b2.force * factor;
+					tmp_force.w = 0.f;
+
+					F -= tmp_force;
+					LR_atomicAddXYZ(forces + b2.q, tmp_force);
 
 					T -= factor * b2.p_torque;
-					LR_atomicAddXYZ(torques + b2.q, factor * b2.q_torque_ref_frame);
+					LR_atomicAddXYZ(torques + b2.q, b2.q_torque_ref_frame * factor);
 				}
 			}
 		}
@@ -347,7 +353,7 @@ void CUDAPatchySwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *d
 		else {
 			PS_forces
 				<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _v_lists->_d_matrix_neighs, _v_lists->_d_c_number_neighs, d_box);
+				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_box);
 			CUT_CHECK_ERROR("PS_forces simple_lists error");
 		}
 	}

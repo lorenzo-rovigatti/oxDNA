@@ -4,9 +4,9 @@
 
 
 TSPInteraction::TSPInteraction() :
-				BaseInteraction<TSPInteraction>() {
-	this->_int_map[BONDED] = &TSPInteraction::pair_interaction_bonded;
-	this->_int_map[NONBONDED] = &TSPInteraction::pair_interaction_nonbonded;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_interaction_nonbonded);
 
 	_alpha = NULL;
 	_N_arms = _N_monomer_per_arm = NULL;
@@ -25,7 +25,7 @@ TSPInteraction::~TSPInteraction() {
 }
 
 void TSPInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "TSP_rfene", &_rfene, 1);
 
@@ -250,7 +250,7 @@ int TSPInteraction::get_N_from_topology() {
 
 void TSPInteraction::read_topology(int *N_stars, std::vector<BaseParticle *> &particles) {
 	int N_from_conf = particles.size();
-	IBaseInteraction::read_topology(N_stars, particles);
+	BaseInteraction::read_topology(N_stars, particles);
 	int my_N_stars;
 	char line[512];
 	std::ifstream topology;
@@ -358,7 +358,7 @@ void TSPInteraction::generate_random_configuration(std::vector<BaseParticle *> &
 	if(_only_chains) {
 		this->_generate_consider_bonded_interactions = true;
 		this->_generate_bonded_cutoff = _rfene;
-		IBaseInteraction::generate_random_configuration(particles);
+		BaseInteraction::generate_random_configuration(particles);
 		return;
 	}
 

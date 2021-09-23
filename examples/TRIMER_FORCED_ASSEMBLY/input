@@ -3,7 +3,6 @@
 ##############################
 sim_type = VMMC
 backend = CPU
-backend_precision = double
 #debug = 1
 #seed = 42
 

@@ -22,7 +22,7 @@ ManfredoInteraction::~ManfredoInteraction() {
 }
 
 void ManfredoInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 	_DNA_inter.get_settings(inp);
 
 	char my_T[512];
@@ -243,14 +243,14 @@ int ManfredoInteraction::_get_inter_type(BaseParticle *p, BaseParticle *q) {
 // by using the nearest f'(x) (given by B[0] or B[N-1]) as the slope for the linear interpolation.
 
 inline number ManfredoInteraction::_query_mesh(number x, Mesh &m) {
-	if(x <= m.xlow) return m.A[0] + m.B[0] * (x - m.xlow);
-	if(x >= m.xupp) return m.A[m.N - 1] + m.B[m.N - 1] * (x - m.xupp);
+	if(x <= m._xlow) return m._A[0] + m._B[0] * (x - m._xlow);
+	if(x >= m._xupp) return m._A[m.N - 1] + m._B[m.N - 1] * (x - m._xupp);
 	return BaseInteraction<ManfredoInteraction>::_query_mesh(x, m);
 }
 
 inline number ManfredoInteraction::_query_meshD(number x, Mesh &m) {
-	if(x <= m.xlow) return m.B[0];
-	if(x >= m.xupp) return m.B[m.N - 1];
+	if(x <= m._xlow) return m._B[0];
+	if(x >= m._xupp) return m._B[m.N - 1];
 	return BaseInteraction<ManfredoInteraction>::_query_meshD(x, m);
 }
 

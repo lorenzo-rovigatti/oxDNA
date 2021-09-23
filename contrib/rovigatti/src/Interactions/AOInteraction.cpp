@@ -8,8 +8,9 @@
 #include "AOInteraction.h"
 
 AOInteraction::AOInteraction() :
-				BaseInteraction<AOInteraction>() {
-	this->_int_map[AO] = &AOInteraction::pair_interaction_nonbonded;
+				BaseInteraction() {
+	ADD_INTERACTION_TO_MAP(AO, pair_interaction_nonbonded);
+
 	_colloid_sigma_sqr = 1. / SQR(1.01557);
 	_h_zausch_4 = SQR(SQR(0.01)*_colloid_sigma_sqr);
 	_rep_rcut_sqr = pow(2., 1. / 3.) * _colloid_sigma_sqr;
@@ -21,7 +22,7 @@ AOInteraction::~AOInteraction() {
 }
 
 void AOInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	getInputNumber(&inp, "AO_strength", &_attraction_strength, 1);
 	getInputNumber(&inp, "AO_q", &_q, 1);

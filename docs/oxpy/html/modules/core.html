@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The core module &mdash; oxpy 3.0.0a1.dev156+g2ca22d0.d20210116 documentation</title>
+  <title>The core module &mdash; oxpy 3.0.0a1.dev198+gaf139b1.d20210217 documentation</title>
   
 
   
@@ -29,13 +29,14 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="The utils module" href="utils.html" />
+    <link rel="next" title="The analysis module" href="analysis.html" />
     <link rel="prev" title="Oxpy" href="../index.html" /> 
 </head>
 
@@ -60,7 +61,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev156+g2ca22d0.d20210116
+                3.0.0a1.dev198+gaf139b1.d20210217
               </div>
             
           
@@ -87,6 +88,9 @@
             
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The core module</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">The analysis module</a><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">The utils module</a><ul class="simple">
@@ -186,11 +190,17 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.RNANucleotide" title="oxpy.core.RNANucleotide"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RNANucleotide</span></code></a></p></td>
 <td><p>A RNA nucleotide.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IBaseInteraction</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.Molecule" title="oxpy.core.Molecule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Molecule</span></code></a></p></td>
+<td><p>A set of particles connected by bonds.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseInteraction</span></code></a></p></td>
 <td><p>The class that takes care of computing the interaction between the particles.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a></p></td>
 <td><p>This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.FlattenedConfigInfo" title="oxpy.core.FlattenedConfigInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlattenedConfigInfo</span></code></a></p></td>
+<td><p>An object storing particle types, positions, a1 and a3 orientation vectors in flat arrays that can be used as or converted to numpy arrays.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.BaseObservable" title="oxpy.core.BaseObservable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseObservable</span></code></a></p></td>
 <td><p>The interface class for observables.</p></td>
@@ -244,7 +254,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.OxpyManager.add_output">
 <code class="sig-name descname">add_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager">oxpy.core.OxpyManager</a></span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">print_every</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></span></em>, <em class="sig-param"><span class="n">observables</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#oxpy.core.BaseObservable" title="oxpy.core.BaseObservable">oxpy.core.BaseObservable</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.OxpyManager.add_output" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add an output file to the simulation, to be populated with the given observables.</p>
+<dd><p>Add an output file to the simulation, to be populated with the given observables. Added outputs can be subsequently removed with <a class="reference internal" href="#oxpy.core.OxpyManager.remove_output" title="oxpy.core.OxpyManager.remove_output"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove_output()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -291,6 +301,17 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>also_last</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True (default value) prints the current configuration also in the “lastconf_file” file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.OxpyManager.remove_output">
+<code class="sig-name descname">remove_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager">oxpy.core.OxpyManager</a></span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.OxpyManager.remove_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an output file from the simulation. Once an output is removed, the simulation will stop updating it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the output file, which should be the same name used to add it (for instance <em>via</em> <a class="reference internal" href="#oxpy.core.OxpyManager.add_output" title="oxpy.core.OxpyManager.add_output"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_output()</span></code></a>).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -473,7 +494,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -487,7 +508,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -501,7 +522,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -523,7 +544,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -537,7 +558,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -551,7 +572,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -565,7 +586,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -579,7 +600,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -593,7 +614,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -607,7 +628,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd class="field-odd"><p>The position of the site.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -615,20 +636,33 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 </dd></dl>
 
 <dl class="py class">
-<dt id="oxpy.core.IBaseInteraction">
-<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">IBaseInteraction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction">oxpy.core.IBaseInteraction</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.IBaseInteraction" title="Permalink to this definition">¶</a></dt>
+<dt id="oxpy.core.Molecule">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">Molecule</code><a class="headerlink" href="#oxpy.core.Molecule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>A set of particles connected by bonds. For DNA and RNA this would be a strand.</p>
+<dl class="py method">
+<dt id="oxpy.core.Molecule.particles">
+<em class="property">property </em><code class="sig-name descname">particles</code><a class="headerlink" href="#oxpy.core.Molecule.particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of particles that compose the molecule.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxpy.core.BaseInteraction">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">BaseInteraction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.BaseInteraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <p>The class that takes care of computing the interaction between the particles.</p>
 <p>The default constructor takes no parameters.</p>
 <dl class="py method">
-<dt id="oxpy.core.IBaseInteraction.begin_energy_computation">
-<code class="sig-name descname">begin_energy_computation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction">oxpy.core.IBaseInteraction</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.IBaseInteraction.begin_energy_computation" title="Permalink to this definition">¶</a></dt>
+<dt id="oxpy.core.BaseInteraction.begin_energy_computation">
+<code class="sig-name descname">begin_energy_computation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.BaseInteraction.begin_energy_computation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Signals the interaction that an energy (or force) computation is about to begin.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="oxpy.core.IBaseInteraction.has_custom_stress_tensor">
-<code class="sig-name descname">has_custom_stress_tensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction">oxpy.core.IBaseInteraction</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a><a class="headerlink" href="#oxpy.core.IBaseInteraction.has_custom_stress_tensor" title="Permalink to this definition">¶</a></dt>
+<dt id="oxpy.core.BaseInteraction.has_custom_stress_tensor">
+<code class="sig-name descname">has_custom_stress_tensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a><a class="headerlink" href="#oxpy.core.BaseInteraction.has_custom_stress_tensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns whether the interaction computes the stress tensor internally or not.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -641,8 +675,8 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 </dd></dl>
 
 <dl class="py method">
-<dt id="oxpy.core.IBaseInteraction.pair_interaction">
-<code class="sig-name descname">pair_interaction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction">oxpy.core.IBaseInteraction</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">compute_r</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_forces</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><a class="headerlink" href="#oxpy.core.IBaseInteraction.pair_interaction" title="Permalink to this definition">¶</a></dt>
+<dt id="oxpy.core.BaseInteraction.pair_interaction">
+<code class="sig-name descname">pair_interaction</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">compute_r</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_forces</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><a class="headerlink" href="#oxpy.core.BaseInteraction.pair_interaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the pair interaction between p and q.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -650,7 +684,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <li><p><strong>p</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The first particle of the pair. Note that some interactions require that the two particles are passed to the method with a specific order.</p></li>
 <li><p><strong>q</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The second particle of the pair.</p></li>
 <li><p><strong>compute_r</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True (default value), the distance between <code class="xref py py-attr docutils literal notranslate"><span class="pre">p</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">q</span></code> will be computed from scratch. If not, it will use a private member that can be
-set through the <a class="reference internal" href="#oxpy.core.IBaseInteraction.set_computed_r" title="oxpy.core.IBaseInteraction.set_computed_r"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_computed_r()</span></code></a> method.</p></li>
+set through the <a class="reference internal" href="#oxpy.core.BaseInteraction.set_computed_r" title="oxpy.core.BaseInteraction.set_computed_r"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_computed_r()</span></code></a> method.</p></li>
 <li><p><strong>update_forces</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, the forces and torques acting on the two particles will be updated (defaults to False).</p></li>
 </ul>
 </dd>
@@ -664,24 +698,24 @@ set through the <a class="reference internal" href="#oxpy.core.IBaseInteraction.
 </dd></dl>
 
 <dl class="py method">
-<dt id="oxpy.core.IBaseInteraction.pair_interaction_bonded">
-<code class="sig-name descname">pair_interaction_bonded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction">oxpy.core.IBaseInteraction</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">compute_r</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_forces</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><a class="headerlink" href="#oxpy.core.IBaseInteraction.pair_interaction_bonded" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the bonded pair interaction between p and q. See <a class="reference internal" href="#oxpy.core.IBaseInteraction.pair_interaction" title="oxpy.core.IBaseInteraction.pair_interaction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pair_interaction()</span></code></a> for details on the parameters and on the return value.</p>
+<dt id="oxpy.core.BaseInteraction.pair_interaction_bonded">
+<code class="sig-name descname">pair_interaction_bonded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">compute_r</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_forces</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><a class="headerlink" href="#oxpy.core.BaseInteraction.pair_interaction_bonded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the bonded pair interaction between p and q. See <a class="reference internal" href="#oxpy.core.BaseInteraction.pair_interaction" title="oxpy.core.BaseInteraction.pair_interaction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pair_interaction()</span></code></a> for details on the parameters and on the return value.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="oxpy.core.IBaseInteraction.pair_interaction_nonbonded">
-<code class="sig-name descname">pair_interaction_nonbonded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction">oxpy.core.IBaseInteraction</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">compute_r</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_forces</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><a class="headerlink" href="#oxpy.core.IBaseInteraction.pair_interaction_nonbonded" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the unbonded pair interaction between p and q. See <a class="reference internal" href="#oxpy.core.IBaseInteraction.pair_interaction" title="oxpy.core.IBaseInteraction.pair_interaction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pair_interaction()</span></code></a> for details on the parameters and on the return value.</p>
+<dt id="oxpy.core.BaseInteraction.pair_interaction_nonbonded">
+<code class="sig-name descname">pair_interaction_nonbonded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">compute_r</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_forces</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><a class="headerlink" href="#oxpy.core.BaseInteraction.pair_interaction_nonbonded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the unbonded pair interaction between p and q. See <a class="reference internal" href="#oxpy.core.BaseInteraction.pair_interaction" title="oxpy.core.BaseInteraction.pair_interaction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pair_interaction()</span></code></a> for details on the parameters and on the return value.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="oxpy.core.IBaseInteraction.set_computed_r">
-<code class="sig-name descname">set_computed_r</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction">oxpy.core.IBaseInteraction</a></span></em>, <em class="sig-param"><span class="n">r</span><span class="p">:</span> <span class="n">LR_vector</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.IBaseInteraction.set_computed_r" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the distance vector used by the <cite>pair_interaction_*</cite> methods when they are called with <cite>compute_r = False</cite> (see <a class="reference internal" href="#oxpy.core.IBaseInteraction.pair_interaction" title="oxpy.core.IBaseInteraction.pair_interaction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pair_interaction()</span></code></a> for additional details).</p>
+<dt id="oxpy.core.BaseInteraction.set_computed_r">
+<code class="sig-name descname">set_computed_r</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em>, <em class="sig-param"><span class="n">r</span><span class="p">:</span> <span class="n">LR_vector</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.BaseInteraction.set_computed_r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the distance vector used by the <cite>pair_interaction_*</cite> methods when they are called with <cite>compute_r = False</cite> (see <a class="reference internal" href="#oxpy.core.BaseInteraction.pair_interaction" title="oxpy.core.BaseInteraction.pair_interaction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pair_interaction()</span></code></a> for additional details).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>r</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – The distance vector to be stored.</p>
+<dd class="field-odd"><p><strong>r</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – The distance vector to be stored.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -708,9 +742,29 @@ set through the <a class="reference internal" href="#oxpy.core.IBaseInteraction.
 </dd></dl>
 
 <dl class="py method">
+<dt id="oxpy.core.ConfigInfo.flattened_conf">
+<em class="property">property </em><code class="sig-name descname">flattened_conf</code><a class="headerlink" href="#oxpy.core.ConfigInfo.flattened_conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>A flattened (that is, composed by arrays rather than class instances) view of the current configuration, stored in a <a class="reference internal" href="#oxpy.core.FlattenedConfigInfo" title="oxpy.core.FlattenedConfigInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">FlattenedConfigInfo</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="oxpy.core.ConfigInfo.interaction">
 <em class="property">property </em><code class="sig-name descname">interaction</code><a class="headerlink" href="#oxpy.core.ConfigInfo.interaction" title="Permalink to this definition">¶</a></dt>
-<dd><p>The simulation’s <a class="reference internal" href="#oxpy.core.IBaseInteraction" title="oxpy.core.IBaseInteraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">IBaseInteraction</span></code></a> object.</p>
+<dd><p>The simulation’s <code class="xref py py-class docutils literal notranslate"><span class="pre">IBaseInteraction</span></code> object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.ConfigInfo.molecules">
+<code class="sig-name descname">molecules</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo">oxpy.core.ConfigInfo</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#oxpy.core.Molecule" title="oxpy.core.Molecule">Molecule</a><span class="p">]</span><a class="headerlink" href="#oxpy.core.ConfigInfo.molecules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all the molecules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list containing all the molecules.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List(<a class="reference internal" href="#oxpy.core.Molecule" title="oxpy.core.Molecule"><code class="xref py py-class docutils literal notranslate"><span class="pre">Molecule</span></code></a>)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -729,6 +783,59 @@ set through the <a class="reference internal" href="#oxpy.core.IBaseInteraction.
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxpy.core.FlattenedConfigInfo">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">FlattenedConfigInfo</code><a class="headerlink" href="#oxpy.core.FlattenedConfigInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>An object storing particle types, positions, a1 and a3 orientation vectors in flat arrays that can be used as or converted to numpy arrays.</p>
+<p>Note that the data stored in this object is updated maximum once per time step. The update is performed when the object
+is accessed from the <a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a> object, meaning that it is better not to store pointers to this object if you
+do not want to risk accessing outdated data. The vector types are stored in <a class="reference internal" href="#oxpy.core.FlattenedVectorArray" title="oxpy.core.FlattenedVectorArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">FlattenedVectorArray</span></code></a> objects, which
+can be used like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">flat_positions</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">flattened_conf</span><span class="o">.</span><span class="n">positions</span>
+<span class="n">np_poss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flat_positions</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">flat_positions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">np_poss</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="oxpy.core.FlattenedConfigInfo.a1s">
+<em class="property">property </em><code class="sig-name descname">a1s</code><a class="headerlink" href="#oxpy.core.FlattenedConfigInfo.a1s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Particle a1 orientation vectors</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.FlattenedConfigInfo.a3s">
+<em class="property">property </em><code class="sig-name descname">a3s</code><a class="headerlink" href="#oxpy.core.FlattenedConfigInfo.a3s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Particle a3 orientation vectors</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.FlattenedConfigInfo.positions">
+<em class="property">property </em><code class="sig-name descname">positions</code><a class="headerlink" href="#oxpy.core.FlattenedConfigInfo.positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Particle positions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.FlattenedConfigInfo.types">
+<em class="property">property </em><code class="sig-name descname">types</code><a class="headerlink" href="#oxpy.core.FlattenedConfigInfo.types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Particle types</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxpy.core.FlattenedVectorArray">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">FlattenedVectorArray</code><a class="headerlink" href="#oxpy.core.FlattenedVectorArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>This is a view of a Nx3 matrix (where N is the number of particles in the simulation).</p>
+<p>Instances can be transparently converted to numpy arrays:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># this assumes that va is a FlattenedVectorArray</span>
+<span class="n">np_va</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">va</span><span class="p">)</span>             <span class="c1"># this will copy the data over to Python</span>
+<span class="n">np_va</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">va</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># this will *not* copy the data</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py class">
@@ -765,7 +872,7 @@ access the current configuration’s details.</p>
 
 <dl class="py method">
 <dt id="oxpy.core.BaseObservable.get_settings">
-<code class="sig-name descname">get_settings</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseObservable" title="oxpy.core.BaseObservable">oxpy.core.BaseObservable</a></span></em>, <em class="sig-param"><span class="n">my_inp</span><span class="p">:</span> <span class="n">input_file</span></em>, <em class="sig-param"><span class="n">sim_inp</span><span class="p">:</span> <span class="n">input_file</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.BaseObservable.get_settings" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_settings</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseObservable" title="oxpy.core.BaseObservable">oxpy.core.BaseObservable</a></span></em>, <em class="sig-param"><span class="n">my_inp</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em>, <em class="sig-param"><span class="n">sim_inp</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a><a class="headerlink" href="#oxpy.core.BaseObservable.get_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the settings required to initialise the observable from the simulation and its own input files.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -807,7 +914,7 @@ access the current configuration’s details.</p>
 
 <dl class="py method">
 <dt id="oxpy.core.BaseForce.init">
-<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">inp</span><span class="p">:</span> <span class="n">input_file</span></em>, <em class="sig-param"><span class="n">box</span><span class="p">:</span> <span class="n">BaseBox</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">]</span><a class="headerlink" href="#oxpy.core.BaseForce.init" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">inp</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em>, <em class="sig-param"><span class="n">box</span><span class="p">:</span> <span class="n">BaseBox</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">]</span><a class="headerlink" href="#oxpy.core.BaseForce.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialises the force.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -827,7 +934,7 @@ access the current configuration’s details.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The current time step.</p></li>
-<li><p><strong>pos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
+<li><p><strong>pos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -858,14 +965,14 @@ access the current configuration’s details.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The current time step.</p></li>
-<li><p><strong>pos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
+<li><p><strong>pos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The computed force vector.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -905,7 +1012,7 @@ access the current configuration’s details.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="utils.html" class="btn btn-neutral float-right" title="The utils module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="analysis.html" class="btn btn-neutral float-right" title="The analysis module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../index.html" class="btn btn-neutral float-left" title="Oxpy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

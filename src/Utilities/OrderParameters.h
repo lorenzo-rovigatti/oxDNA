@@ -416,8 +416,8 @@ public:
 	 * @return
 	 */
 	int get_hbpar_id_from_name(const char *name);
-	const char *get_name_from_hb_id(int id) {
-		return _hb_parameters[id].get_name().c_str();
+	const std::string get_name_from_hb_id(int id) {
+		return _hb_parameters[id].get_name();
 	}
 
 	/**
@@ -427,8 +427,8 @@ public:
 	 * @return
 	 */
 	int get_distpar_id_from_name(const char *name);
-	const char *get_name_from_distance_id(int id) {
-		return _distance_parameters[id].get_name().c_str();
+	const std::string get_name_from_distance_id(int id) {
+		return _distance_parameters[id].get_name();
 	}
 
 	/**
@@ -467,12 +467,12 @@ public:
 		*str = '\0';
 		int * states = get_hb_states();
 		for(int i = 0; i < _hb_parameters_count; i++) {
-			sprintf(tmp, "%s: %d; ", get_name_from_hb_id(i), states[i]);
+			sprintf(tmp, "%s: %d; ", get_name_from_hb_id(i).c_str(), states[i]);
 			strcat(str, tmp);
 		}
 		double * dists = get_distance_states();
 		for(int i = 0; i < _distance_parameters_count; i++) {
-			sprintf(tmp, "%s: %12.9f; ", get_name_from_distance_id(i), dists[i]);
+			sprintf(tmp, "%s: %12.9f; ", get_name_from_distance_id(i).c_str(), dists[i]);
 			strcat(str, tmp);
 		}
 		//sprintf("\n");

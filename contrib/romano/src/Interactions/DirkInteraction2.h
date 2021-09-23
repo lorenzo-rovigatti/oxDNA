@@ -154,7 +154,7 @@ number DirkInteraction2<number>::_dirk_pot (BaseParticle<number> *p, BaseParticl
 	return energy;
 }
 
-extern "C" IBaseInteraction<float> * make_float() { return new DirkInteraction2<float> () ; }
-extern "C" IBaseInteraction<double> * make_double() { return new DirkInteraction2<double> () ; }
+extern "C" BaseInteraction<float> * make_float() { return new DirkInteraction2<float> () ; }
+extern "C" BaseInteraction<double> * make_double() { return new DirkInteraction2<double> () ; }
 
 #endif /* DIRKIINTERACIOTN2_H_ */

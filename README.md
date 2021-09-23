@@ -22,8 +22,10 @@ The Python bindings are contained in the `oxpy` package, which can be installed 
 git clone https://github.com/lorenzo-rovigatti/oxDNA.git
 cd oxDNA
 git checkout oxpy --
-pip install . # you may need to use pip3, depending on your OS
+pip install . # you may need to use pip3, depending on your OS, and the --user option to install in the current user's home directory
 ```
+
+The GPU-enabled version can be installed by uncommenting the `#cuda = True` line in the `setup.cfg` file before calling `pip` or by appending `--global-option=build_ext --global-option='--cuda'` to the `pip install` command.
 
 Python bindings require the `setuptools` and `setuptools-scm` packages, as well as `Python 3`'s binaries, libraries and include files. On Debian-derived distros the latter can be installed by installing the `libpython3-dev` package.
 
@@ -61,9 +63,14 @@ Compiling with Python bindings will also generate an `oxpy` package in the `buil
 * `-DMPI=ON` Compiles oxDNA with MPI support
 * `-DSIGNAL=OFF` Handling system signals is not always supported. Set this flag to OFF to remove this feature
 * `-DMOSIX=ON` Makes oxDNA compatible with MOSIX
-* `-DPython=ON` Enables Python bindings
 * `-DDOUBLE=OFF` Set the numerical precision of the CPU backends to `float`
 * `-DCUDA_DOUBLE=ON` Set the numerical precision of the CUDA backends to `double`, which is not compatible with the `mixed` precision.
+* `-DNATIVE_COMPILATION=ON` Set to `OFF` to compile without the `-march=native` flag. This may be required when compiling binaries to be used elsewhere
+
+The following options pertain to `oxpy`:
+
+* `-DPython=ON` Enables Python bindings
+* `-DOxpySystemInstall=On` By default `oxpy` is installed in the current user's home directory. By enabling this option `oxpy` will be installed as a system-wide package. It may require superuser privileges.
 
 ## `make` targets
 
@@ -90,7 +97,7 @@ Most of the options that can be specified in the input file can be found in the 
 
 ### Python Bindings
 
-The API are still unstable, and only few features are exposed through this interface. A basic documentation can be accessed by browsing `docs/oxpy/html/index.html`.  
+The API are still unstable, and only few features are exposed through this interface. A basic documentation can be accessed by browsing online [here](https://lorenzo-rovigatti.github.io/oxDNA/) or `docs/oxpy/html/index.html` in the source tree.
 
 The following snippet shows a very simple example:
 
@@ -106,6 +113,9 @@ with oxpy.Context():
 
     # run 1k steps
     manager.run(1000)
+    
+    # change the temperature
+    manager.update_temperature(oxpy.utils.Celsius_to_oxDNA(45))
 
     # run 10k steps more
     manager.run(10000)

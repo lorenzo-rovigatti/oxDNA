@@ -25,8 +25,8 @@ std::string StrandwiseBonds::get_output_string(llint curr_step) {
 	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 	typename std::vector<ParticlePair>::iterator it;
 	for(it = pairs.begin(); it != pairs.end(); it++) {
-		BaseParticle * p = (*it).first;
-		BaseParticle * q = (*it).second;
+		BaseParticle *p = (*it).first;
+		BaseParticle *q = (*it).second;
 		if(p->strand_id < q->strand_id) {
 			number ene = _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
 			if(ene < HB_CUTOFF) {

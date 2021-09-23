@@ -25,6 +25,7 @@ void export_ConfigInfo(py::module &m) {
          int
              The number of particles in the simulation box.
 	)pbdoc");
+
 	conf_info.def("particles", &ConfigInfo::particles, py::return_value_policy::reference, R"pbdoc(
 		 Return a list of all the particles.
 
@@ -33,8 +34,22 @@ void export_ConfigInfo(py::module &m) {
          List(:py:class:`BaseParticle`)
              A list containing all the particles in the simulation box.
 	)pbdoc");
+
+	conf_info.def("molecules", &ConfigInfo::molecules, py::return_value_policy::reference, R"pbdoc(
+		 Return a list of all the molecules.
+
+		 Returns
+		 -------
+		 List(:py:class:`Molecule`)
+			 A list containing all the molecules.
+	)pbdoc");
+
 	conf_info.def_readwrite("interaction", &ConfigInfo::interaction, R"pbdoc(
 		 The simulation's :py:class:`IBaseInteraction` object.
+	)pbdoc");
+
+	conf_info.def_property_readonly("flattened_conf", &ConfigInfo::flattened_conf, R"pbdoc(
+		 A flattened (that is, composed by arrays rather than class instances) view of the current configuration, stored in a :py:class:`FlattenedConfigInfo` object.
 	)pbdoc");
 }
 

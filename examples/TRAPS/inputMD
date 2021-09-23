@@ -2,7 +2,6 @@
 ####  PROGRAM PARAMETERS  ####
 ##############################
 backend = CPU
-backend_precision = double
 debug = 1
 seed = 10
 

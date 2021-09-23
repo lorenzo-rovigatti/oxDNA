@@ -16,7 +16,7 @@ NoList::~NoList() {
 
 }
 
-void NoList::init(std::vector<BaseParticle *> &particles, number rcut) {
+void NoList::init(number rcut) {
 	BaseList::init(rcut);
 
 	global_update(true);
