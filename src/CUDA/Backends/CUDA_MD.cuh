@@ -347,6 +347,35 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				}
 				break;
 			}
+			case CUDA_COM_FORCE: {
+				c_number4 com = make_c_number4(0.,0.,0.,0.);
+				for(int index = 0; index < extF.comforce.n_com; index++){
+					int p_idx = extF.comforce.com_indexes[index];
+					com += poss[p_idx];
+				}
+				com.x /= extF.comforce.n_com;
+				com.y /= extF.comforce.n_com;
+				com.z /= extF.comforce.n_com;
+
+				c_number4 ref = make_c_number4(0.,0.,0.,0.);
+				for(int index = 0; index < extF.comforce.n_ref; index++){
+					int p_idx = extF.comforce.ref_indexes[index];
+					ref += poss[p_idx];
+				}
+				ref.x /= extF.comforce.n_ref;
+				ref.y /= extF.comforce.n_ref;
+				ref.z /= extF.comforce.n_ref;
+
+				c_number4 dr = ref - com;
+				number dr_abs = _module(dr);
+				c_number4 force = dr * ((dr_abs - (extF.comforce.r0 + extF.comforce.rate * step)) * extF.comforce.stiff / dr_abs) / extF.comforce.n_com;
+
+				F.x += force.x;
+				F.y += force.y;
+				F.z += force.z;
+
+				break;
+			}
 			default: {
 				break;
 			}

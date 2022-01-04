@@ -616,6 +616,7 @@ void MD_CUDABackend::init() {
 		GenericCentralForce generic_central;
 		LJCone LJ_cone;
 		RepulsiveEllipsoid repulsive_ellipsoid;
+		COM_force comforce;
 
 		for(int i = 0; i < N(); i++) {
 			BaseParticle *p = _particles[i];
@@ -748,10 +749,27 @@ void MD_CUDABackend::init() {
 					force->repulsiveellipsoid.r_1 = make_float3(p_force->_r_1.x, p_force->_r_1.y, p_force->_r_1.z);
 					force->repulsiveellipsoid.r_2 = make_float3(p_force->_r_2.x, p_force->_r_2.y, p_force->_r_2.z);
 				}
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(comforce) ) {
+					COMForce *p_force = (COMForce *) p->ext_forces[j].get();
+					force->type = CUDA_COM_FORCE;
+					force->comforce.stiff = p_force->_stiff;
+					force->comforce.r0 = p_force->_r0;
+					force->comforce.rate = p_force->_rate;
+					force->comforce.n_com = p_force->_com_list.size();
+					force->comforce.n_ref = p_force->_ref_list.size();
+					int j = 0;
+					for(auto particle : p_force->_com_list) {
+						force->comforce.com_indexes[j++] = particle->index;
+					}
+					j = 0;
+					for(auto particle : p_force->_ref_list){
+						force->comforce.ref_indexes[j++] = particle->index;
+					}
+				}
 				else {
 					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
-							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce "
-							"and RepulsiveEllipsoid"
+							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce, "
+							"RepulsiveEllipsoid and COMForce "
 							"forces are supported on CUDA at the moment.\n");
 				}
 			}
