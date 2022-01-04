@@ -8,7 +8,7 @@ ADD_CUSTOM_TARGET(rovigatti
 			LevyInteraction CPMixtureInteraction StarrInteraction mWInteraction 
 			GraftedInteraction FSInteraction TSPAnalysis StarrConf ConstructwiseBonds 
 			EmptyVolume FSConf Gyradius PatchySwapInteraction DetailedPatchySwapInteraction 
-			PatchyBonds Bonds ValerioInteraction
+			PatchyBonds Bonds DetailedPolymerSwapInteraction
 )
 
 # without this bit clang-based compilation fails with some "undefined symbols" errors during the linking stage
@@ -60,7 +60,7 @@ add_library_no_prefix(PolydisperseLTInteraction MODULE EXCLUDE_FROM_ALL src/Inte
 add_library_no_prefix(PolymerSwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/PolymerSwapInteraction.cpp)
 add_library_no_prefix(PatchySwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/PatchySwapInteraction.cpp)
 add_library_no_prefix(DetailedPatchySwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/DetailedPatchySwapInteraction.cpp)
-add_library_no_prefix(ValerioInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/ValerioInteraction.cpp)
+add_library_no_prefix(DetailedPolymerSwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/DetailedPolymerSwapInteraction.cpp)
 
 FIND_PACKAGE(PkgConfig)
 IF(PkgConfig_FOUND)
