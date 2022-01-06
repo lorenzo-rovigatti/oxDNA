@@ -616,7 +616,7 @@ void MD_CUDABackend::init() {
 		GenericCentralForce generic_central;
 		LJCone LJ_cone;
 		RepulsiveEllipsoid repulsive_ellipsoid;
-		COM_force comforce;
+		COMForce comforce;
 
 		for(int i = 0; i < N(); i++) {
 			BaseParticle *p = _particles[i];

@@ -26,9 +26,9 @@
 
 class COMForce: public BaseForce {
 protected:
-	llint _last_step;
+	llint _last_step = -1;
 
-	BaseBox *_box_ptr;
+	BaseBox *_box_ptr = nullptr;
 
 	LR_vector _com;
 	LR_vector _ref_com;
@@ -36,7 +36,7 @@ protected:
 	void _compute_coms(llint step);
 
 public:
-	number _r0;
+	number _r0 = 0.0;
 
 	std::string _com_string;
 	std::string _ref_string;

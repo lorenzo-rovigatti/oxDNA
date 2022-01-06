@@ -192,13 +192,13 @@ struct repulsive_ellipsoid {
  */
 struct COM_force {
     int type;
-    number stiff;
-    number r0;
-    number rate;
-    int com_indexes[252];
-    int ref_indexes[252];
+    c_number stiff;
+    c_number r0;
+    c_number rate;
     int n_com;
     int n_ref;
+    int com_indexes[252];
+	int ref_indexes[252];
 };
 
 /**
