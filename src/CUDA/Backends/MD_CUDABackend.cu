@@ -52,7 +52,6 @@ MD_CUDABackend::MD_CUDABackend() :
 	_d_molecular_coms = nullptr;
 	_d_buff_particles_to_mols = nullptr;
 
-	_h_ext_forces = nullptr;
 	_d_ext_forces = nullptr;
 
 	_restart_step_counter = false;
@@ -99,9 +98,6 @@ MD_CUDABackend::~MD_CUDABackend() {
 	}
 
 	if(_external_forces) {
-		if(_h_ext_forces != nullptr) {
-			delete[] _h_ext_forces;
-		}
 		if(_d_ext_forces != nullptr) {
 			CUDA_SAFE_CALL(cudaFree(_d_ext_forces));
 		}
@@ -596,11 +592,11 @@ void MD_CUDABackend::init() {
 		if(_sort_every > 0) {
 			throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
 		}
-		_h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
+		CUDA_trap *h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)));
 
 		for(int i = 0; i < N() * MAX_EXT_FORCES; i++) {
-			_h_ext_forces[i].type = -1;
+			h_ext_forces[i].type = -1;
 		}
 
 		ConstantRateForce const_force;
@@ -624,7 +620,7 @@ void MD_CUDABackend::init() {
 			for(uint j = 0; j < p->ext_forces.size(); j++) {
 				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
 
-				CUDA_trap *force = &(_h_ext_forces[j * N() + i]);
+				CUDA_trap *force = &(h_ext_forces[j * N() + i]);
 				if(typeid(*(p->ext_forces[j].get())) == typeid(const_force)) {
 					ConstantRateForce *p_force = (ConstantRateForce*) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_CONSTANT;
@@ -775,7 +771,8 @@ void MD_CUDABackend::init() {
 			}
 		}
 
-		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, _h_ext_forces, N() * MAX_EXT_FORCES * sizeof (CUDA_trap), cudaMemcpyHostToDevice));
+		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, h_ext_forces, N() * MAX_EXT_FORCES * sizeof (CUDA_trap), cudaMemcpyHostToDevice));
+		delete[] h_ext_forces;
 	}
 
 	// used in the hilbert curve sorting
