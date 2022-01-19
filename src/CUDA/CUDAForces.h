@@ -197,8 +197,8 @@ struct COM_force {
     c_number rate;
     int n_com;
     int n_ref;
-    int com_indexes[252];
-	int ref_indexes[252];
+    int *com_indexes;
+	int *ref_indexes;
 };
 
 /**

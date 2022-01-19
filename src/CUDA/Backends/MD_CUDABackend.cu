@@ -753,14 +753,23 @@ void MD_CUDABackend::init() {
 					force->comforce.rate = p_force->_rate;
 					force->comforce.n_com = p_force->_com_list.size();
 					force->comforce.n_ref = p_force->_ref_list.size();
-					int j = 0;
+
+					std::vector<int> com_indexes;
 					for(auto particle : p_force->_com_list) {
-						force->comforce.com_indexes[j++] = particle->index;
+						com_indexes.push_back(particle->index);
 					}
-					j = 0;
+					// TODO: this memory never gets free'd
+					CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&force->comforce.com_indexes, sizeof(int) * com_indexes.size()));
+					CUDA_SAFE_CALL(cudaMemcpy(force->comforce.com_indexes, com_indexes.data(), sizeof(int) * com_indexes.size(), cudaMemcpyHostToDevice));
+
+					std::vector<int> ref_indexes;
 					for(auto particle : p_force->_ref_list){
-						force->comforce.ref_indexes[j++] = particle->index;
+						ref_indexes.push_back(particle->index);
 					}
+					// TODO: this memory never gets free'd
+					CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&force->comforce.ref_indexes, sizeof(int) * ref_indexes.size()));
+					CUDA_SAFE_CALL(cudaMemcpy(force->comforce.ref_indexes, ref_indexes.data(), sizeof(int) * ref_indexes.size(), cudaMemcpyHostToDevice));
+
 				}
 				else {
 					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
@@ -771,7 +780,7 @@ void MD_CUDABackend::init() {
 			}
 		}
 
-		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, h_ext_forces, N() * MAX_EXT_FORCES * sizeof (CUDA_trap), cudaMemcpyHostToDevice));
+		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, h_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap), cudaMemcpyHostToDevice));
 		delete[] h_ext_forces;
 	}
 
