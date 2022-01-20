@@ -60,12 +60,11 @@ public:
 	 * we need access in order to copy these numbers
 	 * to the GPU memory
 	 */
-	number _rate;
-	number _F0;
-	LR_vector _direction;
-	LR_vector _pos0;
+	number _rate = 0.;
+	number _F0 = 0.;
+	LR_vector _direction = LR_vector(1., 0., 0.);
+	LR_vector _pos0 = LR_vector(0., 0., 0.);
 	number _stiff;
-	int _site;
 	BaseParticle * _p_ptr;
 
 	BaseForce();

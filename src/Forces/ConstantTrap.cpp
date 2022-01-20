@@ -49,13 +49,11 @@ LR_vector ConstantTrap::_distance(LR_vector u, LR_vector v) {
 
 LR_vector ConstantTrap::value(llint step, LR_vector &pos) {
 	LR_vector dr = _distance(pos, _box_ptr->get_abs_pos(_p_ptr)); // other - self
-	if(_site >= 0) dr -= _p_ptr->orientationT * _p_ptr->int_centers[_site];
 	number sign = copysign(1., (double) (dr.module() - _r0));
 	return (_stiff * sign) * (dr / dr.module());
 }
 
 number ConstantTrap::potential(llint step, LR_vector &pos) {
 	LR_vector dr = _distance(pos, _box_ptr->get_abs_pos(_p_ptr)); // other - self
-	if(_site >= 0) dr -= _p_ptr->orientationT * _p_ptr->int_centers[_site];
 	return _stiff * fabs((dr.module() - _r0));
 }
