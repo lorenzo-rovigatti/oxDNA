@@ -87,9 +87,6 @@ void DetailedPolymerSwapInteraction::init() {
 	_3b_A_part = -1. / (B_ss - 1.) / exp(1. / (1. - _3b_range));
 	_3b_B_part = B_ss * pow(_3b_sigma, 4.);
 	_3b_prefactor = _3b_lambda;
-	if(_3b_epsilon > 0.) {
-		_3b_prefactor /= _3b_epsilon;
-	}
 
 	if(_3b_rcut > _rcut) {
 		_rcut = _3b_rcut;
@@ -237,19 +234,21 @@ number DetailedPolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q,
 	// sticky-sticky
 	if(_sticky_interaction(p->btype, q->btype)) {
 		if(sqr_r < _sqr_3b_rcut) {
+			number epsilon = _3b_epsilon[p->type * _N_attractive_types + q->type];
+
 			number r_mod = sqrt(sqr_r);
 			number exp_part = exp(_3b_sigma / (r_mod - _3b_rcut));
-			number tmp_energy = _3b_epsilon * _3b_A_part * exp_part * (_3b_B_part / SQR(sqr_r) - 1.);
+			number tmp_energy = epsilon * _3b_A_part * exp_part * (_3b_B_part / SQR(sqr_r) - 1.);
 
 			energy += tmp_energy;
 
-			number tb_energy = (r_mod < _3b_sigma) ? _3b_epsilon : -tmp_energy;
+			number tb_energy = (r_mod < _3b_sigma) ? epsilon : -tmp_energy;
 
-			PSBond p_bond(q, tb_energy, _computed_r);
-			PSBond q_bond(p, tb_energy, -_computed_r);
+			PSBond p_bond(q, tb_energy, epsilon, _computed_r);
+			PSBond q_bond(p, tb_energy, epsilon, -_computed_r);
 
 			if(update_forces) {
-				number force_mod = _3b_epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * tmp_energy / SQR(r_mod - _3b_rcut);
+				number force_mod = epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * tmp_energy / SQR(r_mod - _3b_rcut);
 				LR_vector tmp_force = -_computed_r * (force_mod / r_mod);
 
 				p->force += tmp_force;
@@ -283,18 +282,20 @@ number DetailedPolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q,
 number DetailedPolymerSwapInteraction::_patchy_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces) {
 	number energy = 0.;
 
-	number curr_energy = new_bond.energy;
+	number curr_energy = new_bond.energy / new_bond.epsilon;
 	for(auto &other_bond : _bonds[p->index]) {
 		if(other_bond.other != new_bond.other) {
-			number other_energy = other_bond.energy;
+			number other_energy = other_bond.energy / other_bond.epsilon;
+			number smallest_epsilon = std::min(new_bond.epsilon, other_bond.epsilon);
+			number prefactor = _3b_prefactor * smallest_epsilon;
 
-			energy += _3b_prefactor * curr_energy * other_energy;
+			energy += prefactor * curr_energy * other_energy;
 
 			if(update_forces) {
-				if(curr_energy != _3b_epsilon) {
+				if(curr_energy < 1.) {
 					BaseParticle *other = new_bond.other;
 
-					number factor = -_3b_prefactor * other_energy;
+					number factor = -prefactor * other_energy;
 					LR_vector tmp_force = -factor * new_bond.force;
 
 					p->force += tmp_force;
@@ -309,10 +310,10 @@ number DetailedPolymerSwapInteraction::_patchy_three_body(BaseParticle *p, PSBon
 					_update_stress_tensor(p->pos + new_bond.r, -tmp_force);
 				}
 
-				if(other_energy != _3b_epsilon) {
+				if(other_energy < 1.) {
 					BaseParticle *other = other_bond.other;
 
-					number factor = -_3b_prefactor * curr_energy;
+					number factor = -prefactor * curr_energy;
 					LR_vector tmp_force = -factor * other_bond.force;
 
 					p->force += tmp_force;

@@ -9,12 +9,14 @@
 struct PSBond {
 	BaseParticle *other;
 	number energy;
+	number epsilon;
 	LR_vector force;
 	LR_vector r;
 
-	PSBond(BaseParticle *o, number e, LR_vector nr) :
+	PSBond(BaseParticle *o, number e, number eps, LR_vector nr) :
 		other(o),
 		energy(e),
+		epsilon(eps),
 		r(nr) {
 			
 	}
