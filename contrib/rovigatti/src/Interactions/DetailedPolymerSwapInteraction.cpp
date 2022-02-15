@@ -522,11 +522,11 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 		topology >> n_bonds;
 
 		if(i != p_idx) {
-			throw oxDNAException("There is something wrong with the bond file. Expected index %d, found %d\n", i, p_idx);
+			throw oxDNAException("There is something wrong with the topology file. Expected index %d, found %d\n", i, p_idx);
 		}
 
 		if(p_idx >= N_from_conf) {
-			throw oxDNAException("There is a mismatch between the configuration and links files: the latter refers to particle %d, which is larger than the largest possible index (%d)", p_idx,
+			throw oxDNAException("There is a mismatch between the configuration and topology files: the latter refers to particle %d, which is larger than the largest possible index (%d)", p_idx,
 					N_from_conf - 1);
 		}
 
@@ -539,9 +539,7 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 			topology.ignore();
 
 			if(n_idx >= N_from_conf) {
-				throw oxDNAException(
-						"There is a mismatch between the configuration and links files: the latter contains a link between particles %d and %d, which is not possible since the largest possible index in the configuration is %d",
-						p->index, n_idx, N_from_conf - 1);
+				throw oxDNAException("The topology file contains a link between particles {} and {}, but the largest possible index in the configuration is %d", p->index, n_idx, N_from_conf - 1);
 			}
 
 			CustomParticle *q = static_cast<CustomParticle*>(particles[n_idx]);
