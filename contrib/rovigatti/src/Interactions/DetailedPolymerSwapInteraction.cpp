@@ -21,8 +21,6 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	BaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "DPS_n", &_PS_n, 0);
-	getInputString(&inp, "DPS_bond_file", _bond_filename, 1);
-	getInputBool(&inp, "DPS_only_links_in_bondfile", &_only_links_in_bondfile, 0);
 	getInputInt(&inp, "DPS_chain_size", &_chain_size, 1);
 
 	getInputNumber(&inp, "DPS_alpha", &_PS_alpha, 0);
@@ -36,7 +34,6 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_3b_lambda", &_3b_lambda, 0);
 
 	getInputString(&inp, "DPS_interaction_matrix_file", _interaction_matrix_file, 1);
-	getInputNumber(&inp, "DPS_3b_epsilon", &_3b_epsilon, 0);
 
 	std::string btypes;
 	if(getInputString(&inp, "DPS_btypes", btypes, 0) == KEY_FOUND) {
@@ -58,28 +55,16 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 		getInputNumber(&inp, "DPS_semiflexibility_k", &_semiflexibility_k, 1);
 	}
 
-	for(int i = 0; i < 3; i++) {
-		std::string key = Utils::sformat("DPS_rfene[%d]", i);
-		getInputNumber(&inp, key.c_str(), _rfene.data() + i, 0);
-
-		key = Utils::sformat("DPS_Kfene[%d]", i);
-		getInputNumber(&inp, key.c_str(), _Kfene.data() + i, 0);
-
-		key = Utils::sformat("DPS_WCA_sigma[%d]", i);
-		getInputNumber(&inp, key.c_str(), _WCA_sigma.data() + i, 0);
-	}
+	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
+	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
+	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
 }
 
 void DetailedPolymerSwapInteraction::init() {
-	std::transform(_rfene.begin(), _rfene.end(), _sqr_rfene.begin(), [](number r) {
-		return SQR(r);
-	});
+	_sqr_rfene = SQR(_rfene);
+	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / this->_PS_n);
 
-	std::transform(_WCA_sigma.begin(), _WCA_sigma.end(), _PS_sqr_rep_rcut.begin(), [this](number sigma) {
-		return pow(2. * sigma, 2. / this->_PS_n);
-	});
-
-	_rcut = sqrt(*std::max_element(_PS_sqr_rep_rcut.begin(), _PS_sqr_rep_rcut.end()));
+	_rcut = sqrt(_PS_sqr_rep_rcut);
 
 	_3b_rcut = _3b_range * _3b_sigma;
 	_sqr_3b_rcut = SQR(_3b_rcut);
@@ -93,20 +78,20 @@ void DetailedPolymerSwapInteraction::init() {
 	}
 
 	if(_PS_alpha > 0.) {
-		if(_rfene[0] > _rcut) {
-			_rcut = _rfene[0];
+		if(_rfene > _rcut) {
+			_rcut = _rfene;
 		}
 	}
 	_sqr_rcut = SQR(_rcut);
 
-	OX_LOG(Logger::LOG_INFO, "PolymerSwap: A_part: %lf, B_part: %lf, 3b_eps: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _3b_epsilon, _rcut, _sqr_rcut);
+	OX_LOG(Logger::LOG_INFO, "PolymerSwap: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
 
 	if(_PS_alpha != 0) {
 		if(_PS_alpha < 0.) {
 			throw oxDNAException("MG_alpha may not be negative");
 		}
-		_PS_gamma = M_PI / (_sqr_rfene[0] - pow(2., 1. / 3.));
-		_PS_beta = 2 * M_PI - _sqr_rfene[0] * _PS_gamma;
+		_PS_gamma = M_PI / (_sqr_rfene - pow(2., 1. / 3.));
+		_PS_beta = 2 * M_PI - _sqr_rfene * _PS_gamma;
 		OX_LOG(Logger::LOG_INFO, "MG: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
 	}
 }
@@ -151,23 +136,19 @@ bool DetailedPolymerSwapInteraction::has_custom_stress_tensor() const {
 number DetailedPolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 
-	int int_type = p->type + q->type;
-	number sqr_rfene = _sqr_rfene[int_type];
-
-	if(sqr_r > sqr_rfene) {
+	if(sqr_r > _sqr_rfene) {
 		if(update_forces) {
-			throw oxDNAException("The distance between particles %d and %d (type: %d, r: %lf) exceeds the FENE distance (%lf)", p->index, q->index, int_type, sqrt(sqr_r), sqrt(sqr_rfene));
+			throw oxDNAException("The distance between particles %d and %d (r: %lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _rfene);
 		}
 		set_is_infinite(true);
 		return 10e10;
 	}
 
-	number Kfene = _Kfene[int_type];
-	number energy = -Kfene * sqr_rfene * log(1. - sqr_r / sqr_rfene);
+	number energy = -_Kfene * _sqr_rfene * log(1. - sqr_r / _sqr_rfene);
 
 	if(update_forces) {
 		// this number is the module of the force over r, so we don't have to divide the distance vector by its module
-		number force_mod = -2 * Kfene * sqr_rfene / (sqr_rfene - sqr_r);
+		number force_mod = -2 * _Kfene * _sqr_rfene / (_sqr_rfene - sqr_r);
 		auto force = -_computed_r * force_mod;
 		p->force += force;
 		q->force -= force;
@@ -181,8 +162,7 @@ number DetailedPolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, b
 
 number DetailedPolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
-	int int_type = p->type + q->type;
-	if(sqr_r > _PS_sqr_rep_rcut[int_type]) {
+	if(sqr_r > _PS_sqr_rep_rcut) {
 		return (number) 0.;
 	}
 
@@ -191,9 +171,9 @@ number DetailedPolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bo
 	number force_mod = 0;
 
 	// cut-off for all the repulsive interactions
-	if(sqr_r < _PS_sqr_rep_rcut[int_type]) {
+	if(sqr_r < _PS_sqr_rep_rcut) {
 		number part = 1.;
-		number ir2_scaled = SQR(_WCA_sigma[int_type]) / sqr_r;
+		number ir2_scaled = SQR(_WCA_sigma) / sqr_r;
 		for(int i = 0; i < _PS_n / 2; i++) {
 			part *= ir2_scaled;
 		}
@@ -234,7 +214,7 @@ number DetailedPolymerSwapInteraction::_sticky(BaseParticle *p, BaseParticle *q,
 	// sticky-sticky
 	if(_sticky_interaction(p->btype, q->btype)) {
 		if(sqr_r < _sqr_3b_rcut) {
-			number epsilon = _3b_epsilon[p->type * _N_attractive_types + q->type];
+			number epsilon = _3b_epsilon[p->btype * _interaction_matrix_size + q->btype];
 
 			number r_mod = sqrt(sqr_r);
 			number exp_part = exp(_3b_sigma / (r_mod - _3b_rcut));
@@ -492,14 +472,15 @@ void DetailedPolymerSwapInteraction::_parse_interaction_matrix() {
 		throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
 	}
 
-	_3b_epsilon.resize(_N_attractive_types * _N_attractive_types, 0.);
+	_interaction_matrix_size = _N_attractive_types + 1;
+	_3b_epsilon.resize(_interaction_matrix_size * _interaction_matrix_size, 0.);
 
-	for(int i = 0; i < _N_attractive_types; i++) {
-		for(int j = 0; j < _N_attractive_types; j++) {
+	for(int i = 1; i <= _N_attractive_types; i++) {
+		for(int j = 1; j <= _N_attractive_types; j++) {
 			number value;
 			std::string key = Utils::sformat("bond_eps[%d][%d]", i, j);
 			if(getInputNumber(&inter_matrix_file, key.c_str(), &value, 0) == KEY_FOUND) {
-				_3b_epsilon[i + _N_attractive_types * j] = _3b_epsilon[j + _N_attractive_types * i] = value;
+				_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = value;
 			}
 		}
 	}
@@ -515,82 +496,47 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 	if(!topology.good()) {
 		throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	}
-	std::getline(topology, line);
-	std::vector<int> sticky_particles;
-	while(topology.good()) {
-		std::getline(topology, line);
-		auto ps = Utils::get_particles_from_string(particles, line, "DetailedPolymerSwapInteraction");
-		sticky_particles.insert(sticky_particles.begin(), ps.begin(), ps.end());
-	}
-	topology.close();
+	unsigned int N_from_topology;
+	topology >> N_from_topology >> *N_strands;
 
-	OX_LOG(Logger::LOG_INFO, "PolymerSwap: %d sticky particles found in the topology", sticky_particles.size());
-
-	std::ifstream bond_file(_bond_filename.c_str());
-
-	if(!bond_file.good()) {
-		throw oxDNAException("Can't read bond file '%s'. Aborting", _bond_filename.c_str());
-	}
-	// skip the headers and the particle positions if the user specified that the bondfile does not contain bonds only
-	if(!_only_links_in_bondfile) {
-		int to_skip = N_from_conf + 2;
-		for(int i = 0; i < to_skip; i++) {
-			std::getline(bond_file, line);
-		}
-		if(!bond_file.good()) {
-			throw oxDNAException("The bond file '%s' does not contain the right number of lines. Aborting", _bond_filename.c_str());
-		}
+	if(N_from_conf != N_from_topology) {
+		throw oxDNAException("The number of particles found in the configuration file (%u) and specified in the topology (%u) are different", N_from_conf, N_from_topology);
 	}
 
 	for(unsigned int i = 0; i < N_from_conf; i++) {
-		std::getline(bond_file, line);
-
-		if(!bond_file.good()) {
-			throw oxDNAException("The bond file should contain two lines per particle, but it seems there are info for only %d particles\n", i);
-		}
-
-		auto line_spl = Utils::split(line, ' ');
-		CustomParticle *p;
-		int n_bonds;
-
 		unsigned int p_idx;
-		if(line_spl.size() == 2) {
-			p_idx = std::stoi(line_spl[0]);
-			p_idx--;
+		topology >> p_idx;
 
-			n_bonds = std::stoi(line_spl[1]);
+		if(!topology.good()) {
+			throw oxDNAException("The topology should contain two lines per particle, but it seems there is info for only %d particles\n", i);
+		}
 
-			if(i != p_idx) {
-				throw oxDNAException("There is something wrong with the bond file. Expected index %d, found %d\n", i, p_idx);
-			}
+		CustomParticle *p = static_cast<CustomParticle*>(particles[p_idx]);
+		topology >> p->btype;
+		p->type = (p->btype > 0) ? STICKY_ANY : MONOMER;
+		if(p->btype > _N_attractive_types) {
+			_N_attractive_types = p->btype;
 		}
-		else {
-			n_bonds = std::stoi(line_spl[0]);
-			p_idx = i;
+
+		int n_bonds;
+		topology >> n_bonds;
+
+		if(i != p_idx) {
+			throw oxDNAException("There is something wrong with the bond file. Expected index %d, found %d\n", i, p_idx);
 		}
+
 		if(p_idx >= N_from_conf) {
 			throw oxDNAException("There is a mismatch between the configuration and links files: the latter refers to particle %d, which is larger than the largest possible index (%d)", p_idx,
 					N_from_conf - 1);
 		}
 
-		p = static_cast<CustomParticle*>(particles[p_idx]);
-
-		p->type = p->btype = MONOMER;
-		auto sticky_it = std::find(sticky_particles.begin(), sticky_particles.end(), p->index);
-		if(sticky_it != sticky_particles.end()) {
-			int sticky_idx = sticky_it - sticky_particles.begin();
-
-			p->type = STICKY_ANY;
-			p->btype = _btype_pattern[sticky_idx % _btype_pattern.size()];
-		}
 		p->strand_id = p_idx / _chain_size;
 		p->n3 = p->n5 = P_VIRTUAL;
 		for(int j = 0; j < n_bonds; j++) {
 			unsigned int n_idx;
-			bond_file >> n_idx;
+			topology >> n_idx;
 			// the >> operator always leaves '\n', which is subsequently picked up by getline if we don't explicitly ignore it
-			bond_file.ignore();
-			n_idx--;
+			topology.ignore();
 
 			if(n_idx >= N_from_conf) {
 				throw oxDNAException(
@@ -603,11 +549,17 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 		}
 	}
 
+	topology.close();
+
 	*N_strands = N_from_conf / _chain_size;
 	if(*N_strands == 0) {
 		*N_strands = 1;
 	}
 	_N_chains = *N_strands;
+
+	_parse_interaction_matrix();
+
+	return;
 }
 
 extern "C" DetailedPolymerSwapInteraction* make_DetailedPolymerSwapInteraction() {

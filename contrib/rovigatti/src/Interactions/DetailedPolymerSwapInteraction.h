@@ -45,11 +45,11 @@ struct PSBondCompare {
  */
 class DetailedPolymerSwapInteraction: public BaseInteraction {
 protected:
-	std::array<number, 3> _Kfene = { {15., 15., 15.} };
-	std::array<number, 3> _rfene = { {1.5, 1.5, 1.5} };
-	std::array<number, 3> _sqr_rfene = { {2.25, 2.25, 2.25} };
-	std::array<number, 3> _WCA_sigma = { {1.0, 1.0, 1.0} };
-	std::array<number, 3> _PS_sqr_rep_rcut;
+	number _Kfene = 15.;
+	number _rfene = 1.5;
+	number _sqr_rfene;
+	number _WCA_sigma = 1.0;
+	number _PS_sqr_rep_rcut;
 
 	std::vector<LR_vector> _chain_coms;
 
@@ -60,6 +60,7 @@ protected:
 
 	std::vector<int> _btype_pattern;
 	int _N_attractive_types = 0;
+	int _interaction_matrix_size = 0;
 	std::string _interaction_matrix_file;
 
 	/// three-body potential stuff
@@ -79,9 +80,6 @@ protected:
 
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
-	std::string _bond_filename;
-
-	bool _only_links_in_bondfile = true;
 	int _chain_size = -1;
 	int _N_chains = -1;
 
