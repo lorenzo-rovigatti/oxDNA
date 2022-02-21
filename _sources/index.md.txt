@@ -2,7 +2,7 @@
 
 Oxpy is a Python3 library that makes it possible to use oxDNA from Python.
 
-## A simple example
+## An example of a simple simulation
 
 The following snippet imports the `oxpy` module, initialises the simulation machinery, runs a short simulation using the input file `input`, changes the temperature, runs more simulations steps and computes the average position of the final configuration:
 
@@ -10,29 +10,29 @@ The following snippet imports the `oxpy` module, initialises the simulation mach
 	import oxpy
 	
 	with oxpy.Context():
-	    # init the manager with the given input file
-	    manager = oxpy.OxpyManager("input")
-	    manager.load_options()
-	    manager.init()
-	
-	    # run 1k steps
-	    manager.run(1000)
-	    
-	    # change the temperature
+		# init the manager with the given input file
+		manager = oxpy.OxpyManager("input")
+		manager.load_options()
+		manager.init()
+		
+		# run 1k steps
+		manager.run(1000)
+		
+		# change the temperature
 		manager.update_temperature(0.11)
-	
-	    # run 1k steps more
-	    manager.run(1000)
-	
-	    # do some computation with the current configuration
-	    particles = manager.config_info().particles()
-	    
-	    # compute the average position of the particles' backbones
-	    avg_pos = np.average(list(map(lambda p: p.backbone_site(), particles)), axis=0)
-	    print("Average final position:", avg_pos)
-	    
-	    # and the interaction energy between the first two particles
-	    print("Interaction energy between particle 0 and particle 1:", manager.config_info().interaction.pair_interaction(particles[0], particles[1]))
+		
+		# run 1k steps more
+		manager.run(1000)
+		
+		# do some computation with the current configuration
+		particles = manager.config_info().particles()
+		
+		# compute the average position of the particles' backbones
+		avg_pos = np.average(list(map(lambda p: p.backbone_site(), particles)), axis=0)
+		print("Average final position:", avg_pos)
+		
+		# and the interaction energy between the first two particles
+		print("Interaction energy between particle 0 and particle 1:", manager.config_info().interaction.pair_interaction(particles[0], particles[1]))
 	    
 If you want, you can initialise the input file yourself and change some of the options before initialising the manager:
 
@@ -44,25 +44,46 @@ If you want, you can initialise the input file yourself and change some of the o
 	
 You can also use the `oxpy.utils.generate_default_input()` to generate the following basic input file:
 
-    backend = CPU
-    sim_type = MD
-    
-    verlet_skin = 0.2
-    dt = 0.001
-    
-    T = 0.1
+	backend = CPU
+	sim_type = MD
+	
+	verlet_skin = 0.2
+	dt = 0.001
+	
+	T = 0.1
+	
+	steps = 10000
+	print_energy_every = 1000
+	print_conf_interval = 100000
+	restart_step_counter = yes
+	refresh_vel = true
+	time_scale = linear
+	
+	topology = topology.top
+	conf_file = init_conf.dat
+	trajectory_file = trajectory.dat
+	energy_file = energy.dat
+	
+## An example of a simple analysis
 
-    steps = 10000
-    print_energy_every = 1000
-    print_conf_interval = 100000
-    restart_step_counter = yes
-    refresh_vel = true
-    time_scale = linear
-    
-    topology = topology.top
-    conf_file = init_conf.dat
-    trajectory_file = trajectory.dat
-    energy_file = energy.dat
+Here we loop over all the configurations stored in an oxDNA trajectory file, printing the position of the first particle. 
+
+	import numpy as np
+	import oxpy
+	
+	with oxpy.Context():
+	    inp = oxpy.InputFile()
+	    inp.init_from_filename("input")
+	    # this object will make it possible to access the trajectory data
+	    backend = oxpy.analysis.AnalysisBackend(inp)
+	
+	    # loop over all the configurations stored in the trajectory file
+	    while backend.read_next_configuration():
+	        # you can access the particles' details from BaseParticle instances
+	        print(backend.particles[0].pos)
+	        # or from the flattened_conf object, which exposes the simulation data as vectors that can be converted to numpy arrays
+	        numpy_positions = np.array(backend.flattened_conf.positions, copy=False)
+	        print(numpy_positions[0])
 	
 ## Library API
 
@@ -71,6 +92,7 @@ You can also use the `oxpy.utils.generate_default_input()` to generate the follo
    :maxdepth: 2
    
    modules/core.md
+   modules/analysis.md
    modules/utils.md
 ```
 
