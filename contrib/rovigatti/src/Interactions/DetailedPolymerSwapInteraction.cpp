@@ -35,21 +35,6 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 
 	getInputString(&inp, "DPS_interaction_matrix_file", _interaction_matrix_file, 1);
 
-	std::string btypes;
-	if(getInputString(&inp, "DPS_btypes", btypes, 0) == KEY_FOUND) {
-		for(auto token : Utils::split(btypes, ' ')) {
-			int btype = std::atoi(token.c_str());
-			if(btype < 1) {
-				throw oxDNAException("Invalid btype %d: only integers larger than 0 are allowed", btype);
-			}
-			_btype_pattern.push_back(btype);
-		}
-
-	}
-	else {
-		_btype_pattern.push_back(1);
-	}
-
 	getInputBool(&inp, "DPS_semiflexibility", &_enable_semiflexibility, 0);
 	if(_enable_semiflexibility) {
 		getInputNumber(&inp, "DPS_semiflexibility_k", &_semiflexibility_k, 1);
@@ -401,7 +386,7 @@ number DetailedPolymerSwapInteraction::pair_interaction_bonded(BaseParticle *p, 
 }
 
 bool DetailedPolymerSwapInteraction::_sticky_interaction(int p_btype, int q_btype) {
-	return (p_btype != MONOMER && q_btype != MONOMER);
+	return _3b_epsilon[p_btype * _interaction_matrix_size + q_btype] != 0.;
 }
 
 number DetailedPolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {

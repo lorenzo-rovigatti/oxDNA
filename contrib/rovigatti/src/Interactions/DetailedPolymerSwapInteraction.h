@@ -58,7 +58,6 @@ protected:
 	number _PS_gamma = 0.;
 	int _PS_n = 6;
 
-	std::vector<int> _btype_pattern;
 	int _N_attractive_types = 0;
 	int _interaction_matrix_size = 0;
 	std::string _interaction_matrix_file;
