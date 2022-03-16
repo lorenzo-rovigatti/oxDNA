@@ -45,7 +45,6 @@
  *
  @verbatim
  backend = CPU (For CPU FFS)
- backend_precision = <any> (CPU FFS may use any precision allowed for a normal CPU MD simulation)
  sim_type = FFS_MD (This must be set for an FFS simulation)
  @endverbatim
  */

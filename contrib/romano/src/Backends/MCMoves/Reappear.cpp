@@ -7,41 +7,36 @@
 #include "Reappear.h"
 
 /// traslation
-template<typename number>
-Reappear<number>::Reappear (){
-	pos_old = LR_vector<number> (0., 0., 0.);
+Reappear::Reappear (){
+	pos_old = LR_vector (0., 0., 0.);
 }
 
-template<typename number>
-Reappear<number>::~Reappear () {
+Reappear::~Reappear () {
 
 }
 
-template<typename number>
-void Reappear<number>::init () {
-	BaseMove<number>::init();
+void Reappear::init () {
+	BaseMove::init();
 	OX_LOG(Logger::LOG_INFO, "(Reappear.cpp) Reappear move initiated with probability %g", this->prob);
 }
 
-template<typename number>
-void Reappear<number>::get_settings (input_file &inp, input_file &sim_inp) {
-	BaseMove<number>::get_settings (inp, sim_inp);
+void Reappear::get_settings (input_file &inp, input_file &sim_inp) {
+	BaseMove::get_settings (inp, sim_inp);
 }
 
 
-template<typename number>
-void Reappear<number>::apply (llint curr_step) {
+void Reappear::apply (llint curr_step) {
 
 	// we increase the attempted count
 	this->_attempted += 1;
 
 	// we select the particle to translate
-	int pi = (int) (drand48() * (*this->_Info->N));
-	BaseParticle<number> * p = this->_Info->particles[pi];
+	int pi = (int) (drand48() * (_Info->N()));
+	BaseParticle * p = _Info->particles()[pi];
 	if (this->_restrict_to_type >= 0) {
 		while(p->type != this->_restrict_to_type) {
-			pi = (int) (drand48() * (*this->_Info->N));
-			p = this->_Info->particles[pi];
+			pi = (int) (drand48() * (_Info->N()));
+			p = _Info->particles()[pi];
 		}
 	}
 
@@ -55,7 +50,7 @@ void Reappear<number>::apply (llint curr_step) {
 	number delta_E_ext = -p->ext_potential;
 
 	// perform the move
-	LR_vector<number> sides = this->_Info->box->box_sides();
+	LR_vector sides = this->_Info->box->box_sides();
 	p->pos.x = drand48() * sides[0];
 	p->pos.y = drand48() * sides[1];
 	p->pos.z = drand48() * sides[2];
@@ -78,7 +73,7 @@ void Reappear<number>::apply (llint curr_step) {
 
 	}
 	else {
-		this->_Info->particles[pi]->pos = pos_old;
+		_Info->particles()[pi]->pos = pos_old;
 		this->_Info->lists->single_update(p);
 		this->_Info->interaction->set_is_infinite(false);
 	}
@@ -86,5 +81,3 @@ void Reappear<number>::apply (llint curr_step) {
 	return;
 }
 
-template class Reappear<float>;
-template class Reappear<double>;

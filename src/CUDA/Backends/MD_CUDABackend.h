@@ -62,7 +62,7 @@ protected:
 	bool _cuda_barostat_always_refresh = false;
 	std::shared_ptr<CUDABrownianThermostat> _cuda_barostat_thermostat;
 
-	CUDA_trap *_h_ext_forces, *_d_ext_forces;
+	CUDA_trap *_d_ext_forces;
 	int _max_ext_forces;
 
 	virtual void _gpu_to_host();

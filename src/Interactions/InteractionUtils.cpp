@@ -293,7 +293,7 @@ bool InteractionUtils::cylinder_overlap(BaseParticle *p, BaseParticle * q, LR_ve
 
 	number hlength = length / 2.;
 	// dr = pos_1 - pos_2 with PBC; thus, we invert it;
-	dr = -dr;
+	// dr = -dr; NOT NEEDED SINCE LAST MAJOR UPDATE
 	LR_vector u1 = p->orientation.v3;
 	LR_vector u2 = q->orientation.v3;
 	u1.normalize();

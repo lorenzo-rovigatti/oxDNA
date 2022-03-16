@@ -52,7 +52,6 @@ MD_CUDABackend::MD_CUDABackend() :
 	_d_molecular_coms = nullptr;
 	_d_buff_particles_to_mols = nullptr;
 
-	_h_ext_forces = nullptr;
 	_d_ext_forces = nullptr;
 
 	_restart_step_counter = false;
@@ -99,9 +98,6 @@ MD_CUDABackend::~MD_CUDABackend() {
 	}
 
 	if(_external_forces) {
-		if(_h_ext_forces != nullptr) {
-			delete[] _h_ext_forces;
-		}
 		if(_d_ext_forces != nullptr) {
 			CUDA_SAFE_CALL(cudaFree(_d_ext_forces));
 		}
@@ -596,11 +592,11 @@ void MD_CUDABackend::init() {
 		if(_sort_every > 0) {
 			throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
 		}
-		_h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
+		CUDA_trap *h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)));
 
 		for(int i = 0; i < N() * MAX_EXT_FORCES; i++) {
-			_h_ext_forces[i].type = -1;
+			h_ext_forces[i].type = -1;
 		}
 
 		ConstantRateForce const_force;
@@ -616,6 +612,7 @@ void MD_CUDABackend::init() {
 		GenericCentralForce generic_central;
 		LJCone LJ_cone;
 		RepulsiveEllipsoid repulsive_ellipsoid;
+		COMForce comforce;
 
 		for(int i = 0; i < N(); i++) {
 			BaseParticle *p = _particles[i];
@@ -623,7 +620,7 @@ void MD_CUDABackend::init() {
 			for(uint j = 0; j < p->ext_forces.size(); j++) {
 				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
 
-				CUDA_trap *force = &(_h_ext_forces[j * N() + i]);
+				CUDA_trap *force = &(h_ext_forces[j * N() + i]);
 				if(typeid(*(p->ext_forces[j].get())) == typeid(const_force)) {
 					ConstantRateForce *p_force = (ConstantRateForce*) p->ext_forces[j].get();
 					force->type = CUDA_TRAP_CONSTANT;
@@ -748,16 +745,43 @@ void MD_CUDABackend::init() {
 					force->repulsiveellipsoid.r_1 = make_float3(p_force->_r_1.x, p_force->_r_1.y, p_force->_r_1.z);
 					force->repulsiveellipsoid.r_2 = make_float3(p_force->_r_2.x, p_force->_r_2.y, p_force->_r_2.z);
 				}
+				else if(typeid (*(p->ext_forces[j].get())) == typeid(comforce) ) {
+					COMForce *p_force = (COMForce *) p->ext_forces[j].get();
+					force->type = CUDA_COM_FORCE;
+					force->comforce.stiff = p_force->_stiff;
+					force->comforce.r0 = p_force->_r0;
+					force->comforce.rate = p_force->_rate;
+					force->comforce.n_com = p_force->_com_list.size();
+					force->comforce.n_ref = p_force->_ref_list.size();
+
+					std::vector<int> com_indexes;
+					for(auto particle : p_force->_com_list) {
+						com_indexes.push_back(particle->index);
+					}
+					// TODO: this memory never gets free'd
+					CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&force->comforce.com_indexes, sizeof(int) * com_indexes.size()));
+					CUDA_SAFE_CALL(cudaMemcpy(force->comforce.com_indexes, com_indexes.data(), sizeof(int) * com_indexes.size(), cudaMemcpyHostToDevice));
+
+					std::vector<int> ref_indexes;
+					for(auto particle : p_force->_ref_list){
+						ref_indexes.push_back(particle->index);
+					}
+					// TODO: this memory never gets free'd
+					CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&force->comforce.ref_indexes, sizeof(int) * ref_indexes.size()));
+					CUDA_SAFE_CALL(cudaMemcpy(force->comforce.ref_indexes, ref_indexes.data(), sizeof(int) * ref_indexes.size(), cudaMemcpyHostToDevice));
+
+				}
 				else {
 					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
-							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce "
-							"and RepulsiveEllipsoid"
+							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce, "
+							"RepulsiveEllipsoid and COMForce "
 							"forces are supported on CUDA at the moment.\n");
 				}
 			}
 		}
 
-		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, _h_ext_forces, N() * MAX_EXT_FORCES * sizeof (CUDA_trap), cudaMemcpyHostToDevice));
+		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, h_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap), cudaMemcpyHostToDevice));
+		delete[] h_ext_forces;
 	}
 
 	// used in the hilbert curve sorting

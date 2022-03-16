@@ -4,15 +4,10 @@ SET(oxpy_SOURCES
 )
 
 IF(Python)
+	# tell pybind11 to use python3
+	set(PYBIND11_PYTHON_VERSION 3 CACHE STRING "Python version to use for compiling modules")
 	ADD_SUBDIRECTORY(pybind11)
 	ADD_DEFINITIONS(-DPYTHON_BINDINGS)
-	
-	if(CMAKE_VERSION VERSION_LESS "3.12")
-		FIND_PACKAGE( PythonLibs 3 REQUIRED )
-		FIND_PROGRAM( Python_EXECUTABLE "python3" )
-	else()
-		FIND_PACKAGE( Python 3 REQUIRED )
-	endif()
 	
 	INCLUDE_DIRECTORIES( ${PYTHON_INCLUDE_DIRS} )
 	MESSAGE(STATUS "The detected Python's include dirs are: ${PYTHON_INCLUDE_DIRS}" )
@@ -64,9 +59,9 @@ IF(Python)
 
 	# install the package
 	if(OxpySystemInstall)
-		INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install ${OXPY_OUTPUT_DIR})")
+		INSTALL(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} -m pip install ${OXPY_OUTPUT_DIR})")
 	else()
-		INSTALL(CODE "execute_process(COMMAND ${Python_EXECUTABLE} -m pip install --user ${OXPY_OUTPUT_DIR})")
+		INSTALL(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} -m pip install --user ${OXPY_OUTPUT_DIR})")
 	endif()
 	
 ENDIF(Python)

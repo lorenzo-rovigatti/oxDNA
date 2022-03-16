@@ -62,4 +62,7 @@ wheels/
 *.egg
 MANIFEST
 
+# Vim/gvim swp files
+.*.swp
+
 select_compute_arch_laptop.cmake
