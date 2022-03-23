@@ -47,7 +47,7 @@ private:
 	/// A map associating list of callbacks to events
 	std::map<std::string, std::vector<std::function<void()>>> _event_callbacks;
 
-	number _temperature;
+	number _temperature = 1.0;
 
 	FlattenedConfigInfo _flattened_conf;
 

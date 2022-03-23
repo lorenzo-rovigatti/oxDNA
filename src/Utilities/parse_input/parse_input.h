@@ -44,6 +44,9 @@ struct input_file {
 	std::set<std::string> true_values;
 	std::set<std::string> false_values;
 
+	bool is_main_input = false;
+
+	input_file(bool is_main);
 	input_file();
 	virtual ~input_file();
 

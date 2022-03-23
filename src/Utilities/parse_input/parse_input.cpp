@@ -2,6 +2,7 @@
 #include "../Utils.h"
 #include "../Logger.h"
 #include "../oxDNAException.h"
+#include "../ConfigInfo.h"
 #include <algorithm>
 
 using std::string;
@@ -9,7 +10,12 @@ using std::map;
 using std::set;
 using std::vector;
 
-input_file::input_file() {
+input_file::input_file(bool is_main) :
+				is_main_input(is_main) {
+	if(is_main && CONFIG_INFO->sim_input != nullptr && CONFIG_INFO->sim_input->is_main_input) {
+		throw oxDNAException("There is already a main input file: Cannot initialise another one");
+	}
+
 	true_values.insert("true");
 	true_values.insert("1");
 	true_values.insert("yes");
@@ -23,6 +29,11 @@ input_file::input_file() {
 	false_values.insert("are you crazy?");
 
 	state = UNPARSED;
+}
+
+input_file::input_file() :
+				input_file(false) {
+
 }
 
 input_file::~input_file() {
