@@ -28,10 +28,16 @@
 
 struct input_value {
 	std::string value;
+	std::string expanded_value;
+	std::vector<std::string> depends_on;
 	int read;
 
 	input_value() : value(""), read(0) {}
 	input_value(std::string v) : value(v), read(0) {}
+
+	bool has_dependencies() {
+		return !depends_on.empty();
+	}
 };
 
 typedef std::map<std::string, input_value> input_map;
@@ -102,7 +108,7 @@ struct input_file {
 
 	void set_unread_keys();
 
-	std::string get_value(std::string key);
+	std::string get_value(const char *key, int mandatory, bool &found);
 	void set_value(std::string key, std::string value);
 
 	std::string to_string() const;
