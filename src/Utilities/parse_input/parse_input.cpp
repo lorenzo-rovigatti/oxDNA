@@ -1,4 +1,6 @@
 #include "parse_input.h"
+
+#include "exprtk.hpp"
 #include "../Utils.h"
 #include "../Logger.h"
 #include "../oxDNAException.h"
@@ -13,6 +15,8 @@ using std::set;
 using std::vector;
 
 input_file *input_file::main_input = nullptr;
+std::set<std::string> input_file::true_values = {"true", "1", "yes", "yup", "of course"};
+std::set<std::string> input_file::false_values = {"false", "0", "no", "nope", "are you crazy?"};
 
 bool input_value::has_dependencies() {
 	return !depends_on.empty();
@@ -23,8 +27,18 @@ void input_value::expand_value(std::map<std::string, std::string> expanded_depen
 	for(auto k : depends_on) {
 		std::string str_pattern(Utils::sformat("\\$\\(%s\\)", k.c_str()));
 		std::regex pattern(str_pattern);
+
 		expanded_value = std::regex_replace(expanded_value, pattern, expanded_dependency_values[k]);
 	}
+
+	// here we match patterns that are like this: ${some_text}, and we use parentheses to make sure that the second element of the std::smatch is "some_text"
+//	std::regex pattern("\\$\\{([\\w\\[\\]]+)\\}"); // backslashes have to be escaped or the compiler complains
+//
+//	std::smatch m;
+//	while(std::regex_search(value, m, pattern)) {
+//		keys[key].depends_on.push_back(m[1].str());
+//		value = m.suffix().str();
+//	}
 }
 
 input_file::input_file(bool is_main) :
@@ -35,18 +49,6 @@ input_file::input_file(bool is_main) :
 		}
 		input_file::main_input = this;
 	}
-
-	true_values.insert("true");
-	true_values.insert("1");
-	true_values.insert("yes");
-	true_values.insert("yup");
-	true_values.insert("of course");
-
-	false_values.insert("false");
-	false_values.insert("0");
-	false_values.insert("no");
-	false_values.insert("nope");
-	false_values.insert("are you crazy?");
 
 	state = UNPARSED;
 }
@@ -177,6 +179,10 @@ std::string input_file::get_value(const char *key, int mandatory, bool &found) {
 			for(const auto &k : current_value.depends_on) {
 				if(k == root_key) {
 					throw oxDNAException("Circular dependency found between keys '%s' and '%s', aborting", root_key.c_str(), current_value.key.c_str());
+				}
+				auto dep_it = input_file::main_input->keys.find(k);
+				if(dep_it == input_file::main_input->keys.end()) {
+					throw oxDNAException("Key '%s' (which is expanded by '%s') is not defined", k.c_str(), current_value.key.c_str());
 				}
 				input_value &dep_value = input_file::main_input->keys[k];
 

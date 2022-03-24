@@ -42,13 +42,12 @@ typedef std::map<std::string, input_value> input_map;
 
 struct input_file {
 	static input_file *main_input;
+	static std::set<std::string> true_values;
+	static std::set<std::string> false_values;
 
 	input_map keys;
 	std::vector<std::string> unread_keys;
 	int state;
-
-	std::set<std::string> true_values;
-	std::set<std::string> false_values;
 
 	bool is_main_input = false;
 
