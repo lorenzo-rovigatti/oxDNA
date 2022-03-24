@@ -35,9 +35,8 @@ struct input_value {
 	input_value() : value(""), read(0) {}
 	input_value(std::string v) : value(v), read(0) {}
 
-	bool has_dependencies() {
-		return !depends_on.empty();
-	}
+	bool has_dependencies();
+	void expand_value(std::map<std::string, std::string> expanded_dependency_values);
 };
 
 typedef std::map<std::string, input_value> input_map;

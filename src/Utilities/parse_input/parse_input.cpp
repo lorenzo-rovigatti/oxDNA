@@ -3,13 +3,27 @@
 #include "../Logger.h"
 #include "../oxDNAException.h"
 #include "../ConfigInfo.h"
-#include <algorithm>
+
 #include <regex>
+#include <algorithm>
 
 using std::string;
 using std::map;
 using std::set;
 using std::vector;
+
+bool input_value::has_dependencies() {
+	return !depends_on.empty();
+}
+
+void input_value::expand_value(std::map<std::string, std::string> expanded_dependency_values) {
+	expanded_value = value;
+	for(auto pair : expanded_dependency_values) {
+		std::string str_pattern(Utils::sformat("\\$\\(%s\\)", pair.first.c_str()));
+		std::regex pattern(str_pattern);
+		expanded_value = std::regex_replace(expanded_value, pattern, pair.second);
+	}
+}
 
 input_file::input_file(bool is_main) :
 				is_main_input(is_main) {
@@ -149,28 +163,28 @@ std::string input_file::get_value(const char *key, int mandatory, bool &found) {
 	found = false;
 	std::map<string, input_value>::iterator it = keys.find(string(key));
 	if(it != keys.end()) {
-		auto value = it->second;
+		input_value &value = it->second;
 		value.read++;
 
-		if(value.has_dependencies() > 0) {
-			std::cout << key << std::endl;
-			// this lambda recursively checks that there are no circular dependencies and expands all the values of the involved keys
-			std::function<void(std::string,std::string)> expand_value = [this, &expand_value](std::string root_key, std::string current_key) {
-				input_value current_value = keys[current_key];
-				for(const auto &k : current_value.depends_on) {
-					if(k == root_key) {
-						throw oxDNAException("Circular dependency found between keys '%s' and '%s', aborting", root_key.c_str(), current_key.c_str());
-					}
-					expand_value(root_key, k);
+		// this lambda recursively checks that there are no circular dependencies and expands all the values of the involved keys
+		std::function<void(std::string,std::string)> expand_value = [this, &expand_value](std::string root_key, std::string current_key) {
+			input_value &current_value = this->keys[current_key];
+			std::map<std::string, std::string> expanded_dependency_values;
+			for(const auto &k : current_value.depends_on) {
+				if(k == root_key) {
+					throw oxDNAException("Circular dependency found between keys '%s' and '%s', aborting", root_key.c_str(), current_key.c_str());
 				}
-			};
+				expand_value(root_key, k);
+				expanded_dependency_values[k] = this->keys[k].expanded_value;
+			}
+			current_value.expand_value(expanded_dependency_values);
+		};
 
-			// here we launch the recursive test
-			expand_value(key, key);
-		}
+		// here we launch the recursive variable expansion
+		expand_value(key, key);
 
 		found = true;
-		return it->second.value;
+		return value.expanded_value;
 	}
 	else if(mandatory) {
 		throw oxDNAException("Mandatory key `%s' not found", key);
