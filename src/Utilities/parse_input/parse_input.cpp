@@ -12,23 +12,28 @@ using std::map;
 using std::set;
 using std::vector;
 
+input_file *input_file::main_input = nullptr;
+
 bool input_value::has_dependencies() {
 	return !depends_on.empty();
 }
 
 void input_value::expand_value(std::map<std::string, std::string> expanded_dependency_values) {
 	expanded_value = value;
-	for(auto pair : expanded_dependency_values) {
-		std::string str_pattern(Utils::sformat("\\$\\(%s\\)", pair.first.c_str()));
+	for(auto k : depends_on) {
+		std::string str_pattern(Utils::sformat("\\$\\(%s\\)", k.c_str()));
 		std::regex pattern(str_pattern);
-		expanded_value = std::regex_replace(expanded_value, pattern, pair.second);
+		expanded_value = std::regex_replace(expanded_value, pattern, expanded_dependency_values[k]);
 	}
 }
 
 input_file::input_file(bool is_main) :
 				is_main_input(is_main) {
-	if(is_main && CONFIG_INFO->sim_input != nullptr && CONFIG_INFO->sim_input->is_main_input) {
-		throw oxDNAException("There is already a main input file: Cannot initialise another one");
+	if(is_main) {
+		if(input_file::main_input != nullptr) {
+			throw oxDNAException("There is already a main input file: Cannot initialise another one");
+		}
+		input_file::main_input = this;
 	}
 
 	true_values.insert("true");
@@ -167,21 +172,22 @@ std::string input_file::get_value(const char *key, int mandatory, bool &found) {
 		value.read++;
 
 		// this lambda recursively checks that there are no circular dependencies and expands all the values of the involved keys
-		std::function<void(std::string,std::string)> expand_value = [this, &expand_value](std::string root_key, std::string current_key) {
-			input_value &current_value = this->keys[current_key];
+		std::function<void(std::string,input_value &)> expand_value = [&expand_value](std::string root_key, input_value &current_value) {
 			std::map<std::string, std::string> expanded_dependency_values;
 			for(const auto &k : current_value.depends_on) {
 				if(k == root_key) {
-					throw oxDNAException("Circular dependency found between keys '%s' and '%s', aborting", root_key.c_str(), current_key.c_str());
+					throw oxDNAException("Circular dependency found between keys '%s' and '%s', aborting", root_key.c_str(), current_value.key.c_str());
 				}
-				expand_value(root_key, k);
-				expanded_dependency_values[k] = this->keys[k].expanded_value;
+				input_value &dep_value = input_file::main_input->keys[k];
+
+				expand_value(root_key, dep_value);
+				expanded_dependency_values[k] = dep_value.expanded_value;
 			}
 			current_value.expand_value(expanded_dependency_values);
 		};
 
 		// here we launch the recursive variable expansion
-		expand_value(key, key);
+		expand_value(key, value);
 
 		found = true;
 		return value.expanded_value;
@@ -195,19 +201,17 @@ std::string input_file::get_value(const char *key, int mandatory, bool &found) {
 }
 
 void input_file::set_value(std::string key, std::string value) {
-	input_value new_value(value);
-
 	input_map::iterator old_val = keys.find(key);
 	if(old_val != keys.end()) {
 		OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
 		keys[key].depends_on.clear();
 	}
-	keys[key] = value;
+	keys[key] = input_value(key, value);
 
 	// now we update the dependencies
 
 	// here we match patterns that are like this: $(some_text), and we use parentheses to make sure that the second element of the std::smatch is "some_text"
-	std::regex pattern("\\$\\(([\\w\\[\\]]+)\\)"); // backslashes have to be escaped as well or the compiler complains
+	std::regex pattern("\\$\\(([\\w\\[\\]]+)\\)"); // backslashes have to be escaped or the compiler complains
 
 	std::smatch m;
 	while(std::regex_search(value, m, pattern)) {

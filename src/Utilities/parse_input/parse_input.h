@@ -27,13 +27,12 @@
 #define NOTHING_READ 1
 
 struct input_value {
-	std::string value;
-	std::string expanded_value;
+	std::string key, value, expanded_value;
 	std::vector<std::string> depends_on;
-	int read;
+	int read = 0;
 
-	input_value() : value(""), read(0) {}
-	input_value(std::string v) : value(v), read(0) {}
+	input_value() : key(""), value("") {}
+	input_value(std::string k, std::string v) : key(k), value(v) {}
 
 	bool has_dependencies();
 	void expand_value(std::map<std::string, std::string> expanded_dependency_values);
@@ -42,6 +41,8 @@ struct input_value {
 typedef std::map<std::string, input_value> input_map;
 
 struct input_file {
+	static input_file *main_input;
+
 	input_map keys;
 	std::vector<std::string> unread_keys;
 	int state;
