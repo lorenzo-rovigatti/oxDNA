@@ -25,20 +25,30 @@ bool input_value::has_dependencies() {
 void input_value::expand_value(std::map<std::string, std::string> expanded_dependency_values) {
 	expanded_value = value;
 	for(auto k : depends_on) {
-		std::string str_pattern(Utils::sformat("\\$\\(%s\\)", k.c_str()));
-		std::regex pattern(str_pattern);
+		std::string to_sub = Utils::sformat("$(%s)", k.c_str());
 
-		expanded_value = std::regex_replace(expanded_value, pattern, expanded_dependency_values[k]);
+		size_t pos = expanded_value.find(to_sub);
+		expanded_value.replace(pos, to_sub.length(), expanded_dependency_values[k]);
 	}
 
 	// here we match patterns that are like this: ${some_text}, and we use parentheses to make sure that the second element of the std::smatch is "some_text"
-//	std::regex pattern("\\$\\{([\\w\\[\\]]+)\\}"); // backslashes have to be escaped or the compiler complains
-//
-//	std::smatch m;
-//	while(std::regex_search(value, m, pattern)) {
-//		keys[key].depends_on.push_back(m[1].str());
-//		value = m.suffix().str();
-//	}
+	std::regex pattern("\\$\\{(.*)\\}"); // backslashes have to be escaped or the compiler complains
+	std::smatch m;
+	std::string to_search = expanded_value;
+	exprtk::parser<double> parser;
+	while(std::regex_search(to_search, m, pattern)) {
+		exprtk::expression<double> expression;
+
+		if(!parser.compile(m[1].str(), expression) || std::isnan(expression.value())) {
+			throw oxDNAException("An error occurred during the evaluation of the mathematical expression '%s' required to expand the '%s' key", m[1].str().c_str(), key.c_str());
+		}
+		std::string expr_value = Utils::sformat("%lf", expression.value());
+
+		size_t pos = expanded_value.find(m[0].str());
+		expanded_value.replace(pos, m[0].str().length(), expr_value);
+
+		to_search = m.suffix().str();
+	}
 }
 
 input_file::input_file(bool is_main) :
