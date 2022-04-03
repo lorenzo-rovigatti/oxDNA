@@ -160,7 +160,7 @@ SET(forces_SOURCES
 	Forces/Metadynamics/GaussTrap.cpp
 	Forces/Metadynamics/GaussTrapAngle.cpp
 	Forces/Metadynamics/GaussTrapMeta.cpp
-	#Forces/Metadynamics/GaussTrapMetaRatio1D.cpp
+	Forces/Metadynamics/GaussTrapMetaRatio1D.cpp
 )
 
 SET(box_SOURCES
