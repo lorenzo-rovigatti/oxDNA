@@ -18,7 +18,7 @@ public:
 	number xmax;
 	int N_grid;
 	number dX;
-	std::vector<double> potential_grid;
+	std::vector<number> potential_grid;
 	int _mode = 0;
 	bool PBC = false;
 	BaseBox *_box_ptr = nullptr;

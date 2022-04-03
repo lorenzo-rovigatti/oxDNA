@@ -159,7 +159,7 @@ SET(forces_SOURCES
 	Forces/LJCone.cpp
 	Forces/Metadynamics/GaussTrap.cpp
 	Forces/Metadynamics/GaussTrapAngle.cpp
-	#Forces/Metadynamics/GaussTrapMeta.cpp
+	Forces/Metadynamics/GaussTrapMeta.cpp
 	#Forces/Metadynamics/GaussTrapMetaRatio1D.cpp
 )
 

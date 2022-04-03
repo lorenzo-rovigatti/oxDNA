@@ -1,9 +1,9 @@
 #include "GaussTrapAngle.h"
+
+#include "meta_utils.h"
 #include "../../Particles/BaseParticle.h"
-#include "../../Boxes/BaseBox.h"
 
 #include <string>
-#include <sstream>
 #include <iostream>
 
 inline number interpolatePotential(const number my_x, const number dX, const number xmin, const std::vector<number> &potential_grid) {
@@ -50,7 +50,7 @@ std::tuple<std::vector<int>, std::string> GaussTrapAngle::init(input_file &inp, 
 		_p2a_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
 	}
 
-	_p3a = Utils::get_particles_from_string(CONFIG_INFO->particles(), p2a_string, "GaussTrap p3a");
+	_p3a = Utils::get_particles_from_string(CONFIG_INFO->particles(), p3a_string, "GaussTrap p3a");
 	for(auto p_idx : _p3a) {
 		_p3a_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
 	}
@@ -76,10 +76,10 @@ std::tuple<std::vector<int>, std::string> GaussTrapAngle::init(input_file &inp, 
 	dX = (xmax - xmin) / (N_grid - 1.0);
 
 	std::string description = Utils::sformat("GaussTrapAngle force with mode = %d", _mode);
-	if(this->_mode == 1) {
+	if(_mode == 1) {
 		return std::make_tuple(_p1a, description);
 	}
-	else if(this->_mode == 2) {
+	else if(_mode == 2) {
 		return std::make_tuple(_p2a, description);
 	}
 	else {
@@ -88,41 +88,26 @@ std::tuple<std::vector<int>, std::string> GaussTrapAngle::init(input_file &inp, 
 }
 
 LR_vector GaussTrapAngle::_distance(LR_vector u, LR_vector v) {
-	if(this->PBC)
-		return this->_box_ptr->min_image(u, v);
+	if(PBC)
+		return _box_ptr->min_image(u, v);
 	else
 		return v - u;
 }
 
 LR_vector GaussTrapAngle::value(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = { 0, 0, 0 };
-	LR_vector p2a_vec = { 0, 0, 0 };
-	LR_vector p3a_vec = { 0, 0, 0 };
+	LR_vector p1a_vec = particle_list_com(_p1a_ptr, _box_ptr);
+	LR_vector p2a_vec = particle_list_com(_p2a_ptr, _box_ptr);
+	LR_vector p3a_vec = particle_list_com(_p3a_ptr, _box_ptr);
 
-	for(auto p : _p1a_ptr) {
-		p1a_vec += this->_box_ptr->get_abs_pos(p);
-	}
-	p1a_vec = p1a_vec / (number) _p1a_ptr.size();
-
-	for(auto p : _p2a_ptr) {
-		p2a_vec += this->_box_ptr->get_abs_pos(p);
-	}
-	p2a_vec = p2a_vec / (number) _p2a_ptr.size();
-
-	for(auto p : _p3a_ptr) {
-		p3a_vec += this->_box_ptr->get_abs_pos(p);
-	}
-	p3a_vec = p3a_vec / (number) _p3a_ptr.size();
-
-	LR_vector dra1 = this->_distance(p2a_vec, p1a_vec);
-	LR_vector dra2 = this->_distance(p2a_vec, p3a_vec);
+	LR_vector dra1 = _distance(p2a_vec, p1a_vec);
+	LR_vector dra2 = _distance(p2a_vec, p3a_vec);
 
 	LR_vector dra1_normed = dra1 / dra1.module();
 	LR_vector dra2_normed = dra2 / dra2.module();
 
 	number dot_product = dra1_normed * dra2_normed;
 	number angle = std::acos(dot_product);
-	int ix_left = std::floor((angle - this->xmin) / this->dX);
+	int ix_left = std::floor((angle - xmin) / dX);
 	int ix_right = ix_left + 1;
 
 	number xforce = 0;
@@ -139,12 +124,12 @@ LR_vector GaussTrapAngle::value(llint step, LR_vector &pos) {
 	number prefactor = -xforce / std::pow(1 - dot_product, 0.5);
 
 	// this isn't fucking working
-	if(this->_mode == 1) {
+	if(_mode == 1) {
 		number r1_factor = -dot_product / dra1.module();
 		number r2_factor = 1 / dra1.module();
 		return ((dra1_normed * r1_factor) + (dra2_normed * r2_factor)) * prefactor / (number) _p1a_ptr.size();
 	}
-	if(this->_mode == 2) {
+	if(_mode == 2) {
 		number r1_factor_A = -dot_product / dra1.module();
 		number r2_factor_A = 1 / dra1.module();
 		number r2_factor_B = -dot_product / dra2.module();
@@ -159,24 +144,9 @@ LR_vector GaussTrapAngle::value(llint step, LR_vector &pos) {
 }
 
 number GaussTrapAngle::potential(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = { 0, 0, 0 };
-	LR_vector p2a_vec = { 0, 0, 0 };
-	LR_vector p3a_vec = { 0, 0, 0 };
-
-	for(auto p : _p1a_ptr) {
-		p1a_vec += _box_ptr->get_abs_pos(p);
-	}
-	p1a_vec = p1a_vec / (number) _p1a_ptr.size();
-
-	for(auto p : _p2a_ptr) {
-		p2a_vec += _box_ptr->get_abs_pos(p);
-	}
-	p2a_vec = p2a_vec / (number) _p2a_ptr.size();
-
-	for(auto p : _p3a_ptr) {
-		p3a_vec += _box_ptr->get_abs_pos(p);
-	}
-	p3a_vec = p3a_vec / (number) _p3a_ptr.size();
+	LR_vector p1a_vec = particle_list_com(_p1a_ptr, _box_ptr);
+	LR_vector p2a_vec = particle_list_com(_p2a_ptr, _box_ptr);
+	LR_vector p3a_vec = particle_list_com(_p3a_ptr, _box_ptr);
 
 	LR_vector dra1 = _distance(p2a_vec, p1a_vec);
 	LR_vector dra2 = _distance(p2a_vec, p3a_vec);
@@ -186,7 +156,7 @@ number GaussTrapAngle::potential(llint step, LR_vector &pos) {
 
 	number dot_product = dra1_normed * dra2_normed;
 	number angle = std::acos(dot_product);
-	int ix_left = std::floor((angle - this->xmin) / this->dX);
+	int ix_left = std::floor((angle - xmin) / dX);
 	int ix_right = ix_left + 1;
 
 	number my_potential = 0;
