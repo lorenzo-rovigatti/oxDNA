@@ -157,6 +157,10 @@ SET(forces_SOURCES
 	Forces/AlignmentField.cpp
 	Forces/GenericCentralForce.cpp
 	Forces/LJCone.cpp
+	Forces/Metadynamics/GaussTrap.cpp
+	#Forces/Metadynamics/GaussTrapAngle.cpp
+	#Forces/Metadynamics/GaussTrapMeta.cpp
+	#Forces/Metadynamics/GaussTrapMetaRatio1D.cpp
 )
 
 SET(box_SOURCES
