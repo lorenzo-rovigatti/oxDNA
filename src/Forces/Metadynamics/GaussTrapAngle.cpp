@@ -32,28 +32,9 @@ GaussTrapAngle::GaussTrapAngle() :
 }
 
 std::tuple<std::vector<int>, std::string> GaussTrapAngle::init(input_file &inp, BaseBox *box_ptr) {
-	std::string p1a_string;
-	std::string p2a_string;
-	std::string p3a_string;
-
-	getInputString(&inp, "p1a", p1a_string, 1);
-	getInputString(&inp, "p2a", p2a_string, 1);
-	getInputString(&inp, "p3a", p3a_string, 1);
-
-	_p1a = Utils::get_particles_from_string(CONFIG_INFO->particles(), p1a_string, "GaussTrap p1a");
-	for(auto p_idx : _p1a) {
-		_p1a_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
-	}
-
-	_p2a = Utils::get_particles_from_string(CONFIG_INFO->particles(), p2a_string, "GaussTrap p2a");
-	for(auto p_idx : _p2a) {
-		_p2a_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
-	}
-
-	_p3a = Utils::get_particles_from_string(CONFIG_INFO->particles(), p3a_string, "GaussTrap p3a");
-	for(auto p_idx : _p3a) {
-		_p3a_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
-	}
+	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrap p1a");
+	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrap p2a");
+	std::tie(_p3a, _p3a_ptr) = meta::get_particle_lists(inp, "p3a", CONFIG_INFO->particles(), "GaussTrap p3a");
 
 	getInputInt(&inp, "mode", &_mode, 1);
 	if(_mode != 1 and _mode != 2 and _mode != 3) {
@@ -95,9 +76,9 @@ LR_vector GaussTrapAngle::_distance(LR_vector u, LR_vector v) {
 }
 
 LR_vector GaussTrapAngle::value(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = particle_list_com(_p1a_ptr, _box_ptr);
-	LR_vector p2a_vec = particle_list_com(_p2a_ptr, _box_ptr);
-	LR_vector p3a_vec = particle_list_com(_p3a_ptr, _box_ptr);
+	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, _box_ptr);
+	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, _box_ptr);
+	LR_vector p3a_vec = meta::particle_list_com(_p3a_ptr, _box_ptr);
 
 	LR_vector dra1 = _distance(p2a_vec, p1a_vec);
 	LR_vector dra2 = _distance(p2a_vec, p3a_vec);
@@ -144,9 +125,9 @@ LR_vector GaussTrapAngle::value(llint step, LR_vector &pos) {
 }
 
 number GaussTrapAngle::potential(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = particle_list_com(_p1a_ptr, _box_ptr);
-	LR_vector p2a_vec = particle_list_com(_p2a_ptr, _box_ptr);
-	LR_vector p3a_vec = particle_list_com(_p3a_ptr, _box_ptr);
+	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, _box_ptr);
+	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, _box_ptr);
+	LR_vector p3a_vec = meta::particle_list_com(_p3a_ptr, _box_ptr);
 
 	LR_vector dra1 = _distance(p2a_vec, p1a_vec);
 	LR_vector dra2 = _distance(p2a_vec, p3a_vec);

@@ -70,35 +70,10 @@ GaussTrapMeta::GaussTrapMeta() :
 }
 
 std::tuple<std::vector<int>, std::string> GaussTrapMeta::init(input_file &inp, BaseBox *box_ptr) {
-	std::string p1a_string;
-	std::string p2a_string;
-	std::string p1b_string;
-	std::string p2b_string;
-
-	getInputString(&inp, "p1a", p1a_string, 1);
-	getInputString(&inp, "p2a", p2a_string, 1);
-	getInputString(&inp, "p1b", p1b_string, 1);
-	getInputString(&inp, "p2b", p2b_string, 1);
-
-	_p1a = Utils::get_particles_from_string(CONFIG_INFO->particles(), p1a_string, "GaussTrap p1a");
-	for(auto p_idx : _p1a) {
-		_p1a_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
-	}
-
-	_p2a = Utils::get_particles_from_string(CONFIG_INFO->particles(), p2a_string, "GaussTrap p2a");
-	for(auto p_idx : _p2a) {
-		_p2a_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
-	}
-
-	_p1b = Utils::get_particles_from_string(CONFIG_INFO->particles(), p1b_string, "GaussTrap p1b");
-	for(auto p_idx : _p1b) {
-		_p1b_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
-	}
-
-	_p2b = Utils::get_particles_from_string(CONFIG_INFO->particles(), p2b_string, "GaussTrap p2b");
-	for(auto p_idx : _p2b) {
-		_p2b_ptr.push_back(CONFIG_INFO->particles()[p_idx]);
-	}
+	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrapMeta p1a");
+	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrapMeta p2a");
+	std::tie(_p1b, _p1b_ptr) = meta::get_particle_lists(inp, "p1b", CONFIG_INFO->particles(), "GaussTrapMeta p1b");
+	std::tie(_p2b, _p2b_ptr) = meta::get_particle_lists(inp, "p2b", CONFIG_INFO->particles(), "GaussTrapMeta p2b");
 
 	getInputInt(&inp, "mode", &_mode, 1);
 	if(_mode != 1 and _mode != 2 and _mode != 3 and _mode != 4) {
@@ -141,10 +116,10 @@ LR_vector GaussTrapMeta::_distance(LR_vector u, LR_vector v) {
 }
 
 LR_vector GaussTrapMeta::value(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = particle_list_com(_p1a_ptr, _box_ptr);
-	LR_vector p2a_vec = particle_list_com(_p2a_ptr, _box_ptr);
-	LR_vector p1b_vec = particle_list_com(_p1b_ptr, _box_ptr);
-	LR_vector p2b_vec = particle_list_com(_p2b_ptr, _box_ptr);
+	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, _box_ptr);
+	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, _box_ptr);
+	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, _box_ptr);
+	LR_vector p2b_vec = meta::particle_list_com(_p2b_ptr, _box_ptr);
 
 	LR_vector dra = _distance(p2a_vec, p1a_vec);
 	LR_vector drb = _distance(p2b_vec, p1b_vec);
@@ -190,10 +165,10 @@ LR_vector GaussTrapMeta::value(llint step, LR_vector &pos) {
 }
 
 number GaussTrapMeta::potential(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = particle_list_com(_p1a_ptr, _box_ptr);
-	LR_vector p2a_vec = particle_list_com(_p2a_ptr, _box_ptr);
-	LR_vector p1b_vec = particle_list_com(_p1b_ptr, _box_ptr);
-	LR_vector p2b_vec = particle_list_com(_p2b_ptr, _box_ptr);
+	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, _box_ptr);
+	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, _box_ptr);
+	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, _box_ptr);
+	LR_vector p2b_vec = meta::particle_list_com(_p2b_ptr, _box_ptr);
 
 	LR_vector dra = _distance(p2a_vec, p1a_vec);
 	LR_vector drb = _distance(p2b_vec, p1b_vec);

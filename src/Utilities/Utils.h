@@ -188,7 +188,7 @@ void stop_com(std::vector<BaseParticle *> &particles);
  * @param particles_string string to process
  * @param identifier the identifier of the calling item (to display to the user in case problems arise).
  */
-std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier);
+std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, std::string identifier);
 
 /**
  * @brief Utility function that checks if an integer is a valid particle index, or -1.
@@ -196,7 +196,7 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particle
  * @param N number of particles
  * @param identifier the identifier of the calling item (to display to the user in case problems arise).
  */
-void assert_is_valid_particle(int n, int N, char const * identifier);
+void assert_is_valid_particle(int n, int N, std::string identifier);
 /**
  *	@brief Utility function that returns true if a string only contains digits, and false otherwise.
  *	@param s string to be checked.
