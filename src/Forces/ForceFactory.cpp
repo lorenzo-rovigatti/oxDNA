@@ -28,6 +28,12 @@
 #include <sstream>
 #include "RepulsiveEllipsoid.h"
 
+// metadynamics-related forces
+#include "Metadynamics/GaussTrap.h"
+#include "Metadynamics/GaussTrapAngle.h"
+#include "Metadynamics/GaussTrapMeta.h"
+#include "Metadynamics/GaussTrapMetaRatio1D.h"
+
 using namespace std;
 
 std::shared_ptr<ForceFactory> ForceFactory::_ForceFactoryPtr = nullptr;
@@ -88,6 +94,10 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
 	else if(type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
 	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
+	else if (type_str.compare("gauss_trap") == 0) extF = std::make_shared<GaussTrap>();
+	else if (type_str.compare("gauss_trap_meta") == 0) extF = std::make_shared<GaussTrapMeta>();
+	else if (type_str.compare("gauss_trap_meta_ratio_1D") == 0) extF = std::make_shared<GaussTrapMetaRatio1D>();
+	else if (type_str.compare("gauss_trap_angle") == 0) extF = std::make_shared<GaussTrapAngle>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");

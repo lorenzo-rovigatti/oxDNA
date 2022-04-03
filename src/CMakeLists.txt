@@ -161,6 +161,7 @@ SET(forces_SOURCES
 	Forces/Metadynamics/GaussTrapAngle.cpp
 	Forces/Metadynamics/GaussTrapMeta.cpp
 	Forces/Metadynamics/GaussTrapMetaRatio1D.cpp
+	Forces/Metadynamics/meta_utils.cpp
 )
 
 SET(box_SOURCES
