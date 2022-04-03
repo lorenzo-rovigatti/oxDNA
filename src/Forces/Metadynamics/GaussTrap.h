@@ -4,24 +4,25 @@
 #include "../BaseForce.h"
 #include <vector>
 
-class GaussTrap : public BaseForce {
+class GaussTrap: public BaseForce {
 private:
 	std::vector<int> _p1a;
 	std::vector<int> _p2a;
 
 public:
-	std::vector<BaseParticle *>  _p1a_ptr;
-	std::vector<BaseParticle *>  _p2a_ptr;
+	std::vector<BaseParticle*> _p1a_ptr;
+	std::vector<BaseParticle*> _p2a_ptr;
 	number xmin;
 	number xmax;
-    int N_grid; 
-    number dX;
-    std::vector<double> potential_grid;
-    int _mode = 0;
+	int N_grid;
+	number dX;
+	std::vector<double> potential_grid;
+	int _mode = 0;
 	bool PBC = false;
 	BaseBox *_box_ptr = nullptr;
-	GaussTrap ();
-	virtual ~GaussTrap() {}
+	GaussTrap();
+	virtual ~GaussTrap() {
+	}
 
 	std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box_ptr) override;
 

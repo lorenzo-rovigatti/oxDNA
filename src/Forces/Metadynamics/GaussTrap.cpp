@@ -7,20 +7,20 @@
 #include <sstream>
 #include <iostream>
 
-inline double interpolatePotential(const double my_x, const double dX, const double xmin, const std::vector<double> &potential_grid) {
-	double x_left = dX * std::floor(my_x / dX);
-	double x_right = x_left + dX;
-	double ix_left = std::floor((my_x - xmin) / dX);
-	double ix_right = ix_left + 1;
-	double f11 = potential_grid[ix_left];
-	double f21 = potential_grid[ix_right];
-	double fx = (x_right - my_x) / dX * f11 + (my_x - x_left) / dX * f21;
+inline number interpolatePotential(const number my_x, const number dX, const number xmin, const std::vector<number> &potential_grid) {
+	number x_left = dX * std::floor(my_x / dX);
+	number x_right = x_left + dX;
+	number ix_left = std::floor((my_x - xmin) / dX);
+	number ix_right = ix_left + 1;
+	number f11 = potential_grid[ix_left];
+	number f21 = potential_grid[ix_right];
+	number fx = (x_right - my_x) / dX * f11 + (my_x - x_left) / dX * f21;
 	return fx;
 }
 
-inline double get_x_force(const double x, const double dX, const double xmin, const std::vector<double> &potential_grid) {
-	double ix_left = std::floor((x - xmin) / dX);
-	double ix_right = ix_left + 1;
+inline number get_x_force(const number x, const number dX, const number xmin, const std::vector<number> &potential_grid) {
+	number ix_left = std::floor((x - xmin) / dX);
+	number ix_right = ix_left + 1;
 	return -(potential_grid[ix_right] - potential_grid[ix_left]) / dX;
 }
 
@@ -66,9 +66,9 @@ std::tuple<std::vector<int>, std::string> GaussTrap::init(input_file &inp, BaseB
 	}
 
 	_box_ptr = box_ptr;
-	dX = (this->xmax - this->xmin) / (this->N_grid - 1);
+	dX = (xmax - xmin) / (N_grid - 1.0);
 
-	std::string description = Utils::sformat("Gauss Trap force with mode = %d", _mode);
+	std::string description = Utils::sformat("GaussTrap force with mode = %d", _mode);
 	if(_mode == 1) {
 		return std::make_tuple(_p1a, description);
 	}
@@ -89,23 +89,23 @@ LR_vector GaussTrap::value(llint step, LR_vector &pos) {
 	LR_vector p2a_vec;
 
 	for(auto p : _p1a_ptr) {
-		p1a_vec += this->_box_ptr->get_abs_pos(p);
+		p1a_vec += _box_ptr->get_abs_pos(p);
 	}
-	p1a_vec = p1a_vec / (double) _p1a_ptr.size();
+	p1a_vec = p1a_vec / (number) _p1a_ptr.size();
 
 	for(auto p : _p2a_ptr) {
-		p2a_vec += this->_box_ptr->get_abs_pos(p);
+		p2a_vec += _box_ptr->get_abs_pos(p);
 	}
-	p2a_vec = p2a_vec / (double) _p2a_ptr.size();
+	p2a_vec = p2a_vec / (number) _p2a_ptr.size();
 
-	LR_vector dra = this->_distance(p2a_vec, p1a_vec);
+	LR_vector dra = _distance(p2a_vec, p1a_vec);
 
-	double my_x = dra.module();
+	number my_x = dra.module();
 
 	int ix_left = std::floor((my_x - this->xmin) / this->dX);
 	int ix_right = ix_left + 1;
 
-	double meta_Fx = 0;
+	number meta_Fx = 0;
 
 	if((ix_left < 0) || (ix_right > N_grid - 1)) {
 		std::cout << "off grid!" << std::endl;
@@ -118,10 +118,10 @@ LR_vector GaussTrap::value(llint step, LR_vector &pos) {
 	const LR_vector accumulated_force = dra * (meta_Fx / dra.module());
 
 	if(this->_mode == 1) {
-		return accumulated_force / (double) _p1a_ptr.size();
+		return accumulated_force / (number) _p1a_ptr.size();
 	}
 	else {
-		return accumulated_force / (-1 * (double) _p2a_ptr.size());
+		return accumulated_force / (-1 * (number) _p2a_ptr.size());
 	}
 }
 
@@ -130,23 +130,23 @@ number GaussTrap::potential(llint step, LR_vector &pos) {
 	LR_vector p2a_vec = { 0, 0, 0 };
 
 	for(auto p : _p1a_ptr) {
-		p1a_vec += this->_box_ptr->get_abs_pos(p);
+		p1a_vec += _box_ptr->get_abs_pos(p);
 	}
-	p1a_vec = p1a_vec / (double) _p1a_ptr.size();
+	p1a_vec = p1a_vec / (number) _p1a_ptr.size();
 
 	for(auto p : _p2a_ptr) {
-		p2a_vec += this->_box_ptr->get_abs_pos(p);
+		p2a_vec += _box_ptr->get_abs_pos(p);
 	}
-	p2a_vec = p2a_vec / (double) _p2a_ptr.size();
+	p2a_vec = p2a_vec / (number) _p2a_ptr.size();
 
 	LR_vector dra = this->_distance(p2a_vec, p1a_vec);
 
-	double x = dra.module();
+	number x = dra.module();
 
 	int ix_left = std::floor((x - this->xmin) / this->dX);
 	int ix_right = ix_left + 1;
 
-	double my_potential = 0;
+	number my_potential = 0;
 	if((ix_left < 0) || (ix_right > N_grid - 1)) {
 		std::cout << "off grid!" << std::endl;
 	}
@@ -155,7 +155,7 @@ number GaussTrap::potential(llint step, LR_vector &pos) {
 		my_potential = interpolatePotential(x, dX, xmin, potential_grid);
 	}
 
-	int total_factor = _p1a_ptr.size() + _p2a_ptr.size();
+	number total_factor = _p1a_ptr.size() + _p2a_ptr.size();
 
-	return my_potential / (number) (total_factor);
+	return my_potential / total_factor;
 }
