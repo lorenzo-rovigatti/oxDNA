@@ -19,6 +19,8 @@ LR_vector particle_list_com(const std::vector<BaseParticle *> &list, BaseBox *bo
 
 std::tuple<std::vector<int>, std::vector<BaseParticle *>> get_particle_lists(input_file &inp, std::string key, std::vector<BaseParticle *> &particles, std::string description);
 
+std::vector<number> split_to_numbers(const std::string &str, const std::string &delims);
+
 }
 
 #endif /* SRC_FORCES_METADYNAMICS_META_UTILS_H_ */

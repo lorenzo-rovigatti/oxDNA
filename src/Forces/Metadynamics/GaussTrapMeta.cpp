@@ -5,32 +5,8 @@
 
 #include <string>
 #include <iostream>
-#include <sstream>
 
-std::vector<number> split2_potential_line(const std::string &s) {
-	std::vector<number> potential_line;
-	std::string token;
-	std::istringstream tokenStream(s);
-	while(std::getline(tokenStream, token, ','))
-	{
-		potential_line.push_back(std::stod(token));
-	}
-	return potential_line;
-}
-
-std::vector<std::vector<number> > split2_potential_grid(const std::string &s) {
-	std::vector<std::vector<number> > potential_grid;
-	std::string token;
-	std::istringstream tokenStream(s);
-
-	while(std::getline(tokenStream, token, '|'))
-	{
-		potential_grid.push_back(split2_potential_line(token));
-	}
-	return potential_grid;
-}
-
-inline number interpolatePotential2(number x, number y, number dX, number xmin, const std::vector<std::vector<number> > &potential_grid) {
+number interpolatePotential2(number x, number y, number dX, number xmin, const std::vector<std::vector<number> > &potential_grid) {
 	number x_left = dX * std::floor(x / dX);
 	number y_left = dX * std::floor(y / dX);
 	number x_right = x_left + dX;
@@ -85,10 +61,13 @@ std::tuple<std::vector<int>, std::string> GaussTrapMeta::init(input_file &inp, B
 	getInputNumber(&inp, "xmin", &xmin, 1);
 	getInputNumber(&inp, "xmax", &xmax, 1); // these are both inclusive
 	getInputInt(&inp, "N_grid", &N_grid, 1);
+	potential_grid.reserve(N_grid);
 
 	std::string potential_string;
 	getInputString(&inp, "potential_grid", potential_string, 1);
-	potential_grid = split2_potential_grid(potential_string);
+	for(auto &token : Utils::split(potential_string, '|')) {
+		potential_grid.push_back(meta::split_to_numbers(token, ","));
+	}
 
 	_box_ptr = box_ptr;
 	dX = (xmax - xmin) / (N_grid - 1);

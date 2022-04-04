@@ -46,12 +46,11 @@ std::tuple<std::vector<int>, std::string> GaussTrapAngle::init(input_file &inp, 
 	getInputNumber(&inp, "xmin", &xmin, 1);
 	getInputNumber(&inp, "xmax", &xmax, 1); // these are both inclusive
 	getInputInt(&inp, "N_grid", &N_grid, 1);
+	potential_grid.reserve(N_grid);
 
 	std::string potential_string;
 	getInputString(&inp, "potential_grid", potential_string, 1);
-	for(auto token : Utils::split(potential_string, ',')) {
-		potential_grid.push_back(std::stod(token));
-	}
+	potential_grid = meta::split_to_numbers(potential_string, ",");
 
 	_box_ptr = box_ptr;
 	dX = (xmax - xmin) / (N_grid - 1.0);
@@ -101,10 +100,7 @@ LR_vector GaussTrapAngle::value(llint step, LR_vector &pos) {
 		xforce = get_x_force(angle, dX, xmin, potential_grid);
 	}
 
-	// why is this necessary?
 	number prefactor = -xforce / std::pow(1 - dot_product, 0.5);
-
-	// this isn't fucking working
 	if(_mode == 1) {
 		number r1_factor = -dot_product / dra1.module();
 		number r2_factor = 1 / dra1.module();

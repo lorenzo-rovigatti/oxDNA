@@ -7,6 +7,8 @@
 
 #include "meta_utils.h"
 
+#include "fast_double_parser/fast_double_parser.h"
+
 namespace meta {
 
 LR_vector particle_list_com(const std::vector<BaseParticle *> &list, BaseBox *box_ptr) {
@@ -26,6 +28,41 @@ std::tuple<std::vector<int>, std::vector<BaseParticle *>> get_particle_lists(inp
 	}
 
 	return std::make_tuple(idx_vector, p_vector);
+}
+
+number lexical_cast(const std::string &source) {
+	double result;
+
+	if(fast_double_parser::parse_number(source.c_str(), &result) == nullptr) {
+		throw oxDNAException("Cannot convert '%s' to a number", source.c_str());
+	}
+
+	return result;
+}
+
+std::vector<number> split_to_numbers(const std::string &str, const std::string &delims) {
+	std::vector<number> output;
+
+	const char *ptr = str.c_str();
+	while(ptr) {
+		auto base = ptr;
+		ptr = std::strpbrk(ptr, delims.c_str());
+		if(ptr) {
+			// this check makes sure that no empty strings are added to the output
+			if(ptr - base) {
+				output.emplace_back(lexical_cast(std::string(base, ptr - base)));
+			}
+			ptr++;
+		}
+		else {
+			std::string remainder(base);
+			if(remainder.size() > 0) {
+				output.emplace_back(lexical_cast(remainder));
+			}
+		}
+	}
+
+	return output;
 }
 
 }

@@ -45,12 +45,11 @@ std::tuple<std::vector<int>, std::string> GaussTrap::init(input_file &inp, BaseB
 	getInputNumber(&inp, "xmin", &xmin, 1);
 	getInputNumber(&inp, "xmax", &xmax, 1); // these are both inclusive
 	getInputInt(&inp, "N_grid", &N_grid, 1);
+	potential_grid.reserve(N_grid);
 
 	std::string potential_string;
 	getInputString(&inp, "potential_grid", potential_string, 1);
-	for(auto token : Utils::split(potential_string, ',')) {
-		potential_grid.push_back(std::stod(token));
-	}
+	potential_grid = meta::split_to_numbers(potential_string, ",");
 
 	_box_ptr = box_ptr;
 	dX = (xmax - xmin) / (N_grid - 1.0);
