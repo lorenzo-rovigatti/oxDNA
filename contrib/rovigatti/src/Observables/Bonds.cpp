@@ -66,8 +66,6 @@ string Bonds::get_output_string(llint step) {
 			_bonds[it->first->index][it->second->index]++;
 			_bonds[it->second->index][it->first->index]++;
 		}
-
-		if(it->first->index == 0) printf("%d %d %lf\n", it->first->index, it->second->index, energy);
 	}
 
 	for(int i = 0; i < _config_info->N(); i++) {
