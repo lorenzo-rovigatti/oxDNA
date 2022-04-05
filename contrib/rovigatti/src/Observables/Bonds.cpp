@@ -11,8 +11,7 @@
 #include <string>
 
 #include "Bonds.h"
-#include "Interactions/PatchyInteraction.h"
-#include "../Interactions/FSInteraction.h"
+#include "../Interactions/DetailedPolymerSwapInteraction.h"
 
 using namespace std;
 
@@ -50,6 +49,11 @@ string Bonds::get_output_string(llint step) {
 	vector<ParticlePair> inter_pairs = _config_info->lists->get_potential_interactions();
 	_config_info->interaction->begin_energy_computation();
 
+	DetailedPolymerSwapInteraction *interaction = dynamic_cast<DetailedPolymerSwapInteraction *>(_config_info->interaction);
+	if(interaction != nullptr) {
+		interaction->no_three_body = true;
+	}
+
 	for(typename vector<ParticlePair>::iterator it = inter_pairs.begin(); it != inter_pairs.end(); it++) {
 		number energy;
 		if(_energy_term_id == -1) {
@@ -62,6 +66,8 @@ string Bonds::get_output_string(llint step) {
 			_bonds[it->first->index][it->second->index]++;
 			_bonds[it->second->index][it->first->index]++;
 		}
+
+		if(it->first->index == 0) printf("%d %d %lf\n", it->first->index, it->second->index, energy);
 	}
 
 	for(int i = 0; i < _config_info->N(); i++) {
@@ -72,6 +78,10 @@ string Bonds::get_output_string(llint step) {
 			}
 			outstr << endl;
 		}
+	}
+
+	if(interaction != nullptr) {
+		interaction->no_three_body = false;
 	}
 
 	return outstr.str();

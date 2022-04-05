@@ -24,7 +24,7 @@ function(add_library_no_prefix)
 endfunction()
 
 # Observables
-add_library_no_prefix(Bonds MODULE EXCLUDE_FROM_ALL src/Observables/Bonds.cpp)
+add_library_no_prefix(Bonds MODULE EXCLUDE_FROM_ALL src/Observables/Bonds.cpp src/Interactions/DetailedPolymerSwapInteraction.cpp)
 add_library_no_prefix(PatchyBonds MODULE EXCLUDE_FROM_ALL src/Observables/PatchyBonds.cpp)
 add_library_no_prefix(ConstructwiseBonds MODULE EXCLUDE_FROM_ALL src/Observables/ConstructwiseBonds.cpp)
 add_library_no_prefix(EmptyVolume MODULE EXCLUDE_FROM_ALL src/Observables/EmptyVolume.cpp)
