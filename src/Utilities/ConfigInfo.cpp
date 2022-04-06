@@ -46,6 +46,16 @@ void ConfigInfo::add_force_to_particles(std::shared_ptr<BaseForce> force, std::v
 	}
 }
 
+ForcePtr ConfigInfo::get_force_by_id(std::string id) {
+	auto it = std::find_if(forces.begin(), forces.end(), [&id](const ForcePtr& obj) {return obj->get_id() == id;});
+
+	if(it != forces.end()) {
+		return *it;
+	}
+
+	return nullptr;
+}
+
 void ConfigInfo::subscribe(std::string event, std::function<void()> callback) {
 	_event_callbacks[event].emplace_back(callback);
 }

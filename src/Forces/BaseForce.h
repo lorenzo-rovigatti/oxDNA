@@ -38,6 +38,7 @@ private:
 	 * groups of forces.
 	 */
 	std::string _group_name = "default";
+	std::string _id = "";
 
 public:
 	/**
@@ -66,12 +67,20 @@ public:
 	 */
 	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp);
 
-	virtual void set_group_name(std::string &name) {
+	void set_group_name(std::string &name) {
 		_group_name = name;
 	}
 
-	virtual std::string get_group_name() {
+	std::string get_group_name() {
 		return _group_name;
+	}
+
+	void set_id(std::string id) {
+		_id = id;
+	}
+
+	std::string get_id() {
+		return _id;
 	}
 
 	/**

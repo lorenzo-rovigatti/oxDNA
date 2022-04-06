@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The core module &mdash; oxpy 3.0.0a1.dev246+ge05314f.d20220221 documentation</title>
+  <title>The core module &mdash; oxpy 3.0.0a1.dev251+gd1c47c6.d20220406 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev246+ge05314f.d20220221
+                3.0.0a1.dev251+gd1c47c6.d20220406
               </div>
             
           
@@ -196,7 +196,7 @@
 <td><p>The class that takes care of computing the interaction between the particles.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a></p></td>
-<td><p>This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction)</p></td>
+<td><p>This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction, external forces)</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.FlattenedConfigInfo" title="oxpy.core.FlattenedConfigInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlattenedConfigInfo</span></code></a></p></td>
 <td><p>An object storing particle types, positions, a1 and a3 orientation vectors in flat arrays that can be used as or converted to numpy arrays.</p></td>
@@ -305,6 +305,12 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 </dd></dl>
 
 <dl class="py method">
+<dt id="oxpy.core.OxpyManager.print_timings">
+<code class="sig-name descname">print_timings</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager">oxpy.core.OxpyManager</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.OxpyManager.print_timings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the timings taking into account the number of steps run by the manager.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="oxpy.core.OxpyManager.remove_output">
 <code class="sig-name descname">remove_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager">oxpy.core.OxpyManager</a></span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.OxpyManager.remove_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove an output file from the simulation. Once an output is removed, the simulation will stop updating it.</p>
@@ -333,6 +339,20 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dt id="oxpy.core.OxpyManager.run_complete">
 <code class="sig-name descname">run_complete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n">oxpy.core.SimManager</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.OxpyManager.run_complete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the simulation till completion (that is, till the simulation has run number of steps specified in the input file).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.OxpyManager.steps_run">
+<code class="sig-name descname">steps_run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager">oxpy.core.OxpyManager</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><a class="headerlink" href="#oxpy.core.OxpyManager.steps_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of steps run using this manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The number of steps run.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -725,7 +745,7 @@ set through the <a class="reference internal" href="#oxpy.core.BaseInteraction.s
 <dt id="oxpy.core.ConfigInfo">
 <em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">ConfigInfo</code><a class="headerlink" href="#oxpy.core.ConfigInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
-<p>This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction)</p>
+<p>This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction, external forces)</p>
 <dl class="py method">
 <dt id="oxpy.core.ConfigInfo.N">
 <code class="sig-name descname">N</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo">oxpy.core.ConfigInfo</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><a class="headerlink" href="#oxpy.core.ConfigInfo.N" title="Permalink to this definition">¶</a></dt>
@@ -744,6 +764,26 @@ set through the <a class="reference internal" href="#oxpy.core.BaseInteraction.s
 <dt id="oxpy.core.ConfigInfo.flattened_conf">
 <em class="property">property </em><code class="sig-name descname">flattened_conf</code><a class="headerlink" href="#oxpy.core.ConfigInfo.flattened_conf" title="Permalink to this definition">¶</a></dt>
 <dd><p>A flattened (that is, composed by arrays rather than class instances) view of the current configuration, stored in a <a class="reference internal" href="#oxpy.core.FlattenedConfigInfo" title="oxpy.core.FlattenedConfigInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">FlattenedConfigInfo</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.ConfigInfo.forces">
+<em class="property">property </em><code class="sig-name descname">forces</code><a class="headerlink" href="#oxpy.core.ConfigInfo.forces" title="Permalink to this definition">¶</a></dt>
+<dd><p>An array storing all the external forces.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.ConfigInfo.get_force_by_id">
+<code class="sig-name descname">get_force_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo">oxpy.core.ConfigInfo</a></span></em>, <em class="sig-param"><span class="n">arg0</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a><a class="headerlink" href="#oxpy.core.ConfigInfo.get_force_by_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the force with the given id, which can be set in the external forces file with <cite>id = FORCE_ID</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The external force with the given id, or <cite>None</cite> if the id does not correspond to any external force.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseForce</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -912,15 +952,26 @@ access the current configuration’s details.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="oxpy.core.BaseForce.get_id">
+<code class="sig-name descname">get_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxpy.core.BaseForce.get_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the id of the force.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The id.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="oxpy.core.BaseForce.init">
-<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">inp</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em>, <em class="sig-param"><span class="n">box</span><span class="p">:</span> <span class="n">BaseBox</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><a class="headerlink" href="#oxpy.core.BaseForce.init" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">inp</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><a class="headerlink" href="#oxpy.core.BaseForce.init" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialises the force.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The input file of the simulation.</p></li>
-<li><p><strong>box</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">BaseBox</span></code>) – The instance of the simulation’s box object.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The input file of the simulation.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -952,6 +1003,17 @@ access the current configuration’s details.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The new group name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.BaseForce.set_id">
+<code class="sig-name descname">set_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">new_id</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.BaseForce.set_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the id of the force.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The new id.</p>
 </dd>
 </dl>
 </dd></dl>

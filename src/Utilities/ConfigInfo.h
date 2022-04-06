@@ -81,6 +81,8 @@ public:
 
 	void add_force_to_particles(std::shared_ptr<BaseForce> force, std::vector<int> particle_ids, std::string force_type);
 
+	std::shared_ptr<BaseForce> get_force_by_id(std::string id);
+
 	/**
 	 * @brief Returns a pointer to the actual object. Static method to enforce the singleton pattern.
 	 *

@@ -94,6 +94,24 @@ void export_BaseForce(py::module &m) {
 			The new group name.
 	)pbdoc");
 
+	force.def("get_id", &BaseForce::get_id, R"pbdoc(
+        Returns the id of the force.
+
+        Returns
+        -------
+        str
+            The id.
+	)pbdoc");
+
+	force.def("set_id", &BaseForce::set_id, py::arg("new_id"), R"pbdoc(
+        Sets the id of the force.
+
+        Parameters
+        ---------- 
+		name: str
+			The new id.
+	)pbdoc");
+
 	force.def("value", &BaseForce::value, py::arg("step"), py::arg("pos"), R"pbdoc(
         Returns the force vector that would act at the given position and time step.
 
