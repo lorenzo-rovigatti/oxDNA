@@ -17,7 +17,9 @@ AlignmentField::AlignmentField() :
 	_v_ptr = NULL;
 }
 
-std::tuple<std::vector<int>, std::string> AlignmentField::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> AlignmentField::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	getInputInt(&inp, "particle", &_particle, 0);
 	getInputInt(&inp, "v_idx", &_v_idx, 1);
 	getInputNumber(&inp, "F", &_F, 1);
@@ -34,7 +36,7 @@ std::tuple<std::vector<int>, std::string> AlignmentField::init(input_file &inp, 
 	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	_direction.normalize();
 
-	std::vector<BaseParticle *> & particles = CONFIG_INFO->particles();
+	std::vector<BaseParticle *> &particles = CONFIG_INFO->particles();
 
 	int N = particles.size();
 	if(_particle >= N || N < 0) throw oxDNAException("Trying to add a AlignmentField on non-existent particle %d. Aborting", _particle);

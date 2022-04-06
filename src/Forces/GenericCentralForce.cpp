@@ -115,8 +115,8 @@ GenericCentralForce::GenericCentralForce() :
 	_table_N = -1;
 	_E_shift = 0.;
 
-	inner_cut_off = 0.;
-	outer_cut_off = 0.;
+	inner_cut_off = inner_cut_off_sqr = 0.;
+	outer_cut_off = outer_cut_off_sqr = 0.;
 	_supported_types[string("gravity")] = GRAVITY;
 	_supported_types[string("interpolated")] = INTERPOLATED;
 }
@@ -125,7 +125,9 @@ GenericCentralForce::~GenericCentralForce() {
 
 }
 
-std::tuple<std::vector<int>, std::string> GenericCentralForce::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> GenericCentralForce::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 

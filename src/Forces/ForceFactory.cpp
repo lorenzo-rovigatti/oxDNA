@@ -49,22 +49,7 @@ std::shared_ptr<ForceFactory> ForceFactory::instance() {
 	return _ForceFactoryPtr;
 }
 
-void ForceFactory::_add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_description) {
-	if(particle_ids[0] != -1) {
-		for(auto id : particle_ids) {
-			particles[id]->add_ext_force(force);
-			OX_LOG(Logger::LOG_INFO, "Adding a %s on particle %d", force_description.c_str(), id);
-		}
-	}
-	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding a %s on ALL particles", force_description.c_str());
-		for(auto p: particles) {
-			p->add_ext_force(force);
-		}
-	}
-}
-
-void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &particles, BaseBox * box_ptr) {
+void ForceFactory::add_force(input_file &inp, BaseBox *box_ptr) {
 	string type_str;
 	getInputString(&inp, "type", type_str, 1);
 
@@ -90,25 +75,22 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
-	string group = string("default");
-	getInputString(&inp, "group_name", group, 0);
-	extF->set_group_name(group);
-
 	std::vector<int> particle_ids;
 	std::string description;
-	std::tie(particle_ids, description) = extF->init(inp, box_ptr); // here the force is added to the particle
+	std::tie(particle_ids, description) = extF->init(inp);
 
-	_add_force_to_particles(extF, particle_ids, particles, description);
+	CONFIG_INFO->add_force_to_particles(extF, particle_ids, description);
 }
 
-void ForceFactory::read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, BaseBox * box) {
+void ForceFactory::read_external_forces(std::string external_filename, BaseBox *box) {
 	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
 
-	//char line[512], typestr[512];
 	int open, justopen, a;
 	ifstream external(external_filename.c_str());
 
-	if(!external.good ()) throw oxDNAException ("Can't read external_forces_file '%s'", external_filename.c_str());
+	if(!external.good ()) {
+		throw oxDNAException ("Can't read external_forces_file '%s'", external_filename.c_str());
+	}
 
 	justopen = open = 0;
 	a = external.get();
@@ -131,7 +113,9 @@ void ForceFactory::read_external_forces(std::string external_filename, std::vect
 			break;
 			case '}':
 			if(!is_commented) {
-				if(justopen) throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
+				if(justopen) {
+					throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
+				}
 				open--;
 			}
 			break;
@@ -139,8 +123,12 @@ void ForceFactory::read_external_forces(std::string external_filename, std::vect
 			break;
 		}
 
-		if(!is_commented) external_string << (char)a;
-		if(open > 1 || open < 0) throw oxDNAException ("Syntax error in '%s': parentheses do not match", external_filename.c_str());
+		if(!is_commented) {
+			external_string << (char)a;
+		}
+		if(open > 1 || open < 0) {
+			throw oxDNAException ("Syntax error in '%s': parentheses do not match", external_filename.c_str());
+		}
 		a = external.get();
 	}
 	external.close();
@@ -165,7 +153,7 @@ void ForceFactory::read_external_forces(std::string external_filename, std::vect
 		input_file input;
 		input.init_from_string(input_string);
 
-		ForceFactory::instance()->add_force(input, particles, box);
+		ForceFactory::instance()->add_force(input, box);
 	}
 
 	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());

@@ -14,7 +14,9 @@ ConstantRateTorque::ConstantRateTorque() :
 
 }
 
-std::tuple<std::vector<int>, std::string> ConstantRateTorque::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> ConstantRateTorque::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 

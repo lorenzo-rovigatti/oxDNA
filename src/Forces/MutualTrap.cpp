@@ -16,10 +16,11 @@ MutualTrap::MutualTrap() :
 	_p_ptr = NULL;
 	_r0 = -1.;
 	PBC = false;
-	_box_ptr = NULL;
 }
 
-std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp, BaseBox * box_ptr) {
+std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	getInputInt(&inp, "particle", &_particle, 1);
 	getInputInt(&inp, "ref_particle", &_ref_id, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
@@ -34,8 +35,6 @@ std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp, Base
 	}
 	_p_ptr = CONFIG_INFO->particles()[_ref_id];
 
-	_box_ptr = box_ptr;
-
 	if(_particle >= N || N < -1) {
 		throw oxDNAException("Trying to add a MutualTrap on non-existent particle %d. Aborting", _particle);
 	}
@@ -49,18 +48,20 @@ std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp, Base
 }
 
 LR_vector MutualTrap::_distance(LR_vector u, LR_vector v) {
-	if(PBC)
-		return _box_ptr->min_image(u, v);
-	else
+	if(PBC) {
+		return CONFIG_INFO->box->min_image(u, v);
+	}
+	else {
 		return v - u;
+	}
 }
 
 LR_vector MutualTrap::value(llint step, LR_vector &pos) {
-	LR_vector dr = _distance(pos, _box_ptr->get_abs_pos(_p_ptr));
+	LR_vector dr = _distance(pos, CONFIG_INFO->box->get_abs_pos(_p_ptr));
 	return (dr / dr.module()) * (dr.module() - (_r0 + (_rate * step))) * _stiff;
 }
 
 number MutualTrap::potential(llint step, LR_vector &pos) {
-	LR_vector dr = _distance(pos, _box_ptr->get_abs_pos(_p_ptr));
+	LR_vector dr = _distance(pos, CONFIG_INFO->box->get_abs_pos(_p_ptr));
 	return pow(dr.module() - (_r0 + (_rate * step)), 2) * ((number) 0.5) * _stiff;
 }

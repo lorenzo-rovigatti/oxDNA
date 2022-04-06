@@ -35,7 +35,6 @@
 
 class RepulsionPlaneMoving: public BaseForce {
 private:
-	BaseBox * _box_ptr;
 	std::string _particles_string;
 	std::string _ref_particles_string;
 
@@ -47,7 +46,7 @@ public:
 	virtual ~RepulsionPlaneMoving() {
 	}
 
-	std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *);
+	std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);
