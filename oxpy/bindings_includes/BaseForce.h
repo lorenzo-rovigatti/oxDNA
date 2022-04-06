@@ -17,14 +17,13 @@ class PyBaseForce : public BaseForce {
 public:
 	using BaseForce::BaseForce;
 
-	std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box) override {
+	std::tuple<std::vector<int>, std::string> init(input_file &inp) override {
 		using ret_type = std::tuple<std::vector<int>, std::string>;
-		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
+		PYBIND11_OVERLOAD( // @suppress("Unused return value")
 				ret_type,
 				BaseForce,
 				init,
-				inp,
-				box
+				inp
 		);
 
 		// suppress warnings
@@ -68,15 +67,13 @@ void export_BaseForce(py::module &m) {
         The default constructor takes no parameters.
 	)pbdoc");
 
-	force.def("init", &BaseForce::init, py::arg("inp"), py::arg("box"), R"pbdoc(
+	force.def("init", &BaseForce::init, py::arg("inp"), R"pbdoc(
         Initialises the force.
 
         Parameters
         ---------- 
         inp: :class:`input_file`
             The input file of the simulation.
-        box: :class:`BaseBox`
-            The instance of the simulation's box object.
 	)pbdoc");
 
 	force.def("get_group_name", &BaseForce::get_group_name, R"pbdoc(
