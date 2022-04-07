@@ -1,10 +1,12 @@
 # The core module
 
-This module contains the Python bindings of the C++ code. All the objects described here are contained in the same module and should be accessed as `oxpy.core.*`.
+This module contains the Python bindings of the C++ code. Every `object` described here is contained in the same module and can be accessed as `oxpy.core.object` or as `oxpy.object`.
 
 ```eval_rst
 .. toctree::
    :maxdepth: 2
+   
+   forces.md
 
 .. currentmodule:: oxpy.core
 
@@ -16,30 +18,35 @@ This module contains the Python bindings of the C++ code. All the objects descri
     BaseParticle
     DNANucleotide
     RNANucleotide
-    IBaseInteraction
+    Molecule
+    BaseInteraction
     ConfigInfo
+    FlattenedConfigInfo
     BaseObservable
-    BaseForce
     InputFile
     
 .. autoclass:: Context
     
 .. autoclass:: OxpyManager
     :inherited-members:
-
+    
 .. autoclass:: BaseParticle
 
 .. autoclass:: DNANucleotide
 
 .. autoclass:: RNANucleotide
 
-.. autoclass:: IBaseInteraction
+.. autoclass:: Molecule
+
+.. autoclass:: BaseInteraction
 
 .. autoclass:: ConfigInfo
 
-.. autoclass:: BaseObservable
+.. autoclass:: FlattenedConfigInfo
 
-.. autoclass:: BaseForce
+.. autoclass:: FlattenedVectorArray
+
+.. autoclass:: BaseObservable
 
 .. autoclass:: InputFile
 

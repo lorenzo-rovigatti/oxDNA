@@ -5,6 +5,8 @@ This module contains the Python bindings of the C++ code. Every `object` describ
 ```eval_rst
 .. toctree::
    :maxdepth: 2
+   
+   forces.md
 
 .. currentmodule:: oxpy.core
 
@@ -21,7 +23,6 @@ This module contains the Python bindings of the C++ code. Every `object` describ
     ConfigInfo
     FlattenedConfigInfo
     BaseObservable
-    BaseForce
     InputFile
     
 .. autoclass:: Context
@@ -46,8 +47,6 @@ This module contains the Python bindings of the C++ code. Every `object` describ
 .. autoclass:: FlattenedVectorArray
 
 .. autoclass:: BaseObservable
-
-.. autoclass:: BaseForce
 
 .. autoclass:: InputFile
 

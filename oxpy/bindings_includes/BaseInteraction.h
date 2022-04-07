@@ -162,7 +162,7 @@ void export_BaseInteraction(py::module &m) {
         Compute the unbonded pair interaction between p and q. See :meth:`pair_interaction` for details on the parameters and on the return value.
 	)pbdoc");
 	interaction.def("has_custom_stress_tensor", &BaseInteraction::has_custom_stress_tensor, R"pbdoc(
-		Returns whether the interaction computes the stress tensor internally or not.
+		Return whether the interaction computes the stress tensor internally or not.
 
 		Returns
 		-------

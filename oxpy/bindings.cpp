@@ -13,7 +13,7 @@
 #include "vector_matrix_casters.h"
 
 #include "bindings_includes/AnalysisBackend.h"
-#include "bindings_includes/BaseForce.h"
+#include "bindings_includes/Forces/BaseForce.h"
 #include "bindings_includes/BaseInteraction.h"
 #include "bindings_includes/BaseObservable.h"
 #include "bindings_includes/BaseParticle.h"

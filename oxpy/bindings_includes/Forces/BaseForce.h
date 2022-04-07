@@ -5,10 +5,12 @@
  *      Author: lorenzo
  */
 
-#ifndef OXPY_BINDINGS_INCLUDES_BASEFORCE_H_
-#define OXPY_BINDINGS_INCLUDES_BASEFORCE_H_
+#ifndef OXPY_BINDINGS_INCLUDES_FORCES_BASEFORCE_H_
+#define OXPY_BINDINGS_INCLUDES_FORCES_BASEFORCE_H_
 
-#include "../python_defs.h"
+#include "../../python_defs.h"
+
+#include "RepulsiveSphere.h"
 
 #include <Forces/BaseForce.h>
 
@@ -57,9 +59,10 @@ public:
 	}
 };
 
-
 void export_BaseForce(py::module &m) {
-	py::class_<BaseForce, PyBaseForce, std::shared_ptr<BaseForce>> force(m, "BaseForce", R"pbdoc(
+	py::module sub_m = m.def_submodule("forces");
+
+	py::class_<BaseForce, PyBaseForce, std::shared_ptr<BaseForce>> force(sub_m, "BaseForce", R"pbdoc(
 		The interface class for forces.
 	)pbdoc");
 
@@ -68,7 +71,7 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def("init", &BaseForce::init, py::arg("inp"), R"pbdoc(
-        Initialises the force.
+        Initialise the force.
 
         Parameters
         ---------- 
@@ -77,7 +80,7 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def("get_group_name", &BaseForce::get_group_name, R"pbdoc(
-        Returns the name of the group the force belongs to.
+        Return the name of the group the force belongs to.
 
         Returns
         -------
@@ -86,7 +89,7 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def("set_group_name", &BaseForce::set_group_name, py::arg("name"), R"pbdoc(
-        Sets the name of the group the force belongs to.
+        Set the name of the group the force belongs to.
 
         Parameters
         ---------- 
@@ -95,7 +98,7 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def("get_id", &BaseForce::get_id, R"pbdoc(
-        Returns the id of the force.
+        Return the id of the force.
 
         Returns
         -------
@@ -104,7 +107,7 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def("set_id", &BaseForce::set_id, py::arg("new_id"), R"pbdoc(
-        Sets the id of the force.
+        Set the id of the force.
 
         Parameters
         ---------- 
@@ -113,7 +116,7 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def("value", &BaseForce::value, py::arg("step"), py::arg("pos"), R"pbdoc(
-        Returns the force vector that would act at the given position and time step.
+        Return the force vector that would act at the given position and time step.
 
         Parameters
         ----------
@@ -129,7 +132,7 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def("potential", &BaseForce::potential, py::arg("step"), py::arg("pos"), R"pbdoc(
-        Returns the potential energy due to the force at the given position and time step.
+        Return the potential energy due to the force at the given position and time step.
 
         Parameters
         ----------
@@ -143,6 +146,21 @@ void export_BaseForce(py::module &m) {
         float
             The computed potential energy.
 	)pbdoc");
+
+	force.def_readwrite("stiff", &BaseForce::_stiff, R"pbdoc(
+The stiffness (= strength) of the force.
+)pbdoc");
+
+	force.def("as_RepulsiveSphere", [](BaseForce &f){ return dynamic_cast<RepulsiveSphere *>(&f); }, R"pbdoc(
+Attempt to cast the current force as a :py:class:`RepulsiveSphere` object and return it.
+
+Returns
+-------
+	:py:class:`RepulsiveSphere`
+		The force cast as a :py:class:`RepulsiveSphere` or `None` if the casting fails.
+)pbdoc");
+
+	export_RepulsiveSphere(sub_m);
 }
 
-#endif /* OXPY_BINDINGS_INCLUDES_BASEFORCE_H_ */
+#endif /* OXPY_BINDINGS_INCLUDES_FORCES_BASEFORCE_H_ */

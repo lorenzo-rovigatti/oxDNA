@@ -7,12 +7,12 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The core module &mdash; oxpy 3.0.0a1.dev251+gd1c47c6.d20220406 documentation</title>
+  <title>The core module &mdash; oxpy 3.0.0a1.dev252+g2475850.d20220407 documentation</title>
   
 
   
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
 
   
   
@@ -21,22 +21,23 @@
 
   
   <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
+    <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="The analysis module" href="analysis.html" />
-    <link rel="prev" title="Oxpy" href="../index.html" /> 
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="The core.forces module" href="forces.html" />
+    <link rel="prev" title="Oxpy" href="../../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -50,7 +51,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> oxpy
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> oxpy
           
 
           
@@ -60,14 +61,14 @@
             
             
               <div class="version">
-                3.0.0a1.dev251+gd1c47c6.d20220406
+                3.0.0a1.dev252+g2475850.d20220407
               </div>
             
           
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -86,18 +87,21 @@
             
             
               <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">The core module</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The core module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="forces.html">The core.forces module</a><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="analysis.html">The analysis module</a><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">The utils module</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="../analysis.html">The analysis module</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">The utils module</a><ul class="simple">
 </ul>
 </li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../extending/observables.html">Writing observables in Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extending/observables.html">Writing observables in Python</a></li>
 </ul>
 
             
@@ -113,7 +117,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">oxpy</a>
+          <a href="../../index.html">oxpy</a>
         
       </nav>
 
@@ -142,7 +146,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>The core module</li>
     
@@ -150,7 +154,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/modules/core.md.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/modules/core/core.md.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -167,6 +171,11 @@
 <h1>The core module<a class="headerlink" href="#the-core-module" title="Permalink to this headline">¶</a></h1>
 <p>This module contains the Python bindings of the C++ code. Every <code class="docutils literal notranslate"><span class="pre">object</span></code> described here is contained in the same module and can be accessed as <code class="docutils literal notranslate"><span class="pre">oxpy.core.object</span></code> or as <code class="docutils literal notranslate"><span class="pre">oxpy.object</span></code>.</p>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">The core.forces module</a><ul class="simple">
+</ul>
+</li>
+</ul>
 </div>
 <table class="longtable docutils align-default">
 <colgroup>
@@ -204,10 +213,7 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.BaseObservable" title="oxpy.core.BaseObservable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseObservable</span></code></a></p></td>
 <td><p>The interface class for observables.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseForce</span></code></a></p></td>
-<td><p>The interface class for forces.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InputFile</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InputFile</span></code></a></p></td>
 <td><p>Handles the options provided by the user to control and tune the behaviour of the simulation/analysis/generation of the initial configuration.</p></td>
 </tr>
 </tbody>
@@ -507,7 +513,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.DNANucleotide.backbone_site">
 <code class="sig-name descname">backbone_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.DNANucleotide" title="oxpy.core.DNANucleotide">oxpy.core.DNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.DNANucleotide.backbone_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the backbone site.</p>
+<dd><p>Return the position of the backbone site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -521,7 +527,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.DNANucleotide.base_site">
 <code class="sig-name descname">base_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.DNANucleotide" title="oxpy.core.DNANucleotide">oxpy.core.DNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.DNANucleotide.base_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the base site.</p>
+<dd><p>Return the position of the base site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -535,7 +541,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.DNANucleotide.stacking_site">
 <code class="sig-name descname">stacking_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.DNANucleotide" title="oxpy.core.DNANucleotide">oxpy.core.DNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.DNANucleotide.stacking_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the stacking site.</p>
+<dd><p>Return the position of the stacking site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -557,7 +563,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.RNANucleotide.backbone_site">
 <code class="sig-name descname">backbone_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.RNANucleotide" title="oxpy.core.RNANucleotide">oxpy.core.RNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.RNANucleotide.backbone_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the backbone site.</p>
+<dd><p>Return the position of the backbone site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -571,7 +577,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.RNANucleotide.base_site">
 <code class="sig-name descname">base_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.RNANucleotide" title="oxpy.core.RNANucleotide">oxpy.core.RNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.RNANucleotide.base_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the base site.</p>
+<dd><p>Return the position of the base site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -585,7 +591,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.RNANucleotide.bbvector3_site">
 <code class="sig-name descname">bbvector3_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.RNANucleotide" title="oxpy.core.RNANucleotide">oxpy.core.RNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.RNANucleotide.bbvector3_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the bbvector3 site.</p>
+<dd><p>Return the position of the bbvector3 site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -599,7 +605,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.RNANucleotide.bbvector5_site">
 <code class="sig-name descname">bbvector5_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.RNANucleotide" title="oxpy.core.RNANucleotide">oxpy.core.RNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.RNANucleotide.bbvector5_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the bbvector5 site.</p>
+<dd><p>Return the position of the bbvector5 site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -613,7 +619,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.RNANucleotide.stack3_site">
 <code class="sig-name descname">stack3_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.RNANucleotide" title="oxpy.core.RNANucleotide">oxpy.core.RNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.RNANucleotide.stack3_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the stack3 site.</p>
+<dd><p>Return the position of the stack3 site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -627,7 +633,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.RNANucleotide.stack5_site">
 <code class="sig-name descname">stack5_site</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.RNANucleotide" title="oxpy.core.RNANucleotide">oxpy.core.RNANucleotide</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.RNANucleotide.stack5_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the position of the stack5 site.</p>
+<dd><p>Return the position of the stack5 site.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The position of the site.</p>
@@ -682,7 +688,7 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dl class="py method">
 <dt id="oxpy.core.BaseInteraction.has_custom_stress_tensor">
 <code class="sig-name descname">has_custom_stress_tensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><a class="headerlink" href="#oxpy.core.BaseInteraction.has_custom_stress_tensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns whether the interaction computes the stress tensor internally or not.</p>
+<dd><p>Return whether the interaction computes the stress tensor internally or not.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>True if the interaction computes the stress tensor internally, False otherwise.</p>
@@ -774,14 +780,14 @@ set through the <a class="reference internal" href="#oxpy.core.BaseInteraction.s
 
 <dl class="py method">
 <dt id="oxpy.core.ConfigInfo.get_force_by_id">
-<code class="sig-name descname">get_force_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo">oxpy.core.ConfigInfo</a></span></em>, <em class="sig-param"><span class="n">arg0</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a><a class="headerlink" href="#oxpy.core.ConfigInfo.get_force_by_id" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_force_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo">oxpy.core.ConfigInfo</a></span></em>, <em class="sig-param"><span class="n">arg0</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="forces.html#oxpy.core.forces.BaseForce" title="oxpy.core.forces.BaseForce">oxpy.core.forces.BaseForce</a><a class="headerlink" href="#oxpy.core.ConfigInfo.get_force_by_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the force with the given id, which can be set in the external forces file with <cite>id = FORCE_ID</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The external force with the given id, or <cite>None</cite> if the id does not correspond to any external force.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseForce</span></code></a></p>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseForce</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -894,7 +900,7 @@ access the current configuration’s details.</p>
 <dt id="oxpy.core.BaseObservable.get_output_string">
 <code class="sig-name descname">get_output_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseObservable" title="oxpy.core.BaseObservable">oxpy.core.BaseObservable</a></span></em>, <em class="sig-param"><span class="n">curr_step</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxpy.core.BaseObservable.get_output_string" title="Permalink to this definition">¶</a></dt>
 <dd><blockquote>
-<div><p>Computes the quantity/quantities of interest and returns the output string.</p>
+<div><p>Compute the quantity/quantities of interest and returns the output string.</p>
 </div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -926,116 +932,7 @@ access the current configuration’s details.</p>
 <dl class="py method">
 <dt id="oxpy.core.BaseObservable.init">
 <code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseObservable" title="oxpy.core.BaseObservable">oxpy.core.BaseObservable</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.BaseObservable.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialises the observable.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="oxpy.core.BaseForce">
-<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">BaseForce</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.BaseForce" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
-<p>The interface class for forces.</p>
-<p>The default constructor takes no parameters.</p>
-<dl class="py method">
-<dt id="oxpy.core.BaseForce.get_group_name">
-<code class="sig-name descname">get_group_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxpy.core.BaseForce.get_group_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the name of the group the force belongs to.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The name of the group.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="oxpy.core.BaseForce.get_id">
-<code class="sig-name descname">get_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxpy.core.BaseForce.get_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the id of the force.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The id.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="oxpy.core.BaseForce.init">
-<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">inp</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><a class="headerlink" href="#oxpy.core.BaseForce.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialises the force.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The input file of the simulation.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="oxpy.core.BaseForce.potential">
-<code class="sig-name descname">potential</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">step</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">pos</span><span class="p">:</span> <span class="n">LR_vector</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><a class="headerlink" href="#oxpy.core.BaseForce.potential" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the potential energy due to the force at the given position and time step.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The current time step.</p></li>
-<li><p><strong>pos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.22)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The computed potential energy.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="oxpy.core.BaseForce.set_group_name">
-<code class="sig-name descname">set_group_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.BaseForce.set_group_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the name of the group the force belongs to.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The new group name.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="oxpy.core.BaseForce.set_id">
-<code class="sig-name descname">set_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">new_id</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.BaseForce.set_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the id of the force.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The new id.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="oxpy.core.BaseForce.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseForce" title="oxpy.core.BaseForce">oxpy.core.BaseForce</a></span></em>, <em class="sig-param"><span class="n">step</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">pos</span><span class="p">:</span> <span class="n">LR_vector</span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.BaseForce.value" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the force vector that would act at the given position and time step.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The current time step.</p></li>
-<li><p><strong>pos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.22)"><em>numpy.ndarray</em></a>) – The position where the force should be computed.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The computed force vector.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.22)">numpy.ndarray</a></p>
-</dd>
-</dl>
+<dd><p>Initialise the observable.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1073,10 +970,10 @@ access the current configuration’s details.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="analysis.html" class="btn btn-neutral float-right" title="The analysis module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="forces.html" class="btn btn-neutral float-right" title="The core.forces module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../index.html" class="btn btn-neutral float-left" title="Oxpy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../../index.html" class="btn btn-neutral float-left" title="Oxpy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

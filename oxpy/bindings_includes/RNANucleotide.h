@@ -24,7 +24,7 @@ void export_RNANucleotide(py::module &m) {
 	nucleotide.def("backbone_site", [](RNANucleotide &nucl) {
 		return nucl.pos + nucl.int_centers[nucl.BACK];
 	}, R"pbdoc(
-		Returns the position of the backbone site.
+		Return the position of the backbone site.
 
 		Returns
 		-------
@@ -46,7 +46,7 @@ void export_RNANucleotide(py::module &m) {
 	nucleotide.def("base_site", [](RNANucleotide &nucl) {
 		return nucl.pos + nucl.int_centers[nucl.BASE];
 	}, R"pbdoc(
-        Returns the position of the base site.
+        Return the position of the base site.
 
         Returns
         -------
@@ -57,7 +57,7 @@ void export_RNANucleotide(py::module &m) {
 	nucleotide.def("stack3_site", [](RNANucleotide &nucl) {
 		return nucl.pos + nucl.int_centers[nucl.STACK_3];
 	}, R"pbdoc(
-        Returns the position of the stack3 site.
+        Return the position of the stack3 site.
 
         Returns
         -------
@@ -68,7 +68,7 @@ void export_RNANucleotide(py::module &m) {
 	nucleotide.def("stack5_site", [](RNANucleotide &nucl) {
 		return nucl.pos + nucl.int_centers[nucl.STACK_5];
 	}, R"pbdoc(
-        Returns the position of the stack5 site.
+        Return the position of the stack5 site.
 
         Returns
         -------
@@ -79,7 +79,7 @@ void export_RNANucleotide(py::module &m) {
 	nucleotide.def("bbvector3_site", [](RNANucleotide &nucl) {
 		return nucl.pos + nucl.int_centers[nucl.BBVECTOR_3];
 	}, R"pbdoc(
-        Returns the position of the bbvector3 site.
+        Return the position of the bbvector3 site.
 
         Returns
         -------
@@ -90,7 +90,7 @@ void export_RNANucleotide(py::module &m) {
 	nucleotide.def("bbvector5_site", [](RNANucleotide &nucl) {
 		return nucl.pos + nucl.int_centers[nucl.BBVECTOR_5];
 	}, R"pbdoc(
-        Returns the position of the bbvector5 site.
+        Return the position of the bbvector5 site.
 
         Returns
         -------
