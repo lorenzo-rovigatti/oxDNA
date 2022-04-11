@@ -146,10 +146,17 @@ std::string input_file::get_value(std::string key) {
 }
 
 void input_file::set_value(std::string key, std::string value) {
+	if(key == "show_overwrite_warnings") {
+		auto res = false_values.find(value);
+		if(res != false_values.end()) {
+			show_overwrite_warnings = false;
+		}
+	}
+
 	input_value new_value(value);
 
 	input_map::iterator old_val = keys.find(key);
-	if(old_val != keys.end()) {
+	if(old_val != keys.end() && show_overwrite_warnings) {
 		OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
 	}
 	keys[key] = value;

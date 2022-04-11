@@ -40,6 +40,7 @@ struct input_file {
 	input_map keys;
 	std::vector<std::string> unread_keys;
 	int state;
+	bool show_overwrite_warnings = true;
 
 	std::set<std::string> true_values;
 	std::set<std::string> false_values;
