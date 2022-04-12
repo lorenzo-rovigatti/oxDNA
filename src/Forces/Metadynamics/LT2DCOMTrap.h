@@ -1,10 +1,10 @@
-#ifndef GAUSSTRAPMETA_H_
-#define GAUSSTRAPMETA_H_
+#ifndef LT2DCOMTRAP_H_
+#define LT2DCOMTRAP_H_
 
 #include "../BaseForce.h"
 #include <vector>
 
-class GaussTrapMeta: public BaseForce {
+class LT2DCOMTrap: public BaseForce {
 private:
 	std::vector<int> _p1a;
 	std::vector<int> _p2a;
@@ -24,8 +24,8 @@ public:
 	int _mode = 0;
 	bool PBC = false;
 
-	GaussTrapMeta();
-	virtual ~GaussTrapMeta() {
+	LT2DCOMTrap();
+	virtual ~LT2DCOMTrap() {
 
 	}
 
@@ -38,4 +38,4 @@ protected:
 	LR_vector _distance(LR_vector u, LR_vector v);
 };
 
-#endif // GAUSSTRAPMETA_H
+#endif // LT2DCOMTRAP_H_

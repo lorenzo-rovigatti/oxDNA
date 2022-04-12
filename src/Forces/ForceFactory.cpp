@@ -29,10 +29,10 @@
 #include "RepulsiveEllipsoid.h"
 
 // metadynamics-related forces
-#include "Metadynamics/GaussTrap.h"
-#include "Metadynamics/GaussTrapAngle.h"
-#include "Metadynamics/GaussTrapMeta.h"
-#include "Metadynamics/GaussTrapMetaRatio1D.h"
+#include "Metadynamics/LT2DCOMTrap.h"
+#include "Metadynamics/LTAtanCOMTrap.h"
+#include "Metadynamics/LTCOMAngleTrap.h"
+#include "Metadynamics/LTCOMTrap.h"
 
 using namespace std;
 
@@ -79,10 +79,10 @@ void ForceFactory::add_force(input_file &inp, BaseBox *box_ptr) {
 	else if(type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
 	else if(type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
 	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
-	else if (type_str.compare("gauss_trap") == 0) extF = std::make_shared<GaussTrap>();
-	else if (type_str.compare("gauss_trap_meta") == 0) extF = std::make_shared<GaussTrapMeta>();
-	else if (type_str.compare("gauss_trap_meta_ratio_1D") == 0) extF = std::make_shared<GaussTrapMetaRatio1D>();
-	else if (type_str.compare("gauss_trap_angle") == 0) extF = std::make_shared<GaussTrapAngle>();
+	else if (type_str.compare("meta_com_trap") == 0) extF = std::make_shared<LTCOMTrap>();
+	else if (type_str.compare("meta_2D_com_trap") == 0) extF = std::make_shared<LT2DCOMTrap>();
+	else if (type_str.compare("meta_atan_com_trap") == 0) extF = std::make_shared<LTAtanCOMTrap>();
+	else if (type_str.compare("meta_com_angle_trap") == 0) extF = std::make_shared<LTCOMAngleTrap>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	std::vector<int> particle_ids;

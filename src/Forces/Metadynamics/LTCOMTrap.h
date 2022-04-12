@@ -1,10 +1,10 @@
-#ifndef GAUSSTRAP_H_
-#define GAUSSTRAP_H_
+#ifndef LTCOMTRAP_H_
+#define LTCOMTRAP_H_
 
 #include "../BaseForce.h"
 #include <vector>
 
-class GaussTrap: public BaseForce {
+class LTCOMTrap: public BaseForce {
 private:
 	std::vector<int> _p1a;
 	std::vector<int> _p2a;
@@ -20,8 +20,8 @@ public:
 	int _mode = 0;
 	bool PBC = false;
 
-	GaussTrap();
-	virtual ~GaussTrap() {
+	LTCOMTrap();
+	virtual ~LTCOMTrap() {
 	}
 
 	std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
@@ -33,4 +33,4 @@ protected:
 	LR_vector _distance(LR_vector u, LR_vector v);
 };
 
-#endif // GAUSSTRAP_H
+#endif // LTCOMTRAP_H_

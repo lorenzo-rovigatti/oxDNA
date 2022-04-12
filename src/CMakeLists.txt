@@ -157,10 +157,10 @@ SET(forces_SOURCES
 	Forces/AlignmentField.cpp
 	Forces/GenericCentralForce.cpp
 	Forces/LJCone.cpp
-	Forces/Metadynamics/GaussTrap.cpp
-	Forces/Metadynamics/GaussTrapAngle.cpp
-	Forces/Metadynamics/GaussTrapMeta.cpp
-	Forces/Metadynamics/GaussTrapMetaRatio1D.cpp
+	Forces/Metadynamics/LTCOMTrap.cpp
+	Forces/Metadynamics/LTCOMAngleTrap.cpp
+	Forces/Metadynamics/LT2DCOMTrap.cpp
+	Forces/Metadynamics/LTAtanCOMTrap.cpp
 	Forces/Metadynamics/meta_utils.cpp
 )
 

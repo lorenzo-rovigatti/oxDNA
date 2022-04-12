@@ -1,10 +1,10 @@
-#ifndef GAUSSTRAPMETARATIO1D_H_
-#define GAUSSTRAPMETARATIO1D_H_
+#ifndef LTATANCOMTRAP_H_
+#define LTATANCOMTRAP_H_
 
 #include "../BaseForce.h"
 #include <vector>
 
-class GaussTrapMetaRatio1D : public BaseForce {
+class LTAtanCOMTrap : public BaseForce {
 private:
 	std::vector<int> _p1a;
 	std::vector<int> _p2a;
@@ -24,8 +24,8 @@ public:
     int _mode = 0;
 	bool PBC = false;
 
-	GaussTrapMetaRatio1D ();
-	virtual ~GaussTrapMetaRatio1D() {}
+	LTAtanCOMTrap ();
+	virtual ~LTAtanCOMTrap() {}
 
 	std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
 
@@ -36,4 +36,4 @@ protected:
 	LR_vector _distance(LR_vector u, LR_vector v);
 };
 
-#endif // GAUSSTRAPMETARATIO1D_H
+#endif // LTATANCOMTRAP_H_

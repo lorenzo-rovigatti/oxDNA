@@ -1,4 +1,4 @@
-#include "GaussTrapMetaRatio1D.h"
+#include "LTAtanCOMTrap.h"
 
 #include "meta_utils.h"
 #include "../../Particles/BaseParticle.h"
@@ -39,7 +39,7 @@ inline number get_y_force2(const number x, const number y, const number dX, cons
 	return force;
 }
 
-GaussTrapMetaRatio1D::GaussTrapMetaRatio1D() :
+LTAtanCOMTrap::LTAtanCOMTrap() :
 				BaseForce() {
 	xmin = 0;
 	xmax = 10;
@@ -47,7 +47,7 @@ GaussTrapMetaRatio1D::GaussTrapMetaRatio1D() :
 	dX = 0.1;
 }
 
-std::tuple<std::vector<int>, std::string> GaussTrapMetaRatio1D::init(input_file &inp) {
+std::tuple<std::vector<int>, std::string> LTAtanCOMTrap::init(input_file &inp) {
 	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p1a");
 	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p2a");
 	std::tie(_p1b, _p1b_ptr) = meta::get_particle_lists(inp, "p1b", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p1b");
@@ -55,7 +55,7 @@ std::tuple<std::vector<int>, std::string> GaussTrapMetaRatio1D::init(input_file 
 
 	getInputInt(&inp, "mode", &_mode, 1);
 	if(_mode != 1 and _mode != 2 and _mode != 3 and _mode != 4) {
-		throw oxDNAException("GaussTrapMeta: unsupported mode '%d' (should be '1', '2', '3' or '4')", _mode);
+		throw oxDNAException("LTAtanCOMTrap: unsupported mode '%d' (should be '1', '2', '3' or '4')", _mode);
 	}
 
 	getInputBool(&inp, "PBC", &PBC, 0);
@@ -71,7 +71,7 @@ std::tuple<std::vector<int>, std::string> GaussTrapMetaRatio1D::init(input_file 
 
 	dX = (xmax - xmin) / (N_grid - 1);
 
-	std::string description = Utils::sformat("GaussTrapMeta force with mode = %d", _mode);
+	std::string description = Utils::sformat("LTAtanCOMTrap force with mode = %d", _mode);
 	if(_mode == 1) {
 		return {_p1a, description};
 	}
@@ -86,14 +86,14 @@ std::tuple<std::vector<int>, std::string> GaussTrapMetaRatio1D::init(input_file 
 	}
 }
 
-LR_vector GaussTrapMetaRatio1D::_distance(LR_vector u, LR_vector v) {
+LR_vector LTAtanCOMTrap::_distance(LR_vector u, LR_vector v) {
 	if(PBC)
 		return CONFIG_INFO->box->min_image(u, v);
 	else
 		return v - u;
 }
 
-LR_vector GaussTrapMetaRatio1D::value(llint step, LR_vector &pos) {
+LR_vector LTAtanCOMTrap::value(llint step, LR_vector &pos) {
 	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
 	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, CONFIG_INFO->box);
@@ -142,7 +142,7 @@ LR_vector GaussTrapMetaRatio1D::value(llint step, LR_vector &pos) {
 	}
 }
 
-number GaussTrapMetaRatio1D::potential(llint step, LR_vector &pos) {
+number LTAtanCOMTrap::potential(llint step, LR_vector &pos) {
 	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
 	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, CONFIG_INFO->box);

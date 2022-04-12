@@ -1,10 +1,10 @@
-#ifndef GAUSSTRAPANGLE_H_
-#define GAUSSTRAPANGLE_H_
+#ifndef LTCOMANGLETRAP_H_
+#define LTCOMANGLETRAP_H_
 
 #include "../BaseForce.h"
 #include <vector>
 
-class GaussTrapAngle: public BaseForce {
+class LTCOMAngleTrap: public BaseForce {
 private:
 	std::vector<int> _p1a;
 	std::vector<int> _p2a;
@@ -22,8 +22,8 @@ public:
 	int _mode = 0;
 	bool PBC = false;
 
-	GaussTrapAngle();
-	virtual ~GaussTrapAngle() {
+	LTCOMAngleTrap();
+	virtual ~LTCOMAngleTrap() {
 
 	}
 
@@ -36,4 +36,4 @@ protected:
 	LR_vector _distance(LR_vector u, LR_vector v);
 };
 
-#endif // GAUSSTRAPANGLE_H
+#endif // LTCOMANGLETRAP_H_

@@ -1,4 +1,4 @@
-#include "GaussTrapAngle.h"
+#include "LTCOMAngleTrap.h"
 
 #include "meta_utils.h"
 #include "../../Particles/BaseParticle.h"
@@ -23,7 +23,7 @@ inline number get_x_force(const number x, const number dX, const number xmin, co
 	return -(potential_grid[ix_right] - potential_grid[ix_left]) / dX;
 }
 
-GaussTrapAngle::GaussTrapAngle() :
+LTCOMAngleTrap::LTCOMAngleTrap() :
 				BaseForce() {
 	xmin = 0;
 	xmax = 10;
@@ -31,14 +31,14 @@ GaussTrapAngle::GaussTrapAngle() :
 	dX = 0.1;
 }
 
-std::tuple<std::vector<int>, std::string> GaussTrapAngle::init(input_file &inp) {
+std::tuple<std::vector<int>, std::string> LTCOMAngleTrap::init(input_file &inp) {
 	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrap p1a");
 	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrap p2a");
 	std::tie(_p3a, _p3a_ptr) = meta::get_particle_lists(inp, "p3a", CONFIG_INFO->particles(), "GaussTrap p3a");
 
 	getInputInt(&inp, "mode", &_mode, 1);
 	if(_mode != 1 and _mode != 2 and _mode != 3) {
-		throw oxDNAException("GaussTrapAngle: unsupported mode '%d' (should be '1', '2' or '3')", _mode);
+		throw oxDNAException("LTCOMAngleTrap: unsupported mode '%d' (should be '1', '2' or '3')", _mode);
 	}
 
 	getInputBool(&inp, "PBC", &PBC, 0);
@@ -54,7 +54,7 @@ std::tuple<std::vector<int>, std::string> GaussTrapAngle::init(input_file &inp) 
 
 	dX = (xmax - xmin) / (N_grid - 1.0);
 
-	std::string description = Utils::sformat("GaussTrapAngle force with mode = %d", _mode);
+	std::string description = Utils::sformat("LTCOMAngleTrap force with mode = %d", _mode);
 	if(_mode == 1) {
 		return {_p1a, description};
 	}
@@ -66,14 +66,14 @@ std::tuple<std::vector<int>, std::string> GaussTrapAngle::init(input_file &inp) 
 	}
 }
 
-LR_vector GaussTrapAngle::_distance(LR_vector u, LR_vector v) {
+LR_vector LTCOMAngleTrap::_distance(LR_vector u, LR_vector v) {
 	if(PBC)
 		return CONFIG_INFO->box->min_image(u, v);
 	else
 		return v - u;
 }
 
-LR_vector GaussTrapAngle::value(llint step, LR_vector &pos) {
+LR_vector LTCOMAngleTrap::value(llint step, LR_vector &pos) {
 	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
 	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 	LR_vector p3a_vec = meta::particle_list_com(_p3a_ptr, CONFIG_INFO->box);
@@ -119,7 +119,7 @@ LR_vector GaussTrapAngle::value(llint step, LR_vector &pos) {
 	}
 }
 
-number GaussTrapAngle::potential(llint step, LR_vector &pos) {
+number LTCOMAngleTrap::potential(llint step, LR_vector &pos) {
 	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
 	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 	LR_vector p3a_vec = meta::particle_list_com(_p3a_ptr, CONFIG_INFO->box);
