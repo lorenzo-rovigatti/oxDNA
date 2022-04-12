@@ -21,3 +21,10 @@ BaseForce::BaseForce() {
 BaseForce::~BaseForce() {
 
 }
+
+std::tuple<std::vector<int>, std::string> BaseForce::init(input_file &inp) {
+	getInputString(&inp, "com_list", _group_name, 0);
+	getInputString(&inp, "id", _id, 0);
+
+	return std::make_tuple(std::vector<int>(), "BaseForce");
+}

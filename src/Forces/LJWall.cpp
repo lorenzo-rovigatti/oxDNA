@@ -20,7 +20,9 @@ LJWall::LJWall() :
 	_only_repulsive = false;
 }
 
-std::tuple<std::vector<int>, std::string> LJWall::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> LJWall::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 

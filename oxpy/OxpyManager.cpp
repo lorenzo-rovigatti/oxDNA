@@ -94,9 +94,14 @@ void OxpyManager::run(llint steps, bool print_output) {
 		}
 
 		_backend->sim_step(_cur_step);
+		_steps_run++;
 	}
 
 	_backend->apply_simulation_data_changes();
+}
+
+void OxpyManager::print_timings() {
+	TimingManager::instance()->print(_steps_run);
 }
 
 void export_SimManager(py::module &m) {
@@ -205,5 +210,18 @@ input: :class:`InputFile`
 				The number of steps to be run.
 			print_output : bool
 				If True (the default value) the simulation output will be printed.
+	)pbdoc");
+
+	manager.def("steps_run", &OxpyManager::steps_run, R"pbdoc(
+		Return the number of steps run using this manager.
+		
+		Returns
+		-------
+			int
+				The number of steps run.
+	)pbdoc");
+
+	manager.def("print_timings", &OxpyManager::print_timings, R"pbdoc(
+		Print the timings taking into account the number of steps run by the manager.
 	)pbdoc");
 }

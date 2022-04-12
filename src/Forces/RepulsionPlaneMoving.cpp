@@ -16,11 +16,12 @@ RepulsionPlaneMoving::RepulsionPlaneMoving() :
 				BaseForce() {
 	_particles_string = "-1";
 	_ref_particles_string = "-1";
-	_box_ptr = NULL;
 	low_idx = high_idx = -1;
 }
 
-std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	getInputString(&inp, "particle", _particles_string, 1);
 	getInputString(&inp, "ref_particle", _ref_particles_string, 1);
 
@@ -34,8 +35,6 @@ std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file 
 	if(tmpi != 3) throw oxDNAException("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
 	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	_direction.normalize();
-
-	_box_ptr = box_ptr;
 
 	auto particle_indices_vector = Utils::get_particles_from_string(CONFIG_INFO->particles(), _particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
 	auto ref_particle_indices_vector = Utils::get_particles_from_string(CONFIG_INFO->particles(), _ref_particles_string, "moving repulsion plane force (RepulsionPlaneMoving.cpp)");
@@ -57,7 +56,7 @@ std::tuple<std::vector<int>, std::string> RepulsionPlaneMoving::init(input_file 
 LR_vector RepulsionPlaneMoving::value(llint step, LR_vector &pos) {
 	LR_vector force(0., 0., 0.);
 	for(std::vector<int>::size_type i = 0; i < ref_p_ptr.size(); i++) {
-		number distance = (pos - _box_ptr->get_abs_pos(ref_p_ptr[i])) * _direction;
+		number distance = (pos - CONFIG_INFO->box->get_abs_pos(ref_p_ptr[i])) * _direction;
 		force += -_stiff * _direction * std::min(distance, (number) 0.);
 	}
 	return force;
@@ -66,7 +65,7 @@ LR_vector RepulsionPlaneMoving::value(llint step, LR_vector &pos) {
 number RepulsionPlaneMoving::potential(llint step, LR_vector &pos) {
 	number V = 0.;
 	for(std::vector<int>::size_type i = 0; i < ref_p_ptr.size(); i++) {
-		number distance = (pos - _box_ptr->get_abs_pos(ref_p_ptr[i])) * _direction;
+		number distance = (pos - CONFIG_INFO->box->get_abs_pos(ref_p_ptr[i])) * _direction;
 		V += (number) 0.5 * _stiff * distance * std::min(distance, (number) 0.);
 	}
 	return (number) V;

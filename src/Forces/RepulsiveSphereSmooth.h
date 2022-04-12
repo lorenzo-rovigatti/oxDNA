@@ -35,10 +35,6 @@
  */
 
 class RepulsiveSphereSmooth: public BaseForce {
-private:
-	/// pointer to the box side
-	BaseBox *_box_ptr;
-
 public:
 	/// center of the sphere
 	LR_vector _center;
@@ -56,7 +52,7 @@ public:
 	virtual ~RepulsiveSphereSmooth() {
 	}
 
-	std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *);
+	std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

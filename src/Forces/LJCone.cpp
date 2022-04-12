@@ -16,12 +16,14 @@ LJCone::LJCone() :
 	_n = 6;
 	_sigma = 1.;
 	_cutoff = 1e6;
+	_alpha = _sin_alpha = _cos_alpha = _tan_alpha = 0.;
 	_generate_inside = false;
 	_only_repulsive = false;
-	_box = NULL;
 }
 
-std::tuple<std::vector<int>, std::string> LJCone::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> LJCone::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 
@@ -54,7 +56,6 @@ std::tuple<std::vector<int>, std::string> LJCone::init(input_file &inp, BaseBox 
 	}
 	_pos0 = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 
-	_box = box_ptr;
 	_sin_alpha = sin(_alpha);
 	_cos_alpha = cos(_alpha);
 	_tan_alpha = tan(_alpha);

@@ -28,8 +28,6 @@ class COMForce: public BaseForce {
 protected:
 	llint _last_step = -1;
 
-	BaseBox *_box_ptr = nullptr;
-
 	LR_vector _com;
 	LR_vector _ref_com;
 
@@ -47,7 +45,7 @@ public:
 	COMForce();
 	virtual ~COMForce();
 
-	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box_side);
+	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);

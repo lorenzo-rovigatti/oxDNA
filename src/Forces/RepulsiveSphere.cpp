@@ -16,10 +16,11 @@ RepulsiveSphere::RepulsiveSphere() :
 	_r_ext = 1e10;
 	_center = LR_vector(0., 0., 0.);
 	_rate = 0.;
-	_box_ptr = NULL;
 }
 
-std::tuple<std::vector<int>, std::string> RepulsiveSphere::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> RepulsiveSphere::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	getInputNumber(&inp, "stiff", &_stiff, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
 	getInputNumber(&inp, "rate", &_rate, 0);
@@ -27,8 +28,6 @@ std::tuple<std::vector<int>, std::string> RepulsiveSphere::init(input_file &inp,
 
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
-
-	_box_ptr = box_ptr;
 
 	std::string strdir;
 	if(getInputString(&inp, "center", strdir, 0) == KEY_FOUND) {
@@ -45,7 +44,7 @@ std::tuple<std::vector<int>, std::string> RepulsiveSphere::init(input_file &inp,
 }
 
 LR_vector RepulsiveSphere::value(llint step, LR_vector &pos) {
-	LR_vector dist = _box_ptr->min_image(_center, pos);
+	LR_vector dist = CONFIG_INFO->box->min_image(_center, pos);
 	number mdist = dist.module();
 	number radius = _r0 + _rate * (number) step;
 
@@ -54,7 +53,7 @@ LR_vector RepulsiveSphere::value(llint step, LR_vector &pos) {
 }
 
 number RepulsiveSphere::potential(llint step, LR_vector &pos) {
-	LR_vector dist = _box_ptr->min_image(_center, pos);
+	LR_vector dist = CONFIG_INFO->box->min_image(_center, pos);
 	number mdist = dist.module();
 	number radius = _r0 + _rate * (number) step;
 

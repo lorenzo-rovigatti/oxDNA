@@ -18,7 +18,9 @@ SawtoothForce::~SawtoothForce() {
 
 }
 
-std::tuple<std::vector<int>, std::string> SawtoothForce::init(input_file &inp, BaseBox *box_side) {
+std::tuple<std::vector<int>, std::string> SawtoothForce::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 

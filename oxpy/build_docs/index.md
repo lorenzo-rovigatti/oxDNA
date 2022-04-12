@@ -91,7 +91,7 @@ Here we loop over all the configurations stored in an oxDNA trajectory file, pri
 .. toctree::
    :maxdepth: 2
    
-   modules/core.md
+   modules/core/core.md
    modules/analysis.md
    modules/utils.md
 ```

@@ -19,13 +19,12 @@ public:
 	BaseParticle * _p_ptr;
 	number _r0;
 	bool PBC;
-	BaseBox * _box_ptr;
 
 	MutualTrap();
 	virtual ~MutualTrap() {
 	}
 
-	std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *);
+	std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);
