@@ -19,12 +19,12 @@ public:
 	std::vector<number> potential_grid;
 	int _mode = 0;
 	bool PBC = false;
-	BaseBox *_box_ptr = nullptr;
+
 	GaussTrap();
 	virtual ~GaussTrap() {
 	}
 
-	std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box_ptr) override;
+	std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
 
 	LR_vector value(llint step, LR_vector &pos) override;
 	number potential(llint step, LR_vector &pos) override;

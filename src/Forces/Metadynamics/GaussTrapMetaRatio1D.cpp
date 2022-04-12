@@ -47,7 +47,7 @@ GaussTrapMetaRatio1D::GaussTrapMetaRatio1D() :
 	dX = 0.1;
 }
 
-std::tuple<std::vector<int>, std::string> GaussTrapMetaRatio1D::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> GaussTrapMetaRatio1D::init(input_file &inp) {
 	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p1a");
 	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p2a");
 	std::tie(_p1b, _p1b_ptr) = meta::get_particle_lists(inp, "p1b", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p1b");
@@ -69,36 +69,35 @@ std::tuple<std::vector<int>, std::string> GaussTrapMetaRatio1D::init(input_file 
 	getInputString(&inp, "potential_grid", potential_string, 1);
 	potential_grid = meta::split_to_numbers(potential_string, ",");
 
-	_box_ptr = box_ptr;
 	dX = (xmax - xmin) / (N_grid - 1);
 
 	std::string description = Utils::sformat("GaussTrapMeta force with mode = %d", _mode);
 	if(_mode == 1) {
-		return std::make_tuple(_p1a, description);
+		return {_p1a, description};
 	}
 	else if(_mode == 2) {
-		return std::make_tuple(_p2a, description);
+		return {_p2a, description};
 	}
 	else if(_mode == 3) {
-		return std::make_tuple(_p1b, description);
+		return {_p1b, description};
 	}
 	else {
-		return std::make_tuple(_p2b, description);
+		return {_p2b, description};
 	}
 }
 
 LR_vector GaussTrapMetaRatio1D::_distance(LR_vector u, LR_vector v) {
 	if(PBC)
-		return _box_ptr->min_image(u, v);
+		return CONFIG_INFO->box->min_image(u, v);
 	else
 		return v - u;
 }
 
 LR_vector GaussTrapMetaRatio1D::value(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, _box_ptr);
-	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, _box_ptr);
-	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, _box_ptr);
-	LR_vector p2b_vec = meta::particle_list_com(_p2b_ptr, _box_ptr);
+	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
+	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
+	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, CONFIG_INFO->box);
+	LR_vector p2b_vec = meta::particle_list_com(_p2b_ptr, CONFIG_INFO->box);
 
 	LR_vector dra = _distance(p2a_vec, p1a_vec);
 	LR_vector drb = _distance(p2b_vec, p1b_vec);
@@ -144,10 +143,10 @@ LR_vector GaussTrapMetaRatio1D::value(llint step, LR_vector &pos) {
 }
 
 number GaussTrapMetaRatio1D::potential(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, _box_ptr);
-	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, _box_ptr);
-	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, _box_ptr);
-	LR_vector p2b_vec = meta::particle_list_com(_p2b_ptr, _box_ptr);
+	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
+	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
+	LR_vector p1b_vec = meta::particle_list_com(_p1b_ptr, CONFIG_INFO->box);
+	LR_vector p2b_vec = meta::particle_list_com(_p2b_ptr, CONFIG_INFO->box);
 
 	LR_vector dra = _distance(p2a_vec, p1a_vec);
 	LR_vector drb = _distance(p2b_vec, p1b_vec);

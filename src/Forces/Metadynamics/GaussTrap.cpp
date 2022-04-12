@@ -31,7 +31,7 @@ GaussTrap::GaussTrap() :
 	dX = 0.1;
 }
 
-std::tuple<std::vector<int>, std::string> GaussTrap::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> GaussTrap::init(input_file &inp) {
 	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrap p1a");
 	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrap p2a");
 
@@ -51,28 +51,27 @@ std::tuple<std::vector<int>, std::string> GaussTrap::init(input_file &inp, BaseB
 	getInputString(&inp, "potential_grid", potential_string, 1);
 	potential_grid = meta::split_to_numbers(potential_string, ",");
 
-	_box_ptr = box_ptr;
 	dX = (xmax - xmin) / (N_grid - 1.0);
 
 	std::string description = Utils::sformat("GaussTrap force with mode = %d", _mode);
 	if(_mode == 1) {
-		return std::make_tuple(_p1a, description);
+		return {_p1a, description};
 	}
 	else {
-		return std::make_tuple(_p2a, description);
+		return {_p2a, description};
 	}
 }
 
 LR_vector GaussTrap::_distance(LR_vector u, LR_vector v) {
 	if(PBC)
-		return _box_ptr->min_image(u, v);
+		return CONFIG_INFO->box->min_image(u, v);
 	else
 		return v - u;
 }
 
 LR_vector GaussTrap::value(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, _box_ptr);
-	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, _box_ptr);
+	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
+	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 
 	LR_vector dra = _distance(p2a_vec, p1a_vec);
 
@@ -102,8 +101,8 @@ LR_vector GaussTrap::value(llint step, LR_vector &pos) {
 }
 
 number GaussTrap::potential(llint step, LR_vector &pos) {
-	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, _box_ptr);
-	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, _box_ptr);
+	LR_vector p1a_vec = meta::particle_list_com(_p1a_ptr, CONFIG_INFO->box);
+	LR_vector p2a_vec = meta::particle_list_com(_p2a_ptr, CONFIG_INFO->box);
 
 	LR_vector dra = _distance(p2a_vec, p1a_vec);
 
