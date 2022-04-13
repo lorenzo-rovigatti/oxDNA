@@ -24,13 +24,13 @@ class oxDNARunner(mp.Process):
     def run(self):
         os.chdir(self.working_dir)
         
-        input_file = oxpy.InputFile()
-        input_file.init_from_filename(self.input_file)
-        input_file["print_conf_interval"] = str(conf_interval)
-        input_file["conf_file"] = "output/last.conf"
-        input_file["show_overwrite_warnings"] = "false"
-            
         with oxpy.Context():
+            input_file = oxpy.InputFile()
+            input_file.init_from_filename(self.input_file)
+            input_file["show_overwrite_warnings"] = "false"
+            input_file["print_conf_interval"] = str(conf_interval)
+            input_file["conf_file"] = "output/last.conf"
+            
             self.manager = oxpy.OxpyManager(input_file)
             self.manager.load_options()
             self.manager.init()
@@ -43,7 +43,7 @@ class oxDNARunner(mp.Process):
                 
                 # update the lookup tables of all the metadynamics-related forces
                 for force in self.manager.config_info().forces:
-                    if force.type == "meta_com_trap":
+                    if force.group_name == "metadynamics":
                         force.potential_grid = new_potential_grid
                 
                 self.manager.run(steps)
@@ -186,10 +186,6 @@ class Estimator():
             if self.dim == 1:
                 data[:, 0] = data[:, 1] / data[:, 0] 
                 data = np.arctan(data[:, 0])
-            elif self.dim == 2:
-                data[:, 0] = data[:, 1] / data[:, 0]
-                data[:, 1] = data[:, 3] / data[:, 2]
-                data = np.arctan(data[:,:2])
 
         elif self.angle:
             if self.dim == 1:
@@ -210,7 +206,6 @@ class Estimator():
 
     def save_old_trajectory(self, dir_name, index):
         os.system("cp -r ./%s/output/trajectory.dat %s/traj_files/trajectory_%s.dat" % (dir_name, dir_name, index,))
-        # os.system("cp -r ./%s/ext %s/ext_files/ext_%s"%(dir_name,dir_name,index,))
 
     def write_initial_external_forces(self, dir_name):
         # build the initial lookup table
@@ -226,36 +221,39 @@ class Estimator():
                 grid_string += '|'
         
         # use our p-dictionary! 
-        p_string = ""
+        common = ""
         for i in self.p_dict:
-            p_string += f"{i}={self.p_dict[i]}\n"
+            common += f"{i}={self.p_dict[i]}\n"
+        common += f'''
+        group_name = metadynamics
+        xmin = {self.xmin}
+        xmax = {self.xmax}
+        N_grid = {self.N_grid}
+        potential_grid = {grid_string}
+        PBC = 0\n'''
+        
         with open("new_ext", "w+") as f:
             if self.ratio == 1:
                 if self.dim == 1:
                     for mode in range(1, 5):
-                        our_string = f'''{{\ntype=meta_atan_com_trap\n{p_string}\n
-    xmin={self.xmin}\nxmax={self.xmax}\nN_grid={self.N_grid}\npotential_grid={grid_string}\nmode={mode}\nPBC=0\n}}\n'''
+                        our_string = f"{{\ntype=meta_atan_com_trap\n{common}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
             elif self.angle == 1:
                 if self.dim == 1:
                     for mode in range(1, 4):
-                        our_string = f'''{{\ntype=meta_com_angle_trap\n{p_string}\n
-    xmin={self.xmin}\nxmax={self.xmax}\nN_grid={self.N_grid}\npotential_grid={grid_string}\nmode={mode}\nPBC=0\n}}\n'''
+                        our_string = f"{{\ntype=meta_com_angle_trap\n{common}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
             else:
                 if self.dim == 1:
                     for mode in range(1, 3):
-                        our_string = f'''{{\ntype=meta_com_trap\n{p_string}
-    xmin={self.xmin}\nxmax={self.xmax}\nN_grid={self.N_grid}\npotential_grid={grid_string}\nPBC=0\nid=m{mode}\n
-    mode={mode}\n}}\n'''
+                        our_string = f"{{\ntype=meta_com_trap\n{common}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
                 elif self.dim == 2:
                     for mode in range(1, 5):
-                        our_string = f'''{{\ntype=meta_2D_com_trap\n{p_string}\n
-    xmin={self.xmin}\nxmax={self.xmax}\nymin={self.xmin}\nymax={self.xmax}\nN_grid={self.N_grid}\npotential_grid={grid_string}\nmode={mode}\nPBC=0\n}}\n'''
+                        our_string = f"{{\ntype=meta_2D_com_trap\n{common}\nymin={self.xmin}\nymax={self.xmax}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
         os.system(f'cp new_ext ./{dir_name}/ext')
@@ -367,7 +365,6 @@ class Estimator():
                 x = data_selection[-1]
                 if self.dim == 1:
                     local_potential = self.interpolatePotential1D(x, self.potential_grid)
-                    print ('x', x, 'U', local_potential);
 
                 elif self.dim == 2:
                     local_potential = self.interpolatePotential2D(x[0], x[1], self.potential_grid)

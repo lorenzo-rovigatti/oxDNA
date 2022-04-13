@@ -12,6 +12,7 @@
 
 #include "RepulsiveSphere.h"
 #include "LTCOMTrap.h"
+#include "LT2DCOMTrap.h"
 
 #include <Forces/BaseForce.h>
 
@@ -80,7 +81,7 @@ void export_BaseForce(py::module &m) {
             The input file of the simulation.
 	)pbdoc");
 
-	force.def_property("name", &BaseForce::get_group_name, &BaseForce::set_group_name, "The name of the group the force belongs to.");
+	force.def_property("group_name", &BaseForce::get_group_name, &BaseForce::set_group_name, "The name of the group the force belongs to.");
 	force.def_property("id", &BaseForce::get_id, &BaseForce::set_id, "The id of the force.");
 	force.def_property_readonly("type", &BaseForce::get_type, "the string used in the external force file to specify the force type (*e.g.* `trap`).");
 
@@ -138,8 +139,18 @@ Returns
 		The force cast as a :py:class:`LTCOMTrap` or `None` if the casting fails.
 )pbdoc");
 
+	force.def("as_LT2DCOMTrap", [](BaseForce &f){ return dynamic_cast<LT2DCOMTrap *>(&f); }, R"pbdoc(
+Attempt to cast the current force as a :py:class:`LT2DCOMTrap` object and return it.
+
+Returns
+-------
+	:py:class:`LT2DCOMTrap`
+		The force cast as a :py:class:`LT2DCOMTrap` or `None` if the casting fails.
+)pbdoc");
+
 	export_RepulsiveSphere(sub_m);
 	export_LTCOMTrap(sub_m);
+	export_LT2DCOMTrap(sub_m);
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_FORCES_BASEFORCE_H_ */
