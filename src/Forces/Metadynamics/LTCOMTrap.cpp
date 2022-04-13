@@ -32,6 +32,8 @@ LTCOMTrap::LTCOMTrap() :
 }
 
 std::tuple<std::vector<int>, std::string> LTCOMTrap::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrap p1a");
 	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrap p2a");
 

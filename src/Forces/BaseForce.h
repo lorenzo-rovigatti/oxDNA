@@ -39,6 +39,7 @@ private:
 	 */
 	std::string _group_name = "default";
 	std::string _id = "";
+	std::string _type = "type_unread";
 
 public:
 	/**
@@ -81,6 +82,10 @@ public:
 
 	std::string get_id() {
 		return _id;
+	}
+
+	std::string get_type() {
+		return _type;
 	}
 
 	/**

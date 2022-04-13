@@ -48,6 +48,8 @@ LTAtanCOMTrap::LTAtanCOMTrap() :
 }
 
 std::tuple<std::vector<int>, std::string> LTAtanCOMTrap::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p1a");
 	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p2a");
 	std::tie(_p1b, _p1b_ptr) = meta::get_particle_lists(inp, "p1b", CONFIG_INFO->particles(), "GaussTrapMetaRatio1D p1b");

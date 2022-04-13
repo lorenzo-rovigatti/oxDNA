@@ -32,6 +32,8 @@ LTCOMAngleTrap::LTCOMAngleTrap() :
 }
 
 std::tuple<std::vector<int>, std::string> LTCOMAngleTrap::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	std::tie(_p1a, _p1a_ptr) = meta::get_particle_lists(inp, "p1a", CONFIG_INFO->particles(), "GaussTrap p1a");
 	std::tie(_p2a, _p2a_ptr) = meta::get_particle_lists(inp, "p2a", CONFIG_INFO->particles(), "GaussTrap p2a");
 	std::tie(_p3a, _p3a_ptr) = meta::get_particle_lists(inp, "p3a", CONFIG_INFO->particles(), "GaussTrap p3a");

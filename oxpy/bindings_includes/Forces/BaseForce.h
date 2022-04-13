@@ -11,6 +11,7 @@
 #include "../../python_defs.h"
 
 #include "RepulsiveSphere.h"
+#include "LTCOMTrap.h"
 
 #include <Forces/BaseForce.h>
 
@@ -79,41 +80,9 @@ void export_BaseForce(py::module &m) {
             The input file of the simulation.
 	)pbdoc");
 
-	force.def("get_group_name", &BaseForce::get_group_name, R"pbdoc(
-        Return the name of the group the force belongs to.
-
-        Returns
-        -------
-        str
-            The name of the group.
-	)pbdoc");
-
-	force.def("set_group_name", &BaseForce::set_group_name, py::arg("name"), R"pbdoc(
-        Set the name of the group the force belongs to.
-
-        Parameters
-        ---------- 
-		name: str
-			The new group name.
-	)pbdoc");
-
-	force.def("get_id", &BaseForce::get_id, R"pbdoc(
-        Return the id of the force.
-
-        Returns
-        -------
-        str
-            The id.
-	)pbdoc");
-
-	force.def("set_id", &BaseForce::set_id, py::arg("new_id"), R"pbdoc(
-        Set the id of the force.
-
-        Parameters
-        ---------- 
-		name: str
-			The new id.
-	)pbdoc");
+	force.def_property("name", &BaseForce::get_group_name, &BaseForce::set_group_name, "The name of the group the force belongs to.");
+	force.def_property("id", &BaseForce::get_id, &BaseForce::set_id, "The id of the force.");
+	force.def_property_readonly("type", &BaseForce::get_type, "the string used in the external force file to specify the force type (*e.g.* `trap`).");
 
 	force.def("value", &BaseForce::value, py::arg("step"), py::arg("pos"), R"pbdoc(
         Return the force vector that would act at the given position and time step.
@@ -160,7 +129,17 @@ Returns
 		The force cast as a :py:class:`RepulsiveSphere` or `None` if the casting fails.
 )pbdoc");
 
+	force.def("as_LTCOMTrap", [](BaseForce &f){ return dynamic_cast<LTCOMTrap *>(&f); }, R"pbdoc(
+Attempt to cast the current force as a :py:class:`LTCOMTrap` object and return it.
+
+Returns
+-------
+	:py:class:`LTCOMTrap`
+		The force cast as a :py:class:`LTCOMTrap` or `None` if the casting fails.
+)pbdoc");
+
 	export_RepulsiveSphere(sub_m);
+	export_LTCOMTrap(sub_m);
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_FORCES_BASEFORCE_H_ */
