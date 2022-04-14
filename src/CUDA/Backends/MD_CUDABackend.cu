@@ -121,11 +121,16 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 		if(_sort_every > 0) {
 			throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
 		}
-		CUDA_trap *h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
-		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)));
+		bool first_time = (_d_ext_forces == nullptr);
 
-		for(int i = 0; i < N() * MAX_EXT_FORCES; i++) {
-			h_ext_forces[i].type = -1;
+		static std::vector<CUDA_trap> h_ext_forces(N() * MAX_EXT_FORCES);
+
+		if(first_time) {
+			CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)));
+
+			for(int i = 0; i < N() * MAX_EXT_FORCES; i++) {
+				h_ext_forces[i].type = -1;
+			}
 		}
 
 		for(int i = 0; i < N(); i++) {
@@ -190,11 +195,11 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 				}
 				else if(force_type == typeid(COMForce)) {
 					COMForce *p_force = (COMForce *) p->ext_forces[j];
-					init_COMForce_from_CPU(&force->comforce, p_force);
+					init_COMForce_from_CPU(&force->comforce, p_force, first_time);
 				}
 				else if(force_type == typeid(LTCOMTrap)) {
 					LTCOMTrap *p_force = (LTCOMTrap*) p->ext_forces[j];
-					init_LTCOMTrap_from_CPU(&force->ltcomtrap, p_force);
+					init_LTCOMTrap_from_CPU(&force->ltcomtrap, p_force, first_time);
 				}
 				else {
 					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
@@ -205,8 +210,7 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 			}
 		}
 
-		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, h_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap), cudaMemcpyHostToDevice));
-		delete[] h_ext_forces;
+		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, h_ext_forces.data(), N() * MAX_EXT_FORCES * sizeof(CUDA_trap), cudaMemcpyHostToDevice));
 	}
 }
 
@@ -289,6 +293,7 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		}
 	}
 	_host_to_gpu();
+	_apply_external_forces_changes();
 }
 
 void MD_CUDABackend::apply_simulation_data_changes() {

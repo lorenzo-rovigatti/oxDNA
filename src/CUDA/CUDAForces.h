@@ -332,7 +332,7 @@ struct COM_force {
 	int *ref_indexes;
 };
 
-void init_COMForce_from_CPU(COM_force *cuda_force, COMForce *cpu_force) {
+void init_COMForce_from_CPU(COM_force *cuda_force, COMForce *cpu_force, bool first_time) {
 	cuda_force->type = CUDA_COM_FORCE;
 	cuda_force->stiff = cpu_force->_stiff;
 	cuda_force->r0 = cpu_force->_r0;
@@ -344,16 +344,19 @@ void init_COMForce_from_CPU(COM_force *cuda_force, COMForce *cpu_force) {
 	for(auto particle : cpu_force->_com_list) {
 		local_com_indexes.push_back(particle->index);
 	}
-	// TODO: this memory never gets free'd
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->com_indexes, sizeof(int) * local_com_indexes.size()));
-	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->com_indexes, local_com_indexes.data(), sizeof(int) * local_com_indexes.size(), cudaMemcpyHostToDevice));
 
 	std::vector<int> local_ref_indexes;
 	for(auto particle : cpu_force->_ref_list){
 		local_ref_indexes.push_back(particle->index);
 	}
-	// TODO: this memory never gets free'd
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->ref_indexes, sizeof(int) * local_ref_indexes.size()));
+
+	if(first_time) {
+		// TODO: this memory never gets free'd
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->com_indexes, sizeof(int) * local_com_indexes.size()));
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->ref_indexes, sizeof(int) * local_ref_indexes.size()));
+	}
+
+	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->com_indexes, local_com_indexes.data(), sizeof(int) * local_com_indexes.size(), cudaMemcpyHostToDevice));
 	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->ref_indexes, local_ref_indexes.data(), sizeof(int) * local_ref_indexes.size(), cudaMemcpyHostToDevice));
 }
 
@@ -379,43 +382,42 @@ struct lt_com_trap {
 	bool PBC;
 };
 
-void init_LTCOMTrap_from_CPU(lt_com_trap *cuda_force, LTCOMTrap *cpu_force) {
+void init_LTCOMTrap_from_CPU(lt_com_trap *cuda_force, LTCOMTrap *cpu_force, bool first_time) {
 	cuda_force->type = CUDA_LR_COM_TRAP;
+	cuda_force->xmin = cpu_force->xmin;
+	cuda_force->xmax = cpu_force->xmax;
+	cuda_force->N_grid = cpu_force->N_grid;
+	cuda_force->dX = cpu_force->dX;
+	cuda_force->mode = cpu_force->_mode;
+	cuda_force->PBC = cpu_force->PBC;
 	cuda_force->p1a_size = cpu_force->_p1a_ptr.size();
 	cuda_force->p2a_size = cpu_force->_p2a_ptr.size();
+
 	// copy the particle arrays
 	std::vector<int> local_p1a;
 	for(auto particle : cpu_force->_p1a_ptr) {
 		local_p1a.push_back(particle->index);
 	}
-	// TODO: this memory never gets free'd
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->p1a, sizeof(int) * local_p1a.size()));
-	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->p1a, local_p1a.data(), sizeof(int) * local_p1a.size(), cudaMemcpyHostToDevice));
-
 	std::vector<int> local_p2a;
 	for(auto particle : cpu_force->_p2a_ptr) {
 		local_p2a.push_back(particle->index);
 	}
-	// TODO: this memory never gets free'd
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->p2a, sizeof(int) * local_p2a.size()));
-	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->p2a, local_p2a.data(), sizeof(int) * local_p2a.size(), cudaMemcpyHostToDevice));
 
 	// copy the potential array
-	cuda_force->xmin = cpu_force->xmin;
-	cuda_force->xmax = cpu_force->xmax;
-	cuda_force->N_grid = cpu_force->N_grid;
-	cuda_force->dX = cpu_force->dX;
-
 	std::vector<c_number> local_grid;
 	for(auto v : cpu_force->potential_grid) {
 		local_grid.push_back(v);
 	}
-	// TODO: this memory never gets free'd
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number>(&cuda_force->potential_grid, sizeof(c_number) * local_grid.size()));
-	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->potential_grid, local_grid.data(), sizeof(c_number) * local_grid.size(), cudaMemcpyHostToDevice));
 
-	cuda_force->mode = cpu_force->_mode;
-	cuda_force->PBC = cpu_force->PBC;
+	if(first_time) {
+		// TODO: this memory never gets free'd
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->p1a, sizeof(int) * local_p1a.size()));
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&cuda_force->p2a, sizeof(int) * local_p2a.size()));
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number>(&cuda_force->potential_grid, sizeof(c_number) * local_grid.size()));
+	}
+	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->p1a, local_p1a.data(), sizeof(int) * local_p1a.size(), cudaMemcpyHostToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->p2a, local_p2a.data(), sizeof(int) * local_p2a.size(), cudaMemcpyHostToDevice));
+	CUDA_SAFE_CALL(cudaMemcpy(cuda_force->potential_grid, local_grid.data(), sizeof(c_number) * local_grid.size(), cudaMemcpyHostToDevice));
 }
 
 /**
