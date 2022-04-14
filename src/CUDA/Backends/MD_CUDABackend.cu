@@ -7,27 +7,12 @@
 
 #include "MD_CUDABackend.h"
 
+#include "../CUDAForces.h"
 #include "CUDA_MD.cuh"
 #include "../CUDA_base_interactions.h"
 #include "../../Interactions/DNAInteraction.h"
 #include "../../Observables/ObservableOutput.h"
 #include "../Thermostats/CUDAThermostatFactory.h"
-
-#include "../../Forces/COMForce.h"
-#include "../../Forces/ConstantRateForce.h"
-#include "../../Forces/ConstantRateTorque.h"
-#include "../../Forces/ConstantTrap.h"
-#include "../../Forces/LowdimMovingTrap.h"
-#include "../../Forces/MovingTrap.h"
-#include "../../Forces/MutualTrap.h"
-#include "../../Forces/RepulsionPlane.h"
-#include "../../Forces/RepulsionPlaneMoving.h"
-#include "../../Forces/RepulsiveSphere.h"
-#include "../../Forces/RepulsiveSphereSmooth.h"
-#include "../../Forces/LJWall.h"
-#include "../../Forces/GenericCentralForce.h"
-#include "../../Forces/LJCone.h"
-#include "../../Forces/RepulsiveEllipsoid.h"
 
 #include <thrust/sort.h>
 #include <typeinfo>
@@ -129,6 +114,100 @@ void MD_CUDABackend::_gpu_to_host() {
 	CUDA_SAFE_CALL(cudaMemcpy(_h_Ls, _d_Ls, _vec_size, cudaMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(cudaMemcpy(_h_forces, _d_forces, _vec_size, cudaMemcpyDeviceToHost));
 	CUDA_SAFE_CALL(cudaMemcpy(_h_torques, _d_torques, _vec_size, cudaMemcpyDeviceToHost));
+}
+
+void MD_CUDABackend::_apply_external_forces_changes() {
+	if(_external_forces) {
+		if(_sort_every > 0) {
+			throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
+		}
+		CUDA_trap *h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)));
+
+		for(int i = 0; i < N() * MAX_EXT_FORCES; i++) {
+			h_ext_forces[i].type = -1;
+		}
+
+		for(int i = 0; i < N(); i++) {
+			BaseParticle *p = _particles[i];
+
+			for(uint j = 0; j < p->ext_forces.size(); j++) {
+				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
+				auto &force_type = typeid(*(p->ext_forces[j]));
+
+				CUDA_trap *force = &(h_ext_forces[j * N() + i]);
+				if(force_type == typeid(ConstantRateForce)) {
+					ConstantRateForce *p_force = (ConstantRateForce*) p->ext_forces[j];
+					init_ConstantRateForce_from_CPU(&force->constant, p_force);
+				}
+				else if(force_type == typeid(MutualTrap)) {
+					MutualTrap *p_force = (MutualTrap*) p->ext_forces[j];
+					init_MutualTrap_from_CPU(&force->mutual, p_force);
+				}
+				else if(force_type == typeid(MovingTrap)) {
+					MovingTrap *p_force = (MovingTrap*) p->ext_forces[j];
+					init_MovingTrap_from_CPU(&force->moving, p_force);
+				}
+				else if(force_type == typeid(LowdimMovingTrap)) {
+					LowdimMovingTrap *p_force = (LowdimMovingTrap*) p->ext_forces[j];
+					init_LowdimMovingTrap_from_CPU(&force->lowdim, p_force);
+				}
+				else if(force_type == typeid(RepulsionPlane)) {
+					RepulsionPlane *p_force = (RepulsionPlane*) p->ext_forces[j];
+					init_RepulsionPlane_from_CPU(&force->repulsionplane, p_force);
+				}
+				else if(force_type == typeid(RepulsionPlaneMoving)) {
+					RepulsionPlaneMoving *p_force = (RepulsionPlaneMoving*) p->ext_forces[j];
+					init_RepulsionPlaneMoving_from_CPU(&force->repulsionplanemoving, p_force);
+				}
+				else if(force_type == typeid(RepulsiveSphere)) {
+					RepulsiveSphere *p_force = (RepulsiveSphere*) p->ext_forces[j];
+					init_RepulsiveSphere_from_CPU(&force->repulsivesphere, p_force);
+				}
+				else if(force_type == typeid(RepulsiveSphereSmooth)) {
+					RepulsiveSphereSmooth *p_force = (RepulsiveSphereSmooth*) p->ext_forces[j];
+					init_RepulsiveSphereSmooth_from_CPU(&force->repulsivespheresmooth, p_force);
+				}
+				else if(force_type == typeid(LJWall)) {
+					LJWall *p_force = (LJWall*) p->ext_forces[j];
+					init_LJWall_from_CPU(&force->ljwall, p_force);
+				}
+				else if(typeid(*(p->ext_forces[j])) == typeid(ConstantRateTorque)) {
+					ConstantRateTorque *p_force = (ConstantRateTorque*) p->ext_forces[j];
+					init_ConstantRateTorque_from_CPU(&force->constantratetorque, p_force);
+				}
+				else if(typeid(*(p->ext_forces[j])) == typeid(GenericCentralForce)) {
+					GenericCentralForce *p_force = (GenericCentralForce*) p->ext_forces[j];
+					init_GenericCentralForce_from_CPU(&force->genericconstantforce, p_force);
+				}
+				else if(force_type == typeid(LJCone)) {
+					LJCone *p_force = (LJCone*) p->ext_forces[j];
+					init_LJCone_from_CPU(&force->ljcone, p_force);
+				}
+				else if(force_type == typeid(RepulsiveEllipsoid)) {
+					RepulsiveEllipsoid *p_force = (RepulsiveEllipsoid *) p->ext_forces[j];
+					init_RepulsiveEllipsoid_from_CPU(&force->repulsiveellipsoid, p_force);
+				}
+				else if(force_type == typeid(COMForce)) {
+					COMForce *p_force = (COMForce *) p->ext_forces[j];
+					init_COMForce_from_CPU(&force->comforce, p_force);
+				}
+				else if(force_type == typeid(LTCOMTrap)) {
+					LTCOMTrap *p_force = (LTCOMTrap*) p->ext_forces[j];
+					init_LTCOMTrap_from_CPU(&force->ltcomtrap, p_force);
+				}
+				else {
+					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
+							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce, "
+							"RepulsiveEllipsoid, COMForce and LTCOMTrap"
+							"forces are supported on CUDA at the moment.\n");
+				}
+			}
+		}
+
+		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, h_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap), cudaMemcpyHostToDevice));
+		delete[] h_ext_forces;
+	}
 }
 
 void MD_CUDABackend::apply_changes_to_simulation_data() {
@@ -588,201 +667,7 @@ void MD_CUDABackend::init() {
 	}
 	CUDA_SAFE_CALL(cudaMemcpy(_d_mol_sizes, mol_sizes.data(), sizeof(int) * _molecules.size(), cudaMemcpyHostToDevice));
 
-	if(_external_forces) {
-		if(_sort_every > 0) {
-			throw oxDNAException("External forces and CUDA_sort_every > 0 are not compatible");
-		}
-		CUDA_trap *h_ext_forces = new CUDA_trap[N() * MAX_EXT_FORCES];
-		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDA_trap >(&_d_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap)));
-
-		for(int i = 0; i < N() * MAX_EXT_FORCES; i++) {
-			h_ext_forces[i].type = -1;
-		}
-
-		ConstantRateForce const_force;
-		MutualTrap mutual_trap;
-		MovingTrap moving_trap;
-		LowdimMovingTrap lowdim_moving_trap;
-		RepulsionPlane repulsion_plane;
-		RepulsionPlaneMoving repulsion_plane_moving;
-		RepulsiveSphere repulsive_sphere;
-		RepulsiveSphereSmooth repulsive_sphere_smooth;
-		LJWall LJ_wall;
-		ConstantRateTorque const_rate_torque;
-		GenericCentralForce generic_central;
-		LJCone LJ_cone;
-		RepulsiveEllipsoid repulsive_ellipsoid;
-		COMForce comforce;
-
-		for(int i = 0; i < N(); i++) {
-			BaseParticle *p = _particles[i];
-
-			for(uint j = 0; j < p->ext_forces.size(); j++) {
-				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
-
-				CUDA_trap *force = &(h_ext_forces[j * N() + i]);
-				if(typeid(*(p->ext_forces[j])) == typeid(const_force)) {
-					ConstantRateForce *p_force = (ConstantRateForce*) p->ext_forces[j];
-					force->type = CUDA_TRAP_CONSTANT;
-					force->constant.F0 = p_force->_F0;
-					force->constant.dir_as_centre = p_force->dir_as_centre;
-					force->constant.rate = p_force->_rate;
-					force->constant.x = p_force->_direction.x;
-					force->constant.y = p_force->_direction.y;
-					force->constant.z = p_force->_direction.z;
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(mutual_trap)) {
-					MutualTrap *p_force = (MutualTrap*) p->ext_forces[j];
-					force->type = CUDA_TRAP_MUTUAL;
-					force->mutual.rate = p_force->_rate;
-					force->mutual.stiff = p_force->_stiff;
-					force->mutual.r0 = p_force->_r0;
-					force->mutual.p_ind = p_force->_p_ptr->index;
-					force->mutual.PBC = p_force->PBC;
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(moving_trap)) {
-					MovingTrap *p_force = (MovingTrap*) p->ext_forces[j];
-					force->type = CUDA_TRAP_MOVING;
-					force->moving.stiff = p_force->_stiff;
-					force->moving.rate = p_force->_rate;
-					force->moving.pos0 = make_float3(p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
-					force->moving.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(lowdim_moving_trap)) {
-					LowdimMovingTrap *p_force = (LowdimMovingTrap*) p->ext_forces[j];
-					force->type = CUDA_TRAP_MOVING_LOWDIM;
-					force->lowdim.stiff = p_force->_stiff;
-					force->lowdim.rate = p_force->_rate;
-					force->lowdim.pos0 = make_float3(p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
-					force->lowdim.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
-					force->lowdim.visX = p_force->_visX;
-					force->lowdim.visY = p_force->_visY;
-					force->lowdim.visZ = p_force->_visZ;
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsion_plane)) {
-					RepulsionPlane *p_force = (RepulsionPlane*) p->ext_forces[j];
-					force->type = CUDA_REPULSION_PLANE;
-					force->repulsionplane.stiff = p_force->_stiff;
-					force->repulsionplane.position = p_force->_position;
-					force->repulsionplane.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsion_plane_moving)) {
-					RepulsionPlaneMoving *p_force = (RepulsionPlaneMoving*) p->ext_forces[j];
-					force->type = CUDA_REPULSION_PLANE_MOVING;
-					force->repulsionplanemoving.stiff = p_force->_stiff;
-					force->repulsionplanemoving.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
-					force->repulsionplanemoving.low_idx = p_force->low_idx;
-					force->repulsionplanemoving.high_idx = p_force->high_idx;
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsive_sphere)) {
-					RepulsiveSphere *p_force = (RepulsiveSphere*) p->ext_forces[j];
-					force->type = CUDA_REPULSIVE_SPHERE;
-					force->repulsivesphere.stiff = p_force->_stiff;
-					force->repulsivesphere.rate = p_force->_rate;
-					force->repulsivesphere.r0 = p_force->_r0;
-					force->repulsivesphere.r_ext = p_force->_r_ext;
-					force->repulsivesphere.centre = make_float3(p_force->_center.x, p_force->_center.y, p_force->_center.z);
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsive_sphere_smooth)) {
-					RepulsiveSphereSmooth *p_force = (RepulsiveSphereSmooth*) p->ext_forces[j];
-					force->type = CUDA_REPULSIVE_SPHERE_SMOOTH;
-					force->repulsivespheresmooth.r0 = p_force->_r0;
-					force->repulsivespheresmooth.r_ext = p_force->_r_ext;
-					force->repulsivespheresmooth.smooth = p_force->_smooth;
-					force->repulsivespheresmooth.alpha = p_force->_alpha;
-					force->repulsivespheresmooth.stiff = p_force->_stiff;
-					force->repulsivespheresmooth.centre = make_float3(p_force->_center.x, p_force->_center.y, p_force->_center.z);
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(LJ_wall)) {
-					LJWall *p_force = (LJWall*) p->ext_forces[j];
-					force->type = CUDA_LJ_WALL;
-					force->ljwall.stiff = p_force->_stiff;
-					force->ljwall.position = p_force->_position;
-					force->ljwall.n = p_force->_n;
-					force->ljwall.cutoff = p_force->_cutoff;
-					force->ljwall.sigma = p_force->_sigma;
-					force->ljwall.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
-
-				}
-				else if(typeid(*(p->ext_forces[j])) == typeid(const_rate_torque)) {
-					ConstantRateTorque *p_force = (ConstantRateTorque*) p->ext_forces[j];
-					force->type = CUDA_CONSTANT_RATE_TORQUE;
-					force->constantratetorque.stiff = p_force->_stiff;
-					force->constantratetorque.F0 = p_force->_F0;
-					force->constantratetorque.rate = p_force->_rate;
-					force->constantratetorque.center = make_float3(p_force->_center.x, p_force->_center.y, p_force->_center.z);
-					force->constantratetorque.pos0 = make_float3(p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
-					force->constantratetorque.axis = make_float3(p_force->_axis.x, p_force->_axis.y, p_force->_axis.z);
-					force->constantratetorque.mask = make_float3(p_force->_mask.x, p_force->_mask.y, p_force->_mask.z);
-				}
-				else if(typeid(*(p->ext_forces[j])) == typeid(generic_central)) {
-					GenericCentralForce *p_force = (GenericCentralForce*) p->ext_forces[j];
-					force->type = CUDA_GENERIC_CENTRAL_FORCE;
-					force->genericconstantforce.F0 = p_force->_F0;
-					force->genericconstantforce.inner_cut_off_sqr = p_force->inner_cut_off_sqr;
-					force->genericconstantforce.outer_cut_off_sqr = p_force->outer_cut_off_sqr;
-					force->genericconstantforce.x = p_force->center.x;
-					force->genericconstantforce.y = p_force->center.y;
-					force->genericconstantforce.z = p_force->center.z;
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(LJ_cone)) {
-					LJCone *p_force = (LJCone*) p->ext_forces[j];
-					force->type = CUDA_LJ_CONE;
-					force->ljcone.stiff = p_force->_stiff;
-					force->ljcone.n = p_force->_n;
-					force->ljcone.cutoff = p_force->_cutoff;
-					force->ljcone.sigma = p_force->_sigma;
-					force->ljcone.alpha = p_force->_alpha;
-					force->ljcone.sin_alpha = p_force->_sin_alpha;
-					force->ljcone.dir = make_float3(p_force->_direction.x, p_force->_direction.y, p_force->_direction.z);
-					force->ljcone.pos0 = make_float3(p_force->_pos0.x, p_force->_pos0.y, p_force->_pos0.z);
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(repulsive_ellipsoid)) {
-					RepulsiveEllipsoid *p_force = (RepulsiveEllipsoid *) p->ext_forces[j];
-					force->type = CUDA_REPULSIVE_ELLIPSOID;
-					force->repulsiveellipsoid.stiff = p_force->_stiff;
-					force->repulsiveellipsoid.centre = make_float3(p_force->_centre.x, p_force->_centre.y, p_force->_centre.z);
-					force->repulsiveellipsoid.r_1 = make_float3(p_force->_r_1.x, p_force->_r_1.y, p_force->_r_1.z);
-					force->repulsiveellipsoid.r_2 = make_float3(p_force->_r_2.x, p_force->_r_2.y, p_force->_r_2.z);
-				}
-				else if(typeid (*(p->ext_forces[j])) == typeid(comforce) ) {
-					COMForce *p_force = (COMForce *) p->ext_forces[j];
-					force->type = CUDA_COM_FORCE;
-					force->comforce.stiff = p_force->_stiff;
-					force->comforce.r0 = p_force->_r0;
-					force->comforce.rate = p_force->_rate;
-					force->comforce.n_com = p_force->_com_list.size();
-					force->comforce.n_ref = p_force->_ref_list.size();
-
-					std::vector<int> com_indexes;
-					for(auto particle : p_force->_com_list) {
-						com_indexes.push_back(particle->index);
-					}
-					// TODO: this memory never gets free'd
-					CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&force->comforce.com_indexes, sizeof(int) * com_indexes.size()));
-					CUDA_SAFE_CALL(cudaMemcpy(force->comforce.com_indexes, com_indexes.data(), sizeof(int) * com_indexes.size(), cudaMemcpyHostToDevice));
-
-					std::vector<int> ref_indexes;
-					for(auto particle : p_force->_ref_list){
-						ref_indexes.push_back(particle->index);
-					}
-					// TODO: this memory never gets free'd
-					CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&force->comforce.ref_indexes, sizeof(int) * ref_indexes.size()));
-					CUDA_SAFE_CALL(cudaMemcpy(force->comforce.ref_indexes, ref_indexes.data(), sizeof(int) * ref_indexes.size(), cudaMemcpyHostToDevice));
-
-				}
-				else {
-					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
-							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce, "
-							"RepulsiveEllipsoid and COMForce "
-							"forces are supported on CUDA at the moment.\n");
-				}
-			}
-		}
-
-		CUDA_SAFE_CALL(cudaMemcpy(_d_ext_forces, h_ext_forces, N() * MAX_EXT_FORCES * sizeof(CUDA_trap), cudaMemcpyHostToDevice));
-		delete[] h_ext_forces;
-	}
+	_apply_external_forces_changes();
 
 	// used in the hilbert curve sorting
 	if(_sort_every > 0) {
