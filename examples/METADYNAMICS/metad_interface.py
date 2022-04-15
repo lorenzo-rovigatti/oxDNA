@@ -224,35 +224,35 @@ class Estimator():
         for i in self.p_dict:
             common += f"{i}={self.p_dict[i]}\n"
         common += f'''
-        group_name = metadynamics
-        xmin = {self.xmin}
-        xmax = {self.xmax}
-        N_grid = {self.N_grid}
-        potential_grid = {grid_string}
-        PBC = 0\n'''
+group_name = metadynamics
+xmin = {self.xmin}
+xmax = {self.xmax}
+N_grid = {self.N_grid}
+potential_grid = {grid_string}
+PBC = false\n'''
         
         with open("new_ext", "w+") as f:
             if self.ratio == 1:
                 if self.dim == 1:
                     for mode in range(1, 5):
-                        our_string = f"{{\ntype=meta_atan_com_trap\n{common}\nmode = {mode}\n}}\n"
+                        our_string = f"{{\ntype = meta_atan_com_trap\n{common}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
             elif self.angle == 1:
                 if self.dim == 1:
                     for mode in range(1, 4):
-                        our_string = f"{{\ntype=meta_com_angle_trap\n{common}\nmode = {mode}\n}}\n"
+                        our_string = f"{{\ntype = meta_com_angle_trap\n{common}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
             else:
                 if self.dim == 1:
                     for mode in range(1, 3):
-                        our_string = f"{{\ntype=meta_com_trap\n{common}\nmode = {mode}\n}}\n"
+                        our_string = f"{{\ntype = meta_com_trap\n{common}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
                 elif self.dim == 2:
                     for mode in range(1, 5):
-                        our_string = f"{{\ntype=meta_2D_com_trap\n{common}\nymin={self.xmin}\nymax={self.xmax}\nmode = {mode}\n}}\n"
+                        our_string = f"{{\ntype = meta_2D_com_trap\n{common}\nymin = {self.xmin}\nymax = {self.xmax}\nmode = {mode}\n}}\n"
                         f.write(our_string)
 
         os.system(f'cp new_ext ./{dir_name}/ext')
@@ -341,6 +341,7 @@ class Estimator():
         print("starting processes")
         runner_args = [tau, new_potential_grid]
         for walker_index, dir_name in enumerate(self.dir_names): 
+            self.write_initial_external_forces(dir_name)
             self.queue.put(runner_args)
         self.queue.join()
 

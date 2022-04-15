@@ -140,66 +140,66 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 				_max_ext_forces = max(_max_ext_forces, (int) p->ext_forces.size());
 				auto &force_type = typeid(*(p->ext_forces[j]));
 
-				CUDA_trap *force = &(h_ext_forces[j * N() + i]);
+				CUDA_trap *cuda_force = &(h_ext_forces[j * N() + i]);
 				if(force_type == typeid(ConstantRateForce)) {
-					ConstantRateForce *p_force = (ConstantRateForce*) p->ext_forces[j];
-					init_ConstantRateForce_from_CPU(&force->constant, p_force);
+					ConstantRateForce *p_force = (ConstantRateForce *) p->ext_forces[j];
+					init_ConstantRateForce_from_CPU(&cuda_force->constant, p_force);
 				}
 				else if(force_type == typeid(MutualTrap)) {
-					MutualTrap *p_force = (MutualTrap*) p->ext_forces[j];
-					init_MutualTrap_from_CPU(&force->mutual, p_force);
+					MutualTrap *p_force = (MutualTrap *) p->ext_forces[j];
+					init_MutualTrap_from_CPU(&cuda_force->mutual, p_force);
 				}
 				else if(force_type == typeid(MovingTrap)) {
-					MovingTrap *p_force = (MovingTrap*) p->ext_forces[j];
-					init_MovingTrap_from_CPU(&force->moving, p_force);
+					MovingTrap *p_force = (MovingTrap *) p->ext_forces[j];
+					init_MovingTrap_from_CPU(&cuda_force->moving, p_force);
 				}
 				else if(force_type == typeid(LowdimMovingTrap)) {
-					LowdimMovingTrap *p_force = (LowdimMovingTrap*) p->ext_forces[j];
-					init_LowdimMovingTrap_from_CPU(&force->lowdim, p_force);
+					LowdimMovingTrap *p_force = (LowdimMovingTrap *) p->ext_forces[j];
+					init_LowdimMovingTrap_from_CPU(&cuda_force->lowdim, p_force);
 				}
 				else if(force_type == typeid(RepulsionPlane)) {
-					RepulsionPlane *p_force = (RepulsionPlane*) p->ext_forces[j];
-					init_RepulsionPlane_from_CPU(&force->repulsionplane, p_force);
+					RepulsionPlane *p_force = (RepulsionPlane *) p->ext_forces[j];
+					init_RepulsionPlane_from_CPU(&cuda_force->repulsionplane, p_force);
 				}
 				else if(force_type == typeid(RepulsionPlaneMoving)) {
-					RepulsionPlaneMoving *p_force = (RepulsionPlaneMoving*) p->ext_forces[j];
-					init_RepulsionPlaneMoving_from_CPU(&force->repulsionplanemoving, p_force);
+					RepulsionPlaneMoving *p_force = (RepulsionPlaneMoving *) p->ext_forces[j];
+					init_RepulsionPlaneMoving_from_CPU(&cuda_force->repulsionplanemoving, p_force);
 				}
 				else if(force_type == typeid(RepulsiveSphere)) {
-					RepulsiveSphere *p_force = (RepulsiveSphere*) p->ext_forces[j];
-					init_RepulsiveSphere_from_CPU(&force->repulsivesphere, p_force);
+					RepulsiveSphere *p_force = (RepulsiveSphere *) p->ext_forces[j];
+					init_RepulsiveSphere_from_CPU(&cuda_force->repulsivesphere, p_force);
 				}
 				else if(force_type == typeid(RepulsiveSphereSmooth)) {
-					RepulsiveSphereSmooth *p_force = (RepulsiveSphereSmooth*) p->ext_forces[j];
-					init_RepulsiveSphereSmooth_from_CPU(&force->repulsivespheresmooth, p_force);
+					RepulsiveSphereSmooth *p_force = (RepulsiveSphereSmooth *) p->ext_forces[j];
+					init_RepulsiveSphereSmooth_from_CPU(&cuda_force->repulsivespheresmooth, p_force);
 				}
 				else if(force_type == typeid(LJWall)) {
-					LJWall *p_force = (LJWall*) p->ext_forces[j];
-					init_LJWall_from_CPU(&force->ljwall, p_force);
+					LJWall *p_force = (LJWall *) p->ext_forces[j];
+					init_LJWall_from_CPU(&cuda_force->ljwall, p_force);
 				}
-				else if(typeid(*(p->ext_forces[j])) == typeid(ConstantRateTorque)) {
-					ConstantRateTorque *p_force = (ConstantRateTorque*) p->ext_forces[j];
-					init_ConstantRateTorque_from_CPU(&force->constantratetorque, p_force);
+				else if(force_type == typeid(ConstantRateTorque)) {
+					ConstantRateTorque *p_force = (ConstantRateTorque *) p->ext_forces[j];
+					init_ConstantRateTorque_from_CPU(&cuda_force->constantratetorque, p_force);
 				}
-				else if(typeid(*(p->ext_forces[j])) == typeid(GenericCentralForce)) {
-					GenericCentralForce *p_force = (GenericCentralForce*) p->ext_forces[j];
-					init_GenericCentralForce_from_CPU(&force->genericconstantforce, p_force);
+				else if(force_type == typeid(GenericCentralForce)) {
+					GenericCentralForce *p_force = (GenericCentralForce *) p->ext_forces[j];
+					init_GenericCentralForce_from_CPU(&cuda_force->genericconstantforce, p_force);
 				}
 				else if(force_type == typeid(LJCone)) {
-					LJCone *p_force = (LJCone*) p->ext_forces[j];
-					init_LJCone_from_CPU(&force->ljcone, p_force);
+					LJCone *p_force = (LJCone *) p->ext_forces[j];
+					init_LJCone_from_CPU(&cuda_force->ljcone, p_force);
 				}
 				else if(force_type == typeid(RepulsiveEllipsoid)) {
 					RepulsiveEllipsoid *p_force = (RepulsiveEllipsoid *) p->ext_forces[j];
-					init_RepulsiveEllipsoid_from_CPU(&force->repulsiveellipsoid, p_force);
+					init_RepulsiveEllipsoid_from_CPU(&cuda_force->repulsiveellipsoid, p_force);
 				}
 				else if(force_type == typeid(COMForce)) {
 					COMForce *p_force = (COMForce *) p->ext_forces[j];
-					init_COMForce_from_CPU(&force->comforce, p_force, first_time);
+					init_COMForce_from_CPU(&cuda_force->comforce, p_force, first_time);
 				}
 				else if(force_type == typeid(LTCOMTrap)) {
-					LTCOMTrap *p_force = (LTCOMTrap*) p->ext_forces[j];
-					init_LTCOMTrap_from_CPU(&force->ltcomtrap, p_force, first_time);
+					LTCOMTrap *p_force = (LTCOMTrap *) p->ext_forces[j];
+					init_LTCOMTrap_from_CPU(&cuda_force->ltcomtrap, p_force, first_time);
 				}
 				else {
 					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
@@ -260,31 +260,31 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		_h_Ls[i].y = p->L.y;
 		_h_Ls[i].z = p->L.z;
 
-		c_number trace = p->orientation.v1.x + p->orientation.v2.y + p->orientation.v3.z;
+		number trace = p->orientation.v1.x + p->orientation.v2.y + p->orientation.v3.z;
 		if(trace > 0) {
-			c_number s = .5 / sqrt(trace + 1);
-			_h_orientations[i].w = .25 / s;
+			number s = 0.5 / sqrt(trace + 1.0);
+			_h_orientations[i].w = 0.25 / s;
 			_h_orientations[i].x = (p->orientation.v3.y - p->orientation.v2.z) * s;
 			_h_orientations[i].y = (p->orientation.v1.z - p->orientation.v3.x) * s;
 			_h_orientations[i].z = (p->orientation.v2.x - p->orientation.v1.y) * s;
 		}
 		else { // Finding largest diagonal element
 			if((p->orientation.v1.x > p->orientation.v2.y) && (p->orientation.v1.x > p->orientation.v3.z)) {
-				c_number s = 0.5 / sqrt(1 + p->orientation.v1.x - p->orientation.v2.y - p->orientation.v3.z);
+				number s = 0.5 / sqrt(1.0 + p->orientation.v1.x - p->orientation.v2.y - p->orientation.v3.z);
 				_h_orientations[i].w = (p->orientation.v3.y - p->orientation.v2.z) * s;
 				_h_orientations[i].x = 0.25 / s;
 				_h_orientations[i].y = (p->orientation.v1.y + p->orientation.v2.x) * s;
 				_h_orientations[i].z = (p->orientation.v1.z + p->orientation.v3.x) * s;
 			}
 			else if(p->orientation.v2.y > p->orientation.v3.z) {
-				c_number s = 0.5 / sqrt(1 + p->orientation.v2.y - p->orientation.v1.x - p->orientation.v3.z);
+				number s = 0.5 / sqrt(1.0 + p->orientation.v2.y - p->orientation.v1.x - p->orientation.v3.z);
 				_h_orientations[i].w = (p->orientation.v1.z - p->orientation.v3.x) * s;
 				_h_orientations[i].x = (p->orientation.v1.y + p->orientation.v2.x) * s;
 				_h_orientations[i].y = 0.25 / s;
 				_h_orientations[i].z = (p->orientation.v2.z + p->orientation.v3.y) * s;
 			}
 			else {
-				c_number s = 0.5 / sqrt(1 + p->orientation.v3.z - p->orientation.v1.x - p->orientation.v2.y);
+				number s = 0.5 / sqrt(1.0 + p->orientation.v3.z - p->orientation.v1.x - p->orientation.v2.y);
 				_h_orientations[i].w = (p->orientation.v2.x - p->orientation.v1.y) * s;
 				_h_orientations[i].x = (p->orientation.v1.z + p->orientation.v3.x) * s;
 				_h_orientations[i].y = (p->orientation.v2.z + p->orientation.v3.y) * s;
@@ -342,17 +342,18 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 		p->L.y = _h_Ls[i].y;
 		p->L.z = _h_Ls[i].z;
 
-		c_number sqx = _h_orientations[i].x * _h_orientations[i].x;
-		c_number sqy = _h_orientations[i].y * _h_orientations[i].y;
-		c_number sqz = _h_orientations[i].z * _h_orientations[i].z;
-		c_number sqw = _h_orientations[i].w * _h_orientations[i].w;
-		c_number xy = _h_orientations[i].x * _h_orientations[i].y;
-		c_number xz = _h_orientations[i].x * _h_orientations[i].z;
-		c_number xw = _h_orientations[i].x * _h_orientations[i].w;
-		c_number yz = _h_orientations[i].y * _h_orientations[i].z;
-		c_number yw = _h_orientations[i].y * _h_orientations[i].w;
-		c_number zw = _h_orientations[i].z * _h_orientations[i].w;
-		c_number invs = 1. / (sqx + sqy + sqz + sqw);
+		// we cast c_numbers (which are usually floats) to numbers (which are usually double) to increase the numerical accuracy
+		number sqx = (number) _h_orientations[i].x * (number) _h_orientations[i].x;
+		number sqy = (number) _h_orientations[i].y * (number) _h_orientations[i].y;
+		number sqz = (number) _h_orientations[i].z * (number) _h_orientations[i].z;
+		number sqw = (number) _h_orientations[i].w * (number) _h_orientations[i].w;
+		number xy = (number) _h_orientations[i].x * (number) _h_orientations[i].y;
+		number xz = (number) _h_orientations[i].x * (number) _h_orientations[i].z;
+		number xw = (number) _h_orientations[i].x * (number) _h_orientations[i].w;
+		number yz = (number) _h_orientations[i].y * (number) _h_orientations[i].z;
+		number yw = (number) _h_orientations[i].y * (number) _h_orientations[i].w;
+		number zw = (number) _h_orientations[i].z * (number) _h_orientations[i].w;
+		number invs = 1.0 / (sqx + sqy + sqz + sqw);
 
 		p->orientation.v1.x = (sqx - sqy - sqz + sqw) * invs;
 		p->orientation.v1.y = 2 * (xy - zw) * invs;

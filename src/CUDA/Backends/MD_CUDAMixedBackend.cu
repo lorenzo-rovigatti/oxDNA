@@ -9,10 +9,10 @@
 #include "CUDA_mixed.cuh"
 
 CUDAMixedBackend::CUDAMixedBackend() : MD_CUDABackend() {
-	_d_possd = NULL;
-	_d_velsd = NULL;
-	_d_Lsd = NULL;
-	_d_orientationsd = NULL;
+	_d_possd = nullptr;
+	_d_velsd = nullptr;
+	_d_Lsd = nullptr;
+	_d_orientationsd = nullptr;
 }
 
 CUDAMixedBackend::~CUDAMixedBackend(){
