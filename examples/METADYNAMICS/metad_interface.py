@@ -52,7 +52,7 @@ class oxDNARunner(mp.Process):
 
 class Estimator():
 
-    def __init__(self, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, meta=True, wt=False, tau=int(1e5),
+    def __init__(self, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, meta=True, tau=int(1e5),
                     N_walkers=1,
                     p_dict={},
                     dim=1, ratio=0, angle=0, xmin=0, xmax=20, conf_interval=int(1e3),
@@ -65,7 +65,6 @@ class Estimator():
         self.T = T
         self.Niter = Niter
         self.meta = meta
-        self.wt = wt
         self.tau = tau
         self.N_walkers = N_walkers
         self.p_dict = p_dict
@@ -409,61 +408,61 @@ class Estimator():
         
 if __name__ == '__main__': 
 
-	import argparse
-
-	parser = argparse.ArgumentParser()
-	parser.add_argument("--A", default=0.1)
-	parser.add_argument("--sigma", default=0.05)
-	parser.add_argument("--tau", default=10000)
-	parser.add_argument("--dX", default=0.001)
-	parser.add_argument("--N_walkers", default=6)
-	parser.add_argument("--dT", default=3)
-	parser.add_argument("--dim", default=1)
-	parser.add_argument("--p_fname", default="locs.meta")
-	parser.add_argument("--ratio", default=0)
-	parser.add_argument("--angle", default=0)
-	parser.add_argument("--Niter", default=10000)
-	parser.add_argument("--xmin", default=0)
-	parser.add_argument("--xmax", default=30)
-	parser.add_argument("--conf_interval", default=int(1e3))
-	parser.add_argument("--save_hills", default=1)
-	parser.add_argument("--continue_run", default=0)
-	parser.add_argument("--T", default=295)
-
-	args = parser.parse_args()
-
-	A = float(args.A)
-	sigma = float(args.sigma)
-	tau = int(args.tau)
-	dX = float(args.dX)
-	N_walkers = int(args.N_walkers)
-	dT = float(args.dT)
-	dim = int(args.dim)
-	p_fname = str(args.p_fname)
-	ratio = bool(int(args.ratio))
-	Niter = int(args.Niter)
-	angle = bool(int(args.angle))  # add defaults to these
-	xmin = float(args.xmin)  # add defaults to these
-	xmax = float(args.xmax)  # add defaults to these
-	conf_interval = int(args.conf_interval)
-	save_hills = int(args.save_hills)  # how frequently we save
-	continue_run = bool(int(args.continue_run))  # whether we continue
-	temperature = float(args.T)
-
-	# load in the pfile here.
-	with open(p_fname) as f: p_string = f.readlines()
-	p_dict = {}
-	for i in p_string:
-	    pair = i.replace('\n', '').split(':')
-	    p_dict[pair[0]] = pair[1]
-
-	estimator = Estimator(Niter=Niter, meta=True, wt=True, dT=dT,
-				  sigma=sigma, dX=dX, A=A, tau=tau,
-				  N_walkers=N_walkers,
-				  p_dict=p_dict, dim=dim, ratio=ratio, angle=angle, xmin=xmin, xmax=xmax,
-				  conf_interval=conf_interval, save_hills=save_hills, continue_run=continue_run,
-				  T=temperature)
-
-	estimator.initialise()
-	estimator.do_run()
+    import argparse
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--A", default=0.1)
+    parser.add_argument("--sigma", default=0.05)
+    parser.add_argument("--tau", default=10000)
+    parser.add_argument("--dX", default=0.001)
+    parser.add_argument("--N_walkers", default=6)
+    parser.add_argument("--dT", default=3)
+    parser.add_argument("--dim", default=1)
+    parser.add_argument("--p_fname", default="locs.meta")
+    parser.add_argument("--ratio", default=0)
+    parser.add_argument("--angle", default=0)
+    parser.add_argument("--Niter", default=10000)
+    parser.add_argument("--xmin", default=0)
+    parser.add_argument("--xmax", default=30)
+    parser.add_argument("--conf_interval", default=int(1e3))
+    parser.add_argument("--save_hills", default=1)
+    parser.add_argument("--continue_run", default=0)
+    parser.add_argument("--T", default=295)
+    
+    args = parser.parse_args()
+    
+    A = float(args.A)
+    sigma = float(args.sigma)
+    tau = int(args.tau)
+    dX = float(args.dX)
+    N_walkers = int(args.N_walkers)
+    dT = float(args.dT)
+    dim = int(args.dim)
+    p_fname = str(args.p_fname)
+    ratio = bool(int(args.ratio))
+    Niter = int(args.Niter)
+    angle = bool(int(args.angle))  # add defaults to these
+    xmin = float(args.xmin)  # add defaults to these
+    xmax = float(args.xmax)  # add defaults to these
+    conf_interval = int(args.conf_interval)
+    save_hills = int(args.save_hills)  # how frequently we save
+    continue_run = bool(int(args.continue_run))  # whether we continue
+    temperature = float(args.T)
+    
+    # load in the pfile here.
+    with open(p_fname) as f:
+        p_dict = {}
+        for line in f.readlines():
+            pair = line.replace('\n', '').split(':')
+            p_dict[pair[0]] = pair[1]
+    
+    estimator = Estimator(Niter=Niter, meta=True, dT=dT,
+                    sigma=sigma, dX=dX, A=A, tau=tau,
+                    N_walkers=N_walkers,
+                    p_dict=p_dict, dim=dim, ratio=ratio, angle=angle, xmin=xmin, xmax=xmax,
+                    conf_interval=conf_interval, save_hills=save_hills, continue_run=continue_run,
+                    T=temperature)
+    
+    estimator.initialise()
+    estimator.do_run()
 						      
