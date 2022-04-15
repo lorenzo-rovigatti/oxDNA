@@ -172,7 +172,16 @@ number LT2DCOMTrap::potential(llint step, LR_vector &pos) {
 
 	my_potential = interpolatePotential2(my_x, my_y, dX, xmin, potential_grid);
 
-	int total_factor = _p1a_ptr.size() + _p2a_ptr.size() + _p1b_ptr.size() + _p2b_ptr.size();
-
-	return my_potential / (number)(total_factor);
+	if(_mode == 1) {
+		return my_potential / _p1a.size();
+	}
+	else if(_mode == 2) {
+		return my_potential / _p2a.size();
+	}
+	else if(_mode == 3) {
+		return my_potential / _p1b.size();
+	}
+	else {
+		return my_potential / _p2b.size();
+	}
 }

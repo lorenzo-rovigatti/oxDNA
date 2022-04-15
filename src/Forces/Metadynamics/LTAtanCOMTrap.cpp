@@ -128,14 +128,12 @@ LR_vector LTAtanCOMTrap::value(llint step, LR_vector &pos) {
 	const LR_vector accumulated_force_x = dra * (meta_Fx / dra.module());
 	const LR_vector accumulated_force_y = drb * (meta_Fy / drb.module());
 
-	// deliberately wrong sign for experiment
 	if(_mode == 1) {
 		return accumulated_force_x / _p1a.size();
 	}
 	else if(_mode == 2) {
 		return (accumulated_force_x * -1) / _p2a.size();
 	}
-	// could one of these signs be wrong?
 	else if(_mode == 3) {
 		return accumulated_force_y / _p1b.size();
 	}
@@ -170,7 +168,16 @@ number LTAtanCOMTrap::potential(llint step, LR_vector &pos) {
 
 	my_potential = interpolatePotential2(a, dX, xmin, potential_grid);
 
-	int total_factor = _p1a_ptr.size() + _p2a_ptr.size() + _p1b_ptr.size() + _p2b_ptr.size();
-
-	return my_potential / (number) (total_factor);
+	if(_mode == 1) {
+		return my_potential / _p1a.size();
+	}
+	else if(_mode == 2) {
+		return my_potential / _p2a.size();
+	}
+	else if(_mode == 3) {
+		return my_potential / _p1b.size();
+	}
+	else {
+		return my_potential / _p2b.size();
+	}
 }

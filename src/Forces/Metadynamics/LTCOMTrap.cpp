@@ -122,6 +122,13 @@ number LTCOMTrap::potential(llint step, LR_vector &pos) {
 		my_potential = interpolatePotential(x, dX, xmin, potential_grid);
 	}
 
+	if(_mode == 1) {
+		return my_potential / (number) _p1a_ptr.size();
+	}
+	else {
+		return my_potential / ((number) _p2a_ptr.size());
+	}
+
 	number total_factor = _p1a_ptr.size() + _p2a_ptr.size();
 
 	return my_potential / total_factor;

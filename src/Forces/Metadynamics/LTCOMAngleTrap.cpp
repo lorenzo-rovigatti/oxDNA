@@ -147,7 +147,13 @@ number LTCOMAngleTrap::potential(llint step, LR_vector &pos) {
 		my_potential = interpolatePotential(angle, dX, xmin, potential_grid);
 	}
 
-	number total_factor = _p1a_ptr.size() + _p2a_ptr.size() + _p3a_ptr.size();
-
-	return my_potential / total_factor;
+	if(_mode == 1) {
+		return my_potential / (number) _p1a_ptr.size();
+	}
+	if(_mode == 2) {
+		return my_potential / (number) _p2a_ptr.size();
+	}
+	else {
+		return my_potential / (number) _p3a_ptr.size();
+	}
 }

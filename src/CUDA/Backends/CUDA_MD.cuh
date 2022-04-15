@@ -398,7 +398,7 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 
 				//3 we find the left and right locations on the grid
 				int ix_left = (int) ((dr_mod - extF.ltcomtrap.xmin) / extF.ltcomtrap.dX);
-				// we make sure that we are not out of boundaries. If we are then we consider the boundary values
+				// we make sure that we are not out of boundaries. If we are then we consider the boundary value
 				if(ix_left < 0) {
 					ix_left = 0;
 				}
