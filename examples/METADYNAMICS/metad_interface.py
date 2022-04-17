@@ -9,12 +9,11 @@ import oxpy
 
 class oxDNARunner(mp.Process):
 
-    def __init__(self, working_dir, input_file, conf_interval, queue):
+    def __init__(self, working_dir, input_file, queue):
         mp.Process.__init__(self)
 
         self.working_dir = working_dir
         self.input_file = input_file
-        self.conf_interval = conf_interval
         self.queue = queue
 
     def run(self):
@@ -23,9 +22,6 @@ class oxDNARunner(mp.Process):
         with oxpy.Context():
             input_file = oxpy.InputFile()
             input_file.init_from_filename(self.input_file)
-            input_file["show_overwrite_warnings"] = "false"
-            input_file["print_conf_interval"] = str(conf_interval)
-            input_file["conf_file"] = "output/last.conf"
             
             self.manager = oxpy.OxpyManager(input_file)
             self.manager.load_options()
@@ -47,6 +43,11 @@ class oxDNARunner(mp.Process):
             
 
 class Estimator():
+    
+    INITIAL_INPUT_DIR = "run-meta"
+    INPUT_FILE = "input-meta"
+    EXT_FORCES_FILE = "ext-meta"
+    LAST_CONF = "output/last_conf.dat"
 
     def __init__(self, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, meta=True, tau=int(1e5),
                     N_walkers=1,
@@ -67,7 +68,6 @@ class Estimator():
         self.dim = dim
         self.ratio = ratio
         self.angle = angle
-        self.conf_interval = conf_interval
         self.save_hills = save_hills
         self.continue_run = continue_run
 
@@ -100,7 +100,7 @@ class Estimator():
 
         if self.ratio:
             if self.dim == 1:
-                observable_string = f'''data_output_1 = {{
+                observable_string = f'''{{
     name = pos.dat
     print_every = 100
     col_1 = {{
@@ -117,7 +117,7 @@ class Estimator():
     
         elif self.angle:
             if self.dim == 1:
-                observable_string = f'''data_output_1 = {{
+                observable_string = f'''{{
     name = pos.dat
     print_every = 100
     col_1 = {{
@@ -139,7 +139,7 @@ class Estimator():
 
         else:
             if self.dim == 1:
-                observable_string = f'''data_output_1 = {{
+                observable_string = f'''{{
     name = pos.dat
     print_every = 100
     col_1 = {{
@@ -149,7 +149,7 @@ class Estimator():
     }}
 }}'''
             elif self.dim == 2:
-                observable_string = f'''data_output_1 = {{
+                observable_string = f'''{{
     name = pos.dat
     print_every = 100
     col_1 = {{
@@ -164,12 +164,42 @@ class Estimator():
     }}
 }}'''
 
-        # write from input to a meta input 
-        with open('run-meta/input', 'r') as f:
-            input_string = f.read()
-        with open('run-meta/input-meta', 'w+') as f:
-            f.write(input_string) 
-            f.write(observable_string)
+        # write from input to a meta input
+        with oxpy.Context(print_coda=False):
+            input_file = oxpy.InputFile()
+            input_file.init_from_filename(os.path.join(Estimator.INITIAL_INPUT_DIR, "input"))
+            
+            input_file["show_overwrite_warnings"] = "false"
+            input_file["print_conf_interval"] = str(conf_interval)
+            # we standardise the location of the last configuration, which is also the configuration we will start from
+            input_file["lastconf_file"] = Estimator.LAST_CONF
+            input_file["conf_file"] = Estimator.LAST_CONF
+            
+            # look for the first available output stream index
+            keep_searching = True
+            i = 1
+            while keep_searching:
+                if f"data_output_{i}" in input_file:
+                    i += 1
+                else:
+                    keep_searching = False
+            input_file[f"data_output_{i}"] = observable_string
+            
+            self.other_forces = ""
+            # if the external forces file is non empty we save its contents
+            if "external_forces_file" in input_file:
+                try:
+                    ext_file_path = os.path.join(Estimator.INITIAL_INPUT_DIR, input_file["external_forces_file"])
+                    with open(ext_file_path) as f:
+                        self.other_forces = f.read()
+                except:
+                    pass
+            
+            input_file["external_forces_file"] = Estimator.EXT_FORCES_FILE
+            
+            # write the meta input
+            with open(f"run-meta/{Estimator.INPUT_FILE}", 'w+') as f:
+                f.write(str(input_file))
 
     def get_new_data(self, dir_name):
         os.system(f"tail -n 3 ./{dir_name}/pos.dat > ./{dir_name}/pos_min.dat")
@@ -202,7 +232,7 @@ class Estimator():
     def save_old_trajectory(self, dir_name, index):
         os.system("cp -r ./%s/output/trajectory.dat %s/traj_files/trajectory_%s.dat" % (dir_name, dir_name, index,))
 
-    def write_initial_external_forces(self, dir_name):
+    def write_external_forces_file(self, dir_name):
         # build the initial lookup table
         grid_string = ''
         oxDNA_potential_grid = self.potential_grid / self.oxdivkT
@@ -216,18 +246,20 @@ class Estimator():
                 grid_string += '|'
         
         # use our p-dictionary! 
-        common = ""
-        for i in self.p_dict:
-            common += f"{i}={self.p_dict[i]}\n"
+        common = "\n".join(f"{com_name}={particles}" for com_name, particles in self.p_dict.items())
         common += f'''
 group_name = metadynamics
 xmin = {self.xmin}
 xmax = {self.xmax}
 N_grid = {self.N_grid}
 potential_grid = {grid_string}
-PBC = false\n'''
+PBC = false'''
         
-        with open("new_ext", "w+") as f:
+        force_file_name = os.path.join(dir_name, Estimator.EXT_FORCES_FILE)
+        
+        with open(force_file_name, "w+") as f:
+            f.write(self.other_forces)
+            
             if self.ratio == 1:
                 if self.dim == 1:
                     for mode in range(1, 5):
@@ -250,8 +282,6 @@ PBC = false\n'''
                     for mode in range(1, 5):
                         our_string = f"{{\ntype = meta_2D_com_trap\n{common}\nymin = {self.xmin}\nymax = {self.xmax}\nmode = {mode}\n}}\n"
                         f.write(our_string)
-
-        os.system(f'cp new_ext ./{dir_name}/ext')
 
     def save_potential_grid(self, index):
         with open(f"center_data/centers_{index}", 'wb+') as f:
@@ -318,8 +348,8 @@ PBC = false\n'''
         self.queue = mp.JoinableQueue()
         self.processes = []
         for dir_name in self.dir_names:
-            self.write_initial_external_forces(dir_name)
-            self.processes.append(oxDNARunner(dir_name, "input-meta", self.conf_interval, self.queue))
+            self.write_external_forces_file(dir_name)
+            self.processes.append(oxDNARunner(dir_name, "input-meta", self.queue))
             self.processes[-1].start()
             
     def stop_runners(self):
@@ -337,7 +367,7 @@ PBC = false\n'''
         print("starting processes")
         runner_args = [tau, new_potential_grid]
         for walker_index, dir_name in enumerate(self.dir_names): 
-            self.write_initial_external_forces(dir_name)
+            self.write_external_forces_file(dir_name)
             self.queue.put(runner_args)
         self.queue.join()
 
