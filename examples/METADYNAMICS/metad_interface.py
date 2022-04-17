@@ -2,14 +2,10 @@ import numpy as np
 import pandas as pd
 import os
 from copy import copy
-import subprocess
 import multiprocessing as mp
-from pickle import dump
 import pickle as pkl
 import glob
 import oxpy
-import os
-
 
 class oxDNARunner(mp.Process):
 
@@ -259,11 +255,11 @@ PBC = false\n'''
 
     def save_potential_grid(self, index):
         with open(f"center_data/centers_{index}", 'wb+') as f:
-            dump(self.potential_grid, f)
+            pkl.dump(self.potential_grid, f)
 
     def save_positions(self, new_data, index, walker_index):
         with open(f"run-meta_{walker_index}/positions/all-pos", 'w+') as f:
-            dump(new_data, f)
+            pkl.dump(new_data, f)
 
     def interpolatePotential1D(self, x, potential_grid):
         x_left = dX * np.floor(x / self.dX)
@@ -411,24 +407,24 @@ if __name__ == '__main__':
 
     import argparse
     
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--A", default=0.1)
-    parser.add_argument("--sigma", default=0.05)
-    parser.add_argument("--tau", default=10000)
-    parser.add_argument("--dX", default=0.001)
-    parser.add_argument("--N_walkers", default=6)
-    parser.add_argument("--dT", default=3)
-    parser.add_argument("--dim", default=1)
-    parser.add_argument("--p_fname", default="locs.meta")
-    parser.add_argument("--ratio", default=0)
-    parser.add_argument("--angle", default=0)
-    parser.add_argument("--Niter", default=10000)
-    parser.add_argument("--xmin", default=0)
-    parser.add_argument("--xmax", default=30)
-    parser.add_argument("--conf_interval", default=int(1e3))
-    parser.add_argument("--save_hills", default=1)
-    parser.add_argument("--continue_run", default=0)
-    parser.add_argument("--T", default=295)
+    parser = argparse.ArgumentParser(description="Metadynamics interface for oxDNA. Requires oxpy (oxDNA's Python bindings).")
+    parser.add_argument("--A", default=0.1, help="Initial bias-height increment")
+    parser.add_argument("--sigma", default=0.05, help="Width of the deposited Gaussian")
+    parser.add_argument("--tau", default=10000, help="Length of a metadynamics iteration (in time steps)")
+    parser.add_argument("--dX", default=0.001, help="The spacing of the grid used to approximate the potential")
+    parser.add_argument("--N_walkers", default=6, help="Number of parallel processes to be launched")
+    parser.add_argument("--dT", default=3, help="Strength of the tempering (dT -> 0 leads to conventional simulations, dt -> infinity leads to conventional, non-well-tempered metadynamics)")
+    parser.add_argument("--dim", default=1, help="Dimension of the order parameter")
+    parser.add_argument("--p_fname", default="locs.meta", help="File storing the indexes of the particles whose coordinates are used to build the order parameters")
+    parser.add_argument("--ratio", default=0, help="Use the angle defined from the ratio of the distances between centres of mass as the order parameter")
+    parser.add_argument("--angle", default=0, help="Use the angle defined from three centres of mass as the order parameter")
+    parser.add_argument("--Niter", default=10000, help="Number of metadynamics iterations")
+    parser.add_argument("--xmin", default=0, help="The lower boundary of the potential grid")
+    parser.add_argument("--xmax", default=30, help="The upper boundary of the potential grid")
+    parser.add_argument("--conf_interval", default=int(1e3), help="Frequency with which configurations should be saved (in time steps)")
+    parser.add_argument("--save_hills", default=1, help="Frequency with which the potential grid is sampled")
+    parser.add_argument("--continue_run", default=0, help="Whether the simulation should continue or start anew")
+    parser.add_argument("--T", default=295, help="The temperature at which the simulations will be run")
     
     args = parser.parse_args()
     
@@ -442,20 +438,20 @@ if __name__ == '__main__':
     p_fname = str(args.p_fname)
     ratio = bool(int(args.ratio))
     Niter = int(args.Niter)
-    angle = bool(int(args.angle))  # add defaults to these
-    xmin = float(args.xmin)  # add defaults to these
-    xmax = float(args.xmax)  # add defaults to these
+    angle = bool(int(args.angle))
+    xmin = float(args.xmin)
+    xmax = float(args.xmax)
     conf_interval = int(args.conf_interval)
-    save_hills = int(args.save_hills)  # how frequently we save
-    continue_run = bool(int(args.continue_run))  # whether we continue
+    save_hills = int(args.save_hills)
+    continue_run = bool(int(args.continue_run))
     temperature = float(args.T)
     
     # load in the pfile here.
     with open(p_fname) as f:
         p_dict = {}
         for line in f.readlines():
-            pair = line.replace('\n', '').split(':')
-            p_dict[pair[0]] = pair[1]
+            com_name, particles = line.replace('\n', '').split(':')
+            p_dict[com_name] = particles
     
     estimator = Estimator(Niter=Niter, meta=True, dT=dT,
                     sigma=sigma, dX=dX, A=A, tau=tau,
