@@ -26,6 +26,16 @@ void export_input_file(py::module &m) {
 	input.def("__getitem__", &input_file::get_value);
 	input.def("__setitem__", &input_file::set_value);
 	input.def("__str__", &input_file::to_string);
+	// this enables the use of "if 'something' in input_file"
+	input.def("__contains__", [](input_file &inp, std::string v) {
+		try {
+			inp.get_value(v);
+			return true;
+		}
+		catch (const oxDNAException &e){
+			return false;
+		}
+	});
 	input.def("init_from_filename", &input_file::init_from_filename, py::arg("filename"), R"pbdoc(
         Initialise the object from the input file passed as parameter.
 
