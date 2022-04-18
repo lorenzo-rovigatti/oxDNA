@@ -9,6 +9,10 @@ Multi-walker metadynamics, P. Raiteri et al. (https://doi.org/10.1021/jp054359r)
 
 Please note that the interface is still under active development.
 
+## Requirements
+
+The interface requires the `oxpy` lib (which can be compiled and installed by issuing the `-DPython=On` option when running `cmake` to compile oxDNA), pandas and numpy.
+
 ## Usage
 
 Run the script without any arguments to see the list of supported options. The only mandatory argument is a folder which contains the oxDNA files (at least the input, topology and configuration files) required to run an unbiased simulation of the system that one wishes to study. The only other required file is a file containing the indexes of the particles whose coordinates are used to build the collective variables that will be used to bias the simulations. The name of this file, which by default is `locs.meta`, can be optionally specified with the `--p_fname` switch.
