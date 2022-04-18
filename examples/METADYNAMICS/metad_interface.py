@@ -54,14 +54,13 @@ class Estimator():
                     N_walkers=1,
                     p_dict={},
                     dim=1, ratio=0, angle=0, xmin=0, xmax=20, conf_interval=int(1e3),
-                    save_hills=1, continue_run=0, T=295):
+                    save_hills=1, continue_run=0, T=None):
 
         self.base_dir = base_dir
         self.dX = dX
         self.sigma = sigma
         self.A = A
         self.dT = dT
-        self.T = T
         self.Niter = Niter
         self.meta = meta
         self.tau = tau
@@ -95,8 +94,6 @@ class Estimator():
             max_fname = f"./{Estimator.BIAS_DIR}/bias_{self.max_index}" 
             print(f"restarting from bias file : {max_fname}")
             self.potential_grid = pkl.load(open(max_fname, 'rb'))
-
-        self.oxdivkT = 4.142e-20 / (self.T * 1.38e-23) 
 
         self.r_cut_int = 6 * self.sigma / self.dX
 
@@ -180,6 +177,13 @@ class Estimator():
             input_file["lastconf_file"] = Estimator.LAST_CONF
             input_file["conf_file"] = Estimator.LAST_CONF
             
+            if T == None:
+                self.T = oxpy.get_temperature(input_file["T"])
+            else:
+                self.T = oxpy.get_temperature(T)
+                input_file["T"] = T
+                
+            
             # look for the first available output stream index
             keep_searching = True
             i = 1
@@ -262,7 +266,7 @@ class Estimator():
     def write_external_forces_file(self, dir_name):
         # build the initial lookup table
         grid_string = ''
-        oxDNA_potential_grid = self.potential_grid / self.oxdivkT
+        oxDNA_potential_grid = self.potential_grid * self.T
         if self.dim == 1:
             for i in oxDNA_potential_grid:
                 grid_string += f"{i},"
@@ -375,7 +379,7 @@ PBC = false'''
     def do_metadynamics_iteration(self, index):
         print("iteration %s" % (index,))
         
-        new_potential_grid = self.potential_grid / self.oxdivkT
+        new_potential_grid = self.potential_grid * self.T
             
         # run parallel computation
         print("starting processes")
@@ -469,7 +473,7 @@ if __name__ == '__main__':
     parser.add_argument("--conf_interval", default=int(1e3), help="Frequency with which configurations should be saved (in time steps)")
     parser.add_argument("--save_hills", default=1, help="Frequency with which the potential grid is sampled")
     parser.add_argument("--continue_run", default=0, help="Whether the simulation should continue or start anew")
-    parser.add_argument("--T", default=295, help="The temperature at which the simulations will be run")
+    parser.add_argument("--T", default=None, help="The temperature at which the simulations will be run. If not set, the temperature in the initial input file will be used")
     
     args = parser.parse_args()
     
@@ -490,7 +494,7 @@ if __name__ == '__main__':
     conf_interval = int(args.conf_interval)
     save_hills = int(args.save_hills)
     continue_run = bool(int(args.continue_run))
-    temperature = float(args.T)
+    T = args.T
     
     # load in the pfile here.
     with open(p_fname) as f:
@@ -503,8 +507,7 @@ if __name__ == '__main__':
                     sigma=sigma, dX=dX, A=A, tau=tau,
                     N_walkers=N_walkers,
                     p_dict=p_dict, dim=dim, ratio=ratio, angle=angle, xmin=xmin, xmax=xmax,
-                    conf_interval=conf_interval, save_hills=save_hills, continue_run=continue_run,
-                    T=temperature)
+                    conf_interval=conf_interval, save_hills=save_hills, continue_run=continue_run, T=T)
     
     estimator.do_run()
 						      
