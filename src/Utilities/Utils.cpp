@@ -147,21 +147,33 @@ input_file* get_input_file_from_string(const std::string &inp) {
 	return ret;
 }
 
-number get_temperature(char *raw_T) {
+number get_temperature(std::string raw_T) {
+	static std::set<std::string> converted_temperatures;
+
+	bool print_output = false;
+	if(converted_temperatures.find(raw_T) == converted_temperatures.end()) {
+		converted_temperatures.insert(raw_T);
+		print_output = true;
+	}
+
 	char deg;
 	double tmp_T;
 	number T;
-	int res = sscanf(raw_T, "%lf %c", &tmp_T, &deg);
+	int res = sscanf(raw_T.c_str(), "%lf %c", &tmp_T, &deg);
 	if(res == 2) {
 		deg = tolower(deg);
 		switch(deg) {
 		case 'c':
 			T = (number) ((tmp_T + 273.15) * 0.1 / 300.); // convert to kelvin and then to simulation units
-			OX_LOG(Logger::LOG_INFO, "Converting temperature from Celsius (%lf C°) to simulation units (%lf)", tmp_T, T);
+			if(print_output) {
+				OX_LOG(Logger::LOG_INFO, "Converting temperature from Celsius (%lf C°) to simulation units (%lf)", tmp_T, T);
+			}
 			break;
 		case 'k':
 			T = (number) (tmp_T * 0.1 / 300.); // convert to simulation units
-			OX_LOG(Logger::LOG_INFO, "Converting temperature from Kelvin (%lf K) to simulation units (%lf)", tmp_T, T);
+			if(print_output) {
+				OX_LOG(Logger::LOG_INFO, "Converting temperature from Kelvin (%lf K) to simulation units (%lf)", tmp_T, T);
+			}
 			break;
 		default:
 			throw oxDNAException("Unrecognizable temperature '%s'", raw_T);

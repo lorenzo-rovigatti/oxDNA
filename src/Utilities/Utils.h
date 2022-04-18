@@ -151,7 +151,7 @@ input_file *get_input_file_from_string(const std::string &inp);
  * @param raw_T c-string containing the text to be parsed
  * @return
  */
-number get_temperature(char *raw_T);
+number get_temperature(std::string raw_T);
 
 /**
  * @brief fills the memory pointed to by seedptr with the current
