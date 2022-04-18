@@ -231,23 +231,6 @@ void get_seed(unsigned short *seedptr) {
 	seed48(seedptr);
 }
 
-// zeroes the velocity of the centre of mass
-void stop_com(std::vector<BaseParticle*> &particles) {
-	LR_vector vcom = LR_vector((number) 0., (number) 0., (number) 0.);
-
-	for(auto p : particles) {
-		vcom += p->vel;
-	}
-
-	vcom = vcom / (number) particles.size();
-
-	for(auto p : particles) {
-		p->vel -= vcom;
-	}
-
-	return;
-}
-
 number gamma(number alpha, number beta) {
 	number x, v, u;
 	double d = alpha - 1. / 3.;

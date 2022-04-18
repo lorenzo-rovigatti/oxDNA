@@ -174,14 +174,6 @@ void get_seed(unsigned short *seedptr);
 std::string bytes_to_human(llint arg);
 
 /**
- * @brief Utility function that sets the centre of mass velocity of the system to 0.
- *
- * @param particles pointer to array of particle pointers
- * @param N number of particles
- */
-void stop_com(std::vector<BaseParticle *> &particles);
-
-/**
  * @brief Utility function that reads a string like "10-16,18" and returns a vector of integers.
  * @param particles pointer to array of particle pointers
  * @param N number of particles
