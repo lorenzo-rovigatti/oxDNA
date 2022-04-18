@@ -1,0 +1,60 @@
+show_overwrite_warnings = false
+
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+interaction_type = DNA2
+salt_concentration = 0.3
+sim_type = MD
+dt = 0.002
+thermostat = brownian
+diff_coeff = 1.0
+newtonian_steps = 53
+
+backend = CPU
+#CUDA_device = 0
+backend_precision = double
+#debug = 1
+#seed = 93614
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+ensemble = NVT
+steps = 1e9
+list_type = cells
+delta_translation = 0.11
+delta_rotation = 0.22
+T = 291.000000 K
+verlet_skin = 0.5
+#max_backbone_force = 10
+external_forces = 1
+external_forces_file = ext
+max_cluster_size = 10
+back_in_box = 0
+fix_diffusion = 0
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+#box_type = cubic
+topology = topology.dat
+conf_file = init_conf.dat
+lastconf_file = output/last.conf
+trajectory_file = output/trajectory.dat
+refresh_vel = 1
+log_file = log.log
+no_stdout_energy = 1
+restart_step_counter = 0
+energy_file = log.energy.dat
+print_conf_interval = 10
+print_energy_every = 10000
+time_scale = linear
+
+data_output_1 = {
+	name = prova.dat
+	print_every = 1e8
+	col_1 = {
+		type = step
+	}
+}
