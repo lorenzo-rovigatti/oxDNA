@@ -11,7 +11,7 @@ Please note that the interface is still under active development.
 
 ## Requirements
 
-The interface requires the `oxpy` lib (which can be compiled and installed by issuing the `-DPython=On` option when running `cmake` to compile oxDNA), pandas and numpy.
+The interface requires the `oxpy` lib (which can be compiled and installed by issuing the `-DPython=On` option when running `cmake` and then running `make install` after the usual oxDNA compilation), pandas and numpy.
 
 ## Usage
 
