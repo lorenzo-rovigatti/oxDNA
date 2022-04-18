@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
-import os
+import os, shutil
 from copy import copy
 import multiprocessing as mp
 import pickle as pkl
 import glob
 import oxpy
+
 
 class oxDNARunner(mp.Process):
 
@@ -44,17 +45,18 @@ class oxDNARunner(mp.Process):
 
 class Estimator():
     
-    INITIAL_INPUT_DIR = "run-meta"
     INPUT_FILE = "input-meta"
     EXT_FORCES_FILE = "ext-meta"
     LAST_CONF = "output/last_conf.dat"
+    BIAS_DIR = "bias"
 
-    def __init__(self, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, meta=True, tau=int(1e5),
+    def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, meta=True, tau=int(1e5),
                     N_walkers=1,
                     p_dict={},
                     dim=1, ratio=0, angle=0, xmin=0, xmax=20, conf_interval=int(1e3),
                     save_hills=1, continue_run=0, T=295):
 
+        self.base_dir = base_dir
         self.dX = dX
         self.sigma = sigma
         self.A = A
@@ -88,10 +90,10 @@ class Estimator():
             if self.dim == 2:
                 self.potential_grid = np.zeros((self.N_grid, self.N_grid))
         else:  # load the most recent file
-            center_fnames = glob.glob('./center_data/centers_*')
+            center_fnames = glob.glob(f"./{Estimator.BIAS_DIR}/bias_*")
             self.max_index = max([int(i.split('_')[-1]) for i in center_fnames])
-            max_fname = f"./center_data/centers_{self.max_index}" 
-            print(f"restarting from centers file : {max_fname}")
+            max_fname = f"./{Estimator.BIAS_DIR}/bias_{self.max_index}" 
+            print(f"restarting from bias file : {max_fname}")
             self.potential_grid = pkl.load(open(max_fname, 'rb'))
 
         self.oxdivkT = 4.142e-20 / (self.T * 1.38e-23) 
@@ -164,10 +166,13 @@ class Estimator():
     }}
 }}'''
 
-        # write from input to a meta input
+        # parse the user-provided input file and generate the input file that will be used to run metad simulations
         with oxpy.Context(print_coda=False):
             input_file = oxpy.InputFile()
-            input_file.init_from_filename(os.path.join(Estimator.INITIAL_INPUT_DIR, "input"))
+            input_file.init_from_filename(os.path.join(self.base_dir, "input"))
+            
+            initial_conf = os.path.join(self.base_dir, input_file["conf_file"])
+            top_file = os.path.join(self.base_dir, input_file["topology"])
             
             input_file["show_overwrite_warnings"] = "false"
             input_file["print_conf_interval"] = str(conf_interval)
@@ -189,7 +194,7 @@ class Estimator():
             # if the external forces file is non empty we save its contents
             if "external_forces_file" in input_file:
                 try:
-                    ext_file_path = os.path.join(Estimator.INITIAL_INPUT_DIR, input_file["external_forces_file"])
+                    ext_file_path = os.path.join(self.base_dir, input_file["external_forces_file"])
                     with open(ext_file_path) as f:
                         self.other_forces = f.read()
                 except:
@@ -197,9 +202,31 @@ class Estimator():
             
             input_file["external_forces_file"] = Estimator.EXT_FORCES_FILE
             
-            # write the meta input
-            with open(f"run-meta/{Estimator.INPUT_FILE}", 'w+') as f:
-                f.write(str(input_file))
+            if not self.continue_run:
+                # delete and recreate the bias directory
+                shutil.rmtree(Estimator.BIAS_DIR, ignore_errors=True)
+                os.mkdir(Estimator.BIAS_DIR)
+                
+                # initialise the directories where simulations will run
+                for dir_name in self.dir_names:
+                    shutil.rmtree(dir_name, ignore_errors=True)
+                    
+                    os.mkdir(dir_name)
+                    os.mkdir(f"{dir_name}/positions")
+                    os.mkdir(f"{dir_name}/output")
+                    
+                    shutil.copy(initial_conf, os.path.join(dir_name, Estimator.LAST_CONF))
+                    shutil.copy(top_file, dir_name)
+                    
+                    # write the meta input
+                    with open(os.path.join(dir_name, Estimator.INPUT_FILE), 'w+') as f:
+                        f.write(str(input_file))
+
+        # write the initial force files                
+        for dir_name in self.dir_names:
+            self.write_external_forces_file(dir_name)
+                
+        self._init_walkers()
 
     def get_new_data(self, dir_name):
         os.system(f"tail -n 3 ./{dir_name}/pos.dat > ./{dir_name}/pos_min.dat")
@@ -284,7 +311,7 @@ PBC = false'''
                         f.write(our_string)
 
     def save_potential_grid(self, index):
-        with open(f"center_data/centers_{index}", 'wb+') as f:
+        with open(f"{Estimator.BIAS_DIR}/bias_{index}", 'wb+') as f:
             pkl.dump(self.potential_grid, f)
 
     def save_positions(self, new_data, index, walker_index):
@@ -332,23 +359,10 @@ PBC = false'''
         U = self.A * np.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (2 * self.sigma ** 2))
         return U
 
-    def initialise(self):
-        if not self.continue_run:
-            os.system("rm -r run-meta_*")
-
-            for dir_name in self.dir_names: 
-                os.system(f"cp -r run-meta {dir_name}")
-                os.system(f"mkdir {dir_name}/traj_files")
-                os.system(f"mkdir {dir_name}/ext_files")
-                os.system(f"mkdir {dir_name}/positions")
-
-            os.system("rm -r center_data")
-            os.system("mkdir center_data")
-            
+    def _init_walkers(self):
         self.queue = mp.JoinableQueue()
         self.processes = []
         for dir_name in self.dir_names:
-            self.write_external_forces_file(dir_name)
             self.processes.append(oxDNARunner(dir_name, "input-meta", self.queue))
             self.processes[-1].start()
             
@@ -438,6 +452,7 @@ if __name__ == '__main__':
     import argparse
     
     parser = argparse.ArgumentParser(description="Metadynamics interface for oxDNA. Requires oxpy (oxDNA's Python bindings).")
+    parser.add_argument("base_directory", help="The directory storing the base simulation files")
     parser.add_argument("--A", default=0.1, help="Initial bias-height increment")
     parser.add_argument("--sigma", default=0.05, help="Width of the deposited Gaussian")
     parser.add_argument("--tau", default=10000, help="Length of a metadynamics iteration (in time steps)")
@@ -458,6 +473,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     
+    base_dir = args.base_directory
     A = float(args.A)
     sigma = float(args.sigma)
     tau = int(args.tau)
@@ -483,13 +499,12 @@ if __name__ == '__main__':
             com_name, particles = line.replace('\n', '').split(':')
             p_dict[com_name] = particles
     
-    estimator = Estimator(Niter=Niter, meta=True, dT=dT,
+    estimator = Estimator(base_dir, Niter=Niter, meta=True, dT=dT,
                     sigma=sigma, dX=dX, A=A, tau=tau,
                     N_walkers=N_walkers,
                     p_dict=p_dict, dim=dim, ratio=ratio, angle=angle, xmin=xmin, xmax=xmax,
                     conf_interval=conf_interval, save_hills=save_hills, continue_run=continue_run,
                     T=temperature)
     
-    estimator.initialise()
     estimator.do_run()
 						      
