@@ -27,7 +27,7 @@ Following Kaufhold *et al.*, the examples here use input options used by [Maffeo
 
 This is the first system investigated by Kaufhold *et al*. Here we look at the free energy as a function of end-to-end distance of a short section of duplex DNA.
 
-The example can be run with `$ bash do.run.sh`, which will launch 6 simultaneous walkers which share a bias. The bias (as specified in the `locs.meta` file) is the distance between the centres of mass of nucleotides 30, 31, 32, 29, 28, 27 and 56, 58, 59, 0, 1, 2, that is, the centres of mass of the initial and final bits of the duplex.
+The example can be run on CPUs or GPUs with the `do.run_CPU.sh` and `do.run_CUDA.sh` scripts, respectively. Note that for the small system studied here we include a CUDA example for the sake of completeness, since using GPUs will result in much slower sampling compared to CPUs. The script will launch 6 CPU (or 4 GPU) simultaneous walkers which share a bias. The bias (as specified in the `locs.meta` file) is the distance between the centres of mass of nucleotides 30, 31, 32, 29, 28, 27 and 56, 58, 59, 0, 1, 2, that is, the centres of mass of the initial and final bits of the duplex.
 
 The folder contains a Jupyter notebook (`analysis.ipynb`) which demonstrates how to infer free energy profiles from the simulation results. The notebook can be run simultaneously with the simulations.
 
