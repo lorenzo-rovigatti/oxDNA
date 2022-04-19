@@ -19,6 +19,24 @@ Run the script without any arguments to see the list of supported options. The o
 
 Once launched, the script runs a certain number of metadynamics simulations that can be controlled by the `--Niter` switch and defaults to 10000. After each metadynamics iteration the current bias is saved to the `bias` folder by using [`pickle.dump`](https://docs.python.org/3/library/pickle.html#pickle.dump) and therefore can be loaded back as a `numpy` array with [`pickle.load`](https://docs.python.org/3/library/pickle.html#pickle.load).
 
+## Supported collective variables
+
+As of now, the interface supports the following collective variables:
+
+1. Distance between a pair of sets of nucleotides (also available on GPUs).
+2. Pair of distances between sets of nucleotides. It is the only 2D order parameter available (CPU only).
+3. The tangent of the ratio of two distances (CPU only).
+4. The angle between the distances connecting the centres of mass of three sets of nucleotides (CPU only).
+
+## Set up a metadynamics simulation
+
+In order to launch a metadynamics simulation you will need
+
+* A working oxDNA simulation of the system you want to study
+* A collective variable you want to use as the order parameter
+
+First you need to prepare a folder that contains all the input files required to launch an unbias (*i.e.* regular) oxDNA simulation. The input file **must** be called `input`. Then you need to prepare a `p_fname` file that contains the list of nucleotides that will be used to compute the collective variables. Finally, you run `metad_interface.py` with appropriate arguments.
+
 ## Examples
 
 Following Kaufhold *et al.*, the examples here use input options used by [Maffeo *et al.*](https://doi.org/10.1093/nar/gkaa200).
