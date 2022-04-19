@@ -1,10 +1,11 @@
 #include "parse_input.h"
 
-#include "exprtk.hpp"
 #include "../Utils.h"
 #include "../Logger.h"
 #include "../oxDNAException.h"
 #include "../ConfigInfo.h"
+
+#include <exprtk/exprtk.hpp>
 
 #include <regex>
 #include <algorithm>

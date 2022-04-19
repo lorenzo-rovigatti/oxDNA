@@ -81,6 +81,8 @@ IF(CUDA_DOUBLE)
 	ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
 ENDIF()
 
+include_directories(src/extern)
+
 ADD_DEFINITIONS(-Wall -Wshadow -Wextra -Wno-unused-parameter)
 
 IF(NOT Debug)
