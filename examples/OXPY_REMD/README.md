@@ -3,11 +3,9 @@
 ## Script requirements
 
 - Please use the latest version of [oxDNA](https://github.com/lorenzo-rovigatti/oxDNA).
-- At the moment the oxpy controller with `set_temperature` is available on the `oxpy` branch.
 - The script requires
 	- [mpi4py](https://pypi.org/project/mpi4py/) to parallelise the computation
-	- [tqdm](https://github.com/tqdm/tqdm) to estimate the run time (optional package: if not found
-	no progress meter will be shown and a warning will be issued)
+	- [tqdm](https://github.com/tqdm/tqdm) to estimate the run time (optional package: if not found no progress meter will be shown and a warning will be issued)
 
 ## Input file requirements
 - Regular oxDNA input files should work, but note that the following parameters get overwritten by oxpy:   

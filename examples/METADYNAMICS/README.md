@@ -19,6 +19,9 @@ Run the script without any arguments to see the list of supported options. The o
 
 Once launched, the script runs a certain number of metadynamics simulations that can be controlled by the `--Niter` switch and defaults to 10000. After each metadynamics iteration the current bias is saved to the `bias` folder by using [`pickle.dump`](https://docs.python.org/3/library/pickle.html#pickle.dump) and therefore can be loaded back as a `numpy` array with [`pickle.load`](https://docs.python.org/3/library/pickle.html#pickle.load).
 
+For CUDA runs the interface launches the processes without any indication about the device that should be used. As a result, if GPUs are not set to run in compute mode "EXCLUSIVE_PROCESS", all the walkers will be run on the same GPU, thus sensibly slowing down the simulation. This will be improved upon in next versions.
+
+
 ## Supported collective variables
 
 As of now, the interface supports the following collective variables:
