@@ -43,9 +43,9 @@ void export_BaseObservable(py::module &m) {
 
 		Parameters
 		---------- 
-		my_inp : :class:`input_file`
+		my_inp : :class:`InputFile`
 			The input file of the observable.
-		sim_inp : :class:`input_file`
+		sim_inp : :class:`InputFile`
 			The general input file of the simulation.
 	)pbdoc");
 

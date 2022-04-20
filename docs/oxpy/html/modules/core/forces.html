@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The core.forces module &mdash; oxpy 3.0.0a1.dev252+g2475850.d20220407 documentation</title>
+  <title>The core.forces module &mdash; oxpy 3.0.0a1.dev285+gd76ee80.d20220420 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev252+g2475850.d20220407
+                3.0.0a1.dev285+gd76ee80.d20220420
               </div>
             
           
@@ -102,6 +102,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../extending/observables.html">Writing observables in Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extending/forces.html">Modifying external forces at runtime</a></li>
 </ul>
 
             
@@ -186,6 +187,15 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.forces.RepulsiveSphere" title="oxpy.core.forces.RepulsiveSphere"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RepulsiveSphere</span></code></a></p></td>
 <td><p>A confining repulsive sphere.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.forces.LTCOMTrap" title="oxpy.core.forces.LTCOMTrap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LTCOMTrap</span></code></a></p></td>
+<td><p>A force acting between the centres of mass of groups of particles evaluated from a lookup table.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.forces.LT2DCOMTrap" title="oxpy.core.forces.LT2DCOMTrap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LT2DCOMTrap</span></code></a></p></td>
+<td><p>A force acting between the centres of mass of groups of particles evaluated from a 2D lookup table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.forces.MovingTrap" title="oxpy.core.forces.MovingTrap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MovingTrap</span></code></a></p></td>
+<td><p>A harmonic force computed by using as a reference a point that optionally move with a constant velocity along a direction.</p></td>
+</tr>
 </tbody>
 </table>
 <dl class="py class">
@@ -209,31 +219,15 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="oxpy.core.forces.BaseForce.get_group_name">
-<code class="sig-name descname">get_group_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.forces.BaseForce" title="oxpy.core.forces.BaseForce">oxpy.core.forces.BaseForce</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxpy.core.forces.BaseForce.get_group_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the name of the group the force belongs to.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The name of the group.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
-</dd>
-</dl>
+<dt id="oxpy.core.forces.BaseForce.group_name">
+<em class="property">property </em><code class="sig-name descname">group_name</code><a class="headerlink" href="#oxpy.core.forces.BaseForce.group_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the group the force belongs to.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="oxpy.core.forces.BaseForce.get_id">
-<code class="sig-name descname">get_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.forces.BaseForce" title="oxpy.core.forces.BaseForce">oxpy.core.forces.BaseForce</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxpy.core.forces.BaseForce.get_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the id of the force.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The id.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></p>
-</dd>
-</dl>
+<dt id="oxpy.core.forces.BaseForce.id">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#oxpy.core.forces.BaseForce.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The id of the force.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -245,6 +239,12 @@
 <dd class="field-odd"><p><strong>inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The input file of the simulation.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.forces.BaseForce.pos0">
+<em class="property">property </em><code class="sig-name descname">pos0</code><a class="headerlink" href="#oxpy.core.forces.BaseForce.pos0" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reference position associated to the force. The particular meaning of this attribute depends on the subclass external force.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -268,31 +268,21 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="oxpy.core.forces.BaseForce.set_group_name">
-<code class="sig-name descname">set_group_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.forces.BaseForce" title="oxpy.core.forces.BaseForce">oxpy.core.forces.BaseForce</a></span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.forces.BaseForce.set_group_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the name of the group the force belongs to.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The new group name.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="oxpy.core.forces.BaseForce.set_id">
-<code class="sig-name descname">set_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.forces.BaseForce" title="oxpy.core.forces.BaseForce">oxpy.core.forces.BaseForce</a></span></em>, <em class="sig-param"><span class="n">new_id</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.forces.BaseForce.set_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the id of the force.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The new id.</p>
-</dd>
-</dl>
+<dt id="oxpy.core.forces.BaseForce.rate">
+<em class="property">property </em><code class="sig-name descname">rate</code><a class="headerlink" href="#oxpy.core.forces.BaseForce.rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The rate of change of the force. The particular meaning of this attribute depends on the subclass external force.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="oxpy.core.forces.BaseForce.stiff">
 <em class="property">property </em><code class="sig-name descname">stiff</code><a class="headerlink" href="#oxpy.core.forces.BaseForce.stiff" title="Permalink to this definition">¶</a></dt>
-<dd><p>The stiffness (= strength) of the force.</p>
+<dd><p>The stiffness (= strength) of the force. The particular meaning of this attribute depends on the subclass external force.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.forces.BaseForce.type">
+<em class="property">property </em><code class="sig-name descname">type</code><a class="headerlink" href="#oxpy.core.forces.BaseForce.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>the string used in the external force file to specify the force type (<em>e.g.</em> <cite>trap</cite>).</p>
 </dd></dl>
 
 <dl class="py method">
@@ -313,6 +303,64 @@
 <dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.22)">numpy.ndarray</a></p>
 </dd>
 </dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxpy.core.forces.LTCOMTrap">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.forces.</code><code class="sig-name descname">LTCOMTrap</code><a class="headerlink" href="#oxpy.core.forces.LTCOMTrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#oxpy.core.forces.BaseForce" title="oxpy.core.forces.BaseForce"><code class="xref py py-class docutils literal notranslate"><span class="pre">oxpy.core.forces.BaseForce</span></code></a></p>
+<p>A force acting between the centres of mass of groups of particles evaluated from a lookup table.</p>
+<dl class="py method">
+<dt id="oxpy.core.forces.LTCOMTrap.potential_grid">
+<em class="property">property </em><code class="sig-name descname">potential_grid</code><a class="headerlink" href="#oxpy.core.forces.LTCOMTrap.potential_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>The lookup table used to interpolate the potential and the force.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxpy.core.forces.LT2DCOMTrap">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.forces.</code><code class="sig-name descname">LT2DCOMTrap</code><a class="headerlink" href="#oxpy.core.forces.LT2DCOMTrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#oxpy.core.forces.BaseForce" title="oxpy.core.forces.BaseForce"><code class="xref py py-class docutils literal notranslate"><span class="pre">oxpy.core.forces.BaseForce</span></code></a></p>
+<p>A force acting between the centres of mass of groups of particles evaluated from a 2D lookup table.</p>
+<p>The force is evaluated by using two collective variables that are the distances between two pairs of centres of mass.</p>
+<dl class="py method">
+<dt id="oxpy.core.forces.LT2DCOMTrap.potential_grid">
+<em class="property">property </em><code class="sig-name descname">potential_grid</code><a class="headerlink" href="#oxpy.core.forces.LT2DCOMTrap.potential_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>The lookup table used to interpolate the potential and the force.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxpy.core.forces.MovingTrap">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.forces.</code><code class="sig-name descname">MovingTrap</code><a class="headerlink" href="#oxpy.core.forces.MovingTrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#oxpy.core.forces.BaseForce" title="oxpy.core.forces.BaseForce"><code class="xref py py-class docutils literal notranslate"><span class="pre">oxpy.core.forces.BaseForce</span></code></a></p>
+<p>A harmonic force computed by using as a reference a point that optionally move with a constant velocity along a direction.</p>
+<dl class="py method">
+<dt id="oxpy.core.forces.MovingTrap.dir">
+<em class="property">property </em><code class="sig-name descname">dir</code><a class="headerlink" href="#oxpy.core.forces.MovingTrap.dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>The direction towards which the reference point moves.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.forces.MovingTrap.pos0">
+<em class="property">property </em><code class="sig-name descname">pos0</code><a class="headerlink" href="#oxpy.core.forces.MovingTrap.pos0" title="Permalink to this definition">¶</a></dt>
+<dd><p>The initial position of the reference point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.forces.MovingTrap.rate">
+<em class="property">property </em><code class="sig-name descname">rate</code><a class="headerlink" href="#oxpy.core.forces.MovingTrap.rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The velocity (in units of time steps) with which the reference point moves. If set to 0 the point will remain in its initial position.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.forces.MovingTrap.stiff">
+<em class="property">property </em><code class="sig-name descname">stiff</code><a class="headerlink" href="#oxpy.core.forces.MovingTrap.stiff" title="Permalink to this definition">¶</a></dt>
+<dd><p>The stiffness of the harmonic force.</p>
 </dd></dl>
 
 </dd></dl>

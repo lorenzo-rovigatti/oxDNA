@@ -9,6 +9,11 @@ def generate_default_input(options=[]):
     
         my_input = oxpy.utils.generate_default_input()
         print(my_input)
+        
+    Returns
+    -------
+    :class:`~oxpy.core.InputFile`
+        An input file object that can be used to set up an oxDNA simulation. 
     
     '''
     default_input = InputFile()

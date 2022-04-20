@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The core module &mdash; oxpy 3.0.0a1.dev252+g2475850.d20220407 documentation</title>
+  <title>The core module &mdash; oxpy 3.0.0a1.dev285+gd76ee80.d20220420 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev252+g2475850.d20220407
+                3.0.0a1.dev285+gd76ee80.d20220420
               </div>
             
           
@@ -102,6 +102,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../extending/observables.html">Writing observables in Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extending/forces.html">Modifying external forces at runtime</a></li>
 </ul>
 
             
@@ -220,7 +221,7 @@
 </table>
 <dl class="py class">
 <dt id="oxpy.core.Context">
-<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.Context" title="oxpy.core.Context">oxpy.core.Context</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.Context" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.Context" title="oxpy.core.Context">oxpy.core.Context</a></span></em>, <em class="sig-param"><span class="n">print_coda</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <p>A <a class="reference external" href="https://book.pythontips.com/en/latest/context_managers.html">context manager</a> that
 performs some initialisation and clean up.</p>
@@ -922,8 +923,8 @@ access the current configuration’s details.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>my_inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The input file of the observable.</p></li>
-<li><p><strong>sim_inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The general input file of the simulation.</p></li>
+<li><p><strong>my_inp</strong> (<a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputFile</span></code></a>) – The input file of the observable.</p></li>
+<li><p><strong>sim_inp</strong> (<a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputFile</span></code></a>) – The general input file of the simulation.</p></li>
 </ul>
 </dd>
 </dl>

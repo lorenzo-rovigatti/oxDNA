@@ -10,9 +10,10 @@
 
 #include "../../python_defs.h"
 
-#include "RepulsiveSphere.h"
 #include "LTCOMTrap.h"
 #include "LT2DCOMTrap.h"
+#include "MovingTrap.h"
+#include "RepulsiveSphere.h"
 
 #include <Forces/BaseForce.h>
 
@@ -118,7 +119,15 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def_readwrite("stiff", &BaseForce::_stiff, R"pbdoc(
-The stiffness (= strength) of the force.
+The stiffness (= strength) of the force. The particular meaning of this attribute depends on the subclass external force.
+)pbdoc");
+
+	force.def_readwrite("rate", &BaseForce::_rate, R"pbdoc(
+The rate of change of the force. The particular meaning of this attribute depends on the subclass external force.
+)pbdoc");
+
+	force.def_readwrite("pos0", &BaseForce::_pos0, R"pbdoc(
+The reference position associated to the force. The particular meaning of this attribute depends on the subclass external force.
 )pbdoc");
 
 	force.def("as_RepulsiveSphere", [](BaseForce &f){ return dynamic_cast<RepulsiveSphere *>(&f); }, R"pbdoc(
@@ -130,27 +139,10 @@ Returns
 		The force cast as a :py:class:`RepulsiveSphere` or `None` if the casting fails.
 )pbdoc");
 
-	force.def("as_LTCOMTrap", [](BaseForce &f){ return dynamic_cast<LTCOMTrap *>(&f); }, R"pbdoc(
-Attempt to cast the current force as a :py:class:`LTCOMTrap` object and return it.
-
-Returns
--------
-	:py:class:`LTCOMTrap`
-		The force cast as a :py:class:`LTCOMTrap` or `None` if the casting fails.
-)pbdoc");
-
-	force.def("as_LT2DCOMTrap", [](BaseForce &f){ return dynamic_cast<LT2DCOMTrap *>(&f); }, R"pbdoc(
-Attempt to cast the current force as a :py:class:`LT2DCOMTrap` object and return it.
-
-Returns
--------
-	:py:class:`LT2DCOMTrap`
-		The force cast as a :py:class:`LT2DCOMTrap` or `None` if the casting fails.
-)pbdoc");
-
-	export_RepulsiveSphere(sub_m);
 	export_LTCOMTrap(sub_m);
 	export_LT2DCOMTrap(sub_m);
+	export_MovingTrap(sub_m);
+	export_RepulsiveSphere(sub_m);
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_FORCES_BASEFORCE_H_ */

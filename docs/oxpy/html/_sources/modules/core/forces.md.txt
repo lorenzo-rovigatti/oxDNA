@@ -13,8 +13,18 @@ This submodule contains the Python bindings for the external forces.
 
     BaseForce
     RepulsiveSphere
+    LTCOMTrap
+    LT2DCOMTrap
+    MovingTrap
     
 .. autoclass:: BaseForce
 
+.. autoclass:: LTCOMTrap
+
+.. autoclass:: LT2DCOMTrap
+
+.. autoclass:: MovingTrap
+
 .. autoclass:: RepulsiveSphere
+
 ```
