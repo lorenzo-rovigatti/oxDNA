@@ -162,6 +162,10 @@ void input_file::set_value(std::string key, std::string value) {
 	keys[key] = value;
 }
 
+void input_file::unset_value(std::string key) {
+	keys.erase(key);
+}
+
 std::string input_file::to_string() const {
 	std::string ret;
 

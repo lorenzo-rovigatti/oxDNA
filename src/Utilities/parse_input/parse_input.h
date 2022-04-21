@@ -102,6 +102,7 @@ struct input_file {
 
 	std::string get_value(std::string key);
 	void set_value(std::string key, std::string value);
+	void unset_value(std::string key);
 
 	std::string to_string() const;
 };

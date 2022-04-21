@@ -25,6 +25,7 @@ void export_input_file(py::module &m) {
 	input.def(py::init<>());
 	input.def("__getitem__", &input_file::get_value);
 	input.def("__setitem__", &input_file::set_value);
+	input.def("__delitem__", &input_file::unset_value);
 	input.def("__str__", &input_file::to_string);
 	// this enables the use of "if 'something' in input_file"
 	input.def("__contains__", [](input_file &inp, std::string v) {
