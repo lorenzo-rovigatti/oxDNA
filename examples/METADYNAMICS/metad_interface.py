@@ -10,10 +10,11 @@ import oxpy
 
 class oxDNARunner(mp.Process):
 
-    def __init__(self, working_dir, input_file, queue):
+    def __init__(self, index, input_file, queue):
         mp.Process.__init__(self)
 
-        self.working_dir = working_dir
+        self.index = index
+        self.working_dir = f"{Estimator.RUN_BASEDIR}{index}"
         self.input_file = input_file
         self.queue = queue
 
@@ -49,10 +50,10 @@ class Estimator():
     EXT_FORCES_FILE = "ext-meta"
     LAST_CONF = "output/last_conf.dat"
     BIAS_DIR = "bias"
+    RUN_BASEDIR = "run-meta_"
 
     def __init__(self, base_dir, dX=0.1, sigma=0.2, A=0.01, dT=10, Niter=200, meta=True, tau=int(1e5),
-                    N_walkers=1,
-                    p_dict={},
+                    N_walkers=1, use_seq_GPUs=False, p_dict={},
                     dim=1, ratio=0, angle=0, xmin=0, xmax=20, conf_interval=int(1e3),
                     save_hills=1, continue_run=0, T=None):
 
@@ -71,8 +72,6 @@ class Estimator():
         self.angle = angle
         self.save_hills = save_hills
         self.continue_run = continue_run
-
-        self.dir_names = [f"run-meta_{index}" for index in range(N_walkers)]
 
         self.xmin = xmin 
         self.xmax = xmax 
@@ -162,6 +161,8 @@ class Estimator():
         particle_2 = {self.p_dict['p2b']}
     }}
 }}'''
+                
+        self._init_walkers()
 
         # parse the user-provided input file and generate the input file that will be used to run metad simulations
         with oxpy.Context(print_coda=False):
@@ -212,26 +213,27 @@ class Estimator():
                 os.mkdir(Estimator.BIAS_DIR)
                 
                 # initialise the directories where simulations will run
-                for dir_name in self.dir_names:
-                    shutil.rmtree(dir_name, ignore_errors=True)
+                for w in self.walkers:
+                    shutil.rmtree(w.working_dir, ignore_errors=True)
                     
-                    os.mkdir(dir_name)
-                    os.mkdir(f"{dir_name}/positions")
-                    os.mkdir(f"{dir_name}/output")
+                    os.mkdir(w.working_dir)
+                    os.mkdir(f"{w.working_dir}/positions")
+                    os.mkdir(f"{w.working_dir}/output")
                     
-                    shutil.copy(initial_conf, os.path.join(dir_name, Estimator.LAST_CONF))
-                    shutil.copy(top_file, dir_name)
+                    shutil.copy(initial_conf, os.path.join(w.working_dir, Estimator.LAST_CONF))
+                    shutil.copy(top_file, w.working_dir)
                     
                     # write the meta input
-                    with open(os.path.join(dir_name, Estimator.INPUT_FILE), 'w+') as f:
+                    with open(os.path.join(w.working_dir, Estimator.INPUT_FILE), 'w+') as f:
+                        if use_seq_GPUs:
+                            input_file["CUDA_device"] = str(w.index)
                         f.write(str(input_file))
 
         # write the initial force files                
-        for dir_name in self.dir_names:
-            self.write_external_forces_file(dir_name)
+        for w in self.walkers:
+            self.write_external_forces_file(w.working_dir)
+            w.start()
                 
-        self._init_walkers()
-
     def get_new_data(self, dir_name):
         os.system(f"tail -n 3 ./{dir_name}/pos.dat > ./{dir_name}/pos_min.dat")
         data = np.array(pd.read_csv(f'./{dir_name}/pos_min.dat', sep='\s+',
@@ -319,7 +321,7 @@ PBC = false'''
             pkl.dump(self.potential_grid, f)
 
     def save_positions(self, new_data, index, walker_index):
-        with open(f"run-meta_{walker_index}/positions/all-pos", 'w+') as f:
+        with open(f"{Estimator.RUN_BASEDIR}{walker_index}/positions/all-pos", 'w+') as f:
             pkl.dump(new_data, f)
 
     def interpolatePotential1D(self, x, potential_grid):
@@ -365,14 +367,13 @@ PBC = false'''
 
     def _init_walkers(self):
         self.queue = mp.JoinableQueue()
-        self.processes = []
-        for dir_name in self.dir_names:
-            self.processes.append(oxDNARunner(dir_name, "input-meta", self.queue))
-            self.processes[-1].start()
+        self.walkers = []
+        for walker_index in range(self.N_walkers):
+            self.walkers.append(oxDNARunner(walker_index, "input-meta", self.queue))
             
     def stop_runners(self):
         runner_args = [None, 0]
-        for walker_index, dir_name in enumerate(self.dir_names): 
+        for w in self.walkers:
             self.queue.put(runner_args)
         self.queue.join()
 
@@ -382,10 +383,9 @@ PBC = false'''
         new_potential_grid = self.potential_grid * self.T
             
         # run parallel computation
-        print("starting processes")
         runner_args = [tau, new_potential_grid]
-        for walker_index, dir_name in enumerate(self.dir_names): 
-            self.write_external_forces_file(dir_name)
+        for w in self.walkers: 
+            self.write_external_forces_file(w.working_dir)
             self.queue.put(runner_args)
         self.queue.join()
 
@@ -398,8 +398,8 @@ PBC = false'''
        
         # load new data 
         new_collective_data = []
-        for walker_index, dir_name in enumerate(self.dir_names):
-            new_data = self.get_new_data(dir_name)
+        for w in self.walkers:
+            new_data = self.get_new_data(w.working_dir)
             # self.save_positions(new_data, index, walker_index)
             new_collective_data.append(copy(new_data))
            
@@ -474,6 +474,7 @@ if __name__ == '__main__':
     parser.add_argument("--save_hills", default=1, help="Frequency with which the potential grid is sampled")
     parser.add_argument("--continue_run", default=0, help="Whether the simulation should continue or start anew")
     parser.add_argument("--T", default=None, help="The temperature at which the simulations will be run. If not set, the temperature in the initial input file will be used")
+    parser.add_argument("--use_sequential_GPUs", action="store_true", help="Each walker will try to use a dedicated GPU: the first one will attempt to use GPU 1, the second one GPU 2, etc.")
     
     args = parser.parse_args()
     
@@ -495,6 +496,7 @@ if __name__ == '__main__':
     save_hills = int(args.save_hills)
     continue_run = bool(int(args.continue_run))
     T = args.T
+    use_seq_GPUs = args.use_sequential_GPUs
     
     # load in the pfile here.
     with open(p_fname) as f:
@@ -505,7 +507,7 @@ if __name__ == '__main__':
     
     estimator = Estimator(base_dir, Niter=Niter, meta=True, dT=dT,
                     sigma=sigma, dX=dX, A=A, tau=tau,
-                    N_walkers=N_walkers,
+                    N_walkers=N_walkers, use_seq_GPUs=use_seq_GPUs,
                     p_dict=p_dict, dim=dim, ratio=ratio, angle=angle, xmin=xmin, xmax=xmax,
                     conf_interval=conf_interval, save_hills=save_hills, continue_run=continue_run, T=T)
     
