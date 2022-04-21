@@ -377,7 +377,6 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				break;
 			}
 			case CUDA_LR_COM_TRAP: {
-				//1 we create the mean vectors
 				c_number4 p1a_vec({0.f, 0.f, 0.f, 0.f});
 				c_number4 p2a_vec({0.f, 0.f, 0.f, 0.f});
 				for(int will = 0; will < extF.ltcomtrap.p1a_size; will++) {
@@ -392,28 +391,20 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 					p2a_vec.z += poss[extF.ltcomtrap.p2a[will]].z / extF.ltcomtrap.p2a_size;
 				}
 
-				//2 we find the difference
 				c_number4 dr = p1a_vec - p2a_vec;
 				c_number dr_mod = _module(dr);
 
-				//3 we find the left and right locations on the grid
 				int ix_left = (int) ((dr_mod - extF.ltcomtrap.xmin) / extF.ltcomtrap.dX);
-				// we make sure that we are not out of boundaries. If we are then we consider the boundary value
-				if(ix_left < 0) {
-					ix_left = 0;
-				}
-				if(ix_left > (extF.ltcomtrap.N_grid - 2)) {
-					ix_left = extF.ltcomtrap.N_grid - 2;
-				}
-
 				int ix_right = ix_left + 1;
 
-				//4 we find the force
-				c_number meta_Fx = -(extF.ltcomtrap.potential_grid[ix_right] - extF.ltcomtrap.potential_grid[ix_left]) / extF.ltcomtrap.dX;
-				//5 we find the directional force
+				// make sure that we never get out of boundaries. If we are then we keep the force 0
+				c_number meta_Fx = 0.f;
+				if(ix_left >= 0 && ix_right <= (extF.ltcomtrap.N_grid - 1)) {
+					meta_Fx = -(extF.ltcomtrap.potential_grid[ix_right] - extF.ltcomtrap.potential_grid[ix_left]) / extF.ltcomtrap.dX;
+				}
+
 				c_number4 force = (dr) * (meta_Fx / dr_mod);
 
-				//6 we apply the force
 				if(extF.ltcomtrap.mode == 1) {
 					F.x += force.x / extF.ltcomtrap.p1a_size;
 					F.y += force.y / extF.ltcomtrap.p1a_size;
