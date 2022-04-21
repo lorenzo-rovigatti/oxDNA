@@ -42,8 +42,6 @@ First you need to prepare a folder that contains all the input files required to
 
 ## Examples
 
-Following Kaufhold *et al.*, the examples here use input options used by [Maffeo *et al.*](https://doi.org/10.1093/nar/gkaa200).
-
 ### `SINGLE_HELIX_BENDING` 
 
 This is the first system investigated by Kaufhold *et al*. Here we look at the free energy as a function of end-to-end distance of a short section of duplex DNA.
@@ -56,6 +54,5 @@ The folder contains a Jupyter notebook (`analysis.ipynb`) which demonstrates how
 
 * Original metadyamics paper: [https://doi.org/10.1073/pnas.202427399](https://doi.org/10.1073/pnas.202427399)
 * Multi-walker metadynamics paper: [https://doi.org/10.1021/jp054359r](https://doi.org/10.1021/jp054359r)
-* Metadynamics parameters paper: [https://doi.org/10.1093/nar/gkaa200](https://doi.org/10.1093/nar/gkaa200)
 * Kaufhold *et al.*'s code: [https://zenodo.org/record/6326800](https://zenodo.org/record/6326800)
 * Kaufhold *et al.*'s paper: [https://arxiv.org/abs/2110.01477](https://arxiv.org/abs/2110.01477)
