@@ -58,6 +58,8 @@ void export_BaseObservable(py::module &m) {
         access the current configuration's details.
 	)pbdoc");
 
+	obs.def_property("id", &BaseObservable::get_id, &BaseObservable::set_id, "The id of the observable.");
+
 	obs.def("get_output_string", &BaseObservable::get_output_string, py::arg("curr_step"), R"pbdoc(
 		Compute the quantity/quantities of interest and returns the output string.
 

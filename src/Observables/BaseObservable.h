@@ -48,6 +48,14 @@ public:
 	 * @brief Initializes the observable.
 	 */
 	virtual void init();
+
+	void set_id(std::string id) {
+		_id = id;
+	}
+
+	std::string get_id() {
+		return _id;
+	}
 };
 
 using ObservablePtr = std::shared_ptr<BaseObservable>;

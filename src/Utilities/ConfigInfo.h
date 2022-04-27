@@ -26,6 +26,7 @@ class BaseParticle;
 class BaseList;
 class BaseBox;
 class BaseForce;
+class BaseObservable;
 struct input_file;
 struct Molecule;
 
@@ -83,6 +84,8 @@ public:
 
 	std::shared_ptr<BaseForce> get_force_by_id(std::string id);
 
+	std::shared_ptr<BaseObservable> get_observable_by_id(std::string id);
+
 	/**
 	 * @brief Returns a pointer to the actual object. Static method to enforce the singleton pattern.
 	 *
@@ -112,6 +115,9 @@ public:
 
 	/// Vector storing all the external forces
 	std::vector<std::shared_ptr<BaseForce>> forces;
+
+	/// Vector storing all the external forces
+	std::vector<std::shared_ptr<BaseObservable>> observables;
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).
 	BaseInteraction *interaction = nullptr;

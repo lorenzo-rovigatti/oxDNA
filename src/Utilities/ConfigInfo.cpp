@@ -11,6 +11,7 @@
 #include "../Particles/BaseParticle.h"
 #include "../Interactions/BaseInteraction.h"
 #include "../Forces/BaseForce.h"
+#include "../Observables/BaseObservable.h"
 
 std::shared_ptr<ConfigInfo> ConfigInfo::_config_info = nullptr;
 
@@ -50,6 +51,16 @@ ForcePtr ConfigInfo::get_force_by_id(std::string id) {
 	auto it = std::find_if(forces.begin(), forces.end(), [&id](const ForcePtr& obj) {return obj->get_id() == id;});
 
 	if(it != forces.end()) {
+		return *it;
+	}
+
+	return nullptr;
+}
+
+ObservablePtr ConfigInfo::get_observable_by_id(std::string id) {
+	auto it = std::find_if(observables.begin(), observables.end(), [&id](const ObservablePtr& obj) {return obj->get_id() == id;});
+
+	if(it != observables.end()) {
 		return *it;
 	}
 

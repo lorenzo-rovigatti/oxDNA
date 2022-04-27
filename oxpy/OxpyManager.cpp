@@ -224,4 +224,6 @@ input: :class:`InputFile`
 	manager.def("print_timings", &OxpyManager::print_timings, R"pbdoc(
 		Print the timings taking into account the number of steps run by the manager.
 	)pbdoc");
+
+	manager.def_property_readonly("current_step", &OxpyManager::get_current_step, "The current time step.");
 }
