@@ -20,6 +20,8 @@ ExternalTorque::~ExternalTorque() {
 }
 
 void ExternalTorque::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	char group_name[512] = "";
 	char origin[512] = "";
 	std::string direction;

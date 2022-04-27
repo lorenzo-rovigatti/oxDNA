@@ -26,6 +26,8 @@ TotalEnergy::~TotalEnergy() {
 }
 
 void TotalEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	_pot_energy.get_settings(my_inp, sim_inp);
 	_kin_energy.get_settings(my_inp, sim_inp);
 }

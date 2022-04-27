@@ -18,6 +18,8 @@ StretchedBonds::~StretchedBonds() {
 }
 
 void StretchedBonds::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputBool(&my_inp, "print_list", &_print_list, 0);
 	getInputNumber(&my_inp, "threshold", &_threshold, 0);
 }

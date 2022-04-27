@@ -18,9 +18,9 @@ CoaxVariables::~CoaxVariables() {
 }
 
 void CoaxVariables::get_settings(input_file &my_inp, input_file &sim_inp) {
-	int tmp = 0;
+	BaseObservable::get_settings(my_inp, sim_inp);
 
-	tmp = 0;
+	int tmp = 0;
 	getInputInt(&my_inp, "particle1_id", &tmp, 1);
 	_particle1_id = tmp;
 

@@ -23,6 +23,8 @@ void UnstackedList::init() {
 }
 
 void UnstackedList::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	// Read temperature from the input file
 	char TT[256];
 	getInputString(&sim_inp, "T", TT, 1);

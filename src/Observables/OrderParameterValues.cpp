@@ -28,6 +28,8 @@ void OrderParameterValues::init() {
 }
 
 void OrderParameterValues::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	bool parameters_loaded = false;
 	//first try load parameters from specific op_file key
 	if(getInputString(&my_inp, "order_parameters_file", _order_parameters_file, 0) == KEY_NOT_FOUND) {

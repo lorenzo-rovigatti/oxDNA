@@ -18,6 +18,8 @@ KineticEnergy::~KineticEnergy() {
 }
 
 void KineticEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	std::string dirs = "0,1,2";
 	getInputString(&my_inp, "velocity_directions", dirs, 0);
 	std::vector<std::string> tokens = Utils::split(dirs, ',');

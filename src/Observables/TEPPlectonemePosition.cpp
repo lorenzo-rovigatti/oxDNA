@@ -24,6 +24,8 @@ TEPPlectonemePosition::~TEPPlectonemePosition() {
 }
 
 void TEPPlectonemePosition::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputInt(&my_inp, "bead_minimum_distance", &_bead_minimum_distance, 0);
 	getInputNumber(&my_inp, "distance_threshold", &_distance_threshold, 0);
 	getInputBool(&my_inp, "print_position", &_print_pos, 0);

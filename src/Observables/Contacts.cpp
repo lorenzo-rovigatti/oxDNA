@@ -82,6 +82,8 @@ void Contacts::init() {
 }
 
 void Contacts::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputInt(&my_inp, "first_particle_index", &_first_particle_index, 0);
 	getInputInt(&my_inp, "last_particle_index", &_last_particle_index, 0);
 

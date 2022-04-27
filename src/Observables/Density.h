@@ -21,7 +21,6 @@ public:
 	virtual ~Density();
 
 	virtual std::string get_output_string(llint curr_step);
-	void get_settings(input_file &my_inp, input_file &sim_inp);
 };
 
 #endif /* DENSITY_H_ */

@@ -125,11 +125,10 @@ void Writhe::init() {
 }
 
 void Writhe::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
 
 	getInputInt(&my_inp, "first_particle_index", &_first_particle_index, 0);
-
 	getInputInt(&my_inp, "last_particle_index", &_last_particle_index, 0);
-
 	getInputInt(&my_inp, "subdomain_size", &_subdomain_size, 0);
 
 	getInputBool(&my_inp, "print_space_position", &_print_space_pos, 0);

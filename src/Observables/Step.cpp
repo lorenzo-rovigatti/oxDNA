@@ -23,6 +23,8 @@ std::string Step::get_output_string(llint curr_step) {
 }
 
 void Step::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	// if no units are specified, we assume STEP_UNIT_ONE_PER_STEP
 	char tmpstr[256];
 	if(getInputString(&my_inp, "units", tmpstr, 0) == KEY_FOUND) {

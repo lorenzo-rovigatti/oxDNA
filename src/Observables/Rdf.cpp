@@ -66,6 +66,8 @@ std::string Rdf::get_output_string(llint curr_step) {
 }
 
 void Rdf::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	char tmps[512];
 	if(getInputString(&my_inp, "axes", tmps, 0) == KEY_FOUND) {
 		if(!strncasecmp(tmps, "x", 512)) _mask = LR_vector(1., 0., 0.);

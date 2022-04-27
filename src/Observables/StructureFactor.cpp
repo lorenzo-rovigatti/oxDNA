@@ -22,6 +22,8 @@ StructureFactor::~StructureFactor() {
 }
 
 void StructureFactor::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputNumber(&my_inp, "max_q", &_max_q, 1);
 	getInputInt(&my_inp, "int_type", &_type, 0);
 	getInputInt(&my_inp, "max_qs_in_interval", &_max_qs_in_interval, 0);

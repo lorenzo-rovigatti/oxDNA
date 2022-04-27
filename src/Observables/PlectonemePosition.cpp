@@ -20,6 +20,8 @@ PlectonemePosition::~PlectonemePosition() {
 }
 
 void PlectonemePosition::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputInt(&my_inp, "bp_dist_along_str", &_critical_bp_distance, 0);
 	getInputNumber(&my_inp, "dist_bet_str", &_critical_strand_distance, 0);
 }

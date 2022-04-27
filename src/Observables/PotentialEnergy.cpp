@@ -29,6 +29,8 @@ number PotentialEnergy::get_potential_energy() {
 }
 
 void PotentialEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputBool(&my_inp, "split", &_split, 0);
 }
 

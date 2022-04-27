@@ -27,6 +27,8 @@ void HBList::init() {
 }
 
 void HBList::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	_read_op = true;
 	_only_count = false;
 	bool parameters_loaded = false;

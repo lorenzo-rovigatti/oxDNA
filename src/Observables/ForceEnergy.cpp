@@ -16,6 +16,8 @@ ForceEnergy::~ForceEnergy() {
 }
 
 void ForceEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputString(&my_inp, "print_group", _group_name, 0);
 }
 
