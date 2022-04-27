@@ -50,6 +50,14 @@ public:
 
 	const FlattenedConfigInfo &flattened_conf();
 
+	std::shared_ptr<ConfigInfo> config_info() {
+		return _config_info;
+	}
+
+	llint get_conf_step() {
+		return _read_conf_step;
+	}
+
 	bool read_next_configuration(bool binary=false) override;
 
 	void analyse();

@@ -54,6 +54,17 @@ void export_AnalysisBackend(py::module &m) {
 	backend.def_property_readonly("flattened_conf", &AnalysisBackend::flattened_conf, R"pbdoc(
 		 A flattened (that is, composed by arrays rather than class instances) view of the current configuration, stored in a :py:class:`~oxpy.core.FlattenedConfigInfo` object.
 	)pbdoc");
+
+	backend.def("config_info", &AnalysisBackend::config_info, R"pbdoc(
+		Return the simulation's :class:`ConfigInfo`.
+
+		Returns
+		-------
+		:class:`ConfigInfo`
+			The object that stores all the simulation's details (particles, interaction, `etc`).
+	)pbdoc");
+
+	backend.def_property_readonly("conf_step", &AnalysisBackend::get_conf_step, "The time step at which the current configuration was printed.");
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_ANALYSISBACKEND_H_ */
