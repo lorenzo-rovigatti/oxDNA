@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The core module &mdash; oxpy 3.0.0a1.dev258+g55cd564.d20220427 documentation</title>
+  <title>The core module &mdash; oxpy 3.0.0a1.dev261+g0a155ab.d20220427 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev258+g55cd564.d20220427
+                3.0.0a1.dev261+g0a155ab.d20220427
               </div>
             
           
@@ -738,6 +738,30 @@ set through the <a class="reference internal" href="#oxpy.core.BaseInteraction.s
 <dt id="oxpy.core.BaseInteraction.pair_interaction_nonbonded">
 <code class="sig-name descname">pair_interaction_nonbonded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">compute_r</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_forces</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><a class="headerlink" href="#oxpy.core.BaseInteraction.pair_interaction_nonbonded" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the unbonded pair interaction between p and q. See <a class="reference internal" href="#oxpy.core.BaseInteraction.pair_interaction" title="oxpy.core.BaseInteraction.pair_interaction"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pair_interaction()</span></code></a> for details on the parameters and on the return value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.BaseInteraction.pair_interaction_term">
+<code class="sig-name descname">pair_interaction_term</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseInteraction" title="oxpy.core.BaseInteraction">oxpy.core.BaseInteraction</a></span></em>, <em class="sig-param"><span class="n">term_id</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">oxpy.core.BaseParticle</a></span></em>, <em class="sig-param"><span class="n">compute_r</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_forces</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><a class="headerlink" href="#oxpy.core.BaseInteraction.pair_interaction_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the pair interaction between p and q due to the specified term.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>term_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The id of the energy term to be computed.</p></li>
+<li><p><strong>p</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The first particle of the pair. Note that some interactions require that the two particles are passed to the method with a specific order.</p></li>
+<li><p><strong>q</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The second particle of the pair.</p></li>
+<li><p><strong>compute_r</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True (default value), the distance between <code class="xref py py-attr docutils literal notranslate"><span class="pre">p</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">q</span></code> will be computed from scratch. If not, it will use a private member that can be
+set through the <a class="reference internal" href="#oxpy.core.BaseInteraction.set_computed_r" title="oxpy.core.BaseInteraction.set_computed_r"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_computed_r()</span></code></a> method.</p></li>
+<li><p><strong>update_forces</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, the forces and torques acting on the two particles will be updated (defaults to False).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The energy of the pair interaction due to the specified term.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

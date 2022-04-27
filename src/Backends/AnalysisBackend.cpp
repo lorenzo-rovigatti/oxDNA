@@ -19,6 +19,8 @@ AnalysisBackend::AnalysisBackend() :
 				_done(false),
 				_n_conf(0) {
 	_enable_fix_diffusion = 0;
+	_bytes_to_skip = 0;
+	_confs_to_analyse = -1;
 }
 
 AnalysisBackend::~AnalysisBackend() {
@@ -44,6 +46,11 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	_mytimer = TimingManager::instance()->new_timer(std::string("AnalysisBackend"));
 
 	getInputInt(&inp, "analysis_confs_to_skip", &_confs_to_skip, 0);
+	if(_confs_to_skip == 0) {
+		getInputLLInt(&inp, "analysis_bytes_to_skip", &_bytes_to_skip, 0);
+	}
+
+	getInputInt(&inp, "confs_to_analyse", &_confs_to_analyse, 0);
 
 	getInputString(&inp, "trajectory_file", _conf_filename, 1);
 
@@ -95,7 +102,7 @@ const FlattenedConfigInfo &AnalysisBackend::flattened_conf() {
 }
 
 bool AnalysisBackend::read_next_configuration(bool binary) {
-	_done = !SimBackend::read_next_configuration(binary);
+	_done = (_n_conf == _confs_to_analyse) || !SimBackend::read_next_configuration(binary);
 	return !_done;
 }
 
@@ -106,10 +113,9 @@ void AnalysisBackend::analyse() {
 		OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
 	}
 	SimBackend::print_observables(_read_conf_step);
+	_n_conf++;
 
 	if(read_next_configuration(_initial_conf_is_binary)) {
-		_n_conf++;
-
 		for(auto p : _particles) {
 			_lists->single_update(p);
 		}

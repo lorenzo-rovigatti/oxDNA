@@ -22,6 +22,7 @@ class AnalysisBackend: public SimBackend {
 protected:
 	bool _done;
 	llint _n_conf;
+	int _confs_to_analyse;
 
 	FlattenedConfigInfo _flattened_conf;
 

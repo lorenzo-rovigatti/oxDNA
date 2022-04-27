@@ -137,6 +137,7 @@ protected:
 
 	int _N_updates;
 	int _confs_to_skip;
+	llint _bytes_to_skip;
 
 	void _read_external_forces();
 

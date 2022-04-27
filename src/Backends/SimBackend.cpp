@@ -152,6 +152,9 @@ void SimBackend::get_settings(input_file &inp) {
 	_reseed = (getInputInt(&inp, "seed", &tmpi, 0) == KEY_NOT_FOUND || tmpi == 0);
 
 	getInputInt(&inp, "confs_to_skip", &_confs_to_skip, 0);
+	if(_confs_to_skip == 0) {
+		getInputLLInt(&inp, "bytes_to_skip", &_bytes_to_skip, 0);
+	}
 
 	int val = getInputBoolAsInt(&inp, "external_forces", &tmp, 0);
 	if(val == KEY_FOUND) {
@@ -307,6 +310,9 @@ void SimBackend::init() {
 				throw oxDNAException("Skipping %d configuration(s) is not possible, as the initial trajectory file only contains %d configurations", _confs_to_skip, i);
 			}
 		}
+	}
+	else if(_bytes_to_skip > 0) {
+		_conf_input.seekg(_bytes_to_skip, std::ios_base::beg);
 	}
 
 	bool check = read_next_configuration(_initial_conf_is_binary);
