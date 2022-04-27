@@ -24,6 +24,8 @@ MicrogelElasticity::~MicrogelElasticity() {
 }
 
 void MicrogelElasticity::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	std::string inter;
 	getInputString(&sim_inp, "interaction_type", inter, 1);
 	if(inter != "MGInteraction") throw oxDNAException("MicrogelElasticity is not compatible with the interaction '%s'", inter.c_str());

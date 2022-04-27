@@ -22,6 +22,8 @@ void ClosestN::init() {
 }
 
 void ClosestN::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputInt(&my_inp, "nmax", &_nmax, 0);
 }
 

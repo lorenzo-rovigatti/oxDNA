@@ -5,11 +5,12 @@
  *      Author: lorenzo
  */
 
+#include "old/StarrHubConf.h"
+
 #include <sstream>
 #include <iostream>
 #include <string>
 
-#include "StarrHubConf.h"
 #include "../Interactions/PatchyInteraction.h"
 
 using namespace std;
@@ -36,7 +37,7 @@ void StarrHubConf::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 void StarrHubConf::init() {
-	Configuration::init(config_info);
+	Configuration::init();
 
 	_N_tetramers = *_config_info->N / _N_per_tetramer;
 	_tetra_poss.resize(_N_tetramers);

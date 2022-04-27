@@ -20,6 +20,8 @@ Gyradius::~Gyradius() {
 }
 
 void Gyradius::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	int tmp = 0;
 	getInputBoolAsInt(&my_inp, "accumulate", &tmp, 0);
 	_accumulate = (bool) tmp;

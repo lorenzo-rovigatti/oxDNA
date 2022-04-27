@@ -25,6 +25,8 @@ Configuration::~Configuration() {
 }
 
 void Configuration::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputBool(&sim_inp, "back_in_box", &_back_in_box, 0);
 	getInputBool(&my_inp, "back_in_box", &_back_in_box, 0);
 	getInputBool(&my_inp, "reduced", &_reduced, 0);
