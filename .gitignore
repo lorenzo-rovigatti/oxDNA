@@ -37,10 +37,11 @@ pybuild/
 cuda/
 docs/oxpy/doctrees
 
-test/**/*energy.dat
+test/**/*energy*.dat
 test/**/last_conf.dat
 test/**/*log.dat
 test/**/trajectory.dat
+test/**/time.dat
 
 **/*pyc
 

@@ -82,8 +82,9 @@ The following options pertain to `oxpy`:
 	
 ## Testing
 
-* `make test_run` Runs quick tests to check whether oxDNA has been correctly compiled or not.	
-* `make test_quick` Runs longer tests to check that oxDNA works (not fully implemented yet, but the main features are supported). 
+* `make test_run` runs quick tests to check whether oxDNA has been correctly compiled or not.	
+* `make test_quick` runs longer tests to check that oxDNA works (not fully implemented yet, but the main features are supported).
+* `make test` runs both sets of tests above.
 
 ## Usage
 
@@ -205,3 +206,14 @@ Please cite these publications for any work that uses the oxDNA simulation packa
     * B. E. K. Snodin et al., J. Chem. Phys. 142, 234901 (2015)
 - for the oxRNA model:
     * P. Šulc et al., J. Chem. Phys. 140, 235102 (2014)
+    
+## Acknowledgements
+
+oxDNA depends on a minimum number of external libraries (a c++-14-compliant standard library and Nvidia's CUDA if the user wishes to enable it).
+
+Internally, oxDNA uses the following libraries, which are included in the source tree:
+
+* [ExprTk](https://www.partow.net/programming/exprtk/index.html)
+* [nlohmann's JSON library](https://github.com/nlohmann/json)
+
+As far as I know, this is compatible with their licenses. If you are a developer or a mantainer of one of these projects and you think that oxDNA does not comply with your license, please contact us.

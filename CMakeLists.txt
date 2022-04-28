@@ -81,6 +81,8 @@ IF(CUDA_DOUBLE)
 	ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
 ENDIF()
 
+include_directories(src/extern)
+
 ADD_DEFINITIONS(-Wall -Wshadow -Wextra -Wno-unused-parameter)
 
 IF(NOT Debug)
@@ -179,24 +181,23 @@ if(DOXYGEN_FOUND)
 	)
 ENDIF(DOXYGEN_FOUND)
 
-ADD_CUSTOM_TARGET(test_run
+add_custom_target(test_run
     ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA run
-    COMMAND ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/DNAnalysis analysis
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running build integration tests" VERBATIM
 )
 
-ADD_CUSTOM_TARGET(test_quick
+add_custom_target(test_quick
     ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA quick
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running quick tests" VERBATIM
 )
 
-ADD_CUSTOM_TARGET(test_scientific
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA scientific
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
-    COMMENT "Running scientific tests" VERBATIM
+add_custom_target(test
+	COMMENT "Running all tests" VERBATIM
 )
+
+add_dependencies(test test_quick test_run)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 

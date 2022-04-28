@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 		if(argc < 2) throw oxDNAException("Usage is '%s input_file'", argv[0]);
 		if(!strcmp(argv[1], "-v")) print_version();
 
-		input_file input;
+		input_file input(true);
 		input.init_from_command_line_args(argc, argv);
 
 		ParallelManager mysim(input);

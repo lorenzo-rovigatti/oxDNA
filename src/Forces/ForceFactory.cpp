@@ -28,6 +28,8 @@
 #include <sstream>
 #include "RepulsiveEllipsoid.h"
 
+#include <nlohmann/json.hpp>
+
 using namespace std;
 
 std::shared_ptr<ForceFactory> ForceFactory::_ForceFactoryPtr = nullptr;
@@ -49,7 +51,7 @@ std::shared_ptr<ForceFactory> ForceFactory::instance() {
 	return _ForceFactoryPtr;
 }
 
-void ForceFactory::add_force(input_file &inp, BaseBox *box_ptr) {
+void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &particles, BaseBox * box_ptr) {
 	string type_str;
 	getInputString(&inp, "type", type_str, 1);
 
@@ -75,6 +77,10 @@ void ForceFactory::add_force(input_file &inp, BaseBox *box_ptr) {
 	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
+	string group = string("default");
+	getInputString(&inp, "group_name", group, 0);
+	extF->set_group_name(group);
+
 	std::vector<int> particle_ids;
 	std::string description;
 	std::tie(particle_ids, description) = extF->init(inp);
@@ -82,79 +88,110 @@ void ForceFactory::add_force(input_file &inp, BaseBox *box_ptr) {
 	CONFIG_INFO->add_force_to_particles(extF, particle_ids, description);
 }
 
-void ForceFactory::read_external_forces(std::string external_filename, BaseBox *box) {
-	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
+void ForceFactory::make_forces(std::vector<BaseParticle *> &particles, BaseBox *box) {
+	bool external_forces = false;
+	getInputBool(CONFIG_INFO->sim_input, "external_forces", &external_forces, 0);
 
-	int open, justopen, a;
-	ifstream external(external_filename.c_str());
+	if(external_forces) {
+		std::string external_filename;
+		getInputString(CONFIG_INFO->sim_input, "external_forces_file", external_filename, 1);
 
-	if(!external.good ()) {
-		throw oxDNAException ("Can't read external_forces_file '%s'", external_filename.c_str());
-	}
+		ifstream external(external_filename.c_str());
+		if(!external.good ()) {
+			throw oxDNAException ("Can't read external_forces_file '%s'", external_filename.c_str());
+		}
 
-	justopen = open = 0;
-	a = external.get();
-	bool is_commented = false;
-	stringstream external_string;
-	while(external.good()) {
-		justopen = 0;
-		switch(a) {
-			case '#':
-			is_commented = true;
-			break;
-			case '\n':
-			is_commented = false;
-			break;
-			case '{':
-			if(!is_commented) {
-				open++;
-				justopen = 1;
-			}
-			break;
-			case '}':
-			if(!is_commented) {
-				if(justopen) {
-					throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
+		bool is_json = false;
+		getInputBool(CONFIG_INFO->sim_input, "external_forces_as_JSON", &is_json, 0);
+
+		if(is_json) {
+			OX_LOG(Logger::LOG_INFO, "Parsing JSON force file %s", external_filename.c_str());
+
+			nlohmann::json my_json = nlohmann::json::parse(external);
+
+			for(auto &force_json : my_json) {
+				input_file force_input;
+				for(auto &item : force_json.items()) {
+					try {
+						std::string key(item.key());
+						std::string value(item.value());
+						force_input.set_value(key, value);
+					}
+					catch(nlohmann::detail::type_error &e) {
+						// here we use a stringstream since if we are here it means that we cannot cast item.key() and/or item.value() to a string
+						std::stringstream ss;
+						ss << "The JSON external force file contains a non-string key or value in the line \"" << item.key() << " : " << item.value() << "\". ";
+						ss << "Please make sure that all keys and values are quoted.";
+						throw oxDNAException(ss.str());
+					}
 				}
-				open--;
+				ForceFactory::instance()->add_force(force_input, particles, box);
 			}
-			break;
-			default:
-			break;
 		}
+		else {
+			OX_LOG(Logger::LOG_INFO, "Parsing force file %s", external_filename.c_str());
 
-		if(!is_commented) {
-			external_string << (char)a;
-		}
-		if(open > 1 || open < 0) {
-			throw oxDNAException ("Syntax error in '%s': parentheses do not match", external_filename.c_str());
-		}
-		a = external.get();
-	}
-	external.close();
+			//char line[512], typestr[512];
+			int open, justopen, a;
 
-	external_string.clear();
-	external_string.seekg(0, ios::beg);
-	a = external_string.get();
-	while(external_string.good()) {
-		while (a != '{' && external_string.good()) {
+			justopen = open = 0;
+			a = external.get();
+			bool is_commented = false;
+			stringstream external_string;
+			while(external.good()) {
+				justopen = 0;
+				switch(a) {
+					case '#':
+					is_commented = true;
+					break;
+					case '\n':
+					is_commented = false;
+					break;
+					case '{':
+					if(!is_commented) {
+						open++;
+						justopen = 1;
+					}
+					break;
+					case '}':
+					if(!is_commented) {
+						if(justopen) throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
+						open--;
+					}
+					break;
+					default:
+					break;
+				}
+
+				if(!is_commented) external_string << (char)a;
+				if(open > 1 || open < 0) throw oxDNAException ("Syntax error in '%s': parentheses do not match", external_filename.c_str());
+				a = external.get();
+			}
+			external_string.clear();
+			external_string.seekg(0, ios::beg);
 			a = external_string.get();
-		}
-		if(!external_string.good()) {
-			break;
+			while(external_string.good()) {
+				while (a != '{' && external_string.good()) {
+					a = external_string.get();
+				}
+				if(!external_string.good()) {
+					break;
+				}
+
+				a = external_string.get();
+				std::string input_string("");
+				while (a != '}' && external_string.good()) {
+					input_string += a;
+					a = external_string.get();
+				}
+				input_file input;
+				input.init_from_string(input_string);
+
+				ForceFactory::instance()->add_force(input, particles, box);
+			}
 		}
 
-		a = external_string.get();
-		std::string input_string("");
-		while (a != '}' && external_string.good()) {
-			input_string += a;
-			a = external_string.get();
-		}
-		input_file input;
-		input.init_from_string(input_string);
-
-		ForceFactory::instance()->add_force(input, box);
+		external.close();
+		OX_LOG(Logger::LOG_INFO, "   Force file parsed");
 	}
-
-	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());
 }

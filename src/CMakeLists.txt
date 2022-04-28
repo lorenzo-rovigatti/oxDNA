@@ -297,4 +297,3 @@ TARGET_LINK_LIBRARIES(confGenerator ${lib_name})
 # we add these executable as dependencies for the test targets
 ADD_DEPENDENCIES(test_run ${exe_name} DNAnalysis confGenerator)
 ADD_DEPENDENCIES(test_quick ${exe_name} DNAnalysis confGenerator)
-ADD_DEPENDENCIES(test_scientific ${exe_name} DNAnalysis confGenerator)

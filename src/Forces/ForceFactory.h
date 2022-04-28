@@ -42,10 +42,10 @@ public:
 	 * @param N
 	 * @param box_side_ptr pointer to the box side. We use a pointer since the box size can change 
 	 */
-	void add_force(input_file &inp, BaseBox *box_ptr);
+	void add_force(input_file &inp, std::vector<BaseParticle *> &particles, BaseBox *box_ptr);
 
 	/// adds forces. Used by SimBackend and GeneratorManager
-	void read_external_forces(std::string external_filename, BaseBox *box_ptr);
+	void make_forces(std::vector<BaseParticle *> &particles, BaseBox *box_ptr);
 };
 
 #endif /* FORCEFACTORY_H_ */
