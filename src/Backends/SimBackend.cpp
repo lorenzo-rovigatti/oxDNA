@@ -26,6 +26,7 @@ SimBackend::SimBackend() {
 	_external_forces = false;
 	_N_updates = 0;
 	_confs_to_skip = 0;
+	_bytes_to_skip = 0;
 	_interaction = nullptr;
 	_N_strands = -1;
 	start_step_from_file = (llint) 0;
