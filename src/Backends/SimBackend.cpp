@@ -19,6 +19,8 @@
 #include "../Particles/BaseParticle.h"
 #include "../Utilities/Timings.h"
 
+#include <fast_double_parser/fast_double_parser.h>
+
 SimBackend::SimBackend() {
 	// we need to initialize everything so that we can check what we can
 	// and what we can't delete[] in the destructor
@@ -366,6 +368,42 @@ LR_vector SimBackend::_read_next_vector(bool binary) {
 	return res;
 }
 
+number lexical_cast(const std::string &source) {
+	double result;
+
+	if(fast_double_parser::parse_number(source.c_str(), &result) == nullptr) {
+		throw oxDNAException("Cannot convert '%s' to a number", source.c_str());
+	}
+
+	return result;
+}
+
+std::vector<number> split_to_numbers(const std::string &str, const std::string &delims) {
+	std::vector<number> output;
+	output.reserve(15);
+
+	const char *ptr = str.c_str();
+	while(ptr) {
+		auto base = ptr;
+		ptr = std::strpbrk(ptr, delims.c_str());
+		if(ptr) {
+			// this check makes sure that no empty strings are added to the output
+			if(ptr - base) {
+				output.emplace_back(lexical_cast(std::string(base, ptr - base)));
+			}
+			ptr++;
+		}
+		else {
+			std::string remainder(base);
+			if(remainder.size() > 0) {
+				output.emplace_back(lexical_cast(remainder));
+			}
+		}
+	}
+
+	return output;
+}
+
 bool SimBackend::read_next_configuration(bool binary) {
 	double Lx, Ly, Lz;
 	// parse headers. Binary and ascii configurations have different headers, and hence
@@ -453,17 +491,24 @@ bool SimBackend::read_next_configuration(bool binary) {
 	}
 
 	i = 0;
+	std::string line;
 	while(!_conf_input.eof() && i < N()) {
 		BaseParticle *p = _particles[i];
 
-		tmp_poss[i] = _read_next_vector(binary);
+		std::getline(_conf_input, line);
+		auto spl_line = split_to_numbers(line, " ");
+
+//		tmp_poss[i] = _read_next_vector(binary);
+		tmp_poss[i] = LR_vector(spl_line[0], spl_line[1], spl_line[2]);
 		k = p->strand_id;
 		scdm[k] += tmp_poss[i];
 		nins[k]++;
 
 		if(!binary) {
-			p->orientation.v1 = _read_next_vector(binary);
-			p->orientation.v3 = _read_next_vector(binary);
+//			p->orientation.v1 = _read_next_vector(binary);
+//			p->orientation.v3 = _read_next_vector(binary);
+			p->orientation.v1 = LR_vector(spl_line[3], spl_line[4], spl_line[5]);
+			p->orientation.v3 = LR_vector(spl_line[6], spl_line[7], spl_line[8]);
 			// get v2 from v1 and v3
 			p->orientation.v1.normalize();
 			p->orientation.v3.normalize();
@@ -489,8 +534,10 @@ bool SimBackend::read_next_configuration(bool binary) {
 		}
 		p->orientation.transpone();
 
-		p->vel = _read_next_vector(binary);
-		p->L = _read_next_vector(binary);
+//		p->vel = _read_next_vector(binary);
+//		p->L = _read_next_vector(binary);
+		p->vel = LR_vector(spl_line[9], spl_line[10], spl_line[11]);
+		p->L = LR_vector(spl_line[12], spl_line[13], spl_line[14]);
 
 		p->init();
 		p->orientationT = p->orientation.get_transpose();
@@ -501,8 +548,7 @@ bool SimBackend::read_next_configuration(bool binary) {
 
 	// this is needed because, if reading from an ascii trajectory, at this stage the _conf_input pointer points to a \n
 	if(!binary && !_conf_input.eof()) {
-		std::string line;
-		std::getline(_conf_input, line);
+//		std::getline(_conf_input, line);
 	}
 
 	// discarding the final '\n' in the binary file...
