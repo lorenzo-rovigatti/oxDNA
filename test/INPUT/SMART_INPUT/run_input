@@ -29,7 +29,7 @@ time_scale = linear
 
 external_forces = true
 external_forces_as_JSON = true
-external_forces_file = ext_forces.dat
+#external_forces_file = ext_forces.dat
 
 data_output_1 = {
 	name = time.dat

@@ -7,6 +7,7 @@ import os
 import subprocess as sp
 import math
 import difflib
+import distutils
 
 from multiprocessing import Lock
 
@@ -92,14 +93,24 @@ class FileExists(BaseTest):
         BaseTest.__init__(self, folder, log_prefix, parameters)
         
     def parse_parameters(self):
-        if len(self.parameters) != 2:
+        if len(self.parameters) < 2:
             Logger.log("%s FileExists expects a single parameter: the name of the file whose existence should be checked" % self.log_prefix, Logger.WARNING)
             self.error = True
         else:
             self.target_file = os.path.join(self.folder, self.parameters[1])
+            if len(self.parameters) > 2:
+                self.check_if_empty = distutils.util.strtobool(self.parameters[2])
+            else:
+                self.check_if_empty = True
     
     def test(self):
-        return os.path.exists(self.target_file)
+        if os.path.exists(self.target_file):
+            if self.check_if_empty:
+                return os.stat(self.target_file).st_size != 0
+            return True
+        
+        return False
+        
 
 
 class DiffFiles(BaseTest):
@@ -108,7 +119,7 @@ class DiffFiles(BaseTest):
         
     def parse_parameters(self):
         if len(self.parameters) != 3:
-            Logger.log("%s ColumnAverage expects 2 parameters: the reference and data files" % self.log_prefix, Logger.WARNING)
+            Logger.log("%s ColumnAverage expects 2 parameters: the names of the reference and data files, in this order" % self.log_prefix, Logger.WARNING)
             self.error = True
         else:
             self.reference_file = os.path.join(self.folder, self.parameters[1])
