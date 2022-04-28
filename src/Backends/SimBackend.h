@@ -81,7 +81,7 @@ protected:
 	bool _enable_fix_diffusion;
 
 	bool _external_forces;
-	char _external_filename[256];
+	std::string _external_filename;
 
 	char _reduced_conf_output_dir[256];
 
@@ -137,8 +137,6 @@ protected:
 
 	int _N_updates;
 	int _confs_to_skip;
-
-	void _read_external_forces();
 
 	/**
 	 * Reads from _conf_input three numbers in ascii or binary format, depending on the

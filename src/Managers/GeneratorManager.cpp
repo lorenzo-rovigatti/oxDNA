@@ -35,7 +35,7 @@ GeneratorManager::GeneratorManager(input_file input, char *third_argument) :
 		_use_density = false;
 	}
 	else {
-		double argv2 = atof(tmpstr.c_str());
+		number argv2 = atof(tmpstr.c_str());
 		if(argv2 <= 0.) {
 			throw oxDNAException("Refusing to run with box_side/density = %g (converted from \"%s\")", argv2, tmpstr.c_str());
 		}
@@ -68,14 +68,10 @@ GeneratorManager::~GeneratorManager() {
 }
 
 void GeneratorManager::load_options() {
+	CONFIG_INFO->sim_input = &_input;
+
 	getInputString(&_input, "trajectory_file", _trajectory, 1);
 	getInputString(&_input, "conf_file", _output_conf, 1);
-
-	// read wether to use external forces
-	getInputBool(&_input, "external_forces", &_external_forces, 0);
-	if(_external_forces) {
-		getInputString(&_input, "external_forces_file", _external_filename, 0);
-	}
 
 	// seed;
 	int seed;
@@ -103,6 +99,8 @@ void GeneratorManager::load_options() {
 
 	_interaction = InteractionFactory::make_interaction(_input);
 	_interaction->get_settings(_input);
+
+	getInputBool(&_input, "external_forces", &_external_forces, 0);
 }
 
 void GeneratorManager::init() {
@@ -134,10 +132,11 @@ void GeneratorManager::init() {
 	_mybox->init(_box_side_x, _box_side_y, _box_side_z);
 	_interaction->set_box(_mybox.get());
 
-	// initializing external forces
-	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(_external_filename, _particles, _mybox.get());
-	}
+	CONFIG_INFO->interaction = _interaction.get();
+	CONFIG_INFO->box = _mybox.get();
+
+	// initialise external forces
+	ForceFactory::instance()->make_forces(_particles, _mybox.get());
 }
 
 void GeneratorManager::generate() {

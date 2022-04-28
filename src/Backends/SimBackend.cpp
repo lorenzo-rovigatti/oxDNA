@@ -153,16 +153,6 @@ void SimBackend::get_settings(input_file &inp) {
 
 	getInputInt(&inp, "confs_to_skip", &_confs_to_skip, 0);
 
-	int val = getInputBoolAsInt(&inp, "external_forces", &tmp, 0);
-	if(val == KEY_FOUND) {
-		_external_forces = (tmp != 0);
-		if(_external_forces) {
-			getInputString(&inp, "external_forces_file", _external_filename, 1);
-		}
-	}
-	else if(val == KEY_INVALID)
-		throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
-
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
 	_config_info->update_temperature(Utils::get_temperature(raw_T));
@@ -268,6 +258,9 @@ void SimBackend::get_settings(input_file &inp) {
 	else {
 		_max_io = 1.; // default value for a simulation is 1 MB/s;
 	}
+
+	getInputBool(&inp, "external_forces", &_external_forces, 0);
+
 }
 
 void SimBackend::init() {
@@ -331,11 +324,8 @@ void SimBackend::init() {
 	start_step_from_file = (_restart_step_counter) ? 0 : _read_conf_step;
 	_config_info->curr_step = start_step_from_file;
 
-	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _box.get());
-	}
-
-	_U = (number) 0;
+	// initialise external forces
+	ForceFactory::instance()->make_forces(_particles, _box.get());
 
 	_interaction->set_box(_box.get());
 
