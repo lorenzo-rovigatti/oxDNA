@@ -82,8 +82,9 @@ The following options pertain to `oxpy`:
 	
 ## Testing
 
-* `make test_run` Runs quick tests to check whether oxDNA has been correctly compiled or not.	
-* `make test_quick` Runs longer tests to check that oxDNA works (not fully implemented yet, but the main features are supported). 
+* `make test_run` runs quick tests to check whether oxDNA has been correctly compiled or not.	
+* `make test_quick` runs longer tests to check that oxDNA works (not fully implemented yet, but the main features are supported).
+* `make test` runs both sets of tests above.
 
 ## Usage
 
