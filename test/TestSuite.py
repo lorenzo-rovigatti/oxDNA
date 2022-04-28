@@ -6,6 +6,7 @@ import queue
 import os
 import subprocess as sp
 import math
+import difflib
 
 from multiprocessing import Lock
 
@@ -84,6 +85,43 @@ class BaseTest(object):
     def generate_compare_line(self):
         Logger.log("%s %s's generate_compare_line() not implemented" % (self.log_prefix, type(self)), Logger.CRITICAL)
         sys.exit(1)
+    
+    
+class FileExists(BaseTest):
+    def __init__(self, folder, log_prefix, parameters):
+        BaseTest.__init__(self, folder, log_prefix, parameters)
+        
+    def parse_parameters(self):
+        if len(self.parameters) != 2:
+            Logger.log("%s FileExists expects a single parameter: the name of the file whose existence should be checked" % self.log_prefix, Logger.WARNING)
+            self.error = True
+        else:
+            self.target_file = os.path.join(self.folder, self.parameters[1])
+    
+    def test(self):
+        return os.path.exists(self.target_file)
+
+
+class DiffFiles(BaseTest):
+    def __init__(self, folder, log_prefix, parameters):
+        BaseTest.__init__(self, folder, log_prefix, parameters)
+        
+    def parse_parameters(self):
+        if len(self.parameters) != 3:
+            Logger.log("%s ColumnAverage expects 2 parameters: the reference and data files" % self.log_prefix, Logger.WARNING)
+            self.error = True
+        else:
+            self.reference_file = os.path.join(self.folder, self.parameters[1])
+            self.data_file = os.path.join(self.folder, self.parameters[2])
+    
+    def test(self):
+        if not self.error:
+            with open(self.reference_file) as ref_file:
+                ref_data = ref_file.readlines()
+            with open(self.data_file) as data_file:
+                data = data_file.readlines()
+    
+        return len(list(difflib.unified_diff(ref_data, data))) == 0
     
     
 class ColumnAverage(BaseTest):
