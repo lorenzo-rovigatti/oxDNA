@@ -72,7 +72,7 @@ void export_ConfigInfo(py::module &m) {
 
 		Returns
 		-------
-		:py:class:`BaseObservable`
+		:py:class:`~oxpy.core.observables.BaseObservable`
 			The observable with the given id, or `None` if the id does not correspond to any observable.
 	)pbdoc");
 }

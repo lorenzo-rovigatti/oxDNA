@@ -7,6 +7,7 @@ This module contains the Python bindings of the C++ code. Every `object` describ
    :maxdepth: 2
    
    forces.md
+   observables.md
 
 .. currentmodule:: oxpy.core
 
@@ -22,7 +23,6 @@ This module contains the Python bindings of the C++ code. Every `object` describ
     BaseInteraction
     ConfigInfo
     FlattenedConfigInfo
-    BaseObservable
     InputFile
     
 .. autoclass:: Context
@@ -45,8 +45,6 @@ This module contains the Python bindings of the C++ code. Every `object` describ
 .. autoclass:: FlattenedConfigInfo
 
 .. autoclass:: FlattenedVectorArray
-
-.. autoclass:: BaseObservable
 
 .. autoclass:: InputFile
 

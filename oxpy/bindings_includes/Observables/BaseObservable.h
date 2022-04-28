@@ -8,7 +8,9 @@
 #ifndef OXPY_BUILD_DOCS_BINDINGS_INCLUDES_BASEOBSERVABLE_H_
 #define OXPY_BUILD_DOCS_BINDINGS_INCLUDES_BASEOBSERVABLE_H_
 
-#include "../python_defs.h"
+#include "../../python_defs.h"
+
+#include "HBList.h"
 
 #include <Observables/BaseObservable.h>
 
@@ -30,7 +32,9 @@ public:
 };
 
 void export_BaseObservable(py::module &m) {
-	py::class_<BaseObservable, PyBaseObservable, std::shared_ptr<BaseObservable>> obs(m, "BaseObservable", R"pbdoc(
+	py::module sub_m = m.def_submodule("observables");
+
+	py::class_<BaseObservable, PyBaseObservable, std::shared_ptr<BaseObservable>> obs(sub_m, "BaseObservable", R"pbdoc(
 		The interface class for observables.
 	)pbdoc");
 
@@ -73,6 +77,8 @@ void export_BaseObservable(py::module &m) {
         str
             The output of the observable.
 	)pbdoc");
+
+	export_HBList(sub_m);
 }
 
 #endif /* OXPY_BUILD_DOCS_BINDINGS_INCLUDES_BASEOBSERVABLE_H_ */

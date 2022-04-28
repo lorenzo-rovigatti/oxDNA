@@ -15,7 +15,7 @@
 #include "bindings_includes/AnalysisBackend.h"
 #include "bindings_includes/Forces/BaseForce.h"
 #include "bindings_includes/BaseInteraction.h"
-#include "bindings_includes/BaseObservable.h"
+#include "bindings_includes/Observables/BaseObservable.h"
 #include "bindings_includes/BaseParticle.h"
 #include "bindings_includes/FlattenedConfigInfo.h"
 #include "bindings_includes/ConfigInfo.h"
