@@ -32,7 +32,8 @@ class Logger():
 
     @staticmethod
     def log(msg, level, prepend=""):
-        if level < Logger.debug_level: return
+        if level < Logger.debug_level: 
+            return
 
         Logger.log_lock.acquire()
         print("%s%s: %s" % (prepend, Logger.messages[level], msg), file=sys.stderr)
@@ -57,7 +58,7 @@ class Runner(threading.Thread):
             to_execute = "%s %s log_file=%s no_stdout_energy=0" % (details["executable"], system.input_name, log_file)
             
             try:
-                p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, cwd=folder)
+                p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, cwd=folder, universal_newlines=True)
                 p.wait()
                 system.simulation_done(p)
                 
@@ -110,7 +111,6 @@ class FileExists(BaseTest):
             return True
         
         return False
-        
 
 
 class DiffFiles(BaseTest):
@@ -119,7 +119,7 @@ class DiffFiles(BaseTest):
         
     def parse_parameters(self):
         if len(self.parameters) != 3:
-            Logger.log("%s ColumnAverage expects 2 parameters: the names of the reference and data files, in this order" % self.log_prefix, Logger.WARNING)
+            Logger.log("%s DiffFiles expects 2 parameters: the names of the reference and data files, in this order" % self.log_prefix, Logger.WARNING)
             self.error = True
         else:
             self.reference_file = os.path.join(self.folder, self.parameters[1])
@@ -177,7 +177,8 @@ class ColumnAverage(BaseTest):
     def test(self):
         avg, error = self._get_average()
         
-        if self.error: return False
+        if self.error: 
+            return False
         
         lower_b = self.true_avg - self.tolerance
         higher_b = self.true_avg + self.tolerance
@@ -242,12 +243,13 @@ class Analyser(object):
     
     def test(self):
         n_tests = len(self.tests)
-        n_failed = 0
+        n_passed = 0
         
         for test in self.tests:
-            if not test.test(): n_failed += 1
+            if test.test(): 
+                n_passed += 1
         
-        return (n_tests, n_failed)
+        return (n_tests, n_passed)
 
 
 class System(object):
@@ -264,16 +266,19 @@ class System(object):
         
         self.analyser = Analyser(folder, level)
         
+        self.error = False
         self.n_tests = 0
-        self.n_failed = 0
+        self.n_passed = 0
     
     def simulation_done(self, p, do_tests=True):
-        error = False
+        self.error = False
         if p.returncode != 0:
             # segfault
-            if p.returncode == 139: Logger.log("%s segmentation fault (return code %d)" % (self.log_prefix, p.returncode), Logger.WARNING)
-            else: Logger.log("%s %s returned %d" % (self.executable_name, self.log_prefix, p.returncode), Logger.WARNING)
-            error = True
+            if p.returncode == 139: 
+                Logger.log("%s segmentation fault (return code %d)" % (self.log_prefix, p.returncode), Logger.WARNING)
+            else: 
+                Logger.log("%s %s returned %d" % (self.executable_name, self.log_prefix, p.returncode), Logger.WARNING)
+            self.error = True
             
         # check the logfile for errors
         log_file = os.path.join(self.folder, get_log_name(self.level))
@@ -282,30 +287,31 @@ class System(object):
             for l in f.readlines():
                 if l.startswith("ERROR"): 
                     Logger.log("%s %s error: %s" % (self.executable_name, self.log_prefix, l.strip()), Logger.WARNING)
-                    error = True
+                    self.error = True
             f.close()
         
         # check the standard output for nans and infs
         for l in p.stdout.readlines():
             # we need byte-like objects and not 'str' 
-            tokens = [b"nan", b"inf"]
+            tokens = ["nan", "inf"]
             for t in tokens: 
                 if t in l: 
                     Logger.log("%s %s generated a '%s': %s" % (self.executable_name, t, l), Logger.WARNING)
-                    error = True
+                    self.error = True
         
         # we don't run tests if the simulation was not successful. We put this here so that all
         # above messages can be printed independently of each other
-        if error: return
+        if self.error: 
+            return
         
-        Logger.log("%s %s run completed and successful" % (self.executable_name, self.log_prefix), Logger.DEBUG)
+        Logger.log("%s %s run completed and successful" % (self.log_prefix, self.executable_name), Logger.DEBUG)
         
         if do_tests:
-            (n_tests, n_failed) = self.analyser.test()
-            Logger.log("%s\n\tFailed/Total: %d/%d" % (self.log_prefix, n_failed, n_tests), Logger.RESULTS)
+            (n_tests, n_passed) = self.analyser.test()
+            Logger.log("%s\n\tPassed/Total: %d/%d" % (self.log_prefix, n_passed, n_tests), Logger.RESULTS)
             
             self.n_tests = n_tests
-            self.n_failed = n_failed
+            self.n_passed = n_passed
         
     
 class TestManager(object):
@@ -352,13 +358,24 @@ class TestManager(object):
         Runner.queue.join()
         
     def finalise(self):
-        n_failed = 0
+        n_passed = 0
         n_tests = 0
+        n_errors = 0
         for system in self.systems:
-            n_failed += system.n_failed
+            n_passed += system.n_passed
             n_tests += system.n_tests
+            if system.error:
+                n_errors += 1
+                
+        if n_errors == 1:
+            Logger.log("The analysis in %d folder failed" % n_errors, Logger.CRITICAL, "\n")
+        elif n_errors > 1:
+            Logger.log("The analysis in %d folders failed" % n_errors, Logger.CRITICAL, "\n")
             
-        Logger.log("Summary for level '%s'\n\tFAILED/TOTAL: %d/%d\n" % (self.level, n_failed, n_tests), Logger.RESULTS, "\n")
+        Logger.log("Summary for level '%s'\n\tPassed/Total: %d/%d\n" % (self.level, n_passed, n_tests), Logger.RESULTS, "\n")
+        
+        if n_tests != n_passed or n_errors > 0:
+            Logger.log("Not all tests have passed successfully", Logger.CRITICAL)
     
     
 def main():
