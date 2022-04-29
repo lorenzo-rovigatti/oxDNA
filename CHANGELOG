@@ -1,4 +1,71 @@
-v. 3.0.0-alpha
+v. 3.2.1 [ee2553c]
+	- Fix a bug by avoiding free'ing uninitialised CUDA arrays
+	- Substitute a call to the deprecated cudaThreadSetCacheConfig function
+	- Fix compilation with double precision on CUDA
+	- Fix compilation of plugins on Mac OS X and remove warnings
+	- Port the COMForce force to CUDA
+	- Reduce the host memory consumption when using forces on CUDA
+	- Add an overloaded operator to print LR_matrix instances
+	- Make a Python3-compatible version of the standalone generator
+
+v. 3.2.0 [399f3e4]
+	- Add the list of papers to cite to the README and to the oxDNA output
+	- Add a method to remove outputs from the simulation
+	- Refactor IBaseInteraction to remove the need of the Curiously Recurring Template Pattern
+	- Move methods from IBaseInteraction to Mesh
+	- Remove warnings found by clang
+	- Compile with the -march=native option by default (use -DNATIVE_COMPILATION=Off to disable it)
+	- Add a new object (FlattenedConfigInfo) to access the simulation details as plain arrays, which get turned into numpy arrays on Python
+	- Add a Molecule class to the python bindings
+	- Port the test suite to python3
+	- Create bindings for the AnalysisBackend class
+	- Make it possible to install a GPU-powered oxpy with pip
+	- Bugfixing
+		- Fix the way the DNA and RNA sites where computed on Python
+
+v. 3.1.2 [83e7823]
+	- Add a rudimentary subscriber/notifier mechanism and use it to implement a way of handling temperature changes
+	- Make the code compilable with the -DMPI=ON option
+	- Remove calls to tmpfile() from the codebase
+	- Use setuptools and setuptools-scm to install the python bindings
+	- Make oxpy installable with pip
+	- Add an example implementing replica-exchange MD simulations with oxpy
+	- Make it possible to define custom observables on Python
+	- Update github's issue templates
+	- Add a github workflow to update the online python documentation
+	- Bugfixing:
+		- Fix a bug whereby a failing list update on CUDA would not throw an exception as it should
+		- Fix compilation of oxpy and with CUDA
+
+v. 3.1.1 [c83eda2]
+	- Make oxDNA compile with older CMake versions
+	- Add github CI scripts
+	- Remove a few useless members from SimBackend
+	- Make the code compatible with CUDA 11
+	- Make it possible to print non-averaged density profiles
+	- Add a method to print a configuration at will from Python (OxpyManager::print_configuration)
+	- Add a method to get the system's total energy (OxpyManager::system_energy)
+    - Bugfixing:
+		- Fix a bug whereby the Hilbert sorting done on GPU would lead to wrong results due to a wrong updating of the particle data structures
+		- Fix a bug a CPU simulation run with a CUDA-enabled oxDNA would take up a GPU
+
+v. 3.1.0 [0897aa1]
+	- Implement a molecular barostat (i.e. a barostat that acts on the centres of mass of molecules)
+	- Add a simple in-backend implementation of another Langevin thermostat
+	- Add data structures to handle "molecules"
+	- LR_vector* changed in bool in IBaseInteraction's methods
+	- Add an oxpy example
+	- Improve oxpy's documentation
+	- Make it possible to change the input file options from Python
+	- Make plugins loadable also from oxpy
+	- Create a `utils` Python module
+	- Add python bindings to obtain the positions of nucleotide sites
+	- Add Python bindings for BaseObservable
+	- Bugfixing:
+		- Make it possible to compile the contrib folders with old CMake versions
+		- Fix a small bug in VolumeMove and CUDA barostat
+
+v. 3.0.0-alpha [5634f27]
 	- Python bindings are now available. It is now possible to run simulations from Python, although not every option is available and most behaviour is still controlled by the input file
 	- Substitute the `number` and `number4` templated stuff with `using` statements (which are equivalent to `typedef`s) chosen at compile time:
 		* on the CPU side the default precision is `double`;
