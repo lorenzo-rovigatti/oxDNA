@@ -15,12 +15,13 @@
 #include "../PluginManagement/PluginManager.h"
 
 AnalysisBackend::AnalysisBackend() :
-				SimBackend(),
-				_done(false),
-				_n_conf(0) {
+				SimBackend() {
+	_done = false;
+	_n_conf = 0;
 	_enable_fix_diffusion = 0;
 	_bytes_to_skip = 0;
 	_confs_to_analyse = -1;
+	_backend_ready = false;
 }
 
 AnalysisBackend::~AnalysisBackend() {
@@ -94,6 +95,7 @@ void AnalysisBackend::get_settings(input_file &inp) {
 
 void AnalysisBackend::init() {
 	SimBackend::init();
+	_backend_ready = true;
 }
 
 const FlattenedConfigInfo &AnalysisBackend::flattened_conf() {
@@ -102,24 +104,42 @@ const FlattenedConfigInfo &AnalysisBackend::flattened_conf() {
 }
 
 bool AnalysisBackend::read_next_configuration(bool binary) {
-	_done = (_n_conf == _confs_to_analyse) || !SimBackend::read_next_configuration(binary);
+	if(_n_conf == _confs_to_analyse) {
+		_done = true;
+		return false;
+	}
+
+	// _backend_ready is false whenever read_next_configuration() is called by SimBackend::init(), which may
+	// happen repeatedly if configurations are to be skipped
+	if(!_backend_ready) {
+		_done = !SimBackend::read_next_configuration(binary);
+	}
+	else {
+		// since the first configuration has been already loaded up by SimBackend::init(), we make sure to
+		// not overwrite it the first time we call AnalysisBackend::read_next_configuration()
+		if(_n_conf != 0) {
+			_done = !SimBackend::read_next_configuration(binary);
+
+			for(auto p : _particles) {
+				_lists->single_update(p);
+			}
+			_lists->global_update();
+		}
+		_n_conf++;
+	}
+
 	return !_done;
 }
 
 void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
-	if(_n_conf % 100 == 0 && _n_conf > 0) {
-		OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
-	}
-	SimBackend::print_observables(_read_conf_step);
-	_n_conf++;
-
 	if(read_next_configuration(_initial_conf_is_binary)) {
-		for(auto p : _particles) {
-			_lists->single_update(p);
+		SimBackend::print_observables(_read_conf_step);
+
+		if(_n_conf % 100 == 0 && _n_conf > 0) {
+			OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
 		}
-		_lists->global_update();
 	}
 
 	_mytimer->pause();
