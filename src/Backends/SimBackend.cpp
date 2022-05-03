@@ -350,20 +350,15 @@ void SimBackend::init() {
 	OX_LOG(Logger::LOG_INFO, "N: %d, N molecules: %d", N, _molecules.size());
 }
 
-LR_vector SimBackend::_read_next_vector(bool binary) {
+LR_vector SimBackend::_read_next_binary_vector() {
 	LR_vector res;
-	if(binary) {
-		double tmpf;
-		_conf_input.read((char*) &tmpf, sizeof(double));
-		res.x = tmpf;
-		_conf_input.read((char*) &tmpf, sizeof(double));
-		res.y = tmpf;
-		_conf_input.read((char*) &tmpf, sizeof(double));
-		res.z = tmpf;
-	}
-	else {
-		_conf_input >> res.x >> res.y >> res.z;
-	}
+	double tmpf;
+	_conf_input.read((char*) &tmpf, sizeof(double));
+	res.x = tmpf;
+	_conf_input.read((char*) &tmpf, sizeof(double));
+	res.y = tmpf;
+	_conf_input.read((char*) &tmpf, sizeof(double));
+	res.z = tmpf;
 
 	return res;
 }
@@ -481,7 +476,6 @@ bool SimBackend::read_next_configuration(bool binary) {
 	// large numbers in the conf file and use float precision later
 	int k, i;
 	std::vector<int> nins(_N_strands);
-	std::vector<LR_vector> tmp_poss(_particles.size());
 	std::vector<LR_vector> scdm(_N_strands);
 
 	// here we cannot use _molecules because it has not been initialised yet
@@ -495,60 +489,58 @@ bool SimBackend::read_next_configuration(bool binary) {
 	while(!_conf_input.eof() && i < N()) {
 		BaseParticle *p = _particles[i];
 
-		std::getline(_conf_input, line);
-		auto spl_line = split_to_numbers(line, " ");
-
-//		tmp_poss[i] = _read_next_vector(binary);
-		tmp_poss[i] = LR_vector(spl_line[0], spl_line[1], spl_line[2]);
-		k = p->strand_id;
-		scdm[k] += tmp_poss[i];
-		nins[k]++;
-
 		if(!binary) {
-//			p->orientation.v1 = _read_next_vector(binary);
-//			p->orientation.v3 = _read_next_vector(binary);
+			std::getline(_conf_input, line);
+			auto spl_line = split_to_numbers(line, " ");
+
+			p->pos = LR_vector(spl_line[0], spl_line[1], spl_line[2]);
 			p->orientation.v1 = LR_vector(spl_line[3], spl_line[4], spl_line[5]);
 			p->orientation.v3 = LR_vector(spl_line[6], spl_line[7], spl_line[8]);
-			// get v2 from v1 and v3
+
+			// get v2 from v1 and v3 and orthonormalise
 			p->orientation.v1.normalize();
 			p->orientation.v3.normalize();
 			p->orientation.v1 -= p->orientation.v3 * (p->orientation.v1 * p->orientation.v3);
 			p->orientation.v1.normalize();
 			p->orientation.v2 = p->orientation.v3.cross(p->orientation.v1);
 			p->orientation.v2.normalize();
+
+			// read the momenta
+			p->vel = LR_vector(spl_line[9], spl_line[10], spl_line[11]);
+			p->L = LR_vector(spl_line[12], spl_line[13], spl_line[14]);
 		}
 		else {
+			p->pos = _read_next_binary_vector();
+
 			int x, y, z;
 			_conf_input.read((char*) &x, sizeof(int));
 			_conf_input.read((char*) &y, sizeof(int));
 			_conf_input.read((char*) &z, sizeof(int));
 			p->set_pos_shift(x, y, z);
 
-			p->orientation.v1 = _read_next_vector(binary);
-			p->orientation.v2 = _read_next_vector(binary);
-			p->orientation.v3 = _read_next_vector(binary);
+			p->orientation.v1 = _read_next_binary_vector();
+			p->orientation.v2 = _read_next_binary_vector();
+			p->orientation.v3 = _read_next_binary_vector();
+
+			p->vel = _read_next_binary_vector();
+			p->L = _read_next_binary_vector();
 		}
+
 		// v1, v2 and v3 should have length 1. If they don't it means that they are null vectors
 		if(p->orientation.v1.module() < 0.9 || p->orientation.v2.module() < 0.9 || p->orientation.v3.module() < 0.9) {
 			throw oxDNAException("Invalid orientation for particle %d: at least one of the vectors is a null vector", p->index);
 		}
 		p->orientation.transpone();
 
-//		p->vel = _read_next_vector(binary);
-//		p->L = _read_next_vector(binary);
-		p->vel = LR_vector(spl_line[9], spl_line[10], spl_line[11]);
-		p->L = LR_vector(spl_line[12], spl_line[13], spl_line[14]);
+		k = p->strand_id;
+		scdm[k] += p->pos;
+		nins[k]++;
 
 		p->init();
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
 
 		i++;
-	}
-
-	// this is needed because, if reading from an ascii trajectory, at this stage the _conf_input pointer points to a \n
-	if(!binary && !_conf_input.eof()) {
-//		std::getline(_conf_input, line);
 	}
 
 	// discarding the final '\n' in the binary file...
@@ -558,10 +550,12 @@ bool SimBackend::read_next_configuration(bool binary) {
 	}
 
 	if(i != N()) {
-		if(_confs_to_skip > 0)
+		if(_confs_to_skip > 0) {
 			throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
-		else
+		}
+		else {
 			throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, N());
+		}
 	}
 
 	for(k = 0; k < _N_strands; k++) {
@@ -572,7 +566,7 @@ bool SimBackend::read_next_configuration(bool binary) {
 		BaseParticle *p = _particles[i];
 		k = p->strand_id;
 
-		LR_vector p_pos = tmp_poss[i];
+		LR_vector p_pos = p->pos;
 		if(_enable_fix_diffusion && !binary) {
 			// we need to manually set the particle shift so that the particle absolute position is the right one
 			LR_vector scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
