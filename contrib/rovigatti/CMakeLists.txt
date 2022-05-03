@@ -8,7 +8,7 @@ ADD_CUSTOM_TARGET(rovigatti
 			LevyInteraction CPMixtureInteraction StarrInteraction mWInteraction 
 			GraftedInteraction FSInteraction TSPAnalysis StarrConf ConstructwiseBonds 
 			EmptyVolume FSConf Gyradius PatchySwapInteraction DetailedPatchySwapInteraction 
-			PatchyBonds Bonds ValerioInteraction
+			PatchyBonds Bonds DetailedPolymerSwapInteraction
 )
 
 # without this bit clang-based compilation fails with some "undefined symbols" errors during the linking stage
@@ -24,7 +24,7 @@ function(add_library_no_prefix)
 endfunction()
 
 # Observables
-add_library_no_prefix(Bonds MODULE EXCLUDE_FROM_ALL src/Observables/Bonds.cpp)
+add_library_no_prefix(Bonds MODULE EXCLUDE_FROM_ALL src/Observables/Bonds.cpp src/Interactions/DetailedPolymerSwapInteraction.cpp)
 add_library_no_prefix(PatchyBonds MODULE EXCLUDE_FROM_ALL src/Observables/PatchyBonds.cpp)
 add_library_no_prefix(ConstructwiseBonds MODULE EXCLUDE_FROM_ALL src/Observables/ConstructwiseBonds.cpp)
 add_library_no_prefix(EmptyVolume MODULE EXCLUDE_FROM_ALL src/Observables/EmptyVolume.cpp)
@@ -60,7 +60,7 @@ add_library_no_prefix(PolydisperseLTInteraction MODULE EXCLUDE_FROM_ALL src/Inte
 add_library_no_prefix(PolymerSwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/PolymerSwapInteraction.cpp)
 add_library_no_prefix(PatchySwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/PatchySwapInteraction.cpp)
 add_library_no_prefix(DetailedPatchySwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/DetailedPatchySwapInteraction.cpp)
-add_library_no_prefix(ValerioInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/ValerioInteraction.cpp)
+add_library_no_prefix(DetailedPolymerSwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/DetailedPolymerSwapInteraction.cpp)
 
 FIND_PACKAGE(PkgConfig)
 IF(PkgConfig_FOUND)
@@ -91,9 +91,10 @@ IF(CUDA)
 	cuda_add_library_no_prefix(CUDAAOInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/CUDAAOInteraction.cu src/Interactions/AOInteraction.cpp)
 	cuda_add_library_no_prefix(CUDAPolymerInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/CUDAPolymerInteraction.cu src/Interactions/PolymerInteraction.cpp)
 	cuda_add_library_no_prefix(CUDAPolymerSwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/CUDAPolymerSwapInteraction.cu src/Interactions/PolymerSwapInteraction.cpp)
+	cuda_add_library_no_prefix(CUDADetailedPolymerSwapInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/CUDADetailedPolymerSwapInteraction.cu src/Interactions/DetailedPolymerSwapInteraction.cpp)
 	cuda_add_library_no_prefix(CUDATSPInteraction MODULE EXCLUDE_FROM_ALL src/Interactions/CUDATSPInteraction.cu src/Interactions/TSPInteraction.cpp)
 	
-	ADD_DEPENDENCIES(rovigatti CUDADetailedPatchySwapInteraction CUDAPatchySwapInteraction CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction CUDATSPInteraction)
+	ADD_DEPENDENCIES(rovigatti CUDADetailedPolymerSwapInteraction CUDADetailedPatchySwapInteraction CUDAPatchySwapInteraction CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction CUDATSPInteraction)
 ENDIF(CUDA)
 
 set_target_properties(Bonds PROPERTIES PREFIX "")

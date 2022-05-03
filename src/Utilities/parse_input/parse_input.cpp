@@ -88,7 +88,6 @@ void input_file::init_from_filename(std::string filename) {
 	}
 	init_from_file(inp_file);
 	fclose(inp_file);
-	return;
 }
 
 void input_file::init_from_string(std::string s_inp) {

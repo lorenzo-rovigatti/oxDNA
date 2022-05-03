@@ -1,5 +1,5 @@
-#ifndef POLYMERSWAP_INTERACTION_H
-#define POLYMERSWAP_INTERACTION_H
+#ifndef DETAILEDPOLYMERSWAP_INTERACTION_H
+#define DETAILEDPOLYMERSWAP_INTERACTION_H
 
 #include "Interactions/BaseInteraction.h"
 
@@ -9,12 +9,14 @@
 struct PSBond {
 	BaseParticle *other;
 	number energy;
+	number epsilon;
 	LR_vector force;
 	LR_vector r;
 
-	PSBond(BaseParticle *o, number e, LR_vector nr) :
+	PSBond(BaseParticle *o, number e, number eps, LR_vector nr) :
 		other(o),
 		energy(e),
+		epsilon(eps),
 		r(nr) {
 			
 	}
@@ -35,19 +37,19 @@ struct PSBondCompare {
  * @brief Handles interactions in microgel systems.
  *
  * This interaction is selected with
- * interaction_type = PolymerSwapInteraction
+ * interaction_type = DetailedPolymerSwapInteraction
  *
  * @verbatim
 
  @endverbatim
  */
-class PolymerSwapInteraction: public BaseInteraction {
+class DetailedPolymerSwapInteraction: public BaseInteraction {
 protected:
-	std::array<number, 3> _Kfene = { {15., 15., 15.} };
-	std::array<number, 3> _rfene = { {1.5, 1.5, 1.5} };
-	std::array<number, 3> _sqr_rfene = { {2.25, 2.25, 2.25} };
-	std::array<number, 3> _WCA_sigma = { {1.0, 1.0, 1.0} };
-	std::array<number, 3> _PS_sqr_rep_rcut;
+	number _Kfene = 15.;
+	number _rfene = 1.5;
+	number _sqr_rfene;
+	number _WCA_sigma = 1.0;
+	number _PS_sqr_rep_rcut;
 
 	std::vector<LR_vector> _chain_coms;
 
@@ -56,8 +58,9 @@ protected:
 	number _PS_gamma = 0.;
 	int _PS_n = 6;
 
-	std::vector<int> _btype_pattern;
-	bool _same_sticky_only_interaction = false;
+	int _N_attractive_types = 0;
+	int _interaction_matrix_size = 0;
+	std::string _interaction_matrix_file;
 
 	/// three-body potential stuff
 	number _3b_rcut = -1.;
@@ -65,7 +68,7 @@ protected:
 	number _3b_sigma = 1.05;
 	number _3b_range = 1.6;
 	number _3b_lambda = 1.0;
-	number _3b_epsilon = 10.;
+	std::vector<number> _3b_epsilon;
 	number _3b_prefactor = 0.1;
 	number _3b_A_part = 0.;
 	number _3b_B_part = 0.;
@@ -76,13 +79,12 @@ protected:
 
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
-	std::string _bond_filename;
-
-	bool _only_links_in_bondfile = true;
 	int _chain_size = -1;
 	int _N_chains = -1;
 
 	StressTensor _inter_chain_stress_tensor;
+
+	void _parse_interaction_matrix();
 
 	void _update_inter_chain_stress_tensor(int chain, int ref_chain, LR_vector group_force);
 
@@ -103,8 +105,8 @@ public:
 
 	bool no_three_body = false;
 
-	PolymerSwapInteraction();
-	virtual ~PolymerSwapInteraction();
+	DetailedPolymerSwapInteraction();
+	virtual ~DetailedPolymerSwapInteraction();
 
 	virtual void get_settings(input_file &inp);
 	virtual void init();
@@ -128,6 +130,6 @@ public:
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 };
 
-extern "C" PolymerSwapInteraction *make_PolymerSwapInteraction();
+extern "C" DetailedPolymerSwapInteraction *make_DetailedPolymerSwapInteraction();
 
-#endif /* POLYMERSWAP_INTERACTION_H */
+#endif /* DETAILEDPOLYMERSWAP_INTERACTION_H */
