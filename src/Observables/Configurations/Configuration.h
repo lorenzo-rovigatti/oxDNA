@@ -34,6 +34,7 @@ protected:
 	std::set<int> _hidden_particles;
 	std::map<int, LR_vector> _strands_cdm;
 	int _only_type;
+	bool _print_momenta;
 
 	/**
 	 * @brief Returns the configuration header(s)

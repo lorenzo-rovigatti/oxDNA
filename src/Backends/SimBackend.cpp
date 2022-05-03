@@ -19,8 +19,6 @@
 #include "../Particles/BaseParticle.h"
 #include "../Utilities/Timings.h"
 
-#include <fast_double_parser/fast_double_parser.h>
-
 SimBackend::SimBackend() {
 	// we need to initialize everything so that we can check what we can
 	// and what we can't delete[] in the destructor
@@ -193,27 +191,31 @@ void SimBackend::get_settings(input_file &inp) {
 	}
 
 	// we build the default stream of observables for trajectory and last configuration
+	bool traj_print_momenta = true;
+	getInputBool(&inp, "trajectory_print_momenta", &traj_print_momenta, 0);
 	std::string traj_file;
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
-	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
-	_obs_output_trajectory = std::make_shared<ObservableOutput>(fake);
-	_obs_output_trajectory->add_observable("type = configuration");
+	std::string output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
+	_obs_output_trajectory = std::make_shared<ObservableOutput>(output_inp_text);
+
+	std::string obs_text = Utils::sformat("type = configuration\nprint_momenta = %d", traj_print_momenta);
+	_obs_output_trajectory->add_observable(obs_text);
 	add_output(_obs_output_trajectory);
 
 	// Last configuration
 	std::string lastconf_file = "last_conf.dat";
 	getInputString(&inp, "lastconf_file", lastconf_file, 0);
-	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
-	_obs_output_last_conf = std::make_shared<ObservableOutput>(fake);
+	output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
+	_obs_output_last_conf = std::make_shared<ObservableOutput>(output_inp_text);
 	_obs_output_last_conf->add_observable("type = configuration");
 	add_output(_obs_output_last_conf);
 
 	// Last configuration in binary, optional
 	std::string lastconf_file_bin;
 	if((getInputString(&inp, "lastconf_file_bin", lastconf_file_bin, 0) == KEY_FOUND)) {
-		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
-		_obs_output_last_conf_bin = std::make_shared<ObservableOutput>(fake);
+		output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
+		_obs_output_last_conf_bin = std::make_shared<ObservableOutput>(output_inp_text);
 		_obs_output_last_conf_bin->add_observable("type = binary_configuration");
 		add_output(_obs_output_last_conf_bin);
 	}
@@ -222,8 +224,8 @@ void SimBackend::get_settings(input_file &inp) {
 	llint reduced_conf_every;
 	if(getInputLLInt(&inp, "print_reduced_conf_every", &reduced_conf_every, 0) == KEY_FOUND && reduced_conf_every > 0) {
 		getInputString(&inp, "reduced_conf_output_dir", _reduced_conf_output_dir, 1);
-		fake = Utils::sformat("{\n\tname = reduced_conf.dat\n\tprint_every = %lld\n\tonly_last = 1\n}\n", reduced_conf_every);
-		_obs_output_reduced_conf = std::make_shared<ObservableOutput>(fake);
+		output_inp_text = Utils::sformat("{\n\tname = reduced_conf.dat\n\tprint_every = %lld\n\tonly_last = 1\n}\n", reduced_conf_every);
+		_obs_output_reduced_conf = std::make_shared<ObservableOutput>(output_inp_text);
 		_obs_output_reduced_conf->add_observable("type = configuration\nreduced = true");
 		add_output(_obs_output_reduced_conf);
 	}
@@ -233,8 +235,8 @@ void SimBackend::get_settings(input_file &inp) {
 	if(getInputLLInt(&inp, "checkpoint_every", &checkpoint_every, 0) == KEY_FOUND && checkpoint_every > 0) {
 		int tmp1 = getInputString(&inp, "checkpoint_trajectory", _checkpoint_traj, 0);
 		if(tmp1 == KEY_FOUND) {
-			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
-			_obs_output_checkpoints = std::make_shared<ObservableOutput>(fake);
+			output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
+			_obs_output_checkpoints = std::make_shared<ObservableOutput>(output_inp_text);
 			_obs_output_checkpoints->add_observable("type = checkpoint");
 			add_output(_obs_output_checkpoints);
 			OX_LOG(Logger::LOG_INFO, "Setting up a trajectory of checkpoints to file %s every %lld steps",_checkpoint_traj.c_str(), checkpoint_every);
@@ -242,8 +244,8 @@ void SimBackend::get_settings(input_file &inp) {
 
 		int tmp2 = getInputString(&inp, "checkpoint_file", _checkpoint_file, 0);
 		if(tmp2 == KEY_FOUND) {
-			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
-			_obs_output_last_checkpoint = std::make_shared<ObservableOutput>(fake);
+			output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
+			_obs_output_last_checkpoint = std::make_shared<ObservableOutput>(output_inp_text);
 			_obs_output_last_checkpoint->add_observable("type = checkpoint");
 			add_output(_obs_output_last_checkpoint);
 			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);
@@ -363,42 +365,6 @@ LR_vector SimBackend::_read_next_binary_vector() {
 	return res;
 }
 
-number lexical_cast(const std::string &source) {
-	double result;
-
-	if(fast_double_parser::parse_number(source.c_str(), &result) == nullptr) {
-		throw oxDNAException("Cannot convert '%s' to a number", source.c_str());
-	}
-
-	return result;
-}
-
-std::vector<number> split_to_numbers(const std::string &str, const std::string &delims) {
-	std::vector<number> output;
-	output.reserve(15);
-
-	const char *ptr = str.c_str();
-	while(ptr) {
-		auto base = ptr;
-		ptr = std::strpbrk(ptr, delims.c_str());
-		if(ptr) {
-			// this check makes sure that no empty strings are added to the output
-			if(ptr - base) {
-				output.emplace_back(lexical_cast(std::string(base, ptr - base)));
-			}
-			ptr++;
-		}
-		else {
-			std::string remainder(base);
-			if(remainder.size() > 0) {
-				output.emplace_back(lexical_cast(remainder));
-			}
-		}
-	}
-
-	return output;
-}
-
 bool SimBackend::read_next_configuration(bool binary) {
 	double Lx, Ly, Lz;
 	// parse headers. Binary and ascii configurations have different headers, and hence
@@ -491,7 +457,7 @@ bool SimBackend::read_next_configuration(bool binary) {
 
 		if(!binary) {
 			std::getline(_conf_input, line);
-			auto spl_line = split_to_numbers(line, " ");
+			auto spl_line = Utils::split_to_numbers(line, " ");
 
 			p->pos = LR_vector(spl_line[0], spl_line[1], spl_line[2]);
 			p->orientation.v1 = LR_vector(spl_line[3], spl_line[4], spl_line[5]);
@@ -505,9 +471,11 @@ bool SimBackend::read_next_configuration(bool binary) {
 			p->orientation.v2 = p->orientation.v3.cross(p->orientation.v1);
 			p->orientation.v2.normalize();
 
-			// read the momenta
-			p->vel = LR_vector(spl_line[9], spl_line[10], spl_line[11]);
-			p->L = LR_vector(spl_line[12], spl_line[13], spl_line[14]);
+			if(spl_line.size() == 15) {
+				// read the momenta
+				p->vel = LR_vector(spl_line[9], spl_line[10], spl_line[11]);
+				p->L = LR_vector(spl_line[12], spl_line[13], spl_line[14]);
+			}
 		}
 		else {
 			p->pos = _read_next_binary_vector();

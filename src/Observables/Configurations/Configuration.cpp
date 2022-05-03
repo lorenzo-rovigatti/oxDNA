@@ -18,6 +18,7 @@ Configuration::Configuration() {
 	_back_in_box = false;
 	_reduced = false;
 	_only_type = -1;
+	_print_momenta = true;
 }
 
 Configuration::~Configuration() {
@@ -31,6 +32,7 @@ void Configuration::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputBool(&my_inp, "back_in_box", &_back_in_box, 0);
 	getInputBool(&my_inp, "reduced", &_reduced, 0);
 	getInputInt(&my_inp, "only_type", &_only_type, 0);
+	getInputBool(&my_inp, "print_momenta", &_print_momenta, 0);
 
 	string opt;
 	bool show_on = false;
@@ -127,8 +129,11 @@ string Configuration::_particle(BaseParticle *p) {
 	conf << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 	conf << oT.v1.x << " " << oT.v1.y << " " << oT.v1.z << " ";
 	conf << oT.v3.x << " " << oT.v3.y << " " << oT.v3.z << " ";
-	conf << p->vel.x << " " << p->vel.y << " " << p->vel.z << " ";
-	conf << p->L.x << " " << p->L.y << " " << p->L.z;
+
+	if(_print_momenta) {
+		conf << p->vel.x << " " << p->vel.y << " " << p->vel.z << " ";
+		conf << p->L.x << " " << p->L.y << " " << p->L.z;
+	}
 
 	return conf.str();
 }

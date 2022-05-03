@@ -6,7 +6,7 @@
  */
 
 #include "Utils.h"
-#include "oxDNAException.h"
+
 #include "../Particles/TEPParticle.h"
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/RNANucleotide.h"
@@ -74,6 +74,32 @@ std::vector<std::string> split(const string &s, char delim) {
 	}
 
 	return elems;
+}
+
+std::vector<number> split_to_numbers(const std::string &str, const std::string &delims) {
+	std::vector<number> output;
+	output.reserve(15);
+
+	const char *ptr = str.c_str();
+	while(ptr) {
+		auto base = ptr;
+		ptr = std::strpbrk(ptr, delims.c_str());
+		if(ptr) {
+			// this check makes sure that no empty strings are added to the output
+			if(ptr - base) {
+				output.emplace_back(lexical_cast(std::string(base, ptr - base)));
+			}
+			ptr++;
+		}
+		else {
+			std::string remainder(base);
+			if(remainder.size() > 0) {
+				output.emplace_back(lexical_cast(remainder));
+			}
+		}
+	}
+
+	return output;
 }
 
 std::string sformat(std::string fmt, ...) {
