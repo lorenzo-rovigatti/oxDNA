@@ -6,6 +6,19 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
 
 The development of this software has been partially supported by the European Commission through the Marie Skłodowska−Curie Fellowship No. 702298-DELTAS.
 
+## Contents
+
+1. [Requirements](#requirements)
+2. [Compiling oxDNA](#compiling-oxdna)
+3. [Testing](#testing)
+4. [Usage](#usage)
+5. [FAQ](#faq)
+6. [Output files](#output-files)
+7. [Observables](#observables)
+8. [Citing oxDNA](#citing-oxdna)
+9. [Acknowledgements](#acknowledgements)
+
+
 ## Requirements
 
 The code requires `cmake` and a c++-14-compliant `g++` (any version >= 4.9 *should* work). The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
@@ -53,7 +66,7 @@ At the end of the compilation three executables (oxDNA, DNAnalysis and confGener
 
 Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package to the `pip`'s module directory. The specific location will depend on your system's settings. We advise you to use [virtual environments](https://docs.python.org/3/tutorial/venv.html) (see *e.g.* [pipenv](https://docs.pipenv.org/)) to avoid conflicts with other packages and/or dependency and permission issues.
 
-## `cmake` options
+### cmake options
 
 * `-DCUDA=ON` Enables CUDA support
 * `-DCUDA_COMMON_ARCH=ON` Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.
@@ -72,7 +85,7 @@ The following options pertain to `oxpy`:
 * `-DPython=ON` Enables Python bindings
 * `-DOxpySystemInstall=On` By default `oxpy` is installed in the current user's home directory. By enabling this option `oxpy` will be installed as a system-wide package. It may require superuser privileges.
 
-## `make` targets
+### make targets
 
 * `make` compiles oxDNA
 * `make docs` Produces html doxygen documentation for oxDNA (`DOCS/html_oxDNA/index.html`) and for the UTILS folder (`DOCS/html_UTILS/index.html`)
@@ -150,6 +163,12 @@ Finally, you can also generate a default input file and then update or add custo
 	my_input["log_file"] = "log.dat" 
 	manager = oxpy.OxpyManager(my_input)
 ```
+
+## FAQ
+
+**Q: How do I simulate oxDNA with LAMMPS?**
+
+**A:** This repository contains the standalone oxDNA software and it is not linked to the code that powers the LAMMPS version of the oxDNA coarse-grained model. If you have any issues/enquiries about the [oxDNA LAMMPS package](https://docs.lammps.org/pair_oxdna.html) your best bet is to directly contact its authors.
 
 ## Output files
 
