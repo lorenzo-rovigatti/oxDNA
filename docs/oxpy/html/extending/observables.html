@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Writing observables in Python &mdash; oxpy 3.0.0a1.dev263+g1359de7.d20220428 documentation</title>
+  <title>Writing observables in Python &mdash; oxpy 3.2.2.dev47+g785a315.d20220505 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                3.0.0a1.dev263+g1359de7.d20220428
+                3.2.2.dev47+g785a315.d20220505
               </div>
             
           
@@ -176,7 +176,7 @@
 <p>Here is an example of a custom observable that prints the position of the last particle to the <code class="docutils literal notranslate"><span class="pre">my_obs_output_file</span></code> every 100 time steps:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oxpy</span>
 
-<span class="k">class</span> <span class="nc">MyObs</span><span class="p">(</span><span class="n">oxpy</span><span class="o">.</span><span class="n">BaseObservable</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">MyObs</span><span class="p">(</span><span class="n">oxpy</span><span class="o">.</span><span class="n">observables</span><span class="o">.</span><span class="n">BaseObservable</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">get_output_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_step</span><span class="p">):</span>
         <span class="c1"># take the position of the last particle</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_info</span><span class="o">.</span><span class="n">particles</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span>
