@@ -8,7 +8,7 @@ Here is an example of a custom observable that prints the position of the last p
 
 	import oxpy
 	
-	class MyObs(oxpy.BaseObservable):
+	class MyObs(oxpy.observables.BaseObservable):
 	    def get_output_string(self, curr_step):
 	        # take the position of the last particle
 	        pos = self.config_info.particles()[-1].pos

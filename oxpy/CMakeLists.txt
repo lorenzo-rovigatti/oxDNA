@@ -46,6 +46,14 @@ IF(Python)
 		${OXPY_OUTPUT_DIR}/utils.py
 	)
 	
+	# add a target to test oxpy
+	add_custom_target(test_oxpy
+	    ${PROJECT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PYTHON_EXECUTABLE} oxpy
+	    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
+	    COMMENT "Running oxpy tests" VERBATIM
+	)
+	add_dependencies(test test_oxpy)
+	
 	# read the whole defs.h file
 	FILE(READ ${PROJECT_SOURCE_DIR}/src/defs.h all_defs)
 	# extract the release version

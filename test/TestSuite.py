@@ -10,6 +10,7 @@ import difflib
 import distutils
 
 from multiprocessing import Lock
+from numpy.core._multiarray_tests import argparse_example_function
 
 SUFFIX_INPUT = "_input"
 SUFFIX_COMPARE = "_compare"
@@ -55,7 +56,10 @@ class Runner(threading.Thread):
             system = details["system"]
             folder = system.folder
             log_file = get_log_name(details["level"])
-            to_execute = "%s %s log_file=%s no_stdout_energy=0" % (details["executable"], system.input_name, log_file)
+            if details["level"] == "oxpy":
+                to_execute = f"{details['executable']} {system.input_name}.py"
+            else:
+                to_execute = f"{details['executable']} {system.input_name} log_file={log_file} no_stdout_energy=0" 
             
             try:
                 p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, cwd=folder, universal_newlines=True)
@@ -318,13 +322,15 @@ class TestManager(object):
     def __init__(self, list_file, executable, level, threads=1):
         self.log_prefix = "TestManager:"
         
-        self.executable = os.path.abspath(executable)
+        self.executable = executable
         self.executable_name = os.path.basename(self.executable)
         self.level = level
         self.systems = []
         self.threads = threads
             
         input_name = level + SUFFIX_INPUT
+        if level == "oxpy":
+            input_name += ".py"
         
         f = open(list_file, "r")
         for l in f.readlines():
@@ -378,51 +384,39 @@ class TestManager(object):
             Logger.log("Not all tests have passed successfully", Logger.CRITICAL)
     
     
-def main():
-    def print_usage():
-        print("USAGE:")
-        print("\t%s folder_list_file executable test_level [-d|--debug] [-h|--help] [-v|--version] [--threads=N_threads]" % sys.argv[0])
-        exit(1)
-
+if __name__ == '__main__':
+    import argparse
+    
     def print_version():
         print("oxDNA Test Suite v 0.1")
         print("Copyright (C) 2015 oxDNA")
         print("This is free software; see the source for copying conditions.  There is NO")
         print("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n")
         exit(1)
-
-    shortArgs = 'dhv'
-    longArgs = ['debug', 'help', 'version', 'threads=']
-    
-    threads = 1
-    
-    try:
-        import getopt
-        args, files = getopt.gnu_getopt(sys.argv[1:], shortArgs, longArgs)
-        for k in args:
-            if k[0] == '-d' or k[0] == '--debug': Logger.debug_level = 0
-            if k[0] == '-h' or k[0] == '--help': print_usage()
-            if k[0] == '-v' or k[0] == '--version': print_version()
-            if k[0] == '--threads': threads = int(k[1])
-            
-    except Exception as e:
-        print(e)
-        print_usage()
         
-    if len(sys.argv) < 4:
-        print_usage()
-        exit(1)
+    parser = argparse.ArgumentParser(description="A simple script that runs tests in selected folders and compare the results with reference data.")
+    parser.add_argument("--debug", action="store_true", help="Print debug messages")
+    # parser.add_argument("--help", action="store_false", help="Print this message")
+    parser.add_argument("--version", action="store_true", help="Print the script version and exit")
+    parser.add_argument("--threads", default=1, help="Set the number of concurrent threads that will be launched")
+    parser.add_argument("folder_list_file")
+    parser.add_argument("executable")
+    parser.add_argument("test_level")
+    
+    args = parser.parse_args()
+    
+    if args.debug:
+        Logger.debug_level = 0
+    if args.version:
+        print_version()
+        exit(0)
         
-    file_list = sys.argv[1]
-    if not os.path.exists(file_list) or not os.path.isfile(file_list):
-        Logger.log("List file '%s' does not exist or it is unreadable" % file_list, Logger.CRITICAL)
+    if not os.path.exists(args.folder_list_file) or not os.path.isfile(args.folder_list_file):
+        Logger.log("List file '%s' does not exist or it is unreadable" % args.folder_list_file, Logger.CRITICAL)
         sys.exit(1)
         
     Logger.log("Running tests for level '%s'" % sys.argv[3], Logger.INFO)
-    tm = TestManager(sys.argv[1], sys.argv[2], sys.argv[3], threads=threads)
+    tm = TestManager(args.folder_list_file, args.executable, args.test_level, threads=args.threads)
     tm.launch()
     tm.finalise()
-
     
-if __name__ == '__main__':
-    main()
