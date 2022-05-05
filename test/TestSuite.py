@@ -10,7 +10,6 @@ import difflib
 import distutils
 
 from multiprocessing import Lock
-from numpy.core._multiarray_tests import argparse_example_function
 
 SUFFIX_INPUT = "_input"
 SUFFIX_COMPARE = "_compare"
