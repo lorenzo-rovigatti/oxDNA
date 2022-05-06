@@ -143,7 +143,7 @@ Returns
 
 	export_LTCOMTrap(sub_m);
 	export_LTCOMAngleTrap(sub_m);
-	export_LTCOMAngleTrap(sub_m);
+	export_LTAtanCOMTrap(sub_m);
 	export_LT2DCOMTrap(sub_m);
 	export_MovingTrap(sub_m);
 	export_RepulsiveSphere(sub_m);
