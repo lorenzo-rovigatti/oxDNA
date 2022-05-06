@@ -11,6 +11,8 @@
 #include "../../python_defs.h"
 
 #include "LTCOMTrap.h"
+#include "LTCOMAngleTrap.h"
+#include "LTAtanCOMTrap.h"
 #include "LT2DCOMTrap.h"
 #include "MovingTrap.h"
 #include "RepulsiveSphere.h"
@@ -140,6 +142,8 @@ Returns
 )pbdoc");
 
 	export_LTCOMTrap(sub_m);
+	export_LTCOMAngleTrap(sub_m);
+	export_LTCOMAngleTrap(sub_m);
 	export_LT2DCOMTrap(sub_m);
 	export_MovingTrap(sub_m);
 	export_RepulsiveSphere(sub_m);
