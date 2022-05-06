@@ -3,6 +3,7 @@ import pandas as pd
 import os, shutil
 from copy import copy
 import multiprocessing as mp
+import traceback
 import pickle as pkl
 import glob
 import oxpy
@@ -17,6 +18,9 @@ class oxDNARunner(mp.Process):
         self.working_dir = f"{Estimator.RUN_BASEDIR}{index}"
         self.input_file = input_file
         self.queue = queue
+        
+        self._pconn, self._cconn = mp.Pipe()
+        self._exception = None
 
     def run(self):
         os.chdir(self.working_dir)
@@ -30,18 +34,31 @@ class oxDNARunner(mp.Process):
             self.manager.init()
             
             while True:
-                steps, new_potential_grid = self.queue.get()
-                if steps is None:
+                try:
+                    steps, new_potential_grid = self.queue.get()
+                    # if steps is None we have to break the loop and stop the walker
+                    if steps is not None:
+                        # update the lookup tables of all the metadynamics-related forces
+                        for force in self.manager.config_info().forces:
+                            if force.group_name == "metadynamics":
+                                force.potential_grid = new_potential_grid
+                        
+                        self.manager.run(steps)
+                    else:
+                        break
+                except Exception as e:
+                    # if an exception is raised we save the traceback and send it (together with the exception)
+                    # to this process' pipe, through which we can obtain and send it to the parent's process
+                    tb = traceback.format_exc()
+                    self._cconn.send((e, tb))
+                finally:
                     self.queue.task_done()
-                    break
                 
-                # update the lookup tables of all the metadynamics-related forces
-                for force in self.manager.config_info().forces:
-                    if force.group_name == "metadynamics":
-                        force.potential_grid = new_potential_grid
-                
-                self.manager.run(steps)
-                self.queue.task_done()
+    @property
+    def exception(self):
+        if self._pconn.poll():
+            self._exception = self._pconn.recv()
+        return self._exception
             
 
 class Estimator():
@@ -388,6 +405,16 @@ PBC = false'''
             self.write_external_forces_file(w.working_dir)
             self.queue.put(runner_args)
         self.queue.join()
+        
+        # check whether exceptions were raised by the walkers during the previous run
+        for w in self.walkers:
+            if w.exception is not None:
+                error, traceback = w.exception
+                print(f"The following error was raised during the execution of one of the child processes, aborting run:")
+                print(error)
+                print(traceback)
+                self.stop_runners()
+                exit(1)
 
         if index % self.save_hills == 0:
             self.save_potential_grid(index)
