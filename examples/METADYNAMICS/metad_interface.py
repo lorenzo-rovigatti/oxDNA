@@ -395,7 +395,7 @@ PBC = false'''
         self.queue.join()
 
     def do_metadynamics_iteration(self, index):
-        print("iteration %s" % (index,))
+        print("iteration %s" % (index,), flush=True)
         
         new_potential_grid = self.potential_grid * self.T
             
