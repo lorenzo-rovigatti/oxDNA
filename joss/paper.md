@@ -41,38 +41,16 @@ The fields of DNA and RNA nanotechnology have progressed from pioneering, proof-
 
 # Statement of need
 
-The oxDNA and oxRNA models, which describe nucleic acids at the nucleotide level, has become popular choices to investigate the dynamics, thermodynamics and self-assembly kinetics of DNA and RNA systems. Here we present `oxDNA`, an efficient, multi-technique simulation package written in C++ and specifically developed to carry out simulations of coarse-grained nucleic acid systems. The package, which has been used in more than a hundred publications to date, can perform both molecular dynamics (MD) and Monte Carlo (MC) simulations of oxDNA and oxRNA. MD simulations can be run on single CPUs or single CUDA-enabled GPUs, while MC simulations, which can only be run serially, can exploit the Virtual Move Monte Carlo algorithm to greatly speed-up equilibration and sampling, as well as Umbrella Sampling biasing to efficiently obtain free-energy profiles. It is also possible to alter the behaviour of the systems by adding *external forces* that can be used, for instance, to pull on or apply torques to strands or confine nucleotides within semi-planes or spheres. Finally, the code is equipped with Python bindings that makes it possible to control the behaviour of the simulation at a high level. The repository contains examples that shows how to leverage `oxDNA`'s Python bindings to write backends to run replica-exchange or metadynamics simulations.
+The oxDNA and oxRNA models, which describe nucleic acids at the nucleotide level, has become popular choices to investigate the dynamics, thermodynamics and self-assembly kinetics of DNA and RNA systems[@oxDNA_review; @oxRNA; @oxDNA_primer]. Here we present `oxDNA`, an efficient, multi-technique simulation package written in C++ and specifically developed to carry out simulations of coarse-grained nucleic acid systems. The package, which has been used in more than a hundred publications to date, can perform both molecular dynamics (MD) and Monte Carlo (MC) simulations of oxDNA and oxRNA. MD simulations can be run on single CPUs or single CUDA-enabled GPUs, while MC simulations, which can only be run serially, can exploit the Virtual Move Monte Carlo algorithm[@VMMC] to greatly speed-up equilibration and sampling, as well as Umbrella Sampling biasing to efficiently obtain free-energy profiles. It is also possible to alter the behaviour of the systems by adding *external forces* that can be used, for instance, to pull on or apply torques to strands or confine nucleotides within semi-planes or spheres. Finally, the code is equipped with Python bindings that makes it possible to control the behaviour of the simulation at a high level: The repository contains examples that shows how to leverage `oxDNA`'s Python bindings to write backends to run replica-exchange or metadynamics simulations.
 
 The simulation engine is complemented by `oxDNA_analysis_tools` (`oat`), a Python library aimed at facilitating the analysis of oxDNA/oxRNA trajectories. Specifically `oat` ... @Erik, Michael, Petr, can you add a few details about what `oat` can do?
 
-We note that molecular dynamics simulations of oxDNA and oxRNA can also be performed with the LAMMPS software package, whose efficient parallel-computing algorithms make it possible to simulate large systems on HPC clusters. However, the generic and hyper-customizable nature of the LAMMPS package does not lend itself well to being used by non specialists, and it lacks many of the tools required to ease the burden of working with coarse-grained nucleic acids.
+We note that molecular dynamics simulations of oxDNA and oxRNA can also be performed with the LAMMPS software package, whose efficient parallel-computing algorithms make it possible to simulate large systems on HPC clusters[@oxDNA_LAMMPS]. However, the generic and hyper-customizable nature of the LAMMPS package does not lend itself well to being used by non specialists, and it lacks many of the tools required to ease the burden of working with coarse-grained nucleic acids.
 
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
-
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
-
-# Figures
-
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
-
-Figure sizes can be customized by adding an optional second parameter:
-![Caption for example figure.](figure.png){ width=20% }
 
 # Acknowledgements
 
-We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
+We acknowledge contributions from Debesh Mandal, Ferdinando Randisi and Benedict E. K. Snodin. 
 
 # References
+
