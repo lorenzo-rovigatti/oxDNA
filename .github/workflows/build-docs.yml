@@ -1,4 +1,4 @@
-name: Build the python package's docs and put it online through github pages
+name: Build the documentation and put it online through github pages
 
 on:
   workflow_dispatch:
@@ -32,18 +32,18 @@ jobs:
         run: pip install .
         
       - name: Install the documentation's requirements
-        run: pip install --upgrade -r oxpy/build_docs/requirements.txt
+        run: pip install --upgrade -r docs/docs_requirements.txt
     
       - name: Build the docs
         run: |
-          pushd oxpy/build_docs
+          pushd docs
           make html
           popd
         
       - name: Commit documentation changes
         run: |
           git clone https://github.com/lorenzo-rovigatti/oxDNA.git --branch gh-pages --single-branch gh-pages
-          cp -r docs/oxpy/html/* gh-pages/
+          cp -r docs/build/html/* gh-pages/
           cd gh-pages
           touch .nojekyll
           git config --local user.email "github-actions@github.com"

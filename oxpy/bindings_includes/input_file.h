@@ -21,7 +21,7 @@ Options can be read, set or overwritten by using square brackets::
 	my_input["sim_type"] = "VMMC"
 	print(my_input["sim_type"])
 
-Checking if a specific option has been set you can use `in`::
+To check if a specific option has been set you can use `in`::
 
 	if "debug" in my_input:
 		# do something

@@ -18,7 +18,6 @@ The development of this software has been partially supported by the European Co
 8. [Citing oxDNA](#citing-oxdna)
 9. [Acknowledgements](#acknowledgements)
 
-
 ## Requirements
 
 The code requires `cmake` and a c++-14-compliant `g++` (any version >= 4.9 *should* work). The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
