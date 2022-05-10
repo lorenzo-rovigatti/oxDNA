@@ -1,0 +1,288 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation &mdash; oxDNA  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Oxpy" href="oxpy/index.html" />
+    <link rel="prev" title="oxDNA" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cuda">CUDA</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#compiling-oxdna">Compiling oxDNA</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cmake-options">cmake options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#make-targets">make targets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">oxDNA</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/install.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>The code requires <code class="docutils literal notranslate"><span class="pre">cmake</span></code> and a c++-14-compliant <code class="docutils literal notranslate"><span class="pre">g++</span></code> (any version &gt;= 4.9 <em>should</em> work). The code should be also compilable with the Intel compiler (with the <code class="docutils literal notranslate"><span class="pre">-DIntel=ON</span></code> <code class="docutils literal notranslate"><span class="pre">cmake</span></code> flag, see below), although this has not been tested with newer oxDNA versions.</p>
+<div class="section" id="cuda">
+<h3>CUDA<a class="headerlink" href="#cuda" title="Permalink to this headline">¶</a></h3>
+<p>Compiling with CUDA support requires <code class="docutils literal notranslate"><span class="pre">cmake</span></code> &gt;= 3.5 and a CUDA toolkit &gt;= 9.0. If your current setup cannot meet these requirements we advise you to use <a class="reference external" href="https://sourceforge.net/projects/oxdna/files/">older versions of oxDNA</a>.</p>
+</div>
+</div>
+<div class="section" id="compiling-oxdna">
+<h2>Compiling oxDNA<a class="headerlink" href="#compiling-oxdna" title="Permalink to this headline">¶</a></h2>
+<p>Clone the <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA.git">repo</a> or extract the oxDNA archive and then:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">oxDNA</span>         <span class="c1"># enter the oxDNA folder</span>
+<span class="n">mkdir</span> <span class="n">build</span>      <span class="c1"># create a new build folder. It is good practice to compile out-of-source</span>
+<span class="n">cd</span> <span class="n">build</span>
+<span class="n">cmake</span> <span class="o">..</span>         <span class="c1"># here you can specify additional options, see next section</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">j4</span>         <span class="c1"># compile oxDNA. The -jX make option makes it compile the code in parallel by using X threads.</span>
+</pre></div>
+</div>
+<p>At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed in the <code class="docutils literal notranslate"><span class="pre">build/bin</span></code> directory.</p>
+<p>Compiling with Python bindings will also generate an <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> package in the <code class="docutils literal notranslate"><span class="pre">build/oxpy</span></code> directory that can be imported in Python. Running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> will attempt to copy the package to the <code class="docutils literal notranslate"><span class="pre">pip</span></code>’s module directory. The specific location will depend on your system’s settings. We advise you to use <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environments</a> (see <em>e.g.</em> <a class="reference external" href="https://docs.pipenv.org/">pipenv</a>) to avoid conflicts with other packages and/or dependency and permission issues.</p>
+<div class="section" id="cmake-options">
+<h3>cmake options<a class="headerlink" href="#cmake-options" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-DCUDA=ON</span></code> Enables CUDA support</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DCUDA_COMMON_ARCH=ON</span></code> Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DDebug=ON</span></code> Compiles with debug symbols and without optimisation flags</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DG=ON</span></code> Compiles with debug symbols + optimisation flags</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DINTEL=ON</span></code> Uses INTEL’s compiler suite</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DMPI=ON</span></code> Compiles oxDNA with MPI support</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DSIGNAL=OFF</span></code> Handling system signals is not always supported. Set this flag to OFF to remove this feature</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DMOSIX=ON</span></code> Makes oxDNA compatible with MOSIX</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DDOUBLE=OFF</span></code> Set the numerical precision of the CPU backends to <code class="docutils literal notranslate"><span class="pre">float</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DCUDA_DOUBLE=ON</span></code> Set the numerical precision of the CUDA backends to <code class="docutils literal notranslate"><span class="pre">double</span></code>, which is not compatible with the <code class="docutils literal notranslate"><span class="pre">mixed</span></code> precision.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DNATIVE_COMPILATION=ON</span></code> Set to <code class="docutils literal notranslate"><span class="pre">OFF</span></code> to compile without the <code class="docutils literal notranslate"><span class="pre">-march=native</span></code> flag. This may be required when compiling binaries to be used elsewhere</p></li>
+</ul>
+<p>The following options pertain to <code class="docutils literal notranslate"><span class="pre">oxpy</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-DPython=ON</span></code> Enables Python bindings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DOxpySystemInstall=On</span></code> By default <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> is installed in the current user’s home directory. By enabling this option <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> will be installed as a system-wide package. It may require superuser privileges.</p></li>
+</ul>
+</div>
+<div class="section" id="make-targets">
+<h3>make targets<a class="headerlink" href="#make-targets" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span></code> compiles oxDNA</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">docs</span></code> Produces html doxygen documentation for oxDNA (<code class="docutils literal notranslate"><span class="pre">DOCS/html_oxDNA/index.html</span></code>) and for the UTILS folder (<code class="docutils literal notranslate"><span class="pre">DOCS/html_UTILS/index.html</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">rovigatti</span></code> Compiles the observables and interactions in contrib/rovigatti</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">romano</span></code> Compiles the observables and interactions in contrib/romano</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> Copies the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> package to the Python’s package folder</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_run</span></code> runs quick tests to check whether oxDNA has been correctly compiled or not.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_quick</span></code> runs longer tests to check that oxDNA works.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_oxpy</span></code> checks that the Python bindings work.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> runs both sets of tests above.</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="oxpy/index.html" class="btn btn-neutral float-right" title="Oxpy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="oxDNA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
