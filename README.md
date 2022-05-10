@@ -110,6 +110,16 @@ The following options pertain to `oxpy`:
 
 Most of the options that can be specified in the input file can be found in the `input_options.md` file.
 
+### Input file
+
+As always in UNIX environments, everything in the input file is case sensitive.
+
+The input file should contain lines in the form key = value (or, if you are not a tidy person, you can separate key-value pairs with a semicolon). There can be arbitrary spaces before and after both key and value. Lines with a leading # are treated as comments.
+
+Note that values found in the input file can be overwritten when launching a simulation by using `oxDNA input key1=new_value1 key2=new_value2 [...]`. If done for multiple keys, this will generate a (possibly long) list of `WARNING: Overwriting key [...]` lines. The clutter can be eliminated by setting `show_overwrite_warnings = false` in the input file.
+
+Look at the `input_options.md` file for a (non-comprehensive) list of options supported by oxDNA.
+
 ### Python Bindings
 
 The API are still unstable, and only few features are exposed through this interface. A basic documentation can be accessed by browsing online [here](https://lorenzo-rovigatti.github.io/oxDNA/) or `docs/oxpy/html/index.html` in the source tree.

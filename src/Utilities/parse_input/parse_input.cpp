@@ -176,7 +176,7 @@ void input_file::set_unread_keys() {
 	}
 }
 
-std::string input_file::get_value(const char *key, int mandatory, bool &found) {
+std::string input_file::get_value(std::string key, int mandatory, bool &found) {
 	found = false;
 	std::map<string, input_value>::iterator it = keys.find(string(key));
 	if(it != keys.end()) {
@@ -217,8 +217,15 @@ std::string input_file::get_value(const char *key, int mandatory, bool &found) {
 }
 
 void input_file::set_value(std::string key, std::string value) {
+	if(key == "show_overwrite_warnings") {
+		auto res = false_values.find(value);
+		if(res != false_values.end()) {
+			show_overwrite_warnings = false;
+		}
+	}
+
 	input_map::iterator old_val = keys.find(key);
-	if(old_val != keys.end()) {
+	if(old_val != keys.end() && show_overwrite_warnings) {
 		OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
 		keys[key].depends_on.clear();
 	}
@@ -234,6 +241,10 @@ void input_file::set_value(std::string key, std::string value) {
 		keys[key].depends_on.push_back(m[1].str());
 		value = m.suffix().str();
 	}
+}
+
+void input_file::unset_value(std::string key) {
+	keys.erase(key);
 }
 
 std::string input_file::to_string() const {

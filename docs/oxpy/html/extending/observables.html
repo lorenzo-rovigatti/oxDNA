@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Writing observables in Python &mdash; oxpy 3.2.2.dev47+g785a315.d20220505 documentation</title>
+  <title>Writing observables in Python &mdash; oxpy 3.2.2.dev56+g5e9f981.d20220510 documentation</title>
   
 
   
@@ -36,6 +36,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Modifying external forces at runtime" href="forces.html" />
     <link rel="prev" title="The utils module" href="../modules/utils.html" /> 
 </head>
 
@@ -60,7 +61,7 @@
             
             
               <div class="version">
-                3.2.2.dev47+g785a315.d20220505
+                3.2.2.dev56+g5e9f981.d20220510
               </div>
             
           
@@ -104,6 +105,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Writing observables in Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">Modifying external forces at runtime</a></li>
 </ul>
 
             
@@ -171,10 +173,10 @@
             
   <div class="section" id="writing-observables-in-python">
 <h1>Writing observables in Python<a class="headerlink" href="#writing-observables-in-python" title="Permalink to this headline">¶</a></h1>
-<p>You can write custom observables that can analyse configurations on the fly (that is, while the simulation is running) by subclassing <code class="docutils literal notranslate"><span class="pre">oxpy.BaseObservable</span></code> and overloading its <a class="reference external" href="../modules/core.html#oxpy.core.BaseObservable.get_output_string"><code class="docutils literal notranslate"><span class="pre">get_output_string</span></code></a> method, which takes a single parameter (the current simulation step) and returns the string to be output. Use <a class="reference external" href="../modules/core.html#oxpy.core.BaseObservable.config_info"><code class="docutils literal notranslate"><span class="pre">oxpy.BaseObservable</span></code>s <code class="docutils literal notranslate"><span class="pre">config_info</span></code></a> to access the simulation data required for the analysis (particle positions, velocities, <em>etc.</em>).</p>
-<p>Use <a class="reference external" href="../modules/core.html#oxpy.core.OxpyManager.add_output"><code class="docutils literal notranslate"><span class="pre">OxpyManager</span></code>’s <code class="docutils literal notranslate"><span class="pre">add_output</span></code></a> method to add a new output file and associate observables to it. Use its <code class="docutils literal notranslate"><span class="pre">print_every</span></code> parameter to set the output frequency (in number of simulation time steps).</p>
-<p>Here is an example of a custom observable that prints the position of the last particle to the <code class="docutils literal notranslate"><span class="pre">my_obs_output_file</span></code> every 100 time steps:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oxpy</span>
+<p>You can write custom observables that can analyse configurations on the fly (that is, while the simulation is running) by subclassing <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseObservable</span></code> and overloading its <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_output_string()</span></code> method, which takes a single parameter (the current simulation step) and returns the string to be output. Use the <code class="xref py py-attr docutils literal notranslate"><span class="pre">config_info</span></code> attribute to access the simulation data required for the analysis (particle positions, velocities, <em>etc.</em>).</p>
+<p>Use <a class="reference internal" href="../modules/core/core.html#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">OxpyManager</span></code></a>’s <a class="reference internal" href="../modules/core/core.html#oxpy.core.OxpyManager.add_output" title="oxpy.core.OxpyManager.add_output"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_output()</span></code></a> method to add a new output file and associate observables to it. Use its <code class="docutils literal notranslate"><span class="pre">print_every</span></code> parameter to set the output frequency (in number of simulation time steps).</p>
+<p>Here is an example of a custom observable that prints the position of the last particle to <code class="docutils literal notranslate"><span class="pre">my_obs_output_file.dat</span></code> every 100 time steps:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oxpy</span>
 
 <span class="k">class</span> <span class="nc">MyObs</span><span class="p">(</span><span class="n">oxpy</span><span class="o">.</span><span class="n">observables</span><span class="o">.</span><span class="n">BaseObservable</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">get_output_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_step</span><span class="p">):</span>
@@ -204,6 +206,8 @@
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="forces.html" class="btn btn-neutral float-right" title="Modifying external forces at runtime" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../modules/utils.html" class="btn btn-neutral float-left" title="The utils module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -151,7 +151,7 @@ input_file *get_input_file_from_string(const std::string &inp);
  * @param raw_T c-string containing the text to be parsed
  * @return
  */
-number get_temperature(char *raw_T);
+number get_temperature(std::string raw_T);
 
 /**
  * @brief fills the memory pointed to by seedptr with the current
@@ -174,21 +174,13 @@ void get_seed(unsigned short *seedptr);
 std::string bytes_to_human(llint arg);
 
 /**
- * @brief Utility function that sets the centre of mass velocity of the system to 0.
- *
- * @param particles pointer to array of particle pointers
- * @param N number of particles
- */
-void stop_com(std::vector<BaseParticle *> &particles);
-
-/**
  * @brief Utility function that reads a string like "10-16,18" and returns a vector of integers.
  * @param particles pointer to array of particle pointers
  * @param N number of particles
  * @param particles_string string to process
  * @param identifier the identifier of the calling item (to display to the user in case problems arise).
  */
-std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier);
+std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, std::string identifier);
 
 /**
  * @brief Utility function that checks if an integer is a valid particle index, or -1.
@@ -196,7 +188,7 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particle
  * @param N number of particles
  * @param identifier the identifier of the calling item (to display to the user in case problems arise).
  */
-void assert_is_valid_particle(int n, int N, char const * identifier);
+void assert_is_valid_particle(int n, int N, std::string identifier);
 /**
  *	@brief Utility function that returns true if a string only contains digits, and false otherwise.
  *	@param s string to be checked.

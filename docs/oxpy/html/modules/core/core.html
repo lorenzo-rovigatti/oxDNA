@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>The core module &mdash; oxpy 3.2.2.dev47+g785a315.d20220505 documentation</title>
+  <title>The core module &mdash; oxpy 3.2.2.dev56+g5e9f981.d20220510 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                3.2.2.dev47+g785a315.d20220505
+                3.2.2.dev56+g5e9f981.d20220510
               </div>
             
           
@@ -105,6 +105,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../extending/observables.html">Writing observables in Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../extending/forces.html">Modifying external forces at runtime</a></li>
 </ul>
 
             
@@ -223,7 +224,7 @@
 </table>
 <dl class="py class">
 <dt id="oxpy.core.Context">
-<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.Context" title="oxpy.core.Context">oxpy.core.Context</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.Context" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.Context" title="oxpy.core.Context">oxpy.core.Context</a></span></em>, <em class="sig-param"><span class="n">print_coda</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <p>A <a class="reference external" href="https://book.pythontips.com/en/latest/context_managers.html">context manager</a> that
 performs some initialisation and clean up.</p>
@@ -944,6 +945,11 @@ can be used like this:</p>
 <p>Options can be read, set or overwritten by using square brackets:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my_input</span><span class="p">[</span><span class="s2">&quot;sim_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;VMMC&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">my_input</span><span class="p">[</span><span class="s2">&quot;sim_type&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Checking if a specific option has been set you can use <cite>in</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="s2">&quot;debug&quot;</span> <span class="ow">in</span> <span class="n">my_input</span><span class="p">:</span>
+        <span class="c1"># do something</span>
 </pre></div>
 </div>
 <dl class="py method">

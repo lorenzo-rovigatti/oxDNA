@@ -48,6 +48,7 @@ struct input_file {
 	input_map keys;
 	std::vector<std::string> unread_keys;
 	int state;
+	bool show_overwrite_warnings = true;
 
 	bool is_main_input = false;
 
@@ -107,8 +108,9 @@ struct input_file {
 
 	void set_unread_keys();
 
-	std::string get_value(const char *key, int mandatory, bool &found);
+	std::string get_value(std::string key, int mandatory, bool &found);
 	void set_value(std::string key, std::string value);
+	void unset_value(std::string key);
 
 	std::string to_string() const;
 };

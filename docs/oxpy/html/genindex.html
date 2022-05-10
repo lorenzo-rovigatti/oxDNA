@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; oxpy 3.2.2.dev47+g785a315.d20220505 documentation</title>
+  <title>Index &mdash; oxpy 3.2.2.dev56+g5e9f981.d20220510 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                3.2.2.dev47+g785a315.d20220505
+                3.2.2.dev56+g5e9f981.d20220510
               </div>
             
           
@@ -103,6 +103,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="extending/observables.html">Writing observables in Python</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending/forces.html">Modifying external forces at runtime</a></li>
 </ul>
 
             
@@ -279,10 +280,12 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/core/core.html#oxpy.core.DNANucleotide">DNANucleotide (class in oxpy.core)</a>
+      <li><a href="modules/core/forces.html#oxpy.core.forces.MovingTrap.dir">dir() (oxpy.core.forces.MovingTrap property)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/core/core.html#oxpy.core.DNANucleotide">DNANucleotide (class in oxpy.core)</a>
+</li>
       <li><a href="modules/analysis.html#oxpy.core.analysis.AnalysisBackend.done">done() (oxpy.core.analysis.AnalysisBackend method)</a>
 </li>
   </ul></td>
@@ -325,15 +328,15 @@
 </li>
       <li><a href="modules/core/core.html#oxpy.core.ConfigInfo.get_force_by_id">get_force_by_id() (oxpy.core.ConfigInfo method)</a>
 </li>
-      <li><a href="modules/core/forces.html#oxpy.core.forces.BaseForce.get_group_name">get_group_name() (oxpy.core.forces.BaseForce method)</a>
+      <li><a href="modules/core/core.html#oxpy.core.ConfigInfo.get_observable_by_id">get_observable_by_id() (oxpy.core.ConfigInfo method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/core/core.html#oxpy.core.ConfigInfo.get_observable_by_id">get_observable_by_id() (oxpy.core.ConfigInfo method)</a>
-</li>
       <li><a href="modules/core/observables.html#oxpy.core.observables.BaseObservable.get_output_string">get_output_string() (oxpy.core.observables.BaseObservable method)</a>
 </li>
       <li><a href="modules/core/observables.html#oxpy.core.observables.BaseObservable.get_settings">get_settings() (oxpy.core.observables.BaseObservable method)</a>
+</li>
+      <li><a href="modules/core/forces.html#oxpy.core.forces.BaseForce.group_name">group_name() (oxpy.core.forces.BaseForce property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -399,9 +402,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/core/core.html#oxpy.core.BaseParticle.L">L() (oxpy.core.BaseParticle property)</a>
 </li>
+      <li><a href="modules/core/core.html#oxpy.core.OxpyManager.load_options">load_options() (oxpy.core.OxpyManager method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/core/core.html#oxpy.core.OxpyManager.load_options">load_options() (oxpy.core.OxpyManager method)</a>
+      <li><a href="modules/core/forces.html#oxpy.core.forces.LT2DCOMTrap">LT2DCOMTrap (class in oxpy.core.forces)</a>
+</li>
+      <li><a href="modules/core/forces.html#oxpy.core.forces.LTCOMTrap">LTCOMTrap (class in oxpy.core.forces)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -414,6 +421,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/core/core.html#oxpy.core.ConfigInfo.molecules">molecules() (oxpy.core.ConfigInfo method)</a>
+</li>
+      <li><a href="modules/core/forces.html#oxpy.core.forces.MovingTrap">MovingTrap (class in oxpy.core.forces)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -465,14 +474,26 @@
         <li><a href="modules/core/core.html#oxpy.core.Molecule.particles">(oxpy.core.Molecule property)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/core/core.html#oxpy.core.BaseParticle.pos">pos() (oxpy.core.BaseParticle property)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/core/forces.html#oxpy.core.forces.BaseForce.pos0">pos0() (oxpy.core.forces.BaseForce property)</a>
+
+      <ul>
+        <li><a href="modules/core/forces.html#oxpy.core.forces.MovingTrap.pos0">(oxpy.core.forces.MovingTrap property)</a>
+</li>
+      </ul></li>
       <li><a href="modules/core/core.html#oxpy.core.FlattenedConfigInfo.positions">positions() (oxpy.core.FlattenedConfigInfo property)</a>
 </li>
       <li><a href="modules/core/forces.html#oxpy.core.forces.BaseForce.potential">potential() (oxpy.core.forces.BaseForce method)</a>
 </li>
+      <li><a href="modules/core/forces.html#oxpy.core.forces.LT2DCOMTrap.potential_grid">potential_grid() (oxpy.core.forces.LT2DCOMTrap property)</a>
+
+      <ul>
+        <li><a href="modules/core/forces.html#oxpy.core.forces.LTCOMTrap.potential_grid">(oxpy.core.forces.LTCOMTrap property)</a>
+</li>
+      </ul></li>
       <li><a href="modules/core/core.html#oxpy.core.OxpyManager.print_configuration">print_configuration() (oxpy.core.OxpyManager method)</a>
 </li>
       <li><a href="modules/core/core.html#oxpy.core.OxpyManager.print_timings">print_timings() (oxpy.core.OxpyManager method)</a>
@@ -487,12 +508,18 @@
 </li>
       <li><a href="modules/core/forces.html#oxpy.core.forces.RepulsiveSphere.r_ext">r_ext() (oxpy.core.forces.RepulsiveSphere property)</a>
 </li>
-      <li><a href="modules/core/forces.html#oxpy.core.forces.RepulsiveSphere.rate">rate() (oxpy.core.forces.RepulsiveSphere property)</a>
+      <li><a href="modules/core/forces.html#oxpy.core.forces.BaseForce.rate">rate() (oxpy.core.forces.BaseForce property)</a>
+
+      <ul>
+        <li><a href="modules/core/forces.html#oxpy.core.forces.MovingTrap.rate">(oxpy.core.forces.MovingTrap property)</a>
 </li>
-      <li><a href="modules/analysis.html#oxpy.core.analysis.AnalysisBackend.read_next_configuration">read_next_configuration() (oxpy.core.analysis.AnalysisBackend method)</a>
+        <li><a href="modules/core/forces.html#oxpy.core.forces.RepulsiveSphere.rate">(oxpy.core.forces.RepulsiveSphere property)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/analysis.html#oxpy.core.analysis.AnalysisBackend.read_next_configuration">read_next_configuration() (oxpy.core.analysis.AnalysisBackend method)</a>
+</li>
       <li><a href="modules/core/core.html#oxpy.core.OxpyManager.remove_output">remove_output() (oxpy.core.OxpyManager method)</a>
 </li>
       <li><a href="modules/core/forces.html#oxpy.core.forces.RepulsiveSphere">RepulsiveSphere (class in oxpy.core.forces)</a>
@@ -511,8 +538,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/core/core.html#oxpy.core.BaseInteraction.set_computed_r">set_computed_r() (oxpy.core.BaseInteraction method)</a>
 </li>
-      <li><a href="modules/core/forces.html#oxpy.core.forces.BaseForce.set_group_name">set_group_name() (oxpy.core.forces.BaseForce method)</a>
-</li>
       <li><a href="modules/core/core.html#oxpy.core.RNANucleotide.stack3_site">stack3_site() (oxpy.core.RNANucleotide method)</a>
 </li>
       <li><a href="modules/core/core.html#oxpy.core.RNANucleotide.stack5_site">stack5_site() (oxpy.core.RNANucleotide method)</a>
@@ -528,7 +553,11 @@
       <li><a href="modules/core/core.html#oxpy.core.OxpyManager.steps_run">steps_run() (oxpy.core.OxpyManager method)</a>
 </li>
       <li><a href="modules/core/forces.html#oxpy.core.forces.BaseForce.stiff">stiff() (oxpy.core.forces.BaseForce property)</a>
+
+      <ul>
+        <li><a href="modules/core/forces.html#oxpy.core.forces.MovingTrap.stiff">(oxpy.core.forces.MovingTrap property)</a>
 </li>
+      </ul></li>
       <li><a href="modules/core/core.html#oxpy.core.BaseParticle.strand_id">strand_id() (oxpy.core.BaseParticle property)</a>
 </li>
       <li><a href="modules/core/core.html#oxpy.core.OxpyManager.system_energy">system_energy() (oxpy.core.OxpyManager method)</a>
@@ -541,10 +570,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/core/core.html#oxpy.core.BaseParticle.torque">torque() (oxpy.core.BaseParticle property)</a>
 </li>
+      <li><a href="modules/core/core.html#oxpy.core.BaseParticle.type">type() (oxpy.core.BaseParticle property)</a>
+
+      <ul>
+        <li><a href="modules/core/forces.html#oxpy.core.forces.BaseForce.type">(oxpy.core.forces.BaseForce property)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/core/core.html#oxpy.core.BaseParticle.type">type() (oxpy.core.BaseParticle property)</a>
-</li>
       <li><a href="modules/core/core.html#oxpy.core.FlattenedConfigInfo.types">types() (oxpy.core.FlattenedConfigInfo property)</a>
 </li>
   </ul></td>

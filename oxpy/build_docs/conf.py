@@ -37,7 +37,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
-    'recommonmark',
+    'myst_parser',
     "sphinx_rtd_theme"
 ]
 

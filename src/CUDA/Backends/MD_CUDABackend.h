@@ -21,12 +21,11 @@
 #include "../Lists/CUDANoList.h"
 #include "../Lists/CUDASimpleVerletList.h"
 
-#include "../CUDAForces.h"
+union CUDA_trap;
 
 /**
  * @brief Manages a MD simulation on GPU with CUDA.
  */
-
 class MD_CUDABackend: public MDBackend, public CUDABaseBackend{
 protected:
 	bool _use_edge;
@@ -67,6 +66,7 @@ protected:
 
 	virtual void _gpu_to_host();
 	virtual void _host_to_gpu();
+	virtual void _apply_external_forces_changes();
 
 	virtual void _sort_particles();
 	virtual void _rescale_molecular_positions(c_number4 new_Ls, c_number4 old_Ls, bool is_reverse_move);
