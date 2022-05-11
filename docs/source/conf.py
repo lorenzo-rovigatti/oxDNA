@@ -69,7 +69,6 @@ except ImportError:
     exclude_patterns.append("oxpy")
     with_oxpy = False
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for

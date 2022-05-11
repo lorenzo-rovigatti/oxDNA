@@ -15,11 +15,11 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
 ```{eval-rst}
 .. ifconfig:: with_oxpy
 
-	Python Bindings
-	---------------
+Python Bindings
+---------------
 
-	.. toctree::
-	   :maxdepth: 3
-	   
-	   oxpy/index.md
+.. toctree::
+   :maxdepth: 3
+   
+   oxpy/index.md
 ```
