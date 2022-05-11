@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Oxpy" href="oxpy/index.html" />
+    <link rel="next" title="Usage" href="usage.html" />
     <link rel="prev" title="oxDNA" href="index.html" /> 
 </head>
 
@@ -86,16 +86,21 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#cuda">CUDA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-bindings">Python bindings</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#compiling-oxdna">Compiling oxDNA</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#cmake-options">cmake options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cmake-options">CMake options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#make-targets">make targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#known-issues">Known issues</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
@@ -168,26 +173,30 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>The code requires <code class="docutils literal notranslate"><span class="pre">cmake</span></code> and a c++-14-compliant <code class="docutils literal notranslate"><span class="pre">g++</span></code> (any version &gt;= 4.9 <em>should</em> work). The code should be also compilable with the Intel compiler (with the <code class="docutils literal notranslate"><span class="pre">-DIntel=ON</span></code> <code class="docutils literal notranslate"><span class="pre">cmake</span></code> flag, see below), although this has not been tested with newer oxDNA versions.</p>
+<p>The code requires <a class="reference external" href="https://cmake.org/">CMake</a> and a c++-14-compliant <code class="docutils literal notranslate"><span class="pre">g++</span></code> (any version &gt;= 4.9 <em>should</em> work). The code should be also compilable with the Intel compiler (with the <code class="docutils literal notranslate"><span class="pre">-DIntel=ON</span></code> <code class="docutils literal notranslate"><span class="pre">cmake</span></code> flag, see below), although this has not been tested with newer oxDNA versions.</p>
 <div class="section" id="cuda">
 <h3>CUDA<a class="headerlink" href="#cuda" title="Permalink to this headline">¶</a></h3>
-<p>Compiling with CUDA support requires <code class="docutils literal notranslate"><span class="pre">cmake</span></code> &gt;= 3.5 and a CUDA toolkit &gt;= 9.0. If your current setup cannot meet these requirements we advise you to use <a class="reference external" href="https://sourceforge.net/projects/oxdna/files/">older versions of oxDNA</a>.</p>
+<p>Compiling with CUDA support requires CMake &gt;= 3.5 and a CUDA toolkit &gt;= 9.0. If your current setup cannot meet these requirements we advise you to use <a class="reference external" href="https://sourceforge.net/projects/oxdna/files/">older versions of oxDNA</a>.</p>
+</div>
+<div class="section" id="python-bindings">
+<h3>Python bindings<a class="headerlink" href="#python-bindings" title="Permalink to this headline">¶</a></h3>
+<p>Compiling with the python bindings enabled requires a working Python3 installation comprising both binaries and include files. With Debian-derived distro these come with the package <code class="docutils literal notranslate"><span class="pre">python3-dev</span></code>.</p>
 </div>
 </div>
 <div class="section" id="compiling-oxdna">
 <h2>Compiling oxDNA<a class="headerlink" href="#compiling-oxdna" title="Permalink to this headline">¶</a></h2>
 <p>Clone the <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA.git">repo</a> or extract the oxDNA archive and then:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">oxDNA</span>         <span class="c1"># enter the oxDNA folder</span>
-<span class="n">mkdir</span> <span class="n">build</span>      <span class="c1"># create a new build folder. It is good practice to compile out-of-source</span>
-<span class="n">cd</span> <span class="n">build</span>
-<span class="n">cmake</span> <span class="o">..</span>         <span class="c1"># here you can specify additional options, see next section</span>
-<span class="n">make</span> <span class="o">-</span><span class="n">j4</span>         <span class="c1"># compile oxDNA. The -jX make option makes it compile the code in parallel by using X threads.</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> oxDNA         <span class="c1"># enter the oxDNA folder</span>
+mkdir build      <span class="c1"># create a new build folder. It is good practice to compile out-of-source</span>
+<span class="nb">cd</span> build
+cmake ..         <span class="c1"># here you can specify additional options, see next section</span>
+make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it compile the code in parallel by using X threads.</span>
 </pre></div>
 </div>
-<p>At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed in the <code class="docutils literal notranslate"><span class="pre">build/bin</span></code> directory.</p>
+<p>At the end of the compilation three executables (<em>oxDNA</em>, <em>DNAnalysis</em> and <em>confGenerator</em>) will be placed in the <code class="docutils literal notranslate"><span class="pre">build/bin</span></code> directory.</p>
 <p>Compiling with Python bindings will also generate an <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> package in the <code class="docutils literal notranslate"><span class="pre">build/oxpy</span></code> directory that can be imported in Python. Running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> will attempt to copy the package to the <code class="docutils literal notranslate"><span class="pre">pip</span></code>’s module directory. The specific location will depend on your system’s settings. We advise you to use <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environments</a> (see <em>e.g.</em> <a class="reference external" href="https://docs.pipenv.org/">pipenv</a>) to avoid conflicts with other packages and/or dependency and permission issues.</p>
 <div class="section" id="cmake-options">
-<h3>cmake options<a class="headerlink" href="#cmake-options" title="Permalink to this headline">¶</a></h3>
+<h3>CMake options<a class="headerlink" href="#cmake-options" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">-DCUDA=ON</span></code> Enables CUDA support</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-DCUDA_COMMON_ARCH=ON</span></code> Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.</p></li>
@@ -217,6 +226,13 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> Copies the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> package to the Python’s package folder</p></li>
 </ul>
 </div>
+<div class="section" id="known-issues">
+<h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>
+<p>When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly set from the command line as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake .. -DPython<span class="o">=</span>ON -DPYTHON_INCLUDE_DIRS<span class="o">=</span>/path/to/python/include/dir -DPYTHON_EXECUTABLE<span class="o">=</span>/path/to/python/binary
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
@@ -224,7 +240,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_run</span></code> runs quick tests to check whether oxDNA has been correctly compiled or not.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_quick</span></code> runs longer tests to check that oxDNA works.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_oxpy</span></code> checks that the Python bindings work.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> runs both sets of tests above.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> runs all sets of tests above.</p></li>
 </ul>
 </div>
 </div>
@@ -237,7 +253,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="oxpy/index.html" class="btn btn-neutral float-right" title="Oxpy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="oxDNA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

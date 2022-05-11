@@ -83,6 +83,9 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
@@ -159,21 +162,77 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="install.html#requirements">Requirements</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="install.html#cuda">CUDA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#python-bindings">Python bindings</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="install.html#compiling-oxdna">Compiling oxDNA</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="install.html#cmake-options">cmake options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#cmake-options">CMake options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="install.html#make-targets">make targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#known-issues">Known issues</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="install.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#oxdna">oxDNA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#dnanalysis">DNAnalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#confgenerator">confGenerator</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="input.html#general-syntax">General syntax</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#core-options">Core options:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#molecular-dynamics-options">Molecular dynamics options:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#monte-carlo-options">Monte Carlo options:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#options-for-the-default-interaction-oxdna1">Options for the default interaction (oxDNA1)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#options-for-interaction-type-dna2-oxdna2">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">DNA2</span></code> (oxDNA2)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#options-for-interaction-type-rna-oxrna1">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">RNA</span></code> (oxRNA1)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#options-for-interaction-type-rna2-oxrna2">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">RNA2</span></code> (oxRNA2)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#options-for-interaction-type-lj-lennard-jones">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">LJ</span></code> (Lennard-Jones)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#cuda-options">CUDA options:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#forward-flux-sampling-ffs-options">Forward Flux Sampling (FFS) options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#dnanalysis-options"><em>DNAnalysis</em> options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#observables">Observables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-hb-energy"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hb_energy</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-particle-position"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">particle_position</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-stretched"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">stretched</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-vector-angle"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">vector_angle</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-step"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">step</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-pressure"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pressure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-pitch"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pitch</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-distance"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">distance</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-potential-energy"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">potential_energy</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-writhe"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">writhe</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-coax-variables"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">coax_variables</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-force-energy"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">force_energy</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-pair-energy"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pair_energy</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-structure-factor"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">structure_factor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-density-profile"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">density_profile</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-contacts"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">contacts</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-pair-force"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pair_force</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-rdf"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">rdf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-hb-list"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hb_list</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="input.html#type-configuration"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">configuration</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#type-string"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">string</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#type-com"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#type-repulsion-plane"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#type-lj-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#type-repulsive-string"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_string</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#type-sawtooth"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#type-repulsion-plane-moving"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#type-hard-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code></a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="python-bindings">
 <h2>Python Bindings<a class="headerlink" href="#python-bindings" title="Permalink to this headline">¶</a></h2>
-<p>The documentation for the Python bindings can be browsed below:</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a><ul>

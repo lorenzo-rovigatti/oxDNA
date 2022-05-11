@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>External forces &mdash; oxDNA  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Input file" href="input.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">External forces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#type-string"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">string</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-com"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-repulsion-plane"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-lj-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-repulsive-string"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_string</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-sawtooth"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-repulsion-plane-moving"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-hard-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code></a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">oxDNA</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>External forces</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/forces.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="external-forces">
+<h1>External forces<a class="headerlink" href="#external-forces" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="type-string">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">string</span></code><a class="headerlink" href="#type-string" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
+    comma-separated list of indices of particles to apply the force to. -1
+    applies it to all particles. Entries separated by a dash &quot;-&quot; get
+    expanded in a list of all the particles on a same strand comprised
+    between the two indices. E.g., particle= 1,2,5-7 applies the force to
+    1,2,5,6,7 if 5 and 7 are on the same strand.
+F0 = &lt;float&gt;
+    Initial force.
+rate = &lt;float&gt;
+    growth rate of the force. It is [oxDNA energy units / (oxDNA distance
+    units * (MD/MC) steps].
+[dir_as_centre = &lt;bool&gt;]
+    if true the &quot;dir&quot; parameter will be interpreted as the origin of the
+    force, so that the true direction will be dir - p-&gt;pos
+</pre></div>
+</div>
+</div>
+<div class="section" id="type-com">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code><a class="headerlink" href="#type-com" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
+    stiffness of the spring
+r0 = &lt;float&gt;
+    equilibrium elongation of the spring
+com_list = &lt;string&gt;
+    comma-separated list containing the ids of all the particles whose
+    centre of mass is subject to the force
+ref_list = &lt;string&gt;
+    comma-separated list containing the ids of all the particles whose
+    centre of mass is the reference point for the force acting on the
+    other group of particles
+</pre></div>
+</div>
+</div>
+<div class="section" id="type-repulsion-plane">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane</span></code><a class="headerlink" href="#type-repulsion-plane" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
+    stiffness of the repulsion.
+dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
+    the vector normal to the plane: it should point towards the half-plane
+    where the repulsion is not acting.
+position = &lt;float&gt;
+    defines the position of the plane along the direction identified by
+    the plane normal.
+particle = &lt;int&gt;
+    index of the particle on which the force shall be applied. If -1, the
+    force will be exerted on all the particles.
+</pre></div>
+</div>
+</div>
+<div class="section" id="type-lj-wall">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code><a class="headerlink" href="#type-lj-wall" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
+    the vector normal to the plane: it should point towards the half-plane
+    where the repulsion is not acting.
+position = &lt;float&gt;
+    defines the position of the plane along the direction identified by
+    the plane normal.
+particle = &lt;int&gt;
+    index of the particle on which the force shall be applied. If -1, the
+    force will be exerted on all the particles.
+[stiff = &lt;float&gt;]
+    stiffness of the repulsion. Defaults to 1.
+[sigma = &lt;float&gt;]
+    &quot;Diameter&quot; of the wall. It effectively rescales the distance between
+    particle and wall. Defaults to 1.
+[n = &lt;int&gt;]
+    Exponent of the 2n-n generalized Lennard-Jones expression. Defaults to
+    6.
+[only_repulsive = &lt;bool&gt;]
+    If true, the interactio between particle and wall gets cut-off at the
+    minimum, resulting in a purely-repulsive potential. Defaults to false.
+[generate_inside = &lt;bool&gt;]
+    If true the wall-particle interaction may not diverge, even for
+    negative distances. Useful when generating the starting configuration.
+    Defaults to false
+</pre></div>
+</div>
+</div>
+<div class="section" id="type-repulsive-string">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_string</span></code><a class="headerlink" href="#type-repulsive-string" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
+    stiffness of the repulsion.
+r0 = &lt;float&gt;
+    radius of the sphere, in simulation units.
+rate = &lt;float&gt;
+    rate of growth of the radius. Note that the growth is linear in
+    timesteps/MC steps, not reduced time units.
+particle = &lt;int&gt;
+    index of the particle on which the force shall be applied. If -1, the
+    force will be exerted on all the particles
+[center = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;]
+    centre of the sphere, defaults to 0,0,0
+</pre></div>
+</div>
+</div>
+<div class="section" id="type-sawtooth">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code><a class="headerlink" href="#type-sawtooth" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
+    particle to apply the force to. -1 applies it to all particles.
+F0 = &lt;float&gt;
+    Initial force
+wait_time = &lt;float&gt;
+    time interval over which the force is constant. Units are (MD/MC)
+    steps.
+increment = &lt;float&gt;
+    amount by which to increment the force every wait_time steps.
+</pre></div>
+</div>
+</div>
+<div class="section" id="type-repulsion-plane-moving">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code><a class="headerlink" href="#type-repulsion-plane-moving" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
+    stiffness of the repulsion.
+dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
+    the vector normal to the plane: it should point towards the half-plane
+    where the repulsion is not acting.
+particle = &lt;int&gt;
+    index(es) of the particle(s) on which the force shall be applied. Can
+    be a list of comma-separated indexes. If -1, the force will be exerted
+    on all the particles.
+ref_particle = &lt;int&gt;
+    index(es) of the particle(s) whose position along the normal will be
+    used to define the repulsive plane(s). Can be a list of comma-
+    separated indexes.
+</pre></div>
+</div>
+</div>
+<div class="section" id="type-hard-wall">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code><a class="headerlink" href="#type-hard-wall" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
+    the vector normal to the plane: it should point towards the half-plane
+    that is allowed to the particles.
+position = &lt;float&gt;
+    defines the position of the plane along the direction identified by
+    the plane normal.
+particle = &lt;int&gt;
+    index of the particle on which the force shall be applied. If -1, the
+    force will be exerted on all the particles.
+[sigma = &lt;float&gt;]
+    &quot;Diameter&quot; of the wall. It effectively rescales the distance between
+    particle and wall. Defaults to 1.
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="input.html" class="btn btn-neutral float-left" title="Input file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
