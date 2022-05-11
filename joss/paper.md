@@ -55,7 +55,7 @@ There are many software packages that either use `oxDNA` or take as input, outpu
 
 # Acknowledgements
 
-We acknowledge contributions from Debesh Mandal, Ferdinando Randisi and Benedict E. K. Snodin. 
+We acknowledge contributions from R. Harrison, Debesh Mandal, C. Matek, Ferdinando Randisi, W. Smith and Benedict E. K. Snodin.
 
 # References
 

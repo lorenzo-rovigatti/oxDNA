@@ -33,6 +33,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
+    'sphinx.ext.ifconfig',
     'myst_parser',
     "sphinx_rtd_theme"
 ]
@@ -66,6 +67,7 @@ try:
     import oxpy
 except ImportError:
     exclude_patterns.append("oxpy")
+    with_oxpy = False
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -79,3 +81,7 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+def setup(app):
+    app.add_config_value('with_oxpy', True, 'env')
+    

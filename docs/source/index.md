@@ -7,15 +7,19 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
    :maxdepth: 3
    
    install.md
+   usage.md
+   input.md
+   forces.md
 ```
 
-## Python Bindings
-
-The documentation for the Python bindings can be browsed below:
-
 ```{eval-rst}
-.. toctree::
-   :maxdepth: 3
-   
-   oxpy/index.md
+.. ifconfig:: with_oxpy
+
+	Python Bindings
+	---------------
+
+	.. toctree::
+	   :maxdepth: 3
+	   
+	   oxpy/index.md
 ```
