@@ -87,11 +87,14 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">External forces</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#type-string"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">string</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#string">String</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mutual-trap">Mutual Trap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#harmonic-trap">Harmonic trap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rotating-harmonic-trap">Rotating harmonic trap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#repulsion-plane">Repulsion plane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#repulsive-sphere">Repulsive sphere</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-com"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-repulsion-plane"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-lj-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#type-repulsive-string"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_string</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-sawtooth"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-repulsion-plane-moving"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-hard-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code></a></li>
@@ -167,23 +170,196 @@
             
   <div class="section" id="external-forces">
 <h1>External forces<a class="headerlink" href="#external-forces" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="type-string">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">string</span></code><a class="headerlink" href="#type-string" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
-    comma-separated list of indices of particles to apply the force to. -1
-    applies it to all particles. Entries separated by a dash &quot;-&quot; get
-    expanded in a list of all the particles on a same strand comprised
-    between the two indices. E.g., particle= 1,2,5-7 applies the force to
-    1,2,5,6,7 if 5 and 7 are on the same strand.
-F0 = &lt;float&gt;
-    Initial force.
-rate = &lt;float&gt;
-    growth rate of the force. It is [oxDNA energy units / (oxDNA distance
-    units * (MD/MC) steps].
-[dir_as_centre = &lt;bool&gt;]
-    if true the &quot;dir&quot; parameter will be interpreted as the origin of the
-    force, so that the true direction will be dir - p-&gt;pos
+<p>The code implements several types of external forces that can be imposed on the system that can be used either to simulate tension exerted on DNA or simply to accelerate the formation of secondary or tertiary structure. External forces can be tricky to treat, especially in a dynamics simulation, since they are an external source of work. Care should be taken in adjusting the time step, thermostat parameters and such.</p>
+<p>To enable external forces, one needs to specify <code class="docutils literal notranslate"><span class="pre">external_forces</span> <span class="pre">=</span> <span class="pre">true</span></code> in the input file and also supply an external force file to read from with the key <code class="docutils literal notranslate"><span class="pre">external_forces_file</span> <span class="pre">=</span> <span class="pre">&lt;file&gt;</span></code>.</p>
+<p>The syntax of the external forces file is quite simple. Examples of such files can be found in the hairpin formation (<code class="docutils literal notranslate"><span class="pre">examples/HAIRPIN</span></code>) and pseudoknot formation (<code class="docutils literal notranslate"><span class="pre">examples/PSEUDOKNOT</span></code>) examples. Each force is specified within a block contained in curly brackets. Empty lines and lines beginning with an hash symbol (#) are ignored. Different forces require different keys to be present. If the file has the wrong syntax, oxDNA should print out a sensible error message while parsing the file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All forces act on the centre of mass of the nucleotides. Currently, it is not possible to exert forces on specific nucleotide sites (<em>e.g.</em> base or backbone) or to exert torques.</p>
+</div>
+<p>Forces of different kinds can be combined in the same simulation, but there is a maximum number of 15 external forces per particle for memory reasons. This can be manually overridden recompiling the code with a different value of the macro <code class="docutils literal notranslate"><span class="pre">MAX_EXT_FORCES</span></code> in <code class="docutils literal notranslate"><span class="pre">src/defs.h</span></code>.</p>
+<p>The main external forces implemented in the code, together with their associated options, are presented below. The most important ones are also accompanied by a brief description and an example.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The following two options are supported by all forces and can be used by observables or by the <a class="reference internal" href="oxpy/index.html"><span class="doc std std-doc">oxpy</span></a> library to retrieve information from or set options of specific external forces:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">group_name</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;</span></code>: an identifier that can be used to group forces together. Used, for instance, by the <code class="docutils literal notranslate"><span class="pre">force_energy</span></code> observable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">id</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;</span></code>: a unique identifier that can be used to refer to this specific external force.</p></li>
+</ul>
+</div>
+<div class="section" id="string">
+<h2>String<a class="headerlink" href="#string" title="Permalink to this headline">¶</a></h2>
+<p>A string is implemented as a force that does not depend on the particle position. Its value can be constant or can change linearly with time. It is useful as it does not fluctuate with time. A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">string</span></code>. The relevant keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">F0</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: initial force.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: growth rate of the force, in units of [oxDNA energy units / (oxDNA distance units * (MD/MC) steps].</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dir</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: direction of the force (automatically normalised by the code).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[dir_as_centre</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code> if true the “dir” parameter will be interpreted as the origin of the force, so that the true direction will be <code class="docutils literal notranslate"><span class="pre">dir</span> <span class="pre">-</span> <span class="pre">p-&gt;pos</span></code>.</p></li>
+</ul>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>The following bit of code will create an external force on the first nucleotide in the system starting at 1 simulation units (48.6 pN for DNA) and growing linearly with time at the rate of 1 simulation unit every <span class="math notranslate nohighlight">\(10^6\)</span> time steps. The force will pull the nucleotide along the z direction.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = string
+particle = 0
+F0 = 1.
+rate = 1e-6
+dir = 0., 0., 1.
+}
 </pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="mutual-trap">
+<h2>Mutual Trap<a class="headerlink" href="#mutual-trap" title="Permalink to this headline">¶</a></h2>
+<p>This force is useful to form initial configurations. It is a harmonic force that at every moment pulls a particle towards a reference particle. It is possible to specify the separation at which the force will be 0.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Please note that the reference particle (<code class="docutils literal notranslate"><span class="pre">ref_particle</span></code> below) will not feel any force, thus making the name mutual trap somewhat misleading. If you want to have an actual <em>mutual</em> trap you will need to add a force on the reference particle.</p>
+</div>
+<p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">mutual_trap</span></code>. The relevant keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: the particle on which to exert the force.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: particle to pull towards.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the trap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">r0</span> <span class="pre">=</span> <span class="pre">&lt;float</span></code>: equilibrium distance of the trap.</p></li>
+</ul>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>Here is an example, extracted from the pseudoknot formation example (<code class="docutils literal notranslate"><span class="pre">examples/PSEUDOKNOT</span></code>). This will pull particle 14 towards particle 39, favouring an equilibrium distance of 1.4 (which corresponds roughly to the minimum of the hydrogen bonding potential, not a coincidence). The same force with opposite sign is exerted on particle 39 through a separate force. It is not necessary to have both particles feel the force, but it usually works much better.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = mutual_trap
+particle = 14
+ref_particle = 39
+stiff = 1.
+r0 = 1.2
+}
+
+{
+type = mutual_trap
+particle = 39
+ref_particle = 14
+stiff = 1.
+r0 = 1.2
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="harmonic-trap">
+<h2>Harmonic trap<a class="headerlink" href="#harmonic-trap" title="Permalink to this headline">¶</a></h2>
+<p>This type of force implements an harmonic trap, of arbitrary stiffness, that can move linearly with time. It can be useful to fix the position of the nucleotides to simulate attachment to something or to implement (quasi) constant extension simulations.</p>
+<p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">trap</span></code>. The relevant keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pos0</span> <span class="pre">=</span> <span class="pre">&lt;float,</span> <span class="pre">float,</span> <span class="pre">float&gt;</span></code>: rest position of the trap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the trap (the force is stiff * dx).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: speed of the trap (length simulation units/time steps).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dir</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: direction of movement of the trap. Used only if rate is non zero.</p></li>
+</ul>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>Here is an example input for a harmonic trap acting on the third nucleotide constraining it to stay close to the origin. In this example the trap does not move (rate=0), but one could have it move at a constant speed along the direction specified by dir, in this case the x direction.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = trap
+particle = 2
+pos0 = 0., 0., 0.
+stiff = 1.0
+rate = 0.
+dir = 1.,0.,0.
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="rotating-harmonic-trap">
+<h2>Rotating harmonic trap<a class="headerlink" href="#rotating-harmonic-trap" title="Permalink to this headline">¶</a></h2>
+<p>Same as the harmonic trap, with the exception that the trap position rotates in space with constant angular velocity. Several of these can be used e.g. to twist DNA.</p>
+<p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">twist</span></code>. The relevant keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pos0</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: position of the trap when the rotation angle equals 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the trap (the force is stiff * dx).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: angular velocity of the trap (length simulation units/time steps).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">base</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: initial phase of the trap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: rotation axis of the trap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mask</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: masking vector of the trap: the force vector will be element-wise multiplied by the masking vector.</p></li>
+</ul>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>The following is an example input for a rotating trap acting on the first nucleotide forcing it to stay close to a point that starts at pos0 and then rotates around an axis containing the center point and parallel to the z axis. In this case we want to neglect the force component along the z-axis, so we set mask accordingly.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = twist
+particle = 0
+stiff = 1.00
+rate = 1e-5
+base = 0.
+pos0 = 15, 0.674909093169, 18.6187733563
+center = 13., 0.674909093169, 18.6187733563
+axis = 0, 0, 1
+mask = 1, 1, 0
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="repulsion-plane">
+<h2>Repulsion plane<a class="headerlink" href="#repulsion-plane" title="Permalink to this headline">¶</a></h2>
+<p>This kind of external force implements a repulsion plane that constrains particles to stay on one side of it. It is implemented as a harmonic repulsion, but the stiffness can be made arbitrarily high to mimic a hard repulsion.</p>
+<p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane</span></code>. The relevant keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the repulsion.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dir</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;</span></code>: the vector normal to the plane: it should point towards the half-plane where the repulsion is not acting.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">position</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: defines the position of the plane along the direction identified by the plane normal.</p></li>
+</ul>
+<p>If direction is <code class="docutils literal notranslate"><span class="pre">dir</span></code><span class="math notranslate nohighlight">\( = (u,v,w)\)</span>, then the plane contains all the points <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy the equation: <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} = 0\)</span>.
+Only nucleotides  with coordinates <span class="math notranslate nohighlight">\((x,y,z)\)</span> that satisfy <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} \lt 0\)</span> will feel the force.
+The force exerted on a nucleotide is equal to <code class="docutils literal notranslate"><span class="pre">stiff</span></code> * <em>D</em>, where <span class="math notranslate nohighlight">\(D = | ux + vy + wz + \mbox{position}| / \sqrt{u^2 + v^2 + w^2 }\)</span> is the distance of the nucleotide from the plane.
+For nucleotides for which <span class="math notranslate nohighlight">\(u x + v y + w z + {\rm position} \geq 0\)</span>, no force will be exerted.</p>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>The following snippet defines a plane that acts on the whole system and will not exert any force on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit * x (48.6 pN * x for DNA) will be exerted on all particles .</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = twist
+particle = 0
+stiff = 1.00
+rate = 1e-5
+base = 0.
+pos0 = 15, 0.674909093169, 18.6187733563
+center = 13., 0.674909093169, 18.6187733563
+axis = 0, 0, 1
+mask = 1, 1, 0
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="repulsive-sphere">
+<h2>Repulsive sphere<a class="headerlink" href="#repulsive-sphere" title="Permalink to this headline">¶</a></h2>
+<p>This force encloses particle(s) in a repulsive sphere. The repulsion force is harmonic.</p>
+<p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sphere</span></code>. The relevant keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the repulsion.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">r0</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: radius of the sphere, in simulation units.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: rate of growth of the radius. Note that the growth is linear in timesteps/MC steps, not reduced time units.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[center</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;]</span></code>: centre of the sphere, defaults to <code class="docutils literal notranslate"><span class="pre">0,0,0</span></code>.</p></li>
+</ul>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>The following snippet defines a repulsive sphere that acts on the first 50 nucleotides, confining them within a sphere of radius 6 centred in <span class="math notranslate nohighlight">\((10, 10, 10)\)</span>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = sphere
+particle = 0-50
+center = 10.0,10.0,10.0
+stiff = 10.0
+rate = 0.
+r0 = 6
+}
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="type-com">
@@ -199,22 +375,6 @@ ref_list = &lt;string&gt;
     comma-separated list containing the ids of all the particles whose
     centre of mass is the reference point for the force acting on the
     other group of particles
-</pre></div>
-</div>
-</div>
-<div class="section" id="type-repulsion-plane">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane</span></code><a class="headerlink" href="#type-repulsion-plane" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
-    stiffness of the repulsion.
-dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
-    the vector normal to the plane: it should point towards the half-plane
-    where the repulsion is not acting.
-position = &lt;float&gt;
-    defines the position of the plane along the direction identified by
-    the plane normal.
-particle = &lt;int&gt;
-    index of the particle on which the force shall be applied. If -1, the
-    force will be exerted on all the particles.
 </pre></div>
 </div>
 </div>
@@ -244,23 +404,6 @@ particle = &lt;int&gt;
     If true the wall-particle interaction may not diverge, even for
     negative distances. Useful when generating the starting configuration.
     Defaults to false
-</pre></div>
-</div>
-</div>
-<div class="section" id="type-repulsive-string">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsive_string</span></code><a class="headerlink" href="#type-repulsive-string" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
-    stiffness of the repulsion.
-r0 = &lt;float&gt;
-    radius of the sphere, in simulation units.
-rate = &lt;float&gt;
-    rate of growth of the radius. Note that the growth is linear in
-    timesteps/MC steps, not reduced time units.
-particle = &lt;int&gt;
-    index of the particle on which the force shall be applied. If -1, the
-    force will be exerted on all the particles
-[center = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;]
-    centre of the sphere, defaults to 0,0,0
 </pre></div>
 </div>
 </div>
