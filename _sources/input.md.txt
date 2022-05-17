@@ -24,6 +24,8 @@ The list of the main options supported by oxDNA is reported below. Square bracke
 
 ## Core options
 
+These are the options that control the overall behaviour of the simulation and of the most common input/output operations.
+
 * `T = <float>`: temperature of the simulation. It can be expressed in simulation units, kelvin (append a k or K after the value) or celsius (append a c or C after the value).
 * `restart_step_counter = <bool>`: if `true` oxDNA will reset the step counter to 0, otherwise it will start from the step counter found in the initial configuration. Defaults to `false`.
 * `steps = <int>`: length of the simulation, in time steps.
@@ -51,140 +53,85 @@ The list of the main options supported by oxDNA is reported below. Square bracke
 * `[checkpoint_every = <int>]`: if > 0, it enables the production of checkpoints, which have a binary format. Beware that trajectories that do have this option enabled will differ from trajectories that do not. If this key is specified, at least one of `checkpoint_file` and `checkpoint_trajectory` needs to be specified.
 * `[checkpoint_file = <string>]`: File name for the last checkpoint. If not specified, the last checkpoint will not be printed separately.
 * `[checkpoint_trajectory = <string>]`: File name for the checkpoint trajectory. If not specified, only the last checkpoint will be printed.
-* `[reload_from = <string>]`: checkpoint to reload from. This option is incompatible with the keys `conf_file` and `seed`, and requires `restart_step_counter = false` as well as `binary_initial_conf = true`.
+* `[reload_from = <string>]`: checkpoint to reload from. This option is incompatible with the keys `conf_file` and `seed`, and requires `restart_step_counter = false` as well as `binary_initial_conf = true`. Note that this option is incompatible with `backend = CUDA`.
 * `[print_input = <bool>]`: make oxDNA write the input key=value pairs used by the simulation in a file named input.pid, with pid being the oxDNA pid. Defaults to `false`.
 * `[equilibration_steps = <int>]`: number of equilibration steps. During equilibration, oxDNA does not generate any output. Defaults to `0`.
-* `[print_conf_ppc = <int>]`: This is the number of printed configurations in a single logarithmic cycle. Mandatory if `time_scale = log_line`.
-* `[list_type = verlet|cells|no]`: Type of neighbouring list to be used in CPU simulations. `no` implies a O(N^2) computational complexity. Defaults to `verlet`.
+* `[print_conf_ppc = <int>]`: this is the number of printed configurations in a single logarithmic cycle. Mandatory if `time_scale = log_line`.
+* `[list_type = verlet|cells|no]`: type of neighbouring list to be used in CPU simulations. `no` implies a O(N^2) computational complexity. Defaults to `verlet`.
 * `[verlet_skin = <float>]`: width of the skin that controls the maximum displacement after which Verlet lists need to be updated. mandatory if `list_type = verlet`.
 
-## Molecular dynamics options:
+## Molecular dynamics options
 
-    [reset_initial_com_momentum = <bool>]
-        if true the momentum of the centre of mass of the initial
-        configuration will be set to 0. Defaults to false to enforce the
-        reproducibility of the trajectory
-    [reset_com_momentum = <bool>]
-        if true the momentum of the centre of mass will be set to 0 each time
-        fix_diffusion is performed. Defaults to false to enforce the
-        reproducibility of the trajectory
-    [use_barostat = <bool>]
-        apply an MC-like barostat to the simulation
-    [P = <float>]
-        the pressure of the simulation
-    [delta_L = <float>]
-        controls the box side change by the MC-like barostat
-    backend = CPU
-        For CPU FFS
-    backend_precision = <any>
-        CPU FFS may use any precision allowed for a normal CPU MD simulation
-    sim_type = FFS_MD
-        This must be set for an FFS simulation
-    newtonian_steps = <int>
-        number of integration timesteps after which the thermostat acts. Can
-        be 1.
-    pt = <float>
-        probability of refreshing the momenta of each particle
-    diff_coeff = <float>
-        base diffusion coefficient. Either pt or diff_coeff should be
-        specified in the input file
-    gamma_trans = <float>
-        translational damping coefficient for the Langevin thermostat. Either
-        this or diff_coeff should be specified in the input file.
-    bussi_tau = <int>
-        correlation time, in time steps, for the stochastic evolution of the
-        kinetic energy
-    DPD_zeta = <float>
-        translational damping coefficient for the DPD thermostat.
-    [thermostat = no|refresh|brownian|langevin|srd]
-        Select the simulation thermostat for MD simulations. 'no' means
-        constant-energy simulations. 'refresh' is the Anderson thermostat.
-        'brownian' is an Anderson-like thermostat that refreshes momenta of
-        randomly chosen particles. 'langevin' implements a regular Langevin
-        thermostat. 'srd' is an (experimental) implementation of a stochastic
-        rotational dynamics algorithm. 'no' and 'brownian' are also available
-        on CUDA. Defaults to 'no'.
+These options control the behaviour of MD simulations.
 
-## Monte Carlo options:
+* `sim_type = MD|FFS_MD`: run either an MD or an FFS simulation.
+* `backend = CPU|CUDA`: MD simulations can be run either on single CPU cores or on single CUDA-enabled GPUs.
+* `backend_precision = <any>`: by default CPU simulations are run with `double` precision, CUDA with `mixed` precision (see [here](https://doi.org/10.1002/jcc.23763) for details). The CUDA backend also supports single precision (`backend_precision = float`), but we do not recommend to use it. Optionally, [by using CMake switches](install.md#CMake-options) it is possible to run CPU simulations in single precision or CUDA simulations in double precision.
+* `[reset_initial_com_momentum = <bool>]`: if `true` the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to `false` to enforce the reproducibility of the trajectory.
+* `[reset_com_momentum = <bool>]`: if `true` the momentum of the centre of mass will be set to 0 each time fix_diffusion is performed. Defaults to `false` to enforce the reproducibility of the trajectory
 
-    ensemble = nvt|npt
-        ensemble of the simulation
-    [check_energy_every = <float>]
-        oxDNA will compute the energy from scratch, compare it with the
-        current energy and throw an error if the difference is larger then
-        check_energy_threshold. Defaults to 10.
-    [check_energy_threshold = <float>]
-        threshold for the energy check. Defaults to 1e-2f for single precision
-        and 1e-6 for double precision.
-    delta_translation = <float>
-        controls the trial translational displacement, which is a randomly
-        chosen number between -0.5*delta and 0.5*delta for each direction.
-    delta_rotation = <float>
-        controls the angular rotational displacement, given by a randomly
-        chosen angle between -0.5*delta and 0.5*delta radians.
-    delta_volume = <float>
-        controls the volume change in npt simulations.
-    P = <float>
-        the pressure of the simulation. Used only if ensemble == npt.
-    [adjust_moves = <bool>]
-        if true, oxDNA will run for equilibration_steps time steps while
-        changing the delta of the moves in order to have an optimal acceptance
-        ratio. It does not make sense if equilibration_steps is 0 or not
-        given. Defaults to false
-    [maxclust = <int>]
-        Default: N; maximum number of particles to be moved together. Defaults
-        to the whole system
-    [small_system = <bool>]
-        Default: false; whether to use an interaction computation suited for
-        small systems.
-    [preserve_topology = <bool>]
-        Default: false; sets a maximum size for the move attempt to 0.5, which
-        guarantees that the topology of the system is conserved. Also prevents
-        very large moves and might speed up simulations of larger systems,
-        while suppressing diffusion
-    [umbrella_sampling = <bool>]
-        Default: false; whether to use umbrella sampling
-    [op_file = <string>]
-        Mandatory if umbrella_sampling is set to true; path to file with the
-        description of the order parameter
-    [weights_file = <string>]
-        Mandatory if umbrella_sampling is set to true; path to file with the
-        weights to use in umbrella sampling
-    [last_hist_file = <string>]
-        Optional if umbrella_sampling is set to true, otherwise ignored;
-        Default: last_hist.dat; path to file where the histograms associated
-        with umbrella sampling will be stored. This is printed with the same
-        frequency as the energy file. Should become an observable sooner or
-        later
-    [traj_hist_file = <string>]
-        Optional if umbrella_sampling is set to true, otherwise ignored;
-        Default: traj_hist.dat; path to file where the series histograms
-        associated with umbrella sampling will be stored, allowing to monitor
-        the time evolution of the histogram and possibly to remove parts of
-        the simulation. This is printed with the same frequency as the energy
-        file. Should become an observable sooner or later
-    [init_hist_file = <string>]
-        Optional if umbrella_sampling is set to true, otherwise ignored;
-        Default: none; path to a file to load a previous histogram from,
-        useful if one wants to continue a simulation to obtain more
-        statistics.
-    [extrapolate_hist = <float>,<float>,..., <float>]
-        Optional if umbrella_sampling is set to true, otherwise ignored;
-        Default: none; series of temperatures to which to extrapolate the
-        histograms. They can be given as float in reduced units, or the units
-        can be specified as in the T option
-    [safe_weights = <bool>]
-        Default: true; whether to check consistency in between order parameter
-        file and weight file. Only used if umbrella_sampling = true
-    [default_weight = <float>]
-        Default: none; mandatory if safe_weights = true; default weight for
-        states that have no specified weight assigned from the weights file
-    [skip_hist_zeros = <bool>]
-        Default: false; Wether to skip zero entries in the traj_hist file
-    [equilibration_steps = <int>]
-        Default: 0; number of steps to ignore to allow for equilibration
-    [type = rotation|traslation|possibly other as they get added]
-        move to perform. No Defaults
+### Constant-temperature simulations
+
+* `[thermostat = no|refresh|brownian|langevin|DPD]`:  Select the simulation thermostat for MD simulations. `no` means constant-energy simulations.  `refresh` is the Anderson thermostat. `brownian` is an Anderson-like thermostat that refreshes momenta of randomly chosen particles. `langevin` implements a regular Langevin thermostat. `bussi` is the Bussi-Donadio-Parrinello thermostat. `DPD` is a Dissipative Particle Dynamics thermostat. The `no`, `brownian`, `langevin` and `bussi` thermostats are also available on CUDA. Defaults to `no`.
+* `newtonian_steps = <int>`: number of integration timesteps after which the thermostat acts. Can be 1. Mandatory if there is a thermostat.
+* `pt = <float>`: probability of refreshing the momenta of each particle. Used only if `thermostat = brownian`.
+* `diff_coeff = <float>`:  base diffusion coefficient. Either this or `pt` should be specified if `thermostat = brownian`.
+* `gamma_trans = <float>`: translational damping coefficient for the Langevin thermostat. Either this or `diff_coeff` should be specified in the input file if `thermostat = langevin`.
+* `bussi_tau = <int>`: correlation time, in time steps, for the stochastic evolution of the kinetic energy for BDP thermostat. Mandatory if `thermostat = bussi`.
+* `DPD_zeta = <float>`: translational damping coefficient for the DPD thermostat. Mandatory if `thermostat = DPD`.
+* `DPD_rcut = <float>`: radial cut-off used by the DPD thermostat. Mandatory if `thermostat = DPD`.
+
+### Constant-pressure simulations
+
+* `[use_barostat = <bool>]`: apply an MC-like barostat to the simulation to keep the pressure constant. Defaults to `false`.
+* `[P = <float>]`: the taget pressure of the simulation. Mandatory if `use_barostat = true`.
+* `[delta_L = <float>]`: the extent of the box side change performed by the MC-like barostat. Mandatory if `use_barostat = true`.
+
+## CUDA options
+
+The following options require `backend = CUDA`.
+
+* `[use_edge = <bool>]`: parallelise computations over interacting pairs rather than particles. It often results in a performance increase. Defaults to `false`.
+* `[CUDA_list = no|verlet]`: neighbour lists for CUDA simulations. Defaults to `verlet`.
+* `[cells_auto_optimisation = <bool>`: increase the size of the cells used to build Verlet lists if the total number of cells exceeds two times the number of nucleotides. Sometimes disabling this option increases performance. Used only if `CUDA_list = verlet`, defaults to `true`.
+* `[max_density_multiplier = <float>]`: scale the size of data structures that store neighbours and cell lists. it is sometime necessary to increase this value (which also increases the memory footprint of the simulation) if the local density of nucleotides is high and the simulation crashes. defaults to `3`.
+* `[print_problematic_ids = <bool>]`: if `true`, the code will print the indexes of particles that have very large coordinates (which may be caused by incorrectly-defined external forces and/or large time steps) before exiting. Useful for debugging purposes. Defaults to `false`.
+* `[CUDA_device = <int>]`: CUDA-enabled device to run the simulation on. If it is not specified or it is given a negative number, a suitable device will be automatically chosen.
+* `[CUDA_sort_every = <int>]`: sort particles according to a 3D Hilbert curve after the lists have been updated `CUDA_sort_every` times. This will greatly enhnance performances for some types of interaction. Defaults to `0`, which disables sorting.
+* `[threads_per_block = <int>]`: Number of threads per block on the CUDA grid. defaults to 2 * the size of a warp.
+* `[CUDA_avoid_cpu_calculations = <bool>]`: Do not run any computations on the CPU. If set to `true`, the energy will not be printed. It may speed up the simulation of very large systems. Defaults to `false`.
+* `[CUDA_barostat_always_refresh = <bool>]`: Refresh the momenta of all particles after a successful volume move. Used only if `use_barostat = true`, defaults to `false`.
+* `[CUDA_print_energy = <bool>]`: print the potential energy as computed on the GPU to the standard output. Useful for debugging purposes, since the "regular" potential energy is computed on the CPU.
+
+## Monte Carlo options
+
+The following options control the behaviour of MC simulations.
+
+* `sim_type = MC|VMMC|MC2`: run regular (`MC`), Virtual Move (`VMMC`) or custom (`MC2`) Monte Carlo simulations.
+* `ensemble = nvt|npt`:  ensemble of the simulation. It can be set to perform either constant temperature, volume and number of particles simulations (`nvt`) or constant-temperature, pressure and number of particles simulations (`npt`).
+* `delta_translation = <float>`: set the maximum translational displacement, which is a randomly chosen number between -0.5\*delta and 0.5\*delta for each direction.
+* `delta_rotation = <float>`: set the maximum angular rotational displacement, given by a randomly chosen angle between -0.5\*delta and 0.5\*delta radians.
+* `delta_volume = <float>`: set the maximum change of the box edge in volume moves, given by a randomly chosen length between -0.5\*delta and 0.5\*delta radians. Mandatory if `ensemble = npt`.
+* `P = <float>`: the target pressure of the simulation. Used only if `ensemble = npt`.
+* `[check_energy_every = <int>]`: oxDNA will compute the energy from scratch, compare it with the current energy and throw an error if the difference is larger then `check_energy_threshold`. Defaults to `10`.
+* `[check_energy_threshold = <float>]`: threshold for the energy check. Defaults to 0.01 for single precision and {math}`10^{-6}` for double precision.
+* `[adjust_moves = <bool>]`: if `true`, oxDNA will run for `equilibration_steps` time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if `equilibration_steps = 0` or not given. Defaults to `false`.
+* `[maxclust = <int>]`: maximum number of particles to be moved together if `sim_type = VMMC`. Defaults to the size of the whole system.
+* `[small_system = <bool>]`: whether to use an interaction computation suited for small systems. Defaults to `false`.
+* `[preserve_topology = <bool>]`: set a maximum size for the move attempt to 0.5, which guarantees that the topology of the system is conserved. Also prevents very large moves and might speed up simulations of larger systems, while suppressing diffusion. Defaults to `false`.
+* `[umbrella_sampling = <bool>]`: whether to use umbrella sampling. Defaults to `false`.
+* `[op_file = <string>]`: path to file with the description of the order parameter. Mandatory if `umbrella_sampling = true`.
+* `[weights_file = <string>]`: path to file with the weights to use in umbrella sampling. Mandatory if `umbrella_sampling = true`.
+* `[last_hist_file = <string>]`: path to file where the histograms associated with umbrella sampling will be stored. This is printed with the same frequency as the energy file. Used if `umbrella_sampling = true`, defaults to `last_hist.dat`.
+* `[traj_hist_file = <string>]`: path to file where the series histograms associated with umbrella sampling will be stored, allowing to monitor the time evolution of the histogram and possibly to remove parts of the simulation. This is printed with the same frequency as the energy file. Used if `umbrella_sampling = true`, defaults to `traj_hist.dat`.
+* `[init_hist_file = <string>]`: path to a file to load a previous histogram from,
+    useful if one wants to continue a simulation to obtain more
+    statistics. Used if `umbrella_sampling = true`.
+* `[extrapolate_hist = <float>,<float>,..., <float>]`:  series of temperatures to which to extrapolate the histograms. They can be given as float in reduced units, or the units can be specified as in the `T` option. Used if `umbrella_sampling = true`.
+* `[safe_weights = <bool>]`: whether to check consistency in between order parameter
+    file and weight file. Used if `umbrella_sampling = true`, defaults to `true`.
+* `[default_weight = <float>]`: default weight for states that have no specified weight assigned from the weights file. Mandatory if `safe_weights = true`.
+* `[skip_hist_zeros = <bool>]`: whether to skip zero entries in the `traj_hist` file. Mandatory if `umbrella_sampling = true`, defaults to `false`.
 
 ## Options for the default interaction (oxDNA1)
 
@@ -260,82 +207,6 @@ The list of the main options supported by oxDNA is reported below. Square bracke
     [LJ_n = <int>]
         Generalised LJ exponent. Defaults to 6, which is the classic LJ value.
 
-## CUDA options:
-
-    [CUDA_list = no|verlet]
-        Neighbour lists for CUDA simulations. Defaults to 'no'.
-    backend = CUDA
-        For CUDA FFS -- NB unlike the CPU implementation, the CUDA
-        implementation does not print extra columns with the current order
-        parameter values whenever the energy is printed
-    backend_precision = mixed
-        CUDA FFS is currently only implemented for mixed precision
-    sim_type = FFS_MD
-        This must be set for an FFS simulation
-    order_parameters_file = <string>
-        path to the order parameters file
-    ffs_file = <string>
-        path to the file with the simulation stopping conditions. Optionally,
-        one may use 'master conditions' (CUDA FFS only), which allow one to
-        more easily handle very high dimensional order parameters. See the
-        EXAMPLES/CUDA_FFS/README file for more information
-    [ffs_generate_flux = <bool>]
-        CUDA FFS only. Default: False; if False, the simulation will run until
-        a stopping condition is reached; if True, a flux generation simulation
-        will be run, in which case reaching a condition will cause a
-        configuration to be saved but will not terminate the simulation. In
-        the stopping condition file, the conditions must be labelled forward1,
-        forward2, ... (for the forward conditions); and backward1, backward2,
-        ... (for the backward conditions), ... instead of condition1,
-        condition2, ... . To get standard flux generation, set the forward and
-        backward conditions to correspond to crossing the same interface (and
-        use conditions corresponding to different interfaces for Tom's flux
-        generation). As with the single shooting run mode, the name of the
-        condition crossed will be printed to stderr each time.
-    [gen_flux_save_every = <integer>]
-        CUDA FFS only. Mandatory if ffs_generate_flux is True; save a
-        configuration for 1 in every N forward crossings
-    [gen_flux_total_crossings = <integer>]
-        CUDA FFS only. Mandatory if ffs_generate_flux is True; stop the
-        simulation after N crossings achieved
-    [gen_flux_conf_prefix = <string>]
-        CUDA FFS only. Mandatory if ffs_generate_flux is True; the prefix used
-        for the file names of configurations corresponding to the saved
-        forward crossings. Counting starts at zero so the 3rd crossing
-        configuration will be saved as MY_PREFIX_N2.dat
-    [gen_flux_debug = <bool>]
-        CUDA FFS only. Default: False; In a flux generation simulation, set to
-        true to save backward-crossing configurations for debugging
-    [check_initial_state = <bool>]
-        CUDA FFS only. Default: False; in a flux generation simulation, set to
-        true to turn on initial state checking. In this mode an initial
-        configuration that crosses the forward conditions after only 1 step
-        will cause the code to complain and exit. Useful for checking that a
-        flux generation simulation does not start out of the A-state
-    [die_on_unexpected_master = <bool>]
-        CUDA FFS only. Default: False; in a flux generation simulation that
-        uses master conditions, set to true to cause the simulation to die if
-        any master conditions except master_forward1 or master_backward1 are
-        reached. Useful for checking that a flux generation simulation does
-        not enter any unwanted free energy basins (i.e. other than the initial
-        state and the desired final state)
-    [unexpected_master_prefix = <string>]
-        CUDA FFS only. Mandatory if die_on_unexpected_master is True; the
-        prefix used for the file names of configurations corresponding to
-        reaching any unexpected master conditions (see
-        die_on_unexpected_master).
-    [CUDA_device = <int>]
-        CUDA-enabled device to run the simulation on. If it is not specified
-        or it is given a negative number, a suitable device will be
-        automatically chosen.
-    [CUDA_sort_every = <int>]
-        sort particles according to a 3D Hilbert curve every CUDA_sort_every
-        time steps. This will greatly enhnance performances for some types of
-        interaction. Defaults to 0, which disables sorting.
-    [threads_per_block = <int>]
-        Number of threads per block on the CUDA grid. defaults to 2 * the size
-        of a warp.
-        
 ## Forward Flux Sampling (FFS) options
 
     backend = CPU/CUDA

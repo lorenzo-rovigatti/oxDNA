@@ -88,14 +88,18 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Input file</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#general-syntax">General syntax</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#core-options">Core options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#molecular-dynamics-options">Molecular dynamics options:</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#monte-carlo-options">Monte Carlo options:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#molecular-dynamics-options">Molecular dynamics options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#constant-temperature-simulations">Constant-temperature simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#constant-pressure-simulations">Constant-pressure simulations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cuda-options">CUDA options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monte-carlo-options">Monte Carlo options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#options-for-the-default-interaction-oxdna1">Options for the default interaction (oxDNA1)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#options-for-interaction-type-dna2-oxdna2">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">DNA2</span></code> (oxDNA2)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#options-for-interaction-type-rna-oxrna1">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">RNA</span></code> (oxRNA1)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#options-for-interaction-type-rna2-oxrna2">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">RNA2</span></code> (oxRNA2)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#options-for-interaction-type-lj-lennard-jones">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">LJ</span></code> (Lennard-Jones)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#cuda-options">CUDA options:</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#forward-flux-sampling-ffs-options">Forward Flux Sampling (FFS) options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dnanalysis-options"><em>DNAnalysis</em> options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#observables">Observables</a><ul>
@@ -217,6 +221,7 @@ print_energy_every = ${$(steps) / 10}
 </div>
 <div class="section" id="core-options">
 <h2>Core options<a class="headerlink" href="#core-options" title="Permalink to this headline">¶</a></h2>
+<p>These are the options that control the overall behaviour of the simulation and of the most common input/output operations.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: temperature of the simulation. It can be expressed in simulation units, kelvin (append a k or K after the value) or celsius (append a c or C after the value).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">restart_step_counter</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code> oxDNA will reset the step counter to 0, otherwise it will start from the step counter found in the initial configuration. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
@@ -245,145 +250,93 @@ print_energy_every = ${$(steps) / 10}
 <li><p><code class="docutils literal notranslate"><span class="pre">[checkpoint_every</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: if &gt; 0, it enables the production of checkpoints, which have a binary format. Beware that trajectories that do have this option enabled will differ from trajectories that do not. If this key is specified, at least one of <code class="docutils literal notranslate"><span class="pre">checkpoint_file</span></code> and <code class="docutils literal notranslate"><span class="pre">checkpoint_trajectory</span></code> needs to be specified.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[checkpoint_file</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: File name for the last checkpoint. If not specified, the last checkpoint will not be printed separately.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[checkpoint_trajectory</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: File name for the checkpoint trajectory. If not specified, only the last checkpoint will be printed.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[reload_from</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: checkpoint to reload from. This option is incompatible with the keys <code class="docutils literal notranslate"><span class="pre">conf_file</span></code> and <code class="docutils literal notranslate"><span class="pre">seed</span></code>, and requires <code class="docutils literal notranslate"><span class="pre">restart_step_counter</span> <span class="pre">=</span> <span class="pre">false</span></code> as well as <code class="docutils literal notranslate"><span class="pre">binary_initial_conf</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[reload_from</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: checkpoint to reload from. This option is incompatible with the keys <code class="docutils literal notranslate"><span class="pre">conf_file</span></code> and <code class="docutils literal notranslate"><span class="pre">seed</span></code>, and requires <code class="docutils literal notranslate"><span class="pre">restart_step_counter</span> <span class="pre">=</span> <span class="pre">false</span></code> as well as <code class="docutils literal notranslate"><span class="pre">binary_initial_conf</span> <span class="pre">=</span> <span class="pre">true</span></code>. Note that this option is incompatible with <code class="docutils literal notranslate"><span class="pre">backend</span> <span class="pre">=</span> <span class="pre">CUDA</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[print_input</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: make oxDNA write the input key=value pairs used by the simulation in a file named input.pid, with pid being the oxDNA pid. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[equilibration_steps</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: number of equilibration steps. During equilibration, oxDNA does not generate any output. Defaults to <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[print_conf_ppc</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: This is the number of printed configurations in a single logarithmic cycle. Mandatory if <code class="docutils literal notranslate"><span class="pre">time_scale</span> <span class="pre">=</span> <span class="pre">log_line</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[list_type</span> <span class="pre">=</span> <span class="pre">verlet|cells|no]</span></code>: Type of neighbouring list to be used in CPU simulations. <code class="docutils literal notranslate"><span class="pre">no</span></code> implies a O(N^2) computational complexity. Defaults to <code class="docutils literal notranslate"><span class="pre">verlet</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[print_conf_ppc</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: this is the number of printed configurations in a single logarithmic cycle. Mandatory if <code class="docutils literal notranslate"><span class="pre">time_scale</span> <span class="pre">=</span> <span class="pre">log_line</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[list_type</span> <span class="pre">=</span> <span class="pre">verlet|cells|no]</span></code>: type of neighbouring list to be used in CPU simulations. <code class="docutils literal notranslate"><span class="pre">no</span></code> implies a O(N^2) computational complexity. Defaults to <code class="docutils literal notranslate"><span class="pre">verlet</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[verlet_skin</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: width of the skin that controls the maximum displacement after which Verlet lists need to be updated. mandatory if <code class="docutils literal notranslate"><span class="pre">list_type</span> <span class="pre">=</span> <span class="pre">verlet</span></code>.</p></li>
 </ul>
 </div>
 <div class="section" id="molecular-dynamics-options">
-<h2>Molecular dynamics options:<a class="headerlink" href="#molecular-dynamics-options" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[reset_initial_com_momentum = &lt;bool&gt;]
-    if true the momentum of the centre of mass of the initial
-    configuration will be set to 0. Defaults to false to enforce the
-    reproducibility of the trajectory
-[reset_com_momentum = &lt;bool&gt;]
-    if true the momentum of the centre of mass will be set to 0 each time
-    fix_diffusion is performed. Defaults to false to enforce the
-    reproducibility of the trajectory
-[use_barostat = &lt;bool&gt;]
-    apply an MC-like barostat to the simulation
-[P = &lt;float&gt;]
-    the pressure of the simulation
-[delta_L = &lt;float&gt;]
-    controls the box side change by the MC-like barostat
-backend = CPU
-    For CPU FFS
-backend_precision = &lt;any&gt;
-    CPU FFS may use any precision allowed for a normal CPU MD simulation
-sim_type = FFS_MD
-    This must be set for an FFS simulation
-newtonian_steps = &lt;int&gt;
-    number of integration timesteps after which the thermostat acts. Can
-    be 1.
-pt = &lt;float&gt;
-    probability of refreshing the momenta of each particle
-diff_coeff = &lt;float&gt;
-    base diffusion coefficient. Either pt or diff_coeff should be
-    specified in the input file
-gamma_trans = &lt;float&gt;
-    translational damping coefficient for the Langevin thermostat. Either
-    this or diff_coeff should be specified in the input file.
-bussi_tau = &lt;int&gt;
-    correlation time, in time steps, for the stochastic evolution of the
-    kinetic energy
-DPD_zeta = &lt;float&gt;
-    translational damping coefficient for the DPD thermostat.
-[thermostat = no|refresh|brownian|langevin|srd]
-    Select the simulation thermostat for MD simulations. &#39;no&#39; means
-    constant-energy simulations. &#39;refresh&#39; is the Anderson thermostat.
-    &#39;brownian&#39; is an Anderson-like thermostat that refreshes momenta of
-    randomly chosen particles. &#39;langevin&#39; implements a regular Langevin
-    thermostat. &#39;srd&#39; is an (experimental) implementation of a stochastic
-    rotational dynamics algorithm. &#39;no&#39; and &#39;brownian&#39; are also available
-    on CUDA. Defaults to &#39;no&#39;.
-</pre></div>
+<h2>Molecular dynamics options<a class="headerlink" href="#molecular-dynamics-options" title="Permalink to this headline">¶</a></h2>
+<p>These options control the behaviour of MD simulations.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sim_type</span> <span class="pre">=</span> <span class="pre">MD|FFS_MD</span></code>: run either an MD or an FFS simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend</span> <span class="pre">=</span> <span class="pre">CPU|CUDA</span></code>: MD simulations can be run either on single CPU cores or on single CUDA-enabled GPUs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend_precision</span> <span class="pre">=</span> <span class="pre">&lt;any&gt;</span></code>: by default CPU simulations are run with <code class="docutils literal notranslate"><span class="pre">double</span></code> precision, CUDA with <code class="docutils literal notranslate"><span class="pre">mixed</span></code> precision (see <a class="reference external" href="https://doi.org/10.1002/jcc.23763">here</a> for details). The CUDA backend also supports single precision (<code class="docutils literal notranslate"><span class="pre">backend_precision</span> <span class="pre">=</span> <span class="pre">float</span></code>), but we do not recommend to use it. Optionally, <a class="reference internal" href="install.html#cmake-options"><span class="std std-ref">by using CMake switches</span></a> it is possible to run CPU simulations in single precision or CUDA simulations in double precision.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[reset_initial_com_momentum</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code> the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code> to enforce the reproducibility of the trajectory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[reset_com_momentum</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code> the momentum of the centre of mass will be set to 0 each time fix_diffusion is performed. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code> to enforce the reproducibility of the trajectory</p></li>
+</ul>
+<div class="section" id="constant-temperature-simulations">
+<h3>Constant-temperature simulations<a class="headerlink" href="#constant-temperature-simulations" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[thermostat</span> <span class="pre">=</span> <span class="pre">no|refresh|brownian|langevin|DPD]</span></code>:  Select the simulation thermostat for MD simulations. <code class="docutils literal notranslate"><span class="pre">no</span></code> means constant-energy simulations.  <code class="docutils literal notranslate"><span class="pre">refresh</span></code> is the Anderson thermostat. <code class="docutils literal notranslate"><span class="pre">brownian</span></code> is an Anderson-like thermostat that refreshes momenta of randomly chosen particles. <code class="docutils literal notranslate"><span class="pre">langevin</span></code> implements a regular Langevin thermostat. <code class="docutils literal notranslate"><span class="pre">bussi</span></code> is the Bussi-Donadio-Parrinello thermostat. <code class="docutils literal notranslate"><span class="pre">DPD</span></code> is a Dissipative Particle Dynamics thermostat. The <code class="docutils literal notranslate"><span class="pre">no</span></code>, <code class="docutils literal notranslate"><span class="pre">brownian</span></code>, <code class="docutils literal notranslate"><span class="pre">langevin</span></code> and <code class="docutils literal notranslate"><span class="pre">bussi</span></code> thermostats are also available on CUDA. Defaults to <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">newtonian_steps</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: number of integration timesteps after which the thermostat acts. Can be 1. Mandatory if there is a thermostat.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pt</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: probability of refreshing the momenta of each particle. Used only if <code class="docutils literal notranslate"><span class="pre">thermostat</span> <span class="pre">=</span> <span class="pre">brownian</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diff_coeff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>:  base diffusion coefficient. Either this or <code class="docutils literal notranslate"><span class="pre">pt</span></code> should be specified if <code class="docutils literal notranslate"><span class="pre">thermostat</span> <span class="pre">=</span> <span class="pre">brownian</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gamma_trans</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: translational damping coefficient for the Langevin thermostat. Either this or <code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code> should be specified in the input file if <code class="docutils literal notranslate"><span class="pre">thermostat</span> <span class="pre">=</span> <span class="pre">langevin</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bussi_tau</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: correlation time, in time steps, for the stochastic evolution of the kinetic energy for BDP thermostat. Mandatory if <code class="docutils literal notranslate"><span class="pre">thermostat</span> <span class="pre">=</span> <span class="pre">bussi</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DPD_zeta</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: translational damping coefficient for the DPD thermostat. Mandatory if <code class="docutils literal notranslate"><span class="pre">thermostat</span> <span class="pre">=</span> <span class="pre">DPD</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DPD_rcut</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: radial cut-off used by the DPD thermostat. Mandatory if <code class="docutils literal notranslate"><span class="pre">thermostat</span> <span class="pre">=</span> <span class="pre">DPD</span></code>.</p></li>
+</ul>
 </div>
+<div class="section" id="constant-pressure-simulations">
+<h3>Constant-pressure simulations<a class="headerlink" href="#constant-pressure-simulations" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[use_barostat</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: apply an MC-like barostat to the simulation to keep the pressure constant. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[P</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: the taget pressure of the simulation. Mandatory if <code class="docutils literal notranslate"><span class="pre">use_barostat</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[delta_L</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: the extent of the box side change performed by the MC-like barostat. Mandatory if <code class="docutils literal notranslate"><span class="pre">use_barostat</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="cuda-options">
+<h2>CUDA options<a class="headerlink" href="#cuda-options" title="Permalink to this headline">¶</a></h2>
+<p>The following options require <code class="docutils literal notranslate"><span class="pre">backend</span> <span class="pre">=</span> <span class="pre">CUDA</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[use_edge</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: parallelise computations over interacting pairs rather than particles. It often results in a performance increase. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[CUDA_list</span> <span class="pre">=</span> <span class="pre">no|verlet]</span></code>: neighbour lists for CUDA simulations. Defaults to <code class="docutils literal notranslate"><span class="pre">verlet</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[cells_auto_optimisation</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;</span></code>: increase the size of the cells used to build Verlet lists if the total number of cells exceeds two times the number of nucleotides. Sometimes disabling this option increases performance. Used only if <code class="docutils literal notranslate"><span class="pre">CUDA_list</span> <span class="pre">=</span> <span class="pre">verlet</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[max_density_multiplier</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: scale the size of data structures that store neighbours and cell lists. it is sometime necessary to increase this value (which also increases the memory footprint of the simulation) if the local density of nucleotides is high and the simulation crashes. defaults to <code class="docutils literal notranslate"><span class="pre">3</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[print_problematic_ids</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, the code will print the indexes of particles that have very large coordinates (which may be caused by incorrectly-defined external forces and/or large time steps) before exiting. Useful for debugging purposes. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[CUDA_device</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: CUDA-enabled device to run the simulation on. If it is not specified or it is given a negative number, a suitable device will be automatically chosen.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[CUDA_sort_every</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: sort particles according to a 3D Hilbert curve after the lists have been updated <code class="docutils literal notranslate"><span class="pre">CUDA_sort_every</span></code> times. This will greatly enhnance performances for some types of interaction. Defaults to <code class="docutils literal notranslate"><span class="pre">0</span></code>, which disables sorting.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[threads_per_block</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: Number of threads per block on the CUDA grid. defaults to 2 * the size of a warp.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[CUDA_avoid_cpu_calculations</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: Do not run any computations on the CPU. If set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the energy will not be printed. It may speed up the simulation of very large systems. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[CUDA_barostat_always_refresh</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: Refresh the momenta of all particles after a successful volume move. Used only if <code class="docutils literal notranslate"><span class="pre">use_barostat</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[CUDA_print_energy</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: print the potential energy as computed on the GPU to the standard output. Useful for debugging purposes, since the “regular” potential energy is computed on the CPU.</p></li>
+</ul>
 </div>
 <div class="section" id="monte-carlo-options">
-<h2>Monte Carlo options:<a class="headerlink" href="#monte-carlo-options" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ensemble = nvt|npt
-    ensemble of the simulation
-[check_energy_every = &lt;float&gt;]
-    oxDNA will compute the energy from scratch, compare it with the
-    current energy and throw an error if the difference is larger then
-    check_energy_threshold. Defaults to 10.
-[check_energy_threshold = &lt;float&gt;]
-    threshold for the energy check. Defaults to 1e-2f for single precision
-    and 1e-6 for double precision.
-delta_translation = &lt;float&gt;
-    controls the trial translational displacement, which is a randomly
-    chosen number between -0.5*delta and 0.5*delta for each direction.
-delta_rotation = &lt;float&gt;
-    controls the angular rotational displacement, given by a randomly
-    chosen angle between -0.5*delta and 0.5*delta radians.
-delta_volume = &lt;float&gt;
-    controls the volume change in npt simulations.
-P = &lt;float&gt;
-    the pressure of the simulation. Used only if ensemble == npt.
-[adjust_moves = &lt;bool&gt;]
-    if true, oxDNA will run for equilibration_steps time steps while
-    changing the delta of the moves in order to have an optimal acceptance
-    ratio. It does not make sense if equilibration_steps is 0 or not
-    given. Defaults to false
-[maxclust = &lt;int&gt;]
-    Default: N; maximum number of particles to be moved together. Defaults
-    to the whole system
-[small_system = &lt;bool&gt;]
-    Default: false; whether to use an interaction computation suited for
-    small systems.
-[preserve_topology = &lt;bool&gt;]
-    Default: false; sets a maximum size for the move attempt to 0.5, which
-    guarantees that the topology of the system is conserved. Also prevents
-    very large moves and might speed up simulations of larger systems,
-    while suppressing diffusion
-[umbrella_sampling = &lt;bool&gt;]
-    Default: false; whether to use umbrella sampling
-[op_file = &lt;string&gt;]
-    Mandatory if umbrella_sampling is set to true; path to file with the
-    description of the order parameter
-[weights_file = &lt;string&gt;]
-    Mandatory if umbrella_sampling is set to true; path to file with the
-    weights to use in umbrella sampling
-[last_hist_file = &lt;string&gt;]
-    Optional if umbrella_sampling is set to true, otherwise ignored;
-    Default: last_hist.dat; path to file where the histograms associated
-    with umbrella sampling will be stored. This is printed with the same
-    frequency as the energy file. Should become an observable sooner or
-    later
-[traj_hist_file = &lt;string&gt;]
-    Optional if umbrella_sampling is set to true, otherwise ignored;
-    Default: traj_hist.dat; path to file where the series histograms
-    associated with umbrella sampling will be stored, allowing to monitor
-    the time evolution of the histogram and possibly to remove parts of
-    the simulation. This is printed with the same frequency as the energy
-    file. Should become an observable sooner or later
-[init_hist_file = &lt;string&gt;]
-    Optional if umbrella_sampling is set to true, otherwise ignored;
-    Default: none; path to a file to load a previous histogram from,
-    useful if one wants to continue a simulation to obtain more
-    statistics.
-[extrapolate_hist = &lt;float&gt;,&lt;float&gt;,..., &lt;float&gt;]
-    Optional if umbrella_sampling is set to true, otherwise ignored;
-    Default: none; series of temperatures to which to extrapolate the
-    histograms. They can be given as float in reduced units, or the units
-    can be specified as in the T option
-[safe_weights = &lt;bool&gt;]
-    Default: true; whether to check consistency in between order parameter
-    file and weight file. Only used if umbrella_sampling = true
-[default_weight = &lt;float&gt;]
-    Default: none; mandatory if safe_weights = true; default weight for
-    states that have no specified weight assigned from the weights file
-[skip_hist_zeros = &lt;bool&gt;]
-    Default: false; Wether to skip zero entries in the traj_hist file
-[equilibration_steps = &lt;int&gt;]
-    Default: 0; number of steps to ignore to allow for equilibration
-[type = rotation|traslation|possibly other as they get added]
-    move to perform. No Defaults
-</pre></div>
-</div>
+<h2>Monte Carlo options<a class="headerlink" href="#monte-carlo-options" title="Permalink to this headline">¶</a></h2>
+<p>The following options control the behaviour of MC simulations.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sim_type</span> <span class="pre">=</span> <span class="pre">MC|VMMC|MC2</span></code>: run regular (<code class="docutils literal notranslate"><span class="pre">MC</span></code>), Virtual Move (<code class="docutils literal notranslate"><span class="pre">VMMC</span></code>) or custom (<code class="docutils literal notranslate"><span class="pre">MC2</span></code>) Monte Carlo simulations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ensemble</span> <span class="pre">=</span> <span class="pre">nvt|npt</span></code>:  ensemble of the simulation. It can be set to perform either constant temperature, volume and number of particles simulations (<code class="docutils literal notranslate"><span class="pre">nvt</span></code>) or constant-temperature, pressure and number of particles simulations (<code class="docutils literal notranslate"><span class="pre">npt</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delta_translation</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: set the maximum translational displacement, which is a randomly chosen number between -0.5*delta and 0.5*delta for each direction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delta_rotation</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: set the maximum angular rotational displacement, given by a randomly chosen angle between -0.5*delta and 0.5*delta radians.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delta_volume</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: set the maximum change of the box edge in volume moves, given by a randomly chosen length between -0.5*delta and 0.5*delta radians. Mandatory if <code class="docutils literal notranslate"><span class="pre">ensemble</span> <span class="pre">=</span> <span class="pre">npt</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: the target pressure of the simulation. Used only if <code class="docutils literal notranslate"><span class="pre">ensemble</span> <span class="pre">=</span> <span class="pre">npt</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[check_energy_every</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: oxDNA will compute the energy from scratch, compare it with the current energy and throw an error if the difference is larger then <code class="docutils literal notranslate"><span class="pre">check_energy_threshold</span></code>. Defaults to <code class="docutils literal notranslate"><span class="pre">10</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[check_energy_threshold</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: threshold for the energy check. Defaults to 0.01 for single precision and <span class="math notranslate nohighlight">\(10^{-6}\)</span> for double precision.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[adjust_moves</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, oxDNA will run for <code class="docutils literal notranslate"><span class="pre">equilibration_steps</span></code> time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if <code class="docutils literal notranslate"><span class="pre">equilibration_steps</span> <span class="pre">=</span> <span class="pre">0</span></code> or not given. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[maxclust</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: maximum number of particles to be moved together if <code class="docutils literal notranslate"><span class="pre">sim_type</span> <span class="pre">=</span> <span class="pre">VMMC</span></code>. Defaults to the size of the whole system.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[small_system</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether to use an interaction computation suited for small systems. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[preserve_topology</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: set a maximum size for the move attempt to 0.5, which guarantees that the topology of the system is conserved. Also prevents very large moves and might speed up simulations of larger systems, while suppressing diffusion. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[umbrella_sampling</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether to use umbrella sampling. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[op_file</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: path to file with the description of the order parameter. Mandatory if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[weights_file</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: path to file with the weights to use in umbrella sampling. Mandatory if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[last_hist_file</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: path to file where the histograms associated with umbrella sampling will be stored. This is printed with the same frequency as the energy file. Used if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">last_hist.dat</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[traj_hist_file</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: path to file where the series histograms associated with umbrella sampling will be stored, allowing to monitor the time evolution of the histogram and possibly to remove parts of the simulation. This is printed with the same frequency as the energy file. Used if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">traj_hist.dat</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[init_hist_file</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: path to a file to load a previous histogram from,
+useful if one wants to continue a simulation to obtain more
+statistics. Used if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[extrapolate_hist</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,...,</span> <span class="pre">&lt;float&gt;]</span></code>:  series of temperatures to which to extrapolate the histograms. They can be given as float in reduced units, or the units can be specified as in the <code class="docutils literal notranslate"><span class="pre">T</span></code> option. Used if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[safe_weights</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether to check consistency in between order parameter
+file and weight file. Used if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[default_weight</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: default weight for states that have no specified weight assigned from the weights file. Mandatory if <code class="docutils literal notranslate"><span class="pre">safe_weights</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[skip_hist_zeros</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether to skip zero entries in the <code class="docutils literal notranslate"><span class="pre">traj_hist</span></code> file. Mandatory if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+</ul>
 </div>
 <div class="section" id="options-for-the-default-interaction-oxdna1">
 <h2>Options for the default interaction (oxDNA1)<a class="headerlink" href="#options-for-the-default-interaction-oxdna1" title="Permalink to this headline">¶</a></h2>
@@ -466,84 +419,6 @@ P = &lt;float&gt;
     Simulate a Kob-Andersen mixture. Defaults to false.
 [LJ_n = &lt;int&gt;]
     Generalised LJ exponent. Defaults to 6, which is the classic LJ value.
-</pre></div>
-</div>
-</div>
-<div class="section" id="cuda-options">
-<h2>CUDA options:<a class="headerlink" href="#cuda-options" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[CUDA_list = no|verlet]
-    Neighbour lists for CUDA simulations. Defaults to &#39;no&#39;.
-backend = CUDA
-    For CUDA FFS -- NB unlike the CPU implementation, the CUDA
-    implementation does not print extra columns with the current order
-    parameter values whenever the energy is printed
-backend_precision = mixed
-    CUDA FFS is currently only implemented for mixed precision
-sim_type = FFS_MD
-    This must be set for an FFS simulation
-order_parameters_file = &lt;string&gt;
-    path to the order parameters file
-ffs_file = &lt;string&gt;
-    path to the file with the simulation stopping conditions. Optionally,
-    one may use &#39;master conditions&#39; (CUDA FFS only), which allow one to
-    more easily handle very high dimensional order parameters. See the
-    EXAMPLES/CUDA_FFS/README file for more information
-[ffs_generate_flux = &lt;bool&gt;]
-    CUDA FFS only. Default: False; if False, the simulation will run until
-    a stopping condition is reached; if True, a flux generation simulation
-    will be run, in which case reaching a condition will cause a
-    configuration to be saved but will not terminate the simulation. In
-    the stopping condition file, the conditions must be labelled forward1,
-    forward2, ... (for the forward conditions); and backward1, backward2,
-    ... (for the backward conditions), ... instead of condition1,
-    condition2, ... . To get standard flux generation, set the forward and
-    backward conditions to correspond to crossing the same interface (and
-    use conditions corresponding to different interfaces for Tom&#39;s flux
-    generation). As with the single shooting run mode, the name of the
-    condition crossed will be printed to stderr each time.
-[gen_flux_save_every = &lt;integer&gt;]
-    CUDA FFS only. Mandatory if ffs_generate_flux is True; save a
-    configuration for 1 in every N forward crossings
-[gen_flux_total_crossings = &lt;integer&gt;]
-    CUDA FFS only. Mandatory if ffs_generate_flux is True; stop the
-    simulation after N crossings achieved
-[gen_flux_conf_prefix = &lt;string&gt;]
-    CUDA FFS only. Mandatory if ffs_generate_flux is True; the prefix used
-    for the file names of configurations corresponding to the saved
-    forward crossings. Counting starts at zero so the 3rd crossing
-    configuration will be saved as MY_PREFIX_N2.dat
-[gen_flux_debug = &lt;bool&gt;]
-    CUDA FFS only. Default: False; In a flux generation simulation, set to
-    true to save backward-crossing configurations for debugging
-[check_initial_state = &lt;bool&gt;]
-    CUDA FFS only. Default: False; in a flux generation simulation, set to
-    true to turn on initial state checking. In this mode an initial
-    configuration that crosses the forward conditions after only 1 step
-    will cause the code to complain and exit. Useful for checking that a
-    flux generation simulation does not start out of the A-state
-[die_on_unexpected_master = &lt;bool&gt;]
-    CUDA FFS only. Default: False; in a flux generation simulation that
-    uses master conditions, set to true to cause the simulation to die if
-    any master conditions except master_forward1 or master_backward1 are
-    reached. Useful for checking that a flux generation simulation does
-    not enter any unwanted free energy basins (i.e. other than the initial
-    state and the desired final state)
-[unexpected_master_prefix = &lt;string&gt;]
-    CUDA FFS only. Mandatory if die_on_unexpected_master is True; the
-    prefix used for the file names of configurations corresponding to
-    reaching any unexpected master conditions (see
-    die_on_unexpected_master).
-[CUDA_device = &lt;int&gt;]
-    CUDA-enabled device to run the simulation on. If it is not specified
-    or it is given a negative number, a suitable device will be
-    automatically chosen.
-[CUDA_sort_every = &lt;int&gt;]
-    sort particles according to a 3D Hilbert curve every CUDA_sort_every
-    time steps. This will greatly enhnance performances for some types of
-    interaction. Defaults to 0, which disables sorting.
-[threads_per_block = &lt;int&gt;]
-    Number of threads per block on the CUDA grid. defaults to 2 * the size
-    of a warp.
 </pre></div>
 </div>
 </div>
