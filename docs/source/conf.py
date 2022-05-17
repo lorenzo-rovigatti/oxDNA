@@ -38,6 +38,9 @@ extensions = [
     "sphinx_rtd_theme"
 ]
 
+# generate labels of heading anchors
+myst_heading_anchors = 3
+
 napoleon_include_init_with_doc = True
 autosummary_generate = True
 autoclass_content = 'both'
