@@ -20,119 +20,43 @@ print_energy_every = ${$(steps) / 10}
 ```
 ````
 
-## Core options:
+The list of the main options supported by oxDNA is reported below. Square brackets mean optional, angular brackets specify the type of the value expected.
 
-	[interaction_type = DNA|RNA|DNA2|LJ|...]
-        Particle-particle interaction of choice. Check the documentation
-        relative to the specific interaction for more details. Defaults to
-        dna.
-    T = <float>
-        temperature of the simulation. It can be expressed in simulation units
-        or kelvin (append a k or K after the value) or celsius (append a c or
-        C after the value).
-    [fix_diffusion = <bool>]
-        if true, particles that leave the simulation box are brought back in
-        via periodic boundary conditions. Defaults to true.
-    [seed = <int>]
-        seed for the random number generator. On Unix systems, defaults to
-        either a number from /dev/urandom or to time(NULL)
-    [confs_to_skip = <int>]
-        how many configurations should be skipped before using the next one as
-        the initial configuration, defaults to 0
-    restart_step_counter = <boolean>/<bool>
-        false means that the step counter will start from the value read in
-        the configuration file, true means that the step counter will start
-        from 0/if True oxDNA will reset the step counter to 0, otherwise it
-        will start from the step counter found in the initial configuration.
-        Defaults to False.
-    [external_forces = <bool>]
-        specifies whether there are external forces acting on the nucleotides
-        or not. If it is set to 1, then a file which specifies the external
-        forces' configuration has to be provided (see external_forces_file)
-    [external_forces_file = <path>]
-        specifies the file containing all the external forces' configurations.
-        Currently there are six supported force types: string, twist, trap,
-        repulsion_plane, repulsion_plane_moving and mutual_trap (see
-        EXAMPLES/TRAPS for some examples)
-    [back_in_box = <bool>]
-        whether particles should be brought back into the box when a
-        configuration is printed or not, defaults to false
-    [lastconf_file = <path>]
-        path to the file where the last configuration will be dumped
-    trajectory_file = <path>
-        path to the file which will contain the output trajectory of the
-        simulation
-    [binary_initial_conf = <bool>]
-        whether the initial configuration is a binary configuration or not,
-        defaults to false
-    [lastconf_file_bin = <path>]
-        path to the file where the last configuration will be printed in
-        binary format, if not specified no binary configurations will be
-        printed
-    [print_reduced_conf_every = <int>]
-        every how many time steps configurations containing only the centres
-        of mass of the strands should be printed. If 0, no reduced
-        configurations will be printed
-    [reduced_conf_output_dir = <path>]
-        path to the folder where reduced configurations will be printed
-    [no_stdout_energy = <bool>]
-        if true oxDNA will not print the default simulation output, including
-        the energy, to stdout. Defaults to false
-    [print_timings = <bool>]
-        whether oxDNA should print out to a file performance timings at the
-        end of the simulation or not, defaults to false
-    [timings_filename = <path>]
-        path to the file where timings will be printed
-    [output_prefix = <string>]
-        the name of all output files will be preceded by this prefix, defaults
-        to an empty string
-    [checkpoint_every = <int>]
-        If > 0, it enables the production of checkpoints, which have a binary
-        format. Beware that trajectories that do have this option enabled will
-        differ from trajectories that do not. If this key is specified, at
-        least one of checkpoint_file and checkpoint_trajectory needs to be
-        specified
-    [checkpoint_file = <string>]
-        File name for the last checkpoint. If not specified, the last
-        checkpoint will not be printed separately
-    [checkpoint_trajectory = <string>]
-        File name for the checkpoint trajectory. If not specified, only the
-        last checkpoint will be printed
-    [reload_from = <string>]
-        checkpoint to reload from. This option is incompatible with the keys
-        conf_file and seed, and requires restart_step_counter=0 as well as
-        binary_initial_conf!=1
-    [print_input = <bool>]
-        make oxDNA write the input key=value pairs used by the simulation in a
-        file named input.pid, with pid being the oxDNA pid. Defaults to False.
-    conf_file = <string>
-        path to the starting configuration
-    steps = <int>
-        length of the simulation, in time steps
-    [equilibration_steps = <int>]
-        number of equilibration steps. During equilibration, oxDNA does not
-        generate any output. Defaults to 0
-    time_scale = linear/log_lin
-        a linear time_scale will make oxDNA print linearly-spaced
-        configurations. a log_lin will make it print linearly-spaced cycles of
-        logarithmically-spaced configurations.
-    print_conf_interval = <int>
-        if the time scale is linear, this is the number of time steps between
-        the outputing of configurations, otherwise this is just the first
-        point of the logarithmic part of the log_lin time scale
-    print_conf_ppc = <int>
-        mandatory only if time_scale == log_line. This is the number of
-        printed configurations in a single logarithmic cycle.
-    [print_energy_every = <int>]
-        number of time steps between the outputing of the energy (and of the
-        other default observables such as acceptance ratios in Monte Carlo
-        simulations). Defaults to 0.
-    verlet_skin = <float>
-        width of the skin that controls the maximum displacement after which
-        Verlet lists need to be updated.
-    [list_type = verlet|cells|no]
-        Type of neighbouring list to be used in CPU simulations. 'no' implies
-        a O(N^2) computational complexity. Defaults to verlet.
+## Core options
+
+* `T = <float>`: temperature of the simulation. It can be expressed in simulation units, kelvin (append a k or K after the value) or celsius (append a c or C after the value).
+* `restart_step_counter = <bool>`: if `true` oxDNA will reset the step counter to 0, otherwise it will start from the step counter found in the initial configuration. Defaults to `false`.
+* `steps = <int>`: length of the simulation, in time steps.
+* `conf_file = <path>`: path to the starting configuration.
+* `topology = <path>`: path to the file containing the system's topology.
+* `trajectory_file = <path>`: path to the file which will contain the output trajectory of the simulation.
+* `time_scale = linear/log_lin`: a linear time_scale will make oxDNA print linearly-spaced configurations. a log_lin will make it print linearly-spaced cycles of logarithmically-spaced configurations.
+* `print_conf_interval = <int>`: if the time scale is linear, this is the number of time steps between the outputing of configurations, otherwise this is just the first point of the logarithmic part of the log_lin time scale.
+* `print_energy_every = <int>`: number of time steps between the outputing of the energy (and of the other default observables such as acceptance ratios in Monte Carlo simulations).
+* `[interaction_type = DNA|DNA2|RNA|RNA2|LJ|...]`: Particle-particle interaction of choice. Check the documentation relative to the specific interaction for more details and the supported interaction-specific options. Defaults to `DNA`.
+* `[fix_diffusion = <bool>]`: if true, particles that leave the simulation box are brought back in via periodic boundary conditions. Defaults to `true`.
+* `[seed = <int>]`: seed for the random number generator. On Unix systems, defaults to either a number from /dev/urandom (if it exists and it's readable) or to time(NULL)
+* `[confs_to_skip = <int>]`: how many configurations should be skipped before using the next one as the initial configuration, defaults to `0`.
+* `[analysis_confs_to_skip = <int>]`: as above, but for `DNAnalysis`.
+* `[external_forces = <bool>]`: specifies whether there are external forces acting on the nucleotides or not. If it is set to `true`, then a file which specifies the external forces' configuration has to be provided (see below).
+* `[external_forces_file = <path>]`:  specifies the file containing all the external forces' configurations. See [here](forces.md) for more details.
+* `[back_in_box = <bool>]`: whether particles should be brought back into the box when a configuration is printed or not, defaults to false.
+* `[lastconf_file = <path>]`: path to the file where the last configuration will be dumped. Defaults to `last_conf.dat`.
+* `[binary_initial_conf = <bool>]`: whether the initial configuration is a binary configuration or not, defaults to `false`.
+* `[lastconf_file_bin = <path>]`: path to the file where the last configuration will be printed in binary format. If not specified no binary configurations will be printed.
+* `[print_reduced_conf_every = <int>]`: every how many time steps configurations containing only the centres of mass of the strands should be printed. If `0` (or not set), no reduced configurations will be printed.
+* `[reduced_conf_output_dir = <path>]`: path to the folder where reduced configurations will be printed
+* `[no_stdout_energy = <bool>]`: if `true `oxDNA will not print the default simulation output, including the energy, to stdout. Defaults to `false`.
+* `[output_prefix = <string>]`: the name of all output files will be preceded by this prefix, defaults to an empty string.
+* `[checkpoint_every = <int>]`: if > 0, it enables the production of checkpoints, which have a binary format. Beware that trajectories that do have this option enabled will differ from trajectories that do not. If this key is specified, at least one of `checkpoint_file` and `checkpoint_trajectory` needs to be specified.
+* `[checkpoint_file = <string>]`: File name for the last checkpoint. If not specified, the last checkpoint will not be printed separately.
+* `[checkpoint_trajectory = <string>]`: File name for the checkpoint trajectory. If not specified, only the last checkpoint will be printed.
+* `[reload_from = <string>]`: checkpoint to reload from. This option is incompatible with the keys `conf_file` and `seed`, and requires `restart_step_counter = false` as well as `binary_initial_conf = true`.
+* `[print_input = <bool>]`: make oxDNA write the input key=value pairs used by the simulation in a file named input.pid, with pid being the oxDNA pid. Defaults to `false`.
+* `[equilibration_steps = <int>]`: number of equilibration steps. During equilibration, oxDNA does not generate any output. Defaults to `0`.
+* `[print_conf_ppc = <int>]`: This is the number of printed configurations in a single logarithmic cycle. Mandatory if `time_scale = log_line`.
+* `[list_type = verlet|cells|no]`: Type of neighbouring list to be used in CPU simulations. `no` implies a O(N^2) computational complexity. Defaults to `verlet`.
+* `[verlet_skin = <float>]`: width of the skin that controls the maximum displacement after which Verlet lists need to be updated. mandatory if `list_type = verlet`.
 
 ## Molecular dynamics options:
 
