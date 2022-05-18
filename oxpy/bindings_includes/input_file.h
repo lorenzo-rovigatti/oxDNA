@@ -28,7 +28,11 @@ To check if a specific option has been set you can use `in`::
 	)pbdoc");
 
 	input.def(py::init<>());
-	input.def("__getitem__", &input_file::get_value);
+	input.def("__getitem__", &input_file::get_value,
+		py::arg("key") = '\0',
+		py::arg("mandatory") = 0,
+		py::arg("found") = 0
+	);
 	input.def("__setitem__", &input_file::set_value);
 	input.def("__delitem__", &input_file::unset_value);
 	input.def("__str__", &input_file::to_string);
@@ -50,6 +54,27 @@ To check if a specific option has been set you can use `in`::
         ----------
         filename: str
             The name of the input file whence the options will be loaded.
+	)pbdoc");
+	input.def("get_bool", [](input_file &inp, std::string &key) {
+		bool found;
+		if (inp.true_values.find(inp.get_value(key, 0, found)) != inp.true_values.end()) {
+			return true;
+		}
+		else {
+			if (inp.false_values.find(inp.get_value(key, 0, found)) != inp.false_values.end()){
+				return false;
+			}
+			else {
+				throw std::invalid_argument("boolean key " + key + " is invalid");
+			}
+		}
+	}, R"pbdoc(
+		Return the boolean value of an input option.
+
+		Returns
+		-------
+		bool
+			The boolean value of the option.
 	)pbdoc");
 }
 
