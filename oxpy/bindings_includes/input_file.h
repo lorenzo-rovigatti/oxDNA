@@ -31,7 +31,7 @@ To check if a specific option has been set you can use `in`::
 	input.def("__getitem__", &input_file::get_value,
 		py::arg("key") = '\0',
 		py::arg("mandatory") = 0,
-		py::arg("found") = 0
+		py::arg("found") = true
 	);
 	input.def("__setitem__", &input_file::set_value);
 	input.def("__delitem__", &input_file::unset_value);
