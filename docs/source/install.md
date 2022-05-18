@@ -2,17 +2,21 @@
 
 ## Requirements
 
-The code requires `cmake` and a c++-14-compliant `g++` (any version >= 4.9 *should* work). The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
+The code requires [CMake](https://cmake.org/) and a c++-14-compliant `g++` (any version >= 4.9 *should* work). The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
 
 ### CUDA
 
-Compiling with CUDA support requires `cmake` >= 3.5 and a CUDA toolkit >= 9.0. If your current setup cannot meet these requirements we advise you to use [older versions of oxDNA](https://sourceforge.net/projects/oxdna/files/).
+Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 9.0. If your current setup cannot meet these requirements we advise you to use [older versions of oxDNA](https://sourceforge.net/projects/oxdna/files/).
+
+### Python bindings
+
+Compiling with the python bindings enabled requires a working Python3 installation comprising both binaries and include files. With Debian-derived distro these come with the package `python3-dev`.
 
 ## Compiling oxDNA
 
 Clone the [repo](https://github.com/lorenzo-rovigatti/oxDNA.git) or extract the oxDNA archive and then:
 
-```
+```bash
 cd oxDNA         # enter the oxDNA folder
 mkdir build      # create a new build folder. It is good practice to compile out-of-source
 cd build
@@ -20,11 +24,11 @@ cmake ..         # here you can specify additional options, see next section
 make -j4         # compile oxDNA. The -jX make option makes it compile the code in parallel by using X threads.
 ```
 
-At the end of the compilation three executables (oxDNA, DNAnalysis and confGenerator) will be placed in the `build/bin` directory. 
+At the end of the compilation three executables (*oxDNA*, *DNAnalysis* and *confGenerator*) will be placed in the `build/bin` directory. 
 
 Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package to the `pip`'s module directory. The specific location will depend on your system's settings. We advise you to use [virtual environments](https://docs.python.org/3/tutorial/venv.html) (see *e.g.* [pipenv](https://docs.pipenv.org/)) to avoid conflicts with other packages and/or dependency and permission issues.
 
-### cmake options
+### CMake options
 
 * `-DCUDA=ON` Enables CUDA support
 * `-DCUDA_COMMON_ARCH=ON` Choose the target CUDA compute architecture based on the nvcc version. Set it to off to autodetect the CUDA compute arch GPU installed.
@@ -50,10 +54,18 @@ The following options pertain to `oxpy`:
 * `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
 * `make romano` Compiles the observables and interactions in contrib/romano
 * `make install` Copies the `oxpy` package to the Python's package folder
+
+### Known issues
+
+When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly set from the command line as follows:
+
+```bash
+cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary
+```
 	
 ## Testing
 
 * `make test_run` runs quick tests to check whether oxDNA has been correctly compiled or not.	
 * `make test_quick` runs longer tests to check that oxDNA works.
 * `make test_oxpy` checks that the Python bindings work.
-* `make test` runs both sets of tests above.
+* `make test` runs all sets of tests above.

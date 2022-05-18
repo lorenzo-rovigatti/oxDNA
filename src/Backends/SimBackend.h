@@ -58,9 +58,6 @@ class Timer;
 
  [no_stdout_energy = <bool> (if true oxDNA will not print the default simulation output, including the energy, to stdout. Defaults to false)]
 
- [print_timings = <bool> (whether oxDNA should print out to a file performance timings at the end of the simulation or not, defaults to false)]
- [timings_filename = <path> (path to the file where timings will be printed)]
-
  [output_prefix = <string> (the name of all output files will be preceded by this prefix, defaults to an empty string)]
 
  [checkpoint_every = <int> (If > 0, it enables the production of checkpoints, which have a binary format. Beware that trajectories that do have this option enabled will differ from trajectories that do not. If this key is specified, at least one of checkpoint_file and checkpoint_trajectory needs to be specified)]
