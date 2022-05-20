@@ -10,6 +10,7 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
    usage.md
    input.md
    forces.md
+   observables.md
 ```
 
 ```{eval-rst}
