@@ -15,11 +15,38 @@ Forces of different kinds can be combined in the same simulation, but there is a
 The main external forces implemented in the code, together with their associated options, are presented below. The most important ones are also accompanied by a brief description and an example.
 
 ````{note}
+If `external_forces_as_JSON = true`, the external forces file will be parsed as [JSON](https://www.json.org/). This can be useful when using tools that automatise the generation of the force file. Here is a working example:
+
+```
+{
+   "force_1":{
+      "type":"trap",
+      "particle":"0",
+      "stiff":"1.00",
+      "pos0":"46.3113780977, 11.1604626391, 26.8730311801",
+      "rate":"0.0",
+      "dir":"0.,0.,-1."
+   },
+   "force_2":{
+      "type":"trap",
+      "particle":"99",
+      "pos0":"83.1532046751, 15.950789638, 37.3071701142",
+      "stiff":"1.0",
+      "rate":"0.0",
+      "dir":"0.,0.,1."
+   }
+}
+```
+
+Note that **all fields** should be escaped with double quotes.
+````
+
+## Common options
+
 The following two options are supported by all forces and can be used by observables or by the [oxpy](oxpy/index.md) library to retrieve information from or set options of specific external forces:
 
 * `group_name = <string>`: an identifier that can be used to group forces together. Used, for instance, by the `force_energy` observable.
 * `id = <string>`: a unique identifier that can be used to refer to this specific external force.
-````
 
 ## String
 

@@ -42,7 +42,8 @@ These are the options that control the overall behaviour of the simulation and o
 * `[seed = <int>]`: seed for the random number generator. On Unix systems, defaults to either a number from /dev/urandom (if it exists and it's readable) or to time(NULL)
 * `[confs_to_skip = <int>]`: how many configurations should be skipped before using the next one as the initial configuration, defaults to `0`.
 * `[external_forces = <bool>]`: specifies whether there are external forces acting on the nucleotides or not. If it is set to `true`, then a file which specifies the external forces' configuration has to be provided (see below).
-* `[external_forces_file = <path>]`:  specifies the file containing all the external forces' configurations. See [here](forces.md) for more details.
+* `[external_forces_file = <path>]`: specifies the file containing all the external forces' configurations. See [here](forces.md) for more details.
+* `[external_forces_as_JSON = <bool>]`: if `true` the file specified by `external_forces_file` will be parsed as JSON. See [here](forces.md) for more details.
 * `[back_in_box = <bool>]`: whether particles should be brought back into the box when a configuration is printed or not, defaults to false.
 * `[lastconf_file = <path>]`: path to the file where the last configuration will be dumped. Defaults to `last_conf.dat`.
 * `[binary_initial_conf = <bool>]`: whether the initial configuration is a binary configuration or not, defaults to `false`.
