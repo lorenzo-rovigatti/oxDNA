@@ -96,6 +96,23 @@ void input_file::init_from_string(std::string s_inp) {
 	state = PARSED;
 }
 
+void input_file::init_from_json(const nlohmann::json &json) {
+	for(auto &item : json.items()) {
+		try {
+			std::string key(item.key());
+			std::string value(item.value());
+			set_value(key, value);
+		}
+		catch(nlohmann::detail::type_error &e) {
+			// here we use a stringstream since if we are here it means that we cannot cast item.key() and/or item.value() to a string
+			std::stringstream ss;
+			ss << "The JSON line \"" << item.key() << " : " << item.value() << "\" cannot be converted to strings. ";
+			ss << "Please make sure that all keys and values are quoted.";
+			throw oxDNAException(ss.str());
+		}
+	}
+}
+
 void input_file::init_from_command_line_args(int argc, char *argv[], int args_to_skip) {
 	init_from_filename(argv[1]);
 	if(state == ERROR) {

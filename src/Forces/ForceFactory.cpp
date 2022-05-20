@@ -34,7 +34,6 @@
 
 #include <fstream>
 #include <sstream>
-#include <nlohmann/json.hpp>
 
 using namespace std;
 
@@ -121,20 +120,7 @@ void ForceFactory::make_forces(std::vector<BaseParticle *> &particles, BaseBox *
 
 			for(auto &force_json : my_json) {
 				input_file force_input;
-				for(auto &item : force_json.items()) {
-					try {
-						std::string key(item.key());
-						std::string value(item.value());
-						force_input.set_value(key, value);
-					}
-					catch(nlohmann::detail::type_error &e) {
-						// here we use a stringstream since if we are here it means that we cannot cast item.key() and/or item.value() to a string
-						std::stringstream ss;
-						ss << "The JSON external force file contains a non-string key or value in the line \"" << item.key() << " : " << item.value() << "\". ";
-						ss << "Please make sure that all keys and values are quoted.";
-						throw oxDNAException(ss.str());
-					}
-				}
+				force_input.init_from_json(force_json);
 				ForceFactory::instance()->add_force(force_input, particles, box);
 			}
 		}

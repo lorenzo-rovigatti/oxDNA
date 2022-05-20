@@ -57,8 +57,6 @@
 #include "Configurations/TEPxyzOutput.h"
 #include "Configurations/JordanOutput.h"
 
-#include <nlohmann/json.hpp>
-
 ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	char obs_type[512];
 	getInputString(&obs_inp, "type", obs_type, 1);
@@ -152,24 +150,28 @@ std::vector<ObservableOutputPtr> ObservableFactory::make_observables() {
 
 		nlohmann::json my_json = nlohmann::json::parse(external);
 
-		for(auto &force_json : my_json) {
+		for(auto &obs_json : my_json) {
 			input_file obs_input;
-			for(auto &item : force_json.items()) {
-				try {
-					std::string key(item.key());
-					std::string value(item.value());
-					obs_input.set_value(key, value);
-				}
-				catch(nlohmann::detail::type_error &e) {
-					// here we use a stringstream since if we are here it means that we cannot cast item.key() and/or item.value() to a string
-					std::stringstream ss;
-					ss << "The JSON observable file contains a non-string key or value in the line \"" << item.key() << " : " << item.value() << "\". ";
-					ss << "Please make sure that all keys and values are quoted.";
-					throw oxDNAException(ss.str());
-				}
+			// extract the array containing details about the columns
+			nlohmann::json cols_json;
+			if(obs_json.contains("cols")) {
+				cols_json = obs_json["cols"];
+				obs_json.erase("cols");
 			}
+
+			// initialise the observable output
+			obs_input.init_from_json(obs_json);
 			std::string obs_string = obs_input.to_string();
 			auto new_obs_out = std::make_shared<ObservableOutput>(obs_string);
+
+			// and add the observables initialised from the cols array
+			for(auto &col_json : cols_json) {
+				input_file col_input;
+				col_input.init_from_json(col_json);
+				auto new_obs = make_observable(col_input);
+				new_obs_out->add_observable(new_obs);
+			}
+
 			result.push_back(new_obs_out);
 		}
 
