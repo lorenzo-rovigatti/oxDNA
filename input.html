@@ -95,11 +95,13 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#cuda-options">CUDA options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#monte-carlo-options">Monte Carlo options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#options-for-the-default-interaction-oxdna1">Options for the default interaction (oxDNA1)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#options-for-interaction-type-dna2-oxdna2">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">DNA2</span></code> (oxDNA2)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#options-for-interaction-type-rna-oxrna1">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">RNA</span></code> (oxRNA1)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#options-for-interaction-type-rna2-oxrna2">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">RNA2</span></code> (oxRNA2)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#options-for-interaction-type-lj-lennard-jones">Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">LJ</span></code> (Lennard-Jones)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-options-for-dna-dna2-rna-and-rna2-simulations">Common options for <code class="docutils literal notranslate"><span class="pre">DNA</span></code>, <code class="docutils literal notranslate"><span class="pre">DNA2</span></code>, <code class="docutils literal notranslate"><span class="pre">RNA</span></code> and <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-options-for-dna2-and-rna2-simulations">Common options for <code class="docutils literal notranslate"><span class="pre">DNA2</span></code> and <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-options-for-dna-and-dna2-simulations">Common options for <code class="docutils literal notranslate"><span class="pre">DNA</span></code> and <code class="docutils literal notranslate"><span class="pre">DNA2</span></code> simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#options-for-dna2-simulations">Options for <code class="docutils literal notranslate"><span class="pre">DNA2</span></code> simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#options-for-rna-and-rna2-simulations">Options for <code class="docutils literal notranslate"><span class="pre">RNA</span></code> and <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#options-for-rna2-simulations">Options for <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#options-for-lj-lennard-jones-simulations">Options for <code class="docutils literal notranslate"><span class="pre">LJ</span></code> (Lennard-Jones) simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#forward-flux-sampling-ffs-options">Forward Flux Sampling (FFS) options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dnanalysis-options"><em>DNAnalysis</em> options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#observables">Observables</a><ul>
@@ -233,12 +235,14 @@ print_energy_every = ${$(steps) / 10}
 <li><p><code class="docutils literal notranslate"><span class="pre">print_conf_interval</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: if the time scale is linear, this is the number of time steps between the outputing of configurations, otherwise this is just the first point of the logarithmic part of the log_lin time scale.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">print_energy_every</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: number of time steps between the outputing of the energy (and of the other default observables such as acceptance ratios in Monte Carlo simulations).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[interaction_type</span> <span class="pre">=</span> <span class="pre">DNA|DNA2|RNA|RNA2|LJ|...]</span></code>: Particle-particle interaction of choice. Check the documentation relative to the specific interaction for more details and the supported interaction-specific options. Defaults to <code class="docutils literal notranslate"><span class="pre">DNA</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[max_io</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: the maximum rate at which the output is printed, in MB/s. This is a useful option to avoid filling up the disk too quickly. Increase the default value (1 MB/s) at your own risk!</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[fix_diffusion</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if true, particles that leave the simulation box are brought back in via periodic boundary conditions. Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[fix_diffusion_every</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: number of time steps every which the diffusion is fixed. Used only if <code class="docutils literal notranslate"><span class="pre">fix_diffusion</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to 100000 (<span class="math notranslate nohighlight">\(10^5\)</span>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[seed</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: seed for the random number generator. On Unix systems, defaults to either a number from /dev/urandom (if it exists and it’s readable) or to time(NULL)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[confs_to_skip</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: how many configurations should be skipped before using the next one as the initial configuration, defaults to <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[analysis_confs_to_skip</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: as above, but for <code class="docutils literal notranslate"><span class="pre">DNAnalysis</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[external_forces</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: specifies whether there are external forces acting on the nucleotides or not. If it is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, then a file which specifies the external forces’ configuration has to be provided (see below).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[external_forces_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>:  specifies the file containing all the external forces’ configurations. See <a class="reference internal" href="forces.html"><span class="doc std std-doc">here</span></a> for more details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[external_forces_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: specifies the file containing all the external forces’ configurations. See <a class="reference internal" href="forces.html"><span class="doc std std-doc">here</span></a> for more details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[external_forces_as_JSON</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code> the file specified by <code class="docutils literal notranslate"><span class="pre">external_forces_file</span></code> will be parsed as JSON. See <a class="reference internal" href="forces.html"><span class="doc std std-doc">here</span></a> for more details.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[back_in_box</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether particles should be brought back into the box when a configuration is printed or not, defaults to false.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[lastconf_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: path to the file where the last configuration will be dumped. Defaults to <code class="docutils literal notranslate"><span class="pre">last_conf.dat</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[binary_initial_conf</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether the initial configuration is a binary configuration or not, defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
@@ -338,162 +342,83 @@ file and weight file. Used if <code class="docutils literal notranslate"><span c
 <li><p><code class="docutils literal notranslate"><span class="pre">[skip_hist_zeros</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether to skip zero entries in the <code class="docutils literal notranslate"><span class="pre">traj_hist</span></code> file. Mandatory if <code class="docutils literal notranslate"><span class="pre">umbrella_sampling</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
 </ul>
 </div>
-<div class="section" id="options-for-the-default-interaction-oxdna1">
-<h2>Options for the default interaction (oxDNA1)<a class="headerlink" href="#options-for-the-default-interaction-oxdna1" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[use_average_seq = &lt;boolean&gt;]
-    defaults to yes
-[hb_multiplier = &lt;float&gt;]
-    HB interaction multiplier applied to all the nucleotides having a
-    custom numbered base whose magnitude is &gt; 300, defaults to 1.0
-[max_backbone_force = &lt;float&gt;]
-    defaults to nothing, has to be &gt; 0) (if set to a float value, it
-    specifies the maximum force (in reduced units) that the FENE bonds
-    will exert. After the separation corresponding to the specified value,
-    the potential has a form A x + B log(x), where A and B are computed
-    automatically to obtain a continuous, differentiable and monotonically
-    increasing potential. The computation involves the value of
-    max_backbone_force as well as the value of max_backbone_force_far,
-    below
-[max_backbone_force_far = &lt;float&gt;]
-    defaults to 0.04, only read if max_backbone_force is set, has to be &gt;
-    0) (limit value of the force exerted by the bonded interactions for
-    large separations, in reduced units. Used in the computation of A and
-    B above. The default value is set to be very weak (0.04 = ~2pN), so
-    that two neighbours will eventually get close without ever breaking
-    base pairs
-</pre></div>
+<div class="section" id="common-options-for-dna-dna2-rna-and-rna2-simulations">
+<h2>Common options for <code class="docutils literal notranslate"><span class="pre">DNA</span></code>, <code class="docutils literal notranslate"><span class="pre">DNA2</span></code>, <code class="docutils literal notranslate"><span class="pre">RNA</span></code> and <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations<a class="headerlink" href="#common-options-for-dna-dna2-rna-and-rna2-simulations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[use_average_seq</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: use the average-sequence parameters. Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[seq_dep_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: path to the location of the file containing the sequence-dependent parameters. Mandatory if <code class="docutils literal notranslate"><span class="pre">use_average_seq</span> <span class="pre">=</span> <span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[max_backbone_force</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: specify the maximum force (in reduced units) that the FENE bonds will exert. After the separation corresponding to the specified value, the potential has a form <span class="math notranslate nohighlight">\(A x + B \log(x)\)</span>, where <em>A</em> and <em>B</em> are computed automatically to obtain a continuous, differentiable and monotonically increasing potential. The computation involves the value of <code class="docutils literal notranslate"><span class="pre">max_backbone_force</span></code> as well as the value of <code class="docutils literal notranslate"><span class="pre">max_backbone_force_far</span></code>, below. It should be larger than 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[max_backbone_force_far</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: limit the value of the force exerted by the bonded interactions for large separations, in reduced units. Used in the computation of the <em>A</em> and <em>B</em> constants (see above). The default value is set to be very weak (0.04 = ~2pN), so that two neighbours will eventually get close without ever breaking base pairs. Only used if <code class="docutils literal notranslate"><span class="pre">max_backbone_force</span></code> is set, should be larger than 0.</p></li>
+</ul>
 </div>
+<div class="section" id="common-options-for-dna2-and-rna2-simulations">
+<h2>Common options for <code class="docutils literal notranslate"><span class="pre">DNA2</span></code> and <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations<a class="headerlink" href="#common-options-for-dna2-and-rna2-simulations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[dh_lambda</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: the value that lambda, which is a function of temperature (T) and salt concentration (I), should take when T = 300K and I = 1M. Defaults to the value from Debye-Huckel theory, 0.3616455.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[dh_strength</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: the value that scales the overall strength of the Debye-Huckel interaction. Defaults to 0.0543.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[dh_half_charged_ends</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">false</span></code>, nucleotides at the end of a strand carry a full charge, if <code class="docutils literal notranslate"><span class="pre">true</span></code> their charge is halved. Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
+</ul>
 </div>
-<div class="section" id="options-for-interaction-type-dna2-oxdna2">
-<h2>Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">DNA2</span></code> (oxDNA2)<a class="headerlink" href="#options-for-interaction-type-dna2-oxdna2" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>salt_concentration = &lt;float&gt;
-    sets the salt concentration in M
-[dh_lambda = &lt;float&gt;]
-    the value that lambda, which is a function of temperature (T) and salt
-    concentration (I), should take when T=300K and I=1M, defaults to the
-    value from Debye-Huckel theory, 0.3616455
-[dh_strength = &lt;float&gt;]
-    the value that scales the overall strength of the Debye-Huckel
-    interaction, defaults to 0.0543
-[dh_half_charged_ends = &lt;bool&gt;]
-    set to false for 2N charges for an N-base-pair duplex, defaults to 1
-</pre></div>
+<div class="section" id="common-options-for-dna-and-dna2-simulations">
+<h2>Common options for <code class="docutils literal notranslate"><span class="pre">DNA</span></code> and <code class="docutils literal notranslate"><span class="pre">DNA2</span></code> simulations<a class="headerlink" href="#common-options-for-dna-and-dna2-simulations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[hb_multiplier</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: hydrogen-bond interaction multiplier applied to all the nucleotides having a custom numbered base whose magnitude is &gt; 300, defaults to 1.0.</p></li>
+</ul>
 </div>
+<div class="section" id="options-for-dna2-simulations">
+<h2>Options for <code class="docutils literal notranslate"><span class="pre">DNA2</span></code> simulations<a class="headerlink" href="#options-for-dna2-simulations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">salt_concentration</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: the salt concentration in molar (M).</p></li>
+</ul>
 </div>
-<div class="section" id="options-for-interaction-type-rna-oxrna1">
-<h2>Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">RNA</span></code> (oxRNA1)<a class="headerlink" href="#options-for-interaction-type-rna-oxrna1" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[use_average_seq = &lt;boolean&gt;]
-    defaults to yes
-[seq_dep_file = &lt;string&gt;]
-    sets the location of the files with sequence-dependent parameters
-[external_model = &lt;string&gt;]
-    overrides default constants for the model, set in rna_model.h), by
-    values specified by this option
-</pre></div>
+<div class="section" id="options-for-rna-and-rna2-simulations">
+<h2>Options for <code class="docutils literal notranslate"><span class="pre">RNA</span></code> and <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations<a class="headerlink" href="#options-for-rna-and-rna2-simulations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[external_model</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: override default constants for the model, set in <code class="docutils literal notranslate"><span class="pre">src/rna_model.h</span></code>, with the values specified in the file specified here.</p></li>
+</ul>
 </div>
+<div class="section" id="options-for-rna2-simulations">
+<h2>Options for <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations<a class="headerlink" href="#options-for-rna2-simulations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[salt</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: the salt concentration in molar (M). Defaults to 1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[mismatch_repulsion</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, add a repulsion between mismatches. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[mismatch_repulsion_strength</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: set the strength of the repulsion between mismatches. Used only if <code class="docutils literal notranslate"><span class="pre">mismatch_repulsion</span> <span class="pre">=</span> <span class="pre">true</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
+</ul>
 </div>
-<div class="section" id="options-for-interaction-type-rna2-oxrna2">
-<h2>Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">RNA2</span></code> (oxRNA2)<a class="headerlink" href="#options-for-interaction-type-rna2-oxrna2" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[use_average_seq = &lt;boolean&gt;]
-    defaults to yes
-[seq_dep_file = &lt;string&gt;]
-    sets the location of the files with sequence-dependent parameters
-[external_model = &lt;string&gt;]
-    overrides default constants for the model, set in rna_model.h), by
-    values specified by this option
-[salt = &lt;float&gt;]
-    sets the salt concentration in M, defaults to 1
-[mismatch_repulsion = &lt;boolean&gt;]
-    defaults to no
-[mismatch_repulsion_strength = &lt;float&gt;]
-    defaults to 1, sets the strength of repulsion if mismatch_repulsion is
-    true
-</pre></div>
-</div>
-</div>
-<div class="section" id="options-for-interaction-type-lj-lennard-jones">
-<h2>Options for <code class="docutils literal notranslate"><span class="pre">interaction_type</span> <span class="pre">=</span> <span class="pre">LJ</span></code> (Lennard-Jones)<a class="headerlink" href="#options-for-interaction-type-lj-lennard-jones" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LJ_rcut = &lt;float&gt;
-    interaction cutoff
-[LJ_kob_andersen = &lt;bool&gt;]
-    Simulate a Kob-Andersen mixture. Defaults to false.
-[LJ_n = &lt;int&gt;]
-    Generalised LJ exponent. Defaults to 6, which is the classic LJ value.
-</pre></div>
-</div>
+<div class="section" id="options-for-lj-lennard-jones-simulations">
+<h2>Options for <code class="docutils literal notranslate"><span class="pre">LJ</span></code> (Lennard-Jones) simulations<a class="headerlink" href="#options-for-lj-lennard-jones-simulations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[LJ_rcut</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: interaction cut-off. Defaults to 2.5.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[LJ_kob_andersen</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: set to <code class="docutils literal notranslate"><span class="pre">true</span></code> to simulate a Kob-Andersen mixture. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[LJ_n</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: Generalised LJ exponent. Defaults to 6, which is the classic LJ value.</p></li>
+</ul>
 </div>
 <div class="section" id="forward-flux-sampling-ffs-options">
 <h2>Forward Flux Sampling (FFS) options<a class="headerlink" href="#forward-flux-sampling-ffs-options" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>backend = CPU/CUDA
-    For CPU FFS/For CUDA FFS -- NB unlike the CPU implementation, the CUDA
-    implementation does not print extra columns with the current order
-    parameter values whenever the energy is printed
-backend_precision = &lt;any&gt;/mixed
-    CPU FFS may use any precision allowed for a normal CPU MD
-    simulation/CUDA FFS is currently only implemented for mixed precision
-sim_type = FFS_MD
-    This must be set for an FFS simulation
-order_parameters_file = &lt;string&gt;
-    path to the order parameters file
-ffs_file = &lt;string&gt;
-    path to the file with the simulation stopping conditions. Optionally,
-    one may use &#39;master conditions&#39; (CUDA FFS only), which allow one to
-    more easily handle very high dimensional order parameters. See the
-    EXAMPLES/CUDA_FFS/README file for more information
-[ffs_generate_flux = &lt;bool&gt;]
-    CUDA FFS only. Default: False; if False, the simulation will run until
-    a stopping condition is reached; if True, a flux generation simulation
-    will be run, in which case reaching a condition will cause a
-    configuration to be saved but will not terminate the simulation. In
-    the stopping condition file, the conditions must be labelled forward1,
-    forward2, ... (for the forward conditions); and backward1, backward2,
-    ... (for the backward conditions), ... instead of condition1,
-    condition2, ... . To get standard flux generation, set the forward and
-    backward conditions to correspond to crossing the same interface (and
-    use conditions corresponding to different interfaces for Tom&#39;s flux
-    generation). As with the single shooting run mode, the name of the
-    condition crossed will be printed to stderr each time.
-[gen_flux_save_every = &lt;integer&gt;]
-    CUDA FFS only. Mandatory if ffs_generate_flux is True; save a
-    configuration for 1 in every N forward crossings
-[gen_flux_total_crossings = &lt;integer&gt;]
-    CUDA FFS only. Mandatory if ffs_generate_flux is True; stop the
-    simulation after N crossings achieved
-[gen_flux_conf_prefix = &lt;string&gt;]
-    CUDA FFS only. Mandatory if ffs_generate_flux is True; the prefix used
-    for the file names of configurations corresponding to the saved
-    forward crossings. Counting starts at zero so the 3rd crossing
-    configuration will be saved as MY_PREFIX_N2.dat
-[gen_flux_debug = &lt;bool&gt;]
-    CUDA FFS only. Default: False; In a flux generation simulation, set to
-    true to save backward-crossing configurations for debugging
-[check_initial_state = &lt;bool&gt;]
-    CUDA FFS only. Default: False; in a flux generation simulation, set to
-    true to turn on initial state checking. In this mode an initial
-    configuration that crosses the forward conditions after only 1 step
-    will cause the code to complain and exit. Useful for checking that a
-    flux generation simulation does not start out of the A-state
-[die_on_unexpected_master = &lt;bool&gt;]
-    CUDA FFS only. Default: False; in a flux generation simulation that
-    uses master conditions, set to true to cause the simulation to die if
-    any master conditions except master_forward1 or master_backward1 are
-    reached. Useful for checking that a flux generation simulation does
-    not enter any unwanted free energy basins (i.e. other than the initial
-    state and the desired final state)
-[unexpected_master_prefix = &lt;string&gt;]
-    CUDA FFS only. Mandatory if die_on_unexpected_master is True; the
-    prefix used for the file names of configurations corresponding to
-    reaching any unexpected master conditions (see
-    die_on_unexpected_master).
-</pre></div>
-</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">backend</span> <span class="pre">=</span> <span class="pre">CPU/CUDA</span></code>: FFS simulations can be run either on CPU or GPU. Note that, unlike the CPU implementation, the CUDA implementation does not print extra columns with the current order parameter values whenever the energy is printed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend_precision</span> <span class="pre">=</span> <span class="pre">&lt;any&gt;/mixed</span></code>: CPU FFS may use any precision allowed for a normal CPU MD simulation, while CUDA FFS is currently only implemented for mixed precision.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sim_type</span> <span class="pre">=</span> <span class="pre">FFS_MD</span></code>: This must be set for an FFS simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">order_parameters_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;</span></code>: path to the order parameters file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ffs_file</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;</span></code>: path to the file with the simulation stopping conditions. Optionally, one may use <code class="docutils literal notranslate"><span class="pre">master</span> <span class="pre">conditions</span></code> (CUDA FFS only), which allow one to more easily handle very high dimensional order parameters. See the <code class="docutils literal notranslate"><span class="pre">EXAMPLES/CUDA_FFS/README</span></code> file for more information.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[ffs_generate_flux</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: <strong>CUDA FFS only</strong>. If <code class="docutils literal notranslate"><span class="pre">false</span></code>, the simulation will run until a stopping condition is reached; if <code class="docutils literal notranslate"><span class="pre">true</span></code>, a flux generation simulation will be run, in which case reaching a condition will cause a configuration to be saved but will not terminate the simulation. In the stopping condition file, the conditions must be labelled forward1, forward2, … (for the forward conditions); and backward1, backward2, … (for the backward conditions), … instead of condition1, condition2, … . To get standard flux generation, set the forward and backward conditions to correspond to crossing the same interface. As with the single shooting run mode, the name of the condition crossed will be printed to stderr each time. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[gen_flux_save_every</span> <span class="pre">=</span> <span class="pre">&lt;integer&gt;]</span></code>: <strong>CUDA FFS only</strong>. Save a configuration each time this number of forward crossings is achieved. Mandatory if <code class="docutils literal notranslate"><span class="pre">ffs_generate_flux</span> <span class="pre">=</span> </code>true`.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[gen_flux_total_crossings</span> <span class="pre">=</span> <span class="pre">&lt;integer&gt;]</span></code>: <strong>CUDA FFS only</strong>. Stop the simulation after this number of crossings is achieved. Mandatory if <code class="docutils literal notranslate"><span class="pre">ffs_generate_flux</span> <span class="pre">=</span> </code>true`.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[gen_flux_conf_prefix</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: <strong>CUDA FFS only</strong>. the prefix used for the file names of configurations corresponding to the saved forward crossings. Counting starts at zero so the 3rd crossing configuration will be saved as <code class="docutils literal notranslate"><span class="pre">MY_PREFIX_N2.dat</span></code>. Mandatory if <code class="docutils literal notranslate"><span class="pre">ffs_generate_flux</span> <span class="pre">=</span> </code>true`.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[gen_flux_debug</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: <strong>CUDA FFS only</strong>. In a flux generation simulation, set to <code class="docutils literal notranslate"><span class="pre">true</span></code> to save backward-crossing configurations for debugging. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[check_initial_state</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: <strong>CUDA FFS only</strong>. In a flux generation simulation, set to <code class="docutils literal notranslate"><span class="pre">true</span></code> to turn on initial state checking. In this mode an initial configuration that crosses the forward conditions after only 1 step will cause the code to complain and exit. Useful for checking that a flux generation simulation does not start out of the A-state. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[die_on_unexpected_master</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: <strong>CUDA FFS only</strong>. In a flux generation simulation that uses master conditions, set to true to cause the simulation to die if any master conditions except master_forward1 or master_backward1 are reached. Useful for checking that a flux generation simulation does not enter any unwanted free energy basins (i.e. other than the initial state and the desired final state). Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[unexpected_master_prefix</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: <strong>CUDA FFS only</strong>. The prefix used for the file names of configurations corresponding to reaching any unexpected master conditions (see
+<code class="docutils literal notranslate"><span class="pre">die_on_unexpected_master</span></code>). Mandatory if <code class="docutils literal notranslate"><span class="pre">die_on_unexpected_master</span> <span class="pre">=</span> <span class="pre">true</span></code>.</p></li>
+</ul>
 </div>
 <div class="section" id="dnanalysis-options">
 <h2><em>DNAnalysis</em> options<a class="headerlink" href="#dnanalysis-options" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[analysis_confs_to_skip = &lt;int&gt;]
-    number of configurations that should be excluded from the analysis.
-</pre></div>
-</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[analysis_confs_to_skip</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: number of configurations that should be excluded from the analysis. Note that these configurations are parsed, initialised and then discarded. For big systems this is a slow process, in which case it is better to use the option below. Defaults to 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[analysis_bytes_to_skip</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: jump to this position in the trajectory file before starting the analysis. Useful to quickly analyse only portions of large trajectories. Defaults to 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[confs_to_analyse</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: the maximum number of configurations that should be analysed. if not set, the whole trajectory will be analysed.</p></li>
+</ul>
 </div>
 <div class="section" id="observables">
 <h2>Observables<a class="headerlink" href="#observables" title="Permalink to this headline">¶</a></h2>

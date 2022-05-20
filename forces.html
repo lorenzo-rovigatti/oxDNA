@@ -87,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">External forces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#common-options">Common options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#string">String</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mutual-trap">Mutual Trap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#harmonic-trap">Harmonic trap</a></li>
@@ -181,6 +182,31 @@
 <p>The main external forces implemented in the code, together with their associated options, are presented below. The most important ones are also accompanied by a brief description and an example.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">external_forces_as_JSON</span> <span class="pre">=</span> <span class="pre">true</span></code>, the external forces file will be parsed as <a class="reference external" href="https://www.json.org/">JSON</a>. This can be useful when using tools that automatise the generation of the force file. Here is a working example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="s2">&quot;force_1&quot;</span><span class="p">:{</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;trap&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;particle&quot;</span><span class="p">:</span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;stiff&quot;</span><span class="p">:</span><span class="s2">&quot;1.00&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;pos0&quot;</span><span class="p">:</span><span class="s2">&quot;46.3113780977, 11.1604626391, 26.8730311801&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;rate&quot;</span><span class="p">:</span><span class="s2">&quot;0.0&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;dir&quot;</span><span class="p">:</span><span class="s2">&quot;0.,0.,-1.&quot;</span>
+   <span class="p">},</span>
+   <span class="s2">&quot;force_2&quot;</span><span class="p">:{</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;trap&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;particle&quot;</span><span class="p">:</span><span class="s2">&quot;99&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;pos0&quot;</span><span class="p">:</span><span class="s2">&quot;83.1532046751, 15.950789638, 37.3071701142&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;stiff&quot;</span><span class="p">:</span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;rate&quot;</span><span class="p">:</span><span class="s2">&quot;0.0&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;dir&quot;</span><span class="p">:</span><span class="s2">&quot;0.,0.,1.&quot;</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Note that <strong>all fields</strong> should be escaped with double quotes.</p>
+</div>
+<div class="section" id="common-options">
+<h2>Common options<a class="headerlink" href="#common-options" title="Permalink to this headline">¶</a></h2>
 <p>The following two options are supported by all forces and can be used by observables or by the <a class="reference internal" href="oxpy/index.html"><span class="doc std std-doc">oxpy</span></a> library to retrieve information from or set options of specific external forces:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">group_name</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;</span></code>: an identifier that can be used to group forces together. Used, for instance, by the <code class="docutils literal notranslate"><span class="pre">force_energy</span></code> observable.</p></li>
