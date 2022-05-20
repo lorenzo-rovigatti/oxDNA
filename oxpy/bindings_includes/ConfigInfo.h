@@ -75,6 +75,8 @@ void export_ConfigInfo(py::module &m) {
 		:py:class:`~oxpy.core.observables.BaseObservable`
 			The observable with the given id, or `None` if the id does not correspond to any observable.
 	)pbdoc");
+
+	conf_info.def_readonly("current_step", &ConfigInfo::curr_step, "The current time step.");
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_CONFIGINFO_H_ */

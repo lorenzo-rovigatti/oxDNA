@@ -41,7 +41,7 @@ protected:
 	virtual void _first_step();
 	virtual void _forces_second_step();
 
-	virtual void _thermalize(llint curr_step);
+	virtual void _thermalize();
 
 public:
 	CUDAMixedBackend();

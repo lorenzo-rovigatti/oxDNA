@@ -120,8 +120,8 @@ public:
 	virtual ~MD_MPIBackend();
 
 	virtual void init();
-    virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false) ;
-	virtual void sim_step(llint cur_step);
+    virtual void print_conf(bool reduced=false, bool only_last=false) ;
+	virtual void sim_step();
 
 	//void activate_thermostat();
 };

@@ -135,7 +135,8 @@ void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
 	if(read_next_configuration(_initial_conf_is_binary)) {
-		SimBackend::print_observables(_read_conf_step);
+		_config_info->curr_step = _read_conf_step;
+		SimBackend::print_observables();
 
 		if(_n_conf % 100 == 0 && _n_conf > 0) {
 			OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);

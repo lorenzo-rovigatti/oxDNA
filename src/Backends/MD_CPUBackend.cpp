@@ -80,7 +80,7 @@ void MD_CPUBackend::init() {
 	}
 }
 
-void MD_CPUBackend::_first_step(llint curr_step) {
+void MD_CPUBackend::_first_step() {
 	std::vector<int> particles_with_warning;
 	LR_vector dr;
 	for(auto p : _particles) {
@@ -105,7 +105,7 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 			int y_old = floor((p->pos.y - dr.y) / L.y);
 			// we crossed the boundary along y
 			if(y_new != y_old) {
-				number delta_x = _shear_rate * L.y * curr_step * _dt;
+				number delta_x = _shear_rate * L.y * current_step() * _dt;
 				delta_x -= floor(delta_x / L.x) * L.x;
 				if(y_new > y_old) {
 					p->pos.x -= delta_x;
@@ -144,7 +144,7 @@ void MD_CPUBackend::_first_step(llint curr_step) {
 			p->set_positions();
 		}
 
-		p->set_initial_forces(curr_step, _box);
+		p->set_initial_forces(current_step(), _box);
 
 		_lists->single_update(p);
 	}
@@ -254,13 +254,11 @@ void MD_CPUBackend::_update_backend_info() {
 	_stress_tensor = LR_matrix();
 }
 
-void MD_CPUBackend::sim_step(llint curr_step) {
+void MD_CPUBackend::sim_step() {
 	_mytimer->resume();
 
-	CONFIG_INFO->curr_step = curr_step;
-
 	_timer_first_step->resume();
-	_first_step(curr_step);
+	_first_step();
 	_timer_first_step->pause();
 
 	_timer_lists->resume();
@@ -272,7 +270,7 @@ void MD_CPUBackend::sim_step(llint curr_step) {
 
 	if(_is_barostat_active()) {
 		_timer_barostat->resume();
-		_V_move->apply(curr_step);
+		_V_move->apply(current_step());
 		_barostat_acceptance = _V_move->get_acceptance();
 		_timer_barostat->pause();
 	}
@@ -293,7 +291,7 @@ void MD_CPUBackend::sim_step(llint curr_step) {
 	_timer_forces->pause();
 
 	_timer_thermostat->resume();
-	_thermostat->apply(_particles, curr_step);
+	_thermostat->apply(_particles, current_step());
 	_timer_thermostat->pause();
 
 	_mytimer->pause();

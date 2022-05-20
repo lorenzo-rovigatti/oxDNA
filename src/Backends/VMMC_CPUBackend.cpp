@@ -1311,7 +1311,7 @@ inline void VMMC_CPUBackend::_fix_list(int p_index, int oldcell, int newcell) {
 	return;
 }
 
-void VMMC_CPUBackend::sim_step(llint curr_step) {
+void VMMC_CPUBackend::sim_step() {
 
 	_mytimer->resume();
 	_timer_move->resume();
@@ -1331,7 +1331,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 	_U_ext = (number) 0.f;
 	for(int k = 0; k < N(); k++) {
 		BaseParticle *p = _particles[k];
-		p->set_ext_potential(curr_step, _box.get());
+		p->set_ext_potential(current_step(), _box.get());
 		_U_ext += p->ext_potential;
 	}
 
@@ -1389,7 +1389,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 			for(int l = 0; l < nclust; l++) {
 				p = _particles[clust[l]];
 				delta_E_ext += -p->ext_potential;
-				p->set_ext_potential(curr_step, _box.get());
+				p->set_ext_potential(current_step(), _box.get());
 				delta_E_ext += +p->ext_potential;
 			}
 			pprime *= exp(-(1. / _T) * delta_E_ext);
@@ -1480,7 +1480,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 				if(new_index != old_index) {
 					_fix_list(pp->index, old_index, new_index);
 				}
-				pp->set_ext_potential(curr_step, _box.get());
+				pp->set_ext_potential(current_step(), _box.get());
 			}
 
 			_overlap = false;
@@ -1514,7 +1514,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 		 // check ext potential done*/
 
 		// add to the histogram
-		if(_have_us && curr_step > _equilibration_steps)
+		if(_have_us && current_step() > _equilibration_steps)
 		_h.add(oldwindex, oldweight, _U, _U_stack, _U_ext);
 
 		// reset the inclust property to the particles
@@ -1529,7 +1529,7 @@ void VMMC_CPUBackend::sim_step(llint curr_step) {
 	//delete[] tainted;
 
 	// check energy for percolation
-	if(curr_step % (llint) _check_energy_every == 1) {
+	if(current_step() % (llint) _check_energy_every == 1) {
 		//printf ("checking energy for percolation..\n");
 		number U_from_tally = _U;
 		_compute_energy();
@@ -1690,21 +1690,21 @@ char * VMMC_CPUBackend::get_op_state_str() {
 	}
 }
 
-void VMMC_CPUBackend::print_conf(llint curr_step, bool reduced, bool only_last) {
-	SimBackend::print_conf(curr_step, reduced, only_last);
+void VMMC_CPUBackend::print_conf(bool reduced, bool only_last) {
+	SimBackend::print_conf(reduced, only_last);
 	if(_have_us) {
 		if(!only_last)
-		_h.print_to_file(_traj_hist_file, curr_step, false, _skip_hist_zeros);
-		_h.print_to_file(_last_hist_file, curr_step, true, _skip_hist_zeros);
+		_h.print_to_file(_traj_hist_file, current_step(), false, _skip_hist_zeros);
+		_h.print_to_file(_last_hist_file, current_step(), true, _skip_hist_zeros);
 	}
 }
 
-void VMMC_CPUBackend::print_conf(llint curr_step, bool only_last) {
-	SimBackend::print_conf(curr_step, only_last);
+void VMMC_CPUBackend::print_conf(bool only_last) {
+	SimBackend::print_conf(only_last);
 	if(_have_us) {
 		if(!only_last)
-		_h.print_to_file(_traj_hist_file, curr_step, false, _skip_hist_zeros);
-		_h.print_to_file(_last_hist_file, curr_step, true, _skip_hist_zeros);
+		_h.print_to_file(_traj_hist_file, current_step(), false, _skip_hist_zeros);
+		_h.print_to_file(_last_hist_file, current_step(), true, _skip_hist_zeros);
 	}
 }
 
@@ -1887,11 +1887,10 @@ void VMMC_CPUBackend::fix_diffusion() {
 	}
 }
 
-void VMMC_CPUBackend::print_observables(llint curr_step) {
+void VMMC_CPUBackend::print_observables() {
 	_lists->global_update(true);
 	_backend_info += get_op_state_str();
-	MCBackend::print_observables(curr_step);
-	//if ((curr_step % (10 * N())) == 0) fix_diffusion();
+	MCBackend::print_observables();
 }
 
 inline int VMMC_CPUBackend::_get_cell_index(const LR_vector &pos) {

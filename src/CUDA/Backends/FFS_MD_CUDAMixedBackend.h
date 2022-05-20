@@ -392,7 +392,7 @@ public:
 	 * 
 	 * @param curr_step current step
 	 */
-	void sim_step(llint curr_step);
+	void sim_step();
 
 	/**
 	 * @brief Get a string showing the current state of the order parameters
@@ -404,7 +404,7 @@ public:
 	 *
 	 * @param curr_step current step
 	 */
-	virtual void print_observables(llint curr_step);
+	virtual void print_observables();
 
 	/**
 	 * @brief Print a list of order parameter names and values to the string str. Designed to reproduce

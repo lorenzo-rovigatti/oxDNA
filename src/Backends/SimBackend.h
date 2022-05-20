@@ -194,19 +194,15 @@ public:
 
 	/**
 	 * @brief Prints the observables attached to the backend.
-	 *
-	 * @param curr_step
 	 */
-	virtual void print_observables(llint curr_step);
+	virtual void print_observables();
 
-	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
+	virtual void print_conf(bool reduced=false, bool only_last=false);
 
 	/**
 	 * @brief Performs a simulation step.
-	 *
-	 * @param curr_step
 	 */
-	virtual void sim_step(llint curr_step) = 0;
+	virtual void sim_step() = 0;
 
 	/**
 	 * @brief Synchronize the simulation data with the data structures that are used to analyse/print the current simulation status.
@@ -217,6 +213,14 @@ public:
 	 * @brief Update the simulation data, so that changes done to the data structures are taken into account by the simulation engine.
 	 */
 	virtual void apply_changes_to_simulation_data();
+
+	long long int current_step() {
+		return _config_info->curr_step;
+	}
+
+	void increment_current_step() {
+		_config_info->curr_step++;
+	}
 
 	llint start_step_from_file;
 };

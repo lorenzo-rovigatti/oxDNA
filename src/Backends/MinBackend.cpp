@@ -111,11 +111,11 @@ void MinBackend::_evolve() {
 	return;
 }
 
-void MinBackend::sim_step(llint curr_step) {
+void MinBackend::sim_step() {
 	_mytimer->resume();
 
 	for(auto p: _particles) {
-		p->set_initial_forces(curr_step, _box);
+		p->set_initial_forces(current_step(), _box);
 	}
 
 	_timer_lists->resume();

@@ -40,7 +40,6 @@ protected:
 
 	std::map<ParticlePair, number> _stored_bonded_interactions;
 	std::map<ParticlePair, number> _stored_bonded_tmp;
-	//std::vector < std:pair< std::pair<BaseParticle *, BaseParticle *>, number > > _stored_bonded_interactions;
 
 public:
 	MC_CPUBackend();
@@ -49,7 +48,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	void init();
 
-	void sim_step(llint cur_step);
+	void sim_step();
 };
 
 #endif /* MC_CPUBACKEND_H_ */

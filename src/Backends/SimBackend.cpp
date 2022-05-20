@@ -568,10 +568,10 @@ void SimBackend::remove_output(std::string output_file) {
 	_obs_outputs.erase(search);
 }
 
-void SimBackend::print_observables(llint curr_step) {
+void SimBackend::print_observables() {
 	bool someone_ready = false;
 	for(auto const &element : _obs_outputs) {
-		if(element.second->is_ready(curr_step))
+		if(element.second->is_ready(current_step()))
 			someone_ready = true;
 	}
 
@@ -580,8 +580,8 @@ void SimBackend::print_observables(llint curr_step) {
 
 		llint total_bytes = 0;
 		for(auto const &element : _obs_outputs) {
-			if(element.second->is_ready(curr_step)) {
-				element.second->print_output(curr_step);
+			if(element.second->is_ready(current_step())) {
+				element.second->print_output(current_step());
 			}
 			total_bytes += element.second->get_bytes_written();
 		}
@@ -619,7 +619,7 @@ void SimBackend::fix_diffusion() {
 	static std::vector<LR_matrix> stored_or(N());
 	static std::vector<LR_matrix> stored_orT(N());
 
-	// we don't rule out the possibility that N() might change during the course of the simulation
+	// we can't exclude the possibility that N() might change during the course of the simulation
 	stored_pos.resize(N());
 	stored_or.resize(N());
 	stored_orT.resize(N());
@@ -698,27 +698,27 @@ void SimBackend::fix_diffusion() {
 	apply_changes_to_simulation_data();
 }
 
-void SimBackend::print_conf(llint curr_step, bool reduced, bool only_last) {
+void SimBackend::print_conf(bool reduced, bool only_last) {
 	apply_simulation_data_changes();
 
 	if(reduced) {
 		std::stringstream conf_name;
-		conf_name << _reduced_conf_output_dir << "/reduced_conf" << curr_step << ".dat";
+		conf_name << _reduced_conf_output_dir << "/reduced_conf" << current_step() << ".dat";
 		_obs_output_reduced_conf->change_output_file(conf_name.str().c_str());
-		_obs_output_reduced_conf->print_output(curr_step);
+		_obs_output_reduced_conf->print_output(current_step());
 	}
 	else {
 		if(!only_last) {
-			_obs_output_trajectory->print_output(curr_step);
+			_obs_output_trajectory->print_output(current_step());
 		}
-		_obs_output_last_conf->print_output(curr_step);
+		_obs_output_last_conf->print_output(current_step());
 		if(_obs_output_last_conf_bin != nullptr) {
-			_obs_output_last_conf_bin->print_output(curr_step);
+			_obs_output_last_conf_bin->print_output(current_step());
 		}
 	}
 }
 
 void SimBackend::print_equilibration_info() {
-	// he who overloads this will print something;
+	// whoever overloads this will print something;
 	return;
 }

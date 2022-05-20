@@ -38,11 +38,11 @@ public:
 	 * Yes, it is a design flaw, I am aware of that :-)
 	 * @param cur_step
 	 */
-	void sim_step(llint cur_step) override {
+	void sim_step() override {
 
 	}
 
-	void print_conf(llint cur_step, bool reduced, bool only_last) override {
+	void print_conf(bool reduced, bool only_last) override {
 
 	}
 

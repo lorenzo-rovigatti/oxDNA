@@ -49,9 +49,9 @@ void OxpyManager::update_temperature(number new_T) {
 
 void OxpyManager::print_configuration(bool also_last) {
 	// prints the trajectory configuration
-	_backend->print_conf(_cur_step);
+	_backend->print_conf();
 	// prints the last configuration
-	_backend->print_conf(_cur_step, false, true);
+	_backend->print_conf(false, true);
 }
 
 void OxpyManager::add_output(std::string filename, llint print_every, std::vector<ObservablePtr> observables) {
@@ -71,30 +71,26 @@ void OxpyManager::remove_output(std::string filename) {
 }
 
 void OxpyManager::run(llint steps, bool print_output) {
-	if(_cur_step < _start_step) {
-		_cur_step = _start_step;
-	}
-
 	_backend->apply_changes_to_simulation_data();
 
-	for(llint i = 0; i < steps && !SimManager::stop; i++, _cur_step++) {
-		if(_cur_step == _time_scale_manager.next_step) {
-			if(print_output && _cur_step > _start_step) {
-				_backend->print_conf(_cur_step);
+	for(llint i = 0; i < steps && !SimManager::stop; i++, _steps_run++) {
+		if(_backend->current_step() == _time_scale_manager.next_step) {
+			if(print_output && i > 0) {
+				_backend->print_conf();
 			}
 			setTSNextStep(&_time_scale_manager);
 		}
 
-		if(_cur_step > 0 && _cur_step % _fix_diffusion_every == 0) {
+		if(i > 0 && i % _fix_diffusion_every == 0) {
 			_backend->fix_diffusion();
 		}
 
 		if(print_output) {
-			_backend->print_observables(_cur_step);
+			_backend->print_observables();
 		}
 
-		_backend->sim_step(_cur_step);
-		_steps_run++;
+		_backend->sim_step();
+		_backend->increment_current_step();
 	}
 
 	_backend->apply_simulation_data_changes();
@@ -225,5 +221,5 @@ input: :class:`InputFile`
 		Print the timings taking into account the number of steps run by the manager.
 	)pbdoc");
 
-	manager.def_property_readonly("current_step", &OxpyManager::get_current_step, "The current time step.");
+	manager.def_property_readonly("current_step", [](OxpyManager &manager) { return manager.config_info()->curr_step; }, "The current time step.");
 }

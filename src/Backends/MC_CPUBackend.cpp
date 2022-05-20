@@ -186,7 +186,7 @@ inline void MC_CPUBackend::_rotate_particle(BaseParticle *p) {
 	p->orientation = p->orientation * R;
 }
 
-void MC_CPUBackend::sim_step(llint curr_step) {
+void MC_CPUBackend::sim_step() {
 	_mytimer->resume();
 
 	for(int i = 0; i < N(); i++) {
@@ -227,7 +227,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				p->pos.x *= box_sides[0] / old_box_sides[0];
 				p->pos.y *= box_sides[1] / old_box_sides[1];
 				p->pos.z *= box_sides[2] / old_box_sides[2];
-				p->set_ext_potential(curr_step, _box.get());
+				p->set_ext_potential(current_step(), _box.get());
 				dExt += -p->ext_potential;
 			}
 			//for (int i = 0; i < _N; i ++) _lists->single_update(_particles[i]);
@@ -259,7 +259,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				// volume move accepted
 				_accepted[MC_MOVE_VOLUME]++;
 				_U = newE;
-				if((curr_step < _MC_equilibration_steps && _adjust_moves) || _target_box > 0.f) _delta[MC_MOVE_VOLUME] *= 1.03;
+				if((current_step() < _MC_equilibration_steps && _adjust_moves) || _target_box > 0.f) _delta[MC_MOVE_VOLUME] *= 1.03;
 
 				_stored_bonded_interactions.clear();
 				for(auto p: _particles) {
@@ -277,7 +277,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 					BaseParticle *p = _particles[k];
 					//p->pos /= _box_side / old_box_side;
 					p->pos = _particles_old[k]->pos;
-					p->set_ext_potential(curr_step, _box.get());
+					p->set_ext_potential(current_step(), _box.get());
 				}
 				_lists->change_box();
 				_interaction->set_is_infinite(false);
@@ -289,7 +289,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 					_N_updates++;
 					_timer_lists->pause();
 				}
-				if((curr_step < _MC_equilibration_steps && _adjust_moves) || _target_box > 0.f) _delta[MC_MOVE_VOLUME] /= 1.01;
+				if((current_step() < _MC_equilibration_steps && _adjust_moves) || _target_box > 0.f) _delta[MC_MOVE_VOLUME] /= 1.01;
 			}
 			_timer_box->pause();
 		}
@@ -305,7 +305,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 			_tries[move]++;
 			number delta_E = -_particle_energy(p, true);
 			//number delta_E = -_particle_energy(p, false);
-			p->set_ext_potential(curr_step, _box.get());
+			p->set_ext_potential(current_step(), _box.get());
 			number delta_E_ext = -p->ext_potential;
 
 			if(move == MC_MOVE_TRANSLATION) {
@@ -333,7 +333,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 
 			_stored_bonded_tmp.clear();
 			delta_E += _particle_energy(p, false);
-			p->set_ext_potential(curr_step, _box.get());
+			p->set_ext_potential(current_step(), _box.get());
 			delta_E_ext += p->ext_potential;
 
 			// uncomment to check the energy at a given time step.
@@ -344,7 +344,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 			if(!_overlap && ((delta_E + delta_E_ext) < 0 || exp(-(delta_E + delta_E_ext) / _T) > drand48())) {
 				_accepted[move]++;
 				_U += delta_E;
-				if(curr_step < _MC_equilibration_steps && _adjust_moves) {
+				if(current_step() < _MC_equilibration_steps && _adjust_moves) {
 					_delta[move] *= 1.03;
 					if(move == MC_MOVE_TRANSLATION && _delta[move] > _verlet_skin * sqrt(3.) / 2.) _delta[move] = _verlet_skin * sqrt(3.) / 2.;
 					if(move == MC_MOVE_ROTATION && _delta[move] > M_PI / 2.) _delta[move] = M_PI / 2.;
@@ -367,7 +367,7 @@ void MC_CPUBackend::sim_step(llint curr_step) {
 				}
 				_lists->single_update(p);
 				_interaction->set_is_infinite(false);
-				if(curr_step < _MC_equilibration_steps && _adjust_moves) _delta[move] /= 1.01;
+				if(current_step() < _MC_equilibration_steps && _adjust_moves) _delta[move] /= 1.01;
 
 			}
 			_overlap = false;

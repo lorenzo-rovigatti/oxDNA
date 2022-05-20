@@ -90,7 +90,7 @@ public:
 	char * get_replica_info_str ();
 	number get_pt_acc ();
 
-	void sim_step(llint cur_step);
+	void sim_step();
 };
 
 #endif /* PT_VMMC_CPUBACKEND_H_ */

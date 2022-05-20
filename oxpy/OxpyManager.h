@@ -26,10 +26,6 @@ public:
 	void add_output(std::string filename, llint print_every, std::vector<ObservablePtr> observables);
 	void remove_output(std::string filename);
 
-	llint get_current_step() {
-		return _cur_step;
-	}
-
 	void run(llint steps, bool print_output=true);
 	llint steps_run() {
 		return _steps_run;

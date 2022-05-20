@@ -30,7 +30,6 @@ class MD_CUDABackend: public MDBackend, public CUDABaseBackend{
 protected:
 	bool _use_edge;
 	bool _any_rigid_body;
-	bool _restart_step_counter;
 	bool _avoid_cpu_calculations;
 
 	int *_h_gpu_index, *_h_cpu_index;
@@ -47,7 +46,6 @@ protected:
 	c_number4 *_d_molecular_coms;
 
 	c_number4 *_d_buff_vels, *_d_buff_Ls;
-	llint _curr_step;
 
 	llint _barostat_attempts, _barostat_accepted;
 
@@ -73,11 +71,11 @@ protected:
 	virtual void _rescale_positions(c_number4 new_Ls, c_number4 old_Ls);
 
 	virtual void _first_step();
-	virtual void _apply_barostat(llint curr_step);
+	virtual void _apply_barostat();
 	virtual void _forces_second_step();
 	virtual void _set_external_forces();
 
-	virtual void _thermalize(llint curr_step);
+	virtual void _thermalize();
 
 	virtual void _init_CUDA_MD_symbols();
 
@@ -88,7 +86,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void sim_step(llint curr_step);
+	virtual void sim_step();
 
 	virtual void apply_simulation_data_changes();
 	virtual void apply_changes_to_simulation_data();

@@ -103,7 +103,7 @@ void MCBackend::get_settings(input_file &inp) {
 	}
 }
 
-void MCBackend::print_observables(llint curr_step) {
+void MCBackend::print_observables() {
 	std::string tmpstr("");
 	for(int i = 0; i < _MC_moves; i++) {
 		number ratio = (_tries[i] > 0) ? _accepted[i] / (float) _tries[i] : 0;
@@ -112,5 +112,5 @@ void MCBackend::print_observables(llint curr_step) {
 	}
 	_backend_info.insert(0, tmpstr + "  ");
 
-	SimBackend::print_observables(curr_step);
+	SimBackend::print_observables();
 }

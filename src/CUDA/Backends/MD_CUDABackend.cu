@@ -39,12 +39,10 @@ MD_CUDABackend::MD_CUDABackend() :
 
 	_d_ext_forces = nullptr;
 
-	_restart_step_counter = false;
 	_avoid_cpu_calculations = false;
 
 	_timer_sorting = nullptr;
 
-	_curr_step = -1;
 	_barostat_attempts = _barostat_accepted = 0;
 
 	_print_energy = false;
@@ -429,7 +427,7 @@ void MD_CUDABackend::_rescale_positions(c_number4 new_Ls, c_number4 old_Ls) {
 	CUT_CHECK_ERROR("_rescale_positions error");
 }
 
-void MD_CUDABackend::_apply_barostat(llint curr_step) {
+void MD_CUDABackend::_apply_barostat() {
 	_barostat_attempts++;
 
 	_set_external_forces();
@@ -491,7 +489,7 @@ void MD_CUDABackend::_apply_barostat(llint curr_step) {
 
 	if(_cuda_barostat_always_refresh) {
 		// if the user wishes so, we refresh all the velocities after each barostat attempt
-		_cuda_barostat_thermostat->apply_cuda(_d_poss, _d_orientations, _d_vels, _d_Ls, curr_step);
+		_cuda_barostat_thermostat->apply_cuda(_d_poss, _d_orientations, _d_vels, _d_Ls, current_step());
 	}
 }
 
@@ -508,7 +506,7 @@ void MD_CUDABackend::_forces_second_step() {
 void MD_CUDABackend::_set_external_forces() {
 	set_external_forces
 		<<<_particles_kernel_cfg.blocks, _particles_kernel_cfg.threads_per_block>>>
-		(_d_poss, _d_orientations, _d_ext_forces, _d_forces, _d_torques, _curr_step, _max_ext_forces, _d_cuda_box);
+		(_d_poss, _d_orientations, _d_ext_forces, _d_forces, _d_torques, current_step(), _max_ext_forces, _d_cuda_box);
 	CUT_CHECK_ERROR("set_external_forces");
 }
 
@@ -529,13 +527,12 @@ void MD_CUDABackend::_sort_particles() {
 	CUDA_SAFE_CALL(cudaMemcpy(_d_particles_to_mols, _d_buff_particles_to_mols, sizeof(int) * N(), cudaMemcpyDeviceToDevice));
 }
 
-void MD_CUDABackend::_thermalize(llint curr_step) {
-	_cuda_thermostat->apply_cuda(_d_poss, _d_orientations, _d_vels, _d_Ls, curr_step);
+void MD_CUDABackend::_thermalize() {
+	_cuda_thermostat->apply_cuda(_d_poss, _d_orientations, _d_vels, _d_Ls, current_step());
 }
 
-void MD_CUDABackend::sim_step(llint curr_step) {
+void MD_CUDABackend::sim_step() {
 	_mytimer->resume();
-	_curr_step = curr_step;
 
 	_timer_first_step->resume();
 	_first_step();
@@ -556,7 +553,7 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 		}
 		catch (oxDNAException &e) {
 			apply_simulation_data_changes();
-			_obs_output_error_conf->print_output(curr_step);
+			_obs_output_error_conf->print_output(current_step());
 			throw oxDNAException("%s ----> The last configuration has been printed to %s", e.what(), _error_conf_file.c_str());
 		}
 		_d_are_lists_old[0] = false;
@@ -567,7 +564,7 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 
 	if(_is_barostat_active()) {
 		_timer_barostat->resume();
-		_apply_barostat(curr_step);
+		_apply_barostat();
 		_timer_barostat->pause();
 	}
 
@@ -581,7 +578,7 @@ void MD_CUDABackend::sim_step(llint curr_step) {
 	_timer_forces->pause();
 
 	_timer_thermostat->resume();
-	_thermalize(curr_step);
+	_thermalize();
 	cudaThreadSynchronize();
 	_timer_thermostat->pause();
 
@@ -601,7 +598,6 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 		}
 	}
 
-	getInputBool(&inp, "restart_step_counter", &_restart_step_counter, 1);
 	getInputBool(&inp, "CUDA_avoid_cpu_calculations", &_avoid_cpu_calculations, 0);
 	getInputBool(&inp, "CUDA_barostat_always_refresh", &_cuda_barostat_always_refresh, 0);
 	getInputBool(&inp, "CUDA_print_energy", &_print_energy, 0);
@@ -713,10 +709,6 @@ void MD_CUDABackend::init() {
 
 	// initialise lists and compute the forces for the first step
 	_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
-	_curr_step = _read_conf_step;
-	if(_restart_step_counter) {
-		_curr_step = 0;
-	}
 	_set_external_forces();
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
 }
