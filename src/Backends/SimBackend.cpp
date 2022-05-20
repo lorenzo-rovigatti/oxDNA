@@ -12,6 +12,7 @@
 #include "../Utilities/Utils.h"
 #include "../Utilities/ConfigInfo.h"
 #include "../Interactions/InteractionFactory.h"
+#include "../Observables/ObservableFactory.h"
 #include "../Forces/ForceFactory.h"
 #include "../Lists/ListFactory.h"
 #include "../Boxes/BoxFactory.h"
@@ -162,20 +163,9 @@ void SimBackend::get_settings(input_file &inp) {
 	_config_info->update_temperature(Utils::get_temperature(raw_T));
 
 	// here we fill the _obs_outputs vector
-	int i = 1;
-	bool found = true;
-	while(found) {
-		stringstream ss;
-		ss << "data_output_" << i;
-		string obs_string;
-		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
-			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string);
-			add_output(new_obs_out);
-		}
-		else
-			found = false;
-
-		i++;
+	auto new_outputs = ObservableFactory::make_observables();
+	for(auto new_output : new_outputs) {
+		add_output(new_output);
 	}
 
 	getInputBool(&inp, "back_in_box", &_back_in_box, 0);

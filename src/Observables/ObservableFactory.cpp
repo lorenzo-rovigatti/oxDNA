@@ -57,6 +57,8 @@
 #include "Configurations/TEPxyzOutput.h"
 #include "Configurations/JordanOutput.h"
 
+#include <nlohmann/json.hpp>
+
 ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	char obs_type[512];
 	getInputString(&obs_inp, "type", obs_type, 1);
@@ -117,4 +119,63 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	res->get_settings(obs_inp, *(CONFIG_INFO->sim_input));
 
 	return res;
+}
+
+std::vector<ObservableOutputPtr> ObservableFactory::make_observables() {
+	std::vector<ObservableOutputPtr> result;
+
+	int i = 1;
+	bool found = true;
+	while(found) {
+		stringstream ss;
+		ss << "data_output_" << i;
+		string obs_string;
+		if(getInputString(CONFIG_INFO->sim_input, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
+			auto new_obs_out = std::make_shared<ObservableOutput>(obs_string);
+			result.push_back(new_obs_out);
+		}
+		else {
+			found = false;
+		}
+
+		i++;
+	}
+
+	std::string obs_filename;
+	if(getInputString(CONFIG_INFO->sim_input, "observables_file", obs_filename, 0) == KEY_FOUND) {
+		OX_LOG(Logger::LOG_INFO, "Parsing JSON observable file %s", obs_filename.c_str());
+
+		ifstream external(obs_filename.c_str());
+		if(!external.good ()) {
+			throw oxDNAException ("Can't read obs_filename '%s'", obs_filename.c_str());
+		}
+
+		nlohmann::json my_json = nlohmann::json::parse(external);
+
+		for(auto &force_json : my_json) {
+			input_file obs_input;
+			for(auto &item : force_json.items()) {
+				try {
+					std::string key(item.key());
+					std::string value(item.value());
+					obs_input.set_value(key, value);
+				}
+				catch(nlohmann::detail::type_error &e) {
+					// here we use a stringstream since if we are here it means that we cannot cast item.key() and/or item.value() to a string
+					std::stringstream ss;
+					ss << "The JSON observable file contains a non-string key or value in the line \"" << item.key() << " : " << item.value() << "\". ";
+					ss << "Please make sure that all keys and values are quoted.";
+					throw oxDNAException(ss.str());
+				}
+			}
+			std::string obs_string = obs_input.to_string();
+			auto new_obs_out = std::make_shared<ObservableOutput>(obs_string);
+			result.push_back(new_obs_out);
+		}
+
+		external.close();
+		OX_LOG(Logger::LOG_INFO, "   Observable file parsed");
+	}
+
+	return result;
 }
