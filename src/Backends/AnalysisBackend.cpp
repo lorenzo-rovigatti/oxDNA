@@ -127,6 +127,7 @@ bool AnalysisBackend::read_next_configuration(bool binary) {
 		}
 		_n_conf++;
 	}
+	_config_info->curr_step = _read_conf_step;
 
 	return !_done;
 }
@@ -135,7 +136,6 @@ void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
 	if(read_next_configuration(_initial_conf_is_binary)) {
-		_config_info->curr_step = _read_conf_step;
 		SimBackend::print_observables();
 
 		if(_n_conf % 100 == 0 && _n_conf > 0) {
