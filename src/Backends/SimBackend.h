@@ -142,7 +142,7 @@ protected:
 	 * @param binary whether _conf_input has been open in ascii or binary format
 	 * @return a vector containing the three numbers read
 	 */
-	LR_vector _read_next_vector(bool binary);
+	LR_vector _read_next_binary_vector();
 
 	virtual void _on_T_update();
 

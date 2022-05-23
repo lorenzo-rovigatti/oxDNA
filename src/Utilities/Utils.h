@@ -9,6 +9,11 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include "../defs.h"
+#include "oxDNAException.h"
+
+#include <fast_double_parser/fast_double_parser.h>
+
 #include <algorithm>
 #include <functional>
 #include <cstdlib>
@@ -18,8 +23,6 @@
 #include <cstdarg>
 #include <cstdio>
 #include <vector>
-
-#include "../defs.h"
 
 class BaseParticle;
 
@@ -62,6 +65,19 @@ inline std::string &rtrim(std::string &s) {
  * @return a vector of strings containing all the tokens
  */
 std::vector<std::string> split(const std::string &s, char delim = ' ');
+
+// this is a very fast split function that fills a vector of numbers. It is mainly used by the configuration parser
+std::vector<number> split_to_numbers(const std::string &str, const std::string &delims);
+
+inline number lexical_cast(const std::string &source) {
+	double result;
+
+	if(fast_double_parser::parse_number(source.c_str(), &result) == nullptr) {
+		throw oxDNAException("Cannot convert '%s' to a number", source.c_str());
+	}
+
+	return result;
+}
 
 // trim from both ends, it works like Python's own trim
 inline std::string &trim(std::string &s) {
