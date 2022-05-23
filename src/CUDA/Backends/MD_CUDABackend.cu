@@ -231,7 +231,7 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 		int mybtype = (GpuUtils::float_as_int(_h_poss[i].w)) >> 22;
 		int myindex = (GpuUtils::float_as_int(_h_poss[i].w)) & (~msk);
 		if(p->btype != mybtype) {
-			throw oxDNAException("Could not treat the type (A, C, G, T or something specific) of particle %d; On CUDA, the maximum \"unique\" identity is 512");
+			throw oxDNAException("Could not treat the type (A, C, G, T or something specific) of particle %d; On CUDA, integer base types cannot be larger than 511 or smaller than -511");
 		}
 		if(p->index != myindex) {
 			throw oxDNAException("Could not treat the index of particle %d; remember that on CUDA the maximum c_number of particles is 2^21", p->index);

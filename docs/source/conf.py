@@ -41,6 +41,11 @@ extensions = [
 # generate labels of heading anchors
 myst_heading_anchors = 3
 
+myst_enable_extensions = [
+    "dollarmath",
+    "amsmath"
+    ]
+
 napoleon_include_init_with_doc = True
 autosummary_generate = True
 autoclass_content = 'both'
