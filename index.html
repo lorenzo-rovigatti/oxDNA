@@ -30,6 +30,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -85,6 +86,7 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
 </ul>
@@ -155,7 +157,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="oxdna">
+  <div class="tex2jax_ignore mathjax_ignore section" id="oxdna">
 <h1>oxDNA<a class="headerlink" href="#oxdna" title="Permalink to this headline">¶</a></h1>
 <p>oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by <a class="reference external" href="http://dx.doi.org/10.1063/1.3552946">T. E. Ouldridge, J. P. K. Doye and A. A. Louis</a>. It has been since reworked and it is now an extensible simulation+analysis framework. It natively supports DNA, RNA, Lennard-Jones and patchy particle simulations of different kinds on both CPU and NVIDIA GPUs.</p>
 <div class="toctree-wrapper compound">
@@ -202,6 +204,15 @@
 <li class="toctree-l2"><a class="reference internal" href="input.html#dnanalysis-options"><em>DNAnalysis</em> options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#observables">Observables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#plugins-options">Plugins options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configurations.html#configuration-file">Configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configurations.html#topology-file">Topology file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configurations.html#special-nucleotides">Special nucleotides</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configurations.html#converting-to-and-from-oxdna-configurations">Converting to and from oxDNA configurations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a><ul>

@@ -30,13 +30,14 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="External forces" href="forces.html" />
+    <link rel="next" title="Configuration and topology files" href="configurations.html" />
     <link rel="prev" title="Usage" href="usage.html" /> 
 </head>
 
@@ -108,6 +109,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#plugins-options">Plugins options</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
 </ul>
@@ -178,7 +180,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="input-file">
+  <div class="tex2jax_ignore mathjax_ignore section" id="input-file">
 <h1>Input file<a class="headerlink" href="#input-file" title="Permalink to this headline">¶</a></h1>
 <p>The behaviour of oxDNA (and of the other executables) is controlled by a set of options that are usually listed in the input file, but can also be set from the <a class="reference internal" href="usage.html"><span class="doc std std-doc">command line</span></a>.</p>
 <div class="section" id="general-syntax">
@@ -211,6 +213,7 @@ print_energy_every = ${$(steps) / 10}
 <li><p><code class="docutils literal notranslate"><span class="pre">conf_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;</span></code>: path to the starting configuration.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">topology</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;</span></code>: path to the file containing the system’s topology.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trajectory_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;</span></code>: path to the file which will contain the output trajectory of the simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[trajectory_print_momenta</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: print the linear and angular momenta of the particles to the trajectory. Set it to <code class="docutils literal notranslate"><span class="pre">false</span></code> to decrease the size of the trajectory by <span class="math notranslate nohighlight">\(\approx 40\%\)</span>. Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time_scale</span> <span class="pre">=</span> <span class="pre">linear/log_lin</span></code>: a linear time_scale will make oxDNA print linearly-spaced configurations. a log_lin will make it print linearly-spaced cycles of logarithmically-spaced configurations.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">print_conf_interval</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: if the time scale is linear, this is the number of time steps between the outputing of configurations, otherwise this is just the first point of the logarithmic part of the log_lin time scale.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">print_energy_every</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: number of time steps between the outputing of the energy (and of the other default observables such as acceptance ratios in Monte Carlo simulations).</p></li>
@@ -426,7 +429,7 @@ file and weight file. Used if <code class="docutils literal notranslate"><span c
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="forces.html" class="btn btn-neutral float-right" title="External forces" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="configurations.html" class="btn btn-neutral float-right" title="Configuration and topology files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

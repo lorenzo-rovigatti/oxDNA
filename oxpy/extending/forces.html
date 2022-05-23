@@ -30,6 +30,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -85,6 +86,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../forces.html">External forces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../observables.html">Observables</a></li>
 </ul>
@@ -168,7 +170,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="modifying-external-forces-at-runtime">
+  <div class="tex2jax_ignore mathjax_ignore section" id="modifying-external-forces-at-runtime">
 <h1>Modifying external forces at runtime<a class="headerlink" href="#modifying-external-forces-at-runtime" title="Permalink to this headline">¶</a></h1>
 <p>While it is not yet possible to write external forces entirely in Python, with oxpy you can change the parameters of some external forces while the simulation is running. The list of the available forces (and the parameters that can be changed) can be found <a class="reference internal" href="../modules/core/forces.html"><span class="doc std std-doc">here</span></a>. All external forces can be accessed by using <a class="reference internal" href="../modules/core/core.html#oxpy.core.ConfigInfo" title="oxpy.core.ConfigInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigInfo</span></code></a>’s <a class="reference internal" href="../modules/core/core.html#oxpy.core.ConfigInfo.forces" title="oxpy.core.ConfigInfo.forces"><code class="xref py py-attr docutils literal notranslate"><span class="pre">forces</span></code></a> attribute.</p>
 <p>Here is an example that can be run in the <code class="docutils literal notranslate"><span class="pre">examples/TRAPS</span></code> folder which doubles the stiffness of all forces every 20000 simulation steps:</p>

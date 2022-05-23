@@ -30,6 +30,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -86,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../forces.html">External forces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../observables.html">Observables</a></li>
 </ul>
@@ -169,7 +171,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="writing-observables-in-python">
+  <div class="tex2jax_ignore mathjax_ignore section" id="writing-observables-in-python">
 <h1>Writing observables in Python<a class="headerlink" href="#writing-observables-in-python" title="Permalink to this headline">¶</a></h1>
 <p>You can write custom observables that can analyse configurations on the fly (that is, while the simulation is running) by subclassing <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseObservable</span></code> and overloading its <code class="xref py py-meth docutils literal notranslate"><span class="pre">get_output_string()</span></code> method, which takes a single parameter (the current simulation step) and returns the string to be output. Use the <code class="xref py py-attr docutils literal notranslate"><span class="pre">config_info</span></code> attribute to access the simulation data required for the analysis (particle positions, velocities, <em>etc.</em>).</p>
 <p>Use <a class="reference internal" href="../modules/core/core.html#oxpy.core.OxpyManager" title="oxpy.core.OxpyManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">OxpyManager</span></code></a>’s <a class="reference internal" href="../modules/core/core.html#oxpy.core.OxpyManager.add_output" title="oxpy.core.OxpyManager.add_output"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_output()</span></code></a> method to add a new output file and associate observables to it. Use its <code class="docutils literal notranslate"><span class="pre">print_every</span></code> parameter to set the output frequency (in number of simulation time steps).</p>

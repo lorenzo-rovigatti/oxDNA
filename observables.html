@@ -30,6 +30,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -86,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Observables</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#external-observable-file">External observable file</a></li>
@@ -179,7 +181,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="observables">
+  <div class="tex2jax_ignore mathjax_ignore section" id="observables">
 <h1>Observables<a class="headerlink" href="#observables" title="Permalink to this headline">¶</a></h1>
 <p>The observable infrastructure was devised to help building customized output from <em>oxDNA</em> (and <em>DNAnalysis</em>) without having to dive in the simulation code itself.</p>
 <p>The relevant keys in the input file are <code class="docutils literal notranslate"><span class="pre">analysis_data_output_*</span></code> (used by <em>DNAnalysis</em>) and <code class="docutils literal notranslate"><span class="pre">data_output_*</span></code> (used by <em>oxDNA</em>). These take as an argument, between curly brackets, a series of lines that is interpreted as an input file and whose options dictate the way the resulting output file is printed.</p>

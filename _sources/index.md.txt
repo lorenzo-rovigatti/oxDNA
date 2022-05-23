@@ -9,6 +9,7 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
    install.md
    usage.md
    input.md
+   configurations.md
    forces.md
    observables.md
 ```

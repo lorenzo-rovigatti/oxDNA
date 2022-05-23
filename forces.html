@@ -30,6 +30,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -37,7 +38,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Observables" href="observables.html" />
-    <link rel="prev" title="Input file" href="input.html" /> 
+    <link rel="prev" title="Configuration and topology files" href="configurations.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">External forces</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#common-options">Common options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#string">String</a></li>
@@ -170,7 +172,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="external-forces">
+  <div class="tex2jax_ignore mathjax_ignore section" id="external-forces">
 <h1>External forces<a class="headerlink" href="#external-forces" title="Permalink to this headline">¶</a></h1>
 <p>The code implements several types of external forces that can be imposed on the system that can be used either to simulate tension exerted on DNA or simply to accelerate the formation of secondary or tertiary structure. External forces can be tricky to treat, especially in a dynamics simulation, since they are an external source of work. Care should be taken in adjusting the time step, thermostat parameters and such.</p>
 <p>To enable external forces, one needs to specify <code class="docutils literal notranslate"><span class="pre">external_forces</span> <span class="pre">=</span> <span class="pre">true</span></code> in the input file and also supply an external force file to read from with the key <code class="docutils literal notranslate"><span class="pre">external_forces_file</span> <span class="pre">=</span> <span class="pre">&lt;file&gt;</span></code>.</p>
@@ -496,7 +498,7 @@ particle = &lt;int&gt;
         <a href="observables.html" class="btn btn-neutral float-right" title="Observables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="input.html" class="btn btn-neutral float-left" title="Input file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="configurations.html" class="btn btn-neutral float-left" title="Configuration and topology files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
