@@ -105,6 +105,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#options-for-lj-lennard-jones-simulations">Options for <code class="docutils literal notranslate"><span class="pre">LJ</span></code> (Lennard-Jones) simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#forward-flux-sampling-ffs-options">Forward Flux Sampling (FFS) options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dnanalysis-options"><em>DNAnalysis</em> options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#external-forces">External forces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#observables">Observables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#plugins-options">Plugins options</a></li>
 </ul>
@@ -226,7 +227,8 @@ print_energy_every = ${$(steps) / 10}
 <li><p><code class="docutils literal notranslate"><span class="pre">[external_forces</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: specifies whether there are external forces acting on the nucleotides or not. If it is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, then a file which specifies the external forces’ configuration has to be provided (see below).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[external_forces_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: specifies the file containing all the external forces’ configurations. See <a class="reference internal" href="forces.html"><span class="doc std std-doc">here</span></a> for more details.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[external_forces_as_JSON</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code> the file specified by <code class="docutils literal notranslate"><span class="pre">external_forces_file</span></code> will be parsed as JSON. See <a class="reference internal" href="forces.html"><span class="doc std std-doc">here</span></a> for more details.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[observables_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: specifies a file specifying additional outputs in JSON format. See <a class="reference internal" href="observables.html#external-observable-file"><span class="std std-doc">here</span></a> for more detail.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[observables_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: path to a file specifying additional outputs in JSON format. See <a class="reference internal" href="observables.html#external-observable-file"><span class="std std-doc">here</span></a> for more details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[analysis_observables_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: as as above, but for <code class="docutils literal notranslate"><span class="pre">DNAnalysis</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[back_in_box</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether particles should be brought back into the box when a configuration is printed or not, defaults to false.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[lastconf_file</span> <span class="pre">=</span> <span class="pre">&lt;path&gt;]</span></code>: path to the file where the last configuration will be dumped. Defaults to <code class="docutils literal notranslate"><span class="pre">last_conf.dat</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[binary_initial_conf</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: whether the initial configuration is a binary configuration or not, defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
@@ -404,9 +406,13 @@ file and weight file. Used if <code class="docutils literal notranslate"><span c
 <li><p><code class="docutils literal notranslate"><span class="pre">[confs_to_analyse</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: the maximum number of configurations that should be analysed. if not set, the whole trajectory will be analysed.</p></li>
 </ul>
 </div>
+<div class="section" id="external-forces">
+<h2>External forces<a class="headerlink" href="#external-forces" title="Permalink to this headline">¶</a></h2>
+<p>OxDNA supports several types of forces acting on and between specific nucleotides (see <code class="docutils literal notranslate"><span class="pre">external_forces_*</span></code> options above). See <a class="reference internal" href="forces.html"><span class="doc std std-doc">here</span></a> for additional details.</p>
+</div>
 <div class="section" id="observables">
 <h2>Observables<a class="headerlink" href="#observables" title="Permalink to this headline">¶</a></h2>
-<p>In OxDNA the output can be customised with a set of <em>observables</em> that are described <a class="reference internal" href="observables.html"><span class="doc std std-doc">here</span></a>.</p>
+<p>In oxDNA the output can be customised with a set of <em>observables</em> that are described <a class="reference internal" href="observables.html"><span class="doc std std-doc">here</span></a>.</p>
 </div>
 <div class="section" id="plugins-options">
 <h2>Plugins options<a class="headerlink" href="#plugins-options" title="Permalink to this headline">¶</a></h2>

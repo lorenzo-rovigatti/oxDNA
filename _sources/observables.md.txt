@@ -79,265 +79,195 @@ Output files and observables can also be specified in an external [JSON](https:/
 }
 ```
 
-## `type = hb_energy`
+## Simulation time
 
-    [pairs_file = <string>]
-        OrderParameter file containing the list of pairs whose HB energy is to
-        be computed
-    [base_file = <string>]
-        file containing a list of nucleotides whose HB energy is to be
-        computed, one nucleotide per line
+Print the current simulation time as the number of steps or as molecular-dynamics time.
 
-## `type = particle_position`
+* `type = step`: the observable type.
+* `[units = steps|MD]`: units to print the time on. The time in MD units is defined as steps \* dt. Defaults to `step`.
 
-    particle_id = <int>
-        particle id
-    [orientation = <bool>]
-        defaults to false. If 1, it also prints out the orientation
-    [absolute = <bool>]
-        defaults to false. If 1, does not use periodic boundaries and it
-        prints out the absolute position of the center of mass
+## Total potential energy
 
-## `type = stretched`
+Print the total potential energy of the system.
 
-    print_list = <bool>
-        Whether to print the indexes of the particles that have stretched
-        bonds. If set to false, only the total number of streched bonds is
-        printed. Defaults to true
-    [threshold = <float>]
-        Threshold above which to report a stretched bond, in energy units.
-        Default is 1.
+* `type = potential_energy`: the observable type.
+* `[split = <bool>]`: print all the terms contributing to the potential energy. Defaults to `false`.
 
-## `type = vector_angle`
+## Hydrogen-bonding energy
 
-    [first_particle_index = <int>]
-        defaults to 0. index of the first particle on which to compute the
-        angle with the next particle.
-    [last_particle_index = <int>]
-        defaults to the index of the first-but last bead in the same strand as
-        the first particle. Therefore, if I have a strand of N beads, the last
-        one will be the one with index N-2. This is because the last bead is
-        atypical in the TEP model (e.g. it's aligned with the vector before it
-        rather than the one in front of it.). index of the last particle of
-        the chain on which to compute the angle.
-    [angle_index = <int>]
-        defaults to 1. Can be 1,2, or 3 depending on which orientation vector
-        we want to compute the cosine, or 0. In that case it measures the
-        amount of twist, defined as in the TEP model: (1 +
-        v2.v2'+v3.v3')/(2*pi)*(1 + v1.v1') where v1, v2 and v3 are the
-        orientation vectors of the first particle in a pair and v1', v2' and
-        v3' are the orientation vectors of the following particle.
-    [print_local_details = <bool>]
-        defaults to true. If true, print the quantity relative to each pair of
-        particles. Otherwise, print their average (for angle_index == 1,2,3)
-        OR their sum (that is, the total twist, for angle_index = 0.
+Compute and print the hydrogen-bonding (HB) energy of all or selected nucleotides or of selected pairs of nucleotides. By default the observable computes and prints the total HB energy.
 
-## `type = step`
+* `type = hb_energy`: the observable type.
+* `[pairs_file = <path>]`: an order parameter file containing the list of pairs whose total HB energy is to be computed.
+* `[base_file = <path>]`: file containing a list of nucleotides whose total HB energy is to be computed, one nucleotide per line. If both this option and `pairs_file` are set, the former is silently ignored.
 
-    [units = steps|MD]
-        units to print the time on. time in MD units = steps * dt, defaults to
-        step
+## Hydrogen bonds
 
-## `type = pressure`
+Compute and print the hydrogen bonds (the detailed bonding pattern or, optionally, only their total number) that are present in all the system or, optionally, between specific pairs.
 
-    type = pressure
-        an observable that computes the osmotic pressure of the system
-    [stress_tensor = <bool>]
-        if true, the output will contain 9 fields: the total pressure and the
-        nine components of the stress tensor, xx, xy, xz, yx, yy, yz, zx, zy,
-        zz
+* `type = hb_list`: the observable type.
+* `[order_parameters_file = <path>]`: an order parameter file containing the list of pairs that should be checked for HB bonds.
+* `[only_count = <bool>]`: if `true`, don't report the detailed binding profile but just count the bonds. Defaults to `false`.
 
-## `type = pitch`
+## Position of a single nucleotide
 
-    bp1a_id = <int>
-        base pair 1 particle a id
-    bp1b_id = <int>
-        base pair 1 particle b id
-    bp2a_id = <int>
-        base pair 2 particle a id
-    bp2b_id = <int>
-        base pair 2 particle b id
+Print the position and, optionally, the orientation of a specific nucleotide.
 
-## `type = distance`
+* `type = particle_position`: the observable type.
+* `particle_id = <int>`: the particle id.
+* `[orientation = <bool>]`: if `true` the observable also prints out the $\vec{a}_1$ and $\vec{a}_3$ orientation vectors (see [here](configurations.md#configuration-file) for details). Defaults to `false`.
+* `[absolute = <bool>]`: if `true` the observable does not apply periodic boundaries and it prints out the absolute position of the center of mass of the nucleotide. Defaults to `false`.
 
-    particle_1 = <int>
-        index of the first particle or comma-separated list of particle
-        indexes composing the first set
-    particle_2 = <int>
-        index of the second particle or comma-separated list of the particle
-        indexes composing the second set. The distance is returned as r(2) -
-        r(1)
-    [PBC = <bool>]
-        Whether to honour PBC. Defaults to True
-    [dir = <float>, <float>, <float>]
-        vector to project the distance along. Beware that it gets normalized
-        after reading. Defaults to (1, 1, 1) / sqrt(3)
+## Forces and torques due to pair interactions
 
-## `type = potential_energy`
+Print forces and torques due to nucleotide-nucleotide interactions. By default, all interacting pairs are printed.
 
-    [split = <bool>]
-        defaults to false, it tells the observable to print all the terms
-        contributing to the potential energy
+* `type = pair_force`: the observable type.
+* `[particle_id = <int>]`: if set, only pairs in which one of the particles has the given id will be considered.
 
-## `type = writhe`
+## Distance between two (sets of) particles
 
-    [first_particle_index = <int>]
-        defaults to 0. index of the first particle on which to compute the
-        angle with the next particle.
-    [last_particle_index = <int>]
-        defaults to the index of the first-but last bead in the same strand as
-        the first particle. Therefore, if I have a strand of N beads, the last
-        one will be the one with index N-2. This is because the last bead is
-        atypical in the TEP model (e.g. it's aligned with the vector before it
-        rather than the one in front of it.). index of the last particle of
-        the chain on which to compute the angle.
-    [subdomain_size = <int>]
-        if locate_plectonemes is false, defaults to the entire subchain,
-        therefore computing the total writhe,otherwise it defaults to 35. If
-        smaller, the writhe will be computed only on the beads between i and
-        i+subdomain_size, for every i between first_particle_index and
-        last_particle_index (wrapping around if go_round is true, or not
-        computing it if the end of the chain is reached otherwise.
-    [go_around = <bool>]
-        whether to assume periodic boundary conditions when building
-        subdomains - see above. Defaults to true if the last particle is right
-        before the first and if subdomain_size is not the entire subchain, and
-        to false otherwise.
-    [locate_plectonemes = <bool>]
-        if this is true, the writhe will be used to locate plectonemes with
-        the algorithm from Vologodskii et al. "Conformational and
-        THermodynamic Properties of Supercoiled DNA (1992)" and the indices on
-        beads at the center of a plectoneme loop will be printed. Defaults to
-        false.
-    [writhe_threshold = <double>]
-        if the writhe exceeds this, then we mark a plectoneme. Only used if
-        locate_plectonemes is true. Defaults to 0.28, since this is the value
-        that works best with a subdomain_size of 35, which is the default one.
-    [print_space_position = <bool>]
-        defaults to false. Whether to print the position of the plectoneme tip
-        segment in 3d space as well as its index. Only used if
-        locate_plectonemes = true.
-    [print_size = <bool>]
-        defaults to false. Whether to print the plectoneme size compute with
-        Ferdinando-Lorenzo's algorithm. Only used if locate_plectonemes =
-        true.
-    [contact_threshold = <number>]
-        defaults to 5. Segments closer than this will be considered to be
-        touching accourding to the plectoneme size algorithm.
-    [size_outer_threshold = <int>]
-        defaults to 30. Outer threshold parameter, which substantially is the
-        maximum separation in indices between two points of contact of a
-        plectoneme loop, for the plectoneme size algorithm.
-    [minimum_plectoneme_size = <int>]
-        defaults to 1. Plectonemes shorter than this wont' be reported.
-    [bending_angle_number_segments = <int>]
-        defaults to 0. When non-zero, the angle between that many segments
-        surrounding the plectoneme tip will be averaged and printed on file.
+Print the euclidean distance between two particles or between the centres of mass of two sets of particles.
 
-## `type = coax_variables`
+* `type = distance`: the observable type.
+* `particle_1 = <int>`: index of the first particle or comma-separated list of particle indexes composing the first set.
+* `particle_2 = <int>`: index of the second particle or comma-separated list of the particle indexes composing the second set. The distance is returned as $|\vec{r}_2 - \vec{r}_1|$.
+* `[PBC = <bool>]`:  whether to honour PBC. Defaults to `true`.
+* `[dir = <float>,<float>,<float>]`: vector to project the distance along. Beware that it gets normalized after reading. Defaults to $(1, 1, 1) / \sqrt{3}$.
 
-    particle1_id = <int>
-        particle 1 id
-    particle2_id = <int>
-        particle 2 id
+## Distance between all pairs of particles
 
-## `type = force_energy`
+Print the distance between all particle pairs. **Nota Bene:** this observable prints **all $N^2$ distances**, where $N$ is the number of nucleotides in the simulation.
 
-    [print_group = <string>]
-        limits the energy computation to the forces belonging to a specific
-        group of forces. This can be set by adding a group_name option to each
-        force's input. By default ForceEnergy computes the energy due to all
-        the forces.
+* `type = contact_map`: the observable type.
 
-## `type = pair_energy`
+## Interaction energy between pairs of particles
 
-    particle1_id = <int>
-        particle 1 id
-    particle2_id = <int>
-        particle 2 id
+Print the pair interaction energy between all pairs formed by particles that are close enough to interact or between two specific particles. Note that the output interaction energy is split into its contributions. For oxDNA1 these are the backbone, bonded excluded volume, stacking, non-bonded excluded volume, hydrogen bonding, cross stacking and coaxial stacking. For oxDNA2 there is also a Debye-Hueckel contribution.
 
-## `type = structure_factor`
+* `type = pair_energy`: the observable type.
+* `[particle1_id = <int>]`: particle 1 id. If not set, the observable will print the interaction energy between **all** pairs, defined as two particles that are close enough to feel each other.
+* `[particle2_id = <int>]`: particle 2 id. Used only if `particle1_id` is set.
 
-    max_q = <float>
-        maximum q to consider
-    [type = <int>]
-        particle species to consider. Defaults to -1, which means "all
-        particles"
+## Stretched bonds
 
-## `type = density_profile`
+Print the list (or, optionally, only the number) of stretched bonds present in the system. A stretched bond is defined as a bond whose associated energy exceeds a given threshold.
 
-    max_value = <float>
-        anything with a relevant coordinate grater than this will be ignored.
-        Mind that the observable is PBC-aware.
-    bin_size = <float>
-        the bin size for the profile
-    axis = <char>
-        Possible values: x, y, z the axis along which to compute the profile
+* `type = stretched`: the observable type.
+* `[print_list = <bool>]`: whether to print the indexes of the particles that have stretched bonds. If set to `false`, only the total number of streched bonds is printed. Defaults to `true`.
+* `[threshold = <float>]`: threshold above which to report a stretched bond, in energy units. Defaults to `1`.
 
-## `type = contacts`
+## Energy associated to the external forces
 
-    [first_particle_index = <int>]
-        defaults to 0. index of the first particle to consider. All the
-        particles coming before this one will be ignored.
-    [last_particle_index = <int>]
-        defaults to the index of the first-but last bead in the same strand as
-        the first particle. Therefore, if I have a strand of N beads, the last
-        one will be the one with index N-2. This is because the last bead is
-        atypical in the TEP model (e.g. it's aligned with the vector before it
-        rather than the one in front of it.). index of the last particle to
-        consider. All the particles coming before this one will be ignored.
-    [neighbours_to_ignore = <int>]
-        defalts to 1. Number of neighbours to ignore before-after each
-        particle. E.g., if equals to 1, contacts between given first-
-        neighbours will never be reported, if equals to 2, contacts between
-        second neighbours will never be reported, etc.
-    [contact_distance = <number>]
-        defaults to 1. A contact is defined if the centers of mass of the
-        particles is lower than this value.
-    [only_outermost_contacts = <bool>]
-        defaults to false. if true, contacts nested within other contacts will
-        not be reported. E.g. if the i-th monomer is linked to both the i-1-th
-        and the i+1-th monomer, and the contacts are 10-40, 10-25, 13-32,
-        12-48 and 45-60, only 10-40, 12-48 and 45-60 will be reported, since
-        10-25 and 13-32 are both nested inside 10-40. This is only get one
-        result per plectoneme. Whatch out though, since this will report
-        clashes between a plectoneme and the chain/other plectonemes. Telling
-        a plectoneme and a plectoneme contact just by using the contact map
-        might be non-banal.
+Print the energy associated to all (or a subset of) the external forces acting on the nucleotides.
 
-## `type = pair_force`
+* `type = force_energy`: the observable type.
+* `[print_group = <string>]`: limit the energy computation to the forces belonging to a specific group of forces. This can be set by adding a `group_name` option to the [desired external forces](forces.md#common-options). If not set, all external forces will be considered.
 
-    [particle_id = <int>]
-        Optional argument. particle id.
+## Configuration
 
-## `type = rdf`
+Print an [oxDNA configuration](configurations.md#configuration-file).
 
-    max_value = <float>
-        maximum r to consider
-    bin_size = <float>
-        bin size for the g(r)
-    [axes = <string>]
-        Possible values: x, y, z, xy, yx, zy, yz, xz, zx. Those are the axes
-        to consider in the computation. Mind that the normalization always
-        assumes 3D sytems for the time being.
+````{note}
+This observable can be used to save disk space by generating trajectories containing only those nucleotides that are of interest (*i.e.* whose positions, orientations and possibly momenta are required for post-processing). The following example will generate a trajectory with configurations spaced by 1000 time steps containing the positions and orientations (but **not** the momenta) of the first 5 nucleotides only:
 
-## `type = hb_list`
 
-    only_count = <bool>
-        if True, don't report the detailed binding profile but just count the
-        bonds. Defaults to False.
+	data_output_1 = {
+		name = traj_small.dat
+		print_every = 1000
+		col_1 = {
+			type = configuration
+			show = 0,1,2,3,4
+			print_momenta = false
+		}
+	}
+````
 
-## `type = configuration`
+* `type = configuration`: the observable type.
+* `[print_momenta = <bool>]`: print the linear and angular momenta of the particles to the trajectory. Set it to `false` to decrease the size of the trajectory by {math}`\approx 40\%`. Defaults to `true`.
+* `[back_in_box = <bool>]`: if `true` the particle positions will be brought back in the box. Defaults to `false`.
+* `[show = <int>,<int>,...]`: list of comma-separated particle indexes whose positions will be put into the final configuration. If not set, all particles will be printed.
+* `[hide = <int>,<int>,...]`: list of comma-separated particle indexes whose positions won't be put into the final configuration. If not set, no particles will be hidden.
+* `[reduced = <bool>]`: if `true` only the centres of mass of the strands will be printed. Defaults to `false`.
 
-    [back_in_box = <bool>]
-        if true the particle positions will be brought back in the box,
-        defaults to false
-    [show = <int>,<int>,...]
-        list of comma-separated particle indexes whose positions will be put
-        into the final configuration
-    [hide = <int>,<int>,...]
-        list of comma-separated particle indexes whose positions won't be put
-        into the final configuration
-    [reduced = <bool>]
-        if true only the strand centres of mass will be printed, defaults to
-        false
+## Pressure
+
+Compute the osmotic pressure of the system.
+
+* `type = pressure`: the observable type.
+* `[stress_tensor = <bool>]`: if `true`, the output will contain 7 fields: the total pressure and 6 components of the (symmetric) stress tensor: $xx, yy, zz, xy, xz, yz$.
+
+## Pitch
+
+* `type = pitch`: the observable type
+* `bp1a_id = <int>`: base pair 1 particle a id.
+* `bp1b_id = <int>`: base pair 1 particle b id.
+* `bp2a_id = <int>`: base pair 2 particle a id.
+* `bp2b_id = <int>`: base pair 2 particle b id.
+
+## Coaxial-stacking-related quantities
+
+Print quantities related to the coaxial stacking interaction acting between two nucleotides.
+
+* `type = coax_variables`: the observable type.
+* `particle1_id = <int>`: particle 1 id.
+* `particle2_id = <int>`: particle 2 id
+
+## Structure factor
+
+* `type = structure_factor`: the observable type.
+* `max_q = <float>`: maximum wave vector $q$ to consider.
+* `[type = <int>]`: particle species to consider. Defaults to -1, which means "all particles"
+
+## Density profile
+
+* `type = density_profile`: the observable type.
+* `max_value = <float>`: anything with a relevant coordinate grater than this will be ignored. Mind that the observable is PBC-aware.
+* `bin_size = <float>`: the bin size for the profile.
+* `axis = <char>`: the axis along which to compute the profile. Possible values are `x`, `y`, or `z`.
+        
+## Radial distribution function
+
+* `type = rdf`: the observable type.
+* `max_value = <float>`: maximum distance to consider.
+* `bin_size = <float>`: bin size for the $g(r)$.
+* `[axes = <string>]`: axes to consider in the computation. Mind that the normalization always assumes 3D sytems for the time being. Possible values are `x`, `y`, `z`, `xy`, `yx`, `zy`, `yz`, `xz`, `zx`.
+
+## Vector angle
+
+**TEP interaction only**.
+
+* `type = vector_angle`: the observable type.
+* `[first_particle_index = <int>]`: index of the first particle on which to compute the angle with the next particle. Defaults to `0`.
+* `[last_particle_index = <int>]`: defaults to the index of the first-but last bead in the same strand as the first particle. Therefore, if I have a strand of N beads, the last one will be the one with index N-2. This is because the last bead is atypical in the TEP model (*e.g.* it's aligned with the vector before it rather than the one in front of it.). index of the last particle of the chain on which to compute the angle.
+* `[angle_index = <int>]`: can be `1`, `2`, or `3` depending on which orientation vector we want to compute the cosine, or 0. In that case it measures the amount of twist, defined as in the TEP model: (1 + v2.v2'+v3.v3')/(2*pi)*(1 + v1.v1') where v1, v2 and v3 are the orientation vectors of the first particle in a pair and v1', v2' and v3' are the orientation vectors of the following particle. Defaults to `1`.
+* `[print_local_details = <bool>]`: if `true`, print the quantity relative to each pair of particles. Otherwise, print their average (for `angle_index = 1,2,3`) OR their sum (that is, the total twist, for `angle_index = 0`). Defaults to `true`.
+
+## Writhe
+
+**TEP interaction only**.
+
+* `type = writhe`: the observable type.
+* `[first_particle_index = <int>]`: index of the first particle on which to compute the angle with the next particle. Defaults to `0`.
+* `[last_particle_index = <int>]`: defaults to the index of the first-but last bead in the same strand as the first particle. Therefore, if I have a strand of N beads, the last one will be the one with index N-2. This is because the last bead is atypical in the TEP model (*e.g.* it's aligned with the vector before it rather than the one in front of it.). index of the last particle of the chain on which to compute the angle.
+* `[subdomain_size = <int>]`: if locate_plectonemes is `false`, defaults to the entire subchain, therefore computing the total writhe,otherwise it defaults to 35. If smaller, the writhe will be computed only on the beads between i and i+subdomain_size, for every i between `first_particle_index` and `last_particle_index` (wrapping around if go_round is true, or not computing it if the end of the chain is reached otherwise.
+* `[go_around = <bool>]`: whether to assume periodic boundary conditions when building subdomains - see above. Defaults to true if the last particle is right before the first and if subdomain_size is not the entire subchain, and to false otherwise.
+* `[locate_plectonemes = <bool>]`: if set to `true`, the writhe will be used to locate plectonemes with the algorithm from Vologodskii et al. "Conformational and Thermodynamic Properties of Supercoiled DNA (1992)" and the indices on beads at the center of a plectoneme loop will be printed. Defaults to `false`.
+* `[writhe_threshold = <double>]`: if the writhe exceeds this, then we mark a plectoneme. Only used if `locate_plectonemes = true`. Defaults to 0.28, since this is the value that works best with a subdomain_size of 35, which is the default one.
+* `[print_space_position = <bool>]`: defaults to `false`. Whether to print the position of the plectoneme tip segment in 3d space as well as its index. Only used if `locate_plectonemes = true`.
+* `[print_size = <bool>]`: defaults to `false`. Whether to print the plectoneme size computed with Ferdinando-Lorenzo's algorithm. Only used if `locate_plectonemes = true`.
+* `[contact_threshold = <number>]`: defaults to `5`. Segments closer than this will be considered to be touching accourding to the plectoneme size algorithm.
+* `[size_outer_threshold = <int>]`: defaults to `30`. Outer threshold parameter, which substantially is the maximum separation in indices between two points of contact of a plectoneme loop, for the plectoneme size algorithm.
+* `[minimum_plectoneme_size = <int>]`: defaults to `1.` Plectonemes shorter than this wont' be reported.
+* `[bending_angle_number_segments = <int>]`: defaults to 0. When non-zero, the angle between that many segments surrounding the plectoneme tip will be averaged and printed on file.
+
+## TEP contacts
+
+**TEP interaction only**.
+
+* `type = contacts`: the observable type.
+* `[first_particle_index = <int>]`: index of the first particle to consider. All the particles coming before this one will be ignored. Defaults to `0`.
+* `[last_particle_index = <int>]`: defaults to the index of the first-but last bead in the same strand as the first particle. Therefore, if I have a strand of N beads, the last one will be the one with index N-2. This is because the last bead is atypical in the TEP model (*e.g.* it's aligned with the vector before it rather than the one in front of it.). index of the last particle to consider. All the particles coming before this one will be ignored.
+* `[neighbours_to_ignore = <int>]`: Number of neighbours to ignore before-after each particle. *E.g.*, if equals to 1, contacts between given first-neighbours will never be reported, if equals to 2, contacts between second neighbours will never be reported, etc. Defalts to `1`.
+* `[contact_distance = <number>]`: A contact is defined if the centers of mass of the particles is lower than this value. Defaults to 1.
+* `[only_outermost_contacts = <bool>]`: if `true`, contacts nested within other contacts will not be reported. *E.g.*, if the i-th monomer is linked to both the i-1-th and the i+1-th monomer, and the contacts are 10-40, 10-25, 13-32, 12-48 and 45-60, only 10-40, 12-48 and 45-60 will be reported, since 10-25 and 13-32 are both nested inside 10-40. This is only get one result per plectoneme. Watch out though, since this will report clashes between a plectoneme and the chain/other plectonemes. Telling a plectoneme and a plectoneme contact just by using the contact map might be non-trivial. Defaults to `false`.

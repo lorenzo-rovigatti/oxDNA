@@ -202,6 +202,7 @@
 <li class="toctree-l2"><a class="reference internal" href="input.html#options-for-lj-lennard-jones-simulations">Options for <code class="docutils literal notranslate"><span class="pre">LJ</span></code> (Lennard-Jones) simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#forward-flux-sampling-ffs-options">Forward Flux Sampling (FFS) options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#dnanalysis-options"><em>DNAnalysis</em> options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#external-forces">External forces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#observables">Observables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#plugins-options">Plugins options</a></li>
 </ul>
@@ -232,26 +233,27 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="observables.html#external-observable-file">External observable file</a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-hb-energy"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hb_energy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-particle-position"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">particle_position</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-stretched"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">stretched</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-vector-angle"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">vector_angle</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-step"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">step</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-pressure"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pressure</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-pitch"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pitch</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-distance"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">distance</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-potential-energy"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">potential_energy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-writhe"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">writhe</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-coax-variables"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">coax_variables</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-force-energy"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">force_energy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-pair-energy"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pair_energy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-structure-factor"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">structure_factor</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-density-profile"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">density_profile</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-contacts"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">contacts</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-pair-force"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pair_force</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-rdf"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">rdf</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-hb-list"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hb_list</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="observables.html#type-configuration"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">configuration</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#simulation-time">Simulation time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#total-potential-energy">Total potential energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#hydrogen-bonding-energy">Hydrogen-bonding energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#hydrogen-bonds">Hydrogen bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#position-of-a-single-nucleotide">Position of a single nucleotide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#forces-and-torques-due-to-pair-interactions">Forces and torques due to pair interactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#distance-between-two-sets-of-particles">Distance between two (sets of) particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#distance-between-all-pairs-of-particles">Distance between all pairs of particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#interaction-energy-between-pairs-of-particles">Interaction energy between pairs of particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#stretched-bonds">Stretched bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#energy-associated-to-the-external-forces">Energy associated to the external forces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#pressure">Pressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#pitch">Pitch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#coaxial-stacking-related-quantities">Coaxial-stacking-related quantities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#structure-factor">Structure factor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#density-profile">Density profile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#radial-distribution-function">Radial distribution function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#vector-angle">Vector angle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#writhe">Writhe</a></li>
+<li class="toctree-l2"><a class="reference internal" href="observables.html#tep-contacts">TEP contacts</a></li>
 </ul>
 </li>
 </ul>

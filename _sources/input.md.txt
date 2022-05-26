@@ -45,7 +45,8 @@ These are the options that control the overall behaviour of the simulation and o
 * `[external_forces = <bool>]`: specifies whether there are external forces acting on the nucleotides or not. If it is set to `true`, then a file which specifies the external forces' configuration has to be provided (see below).
 * `[external_forces_file = <path>]`: specifies the file containing all the external forces' configurations. See [here](forces.md) for more details.
 * `[external_forces_as_JSON = <bool>]`: if `true` the file specified by `external_forces_file` will be parsed as JSON. See [here](forces.md) for more details.
-* `[observables_file = <path>]`: specifies a file specifying additional outputs in JSON format. See [here](observables.md#external-observable-file) for more detail.
+* `[observables_file = <path>]`: path to a file specifying additional outputs in JSON format. See [here](observables.md#external-observable-file) for more details.
+* `[analysis_observables_file = <path>]`: as as above, but for `DNAnalysis`.
 * `[back_in_box = <bool>]`: whether particles should be brought back into the box when a configuration is printed or not, defaults to false.
 * `[lastconf_file = <path>]`: path to the file where the last configuration will be dumped. Defaults to `last_conf.dat`.
 * `[binary_initial_conf = <bool>]`: whether the initial configuration is a binary configuration or not, defaults to `false`.
@@ -197,9 +198,13 @@ The following options control the behaviour of MC simulations.
 * `[analysis_bytes_to_skip = <int>]`: jump to this position in the trajectory file before starting the analysis. Useful to quickly analyse only portions of large trajectories. Defaults to 0.
 * `[confs_to_analyse = <int>]`: the maximum number of configurations that should be analysed. if not set, the whole trajectory will be analysed.
 
+## External forces
+
+OxDNA supports several types of forces acting on and between specific nucleotides (see `external_forces_*` options above). See [here](forces.md) for additional details.
+
 ## Observables
 
-In OxDNA the output can be customised with a set of *observables* that are described [here](observables.md).
+In oxDNA the output can be customised with a set of *observables* that are described [here](observables.md).
 
 ## Plugins options
 
