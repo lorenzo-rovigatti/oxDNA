@@ -34,7 +34,7 @@ public:
 
 	static ObservablePtr make_observable(input_file &obs_inp);
 
-	static std::vector<ObservableOutputPtr> make_observables();
+	static std::vector<ObservableOutputPtr> make_observables(std::string prefix="");
 };
 
 #endif /* OBSERVABLEFACTORY_H_ */

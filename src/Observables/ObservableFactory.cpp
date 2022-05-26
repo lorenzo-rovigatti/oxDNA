@@ -119,14 +119,17 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	return res;
 }
 
-std::vector<ObservableOutputPtr> ObservableFactory::make_observables() {
+std::vector<ObservableOutputPtr> ObservableFactory::make_observables(std::string prefix) {
 	std::vector<ObservableOutputPtr> result;
+
+	std::string obs_input_base = Utils::sformat("%sdata_output_", prefix.c_str());
+	std::string obs_key = Utils::sformat("%sobservables_file", prefix.c_str());
 
 	int i = 1;
 	bool found = true;
 	while(found) {
 		stringstream ss;
-		ss << "data_output_" << i;
+		ss << obs_input_base << i;
 		string obs_string;
 		if(getInputString(CONFIG_INFO->sim_input, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
 			auto new_obs_out = std::make_shared<ObservableOutput>(obs_string);
@@ -140,7 +143,7 @@ std::vector<ObservableOutputPtr> ObservableFactory::make_observables() {
 	}
 
 	std::string obs_filename;
-	if(getInputString(CONFIG_INFO->sim_input, "observables_file", obs_filename, 0) == KEY_FOUND) {
+	if(getInputString(CONFIG_INFO->sim_input, obs_key.c_str(), obs_filename, 0) == KEY_FOUND) {
 		OX_LOG(Logger::LOG_INFO, "Parsing JSON observable file %s", obs_filename.c_str());
 
 		ifstream external(obs_filename.c_str());
