@@ -197,9 +197,13 @@ The following options control the behaviour of MC simulations.
 * `[analysis_bytes_to_skip = <int>]`: jump to this position in the trajectory file before starting the analysis. Useful to quickly analyse only portions of large trajectories. Defaults to 0.
 * `[confs_to_analyse = <int>]`: the maximum number of configurations that should be analysed. if not set, the whole trajectory will be analysed.
 
+## External forces
+
+OxDNA supports several types of forces acting on and between specific nucleotides (see `external_forces_*` options above). See [here](forces.md) for additional details.
+
 ## Observables
 
-In OxDNA the output can be customised with a set of *observables* that are described [here](observables.md).
+In oxDNA the output can be customised with a set of *observables* that are described [here](observables.md).
 
 ## Plugins options
 
