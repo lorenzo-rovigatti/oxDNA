@@ -198,6 +198,12 @@ The following options control the behaviour of MC simulations.
 * `[analysis_bytes_to_skip = <int>]`: jump to this position in the trajectory file before starting the analysis. Useful to quickly analyse only portions of large trajectories. Defaults to 0.
 * `[confs_to_analyse = <int>]`: the maximum number of configurations that should be analysed. if not set, the whole trajectory will be analysed.
 
+## *confGenerator* options
+
+* `[generate_consider_bonded_interactions = <bool>]`: if `true`, the generator will attempt to generate the position of a particle so that it is closer than `generate_bonded_cutoff` (see below) to its bonded neighbours. Defaults to `true`.
+* `[generate_bonded_cutoff = <float>]`: the maximum distance at which the generator will put bonded neighbours. Defaults to `2.0`.
+* `[energy_threshold = <float>]`: every time a particle is inserted in the system its total energy is computed, and if the resulting value is higher than this threshold than the insertion is cancelled and another trial position is generated. Increasing this value will make the generation of the initial configuration quicker, but its initial potential energy will be higher (on average). As a result, a more aggressive relaxation will be required.
+
 ## External forces
 
 OxDNA supports several types of forces acting on and between specific nucleotides (see `external_forces_*` options above). See [here](forces.md) for additional details.

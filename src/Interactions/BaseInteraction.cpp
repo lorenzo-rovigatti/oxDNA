@@ -11,7 +11,7 @@ BaseInteraction::BaseInteraction() {
 	_energy_threshold = (number) 100.f;
 	_is_infinite = false;
 	_box = NULL;
-	_generate_consider_bonded_interactions = false;
+	_generate_consider_bonded_interactions = true;
 	_generate_bonded_cutoff = 2.0;
 	_temperature = 1.0;
 
