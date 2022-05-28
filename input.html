@@ -105,6 +105,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#options-for-lj-lennard-jones-simulations">Options for <code class="docutils literal notranslate"><span class="pre">LJ</span></code> (Lennard-Jones) simulations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#forward-flux-sampling-ffs-options">Forward Flux Sampling (FFS) options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dnanalysis-options"><em>DNAnalysis</em> options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#confgenerator-options"><em>confGenerator</em> options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#external-forces">External forces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#observables">Observables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#plugins-options">Plugins options</a></li>
@@ -404,6 +405,14 @@ file and weight file. Used if <code class="docutils literal notranslate"><span c
 <li><p><code class="docutils literal notranslate"><span class="pre">[analysis_confs_to_skip</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: number of configurations that should be excluded from the analysis. Note that these configurations are parsed, initialised and then discarded. For big systems this is a slow process, in which case it is better to use the option below. Defaults to 0.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[analysis_bytes_to_skip</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: jump to this position in the trajectory file before starting the analysis. Useful to quickly analyse only portions of large trajectories. Defaults to 0.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[confs_to_analyse</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: the maximum number of configurations that should be analysed. if not set, the whole trajectory will be analysed.</p></li>
+</ul>
+</div>
+<div class="section" id="confgenerator-options">
+<h2><em>confGenerator</em> options<a class="headerlink" href="#confgenerator-options" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[generate_consider_bonded_interactions</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, the generator will attempt to generate the position of a particle so that it is closer than <code class="docutils literal notranslate"><span class="pre">generate_bonded_cutoff</span></code> (see below) to its bonded neighbours. Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[generate_bonded_cutoff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: the maximum distance at which the generator will put bonded neighbours. Defaults to <code class="docutils literal notranslate"><span class="pre">2.0</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[energy_threshold</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: every time a particle is inserted in the system its total energy is computed, and if the resulting value is higher than this threshold than the insertion is cancelled and another trial position is generated. Increasing this value will make the generation of the initial configuration quicker, but its initial potential energy will be higher (on average). As a result, a more aggressive relaxation will be required.</p></li>
 </ul>
 </div>
 <div class="section" id="external-forces">
