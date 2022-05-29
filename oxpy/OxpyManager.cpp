@@ -22,13 +22,14 @@ input_file _input_file_from_filename(std::string input_filename) {
 }
 
 OxpyManager::OxpyManager(std::string input_filename) :
-				SimManager(_input_file_from_filename(input_filename)) {
+				OxpyManager(_input_file_from_filename(input_filename)) {
 
 }
 
 OxpyManager::OxpyManager(input_file input) :
 				SimManager(input) {
-
+SimManager::load_options();
+SimManager::init();
 }
 
 OxpyManager::~OxpyManager() {
@@ -103,14 +104,6 @@ void OxpyManager::print_timings() {
 void export_SimManager(py::module &m) {
 	pybind11::class_<SimManager, std::shared_ptr<SimManager>> manager(m, "SimManager");
 
-	manager.def("load_options", &SimManager::load_options, R"pbdoc(
-		Load the options from the input file.
-	)pbdoc");
-
-	manager.def("init", &SimManager::init, R"pbdoc(
-		Initialise the simulation manager.
-	)pbdoc");
-
 	manager.def("run_complete", &SimManager::run, R"pbdoc(
         Run the simulation till completion (that is, till the simulation has run number of steps specified in the input file).
 	)pbdoc");
@@ -137,6 +130,18 @@ Parameters
 ----------
 input: :class:`InputFile`
     The object storing the simulations' options.
+	)pbdoc");
+
+	manager.def("load_options", [](OxpyManager &manager) { OX_LOG(Logger::LOG_WARNING, "OxpyManager.load_options() is deprecated and will be removed in future releases since it is automatically called by the class' constructor."); }, R"pbdoc(
+		.. deprecated:: 3.2.2
+
+		This method does nothing and it exists only for backward compatibility reasons.
+	)pbdoc");
+
+	manager.def("init", [](OxpyManager &manager) { OX_LOG(Logger::LOG_WARNING, "OxpyManager.init() is deprecated and will be removed in future releases since it is automatically called by the class' constructor."); }, R"pbdoc(
+		.. deprecated:: 3.2.2
+
+		This method does nothing and it exists only for backward compatibility reasons.
 	)pbdoc");
 
 	manager.def("print_configuration", &OxpyManager::print_configuration, py::arg("also_last") = true, R"pbdoc(

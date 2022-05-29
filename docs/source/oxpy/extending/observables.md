@@ -18,8 +18,6 @@ class MyObs(oxpy.observables.BaseObservable):
 
 with oxpy.Context():
     manager = oxpy.OxpyManager("input")
-    manager.load_options()
-    manager.init()
 
     my_obs = MyObs()
     manager.add_output("my_obs_output.dat", print_every=100, observables=[my_obs, ])

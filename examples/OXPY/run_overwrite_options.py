@@ -7,8 +7,6 @@ with oxpy.Context():
     my_input["print_energy_every"] = "100"
     my_input["delta_translation"] = "0.1"
     manager = oxpy.OxpyManager(my_input)
-    manager.load_options()
-    manager.init()
 
     # run 1k steps
     manager.run(1000)

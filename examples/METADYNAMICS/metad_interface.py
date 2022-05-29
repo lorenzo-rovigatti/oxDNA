@@ -30,8 +30,6 @@ class oxDNARunner(mp.Process):
             input_file.init_from_filename(self.input_file)
             
             self.manager = oxpy.OxpyManager(input_file)
-            self.manager.load_options()
-            self.manager.init()
             
             while True:
                 try:

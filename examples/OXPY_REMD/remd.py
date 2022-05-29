@@ -77,8 +77,6 @@ with oxpy.Context():
 
     # setup simulation manager
     manager = oxpy.OxpyManager(input)
-    manager.load_options()
-    manager.init()
     
     # simulation loop
     for i in tqdm(range(steps_to_run)):

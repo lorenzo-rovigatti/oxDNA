@@ -18,8 +18,6 @@ with oxpy.Context():
     my_input["seed"] = "123456"
     
     manager = oxpy.OxpyManager(my_input)
-    manager.load_options()
-    manager.init()
     
     # we add a custom observable to the simulation
     my_obs = MyObs()
