@@ -9,8 +9,6 @@ import oxpy
 
 with oxpy.Context():
     manager = oxpy.OxpyManager("inputMD")
-    manager.load_options()
-    manager.init()
 
     for i in range(10):
         manager.run(20000)

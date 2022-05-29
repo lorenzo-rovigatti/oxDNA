@@ -186,8 +186,6 @@
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
 	<span class="c1"># init the manager with the given input file</span>
 	<span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
-	<span class="n">manager</span><span class="o">.</span><span class="n">load_options</span><span class="p">()</span>
-	<span class="n">manager</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 	
 	<span class="c1"># run 1k steps</span>
 	<span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>

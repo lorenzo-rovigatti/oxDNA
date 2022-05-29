@@ -178,8 +178,6 @@
 
 <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
     <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">&quot;inputMD&quot;</span><span class="p">)</span>
-    <span class="n">manager</span><span class="o">.</span><span class="n">load_options</span><span class="p">()</span>
-    <span class="n">manager</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
         <span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">20000</span><span class="p">)</span>
