@@ -40,7 +40,7 @@ To check if a specific option has been set you can use `in`::
 	input.def("__contains__", [](input_file &inp, std::string v) {
 		try {
 			bool found;
-			inp.get_value(v, 0, found);
+			inp.get_value(v, 1, found);
 			return true;
 		}
 		catch (const oxDNAException &e){
