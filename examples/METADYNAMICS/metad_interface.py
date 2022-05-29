@@ -527,7 +527,7 @@ if __name__ == '__main__':
     with open(p_fname) as f:
         p_dict = {}
         for line in f.readlines():
-            com_name, particles = line.replace('\n', '').split(':')
+            com_name, particles = [l.strip() for l in line.split(':')]
             p_dict[com_name] = particles
     
     estimator = Estimator(base_dir, Niter=Niter, meta=True, dT=dT,
