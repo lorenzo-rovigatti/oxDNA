@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""
-Standalone version of generate.py
-Created for stable release end-users and machines without numpy support.
-This file is only supported for stable release, and does not include more recent functionality.
-
-(05 December 2012)
-"""
 
 import sys, os
 try:
