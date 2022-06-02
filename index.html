@@ -82,13 +82,15 @@
               
             
             
-              <ul>
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="umbrella_sampling.html">Importance sampling</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
@@ -161,19 +163,11 @@
 <h1>oxDNA<a class="headerlink" href="#oxdna" title="Permalink to this headline">¶</a></h1>
 <p>oxDNA is a simulation code that was initially conceived as an implementation of the coarse-grained DNA model introduced by <a class="reference external" href="http://dx.doi.org/10.1063/1.3552946">T. E. Ouldridge, J. P. K. Doye and A. A. Louis</a>. It has been since reworked and it is now an extensible simulation+analysis framework. It natively supports DNA, RNA, Lennard-Jones and patchy particle simulations of different kinds on both CPU and NVIDIA GPUs.</p>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install.html#requirements">Requirements</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="install.html#cuda">CUDA</a></li>
-<li class="toctree-l3"><a class="reference internal" href="install.html#python-bindings">Python bindings</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#compiling-oxdna">Compiling oxDNA</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="install.html#cmake-options">CMake options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="install.html#make-targets">make targets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="install.html#known-issues">Known issues</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#compiling-oxdna">Compiling oxDNA</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html#testing">Testing</a></li>
 </ul>
 </li>
@@ -186,11 +180,7 @@
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="input.html#general-syntax">General syntax</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#core-options">Core options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="input.html#molecular-dynamics-options">Molecular dynamics options</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="input.html#constant-temperature-simulations">Constant-temperature simulations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="input.html#constant-pressure-simulations">Constant-pressure simulations</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="input.html#molecular-dynamics-options">Molecular dynamics options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#cuda-options">CUDA options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#monte-carlo-options">Monte Carlo options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html#common-options-for-dna-dna2-rna-and-rna2-simulations">Common options for <code class="docutils literal notranslate"><span class="pre">DNA</span></code>, <code class="docutils literal notranslate"><span class="pre">DNA2</span></code>, <code class="docutils literal notranslate"><span class="pre">RNA</span></code> and <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> simulations</a></li>
@@ -210,10 +200,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="configurations.html#configuration-file">Configuration file</a></li>
-<li class="toctree-l2"><a class="reference internal" href="configurations.html#topology-file">Topology file</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="configurations.html#special-nucleotides">Special nucleotides</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="configurations.html#topology-file">Topology file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configurations.html#converting-to-and-from-oxdna-configurations">Converting to and from oxDNA configurations</a></li>
 </ul>
 </li>
@@ -255,6 +242,11 @@
 <li class="toctree-l2"><a class="reference internal" href="observables.html#vector-angle">Vector angle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="observables.html#writhe">Writhe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="observables.html#tep-contacts">TEP contacts</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="umbrella_sampling.html">Importance sampling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="umbrella_sampling.html#setting-the-order-parameters-and-weights">Setting the order parameters and weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="umbrella_sampling.html#data-evaluation-and-estimation-of-the-melting-temperature">Data evaluation and estimation of the melting temperature</a></li>
 </ul>
 </li>
 </ul>

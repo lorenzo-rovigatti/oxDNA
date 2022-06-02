@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Importance sampling &mdash; oxDNA  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Oxpy" href="oxpy/index.html" />
+    <link rel="prev" title="Observables" href="observables.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Importance sampling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setting-the-order-parameters-and-weights">Setting the order parameters and weights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-evaluation-and-estimation-of-the-melting-temperature">Data evaluation and estimation of the melting temperature</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">oxDNA</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Importance sampling</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/umbrella_sampling.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="tex2jax_ignore mathjax_ignore section" id="importance-sampling">
+<h1>Importance sampling<a class="headerlink" href="#importance-sampling" title="Permalink to this headline">¶</a></h1>
+<p>OxDNA natively supports <a class="reference external" href="https://en.wikipedia.org/wiki/Umbrella_sampling">umbrella sampling</a> to bias Virtual Move Monte Carlo (VMMC) simulations. This page shows how this technique can be used to calculate the melting temperature of a short RNA duplex (8-mer). The corresponding files are located in the repository in the subdirectory <code class="docutils literal notranslate"><span class="pre">examples/RNA_DUPLEX_MELT</span></code>.</p>
+<div class="figure align-default" id="dna-melting">
+<a class="reference internal image-reference" href="_images/RNA_melting.png"><img alt="_images/RNA_melting.png" src="_images/RNA_melting.png" style="height: 150px;" /></a>
+<p class="caption"><span class="caption-text">A duplex and a dissociated RNA 8-mer. The VMMC simulation samples transition between duplex and single stranded states.</span><a class="headerlink" href="#dna-melting" title="Permalink to this image">¶</a></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The VMMC script options are the same for both oxDNA and oxRNA and the following example of setting weights, order parameters and evaluation of data produced from the VMMC simulation applies equally to the DNA model as well.</p>
+</div>
+<div class="section" id="setting-the-order-parameters-and-weights">
+<h2>Setting the order parameters and weights<a class="headerlink" href="#setting-the-order-parameters-and-weights" title="Permalink to this headline">¶</a></h2>
+<p>In the example the sampling is made more efficient by biasing the simulation. Indeed, in order to obtain a correct estimate of the melting temperature, the simulation has to sample the transitions between unbonded and bonded states many times. The sampling is aided by assigning weights to a particular state, specified for this example in the file <code class="docutils literal notranslate"><span class="pre">wfile.txt</span></code>, where the first column specifies the value of the order parameter (the number of native bonds in the duplex in our case) and the second column specifies the weight assigned to the state. The larger the weight, the more likely the simulation is to visit the desired state. A file specifying the weights (<code class="docutils literal notranslate"><span class="pre">wfile.txt</span></code>) might look like</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>0 8.
+1 16204
+2 1882.94
+3 359.746
+4 52.5898
+5 15.0591
+6 7.21252
+7 2.2498
+8 2.89783
+</pre></div>
+</div>
+<p>The weights are typically chosen first by an educated guess, and then by running the simulations and adapting the weights manually to ensure that all the relevant states are sampled. The order parameter, which in this case measures the number of native base pairs formed in an 8-mer, is specified in a file which in our example is called <code class="docutils literal notranslate"><span class="pre">op.txt</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
+order_parameter = bond
+name = all_native_bonds
+pair1 = 0, 15
+pair2 = 1, 14
+pair3 = 2, 13
+pair4 = 3, 12
+pair5 = 4, 11
+pair6 = 5, 10
+pair7 = 6, 9 
+pair8 = 7, 8 
+}
+</pre></div>
+</div>
+<p>This file specifies which base pairs count towards the order parameter. In our example, it specifies all native base pairs. The nucleotides are numbered from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(N-1\)</span>, where <span class="math notranslate nohighlight">\(N\)</span> is the total number of nucleotides in the simulation. In our example, we have two complementary strands with eight nucleotides each, so we have sixteen nucleotides in total. The nucleotides are numbered from the 3’ end to the 5’ end, so the first 3’ nucleotide of the first strand (with index 0) is complementary to the first 5’ nucleotide on the second strand (which has index 15). The system can have between 0 and 8 bonds inclusive formed, and for each possible value of the order parameter, a corresponding weight is assigned in the <code class="docutils literal notranslate"><span class="pre">wfile.txt</span></code> (see above).</p>
+<p>We need to specify the path to the weight file and order parameter file in the input file, which is done by including the following options:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>op_file = op.txt
+weights_file = wfile.txt
+</pre></div>
+</div>
+<p>The program will now count the amount of time the simulation spends at each value of the order parameter (<em>i.e.</em> how much time the simulation spends in states with 0 native bonds, 1 native bond, …, 8 native bonds). In order to be able to calculate the melting temperature, one is interested in the ratio of the number states where the system is in the duplex state (<em>i.e.</em> has at least 1 bond) and the number of states when the system has 0 bonds. We also need to know this ratio for a range of temperatures, so that we can interpolate them and find when the yield is 0.5, which is the definition of melting temperature. We note that in the calculation of the yield, finite size effects have to be taken into account (see the discussion in <a class="reference external" href="https://doi.org/10.1088/0953-8984/22/10/104102">this paper</a> for details). One possibility is to run a series of simulations, each at a different temperature. However, it is more efficient to use histogram reweighting in order to calculate the respective yields at different temperatures by extrapolating the distribution of states visited in one simulation. This is achieved by specifying</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>extrapolate_hist =  52C, 54C, 56C, 58C, 60C, 62C, 64C, 66C, 68C, 70C
+</pre></div>
+</div>
+<p>in the input file. Now, the algorithm will use histogram reweighting to extrapolate the number of occupied states to the specified temperatures.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note that the initial configuration for this example has been generated with <a class="reference external" href="https://sulcgroup.github.io/oxdna-viewer/">oxView</a>, and that since this example concerns RNA duplexes, the input file also contains the option</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>interaction_type = RNA
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="data-evaluation-and-estimation-of-the-melting-temperature">
+<h2>Data evaluation and estimation of the melting temperature<a class="headerlink" href="#data-evaluation-and-estimation-of-the-melting-temperature" title="Permalink to this headline">¶</a></h2>
+<p>The simulation, after executing</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>oxDNA input
+</pre></div>
+</div>
+<p>will produce, among other files, <code class="docutils literal notranslate"><span class="pre">last_hist.dat</span></code>. Note that the values of the order parameter are printed out in the <code class="docutils literal notranslate"><span class="pre">energy.dat</span></code> file during the simulation. The contents of the <code class="docutils literal notranslate"><span class="pre">last_hist.dat</span></code> file are regularly updated during the course of the simulation (the values are updated with each simulation step, but only saved to the hard-drive as often as specified by the print_conf option). Note that the simulation needs to run long enough to properly sample the transitions between all the states. For the case of an 8-mer, one needs at least about <span class="math notranslate nohighlight">\(10^9\)</span> iterations with the appropriate weights in order to estimate the melting temperature within 1-2 K precision. An example of the contents of the <code class="docutils literal notranslate"><span class="pre">last_hist.dat</span></code> file is</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>#t = 800000000; extr. Ts: 0.108383 0.10905 0.109717 0.110383 0.11105 0.111717 0.112383 0.11305 0.113717 0.114383 
+0 7.82092e+09 9.77615e+08 1.65144e+10 9.03838e+09 5.04243e+09 2.86621e+09 1.65915e+09 9.77615e+08 5.86057e+08 3.57265e+08 2.21364e+08 1.39341e+08 
+1 1.14272e+08 7052.11 146764 76907.7 41117.3 22416.8 12456.8 7052.11 4065.34 2385.22 1423.65 863.974 
+2 6.08557e+07 32319.5 1.18642e+06 555020 264888 128915 63949.7 32319.5 16633.5 8713.56 4644.05 2517.02 
+3 9.12706e+07 253708 1.56321e+07 6.5964e+06 2.83907e+06 1.24575e+06 557034 253708 117652 55524.5 26656.4 13012.5 
+4 1.13301e+08 2.15444e+06 2.16511e+08 8.29258e+07 3.23788e+07 1.28829e+07 5.22111e+06 2.15444e+06 904787 386567 167955 74178.8 
+5 2.53979e+08 1.68655e+07 2.68639e+09 9.39074e+08 3.34511e+08 1.21377e+08 4.48457e+07 1.68655e+07 6.45377e+06 2.51192e+06 994075 399852 
+6 7.74418e+08 1.07371e+08 2.68578e+10 8.58849e+09 2.79688e+09 9.27231e+08 3.12831e+08 1.07371e+08 3.74782e+07 1.32996e+07 4.79646e+06 1.75748e+06 
+7 1.03628e+09 4.60608e+08 1.75626e+11 5.16622e+10 1.54698e+10 4.71386e+09 1.46119e+09 4.60608e+08 1.4761e+08 4.80752e+07 1.59081e+07 5.34659e+06 
+8 2.5904e+09 8.93909e+08 5.0908e+11 1.38277e+11 3.82229e+10 1.07489e+10 3.07421e+09 8.93909e+08 2.64187e+08 7.93341e+07 2.41997e+07 7.49618e+06 
+</pre></div>
+</div>
+<p>Where the first line specifies the simulation time at which the file was saved and the temperatures to which the states were extrapolated (specified in simulation units; they correspond to the ones specified in the <code class="docutils literal notranslate"><span class="pre">extrapolate_hist</span></code> option). The first column specifies the value of the order parameter (from 0 to 8 in our example) and the second column specifies the number of iterations that the simulation spent in that state. Note that the simulation is biased, <em>i.e.</em> some states are more likely to be visited because they have larger weights. The third column shows the unbiased number of states for each value of the order parameter, which is obtained by dividing the number in the second column by the weight assigned to that order parameter value. The fourth and further columns correspond to the unbiased number of states extrapolated to the respective temperatures. From the ratios of the number of bonded states (1 to 8 bonds) to the number of unbonded states (0 bonds), one can calculate the yields at the respective temperatures and obtain the melting temperature by interpolating them and finding for the temperature at which the yield is 0.5. For convenience, a script is provided to do the interpolation:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>python3 estimate_Tm.py  last_hist.dat
+</pre></div>
+</div>
+<p>The output, for the example <code class="docutils literal notranslate"><span class="pre">last_hist.dat</span></code> specified above, is</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>52.00 0.9774084 0.8590862
+54.00 0.9566703 0.8086249
+56.00 0.9185418 0.7432626
+58.00 0.8521952 0.6613256
+60.00 0.7470068 0.5632429
+62.00 0.6024042 0.4531267
+64.00 0.4380124 0.3397566
+66.00 0.2868094 0.2352155
+68.00 0.1723566 0.1503401
+70.00 0.0977175 0.0897356
+## Tm = 61.149231325455936 C = 334.29923132545593 K, width = 12.566189037958857 K
+</pre></div>
+</div>
+<p>Where the first column specifies the temperature, the second column is the yield of duplexes in the simulation box and the third column is the finite-size-effect corrected yield of duplexes. The melting temperature corresponds to the yield (with finite-size correction) equal to 0.5. The simulation box (linear) size of 20 simulation length units corresponds to a strand concentration of <span class="math notranslate nohighlight">\(3.5 \times 10^{-4}\)</span> M.</p>
+<p>The last line reports the estimated melting temperature in Celsius and Kelvin, as well as the width of the melting curve.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="oxpy/index.html" class="btn btn-neutral float-right" title="Oxpy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="observables.html" class="btn btn-neutral float-left" title="Observables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
