@@ -4,7 +4,8 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
 
 ```{eval-rst}
 .. toctree::
-   :maxdepth: 3
+   :caption: Table of Contents
+   :maxdepth: 2
    
    install.md
    usage.md
@@ -12,6 +13,7 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
    configurations.md
    forces.md
    observables.md
+   umbrella_sampling.md
 ```
 
 ```{eval-rst}
