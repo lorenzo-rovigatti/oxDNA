@@ -1,16 +1,16 @@
-# Importance sampling
+# Umbrella sampling
 
-OxDNA natively supports [umbrella sampling](https://en.wikipedia.org/wiki/Umbrella_sampling) to bias Virtual Move Monte Carlo (VMMC) simulations. This page shows how this technique can be used to calculate the melting temperature of a short RNA duplex (8-mer). The corresponding files are located in the repository in the subdirectory `examples/RNA_DUPLEX_MELT`. 
+OxDNA natively supports [umbrella sampling](https://en.wikipedia.org/wiki/Umbrella_sampling) to bias Virtual Move Monte Carlo (VMMC) simulations. This page shows how this technique can be used to calculate the melting temperature of a short RNA duplex (8-mer). The corresponding files are located in the repository in the subdirectory `examples/RNA_DUPLEX_MELT`.
+
+```{warning}
+The biasing technique presented is compatible with VMMC simulations only, and therefore it cannot be used with molecular dynamics simulations.
+```
 
 ```{figure} ./images/RNA_melting.png
 :height: 150px
 :name: DNA-melting
 
 A duplex and a dissociated RNA 8-mer. The VMMC simulation samples transition between duplex and single stranded states.
-```
-
-```{note}
-The VMMC script options are the same for both oxDNA and oxRNA and the following example of setting weights, order parameters and evaluation of data produced from the VMMC simulation applies equally to the DNA model as well. 
 ```
 
 ## Setting the order parameters and weights
@@ -118,3 +118,7 @@ The output, for the example `last_hist.dat` specified above, is
 Where the first column specifies the temperature, the second column is the yield of duplexes in the simulation box and the third column is the finite-size-effect corrected yield of duplexes. The melting temperature corresponds to the yield (with finite-size correction) equal to 0.5. The simulation box (linear) size of 20 simulation length units corresponds to a strand concentration of $3.5 \times 10^{-4}$ M. 
 
 The last line reports the estimated melting temperature in Celsius and Kelvin, as well as the width of the melting curve.
+
+```{note}
+The VMMC script options are the same for both oxDNA and oxRNA and the following example of setting weights, order parameters and evaluation of data produced from the VMMC simulation applies equally to the DNA model as well. 
+```
