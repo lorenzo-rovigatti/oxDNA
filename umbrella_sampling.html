@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Importance sampling &mdash; oxDNA  documentation</title>
+  <title>Umbrella sampling &mdash; oxDNA  documentation</title>
   
 
   
@@ -91,7 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Importance sampling</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Umbrella sampling</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#setting-the-order-parameters-and-weights">Setting the order parameters and weights</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data-evaluation-and-estimation-of-the-melting-temperature">Data evaluation and estimation of the melting temperature</a></li>
 </ul>
@@ -145,7 +145,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Importance sampling</li>
+      <li>Umbrella sampling</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -164,16 +164,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="tex2jax_ignore mathjax_ignore section" id="importance-sampling">
-<h1>Importance sampling<a class="headerlink" href="#importance-sampling" title="Permalink to this headline">¶</a></h1>
+  <div class="tex2jax_ignore mathjax_ignore section" id="umbrella-sampling">
+<h1>Umbrella sampling<a class="headerlink" href="#umbrella-sampling" title="Permalink to this headline">¶</a></h1>
 <p>OxDNA natively supports <a class="reference external" href="https://en.wikipedia.org/wiki/Umbrella_sampling">umbrella sampling</a> to bias Virtual Move Monte Carlo (VMMC) simulations. This page shows how this technique can be used to calculate the melting temperature of a short RNA duplex (8-mer). The corresponding files are located in the repository in the subdirectory <code class="docutils literal notranslate"><span class="pre">examples/RNA_DUPLEX_MELT</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The biasing technique presented is compatible with VMMC simulations only, and therefore it cannot be used with molecular dynamics simulations.</p>
+</div>
 <div class="figure align-default" id="dna-melting">
 <a class="reference internal image-reference" href="_images/RNA_melting.png"><img alt="_images/RNA_melting.png" src="_images/RNA_melting.png" style="height: 150px;" /></a>
 <p class="caption"><span class="caption-text">A duplex and a dissociated RNA 8-mer. The VMMC simulation samples transition between duplex and single stranded states.</span><a class="headerlink" href="#dna-melting" title="Permalink to this image">¶</a></p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The VMMC script options are the same for both oxDNA and oxRNA and the following example of setting weights, order parameters and evaluation of data produced from the VMMC simulation applies equally to the DNA model as well.</p>
 </div>
 <div class="section" id="setting-the-order-parameters-and-weights">
 <h2>Setting the order parameters and weights<a class="headerlink" href="#setting-the-order-parameters-and-weights" title="Permalink to this headline">¶</a></h2>
@@ -262,6 +262,10 @@ weights_file = wfile.txt
 </div>
 <p>Where the first column specifies the temperature, the second column is the yield of duplexes in the simulation box and the third column is the finite-size-effect corrected yield of duplexes. The melting temperature corresponds to the yield (with finite-size correction) equal to 0.5. The simulation box (linear) size of 20 simulation length units corresponds to a strand concentration of <span class="math notranslate nohighlight">\(3.5 \times 10^{-4}\)</span> M.</p>
 <p>The last line reports the estimated melting temperature in Celsius and Kelvin, as well as the width of the melting curve.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The VMMC script options are the same for both oxDNA and oxRNA and the following example of setting weights, order parameters and evaluation of data produced from the VMMC simulation applies equally to the DNA model as well.</p>
+</div>
 </div>
 </div>
 
