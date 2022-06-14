@@ -23,6 +23,8 @@ This module contains the Python bindings of the C++ code. Every `object` describ
     BaseInteraction
     ConfigInfo
     FlattenedConfigInfo
+    FlattenedVectorArray
+    BaseBox
     InputFile
     
 .. autoclass:: Context
@@ -45,6 +47,8 @@ This module contains the Python bindings of the C++ code. Every `object` describ
 .. autoclass:: FlattenedConfigInfo
 
 .. autoclass:: FlattenedVectorArray
+
+.. autoclass:: BaseBox
 
 .. autoclass:: InputFile
 

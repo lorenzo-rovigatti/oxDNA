@@ -224,6 +224,12 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.FlattenedConfigInfo" title="oxpy.core.FlattenedConfigInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlattenedConfigInfo</span></code></a></p></td>
 <td><p>An object storing particle types, positions, a1 and a3 orientation vectors in flat arrays that can be used as or converted to numpy arrays.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.FlattenedVectorArray" title="oxpy.core.FlattenedVectorArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlattenedVectorArray</span></code></a></p></td>
+<td><p>This is a view of a Nx3 matrix (where N is the number of particles in the simulation).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxpy.core.BaseBox" title="oxpy.core.BaseBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseBox</span></code></a></p></td>
+<td><p>The interface class for forces.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InputFile</span></code></a></p></td>
 <td><p>Handles the options provided by the user to control and tune the behaviour of the simulation/analysis/generation of the initial configuration.</p></td>
 </tr>
@@ -689,9 +695,21 @@ any of the <code class="code docutils literal notranslate"><span class="pre">oxp
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <p>A set of particles connected by bonds. For DNA and RNA this would be a strand.</p>
 <dl class="py method">
+<dt id="oxpy.core.Molecule.id">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#oxpy.core.Molecule.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The index of the molecule.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="oxpy.core.Molecule.particles">
 <em class="property">property </em><code class="sig-name descname">particles</code><a class="headerlink" href="#oxpy.core.Molecule.particles" title="Permalink to this definition">¶</a></dt>
 <dd><p>The list of particles that compose the molecule.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.Molecule.topology_id">
+<em class="property">property </em><code class="sig-name descname">topology_id</code><a class="headerlink" href="#oxpy.core.Molecule.topology_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The “topology” index of the molecule. For DNA and RNA this value is the id of the strand as listed in the topology file.</p>
 </dd></dl>
 
 </dd></dl>
@@ -811,6 +829,18 @@ set through the <a class="reference internal" href="#oxpy.core.BaseInteraction.s
 <dd class="field-even"><p>int</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.ConfigInfo.box">
+<em class="property">property </em><code class="sig-name descname">box</code><a class="headerlink" href="#oxpy.core.ConfigInfo.box" title="Permalink to this definition">¶</a></dt>
+<dd><p>The simulation box, which is an instance of a child class of <a class="reference internal" href="#oxpy.core.BaseBox" title="oxpy.core.BaseBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseBox</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.ConfigInfo.box_sides">
+<em class="property">property </em><code class="sig-name descname">box_sides</code><a class="headerlink" href="#oxpy.core.ConfigInfo.box_sides" title="Permalink to this definition">¶</a></dt>
+<dd><p>The length of the edges of the simulation box.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -954,6 +984,94 @@ can be used like this:</p>
 <span class="n">np_va</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">va</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># this will *not* copy the data</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxpy.core.BaseBox">
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.</code><code class="sig-name descname">BaseBox</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseBox" title="oxpy.core.BaseBox">oxpy.core.BaseBox</a></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.BaseBox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>The interface class for forces.</p>
+<p>The default constructor takes no parameters.</p>
+<dl class="py method">
+<dt id="oxpy.core.BaseBox.V">
+<em class="property">property </em><code class="sig-name descname">V</code><a class="headerlink" href="#oxpy.core.BaseBox.V" title="Permalink to this definition">¶</a></dt>
+<dd><p>The volume of the simulation box.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.BaseBox.get_abs_pos">
+<code class="sig-name descname">get_abs_pos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseBox" title="oxpy.core.BaseBox">oxpy.core.BaseBox</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">BaseParticle</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.BaseBox.get_abs_pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the absolute (unwrapped) position of a particle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>p</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The particle of interest.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The absolute (unwrapped) position of the given particle.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.BaseBox.get_settings">
+<code class="sig-name descname">get_settings</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseBox" title="oxpy.core.BaseBox">oxpy.core.BaseBox</a></span></em>, <em class="sig-param"><span class="n">inp</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.BaseBox.get_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the options relative to this box.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">input_file</span></code>) – The input file of the simulation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.BaseBox.init">
+<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseBox" title="oxpy.core.BaseBox">oxpy.core.BaseBox</a></span></em>, <em class="sig-param"><span class="n">arg0</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">arg1</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">arg2</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#oxpy.core.BaseBox.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialise the box.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.BaseBox.min_image">
+<code class="sig-name descname">min_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseBox" title="oxpy.core.BaseBox">oxpy.core.BaseBox</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">BaseParticle</a></span></em><span class="sig-paren">)</span> &#x2192; LR_vector<a class="headerlink" href="#oxpy.core.BaseBox.min_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute and return the PBC-aware distance vector between two particles. The resulting vector points from particle <cite>p</cite> to particle <cite>q</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The first particle.</p></li>
+<li><p><strong>q</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The second particle.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The distance vector connecting <cite>p</cite> to <cite>q</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="oxpy.core.BaseBox.sqr_min_image_distance">
+<code class="sig-name descname">sqr_min_image_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseBox" title="oxpy.core.BaseBox">oxpy.core.BaseBox</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">BaseParticle</a></span></em>, <em class="sig-param"><span class="n">q</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle">BaseParticle</a></span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#oxpy.core.BaseBox.sqr_min_image_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute and return the PBC-aware squared distance between two particles. The result is the squared length of the vector that points from particle <cite>p</cite> to particle <cite>q</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The first particle.</p></li>
+<li><p><strong>q</strong> (<a class="reference internal" href="#oxpy.core.BaseParticle" title="oxpy.core.BaseParticle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseParticle</span></code></a>) – The second particle.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The squared length of the vector connecting <cite>p</cite> to <cite>q</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
