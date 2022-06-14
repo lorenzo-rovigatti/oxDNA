@@ -13,6 +13,7 @@
 #include "vector_matrix_casters.h"
 
 #include "bindings_includes/AnalysisBackend.h"
+#include "bindings_includes/BaseBox.h"
 #include "bindings_includes/Forces/BaseForce.h"
 #include "bindings_includes/BaseInteraction.h"
 #include "bindings_includes/Observables/BaseObservable.h"
@@ -29,6 +30,7 @@
 PYBIND11_MODULE(core, m) {
 	export_input_file(m);
 
+	export_BaseBox(m);
 	export_BaseObservable(m);
 	export_BaseParticle(m);
 	export_BaseForce(m);

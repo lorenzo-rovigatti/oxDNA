@@ -76,7 +76,13 @@ void export_ConfigInfo(py::module &m) {
 			The observable with the given id, or `None` if the id does not correspond to any observable.
 	)pbdoc");
 
+	conf_info.def_property_readonly("box_sides", [](ConfigInfo &c) { return c.box->box_sides(); }, R"pbdoc(
+		The length of the edges of the simulation box.
+	)pbdoc");
+
 	conf_info.def_readonly("current_step", &ConfigInfo::curr_step, "The current time step.");
+
+	conf_info.def_readonly("box", &ConfigInfo::box, "The simulation box, which is an instance of a child class of :class:`BaseBox`.");
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_CONFIGINFO_H_ */

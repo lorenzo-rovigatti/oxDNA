@@ -40,6 +40,21 @@ struct Molecule {
 	 * @brief Compute the centre of mass of the molecule
 	 */
 	void update_com();
+
+	int get_id() {
+		return _id;
+	}
+
+	int get_topology_id() {
+		return _id + 1;
+	}
+
+private:
+	static int _next_id () {
+	   static int id = 0;
+	   return id++;
+	}
+	const int _id;
 };
 
 #endif /* SRC_PARTICLES_MOLECULE_H_ */

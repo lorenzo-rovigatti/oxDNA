@@ -10,7 +10,7 @@
 #include "../Utilities/ConfigInfo.h"
 #include "../Boxes/BaseBox.h"
 
-Molecule::Molecule() {
+Molecule::Molecule() : _id(_next_id()) {
 
 }
 
