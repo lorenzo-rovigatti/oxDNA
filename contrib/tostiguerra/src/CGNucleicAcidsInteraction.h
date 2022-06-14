@@ -37,16 +37,7 @@ struct PSBondCompare {
 	}
 };
 
-/**
- * @brief Handles interactions in microgel systems.
- *
- * This interaction is selected with
- * interaction_type = CGNucleicAcidsInteraction
- *
- * @verbatim
 
- @endverbatim
- */
 class CGNucleicAcidsInteraction: public BaseInteraction {
 protected:
 	number _Kfene = 15.;
