@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Forward Flux Sampling &mdash; oxDNA  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Oxpy" href="oxpy/index.html" />
+    <link rel="prev" title="Umbrella sampling" href="umbrella_sampling.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="umbrella_sampling.html">Umbrella sampling</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Forward Flux Sampling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#example-system">Example system</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#initial-flux">Initial flux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shooting">Shooting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">oxDNA</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Forward Flux Sampling</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ffs.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="tex2jax_ignore mathjax_ignore section" id="forward-flux-sampling">
+<h1>Forward Flux Sampling<a class="headerlink" href="#forward-flux-sampling" title="Permalink to this headline">¶</a></h1>
+<p>Forward flux sampling (FFS) is a standard method for extracting the kinetic rate constants of a rare molecular process from a set of simulations. The detailed description of the method can be found in molecular simulation literature, see for example <a class="reference external" href="https://arxiv.org/abs/0906.4758">this review</a>. Briefly, FFS is best suited for a transition between two states (A and B) separated by a single barrier with no metastable intermediates. The transition from A to B is partitioned by dividing interfaces <span class="math notranslate nohighlight">\(λ_0, . . . , λ_n\)</span>, corresponding to values of order parameter(s) Q. For <span class="math notranslate nohighlight">\(Q &lt; λ_0\)</span>, system is in state A, and for <span class="math notranslate nohighlight">\(Q &gt; λ_n\)</span>, it is in state B.</p>
+<p>In the context of kinetic processes studied with oxDNA, state A can for example correspond to unbound state, and state B can correspond to a bound hybridized state with all base-pairs formed. The FFS method starts by estimating the flux <span class="math notranslate nohighlight">\(φ_0^A\)</span> of trajectories leaving from state A that cross interface <span class="math notranslate nohighlight">\(λ_0\)</span>: We run a simulation and record  coordinates of our system in phase space whenever we reach interface <span class="math notranslate nohighlight">\(λ_0\)</span> while coming from state A. The simulation is stopped after a desired number of crossings was generated. We divide the number of recorded states by the simulation time to obtain estimate of <span class="math notranslate nohighlight">\(φ_0^A\)</span>. The rate of transition from A to B is then given by <span class="math notranslate nohighlight">\(k_{AB} = φ_0^A \prod_i P (λ_{i+1}|λ_i)\)</span>,  where <span class="math notranslate nohighlight">\(P (λ_{i+1}|λ_i)\)</span> is the probability that trajectory coming from A and crossing <span class="math notranslate nohighlight">\(λ_i\)</span> will also cross <span class="math notranslate nohighlight">\(λ_{i+1}\)</span> before returning to state A. In practice, we can estimate <span class="math notranslate nohighlight">\(P (λ_{i+1}|λ_i)\)</span> by launching multiple simulations from randomly selected saved configurations at interface <span class="math notranslate nohighlight">\(λ_i\)</span> and recording what fraction reaches <span class="math notranslate nohighlight">\(λ_i+1\)</span> and what fraction goes back to A. We record the states that reached <span class="math notranslate nohighlight">\(λ_{i+1}\)</span> and use them to start simulations to estimate <span class="math notranslate nohighlight">\(P (λ_{i+2}|λ_{i+1})\)</span>.</p>
+<p>The FFS method requires simulation with stochastic dynamics (such as Andersen thermostat) to ensure that two simulations started from the same saved configuration will not follow an identical path. FFS hence allows us to partition the transition from A to B into several intermediate steps, where the probability estimation can be trivially parallelized by launching multiple simulations for a given interface concurrently.</p>
+<p>In oxDNA, the FFS approach is most often used to study the kinetics of melting or hybridization of duplexes or hairpins, or rates of more complex processes, such as strand displacement reaction. For an example of use, see e.g. <a class="reference external" href="http://arxiv.org/abs/1303.3370">this paper</a>.</p>
+<p>The provided Python scripts in <code class="docutils literal notranslate"><span class="pre">EXAMPLE/FFS_example</span></code> directory show how to setup FFS simulation to estimate the rate of melting of a duplex. If you want to use them to study a different system, you need to adapt the defintion of interfaces in the script and <code class="docutils literal notranslate"><span class="pre">input</span></code> files for oxDNA simulation accordingly. The Python scripts support multiple core execution, but requires all CPU cores to be present on a single machine. Hence, if you are submitting these scripts as part of a CPU cluster, all CPUs have to be physically on a single computer. Similarly, if you are using the GPU version of FFS, all used GPU cards have to be on the same node. We next provide description of use of FFS to estimate the rate of association of a DNA 8-mer.</p>
+<div class="section" id="example-system">
+<h2>Example system<a class="headerlink" href="#example-system" title="Permalink to this headline">¶</a></h2>
+<p>Following the FFS terminology, we want to to compute a rate between
+a stable state A (two separate strands) and a state B (DNA duplex). We have a set of interfaces, labelled
+<span class="math notranslate nohighlight">\(λ_i\)</span>, with <span class="math notranslate nohighlight">\(i = -1, \ldots, n\)</span>, along a reaction coordinate (aka order
+parameter) that fractions the configuration space of the system in a set of
+states <span class="math notranslate nohighlight">\(Q_i\)</span>, with <span class="math notranslate nohighlight">\(i = -2, \ldots, n. Q_{-2}\)</span> belongs to state A and <span class="math notranslate nohighlight">\(Q_n\)</span> belongs
+to state B. There are two separate stages: the inital flux calculation (from <span class="math notranslate nohighlight">\(Q_{-2}\)</span> to
+<span class="math notranslate nohighlight">\(Q_{0}\)</span>) and a success probability calculation (states <span class="math notranslate nohighlight">\(Q_n\)</span> with n&gt;0).</p>
+<p>The two scripts <code class="docutils literal notranslate"><span class="pre">ffs_flux.py</span></code> and <code class="docutils literal notranslate"><span class="pre">ffs_shoot.py</span></code> are named accordingly.
+The example present in the <code class="docutils literal notranslate"><span class="pre">EXAMPLES/FFS_example</span></code> directory is set up to compute the association rate of an
+8-mer at 40C in a simulation box. The interfaces are set to be:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(λ_{-1}\)</span>: at least one pair of complementary bases are closer than 4.</p></li>
+<li><p><span class="math notranslate nohighlight">\(λ_{0}\)</span>: at least one pair of complementary bases are “bound”</p></li>
+<li><p><span class="math notranslate nohighlight">\(λ_{1}\)</span>: at least 8 pair of complementary bases are “bound” (full binding)</p></li>
+</ul>
+<div class="section" id="initial-flux">
+<h3>Initial flux<a class="headerlink" href="#initial-flux" title="Permalink to this headline">¶</a></h3>
+<p>The script <code class="docutils literal notranslate"><span class="pre">ffs_flux.py</span></code> runs the simulations of the initial flux. There are
+some things that can be changed in the script itself, or changed via the
+command line. The part that needs editing in the script is clearly marked.</p>
+<p>The script in the FLUX directory is ready to be run. By default, it will look
+for 100 forwards crossing of interface <span class="math notranslate nohighlight">\(λ_{-1}\)</span>. It will create a log file
+with some progress report and useful information called ffs.log. The script
+can be run in parallel (use option <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">&lt;ncpus&gt;</span></code>). It will create a set of final
+configuration named according to a pattern specified in the script itself.
+Every 10 seconds, a log is printed with some information about how fast things
+are proceeding.</p>
+<p>To adapt the script to different examples, it should be enough to edit the
+beginning of the script with the relevant options (interfaces, executable
+path, etc.).</p>
+<p>If one wants to collect more successes, the command-line switch <code class="docutils literal notranslate"><span class="pre">-k</span></code> sets the
+initial success count, not to overwrite successes that have been already
+found. The log can be repeated to the screen with <code class="docutils literal notranslate"><span class="pre">-v</span></code>.
+When the script is finished, it prints out the initial flux in the last line
+of the log file (and to the screen if <code class="docutils literal notranslate"><span class="pre">-v</span></code> was set).</p>
+<p>In the directory FLUX/, running</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>./ffs_flux.py -c 8 -n 10 -v
+</pre></div>
+</div>
+<p>will run the flux waiting for 10 “successes” (forwards crossing of  interface
+λ_0) using 8 cpus (actually, running 8 threads. Whether these are actual CPUs
+it depends on the system) in verbose mode.
+This should take about 30 seconds per success on a single CPU.</p>
+</div>
+<div class="section" id="shooting">
+<h3>Shooting<a class="headerlink" href="#shooting" title="Permalink to this headline">¶</a></h3>
+<p>The two directories I0I1 and I0IF are prepared to shoot from interface
+<span class="math notranslate nohighlight">\(λ_{0}\)</span> to <span class="math notranslate nohighlight">\(λ{1}\)</span> and from <span class="math notranslate nohighlight">\(λ_{1}\)</span> to <span class="math notranslate nohighlight">\(λ_{2}\)</span>, respectively.
+The relevant script here is <code class="docutils literal notranslate"><span class="pre">ffs_shoot.py</span></code>. The usage is the basically the same.
+The variables that have to be set vary slightly, since what the script does is
+slightly different.
+Initial configurations for the shooting are chosen each time at random from
+all the ones found given the pattern specified in the script itself.
+Also, a table is printed where there is a track of
+success given the initial interface, to have an idea whether there are
+configurations that never (or always) succeed.
+Again, if one wants to collect more successes, the command-line switch -k sets
+the initial success count, not to overwrite successes that have been already
+found. The example on 8 processors should take about an hour to run.
+To run the script in I0I1 and I0IF, running</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./ffs_flux.py -c <span class="m">4</span> -n <span class="m">20</span> -v
+</pre></div>
+</div>
+<p>will look for 20 successes on 4 cpus in verbose mode.
+Beware that to have reasonably good numbers one usually needs very many
+shootings. At least 100 per interface are needed.
+Also these should take about 30 seconds per success on a single CPU.</p>
+<div class="admonition-example-results-over-small-sets-of-runs admonition">
+<p class="admonition-title">Example results over small sets of runs</p>
+<ul class="simple">
+<li><p>for the FLUX folder: average number of timesteps taken to reach a success (including possibly previous runs with the same pattern) (aka the inverse of the flux): <span class="math notranslate nohighlight">\(\approx 2.7 \times 10^8\)</span>, initial flux (includes previous runs if they were there): <span class="math notranslate nohighlight">\(\approx 4\times 10^{-7}\)</span></p></li>
+<li><p>For the I0I1 folder, nsuccesses: 100, nattempts: 5941, success_prob: 0.0168322, undetermined: 0</p></li>
+<li><p>For the I1IF forder, nsuccesses: 111, nattempts: 1785, success_prob: 0.0621849, undetermined: 0</p></li>
+<li><p>Overall rate: <span class="math notranslate nohighlight">\(\approx 4 \times 10^{-9}\)</span> (events per time step)</p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="oxpy/index.html" class="btn btn-neutral float-right" title="Oxpy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="umbrella_sampling.html" class="btn btn-neutral float-left" title="Umbrella sampling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
