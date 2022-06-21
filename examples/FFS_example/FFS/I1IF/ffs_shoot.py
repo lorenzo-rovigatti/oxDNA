@@ -44,7 +44,7 @@ import shutil, glob
 from multiprocessing import Process, Lock, JoinableQueue, Value, Array
 
 def usage():
-	print >> sys.stderr, 'usage: %s %s' % (sys.argv[0], '[-n <num_sucesses>] [-s <seed>] [-c <ncpus>] [-k <success_count>]') 
+	print('usage: %s %s' % (sys.argv[0], '[-n <num_sucesses>] [-s <seed>] [-c <ncpus>] [-k <success_count>]'), file=sys.stderr) 
 
 try:
 	opts, files = getopt.gnu_getopt(sys.argv[1:], "n:s:c:k:v")
@@ -71,9 +71,9 @@ try:
 		elif k == '-k':
 			initial_success_count = int(v)
 		else:
-			print >> sys.stderr, "Warning: option %s not recognized" % (k)
+			print("Warning: option %s not recognized" % (k), file=sys.stderr)
 except:
-	print >> sys.stderr, "Error parsing options"
+	print("Error parsing options", file=sys.stderr)
 	sys.exit(3)
 
 log_lock = Lock()
@@ -82,14 +82,14 @@ def log(text):
 	log_lock.acquire()
 	log_file.write(text + '\n')
 	if Verbose:
-		print >> sys.stdout, text
+		print(text, file=sys.stdout)
 	log_lock.release()
 
 # starting configurations
 starting_confs = glob.glob(starting_conf_pattern)
 log ("Main: Found %d configurations with pattern: %s" % (len(starting_confs), starting_conf_pattern))
 if len(starting_confs) < 1:
-	print >> sys.stderr, "0 starting configurations! aborting"
+	print("0 starting configurations! aborting", file=sys.stderr)
 	sys.exit(2)
 
 # check that we can write to the success pattern
@@ -98,7 +98,7 @@ try:
 	checkfile.close()
 	os.remove (success_pattern + '0')
 except:
-	print >> sys.stderr, "could not write to success_pattern", success_pattern
+	print("could not write to success_pattern", success_pattern, file=sys.stderr)
 	sys.exit(3)
 	
 success_lock = Lock()
@@ -136,7 +136,7 @@ for line in inf.readlines():
 		if words[0].lstrip().startswith("log_file"):
 			log_found = True
 if (log_found):
-	print >> sys.stderr, "\nERROR: This script does not work if \"log_file\" is set in the input file. Remove it! :)\n"
+	print("\nERROR: This script does not work if \"log_file\" is set in the input file. Remove it! :)\n", file=sys.stderr)
 	sys.exit (-2)
 inf.close()
 
@@ -158,7 +158,7 @@ def f(idx):
 	while success_count.value < desired_success_count:
 		# choose a starting configuration
 		#log ("Worker %d started" % idx)
-		conf_index = rnd.choice (range(1, len(starting_confs))) # maybe we should start from 0
+		conf_index = rnd.choice (list(range(1, len(starting_confs)))) # maybe we should start from 0
 		conf_file = starting_confs[conf_index]
 		global attempt_from, attempt_count
 		attempt_count.value += 1
@@ -177,16 +177,16 @@ def f(idx):
 		# print command
 		r = sp.call (command, stdout=output, stderr=sp.STDOUT)
 		if r != 0:
-			print >> sys.stderr, "Error running program"
-			print >> sys.stderr, "command line:"
+			print("Error running program", file=sys.stderr)
+			print("command line:", file=sys.stderr)
 			txt = ''
 			for c in command:
 				txt += c + ' '
-			print >> sys.stderr, txt
-			print >> sys.stderr, 'output:'
+			print(txt, file=sys.stderr)
+			print('output:', file=sys.stderr)
 			output.seek(0)
 			for l in output.readlines():
-				print >> sys.stderr, l,
+				print(l, end=' ', file=sys.stderr)
 			output.close()
 			sys.exit(-2)
 		

@@ -13,27 +13,35 @@ Flavio
 desired_success_count = 100
 
 # executable set-up
-executable = '../../../bin/oxDNA'
+executable = '../oxDNA'
 input = 'input'
 logfilename = 'ffs.log'
-starting_conf_pattern = '../FLUX/success*'
+starting_conf_pattern = '../I0I1/success*'
 success_pattern = './success_'
 keep_undetermined = True            # if True, the program saves undetermined confs
 undetermined_pattern = './undefin_'
 
+prune_prob = 0.75
+#prune_prob = 0.0
+
 # interfaces 
 # interface lambda_{-1}
-lambda_f_name = 'dist1'
-lambda_f_value = 4.
-lambda_f_compar = '>'
+lambda_f_name = 'dist'
+lambda_f_value = 4
+lambda_f_compar = '>='
+
+# interface lambda_{prune}
+lambda_pf_name = 'dist'
+lambda_pf_value = 1
+lambda_pf_compar = '>='
 
 # interface lambda_{n}
-lambda_n_name = 'dist1'
-lambda_n_value = 1.
+lambda_n_name = 'native'
+lambda_n_value = 3
 
 # interface lambda_{n+1}
-lambda_m_name = 'bond1'
-lambda_m_value = 1
+lambda_m_name = 'native'
+lambda_m_value = 8
 lambda_m_compar = '>='
 ####################################
 
@@ -44,7 +52,7 @@ import shutil, glob
 from multiprocessing import Process, Lock, JoinableQueue, Value, Array
 
 def usage():
-	print >> sys.stderr, 'usage: %s %s' % (sys.argv[0], '[-n <num_sucesses>] [-s <seed>] [-c <ncpus>] [-k <success_count>]') 
+	print('usage: %s %s' % (sys.argv[0], '[-n <num_sucesses>] [-s <seed>] [-c <ncpus>] [-k <success_count>]'), file=sys.stderr) 
 
 try:
 	opts, files = getopt.gnu_getopt(sys.argv[1:], "n:s:c:k:v")
@@ -71,9 +79,9 @@ try:
 		elif k == '-k':
 			initial_success_count = int(v)
 		else:
-			print >> sys.stderr, "Warning: option %s not recognized" % (k)
+			print("Warning: option %s not recognized" % (k), file=sys.stderr)
 except:
-	print >> sys.stderr, "Error parsing options"
+	print("Error parsing options", file=sys.stderr)
 	sys.exit(3)
 
 log_lock = Lock()
@@ -82,14 +90,14 @@ def log(text):
 	log_lock.acquire()
 	log_file.write(text + '\n')
 	if Verbose:
-		print >> sys.stdout, text
+		print(text, file=sys.stdout)
 	log_lock.release()
 
 # starting configurations
 starting_confs = glob.glob(starting_conf_pattern)
 log ("Main: Found %d configurations with pattern: %s" % (len(starting_confs), starting_conf_pattern))
 if len(starting_confs) < 1:
-	print >> sys.stderr, "0 starting configurations! aborting"
+	print("0 starting configurations! aborting", file=sys.stderr)
 	sys.exit(2)
 
 # check that we can write to the success pattern
@@ -98,21 +106,31 @@ try:
 	checkfile.close()
 	os.remove (success_pattern + '0')
 except:
-	print >> sys.stderr, "could not write to success_pattern", success_pattern
+	print("could not write to success_pattern", success_pattern, file=sys.stderr)
 	sys.exit(3)
 	
 success_lock = Lock()
 success_count = Value ('i', initial_success_count)
 attempt_count = Value ('i', 0)
 success_from = Array ('i', len(starting_confs)) # zeroed by default
+success_pruning_count = Value ('i', 0)
 attempt_from = Array ('i', len(starting_confs)) # zeroed by default
 undetermined_lock = Lock()
 undetermined_count = Value ('i', 0)
+
+# timings
+time_succeeding = Value ('f', 0)
 
 # write the condition file
 if os.path.exists('conditions.txt'):
 	log ("Main: Warning: overwriting conditions file")
 condition_file = open('conditions.txt', "w")
+condition_file.write("action = stop_or\n")
+condition_file.write("condition1 = {\n%s %s %s\n}\n" % (lambda_pf_name, lambda_pf_compar, str(lambda_pf_value)))
+condition_file.write("condition2 = {\n%s %s %s\n}\n" % (lambda_m_name, lambda_m_compar, str(lambda_m_value)))
+condition_file.close()
+
+condition_file = open('conditions2.txt', "w")
 condition_file.write("action = stop_or\n")
 condition_file.write("condition1 = {\n%s %s %s\n}\n" % (lambda_f_name, lambda_f_compar, str(lambda_f_value)))
 condition_file.write("condition2 = {\n%s %s %s\n}\n" % (lambda_m_name, lambda_m_compar, str(lambda_m_value)))
@@ -120,25 +138,13 @@ condition_file.close()
 
 # base command line; all features that need to be in the input file
 # must be specified here
-base_command = [executable, input, 'ffs_file=conditions.txt', 'print_energy_every=1e5', 'print_conf_every=1e6','no_stdout_energy=1','refresh_velocity=0','restart_step_counter=1']
+base_command = [executable, input, 'print_energy_every=1e5', 'print_conf_every=1e6','no_stdout_energy=1','refresh_velocity=0','restart_step_counter=1']
 base_command_string = ''.join (str(w) + ' ' for w in base_command)
 log("Main: COMMAND: " + base_command_string)
 
 if not os.path.exists(input):
 	log ("the input file provided (%s) does not exist. Aborting" % (input))
 	sys.exit(-3)
-# check of the input file. If it contains an entry for the log file, spit out an error
-inf = open (input, 'r')
-log_found = False
-for line in inf.readlines():
-	words = line.split ("=")
-	if len(words) >= 1:
-		if words[0].lstrip().startswith("log_file"):
-			log_found = True
-if (log_found):
-	print >> sys.stderr, "\nERROR: This script does not work if \"log_file\" is set in the input file. Remove it! :)\n"
-	sys.exit (-2)
-inf.close()
 
 if not os.path.exists(executable):
 	log ("the executable file provided (%s) does not exist. Aborting" % (executable))
@@ -154,21 +160,24 @@ desired_success_count += initial_success_count
 # success or a failure, and taking appropriate actions
 def f(idx):
 	log ("Worker %d started" % idx)
-	global success_count
+	global success_count, success_from, success_pruning_count
 	while success_count.value < desired_success_count:
 		# choose a starting configuration
 		#log ("Worker %d started" % idx)
-		conf_index = rnd.choice (range(1, len(starting_confs))) # maybe we should start from 0
+		conf_index = rnd.choice (list(range(1, len(starting_confs)))) 
 		conf_file = starting_confs[conf_index]
-		global attempt_from, attempt_count
+		global attempt_from, attempt_count, time_succeeding 
 		attempt_count.value += 1
 		attempt_from[conf_index] += 1
 		
-		seed = initial_seed + attempt_count.value 
+		mytime = time.time()	
+		
+		# the seed is the index + initial seed, and the last_conf has an index as well
+		seed = initial_seed + attempt_count.value
 		last_conf = 'last_conf' + str(idx)
 		
 		# edit the command to be launched
-		command = base_command + ['conf_file=%s' % (conf_file), 'lastconf_file=%s' % (last_conf), 'seed=%d' % (seed)]
+		command = base_command + ['conf_file=%s' % (conf_file), 'lastconf_file=%s' % (last_conf), 'seed=%d' % (seed), 'ffs_file=conditions.txt']
 		
 		# open a file to handle the output
 		output = tf.TemporaryFile ('r+')
@@ -177,16 +186,16 @@ def f(idx):
 		# print command
 		r = sp.call (command, stdout=output, stderr=sp.STDOUT)
 		if r != 0:
-			print >> sys.stderr, "Error running program"
-			print >> sys.stderr, "command line:"
+			print("Error running program", file=sys.stderr)
+			print("command line:", file=sys.stderr)
 			txt = ''
 			for c in command:
 				txt += c + ' '
-			print >> sys.stderr, txt
-			print >> sys.stderr, 'output:'
+			print(txt, file=sys.stderr)
+			print('output:', file=sys.stderr)
 			output.seek(0)
 			for l in output.readlines():
-				print >> sys.stderr, l,
+				print(l, end=' ', file=sys.stderr)
 			output.close()
 			sys.exit(-2)
 		
@@ -205,24 +214,83 @@ def f(idx):
 			op_values[name[:-1]] = float(op_value[ii][:-1])
 		
 		# now op_values is a dictionary representing the status of the final
-		# configuration. We now need to find out wether it is a success or
+		# configuration. We now need to find out whether it is a success or
 		# a failure.
 		# print op_values, 'op_values["%s"] %s %s' % (lambda_m_name, lambda_m_compar, str(lambda_m_value)), 'op_values["%s"] %s %s' % (lambda_f_name, lambda_f_compar, str(lambda_f_value))
 		success = eval ('op_values["%s"] %s %s' % (lambda_m_name, lambda_m_compar, str(lambda_m_value)))
-		failure = eval ('op_values["%s"] %s %s' % (lambda_f_name, lambda_f_compar, str(lambda_f_value)))
+		#failure = eval ('op_values["%s"] %s %s' % (lambda_f_name, lambda_f_compar, str(lambda_f_value)))
+		failure = eval ('op_values["%s"] %s %s' % (lambda_pf_name, lambda_pf_compar, str(lambda_pf_value)))
 		
 		if success and not failure:
 			with success_lock:
-				global success_from 
 				success_count.value += 1
 				success_from[conf_index] += 1
 				shutil.copy (last_conf, success_pattern + str(success_count.value))
+				time_succeeding.value += (time.time () - mytime)
 			os.remove(last_conf)
 			log ("SUCCESS: worker %d: starting from conf_index %d and seed %d" % (idx, conf_index, seed))
 		elif not success and failure:
 			# do else
-			log ("FAILURE: worker %d: starting from conf_index %d and seed %d" % (idx, conf_index, seed))
-			os.remove (last_conf)
+			log ("FAILURE (AT PRUNING INTERFACE): worker %d: starting from conf_index %d and seed %d" % (idx, conf_index, seed))
+			
+			# PRUNING
+			if rnd.random() > prune_prob:
+				log ("PRUNING: worker %d: starting from conf_index %d and seed %d" % (idx, conf_index, seed))
+				# edit the command to be launched
+				command = base_command + ['conf_file=%s' % (last_conf), 'lastconf_file=%s' % (last_conf), 'seed=%d' % (seed), 'ffs_file=conditions2.txt']
+				
+				# open a file to handle the output
+				output = tf.TemporaryFile ('r+')
+				
+				# here we run the command
+				# print command
+				r = sp.call (command, stdout=output, stderr=sp.STDOUT)
+				if r != 0:
+					print("Error running program", file=sys.stderr)
+					print("command line:", file=sys.stderr)
+					txt = ''
+					for c in command:
+						txt += c + ' '
+					print(txt, file=sys.stderr)
+					print('output:', file=sys.stderr)
+					output.seek(0)
+					for l in output.readlines():
+						print(l, end=' ', file=sys.stderr)
+					output.close()
+					sys.exit(-2)
+				
+				# now we process the output to find out wether the run was a success
+				# (interface lambda_m reached) or a failure (interface lamda_f reached)
+				output.seek(0)
+				for line in output.readlines():
+					words = line.split()
+					if len(words) > 1:
+						if words[1] == 'FFS' and words[2] == 'final':
+							data = [w for w in words[4:]]
+				op_names = data[::2]
+				op_value = data[1::2]
+				op_values = {}
+				for ii, name in enumerate(op_names):
+					op_values[name[:-1]] = float(op_value[ii][:-1])
+				
+				# now op_values is a dictionary representing the status of the final
+				# configuration. We now need to find out wether it is a success or
+				# a failure.
+				# print op_values, 'op_values["%s"] %s %s' % (lambda_m_name, lambda_m_compar, str(lambda_m_value)), 'op_values["%s"] %s %s' % (lambda_f_name, lambda_f_compar, str(lambda_f_value))
+				success = eval ('op_values["%s"] %s %s' % (lambda_m_name, lambda_m_compar, str(lambda_m_value)))
+				#failure = eval ('op_values["%s"] %s %s' % (lambda_f_name, lambda_f_compar, str(lambda_f_value)))
+				failure = eval ('op_values["%s"] %s %s' % (lambda_f_name, lambda_f_compar, str(lambda_pf_value)))
+				if success:
+					with success_lock:
+						success_count.value += 1
+						success_from[conf_index] += 1
+						success_pruning_count.value += 1
+						shutil.copy (last_conf, success_pattern + str(success_count.value))
+						time_succeeding.value += (time.time() - mytime)
+					log ("SUCCESS from PRUNING: worker %d: starting from conf_index %d and seed %d" % (idx, conf_index, seed))
+				else:
+					log ("FAILURE from PRUNING: worker %d: starting from conf_index %d and seed %d" % (idx, conf_index, seed))
+				os.remove (last_conf)
 		else:
 			# do undetermined
 			txt = ''	
@@ -249,7 +317,7 @@ def timer ():
 			ns = success_count.value - initial_success_count
 			na = attempt_count.value 
 			if (ns > 0):
-				log ("Timer: at %s: successes: %d, attemps: %d: prob: %g time per success: %g (%g sec)" % (time.asctime(time.localtime()), ns, na, float(ns)/na, (now-itime)/float(ns), now - itime))
+				log ("Timer: at %s: successes: %d (%d from pruning), attemps: %d: prob: %g time per success: %g (%g sec) (%d%% succeeding)" % (time.asctime(time.localtime()), ns, success_pruning_count.value, na, float(ns)/na, (now-itime)/float(ns), now - itime, int(100 * time_succeeding.value / ((now - itime) * float(ncpus)))))
 			else:
 				log ("Timer: at %s, no successes yet over %d attempts" % (time.asctime(time.localtime()), na))
 
@@ -284,5 +352,4 @@ if __name__ == '__main__':
 			txt += 'NA'
 		log(txt)
 	log ("# SUMMARY")
-	log ("# nsuccesses: %d nattempts: %d success_prob: %g undetermined: %d" % (nsuccesses, attempt_count.value, nsuccesses/float(attempt_count.value), undetermined_count.value))
-
+	log ("# nsuccesses: %d (of which %d from pruning) nattempts: %d success_prob: %g (%g accounting for pruning), undetermined: %d" % (nsuccesses, success_pruning_count.value, attempt_count.value, nsuccesses / float(attempt_count.value), ((nsuccesses - success_pruning_count.value + success_pruning_count.value / (1. - prune_prob)) /float(attempt_count.value)), undetermined_count.value))
