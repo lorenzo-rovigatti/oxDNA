@@ -226,7 +226,7 @@ std::string input_file::get_value(std::string key, int mandatory, bool &found) {
 		return value.expanded_value;
 	}
 	else if(mandatory) {
-		throw oxDNAException("Mandatory key `%s' not found", key);
+		throw oxDNAException("Mandatory key `%s' not found", key.c_str());
 	}
 	else {
 		return "";
