@@ -32,7 +32,7 @@ void OrthogonalBox::init(number Lx, number Ly, number Lz) {
 	_sides.y = Ly;
 	_sides.z = Lz;
 
-	CONFIG_INFO->notify(CHANGE_EVENT);
+	CONFIG_INFO->notify(INIT_EVENT);
 }
 
 LR_vector OrthogonalBox::normalised_in_box(const LR_vector &v) {

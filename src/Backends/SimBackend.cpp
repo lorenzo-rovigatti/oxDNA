@@ -331,7 +331,7 @@ void SimBackend::init() {
 	_interaction->set_box(_box.get());
 
 	_lists->init(_rcut);
-	CONFIG_INFO->subscribe(_box->CHANGE_EVENT, [this]() { this->_lists->change_box(); });
+	CONFIG_INFO->subscribe(_box->INIT_EVENT, [this]() { this->_lists->change_box(); });
 
 	_config_info->set(_interaction.get(), &_backend_info, _lists.get(), _box.get());
 

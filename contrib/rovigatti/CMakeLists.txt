@@ -96,5 +96,3 @@ IF(CUDA)
 	
 	ADD_DEPENDENCIES(rovigatti CUDADetailedPolymerSwapInteraction CUDADetailedPatchySwapInteraction CUDAPatchySwapInteraction CUDAPolymerInteraction CUDAAOInteraction CUDAMGInteraction CUDACPMixtureInteraction CUDAFSInteraction CUDAmWInteraction CUDAStarrInteraction CUDALevyInteraction CUDAPolymerSwapInteraction CUDATSPInteraction)
 ENDIF(CUDA)
-
-set_target_properties(Bonds PROPERTIES PREFIX "")

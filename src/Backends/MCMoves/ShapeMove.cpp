@@ -111,9 +111,7 @@ void ShapeMove::apply (llint curr_step) {
 	if (this->_Info->interaction->get_is_infinite() == false && exp(- dE / this->_T) > drand48()) {
 		this->_accepted ++;
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) _delta *= this->_acc_fact;
-		//number xE  = this->_Info->interaction->get_system_energy(this->_Info->particles, *this->_Info->N, this->_Info->lists);
-		//if (fabs ((xE - newE) / newE) > 1.e-8) throw oxDNAException ("Look at this shit, JUST ACCEPTED %g %g", xE, oldE);
-		//if (this->_Info->interaction->get_is_infinite()) throw oxDNAException ("No, no, no...!");
+		CONFIG_INFO->notify(CONFIG_INFO->box->UPDATE_EVENT);
 	}
 	else {
 		//printf ("reject: dE = %g\n", dE);

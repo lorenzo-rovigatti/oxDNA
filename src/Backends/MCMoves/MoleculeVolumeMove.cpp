@@ -123,6 +123,7 @@ void MoleculeVolumeMove::apply(llint curr_step) {
 		if(curr_step < _equilibration_steps && _adjust_moves) {
 			_delta *= _acc_fact;
 		}
+		CONFIG_INFO->notify(CONFIG_INFO->box->UPDATE_EVENT);
 	}
 	else {
 		for(auto p : particles) {

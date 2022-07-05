@@ -19,12 +19,19 @@ void export_ConfigInfo(py::module &m) {
 		This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction, external forces) 
 	)pbdoc");
 
-	conf_info.def("notify", &ConfigInfo::notify, py::arg("event"), R"pbdoc()pbdoc");
+	conf_info.def("notify", &ConfigInfo::notify, py::arg("event"), R"pbdoc(
+		Notify the triggering of an event. Any callback associated to the event will be invoked.
+
+		Parameters
+		----------
+		event: str
+			The triggered event.
+	)pbdoc");
 
 	conf_info.def("subscribe", &ConfigInfo::subscribe, py::arg("event"), py::arg("callback"), R"pbdoc(
 		Assign a callback to the given event. 
 
-		The callback will be invoked every time the event is fired.
+		The callback will be invoked every time the event is triggered.
 
 		Parameters
 		----------

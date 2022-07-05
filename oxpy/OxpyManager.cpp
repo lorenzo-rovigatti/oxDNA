@@ -71,6 +71,10 @@ void OxpyManager::remove_output(std::string filename) {
 	_backend->remove_output(filename);
 }
 
+void OxpyManager::update_CPU_data_structures() {
+	_backend->apply_simulation_data_changes();
+}
+
 void OxpyManager::run(llint steps, bool print_output) {
 	_backend->apply_changes_to_simulation_data();
 
@@ -200,6 +204,13 @@ input: :class:`InputFile`
 		----------
 			filename : str
 				The name of the output file, which should be the same name used to add it (for instance *via* :meth:`add_output`).
+	)pbdoc");
+
+	manager.def("update_CPU_data_structures", &OxpyManager::update_CPU_data_structures, R"pbdoc(
+		Update the CPU data structures. Useful only when running CUDA simulations.
+
+		This method copies simulation data from the GPU to the CPU, and as such calling it too often may severely decrease performance.
+		It is automatically invoked by meth:`run`, and therefore it makes sense to call it only in specific cases (*e.g.* to access simulation data from callbacks).
 	)pbdoc");
 
 	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(

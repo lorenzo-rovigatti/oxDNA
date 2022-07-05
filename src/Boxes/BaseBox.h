@@ -112,7 +112,8 @@ public:
 	 */
 	virtual void shift_particle(BaseParticle *p, LR_vector &amount) = 0;
 
-	const std::string CHANGE_EVENT = "box_updated";
+	const std::string INIT_EVENT = "box_initialised";
+	const std::string UPDATE_EVENT = "box_updated";
 };
 
 using BoxPtr = std::shared_ptr<BaseBox>;

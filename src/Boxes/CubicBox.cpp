@@ -33,7 +33,7 @@ void CubicBox::init(number Lx, number Ly, number Lz) {
 	_side = Lx;
 	_sides.x = _sides.y = _sides.z = Lx;
 
-	CONFIG_INFO->notify(CHANGE_EVENT);
+	CONFIG_INFO->notify(INIT_EVENT);
 }
 
 LR_vector CubicBox::normalised_in_box(const LR_vector &v) {

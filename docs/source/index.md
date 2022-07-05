@@ -15,6 +15,7 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
    observables.md
    umbrella_sampling.md
    ffs.md
+   events.md
 ```
 
 ```{eval-rst}

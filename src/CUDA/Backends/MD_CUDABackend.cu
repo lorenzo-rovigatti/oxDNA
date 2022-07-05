@@ -472,6 +472,7 @@ void MD_CUDABackend::_apply_barostat() {
 	// accepted
 	if(acc > drand48()) {
 		_barostat_accepted++;
+		CONFIG_INFO->notify(CONFIG_INFO->box->UPDATE_EVENT);
 	}
 	// rejected
 	else {

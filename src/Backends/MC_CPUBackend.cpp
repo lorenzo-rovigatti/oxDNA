@@ -265,6 +265,8 @@ void MC_CPUBackend::sim_step() {
 						if(_stored_bonded_interactions.count(pair) == 0) _stored_bonded_interactions[pair] = e;
 					}
 				}
+
+				CONFIG_INFO->notify(CONFIG_INFO->box->UPDATE_EVENT);
 			}
 			else {
 				// volume move rejected
