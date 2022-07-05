@@ -41,7 +41,6 @@ void MCBackend::get_settings(input_file &inp) {
 	getInputString(&inp, "ensemble", tmp, 1);
 	if(strncasecmp(tmp, "npt", 256) == 0) {
 		_ensemble = MC_ENSEMBLE_NPT;
-		//throw oxDNAException("Ensemble NPT will be implemented soon");
 		int check = getInputString(&inp, "list_type", tmp, 0);
 		if(check == KEY_NOT_FOUND || (strncasecmp(tmp, "cells", 256) != 0 && strncasecmp(tmp, "no", 256) != 0 && strncasecmp(tmp, "rodcells", 256) != 0))
 			throw oxDNAException("NPT ensemble requires no lists or cells to handle interaction lists; set list_type=cells in the input file");

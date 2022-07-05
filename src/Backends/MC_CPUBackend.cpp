@@ -217,7 +217,6 @@ void MC_CPUBackend::sim_step() {
 			box_sides.z += dL;
 
 			_box->init(box_sides.x, box_sides.y, box_sides.z);
-			_lists->change_box();
 
 			number dExt = (number) 0.;
 			for(int k = 0; k < N(); k++) {
@@ -230,8 +229,6 @@ void MC_CPUBackend::sim_step() {
 				p->set_ext_potential(current_step(), _box.get());
 				dExt += -p->ext_potential;
 			}
-			//for (int i = 0; i < _N; i ++) _lists->single_update(_particles[i]);
-			_lists->change_box();
 			if(!_lists->is_updated()) {
 				_timer_lists->resume();
 				_lists->global_update();
@@ -272,14 +269,12 @@ void MC_CPUBackend::sim_step() {
 			else {
 				// volume move rejected
 				_box->init(old_box_sides.x, old_box_sides.y, old_box_sides.z);
-				_lists->change_box();
 				for(int k = 0; k < N(); k++) {
 					BaseParticle *p = _particles[k];
 					//p->pos /= _box_side / old_box_side;
 					p->pos = _particles_old[k]->pos;
 					p->set_ext_potential(current_step(), _box.get());
 				}
-				_lists->change_box();
 				_interaction->set_is_infinite(false);
 				//for (int i = 0; i < _N; i ++) _lists->single_update(_particles[i]);
 				if(!_lists->is_updated()) {

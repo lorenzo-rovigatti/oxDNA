@@ -90,7 +90,6 @@ void VolumeMove::apply(llint curr_step) {
 	}
 
 	// this bit has to come after the update of particles' positions
-	_Info->lists->change_box();
 	if(!_Info->lists->is_updated()) {
 		_Info->lists->global_update();
 	}
@@ -114,7 +113,6 @@ void VolumeMove::apply(llint curr_step) {
 		}
 		_Info->interaction->set_is_infinite(false);
 		_Info->box->init(old_box_sides[0], old_box_sides[1], old_box_sides[2]);
-		_Info->lists->change_box();
 		if(!_Info->lists->is_updated()) {
 			_Info->lists->global_update();
 		}

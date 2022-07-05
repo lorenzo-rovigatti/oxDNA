@@ -72,12 +72,14 @@ public:
 		return LR_vector();
 	}
 
-	LR_vector &box_sides() override {
+	LR_vector box_sides() const override {
 		PYBIND11_OVERLOAD_PURE( // @suppress("Unused return value")
 				LR_vector &,
 				BaseBox,
 				box_sides
 		);
+
+		return LR_vector();
 	}
 
 	number V() override {
@@ -131,8 +133,10 @@ void export_BaseBox(py::module &m) {
 	)pbdoc");
 
 	box.def("init", &BaseBox::init, R"pbdoc(
-        Initialise the box.
+        Initialise the box. Calling this method fires off a "box_changed" event.
 	)pbdoc");
+
+	box.def_property_readonly("box_sides", &BaseBox::box_sides);
 
 	box.def("min_image", static_cast<LR_vector (BaseBox::*)(const BaseParticle &, const BaseParticle &)>(&BaseBox::min_image), py::arg("p"), py::arg("q"), R"pbdoc(
 		Compute and return the PBC-aware distance vector between two particles. The resulting vector points from particle `p` to particle `q`.

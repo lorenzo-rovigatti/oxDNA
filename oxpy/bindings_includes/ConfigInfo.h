@@ -19,6 +19,22 @@ void export_ConfigInfo(py::module &m) {
 		This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction, external forces) 
 	)pbdoc");
 
+	conf_info.def("notify", &ConfigInfo::notify, py::arg("event"), R"pbdoc()pbdoc");
+
+	conf_info.def("subscribe", &ConfigInfo::subscribe, py::arg("event"), py::arg("callback"), R"pbdoc(
+		Assign a callback to the given event. 
+
+		The callback will be invoked every time the event is fired.
+
+		Parameters
+		----------
+		event: str
+			The event associated to the callback.
+		callback: callable
+			A callable that takes no parameters.
+
+	)pbdoc");
+
 	conf_info.def("N", &ConfigInfo::N, R"pbdoc(
         Return the current number of particles.
 
@@ -61,7 +77,7 @@ void export_ConfigInfo(py::module &m) {
 
 		Returns
 		-------
-		:py:class:`BaseForce`
+		:py:class:`~oxpy.core.forces.BaseForce`
 			The external force with the given id, or `None` if the id does not correspond to any external force.
 	)pbdoc");
 
