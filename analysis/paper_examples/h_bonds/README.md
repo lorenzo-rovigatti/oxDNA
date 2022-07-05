@@ -10,20 +10,19 @@ This directory contains and example to calculate the hydrogen bond occupancies c
 
 2. Generate the pairs list from the initial structure
    ```
-   ../../generate_force.py -o forces.txt -f pairs.txt input_rna rna_tile.dat
+   oat generate_force -o forces.txt -f pairs.txt input_rna rna_tile.dat
    ```
    **A couple of notes on the generator script:**
    This script handles both pairfile and forcefile generation.  When relaxing structures or joining structures together, it is frequently beneficial to hold structures together using mutual traps between the designed pairs that you then release for the production run.
-   If you already have a force file containing all pairs (for example, from the Tiamat converter on TacoxDNA), you can convert that to the pairsfile used here via forces2pairs.py
+   If you already have a force file containing all pairs (for example, from the Tiamat converter on TacoxDNA), you can convert that to the pairsfile used here via `oat forces2pairs`
 
 3. Compute the hydrogen bond occupancy
    ```
-   ../../bond_analysis.py input_rna trajectory_trap.dat pairs.txt h_bonds.json
+   oat bond_analysis input_rna trajectory_trap.dat pairs.txt h_bonds.json
    ```
    **A couple of notes on the bond analysis script:**
    Nucleotides that have no pair defined by the design will have an occupancy of 0.
-   Computing energies does not require taking periodic boundary conditions into account, so the reference particle does not need to be set for this script.
-   If you are running on a computer with multiple CPUs, you can additionally specify the -p <number> option to calculate bonding in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus.
+   If you are running on a computer with multiple CPUs, you can additionally specify the `-p <number>` option to calculate bonding in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus.
 
 3. Visualize the occupancy by dragging and dropping `last_conf_trap.dat`, `rna_tile.top`, and `h_bonds.json` onto an open oxView window.
 

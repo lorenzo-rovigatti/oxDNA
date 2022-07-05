@@ -53,7 +53,7 @@ The following options pertain to `oxpy`:
 * `make docs` Produces html doxygen documentation for oxDNA (`DOCS/html_oxDNA/index.html`) and for the UTILS folder (`DOCS/html_UTILS/index.html`)
 * `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
 * `make romano` Compiles the observables and interactions in contrib/romano
-* `make install` Copies the `oxpy` package to the Python's package folder
+* `make install` Copies the `oxpy` and `oxDNA_analysis_tools` packages to the Python's package folder making the two packages importable with Python. 
 
 ### Known issues
 

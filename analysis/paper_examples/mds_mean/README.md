@@ -9,10 +9,10 @@ This directory contains an example to produce a mean structure based on local pa
 
 2. Compute the mean structure and the per-nucleotide deviations
    ```
-   python ../../multidimensional_scaling_mean.py input_rna trajectory_trap.dat mean.dat devs.json
+   oat multidimensional_scaling_mean -o mean.dat -d devs.json trajectory_trap.dat
    ```
    **A couple of notes on the multidimensional_scaling_mean script:**
-     Unlike the absolute positions, distances are correctly computed through fix diffusion.  You do not need to set the reference particle for this script. Multidimensional scaling fails to compute solutions for structures larger than a few thousand nucleotides.  This structure, at 2,018 nucleotides, is the largest that has been successful.  It does not work above 10,000.  We are interested in feedback if users find this script works on structures larger than this one.
+     Multidimensional scaling fails to compute solutions for structures larger than a few thousand nucleotides.  This structure, at 2,018 nucleotides, is the largest that has been successful.  It does not work above 10,000.  We are interested in feedback if users find this script works on structures larger than this one.
      If you are running on a computer with multiple CPUs, you can additionally specify the `-p <number>` option to compute the mean structure in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus.
 
 3. Visualize the mean structure and deviations by dragging and dropping the `mean.dat`, `rna_rectangle.top`, and `devs.json` onto an open oxView window.
@@ -22,8 +22,8 @@ This directory contains an example to produce a mean structure based on local pa
    Pressing the "P" key will take a screencap of the current scene.  
    The colorbar is dynamic, if you drag and drop multiple mean+topology+deviations file triplets, the upper and lower bounds will automatically rescale to accomodate the new data.
 
-4. In figure 6b, the svd and mds means are shown overlaid.  To reproduce this figure, compute the mean structure using both scripts and then use `superimpose.py` to generate the alignment:
+4. In figure 6b, the svd and mds means are shown overlaid.  To reproduce this figure, compute the mean structure using both scripts and then use `oat superimpose` to generate the alignment:
    ```
-   python ../../superimpose.py rna_rectangle.top mean.dat ../svd_mean/mean.dat
+   oat superimpose mean.dat ../svd_mean/mean.dat
    ```
 This will generate a file called `aligned0.dat` which is the svd mean structure aligned to the mean structure generated via mds.

@@ -22,20 +22,19 @@ This folder contains example files to perform the svd-based mean structures show
 
    For the DNA wireframe:
    ```
-   python ../../compute_mean.py -f oxDNA -o mean.dat -d devs.json trajectory_trap.dat
+   oat mean -o mean.dat -d devs.json trajectory_trap.dat
    ```
    For the RNA origami:
    ```
-   python ../../compute_mean.py -f oxDNA -o mean.dat -d devs.json trajectory_trap.dat
+   oat mean -o mean.dat -d devs.json trajectory_trap.dat
    ```
    **A couple of notes on the compute_mean script:**
-     `-f` sets the output format.  The options are an oxDNA .dat file or a json file containing the positions.
      
-     `-o` sets the ouput file name
-     
-     `-d` tells the script to automatically run compute_deviations.py using the provided filename as the output file
-     
-     If you are running on a computer with multiple CPUs, you can additionally specify the `-p <number>` option to compute the mean structure in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus.
+   * `-o` sets the ouput file name  
+   * `-d` tells the script to automatically run compute_deviations.py using the provided filename as the output file
+   * `-i` Specifies an index file, which is a space-separated list of particle IDs to perform alignment on a subset of particles
+   * `-a` Specifies the configuration in the trajectory to use as a reference.  If not set a random configuraiton is used.
+   * If you are running on a computer with multiple CPUs, you can additionally specify the `-p <number>` option to compute the mean structure in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus.
 
 3. Visualize the mean structure and deviations by dragging and dropping the `mean.dat`, the topology for the structure you're studying, and `devs.json` onto an open oxView window.
 

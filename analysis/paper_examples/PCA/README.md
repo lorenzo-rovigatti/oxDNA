@@ -9,13 +9,13 @@ This directory contains an example to compute the principal components of a holl
 
 2. Compute the mean structure via SVD
 
-   `python ../../compute_mean.py -f oxDNA -o mean.dat trajectory_trap.dat
+   `oat mean -o mean.dat trajectory_trap.dat
 
    PCA is defined by deviations from some reference.  In this case, we will use the mean structure as a reference.
 
 3. Compute the principal components
 
-   `python ../../pca.py input_dna trajectory_trap.dat mean.dat pca.json`
+   `oat pca input_dna trajectory_trap.dat mean.dat pca.json`
 
    **A few notes on the PCA script:**
    If you are running on a computer with multiple CPUs, you can additionally specify the `-p <number>` option to compute principal components in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus

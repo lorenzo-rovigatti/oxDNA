@@ -4,13 +4,13 @@ Clustering can be done on any data set that can position each configuration to a
 
 1. Compute the mean structure of the trajectory to use as a reference for pca.
 
-   `../../compute_mean.py -f oxDNA -o mean_all.dat trajectory.dat`
+   `oat mean -f oxDNA -o mean_all.dat trajectory.dat`
 
 If you have multiple CPUs available, this can be run with the `-p <n_cpus>` option to speed up computation.  We do not need to calculate deviations for this example.
 
 2. Compute principal components and pass the output to the clustering algorithm
 
-   `python ../../oxdna_analysis_tools/pca.py -c input_rna trajectory.dat mean_all.dat pca.json`
+   `oat pca -c input_rna trajectory.dat mean_all.dat pca.json`
 
 The `-c` option will tell the script to consider every configuration as a linear combination of the principal components and then calculate clusters based on the weights of each component.
 
@@ -22,7 +22,7 @@ This will produce a number of files.  There are three produced by the pca script
 The next two are for information about clustering:
  * cluster_data.json is the output from pca.py serialized to make it faster to adjust clustering parameters.  If clustering fails for a design, adjust the eps and min_samples parameters in clustering.py and re-run it with:
 
-   `python ../../clustering.py cluster_data.json`
+   `oat clustering cluster_data.json`
 
  * animated.mp4 - a video of coordinates.png spinning around, now with colors corresponding to the clusters.  If you would rather view the plot interactivley, uncomment the code block relating to plotting 3D plots in clustering.py
 

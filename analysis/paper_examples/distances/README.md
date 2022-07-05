@@ -18,13 +18,13 @@ This example will use oxDNA to run simulations of the [open](https://sulcgroup.g
 2. Compute the distance between the nucleotides at the end of the tether.
 
    ```
-   python ../../distance.py -o distance.png -f both -i input_closed trajectory_closed.dat 6453 9630 -i input_open trajectory_open 6453 9630
+   oat distance -o distance.png -f both -n closed open -i trajectory_closed.dat 6453 9630 -i trajectory_open 6453 9630
    ```
 
    A couple notes on the distance script:
-     The names of the plotted dataseries can be edited using the "names" variable in the script.
-     `-o` names the output files.  If the format flag is set to "both" it will append the type of graph to the end of the name.
-     `-f` specifies the format of the graph.  The options are "histogram", "trajectory" and "both"
-     `-i` preceeds an input set.  This must be an oxDNA input file, a trajectory and the pairs of particle ids to calculat the distance between.
-     `-d` will dump the data used to construct the graphs as a plaintext file with the specified name
-     If running on only a single trajectory, the `-c` option will run the clustering algorithm on the distance data and produce separate clusters with similar distances between the provided particles.
+     * `-o` names the output files.  If the format flag is set to "both" it will append the type of graph to the end of the name.
+     * `-f` specifies the format of the graph.  The options are "histogram", "trajectory" and "both"
+     * `-i` preceeds an input set.  This must be an oxDNA input file, a trajectory and the pairs of particle ids to calculat the distance between.
+     * `-d` will dump the data used to construct the graphs as a plaintext file with the specified name
+     * `-n` will name the data series on the plots, otherwise it defaults to particle ids.
+     * If running on only a single trajectory, the `-c` option will run the clustering algorithm on the distance data and produce separate clusters with similar distances between the provided particles.

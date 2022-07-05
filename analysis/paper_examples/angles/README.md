@@ -18,23 +18,20 @@ This example will use oxDNA to run a simulation and then use duplex_angle_finder
 
 2. Fit vectors to the duplexes in the simulation
 
-   `python ../../duplex_angle_finder.py -o angles_20.txt input_20 trajectory_20.dat`
+   `oat duplex_finder -o angles_20.txt input_20 trajectory_20.dat`
    
-   `python ../../duplex_angle_finder.py -o angles_23.txt input_23 trajectory_23.dat`
+   `oat duplex_finder -o angles_23.txt input_23 trajectory_23.dat`
 
    **A couple notes on the duplex_angle_finder script:** This script uses the hydrogen bonding potential to determine if two nucleotides are bonded, which is unaffected by fix diffusion. You do not need to set the reference particle for this script. If you are running on a computer with multiple CPUs, you can additionally specify the `-p <number>` option to fit duplexes in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus.
 
 4. Plot the angle between two adjacent duplexes using duplex_angle_plotter.py
 
-   `python ../../duplex_angle_plotter.py -o angle.png -f both -i angles_20.txt 2045 1950 -i angles_23.txt 1225 1299`
+   `oat duplex_angle_plotter -o angle.png -f both -n design20 design23 -i angles_20.txt 2045 1950 -i angles_23.txt 1225 1299`
 
    **A couple notes on the duplex_angle_plotter script:**
-     The names of the plotted dataseries can be edited using the "names" variable in the script.
      The console output from this script not only gives the median, mean and standard deviation of the angle distribution, but also a representation score.  This tells you how frequently the duplex starts on the specified nucleotide.  Check a few entries in the angle file to make sure that the ID you're specifying is the duplex you want as junctions are known to shift.
      Use the selection feature of oxView to determine the nucleotide IDs to use with this script.
-     
-     `-o` names the output files.  If the format flag is set to "both" it will append the type of graph to the end of the name.
-     
-     `-f` specifies the format of the graph.  The options are "histogram", "trajectory" and "both"
-     
-     `-i` preceeds an input triplet.  This must be an angle file and two nucleotide IDs that mark the start of the duplex.  These must be the lowest number ID in the duplex.
+     * `-o` names the output files.  If the format flag is set to "both" it will append the type of graph to the end of the name.
+     * `-f` specifies the format of the graph.  The options are "histogram", "trajectory" and "both".
+     * `-n` names the data series in the plots. If not set it will default to particle IDs.
+     * `-i` preceeds an input triplet.  This must be an angle file and two nucleotide IDs that mark the start of the duplex.  These must be the lowest number ID in the duplex.
