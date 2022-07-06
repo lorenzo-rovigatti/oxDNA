@@ -21,6 +21,14 @@ oxDNA is a simulation code that was initially conceived as an implementation of 
 ```{eval-rst}
 .. ifconfig:: with_oxpy
 
+Analysis
+--------
+
+.. toctree::
+   :maxdepth: 3
+   
+   oat/index.md
+
 Python Bindings
 ---------------
 
