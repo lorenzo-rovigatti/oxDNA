@@ -1,4 +1,4 @@
-# API documentation
+# Analysis documentation
 
 ## Align
 
@@ -223,7 +223,7 @@
     oxDNA_analysis_tools.duplex_finder.find_duplex
     oxDNA_analysis_tools.duplex_finder.duplex_finder
     
-.. autofunction:: oxDNA_analysis_tools.duplex_finder.Duplex
+.. autoclass:: oxDNA_analysis_tools.duplex_finder.Duplex
 .. autofunction:: oxDNA_analysis_tools.duplex_finder.find_duplex
 .. autofunction:: oxDNA_analysis_tools.duplex_finder.duplex_finder
 ```

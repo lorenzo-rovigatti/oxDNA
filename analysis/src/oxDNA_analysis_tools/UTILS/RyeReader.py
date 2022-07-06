@@ -16,15 +16,13 @@ def Chunker(file, fsize, size=1000000) -> Chunk:
     """
         Generator that yields chunks of a fixed number of bytes
 
-        Parameters
-        ----------
-        file (file) : The file to read
-        fsize (int) : The size of the file
-        size (int) : The size of the chunks
+        Parameters:
+            file (file) : The file to read
+            fsize (int) : The size of the file
+            size (int) : The size of the chunks
 
-        Returns
-        -------
-        (Chunk) : The chunk
+        Returns:
+            (Chunk) : The chunk
     """
     current_chunk = 0  
     while True:
@@ -39,15 +37,13 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> Li
 
         Produces an iterator that yields a list of <chunk_size> configurations.
 
-        Parameters
-        ----------
-        traj_info (TrajInfo) : The trajectory info
-        top_info (TopInfo) : The topology info
-        ntopart (int) : The number of confs to read at a time
+        Parameters:
+            traj_info (TrajInfo) : The trajectory info
+            top_info (TopInfo) : The topology info
+            ntopart (int) : The number of confs to read at a time
 
-        Returns
-        -------
-        (Configuration[]) : list of configurations
+        Returns:
+            list[Configuration] : list of configurations
     """
     if chunk_size is None:
         chunk_size = get_chunk_size()
@@ -65,13 +61,11 @@ def _index(traj_file) -> List[ConfInfo]:
     """
         Finds conf starts in a trajectory file.
 
-        Parameters
-        ----------
-        traj_file (file) : The trajectory file
+        Parameters:
+            traj_file (file) : The trajectory file
 
-        Returns
-        -------
-        (ConfInfo[]) : The start byte and number of bytes in each conf.
+        Returns:
+            List[ConfInfo] : The start byte and number of bytes in each conf.
     """
     def find_all(a_str, sub):
         #https://stackoverflow.com/questions/4664850/how-to-find-all-occurrences-of-a-substring
@@ -101,17 +95,15 @@ def get_confs(indexes:list, traj_file:str, start_conf:int, n_confs:int, n_bases:
     """
         Read a chunk of confs from a trajectory file.
 
-        Parameters
-        ----------
-        indexes (ConfInfo[]) : The start bytes and sizes of each conf
-        traj_file (str) : The path to the trajectory file
-        start_conf (int) : The index of the first conf to read
-        n_confs (int) : The number of confs to read
-        n_bases (int) : The number of bases in the system
+        Parameters:
+            indexes (ConfInfo[]) : The start bytes and sizes of each conf
+            traj_file (str) : The path to the trajectory file
+            start_conf (int) : The index of the first conf to read
+            n_confs (int) : The number of confs to read
+            n_bases (int) : The number of bases in the system
 
-        Returns
-        -------
-        (Configuration[]) : list of configurations
+        Returns:
+            List[Configuration] : list of configurations
 
     """
     return cget_confs(indexes, traj_file, start_conf, n_confs, n_bases)
@@ -124,13 +116,11 @@ def get_top_info(top : str) -> TopInfo:
     """
         bare bones of topology info
 
-        Parameters
-        ----------
-        top (str) : path to the topology file
+        Parameters:
+            top (str) : path to the topology file
 
-        Returns
-        -------
-        (TopInfo) : topology info
+        Returns:
+            (TopInfo) : topology info
     """
     with open(top) as f:
         my_top_info = f.readline().split(' ')
@@ -149,13 +139,11 @@ def get_top_info_from_traj(traj : str) -> TopInfo:
 
         Note that the resulting top_info will have 0 strands because that information cannot be found in the trajectory. 
 
-        Parameters
-        ----------
-        traj (str) : path to the trajectory file
+        Parameters:
+            traj (str) : path to the trajectory file
 
-        Returns
-        -------
-        (TopInfo, TrajInfo) : topology and trajectory info
+        Returns:
+            (TopInfo, TrajInfo) : topology and trajectory info
     """
     with open(traj) as f:
         l = ''
@@ -175,13 +163,11 @@ def get_traj_info(traj : str) -> TrajInfo:
     """
         Get the information of a trajectory file
 
-        Parameters
-        ----------
-        traj (str) : path to the trajectory file
+        Parameters:
+            traj (str) : path to the trajectory file
 
-        Returns
-        -------
-        (TrajInfo) : trajectory info
+        Returns:
+            (TrajInfo) : trajectory info
 
     """
     #if idxs is None: # handle case when we have no indexes provided
@@ -202,14 +188,12 @@ def describe(top : str, traj : str) -> Tuple[TopInfo, TrajInfo]:
         You can provide None as the topology and it will read the first conf of the traj to get the number of particles.
         Note that the TopInfo will be missing the path parameter if no topology is provided.
 
-        Parameters
-        ----------
-        top (str or None) : path to the topology file
-        traj (str) : path to the trajectory file
+        Parameters:
+            top (str or None) : path to the topology file
+            traj (str) : path to the trajectory file
 
-        Returns
-        -------
-        (TopInfo, TrajInfo) : topology and trajectory info
+        Returns:
+            (TopInfo, TrajInfo) : topology and trajectory info
     """
     if top is None:
         return (get_top_info_from_traj(traj), get_traj_info(traj))
@@ -277,6 +261,7 @@ def strand_describe(top) -> Tuple[System, list]:
 def get_input_parameter(input_file, parameter) -> str:
     """
     Gets the value of a parameter in an oxDNA input file
+    
     Parameters:
         input_file (str): The path to the input file
         parameter (str): The parameter you want to get the value of
@@ -304,14 +289,12 @@ def inbox(conf : Configuration, center=False) -> Configuration:
     """
         Modify the positions attribute such that all positions are inside the box.
 
-        Parameters
-        ----------
-        conf (Configuration) : The configuration to inbox
-        center (bool) : If True, center the configuration on the box
+        Parameters:
+            conf (Configuration) : The configuration to inbox
+            center (bool) : If True, center the configuration on the box
 
-        Returns
-        -------
-        (Configuration) : The inboxed configuration
+        Returns:
+            (Configuration) : The inboxed configuration
     """
     def realMod (n, m):
         return(((n % m) + m) % m)
@@ -345,11 +328,10 @@ def write_conf(path : str, conf : Configuration, append=False) -> None:
     """
         write the conf to a file
 
-        Parameters
-        ----------
-        path (str) : path to the file
-        conf (Configuration) : the configuration to write
-        append (bool) : if True, append to the file, if False, overwrite
+        Parameters:
+            path (str) : path to the file
+            conf (Configuration) : the configuration to write
+            append (bool) : if True, append to the file, if False, overwrite
     """
     out = []
     out.append('t = {}'.format(int(conf.time)))
@@ -366,13 +348,11 @@ def conf_to_str(conf : Configuration) -> str:
     """
     Write configuration as a string
 
-    Parameters
-    ----------
-    conf (Configuration) : The configuration to write
+    Parameters:
+        conf (Configuration) : The configuration to write
 
-    Returns
-    -------
-    (str) : The configuration as a string
+    Returns:
+        (str) : The configuration as a string
     """
     # When writing a configuration to a file, the conversion from ndarray to string is the slowest part
     # This horrific list comp is the best solution we found
@@ -383,13 +363,11 @@ def get_top_string(system) -> str:
     """
         Write topology file from system object.
 
-        Parameters
-        ----------
-        system (System) : system object
+        Parameters:
+            system (System) : system object
 
-        Returns
-        -------
-        (str) : string representation of the system in .top format
+        Returns:
+            (str) : string representation of the system in .top format
 
     """
 

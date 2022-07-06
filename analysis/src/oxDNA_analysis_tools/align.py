@@ -19,12 +19,12 @@ def svd_align(centered_ref_coords:np.ndarray, coords:np.ndarray, indexes:List[in
     """
     Single-value decomposition-based alignment of configurations
 
-    Parameters
-        centered_ref_coords: reference coordinates, centered on [0, 0, 0]
-        coords: coordinates to be aligned
-        indexes: indexes of the atoms to be aligned
+    Parameters:
+        centered_ref_coords (numpy.ndarray): reference coordinates, centered on [0, 0, 0]
+        coords (numpy.ndarray): coordinates to be aligned
+        indexes (List[int]): indexes of the atoms to be aligned
 
-    Returns
+    Returns:
         A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk
     """
     # center on centroid

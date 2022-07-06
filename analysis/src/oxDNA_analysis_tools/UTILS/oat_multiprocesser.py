@@ -1,5 +1,6 @@
 from sys import stderr
 from multiprocessing import Pool
+from typing import Callable, NamedTuple
 
 def get_chunk_size():
     from oxDNA_analysis_tools.UTILS.chunksize import CHUNKSIZE
@@ -7,7 +8,19 @@ def get_chunk_size():
 
 # set_chunk_size is in config.py
 
-def oat_multiprocesser(nconfs, ncpus, function, callback, ctx):
+def oat_multiprocesser(nconfs:int, ncpus:int, function:Callable, callback:Callable, ctx:NamedTuple):
+    """
+        Runs a function on a trajectory by distributing chunks of the trajectory to each processor. Accumulates the results with a callback function.
+
+        Parameters:
+            nconfs (int): The number of configurations to process at a time
+            ncpus (int): The number of processors to use
+            function (function): The function to run on each chunk
+            callback (function): The function to call after each chunk is processed
+            ctx (NamedTuple): A named tuple containing the arguments for the function
+
+        The callback function must use the `nonlocal` keyword to update a variable in the main thread.
+    """
     chunk_size = get_chunk_size()
 
     pool = Pool(ncpus)

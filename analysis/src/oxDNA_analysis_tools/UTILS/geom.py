@@ -25,7 +25,7 @@ def get_RNA_axis(particles, d):
         Returns the axis of a RNA duplex
         
         Parameters:
-            particles (oxpy config_info): The positions/orientations of the particles
+            particles (oxpy.config_info): The positions/orientations of the particles
             start1 (int): Particle ID of the first particle in the first strand
             end1 (int): Particle ID of the last particle in the first strand
             end2 (int): Particle ID of the particle complimentary to start1
@@ -113,10 +113,10 @@ def get_RNA_axis(particles, d):
 
 def get_DNA_axis (particles, d):
     """
-        Returns the axis of a RNA duplex
+        Returns the axis of a DNA duplex
         
         Parameters:
-            particles (oxpy config_info): The positions/orientations of the particles
+            particles (oxpy.config_info): The positions/orientations of the particles
             start1 (int): Particle ID of the first particle in the first strand
             end1 (int): Particle ID of the last particle in the first strand
             end2 (int): Particle ID of the particle complimentary to start1

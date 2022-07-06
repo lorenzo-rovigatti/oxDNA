@@ -120,6 +120,7 @@ def repulsion_sphere(particle, center, stiff, r0, rate=1):
     """
     return({
         "type" : "sphere",
+        "particle" : particle,
         "center" : center,
         "stiff" : stiff,
         "r0" : r0,

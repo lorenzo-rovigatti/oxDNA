@@ -24,7 +24,7 @@ class Duplex:
     """
         Defines a nucleic acid duplex structure
 
-        Init Parameters:
+        Parameters:
             index (int): Unique identifier for the duplex
             start1 (int): Particle ID of the first particle in the first strand
             end1 (int): Particle ID of the last particle in the first strand
