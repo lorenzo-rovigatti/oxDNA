@@ -44,6 +44,15 @@ class Duplex:
 
 
 def find_duplex(monomers:List[Monomer]) -> List[Duplex]:
+    """
+        Finds the duplexes in a structure
+
+        Parameters:
+            monomers (List[Monomer]): List of monomers in the structure
+
+        Returns:
+            List[Duplex]: List of duplexes
+    """
     def terminating_conditions(m):
         if m.id in assigned_monomers: # already assigned this nucleotide to another duplex
             return True
@@ -127,6 +136,19 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         return duplexes_at_step
 
 def duplex_finder(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, monomers:List[Monomer], ncpus=1) -> List[List[Duplex]]:
+    """
+        Finds the duplexes in a trajectory
+
+        Parameters:
+            traj_info (TrajInfo): Information about the trajectory
+            top_info (TopInfo): Information about the topology
+            inputfile (str): Path to the input file
+            monomers (List[Monomer]): List of monomers in the structure
+            ncpus (int): Number of CPUs to use
+
+        Returns:
+            List[List[Duplex]]: List of lists of duplexes, one list for each step in the trajectory
+    """
     ctx = ComputeContext(traj_info, top_info, inputfile, monomers)
 
     duplexes_at_step = []
