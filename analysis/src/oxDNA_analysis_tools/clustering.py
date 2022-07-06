@@ -184,6 +184,18 @@ def make_plot(op, labels, centroid_ids):
 
 
 def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:str, eps:float, min_samples:int):
+    """
+    Use the DBSCAN algorithm to identify clusters of configurations based on a given order parameter.
+
+    Parameters:
+        traj_info (TrajInfo): Information about the trajectory
+        top_info (TopInfo): Information about the topology
+        op (np.ndarray): The order parameter(s) to use
+        metric (str): Either 'euclidean' or 'precomputed' for whether the distance needs to be calculated
+        eps (float): The maximum distance between two points to be considered in the same neighborhood
+        min_samples (int): The minimum number of points to be considered a neighborhood
+    """
+    
     check_dependencies(["python", "sklearn", "matplotlib"])
     
     #dump the input as a json file so you can iterate on eps and min_samples

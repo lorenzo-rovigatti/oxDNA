@@ -7,6 +7,12 @@ import argparse
 
 #checking dependencies to make sure everything is correct
 def check_dependencies(to_check:List[str]):
+    """
+        Checks if the dependencies are installed.
+
+        Parameters:
+            to_check (List[str]): list of package names to check
+    """
     flag = False
     dependencies = {
         "numpy": 1.14,
@@ -77,10 +83,24 @@ def check_dependencies(to_check:List[str]):
     return flag
 
 def set_chunk_size(chunk_size:int):
+    """
+        Sets the number of confs to read at a time for analyses.  This value is persistent between analyses.
+
+        Parameters:
+            chunk_size (int): number of confs to read at a time
+
+        This will update a file called chunksize.py in the UTILS directory.
+    """
     with open(path.realpath(__file__).strip('config.py')+"UTILS/chunksize.py", 'w') as f:
         f.write("CHUNKSIZE = "+str(chunk_size))
 
 def get_chunk_size():
+    """
+        Gets the current chunk size.
+
+        Returns:
+            int: number of confs to read at a time
+    """
     try:
         from oxDNA_analysis_tools.UTILS.chunksize import CHUNKSIZE
         print("INFO: Analyses will be computed in chunks of {} configurations at a time".format(CHUNKSIZE), file=stderr)

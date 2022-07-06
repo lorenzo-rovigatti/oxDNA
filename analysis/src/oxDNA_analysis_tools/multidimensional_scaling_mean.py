@@ -48,7 +48,7 @@ def make_heatmap(contact_map:np.ndarray):
     b.set_label("distance", rotation = 270)
     plt.show()
 
-def devs_mds(ctx:DevsContext, chunk_size:int, chunk_id:int, ):
+def devs_mds(ctx:DevsContext, chunk_size:int, chunk_id:int, ): 
     confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
     
     np_poses = np.asarray([c.positions for c in confs])
@@ -95,6 +95,15 @@ def multidimensional_scaling_mean(traj_info:TrajInfo, top_info:TopInfo, ncpus:in
     return mean_conf, masked_mean
 
 def distance_deviations(traj_info:TrajInfo, top_info:TopInfo, masked_mean:np.ndarray, ncpus:int=1) -> np.ndarray:
+    """
+        Compute the deviations of the contact map from the mean.
+
+        Parameters:
+            traj_info (TrajInfo): Information about the trajectory.
+            top_info (TopInfo): Information about the topology.
+            masked_mean (np.ndarray): The mean contact map with values greater than a cutoff masked.
+            ncpus (int): (optional) Number of CPUs to use.
+    """
     # Compute the deviations from the mean
     ctx = DevsContext(traj_info, top_info, masked_mean)
     

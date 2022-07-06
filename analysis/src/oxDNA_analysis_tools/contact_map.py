@@ -39,7 +39,12 @@ def compute(ctx:ComputeContext, chunk_size:int,  chunk_id:int) -> np.array:
 
 def contact_map(traj_info:TrajInfo, top_info:TopInfo, ncpus=1) -> np.array: 
     """
-    
+        Calculates the average contact map for a trajectory.
+
+        Parameters:
+            traj_info (TrajInfo): Information about the trajectory.
+            top_info (TopInfo): Information about the topology.
+            ncpus (int): (optional) The number of cores to use.
     """
     ctx = ComputeContext(traj_info, top_info)
 
