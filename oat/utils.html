@@ -1,0 +1,951 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Utilities documentation &mdash; oxDNA  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="External forces documentation" href="forces.html" />
+    <link rel="prev" title="Analysis documentation" href="api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configurations.html">Configuration and topology files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../forces.html">External forces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../observables.html">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../umbrella_sampling.html">Umbrella sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ffs.html">Forward Flux Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../events.html">Events</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">oxDNA Analysis Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#top-level-api">Top-level API</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#utility-api">Utility API</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Utilities documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#data-structures">Data structures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#geometry-utilities">Geometry utilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#multiprocesser">Multiprocesser</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rye-reader">Rye reader</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#forces-api">Forces API</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../oxpy/index.html">Oxpy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">oxDNA</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">oxDNA Analysis Tools</a> &raquo;</li>
+        
+      <li>Utilities documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/oat/utils.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="tex2jax_ignore mathjax_ignore section" id="utilities-documentation">
+<h1>Utilities documentation<a class="headerlink" href="#utilities-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="data-structures">
+<h2>Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Chunk" title="oxDNA_analysis_tools.UTILS.data_structures.Chunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.data_structures.Chunk</span></code></a></p></td>
+<td><p>Dataclass to hold information about a chunk of a trajectory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.data_structures.ConfInfo</span></code></a></p></td>
+<td><p>Dataclass to hold metadata about a single configuration</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.data_structures.TrajInfo</span></code></a></p></td>
+<td><p>Dataclass to hold metadata about a trajectory file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.data_structures.Configuration</span></code></a></p></td>
+<td><p>Dataclass/numpy representation for oxDNA configurations</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.data_structures.TopInfo</span></code></a></p></td>
+<td><p>Dataclass to hold metadata about a topology file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.System" title="oxDNA_analysis_tools.UTILS.data_structures.System"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.data_structures.System</span></code></a></p></td>
+<td><p>Object hierarchy representation of an oxDNA configuration</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand" title="oxDNA_analysis_tools.UTILS.data_structures.Strand"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.data_structures.Strand</span></code></a></p></td>
+<td><p>Object hierarchy representation of an oxDNA strand</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer" title="oxDNA_analysis_tools.UTILS.data_structures.Monomer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.data_structures.Monomer</span></code></a></p></td>
+<td><p>Object hierarchy representation of an oxDNA monomer</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Chunk">
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">Chunk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">block</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">offset</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">is_last</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span></em>, <em class="sig-param"><span class="n">file_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Chunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Dataclass to hold information about a chunk of a trajectory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>block</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The file contents of the chunk</p></li>
+<li><p><strong>offset</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The start byte of the chunk</p></li>
+<li><p><strong>is_last</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – Whether this is the last chunk of the trajectory</p></li>
+<li><p><strong>file_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The total size of the file</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Chunk.block">
+<code class="sig-name descname">block</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Chunk.block" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Chunk.file_size">
+<code class="sig-name descname">file_size</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Chunk.file_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Chunk.is_last">
+<code class="sig-name descname">is_last</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Chunk.is_last" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Chunk.offset">
+<code class="sig-name descname">offset</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Chunk.offset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo">
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">ConfInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">offset</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Dataclass to hold metadata about a single configuration</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>offset</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The start byte of the configuration</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The size of the configuration in bytes</p></li>
+<li><p><strong>idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The index of the configuration in the trajectory</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo.id">
+<code class="sig-name descname">id</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo.offset">
+<code class="sig-name descname">offset</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo.offset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo.size">
+<code class="sig-name descname">size</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">TrajInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">nconfs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">idxs</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo">oxDNA_analysis_tools.UTILS.data_structures.ConfInfo</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Dataclass to hold metadata about a trajectory file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The path to the trajectory file</p></li>
+<li><p><strong>nconfs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of configurations in the trajectory</p></li>
+<li><p><strong>idxs</strong> (<em>List</em><em>[</em><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo"><em>ConfInfo</em></a><em>]</em>) – A list of ConfInfo objects locating configurations in the trajectory</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.idxs">
+<code class="sig-name descname">idxs</code><em class="property">: List<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo">oxDNA_analysis_tools.UTILS.data_structures.ConfInfo</a><span class="p">]</span></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.idxs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.nconfs">
+<code class="sig-name descname">nconfs</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.nconfs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.path">
+<code class="sig-name descname">path</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Configuration">
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">Configuration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">box</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">energy</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">positions</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">a1s</span><span class="p">:</span> <span class="n">numpy.array</span></em>, <em class="sig-param"><span class="n">a3s</span><span class="p">:</span> <span class="n">numpy.array</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Dataclass/numpy representation for oxDNA configurations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The time step of the configuration</p></li>
+<li><p><strong>box</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – The box size for the simulation</p></li>
+<li><p><strong>energy</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – The potential, kinetic and total energy for the configuration</p></li>
+<li><p><strong>positions</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – The positions of the nucleotides</p></li>
+<li><p><strong>a1s</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – the orientations of the base pairing sites</p></li>
+<li><p><strong>a3s</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – the orientations of the stacking sites</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Configuration.a1s">
+<code class="sig-name descname">a1s</code><em class="property">: numpy.array</em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration.a1s" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Configuration.a3s">
+<code class="sig-name descname">a3s</code><em class="property">: numpy.array</em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration.a3s" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Configuration.box">
+<code class="sig-name descname">box</code><em class="property">: numpy.array</em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration.box" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Configuration.energy">
+<code class="sig-name descname">energy</code><em class="property">: numpy.array</em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration.energy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Configuration.positions">
+<code class="sig-name descname">positions</code><em class="property">: numpy.array</em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration.positions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Configuration.time">
+<code class="sig-name descname">time</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration.time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">TopInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">nbases</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Dataclass to hold metadata about a topology file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The path to the topology file</p></li>
+<li><p><strong>nbases</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of nucleotides in the topology</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.TopInfo.nbases">
+<code class="sig-name descname">nbases</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo.nbases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.TopInfo.path">
+<code class="sig-name descname">path</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.System">
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">System</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">strands</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.System" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Object hierarchy representation of an oxDNA configuration</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>strands</strong> (<em>List</em><em>[</em><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand" title="oxDNA_analysis_tools.UTILS.data_structures.Strand"><em>Strand</em></a><em>]</em>) – A list of Strand objects</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.System.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">strand</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.System.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append a strand to the system</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>strand</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand" title="oxDNA_analysis_tools.UTILS.data_structures.Strand"><em>Strand</em></a>) – The strand to append</p>
+</dd>
+</dl>
+<p>Modifies this system in-place</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.System.strands">
+<code class="sig-name descname">strands</code><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.System.strands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Strand">
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">Strand</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Object hierarchy representation of an oxDNA strand</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The id of the strand</p></li>
+<li><p><strong>monomers</strong> (<em>List</em><em>[</em><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer" title="oxDNA_analysis_tools.UTILS.data_structures.Monomer"><em>Monomer</em></a><em>]</em>) – A list of Monomer objects</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Strand.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Strand.monomers">
+<code class="sig-name descname">monomers</code><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand.monomers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Monomer">
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">Monomer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">type</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">strand</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand" title="oxDNA_analysis_tools.UTILS.data_structures.Strand">oxDNA_analysis_tools.UTILS.data_structures.Strand</a></span></em>, <em class="sig-param"><span class="n">n3</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">n5</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">pair</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Object hierarchy representation of an oxDNA monomer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The id of the monomer</p></li>
+<li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The type of the monomer</p></li>
+<li><p><strong>strand</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand" title="oxDNA_analysis_tools.UTILS.data_structures.Strand"><em>Strand</em></a>) – The strand the monomer belongs to</p></li>
+<li><p><strong>n3</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The id of the 3’ neighbor of the monomer</p></li>
+<li><p><strong>n5</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The id of the 5’ neighbor of the monomer</p></li>
+<li><p><strong>pair</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The id of the pair of the monomer</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Monomer.id">
+<code class="sig-name descname">id</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer.id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Monomer.n3">
+<code class="sig-name descname">n3</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer.n3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Monomer.n5">
+<code class="sig-name descname">n5</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer.n5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Monomer.pair">
+<code class="sig-name descname">pair</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer.pair" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Monomer.strand">
+<code class="sig-name descname">strand</code><em class="property">: <a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Strand" title="oxDNA_analysis_tools.UTILS.data_structures.Strand">oxDNA_analysis_tools.UTILS.data_structures.Strand</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer.strand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.Monomer.type">
+<code class="sig-name descname">type</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.Monomer.type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="geometry-utilities">
+<h2>Geometry utilities<a class="headerlink" href="#geometry-utilities" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.geom.fit_plane" title="oxDNA_analysis_tools.UTILS.geom.fit_plane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.geom.fit_plane</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.geom.get_RNA_axis" title="oxDNA_analysis_tools.UTILS.geom.get_RNA_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.geom.get_RNA_axis</span></code></a></p></td>
+<td><p>Returns the axis of a RNA duplex</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.geom.get_DNA_axis" title="oxDNA_analysis_tools.UTILS.geom.get_DNA_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.geom.get_DNA_axis</span></code></a></p></td>
+<td><p>Returns the axis of a DNA duplex</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.geom.fit_plane">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.geom.</code><code class="sig-name descname">fit_plane</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.geom.fit_plane" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.geom.get_RNA_axis">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.geom.</code><code class="sig-name descname">get_RNA_axis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particles</span></em>, <em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.geom.get_RNA_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the axis of a RNA duplex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particles</strong> (<em>oxpy.config_info</em>) – The positions/orientations of the particles</p></li>
+<li><p><strong>start1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Particle ID of the first particle in the first strand</p></li>
+<li><p><strong>end1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Particle ID of the last particle in the first strand</p></li>
+<li><p><strong>end2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Particle ID of the particle complimentary to start1</p></li>
+<li><p><strong>start2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Particle ID of the particle complimentary to end1</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.geom.get_DNA_axis">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.geom.</code><code class="sig-name descname">get_DNA_axis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particles</span></em>, <em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.geom.get_DNA_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the axis of a DNA duplex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particles</strong> (<em>oxpy.config_info</em>) – The positions/orientations of the particles</p></li>
+<li><p><strong>start1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Particle ID of the first particle in the first strand</p></li>
+<li><p><strong>end1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Particle ID of the last particle in the first strand</p></li>
+<li><p><strong>end2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Particle ID of the particle complimentary to start1</p></li>
+<li><p><strong>start2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Particle ID of the particle complimentary to end1</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="multiprocesser">
+<h2>Multiprocesser<a class="headerlink" href="#multiprocesser" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.oat_multiprocesser.oat_multiprocesser" title="oxDNA_analysis_tools.UTILS.oat_multiprocesser.oat_multiprocesser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.oat_multiprocesser.oat_multiprocesser</span></code></a></p></td>
+<td><p>Runs a function on a trajectory by distributing chunks of the trajectory to each processor.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.oat_multiprocesser.oat_multiprocesser">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.oat_multiprocesser.</code><code class="sig-name descname">oat_multiprocesser</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nconfs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">ncpus</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">function</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">ctx</span><span class="p">:</span> <span class="n">NamedTuple</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.oat_multiprocesser.oat_multiprocesser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs a function on a trajectory by distributing chunks of the trajectory to each processor. Accumulates the results with a callback function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nconfs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of configurations to process at a time</p></li>
+<li><p><strong>ncpus</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of processors to use</p></li>
+<li><p><strong>function</strong> (<em>function</em>) – The function to run on each chunk</p></li>
+<li><p><strong>callback</strong> (<em>function</em>) – The function to call after each chunk is processed</p></li>
+<li><p><strong>ctx</strong> (<em>NamedTuple</em>) – A named tuple containing the arguments for the function</p></li>
+</ul>
+</dd>
+</dl>
+<p>The callback function must use the <cite>nonlocal</cite> keyword to update a variable in the main thread.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="rye-reader">
+<h2>Rye reader<a class="headerlink" href="#rye-reader" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.Chunker" title="oxDNA_analysis_tools.UTILS.RyeReader.Chunker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.Chunker</span></code></a></p></td>
+<td><p>Generator that yields chunks of a fixed number of bytes</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.linear_read" title="oxDNA_analysis_tools.UTILS.RyeReader.linear_read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.linear_read</span></code></a></p></td>
+<td><p>Read a trajecory without multiprocessing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_confs" title="oxDNA_analysis_tools.UTILS.RyeReader.get_confs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.get_confs</span></code></a></p></td>
+<td><p>Read a chunk of confs from a trajectory file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_top_info" title="oxDNA_analysis_tools.UTILS.RyeReader.get_top_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.get_top_info</span></code></a></p></td>
+<td><p>bare bones of topology info</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_top_info_from_traj" title="oxDNA_analysis_tools.UTILS.RyeReader.get_top_info_from_traj"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.get_top_info_from_traj</span></code></a></p></td>
+<td><p>Retrieve top and traj info without providing a topology.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_traj_info" title="oxDNA_analysis_tools.UTILS.RyeReader.get_traj_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.get_traj_info</span></code></a></p></td>
+<td><p>Get the information of a trajectory file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.describe" title="oxDNA_analysis_tools.UTILS.RyeReader.describe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.describe</span></code></a></p></td>
+<td><p>retrieve top and traj info for a provided pair</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.strand_describe" title="oxDNA_analysis_tools.UTILS.RyeReader.strand_describe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.strand_describe</span></code></a></p></td>
+<td><p>Retrieve all information from topology file mapping nucleotides to strands.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_input_parameter" title="oxDNA_analysis_tools.UTILS.RyeReader.get_input_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.get_input_parameter</span></code></a></p></td>
+<td><p>Gets the value of a parameter in an oxDNA input file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.inbox" title="oxDNA_analysis_tools.UTILS.RyeReader.inbox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.inbox</span></code></a></p></td>
+<td><p>Modify the positions attribute such that all positions are inside the box.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.write_conf" title="oxDNA_analysis_tools.UTILS.RyeReader.write_conf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.write_conf</span></code></a></p></td>
+<td><p>write the conf to a file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.conf_to_str" title="oxDNA_analysis_tools.UTILS.RyeReader.conf_to_str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.conf_to_str</span></code></a></p></td>
+<td><p>Write configuration as a string</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_top_string" title="oxDNA_analysis_tools.UTILS.RyeReader.get_top_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.RyeReader.get_top_string</span></code></a></p></td>
+<td><p>Write topology file from system object.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.Chunker">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">Chunker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span></em>, <em class="sig-param"><span class="n">fsize</span></em>, <em class="sig-param"><span class="n">size</span><span class="o">=</span><span class="default_value">1000000</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Chunk" title="oxDNA_analysis_tools.UTILS.data_structures.Chunk">oxDNA_analysis_tools.UTILS.data_structures.Chunk</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.Chunker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generator that yields chunks of a fixed number of bytes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>file</em>) – The file to read</p></li>
+<li><p><strong>fsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The size of the file</p></li>
+<li><p><strong>size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The size of the chunks</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The chunk</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Chunk" title="oxDNA_analysis_tools.UTILS.data_structures.Chunk">Chunk</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.linear_read">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">linear_read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">traj_info</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">oxDNA_analysis_tools.UTILS.data_structures.TrajInfo</a></span></em>, <em class="sig-param"><span class="n">top_info</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">oxDNA_analysis_tools.UTILS.data_structures.TopInfo</a></span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a><span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.linear_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a trajecory without multiprocessing.</p>
+<p>Produces an iterator that yields a list of &lt;chunk_size&gt; configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>traj_info</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo"><em>TrajInfo</em></a>) – The trajectory info</p></li>
+<li><p><strong>top_info</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo"><em>TopInfo</em></a>) – The topology info</p></li>
+<li><p><strong>ntopart</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of confs to read at a time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of configurations</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">Configuration</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.get_confs">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">get_confs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">traj_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">start_conf</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">n_confs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">n_bases</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a><span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_confs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a chunk of confs from a trajectory file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indexes</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo"><em>ConfInfo</em></a><em>[</em><em>]</em>) – The start bytes and sizes of each conf</p></li>
+<li><p><strong>traj_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The path to the trajectory file</p></li>
+<li><p><strong>start_conf</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The index of the first conf to read</p></li>
+<li><p><strong>n_confs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of confs to read</p></li>
+<li><p><strong>n_bases</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of bases in the system</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of configurations</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">Configuration</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.get_top_info">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">get_top_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">top</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">oxDNA_analysis_tools.UTILS.data_structures.TopInfo</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_top_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>bare bones of topology info</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>top</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – path to the topology file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>topology info</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">TopInfo</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.get_top_info_from_traj">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">get_top_info_from_traj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">traj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">oxDNA_analysis_tools.UTILS.data_structures.TopInfo</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_top_info_from_traj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve top and traj info without providing a topology.</p>
+<p>Note that the resulting top_info will have 0 strands because that information cannot be found in the trajectory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>traj</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – path to the trajectory file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>topology and trajectory info</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">TopInfo</a>, <a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">TrajInfo</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.get_traj_info">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">get_traj_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">traj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">oxDNA_analysis_tools.UTILS.data_structures.TrajInfo</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_traj_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the information of a trajectory file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>traj</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – path to the trajectory file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>trajectory info</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">TrajInfo</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.describe">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">describe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">top</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">traj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">oxDNA_analysis_tools.UTILS.data_structures.TopInfo</a><span class="p">, </span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">oxDNA_analysis_tools.UTILS.data_structures.TrajInfo</a><span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.describe" title="Permalink to this definition">¶</a></dt>
+<dd><p>retrieve top and traj info for a provided pair</p>
+<p>You can provide None as the topology and it will read the first conf of the traj to get the number of particles.
+Note that the TopInfo will be missing the path parameter if no topology is provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>top</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><em>None</em></a>) – path to the topology file</p></li>
+<li><p><strong>traj</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – path to the trajectory file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>topology and trajectory info</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">TopInfo</a>, <a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">TrajInfo</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.strand_describe">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">strand_describe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">top</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.System" title="oxDNA_analysis_tools.UTILS.data_structures.System">oxDNA_analysis_tools.UTILS.data_structures.System</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.strand_describe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve all information from topology file mapping nucleotides to strands.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>top</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – path to topology file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>system object
+monomers (list of Monomer) : list of monomers</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>system (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.System" title="oxDNA_analysis_tools.UTILS.data_structures.System">System</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.get_input_parameter">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">get_input_parameter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_file</span></em>, <em class="sig-param"><span class="n">parameter</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_input_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the value of a parameter in an oxDNA input file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The path to the input file</p></li>
+<li><p><strong>parameter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The parameter you want to get the value of</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The value of the parameter</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>value (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.inbox">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">inbox</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a></span></em>, <em class="sig-param"><span class="n">center</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.inbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modify the positions attribute such that all positions are inside the box.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conf</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration"><em>Configuration</em></a>) – The configuration to inbox</p></li>
+<li><p><strong>center</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, center the configuration on the box</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The inboxed configuration</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">Configuration</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.write_conf">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">write_conf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a></span></em>, <em class="sig-param"><span class="n">append</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.write_conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>write the conf to a file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – path to the file</p></li>
+<li><p><strong>conf</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration"><em>Configuration</em></a>) – the configuration to write</p></li>
+<li><p><strong>append</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if True, append to the file, if False, overwrite</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.conf_to_str">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">conf_to_str</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.conf_to_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write configuration as a string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>conf</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration"><em>Configuration</em></a>) – The configuration to write</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The configuration as a string</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.RyeReader.get_top_string">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.RyeReader.</code><code class="sig-name descname">get_top_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.RyeReader.get_top_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write topology file from system object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>system</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.System" title="oxDNA_analysis_tools.UTILS.data_structures.System"><em>System</em></a>) – system object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>string representation of the system in .top format</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="forces.html" class="btn btn-neutral float-right" title="External forces documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="api.html" class="btn btn-neutral float-left" title="Analysis documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

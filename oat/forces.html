@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>External forces documentation &mdash; oxDNA  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Oxpy" href="../oxpy/index.html" />
+    <link rel="prev" title="Utilities documentation" href="utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configurations.html">Configuration and topology files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../forces.html">External forces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../observables.html">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../umbrella_sampling.html">Umbrella sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ffs.html">Forward Flux Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../events.html">Events</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">oxDNA Analysis Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#top-level-api">Top-level API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#utility-api">Utility API</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#forces-api">Forces API</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">External forces documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#forces">Forces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reader-writer">Reader/Writer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../oxpy/index.html">Oxpy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">oxDNA</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">oxDNA Analysis Tools</a> &raquo;</li>
+        
+      <li>External forces documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/oat/forces.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="tex2jax_ignore mathjax_ignore section" id="external-forces-documentation">
+<h1>External forces documentation<a class="headerlink" href="#external-forces-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="forces">
+<h2>Forces<a class="headerlink" href="#forces" title="Permalink to this headline">¶</a></h2>
+<p>Python data structures for all forces defined by oxDNA</p>
+<div class="toctree-wrapper compound">
+</div>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.external_force_utils.forces.mutual_trap" title="oxDNA_analysis_tools.external_force_utils.forces.mutual_trap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.external_force_utils.forces.mutual_trap</span></code></a></p></td>
+<td><p>A spring force that pulls a particle towards the position of another particle</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.external_force_utils.forces.string" title="oxDNA_analysis_tools.external_force_utils.forces.string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.external_force_utils.forces.string</span></code></a></p></td>
+<td><p>A linear force along a vector</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.external_force_utils.forces.harmonic_trap" title="oxDNA_analysis_tools.external_force_utils.forces.harmonic_trap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.external_force_utils.forces.harmonic_trap</span></code></a></p></td>
+<td><p>A linear potential well that traps a particle</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.external_force_utils.forces.rotating_harmonic_trap" title="oxDNA_analysis_tools.external_force_utils.forces.rotating_harmonic_trap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.external_force_utils.forces.rotating_harmonic_trap</span></code></a></p></td>
+<td><p>A harmonic trap that rotates in space with constant angular velocity</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.external_force_utils.forces.repulsion_plane" title="oxDNA_analysis_tools.external_force_utils.forces.repulsion_plane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.external_force_utils.forces.repulsion_plane</span></code></a></p></td>
+<td><p>A plane that forces the affected particle to stay on one side.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.external_force_utils.forces.repulsion_sphere" title="oxDNA_analysis_tools.external_force_utils.forces.repulsion_sphere"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.external_force_utils.forces.repulsion_sphere</span></code></a></p></td>
+<td><p>A sphere that encloses the particle</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.external_force_utils.forces.mutual_trap">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.external_force_utils.forces.</code><code class="sig-name descname">mutual_trap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particle</span></em>, <em class="sig-param"><span class="n">ref_particle</span></em>, <em class="sig-param"><span class="n">stiff</span></em>, <em class="sig-param"><span class="n">r0</span></em>, <em class="sig-param"><span class="n">PBC</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.external_force_utils.forces.mutual_trap" title="Permalink to this definition">¶</a></dt>
+<dd><p>A spring force that pulls a particle towards the position of another particle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the particle that the force acts upon</p></li>
+<li><p><strong>ref_particle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the particle that the particle will be pulled towards</p></li>
+<li><p><strong>stiff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the force constant of the spring (in simulation units)</p></li>
+<li><p><strong>r0</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the equlibrium distance of the spring</p></li>
+<li><p><strong>PBC</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – does the force calculation take PBC into account (almost always 1)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.external_force_utils.forces.string">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.external_force_utils.forces.</code><code class="sig-name descname">string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particle</span></em>, <em class="sig-param"><span class="n">f0</span></em>, <em class="sig-param"><span class="n">rate</span></em>, <em class="sig-param"><span class="n">direction</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.external_force_utils.forces.string" title="Permalink to this definition">¶</a></dt>
+<dd><p>A linear force along a vector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the particle that the force acts upon</p></li>
+<li><p><strong>f0</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the initial strength of the force at t=0 (in simulation units)</p></li>
+<li><p><strong>rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em> or </em><em>SN string</em>) – growing rate of the force (simulation units/timestep)</p></li>
+<li><p><strong>dir</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – the direction of the force</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.external_force_utils.forces.harmonic_trap">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.external_force_utils.forces.</code><code class="sig-name descname">harmonic_trap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particle</span></em>, <em class="sig-param"><span class="n">pos0</span></em>, <em class="sig-param"><span class="n">stiff</span></em>, <em class="sig-param"><span class="n">rate</span></em>, <em class="sig-param"><span class="n">direction</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.external_force_utils.forces.harmonic_trap" title="Permalink to this definition">¶</a></dt>
+<dd><p>A linear potential well that traps a particle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the particle that the force acts upon</p></li>
+<li><p><strong>pos0</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – the position of the trap at t=0</p></li>
+<li><p><strong>stiff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the stiffness of the trap (force = stiff * dx)</p></li>
+<li><p><strong>rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the velocity of the trap (simulation units/time step)</p></li>
+<li><p><strong>direction</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – the direction of movement of the trap</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.external_force_utils.forces.rotating_harmonic_trap">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.external_force_utils.forces.</code><code class="sig-name descname">rotating_harmonic_trap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particle</span></em>, <em class="sig-param"><span class="n">stiff</span></em>, <em class="sig-param"><span class="n">rate</span></em>, <em class="sig-param"><span class="n">base</span></em>, <em class="sig-param"><span class="n">pos0</span></em>, <em class="sig-param"><span class="n">center</span></em>, <em class="sig-param"><span class="n">axis</span></em>, <em class="sig-param"><span class="n">mask</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.external_force_utils.forces.rotating_harmonic_trap" title="Permalink to this definition">¶</a></dt>
+<dd><p>A harmonic trap that rotates in space with constant angular velocity</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the particle that the force acts upon</p></li>
+<li><p><strong>pos0</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – the position of the trap at t=0</p></li>
+<li><p><strong>stiff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the stiffness of the trap (force = stiff * dx)</p></li>
+<li><p><strong>rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the angular velocity of the trap (simulation units/time step)</p></li>
+<li><p><strong>base</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – initial phase of the trap</p></li>
+<li><p><strong>axis</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – the rotation axis of the trap</p></li>
+<li><p><strong>mask</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – the masking vector of the trap (force vector is element-wise multiplied by mask)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.external_force_utils.forces.repulsion_plane">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.external_force_utils.forces.</code><code class="sig-name descname">repulsion_plane</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particle</span></em>, <em class="sig-param"><span class="n">stiff</span></em>, <em class="sig-param"><span class="n">direction</span></em>, <em class="sig-param"><span class="n">position</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.external_force_utils.forces.repulsion_plane" title="Permalink to this definition">¶</a></dt>
+<dd><p>A plane that forces the affected particle to stay on one side.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the particle that the force acts upon.  -1 will act on whole system.</p></li>
+<li><p><strong>stiff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the stiffness of the trap (force = stiff * distance below plane)</p></li>
+<li><p><strong>dir</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – the normal vecor to the plane</p></li>
+<li><p><strong>position</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – position of the plane (plane is d0*x + d1*y + d2*z + position = 0)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.external_force_utils.forces.repulsion_sphere">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.external_force_utils.forces.</code><code class="sig-name descname">repulsion_sphere</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particle</span></em>, <em class="sig-param"><span class="n">center</span></em>, <em class="sig-param"><span class="n">stiff</span></em>, <em class="sig-param"><span class="n">r0</span></em>, <em class="sig-param"><span class="n">rate</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.external_force_utils.forces.repulsion_sphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>A sphere that encloses the particle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the particle that the force acts upon</p></li>
+<li><p><strong>center</strong> (<em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>]</em>) – the center of the sphere</p></li>
+<li><p><strong>stiff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – stiffness of trap</p></li>
+<li><p><strong>r0</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – radius of sphere at t=0</p></li>
+<li><p><strong>rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the sphere’s radius changes to r = r0 + rate*t</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="reader-writer">
+<h2>Reader/Writer<a class="headerlink" href="#reader-writer" title="Permalink to this headline">¶</a></h2>
+<p>Read and write oxDNA external force files</p>
+<div class="toctree-wrapper compound">
+</div>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.external_force_utils.force_reader.read_force_file" title="oxDNA_analysis_tools.external_force_utils.force_reader.read_force_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.external_force_utils.force_reader.read_force_file</span></code></a></p></td>
+<td><p>Read a force file into a list of force dictionaries.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.external_force_utils.force_reader.write_force_file" title="oxDNA_analysis_tools.external_force_utils.force_reader.write_force_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.external_force_utils.force_reader.write_force_file</span></code></a></p></td>
+<td><p>Write a list of forces out to a file.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.external_force_utils.force_reader.read_force_file">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.external_force_utils.force_reader.</code><code class="sig-name descname">read_force_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.external_force_utils.force_reader.read_force_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a force file into a list of force dictionaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – file to read from</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of force dictionaries</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>force_list (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.external_force_utils.force_reader.write_force_file">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.external_force_utils.force_reader.</code><code class="sig-name descname">write_force_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force_list</span></em>, <em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'w'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.external_force_utils.force_reader.write_force_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a list of forces out to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>force_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – a list of force dictionaries</p></li>
+<li><p><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – file to write out to</p></li>
+<li><p><strong>mode</strong> (<em>&lt;optional&gt;</em>) – the mode of the python open funciton.  Defaults to ‘w’
+change mode to ‘w+’ if you want to append instead of overwrite.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../oxpy/index.html" class="btn btn-neutral float-right" title="Oxpy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="utils.html" class="btn btn-neutral float-left" title="Utilities documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

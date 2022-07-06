@@ -37,7 +37,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="API documentation" href="api.html" />
+    <link rel="next" title="Analysis documentation" href="api.html" />
     <link rel="prev" title="Events" href="../events.html" /> 
 </head>
 
@@ -97,8 +97,16 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">oxDNA Analysis Tools</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#library-api">Library API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api.html">API documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#top-level-api">Top-level API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api.html">Analysis documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utility-api">Utility API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utils.html">Utilities documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#forces-api">Forces API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="forces.html">External forces documentation</a></li>
 </ul>
 </li>
 </ul>
@@ -174,13 +182,56 @@
   <div class="tex2jax_ignore mathjax_ignore section" id="oxdna-analysis-tools">
 <h1>oxDNA Analysis Tools<a class="headerlink" href="#oxdna-analysis-tools" title="Permalink to this headline">¶</a></h1>
 <p>oxDNA Analysis Tools (<em>oat</em> in short) is a suite of command line Python tools for performing generic structural analyses of oxDNA simulations.</p>
-<div class="section" id="library-api">
-<h2>Library API<a class="headerlink" href="#library-api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="top-level-api">
+<h2>Top-level API<a class="headerlink" href="#top-level-api" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API documentation</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Analysis documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#align">Align</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#anm-parameterize">ANM parameterize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#backbone-flexibility">Backbone flexibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#bond-analysis">Bond analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#centroid">Centroid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#clustering">Clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#config">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#contact-map">Contact map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#dot-bracket-to-force">Dot-bracket to force</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#deviations">Deviations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#distance">Distance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#duplex-angle-plotter">Duplex angle plotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#duplex-finder">Duplex finder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#mean">Mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#minify">Minify</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#multidimensional-scaling-mean">Multidimensional scaling mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#output-bonds">Output bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#principle-component-analysis">Principle component analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#subset-trajectory">Subset trajectory</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="utility-api">
+<h2>Utility API<a class="headerlink" href="#utility-api" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#data-structures">Data structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#geometry-utilities">Geometry utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#multiprocesser">Multiprocesser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#rye-reader">Rye reader</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="forces-api">
+<h2>Forces API<a class="headerlink" href="#forces-api" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">External forces documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#forces">Forces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="forces.html#reader-writer">Reader/Writer</a></li>
 </ul>
 </li>
 </ul>
@@ -196,7 +247,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api.html" class="btn btn-neutral float-right" title="API documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="api.html" class="btn btn-neutral float-right" title="Analysis documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../events.html" class="btn btn-neutral float-left" title="Events" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
