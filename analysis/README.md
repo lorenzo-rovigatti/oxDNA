@@ -107,7 +107,7 @@ Running instructions can be obtained for all scripts by running them with no arg
 ### UTILS
 The UTILS directory contains utility modules used by other scripts in this package.
 
-* `base.py` **DEPRECIATED** A python3 update of the `base.py` script found in the oxDNA distribution.  This contains class definitions for nucleotide/strand/system.  Only used by the PDB converter. <br/>
+* `base.py` **DEPRECATED** A python3 update of the `base.py` script found in the oxDNA distribution.  This contains class definitions for nucleotide/strand/system.  Only used by the PDB converter. <br/>
 * `chunksize.py` Sets the size of chunks read in by the `oat_multiprocesser`.  The chunk size determines how many configurations are loaded into memory at a time (ncpus * chunk_size configurations will be loaded).  For small systems this number can be increased to improve performance. <br/>
 * `data_structures.py` Contains definitions for common data structures used in the scripts.  Includes definitions such as `Trajinfo`, `TopInfo`, and `System`
 * `dd12_na.pdb` Used during pdb conversion script
@@ -116,7 +116,7 @@ The UTILS directory contains utility modules used by other scripts in this packa
 * `oat_multiprocessor.py` Parallelization method which uses partial function composition to distribute functions and configuration blocks to processors and accumulate the results.
 * `pdb.py` Helper Functions/Classes for pdb conversion <br/>
 * `protein_to_pdb` Contains protein specific functions for protein to pdb conversion<br/>
-* `readers.py` **DEPRECIATED** Contains utility functions for working with oxDNA files, including extracting input file parameters, calculating the number of configurations in a trajectory and creating a system as defined in `base.py` from a configuration/topology pair. Only used by the PDB converter.<br/>
+* `readers.py` **DEPRECATED** Contains utility functions for working with oxDNA files, including extracting input file parameters, calculating the number of configurations in a trajectory and creating a system as defined in `base.py` from a configuration/topology pair. Only used by the PDB converter.<br/>
 * `rna_model.h` The model parameters of the oxRNA model.  Used by base.py. <br/>
 * `RyeReader.py` File handling functions. `describe` is used to extract metadata from oxDNA files while `get_confs` is used to read trajectories.
 * `utils.py` Contains utility functions for pdb conversion<br/>
