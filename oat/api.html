@@ -189,8 +189,46 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.align.align" title="oxDNA_analysis_tools.align.align"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.align.align</span></code></a></p></td>
+<td><p>Align a trajectory to a ref_conf and print the result to a file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.align.svd_align" title="oxDNA_analysis_tools.align.svd_align"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.align.svd_align</span></code></a></p></td>
+<td><p>Single-value decomposition-based alignment of configurations</p></td>
+</tr>
 </tbody>
 </table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.align.align">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.align.</code><code class="sig-name descname">align</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">traj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">outfile</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">ncpus</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ref_conf</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>oxDNA_analysis_tools.UTILS.data_structures.Configuration<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.align.align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Align a trajectory to a ref_conf and print the result to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>traj</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The trajectory file name to align</p></li>
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The file name to write the aligned trajectory to</p></li>
+<li><p><strong>ncpus</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – (optional) How many cpus to parallelize the operation. default=1</p></li>
+<li><p><strong>indexes</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>]</em>) – (optional) IDs of a subset of particles to consider for the alignment. default=all</p></li>
+<li><p><strong>ref_conf</strong> (<em>Configuration</em>) – (optional) The configuration to align to. default=first conf</p></li>
+</ul>
+</dd>
+</dl>
+<p>Writes the aligned configuration to outfile</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.align.svd_align">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.align.</code><code class="sig-name descname">svd_align</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">centered_ref_coords</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)">numpy.ndarray</a></span></em>, <em class="sig-param"><span class="n">coords</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)">numpy.ndarray</a></span></em>, <em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>numpy.array<span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.align.svd_align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single-value decomposition-based alignment of configurations</p>
+<dl class="simple">
+<dt>Parameters</dt><dd><p>centered_ref_coords: reference coordinates, centered on [0, 0, 0]
+coords: coordinates to be aligned
+indexes: indexes of the atoms to be aligned</p>
+</dd>
+<dt>Returns</dt><dd><p>A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="anm-parameterize">
 <h2>ANM parameterize<a class="headerlink" href="#anm-parameterize" title="Permalink to this headline">¶</a></h2>
@@ -202,8 +240,32 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.anm_parameterize.anm_parameterize" title="oxDNA_analysis_tools.anm_parameterize.anm_parameterize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.anm_parameterize.anm_parameterize</span></code></a></p></td>
+<td><p>Computes the coarse-grained RMSF for a given trajectory.</p></td>
+</tr>
 </tbody>
 </table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.anm_parameterize.anm_parameterize">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.anm_parameterize.</code><code class="sig-name descname">anm_parameterize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">particles_array</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)">numpy.ndarray</a></span></em>, <em class="sig-param"><span class="n">trajectory</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">ref_conf</span><span class="p">:</span> <span class="n">oxDNA_analysis_tools.UTILS.data_structures.Configuration</span></em><span class="sig-paren">)</span> &#x2192; numpy.array<a class="headerlink" href="#oxDNA_analysis_tools.anm_parameterize.anm_parameterize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the coarse-grained RMSF for a given trajectory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>particles_array</strong> (<em>np.array</em>) – An array containing the indices of the particles in each super particle.</p></li>
+<li><p><strong>trajectory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The path to the trajectory to evaluate.</p></li>
+<li><p><strong>ref_conf</strong> (<em>Configuration</em>) – The reference configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The RMSF for each super particle.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </div>
 
