@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; oxDNA  documentation</title>
+  <title>Events &mdash; oxDNA  documentation</title>
   
 
   
@@ -20,7 +20,6 @@
   
 
   
-    
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -36,9 +35,10 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-    <script type="text/javascript" src="_static/searchtools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="oxDNA Analysis Tools" href="oat/index.html" />
+    <link rel="prev" title="Forward Flux Sampling" href="ffs.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -65,7 +65,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -84,7 +84,7 @@
             
             
               <p class="caption"><span class="caption-text">Table of Contents</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
@@ -93,7 +93,10 @@
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="umbrella_sampling.html">Umbrella sampling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ffs.html">Forward Flux Sampling</a></li>
-<li class="toctree-l1"><a class="reference internal" href="events.html">Events</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Events</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#list-of-supported-events">List of supported events</a></li>
+</ul>
+</li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oat/index.html">oxDNA Analysis Tools</a></li>
@@ -146,12 +149,14 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Search</li>
+      <li>Events</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
+            <a href="_sources/events.md.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -163,23 +168,33 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="tex2jax_ignore mathjax_ignore section" id="events">
+<h1>Events<a class="headerlink" href="#events" title="Permalink to this headline">¶</a></h1>
+<p>oxDNA supports a basic <a class="reference external" href="https://en.wikipedia.org/wiki/Observer_pattern">observer pattern</a> to associate callbacks and specific events. The system can be used from both C++ and Python.</p>
+<div class="section" id="list-of-supported-events">
+<h2>List of supported events<a class="headerlink" href="#list-of-supported-events" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">T_updated</span></code>: triggered when the simulation temperature is changed (for instance by calling <a class="reference internal" href="oxpy/modules/core/core.html#oxpy.core.OxpyManager.update_temperature" title="oxpy.core.OxpyManager.update_temperature"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update_temperature()</span></code></a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">box_updated</span></code>: triggered when the simulation box is changed. When this event is fired off the simulation is <strong>always</strong> in a valid state.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">box_initialised</span></code>: triggered when the simulation box is re-initialised. Note that this event is fired off even if the box is re-initialised with the same values or during a trial Monte Carlo volume move. In this latter case the move may be reverted, and therefore you cannot assume that every time the event is triggered the simulation is in a valid state.</p></li>
+</ul>
+</div>
+</div>
 
-  
-  <div id="search-results">
-  
-  </div>
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="oat/index.html" class="btn btn-neutral float-right" title="oxDNA Analysis Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ffs.html" class="btn btn-neutral float-left" title="Forward Flux Sampling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
@@ -219,14 +234,7 @@
   
   
     
-  
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
    
-
 
 </body>
 </html>
