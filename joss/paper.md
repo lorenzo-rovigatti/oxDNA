@@ -61,7 +61,7 @@ Finally, we note that there are many software packages that either use `oxDNA` o
 
 # Acknowledgements
 
-We acknowledge contributions from R. Harrison, Debesh Mandal, C. Matek, Ferdinando Randisi, W. Smith and Benedict E. K. Snodin.
+We acknowledge contributions from R. Harrison, Debesh Mandal, C. Matek, Ferdinando Randisi, W. Smith and Benedict E. K. Snodin. LR acknowledges support from the CINECA award under the ISCRA initiative for the availability of high performance computing resources and support (Iscra B "AssoPoN"), and PS acknowledges support from ONR grant no N000142012094.
 
 # References
 

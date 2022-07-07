@@ -103,9 +103,12 @@ void export_ConfigInfo(py::module &m) {
 		The length of the edges of the simulation box.
 	)pbdoc");
 
+	conf_info.def_property_readonly("temperature", &ConfigInfo::temperature, "The current simulation temperature.");
+
 	conf_info.def_readonly("current_step", &ConfigInfo::curr_step, "The current time step.");
 
 	conf_info.def_readonly("box", &ConfigInfo::box, "The simulation box, which is an instance of a child class of :class:`BaseBox`.");
+
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_CONFIGINFO_H_ */
