@@ -118,3 +118,69 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 
 	return res;
 }
+
+std::vector<ObservableOutputPtr> ObservableFactory::make_observables(std::string prefix) {
+	std::vector<ObservableOutputPtr> result;
+
+	std::string obs_input_base = Utils::sformat("%sdata_output_", prefix.c_str());
+	std::string obs_key = Utils::sformat("%sobservables_file", prefix.c_str());
+
+	int i = 1;
+	bool found = true;
+	while(found) {
+		stringstream ss;
+		ss << obs_input_base << i;
+		string obs_string;
+		if(getInputString(CONFIG_INFO->sim_input, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
+			auto new_obs_out = std::make_shared<ObservableOutput>(obs_string);
+			result.push_back(new_obs_out);
+		}
+		else {
+			found = false;
+		}
+
+		i++;
+	}
+
+	std::string obs_filename;
+	if(getInputString(CONFIG_INFO->sim_input, obs_key.c_str(), obs_filename, 0) == KEY_FOUND) {
+		OX_LOG(Logger::LOG_INFO, "Parsing JSON observable file %s", obs_filename.c_str());
+
+		ifstream external(obs_filename.c_str());
+		if(!external.good ()) {
+			throw oxDNAException ("Can't read obs_filename '%s'", obs_filename.c_str());
+		}
+
+		nlohmann::json my_json = nlohmann::json::parse(external);
+
+		for(auto &obs_json : my_json) {
+			input_file obs_input;
+			// extract the array containing details about the columns
+			nlohmann::json cols_json;
+			if(obs_json.contains("cols")) {
+				cols_json = obs_json["cols"];
+				obs_json.erase("cols");
+			}
+
+			// initialise the observable output
+			obs_input.init_from_json(obs_json);
+			std::string obs_string = obs_input.to_string();
+			auto new_obs_out = std::make_shared<ObservableOutput>(obs_string);
+
+			// and add the observables initialised from the cols array
+			for(auto &col_json : cols_json) {
+				input_file col_input;
+				col_input.init_from_json(col_json);
+				auto new_obs = make_observable(col_input);
+				new_obs_out->add_observable(new_obs);
+			}
+
+			result.push_back(new_obs_out);
+		}
+
+		external.close();
+		OX_LOG(Logger::LOG_INFO, "   Observable file parsed");
+	}
+
+	return result;
+}

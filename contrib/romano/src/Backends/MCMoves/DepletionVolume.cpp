@@ -161,7 +161,6 @@ void DepletionVolume<number>::apply (llint curr_step) {
 	}
 
 	// this bit has to come after the update of particles' positions
-	this->_Info->lists->change_box();
 	if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
 
 	int new_ncells = cells->get_N_cells();
@@ -205,7 +204,6 @@ void DepletionVolume<number>::apply (llint curr_step) {
 		int ndep = _poisson(_generator);
 		std::vector<LR_vector<number> > dep_pos;
 		this->_Info->box->init(old_box_sides[0], old_box_sides[1], old_box_sides[2]);
-		cells->change_box();
 		if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
 		for (int d = 0; d < ndep; d++) {
 			p->pos.x = drand48() * old_box_sides.x;
@@ -234,7 +232,6 @@ void DepletionVolume<number>::apply (llint curr_step) {
 
 		// new conf
 		this->_Info->box->init(box_sides[0], box_sides[1], box_sides[2]);
-		cells->change_box();
 		if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
 		number fact = box_sides.x / old_box_sides.x;
 		for (int d = 0; d < n_old; d++) {
@@ -287,7 +284,6 @@ void DepletionVolume<number>::apply (llint curr_step) {
 		}
 		this->_Info->interaction->set_is_infinite(false);
 		this->_Info->box->init(old_box_sides[0], old_box_sides[1], old_box_sides[2]);
-		this->_Info->lists->change_box();
 		if(!this->_Info->lists->is_updated()) this->_Info->lists->global_update();
 
 		if (curr_step < this->_equilibration_steps && this->_adjust_moves) {

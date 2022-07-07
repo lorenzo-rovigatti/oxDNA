@@ -32,7 +32,7 @@ protected:
 	number _langevin_c1 = 0.;
 	number _langevin_c2 = 0.;
 
-	void _first_step(llint cur_step);
+	void _first_step();
 	void _compute_forces();
 	void _second_step();
 
@@ -46,7 +46,7 @@ public:
 
 	void init();
 	void get_settings(input_file &inp);
-	void sim_step(llint cur_step);
+	void sim_step();
 	void activate_thermostat();
 };
 

@@ -26,14 +26,13 @@ bool SimManager::started = false;
 SimManager::SimManager(input_file input) :
 				_input(input),
 				_print_energy_every(1000) {
-	_start_step = _cur_step = _steps = _equilibration_steps = 0;
+	_steps = _steps_run = _equilibration_steps = 0;
 	_time_scale_manager.state = 0;
 	_print_input = 0;
 	_pid = getpid();
 	_seed = -1;
 	_backend = nullptr;
 	_fix_diffusion_every = 100000;
-	_max_steps = -1;
 	_time_scale = -1;
 }
 
@@ -53,7 +52,7 @@ SimManager::~SimManager() {
 	if(_backend != nullptr) {
 		int updated = _backend->get_N_updates();
 		if(updated > 0) {
-			OX_LOG(Logger::LOG_INFO, "Lists updated %d times (every ~%lf steps)", updated, (_cur_step - _start_step) / (double)updated);
+			OX_LOG(Logger::LOG_INFO, "Lists updated %d times (every ~%lf steps)", updated, _steps_run / (double)updated);
 		}
 	}
 }
@@ -121,8 +120,6 @@ void SimManager::init() {
 
 	_backend->init();
 
-	_start_step = _backend->start_step_from_file;
-
 	// init time_scale_manager
 	initTimeScale(&_time_scale_manager, _time_scale);
 
@@ -136,11 +133,8 @@ void SimManager::init() {
 	}
 	// the awkward second argument in the next line makes consistent
 	// trajectory files...
-	setTSInitialStep(&_time_scale_manager, _start_step + tmpm - (_start_step % tmpm));
+	setTSInitialStep(&_time_scale_manager, _backend->start_step_from_file + tmpm - (_backend->start_step_from_file % tmpm));
 	// end
-
-	//_start_step = _start_step + _equilibration_steps;
-	_max_steps = _start_step + _steps;
 }
 
 void SimManager::run() {
@@ -151,7 +145,7 @@ void SimManager::run() {
 	if(_equilibration_steps > 0) {
 		OX_LOG(Logger::LOG_INFO, "Equilibrating...");
 		for(llint step = 0; step < _equilibration_steps && !SimManager::stop; step++) {
-			_backend->sim_step(step);
+			_backend->sim_step();
 			if (step > 1 && step % _fix_diffusion_every == 0) _backend->fix_diffusion();
 		}
 		OX_LOG(Logger::LOG_INFO, "Equilibration done");
@@ -159,35 +153,40 @@ void SimManager::run() {
 	}
 
 	// main loop
-	for(_cur_step = _start_step; _cur_step < _max_steps && !SimManager::stop; _cur_step++) {
-		if(_cur_step == _time_scale_manager.next_step) {
-			if(_cur_step > _start_step) _backend->print_conf(_cur_step);
+	for(_steps_run = 0; _steps_run < _steps && !SimManager::stop; _steps_run++) {
+		if(_backend->current_step() == _time_scale_manager.next_step) {
+			if(_steps_run > 0) {
+				_backend->print_conf();
+			}
 			setTSNextStep(&_time_scale_manager);
 		}
 
-		if(_cur_step > 0 && _cur_step % _fix_diffusion_every == 0) {
+		if(_steps_run > 0 && _steps_run % _fix_diffusion_every == 0) {
 			_backend->fix_diffusion();
 		}
 
-		_backend->print_observables(_cur_step);
-		_backend->sim_step(_cur_step);
+		_backend->print_observables();
+		_backend->sim_step();
+		_backend->increment_current_step();
 	}
 	// this is in case _cur_step, after being increased by 1 before exiting the loop,
 	// has become a multiple of print_conf_every
-	if(_cur_step > 1 && _cur_step % _fix_diffusion_every == 0) {
+	if(_steps_run > 1 && _steps_run % _fix_diffusion_every == 0) {
 		_backend->fix_diffusion();
 	}
 
-	if(_cur_step == _time_scale_manager.next_step) {
-		if(_cur_step > _start_step) _backend->print_conf(_cur_step);
+	if(_backend->current_step() == _time_scale_manager.next_step) {
+		if(_steps_run > 0) {
+			_backend->print_conf();
+		}
 		setTSNextStep(&_time_scale_manager);
 	}
-	_backend->print_observables(_cur_step);
+	_backend->print_observables();
 
 	// prints the last configuration
-	_backend->print_conf(_cur_step, false, true);
+	_backend->print_conf(false, true);
 
-	TimingManager::instance()->print(_cur_step - _start_step);
+	TimingManager::instance()->print(_steps_run);
 
 	_backend->apply_simulation_data_changes();
 }

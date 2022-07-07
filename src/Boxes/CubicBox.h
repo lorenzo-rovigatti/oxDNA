@@ -30,7 +30,7 @@ public:
 	virtual number sqr_min_image_distance(const LR_vector &v1, const LR_vector &v2) const;
 
 	virtual LR_vector normalised_in_box(const LR_vector &v);
-	virtual LR_vector &box_sides() ;
+	LR_vector box_sides() const override;
 	virtual number V() { return _side*_side*_side; }
 	
 	virtual LR_vector get_abs_pos(BaseParticle * p); 

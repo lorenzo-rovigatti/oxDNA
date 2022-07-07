@@ -19,6 +19,29 @@ void export_ConfigInfo(py::module &m) {
 		This singleton object stores all the details of the simulation (particles, neighbour lists, input file, interaction, external forces) 
 	)pbdoc");
 
+	conf_info.def("notify", &ConfigInfo::notify, py::arg("event"), R"pbdoc(
+		Notify the triggering of an event. Any callback associated to the event will be invoked.
+
+		Parameters
+		----------
+		event: str
+			The triggered event.
+	)pbdoc");
+
+	conf_info.def("subscribe", &ConfigInfo::subscribe, py::arg("event"), py::arg("callback"), R"pbdoc(
+		Assign a callback to the given event. 
+
+		The callback will be invoked every time the event is triggered.
+
+		Parameters
+		----------
+		event: str
+			The event associated to the callback.
+		callback: callable
+			A callable that takes no parameters.
+
+	)pbdoc");
+
 	conf_info.def("N", &ConfigInfo::N, R"pbdoc(
         Return the current number of particles.
 
@@ -61,7 +84,7 @@ void export_ConfigInfo(py::module &m) {
 
 		Returns
 		-------
-		:py:class:`BaseForce`
+		:py:class:`~oxpy.core.forces.BaseForce`
 			The external force with the given id, or `None` if the id does not correspond to any external force.
 	)pbdoc");
 
@@ -75,6 +98,17 @@ void export_ConfigInfo(py::module &m) {
 		:py:class:`~oxpy.core.observables.BaseObservable`
 			The observable with the given id, or `None` if the id does not correspond to any observable.
 	)pbdoc");
+
+	conf_info.def_property_readonly("box_sides", [](ConfigInfo &c) { return c.box->box_sides(); }, R"pbdoc(
+		The length of the edges of the simulation box.
+	)pbdoc");
+
+	conf_info.def_property_readonly("temperature", &ConfigInfo::temperature, "The current simulation temperature.");
+
+	conf_info.def_readonly("current_step", &ConfigInfo::curr_step, "The current time step.");
+
+	conf_info.def_readonly("box", &ConfigInfo::box, "The simulation box, which is an instance of a child class of :class:`BaseBox`.");
+
 }
 
 #endif /* OXPY_BINDINGS_INCLUDES_CONFIGINFO_H_ */

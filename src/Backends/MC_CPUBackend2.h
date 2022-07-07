@@ -33,10 +33,10 @@ public:
 	virtual void get_settings(input_file &inp);
 	void init();
 
-	void sim_step(llint cur_step);
+	void sim_step();
 	void add_move(std::string move_string, input_file &sim_inp);
 
-	void print_observables(llint curr_step);
+	void print_observables();
 
 	virtual void print_equilibration_info();
 };

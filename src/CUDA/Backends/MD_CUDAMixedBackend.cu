@@ -9,10 +9,10 @@
 #include "CUDA_mixed.cuh"
 
 CUDAMixedBackend::CUDAMixedBackend() : MD_CUDABackend() {
-	_d_possd = NULL;
-	_d_velsd = NULL;
-	_d_Lsd = NULL;
-	_d_orientationsd = NULL;
+	_d_possd = nullptr;
+	_d_velsd = nullptr;
+	_d_Lsd = nullptr;
+	_d_orientationsd = nullptr;
 }
 
 CUDAMixedBackend::~CUDAMixedBackend(){
@@ -137,11 +137,11 @@ void CUDAMixedBackend::apply_changes_to_simulation_data() {
 	}
 }
 
-void CUDAMixedBackend::_thermalize(llint curr_step) {
-	if(_cuda_thermostat->would_activate(curr_step)) {
+void CUDAMixedBackend::_thermalize() {
+	if(_cuda_thermostat->would_activate(current_step())) {
 		_LR_double4_to_float4(_d_velsd, _d_vels);
 		_LR_double4_to_float4(_d_Lsd, _d_Ls);
-		MD_CUDABackend::_thermalize(curr_step);
+		MD_CUDABackend::_thermalize();
 		_float4_to_LR_double4(_d_vels, _d_velsd);
 		_float4_to_LR_double4(_d_Ls, _d_Lsd);
 	}

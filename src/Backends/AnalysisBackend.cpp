@@ -9,7 +9,7 @@
 
 #include "AnalysisBackend.h"
 #include "../Interactions/InteractionFactory.h"
-#include "../Observables/ObservableOutput.h"
+#include "../Observables/ObservableFactory.h"
 #include "../Lists/ListFactory.h"
 #include "../Boxes/BoxFactory.h"
 #include "../PluginManagement/PluginManager.h"
@@ -77,19 +77,9 @@ void AnalysisBackend::get_settings(input_file &inp) {
 	_T = Utils::get_temperature(raw_T);
 
 	// here we fill the _obs_outputs vector
-	int i = 1;
-	bool found = true;
-	while(found) {
-		stringstream ss;
-		ss << "analysis_data_output_" << i;
-		string obs_string;
-		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
-			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string);
-			add_output(new_obs_out);
-		}
-		else found = false;
-
-		i++;
+	auto new_outputs = ObservableFactory::make_observables("analysis_");
+	for(auto new_output : new_outputs) {
+		add_output(new_output);
 	}
 }
 
@@ -127,6 +117,7 @@ bool AnalysisBackend::read_next_configuration(bool binary) {
 		}
 		_n_conf++;
 	}
+	_config_info->curr_step = _read_conf_step;
 
 	return !_done;
 }
@@ -135,7 +126,7 @@ void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
 	if(read_next_configuration(_initial_conf_is_binary)) {
-		SimBackend::print_observables(_read_conf_step);
+		SimBackend::print_observables();
 
 		if(_n_conf % 100 == 0 && _n_conf > 0) {
 			OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);

@@ -9,6 +9,11 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include "../defs.h"
+#include "oxDNAException.h"
+
+#include <fast_double_parser/fast_double_parser.h>
+
 #include <algorithm>
 #include <functional>
 #include <cstdlib>
@@ -18,8 +23,6 @@
 #include <cstdarg>
 #include <cstdio>
 #include <vector>
-
-#include "../defs.h"
 
 class BaseParticle;
 
@@ -62,6 +65,19 @@ inline std::string &rtrim(std::string &s) {
  * @return a vector of strings containing all the tokens
  */
 std::vector<std::string> split(const std::string &s, char delim = ' ');
+
+// this is a very fast split function that fills a vector of numbers. It is mainly used by the configuration parser
+std::vector<number> split_to_numbers(const std::string &str, const std::string &delims);
+
+inline number lexical_cast(const std::string &source) {
+	double result;
+
+	if(fast_double_parser::parse_number(source.c_str(), &result) == nullptr) {
+		throw oxDNAException("Cannot convert '%s' to a number", source.c_str());
+	}
+
+	return result;
+}
 
 // trim from both ends, it works like Python's own trim
 inline std::string &trim(std::string &s) {
@@ -151,7 +167,7 @@ input_file *get_input_file_from_string(const std::string &inp);
  * @param raw_T c-string containing the text to be parsed
  * @return
  */
-number get_temperature(char *raw_T);
+number get_temperature(std::string raw_T);
 
 /**
  * @brief fills the memory pointed to by seedptr with the current
@@ -174,21 +190,13 @@ void get_seed(unsigned short *seedptr);
 std::string bytes_to_human(llint arg);
 
 /**
- * @brief Utility function that sets the centre of mass velocity of the system to 0.
- *
- * @param particles pointer to array of particle pointers
- * @param N number of particles
- */
-void stop_com(std::vector<BaseParticle *> &particles);
-
-/**
  * @brief Utility function that reads a string like "10-16,18" and returns a vector of integers.
  * @param particles pointer to array of particle pointers
  * @param N number of particles
  * @param particles_string string to process
  * @param identifier the identifier of the calling item (to display to the user in case problems arise).
  */
-std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier);
+std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, std::string identifier);
 
 /**
  * @brief Utility function that checks if an integer is a valid particle index, or -1.
@@ -196,7 +204,7 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particle
  * @param N number of particles
  * @param identifier the identifier of the calling item (to display to the user in case problems arise).
  */
-void assert_is_valid_particle(int n, int N, char const * identifier);
+void assert_is_valid_particle(int n, int N, std::string identifier);
 /**
  *	@brief Utility function that returns true if a string only contains digits, and false otherwise.
  *	@param s string to be checked.

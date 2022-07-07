@@ -63,7 +63,7 @@ public:
 
 	void get_settings(input_file &inp);
 
-	virtual void print_observables(llint curr_step);
+	virtual void print_observables();
 };
 
 #endif /* MCBACKEND_H_ */

@@ -214,11 +214,11 @@ void PT_serialized_particle_info::write_to(BaseParticle *par) {
 
 }
 
-void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
+void PT_VMMC_CPUBackend::sim_step() {
 	//printf("This is a step %ld in process %d, with ene %f \n",curr_step,_my_mpi_id,_U);
-	VMMC_CPUBackend::sim_step(curr_step);
+	VMMC_CPUBackend::sim_step();
 
-	if(curr_step % _pt_move_every == 0 && curr_step > 2) {
+	if(current_step() % _pt_move_every == 0 && current_step() > 2) {
 
 		// if we have forces, we should compute the external potential
 		_U_ext = (number) 0.;
@@ -226,14 +226,14 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 			BaseParticle *p;
 			for(int i = 0; i < N(); i++) {
 				p = _particles[i];
-				p->set_ext_potential(curr_step, _box.get());
+				p->set_ext_potential(current_step(), _box.get());
 				_U_ext += p->ext_potential;
 			}
 		}
 
 		// find out if we try odd or even pairs
 		//printf ("(from %d) attempting move exchange...\n", _my_mpi_id);
-		bool odd_pairs = (((curr_step / _pt_move_every) % 2) == 0);
+		bool odd_pairs = (((current_step() / _pt_move_every) % 2) == 0);
 		bool im_responsible = ((_my_mpi_id % 2) == odd_pairs);
 		int resp_id, irresp_id;
 		if(im_responsible) {
@@ -405,7 +405,7 @@ void PT_VMMC_CPUBackend::sim_step(llint curr_step) {
 			BaseParticle *p;
 			for(int i = 0; i < N(); i++) {
 				p = _particles[i];
-				p->set_ext_potential(curr_step, _box.get());
+				p->set_ext_potential(current_step(), _box.get());
 			}
 		}
 

@@ -6,7 +6,7 @@
  */
 
 #include "Utils.h"
-#include "oxDNAException.h"
+
 #include "../Particles/TEPParticle.h"
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/RNANucleotide.h"
@@ -70,10 +70,37 @@ std::vector<std::string> split(const string &s, char delim) {
 				elems.push_back(item);
 			}
 		}
-		else elems.push_back(item);
+		else
+			elems.push_back(item);
 	}
 
 	return elems;
+}
+
+std::vector<number> split_to_numbers(const std::string &str, const std::string &delims) {
+	std::vector<number> output;
+	output.reserve(15);
+
+	const char *ptr = str.c_str();
+	while(ptr) {
+		auto base = ptr;
+		ptr = std::strpbrk(ptr, delims.c_str());
+		if(ptr) {
+			// this check makes sure that no empty strings are added to the output
+			if(ptr - base) {
+				output.emplace_back(lexical_cast(std::string(base, ptr - base)));
+			}
+			ptr++;
+		}
+		else {
+			std::string remainder(base);
+			if(remainder.size() > 0) {
+				output.emplace_back(lexical_cast(remainder));
+			}
+		}
+	}
+
+	return output;
 }
 
 std::string sformat(std::string fmt, ...) {
@@ -92,14 +119,16 @@ std::string sformat_ap(const std::string &fmt, va_list &ap) {
 		str.resize(size);
 		va_list ap_copy;
 		va_copy(ap_copy, ap);
-		int n = vsnprintf((char *) str.c_str(), size, fmt.c_str(), ap_copy);
+		int n = vsnprintf((char*) str.c_str(), size, fmt.c_str(), ap_copy);
 		va_end(ap_copy);
 		if(n > -1 && n < size) {
 			str.resize(n);
 			return str;
 		}
-		if(n > -1) size = n + 1;
-		else size *= 2;
+		if(n > -1)
+			size = n + 1;
+		else
+			size *= 2;
 	}
 	return str;
 }
@@ -121,14 +150,16 @@ void orthonormalize_matrix(LR_matrix &m) {
 	m.v3.normalize();
 }
 
-input_file *get_input_file_from_string(const std::string &inp) {
+input_file* get_input_file_from_string(const std::string &inp) {
 	std::string real_inp(inp);
 
 	if(inp[0] == '{') {
 		int sum = 0;
 		for(unsigned int i = 0; i < inp.size(); i++) {
-			if(inp[i] == '{') sum += 1;
-			else if(inp[i] == '}') sum -= 1;
+			if(inp[i] == '{')
+				sum += 1;
+			else if(inp[i] == '}')
+				sum -= 1;
 			if(sum == 0) {
 				real_inp = inp.substr(1, i - 1);
 				break;
@@ -142,21 +173,33 @@ input_file *get_input_file_from_string(const std::string &inp) {
 	return ret;
 }
 
-number get_temperature(char *raw_T) {
+number get_temperature(std::string raw_T) {
+	static std::set<std::string> converted_temperatures;
+
+	bool print_output = false;
+	if(converted_temperatures.find(raw_T) == converted_temperatures.end()) {
+		converted_temperatures.insert(raw_T);
+		print_output = true;
+	}
+
 	char deg;
 	double tmp_T;
 	number T;
-	int res = sscanf(raw_T, "%lf %c", &tmp_T, &deg);
+	int res = sscanf(raw_T.c_str(), "%lf %c", &tmp_T, &deg);
 	if(res == 2) {
 		deg = tolower(deg);
 		switch(deg) {
 		case 'c':
 			T = (number) ((tmp_T + 273.15) * 0.1 / 300.); // convert to kelvin and then to simulation units
-			OX_LOG(Logger::LOG_INFO, "Converting temperature from Celsius (%lf C°) to simulation units (%lf)", tmp_T, T);
+			if(print_output) {
+				OX_LOG(Logger::LOG_INFO, "Converting temperature from Celsius (%lf C°) to simulation units (%lf)", tmp_T, T);
+			}
 			break;
 		case 'k':
 			T = (number) (tmp_T * 0.1 / 300.); // convert to simulation units
-			OX_LOG(Logger::LOG_INFO, "Converting temperature from Kelvin (%lf K) to simulation units (%lf)", tmp_T, T);
+			if(print_output) {
+				OX_LOG(Logger::LOG_INFO, "Converting temperature from Kelvin (%lf K) to simulation units (%lf)", tmp_T, T);
+			}
 			break;
 		default:
 			throw oxDNAException("Unrecognizable temperature '%s'", raw_T);
@@ -205,30 +248,13 @@ std::string bytes_to_human(llint bytes) {
  *
  * @param seedptr the memory address to store the 48 bits of the seed into.
  */
-void get_seed(unsigned short * seedptr) {
+void get_seed(unsigned short *seedptr) {
 	unsigned short seme[3] = { 0, 0, 0 };
-	unsigned short * tmpptr;
+	unsigned short *tmpptr;
 	tmpptr = seed48(seme);
 	memcpy(seedptr, tmpptr, 3 * sizeof(unsigned short));
 	seed48(seedptr);
 	seed48(seedptr);
-}
-
-// zeroes the velocity of the centre of mass
-void stop_com(std::vector<BaseParticle *> &particles) {
-	LR_vector vcom = LR_vector((number) 0., (number) 0., (number) 0.);
-
-	for(auto p: particles) {
-		vcom += p->vel;
-	}
-
-	vcom = vcom / (number) particles.size();
-
-	for(auto p: particles) {
-		p->vel -= vcom;
-	}
-
-	return;
 }
 
 number gamma(number alpha, number beta) {
@@ -236,7 +262,8 @@ number gamma(number alpha, number beta) {
 	double d = alpha - 1. / 3.;
 	double c = (1. / 3.) / sqrt(d);
 
-	if(alpha < 1.) return pow(drand48(), 1. / alpha) * gamma((number) 1. + alpha, beta);
+	if(alpha < 1.)
+		return pow(drand48(), 1. / alpha) * gamma((number) 1. + alpha, beta);
 
 	while(true) {
 		do {
@@ -247,17 +274,19 @@ number gamma(number alpha, number beta) {
 		v = v * v * v;
 		u = drand48();
 
-		if(u < 1. - 0.0331 * x * x * x * x) break;
+		if(u < 1. - 0.0331 * x * x * x * x)
+			break;
 
-		if(log(u) < 0.5 * x * x + d * (1 - v + log(v))) break;
+		if(log(u) < 0.5 * x * x + d * (1 - v + log(v)))
+			break;
 	}
 
 	return beta * d * v;
 }
 
-void assert_is_valid_particle(int index, int N, char const *identifier) {
+void assert_is_valid_particle(int index, int N, std::string identifier) {
 	if(index >= N || index < -1) {
-		throw oxDNAException("Trying to add a %s on non-existent particle %d. Aborting", identifier, index);
+		throw oxDNAException("Trying to add a %s on non-existent particle %d. Aborting", identifier.c_str(), index);
 	}
 }
 
@@ -266,22 +295,22 @@ bool is_integer(std::string s) {
 
 }
 
-std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particles, std::string particle_string, char const *identifier) {
+std::vector<int> get_particles_from_string(std::vector<BaseParticle*> &particles, std::string particle_string, std::string identifier) {
 	// first remove all the spaces from the string, so that the parsing goes well.
-	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int (*)(int)>( isspace )), particle_string.end());
+	particle_string.erase(remove_if(particle_string.begin(), particle_string.end(), static_cast<int (*)(int)>(isspace)), particle_string.end());
 
 	std::vector<std::string> temp = split(particle_string.c_str(), ',');
 	std::vector<int> particles_index;
 
 	// try to understand whether we are dealing with a strand-based system or not
 	bool has_strands = false;
-	if(dynamic_cast<DNANucleotide *>(particles[0]) != NULL) {
+	if(dynamic_cast<DNANucleotide*>(particles[0]) != NULL) {
 		has_strands = true;
 	}
-	else if(dynamic_cast<RNANucleotide *>(particles[0]) != NULL) {
+	else if(dynamic_cast<RNANucleotide*>(particles[0]) != NULL) {
 		has_strands = true;
 	}
-	else if(dynamic_cast<TEPParticle *>(particles[0]) != NULL) {
+	else if(dynamic_cast<TEPParticle*>(particles[0]) != NULL) {
 		has_strands = true;
 	}
 
@@ -290,14 +319,14 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particle
 		// if the string contains a dash, then it has to be interpreted as a list of particles
 		// unless it's a negative number
 
-		if (found_dash && '-'!= temp[i].c_str()[0] ) {
+		if(found_dash && '-' != temp[i].c_str()[0]) {
 			// get the two indices p0 and p1 and check they make sense
 			std::vector<std::string> p0_p1_index = split(temp[i].c_str(), '-');
 
-			int p[2]= {0};
+			int p[2] = { 0 };
 			// check whether the p0 and p1 keys can be understood, and set them
-			for (int ii = 0; ii < 2; ii++) {
-				if ( is_integer(p0_p1_index[ii])) {
+			for(int ii = 0; ii < 2; ii++) {
+				if(is_integer(p0_p1_index[ii])) {
 					p[ii] = atoi(p0_p1_index[ii].c_str());
 					assert_is_valid_particle(p[ii], particles.size(), identifier);
 				}
@@ -306,7 +335,7 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particle
 						p[ii] = particles.size() - 1;
 					}
 					else {
-						throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\" used as a boundary particle.", identifier,p0_p1_index[ii].c_str());
+						throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\" used as a boundary particle.", identifier.c_str(), p0_p1_index[ii].c_str());
 					}
 				}
 			}
@@ -319,36 +348,38 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particle
 				bool found_p1 = false;
 				do {
 					particles_index.push_back(j);
-					if (j == p[1]) {
+					if(j == p[1]) {
 						found_p1 = true;
 					}
-					if (particles[j]->n5 == P_VIRTUAL) break;
+					if(particles[j]->n5 == P_VIRTUAL)
+						break;
 					j = particles[j]->n5->index;
 
-				}while( j != p[0] && !found_p1);
+				} while(j != p[0] && !found_p1);
 				// check that it hasn't got to either the end of the strand or back to p1
 				if(!found_p1) {
-					throw oxDNAException("In %s I couldn't get from particle %d to particle %d.",identifier,p[0],p[1]);
+					throw oxDNAException("In %s I couldn't get from particle %d to particle %d.", identifier.c_str(), p[0], p[1]);
 				}
 			}
 			else {
-				if(p[0] >= p[1]) throw oxDNAException("%s: the two indexes in a particle range (here %d and %d) should be sorted (the first one should be smaller than the second one).", identifier, p[0], p[1]);
+				if(p[0] >= p[1])
+					throw oxDNAException("%s: the two indexes in a particle range (here %d and %d) should be sorted (the first one should be smaller than the second one).", identifier.c_str(), p[0], p[1]);
 				for(int p_idx = p[0]; p_idx <= p[1]; p_idx++) {
 					particles_index.push_back(p_idx);
 				}
 			}
 
 		}
-		else if ( temp[i] == "last") {
+		else if(temp[i] == "last") {
 			particles_index.push_back(particles.size() - 1);
 		}
-		else if ( temp[i] == "all") {
+		else if(temp[i] == "all") {
 			particles_index.push_back(-1);
 		}
 		// add it to the vector, and make sure that the identifier is not an unidentified string
 		else {
-			if ( temp[i] != "-1" && ! is_integer(temp[i])) {
-				throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\".",identifier,temp[i].c_str());
+			if(temp[i] != "-1" && !is_integer(temp[i])) {
+				throw oxDNAException("In %s I couldn't interpret particle identifier \"%s\".", identifier.c_str(), temp[i].c_str());
 
 			}
 			int j = atoi(temp[i].c_str());
@@ -360,14 +391,14 @@ std::vector<int> get_particles_from_string(std::vector<BaseParticle *> &particle
 	}
 	// check that if -1 is present then that's the only key - something must be wrong if you
 	// specified -1 (all particles) and then some more particles.
-	if (std::find(particles_index.begin(),particles_index.end(),-1) != particles_index.end() && particles_index.size()>1) {
-		throw oxDNAException("In %s there is more than one particle identifier, including -1 or \"all\". If either -1 or \"all\" are used as particle identifiers then they have to be the only one, as both translate to \"all the particles\". Dying badly.",identifier);
+	if(std::find(particles_index.begin(), particles_index.end(), -1) != particles_index.end() && particles_index.size() > 1) {
+		throw oxDNAException("In %s there is more than one particle identifier, including -1 or \"all\". If either -1 or \"all\" are used as particle identifiers then they have to be the only one, as both translate to \"all the particles\". Dying badly.", identifier.c_str());
 	}
 	// check that no particle appears twice
-	for( std::vector<int>::size_type i = 0; i < particles_index.size(); i++) {
-		for( std::vector<int>::size_type j = i+1; j < particles_index.size(); j++) {
-			if ( particles_index[i] == particles_index[j] ) {
-				throw oxDNAException("In %s particle index %d appears twice (both at position %d and at position %d), but each index can only appear once. Dying badly.",identifier,particles_index[i],i+1,j+1);
+	for(std::vector<int>::size_type i = 0; i < particles_index.size(); i++) {
+		for(std::vector<int>::size_type j = i + 1; j < particles_index.size(); j++) {
+			if(particles_index[i] == particles_index[j]) {
+				throw oxDNAException("In %s particle index %d appears twice (both at position %d and at position %d), but each index can only appear once. Dying badly.", identifier.c_str(), particles_index[i], i + 1, j + 1);
 			}
 		}
 	}

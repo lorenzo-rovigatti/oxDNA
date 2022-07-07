@@ -67,7 +67,7 @@ std::string FSConf::_headers(llint step) {
 		tot_N_A = _N_A;
 	}
 
-	LR_vector &sides = _config_info->box->box_sides();
+	LR_vector sides = _config_info->box->box_sides();
 
 	headers << step << " " << step << " " << tot_N << " " << tot_N_A << " " << 0 << endl;
 	headers << sides.x << " " << sides.y << " " << sides.z << " " << 0. << " " << 0. << " " << 0.;

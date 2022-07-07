@@ -70,7 +70,7 @@ public:
 template<typename T>
 cudaError_t GpuUtils::LR_cudaMalloc(T **devPtr, size_t size) {
 	GpuUtils::_allocated_dev_mem += size;
-	return cudaMalloc(devPtr, size);
+	return cudaMalloc((void **) devPtr, size);
 }
 
 #endif /* GPUUTILS_H_ */

@@ -1,0 +1,36 @@
+interaction_type = DNA2
+salt_concentration = 0.3
+sim_type = MD
+dt = 0.002
+thermostat = brownian
+diff_coeff = 1.0
+newtonian_steps = 53
+
+backend = CUDA
+CUDA_list = verlet
+use_edge = true
+
+steps = 1e9
+list_type = verlet
+T = 291.000000 K
+verlet_skin = 0.5
+
+external_forces = true
+external_forces_file = ext
+back_in_box = false
+fix_diffusion = false
+
+#box_type = cubic
+topology = topology.dat
+conf_file = init_conf.dat
+lastconf_file = output/last.conf
+trajectory_file = output/trajectory.dat
+refresh_vel = true
+log_file = log.log
+no_stdout_energy = true
+restart_step_counter = false
+energy_file = log.energy.dat
+print_conf_interval = 10
+print_energy_every = 10000
+time_scale = linear
+

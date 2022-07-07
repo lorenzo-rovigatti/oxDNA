@@ -10,6 +10,11 @@
 
 #include "../../python_defs.h"
 
+#include "LTCOMTrap.h"
+#include "LTCOMAngleTrap.h"
+#include "LTAtanCOMTrap.h"
+#include "LT2DCOMTrap.h"
+#include "MovingTrap.h"
 #include "RepulsiveSphere.h"
 
 #include <Forces/BaseForce.h>
@@ -79,25 +84,9 @@ void export_BaseForce(py::module &m) {
             The input file of the simulation.
 	)pbdoc");
 
-	force.def("get_group_name", &BaseForce::get_group_name, R"pbdoc(
-        Return the name of the group the force belongs to.
-
-        Returns
-        -------
-        str
-            The name of the group.
-	)pbdoc");
-
-	force.def("set_group_name", &BaseForce::set_group_name, py::arg("name"), R"pbdoc(
-        Set the name of the group the force belongs to.
-
-        Parameters
-        ---------- 
-		name: str
-			The new group name.
-	)pbdoc");
-
+	force.def_property("group_name", &BaseForce::get_group_name, &BaseForce::set_group_name, "The name of the group the force belongs to.");
 	force.def_property("id", &BaseForce::get_id, &BaseForce::set_id, "The id of the force.");
+	force.def_property_readonly("type", &BaseForce::get_type, "the string used in the external force file to specify the force type (*e.g.* `trap`).");
 
 	force.def("value", &BaseForce::value, py::arg("step"), py::arg("pos"), R"pbdoc(
         Return the force vector that would act at the given position and time step.
@@ -132,7 +121,15 @@ void export_BaseForce(py::module &m) {
 	)pbdoc");
 
 	force.def_readwrite("stiff", &BaseForce::_stiff, R"pbdoc(
-The stiffness (= strength) of the force.
+The stiffness (= strength) of the force. The particular meaning of this attribute depends on the subclass external force.
+)pbdoc");
+
+	force.def_readwrite("rate", &BaseForce::_rate, R"pbdoc(
+The rate of change of the force. The particular meaning of this attribute depends on the subclass external force.
+)pbdoc");
+
+	force.def_readwrite("pos0", &BaseForce::_pos0, R"pbdoc(
+The reference position associated to the force. The particular meaning of this attribute depends on the subclass external force.
 )pbdoc");
 
 	force.def("as_RepulsiveSphere", [](BaseForce &f){ return dynamic_cast<RepulsiveSphere *>(&f); }, R"pbdoc(
@@ -144,6 +141,11 @@ Returns
 		The force cast as a :py:class:`RepulsiveSphere` or `None` if the casting fails.
 )pbdoc");
 
+	export_LTCOMTrap(sub_m);
+	export_LTCOMAngleTrap(sub_m);
+	export_LTAtanCOMTrap(sub_m);
+	export_LT2DCOMTrap(sub_m);
+	export_MovingTrap(sub_m);
 	export_RepulsiveSphere(sub_m);
 }
 

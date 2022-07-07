@@ -70,7 +70,7 @@ public:
 	void init();
 	void fix_diffusion();
 
-	virtual void print_observables(llint curr_step);
+	virtual void print_observables();
 };
 
 #endif /* MDBACKEND_H_ */

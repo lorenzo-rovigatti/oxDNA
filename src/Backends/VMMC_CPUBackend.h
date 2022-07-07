@@ -161,15 +161,15 @@ public:
 	virtual ~VMMC_CPUBackend();
 
 	virtual void get_settings(input_file &inp);
-	virtual void print_conf(llint curr_step, bool reduced, bool only_last);
-	virtual void print_conf(llint curr_step, bool only_last);
-	virtual void print_observables(llint curr_step);
+	virtual void print_conf(bool reduced, bool only_last);
+	virtual void print_conf(bool only_last);
+	virtual void print_observables();
 
 	void fix_diffusion();
 
 	void init();
 
-	void sim_step(llint cur_step);
+	void sim_step();
 	inline void check_overlaps();
 	inline void check_ops();
 	char * get_op_state_str();

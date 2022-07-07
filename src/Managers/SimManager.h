@@ -43,9 +43,7 @@ protected:
 	time_scale _time_scale_manager;
 	int _time_scale;
 	llint _steps, _equilibration_steps;
-	llint _cur_step;
-	llint _start_step;
-	llint _max_steps;
+	llint _steps_run;
 	int _seed;
 	int _print_energy_every;
 	int _pid;

@@ -41,7 +41,6 @@ void MCBackend::get_settings(input_file &inp) {
 	getInputString(&inp, "ensemble", tmp, 1);
 	if(strncasecmp(tmp, "npt", 256) == 0) {
 		_ensemble = MC_ENSEMBLE_NPT;
-		//throw oxDNAException("Ensemble NPT will be implemented soon");
 		int check = getInputString(&inp, "list_type", tmp, 0);
 		if(check == KEY_NOT_FOUND || (strncasecmp(tmp, "cells", 256) != 0 && strncasecmp(tmp, "no", 256) != 0 && strncasecmp(tmp, "rodcells", 256) != 0))
 			throw oxDNAException("NPT ensemble requires no lists or cells to handle interaction lists; set list_type=cells in the input file");
@@ -103,7 +102,7 @@ void MCBackend::get_settings(input_file &inp) {
 	}
 }
 
-void MCBackend::print_observables(llint curr_step) {
+void MCBackend::print_observables() {
 	std::string tmpstr("");
 	for(int i = 0; i < _MC_moves; i++) {
 		number ratio = (_tries[i] > 0) ? _accepted[i] / (float) _tries[i] : 0;
@@ -112,5 +111,5 @@ void MCBackend::print_observables(llint curr_step) {
 	}
 	_backend_info.insert(0, tmpstr + "  ");
 
-	SimBackend::print_observables(curr_step);
+	SimBackend::print_observables();
 }

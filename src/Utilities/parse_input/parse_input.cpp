@@ -96,6 +96,23 @@ void input_file::init_from_string(std::string s_inp) {
 	state = PARSED;
 }
 
+void input_file::init_from_json(const nlohmann::json &json) {
+	for(auto &item : json.items()) {
+		try {
+			std::string key(item.key());
+			std::string value(item.value());
+			set_value(key, value);
+		}
+		catch(nlohmann::detail::type_error &e) {
+			// here we use a stringstream since if we are here it means that we cannot cast item.key() and/or item.value() to a string
+			std::stringstream ss;
+			ss << "The JSON line \"" << item.key() << " : " << item.value() << "\" cannot be converted to strings. ";
+			ss << "Please make sure that all keys and values are quoted.";
+			throw oxDNAException(ss.str());
+		}
+	}
+}
+
 void input_file::init_from_command_line_args(int argc, char *argv[], int args_to_skip) {
 	init_from_filename(argv[1]);
 	if(state == ERROR) {
@@ -176,7 +193,7 @@ void input_file::set_unread_keys() {
 	}
 }
 
-std::string input_file::get_value(const char *key, int mandatory, bool &found) {
+std::string input_file::get_value(std::string key, int mandatory, bool &found) {
 	found = false;
 	std::map<string, input_value>::iterator it = keys.find(string(key));
 	if(it != keys.end()) {
@@ -209,7 +226,7 @@ std::string input_file::get_value(const char *key, int mandatory, bool &found) {
 		return value.expanded_value;
 	}
 	else if(mandatory) {
-		throw oxDNAException("Mandatory key `%s' not found", key);
+		throw oxDNAException("Mandatory key `%s' not found", key.c_str());
 	}
 	else {
 		return "";
@@ -217,8 +234,15 @@ std::string input_file::get_value(const char *key, int mandatory, bool &found) {
 }
 
 void input_file::set_value(std::string key, std::string value) {
+	if(key == "show_overwrite_warnings") {
+		auto res = false_values.find(value);
+		if(res != false_values.end()) {
+			show_overwrite_warnings = false;
+		}
+	}
+
 	input_map::iterator old_val = keys.find(key);
-	if(old_val != keys.end()) {
+	if(old_val != keys.end() && show_overwrite_warnings) {
 		OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
 		keys[key].depends_on.clear();
 	}
@@ -234,6 +258,10 @@ void input_file::set_value(std::string key, std::string value) {
 		keys[key].depends_on.push_back(m[1].str());
 		value = m.suffix().str();
 	}
+}
+
+void input_file::unset_value(std::string key) {
+	keys.erase(key);
 }
 
 std::string input_file::to_string() const {

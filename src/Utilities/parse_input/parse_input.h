@@ -5,6 +5,8 @@
 #define _GNU_SOURCE
 #endif
 
+#include <nlohmann/json.hpp>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -48,6 +50,7 @@ struct input_file {
 	input_map keys;
 	std::vector<std::string> unread_keys;
 	int state;
+	bool show_overwrite_warnings = true;
 
 	bool is_main_input = false;
 
@@ -72,6 +75,8 @@ struct input_file {
 	 * @param s_inp string to be parsed
 	 */
 	void init_from_string(std::string s_inp);
+
+	void init_from_json(const nlohmann::json &json);
 
 	/**
 	 * @brief Load keys and values from command line's argc and argv variables
@@ -107,8 +112,9 @@ struct input_file {
 
 	void set_unread_keys();
 
-	std::string get_value(const char *key, int mandatory, bool &found);
+	std::string get_value(std::string key, int mandatory, bool &found);
 	void set_value(std::string key, std::string value);
+	void unset_value(std::string key);
 
 	std::string to_string() const;
 };

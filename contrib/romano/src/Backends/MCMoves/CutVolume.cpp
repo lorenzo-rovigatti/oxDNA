@@ -82,7 +82,6 @@ void CutVolume<number>::apply (llint curr_step) {
 
 	//this->_Info->interaction->box->init (box_sides[0], box_sides[1], box_sides[2]);
 	this->_Info->box->init(box_sides.x, box_sides.y, box_sides.z);
-	this->_Info->lists->change_box();
 
 	number dExt = (number) 0.f;
 	bool reject = false;
@@ -141,7 +140,6 @@ void CutVolume<number>::apply (llint curr_step) {
 			p->pos = _pos_old[k];
 			p->set_ext_potential(curr_step, this->_Info->box);
 		}
-		this->_Info->lists->change_box();
 		this->_Info->interaction->set_is_infinite (false);
 		if(!this->_Info->lists->is_updated()) {
 			this->_Info->lists->global_update();

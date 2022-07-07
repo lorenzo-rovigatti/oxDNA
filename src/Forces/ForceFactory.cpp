@@ -24,11 +24,16 @@
 #include "AlignmentField.h"
 #include "GenericCentralForce.h"
 #include "LJCone.h"
-#include <fstream>
-#include <sstream>
 #include "RepulsiveEllipsoid.h"
 
-#include <nlohmann/json.hpp>
+// metadynamics-related forces
+#include "Metadynamics/LT2DCOMTrap.h"
+#include "Metadynamics/LTAtanCOMTrap.h"
+#include "Metadynamics/LTCOMAngleTrap.h"
+#include "Metadynamics/LTCOMTrap.h"
+
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -75,6 +80,10 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
 	else if(type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
 	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
+	else if (type_str.compare("meta_com_trap") == 0) extF = std::make_shared<LTCOMTrap>();
+	else if (type_str.compare("meta_2D_com_trap") == 0) extF = std::make_shared<LT2DCOMTrap>();
+	else if (type_str.compare("meta_atan_com_trap") == 0) extF = std::make_shared<LTAtanCOMTrap>();
+	else if (type_str.compare("meta_com_angle_trap") == 0) extF = std::make_shared<LTCOMAngleTrap>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
@@ -111,20 +120,7 @@ void ForceFactory::make_forces(std::vector<BaseParticle *> &particles, BaseBox *
 
 			for(auto &force_json : my_json) {
 				input_file force_input;
-				for(auto &item : force_json.items()) {
-					try {
-						std::string key(item.key());
-						std::string value(item.value());
-						force_input.set_value(key, value);
-					}
-					catch(nlohmann::detail::type_error &e) {
-						// here we use a stringstream since if we are here it means that we cannot cast item.key() and/or item.value() to a string
-						std::stringstream ss;
-						ss << "The JSON external force file contains a non-string key or value in the line \"" << item.key() << " : " << item.value() << "\". ";
-						ss << "Please make sure that all keys and values are quoted.";
-						throw oxDNAException(ss.str());
-					}
-				}
+				force_input.init_from_json(force_json);
 				ForceFactory::instance()->add_force(force_input, particles, box);
 			}
 		}

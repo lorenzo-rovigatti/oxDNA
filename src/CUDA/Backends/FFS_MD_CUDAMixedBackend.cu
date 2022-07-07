@@ -208,15 +208,15 @@ void FFS_MD_CUDAMixedBackend::_free_simple_conditions(SimpleConditions sc) {
 	CUDA_SAFE_CALL(cudaFree(sc.d_ffs_stop));
 }
 
-void FFS_MD_CUDAMixedBackend::sim_step(llint curr_step) {
+void FFS_MD_CUDAMixedBackend::sim_step() {
 	// valgrind complains if _check_stop() happens before sim_step() has been called for the first time
 	// so, I put sim_step before _check_stop, which has the disadvantage that the system will (I think) slightly advance
 	// even if it should immediately stop (this is the same behaviour as with the CPU version)
-	CUDAMixedBackend::sim_step(curr_step);
+	CUDAMixedBackend::sim_step();
 	if(_check_stop()) {
 		SimManager::stop = true;
 		OX_LOG(Logger::LOG_INFO,
-		"Reached stop conditions, stopping in step %lld", curr_step);
+		"Reached stop conditions, stopping in step %lld", current_step());
 		char tmp[1024];
 		sprintf_names_and_values(tmp);
 		OX_LOG(Logger::LOG_INFO,
@@ -829,8 +829,8 @@ void FFS_MD_CUDAMixedBackend::_handle_unexpected_master() {
 	char conf_str[1024];
 	sprintf(conf_str, "%s_%s_N%d.dat", _unexpected_master_prefix, _unexpected_master_name, _gen_flux_saved_cross_count);
 	_prepare_configuration(conf_str);
-	_obs_output_custom_conf->print_output(_curr_step);
-	OX_LOG(Logger::LOG_INFO, "saved configuration %s at step %d", conf_str, _curr_step);
+	_obs_output_custom_conf->print_output(current_step());
+	OX_LOG(Logger::LOG_INFO, "saved configuration %s at step %d", conf_str, current_step());
 	_gen_flux_saved_cross_count += 1;
 	OX_LOG(Logger::LOG_INFO, "Crossed interface with master condition integer other than 1 and die_on_unexpected_master is set; exiting now");
 }
@@ -853,7 +853,7 @@ bool FFS_MD_CUDAMixedBackend::_check_stop() {
 			}
 			if(crossing) {
 				// check whether we began the simulation with the system already in the state (and the relevant flag is set in the input file)
-				if(_curr_step == 0 && _check_initial_state) {
+				if(current_step() == 0 && _check_initial_state) {
 					OX_LOG(Logger::LOG_INFO, "Began simulation out of the state, but the check_initial_state option is set; terminating simulation");
 					return true;
 				}
@@ -868,14 +868,14 @@ bool FFS_MD_CUDAMixedBackend::_check_stop() {
 					char conf_str[300];
 					sprintf(conf_str, "%s_N%d.dat", _conf_prefix, _gen_flux_saved_cross_count);
 					_prepare_configuration(conf_str);
-					_obs_output_custom_conf->print_output(_curr_step);
-					OX_LOG(Logger::LOG_INFO, "saved configuration %s at step %d", conf_str, _curr_step);
+					_obs_output_custom_conf->print_output(current_step());
+					OX_LOG(Logger::LOG_INFO, "saved configuration %s at step %d", conf_str, current_step());
 					_gen_flux_saved_cross_count += 1;
 
 					if (_gen_flux_saved_cross_count == _gen_flux_desired_cc) stop_sim = true;
 				}
 				else {
-					OX_LOG(Logger::LOG_INFO, "Forwards condition reached at step %d", _curr_step);
+					OX_LOG(Logger::LOG_INFO, "Forwards condition reached at step %d", current_step());
 				}
 				_gen_flux_cross_count += 1;
 				_flux_direction = BACKWARD;
@@ -900,11 +900,11 @@ bool FFS_MD_CUDAMixedBackend::_check_stop() {
 					char conf_str[256];
 					sprintf(conf_str, "debug_backwards_N%d.dat", _gen_flux_cross_count);
 					_prepare_configuration(conf_str);
-					_obs_output_custom_conf->print_output(_curr_step);
-					OX_LOG(Logger::LOG_INFO, "saved debug configuration %s at step %d", conf_str, _curr_step);
+					_obs_output_custom_conf->print_output(current_step());
+					OX_LOG(Logger::LOG_INFO, "saved debug configuration %s at step %d", conf_str, current_step());
 				}
 				else {
-					OX_LOG(Logger::LOG_INFO, "Backwards condition reached at step %d", _curr_step);
+					OX_LOG(Logger::LOG_INFO, "Backwards condition reached at step %d", current_step());
 				}
 				_flux_direction = FORWARD;
 			}
@@ -1045,7 +1045,9 @@ void FFS_MD_CUDAMixedBackend::sprintf_names_and_values(char *str) {
 	free(h_dist_region_rows);
 }
 
-void FFS_MD_CUDAMixedBackend::print_observables(llint curr_step) {
-	if(_curr_step % _print_energy_every == _print_energy_every - 1) _backend_info = get_op_state_str();
-	CUDAMixedBackend::print_observables(curr_step);
+void FFS_MD_CUDAMixedBackend::print_observables() {
+	if(current_step() % _print_energy_every == _print_energy_every - 1) {
+		_backend_info = get_op_state_str();
+	}
+	CUDAMixedBackend::print_observables();
 }

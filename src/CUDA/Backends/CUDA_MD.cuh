@@ -376,6 +376,47 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 
 				break;
 			}
+			case CUDA_LR_COM_TRAP: {
+				c_number4 p1a_vec({0.f, 0.f, 0.f, 0.f});
+				c_number4 p2a_vec({0.f, 0.f, 0.f, 0.f});
+				for(int will = 0; will < extF.ltcomtrap.p1a_size; will++) {
+					p1a_vec.x += poss[extF.ltcomtrap.p1a[will]].x / extF.ltcomtrap.p1a_size;
+					p1a_vec.y += poss[extF.ltcomtrap.p1a[will]].y / extF.ltcomtrap.p1a_size;
+					p1a_vec.z += poss[extF.ltcomtrap.p1a[will]].z / extF.ltcomtrap.p1a_size;
+				}
+
+				for(int will = 0; will < extF.ltcomtrap.p2a_size; will++) {
+					p2a_vec.x += poss[extF.ltcomtrap.p2a[will]].x / extF.ltcomtrap.p2a_size;
+					p2a_vec.y += poss[extF.ltcomtrap.p2a[will]].y / extF.ltcomtrap.p2a_size;
+					p2a_vec.z += poss[extF.ltcomtrap.p2a[will]].z / extF.ltcomtrap.p2a_size;
+				}
+
+				c_number4 dr = p1a_vec - p2a_vec;
+				c_number dr_mod = _module(dr);
+
+				int ix_left = (int) ((dr_mod - extF.ltcomtrap.xmin) / extF.ltcomtrap.dX);
+				int ix_right = ix_left + 1;
+
+				// make sure that we never get out of boundaries. If we are then we keep the force 0
+				c_number meta_Fx = 0.f;
+				if(ix_left >= 0 && ix_right <= (extF.ltcomtrap.N_grid - 1)) {
+					meta_Fx = -(extF.ltcomtrap.potential_grid[ix_right] - extF.ltcomtrap.potential_grid[ix_left]) / extF.ltcomtrap.dX;
+				}
+
+				c_number4 force = (dr) * (meta_Fx / dr_mod);
+
+				if(extF.ltcomtrap.mode == 1) {
+					F.x += force.x / extF.ltcomtrap.p1a_size;
+					F.y += force.y / extF.ltcomtrap.p1a_size;
+					F.z += force.z / extF.ltcomtrap.p1a_size;
+				}
+				else if(extF.ltcomtrap.mode == 2) {
+					F.x -= force.x / extF.ltcomtrap.p2a_size;
+					F.y -= force.y / extF.ltcomtrap.p2a_size;
+					F.z -= force.z / extF.ltcomtrap.p2a_size;
+				}
+				break;
+			}
 			default: {
 				break;
 			}

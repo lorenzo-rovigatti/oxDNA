@@ -61,7 +61,7 @@ void MGAssemblyConf::init() {
 std::string MGAssemblyConf::_headers(llint step) {
 	std::stringstream headers;
 
-	LR_vector &sides = _config_info->box->box_sides();
+	LR_vector sides = _config_info->box->box_sides();
 
 	headers << step << " " << step << " " << _N << " " << _N_A << " " << _N_in_polymers << endl;
 	headers << sides.x << " " << sides.y << " " << sides.z << " " << 0. << " " << 0. << " " << 0.;

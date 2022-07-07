@@ -132,9 +132,9 @@ public:
 
 	void init();
 
-	void sim_step(llint cur_step);
+	void sim_step();
 	char * get_op_state_str(void);
-	virtual void print_observables(llint curr_step);
+	virtual void print_observables();
 
 };
 
