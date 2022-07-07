@@ -170,7 +170,48 @@
             
   <div class="tex2jax_ignore mathjax_ignore section" id="events">
 <h1>Events<a class="headerlink" href="#events" title="Permalink to this headline">¶</a></h1>
-<p>oxDNA supports a basic <a class="reference external" href="https://en.wikipedia.org/wiki/Observer_pattern">observer pattern</a> to associate callbacks and specific events. The system can be used from both C++ and Python.</p>
+<p>oxDNA supports a basic <a class="reference external" href="https://en.wikipedia.org/wiki/Observer_pattern">observer pattern</a> to associate callbacks to specific events. The system can be used from both C++ and Python. The basic idea is to call <code class="docutils literal notranslate"><span class="pre">ConfigInfo</span></code>’s <code class="docutils literal notranslate"><span class="pre">subscribe</span></code> and <code class="docutils literal notranslate"><span class="pre">notify</span></code> methods to register callbacks and to trigger events, respectively.</p>
+<div class="admonition-python admonition">
+<p class="admonition-title">Python</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oxpy</span>
+
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+<span class="c1"># define a callback</span>
+<span class="k">def</span> <span class="nf">on_T_update</span><span class="p">():</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Temperature was updated to&quot;</span><span class="p">,</span> <span class="n">conf_info</span><span class="o">.</span><span class="n">temperature</span><span class="p">())</span>
+
+<span class="c1"># associate the callback to the &quot;T_updated&quot; event</span>
+<span class="n">conf_info</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span>
+<span class="n">conf_info</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;T_updated&quot;</span><span class="p">,</span> <span class="n">on_T_update</span><span class="p">)</span>
+
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+<span class="c1"># somewhere else we fire off the event, which will trigger </span>
+<span class="c1"># the invoking of all the associated callbacks</span>
+<span class="n">conf_info</span><span class="o">.</span><span class="n">notify</span><span class="p">(</span><span class="s2">&quot;T_updated&quot;</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</div>
+<div class="admonition-c admonition">
+<p class="admonition-title">C++</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;../Utilities/ConfigInfo.h&quot;</span><span class="cp"></span>
+
+<span class="p">[...]</span><span class="w"></span>
+
+<span class="c1">// associate a lambda function that calls a class method to the </span>
+<span class="c1">// &quot;box_updated&quot; event</span>
+<span class="n">CONFIG_INFO</span><span class="o">-&gt;</span><span class="n">subscribe</span><span class="p">(</span><span class="s">&quot;box_updated&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="k">this</span><span class="p">]()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">this</span><span class="o">-&gt;</span><span class="n">_on_box_update</span><span class="p">();</span><span class="w"> </span><span class="p">});</span><span class="w"></span>
+
+<span class="p">[...]</span><span class="w"></span>
+
+<span class="c1">// somewhere else we fire off the event, which will trigger </span>
+<span class="c1">// the invoking of all the associated callbacks</span>
+<span class="n">CONFIG_INFO</span><span class="o">-&gt;</span><span class="n">notify</span><span class="p">(</span><span class="s">&quot;box_updated&quot;</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="list-of-supported-events">
 <h2>List of supported events<a class="headerlink" href="#list-of-supported-events" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">

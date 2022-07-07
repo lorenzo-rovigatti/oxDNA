@@ -204,7 +204,7 @@ make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it 
 </pre></div>
 </div>
 <p>At the end of the compilation three executables (<em>oxDNA</em>, <em>DNAnalysis</em> and <em>confGenerator</em>) will be placed in the <code class="docutils literal notranslate"><span class="pre">build/bin</span></code> directory.</p>
-<p>Compiling with Python bindings will also generate an <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> package in the <code class="docutils literal notranslate"><span class="pre">build/oxpy</span></code> directory that can be imported in Python. Running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> will attempt to copy the package to the <code class="docutils literal notranslate"><span class="pre">pip</span></code>’s module directory. The specific location will depend on your system’s settings. We advise you to use <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environments</a> (see <em>e.g.</em> <a class="reference external" href="https://docs.pipenv.org/">pipenv</a>) to avoid conflicts with other packages and/or dependency and permission issues.</p>
+<p>Compiling with Python bindings will also generate an <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> package in the <code class="docutils literal notranslate"><span class="pre">build/oxpy</span></code> directory that can be imported in Python. Running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> will attempt to copy the package (as well as <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code>) to the <code class="docutils literal notranslate"><span class="pre">pip</span></code>’s module directory. The specific location will depend on your system’s settings. We advise you to use <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environments</a> (see <em>e.g.</em> <a class="reference external" href="https://docs.pipenv.org/">pipenv</a>) to avoid conflicts with other packages and/or dependency and permission issues.</p>
 <div class="section" id="cmake-options">
 <h3>CMake options<a class="headerlink" href="#cmake-options" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -230,10 +230,9 @@ make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it 
 <h3>make targets<a class="headerlink" href="#make-targets" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span></code> compiles oxDNA</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">docs</span></code> Produces html doxygen documentation for oxDNA (<code class="docutils literal notranslate"><span class="pre">DOCS/html_oxDNA/index.html</span></code>) and for the UTILS folder (<code class="docutils literal notranslate"><span class="pre">DOCS/html_UTILS/index.html</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> Copies the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> and <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> packages to the Python’s package folder making the two packages importable with Python.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">rovigatti</span></code> Compiles the observables and interactions in contrib/rovigatti</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">romano</span></code> Compiles the observables and interactions in contrib/romano</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> Copies the <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> and <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> packages to the Python’s package folder making the two packages importable with Python.</p></li>
 </ul>
 </div>
 <div class="section" id="known-issues">
@@ -242,6 +241,8 @@ make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it 
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake .. -DPython<span class="o">=</span>ON -DPYTHON_INCLUDE_DIRS<span class="o">=</span>/path/to/python/include/dir -DPYTHON_EXECUTABLE<span class="o">=</span>/path/to/python/binary
 </pre></div>
 </div>
+<p>If you get an error regarding the number of bytes in the <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code> header, this happens when the version of Numpy on your system doesn’t match the version that pip downloads from PyPi when installing <code class="docutils literal notranslate"><span class="pre">oat</span></code> with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, try to manually install <code class="docutils literal notranslate"><span class="pre">oat</span></code> with:</p>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">./analysis</span> <span class="pre">--no-build-isolation</span></code></p>
 </div>
 </div>
 <div class="section" id="testing">
