@@ -26,7 +26,7 @@ make -j4         # compile oxDNA. The -jX make option makes it compile the code 
 
 At the end of the compilation three executables (*oxDNA*, *DNAnalysis* and *confGenerator*) will be placed in the `build/bin` directory. 
 
-Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package to the `pip`'s module directory. The specific location will depend on your system's settings. We advise you to use [virtual environments](https://docs.python.org/3/tutorial/venv.html) (see *e.g.* [pipenv](https://docs.pipenv.org/)) to avoid conflicts with other packages and/or dependency and permission issues.
+Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package (as well as `oxDNA_analysis_tools`) to the `pip`'s module directory. The specific location will depend on your system's settings. We advise you to use [virtual environments](https://docs.python.org/3/tutorial/venv.html) (see *e.g.* [pipenv](https://docs.pipenv.org/)) to avoid conflicts with other packages and/or dependency and permission issues.
 
 ### CMake options
 
@@ -50,10 +50,9 @@ The following options pertain to `oxpy`:
 ### make targets
 
 * `make` compiles oxDNA
-* `make docs` Produces html doxygen documentation for oxDNA (`DOCS/html_oxDNA/index.html`) and for the UTILS folder (`DOCS/html_UTILS/index.html`)
+* `make install` Copies the `oxpy` and `oxDNA_analysis_tools` packages to the Python's package folder making the two packages importable with Python. 
 * `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
 * `make romano` Compiles the observables and interactions in contrib/romano
-* `make install` Copies the `oxpy` and `oxDNA_analysis_tools` packages to the Python's package folder making the two packages importable with Python. 
 
 ### Known issues
 
@@ -62,6 +61,10 @@ When compiling with the Python bindings enabled CMake will sometimes choose the 
 ```bash
 cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary
 ```
+
+If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing `oat` with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, try to manually install `oat` with:
+  
+   `python -m pip install ./analysis --no-build-isolation`
 	
 ## Testing
 

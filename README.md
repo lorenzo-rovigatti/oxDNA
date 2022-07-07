@@ -12,7 +12,9 @@ The HTML documentation can also be generated locally by running `make html` in t
 
 ## Examples
 
-The `examples` folder contains many examples showing the main features of the code. Note that the `METADYNAMICS`, `OXPY` and `OXPY_REMD` examples require `oxpy`, oxDNA's python bindings that can be compiled by setting `-DPython=ON` during the [compilation stage](https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options).   
+The `examples` folder contains many examples showing the main features of the code. Note that the `METADYNAMICS`, `OXPY` and `OXPY_REMD` examples require `oxpy`, oxDNA's python bindings that can be compiled by setting `-DPython=ON` during the [compilation stage](https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options).
+
+The `analysis/paper_examples` folder contains examples for `oxDNA_analysis_tools`, a suite of command line Python tools for performing generic structural analyses of oxDNA simulations.
 
 ## FAQ
 
@@ -24,19 +26,25 @@ The `examples` folder contains many examples showing the main features of the co
 
 **A:** No, oxDNA can run simulations on single cores or single GPUs only.
 
+**Q: Can I simulate systems containing both DNA and RNA?**
+
+**A:** Unfortunately not: at the moment there is no force field for that.
+
 ## Citing oxDNA
 
 Please cite these publications for any work that uses the oxDNA simulation package:
 
 - for the code:
-    * P. Šulc et al., J. Chem. Phys. 137, 135101 (2012)
-    * L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)
+  * P. Šulc et al., J. Chem. Phys. 137, 135101 (2012)
+  * L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)
 - for the oxDNA model:
-    * T. E. Ouldridge et al., J. Chem. Phys, 134, 085101 (2011)
+  * T. E. Ouldridge et al., J. Chem. Phys, 134, 085101 (2011)
 - for the oxDNA2 model:
-    * B. E. K. Snodin et al., J. Chem. Phys. 142, 234901 (2015)
+  * B. E. K. Snodin et al., J. Chem. Phys. 142, 234901 (2015)
 - for the oxRNA model:
-    * P. Šulc et al., J. Chem. Phys. 140, 235102 (2014)
+  * P. Šulc et al., J. Chem. Phys. 140, 235102 (2014)
+- for oxDNA analysis tools:
+  * E. Poppleton et al., Nucleic Acids Research e72 (2020)
     
 ## Acknowledgements
 
