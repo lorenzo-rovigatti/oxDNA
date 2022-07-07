@@ -1,4 +1,4 @@
-v. 3.3
+v. 3.3 [7cb66cf]
 	- Add variables to the input file
 	- Add support for mathematical expressions to the input file
 	- Add tests for the new input features

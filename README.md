@@ -10,6 +10,10 @@ The documentation can be browsed [here](https://lorenzo-rovigatti.github.io/oxDN
 
 The HTML documentation can also be generated locally by running `make html` in the `docs` folder, and the resulting docs can be browsed by opening the `docs/build/html/index.html` file. Run `pip install -r docs_requirements.txt` to install the requirements.
 
+## Installation
+
+Installation instructions can be found in the `docs/source/install.md` file or online [here](https://lorenzo-rovigatti.github.io/oxDNA/install.html).
+
 ## Examples
 
 The `examples` folder contains many examples showing the main features of the code. Note that the `METADYNAMICS`, `OXPY` and `OXPY_REMD` examples require `oxpy`, oxDNA's python bindings that can be compiled by setting `-DPython=ON` during the [compilation stage](https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options).
