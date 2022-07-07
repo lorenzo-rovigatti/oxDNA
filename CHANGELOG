@@ -1,3 +1,16 @@
+v. 3.3
+	- Add variables to the input file
+	- Add support for mathematical expressions to the input file
+	- Add tests for the new input features
+	- Greatly improve the performance of the configuration parser. The speed increase is very noticeable when using DNAnalysis on large trajectories.
+	- Add a Python-powered metadynamics interface (examples/METADYNAMICS)
+	- Add Python bindings to the external forces
+	- Add support for observable and external force files written in JSON
+	- Add tests for oxpy
+	- Complete rewrite of the docs files. The documentation is now much more complete and handled by sphinx
+	- Remove the old (and outdated) UTILS folder
+	- Add oxDNA_analysis_tools to the repo (in the analysis folder)
+
 v. 3.2.1 [ee2553c]
 	- Fix a bug by avoiding free'ing uninitialised CUDA arrays
 	- Substitute a call to the deprecated cudaThreadSetCacheConfig function
@@ -45,7 +58,7 @@ v. 3.1.1 [c83eda2]
 	- Make it possible to print non-averaged density profiles
 	- Add a method to print a configuration at will from Python (OxpyManager::print_configuration)
 	- Add a method to get the system's total energy (OxpyManager::system_energy)
-    - Bugfixing:
+	- Bugfixing:
 		- Fix a bug whereby the Hilbert sorting done on GPU would lead to wrong results due to a wrong updating of the particle data structures
 		- Fix a bug a CPU simulation run with a CUDA-enabled oxDNA would take up a GPU
 
