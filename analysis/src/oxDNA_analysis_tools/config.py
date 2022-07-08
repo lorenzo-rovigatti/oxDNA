@@ -47,9 +47,9 @@ def check_dependencies(to_check:List[str]):
         from sys import version_info
         ver = '.'.join([str(i) for i in version_info[0:2]])
         print("INFO: Python version: {}".format('.'.join([str(i) for i in version_info[0:3]])), file=stderr)
-        if version_info < (3, 6):
+        if version_info < (3, 8):
             flag = True
-            print("WARNING: Some scripts will not run with Python versions earler than 3.6.  You have {}, please update your environment", file=stderr)
+            print("WARNING: Some scripts will not run with Python versions earler than 3.8.  You have {}, please update your environment", file=stderr)
 
     #check packages
     for package in to_check:
