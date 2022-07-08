@@ -8,7 +8,7 @@ from matplotlib.colors import ListedColormap
 from sklearn.cluster import DBSCAN
 from matplotlib import animation
 from json import dump, load
-from oxDNA_analysis_tools.config import check_dependencies
+from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.UTILS.data_structures import TrajInfo, TopInfo
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, linear_read, conf_to_str, describe, write_conf
 
@@ -196,7 +196,7 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
         min_samples (int): The minimum number of points to be considered a neighborhood
     """
     
-    check_dependencies(["python", "sklearn", "matplotlib"])
+    check(["python", "sklearn", "matplotlib"])
     
     #dump the input as a json file so you can iterate on eps and min_samples
     dump_file = "cluster_data.json"

@@ -6,7 +6,7 @@ from typing import List
 import argparse
 
 #checking dependencies to make sure everything is correct
-def check_dependencies(to_check:List[str]):
+def check(to_check:List[str]=["python", "numpy", "matplotlib", "Bio", "sklearn", "oxpy"]):
     """
         Checks if the dependencies are installed.
 
@@ -75,6 +75,18 @@ def check_dependencies(to_check:List[str]):
             flag = True
             print("WARNING: Your version for package {} is {}.  This tool was tested using {}.  You may need to update your environment".format(real_names[package], ver, dependencies[package]), file=stderr)
 
+    # Check for numpy header error
+    try:
+        from oxDNA_analysis_tools.UTILS.get_confs import cget_confs
+    except ValueError as e:
+        flag = True
+        print("ERROR: Importing Cython file reading module failed with error:", file=stderr)
+        print(e, file=stderr)
+        print("This is generally because your version of Numpy is behind the version downloaded by pip during installation.", file=stderr)
+        print("Please try reinstalling oxDNA_analysis_tools with --no-build-isolation to use your local numpy header. Or update your numpy version.", file=stderr)
+        print("This can be done by navigating to the oxDNA/analysis directory and running:", file=stderr)
+        print("\t python -m pip install . --no-build-isolation", file=stderr)
+    
     if flag:
         print("WARNING: Some packages need to be installed/updated.", file=stderr)
     else:
@@ -116,7 +128,7 @@ def main():
         set_chunk_size(args.chunk_size)
         print("INFO: future analyses will calculate in blocks of {} confs at a time".format(args.chunk_size), file=stderr)
 
-    check_dependencies(["python", "numpy", "matplotlib", "Bio", "sklearn", "oxpy"])
+    check(["python", "numpy", "matplotlib", "Bio", "sklearn", "oxpy"])
 
     print()
     get_chunk_size()

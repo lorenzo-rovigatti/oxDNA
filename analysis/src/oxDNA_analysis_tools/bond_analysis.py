@@ -106,8 +106,8 @@ def main():
     args = parser.parse_args()
 
     #run system checks
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy"])
 
     inputfile = args.inputfile[0]
     traj_file = args.trajectory[0]

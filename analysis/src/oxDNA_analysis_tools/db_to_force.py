@@ -46,8 +46,8 @@ def main():
     parser.add_argument('-s', '--stiffness', type=float, nargs=1, help='Strength of the forces')
     args = parser.parse_args()
 
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy"])
 
     # Get input
     with open(args.db_file[0]) as f:

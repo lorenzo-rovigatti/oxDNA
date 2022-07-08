@@ -3,12 +3,11 @@ import numpy as np
 import argparse
 import matplotlib.pyplot as plt
 from sys import stderr
-from multiprocess import Pool
 from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
-from oxDNA_analysis_tools.config import check_dependencies
+from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.distance import vectorized_min_image
 
 from time import time
@@ -62,7 +61,7 @@ def contact_map(traj_info:TrajInfo, top_info:TopInfo, ncpus=1) -> np.array:
     return distances
 
 def main():
-    check_dependencies(["python", "numpy", "matplotlib"])
+    check(["python", "numpy", "matplotlib"])
 
     #get commandline arguments
     parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Calculate and display the contact map for a structure")

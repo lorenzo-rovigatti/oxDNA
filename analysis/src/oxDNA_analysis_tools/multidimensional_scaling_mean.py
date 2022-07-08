@@ -14,7 +14,7 @@ from json import dumps
 from collections import namedtuple
 from typing import Tuple
 from sklearn.manifold import MDS
-from oxDNA_analysis_tools.config import check_dependencies
+from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.contact_map import contact_map
 from oxDNA_analysis_tools.distance import vectorized_min_image
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
@@ -137,7 +137,7 @@ def main():
     else:
         ncpus = 1
 
-    check_dependencies(['python', 'numpy'])
+    check(['python', 'numpy'])
 
     mean_conf, masked_mean = multidimensional_scaling_mean(traj_info, top_info, ncpus)
 

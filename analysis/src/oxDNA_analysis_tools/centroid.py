@@ -93,8 +93,8 @@ def main():
     args = parser.parse_args()
 
     #system check
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy"])
 
     #Get file paths
     ref = args.reference_structure[0].strip()

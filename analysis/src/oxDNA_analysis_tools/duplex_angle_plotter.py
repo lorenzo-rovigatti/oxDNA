@@ -155,8 +155,8 @@ def main():
 
     args = parser.parse_args()
 
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy", "matplotlib"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy", "matplotlib"])
 
     try:
         files = [i[0] for i in args.input]
