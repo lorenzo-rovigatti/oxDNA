@@ -34,7 +34,6 @@ void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 void Pressure::update_pressure() {
-	int N = _config_info->N();
 	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 
 	_config_info->interaction->begin_energy_computation();

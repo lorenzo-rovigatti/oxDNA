@@ -197,6 +197,8 @@ public:
 	 */
 	virtual void print_observables();
 
+	virtual void update_observables_data();
+
 	virtual void print_conf(bool reduced=false, bool only_last=false);
 
 	/**
