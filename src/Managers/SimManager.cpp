@@ -165,6 +165,7 @@ void SimManager::run() {
 			_backend->fix_diffusion();
 		}
 
+		_backend->update_observables_data();
 		_backend->print_observables();
 		_backend->sim_step();
 		_backend->increment_current_step();

@@ -603,6 +603,20 @@ void SimBackend::print_observables() {
 	_backend_info = std::string("");
 }
 
+void SimBackend::update_observables_data() {
+	bool updated = false;
+	for(auto const &obs : _config_info->observables) {
+		if(obs->need_updating(current_step())) {
+			if(!updated) {
+				apply_simulation_data_changes();
+				updated = true;
+			}
+
+			obs->update_data(current_step());
+		}
+	}
+}
+
 void SimBackend::fix_diffusion() {
 	if(!_enable_fix_diffusion) {
 		return;
