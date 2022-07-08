@@ -116,7 +116,7 @@ public:
 	/// Vector storing all the external forces
 	std::vector<std::shared_ptr<BaseForce>> forces;
 
-	/// Vector storing all the external forces
+	/// Vector storing all the observables
 	std::vector<std::shared_ptr<BaseObservable>> observables;
 
 	/// Used to compute all different kinds of interaction energies (total, partial, between two particles, etc.).

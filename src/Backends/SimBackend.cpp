@@ -198,7 +198,7 @@ void SimBackend::get_settings(input_file &inp) {
 	getInputString(&inp, "lastconf_file", lastconf_file, 0);
 	output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
 	_obs_output_last_conf = std::make_shared<ObservableOutput>(output_inp_text);
-	_obs_output_last_conf->add_observable("type = configuration");
+	_obs_output_last_conf->add_observable("type = configuration\nid = last_conf");
 	add_output(_obs_output_last_conf);
 
 	// Last configuration in binary, optional
