@@ -42,7 +42,10 @@ std::vector<BaseParticle *> BaseList::get_all_neighbours(BaseParticle *p) {
 }
 
 std::vector<ParticlePair > BaseList::get_potential_interactions() {
-	std::vector<ParticlePair > list;
+	// the static here makes sure that the memory allocated every time the function is called is not free'd
+	// so that only push_back's that make the vector go beyond their last size trigger re-allocation
+	static std::vector<ParticlePair > list;
+	list.clear();
 
 	for(auto p : _particles) {
 		for(auto q : get_all_neighbours(p)) {

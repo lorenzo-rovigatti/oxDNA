@@ -48,7 +48,7 @@ LR_vector CubicBox::box_sides() const {
 	return _sides;
 }
 
-LR_vector CubicBox::min_image(const LR_vector &v1, const LR_vector &v2) const {
+inline LR_vector CubicBox::min_image(const LR_vector &v1, const LR_vector &v2) const {
 	return LR_vector (
 		v2.x - v1.x - rint((v2.x - v1.x) / _side) * _side,
 		v2.y - v1.y - rint((v2.y - v1.y) / _side) * _side,

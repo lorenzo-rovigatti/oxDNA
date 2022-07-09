@@ -45,8 +45,8 @@ Note that **all fields** should be escaped with double quotes.
 
 The following two options are supported by all forces and can be used by observables or by the [oxpy](oxpy/index.md) library to retrieve information from or set options of specific external forces:
 
-* `group_name = <string>`: an identifier that can be used to group forces together. Used, for instance, by the `force_energy` observable.
-* `id = <string>`: a unique identifier that can be used to refer to this specific external force.
+* `[group_name = <string>]`: an identifier that can be used to group forces together. Used, for instance, by the `force_energy` observable.
+* `[id = <string>]`: a unique identifier that can be used to refer to this specific external force.
 
 ## String
 
