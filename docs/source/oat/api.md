@@ -113,11 +113,11 @@
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.config.check_dependencies
+    oxDNA_analysis_tools.config.check
     oxDNA_analysis_tools.config.set_chunk_size
     oxDNA_analysis_tools.config.get_chunk_size
     
-.. autofunction:: oxDNA_analysis_tools.config.check_dependencies
+.. autofunction:: oxDNA_analysis_tools.config.check
 .. autofunction:: oxDNA_analysis_tools.config.set_chunk_size
 .. autofunction:: oxDNA_analysis_tools.config.get_chunk_size
 ```

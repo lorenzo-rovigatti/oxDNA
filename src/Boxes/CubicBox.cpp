@@ -16,7 +16,7 @@
 using namespace std;
 
 CubicBox::CubicBox() {
-
+	_side = -1.0;
 }
 
 CubicBox::~CubicBox() {
@@ -57,15 +57,7 @@ LR_vector CubicBox::min_image(const LR_vector &v1, const LR_vector &v2) const {
 }
 
 number CubicBox::sqr_min_image_distance(const LR_vector &v1, const LR_vector &v2) const {
-	number nx = v2.x - v1.x;
-	number ny = v2.y - v1.y;
-	number nz = v2.z - v1.z;
-
-	nx -= rint(nx / _side) * _side;
-	ny -= rint(ny / _side) * _side;
-	nz -= rint(nz / _side) * _side;
-
-	return nx*nx + ny*ny + nz*nz;
+	return min_image(v1, v2).norm();
 }
 
 LR_vector CubicBox::get_abs_pos(BaseParticle * p) {

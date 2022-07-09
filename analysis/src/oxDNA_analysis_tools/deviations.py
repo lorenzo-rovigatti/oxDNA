@@ -125,8 +125,8 @@ def main():
     args = parser.parse_args()
 
     #system check
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy", "matplotlib"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy", "matplotlib"])
 
     # Get metadata about input files
     mean = args.mean_structure[0]

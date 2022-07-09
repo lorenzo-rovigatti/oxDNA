@@ -167,8 +167,8 @@ def main():
     parser.add_argument('-o', '--output', metavar='output_file',  type=str, nargs=1, help='name of the file to write the angle list to')
     args = parser.parse_args()
 
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy"])
 
     #Process command line arguments:
     inputfile = args.input[0]

@@ -111,8 +111,8 @@ def main():
     parser.add_argument('-u', '--units', type=str, nargs=1, dest='units', help="(optional) The units of the energy (pNnm or oxDNA)")
     args = parser.parse_args()
 
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy"])
 
     traj_file = args.trajectory[0]
     inputfile = args.inputfile[0]

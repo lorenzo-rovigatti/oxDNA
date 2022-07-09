@@ -9,7 +9,7 @@ from os import path
 from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration, TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, get_chunk_size
-from oxDNA_analysis_tools.config import check_dependencies
+from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, inbox
 
 import time
@@ -177,7 +177,7 @@ def main():
     parser.add_argument('-c', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's position in PCA space?")
     args = parser.parse_args()
 
-    check_dependencies(["python", "numpy"])
+    check(["python", "numpy"])
 
     traj_file = args.trajectory[0]
     mean_file = args.meanfile[0]

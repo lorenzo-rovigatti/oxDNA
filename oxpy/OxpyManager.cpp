@@ -90,6 +90,7 @@ void OxpyManager::run(llint steps, bool print_output) {
 			_backend->fix_diffusion();
 		}
 
+		_backend->update_observables_data();
 		if(print_output) {
 			_backend->print_observables();
 		}

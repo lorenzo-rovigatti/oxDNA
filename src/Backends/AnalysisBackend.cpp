@@ -126,6 +126,7 @@ void AnalysisBackend::analyse() {
 	_mytimer->resume();
 
 	if(read_next_configuration(_initial_conf_is_binary)) {
+		SimBackend::update_observables_data();
 		SimBackend::print_observables();
 
 		if(_n_conf % 100 == 0 && _n_conf > 0) {

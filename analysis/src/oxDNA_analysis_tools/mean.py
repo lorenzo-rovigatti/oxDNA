@@ -116,8 +116,8 @@ def main():
     args = parser.parse_args()
 
     # Verify that dependencies are installed and a good version
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy"])
 
     # Get metadata about input files
     traj = args.trajectory[0]

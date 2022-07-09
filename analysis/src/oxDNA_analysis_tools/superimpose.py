@@ -14,8 +14,8 @@ def main():
     args = parser.parse_args()
 
     #run system checks
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy"])
 
     #Get the reference configuration
     ref_file = args.reference[0]

@@ -12,8 +12,8 @@ def main():
     
     args = parser.parse_args()
 
-    from oxDNA_analysis_tools.config import check_dependencies
-    check_dependencies(["python", "numpy", "matplotlib"])
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy", "matplotlib"])
 
     #get file name
     energy_files = args.energy
