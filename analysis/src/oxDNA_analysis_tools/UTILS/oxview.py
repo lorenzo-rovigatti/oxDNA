@@ -80,8 +80,8 @@ def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_s
 
     # locationr to store the things we want to past to js
     file_list = [
-        (top_string,   "top"), 
-        (dat_string,   "dat"),
+        (top_string,   "LORO.top"), 
+        (dat_string,   "LORO.dat"),
         (matrix_string,"matrix")
     ]
 
@@ -100,3 +100,4 @@ def rovi_patchy_conf(top_path:str,  conf:Configuration, particles_path:str, inbo
         (particles_string,"particles")
     ]
     display_files(file_list, inbox_settings, oxview_src)
+    
