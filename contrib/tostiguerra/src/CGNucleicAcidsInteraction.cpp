@@ -38,7 +38,8 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 
 	getInputBool(&inp, "DPS_semiflexibility", &_enable_semiflexibility, 0);
 	if(_enable_semiflexibility) {
-		getInputNumber(&inp, "DPS_semiflexibility_k", &_semiflexibility_k, 1);
+		getInputNumber(&inp, "DPS_semiflexibility_k_bonded", &_semiflexibility_k_bonded, 1);
+		getInputNumber(&inp, "DPS_semiflexibility_k_nonbonded", &_semiflexibility_k_nonbonded, 1);
 	}
 
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
@@ -205,21 +206,26 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 
 			number r_mod = sqrt(sqr_r);
 			number exp_part = exp(_3b_sigma / (r_mod - _3b_rcut));
-			number tmp_energy = epsilon * _3b_A_part * exp_part * (_3b_B_part / SQR(sqr_r) - 1.);
+			number Vradial = epsilon * _3b_A_part * exp_part * (_3b_B_part / SQR(sqr_r) - 1.);
 
+			number cost = (p->orientationT.v3 * q->orientationT.v3);
+			number Vteta = _semiflexibility_k_nonbonded * (1. + cost);
+
+			number tmp_energy = Vradial * Vteta;
 			energy += tmp_energy;
 
-			number tb_energy = (r_mod < _3b_sigma) ? epsilon : -tmp_energy;
+			number tb_energy = (r_mod < _3b_sigma) ? epsilon * Vteta : -tmp_energy;
 
 			PSBond p_bond(q, tb_energy, epsilon, 1, 1, patch_dist);
 			PSBond q_bond(p, tb_energy, epsilon, 1, 1, -patch_dist);
 
 			if(update_forces) {
-				number force_mod = epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * tmp_energy / SQR(r_mod - _3b_rcut);
+				number force_mod = ( epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * Vradial / SQR(r_mod - _3b_rcut) ) * Vteta;
 				LR_vector tmp_force = patch_dist * (-force_mod / r_mod);
 
-				LR_vector p_torque = p->orientationT * p_patch_pos.cross(tmp_force);
-				LR_vector q_torque = q->orientationT * q_patch_pos.cross(tmp_force);
+				LR_vector torque_tetaTerm = -_semiflexibility_k_nonbonded * Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) );
+				LR_vector p_torque = p->orientationT * ( p_patch_pos.cross(tmp_force) + torque_tetaTerm);
+				LR_vector q_torque = q->orientationT * ( q_patch_pos.cross(tmp_force) + torque_tetaTerm);
 
 				p->force += tmp_force;
 				q->force -= tmp_force;
@@ -265,7 +271,9 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 
 	number curr_energy = new_bond.energy / new_bond.epsilon;
 	for(auto &other_bond : _bonds[p->index]) {
-		//printf("%d\t %d\t %d\t", p->index, other_bond.other->index, new_bond.other->index);
+		//printf("\n\n\n\n%f\t %f\t %f\n\n\n\n", p->orientationT.v3[0], p->orientationT.v3[1], p->orientationT.v3[2]);
+		//printf("\n\n\t%f %f %f\n", p->orientation[2][0], p->orientation[2][1], p->orientation[2][2]);
+		//printf("\n\n\t%f %f %f\n", p->orientation[0][2], p->orientation[1][2], p->orientation[2][2]);
 		if(other_bond.other != new_bond.other) {
 			number other_energy = other_bond.energy / other_bond.epsilon;
 			number smallest_epsilon = std::min(new_bond.epsilon, other_bond.epsilon);
@@ -331,6 +339,18 @@ number CGNucleicAcidsInteraction::pair_interaction(BaseParticle *p, BaseParticle
 	}
 }
 
+number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *p, BaseParticle *q, bool update_forces) {
+	number cost = (p->orientationT.v3 * q->orientationT.v3);
+
+	if (update_forces) {
+		LR_vector torque_term = _semiflexibility_k_bonded * p->orientationT.v3.cross(q->orientationT.v3);
+		p->torque += p->orientationT * torque_term;
+		q->torque -= q->orientationT * torque_term;
+	}
+
+	return _semiflexibility_k_bonded * (1. - cost);
+}
+/*
 number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *middle, BaseParticle *n1, BaseParticle *n2, bool update_forces) {
 	LR_vector dist_pn1 = _box->min_image(middle->pos, n1->pos);
 	LR_vector dist_pn2 = _box->min_image(n2->pos, middle->pos);
@@ -353,6 +373,7 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *midd
 
 	return _semiflexibility_k * (1. - cost);
 }
+*/
 
 number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
@@ -368,6 +389,10 @@ number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseP
 		energy += _WCA(p, q, update_forces);
 
 		if(_enable_semiflexibility) {
+			energy += _semiflexibility_three_body(p, q, update_forces);
+		}
+
+		/*if(_enable_semiflexibility) {
 			// here things get complicated. We first check whether p is the middle particle of a three-body interaction
 			for(auto pair : p->affected) {
 				// q has always a smaller index than p, so that this condition selects all the other ParticlePair's
@@ -402,7 +427,7 @@ number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseP
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 	return energy;
