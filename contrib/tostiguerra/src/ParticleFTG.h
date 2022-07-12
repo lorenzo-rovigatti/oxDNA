@@ -3,10 +3,6 @@
 
 #include <set>
 
-/**
-* @brief A customisable particle. Used by CustomInteraction.
-*/
-
 struct PatchyBond {
 	BaseParticle *other;
 	number r_p;
