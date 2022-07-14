@@ -48,6 +48,7 @@
 #include "AverageEnergy.h"
 #include "ContactMap.h"
 #include "AllVectors.h"
+#include "StressAutocorrelation.h"
 
 #include "Configurations/PdbOutput.h"
 #include "Configurations/ChimeraOutput.h"
@@ -109,6 +110,7 @@ ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	else if(!strncasecmp(obs_type, "average_energy", 512)) res = std::make_shared<AverageEnergy>();
 	else if(!strncasecmp(obs_type, "contact_map", 512)) res = std::make_shared<ContactMap>();
 	else if(!strncasecmp(obs_type, "all_vectors", 512)) res = std::make_shared<AllVectors>();
+	else if(!strncasecmp(obs_type, "stress_autocorrelation", 512)) res = std::make_shared<StressAutocorrelation>();
 	else {
 		res = PluginManager::instance()->get_observable(obs_type);
 		if(res == NULL) throw oxDNAException("Observable '%s' not found. Aborting", obs_type);

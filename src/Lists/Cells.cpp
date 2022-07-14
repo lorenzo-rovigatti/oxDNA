@@ -118,7 +118,10 @@ void Cells::global_update(bool force_update) {
 }
 
 std::vector<BaseParticle *> Cells::_get_neigh_list(BaseParticle *p, bool all) {
-	std::vector<BaseParticle *> res;
+	// the static here makes sure that the memory allocated every time the function is called is not free'd
+	// so that only push_back's that make the vector go beyond their last size trigger re-allocation
+	static std::vector<BaseParticle *> res;
+	res.clear();
 
 	int cind = _cells[p->index];
 	int ind[3] = { cind % _N_cells_side[0], (cind / _N_cells_side[0]) % _N_cells_side[1], cind / (_N_cells_side[0] * _N_cells_side[1]) };

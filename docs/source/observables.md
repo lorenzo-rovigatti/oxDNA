@@ -79,6 +79,13 @@ Output files and observables can also be specified in an external [JSON](https:/
 }
 ```
 
+## Common options
+
+The following options are supported by all observabes:
+
+* `[id = <string>]`: a unique identifier that can be used to refer to this specific observable (see *e.g.* {meth}`~oxpy.core.ConfigInfo.get_observable_by_id`).
+* `[update_every = <int>]`: the number of time steps every which the observable is updated (but no output is printed). Note that this is supported only by some observables.
+
 ## Simulation time
 
 Print the current simulation time as the number of steps or as molecular-dynamics time.
@@ -197,6 +204,13 @@ Compute the osmotic pressure of the system.
 * `type = pressure`: the observable type.
 * `[stress_tensor = <bool>]`: if `true`, the output will contain 7 fields: the total pressure and 6 components of the (symmetric) stress tensor: $xx, yy, zz, xy, xz, yz$.
 
+## Stress autocorrelation
+
+Compute the stress autocorrelation function $G(t)$ using the multi-tau method describere [here](https://doi.org/10.1063/1.3491098). This observable supports the `update_every` option.
+
+* `[m = int]`: Size of the average used by the algorithm. Defaults to 2.
+* `[p = int]`: The size of the coarse-grained levels used by the algorithm. Defaults to 16.
+
 ## Pitch
 
 * `type = pitch`: the observable type
@@ -214,6 +228,8 @@ Print quantities related to the coaxial stacking interaction acting between two 
 * `particle2_id = <int>`: particle 2 id
 
 ## Structure factor
+
+This observable supports the `update_every` option.
 
 * `type = structure_factor`: the observable type.
 * `max_q = <float>`: maximum wave vector $q$ to consider.

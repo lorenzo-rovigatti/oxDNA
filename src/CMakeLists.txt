@@ -28,6 +28,7 @@ SET(observables_SOURCES
 	Observables/PairForce.cpp
 	Observables/ForceEnergy.cpp
 	Observables/Pressure.cpp
+	Observables/StressAutocorrelation.cpp
 	Observables/Density.cpp
 	Observables/Rdf.cpp
 	Observables/Distance.cpp
