@@ -70,8 +70,7 @@ protected:
 
 	/// three-body flexibility stuff
 	bool _enable_semiflexibility = false;
-	number _semiflexibility_k_bonded;
-	number _semiflexibility_k_nonbonded;
+	number _semiflexibility_k;
 
 	/// patchy stuff
 	number _deltaPatchMon = 0.5;
