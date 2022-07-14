@@ -4,7 +4,7 @@ cimport numpy as numpy
 from cpython.bytes cimport PyBytes_Size 
 from libc.stdio cimport fopen, fclose, fread, fseek, FILE
 from libc.string cimport strtok, strcpy
-from libc.stdlib cimport atoi, atof, malloc, free
+from libc.stdlib cimport atoi, atof, atol, malloc, free
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 
 @cython.wraparound(False)
@@ -62,7 +62,7 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases):
 @cython.boundscheck(False)
 cdef parse_conf(char *chunk, int start_byte, int size, int nbases):
     cdef int THREE = 3
-    cdef int time
+    cdef long time
     
     #allocate some memory for our configuration
     cdef cbox    = np.zeros(3, dtype = np.float64)
@@ -79,7 +79,7 @@ cdef parse_conf(char *chunk, int start_byte, int size, int nbases):
 
     # Get the time
     ptr = strtok(ptr, 't = ')
-    time = atoi(ptr)
+    time = atol(ptr)
 
     # Get the box and energy
     # The energy can't be in a loop because of the format change between it and the conf lines.
