@@ -208,7 +208,7 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 			number Vradial = epsilon * _3b_A_part * exp_part * (_3b_B_part / SQR(sqr_r) - 1.);
 
 			number cost = (p->orientationT.v3 * q->orientationT.v3);
-			number Vteta = (1. + cost);
+			number Vteta = (1. - cost)/2.;
 
 			number tmp_energy = Vradial * Vteta;
 			energy += tmp_energy;
@@ -222,7 +222,7 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 				number force_mod = ( epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * Vradial / SQR(r_mod - _3b_rcut) ) * Vteta;
 				LR_vector tmp_force = patch_dist * (-force_mod / r_mod);
 
-				LR_vector torque_tetaTerm = -Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) );
+				LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2.;
 				LR_vector p_torque = p->orientationT * ( p_patch_pos.cross(tmp_force) + torque_tetaTerm);
 				LR_vector q_torque = q->orientationT * ( q_patch_pos.cross(tmp_force) + torque_tetaTerm);
 
