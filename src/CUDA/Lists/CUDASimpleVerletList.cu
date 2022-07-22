@@ -54,49 +54,39 @@ void CUDASimpleVerletList::get_settings(input_file &inp) {
 	}
 }
 
-__global__ void count_N_in_cells(c_number4 *poss, int *counters_cells, int N_cells_side[3], int N, CUDABox box) {
+__global__ void count_N_in_cells(c_number4 *poss, uint *counters_cells, int N_cells_side[3], int N, CUDABox box) {
 	if(IND >= N) return;
 
 	c_number4 r = poss[IND];
 	// index of the cell
 	int index = box.compute_cell_index(N_cells_side, r);
-	atomicInc((uint32_t *) &counters_cells[index], N);
+	atomicInc((uint *) &counters_cells[index], N);
 }
 
-int CUDASimpleVerletList::_largest_N_in_cells(int N, c_number min_cell_size) {
+int CUDASimpleVerletList::_largest_N_in_cells(c_number4 *poss, c_number min_cell_size) {
+	int N = CONFIG_INFO->N();
+
 	int *N_cells_side;
 	CUDA_SAFE_CALL(cudaMallocHost(&N_cells_side, sizeof(int) * 3, cudaHostAllocDefault));
 	_compute_N_cells_side(N_cells_side, min_cell_size);
 	int N_cells = N_cells_side[0] * N_cells_side[1] * N_cells_side[2];
 
-	std::vector<c_number4> host_positions;
-	host_positions.reserve(N);
-	for(auto p : CONFIG_INFO->particles()) {
-		c_number4 pos({(c_number) p->pos[0], (c_number) p->pos[1], (c_number) p->pos[2], 0.});
-		host_positions.push_back(pos);
-	}
-	c_number4 *positions;
-	CUDA_SAFE_CALL(cudaMalloc(&positions, (size_t ) N * sizeof(c_number4)));
-	CUDA_SAFE_CALL(cudaMemcpy(positions, host_positions.data(), sizeof(c_number4) * N, cudaMemcpyHostToDevice));
-
-	int *counters_cells;
-	CUDA_SAFE_CALL(cudaMalloc(&counters_cells, (size_t ) N_cells * sizeof(int)));
-	CUDA_SAFE_CALL(cudaMemset(counters_cells, 0, N_cells * sizeof(int)));
+	uint *counters_cells;
+	CUDA_SAFE_CALL(cudaMalloc(&counters_cells, (size_t ) N_cells * sizeof(uint)));
+	CUDA_SAFE_CALL(cudaMemset(counters_cells, 0, N_cells * sizeof(uint)));
 
 	int tpb = 64;
 	int blocks = N / tpb + ((N % tpb == 0) ? 0 : 1);
 
 	count_N_in_cells
 		<<<blocks, tpb>>>
-		(positions, counters_cells, N_cells_side, N, *_h_cuda_box);
+		(poss, counters_cells, N_cells_side, N, *_h_cuda_box);
 	CUT_CHECK_ERROR("fill_cells (SimpleVerlet) error");
 
-	thrust::device_ptr<int> dev_ptr(counters_cells);
-	thrust::device_ptr<int> max_ptr = thrust::max_element(dev_ptr, dev_ptr + N);
-	int max_N = max_ptr[0];
+	thrust::device_ptr<uint> dev_ptr(counters_cells);
+	int max_N = *thrust::max_element(dev_ptr, dev_ptr + N_cells);
 
 	CUDA_SAFE_CALL(cudaFreeHost(N_cells_side));
-	CUDA_SAFE_CALL(cudaFree(positions));
 	CUDA_SAFE_CALL(cudaFree(counters_cells));
 
 	return max_N;
@@ -118,7 +108,7 @@ void CUDASimpleVerletList::_compute_N_cells_side(int N_cells_side[3], number min
 	}
 }
 
-void CUDASimpleVerletList::_init_cells() {
+void CUDASimpleVerletList::_init_cells(c_number4 *poss) {
 	_compute_N_cells_side(_N_cells_side, std::sqrt(_sqr_rverlet));
 	_N_cells = _N_cells_side[0] * _N_cells_side[1] * _N_cells_side[2];
 
@@ -130,7 +120,21 @@ void CUDASimpleVerletList::_init_cells() {
 	}
 
 	if(_d_cells == nullptr) {
-		_max_N_per_cell = std::round(_max_density_multiplier * _largest_N_in_cells(_N, std::sqrt(_sqr_rverlet)));
+		bool deallocate = false;
+		if(poss == nullptr) {
+			deallocate = true;
+			int N = CONFIG_INFO->N();
+			std::vector<c_number4> host_positions;
+			host_positions.reserve(N);
+			for(auto p : CONFIG_INFO->particles()) {
+				c_number4 pos({(c_number) p->pos[0], (c_number) p->pos[1], (c_number) p->pos[2], 0.});
+				host_positions.push_back(pos);
+			}
+			CUDA_SAFE_CALL(cudaMalloc(&poss, (size_t ) N * sizeof(c_number4)));
+			CUDA_SAFE_CALL(cudaMemcpy(poss, host_positions.data(), sizeof(c_number4) * N, cudaMemcpyHostToDevice));
+		}
+
+		_max_N_per_cell = std::round(_max_density_multiplier * _largest_N_in_cells(poss, std::sqrt(_sqr_rverlet)));
 		if(_max_N_per_cell > _N) {
 			_max_N_per_cell = _N;
 		}
@@ -142,6 +146,9 @@ void CUDASimpleVerletList::_init_cells() {
 		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_cells, (size_t ) _N_cells * _max_N_per_cell * sizeof(int)));
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol(verlet_N_cells_side, _N_cells_side, 3 * sizeof(int)));
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol(verlet_max_N_per_cell, &_max_N_per_cell, sizeof(int)));
+		if(deallocate) {
+			CUDA_SAFE_CALL(cudaFree(poss));
+		}
 	}
 
 	_old_N_cells = _N_cells;
@@ -214,7 +221,7 @@ std::vector<int> CUDASimpleVerletList::is_large(c_number4 *data) {
 }
 
 void CUDASimpleVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bonds *bonds) {
-	_init_cells();
+	_init_cells(poss);
 	CUDA_SAFE_CALL(cudaMemset(_d_counters_cells, 0, _N_cells * sizeof(int)));
 
 	// fill cells

@@ -115,7 +115,6 @@ void CUDABussiThermostat::apply_cuda(c_number4 *d_poss, GPU_quat *d_orientations
 
 	c_number rescale_factor_t = std::sqrt(_K_t / K_now_t.w);
 	c_number rescale_factor_r = std::sqrt(_K_r / K_now_r.w);
-	//printf("%lf %lf %lf %lf\n", K_now_t.w, K_now_r.w, rescale_factor_t, rescale_factor_r);
 
 	bussi_thermostat
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>

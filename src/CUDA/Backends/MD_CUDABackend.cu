@@ -14,7 +14,6 @@
 #include "../../Observables/ObservableOutput.h"
 #include "../Thermostats/CUDAThermostatFactory.h"
 
-#include <thrust/sort.h>
 #include <typeinfo>
 
 // these pragma instructions remove a few nvcc warnings
