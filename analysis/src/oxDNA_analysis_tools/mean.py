@@ -102,17 +102,22 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration=None, inde
 
     return Configuration(0,ref_conf.box,np.array([0,0,0]), pos, a1s , a3s)
 
-# All scripts in oat must have a main method with no arguments to work with the command line interface.
-def main():
-
+# Sphinx can autogenerate cli documentation if you have a function which returns your parser.
+# To get it to show up in the documentation you need to add the script to oxDNA/docs/oat/cli.md
+def cli_parser(prog="mean.py"):
     # A standard way to create and parse command line arguments.
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Computes the mean structure of a trajectory file")
-    parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
+    parser = argparse.ArgumentParser(prog = prog, description="Computes the mean structure of a trajectory file")
+    parser.add_argument('trajectory', type=str, nargs=1, help='The trajectory file you wish to analyze')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The filename to save the mean structure to')
-    parser.add_argument('-d', '--deviations', metavar='deviation_file', nargs=1, help='Immediatley run compute_deviations.py from the output')
+    parser.add_argument('-d', '--deviations', metavar='deviation_file', nargs=1, help='Immediatley run oat deviations from the output')
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Compute mean structure of a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-a', '--align', metavar='alignment_configuration', nargs=1, help='The id of the configuration to align to, otherwise random')
+    return parser
+
+# All scripts in oat must have a main method with no arguments to work with the command line interface.
+def main():
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
     # Verify that dependencies are installed and a good version

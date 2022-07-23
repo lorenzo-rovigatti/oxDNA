@@ -235,11 +235,15 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
 
     return labels
 
-def main():
-    parser = argparse.ArgumentParser(prog = path.basename(__file__), description="Calculates clusters based on provided order parameters.")
+def cli_parser(prog="clustering.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="Calculates clusters based on provided order parameters.")
     parser.add_argument('serialized_data', type=str, nargs=1, help="The json-formatted input file")
     parser.add_argument('-e', '--eps', type=float, nargs=1, help="The epsilon parameter for DBSCAN (maximum distance to be considered a 'neighbor')")
     parser.add_argument('-m', '--min_samples', type=int, nargs=1, help="The min_samples parameter for DBSCAN (number of neighbors which define a point as a central point in a cluster)")
+    return parser
+
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
     data_file = args.serialized_data[0]
     if args.eps:

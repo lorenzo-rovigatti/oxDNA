@@ -108,13 +108,13 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
 
     return
 
-def main():
+def cli_parser(prog="deviations.py"):
     #handle commandline arguments
     #the positional arguments for this are: 
     # 1. the mean structure from compute_mean.py in json format
     # 2. the trajectory from which to compute the deviations
     # 3. the topology associated with the trajectory
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Compute the RMSD of each nucleotide from the mean structure produced by compute_mean.py")
+    parser = argparse.ArgumentParser(prog = prog, description="Compute the RMSD of each nucleotide from the mean structure produced by compute_mean.py")
     parser.add_argument('mean_structure', type=str, nargs=1, help="The mean structure .json file from compute_mean.py")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
@@ -122,6 +122,10 @@ def main():
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Compute mean structure of a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-r', metavar='rmsd_plot', dest='rmsd_plot', nargs=1, help='The name of the file to save the RMSD plot to.')
     parser.add_argument('-d', metavar='rmsd_data', dest='rmsd_data', nargs=1, help='The name of the file to save the RMSD data in json format.')
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
     #system check

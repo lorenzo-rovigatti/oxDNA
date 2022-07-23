@@ -3,13 +3,17 @@ import argparse
 from sys import stderr
 import oxpy
 
-def main():
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Create an external forces file enforcing the current base-pairing arrangement")
+def cli_parser(prog="generate_force.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="Create an external forces file enforcing the current base-pairing arrangement")
     parser.add_argument('inputfile', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('configuration', type=str, nargs=1, help="The configuration to generate the forces from")
-    parser.add_argument('-o', '--output', type=str, nargs=1, help='name of the file to write the forces to. Defaults to forces.txt')
-    parser.add_argument('-f', '--pairs', type=str, nargs=1, help='name of the file to write the designed pairs list to')
-    parser.add_argument('-s', '--stiff', type=float, nargs=1, help='stiffness of the mutual trap')
+    parser.add_argument('-o', '--output', type=str, nargs=1, help='Name of the file to write the forces to. Defaults to forces.txt')
+    parser.add_argument('-f', '--pairs', type=str, nargs=1, help='Name of the file to write the designed pairs list to')
+    parser.add_argument('-s', '--stiff', type=float, nargs=1, help='Stiffness of the mutual trap')
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
 
     args = parser.parse_args()
 

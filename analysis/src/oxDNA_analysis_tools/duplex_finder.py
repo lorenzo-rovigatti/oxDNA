@@ -159,12 +159,16 @@ def duplex_finder(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, monomers:
 
     return duplexes_at_step
 
-def main():
-    parser = argparse.ArgumentParser(prog = path.basename(__file__), description="Fit vectors to every duplex in the structure")
+def cli_parser(prog="duplex_finder.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="Fit vectors to every duplex in the structure")
     parser.add_argument('input', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('trajectory', type=str, nargs=1, help="The trajectory file from the simulation")
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-o', '--output', metavar='output_file',  type=str, nargs=1, help='name of the file to write the angle list to')
+    return parser
+
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
     from oxDNA_analysis_tools.config import check

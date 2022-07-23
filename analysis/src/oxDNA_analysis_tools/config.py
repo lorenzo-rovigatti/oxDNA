@@ -120,9 +120,13 @@ def get_chunk_size():
     except:
         raise Exception("Unable to read chunksize from file. UTILS/chunksize.py should contain a line like CHUNKSIZE = 100")
 
-def main():
-    parser = argparse.ArgumentParser(description='Configure oxDNA_analysis_tools')
+def cli_parser(prog="config.py"):
+    parser = argparse.ArgumentParser(prog = prog, description='Configure oxDNA_analysis_tools')
     parser.add_argument('-n', '--chunk_size', type=int, help='Number of configurations to per chunk.  Persistent across analyses.')
+    return parser
+
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
     if args.chunk_size:
         set_chunk_size(args.chunk_size)

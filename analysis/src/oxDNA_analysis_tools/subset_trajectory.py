@@ -75,13 +75,17 @@ def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[Lis
     print("INFO: Wrote trajectories: {}".format(dat_names), file=stderr)
     print("INFO: Wrote topologies: {}".format(top_names), file=stderr)
 
-def main():
+def cli_parser(prog="subset_trajectory.py"):
     #command line arguments
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Extracts parts of a structure into separate trajectories")
+    parser = argparse.ArgumentParser(prog = prog, description="Extracts parts of a structure into separate trajectories")
     parser.add_argument('trajectory', type=str, nargs=1, help="The trajectory file to subset")
     parser.add_argument('topology', type=str, nargs=1, help="The topology file corresponding to the trajectory")
     parser.add_argument('-i', '--index', metavar='index', action='append', nargs=2, help='A space separated index file and the associated output file name.  This can be called multiple times')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    return(parser)
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
     top_file  = args.topology[0]

@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'oxDNA'
-copyright = '2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc'
-author = 'Lorenzo Rovigatti, Flavio Romano and Petr Šulc'
+copyright = '2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc'
+author = 'Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc'
 
 
 # -- General configuration ---------------------------------------------------
@@ -34,6 +34,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
+    'sphinxarg.ext',
     'myst_parser',
     "sphinx_rtd_theme"
 ]

@@ -106,14 +106,18 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=None, ref_conf:C
 
     return
 
-def main():
+def cli_parser(prog="align.py"):
     #handle commandline arguments
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Aligns each frame in a trajectory to the first frame")    
+    parser = argparse.ArgumentParser(prog = prog, description="Aligns each frame in a trajectory to the first frame")    
     parser.add_argument('traj', type=str, nargs=1, help="The trajectory file to align")
     parser.add_argument('outfile', type=str, nargs=1, help='The name of the new trajectory file to write out')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Align to only a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-r', metavar='reference_structure', dest='reference_structure', nargs=1, help="Align to a provided configuration instead of the first frame.")
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
     #Parse command line arguments

@@ -1,6 +1,17 @@
 # oxDNA Analysis Tools
 
-oxDNA Analysis Tools (*oat* in short) is a suite of command line Python tools for performing generic structural analyses of oxDNA simulations. 
+oxDNA Analysis Tools (*oat* in short) is a suite of command line Python tools for performing generic structural analyses of oxDNA simulations. The package functions both as a series of standalone command-line scripts and as importable modules for building custom analysis tools.
+
+# Command Line Interface
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+   cli.md
+```
+
+# Scripting interface
 
 ## Top-level API
 

@@ -2,7 +2,7 @@ import argparse
 from sys import exit, stderr
 from os import path
 from collections import namedtuple
-from typing import Tuple
+from typing import Tuple, Dict
 import numpy as np
 import oxpy
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
@@ -55,7 +55,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         return(tot_bonds, count_correct_bonds, count_incorrect_bonds, out_array)
 
 
-def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:dict[int, int], inputfile:str, ncpus:int=1) -> Tuple[int, int, int, np.ndarray]:
+def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], inputfile:str, ncpus:int=1) -> Tuple[int, int, int, np.ndarray]:
     '''
         Compare the bond occupancy of a trajectory with a designed structure
 
@@ -95,14 +95,18 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:dict[int, int], in
 
     return(total_bonds, correct_bonds, incorrect_bonds, nt_array)
 
-def main():
+def cli_parser(prog="bond_analysis.py"):
     #read data from files
-    parser = argparse.ArgumentParser(prog = path.basename(__file__), description="Compare the bonds found at each trajectory with the intended design")
+    parser = argparse.ArgumentParser(prog = prog, description="Compare the bonds found at each trajectory with the intended design")
     parser.add_argument('inputfile', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('trajectory', type=str, nargs=1, help="The trajecotry file to compare against the designed pairs")
-    parser.add_argument('designed_pairs', type=str, nargs=1, help="The file containing the desired nucleotides pairings in the format \n a b\nc d")
+    parser.add_argument('designed_pairs', type=str, nargs=1, help="The file containing the desired nucleotides pairings in the format `a b`")
     parser.add_argument('output_file', type=str, nargs=1, help="name of the file to save the output json overlay to")
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    return parser
+
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
     #run system checks

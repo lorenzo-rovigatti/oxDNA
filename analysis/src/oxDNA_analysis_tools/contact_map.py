@@ -60,17 +60,20 @@ def contact_map(traj_info:TrajInfo, top_info:TopInfo, ncpus=1) -> np.array:
 
     return distances
 
-def main():
-    check(["python", "numpy", "matplotlib"])
-
+def cli_parser(prog="contact_map.py"):
     #get commandline arguments
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Calculate and display the contact map for a structure")
+    parser = argparse.ArgumentParser(prog = prog, description="Calculate and display the contact map for a structure")
     parser.add_argument('trajectory', type=str, nargs=1, help="The file containing the configurations of which the contact map is needed")
     parser.add_argument('-g', metavar='graph', dest='graph', nargs=1, type=str, help='Filename for the plot')
     parser.add_argument('-d', metavar='data', dest='data', nargs=1, help='The name of the file to save the contact map as a pickle.')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    return parser
+
+def main():
+    check(["python", "numpy", "matplotlib"])
 
     # Get arguments and file metadata
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
     traj = args.trajectory[0]
     top_info, traj_info = describe(None, traj)

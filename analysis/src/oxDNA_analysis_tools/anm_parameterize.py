@@ -67,12 +67,16 @@ def anm_parameterize(particles_array:np.ndarray, trajectory:str, ref_conf:Config
 
     return rmsf
 
-def main():
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="compute par file for DNA-ANM model")
+def cli_parser(prog="anm_parameterize.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="compute par file for DNA-ANM model")
     parser.add_argument('index_file', type=str, help="Index file describing what Bases belong to which Super particle.")
-    parser.add_argument('mean_file', type=str,  help="Reference configuratio.")
-    parser.add_argument('trajectory', type=str,  help="Trajectory to evaluate.")
-    parser.add_argument('out_file', type=str, help="Output par file name.")
+    parser.add_argument('mean_file', type=str,  help="Reference configuration")
+    parser.add_argument('trajectory', type=str,  help="Trajectory to evaluate")
+    parser.add_argument('out_file', type=str, help="Output par file name")
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
     particles_array = []
