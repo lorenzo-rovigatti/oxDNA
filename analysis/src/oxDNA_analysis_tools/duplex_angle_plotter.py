@@ -144,15 +144,18 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]])
 
     return (all_angles, means, medians, stdevs, representations)
 
-def main():
+def cli_parser(prog="duplex_angle_plotter.py"):
     #Get command line arguments.
-    parser = argparse.ArgumentParser(prog = path.basename(__file__), description="Finds the ensemble of angles between any two duplexes defined by a starting or ending nucleotide in the system")
+    parser = argparse.ArgumentParser(prog = prog, description="Finds the ensemble of angles between any two duplexes defined by a starting or ending nucleotide in the system")
     parser.add_argument('-i', '--input', metavar='angle_file', dest='input', nargs='+', action='append', help='An angle file from duplex_angle_finder.py and a list of duplex-end particle pairs to compare.  Can call -i multiple times to plot multiple datasets.')
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The name to save the graph file to')
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', nargs=1, help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
     parser.add_argument('-d', '--data', metavar='data_file', nargs=1, help='If set, the output for the graphs will be dropped as a json to this filename for loading in oxView or your own scripts')
     parser.add_argument('-n', '--names', metavar='names', nargs='+', action='append', help='Names of the data series.  Will default to particle ids if not provided')
+    return(parser)
 
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
     from oxDNA_analysis_tools.config import check

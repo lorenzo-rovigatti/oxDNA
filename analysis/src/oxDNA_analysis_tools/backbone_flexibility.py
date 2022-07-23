@@ -111,14 +111,17 @@ def backbone_flexibility(traj_info:TrajInfo, top_info:TopInfo,system:System, ncp
 
     return (torsions, dihedrals)
 
-
-def main():
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Computes the deviations in the backbone torsion angles")
+def cli_parser(prog="backbone_flexibility.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="Computes the deviations in the backbone torsion angles")
     parser.add_argument('topology', type=str, nargs=1, help="The topology file associated with the trajectory file")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-o', metavar='output_file', nargs=1, type=str, dest='output', help="(optional) The name of the file to write the graph to")
     parser.add_argument('-d', metavar='data_file', nargs=1, type=str, dest='data', help="(optional) The name of the file to write the data to")
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
     #run system checks

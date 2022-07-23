@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 from os import path
 from sys import stderr
 from collections import namedtuple
@@ -101,14 +102,17 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, visualize:
     else:
         return None
 
-def main():
-    import argparse
-    parser = argparse.ArgumentParser(prog = path.basename(__file__), description="List all the interactions between nucleotides")
+def cli_parser(prog="output_bonds.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="List all the interactions between nucleotides")
     parser.add_argument('inputfile', type=str, nargs=1, help="The inputfile used to run the simulation")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
-    parser.add_argument('-v', type=str, nargs=1, dest='outfile', help='if you want instead average per-particle energy as a viewer JSON')
+    parser.add_argument('-v', type=str, nargs=1, dest='outfile', help='if you want instead average per-particle energy as an oxView JSON')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-u', '--units', type=str, nargs=1, dest='units', help="(optional) The units of the energy (pNnm or oxDNA)")
+    return parser
+
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
     from oxDNA_analysis_tools.config import check

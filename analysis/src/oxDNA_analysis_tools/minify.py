@@ -60,14 +60,17 @@ def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:int=None, a:bool=Fal
 
     return
 
-def main():
-    parser = argparse.ArgumentParser(prog = path.basename(__file__), description="Compress given configuration.")
+def cli_parser(prog="minify.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="Compress given configuration.")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('outfile',    type=str, nargs=1, help='minified file')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-a', action = 'store_true', help='Discard a vectors.')
     parser.add_argument('-d', type=int, nargs=1,  help='Round positions and orientations to the specified number of digits.')
+    return parser
 
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
     traj_file = args.trajectory[0]

@@ -121,13 +121,17 @@ def distance_deviations(traj_info:TrajInfo, top_info:TopInfo, masked_mean:np.nda
 
     return devs
 
-def main():
+def cli_parser(prog="multidimensional_scaling_mean.py"):
     #get commandline arguments
-    parser = argparse.ArgumentParser(prog = path.basename(__file__), description="Calculate molecular contacts, and assembles an average set of contacts based on MDS")
+    parser = argparse.ArgumentParser(prog = prog, description="Calculate molecular contacts, and assembles an average set of contacts based on MDS")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('-o', '--output', metavar='output', type=str, nargs=1, help='the name of the .dat file where the mean will be written')
     parser.add_argument('-d', '--dev_file', metavar='dev_file', type=str, nargs=1, help='the name of the .json file where the devs will be written')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    return parser
+
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
     traj = args.trajectory[0]
     top_info, traj_info = describe(None, traj)

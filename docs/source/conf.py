@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'oxDNA'
-copyright = '2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc'
-author = 'Lorenzo Rovigatti, Flavio Romano and Petr Šulc'
+copyright = '2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc'
+author = 'Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc'
 
 
 # -- General configuration ---------------------------------------------------
@@ -34,16 +34,17 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
+    'sphinxarg.ext',
     'myst_parser',
     "sphinx_rtd_theme"
 ]
 
-intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
-                       'numpy': ('https://numpy.org/doc/stable/', None),
-                       'scipy': ('https://docs.scipy.org/doc/scipy/', None),
-                       'matplotlib': ('https://matplotlib.org/stable/', None),
-                       'sklearn' : ('https://scikit-learn.org/stable/', None)
-                       }
+#intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
+#                       'numpy': ('https://numpy.org/doc/stable/', None),
+#                       'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+#                       'matplotlib': ('https://matplotlib.org/stable/', None),
+#                       'sklearn' : ('https://scikit-learn.org/stable/', None)
+#                       }
 
 # generate labels of heading anchors
 myst_heading_anchors = 3

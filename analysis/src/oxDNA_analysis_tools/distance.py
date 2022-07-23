@@ -97,10 +97,10 @@ def distance(traj_infos:List[TrajInfo], top_infos:List[TopInfo], p1ss:List[List[
 
     return distances
 
-def main():
+def cli_parser(prog="distance.py"):
     #handle commandline arguments
     #this program has no positional arguments, only flags
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Finds the ensemble of distances between any two particles in the system")
+    parser = argparse.ArgumentParser(prog = prog, description="Finds the ensemble of distances between any two particles in the system")
     parser.add_argument('-i', '--input', metavar='input', nargs='+', action='append', help='A trajectory, and a list of particle pairs to compare.  Can call -i multiple times to plot multiple datasets.')
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The name to save the graph file to')
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', nargs=1, help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
@@ -108,6 +108,10 @@ def main():
     parser.add_argument('-n', '--names', metavar='names', nargs='+', action='append', help='Names of the data series.  Will default to particle ids if not provided')
     parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-c', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's distance?")
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
     from oxDNA_analysis_tools.config import check

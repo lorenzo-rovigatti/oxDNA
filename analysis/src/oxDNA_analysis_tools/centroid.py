@@ -82,14 +82,18 @@ def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, index
 
     return centroid_candidate, min_RMSD
 
-def main():
+def cli_parser(prog = "centroid.py"):
     #handle commandline arguments
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="Find the configuration in a trajectory closest to a provided reference configuration")
+    parser = argparse.ArgumentParser(prog = prog, description="Find the configuration in a trajectory closest to a provided reference configuration")
     parser.add_argument('reference_structure', type=str, nargs=1, help="The reference structure to search against")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The filename to save the centroid to')
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Alignment and RMSD based on a subset of particles given in a space-separated list in the provided file')
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
     #system check

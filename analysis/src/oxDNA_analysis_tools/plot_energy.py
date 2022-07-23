@@ -4,12 +4,15 @@ import numpy as np
 import os
 from sys import stderr
 
-def main():
-    parser = argparse.ArgumentParser(prog = os.path.basename(__file__), description="A very simple plotting utility for oxDNA.org")
+def cli_parser(prog="plot_energy.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="Plot oxDNA energy files")
     parser.add_argument('energy', nargs='+', help='Energy files to plot')
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The name to save the graph file to')
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', nargs=1, help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
-    
+    return parser
+
+def main():
+    parser = cli_parser(os.path.basename(__file__))    
     args = parser.parse_args()
 
     from oxDNA_analysis_tools.config import check

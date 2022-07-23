@@ -167,14 +167,17 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
 
     return (coordinates, evalues, evectors)
 
-
-def main():
-    parser = argparse.ArgumentParser(prog = path.basename(__file__), description="Calculates a principal component analysis of nucleotide deviations over a trajectory")
+def cli_parser(prog="pca.py"):
+    parser = argparse.ArgumentParser(prog = prog, description="Calculates a principal component analysis of nucleotide deviations over a trajectory")
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
-    parser.add_argument('meanfile', type=str, nargs=1, help='The mean structure .json file from compute_mean.py')
-    parser.add_argument('outfile', type=str, nargs=1, help='the name of the .json file where the PCA will be written')
+    parser.add_argument('meanfile', type=str, nargs=1, help='The mean structure from oat mean')
+    parser.add_argument('outfile', type=str, nargs=1, help='the name of the oxView .json overlay file where the PCs will be written')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")    
     parser.add_argument('-c', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's position in PCA space?")
+    return parser
+
+def main():
+    parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
     check(["python", "numpy"])
