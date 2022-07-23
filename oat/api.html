@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Utilities documentation" href="utils.html" />
-    <link rel="prev" title="oxDNA Analysis Tools" href="index.html" /> 
+    <link rel="prev" title="OAT command line documentation" href="cli.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -96,7 +96,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../events.html">Events</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">oxDNA Analysis Tools</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">oxDNA Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#command-line-interface">Command Line Interface</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html#scripting-interface">Scripting interface</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="index.html#top-level-api">Top-level API</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Analysis documentation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#align">Align</a></li>
@@ -339,8 +341,37 @@ dihedrals (np.array): Dihedral angles</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.bond_analysis.bond_analysis" title="oxDNA_analysis_tools.bond_analysis.bond_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.bond_analysis.bond_analysis</span></code></a></p></td>
+<td><p>Compare the bond occupancy of a trajectory with a designed structure</p></td>
+</tr>
 </tbody>
 </table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.bond_analysis.bond_analysis">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.bond_analysis.</code><code class="sig-name descname">bond_analysis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">traj_info</span><span class="p">:</span> <span class="n"><a class="reference internal" href="utils.html#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">oxDNA_analysis_tools.UTILS.data_structures.TrajInfo</a></span></em>, <em class="sig-param"><span class="n">top_info</span><span class="p">:</span> <span class="n"><a class="reference internal" href="utils.html#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">oxDNA_analysis_tools.UTILS.data_structures.TopInfo</a></span></em>, <em class="sig-param"><span class="n">pairs</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">inputfile</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">ncpus</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)">numpy.ndarray</a><span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.bond_analysis.bond_analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the bond occupancy of a trajectory with a designed structure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>traj_info</strong> – TrajInfo object containing the trajectory information</p></li>
+<li><p><strong>top_info</strong> – TopInfo object containing the topology information</p></li>
+<li><p><strong>pairs</strong> – dict of the designed pairs</p></li>
+<li><p><strong>inputfile</strong> – the input file used to run the simulation</p></li>
+<li><p><strong>ncpus</strong> – (optional) number of cores to use</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>average number of bonds per configuraiton
+incorrect_bonds: average number of incorrect bonds per configuration
+correct_bonds: average number of correct bonds per configuration
+nt_array: per-nucleotide correct bond occupancy</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>total_bonds</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="centroid">
 <h2>Centroid<a class="headerlink" href="#centroid" title="Permalink to this headline">¶</a></h2>
@@ -457,7 +488,7 @@ dihedrals (np.array): Dihedral angles</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.config.check_dependencies" title="oxDNA_analysis_tools.config.check_dependencies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.config.check_dependencies</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.config.check" title="oxDNA_analysis_tools.config.check"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.config.check</span></code></a></p></td>
 <td><p>Checks if the dependencies are installed.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.config.set_chunk_size" title="oxDNA_analysis_tools.config.set_chunk_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.config.set_chunk_size</span></code></a></p></td>
@@ -469,8 +500,8 @@ dihedrals (np.array): Dihedral angles</p>
 </tbody>
 </table>
 <dl class="py function">
-<dt id="oxDNA_analysis_tools.config.check_dependencies">
-<code class="sig-prename descclassname">oxDNA_analysis_tools.config.</code><code class="sig-name descname">check_dependencies</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">to_check</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.config.check_dependencies" title="Permalink to this definition">¶</a></dt>
+<dt id="oxDNA_analysis_tools.config.check">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.config.</code><code class="sig-name descname">check</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">to_check</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">['python', 'numpy', 'matplotlib', 'Bio', 'sklearn', 'oxpy']</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.config.check" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks if the dependencies are installed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1185,7 +1216,7 @@ coords (np.array): coordinates to be aligned</p>
         <a href="utils.html" class="btn btn-neutral float-right" title="Utilities documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="oxDNA Analysis Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="cli.html" class="btn btn-neutral float-left" title="OAT command line documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1195,7 +1226,7 @@ coords (np.array): coordinates to be aligned</p>
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
 
     </p>
   </div>

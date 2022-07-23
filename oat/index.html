@@ -37,7 +37,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Analysis documentation" href="api.html" />
+    <link rel="next" title="OAT command line documentation" href="cli.html" />
     <link rel="prev" title="Events" href="../events.html" /> 
 </head>
 
@@ -96,7 +96,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../events.html">Events</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">oxDNA Analysis Tools</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">oxDNA Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#command-line-interface">Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">OAT command line documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#scripting-interface">Scripting interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#top-level-api">Top-level API</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api.html">Analysis documentation</a></li>
 </ul>
@@ -181,7 +186,43 @@
             
   <div class="tex2jax_ignore mathjax_ignore section" id="oxdna-analysis-tools">
 <h1>oxDNA Analysis Tools<a class="headerlink" href="#oxdna-analysis-tools" title="Permalink to this headline">¶</a></h1>
-<p>oxDNA Analysis Tools (<em>oat</em> in short) is a suite of command line Python tools for performing generic structural analyses of oxDNA simulations.</p>
+<p>oxDNA Analysis Tools (<em>oat</em> in short) is a suite of command line Python tools for performing generic structural analyses of oxDNA simulations. The package functions both as a series of standalone command-line scripts and as importable modules for building custom analysis tools.</p>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="command-line-interface">
+<h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">OAT command line documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#align">Align</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#anm-parameterize">ANM parameterize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#backbone-flexibility">Backbone flexibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#bond-analysis">Bond analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#centroid">Centroid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#clustering">Clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#config">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#contact-map">Contact map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#dot-bracket-to-force">Dot-bracket to force</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#deviations">Deviations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#distance">Distance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#duplex-angle-plotter">Duplex angle plotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#duplex-finder">Duplex finder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#forces-to-pairs">Forces to pairs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#generate-force">Generate force</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#mean">Mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#minify">Minify</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#multidimensional-scaling-mean">Multidimensional scaling mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#output-bonds">Output bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#principal-component-analysis">Principal component analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#plot-energy">Plot energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#subset-trajectory">Subset trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html#superimpose">Superimpose</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="scripting-interface">
+<h1>Scripting interface<a class="headerlink" href="#scripting-interface" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="top-level-api">
 <h2>Top-level API<a class="headerlink" href="#top-level-api" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
@@ -247,7 +288,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api.html" class="btn btn-neutral float-right" title="Analysis documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="cli.html" class="btn btn-neutral float-right" title="OAT command line documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../events.html" class="btn btn-neutral float-left" title="Events" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -260,7 +301,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
 
     </p>
   </div>

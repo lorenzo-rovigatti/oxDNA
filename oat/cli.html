@@ -1,0 +1,1065 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>OAT command line documentation &mdash; oxDNA  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Analysis documentation" href="api.html" />
+    <link rel="prev" title="oxDNA Analysis Tools" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configurations.html">Configuration and topology files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../forces.html">External forces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../observables.html">Observables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../umbrella_sampling.html">Umbrella sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ffs.html">Forward Flux Sampling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../events.html">Events</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">oxDNA Analysis Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html#command-line-interface">Command Line Interface</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">OAT command line documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#align">Align</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#anm-parameterize">ANM parameterize</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#backbone-flexibility">Backbone flexibility</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#bond-analysis">Bond analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#centroid">Centroid</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#clustering">Clustering</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#contact-map">Contact map</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dot-bracket-to-force">Dot-bracket to force</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#deviations">Deviations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#distance">Distance</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#duplex-angle-plotter">Duplex angle plotter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#duplex-finder">Duplex finder</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#forces-to-pairs">Forces to pairs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#generate-force">Generate force</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mean">Mean</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#minify">Minify</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#multidimensional-scaling-mean">Multidimensional scaling mean</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#output-bonds">Output bonds</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#principal-component-analysis">Principal component analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#plot-energy">Plot energy</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#subset-trajectory">Subset trajectory</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#superimpose">Superimpose</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#scripting-interface">Scripting interface</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../oxpy/index.html">Oxpy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">oxDNA</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">oxDNA Analysis Tools</a> &raquo;</li>
+        
+      <li>OAT command line documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/oat/cli.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="tex2jax_ignore mathjax_ignore section" id="oat-command-line-documentation">
+<h1>OAT command line documentation<a class="headerlink" href="#oat-command-line-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="align">
+<h2>Align<a class="headerlink" href="#align" title="Permalink to this headline">¶</a></h2>
+<p><p>Aligns each frame in a trajectory to the first frame</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">align</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">reference_structure</span><span class="p">]</span>
+                 <span class="n">traj</span> <span class="n">outfile</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>traj</kbd></dt>
+<dd><p>The trajectory file to align</p>
+</dd>
+<dt><kbd>outfile</kbd></dt>
+<dd><p>The name of the new trajectory file to write out</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-i</kbd></dt>
+<dd><p>Align to only a subset of particles from a space-separated list in the provided file</p>
+</dd>
+<dt><kbd>-r</kbd></dt>
+<dd><p>Align to a provided configuration instead of the first frame.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="anm-parameterize">
+<h2>ANM parameterize<a class="headerlink" href="#anm-parameterize" title="Permalink to this headline">¶</a></h2>
+<p><p>compute par file for DNA-ANM model</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">anm_parameterize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">index_file</span> <span class="n">mean_file</span> <span class="n">trajectory</span> <span class="n">out_file</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>index_file</kbd></dt>
+<dd><p>Index file describing what Bases belong to which Super particle.</p>
+</dd>
+<dt><kbd>mean_file</kbd></dt>
+<dd><p>Reference configuration</p>
+</dd>
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>Trajectory to evaluate</p>
+</dd>
+<dt><kbd>out_file</kbd></dt>
+<dd><p>Output par file name</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="backbone-flexibility">
+<h2>Backbone flexibility<a class="headerlink" href="#backbone-flexibility" title="Permalink to this headline">¶</a></h2>
+<p><p>Computes the deviations in the backbone torsion angles</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">backbone_flexibility</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span>
+                                <span class="n">topology</span> <span class="n">trajectory</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>topology</kbd></dt>
+<dd><p>The topology file associated with the trajectory file</p>
+</dd>
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>the trajectory file you wish to analyze</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-o</kbd></dt>
+<dd><p>(optional) The name of the file to write the graph to</p>
+</dd>
+<dt><kbd>-d</kbd></dt>
+<dd><p>(optional) The name of the file to write the data to</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="bond-analysis">
+<h2>Bond analysis<a class="headerlink" href="#bond-analysis" title="Permalink to this headline">¶</a></h2>
+<p><p>Compare the bonds found at each trajectory with the intended design</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">bond_analysis</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span>
+                         <span class="n">inputfile</span> <span class="n">trajectory</span> <span class="n">designed_pairs</span> <span class="n">output_file</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>inputfile</kbd></dt>
+<dd><p>The inputfile used to run the simulation</p>
+</dd>
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>The trajecotry file to compare against the designed pairs</p>
+</dd>
+<dt><kbd>designed_pairs</kbd></dt>
+<dd><p>The file containing the desired nucleotides pairings in the format <cite>a b</cite></p>
+</dd>
+<dt><kbd>output_file</kbd></dt>
+<dd><p>name of the file to save the output json overlay to</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="centroid">
+<h2>Centroid<a class="headerlink" href="#centroid" title="Permalink to this headline">¶</a></h2>
+<p><p>Find the configuration in a trajectory closest to a provided reference configuration</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">centroid</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span>
+                    <span class="n">reference_structure</span> <span class="n">trajectory</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>reference_structure</kbd></dt>
+<dd><p>The reference structure to search against</p>
+</dd>
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>the trajectory file you wish to analyze</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The filename to save the centroid to</p>
+</dd>
+<dt><kbd>-i</kbd></dt>
+<dd><p>Alignment and RMSD based on a subset of particles given in a space-separated list in the provided file</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="clustering">
+<h2>Clustering<a class="headerlink" href="#clustering" title="Permalink to this headline">¶</a></h2>
+<p><p>Calculates clusters based on provided order parameters.</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">clustering</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EPS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MIN_SAMPLES</span><span class="p">]</span> <span class="n">serialized_data</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>serialized_data</kbd></dt>
+<dd><p>The json-formatted input file</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-e, --eps</kbd></dt>
+<dd><p>The epsilon parameter for DBSCAN (maximum distance to be considered a ‘neighbor’)</p>
+</dd>
+<dt><kbd>-m, --min_samples</kbd></dt>
+<dd><p>The min_samples parameter for DBSCAN (number of neighbors which define a point as a central point in a cluster)</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="config">
+<h2>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h2>
+<p><p>Configure oxDNA_analysis_tools</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">config</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">CHUNK_SIZE</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-n, --chunk_size</kbd></dt>
+<dd><p>Number of configurations to per chunk.  Persistent across analyses.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="contact-map">
+<h2>Contact map<a class="headerlink" href="#contact-map" title="Permalink to this headline">¶</a></h2>
+<p><p>Calculate and display the contact map for a structure</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">contact_map</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="n">graph</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="n">trajectory</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>The file containing the configurations of which the contact map is needed</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-g</kbd></dt>
+<dd><p>Filename for the plot</p>
+</dd>
+<dt><kbd>-d</kbd></dt>
+<dd><p>The name of the file to save the contact map as a pickle.</p>
+</dd>
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="dot-bracket-to-force">
+<h2>Dot-bracket to force<a class="headerlink" href="#dot-bracket-to-force" title="Permalink to this headline">¶</a></h2>
+<p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFFNESS</span><span class="p">]</span> <span class="n">db_file</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>db_file</kbd></dt>
+<dd><p>A text file containing dot-bracket notation of the base-pairing arrangement</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>Name of the file to write the force list to</p>
+</dd>
+<dt><kbd>-s, --stiffness</kbd></dt>
+<dd><p>Strength of the forces</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="deviations">
+<h2>Deviations<a class="headerlink" href="#deviations" title="Permalink to this headline">¶</a></h2>
+<p><p>Compute the RMSD of each nucleotide from the mean structure produced by compute_mean.py</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">deviations</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">rmsd_plot</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">rmsd_data</span><span class="p">]</span>
+                      <span class="n">mean_structure</span> <span class="n">trajectory</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>mean_structure</kbd></dt>
+<dd><p>The mean structure .json file from compute_mean.py</p>
+</dd>
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>the trajectory file you wish to analyze</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The filename to save the RMSF json file to</p>
+</dd>
+<dt><kbd>-i</kbd></dt>
+<dd><p>Compute mean structure of a subset of particles from a space-separated list in the provided file</p>
+</dd>
+<dt><kbd>-r</kbd></dt>
+<dd><p>The name of the file to save the RMSD plot to.</p>
+</dd>
+<dt><kbd>-d</kbd></dt>
+<dd><p>The name of the file to save the RMSD data in json format.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="distance">
+<h2>Distance<a class="headerlink" href="#distance" title="Permalink to this headline">¶</a></h2>
+<p><p>Finds the ensemble of distances between any two particles in the system</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">distance</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="nb">input</span> <span class="p">[</span><span class="nb">input</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-i, --input</kbd></dt>
+<dd><p>A trajectory, and a list of particle pairs to compare.  Can call -i multiple times to plot multiple datasets.</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The name to save the graph file to</p>
+</dd>
+<dt><kbd>-f, --format</kbd></dt>
+<dd><p>Output format for the graphs.  Defaults to histogram.  Options are “histogram”, “trajectory”, and “both”</p>
+</dd>
+<dt><kbd>-d, --data</kbd></dt>
+<dd><p>If set, the output for the graphs will be dropped as a json to this filename for loading in oxView or your own scripts</p>
+</dd>
+<dt><kbd>-n, --names</kbd></dt>
+<dd><p>Names of the data series.  Will default to particle ids if not provided</p>
+</dd>
+<dt><kbd>-p, --parallel</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-c</kbd></dt>
+<dd><p>Run the clusterer on each configuration’s distance?</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="duplex-angle-plotter">
+<h2>Duplex angle plotter<a class="headerlink" href="#duplex-angle-plotter" title="Permalink to this headline">¶</a></h2>
+<p><p>Finds the ensemble of angles between any two duplexes defined by a starting or ending nucleotide in the system</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">duplex_angle_plotter</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">angle_file</span> <span class="p">[</span><span class="n">angle_file</span> <span class="o">...</span><span class="p">]]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span>
+</pre></div>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-i, --input</kbd></dt>
+<dd><p>An angle file from duplex_angle_finder.py and a list of duplex-end particle pairs to compare.  Can call -i multiple times to plot multiple datasets.</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The name to save the graph file to</p>
+</dd>
+<dt><kbd>-f, --format</kbd></dt>
+<dd><p>Output format for the graphs.  Defaults to histogram.  Options are “histogram”, “trajectory”, and “both”</p>
+</dd>
+<dt><kbd>-d, --data</kbd></dt>
+<dd><p>If set, the output for the graphs will be dropped as a json to this filename for loading in oxView or your own scripts</p>
+</dd>
+<dt><kbd>-n, --names</kbd></dt>
+<dd><p>Names of the data series.  Will default to particle ids if not provided</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="duplex-finder">
+<h2>Duplex finder<a class="headerlink" href="#duplex-finder" title="Permalink to this headline">¶</a></h2>
+<p><p>Fit vectors to every duplex in the structure</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">duplex_finder</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="nb">input</span> <span class="n">trajectory</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>input</kbd></dt>
+<dd><p>The inputfile used to run the simulation</p>
+</dd>
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>The trajectory file from the simulation</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>name of the file to write the angle list to</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="forces-to-pairs">
+<h2>Forces to pairs<a class="headerlink" href="#forces-to-pairs" title="Permalink to this headline">¶</a></h2>
+<p><p>Convert an external force file to a list of particle pairs</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">forces2pairs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="n">force_file</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>force_file</kbd></dt>
+<dd><p>The force file to generate pairs from</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>name of the file to write the pair list to</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="generate-force">
+<h2>Generate force<a class="headerlink" href="#generate-force" title="Permalink to this headline">¶</a></h2>
+<p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">generate_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PAIRS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span>
+                          <span class="n">inputfile</span> <span class="n">configuration</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>inputfile</kbd></dt>
+<dd><p>The inputfile used to run the simulation</p>
+</dd>
+<dt><kbd>configuration</kbd></dt>
+<dd><p>The configuration to generate the forces from</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>Name of the file to write the forces to. Defaults to forces.txt</p>
+</dd>
+<dt><kbd>-f, --pairs</kbd></dt>
+<dd><p>Name of the file to write the designed pairs list to</p>
+</dd>
+<dt><kbd>-s, --stiff</kbd></dt>
+<dd><p>Stiffness of the mutual trap</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="mean">
+<h2>Mean<a class="headerlink" href="#mean" title="Permalink to this headline">¶</a></h2>
+<p><p>Computes the mean structure of a trajectory file</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">mean</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">deviation_file</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">alignment_configuration</span><span class="p">]</span>
+                <span class="n">trajectory</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>The trajectory file you wish to analyze</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The filename to save the mean structure to</p>
+</dd>
+<dt><kbd>-d, --deviations</kbd></dt>
+<dd><p>Immediatley run oat deviations from the output</p>
+</dd>
+<dt><kbd>-i</kbd></dt>
+<dd><p>Compute mean structure of a subset of particles from a space-separated list in the provided file</p>
+</dd>
+<dt><kbd>-a, --align</kbd></dt>
+<dd><p>The id of the configuration to align to, otherwise random</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="minify">
+<h2>Minify<a class="headerlink" href="#minify" title="Permalink to this headline">¶</a></h2>
+<p><p>Compress given configuration.</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">minify</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">D</span><span class="p">]</span> <span class="n">trajectory</span> <span class="n">outfile</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>the trajectory file you wish to analyze</p>
+</dd>
+<dt><kbd>outfile</kbd></dt>
+<dd><p>minified file</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-a</kbd></dt>
+<dd><p>Discard a vectors.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-d</kbd></dt>
+<dd><p>Round positions and orientations to the specified number of digits.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="multidimensional-scaling-mean">
+<h2>Multidimensional scaling mean<a class="headerlink" href="#multidimensional-scaling-mean" title="Permalink to this headline">¶</a></h2>
+<p><p>Calculate molecular contacts, and assembles an average set of contacts based on MDS</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">multidimensional_scaling_mean</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">dev_file</span><span class="p">]</span>
+                                         <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span>
+                                         <span class="n">trajectory</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>the trajectory file you wish to analyze</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>the name of the .dat file where the mean will be written</p>
+</dd>
+<dt><kbd>-d, --dev_file</kbd></dt>
+<dd><p>the name of the .json file where the devs will be written</p>
+</dd>
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="output-bonds">
+<h2>Output bonds<a class="headerlink" href="#output-bonds" title="Permalink to this headline">¶</a></h2>
+<p><p>List all the interactions between nucleotides</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">output_bonds</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span> <span class="n">OUTFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">UNITS</span><span class="p">]</span>
+                        <span class="n">inputfile</span> <span class="n">trajectory</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>inputfile</kbd></dt>
+<dd><p>The inputfile used to run the simulation</p>
+</dd>
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>the trajectory file you wish to analyze</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-v</kbd></dt>
+<dd><p>if you want instead average per-particle energy as an oxView JSON</p>
+</dd>
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-u, --units</kbd></dt>
+<dd><p>(optional) The units of the energy (pNnm or oxDNA)</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="principal-component-analysis">
+<h2>Principal component analysis<a class="headerlink" href="#principal-component-analysis" title="Permalink to this headline">¶</a></h2>
+<p><p>Calculates a principal component analysis of nucleotide deviations over a trajectory</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">pca</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="n">trajectory</span> <span class="n">meanfile</span> <span class="n">outfile</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>the trajectory file you wish to analyze</p>
+</dd>
+<dt><kbd>meanfile</kbd></dt>
+<dd><p>The mean structure from oat mean</p>
+</dd>
+<dt><kbd>outfile</kbd></dt>
+<dd><p>the name of the oxView .json overlay file where the PCs will be written</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-c</kbd></dt>
+<dd><p>Run the clusterer on each configuration’s position in PCA space?</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="plot-energy">
+<h2>Plot energy<a class="headerlink" href="#plot-energy" title="Permalink to this headline">¶</a></h2>
+<p><p>Plot oxDNA energy files</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">plot_energy</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span>
+                       <span class="n">energy</span> <span class="p">[</span><span class="n">energy</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>energy</kbd></dt>
+<dd><p>Energy files to plot</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The name to save the graph file to</p>
+</dd>
+<dt><kbd>-f, --format</kbd></dt>
+<dd><p>Output format for the graphs.  Defaults to histogram.  Options are “histogram”, “trajectory”, and “both”</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="subset-trajectory">
+<h2>Subset trajectory<a class="headerlink" href="#subset-trajectory" title="Permalink to this headline">¶</a></h2>
+<p><p>Extracts parts of a structure into separate trajectories</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">subset_trajectory</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index</span> <span class="n">index</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span>
+                             <span class="n">trajectory</span> <span class="n">topology</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>trajectory</kbd></dt>
+<dd><p>The trajectory file to subset</p>
+</dd>
+<dt><kbd>topology</kbd></dt>
+<dd><p>The topology file corresponding to the trajectory</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-i, --index</kbd></dt>
+<dd><p>A space separated index file and the associated output file name.  This can be called multiple times</p>
+</dd>
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="superimpose">
+<h2>Superimpose<a class="headerlink" href="#superimpose" title="Permalink to this headline">¶</a></h2>
+<p><p>superimposes one or more structures sharing a topology to a reference structure</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="n">reference</span> <span class="n">victims</span> <span class="p">[</span><span class="n">victims</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>reference</kbd></dt>
+<dd><p>The reference configuration to superimpose to</p>
+</dd>
+<dt><kbd>victims</kbd></dt>
+<dd><p>The configuraitons to superimpose on the reference</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-i</kbd></dt>
+<dd><p>Align to only a subset of particles from a space-separated list in the provided file</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api.html" class="btn btn-neutral float-right" title="Analysis documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="oxDNA Analysis Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

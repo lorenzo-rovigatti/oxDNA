@@ -10,7 +10,7 @@ Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 9.0. If 
 
 ### Python bindings
 
-Compiling with the python bindings enabled requires a working Python3 installation comprising both binaries and include files. With Debian-derived distro these come with the package `python3-dev`.
+Compiling with the python bindings enabled requires a working Python3 installation comprising both binaries and include files. With Debian-derived distro these come with the package `python3-dev`.  OxDNA Analysis Tools requires Python version 3.9 or newer.  `oxpy` will work with any version of Python 3.
 
 ## Compiling oxDNA
 
@@ -45,7 +45,7 @@ Compiling with Python bindings will also generate an `oxpy` package in the `buil
 The following options pertain to `oxpy`:
 
 * `-DPython=ON` Enables Python bindings
-* `-DOxpySystemInstall=On` By default `oxpy` is installed in the current user's home directory. By enabling this option `oxpy` will be installed as a system-wide package. It may require superuser privileges.
+* `-DOxpySystemInstall=On` By default `oxpy` is installed in the current user's home directory. By enabling this option `oxpy` will be installed as a system-wide package. It may require superuser privileges (unless using Conda environments. See below.).
 
 If you are on your own machine or you installed Python via Anaconda, the `-DOxpySystemInstall=On` option should be set to install `oxpy` and `oxDNA_analysis_tools` on your `PATH`.  If you are on a shared system (for example and HPC cluster which isn't using Conda), perform the `cmake` command without this option.  `make install` will probably (depends on `pip` settings) install the two libraries in `$HOME/.local/bin/`, which is not on the `PATH` by default and you will have to add it (if you have not already for another program).  In our testing, Conda-managed versions of Python correctly installed the libraries in the current environment's `site-packages` folder if `-DOxpySystemInstall=On` was set, even on shared systems.
 
@@ -63,6 +63,14 @@ When compiling with the Python bindings enabled CMake will sometimes choose the 
 ```bash
 cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary
 ```
+
+If you are using conda environments, the paths should look something like:  
+Include: `$HOME/anaconda3/envs/py38/include/python3.8`
+Executable: `$HOME/anaconda3/envs/py38/bin/python`
+
+If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing `oxDNA_analysis_tools` with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, either update your version of Numpy or try to install just `OAT` without build isolation:
+  
+   `python -m pip install ./analysis --no-build-isolation`
 	
 ## Testing
 
@@ -70,3 +78,5 @@ cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_
 * `make test_quick` runs longer tests to check that oxDNA works.
 * `make test_oxpy` checks that the Python bindings work.
 * `make test` runs all sets of tests above.
+* `oat config` will check all dependencies for `OAT`
+* In `oxDNA/analysis/tests` there is a shell script, `test.sh` which will test your `OAT` installation.

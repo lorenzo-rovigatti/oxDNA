@@ -111,6 +111,8 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oat/index.html">oxDNA Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oat/index.html#command-line-interface">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oat/index.html#scripting-interface">Scripting interface</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
@@ -190,7 +192,7 @@
 </div>
 <div class="section" id="python-bindings">
 <h3>Python bindings<a class="headerlink" href="#python-bindings" title="Permalink to this headline">¶</a></h3>
-<p>Compiling with the python bindings enabled requires a working Python3 installation comprising both binaries and include files. With Debian-derived distro these come with the package <code class="docutils literal notranslate"><span class="pre">python3-dev</span></code>.</p>
+<p>Compiling with the python bindings enabled requires a working Python3 installation comprising both binaries and include files. With Debian-derived distro these come with the package <code class="docutils literal notranslate"><span class="pre">python3-dev</span></code>.  OxDNA Analysis Tools requires Python version 3.9 or newer.  <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> will work with any version of Python 3.</p>
 </div>
 </div>
 <div class="section" id="compiling-oxdna">
@@ -223,7 +225,7 @@ make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it 
 <p>The following options pertain to <code class="docutils literal notranslate"><span class="pre">oxpy</span></code>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">-DPython=ON</span></code> Enables Python bindings</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-DOxpySystemInstall=On</span></code> By default <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> is installed in the current user’s home directory. By enabling this option <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> will be installed as a system-wide package. It may require superuser privileges.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-DOxpySystemInstall=On</span></code> By default <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> is installed in the current user’s home directory. By enabling this option <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> will be installed as a system-wide package. It may require superuser privileges (unless using Conda environments. See below.).</p></li>
 </ul>
 <p>If you are on your own machine or you installed Python via Anaconda, the <code class="docutils literal notranslate"><span class="pre">-DOxpySystemInstall=On</span></code> option should be set to install <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> and <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.  If you are on a shared system (for example and HPC cluster which isn’t using Conda), perform the <code class="docutils literal notranslate"><span class="pre">cmake</span></code> command without this option.  <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> will probably (depends on <code class="docutils literal notranslate"><span class="pre">pip</span></code> settings) install the two libraries in <code class="docutils literal notranslate"><span class="pre">$HOME/.local/bin/</span></code>, which is not on the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> by default and you will have to add it (if you have not already for another program).  In our testing, Conda-managed versions of Python correctly installed the libraries in the current environment’s <code class="docutils literal notranslate"><span class="pre">site-packages</span></code> folder if <code class="docutils literal notranslate"><span class="pre">-DOxpySystemInstall=On</span></code> was set, even on shared systems.</p>
 </div>
@@ -242,6 +244,11 @@ make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it 
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake .. -DPython<span class="o">=</span>ON -DPYTHON_INCLUDE_DIRS<span class="o">=</span>/path/to/python/include/dir -DPYTHON_EXECUTABLE<span class="o">=</span>/path/to/python/binary
 </pre></div>
 </div>
+<p>If you are using conda environments, the paths should look something like:<br />
+Include: <code class="docutils literal notranslate"><span class="pre">$HOME/anaconda3/envs/py38/include/python3.8</span></code>
+Executable: <code class="docutils literal notranslate"><span class="pre">$HOME/anaconda3/envs/py38/bin/python</span></code></p>
+<p>If you get an error regarding the number of bytes in the <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code> header, this happens when the version of Numpy on your system doesn’t match the version that pip downloads from PyPi when installing <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, either update your version of Numpy or try to install just <code class="docutils literal notranslate"><span class="pre">OAT</span></code> without build isolation:</p>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">./analysis</span> <span class="pre">--no-build-isolation</span></code></p>
 </div>
 </div>
 <div class="section" id="testing">
@@ -251,6 +258,8 @@ make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it 
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_quick</span></code> runs longer tests to check that oxDNA works.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_oxpy</span></code> checks that the Python bindings work.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> runs all sets of tests above.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">oat</span> <span class="pre">config</span></code> will check all dependencies for <code class="docutils literal notranslate"><span class="pre">OAT</span></code></p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">oxDNA/analysis/tests</span></code> there is a shell script, <code class="docutils literal notranslate"><span class="pre">test.sh</span></code> which will test your <code class="docutils literal notranslate"><span class="pre">OAT</span></code> installation.</p></li>
 </ul>
 </div>
 </div>
@@ -276,7 +285,7 @@ make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it 
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
 
     </p>
   </div>

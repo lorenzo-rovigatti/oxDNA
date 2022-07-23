@@ -92,6 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Observables</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#external-observable-file">External observable file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-options">Common options</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#simulation-time">Simulation time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#total-potential-energy">Total potential energy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hydrogen-bonding-energy">Hydrogen-bonding energy</a></li>
@@ -105,6 +106,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#energy-associated-to-the-external-forces">Energy associated to the external forces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pressure">Pressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stress-autocorrelation">Stress autocorrelation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pitch">Pitch</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#coaxial-stacking-related-quantities">Coaxial-stacking-related quantities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#structure-factor">Structure factor</a></li>
@@ -121,6 +123,8 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oat/index.html">oxDNA Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oat/index.html#command-line-interface">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oat/index.html#scripting-interface">Scripting interface</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
@@ -263,6 +267,14 @@
 </pre></div>
 </div>
 </div>
+<div class="section" id="common-options">
+<h2>Common options<a class="headerlink" href="#common-options" title="Permalink to this headline">¶</a></h2>
+<p>The following options are supported by all observabes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[id</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: a unique identifier that can be used to refer to this specific observable (see <em>e.g.</em> <a class="reference internal" href="oxpy/modules/core/core.html#oxpy.core.ConfigInfo.get_observable_by_id" title="oxpy.core.ConfigInfo.get_observable_by_id"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_observable_by_id()</span></code></a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[update_every</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: the number of time steps every which the observable is updated (but no output is printed). Note that this is supported only by some observables.</p></li>
+</ul>
+</div>
 <div class="section" id="simulation-time">
 <h2>Simulation time<a class="headerlink" href="#simulation-time" title="Permalink to this headline">¶</a></h2>
 <p>Print the current simulation time as the number of steps or as molecular-dynamics time.</p>
@@ -394,6 +406,14 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">[stress_tensor</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, the output will contain 7 fields: the total pressure and 6 components of the (symmetric) stress tensor: <span class="math notranslate nohighlight">\(xx, yy, zz, xy, xz, yz\)</span>.</p></li>
 </ul>
 </div>
+<div class="section" id="stress-autocorrelation">
+<h2>Stress autocorrelation<a class="headerlink" href="#stress-autocorrelation" title="Permalink to this headline">¶</a></h2>
+<p>Compute the stress autocorrelation function <span class="math notranslate nohighlight">\(G(t)\)</span> using the multi-tau method describere <a class="reference external" href="https://doi.org/10.1063/1.3491098">here</a>. This observable supports the <code class="docutils literal notranslate"><span class="pre">update_every</span></code> option.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">=</span> <span class="pre">int]</span></code>: Size of the average used by the algorithm. Defaults to 2.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[p</span> <span class="pre">=</span> <span class="pre">int]</span></code>: The size of the coarse-grained levels used by the algorithm. Defaults to 16.</p></li>
+</ul>
+</div>
 <div class="section" id="pitch">
 <h2>Pitch<a class="headerlink" href="#pitch" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
@@ -415,6 +435,7 @@
 </div>
 <div class="section" id="structure-factor">
 <h2>Structure factor<a class="headerlink" href="#structure-factor" title="Permalink to this headline">¶</a></h2>
+<p>This observable supports the <code class="docutils literal notranslate"><span class="pre">update_every</span></code> option.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">structure_factor</span></code>: the observable type.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">max_q</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: maximum wave vector <span class="math notranslate nohighlight">\(q\)</span> to consider.</p></li>
@@ -504,7 +525,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano and Petr Šulc
+        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
 
     </p>
   </div>
