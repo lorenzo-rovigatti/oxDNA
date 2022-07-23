@@ -1,0 +1,24 @@
+backend = CPU
+sim_type = MD
+interaction_type = DNA2
+thermostat = brownian
+newtonian_steps = 103
+diff_coeff = 2.5
+verlet_skin = 0.2
+dt = 0.003
+
+T = 60.85C
+salt_concentration = 1
+
+steps = 1000000
+print_energy_every = 10000
+print_conf_interval = 10000
+restart_step_counter = yes
+refresh_vel = true
+time_scale = linear
+
+topology = hairpin.top
+conf_file = hairpin.conf
+trajectory_file = trajectory.dat
+energy_file = energy.dat
+diff_coeff = 2.5

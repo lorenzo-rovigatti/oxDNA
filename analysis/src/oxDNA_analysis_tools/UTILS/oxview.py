@@ -87,7 +87,7 @@ def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_s
 
     display_files(file_list, inbox_settings, oxview_src)
 
-def rovi_patchy_conf(top_path:str,  conf:Configuration, particles_path:str, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+def flro_patchy_conf(top_path:str,  conf:Configuration, particles_path:str, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
     # compress the dat
     dat_string = __compress_dat(conf)
     # load up the top file
