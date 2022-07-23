@@ -39,12 +39,12 @@ extensions = [
     "sphinx_rtd_theme"
 ]
 
-#intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
-#                       'numpy': ('https://numpy.org/doc/stable/', None),
-#                       'scipy': ('https://docs.scipy.org/doc/scipy/', None),
-#                       'matplotlib': ('https://matplotlib.org/stable/', None),
-#                       'sklearn' : ('https://scikit-learn.org/stable/', None)
-#                       }
+intersphinx_mapping = {'python': ('https://docs.python.org/3/', None),
+                       'numpy': ('https://numpy.org/doc/stable/', None),
+                       'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+                       'matplotlib': ('https://matplotlib.org/stable/', None),
+                       'sklearn' : ('https://scikit-learn.org/stable/', None)
+                       }
 
 # generate labels of heading anchors
 myst_heading_anchors = 3
