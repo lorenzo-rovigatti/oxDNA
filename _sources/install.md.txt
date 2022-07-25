@@ -58,19 +58,18 @@ If you are on your own machine or you installed Python via Anaconda, the `-DOxpy
 
 ### Known issues
 
-When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly set from the command line as follows:
+#### `oxpy`
 
-```bash
-cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary
-```
-
-If you are using conda environments, the paths should look something like:  
-Include: `$HOME/anaconda3/envs/py38/include/python3.8`
-Executable: `$HOME/anaconda3/envs/py38/bin/python`
-
-If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing `oxDNA_analysis_tools` with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, either update your version of Numpy or try to install just `OAT` without build isolation:
-  
-   `python -m pip install ./analysis --no-build-isolation`
+* When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly set from the command line as follows:
+	```bash
+	cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary
+	```
+	If you are using conda environments, the paths should look something like:  
+	* Include: `$HOME/anaconda3/envs/py38/include/python3.8`
+	* Executable: `$HOME/anaconda3/envs/py38/bin/python`
+* If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing `oxDNA_analysis_tools` with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, either update your version of Numpy or try to install just `OAT` without build isolation:
+  `python -m pip install ./analysis --no-build-isolation`
+* Sometimes installation will fail with `TypeError: expected string or bytes-like object`. This error is usually caused by older versions of either `oxpy` or `oxDNA-analysis-tools` floating around. Remove them and re-install `oxpy`.
 	
 ## Testing
 
