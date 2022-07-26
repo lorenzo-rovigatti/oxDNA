@@ -191,6 +191,12 @@
 <p>oxDNA Analysis Tools (<em>oat</em> in short) is a suite of command line Python tools for performing generic structural analyses of oxDNA simulations. The package functions both as a series of standalone command-line scripts and as importable modules for building custom analysis tools.</p>
 <div class="section" id="command-line-interface">
 <h2>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h2>
+<p>The command line version of the scripts can be run via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">oat</span> <span class="o">&lt;</span><span class="n">script</span> <span class="n">name</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">script</span> <span class="n">arguments</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>There are bash autocompletes avilable for the script names, which can be activated by copying the file <code class="docutils literal notranslate"><span class="pre">/oxDNA/analysis/oat-completion.sh</span></code> to your autocompletes file (generally <code class="docutils literal notranslate"><span class="pre">~/.bash_completion</span></code>) and restarting your command line session.</p>
+<p>Documentation for individual scripts:</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">OAT command line documentation</a><ul>
@@ -224,6 +230,16 @@
 </div>
 <div class="section" id="scripting-interface">
 <h2>Scripting interface<a class="headerlink" href="#scripting-interface" title="Permalink to this headline">¶</a></h2>
+<p>The scripting API for <code class="docutils literal notranslate"><span class="pre">oat</span></code> can be imported into Python scripts through the <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> package.  For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span> <span class="kn">import</span> <span class="n">describe</span><span class="p">,</span> <span class="n">get_confs</span>
+
+<span class="c1"># get the top and traj names from the command line or hardcode them</span>
+
+<span class="n">top_info</span><span class="p">,</span> <span class="n">traj_info</span> <span class="o">=</span> <span class="n">describe</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">traj</span><span class="p">)</span>
+<span class="n">confs</span> <span class="o">=</span> <span class="n">get_confs</span><span class="p">(</span><span class="n">top_info</span><span class="p">,</span> <span class="n">traj_info</span><span class="p">,</span> <span class="n">start_conf</span><span class="p">,</span> <span class="n">n_confs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Full API documentation:</p>
 <div class="section" id="top-level-api">
 <h3>Top-level API<a class="headerlink" href="#top-level-api" title="Permalink to this headline">¶</a></h3>
 <div class="toctree-wrapper compound">
