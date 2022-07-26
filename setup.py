@@ -134,7 +134,7 @@ class CMakeBuild(build_ext):
 setup(
     name = PACKAGE_NAME,
     use_scm_version = {
-        "fallback_version": "3.0.0-alpha",
+        "fallback_version": "3.3",
         },
     packages=find_packages(),
     setup_requires = ['setuptools_scm'],

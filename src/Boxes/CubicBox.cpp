@@ -49,7 +49,7 @@ LR_vector CubicBox::box_sides() const {
 }
 
 inline LR_vector CubicBox::min_image(const LR_vector &v1, const LR_vector &v2) const {
-	return LR_vector (
+	return LR_vector(
 		v2.x - v1.x - rint((v2.x - v1.x) / _side) * _side,
 		v2.y - v1.y - rint((v2.y - v1.y) / _side) * _side,
 		v2.z - v1.z - rint((v2.z - v1.z) / _side) * _side
@@ -60,7 +60,7 @@ number CubicBox::sqr_min_image_distance(const LR_vector &v1, const LR_vector &v2
 	return min_image(v1, v2).norm();
 }
 
-LR_vector CubicBox::get_abs_pos(BaseParticle * p) {
+LR_vector CubicBox::get_abs_pos(BaseParticle *p) {
 	return p->pos + LR_vector (
 			_side * (number)p->_pos_shift[0],
 			_side * (number)p->_pos_shift[1],

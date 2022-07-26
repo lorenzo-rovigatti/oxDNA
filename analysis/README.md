@@ -6,12 +6,44 @@ Running any script without arguments will print a brief description and list of 
 
 An overarching description can be found in this paper: https://academic.oup.com/nar/article/48/12/e72/5843822.
 
-All scripts have been completley rewritten to be 10-100x faster, however in the process most of the names have changed and the coding style is very different, please make sure you update your autocompletes and for now, take a look at `mean.py` for an example of how to use the new framework. 
+Since the original publication all scripts have been completley rewritten to be 10-100x faster, however in the process most of the names have changed and the coding style is very different, please make sure you update your CLI autocompletes and take a look at `mean.py` for an example of how to use the new framework. 
 
 ## Dependencies and installation
 
+OxDNA analysis tools will be automatically installed when you install oxDNA with `oxpy` Python bindings enabled.  For complete information, please see the [installation](https://lorenzo-rovigatti.github.io/oxDNA/install.html) section of the documentation.  For the impatient, these are the commands to run from the `oxDNA` root directory:
+
+```bash
+mkdir build && cd build
+cmake -DPython=1 ..      #Also include -DCUDA=1 if compiling for GPU and `-DOxpySystemInstall=0` if on a personal machine or if using Python managed by Conda.
+make -j4                 #-j specifies how many threads to use while compiling
+make install             #installs both oxpy and oxDNA_analysis_tools
+oat config               #verifies installation
+```
+
+### Numpy header error
+If when get the following error when running `OAT` scripts it means that your version of Numpy differes from the one used to build the Cython portions of the code
+```
+numpy.ndarray size changed, may indicate binary incompatibility. Expected 96 from C header, got 88 from PyObject
+```
+
+To solve this problem, install `OAT` without pip's environment isolation by running the following in the root `oxDNA` directory:
+```
+python -m pip install ./analysis --no-build-isolation
+```
+
+### Setting up Bash autocompletes
+The invocation `oat` is calling a Python script which then handles calling the other available scripts.  If you would like autocompletes for the specific script names (and are using a Unix command line), these are provided by `oat-completion.sh` which can also be found in the repository.  To add autocompletes to your system, either append it to your local `.bash_completion` file with:  
+
+`cat oat-completion.sh >> ~/.bash_completion`
+
+Or add it to your global completions with:  
+
+`sudo cp oat-completion.sh /etc/bash_completion.d/`
+
+Running `oat` with no arguments will list all available scripts.
+
 ### Pip installation
-oxDNA analysis tools can be installed from PyPi via pip:
+oxDNA Analysis Tools is also available as a standalone package through PyPi and can be installed through pip with:
 
 `pip install oxDNA-analysis-tools`
 
@@ -19,10 +51,14 @@ This will also install all dependencies.  Bash autocompletes will not be set up,
 
 **Installation from PyPi will only work on Linux and OSX.  If you want to use OAT on Windows, please install from source (or install on WSL)**
 
+Please note that `oxpy` is a dependency for any script that needs to interface with the oxDNA energy function and therefore installing `OAT` in this way is not recommended.
+
 ### Installation from source
-It can also be installed from the [GitHub repository](https://github.com/sulcgroup/oxdna_analysis_tools) or the zip file of the source code available on PyPi via the following method:  
+`OAT` can also be installed from the [GitHub repository](https://github.com/lorenzo-rovigatti/oxDNA) or the zip file of the source code available on PyPi via the following method:  
 
 1. Clone the repository or download and inflate the zip file.  
+2. Navigate to the analysis directory:
+   `cd analysis`
 2. Build the Cython code for your system:  
    `python -m build`
 3. Run one of the following commands (pip to automatically install dependencies or setup.py if you would like to manage them yourself):  
@@ -37,24 +73,9 @@ If you are not installing via pip, the following dependencies are required and c
 [BioPython](https://biopython.org/): >=1.73,<br/>
 [Scikit-Learn](https://scikit-learn.org/stable/): >=0.21.2,<br/>
 
-#### Numpy header error
-If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing OAT with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi).  To fix this, try installing OAT with:  
-   `python -m pip install . --no-build-isolation`
-
 ### Test your installation
 To check your installation run:  
    `oat config`
-
-### Setting up Bash autocompletes
-The invocation `oat` is calling a Python script which then handles calling the other available scripts.  If you would like autocompletes for the specific script names (and are using a Unix command line), these are provided by `oat-completion.sh` which can also be found in the repository.  To add autocompletes to your system, either append it to your local `.bash_completion` file with:  
-
-`cat oat-completion.sh >> ~/.bash_completion`
-
-Or add it to your global completions with:  
-
-`sudo cp oat-completion.sh /etc/bash_completion.d/`
-
-Running `oat` with no arguments will list all available scripts.
 
 -------------------------------------------------------------------
 
@@ -67,11 +88,15 @@ For example, to compute the mean structure and deviations of a file called `traj
 
 To see a detailed description of the script command line arguments, run the script with the `-h` flag.
 
+For a full list of scripts and arguments, please see the [documentation](https://lorenzo-rovigatti.github.io/oxDNA/oat/cli.html).
+
 These scripts are intended to be extensible and re-used for custom analysis by users.  The functions in this library can be imported into your Python scripts via:  
 `from oxDNA_analysis_tools.<script name> import <object name>`
 
 So for example, if you would like to use the file reader, you would include the following in your imports:  
 `from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs`
+
+For a complete list of importable functions, please see the [documentation](https://lorenzo-rovigatti.github.io/oxDNA/oat/index.html#scripting-interface)
 
 -------------------------------------------------------------------
 

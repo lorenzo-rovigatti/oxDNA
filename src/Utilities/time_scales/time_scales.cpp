@@ -39,7 +39,7 @@ void setTSInterval(time_scale *ts, int interval) {
 void _computeAlpha(time_scale *ts) {
 	if(isTSLoaded(ts)) return;
 
-	ts->alpha = ts->interval * pow(1.3, ts->points_per_cycle-1);
+	ts->alpha = (long long int) round(ts->interval * pow(1.3, ts->points_per_cycle - 1));
 }
 
 void setTSInitialStep(time_scale *ts, long long int initial) {
@@ -62,7 +62,7 @@ void setTSInitialStep(time_scale *ts, long long int initial) {
 void setTSNextStep(time_scale *ts) {
 	switch(ts->type) {
 	case TS_LOG_LIN:
-		ts->next_step = (long long int)((ts->interval*pow(1.3, ts->current_point)) + ts->alpha * ts->cycle);
+		ts->next_step = (long long int) round((ts->interval*pow(1.3, ts->current_point)) + ts->alpha * ts->cycle);
 		ts->current_point++;
 		if(ts->current_point == ts->points_per_cycle) {
 			ts->cycle++;

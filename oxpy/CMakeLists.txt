@@ -54,13 +54,6 @@ IF(Python)
 	)
 	add_dependencies(test test_oxpy)
 	
-	# read the whole defs.h file
-	FILE(READ ${PROJECT_SOURCE_DIR}/src/defs.h all_defs)
-	# extract the release version
-	STRING(REGEX MATCH "#define RELEASE \"([^\"]+)\"" _ ${all_defs})
-	SET(fallback_release ${CMAKE_MATCH_1})
-	MESSAGE(STATUS "Fallback release parsed from defs.h: ${fallback_release}")
-
 	CONFIGURE_FILE(make_install_setup.py
 		${OXPY_OUTPUT_DIR}/setup.py
 	)

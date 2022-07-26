@@ -8,7 +8,7 @@ setup(
     name = 'oxpy',
     use_scm_version = {
         "root": "${CMAKE_SOURCE_DIR}",
-        "fallback_version": "${fallback_release}",
+        "fallback_version": "3.3",
         },
     setup_requires = ['setuptools_scm'],
     packages = [ 'oxpy' ],
