@@ -94,7 +94,7 @@ def main():
     com = np.mean(flat_conf.positions, axis = 0)
 
     # This is awful, but I can't get a box from oxpy at the moment.
-    conf_with_box = get_confs(traj_info.idxs, traj_info.path, 0, 1, top_info.nbases)
+    conf_with_box = get_confs(top_info, traj_info, 0, 1)
     box_angstrom = conf_with_box.box * FROM_OXDNA_TO_ANGSTROM
 
     correct_for_large_boxes = False

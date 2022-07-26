@@ -18,7 +18,7 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
 
 
 def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.array, float, int]:
-    confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     confs = [inbox(c) for c in confs]
     np_confs = np.asarray([[c.positions, c.a1s, c.a3s] for c in confs])
     centroid_candidate = np.zeros_like(np_confs[0])
@@ -125,7 +125,7 @@ def main():
         ncpus = 1
 
     # get the mean structure from the file path
-    ref_conf = get_confs(ref_info.idxs, ref_info.path, 0, 1, top_info.nbases)[0]
+    ref_conf = get_confs(top_info, ref_info, 0, 1)[0]
     
     centroid_candidate, min_RMSD = centroid(traj_info, top_info, ref_conf, indexes, ncpus)
 

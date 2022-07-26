@@ -19,7 +19,7 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "indexes"])
 
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
-    confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     confs = (inbox(c, center=True) for c in confs)
     confs = np.asarray([[c.positions, c.a1s, c.a3s] for c in confs])
 
@@ -157,7 +157,7 @@ def main():
         ncpus = 1
 
     # get the mean structure from the file path
-    mean_conf = get_confs(mean_info.idxs, mean_info.path, 0, 1, top_info.nbases)[0]
+    mean_conf = get_confs(top_info, mean_info, 0, 1)[0]
     RMSDs, RMSFs = deviations(traj_info, top_info, mean_conf, indexes, ncpus)
 
     #-o names the output file

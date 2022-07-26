@@ -23,7 +23,7 @@ def main():
     #Get the reference configuration
     ref_file = args.reference[0]
     top_info, ref_info = describe(None, ref_file)
-    ref_conf = get_confs(ref_info.idxs, ref_info.path, 0, 1, top_info.nbases)[0]
+    ref_conf = get_confs(top_info, ref_info, 0, 1)[0]
 
     ref_conf = inbox(ref_conf)
 
@@ -47,7 +47,7 @@ def main():
 
     for i, f in enumerate(args.victims):
         top_info, traj_info = describe(None, f)
-        conf = get_confs(traj_info.idxs, traj_info.path, 0, 1, top_info.nbases)[0]
+        conf = get_confs(top_info, traj_info, 0, 1)[0]
         conf = inbox(conf)
 
         np_coords = np.asarray([conf.positions, conf.a1s, conf.a3s])

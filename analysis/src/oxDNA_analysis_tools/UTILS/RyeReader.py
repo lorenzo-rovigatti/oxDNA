@@ -52,7 +52,7 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> Li
         print(f"INFO: processed {current_chunk*chunk_size} / {len(traj_info.idxs)} confs", end='\r', file=stderr)
         if current_chunk*chunk_size >= len(traj_info.idxs):
             break
-        confs = get_confs(traj_info.idxs, traj_info.path, current_chunk*chunk_size, chunk_size, top_info.nbases)
+        confs = get_confs(top_info, traj_info, current_chunk*chunk_size, chunk_size)
         yield confs
         current_chunk += 1
 
@@ -91,21 +91,23 @@ def _index(traj_file) -> List[ConfInfo]:
     idxs.append(ConfInfo(conf_starts[-1], fsize - conf_starts[-1], len(conf_starts)-1))
     return idxs
 
-def get_confs(indexes:list, traj_file:str, start_conf:int, n_confs:int, n_bases:int) -> List[Configuration]:
+def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int) -> List[Configuration]:
     """
         Read a chunk of confs from a trajectory file.
 
         Parameters:
-            indexes (ConfInfo[]) : The start bytes and sizes of each conf
-            traj_file (str) : The path to the trajectory file
+            top_info (TopInfo) : Contains the number of bases in the configuration
+            traj_info (TrajInfo) : Contains metadata about the trajectory file
             start_conf (int) : The index of the first conf to read
             n_confs (int) : The number of confs to read
-            n_bases (int) : The number of bases in the system
 
         Returns:
             List[Configuration] : list of configurations
 
     """
+    indexes = traj_info.idxs
+    traj_file = traj_info.path
+    n_bases = top_info.nbases
     return cget_confs(indexes, traj_file, start_conf, n_confs, n_bases)
 
 ####################################################################################

@@ -45,7 +45,7 @@ def svd_align(centered_ref_coords:np.ndarray, coords:np.ndarray, indexes:List[in
              np.dot(coords[2], rot))
 
 def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
-    confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     confs = [inbox(c, center=True) for c in confs]
     # convert to numpy repr
     np_coords = np.asarray([[c.positions, c.a1s, c.a3s] for c in confs])
@@ -78,7 +78,7 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=None, ref_conf:C
 
     if ref_conf == None:
         #read the first configuration and use it as the reference configuration for the rest
-        ref_conf = get_confs(traj_info.idxs, traj_info.path, 1, 1, top_info.nbases)[0]
+        ref_conf = get_confs(top_info, traj_info, 0, 1)[0]
 
     if indexes == None:
         indexes = list(range(top_info.nbases))
@@ -129,7 +129,7 @@ def main():
     if args.reference_structure:
         #read reference configuration
         _, ref_info = describe(None, args.reference_structure[0])
-        ref_conf = get_confs(ref_info.idxs, ref_info.path, 0, 1, top_info.nbases)[0]
+        ref_conf = get_confs(top_info, ref_info, 0, 1)[0]
     else:
         ref_conf = None
 

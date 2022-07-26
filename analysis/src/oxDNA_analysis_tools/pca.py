@@ -75,7 +75,7 @@ def make_heatmap(covariance:np.ndarray):
 
 def compute_cov(ctx:ComputeContext_cov, chunk_size:int, chunk_id:int):
     # get a chunk of confs and convert the positions to numpy arrays
-    confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     covariation_matrix = np.zeros((ctx.top_info.nbases*3, ctx.top_info.nbases*3))
     for c in confs:
         c = inbox(c, center=True)
@@ -97,7 +97,7 @@ def map_confs_to_pcs(ctx:ComputeContext_map, chunk_size:int, chunk_id:int):
         coordinates (numpy.array): The positions of each frame of the trajectory in principal component space.
     """
 
-    confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     coordinates = np.zeros((len(confs), ctx.top_info.nbases*3))
     for i, c in enumerate(confs):
         c = inbox(c, center=True)
@@ -192,7 +192,7 @@ def main():
     _, mean_info = describe(None, mean_file)
 
     # Get the mean structure and center it
-    align_conf = get_confs(mean_info.idxs, mean_info.path, 0, 1, top_info.nbases)[0]
+    align_conf = get_confs(top_info, mean_info, 0, 1)[0]
     cms = np.mean(align_conf.positions, axis=0)
     align_conf.positions -= cms
 

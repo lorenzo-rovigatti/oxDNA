@@ -90,7 +90,7 @@ def get_centroid(points, metric_name, labs, traj_info, top_info) -> List[int]:
         centroid_id = find_element(in_cluster_id, cluster, labs)
         cids.append(centroid_id)
 
-        centroid = get_confs(traj_info.idxs, traj_info.path, centroid_id, 1, top_info.nbases)[0]
+        centroid = get_confs(top_info, traj_info, centroid_id, 1)[0]
         fname = "centroid_"+str(cluster)+".dat"
         write_conf(fname, centroid)
         print(f"INFO: Wrote centroid file {fname}", file=stderr)

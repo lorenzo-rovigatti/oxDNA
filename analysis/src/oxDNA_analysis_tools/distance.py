@@ -58,7 +58,7 @@ def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.array:
     return np.linalg.norm(diff, axis=2)
 
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
-    confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     box = confs[0].box
     distances = np.empty((len(ctx.p1s), len(confs)))
 

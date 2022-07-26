@@ -32,7 +32,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
             chunk_size (int): The number of confs to compute in a chunk.
             chunk_id (int): The id of the chunk to compute.
     """
-    confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     
     # Because of fix_diffusion, anything that performs alignment must be inboxed first.
     confs = (inbox(c, center=True) for c in confs)
@@ -67,7 +67,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration=None, inde
         indexes = list(range(top_info.nbases))
     if ref_conf == None:
         ref_conf_id = int(randrange(0, traj_info.nconfs))
-        ref_conf = get_confs(traj_info.idxs, traj_info.path, ref_conf_id, 1, top_info.nbases)[0]
+        ref_conf = get_confs(top_info, traj_info, ref_conf_id, 1)[0]
     
     # alignment requires the ref to be centered at 0
     reference_coords = ref_conf.positions[indexes]
@@ -148,7 +148,7 @@ def main():
         ref_conf_id = int(args.align[0])
     else:
         ref_conf_id = int(randrange(0, traj_info.nconfs))
-    ref_conf = get_confs(traj_info.idxs, traj_info.path, ref_conf_id, 1, top_info.nbases)[0]
+    ref_conf = get_confs(top_info, traj_info, ref_conf_id, 1)[0]
     ref_conf = inbox(ref_conf)
 
     # -p sets the number of cores to use.  Default is 1.

@@ -49,7 +49,7 @@ def make_heatmap(contact_map:np.ndarray):
     plt.show()
 
 def devs_mds(ctx:DevsContext, chunk_size:int, chunk_id:int, ): 
-    confs = get_confs(ctx.traj_info.idxs, ctx.traj_info.path, chunk_id*chunk_size, chunk_size, ctx.top_info.nbases)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     
     np_poses = np.asarray([c.positions for c in confs])
 
@@ -78,7 +78,7 @@ def multidimensional_scaling_mean(traj_info:TrajInfo, top_info:TopInfo, ncpus:in
             top_info (TopInfo): Information about the topology.
             ncpus (int): (optional) Number of CPUs to use.
     """
-    example_conf = get_confs(traj_info.idxs, traj_info.path, 1, 1, top_info.nbases)[0]
+    example_conf = get_confs(top_info, traj_info, 1, 1)[0]
     
     distances = contact_map(traj_info, top_info, ncpus)
 

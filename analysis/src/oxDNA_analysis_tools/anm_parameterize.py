@@ -93,7 +93,7 @@ def main():
 
     # Get the reference configuration
     top_info, ref_info = describe(None, args.mean_file)
-    ref_conf = get_confs(ref_info.idxs, ref_info.path, 0, 1, top_info.nbases)[0]
+    ref_conf = get_confs(top_info, ref_info, 0, 1)[0]
 
     rmsf = anm_parameterize(particles_array, args.trajectory, ref_conf)
 
