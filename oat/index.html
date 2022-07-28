@@ -116,6 +116,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis-notebooks">Analysis notebooks</a></li>
 </ul>
 </li>
 </ul>
@@ -295,6 +296,119 @@
 </ul>
 </div>
 </div>
+</div>
+<div class="section" id="analysis-notebooks">
+<h2>Analysis notebooks<a class="headerlink" href="#analysis-notebooks" title="Permalink to this headline">¶</a></h2>
+<p>As simulations become more prevalent and analysis pipelines more complicated, it can be beneficial for researchers to define their entire simulation/analysis pipeline in Python notebooks, much as is often done in the machine learning community.  The modular nature of <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> and <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> lends itself to composing analyses together to ask specific scientific questions.</p>
+<p>This section represents a minimal example of how to run, analyze and visualize a simulation from within a <a class="reference external" href="https://jupyter.org/">Jupyter Notebook</a>.  For a more comprehensive example which includes live plotting of values while the simulation is running, see the <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA/blob/master/examples/OXPY_Jupyter/literate_sim.ipynb">OXPY_JUPYTER</a> example in the <code class="docutils literal notranslate"><span class="pre">oxDNA/examples</span></code> directory.</p>
+<p>From a directory containing an oxDNA input file, and initial configuration/topology files:</p>
+<p><strong>First, we will set up some functions for running simulations with oxpy</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oxpy</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+
+<span class="c1"># Running oxpy multiple times from the same jupyter kernel crashes the kernel for some reason</span>
+<span class="c1"># So we will be starting simulations from a separate thread.</span>
+<span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}):</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">p</span>
+
+<span class="c1"># Sets up and runs the simulation</span>
+<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
+        <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Modify inputfile at runtime</span>
+        <span class="c1"># all input parameters provided to oxDNA need to be strings </span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+            <span class="n">inp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">run_complete</span><span class="p">()</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p><strong>Next, we will initiate a simulation.</strong><br />
+For this example, we set the number of steps and print intervals to be smaller such that this simulation finishes in a reasonable amount of time</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Kill any currently running simulations</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="c1"># You can pass modifications to a default input file as dict of key : value pairs</span>
+<span class="c1"># Both key and values must be strings</span>
+<span class="n">input_mods</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;steps&quot;</span> <span class="p">:</span> <span class="s2">&quot;1e6&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;print_conf_interval&quot;</span> <span class="p">:</span> <span class="s2">&quot;1e4&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;print_energy_every&quot;</span> <span class="p">:</span> <span class="s2">&quot;1e4&quot;</span>
+<span class="p">}</span>
+
+<span class="c1"># Run a simulation and obtain a reference to the background process</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">spawn</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">input_mods</span><span class="p">)</span>
+
+<span class="c1"># The input file used to run the simulation gets lost in the subprocess, </span>
+<span class="c1"># so make it again so we have access to it for analysis</span>
+<span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
+    <span class="n">inp</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">input_mods</span><span class="o">.</span><span class="n">items</span><span class="p">():</span> 
+        <span class="n">inp</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+</pre></div>
+</div>
+<p><strong>You can stop a running simulation by terminating its process:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># You can stop the simulation at any time by running this cell.</span>
+<span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Use <code class="docutils literal notranslate"><span class="pre">oat</span></code> to compute the mean structure and RMSF</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.mean</span> <span class="kn">import</span> <span class="n">mean</span>
+<span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.deviations</span> <span class="kn">import</span> <span class="n">deviations</span>
+<span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span> <span class="kn">import</span> <span class="n">describe</span>
+
+<span class="c1"># Get the trajectory and topology file names from the oxpy.InputFile object</span>
+<span class="n">top</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;topology&quot;</span><span class="p">]</span>
+<span class="n">traj</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;trajectory_file&quot;</span><span class="p">]</span>
+<span class="n">top_info</span><span class="p">,</span> <span class="n">traj_info</span> <span class="o">=</span> <span class="n">describe</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">traj</span><span class="p">)</span>
+
+<span class="c1"># Compute the mean structure and RMSFs</span>
+<span class="n">mean_conf</span> <span class="o">=</span> <span class="n">mean</span><span class="p">(</span><span class="n">traj_info</span><span class="p">,</span> <span class="n">top_info</span><span class="p">,</span> <span class="n">ncpus</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">RMSDs</span><span class="p">,</span> <span class="n">RMSFs</span> <span class="o">=</span> <span class="n">deviations</span><span class="p">(</span><span class="n">traj_info</span><span class="p">,</span> <span class="n">top_info</span><span class="p">,</span> <span class="n">mean_conf</span><span class="p">,</span> <span class="n">ncpus</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1">#They come out as numpy arrays, need to be a dict with a list for visualization</span>
+<span class="n">RMSFs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;RMSF&quot;</span><span class="p">:</span> <span class="n">RMSFs</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span>
+</pre></div>
+</div>
+<p><strong>oxView iframes can be embedded in Jupyter Notebooks with <code class="docutils literal notranslate"><span class="pre">oat</span></code>’s oxView lib</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.UTILS.oxview</span> <span class="kn">import</span> <span class="n">oxdna_conf</span>
+
+<span class="c1"># Display python objects in an oxview iframe</span>
+<span class="n">oxdna_conf</span><span class="p">(</span><span class="n">top_info</span><span class="p">,</span> <span class="n">mean_conf</span><span class="p">,</span> <span class="n">RMSFs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Which will produce an oxView iframe:</p>
+<script>
+    function handle(){
+        inbox_settings = ["Monomer", "Origin"]
+        frame_id = "1"
+        let t_files = ["../_static/ico.top", "../_static/mean.dat", "../_static/devs.json"];
+        let t_blobs = []
+        for (let i = 0; i < t_files.length; i++){
+            let f = new XMLHttpRequest();
+            f.open("GET", t_files[i], false);
+            f.onreadystatechange = function () {
+                t_blobs.push(new Blob([f.responseText], {type : 'text/plain'}));
+            }
+            f.send(null)
+        }
+        let t_ext = ["top", "dat", "json"];
+        const frame = document.getElementById('oxview-frame-1');
+        frame.contentWindow.postMessage({message : 'iframe_drop',files: t_blobs, ext: t_ext, inbox_settings : inbox_settings}, "https://sulcgroup.github.io/oxdna-viewer/");
+    }
+</script>
+<iframe width="99%" height="500"  src="https://sulcgroup.github.io/oxdna-viewer/" id="oxview-frame-1" onload="handle()"></iframe>
 </div>
 </div>
 
