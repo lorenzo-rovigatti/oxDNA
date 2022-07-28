@@ -1,6 +1,6 @@
 from sys import stderr
 import numpy as np
-from pickle import loads, dumps
+import pickle
 from os.path import exists
 from typing import List, Tuple
 import os
@@ -176,11 +176,18 @@ def get_traj_info(traj : str) -> TrajInfo:
     if not(exists(traj+".pyidx")):
         idxs = _index(traj) # no index created yet
         with open(traj+".pyidx","wb") as file:
-            file.write(dumps(idxs)) # save it
+            file.write(pickle.dumps(idxs)) # save it
     else:
         #we can load the index file
         with open(traj+".pyidx","rb") as file:
-            idxs = loads(file.read())
+            idxs = pickle.loads(file.read())
+        
+        #check if index file matches the trajectory, if not, regenerate.
+        if idxs[-1].offset+idxs[-1].size != os.stat(traj).st_size:
+            idxs = _index(traj)
+            with open(traj+".pyidx","wb") as file:
+                file.write(pickle.dumps(idxs))
+
     return TrajInfo(traj,len(idxs),idxs)
 
 def describe(top : str, traj : str) -> Tuple[TopInfo, TrajInfo]:
