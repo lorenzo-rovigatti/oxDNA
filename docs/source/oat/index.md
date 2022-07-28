@@ -184,7 +184,7 @@ Which will produce an oxView iframe:
 
 
 ## Citation
-If you find oxDNA Analysis Tools useful, please cite our paper:
+If you find oxDNA Analysis Tools and oxView useful, please cite our paper:
 
 Erik Poppleton, Joakim Bohlin, Michael Matthies, Shuchi Sharma, Fei Zhang, Petr Šulc: Design, optimization and analysis of large DNA and RNA nanostructures through interactive visualization, editing and molecular simulation, *Nucleic Acids Research*, Volume 48, Issue 12, Page e72 (2020). DOI: [10.1093/nar/gkaa417](https://doi.org/10.1093/nar/gkaa417)
 
