@@ -181,3 +181,13 @@ Which will produce an oxView iframe:
 </script>
 
 <iframe width="99%" height="500"  src="https://sulcgroup.github.io/oxdna-viewer/" id="oxview-frame-1" onload="handle()"></iframe>
+
+
+## Citation
+If you find oxDNA Analysis Tools useful, please cite our paper:
+
+Erik Poppleton, Joakim Bohlin, Michael Matthies, Shuchi Sharma, Fei Zhang, Petr Šulc: Design, optimization and analysis of large DNA and RNA nanostructures through interactive visualization, editing and molecular simulation, *Nucleic Acids Research*, Volume 48, Issue 12, Page e72 (2020). DOI: [10.1093/nar/gkaa417](https://doi.org/10.1093/nar/gkaa417)
+
+And additionally for oxView, please also cite:
+
+Joakim Bohlin, Michael Matthies, Jonah Procyk, Erik Poppleton, Aatmik Mallya, Hao Yan, Petr Šulc: Design and simulation of DNA, RNA and hybrid protein–nucleic acid nanostructures with oxView. *Nature Protocols*, (2022). DOI: [10.1038/s41596-022-00688-5](https://doi.org/10.1038/s41596-022-00688-5) 
