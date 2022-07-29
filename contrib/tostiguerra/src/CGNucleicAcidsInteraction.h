@@ -1,4 +1,4 @@
-#ifndef CGNUCLEICACIDS_INTERACTION_H
+ #ifndef CGNUCLEICACIDS_INTERACTION_H
 #define CGNUCLEICACIDS_INTERACTION_H
 
 #include "Interactions/BaseInteraction.h"
