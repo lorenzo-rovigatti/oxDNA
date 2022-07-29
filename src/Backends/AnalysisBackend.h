@@ -52,7 +52,7 @@ public:
 
 	const FlattenedConfigInfo &flattened_conf();
 
-	std::shared_ptr<ConfigInfo> config_info() {
+	ConfigInfo *config_info() {
 		return _config_info;
 	}
 

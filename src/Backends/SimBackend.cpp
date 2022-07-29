@@ -53,7 +53,7 @@ SimBackend::SimBackend() {
 	_T = -1.;
 
 	ConfigInfo::init(&_particles, &_molecules);
-	_config_info = ConfigInfo::instance();
+	_config_info = ConfigInfo::instance().get();
 	_config_info->subscribe("T_updated", [this]() {
 		this->_on_T_update();
 	});
