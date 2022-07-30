@@ -163,8 +163,6 @@ void CUDADNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 
 			this->_sum_edge_forces_torques(d_forces, d_torques);
 
-			// potential for removal here
-			cudaThreadSynchronize();
 			CUT_CHECK_ERROR("forces_second_step error -- after non-bonded");
 
 			dna_forces_edge_bonded

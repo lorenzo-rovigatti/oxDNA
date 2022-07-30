@@ -14,6 +14,10 @@ struct Molecule {
 	Molecule();
 	virtual ~Molecule();
 
+	static void reset_id() {
+		_current_id = 0;
+	}
+
 	std::vector<BaseParticle *> particles;
 	LR_vector com;
 
@@ -50,11 +54,11 @@ struct Molecule {
 	}
 
 private:
-	static int _next_id () {
-	   static int id = 0;
-	   return id++;
+	static int _next_id() {
+	   return _current_id++;
 	}
 	const int _id;
+	static int _current_id;
 };
 
 #endif /* SRC_PARTICLES_MOLECULE_H_ */

@@ -309,6 +309,7 @@ void SimBackend::init() {
 	}
 
 	// initialise the molecules
+	Molecule::reset_id();
 	for(int i = 0; i < _N_strands; i++) {
 		_molecules.push_back(std::make_shared<Molecule>());
 	}

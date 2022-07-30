@@ -49,6 +49,8 @@ CUDABaseBackend::CUDABaseBackend() :
 	_vec_size = 0;
 	_bonds_size = 0;
 	_orient_size = 0;
+
+	GpuUtils::reset_allocated_mem();
 }
 
 CUDABaseBackend::~CUDABaseBackend() {
@@ -155,22 +157,17 @@ void CUDABaseBackend::_choose_device() {
 		OX_LOG(Logger::LOG_INFO, " - Trying device %i", trydev);
 		tryprop = get_device_prop(trydev);
 		OX_LOG(Logger::LOG_INFO, " -- device %i has properties %i.%i", trydev, tryprop.major, tryprop.minor);
-		if(tryprop.major < 2 && tryprop.minor <= 2) {
-			OX_LOG(Logger::LOG_INFO, " -- Device properties are not good. Skipping it", trydev);
+		cudaSetDevice(trydev);
+		int *dummyptr = nullptr;
+		cudaError_t result = cudaMalloc((void **) &dummyptr, (size_t) sizeof(int));
+		cudaFree(dummyptr);
+		if(result == cudaSuccess) {
+			cudaGetLastError();
+			OX_LOG(Logger::LOG_INFO, " -- using device %i", trydev);
+			break;
 		}
 		else {
-			set_device(trydev);
-			int *dummyptr = nullptr;
-			cudaError_t result = cudaMalloc(&dummyptr, (size_t) sizeof(int));
-			cudaFree(dummyptr);
-			if(result == cudaSuccess) {
-				cudaGetLastError();
-				OX_LOG(Logger::LOG_INFO, " -- using device %i", trydev);
-				break;
-			}
-			else {
-				OX_LOG(Logger::LOG_INFO, " -- device %i not available ...", trydev);
-			}
+			OX_LOG(Logger::LOG_INFO, " -- device %i not available ...", trydev);
 		}
 		trydev++;
 	}
@@ -181,7 +178,6 @@ void CUDABaseBackend::_choose_device() {
 
 	OX_LOG(Logger::LOG_INFO, " --- Running on device %i", trydev);
 	_device_number = trydev;
-	// device chosen
 }
 
 void CUDABaseBackend::init_cuda() {
@@ -189,7 +185,7 @@ void CUDABaseBackend::init_cuda() {
 		_choose_device();
 	}
 
-	if(set_device(_device_number) != cudaSuccess || cudaDeviceSetCacheConfig(cudaFuncCachePreferL1) != cudaSuccess) {
+	if(cudaSetDevice(_device_number) != cudaSuccess || cudaDeviceSetCacheConfig(cudaFuncCachePreferL1) != cudaSuccess) {
 		throw oxDNAException("The selected device is not available for computation");
 	}
 
@@ -210,8 +206,7 @@ void CUDABaseBackend::init_cuda() {
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<LR_bonds>(&_d_bonds, _bonds_size));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<GPU_quat>(&_d_orientations, _orient_size));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_list_poss, _vec_size));
-	// the CUDA_SAFE_CALL macro does not support templates with more than one argument
-	GpuUtils::LR_cudaMalloc<CUDABox>(&_d_cuda_box, sizeof(CUDABox));
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<CUDABox>(&_d_cuda_box, sizeof(CUDABox)));
 	CUDA_SAFE_CALL(cudaMallocHost(&_d_are_lists_old, sizeof(bool), cudaHostAllocDefault));
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<c_number4>(&_d_list_poss, _vec_size));

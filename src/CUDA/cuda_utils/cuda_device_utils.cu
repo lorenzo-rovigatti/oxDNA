@@ -36,9 +36,3 @@ cudaDeviceProp get_device_prop(int device) {
 
 	return deviceProp;
 }
-
-cudaError_t set_device(int device) {
-	check_device_existance(device);
-	cudaDeviceReset();
-	return cudaSetDevice(device);
-}

@@ -54,6 +54,7 @@ SimManager::~SimManager() {
 		if(updated > 0) {
 			OX_LOG(Logger::LOG_INFO, "Lists updated %d times (every ~%lf steps)", updated, _steps_run / (double)updated);
 		}
+		_backend.reset();
 	}
 }
 
