@@ -1,6 +1,9 @@
-#include <stdio.h>
-
 #include "cuda_device_utils.h"
+
+#include <cstdlib>
+#include <cstdio>
+#include <cuda.h>
+#include <cuda_runtime_api.h>
 
 int get_device_count() {
 	int deviceCount = 0;
