@@ -137,10 +137,10 @@ setup(
         "fallback_version": "3.3",
         },
     packages=find_packages(),
-    setup_requires = ['setuptools_scm'],
+    setup_requires = ['setuptools-scm'],
     install_requires = [
         f"oxDNA_analysis_tools @ file://localhost/{os.getcwd()}/analysis/"
-        ],
+    ],
     dependency_links = [''],
     author = 'Lorenzo Rovigatti, Flavio Romano, Petr Sulc and others',
     author_email = 'lorenzo.rovigatti@uniroma1.it',
