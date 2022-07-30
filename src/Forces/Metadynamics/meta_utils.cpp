@@ -7,7 +7,7 @@
 
 #include "meta_utils.h"
 
-#include "fast_double_parser/fast_double_parser.h"
+#include <fast_double_parser/fast_double_parser.h>
 
 namespace meta {
 
