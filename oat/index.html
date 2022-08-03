@@ -266,6 +266,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api.html#output-bonds">Output bonds</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#principle-component-analysis">Principle component analysis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#subset-trajectory">Subset trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#superimpose">Superimpose</a></li>
 </ul>
 </li>
 </ul>
@@ -278,6 +279,7 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#data-structures">Data structures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#geometry-utilities">Geometry utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#ipython-oxview-plugin">iPython oxView plugin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#multiprocesser">Multiprocesser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#rye-reader">Rye reader</a></li>
 </ul>
@@ -303,7 +305,8 @@
 <p>As simulations become more prevalent and analysis pipelines more complicated, it can be beneficial for researchers to define their entire simulation/analysis pipeline in Python notebooks, much as is often done in the machine learning community.  The modular nature of <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> and <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> lends itself to composing analyses together to ask specific scientific questions.</p>
 <p>This section represents a minimal example of how to run, analyze and visualize a simulation from within a <a class="reference external" href="https://jupyter.org/">Jupyter Notebook</a>.  For a more comprehensive example which includes live plotting of values while the simulation is running, see the <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA/blob/master/examples/OXPY_Jupyter/literate_sim.ipynb">OXPY_JUPYTER</a> example in the <code class="docutils literal notranslate"><span class="pre">oxDNA/examples</span></code> directory.</p>
 <p>From a directory containing an oxDNA input file, and initial configuration/topology files:</p>
-<p><strong>First, we will set up some functions for running simulations with oxpy</strong></p>
+<p><strong>First, we will set up some functions for running simulations with oxpy</strong>
+Instead of modifying an existing input file, you can also simply provide the entire input file as a <code class="docutils literal notranslate"><span class="pre">dict</span></code> to kwargs and remove the <code class="docutils literal notranslate"><span class="pre">init_from_filename</span></code> call.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oxpy</span>
 <span class="kn">import</span> <span class="nn">multiprocessing</span>
 
@@ -332,7 +335,7 @@
 </pre></div>
 </div>
 <p><strong>Next, we will initiate a simulation.</strong><br />
-For this example, we set the number of steps and print intervals to be smaller such that this simulation finishes in a reasonable amount of time</p>
+For this example, we set the number of steps and print intervals to be smaller such that this simulation finishes in a reasonable amount of time.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Kill any currently running simulations</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>

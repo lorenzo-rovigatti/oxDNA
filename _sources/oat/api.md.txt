@@ -331,3 +331,19 @@
     
 .. autofunction:: oxDNA_analysis_tools.subset_trajectory.subset
 ```
+
+## Superimpose
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.superimpose.superimpose
+    
+.. autofunction:: oxDNA_analysis_tools.superimpose.superimpose
+```
