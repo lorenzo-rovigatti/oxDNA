@@ -2,6 +2,7 @@ from oxDNA_analysis_tools.UTILS.RyeReader import Configuration, TopInfo
 from IPython.display import display, HTML
 from random import randint
 from json import dumps
+from typing import List
     
 def __compress_dat(conf):
     """ generate me a compressed double escaped dat file """
@@ -19,8 +20,15 @@ def __fetch_file_from_path(path):
 
 def display_files(files_with_ext,  inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
     """
-        generate an iframe displaying the provided files in oxview
-        returns the iframe-id for reuse
+        Generate an iframe displaying the provided files in oxview
+
+        Parameters:
+            files_with_ext (tuple) : a list of tuples (file_string, extension)
+            inbox_settings (list[str]) : a list of strings, the inbox settings to use
+            oxview_src (str) : the url of the oxview source
+
+        Returns: 
+            The iframe-id for reuse
     """
     #generate a unique id for our iframe
     frame_id = str(randint(0,1000000))
@@ -46,13 +54,16 @@ def display_files(files_with_ext,  inbox_settings =  ["Monomer", "Origin"], oxvi
     
     display(HTML( "".join(out_lines) ))
     
-def from_path(*args:[str], **kwargs):
+def from_path(*args:List[str], **kwargs):
     """ 
-        display oxview frame based on the string path provided 
-        args - contains the paths to the files
-        kwargs the properties to oxview defaults to = {"inbox_settings":["Monomer", "Origin"], "oxview_src" : "https://sulcgroup.github.io/oxdna-viewer/"}
-        usage:
-        raw("conf.top", "conf.dat",**{"inbox_settings":["Monomer", "Origin"]})
+        Display oxview frame based on the string path provided 
+
+        Parameters:
+            args (List[str]) : contains the paths to the files
+            kwargs (dict) : the properties to oxview defaults to = {"inbox_settings":["Monomer", "Origin"], "oxview_src" : "https://sulcgroup.github.io/oxdna-viewer/"}
+        
+        Usage:
+            raw("conf.top", "conf.dat",**{"inbox_settings":["Monomer", "Origin"]})
     """
     file_list = [(__fetch_file_from_path(path),path) for path in args]
     #make sure we have some default view
@@ -71,6 +82,18 @@ def from_path(*args:[str], **kwargs):
     
     
 def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = None, par_file_path = None , inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+    """
+        Display an oxDNA configuration in oxview
+
+        Parameters:
+            top (TopInfo) : the top file data
+            conf (Configuration) : the configuration data
+            overlay (str) : (optional) the path to the overlay file
+            forces_path (str) : (optional) the path to the forces file
+            par_file_path (str) : (optional) the path to the par file
+            inbox_settings (list[str]) : (optional) a list of strings, the inbox settings to use
+            oxview_src (str) : (optional) the url of the oxview source
+    """
     # compress the dat
     dat_string = __compress_dat(conf)
     # load up the top file
@@ -96,6 +119,16 @@ def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = N
     display_files(file_list, inbox_settings, oxview_src)
     
 def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+    """
+        Display a loro patchy configuration in oxview
+        
+        Parameters:
+            top (str) : the top file path
+            conf (Configuration) : the configuration data
+            matrix_path (str) : the path to the matrix file
+            inbox_settings (list[str]) : (optional) a list of strings, the inbox settings to use
+            oxview_src (str) : (optional) the url of the oxview source
+    """
     # compress the dat
     dat_string = __compress_dat(conf)
     # load up the top file and the matrix
@@ -112,6 +145,16 @@ def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_s
     display_files(file_list, inbox_settings, oxview_src)
 
 def flro_patchy_conf(top_path:str,  conf:Configuration, particles_path:str, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+    """
+        Display a flro patchy configuration in oxview
+
+        Parameters:
+            top (str) : the top file path
+            conf (Configuration) : the configuration data
+            patricles (str) : the path to the particles file
+            inbox_settings (list[str]) : (optional) a list of strings, the inbox settings to use
+            oxview_src (str) : (optional) the url of the oxview source
+    """
     # compress the dat
     dat_string = __compress_dat(conf)
     # load up the top file

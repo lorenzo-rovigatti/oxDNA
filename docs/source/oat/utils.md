@@ -51,6 +51,30 @@
 .. autofunction:: oxDNA_analysis_tools.UTILS.geom.get_DNA_axis
 ```
 
+## iPython oxView plugin
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.UTILS.oxview.display_files
+    oxDNA_analysis_tools.UTILS.oxview.from_path
+    oxDNA_analysis_tools.UTILS.oxview.oxdna_conf
+    oxDNA_analysis_tools.UTILS.oxview.loro_patchy_conf
+    oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf
+
+.. autofunction:: oxDNA_analysis_tools.UTILS.oxview.display_files
+.. autofunction:: oxDNA_analysis_tools.UTILS.oxview.from_path
+.. autofunction:: oxDNA_analysis_tools.UTILS.oxview.oxdna_conf
+.. autofunction:: oxDNA_analysis_tools.UTILS.oxview.loro_patchy_conf
+.. autofunction:: oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf
+```
+
 ## Multiprocesser
 
 ```{eval-rst}
