@@ -388,10 +388,6 @@ void CUDARNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 
 			this->_sum_edge_forces_torques(d_forces, d_torques);
 
-			// potential for removal here
-			cudaThreadSynchronize();
-			CUT_CHECK_ERROR("forces_second_step error -- after non-bonded");
-
 		rna_forces_edge_bonded
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_average,this->_use_mbf,this->_mbf_xmax, this->_mbf_finf);

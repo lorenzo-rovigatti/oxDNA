@@ -65,6 +65,10 @@ public:
 
 	template<typename T>
 	static cudaError_t LR_cudaMalloc(T **devPtr, size_t size);
+
+	static void reset_allocated_mem() {
+		_allocated_dev_mem = 0;
+	}
 };
 
 template<typename T>

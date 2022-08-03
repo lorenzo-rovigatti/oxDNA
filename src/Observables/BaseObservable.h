@@ -20,7 +20,7 @@
 class BaseObservable {
 protected:
 	/// Stores all the backend's information that may be needed by the observable
-	std::shared_ptr<ConfigInfo> _config_info;
+	ConfigInfo *_config_info;
 
 	std::string _id;
 	long long int _update_every = 0;

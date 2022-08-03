@@ -50,7 +50,7 @@ print_array
 		<<<1,1>>>
 		(v, N);
 		CUT_CHECK_ERROR("print_device_array error");
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 }
 
 template<typename T>
@@ -59,7 +59,7 @@ check_thresold<T>
 		<<<1,1>>>
 		(v, N, t);
 		CUT_CHECK_ERROR("check_device_thresold error");
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 }
 
 struct sum_c_number4 {

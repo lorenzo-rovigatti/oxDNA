@@ -230,7 +230,7 @@ void CUDASimpleVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bond
 		(poss, _d_cells, _d_counters_cells, _d_cell_overflow, _d_cuda_box);
 	CUT_CHECK_ERROR("fill_cells (SimpleVerlet) error");
 
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 	if(_d_cell_overflow[0] == true) {
 		std::string message = Utils::sformat("A cell contains more than _max_n_per_cell (%d) particles:", _max_N_per_cell);
 
@@ -248,7 +248,7 @@ void CUDASimpleVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bond
 			}
 		}
 		else {
-			message += " the problem might be solved by increasing the value of max_density_multiplier (which defaults to 3) in the input file\n";
+			message += " the problem might be solved by setting 'cells_auto_optimisation = false' and increasing the value of max_density_multiplier (which defaults to 3) in the input file\n";
 		}
 		throw oxDNAException(message);
 	}

@@ -128,7 +128,7 @@ void CUDABinVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bonds *
 		<<<_cells_kernel_cfg.blocks, _cells_kernel_cfg.threads_per_block>>>
 		(poss, this->_d_cells, this->_d_counters_cells, this->_d_cell_overflow);
 	CUT_CHECK_ERROR("fill_cells (BinVerlet) error");
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 
 	if(this->_d_cell_overflow[0] == true) throw oxDNAException("A cell contains more than _max_n_per_cell (%d, %d, %d) particles. Please increase the value of max_density_multiplier (which defaults to 1) in the input file\n", _max_N_per_cell[0], _max_N_per_cell[1], _max_N_per_cell[2]);
 

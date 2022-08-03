@@ -1,4 +1,5 @@
 from setuptools import setup
+import os
 
 import sys
 if sys.version_info < (3,0):
@@ -10,7 +11,10 @@ setup(
         "root": "${CMAKE_SOURCE_DIR}",
         "fallback_version": "3.3",
         },
-    setup_requires = ['setuptools_scm'],
+    setup_requires = ['setuptools-scm'],
+    install_requires = [
+        f"oxDNA_analysis_tools @ file://localhost/${CMAKE_SOURCE_DIR}/analysis/"
+    ],
     packages = [ 'oxpy' ],
     package_dir = {
         'oxpy': '${OXPY_OUTPUT_DIR}'

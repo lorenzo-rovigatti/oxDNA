@@ -130,7 +130,7 @@ protected:
 	std::vector<std::shared_ptr<Molecule>> _molecules;
 
 	/// object that stores pointers to a few important variables that need to be shared with other objects
-	std::shared_ptr<ConfigInfo> _config_info;
+	ConfigInfo *_config_info = nullptr;
 
 	int _N_updates;
 	int _confs_to_skip;

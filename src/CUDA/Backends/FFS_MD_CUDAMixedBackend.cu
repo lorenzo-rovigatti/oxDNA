@@ -398,7 +398,7 @@ void FFS_MD_CUDAMixedBackend::init() {
 	free(h_hb_pairs2);
 	free(h_hb_cutoffs);
 
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 }
 
 SimpleConditions FFS_MD_CUDAMixedBackend::_get_simple_conditions(std::vector<parsed_condition> conditions, const char type[256]) {
@@ -676,7 +676,7 @@ void FFS_MD_CUDAMixedBackend::_eval_order_parameter_states() {
 	_cuda_interaction->_near_hb_op_precalc(_d_poss, _d_orientations, _d_hb_pairs1, _d_hb_pairs2, _d_nearhb_states, _n_hb_pairs, _d_region_is_nearhb, _ffs_hb_precalc_kernel_cfg, _d_cuda_box);
 
 	_cuda_interaction->_dist_op_precalc(_d_poss, _d_orientations, _d_dist_pairs1, _d_dist_pairs2, _d_op_dists, _n_dist_pairs, _ffs_dist_precalc_kernel_cfg, _d_cuda_box);
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 }
 
 void FFS_MD_CUDAMixedBackend::_eval_stop_conditions(SimpleConditions sc) {
@@ -697,7 +697,7 @@ void FFS_MD_CUDAMixedBackend::_eval_stop_conditions(SimpleConditions sc) {
 		<<<_ffs_dist_eval_kernel_cfg.blocks, _ffs_dist_eval_kernel_cfg.threads_per_block>>>
 		(_d_op_dists, _d_dist_region_lens, _d_dist_region_rows, sc.d_dist_cond_lens, sc.d_dist_cond_rows, sc.d_dist_cond_mags, sc.d_dist_cond_types, sc.d_ffs_stop, _n_dist_regions, sc.hb_cond_len);
 	CUT_CHECK_ERROR("dist_op_eval error");
-	cudaThreadSynchronize();
+	cudaDeviceSynchronize();
 
 	CUDA_SAFE_CALL(cudaMemcpy(sc.h_ffs_stop, sc.d_ffs_stop, sc.stop_length * sizeof(bool), cudaMemcpyDeviceToHost));
 }

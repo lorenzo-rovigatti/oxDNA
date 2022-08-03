@@ -1,6 +1,9 @@
-#include <stdio.h>
-
 #include "cuda_device_utils.h"
+
+#include <cstdlib>
+#include <cstdio>
+#include <cuda.h>
+#include <cuda_runtime_api.h>
 
 int get_device_count() {
 	int deviceCount = 0;
@@ -32,10 +35,4 @@ cudaDeviceProp get_device_prop(int device) {
 	cudaGetDeviceProperties(&deviceProp, device);
 
 	return deviceProp;
-}
-
-cudaError_t set_device(int device) {
-	check_device_existance(device);
-	cudaDeviceReset();
-	return cudaSetDevice(device);
 }

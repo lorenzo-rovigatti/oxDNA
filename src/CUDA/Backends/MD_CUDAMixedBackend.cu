@@ -16,7 +16,7 @@ CUDAMixedBackend::CUDAMixedBackend() : MD_CUDABackend() {
 }
 
 CUDAMixedBackend::~CUDAMixedBackend(){
-	if(_d_possd != NULL) {
+	if(_d_possd != nullptr) {
 		CUDA_SAFE_CALL( cudaFree(_d_possd) );
 		CUDA_SAFE_CALL( cudaFree(_d_orientationsd) );
 		CUDA_SAFE_CALL( cudaFree(_d_velsd) );
@@ -114,7 +114,7 @@ void CUDAMixedBackend::_forces_second_step() {
 
 void CUDAMixedBackend::apply_simulation_data_changes() {
 	// probably useless
-	if(_d_possd != NULL) {
+	if(_d_possd != nullptr) {
 		_LR_double4_to_float4(_d_possd, _d_poss);
 		_quat_double_to_quat_float(_d_orientationsd, _d_orientations);
 		_LR_double4_to_float4(_d_velsd, _d_vels);
@@ -129,7 +129,7 @@ void CUDAMixedBackend::apply_changes_to_simulation_data() {
 
 	// the first time this method gets called all these arrays have not been
 	// allocated yet. It's a bit of a hack but it's needed
-	if(_d_possd != NULL) {
+	if(_d_possd != nullptr) {
 		_float4_to_LR_double4(_d_poss, _d_possd);
 		_quat_float_to_quat_double(_d_orientations, _d_orientationsd);
 		_float4_to_LR_double4(_d_vels, _d_velsd);
