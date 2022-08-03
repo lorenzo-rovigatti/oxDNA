@@ -1146,9 +1146,11 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			c_number4 rbackdir = rbackbone / rbackmod;
 			if(rbackmod < MD_dh_RHIGH[0]) {
 				Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
+                Ftmp.w = expf(rbackmod * MD_dh_minus_kappa[0]) * (MD_dh_prefactor[0] / rbackmod);
 			}
 			else {
 				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
+                Ftmp.w = MD_dh_B[0] * SQR(rbackmod - MD_dh_RC[0]);
 			}
 
 			// check for half-charge strand ends
