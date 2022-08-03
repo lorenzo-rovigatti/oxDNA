@@ -68,7 +68,7 @@ This section represents a minimal example of how to run, analyze and visualize a
 From a directory containing an oxDNA input file, and initial configuration/topology files:
 
 **First, we will set up some functions for running simulations with oxpy**
-Instead of modifying an existing input file, you can also simply provide the entire input file as a `dict` to kwargs.
+Instead of modifying an existing input file, you can also simply provide the entire input file as a `dict` to kwargs and remove the `init_from_filename` call.
 ```python
 import oxpy
 import multiprocessing
