@@ -248,7 +248,7 @@ void CUDASimpleVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bond
 			}
 		}
 		else {
-			message += " the problem might be solved by setting 'cells_auto_optimisation = false' and increasing the value of max_density_multiplier (which defaults to 3) in the input file\n";
+			message += " try setting 'cells_auto_optimisation = false' and, if the problem persists, increase the value of 'max_density_multiplier' (which defaults to 3) in the input file\n";
 		}
 		throw oxDNAException(message);
 	}

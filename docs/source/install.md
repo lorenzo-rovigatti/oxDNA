@@ -6,7 +6,7 @@ The code requires [CMake](https://cmake.org/) and a c++-14-compliant `g++` (any 
 
 ### CUDA
 
-Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 9.0. If your current setup cannot meet these requirements we advise you to use [older versions of oxDNA](https://sourceforge.net/projects/oxdna/files/).
+Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 10. If your current setup cannot meet these requirements we advise you to use [older versions of oxDNA](https://sourceforge.net/projects/oxdna/files/).
 
 ### Python bindings
 
