@@ -15,31 +15,33 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "centered_ref_coords",
                                               "indexes"])
 
-def svd_align(centered_ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int]) -> Tuple[np.array]:
+def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int], ref_center:np.array=np.array([])) -> Tuple[np.array]:
     """
     Single-value decomposition-based alignment of configurations
 
     Parameters:
-        centered_ref_coords (numpy.ndarray): reference coordinates, centered on [0, 0, 0]
-        coords (numpy.ndarray): coordinates to be aligned
-        indexes (List[int]): indexes of the atoms to be aligned
+        ref_coords (numpy.ndarray): Reference coordinates.  Should be indexed before calling this function.
+        coords (numpy.ndarray): Coordinates to be aligned
+        indexes (List[int]): Indexes of the atoms to be aligned in the coords array
+        ref_center (numpy.ndarray): (optional) The center of mass of the reference configuration. If not provided, it will be calculated (slightly slower for many confss).
 
     Returns:
         A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk
     """
-    # center on centroid
-    av1, reference_coords = np.zeros(3), centered_ref_coords.copy()
+    if len(ref_center) == 0:
+        ref_center = np.mean(ref_coords, axis=0)
+    av1 = ref_center
     av2 = np.mean(coords[0][indexes], axis=0)
     coords[0] = coords[0] - av2
     # correlation matrix
-    a = np.dot(np.transpose(coords[0][indexes]), reference_coords)
+    a = np.dot(np.transpose(coords[0][indexes]), ref_coords - av1)
     u, _, vt = np.linalg.svd(a)
     rot = np.transpose(np.dot(np.transpose(vt), np.transpose(u)))
     # check if we have found a reflection
     if np.linalg.det(rot) < 0:
         vt[2] = -vt[2]
         rot = np.transpose(np.dot(np.transpose(vt), np.transpose(u)))
-    tran = av1 - np.dot(av2, rot)
+    tran = av1
     return  (np.dot(coords[0], rot) + tran,
              np.dot(coords[1], rot),
              np.dot(coords[2], rot))
@@ -52,7 +54,7 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
 
     # align
     for i, c in enumerate(np_coords):
-        c[0], c[1], c[2] = svd_align(ctx.centered_ref_coords, c, ctx.indexes)
+        c[0], c[1], c[2] = svd_align(ctx.centered_ref_coords, c, ctx.indexes, ref_center=np.zeros(3))
         confs[i].positions = c[0]
         confs[i].a1s = c[1]
         confs[i].a3s = c[2]

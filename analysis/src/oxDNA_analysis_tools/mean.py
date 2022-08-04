@@ -43,7 +43,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     
     # sum over confs
     for c in np_coords:
-        sub_mean += svd_align(ctx.centered_ref_coords, c, ctx.indexes)
+        sub_mean += svd_align(ctx.centered_ref_coords, c, ctx.indexes, ref_center=np.zeros(3))
     
     return sub_mean
 

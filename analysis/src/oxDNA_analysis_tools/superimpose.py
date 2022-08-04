@@ -24,9 +24,6 @@ def superimpose(ref:Configuration, victims:List[Configuration], indexes:List[int
     ref = inbox(ref)
     # alignment requires the ref to be centered at 0.  Inboxing did not take the indexing into account.
     reference_coords = ref.positions[indexes]
-    ref_cms = np.mean(reference_coords, axis=0) # cms prior to centering
-    reference_coords = reference_coords - ref_cms
-
     aligned = []
 
     for i, f in enumerate(victims):

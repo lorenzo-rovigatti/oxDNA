@@ -27,7 +27,7 @@ def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.a
 
     for i, c in enumerate(np_confs):
         c[0] -= np.mean(c[0][ctx.indexes], axis=0) #didn't center earlier because you have to center on the indexed particles
-        aligned_conf = svd_align(ctx.ref_coords.positions[ctx.indexes], c, ctx.indexes)[0]
+        aligned_conf = svd_align(ctx.ref_coords.positions[ctx.indexes], c, ctx.indexes, ref_center=np.zeros(3))[0]
         RMSD = np.sqrt(np.mean(np.linalg.norm(aligned_conf[ctx.indexes] - ctx.ref_coords.positions[ctx.indexes], axis=1)**2))
         if RMSD < min_RMSD:
             min_RMSD = RMSD

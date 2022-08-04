@@ -25,7 +25,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     SFs = np.empty((len(confs), ctx.top_info.nbases))
     for i, c in enumerate(confs):
-        aligned_conf = svd_align(ctx.mean_coords.positions[ctx.indexes], c, ctx.indexes)[0]
+        aligned_conf = svd_align(ctx.mean_coords.positions[ctx.indexes], c, ctx.indexes, ref_center=np.zeros(3))[0]
         SFs[i] = np.power(np.linalg.norm(aligned_conf - ctx.mean_coords.positions, axis=1), 2)
 
     return SFs
