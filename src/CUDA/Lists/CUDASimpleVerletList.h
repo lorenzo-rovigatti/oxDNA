@@ -37,6 +37,8 @@ protected:
 	int *_d_number_neighs_no_doubles = nullptr;
 	bool *_d_cell_overflow = nullptr;
 
+	cudaTextureObject_t _counters_cells_tex;
+
 	CUDA_kernel_cfg _cells_kernel_cfg;
 
 	std::vector<int> is_large(c_number4 *data);
