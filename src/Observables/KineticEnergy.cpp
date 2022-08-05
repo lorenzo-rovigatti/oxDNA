@@ -9,7 +9,7 @@
 
 #include "../Utilities/Utils.h"
 
-KineticEnergy::KineticEnergy() {
+KineticEnergy::KineticEnergy() : _directions({0, 1, 2}) {
 
 }
 
@@ -21,15 +21,17 @@ void KineticEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
 	std::string dirs = "0,1,2";
-	getInputString(&my_inp, "velocity_directions", dirs, 0);
-	std::vector<std::string> tokens = Utils::split(dirs, ',');
-	for(auto it = tokens.begin(); it != tokens.end(); it++) {
-		if(!Utils::is_integer(*it)) throw oxDNAException("The '%s' token extracted from the 'velocity_directions' key is not a valid integer", it->c_str());
-		int c = atoi(it->c_str());
-		if(c < 0 || c > 2) throw oxDNAException("The '%s' token extracted from the 'velocity_directions' should lay within the [0:2] range", it->c_str());
-		_directions.insert(c);
+	if(getInputString(&my_inp, "velocity_directions", dirs, 0) == KEY_FOUND) {
+		_directions.clear();
+		std::vector<std::string> tokens = Utils::split(dirs, ',');
+		for(auto it = tokens.begin(); it != tokens.end(); it++) {
+			if(!Utils::is_integer(*it)) throw oxDNAException("The '%s' token extracted from the 'velocity_directions' key is not a valid integer", it->c_str());
+			int c = atoi(it->c_str());
+			if(c < 0 || c > 2) throw oxDNAException("The '%s' token extracted from the 'velocity_directions' should lay within the [0:2] range", it->c_str());
+			_directions.insert(c);
+		}
+		if(_directions.size() == 0) throw oxDNAException("The 'velocity_directions' key may not be empty");
 	}
-	if(_directions.size() == 0) throw oxDNAException("The 'velocity_directions' key may not be empty");
 }
 
 number KineticEnergy::get_kinetic_energy() {
