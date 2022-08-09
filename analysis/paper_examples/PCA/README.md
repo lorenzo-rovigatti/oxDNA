@@ -15,7 +15,7 @@ This directory contains an example to compute the principal components of a holl
 
 3. Compute the principal components
 
-   `oat pca input_dna trajectory_trap.dat mean.dat pca.json`
+   `oat pca trajectory_trap.dat mean.dat pca.json`
 
    **A few notes on the PCA script:**
    If you are running on a computer with multiple CPUs, you can additionally specify the `-p <number>` option to compute principal components in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus
