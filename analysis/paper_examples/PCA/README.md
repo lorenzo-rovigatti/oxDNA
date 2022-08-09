@@ -9,7 +9,7 @@ This directory contains an example to compute the principal components of a holl
 
 2. Compute the mean structure via SVD
 
-   `oat mean -o mean.dat trajectory_trap.dat
+   `oat mean -o mean.dat trajectory_trap.dat`
 
    PCA is defined by deviations from some reference.  In this case, we will use the mean structure as a reference.
 
