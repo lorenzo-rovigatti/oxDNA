@@ -4,13 +4,13 @@ Clustering can be done on any data set that can position each configuration to a
 
 1. Compute the mean structure of the trajectory to use as a reference for pca.
 
-   `oat mean -f oxDNA -o mean_all.dat trajectory.dat`
+   `oat mean -o mean_all.dat trajectory.dat`
 
 If you have multiple CPUs available, this can be run with the `-p <n_cpus>` option to speed up computation.  We do not need to calculate deviations for this example.
 
 2. Compute principal components and pass the output to the clustering algorithm
 
-   `oat pca -c input_rna trajectory.dat mean_all.dat pca.json`
+   `oat pca -c trajectory.dat mean_all.dat pca.json`
 
 The `-c` option will tell the script to consider every configuration as a linear combination of the principal components and then calculate clusters based on the weights of each component.
 
