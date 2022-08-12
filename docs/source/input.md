@@ -27,7 +27,7 @@ The list of main options supported by oxDNA is reported below. Square brackets m
 These are the options that control the overall behaviour of the simulation and of the most common input/output operations.
 
 * `T = <float>`: temperature of the simulation. It can be expressed in simulation units, kelvin (append a k or K after the value) or celsius (append a c or C after the value).
-* `restart_step_counter = <bool>`: if `true` oxDNA will reset the step counter to 0, otherwise it will start from the step counter found in the initial configuration. Defaults to `false`.
+* `restart_step_counter = <bool>`: if `true` oxDNA will reset the step counter to 0, otherwise it will start from the step counter found in the initial configuration.
 * `steps = <int>`: length of the simulation, in time steps.
 * `conf_file = <path>`: path to the starting configuration.
 * `topology = <path>`: path to the file containing the system's topology.
