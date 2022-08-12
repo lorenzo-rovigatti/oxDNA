@@ -47,10 +47,7 @@ void RNAInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 void RNAInteraction::get_settings(input_file &inp) {
 	BaseInteraction::get_settings(inp);
 
-	int avg_seq;
-
-	if(getInputInt(&inp, "use_average_seq", &avg_seq, 0) == KEY_FOUND) {
-		_average = (bool) avg_seq;
+	if(getInputBool(&inp, "use_average_seq", &_average, 0) == KEY_FOUND) {
 		if(!_average) {
 			getInputString(&inp, "seq_dep_file", _seq_filename, 1);
 			OX_LOG(Logger::LOG_INFO, "Using sequence dependent parameters from file %s ",_seq_filename);
