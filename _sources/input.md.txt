@@ -27,7 +27,7 @@ The list of main options supported by oxDNA is reported below. Square brackets m
 These are the options that control the overall behaviour of the simulation and of the most common input/output operations.
 
 * `T = <float>`: temperature of the simulation. It can be expressed in simulation units, kelvin (append a k or K after the value) or celsius (append a c or C after the value).
-* `restart_step_counter = <bool>`: if `true` oxDNA will reset the step counter to 0, otherwise it will start from the step counter found in the initial configuration. Defaults to `false`.
+* `restart_step_counter = <bool>`: if `true` oxDNA will reset the step counter to 0, otherwise it will start from the step counter found in the initial configuration.
 * `steps = <int>`: length of the simulation, in time steps.
 * `conf_file = <path>`: path to the starting configuration.
 * `topology = <path>`: path to the file containing the system's topology.
@@ -72,6 +72,7 @@ These options control the behaviour of MD simulations.
 * `sim_type = MD|FFS_MD`: run either an MD or an FFS simulation.
 * `backend = CPU|CUDA`: MD simulations can be run either on single CPU cores or on single CUDA-enabled GPUs.
 * `backend_precision = <any>`: by default CPU simulations are run with `double` precision, CUDA with `mixed` precision (see [here](https://doi.org/10.1002/jcc.23763) for details). The CUDA backend also supports single precision (`backend_precision = float`), but we do not recommend to use it. Optionally, [by using CMake switches](install.md#CMake-options) it is possible to run CPU simulations in single precision or CUDA simulations in double precision.
+* `dt`: the simulation time step. The higher this value, the longer time a simulation of a given number of time steps will correspond to. However, a value that is too large will result in numerical instabilities. Typical values range between 0.001 and 0.005.
 * `[reset_initial_com_momentum = <bool>]`: if `true` the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to `false` to enforce the reproducibility of the trajectory.
 * `[reset_com_momentum = <bool>]`: if `true` the momentum of the centre of mass will be set to 0 each time fix_diffusion is performed. Defaults to `false` to enforce the reproducibility of the trajectory
 
