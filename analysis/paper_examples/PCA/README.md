@@ -21,6 +21,6 @@ This directory contains an example to compute the principal components of a holl
    If you are running on a computer with multiple CPUs, you can additionally specify the `-p <number>` option to compute principal components in parallel using tht many CPUs.  This results in significant performance gains up to around 30 cpus
    The `-c` option will run the clustering algorithm on reconstructions of each configuration in principal component space.  By default this uses all components, but if you want to use only the top few components, uncomment the line that truncates the linear terms in the last block of code in the script.
 
-This will produce an oxView json file that plots arrows on the structure which corresond to the weighted sum of the first n components.  n can be set by modifying the SUM variable in the pca.py script.  To view in the viewer, drag and drop the mean structure, topology and PCA json files onto the viewer window. 
+This will produce oxView json files that plots arrows on the structure which corresond to the motion characteristic of the positive symmetric half of the top `N` components.  `N` can be set with the `-n` flag when calling the script.  To view in the viewer, drag and drop the mean structure, topology and PCA json files onto the viewer window. 
 
 This script also creates a scree plot showing the weights of components.
