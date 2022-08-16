@@ -174,6 +174,7 @@ def cli_parser(prog="pca.py"):
     parser.add_argument('outfile', type=str, nargs=1, help='the name of the oxView .json overlay file where the PCs will be written')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")    
     parser.add_argument('-c', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's position in PCA space?")
+    parser.add_argument('-n', metavar='num_components', nargs=1, type=int, dest='N', help="(optional) Print the first N components as oxView overlay files (defaults to 1)")
     return parser
 
 def main():
@@ -215,7 +216,10 @@ def main():
     plt.savefig("coordinates2.png")
 
     #Create an oxView overlays for the first N components
-    N = 3
+    if args.N:
+        N = args.N
+    else:
+        N = 1
     prep_pos_for_json = lambda conf: list(
                         list(p) for p in conf
                         )
@@ -240,7 +244,7 @@ def main():
     #    print("INFO: Mapping configurations to component space...", file=stderr)
 #
     #    #If you want to cluster on only some of the components, uncomment this
-    #    #out = out[:,0:3]
+    #    #coordinates = coordinates[:,0:3]
 #
         from oxDNA_analysis_tools.clustering import perform_DBSCAN
         labs = perform_DBSCAN(traj_info, top_info, coordinates, "euclidean", 12, 8)
