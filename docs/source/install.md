@@ -28,6 +28,19 @@ At the end of the compilation three executables (*oxDNA*, *DNAnalysis* and *conf
 
 Compiling with Python bindings will also generate an `oxpy` package in the `build/oxpy` directory that can be imported in Python. Running `make install` will attempt to copy the package (as well as `oxDNA_analysis_tools`) to the `pip`'s module directory. The specific location will depend on your system's settings. We advise you to use [virtual environments](https://docs.python.org/3/tutorial/venv.html) (see *e.g.* [pipenv](https://docs.pipenv.org/)) to avoid conflicts with other packages and/or dependency and permission issues.
 
+### Updating a local copy
+
+If you cloned the repository to install oxDNA, your local copy can be updated with the following commands:
+
+```bash
+cd oxDNA        # enter the oxDNA folder
+git pull        # use git to synchronize your repo with the online one
+cd build        # enter the build folder (see above)
+make -j4        # compile the updated source
+```
+
+If you also want to update `oxpy` don't forget to run `make install` after the compilation.
+
 ### CMake options
 
 * `-DCUDA=ON` Enables CUDA support
