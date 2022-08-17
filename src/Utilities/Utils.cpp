@@ -202,7 +202,7 @@ number get_temperature(std::string raw_T) {
 			}
 			break;
 		default:
-			throw oxDNAException("Unrecognizable temperature '%s'", raw_T);
+			throw oxDNAException("Unrecognizable temperature '%s'", raw_T.c_str());
 			/* no break */
 		}
 	}
