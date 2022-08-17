@@ -567,8 +567,112 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.oxview.display_files" title="oxDNA_analysis_tools.UTILS.oxview.display_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.oxview.display_files</span></code></a></p></td>
+<td><p>Generate an iframe displaying the provided files in oxview</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.oxview.from_path" title="oxDNA_analysis_tools.UTILS.oxview.from_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.oxview.from_path</span></code></a></p></td>
+<td><p>Display oxview frame based on the string path provided</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.oxview.oxdna_conf" title="oxDNA_analysis_tools.UTILS.oxview.oxdna_conf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.oxview.oxdna_conf</span></code></a></p></td>
+<td><p>Display an oxDNA configuration in oxview</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.oxview.loro_patchy_conf" title="oxDNA_analysis_tools.UTILS.oxview.loro_patchy_conf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.oxview.loro_patchy_conf</span></code></a></p></td>
+<td><p>Display a loro patchy configuration in oxview</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf" title="oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf</span></code></a></p></td>
+<td><p>Display a flro patchy configuration in oxview</p></td>
+</tr>
 </tbody>
 </table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.oxview.display_files">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.oxview.</code><code class="sig-name descname">display_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">files_with_ext</span></em>, <em class="sig-param"><span class="n">inbox_settings</span><span class="o">=</span><span class="default_value">['Monomer', 'Origin']</span></em>, <em class="sig-param"><span class="n">oxview_src</span><span class="o">=</span><span class="default_value">'https://sulcgroup.github.io/oxdna-viewer/'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.oxview.display_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an iframe displaying the provided files in oxview</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>files_with_ext</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – a list of tuples (file_string, extension)</p></li>
+<li><p><strong>inbox_settings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – a list of strings, the inbox settings to use</p></li>
+<li><p><strong>oxview_src</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the url of the oxview source</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The iframe-id for reuse</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.oxview.from_path">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.oxview.</code><code class="sig-name descname">from_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.oxview.from_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display oxview frame based on the string path provided</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – contains the paths to the files</p></li>
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – the properties to oxview defaults to = {“inbox_settings”:[“Monomer”, “Origin”], “oxview_src” : “<a class="reference external" href="https://sulcgroup.github.io/oxdna-viewer/">https://sulcgroup.github.io/oxdna-viewer/</a>”}</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Usage:</dt><dd><p>raw(“conf.top”, “conf.dat”,**{“inbox_settings”:[“Monomer”, “Origin”]})</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.oxview.oxdna_conf">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.oxview.</code><code class="sig-name descname">oxdna_conf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">top</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo">oxDNA_analysis_tools.UTILS.data_structures.TopInfo</a></span></em>, <em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a></span></em>, <em class="sig-param"><span class="n">overlay</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">forces_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">par_file_path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">inbox_settings</span><span class="o">=</span><span class="default_value">['Monomer', 'Origin']</span></em>, <em class="sig-param"><span class="n">oxview_src</span><span class="o">=</span><span class="default_value">'https://sulcgroup.github.io/oxdna-viewer/'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.oxview.oxdna_conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display an oxDNA configuration in oxview</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>top</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.TopInfo" title="oxDNA_analysis_tools.UTILS.data_structures.TopInfo"><em>TopInfo</em></a>) – the top file data</p></li>
+<li><p><strong>conf</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration"><em>Configuration</em></a>) – the configuration data</p></li>
+<li><p><strong>overlay</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (optional) the path to the overlay file</p></li>
+<li><p><strong>forces_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (optional) the path to the forces file</p></li>
+<li><p><strong>par_file_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (optional) the path to the par file</p></li>
+<li><p><strong>inbox_settings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – (optional) a list of strings, the inbox settings to use</p></li>
+<li><p><strong>oxview_src</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (optional) the url of the oxview source</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.oxview.loro_patchy_conf">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.oxview.</code><code class="sig-name descname">loro_patchy_conf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">top_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a></span></em>, <em class="sig-param"><span class="n">matrix_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">inbox_settings</span><span class="o">=</span><span class="default_value">['Monomer', 'Origin']</span></em>, <em class="sig-param"><span class="n">oxview_src</span><span class="o">=</span><span class="default_value">'https://sulcgroup.github.io/oxdna-viewer/'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.oxview.loro_patchy_conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a loro patchy configuration in oxview</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>top</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the top file path</p></li>
+<li><p><strong>conf</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration"><em>Configuration</em></a>) – the configuration data</p></li>
+<li><p><strong>matrix_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the path to the matrix file</p></li>
+<li><p><strong>inbox_settings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – (optional) a list of strings, the inbox settings to use</p></li>
+<li><p><strong>oxview_src</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (optional) the url of the oxview source</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.oxview.</code><code class="sig-name descname">flro_patchy_conf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">top_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration">oxDNA_analysis_tools.UTILS.data_structures.Configuration</a></span></em>, <em class="sig-param"><span class="n">particles_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">inbox_settings</span><span class="o">=</span><span class="default_value">['Monomer', 'Origin']</span></em>, <em class="sig-param"><span class="n">oxview_src</span><span class="o">=</span><span class="default_value">'https://sulcgroup.github.io/oxdna-viewer/'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.oxview.flro_patchy_conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a flro patchy configuration in oxview</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>top</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the top file path</p></li>
+<li><p><strong>conf</strong> (<a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.Configuration" title="oxDNA_analysis_tools.UTILS.data_structures.Configuration"><em>Configuration</em></a>) – the configuration data</p></li>
+<li><p><strong>patricles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – the path to the particles file</p></li>
+<li><p><strong>inbox_settings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – (optional) a list of strings, the inbox settings to use</p></li>
+<li><p><strong>oxview_src</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – (optional) the url of the oxview source</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="multiprocesser">
 <h2>Multiprocesser<a class="headerlink" href="#multiprocesser" title="Permalink to this headline">¶</a></h2>

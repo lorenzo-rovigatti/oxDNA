@@ -92,6 +92,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#compiling-oxdna">Compiling oxDNA</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#updating-a-local-copy">Updating a local copy</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cmake-options">CMake options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#make-targets">make targets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#known-issues">Known issues</a><ul>
@@ -208,6 +209,17 @@ make -j4         <span class="c1"># compile oxDNA. The -jX make option makes it 
 </div>
 <p>At the end of the compilation three executables (<em>oxDNA</em>, <em>DNAnalysis</em> and <em>confGenerator</em>) will be placed in the <code class="docutils literal notranslate"><span class="pre">build/bin</span></code> directory.</p>
 <p>Compiling with Python bindings will also generate an <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> package in the <code class="docutils literal notranslate"><span class="pre">build/oxpy</span></code> directory that can be imported in Python. Running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> will attempt to copy the package (as well as <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code>) to the <code class="docutils literal notranslate"><span class="pre">pip</span></code>’s module directory. The specific location will depend on your system’s settings. We advise you to use <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environments</a> (see <em>e.g.</em> <a class="reference external" href="https://docs.pipenv.org/">pipenv</a>) to avoid conflicts with other packages and/or dependency and permission issues.</p>
+<div class="section" id="updating-a-local-copy">
+<h3>Updating a local copy<a class="headerlink" href="#updating-a-local-copy" title="Permalink to this headline">¶</a></h3>
+<p>If you cloned the repository to install oxDNA, your local copy can be updated with the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> oxDNA        <span class="c1"># enter the oxDNA folder</span>
+git pull        <span class="c1"># use git to synchronize your repo with the online one</span>
+<span class="nb">cd</span> build        <span class="c1"># enter the build folder (see above)</span>
+make -j4        <span class="c1"># compile the updated source</span>
+</pre></div>
+</div>
+<p>If you also want to update <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> don’t forget to run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> after the compilation.</p>
+</div>
 <div class="section" id="cmake-options">
 <h3>CMake options<a class="headerlink" href="#cmake-options" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">

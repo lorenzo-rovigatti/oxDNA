@@ -804,7 +804,8 @@
 <h2>Principal component analysis<a class="headerlink" href="#principal-component-analysis" title="Permalink to this headline">¶</a></h2>
 <p><p>Calculates a principal component analysis of nucleotide deviations over a trajectory</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">pca</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="n">trajectory</span> <span class="n">meanfile</span> <span class="n">outfile</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">pca</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">num_components</span><span class="p">]</span>
+               <span class="n">trajectory</span> <span class="n">meanfile</span> <span class="n">outfile</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments">
@@ -830,6 +831,9 @@
 <dt><kbd>-c</kbd></dt>
 <dd><p>Run the clusterer on each configuration’s position in PCA space?</p>
 <p>Default: False</p>
+</dd>
+<dt><kbd>-n</kbd></dt>
+<dd><p>(optional) Print the first N components as oxView overlay files (defaults to 1)</p>
 </dd>
 </dl>
 </div>
