@@ -29,6 +29,10 @@ $\vec{a}_1$, $\vec{a}_2 = \vec{a}_3 \times \vec{a}_1$ and $\vec{a}_3$ define the
   * stacking site $ = \vec{r} + 0.34 \, \vec{a}_1$;
   * backbone repulsion site $ = \vec{r} - 0.34 \, \vec{a}_1 + 0.3408 \, \vec{a}_2$.
   
+```{warning}
+The position of the centre of mass of the nucleotides in oxDNA1 (0.4 length units away from the backbone site) is different from what the PhD thesis of T. E. Ouldridge specifies (0.24 length units away from the backbone site). This change has no effect on the thermodynamics, and the extent to which it changes the dynamics is arguably very small.
+```
+  
 ```{note}
 When simulating very large structures the size of the trajectory files stored on disk may become very large. In this case it may be convenient to avoid printing the last six columns by setting `trajectory_print_momenta = false` in the input file, thus decreasing the size of the trajectory by $\approx 40\%$. 
 ```

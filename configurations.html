@@ -206,6 +206,10 @@ E = Etot U K
 </ul>
 </li>
 </ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The position of the centre of mass of the nucleotides in oxDNA1 (0.4 length units away from the backbone site) is different from what the PhD thesis of T. E. Ouldridge specifies (0.24 length units away from the backbone site). This change has no effect on the thermodynamics, and the extent to which it changes the dynamics is arguably very small.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>When simulating very large structures the size of the trajectory files stored on disk may become very large. In this case it may be convenient to avoid printing the last six columns by setting <code class="docutils literal notranslate"><span class="pre">trajectory_print_momenta</span> <span class="pre">=</span> <span class="pre">false</span></code> in the input file, thus decreasing the size of the trajectory by <span class="math notranslate nohighlight">\(\approx 40\%\)</span>.</p>
