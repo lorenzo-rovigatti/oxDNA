@@ -42,7 +42,7 @@ def cli_parser(prog="db_to_force.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Create an external forces file enforcing the current base-pairing arrangement")
     parser.add_argument('db_file', type=str, nargs=1, help="A text file containing dot-bracket notation of the base-pairing arrangement")
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Name of the file to write the force list to')
-    parser.add_argument('-s', '--stiffness', type=float, nargs=1, help='Strength of the forces')
+    parser.add_argument('-s', '--strength', type=float, nargs=1, help='Strength of the forces')
     return parser
 
 def main():
