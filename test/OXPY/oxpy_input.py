@@ -26,4 +26,14 @@ with oxpy.Context():
     # run 1k steps
     manager.run(1000)
     
-    
+with oxpy.Context():
+    inp = oxpy.InputFile()
+    inp.init_from_filename("input_analysis")
+    # this object will make it possible to access the trajectory data
+    backend = oxpy.analysis.AnalysisBackend(inp)
+
+    with open("first_nucleotide.dat", "w") as f:
+        # loop over all the configurations stored in the trajectory file
+        while backend.read_next_configuration():
+            # print the position of the first nucleotide
+            print(backend.config_info().particles()[0].pos, file=f)

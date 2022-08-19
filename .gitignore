@@ -42,6 +42,8 @@ test/**/last_conf.dat
 test/**/*log.dat
 test/**/trajectory.dat
 test/**/time.dat
+test/OXPY/first_nucleotide.dat
+test/OXPY/last_nucleotide.dat
 
 **/*pyc
 
