@@ -1,4 +1,4 @@
-v. 3.4
+v. 3.4 [1c89963]
 	- Observables can now update their data structures while the sim runs
 	- Add a new observable to compute the stress autocorrelation
 	- Normalise the behaviour of log-lin trajectories
