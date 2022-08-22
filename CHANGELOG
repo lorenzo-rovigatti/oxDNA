@@ -1,3 +1,6 @@
+v. 3.4.1 
+	- Fix a compilation bug of a contrib observable
+
 v. 3.4 [1c89963]
 	- Observables can now update their data structures while the sim runs
 	- Add a new observable to compute the stress autocorrelation
