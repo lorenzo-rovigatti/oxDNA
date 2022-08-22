@@ -70,7 +70,7 @@ void TSPAnalysis::init() {
 	}
 
 	for(int i = 0; i < _N_stars; i++) {
-		_stars[i].set_config_info(_config_info.get());
+		_stars[i].set_config_info(_config_info);
 	}
 }
 
