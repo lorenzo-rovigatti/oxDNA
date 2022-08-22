@@ -292,6 +292,8 @@ void MD_CUDABackend::apply_changes_to_simulation_data() {
 	}
 	_host_to_gpu();
 	_apply_external_forces_changes();
+
+	_cuda_interaction->sync_GPU();
 }
 
 void MD_CUDABackend::apply_simulation_data_changes() {
@@ -366,6 +368,8 @@ void MD_CUDABackend::apply_simulation_data_changes() {
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
 	}
+
+	_cuda_interaction->sync_host();
 
 	if(!_avoid_cpu_calculations) {
 		_lists->global_update(true);

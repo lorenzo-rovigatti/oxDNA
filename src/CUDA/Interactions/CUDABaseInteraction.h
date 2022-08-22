@@ -44,6 +44,9 @@ public:
 	virtual void cuda_init(c_number box_side, int N);
 	virtual c_number get_cuda_rcut() = 0;
 
+	virtual void sync_host() {}
+	virtual void sync_GPU() {}
+
 	void set_launch_cfg(CUDA_kernel_cfg &launch_cfg);
 
 	virtual void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) = 0;
