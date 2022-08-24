@@ -89,7 +89,7 @@ This property can be leveraged to extend the canonical base pairing and create v
 For instance, $B = 13$, for which $B \bmod 4 = 1$, would correspond to a nucleotide with the same property of a Guanine. However, such a nucleotide would bond only to a nucleotide with base type $B' = -10$.
 
 ```{warning}
-The CUDA backend supports base types whose absolute values do not exceed $2^{10} - 1 = 511$. In other words, base types larger than $511$ or smaller than $-511$ are not allowed.
+The CUDA backend supports base types whose absolute values do not exceed $2^{9} - 1 = 511$. In other words, base types larger than $511$ or smaller than $-511$ are not allowed.
 ```
 
 ## Converting to and from oxDNA configurations

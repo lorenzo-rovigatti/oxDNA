@@ -264,7 +264,8 @@ void CUDASimpleVerletList::update(c_number4 *poss, c_number4 *list_poss, LR_bond
 			}
 		}
 		else {
-			message += " try setting 'cells_auto_optimisation = false' and, if the problem persists, increase the value of 'max_density_multiplier' (which defaults to 3) in the input file\n";
+			message += " This means (a) the box is too large for the simulation, or (b) your structure is very dense, or (c) the simulation exploded. "
+					"Try shrinking the simulation box, or setting 'cells_auto_optimisation = false' and 'max_density_multiplier = 10' (or more) in the input file.\n";
 		}
 		throw oxDNAException(message);
 	}
