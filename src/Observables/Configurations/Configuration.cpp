@@ -128,10 +128,10 @@ string Configuration::_particle(BaseParticle *p) {
 	LR_matrix oT = p->orientation.get_transpose();
 	conf << mypos.x << " " << mypos.y << " " << mypos.z << " ";
 	conf << oT.v1.x << " " << oT.v1.y << " " << oT.v1.z << " ";
-	conf << oT.v3.x << " " << oT.v3.y << " " << oT.v3.z << " ";
+	conf << oT.v3.x << " " << oT.v3.y << " " << oT.v3.z;
 
 	if(_print_momenta) {
-		conf << p->vel.x << " " << p->vel.y << " " << p->vel.z << " ";
+		conf << " " << p->vel.x << " " << p->vel.y << " " << p->vel.z << " ";
 		conf << p->L.x << " " << p->L.y << " " << p->L.z;
 	}
 
