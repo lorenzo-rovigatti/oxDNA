@@ -5,8 +5,6 @@
 #define _GNU_SOURCE
 #endif
 
-#include <nlohmann/json.hpp>
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -16,6 +14,8 @@
 #include <vector>
 #include <map>
 #include <set>
+
+#include <nlohmann/json_fwd.hpp>
 
 #define UNPARSED 0
 #define PARSED 1

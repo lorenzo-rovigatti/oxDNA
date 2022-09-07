@@ -5,6 +5,7 @@
 #include "../oxDNAException.h"
 #include "../ConfigInfo.h"
 
+#include <nlohmann/json.hpp>
 #include <exprtk/exprtk.hpp>
 
 #include <regex>

@@ -32,6 +32,8 @@
 #include "Metadynamics/LTCOMAngleTrap.h"
 #include "Metadynamics/LTCOMTrap.h"
 
+#include <nlohmann/json.hpp>
+
 #include <fstream>
 #include <sstream>
 
