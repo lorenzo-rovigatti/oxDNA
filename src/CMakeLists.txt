@@ -1,14 +1,13 @@
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+SET(lib_name oxdna_common)
+
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
 	SET(exe_name oxDNA_debug)
-	SET(lib_name oxdna_common_debug)
 ELSEIF(MPI)
 	SET(exe_name oxDNA_mpi)
-	SET(lib_name oxdna_common)
 ELSE()
 	SET(exe_name oxDNA)
-	SET(lib_name oxdna_common)
 ENDIF()
 
 SET(observables_SOURCES
