@@ -1,4 +1,4 @@
-from external_force_utils.force_reader import read_force_file, write_force_file
+from oxDNA_analysis_tools.external_force_utils.force_reader import read_force_file, write_force_file
 from sys import argv
 
 force_file = argv[1]
