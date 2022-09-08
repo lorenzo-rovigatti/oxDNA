@@ -962,7 +962,6 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 	}
 
 	// COAXIAL STACKING
-
 	c_number4 rstack = r + qpos_stack - ppos_stack;
 	c_number rstackmodsqr = CUDA_DOT(rstack, rstack);
 	if(SQR(rnamodel.RNA_CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(rnamodel.RNA_CXST_RCHIGH)) {
@@ -1146,9 +1145,11 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			c_number4 rbackdir = rbackbone / rbackmod;
 			if(rbackmod < MD_dh_RHIGH[0]) {
 				Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
+				Ftmp.w = expf(rbackmod * MD_dh_minus_kappa[0]) * (MD_dh_prefactor[0] / rbackmod);
 			}
 			else {
 				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
+				Ftmp.w = MD_dh_B[0] * SQR(rbackmod - MD_dh_RC[0]);
 			}
 
 			// check for half-charge strand ends
@@ -1173,7 +1174,6 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 }
 
 // forces + second step without lists
-
 __global__ void rna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion, bool use_mbf, c_number mbf_xmax, c_number mbf_finf, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
@@ -1265,7 +1265,6 @@ __global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 }
 
 // bonded interactions for edge-based approach
-
 __global__ void rna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, LR_bonds *bonds, bool average, bool use_mbf, c_number mbf_xmax, c_number mbf_finf) {
 	if(IND >= MD_N[0]) return;
 
@@ -1311,7 +1310,6 @@ __global__ void rna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, 
 }
 
 // forces + second step with verlet lists
-
 __global__ void rna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion, bool use_mbf, c_number mbf_xmax, c_number mbf_finf, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
@@ -1364,7 +1362,6 @@ __global__ void rna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 //FFS order parameter pre-calculations
 
 // check whether a particular pair of particles have hydrogen bonding energy lower than a given threshold hb_threshold (which may vary)
-
 __global__ void rna_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDABox *box) {
 	if(IND >= n_threads) return;
 
@@ -1521,7 +1518,6 @@ __global__ void rna_near_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, 
 }
 
 // compute the distance between a pair of particles
-
 __global__ void rna_dist_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, c_number *op_dists, int n_threads, CUDABox *box) {
 	if(IND >= n_threads) return;
 

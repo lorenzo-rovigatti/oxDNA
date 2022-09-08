@@ -25,7 +25,8 @@ protected:
 	LR_double4 *_d_possd;
 	LR_double4 *_d_velsd, *_d_Lsd;
 	GPU_quat_double *_d_orientationsd;
-	size_t _vec_sized, _orient_sized;
+	size_t _vec_sized = 0;
+	size_t _orient_sized = 0;
 
 	void _float4_to_LR_double4(float4 *src, LR_double4 *dest);
 	void _LR_double4_to_float4(LR_double4 *src, float4 *dest);
@@ -40,7 +41,7 @@ protected:
 	virtual void _first_step();
 	virtual void _forces_second_step();
 
-	virtual void _thermalize(llint curr_step);
+	virtual void _thermalize();
 
 public:
 	CUDAMixedBackend();

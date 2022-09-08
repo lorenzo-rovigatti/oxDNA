@@ -9,14 +9,14 @@
 #include "CUDA_mixed.cuh"
 
 CUDAMixedBackend::CUDAMixedBackend() : MD_CUDABackend() {
-	_d_possd = NULL;
-	_d_velsd = NULL;
-	_d_Lsd = NULL;
-	_d_orientationsd = NULL;
+	_d_possd = nullptr;
+	_d_velsd = nullptr;
+	_d_Lsd = nullptr;
+	_d_orientationsd = nullptr;
 }
 
 CUDAMixedBackend::~CUDAMixedBackend(){
-	if(_d_possd != NULL) {
+	if(_d_possd != nullptr) {
 		CUDA_SAFE_CALL( cudaFree(_d_possd) );
 		CUDA_SAFE_CALL( cudaFree(_d_orientationsd) );
 		CUDA_SAFE_CALL( cudaFree(_d_velsd) );
@@ -114,7 +114,7 @@ void CUDAMixedBackend::_forces_second_step() {
 
 void CUDAMixedBackend::apply_simulation_data_changes() {
 	// probably useless
-	if(_d_possd != NULL) {
+	if(_d_possd != nullptr) {
 		_LR_double4_to_float4(_d_possd, _d_poss);
 		_quat_double_to_quat_float(_d_orientationsd, _d_orientations);
 		_LR_double4_to_float4(_d_velsd, _d_vels);
@@ -129,7 +129,7 @@ void CUDAMixedBackend::apply_changes_to_simulation_data() {
 
 	// the first time this method gets called all these arrays have not been
 	// allocated yet. It's a bit of a hack but it's needed
-	if(_d_possd != NULL) {
+	if(_d_possd != nullptr) {
 		_float4_to_LR_double4(_d_poss, _d_possd);
 		_quat_float_to_quat_double(_d_orientations, _d_orientationsd);
 		_float4_to_LR_double4(_d_vels, _d_velsd);
@@ -137,11 +137,11 @@ void CUDAMixedBackend::apply_changes_to_simulation_data() {
 	}
 }
 
-void CUDAMixedBackend::_thermalize(llint curr_step) {
-	if(_cuda_thermostat->would_activate(curr_step)) {
+void CUDAMixedBackend::_thermalize() {
+	if(_cuda_thermostat->would_activate(current_step())) {
 		_LR_double4_to_float4(_d_velsd, _d_vels);
 		_LR_double4_to_float4(_d_Lsd, _d_Ls);
-		MD_CUDABackend::_thermalize(curr_step);
+		MD_CUDABackend::_thermalize();
 		_float4_to_LR_double4(_d_vels, _d_velsd);
 		_float4_to_LR_double4(_d_Ls, _d_Lsd);
 	}

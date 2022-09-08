@@ -111,15 +111,7 @@ std::shared_ptr<SimBackend> BackendFactory::make_backend(input_file &inp) {
 #ifdef HAVE_MPI
 	else if(sim_type == "PT_VMMC") {
 			if(backend_opt == "CPU") {
-				if(backend_prec == "double") {
-					new_backend = new PT_VMMC_CPUBackend();
-				}
-				else if(backend_prec == "float") {
-					new_backend = new PT_VMMC_CPUBackend();
-				}
-				else {
-					throw oxDNAException("Backend precision '%s' is not supported", backend_prec.c_str());
-				}
+				new_backend = new PT_VMMC_CPUBackend();
 			}
 			else {
 				throw oxDNAException("Backend '%s' not supported", backend_opt.c_str());

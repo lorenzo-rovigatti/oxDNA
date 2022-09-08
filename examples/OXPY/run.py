@@ -4,8 +4,6 @@ import oxpy
 with oxpy.Context():
     # init the manager with the given input file
     manager = oxpy.OxpyManager("input")
-    manager.load_options()
-    manager.init()
 
     # run 1k steps
     manager.run(1000)

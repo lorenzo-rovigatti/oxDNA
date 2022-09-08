@@ -784,7 +784,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 }
 
 // forces + second step without lists
-
 __global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, c_number mbf_xmax, c_number mbf_finf, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
@@ -880,23 +879,13 @@ __global__ void dna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 __global__ void dna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, LR_bonds *bonds, bool grooving, bool use_oxDNA2_FENE, bool use_mbf, c_number mbf_xmax, c_number mbf_finf) {
 	if(IND >= MD_N[0]) return;
 
-	c_number4 F0, T0;
+	c_number4 F = forces[IND];
+	c_number4 T = torques[IND];
 
-	F0.x = forces[IND].x;
-	F0.y = forces[IND].y;
-	F0.z = forces[IND].z;
-	F0.w = forces[IND].w;
-	T0.x = torques[IND].x;
-	T0.y = torques[IND].y;
-	T0.z = torques[IND].z;
-	T0.w = torques[IND].w;
-
-	c_number4 dF = make_c_number4(0, 0, 0, 0);
-	c_number4 dT = make_c_number4(0, 0, 0, 0);
 	c_number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
-	// particle axes according to Allen's paper
 
+	// particle axes according to Allen's paper
 	c_number4 a1, a2, a3;
 	get_vectors_from_quat(orientations[IND], a1, a2, a3);
 
@@ -906,20 +895,20 @@ __global__ void dna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, 
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[bs.n3], b1, b2, b3);
 
-		_bonded_part<true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_bonded_part<true>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 	if(bs.n5 != P_INVALID) {
 		c_number4 qpos = poss[bs.n5];
 
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[bs.n5], b1, b2, b3);
-		_bonded_part<false>(qpos, b1, b2, b3, ppos, a1, a2, a3, dF, dT, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_bonded_part<false>(qpos, b1, b2, b3, ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
 	}
 
-	forces[IND] = (dF + F0);
-	torques[IND] = (dT + T0);
+	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);
 
-	torques[IND] = _vectors_transpose_c_number4_product(a1, a2, a3, torques[IND]);
+	forces[IND] = F;
+	torques[IND] = T;
 }
 
 // forces + second step with verlet lists

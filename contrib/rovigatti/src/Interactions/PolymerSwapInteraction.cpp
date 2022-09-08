@@ -37,6 +37,21 @@ void PolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "PS_3b_lambda", &_3b_lambda, 0);
 	getInputNumber(&inp, "PS_3b_epsilon", &_3b_epsilon, 0);
 
+	std::string btypes;
+	if(getInputString(&inp, "PS_btypes", btypes, 0) == KEY_FOUND) {
+		for(auto token : Utils::split(btypes, ' ')) {
+			int btype = std::atoi(token.c_str());
+			if(btype < 1) {
+				throw oxDNAException("Invalid btype %d: only integers larger than 0 are allowed", btype);
+			}
+			_btype_pattern.push_back(btype);
+		}
+
+	}
+	else {
+		_btype_pattern.push_back(1);
+	}
+
 	getInputBool(&inp, "PS_semiflexibility", &_enable_semiflexibility, 0);
 	if(_enable_semiflexibility) {
 		getInputNumber(&inp, "PS_semiflexibility_k", &_semiflexibility_k, 1);
@@ -510,7 +525,6 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		}
 	}
 
-	int next_btype = STICKY_A;
 	for(unsigned int i = 0; i < N_from_conf; i++) {
 		std::getline(bond_file, line);
 
@@ -545,10 +559,12 @@ void PolymerSwapInteraction::read_topology(int *N_strands, std::vector<BaseParti
 		p = static_cast<CustomParticle*>(particles[p_idx]);
 
 		p->type = p->btype = MONOMER;
-		if(std::find(sticky_particles.begin(), sticky_particles.end(), p->index) != sticky_particles.end()) {
+		auto sticky_it = std::find(sticky_particles.begin(), sticky_particles.end(), p->index);
+		if(sticky_it != sticky_particles.end()) {
+			int sticky_idx = sticky_it - sticky_particles.begin();
+
 			p->type = STICKY_ANY;
-			p->btype = next_btype;
-			next_btype = (next_btype == STICKY_A) ? STICKY_B : STICKY_A;
+			p->btype = _btype_pattern[sticky_idx % _btype_pattern.size()];
 		}
 		p->strand_id = p_idx / _chain_size;
 		p->n3 = p->n5 = P_VIRTUAL;

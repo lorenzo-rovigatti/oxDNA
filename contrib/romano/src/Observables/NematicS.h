@@ -31,16 +31,15 @@ ref_vec = <int> (between 0 and 5, corresponding to p->orientation->v1, v2, v3, p
 @endverbatim
  */
 
-template<typename number>
-class NematicS : public BaseObservable<number> {
+class NematicS : public BaseObservable {
 private:
 
 	int _axis_i;
 
-	Cells<number> * _cells;
-	BaseParticle<number> **_particles;
+	Cells * _cells;
+	BaseParticle **_particles;
 
-	LR_vector<number> * _get_axis(BaseParticle<number> *);
+	LR_vector * _get_axis(BaseParticle *);
 
 	// cutoffs used for the clustering
 	number _cluster_n_cutoff;
@@ -49,7 +48,7 @@ private:
 	number _rod_length;
 
 public:
-	// we can use sites
+	// we choose which vector to use on the particle
 	enum {
 		O_V1 = 0,
 		O_V2 = 1,
@@ -62,15 +61,14 @@ public:
 	NematicS();
 	virtual ~NematicS();
 
-	virtual void init(ConfigInfo<number> &config_info);
+	virtual void init();
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 
 	std::string get_output_string(llint curr_step);
 
-	std::vector<list<int> > build_clusters();
+	//std::vector<std::list<int> > build_clusters();
 };
 
-extern "C" BaseObservable<float> * make_NematicS_float() { return new NematicS<float>(); }
-extern "C" BaseObservable<double> * make_NematicS_double() { return new NematicS<double>(); }
+extern "C" BaseObservable * make_NematicS() { return new NematicS(); }
 
 #endif /* NEMATICS_H_ */

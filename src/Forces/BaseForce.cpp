@@ -14,15 +14,18 @@
 #include <tuple>
 
 BaseForce::BaseForce() {
-	_F0 = -1.;
-	_rate = -1.;
-	_direction = LR_vector(1., 0., 0.);
-	_pos0 = LR_vector(0., 0., 0.);
-	_site = -1;
 	_stiff = 0.;
 	_p_ptr = P_VIRTUAL;
 }
 
 BaseForce::~BaseForce() {
 
+}
+
+std::tuple<std::vector<int>, std::string> BaseForce::init(input_file &inp) {
+	getInputString(&inp, "group_name", _group_name, 0);
+	getInputString(&inp, "id", _id, 0);
+	getInputString(&inp, "type", _type, 1);
+
+	return std::make_tuple(std::vector<int>(), "BaseForce");
 }

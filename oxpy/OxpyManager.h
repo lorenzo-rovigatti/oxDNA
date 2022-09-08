@@ -12,6 +12,8 @@
 #include "python_defs.h"
 
 class OxpyManager: public SimManager {
+private:
+	llint _steps_run = 0;
 public:
 	OxpyManager(std::string input_filename);
 	OxpyManager(input_file input);
@@ -23,8 +25,13 @@ public:
 	void print_configuration(bool also_last=true);
 	void add_output(std::string filename, llint print_every, std::vector<ObservablePtr> observables);
 	void remove_output(std::string filename);
+	void update_CPU_data_structures();
 
 	void run(llint steps, bool print_output=true);
+	llint steps_run() {
+		return _steps_run;
+	}
+	void print_timings();
 };
 
 void export_SimManager(py::module &m);

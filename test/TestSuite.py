@@ -6,6 +6,8 @@ import queue
 import os
 import subprocess as sp
 import math
+import difflib
+import distutils
 
 from multiprocessing import Lock
 
@@ -30,7 +32,8 @@ class Logger():
 
     @staticmethod
     def log(msg, level, prepend=""):
-        if level < Logger.debug_level: return
+        if level < Logger.debug_level: 
+            return
 
         Logger.log_lock.acquire()
         print("%s%s: %s" % (prepend, Logger.messages[level], msg), file=sys.stderr)
@@ -52,10 +55,13 @@ class Runner(threading.Thread):
             system = details["system"]
             folder = system.folder
             log_file = get_log_name(details["level"])
-            to_execute = "%s %s log_file=%s no_stdout_energy=0" % (details["executable"], system.input_name, log_file)
+            if details["level"] == "oxpy":
+                to_execute = f"{details['executable']} {system.input_name}.py"
+            else:
+                to_execute = f"{details['executable']} {system.input_name} log_file={log_file} no_stdout_energy=0" 
             
             try:
-                p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, cwd=folder)
+                p = sp.Popen(to_execute, shell=True, stdout=sp.PIPE, stderr=sp.PIPE, cwd=folder, universal_newlines=True)
                 p.wait()
                 system.simulation_done(p)
                 
@@ -84,6 +90,52 @@ class BaseTest(object):
     def generate_compare_line(self):
         Logger.log("%s %s's generate_compare_line() not implemented" % (self.log_prefix, type(self)), Logger.CRITICAL)
         sys.exit(1)
+    
+    
+class FileExists(BaseTest):
+    def __init__(self, folder, log_prefix, parameters):
+        BaseTest.__init__(self, folder, log_prefix, parameters)
+        
+    def parse_parameters(self):
+        if len(self.parameters) < 2:
+            Logger.log("%s FileExists expects a single parameter: the name of the file whose existence should be checked" % self.log_prefix, Logger.WARNING)
+            self.error = True
+        else:
+            self.target_file = os.path.join(self.folder, self.parameters[1])
+            if len(self.parameters) > 2:
+                self.check_if_empty = distutils.util.strtobool(self.parameters[2])
+            else:
+                self.check_if_empty = True
+    
+    def test(self):
+        if os.path.exists(self.target_file):
+            if self.check_if_empty:
+                return os.stat(self.target_file).st_size != 0
+            return True
+        
+        return False
+
+
+class DiffFiles(BaseTest):
+    def __init__(self, folder, log_prefix, parameters):
+        BaseTest.__init__(self, folder, log_prefix, parameters)
+        
+    def parse_parameters(self):
+        if len(self.parameters) != 3:
+            Logger.log("%s DiffFiles expects 2 parameters: the names of the reference and data files, in this order" % self.log_prefix, Logger.WARNING)
+            self.error = True
+        else:
+            self.reference_file = os.path.join(self.folder, self.parameters[1])
+            self.data_file = os.path.join(self.folder, self.parameters[2])
+    
+    def test(self):
+        if not self.error:
+            with open(self.reference_file) as ref_file:
+                ref_data = ref_file.readlines()
+            with open(self.data_file) as data_file:
+                data = data_file.readlines()
+    
+        return len(list(difflib.unified_diff(ref_data, data))) == 0
     
     
 class ColumnAverage(BaseTest):
@@ -128,7 +180,8 @@ class ColumnAverage(BaseTest):
     def test(self):
         avg, error = self._get_average()
         
-        if self.error: return False
+        if self.error: 
+            return False
         
         lower_b = self.true_avg - self.tolerance
         higher_b = self.true_avg + self.tolerance
@@ -193,12 +246,13 @@ class Analyser(object):
     
     def test(self):
         n_tests = len(self.tests)
-        n_failed = 0
+        n_passed = 0
         
         for test in self.tests:
-            if not test.test(): n_failed += 1
+            if test.test(): 
+                n_passed += 1
         
-        return (n_tests, n_failed)
+        return (n_tests, n_passed)
 
 
 class System(object):
@@ -215,16 +269,19 @@ class System(object):
         
         self.analyser = Analyser(folder, level)
         
+        self.error = False
         self.n_tests = 0
-        self.n_failed = 0
+        self.n_passed = 0
     
     def simulation_done(self, p, do_tests=True):
-        error = False
+        self.error = False
         if p.returncode != 0:
             # segfault
-            if p.returncode == 139: Logger.log("%s segmentation fault (return code %d)" % (self.log_prefix, p.returncode), Logger.WARNING)
-            else: Logger.log("%s %s returned %d" % (self.executable_name, self.log_prefix, p.returncode), Logger.WARNING)
-            error = True
+            if p.returncode == 139: 
+                Logger.log("%s segmentation fault (return code %d)" % (self.log_prefix, p.returncode), Logger.WARNING)
+            else: 
+                Logger.log("%s %s returned %d" % (self.executable_name, self.log_prefix, p.returncode), Logger.WARNING)
+            self.error = True
             
         # check the logfile for errors
         log_file = os.path.join(self.folder, get_log_name(self.level))
@@ -233,43 +290,46 @@ class System(object):
             for l in f.readlines():
                 if l.startswith("ERROR"): 
                     Logger.log("%s %s error: %s" % (self.executable_name, self.log_prefix, l.strip()), Logger.WARNING)
-                    error = True
+                    self.error = True
             f.close()
         
         # check the standard output for nans and infs
         for l in p.stdout.readlines():
             # we need byte-like objects and not 'str' 
-            tokens = [b"nan", b"inf"]
+            tokens = ["nan", "inf"]
             for t in tokens: 
                 if t in l: 
                     Logger.log("%s %s generated a '%s': %s" % (self.executable_name, t, l), Logger.WARNING)
-                    error = True
+                    self.error = True
         
         # we don't run tests if the simulation was not successful. We put this here so that all
         # above messages can be printed independently of each other
-        if error: return
+        if self.error: 
+            return
         
-        Logger.log("%s %s run completed and successful" % (self.executable_name, self.log_prefix), Logger.DEBUG)
+        Logger.log("%s %s run completed and successful" % (self.log_prefix, self.executable_name), Logger.DEBUG)
         
         if do_tests:
-            (n_tests, n_failed) = self.analyser.test()
-            Logger.log("%s\n\tFailed/Total: %d/%d" % (self.log_prefix, n_failed, n_tests), Logger.RESULTS)
+            (n_tests, n_passed) = self.analyser.test()
+            Logger.log("%s\n\tPassed/Total: %d/%d" % (self.log_prefix, n_passed, n_tests), Logger.RESULTS)
             
             self.n_tests = n_tests
-            self.n_failed = n_failed
+            self.n_passed = n_passed
         
     
 class TestManager(object):
     def __init__(self, list_file, executable, level, threads=1):
         self.log_prefix = "TestManager:"
         
-        self.executable = os.path.abspath(executable)
+        self.executable = executable
         self.executable_name = os.path.basename(self.executable)
         self.level = level
         self.systems = []
         self.threads = threads
             
         input_name = level + SUFFIX_INPUT
+        if level == "oxpy":
+            input_name += ".py"
         
         f = open(list_file, "r")
         for l in f.readlines():
@@ -303,60 +363,59 @@ class TestManager(object):
         Runner.queue.join()
         
     def finalise(self):
-        n_failed = 0
+        n_passed = 0
         n_tests = 0
+        n_errors = 0
         for system in self.systems:
-            n_failed += system.n_failed
+            n_passed += system.n_passed
             n_tests += system.n_tests
+            if system.error:
+                n_errors += 1
+                
+        if n_errors == 1:
+            Logger.log("The analysis in %d folder failed" % n_errors, Logger.CRITICAL, "\n")
+        elif n_errors > 1:
+            Logger.log("The analysis in %d folders failed" % n_errors, Logger.CRITICAL, "\n")
             
-        Logger.log("Summary for level '%s'\n\tFAILED/TOTAL: %d/%d\n" % (self.level, n_failed, n_tests), Logger.RESULTS, "\n")
+        Logger.log("Summary for level '%s'\n\tPassed/Total: %d/%d\n" % (self.level, n_passed, n_tests), Logger.RESULTS, "\n")
+        
+        if n_tests != n_passed or n_errors > 0:
+            Logger.log("Not all tests have passed successfully", Logger.CRITICAL)
     
     
-def main():
-    def print_usage():
-        print("USAGE:")
-        print("\t%s folder_list_file executable test_level [-d|--debug] [-h|--help] [-v|--version] [--threads=N_threads]" % sys.argv[0])
-        exit(1)
-
+if __name__ == '__main__':
+    import argparse
+    
     def print_version():
         print("oxDNA Test Suite v 0.1")
         print("Copyright (C) 2015 oxDNA")
         print("This is free software; see the source for copying conditions.  There is NO")
         print("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n")
         exit(1)
-
-    shortArgs = 'dhv'
-    longArgs = ['debug', 'help', 'version', 'threads=']
-    
-    threads = 1
-    
-    try:
-        import getopt
-        args, files = getopt.gnu_getopt(sys.argv[1:], shortArgs, longArgs)
-        for k in args:
-            if k[0] == '-d' or k[0] == '--debug': Logger.debug_level = 0
-            if k[0] == '-h' or k[0] == '--help': print_usage()
-            if k[0] == '-v' or k[0] == '--version': print_version()
-            if k[0] == '--threads': threads = int(k[1])
-            
-    except Exception as e:
-        print(e)
-        print_usage()
         
-    if len(sys.argv) < 4:
-        print_usage()
-        exit(1)
+    parser = argparse.ArgumentParser(description="A simple script that runs tests in selected folders and compare the results with reference data.")
+    parser.add_argument("--debug", action="store_true", help="Print debug messages")
+    # parser.add_argument("--help", action="store_false", help="Print this message")
+    parser.add_argument("--version", action="store_true", help="Print the script version and exit")
+    parser.add_argument("--threads", default=1, help="Set the number of concurrent threads that will be launched")
+    parser.add_argument("folder_list_file")
+    parser.add_argument("executable")
+    parser.add_argument("test_level")
+    
+    args = parser.parse_args()
+    
+    if args.debug:
+        Logger.debug_level = 0
+    if args.version:
+        print_version()
+        exit(0)
         
-    file_list = sys.argv[1]
-    if not os.path.exists(file_list) or not os.path.isfile(file_list):
-        Logger.log("List file '%s' does not exist or it is unreadable" % file_list, Logger.CRITICAL)
+    if not os.path.exists(args.folder_list_file) or not os.path.isfile(args.folder_list_file):
+        Logger.log("List file '%s' does not exist or it is unreadable" % args.folder_list_file, Logger.CRITICAL)
         sys.exit(1)
         
     Logger.log("Running tests for level '%s'" % sys.argv[3], Logger.INFO)
-    tm = TestManager(sys.argv[1], sys.argv[2], sys.argv[3], threads=threads)
+    tm = TestManager(args.folder_list_file, args.executable, args.test_level, threads=args.threads)
     tm.launch()
     tm.finalise()
-
     
-if __name__ == '__main__':
-    main()

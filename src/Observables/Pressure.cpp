@@ -34,7 +34,6 @@ void Pressure::get_settings(input_file &my_inp, input_file &sim_inp) {
 }
 
 void Pressure::update_pressure() {
-	int N = _config_info->N();
 	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 
 	_config_info->interaction->begin_energy_computation();
@@ -76,7 +75,6 @@ void Pressure::update_pressure() {
 		q->torque = old_q_torque;
 	}
 
-	/*
 	for(auto p : _config_info->particles()) {
 		LR_vector vel = p->vel;
 		if(_shear_rate > 0.) {
@@ -85,20 +83,18 @@ void Pressure::update_pressure() {
 			number flow_vx = y_in_box * _shear_rate;
 			vel.x -= flow_vx;
 		}
-		_stress_tensor.v1.x += SQR(vel.x);
-		_stress_tensor.v1.y += vel.x * vel.y;
-		_stress_tensor.v1.z += vel.x * vel.z;
-		_stress_tensor.v2.x += vel.y * vel.x;
-		_stress_tensor.v2.y += SQR(vel.y);
-		_stress_tensor.v2.z += vel.y * vel.z;
-		_stress_tensor.v3.x += vel.z * vel.x;
-		_stress_tensor.v3.y += vel.z * vel.y;
-		_stress_tensor.v3.z += SQR(vel.z);
+		_stress_tensor[0] += SQR(vel.x);
+		_stress_tensor[1] += SQR(vel.y);
+		_stress_tensor[2] += SQR(vel.z);
+		_stress_tensor[3] += vel.x * vel.y;
+		_stress_tensor[4] += vel.x * vel.z;
+		_stress_tensor[5] += vel.y * vel.z;
+
+		virial += vel.norm();
 	}
-	*/
 
 	double V = (_PV_only) ? 1 : _config_info->box->V();
-	_P = _config_info->temperature() * (N / V) + virial / (3. * V);
+	_P = virial / (3. * V);
 	for(auto &v : _stress_tensor) {
 		v /= 3. * V;
 	}

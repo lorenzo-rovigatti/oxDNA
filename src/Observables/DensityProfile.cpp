@@ -88,6 +88,8 @@ std::string DensityProfile::get_output_string(llint curr_step) {
 }
 
 void DensityProfile::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	char tmps[512];
 	getInputString(&my_inp, "axis", tmps, 1);
 	if(!strncasecmp(tmps, "x", 512)) {

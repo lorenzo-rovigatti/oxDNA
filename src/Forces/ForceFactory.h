@@ -29,8 +29,6 @@ private:
 	static std::shared_ptr<ForceFactory> _ForceFactoryPtr;
 	ForceFactory();
 
-	void _add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_type);
-
 public:
 	virtual ~ForceFactory();
 
@@ -47,7 +45,7 @@ public:
 	void add_force(input_file &inp, std::vector<BaseParticle *> &particles, BaseBox *box_ptr);
 
 	/// adds forces. Used by SimBackend and GeneratorManager
-	void read_external_forces(std::string external_filename, std::vector<BaseParticle *> &particles, BaseBox *box_ptr);
+	void make_forces(std::vector<BaseParticle *> &particles, BaseBox *box_ptr);
 };
 
 #endif /* FORCEFACTORY_H_ */

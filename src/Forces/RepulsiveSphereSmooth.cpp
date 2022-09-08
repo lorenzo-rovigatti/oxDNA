@@ -17,10 +17,11 @@ RepulsiveSphereSmooth::RepulsiveSphereSmooth() :
 	_center = LR_vector(0., 0., 0.);
 	_alpha = -1.;
 	_smooth = -1.;
-	_box_ptr = NULL;
 }
 
-std::tuple<std::vector<int>, std::string> RepulsiveSphereSmooth::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> RepulsiveSphereSmooth::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	getInputNumber(&inp, "stiff", &_stiff, 1);
 	getInputNumber(&inp, "r0", &_r0, 1);
 	getInputNumber(&inp, "r_ext", &_r_ext, 0);
@@ -29,8 +30,6 @@ std::tuple<std::vector<int>, std::string> RepulsiveSphereSmooth::init(input_file
 
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
-
-	_box_ptr = box_ptr;
 
 	std::string strdir;
 	if(getInputString(&inp, "center", strdir, 0) == KEY_FOUND) {
@@ -47,7 +46,7 @@ std::tuple<std::vector<int>, std::string> RepulsiveSphereSmooth::init(input_file
 }
 
 LR_vector RepulsiveSphereSmooth::value(llint step, LR_vector &pos) {
-	LR_vector dist = _box_ptr->min_image(_center, pos);
+	LR_vector dist = CONFIG_INFO->box->min_image(_center, pos);
 	number mdist = dist.module();
 
 	if(mdist < _r0 || mdist > _r_ext) {
@@ -64,7 +63,7 @@ LR_vector RepulsiveSphereSmooth::value(llint step, LR_vector &pos) {
 }
 
 number RepulsiveSphereSmooth::potential(llint step, LR_vector &pos) {
-	LR_vector dist = _box_ptr->min_image(_center, pos);
+	LR_vector dist = CONFIG_INFO->box->min_image(_center, pos);
 	number mdist = dist.module();
 
 	if(mdist < _r0 || mdist > _r_ext) return 0.;

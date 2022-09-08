@@ -45,7 +45,6 @@
  *
  @verbatim
  backend = CPU (For CPU FFS)
- backend_precision = <any> (CPU FFS may use any precision allowed for a normal CPU MD simulation)
  sim_type = FFS_MD (This must be set for an FFS simulation)
  @endverbatim
  */
@@ -133,9 +132,9 @@ public:
 
 	void init();
 
-	void sim_step(llint cur_step);
+	void sim_step();
 	char * get_op_state_str(void);
-	virtual void print_observables(llint curr_step);
+	virtual void print_observables();
 
 };
 

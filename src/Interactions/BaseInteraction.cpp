@@ -11,7 +11,7 @@ BaseInteraction::BaseInteraction() {
 	_energy_threshold = (number) 100.f;
 	_is_infinite = false;
 	_box = NULL;
-	_generate_consider_bonded_interactions = false;
+	_generate_consider_bonded_interactions = true;
 	_generate_bonded_cutoff = 2.0;
 	_temperature = 1.0;
 
@@ -207,8 +207,8 @@ void BaseInteraction::generate_random_configuration(std::vector<BaseParticle *> 
 
 			// we take into account the bonded neighbours
 			for(unsigned int n = 0; n < p->affected.size(); n++) {
-				BaseParticle * p1 = p->affected[n].first;
-				BaseParticle * p2 = p->affected[n].second;
+				BaseParticle *p1 = p->affected[n].first;
+				BaseParticle *p2 = p->affected[n].second;
 				if(p1->index <= p->index && p2->index <= p->index) {
 					number e = pair_interaction_bonded(p1, p2);
 					if(std::isnan(e) || e > _energy_threshold) inserted = false;

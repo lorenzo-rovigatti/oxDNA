@@ -34,6 +34,8 @@ void AverageEnergy::init() {
 }
 
 void AverageEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	//Try to load parameters from specific op_file key
 	if(getInputString(&my_inp, "nucleotide_list", _list_file, 0) == KEY_FOUND) {
 		OX_LOG(Logger::LOG_INFO, "average_energy - loading from particle list file");

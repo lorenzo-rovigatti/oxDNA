@@ -22,13 +22,14 @@ input_file _input_file_from_filename(std::string input_filename) {
 }
 
 OxpyManager::OxpyManager(std::string input_filename) :
-				SimManager(_input_file_from_filename(input_filename)) {
+				OxpyManager(_input_file_from_filename(input_filename)) {
 
 }
 
 OxpyManager::OxpyManager(input_file input) :
 				SimManager(input) {
-
+SimManager::load_options();
+SimManager::init();
 }
 
 OxpyManager::~OxpyManager() {
@@ -49,9 +50,9 @@ void OxpyManager::update_temperature(number new_T) {
 
 void OxpyManager::print_configuration(bool also_last) {
 	// prints the trajectory configuration
-	_backend->print_conf(_cur_step);
+	_backend->print_conf();
 	// prints the last configuration
-	_backend->print_conf(_cur_step, false, true);
+	_backend->print_conf(false, true);
 }
 
 void OxpyManager::add_output(std::string filename, llint print_every, std::vector<ObservablePtr> observables) {
@@ -70,45 +71,43 @@ void OxpyManager::remove_output(std::string filename) {
 	_backend->remove_output(filename);
 }
 
-void OxpyManager::run(llint steps, bool print_output) {
-	if(_cur_step < _start_step) {
-		_cur_step = _start_step;
-	}
+void OxpyManager::update_CPU_data_structures() {
+	_backend->apply_simulation_data_changes();
+}
 
+void OxpyManager::run(llint steps, bool print_output) {
 	_backend->apply_changes_to_simulation_data();
 
-	for(llint i = 0; i < steps && !SimManager::stop; i++, _cur_step++) {
-		if(_cur_step == _time_scale_manager.next_step) {
-			if(print_output && _cur_step > _start_step) {
-				_backend->print_conf(_cur_step);
+	for(llint i = 0; i < steps && !SimManager::stop; i++, _steps_run++) {
+		if(_backend->current_step() == _time_scale_manager.next_step) {
+			if(print_output && i > 0) {
+				_backend->print_conf();
 			}
 			setTSNextStep(&_time_scale_manager);
 		}
 
-		if(_cur_step > 0 && _cur_step % _fix_diffusion_every == 0) {
+		if(i > 0 && i % _fix_diffusion_every == 0) {
 			_backend->fix_diffusion();
 		}
 
+		_backend->update_observables_data();
 		if(print_output) {
-			_backend->print_observables(_cur_step);
+			_backend->print_observables();
 		}
 
-		_backend->sim_step(_cur_step);
+		_backend->sim_step();
+		_backend->increment_current_step();
 	}
 
 	_backend->apply_simulation_data_changes();
 }
 
+void OxpyManager::print_timings() {
+	TimingManager::instance()->print(_steps_run);
+}
+
 void export_SimManager(py::module &m) {
 	pybind11::class_<SimManager, std::shared_ptr<SimManager>> manager(m, "SimManager");
-
-	manager.def("load_options", &SimManager::load_options, R"pbdoc(
-		Load the options from the input file.
-	)pbdoc");
-
-	manager.def("init", &SimManager::init, R"pbdoc(
-		Initialise the simulation manager.
-	)pbdoc");
 
 	manager.def("run_complete", &SimManager::run, R"pbdoc(
         Run the simulation till completion (that is, till the simulation has run number of steps specified in the input file).
@@ -136,6 +135,18 @@ Parameters
 ----------
 input: :class:`InputFile`
     The object storing the simulations' options.
+	)pbdoc");
+
+	manager.def("load_options", [](OxpyManager &manager) { OX_LOG(Logger::LOG_WARNING, "OxpyManager.load_options() is deprecated and will be removed in future releases since it is automatically called by the class' constructor."); }, R"pbdoc(
+		.. deprecated:: 3.2.2
+
+		This method does nothing and it exists only for backward compatibility reasons.
+	)pbdoc");
+
+	manager.def("init", [](OxpyManager &manager) { OX_LOG(Logger::LOG_WARNING, "OxpyManager.init() is deprecated and will be removed in future releases since it is automatically called by the class' constructor."); }, R"pbdoc(
+		.. deprecated:: 3.2.2
+
+		This method does nothing and it exists only for backward compatibility reasons.
 	)pbdoc");
 
 	manager.def("print_configuration", &OxpyManager::print_configuration, py::arg("also_last") = true, R"pbdoc(
@@ -196,6 +207,13 @@ input: :class:`InputFile`
 				The name of the output file, which should be the same name used to add it (for instance *via* :meth:`add_output`).
 	)pbdoc");
 
+	manager.def("update_CPU_data_structures", &OxpyManager::update_CPU_data_structures, R"pbdoc(
+		Update the CPU data structures. Useful only when running CUDA simulations.
+
+		This method copies simulation data from the GPU to the CPU, and as such calling it too often may severely decrease performance.
+		It is automatically invoked by meth:`run`, and therefore it makes sense to call it only in specific cases (*e.g.* to access simulation data from callbacks).
+	)pbdoc");
+
 	manager.def("run", &OxpyManager::run, pybind11::arg("steps"), pybind11::arg("print_output") = true, R"pbdoc(
 		Run the simulation for the given number of steps. The second argument controls whether the simulations output (configurations and observables) should be printed or not.
 
@@ -206,4 +224,19 @@ input: :class:`InputFile`
 			print_output : bool
 				If True (the default value) the simulation output will be printed.
 	)pbdoc");
+
+	manager.def("steps_run", &OxpyManager::steps_run, R"pbdoc(
+		Return the number of steps run using this manager.
+		
+		Returns
+		-------
+			int
+				The number of steps run.
+	)pbdoc");
+
+	manager.def("print_timings", &OxpyManager::print_timings, R"pbdoc(
+		Print the timings taking into account the number of steps run by the manager.
+	)pbdoc");
+
+	manager.def_property_readonly("current_step", [](OxpyManager &manager) { return manager.config_info()->curr_step; }, "The current time step.");
 }

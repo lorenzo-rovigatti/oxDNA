@@ -12,11 +12,14 @@
 
 class OxpyContext {
 public:
-	OxpyContext();
+	OxpyContext(bool print_coda=true);
 	virtual ~OxpyContext();
 
 	void enter();
 	void exit(py::object exc_type, py::object exc_value, py::object traceback);
+
+private:
+	bool _print_coda;
 };
 
 void export_OxpyContext(py::module &m);

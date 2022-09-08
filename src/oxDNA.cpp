@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 			print_version();
 		}
 
-		input_file input;
+		input_file input(true);
 		input.init_from_command_line_args(argc, argv);
 
 		SimManager mysim(input);

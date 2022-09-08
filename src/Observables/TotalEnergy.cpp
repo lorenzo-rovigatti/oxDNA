@@ -9,14 +9,6 @@
 
 #include "TotalEnergy.h"
 
-// Initialization of static data members
-
-llint TotalEnergy::_saved_on = -1;
-
-number TotalEnergy::_U = (number) 0.;
-
-number TotalEnergy::_K = (number) 0.;
-
 TotalEnergy::TotalEnergy() {
 
 }
@@ -26,6 +18,8 @@ TotalEnergy::~TotalEnergy() {
 }
 
 void TotalEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	_pot_energy.get_settings(my_inp, sim_inp);
 	_kin_energy.get_settings(my_inp, sim_inp);
 }
@@ -43,13 +37,9 @@ std::string TotalEnergy::get_output_string(llint curr_step) {
 }
 
 number TotalEnergy::get_U(llint curr_step) {
-	if(curr_step > _saved_on) TotalEnergy::_U = _pot_energy.get_potential_energy();
-
-	return TotalEnergy::_U;
+	return _pot_energy.get_potential_energy();
 }
 
 number TotalEnergy::get_K(llint curr_step) {
-	if(curr_step > _saved_on) TotalEnergy::_K = _kin_energy.get_kinetic_energy();
-
-	return TotalEnergy::_K;
+	return _kin_energy.get_kinetic_energy();
 }

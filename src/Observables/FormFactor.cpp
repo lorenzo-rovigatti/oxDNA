@@ -21,6 +21,8 @@ FormFactor::~FormFactor() {
 }
 
 void FormFactor::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputNumber(&my_inp, "min_q", &_min_q, 1);
 	getInputNumber(&my_inp, "max_q", &_max_q, 1);
 	getInputNumber(&my_inp, "mult_q", &_mult_q, 0);

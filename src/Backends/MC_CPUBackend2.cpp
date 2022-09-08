@@ -80,7 +80,7 @@ void MC_CPUBackend2::init() {
 	}
 }
 
-void MC_CPUBackend2::sim_step(llint curr_step) {
+void MC_CPUBackend2::sim_step() {
 	_mytimer->resume();
 
 	for(int i = 0; i < N(); i++) {
@@ -94,13 +94,13 @@ void MC_CPUBackend2::sim_step(llint curr_step) {
 		}
 
 		// now j is the chosen move
-		_moves[j]->apply(curr_step);
+		_moves[j]->apply(current_step());
 	}
 
 	_mytimer->pause();
 }
 
-void MC_CPUBackend2::print_observables(llint curr_step) {
+void MC_CPUBackend2::print_observables() {
 	std::string tmpstr("");
 	for(auto move : _moves) {
 		number ratio = move->get_acceptance();
@@ -108,7 +108,7 @@ void MC_CPUBackend2::print_observables(llint curr_step) {
 	}
 	_backend_info.insert(0, tmpstr + "  ");
 
-	SimBackend::print_observables(curr_step);
+	SimBackend::print_observables();
 }
 
 void MC_CPUBackend2::print_equilibration_info() {

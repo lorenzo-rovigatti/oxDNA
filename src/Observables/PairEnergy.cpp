@@ -19,6 +19,8 @@ PairEnergy::~PairEnergy() {
 }
 
 void PairEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	_print_all_particles = true;
 	if(getInputInt(&my_inp, "particle1_id", &_particle1_id, 0) == KEY_FOUND) {
 		_print_all_particles = false;

@@ -16,10 +16,11 @@ RepulsiveEllipsoid::RepulsiveEllipsoid() :
 	_r_2 = LR_vector(-1., -1., -1.);
 	_r_1 = LR_vector(1e-6, 1e-6, 1e-6);
 	_centre = LR_vector(0., 0., 0.);
-	_box_ptr = nullptr;
 }
 
-std::tuple<std::vector<int>, std::string> RepulsiveEllipsoid::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> RepulsiveEllipsoid::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	getInputNumber(&inp, "stiff", &_stiff, 1);
 
 	std::string strdir;
@@ -45,8 +46,6 @@ std::tuple<std::vector<int>, std::string> RepulsiveEllipsoid::init(input_file &i
 		_centre = LR_vector  ((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
 	}
 
-	_box_ptr = box_ptr;
-
 	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "RepulsiveEllipse");
 	std::string description = Utils::sformat("RepulsiveEllipse(stiff=%g, r0=%g,%g,%g, center=%g,%g,%g)", _stiff, _r_2.x, _r_2.y, _r_2.z, _centre.x, _centre.y, _centre.z);
 
@@ -54,7 +53,7 @@ std::tuple<std::vector<int>, std::string> RepulsiveEllipsoid::init(input_file &i
 }
 
 LR_vector RepulsiveEllipsoid::value(llint step, LR_vector &pos) {
-	LR_vector dist = _box_ptr->min_image(_centre, pos);
+	LR_vector dist = CONFIG_INFO->box->min_image(_centre, pos);
 
 	double internal_cut = SQR(dist.x) / SQR(_r_2.x) + SQR(dist.y) / SQR(_r_2.y) + SQR(dist.z) / SQR(_r_2.z);
 	double external_cut = SQR(dist.x) / SQR(_r_1.x) + SQR(dist.y) / SQR(_r_1.y) + SQR(dist.z) / SQR(_r_1.z);
@@ -67,7 +66,7 @@ LR_vector RepulsiveEllipsoid::value(llint step, LR_vector &pos) {
 }
 
 number RepulsiveEllipsoid::potential(llint step, LR_vector &pos) {
-	LR_vector dist = _box_ptr->min_image(_centre, pos);
+	LR_vector dist = CONFIG_INFO->box->min_image(_centre, pos);
 
 	double internal_cut = SQR(dist.x) / SQR(_r_2.x) + SQR(dist.y) / SQR(_r_2.y) + SQR(dist.z) / SQR(_r_2.z);
 	double external_cut = SQR(dist.x) / SQR(_r_1.x) + SQR(dist.y) / SQR(_r_1.y) + SQR(dist.z) / SQR(_r_1.z);

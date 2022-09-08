@@ -49,9 +49,6 @@ void CUDALJInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GP
 				(d_poss, this->_d_edge_forces, _v_lists->d_edge_list, _v_lists->N_edges, d_box);
 
 			this->_sum_edge_forces(d_forces);
-
-			// potential for removal here
-			cudaThreadSynchronize();
 			CUT_CHECK_ERROR("forces_second_step error -- lj");
 		}
 		else {

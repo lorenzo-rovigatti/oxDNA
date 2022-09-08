@@ -10,7 +10,9 @@
 #include "../Utilities/ConfigInfo.h"
 #include "../Boxes/BaseBox.h"
 
-Molecule::Molecule() {
+int Molecule::_current_id = 0;
+
+Molecule::Molecule() : _id(_next_id()) {
 
 }
 

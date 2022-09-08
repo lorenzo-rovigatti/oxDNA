@@ -169,10 +169,10 @@ void MDBackend::fix_diffusion() {
 	SimBackend::fix_diffusion();
 }
 
-void MDBackend::print_observables(llint curr_step) {
+void MDBackend::print_observables() {
 	if(_use_barostat) {
 		this->_backend_info.insert(0, Utils::sformat(" %5.3lf", _barostat_acceptance));
 	}
 
-	SimBackend::print_observables(curr_step);
+	SimBackend::print_observables();
 }

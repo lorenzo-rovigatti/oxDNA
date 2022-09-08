@@ -63,6 +63,8 @@ std::string Distance::get_output_string(llint curr_step) {
 }
 
 void Distance::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	// particle 1
 	getInputString(&my_inp, "particle_1", _p1_string, 1);
 	// particle 2

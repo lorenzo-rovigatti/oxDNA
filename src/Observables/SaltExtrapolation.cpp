@@ -47,6 +47,8 @@ void SaltExtrapolation::init() {
 }
 
 void SaltExtrapolation::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	std::string tmps;
 
 	getInputString(&my_inp, "salts", tmps, 1);
@@ -57,13 +59,13 @@ void SaltExtrapolation::get_settings(input_file &my_inp, input_file &sim_inp) {
 	getInputString(&my_inp, "temps", tmps, 1);
 	std::vector<string> temp_strings = Utils::split(tmps, ',');
 	for(unsigned int i = 0; i < temp_strings.size(); i++)
-		_temps.push_back(Utils::get_temperature((char*) temp_strings[i].c_str()));
+		_temps.push_back(Utils::get_temperature(temp_strings[i]));
 
 	OX_LOG(Logger::LOG_INFO, "(SaltExtrapolation.cpp) Extrapolating to %d temperatures and %d salts...", _temps.size(), _salts.size());
 
 	// set the simulation temperature
 	getInputString(&sim_inp, "T", tmps, 1);
-	_sim_temp = Utils::get_temperature((char *) tmps.c_str());
+	_sim_temp = Utils::get_temperature(tmps);
 
 	// check that the interaction is DNA2
 	getInputString(&sim_inp, "interaction_type", tmps, 1);

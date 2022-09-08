@@ -31,13 +31,15 @@ void OrthogonalBox::init(number Lx, number Ly, number Lz) {
 	_sides.x = Lx;
 	_sides.y = Ly;
 	_sides.z = Lz;
+
+	CONFIG_INFO->notify(INIT_EVENT);
 }
 
 LR_vector OrthogonalBox::normalised_in_box(const LR_vector &v) {
 	return LR_vector((v.x / _sides.x - floor(v.x / _sides.x)) * (1.f - std::numeric_limits<number>::epsilon()), (v.y / _sides.y - floor(v.y / _sides.y)) * (1.f - std::numeric_limits<number>::epsilon()), (v.z / _sides.z - floor(v.z / _sides.z)) * (1.f - std::numeric_limits<number>::epsilon()));
 }
 
-LR_vector &OrthogonalBox::box_sides() {
+LR_vector OrthogonalBox::box_sides() const {
 	return _sides;
 }
 

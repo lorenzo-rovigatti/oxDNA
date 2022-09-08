@@ -1,8 +1,6 @@
 ## Input file options
 
-As always in UNIX environments, everything is case sensitive.
-
-The options are in the form key = value. Key-value pairs should be either on different lines or separated by a semicolon. There can be arbitrary spaces before and after both key and value.  Line with a leading # will be treated as comments. The expected type of the value is specified between < and >. A <bool> key can be specified with values 1|0, yes|no or true|false. The | symbol (pipe) is used to indicate the different values that can be used to specify a value for the key. Keys between [ and ] are optional.
+In the list below the expected type of the value is specified between < and >. A <bool> key can be specified with values 1|0, yes|no or true|false. The | symbol (pipe) is used to indicate the different values that can be used to specify a value for the key. Keys between [ and ] are optional.
 
 Core options:
 

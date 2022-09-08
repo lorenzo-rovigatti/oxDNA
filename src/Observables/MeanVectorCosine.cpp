@@ -32,6 +32,8 @@ void MeanVectorCosine::init() {
 }
 
 void MeanVectorCosine::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	int tmp = 0;
 
 	getInputInt(&my_inp, "chain_id", &tmp, 1);

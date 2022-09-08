@@ -29,7 +29,7 @@ public:
 
 	void init();
 	void get_settings(input_file &inp);
-	void sim_step(llint cur_step);
+	void sim_step();
 	void activate_thermostat();
 };
 

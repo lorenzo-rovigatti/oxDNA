@@ -14,6 +14,10 @@ struct Molecule {
 	Molecule();
 	virtual ~Molecule();
 
+	static void reset_id() {
+		_current_id = 0;
+	}
+
 	std::vector<BaseParticle *> particles;
 	LR_vector com;
 
@@ -40,6 +44,21 @@ struct Molecule {
 	 * @brief Compute the centre of mass of the molecule
 	 */
 	void update_com();
+
+	int get_id() {
+		return _id;
+	}
+
+	int get_topology_id() {
+		return _id + 1;
+	}
+
+private:
+	static int _next_id() {
+	   return _current_id++;
+	}
+	const int _id;
+	static int _current_id;
 };
 
 #endif /* SRC_PARTICLES_MOLECULE_H_ */

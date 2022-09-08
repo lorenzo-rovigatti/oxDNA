@@ -1,0 +1,42 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+backend_precision = double
+#seed = 26176
+interaction_type = RNA2
+mismatch_repulsion = 1
+salt_concentration = 1.0
+#debug = 1
+
+####    SIM PARAMETERS    ####
+sim_type = VMMC
+ensemble = NVT
+steps = 2e9
+check_energy_every = 100000
+check_energy_threshold = 1.e-4
+delta_translation = 0.1
+delta_rotation = 0.2
+T = 35C  
+verlet_skin = 0.2
+mismatch_repulsion = 1
+use_average_seq = 0
+seq_dep_file = rna_sequence_dependent_parameters.txt
+
+#umbrella_sampling = 1
+#op_file = op.txt
+#weights_file = wfile.txt
+#extrapolate_hist =  24C, 26C, 28C, 30C, 32C, 34C, 36C, 38C, 40C, 42C, 44C, 46C, 48C, 50C, 52C, 54C, 54C, 58C, 60C
+maxclust = 30
+small_system = 1
+####    INPUT / OUTPUT    ####
+topology = rna_tile.top
+conf_file = rna_tile.dat
+lastconf_file = last_conf_trap.dat
+trajectory_file = trajectory.dat
+refresh_vel = 0
+no_stdout_energy = 0 
+restart_step_counter = 0
+energy_file = energy_trap.dat
+print_conf_interval = 1e6
+print_energy_every = 1e4
+time_scale = linear
+external_forces = 0

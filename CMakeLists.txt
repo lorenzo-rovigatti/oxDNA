@@ -4,6 +4,10 @@ if(POLICY CMP0054)
 	cmake_policy(SET CMP0054 NEW)
 endif()
 
+if(POLICY CMP0037)
+        cmake_policy(SET CMP0037 OLD)
+endif()
+
 # this is required when working with newer gcc versions (> 5.4)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 
@@ -77,9 +81,7 @@ IF(NOT DOUBLE)
 	ADD_DEFINITIONS(-DFLOAT_PRECISION)
 ENDIF()
 
-IF(CUDA_DOUBLE)
-	ADD_DEFINITIONS(-DCUDA_DOUBLE_PRECISION)
-ENDIF()
+include_directories(src/extern)
 
 ADD_DEFINITIONS(-Wall -Wshadow -Wextra -Wno-unused-parameter)
 
@@ -102,40 +104,6 @@ IF(NOT Debug)
 		endif()
 	ENDIF(INTEL)
 ENDIF()
-
-IF(CUDA)
-	CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
-	FIND_PACKAGE("CUDA" REQUIRED)
-	
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
-
-	INCLUDE_DIRECTORIES(${CUDA_INSTALL_PREFIX}/include/)
-	LINK_DIRECTORIES(${CUDA_INSTALL_PREFIX}/lib)
-	
-	INCLUDE(select_compute_arch.cmake)
-	
-	IF(CUDA_COMMON_ARCH)
-		CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Common)
-	ELSE(CUDA_COMMON_ARCH)
-		CUDA_SELECT_NVCC_ARCH_FLAGS(ARCH_FLAGS Auto)
-	ENDIF(CUDA_COMMON_ARCH)
-	
-	MESSAGE(STATUS "Generating code for the following CUDA architectures: ${ARCH_FLAGS_readable}")
-	LIST(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
-	MESSAGE(STATUS "${CUDA_NVCC_FLAGS}")
-   
-	IF(G)
-		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo)
-	ENDIF(G)
-
-	IF(DEBUG)
-		SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -lineinfo -G)
-	ENDIF(DEBUG)
-
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -use_fast_math --compiler-options "-ffast-math -O3" -Xcudafe "--diag_suppress=unrecognized_gcc_pragma")
-ELSE()
-	ADD_DEFINITIONS(-DNOCUDA)
-ENDIF(CUDA)
 
 IF(MPI)
 	ADD_DEFINITIONS(-DHAVE_MPI)
@@ -179,24 +147,23 @@ if(DOXYGEN_FOUND)
 	)
 ENDIF(DOXYGEN_FOUND)
 
-ADD_CUSTOM_TARGET(test_run
+add_custom_target(test_run
     ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA run
-    COMMAND ${TEST_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/DNAnalysis analysis
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running build integration tests" VERBATIM
 )
 
-ADD_CUSTOM_TARGET(test_quick
+add_custom_target(test_quick
     ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA quick
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMENT "Running quick tests" VERBATIM
 )
 
-ADD_CUSTOM_TARGET(test_scientific
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/TestSuite.py test_folder_list.txt ${PROJECT_BINARY_DIR}/bin/oxDNA scientific
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
-    COMMENT "Running scientific tests" VERBATIM
+add_custom_target(test
+	COMMENT "Running all tests" VERBATIM
 )
+
+add_dependencies(test test_quick test_run)
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 

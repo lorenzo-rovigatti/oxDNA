@@ -11,9 +11,12 @@
 
 LowdimMovingTrap::LowdimMovingTrap() :
 				BaseForce() {
+	_visX = _visY = _visZ = false;
 }
 
-std::tuple<std::vector<int>, std::string> LowdimMovingTrap::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> LowdimMovingTrap::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	std::string particles_string;
 	getInputString(&inp, "particle", particles_string, 1);
 	getInputNumber(&inp, "stiff", &_stiff, 1);

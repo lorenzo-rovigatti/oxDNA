@@ -36,7 +36,7 @@ protected:
 	number _sqr_rcut;
 
 	number _rod_cell_rcut;
-	number _rod_length;
+	number _rod_length, _rod_length_2;
 	int * _n_virtual_sites;
 	int _n_part_types;
 	int _n_virtual_sites_max;

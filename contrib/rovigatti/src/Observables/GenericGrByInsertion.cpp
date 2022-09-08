@@ -26,6 +26,8 @@ GenericGrByInsertion::~GenericGrByInsertion() {
 }
 
 void GenericGrByInsertion::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	float tmp;
 	if(getInputFloat(&my_inp, "bin", &tmp, 0) == KEY_FOUND) _bin = tmp;
 

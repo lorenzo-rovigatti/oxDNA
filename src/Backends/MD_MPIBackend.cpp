@@ -248,14 +248,14 @@ void MD_MPIBackend::_Evaluate_my_particles(void)
 //---------------------------------------------------------------------------------------------------------
 
 
-void MD_MPIBackend::sim_step(llint curr_step) {
+void MD_MPIBackend::sim_step() {
 
   if(this->_myid == 0)   //this is master node
   {
     get_time(&this->_timer, 0);
 
 	get_time(&this->_timer, 2);
-	MD_CPUBackend::_first_step(curr_step);
+	MD_CPUBackend::_first_step();
 	get_time(&this->_timer, 3);
 
 	get_time(&this->_timer, 6);
@@ -275,10 +275,7 @@ void MD_MPIBackend::sim_step(llint curr_step) {
 	get_time(&this->_timer, 9);
 
 	get_time(&this->_timer, 10);
-	if(this->_thermostat != this->THERMOSTAT_NO && (curr_step % this->_newtonian_steps == 0)) {
-		if(this->_thermostat == this->THERMOSTAT_JOHN) MD_CPUBackend::_activate_john_thermostat();
-		else MD_CPUBackend::_activate_refresh_thermostat();
-	}
+	_thermostat->apply(_particles, current_step());
 	get_time(&this->_timer, 11);
 
 	get_time(&this->_timer, 1);
@@ -289,8 +286,6 @@ void MD_MPIBackend::sim_step(llint curr_step) {
   {
   	this->_MPI_compute_forces();  //slave node just computes forces
   }
-
-
 }
 //------------------------------------------------------------------------------------------
 
@@ -529,10 +524,8 @@ void MD_MPIBackend::init() {
 }
 //---------------------------------------------------------------------------
 
-void MD_MPIBackend::print_conf(llint curr_step, bool reduced, bool only_last) {
-	if(this->_myid == 0) SimBackend::print_conf(curr_step, reduced, only_last);
+void MD_MPIBackend::print_conf(bool reduced, bool only_last) {
+	if(this->_myid == 0) SimBackend::print_conf(reduced, only_last);
 }
 //--------------------------------------------------------------------------
 //----------------------------------------------------------------------
-template class MD_MPIBackend<float>;
-template class MD_MPIBackend<double>;

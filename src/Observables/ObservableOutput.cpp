@@ -132,15 +132,14 @@ void ObservableOutput::clear() {
 
 void ObservableOutput::add_observable(ObservablePtr new_obs) {
 	_obss.push_back(new_obs);
+	CONFIG_INFO->observables.push_back(new_obs);
 }
 
 void ObservableOutput::add_observable(std::string obs_string) {
-	input_file *obs_inp = Utils::get_input_file_from_string(obs_string);
+	std::shared_ptr<input_file> obs_inp(Utils::get_input_file_from_string(obs_string));
 
 	ObservablePtr new_obs = ObservableFactory::make_observable(*obs_inp);
-	_obss.push_back(new_obs);
-
-	delete obs_inp;
+	add_observable(new_obs);
 }
 
 void ObservableOutput::change_output_file(string new_filename) {

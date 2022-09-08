@@ -56,6 +56,7 @@ protected:
 	number _PS_gamma = 0.;
 	int _PS_n = 6;
 
+	std::vector<int> _btype_pattern;
 	bool _same_sticky_only_interaction = false;
 
 	/// three-body potential stuff
@@ -97,7 +98,7 @@ public:
 		BONDED = 0, NONBONDED = 1, STICKY = 2
 	};
 	enum {
-		MONOMER = 0, STICKY_ANY = 1, STICKY_A = 5, STICKY_B = 9
+		MONOMER = 0, STICKY_ANY = 1
 	};
 
 	bool no_three_body = false;

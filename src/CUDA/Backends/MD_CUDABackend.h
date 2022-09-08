@@ -21,17 +21,15 @@
 #include "../Lists/CUDANoList.h"
 #include "../Lists/CUDASimpleVerletList.h"
 
-#include "../CUDAForces.h"
+union CUDA_trap;
 
 /**
  * @brief Manages a MD simulation on GPU with CUDA.
  */
-
 class MD_CUDABackend: public MDBackend, public CUDABaseBackend{
 protected:
 	bool _use_edge;
 	bool _any_rigid_body;
-	bool _restart_step_counter;
 	bool _avoid_cpu_calculations;
 
 	int *_h_gpu_index, *_h_cpu_index;
@@ -48,7 +46,6 @@ protected:
 	c_number4 *_d_molecular_coms;
 
 	c_number4 *_d_buff_vels, *_d_buff_Ls;
-	llint _curr_step;
 
 	llint _barostat_attempts, _barostat_accepted;
 
@@ -62,22 +59,23 @@ protected:
 	bool _cuda_barostat_always_refresh = false;
 	std::shared_ptr<CUDABrownianThermostat> _cuda_barostat_thermostat;
 
-	CUDA_trap *_h_ext_forces, *_d_ext_forces;
+	CUDA_trap *_d_ext_forces;
 	int _max_ext_forces;
 
 	virtual void _gpu_to_host();
 	virtual void _host_to_gpu();
+	virtual void _apply_external_forces_changes();
 
 	virtual void _sort_particles();
 	virtual void _rescale_molecular_positions(c_number4 new_Ls, c_number4 old_Ls, bool is_reverse_move);
 	virtual void _rescale_positions(c_number4 new_Ls, c_number4 old_Ls);
 
 	virtual void _first_step();
-	virtual void _apply_barostat(llint curr_step);
+	virtual void _apply_barostat();
 	virtual void _forces_second_step();
 	virtual void _set_external_forces();
 
-	virtual void _thermalize(llint curr_step);
+	virtual void _thermalize();
 
 	virtual void _init_CUDA_MD_symbols();
 
@@ -88,7 +86,7 @@ public:
 	virtual void get_settings(input_file &inp);
 	virtual void init();
 
-	virtual void sim_step(llint curr_step);
+	virtual void sim_step();
 
 	virtual void apply_simulation_data_changes();
 	virtual void apply_changes_to_simulation_data();

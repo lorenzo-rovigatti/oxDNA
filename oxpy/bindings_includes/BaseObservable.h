@@ -43,14 +43,14 @@ void export_BaseObservable(py::module &m) {
 
 		Parameters
 		---------- 
-		my_inp : :class:`input_file`
+		my_inp : :class:`InputFile`
 			The input file of the observable.
-		sim_inp : :class:`input_file`
+		sim_inp : :class:`InputFile`
 			The general input file of the simulation.
 	)pbdoc");
 
 	obs.def("init", &BaseObservable::init, R"pbdoc(
-		Initialises the observable.
+		Initialise the observable.
 	)pbdoc");
 
 	obs.def_property_readonly("config_info", [](BaseObservable const& obs) { return CONFIG_INFO->instance(); }, R"pbdoc(
@@ -59,7 +59,7 @@ void export_BaseObservable(py::module &m) {
 	)pbdoc");
 
 	obs.def("get_output_string", &BaseObservable::get_output_string, py::arg("curr_step"), R"pbdoc(
-		Computes the quantity/quantities of interest and returns the output string.
+		Compute the quantity/quantities of interest and returns the output string.
 
         Parameters
         ---------- 

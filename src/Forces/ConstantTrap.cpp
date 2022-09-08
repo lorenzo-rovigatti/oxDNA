@@ -17,10 +17,11 @@ ConstantTrap::ConstantTrap() :
 	PBC = false;
 	_r0 = -1.;
 	_ref_id = -2;
-	_box_ptr = NULL;
 }
 
-std::tuple<std::vector<int>, std::string> ConstantTrap::init(input_file &inp, BaseBox *box_ptr) {
+std::tuple<std::vector<int>, std::string> ConstantTrap::init(input_file &inp) {
+	BaseForce::init(inp);
+
 	int particle;
 	getInputInt(&inp, "particle", &particle, 1);
 	getInputInt(&inp, "ref_particle", &_ref_id, 1);
@@ -32,8 +33,6 @@ std::tuple<std::vector<int>, std::string> ConstantTrap::init(input_file &inp, Ba
 	if(_ref_id < 0 || _ref_id >= N) throw oxDNAException("Invalid reference particle %d for ConstantTrap", _ref_id);
 	_p_ptr = CONFIG_INFO->particles()[_ref_id];
 
-	_box_ptr = box_ptr;
-
 	if(particle >= N || N < -1) throw oxDNAException("Trying to add a ConstantTrap on non-existent particle %d. Aborting", particle);
 	if(particle == -1) throw oxDNAException("Cannot apply ConstantTrap to all particles. Aborting");
 
@@ -43,19 +42,21 @@ std::tuple<std::vector<int>, std::string> ConstantTrap::init(input_file &inp, Ba
 }
 
 LR_vector ConstantTrap::_distance(LR_vector u, LR_vector v) {
-	if(PBC) return _box_ptr->min_image(u, v);
-	else return v - u;
+	if(PBC) {
+		return CONFIG_INFO->box->min_image(u, v);
+	}
+	else {
+		return v - u;
+	}
 }
 
 LR_vector ConstantTrap::value(llint step, LR_vector &pos) {
-	LR_vector dr = _distance(pos, _box_ptr->get_abs_pos(_p_ptr)); // other - self
-	if(_site >= 0) dr -= _p_ptr->orientationT * _p_ptr->int_centers[_site];
+	LR_vector dr = _distance(pos, CONFIG_INFO->box->get_abs_pos(_p_ptr)); // other - self
 	number sign = copysign(1., (double) (dr.module() - _r0));
 	return (_stiff * sign) * (dr / dr.module());
 }
 
 number ConstantTrap::potential(llint step, LR_vector &pos) {
-	LR_vector dr = _distance(pos, _box_ptr->get_abs_pos(_p_ptr)); // other - self
-	if(_site >= 0) dr -= _p_ptr->orientationT * _p_ptr->int_centers[_site];
+	LR_vector dr = _distance(pos, CONFIG_INFO->box->get_abs_pos(_p_ptr)); // other - self
 	return _stiff * fabs((dr.module() - _r0));
 }

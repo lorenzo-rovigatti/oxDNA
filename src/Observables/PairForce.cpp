@@ -18,6 +18,8 @@ PairForce::~PairForce() {
 }
 
 void PairForce::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	int tmp = 0;
 	_print_all_particles = true;
 	if(getInputInt(&my_inp, "particle_id", &tmp, 0) == KEY_FOUND) {

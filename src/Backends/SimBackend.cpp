@@ -12,6 +12,7 @@
 #include "../Utilities/Utils.h"
 #include "../Utilities/ConfigInfo.h"
 #include "../Interactions/InteractionFactory.h"
+#include "../Observables/ObservableFactory.h"
 #include "../Forces/ForceFactory.h"
 #include "../Lists/ListFactory.h"
 #include "../Boxes/BoxFactory.h"
@@ -26,6 +27,7 @@ SimBackend::SimBackend() {
 	_external_forces = false;
 	_N_updates = 0;
 	_confs_to_skip = 0;
+	_bytes_to_skip = 0;
 	_interaction = nullptr;
 	_N_strands = -1;
 	start_step_from_file = (llint) 0;
@@ -51,7 +53,7 @@ SimBackend::SimBackend() {
 	_T = -1.;
 
 	ConfigInfo::init(&_particles, &_molecules);
-	_config_info = ConfigInfo::instance();
+	_config_info = ConfigInfo::instance().get();
 	_config_info->subscribe("T_updated", [this]() {
 		this->_on_T_update();
 	});
@@ -152,36 +154,18 @@ void SimBackend::get_settings(input_file &inp) {
 	_reseed = (getInputInt(&inp, "seed", &tmpi, 0) == KEY_NOT_FOUND || tmpi == 0);
 
 	getInputInt(&inp, "confs_to_skip", &_confs_to_skip, 0);
-
-	int val = getInputBoolAsInt(&inp, "external_forces", &tmp, 0);
-	if(val == KEY_FOUND) {
-		_external_forces = (tmp != 0);
-		if(_external_forces) {
-			getInputString(&inp, "external_forces_file", _external_filename, 1);
-		}
+	if(_confs_to_skip == 0) {
+		getInputLLInt(&inp, "bytes_to_skip", &_bytes_to_skip, 0);
 	}
-	else if(val == KEY_INVALID)
-		throw oxDNAException("external_forces must be either 0 (false, no) or 1 (true, yes)");
 
 	char raw_T[256];
 	getInputString(&inp, "T", raw_T, 1);
 	_config_info->update_temperature(Utils::get_temperature(raw_T));
 
 	// here we fill the _obs_outputs vector
-	int i = 1;
-	bool found = true;
-	while(found) {
-		stringstream ss;
-		ss << "data_output_" << i;
-		string obs_string;
-		if(getInputString(&inp, ss.str().c_str(), obs_string, 0) == KEY_FOUND) {
-			ObservableOutputPtr new_obs_out = std::make_shared<ObservableOutput>(obs_string);
-			add_output(new_obs_out);
-		}
-		else
-			found = false;
-
-		i++;
+	auto new_outputs = ObservableFactory::make_observables();
+	for(auto new_output : new_outputs) {
+		add_output(new_output);
 	}
 
 	getInputBool(&inp, "back_in_box", &_back_in_box, 0);
@@ -197,27 +181,31 @@ void SimBackend::get_settings(input_file &inp) {
 	}
 
 	// we build the default stream of observables for trajectory and last configuration
+	bool traj_print_momenta = true;
+	getInputBool(&inp, "trajectory_print_momenta", &traj_print_momenta, 0);
 	std::string traj_file;
 	// Trajectory
 	getInputString(&inp, "trajectory_file", traj_file, 1);
-	std::string fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
-	_obs_output_trajectory = std::make_shared<ObservableOutput>(fake);
-	_obs_output_trajectory->add_observable("type = configuration");
+	std::string output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n}\n", traj_file.c_str());
+	_obs_output_trajectory = std::make_shared<ObservableOutput>(output_inp_text);
+
+	std::string obs_text = Utils::sformat("type = configuration\nprint_momenta = %d", traj_print_momenta);
+	_obs_output_trajectory->add_observable(obs_text);
 	add_output(_obs_output_trajectory);
 
 	// Last configuration
 	std::string lastconf_file = "last_conf.dat";
 	getInputString(&inp, "lastconf_file", lastconf_file, 0);
-	fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
-	_obs_output_last_conf = std::make_shared<ObservableOutput>(fake);
-	_obs_output_last_conf->add_observable("type = configuration");
+	output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n}\n", lastconf_file.c_str());
+	_obs_output_last_conf = std::make_shared<ObservableOutput>(output_inp_text);
+	_obs_output_last_conf->add_observable("type = configuration\nid = last_conf");
 	add_output(_obs_output_last_conf);
 
 	// Last configuration in binary, optional
 	std::string lastconf_file_bin;
 	if((getInputString(&inp, "lastconf_file_bin", lastconf_file_bin, 0) == KEY_FOUND)) {
-		fake = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
-		_obs_output_last_conf_bin = std::make_shared<ObservableOutput>(fake);
+		output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = 0\n\tonly_last = 1\n\tbinary = 1\n}\n", lastconf_file_bin.c_str());
+		_obs_output_last_conf_bin = std::make_shared<ObservableOutput>(output_inp_text);
 		_obs_output_last_conf_bin->add_observable("type = binary_configuration");
 		add_output(_obs_output_last_conf_bin);
 	}
@@ -226,8 +214,8 @@ void SimBackend::get_settings(input_file &inp) {
 	llint reduced_conf_every;
 	if(getInputLLInt(&inp, "print_reduced_conf_every", &reduced_conf_every, 0) == KEY_FOUND && reduced_conf_every > 0) {
 		getInputString(&inp, "reduced_conf_output_dir", _reduced_conf_output_dir, 1);
-		fake = Utils::sformat("{\n\tname = reduced_conf.dat\n\tprint_every = %lld\n\tonly_last = 1\n}\n", reduced_conf_every);
-		_obs_output_reduced_conf = std::make_shared<ObservableOutput>(fake);
+		output_inp_text = Utils::sformat("{\n\tname = reduced_conf.dat\n\tprint_every = %lld\n\tonly_last = 1\n}\n", reduced_conf_every);
+		_obs_output_reduced_conf = std::make_shared<ObservableOutput>(output_inp_text);
 		_obs_output_reduced_conf->add_observable("type = configuration\nreduced = true");
 		add_output(_obs_output_reduced_conf);
 	}
@@ -237,8 +225,8 @@ void SimBackend::get_settings(input_file &inp) {
 	if(getInputLLInt(&inp, "checkpoint_every", &checkpoint_every, 0) == KEY_FOUND && checkpoint_every > 0) {
 		int tmp1 = getInputString(&inp, "checkpoint_trajectory", _checkpoint_traj, 0);
 		if(tmp1 == KEY_FOUND) {
-			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
-			_obs_output_checkpoints = std::make_shared<ObservableOutput>(fake);
+			output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = false\n}\n", _checkpoint_traj.c_str(), checkpoint_every);
+			_obs_output_checkpoints = std::make_shared<ObservableOutput>(output_inp_text);
 			_obs_output_checkpoints->add_observable("type = checkpoint");
 			add_output(_obs_output_checkpoints);
 			OX_LOG(Logger::LOG_INFO, "Setting up a trajectory of checkpoints to file %s every %lld steps",_checkpoint_traj.c_str(), checkpoint_every);
@@ -246,8 +234,8 @@ void SimBackend::get_settings(input_file &inp) {
 
 		int tmp2 = getInputString(&inp, "checkpoint_file", _checkpoint_file, 0);
 		if(tmp2 == KEY_FOUND) {
-			fake = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
-			_obs_output_last_checkpoint = std::make_shared<ObservableOutput>(fake);
+			output_inp_text = Utils::sformat("{\n\tname = %s\n\tprint_every = %lld\n\tonly_last = true\n}\n", _checkpoint_file.c_str(), checkpoint_every);
+			_obs_output_last_checkpoint = std::make_shared<ObservableOutput>(output_inp_text);
 			_obs_output_last_checkpoint->add_observable("type = checkpoint");
 			add_output(_obs_output_last_checkpoint);
 			OX_LOG(Logger::LOG_INFO, "Setting up last checkpoint to file %s every %lld steps",_checkpoint_file.c_str(), checkpoint_every);
@@ -268,6 +256,9 @@ void SimBackend::get_settings(input_file &inp) {
 	else {
 		_max_io = 1.; // default value for a simulation is 1 MB/s;
 	}
+
+	getInputBool(&inp, "external_forces", &_external_forces, 0);
+
 }
 
 void SimBackend::init() {
@@ -308,6 +299,9 @@ void SimBackend::init() {
 			}
 		}
 	}
+	else if(_bytes_to_skip > 0) {
+		_conf_input.seekg(_bytes_to_skip, std::ios_base::beg);
+	}
 
 	bool check = read_next_configuration(_initial_conf_is_binary);
 	if(!check) {
@@ -315,6 +309,7 @@ void SimBackend::init() {
 	}
 
 	// initialise the molecules
+	Molecule::reset_id();
 	for(int i = 0; i < _N_strands; i++) {
 		_molecules.push_back(std::make_shared<Molecule>());
 	}
@@ -331,15 +326,13 @@ void SimBackend::init() {
 	start_step_from_file = (_restart_step_counter) ? 0 : _read_conf_step;
 	_config_info->curr_step = start_step_from_file;
 
-	if(_external_forces) {
-		ForceFactory::instance()->read_external_forces(std::string(_external_filename), _particles, _box.get());
-	}
-
-	_U = (number) 0;
+	// initialise external forces
+	ForceFactory::instance()->make_forces(_particles, _box.get());
 
 	_interaction->set_box(_box.get());
 
 	_lists->init(_rcut);
+	CONFIG_INFO->subscribe(_box->INIT_EVENT, [this]() { this->_lists->change_box(); });
 
 	_config_info->set(_interaction.get(), &_backend_info, _lists.get(), _box.get());
 
@@ -351,20 +344,15 @@ void SimBackend::init() {
 	OX_LOG(Logger::LOG_INFO, "N: %d, N molecules: %d", N, _molecules.size());
 }
 
-LR_vector SimBackend::_read_next_vector(bool binary) {
+LR_vector SimBackend::_read_next_binary_vector() {
 	LR_vector res;
-	if(binary) {
-		double tmpf;
-		_conf_input.read((char*) &tmpf, sizeof(double));
-		res.x = tmpf;
-		_conf_input.read((char*) &tmpf, sizeof(double));
-		res.y = tmpf;
-		_conf_input.read((char*) &tmpf, sizeof(double));
-		res.z = tmpf;
-	}
-	else {
-		_conf_input >> res.x >> res.y >> res.z;
-	}
+	double tmpf;
+	_conf_input.read((char*) &tmpf, sizeof(double));
+	res.x = tmpf;
+	_conf_input.read((char*) &tmpf, sizeof(double));
+	res.y = tmpf;
+	_conf_input.read((char*) &tmpf, sizeof(double));
+	res.z = tmpf;
 
 	return res;
 }
@@ -446,7 +434,6 @@ bool SimBackend::read_next_configuration(bool binary) {
 	// large numbers in the conf file and use float precision later
 	int k, i;
 	std::vector<int> nins(_N_strands);
-	std::vector<LR_vector> tmp_poss(_particles.size());
 	std::vector<LR_vector> scdm(_N_strands);
 
 	// here we cannot use _molecules because it has not been initialised yet
@@ -456,56 +443,64 @@ bool SimBackend::read_next_configuration(bool binary) {
 	}
 
 	i = 0;
+	std::string line;
 	while(!_conf_input.eof() && i < N()) {
 		BaseParticle *p = _particles[i];
 
-		tmp_poss[i] = _read_next_vector(binary);
-		k = p->strand_id;
-		scdm[k] += tmp_poss[i];
-		nins[k]++;
-
 		if(!binary) {
-			p->orientation.v1 = _read_next_vector(binary);
-			p->orientation.v3 = _read_next_vector(binary);
-			// get v2 from v1 and v3
+			std::getline(_conf_input, line);
+			auto spl_line = Utils::split_to_numbers(line, " ");
+
+			p->pos = LR_vector(spl_line[0], spl_line[1], spl_line[2]);
+			p->orientation.v1 = LR_vector(spl_line[3], spl_line[4], spl_line[5]);
+			p->orientation.v3 = LR_vector(spl_line[6], spl_line[7], spl_line[8]);
+
+			// get v2 from v1 and v3 and orthonormalise
 			p->orientation.v1.normalize();
 			p->orientation.v3.normalize();
 			p->orientation.v1 -= p->orientation.v3 * (p->orientation.v1 * p->orientation.v3);
 			p->orientation.v1.normalize();
 			p->orientation.v2 = p->orientation.v3.cross(p->orientation.v1);
 			p->orientation.v2.normalize();
+
+			if(spl_line.size() == 15) {
+				// read the momenta
+				p->vel = LR_vector(spl_line[9], spl_line[10], spl_line[11]);
+				p->L = LR_vector(spl_line[12], spl_line[13], spl_line[14]);
+			}
 		}
 		else {
+			p->pos = _read_next_binary_vector();
+
 			int x, y, z;
 			_conf_input.read((char*) &x, sizeof(int));
 			_conf_input.read((char*) &y, sizeof(int));
 			_conf_input.read((char*) &z, sizeof(int));
 			p->set_pos_shift(x, y, z);
 
-			p->orientation.v1 = _read_next_vector(binary);
-			p->orientation.v2 = _read_next_vector(binary);
-			p->orientation.v3 = _read_next_vector(binary);
+			p->orientation.v1 = _read_next_binary_vector();
+			p->orientation.v2 = _read_next_binary_vector();
+			p->orientation.v3 = _read_next_binary_vector();
+
+			p->vel = _read_next_binary_vector();
+			p->L = _read_next_binary_vector();
 		}
+
 		// v1, v2 and v3 should have length 1. If they don't it means that they are null vectors
 		if(p->orientation.v1.module() < 0.9 || p->orientation.v2.module() < 0.9 || p->orientation.v3.module() < 0.9) {
 			throw oxDNAException("Invalid orientation for particle %d: at least one of the vectors is a null vector", p->index);
 		}
 		p->orientation.transpone();
 
-		p->vel = _read_next_vector(binary);
-		p->L = _read_next_vector(binary);
+		k = p->strand_id;
+		scdm[k] += p->pos;
+		nins[k]++;
 
 		p->init();
 		p->orientationT = p->orientation.get_transpose();
 		p->set_positions();
 
 		i++;
-	}
-
-	// this is needed because, if reading from an ascii trajectory, at this stage the _conf_input pointer points to a \n
-	if(!binary && !_conf_input.eof()) {
-		std::string line;
-		std::getline(_conf_input, line);
 	}
 
 	// discarding the final '\n' in the binary file...
@@ -515,10 +510,12 @@ bool SimBackend::read_next_configuration(bool binary) {
 	}
 
 	if(i != N()) {
-		if(_confs_to_skip > 0)
+		if(_confs_to_skip > 0) {
 			throw oxDNAException("Wrong number of particles (%d) found in configuration. Maybe you skipped too many configurations?", i);
-		else
+		}
+		else {
 			throw oxDNAException("The number of lines found in configuration file (%d) doesn't match the parsed number of particles (%d)", i, N());
+		}
 	}
 
 	for(k = 0; k < _N_strands; k++) {
@@ -529,7 +526,7 @@ bool SimBackend::read_next_configuration(bool binary) {
 		BaseParticle *p = _particles[i];
 		k = p->strand_id;
 
-		LR_vector p_pos = tmp_poss[i];
+		LR_vector p_pos = p->pos;
 		if(_enable_fix_diffusion && !binary) {
 			// we need to manually set the particle shift so that the particle absolute position is the right one
 			LR_vector scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
@@ -571,10 +568,10 @@ void SimBackend::remove_output(std::string output_file) {
 	_obs_outputs.erase(search);
 }
 
-void SimBackend::print_observables(llint curr_step) {
+void SimBackend::print_observables() {
 	bool someone_ready = false;
 	for(auto const &element : _obs_outputs) {
-		if(element.second->is_ready(curr_step))
+		if(element.second->is_ready(current_step()))
 			someone_ready = true;
 	}
 
@@ -583,8 +580,8 @@ void SimBackend::print_observables(llint curr_step) {
 
 		llint total_bytes = 0;
 		for(auto const &element : _obs_outputs) {
-			if(element.second->is_ready(curr_step)) {
-				element.second->print_output(curr_step);
+			if(element.second->is_ready(current_step())) {
+				element.second->print_output(current_step());
 			}
 			total_bytes += element.second->get_bytes_written();
 		}
@@ -607,6 +604,20 @@ void SimBackend::print_observables(llint curr_step) {
 	_backend_info = std::string("");
 }
 
+void SimBackend::update_observables_data() {
+	bool updated = false;
+	for(auto const &obs : _config_info->observables) {
+		if(obs->need_updating(current_step())) {
+			if(!updated) {
+				apply_simulation_data_changes();
+				updated = true;
+			}
+
+			obs->update_data(current_step());
+		}
+	}
+}
+
 void SimBackend::fix_diffusion() {
 	if(!_enable_fix_diffusion) {
 		return;
@@ -622,7 +633,7 @@ void SimBackend::fix_diffusion() {
 	static std::vector<LR_matrix> stored_or(N());
 	static std::vector<LR_matrix> stored_orT(N());
 
-	// we don't rule out the possibility that N() might change during the course of the simulation
+	// we can't exclude the possibility that N() might change during the course of the simulation
 	stored_pos.resize(N());
 	stored_or.resize(N());
 	stored_orT.resize(N());
@@ -701,27 +712,27 @@ void SimBackend::fix_diffusion() {
 	apply_changes_to_simulation_data();
 }
 
-void SimBackend::print_conf(llint curr_step, bool reduced, bool only_last) {
+void SimBackend::print_conf(bool reduced, bool only_last) {
 	apply_simulation_data_changes();
 
 	if(reduced) {
 		std::stringstream conf_name;
-		conf_name << _reduced_conf_output_dir << "/reduced_conf" << curr_step << ".dat";
+		conf_name << _reduced_conf_output_dir << "/reduced_conf" << current_step() << ".dat";
 		_obs_output_reduced_conf->change_output_file(conf_name.str().c_str());
-		_obs_output_reduced_conf->print_output(curr_step);
+		_obs_output_reduced_conf->print_output(current_step());
 	}
 	else {
 		if(!only_last) {
-			_obs_output_trajectory->print_output(curr_step);
+			_obs_output_trajectory->print_output(current_step());
 		}
-		_obs_output_last_conf->print_output(curr_step);
+		_obs_output_last_conf->print_output(current_step());
 		if(_obs_output_last_conf_bin != nullptr) {
-			_obs_output_last_conf_bin->print_output(curr_step);
+			_obs_output_last_conf_bin->print_output(current_step());
 		}
 	}
 }
 
 void SimBackend::print_equilibration_info() {
-	// he who overloads this will print something;
+	// whoever overloads this will print something;
 	return;
 }

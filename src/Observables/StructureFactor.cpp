@@ -22,6 +22,8 @@ StructureFactor::~StructureFactor() {
 }
 
 void StructureFactor::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputNumber(&my_inp, "max_q", &_max_q, 1);
 	getInputInt(&my_inp, "int_type", &_type, 0);
 	getInputInt(&my_inp, "max_qs_in_interval", &_max_qs_in_interval, 0);
@@ -81,13 +83,7 @@ void StructureFactor::init() {
 	OX_LOG(Logger::LOG_INFO, "StructureFactor: %d wave vectors", _qs.size());
 }
 
-std::string StructureFactor::get_output_string(llint curr_step) {
-	if(_always_reset) {
-		_nconf = 1;
-		std::fill(_sq.begin(), _sq.end(), 0.);
-	}
-	else _nconf += 1;
-
+void StructureFactor::update_data(llint curr_step) {
 	int N = _config_info->N();
 	uint32_t nq = 0;
 	for(typename std::list<LR_vector >::iterator it = _qs.begin(); it != _qs.end(); nq++, it++) {
@@ -107,6 +103,13 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 
 		_sq[nq] += (SQR(sq_cos) + SQR(sq_sin)) / N_type;
 	}
+	_nconf++;
+}
+
+std::string StructureFactor::get_output_string(llint curr_step) {
+	if(_update_every == 0) {
+		update_data(curr_step);
+	}
 
 	std::stringstream ret;
 	ret.precision(9);
@@ -114,7 +117,7 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 	double avg_q_mod = 0.;
 	double sq_mean = 0.;
 	double first_q = -1;
-	nq = 0;
+	uint32_t nq = 0;
 	for(auto it = _qs.begin(); it != _qs.end(); nq++) {
 		q_count++;
 		double q_mod = it->module();
@@ -130,6 +133,11 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 			avg_q_mod = sq_mean = 0.;
 			first_q = -1.;
 		}
+	}
+
+	if(_always_reset) {
+		_nconf = 0;
+		std::fill(_sq.begin(), _sq.end(), 0.);
 	}
 
 	return ret.str();

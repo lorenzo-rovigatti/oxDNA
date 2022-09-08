@@ -12,7 +12,9 @@
 HBList::HBList() {
 	_max_shift = 10;
 	_measure_mean_shift = false;
-
+	_only_count = false;
+	_read_op = true;
+	_mean_shift = 0.;
 }
 
 HBList::~HBList() {
@@ -27,8 +29,8 @@ void HBList::init() {
 }
 
 void HBList::get_settings(input_file &my_inp, input_file &sim_inp) {
-	_read_op = true;
-	_only_count = false;
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	bool parameters_loaded = false;
 	//first try to load parameters from specific op_file key
 	if(getInputString(&my_inp, "order_parameters_file", _order_parameters_file, 0) == KEY_NOT_FOUND) {
@@ -58,17 +60,12 @@ void HBList::get_settings(input_file &my_inp, input_file &sim_inp) {
 
 }
 
-bool HBList::is_hbond(int p_ind, int q_ind) {
-	// return true if particle pair p_ind, q_ind have a hydrogen bond between them
-	return false;
-}
+std::vector<std::pair<int, int>> HBList::hb_list() {
+	std::vector<std::pair<int, int>> result;
 
-std::string HBList::get_output_string(llint curr_step) {
 	unsigned long long int total_reg = 0;
 	unsigned long long int n_reg_entries = 0;
-	std::stringstream outstr;
-	llint N_bonds = 0;
-	if(!_only_count and !_measure_mean_shift) outstr << "# step " << curr_step << "\n";
+
 	// using an order parameters file
 	if(_read_op) {
 		vector_of_pairs inds = _op.get_hb_particle_list();
@@ -78,12 +75,10 @@ std::string HBList::get_output_string(llint curr_step) {
 			BaseParticle *p = _config_info->particles()[p_ind];
 			BaseParticle *q = _config_info->particles()[q_ind];
 			number hb_energy = _config_info->interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q);
-			//
+
 			if(hb_energy < HB_CUTOFF) {
-				if(_only_count) N_bonds++;
-				else if(!_measure_mean_shift) outstr << p_ind << " " << q_ind << "\n";
+				result.emplace_back(p_ind, q_ind);
 			}
-			//
 		}
 	}
 	// checking all particle pairs
@@ -99,8 +94,7 @@ std::string HBList::get_output_string(llint curr_step) {
 			// what to do if it's unbound
 			int complementary_ind = _config_info->N() - 1 - p_ind;
 			if(hb_energy < HB_CUTOFF) {
-				if(_only_count) N_bonds++;
-				else if(!_measure_mean_shift) outstr << p_ind << " " << q_ind << "\n";
+				result.emplace_back(p_ind, q_ind);
 			}
 			else if(_measure_mean_shift && complementary_ind == q_ind) {
 				//this always takes into account periodic boundary conditions, which makes sense.
@@ -108,7 +102,7 @@ std::string HBList::get_output_string(llint curr_step) {
 				double distance = distance_vector * distance_vector;
 				BaseParticle * ahead = q;
 				BaseParticle * before = q;
-				//find the register for this particular base-pair 
+				//find the register for this particular base-pair
 				int reg = 0;
 				for(int i = 0; i < _max_shift; i++) {
 					double newdist = -1;
@@ -136,10 +130,33 @@ std::string HBList::get_output_string(llint curr_step) {
 			}
 		}
 	}
-	if(_only_count) outstr << N_bonds;
-	else if(_measure_mean_shift) {
-		if(n_reg_entries == 0) outstr << "none";
-		else outstr << (total_reg / ((double) n_reg_entries));
+
+	_mean_shift = (n_reg_entries > 0) ? total_reg / (number) n_reg_entries : (number) -1.0;
+
+	return result;
+}
+
+std::string HBList::get_output_string(llint curr_step) {
+	std::stringstream outstr;
+	auto list = hb_list();
+
+	if(!_only_count and !_measure_mean_shift) {
+		outstr << "# step " << curr_step << std::endl;
+		for(auto &hb_pair : list) {
+			outstr << hb_pair.first << " " << hb_pair.second << std::endl;
+		}
 	}
+	if(_only_count) {
+		outstr << list.size();
+	}
+	else if(_measure_mean_shift) {
+		if(_mean_shift == (number) -1.0) {
+			outstr << "none";
+		}
+		else {
+			outstr << _mean_shift;
+		}
+	}
+
 	return outstr.str();
 }

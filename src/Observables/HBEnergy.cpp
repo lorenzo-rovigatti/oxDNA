@@ -17,6 +17,8 @@ HBEnergy::~HBEnergy() {
 }
 
 void HBEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	if(getInputString(&my_inp, "pairs_file", _list_file, 0) == KEY_FOUND) _mode = PAIRS_FROM_OP_FILE;
 	if(getInputString(&my_inp, "bases_file", _list_file, 0) == KEY_FOUND) _mode = BASES_FROM_FILE;
 }

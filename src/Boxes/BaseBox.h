@@ -88,7 +88,7 @@ public:
 	 *
 	 * @return
 	 */
-	virtual LR_vector &box_sides() = 0;
+	virtual LR_vector box_sides() const = 0;
 
 	/**
 	 * @brief Returns the box's total volume.
@@ -111,6 +111,9 @@ public:
 	 * @param amount displacement 
 	 */
 	virtual void shift_particle(BaseParticle *p, LR_vector &amount) = 0;
+
+	const std::string INIT_EVENT = "box_initialised";
+	const std::string UPDATE_EVENT = "box_updated";
 };
 
 using BoxPtr = std::shared_ptr<BaseBox>;

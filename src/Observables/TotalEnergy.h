@@ -18,10 +18,6 @@
 
 class TotalEnergy: public BaseObservable {
 private:
-	static number _U;
-	static number _K;
-	static llint _saved_on;
-
 	PotentialEnergy _pot_energy;
 	KineticEnergy _kin_energy;
 public:

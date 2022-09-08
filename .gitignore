@@ -37,10 +37,13 @@ pybuild/
 cuda/
 docs/oxpy/doctrees
 
-test/**/*energy.dat
+test/**/*energy*.dat
 test/**/last_conf.dat
 test/**/*log.dat
 test/**/trajectory.dat
+test/**/time.dat
+test/OXPY/first_nucleotide.dat
+test/OXPY/last_nucleotide.dat
 
 **/*pyc
 
@@ -61,5 +64,9 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Vim/gvim/vscode swp files
+.*.swp
+.vscode/
 
 select_compute_arch_laptop.cmake

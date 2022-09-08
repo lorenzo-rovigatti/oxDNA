@@ -1,20 +1,6 @@
 /**
  * @brief Handles interactions between RNA nucleotides. Contains additionally interactions (mismatch repulsion, salt) with respect to RNA Interaction class
  * Implements RNA2 model
- *
- * petr (April 2014)
- * If you want to use the RNA2 model, you need to set
- *  interaction_type = RNA2 in input file
- * Input options:
- *
- * @verbatim
- [use_average_seq = <boolean> (defaults to yes)]
- [seq_dep_file = <string> (sets the location of the files with sequence-dependent parameters)]
- [external_model = <string> (overrides default constants for the model, set in rna_model.h), by values specified by this option)]
- [salt = <float>  (sets the salt concentration in M, defaults to 1)]
- [mismatch_repulsion = <boolean> (defaults to no)]
- [mismatch_repulsion_strength = <float> (defaults to 1, sets the strength of repulsion if mismatch_repulsion is true)]
- @endverbatim
  */
 
 #ifndef RNA2_INTERACTION_H

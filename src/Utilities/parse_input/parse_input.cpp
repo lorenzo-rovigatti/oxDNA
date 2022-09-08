@@ -1,7 +1,14 @@
 #include "parse_input.h"
+
 #include "../Utils.h"
 #include "../Logger.h"
 #include "../oxDNAException.h"
+#include "../ConfigInfo.h"
+
+#include <nlohmann/json.hpp>
+#include <exprtk/exprtk.hpp>
+
+#include <regex>
 #include <algorithm>
 
 using std::string;
@@ -9,20 +16,58 @@ using std::map;
 using std::set;
 using std::vector;
 
-input_file::input_file() {
-	true_values.insert("true");
-	true_values.insert("1");
-	true_values.insert("yes");
-	true_values.insert("yup");
-	true_values.insert("of course");
+input_file *input_file::main_input = nullptr;
+std::set<std::string> input_file::true_values = {"true", "1", "yes", "yup", "of course"};
+std::set<std::string> input_file::false_values = {"false", "0", "no", "nope", "are you crazy?"};
 
-	false_values.insert("false");
-	false_values.insert("0");
-	false_values.insert("no");
-	false_values.insert("nope");
-	false_values.insert("are you crazy?");
+bool input_value::has_dependencies() {
+	return !depends_on.empty();
+}
+
+void input_value::expand_value(std::map<std::string, std::string> expanded_dependency_values) {
+	expanded_value = value;
+	for(auto k : depends_on) {
+		std::string to_sub = Utils::sformat("$(%s)", k.c_str());
+
+		size_t pos = expanded_value.find(to_sub);
+		expanded_value.replace(pos, to_sub.length(), expanded_dependency_values[k]);
+	}
+
+	// here we match patterns that are like this: ${some_text}, and we use parentheses to make sure that the second element of the std::smatch is "some_text"
+	std::regex pattern("\\$\\{(.*)\\}"); // backslashes have to be escaped or the compiler complains
+	std::smatch m;
+	std::string to_search = expanded_value;
+	exprtk::parser<double> parser;
+	while(std::regex_search(to_search, m, pattern)) {
+		exprtk::expression<double> expression;
+
+		if(!parser.compile(m[1].str(), expression) || std::isnan(expression.value())) {
+			throw oxDNAException("An error occurred during the evaluation of the mathematical expression '%s' required to expand the '%s' key", m[1].str().c_str(), key.c_str());
+		}
+		std::string expr_value = Utils::sformat("%lf", expression.value());
+
+		size_t pos = expanded_value.find(m[0].str());
+		expanded_value.replace(pos, m[0].str().length(), expr_value);
+
+		to_search = m.suffix().str();
+	}
+}
+
+input_file::input_file(bool is_main) :
+				is_main_input(is_main) {
+	if(is_main) {
+		if(input_file::main_input != nullptr) {
+			throw oxDNAException("There is already a main input file: Cannot initialise another one");
+		}
+		input_file::main_input = this;
+	}
 
 	state = UNPARSED;
+}
+
+input_file::input_file() :
+				input_file(false) {
+
 }
 
 input_file::~input_file() {
@@ -44,13 +89,29 @@ void input_file::init_from_filename(std::string filename) {
 	}
 	init_from_file(inp_file);
 	fclose(inp_file);
-	return;
 }
 
 void input_file::init_from_string(std::string s_inp) {
 	state = UNPARSED;
 	add_input_source(s_inp);
 	state = PARSED;
+}
+
+void input_file::init_from_json(const nlohmann::json &json) {
+	for(auto &item : json.items()) {
+		try {
+			std::string key(item.key());
+			std::string value(item.value());
+			set_value(key, value);
+		}
+		catch(nlohmann::detail::type_error &e) {
+			// here we use a stringstream since if we are here it means that we cannot cast item.key() and/or item.value() to a string
+			std::stringstream ss;
+			ss << "The JSON line \"" << item.key() << " : " << item.value() << "\" cannot be converted to strings. ";
+			ss << "Please make sure that all keys and values are quoted.";
+			throw oxDNAException(ss.str());
+		}
+	}
 }
 
 void input_file::init_from_command_line_args(int argc, char *argv[], int args_to_skip) {
@@ -133,26 +194,75 @@ void input_file::set_unread_keys() {
 	}
 }
 
-std::string input_file::get_value(std::string key) {
-	std::map<string, input_value>::iterator it = keys.find(key);
+std::string input_file::get_value(std::string key, int mandatory, bool &found) {
+	found = false;
+	std::map<string, input_value>::iterator it = keys.find(string(key));
 	if(it != keys.end()) {
-		it->second.read++;
-	}
-	else  {
-		throw oxDNAException("Key `%s' not found", key.c_str());
-	}
+		input_value &value = it->second;
+		value.read++;
 
-	return it->second.value;
+		// this lambda recursively checks that there are no circular dependencies and expands all the values of the involved keys
+		std::function<void(std::string,input_value &)> expand_value = [&expand_value](std::string root_key, input_value &current_value) {
+			std::map<std::string, std::string> expanded_dependency_values;
+			for(const auto &k : current_value.depends_on) {
+				if(k == root_key) {
+					throw oxDNAException("Circular dependency found between keys '%s' and '%s', aborting", root_key.c_str(), current_value.key.c_str());
+				}
+				auto dep_it = input_file::main_input->keys.find(k);
+				if(dep_it == input_file::main_input->keys.end()) {
+					throw oxDNAException("Key '%s' (which is expanded by '%s') is not defined", k.c_str(), current_value.key.c_str());
+				}
+				input_value &dep_value = input_file::main_input->keys[k];
+
+				expand_value(root_key, dep_value);
+				expanded_dependency_values[k] = dep_value.expanded_value;
+			}
+			current_value.expand_value(expanded_dependency_values);
+		};
+
+		// here we launch the recursive variable expansion
+		expand_value(key, value);
+
+		found = true;
+		return value.expanded_value;
+	}
+	else if(mandatory) {
+		throw oxDNAException("Mandatory key `%s' not found", key.c_str());
+	}
+	else {
+		return "";
+	}
 }
 
 void input_file::set_value(std::string key, std::string value) {
-	input_value new_value(value);
+	if(key == "show_overwrite_warnings") {
+		auto res = false_values.find(value);
+		if(res != false_values.end()) {
+			show_overwrite_warnings = false;
+		}
+	}
 
 	input_map::iterator old_val = keys.find(key);
-	if(old_val != keys.end()) {
+	if(old_val != keys.end() && show_overwrite_warnings) {
 		OX_LOG(Logger::LOG_WARNING, "Overwriting key `%s' (`%s' to `%s')", key.c_str(), old_val->second.value.c_str(), value.c_str());
+		keys[key].depends_on.clear();
 	}
-	keys[key] = value;
+	keys[key] = input_value(key, value);
+
+	// now we update the dependencies
+
+	// here we match patterns that are like this: $(some_text), and we use parentheses to make sure that the second element of the std::smatch is "some_text"
+	std::regex pattern("\\$\\(([\\w\\[\\]]+)\\)"); // backslashes have to be escaped or the compiler complains
+
+	std::smatch m;
+	while(std::regex_search(value, m, pattern)) {
+		keys[key].depends_on.push_back(m[1].str());
+		value = m.suffix().str();
+	}
+}
+
+void input_file::unset_value(std::string key) {
+	keys.erase(key);
 }
 
 std::string input_file::to_string() const {
@@ -246,25 +356,15 @@ int _readLine(std::vector<string>::iterator &it, std::vector<string>::iterator &
 	return KEY_READ;
 }
 
-input_map::iterator getInputValue(input_file *inp, const char *skey, int mandatory) {
-	std::map<string, input_value>::iterator it = inp->keys.find(string(skey));
-	if(it != inp->keys.end()) {
-		it->second.read++;
-	}
-	else if(mandatory) {
-		throw oxDNAException("Mandatory key `%s' not found, exiting", skey);
-	}
-
-	return it;
-}
-
 int getInputString(input_file *inp, const char *skey, std::string &dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string tmp_value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
 
-	dest = it->second.value;
+	// we don't want "dest" to be overwritten if the key was not found in the input file
+	dest = tmp_value;
 
 	return KEY_FOUND;
 }
@@ -273,7 +373,7 @@ int getInputString(input_file *inp, const char *skey, char *dest, int mandatory)
 	string s_dest;
 	int res = getInputString(inp, skey, s_dest, mandatory);
 	if(res != KEY_FOUND) {
-		return res;
+		return KEY_NOT_FOUND;
 	}
 	strncpy(dest, s_dest.c_str(), sizeof(char) * (s_dest.size() + 1));
 
@@ -281,37 +381,38 @@ int getInputString(input_file *inp, const char *skey, char *dest, int mandatory)
 }
 
 int getInputInt(input_file *inp, const char *skey, int *dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
 
-	*dest = (int) floor(atof(it->second.value.c_str()) + 0.1);
+	*dest = (int) std::floor(std::atof(value.c_str()) + 0.1);
 
 	return KEY_FOUND;
 }
 
 int getInputBool(input_file *inp, const char *skey, bool *dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
 
 	// make it lower case
-	string val = it->second.value;
-	std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+	std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
-	set<string>::iterator res = inp->true_values.find(val);
+	set<string>::iterator res = inp->true_values.find(value);
 	if(res != inp->true_values.end()) {
 		*dest = true;
 	}
 	else {
-		res = inp->false_values.find(val);
+		res = inp->false_values.find(value);
 		if(res != inp->false_values.end()) {
 			*dest = false;
 		}
 		else {
-			throw oxDNAException("boolean key `%s' is invalid (`%s'), aborting.", skey, val.c_str());
+			throw oxDNAException("boolean key `%s' is invalid (`%s'), aborting.", skey, value.c_str());
 		}
 	}
 
@@ -329,67 +430,74 @@ int getInputBoolAsInt(input_file *inp, const char *skey, int *dest, int mandator
 }
 
 int getInputLLInt(input_file *inp, const char *skey, long long int *dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
-	*dest = (long long) floor(atof(it->second.value.c_str()) + 0.1);
+
+	*dest = (long long) std::floor(std::atof(value.c_str()) + 0.1);
 
 	return KEY_FOUND;
 }
 
 int getInputUInt(input_file *inp, const char *skey, unsigned int *dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
 
-	*dest = (unsigned int) floor(atof(it->second.value.c_str()) + 0.1);
+	*dest = (unsigned int) floor(atof(value.c_str()) + 0.1);
 
 	return KEY_FOUND;
 }
 
 int getInputDouble(input_file *inp, const char *skey, double *dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
 
-	*dest = atof(it->second.value.c_str());
+	*dest = std::atof(value.c_str());
 
 	return KEY_FOUND;
 }
 
 int getInputFloat(input_file *inp, const char *skey, float *dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
 
-	*dest = atof(it->second.value.c_str());
+	*dest = std::atof(value.c_str());
 
 	return KEY_FOUND;
 }
 
 int getInputChar(input_file *inp, const char *skey, char *dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
 
-	*dest = it->second.value[0];
+	*dest = value[0];
 
 	return KEY_FOUND;
 }
 
 template<typename number>
 int getInputNumber(input_file *inp, const char *skey, number *dest, int mandatory) {
-	input_map::iterator it = getInputValue(inp, skey, mandatory);
-	if(it == inp->keys.end()) {
+	bool found;
+	std::string value = inp->get_value(skey, mandatory, found);
+	if(!found) {
 		return KEY_NOT_FOUND;
 	}
 
-	*dest = (number) atof(it->second.value.c_str());
+	*dest = (number) std::atof(value.c_str());
 
 	return KEY_FOUND;
 }

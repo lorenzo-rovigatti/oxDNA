@@ -29,7 +29,7 @@ protected:
 	void _check();
 
 public:
-	std::vector<std::shared_ptr<BaseForce>> ext_forces;
+	std::vector<BaseForce *> ext_forces;
 	int next_particle;
 	int strand_id;
 
@@ -71,7 +71,7 @@ public:
 	 * @param f
 	 * @return true if the force was added, false otherwise
 	 */
-	bool add_ext_force(ForcePtr f);
+	bool add_ext_force(BaseForce *f);
 
 	inline void set_initial_forces(llint step, const std::shared_ptr<BaseBox> &box) {
 		if(is_rigid_body()) {

@@ -32,6 +32,7 @@ class HBList: public BaseObservable {
 	bool _only_count;
 	bool _measure_mean_shift;
 	int _max_shift;
+	number _mean_shift;
 
 public:
 	HBList();
@@ -40,7 +41,8 @@ public:
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 	std::string get_output_string(llint curr_step);
 	virtual void init();
-	bool is_hbond(int p, int q);
+
+	std::vector<std::pair<int, int>> hb_list();
 };
 
 #endif /* HBLIST_H_ */

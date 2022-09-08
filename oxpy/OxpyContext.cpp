@@ -12,7 +12,8 @@
 #include <Utilities/Timings.h>
 #include <Utilities/ConfigInfo.h>
 
-OxpyContext::OxpyContext() {
+OxpyContext::OxpyContext(bool print_coda) :
+				_print_coda(print_coda) {
 
 }
 
@@ -34,6 +35,20 @@ void OxpyContext::enter() {
 void OxpyContext::exit(py::object exc_type, py::object exc_value, py::object traceback) {
 	TimingManager::clear();
 	ConfigInfo::clear();
+
+	if(_print_coda) {
+		OX_LOG(Logger::LOG_NOTHING, "");
+		OX_LOG(Logger::LOG_NOTHING, R"c(Please cite these publications for any work that uses the oxDNA simulation package
+		- for the code:
+			* P. Šulc et al., J. Chem. Phys. 137, 135101 (2012)
+			* L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)
+		- for the oxDNA model:
+			* T. E. Ouldridge et al., J. Chem. Phys, 134, 085101 (2011)
+		- for the oxDNA2 model:
+			* B. E. K. Snodin et al., J. Chem. Phys. 142, 234901 (2015)
+		- for the oxRNA model:
+			* P. Šulc et al., J. Chem. Phys. 140, 235102 (2014))c");
+	}
 }
 
 void export_OxpyContext(py::module &m) {
@@ -48,8 +63,7 @@ void export_OxpyContext(py::module &m) {
                 # your code using oxpy goes here
 	)pbdoc");
 
-	context
-		.def(py::init<>())
-		.def("__enter__", &OxpyContext::enter)
-		.def("__exit__", &OxpyContext::exit);
+	context.def(py::init<bool>(), py::arg("print_coda") = true);
+	context.def("__enter__", &OxpyContext::enter);
+	context.def("__exit__", &OxpyContext::exit);
 }

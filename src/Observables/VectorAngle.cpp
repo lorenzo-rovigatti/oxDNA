@@ -70,11 +70,10 @@ void VectorAngle::init() {
 }
 
 void VectorAngle::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
 
 	getInputInt(&my_inp, "first_particle_index", &_first_particle_index, 0);
-
 	getInputInt(&my_inp, "last_particle_index", &_last_particle_index, 0);
-
 	getInputBool(&my_inp, "print_local_details", &_print_local_details, 0);
 
 	// get the angle to consider 

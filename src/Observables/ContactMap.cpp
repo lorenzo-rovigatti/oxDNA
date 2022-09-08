@@ -23,7 +23,7 @@ void ContactMap::init() {
 std::string ContactMap::get_output_string(llint curr_step) {
 	int N = _config_info->N();
 	int s = ((N * N) - N) / 2;
-	number *cmap = new number[s];
+	static std::vector<number> cmap(s);
 
 	int k = 0;
 	for(int i = 0; i < N; i++) {
@@ -42,6 +42,5 @@ std::string ContactMap::get_output_string(llint curr_step) {
 		outstr << ' ';
 	}
 
-	delete[] cmap;
 	return outstr.str();
 }

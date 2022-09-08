@@ -113,10 +113,6 @@ void CUDAPatchyInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss
 				(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->d_edge_list, _v_lists->N_edges, d_box);
 
 			this->_sum_edge_forces_torques(d_forces, d_torques);
-
-			// potential for removal here
-			cudaThreadSynchronize();
-			CUT_CHECK_ERROR("forces_second_step error -- patchy");
 		}
 		else {
 			patchy_forces

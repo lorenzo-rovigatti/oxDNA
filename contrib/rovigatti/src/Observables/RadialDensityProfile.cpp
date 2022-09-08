@@ -72,6 +72,8 @@ std::string RadialDensityProfile::get_output_string(llint curr_step) {
 }
 
 void RadialDensityProfile::get_settings(input_file &my_inp, input_file &sim_inp) {
+	BaseObservable::get_settings(my_inp, sim_inp);
+
 	getInputBool(&my_inp, "always_reset", &_always_reset, 0);
 	getInputNumber(&my_inp, "max_value", &_max_value, 1);
 	getInputNumber(&my_inp, "bin_size", &_bin_size, 1);

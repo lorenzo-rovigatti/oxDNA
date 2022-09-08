@@ -58,9 +58,6 @@ class Timer;
 
  [no_stdout_energy = <bool> (if true oxDNA will not print the default simulation output, including the energy, to stdout. Defaults to false)]
 
- [print_timings = <bool> (whether oxDNA should print out to a file performance timings at the end of the simulation or not, defaults to false)]
- [timings_filename = <path> (path to the file where timings will be printed)]
-
  [output_prefix = <string> (the name of all output files will be preceded by this prefix, defaults to an empty string)]
 
  [checkpoint_every = <int> (If > 0, it enables the production of checkpoints, which have a binary format. Beware that trajectories that do have this option enabled will differ from trajectories that do not. If this key is specified, at least one of checkpoint_file and checkpoint_trajectory needs to be specified)]
@@ -81,7 +78,7 @@ protected:
 	bool _enable_fix_diffusion;
 
 	bool _external_forces;
-	char _external_filename[256];
+	std::string _external_filename;
 
 	char _reduced_conf_output_dir[256];
 
@@ -133,12 +130,11 @@ protected:
 	std::vector<std::shared_ptr<Molecule>> _molecules;
 
 	/// object that stores pointers to a few important variables that need to be shared with other objects
-	std::shared_ptr<ConfigInfo> _config_info;
+	ConfigInfo *_config_info = nullptr;
 
 	int _N_updates;
 	int _confs_to_skip;
-
-	void _read_external_forces();
+	llint _bytes_to_skip;
 
 	/**
 	 * Reads from _conf_input three numbers in ascii or binary format, depending on the
@@ -146,7 +142,7 @@ protected:
 	 * @param binary whether _conf_input has been open in ascii or binary format
 	 * @return a vector containing the three numbers read
 	 */
-	LR_vector _read_next_vector(bool binary);
+	LR_vector _read_next_binary_vector();
 
 	virtual void _on_T_update();
 
@@ -198,19 +194,17 @@ public:
 
 	/**
 	 * @brief Prints the observables attached to the backend.
-	 *
-	 * @param curr_step
 	 */
-	virtual void print_observables(llint curr_step);
+	virtual void print_observables();
 
-	virtual void print_conf(llint curr_step, bool reduced=false, bool only_last=false);
+	virtual void update_observables_data();
+
+	virtual void print_conf(bool reduced=false, bool only_last=false);
 
 	/**
 	 * @brief Performs a simulation step.
-	 *
-	 * @param curr_step
 	 */
-	virtual void sim_step(llint curr_step) = 0;
+	virtual void sim_step() = 0;
 
 	/**
 	 * @brief Synchronize the simulation data with the data structures that are used to analyse/print the current simulation status.
@@ -221,6 +215,14 @@ public:
 	 * @brief Update the simulation data, so that changes done to the data structures are taken into account by the simulation engine.
 	 */
 	virtual void apply_changes_to_simulation_data();
+
+	long long int current_step() {
+		return _config_info->curr_step;
+	}
+
+	void increment_current_step() {
+		_config_info->curr_step++;
+	}
 
 	llint start_step_from_file;
 };

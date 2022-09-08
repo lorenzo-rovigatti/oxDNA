@@ -145,7 +145,6 @@ struct master_condition {
  * 
  * @verbatim
  backend = CUDA (For CUDA FFS -- NB unlike the CPU implementation, the CUDA implementation does not print extra columns with the current order parameter values whenever the energy is printed)
- backend_precision = mixed (CUDA FFS is currently only implemented for mixed precision)
  sim_type = FFS_MD (This must be set for an FFS simulation)
  order_parameters_file = <string> (path to the order parameters file)
  ffs_file = <string> (path to the file with the simulation stopping conditions. Optionally, one may use 'master conditions' (CUDA FFS only), which allow one to more easily handle very high dimensional order parameters. See the EXAMPLES/CUDA_FFS/README file for more information)
@@ -393,7 +392,7 @@ public:
 	 * 
 	 * @param curr_step current step
 	 */
-	void sim_step(llint curr_step);
+	void sim_step();
 
 	/**
 	 * @brief Get a string showing the current state of the order parameters
@@ -405,7 +404,7 @@ public:
 	 *
 	 * @param curr_step current step
 	 */
-	virtual void print_observables(llint curr_step);
+	virtual void print_observables();
 
 	/**
 	 * @brief Print a list of order parameter names and values to the string str. Designed to reproduce

@@ -37,20 +37,9 @@ private:
 	 * with the observable ForceEnergy to print only the energy due to specific
 	 * groups of forces.
 	 */
-	std::string _group_name;
-
-protected:
-	/**
-	 * @brief Adds the current force to the particle(s) listed in particle_string
-	 *
-	 * This method internally uses Utils::get_particles_from_string to extract a list of particles from the particle_string parameter
-	 * and then use it to initialise all the particles contained therein.
-	 *
-	 * @param particles particle array
-	 * @param particle_string a list of particles
-	 * @param force_description an optional description (defaults to "generic force") that will be used in the logging messages
-	 */
-	void _add_self_to_particles(std::vector<BaseParticle *> &particles, std::string particle_string, std::string force_description = std::string("force"));
+	std::string _group_name = "default";
+	std::string _id = "";
+	std::string _type = "type_unread";
 
 public:
 	/**
@@ -60,13 +49,12 @@ public:
 	 * we need access in order to copy these numbers
 	 * to the GPU memory
 	 */
-	number _rate;
-	number _F0;
-	LR_vector _direction;
-	LR_vector _pos0;
+	number _rate = 0.;
+	number _F0 = 0.;
+	LR_vector _direction = LR_vector(1., 0., 0.);
+	LR_vector _pos0 = LR_vector(0., 0., 0.);
 	number _stiff;
-	int _site;
-	BaseParticle * _p_ptr;
+	BaseParticle *_p_ptr;
 
 	BaseForce();
 	virtual ~BaseForce();
@@ -78,14 +66,26 @@ public:
 	 *
 	 * This function initialises the force object and returns the list of particles it will act on
 	 */
-	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp, BaseBox *box) = 0;
+	virtual std::tuple<std::vector<int>, std::string> init(input_file &inp);
 
-	virtual void set_group_name(std::string &name) {
+	void set_group_name(std::string &name) {
 		_group_name = name;
 	}
 
-	virtual std::string get_group_name() {
+	std::string get_group_name() {
 		return _group_name;
+	}
+
+	void set_id(std::string id) {
+		_id = id;
+	}
+
+	std::string get_id() {
+		return _id;
+	}
+
+	std::string get_type() {
+		return _type;
 	}
 
 	/**

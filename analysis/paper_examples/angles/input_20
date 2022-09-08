@@ -1,0 +1,44 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+interaction_type=DNA2
+salt_concentration=1.0
+sim_type = MD
+backend = CUDA
+backend_precision = mixed
+max_density_multiplier = 10 
+#debug = 1
+#seed = 42
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 1e8
+ensemble = nvt
+thermostat = john
+T = 20C
+dt = 0.005
+verlet_skin = 0.5
+diff_coeff = 2.5
+newtonian_steps = 103
+CUDA_list = verlet
+CUDA_sort_every = 0
+use_edge = 1
+edge_n_forces = 1
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = 20.top
+conf_file = 20.dat
+lastconf_file = last_conf_20.dat
+trajectory_file = trajectory_20.dat
+refresh_vel = 1
+#log_file = log_trap.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy_20.dat
+print_conf_interval = 500000
+print_energy_every = 100000
+time_scale = linear
+external_forces = 0

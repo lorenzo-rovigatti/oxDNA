@@ -24,9 +24,18 @@
 #include "AlignmentField.h"
 #include "GenericCentralForce.h"
 #include "LJCone.h"
+#include "RepulsiveEllipsoid.h"
+
+// metadynamics-related forces
+#include "Metadynamics/LT2DCOMTrap.h"
+#include "Metadynamics/LTAtanCOMTrap.h"
+#include "Metadynamics/LTCOMAngleTrap.h"
+#include "Metadynamics/LTCOMTrap.h"
+
+#include <nlohmann/json.hpp>
+
 #include <fstream>
 #include <sstream>
-#include "RepulsiveEllipsoid.h"
 
 using namespace std;
 
@@ -47,21 +56,6 @@ std::shared_ptr<ForceFactory> ForceFactory::instance() {
 	}
 
 	return _ForceFactoryPtr;
-}
-
-void ForceFactory::_add_force_to_particles(ForcePtr force, std::vector<int> particle_ids, std::vector<BaseParticle *> &particles, std::string force_description) {
-	if(particle_ids[0] != -1) {
-		for(auto id : particle_ids) {
-			particles[id]->add_ext_force(force);
-			OX_LOG(Logger::LOG_INFO, "Adding a %s on particle %d", force_description.c_str(), id);
-		}
-	}
-	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding a %s on ALL particles", force_description.c_str());
-		for(auto p: particles) {
-			p->add_ext_force(force);
-		}
-	}
 }
 
 void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &particles, BaseBox * box_ptr) {
@@ -88,6 +82,10 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
 	else if(type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
 	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
+	else if (type_str.compare("meta_com_trap") == 0) extF = std::make_shared<LTCOMTrap>();
+	else if (type_str.compare("meta_2D_com_trap") == 0) extF = std::make_shared<LT2DCOMTrap>();
+	else if (type_str.compare("meta_atan_com_trap") == 0) extF = std::make_shared<LTAtanCOMTrap>();
+	else if (type_str.compare("meta_com_angle_trap") == 0) extF = std::make_shared<LTCOMAngleTrap>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
@@ -96,77 +94,102 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 
 	std::vector<int> particle_ids;
 	std::string description;
-	std::tie(particle_ids, description) = extF->init(inp, box_ptr); // here the force is added to the particle
+	std::tie(particle_ids, description) = extF->init(inp);
 
-	_add_force_to_particles(extF, particle_ids, particles, description);
+	CONFIG_INFO->add_force_to_particles(extF, particle_ids, description);
 }
 
-void ForceFactory::read_external_forces(std::string external_filename, std::vector<BaseParticle *> & particles, BaseBox * box) {
-	OX_LOG(Logger::LOG_INFO, "Parsing Force file %s", external_filename.c_str());
+void ForceFactory::make_forces(std::vector<BaseParticle *> &particles, BaseBox *box) {
+	bool external_forces = false;
+	getInputBool(CONFIG_INFO->sim_input, "external_forces", &external_forces, 0);
 
-	//char line[512], typestr[512];
-	int open, justopen, a;
-	ifstream external(external_filename.c_str());
+	if(external_forces) {
+		std::string external_filename;
+		getInputString(CONFIG_INFO->sim_input, "external_forces_file", external_filename, 1);
 
-	if(!external.good ()) throw oxDNAException ("Can't read external_forces_file '%s'", external_filename.c_str());
+		ifstream external(external_filename.c_str());
+		if(!external.good ()) {
+			throw oxDNAException ("Can't read external_forces_file '%s'", external_filename.c_str());
+		}
 
-	justopen = open = 0;
-	a = external.get();
-	bool is_commented = false;
-	stringstream external_string;
-	while(external.good()) {
-		justopen = 0;
-		switch(a) {
-			case '#':
-			is_commented = true;
-			break;
-			case '\n':
-			is_commented = false;
-			break;
-			case '{':
-			if(!is_commented) {
-				open++;
-				justopen = 1;
+		bool is_json = false;
+		getInputBool(CONFIG_INFO->sim_input, "external_forces_as_JSON", &is_json, 0);
+
+		if(is_json) {
+			OX_LOG(Logger::LOG_INFO, "Parsing JSON force file %s", external_filename.c_str());
+
+			nlohmann::json my_json = nlohmann::json::parse(external);
+
+			for(auto &force_json : my_json) {
+				input_file force_input;
+				force_input.init_from_json(force_json);
+				ForceFactory::instance()->add_force(force_input, particles, box);
 			}
-			break;
-			case '}':
-			if(!is_commented) {
-				if(justopen) throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
-				open--;
+		}
+		else {
+			OX_LOG(Logger::LOG_INFO, "Parsing force file %s", external_filename.c_str());
+
+			//char line[512], typestr[512];
+			int open, justopen, a;
+
+			justopen = open = 0;
+			a = external.get();
+			bool is_commented = false;
+			stringstream external_string;
+			while(external.good()) {
+				justopen = 0;
+				switch(a) {
+					case '#':
+					is_commented = true;
+					break;
+					case '\n':
+					is_commented = false;
+					break;
+					case '{':
+					if(!is_commented) {
+						open++;
+						justopen = 1;
+					}
+					break;
+					case '}':
+					if(!is_commented) {
+						if(justopen) throw oxDNAException ("Syntax error in '%s': nothing between parentheses", external_filename.c_str());
+						open--;
+					}
+					break;
+					default:
+					break;
+				}
+
+				if(!is_commented) external_string << (char)a;
+				if(open > 1 || open < 0) throw oxDNAException ("Syntax error in '%s': parentheses do not match", external_filename.c_str());
+				a = external.get();
 			}
-			break;
-			default:
-			break;
-		}
-
-		if(!is_commented) external_string << (char)a;
-		if(open > 1 || open < 0) throw oxDNAException ("Syntax error in '%s': parentheses do not match", external_filename.c_str());
-		a = external.get();
-	}
-	external.close();
-
-	external_string.clear();
-	external_string.seekg(0, ios::beg);
-	a = external_string.get();
-	while(external_string.good()) {
-		while (a != '{' && external_string.good()) {
+			external_string.clear();
+			external_string.seekg(0, ios::beg);
 			a = external_string.get();
-		}
-		if(!external_string.good()) {
-			break;
+			while(external_string.good()) {
+				while (a != '{' && external_string.good()) {
+					a = external_string.get();
+				}
+				if(!external_string.good()) {
+					break;
+				}
+
+				a = external_string.get();
+				std::string input_string("");
+				while (a != '}' && external_string.good()) {
+					input_string += a;
+					a = external_string.get();
+				}
+				input_file input;
+				input.init_from_string(input_string);
+
+				ForceFactory::instance()->add_force(input, particles, box);
+			}
 		}
 
-		a = external_string.get();
-		std::string input_string("");
-		while (a != '}' && external_string.good()) {
-			input_string += a;
-			a = external_string.get();
-		}
-		input_file input;
-		input.init_from_string(input_string);
-
-		ForceFactory::instance()->add_force(input, particles, box);
+		external.close();
+		OX_LOG(Logger::LOG_INFO, "   Force file parsed");
 	}
-
-	OX_LOG(Logger::LOG_INFO, "   Force file parsed", external_filename.c_str());
 }

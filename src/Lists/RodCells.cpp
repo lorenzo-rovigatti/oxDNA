@@ -20,6 +20,7 @@ RodCells::RodCells(std::vector<BaseParticle *> &ps, BaseBox *box) :
 	_sqr_rcut = 0;
 	_rod_cell_rcut = (number) 0.f;
 	_rod_length = (number) -1.f;
+	_rod_length_2 = (number) -1.f;
 	_n_virtual_sites = NULL;
 	_max_size = 20;
 	_added = std::vector<bool>();
@@ -38,10 +39,11 @@ RodCells::~RodCells() {
 	if(_n_virtual_sites != NULL) delete[] _n_virtual_sites;
 }
 
-void RodCells::get_settings(input_file &inp) {
+void RodCells::get_settings(input_file &inp){
 	BaseList::get_settings(inp);
 	getInputNumber(&inp, "rod_cell_rcut", &_rod_cell_rcut, 1);
 	getInputNumber(&inp, "rod_length", &_rod_length, 1);
+	getInputNumber(&inp, "rod_length_2", &_rod_length_2, 1);
 	getInputInt(&inp, "rod_cell_n_part_types", &_n_part_types, 0);
 	getInputInt(&inp, "rod_cell_restrict_to_type", &_restrict_to_type, 0);
 }
@@ -51,14 +53,17 @@ void RodCells::init(number rcut) {
 
 	_sqr_rcut = rcut * rcut;
 
-	// we want to be SURE that there is at least one site per cell
 	_n_virtual_sites = new int[_n_part_types];
 	_n_virtual_sites[0] = 1;
 	while((_rod_length / _n_virtual_sites[0]) + (number) 0.01 >= _rod_cell_rcut)
 		_n_virtual_sites[0] += 1;
 
-	if(_n_part_types == 2) _n_virtual_sites[1] = 1;
-	//if (_n_part_types == 2) _n_virtual_sites[1] = _n_virtual_sites[0];
+	if(_n_part_types == 2) {
+		if (_rod_length_2 < 0.) throw oxDNAException("(RodCells.cpp) Can't run with 2 particle types and no _rod_length_2");
+		_n_virtual_sites[1] = 1;
+		while((_rod_length_2 / _n_virtual_sites[1]) + (number) 0.01 >= _rod_cell_rcut)
+			_n_virtual_sites[1] += 1;
+	}
 
 	if(_n_part_types > 2) throw oxDNAException("RodCells.ccp can handle at most 2 particle types for now");
 
@@ -66,20 +71,22 @@ void RodCells::init(number rcut) {
 		if(_particles[i]->type >= _n_part_types) throw oxDNAException("Found particle with index %d and type %d, but RodCell is set up with only %d particle types", _particles[i]->index, _particles[i]->type, _n_part_types);
 	}
 
-	_n_virtual_sites_max = _n_virtual_sites[0];
+	_n_virtual_sites_max = _n_virtual_sites[0] > _n_virtual_sites[1] ? _n_virtual_sites[0] : _n_virtual_sites[1];
 
 	for(uint i = 0; i < _particles.size(); i++)
 		_added.push_back(false);
 
 	global_update(true);
 
-	OX_LOG(Logger::LOG_INFO, "(RodCells.cpp) N_cells_side: %d, %d, %d; rcut=%g, rod_cell_size=%g, _n_virtual_sites=%d, restrict_to_type=%d, IS_MC: %d",_N_cells_side[0], _N_cells_side[1], _N_cells_side[2], this->_rcut, _rod_cell_rcut, _n_virtual_sites[0], _restrict_to_type, this->_is_MC);
+	OX_LOG(Logger::LOG_INFO, "(RodCells.cpp) N_cells_side: %d, %d, %d; rcut=%g, rod_cell_size=%g, _n_virtual_sites=%d, restrict_to_type=%d, IS_MC: %d, stride: %g",_N_cells_side[0], _N_cells_side[1], _N_cells_side[2], this->_rcut, _rod_cell_rcut, _n_virtual_sites[0], _restrict_to_type, this->_is_MC, _rod_length/_n_virtual_sites[0]);
 }
 
 void RodCells::_set_N_cells_side_from_box(int N_cells_side[3], BaseBox *box) {
 	LR_vector box_sides = box->box_sides();  // TODO: perhaps use pointer instead of copying?
+	number my_rcut = _rod_cell_rcut + _rod_length / 2.f / _n_virtual_sites[0] + _rod_length_2 / 2.f / _n_virtual_sites[1];
+	//OX_LOG(Logger::LOG_INFO, "(RodCells.cpp) myrcut: %g (%g %g)", my_rcut, + _rod_length / 2.f / _n_virtual_sites[0], + _rod_length_2 / 2.f / _n_virtual_sites[1]);
 	for(int i = 0; i < 3; i++) {
-		N_cells_side[i] = (int) (floor(box_sides[i] / _rod_cell_rcut) + 0.1);
+		N_cells_side[i] = (int) (floor(box_sides[i] / my_rcut) + 0.1);
 		if(N_cells_side[i] < 3) N_cells_side[i] = 3;
 	}
 	while((N_cells_side[0] * N_cells_side[1] * N_cells_side[2]) > (int) (2 * _particles.size() * _n_virtual_sites_max)) {
@@ -117,8 +124,9 @@ void RodCells::single_update(BaseParticle *p) {
 	// compute new cell indexes and add to new cells
 	LR_vector * r = &p->pos;
 	LR_vector * u = &p->orientation.v3;
-	LR_vector stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * (*u);
-	LR_vector site_pos = (*r) - (_rod_length / (number) 2.f) * (*u);
+	number s = (_rod_length / (_n_virtual_sites[p->type]));
+	LR_vector stride = s * (*u);
+	LR_vector site_pos = (*r) - (0.5f * _rod_length + 0.5f * s) * (*u);
 	if(_n_virtual_sites[p->type] < 2) site_pos = *r;
 	for(int k = 0; k < _n_virtual_sites[p->type]; k++) {
 		int site_idx = p->index * _n_virtual_sites_max + k;
@@ -159,8 +167,12 @@ void RodCells::global_update(bool force_update) {
 	for(uint i = 0; i < _particles.size(); i++) {
 		BaseParticle *p = this->_particles[i];
 		//if (_restrict_to_type >= 0 && p->type != _restrict_to_type) continue;
-		LR_vector stride = (_rod_length / (_n_virtual_sites[p->type] - 1)) * p->orientation.v3;
-		LR_vector site_pos = p->pos - (_rod_length / (number) 2.f) * p->orientation.v3;
+		// FIX HERE with new stride
+		LR_vector * r = &p->pos;
+		LR_vector * u = &p->orientation.v3;
+		number s = (_rod_length / (_n_virtual_sites[p->type]));
+		LR_vector stride = s * (*u);
+		LR_vector site_pos = (*r) - (0.5f * _rod_length + 0.5f * s) * (*u);
 		if(_n_virtual_sites[p->type] < 2) site_pos = p->pos;
 		for(int k = 0; k < _n_virtual_sites[p->type]; k++) {
 			int site_idx = i * _n_virtual_sites_max + k;

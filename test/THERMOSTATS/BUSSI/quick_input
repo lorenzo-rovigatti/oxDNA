@@ -1,5 +1,4 @@
 backend = CPU
-backend_precision = double
 
 sim_type = MD
 steps = 1e5

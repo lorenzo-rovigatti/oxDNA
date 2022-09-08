@@ -54,7 +54,7 @@ void FIREBackend::init() {
 	OX_LOG(Logger::LOG_INFO, "FIRE: Using max step for minimization = %g", _max_step);
 }
 
-void FIREBackend::_first_step(llint cur_step) {
+void FIREBackend::_first_step() {
 	// Spalletti
 	number max_f = -1.f;
 	number max_t = -1.f;
@@ -162,7 +162,7 @@ void FIREBackend::_first_step(llint cur_step) {
 			p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 
 		}
-		p->set_initial_forces(cur_step, _box);
+		p->set_initial_forces(current_step(), _box);
 
 		_lists->single_update(p);
 	}
@@ -259,11 +259,11 @@ void FIREBackend::_evolve() {
 	return;
 }
 
-void FIREBackend::sim_step(llint curr_step) {
+void FIREBackend::sim_step() {
 	_mytimer->resume();
 
 	_timer_first_step->resume();
-	_first_step(curr_step);
+	_first_step();
 	_timer_first_step->pause();
 
 	_timer_lists->resume();

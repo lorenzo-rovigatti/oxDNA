@@ -15,6 +15,8 @@
 #include <map>
 #include <set>
 
+#include <nlohmann/json_fwd.hpp>
+
 #define UNPARSED 0
 #define PARSED 1
 #define ERROR 2
@@ -27,23 +29,32 @@
 #define NOTHING_READ 1
 
 struct input_value {
-	std::string value;
-	int read;
+	std::string key, value, expanded_value;
+	std::vector<std::string> depends_on;
+	int read = 0;
 
-	input_value() : value(""), read(0) {}
-	input_value(std::string v) : value(v), read(0) {}
+	input_value() : key(""), value("") {}
+	input_value(std::string k, std::string v) : key(k), value(v) {}
+
+	bool has_dependencies();
+	void expand_value(std::map<std::string, std::string> expanded_dependency_values);
 };
 
 typedef std::map<std::string, input_value> input_map;
 
 struct input_file {
+	static input_file *main_input;
+	static std::set<std::string> true_values;
+	static std::set<std::string> false_values;
+
 	input_map keys;
 	std::vector<std::string> unread_keys;
 	int state;
+	bool show_overwrite_warnings = true;
 
-	std::set<std::string> true_values;
-	std::set<std::string> false_values;
+	bool is_main_input = false;
 
+	input_file(bool is_main);
 	input_file();
 	virtual ~input_file();
 
@@ -64,6 +75,8 @@ struct input_file {
 	 * @param s_inp string to be parsed
 	 */
 	void init_from_string(std::string s_inp);
+
+	void init_from_json(const nlohmann::json &json);
 
 	/**
 	 * @brief Load keys and values from command line's argc and argv variables
@@ -99,8 +112,9 @@ struct input_file {
 
 	void set_unread_keys();
 
-	std::string get_value(std::string key);
+	std::string get_value(std::string key, int mandatory, bool &found);
 	void set_value(std::string key, std::string value);
+	void unset_value(std::string key);
 
 	std::string to_string() const;
 };

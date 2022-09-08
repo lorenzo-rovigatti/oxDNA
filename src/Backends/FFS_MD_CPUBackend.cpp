@@ -258,13 +258,13 @@ void FFS_MD_CPUBackend::_ffs_compute_forces(void) {
 	}
 }
 
-void FFS_MD_CPUBackend::sim_step(llint curr_step) {
+void FFS_MD_CPUBackend::sim_step() {
 	_mytimer->resume();
 
 	_op.reset();
 
 	_timer_first_step->resume();
-	_first_step(curr_step);
+	_first_step();
 	_timer_first_step->pause();
 
 	_timer_lists->resume();
@@ -280,7 +280,7 @@ void FFS_MD_CPUBackend::sim_step(llint curr_step) {
 	_timer_forces->pause();
 
 	_timer_thermostat->resume();
-	_thermostat->apply(_particles, curr_step);
+	_thermostat->apply(_particles, current_step());
 	_timer_thermostat->pause();
 
 	_op.fill_distance_parameters(_particles, _box.get());
@@ -288,7 +288,7 @@ void FFS_MD_CPUBackend::sim_step(llint curr_step) {
 	//cout << "I just stepped and bond parameter is " << _op.get_hb_parameter(0) << " and distance is " << _op.get_distance_parameter(0) << endl;
 	if(check_stop_conditions()) {
 		SimManager::stop = true;
-		OX_LOG(Logger::LOG_INFO, "Reached stop conditions, stopping in step %lld", curr_step);
+		OX_LOG(Logger::LOG_INFO, "Reached stop conditions, stopping in step %lld", current_step());
 		char tmp[1024];
 		_op.sprintf_names_and_values(tmp);
 		OX_LOG(Logger::LOG_INFO, "FFS final values: %s", tmp);
@@ -363,9 +363,9 @@ char * FFS_MD_CPUBackend::get_op_state_str(void) {
 	return _state_str;
 }
 
-void FFS_MD_CPUBackend::print_observables(llint curr_step) {
+void FFS_MD_CPUBackend::print_observables() {
 	_backend_info = get_op_state_str();
-	MDBackend::print_observables(curr_step);
+	MDBackend::print_observables();
 }
 
 bool FFS_MD_CPUBackend::check_stop_conditions(void) {

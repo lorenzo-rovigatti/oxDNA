@@ -21,7 +21,9 @@
 class AnalysisBackend: public SimBackend {
 protected:
 	bool _done;
-	llint _n_conf;
+	int _n_conf;
+	int _confs_to_analyse;
+	bool _backend_ready;
 
 	FlattenedConfigInfo _flattened_conf;
 
@@ -36,11 +38,11 @@ public:
 	 * Yes, it is a design flaw, I am aware of that :-)
 	 * @param cur_step
 	 */
-	void sim_step(llint cur_step) override {
+	void sim_step() override {
 
 	}
 
-	void print_conf(llint cur_step, bool reduced, bool only_last) override {
+	void print_conf(bool reduced, bool only_last) override {
 
 	}
 
@@ -49,6 +51,14 @@ public:
 	}
 
 	const FlattenedConfigInfo &flattened_conf();
+
+	std::shared_ptr<ConfigInfo> config_info() {
+		return CONFIG_INFO;
+	}
+
+	llint get_conf_step() {
+		return _read_conf_step;
+	}
 
 	bool read_next_configuration(bool binary=false) override;
 
