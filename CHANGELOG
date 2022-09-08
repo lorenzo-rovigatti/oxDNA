@@ -1,3 +1,15 @@
+v. 3.4.2
+	- Change libcommon.so to liboxdna_common.so, allowing the file to be reasonably placed in a system-wide / non-specific library directory
+	- Add methods to sync data from and to CUDA interactions (see 7e437f63a8c551333b677d56edc20121551741da)
+	- Fix a bug whereby confs without momenta would be printed with trailing spaces
+	- Fix a bug whereby the code wouldn't sometimes compile with CUDA 10.x
+	- Update a CUDA error message
+	- Fix some typos in the documentation
+	oxpy:
+	  - Fix a bug whereby oxpy couldn't be compiled in debug mode (-DDebug=True)
+	oat:
+	  - Fix external_force_utils import in exclude_force.py
+
 v. 3.4.1 
 	- Fix a compilation bug of a contrib observable
 
