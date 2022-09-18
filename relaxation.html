@@ -185,8 +185,8 @@
 <span class="n">ensemble</span> <span class="o">=</span> <span class="n">NVT</span>
 
 <span class="c1"># these 2 options can be changed to improve performance, but it is usually not necessary</span>
-<span class="n">delta_translation</span> <span class="o">=</span> <span class="mf">0.22</span>
-<span class="n">delta_rotation</span> <span class="o">=</span> <span class="mf">0.22</span>
+<span class="n">delta_translation</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">delta_rotation</span> <span class="o">=</span> <span class="mf">0.1</span>
 
 <span class="n">steps</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1"># you will very rarely need more than this number of steps</span>
 
@@ -207,8 +207,10 @@ but this will depend on the extent of the displacements required. To deal with t
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim_type</span> <span class="o">=</span> <span class="n">MD</span>
 
 <span class="n">dt</span> <span class="o">=</span> <span class="mf">0.002</span> <span class="c1"># reduce this value to increase numerical stability</span>
-<span class="n">thermostat</span> <span class="o">=</span> <span class="n">langevin</span>
-<span class="n">diff_coeff</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="c1"># reduce this value to increase the thermostat coupling</span>
+<span class="n">thermostat</span> <span class="o">=</span> <span class="n">bussi</span>
+<span class="n">bussi_tau</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">newtonian_steps</span> <span class="o">=</span> <span class="mi">53</span> <span class="c1"># use 1 if you want the thermostat to act every step: </span>
+				   <span class="c1"># may be useful for very stressed configurations </span>
 
 <span class="n">steps</span> <span class="o">=</span> <span class="mf">1e6</span> <span class="c1"># the number of steps required may be 1 or 2 orders of magnitude </span>
             <span class="c1"># larger than this figure, depending on the particular structure</span>
