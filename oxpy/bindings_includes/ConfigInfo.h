@@ -9,9 +9,6 @@
 #define OXPY_BINDINGS_INCLUDES_CONFIGINFO_H_
 
 #include <Utilities/ConfigInfo.h>
-
-#include "../pybind11/include/pybind11/detail/common.h"
-#include "../pybind11/include/pybind11/pybind11.h"
 #include "../python_defs.h"
 
 void export_ConfigInfo(py::module &m) {
