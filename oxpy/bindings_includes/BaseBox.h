@@ -8,7 +8,7 @@
 #ifndef OXPY_BINDINGS_INCLUDES_FORCES_BASEBOX_H_
 #define OXPY_BINDINGS_INCLUDES_FORCES_BASEBOX_H_
 
-#include "../../python_defs.h"
+#include "../python_defs.h"
 
 #include <Boxes/BaseBox.h>
 
