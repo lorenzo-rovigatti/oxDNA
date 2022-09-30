@@ -117,7 +117,7 @@ class Nucleotide(object):
     def correct_for_large_boxes(self, box):
         map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.atoms)
 
-    def to_pdb(self, chain_identifier, print_H, residue_serial, residue_suffix, residue_type):
+    def to_pdb(self, chain_identifier, print_H, residue_serial, residue_suffix, residue_type, bfactor):
         res = []
         for a in self.atoms:
             if not print_H and 'H' in a.name:
@@ -132,7 +132,7 @@ class Nucleotide(object):
             elif residue_type == "3":
                 if a.name == "O3'":
                     O3prime = a
-            res.append(a.to_pdb(chain_identifier, residue_serial, residue_suffix))
+            res.append(a.to_pdb(chain_identifier, residue_serial, residue_suffix, bfactor))
             
         # if the residue is a 3' or 5' end, it requires one more hydrogen linked to the O3' or O5', respectively
         if residue_type == "5":
@@ -143,7 +143,7 @@ class Nucleotide(object):
             dist_P_O = phosphorus.pos - O5prime.pos
             dist_P_O *= 1. / np.sqrt(np.dot(dist_P_O, dist_P_O))
             new_hydrogen.pos = O5prime.pos + dist_P_O
-            res.append(new_hydrogen.to_pdb(chain_identifier, residue_serial, residue_suffix))
+            res.append(new_hydrogen.to_pdb(chain_identifier, residue_serial, residue_suffix, bfactor))
         elif residue_type == "3":
             new_hydrogen = copy.deepcopy(O3prime)
             new_hydrogen.name = "HO3'"
@@ -153,7 +153,7 @@ class Nucleotide(object):
             new_distance = 0.2 * self.a2 - 0.2 * self.a1 - self.a3
             new_distance *= 1. / np.sqrt(np.dot(new_distance, new_distance))
             new_hydrogen.pos = O3prime.pos + new_distance
-            res.append(new_hydrogen.to_pdb(chain_identifier, residue_serial, residue_suffix))
+            res.append(new_hydrogen.to_pdb(chain_identifier, residue_serial, residue_suffix, bfactor))
 
         return "\n".join(res)
 
@@ -210,9 +210,9 @@ class Atom(object):
     def shift(self, diff):
         self.pos += diff
 
-    def to_pdb(self, chain_identifier, residue_serial, residue_suffix):
+    def to_pdb(self, chain_identifier, residue_serial, residue_suffix, bfactor):
         residue = self.residue + residue_suffix
-        res = "{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}".format("ATOM", Atom.serial_atom, self.name, " ", residue, chain_identifier," ", residue_serial, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, 0.00, " ", " ", " ")
+        res = "{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}".format("ATOM", Atom.serial_atom, self.name, " ", residue, chain_identifier," ", residue_serial, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, bfactor, " ", " ", " ")
         Atom.serial_atom += 1
         if Atom.serial_atom > 99999:
             Atom.serial_atom = 1
