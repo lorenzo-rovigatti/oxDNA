@@ -269,11 +269,10 @@ def main():
     if protein_pdb_files:  
         # #Must Now renumber and restrand, (sorry)
         out.seek(0)
-        outw = open('TM2.pdb', 'w')
+        outw = open(opts['topology'].split(".")[0] + ".pdb", 'w')
         resid, atmid, chainid = -1, 1, -1
         #check against next atom entry
         pres, pchain = 0, 0
-        alpha = list(string.ascii_uppercase)
         alpha = list(string.ascii_uppercase)
         a2 = copy.deepcopy(alpha)
         for i in range(26):
