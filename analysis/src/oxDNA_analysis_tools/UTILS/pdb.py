@@ -3,6 +3,7 @@ import itertools
 from math import sqrt
 import sys
 import copy
+from typing import List
 
 BASE_SHIFT = 1.13
 COM_SHIFT = 0.5
@@ -22,6 +23,44 @@ aa_to_number = {'A':-1, 'R':-2, 'N':-3, 'D':-4, 'C':-5, 'E':-6, 'Q':-7, 'G':-8, 
 BASES = ["A", "T", "G", "C", "U"]
 AAS = ["A", "R", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"]
 
+class Atom(object):
+    serial_atom = 1
+
+    def __init__(self, pdb_line:str):
+        object.__init__(self)
+        # http://cupnet.net/pdb-format/
+        self.name = pdb_line[12:16].strip()
+        # some PDB files have * in place of '
+        if "*" in self.name:
+            self.name = self.name.replace("*", "'")
+        
+        self.alternate = pdb_line[16]
+        self.residue = pdb_line[17:20].strip()
+        self.chain_id = pdb_line[21:22].strip()
+        self.residue_idx = int(pdb_line[22:26])
+        self.pos = np.array([float(pdb_line[30:38]), float(pdb_line[38:46]), float(pdb_line[46:54])])
+        
+    def is_hydrogen(self):
+        return "H" in self.name
+
+    def shift(self, diff:np.ndarray):
+        self.pos += diff
+
+    def to_pdb(self, chain_identifier, residue_serial, residue_suffix, bfactor):
+        residue = self.residue + residue_suffix
+        res = "{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}".format("ATOM", Atom.serial_atom, self.name, " ", residue, chain_identifier," ", residue_serial, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, bfactor, " ", " ", " ")
+        Atom.serial_atom += 1
+        if Atom.serial_atom > 99999:
+            Atom.serial_atom = 1
+        return res
+
+    def to_mgl(self):
+        colors = {"C" : "0,1,1", "P" : "1,1,0", "O" : "1,0,0", "H" : "0.5,0.5,0.5", "N" : "0,0,1"}
+        for c in colors:
+            if c in self.name: color = colors[c]
+        r = 0.5
+        return "%s %s %s @ %f C[%s]" % (self.pos[0], self.pos[1], self.pos[2], r, color)
+
 class Nucleotide(object):
     RNA_warning_printed = False
     
@@ -38,6 +77,7 @@ class Nucleotide(object):
             self.base = self.name
         else:
             self.base = name[1:]
+        self.atoms:List[Atom] = []
         self.idx = idx
         self.base_atoms = []
         self.phosphate_atoms = []
@@ -49,7 +89,7 @@ class Nucleotide(object):
     def get_atoms(self):
         return self.base_atoms + self.phosphate_atoms + self.sugar_atoms
 
-    def add_atom(self, a):
+    def add_atom(self, a:Atom):
         if 'P' in a.name or a.name == "HO5'": 
             self.phosphate_atoms.append(a)
         elif "'" in a.name: 
@@ -61,7 +101,7 @@ class Nucleotide(object):
         if self.chain_id == None: 
             self.chain_id = a.chain_id
 
-    def get_com(self, atoms=None):
+    def get_com(self, atoms:List[Atom]=None):
         if atoms == None: 
             atoms = self.atoms
         com = np.array([0., 0., 0.])
@@ -185,46 +225,6 @@ class Nucleotide(object):
         self.compute_as()
 
     atoms = property(get_atoms)
-
-
-class Atom(object):
-    serial_atom = 1
-
-    def __init__(self, pdb_line):
-        object.__init__(self)
-        # http://cupnet.net/pdb-format/
-        self.name = pdb_line[12:16].strip()
-        # some PDB files have * in place of '
-        if "*" in self.name:
-            self.name = self.name.replace("*", "'")
-        
-        self.alternate = pdb_line[16]
-        self.residue = pdb_line[17:20].strip()
-        self.chain_id = pdb_line[21:22].strip()
-        self.residue_idx = int(pdb_line[22:26])
-        self.pos = np.array([float(pdb_line[30:38]), float(pdb_line[38:46]), float(pdb_line[46:54])])
-        
-    def is_hydrogen(self):
-        return "H" in self.name
-
-    def shift(self, diff):
-        self.pos += diff
-
-    def to_pdb(self, chain_identifier, residue_serial, residue_suffix, bfactor):
-        residue = self.residue + residue_suffix
-        res = "{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}".format("ATOM", Atom.serial_atom, self.name, " ", residue, chain_identifier," ", residue_serial, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, bfactor, " ", " ", " ")
-        Atom.serial_atom += 1
-        if Atom.serial_atom > 99999:
-            Atom.serial_atom = 1
-        return res
-
-    def to_mgl(self):
-        colors = {"C" : "0,1,1", "P" : "1,1,0", "O" : "1,0,0", "H" : "0.5,0.5,0.5", "N" : "0,0,1"}
-        for c in colors:
-            if c in self.name: color = colors[c]
-        r = 0.5
-        return "%s %s %s @ %f C[%s]" % (self.pos[0], self.pos[1], self.pos[2], r, color)
-
 
 class AminoAcid(object):
     # RNA_warning_printed = False
