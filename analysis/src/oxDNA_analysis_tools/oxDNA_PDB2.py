@@ -36,22 +36,22 @@ number_to_aa = {-1:'A', -2:'R', -3:'N', -4:'D', -5:'C',
                 -19:'Y', -20:'V', -21:'Z', 0:'X'}
 
 def align(full_base, ox_base):
-        theta = utils.get_angle(full_base.a3, ox_base._a3)
+        theta = utils.get_angle(full_base.a3, ox_base['a3'])
         # if the two bases are already essentially aligned then we do nothing
         if sin(theta) > 1e-3:
-            axis = np.cross(full_base.a3, ox_base._a3)
+            axis = np.cross(full_base.a3, ox_base['a3'])
             axis /= sqrt(np.dot(axis, axis))
             R = utils.get_rotation_matrix(axis, theta)
             full_base.rotate(R)
     
-        theta = utils.get_angle(full_base.a1, ox_base._a1)
+        theta = utils.get_angle(full_base.a1, ox_base['a1'])
         if sin(theta) > 1e-3:
-            axis = np.cross(full_base.a1, ox_base._a1)
+            axis = np.cross(full_base.a1, ox_base['a1'])
             axis /= sqrt(np.dot(axis, axis))
             R = utils.get_rotation_matrix(axis, theta)
             full_base.rotate(R)
 
-def cli_parser():
+def cli_parser(prog="oxDNA_PDB.py"):
     parser = argparse.ArgumentParser(prog=os.path.basename(
         __file__), description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
     parser.add_argument('input', type=str, nargs=1,
@@ -98,10 +98,7 @@ def main():
     one_file_per_strand = args.one_file_per_strand
     same_pdb_all_protein_strands = args.same_pdb_all_protein_strands
 
-    top_info, traj_info = describe(top_file, conf_file)
-    system, monomers = strand_describe(top_file)
-
-    # Open PDB File of nice lookin duplex
+    # Open PDB File of nice lookin duplex to get base structures from
     with open(os.path.join(os.path.dirname(__file__), DD12_PDB_PATH)) as f:
         nucleotides = []
         aminoacids = []
@@ -115,6 +112,7 @@ def main():
                     old_residue = na.residue_idx
                 nn.add_atom(na)
 
+    # Create reference oxDNA orientation vectors for the PDB base structures
     bases = {}
     for n in nucleotides:
         n.compute_as()
@@ -127,10 +125,14 @@ def main():
     for n in nucleotides:
         n.a1, n.a2, n.a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
 
+    # Read oxDNA configuration
     system, elements = strand_describe(top_file)
     ti, di = describe(top_file, conf_file)
     conf = get_confs(ti, di, 0, 1)[0]
+    conf = inbox(conf, center=True)
+    box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
 
+    # Handle RMSF -> bFactor conversion
     rmsf_file = args.rmsf_bfactor
     if rmsf_file:
         with open(rmsf_file) as f:
@@ -148,11 +150,8 @@ def main():
     else:
         rmsf_per_nucleotide = defaultdict(lambda: 1.00)
 
-    ox_nucleotides = []
-    
-    conf = inbox(conf, center=True)
-    box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
-
+    # Process optional conditionals
+    correct_for_large_boxes = False
     if np.any(box_angstrom[box_angstrom > 999]):
         print("At least one of the box sizes is larger than 999: all the atoms which are outside of the box will be brought back through periodic boundary conditions", file=sys.stderr)
         correct_for_large_boxes = True
@@ -162,17 +161,20 @@ def main():
     else:
         out_name = conf_file+".pdb"
 
+    # Start writing the output file
     with open(out_name, 'w+') as out:
         current_base_identifier = 'A'   
         reading_position = 0 
 
+        # get protein files
         if protein_pdb_files:
             s_pdbfile = iter(protein_pdb_files)
             pdbfile = next(s_pdbfile)        
 
+        # Iterate over strands in the oxDNA file
         for s_id, strand in enumerate(system.strands):
             strand_pdb = []
-            nucleotides_in_strand = strand.nucleotdies
+            nucleotides_in_strand = strand.monomers
             if not oxDNA_direction:
                 nucleotides_in_strand = reversed(nucleotides_in_strand)
 
@@ -195,7 +197,7 @@ def main():
                 exit(1)
 
             # Nucleic Acids
-            elif strand.index >= 0:
+            elif strand.id >= 0:
                 for n_idx, nucleotide in enumerate(nucleotides_in_strand, 1):
                     if type(nucleotide.type) != str:
                         nb = number_to_base[nucleotide.type]
@@ -206,10 +208,10 @@ def main():
                     residue_type = ""
 
                     # 3' end
-                    if nucleotide == strand._nucleotides[0] and not strand._circular:
+                    if nucleotide == strand.monomers[0] and not strand.is_circular():
                         residue_type = "3"
                     # 5' end
-                    elif nucleotide == strand._nucleotides[-1]:
+                    elif nucleotide == strand.monomers[-1]:
                         residue_type = "5" 
 
                     if uniform_residue_names == True:
@@ -217,7 +219,13 @@ def main():
                     else:
                         residue_suffix = residue_type
 
-                    align(my_base, nucleotide)
+                    nuc_data = {
+                        'pos' : conf.positions[nucleotide.id],
+                        'a1' : conf.a1s[nucleotide.id],
+                        'a3' : conf.a3s[nucleotide.id] 
+                    }
+
+                    align(my_base, nuc_data)
                     my_base.set_base(conf.positions[nucleotide.id] * FROM_OXDNA_TO_ANGSTROM)
 
                     if correct_for_large_boxes:
@@ -240,18 +248,18 @@ def main():
                 print("\n".join(x for x in strand_pdb), file=out)
                 print("TER", file=out)
 
-            if one_file_per_strand:
-                out.close()
-                print("INFO: Wrote strand {}'s data to {}".format (s_id + 1, out_name))
-                if strand != system.strands[-1]:
-                    out_name = conf_file + "_{}.pdb".format(s_id + 2, )
-                    out = open(out_name, "w")
-            else:
-                # we update the base identifier only if a single file is printed
-                if current_base_identifier == 'Z':
-                    current_base_identifier = 'A'
+                if one_file_per_strand:
+                    out.close()
+                    print("INFO: Wrote strand {}'s data to {}".format (s_id + 1, out_name))
+                    if strand != system.strands[-1]:
+                        out_name = conf_file + "_{}.pdb".format(s_id + 2, )
+                        out = open(out_name, "w")
                 else:
-                    current_base_identifier = chr(ord(current_base_identifier) + 1)
+                    # we update the base identifier only if a single file is printed
+                    if current_base_identifier == 'Z':
+                        current_base_identifier = 'A'
+                    else:
+                        current_base_identifier = chr(ord(current_base_identifier) + 1)
 
         if protein_pdb_files:  
             # #Must Now renumber and restrand, (sorry)
@@ -260,7 +268,6 @@ def main():
             resid, atmid, chainid = -1, 1, -1
             #check against next atom entry
             pres, pchain = 0, 0
-            alpha = list(string.ascii_uppercase)
             alpha = list(string.ascii_uppercase)
             a2 = copy.deepcopy(alpha)
             for i in range(26):
