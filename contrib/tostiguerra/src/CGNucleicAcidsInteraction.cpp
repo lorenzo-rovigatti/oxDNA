@@ -195,12 +195,13 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 	LR_vector p_patch_pos = p->int_centers[0];
 	LR_vector q_patch_pos = q->int_centers[0];
 	LR_vector patch_dist = _computed_r + q_patch_pos - p_patch_pos;
+	number sqr_computed_r = _computed_r.norm();
 	number sqr_r = patch_dist.norm();
 	number energy = 0.;
-	
+
 	// sticky-sticky
 	if(_sticky_interaction(p->btype, q->btype)) {
-		if(_computed_r.norm()  < _sqr_3b_rcut) {
+		if(sqr_computed_r  < _sqr_3b_rcut) {
 			number epsilon = _3b_epsilon[p->btype * _interaction_matrix_size + q->btype];
 
 			number r_mod = sqrt(sqr_r);
