@@ -5,7 +5,7 @@ try:
     import numpy as np
 except:
     import mynumpy as np
-
+from datetime import datetime
 try:
     box_side = float(sys.argv[1])
     infile = sys.argv[2]
@@ -388,10 +388,11 @@ def read_strands(filename):
     if not len(positions) == nnucl:
         print(len(positions), nnucl)
         raise AssertionError
-
+    now = datetime.now()
+    date_time_str = now.strftime("%Y-%m-%d-%H%M%S")
     # here we generate the configuration file (coordinates)
     try:
-        outfile = open ('generated.dat', 'w')
+        outfile = open (f"generated_{date_time_str}.top", "w")
     except:
         print("Could not open generated.dat for writing.  Aborting", file=sys.stderr)
         sys.exit(5)
