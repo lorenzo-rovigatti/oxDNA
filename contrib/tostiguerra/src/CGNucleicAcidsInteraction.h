@@ -13,15 +13,17 @@ struct PSBond {
 	LR_vector force;
 	int p_patch, q_patch;
 	LR_vector r;
+  number r_mod;
 	LR_vector p_torque, q_torque;
 
-	PSBond(BaseParticle *o, number e, number eps, int pp, int qp, LR_vector nr) :
+	PSBond(BaseParticle *o, number e, number eps, int pp, int qp, LR_vector nr, number rm) :
 		other(o),
 		energy(e),
 		epsilon(eps),
 		p_patch(pp),
 		q_patch(qp),
-		r(nr) {
+		r(nr),
+    r_mod(rm) {
 
 	}
 };
