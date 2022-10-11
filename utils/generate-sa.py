@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
 import sys, os
+from datetime import datetime
+
+now = datetime.now()
+date_time_str = now.strftime("%Y-%m-%d-%H%M%S")
+
 try:
     import numpy as np
 except:
     import mynumpy as np
-from datetime import datetime
 try:
     box_side = float(sys.argv[1])
     infile = sys.argv[2]
@@ -290,7 +294,8 @@ def read_strands(filename):
 
     # here we generate the topology file
     try:
-        out = open ("generated.top", "w")
+        # out = open ("generated.top", "w")
+        out = open (f"testcase/generated{date_time_str}.top", "w")
     except:
         print("Could not open generated.top for writing. Aborting", file=sys.stderr)
         sys.exit(4)
@@ -388,11 +393,9 @@ def read_strands(filename):
     if not len(positions) == nnucl:
         print(len(positions), nnucl)
         raise AssertionError
-    now = datetime.now()
-    date_time_str = now.strftime("%Y-%m-%d-%H%M%S")
     # here we generate the configuration file (coordinates)
     try:
-        outfile = open (f"generated_{date_time_str}.top", "w")
+        outfile = open (f"testcase/generated_{date_time_str}.top", "w")
     except:
         print("Could not open generated.dat for writing.  Aborting", file=sys.stderr)
         sys.exit(5)
