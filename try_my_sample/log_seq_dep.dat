@@ -1,0 +1,12 @@
+INFO: seeding the RNG with 42
+INFO: Initializing backend 
+INFO: Simulation type: VMMC
+INFO: The generator will try to take into account bonded interactions by choosing distances between bonded neighbours no larger than 2.000000
+INFO: Using '../oxDNA1_sequence_dependent_parameters.txt' as the input for sequence-dependent values
+INFO: Converting temperature from Kelvin (334.000000 K) to simulation units (0.111333)
+INFO: Temperature change detected (new temperature: 60.85 C, 334.00 K), re-initialising the DNA interaction
+INFO: pid: 22594
+INFO: Aggregated I/O statistics (set debug=1 for file-wise information)
+	  0.000  B written to files
+	  0.000  B written to stdout/stderr
+ERROR: Can't read configuration file 'initial.conf'

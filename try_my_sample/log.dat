@@ -1,0 +1,38 @@
+INFO: seeding the RNG with 42
+INFO: Initializing backend 
+INFO: Simulation type: VMMC
+INFO: The generator will try to take into account bonded interactions by choosing distances between bonded neighbours no larger than 2.000000
+INFO: Converting temperature from Kelvin (334.000000 K) to simulation units (0.111333)
+INFO: Temperature change detected (new temperature: 60.85 C, 334.00 K), re-initialising the DNA interaction
+INFO: pid: 22593
+INFO: (Cells.cpp) N_cells_side: 3, 3, 3; rcut=1.58378, IS_MC: 1
+INFO: N: 10, N molecules: 1
+WARNING: maxclust < 0, setting it to N = 10
+INFO: Not attempting to preserve topology; max_move_size = 1.63245
+INFO: RELEASE: 
+INFO: GIT COMMIT: cba4c90
+INFO: COMPILED ON: 11/10/22
+
+INFO: Total Running Time: 0.001096 s, per step: 0.1096 ms
+INFO: Timings, in seconds, by Timer (total, own, spent in children)
+> SimBackend                          0.001 (100.0)        0.000 (  2.5)        0.001 ( 97.5)
+***> Rotations+Translations           0.001 ( 97.5)        0.001 ( 97.5)        0.000 (  0.0)
+> Lists                               0.000 (  0.0)        0.000 (  0.0)        0.000 (  0.0)
+
+INFO: END OF THE SIMULATION, everything went OK!
+INFO: Aggregated I/O statistics (set debug=1 for file-wise information)
+	  1.811 KB written to files
+	  0.000  B written to stdout/stderr
+	For a total of     1.61 MB/s
+
+
+Please cite these publications for any work that uses the oxDNA simulation package
+- for the code:
+    * P. Šulc et al., J. Chem. Phys. 137, 135101 (2012)
+    * L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)
+- for the oxDNA model:
+    * T. E. Ouldridge et al., J. Chem. Phys, 134, 085101 (2011)
+- for the oxDNA2 model:
+    * B. E. K. Snodin et al., J. Chem. Phys. 142, 234901 (2015)
+- for the oxRNA model:
+    * P. Šulc et al., J. Chem. Phys. 140, 235102 (2014)
