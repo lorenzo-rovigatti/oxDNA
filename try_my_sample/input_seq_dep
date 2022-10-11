@@ -21,7 +21,7 @@ delta_rotation = 0.22
 
 use_average_seq = 0
 ; seq_dep_file = ../../oxDNA1_sequence_dependent_parameters.txt
-seq_dep_file = ../build/oxDNA1_sequence_dependent_parameters.txt
+seq_dep_file = ../oxDNA1_sequence_dependent_parameters.txt
 
 T = 334 K
 dt = 0.003

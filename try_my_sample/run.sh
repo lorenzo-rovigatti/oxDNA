@@ -1,7 +1,9 @@
 #!/bin/bash
 
-CODEDIR=../build
-OXDNA_BIN=$CODEDIR/bin/oxDNA
+# CODEDIR=../build
+# OXDNA_BIN=$CODEDIR/bin/oxDNA
+CODEDIR=..
+OXDNA_BIN=$CODEDIR/build/bin/oxDNA
 
 if [ -e $OXDNA_BIN ]
 then
