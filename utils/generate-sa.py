@@ -295,7 +295,7 @@ def read_strands(filename):
     # here we generate the topology file
     try:
         # out = open ("generated.top", "w")
-        out = open (f"testcase/generated{date_time_str}.top", "w")
+        out = open (f"testcase/generated_{date_time_str}.top", "w")
     except:
         print("Could not open generated.top for writing. Aborting", file=sys.stderr)
         sys.exit(4)
@@ -395,7 +395,7 @@ def read_strands(filename):
         raise AssertionError
     # here we generate the configuration file (coordinates)
     try:
-        outfile = open (f"testcase/generated_{date_time_str}.top", "w")
+        outfile = open (f"testcase/generated_{date_time_str}.conf", "w")
     except:
         print("Could not open generated.dat for writing.  Aborting", file=sys.stderr)
         sys.exit(5)
