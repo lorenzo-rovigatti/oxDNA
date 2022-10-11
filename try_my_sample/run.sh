@@ -23,4 +23,10 @@ then
 else
     echo "Can't find $OXDNA_BIN, did you compile oxDNA?"
     exit
+
 fi
+echo "move files to results"
+cd ..
+mkdir results/
+cd try_my_sample/
+mv -f *.dat ../results/
