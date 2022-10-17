@@ -219,7 +219,6 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 			energy += tmp_energy;
 
 			number tb_energy = (r_mod < _3b_sigma) ? Vteta * Vteta_a1: -tmp_energy / epsilon;
-			// number tb_energy = (r_mod < _3b_sigma) ? 1 : -Vradial / epsilon;
 
 			PSBond p_bond(q, tb_energy, epsilon, 1, 1, patch_dist, r_mod, _computed_r);
 			PSBond q_bond(p, tb_energy, epsilon, 1, 1, -patch_dist, r_mod, -_computed_r);
@@ -229,7 +228,6 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 				LR_vector tmp_force = patch_dist * (-force_mod / r_mod);
 
 				LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2. * Vteta_a1 + Vradial * ( p->orientationT.v1.cross(q->orientationT.v1) )/2. * Vteta;
-				//LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v1.cross(q->orientationT.v1) )/2. * Vteta;
 				// torque_tetaTerm = LR_vector();
 				LR_vector p_torque = p->orientationT * ( p_patch_pos.cross(tmp_force) + torque_tetaTerm);
 				LR_vector q_torque = q->orientationT * ( q_patch_pos.cross(tmp_force) + torque_tetaTerm);
@@ -239,28 +237,6 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 
 				p->torque += p_torque;
 				q->torque -= q_torque;
-
-				// LR_vector check = _computed_r.cross(-tmp_force) + (p_patch_pos.cross(tmp_force) + torque_tetaTerm) - (q_patch_pos.cross(tmp_force) + torque_tetaTerm);
-				// printf("%lf\n", check.module());
-
-				// if(r_mod > _3b_sigma) {
-				// 		p_bond.force = tmp_force / (epsilon * Vteta * Vteta_a1);
-				// 		p_bond.p_torque = p->orientationT * p_patch_pos.cross(tmp_force) / (epsilon * Vteta * Vteta_a1);
-				// 		p_bond.q_torque = q->orientationT * q_patch_pos.cross(tmp_force) / (epsilon * Vteta * Vteta_a1);
-				//
-				// 		q_bond.force = -tmp_force / (epsilon * Vteta * Vteta_a1);
-				// 		q_bond.p_torque = -q->orientationT * q_patch_pos.cross(tmp_force) / (epsilon * Vteta * Vteta_a1);
-				// 		q_bond.q_torque = -p->orientationT * p_patch_pos.cross(tmp_force) / (epsilon * Vteta * Vteta_a1);
-				// }
-				// else {
-				// 	p_bond.force = LR_vector();
-				// 	p_bond.p_torque = LR_vector();
-				// 	p_bond.q_torque = LR_vector();
-				//
-				// 	q_bond.force = LR_vector();
-				// 	q_bond.p_torque = LR_vector();
-				// 	q_bond.q_torque = LR_vector();
-				// }
 
 				if(r_mod > _3b_sigma) {
 						p_bond.force = tmp_force / epsilon;
@@ -280,15 +256,7 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 					q_bond.p_torque = q->orientationT * torque_tetaTerm / Vradial;
 					q_bond.q_torque = p->orientationT * torque_tetaTerm / Vradial;
 				}
-				// if(r_mod > _3b_sigma) {
-				// 		p_bond.force = tmp_force / epsilon;
-				// 		p_bond.p_torque = p->orientationT * p_patch_pos.cross(tmp_force) / epsilon;
-				// 		p_bond.q_torque = q->orientationT * q_patch_pos.cross(tmp_force) / epsilon;
-				//
-				// 		q_bond.force = -tmp_force / epsilon;
-				// 		q_bond.p_torque = -q->orientationT * q_patch_pos.cross(tmp_force) / epsilon;
-				// 		q_bond.q_torque = -p->orientationT * p_patch_pos.cross(tmp_force) / epsilon;
-				// }
+
 
 				if(p->strand_id != q->strand_id) {
 					_update_inter_chain_stress_tensor(p->strand_id, p->strand_id, tmp_force);
@@ -309,20 +277,14 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 		}
 	}
 
-	// if (p->index==0){
-	// 	printf("%f\n", p->force[0]);
-	// }
 	return energy;
 }
 
 number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces) {
 	number energy = 0.;
-  //return 0.;
+
 	number curr_energy = new_bond.energy;
 	for(auto &other_bond : _bonds[p->index]) {
-		//printf("\n\n\n\n%f\t %f\t %f\n\n\n\n", p->orientationT.v3[0], p->orientationT.v3[1], p->orientationT.v3[2]);
-		//printf("\n\n\t%f %f %f\n", p->orientation[2][0], p->orientation[2][1], p->orientation[2][2]);
-		//printf("\n\n\t%f %f %f\n", p->orientation[0][2], p->orientation[1][2], p->orientation[2][2]);
 		if(other_bond.other != new_bond.other) {
 			number other_energy = other_bond.energy;
 			number smallest_epsilon = std::min(new_bond.epsilon, other_bond.epsilon);
@@ -376,18 +338,7 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 						_update_inter_chain_stress_tensor(p->strand_id, p->strand_id, tmp_force);
 						_update_inter_chain_stress_tensor(other->strand_id, p->strand_id, -tmp_force);
 					}
-					//
-					// if(new_bond.r_mod < _3b_sigma) {
-					// 	printf("new_bond minore\n");
-					// 	printf("%f\t %f\t %f\n", p->torque[0],p->torque[1],p->torque[2]);
-					// 	printf("%f\t %f\t %f\n", other->torque[0],other->torque[1],other->torque[2]);
-					// }
-					//
-					// if(other_bond.r_mod > _3b_sigma) {
-					// 	printf("other_bond minore\n");
-					//   printf("%f\t %f\t %f\n", p->torque[0],p->torque[1],p->torque[2]);
-				  // 	printf("%f\t %f\t %f\n", other->torque[0],other->torque[1],other->torque[2]);
-					// }
+
 
 					_update_stress_tensor(p->pos, tmp_force);
 					_update_stress_tensor(p->pos + other_bond.r, -tmp_force);
