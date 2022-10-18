@@ -1,3 +1,6 @@
+#ifndef DNA3_INTERACTION_H
+#define DNA3_INTERACTION_H
+
 #include "DNA2Interaction.h"
 
 
@@ -6,24 +9,8 @@ class DNA3Interaction: public DNA2Interaction {
 protected:
 
 public:
-	DNA3Interaction(){
-		std::cout << "\n \n \n  using DNA3Interaction \n \n \n" ;
-		_grooving = 2; 
-}
+	DNA3Interaction();
+        ~DNA3Interaction();
 };
 
-/**
- * @brief Handles interactions between DNA nucleotides without using meshes.
- *
- * This interaction is selected with
- * interaction_type = DNA2_nomesh
- */
-
-class DNA3Interaction_nomesh : public DNA3Interaction {
-protected:
-
-
-public:
-
-};
-
+#endif /* DNA3_INTERACTION_H */

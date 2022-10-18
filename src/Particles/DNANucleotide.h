@@ -16,12 +16,6 @@
 
 class DNANucleotide: public BaseParticle {
 protected:
-//	bool _grooving
-//	enum _grooving {
-//			model_oxDNA1 = 0, 
-//			model_oxDNA2 = 1,
-//			model_oxDNA3 = 2
-//	};
 	int _grooving ;
 public:
 	const static LR_vector principal_axis;

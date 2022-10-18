@@ -6,8 +6,7 @@
 #include "VMMC_CPUBackend.h"
 #include "../Utilities/Utils.h"
 #include "../Interactions/RNAInteraction2.h"
-
-//#include "../Interactions/DNA2Interaction.h"
+#include "../Interactions/DNA2Interaction.h"
 #include "../Interactions/DNA3Interaction.h"
 
 #include <set>

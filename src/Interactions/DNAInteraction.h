@@ -18,12 +18,6 @@ protected:
 	std::string _seq_filename;
 	number _T;
 	number _hb_multiplier;
-//      bool _grooving
-//      enum _grooving {
-//                      model_oxDNA1 = 0, 
-//                      model_oxDNA2 = 1,
-//                      model_oxDNA3 = 2
-//      };
         int _grooving;
 
 /// true by default; set this to false if you want the code to not die when bonded backbones are found to be outside the acceptable FENE range
