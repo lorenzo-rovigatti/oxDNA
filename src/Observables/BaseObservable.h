@@ -29,6 +29,8 @@ public:
 
 	virtual ~BaseObservable();
 
+	virtual bool is_update_every_set();
+
 	virtual bool need_updating(llint curr_step);
 
 	virtual void update_data(llint curr_step);

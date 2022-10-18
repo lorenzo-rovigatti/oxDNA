@@ -93,7 +93,7 @@ class StressAutocorrelation: public BaseObservable {
 protected:
 	std::vector<LR_vector> _old_forces, _old_torques;
 	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_zx, _N_xy, _N_yz, _N_xz;
-	double _delta_t;
+	double _delta_t = 0.0;
 
 public:
 	StressAutocorrelation();

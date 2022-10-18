@@ -39,7 +39,6 @@ void StressAutocorrelation::get_settings(input_file &my_inp, input_file &sim_inp
 }
 
 void StressAutocorrelation::update_data(llint curr_step) {
-
 	_config_info->interaction->begin_energy_computation();
 
 	// pair_interaction will change these vectors, but we still need them in the next
