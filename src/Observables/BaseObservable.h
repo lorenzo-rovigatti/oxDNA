@@ -24,12 +24,13 @@ protected:
 
 	std::string _id;
 	long long int _update_every = 0;
+	long long int _times_updated = 0;
 public:
 	BaseObservable();
 
 	virtual ~BaseObservable();
 
-	virtual bool is_update_every_set();
+	bool is_update_every_set();
 
 	virtual bool need_updating(llint curr_step);
 

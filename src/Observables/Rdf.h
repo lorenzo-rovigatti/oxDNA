@@ -45,7 +45,6 @@
  */
 class Rdf: public BaseObservable {
 private:
-	long int _n_confs;
 	int _n_pairs;
 	number _max_value;
 	number _bin_size;
