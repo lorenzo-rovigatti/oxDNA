@@ -48,11 +48,6 @@ protected:
 	virtual void _init_cells(c_number4 *poss=nullptr);
 
 public:
-	int *d_matrix_neighs = nullptr;
-	int *d_number_neighs = nullptr;
-	edge_bond *d_edge_list = nullptr;
-	int N_edges;
-
 	CUDASimpleVerletList();
 	virtual ~CUDASimpleVerletList();
 
