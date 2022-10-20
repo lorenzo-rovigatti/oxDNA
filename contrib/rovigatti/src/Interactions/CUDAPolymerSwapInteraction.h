@@ -19,12 +19,13 @@ class CUDAPolymerSwapInteraction: public CUDABaseInteraction, public PolymerSwap
 private:
 	c_number4 *_d_three_body_forces;
 	int *_d_bonded_neighs;
+
 public:
 	CUDAPolymerSwapInteraction();
 	virtual ~CUDAPolymerSwapInteraction();
 
 	void get_settings(input_file &inp);
-	void cuda_init(c_number box_side, int N);
+	void cuda_init(int N);
 	c_number get_cuda_rcut() {
 		return this->get_rcut();
 	}

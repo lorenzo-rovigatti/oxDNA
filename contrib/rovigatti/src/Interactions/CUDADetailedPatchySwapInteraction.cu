@@ -455,8 +455,8 @@ void CUDADetailedPatchySwapInteraction::get_settings(input_file &inp) {
 	getInputInt(&inp, "CUDA_sort_every", &sort_every, 0);
 }
 
-void CUDADetailedPatchySwapInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDADetailedPatchySwapInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	DetailedPatchySwapInteraction::init();
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_forces, N * sizeof(c_number4)));

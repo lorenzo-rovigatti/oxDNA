@@ -343,8 +343,8 @@ void CUDADetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	DetailedPolymerSwapInteraction::get_settings(inp);
 }
 
-void CUDADetailedPolymerSwapInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDADetailedPolymerSwapInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	DetailedPolymerSwapInteraction::init();
 
 	std::vector<BaseParticle *> particles(_N);

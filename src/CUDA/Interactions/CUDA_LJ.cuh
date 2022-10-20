@@ -68,7 +68,6 @@ __global__ void lj_forces(c_number4 *poss, c_number4 *forces, int *matrix_neighs
 	c_number4 ppos = poss[IND];
 
 	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
-
 	for(int j = 0; j < num_neighs; j++) {
 		int k_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
 

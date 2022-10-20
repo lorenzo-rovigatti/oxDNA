@@ -280,8 +280,8 @@ void CUDANathanStarInteraction::_setup_cuda_interp() {
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_bin, &f_copy, sizeof(float)));
 }
 
-void CUDANathanStarInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDANathanStarInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	NathanStarInteraction::init();
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));

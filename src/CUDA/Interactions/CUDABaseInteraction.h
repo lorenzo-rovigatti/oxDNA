@@ -18,7 +18,8 @@
 
 class CUDABaseInteraction {
 protected:
-	bool _use_edge;
+	bool _use_edge = false;
+	bool _edge_compatible = false;
 	/// c_number of force slots per particle. Used only if _use_edge == true.
 	int _n_forces;
 	CUDA_kernel_cfg _launch_cfg;
@@ -28,7 +29,6 @@ protected:
 	CUDA_kernel_cfg _ffs_dist_eval_kernel_cfg;
 
 	int _N;
-	c_number _box_side;
 
 	c_number4 *_d_edge_forces;
 	c_number4 *_d_edge_torques;
@@ -41,7 +41,7 @@ public:
 
 	virtual void get_settings(input_file &inp) = 0;
 	virtual void get_cuda_settings(input_file &inp);
-	virtual void cuda_init(c_number box_side, int N);
+	virtual void cuda_init(int N);
 	virtual c_number get_cuda_rcut() = 0;
 
 	virtual void sync_host() {}

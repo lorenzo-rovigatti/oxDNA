@@ -81,19 +81,21 @@ void CUDABaseInteraction::_sum_edge_forces_torques(c_number4 *d_forces, c_number
 }
 
 void CUDABaseInteraction::get_cuda_settings(input_file &inp) {
-	int tmpi;
-	if(getInputBoolAsInt(&inp, "use_edge", &tmpi, 0) == KEY_FOUND) {
-		if(tmpi > 0) {
-			_use_edge = true;
-			getInputInt(&inp, "edge_n_forces", &_n_forces, 0);
-			if(_n_forces < 1) throw oxDNAException("edge_n_forces must be > 0");
+	getInputBool(&inp, "use_edge", &_use_edge, 0);
+	if(_use_edge) {
+		if(!_edge_compatible) {
+			throw oxDNAException("The selected CUDA interaction is not compatible with 'use_edge = true'");
+		}
+
+		getInputInt(&inp, "edge_n_forces", &_n_forces, 0);
+		if(_n_forces < 1) {
+			throw oxDNAException("edge_n_forces must be > 0");
 		}
 	}
 }
 
-void CUDABaseInteraction::cuda_init(c_number box_side, int N) {
+void CUDABaseInteraction::cuda_init(int N) {
 	_N = N;
-	_box_side = box_side;
 
 	if(_use_edge && _d_edge_forces == nullptr) {
 		size_t size = sizeof(c_number4) * _N * _n_forces;

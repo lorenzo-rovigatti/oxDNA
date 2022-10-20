@@ -12,7 +12,7 @@
 #include "../Lists/CUDANoList.h"
 
 CUDALJInteraction::CUDALJInteraction() {
-
+	_edge_compatible = true;
 }
 
 CUDALJInteraction::~CUDALJInteraction() {
@@ -23,8 +23,8 @@ void CUDALJInteraction::get_settings(input_file &inp) {
 	LJInteraction::get_settings(inp);
 }
 
-void CUDALJInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDALJInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	LJInteraction::init();
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));

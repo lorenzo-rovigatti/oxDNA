@@ -285,8 +285,8 @@ void CUDAPatchySwapInteraction::get_settings(input_file &inp) {
 	getInputInt(&inp, "CUDA_sort_every", &sort_every, 0);
 }
 
-void CUDAPatchySwapInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAPatchySwapInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	PatchySwapInteraction::init();
 
 	if(_N_species > MAX_SPECIES) {

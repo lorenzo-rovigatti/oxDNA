@@ -219,6 +219,7 @@ void copy_Model_to_CUDAModel(Model& model_from, CUDAModel& model_to) {
 
 CUDARNAInteraction::CUDARNAInteraction() {
 	_grooving = false;
+	_edge_compatible = true;
 }
 
 CUDARNAInteraction::~CUDARNAInteraction() {
@@ -271,8 +272,8 @@ void CUDARNAInteraction::get_settings(input_file &inp) {
 	RNAInteraction::get_settings(inp);
 }
 
-void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDARNAInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	RNAInteraction::init();
 
 	float f_copy = 1.0; //this->_hb_multiplier;
@@ -373,39 +374,26 @@ void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
 }
 
 void CUDARNAInteraction::_on_T_update() {
-	cuda_init(_box_side, _N);
+	cuda_init(_N);
 }
 
 void CUDARNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
-	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
+	if(_use_edge) {
+		rna_forces_edge_nonbonded
+			<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, d_box);
 
-	//this->_grooving = this->_average;
-	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) {
-			rna_forces_edge_nonbonded
-				<<<(_v_lists->N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->d_edge_list, _v_lists->N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, d_box);
-
-			this->_sum_edge_forces_torques(d_forces, d_torques);
+		_sum_edge_forces_torques(d_forces, d_torques);
 
 		rna_forces_edge_bonded
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_average,this->_use_mbf,this->_mbf_xmax, this->_mbf_finf);
+			<<<this->_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _average, _use_mbf, _mbf_xmax, _mbf_finf);
 	}
 	else {
 		rna_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
+			<<<this->_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
-	}
-}
-
-CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
-	if(_no_lists != NULL) {
-		rna_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
-		CUT_CHECK_ERROR("forces_second_step no_lists error");
 	}
 }
 
