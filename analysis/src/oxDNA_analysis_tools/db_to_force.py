@@ -38,6 +38,19 @@ def parse_dot_bracket(input:str) -> List[int]:
 
     return output
 
+def db_to_forcelist(db_str, strength):
+    # convert the db string to an index list
+    db_idx = parse_dot_bracket(db_str)
+
+    force_list = []
+
+    #p is particle id, q is paired particle id
+    for p, q in enumerate(db_idx):
+        if q != -1:
+            force_list.append(mutual_trap(p, q, strength, 1.2, 1))
+
+    return force_list
+
 def cli_parser(prog="db_to_force.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Create an external forces file enforcing the current base-pairing arrangement")
     parser.add_argument('db_file', type=str, nargs=1, help="A text file containing dot-bracket notation of the base-pairing arrangement")
@@ -64,15 +77,7 @@ def main():
         strength = 0.09
         print("INFO: No strength provided, defaulting to {}".format(strength), file=stderr)
 
-    # convert the db string to an index list
-    db_idx = parse_dot_bracket(db_str)
-
-    force_list = []
-
-    #p is particle id, q is paired particle id
-    for p, q in enumerate(db_idx):
-        if q != -1:
-            force_list.append(mutual_trap(p, q, strength, 1.2, 1))
+    force_list = db_to_forcelist(db_str, strength)
 
     # write the force file
     if args.output:
