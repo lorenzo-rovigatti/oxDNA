@@ -35,7 +35,7 @@ def get_potentials(ctx) -> List[str]:
         backend = oxpy.analysis.AnalysisBackend(inp)
 
         backend.read_next_configuration()
-        e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(0).strip().split('\n')
+        e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')
         pot_names = parse_header(e_txt[0])
 
     return pot_names
