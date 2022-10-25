@@ -39,6 +39,7 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputBool(&inp, "DPS_semiflexibility", &_enable_semiflexibility, 0);
 	if(_enable_semiflexibility) {
 		getInputNumber(&inp, "DPS_semiflexibility_k", &_semiflexibility_k, 1);
+		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 1);
 	}
 
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
@@ -207,27 +208,30 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 			number exp_part = exp(_3b_sigma / (r_mod - _3b_rcut));
 			number Vradial = epsilon * _3b_A_part * exp_part * (_3b_B_part / SQR(sqr_r) - 1.);
 
-			number cost = (p->orientationT.v3 * q->orientationT.v3);
-			number Vteta = (1. - cost)/2.;
-			// Vteta = 1;
+			number cost_a3 = (p->orientationT.v3 * q->orientationT.v3);
+			number Vteta_a3 = (1. - cost_a3)/2.;         // axis defining the 3'-5' direction
+			// Vteta_a3 = 1;
 
 			number cost_a1 = (p->orientationT.v1 * q->orientationT.v1);
-			number Vteta_a1 = (1. - cost_a1)/2.;
+			//number Vteta_a1 = (1. - cost_a1)/2.;         // axis on which the patch lies
+			number Vteta_a1 = pow((1. - cost_a1), _semiflexibility_a1)/( pow(2., _semiflexibility_a1) );
 			// Vteta_a1 = 1;
 
-			number tmp_energy = Vradial * Vteta * Vteta_a1;
+			number tmp_energy = Vradial * Vteta_a3 * Vteta_a1;
 			energy += tmp_energy;
 
-			number tb_energy = (r_mod < _3b_sigma) ? Vteta * Vteta_a1: -tmp_energy / epsilon;
+			number tb_energy = (r_mod < _3b_sigma) ? Vteta_a3 * Vteta_a1: -tmp_energy / epsilon;
 
 			PSBond p_bond(q, tb_energy, epsilon, 1, 1, patch_dist, r_mod, _computed_r);
 			PSBond q_bond(p, tb_energy, epsilon, 1, 1, -patch_dist, r_mod, -_computed_r);
 
 			if(update_forces) {
-				number force_mod = ( epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * Vradial / SQR(r_mod - _3b_rcut) ) * Vteta * Vteta_a1;
+				number force_mod = ( epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * Vradial / SQR(r_mod - _3b_rcut) ) * Vteta_a3 * Vteta_a1;
 				LR_vector tmp_force = patch_dist * (-force_mod / r_mod);
 
-				LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2. * Vteta_a1 + Vradial * ( p->orientationT.v1.cross(q->orientationT.v1) )/2. * Vteta;
+				number torque_a1 = _semiflexibility_a1 * pow((1. - cost_a1), (_semiflexibility_a1 - 1.)) / (pow(2, _semiflexibility_a1));
+				//LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2. * Vteta_a1 + Vradial * ( p->orientationT.v1.cross(q->orientationT.v1) )/2. * Vteta_a3;
+				LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2. * Vteta_a1 + Vradial * torque_a1 * ( p->orientationT.v1.cross(q->orientationT.v1) ) * Vteta_a3;
 				// torque_tetaTerm = LR_vector();
 				LR_vector p_torque = p->orientationT * ( p_patch_pos.cross(tmp_force) + torque_tetaTerm);
 				LR_vector q_torque = q->orientationT * ( q_patch_pos.cross(tmp_force) + torque_tetaTerm);
@@ -332,7 +336,6 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 					other->torque -= factor * other_bond.q_torque;
 
 					check += other_bond.r_part.cross(-tmp_force) + p->orientation * factor * other_bond.p_torque - other->orientation * factor * other_bond.q_torque;
-					//printf("%lf\n", check.module());
 
 					if(p->strand_id != other->strand_id) {
 						_update_inter_chain_stress_tensor(p->strand_id, p->strand_id, tmp_force);
@@ -359,7 +362,7 @@ number CGNucleicAcidsInteraction::pair_interaction(BaseParticle *p, BaseParticle
 }
 
 number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *p, BaseParticle *q, bool update_forces) {
-	number cost = (p->orientationT.v3 * q->orientationT.v3);
+	number cost_a3 = (p->orientationT.v3 * q->orientationT.v3);
 
 	if (update_forces) {
 		LR_vector torque_term = _semiflexibility_k * p->orientationT.v3.cross(q->orientationT.v3);
@@ -367,7 +370,7 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *p, B
 		q->torque -= q->orientationT * torque_term;
 	}
 
-	return _semiflexibility_k * (1. - cost);
+	return _semiflexibility_k * (1. - cost_a3);
 }
 /*
 number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *middle, BaseParticle *n1, BaseParticle *n2, bool update_forces) {
