@@ -43,7 +43,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
             energies = np.zeros((ctx.top_info.nbases, 9))
 
         while backend.read_next_configuration():
-            e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(0).strip().split('\n')
+            e_txt = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')
             if ctx.visualize:
                 for e in e_txt[1:]:
                     if not e[0] == '#':
