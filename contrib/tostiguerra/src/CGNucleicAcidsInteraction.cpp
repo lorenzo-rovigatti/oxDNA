@@ -392,12 +392,12 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *midd
 		number force_mod_n1 = i_pn1_pn2 + cost_n1;
 		number force_mod_n2 = i_pn1_pn2 + cost_n2;
 
-		middle->force += dist_pn1 * (force_mod_n1 * _semiflexibility_k) - dist_pn2 * (force_mod_n2 * _semiflexibility_k);
-		n1->force -= dist_pn1 * (cost_n1 * _semiflexibility_k) - dist_pn2 * (i_pn1_pn2 * _semiflexibility_k);
-		n2->force -= dist_pn1 * (i_pn1_pn2 * _semiflexibility_k) - dist_pn2 * (cost_n2 * _semiflexibility_k);
+		middle->force += dist_pn1 * (force_mod_n1 * _semiflexibility_3b_k) - dist_pn2 * (force_mod_n2 * _semiflexibility_3b_k);
+		n1->force -= dist_pn1 * (cost_n1 * _semiflexibility_3b_k) - dist_pn2 * (i_pn1_pn2 * _semiflexibility_3b_k);
+		n2->force -= dist_pn1 * (i_pn1_pn2 * _semiflexibility_3b_k) - dist_pn2 * (cost_n2 * _semiflexibility_3b_k);
 	}
 
-	return _semiflexibility_k * (1. - cost);
+	return _semiflexibility_3b_k * (1. - cost);
 }
 
 
