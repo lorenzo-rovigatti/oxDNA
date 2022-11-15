@@ -41,7 +41,11 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 		getInputNumber(&inp, "DPS_semiflexibility_k", &_semiflexibility_k, 1);
 		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 1);
 	}
+	getInputBool(&inp, "DPS_semiflexibility_3b", &_enable_semiflexibility_3b, 0);
 
+	if(_enable_semiflexibility) {
+		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflexibility_3b_k, 1);
+	}
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
 	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
@@ -361,7 +365,7 @@ number CGNucleicAcidsInteraction::pair_interaction(BaseParticle *p, BaseParticle
 	}
 }
 
-number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *p, BaseParticle *q, bool update_forces) {
+number CGNucleicAcidsInteraction::_semiflexibility_two_body(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number cost_a3 = (p->orientationT.v3 * q->orientationT.v3);
 
 	if (update_forces) {
@@ -372,7 +376,7 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *p, B
 
 	return _semiflexibility_k * (1. - cost_a3);
 }
-/*
+
 number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *middle, BaseParticle *n1, BaseParticle *n2, bool update_forces) {
 	LR_vector dist_pn1 = _box->min_image(middle->pos, n1->pos);
 	LR_vector dist_pn2 = _box->min_image(n2->pos, middle->pos);
@@ -395,7 +399,7 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *midd
 
 	return _semiflexibility_k * (1. - cost);
 }
-*/
+
 
 number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
@@ -411,10 +415,10 @@ number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseP
 		energy += _WCA(p, q, update_forces);
 
 		if(_enable_semiflexibility) {
-			energy += _semiflexibility_three_body(p, q, update_forces);
+			energy += _semiflexibility_two_body(p, q, update_forces);
 		}
 
-		/*if(_enable_semiflexibility) {
+		if(_enable_semiflexibility_3b) {
 			// here things get complicated. We first check whether p is the middle particle of a three-body interaction
 			for(auto pair : p->affected) {
 				// q has always a smaller index than p, so that this condition selects all the other ParticlePair's
@@ -449,7 +453,7 @@ number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseP
 					}
 				}
 			}
-		}*/
+		}
 	}
 
 	return energy;
