@@ -43,8 +43,9 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	}
 	getInputBool(&inp, "DPS_semiflexibility_3b", &_enable_semiflexibility_3b, 0);
 
-	if(_enable_semiflexibility) {
+	if(_enable_semiflexibility_3b) {
 		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflexibility_3b_k, 1);
+		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 1);
 	}
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
