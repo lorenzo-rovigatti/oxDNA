@@ -19,10 +19,11 @@ from scipy import linalg
 
 ###############################
 #Parameteres to map oxdna coordinates to interaction centers
-STACK_X = 0.34
-HB_X = 0.4
-BB_X = -0.34
-BB_Y = -0.34
+#A = 0; G = 1, C = 2, T = 3
+STACK_X = [0.34, 0.34, 0.34, 0.34]
+HB_X = [0.4, 0.4, 0.4, 0.4]
+BB_X = [-0.34, -0.34, -0.34, -0.34]
+BB_Y = [-0.34, -0.34, -0.34, -0.34]
 
 ###############################
 #parameter to map nucleotide centers to Euler translations
@@ -39,10 +40,23 @@ class oxdna_frame :
         self.base_v = -bv #minus sign for Tsukuba convention
         self.normal = n
         self.base_norv = np.cross(bv,n)
-    def int_centers(self):
-        back_bone = self.center-BB_X*self.base_v-BB_Y*self.base_norv
-        hbond = self.center+HB_X*self.base_v
-        stack = self.center+STACK_X*self.base_v
+    def int_centers(self,ty):
+        tid = 0
+        if ty == 'A' :
+            tid = 0
+        elif ty == 'G' :
+            tid = 1
+        elif ty == 'C' :
+            tid = 2
+        elif ty == "T" :
+            tid = 3
+        else :
+            print("Unknown base type " + ty)
+            quit()        
+        
+        back_bone = self.center-BB_X[tid]*self.base_v-BB_Y[tid]*self.base_norv
+        hbond = self.center+HB_X[tid]*self.base_v
+        stack = self.center+STACK_X[tid]*self.base_v
         return(back_bone,hbond,stack)
     
 ##############################  
@@ -66,11 +80,12 @@ class int_coord :
 #members are oxframe, which is an oxdna_frame object
 #and frame, which is a eframe object
 class base :
-    def __init__(self,oxc):
+    def __init__(self,oxc,ty):
         self.oxframe = oxc
+        self.type = ty
         
         #map oxdna coordinates to euler coordinates
-        p = oxc.center - OX_TZU_DISP
+        p = oxc.center + oxc.base_v*OX_TZU_DISP[0]+oxc.base_norv*OX_TZU_DISP[1]+oxc.base_norv*OX_TZU_DISP[2]
         """
         A = np.zeros((3,3), dtype=float)
         
@@ -147,7 +162,7 @@ class base_pair :
         self.frame = eframe(p,ori)
         
         #compute intra coordinates
-        rot = caym1(A2,1)
+        rot = caym1(A2,1)*180./math.pi
         tr = np.dot(self.frame.orientation.transpose(),b1.frame.pos-b2.frame.pos)
         self.intra_coord = int_coord(tr, rot)
 
@@ -166,27 +181,54 @@ class junction :
         self.frame = eframe(p,ori)
         
         #compute inter coordinates
-
-        rot = caym1(A2,1)
+        rot = caym1(A2,1)*180./math.pi
         tr = np.dot(self.frame.orientation.transpose(),bp2.frame.pos-bp1.frame.pos)
         self.inter_coord = int_coord(tr, rot)
 
 ##############################
-#read oxdna trajectory (XXXTODO: pandas?)
-#XXXTODO: read topology from topo file!
+#read oxdna trajectory
+#XXXNOTE: There is no information on base pairs in topology file + 
+#bp can potentially change runtime
+#for now I'm assuming standard order: (A)0,1,2,3,..,Nbp-1,(B)Nbp-1,Nbp-2,..,1,0 (Nbp = Nb/2 number of base pairs)  
 #XXXTODO: memory wise it's better to read AND print one snapshot at a time
-def read_oxdna_trajectory(tr_file, Nb):
-    #read Nb from topology!
+
+class topo :
+    def __init__(self, nid, sid, bty, do, up) :
+        self.id = nid
+        self.strand_id = sid
+        self.base_type = bty
+        self.down_id = do
+        self.up_id = up
+
+def read_oxdna_trajectory_standard_order(tr_file, topo_file):
+    
+    Nb = 0
+    Ns = 0
+    nid = 0
+    
+    topology = []
+    for line in topo_file.readlines() :
+        vals = line.split()
+        if len(vals) == 2 :
+            Nb = int(vals[0])
+            Ns = int(vals[1])
+            if Ns != 2 :
+                print("Number of strands in not 2.")
+                quit()
+        else :
+           to = topo(nid, int(vals[0]), vals[1], int(vals[2]), int(vals[3]))
+           topology.append(to)
+           nid += 1
+           
     trajectory = []
     for line in tr_file.readlines():
         a = line.strip()[0]
         if a == 't':
-            counts = 0
+            nid = 0
             #print(a)
             config = []
         else:
             if a != 'b' and a != 'E':
-                counts += 1
                 #print(counts)
                 vals = line.split()
                 #print(vals[0])
@@ -196,8 +238,9 @@ def read_oxdna_trajectory(tr_file, Nb):
                 #print(bv)
                 n = np.array([float(vals[6]),float(vals[7]), float(vals[8])])
                 #print(n)
-                b = base(oxdna_frame(c, bv, n))
+                b = base(oxdna_frame(c, bv, n),topology[nid].base_type)
                 config.append(b)
+                nid += 1
                 if len(config) == Nb :
                     bps = []
                     juns = []
@@ -210,6 +253,36 @@ def read_oxdna_trajectory(tr_file, Nb):
                     trajectory.append(juns)
             
     return trajectory
+
+def average_internal_coord_over_trajectory(traj) :
+    Nsn = len(traj)
+    Nj = len(traj[0])
+    
+    Nbp = Nj+1
+    av_intra_tr = np.zeros((Nbp,3),dtype = float)
+    av_intra_rot = np.zeros((Nbp,3),dtype = float)
+    av_inter_tr = np.zeros((Nj,3),dtype = float)
+    av_inter_rot = np.zeros((Nj,3),dtype = float)
+    topo = []
+    
+    for i in range (0, Nj) :
+        topo.append(traj[0][i].base_pair1.base_W.type)
+        if i == Nj-1 :
+            topo.append(traj[0][i].base_pair1.base_C.type)       
+    
+    for i in range (0,Nsn) :
+        for j in range (0, Nj) :
+            av_intra_tr[j] += traj[i][j].base_pair1.intra_coord.tran/(float(Nsn))
+            av_intra_rot[j] += traj[i][j].base_pair1.intra_coord.rot/(float(Nsn))
+            av_inter_tr[j] += traj[i][j].inter_coord.tran/(float(Nsn))
+            av_inter_rot[j] += traj[i][j].inter_coord.rot/(float(Nsn))
+            if j == Nj-1 :
+                av_intra_tr[j+1] += traj[i][j].base_pair2.intra_coord.tran/(float(Nsn))
+                av_intra_rot[j+1] += traj[i][j].base_pair2.intra_coord.rot/(float(Nsn))
+    
+    return(topo, av_intra_tr, av_intra_rot, av_inter_tr, av_inter_rot)
+
+
 
 
 
@@ -240,16 +313,37 @@ print(np.dot(ec.rot,oc.base_v))
 print(np.dot(ec.rot,oc.normal))
 """
 iname = 'trajectory.dat'
+tname = 'generated.top'
 
 ifile = open(iname,'r')
+tfile = open(tname,'r')
 
-tr_data = read_oxdna_trajectory(ifile, 34)
+tr_data = read_oxdna_trajectory_standard_order(ifile, tfile)
 
+ifile.close()
+tfile.close()
+
+to, av_intra_tr, av_intra_rot, av_inter_tr, av_inter_rot = average_internal_coord_over_trajectory(tr_data)
+
+oname = 'av_int_coord.txt'
+ofile = open(oname, 'w')
+
+print('#btype shear stretch stagger buckle propeller opening shift slide rise tilt roll twist', file=ofile)
+for i in range (0,len(to)) :
+    line = to[i] + " " + str(av_intra_tr[i][0]) + " " + str(av_intra_tr[i][1]) + " " + str(av_intra_tr[i][2])
+    line = line + " " + str(av_intra_rot[i][0]) + " " + str(av_intra_rot[i][1]) + " " + str(av_intra_rot[i][2])
+    if i < len(to)-1 :
+        line = line + " " + str(av_inter_tr[i][0]) + " " + str(av_inter_tr[i][1]) + " " + str(av_inter_tr[i][2])
+        line = line + " " + str(av_inter_rot[i][0]) + " " + str(av_inter_rot[i][1]) + " " + str(av_inter_rot[i][2])
+    print(line,file=ofile)
+    
+ofile.close()
+    
 print("reading test:")
 #print(tr_data[0][0][0].center)
 #print(tr_data[0][0][1].center)
 print("JUNCTION 3, SNAP 0:")
-print("###############\nNOTE1: translations are in oxdna units, rotations in radiants\nNOTE2: translations are between base/base pair barycenters\n##############")
+print("###############\nNOTE1: translations are in oxdna units, rotations in degrees\nNOTE2: translations are between base/base pair barycenters\n##############")
 print("BP1 INTRA: ")
 print("translations:")
 print(tr_data[0][3].base_pair1.intra_coord.tran)
