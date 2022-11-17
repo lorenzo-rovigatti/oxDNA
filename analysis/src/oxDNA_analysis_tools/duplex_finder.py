@@ -113,7 +113,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         i = 0
 
         while backend.read_next_configuration():
-            pairs = backend.config_info().get_observable_by_id("my_obs").get_output_string(0).strip().split('\n')
+            pairs = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')
             for p in pairs[1:]:
                 p = p.split()
                 a = int(p[0])

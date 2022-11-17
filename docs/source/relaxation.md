@@ -17,8 +17,8 @@ sim_type = MC
 ensemble = NVT
 
 # these 2 options can be changed to improve performance, but it is usually not necessary
-delta_translation = 0.22
-delta_rotation = 0.22
+delta_translation = 0.1
+delta_rotation = 0.1
 
 steps = 1000 # you will very rarely need more than this number of steps
 
@@ -41,8 +41,10 @@ The most important options that are linked to this type of relaxation are listed
 sim_type = MD
 
 dt = 0.002 # reduce this value to increase numerical stability
-thermostat = langevin
-diff_coeff = 0.5 # reduce this value to increase the thermostat coupling
+thermostat = bussi
+bussi_tau = 1000
+newtonian_steps = 53 # use 1 if you want the thermostat to act every step: 
+				   # may be useful for very stressed configurations 
 
 steps = 1e6 # the number of steps required may be 1 or 2 orders of magnitude 
             # larger than this figure, depending on the particular structure

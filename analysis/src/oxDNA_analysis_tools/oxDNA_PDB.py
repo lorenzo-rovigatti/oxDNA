@@ -6,6 +6,7 @@ import numpy as np
 import copy
 import string
 from math import sqrt, sin
+from collections import defaultdict
 # import Bio.PDB as bio
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, Nucleotide, AminoAcid, FROM_OXDNA_TO_ANGSTROM
@@ -21,12 +22,12 @@ protein_pdb_files = []
 def print_usage():
         print("USAGE:", file=sys.stderr)
         print("\t%s topology configuration direction pdbfiles(optional, needs flag -p) " % sys.argv[0], file =sys.stderr)
-        print("\t[-H\--hydrogens=True] [-u\--uniform-residue-names] [-p\--contains-protein]", file=sys.stderr)
+        print("\t[-H\--hydrogens=True] [-u\--uniform-residue-names] [-p\--contains-protein] [-r\--rmsf-file]", file=sys.stderr)
         exit(1)
 
 def parse_options():
-    shortArgs = 'H:uosp'
-    longArgs = ['hydrogens=','uniform-residue-names', 'one-file-per-strand', 'contains-protein']
+    shortArgs = 'H:uospr'
+    longArgs = ['hydrogens=','uniform-residue-names', 'one-file-per-strand', 'contains-protein', 'rmsf-file']
     
     opts = {
         "configuration" : "",
@@ -36,6 +37,7 @@ def parse_options():
         "uniform_residue_names" : False,
         "one_file_per_strand" : False,
         "contains_protein" : False,
+        "rmsf_bfactor": "",
     }
     
     try:
@@ -53,13 +55,15 @@ def parse_options():
                     print >> sys.stderr, "The argument of '%s' should be either 'true' or 'false' (got '%s' instead)" % (k[0], k[1])
                     exit(1)
             elif k[0] == '-u' or k[0] == '--uniform-residue-names':
-                    opts["uniform_residue_names"] = True
+                opts["uniform_residue_names"] = True
             elif k[0] == '-o' or k[0] == '--one-file-per-strand':
-                    opts["one_file_per_strand"] = True
+                opts["one_file_per_strand"] = True
             elif k[0] == '-s' or k[0] == '--same-pdb-all-protein-strands':
-                    opts["same_pdb_all_protein_strands"] = True
+                opts["same_pdb_all_protein_strands"] = True
             elif k[0] == '-p' or k[0] == '--contains-protein':
-                    opts["contains_protein"] = True
+                opts["contains_protein"] = True
+            elif k[0] == '-r' or k[0] == '--rmsf-file':
+                opts["rmsf_bfactor"] = k[1]
             
         opts['topology'] = positional_args[0]
         opts['configuration'] = positional_args[1]
@@ -132,7 +136,24 @@ def main():
     except Exception as e:
         print("Parser error: %s" % e, file=sys.stderr)
         exit(1)
-    
+
+    rmsf_file = opts["rmsf_bfactor"]
+    if rmsf_file:
+        with open(rmsf_file) as f:
+            try:
+                # .json format from oat deviations
+                substrings = f.read().split("[")[1].split("]")[0].split(",")
+            except Exception as e:
+                print("Parsing error in RMSF file. Invalid Format: %s" % e, file=sys.stderr)
+                exit(1)
+            try:
+                rmsf_per_nucleotide = {i: float(s) for i, s in enumerate(substrings)}
+            except Exception as e:
+                print("Parsing error in RMSF file. Conversion to float failed : %s" % e, file=sys.stderr)
+                exit(1)
+    else:
+        rmsf_per_nucleotide = defaultdict(lambda: 1.00)
+
     ox_nucleotides = []
     s.map_nucleotides_to_strands()
     com = np.array([0., 0., 0.])
@@ -155,17 +176,21 @@ def main():
     
     current_base_identifier = 'A'   
     reading_position = 0 
-    s_pdbfile = iter(protein_pdb_files)
-    pdbfile = next(s_pdbfile)
+
+    if protein_pdb_files:
+        s_pdbfile = iter(protein_pdb_files)
+        pdbfile = next(s_pdbfile)
+
     for s_id, strand in enumerate(s._strands):
         strand_pdb = []
         nucleotides_in_strand = strand._nucleotides
         if not opts['oxDNA_direction']:
             nucleotides_in_strand = reversed(nucleotides_in_strand)
-        #Protein
         sys.stdout.write("\rINFO: Converting Strand %i" % strand.index)
         sys.stdout.flush()
-        if strand.index < 0:
+        
+        #Protein
+        if strand.index < 0 and protein_pdb_files:
             #s_pdbfile = protein_pdb_files[abs(strand.index)-1]
             coord = [n.cm_pos for n in strand._nucleotides]  # amino acids only go from nterm to cterm (pdb format does as well)
             #print('oxpositions ', coord)
@@ -213,7 +238,14 @@ def main():
                 residue_serial = n_idx % 9999
                 base_identifier = current_base_identifier
                 # Make nucleotide line from pdb.py
-                nucleotide_pdb = my_base.to_pdb(base_identifier, opts['print_hydrogens'], residue_serial, residue_suffix, residue_type)
+                nucleotide_pdb = my_base.to_pdb(
+                    base_identifier,
+                    opts['print_hydrogens'],
+                    residue_serial,
+                    residue_suffix,
+                    residue_type,
+                    bfactor=rmsf_per_nucleotide[nucleotide.index],
+                )
                 # Append to strand_pdb
                 strand_pdb.append(nucleotide_pdb)
             
@@ -234,98 +266,99 @@ def main():
             else:
                 current_base_identifier = chr(ord(current_base_identifier) + 1)
     
-    # #Must Now renumber and restrand, (sorry)
-    out.seek(0)
-    outw = open('TM2.pdb', 'w')
-    resid, atmid, chainid = -1, 1, -1
-    #check against next atom entry
-    pres, pchain = 0, 0
-    alpha = list(string.ascii_uppercase)
-    alpha = list(string.ascii_uppercase)
-    a2 = copy.deepcopy(alpha)
-    for i in range(26):
-        alpha += [a2[i]+x for x in a2]
-    for line in out:
-        write_chain_end = False
-        if line.startswith('ATOM'):
-            data = line.split()
-            cres_id = data[5]
-            curr_chainid = data[4]
-            if curr_chainid != pchain:
-                if chainid != -1:
-                    write_chain_end = True
-                chainid += 1
-                pchain = curr_chainid 
-            if cres_id != pres:
-                resid += 1
-                pres = cres_id
-            data[1] = str(atmid)
-            data[5] = str(resid + 1)
-            data[4] = alpha[chainid]
-        
-            coord = line[29:53]
-            xd, yd, zd = float(line[30:38]), float(line[38:46]), float(line[46:54])
-            for x in [xd, yd, zd]:
-                spcs = 7-len(str(x))
-                x = ''.join([' ' for i in range(spcs)]) + str(x)
-            #print(xd, yd, zd)
-            if len(list(data[-1])) == 1:
-                del data[-1]
-
-            if len(data) == 8:
-                try:
-                    bfactor = float(data[7])
-                    occ = float(data[6])
-                except ValueError:
-                    occ = data[7][:4]
-                    bfactor = data[7][4:]
-            elif len(data) == 9:
-                try:
-                    bfactor = float(data[8])
-                    occ = float(data[7])
-                except ValueError:
-                    occ = data[8][:4]
-                    bfactor = data[8][4:]
-            elif len(data) == 10:
-                try:
-                    bfactor = float(data[9])
-                    occ = float(data[8])
-                except ValueError:
-                    occ = data[9][:4]
-                    bfactor = data[9][4:]
-            elif len(data) == 11:
-                try:
-                    bfactor=float(data[10])
-                    occ = float(data[9])
-                except ValueError:
-                    occ = data[10][:4]
-                    bfactor = data[10][4:]
-            else: 
-                bfactor=0
-                occ = 1
-
-            for x in [occ, bfactor]:
-                spcs = 4-len(str(x))
-                x = ''.join([' ' for i in range(spcs)]) + str(x)
-
-            # data indice -> PDB FIELD LENGTH
-            dls = {1: 6, 2:4, 3:3, 4:2, 5:6}
-            for i in range(1,6):
-                x = len(data[i])
-                if x != dls[i]:
-                    diff = dls[i] - x
-                    empty = [' ' for j in range(diff)]
-                    data[i] = ''.join(empty)+data[i]
-                    #print(data[i])
-
+    if protein_pdb_files:  
+        # #Must Now renumber and restrand, (sorry)
+        out.seek(0)
+        outw = open(opts['topology'].split(".")[0] + ".pdb", 'w')
+        resid, atmid, chainid = -1, 1, -1
+        #check against next atom entry
+        pres, pchain = 0, 0
+        alpha = list(string.ascii_uppercase)
+        a2 = copy.deepcopy(alpha)
+        for i in range(26):
+            alpha += [a2[i]+x for x in a2]
+        for line in out:
+            write_chain_end = False
+            if line.startswith('ATOM'):
+                data = line.split()
+                cres_id = data[5]
+                curr_chainid = data[4]
+                if curr_chainid != pchain:
+                    if chainid != -1:
+                        write_chain_end = True
+                    chainid += 1
+                    pchain = curr_chainid 
+                if cres_id != pres:
+                    resid += 1
+                    pres = cres_id
+                data[1] = str(atmid)
+                data[5] = str(resid + 1)
+                data[4] = alpha[chainid]
             
-            print('ATOM', data[1], data[2], data[3], data[4], data[5], coord, occ, bfactor, file=outw)
-            if write_chain_end:
-                print('TER ', data[1], '    ', data[4], data[5], file=outw)
-            atmid += 1
+                coord = line[29:53]
+                xd, yd, zd = float(line[30:38]), float(line[38:46]), float(line[46:54])
+                for x in [xd, yd, zd]:
+                    spcs = 7-len(str(x))
+                    x = ''.join([' ' for i in range(spcs)]) + str(x)
+                #print(xd, yd, zd)
+                if len(list(data[-1])) == 1:
+                    del data[-1]
+
+                if len(data) == 8:
+                    try:
+                        bfactor = float(data[7])
+                        occ = float(data[6])
+                    except ValueError:
+                        occ = data[7][:4]
+                        bfactor = data[7][4:]
+                elif len(data) == 9:
+                    try:
+                        bfactor = float(data[8])
+                        occ = float(data[7])
+                    except ValueError:
+                        occ = data[8][:4]
+                        bfactor = data[8][4:]
+                elif len(data) == 10:
+                    try:
+                        bfactor = float(data[9])
+                        occ = float(data[8])
+                    except ValueError:
+                        occ = data[9][:4]
+                        bfactor = data[9][4:]
+                elif len(data) == 11:
+                    try:
+                        bfactor=float(data[10])
+                        occ = float(data[9])
+                    except ValueError:
+                        occ = data[10][:4]
+                        bfactor = data[10][4:]
+                else: 
+                    bfactor=0
+                    occ = 1
+
+                for x in [occ, bfactor]:
+                    spcs = 4-len(str(x))
+                    x = ''.join([' ' for i in range(spcs)]) + str(x)
+
+                # data indice -> PDB FIELD LENGTH
+                dls = {1: 6, 2:4, 3:3, 4:2, 5:6}
+                for i in range(1,6):
+                    x = len(data[i])
+                    if x != dls[i]:
+                        diff = dls[i] - x
+                        empty = [' ' for j in range(diff)]
+                        data[i] = ''.join(empty)+data[i]
+                        #print(data[i])
+
+                
+                print('ATOM', data[1], data[2], data[3], data[4], data[5], coord, occ, bfactor, file=outw)
+                if write_chain_end:
+                    print('TER ', data[1], '    ', data[4], data[5], file=outw)
+                atmid += 1
             
             
             # nS.init_atom(data[2], [xd, yd, zd], bfactor, occ, alpha[chainid], data[2], serial_number=atmid)
+    
     out.close()
     # io = bio.PDBIO()
     # io.set_structure(nS.get_structure())
