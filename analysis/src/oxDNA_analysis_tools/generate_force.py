@@ -55,7 +55,7 @@ def main():
         # read one conf
         backend.read_next_configuration()
 
-        pairs = backend.config_info().get_observable_by_id("my_obs").get_output_string(0).strip().split('\n')
+        pairs = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')
         
     bonded = {}
     for p in pairs[1:]:

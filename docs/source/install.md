@@ -73,6 +73,7 @@ If you are on your own machine or you installed Python via Anaconda, the `-DOxpy
 
 #### `oxpy`
 
+* When running `make` if you run into a problem at the end of compilation where it cannot find `python.h`, this means that you don't have the Python developer kit installed. See [this StackOverflow answer](https://stackoverflow.com/a/21530768/9738112) on how to install with a variety of package managers.
 * When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly set from the command line as follows:
 	```bash
 	cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary
