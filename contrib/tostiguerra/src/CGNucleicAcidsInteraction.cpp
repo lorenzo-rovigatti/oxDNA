@@ -491,7 +491,20 @@ number CGNucleicAcidsInteraction::pair_nonbonded_WCA(BaseParticle *p, BasePartic
 	number energy = _WCA(p, q, update_forces);
 
 	return energy;
-}
+}	// switch(N_int_centers()) {
+	// case 0:
+	// 	break;
+	// case 1: {
+	// 	_base_patches[0] = LR_vector(1, 0, 0);
+	// 	break;
+	// }
+  // default:
+	// 	throw oxDNAException("Unsupported number of patches %d\n", N_int_centers());
+	// }
+  // for(uint i = 0; i < N_int_centers(); i++) {
+  //   _base_patches[i].normalize();
+  //   _base_patches[i] *= deltaPM;
+  // }
 
 number CGNucleicAcidsInteraction::pair_nonbonded_sticky(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) {
