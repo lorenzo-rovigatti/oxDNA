@@ -47,6 +47,12 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflexibility_3b_k, 1);
 		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 1);
 	}
+
+	getInputBool(&inp, "DPS_stacking", &_enable_patch_stacking, 0);
+	if(_enable_patch_stacking) {
+		getInputNumber(&inp, "DPS_stacking_eta", &_stacking_eta, 1);
+	}
+
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
 	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
@@ -366,6 +372,20 @@ number CGNucleicAcidsInteraction::pair_interaction(BaseParticle *p, BaseParticle
 	}
 }
 
+//// to align the direction on which the patches of consecutive beads lie
+number CGNucleicAcidsInteraction::_patch_stacking(BaseParticle *p, BaseParticle *q, bool update_forces) {
+	number cost_a1 = (p->orientationT.v1 * q->orientationT.v1);
+
+	if (update_forces) {
+		LR_vector torque_term = _stacking_eta * p->orientationT.v1.cross(q->orientationT.v1);
+		p->torque += p->orientationT * torque_term;
+		q->torque -= q->orientationT * torque_term;
+	}
+
+	return _stacking_eta * (1. - cost_a1);
+}
+////
+
 number CGNucleicAcidsInteraction::_semiflexibility_two_body(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number cost_a3 = (p->orientationT.v3 * q->orientationT.v3);
 
@@ -417,6 +437,10 @@ number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseP
 
 		if(_enable_semiflexibility) {
 			energy += _semiflexibility_two_body(p, q, update_forces);
+		}
+
+		if(_enable_patch_stacking) {
+			energy += _patch_stacking(p, q, update_forces);
 		}
 
 		if(_enable_semiflexibility_3b) {
