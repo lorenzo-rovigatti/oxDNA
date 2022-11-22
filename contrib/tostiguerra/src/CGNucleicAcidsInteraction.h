@@ -75,9 +75,11 @@ protected:
 	/// three-body flexibility stuff
 	bool _enable_semiflexibility = false;
   bool _enable_semiflexibility_3b = false;
+  bool _enable_patch_stacking = false;
 	number _semiflexibility_k;
   number _semiflexibility_a1;
   number _semiflexibility_3b_k;
+  number _stacking_eta;
 
 	/// patchy stuff
 	number _deltaPatchMon = 0.5;
@@ -100,6 +102,7 @@ protected:
 	number _patchy_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
 	number _semiflexibility_three_body(BaseParticle *middle, BaseParticle *n1, BaseParticle *n2, bool update_forces);
 	number _semiflexibility_two_body(BaseParticle *p, BaseParticle *q, bool update_forces);
+  number _patch_stacking(BaseParticle *p, BaseParticle *q, bool update_forces);
 
 public:
 	enum {
