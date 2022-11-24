@@ -13,9 +13,10 @@ start_time = time.time()
 ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "top_info",
                                               "centered_ref_coords",
-                                              "indexes"])
+                                              "indexes",
+                                              "center"])
 
-def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int], ref_center:np.array=np.array([])) -> Tuple[np.array]:
+def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int], ref_center:np.array=np.array([]), center:bool=True) -> Tuple[np.array]:
     """
     Single-value decomposition-based alignment of configurations
 
@@ -48,13 +49,13 @@ def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int], ref_c
 
 def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
-    confs = [inbox(c, center=True) for c in confs]
+    confs = [inbox(c, center=ctx.center) for c in confs]
     # convert to numpy repr
     np_coords = np.asarray([[c.positions, c.a1s, c.a3s] for c in confs])
 
     # align
     for i, c in enumerate(np_coords):
-        c[0], c[1], c[2] = svd_align(ctx.centered_ref_coords, c, ctx.indexes, ref_center=np.zeros(3))
+        c[0], c[1], c[2] = svd_align(ctx.centered_ref_coords, c, ctx.indexes, ref_center=np.zeros(3), center=ctx.center)
         confs[i].positions = c[0]
         confs[i].a1s = c[1]
         confs[i].a3s = c[2]
@@ -62,7 +63,7 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
     out = ''.join([conf_to_str(c) for c in confs])
     return out
 
-def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=None, ref_conf:Configuration=None):
+def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=None, ref_conf:Configuration=None, center:bool=True):
     """
         Align a trajectory to a ref_conf and print the result to a file.
 
@@ -94,7 +95,7 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=None, ref_conf:C
 
     # Create a ComputeContext which defines the problem to pass to the worker processes 
     ctx = ComputeContext(
-        traj_info, top_info, reference_coords, indexes
+        traj_info, top_info, reference_coords, indexes, center
     )
 
     with open(outfile, 'w+') as f:
@@ -116,6 +117,7 @@ def cli_parser(prog="align.py"):
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Align to only a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-r', metavar='reference_structure', dest='reference_structure', nargs=1, help="Align to a provided configuration instead of the first frame.")
+    parser.add_argument('-c', metavar='no_center', dest='no_center', action='store_const', const=True, default=False, help="Don't center the output.  Can avoid errors caused by small boxes.")
     return parser
 
 def main():
@@ -153,7 +155,9 @@ def main():
     else:
         ncpus = 1
 
-    align(traj=traj_file, outfile=outfile, ncpus=ncpus, indexes=indexes, ref_conf=ref_conf)
+    center = not args.no_center
+
+    align(traj=traj_file, outfile=outfile, ncpus=ncpus, indexes=indexes, ref_conf=ref_conf, center=center)
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
