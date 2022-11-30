@@ -9,7 +9,15 @@
 #define SRC_CUDA_CUDA_DEFS_H_
 
 /// CUDA_SAFE_CALL replacement for backwards compatibility (CUDA < 5.0)
-#define CUDA_SAFE_CALL(x) checkCudaErrors(x);
+#define CUDA_SAFE_CALL(call)                                  \
+  do {                                                        \
+    cudaError_t err = call;                                   \
+    if (err != cudaSuccess) {                                 \
+      printf("CUDA error at %s %d: %s\n", __FILE__, __LINE__, \
+             cudaGetErrorString(err));                        \
+      exit(EXIT_FAILURE);                                     \
+    }                                                         \
+  } while (0)
 /// CUT_CHECK_ERROR replacement for backwards compatibility (CUDA < 5.0)
 #define CUT_CHECK_ERROR(x) getLastCudaError(x);
 
@@ -33,7 +41,7 @@
 #define COPY_ARRAY_TO_CONSTANT(dest, src, size) {\
 		float *val = new float[(size)];\
 		for(int i = 0; i < (size); i++) val[i] = (float) ((src)[i]);\
-		CUDA_SAFE_CALL(cudaMemcpyToSymbol((dest), val, (size)*sizeof(float)))\
+		CUDA_SAFE_CALL(cudaMemcpyToSymbol((dest), val, (size)*sizeof(float)));\
 		delete[] val; }
 
 #define COPY_NUMBER_TO_FLOAT(dest, src) {\
