@@ -101,7 +101,6 @@ void Pressure::update_pressure() {
 }
 
 void Pressure::update_pressure_with_custom_stress_tensor() {
-	int N = _config_info->N();
 	std::vector<ParticlePair> pairs = _config_info->lists->get_potential_interactions();
 
 	_config_info->interaction->begin_energy_computation();
@@ -122,7 +121,7 @@ void Pressure::update_pressure_with_custom_stress_tensor() {
 	for(auto &v : _stress_tensor) {
 		v /= 3. * V;
 	}
-	_P = _config_info->temperature() * (N / V) + (_stress_tensor[0] + _stress_tensor[1] + _stress_tensor[2]);
+	_P = _stress_tensor[0] + _stress_tensor[1] + _stress_tensor[2];
 }
 
 std::string Pressure::get_output_string(llint curr_step) {

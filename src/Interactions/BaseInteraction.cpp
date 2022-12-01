@@ -118,6 +118,14 @@ void BaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force
 
 void BaseInteraction::reset_stress_tensor() {
 	std::fill(_stress_tensor.begin(), _stress_tensor.end(), 0.);
+	for(auto p : CONFIG_INFO->particles()) {
+		_stress_tensor[0] += SQR(p->vel.x);
+		_stress_tensor[1] += SQR(p->vel.y);
+		_stress_tensor[2] += SQR(p->vel.z);
+		_stress_tensor[3] += p->vel.x * p->vel.y;
+		_stress_tensor[4] += p->vel.x * p->vel.z;
+		_stress_tensor[5] += p->vel.y * p->vel.z;
+	}
 }
 
 number BaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
