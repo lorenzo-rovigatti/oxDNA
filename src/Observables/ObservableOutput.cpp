@@ -94,18 +94,20 @@ ObservableOutput::~ObservableOutput() {
 }
 
 void ObservableOutput::_open_output() {
+	if(_output_stream.is_open()) {
+		_output_stream.close();
+	}
+
 	if(!strncmp(_output_name.c_str(), "stderr", 512)) _output = &std::cerr;
 	else if(!strncmp(_output_name.c_str(), "stdout", 512)) _output = &std::cout;
 	else {
-		if(!_only_last) {
-			if(_append && !_update_name_with_time) {
-				if(_is_binary) _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
-				else _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
-			}
-			else {
-				if(_is_binary) _output_stream.open(_output_name.c_str(), ios::binary);
-				else _output_stream.open(_output_name.c_str());
-			}
+		if(_append && !_update_name_with_time && !_only_last) {
+			if(_is_binary) _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
+			else _output_stream.open(_output_name.c_str(), ios::binary | ios_base::app);
+		}
+		else {
+			if(_is_binary) _output_stream.open(_output_name.c_str(), ios::binary);
+			else _output_stream.open(_output_name.c_str());
 		}
 
 		_output = &_output_stream;
@@ -144,9 +146,6 @@ void ObservableOutput::add_observable(std::string obs_string) {
 
 void ObservableOutput::change_output_file(string new_filename) {
 	_output_name = _prefix + new_filename;
-	if(_output_stream.is_open()) {
-		_output_stream.close();
-	}
 	_open_output();
 }
 

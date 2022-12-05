@@ -102,7 +102,7 @@ protected:
 	bool _restart_step_counter;
 
 	/// Vector of ObservableOutput used to manage the simulation output
-	std::map<std::string, ObservableOutputPtr> _obs_outputs;
+	std::vector<ObservableOutputPtr> _obs_outputs;
 	ObservableOutputPtr _obs_output_stdout;
 	ObservableOutputPtr _obs_output_file;
 	ObservableOutputPtr _obs_output_trajectory;

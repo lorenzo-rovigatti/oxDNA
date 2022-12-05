@@ -69,8 +69,8 @@ SimBackend::~SimBackend() {
 	llint total_stderr = 0;
 	OX_LOG(Logger::LOG_INFO, "Aggregated I/O statistics (set debug=1 for file-wise information)");
 	for(auto const &element : _obs_outputs) {
-		llint now = element.second->get_bytes_written();
-		auto fname = element.second->get_output_name();
+		llint now = element->get_bytes_written();
+		auto fname = element->get_output_name();
 		if(!strcmp(fname.c_str(), "stderr") || !strcmp(fname.c_str(), "stdout")) {
 			total_stderr += now;
 		}
@@ -338,7 +338,7 @@ void SimBackend::init() {
 
 	// initializes the observable output machinery. This part has to follow read_topology() since _particles has to be initialized
 	for(auto const &element : _obs_outputs) {
-		element.second->init();
+		element->init();
 	}
 
 	OX_LOG(Logger::LOG_INFO, "N: %d, N molecules: %d", N, _molecules.size());
@@ -556,11 +556,11 @@ void SimBackend::apply_changes_to_simulation_data() {
 }
 
 void SimBackend::add_output(ObservableOutputPtr new_output) {
-	_obs_outputs[new_output->get_output_name()] = new_output;
+	_obs_outputs.push_back(new_output);
 }
 
 void SimBackend::remove_output(std::string output_file) {
-	auto search = _obs_outputs.find(output_file);
+	auto search = std::find_if(_obs_outputs.begin(), _obs_outputs.end(), [output_file](ObservableOutputPtr p) { return p->get_output_name() == output_file; });
 	if(search == _obs_outputs.end()) {
 		throw oxDNAException("The output '%s' does not exist, can't remove it", output_file.c_str());
 	}
@@ -571,7 +571,7 @@ void SimBackend::remove_output(std::string output_file) {
 void SimBackend::print_observables() {
 	bool someone_ready = false;
 	for(auto const &element : _obs_outputs) {
-		if(element.second->is_ready(current_step()))
+		if(element->is_ready(current_step()))
 			someone_ready = true;
 	}
 
@@ -580,10 +580,10 @@ void SimBackend::print_observables() {
 
 		llint total_bytes = 0;
 		for(auto const &element : _obs_outputs) {
-			if(element.second->is_ready(current_step())) {
-				element.second->print_output(current_step());
+			if(element->is_ready(current_step())) {
+				element->print_output(current_step());
 			}
-			total_bytes += element.second->get_bytes_written();
+			total_bytes += element->get_bytes_written();
 		}
 
 		// here we control the timings; we leave the code a 30-second grace time to print the initial configuration
