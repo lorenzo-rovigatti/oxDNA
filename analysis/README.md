@@ -53,7 +53,7 @@ This will also install all dependencies.  Bash autocompletes will not be set up,
 
 Please note that `oxpy` is a dependency for any script that needs to interface with the oxDNA energy function and therefore installing `OAT` in this way is not recommended.
 
-### Installation from source
+### Build and installation from source
 `OAT` can also be installed from the [GitHub repository](https://github.com/lorenzo-rovigatti/oxDNA) or the zip file of the source code available on PyPi via the following method:  
 
 1. Clone the repository or download and inflate the zip file.  
