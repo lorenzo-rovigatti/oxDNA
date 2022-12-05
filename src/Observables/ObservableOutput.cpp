@@ -187,7 +187,7 @@ void ObservableOutput::print_output(llint step) {
 		string new_name = Utils::sformat("%s%lld", _base_name.c_str(), step);
 		change_output_file(new_name);
 	}
-	else if(_only_last) _output_stream.open(_output_name.c_str());
+	else if(_only_last) _open_output();
 
 	ss << endl;
 	std::string towrite = ss.str();
