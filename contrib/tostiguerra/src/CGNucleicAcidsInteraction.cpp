@@ -223,10 +223,10 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 			number Vteta_a3 = (1. - cost_a3)/2.;         // axis defining the 3'-5' direction
 			// Vteta_a3 = 1;
 
-			number cost_a1 = (p->orientationT.v1 * q->orientationT.v1);
+			//number cost_a1 = (p->orientationT.v1 * q->orientationT.v1);
 			//number Vteta_a1 = (1. - cost_a1)/2.;         // axis on which the patch lies
-			number Vteta_a1 = pow((1. - cost_a1), _semiflexibility_a1)/( pow(2., _semiflexibility_a1) );
-			// Vteta_a1 = 1;
+			//number Vteta_a1 = pow((1. - cost_a1), _semiflexibility_a1)/( pow(2., _semiflexibility_a1) );
+			number Vteta_a1 = 1.;
 
 			number tmp_energy = Vradial * Vteta_a3 * Vteta_a1;
 			energy += tmp_energy;
@@ -240,7 +240,8 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 				number force_mod = ( epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * Vradial / SQR(r_mod - _3b_rcut) ) * Vteta_a3 * Vteta_a1;
 				LR_vector tmp_force = patch_dist * (-force_mod / r_mod);
 
-				number torque_a1 = _semiflexibility_a1 * pow((1. - cost_a1), (_semiflexibility_a1 - 1.)) / (pow(2, _semiflexibility_a1));
+				//number torque_a1 = _semiflexibility_a1 * pow((1. - cost_a1), (_semiflexibility_a1 - 1.)) / (pow(2, _semiflexibility_a1));
+				number torque_a1 = 0.;
 				//LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2. * Vteta_a1 + Vradial * ( p->orientationT.v1.cross(q->orientationT.v1) )/2. * Vteta_a3;
 				LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2. * Vteta_a1 + Vradial * torque_a1 * ( p->orientationT.v1.cross(q->orientationT.v1) ) * Vteta_a3;
 				// torque_tetaTerm = LR_vector();
