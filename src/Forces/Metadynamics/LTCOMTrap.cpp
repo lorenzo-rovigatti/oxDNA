@@ -57,10 +57,10 @@ std::tuple<std::vector<int>, std::string> LTCOMTrap::init(input_file &inp) {
 
 	std::string description = Utils::sformat("LTCOMTrap force with mode = %d", _mode);
 	if(_mode == 1) {
-		return {_p1a, description};
+		return std::make_tuple(_p1a, description);
 	}
 	else {
-		return {_p2a, description};
+		return std::make_tuple(_p2a, description);
 	}
 }
 
