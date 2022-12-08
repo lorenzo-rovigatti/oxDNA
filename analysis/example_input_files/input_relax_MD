@@ -31,7 +31,7 @@ max_backbone_far = 5
 external_forces = 1
 external_forces_file = external_forces.txt
 use_average_seq = 1
-#seq_dep_file = ~/software/oxDNA/oxDNA2_sequence_dependent_parameters.txt
+#seq_dep_file = /home/erik/software/oxDNA/oxDNA2_sequence_dependent_parameters.txt
 
 ##############################
 ####    INPUT / OUTPUT    ####
