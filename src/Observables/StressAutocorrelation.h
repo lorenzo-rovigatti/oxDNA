@@ -10,6 +10,8 @@
 
 #include "BaseObservable.h"
 
+#include <sstream>
+
 /**
  * @brief Outputs the instantaneous pressure, computed through the virial.
  *
@@ -24,7 +26,7 @@ class StressAutocorrelation: public BaseObservable {
 	struct Level {
 		uint m;
 		uint p;
-		const uint level_number;
+		uint level_number;
 		uint start_at;
 
 		std::vector<double> data;
@@ -42,6 +44,49 @@ class StressAutocorrelation: public BaseObservable {
 			correlation(p),
 			counter(p) {
 			start_at = (l_number == 0) ? 0 : p / m;
+		}
+
+		Level(std::string filename) {
+			std::ifstream inp(filename);
+			load_from_file(inp);
+			inp.close();
+		}
+
+		Level(std::istream &inp) {
+			load_from_file(inp);
+		}
+
+		void load_from_file(std::istream &inp) {
+			inp >> m;
+			inp >> p;
+			inp >> level_number;
+			inp >> start_at;
+
+			data.resize(p);
+			for(auto &v : data) {
+				inp >> v;
+			}
+
+			correlation.resize(p);
+			for(auto &v : correlation) {
+				inp >> v;
+			}
+
+			counter.resize(p);
+			for(auto &v : counter) {
+				inp >> v;
+			}
+
+			inp >> accumulator;
+			inp >> accumulator_counter;
+
+			int pos = inp.tellg();
+			int next_p;
+			inp >> next_p;
+			if(inp.good()) {
+				inp.seekg(pos);
+				next = std::make_shared<Level>(inp);
+			}
 		}
 
 		void add_value(double v) {
@@ -88,12 +133,57 @@ class StressAutocorrelation: public BaseObservable {
 				next->get_acf(dt, acf);
 			}
 		}
+
+		std::string _serialised() {
+			std::stringstream output;
+
+			output << m << std::endl;
+			output << p << std::endl;
+			output << level_number << std::endl;
+			output << start_at << std::endl;
+
+			for(auto v : data) {
+				output << v << " ";
+			}
+			output << std::endl;
+
+			for(auto v : correlation) {
+				output << v << " ";
+			}
+			output << std::endl;
+
+			for(auto v : counter) {
+				output << v << " ";
+			}
+			output << std::endl;
+
+			output << accumulator << std::endl;
+			output << accumulator_counter << std::endl;
+
+			if(next != nullptr) {
+				output << next->_serialised();
+			}
+
+			return output.str();
+		}
+
+		void serialise(std::string filename) {
+			std::ofstream output(filename);
+
+			output << _serialised();
+
+			output.close();
+		}
 	};
 
 protected:
 	std::vector<LR_vector> _old_forces, _old_torques;
-	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_zx, _N_xy, _N_yz, _N_xz;
+	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_xz, _N_xy, _N_yz, _N_xz;
 	double _delta_t = 0.0;
+	bool _enable_serialisation = false;
+
+	void _serialise();
+	std::shared_ptr<Level> _deserialise(std::string filename, uint m, uint p);
 
 public:
 	StressAutocorrelation();
@@ -101,6 +191,7 @@ public:
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
 
+	bool require_data_on_CPU() override;
 	void update_data(llint curr_step) override;
 
 	std::string get_output_string(llint curr_step);
