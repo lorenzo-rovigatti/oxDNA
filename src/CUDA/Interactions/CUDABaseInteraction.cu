@@ -9,6 +9,14 @@
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 #include "../../Utilities/oxDNAException.h"
+#include "../../Utilities/ConfigInfo.h"
+
+#include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
+#include <thrust/fill.h>
+#include <thrust/transform.h>
+#include <thrust/reduce.h>
+#include <thrust/transform_reduce.h>
 
 __global__ void sum_edge_forces_torques(c_number4 *edge_forces, c_number4 *forces, c_number4 *edge_torques, c_number4 *torques, int N, int n_forces) {
 	if(IND >= N) return;
@@ -52,17 +60,17 @@ __global__ void sum_edge_forces(c_number4 *edge_forces, c_number4 *forces, int N
 }
 
 CUDABaseInteraction::CUDABaseInteraction() {
-	_use_edge = false;
-	_n_forces = 1;
 
-	_d_edge_forces = nullptr;
-	_d_edge_torques = nullptr;
 }
 
 CUDABaseInteraction::~CUDABaseInteraction() {
 	if(_use_edge) {
 		if(_d_edge_forces != NULL) CUDA_SAFE_CALL(cudaFree(_d_edge_forces));
 		if(_d_edge_torques != NULL) CUDA_SAFE_CALL(cudaFree(_d_edge_torques));
+	}
+
+	if(_d_st != nullptr) {
+		CUDA_SAFE_CALL(cudaFree(_d_st));
 	}
 }
 
@@ -105,10 +113,35 @@ void CUDABaseInteraction::cuda_init(int N) {
 		CUDA_SAFE_CALL(cudaMemset(_d_edge_forces, 0, size));
 		CUDA_SAFE_CALL(cudaMemset(_d_edge_torques, 0, size));
 	}
+
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_st, N * sizeof(CUDAStressTensor)));
 }
 
 void CUDABaseInteraction::set_launch_cfg(CUDA_kernel_cfg &launch_cfg) {
 	_launch_cfg = launch_cfg;
+}
+
+struct vel_to_st {
+	__device__ CUDAStressTensor operator()(const c_number4 &v) const {
+		return CUDAStressTensor(
+			SQR(v.x),
+			SQR(v.y),
+			SQR(v.z),
+			v.x * v.y,
+			v.x * v.z,
+			v.y * v.z
+		);
+	}
+};
+
+StressTensor CUDABaseInteraction::CPU_stress_tensor(c_number4 *vels) {
+	thrust::device_ptr<CUDAStressTensor> t_st = thrust::device_pointer_cast(_d_st);
+	CUDAStressTensor st_sum = thrust::reduce(t_st, t_st + _N, CUDAStressTensor());
+
+	thrust::device_ptr<c_number4> t_vels = thrust::device_pointer_cast(vels);
+	st_sum += thrust::transform_reduce(t_vels, t_vels + _N, vel_to_st(), CUDAStressTensor(), thrust::plus<CUDAStressTensor>());
+
+	return st_sum.as_StressTensor();
 }
 
 void CUDABaseInteraction::_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg _ffs_hb_precalc_kernel_cfg, CUDABox*d_box) {

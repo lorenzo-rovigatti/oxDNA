@@ -608,7 +608,7 @@ void SimBackend::update_observables_data() {
 	bool updated = false;
 	for(auto const &obs : _config_info->observables) {
 		if(obs->need_updating(current_step())) {
-			if(!updated) {
+			if(!updated && obs->require_data_on_CPU()) {
 				apply_simulation_data_changes();
 				updated = true;
 			}

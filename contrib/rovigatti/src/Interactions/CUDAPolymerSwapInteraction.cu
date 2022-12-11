@@ -13,7 +13,6 @@
 
 #include <thrust/device_ptr.h>
 #include <thrust/fill.h>
-#include <thrust/transform.h>
 
 #define CUDA_MAX_SWAP_NEIGHS 20
 
@@ -332,10 +331,6 @@ CUDAPolymerSwapInteraction::~CUDAPolymerSwapInteraction() {
 	if(_d_three_body_forces != nullptr) {
 		CUDA_SAFE_CALL(cudaFree(_d_three_body_forces));
 	}
-
-	if(_d_st != nullptr) {
-		CUDA_SAFE_CALL(cudaFree(_d_st));
-	}
 }
 
 void CUDAPolymerSwapInteraction::get_settings(input_file &inp) {
@@ -351,7 +346,6 @@ void CUDAPolymerSwapInteraction::cuda_init(int N) {
 	int tmp_N_strands;
 	PolymerSwapInteraction::read_topology(&tmp_N_strands, particles);
 
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_st, N * sizeof(CUDAStressTensor)));
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_forces, N * sizeof(c_number4)));
 
 	int max_n_neighs = 5;
@@ -420,12 +414,6 @@ void CUDAPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *
 
 	// add the three body contributions to the two-body forces
 	thrust::transform(t_forces, t_forces + _N, t_three_body_forces, t_forces, thrust::plus<c_number4>());
-
-//	thrust::device_ptr<CUDAStressTensor> t_st = thrust::device_pointer_cast(_d_st);
-//	CUDAStressTensor st_total = thrust::reduce(t_st, t_st + _N, CUDAStressTensor());
-//	st_total /= 3. * CONFIG_INFO->box->V();
-
-//	printf("%lf %lf %lf %lf %lf %lf\n", st_total.e[0], st_total.e[1], st_total.e[2], st_total.e[3], st_total.e[4], st_total.e[5]);
 
 	/*number energy = GpuUtils::sum_c_number4_to_double_on_GPU(d_forces, _N);
 	auto energy_string = Utils::sformat("%lf ", energy / _N / 2.);

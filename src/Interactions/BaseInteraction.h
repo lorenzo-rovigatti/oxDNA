@@ -20,12 +20,9 @@
 #include <fstream>
 #include <set>
 #include <vector>
-#include <array>
 #include <functional>
 
 #define ADD_INTERACTION_TO_MAP(index, member) {_interaction_map[index] = [this](BaseParticle *p, BaseParticle *q, bool compute_r, bool compute_forces) { return member(p, q, compute_r, compute_forces); };}
-
-using StressTensor = std::array<number, 6>;
 
 /**
  * @brief Base class for managing particle-particle interactions. It is an abstract class.
@@ -137,8 +134,12 @@ public:
 
 	void reset_stress_tensor();
 
-	StressTensor stress_tensor() const {
-		return _stress_tensor;
+	void compute_standard_stress_tensor();
+
+	StressTensor stress_tensor() const;
+
+	void set_stress_tensor(StressTensor st) {
+		_stress_tensor = st;
 	}
 
 	/**

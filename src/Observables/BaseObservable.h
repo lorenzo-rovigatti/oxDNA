@@ -34,6 +34,10 @@ public:
 
 	virtual bool need_updating(llint curr_step);
 
+	virtual bool require_data_on_CPU() {
+		return true;
+	}
+
 	virtual void update_data(llint curr_step);
 
 	/**

@@ -41,8 +41,10 @@
 
 #include <string>
 #include <memory>
+#include <array>
 
 using uint = uint32_t;
 using llint = long long int;
+using StressTensor = std::array<number, 6>;
 
 #endif /* DEFS_H_ */

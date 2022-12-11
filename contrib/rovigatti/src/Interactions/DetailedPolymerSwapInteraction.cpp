@@ -97,7 +97,7 @@ void DetailedPolymerSwapInteraction::_update_inter_chain_stress_tensor(int chain
 
 number DetailedPolymerSwapInteraction::P_inter_chain() {
 	number V = CONFIG_INFO->box->V();
-	return CONFIG_INFO->temperature() * (_N_chains / V) + (_inter_chain_stress_tensor[0] + _inter_chain_stress_tensor[1] + _inter_chain_stress_tensor[2]) / (3. * V);
+	return CONFIG_INFO->temperature() * (_N_chains / V) + (_inter_chain_stress_tensor[0] + _inter_chain_stress_tensor[1] + _inter_chain_stress_tensor[2]) / V;
 }
 
 void DetailedPolymerSwapInteraction::begin_energy_computation() {

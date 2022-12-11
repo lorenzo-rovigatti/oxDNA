@@ -116,6 +116,73 @@ void BaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force
 	_stress_tensor[5] += r_p[1] * group_force[2];
 }
 
+void BaseInteraction::compute_standard_stress_tensor() {
+	static std::vector<LR_vector> old_forces, old_torques;
+
+	begin_energy_computation();
+
+	// pair_interaction will change these vectors, but we still need them in the next
+	// first integration step. For this reason we copy and then restore their values
+	// after the calculation
+	old_forces.resize(CONFIG_INFO->N());
+	old_torques.resize(CONFIG_INFO->N());
+	for(int i = 0; i < CONFIG_INFO->N(); i++) {
+		old_forces[i] = CONFIG_INFO->particles()[i]->force;
+		old_torques[i] = CONFIG_INFO->particles()[i]->torque;
+	}
+
+	_stress_tensor = { 0., 0., 0., 0., 0., 0. };
+	double energy = 0.;
+
+	for(auto p : CONFIG_INFO->particles()) {
+		std::vector<BaseParticle *> neighs = CONFIG_INFO->lists->get_neigh_list(p);
+
+		std::set<BaseParticle *> bonded_neighs;
+		for(auto &pair : p->affected) {
+			if(pair.first != p) {
+				bonded_neighs.insert(pair.first);
+			}
+			if(pair.second != p) {
+				bonded_neighs.insert(pair.second);
+			}
+		}
+
+		neighs.insert(neighs.end(), bonded_neighs.begin(), bonded_neighs.end());
+
+		for(auto q : neighs) {
+			if(p->index > q->index) {
+				LR_vector r = CONFIG_INFO->box->min_image(p->pos, q->pos);
+				set_computed_r(r);
+
+				p->force = LR_vector();
+				energy += (double) pair_interaction(p, q, false, true);
+
+				_stress_tensor[0] -= r.x * p->force.x;
+				_stress_tensor[1] -= r.y * p->force.y;
+				_stress_tensor[2] -= r.z * p->force.z;
+				_stress_tensor[3] -= r.x * p->force.y;
+				_stress_tensor[4] -= r.x * p->force.z;
+				_stress_tensor[5] -= r.y * p->force.z;
+			}
+		}
+
+		LR_vector &vel = p->vel;
+		_stress_tensor[0] += SQR(vel.x);
+		_stress_tensor[1] += SQR(vel.y);
+		_stress_tensor[2] += SQR(vel.z);
+		_stress_tensor[3] += vel.x * vel.y;
+		_stress_tensor[4] += vel.x * vel.z;
+		_stress_tensor[5] += vel.y * vel.z;
+	}
+
+	for(int i = 0; i < CONFIG_INFO->N(); i++) {
+		auto p = CONFIG_INFO->particles()[i];
+
+		p->force = old_forces[i];
+		p->torque = old_torques[i];
+	}
+}
+
 void BaseInteraction::reset_stress_tensor() {
 	std::fill(_stress_tensor.begin(), _stress_tensor.end(), 0.);
 	for(auto p : CONFIG_INFO->particles()) {
@@ -126,6 +193,15 @@ void BaseInteraction::reset_stress_tensor() {
 		_stress_tensor[4] += p->vel.x * p->vel.z;
 		_stress_tensor[5] += p->vel.y * p->vel.z;
 	}
+}
+
+StressTensor BaseInteraction::stress_tensor() const {
+	StressTensor norm_st(_stress_tensor);
+	for(auto &v : norm_st) {
+		v /= CONFIG_INFO->box->V();
+	}
+
+	return norm_st;
 }
 
 number BaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles, BaseList *lists) {
