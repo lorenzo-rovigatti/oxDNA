@@ -182,7 +182,7 @@ def main():
     total_bonds, correct_bonds, incorrect_bonds, nt_array = bond_analysis(traj_info, top_info, pairs, inputfile, ncpus)
 
     # Summarize output and generate output filess
-    print("\nSummary:\navg bonds: {}\navg correct bonds: {}\navg missbonds: {}".format(np.mean(total_bonds),np.mean(correct_bonds), np.mean(incorrect_bonds)))
+    print("\nSummary:\navg bonds: {}\navg correct bonds: {}/{}\navg missbonds: {}".format(np.mean(total_bonds),np.mean(correct_bonds),len(pairs), np.mean(incorrect_bonds)))
 
     oxView_overlay(nt_array, outfile)
 
