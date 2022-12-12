@@ -28,17 +28,28 @@ void StressAutocorrelation::serialise() {
 	_N_xy->serialise("N_zx.dat");
 }
 
-std::shared_ptr<StressAutocorrelation::Level> StressAutocorrelation::_deserialise(std::string filename, uint m, uint p) {
-	std::shared_ptr<Level> res;
+std::shared_ptr<StressAutocorrelation::Level> StressAutocorrelation::_deserialise(std::string filename) {
+	std::shared_ptr<Level> res = std::make_shared<Level>(_m, _p, 0);
 
 	std::ifstream inp(filename);
 	if(inp) {
-		res = std::make_shared<Level>(inp);
+		llint step;
+
+		inp.ignore(32768, '=');
+		inp >> step;
+		if(step != CONFIG_INFO->curr_step) {
+			inp.close();
+			throw oxDNAException("StressAutocorrelation: the timestep found in the '%s' file (%lld) "
+					"does not match the one read by the initial configuration (%lld). Check that "
+					"the initial configuration file is correct and that restart_step_counter = false",
+					filename.c_str(), step, CONFIG_INFO->curr_step);
+		}
+
+		res->load_from_file(inp);
 		inp.close();
 	}
 	else {
-		OX_LOG(Logger::LOG_WARNING, "StressAutocorrelation: file '%s.dat' not found", filename.c_str());
-		res = std::make_shared<Level>(m, p, 0);
+		OX_LOG(Logger::LOG_WARNING, "StressAutocorrelation: file '%s' not found", filename.c_str());
 	}
 
 	return res;
@@ -47,33 +58,36 @@ std::shared_ptr<StressAutocorrelation::Level> StressAutocorrelation::_deserialis
 void StressAutocorrelation::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
-	uint m = 2;
-	uint p = 16;
+	if(_update_every == 0) {
+		throw oxDNAException("StressAutocorrelation: update_every should be larger than 0");
+	}
 
-	getInputUInt(&my_inp, "m", &m, 0);
-	getInputUInt(&my_inp, "p", &p, 0);
+	getInputUInt(&my_inp, "m", &_m, 0);
+	getInputUInt(&my_inp, "p", &_p, 0);
 
 	getInputDouble(&sim_inp, "dt", &_delta_t, 1);
 	_delta_t *= _update_every;
 
 	getInputBool(&my_inp, "serialise", &_enable_serialisation, 0);
+}
 
+void StressAutocorrelation::init() {
 	if(_enable_serialisation) {
-		_sigma_xy = _deserialise("sigma_xy.dat", m, p);
-		_sigma_yz = _deserialise("sigma_yz.dat", m, p);
-		_sigma_xz = _deserialise("sigma_xz.dat", m, p);
+		_sigma_xy = _deserialise("sigma_xy.dat");
+		_sigma_yz = _deserialise("sigma_yz.dat");
+		_sigma_xz = _deserialise("sigma_xz.dat");
 
-		_N_xy = _deserialise("N_xy.dat", m, p);
-		_N_yz = _deserialise("N_yz.dat", m, p);
-		_N_xz = _deserialise("N_zx.dat", m, p);
+		_N_xy = _deserialise("N_xy.dat");
+		_N_yz = _deserialise("N_yz.dat");
+		_N_xz = _deserialise("N_zx.dat");
 	}
 	else {
-		_sigma_xy = std::make_shared<Level>(m, p, 0);
-		_sigma_yz = std::make_shared<Level>(m, p, 0);
-		_sigma_xz = std::make_shared<Level>(m, p, 0);
-		_N_xy = std::make_shared<Level>(m, p, 0);
-		_N_yz = std::make_shared<Level>(m, p, 0);
-		_N_xz = std::make_shared<Level>(m, p, 0);
+		_sigma_xy = std::make_shared<Level>(_m, _p, 0);
+		_sigma_yz = std::make_shared<Level>(_m, _p, 0);
+		_sigma_xz = std::make_shared<Level>(_m, _p, 0);
+		_N_xy = std::make_shared<Level>(_m, _p, 0);
+		_N_yz = std::make_shared<Level>(_m, _p, 0);
+		_N_xz = std::make_shared<Level>(_m, _p, 0);
 	}
 }
 

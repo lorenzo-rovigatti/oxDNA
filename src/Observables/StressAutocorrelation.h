@@ -46,18 +46,7 @@ class StressAutocorrelation: public BaseObservable {
 			start_at = (l_number == 0) ? 0 : p / m;
 		}
 
-		Level(std::string filename) {
-			std::ifstream inp(filename);
-			load_from_file(inp);
-			inp.close();
-		}
-
-		Level(std::istream &inp) {
-			load_from_file(inp);
-		}
-
 		void load_from_file(std::istream &inp) {
-			inp.ignore(32768, '\n');
 			inp >> m;
 			inp >> p;
 			inp >> level_number;
@@ -86,7 +75,8 @@ class StressAutocorrelation: public BaseObservable {
 			inp >> next_p;
 			if(inp.good()) {
 				inp.seekg(pos);
-				next = std::make_shared<Level>(inp);
+				next = std::make_shared<Level>(m, p, level_number + 1);
+				next->load_from_file(inp);
 			}
 		}
 
@@ -179,18 +169,21 @@ class StressAutocorrelation: public BaseObservable {
 	};
 
 protected:
+	uint _m = 2;
+	uint _p = 16;
 	std::vector<LR_vector> _old_forces, _old_torques;
 	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_xz, _N_xy, _N_yz, _N_xz;
 	double _delta_t = 0.0;
 	bool _enable_serialisation = false;
 
-	std::shared_ptr<Level> _deserialise(std::string filename, uint m, uint p);
+	std::shared_ptr<Level> _deserialise(std::string filename);
 
 public:
 	StressAutocorrelation();
 	virtual ~StressAutocorrelation();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
+	void init() override;
 
 	void serialise() override;
 
