@@ -200,13 +200,13 @@
 </table>
 <dl class="py class">
 <dt id="oxpy.core.analysis.AnalysisBackend">
-<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.analysis.</code><code class="sig-name descname">AnalysisBackend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.analysis.AnalysisBackend" title="oxpy.core.analysis.AnalysisBackend">oxpy.core.analysis.AnalysisBackend</a></span></em>, <em class="sig-param"><span class="n">arg0</span><span class="p">:</span> <span class="n"><a class="reference internal" href="core/core.html#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.analysis.AnalysisBackend" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">oxpy.core.analysis.</code><code class="sig-name descname">AnalysisBackend</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.analysis.AnalysisBackend" title="oxpy.core.analysis.AnalysisBackend">oxpy.core.analysis.AnalysisBackend</a></span></em>, <em class="sig-param"><span class="n">arg0</span><span class="p">:</span> <span class="n"><a class="reference internal" href="core/core.html#oxpy.core.InputFile" title="oxpy.core.InputFile">oxpy.core.InputFile</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)">None</a><a class="headerlink" href="#oxpy.core.analysis.AnalysisBackend" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <p>An object that can be used to analyse oxDNA trajectory files.</p>
 <p>The constructor takes an <a class="reference internal" href="core/core.html#oxpy.core.InputFile" title="oxpy.core.InputFile"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputFile</span></code></a> that specifies the options needed to build the backend.</p>
 <dl class="py method">
 <dt id="oxpy.core.analysis.AnalysisBackend.analyse">
-<code class="sig-name descname">analyse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.analysis.AnalysisBackend" title="oxpy.core.analysis.AnalysisBackend">oxpy.core.analysis.AnalysisBackend</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><a class="headerlink" href="#oxpy.core.analysis.AnalysisBackend.analyse" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">analyse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.analysis.AnalysisBackend" title="oxpy.core.analysis.AnalysisBackend">oxpy.core.analysis.AnalysisBackend</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)">None</a><a class="headerlink" href="#oxpy.core.analysis.AnalysisBackend.analyse" title="Permalink to this definition">¶</a></dt>
 <dd><p>Analyse the current configuration using the observables set through the input file.</p>
 </dd></dl>
 
@@ -232,14 +232,14 @@
 
 <dl class="py method">
 <dt id="oxpy.core.analysis.AnalysisBackend.done">
-<code class="sig-name descname">done</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.analysis.AnalysisBackend" title="oxpy.core.analysis.AnalysisBackend">oxpy.core.analysis.AnalysisBackend</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><a class="headerlink" href="#oxpy.core.analysis.AnalysisBackend.done" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">done</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.analysis.AnalysisBackend" title="oxpy.core.analysis.AnalysisBackend">oxpy.core.analysis.AnalysisBackend</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a><a class="headerlink" href="#oxpy.core.analysis.AnalysisBackend.done" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if the backend has reached the last configuration in the trajectory file, False otherwise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The completion status of the analysis.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -258,7 +258,7 @@
 
 <dl class="py method">
 <dt id="oxpy.core.analysis.AnalysisBackend.read_next_configuration">
-<code class="sig-name descname">read_next_configuration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.analysis.AnalysisBackend" title="oxpy.core.analysis.AnalysisBackend">oxpy.core.analysis.AnalysisBackend</a></span></em>, <em class="sig-param"><span class="n">binary</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><a class="headerlink" href="#oxpy.core.analysis.AnalysisBackend.read_next_configuration" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_next_configuration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#oxpy.core.analysis.AnalysisBackend" title="oxpy.core.analysis.AnalysisBackend">oxpy.core.analysis.AnalysisBackend</a></span></em>, <em class="sig-param"><span class="n">binary</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a><a class="headerlink" href="#oxpy.core.analysis.AnalysisBackend.read_next_configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load up the next configuration from the trajectory file.</p>
 </dd></dl>
 

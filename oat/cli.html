@@ -209,11 +209,12 @@
 <p><p>Aligns each frame in a trajectory to the first frame</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">align</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">reference_structure</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
                  <span class="n">traj</span> <span class="n">outfile</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>traj</kbd></dt>
 <dd><p>The trajectory file to align</p>
@@ -223,8 +224,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
@@ -234,6 +235,10 @@
 </dd>
 <dt><kbd>-r</kbd></dt>
 <dd><p>Align to a provided configuration instead of the first frame.</p>
+</dd>
+<dt><kbd>-c</kbd></dt>
+<dd><p>Don’t center the output.  Can avoid errors caused by small boxes.</p>
+<p>Default: False</p>
 </dd>
 </dl>
 </div>
@@ -245,8 +250,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">anm_parameterize</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="n">index_file</span> <span class="n">mean_file</span> <span class="n">trajectory</span> <span class="n">out_file</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>index_file</kbd></dt>
 <dd><p>Index file describing what Bases belong to which Super particle.</p>
@@ -272,8 +277,8 @@
                                 <span class="n">topology</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>topology</kbd></dt>
 <dd><p>The topology file associated with the trajectory file</p>
@@ -283,8 +288,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
@@ -302,12 +307,13 @@
 <h2>Bond analysis<a class="headerlink" href="#bond-analysis" title="Permalink to this headline">¶</a></h2>
 <p><p>Compare the bonds found at each trajectory with the intended design</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">bond_analysis</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span>
-                         <span class="n">inputfile</span> <span class="n">trajectory</span> <span class="n">designed_pairs</span> <span class="n">output_file</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">bond_analysis</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">trajectory_plot</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span>
+                         <span class="n">inputfile</span> <span class="n">trajectory</span> <span class="n">designed_pairs</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>inputfile</kbd></dt>
 <dd><p>The inputfile used to run the simulation</p>
@@ -318,14 +324,17 @@
 <dt><kbd>designed_pairs</kbd></dt>
 <dd><p>The file containing the desired nucleotides pairings in the format <cite>a b</cite></p>
 </dd>
-<dt><kbd>output_file</kbd></dt>
-<dd><p>name of the file to save the output json overlay to</p>
-</dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
+<dt><kbd>-o</kbd></dt>
+<dd><p>Name of the file to save the output oxView overlay to</p>
+</dd>
+<dt><kbd>-t</kbd></dt>
+<dd><p>Name of the file to save the trajecotry plot to</p>
+</dd>
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
@@ -340,8 +349,8 @@
                     <span class="n">reference_structure</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>reference_structure</kbd></dt>
 <dd><p>The reference structure to search against</p>
@@ -351,8 +360,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
@@ -373,16 +382,16 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">clustering</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EPS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MIN_SAMPLES</span><span class="p">]</span> <span class="n">serialized_data</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>serialized_data</kbd></dt>
 <dd><p>The json-formatted input file</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-e, --eps</kbd></dt>
 <dd><p>The epsilon parameter for DBSCAN (maximum distance to be considered a ‘neighbor’)</p>
@@ -400,8 +409,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">config</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">CHUNK_SIZE</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-n, --chunk_size</kbd></dt>
 <dd><p>Number of configurations to per chunk.  Persistent across analyses.</p>
@@ -416,16 +425,16 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">contact_map</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="n">graph</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>trajectory</kbd></dt>
 <dd><p>The file containing the configurations of which the contact map is needed</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-g</kbd></dt>
 <dd><p>Filename for the plot</p>
@@ -446,16 +455,16 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STRENGTH</span><span class="p">]</span> <span class="n">db_file</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>db_file</kbd></dt>
 <dd><p>A text file containing dot-bracket notation of the base-pairing arrangement</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>Name of the file to write the force list to</p>
@@ -475,8 +484,8 @@
                       <span class="n">mean_structure</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>mean_structure</kbd></dt>
 <dd><p>The mean structure .json file from compute_mean.py</p>
@@ -486,8 +495,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
@@ -516,8 +525,8 @@
                     <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-i, --input</kbd></dt>
 <dd><p>A trajectory, and a list of particle pairs to compare.  Can call -i multiple times to plot multiple datasets.</p>
@@ -554,8 +563,8 @@
                                 <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span>
 </pre></div>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-i, --input</kbd></dt>
 <dd><p>An angle file from duplex_angle_finder.py and a list of duplex-end particle pairs to compare.  Can call -i multiple times to plot multiple datasets.</p>
@@ -582,8 +591,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">duplex_finder</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="nb">input</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>input</kbd></dt>
 <dd><p>The inputfile used to run the simulation</p>
@@ -593,8 +602,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
@@ -612,16 +621,16 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">forces2pairs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="n">force_file</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>force_file</kbd></dt>
 <dd><p>The force file to generate pairs from</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>name of the file to write the pair list to</p>
@@ -637,8 +646,8 @@
                           <span class="n">inputfile</span> <span class="n">configuration</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>inputfile</kbd></dt>
 <dd><p>The inputfile used to run the simulation</p>
@@ -648,8 +657,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>Name of the file to write the forces to. Defaults to forces.txt</p>
@@ -672,16 +681,16 @@
                 <span class="n">trajectory</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>trajectory</kbd></dt>
 <dd><p>The trajectory file you wish to analyze</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
@@ -708,8 +717,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">minify</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">D</span><span class="p">]</span> <span class="n">trajectory</span> <span class="n">outfile</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>trajectory</kbd></dt>
 <dd><p>the trajectory file you wish to analyze</p>
@@ -719,8 +728,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
@@ -744,16 +753,16 @@
                                          <span class="n">trajectory</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>trajectory</kbd></dt>
 <dd><p>the trajectory file you wish to analyze</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>the name of the .dat file where the mean will be written</p>
@@ -775,8 +784,8 @@
                         <span class="n">inputfile</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>inputfile</kbd></dt>
 <dd><p>The inputfile used to run the simulation</p>
@@ -786,8 +795,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-v</kbd></dt>
 <dd><p>if you want instead average per-particle energy as an oxView JSON</p>
@@ -809,8 +818,8 @@
                <span class="n">trajectory</span> <span class="n">meanfile</span> <span class="n">outfile</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>trajectory</kbd></dt>
 <dd><p>the trajectory file you wish to analyze</p>
@@ -823,8 +832,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
@@ -847,16 +856,16 @@
                        <span class="n">energy</span> <span class="p">[</span><span class="n">energy</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>energy</kbd></dt>
 <dd><p>Energy files to plot</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>The name to save the graph file to</p>
@@ -875,8 +884,8 @@
                              <span class="n">trajectory</span> <span class="n">topology</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>trajectory</kbd></dt>
 <dd><p>The trajectory file to subset</p>
@@ -886,8 +895,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-i, --index</kbd></dt>
 <dd><p>A space separated index file and the associated output file name.  This can be called multiple times</p>
@@ -905,8 +914,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="n">reference</span> <span class="n">victims</span> <span class="p">[</span><span class="n">victims</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Positional Arguments">
-<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>reference</kbd></dt>
 <dd><p>The reference configuration to superimpose to</p>
@@ -916,8 +925,8 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>-i</kbd></dt>
 <dd><p>Align to only a subset of particles from a space-separated list in the provided file</p>

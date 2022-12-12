@@ -257,6 +257,7 @@ make -j4        <span class="c1"># compile the updated source</span>
 <div class="section" id="oxpy">
 <h4><code class="docutils literal notranslate"><span class="pre">oxpy</span></code><a class="headerlink" href="#oxpy" title="Permalink to this headline">¶</a></h4>
 <ul>
+<li><p>When running <code class="docutils literal notranslate"><span class="pre">make</span></code> if you run into a problem at the end of compilation where it cannot find <code class="docutils literal notranslate"><span class="pre">python.h</span></code>, this means that you don’t have the Python developer kit installed. See <a class="reference external" href="https://stackoverflow.com/a/21530768/9738112">this StackOverflow answer</a> on how to install with a variety of package managers.</p></li>
 <li><p>When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly set from the command line as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake .. -DPython<span class="o">=</span>ON -DPYTHON_INCLUDE_DIRS<span class="o">=</span>/path/to/python/include/dir -DPYTHON_EXECUTABLE<span class="o">=</span>/path/to/python/binary
 </pre></div>
