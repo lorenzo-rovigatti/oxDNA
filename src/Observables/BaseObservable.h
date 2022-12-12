@@ -56,6 +56,10 @@ public:
 	 */
 	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
 
+	virtual void serialise() {
+
+	}
+
 	/**
 	 * @brief Initializes the observable.
 	 */

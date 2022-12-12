@@ -18,7 +18,7 @@ StressAutocorrelation::~StressAutocorrelation() {
 
 }
 
-void StressAutocorrelation::_serialise() {
+void StressAutocorrelation::serialise() {
 	_sigma_xy->serialise("sigma_xy.dat");
 	_sigma_yz->serialise("sigma_yz.dat");
 	_sigma_xz->serialise("sigma_xz.dat");
@@ -119,10 +119,6 @@ std::string StressAutocorrelation::get_output_string(llint curr_step) {
 		Gt += V / (30. * T) * (acf_N_xy[i] + acf_N_xz[i] + acf_N_yz[i]);
 
 		ss << times[i] << Utils::sformat(" %.8e", Gt) << std::endl;
-	}
-
-	if(_enable_serialisation) {
-		_serialise();
 	}
 
 	return ss.str();

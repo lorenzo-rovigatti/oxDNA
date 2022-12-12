@@ -729,6 +729,11 @@ void SimBackend::print_conf(bool reduced, bool only_last) {
 		if(_obs_output_last_conf_bin != nullptr) {
 			_obs_output_last_conf_bin->print_output(current_step());
 		}
+
+		// serialise the observables
+		for(auto const &obs : _config_info->observables) {
+			obs->serialise();
+		}
 	}
 }
 

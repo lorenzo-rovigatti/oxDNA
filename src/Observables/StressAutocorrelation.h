@@ -57,6 +57,7 @@ class StressAutocorrelation: public BaseObservable {
 		}
 
 		void load_from_file(std::istream &inp) {
+			inp.ignore(32768, '\n');
 			inp >> m;
 			inp >> p;
 			inp >> level_number;
@@ -170,6 +171,7 @@ class StressAutocorrelation: public BaseObservable {
 		void serialise(std::string filename) {
 			std::ofstream output(filename);
 
+			output << "t = " << CONFIG_INFO->curr_step << std::endl;
 			output << _serialised();
 
 			output.close();
@@ -182,7 +184,6 @@ protected:
 	double _delta_t = 0.0;
 	bool _enable_serialisation = false;
 
-	void _serialise();
 	std::shared_ptr<Level> _deserialise(std::string filename, uint m, uint p);
 
 public:
@@ -190,6 +191,8 @@ public:
 	virtual ~StressAutocorrelation();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
+
+	void serialise() override;
 
 	bool require_data_on_CPU() override;
 	void update_data(llint curr_step) override;
