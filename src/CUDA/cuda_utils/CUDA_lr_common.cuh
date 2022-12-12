@@ -22,6 +22,20 @@
 #define IND 0
 #endif
 
+// in the case of pair-wise forces, which are counted twice, one should set half=true
+// while three-body forces are counted only once, so half=false should be used.
+template<bool half>
+__device__ void _update_stress_tensor(CUDAStressTensor &st, c_number4 &r, c_number4 &force) {
+	c_number factor = (half) ? 0.5f : 1.0f;
+
+	st.e[0] -= r.x * force.x * factor;
+	st.e[1] -= r.y * force.y * factor;
+	st.e[2] -= r.z * force.z * factor;
+	st.e[3] -= r.x * force.y * factor;
+	st.e[4] -= r.x * force.z * factor;
+	st.e[5] -= r.y * force.z * factor;
+}
+
 //This is the most commonly called quaternion to matrix conversion. 
 __forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, c_number4 &a1, c_number4 &a2, c_number4 &a3) {
 	c_number sqx = q.x * q.x;

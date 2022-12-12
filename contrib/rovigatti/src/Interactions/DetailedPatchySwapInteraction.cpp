@@ -108,6 +108,9 @@ number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p
 			LR_vector force = _computed_r * (-24. * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 			p->force -= force;
 			q->force += force;
+
+			_update_stress_tensor(p->pos, -force);
+			_update_stress_tensor(p->pos + _computed_r, force);
 		}
 	}
 	else {
@@ -119,6 +122,9 @@ number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p
 				LR_vector force = _computed_r * (-24. * _spherical_attraction_strength * (lj_part - 2 * SQR(lj_part)) / sqr_r);
 				p->force -= force;
 				q->force += force;
+
+				_update_stress_tensor(p->pos, -force);
+				_update_stress_tensor(p->pos + _computed_r, force);
 			}
 		}
 	}
@@ -179,6 +185,9 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 							q_bond.p_torque = -q_torque;
 							q_bond.q_torque = -p_torque;
 						}
+
+						_update_stress_tensor(p->pos, -tmp_force);
+						_update_stress_tensor(p->pos + _computed_r, tmp_force);
 					}
 
 					_particle_bonds(p).emplace_back(p_bond);
@@ -293,6 +302,9 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 								q_bond.force = (dist_surf < _sigma_ss) ? -angular_force : -tot_force;
 								q_bond.p_torque = -q_torque;
 								q_bond.q_torque = -p_torque;
+
+								_update_stress_tensor(p->pos, -tot_force);
+								_update_stress_tensor(p->pos + _computed_r, tot_force);
 							}
 
 							_particle_bonds(p).emplace_back(p_bond);

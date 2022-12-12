@@ -74,20 +74,6 @@ struct __align__(16) CUDA_FS_bond_list {
 	}
 };
 
-// in the case of pair-wise forces, which are counted twice, one should set half=true
-// while three-body forces are counted only once, so half=false should be used.
-template<bool half>
-__device__ void _update_stress_tensor(CUDAStressTensor &st, c_number4 &r, c_number4 &force) {
-	c_number factor = (half) ? 0.5f : 1.0f;
-
-	st.e[0] -= r.x * force.x * factor;
-	st.e[1] -= r.y * force.y * factor;
-	st.e[2] -= r.z * force.z * factor;
-	st.e[3] -= r.x * force.y * factor;
-	st.e[4] -= r.x * force.z * factor;
-	st.e[5] -= r.y * force.z * factor;
-}
-
 __device__ void _WCA(c_number4 &ppos, c_number4 &qpos, int int_type, c_number4 &F, CUDAStressTensor &p_st, CUDABox *box) {
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
