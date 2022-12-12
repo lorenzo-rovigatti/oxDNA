@@ -43,11 +43,15 @@ def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, index
         Find the configuration in a trajectory closest to a provided reference configuration
 
         Parameters:
-            traj_info: TrajInfo object containing information about the trajectory
-            top_info: TopInfo object containing information about the topology
-            ref_conf: Configuration object containing the reference configuration
-            indexes: (optional) List of indexes of the particles to be used for alignment
-            ncpus: (optional) Number of CPUs to use for alignment
+            traj_info (TrajInfo): Object containing information about the trajectory
+            top_info (TopInfo): Object containing information about the topology
+            ref_conf (Configuration): Object containing the reference configuration
+            indexes (List[int]): (optional) Indexes of the particles to be used for alignment
+            ncpus (int): (optional) Number of CPUs to use for alignment
+
+        Returns:
+            centroid_candidate (Configuration): The configuration with the lowest RMSD to the reference
+            min_RMSD (float): The RMSD from the centroid to the reference
     '''
     if indexes is None:
         indexes = list(range(top_info.nbases))

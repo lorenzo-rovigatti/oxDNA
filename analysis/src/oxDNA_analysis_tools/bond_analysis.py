@@ -69,17 +69,17 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], in
         Compare the bond occupancy of a trajectory with a designed structure
 
         Parameters: 
-            traj_info: TrajInfo object containing the trajectory information
-            top_info: TopInfo object containing the topology information
-            pairs: dict of the designed pairs
-            inputfile: the input file used to run the simulation
-            ncpus: (optional) number of cores to use
+            traj_info (TrajInfo): Object containing the trajectory information
+            top_info (TopInfo): Object containing the topology information
+            pairs (dict): Designed pairs ({p1 : q1, p2 : q2})
+            inputfile (str): The path to the input file used to run the simulation
+            ncpus (int): (optional) number of cores to use
 
         Returns:
-            total_bonds: Number of formed bonds among the specified nucleotides at each step in the simulation
-            incorrect_bonds: Number of missbonds among specified nucleotides at each step in the simulation
-            correct_bonds: Number of correct bonds among specified nucleotides at each step in the simulation
-            nt_array: per-nucleotide correct bond occupancy
+            total_bonds (np.array): Number of formed bonds among the specified nucleotides at each step in the simulation
+            incorrect_bonds (np.array): Number of missbonds among specified nucleotides at each step in the simulation
+            correct_bonds (np.array): Number of correct bonds among specified nucleotides at each step in the simulation
+            nt_array (np.array): per-nucleotide correct bond occupancy
     '''
     ctx = ComputeContext(traj_info, top_info, pairs, inputfile)
 
@@ -182,7 +182,7 @@ def main():
     total_bonds, correct_bonds, incorrect_bonds, nt_array = bond_analysis(traj_info, top_info, pairs, inputfile, ncpus)
 
     # Summarize output and generate output filess
-    print("\nSummary:\navg bonds: {}\navg correct bonds: {}/{}\navg missbonds: {}".format(np.mean(total_bonds),np.mean(correct_bonds),len(pairs), np.mean(incorrect_bonds)))
+    print("\nSummary:\navg bonds: {}\navg correct bonds: {}/{}\navg missbonds: {}".format(np.mean(total_bonds),np.mean(correct_bonds), len(pairs), np.mean(incorrect_bonds)))
 
     oxView_overlay(nt_array, outfile)
 
