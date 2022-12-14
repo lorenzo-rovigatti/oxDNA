@@ -25,7 +25,7 @@
 // in the case of pair-wise forces, which are counted twice, one should set half=true
 // while three-body forces are counted only once, so half=false should be used.
 template<bool half>
-__device__ void _update_stress_tensor(CUDAStressTensor &st, c_number4 &r, c_number4 &force) {
+__device__ void _update_stress_tensor(CUDAStressTensor &st, const c_number4 &r, const c_number4 &force) {
 	c_number factor = (half) ? 0.5f : 1.0f;
 
 	st.e[0] -= r.x * force.x * factor;
@@ -115,6 +115,15 @@ __forceinline__ __device__ void LR_atomicAddXYZ(c_number4 *dst, c_number4 delta)
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
+}
+
+__forceinline__ __device__ void LR_atomicAddST(CUDAStressTensor *dst, CUDAStressTensor delta) {
+	atomicAdd(&(dst->e[0]), delta.e[0]);
+	atomicAdd(&(dst->e[1]), delta.e[1]);
+	atomicAdd(&(dst->e[2]), delta.e[2]);
+	atomicAdd(&(dst->e[3]), delta.e[3]);
+	atomicAdd(&(dst->e[4]), delta.e[4]);
+	atomicAdd(&(dst->e[5]), delta.e[5]);
 }
 
 /**

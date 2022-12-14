@@ -109,6 +109,10 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
+	bool has_custom_stress_tensor() const override {
+		return true;
+	}
+
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
