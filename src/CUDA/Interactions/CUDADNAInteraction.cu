@@ -14,6 +14,9 @@
 
 CUDADNAInteraction::CUDADNAInteraction() {
 	_edge_compatible = true;
+	_use_debye_huckel = false;
+	_use_oxDNA2_coaxial_stacking = false;
+	_use_oxDNA2_FENE = false;
 }
 
 CUDADNAInteraction::~CUDADNAInteraction() {
@@ -21,9 +24,6 @@ CUDADNAInteraction::~CUDADNAInteraction() {
 }
 
 void CUDADNAInteraction::get_settings(input_file &inp) {
-	_use_debye_huckel = false;
-	_use_oxDNA2_coaxial_stacking = false;
-	_use_oxDNA2_FENE = false;
 	std::string inter_type;
 	if(getInputString(&inp, "interaction_type", inter_type, 0) == KEY_FOUND) {
 		if(inter_type.compare("DNA2") == 0) {
@@ -154,6 +154,8 @@ void CUDADNAInteraction::_on_T_update() {
 }
 
 void CUDADNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+	CUDA_SAFE_CALL(cudaMemset(_d_st, 0, _N * sizeof(CUDAStressTensor)));
+
 	if(_use_edge) {
 		dna_forces_edge_nonbonded
 			<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>

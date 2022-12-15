@@ -102,9 +102,14 @@ void BaseInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> 
 }
 
 void BaseInteraction::begin_energy_computation() {
+
+}
+
+void BaseInteraction::begin_energy_and_force_computation() {
 	if(has_custom_stress_tensor()) {
 		reset_stress_tensor();
 	}
+	begin_energy_computation();
 }
 
 void BaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force) {
@@ -119,7 +124,7 @@ void BaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force
 void BaseInteraction::compute_standard_stress_tensor() {
 	static std::vector<LR_vector> old_forces, old_torques;
 
-	begin_energy_computation();
+	begin_energy_and_force_computation();
 
 	// pair_interaction will change these vectors, but we still need them in the next
 	// first integration step. For this reason we copy and then restore their values
@@ -131,7 +136,7 @@ void BaseInteraction::compute_standard_stress_tensor() {
 		old_torques[i] = CONFIG_INFO->particles()[i]->torque;
 	}
 
-	_stress_tensor = { 0., 0., 0., 0., 0., 0. };
+	StressTensor stress_tensor = { 0., 0., 0., 0., 0., 0. };
 	double energy = 0.;
 
 	for(auto p : CONFIG_INFO->particles()) {
@@ -157,22 +162,22 @@ void BaseInteraction::compute_standard_stress_tensor() {
 				p->force = LR_vector();
 				energy += (double) pair_interaction(p, q, false, true);
 
-				_stress_tensor[0] -= r.x * p->force.x;
-				_stress_tensor[1] -= r.y * p->force.y;
-				_stress_tensor[2] -= r.z * p->force.z;
-				_stress_tensor[3] -= r.x * p->force.y;
-				_stress_tensor[4] -= r.x * p->force.z;
-				_stress_tensor[5] -= r.y * p->force.z;
+				stress_tensor[0] -= r.x * p->force.x;
+				stress_tensor[1] -= r.y * p->force.y;
+				stress_tensor[2] -= r.z * p->force.z;
+				stress_tensor[3] -= r.x * p->force.y;
+				stress_tensor[4] -= r.x * p->force.z;
+				stress_tensor[5] -= r.y * p->force.z;
 			}
 		}
 
 		LR_vector &vel = p->vel;
-		_stress_tensor[0] += SQR(vel.x);
-		_stress_tensor[1] += SQR(vel.y);
-		_stress_tensor[2] += SQR(vel.z);
-		_stress_tensor[3] += vel.x * vel.y;
-		_stress_tensor[4] += vel.x * vel.z;
-		_stress_tensor[5] += vel.y * vel.z;
+		stress_tensor[0] += SQR(vel.x);
+		stress_tensor[1] += SQR(vel.y);
+		stress_tensor[2] += SQR(vel.z);
+		stress_tensor[3] += vel.x * vel.y;
+		stress_tensor[4] += vel.x * vel.z;
+		stress_tensor[5] += vel.y * vel.z;
 	}
 
 	for(int i = 0; i < CONFIG_INFO->N(); i++) {
@@ -181,6 +186,8 @@ void BaseInteraction::compute_standard_stress_tensor() {
 		p->force = old_forces[i];
 		p->torque = old_torques[i];
 	}
+
+	_stress_tensor = stress_tensor;
 }
 
 void BaseInteraction::reset_stress_tensor() {

@@ -860,7 +860,7 @@ __global__ void dna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, 
 	c_number4 ppos = poss[IND];
 	LR_bonds bs = bonds[IND];
 
-	CUDAStressTensor p_st;
+	CUDAStressTensor p_st = st[IND];
 
 	// particle axes according to Allen's paper
 	c_number4 a1, a2, a3;

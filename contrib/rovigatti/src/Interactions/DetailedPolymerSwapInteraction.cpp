@@ -114,6 +114,12 @@ void DetailedPolymerSwapInteraction::begin_energy_computation() {
 	_bonds.clear();
 }
 
+void DetailedPolymerSwapInteraction::begin_energy_and_force_computation() {
+	BaseInteraction::begin_energy_and_force_computation();
+
+	std::fill(_inter_chain_stress_tensor.begin(), _inter_chain_stress_tensor.end(), 0.);
+}
+
 bool DetailedPolymerSwapInteraction::has_custom_stress_tensor() const {
 	return true;
 }

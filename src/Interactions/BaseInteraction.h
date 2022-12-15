@@ -113,13 +113,22 @@ public:
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles) = 0;
 
 	/**
-	 * @brief Signals the interaction that an energy (or force) computation is about to begin.
+	 * @brief Signals the interaction that an energy computation is about to begin.
 	 *
-	 * By default this method resets the stress tensor data structures and nothing else, but interactions inheriting from this interface may
+	 * By default this method does nothing, but interactions inheriting from this interface may
 	 * need to initialise or reset other data structures before computing the energy or the force acting on all particles.
 	 *
 	 */
 	virtual void begin_energy_computation();
+
+	/**
+	 * @brief Signals the interaction that an energy and force computation is about to begin.
+	 *
+	 * By default this method resets the stress tensor data structures, calls begin_energy_computationa() and nothing else, but interactions inheriting from this interface may
+	 * need to initialise or reset other data structures before computing the energy or the force acting on all particles.
+	 *
+	 */
+	virtual void begin_energy_and_force_computation();
 
 	/**
 	 * @brief Returns true if the interaction computes the stress tensor internally, false otherwise.

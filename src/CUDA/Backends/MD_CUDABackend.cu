@@ -717,6 +717,10 @@ void MD_CUDABackend::init() {
 	_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
 	_set_external_forces();
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
+
+	if(_update_st_every > 0) {
+		_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
+	}
 }
 
 #pragma GCC diagnostic pop
