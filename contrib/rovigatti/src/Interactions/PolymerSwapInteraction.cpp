@@ -135,6 +135,7 @@ number PolymerSwapInteraction::P_inter_chain() {
 void PolymerSwapInteraction::begin_energy_computation() {
 	BaseInteraction::begin_energy_computation();
 
+	_chain_coms.resize(_N_chains, LR_vector(0., 0., 0.));
 	for(int i = 0; i < _N_chains; i++) {
 		for(auto p: CONFIG_INFO->molecules()[i]->particles) {
 			_inter_chain_stress_tensor[0] += SQR(p->vel.x);
@@ -156,7 +157,6 @@ void PolymerSwapInteraction::begin_energy_and_force_computation() {
 	BaseInteraction::begin_energy_and_force_computation();
 
 	std::fill(_inter_chain_stress_tensor.begin(), _inter_chain_stress_tensor.end(), 0.);
-	_chain_coms.resize(_N_chains, LR_vector(0., 0., 0.));
 }
 
 bool PolymerSwapInteraction::has_custom_stress_tensor() const {

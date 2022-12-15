@@ -102,6 +102,7 @@ number CGNucleicAcidsInteraction::P_inter_chain() {
 void CGNucleicAcidsInteraction::begin_energy_computation() {
 	BaseInteraction::begin_energy_computation();
 
+	_chain_coms.resize(_N_chains, LR_vector(0., 0., 0.));
 	for(int i = 0; i < _N_chains; i++) {
 		CONFIG_INFO->molecules()[i]->update_com();
 		_chain_coms[i] = CONFIG_INFO->molecules()[i]->com;
@@ -114,7 +115,6 @@ void CGNucleicAcidsInteraction::begin_energy_and_force_computation() {
 	BaseInteraction::begin_energy_and_force_computation();
 
 	std::fill(_inter_chain_stress_tensor.begin(), _inter_chain_stress_tensor.end(), 0.);
-	_chain_coms.resize(_N_chains, LR_vector(0., 0., 0.));
 }
 
 bool CGNucleicAcidsInteraction::has_custom_stress_tensor() const {
