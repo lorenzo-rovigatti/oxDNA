@@ -225,9 +225,8 @@ def strand_describe(top) -> Tuple[System, list]:
     with open (top) as f:
         l = f.readline().split()
         nmonomers = int(l[0])
-        nstrands = int(l[1])
 
-        system = System([None] * nstrands)
+        system = System()
         monomers = [Monomer(i, None, None, None, None, None) for i in range(nmonomers)]
 
         ls = f.readlines()
@@ -246,7 +245,7 @@ def strand_describe(top) -> Tuple[System, list]:
         while l:
             if int(l[0]) != curr:
                 s.monomers = monomers[s_start:mid]
-                system[curr-1] = s #this is going to do something weird with proteins
+                system.append(s)
                 curr = int(l[0])
                 s = Strand(curr)
                 s_start = mid
@@ -263,7 +262,7 @@ def strand_describe(top) -> Tuple[System, list]:
                 break  
 
     s.monomers = monomers[s_start:mid]
-    system[curr-1] = s #this is going to do something weird with proteins
+    system.append(s)
 
     return system, monomers
 
