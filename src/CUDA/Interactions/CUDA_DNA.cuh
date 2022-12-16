@@ -304,14 +304,13 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 
 	if(qIsN3) {
 		F += Ftmp;
-		_update_stress_tensor<true>(p_st, r, Ftmp);
 		T += Ttmp;
 	}
 	else {
 		F -= Ftmp;
-		_update_stress_tensor<true>(p_st, r, -Ftmp);
 		T -= Ttmp;
 	}
+	_update_stress_tensor<true>(p_st, r, Ftmp);
 
 	// STACKING
 	c_number4 rstack = r + n3pos_stack - n5pos_stack;
@@ -421,7 +420,6 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 
 			T += Ttmp;
 			F += Ftmp;
-			_update_stress_tensor<true>(p_st, r, Ftmp);
 		}
 		else {
 			// THETA 6
@@ -429,8 +427,8 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 
 			T -= Ttmp;
 			F -= Ftmp;
-			_update_stress_tensor<true>(p_st, r, -Ftmp);
 		}
+		_update_stress_tensor<true>(p_st, r, Ftmp);
 	}
 }
 
