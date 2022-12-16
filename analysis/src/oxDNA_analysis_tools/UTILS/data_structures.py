@@ -43,10 +43,12 @@ class TrajInfo:
             path (str) : The path to the trajectory file
             nconfs (int) : The number of configurations in the trajectory
             idxs (List[ConfInfo]) : A list of ConfInfo objects locating configurations in the trajectory
+            incl_v (bool) : Are the velocities included in the trajectory?
     """
     path : str
     nconfs : int
     idxs : List[ConfInfo]
+    incl_v : bool
 
 @dataclass
 class Configuration:

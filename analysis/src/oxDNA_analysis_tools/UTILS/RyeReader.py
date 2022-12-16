@@ -108,7 +108,8 @@ def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int)
     indexes = traj_info.idxs
     traj_file = traj_info.path
     n_bases = top_info.nbases
-    return cget_confs(indexes, traj_file, start_conf, n_confs, n_bases)
+    incl_v = traj_info.incl_v
+    return cget_confs(indexes, traj_file, start_conf, n_confs, n_bases, incl_v)
 
 ####################################################################################
 ##########                             FILE PARSERS                       ##########
@@ -188,7 +189,17 @@ def get_traj_info(traj : str) -> TrajInfo:
             with open(traj+".pyidx","wb") as file:
                 file.write(pickle.dumps(idxs))
 
-    return TrajInfo(traj,len(idxs),idxs)
+    # Check if velocities are present in the trajectory
+    with open(traj) as f:
+        for _ in range(3):
+            f.readline()
+        nline = f.readline().split()
+        if len(nline) == 15:
+            incl_v = 1
+        if len(nline) == 9:
+            incl_v = 0
+
+    return TrajInfo(traj,len(idxs),idxs, incl_v)
 
 def describe(top : str, traj : str) -> Tuple[TopInfo, TrajInfo]:
     """

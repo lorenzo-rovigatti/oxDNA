@@ -69,4 +69,7 @@ MANIFEST
 .*.swp
 .vscode/
 
+# MacOS desktop servies
+.DS_Store
+
 select_compute_arch_laptop.cmake
