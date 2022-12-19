@@ -19,7 +19,6 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "p1s",
                                               "p2s"])
 
-#Calculates distance taking PBC into account
 def min_image(p1:np.ndarray, p2:np.ndarray, box:float) -> float:
     """
     Calculates distance between two particles taking PBC into account
