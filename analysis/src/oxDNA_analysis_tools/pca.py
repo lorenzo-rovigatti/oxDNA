@@ -217,7 +217,7 @@ def main():
 
     #Create an oxView overlays for the first N components
     if args.N:
-        N = args.N
+        N = args.N[0]
     else:
         N = 1
     prep_pos_for_json = lambda conf: list(
