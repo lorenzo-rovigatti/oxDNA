@@ -228,6 +228,21 @@
 .. autofunction:: oxDNA_analysis_tools.duplex_finder.duplex_finder
 ```
 
+## File info
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.file_info.file_info
+    
+.. autofunction:: oxDNA_analysis_tools.file_info.file_info
+```
+
 ## Mean
 
 ```{eval-rst}

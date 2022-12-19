@@ -117,6 +117,14 @@
     :prog: oat duplex_finder
 ```
 
+## File info
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/file_info.py
+    :func: cli_parser
+    :prog: oat file_info
+```
+
 ## Forces to pairs
 
 ```{eval-rst}

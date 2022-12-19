@@ -290,7 +290,7 @@
 
 <dl class="py class">
 <dt id="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo">
-<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">TrajInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em>, <em class="sig-param"><span class="n">nconfs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></span></em>, <em class="sig-param"><span class="n">idxs</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo">oxDNA_analysis_tools.UTILS.data_structures.ConfInfo</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">oxDNA_analysis_tools.UTILS.data_structures.</code><code class="sig-name descname">TrajInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em>, <em class="sig-param"><span class="n">nconfs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></span></em>, <em class="sig-param"><span class="n">idxs</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo">oxDNA_analysis_tools.UTILS.data_structures.ConfInfo</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">incl_v</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Dataclass to hold metadata about a trajectory file</p>
 <dl class="field-list simple">
@@ -299,12 +299,18 @@
 <li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The path to the trajectory file</p></li>
 <li><p><strong>nconfs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The number of configurations in the trajectory</p></li>
 <li><p><strong>idxs</strong> (<em>List</em><em>[</em><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo"><em>ConfInfo</em></a><em>]</em>) – A list of ConfInfo objects locating configurations in the trajectory</p></li>
+<li><p><strong>incl_v</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Are the velocities included in the trajectory?</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py attribute">
 <dt id="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.idxs">
 <code class="sig-name descname">idxs</code><em class="property">: List<span class="p">[</span><a class="reference internal" href="#oxDNA_analysis_tools.UTILS.data_structures.ConfInfo" title="oxDNA_analysis_tools.UTILS.data_structures.ConfInfo">oxDNA_analysis_tools.UTILS.data_structures.ConfInfo</a><span class="p">]</span></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.idxs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.incl_v">
+<code class="sig-name descname">incl_v</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></em><a class="headerlink" href="#oxDNA_analysis_tools.UTILS.data_structures.TrajInfo.incl_v" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -328,11 +334,11 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The time step of the configuration</p></li>
-<li><p><strong>box</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – The box size for the simulation</p></li>
-<li><p><strong>energy</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – The potential, kinetic and total energy for the configuration</p></li>
-<li><p><strong>positions</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – The positions of the nucleotides</p></li>
-<li><p><strong>a1s</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – the orientations of the base pairing sites</p></li>
-<li><p><strong>a3s</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – the orientations of the stacking sites</p></li>
+<li><p><strong>box</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The box size for the simulation</p></li>
+<li><p><strong>energy</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The potential, kinetic and total energy for the configuration</p></li>
+<li><p><strong>positions</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The positions of the nucleotides</p></li>
+<li><p><strong>a1s</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – the orientations of the base pairing sites</p></li>
+<li><p><strong>a3s</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – the orientations of the stacking sites</p></li>
 </ul>
 </dd>
 </dl>
