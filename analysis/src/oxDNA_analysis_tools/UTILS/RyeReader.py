@@ -376,7 +376,7 @@ def conf_to_str(conf : Configuration) -> str:
     # When writing a configuration to a file, the conversion from ndarray to string is the slowest part
     # This horrific list comp is the best solution we found
     header = f't = {int(conf.time)}\nb = {" ".join(conf.box.astype(str))}\nE = {" ".join(conf.energy.astype(str))}\n'
-    return(''.join([header, ''.join([('{} {} {} 0 0 0 0 0 0\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
+    return(''.join([header, ''.join([('{} {} {}\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
 
 def get_top_string(system) -> str:
     """
