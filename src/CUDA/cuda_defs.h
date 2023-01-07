@@ -91,11 +91,9 @@ __align__(8) {
 /**
  * @brief Used when use_edge = true. It stores information associated to a single bond.
  */
-typedef struct __align__(16) edge_bond {
+typedef struct __align__(8) edge_bond {
 	int from;
 	int to;
-	int n_from;
-	int n_to;
 } edge_bond;
 
 /**
