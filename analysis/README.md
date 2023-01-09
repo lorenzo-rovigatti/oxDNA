@@ -123,7 +123,7 @@ Running instructions can be obtained for all scripts by running them with no arg
  * `minify (-p <n_cpus> -d <precision> -a) <trajectory> <output_file>` Reduces the file size of a trajectory by dropping the velocities.  If called with `-a`, the a1 and a3 vectors will also be dropped.  If called with `-d`, the position, a1 and a3 vectors will be truncated to the specified precision.<br/>
  * `multidimensional_scaling_mean (-p <n_cpus> -o <mean_structure_file> -d <deviations_file>) <trajectory>` Computes the mean structure based on local pairwise distances between particles.  An alternative to `mean` that works better for highly flexible structures.  Produces an oxDNA configuration and an oxView json file showing the per-particle deviation in distance to neighboring particles.<br/>
  * `output_bonds (-v <output> -u <oxDNA/pNnm> -p <n_cpus>) <input> <trajectory>` Lists all the interactions between nucleotides.  The output is the same as the `pair_energy` observable from oxDNA.  The `-v` option will instead create an oxView color overlay with the average energy per nucleotide for each potential.<br/>
- * `oxDNA_PDB (topology configuration_file direction -p <list of protein pdb files in system in order of occurence >)`  Converts either oxDNA DNA files to pdb, or oxDNA DNA/Protein hybrids to pdb format. Note that the PDB files must contain only the proteins, even if the structure was generated from a file which also contained DNA/RNA.<br/>
+ * `oxDNA_PDB topology configuration_file direction  <list of protein pdb files in system in order of occurence> (-o <output_file> -r <rmsf_file> -H -u -1)`  Converts either oxDNA DNA files to pdb, or oxDNA DNA/Protein hybrids to pdb format. Note that the PDB files must contain only the proteins, even if the structure was generated from a file which also contained DNA. The `-H` flag will add hydrogens to the PDB file, the `-u` flag will use uniform residue names in the PDB file, the `-1` flag will generate a separate PDB file for each strand in the structure.  Does not work with RNA structures.<br/>
  * `pca (-p <n_cpus> -c) <trajectory> <mean file> <output>` Computes the principal components of deviations away from the mean.  The principal components are written as an oxView json overlay file that will show the direction of the top mode.  More components can be summed and added to the overlay by modifying the `N` variable in the script.  If the `-c` flag is used it will also run the clustering script on each configuration's position in principal component space. <br/>
  * `plot_energy (-o <output_file> -f <histogram/trajectory/both>) <energy_file>` Plot the energy file from an oxDNA simulation <br/>
  * `subset_trajectory (-p <n_cpus>) -i <index_file output_file> <trajectory> <topology>` Split a the trajectory of a configuration into trajectories containint only a subset of the particles given in the index file.  `-i` can be called multiple times to produce multiple subsets from the same trajectory.
@@ -132,17 +132,13 @@ Running instructions can be obtained for all scripts by running them with no arg
 ### UTILS
 The UTILS directory contains utility modules used by other scripts in this package.
 
-* `base.py` **DEPRECATED** A python3 update of the `base.py` script found in the oxDNA distribution.  This contains class definitions for nucleotide/strand/system.  Only used by the PDB converter. <br/>
 * `chunksize.py` Sets the size of chunks read in by the `oat_multiprocesser`.  The chunk size determines how many configurations are loaded into memory at a time (ncpus * chunk_size configurations will be loaded).  For small systems this number can be increased to improve performance. <br/>
 * `data_structures.py` Contains definitions for common data structures used in the scripts.  Includes definitions such as `Trajinfo`, `TopInfo`, and `System`
 * `dd12_na.pdb` Used during pdb conversion script
 * `geom.py` A set of algorithms to find various geometric parameters of DNA/RNA helices.<br/>
-* `model.h` The model parameters of the oxDNA model.  Used by base.py. <br/>
 * `oat_multiprocessor.py` Parallelization method which uses partial function composition to distribute functions and configuration blocks to processors and accumulate the results.
 * `pdb.py` Helper Functions/Classes for pdb conversion <br/>
 * `protein_to_pdb` Contains protein specific functions for protein to pdb conversion<br/>
-* `readers.py` **DEPRECATED** Contains utility functions for working with oxDNA files, including extracting input file parameters, calculating the number of configurations in a trajectory and creating a system as defined in `base.py` from a configuration/topology pair. Only used by the PDB converter.<br/>
-* `rna_model.h` The model parameters of the oxRNA model.  Used by base.py. <br/>
 * `RyeReader.py` File handling functions. `describe` is used to extract metadata from oxDNA files while `get_confs` is used to read trajectories.
 * `utils.py` Contains utility functions for pdb conversion<br/>
 
