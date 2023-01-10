@@ -11,8 +11,6 @@ __constant__ int verlet_N[1];
 __constant__ int verlet_N_cells_side[3];
 __constant__ int verlet_max_N_per_cell[1];
 
-//texture<int, 1, cudaReadModeElementType> counters_cells_tex;
-
 __forceinline__ __device__ int neigh_cell(int3 index, int3 offset) {
 	// neighbour cell of this cell
 	index.x = (index.x + verlet_N_cells_side[0] + offset.x) % verlet_N_cells_side[0];

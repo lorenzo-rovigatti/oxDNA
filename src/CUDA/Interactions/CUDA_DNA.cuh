@@ -242,14 +242,12 @@ __device__ void _bonded_excluded_volume(c_number4 &r, c_number4 &n3pos_base, c_n
 }
 
 template<bool qIsN3>
-__device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c_number4 &n5z, c_number4 &n3pos, c_number4 &n3x,
+__device__ void _bonded_part(c_number4 &r, c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c_number4 &n5z, c_number4 &n3pos, c_number4 &n3x,
 		c_number4 &n3y, c_number4 &n3z, c_number4 &F, c_number4 &T, bool grooving, bool use_oxDNA2_FENE, bool use_mbf,
-		c_number mbf_xmax, c_number mbf_finf, CUDAStressTensor &p_st) {
+		c_number mbf_xmax, c_number mbf_finf) {
 
 	int n3type = get_particle_type(n3pos);
 	int n5type = get_particle_type(n5pos);
-
-	c_number4 r = make_c_number4(n3pos.x - n5pos.x, n3pos.y - n5pos.y, n3pos.z - n5pos.z, (c_number) 0);
 
 	c_number4 n5pos_back;
 	if(grooving) n5pos_back = n5x * POS_MM_BACK1 + n5y * POS_MM_BACK2;
@@ -296,7 +294,6 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 		F -= Ftmp;
 		T -= Ttmp;
 	}
-	_update_stress_tensor<true>(p_st, r, Ftmp);
 
 	// STACKING
 	c_number4 rstack = r + n3pos_stack - n5pos_stack;
@@ -414,20 +411,17 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 			T -= Ttmp;
 			F -= Ftmp;
 		}
-		_update_stress_tensor<true>(p_st, r, Ftmp);
 	}
 }
 
-__device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, c_number4 a3, c_number4 qpos, c_number4 b1,
+__device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_number4 a1, c_number4 a2, c_number4 a3, c_number4 qpos, c_number4 b1,
 		c_number4 b2, c_number4 b3, c_number4 &F, c_number4 &T, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking,
-		LR_bonds pbonds, LR_bonds qbonds, int pind, int qind, CUDAStressTensor &p_st, CUDABox *box) {
+		LR_bonds pbonds, LR_bonds qbonds, int pind, int qind) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int pbtype = get_particle_btype(ppos);
 	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
-
-	c_number4 r = box->minimum_image(ppos, qpos);
 
 	c_number4 ppos_back;
 	if(grooving) ppos_back = POS_MM_BACK1 * a1 + POS_MM_BACK2 * a2;
@@ -452,7 +446,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 	_bonded_excluded_volume<true>(r, qpos_base, qpos_back, ppos_base, ppos_back, Ftmp, Ttmp);
 
 	F += Ftmp;
-	_update_stress_tensor<true>(p_st, r, Ftmp);
 
 	// HYDROGEN BONDING
 	c_number hb_energy = (c_number) 0;
@@ -522,7 +515,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 			Ftmp.w = hb_energy;
 			F += Ftmp;
-			_update_stress_tensor<true>(p_st, r, Ftmp);
 		}
 	}
 	// END HYDROGEN BONDING
@@ -592,7 +584,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 			Ftmp.w = cstk_energy;
 			F += Ftmp;
-			_update_stress_tensor<true>(p_st, r, Ftmp);
 		}
 	}
 
@@ -647,7 +638,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 				Ftmp.w = cxst_energy;
 				F += Ftmp;
-				_update_stress_tensor<true>(p_st, r, Ftmp);
 			}
 		}
 	}
@@ -742,7 +732,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 				Ftmp.w = cxst_energy;
 				F += Ftmp;
-				_update_stress_tensor<true>(p_st, r, Ftmp);
 			}
 		}
 	}
@@ -771,7 +760,6 @@ __device__ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_n
 
 			Ttmp -= _cross(ppos_back, Ftmp);
 			F -= Ftmp;
-			_update_stress_tensor<true>(p_st, r, -Ftmp);
 		}
 	}
 
@@ -803,8 +791,8 @@ __global__ void dna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 	get_vectors_from_quat(orientations[b.to], b1, b2, b3);
 	LR_bonds pbonds = bonds[b.from];
 	LR_bonds qbonds = bonds[b.to];
-	CUDAStressTensor p_st;
-	_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to, p_st, box);
+	c_number4 r = box->minimum_image(ppos, qpos);
+	_particle_particle_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, b.from, b.to);
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
 	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
@@ -814,12 +802,13 @@ __global__ void dna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 
 	if(CUDA_DOT(dF, dF) > (c_number) 0.f) {
 		LR_atomicAddXYZ(&(forces[from_index]), dF);
-		p_st *= 2.f; // we double the contribution so we have to use the atomicAdd only for the q->p interaction, avoiding the atomicAdd for the p->q interaction below
-		LR_atomicAddST(&(st[from_index]), p_st);
+
+		CUDAStressTensor p_st;
+		_update_stress_tensor<false>(p_st, r, dF);
+		LR_atomicAddST(&(st[b.from]), p_st);
 
 		// Allen Eq. 6 pag 3:
-		c_number4 dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
-		dT += _cross(dr, dF);
+		dT += _cross(r, dF);
 
 		dF = -dF;
 		LR_atomicAddXYZ(&(forces[to_index]), dF);
@@ -852,14 +841,23 @@ __global__ void dna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, 
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[bs.n3], b1, b2, b3);
 
-		_bonded_part<true>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, p_st);
+		c_number4 r = qpos - ppos;
+		c_number4 dF = make_c_number4(0, 0, 0, 0);
+		_bonded_part<true>(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_update_stress_tensor<true>(p_st, r, dF);
+		F += dF;
 	}
 	if(bs.n5 != P_INVALID) {
 		c_number4 qpos = poss[bs.n5];
 
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[bs.n5], b1, b2, b3);
-		_bonded_part<false>(qpos, b1, b2, b3, ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, p_st);
+
+		c_number4 r = ppos - qpos;
+		c_number4 dF = make_c_number4(0, 0, 0, 0);
+		_bonded_part<false>(r, qpos, b1, b2, b3, ppos, a1, a2, a3, dF, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_update_stress_tensor<true>(p_st, r, dF);
+		F += dF;
 	}
 
 	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);
@@ -889,13 +887,23 @@ __global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 		c_number4 qpos = poss[pbonds.n3];
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[pbonds.n3], b1, b2, b3);
-		_bonded_part<true>(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, p_st);
+
+		c_number4 r = qpos - ppos;
+		c_number4 dF = make_c_number4(0, 0, 0, 0);
+		_bonded_part<true>(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_update_stress_tensor<true>(p_st, r, dF);
+		F += dF;
 	}
 	if(pbonds.n5 != P_INVALID) {
 		c_number4 qpos = poss[pbonds.n5];
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[pbonds.n5], b1, b2, b3);
-		_bonded_part<false>(qpos, b1, b2, b3, ppos, a1, a2, a3, F, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf, p_st);
+
+		c_number4 r = ppos - qpos;
+		c_number4 dF = make_c_number4(0, 0, 0, 0);
+		_bonded_part<false>(r, qpos, b1, b2, b3, ppos, a1, a2, a3, dF, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
+		_update_stress_tensor<true>(p_st, r, dF);
+		F += dF;
 	}
 
 	const int type = get_particle_type(ppos);
@@ -906,12 +914,17 @@ __global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 		int k_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
 
 		if(k_index != IND && pbonds.n3 != k_index && pbonds.n5 != k_index) {
-			const c_number4 qpos = poss[k_index];
+			c_number4 qpos = poss[k_index];
+			c_number4 r = box->minimum_image(ppos, qpos);
+
 			c_number4 b1, b2, b3;
 			get_vectors_from_quat(orientations[k_index], b1, b2, b3);
 			LR_bonds qbonds = bonds[k_index];
-			_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, grooving, use_debye_huckel,
-					use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index, p_st, box);
+
+			c_number4 dF = make_c_number4(0, 0, 0, 0);
+			_particle_particle_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, pbonds, qbonds, IND, k_index);
+			_update_stress_tensor<true>(p_st, r, dF);
+			F += dF;
 		}
 	}
 
