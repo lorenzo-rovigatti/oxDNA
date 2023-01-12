@@ -138,15 +138,10 @@ __forceinline__ __device__ c_number _f2D(c_number r, int type) {
 
 __forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc, float a, float b) {
 	c_number val = (c_number) 0.f;
-	t -= t0;
-	if(t < 0) t = -t;
+	t = copysignf(t - t0, (c_number) 1.f);
 
 	if(t < tc) {
-		if(t > ts) {
-			// smoothing
-			val = b * SQR(tc - t);
-		}
-		else val = (c_number) 1.f - a * SQR(t);
+		val = (t > ts) ? b * SQR(tc - t) : 1.f - a * SQR(t);
 	}
 
 	return val;
@@ -160,14 +155,14 @@ __forceinline__ __device__ c_number _f4_pure_harmonic(c_number t, float a, float
 
 __forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float tc, float a, float b) {
 	c_number val = (c_number) 0.f;
-	c_number tt0 = t - t0;
+	t -= t0;
 	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
 	// is the same but the value of its derivative has the opposite sign, so m = -1
-	c_number m = copysignf((c_number) 1.f, tt0);
-	tt0 = copysignf(tt0, (c_number) 1.f);
+	c_number m = copysignf((c_number) 1.f, t);
+	t = copysignf(t, (c_number) 1.f);
 
-	if(tt0 < tc) {
-		val = (tt0 > ts) ? 2.f * m * b * (tt0 - tc) : -2.f * m * a * tt0;
+	if(t < tc) {
+		val = (t > ts) ? 2.f * m * b * (t - tc) : -2.f * m * a * t;
 	}
 
 	return val;
@@ -175,8 +170,8 @@ __forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float t
 
 __forceinline__ __device__ c_number _f4D_pure_harmonic(c_number t, float a, float b) {
 	// for getting a f4t1 function with a continuous derivative that is less disruptive to the potential
-	c_number tt0 = t - b;
-	return (tt0 > 0) ? 2.f * a * tt0 : 0.f;
+	t -= b;
+	return (t < 0) ? 0.f : 2.f * a * t;
 }
 
 __forceinline__ __device__ c_number _f5(c_number f, int type) {
@@ -307,8 +302,10 @@ __device__ void _bonded_part(c_number4 &r, c_number4 &n5pos, c_number4 &n5x, c_n
 	c_number rbackrefmod = _module(rbackref);
 
 	c_number t4 = CUDA_LRACOS(CUDA_DOT(n3z, n5z));
-	c_number t5 = CUDA_LRACOS(CUDA_DOT(n5z, rstackdir));
-	c_number t6 = CUDA_LRACOS(-CUDA_DOT(n3z, rstackdir));
+	c_number cost5 = CUDA_DOT(n5z, rstackdir);
+	c_number t5 = CUDA_LRACOS(cost5);
+	c_number cost6 = -CUDA_DOT(n3z, rstackdir);
+	c_number t6 = CUDA_LRACOS(cost6);
 	c_number cosphi1 = CUDA_DOT(n5y, rbackref) / rbackrefmod;
 	c_number cosphi2 = CUDA_DOT(n3y, rbackref) / rbackrefmod;
 
@@ -335,10 +332,10 @@ __device__ void _bonded_part(c_number4 &r, c_number4 &n5pos, c_number4 &n5x, c_n
 		Ftmp = rstackdir * (energy * f1D / f1);
 
 		// THETA 5
-		Ftmp += stably_normalised(n5z - cosf(t5) * rstackdir) * (energy * f4t5D / (f4t5 * rstackmod));
+		Ftmp += stably_normalised(n5z - cost5 * rstackdir) * (energy * f4t5D / (f4t5 * rstackmod));
 
 		// THETA 6
-		Ftmp += stably_normalised(n3z + cosf(t6) * rstackdir) * (energy * f4t6D / (f4t6 * rstackmod));
+		Ftmp += stably_normalised(n3z + cost6 * rstackdir) * (energy * f4t6D / (f4t6 * rstackmod));
 
 		// COS PHI 1
 		// here particle p is referred to using the a while particle q is referred with the b
@@ -423,15 +420,11 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
 
-	c_number4 ppos_back;
-	if(grooving) ppos_back = POS_MM_BACK1 * a1 + POS_MM_BACK2 * a2;
-	else ppos_back = POS_BACK * a1;
+	c_number4 ppos_back = (grooving) ? POS_MM_BACK1 * a1 + POS_MM_BACK2 * a2 : POS_BACK * a1;
 	c_number4 ppos_base = POS_BASE * a1;
 	c_number4 ppos_stack = POS_STACK * a1;
 
-	c_number4 qpos_back;
-	if(grooving) qpos_back = POS_MM_BACK1 * b1 + POS_MM_BACK2 * b2;
-	else qpos_back = POS_BACK * b1;
+	c_number4 qpos_back = (grooving) ? POS_MM_BACK1 * b1 + POS_MM_BACK2 * b2 : POS_BACK * b1;
 	c_number4 qpos_base = POS_BASE * b1;
 	c_number4 qpos_stack = POS_STACK * b1;
 
@@ -459,11 +452,15 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 
 		// angles involved in the HB interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-		c_number t2 = CUDA_LRACOS(-CUDA_DOT(b1, rhydrodir));
-		c_number t3 = CUDA_LRACOS(CUDA_DOT(a1, rhydrodir));
+		c_number cost2 = -CUDA_DOT(b1, rhydrodir);
+		c_number t2 = CUDA_LRACOS(cost2);
+		c_number cost3 = CUDA_DOT(a1, rhydrodir);
+		c_number t3 = CUDA_LRACOS(cost3);
 		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-		c_number t7 = CUDA_LRACOS(-CUDA_DOT(rhydrodir, b3));
-		c_number t8 = CUDA_LRACOS(CUDA_DOT(rhydrodir, a3));
+		c_number cost7 = -CUDA_DOT(rhydrodir, b3);
+		c_number t7 = CUDA_LRACOS(cost7);
+		c_number cost8 = CUDA_DOT(rhydrodir, a3);
+		c_number t8 = CUDA_LRACOS(cost8);
 
 		// functions called at their relevant arguments
 		c_number f1 = hb_multi * _f1(rhydromod, HYDR_F1, ptype, qtype);
@@ -496,19 +493,19 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 			Ttmp -= stably_normalised(_cross(a1, b1)) * (-hb_energy * f4t1D / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= stably_normalised(b1 + rhydrodir * cosf(t2)) * (hb_energy * f4t2D / (f4t2 * rhydromod));
+			Ftmp -= stably_normalised(b1 + rhydrodir * cost2) * (hb_energy * f4t2D / (f4t2 * rhydromod));
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
 			c_number part = -hb_energy * f4t3D / f4t3;
-			Ftmp -= stably_normalised(a1 - rhydrodir * cosf(t3)) * (-part / rhydromod);
+			Ftmp -= stably_normalised(a1 - rhydrodir * cost3) * (-part / rhydromod);
 			Ttmp += stably_normalised(_cross(rhydrodir, a1)) * part;
 
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
-			Ftmp -= stably_normalised(b3 + rhydrodir * cosf(t7)) * (hb_energy * f4t7D / (f4t7 * rhydromod));
+			Ftmp -= stably_normalised(b3 + rhydrodir * cost7) * (hb_energy * f4t7D / (f4t7 * rhydromod));
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			part = -hb_energy * f4t8D / f4t8;
-			Ftmp -= stably_normalised(a3 - rhydrodir * cosf(t8)) * (-part / rhydromod);
+			Ftmp -= stably_normalised(a3 - rhydrodir * cost8) * (-part / rhydromod);
 			Ttmp += stably_normalised(_cross(rhydrodir, a3)) * part;
 
 			Ttmp += _cross(ppos_base, Ftmp);
@@ -528,11 +525,15 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 
 		// angles involved in the CSTCK interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-		c_number t2 = CUDA_LRACOS(-CUDA_DOT(b1, rcstackdir));
-		c_number t3 = CUDA_LRACOS(CUDA_DOT(a1, rcstackdir));
+		c_number cost2 = -CUDA_DOT(b1, rcstackdir);
+		c_number t2 = CUDA_LRACOS(cost2);
+		c_number cost3 = CUDA_DOT(a1, rcstackdir);
+		c_number t3 = CUDA_LRACOS(cost3);
 		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-		c_number t7 = CUDA_LRACOS(-CUDA_DOT(rcstackdir, b3));
-		c_number t8 = CUDA_LRACOS(CUDA_DOT(rcstackdir, a3));
+		c_number cost7 = -CUDA_DOT(rcstackdir, b3);
+		c_number t7 = CUDA_LRACOS(cost7);
+		c_number cost8 = CUDA_DOT(rcstackdir, a3);
+		c_number t8 = CUDA_LRACOS(cost8);
 
 		// functions called at their relevant arguments
 		c_number f2 = _f2(rcstackmod, CRST_F2);
@@ -562,22 +563,22 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 			Ttmp -= stably_normalised(_cross(a1, b1)) * (-cstk_energy * f4t1D / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= stably_normalised(b1 + rcstackdir * cosf(t2)) * (cstk_energy * f4t2D / (f4t2 * rcstackmod));
+			Ftmp -= stably_normalised(b1 + rcstackdir * cost2) * (cstk_energy * f4t2D / (f4t2 * rcstackmod));
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
 			c_number part = -cstk_energy * f4t3D / f4t3;
-			Ftmp -= stably_normalised(a1 - rcstackdir * cosf(t3)) * (-part / rcstackmod);
+			Ftmp -= stably_normalised(a1 - rcstackdir * cost3) * (-part / rcstackmod);
 			Ttmp += stably_normalised(_cross(rcstackdir, a1)) * part;
 
 			// TETA4; t4 = LRACOS (a3 * b3);
 			Ttmp -= stably_normalised(_cross(a3, b3)) * (-cstk_energy * f4t4D / f4t4);
 
 			// THETA7; t7 = LRACOS (-rcsrackir * b3);
-			Ftmp -= stably_normalised(b3 + rcstackdir * cosf(t7)) * (cstk_energy * f4t7D / (f4t7 * rcstackmod));
+			Ftmp -= stably_normalised(b3 + rcstackdir * cost7) * (cstk_energy * f4t7D / (f4t7 * rcstackmod));
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
 			part = -cstk_energy * f4t8D / f4t8;
-			Ftmp -= stably_normalised(a3 - rcstackdir * cosf(t8)) * (-part / rcstackmod);
+			Ftmp -= stably_normalised(a3 - rcstackdir * cost8) * (-part / rcstackmod);
 			Ttmp += stably_normalised(_cross(rcstackdir, a3)) * part;
 
 			Ttmp += _cross(ppos_base, Ftmp);
@@ -598,8 +599,10 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 			// angles involved in the CXST interaction
 			c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 			c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-			c_number t5 = CUDA_LRACOS(CUDA_DOT(a3, rstackdir));
-			c_number t6 = CUDA_LRACOS(-CUDA_DOT(b3, rstackdir));
+			c_number cost5 = CUDA_DOT(a3, rstackdir);
+			c_number t5 = CUDA_LRACOS(cost5);
+			c_number cost6 = -CUDA_DOT(b3, rstackdir);
+			c_number t6 = CUDA_LRACOS(cost6);
 
 			// functions called at their relevant arguments
 			c_number f2 = _f2(rstackmod, CXST_F2);
@@ -629,11 +632,11 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 
 				// THETA5; t5 = LRACOS ( a3 * rstackdir);
 				c_number part = cxst_energy * f4t5D / f4t5;
-				Ftmp -= stably_normalised(a3 - rstackdir * cosf(t5)) / rstackmod * part;
+				Ftmp -= stably_normalised(a3 - rstackdir * cost5) / rstackmod * part;
 				Ttmp -= stably_normalised(_cross(rstackdir, a3)) * part;
 
 				// THETA6; t6 = LRACOS (-b3 * rstackdir);
-				Ftmp -= stably_normalised(b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
+				Ftmp -= stably_normalised(b3 + rstackdir * cost6) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
 				Ttmp += stably_normalised(_cross(ppos_stack, Ftmp));
 
 				Ftmp.w = cxst_energy;
@@ -651,8 +654,10 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 			// angles involved in the CXST interaction
 			c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 			c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-			c_number t5 = CUDA_LRACOS(CUDA_DOT(a3, rstackdir));
-			c_number t6 = CUDA_LRACOS(-CUDA_DOT(b3, rstackdir));
+			c_number cost5 = CUDA_DOT(a3, rstackdir);
+			c_number t5 = CUDA_LRACOS(cost5);
+			c_number cost6 = -CUDA_DOT(b3, rstackdir);
+			c_number t6 = CUDA_LRACOS(cost6);
 
 			// This is the position the backbone would have with major-minor grooves the same width.
 			// We need to do this to implement different major-minor groove widths because rback is
@@ -693,11 +698,11 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 
 				// THETA5; t5 = LRACOS ( a3 * rstackdir);
 				c_number part = cxst_energy * f4t5D / f4t5;
-				Ftmp -= stably_normalised(a3 - rstackdir * cosf(t5)) / rstackmod * part;
+				Ftmp -= stably_normalised(a3 - rstackdir * cost5) / rstackmod * part;
 				Ttmp -= stably_normalised(_cross(rstackdir, a3)) * part;
 
 				// THETA6; t6 = LRACOS (-b3 * rstackdir);
-				Ftmp -= stably_normalised(b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
+				Ftmp -= stably_normalised(b3 + rstackdir * cost6) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
 
 				// COSPHI3
 				c_number rbackrefmodcub = rbackrefmod * rbackrefmod * rbackrefmod;
@@ -769,9 +774,9 @@ __device__ void _particle_particle_interaction(c_number4 &r, c_number4 ppos, c_n
 	T.w = old_Tw + hb_energy;
 }
 
-__global__ void dna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques,
-		edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking,
-		CUDAStressTensor *st, CUDABox *box) {
+__global__ void dna_forces_edge_nonbonded(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
+		c_number4 __restrict__ *torques, const edge_bond __restrict__ *edge_list, int n_edges, const LR_bonds __restrict__ *bonds, bool grooving,
+		bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, CUDAStressTensor *st, const CUDABox *box) {
 	if(IND >= n_edges) return;
 
 	c_number4 dF = make_c_number4(0, 0, 0, 0);
@@ -819,8 +824,9 @@ __global__ void dna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 }
 
 // bonded interactions for edge-based approach
-__global__ void dna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, LR_bonds *bonds,
-		bool grooving, bool use_oxDNA2_FENE, bool use_mbf, c_number mbf_xmax, c_number mbf_finf, CUDAStressTensor *st) {
+__global__ void dna_forces_edge_bonded(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
+		c_number4 __restrict__ *torques, const LR_bonds __restrict__ *bonds, bool grooving, bool use_oxDNA2_FENE, bool use_mbf, c_number mbf_xmax,
+		c_number mbf_finf, CUDAStressTensor *st) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -856,7 +862,7 @@ __global__ void dna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, 
 		c_number4 r = ppos - qpos;
 		c_number4 dF = make_c_number4(0, 0, 0, 0);
 		_bonded_part<false>(r, qpos, b1, b2, b3, ppos, a1, a2, a3, dF, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
-		_update_stress_tensor<true>(p_st, r, dF);
+		_update_stress_tensor<true>(p_st, -r, dF); // -r since r here is defined as r  = ppos - qpos
 		F += dF;
 	}
 
@@ -867,9 +873,10 @@ __global__ void dna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, 
 	torques[IND] = T;
 }
 
-__global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs,
-		int *number_neighs, LR_bonds *bonds, bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE,
-		bool use_mbf, c_number mbf_xmax, c_number mbf_finf, CUDAStressTensor *st, CUDABox *box) {
+__global__ void dna_forces(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
+		c_number4 __restrict__ *torques, const int *matrix_neighs,	const int *number_neighs, const LR_bonds __restrict__ *bonds,
+		bool grooving, bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking, bool use_oxDNA2_FENE, bool use_mbf, c_number mbf_xmax,
+		c_number mbf_finf, CUDAStressTensor *st, const CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -902,7 +909,7 @@ __global__ void dna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 		c_number4 r = ppos - qpos;
 		c_number4 dF = make_c_number4(0, 0, 0, 0);
 		_bonded_part<false>(r, qpos, b1, b2, b3, ppos, a1, a2, a3, dF, T, grooving, use_oxDNA2_FENE, use_mbf, mbf_xmax, mbf_finf);
-		_update_stress_tensor<true>(p_st, r, dF);
+		_update_stress_tensor<true>(p_st, -r, dF);
 		F += dF;
 	}
 

@@ -157,14 +157,20 @@ void CUDADNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 	CUDA_SAFE_CALL(cudaMemset(_d_st, 0, _N * sizeof(CUDAStressTensor)));
 
 	if(_use_edge) {
-		dna_forces_edge_nonbonded
-			<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, d_bonds,
-			_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _d_st, d_box);
+		if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
+			dna_forces_edge_nonbonded
+				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, d_bonds,
+				_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _d_st, d_box);
+		}
+		else { // sum required, somewhat slower
+			dna_forces_edge_nonbonded
+				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, d_bonds,
+				_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _d_st, d_box);
 
-		_sum_edge_forces_torques(d_forces, d_torques);
-
-		CUT_CHECK_ERROR("forces_second_step error -- after non-bonded");
+			_sum_edge_forces_torques(d_forces, d_torques);
+		}
 
 		dna_forces_edge_bonded
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>

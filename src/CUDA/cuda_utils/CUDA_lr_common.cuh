@@ -37,7 +37,7 @@ __device__ void _update_stress_tensor(CUDAStressTensor &st, const c_number4 &r, 
 }
 
 //This is the most commonly called quaternion to matrix conversion. 
-__forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, c_number4 &a1, c_number4 &a2, c_number4 &a3) {
+__forceinline__ __device__ void get_vectors_from_quat(const GPU_quat &q, c_number4 &a1, c_number4 &a2, c_number4 &a3) {
 	c_number sqx = q.x * q.x;
 	c_number sqy = q.y * q.y;
 	c_number sqz = q.z * q.z;
@@ -61,7 +61,7 @@ __forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, c_number4 &a1
 }
 
 template<typename t_quat>
-__forceinline__ __device__ t_quat quat_multiply(t_quat &a, t_quat &b) {
+__forceinline__ __device__ t_quat quat_multiply(const t_quat &a, const t_quat &b) {
 	t_quat p;
 	p.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
 	p.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
@@ -104,20 +104,20 @@ __forceinline__ __device__ double atomicAdd(double* address, double val) {
 }
 #endif
 
-__forceinline__ __device__ void LR_atomicAdd(c_number4 *dst, c_number4 delta) {
+__forceinline__ __device__ void LR_atomicAdd(c_number4 *dst, const c_number4 &delta) {
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
 	atomicAdd(&(dst->w), delta.w);
 }
 
-__forceinline__ __device__ void LR_atomicAddXYZ(c_number4 *dst, c_number4 delta) {
+__forceinline__ __device__ void LR_atomicAddXYZ(c_number4 *dst, const c_number4 &delta) {
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
 }
 
-__forceinline__ __device__ void LR_atomicAddST(CUDAStressTensor *dst, CUDAStressTensor delta) {
+__forceinline__ __device__ void LR_atomicAddST(CUDAStressTensor *dst, const CUDAStressTensor &delta) {
 	atomicAdd(&(dst->e[0]), delta.e[0]);
 	atomicAdd(&(dst->e[1]), delta.e[1]);
 	atomicAdd(&(dst->e[2]), delta.e[2]);

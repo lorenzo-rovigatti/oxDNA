@@ -18,42 +18,30 @@
 #include <thrust/reduce.h>
 #include <thrust/transform_reduce.h>
 
-__global__ void sum_edge_forces_torques(c_number4 *edge_forces, c_number4 *forces, c_number4 *edge_torques, c_number4 *torques, int N, int n_forces) {
+__global__ void sum_edge_forces_torques(c_number4 __restrict__ *edge_forces, c_number4 __restrict__ *forces, c_number4 __restrict__ *edge_torques,
+		c_number4 __restrict__ *torques, int N, int n_forces) {
 	if(IND >= N) return;
 
 	c_number4 tot_force = forces[IND];
 	c_number4 tot_torque = torques[IND];
 	for(int i = 0; i < n_forces; i++) {
-		c_number4 tmp_force = edge_forces[N * i + IND];
-		tot_force.x += tmp_force.x;
-		tot_force.y += tmp_force.y;
-		tot_force.z += tmp_force.z;
-		tot_force.w += tmp_force.w;
-		edge_forces[N * i + IND] = make_c_number4(0, 0, 0, 0);
-
-		c_number4 tmp_torque = edge_torques[N * i + IND];
-		tot_torque.x += tmp_torque.x;
-		tot_torque.y += tmp_torque.y;
-		tot_torque.z += tmp_torque.z;
-		tot_torque.w += tmp_torque.w;
-		edge_torques[N * i + IND] = make_c_number4(0, 0, 0, 0);
+		tot_force += edge_forces[N * i + IND];
+		tot_torque += edge_torques[N * i + IND];
+		edge_forces[N * i + IND] = make_c_number4(0.f, 0.f, 0.f, 0.f);
+		edge_torques[N * i + IND] = make_c_number4(0.f, 0.f, 0.f, 0.f);
 	}
 
 	forces[IND] = tot_force;
 	torques[IND] = tot_torque;
 }
 
-__global__ void sum_edge_forces(c_number4 *edge_forces, c_number4 *forces, int N, int n_forces) {
+__global__ void sum_edge_forces(c_number4 __restrict__ *edge_forces, c_number4 __restrict__ *forces, int N, int n_forces) {
 	if(IND >= N) return;
 
 	c_number4 tot_force = forces[IND];
 	for(int i = 0; i < n_forces; i++) {
-		c_number4 tmp_force = edge_forces[N * i + IND];
-		tot_force.x += tmp_force.x;
-		tot_force.y += tmp_force.y;
-		tot_force.z += tmp_force.z;
-		tot_force.w += tmp_force.w;
-		edge_forces[N * i + IND] = make_c_number4(0, 0, 0, 0);
+		tot_force += edge_forces[N * i + IND];
+		edge_forces[N * i + IND] = make_c_number4(0.f, 0.f, 0.f, 0.f);
 	}
 
 	forces[IND] = tot_force;

@@ -379,11 +379,17 @@ void CUDARNAInteraction::_on_T_update() {
 
 void CUDARNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	if(_use_edge) {
-		rna_forces_edge_nonbonded
-			<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, d_box);
-
-		_sum_edge_forces_torques(d_forces, d_torques);
+		if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
+			rna_forces_edge_nonbonded
+				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, d_box);
+		}
+		else { // sum required, somewhat slower
+			rna_forces_edge_nonbonded
+				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, d_box);
+			_sum_edge_forces_torques(d_forces, d_torques);
+		}
 
 		rna_forces_edge_bonded
 			<<<this->_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
