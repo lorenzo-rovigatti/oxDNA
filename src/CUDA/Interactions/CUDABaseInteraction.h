@@ -27,6 +27,7 @@ protected:
 	CUDA_kernel_cfg _ffs_hb_eval_kernel_cfg;
 	CUDA_kernel_cfg _ffs_dist_eval_kernel_cfg;
 
+	bool _update_st = false;
 	CUDAStressTensor *_d_st = nullptr, *_h_st = nullptr;
 
 	int _N = -1;

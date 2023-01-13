@@ -143,9 +143,7 @@ __forceinline__ __device__ c_number quad_distance(const c_number4 &r_i, const c_
 
 __forceinline__ __device__ int get_particle_type(const c_number4 &r_i) {
 	int my_btype = __float_as_int(r_i.w) >> 22;
-	if(my_btype >= 0 && my_btype <= 3) return my_btype;
-	if(my_btype > 0) return my_btype % 4;
-	else return 3 - ((3 - (my_btype)) % 4);
+	return (my_btype > 0) ? (my_btype & 3) : 3 - ((3 - (my_btype)) & 3); // a & 3 is equivalent to a % 4, but much faster
 }
 
 __forceinline__ __device__ int get_particle_index(const c_number4 &r_i) {

@@ -20,7 +20,9 @@ CUDADNAInteraction::CUDADNAInteraction() {
 }
 
 CUDADNAInteraction::~CUDADNAInteraction() {
-
+	if(_d_is_strand_end != nullptr) {
+		CUDA_SAFE_CALL(cudaFree(_d_is_strand_end));
+	}
 }
 
 void CUDADNAInteraction::get_settings(input_file &inp) {
@@ -153,21 +155,30 @@ void CUDADNAInteraction::_on_T_update() {
 	cuda_init(_N);
 }
 
-void CUDADNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+void CUDADNAInteraction::_init_strand_ends(LR_bonds *d_bonds) {
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&_d_is_strand_end, sizeof(int) * _N));
+	init_strand_ends<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>(_d_is_strand_end, d_bonds);
+}
+
+void CUDADNAInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+	if(_d_is_strand_end == nullptr) {
+		_init_strand_ends(d_bonds);
+	}
+
 	CUDA_SAFE_CALL(cudaMemset(_d_st, 0, _N * sizeof(CUDAStressTensor)));
 
 	if(_use_edge) {
 		if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
 			dna_forces_edge_nonbonded
 				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, d_bonds,
-				_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _d_st, d_box);
+				(d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end,
+				_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _update_st, _d_st, d_box);
 		}
 		else { // sum required, somewhat slower
 			dna_forces_edge_nonbonded
 				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, d_bonds,
-				_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _d_st, d_box);
+				(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end,
+				_grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _update_st, _d_st, d_box);
 
 			_sum_edge_forces_torques(d_forces, d_torques);
 		}
@@ -175,14 +186,14 @@ void CUDADNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, G
 		dna_forces_edge_bonded
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _grooving, _use_oxDNA2_FENE, _use_mbf, _mbf_xmax,
-			_mbf_finf, _d_st);
+			_mbf_finf, _update_st, _d_st);
 	}
 	else {
 		dna_forces
 			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs,
 			d_bonds, _grooving, _use_debye_huckel, _use_oxDNA2_coaxial_stacking, _use_oxDNA2_FENE, _use_mbf,
-			_mbf_xmax, _mbf_finf, _d_st, d_box);
+			_mbf_xmax, _mbf_finf, _update_st, _d_st, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
 }

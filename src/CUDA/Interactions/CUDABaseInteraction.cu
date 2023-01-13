@@ -77,6 +77,12 @@ void CUDABaseInteraction::_sum_edge_forces_torques(c_number4 *d_forces, c_number
 }
 
 void CUDABaseInteraction::get_cuda_settings(input_file &inp) {
+	int update_st_every = 0;
+	getInputInt(&inp, "CUDA_update_stress_tensor_every", &update_st_every, 0);
+	if(update_st_every > 0) {
+		_update_st = true;
+	}
+
 	getInputBool(&inp, "use_edge", &_use_edge, 0);
 	if(_use_edge) {
 		if(!_edge_compatible) {
