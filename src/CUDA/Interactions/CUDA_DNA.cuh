@@ -590,123 +590,80 @@ __device__ void _particle_particle_interaction(const c_number4 &r, const c_numbe
 	}
 
 	// COAXIAL STACKING
-	if(use_oxDNA2_coaxial_stacking) {
-		c_number4 rstack = r + qpos_stack - ppos_stack;
-		c_number rstackmodsqr = CUDA_DOT(rstack, rstack);
-		if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
-			c_number rstackmod = sqrtf(rstackmodsqr);
-			c_number4 rstackdir = rstack / rstackmod;
+	// oxDNA1's coaxial stacking was a bit different in terms of parameters, and also had an additional term
+	// here we try to avoid duplications by using if statements (which are always true or false and therefore
+	// do not branch out), or use ternary operators (sparsely, since they decrease the readability)
+	c_number4 rstack = r + qpos_stack - ppos_stack;
+	c_number rstackmodsqr = CUDA_DOT(rstack, rstack);
+	if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
+		c_number rstackmod = sqrtf(rstackmodsqr);
+		c_number4 rstackdir = rstack / rstackmod;
 
-			// angles involved in the CXST interaction
-			c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-			c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-			c_number cost5 = CUDA_DOT(a3, rstackdir);
-			c_number t5 = CUDA_LRACOS(cost5);
-			c_number cost6 = -CUDA_DOT(b3, rstackdir);
-			c_number t6 = CUDA_LRACOS(cost6);
+		// angles involved in the CXST interaction
+		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
+		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
+		c_number cost5 = CUDA_DOT(a3, rstackdir);
+		c_number t5 = CUDA_LRACOS(cost5);
+		c_number cost6 = -CUDA_DOT(b3, rstackdir);
+		c_number t6 = CUDA_LRACOS(cost6);
 
-			// functions called at their relevant arguments
-			c_number f2 = _f2(rstackmod, CXST_F2);
-			c_number f4t1 = _f4(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB);
-			c_number f4t4 = _f4(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
-			c_number f4t5 = _f4(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) + _f4(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
-			c_number f4t6 = _f4(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
-
-			c_number cxst_energy = f2 * f4t1 * f4t4 * f4t5 * f4t6;
-
-			if(cxst_energy < (c_number) 0) {
-				// derivatives called at the relevant arguments
-				c_number f2D = _f2D(rstackmod, CXST_F2);
-				c_number f4t1D = -_f4D(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) - _f4D_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB);
-				c_number f4t4D = _f4D(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
-				c_number f4t5D = _f4D(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) - _f4D(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
-				c_number f4t6D = -_f4D(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4D(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
-
-				// RADIAL PART
-				Ftmp = rstackdir * (cxst_energy * f2D / f2);
-
-				// THETA1; t1 = LRACOS (-a1 * b1);
-				Ttmp -= stably_normalised(_cross(a1, b1)) * (-cxst_energy * f4t1D / f4t1);
-
-				// TETA4; t4 = LRACOS (a3 * b3);
-				Ttmp -= stably_normalised(_cross(a3, b3)) * (-cxst_energy * f4t4D / f4t4);
-
-				// THETA5; t5 = LRACOS ( a3 * rstackdir);
-				c_number part = cxst_energy * f4t5D / f4t5;
-				Ftmp -= stably_normalised(a3 - rstackdir * cost5) / rstackmod * part;
-				Ttmp -= stably_normalised(_cross(rstackdir, a3)) * part;
-
-				// THETA6; t6 = LRACOS (-b3 * rstackdir);
-				Ftmp -= stably_normalised(b3 + rstackdir * cost6) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
-				Ttmp += _cross(ppos_stack, Ftmp);
-
-				Ftmp.w = cxst_energy;
-				F += Ftmp;
-			}
-		}
-	}
-	else {
-		c_number4 rstack = r + qpos_stack - ppos_stack;
-		c_number rstackmodsqr = CUDA_DOT(rstack, rstack);
-		if(SQR(CXST_RCLOW) < rstackmodsqr && rstackmodsqr < SQR(CXST_RCHIGH)) {
-			c_number rstackmod = sqrtf(rstackmodsqr);
-			c_number4 rstackdir = rstack / rstackmod;
-
-			// angles involved in the CXST interaction
-			c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-			c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-			c_number cost5 = CUDA_DOT(a3, rstackdir);
-			c_number t5 = CUDA_LRACOS(cost5);
-			c_number cost6 = -CUDA_DOT(b3, rstackdir);
-			c_number t6 = CUDA_LRACOS(cost6);
-
+		c_number cosphi3 = 1.f;
+		c_number f5cosphi3 = 1.f;
+		c_number rbackrefmod = 1.f;
+		if(!use_oxDNA2_coaxial_stacking) {
 			// This is the position the backbone would have with major-minor grooves the same width.
 			// We need to do this to implement different major-minor groove widths because rback is
 			// used as a reference point for things that have nothing to do with the actual backbone
 			// position (in this case, the coaxial stacking interaction).
 			c_number4 rbackboneref = r + POS_BACK * b1 - POS_BACK * a1;
-			c_number rbackrefmod = _module(rbackboneref);
+			rbackrefmod = _module(rbackboneref);
 			c_number4 rbackbonerefdir = rbackboneref / rbackrefmod;
-			c_number cosphi3 = CUDA_DOT(rstackdir, (_cross(rbackbonerefdir, a1)));
+			cosphi3 = CUDA_DOT(rstackdir, (_cross(rbackbonerefdir, a1)));
+			f5cosphi3 = _f5(cosphi3, CXST_F5_PHI3);
+		}
 
-			// functions called at their relevant arguments
-			c_number f2 = _f2(rstackmod, CXST_F2);
-			c_number f4t1 = _f4(t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4(2 * PI - t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
-			c_number f4t4 = _f4(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
-			c_number f4t5 = _f4(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) + _f4(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
-			c_number f4t6 = _f4(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
-			c_number f5cosphi3 = _f5(cosphi3, CXST_F5_PHI3);
+		// functions called at their relevant arguments
+		c_number f2 = _f2(rstackmod, CXST_F2);
+		c_number f4t1 = (use_oxDNA2_coaxial_stacking) ?
+				_f4(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB) :
+				_f4(t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4(2 * PI - t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
+		c_number f4t4 = _f4(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
+		c_number f4t5 = _f4(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) + _f4(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
+		c_number f4t6 = _f4(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
 
-			c_number cxst_energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3);
+		c_number cxst_energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3);
 
-			if(cxst_energy < (c_number) 0) {
-				// derivatives called at the relevant arguments
-				c_number f2D = _f2D(rstackmod, CXST_F2);
-				c_number f4t1D = -_f4D(t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4D(2 * PI - t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
-				c_number f4t4D = _f4D(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
-				c_number f4t5D = _f4D(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) - _f4D(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
-				c_number f4t6D = -_f4D(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4D(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
-				c_number f5cosphi3D = _f5D(cosphi3, CXST_F5_PHI3);
+		if(cxst_energy < (c_number) 0) {
+			// derivatives called at the relevant arguments
+			c_number f2D = _f2D(rstackmod, CXST_F2);
+			c_number f4t1D = (use_oxDNA2_coaxial_stacking) ?
+					-_f4D(t1, CXST_THETA1_T0_OXDNA2, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) - _f4D_pure_harmonic(t1, CXST_THETA1_SA, CXST_THETA1_SB) :
+					-_f4D(t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B) + _f4D(2 * PI - t1, CXST_THETA1_T0_OXDNA, CXST_THETA1_TS, CXST_THETA1_TC, CXST_THETA1_A, CXST_THETA1_B);
+			c_number f4t4D = _f4D(t4, CXST_THETA4_T0, CXST_THETA4_TS, CXST_THETA4_TC, CXST_THETA4_A, CXST_THETA4_B);
+			c_number f4t5D = _f4D(t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B) - _f4D(PI - t5, CXST_THETA5_T0, CXST_THETA5_TS, CXST_THETA5_TC, CXST_THETA5_A, CXST_THETA5_B);
+			c_number f4t6D = -_f4D(t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B) + _f4D(PI - t6, CXST_THETA6_T0, CXST_THETA6_TS, CXST_THETA6_TC, CXST_THETA6_A, CXST_THETA6_B);
 
-				// RADIAL PART
-				Ftmp = rstackdir * (cxst_energy * f2D / f2);
+			// RADIAL PART
+			Ftmp = rstackdir * (cxst_energy * f2D / f2);
 
-				// THETA1; t1 = LRACOS (-a1 * b1);
-				Ttmp -= stably_normalised(_cross(a1, b1)) * (-cxst_energy * f4t1D / f4t1);
+			// THETA1; t1 = LRACOS (-a1 * b1);
+			Ttmp -= stably_normalised(_cross(a1, b1)) * (-cxst_energy * f4t1D / f4t1);
 
-				// TETA4; t4 = LRACOS (a3 * b3);
-				Ttmp -= stably_normalised(_cross(a3, b3)) * (-cxst_energy * f4t4D / f4t4);
+			// TETA4; t4 = LRACOS (a3 * b3);
+			Ttmp -= stably_normalised(_cross(a3, b3)) * (-cxst_energy * f4t4D / f4t4);
 
-				// THETA5; t5 = LRACOS ( a3 * rstackdir);
-				c_number part = cxst_energy * f4t5D / f4t5;
-				Ftmp -= stably_normalised(a3 - rstackdir * cost5) / rstackmod * part;
-				Ttmp -= stably_normalised(_cross(rstackdir, a3)) * part;
+			// THETA5; t5 = LRACOS ( a3 * rstackdir);
+			c_number part = cxst_energy * f4t5D / f4t5;
+			Ftmp -= stably_normalised(a3 - rstackdir * cost5) / rstackmod * part;
+			Ttmp -= stably_normalised(_cross(rstackdir, a3)) * part;
 
-				// THETA6; t6 = LRACOS (-b3 * rstackdir);
-				Ftmp -= stably_normalised(b3 + rstackdir * cost6) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
+			// THETA6; t6 = LRACOS (-b3 * rstackdir);
+			Ftmp -= stably_normalised(b3 + rstackdir * cost6) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
 
+			if(!use_oxDNA2_coaxial_stacking) {
 				// COSPHI3
-				c_number rbackrefmodcub = rbackrefmod * rbackrefmod * rbackrefmod;
+				c_number f5cosphi3D = _f5D(cosphi3, CXST_F5_PHI3);
+				c_number rbackrefmodcub = CUB(rbackrefmod);
 
 				//c_number a1b1 = a1 * b1;
 				c_number a2b1 = CUDA_DOT(a2, b1);
@@ -733,12 +690,11 @@ __device__ void _particle_particle_interaction(const c_number4 &r, const c_numbe
 				Ttmp += part * (_cross(rstackdir, a1) * dcdra1 + _cross(rstackdir, a2) * dcdra2 + _cross(rstackdir, a3) * dcdra3);
 
 				Ttmp -= part * (_cross(a1, b1) * dcda1b1 + _cross(a2, b1) * dcda2b1 + _cross(a3, b1) * dcda3b1);
-
-				Ttmp += _cross(ppos_stack, Ftmp);
-
-				Ftmp.w = cxst_energy;
-				F += Ftmp;
 			}
+
+			Ttmp += _cross(ppos_stack, Ftmp);
+			Ftmp.w = cxst_energy;
+			F += Ftmp;
 		}
 	}
 
