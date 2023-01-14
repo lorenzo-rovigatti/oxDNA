@@ -99,7 +99,7 @@ typedef struct __align__(8) edge_bond {
 /**
  * @brief Used to store the stress tensor on GPUs
  */
-__device__ __host__ struct __align__(16) CUDAStressTensor {
+typedef struct __align__(16) CUDAStressTensor {
 	c_number e[6];
 
 	__device__ __host__ CUDAStressTensor() : e{0} {
@@ -151,6 +151,6 @@ __device__ __host__ struct __align__(16) CUDAStressTensor {
 	__host__ StressTensor as_StressTensor() {
 		return StressTensor({e[0], e[1], e[2], e[3], e[4], e[5]});
 	}
-};
+} CUDAStressTensor;
 
 #endif /* SRC_CUDA_CUDA_DEFS_H_ */

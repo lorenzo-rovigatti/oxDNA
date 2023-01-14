@@ -108,7 +108,9 @@ void CUDABaseInteraction::cuda_init(int N) {
 		CUDA_SAFE_CALL(cudaMemset(_d_edge_torques, 0, size));
 	}
 
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_st, N * sizeof(CUDAStressTensor)));
+	if(_update_st) {
+		CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_st, N * sizeof(CUDAStressTensor)));
+	}
 }
 
 void CUDABaseInteraction::set_launch_cfg(CUDA_kernel_cfg &launch_cfg) {

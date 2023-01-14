@@ -86,22 +86,21 @@ __forceinline__ __device__ c_number _f1(c_number r, int type, int n3, int n5) {
 
 __forceinline__ __device__ c_number _f1D(c_number r, int type, int n3, int n5) {
 	c_number val = (c_number) 0.f;
-	int eps_index = 0;
 	if(r < MD_F1_RCHIGH[type]) {
-		eps_index = 25 * type + n3 * 5 + n5;
+		float eps = MD_F1_EPS[25 * type + n3 * 5 + n5];
 		if(r > MD_F1_RHIGH[type]) {
-			val = 2.f * MD_F1_BHIGH[type] * (r - MD_F1_RCHIGH[type]);
+			val = 2.f * eps * MD_F1_BHIGH[type] * (r - MD_F1_RCHIGH[type]);
 		}
 		else if(r > MD_F1_RLOW[type]) {
 			c_number tmp = expf(-(r - MD_F1_R0[type]) * MD_F1_A[type]);
-			val = 2.f * (1.f - tmp) * tmp * MD_F1_A[type];
+			val = 2.f * eps * (1.f - tmp) * tmp * MD_F1_A[type];
 		}
 		else if(r > MD_F1_RCLOW[type]) {
-			val = 2.f * MD_F1_BLOW[type] * (r - MD_F1_RCLOW[type]);
+			val = 2.f * eps * MD_F1_BLOW[type] * (r - MD_F1_RCLOW[type]);
 		}
 	}
 
-	return MD_F1_EPS[eps_index] * val;
+	return val;
 }
 
 __forceinline__ __device__ c_number _f2(c_number r, int type) {

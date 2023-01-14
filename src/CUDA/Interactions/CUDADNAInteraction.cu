@@ -165,7 +165,9 @@ void CUDADNAInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, 
 		_init_strand_ends(d_bonds);
 	}
 
-	CUDA_SAFE_CALL(cudaMemset(_d_st, 0, _N * sizeof(CUDAStressTensor)));
+	if(_update_st) {
+		CUDA_SAFE_CALL(cudaMemset(_d_st, 0, _N * sizeof(CUDAStressTensor)));
+	}
 
 	if(_use_edge) {
 		if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
