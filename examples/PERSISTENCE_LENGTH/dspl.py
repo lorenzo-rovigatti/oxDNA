@@ -31,7 +31,7 @@ def get_lj(s,nucid):
 
 if len(sys.argv) < 5:
     base.Logger.log("Usage is %s trajectory_file topology nucid_1  nucid_2 [prune]" % sys.argv[0], base.Logger.CRITICAL)
-    print 'The program calculates Kuhn length, Persistence length, end mean of nucid_1 to nucid_2 distance; the optional argument prune is a number of configurations to skip in the trajectory file'
+    print('The program calculates Kuhn length, Persistence length, end mean of nucid_1 to nucid_2 distance; the optional argument prune is a number of configurations to skip in the trajectory file')
     sys.exit()
 
 l = readers.LorenzoReader(sys.argv[1], sys.argv[2])
@@ -49,11 +49,11 @@ try:
     i2B = len(s._strands[1]._nucleotides) - nid2 - 1 
 
     #print >> sys.stderr, "Nucleotides", i1A, i2A, i1B, i2B
-    print  "#Nucleotides", i1A, i2A, i1B, i2B
+    print("#Nucleotides", i1A, i2A, i1B, i2B)
 
 except:
-    print >> sys.stderr, "Supply nucleotides... Aborting"
-    sys.exit (-1)
+    print("Supply nucleotides... Aborting", file=sys.stderr)
+    sys.exit(1)
 
 L2 = 0.
 l0 = 0.
@@ -113,9 +113,9 @@ while s:
 l0 /= float (niter)
 
 
-print '#Configurations in total',niter
-print '# ',sys.argv[1]
-print '# Correlation between lk and l_0:  '
+print('#Configurations in total',niter)
+print('# ',sys.argv[1])
+print('# Correlation between lk and l_0:')
 for j in range(len(correlations)-1):
-	print j,correlations[j]/correlations_counter[j]
+	print(j,correlations[j]/correlations_counter[j])
 
