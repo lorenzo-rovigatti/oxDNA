@@ -57,15 +57,17 @@ See the "input_relax" file to see how to use this interaction.
 
 -- COMMAND LIST --
 
-Firtly, we generate a starting configuration from a cadnano file. 
+Firtly, we need to generate a starting configuration from a cadnano file. This can be done by using 
+cadnano_oxDNA.py, one of the scripts contained in tacoxDNA, which can be downloaded here: 
+https://github.com/lorenzo-rovigatti/tacoxDNA. The script can be run as follows: 
 
-:> python ../../UTILS/cadnano_interface.py caca.json sq 50.
+:> python3 /path/to/tacoxDNA/src/cadnano_interface.py caca.json sq
 
 This is a very small origami two very "foced links". The final configuration is
 not meant to be flat. We copy the generated files to honour the input files:
 
-:> cp prova.top top.top
-:> cp prova.conf start.conf
+:> cp caca.json.top top.top
+:> cp caca.json.oxdna start.conf
 
 Now we can run the minimization backend for a few steps:
 
