@@ -64,7 +64,7 @@ def print_info(info, labels):
             print_value(info[k][i], w[j])
         print()
 
-def cli_parser(prog="distance.py"):
+def cli_parser(prog="file_info.py"):
     #handle commandline arguments
     parser = argparse.ArgumentParser(prog = prog, description="Prints metadata about trajectories")
     parser.add_argument('trajectories', type=str, nargs='+', help='One or more trajectories to get information on.')
