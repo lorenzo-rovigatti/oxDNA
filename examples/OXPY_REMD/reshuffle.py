@@ -27,21 +27,21 @@ if __name__ == "__main__":
     
     with open(history_file) as file:
         history = loads(file.read())
-    
-    traj_name = get_input_parameter(input_file, 'trajectory_file')
-    traj_base = traj_name.split('.')[:-1]
-    traj_ext = traj_name.split('.')[-1]
 
+    top_name = get_input_parameter(input_file, 'topology')
+    traj_name = "trajectory"#get_input_parameter(input_file, 'trajectory_file')
+    #traj_base = traj_name.split('.')[:-1]
+    traj_ext = "dat"#traj_name.split('.')[-1]
     tis = []
     dis = []
     for i in range(len(pt_temp_list)):
-        ti, di = describe(f'{traj_base}_{i}.{traj_ext}')
+        ti, di = describe(top_name, f'{traj_name}_{i}.{traj_ext}')
         tis.append(ti)
         dis.append(di)
         
     out_files = [f"./{out_file}_{T}.dat" for T in pt_temp_list]
 
-    read_poses = [0 for _ in len(pt_temp_list)]
+    read_poses = [0 for _ in range(len(pt_temp_list))]
     for i,locations in enumerate(history):
         for j,l in enumerate(locations):
             configuration = get_confs(tis[l], dis[l], read_poses[l], 1)[0]
