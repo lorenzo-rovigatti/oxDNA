@@ -204,12 +204,6 @@ __forceinline__ __device__ c_number _f5D(c_number f, int type) {
 	return val;
 }
 
-__device__ c_number4 stably_normalised(const c_number4 &v) {
-	c_number max = fmaxf(fmaxf(fabsf(v.x), fabsf(v.y)), fabsf(v.z));
-	c_number4 res = v / max;
-	return res / _module(res);
-}
-
 template<bool qIsN3>
 __device__ void _bonded_excluded_volume(const c_number4 &r, const c_number4 &n3pos_base, const c_number4 &n3pos_back, const c_number4 &n5pos_base,
 		const c_number4 &n5pos_back, c_number4 &F, c_number4 &T) {
@@ -1074,8 +1068,8 @@ __global__ void dist_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op
 	op_dists[IND] = _module(rbase);
 }
 
-__global__ void init_strand_ends(int *is_strand_end, const LR_bonds __restrict__ *bonds) {
-	if(IND >= MD_N[0]) return;
+__global__ void init_DNA_strand_ends(int *is_strand_end, const LR_bonds __restrict__ *bonds, int N) {
+	if(IND >= N) return;
 
 	LR_bonds pbonds = bonds[IND];
 	is_strand_end[IND] = (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID);

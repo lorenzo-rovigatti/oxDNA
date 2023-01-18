@@ -33,6 +33,7 @@ public:
 	float _debye_huckel_B; // prefactor of the quadratic cut-off
 	float _minus_kappa;
 	// End copy from DNA2Interaction.h
+	int *_d_is_strand_end = nullptr;
 
 	CUDARNAInteraction();
 	virtual ~CUDARNAInteraction();
@@ -44,6 +45,7 @@ public:
 	}
 
 	void _on_T_update() override;
+	void _init_strand_ends(LR_bonds *d_bonds);
 
 	void compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box);
 	void _hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *op_pairs1, int *op_pairs2, float *hb_energies, int n_threads, bool *region_is_nearhb, CUDA_kernel_cfg hb_kernel_cfg, CUDABox*d_box);

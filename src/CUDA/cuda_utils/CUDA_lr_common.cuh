@@ -177,11 +177,11 @@ __forceinline__ __host__ __device__ c_number4 make_c_number4(const c_number x, c
 	return ret;
 }
 
-__forceinline__ __device__ c_number _module(const c_number4 v) {
+__forceinline__ __device__ c_number _module(const c_number4 &v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
-__forceinline__ __device__ c_number _module(const float3 v) {
+__forceinline__ __device__ c_number _module(const float3 &v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
@@ -364,6 +364,12 @@ __forceinline__ __device__ void operator-=(float4 &a, float4 b) {
 	a.y -= b.y;
 	a.z -= b.z;
 	a.w += b.w;
+}
+
+__forceinline__ __device__ c_number4 stably_normalised(const c_number4 &v) {
+	c_number max = fmaxf(fmaxf(fabsf(v.x), fabsf(v.y)), fabsf(v.z));
+	c_number4 res = v / max;
+	return res / _module(res);
 }
 
 #endif /* CUDA_LR_COMMON */

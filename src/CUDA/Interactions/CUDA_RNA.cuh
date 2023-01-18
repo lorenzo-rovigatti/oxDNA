@@ -369,7 +369,6 @@ __forceinline__ __device__ c_number _fX(c_number r, int type, int n3, int n5) {
 		}
 		else {
 			val = -MD_F1_SHIFT[eps_index];
-			//val = MD_F1_EPS[eps_index] * MD_F1_BLOW[type] * SQR(r - MD_F1_RCLOW[type]);
 		}
 	}
 
@@ -429,15 +428,25 @@ __forceinline__ __device__ c_number _f2D(c_number r, int type) {
 
 __forceinline__ __device__ c_number _f4(c_number t, float t0, float ts, float tc, float a, float b) {
 	c_number val = (c_number) 0.f;
-	t -= t0;
-	if(t < 0) t = -t;
+	t = copysignf(t - t0, (c_number) 1.f);
 
 	if(t < tc) {
-		if(t > ts) {
-			// smoothing
-			val = b * SQR(tc - t);
-		}
-		else val = (c_number) 1.f - a * SQR(t);
+		val = (t > ts) ? b * SQR(tc - t) : 1.f - a * SQR(t);
+	}
+
+	return val;
+}
+
+__forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float tc, float a, float b) {
+	c_number val = (c_number) 0.f;
+	t -= t0;
+	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
+	// is the same but the value of its derivative has the opposite sign, so m = -1
+	c_number m = copysignf((c_number) 1.f, t);
+	t = copysignf(t, (c_number) 1.f);
+
+	if(t < tc) {
+		val = (t > ts) ? 2.f * m * b * (t - tc) : -2.f * m * a * t;
 	}
 
 	return val;
@@ -691,7 +700,7 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 }
 
 __device__
-void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, c_number4 a3, c_number4 qpos, c_number4 b1, c_number4 b2, c_number4 b3, c_number4 &F, c_number4 &T, bool average, bool use_debye_huckel, bool mismatch_repulsion, LR_bonds pbonds, LR_bonds qbonds, CUDABox *box) {
+void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, c_number4 a3, c_number4 qpos, c_number4 b1, c_number4 b2, c_number4 b3, c_number4 &F, c_number4 &T, bool average, bool use_debye_huckel, bool mismatch_repulsion, bool p_is_end, bool q_is_end, CUDABox *box) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int pbtype = get_particle_btype(ppos);
@@ -993,7 +1002,7 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 
 			mytorque2 -= force_c * _cross(b1, rbackbonedir); // b1.cross(rstackdir.cross(rbackbonedir));  // rstackdir * (rbackbonedir * a1) - rbackbonedir * (rstackdir * a1);
 
-			Ftmp -= myforce;
+			Ftmp += myforce;
 			Ttmp += mytorque1;
 
 			Ftmp.w = cxst_energy;
@@ -1017,10 +1026,10 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			}
 
 			// check for half-charge strand ends
-			if(MD_dh_half_charged_ends[0] && (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID)) {
+			if(MD_dh_half_charged_ends[0] && p_is_end) {
 				Ftmp *= 0.5f;
 			}
-			if(MD_dh_half_charged_ends[0] && (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID)) {
+			if(MD_dh_half_charged_ends[0] && q_is_end) {
 				Ftmp *= 0.5f;
 			}
 
@@ -1035,7 +1044,7 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 	T.w = old_Tw + hb_energy;
 }
 
-__global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, edge_bond *edge_list, int n_edges, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion, CUDABox *box) {
+__global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, edge_bond *edge_list, int n_edges, const int *is_strand_end, bool average, bool use_debye_huckel, bool mismatch_repulsion, CUDABox *box) {
 	if(IND >= n_edges) return;
 
 	c_number4 dF = make_c_number4(0, 0, 0, 0);
@@ -1053,9 +1062,9 @@ __global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 	c_number4 b1, b2, b3;
 	get_vectors_from_quat(orientations[b.to], b1, b2, b3);
 
-	LR_bonds pbonds = bonds[b.from];
-	LR_bonds qbonds = bonds[b.to];
-	_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average, use_debye_huckel, mismatch_repulsion, pbonds, qbonds, box);
+	bool p_is_end = (use_debye_huckel) ? is_strand_end[b.from] : false;
+	bool q_is_end = (use_debye_huckel) ? is_strand_end[b.to] : false;
+	_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average, use_debye_huckel, mismatch_repulsion, p_is_end, q_is_end, box);
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
 	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
@@ -1119,6 +1128,7 @@ __global__ void rna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 	c_number4 T = make_c_number4(0, 0, 0, 0);
 	c_number4 ppos = poss[IND];
 	LR_bonds pbonds = bonds[IND];
+	bool p_is_end = (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID);
 	// particle axes according to Allen's paper
 	c_number4 a1, a2, a3;
 	get_vectors_from_quat(orientations[IND], a1, a2, a3);
@@ -1151,7 +1161,9 @@ __global__ void rna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 			c_number4 b1, b2, b3;
 			get_vectors_from_quat(orientations[k_index], b1, b2, b3);
 			LR_bonds qbonds = bonds[k_index];
-			_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, average, use_debye_huckel, mismatch_repulsion, pbonds, qbonds, box);
+			bool q_is_end = (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID);
+
+			_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, average, use_debye_huckel, mismatch_repulsion, p_is_end, q_is_end, box);
 		}
 	}
 
@@ -1332,3 +1344,11 @@ __global__ void rna_dist_op_precalc(c_number4 *poss, GPU_quat *orientations, int
 	c_number4 rbase = r + qpos_base - ppos_base;
 	op_dists[IND] = _module(rbase);
 }
+
+__global__ void init_RNA_strand_ends(int *is_strand_end, const LR_bonds __restrict__ *bonds, int N) {
+	if(IND >= N) return;
+
+	LR_bonds pbonds = bonds[IND];
+	is_strand_end[IND] = (pbonds.n3 == P_INVALID || pbonds.n5 == P_INVALID);
+}
+
