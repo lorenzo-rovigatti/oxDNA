@@ -740,10 +740,10 @@ __global__ void dna_forces_edge_nonbonded(const c_number4 __restrict__ *poss, co
 	// particle axes according to Allen's paper
 	c_number4 a1, a2, a3;
 	get_vectors_from_quat(orientations[b.from], a1, a2, a3);
+
 	// get info for particle 2
 	c_number4 qpos = poss[b.to];
 	bool q_is_end = (use_debye_huckel) ? is_strand_end[b.to] : false;
-
 	c_number4 b1, b2, b3;
 	get_vectors_from_quat(orientations[b.to], b1, b2, b3);
 
