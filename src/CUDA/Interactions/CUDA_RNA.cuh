@@ -452,28 +452,28 @@ __forceinline__ __device__ c_number _f4D(c_number t, float t0, float ts, float t
 	return val;
 }
 
-__forceinline__ __device__ c_number _f4Dsin(c_number t, float t0, float ts, float tc, float a, float b) {
-	c_number val = (c_number) 0.f;
-	c_number tt0 = t - t0;
-	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
-	// is the same but the value of its derivative has the opposite sign, so m = -1
-	c_number m = copysignf((c_number) 1.f, tt0);
-	tt0 = copysignf(tt0, (c_number) 1.f);
-
-	if(tt0 < tc) {
-		c_number sint = sinf(t);
-		if(tt0 > ts) {
-			// smoothing
-			val = b * (tt0 - tc) / sint;
-		}
-		else {
-			if(SQR(sint) > 1e-12f) val = -a * tt0 / sint;
-			else val = -a;
-		}
-	}
-
-	return 2.f * m * val;
-}
+//__forceinline__ __device__ c_number _f4Dsin(c_number t, float t0, float ts, float tc, float a, float b) {
+//	c_number val = (c_number) 0.f;
+//	c_number tt0 = t - t0;
+//	// this function is a parabola centered in t0. If tt0 < 0 then the value of the function
+//	// is the same but the value of its derivative has the opposite sign, so m = -1
+//	c_number m = copysignf((c_number) 1.f, tt0);
+//	tt0 = copysignf(tt0, (c_number) 1.f);
+//
+//	if(tt0 < tc) {
+//		c_number sint = sinf(t);
+//		if(tt0 > ts) {
+//			// smoothing
+//			val = b * (tt0 - tc) / sint;
+//		}
+//		else {
+//			if(SQR(sint) > 1e-12f) val = -a * tt0 / sint;
+//			else val = -a;
+//		}
+//	}
+//
+//	return 2.f * m * val;
+//}
 
 __forceinline__ __device__ c_number _f5(c_number f, int type) {
 	c_number val = (c_number) 0.f;
@@ -507,7 +507,8 @@ __forceinline__ __device__ c_number _f5D(c_number f, int type) {
 }
 
 template<bool qIsN3>
-__device__ void _bonded_excluded_volume(c_number4 &r, c_number4 &n3pos_base, c_number4 &n3pos_back, c_number4 &n5pos_base, c_number4 &n5pos_back, c_number4 &F, c_number4 &T) {
+__device__ void _bonded_excluded_volume(const c_number4 &r, const c_number4 &n3pos_base, const c_number4 &n3pos_back, const c_number4 &n5pos_base,
+		const c_number4 &n5pos_back, c_number4 &F, c_number4 &T) {
 	c_number4 Ftmp;
 	// BASE-BASE
 	c_number4 rcenter = r + n3pos_base - n5pos_base;
@@ -595,9 +596,10 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	//c_number rbackrefmod = _module(rbackref);
 
 	c_number t4 = CUDA_LRACOS(CUDA_DOT(n3z, n5z));
-
-	c_number t5 = CUDA_LRACOS(CUDA_DOT(n5z, rstackdir));
-	c_number t6 = CUDA_LRACOS(-CUDA_DOT(n3z, rstackdir));
+	c_number cost5 = CUDA_DOT(n5z, rstackdir);
+	c_number t5 = CUDA_LRACOS(cost5);
+	c_number cost6 = -CUDA_DOT(n3z, rstackdir);
+	c_number t6 = CUDA_LRACOS(cost6);
 
 	c_number cosphi1 = CUDA_DOT(n5y, rbackdir); // / rbackrefmod;
 	c_number cosphi2 = CUDA_DOT(n3y, rbackdir); // / rbackrefmod;
@@ -627,25 +629,25 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	if(energy != (c_number) 0) {
 		// and their derivatives
 		c_number f1D = _f1D(rstackmod, STCK_F1, n3type, n5type);
-		c_number f4t5Dsin = _f4Dsin(PI - t5, rnamodel.RNA_STCK_THETA5_T0, rnamodel.RNA_STCK_THETA5_TS, rnamodel.RNA_STCK_THETA5_TC, rnamodel.RNA_STCK_THETA5_A, rnamodel.RNA_STCK_THETA5_B);
-		c_number f4t6Dsin = _f4Dsin(t6, rnamodel.RNA_STCK_THETA6_T0, rnamodel.RNA_STCK_THETA6_TS, rnamodel.RNA_STCK_THETA6_TC, rnamodel.RNA_STCK_THETA6_A, rnamodel.RNA_STCK_THETA6_B);
+		c_number f4t5D = _f4D(PI - t5, rnamodel.RNA_STCK_THETA5_T0, rnamodel.RNA_STCK_THETA5_TS, rnamodel.RNA_STCK_THETA5_TC, rnamodel.RNA_STCK_THETA5_A, rnamodel.RNA_STCK_THETA5_B);
+		c_number f4t6D = _f4D(t6, rnamodel.RNA_STCK_THETA6_T0, rnamodel.RNA_STCK_THETA6_TS, rnamodel.RNA_STCK_THETA6_TC, rnamodel.RNA_STCK_THETA6_A, rnamodel.RNA_STCK_THETA6_B);
 
 		c_number f5phi1D = _f5D(cosphi1, STCK_F5_PHI1);
 		c_number f5phi2D = _f5D(cosphi2, STCK_F5_PHI2);
 
-		c_number f4tB1Dsin = _f4Dsin(tB1, rnamodel.STCK_THETAB1_T0, rnamodel.STCK_THETAB1_TS, rnamodel.STCK_THETAB1_TC, rnamodel.STCK_THETAB1_A, rnamodel.STCK_THETAB1_B);
-		c_number f4tB2Dsin = _f4Dsin(tB2, rnamodel.STCK_THETAB2_T0, rnamodel.STCK_THETAB2_TS, rnamodel.STCK_THETAB2_TC, rnamodel.STCK_THETAB2_A, rnamodel.STCK_THETAB2_B);
+		c_number f4tB1D = _f4D(tB1, rnamodel.STCK_THETAB1_T0, rnamodel.STCK_THETAB1_TS, rnamodel.STCK_THETAB1_TC, rnamodel.STCK_THETAB1_A, rnamodel.STCK_THETAB1_B);
+		c_number f4tB2D = _f4D(tB2, rnamodel.STCK_THETAB2_T0, rnamodel.STCK_THETAB2_TS, rnamodel.STCK_THETAB2_TC, rnamodel.STCK_THETAB2_A, rnamodel.STCK_THETAB2_B);
 
 		// RADIAL
 		Ftmp = -rstackdir * (energy * f1D / f1);
 
 		// THETA 5
-		Ftmp -= (n5z - cosf(t5) * rstackdir) * (f1 * f4t5Dsin * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2 / rstackmod); //(n5z - cosf(t5) * rstackdir) * (energy * f4t5Dsin / (f4t5 * rstackmod));
+		Ftmp -= stably_normalised(n5z - cost5 * rstackdir) * (f1 * f4t5D * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2 / rstackmod); //(n5z - cosf(t5) * rstackdir) * (energy * f4t5Dsin / (f4t5 * rstackmod));
 		// THETA 6
-		Ftmp -= (n3z + cosf(t6) * rstackdir) * (energy * f4t6Dsin / (f4t6 * rstackmod));
+		Ftmp -= stably_normalised(n3z + cost6 * rstackdir) * (energy * f4t6D / (f4t6 * rstackmod));
 
-		c_number4 Fposback = -(n5bbvector_3 + rbackdir * costB1) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1Dsin * f4tB2 / rbackmod);
-		Fposback -= (n3bbvector_5 + rbackdir * costB2) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2Dsin / rbackmod);
+		c_number4 Fposback = -stably_normalised(n5bbvector_3 + rbackdir * costB1) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1D * f4tB2 / rbackmod);
+		Fposback -= stably_normalised(n3bbvector_5 + rbackdir * costB2) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2D / rbackmod);
 
 		//force acting on the backbone site
 
@@ -663,25 +665,24 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 			Ttmp -= _cross(n5pos_back, Fposback);
 
 			// THETA 5
-			Ttmp += _cross(rstackdir, n5z) * (f1 * f4t5Dsin * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2);
+			Ttmp += stably_normalised(_cross(rstackdir, n5z)) * (f1 * f4t5D * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2);
 
 			//thetaB1
-			Ttmp += _cross(rbackdir, n5bbvector_3) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1Dsin * f4tB2);
+			Ttmp += stably_normalised(_cross(rbackdir, n5bbvector_3)) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1D * f4tB2);
 
 			Ttmp += _cross(n5y, rbackdir) * force_part_phi1;
 
 		}
 		else {
-
 			Ttmp = _cross(n3pos_stack_5, Ftmp);
 			Ttmp += _cross(n3pos_back, Fposback);
 			Ttmp += _cross(n3y, rbackdir) * force_part_phi2;
 
 			// THETA 6
-			Ttmp += _cross(rstackdir, n3z) * f1 * f4t5 * f4t6Dsin * f5phi1 * f5phi2 * f4tB1 * f4tB2;
+			Ttmp += stably_normalised(_cross(rstackdir, n3z)) * f1 * f4t5 * f4t6D * f5phi1 * f5phi2 * f4tB1 * f4tB2;
 
 			//theta B2
-			Ttmp += _cross(rbackdir, n3bbvector_5) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2Dsin);
+			Ttmp += stably_normalised(_cross(rbackdir, n3bbvector_5)) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2D);
 
 		}
 
@@ -700,14 +701,14 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 }
 
 __device__
-void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, c_number4 a3, c_number4 qpos, c_number4 b1, c_number4 b2, c_number4 b3, c_number4 &F, c_number4 &T, bool average, bool use_debye_huckel, bool mismatch_repulsion, bool p_is_end, bool q_is_end, CUDABox *box) {
+void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppos, const c_number4 &a1, const c_number4 &a2, const c_number4 &a3,
+		const c_number4 & qpos, const c_number4 &b1, const c_number4 &b2, const c_number4 &b3, c_number4 &F, c_number4 &T, bool average,
+		bool use_debye_huckel, bool mismatch_repulsion, bool p_is_end, bool q_is_end) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int pbtype = get_particle_btype(ppos);
 	int qbtype = get_particle_btype(qpos);
 	int int_type = pbtype + qbtype;
-
-	c_number4 r = box->minimum_image(ppos, qpos);
 
 	c_number4 ppos_back = a1 * rnamodel.RNA_POS_BACK_a1 + a2 * rnamodel.RNA_POS_BACK_a2 + a3 * rnamodel.RNA_POS_BACK_a3;
 	//if(grooving) ppos_back = POS_MM_BACK1 * a1 + POS_MM_BACK2 * a2;
@@ -753,11 +754,15 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 
 		// angles involved in the HB interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
-		c_number t2 = CUDA_LRACOS(-CUDA_DOT(b1, rhydrodir));
-		c_number t3 = CUDA_LRACOS(CUDA_DOT(a1, rhydrodir));
+		c_number cost2 = -CUDA_DOT(b1, rhydrodir);
+		c_number t2 = CUDA_LRACOS(cost2);
+		c_number cost3 = CUDA_DOT(a1, rhydrodir);
+		c_number t3 = CUDA_LRACOS(cost3);
 		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-		c_number t7 = CUDA_LRACOS(-CUDA_DOT(rhydrodir, b3));
-		c_number t8 = CUDA_LRACOS(CUDA_DOT(rhydrodir, a3));
+		c_number cost7 = -CUDA_DOT(rhydrodir, b3);
+		c_number t7 = CUDA_LRACOS(cost7);
+		c_number cost8 = CUDA_DOT(rhydrodir, a3);
+		c_number t8 = CUDA_LRACOS(cost8);
 
 		// functions called at their relevant arguments
 		c_number f1 = hb_multi * _f1(rhydromod, RNA_HYDR_F1, ptype, qtype);
@@ -779,37 +784,37 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			if(mismatch_repulsion && !is_pair) {
 				f1D = _fXD(rhydromod, RNA_HYDR_F1, 0, 0);
 			}
-			c_number f4t1Dsin = -_f4Dsin(t1, rnamodel.RNA_HYDR_THETA1_T0, rnamodel.RNA_HYDR_THETA1_TS, rnamodel.RNA_HYDR_THETA1_TC, rnamodel.RNA_HYDR_THETA1_A, rnamodel.RNA_HYDR_THETA1_B);
-			c_number f4t2Dsin = -_f4Dsin(t2, rnamodel.RNA_HYDR_THETA2_T0, rnamodel.RNA_HYDR_THETA2_TS, rnamodel.RNA_HYDR_THETA2_TC, rnamodel.RNA_HYDR_THETA2_A, rnamodel.RNA_HYDR_THETA2_B);
-			c_number f4t3Dsin = _f4Dsin(t3, rnamodel.RNA_HYDR_THETA3_T0, rnamodel.RNA_HYDR_THETA3_TS, rnamodel.RNA_HYDR_THETA3_TC, rnamodel.RNA_HYDR_THETA3_A, rnamodel.RNA_HYDR_THETA3_B);
-			c_number f4t4Dsin = _f4Dsin(t4, rnamodel.RNA_HYDR_THETA4_T0, rnamodel.RNA_HYDR_THETA4_TS, rnamodel.RNA_HYDR_THETA4_TC, rnamodel.RNA_HYDR_THETA4_A, rnamodel.RNA_HYDR_THETA4_B);
-			c_number f4t7Dsin = -_f4Dsin(t7, rnamodel.RNA_HYDR_THETA7_T0, rnamodel.RNA_HYDR_THETA7_TS, rnamodel.RNA_HYDR_THETA7_TC, rnamodel.RNA_HYDR_THETA7_A, rnamodel.RNA_HYDR_THETA7_B);
-			c_number f4t8Dsin = _f4Dsin(t8, rnamodel.RNA_HYDR_THETA8_T0, rnamodel.RNA_HYDR_THETA8_TS, rnamodel.RNA_HYDR_THETA8_TC, rnamodel.RNA_HYDR_THETA8_A, rnamodel.RNA_HYDR_THETA8_B);
+			c_number f4t1D = -_f4D(t1, rnamodel.RNA_HYDR_THETA1_T0, rnamodel.RNA_HYDR_THETA1_TS, rnamodel.RNA_HYDR_THETA1_TC, rnamodel.RNA_HYDR_THETA1_A, rnamodel.RNA_HYDR_THETA1_B);
+			c_number f4t2D = -_f4D(t2, rnamodel.RNA_HYDR_THETA2_T0, rnamodel.RNA_HYDR_THETA2_TS, rnamodel.RNA_HYDR_THETA2_TC, rnamodel.RNA_HYDR_THETA2_A, rnamodel.RNA_HYDR_THETA2_B);
+			c_number f4t3D = _f4D(t3, rnamodel.RNA_HYDR_THETA3_T0, rnamodel.RNA_HYDR_THETA3_TS, rnamodel.RNA_HYDR_THETA3_TC, rnamodel.RNA_HYDR_THETA3_A, rnamodel.RNA_HYDR_THETA3_B);
+			c_number f4t4D = _f4D(t4, rnamodel.RNA_HYDR_THETA4_T0, rnamodel.RNA_HYDR_THETA4_TS, rnamodel.RNA_HYDR_THETA4_TC, rnamodel.RNA_HYDR_THETA4_A, rnamodel.RNA_HYDR_THETA4_B);
+			c_number f4t7D = -_f4D(t7, rnamodel.RNA_HYDR_THETA7_T0, rnamodel.RNA_HYDR_THETA7_TS, rnamodel.RNA_HYDR_THETA7_TC, rnamodel.RNA_HYDR_THETA7_A, rnamodel.RNA_HYDR_THETA7_B);
+			c_number f4t8D = _f4D(t8, rnamodel.RNA_HYDR_THETA8_T0, rnamodel.RNA_HYDR_THETA8_TS, rnamodel.RNA_HYDR_THETA8_TC, rnamodel.RNA_HYDR_THETA8_A, rnamodel.RNA_HYDR_THETA8_B);
 
 			// RADIAL PART
 			Ftmp = rhydrodir * hb_energy * f1D / f1;
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			Ttmp -= _cross(a3, b3) * (-hb_energy * f4t4Dsin / f4t4);
+			Ttmp -= stably_normalised(_cross(a3, b3)) * (-hb_energy * f4t4D / f4t4);
 
 			// TETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= _cross(a1, b1) * (-hb_energy * f4t1Dsin / f4t1);
+			Ttmp -= stably_normalised(_cross(a1, b1)) * (-hb_energy * f4t1D / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= (b1 + rhydrodir * cosf(t2)) * (hb_energy * f4t2Dsin / (f4t2 * rhydromod));
+			Ftmp -= stably_normalised(b1 + rhydrodir * cost2) * (hb_energy * f4t2D / (f4t2 * rhydromod));
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
-			c_number part = -hb_energy * f4t3Dsin / f4t3;
-			Ftmp -= (a1 - rhydrodir * cosf(t3)) * (-part / rhydromod);
-			Ttmp += _cross(rhydrodir, a1) * part;
+			c_number part = -hb_energy * f4t3D / f4t3;
+			Ftmp -= stably_normalised(a1 - rhydrodir * cost3) * (-part / rhydromod);
+			Ttmp += stably_normalised(_cross(rhydrodir, a1)) * part;
 
 			// THETA7; t7 = LRACOS (-rhydrodir * b3);
-			Ftmp -= (b3 + rhydrodir * cosf(t7)) * (hb_energy * f4t7Dsin / (f4t7 * rhydromod));
+			Ftmp -= stably_normalised(b3 + rhydrodir * cost7) * (hb_energy * f4t7D / (f4t7 * rhydromod));
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
-			part = -hb_energy * f4t8Dsin / f4t8;
-			Ftmp -= (a3 - rhydrodir * cosf(t8)) * (-part / rhydromod);
-			Ttmp += _cross(rhydrodir, a3) * part;
+			part = -hb_energy * f4t8D / f4t8;
+			Ftmp -= stably_normalised(a3 - rhydrodir * cost8) * (-part / rhydromod);
+			Ttmp += stably_normalised(_cross(rhydrodir, a3)) * part;
 
 			Ttmp += _cross(ppos_base, Ftmp);
 
@@ -828,22 +833,21 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 
 		// angles involved in the CSTCK interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
+		c_number cost2 = -CUDA_DOT(b1, rcstackdir);
+		c_number t2 = CUDA_LRACOS(cost2);
+		c_number cost3 = CUDA_DOT(a1, rcstackdir);
+		c_number t3 = CUDA_LRACOS(cost3);
 
-		c_number t2 = CUDA_LRACOS(-CUDA_DOT(b1, rcstackdir));
-		c_number t3 = CUDA_LRACOS(CUDA_DOT(a1, rcstackdir));
-
-		//c_number t4 = CUDA_LRACOS ( CUDA_DOT(a3, b3));
-
-		c_number t7 = CUDA_LRACOS(-CUDA_DOT(rcstackdir, b3));
-		c_number t8 = CUDA_LRACOS(CUDA_DOT(rcstackdir, a3));
+		c_number cost7 = -CUDA_DOT(rcstackdir, b3);
+		c_number t7 = CUDA_LRACOS(cost7);
+		c_number cost8 = CUDA_DOT(rcstackdir, a3);
+		c_number t8 = CUDA_LRACOS(cost8);
 
 		// functions called at their relevant arguments
 		c_number f2 = _f2(rcstackmod, RNA_CRST_F2);
 		c_number f4t1 = _f4(t1, rnamodel.RNA_CRST_THETA1_T0, rnamodel.RNA_CRST_THETA1_TS, rnamodel.RNA_CRST_THETA1_TC, rnamodel.RNA_CRST_THETA1_A, rnamodel.RNA_CRST_THETA1_B);
 		c_number f4t2 = _f4(t2, rnamodel.RNA_CRST_THETA2_T0, rnamodel.RNA_CRST_THETA2_TS, rnamodel.RNA_CRST_THETA2_TC, rnamodel.RNA_CRST_THETA2_A, rnamodel.RNA_CRST_THETA2_B);
 		c_number f4t3 = _f4(t3, rnamodel.RNA_CRST_THETA3_T0, rnamodel.RNA_CRST_THETA3_TS, rnamodel.RNA_CRST_THETA3_TC, rnamodel.RNA_CRST_THETA3_A, rnamodel.RNA_CRST_THETA3_B);
-		//	c_number f4t4 = _f4(t4, rnamodel.RNA_CRST_THETA4_T0, rnamodel.RNA_CRST_THETA4_TS, rnamodel.RNA_CRST_THETA4_TC, rnamodel.RNA_CRST_THETA4_A, rnamodel.RNA_CRST_THETA4_B) +
-		//		_f4(PI - t4, rnamodel.RNA_CRST_THETA4_T0, rnamodel.RNA_CRST_THETA4_TS, rnamodel.RNA_CRST_THETA4_TC, rnamodel.RNA_CRST_THETA4_A, rnamodel.RNA_CRST_THETA4_B);
 		c_number f4t7 = _f4(t7, rnamodel.RNA_CRST_THETA7_T0, rnamodel.RNA_CRST_THETA7_TS, rnamodel.RNA_CRST_THETA7_TC, rnamodel.RNA_CRST_THETA7_A, rnamodel.RNA_CRST_THETA7_B) + _f4(PI - t7, rnamodel.RNA_CRST_THETA7_T0, rnamodel.RNA_CRST_THETA7_TS, rnamodel.RNA_CRST_THETA7_TC, rnamodel.RNA_CRST_THETA7_A, rnamodel.RNA_CRST_THETA7_B);
 		c_number f4t8 = _f4(t8, rnamodel.RNA_CRST_THETA8_T0, rnamodel.RNA_CRST_THETA8_TS, rnamodel.RNA_CRST_THETA8_TC, rnamodel.RNA_CRST_THETA8_A, rnamodel.RNA_CRST_THETA8_B) + _f4(PI - t8, rnamodel.RNA_CRST_THETA8_T0, rnamodel.RNA_CRST_THETA8_TS, rnamodel.RNA_CRST_THETA8_TC, rnamodel.RNA_CRST_THETA8_A, rnamodel.RNA_CRST_THETA8_B);
 
@@ -852,38 +856,33 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 		if(cstk_energy < (c_number) 0) {
 			// derivatives called at the relevant arguments
 			c_number f2D = _f2D(rcstackmod, CRST_F2);
-			c_number f4t1Dsin = -_f4Dsin(t1, rnamodel.RNA_CRST_THETA1_T0, rnamodel.RNA_CRST_THETA1_TS, rnamodel.RNA_CRST_THETA1_TC, rnamodel.RNA_CRST_THETA1_A, rnamodel.RNA_CRST_THETA1_B);
-			c_number f4t2Dsin = -_f4Dsin(t2, rnamodel.RNA_CRST_THETA2_T0, rnamodel.RNA_CRST_THETA2_TS, rnamodel.RNA_CRST_THETA2_TC, rnamodel.RNA_CRST_THETA2_A, rnamodel.RNA_CRST_THETA2_B);
-			c_number f4t3Dsin = _f4Dsin(t3, rnamodel.RNA_CRST_THETA3_T0, rnamodel.RNA_CRST_THETA3_TS, rnamodel.RNA_CRST_THETA3_TC, rnamodel.RNA_CRST_THETA3_A, rnamodel.RNA_CRST_THETA3_B);
-			//c_number f4t4Dsin = _f4Dsin(t4, rnamodel.RNA_CRST_THETA4_T0, rnamodel.RNA_CRST_THETA4_TS, rnamodel.RNA_CRST_THETA4_TC, rnamodel.RNA_CRST_THETA4_A, rnamodel.RNA_CRST_THETA4_B) -
-			//		_f4Dsin(PI - t4, rnamodel.RNA_CRST_THETA4_T0, rnamodel.RNA_CRST_THETA4_TS, rnamodel.RNA_CRST_THETA4_TC, rnamodel.RNA_CRST_THETA4_A, rnamodel.RNA_CRST_THETA4_B);
-			c_number f4t7Dsin = -_f4Dsin(t7, rnamodel.RNA_CRST_THETA7_T0, rnamodel.RNA_CRST_THETA7_TS, rnamodel.RNA_CRST_THETA7_TC, rnamodel.RNA_CRST_THETA7_A, rnamodel.RNA_CRST_THETA7_B) + _f4Dsin(PI - t7, rnamodel.RNA_CRST_THETA7_T0, rnamodel.RNA_CRST_THETA7_TS, rnamodel.RNA_CRST_THETA7_TC, rnamodel.RNA_CRST_THETA7_A, rnamodel.RNA_CRST_THETA7_B);
-			c_number f4t8Dsin = _f4Dsin(t8, rnamodel.RNA_CRST_THETA8_T0, rnamodel.RNA_CRST_THETA8_TS, rnamodel.RNA_CRST_THETA8_TC, rnamodel.RNA_CRST_THETA8_A, rnamodel.RNA_CRST_THETA8_B) - _f4Dsin(PI - t8, rnamodel.RNA_CRST_THETA8_T0, rnamodel.RNA_CRST_THETA8_TS, rnamodel.RNA_CRST_THETA8_TC, rnamodel.RNA_CRST_THETA8_A, rnamodel.RNA_CRST_THETA8_B);
+			c_number f4t1D = -_f4D(t1, rnamodel.RNA_CRST_THETA1_T0, rnamodel.RNA_CRST_THETA1_TS, rnamodel.RNA_CRST_THETA1_TC, rnamodel.RNA_CRST_THETA1_A, rnamodel.RNA_CRST_THETA1_B);
+			c_number f4t2D = -_f4D(t2, rnamodel.RNA_CRST_THETA2_T0, rnamodel.RNA_CRST_THETA2_TS, rnamodel.RNA_CRST_THETA2_TC, rnamodel.RNA_CRST_THETA2_A, rnamodel.RNA_CRST_THETA2_B);
+			c_number f4t3D = _f4D(t3, rnamodel.RNA_CRST_THETA3_T0, rnamodel.RNA_CRST_THETA3_TS, rnamodel.RNA_CRST_THETA3_TC, rnamodel.RNA_CRST_THETA3_A, rnamodel.RNA_CRST_THETA3_B);
+			c_number f4t7D = -_f4D(t7, rnamodel.RNA_CRST_THETA7_T0, rnamodel.RNA_CRST_THETA7_TS, rnamodel.RNA_CRST_THETA7_TC, rnamodel.RNA_CRST_THETA7_A, rnamodel.RNA_CRST_THETA7_B) + _f4D(PI - t7, rnamodel.RNA_CRST_THETA7_T0, rnamodel.RNA_CRST_THETA7_TS, rnamodel.RNA_CRST_THETA7_TC, rnamodel.RNA_CRST_THETA7_A, rnamodel.RNA_CRST_THETA7_B);
+			c_number f4t8D = _f4D(t8, rnamodel.RNA_CRST_THETA8_T0, rnamodel.RNA_CRST_THETA8_TS, rnamodel.RNA_CRST_THETA8_TC, rnamodel.RNA_CRST_THETA8_A, rnamodel.RNA_CRST_THETA8_B) - _f4D(PI - t8, rnamodel.RNA_CRST_THETA8_T0, rnamodel.RNA_CRST_THETA8_TS, rnamodel.RNA_CRST_THETA8_TC, rnamodel.RNA_CRST_THETA8_A, rnamodel.RNA_CRST_THETA8_B);
 
 			// RADIAL PART
 			Ftmp = rcstackdir * (cstk_energy * f2D / f2);
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= _cross(a1, b1) * (-cstk_energy * f4t1Dsin / f4t1);
+			Ttmp -= stably_normalised(_cross(a1, b1)) * (-cstk_energy * f4t1D / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
-			Ftmp -= (b1 + rcstackdir * cosf(t2)) * (cstk_energy * f4t2Dsin / (f4t2 * rcstackmod));
+			Ftmp -= stably_normalised(b1 + rcstackdir * cost2) * (cstk_energy * f4t2D / (f4t2 * rcstackmod));
 
 			// TETA3; t3 = LRACOS (a1 * rhydrodir);
-			c_number part = -cstk_energy * f4t3Dsin / f4t3;
-			Ftmp -= (a1 - rcstackdir * cosf(t3)) * (-part / rcstackmod);
-			Ttmp += _cross(rcstackdir, a1) * part;
-
-			// TETA4; t4 = LRACOS (a3 * b3);
-			//Ttmp -= _cross(a3, b3) * (-cstk_energy * f4t4Dsin / f4t4);
+			c_number part = -cstk_energy * f4t3D / f4t3;
+			Ftmp -= stably_normalised(a1 - rcstackdir * cost3) * (-part / rcstackmod);
+			Ttmp += stably_normalised(_cross(rcstackdir, a1)) * part;
 
 			// THETA7; t7 = LRACOS (-rcsrackir * b3);
-			Ftmp -= (b3 + rcstackdir * cosf(t7)) * (cstk_energy * f4t7Dsin / (f4t7 * rcstackmod));
+			Ftmp -= stably_normalised(b3 + rcstackdir * cost7) * (cstk_energy * f4t7D / (f4t7 * rcstackmod));
 
 			// THETA 8; t8 = LRACOS (rhydrodir * a3);
-			part = -cstk_energy * f4t8Dsin / f4t8;
-			Ftmp -= (a3 - rcstackdir * cosf(t8)) * (-part / rcstackmod);
-			Ttmp += _cross(rcstackdir, a3) * part;
+			part = -cstk_energy * f4t8D / f4t8;
+			Ftmp -= stably_normalised(a3 - rcstackdir * cost8) * (-part / rcstackmod);
+			Ttmp += stably_normalised(_cross(rcstackdir, a3)) * part;
 
 			Ttmp += _cross(ppos_base, Ftmp);
 
@@ -902,8 +901,10 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 		// angles involved in the CXST interaction
 		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
-		c_number t5 = CUDA_LRACOS(CUDA_DOT(a3, rstackdir));
-		c_number t6 = CUDA_LRACOS(-CUDA_DOT(b3, rstackdir));
+		c_number cost5 = CUDA_DOT(a3, rstackdir);
+		c_number t5 = CUDA_LRACOS(cost5);
+		c_number cost6 = -CUDA_DOT(b3, rstackdir);
+		c_number t6 = CUDA_LRACOS(cost6);
 
 		// This is the position the backbone would have with major-minor grooves the same width.
 		// We need to do this to implement different major-minor groove widths because rback is
@@ -931,10 +932,10 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 		if(cxst_energy < (c_number) 0) {
 			// derivatives called at the relevant arguments
 			c_number f2D = _f2D(rstackmod, RNA_CXST_F2);
-			c_number f4t1Dsin = -_f4Dsin(t1, rnamodel.RNA_CXST_THETA1_T0, rnamodel.RNA_CXST_THETA1_TS, rnamodel.RNA_CXST_THETA1_TC, rnamodel.RNA_CXST_THETA1_A, rnamodel.RNA_CXST_THETA1_B) + _f4Dsin(2 * PI - t1, rnamodel.RNA_CXST_THETA1_T0, rnamodel.RNA_CXST_THETA1_TS, rnamodel.RNA_CXST_THETA1_TC, rnamodel.RNA_CXST_THETA1_A, rnamodel.RNA_CXST_THETA1_B);
-			c_number f4t4Dsin = _f4Dsin(t4, rnamodel.RNA_CXST_THETA4_T0, rnamodel.RNA_CXST_THETA4_TS, rnamodel.RNA_CXST_THETA4_TC, rnamodel.RNA_CXST_THETA4_A, rnamodel.RNA_CXST_THETA4_B);
-			c_number f4t5Dsin = _f4Dsin(t5, rnamodel.RNA_CXST_THETA5_T0, rnamodel.RNA_CXST_THETA5_TS, rnamodel.RNA_CXST_THETA5_TC, rnamodel.RNA_CXST_THETA5_A, rnamodel.RNA_CXST_THETA5_B) - _f4Dsin(PI - t5, rnamodel.RNA_CXST_THETA5_T0, rnamodel.RNA_CXST_THETA5_TS, rnamodel.RNA_CXST_THETA5_TC, rnamodel.RNA_CXST_THETA5_A, rnamodel.RNA_CXST_THETA5_B);
-			c_number f4t6Dsin = -_f4Dsin(t6, rnamodel.RNA_CXST_THETA6_T0, rnamodel.RNA_CXST_THETA6_TS, rnamodel.RNA_CXST_THETA6_TC, rnamodel.RNA_CXST_THETA6_A, rnamodel.RNA_CXST_THETA6_B) + _f4Dsin(PI - t6, rnamodel.RNA_CXST_THETA6_T0, rnamodel.RNA_CXST_THETA6_TS, rnamodel.RNA_CXST_THETA6_TC, rnamodel.RNA_CXST_THETA6_A, rnamodel.RNA_CXST_THETA6_B);
+			c_number f4t1D = -_f4D(t1, rnamodel.RNA_CXST_THETA1_T0, rnamodel.RNA_CXST_THETA1_TS, rnamodel.RNA_CXST_THETA1_TC, rnamodel.RNA_CXST_THETA1_A, rnamodel.RNA_CXST_THETA1_B) + _f4D(2 * PI - t1, rnamodel.RNA_CXST_THETA1_T0, rnamodel.RNA_CXST_THETA1_TS, rnamodel.RNA_CXST_THETA1_TC, rnamodel.RNA_CXST_THETA1_A, rnamodel.RNA_CXST_THETA1_B);
+			c_number f4t4D = _f4D(t4, rnamodel.RNA_CXST_THETA4_T0, rnamodel.RNA_CXST_THETA4_TS, rnamodel.RNA_CXST_THETA4_TC, rnamodel.RNA_CXST_THETA4_A, rnamodel.RNA_CXST_THETA4_B);
+			c_number f4t5D = _f4D(t5, rnamodel.RNA_CXST_THETA5_T0, rnamodel.RNA_CXST_THETA5_TS, rnamodel.RNA_CXST_THETA5_TC, rnamodel.RNA_CXST_THETA5_A, rnamodel.RNA_CXST_THETA5_B) - _f4D(PI - t5, rnamodel.RNA_CXST_THETA5_T0, rnamodel.RNA_CXST_THETA5_TS, rnamodel.RNA_CXST_THETA5_TC, rnamodel.RNA_CXST_THETA5_A, rnamodel.RNA_CXST_THETA5_B);
+			c_number f4t6D = -_f4D(t6, rnamodel.RNA_CXST_THETA6_T0, rnamodel.RNA_CXST_THETA6_TS, rnamodel.RNA_CXST_THETA6_TC, rnamodel.RNA_CXST_THETA6_A, rnamodel.RNA_CXST_THETA6_B) + _f4D(PI - t6, rnamodel.RNA_CXST_THETA6_T0, rnamodel.RNA_CXST_THETA6_TS, rnamodel.RNA_CXST_THETA6_TC, rnamodel.RNA_CXST_THETA6_A, rnamodel.RNA_CXST_THETA6_B);
 			c_number f5Dcosphi3 = _f5D(cosphi3, RNA_CXST_F5_PHI3);
 			c_number f5Dcosphi4 = _f5D(cosphi4, RNA_CXST_F5_PHI4);
 
@@ -942,18 +943,18 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			Ftmp = -rstackdir * (cxst_energy * f2D / f2);
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= _cross(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
+			Ttmp -= stably_normalised(_cross(a1, b1)) * (-cxst_energy * f4t1D / f4t1);
 
 			// TETA4; t4 = LRACOS (a3 * b3);
-			Ttmp -= _cross(a3, b3) * (-cxst_energy * f4t4Dsin / f4t4);
+			Ttmp -= stably_normalised(_cross(a3, b3)) * (-cxst_energy * f4t4D / f4t4);
 
 			// THETA5; t5 = LRACOS ( a3 * rstackdir);
-			c_number part = cxst_energy * f4t5Dsin / f4t5;
-			Ftmp += (a3 - rstackdir * cosf(t5)) / rstackmod * part;
-			Ttmp -= _cross(rstackdir, a3) * part;
+			c_number part = cxst_energy * f4t5D / f4t5;
+			Ftmp += stably_normalised(a3 - rstackdir * cost5) / rstackmod * part;
+			Ttmp -= stably_normalised(_cross(rstackdir, a3)) * part;
 
 			// THETA6; t6 = LRACOS (-b3 * rstackdir);
-			Ftmp += (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
+			Ftmp += stably_normalised(b3 + rstackdir * cost6) * (cxst_energy * f4t6D / (f4t6 * rstackmod));
 
 			Ttmp -= _cross(ppos_stack, Ftmp);
 
@@ -967,43 +968,31 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			c_number4 forcestack = -(rba1 - rstackdir * rs_dot_rba1) * (force_c / rstackmod);
 			c_number4 forceback = -(a1rs - rbackbonedir * rb_dot_a1rs) * (force_c / rbackmod);
 
-			c_number4 myforce = forcestack;
-			myforce += forceback;
+			c_number4 myforce = forcestack + forceback;
 
 			// for p
-			c_number4 mytorque1 = -_cross(ppos_stack, forcestack); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
-			mytorque1 -= _cross(ppos_back, forceback);  // p->int_centers[RNANucleotide::BACK].cross(forceback);
+			c_number4 mytorque = -_cross(ppos_stack, forcestack);
+			mytorque -= _cross(ppos_back, forceback);
 
-			// for q
-			c_number4 mytorque2 = _cross(qpos_stack, forcestack); //  q->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
-			mytorque2 += _cross(qpos_back, forceback); // q->int_centers[RNANucleotide::BACK].cross(forceback);
-
-			mytorque1 -= force_c * _cross(a1, _cross(rstackdir, rbackbonedir)); // a1.cross(rstackdir.cross(rbackbonedir));  // rstackdir * (rbackbonedir * a1) - rbackbonedir * (rstackdir * a1);
+			mytorque -= force_c * _cross(a1, _cross(rstackdir, rbackbonedir));
 
 			force_c = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3 * f5Dcosphi4;
-			rba1 = _cross(rbackbonedir, b1); // rbackbonedir.cross(b1);
-			a1rs = _cross(b1, rstackdir);   //    b1.cross(rstackdir);
+			rba1 = _cross(rbackbonedir, b1);
+			a1rs = _cross(b1, rstackdir);
 			rb_dot_a1rs = CUDA_DOT(rbackbonedir, a1rs);
 			rs_dot_rba1 = CUDA_DOT(rstackdir, rba1);
 
 			forcestack = -(rba1 - rstackdir * rs_dot_rba1) * (force_c / rstackmod);
 			forceback = -(a1rs - rbackbonedir * rb_dot_a1rs) * (force_c / rbackmod);
 
-			myforce += forcestack;
-			myforce += forceback;
-
-			// for p
-			mytorque2 += _cross(qpos_stack, forcestack); // q->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
-			mytorque2 += _cross(qpos_back, forceback); //  q->int_centers[RNANucleotide::BACK].cross(forceback);
+			myforce += forcestack + forceback;
 
 			// for q
-			mytorque1 -= _cross(ppos_stack, forcestack); // p->int_centers[RNANucleotide::STACK].cross( forcestack ); //a1 * (p->int_centers[RNANucleotide::STACK] * rbackbonedir) - rbackbonedir * (p->int_centers[RNANucleotide::STACK] * a1 )
-			mytorque1 -= _cross(ppos_back, forceback); //p->int_centers[RNANucleotide::BACK].cross(forceback);
-
-			mytorque2 -= force_c * _cross(b1, rbackbonedir); // b1.cross(rstackdir.cross(rbackbonedir));  // rstackdir * (rbackbonedir * a1) - rbackbonedir * (rstackdir * a1);
+			mytorque -= _cross(ppos_stack, forcestack);
+			mytorque -= _cross(ppos_back, forceback);
 
 			Ftmp += myforce;
-			Ttmp += mytorque1;
+			Ttmp += mytorque;
 
 			Ftmp.w = cxst_energy;
 			F -= Ftmp;
@@ -1064,27 +1053,27 @@ __global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 
 	bool p_is_end = (use_debye_huckel) ? is_strand_end[b.from] : false;
 	bool q_is_end = (use_debye_huckel) ? is_strand_end[b.to] : false;
-	_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average, use_debye_huckel, mismatch_repulsion, p_is_end, q_is_end, box);
+
+	c_number4 r = box->minimum_image(ppos, qpos);
+	_particle_particle_RNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average, use_debye_huckel, mismatch_repulsion, p_is_end, q_is_end);
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
-	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
-	if(CUDA_DOT(dF, dF) > 0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
-	if(CUDA_DOT(dT, dT) > 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
-
-	// Allen Eq. 6 pag 3:
-	c_number4 dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
-	c_number4 crx = _cross(dr, dF);
-	dT.x = -dT.x + crx.x;
-	dT.y = -dT.y + crx.y;
-	dT.z = -dT.z + crx.z;
-
-	dF.x = -dF.x;
-	dF.y = -dF.y;
-	dF.z = -dF.z;
-
 	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
-	if(CUDA_DOT(dF, dF) > 0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
-	if(CUDA_DOT(dT, dT) > 0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
+
+	if(CUDA_DOT(dT, dT) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
+	dT = -dT; // torque acting on particle q (which also has another contribution if dF > 0)
+
+	if(CUDA_DOT(dF, dF) > (c_number) 0.f) {
+		LR_atomicAddXYZ(&(forces[from_index]), dF);
+
+		// Allen Eq. 6 pag 3:
+		dT += _cross(r, dF);
+
+		LR_atomicAddXYZ(&(forces[to_index]), -dF);
+	}
+
+	// the torque may be different from 0 even if dF == 0
+	if(CUDA_DOT(dT, dT) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
 }
 
 // bonded interactions for edge-based approach
@@ -1158,12 +1147,14 @@ __global__ void rna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 
 		if(k_index != IND && pbonds.n3 != k_index && pbonds.n5 != k_index) {
 			const c_number4 qpos = poss[k_index];
+			c_number4 r = box->minimum_image(ppos, qpos);
+
 			c_number4 b1, b2, b3;
 			get_vectors_from_quat(orientations[k_index], b1, b2, b3);
 			LR_bonds qbonds = bonds[k_index];
 			bool q_is_end = (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID);
 
-			_particle_particle_interaction(ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, average, use_debye_huckel, mismatch_repulsion, p_is_end, q_is_end, box);
+			_particle_particle_RNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, F, T, average, use_debye_huckel, mismatch_repulsion, p_is_end, q_is_end);
 		}
 	}
 

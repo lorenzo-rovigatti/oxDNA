@@ -404,7 +404,7 @@ __device__ void _bonded_part(const c_number4 &r, const c_number4 &n5pos, const c
 	}
 }
 
-__device__ void _particle_particle_interaction(const c_number4 &r, const c_number4 &ppos, const c_number4 &a1, const c_number4 &a2, const c_number4 &a3,
+__device__ void _particle_particle_DNA_interaction(const c_number4 &r, const c_number4 &ppos, const c_number4 &a1, const c_number4 &a2, const c_number4 &a3,
 		const c_number4 &qpos, const c_number4 &b1,	const c_number4 &b2, const c_number4 &b3, c_number4 &F, c_number4 &T, bool grooving,
 		bool use_debye_huckel, bool use_oxDNA2_coaxial_stacking,
 		bool p_is_end, bool q_is_end) {
@@ -748,7 +748,7 @@ __global__ void dna_forces_edge_nonbonded(const c_number4 __restrict__ *poss, co
 	get_vectors_from_quat(orientations[b.to], b1, b2, b3);
 
 	c_number4 r = box->minimum_image(ppos, qpos);
-	_particle_particle_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, p_is_end, q_is_end);
+	_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, p_is_end, q_is_end);
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
 	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
@@ -887,7 +887,7 @@ __global__ void dna_forces(const c_number4 __restrict__ *poss, const GPU_quat __
 			bool q_is_end = (qbonds.n3 == P_INVALID || qbonds.n5 == P_INVALID);
 
 			c_number4 dF = make_c_number4(0, 0, 0, 0);
-			_particle_particle_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, p_is_end, q_is_end);
+			_particle_particle_DNA_interaction(r, ppos, a1, a2, a3, qpos, b1, b2, b3, dF, T, grooving, use_debye_huckel, use_oxDNA2_coaxial_stacking, p_is_end, q_is_end);
 			_update_stress_tensor<true>(p_st, r, dF);
 			F += dF;
 		}
