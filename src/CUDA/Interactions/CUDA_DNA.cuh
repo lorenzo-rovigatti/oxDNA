@@ -824,6 +824,7 @@ __global__ void dna_forces_edge_bonded(const c_number4 __restrict__ *poss, const
 		F += dF;
 	}
 
+	// we can do this because dna_forces_edge_nonbonded does not change the reference frame to the torque it calculates
 	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);
 
 	forces[IND] = F;

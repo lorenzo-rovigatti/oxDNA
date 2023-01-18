@@ -423,10 +423,7 @@ __forceinline__ __device__ c_number _f2D(c_number r, int type) {
 			val = 2.f * MD_F2_K[type] * MD_F2_BLOW[type] * (r - MD_F2_RCLOW[type]);
 		}
 	}
-	/*
-	 if(type == 1)
-	 printf("DEVICE _f2D: %f,  Running with %f %f %f %f %f %f %f\n",val,MD_F2_RCHIGH[type],MD_F2_RHIGH[type],MD_F2_BHIGH[type],MD_F2_BHIGH[type],MD_F2_RCLOW[type],MD_F2_BLOW[type], MD_F2_K[type]);
-	 */
+
 	return val;
 }
 
@@ -526,29 +523,18 @@ __device__ void _bonded_excluded_volume(c_number4 &r, c_number4 &n3pos_base, c_n
 
 template<bool qIsN3>
 __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c_number4 &n5z, c_number4 &n3pos, c_number4 &n3x, c_number4 &n3y, c_number4 &n3z, c_number4 &F, c_number4 &T, bool average, bool use_mbf, c_number mbf_xmax, c_number mbf_finf) {
-	//printf("Hello from bonded part function \n");
 	int n3type = get_particle_type(n3pos);
 	int n5type = get_particle_type(n5pos);
 
 	c_number4 r = make_c_number4(n3pos.x - n5pos.x, n3pos.y - n5pos.y, n3pos.z - n5pos.z, (c_number) 0);
 
-	c_number4 n5pos_back;
-	c_number4 n3pos_back;
-	//if(grooving) n5pos_back = n5x * POS_MM_BACK1 + n5y * POS_MM_BACK2;
-	//else n5pos_back = n5x * rnamodel.RNA_POS_BACK;
+	c_number4 n3pos_back = n3x * rnamodel.RNA_POS_BACK_a1 + n3y * rnamodel.RNA_POS_BACK_a2 + n3z * rnamodel.RNA_POS_BACK_a3;
+	c_number4 n5pos_back = n5x * rnamodel.RNA_POS_BACK_a1 + n5y * rnamodel.RNA_POS_BACK_a2 + n5z * rnamodel.RNA_POS_BACK_a3;
 
-	n3pos_back = n3x * rnamodel.RNA_POS_BACK_a1 + n3y * rnamodel.RNA_POS_BACK_a2 + n3z * rnamodel.RNA_POS_BACK_a3;
-	n5pos_back = n5x * rnamodel.RNA_POS_BACK_a1 + n5y * rnamodel.RNA_POS_BACK_a2 + n5z * rnamodel.RNA_POS_BACK_a3;
-
+	c_number4 n3pos_base = n3x * rnamodel.RNA_POS_BASE;
 	c_number4 n5pos_base = n5x * rnamodel.RNA_POS_BASE;
 
-	//if(grooving) n3pos_back = n3x * POS_MM_BACK1 + n3y * POS_MM_BACK2;
-	//else n3pos_back = n3x * rnamodel.RNA_POS_BACK;
-	c_number4 n3pos_base = n3x * rnamodel.RNA_POS_BASE;
 	c_number4 n3pos_stack_5 = n3x * rnamodel.RNA_POS_STACK_5_a1 + n3y * rnamodel.RNA_POS_STACK_5_a2;  //n3x * rnamodel.RNA_POS_STACK;
-	//c_number4 n3pos_stack_3 = n3x * rnamodel.RNA_POS_STACK_3_a1   + n3y * rnamodel.RNA_POS_STACK_3_a2;  //n3x * rnamodel.RNA_POS_STACK;
-
-	//c_number4 n5pos_stack_5 = n5x * rnamodel.RNA_POS_STACK_5_a1   + n5y * rnamodel.RNA_POS_STACK_5_a2;  //n3x * rnamodel.RNA_POS_STACK;
 	c_number4 n5pos_stack_3 = n5x * rnamodel.RNA_POS_STACK_3_a1 + n5y * rnamodel.RNA_POS_STACK_3_a2;  //n3x * rnamodel.RNA_POS_STACK;
 
 	c_number4 rback = r + n3pos_back - n5pos_back;
@@ -559,7 +545,7 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 
 	c_number rbackr0 = rbackmod - rnamodel.RNA_FENE_R0;
 
-	c_number4 Ftmp;
+	c_number4 Ftmp = make_c_number4(0, 0, 0, 0);
 
 	if(use_mbf == true && fabsf(rbackr0) > mbf_xmax) {
 		// this is the "relax" potential, i.e. the standard FENE up to xmax and then something like A + B log(r) for r>xmax
@@ -571,8 +557,9 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	}
 	else {
 		Ftmp = rback * ((rnamodel.RNA_FENE_EPS * rbackr0 / (rnamodel.RNA_FENE_DELTA2 - SQR(rbackr0))) / rbackmod);
-		Ftmp.w = -rnamodel.RNA_FENE_EPS * ((c_number) 0.5f) * logf(1 - SQR(rbackr0) / rnamodel.RNA_FENE_DELTA2);
+		Ftmp.w = -rnamodel.RNA_FENE_EPS * ((c_number) 0.5f) * logf(1.f - SQR(rbackr0) / rnamodel.RNA_FENE_DELTA2);
 	}
+
 	c_number4 Ttmp = (qIsN3) ? _cross(n5pos_back, Ftmp) : _cross(n3pos_back, Ftmp);
 	// EXCLUDED VOLUME
 	_bonded_excluded_volume<qIsN3>(r, n3pos_base, n3pos_back, n5pos_base, n5pos_back, Ftmp, Ttmp);
@@ -606,9 +593,6 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	c_number cosphi1 = CUDA_DOT(n5y, rbackdir); // / rbackrefmod;
 	c_number cosphi2 = CUDA_DOT(n3y, rbackdir); // / rbackrefmod;
 
-	//c_number costB1 = -rback_back_dir * p->int_centers[RNANucleotide::BBVECTOR_3];
-	//c_number costB2 = -rback_back_dir * q->int_centers[RNANucleotide::BBVECTOR_5];
-
 	c_number4 n3bbvector_5 = (n3x * rnamodel.p5_x + n3y * rnamodel.p5_y + n3z * rnamodel.p5_z);
 	c_number4 n5bbvector_3 = (n5x * rnamodel.p3_x + n5y * rnamodel.p3_y + n5z * rnamodel.p3_z);
 
@@ -631,13 +615,9 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 
 	c_number energy = f1 * f4tB1 * f4tB2 * f4t5 * f4t6 * f5phi1 * f5phi2;
 
-	//c_number4 pre_Ttmp = Ttmp;
-	//c_number4 pre_Ftmp = Ftmp;
-
 	if(energy != (c_number) 0) {
 		// and their derivatives
 		c_number f1D = _f1D(rstackmod, STCK_F1, n3type, n5type);
-		//c_number f4t4Dsin = _f4Dsin(t4, rnamodel.RNA_STCK_THETA4_T0, rnamodel.RNA_STCK_THETA4_TS, rnamodel.RNA_STCK_THETA4_TC, rnamodel.RNA_STCK_THETA4_A, rnamodel.RNA_STCK_THETA4_B);
 		c_number f4t5Dsin = _f4Dsin(PI - t5, rnamodel.RNA_STCK_THETA5_T0, rnamodel.RNA_STCK_THETA5_TS, rnamodel.RNA_STCK_THETA5_TC, rnamodel.RNA_STCK_THETA5_A, rnamodel.RNA_STCK_THETA5_B);
 		c_number f4t6Dsin = _f4Dsin(t6, rnamodel.RNA_STCK_THETA6_T0, rnamodel.RNA_STCK_THETA6_TS, rnamodel.RNA_STCK_THETA6_TC, rnamodel.RNA_STCK_THETA6_A, rnamodel.RNA_STCK_THETA6_B);
 
@@ -650,12 +630,10 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 		// RADIAL
 		Ftmp = -rstackdir * (energy * f1D / f1);
 
-		//if(grooving) printf("Amydevice: (qisN3 = %d) calculated Ftmp=(%f,%f,%f) \n",qIsN3,Ftmp.x,Ftmp.y,Ftmp.z);
 		// THETA 5
 		Ftmp -= (n5z - cosf(t5) * rstackdir) * (f1 * f4t5Dsin * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2 / rstackmod); //(n5z - cosf(t5) * rstackdir) * (energy * f4t5Dsin / (f4t5 * rstackmod));
 		// THETA 6
 		Ftmp -= (n3z + cosf(t6) * rstackdir) * (energy * f4t6Dsin / (f4t6 * rstackmod));
-		//if(grooving) printf("mydevice: (qisN3 = %d) calculated Ftmp=(%f,%f,%f) \n ",qIsN3,Ftmp.x,Ftmp.y,Ftmp.z);
 
 		c_number4 Fposback = -(n5bbvector_3 + rbackdir * costB1) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1Dsin * f4tB2 / rbackmod);
 		Fposback -= (n3bbvector_5 + rbackdir * costB2) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2Dsin / rbackmod);
@@ -664,53 +642,11 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 
 		// COS PHI 1
 		// here particle p is referred to using the a while particle q is referred with the b
-		/*
-		 c_number ra2 = CUDA_DOT(rstackdir, n5y);
-		 c_number ra1 = CUDA_DOT(rstackdir, n5x);
-		 c_number rb1 = CUDA_DOT(rstackdir, n3x);
-		 c_number a2b1 = CUDA_DOT(n5y, n3x);
-		 c_number dcosphi1dr = (SQR(rstackmod)*ra2 - ra2*SQR(rbackrefmod) - rstackmod*(a2b1 + ra2*(-ra1 + rb1))*rnamodel.RNA_GAMMA + a2b1*(-ra1 + rb1)*SQR(rnamodel.RNA_GAMMA))/(SQR(rbackrefmod)*rbackrefmod);
-		 c_number dcosphi1dra1 = rstackmod*rnamodel.RNA_GAMMA*(rstackmod*ra2 - a2b1*rnamodel.RNA_GAMMA)/(SQR(rbackrefmod)*rbackrefmod);
-		 c_number dcosphi1dra2 = -rstackmod / rbackrefmod;
-		 c_number dcosphi1drb1 = -(rstackmod*rnamodel.RNA_GAMMA*(rstackmod*ra2 - a2b1*rnamodel.RNA_GAMMA))/(SQR(rbackrefmod)*rbackrefmod);
-		 c_number dcosphi1da1b1 = SQR(rnamodel.RNA_GAMMA)*(-rstackmod*ra2 + a2b1*rnamodel.RNA_GAMMA)/(SQR(rbackrefmod)*rbackrefmod);
-		 c_number dcosphi1da2b1 = rnamodel.RNA_GAMMA / rbackrefmod;
-		 */
-		//c_number force_part_phi1 = energy * f5phi1D / f5phi1;
 		c_number force_part_phi1 = -f1 * f4t5 * f4t6 * f5phi1D * f5phi2 * f4tB1 * f4tB2;
 		Fposback += (n5y - rback * (cosphi1 / rbackmod)) * (force_part_phi1 / rbackmod);
 
-		/*
-		 Ftmp -= (rstackdir * dcosphi1dr +
-		 ((n5y - ra2*rstackdir) * dcosphi1dra2 +
-		 (n5x - ra1*rstackdir) * dcosphi1dra1 +
-		 (n3x - rb1*rstackdir) * dcosphi1drb1) / rstackmod) * force_part_phi1;
-
-		 // COS PHI 2
-		 // here particle p -> b, particle q -> a
-		 ra2 = CUDA_DOT(rstackdir, n3y);
-		 ra1 = rb1;
-		 rb1 = CUDA_DOT(rstackdir, n5x);
-		 a2b1 = CUDA_DOT(n3y, n5x);
-		 c_number dcosphi2dr = ((rstackmod*ra2 + a2b1*rnamodel.RNA_GAMMA)*(rstackmod + (rb1 - ra1)*rnamodel.RNA_GAMMA) - ra2*SQR(rbackrefmod))/(SQR(rbackrefmod)*rbackrefmod);
-		 c_number dcosphi2dra1 = -rstackmod*rnamodel.RNA_GAMMA*(rstackmod*ra2 + a2b1*rnamodel.RNA_GAMMA)/(SQR(rbackrefmod)*rbackrefmod);
-		 c_number dcosphi2dra2 = -rstackmod / rbackrefmod;
-		 c_number dcosphi2drb1 = (rstackmod*rnamodel.RNA_GAMMA*(rstackmod*ra2 + a2b1*rnamodel.RNA_GAMMA))/(SQR(rbackrefmod)*rbackrefmod);
-		 c_number dcosphi2da1b1 = -SQR(rnamodel.RNA_GAMMA)*(rstackmod*ra2 + a2b1*rnamodel.RNA_GAMMA)/(SQR(rbackrefmod)*rbackrefmod);
-		 c_number dcosphi2da2b1 = -rnamodel.RNA_GAMMA / rbackrefmod;
-
-		 c_number force_part_phi2 = energy * f5phi2D / f5phi2;
-
-		 Ftmp -= (rstackdir * dcosphi2dr +
-		 ((n3y - rstackdir * ra2) * dcosphi2dra2 +
-		 (n3x - rstackdir * ra1) * dcosphi2dra1 +
-		 (n5x - rstackdir * rb1) * dcosphi2drb1) / rstackmod) * force_part_phi2;
-
-		 */
-
 		c_number force_part_phi2 = -f1 * f4t5 * f4t6 * f5phi1 * f5phi2D;
 		Fposback += (n3y - rback * (cosphi2 / rbackmod)) * (force_part_phi2 / rbackmod);
-		//if(grooving) printf("mydevice: (qisN3 = %d) calculated Fposback=(%f,%f,%f) \n ",qIsN3,Fposback.x,Fposback.y,Fposback.z);
 
 		// TORQUE
 		if(qIsN3) {
@@ -733,7 +669,6 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 			Ttmp += _cross(n3y, rbackdir) * force_part_phi2;
 
 			// THETA 6
-			//printf("Entered function with qIsN3 = %d\n",(int)qIsN3);
 			Ttmp += _cross(rstackdir, n3z) * f1 * f4t5 * f4t6Dsin * f5phi1 * f5phi2 * f4tB1 * f4tB2;
 
 			//theta B2
@@ -741,31 +676,18 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 
 		}
 
+		Ftmp += Fposback;
 		Ftmp.w = energy;
-
-		//printf("Approaching decision loop with qIsN3 = %d\n",(int)qIsN3);
 		if(qIsN3) {
-
-			Ftmp += Fposback;
-
 			T += Ttmp;
 			F -= Ftmp;
 
 		}
 		else {
-			Ftmp += Fposback;
-
 			T += Ttmp;
 			F += Ftmp;
 		}
-
 	}
-
-	//Ftmp = F;
-	//if(grooving)
-	//  printf("This is bonded function that calculated F=(%f,%f,%f) and T=(%f,%f,%f)  and qIsN3 is %d \n",Ftmp.x,Ftmp.y,Ftmp.z,Ttmp.x,Ttmp.y,Ttmp.z,(int)qIsN3);
-
-	//printf("Goodbye from bonded part function \n");
 }
 
 __device__
@@ -997,9 +919,6 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 
 		c_number cxst_energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3 * f5cosphi4;
 
-		//if(grooving)  printf("AADEVICE: Energy =  %f,  f2 = %f, f4t1=%f, f4t4=%f, f4t5=%f, f4t6=%f, f5cosphi3=%f, f5cosphi4=%f \n",cxst_energy,f2 , f4t1 , f4t4 ,f4t5 , f4t6 ,f5cosphi3 , f5cosphi4);
-
-		//
 		if(cxst_energy < (c_number) 0) {
 			// derivatives called at the relevant arguments
 			c_number f2D = _f2D(rstackmod, RNA_CXST_F2);
@@ -1013,9 +932,6 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			// RADIAL PART
 			Ftmp = -rstackdir * (cxst_energy * f2D / f2);
 
-			//if(grooving)  printf("DEVICE radial force: Ftmp = (%f,%f,%f) with stackdir = (%f,%f,%f), a3= (%f,%f,%f) \n",Ftmp.x,Ftmp.y,Ftmp.z,rstackdir.x,rstackdir.y,rstackdir.z,a3.x,a3.y,a3.z);
-			//if(grooving)  printf("AADEVICE:, with rstackmod=%g, Force terms f2 = %g, f4t1=%g, f4t4=%g, f4t5=%g, f4t6=%g, f5cosphi3=%g, f5cosphi4=%g \n",rstackmod,f2D , f4t1Dsin , f4t4Dsin ,f4t5Dsin , f4t6Dsin ,f5Dcosphi3 , f5Dcosphi4);
-
 			// THETA1; t1 = LRACOS (-a1 * b1);
 			Ttmp -= _cross(a1, b1) * (-cxst_energy * f4t1Dsin / f4t1);
 
@@ -1026,15 +942,11 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			c_number part = cxst_energy * f4t5Dsin / f4t5;
 			Ftmp += (a3 - rstackdir * cosf(t5)) / rstackmod * part;
 			Ttmp -= _cross(rstackdir, a3) * part;
-			//if(grooving)  printf("DEVICE theta5 force: Ftmp = (%f,%f,%f) with stackdir = (%f,%f,%f), a3= (%f,%f,%f) \n",Ftmp.x,Ftmp.y,Ftmp.z,rstackdir.x,rstackdir.y,rstackdir.z,a3.x,a3.y,a3.z);
 
 			// THETA6; t6 = LRACOS (-b3 * rstackdir);
 			Ftmp += (b3 + rstackdir * cosf(t6)) * (cxst_energy * f4t6Dsin / (f4t6 * rstackmod));
 
-			//if(grooving)  printf("Before: Ttmp = (%f,%f,%f)\n",Ttmp.x,Ttmp.y,Ttmp.z);
-
 			Ttmp -= _cross(ppos_stack, Ftmp);
-			//if(grooving)  printf("AADEVICE: Ttmp = (%f,%f,%f)\n",Ttmp.x,Ttmp.y,Ttmp.z);
 
 			c_number4 rba1 = _cross(rbackbonedir, a1);
 			c_number4 a1rs = _cross(a1, rstackdir);
@@ -1084,54 +996,6 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 			Ftmp -= myforce;
 			Ttmp += mytorque1;
 
-			//if(grooving)  printf("XXX DEVICE: Ftmp=( %f %f %f ), Ttmp=( %f %f %f ), Energy =  %f,  f2 = %f, f4t1=%f, f4t4=%f, f4t5=%f, f4t6=%f, f5cosphi3=%f, f5cosphi4=%f \n",Ftmp.x,Ftmp.y,Ftmp.z, Ttmp.x, Ttmp.y, Ttmp.z,cxst_energy,f2 , f4t1 , f4t4 ,f4t5 , f4t6 ,f5cosphi3 , f5cosphi4);
-
-			//if(grooving)  printf("XXX DEVICE: Ftmp=( %f %f %f ), Ttmp=( %f %f %f )\n",Ftmp.x,Ftmp.y,Ftmp.z, Ttmp.x, Ttmp.y, Ttmp.z);
-
-			//if(grooving && (f5Dcosphi4 != 0 || f5Dcosphi3 != 0))  printf("DEVICE: f5Dcosphi4: %f f5Dcosphi3: %f  \n",f5Dcosphi4,f5Dcosphi3);
-
-			//if(grooving)  printf("Energy =  %f,  f2 = %f, f4t1=%f, f4t4=%f, f4t5=%f, f4t6=%f, f5cosphi3=%f, f5cosphi4=%f \n",Ftmp.x,Ftmp.y,Ftmp.z, Ttmp.x, Ttmp.y, Ttmp.z,cxst_energy,f2 , f4t1 , f4t4 ,f4t5 , f4t6 ,f5cosphi3 , f5cosphi4);
-
-//
-//
-//			// COSPHI3
-//			c_number rbackrefmodcub = rbackrefmod * rbackrefmod * rbackrefmod;
-//
-//			//c_number a1b1 = a1 * b1;
-//			c_number a2b1 = CUDA_DOT(a2, b1);
-//			c_number a3b1 = CUDA_DOT(a3, b1);
-//			c_number ra1 = CUDA_DOT(rstackdir, a1);
-//			c_number ra2 = CUDA_DOT(rstackdir, a2);
-//			c_number ra3 = CUDA_DOT(rstackdir, a3);
-//			c_number rb1 = CUDA_DOT(rstackdir, b1);
-//
-//			c_number parentesi = (ra3 * a2b1 - ra2 * a3b1);
-//			c_number dcdr    = -rnamodel.RNA_GAMMA * parentesi * (rnamodel.RNA_GAMMA * (ra1 - rb1) + rstackmod) / rbackrefmodcub;
-//			c_number dcda1b1 =  rnamodel.RNA_GAMMA * SQR(rnamodel.RNA_GAMMA) * parentesi / rbackrefmodcub;
-//			c_number dcda2b1 =  rnamodel.RNA_GAMMA * ra3 / rbackrefmod;
-//			c_number dcda3b1 = -rnamodel.RNA_GAMMA * ra2 / rbackrefmod;
-//			c_number dcdra1  = -SQR(rnamodel.RNA_GAMMA) * parentesi * rstackmod / rbackrefmodcub;
-//			c_number dcdra2  = -rnamodel.RNA_GAMMA * a3b1 / rbackrefmod;
-//			c_number dcdra3  =  rnamodel.RNA_GAMMA * a2b1 / rbackrefmod;
-//			c_number dcdrb1  = -dcdra1;
-//
-//			part = cxst_energy * 2 * f5cosphi3D / f5cosphi3;
-//
-//			Ftmp -= part * (rstackdir * dcdr +
-//						    ((a1 - rstackdir * ra1) * dcdra1 +
-//							(a2 - rstackdir * ra2) * dcdra2 +
-//							(a3 - rstackdir * ra3) * dcdra3 +
-//							(b1 - rstackdir * rb1) * dcdrb1) / rstackmod);
-//
-//			Ttmp += part * (_cross(rstackdir, a1) * dcdra1 +
-//						    _cross(rstackdir, a2) * dcdra2 +
-//						    _cross(rstackdir ,a3) * dcdra3);
-//
-//			Ttmp -= part * (_cross(a1, b1) * dcda1b1 +
-//						    _cross(a2, b1) * dcda2b1 +
-//						    _cross(a3, b1) * dcda3b1);
-//
-
 			Ftmp.w = cxst_energy;
 			F -= Ftmp;
 
@@ -1167,8 +1031,6 @@ void _particle_particle_interaction(c_number4 ppos, c_number4 a1, c_number4 a2, 
 
 	T += Ttmp;
 
-	//if(grooving)  printf("XXX DEVICE all pairs: Ftmp=( %f %f %f ), Ttmp=( %f %f %f ), Energy =  %f \n",Ftmp.x,Ftmp.y,Ftmp.z, Ttmp.x, Ttmp.y, Ttmp.z,Ftmp.w);
-
 	// this component stores the energy due to hydrogen bonding
 	T.w = old_Tw + hb_energy;
 }
@@ -1197,8 +1059,8 @@ __global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 
 	int from_index = MD_N[0] * (IND % MD_n_forces[0]) + b.from;
 	//int from_index = MD_N[0]*(b.n_from % MD_n_forces[0]) + b.from;
-	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
-	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
+	if(CUDA_DOT(dF, dF) > 0.f) LR_atomicAddXYZ(&(forces[from_index]), dF);
+	if(CUDA_DOT(dT, dT) > 0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
 
 	// Allen Eq. 6 pag 3:
 	c_number4 dr = box->minimum_image(ppos, qpos); // returns qpos-ppos
@@ -1212,25 +1074,16 @@ __global__ void rna_forces_edge_nonbonded(c_number4 *poss, GPU_quat *orientation
 	dF.z = -dF.z;
 
 	int to_index = MD_N[0] * (IND % MD_n_forces[0]) + b.to;
-	//int to_index = MD_N[0]*(b.n_to % MD_n_forces[0]) + b.to;
-	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z + dF.w * dF.w) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
-	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z + dT.w * dT.w) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
+	if(CUDA_DOT(dF, dF) > 0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
+	if(CUDA_DOT(dT, dT) > 0.f) LR_atomicAddXYZ(&(torques[to_index]), dT);
 }
 
 // bonded interactions for edge-based approach
 __global__ void rna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, LR_bonds *bonds, bool average, bool use_mbf, c_number mbf_xmax, c_number mbf_finf) {
 	if(IND >= MD_N[0]) return;
 
-	c_number4 F0, T0;
-
-	F0.x = forces[IND].x;
-	F0.y = forces[IND].y;
-	F0.z = forces[IND].z;
-	F0.w = forces[IND].w;
-	T0.x = torques[IND].x;
-	T0.y = torques[IND].y;
-	T0.z = torques[IND].z;
-	T0.w = torques[IND].w;
+	c_number4 F0 = forces[IND];
+	c_number4 T0 = torques[IND];
 
 	c_number4 dF = make_c_number4(0, 0, 0, 0);
 	c_number4 dT = make_c_number4(0, 0, 0, 0);
@@ -1244,7 +1097,6 @@ __global__ void rna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, 
 		c_number4 b1, b2, b3;
 		get_vectors_from_quat(orientations[bs.n3], b1, b2, b3);
 
-		//grooving =false;
 		_bonded_part<true>(ppos, a1, a2, a3, qpos, b1, b2, b3, dF, dT, average, use_mbf, mbf_xmax, mbf_finf);
 	}
 	if(bs.n5 != P_INVALID) {
@@ -1256,16 +1108,13 @@ __global__ void rna_forces_edge_bonded(c_number4 *poss, GPU_quat *orientations, 
 
 	}
 
-	forces[IND] = (dF + F0);
-	torques[IND] = (dT + T0);
-
-	torques[IND] = _vectors_transpose_c_number4_product(a1, a2, a3, torques[IND]);
+	forces[IND] = dF + F0;
+	torques[IND] = _vectors_transpose_c_number4_product(a1, a2, a3, dT + T0);
 }
 
 __global__ void rna_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, bool average, bool use_debye_huckel, bool mismatch_repulsion, bool use_mbf, c_number mbf_xmax, c_number mbf_finf, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
-	//c_number4 F = make_c_number4(0, 0, 0, 0);
 	c_number4 F = forces[IND];
 	c_number4 T = make_c_number4(0, 0, 0, 0);
 	c_number4 ppos = poss[IND];
@@ -1345,14 +1194,6 @@ __global__ void rna_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, int *
 	c_number4 qpos_base = rnamodel.RNA_POS_BASE * b1;
 
 	// HYDROGEN BONDING
-
-	/*
-	 if(!average) //allow for wobble bp
-	 {
-	 if( int_type == 4 && ( (qtype == N_T && ptype == N_G ) || (qtype == N_G && ptype == N_T)  ))
-	 is_pair = 1;
-	 }*/
-
 	int is_pair = int(int_type == 3);
 	c_number hb_energy = (c_number) 0;
 	c_number4 rhydro = r + qpos_base - ppos_base;
@@ -1418,11 +1259,6 @@ __global__ void rna_near_hb_op_precalc(c_number4 *poss, GPU_quat *orientations, 
 	// HYDROGEN BONDING
 
 	int is_pair = int(int_type == 3);
-	/*if(!average) //allow for wobble bp
-	 {
-	 if( int_type == 4 && ( (qtype == N_T && ptype == N_G ) || (qtype == N_G && ptype == N_T)  ))
-	 is_pair = 1;
-	 }*/
 
 	c_number4 rhydro = r + qpos_base - ppos_base;
 	c_number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
