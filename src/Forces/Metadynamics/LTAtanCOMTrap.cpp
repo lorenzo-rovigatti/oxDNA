@@ -75,16 +75,16 @@ std::tuple<std::vector<int>, std::string> LTAtanCOMTrap::init(input_file &inp) {
 
 	std::string description = Utils::sformat("LTAtanCOMTrap force with mode = %d", _mode);
 	if(_mode == 1) {
-		return {_p1a, description};
+		return std::make_tuple(_p1a, description);
 	}
 	else if(_mode == 2) {
-		return {_p2a, description};
+		return std::make_tuple(_p2a, description);
 	}
 	else if(_mode == 3) {
-		return {_p1b, description};
+		return std::make_tuple(_p1b, description);
 	}
 	else {
-		return {_p2b, description};
+		return std::make_tuple(_p2b, description);
 	}
 }
 
