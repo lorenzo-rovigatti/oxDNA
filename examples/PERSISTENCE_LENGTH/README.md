@@ -23,6 +23,7 @@ This script will calculate the persistence length, which should be around 120 nu
 
 ### Persistence length
 Persistence length can be calculated from the average correlation between vectors tangent to a polymer.  In this case, we use vectors pointing from the midpoint of one base pair to the midpoint of the next base pair along the helix (note that this only works for DNA, not RNA). The persistence length can be found by performing an exponential fit to:
-<p align=center>
-&#9001;**n_k** &middot; **n_0** &#12297; = B * exp(x/L_ps )
-</p> 
+$$\langle \bf{n_x} \dot \bf{n_0} \rangle = B * exp(x/L_ps )$$
+
+
+Where $x$ is the offset and $\langle \bf{n_x} \dot \bf{n_0} \rangle$ is the correlation between reference vector $\bf{n_0}$ and a vector at offset $x$, $\bf{n_x}$
