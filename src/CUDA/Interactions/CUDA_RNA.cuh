@@ -488,29 +488,24 @@ __device__ void _bonded_excluded_volume(const c_number4 &r, const c_number4 &n3p
 	// BASE-BASE
 	c_number4 rcenter = r + n3pos_base - n5pos_base;
 	_excluded_volume(rcenter, Ftmp, rnamodel.RNA_EXCL_S2, rnamodel.RNA_EXCL_R2, rnamodel.RNA_EXCL_B2, rnamodel.RNA_EXCL_RC2);
-	c_number4 torquep1 = (qIsN3) ? _cross(n5pos_base, Ftmp) : _cross(n3pos_base, Ftmp);
+	T += (qIsN3) ? _cross(n5pos_base, Ftmp) : _cross(n3pos_base, Ftmp);
 	F += Ftmp;
 
 	// n5-BASE vs. n3-BACK
 	rcenter = r + n3pos_back - n5pos_base;
 	_excluded_volume(rcenter, Ftmp, rnamodel.RNA_EXCL_S3, rnamodel.RNA_EXCL_R3, rnamodel.RNA_EXCL_B3, rnamodel.RNA_EXCL_RC3);
-	c_number4 torquep2 = (qIsN3) ? _cross(n5pos_base, Ftmp) : _cross(n3pos_back, Ftmp);
+	T += (qIsN3) ? _cross(n5pos_base, Ftmp) : _cross(n3pos_back, Ftmp);
 	F += Ftmp;
 
 	// n5-BACK vs. n3-BASE
 	rcenter = r + n3pos_base - n5pos_back;
 	_excluded_volume(rcenter, Ftmp, rnamodel.RNA_EXCL_S4, rnamodel.RNA_EXCL_R4, rnamodel.RNA_EXCL_B4, rnamodel.RNA_EXCL_RC4);
-	c_number4 torquep3 = (qIsN3) ? _cross(n5pos_back, Ftmp) : _cross(n3pos_base, Ftmp);
+	T += (qIsN3) ? _cross(n5pos_back, Ftmp) : _cross(n3pos_base, Ftmp);
 	F += Ftmp;
-
-	T += torquep1 + torquep2 + torquep3;
 }
 
 template<bool qIsN3>
 __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c_number4 &n5z, c_number4 &n3pos, c_number4 &n3x, c_number4 &n3y, c_number4 &n3z, c_number4 &F, c_number4 &T, bool average, bool use_mbf, c_number mbf_xmax, c_number mbf_finf) {
-	int n3type = get_particle_type(n3pos);
-	int n5type = get_particle_type(n5pos);
-
 	c_number4 r = n3pos - n5pos;
 
 	c_number4 n3pos_back = n3x * rnamodel.RNA_POS_BACK_a1 + n3y * rnamodel.RNA_POS_BACK_a2 + n3z * rnamodel.RNA_POS_BACK_a3;
@@ -557,13 +552,7 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	c_number4 rstack = r + n3pos_stack_5 - n5pos_stack_3;
 
 	c_number rstackmod = _module(rstack);
-	c_number4 rstackdir = make_c_number4(rstack.x / rstackmod, rstack.y / rstackmod, rstack.z / rstackmod, 0);
-	// This is the position the backbone would have with major-minor grooves the same width.
-	// We need to do this to implement different major-minor groove widths because rback is
-	// used as a reference point for things that have nothing to do with the actual backbone
-	// position (in this case, the stacking interaction).
-	//c_number4 rbackref = r + n3x * rnamodel.RNA_POS_BACK - n5x * rnamodel.RNA_POS_BACK;
-	//c_number rbackrefmod = _module(rbackref);
+	c_number4 rstackdir = rstack / rstackmod;
 
 	c_number t4 = CUDA_LRACOS(CUDA_DOT(n3z, n5z));
 	c_number cost5 = CUDA_DOT(n5z, rstackdir);
@@ -583,6 +572,8 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 	c_number tB1 = CUDA_LRACOS(costB1);
 	c_number tB2 = CUDA_LRACOS(costB2);
 
+	int n3type = get_particle_type(n3pos);
+	int n5type = get_particle_type(n5pos);
 	// functions
 	c_number f1 = _f1(rstackmod, STCK_F1, n3type, n5type);
 	c_number f4t5 = _f4(PI - t5, rnamodel.RNA_STCK_THETA5_T0, rnamodel.RNA_STCK_THETA5_TS, rnamodel.RNA_STCK_THETA5_TC, rnamodel.RNA_STCK_THETA5_A, rnamodel.RNA_STCK_THETA5_B);
@@ -612,59 +603,47 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 		Ftmp = -rstackdir * (energy * f1D / f1);
 
 		// THETA 5
-		Ftmp -= stably_normalised(n5z - cost5 * rstackdir) * (f1 * f4t5D * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2 / rstackmod);
+		Ftmp -= stably_normalised(n5z - cost5 * rstackdir) * (energy * f4t5D / (f4t5 *  rstackmod));
 		// THETA 6
 		Ftmp -= stably_normalised(n3z + cost6 * rstackdir) * (energy * f4t6D / (f4t6 * rstackmod));
 
-		c_number4 Fposback = -stably_normalised(n5bbvector_3 + rbackdir * costB1) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1D * f4tB2 / rbackmod);
-		Fposback -= stably_normalised(n3bbvector_5 + rbackdir * costB2) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2D / rbackmod);
+		T += (qIsN3) ?
+				stably_normalised(_cross(rstackdir, n5z)) * (energy * f4t5D / f4t5) :
+				stably_normalised(_cross(rstackdir, n3z)) * (energy * f4t6D / f4t6);
 
-		//force acting on the backbone site
+		c_number4 Fposback = -stably_normalised(n5bbvector_3 + rbackdir * costB1) * (energy * f4tB1D / (f4tB1 * rbackmod));
+		Fposback -= stably_normalised(n3bbvector_5 + rbackdir * costB2) * (energy * f4tB2D / (f4tB2 * rbackmod));
 
-		// COS PHI 1
-		// here particle p is referred to using the a while particle q is referred with the b
-		c_number force_part_phi1 = -f1 * f4t5 * f4t6 * f5phi1D * f5phi2 * f4tB1 * f4tB2;
+		T += (qIsN3) ?
+				stably_normalised(_cross(rbackdir, n5bbvector_3)) * (energy * f4tB1D / f4tB1) :
+				stably_normalised(_cross(rbackdir, n3bbvector_5)) * (energy * f4tB2D / f4tB2);
+
+		// cos phi 1
+		c_number force_part_phi1 = -energy * f5phi1D / f5phi1;
 		Fposback += (n5y - rback * (cosphi1 / rbackmod)) * (force_part_phi1 / rbackmod);
 
-		c_number force_part_phi2 = -f1 * f4t5 * f4t6 * f5phi1 * f5phi2D;
+		// cos phi 2
+		c_number force_part_phi2 = -energy * f5phi2D / f5phi2;
 		Fposback += (n3y - rback * (cosphi2 / rbackmod)) * (force_part_phi2 / rbackmod);
 
-		// TORQUE
 		if(qIsN3) {
-			Ttmp = -_cross(n5pos_stack_3, Ftmp);
-			Ttmp -= _cross(n5pos_back, Fposback);
-
-			// THETA 5
-			Ttmp += stably_normalised(_cross(rstackdir, n5z)) * (f1 * f4t5D * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2);
-
-			//thetaB1
-			Ttmp += stably_normalised(_cross(rbackdir, n5bbvector_3)) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1D * f4tB2);
-
-			Ttmp += _cross(n5y, rbackdir) * force_part_phi1;
-
+			T -= _cross(n5pos_stack_3, Ftmp);
+			T -= _cross(n5pos_back, Fposback);
+			T += _cross(n5y, rbackdir) * force_part_phi1;
 		}
 		else {
-			Ttmp = _cross(n3pos_stack_5, Ftmp);
-			Ttmp += _cross(n3pos_back, Fposback);
-			Ttmp += _cross(n3y, rbackdir) * force_part_phi2;
-
-			// THETA 6
-			Ttmp += stably_normalised(_cross(rstackdir, n3z)) * f1 * f4t5 * f4t6D * f5phi1 * f5phi2 * f4tB1 * f4tB2;
-
-			//theta B2
-			Ttmp += stably_normalised(_cross(rbackdir, n3bbvector_5)) * (f1 * f4t5 * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2D);
-
+			T += _cross(n3pos_stack_5, Ftmp);
+			T += _cross(n3pos_back, Fposback);
+			T += _cross(n3y, rbackdir) * force_part_phi2;
 		}
 
 		Ftmp += Fposback;
 		Ftmp.w = energy;
 		if(qIsN3) {
-			T += Ttmp;
 			F -= Ftmp;
 
 		}
 		else {
-			T += Ttmp;
 			F += Ftmp;
 		}
 	}
