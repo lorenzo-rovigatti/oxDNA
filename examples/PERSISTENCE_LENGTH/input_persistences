@@ -2,7 +2,7 @@
 ####  PROGRAM PARAMETERS  ####
 ##############################
 backend = CPU
-debug = 1
+#debug = 1
 #seed = 1
 #CUDA_list = verlet
 #CUDA_device = 0

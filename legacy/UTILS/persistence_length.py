@@ -9,7 +9,6 @@ except:
     import mynumpy as np
 import os.path
 import sys
-import external_forces as forces 
 import math
 
 prune = 1
@@ -20,12 +19,12 @@ def get_lj(s,nucid):
     i1A = nucid
     i1B = len(s._strands[1]._nucleotides)-1-nucid
     firstA = s._strands[0]._nucleotides[i1A]
-    firstB = s._strands[1]._nucleotides[i1B] 	
+    firstB = s._strands[1]._nucleotides[i1B]     
     secondA = s._strands[0]._nucleotides[i1A+1]
     secondB = s._strands[1]._nucleotides[i1B-1]
     first_midpos = (firstA.get_pos_base() + firstB.get_pos_base()) / 2.0  
     second_midpos = (secondA.get_pos_base() + secondB.get_pos_base()) / 2.0  
-    lj = second_midpos - first_midpos 		
+    lj = second_midpos - first_midpos         
     lj -= box * np.rint(lj / box)
     return lj
 
@@ -52,7 +51,7 @@ try:
     print("#Nucleotides", i1A, i2A, i1B, i2B)
 
 except:
-    print("Supply nucleotides... Aborting", file=sys.stderr)
+    print("Supply nucleotides... Aborting")
     sys.exit(1)
 
 L2 = 0.
@@ -68,39 +67,38 @@ read_confs = 1
 
 while s:
     if(read_confs % prune != 0):
-	read_confs += 1
-    	s = l.get_system()
-	continue      
-    #base.Logger.log("Working on conf %i..." % niter, base.Logger.INFO)
-    for subcounter in xrange(0,i2A-i1A):
+        read_confs += 1
+        s = l.get_system()
+        continue
 
-	 
-	    firstA = s._strands[0]._nucleotides[i1A+subcounter]
-	    firstB = s._strands[1]._nucleotides[i1B-subcounter] 	
-	    secondA = s._strands[0]._nucleotides[i1A+1+subcounter]
-	    secondB = s._strands[1]._nucleotides[i1B-1-subcounter]
-		 
-	    first_midpos = (firstA.get_pos_base() + firstB.get_pos_base()) / 2.0  
-	    second_midpos = (secondA.get_pos_base() + secondB.get_pos_base()) / 2.0  
-	  
-	    box = s._box  
-	    r01 = second_midpos - first_midpos 
-	    r01 -= box * np.rint (r01 / box)
-	    for j in range (0,i2A - i1A-subcounter):
-		jA = j + i1A + subcounter
-		#jB = len(s._strands[1]._nucleotides) - jA - 1
-		#lastjA = s._strands[0]._nucleotides[jA]
-		#lastjB = s._strands[1]._nucleotides[jB]
-		#last_midpos_j = (lastjA.get_pos_base() + lastjB.get_pos_base()) / 2.0  
-		#r0j = last_midpos_j - first_midpos
-		#r0j -= box * np.rint(r0j / box)
-		lj = get_lj(s,jA)
-    		ml0 = r01 / math.sqrt(np.dot(r01,r01))
-		lj = lj / math.sqrt(np.dot(lj,lj))
-		correlations[j] += np.dot(ml0,lj)
-		#if j == 1:
-		#	print 'Adding ', np.dot(ml0,lj)
-		correlations_counter[j] += 1.
+    #base.Logger.log("Working on conf %i..." % niter, base.Logger.INFO)
+    for subcounter in range(0,i2A-i1A):
+        firstA = s._strands[0]._nucleotides[i1A+subcounter]
+        firstB = s._strands[1]._nucleotides[i1B-subcounter]     
+        secondA = s._strands[0]._nucleotides[i1A+1+subcounter]
+        secondB = s._strands[1]._nucleotides[i1B-1-subcounter]
+         
+        first_midpos = (firstA.get_pos_base() + firstB.get_pos_base()) / 2.0  
+        second_midpos = (secondA.get_pos_base() + secondB.get_pos_base()) / 2.0  
+      
+        box = s._box  
+        r01 = second_midpos - first_midpos 
+        r01 -= box * np.rint (r01 / box)
+        for j in range (0,i2A - i1A-subcounter):
+            jA = j + i1A + subcounter
+            #jB = len(s._strands[1]._nucleotides) - jA - 1
+            #lastjA = s._strands[0]._nucleotides[jA]
+            #lastjB = s._strands[1]._nucleotides[jB]
+            #last_midpos_j = (lastjA.get_pos_base() + lastjB.get_pos_base()) / 2.0  
+            #r0j = last_midpos_j - first_midpos
+            #r0j -= box * np.rint(r0j / box)
+            lj = get_lj(s,jA)
+            ml0 = r01 / math.sqrt(np.dot(r01,r01))
+            lj = lj / math.sqrt(np.dot(lj,lj))
+            correlations[j] += np.dot(ml0,lj)
+            #if j == 1:
+            #    print 'Adding ', np.dot(ml0,lj)
+            correlations_counter[j] += 1.
     #r0N = first.distance (last, PBC=False)
     #r01 = first.distance (second, PBC=False)
     
@@ -117,5 +115,5 @@ print('#Configurations in total',niter)
 print('# ',sys.argv[1])
 print('# Correlation between lk and l_0:')
 for j in range(len(correlations)-1):
-	print(j,correlations[j]/correlations_counter[j])
+    print(j,correlations[j]/correlations_counter[j])
 
