@@ -1,4 +1,4 @@
-# Parallel Tempering
+# Persistence Length
 
 Authors: Erik Popppleton & Petr Šulc
 Last updated: Jan 2023
