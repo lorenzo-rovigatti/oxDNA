@@ -422,7 +422,7 @@ __device__ void _particle_particle_DNA_interaction(const c_number4 &r, const c_n
 	c_number4 qpos_base = POS_BASE * b1;
 	c_number4 qpos_stack = POS_STACK * b1;
 
-	c_number old_Tw = T.w;
+	c_number tot_Tw = T.w;
 
 	// excluded volume
 	// BACK-BACK
@@ -434,8 +434,34 @@ __device__ void _particle_particle_DNA_interaction(const c_number4 &r, const c_n
 
 	F += Ftmp;
 
+	// DEBYE HUCKEL
+	if(use_debye_huckel) {
+		c_number rbackmod = _module(rbackbone);
+		if(rbackmod < MD_dh_RC[0]) {
+			c_number4 rbackdir = rbackbone / rbackmod;
+			if(rbackmod < MD_dh_RHIGH[0]) {
+				Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
+				Ftmp.w = expf(rbackmod * MD_dh_minus_kappa[0]) * (MD_dh_prefactor[0] / rbackmod);
+			}
+			else {
+				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
+				Ftmp.w = MD_dh_B[0] * SQR(rbackmod - MD_dh_RC[0]);
+			}
+
+			// check for half-charge strand ends
+			if(MD_dh_half_charged_ends[0] && p_is_end) {
+				Ftmp *= 0.5f;
+			}
+			if(MD_dh_half_charged_ends[0] && q_is_end) {
+				Ftmp *= 0.5f;
+			}
+
+			Ttmp -= _cross(ppos_back, Ftmp);
+			F -= Ftmp;
+		}
+	}
+
 	// HYDROGEN BONDING
-	c_number hb_energy = (c_number) 0;
 	c_number4 rhydro = r + qpos_base - ppos_base;
 	c_number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
 	if(int_type == 3 && SQR(HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(HYDR_RCHIGH)) {
@@ -465,7 +491,8 @@ __device__ void _particle_particle_DNA_interaction(const c_number4 &r, const c_n
 		c_number f4t7 = _f4(t7, HYDR_THETA7_T0, HYDR_THETA7_TS, HYDR_THETA7_TC, HYDR_THETA7_A, HYDR_THETA7_B);
 		c_number f4t8 = _f4(t8, HYDR_THETA8_T0, HYDR_THETA8_TS, HYDR_THETA8_TC, HYDR_THETA8_A, HYDR_THETA8_B);
 
-		hb_energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
+		c_number hb_energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
+		tot_Tw += hb_energy;
 
 		if(hb_energy < (c_number) 0) {
 			// derivatives called at the relevant arguments
@@ -691,37 +718,10 @@ __device__ void _particle_particle_DNA_interaction(const c_number4 &r, const c_n
 		}
 	}
 
-	// DEBYE HUCKEL
-	if(use_debye_huckel) {
-		c_number rbackmod = _module(rbackbone);
-		if(rbackmod < MD_dh_RC[0]) {
-			c_number4 rbackdir = rbackbone / rbackmod;
-			if(rbackmod < MD_dh_RHIGH[0]) {
-				Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
-				Ftmp.w = expf(rbackmod * MD_dh_minus_kappa[0]) * (MD_dh_prefactor[0] / rbackmod);
-			}
-			else {
-				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
-				Ftmp.w = MD_dh_B[0] * SQR(rbackmod - MD_dh_RC[0]);
-			}
-
-			// check for half-charge strand ends
-			if(MD_dh_half_charged_ends[0] && p_is_end) {
-				Ftmp *= 0.5f;
-			}
-			if(MD_dh_half_charged_ends[0] && q_is_end) {
-				Ftmp *= 0.5f;
-			}
-
-			Ttmp -= _cross(ppos_back, Ftmp);
-			F -= Ftmp;
-		}
-	}
-
 	T += Ttmp;
 
 	// this component stores the energy due to hydrogen bonding
-	T.w = old_Tw + hb_energy;
+	T.w = tot_Tw;
 }
 
 __global__ void dna_forces_edge_nonbonded(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,

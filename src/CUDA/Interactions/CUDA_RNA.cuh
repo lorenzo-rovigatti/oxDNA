@@ -585,7 +585,6 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 
 	// functions
 	c_number f1 = _f1(rstackmod, STCK_F1, n3type, n5type);
-	//c_number f4t4 = _f4(t4, rnamodel.RNA_STCK_THETA4_T0, rnamodel.RNA_STCK_THETA4_TS, rnamodel.RNA_STCK_THETA4_TC, rnamodel.RNA_STCK_THETA4_A, rnamodel.RNA_STCK_THETA4_B);
 	c_number f4t5 = _f4(PI - t5, rnamodel.RNA_STCK_THETA5_T0, rnamodel.RNA_STCK_THETA5_TS, rnamodel.RNA_STCK_THETA5_TC, rnamodel.RNA_STCK_THETA5_A, rnamodel.RNA_STCK_THETA5_B);
 	c_number f4t6 = _f4(t6, rnamodel.RNA_STCK_THETA6_T0, rnamodel.RNA_STCK_THETA6_TS, rnamodel.RNA_STCK_THETA6_TC, rnamodel.RNA_STCK_THETA6_A, rnamodel.RNA_STCK_THETA6_B);
 
@@ -613,7 +612,7 @@ __device__ void _bonded_part(c_number4 &n5pos, c_number4 &n5x, c_number4 &n5y, c
 		Ftmp = -rstackdir * (energy * f1D / f1);
 
 		// THETA 5
-		Ftmp -= stably_normalised(n5z - cost5 * rstackdir) * (f1 * f4t5D * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2 / rstackmod); //(n5z - cosf(t5) * rstackdir) * (energy * f4t5Dsin / (f4t5 * rstackmod));
+		Ftmp -= stably_normalised(n5z - cost5 * rstackdir) * (f1 * f4t5D * f4t6 * f5phi1 * f5phi2 * f4tB1 * f4tB2 / rstackmod);
 		// THETA 6
 		Ftmp -= stably_normalised(n3z + cost6 * rstackdir) * (energy * f4t6D / (f4t6 * rstackmod));
 
@@ -691,7 +690,7 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 	c_number4 qpos_base = rnamodel.RNA_POS_BASE * b1;
 	c_number4 qpos_stack = rnamodel.RNA_POS_STACK * b1;
 
-	c_number old_Tw = T.w;
+	c_number tot_Tw = T.w;
 
 	// excluded volume
 	// BACK-BACK
@@ -703,13 +702,44 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 
 	F += Ftmp;
 
+	//DEBYE-HUCKEL
+	if(use_debye_huckel) {
+		c_number rbackmod = _module(rbackbone);
+		if(rbackmod < MD_dh_RC[0]) {
+			c_number4 rbackdir = rbackbone / rbackmod;
+			if(rbackmod < MD_dh_RHIGH[0]) {
+				c_number exp_part = expf(MD_dh_minus_kappa[0] * rbackmod);
+				Ftmp = rbackdir * (-MD_dh_prefactor[0] * exp_part * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
+				Ftmp.w = exp_part * (MD_dh_prefactor[0] / rbackmod);
+			}
+			else {
+				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
+				Ftmp.w = MD_dh_B[0] * SQR(rbackmod - MD_dh_RC[0]);
+			}
+
+			// check for half-charge strand ends
+			if(MD_dh_half_charged_ends[0] && p_is_end) {
+				Ftmp *= 0.5f;
+			}
+			if(MD_dh_half_charged_ends[0] && q_is_end) {
+				Ftmp *= 0.5f;
+			}
+
+			Ttmp -= _cross(ppos_back, Ftmp);
+			F -= Ftmp;
+		}
+	}
+
+	// quantities that are common to all 3 interactions below
+	c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
+	c_number4 a1xb1 = stably_normalised(_cross(a1, b1));
+
 	// HYDROGEN BONDING
 	int is_pair = int(int_type == 3);
 	if(!average) { // allow for wobble bp
 		if(int_type == 4 && ((qtype == N_T && ptype == N_G) || (qtype == N_G && ptype == N_T))) is_pair = 1;
 	}
 
-	c_number hb_energy = (c_number) 0;
 	c_number4 rhydro = r + qpos_base - ppos_base;
 	c_number rhydromodsqr = CUDA_DOT(rhydro, rhydro);
 	if((is_pair || mismatch_repulsion) && SQR(rnamodel.RNA_HYDR_RCLOW) < rhydromodsqr && rhydromodsqr < SQR(rnamodel.RNA_HYDR_RCHIGH)) {
@@ -719,7 +749,6 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 		c_number4 rhydrodir = rhydro / rhydromod;
 
 		// angles involved in the HB interaction
-		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 		c_number cost2 = -CUDA_DOT(b1, rhydrodir);
 		c_number t2 = CUDA_LRACOS(cost2);
 		c_number cost3 = CUDA_DOT(a1, rhydrodir);
@@ -739,7 +768,8 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 		c_number f4t7 = _f4(t7, rnamodel.RNA_HYDR_THETA7_T0, rnamodel.RNA_HYDR_THETA7_TS, rnamodel.RNA_HYDR_THETA7_TC, rnamodel.RNA_HYDR_THETA7_A, rnamodel.RNA_HYDR_THETA7_B);
 		c_number f4t8 = _f4(t8, rnamodel.RNA_HYDR_THETA8_T0, rnamodel.RNA_HYDR_THETA8_TS, rnamodel.RNA_HYDR_THETA8_TC, rnamodel.RNA_HYDR_THETA8_A, rnamodel.RNA_HYDR_THETA8_B);
 
-		hb_energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
+		c_number hb_energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
+		tot_Tw += hb_energy;
 
 		if(hb_energy < (c_number) 0 || (hb_energy > 0 && mismatch_repulsion && !is_pair)) {
 			// derivatives called at the relevant arguments
@@ -758,7 +788,7 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 			Ttmp -= stably_normalised(_cross(a3, b3)) * (-hb_energy * f4t4D / f4t4);
 
 			// TETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= stably_normalised(_cross(a1, b1)) * (-hb_energy * f4t1D / f4t1);
+			Ttmp -= a1xb1 * (-hb_energy * f4t1D / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
 			Ftmp -= stably_normalised(b1 + rhydrodir * cost2) * (hb_energy * f4t2D / (f4t2 * rhydromod));
@@ -792,7 +822,6 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 		c_number4 rcstackdir = rcstack / rcstackmod;
 
 		// angles involved in the CSTCK interaction
-		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 		c_number cost2 = -CUDA_DOT(b1, rcstackdir);
 		c_number t2 = CUDA_LRACOS(cost2);
 		c_number cost3 = CUDA_DOT(a1, rcstackdir);
@@ -825,7 +854,7 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 			Ftmp = rcstackdir * (cstk_energy * f2D / f2);
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= stably_normalised(_cross(a1, b1)) * (-cstk_energy * f4t1D / f4t1);
+			Ttmp -= a1xb1 * (-cstk_energy * f4t1D / f4t1);
 
 			// TETA2; t2 = LRACOS (-b1 * rhydrodir);
 			Ftmp -= stably_normalised(b1 + rcstackdir * cost2) * (cstk_energy * f4t2D / (f4t2 * rcstackmod));
@@ -858,18 +887,12 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 		c_number4 rstackdir = rstack / rstackmod;
 
 		// angles involved in the CXST interaction
-		c_number t1 = CUDA_LRACOS(-CUDA_DOT(a1, b1));
 		c_number t4 = CUDA_LRACOS(CUDA_DOT(a3, b3));
 		c_number cost5 = CUDA_DOT(a3, rstackdir);
 		c_number t5 = CUDA_LRACOS(cost5);
 		c_number cost6 = -CUDA_DOT(b3, rstackdir);
 		c_number t6 = CUDA_LRACOS(cost6);
 
-		// This is the position the backbone would have with major-minor grooves the same width.
-		// We need to do this to implement different major-minor groove widths because rback is
-		// used as a reference point for things that have nothing to do with the actual backbone
-		// position (in this case, the coaxial stacking interaction).
-		//c_number4 rbackboneref = r + rnamodel.RNA_POS_BACK * b1 - rnamodel.RNA_POS_BACK * a1;
 		c_number rbackmod = _module(rbackbone);
 		c_number4 rbackbonedir = rbackbone / rbackmod;
 
@@ -902,7 +925,7 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 			Ftmp = -rstackdir * (cxst_energy * f2D / f2);
 
 			// THETA1; t1 = LRACOS (-a1 * b1);
-			Ttmp -= stably_normalised(_cross(a1, b1)) * (-cxst_energy * f4t1D / f4t1);
+			Ttmp -= a1xb1 * (-cxst_energy * f4t1D / f4t1);
 
 			// TETA4; t4 = LRACOS (a3 * b3);
 			Ttmp -= stably_normalised(_cross(a3, b3)) * (-cxst_energy * f4t4D / f4t4);
@@ -922,10 +945,9 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 			c_number rb_dot_a1rs = CUDA_DOT(rbackbonedir, a1rs);
 			c_number rs_dot_rba1 = CUDA_DOT(rstackdir, rba1);
 
-			c_number force_c = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi4 * f5Dcosphi3;
-
-			c_number4 forcestack = -(rba1 - rstackdir * rs_dot_rba1) * (force_c / rstackmod);
-			c_number4 forceback = -(a1rs - rbackbonedir * rb_dot_a1rs) * (force_c / rbackmod);
+			c_number force_phi3 = cxst_energy * f5Dcosphi3 / f5cosphi3;
+			c_number4 forcestack = -(rba1 - rstackdir * rs_dot_rba1) * (force_phi3 / rstackmod);
+			c_number4 forceback = -(a1rs - rbackbonedir * rb_dot_a1rs) * (force_phi3 / rbackmod);
 
 			c_number4 myforce = forcestack + forceback;
 
@@ -933,16 +955,16 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 			c_number4 mytorque = -_cross(ppos_stack, forcestack);
 			mytorque -= _cross(ppos_back, forceback);
 
-			mytorque -= force_c * _cross(a1, _cross(rstackdir, rbackbonedir));
+			mytorque -= force_phi3 * _cross(a1, _cross(rstackdir, rbackbonedir));
 
-			force_c = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3 * f5Dcosphi4;
-			rba1 = _cross(rbackbonedir, b1);
-			a1rs = _cross(b1, rstackdir);
-			rb_dot_a1rs = CUDA_DOT(rbackbonedir, a1rs);
-			rs_dot_rba1 = CUDA_DOT(rstackdir, rba1);
+			c_number force_phi4 = cxst_energy * f5Dcosphi4 / f5cosphi4;
+			c_number4 rbb1 = _cross(rbackbonedir, b1);
+			c_number4 b1rs = _cross(b1, rstackdir);
+			c_number rb_dot_b1rs = CUDA_DOT(rbackbonedir, b1rs);
+			c_number rs_dot_rbb1 = CUDA_DOT(rstackdir, rbb1);
 
-			forcestack = -(rba1 - rstackdir * rs_dot_rba1) * (force_c / rstackmod);
-			forceback = -(a1rs - rbackbonedir * rb_dot_a1rs) * (force_c / rbackmod);
+			forcestack = -(rbb1 - rstackdir * rs_dot_rbb1) * (force_phi4 / rstackmod);
+			forceback = -(b1rs - rbackbonedir * rb_dot_b1rs) * (force_phi4 / rbackmod);
 
 			myforce += forcestack + forceback;
 
@@ -959,37 +981,10 @@ void _particle_particle_RNA_interaction(const c_number4 &r, const c_number4 &ppo
 		}
 	}
 
-	//DEBYE-HUCKEL
-	if(use_debye_huckel) {
-		c_number rbackmod = _module(rbackbone);
-		if(rbackmod < MD_dh_RC[0]) {
-			c_number4 rbackdir = rbackbone / rbackmod;
-			if(rbackmod < MD_dh_RHIGH[0]) {
-				Ftmp = rbackdir * (-MD_dh_prefactor[0] * expf(MD_dh_minus_kappa[0] * rbackmod) * (MD_dh_minus_kappa[0] / rbackmod - 1.0f / SQR(rbackmod)));
-				Ftmp.w = expf(rbackmod * MD_dh_minus_kappa[0]) * (MD_dh_prefactor[0] / rbackmod);
-			}
-			else {
-				Ftmp = rbackdir * (-2.0f * MD_dh_B[0] * (rbackmod - MD_dh_RC[0]));
-				Ftmp.w = MD_dh_B[0] * SQR(rbackmod - MD_dh_RC[0]);
-			}
-
-			// check for half-charge strand ends
-			if(MD_dh_half_charged_ends[0] && p_is_end) {
-				Ftmp *= 0.5f;
-			}
-			if(MD_dh_half_charged_ends[0] && q_is_end) {
-				Ftmp *= 0.5f;
-			}
-
-			Ttmp -= _cross(ppos_back, Ftmp);
-			F -= Ftmp;
-		}
-	}
-
 	T += Ttmp;
 
 	// this component stores the energy due to hydrogen bonding
-	T.w = old_Tw + hb_energy;
+	T.w = tot_Tw;
 }
 
 __global__ void rna_forces_edge_nonbonded(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations,
