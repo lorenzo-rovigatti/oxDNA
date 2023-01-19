@@ -49,7 +49,8 @@ protected:
 	number _sqr_rfene;
 	number _WCA_sigma = 1.0;
 	number _PS_sqr_rep_rcut;
-
+  number _mu = 1.0;
+  
 	std::vector<LR_vector> _chain_coms;
 
 	number _PS_alpha = 0.;
