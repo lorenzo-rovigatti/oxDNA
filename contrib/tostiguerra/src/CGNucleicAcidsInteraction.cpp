@@ -583,7 +583,6 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
 			if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
 				if((valueH * _mu + valueS)<0) {
 					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = -(valueH * _mu + valueS);
-					printf("dG[%d][%d]= %f\n", i, j, -(valueH * _mu + valueS));
 				}
 			}
 		}
