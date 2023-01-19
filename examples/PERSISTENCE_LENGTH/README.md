@@ -1,6 +1,6 @@
 # Persistence Length
 
-Authors: Erik Popppleton & Petr Šulc
+Authors: Erik Popppleton & Petr Šulc  
 Last updated: Jan 2023
 
 This example shows how to calculate a persistence length of a DNA duplex.
