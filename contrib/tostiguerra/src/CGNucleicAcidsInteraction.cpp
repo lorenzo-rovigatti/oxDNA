@@ -31,6 +31,7 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_3b_sigma", &_3b_sigma, 0);
 	getInputNumber(&inp, "DPS_3b_range", &_3b_range, 0);
 	getInputNumber(&inp, "DPS_3b_lambda", &_3b_lambda, 0);
+	getInputNumber(&inp, "DPS_mu", &_mu, 1.0);
 
 	getInputNumber(&inp, "DPS_deltaPatchMon", &_deltaPatchMon, 0);
 
@@ -575,10 +576,15 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
 
 	for(int i = 1; i <= _N_attractive_types; i++) {
 		for(int j = 1; j <= _N_attractive_types; j++) {
-			number value;
-			std::string key = Utils::sformat("bond_eps[%d][%d]", i, j);
-			if(getInputNumber(&inter_matrix_file, key.c_str(), &value, 0) == KEY_FOUND) {
-				_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = value;
+			number valueH;
+			number valueS;
+			std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
+			std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
+			if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
+				if((valueH * _mu + valueS)<0) {
+					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = -(valueH * _mu + valueS);
+					printf("dG[%d][%d]= %f\n", i, j, -(valueH * _mu + valueS));
+				}
 			}
 		}
 	}
