@@ -331,6 +331,26 @@
 .. autofunction:: oxDNA_analysis_tools.pca.pca
 ```
 
+## Persistence length
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.persistence_length.persistence_length
+    oxDNA_analysis_tools.persistence_length.get_r
+    oxDNA_analysis_tools.persistence_length.fit_PL
+    
+.. autofunction:: oxDNA_analysis_tools.persistence_length.persistence_length
+.. autofunction:: oxDNA_analysis_tools.persistence_length.get_r
+.. autofunction:: oxDNA_analysis_tools.persistence_length.fit_PL
+```
+
 ## Subset trajectory
 
 ```{eval-rst}

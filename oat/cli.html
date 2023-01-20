@@ -121,6 +121,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#multidimensional-scaling-mean">Multidimensional scaling mean</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#output-bonds">Output bonds</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#principal-component-analysis">Principal component analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#persistence-length">Persistence Length</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#plot-energy">Plot energy</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#subset-trajectory">Subset trajectory</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#superimpose">Superimpose</a></li>
@@ -870,6 +871,46 @@
 </dd>
 <dt><kbd>-n</kbd></dt>
 <dd><p>(optional) Print the first N components as oxView overlay files (defaults to 1)</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="persistence-length">
+<h2>Persistence Length<a class="headerlink" href="#persistence-length" title="Permalink to this headline">¶</a></h2>
+<p><p>Calculates persistence length and contour length of a paired sequence of DNA.</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">persistence_length</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">PLOT_NAME</span><span class="p">]</span>
+                              <span class="n">traj_file</span> <span class="nb">input</span> <span class="n">nucid_1</span> <span class="n">nucid_2</span>
+</pre></div>
+</div>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>traj_file</kbd></dt>
+<dd><p>The trajectory file to analyze</p>
+</dd>
+<dt><kbd>input</kbd></dt>
+<dd><p>The input file associated with the trajectory</p>
+</dd>
+<dt><kbd>nucid_1</kbd></dt>
+<dd><p>Nucleotide ID to start the calculation at</p>
+</dd>
+<dt><kbd>nucid_2</kbd></dt>
+<dd><p>Nucleotide ID to stop the calculation at</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-p, --parallel</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-d, --data</kbd></dt>
+<dd><p>If set, the correlations will be written to a txt file in the format <cite>offset correlation</cite></p>
+</dd>
+<dt><kbd>-n, --plot_name</kbd></dt>
+<dd><p>Name to save the plot showing the fit of persistence length to correlations.  Defaults to persistence_length.png</p>
 </dd>
 </dl>
 </div>

@@ -188,6 +188,15 @@
     :prog: oat pca
 ```
 
+## Persistence Length
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/persistence_length.py
+    :func: cli_parser
+    :prog: oat persistence_length
+```
+
 ## Plot energy
 
 ```{eval-rst}
