@@ -1,4 +1,4 @@
-v. 3.5.1
+v. 3.5.0 [a16d07b]
 	- Strip down the exprtk library to speed up compilation
 	- Fix a bug whereby setting lastconf_file to /dev/null would segfault
 	- Make the code compilable on older gcc versions (>= 5.4)
