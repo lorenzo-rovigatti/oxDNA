@@ -86,7 +86,7 @@ PBC=0
 Than we start a VMMC simulation and wait for the assembly. An input file is
 ready in the directory
 
-../../bin/oxDNA input 
+../../build/bin/oxDNA input 
 
 should be done in a few minutes! The 1e6 steps in the input file should be
 enough to fully form the needed base pairs.

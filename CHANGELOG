@@ -1,4 +1,25 @@
-v. 3.4.2
+v. 3.5.0 [a16d07b]
+	- Strip down the exprtk library to speed up compilation
+	- Fix a bug whereby setting lastconf_file to /dev/null would segfault
+	- Make the code compilable on older gcc versions (>= 5.4)
+	- Update some examples (fix the oxDNA path and remove references to the old UTILS folder)
+	- Remove some outdated examples
+	- Update the documentation
+	oxpy:
+	  - Remove a redundant library from oxpy's linking stage
+	  - Clean up include paths for pybind11, python_defs
+	oat:
+	  - Functionalized db_to_force and forces2pairs
+	  - Cleanup typing in forces2pairs
+	  - Fixed bug where oxpy calls always said t=0
+	  - Fixed oxDNA1 incompatibility in output_bonds
+	  - Added trajectory visualization and generally cleaned up bond_analysis
+	  - Added desired bond output for the summary in bond_analysis
+	  - RyeReader now handles confs with velocities removed
+	  - Updated oxDNA_PDB to use RyeReader
+	  - Removed deprecated readers.py
+
+v. 3.4.2 [6794178]
 	- Change libcommon.so to liboxdna_common.so, allowing the file to be reasonably placed in a system-wide / non-specific library directory
 	- Add methods to sync data from and to CUDA interactions (see 7e437f63a8c551333b677d56edc20121551741da)
 	- Fix a bug whereby confs without momenta would be printed with trailing spaces
@@ -10,7 +31,7 @@ v. 3.4.2
 	oat:
 	  - Fix external_force_utils import in exclude_force.py
 
-v. 3.4.1 
+v. 3.4.1 [238196f]
 	- Fix a compilation bug of a contrib observable
 
 v. 3.4 [1c89963]
