@@ -83,7 +83,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
             for j in range(ctx.n1, ctx.n2):
                 # If there's no base pair, there's no midpoint
                 if not j in pair_dict or not j+1 in pair_dict:
-                    print("WARNING: Nucleotide {} or {} is unpaired.  Skipping...".format(ctx.n1+j, ctx.n1+j+1))
+                    print("WARNING: Nucleotide {} or {} is unpaired.  Skipping...".format(j, j+1))
                     continue
 
                 # Get the midpoint of the base pairs
@@ -125,6 +125,7 @@ def persistence_length(traj_info:TrajInfo, inp_file:str, n1:int, n2:int, ncpus:i
     l0 = 0
     correlations = np.zeros(n2 - n1)
     correlations_counter = np.zeros_like(correlations)
+
     def callback(i, r):
         nonlocal l0, correlations, correlations_counter
         l0 += r[0]
@@ -148,10 +149,13 @@ def fit_PL(correlations:np.ndarray, plt_name:str) -> float:
         Returns:
             (float) : Persistence length in nucleotides
     """
+    # Fit the PL to the correlations
     x = np.arange(0, len(correlations))
     log_corr = np.log(correlations)
     A, B = np.polyfit(x, log_corr, 1)
     pl = -1/A
+
+    # Make a plot
     fig, ax = plt.subplots()
     ax.scatter(x, log_corr, alpha=0.5)
     trend = np.poly1d([A, B])
@@ -160,8 +164,10 @@ def fit_PL(correlations:np.ndarray, plt_name:str) -> float:
     ax.set_xlabel('Offset')
     ax.set_ylabel('ln(correlation)')
     plt.legend()
+    plt.tight_layout()
     plt.savefig(plt_name, dpi=300)
     print("INFO: Saving figure to", plt_name, file=sys.stderr)
+
     return pl
 
 def cli_parser(prog="persistence_length.py"):
@@ -210,7 +216,6 @@ def main():
 
     pl = fit_PL(correlations, plot_name)
     print("Persistence length: {:.1f} nucleotides".format(pl))
-
     print("Overall bonded contour length between n1 and n2 is:", l0*0.8518, "nm")
 
     print("--- %s seconds ---" % (time.time() - start_time))
