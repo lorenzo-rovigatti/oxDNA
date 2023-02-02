@@ -3,6 +3,7 @@
 
 #include <Particles/Molecule.h>
 #include <fstream>
+using namespace std;
 
 CGNucleicAcidsInteraction::CGNucleicAcidsInteraction() :
 				BaseInteraction() {
@@ -564,32 +565,36 @@ void CGNucleicAcidsInteraction::allocate_particles(std::vector<BaseParticle*> &p
 }
 
 void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
-	// parse the interaction matrix file
-	input_file inter_matrix_file;
-	inter_matrix_file.init_from_filename(_interaction_matrix_file);
-	const number _t37_ = 310.15;
-	const number _Kb_ = 1.9872036;
-	if(inter_matrix_file.state == ERROR) {
-		throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
-	}
+        // parse the interaction matrix file
+        input_file inter_matrix_file;
+        inter_matrix_file.init_from_filename(_interaction_matrix_file);
+        const number _t37_ = 310.15;
+        const number _Kb_ = 1.9872036;
+        if(inter_matrix_file.state == ERROR) {
+                throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
+        }
 
-	_interaction_matrix_size = _N_attractive_types + 1;
-	_3b_epsilon.resize(_interaction_matrix_size * _interaction_matrix_size, 0.);
+        _interaction_matrix_size = _N_attractive_types + 1;
+        _3b_epsilon.resize(_interaction_matrix_size * _interaction_matrix_size, 0.);
 
-	for(int i = 1; i <= _N_attractive_types; i++) {
-		for(int j = 1; j <= _N_attractive_types; j++) {
-			number valueH;
-			number valueS;
-			std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
-			std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
-			if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
-				number dG = ((_mu * valueH * 1000 / _t37_ - valueS)/_Kb_)/1000;
-				if(dG<0) {
-					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = -dG;
-				}
-			}
-		}
-	}
+        ofstream myfile;
+        myfile.open ("dG_matrix.dat");
+        for(int i = 1; i <= _N_attractive_types; i++) {
+                for(int j = 1; j <= _N_attractive_types; j++) {
+                        number valueH;
+                        number valueS;
+                        std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
+                        std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
+                        if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
+                                number dG = (_mu * valueH * 1000 / _t37_ - valueS)/_Kb_;
+                                if(dG<0) {
+                                        _3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = -dG;
+                                        myfile << "dG[" << i << "][" << j << "]=" << -dG << "\n";
+                                }
+                        }
+                }
+        }
+        myfile.close();
 }
 
 void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
