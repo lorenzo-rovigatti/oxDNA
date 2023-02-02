@@ -567,6 +567,8 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
 	// parse the interaction matrix file
 	input_file inter_matrix_file;
 	inter_matrix_file.init_from_filename(_interaction_matrix_file);
+	const number _t37_ = 310.15;
+	const number _Kb_ = 1.9872036;
 	if(inter_matrix_file.state == ERROR) {
 		throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
 	}
@@ -582,7 +584,7 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
 			std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
 			if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
 				if((valueH * _mu + valueS)<0) {
-					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = -(valueH * _mu + valueS);
+					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = -((_mu * valueH * 1000 / _t37_ - valueS)/_Kb_)/1000;
 				}
 			}
 		}
