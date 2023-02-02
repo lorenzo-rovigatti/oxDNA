@@ -172,7 +172,7 @@ protected:
 	uint _m = 2;
 	uint _p = 16;
 	std::vector<LR_vector> _old_forces, _old_torques;
-	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_xz, _N_xy, _N_yz, _N_xz;
+	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_xz, _N_xy, _N_yz, _N_xz, _sigma_xx, _sigma_yy, _sigma_zz, _sigma_P;
 	double _delta_t = 0.0;
 	bool _enable_serialisation = false;
 

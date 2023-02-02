@@ -19,6 +19,10 @@ StressAutocorrelation::~StressAutocorrelation() {
 }
 
 void StressAutocorrelation::serialise() {
+	_sigma_P->serialise("sigma_P.dat");
+	_sigma_xx->serialise("sigma_xx.dat");
+	_sigma_yy->serialise("sigma_yy.dat");
+	_sigma_zz->serialise("sigma_zz.dat");
 	_sigma_xy->serialise("sigma_xy.dat");
 	_sigma_yz->serialise("sigma_yz.dat");
 	_sigma_xz->serialise("sigma_xz.dat");
@@ -73,6 +77,10 @@ void StressAutocorrelation::get_settings(input_file &my_inp, input_file &sim_inp
 
 void StressAutocorrelation::init() {
 	if(_enable_serialisation) {
+		_sigma_P = _deserialise("sigma_P.dat");
+		_sigma_xx = _deserialise("sigma_xx.dat");
+		_sigma_yy = _deserialise("sigma_yy.dat");
+		_sigma_zz = _deserialise("sigma_zz.dat");
 		_sigma_xy = _deserialise("sigma_xy.dat");
 		_sigma_yz = _deserialise("sigma_yz.dat");
 		_sigma_xz = _deserialise("sigma_xz.dat");
@@ -82,6 +90,10 @@ void StressAutocorrelation::init() {
 		_N_xz = _deserialise("N_zx.dat");
 	}
 	else {
+		_sigma_P = std::make_shared<Level>(_m, _p, 0);
+		_sigma_xx = std::make_shared<Level>(_m, _p, 0);
+		_sigma_yy = std::make_shared<Level>(_m, _p, 0);
+		_sigma_zz = std::make_shared<Level>(_m, _p, 0);
 		_sigma_xy = std::make_shared<Level>(_m, _p, 0);
 		_sigma_yz = std::make_shared<Level>(_m, _p, 0);
 		_sigma_xz = std::make_shared<Level>(_m, _p, 0);
@@ -101,7 +113,12 @@ void StressAutocorrelation::update_data(llint curr_step) {
 	}
 
 	StressTensor stress_tensor = _config_info->interaction->stress_tensor();
+	double P = (stress_tensor[0] + stress_tensor[1] + stress_tensor[2]) / 3.;
 
+	_sigma_P->add_value(P);
+	_sigma_xx->add_value(stress_tensor[0]);
+	_sigma_yy->add_value(stress_tensor[1]);
+	_sigma_zz->add_value(stress_tensor[2]);
 	_sigma_xy->add_value(stress_tensor[3]);
 	_sigma_yz->add_value(stress_tensor[5]);
 	_sigma_xz->add_value(stress_tensor[4]);
@@ -117,7 +134,11 @@ std::string StressAutocorrelation::get_output_string(llint curr_step) {
 	std::vector<double> times;
 	_sigma_xy->get_times(_delta_t, times);
 
-	std::vector<double> acf_sigma_xy, acf_sigma_yz, acf_sigma_zx, acf_N_xy, acf_N_xz, acf_N_yz;
+	std::vector<double> acf_sigma_xy, acf_sigma_yz, acf_sigma_zx, acf_N_xy, acf_N_xz, acf_N_yz, acf_sigma_xx, acf_sigma_yy, acf_sigma_zz, acf_sigma_P;
+	_sigma_P->get_acf(_delta_t, acf_sigma_P);
+	_sigma_xx->get_acf(_delta_t, acf_sigma_xx);
+	_sigma_yy->get_acf(_delta_t, acf_sigma_yy);
+	_sigma_zz->get_acf(_delta_t, acf_sigma_zz);
 	_sigma_xy->get_acf(_delta_t, acf_sigma_xy);
 	_sigma_yz->get_acf(_delta_t, acf_sigma_yz);
 	_sigma_xz->get_acf(_delta_t, acf_sigma_zx);
@@ -132,7 +153,10 @@ std::string StressAutocorrelation::get_output_string(llint curr_step) {
 		double Gt = V / (5. * T) * (acf_sigma_xy[i] + acf_sigma_yz[i] + acf_sigma_zx[i]);
 		Gt += V / (30. * T) * (acf_N_xy[i] + acf_N_xz[i] + acf_N_yz[i]);
 
-		ss << times[i] << Utils::sformat(" %.8e", Gt) << std::endl;
+		double bulk_Gt = V / T * acf_sigma_P[i];
+		double longitudinal_Gt = V / (3. * T) * (acf_sigma_xx[i] + acf_sigma_yy[i] + acf_sigma_zz[i]);
+
+		ss << times[i] << Utils::sformat(" %.8e", Gt) << " " << Utils::sformat(" %.8e", bulk_Gt) << " " << Utils::sformat(" %.8e", longitudinal_Gt) << std::endl;
 	}
 
 	return ss.str();
