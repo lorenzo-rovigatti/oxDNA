@@ -36,14 +36,16 @@ The `analysis/paper_examples` folder contains examples for `oxDNA_analysis_tools
 
 ## Citing oxDNA
 
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.04693/status.svg)](https://doi.org/10.21105/joss.04693)
+
 Please cite these publications for any work that uses the oxDNA simulation package:
 
 - for the code:
-  * E. Poppleton et al., J. Open Source Softw. 8, 4693 (2023)
+  * [E. Poppleton et al., J. Open Source Softw. 8, 4693 (2023)](https://doi.org/10.21105/joss.04693)
 - for the CUDA-powered code:
-  * L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)
+  * [L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)](https://doi.org/10.1002/jcc.23763)
 - for oxDNA analysis tools:
-  * E. Poppleton et al., Nucleic Acids Research e72 (2020)
+  * [E. Poppleton et al., Nucleic Acids Research e72 (2020)](https://doi.org/10.1093/nar/gkab324)
     
 ## Acknowledgements
 
