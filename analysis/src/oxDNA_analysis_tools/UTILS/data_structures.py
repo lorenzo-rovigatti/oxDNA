@@ -141,6 +141,9 @@ class Strand:
 
     def is_circular(self):
         return True if self.monomers[0].n3 == self.monomers[-1].id else False
+    
+    def get_length(self):
+        return len(self.monomers)
 
 #No, you cannot make n3, n5 and pair refs to other Monomers
 #Scaffold strands are long enough that it would stack overflow while pickling for Pool processing
