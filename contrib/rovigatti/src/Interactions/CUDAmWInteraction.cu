@@ -188,8 +188,8 @@ void CUDAmWInteraction::get_settings(input_file &inp) {
 	mWInteraction::get_settings(inp);
 }
 
-void CUDAmWInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAmWInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	mWInteraction::init();
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));

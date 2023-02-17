@@ -10,11 +10,11 @@
 #include <algorithm>
 
 StructureFactor::StructureFactor() {
-	_nconf = 0;
 	_type = -1;
 	_max_qs_in_interval = 30;
 	_max_qs_delta = 0.001;
 	_always_reset = false;
+	_max_q = 10;
 }
 
 StructureFactor::~StructureFactor() {
@@ -103,7 +103,7 @@ void StructureFactor::update_data(llint curr_step) {
 
 		_sq[nq] += (SQR(sq_cos) + SQR(sq_sin)) / N_type;
 	}
-	_nconf++;
+	_times_updated++;
 }
 
 std::string StructureFactor::get_output_string(llint curr_step) {
@@ -127,7 +127,7 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 		it++;
 		if(nq + 1 == _qs.size() || fabs(it->norm() - SQR(first_q)) > _max_qs_delta) {
 			avg_q_mod /= q_count;
-			sq_mean /= q_count * _nconf;
+			sq_mean /= q_count * _times_updated;
 			ret << avg_q_mod << " " << sq_mean << std::endl;
 			q_count = 0;
 			avg_q_mod = sq_mean = 0.;
@@ -136,7 +136,7 @@ std::string StructureFactor::get_output_string(llint curr_step) {
 	}
 
 	if(_always_reset) {
-		_nconf = 0;
+		_times_updated = 0;
 		std::fill(_sq.begin(), _sq.end(), 0.);
 	}
 

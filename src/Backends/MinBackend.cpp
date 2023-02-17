@@ -37,7 +37,7 @@ void MinBackend::init() {
 }
 
 void MinBackend::_compute_forces() {
-	_interaction->begin_energy_computation();
+	_interaction->begin_energy_and_force_computation();
 
 	_U = (number) 0;
 	for(auto p: _particles) {

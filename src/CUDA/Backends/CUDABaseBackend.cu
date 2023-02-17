@@ -195,7 +195,7 @@ void CUDABaseBackend::init_cuda() {
 	int N = CONFIG_INFO->N();
 	_h_cuda_box.set_CUDA_from_CPU(CONFIG_INFO->box);
 
-	_cuda_interaction->cuda_init(box_side, N);
+	_cuda_interaction->cuda_init(N);
 
 	_vec_size = sizeof(c_number4) * N;
 	_orient_size = sizeof(GPU_quat) * N;

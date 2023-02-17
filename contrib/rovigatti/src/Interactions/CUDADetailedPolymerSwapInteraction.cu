@@ -259,58 +259,31 @@ __device__ bool _sticky_interaction(int p_btype, int q_btype) {
 	return p_btype != DetailedPolymerSwapInteraction::MONOMER && q_btype != DetailedPolymerSwapInteraction::MONOMER;
 }
 
-// forces + second step without lists
-__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, CUDABox *box) {
+// forces + second step with verlet lists
+__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *number_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
+
 	int p_btype = get_particle_btype(ppos);
 
 	CUDA_FS_bond_list bonds;
 
-	for(int j = 0; j < MD_N[0]; j++) {
-		if(j != IND) {
-			c_number4 qpos = poss[j];
+	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
+	for(int j = 0; j < num_neighs; j++) {
+		int q_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
+
+		if(q_index != IND) {
+			c_number4 qpos = poss[q_index];
 			int q_btype = get_particle_btype(qpos);
 
 			_WCA(ppos, qpos, F, box);
-			
+
 			if(_sticky_interaction(p_btype, q_btype)) {
-				int eps_idx = p_btype * MD_interaction_matrix_size[0] + q_btype;
-				_sticky(ppos, qpos, eps_idx, j, F, bonds, box);
+				int eps_idx = p_btype + MD_interaction_matrix_size[0] * q_btype;
+				_sticky(ppos, qpos, eps_idx, q_index, F, bonds, box);
 			}
-		}
-	}
-
-	_sticky_three_body(bonds, F, three_body_forces);
-
-	forces[IND] = F;
-}
-
-// forces + second step with verlet lists
-__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *c_number_neighs, CUDABox *box) {
-	if(IND >= MD_N[0]) return;
-
-	c_number4 F = forces[IND];
-	c_number4 ppos = poss[IND];
-
-	int num_neighs = c_number_neighs[IND];
-	int p_btype = get_particle_btype(ppos);
-
-	CUDA_FS_bond_list bonds;
-
-	for(int j = 0; j < num_neighs; j++) {
-		int q_index = matrix_neighs[j * MD_N[0] + IND];
-
-		c_number4 qpos = poss[q_index];
-		int q_btype = get_particle_btype(qpos);
-
-		_WCA(ppos, qpos, F, box);
-		
-		if(_sticky_interaction(p_btype, q_btype)) {
-			int eps_idx = p_btype + MD_interaction_matrix_size[0] * q_btype;
-			_sticky(ppos, qpos, eps_idx, q_index, F, bonds, box);
 		}
 	}
 
@@ -343,8 +316,8 @@ void CUDADetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	DetailedPolymerSwapInteraction::get_settings(inp);
 }
 
-void CUDADetailedPolymerSwapInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDADetailedPolymerSwapInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	DetailedPolymerSwapInteraction::init();
 
 	std::vector<BaseParticle *> particles(_N);
@@ -416,25 +389,10 @@ void CUDADetailedPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_n
 		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, d_box);
 	CUT_CHECK_ERROR("ps_FENE_flexibility_forces DetailedPolymerSwap error");
 
-	CUDASimpleVerletList *_v_lists = dynamic_cast<CUDASimpleVerletList *>(lists);
-	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) {
-			throw oxDNAException("use_edge unsupported by DetailedPolymerSwapInteraction");
-		}
-
-		ps_forces
-			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-			(d_poss, d_forces, _d_three_body_forces, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_box);
-		CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap simple_lists error");
-	}
-
-	CUDANoList *_no_lists = dynamic_cast<CUDANoList *>(lists);
-	if(_no_lists != NULL) {
-		ps_forces
-			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-			(d_poss, d_forces, _d_three_body_forces, d_box);
-		CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap no_lists error");
-	}
+	ps_forces
+		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+		(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, d_box);
+	CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap error");
 
 	// add the three body contributions to the two-body forces
 	thrust::transform(t_forces, t_forces + _N, t_three_body_forces, t_forces, thrust::plus<c_number4>());

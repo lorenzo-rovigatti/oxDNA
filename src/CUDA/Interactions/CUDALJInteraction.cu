@@ -12,7 +12,7 @@
 #include "../Lists/CUDANoList.h"
 
 CUDALJInteraction::CUDALJInteraction() {
-
+	_edge_compatible = true;
 }
 
 CUDALJInteraction::~CUDALJInteraction() {
@@ -23,8 +23,8 @@ void CUDALJInteraction::get_settings(input_file &inp) {
 	LJInteraction::get_settings(inp);
 }
 
-void CUDALJInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDALJInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	LJInteraction::init();
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
@@ -41,29 +41,18 @@ void CUDALJInteraction::cuda_init(c_number box_side, int N) {
 }
 
 void CUDALJInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
-	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
-	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) {
-			lj_forces_edge
-				<<<(_v_lists->N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-				(d_poss, this->_d_edge_forces, _v_lists->d_edge_list, _v_lists->N_edges, d_box);
+	if(_use_edge) {
+		lj_forces_edge
+			<<<(lists->N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
+			(d_poss, _d_edge_forces, lists->d_edge_list, lists->N_edges, d_box);
 
-			this->_sum_edge_forces(d_forces);
-			CUT_CHECK_ERROR("forces_second_step error -- lj");
-		}
-		else {
-			lj_forces
-				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_forces, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_box);
-			CUT_CHECK_ERROR("forces_second_step lj simple_lists error");
-		}
+		this->_sum_edge_forces(d_forces);
+		CUT_CHECK_ERROR("forces_second_step error -- lj");
 	}
-
-	CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
-	if(_no_lists != NULL) {
+	else {
 		lj_forces
 			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_forces, d_box);
-		CUT_CHECK_ERROR("forces_second_step lj no_lists error");
+			(d_poss, d_forces, lists->d_matrix_neighs, lists->d_number_neighs, d_box);
+		CUT_CHECK_ERROR("forces_second_step lj simple_lists error");
 	}
 }

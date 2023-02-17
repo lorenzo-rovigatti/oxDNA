@@ -84,35 +84,6 @@ __device__ void _particle_particle_interaction(c_number4 &ppos, c_number4 &qpos,
 	_nonbonded(r, int_type, F);
 }
 
-// forces + second step without lists
-
-__global__ void polymer_forces(c_number4 *poss, c_number4 *forces, LR_bonds *bonds, CUDABox *box) {
-	if(IND >= MD_N[0]) return;
-
-	c_number4 F = forces[IND];
-	LR_bonds bs = bonds[IND];
-	c_number4 ppos = poss[IND];
-
-	if(bs.n3 != P_INVALID) {
-		c_number4 qpos = poss[bs.n3];
-		_particle_particle_bonded_interaction(ppos, qpos, F);
-	}
-
-	if(bs.n5 != P_INVALID) {
-		c_number4 qpos = poss[bs.n5];
-		_particle_particle_bonded_interaction(ppos, qpos, F);
-	}
-
-	for(int j = 0; j < MD_N[0]; j++) {
-		if(j != IND && bs.n3 != j && bs.n5 != j) {
-			c_number4 qpos = poss[j];
-			_particle_particle_interaction(ppos, qpos, F, box);
-		}
-	}
-
-	forces[IND] = F;
-}
-
 __global__ void polymer_forces_edge_nonbonded(c_number4 *poss, c_number4 *forces, edge_bond *edge_list, int n_edges, CUDABox *box) {
 	if(IND >= n_edges) return;
 
@@ -147,7 +118,6 @@ __global__ void polymer_forces_edge_nonbonded(c_number4 *poss, c_number4 *forces
 }
 
 // bonded interactions for edge-based approach
-
 __global__ void polymer_forces_edge_bonded(c_number4 *poss, c_number4 *forces, LR_bonds *bonds) {
 	if(IND >= MD_N[0]) return;
 
@@ -175,29 +145,30 @@ __global__ void polymer_forces_edge_bonded(c_number4 *poss, c_number4 *forces, L
 }
 
 // forces + second step with verlet lists
-
-__global__ void polymer_forces(c_number4 *poss, c_number4 *forces, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox *box) {
+__global__ void polymer_forces(c_number4 *poss, c_number4 *forces, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
-	LR_bonds bs = bonds[IND];
+	LR_bonds pbonds = bonds[IND];
 
-	if(bs.n3 != P_INVALID) {
-		c_number4 qpos = poss[bs.n3];
+	if(pbonds.n3 != P_INVALID) {
+		c_number4 qpos = poss[pbonds.n3];
 		_particle_particle_bonded_interaction(ppos, qpos, F);
 	}
-	if(bs.n5 != P_INVALID) {
-		c_number4 qpos = poss[bs.n5];
+	if(pbonds.n5 != P_INVALID) {
+		c_number4 qpos = poss[pbonds.n5];
 		_particle_particle_bonded_interaction(ppos, qpos, F);
 	}
 
-	const int num_neighs = c_number_neighs[IND];
+	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
 	for(int j = 0; j < num_neighs; j++) {
-		const int k_index = matrix_neighs[j * MD_N[0] + IND];
+		int k_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
 
-		c_number4 qpos = poss[k_index];
-		_particle_particle_interaction(ppos, qpos, F, box);
+		if(k_index != IND && pbonds.n3 != k_index && pbonds.n5 != k_index) {
+			c_number4 qpos = poss[k_index];
+			_particle_particle_interaction(ppos, qpos, F, box);
+		}
 	}
 
 	forces[IND] = F;
@@ -206,7 +177,7 @@ __global__ void polymer_forces(c_number4 *poss, c_number4 *forces, int *matrix_n
 /* END CUDA */
 
 CUDAPolymerInteraction::CUDAPolymerInteraction() {
-
+	_edge_compatible = true;
 }
 
 CUDAPolymerInteraction::~CUDAPolymerInteraction() {
@@ -222,8 +193,8 @@ void CUDAPolymerInteraction::get_settings(input_file &inp) {
 	}
 }
 
-void CUDAPolymerInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAPolymerInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	PolymerInteraction::init();
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
@@ -236,38 +207,23 @@ void CUDAPolymerInteraction::cuda_init(c_number box_side, int N) {
 }
 
 void CUDAPolymerInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
-	CUDASimpleVerletList *_v_lists = dynamic_cast<CUDASimpleVerletList *>(lists);
-	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) {
-			polymer_forces_edge_nonbonded
-				<<<(_v_lists->N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-				(d_poss, this->_d_edge_forces, _v_lists->d_edge_list, _v_lists->N_edges, d_box);
+	if(_use_edge) {
+		polymer_forces_edge_nonbonded
+			<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+			(d_poss, _d_edge_forces, lists->d_edge_list, lists->N_edges, d_box);
 
-			this->_sum_edge_forces(d_forces);
+		this->_sum_edge_forces(d_forces);
 
-			// potential for removal here
-			cudaThreadSynchronize();
-			CUT_CHECK_ERROR("forces_second_step error -- after non-bonded");
+		CUT_CHECK_ERROR("forces_second_step error -- after non-bonded");
 
-			polymer_forces_edge_bonded
-				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_forces, d_bonds);
-		}
-		else {
-			polymer_forces
-				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_forces, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_bonds, d_box);
-			CUT_CHECK_ERROR("forces_second_step simple_lists error");
-		}
+		polymer_forces_edge_bonded
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_forces, d_bonds);
 	}
 	else {
-		CUDANoList *_no_lists = dynamic_cast<CUDANoList *>(lists);
-
-		if(_no_lists != NULL) {
-			polymer_forces
-				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss,  d_forces, d_bonds, d_box);
-			CUT_CHECK_ERROR("forces_second_step no_lists error");
-		}
+		polymer_forces
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_forces, lists->d_matrix_neighs, lists->d_number_neighs, d_bonds, d_box);
+		CUT_CHECK_ERROR("forces_second_step simple_lists error");
 	}
 }

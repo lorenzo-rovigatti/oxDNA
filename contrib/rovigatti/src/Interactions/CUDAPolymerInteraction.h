@@ -20,9 +20,9 @@ public:
 	c_number get_cuda_rcut() {
 		return this->get_rcut();
 	}
-	void get_settings(input_file &inp);
+	void get_settings(input_file &inp) override;
 
-	void cuda_init(c_number box_side, int N);
+	void cuda_init(int N) override;
 
 	void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
 };

@@ -199,8 +199,7 @@ __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T
 	}
 }
 
-// forces + second step without lists
-__global__ void PS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *three_body_forces, c_number4 *torques, c_number4 *three_body_torques, CUDABox *box) {
+__global__ void PS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *three_body_forces, c_number4 *torques, c_number4 *three_body_torques, int *matrix_neighs, int *number_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -212,44 +211,17 @@ __global__ void PS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *fo
 
 	CUDA_FS_bond_list bonds[CUDAPatchySwapInteraction::MAX_PATCHES];
 
-	for(int j = 0; j < MD_N[0]; j++) {
-		if(j != IND) {
-			c_number4 qpos = poss[j];
-
-			GPU_quat qo = orientations[j];
-			get_vectors_from_quat(qo, b1, b2, b3);
-			_patchy_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, j, box);
-		}
-	}
-
-	_three_body(bonds, F, T, three_body_forces, three_body_torques);
-
-	forces[IND] = F;
-	torques[IND] = _vectors_transpose_c_number4_product(a1, a2, a3, T);
-}
-
-// forces + second step with verlet lists
-__global__ void PS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *three_body_forces, c_number4 *torques, c_number4 *three_body_torques, int *matrix_neighs, int *c_number_neighs, CUDABox *box) {
-	if(IND >= MD_N[0]) return;
-
-	c_number4 F = forces[IND];
-	c_number4 T = torques[IND];
-	c_number4 ppos = poss[IND];
-	GPU_quat po = orientations[IND];
-	c_number4 a1, a2, a3, b1, b2, b3;
-	get_vectors_from_quat(po, a1, a2, a3);
-
-	CUDA_FS_bond_list bonds[CUDAPatchySwapInteraction::MAX_PATCHES];
-
-	int num_neighs = c_number_neighs[IND];
+	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
 	for(int j = 0; j < num_neighs; j++) {
-		int k_index = matrix_neighs[j * MD_N[0] + IND];
+		int k_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
 
-		c_number4 qpos = poss[k_index];
+		if(k_index != IND) {
+			c_number4 qpos = poss[k_index];
 
-		GPU_quat qo = orientations[k_index];
-		get_vectors_from_quat(qo, b1, b2, b3);
-		_patchy_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, k_index, box);
+			GPU_quat qo = orientations[k_index];
+			get_vectors_from_quat(qo, b1, b2, b3);
+			_patchy_two_body_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, bonds, k_index, box);
+		}
 	}
 
 	_three_body(bonds, F, T, three_body_forces, three_body_torques);
@@ -285,8 +257,8 @@ void CUDAPatchySwapInteraction::get_settings(input_file &inp) {
 	getInputInt(&inp, "CUDA_sort_every", &sort_every, 0);
 }
 
-void CUDAPatchySwapInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAPatchySwapInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	PatchySwapInteraction::init();
 
 	if(_N_species > MAX_SPECIES) {
@@ -347,25 +319,10 @@ void CUDAPatchySwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *d
 	thrust::fill_n(t_three_body_forces, N, make_c_number4(0, 0, 0, 0));
 	thrust::fill_n(t_three_body_torques, N, make_c_number4(0, 0, 0, 0));
 
-	CUDASimpleVerletList *_v_lists = dynamic_cast<CUDASimpleVerletList *>(lists);
-	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) throw oxDNAException("CUDAPatchySwapInteraction: use_edge is unsupported");
-		else {
-			PS_forces
-				<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_box);
-			CUT_CHECK_ERROR("PS_forces simple_lists error");
-		}
-	}
-	else {
-		CUDANoList *_no_lists = dynamic_cast<CUDANoList *>(lists);
-		if(_no_lists != NULL) {
-			PS_forces
-				<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, d_box);
-			CUT_CHECK_ERROR("PS_forces no_lists error");
-		}
-	}
+	PS_forces
+		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+		(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_box);
+	CUT_CHECK_ERROR("PS_forces simple_lists error");
 
 	// add the three body contributions to the two-body forces and torques
 	thrust::transform(t_forces, t_forces + N, t_three_body_forces, t_forces, thrust::plus<c_number4>());

@@ -365,8 +365,8 @@ void CUDAFSInteraction::get_settings(input_file &inp) {
 	}
 }
 
-void CUDAFSInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAFSInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	FSInteraction::init();
 
 	std::ifstream topology(_topology_filename, std::ios::in);
