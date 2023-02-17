@@ -50,6 +50,9 @@ protected:
 	number _WCA_sigma = 1.0;
 	number _PS_sqr_rep_rcut;
   number _mu = 1.0;
+  number dS_mod = 1.0;
+  number alpha_mod = 1.0;
+
   
 	std::vector<LR_vector> _chain_coms;
 
