@@ -357,7 +357,7 @@ __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T
 }
 
 __global__ void DPS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *three_body_forces,
-		c_number4 *torques, c_number4 *three_body_torques, int *matrix_neighs, int *number_neighs, CUDAStressTensor *st,
+		c_number4 *torques, c_number4 *three_body_torques, int *matrix_neighs, int *number_neighs, bool update_st, CUDAStressTensor *st,
 		CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
@@ -391,7 +391,9 @@ __global__ void DPS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 
 	_three_body(bonds, F, T, three_body_forces, three_body_torques);
 
-	st[IND] = p_st;
+	if(update_st) {
+		st[IND] = p_st;
+	}
 	forces[IND] = F;
 	torques[IND] = _vectors_transpose_c_number4_product(a1, a2, a3, T);
 }
@@ -523,11 +525,13 @@ void CUDADetailedPatchySwapInteraction::compute_forces(CUDABaseList *lists, c_nu
 	thrust::fill_n(t_three_body_forces, N, make_c_number4(0, 0, 0, 0));
 	thrust::fill_n(t_three_body_torques, N, make_c_number4(0, 0, 0, 0));
 
-	CUDA_SAFE_CALL(cudaMemset(_d_st, 0, N * sizeof(CUDAStressTensor)));
+	if(_update_st) {
+		CUDA_SAFE_CALL(cudaMemset(_d_st, 0, N * sizeof(CUDAStressTensor)));
+	}
 
 	DPS_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, lists->d_matrix_neighs, lists->d_number_neighs, _d_st, d_box);
+		(d_poss, d_orientations, d_forces, _d_three_body_forces,  d_torques, _d_three_body_torques, lists->d_matrix_neighs, lists->d_number_neighs, _update_st, _d_st, d_box);
 	CUT_CHECK_ERROR("DPS_forces error");
 
 	// add the three body contributions to the two-body forces and torques
