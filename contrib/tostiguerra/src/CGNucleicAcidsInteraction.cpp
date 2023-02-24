@@ -591,7 +591,7 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
                         if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
                                 number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS)/_kB_;
                                 number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
-                                if(beta_dG<0 && abs(i-j)>2) {   //beta_eps>0 o beta_dG<0?
+                                if(beta_dG<0 && abs(i-j)>2) {   
                                         _3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
                                         myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
                                 }
