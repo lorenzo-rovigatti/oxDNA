@@ -26,7 +26,6 @@
 
 #include "BaseInteraction.h"
 #include "rna_model.h"
-#include "../Particles/RNANucleotide.h"
 
 class RNAInteraction : public BaseInteraction {
 protected:

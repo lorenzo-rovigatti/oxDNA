@@ -1,5 +1,8 @@
 #include "RNAInteraction.h"
 
+#include "../Particles/RNANucleotide.h"
+#include "../Utilities/TopologyParser.h"
+
 #include <fstream>
 #include <cfloat>
 
@@ -1393,86 +1396,12 @@ number RNAInteraction::_f5D(number f, int type) {
 }
 
 void RNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
-	int N_from_conf = particles.size();
 	BaseInteraction::read_topology(N_strands, particles);
-	int my_N, my_N_strands;
 
-	char line[512];
-	std::ifstream topology;
-	topology.open(_topology_filename, std::ios::in);
+	TopologyParser parser(_topology_filename);
+	parser.parse(particles);
 
-	if(!topology.good())
-		throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
-
-	topology.getline(line, 512);
-
-	sscanf(line, "%d %d\n", &my_N, &my_N_strands);
-
-	char base[256];
-	int strand, i = 0;
-	while(topology.good()) {
-		topology.getline(line, 512);
-		if(strlen(line) == 0 || line[0] == '#')
-			continue;
-		if(i == N_from_conf)
-			throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", N_from_conf);
-
-		int tmpn3, tmpn5;
-		int res = sscanf(line, "%d %s %d %d", &strand, base, &tmpn3, &tmpn5);
-
-		if(res < 4)
-			throw oxDNAException("Line %d of the topology file has an invalid syntax", i + 2);
-
-		BaseParticle *p = particles[i];
-
-		if(tmpn3 < 0)
-			p->n3 = P_VIRTUAL;
-		else
-			p->n3 = particles[tmpn3];
-		if(tmpn5 < 0)
-			p->n5 = P_VIRTUAL;
-		else
-			p->n5 = particles[tmpn5];
-
-		// store the strand id
-		// for a design inconsistency, in the topology file
-		// strand ids start from 1, not from 0
-		p->strand_id = strand - 1;
-
-		// the base can be either a char or an integer
-		if(strlen(base) == 1) {
-			p->type = Utils::decode_base(base[0]);
-			p->btype = Utils::decode_base(base[0]);
-		}
-		else {
-			if(atoi(base) > 0)
-				p->type = atoi(base) % 4;
-			else
-				p->type = 3 - ((3 - atoi(base)) % 4);
-			p->btype = atoi(base);
-		}
-
-		if(p->type == P_INVALID)
-			throw oxDNAException("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, base);
-		p->index = i;
-		i++;
-
-		// here we fill the affected vector
-		if(p->n3 != P_VIRTUAL)
-			p->affected.push_back(ParticlePair(p, p->n3));
-		if(p->n5 != P_VIRTUAL)
-			p->affected.push_back(ParticlePair(p, p->n5));
-	}
-
-	if(i < N_from_conf)
-		throw oxDNAException("Not enough particles found in the topology file (should be %d). Aborting", N_from_conf);
-
-	topology.close();
-
-	if(my_N != N_from_conf)
-		throw oxDNAException("Number of lines in the configuration file and\nnumber of particles in the topology files don't match. Aborting");
-
-	*N_strands = my_N_strands;
+	*N_strands = parser.N_strands();
 }
 
 void RNAInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {

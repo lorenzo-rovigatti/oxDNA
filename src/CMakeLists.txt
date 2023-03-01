@@ -197,6 +197,7 @@ SET(common_SOURCES
 	Utilities/SignalManager.cpp
 	Utilities/ConfigInfo.cpp
 	Utilities/FlattenedConfigInfo.cpp
+	Utilities/TopologyParser.cpp
 	PluginManagement/PluginManager.cpp
 	${forces_SOURCES}
 	${observables_SOURCES}
