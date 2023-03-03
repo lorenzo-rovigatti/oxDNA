@@ -1413,10 +1413,11 @@ void DNAInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 		}
 
-		if(_use_mbf)
+		if(_use_mbf) {
 			continue;
+		}
 
-		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
+		// check that the distance between bonded neighbors doesn't exceed a reasonable threshold
 		number mind = _fene_r0 - FENE_DELTA;
 		number maxd = _fene_r0 + FENE_DELTA;
 		if(p->n3 != P_VIRTUAL) {
