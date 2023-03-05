@@ -36,8 +36,9 @@ protected:
 
 	std::vector<int> _btypes_from_sequence(const std::string &sequence) const;
 
-	void _parse_old_topology(std::ifstream &topology, std::vector<BaseParticle *> &particles);
-	void _parse_new_topology(std::ifstream &topology, std::vector<BaseParticle *> &particles);
+	// these two methods return the number of initialised particles
+	int _parse_old_topology(std::ifstream &topology, std::vector<BaseParticle *> &particles);
+	int _parse_new_topology(std::ifstream &topology, std::vector<BaseParticle *> &particles);
 };
 
 #endif /* SRC_UTILITIES_TOPOLOGYPARSER_H_ */
