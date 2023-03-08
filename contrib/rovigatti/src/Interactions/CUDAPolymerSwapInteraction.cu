@@ -227,7 +227,7 @@ __device__ int get_monomer_type(const c_number4 &r_i) {
 	return my_btype > 0;
 }
 
-__global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, CUDAStressTensor *st, CUDABox *box) {
+__global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, bool update_st, CUDAStressTensor *st, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -254,7 +254,9 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 		}
 	}
 
-	st[IND] += p_st;
+	if(update_st) {
+		st[IND] += p_st;
+	}
 	forces[IND] = F;
 }
 
@@ -394,7 +396,7 @@ void CUDAPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *
 
 	ps_FENE_flexibility_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, _d_st, d_box);
+		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, _update_st, _d_st, d_box);
 	CUT_CHECK_ERROR("ps_FENE_flexibility_forces PolymerSwap error");
 
 	ps_forces
