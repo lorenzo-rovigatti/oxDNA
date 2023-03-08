@@ -33,10 +33,6 @@ void BaseMove::_on_T_update() {
 }
 
 void BaseMove::get_settings(input_file &inp, input_file &sim_inp) {
-	char raw_T[1024];
-	getInputString(&sim_inp, "T", raw_T, 1);
-	_T = Utils::get_temperature(raw_T);
-
 	getInputString(&inp, "type", _name, 1);
 	getInputNumber(&inp, "prob", &prob, 0);
 	getInputLLInt(&sim_inp, "equilibration_steps", &_equilibration_steps, 0);
@@ -47,6 +43,7 @@ void BaseMove::get_settings(input_file &inp, input_file &sim_inp) {
 }
 
 void BaseMove::init() {
+	_T = _Info->temperature();
 	_acc_fact = 1. + 0.001 * (_target_acc_rate - 1.) / (0.001 - _target_acc_rate);
 	OX_LOG(Logger::LOG_INFO, "(BaseMove.h) BaseMove init for move type %s;", _name.c_str());
 	OX_LOG(Logger::LOG_INFO, "(BaseMove.h)               (b, a) = (%g, %g), target_acc_rate=%g, adjust_moves=%d,", (_rej_fact - 1.), (_acc_fact - 1.), _target_acc_rate, _adjust_moves);

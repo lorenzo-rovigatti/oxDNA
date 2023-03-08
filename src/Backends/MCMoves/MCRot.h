@@ -22,7 +22,7 @@ class MCRot : public BaseMove {
 
 		virtual void init();
 		virtual void get_settings(input_file &inp, input_file &sim_inp);
-		void apply (llint curr_step);
+		void apply(llint curr_step);
 		virtual void log_parameters();
 };
 #endif
