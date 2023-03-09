@@ -122,6 +122,8 @@ SET(interactions_SOURCES
 	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
 	Interactions/CustomInteraction.cpp
+	Interactions/DNAwithRNAInteraction.cpp
+	Interactions/DNA2withRNA2Interaction.cpp
 )
 
 SET(move_SOURCES
