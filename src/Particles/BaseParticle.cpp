@@ -35,6 +35,7 @@ void BaseParticle::copy_from(const BaseParticle &p) {
 	index = p.index;
 	type = p.type;
 	btype = p.btype;
+	acid_type = p.acid_type;
 	pos = p.pos;
 	vel = p.vel;
 	orientation = p.orientation;
