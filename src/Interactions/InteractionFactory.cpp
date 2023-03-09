@@ -28,6 +28,8 @@
 #include "RNAInteraction_relax.h"
 #include "TEPInteraction.h"
 #include "JordanInteraction.h"
+#include "DNAwithRNAInteraction.h"
+#include "DNA2withRNA2Interaction.h"
 
 InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	// The default interaction is DNAInteraction
@@ -65,6 +67,8 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("custom") == 0) return std::make_shared<CustomInteraction>();
 	else if(inter_type.compare("TEP") == 0) return std::make_shared<TEPInteraction>();
 	else if(inter_type.compare("Jordan") == 0) return std::make_shared<JordanInteraction>();
+	else if(inter_type.compare("DNAwithRNA") == 0) return std::make_shared<DNAwithRNAInteraction>();
+	else if(inter_type.compare("DNA2withRNA2") == 0) return std::make_shared<DNA2withRNA2Interaction>();
 	else {
 		InteractionPtr res = PluginManager::instance()->get_interaction(inter_type);
 		if(res == NULL) throw oxDNAException("Interaction '%s' not found. Aborting", inter_type.c_str());
