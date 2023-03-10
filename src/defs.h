@@ -26,6 +26,7 @@
 #define P_B 1
 #define P_VIRTUAL (NULL)
 #define P_INVALID (-1)
+#define A_INVALID (0)
 
 #define N_A 0
 #define N_G 1
