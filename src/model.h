@@ -361,15 +361,15 @@
  */
 /// radial part
 #define CRST_F2_hybrid 0  
-#define CRST_R0_hybrid 0.5375f
-#define CRST_RC_hybrid 0.6375f
+#define CRST_R0_hybrid 0.575f
+#define CRST_RC_hybrid 0.675f
 #define CRST_K_hybrid 53.7313f
 #define CRST_BLOW_hybrid -0.888889f
-#define CRST_RLOW_hybrid 0.4575f
-#define CRST_RCLOW_hybrid 0.4125f
+#define CRST_RLOW_hybrid 0.495f
+#define CRST_RCLOW_hybrid 0.45f
 #define CRST_BHIGH_hybrid -0.888889f
-#define CRST_RHIGH_hybrid 0.6175f
-#define CRST_RCHIGH_hybrid 0.6625f
+#define CRST_RHIGH_hybrid 0.655f
+#define CRST_RCHIGH_hybrid 0.7f
 /// angular part;
 #define CRST_F4_THETA1_hybrid 6
 #define CRST_F4_THETA2_hybrid 7
