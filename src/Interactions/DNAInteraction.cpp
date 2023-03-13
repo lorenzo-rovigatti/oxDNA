@@ -1461,11 +1461,12 @@ void DNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			bool is_circular = false;
 			getInputBool(&seq_input, "circular", &is_circular, 0);
 			std::string type, sequence;
-			getInputString(&seq_input, "type", type, 1);
 			getInputString(&seq_input, "specs", sequence, 1);
 
-			if(type != "DNA") {
-				throw oxDNAException("topology file, strand %d (line %d): the DNA and DNA2 interactions only support type=DNA strands", ns, ns + 1);
+			if(getInputString(&seq_input, "type", type, 0) == KEY_FOUND) {
+				if(type != "DNA") {
+					throw oxDNAException("topology file, strand %d (line %d): the DNA and DNA2 interactions only support type=DNA strands", ns, ns + 1);
+				}
 			}
 
 			std::vector<int> btypes;
