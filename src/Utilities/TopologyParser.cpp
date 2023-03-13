@@ -134,9 +134,13 @@ void TopologyParser::parse_new_topology() {
 
 	for(int ns = 0; ns < _N_strands; ns++) {
 		std::getline(topology, line);
+
+		if(!topology.good()) {
+			throw oxDNAException("Not enough lines found in the topology file: %d instead of %d", ns, _N_strands);
+		}
+
 		auto split = Utils::split(line, ' ');
 
-		// we now build the input file out of the fields found on the line
 		std::string input_source = "specs=" + split[0] + "\n";
 		for(uint i = 1; i < split.size(); i++) {
 			input_source += split[i] + "\n";
