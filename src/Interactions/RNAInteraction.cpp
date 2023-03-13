@@ -1399,7 +1399,71 @@ void RNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 	BaseInteraction::read_topology(N_strands, particles);
 
 	TopologyParser parser(_topology_filename);
-	parser.parse(particles);
+
+	int N_from_topology = 0 ;
+	if(parser.is_new_topology()) {
+		parser.parse_new_topology();
+		int ns = 0, current_idx = 0;
+		for(auto &seq_input : parser.lines()) {
+			bool is_circular = false;
+			getInputBool(&seq_input, "circular", &is_circular, 0);
+			std::string type, sequence;
+			getInputString(&seq_input, "type", type, 1);
+			getInputString(&seq_input, "specs", sequence, 1);
+
+			if(type != "RNA") {
+				throw oxDNAException("topology file, strand %d (line %d): the RNA and RNA2 interactions only support type=RNA strands", ns, ns + 1);
+			}
+
+			std::vector<int> btypes;
+			try {
+				btypes = Utils::btypes_from_sequence(sequence);
+			}
+			catch(oxDNAException &e) {
+				throw oxDNAException("topology file, strand %d (line %d): %s", ns, ns + 1, e.what());
+			}
+
+			int N_in_strand = btypes.size();
+				for(int i = 0; i < N_in_strand; i++, current_idx++) {
+					if(current_idx == parser.N()) {
+						throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
+					}
+
+					BaseParticle *p = particles[current_idx];
+					p->strand_id = ns;
+					p->btype = btypes[i];
+					p->type = (p->btype < 0) ? 3 - ((3 - p->btype) % 4) : p->btype % 4;
+					p->n3 = p->n5 = P_VIRTUAL;
+					if(i > 0) {
+						p->n5 = particles[current_idx - 1];
+						p->affected.push_back(ParticlePair(p->n5, p));
+					}
+					if(i < N_in_strand - 1) {
+						p->n3 = particles[current_idx + 1];
+						p->affected.push_back(ParticlePair(p->n3, p));
+					}
+					// if this is the last nucleotide of the strand then we enforce the circularity of the strand
+					else if(is_circular) {
+						BaseParticle *first = particles[current_idx - i];
+						p->n3 = first;
+						p->affected.push_back(ParticlePair(first, p));
+						first->n5 = p;
+						first->affected.push_back(ParticlePair(p, first));
+					}
+				}
+
+			ns++;
+		}
+		N_from_topology = current_idx;
+	}
+	else {
+		N_from_topology = parser.parse_old_topology(particles);
+	}
+
+	if(N_from_topology != (int) particles.size()) {
+		throw oxDNAException("The number of particles specified in the header of the topology file (%d) "
+				"and the number of particles found in the topology (%d) don't match. Aborting",  N_from_topology, particles.size());
+	}
 
 	*N_strands = parser.N_strands();
 }

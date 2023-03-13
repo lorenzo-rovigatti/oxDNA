@@ -27,18 +27,21 @@ public:
 		return _N_strands;
 	}
 
-	void parse(std::vector<BaseParticle *> &particles);
+	bool is_new_topology();
+
+	int parse_old_topology(std::vector<BaseParticle *> &particles);
+	void parse_new_topology();
+
+	std::vector<input_file> lines() {
+		return _lines;
+	}
 
 protected:
 	int _N = -1;
 	int _N_strands = -1;
 	std::string _filename;
-
-	std::vector<int> _btypes_from_sequence(const std::string &sequence) const;
-
-	// these two methods return the number of initialised particles
-	int _parse_old_topology(std::ifstream &topology, std::vector<BaseParticle *> &particles);
-	int _parse_new_topology(std::ifstream &topology, std::vector<BaseParticle *> &particles);
+	bool _is_new_topology;
+	std::vector<input_file> _lines;
 };
 
 #endif /* SRC_UTILITIES_TOPOLOGYPARSER_H_ */
