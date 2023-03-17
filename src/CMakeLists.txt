@@ -133,6 +133,7 @@ SET(move_SOURCES
 	Backends/MCMoves/MoveFactory.cpp
 	Backends/MCMoves/MCTras.cpp
 	Backends/MCMoves/MCRot.cpp
+	Backends/MCMoves/Pivot.cpp
 	Backends/MCMoves/VMMC.cpp
 	Backends/MCMoves/VolumeMove.cpp
 	Backends/MCMoves/MoleculeVolumeMove.cpp
