@@ -7,11 +7,9 @@
 #include "../Particles/RNANucleotide.h"
 
 /**
- * @brief Handles interactions between DNA nucleotides.
+ * @brief Handles interactions between DNA and RNA nucleotides.
  *
- * It supports both the average-sequence model (http://jcp.aip.org/resource/1/jcpsa6/v134/i8/p085101_s1)
- * and the sequence-dependence model (http://jcp.aip.org/resource/1/jcpsa6/v137/i13/p135101_s1).
- * This is the default interaction.
+ * 
  */
 
 class DNAwithRNAInteraction : public BaseInteraction {
