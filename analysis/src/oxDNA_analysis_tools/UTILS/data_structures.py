@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from copy import deepcopy
 from typing import List
 from ctypes import c_ulong
 import numpy as np

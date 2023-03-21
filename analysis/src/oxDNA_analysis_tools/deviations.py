@@ -91,7 +91,7 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
             })
         )
 
-    print("INFO: writing RMSDs to oxView order parameter file, {}".format(data_file))
+    print("INFO: writing RMSDs to oxView order parameter file, {}".format(data_file), file=stderr)
     with open(data_file, 'w') as f:
         f.write(
             dumps({
@@ -99,7 +99,7 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
             })
         )
 
-    print("INFO: writing RMSD plot to {}".format(plot_name))
+    print("INFO: writing RMSD plot to {}".format(plot_name), file=stderr)
     plt.plot(RMSDs)
     plt.axhline(np.mean(RMSDs), color='red')
     plt.xlabel('Configuration')
@@ -147,7 +147,7 @@ def main():
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button", file=stderr)
     else:
         indexes = list(range(top_info.nbases))
 

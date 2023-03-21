@@ -175,7 +175,7 @@ def main():
     if args.deviations:
         from oxDNA_analysis_tools import deviations
         dev_file = args.deviations[0]
-        print("INFO: Launching compute_deviations")
+        print("INFO: Launching compute_deviations", file=stderr)
 
         RMSDs, RMSFs = deviations.deviations(traj_info, top_info, mean_conf, indexes, ncpus)
         deviations.output(RMSDs, RMSFs, dev_file, dev_file.split('.')[0]+"_rmsd.png", dev_file.split('.')[0]+"_rmsd_data.json")
