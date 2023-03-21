@@ -608,7 +608,7 @@ void SimBackend::update_observables_data() {
 	bool updated = false;
 	for(auto const &obs : _config_info->observables) {
 		if(obs->need_updating(current_step())) {
-			if(!updated) {
+			if(!updated && obs->require_data_on_CPU()) {
 				apply_simulation_data_changes();
 				updated = true;
 			}
@@ -728,6 +728,11 @@ void SimBackend::print_conf(bool reduced, bool only_last) {
 		_obs_output_last_conf->print_output(current_step());
 		if(_obs_output_last_conf_bin != nullptr) {
 			_obs_output_last_conf_bin->print_output(current_step());
+		}
+
+		// serialise the observables
+		for(auto const &obs : _config_info->observables) {
+			obs->serialise();
 		}
 	}
 }

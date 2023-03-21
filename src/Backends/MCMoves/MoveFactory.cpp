@@ -14,6 +14,7 @@
 #include "MCRot.h"
 #include "VolumeMove.h"
 #include "MoleculeVolumeMove.h"
+#include "Pivot.h"
 #include "VMMC.h"
 #include "ShapeMove.h"
 #include "RotateSite.h"
@@ -32,6 +33,7 @@ MovePtr MoveFactory::make_move(input_file &inp, input_file &sim_inp) {
 	else if(!move_type.compare("VMMC")) ret = std::make_shared<VMMC>();
 	else if(!move_type.compare("shape")) ret = std::make_shared<ShapeMove>();
 	else if(!move_type.compare("rotate_site")) ret = std::make_shared<RotateSite>();
+	else if(!move_type.compare("pivot")) ret = std::make_shared<Pivot>();
 	//else if (!move_type.compare("PatchyShape")) ret = std::make_shared<MCMovePatchyShape(Info);
 	else {
 		ret = PluginManager::instance()->get_move(move_type);

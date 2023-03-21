@@ -202,14 +202,16 @@ This observable can be used to save disk space by generating trajectories contai
 Compute the osmotic pressure of the system.
 
 * `type = pressure`: the observable type.
-* `[stress_tensor = <bool>]`: if `true`, the output will contain 7 fields: the total pressure and 6 components of the (symmetric) stress tensor: $xx, yy, zz, xy, xz, yz$.
+* `[stress_tensor = <bool>]`: if `true`, the output will contain 7 fields: the total pressure and 6 components of the (symmetric) stress tensor: $xx, yy, zz, xy, xz, yz$. Defaults to `false`
+* `[PV_only = <bool>]`: if `true`, the pressure and (optionally) the stress tensor won't be divided by the volume of the simulation box. Defaults to `false`.
 
 ## Stress autocorrelation
 
 Compute the stress autocorrelation function $G(t)$ using the multi-tau method describere [here](https://doi.org/10.1063/1.3491098). This observable supports the `update_every` option.
 
-* `[m = int]`: Size of the average used by the algorithm. Defaults to 2.
-* `[p = int]`: The size of the coarse-grained levels used by the algorithm. Defaults to 16.
+* `[m = <int>]`: size of the average used by the algorithm. Defaults to 2.
+* `[p = <int>]`: The size of the coarse-grained levels used by the algorithm. Defaults to 16.
+* `[serialise = <bool>]`: if `true`, every time the observable is printed, also generate files that can be used to recreate the observable's data structures. This makes it possible to restart simulations that keep accumulating statistics for the autocorrelation. Note that if this is set to `true`, then the observable will look for these files to reload the data upon restarting. Defaults to `false`.
 
 ## Pitch
 

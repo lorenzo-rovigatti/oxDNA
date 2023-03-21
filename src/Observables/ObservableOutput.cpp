@@ -179,6 +179,12 @@ void ObservableOutput::print_output(llint step) {
 	stringstream ss;
 	for(auto it = _obss.begin(); it != _obss.end(); it++) {
 		if(it != _obss.begin()) ss << " ";
+
+		// if "update_every" is not set we update the observable's data here
+		// otherwise it is updated by SimBackend::update_observables_data()
+		if(!(*it)->is_update_every_set()) {
+			(*it)->update_data(step);
+		}
 		ss << (*it)->get_output_string(step);
 	}
 

@@ -22,8 +22,22 @@
 #define IND 0
 #endif
 
+// in the case of pair-wise forces, which are counted twice, one should set half=true
+// while three-body forces are counted only once, so half=false should be used.
+template<bool half>
+__device__ void _update_stress_tensor(CUDAStressTensor &st, const c_number4 &r, const c_number4 &force) {
+	c_number factor = (half) ? 0.5f : 1.0f;
+
+	st.e[0] -= r.x * force.x * factor;
+	st.e[1] -= r.y * force.y * factor;
+	st.e[2] -= r.z * force.z * factor;
+	st.e[3] -= r.x * force.y * factor;
+	st.e[4] -= r.x * force.z * factor;
+	st.e[5] -= r.y * force.z * factor;
+}
+
 //This is the most commonly called quaternion to matrix conversion. 
-__forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, c_number4 &a1, c_number4 &a2, c_number4 &a3) {
+__forceinline__ __device__ void get_vectors_from_quat(const GPU_quat &q, c_number4 &a1, c_number4 &a2, c_number4 &a3) {
 	c_number sqx = q.x * q.x;
 	c_number sqy = q.y * q.y;
 	c_number sqz = q.z * q.z;
@@ -47,7 +61,7 @@ __forceinline__ __device__ void get_vectors_from_quat(GPU_quat &q, c_number4 &a1
 }
 
 template<typename t_quat>
-__forceinline__ __device__ t_quat quat_multiply(t_quat &a, t_quat &b) {
+__forceinline__ __device__ t_quat quat_multiply(const t_quat &a, const t_quat &b) {
 	t_quat p;
 	p.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
 	p.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
@@ -90,17 +104,26 @@ __forceinline__ __device__ double atomicAdd(double* address, double val) {
 }
 #endif
 
-__forceinline__ __device__ void LR_atomicAdd(c_number4 *dst, c_number4 delta) {
+__forceinline__ __device__ void LR_atomicAdd(c_number4 *dst, const c_number4 &delta) {
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
 	atomicAdd(&(dst->w), delta.w);
 }
 
-__forceinline__ __device__ void LR_atomicAddXYZ(c_number4 *dst, c_number4 delta) {
+__forceinline__ __device__ void LR_atomicAddXYZ(c_number4 *dst, const c_number4 &delta) {
 	atomicAdd(&(dst->x), delta.x);
 	atomicAdd(&(dst->y), delta.y);
 	atomicAdd(&(dst->z), delta.z);
+}
+
+__forceinline__ __device__ void LR_atomicAddST(CUDAStressTensor *dst, const CUDAStressTensor &delta) {
+	atomicAdd(&(dst->e[0]), delta.e[0]);
+	atomicAdd(&(dst->e[1]), delta.e[1]);
+	atomicAdd(&(dst->e[2]), delta.e[2]);
+	atomicAdd(&(dst->e[3]), delta.e[3]);
+	atomicAdd(&(dst->e[4]), delta.e[4]);
+	atomicAdd(&(dst->e[5]), delta.e[5]);
 }
 
 /**
@@ -120,9 +143,7 @@ __forceinline__ __device__ c_number quad_distance(const c_number4 &r_i, const c_
 
 __forceinline__ __device__ int get_particle_type(const c_number4 &r_i) {
 	int my_btype = __float_as_int(r_i.w) >> 22;
-	if(my_btype >= 0 && my_btype <= 3) return my_btype;
-	if(my_btype > 0) return my_btype % 4;
-	else return 3 - ((3 - (my_btype)) % 4);
+	return (my_btype > 0) ? (my_btype & 3) : 3 - ((3 - (my_btype)) & 3); // a & 3 is equivalent to a % 4, but much faster
 }
 
 __forceinline__ __device__ int get_particle_index(const c_number4 &r_i) {
@@ -156,11 +177,11 @@ __forceinline__ __host__ __device__ c_number4 make_c_number4(const c_number x, c
 	return ret;
 }
 
-__forceinline__ __device__ c_number _module(const c_number4 v) {
+__forceinline__ __device__ c_number _module(const c_number4 &v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
-__forceinline__ __device__ c_number _module(const float3 v) {
+__forceinline__ __device__ c_number _module(const float3 &v) {
 	return sqrtf(SQR(v.x) + SQR(v.y) + SQR(v.z));
 }
 
@@ -343,6 +364,12 @@ __forceinline__ __device__ void operator-=(float4 &a, float4 b) {
 	a.y -= b.y;
 	a.z -= b.z;
 	a.w += b.w;
+}
+
+__forceinline__ __device__ c_number4 stably_normalised(const c_number4 &v) {
+	c_number max = fmaxf(fmaxf(fabsf(v.x), fabsf(v.y)), fabsf(v.z));
+	c_number4 res = v / max;
+	return res / _module(res);
 }
 
 #endif /* CUDA_LR_COMMON */

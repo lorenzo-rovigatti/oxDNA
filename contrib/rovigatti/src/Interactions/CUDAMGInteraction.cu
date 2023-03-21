@@ -139,8 +139,8 @@ void CUDAMGInteraction::get_settings(input_file &inp) {
 	MGInteraction::get_settings(inp);
 }
 
-void CUDAMGInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAMGInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	MGInteraction::init();
 
 	std::vector<BaseParticle *> particles(_N);

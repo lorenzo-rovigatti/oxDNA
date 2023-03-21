@@ -49,6 +49,8 @@ number DNAInteraction_relax::_backbone(BaseParticle *p, BaseParticle *q, bool co
 		p->force -= force;
 		q->force += force;
 
+		_update_stress_tensor(_computed_r, force);
+
 		// we need torques in the reference system of the particle
 		p->torque -= p->orientationT * p->int_centers[DNANucleotide::BACK].cross(force);
 		q->torque += q->orientationT * q->int_centers[DNANucleotide::BACK].cross(force);

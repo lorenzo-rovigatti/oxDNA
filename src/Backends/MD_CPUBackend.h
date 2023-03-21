@@ -22,10 +22,8 @@ class MD_CPUBackend: public MDBackend {
 protected:
 	std::shared_ptr<BaseThermostat> _thermostat;
 	MovePtr _V_move;
-	bool _compute_stress_tensor;
 	int _stress_tensor_avg_every;
 	int _stress_tensor_counter;
-	LR_matrix _stress_tensor;
 
 	// thermostat introduced in https://journals.aps.org/pre/abstract/10.1103/PhysRevE.75.056707
 	bool _use_builtin_langevin_thermostat = false;
@@ -36,8 +34,6 @@ protected:
 	void _compute_forces();
 	void _second_step();
 
-	void _update_forces_and_stress_tensor(BaseParticle *p, BaseParticle *q);
-	void _update_kinetic_stress_tensor(BaseParticle *p);
 	void _update_backend_info();
 
 public:

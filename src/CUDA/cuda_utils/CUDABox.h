@@ -38,7 +38,7 @@ public:
 
 	}
 
-	__forceinline__ __device__ c_number4 minimum_image(c_number4 &r_i, c_number4 &r_j) {
+	__forceinline__ __device__ c_number4 minimum_image(const c_number4 &r_i, const c_number4 &r_j) const {
 		c_number4 res;
 		res.x = r_j.x - r_i.x;
 		res.y = r_j.y - r_i.y;
@@ -51,12 +51,12 @@ public:
 		return res;
 	}
 
-	__forceinline__ __device__ c_number sqr_minimum_image(c_number4 &r_i, c_number4 &r_j) {
+	__forceinline__ __device__ c_number sqr_minimum_image(const c_number4 &r_i, const c_number4 &r_j) const {
 		c_number4 mi = minimum_image(r_i, r_j);
 		return SQR(mi.x) + SQR(mi.y) + SQR(mi.z);
 	}
 
-	__forceinline__ __device__ int compute_cell_index(int N_cells_side[3], float4 &r) {
+	__forceinline__ __device__ int compute_cell_index(const int N_cells_side[3], const float4 &r) const {
 		int cx = ((r.x / _Lx - floorf(r.x / _Lx)) * (1.f - FLT_EPSILON)) * N_cells_side[0];
 		int cy = ((r.y / _Ly - floorf(r.y / _Ly)) * (1.f - FLT_EPSILON)) * N_cells_side[1];
 		int cz = ((r.z / _Lz - floorf(r.z / _Lz)) * (1.f - FLT_EPSILON)) * N_cells_side[2];
@@ -64,7 +64,7 @@ public:
 		return (cz * N_cells_side[1] + cy) * N_cells_side[0] + cx;
 	}
 
-	__forceinline__ __device__ int3 compute_cell_spl_idx(int N_cells_side[3], float4 &r) {
+	__forceinline__ __device__ int3 compute_cell_spl_idx(const int N_cells_side[3], const float4 &r) const {
 		int cx = (r.x / _Lx - floorf(r.x / _Lx)) * (1.f - FLT_EPSILON) * N_cells_side[0];
 		int cy = (r.y / _Ly - floorf(r.y / _Ly)) * (1.f - FLT_EPSILON) * N_cells_side[1];
 		int cz = (r.z / _Lz - floorf(r.z / _Lz)) * (1.f - FLT_EPSILON) * N_cells_side[2];
@@ -72,7 +72,7 @@ public:
 		return make_int3(cx, cy, cz);
 	}
 
-	__forceinline__ __device__ int compute_cell_index(int N_cells_side[3], LR_double4 &r) {
+	__forceinline__ __device__ int compute_cell_index(const int N_cells_side[3], const LR_double4 &r) const {
 		int cx = (r.x / _Lx - floor(r.x / _Lx)) * (1. - DBL_EPSILON) * N_cells_side[0];
 		int cy = (r.y / _Ly - floor(r.y / _Ly)) * (1. - DBL_EPSILON) * N_cells_side[1];
 		int cz = (r.z / _Lz - floor(r.z / _Lz)) * (1. - DBL_EPSILON) * N_cells_side[2];
@@ -80,7 +80,7 @@ public:
 		return (cz * N_cells_side[1] + cy) * N_cells_side[0] + cx;
 	}
 
-	__forceinline__ __device__ int3 compute_cell_spl_idx(int N_cells_side[3], LR_double4 &r) {
+	__forceinline__ __device__ int3 compute_cell_spl_idx(const int N_cells_side[3], const LR_double4 &r) const {
 		int cx = (r.x / _Lx - floor(r.x / _Lx)) * (1. - DBL_EPSILON) * N_cells_side[0];
 		int cy = (r.y / _Ly - floor(r.y / _Ly)) * (1. - DBL_EPSILON) * N_cells_side[1];
 		int cz = (r.z / _Lz - floor(r.z / _Lz)) * (1. - DBL_EPSILON) * N_cells_side[2];

@@ -8,7 +8,7 @@
 #include "Rdf.h"
 
 Rdf::Rdf() {
-	_nconf = 0;
+	_n_pairs = 0;
 	_nbins = -1;
 	_bin_size = (number) -1.;
 	_max_value = (number) -1.;
@@ -20,20 +20,24 @@ Rdf::~Rdf() {
 
 }
 
-std::string Rdf::get_output_string(llint curr_step) {
+void Rdf::update_data(llint curr_step) {
 	int N = _config_info->N();
 
 	// get smallest side
 	LR_vector sides = _config_info->box->box_sides();
 	number box_side = sides[0];
-	if(sides[1] < box_side) box_side = sides[1];
-	if(sides[2] < box_side) box_side = sides[2];
+	if(sides[1] < box_side) {
+		box_side = sides[1];
+	}
 
-	_nconf += 1;
+	if(sides[2] < box_side) {
+		box_side = sides[2];
+	}
 
-	if(_max_value > box_side / 2. && _nconf == 1) OX_LOG(Logger::LOG_WARNING, "Observable Rdf: computing profile with max_value > box_size/2. (%g > %g/2.)", _max_value, box_side);
+	_times_updated++;
+	if(_max_value > box_side / 2. && _times_updated == 1) OX_LOG(Logger::LOG_WARNING, "Observable Rdf: computing profile with max_value > box_size/2. (%g > %g/2.)", _max_value, box_side);
 
-	int n_pairs = 0;
+	_n_pairs = 0;
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = _config_info->particles()[i];
 		for(int j = 0; j < i; j++) {
@@ -47,15 +51,17 @@ std::string Rdf::get_output_string(llint curr_step) {
 					int mybin = (int) (0.01 + floor(drmod / _bin_size));
 					_profile[mybin] += 1.;
 				}
-				n_pairs++;
+				_n_pairs++;
 			}
 		}
 	}
+}
 
+std::string Rdf::get_output_string(llint curr_step) {
 	std::stringstream ret;
 	ret.precision(9);
 	double myx = _bin_size / 2.;
-	double norm_factor = 4 * M_PI * _nconf * n_pairs * _bin_size / _config_info->box->V();
+	double norm_factor = 4 * M_PI * _times_updated * _n_pairs * _bin_size / _config_info->box->V();
 	for(auto value: _profile) {
 		ret << myx << " " << value / (norm_factor * myx * myx) << std::endl;
 		myx += _bin_size;
