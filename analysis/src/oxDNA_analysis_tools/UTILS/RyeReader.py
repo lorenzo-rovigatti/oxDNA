@@ -378,6 +378,18 @@ def conf_to_str(conf : Configuration) -> str:
     header = f't = {int(conf.time)}\nb = {" ".join(conf.box.astype(str))}\nE = {" ".join(conf.energy.astype(str))}\n'
     return(''.join([header, ''.join([('{} {} {}\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
 
+def write_top(path:str, system:System) -> None:
+    """
+    Write the system to a topology file"
+
+    Parameters:
+        path (str) : path to the output file
+        system (System) : system to write out
+    """
+
+    with open(path, 'w+') as f:
+        f.write(get_top_string(system))
+
 def get_top_string(system) -> str:
     """
         Write topology file from system object.
