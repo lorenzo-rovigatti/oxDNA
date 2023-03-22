@@ -573,6 +573,9 @@ min_RMSD (float): The RMSD from the centroid to the reference</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.db_to_force.parse_dot_bracket" title="oxDNA_analysis_tools.db_to_force.parse_dot_bracket"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.db_to_force.parse_dot_bracket</span></code></a></p></td>
 <td><p>Converts a dot-bracket string to a list of paired nucleotides</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.db_to_force.db_to_forcelist" title="oxDNA_analysis_tools.db_to_force.db_to_forcelist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.db_to_force.db_to_forcelist</span></code></a></p></td>
+<td><p>Convert a dot-bracket string to oxDNA mutual traps</p></td>
+</tr>
 </tbody>
 </table>
 <dl class="py function">
@@ -588,6 +591,27 @@ min_RMSD (float): The RMSD from the centroid to the reference</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>output (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.db_to_force.db_to_forcelist">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.db_to_force.</code><code class="sig-name descname">db_to_forcelist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">db_str</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em>, <em class="sig-param"><span class="n">strength</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)">float</a></span></em>, <em class="sig-param"><span class="n">reverse</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Dict<span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.db_to_force.db_to_forcelist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a dot-bracket string to oxDNA mutual traps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db_str</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The dot-bracket string to convert.  Currently ignores pseudoknots.</p></li>
+<li><p><strong>strength</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Strength of the mutual trap to create</p></li>
+<li><p><strong>reverse</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Reverse the dot-bracket string before creating the forces?</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of force dictionaries</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(List[Dict])</p>
 </dd>
 </dl>
 </dd></dl>

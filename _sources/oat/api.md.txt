@@ -150,8 +150,10 @@
     :nosignatures:
 
     oxDNA_analysis_tools.db_to_force.parse_dot_bracket
+    oxDNA_analysis_tools.db_to_force.db_to_forcelist
     
 .. autofunction:: oxDNA_analysis_tools.db_to_force.parse_dot_bracket
+.. autofunction:: oxDNA_analysis_tools.db_to_force.db_to_forcelist
 ```
 
 ## Deviations

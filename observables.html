@@ -402,15 +402,17 @@
 <p>Compute the osmotic pressure of the system.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">pressure</span></code>: the observable type.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[stress_tensor</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, the output will contain 7 fields: the total pressure and 6 components of the (symmetric) stress tensor: <span class="math notranslate nohighlight">\(xx, yy, zz, xy, xz, yz\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[stress_tensor</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, the output will contain 7 fields: the total pressure and 6 components of the (symmetric) stress tensor: <span class="math notranslate nohighlight">\(xx, yy, zz, xy, xz, yz\)</span>. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[PV_only</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, the pressure and (optionally) the stress tensor won’t be divided by the volume of the simulation box. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
 </ul>
 </div>
 <div class="section" id="stress-autocorrelation">
 <h2>Stress autocorrelation<a class="headerlink" href="#stress-autocorrelation" title="Permalink to this headline">¶</a></h2>
 <p>Compute the stress autocorrelation function <span class="math notranslate nohighlight">\(G(t)\)</span> using the multi-tau method describere <a class="reference external" href="https://doi.org/10.1063/1.3491098">here</a>. This observable supports the <code class="docutils literal notranslate"><span class="pre">update_every</span></code> option.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">=</span> <span class="pre">int]</span></code>: Size of the average used by the algorithm. Defaults to 2.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[p</span> <span class="pre">=</span> <span class="pre">int]</span></code>: The size of the coarse-grained levels used by the algorithm. Defaults to 16.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: size of the average used by the algorithm. Defaults to 2.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[p</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: The size of the coarse-grained levels used by the algorithm. Defaults to 16.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[serialise</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: if <code class="docutils literal notranslate"><span class="pre">true</span></code>, every time the observable is printed, also generate files that can be used to recreate the observable’s data structures. This makes it possible to restart simulations that keep accumulating statistics for the autocorrelation. Note that if this is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, then the observable will look for these files to reload the data upon restarting. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
 </ul>
 </div>
 <div class="section" id="pitch">
