@@ -48,7 +48,7 @@ def db_to_forcelist(db_str:str, strength:float, reverse:bool) -> List[Dict]:
             reverse (bool): Reverse the dot-bracket string before creating the forces?
 
         Returns:
-            (List[Dict]): A list of force dictionaries
+            List[Dict]: A list of force dictionaries
     """
     if reverse:
         db_str = db_str[::-1]
