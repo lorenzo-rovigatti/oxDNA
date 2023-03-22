@@ -12,14 +12,13 @@ def old_to_new(topology, configuration, prefix):
     print_inverted_configuration(configuration, prefix + configuration)
     
     # convert the topology
-    sequences = []
     with open(topology) as f:
         N, N_strands = [int(x) for x in f.readline().split()]
         strands = {str(i) : [] for i in range(1, N_strands + 1)}
         for line in f.readlines():
             spl = line.split()
             strands[spl[0]].append(spl[1:])
-        
+            
     with open(prefix + topology, "w") as new_t:
         print(N, N_strands, "5->3", file=new_t)
         
@@ -36,10 +35,12 @@ def old_to_new(topology, configuration, prefix):
                 except ValueError:
                     sequence += nucleotide[0]
                 
-        line = sequence[::-1]
-        if circular:
-            line += " circular=True"
-        print(line, file=new_t)
+            line = sequence[::-1]
+            if circular:
+                line += " circular=True"
+            else:
+                line += " circular=False"
+            print(line, file=new_t)
 
 def new_to_old(topology, configuration, prefix):
     print("INFO: converting from new to old", file=sys.stderr)
@@ -49,6 +50,8 @@ def new_to_old(topology, configuration, prefix):
     # convert the topology
     with open(topology) as f:
         N, N_strands = [int(x) for x in f.readline().split()[0:2]]
+        sequences = []
+        is_circular = []
         for line in f.readlines():
             spl = line.split()
             circular = False
@@ -57,12 +60,52 @@ def new_to_old(topology, configuration, prefix):
                 if key == "circular":
                     circular = value == "true"
             
-            raise Exception("not finished yet")
-                    
+            is_circular.append(circular)
+            
+            open_parenthesis = False
+            parenthesis_token = ""
+            sequence = []
         
+            for c in spl[0]:
+                if c == '(':
+                    open_parenthesis = True;
+                    parenthesis_token = ""
+                elif c == ')':
+                    if not open_parenthesis:
+                        print(f"ERROR: unbalanced parenthesis in sequence '{spl[0]}'", file=sys.stderr)
+                    open_parenthesis = False
+                    sequence.append(parenthesis_token)
+                else:
+                    if open_parenthesis:
+                        parenthesis_token += c
+                    else:
+                        sequence.append(c)
+                        
+            sequences.append(sequence[::-1])
+                        
     with open(prefix + topology, "w") as old_t:
         print(N, N_strands, file=old_t)
-    
+        current_idx = 0
+        for i, sequence in enumerate(sequences):
+            strand = i + 1
+            first = current_idx
+            last = current_idx + len(sequence) - 1
+            for nucl in sequence:
+                prev = current_idx - 1
+                next = current_idx + 1
+                if current_idx == first:
+                    if is_circular[i]:
+                        prev = last
+                    else:
+                        prev = -1
+                if current_idx == last:
+                    if is_circular[i]:
+                        next = first
+                    else:
+                        next = -1
+                current_idx += 1
+                
+                print(strand, nucl, prev, next, file=old_t)
 
 if __name__ == '__main__': 
 
