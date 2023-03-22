@@ -38,7 +38,13 @@ def parse_dot_bracket(input:str) -> List[int]:
 
     return output
 
-def db_to_forcelist(db_str, strength):
+def db_to_forcelist(db_str:str, strength, reverse):
+    if reverse:
+        db_str = db_str[::-1]
+        db_str = db_str.replace('(', '&')
+        db_str = db_str.replace(')', '(')
+        db_str = db_str.replace('&', ')')
+
     # convert the db string to an index list
     db_idx = parse_dot_bracket(db_str)
 
@@ -56,6 +62,7 @@ def cli_parser(prog="db_to_force.py"):
     parser.add_argument('db_file', type=str, nargs=1, help="A text file containing dot-bracket notation of the base-pairing arrangement")
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Name of the file to write the force list to')
     parser.add_argument('-s', '--strength', type=float, nargs=1, help='Strength of the forces')
+    parser.add_argument('-r', '--reverse', action='store_true', dest='reverse', default=False, help='Reverse the dot-bracket before writing forces')
     return parser
 
 def main():
@@ -77,7 +84,9 @@ def main():
         strength = 0.09
         print("INFO: No strength provided, defaulting to {}".format(strength), file=stderr)
 
-    force_list = db_to_forcelist(db_str, strength)
+    reverse = args.reverse
+
+    force_list = db_to_forcelist(db_str, strength, reverse)
 
     # write the force file
     if args.output:
