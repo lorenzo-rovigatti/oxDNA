@@ -52,8 +52,7 @@ def align(full_base, ox_base):
             full_base.rotate(R)
 
 def cli_parser(prog="oxDNA_PDB.py"):
-    parser = argparse.ArgumentParser(prog=os.path.basename(
-        __file__), description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
+    parser = argparse.ArgumentParser(prog=prog, description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
     parser.add_argument('topology', type=str, nargs=1,
                         help='the oxDNA topology file for the structure')
     parser.add_argument('configuration', type=str, nargs=1,
