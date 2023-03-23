@@ -64,8 +64,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
         backend = oxpy.analysis.AnalysisBackend(inp)
         if backend.config_info().particles()[ctx.n1].strand_id != backend.config_info().particles()[ctx.n2].strand_id:
-            print("ERROR nucid_1 and nucid_2 must be on the same strand", file=sys.stderr)
-            sys.exit()
+            raise RuntimeError("nucid_1 and nucid_2 must be on the same strand")
 
         while backend.read_next_configuration():
             pairs = backend.config_info().get_observable_by_id("my_obs").get_output_string(backend.config_info().current_step).strip().split('\n')[1:]

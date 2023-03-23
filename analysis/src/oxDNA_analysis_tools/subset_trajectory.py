@@ -102,7 +102,7 @@ def main():
             try:
                 data = sorted([int(i) for i in data])
             except:
-                print("ERROR: The index file {} must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button".format(i))
+                raise RuntimeError("The index file {} must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button".format(i))
         indexes.append(data)
         outfiles.append(o)
 

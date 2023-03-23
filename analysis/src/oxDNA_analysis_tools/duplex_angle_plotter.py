@@ -175,7 +175,7 @@ def main():
 
     #Make sure that the input is correctly formatted
     if(len(files) != len(p1s) != len(p2s)):
-        print("ERROR: bad input arguments\nPlease supply an equal number of trajectory and particle pairs", file=stderr)
+        raise RuntimeError("Bad input arguments\nPlease supply an equal number of trajectory and particle pairs")
         exit(1)
 
     #-o names the output file
@@ -200,8 +200,7 @@ def main():
         if "both" in args.format:
             hist = line = True
         if hist == line == False:
-            print("ERROR: unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"", file=stderr)
-            exit(1)
+            raise RuntimeError("Unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"")
     else:
         print("INFO: No graph format specified, defaulting to histogram", file=stderr)
         hist = True

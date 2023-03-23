@@ -132,8 +132,8 @@ def get_top_info(top : str) -> TopInfo:
         elif len(my_top_info) == 5:
             nbases, ndna, nres = (my_top_info[0], my_top_info[2], my_top_info[3])
         else:
-            print("ERROR: malformed topology header, failed to read topology file", file=stderr)
-            exit()
+            raise RuntimeError("Malformed topology header, failed to read topology file.")
+        
     return TopInfo(top, int(nbases))
 
 def get_top_info_from_traj(traj : str) -> TopInfo:
@@ -297,7 +297,7 @@ def get_input_parameter(input_file, parameter) -> str:
                 value = line.split('=')[1].replace(' ','').replace('\n','')
     fin.close()
     if value == '':
-        print("ERROR: Key {} not found in input file {}".format(parameter, input_file))
+        raise RuntimeError("Key {} not found in input file {}".format(parameter, input_file))
     return value
 
 ####################################################################################

@@ -163,8 +163,8 @@ def main():
     # Get trajectory metadata
     top_file = get_input_parameter(inputfile, "topology")
     if not path.exists(top_file):
-        print("ERROR: Topology '{}' not found, the topology specified in the input file must be present.".format(get_input_parameter(inputfile, "topology")), file=stderr)
-        exit(1)
+        raise RuntimeError("Topology '{}' not found, the topology specified in the input file must be present.".format(top_file))
+    
     top_info, traj_info = describe(top_file, traj_file)
 
     # Convert the designed pairs into a dict

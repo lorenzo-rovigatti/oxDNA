@@ -134,8 +134,7 @@ def main():
 
     #Make sure that the input is correctly formatted
     if len(p1ss) != len(p2ss):
-        print("ERROR: bad input arguments\nPlease supply an even number of particles", file=stderr)
-        exit(1)
+        raise RuntimeError(" bad input arguments\nPlease supply an even number of particles")
 
     # Get metadata on the inputs
     top_infos = []
@@ -164,8 +163,7 @@ def main():
             hist = True
             lineplt = True
         if hist == lineplt == False:
-            print("ERROR: unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"", file=stderr)
-            exit(1)
+            raise RuntimeError("Unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"")
     else:
         print("INFO: No graph format specified, defaulting to histogram", file=stderr)
         hist = True
@@ -290,8 +288,8 @@ def main():
 
     if cluster == True:
         if not all([x == trajectories[0] for x in trajectories]):
-            print("ERROR: Clustering can only be run on a single trajectory", file=stderr)
-            exit(1)
+            raise RuntimeError("Clustering can only be run on a single trajectory")
+
         from oxDNA_analysis_tools.clustering import perform_DBSCAN
 
         labs = perform_DBSCAN(traj_infos[0], top_infos[0], distances[0].T, "euclidean", 12, 8)

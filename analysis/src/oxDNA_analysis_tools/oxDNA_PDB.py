@@ -138,13 +138,11 @@ def main():
                 # .json format from oat deviations
                 substrings = f.read().split("[")[1].split("]")[0].split(",")
             except Exception as e:
-                print("ERROR: Parsing error in RMSF file. Invalid Format: %s" % e, file=sys.stderr)
-                exit(1)
+                raise RuntimeError("Parsing error in RMSF file. Invalid Format: %s" % e)
             try:
                 rmsf_per_nucleotide = {i: float(s) for i, s in enumerate(substrings)}
             except Exception as e:
-                print("ERROR: Parsing error in RMSF file. Conversion to float failed : %s" % e, file=sys.stderr)
-                exit(1)
+                raise RuntimeError("Parsing error in RMSF file. Conversion to float failed : %s" % e)
     else:
         rmsf_per_nucleotide = defaultdict(lambda: 1.00)
 
@@ -197,8 +195,7 @@ def main():
                 else:
                      reading_position = next_reading_position
             elif strand.id < 0 and not protein_pdb_files:
-                print("ERROR: You must provide the PDB files for proteins in the scene")
-                exit(1)
+                raise RuntimeError("You must provide the PDB files for proteins in the scene.")
 
             # Nucleic Acids
             elif strand.id >= 0:

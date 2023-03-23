@@ -9,7 +9,9 @@ from oxDNA_analysis_tools.external_force_utils.forces import mutual_trap
 
 def parse_dot_bracket(input:str) -> List[int]:
     """
-    Converts a dot-bracket string to a list of paired nucleotides
+    Converts a dot-bracket string to a list of paired nucleotides.
+
+    Accepts (), [], {}, and . characters, otherwise throws an error
 
     Parameters:
         input (str): A dot-bracket string
@@ -44,8 +46,7 @@ def parse_dot_bracket(input:str) -> List[int]:
             output[i] = pair
             output[pair] = i
         else:
-            print("ERROR: Encountered invalid character {} in dot bracket, exiting.".format(c), file=stderr)
-            exit(1)
+            raise RuntimeError("Encountered invalid character '{}' in dot bracket".format(c))
 
     return output
 

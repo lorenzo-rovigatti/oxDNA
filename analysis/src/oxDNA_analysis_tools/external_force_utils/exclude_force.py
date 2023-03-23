@@ -9,7 +9,7 @@ with open(index_file, 'r') as f:
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
 
 force_list = read_force_file(force_file)
 
