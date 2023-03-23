@@ -120,6 +120,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#minify">Minify</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#multidimensional-scaling-mean">Multidimensional scaling mean</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#output-bonds">Output bonds</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#oxdna-pdb">oxDNA -&gt; PDB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#principal-component-analysis">Principal component analysis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#persistence-length">Persistence Length</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#plot-energy">Plot energy</a></li>
@@ -454,7 +455,7 @@
 <h2>Dot-bracket to force<a class="headerlink" href="#dot-bracket-to-force" title="Permalink to this headline">¶</a></h2>
 <p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STRENGTH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="n">db_file</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="n">db_file</span>
 </pre></div>
 </div>
 <div class="section" id="positional-arguments">
@@ -471,8 +472,8 @@
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>Name of the file to write the force list to</p>
 </dd>
-<dt><kbd>-s, --strength</kbd></dt>
-<dd><p>Strength of the forces</p>
+<dt><kbd>-s, --stiff</kbd></dt>
+<dd><p>Stiffness of the mutual trap</p>
 </dd>
 <dt><kbd>-r, --reverse</kbd></dt>
 <dd><p>Reverse the dot-bracket before writing forces</p>
@@ -837,6 +838,55 @@
 </dd>
 <dt><kbd>-u, --units</kbd></dt>
 <dd><p>(optional) The units of the energy (pNnm or oxDNA)</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="oxdna-pdb">
+<h2>oxDNA -&gt; PDB<a class="headerlink" href="#oxdna-pdb" title="Permalink to this headline">¶</a></h2>
+<p><p>Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">oxDNA_PDB</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">RMSF_BFACTOR</span><span class="p">]</span>
+                     <span class="n">topology</span> <span class="n">configuration</span> <span class="n">direction</span> <span class="p">[</span><span class="n">pdbfiles</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>topology</kbd></dt>
+<dd><p>the oxDNA topology file for the structure</p>
+</dd>
+<dt><kbd>configuration</kbd></dt>
+<dd><p>the configuration file you wish to convert</p>
+</dd>
+<dt><kbd>direction</kbd></dt>
+<dd><p>the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.</p>
+</dd>
+<dt><kbd>pdbfiles</kbd></dt>
+<dd><p>PDB files for the proteins present in your structure.  If you have multiple proteins, you must specify multiple PDB files.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>The name of the output pdb file.  Defaults to name of the configuration+.pdb</p>
+</dd>
+<dt><kbd>-H, --hydrogen</kbd></dt>
+<dd><p>if you want to include hydrogen atoms in the output PDB file</p>
+<p>Default: True</p>
+</dd>
+<dt><kbd>-u, --uniform-residue-names</kbd></dt>
+<dd><p>if you want to use uniform residue names in the output PDB file</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-1, --one_file_per_strand</kbd></dt>
+<dd><p>if you want to have one PDB file per strand</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-r, --rmsf-file</kbd></dt>
+<dd><p>A RMSF file from deviations.  Will be used to fill the b-factors field in the output PDB (only for D(R)NA)</p>
 </dd>
 </dl>
 </div>

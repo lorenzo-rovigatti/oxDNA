@@ -179,6 +179,15 @@
     :prog: oat output_bonds
 ```
 
+## oxDNA -> PDB
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/oxDNA_PDB.py
+    :func: cli_parser
+    :prog: oat oxDNA_PDB
+```
+
 ## Principal component analysis
 
 ```{eval-rst}
