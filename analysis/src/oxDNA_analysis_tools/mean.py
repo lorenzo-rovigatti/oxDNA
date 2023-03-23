@@ -157,6 +157,7 @@ def main():
     else:
         ncpus = 1
 
+    # Actually perform the mean computation
     mean_conf = mean(traj_info, top_info, ref_conf, indexes, ncpus)
 
     #-o names the output file
