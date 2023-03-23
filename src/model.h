@@ -300,7 +300,7 @@
  */
 /// radial part
 #define HYDR_F1_hybrid 0
-#define HYDR_EPS_hybrid 1.000f
+#define HYDR_EPS_hybrid 1.41f
 #define HYDR_A_hybrid 8.f
 #define HYDR_RC_hybrid 0.75f
 #define HYDR_R0_hybrid 0.4f
