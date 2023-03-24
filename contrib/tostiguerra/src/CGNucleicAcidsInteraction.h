@@ -24,8 +24,8 @@ struct PSBond {
 		p_patch(pp),
 		q_patch(qp),
 		r(nr),
-                r_mod(rm),
-                r_part(rp) {
+    r_mod(rm),
+    r_part(rp) {
 
 	}
 };
@@ -49,10 +49,10 @@ protected:
 	number _sqr_rfene;
 	number _WCA_sigma = 1.0;
 	number _PS_sqr_rep_rcut;
-        number _mu = 1.0;
-        number dS_mod = 1.0;
-        number alpha_mod = 1.0;
-        number bdG_threshold = 1.0;
+  number _mu = 1.0;
+  number dS_mod = 1.0;
+  number alpha_mod = 1.0;
+  number bdG_threshold = 1.0;
 
 	std::vector<LR_vector> _chain_coms;
 
