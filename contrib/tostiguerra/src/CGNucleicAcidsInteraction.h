@@ -13,9 +13,9 @@ struct PSBond {
 	LR_vector force;
 	int p_patch, q_patch;
 	LR_vector r;
-  number r_mod;
+        number r_mod;
 	LR_vector p_torque, q_torque;
-  LR_vector r_part;
+        LR_vector r_part;
 
 	PSBond(BaseParticle *o, number e, number eps, int pp, int qp, LR_vector nr, number rm, LR_vector rp) :
 		other(o),
@@ -24,8 +24,8 @@ struct PSBond {
 		p_patch(pp),
 		q_patch(qp),
 		r(nr),
-    r_mod(rm),
-    r_part(rp) {
+                r_mod(rm),
+                r_part(rp) {
 
 	}
 };
@@ -49,11 +49,11 @@ protected:
 	number _sqr_rfene;
 	number _WCA_sigma = 1.0;
 	number _PS_sqr_rep_rcut;
-  number _mu = 1.0;
-  number dS_mod = 1.0;
-  number alpha_mod = 1.0;
+        number _mu = 1.0;
+        number dS_mod = 1.0;
+        number alpha_mod = 1.0;
+        number bdG_threshold = 1.0;
 
-  
 	std::vector<LR_vector> _chain_coms;
 
 	number _PS_alpha = 0.;
