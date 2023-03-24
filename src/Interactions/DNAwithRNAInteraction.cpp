@@ -821,13 +821,13 @@ void DNAwithRNAInteraction::init() {
 		seq_file.init_from_filename(_seq_filename_hybrid);
 		if(seq_file.state == ERROR)
 			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename_hybrid);
-
-		// cross-stacking
+		/*
+		// for changing the cross-stacking from seq-dep file. not needed for now
 		if(getInputFloat(&seq_file, "CROSS_B_B", &tmp_value, 0) == KEY_NOT_FOUND) {
 			getInputFloat(&seq_file, "CROSS_B_B", &tmp_value, 1);
 		}
-		_cross_K_multiplier_hybrid = tmp_value / model->RNA_CRST_K;
-
+		_cross_K_multiplier_hybrid = tmp_value / CRST_K_hybrid;
+		*/
 
 		// HB
 		// if X and Y are two bases which can interact via HB, then the
@@ -2643,7 +2643,7 @@ number DNAwithRNAInteraction::_cross_stacking_hybrid(BaseParticle *p, BasePartic
 }
 
 
-//NEED TO CHANGE THE POSITIONS OF THE INTERACTION SITES DEPENDING ON NUCLEOTIDE TYPE
+
 //essentially copy pasted from the rna model, may need changing in the future
 number DNAwithRNAInteraction::_coaxial_stacking_hybrid(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(_are_bonded(p, q)) {
