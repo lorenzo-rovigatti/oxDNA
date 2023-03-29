@@ -126,6 +126,7 @@ SET(interactions_SOURCES
 	Interactions/DNA2withRNA2Interaction.cpp
 	Interactions/DNANMInteraction.cpp
 	Interactions/DNANMwithRNANMInteraction.cpp
+	Interactions/DNAwithRNAInteraction_relax.cpp
 )
 
 SET(move_SOURCES
