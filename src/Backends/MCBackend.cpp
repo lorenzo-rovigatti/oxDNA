@@ -37,15 +37,15 @@ void MCBackend::get_settings(input_file &inp) {
 
 	SimBackend::get_settings(inp);
 
-	std::string backend;
-	getInputString(&inp, "backend", backend, 0);
+	std::string sim_type;
+	getInputString(&inp, "sim_type", sim_type, 0);
 
 	getInputInt(&inp, "check_energy_every", &_check_energy_every, 0);
 	if(getInputNumber(&inp, "check_energy_threshold", &_check_energy_threshold, 0) == KEY_NOT_FOUND) {
 		_check_energy_threshold = 1e-6;
 	}
 
-	if(backend == "MC") {
+	if(sim_type == "MC") {
 		getInputString(&inp, "ensemble", tmp, 1);
 		if(strncasecmp(tmp, "npt", 256) == 0) {
 			_ensemble = MC_ENSEMBLE_NPT;
@@ -76,6 +76,10 @@ void MCBackend::get_settings(input_file &inp) {
 			getInputNumber(&inp, "P", &(_P), 1);
 			getInputNumber(&inp, "delta_volume", &_delta[MC_MOVE_VOLUME], 1);
 		}
+	}
+	else if(sim_type == "VMMC") {
+		getInputNumber(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
+		getInputNumber(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
 	}
 
 	char energy_file[512];
