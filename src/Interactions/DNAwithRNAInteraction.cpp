@@ -2547,11 +2547,6 @@ number DNAwithRNAInteraction::_cross_stacking_hybrid(BaseParticle *p, BasePartic
 		number f4t8 = _custom_f4_DNA(cost8, CRST_F4_THETA8) + _custom_f4_DNA(-cost8, CRST_F4_THETA8);
 
 		number prefactor = 1.0f;
-		if(!_average_hybrid) {
-			prefactor = _cross_K_multiplier_hybrid;
-			f2 *= prefactor;
-		}
-
 		energy = f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
 		// makes sense since the above functions can return exactly 0
