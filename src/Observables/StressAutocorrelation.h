@@ -36,7 +36,7 @@ class StressAutocorrelation: public BaseObservable {
 			m(nm),
 			p(np),
 			level_number(l_number),
-			data(p),
+			data(0),
 			correlation(p),
 			counter(p) {
 			start_at = (l_number == 0) ? 0 : p / m;
