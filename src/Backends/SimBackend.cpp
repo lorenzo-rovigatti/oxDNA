@@ -89,6 +89,10 @@ SimBackend::~SimBackend() {
 			OX_LOG(Logger::LOG_NOTHING, "\tFor a total of %8.3lg MB/s\n", (total_file + total_stderr) / ((1024.*1024.) * time_passed));
 		}
 	}
+
+	// we explicitly clean up ConfigInfo so that observables are destructed before PluginManager unloads
+	// any dynamically-linked library
+	ConfigInfo::clear();
 }
 
 void SimBackend::get_settings(input_file &inp) {
