@@ -32,7 +32,7 @@ void PatchyBonds::get_settings(input_file &my_inp, input_file &sim_inp) {
 std::string PatchyBonds::_headers(llint step) {
 	std::stringstream headers;
 
-	headers << _config_info->curr_step << " " << _config_info->N() << endl;
+	headers << "# " << "step " << _config_info->curr_step << " N " << _config_info->N() << endl;
 
 	return headers.str();
 }
