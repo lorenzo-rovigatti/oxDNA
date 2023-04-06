@@ -2,7 +2,7 @@ from sys import stderr
 import numpy as np
 import pickle
 from os.path import exists
-from typing import List, Tuple
+from typing import List, Tuple, Iterator
 import os
 from oxDNA_analysis_tools.UTILS.data_structures import *
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import get_chunk_size
@@ -12,7 +12,7 @@ from oxDNA_analysis_tools.UTILS.get_confs import cget_confs
 ##########                             FILE READERS                       ##########
 ####################################################################################
 
-def Chunker(file, fsize, size=1000000) -> Chunk:
+def Chunker(file, fsize, size=1000000) -> Iterator[Chunk]:
     """
         Generator that yields chunks of a fixed number of bytes
 
@@ -31,7 +31,7 @@ def Chunker(file, fsize, size=1000000) -> Chunk:
         yield Chunk(b,current_chunk*size, current_chunk * size + size > fsize, fsize)
         current_chunk+=1
 
-def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> List[Configuration]:
+def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> Iterator[Configuration]:
     """
         Read a trajecory without multiprocessing.  
 
@@ -43,7 +43,7 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> Li
             ntopart (int) : The number of confs to read at a time
 
         Returns:
-            list[Configuration] : list of configurations
+            iterator[Configuration] : list of configurations
     """
     if chunk_size is None:
         chunk_size = get_chunk_size()
@@ -201,7 +201,7 @@ def get_traj_info(traj : str) -> TrajInfo:
 
     return TrajInfo(traj,len(idxs),idxs, incl_v)
 
-def describe(top : str, traj : str) -> Tuple[TopInfo, TrajInfo]:
+def describe(top : str or None, traj : str) -> Tuple[TopInfo, TrajInfo]:
     """
         retrieve top and traj info for a provided pair
 

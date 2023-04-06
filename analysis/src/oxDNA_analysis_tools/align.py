@@ -16,7 +16,7 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "indexes",
                                               "center"])
 
-def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int], ref_center:np.array=np.array([]), center:bool=True) -> Tuple[np.array]:
+def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int], ref_center:np.array=np.array([]), center:bool=True) -> Tuple[np.ndarray]:
     """
     Single-value decomposition-based alignment of configurations
 
