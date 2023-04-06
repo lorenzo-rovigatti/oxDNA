@@ -189,14 +189,14 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 						_update_stress_tensor(p->pos + _computed_r, tmp_force);
 					}
 
-					_particle_bonds(p).emplace_back(p_bond);
-					_particle_bonds(q).emplace_back(q_bond);
-
 					if(!no_three_body) {
 						energy += _three_body(p, p_bond, update_forces);
 						energy += _three_body(q, q_bond, update_forces);
 
 					}
+
+					_particle_bonds(p).push_back(p_bond);
+					_particle_bonds(q).push_back(q_bond);
 				}
 			}
 			q_patch++;
@@ -308,13 +308,13 @@ number DetailedPatchySwapInteraction::_patchy_two_body_KF(BaseParticle *p, BaseP
 								_update_stress_tensor(p->pos + _computed_r, tot_force);
 							}
 
-							_particle_bonds(p).emplace_back(p_bond);
-							_particle_bonds(q).emplace_back(q_bond);
-
 							if(!no_three_body) {
 								energy += _three_body(p, p_bond, update_forces);
 								energy += _three_body(q, q_bond, update_forces);
 							}
+
+							_particle_bonds(p).push_back(p_bond);
+							_particle_bonds(q).push_back(q_bond);
 						}
 					}
 				}
@@ -375,6 +375,7 @@ void DetailedPatchySwapInteraction::begin_energy_computation() {
 
 	for(int i = 0; i < _N; i++) {
 		_particle_bonds(CONFIG_INFO->particles()[i]).clear();
+		_particle_bonds(CONFIG_INFO->particles()[i]).reserve(2);
 	}
 }
 

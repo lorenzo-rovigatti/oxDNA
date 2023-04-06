@@ -51,8 +51,7 @@ protected:
 
 	StressTensor _stress_tensor;
 
-	virtual void _update_stress_tensor(LR_vector r_p, LR_vector group_force);
-
+	virtual void _update_stress_tensor(const LR_vector &r_p, const LR_vector &group_force);
 
 	using energy_function = std::function<number(BaseParticle *, BaseParticle *, bool, bool)>;
 	using interaction_map = std::map<int, energy_function>;
