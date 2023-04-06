@@ -13,13 +13,9 @@
 #include <sstream>
 
 /**
- * @brief Outputs the instantaneous pressure, computed through the virial.
+ * @brief Outputs stress autocorrelation functions
  *
- * The supported syntax is
- * @verbatim
- type = pressure (an observable that computes the osmotic pressure of the system)
- [stress_tensor = <bool> (if true, the output will contain 9 fields: the total pressure and the nine components of the stress tensor, xx, xy, xz, yx, yy, yz, zx, zy, zz)]
- @endverbatim
+ * Computes and prints the autocorrelation functions of the off-diagonal, diagonal and longitudinal parts of the stress tensor
  */
 
 class StressAutocorrelation: public BaseObservable {
@@ -107,7 +103,9 @@ class StressAutocorrelation: public BaseObservable {
 
 		void get_times(double dt, std::vector<double>& times) {
 			for(uint i = start_at; i < p; i++) {
-				times.push_back(i * std::pow((double) m, (double) level_number) * dt);
+				if(counter[i] > 0) {
+					times.push_back(i * std::pow((double) m, (double) level_number) * dt);
+				}
 			}
 
 			if(next != nullptr) {
@@ -117,7 +115,9 @@ class StressAutocorrelation: public BaseObservable {
 
 		void get_acf(double dt, std::vector<double> &acf) {
 			for(uint i = start_at; i < p; i++) {
-				acf.push_back(correlation[i] / counter[i]);
+				if(counter[i] > 0) {
+					acf.push_back(correlation[i] / counter[i]);
+				}
 			}
 
 			if(next != nullptr) {

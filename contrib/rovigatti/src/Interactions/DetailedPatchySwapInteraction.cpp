@@ -135,26 +135,25 @@ number DetailedPatchySwapInteraction::_spherical_patchy_two_body(BaseParticle *p
 number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 	if(sqr_r > _sqr_rcut) {
-		return (number) 0.f;
+		return 0.;
 	}
 
-	number energy = (number) 0.f;
-	for(uint p_patch = 0; p_patch < p->N_int_centers(); p_patch++) {
-		LR_vector p_patch_pos = p->int_centers[p_patch];
-		for(uint q_patch = 0; q_patch < q->N_int_centers(); q_patch++) {
-			LR_vector q_patch_pos = q->int_centers[q_patch];
-
+	number energy = 0.;
+	int p_patch = 0;
+	for(const auto &p_patch_pos : p->int_centers) {
+		int q_patch = 0;
+		for(const auto &q_patch_pos : q->int_centers) {
 			LR_vector patch_dist = _computed_r + q_patch_pos - p_patch_pos;
-			number dist = patch_dist.norm();
-			if(dist < _sqr_patch_rcut) {
+			number r_patch_sqr = patch_dist.norm();
+			if(r_patch_sqr < _sqr_patch_rcut) {
 				uint p_patch_type = _patch_types[p->type][p_patch];
 				uint q_patch_type = _patch_types[q->type][q_patch];
 				number epsilon = _patchy_eps[p_patch_type + _N_patch_types * q_patch_type];
 
 				if(epsilon != 0.) {
-					number r_p = sqrt(dist);
+					number r_p = sqrt(r_patch_sqr);
 					number exp_part = exp(_sigma_ss / (r_p - _rcut_ss));
-					number tmp_energy = epsilon * _A_part * exp_part * (_B_part / SQR(dist) - 1.);
+					number tmp_energy = epsilon * _A_part * exp_part * (_B_part / SQR(r_patch_sqr) - 1.);
 
 					energy += tmp_energy;
 
@@ -164,7 +163,7 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 					PatchyBond q_bond(p, r_p, q_patch, p_patch, tb_energy);
 
 					if(update_forces) {
-						number force_mod = epsilon * _A_part * exp_part * (4. * _B_part / (SQR(dist) * r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
+						number force_mod = epsilon * _A_part * exp_part * (4. * _B_part / (SQR(r_patch_sqr) * r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
 						LR_vector tmp_force = patch_dist * (force_mod / r_p);
 
 						LR_vector p_torque = p->orientationT * p_patch_pos.cross(tmp_force);
@@ -200,7 +199,9 @@ number DetailedPatchySwapInteraction::_patchy_two_body_point(BaseParticle *p, Ba
 					}
 				}
 			}
+			q_patch++;
 		}
+		p_patch++;
 	}
 
 	return energy;
