@@ -6,8 +6,7 @@ from copy import deepcopy
 from sys import stderr
 from typing import Union
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
-from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, conf_to_str, inbox
-from oxDNA_analysis_tools.align import svd_align
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, conf_to_str
 
 ComputeContext = namedtuple("ComputeContext", [
     "traj_info",
@@ -22,15 +21,15 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     return out
 
 
-def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,None]=None, stride:int=10, align:bool=False):
+def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,None]=None, stride:int=10):
     """
         Reduce the number of configurations in a trajectory.
 
         Parameters:
-            traj (str) : The trajectory file name to align
-            outfile (str) : The file name to write the aligned trajectory to
+            traj (str) : The trajectory file name to decimate
+            outfile (str) : The file name to write the decimates trajectory to
             ncpus (int) : (optional) How many cpus to parallelize the operation. default=1
-            start (int) : (optional) Starting configuration for the new trajectory. Accepts negative indexes. default=0
+            start (int) : (optional) Starting configuration for the new trajectory.  Accepts negative indexes.  default=0
             stop (int) : (optional) Process up to this conf (exclusive).  Accepts negative indexes. 
             stride (int) : (optional) Include only every stride-th conf. (default=10)
     """
@@ -53,12 +52,12 @@ def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,Non
 
         oat_multiprocesser(my_di.nconfs, ncpus, compute, callback, ctx)
 
-    print(f"INFO: Wrote aligned trajectory to {outfile}", file=stderr)
+    print(f"INFO: Wrote decimated trajectory to {outfile}", file=stderr)
     return
 
 def cli_parser(prog="decimate.py"):
-    parser = argparse.ArgumentParser(prog = prog, description="Aligns each frame in a trajectory to the first frame")    
-    parser.add_argument('traj', type=str, help="The trajectory file to align")
+    parser = argparse.ArgumentParser(prog = prog, description="Creates a smaller trajectory only including start/stop/stride frames from the input.")    
+    parser.add_argument('traj', type=str, help="The trajectory file to decimate")
     parser.add_argument('outfile', type=str, help='The name of the new trajectory file to write out')
     parser.add_argument('-p', dest='parallel', default=1, type=int, help="(optional) How many cores to use")
     parser.add_argument('-s', dest='start', default=0, type=int, help='First conf to write to the output file.')
