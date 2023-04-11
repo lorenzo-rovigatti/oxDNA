@@ -1,7 +1,6 @@
 import argparse
 import time
 import os
-import numpy as np
 from collections import namedtuple
 from copy import deepcopy
 from sys import stderr
@@ -12,22 +11,12 @@ from oxDNA_analysis_tools.align import svd_align
 
 ComputeContext = namedtuple("ComputeContext", [
     "traj_info",
-    "top_info",
-    "align",
-    "ref_poses"
+    "top_info"
 ])
 
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_size*chunk_id, chunk_size)
-
-    if ctx.align:
-        np_coords = np.asarray([[c.positions, c.a1s, c.a3s] for c in confs])
-        for i, c in enumerate(np_coords):
-            c[0], c[1], c[2] = svd_align(ctx.ref_poses, c, list(range(ctx.top_info.nbases)), ref_center=np.zeros(3), center=True)
-            confs[i].positions = c[0]
-            confs[i].a1s = c[1]
-            confs[i].a3s = c[2]
 
     out = ''.join([conf_to_str(c) for c in confs])
     return out
@@ -43,8 +32,7 @@ def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,Non
             ncpus (int) : (optional) How many cpus to parallelize the operation. default=1
             start (int) : (optional) Starting configuration for the new trajectory. Accepts negative indexes. default=0
             stop (int) : (optional) Process up to this conf (exclusive).  Accepts negative indexes. 
-            stride (int) : (optional) Include only every stride-th conf. (default=10)  
-            align (bool) : (optional) Align the trajectory while we're at it. (default=False)
+            stride (int) : (optional) Include only every stride-th conf. (default=10)
     """
     top_info, traj_info = describe(None, traj)
     
@@ -53,18 +41,9 @@ def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,Non
     my_di.idxs = traj_info.idxs[start:stop:stride]
     my_di.nconfs = len(my_di.idxs)
 
-    if align:
-        ref_conf = get_confs(top_info, my_di, 0, 1)[0]
-        ref_conf = inbox(ref_conf, center=True)
-        ref_poses = ref_conf.positions
-    else:
-        ref_poses = None
-
     ctx = ComputeContext(
         my_di,
-        top_info,
-        align,
-        ref_poses
+        top_info
     )
 
     with open(outfile, 'w+') as f:
@@ -85,7 +64,6 @@ def cli_parser(prog="decimate.py"):
     parser.add_argument('-s', dest='start', default=0, type=int, help='First conf to write to the output file.')
     parser.add_argument('-e', dest='stop', default=None, type=int, help='Process up to this conf (exclusive).  Accepts negative indexes.')
     parser.add_argument('-d', dest='stride', default=10, type=int, help='Write out every this many confs (default=10)')
-    parser.add_argument('-a', dest='align', action='store_true', default=False, help='Align the trajectory too?')
     return parser
 
 def main():
@@ -94,7 +72,7 @@ def main():
     args = parser.parse_args()
 
     from oxDNA_analysis_tools.config import check
-    check(["python", "numpy"])
+    check(["python"])
 
     #Parse command line arguments
     traj = args.traj
@@ -103,9 +81,8 @@ def main():
     start = args.start
     stop = args.stop
     stride = args.stride
-    align = args.align
 
-    decimate(traj=traj, outfile=outfile, ncpus=ncpus, start=start, stop=stop, stride=stride, align=align)
+    decimate(traj=traj, outfile=outfile, ncpus=ncpus, start=start, stop=stop, stride=stride)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == '__main__':
