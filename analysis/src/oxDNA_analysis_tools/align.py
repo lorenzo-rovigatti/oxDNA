@@ -8,7 +8,6 @@ from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, inbox, conf_to_str
-start_time = time.time()
 
 ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "top_info",
@@ -106,7 +105,6 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=None, ref_conf:C
         oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
     
     print(f"INFO: Wrote aligned trajectory to {outfile}", file=stderr)
-
     return
 
 def cli_parser(prog="align.py"):
@@ -121,6 +119,7 @@ def cli_parser(prog="align.py"):
     return parser
 
 def main():
+    start_time = time.time()
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 

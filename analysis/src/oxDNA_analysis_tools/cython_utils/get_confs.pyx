@@ -27,7 +27,7 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, int 
     # Number of configurations to read
     cdef int conf_count = len(idxs)
     cdef int cnconfs = nconfs
-    if (start+nconfs >= conf_count): #this handles the last chunk which may not have nconfs confs remaining.
+    if (start+cnconfs >= conf_count): #this handles the last chunk which may not have nconfs confs remaining.
         cnconfs = conf_count - start
 
     # Configuration start/size markers within the chunk
@@ -58,7 +58,7 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, int 
     fread(chunk, chunk_size, 1, traj_file)
 
     # Parse the chunk into Configurations
-    cnconfs = cnconfs / cstride
+    cnconfs = cnconfs/cstride + (cnconfs % cstride != 0) # ceiling division
     cdef list confs = [None]*cnconfs
     for i in range(cnconfs):
         c = parse_conf(chunk, conf_starts[i*stride], sizes[i*stride], nbases, incl_vel)
