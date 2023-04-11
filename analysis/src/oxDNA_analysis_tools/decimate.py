@@ -43,7 +43,7 @@ def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,Non
             ncpus (int) : (optional) How many cpus to parallelize the operation. default=1
             start (int) : (optional) Starting configuration for the new trajectory. Accepts negative indexes. default=0
             stop (int) : (optional) Process up to this conf (exclusive).  Accepts negative indexes. 
-            stride (int) : (optional) Include only every strid-th conf. (default=10)  
+            stride (int) : (optional) Include only every stride-th conf. (default=10)  
             align (bool) : (optional) Align the trajectory while we're at it. (default=False)
     """
     top_info, traj_info = describe(None, traj)
@@ -83,7 +83,7 @@ def cli_parser(prog="decimate.py"):
     parser.add_argument('outfile', type=str, help='The name of the new trajectory file to write out')
     parser.add_argument('-p', dest='parallel', default=1, type=int, help="(optional) How many cores to use")
     parser.add_argument('-s', dest='start', default=0, type=int, help='First conf to write to the output file.')
-    parser.add_argument('-e', dest='stop', default=None, type=int, help='Last conf (in original numbering scheme) to write to the output file.')
+    parser.add_argument('-e', dest='stop', default=None, type=int, help='Process up to this conf (exclusive).  Accepts negative indexes.')
     parser.add_argument('-d', dest='stride', default=10, type=int, help='Write out every this many confs (default=10)')
     parser.add_argument('-a', dest='align', action='store_true', default=False, help='Align the trajectory too?')
     return parser
