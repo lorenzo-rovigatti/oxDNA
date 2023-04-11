@@ -138,7 +138,7 @@
 .. autofunction:: oxDNA_analysis_tools.contact_map.contact_map
 ```
 
-## Dot-bracket to force
+## Decimate
 
 ```{eval-rst}
 .. toctree::
@@ -149,11 +149,9 @@
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.db_to_force.parse_dot_bracket
-    oxDNA_analysis_tools.db_to_force.db_to_forcelist
+    oxDNA_analysis_tools.decimate.decimate
     
-.. autofunction:: oxDNA_analysis_tools.db_to_force.parse_dot_bracket
-.. autofunction:: oxDNA_analysis_tools.db_to_force.db_to_forcelist
+.. autofunction:: oxDNA_analysis_tools.decimate.decimate
 ```
 
 ## Deviations
@@ -192,6 +190,24 @@
 .. autofunction:: oxDNA_analysis_tools.distance.min_image
 .. autofunction:: oxDNA_analysis_tools.distance.vectorized_min_image
 .. autofunction:: oxDNA_analysis_tools.distance.distance
+```
+
+## Dot-bracket to force
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.db_to_force.parse_dot_bracket
+    oxDNA_analysis_tools.db_to_force.db_to_forcelist
+    
+.. autofunction:: oxDNA_analysis_tools.db_to_force.parse_dot_bracket
+.. autofunction:: oxDNA_analysis_tools.db_to_force.db_to_forcelist
 ```
 
 ## Duplex angle plotter
