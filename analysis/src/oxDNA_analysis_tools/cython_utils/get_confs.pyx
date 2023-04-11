@@ -23,7 +23,7 @@ Parameters:
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.cdivision(True)
-def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, int stride=1, bint incl_vel=1):
+def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, bint incl_vel=1):
     # Number of configurations to read
     cdef int conf_count = len(idxs)
     cdef int cnconfs = nconfs
@@ -33,15 +33,13 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, int 
     # Configuration start/size markers within the chunk
     cdef int *sizes = <int *> malloc(cnconfs * sizeof(int))
     cdef int *conf_starts = <int *> malloc(cnconfs * sizeof(int))
-    cdef int cstride = stride
     if not sizes or not conf_starts:
-        raise MemoryError("ERROR: Could not allocate memory for the configuration sizes and starts", file=stderr)
-    cdef int chunk_size = 0
+        raise MemoryError("Could not allocate memory for the configuration sizes and starts", file=stderr)
+
+    cdef int chunk_size = idxs[start+cnconfs-1].offset + idxs[start+cnconfs-1].size - idxs[start].offset
     for i in range(cnconfs):
         sizes[i] = idxs[start+i].size
-        chunk_size += sizes[i]
         conf_starts[i] = idxs[start+i].offset - idxs[start].offset
-
 
     # Convert the path to something C can open
     cdef char *traj_path_c = <char *>malloc(len(traj_path)+1)
@@ -49,8 +47,8 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, int 
     traj_path_c[len(traj_path)] = b'\0'
     cdef FILE *traj_file = fopen(traj_path_c, "rb")
     if traj_file == NULL:
-        print("ERROR: Could not open trajectory file %s" % traj_path, file=stderr)
-        return
+        raise OSError("Could not open trajectory file %s" % traj_path)
+
     fseek(traj_file, idxs[start].offset, 1)
 
     # Read in the current chunk
@@ -58,10 +56,9 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, int 
     fread(chunk, chunk_size, 1, traj_file)
 
     # Parse the chunk into Configurations
-    cnconfs = cnconfs/cstride + (cnconfs % cstride != 0) # ceiling division
     cdef list confs = [None]*cnconfs
     for i in range(cnconfs):
-        c = parse_conf(chunk, conf_starts[i*stride], sizes[i*stride], nbases, incl_vel)
+        c = parse_conf(chunk, conf_starts[i], sizes[i], nbases, incl_vel)
         confs[i] = c
 
     fclose(traj_file)

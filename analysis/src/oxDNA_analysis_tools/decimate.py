@@ -13,14 +13,13 @@ from oxDNA_analysis_tools.align import svd_align
 ComputeContext = namedtuple("ComputeContext", [
     "traj_info",
     "top_info",
-    "stride",
     "align",
     "ref_poses"
 ])
 
 def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         
-    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_size*chunk_id, chunk_size, stride=ctx.stride)
+    confs = get_confs(ctx.top_info, ctx.traj_info, chunk_size*chunk_id, chunk_size)
 
     if ctx.align:
         np_coords = np.asarray([[c.positions, c.a1s, c.a3s] for c in confs])
@@ -49,9 +48,9 @@ def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,Non
     """
     top_info, traj_info = describe(None, traj)
     
-    #things outside the stop/start bounds just don't exist anymore.
+    #things outside the stop/start/stride bounds just don't exist anymore.
     my_di = deepcopy(traj_info)
-    my_di.idxs = traj_info.idxs[start:stop]
+    my_di.idxs = traj_info.idxs[start:stop:stride]
     my_di.nconfs = len(my_di.idxs)
 
     if align:
@@ -64,7 +63,6 @@ def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,Non
     ctx = ComputeContext(
         my_di,
         top_info,
-        stride,
         align,
         ref_poses
     )
