@@ -93,6 +93,9 @@ def main():
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
+    from oxDNA_analysis_tools.config import check
+    check(["python", "numpy"])
+
     #Parse command line arguments
     traj = args.traj
     outfile = args.outfile
