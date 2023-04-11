@@ -108,9 +108,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#clustering">Clustering</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#config">Config</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#contact-map">Contact map</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#dot-bracket-to-force">Dot-bracket to force</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#decimate">Decimate</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#deviations">Deviations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#distance">Distance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dot-bracket-to-force">Dot-bracket to force</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#duplex-angle-plotter">Duplex angle plotter</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#duplex-finder">Duplex finder</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#file-info">File info</a></li>
@@ -451,32 +452,45 @@
 </dl>
 </div>
 </div>
-<div class="section" id="dot-bracket-to-force">
-<h2>Dot-bracket to force<a class="headerlink" href="#dot-bracket-to-force" title="Permalink to this headline">¶</a></h2>
-<p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
+<div class="section" id="decimate">
+<h2>Decimate<a class="headerlink" href="#decimate" title="Permalink to this headline">¶</a></h2>
+<p><p>Aligns each frame in a trajectory to the first frame</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="n">db_file</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">decimate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PARALLEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">START</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">STRIDE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span>
+                    <span class="n">traj</span> <span class="n">outfile</span>
 </pre></div>
 </div>
 <div class="section" id="positional-arguments">
 <h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
-<dt><kbd>db_file</kbd></dt>
-<dd><p>A text file containing dot-bracket notation of the base-pairing arrangement</p>
+<dt><kbd>traj</kbd></dt>
+<dd><p>The trajectory file to align</p>
+</dd>
+<dt><kbd>outfile</kbd></dt>
+<dd><p>The name of the new trajectory file to write out</p>
 </dd>
 </dl>
 </div>
 <div class="section" id="named-arguments">
 <h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
-<dt><kbd>-o, --output</kbd></dt>
-<dd><p>Name of the file to write the force list to</p>
+<dt><kbd>-p</kbd></dt>
+<dd><p>(optional) How many cores to use</p>
+<p>Default: 1</p>
 </dd>
-<dt><kbd>-s, --stiff</kbd></dt>
-<dd><p>Stiffness of the mutual trap</p>
+<dt><kbd>-s</kbd></dt>
+<dd><p>First conf to write to the output file.</p>
+<p>Default: 0</p>
 </dd>
-<dt><kbd>-r, --reverse</kbd></dt>
-<dd><p>Reverse the dot-bracket before writing forces</p>
+<dt><kbd>-e</kbd></dt>
+<dd><p>Last conf (in original numbering scheme) to write to the output file.</p>
+</dd>
+<dt><kbd>-d</kbd></dt>
+<dd><p>Write out every this many confs (default=10)</p>
+<p>Default: 10</p>
+</dd>
+<dt><kbd>-a</kbd></dt>
+<dd><p>Align the trajectory too?</p>
 <p>Default: False</p>
 </dd>
 </dl>
@@ -555,6 +569,37 @@
 </dd>
 <dt><kbd>-c</kbd></dt>
 <dd><p>Run the clusterer on each configuration’s distance?</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="dot-bracket-to-force">
+<h2>Dot-bracket to force<a class="headerlink" href="#dot-bracket-to-force" title="Permalink to this headline">¶</a></h2>
+<p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="n">db_file</span>
+</pre></div>
+</div>
+<div class="section" id="positional-arguments">
+<h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>db_file</kbd></dt>
+<dd><p>A text file containing dot-bracket notation of the base-pairing arrangement</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>Name of the file to write the force list to</p>
+</dd>
+<dt><kbd>-s, --stiff</kbd></dt>
+<dd><p>Stiffness of the mutual trap</p>
+</dd>
+<dt><kbd>-r, --reverse</kbd></dt>
+<dd><p>Reverse the dot-bracket before writing forces</p>
 <p>Default: False</p>
 </dd>
 </dl>

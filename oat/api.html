@@ -222,7 +222,7 @@
 
 <dl class="py function">
 <dt id="oxDNA_analysis_tools.align.svd_align">
-<code class="sig-prename descclassname">oxDNA_analysis_tools.align.</code><code class="sig-name descname">svd_align</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ref_coords</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)">numpy.ndarray</a></span></em>, <em class="sig-param"><span class="n">coords</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)">numpy.ndarray</a></span></em>, <em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">ref_center</span><span class="p">:</span> <span class="n">numpy.array</span> <span class="o">=</span> <span class="default_value">array([], dtype=float64)</span></em>, <em class="sig-param"><span class="n">center</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>numpy.array<span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.align.svd_align" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">oxDNA_analysis_tools.align.</code><code class="sig-name descname">svd_align</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ref_coords</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)">numpy.ndarray</a></span></em>, <em class="sig-param"><span class="n">coords</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)">numpy.ndarray</a></span></em>, <em class="sig-param"><span class="n">indexes</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">ref_center</span><span class="p">:</span> <span class="n">numpy.array</span> <span class="o">=</span> <span class="default_value">array([], dtype=float64)</span></em>, <em class="sig-param"><span class="n">center</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)">numpy.ndarray</a><span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.align.svd_align" title="Permalink to this definition">¶</a></dt>
 <dd><p>Single-value decomposition-based alignment of configurations</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -560,8 +560,8 @@ min_RMSD (float): The RMSD from the centroid to the reference</p>
 </dd></dl>
 
 </div>
-<div class="section" id="dot-bracket-to-force">
-<h2>Dot-bracket to force<a class="headerlink" href="#dot-bracket-to-force" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="decimate">
+<h2>Decimate<a class="headerlink" href="#decimate" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 </div>
 <table class="longtable docutils align-default">
@@ -570,49 +570,26 @@ min_RMSD (float): The RMSD from the centroid to the reference</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.db_to_force.parse_dot_bracket" title="oxDNA_analysis_tools.db_to_force.parse_dot_bracket"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.db_to_force.parse_dot_bracket</span></code></a></p></td>
-<td><p>Converts a dot-bracket string to a list of paired nucleotides.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.db_to_force.db_to_forcelist" title="oxDNA_analysis_tools.db_to_force.db_to_forcelist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.db_to_force.db_to_forcelist</span></code></a></p></td>
-<td><p>Convert a dot-bracket string to oxDNA mutual traps</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.decimate.decimate" title="oxDNA_analysis_tools.decimate.decimate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.decimate.decimate</span></code></a></p></td>
+<td><p>Reduce the number of configurations in a trajectory.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py function">
-<dt id="oxDNA_analysis_tools.db_to_force.parse_dot_bracket">
-<code class="sig-prename descclassname">oxDNA_analysis_tools.db_to_force.</code><code class="sig-name descname">parse_dot_bracket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a><span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.db_to_force.parse_dot_bracket" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a dot-bracket string to a list of paired nucleotides.</p>
-<p>Accepts (), [], {}, and . characters, otherwise throws an error</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>input</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – A dot-bracket string</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list where each index corresponds to a nucleotide.  Value is -1 is unpaired or another index if paired.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a>)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="oxDNA_analysis_tools.db_to_force.db_to_forcelist">
-<code class="sig-prename descclassname">oxDNA_analysis_tools.db_to_force.</code><code class="sig-name descname">db_to_forcelist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">db_str</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em>, <em class="sig-param"><span class="n">stiff</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)">float</a></span></em>, <em class="sig-param"><span class="n">reverse</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Dict<span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.db_to_force.db_to_forcelist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a dot-bracket string to oxDNA mutual traps</p>
+<dt id="oxDNA_analysis_tools.decimate.decimate">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.decimate.</code><code class="sig-name descname">decimate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">traj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em>, <em class="sig-param"><span class="n">outfile</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em>, <em class="sig-param"><span class="n">ncpus</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">start</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">stop</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">stride</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">align</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#oxDNA_analysis_tools.decimate.decimate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduce the number of configurations in a trajectory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>db_str</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The dot-bracket string to convert.  Currently ignores pseudoknots.</p></li>
-<li><p><strong>stiff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – stiff of the mutual trap to create</p></li>
-<li><p><strong>reverse</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Reverse the dot-bracket string before creating the forces?</p></li>
+<li><p><strong>traj</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The trajectory file name to align</p></li>
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The file name to write the aligned trajectory to</p></li>
+<li><p><strong>ncpus</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – (optional) How many cpus to parallelize the operation. default=1</p></li>
+<li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – (optional) Starting configuration for the new trajectory. Accepts negative indexes. default=0</p></li>
+<li><p><strong>stop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – (optional) Process up to this conf (exclusive).  Accepts negative indexes.</p></li>
+<li><p><strong>stride</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – (optional) Include only every strid-th conf. (default=10)</p></li>
+<li><p><strong>align</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – (optional) Align the trajectory while we’re at it. (default=False)</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list of force dictionaries</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>List[Dict]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -758,6 +735,64 @@ box (float): The size of the box (assumes a cubic box)</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>distances (List[List[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)">float</a>]])</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="dot-bracket-to-force">
+<h2>Dot-bracket to force<a class="headerlink" href="#dot-bracket-to-force" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.db_to_force.parse_dot_bracket" title="oxDNA_analysis_tools.db_to_force.parse_dot_bracket"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.db_to_force.parse_dot_bracket</span></code></a></p></td>
+<td><p>Converts a dot-bracket string to a list of paired nucleotides.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#oxDNA_analysis_tools.db_to_force.db_to_forcelist" title="oxDNA_analysis_tools.db_to_force.db_to_forcelist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">oxDNA_analysis_tools.db_to_force.db_to_forcelist</span></code></a></p></td>
+<td><p>Convert a dot-bracket string to oxDNA mutual traps</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.db_to_force.parse_dot_bracket">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.db_to_force.</code><code class="sig-name descname">parse_dot_bracket</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a><span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.db_to_force.parse_dot_bracket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a dot-bracket string to a list of paired nucleotides.</p>
+<p>Accepts (), [], {}, and . characters, otherwise throws an error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – A dot-bracket string</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list where each index corresponds to a nucleotide.  Value is -1 is unpaired or another index if paired.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="oxDNA_analysis_tools.db_to_force.db_to_forcelist">
+<code class="sig-prename descclassname">oxDNA_analysis_tools.db_to_force.</code><code class="sig-name descname">db_to_forcelist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">db_str</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)">str</a></span></em>, <em class="sig-param"><span class="n">stiff</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)">float</a></span></em>, <em class="sig-param"><span class="n">reverse</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)">bool</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Dict<span class="p">]</span><a class="headerlink" href="#oxDNA_analysis_tools.db_to_force.db_to_forcelist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a dot-bracket string to oxDNA mutual traps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db_str</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The dot-bracket string to convert.  Currently ignores pseudoknots.</p></li>
+<li><p><strong>stiff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – stiff of the mutual trap to create</p></li>
+<li><p><strong>reverse</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Reverse the dot-bracket string before creating the forces?</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of force dictionaries</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[Dict]</p>
 </dd>
 </dl>
 </dd></dl>
