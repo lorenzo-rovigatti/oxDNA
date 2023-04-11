@@ -454,9 +454,9 @@
 </div>
 <div class="section" id="decimate">
 <h2>Decimate<a class="headerlink" href="#decimate" title="Permalink to this headline">¶</a></h2>
-<p><p>Aligns each frame in a trajectory to the first frame</p>
+<p><p>Creates a smaller trajectory only including start/stop/stride frames from the input.</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">decimate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PARALLEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">START</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">STRIDE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">decimate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PARALLEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">START</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">STRIDE</span><span class="p">]</span>
                     <span class="n">traj</span> <span class="n">outfile</span>
 </pre></div>
 </div>
@@ -464,7 +464,7 @@
 <h3>Positional Arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
 <dt><kbd>traj</kbd></dt>
-<dd><p>The trajectory file to align</p>
+<dd><p>The trajectory file to decimate</p>
 </dd>
 <dt><kbd>outfile</kbd></dt>
 <dd><p>The name of the new trajectory file to write out</p>
@@ -483,15 +483,11 @@
 <p>Default: 0</p>
 </dd>
 <dt><kbd>-e</kbd></dt>
-<dd><p>Last conf (in original numbering scheme) to write to the output file.</p>
+<dd><p>Process up to this conf (exclusive).  Accepts negative indexes.</p>
 </dd>
 <dt><kbd>-d</kbd></dt>
 <dd><p>Write out every this many confs (default=10)</p>
 <p>Default: 10</p>
-</dd>
-<dt><kbd>-a</kbd></dt>
-<dd><p>Align the trajectory too?</p>
-<p>Default: False</p>
 </dd>
 </dl>
 </div>
