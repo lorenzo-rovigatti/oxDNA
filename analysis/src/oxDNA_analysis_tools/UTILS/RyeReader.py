@@ -91,7 +91,7 @@ def _index(traj_file) -> List[ConfInfo]:
     idxs.append(ConfInfo(conf_starts[-1], fsize - conf_starts[-1], len(conf_starts)-1))
     return idxs
 
-def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int) -> List[Configuration]:
+def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int, stride:int=1) -> List[Configuration]:
     """
         Read a chunk of confs from a trajectory file.
 
@@ -109,7 +109,7 @@ def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int)
     traj_file = traj_info.path
     n_bases = top_info.nbases
     incl_v = traj_info.incl_v
-    return cget_confs(indexes, traj_file, start_conf, n_confs, n_bases, incl_v)
+    return cget_confs(indexes, traj_file, start_conf, n_confs, n_bases, stride=stride, incl_vel=incl_v)
 
 ####################################################################################
 ##########                             FILE PARSERS                       ##########
