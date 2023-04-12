@@ -225,12 +225,6 @@ def main():
 
     all_angles, means, medians, stdevs, representations = get_angle_between(files, p1s, p2s, invert_mask)
 
-    #for i, m in enumerate(means):
-    #    if m > 90:
-    #        all_angles[i] = [180 - a for a in all_angles[i]]
-    #        means[i] = 180 - m
-    #        medians[i] = 180 - medians[i]
-
     # -n sets the names of the data series
     if args.names:
         names = args.names[0]
