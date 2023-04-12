@@ -31,7 +31,7 @@ def angle_between (axis1:np.ndarray, axis2:np.ndarray) -> float:
     """
     return (np.arccos(np.dot(axis1, axis2)/(np.linalg.norm(axis1)*np.linalg.norm(axis2))))
 
-def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]]) -> Tuple[List[List[np.array]], List[List[float]], List[List[float]], List[List[float]], List[List[float]]]:
+def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]], invert_mask:List[bool]) -> Tuple[List[List[np.array]], List[List[float]], List[List[float]], List[List[float]], List[List[float]]]:
     """
         Read in a duplex list file and return the angles between specified duplexes.
 
@@ -39,6 +39,7 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]])
             files (List[str]): The list of duplex files to read.
             p1s (List[List[int]]): The list of start1 nucleotide indices for each file.
             p2s (List[List[int]]): The list of start2 nucleotide indices for each file.
+            invert_mask (List[bool]): Invert one of the vectors in the i-th angle calculation?
 
         Returns:
             angles (List[List[np.array]]): The list of angles between the specified duplexes.
@@ -53,8 +54,11 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]])
     stdevs = [[] for _ in files]
     representations = [[] for _ in files]
 
+    global_count = 0
+
     #For each input triplet
     for i, (anglefile, search1, search2) in enumerate(zip(files, p1s, p2s)):
+        invert_mask_file = invert_mask[global_count:len(search1)]
 
         steps = 0 #counts the number of configurations in the file
         last_step = 0
@@ -94,7 +98,9 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]])
                     if (steps != 0):
                         for j, (p1, p2) in enumerate(zip(search1, search2)):
                             if np.linalg.norm(d[p1]) != 0 and np.linalg.norm(d[p2]) != 0:
-                                angle = rad2degree(angle_between(d[p1], -1*d[p2])) #add a -90 here if your duplexes in question are antiparallel
+                                if invert_mask_file[j]:
+                                    d[p1] *= -1
+                                angle = rad2degree(angle_between(d[p1], d[p2]))
                                 all_angles[i][j].append(angle)
                             else:
                                 all_angles[i][j].append(np.nan)
@@ -124,7 +130,9 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]])
         #catch last configuration
         for j, (p1, p2) in enumerate(zip(search1, search2)):
             if np.linalg.norm(d[p1]) != 0 and np.linalg.norm(d[p2]) != 0:
-                angle = rad2degree(angle_between(d[p1], -1*d[p2])) #add a -90 here if your duplexes in question are antiparallel
+                if invert_mask_file[j]:
+                    d[p1] *= -1
+                angle = rad2degree(angle_between(d[p1], d[p2]))
                 all_angles[i][j].append(angle)
             else:
                 all_angles[i][j].append(np.nan)
@@ -142,12 +150,15 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]])
         stdevs[i] = stdev
         representations[i] = representation
 
+        global_count += len(search1)
+
     return (all_angles, means, medians, stdevs, representations)
 
 def cli_parser(prog="duplex_angle_plotter.py"):
     #Get command line arguments.
     parser = argparse.ArgumentParser(prog = prog, description="Finds the ensemble of angles between any two duplexes defined by a starting or ending nucleotide in the system")
     parser.add_argument('-i', '--input', metavar='angle_file', dest='input', nargs='+', action='append', help='An angle file from duplex_angle_finder.py and a list of duplex-end particle pairs to compare.  Can call -i multiple times to plot multiple datasets.')
+    parser.add_argument('-v', '--invert_mask', dest='invert_mask', nargs='+', help='If 1 invert the i-th vector, if 0, do nothing.')
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The name to save the graph file to')
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', nargs=1, help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
     parser.add_argument('-d', '--data', metavar='data_file', nargs=1, help='If set, the output for the graphs will be dropped as a json to this filename for loading in oxView or your own scripts')
@@ -173,10 +184,17 @@ def main():
 
     n_angles = sum(len(p) for p in p1s)
 
+    if args.invert_mask:
+        invert_mask = args.invert_mask
+    else:
+        invert_mask = list(range(n_angles))
+
     #Make sure that the input is correctly formatted
     if(len(files) != len(p1s) != len(p2s)):
         raise RuntimeError("Bad input arguments\nPlease supply an equal number of trajectory and particle pairs")
         exit(1)
+    if len(invert_mask) != n_angles:
+        raise RuntimeError("Bad input arguments\nThe length of the invert mask must be equal to the number of angles to calculate.")
 
     #-o names the output file
     if args.output:
@@ -205,7 +223,7 @@ def main():
         print("INFO: No graph format specified, defaulting to histogram", file=stderr)
         hist = True
 
-    all_angles, means, medians, stdevs, representations = get_angle_between(files, p1s, p2s)
+    all_angles, means, medians, stdevs, representations = get_angle_between(files, p1s, p2s, invert_mask)
 
     #for i, m in enumerate(means):
     #    if m > 90:
@@ -213,7 +231,7 @@ def main():
     #        means[i] = 180 - m
     #        medians[i] = 180 - medians[i]
 
-        # -n sets the names of the data series
+    # -n sets the names of the data series
     if args.names:
         names = args.names[0]
         if len(names) < n_angles:
