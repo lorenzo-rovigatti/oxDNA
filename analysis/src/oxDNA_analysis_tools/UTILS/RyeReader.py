@@ -193,11 +193,14 @@ def get_traj_info(traj : str) -> TrajInfo:
     with open(traj) as f:
         for _ in range(3):
             f.readline()
-        nline = f.readline().split()
+        line = f.readline()
+        nline = line.split()
         if len(nline) == 15:
             incl_v = 1
-        if len(nline) == 9:
+        elif len(nline) == 9:
             incl_v = 0
+        else:
+            raise RuntimeError(f"Invalid first particle line: {line}")
 
     return TrajInfo(traj,len(idxs),idxs, incl_v)
 
@@ -358,7 +361,10 @@ def write_conf(path:str, conf:Configuration, append:bool=False, include_vel:bool
     out.append('b = {}'.format(' '.join(conf.box.astype(str))))
     out.append('E = {}'.format(' '.join(conf.energy.astype(str))))
     for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s):
-        out.append('{} {} {} 0 0 0 0 0 0'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str))))
+        if include_vel:
+            out.append('{} {} {} 0 0 0 0 0 0'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str))))
+        else:
+            out.append('{} {} {}'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str))))
     
     mode = 'a' if append else 'w'
     with open(path,mode) as f:
@@ -379,7 +385,7 @@ def conf_to_str(conf:Configuration, include_vel:bool=True) -> str:
     # This horrific list comp is the fastest solution we found
     header = f't = {int(conf.time)}\nb = {" ".join(conf.box.astype(str))}\nE = {" ".join(conf.energy.astype(str))}\n'
     if include_vel:
-        return(''.join([header, ''.join([('{} {} {} 0 0 0\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
+        return(''.join([header, ''.join([('{} {} {} 0 0 0 0 0 0\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
     else:
         return(''.join([header, ''.join([('{} {} {}\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
 
