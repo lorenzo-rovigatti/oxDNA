@@ -59,7 +59,7 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
         confs[i].a1s = c[1]
         confs[i].a3s = c[2]
     #return confs
-    out = ''.join([conf_to_str(c) for c in confs])
+    out = ''.join([conf_to_str(c, include_vel=ctx.traj_info.incl_v) for c in confs])
     return out
 
 def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=None, ref_conf:Configuration=None, center:bool=True):

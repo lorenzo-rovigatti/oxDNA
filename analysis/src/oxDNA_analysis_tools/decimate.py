@@ -17,7 +17,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_size*chunk_id, chunk_size)
 
-    out = ''.join([conf_to_str(c) for c in confs])
+    out = ''.join([conf_to_str(c,  include_vel=ctx.traj_info.incl_v) for c in confs])
     return out
 
 

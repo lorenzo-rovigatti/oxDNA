@@ -46,4 +46,4 @@ if __name__ == "__main__":
         for j,l in enumerate(locations):
             configuration = get_confs(tis[l], dis[l], read_poses[l], 1)[0]
             read_poses[l] += 1
-            write_conf(out_files[l], configuration, append=True)
+            write_conf(out_files[l], configuration, append=True, include_vel=dis[0].incl_v)

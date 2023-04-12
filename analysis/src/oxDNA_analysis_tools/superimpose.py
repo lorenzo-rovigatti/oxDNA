@@ -76,7 +76,7 @@ def main():
     aligned = superimpose(ref_conf, args.victims, indexes)
 
     for i, conf in enumerate(aligned):
-        write_conf("aligned{}.dat".format(i), conf)
+        write_conf("aligned{}.dat".format(i), conf, include_vel=ref_info.incl_v)
         print("INFO: Wrote file aligned{}.dat".format(i), file=stderr)
 
 if __name__ == '__main__':

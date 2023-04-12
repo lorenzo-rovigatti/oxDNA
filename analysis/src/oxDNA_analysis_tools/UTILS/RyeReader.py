@@ -343,7 +343,7 @@ def inbox(conf : Configuration, center=False) -> Configuration:
 ##########                             FILE WRITERS                       ##########
 ####################################################################################
 
-def write_conf(path : str, conf : Configuration, append=False) -> None:
+def write_conf(path:str, conf:Configuration, append:bool=False, include_vel:bool=True) -> None:
     """
         write the conf to a file
 
@@ -351,6 +351,7 @@ def write_conf(path : str, conf : Configuration, append=False) -> None:
             path (str) : path to the file
             conf (Configuration) : the configuration to write
             append (bool) : if True, append to the file, if False, overwrite
+            include_vel (bool) : Include velocities in the output trajectory?  Defaults to True.
     """
     out = []
     out.append('t = {}'.format(int(conf.time)))
@@ -363,20 +364,24 @@ def write_conf(path : str, conf : Configuration, append=False) -> None:
     with open(path,mode) as f:
         f.write("\n".join(out))
 
-def conf_to_str(conf : Configuration) -> str:
+def conf_to_str(conf:Configuration, include_vel:bool=True) -> str:
     """
     Write configuration as a string
 
     Parameters:
         conf (Configuration) : The configuration to write
+        include_vel (bool) : Include velocities in the output string?  Defaults to True.
 
     Returns:
         (str) : The configuration as a string
     """
     # When writing a configuration to a file, the conversion from ndarray to string is the slowest part
-    # This horrific list comp is the best solution we found
+    # This horrific list comp is the fastest solution we found
     header = f't = {int(conf.time)}\nb = {" ".join(conf.box.astype(str))}\nE = {" ".join(conf.energy.astype(str))}\n'
-    return(''.join([header, ''.join([('{} {} {}\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
+    if include_vel:
+        return(''.join([header, ''.join([('{} {} {} 0 0 0\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
+    else:
+        return(''.join([header, ''.join([('{} {} {}\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
 
 def write_top(path:str, system:System) -> None:
     """

@@ -20,7 +20,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     for conf in confs:
         sub_confs = [Configuration(conf.time, conf.box, conf.energy, conf.positions[i], conf.a1s[i], conf.a3s[i]) for i in ctx.indexes]
         for i, sub_conf in enumerate(sub_confs):
-            outstr[i].append(conf_to_str(sub_conf))
+            outstr[i].append(conf_to_str(sub_conf,  include_vel=ctx.traj_info.incl_v))
 
     return [''.join(out) for out in outstr]
 

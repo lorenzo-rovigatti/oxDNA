@@ -169,7 +169,7 @@ def main():
 
     # Create the mean configuration from the numpy arrays containing the positions and orientations
     # And write it to the outfile
-    write_conf(outfile, mean_conf)
+    write_conf(outfile, mean_conf, include_vel=traj_info.incl_v)
     print("--- %s seconds ---" % (time.time() - start_time))
 
     # -d runs deviations.py after computing the mean
