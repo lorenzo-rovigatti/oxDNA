@@ -1,6 +1,6 @@
 # Colored Coarsed Grain OxDNA
 
-ccg OxDNA is an modified oxDNA model to incorporate large time scale self assembly of DNA origami. This coarse grain model can be though to be in between the Jonah's cg model and patchy particle model.
+ccg oxDNA is an modified oxDNA model to incorporate large time scale self assembly of DNA origami. This coarse grain model can be though to be in between the Jonah's cg model and patchy particle model.
 
 
 
