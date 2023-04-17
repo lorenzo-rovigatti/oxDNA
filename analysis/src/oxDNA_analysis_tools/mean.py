@@ -55,7 +55,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration=None, inde
             traj_info (TrajInfo): Information about the trajectory
             top_info (TopInfo): Information about the topology
             ref_conf (Configuration): (optional) The reference configuration to align to. If None, a random configuraiton will be used.
-            indexes (List[int]): (optional) The indexes of the configurations to use. If None, all configurations will be used.
+            indexes (List[int]): (optional) The indexes of nucleotides included in the alignment. If None, all nucleotides will be aligned.
             ncpus (int): (optional) The number of CPUs to use. If None, 1 CPU will be used.
         
         Returns:
