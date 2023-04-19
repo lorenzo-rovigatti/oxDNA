@@ -58,7 +58,6 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
 
     #For each input triplet
     for i, (anglefile, search1, search2) in enumerate(zip(files, p1s, p2s)):
-        invert_mask_file = invert_mask[global_count:global_count+len(search1)]
 
         steps = 0 #counts the number of configurations in the file
         last_step = 0
@@ -97,7 +96,7 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
                 if (t != last_step):
                     for j, (p1, p2) in enumerate(zip(search1, search2)):
                         if np.linalg.norm(d[p1]) != 0 and np.linalg.norm(d[p2]) != 0:
-                            if invert_mask_file[i]:
+                            if invert_mask[i]:
                                 d[p1] *= -1
                             angle = rad2degree(angle_between(d[p1], d[p2]))
                             all_angles[i][j].append(angle)
