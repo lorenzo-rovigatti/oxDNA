@@ -97,7 +97,7 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
                 if (t != last_step):
                     for j, (p1, p2) in enumerate(zip(search1, search2)):
                         if np.linalg.norm(d[p1]) != 0 and np.linalg.norm(d[p2]) != 0:
-                            if invert_mask_file[j]:
+                            if invert_mask_file[i]:
                                 d[p1] *= -1
                             angle = rad2degree(angle_between(d[p1], d[p2]))
                             all_angles[i][j].append(angle)
@@ -242,7 +242,7 @@ def main():
     if args.invert_mask:
         invert_mask = args.invert_mask
     else:
-        invert_mask = list(np.zeros(n_angles))
+        invert_mask = np.zeros(n_angles)
 
     invert_mask = [bool(int(m)) for m in invert_mask]
 
