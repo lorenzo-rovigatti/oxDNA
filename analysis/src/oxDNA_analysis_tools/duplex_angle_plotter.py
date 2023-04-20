@@ -281,7 +281,6 @@ def main():
     # -n sets the names of the data series
     if args.names:
         names = args.names
-        print(names)
         if len(names) < n_angles:
             print("WARNING: Names list too short.  There are {} items in names and {} angles were calculated.  Will pad with particle IDs".format(len(names), n_angles), file=stderr)
             for i in range(len(names), n_angles):
