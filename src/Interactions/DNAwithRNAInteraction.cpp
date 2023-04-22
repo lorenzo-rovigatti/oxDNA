@@ -838,11 +838,20 @@ void DNAwithRNAInteraction::init() {
 		F1_EPS_hybrid[HYDR_F1_hybrid][N_A][N_T] = F1_EPS_hybrid[HYDR_F1_hybrid][N_T][N_A] = tmp_value;
 		F1_SHIFT_hybrid[HYDR_F1_hybrid][N_A][N_T] = F1_SHIFT_hybrid[HYDR_F1_hybrid][N_T][N_A] = F1_EPS_hybrid[HYDR_F1_hybrid][N_A][N_T] * SQR(1 - exp(-(HYDR_RC_hybrid - HYDR_R0_hybrid) * HYDR_A_hybrid));
 
-		if(getInputFloat(&seq_file, "HYDR_G_C", &tmp_value, 0) == KEY_NOT_FOUND) {
-			getInputFloat(&seq_file, "HYDR_C_G", &tmp_value, 1);
+		//two different G-C strengths depending on whether DNA or RNA
+		//--------------------------------------
+		if(getInputFloat(&seq_file, "HYDR_rG_dC", &tmp_value, 0) == KEY_NOT_FOUND) {
+			getInputFloat(&seq_file, "HYDR_dC_rG", &tmp_value, 1);
 		}
-		F1_EPS_hybrid[HYDR_F1_hybrid][N_G][N_C] = F1_EPS_hybrid[HYDR_F1_hybrid][N_C][N_G] = tmp_value;
-		F1_SHIFT_hybrid[HYDR_F1_hybrid][N_G][N_C] = F1_SHIFT_hybrid[HYDR_F1_hybrid][N_C][N_G] = F1_EPS_hybrid[HYDR_F1_hybrid][N_G][N_C] * SQR(1 - exp(-(HYDR_RC_hybrid - HYDR_R0_hybrid) * HYDR_A_hybrid));
+		F1_EPS_hybrid[HYDR_F1_hybrid][N_G][N_C] = tmp_value;
+		F1_SHIFT_hybrid[HYDR_F1_hybrid][N_G][N_C] = F1_EPS_hybrid[HYDR_F1_hybrid][N_G][N_C] * SQR(1 - exp(-(HYDR_RC_hybrid - HYDR_R0_hybrid) * HYDR_A_hybrid));
+
+		if(getInputFloat(&seq_file, "HYDR_dG_rC", &tmp_value, 0) == KEY_NOT_FOUND) {
+			getInputFloat(&seq_file, "HYDR_rC_dG", &tmp_value, 1);
+		}
+		F1_EPS_hybrid[HYDR_F1_hybrid][N_C][N_G] = tmp_value;
+		F1_SHIFT_hybrid[HYDR_F1_hybrid][N_C][N_G] = F1_EPS_hybrid[HYDR_F1_hybrid][N_C][N_G] * SQR(1 - exp(-(HYDR_RC_hybrid - HYDR_R0_hybrid) * HYDR_A_hybrid));
+		//--------------------------------------
 
 		//we are storing the A-U h-bonding strength in the 'AA slot'
 		if(getInputFloat(&seq_file, "HYDR_A_U", &tmp_value, 0) == KEY_NOT_FOUND) {
@@ -3758,14 +3767,29 @@ number DNAwithRNAInteraction::_f1_hybrid(number r, int type, int n3, int n5, boo
 	else {
 		AU_bp = false;
 	}
-	//--------------------------------------------------------------
-	
 	//setting the right indices to use the AU bonding strength
 	if(AU_bp == true){
 		n3 = N_A;
 		n5 = N_A;
 	}
-	
+	//--------------------------------------------------------------
+
+
+
+
+	//acid type-dependent GC strength
+	//----------------------------------------
+	if( (n3 == 1 && n5 == 2) || (n5 == 1 && n3 == 2) ) {
+		if(is_n3_DNA == false) {
+			n3 = N_G;
+			n5 = N_C;
+		} else {
+			n3 = N_C;
+			n5 = N_G;
+		}
+	}
+	//----------------------------------------
+
 
 	if(r < F1_RCHIGH_hybrid[type]) {
 		if(r > F1_RHIGH_hybrid[type]) {
@@ -3800,13 +3824,27 @@ number DNAwithRNAInteraction::_f1D_hybrid(number r, int type, int n3, int n5, bo
 	else {
 		AU_bp = false;
 	}
-	//--------------------------------------------------------------
-	
 	//setting the right indices to use the AU bonding strength
 	if(AU_bp == true){
 		n3 = N_A;
 		n5 = N_A;
 	}
+	//--------------------------------------------------------------
+	
+	
+
+	//acid type-dependent GC strength
+	//----------------------------------------
+	if( (n3 == 1 && n5 == 2) || (n5 == 1 && n3 == 2) ) {
+		if(is_n3_DNA == false) {
+			n3 = N_G;
+			n5 = N_C;
+		} else {
+			n3 = N_C;
+			n5 = N_G;
+		}
+	}
+	//----------------------------------------
 
 
 
