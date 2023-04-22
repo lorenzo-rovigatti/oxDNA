@@ -3780,7 +3780,7 @@ number DNAwithRNAInteraction::_f1_hybrid(number r, int type, int n3, int n5, boo
 	//acid type-dependent GC strength
 	//----------------------------------------
 	if( (n3 == 1 && n5 == 2) || (n5 == 1 && n3 == 2) ) {
-		if(is_n3_DNA == false) {
+		if( (is_n3_DNA == false && n3 == 1) || (is_n5_DNA == false && n5 == 1)) {
 			n3 = N_G;
 			n5 = N_C;
 		} else {
@@ -3836,7 +3836,7 @@ number DNAwithRNAInteraction::_f1D_hybrid(number r, int type, int n3, int n5, bo
 	//acid type-dependent GC strength
 	//----------------------------------------
 	if( (n3 == 1 && n5 == 2) || (n5 == 1 && n3 == 2) ) {
-		if(is_n3_DNA == false) {
+		if( (is_n3_DNA == false && n3 == 1) || (is_n5_DNA == false && n5 == 1)) {
 			n3 = N_G;
 			n5 = N_C;
 		} else {
