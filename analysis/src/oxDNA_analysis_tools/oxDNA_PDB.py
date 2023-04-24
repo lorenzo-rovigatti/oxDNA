@@ -15,8 +15,10 @@ import oxDNA_analysis_tools.UTILS.protein_to_pdb as pro
 import oxDNA_analysis_tools.UTILS.utils as utils
 
 DD12_PDB_PATH = "./UTILS/dd12_na.pdb"
+RNA_PDB_PATH = "./UTILS/2jxq.pdb"
 
-number_to_base = {0 : 'A', 1 : 'G', 2 : 'C', 3 : 'T'}
+number_to_DNAbase = {0 : 'A', 1 : 'G', 2 : 'C', 3 : 'T'}
+number_to_RNAbase = {0 : 'A', 1 : 'G', 2 : 'C', 3 : 'U'}
 
 
 base_to_number = {'A' : 0, 'a' : 0, 'G' : 1, 'g' : 1,
@@ -95,32 +97,55 @@ def main():
     uniform_residue_names = args.uniform_residue_names
     one_file_per_strand = args.one_file_per_strand
 
-    # Open PDB File of nice lookin duplex to get base structures from
+    # Open PDB File of nice lookin DNA duplex to get base structures from
     with open(os.path.join(os.path.dirname(__file__), DD12_PDB_PATH)) as f:
-        nucleotides = []
-        aminoacids = []
+        DNAnucleotides = []
         old_residue = ""
         for line in f.readlines():
             if len(line) > 77:
                 na = Atom(line)
                 if na.residue_idx != old_residue:
                     nn = Nucleotide(na.residue, na.residue_idx)
-                    nucleotides.append(nn)
+                    DNAnucleotides.append(nn)
+                    old_residue = na.residue_idx
+                nn.add_atom(na)
+
+    # Open PDB File of nice lookin RNA duplex to get base structures from
+    with open(os.path.join(os.path.dirname(__file__), RNA_PDB_PATH)) as f:
+        RNAnucleotides = []
+        old_residue = ""
+        for line in f.readlines():
+            if len(line) > 77:
+                na = Atom(line)
+                if na.residue_idx != old_residue:
+                    nn = Nucleotide(na.residue, na.residue_idx)
+                    RNAnucleotides.append(nn)
                     old_residue = na.residue_idx
                 nn.add_atom(na)
 
     # Create reference oxDNA orientation vectors for the PDB base structures
-    bases = {}
-    for n in nucleotides:
+    DNAbases = {}
+    for n in DNAnucleotides:
         n.compute_as()
-        if n.base in bases:
-            if n.check < bases[n.base].check:
-                bases[n.base] = copy.deepcopy(n)
+        if n.base in DNAbases:
+            if n.check < DNAbases[n.base].check: # Find the most orthogonal a1/a3 in the reference
+                DNAbases[n.base] = copy.deepcopy(n)
+                DNAbases[n.base].a1, DNAbases[n.base].a2, DNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
         else:
-            bases[n.base] = n
+            DNAbases[n.base] = copy.deepcopy(n)
+            DNAbases[n.base].a1, DNAbases[n.base].a2, DNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
 
-    for n in nucleotides:
-        n.a1, n.a2, n.a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
+    # Create reference oxDNA orientation vectors for the PDB base structures
+    RNAbases = {}
+    for n in RNAnucleotides:
+        n.compute_as()
+        if n.base in RNAbases:
+            if n.check < RNAbases[n.base].check: # Find the most orthogonal a1/a3 in the reference
+                RNAbases[n.base] = copy.deepcopy(n)
+                RNAbases[n.base].a1, RNAbases[n.base].a2, RNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
+        else:
+            RNAbases[n.base] = copy.deepcopy(n)
+            RNAbases[n.base].a1, RNAbases[n.base].a2, RNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
 
     # Read oxDNA configuration
     system, elements = strand_describe(top_file)
@@ -175,6 +200,10 @@ def main():
         for strand in system.strands:
             strand_pdb = []
             nucleotides_in_strand = strand.monomers
+            sequence = [n.type for n in nucleotides_in_strand]
+            isDNA = True
+            if 'U' in sequence or 'u' in sequence:
+                isDNA = False
             if not oxDNA_direction:
                 nucleotides_in_strand = reversed(nucleotides_in_strand)
 
@@ -200,10 +229,17 @@ def main():
             elif strand.id >= 0:
                 for n_idx, nucleotide in enumerate(nucleotides_in_strand, 1):
                     if type(nucleotide.type) != str:
-                        nb = number_to_base[nucleotide.type]
+                        if isDNA:
+                            nb = number_to_DNAbase[nucleotide.type]
+                        else:
+                            nb = number_to_RNAbase[nucleotide.type]
                     else: 
                         nb = nucleotide.type
-                    my_base = copy.deepcopy(bases[nb])
+                    
+                    if isDNA:
+                        my_base = copy.deepcopy(DNAbases[nb])
+                    else:
+                        my_base = copy.deepcopy(RNAbases[nb])
                     my_base.chain_id = nucleotide.strand
                     residue_type = ""
 

@@ -1,5 +1,4 @@
 import Bio
-import Bio.PDB
 import numpy as np
 import numpy.linalg as la
 import copy
