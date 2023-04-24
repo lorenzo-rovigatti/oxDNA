@@ -1,11 +1,10 @@
 import numpy as np
 import itertools
-from math import sqrt
 import sys
 import copy
 from typing import List, Dict
 
-BASE_SHIFT = 1.13
+BASE_SHIFT = 3.4 #1.13
 COM_SHIFT = 0.5
 FROM_OXDNA_TO_ANGSTROM = 8.518
 FROM_ANGSTROM_TO_OXDNA = 1. / FROM_OXDNA_TO_ANGSTROM
@@ -76,7 +75,7 @@ class Nucleotide():
         elif self.name in BASES:
             self.base = self.name
         else:
-            self.base = name[1:]
+            self.base = name.strip('D53')
         self.idx = idx
         self.base_atoms = []
         self.phosphate_atoms = []
@@ -157,7 +156,7 @@ class Nucleotide():
     def correct_for_large_boxes(self, box):
         map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.atoms)
 
-    def to_pdb(self, print_H, residue_suffix, residue_type, bfactor) -> List[Dict]:
+    def to_pdb(self, print_H, residue_type, bfactor) -> List[Dict]:
         res:List[Dict] = []
         for a in self.atoms:
             if not print_H and 'H' in a.name:
@@ -172,7 +171,7 @@ class Nucleotide():
             elif residue_type == "3":
                 if a.name == "O3'":
                     O3prime = a
-            res.append(a.to_pdb(residue_suffix, bfactor))
+            res.append(a.to_pdb(residue_type, bfactor))
             
         # if the residue is a 3' or 5' end, it requires one more hydrogen linked to the O3' or O5', respectively
         if residue_type == "5":
@@ -181,9 +180,9 @@ class Nucleotide():
             
             # we put the new hydrogen at a distance 1 Angstrom from the O5' oxygen along the direction that, in a regular nucleotide, connects O5' and P
             dist_P_O = phosphorus.pos - O5prime.pos
-            dist_P_O *= 1. / np.sqrt(np.dot(dist_P_O, dist_P_O))
+            dist_P_O /= np.linalg.norm(dist_P_O)
             new_hydrogen.pos = O5prime.pos + dist_P_O
-            res.append(new_hydrogen.to_pdb(residue_suffix, bfactor))
+            res.append(new_hydrogen.to_pdb(residue_type, bfactor))
         elif residue_type == "3":
             new_hydrogen = copy.deepcopy(O3prime)
             new_hydrogen.name = "HO3'"
@@ -193,7 +192,7 @@ class Nucleotide():
             new_distance = 0.2 * self.a2 - 0.2 * self.a1 - self.a3
             new_distance /= np.linalg.norm(new_distance)
             new_hydrogen.pos = O3prime.pos + new_distance
-            res.append(new_hydrogen.to_pdb(residue_suffix, bfactor))
+            res.append(new_hydrogen.to_pdb(residue_type, bfactor))
 
         # Don't return as a string so it can be reversed to the correct orientation later.
         # Change to be a more standard atom order?? -- doesn't seem to matter.  My two reference files go around the ring in different ordres.
