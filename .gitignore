@@ -72,4 +72,7 @@ MANIFEST
 # MacOS desktop servies
 .DS_Store
 
+# Comment this out if you actually update get_confs
+analysis/src/oxDNA_analysis_tools/cython_utils/get_confs.c
+
 select_compute_arch_laptop.cmake

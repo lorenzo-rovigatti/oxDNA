@@ -2,8 +2,9 @@
 
 _oat_completions(){
 	if [ "${#COMP_WORDS[@]}" != "2" ]; then
-		_longopt
-		return
+		compopt -o default
+		COMPREPLY=()
+		return 0
 	fi
 
 
