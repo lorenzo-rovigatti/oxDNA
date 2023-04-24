@@ -135,7 +135,7 @@ def main():
             DNAbases[n.base] = copy.deepcopy(n)
             DNAbases[n.base].a1, DNAbases[n.base].a2, DNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
 
-    # Create reference oxDNA orientation vectors for the PDB base structures
+    # Create reference oxRNA orientation vectors for the PDB base structures
     RNAbases = {}
     for n in RNAnucleotides:
         n.compute_as()
@@ -207,8 +207,7 @@ def main():
             if not oxDNA_direction:
                 nucleotides_in_strand = reversed(nucleotides_in_strand)
 
-            sys.stderr.write("\rINFO: Converting strand {}".format(strand.id))
-            sys.stderr.flush()
+            print("\rINFO: Converting strand {}".format(strand.id), file=sys.stderr)
 
             # Handle protein
             if strand.id < 0 and protein_pdb_files:
@@ -271,9 +270,7 @@ def main():
                     base_identifier = current_base_identifier
                     # Make nucleotide line from pdb.py
                     nucleotide_pdb = my_base.to_pdb(
-                        base_identifier,
                         hydrogen,
-                        residue_serial,
                         residue_suffix,
                         residue_type,
                         bfactor=rmsf_per_nucleotide[nucleotide.id],
@@ -281,7 +278,44 @@ def main():
                     # Append to strand_pdb
                     strand_pdb.append(nucleotide_pdb)
 
-                print("\n".join(x for x in strand_pdb), file=out)
+                if oxDNA_direction:
+                    strand_pdb = strand_pdb[::-1]
+
+                #re-index and create PDB string
+                chain_id = 'A'
+                atom_counter = 1
+                for nid, n in enumerate(strand_pdb,1):
+                    for a in n:
+                        print("{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
+                            .format("ATOM", 
+                                atom_counter, 
+                                a['name'], 
+                                " ", 
+                                a['residue_name'], 
+                                chain_id,
+                                " ", 
+                                nid, 
+                                " ", 
+                                a['pos'][0], 
+                                a['pos'][1], 
+                                a['pos'][2], 
+                                1.00, 
+                                a['bfactor'], 
+                                " ", " ", " "
+                            ), 
+                            file=out
+                        )
+                        atom_counter += 1
+
+                chain_id = chr(ord(chain_id)+1)
+                if chain_id == chr(ord('Z')+1):
+                    chain_id = 'a'
+                if chain_id == chr(ord('z')+1):
+                    chain_id = '1'
+                if chain_id == chr(ord('9')+1):
+                    print("WARNING: More than 62 chains identified, looping chain identifier...", file=sys.stderr)
+                    chain_ID = 'A'
+
                 print("TER", file=out)
 
                 if one_file_per_strand:
