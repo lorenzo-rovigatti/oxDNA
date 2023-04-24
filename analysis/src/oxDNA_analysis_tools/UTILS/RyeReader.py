@@ -88,7 +88,12 @@ def _index(traj_file) -> List[ConfInfo]:
     idxs = [ConfInfo(conf_starts[i], conf_starts[i+1] - conf_starts[i],i) 
                                             for i in range(len(conf_starts)-1)]
     #handle last offset
-    idxs.append(ConfInfo(conf_starts[-1], fsize - conf_starts[-1], len(conf_starts)-1))
+    try:
+        idxs.append(ConfInfo(conf_starts[-1], fsize - conf_starts[-1], len(conf_starts)-1))
+    except Exception as e:
+        out_e = RuntimeError("Cannot find any configuration starts in file {}. It is not a properly formatted trajectory file.".format((traj_file)))
+        out_e = out_e.with_traceback(e.__traceback__)
+        raise out_e from e
     return idxs
 
 def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int) -> List[Configuration]:
