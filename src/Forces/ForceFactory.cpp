@@ -109,13 +109,14 @@ void ForceFactory::make_forces(std::vector<BaseParticle *> &particles, BaseBox *
 
 		ifstream external(external_filename.c_str());
 		if(!external.good ()) {
-			throw oxDNAException ("Can't read external_forces_file '%s'", external_filename.c_str());
+			throw oxDNAException("Can't read external_forces_file '%s'", external_filename.c_str());
 		}
 
 		bool is_json = false;
 		getInputBool(CONFIG_INFO->sim_input, "external_forces_as_JSON", &is_json, 0);
 
 		if(is_json) {
+#ifdef JSON_ENABLED
 			OX_LOG(Logger::LOG_INFO, "Parsing JSON force file %s", external_filename.c_str());
 
 			nlohmann::json my_json = nlohmann::json::parse(external);
@@ -125,6 +126,9 @@ void ForceFactory::make_forces(std::vector<BaseParticle *> &particles, BaseBox *
 				force_input.init_from_json(force_json);
 				ForceFactory::instance()->add_force(force_input, particles, box);
 			}
+#else
+			throw oxDNAException("external_forces_as_JSON is true, but JSON has been disabled at compile time");
+#endif
 		}
 		else {
 			OX_LOG(Logger::LOG_INFO, "Parsing force file %s", external_filename.c_str());
