@@ -35,7 +35,6 @@ void RNA2Interaction::get_settings(input_file &inp) {
 	float prefactor; // this is the strength of the interaction
 	float lambdafactor; //Lambda is _debye_huckel_LAMBDAFACTOR / salt^0.5
 	float rh;
-	int lambda_T_dependent = 0;
 	int half_charged_ends = 0;
 	//getInputString(&inp, "topology", _topology_filename, 1);
 
