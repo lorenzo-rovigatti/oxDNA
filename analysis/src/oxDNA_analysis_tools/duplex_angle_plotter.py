@@ -80,6 +80,7 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
         with open(anglefile) as file:
             all_search = search1.copy()
             all_search.extend(search2)
+            all_search = list(set(all_search)) # get rid of duplicate searches
             d = {i : np.array([0, 0, 0]) for i in all_search}
             for l in file.readlines()[1:]: #the first line is a header, so it can be dropped
                 try:
