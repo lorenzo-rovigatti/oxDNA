@@ -1,6 +1,4 @@
 import numpy as np
-import math
-
 
 try:
     FLT_EPSILON = np.finfo(np.float).eps
@@ -18,7 +16,7 @@ def get_angle(a, b):
     1.571
 
     """
-    ab = np.dot(a, b)
+    ab = np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
     if ab > (1. - FLT_EPSILON): 
         return 0
     elif ab < (-1. + FLT_EPSILON): 
@@ -79,10 +77,10 @@ def get_random_rotation_matrix():
 
 
 def get_rotation_matrix(axis, angle):
-    ct = math.cos(angle)
-    st = math.sin(angle)
+    ct = np.cos(angle)
+    st = np.sin(angle)
     olc = 1. - ct
-    x, y, z = axis / math.sqrt(np.dot(axis, axis))
+    x, y, z = axis / np.linalg.norm(axis)
 
     return np.array([[olc * x * x + ct, olc * x * y - st * z, olc * x * z + st * y],
                     [olc * x * y + st * z, olc * y * y + ct, olc * y * z - st * x],
