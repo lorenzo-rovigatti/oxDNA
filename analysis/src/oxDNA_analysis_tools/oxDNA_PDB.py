@@ -7,6 +7,7 @@ import copy
 import argparse
 import string
 from collections import defaultdict
+from typing import List, Dict
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, Nucleotide, AminoAcid, FROM_OXDNA_TO_ANGSTROM
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe, inbox
@@ -48,6 +49,53 @@ def align(full_base, ox_base):
         axis /= np.linalg.norm(axis)
         R = utils.get_rotation_matrix(axis, theta)
         full_base.rotate(R)
+
+def get_nucs_from_PDB(file:str) -> List[Nucleotide]:
+    """
+        Extract atoms from a PDB file
+
+        Parameters:
+            file (str) : The path to the PDB file to read
+
+        Returns:
+            List[Nucleotide] : A list of nucleotide objects from the PDB file
+    """
+    with open(file) as f:
+        nucleotides = []
+        old_residue = ""
+        for line in f.readlines():
+            if len(line) > 77:
+                na = Atom(line)
+                if na.residue_idx != old_residue:
+                    nn = Nucleotide(na.residue, na.residue_idx)
+                    nucleotides.append(nn)
+                    old_residue = na.residue_idx
+                nn.add_atom(na)
+
+    return nucleotides
+
+def choose_reference_nucleotides(nucleotides:List[Nucleotide]) -> Dict[str, Nucleotide]:
+    """
+        Find nucleotides that most look like an oxDNA nucleotide (orthogonal a1 and a3 vectors).
+
+        Parameters:
+            nucleotides (List[Nucleotide]) : List of nucleotides to compare.
+        
+        Returns:
+            Dict[str, Nucleotide] : The best nucleotide for each type in the format `{'C' : Nucleotide}`.
+    """
+    bases = {}
+    for n in nucleotides:
+        n.compute_as()
+        if n.base in bases:
+            if n.check < bases[n.base].check: # Find the most orthogonal a1/a3 in the reference
+                bases[n.base] = copy.deepcopy(n)
+                bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
+        else:
+            bases[n.base] = copy.deepcopy(n)
+            bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
+
+    return bases
 
 def cli_parser(prog="oxDNA_PDB.py"):
     parser = argparse.ArgumentParser(prog=prog, description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
@@ -93,58 +141,15 @@ def main():
     uniform_residue_names = args.uniform_residue_names
     one_file_per_strand = args.one_file_per_strand
 
-    # Open PDB File of nice lookin DNA duplex to get base structures from
-    with open(os.path.join(os.path.dirname(__file__), DD12_PDB_PATH)) as f:
-        DNAnucleotides = []
-        old_residue = ""
-        for line in f.readlines():
-            if len(line) > 77:
-                na = Atom(line)
-                if na.residue_idx != old_residue:
-                    nn = Nucleotide(na.residue, na.residue_idx)
-                    DNAnucleotides.append(nn)
-                    old_residue = na.residue_idx
-                nn.add_atom(na)
+    # Open PDB File of nice lookin duplexes to get base structures from
+    DNAnucleotides = get_nucs_from_PDB(os.path.join(os.path.dirname(__file__), DD12_PDB_PATH))
+    RNAnucleotides = get_nucs_from_PDB(os.path.join(os.path.dirname(__file__), RNA_PDB_PATH))
 
-    # Open PDB File of nice lookin RNA duplex to get base structures from
-    with open(os.path.join(os.path.dirname(__file__), RNA_PDB_PATH)) as f:
-        RNAnucleotides = []
-        old_residue = ""
-        for line in f.readlines():
-            if len(line) > 77:
-                na = Atom(line)
-                if na.residue_idx != old_residue:
-                    nn = Nucleotide(na.residue, na.residue_idx)
-                    RNAnucleotides.append(nn)
-                    old_residue = na.residue_idx
-                nn.add_atom(na)
-
-    # Create reference oxDNA orientation vectors for the PDB base structures
-    DNAbases = {}
-    for n in DNAnucleotides:
-        n.compute_as()
-        if n.base in DNAbases:
-            if n.check < DNAbases[n.base].check: # Find the most orthogonal a1/a3 in the reference
-                DNAbases[n.base] = copy.deepcopy(n)
-                DNAbases[n.base].a1, DNAbases[n.base].a2, DNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
-        else:
-            DNAbases[n.base] = copy.deepcopy(n)
-            DNAbases[n.base].a1, DNAbases[n.base].a2, DNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
-
-    # Create reference oxRNA orientation vectors for the PDB base structures
-    RNAbases = {}
-    for n in RNAnucleotides:
-        n.compute_as()
-        if n.base in RNAbases:
-            if n.check < RNAbases[n.base].check: # Find the most orthogonal a1/a3 in the reference
-                RNAbases[n.base] = copy.deepcopy(n)
-                RNAbases[n.base].a1, RNAbases[n.base].a2, RNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
-        else:
-            RNAbases[n.base] = copy.deepcopy(n)
-            RNAbases[n.base].a1, RNAbases[n.base].a2, RNAbases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
+    DNAbases = choose_reference_nucleotides(DNAnucleotides)
+    RNAbases = choose_reference_nucleotides(RNAnucleotides)
 
     # Read oxDNA configuration
-    system, elements = strand_describe(top_file)
+    system, _ = strand_describe(top_file)
     ti, di = describe(top_file, conf_file)
     conf = get_confs(ti, di, 0, 1)[0]
     conf = inbox(conf, center=True)
@@ -184,7 +189,6 @@ def main():
 
     # Start writing the output file
     with open(out_name, 'w+') as out:
-        current_base_identifier = 'A'   
         reading_position = 0 
 
         # get protein files
@@ -218,11 +222,11 @@ def main():
                 else:
                      reading_position = next_reading_position
             elif strand.id < 0 and not protein_pdb_files:
-                raise RuntimeError("You must provide the PDB files for proteins in the scene.")
+                raise RuntimeError("You must provide PDB files containing just the protein for each protein in the scene.")
 
             # Nucleic Acids
             elif strand.id >= 0:
-                for n_idx, nucleotide in enumerate(nucleotides_in_strand, 1):
+                for nucleotide in nucleotides_in_strand:
                     if type(nucleotide.type) != str:
                         if isDNA:
                             nb = number_to_DNAbase[nucleotide.type]
@@ -256,7 +260,6 @@ def main():
                     if correct_for_large_boxes:
                         my_base.correct_for_large_boxes(box_angstrom)
 
-                    base_identifier = current_base_identifier
                     # Make nucleotide line from pdb.py
                     nucleotide_pdb = my_base.to_pdb(
                         hydrogen,
@@ -295,6 +298,8 @@ def main():
                         )
                         atom_counter = (atom_counter+1) % 9999
 
+                print("TER", file=out)
+                
                 if one_file_per_strand:
                     out.close()
                     print("INFO: Wrote strand {}'s data to {}".format (strand.id, out_name))
@@ -303,16 +308,15 @@ def main():
                         out_name = out_basename + "_{}.pdb".format(strand.id, )
                         out = open(out_name, "w")
                 else:
+                    # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
                     chain_id = chr(ord(chain_id)+1)
                     if chain_id == chr(ord('Z')+1):
                         chain_id = 'a'
-                    if chain_id == chr(ord('z')+1):
+                    elif chain_id == chr(ord('z')+1):
                         chain_id = '1'
-                    if chain_id == chr(ord('9')+1):
+                    elif chain_id == chr(ord('0')+1):
                         print("WARNING: More than 62 chains identified, looping chain identifier...", file=sys.stderr)
-                        chain_ID = 'A'
-
-                print("TER", file=out)
+                        chain_id = 'A'
 
         if protein_pdb_files:  
             # #Must Now renumber and restrand, (sorry)
@@ -347,7 +351,7 @@ def main():
                     xd, yd, zd = float(line[30:38]), float(line[38:46]), float(line[46:54])
                     for x in [xd, yd, zd]:
                         spcs = 7-len(str(x))
-                        x = ''.join([' ' for i in range(spcs)]) + str(x)
+                        x = ''.join([' ' for _ in range(spcs)]) + str(x)
                     #print(xd, yd, zd)
                     if len(list(data[-1])) == 1:
                         del data[-1]
