@@ -15,7 +15,9 @@
 #include <map>
 #include <set>
 
+#ifdef JSON_ENABLED
 #include <nlohmann/json_fwd.hpp>
+#endif
 
 #define UNPARSED 0
 #define PARSED 1
@@ -76,7 +78,9 @@ struct input_file {
 	 */
 	void init_from_string(std::string s_inp);
 
+#ifdef JSON_ENABLED
 	void init_from_json(const nlohmann::json &json);
+#endif
 
 	/**
 	 * @brief Load keys and values from command line's argc and argv variables
