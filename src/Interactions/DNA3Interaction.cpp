@@ -267,7 +267,7 @@ DNA3Interaction::DNA3Interaction() :
 
 	// TODO
 	//HERE OR DIRECTLY AFTER SEQ DIP READING?
-	
+	/*
         for(int i = 0; i < 21; i++) {
 		// the order of the interpolation interval extremes is reversed,
 		// due to the cosine being monotonically decreasing with increasing
@@ -278,12 +278,13 @@ DNA3Interaction::DNA3Interaction() :
 				number upplimit = cos(fmax(0, F4_SD_THETA_T0[i][j][z] - F4_SD_THETA_TC[i][j][z]));
 				number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[i][j][z] + F4_SD_THETA_TC[i][j][z]));
 				int tmp_args[3];	//define with new?
-				tmp_args[0] = i;  tmp_args[0] = j; tmp_args[0] = z;
+				tmp_args[0] = i;  tmp_args[1] = j; tmp_args[2] = z;
 				_mesh_f4_SD[i][j][z].build([this](number x, void *args) { return this->_fakef4_SD(x, args); }, [this](number x, void *args) { return _fakef4D_SD(x, args); }, (void*) tmp_args, points, lowlimit, upplimit);
 				assert(lowlimit < upplimit);
 			}
 		}
-	}                
+	}
+	*/           
 }
 
 void DNA3Interaction::init() {
@@ -298,6 +299,8 @@ void DNA3Interaction::init() {
 	
 	if(!_average) {
 		char key[256];
+		float tmp_value;
+
 
 		input_file seq_file;
 		seq_file.init_from_filename(_seq_filename.c_str());
@@ -311,46 +314,46 @@ void DNA3Interaction::init() {
 				
 				//HYDROGEN
 				sprintf(key, "HYDR_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_A[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[HYDR_F1][i][j] = tmp_value;
 				sprintf(key, "HYDR_RC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RC[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[HYDR_F1][i][j] = tmp_value;
 				sprintf(key, "HYDR_R0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_R0[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[HYDR_F1][i][j] = tmp_value;
 				sprintf(key, "HYDR_BLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_BLOW[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BLOW[HYDR_F1][i][j] = tmp_value;
 				sprintf(key, "HYDR_BHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_BHIGH[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BHIGH[HYDR_F1][i][j] = tmp_value;
 				sprintf(key, "HYDR_RLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RLOW[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[HYDR_F1][i][j] = tmp_value;
 				sprintf(key, "HYDR_RHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RHIGH[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[HYDR_F1][i][j] = tmp_value;
 				sprintf(key, "HYDR_RCLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RCLOW[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCLOW[HYDR_F1][i][j] = tmp_value;
 				sprintf(key, "HYDR_RCHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RCHIGH[HYDR_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCHIGH[HYDR_F1][i][j] = tmp_value;
 				
 				//update shift
 				F1_SHIFT[HYDR_F1][i][j] = F1_EPS[HYDR_F1][i][j] * SQR(1 - exp(-(F1_SD_RC[HYDR_F1][i][j] - F1_SD_R0[HYDR_F1][i][j]) * F1_SD_A[HYDR_F1][i][j]));
 				
 				//STACKING
 				sprintf(key, "STCK_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_A[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_A[STCK_F1][i][j] = tmp_value;
 				sprintf(key, "STCK_RC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RC[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RC[STCK_F1][i][j] = tmp_value;
 				sprintf(key, "STCK_R0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_R0[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_R0[STCK_F1][i][j] = tmp_value;
 				sprintf(key, "STCK_BLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_BLOW[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BLOW[STCK_F1][i][j] = tmp_value;
 				sprintf(key, "STCK_BHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_BHIGH[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_BHIGH[STCK_F1][i][j] = tmp_value;
 				sprintf(key, "STCK_RLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RLOW[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RLOW[STCK_F1][i][j] = tmp_value;
 				sprintf(key, "STCK_RHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RHIGH[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RHIGH[STCK_F1][i][j] = tmp_value;
 				sprintf(key, "STCK_RCLOW_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RCLOW[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCLOW[STCK_F1][i][j] = tmp_value;
 				sprintf(key, "STCK_RCHIGH_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F1_SD_RCHIGH[STCK_F1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCHIGH[STCK_F1][i][j] = tmp_value;
 				
 				//update shift
 				F1_SHIFT[STCK_F1][i][j] = F1_EPS[STCK_F1][i][j] * SQR(1 - exp(-(F1_SD_RC[STCK_F1][i][j] - F1_SD_R0[STCK_F1][i][j]) * F1_SD_A[STCK_F1][i][j]));
@@ -361,42 +364,42 @@ void DNA3Interaction::init() {
 				//SYMMETRIC -- TODO.
 				//ASYMMETRIC
 				sprintf(key, "CRST_K_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_K[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_RC_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RC[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_R0_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_R0[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_BLOW_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_BLOW[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BLOW[CRST_F2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_BHIGH_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_BHIGH[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BHIGH[CRST_F2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_RLOW_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RLOW[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_RHIGH_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RHIGH[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_RCLOW_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RCLOW[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCLOW[CRST_F2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_RCHIGH_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RCHIGH[CRST_F2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCHIGH[CRST_F2_33][i][j] = tmp_value;
 				
 				sprintf(key, "CRST_K_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_K[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_K[CRST_F2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_RC_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RC[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RC[CRST_F2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_R0_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_R0[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_R0[CRST_F2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_BLOW_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_BLOW[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BLOW[CRST_F2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_BHIGH_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_BHIGH[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_BHIGH[CRST_F2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_RLOW_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RLOW[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RLOW[CRST_F2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_RHIGH_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RHIGH[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RHIGH[CRST_F2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_RCLOW_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RCLOW[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCLOW[CRST_F2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_RCHIGH_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F2_SD_RCHIGH[CRST_F2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F2_SD_RCHIGH[CRST_F2_55][i][j] = tmp_value;
 				
 				//COAXIAL -- TODO.
 				
@@ -404,186 +407,188 @@ void DNA3Interaction::init() {
 				
 				//HYDROGEN
 				sprintf(key, "HYDR_THETA1_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[HYDR_F4_THETA1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA1][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA1_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[HYDR_F4_THETA1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA1][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA1_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[HYDR_F4_THETA1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA1][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA1_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[HYDR_F4_THETA1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA1][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA1_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[HYDR_F4_THETA1][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA1][i][j] = tmp_value;
 			
 				sprintf(key, "HYDR_THETA2_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[HYDR_F4_THETA2][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA2][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA2_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[HYDR_F4_THETA2][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA2][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA2_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[HYDR_F4_THETA2][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA2][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA2_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[HYDR_F4_THETA2][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA2][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA2_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[HYDR_F4_THETA2][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA2][i][j] = tmp_value;
 				
 				sprintf(key, "HYDR_THETA3_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[HYDR_F4_THETA3][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA3][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA3_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[HYDR_F4_THETA3][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA3][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA3_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[HYDR_F4_THETA3][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA3][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA3_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[HYDR_F4_THETA3][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA3][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA3_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[HYDR_F4_THETA3][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA3][i][j] = tmp_value;
 				
 				sprintf(key, "HYDR_THETA4_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[HYDR_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA4][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA4_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[HYDR_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA4][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA4_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[HYDR_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA4][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA4_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[HYDR_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA4][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA4_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[HYDR_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA4][i][j] = tmp_value;
 				
 				sprintf(key, "HYDR_THETA7_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[HYDR_F4_THETA7][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA7][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA7_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[HYDR_F4_THETA7][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA7][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA7_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[HYDR_F4_THETA7][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA7][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA7_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[HYDR_F4_THETA7][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA7][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA7_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[HYDR_F4_THETA7][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA7][i][j] = tmp_value;
 				
 				sprintf(key, "HYDR_THETA8_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[HYDR_F4_THETA8][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[HYDR_F4_THETA8][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA8_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[HYDR_F4_THETA8][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[HYDR_F4_THETA8][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA8_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[HYDR_F4_THETA8][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[HYDR_F4_THETA8][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA8_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[HYDR_F4_THETA8][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[HYDR_F4_THETA8][i][j] = tmp_value;
 				sprintf(key, "HYDR_THETA8_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[HYDR_F4_THETA8][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[HYDR_F4_THETA8][i][j] = tmp_value;
+				
 				
 				//STACKING
 				
 				sprintf(key, "STCK_THETA4_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[STCK_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA4][i][j] = tmp_value;
 				sprintf(key, "STCK_THETA4_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[STCK_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[STCK_F4_THETA4][i][j] = tmp_value;
 				sprintf(key, "STCK_THETA4_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[STCK_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA4][i][j] = tmp_value;
 				sprintf(key, "STCK_THETA4_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[STCK_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA4][i][j] = tmp_value;
 				sprintf(key, "STCK_THETA4_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[STCK_F4_THETA4][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA4][i][j] = tmp_value;
 				
 				sprintf(key, "STCK_THETA5_A_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[STCK_F4_THETA5][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[STCK_F4_THETA5][i][j] = tmp_value;
 				sprintf(key, "STCK_THETA5_B_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[STCK_F4_THETA5][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[STCK_F4_THETA5][i][j] = tmp_value;
 				sprintf(key, "STCK_THETA5_T0_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[STCK_F4_THETA5][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[STCK_F4_THETA5][i][j] = tmp_value;
 				sprintf(key, "STCK_THETA5_TS_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[STCK_F4_THETA5][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[STCK_F4_THETA5][i][j] = tmp_value;
 				sprintf(key, "STCK_THETA5_TC_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[STCK_F4_THETA5][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA5][i][j] = tmp_value;
+				
 				
 				//CROSS STACKING
 				
 				//ASYMMETRIC
 				
 				sprintf(key, "CRST_THETA1_A_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[CRST_F4_THETA1_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA1_B_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[CRST_F4_THETA1_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA1_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA1_T0_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[CRST_F4_THETA1_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA1_TS_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[CRST_F4_THETA1_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA1_TC_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[CRST_F4_THETA1_33][i][j], 1);
-				
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_33][i][j] = tmp_value;
+			
 				sprintf(key, "CRST_THETA2_A_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[CRST_F4_THETA2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA2_B_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[CRST_F4_THETA2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA2_T0_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[CRST_F4_THETA2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA2_TS_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[CRST_F4_THETA2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA2_TC_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[CRST_F4_THETA2_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_33][i][j] = tmp_value;
 				
 				sprintf(key, "CRST_THETA4_A_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[CRST_F4_THETA4_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA4_B_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[CRST_F4_THETA4_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA4_T0_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[CRST_F4_THETA4_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA4_TS_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[CRST_F4_THETA4_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA4_TC_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[CRST_F4_THETA4_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_33][i][j] = tmp_value;
 				
 				sprintf(key, "CRST_THETA7_A_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[CRST_F4_THETA7_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA7_B_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[CRST_F4_THETA7_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA7_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA7_T0_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[CRST_F4_THETA7_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA7_TS_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[CRST_F4_THETA7_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_33][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA7_TC_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[CRST_F4_THETA7_33][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_33][i][j] = tmp_value;
 				
 				sprintf(key, "CRST_THETA1_A_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[CRST_F4_THETA1_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA1_B_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[CRST_F4_THETA1_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA1_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA1_T0_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[CRST_F4_THETA1_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA1_TS_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[CRST_F4_THETA1_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA1_TC_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[CRST_F4_THETA1_55][i][j], 1);
-				
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_55][i][j] = tmp_value;
+			
 				sprintf(key, "CRST_THETA2_A_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[CRST_F4_THETA2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA2_B_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[CRST_F4_THETA2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA2_T0_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[CRST_F4_THETA2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA2_TS_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[CRST_F4_THETA2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA2_TC_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[CRST_F4_THETA2_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_55][i][j] = tmp_value;
 				
 				sprintf(key, "CRST_THETA4_A_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[CRST_F4_THETA4_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA4_B_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[CRST_F4_THETA4_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA4_T0_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[CRST_F4_THETA4_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA4_TS_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[CRST_F4_THETA4_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA4_TC_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[CRST_F4_THETA4_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_55][i][j] = tmp_value;
 				
 				sprintf(key, "CRST_THETA7_A_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_A[CRST_F4_THETA7_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA7_B_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_B[CRST_F4_THETA7_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA7_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA7_T0_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_T0[CRST_F4_THETA7_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA7_TS_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TS[CRST_F4_THETA7_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_55][i][j] = tmp_value;
 				sprintf(key, "CRST_THETA7_TC_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
-				getInputNumber(&seq_file, key, &F4_SD_THETA_TC[CRST_F4_THETA7_55][i][j], 1);
+				if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_55][i][j] = tmp_value;
 				
 				//COAXIAL -- TODO.
 				
@@ -596,25 +601,62 @@ void DNA3Interaction::init() {
 			}
 		}
 		
-		//overwrite mesh
+		std::cout << "**************HYDRO***************" << std::endl;
+		for(int i = 0; i < 4; i++) {
+			for(int j = 0; j < 4; j++) {			
+			
+				std::cout << "HYDR_THETA4_A_" << Utils::encode_base(i) << "_" << Utils::encode_base(j) << " = " << F4_SD_THETA_A[HYDR_F4_THETA4][i][j] << std::endl;
+				std::cout << "HYDR_THETA4_B_" << Utils::encode_base(i) << "_" << Utils::encode_base(j) << " = " << F4_SD_THETA_B[HYDR_F4_THETA4][i][j] << std::endl;
+				std::cout << "HYDR_THETA4_T0_" << Utils::encode_base(i) << "_" << Utils::encode_base(j) << " = " << F4_SD_THETA_T0[HYDR_F4_THETA4][i][j] << std::endl;
+				std::cout << "HYDR_THETA4_TS_" << Utils::encode_base(i) << "_" << Utils::encode_base(j) << " = " << F4_SD_THETA_TS[HYDR_F4_THETA4][i][j] << std::endl;
+				std::cout << "HYDR_THETA4_TC_" << Utils::encode_base(i) << "_" << Utils::encode_base(j) << " = " << F4_SD_THETA_TC[HYDR_F4_THETA4][i][j] << std::endl;
+			}
+		}
+			
+		std::cout << "**************STACKING***************" << std::endl;
+		for(int i = 0; i < 4; i++) {
+			for(int j = 0; j < 4; j++) {
+				std::cout << "STCK_THETA4_T0_" << Utils::encode_base(i) << "_" << Utils::encode_base(j) << " = " << F4_SD_THETA_T0[STCK_F4_THETA4][i][j] << std::endl;
+			}
+		}
+		std::cout << "**************CROSS_STACKING***************" << std::endl;
+		for(int i = 0; i < 4; i++) {
+			for(int j = 0; j < 4; j++) {			
+				
+				std::cout << "CRST_K_33_" << Utils::encode_base(i) << "_" << Utils::encode_base(j) << " = " << F2_SD_K[CRST_F2_33][i][j] << std::endl;
+				std::cout << "CRST_K_55_" << Utils::encode_base(i) << "_" << Utils::encode_base(j) << " = " << F2_SD_K[CRST_F2_55][i][j] << std::endl;				
+			}
+		}
+		std::cout << "*****************************" << std::endl;
+		
+		
+		//build mesh for the f4s
 		for(int i = 0; i < 21; i++) {
 			// the order of the interpolation interval extremes is reversed,
 			// due to the cosine being monotonically decreasing with increasing
 			// x
 			for(int j = 0; j < 5; j++) {
 				for(int z = 0; z < 5; z++) {
+				
+					//std::cout << i << " " << j << " " << z << std::endl;
+				
 					int points = MESH_F4_SD_POINTS[i][j][z];
 					number upplimit = cos(fmax(0, F4_SD_THETA_T0[i][j][z] - F4_SD_THETA_TC[i][j][z]));
 					number lowlimit = cos(fmin(PI, F4_SD_THETA_T0[i][j][z] + F4_SD_THETA_TC[i][j][z]));
 					
 					int tmp_args[3];
-					tmp_args[0] = i;  tmp_args[0] = j; tmp_args[0] = z;
+					tmp_args[0] = i;  tmp_args[1] = j; tmp_args[2] = z;
+					//std::cout << "We are here!" << std::endl;
 					_mesh_f4_SD[i][j][z].build([this](number x, void *args) { return this->_fakef4_SD(x, args); }, [this](number x, void *args) { return _fakef4D_SD(x, args); }, (void*) tmp_args, points, lowlimit, upplimit);
 					assert(lowlimit < upplimit);
 				}
 			}
-		}				
+		}
+						
 	}
+	
+	std::cout << "DNA3 initialisation done" << std::endl;
+	
 }
 
 
@@ -660,6 +702,11 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
 	number f5phi2 = _f5_SD(cosphi2, STCK_F5_PHI2, q->type, p->type);
 
 	number energy = f1 * f4t4 * f4t5 * f4t6 * f5phi1 * f5phi2;
+	
+	//std::cout << "stacking energy: " << energy << std::endl;
+	//std::cout << f1 << " " << f4t4 << " " << f4t5 << " " << f4t6 << " " << f5phi1 << " " << f5phi2 << std::endl;
+	
+	
 
 	if(update_forces && energy != (number) 0.f) {
 		LR_vector torquep(0, 0, 0);
@@ -836,6 +883,8 @@ number DNA3Interaction::_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool
 
 		energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
+		//std::cout << "hydrogen energy: " << energy << std::endl;
+		//std::cout << f1 << " " << f4t1 << " " << f4t2 << " " << f4t3 << " " << f4t4 << " " << f4t7 << " " << f4t8 << std::endl;
 		// makes sense, since the above functions may return 0. exactly
 		if(update_forces && energy != 0.) {
 			LR_vector force(0, 0, 0);
@@ -1142,6 +1191,7 @@ number DNA3Interaction::_f2D_SD(number r, int type, int n3, int n5) {
 
 
 number DNA3Interaction::_fakef4_SD(number t, void *par) {
+	//std::cout << "fakef4_SD args: " << ((int*) par)[0] << " " << ((int*) par)[1] << " " << ((int*) par)[2] << std::endl;
 	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1.0001))
 		throw oxDNAException("In function DNAInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if((*(int*) par == CXST_F4_THETA1) && (t * t > 1))
@@ -1160,6 +1210,7 @@ number DNA3Interaction::_fakef4D_SD(number t, void *par) {
 
 number DNA3Interaction::_f4_SD(number t, int type, int n3, int n5) {
 	number val = (number) 0;
+	//std::cout << "f4_SD args: " << t << " " << type << " " << n3 << " " << n5 << std::endl;
 	t -= F4_SD_THETA_T0[type][n3][n5];
 	if(t < 0)
 		t *= -1;
