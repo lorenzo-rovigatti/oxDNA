@@ -52,7 +52,7 @@ def align(full_base, ox_base):
 
 def get_nucs_from_PDB(file:str) -> List[Nucleotide]:
     """
-        Extract atoms from a PDB file
+        Extract nucleotides from a PDB file
 
         Parameters:
             file (str) : The path to the PDB file to read
@@ -64,7 +64,7 @@ def get_nucs_from_PDB(file:str) -> List[Nucleotide]:
         nucleotides = []
         old_residue = ""
         for line in f.readlines():
-            if len(line) > 77:
+            if len(line) > 77 and line[17:20].strip() in ['DA', 'DT', 'DG', 'DC', 'DI', 'A', 'U', 'G', 'C', 'I']:
                 na = Atom(line)
                 if na.residue_idx != old_residue:
                     nn = Nucleotide(na.residue, na.residue_idx)

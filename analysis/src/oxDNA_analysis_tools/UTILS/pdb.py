@@ -1,10 +1,9 @@
 import numpy as np
 import itertools
-import sys
 import copy
 from typing import List, Dict
 
-BASE_SHIFT = 3.4 #1.13
+BASE_SHIFT = 3.4
 COM_SHIFT = 0.5
 FROM_OXDNA_TO_ANGSTROM = 8.518
 FROM_ANGSTROM_TO_OXDNA = 1. / FROM_OXDNA_TO_ANGSTROM
@@ -52,12 +51,6 @@ class Atom(object):
             "pos" : self.pos,
             "bfactor" : bfactor
         }
-        #residue = self.residue + residue_suffix
-        #res = "{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}".format("ATOM", Atom.serial_atom, self.name, " ", residue, chain_identifier," ", residue_serial, " ", self.pos[0], self.pos[1], self.pos[2], 1.00, bfactor, " ", " ", " ")
-        #Atom.serial_atom += 1
-        #if Atom.serial_atom > 99999:
-        #    Atom.serial_atom = 1
-        #return res
 
     def to_mgl(self):
         colors = {"C" : "0,1,1", "P" : "1,1,0", "O" : "1,0,0", "H" : "0.5,0.5,0.5", "N" : "0,0,1"}
@@ -194,9 +187,6 @@ class Nucleotide():
             new_hydrogen.pos = O3prime.pos + new_distance
             res.append(new_hydrogen.to_pdb(residue_type, bfactor))
 
-        # Don't return as a string so it can be reversed to the correct orientation later.
-        # Change to be a more standard atom order?? -- doesn't seem to matter.  My two reference files go around the ring in different ordres.
-
         return res
 
     def to_mgl(self):
@@ -229,7 +219,6 @@ class Nucleotide():
     atoms = property(get_atoms)
 
 class AminoAcid(object):
-    # RNA_warning_printed = False
     
     def __init__(self, name, idx):
         object.__init__(self)
