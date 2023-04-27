@@ -99,16 +99,18 @@ def choose_reference_nucleotides(nucleotides:List[Nucleotide]) -> Dict[str, Nucl
 
 def cli_parser(prog="oxDNA_PDB.py"):
     parser = argparse.ArgumentParser(prog=prog, description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
-    parser.add_argument('topology', type=str, nargs=1,
+    parser.add_argument('topology', type=str,
                         help='the oxDNA topology file for the structure')
-    parser.add_argument('configuration', type=str, nargs=1,
+    parser.add_argument('configuration', type=str,
                         help='the configuration file you wish to convert')
-    parser.add_argument('direction', type=str, nargs=1,
+    parser.add_argument('direction', type=str,
                         help='the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.')
     parser.add_argument('pdbfiles', type=str, nargs='?',
                         help='PDB files for the proteins present in your structure.  If you have multiple proteins, you must specify multiple PDB files.')
-    parser.add_argument('-o', '--output', type=str, nargs=1, 
+    parser.add_argument('-o', '--output', type=str, 
                         help='The name of the output pdb file.  Defaults to name of the configuration+.pdb')
+    parser.add_argument('-d', '--output_direction', type=str,
+                        help='Direction to save nucleic acid strands in.  Should be "53" or "35".  Defaults to same as input direction.')
     parser.add_argument('-H', '--hydrogen', action='store_true', default=True,
                         help='if you want to include hydrogen atoms in the output PDB file')
     parser.add_argument('-u', '--uniform-residue-names', action='store_true', default=False,
@@ -124,22 +126,33 @@ def main():
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
-    top_file = args.topology[0]
-    conf_file = args.configuration[0]
-    direction = args.direction[0]
+    # Parse positional arguments
+    top_file = args.topology
+    conf_file = args.configuration
+    direction = args.direction
     if direction not in ["35", "53"]:
-        print("Error: direction must be either 35 or 53", file=sys.stderr)
-        sys.exit(1)
-
+        raise RuntimeError("Error: Direction must be either 35 or 53")
     if args.pdbfiles:
         protein_pdb_files = args.pdbfiles.split(' ')
     else:
         protein_pdb_files = None
 
-    oxDNA_direction = 1 if direction == "35" else 0
+    # Parse optional arguments
+    if args.output:
+        out_basename = args.output.strip('.pdb')
+    else:
+        out_basename = conf_file
+    reverse = False
+    if args.output_direction:
+        if args.output_direction not in ["35", "53"]:
+            raise RuntimeError("Error: Output direction must be either 35 or 53")
+        if args.output_direction != direction:
+            reverse = True
+    print(reverse)
     hydrogen = args.hydrogen
     uniform_residue_names = args.uniform_residue_names
     one_file_per_strand = args.one_file_per_strand
+    rmsf_file = args.rmsf_bfactor
 
     # Open PDB File of nice lookin duplexes to get base structures from
     DNAnucleotides = get_nucs_from_PDB(os.path.join(os.path.dirname(__file__), DD12_PDB_PATH))
@@ -156,7 +169,6 @@ def main():
     box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
 
     # Handle RMSF -> bFactor conversion
-    rmsf_file = args.rmsf_bfactor
     if rmsf_file:
         with open(rmsf_file) as f:
             try:
@@ -176,11 +188,6 @@ def main():
     if np.any(box_angstrom[box_angstrom > 999]):
         print("INFO: At least one of the box sizes is larger than 999: all the atoms which are outside of the box will be brought back through periodic boundary conditions", file=sys.stderr)
         correct_for_large_boxes = True
-
-    if args.output:
-        out_basename = args.output[0].strip('.pdb')
-    else:
-        out_basename = conf_file
     
     if one_file_per_strand:
         out_name = out_basename+"_{}.pdb".format(system.strands[0].id)
@@ -204,8 +211,6 @@ def main():
             isDNA = True
             if 'U' in sequence or 'u' in sequence:
                 isDNA = False
-            if not oxDNA_direction:
-                nucleotides_in_strand = reversed(nucleotides_in_strand)
 
             print("\rINFO: Converting strand {}".format(strand.id), file=sys.stderr)
 
@@ -269,7 +274,7 @@ def main():
                     # Append to strand_pdb
                     strand_pdb.append(nucleotide_pdb)
 
-                if oxDNA_direction:
+                if reverse:
                     strand_pdb = strand_pdb[::-1]
 
                 #re-index and create PDB string
