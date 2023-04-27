@@ -186,6 +186,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         plt.xlabel("Angle (degrees)")
         plt.ylabel("Normalized frequency")
         print("INFO: Saving histogram to {}".format(out), file=stderr)
+        plt.tight_layout()
         plt.savefig(out)
 
     #make a trajectory plot
@@ -205,6 +206,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         plt.xlabel("Configuration Number")
         plt.ylabel("Angle (degrees)")
         print("INFO: Saving line plot to {}".format(out), file=stderr)
+        plt.tight_layout()
         plt.savefig(out)
     
     return

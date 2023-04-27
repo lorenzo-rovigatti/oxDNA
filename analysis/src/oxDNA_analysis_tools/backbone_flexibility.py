@@ -153,6 +153,7 @@ def main():
     plt.scatter(torsions[len(system.strands):], dihedrals)
     plt.xlabel("torsion_angle")
     plt.ylabel("dihedral_angle")
+    plt.tight_layout()
     plt.savefig(out)
     print("INFO: Wrote plot to {}".format(out), file=stderr)
 

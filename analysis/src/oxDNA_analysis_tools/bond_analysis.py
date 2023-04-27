@@ -120,6 +120,7 @@ def plot_trajectories(correct_bonds:np.ndarray, incorrect_bonds:np.ndarray, desi
     plt.xlabel('Configuration')
     plt.ylabel('Number of Bonds')
     plt.legend()
+    plt.tight_layout()
     plt.savefig(plotname)
     return
 

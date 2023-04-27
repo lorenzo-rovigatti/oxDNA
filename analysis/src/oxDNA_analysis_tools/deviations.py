@@ -104,6 +104,7 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
     plt.axhline(np.mean(RMSDs), color='red')
     plt.xlabel('Configuration')
     plt.ylabel('RMSD (nm)')
+    plt.tight_layout()
     plt.savefig(plot_name)
 
     return

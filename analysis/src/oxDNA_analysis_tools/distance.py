@@ -262,6 +262,7 @@ def main():
         plt.ylabel("Normalized frequency")
         plt.legend()
         #plt.show()
+        plt.tight_layout()
         print("INFO: Writing histogram to file {}".format(out), file=stderr)
         plt.savefig("{}".format(out))
 
@@ -283,6 +284,7 @@ def main():
         plt.ylabel("Distance (nm)")
         plt.legend()
         #plt.show()
+        plt.tight_layout()
         print("INFO: Writing trajectory plot to file {}".format(out), file=stderr)
         plt.savefig("{}".format(out))
 
