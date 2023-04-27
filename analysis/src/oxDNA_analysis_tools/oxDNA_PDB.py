@@ -168,6 +168,11 @@ def main():
     conf = inbox(conf, center=True)
     box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
 
+    # get protein reference files
+    if protein_pdb_files:
+        s_pdbfile = iter(protein_pdb_files)
+        pdbfile = next(s_pdbfile)
+
     # Handle RMSF -> bFactor conversion
     if rmsf_file:
         with open(rmsf_file) as f:
@@ -198,11 +203,6 @@ def main():
     with open(out_name, 'w+') as out:
         reading_position = 0 
 
-        # get protein files
-        if protein_pdb_files:
-            s_pdbfile = iter(protein_pdb_files)
-            pdbfile = next(s_pdbfile)
-
         # Iterate over strands in the oxDNA file
         for strand in system.strands:
             strand_pdb = []
@@ -216,7 +216,7 @@ def main():
 
             # Handle protein
             if strand.id < 0 and protein_pdb_files:
-                coord = [conf.positions[m.id] for m in strand.monomers]  # amino acids only go from nterm to cterm (pdb format does as well)
+                coord = np.array([conf.positions[m.id] for m in strand.monomers])  # amino acids only go from nterm to cterm (pdb format does as well)
                 next_reading_position = pro.oxdna_to_pdb(out, coord, pdbfile, np.array([0, 0, 0]), reading_position)
                 if next_reading_position == -1:
                     try:
@@ -305,6 +305,8 @@ def main():
 
                 print("TER", file=out)
                 
+                # Either open a new file or increment chain ID
+                # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
                 if one_file_per_strand:
                     out.close()
                     print("INFO: Wrote strand {}'s data to {}".format (strand.id, out_name))
@@ -313,7 +315,6 @@ def main():
                         out_name = out_basename + "_{}.pdb".format(strand.id, )
                         out = open(out_name, "w")
                 else:
-                    # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
                     chain_id = chr(ord(chain_id)+1)
                     if chain_id == chr(ord('Z')+1):
                         chain_id = 'a'

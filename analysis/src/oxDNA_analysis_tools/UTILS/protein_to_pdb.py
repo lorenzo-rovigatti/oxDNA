@@ -1,4 +1,4 @@
-import Bio
+from Bio import PDB
 import numpy as np
 import numpy.linalg as la
 import copy
@@ -9,7 +9,7 @@ conv={'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K','ILE': 'I', 'PR
 
                 
 def getalphacarbons_pdb(pdbid,pdbfile):
-        structure = Bio.PDB.PDBParser().get_structure(pdbid, pdbfile)
+        structure = PDB.PDBParser().get_structure(pdbid, pdbfile)
         model = structure[0]
         # #chain index, residue index, residue identitiy, CA coordinates
         # cindx, rindx, rids, coord = [], [], [], []
@@ -130,7 +130,7 @@ def slide_pdb_to_oxcoordinates(corep, oadj, fullp, rids):
 # fcoord = slide_pdb_to_oxcoordinates(corep, oadj, fullp, residue_ids)
 
 def prep_pdb_sys(fullcoordinates, original_pdbfile, original_pdbid, old_reading_position, new_reading_position, offset=0, wipe=True):
-    structure = Bio.PDB.PDBParser().get_structure(original_pdbid, original_pdbfile)
+    structure = PDB.PDBParser().get_structure(original_pdbid, original_pdbfile)
     model = structure[0]
     chain_total = len(model)
     # print('ctotal', chain_total)
@@ -176,21 +176,14 @@ def prep_pdb_sys(fullcoordinates, original_pdbfile, original_pdbid, old_reading_
 def write_pdb(model, filehandle='', pdb_out=''):
     #Save File
     if pdb_out:
-        io = Bio.PDB.PDBIO()
+        io = PDB.PDBIO()
         io.set_structure(model)
         io.save(pdb_out+'.pdb')
     elif filehandle:
     # Returns PDB in Text for use in oxdna_to_PDB
-        io = Bio.PDB.PDBIO()
+        io = PDB.PDBIO()
         io.set_structure(model)
         io.save(filehandle, write_end=False)
-
-
-# write_pdb(fcoord, 'sgfp.pdb', 'sgfp', 'sgfp_ox', wipe=True)
-# ca, trash, trash2 =  getalphacarbons_pdb('sgfp_ox','sgfp_ox.pdb')
-# print(ca[0], oca[0])
-
-
 
 #For use in oxDNA_PDB.py Script
 #will write when given the filehandle
@@ -201,7 +194,7 @@ def oxdna_to_pdb(filehandle, ox_protein_positions, pdbfile, nuccom, reading_posi
     else:
         pdbid=pdbfile.split('.')[0]
     # Get Coordinates
-    oca = np.multiply(np.asarray(ox_protein_positions), 8.518)  # simulation to Angstroms
+    oca = ox_protein_positions * 8.518  # simulation to Angstroms
     pca, pfull, chain_separated_residue_ids, chain_separated_atom_ids = getalphacarbons_pdb(pdbid, pdbfile)
     print('n_residues:', len(chain_separated_residue_ids))
     #print('reading', reading_position)
