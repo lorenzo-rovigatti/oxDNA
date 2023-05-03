@@ -149,7 +149,7 @@ class Nucleotide():
     def correct_for_large_boxes(self, box):
         map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.atoms)
 
-    def to_pdb(self, print_H, residue_type, bfactor) -> List[Dict]:
+    def to_pdb(self, print_H:bool, residue_type:str, bfactor:float) -> List[Dict]:
         res:List[Dict] = []
         for a in self.atoms:
             if not print_H and 'H' in a.name:

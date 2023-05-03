@@ -8,6 +8,7 @@ import argparse
 import string
 from collections import defaultdict
 from typing import List, Dict
+from io import TextIOWrapper
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, Nucleotide, AminoAcid, FROM_OXDNA_TO_ANGSTROM
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe, inbox
@@ -104,6 +105,46 @@ def choose_reference_nucleotides(nucleotides:List[Nucleotide]) -> Dict[str, Nucl
             bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
 
     return bases
+
+def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper):
+    """
+        Write a list of nucleotide property dictionaries as a new chain to an open PDB file
+
+        Parameters:
+            strand_pdb (List[Dict]) : A list of dicts with nucleotide properties which define a single strand.
+            chain_id (str) : The current chainID
+            atom_counter (int) : The starting atom ID for this chain
+            out (io.TextIOWrapper) : An open file handle to write to
+
+        Returns:
+            (int) : The next atom ID
+    """
+    #re-index and create PDB string
+    for nid, n in enumerate(strand_pdb, 1):
+        for a in n:
+            print("{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
+                .format("ATOM",
+                    atom_counter,
+                    a['name'],
+                    " ",
+                    a['residue_name'],
+                    chain_id,
+                    " ",
+                    nid,
+                    " ",
+                    a['pos'][0],
+                    a['pos'][1],
+                    a['pos'][2],
+                    0.00,
+                    a['bfactor'],
+                    " ", " ", " "
+                ),
+                file=out
+            )
+            atom_counter = (atom_counter+1) % 9999
+    print("TER", file=out)
+
+    return(atom_counter)
 
 def cli_parser(prog="oxDNA_PDB.py"):
     parser = argparse.ArgumentParser(prog=prog, description="Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.")
@@ -209,6 +250,8 @@ def main():
     # Start writing the output file
     with open(out_name, 'w+') as out:
         reading_position = 0 
+        chain_id = 'A'
+        atom_counter = 1
 
         # Iterate over strands in the oxDNA file
         for strand in system.strands:
@@ -216,7 +259,7 @@ def main():
             nucleotides_in_strand = strand.monomers
             sequence = [n.type for n in nucleotides_in_strand]
             isDNA = True
-            if 'U' in sequence or 'u' in sequence:
+            if 'U' in sequence or 'u' in sequence: #Turns out, this is a bad assumption but its all we got.
                 isDNA = False
 
             print("\rINFO: Converting strand {}".format(strand.id), file=sys.stderr)
@@ -239,6 +282,7 @@ def main():
             # Nucleic Acids
             elif strand.id >= 0:
                 for nucleotide in nucleotides_in_strand:
+                    # Get paragon DNA or RNA nucleotide
                     if type(nucleotide.type) != str:
                         if isDNA:
                             nb = number_to_DNAbase[nucleotide.type]
@@ -266,13 +310,14 @@ def main():
                         'a3' : conf.a3s[nucleotide.id] 
                     }
 
+                    # Align paragon nucleotide to the oxDNA nucleotide
                     my_base.set_com(nuc_data['pos'] * FROM_OXDNA_TO_ANGSTROM)
                     align(my_base, nuc_data)
 
                     if correct_for_large_boxes:
                         my_base.correct_for_large_boxes(box_angstrom)
 
-                    # Make nucleotide line from pdb.py
+                    # Turn nucleotide object into a dict for output
                     nucleotide_pdb = my_base.to_pdb(
                         hydrogen,
                         residue_type,
@@ -281,55 +326,31 @@ def main():
                     # Append to strand_pdb
                     strand_pdb.append(nucleotide_pdb)
 
+                # Reverse the strand if the nucleotides should be flipped
                 if reverse:
                     strand_pdb = strand_pdb[::-1]
 
-                #re-index and create PDB string
-                chain_id = 'A'
-                atom_counter = 1
-                for nid, n in enumerate(strand_pdb,1):
-                    for a in n:
-                        print("{:6s}{:5d} {:^4s}{:1s}{:3s} {:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
-                            .format("ATOM", 
-                                atom_counter, 
-                                a['name'], 
-                                " ", 
-                                a['residue_name'], 
-                                chain_id,
-                                " ", 
-                                nid, 
-                                " ", 
-                                a['pos'][0], 
-                                a['pos'][1], 
-                                a['pos'][2], 
-                                0.00, 
-                                a['bfactor'], 
-                                " ", " ", " "
-                            ), 
-                            file=out
-                        )
-                        atom_counter = (atom_counter+1) % 9999
-
-                print("TER", file=out)
+                # Write the current strand to the pdb file.
+                atom_counter = write_strand_to_PDB(strand_pdb, chain_id, atom_counter, out)
                 
-                # Either open a new file or increment chain ID
-                # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
-                if one_file_per_strand:
-                    out.close()
-                    print("INFO: Wrote strand {}'s data to {}".format (strand.id, out_name))
+            # Either open a new file or increment chain ID
+            # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
+            if one_file_per_strand:
+                out.close()
+                print("INFO: Wrote strand {}'s data to {}".format (strand.id, out_name))
+                chain_id = 'A'
+                if strand != system.strands[-1]:
+                    out_name = out_basename + "_{}.pdb".format(strand.id, )
+                    out = open(out_name, "w")
+            else:
+                chain_id = chr(ord(chain_id)+1)
+                if chain_id == chr(ord('Z')+1):
+                    chain_id = 'a'
+                elif chain_id == chr(ord('z')+1):
+                    chain_id = '1'
+                elif chain_id == chr(ord('0')+1):
+                    print("WARNING: More than 62 chains identified, looping chain identifier...", file=sys.stderr)
                     chain_id = 'A'
-                    if strand != system.strands[-1]:
-                        out_name = out_basename + "_{}.pdb".format(strand.id, )
-                        out = open(out_name, "w")
-                else:
-                    chain_id = chr(ord(chain_id)+1)
-                    if chain_id == chr(ord('Z')+1):
-                        chain_id = 'a'
-                    elif chain_id == chr(ord('z')+1):
-                        chain_id = '1'
-                    elif chain_id == chr(ord('0')+1):
-                        print("WARNING: More than 62 chains identified, looping chain identifier...", file=sys.stderr)
-                        chain_id = 'A'
 
         if protein_pdb_files:  
             # #Must Now renumber and restrand, (sorry)
