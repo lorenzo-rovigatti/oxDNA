@@ -59,7 +59,7 @@ class Atom(object):
         r = 0.5
         return "%s %s %s @ %f C[%s]" % (self.pos[0], self.pos[1], self.pos[2], r, color)
 
-class Nucleotide():
+class PDB_Nucleotide(object):
     
     def __init__(self, name, idx):
         self.name = name.strip()
@@ -218,7 +218,7 @@ class Nucleotide():
 
     atoms = property(get_atoms)
 
-class AminoAcid(object):
+class PDB_AminoAcid(object):
     
     def __init__(self, name, idx):
         object.__init__(self)
@@ -236,7 +236,7 @@ class AminoAcid(object):
         self.chain_id = None
 
     def get_atoms(self):
-        return self.backbone_atoms + self.sidechain_atoms + self.ca_atom
+        return self.backbone_atoms + self.sidechain_atoms + [self.ca_atom]
 
     def add_atom(self, a):
         if a.name in ['N', 'C', 'O']:
@@ -250,83 +250,49 @@ class AminoAcid(object):
             self.chain_id = a.chain_id
 
     def get_ca_pos(self):
-        # Use Residue's Alpha Carbon position
         if self.ca_atom:
             com = np.array(self.ca_atom.pos)
-
+        else:
+            raise RuntimeError("No CA atom found in amino acid residue name:{}, id:{}, chain:{}".format(self.name, self.idx, self.chain_id))
+        
         return com
 
     def get_com(self, atoms=None):
-        if atoms == None: 
-            self.atoms = self.get_atoms()
-            atoms = self.atoms
+        if atoms == None:
+            atoms = self.get_atoms()
         com = np.array([0., 0., 0.])
         for a in atoms:
             com += a.pos
 
         return com / len(atoms)
-
-    # def compute_as(self):
-        # self.compute_a1()
-        # self.compute_a3()
-        # self.a2 = np.cross(self.a3, self.a1)
-        # self.check = abs(np.dot(self.a1, self.a3))
         
     def correct_for_large_boxes(self, box):
         map(lambda x: x.shift(-np.rint(x.pos / box ) * box), self.atoms)
 
-    def to_pdb(self, chain_identifier, print_H, residue_serial, residue_suffix, residue_type):
+    def to_pdb(self, print_H:bool, bfactor:float) -> List[Dict]:
         res = []
-        for a in self.atoms:
-            res.append(a.to_pdb(chain_identifier, residue_serial, residue_suffix))
-            
-        # if the residue is a 3' or 5' end, it requires one more hydrogen linked to the O3' or O5', respectively
-        # if residue_type == "5":
-        #     new_hydrogen = copy.deepcopy(phosphorus)
-        #     new_hydrogen.name = "HO5'"
-            
-        #     # we put the new hydrogen at a distance 1 Angstrom from the O5' oxygen along the direction that, in a regular nucleotide, connects O5' and P
-        #     dist_P_O = phosphorus.pos - O5prime.pos
-        #     dist_P_O *= 1. / np.sqrt(np.dot(dist_P_O, dist_P_O))
-        #     new_hydrogen.pos = O5prime.pos + dist_P_O
-        #     res.append(new_hydrogen.to_pdb(chain_identifier, residue_serial, residue_suffix))
-        # elif residue_type == "3":
-        #     new_hydrogen = copy.deepcopy(O3prime)
-        #     new_hydrogen.name = "HO3'"
-            
-        #     # we put the new hydrogen at a distance 1 Angstrom from the O3' oxygen along a direction which is a linear combination of the three 
-        #     # orientations that approximately reproduce the crystallographic position
-        #     new_distance = 0.2 * self.a2 - 0.2 * self.a1 - self.a3
-        #     new_distance *= 1. / np.sqrt(np.dot(new_distance, new_distance))
-        #     new_hydrogen.pos = O3prime.pos + new_distance
-        #     res.append(new_hydrogen.to_pdb(chain_identifier, residue_serial, residue_suffix))
+        for a in self.get_atoms():
+            if not print_H and 'H' in a.name:
+                continue
+            res.append(a.to_pdb('', bfactor))
 
-        return "\n".join(res)
+        return res
 
-    # def to_mgl(self):
-    #     res = []
-    #     for a in self.atoms:
-    #         res.append(a.to_mgl())
-
-    #     return "\n".join(res)
+    def translate(self, t):
+        for a in self.get_atoms():
+            a.pos += t
 
     def rotate(self, R):
         com = self.get_com()
-        for a in self.atoms:
+        for a in self.get_atoms():
             a.pos = np.dot(R, a.pos - com) + com
-
 
     def set_com(self, new_com):
         com = self.get_com()
-        for a in self.atoms:
-            a.pos += new_com - com - COM_SHIFT * self.a1
+        for a in self.get_atoms():
+            a.pos += new_com - com
 
-    # def set_base(self, new_base_com):
-    #     atoms = [v for k, v in self.named_atoms.iteritems() if k in self.ring_names]
-    #     ring_com = self.get_com(atoms)
-    #     for a in self.atoms:
-    #         a.pos += new_base_com - ring_com - BASE_SHIFT * self.a1
-
-    #     self.compute_as()
-
-    atoms = property(get_atoms)
+    def set_ca_pos(self, new_ca_pos):
+        ca_pos = self.get_ca_pos()
+        for a in self.get_atoms():
+            a.pos += new_ca_pos - ca_pos

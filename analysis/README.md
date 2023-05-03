@@ -70,7 +70,6 @@ If you are not installing via pip, the following dependencies are required and c
 [oxDNA compiled with oxpy](https://github.com/lorenzo-rovigatti/oxDNA): (minimum version >=3.2.2)<br/>
 [NumPy](https://numpy.org/): >=1.16,<br/>
 [MatPlotLib](https://matplotlib.org/index.html): >=3.0.3 (minimum version 3.0),<br/>
-[BioPython](https://biopython.org/): >=1.73,<br/>
 [Scikit-Learn](https://scikit-learn.org/stable/): >=0.21.2,<br/>
 
 ### Test your installation

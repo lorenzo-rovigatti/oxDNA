@@ -5,14 +5,13 @@ import os
 import numpy as np
 import copy
 import argparse
-import string
 from collections import defaultdict
 from typing import List, Dict
 from io import TextIOWrapper
 
-from oxDNA_analysis_tools.UTILS.pdb import Atom, Nucleotide, AminoAcid, FROM_OXDNA_TO_ANGSTROM
+from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe, inbox
-import oxDNA_analysis_tools.UTILS.protein_to_pdb as pro
+from oxDNA_analysis_tools.UTILS.data_structures import Strand, Configuration
 import oxDNA_analysis_tools.UTILS.utils as utils
 
 DD12_PDB_PATH = "./UTILS/dd12_na.pdb"
@@ -59,7 +58,7 @@ def align(full_base, ox_base):
         R = utils.get_rotation_matrix(axis, theta)
         full_base.rotate(R)
 
-def get_nucs_from_PDB(file:str) -> List[Nucleotide]:
+def get_nucs_from_PDB(file:str) -> List[PDB_Nucleotide]:
     """
         Extract nucleotides from a PDB file
 
@@ -67,7 +66,7 @@ def get_nucs_from_PDB(file:str) -> List[Nucleotide]:
             file (str) : The path to the PDB file to read
 
         Returns:
-            List[Nucleotide] : A list of nucleotide objects from the PDB file
+            List[PDB_Nucleotide] : A list of nucleotide objects from the PDB file
     """
     with open(file) as f:
         nucleotides = []
@@ -76,22 +75,22 @@ def get_nucs_from_PDB(file:str) -> List[Nucleotide]:
             if len(line) > 77 and line[17:20].strip() in na_pdb_names:
                 na = Atom(line)
                 if na.residue_idx != old_residue:
-                    nn = Nucleotide(na.residue, na.residue_idx)
+                    nn = PDB_Nucleotide(na.residue, na.residue_idx)
                     nucleotides.append(nn)
                     old_residue = na.residue_idx
                 nn.add_atom(na)
 
     return nucleotides
 
-def choose_reference_nucleotides(nucleotides:List[Nucleotide]) -> Dict[str, Nucleotide]:
+def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, PDB_Nucleotide]:
     """
         Find nucleotides that most look like an oxDNA nucleotide (orthogonal a1 and a3 vectors).
 
         Parameters:
-            nucleotides (List[Nucleotide]) : List of nucleotides to compare.
+            nucleotides (List[PDB_Nucleotide]) : List of nucleotides to compare.
         
         Returns:
-            Dict[str, Nucleotide] : The best nucleotide for each type in the format `{'C' : Nucleotide}`.
+            Dict[str, PDB_Nucleotide] : The best nucleotide for each type in the format `{'C' : PDB_Nucleotide}`.
     """
     bases = {}
     for n in nucleotides:
@@ -105,6 +104,82 @@ def choose_reference_nucleotides(nucleotides:List[Nucleotide]) -> Dict[str, Nucl
             bases[n.base].a1, bases[n.base].a2, bases[n.base].a3 = utils.get_orthonormalized_base(n.a1, n.a2, n.a3)
 
     return bases
+
+def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> List[PDB_AminoAcid]:
+    """
+        Get amino acid descriptions from a PDB file.
+
+        Parameters:
+            pdbfile (str) : File path to PDB file
+            start_res (int) : Line number to start parsing from, default 0.
+            n_res (int) : Get only this many residues, default until end of file.
+    """
+    with open(pdbfile) as pdbf:
+        amino_acids = []
+        old_residue = ''
+        lines = pdbf.readlines()
+        for l in lines:
+            if l.startswith('ATOM'):
+                # We assume that this file just contains proteins.  Die if you find a nucleic acid
+                if l[17:20].strip() in na_pdb_names:
+                    raise RuntimeError("Invalid residue name {} in {}. The reference PDB file must only contain protein residues.".format(l[17:20].strip(), pdbfile))
+                
+                a = Atom(l)
+                if a.residue_idx != old_residue:
+                    aa = PDB_AminoAcid(a.residue, a.residue_idx)
+                    amino_acids.append(aa)
+                    old_residue = a.residue_idx
+                aa.add_atom(a)
+    
+    if n_res == -1:
+        end = len(amino_acids)
+    else:
+        end = start_res + n_res
+
+    if end == len(amino_acids):
+        next_pos = -1
+    else:
+        next_pos = end
+
+    return next_pos, amino_acids[start_res:end]
+
+def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_position:int):
+    """
+        Convert a Strand object to an all-atom representation based on a reference pdb file.
+        
+        Parameters:
+            strand (Strand) : The strand to convert
+            conf (Configuraiton) : The entire oxDNA configuration
+            pdbfile (str) : Path to a pdb file to get r-group orientations from
+            reading_position (int) : Starting residue in the PDB file for this strand
+
+        Returns:
+            (Tuple[int, List[PDB_AminoAcid]]) : The next reading_reading position (or -1 if the file was finished) and the list of PDB-ready amino acid objects
+    """
+    coord = np.array([conf.positions[m.id] for m in strand.monomers])  # amino acids only go from nterm to cterm (pdb format does as well)
+    coord = coord * FROM_OXDNA_TO_ANGSTROM
+
+    reading_position, amino_acids = get_AAs_from_PDB(pdbfile, reading_position, len(coord))
+    
+    # Translate CA COM of PDB structure to COM of oxDNA structure
+    ca_poses = np.array([a.get_ca_pos() for a in amino_acids])
+    pdb_com = np.mean(ca_poses, axis=0)
+    ox_com = np.mean(coord, axis=0)
+    centered_ca_poses = np.array([a.get_ca_pos() for a  in amino_acids]) - pdb_com
+    centered_ox_poses = coord - ox_com
+    centered_atom_poses = np.array([a.pos - pdb_com for aa in amino_acids for a in aa.get_atoms()])
+
+    # Get rotation matrix
+    M = np.dot(centered_ca_poses.T, centered_ox_poses)
+    u,s,v = np.linalg.svd(M, compute_uv=True)
+    R = np.dot(v.T, u.T)
+
+    # reposition and rotate each amino acid
+    for i, aa in enumerate(amino_acids):
+        aa.set_ca_pos(coord[i])
+        aa.rotate(R)
+
+    return(reading_position, amino_acids)
 
 def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper):
     """
@@ -155,7 +230,7 @@ def cli_parser(prog="oxDNA_PDB.py"):
     parser.add_argument('direction', type=str,
                         help='the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.')
     parser.add_argument('pdbfiles', type=str, nargs='?',
-                        help='PDB files for the proteins present in your structure.  If you have multiple proteins, you must specify multiple PDB files.')
+                        help='PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file.')
     parser.add_argument('-o', '--output', type=str, 
                         help='The name of the output pdb file.  Defaults to name of the configuration+.pdb')
     parser.add_argument('-d', '--output_direction', type=str,
@@ -169,7 +244,6 @@ def cli_parser(prog="oxDNA_PDB.py"):
     parser.add_argument('-r', '--rmsf-file', dest='rmsf_bfactor', type=str, nargs=1, 
                         help='A RMSF file from deviations.  Will be used to fill the b-factors field in the output PDB (only for D(R)NA)')
     return parser
-
 
 def main():
     parser = cli_parser(os.path.basename(__file__))
@@ -258,7 +332,7 @@ def main():
             strand_pdb = []
             nucleotides_in_strand = strand.monomers
             sequence = [n.type for n in nucleotides_in_strand]
-            isDNA = True
+            isDNA = True #This should be in the strand parser instead.
             if 'U' in sequence or 'u' in sequence: #Turns out, this is a bad assumption but its all we got.
                 isDNA = False
 
@@ -266,16 +340,26 @@ def main():
 
             # Handle protein
             if strand.id < 0 and protein_pdb_files:
-                coord = np.array([conf.positions[m.id] for m in strand.monomers])  # amino acids only go from nterm to cterm (pdb format does as well)
-                next_reading_position = pro.oxdna_to_pdb(out, coord, pdbfile, np.array([0, 0, 0]), reading_position)
-                if next_reading_position == -1:
+                # Map oxDNA configuration onto R-group orientations from pdb file
+                reading_position, amino_acids = peptide_to_pdb(strand, conf, pdbfile, reading_position)
+                if reading_position == -1:
                     try:
                         pdbfile = next(s_pdbfile)
                         reading_position = 0
                     except StopIteration:
-                        continue
-                else:
-                     reading_position = next_reading_position
+                        protein_pdb_files = [] #had better be nucleic acids next or we're going to the error in the elif.
+
+                # Convert AminoAcid objects to write-ready dicts    
+                for aa in amino_acids:
+                    amino_acid_pdb = aa.to_pdb(
+                        hydrogen,
+                        bfactor=rmsf_per_nucleotide[aa.idx],
+                    )
+                    strand_pdb.append(amino_acid_pdb)
+                
+                # Write residue to file
+                atom_counter = write_strand_to_PDB(strand_pdb, chain_id, atom_counter, out)
+                
             elif strand.id < 0 and not protein_pdb_files:
                 raise RuntimeError("You must provide PDB files containing just the protein for each protein in the scene.")
 
@@ -323,7 +407,6 @@ def main():
                         residue_type,
                         bfactor=rmsf_per_nucleotide[nucleotide.id],
                     )
-                    # Append to strand_pdb
                     strand_pdb.append(nucleotide_pdb)
 
                 # Reverse the strand if the nucleotides should be flipped
@@ -352,97 +435,6 @@ def main():
                     print("WARNING: More than 62 chains identified, looping chain identifier...", file=sys.stderr)
                     chain_id = 'A'
 
-        if protein_pdb_files:  
-            # #Must Now renumber and restrand, (sorry)
-            out.seek(0)
-            outw = open('.'.join(top_file.split('.')[:-1]) + "pdb", 'w+')
-            resid, atmid, chainid = -1, 1, -1
-            #check against next atom entry
-            pres, pchain = 0, 0
-            alpha = list(string.ascii_uppercase)
-            a2 = copy.deepcopy(alpha)
-            for i in range(26):
-                alpha += [a2[i]+x for x in a2]
-            for line in out:
-                write_chain_end = False
-                if line.startswith('ATOM'):
-                    data = line.split()
-                    cres_id = data[5]
-                    curr_chainid = data[4]
-                    if curr_chainid != pchain:
-                        if chainid != -1:
-                            write_chain_end = True
-                        chainid += 1
-                        pchain = curr_chainid 
-                    if cres_id != pres:
-                        resid += 1
-                        pres = cres_id
-                    data[1] = str(atmid)
-                    data[5] = str(resid + 1)
-                    data[4] = alpha[chainid]
-
-                    coord = line[29:53]
-                    xd, yd, zd = float(line[30:38]), float(line[38:46]), float(line[46:54])
-                    for x in [xd, yd, zd]:
-                        spcs = 7-len(str(x))
-                        x = ''.join([' ' for _ in range(spcs)]) + str(x)
-                    #print(xd, yd, zd)
-                    if len(list(data[-1])) == 1:
-                        del data[-1]
-
-                    if len(data) == 8:
-                        try:
-                            bfactor = float(data[7])
-                            occ = float(data[6])
-                        except ValueError:
-                            occ = data[7][:4]
-                            bfactor = data[7][4:]
-                    elif len(data) == 9:
-                        try:
-                            bfactor = float(data[8])
-                            occ = float(data[7])
-                        except ValueError:
-                            occ = data[8][:4]
-                            bfactor = data[8][4:]
-                    elif len(data) == 10:
-                        try:
-                            bfactor = float(data[9])
-                            occ = float(data[8])
-                        except ValueError:
-                            occ = data[9][:4]
-                            bfactor = data[9][4:]
-                    elif len(data) == 11:
-                        try:
-                            bfactor=float(data[10])
-                            occ = float(data[9])
-                        except ValueError:
-                            occ = data[10][:4]
-                            bfactor = data[10][4:]
-                    else: 
-                        bfactor=0
-                        occ = 1
-
-                    for x in [occ, bfactor]:
-                        spcs = 4-len(str(x))
-                        x = ''.join([' ' for i in range(spcs)]) + str(x)
-
-                    # data indice -> PDB FIELD LENGTH
-                    dls = {1: 6, 2:4, 3:3, 4:2, 5:6}
-                    for i in range(1,6):
-                        x = len(data[i])
-                        if x != dls[i]:
-                            diff = dls[i] - x
-                            empty = [' ' for j in range(diff)]
-                            data[i] = ''.join(empty)+data[i]
-                            #print(data[i])
-
-
-                    print('ATOM', data[1], data[2], data[3], data[4], data[5], coord, occ, bfactor, file=outw)
-                    if write_chain_end:
-                        print('TER ', data[1], '    ', data[4], data[5], file=outw)
-                    atmid += 1
-
-            outw.close()
     print("INFO: Wrote data to '{}'".format(out_name), file=sys.stderr)
         
     print("\nINFO: DONE", file=sys.stderr)
