@@ -37,6 +37,14 @@ number_to_aa = {-1:'A', -2:'R', -3:'N', -4:'D', -5:'C',
                 -15:'P', -16:'S', -17:'T', -18:'W', 
                 -19:'Y', -20:'V', -21:'Z', 0:'X'}
 
+na_pdb_names = ['DA', 'DT', 'DG', 'DC', 'DI', 
+                'A', 'U', 'G', 'C', 'I',
+                'DA5', 'DT5', 'DG5', 'DC5', 'DI5',
+                'DA3', 'DT3', 'DG3', 'DC3', 'DI3',
+                'A5', 'U5', 'G5', 'C5', 'I5',
+                'A3', 'U3', 'G3', 'C3', 'I3'
+                ]
+
 def align(full_base, ox_base):
         theta = utils.get_angle(full_base.a3, ox_base['a3'])
         axis = np.cross(full_base.a3, ox_base['a3'])
@@ -64,7 +72,7 @@ def get_nucs_from_PDB(file:str) -> List[Nucleotide]:
         nucleotides = []
         old_residue = ""
         for line in f.readlines():
-            if len(line) > 77 and line[17:20].strip() in ['DA', 'DT', 'DG', 'DC', 'DI', 'A', 'U', 'G', 'C', 'I']:
+            if len(line) > 77 and line[17:20].strip() in na_pdb_names:
                 na = Atom(line)
                 if na.residue_idx != old_residue:
                     nn = Nucleotide(na.residue, na.residue_idx)
@@ -148,7 +156,6 @@ def main():
             raise RuntimeError("Error: Output direction must be either 35 or 53")
         if args.output_direction != direction:
             reverse = True
-    print(reverse)
     hydrogen = args.hydrogen
     uniform_residue_names = args.uniform_residue_names
     one_file_per_strand = args.one_file_per_strand
