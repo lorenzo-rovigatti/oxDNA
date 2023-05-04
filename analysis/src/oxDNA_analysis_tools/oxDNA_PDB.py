@@ -197,22 +197,22 @@ def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, o
     #re-index and create PDB string
     for nid, n in enumerate(strand_pdb, 1):
         for a in n:
-            print("{:6s}{:5d} {:^4s}{:1s}{:3s}{:1s}{:1s}{:4d}{:1s}  {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
-                .format("ATOM",
-                    atom_counter,
-                    a['name'],
-                    " ",
-                    a['residue_name'],
-                    chain_id,
-                    " ",
-                    nid,
-                    " ",
-                    a['pos'][0],
-                    a['pos'][1],
-                    a['pos'][2],
-                    0.00,
-                    a['bfactor'],
-                    " ", " ", " "
+            print("{:6s}{:5d} {:^4s}{:1s}{:>3s} {:1s}{:4d}{:1s}   {:8.3f}{:8.3f}{:8.3f}{:6.2f}{:6.2f}          {:>2s}{:2s}"
+                .format(
+                    "ATOM",            #record
+                    atom_counter,      #atom_id
+                    a['name'],         #atom_name
+                    " ",               #alt_loc
+                    a['residue_name'], #res_name
+                    chain_id,          #chain_id
+                    nid,               #res_id
+                    " ",               #ins_code
+                    a['pos'][0],       #coord_x
+                    a['pos'][1],       #coord_y
+                    a['pos'][2],       #coord_z
+                    1.00,              #residency
+                    a['bfactor'],      #b-factor
+                    " ", " "           #element,charge
                 ),
                 file=out
             )
