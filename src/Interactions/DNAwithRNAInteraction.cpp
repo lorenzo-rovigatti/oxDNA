@@ -2,6 +2,7 @@
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/RNANucleotide.h"
 #include "rna_model.h"
+#include "hybrid_model.h"
 
 
 #include <fstream>
@@ -2364,9 +2365,7 @@ number DNAwithRNAInteraction::_coaxial_stacking_RNA(BaseParticle *p, BaseParticl
 }
 
 // ------------------------------------------------------------------------------------------------------
-// Hydrid interactions: excluded volume, hydrogen bonding, cross stacking, coaxial stacking(?) 
-
-
+// Hydrid interactions: excluded volume, hydrogen bonding, cross stacking, coaxial stacking 
 
 
 number DNAwithRNAInteraction::_hydrogen_bonding_hybrid(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {

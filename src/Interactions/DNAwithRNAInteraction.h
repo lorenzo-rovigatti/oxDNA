@@ -4,6 +4,7 @@
 
 #include "BaseInteraction.h"
 #include "rna_model.h"
+#include "hybrid_model.h"
 #include "../Particles/RNANucleotide.h"
 
 /**
