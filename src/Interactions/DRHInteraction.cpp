@@ -1163,24 +1163,8 @@ void DRHInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 //we should just rewrite this to accomodate for DNA and RNA instead of inheriting
 void DRHInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 
-	/*
-	std::vector<BaseParticle *> particles_DNA;
-	std::vector<BaseParticle *> particles_RNA;
+	//need to write a version of this which works with systems containing DNA and RNA
 	
-	int N = particles.size();
-	for(int i = 0; i < N; i++) {
-		BaseParticle *p = particles[i];
-		if(_is_DNA(p) == true){
-			particles_DNA.push_back(p);
-		} else {
-			particles_RNA.push_back(p);
-		}
-	}
-	
-	//running checks on DNA and RNA particles separately
-	DNA2Interaction::check_input_sanity(particles_DNA);
-	RNA2Interaction::check_input_sanity(particles_RNA);
-	*/
 }
 
 
