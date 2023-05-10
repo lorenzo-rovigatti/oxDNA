@@ -49,7 +49,6 @@ def main():
 
     infile = args.force_file[0]
 
-    #if there's no outfile argument, just print to stdout.
     try:
         out = args.output[0]
     except:
