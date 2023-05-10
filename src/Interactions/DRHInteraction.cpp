@@ -9,12 +9,6 @@
 #include <cfloat>
 
 
-//debugging progress: something is wrong with the DNA interaction
-//i.e. if we use DNA2Interaction::... on RNA particles you get the nan
-//whereas if we use RNA2Interaction on DNA particles things run fine
-
-//it looks like BONDED dna interactions are what fails. not nesessarily all of them (exc vol seems fine, check the rest)
-
 
 
 
@@ -225,7 +219,7 @@ int DRHInteraction::_interaction_type(BaseParticle *p, BaseParticle *q)
 
 void DRHInteraction::init() {
 
-	//These are also needed, and are unlikely to be the problem. For some reason, RNA-RNA interactions are working fine now but not DNA.
+	//initializing DNA and RNA interactions
 	DNA2Interaction::init();
 	RNA2Interaction::init();
 
@@ -961,17 +955,18 @@ number DRHInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	} else if(_interaction_type(p,q) == 1) {
 		return RNA2Interaction::_backbone(p, q, false, update_forces);
 	} else {
-		throw oxDNAException("Bond between DNA and RNA particles.");
+		return (number) 0.f;
 	}
 }
 
+//DNA stacking seems to be giving the nan energies
 number DRHInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(_interaction_type(p,q) == 0) {
 		return DNA2Interaction::_stacking(p, q, false, update_forces);
-	} else if(_interaction_type(p,q) == 1) {                                                              //DNA STAKCING IS THE PROBLEM!!
+	} else if(_interaction_type(p,q) == 1) {                                                             
 		return RNA2Interaction::_stacking(p, q, false, update_forces);
 	} else {
-		throw oxDNAException("Bond between DNA nucleotide and RNA nucleotide.");
+		return (number) 0.f;
 	}
 }
 
@@ -981,7 +976,7 @@ number DRHInteraction::_bonded_excluded_volume(BaseParticle *p, BaseParticle *q,
 	} else if(_interaction_type(p,q) == 1) {
 		return RNA2Interaction::_bonded_excluded_volume(p, q, false, update_forces);
 	} else {
-		throw oxDNAException("Bond between DNA nucleotide and RNA nucleotide.");
+		return (number) 0.f;
 	}
 }
 
@@ -1064,8 +1059,8 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 void DRHInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 
 	int N_from_conf = particles.size();
-	BaseInteraction::read_topology(N_strands, particles);												  //THS LINE ALSO CAUSES THE SEGMENTATION FAULT
-	int my_N, my_N_strands;									//(or at the very least we dont make it past this line^)
+	BaseInteraction::read_topology(N_strands, particles);												  
+	int my_N, my_N_strands;									
 	char line[512];
 	std::ifstream topology;
 	topology.open(_topology_filename, std::ios::in);
@@ -1164,7 +1159,7 @@ void DRHInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 void DRHInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 
 	//need to write a version of this which works with systems containing DNA and RNA
-	
+	//including a check to make sure that there are no bonds between dna/rna
 }
 
 
