@@ -231,7 +231,7 @@ void DNAInteraction::get_settings(input_file &inp) {
 
 	if(getInputBool(&inp, "use_average_seq", &_average, 0) == KEY_FOUND) {
 		if(!_average) {
-			getInputString(&inp, "seq_dep_file", _seq_filename, 1);
+			getInputString(&inp, "seq_dep_file_DNA", _seq_filename, 1);
 			OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename.c_str());
 		}
 	}

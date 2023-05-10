@@ -115,7 +115,6 @@ void DNA2Interaction::init() {
 			}
 		}
 	}
-
 	// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide _T by 0.1
 	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
 	// RHIGH gives the distance at which the smoothing begins

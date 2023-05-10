@@ -1,45 +1,37 @@
 
-#ifndef DNA_INTERACTION_H
-#define DNA_INTERACTION_H
+#ifndef DRH_INTERACTION_H
+#define DRH_INTERACTION_H
 
-#include "BaseInteraction.h"
+#include "DNA2Interaction.h"
+#include "RNAInteraction2.h"
+#include "rna_model.h"
+#include "drh_model.h"
+#include "../Particles/RNANucleotide.h"
+#include "../Particles/DNANucleotide.h"
 
 /**
- * @brief Handles interactions between DNA nucleotides.
+ * @brief Handles interactions between DNA and RNA nucleotides.
  *
- * It supports both the average-sequence model (http://jcp.aip.org/resource/1/jcpsa6/v134/i8/p085101_s1)
- * and the sequence-dependence model (http://jcp.aip.org/resource/1/jcpsa6/v137/i13/p135101_s1).
- * This is the default interaction.
+ * 
  */
 
-class DNAInteraction : virtual public BaseInteraction {
+class DRHInteraction : virtual public DNA2Interaction, virtual public RNA2Interaction {
 protected:
-	bool _average;
-	std::string _seq_filename;
+	std::string _nucleotide_types;
+
+	bool _average_DRH;
+	char _seq_filename_DRH[512];
+	number _hb_multiplier_DRH;
+
 	number _T;
-	number _hb_multiplier;
-	bool _grooving;
-	/// true by default; set this to false if you want the code to not die when bonded backbones are found to be outside the acceptable FENE range
-	bool _allow_broken_fene;
-
-	/// here we store the r0, which is different in oxDNA and oxDNA2, and is set in the constructor
-	number _fene_r0;
-
-	/// variables used when max_backbone_force = true
-	bool _use_mbf;
-	number _mbf_xmax;
-	number _mbf_fmax;
-	number _mbf_finf;
+	number _cross_K_multiplier;
 
 	int MESH_F4_POINTS[13];
 	Mesh _mesh_f4[13];
 
-	virtual void _on_T_update();
+	virtual void _on_T_update(); 
 
-	number _f1(number r, int type, int n3, int n5);
-	number _f1D(number r, int type, int n3, int n5);
-	number _f2(number r, int type);
-	number _f2D(number r, int type);
+
 	number _f4(number t, int type);
 	number _f4D(number t, int type);
 	number _f4Dsin(number t, int type);
@@ -51,14 +43,29 @@ protected:
 	number _fakef4_cxst_t1(number t, void * par);
 	number _fakef4D_cxst_t1(number t, void * par);
 
+	
+	number _f1(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA);
+	number _f1D(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA);
+	number _f2(number r, int type);
+	number _f2D(number r, int type);
+
+	inline number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
+
+	// DRH-only interactions
+	virtual number _hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _nonbonded_excluded_volume_DRH(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _cross_stacking_DRH(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _coaxial_stacking_DRH(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+
+	// DNA/RNA/DRH interactions
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
-
 	virtual number _nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
+	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	/**
 	 * @brief Custom function that returns f4. This was added to add the possibility to avoid the use of meshes in classes that inherit from this.
@@ -76,7 +83,6 @@ protected:
 	 */
 	virtual number _custom_f4D (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
 
-	inline number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 
 	/**
 	 * @brief Check the relation between p and q. Used by the bonded interaction terms.
@@ -90,6 +96,12 @@ protected:
 	 * @return false if the two particles are not bonded neighbours, true otherwise
 	 */
 	bool _check_bonded_neighbour(BaseParticle **p, BaseParticle **q, bool compute_r);
+	bool _are_bonded(BaseParticle *p, BaseParticle *q) { return (p->n3 == q || p->n5 == q); }
+
+	bool _is_DNA(BaseParticle *p);
+	int _interaction_type(BaseParticle *p, BaseParticle *q);
+
+
 
 public:
 	enum {
@@ -99,29 +111,26 @@ public:
 		NONBONDED_EXCLUDED_VOLUME = 3,
 		HYDROGEN_BONDING = 4,
 		CROSS_STACKING = 5,
-		COAXIAL_STACKING = 6
+		COAXIAL_STACKING = 6,
+		DEBYE_HUCKEL = 7
 	};
-	DNAInteraction();
-	virtual ~DNAInteraction();
+
+
+	DRHInteraction();
+	virtual ~DRHInteraction();
 
 	virtual void get_settings(input_file &inp);
-	virtual void init();
-
-	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
-
-	bool has_custom_stress_tensor() const override {
-		return true;
-	}
+	virtual void init();  //apparently renaming many or all of the below methods causes errors
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);  
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
-
-	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces=false);
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
-	// model constants
+	// DRH model constants
 	number F1_EPS[2][5][5];
 	number F1_SHIFT[2][5][5];
 	number F1_A[2];
@@ -157,29 +166,4 @@ public:
 };
 
 
-number DNAInteraction::_repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
-	// this is a bit faster than calling r.norm()
-	number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
-	number energy = (number) 0;
-
-	if(rnorm < SQR(rc)) {
-		if(rnorm > SQR(rstar)) {
-			number rmod = sqrt(rnorm);
-			number rrc = rmod - rc;
-			energy = EXCL_EPS * b * SQR(rrc);
-			if(update_forces) force = -r * (2 * EXCL_EPS * b * rrc / rmod);
-		}
-		else {
-			number tmp = SQR(sigma) / rnorm;
-			number lj_part = tmp * tmp * tmp;
-			energy = 4 * EXCL_EPS * (SQR(lj_part) - lj_part);
-			if(update_forces) force = -r * (24 * EXCL_EPS * (lj_part - 2*SQR(lj_part)) / rnorm);
-		}
-	}
-
-	if(update_forces && energy == (number) 0) force.x = force.y = force.z = (number) 0;
-
-	return energy;
-}
-
-#endif /* DNA_INTERACTION_H */
+#endif 

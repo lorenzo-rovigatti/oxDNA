@@ -28,7 +28,7 @@
 #include "rna_model.h"
 #include "../Particles/RNANucleotide.h"
 
-class RNAInteraction : public BaseInteraction {
+class RNAInteraction : virtual public BaseInteraction {
 protected:
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
