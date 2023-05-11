@@ -4,8 +4,8 @@ import pickle
 from os.path import exists
 from typing import List, Tuple, Iterator
 import os
-from oxDNA_analysis_tools.UTILS.data_structures import *
-from oxDNA_analysis_tools.UTILS.oat_multiprocesser import get_chunk_size
+from .data_structures import *
+from .oat_multiprocesser import get_chunk_size
 from oxDNA_analysis_tools.UTILS.get_confs import cget_confs
 
 ####################################################################################
@@ -22,7 +22,7 @@ def Chunker(file, fsize, size=1000000) -> Iterator[Chunk]:
             size (int) : The size of the chunks
 
         Returns:
-            (Chunk) : The chunk
+            (Iterator[Chunk]) : An iterator object which yields chunks.
     """
     current_chunk = 0  
     while True:
@@ -31,7 +31,7 @@ def Chunker(file, fsize, size=1000000) -> Iterator[Chunk]:
         yield Chunk(b,current_chunk*size, current_chunk * size + size > fsize, fsize)
         current_chunk+=1
 
-def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> Iterator[Configuration]:
+def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=-1) -> Iterator[List[Configuration]]:
     """
         Read a trajecory without multiprocessing.  
 
@@ -43,9 +43,9 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> It
             ntopart (int) : The number of confs to read at a time
 
         Returns:
-            iterator[Configuration] : list of configurations
+            iterator[Configuration] : An iterator object which yields lists of <chunk_size> configurations.
     """
-    if chunk_size is None:
+    if chunk_size == -1:
         chunk_size = get_chunk_size()
     current_chunk = 0
     while True:
@@ -98,7 +98,7 @@ def _index(traj_file) -> List[ConfInfo]:
 
 def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int) -> List[Configuration]:
     """
-        Read a chunk of confs from a trajectory file.
+        Read a chunk of configurations from a trajectory file.
 
         Parameters:
             top_info (TopInfo) : Contains the number of bases in the configuration
@@ -107,7 +107,7 @@ def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int)
             n_confs (int) : The number of confs to read
 
         Returns:
-            List[Configuration] : list of configurations
+            List[Configuration] : A list of n_confs configurations starting from <start_conf>
 
     """
     indexes = traj_info.idxs
@@ -120,15 +120,15 @@ def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int)
 ##########                             FILE PARSERS                       ##########
 ####################################################################################
 
-def get_top_info(top : str) -> TopInfo:
+def get_top_info(top:str) -> TopInfo:
     """
-        bare bones of topology info
+        Get data from topology file header
 
         Parameters:
             top (str) : path to the topology file
 
         Returns:
-            (TopInfo) : topology info
+            TopInfo : A TopInfo object which contains the path to the file and the number of bases.
     """
     with open(top) as f:
         my_top_info = f.readline().split(' ')
@@ -145,7 +145,7 @@ def get_top_info_from_traj(traj : str) -> TopInfo:
     """
         Retrieve top and traj info without providing a topology. 
 
-        Note that the resulting top_info will have 0 strands because that information cannot be found in the trajectory. 
+        Note its not implemented, but if it were, this would not return the number of strands.
 
         Parameters:
             traj (str) : path to the trajectory file
@@ -175,7 +175,7 @@ def get_traj_info(traj : str) -> TrajInfo:
             traj (str) : path to the trajectory file
 
         Returns:
-            (TrajInfo) : trajectory info
+            TrajInfo : trajectory info object
 
     """
     #if idxs is None: # handle case when we have no indexes provided
@@ -201,20 +201,20 @@ def get_traj_info(traj : str) -> TrajInfo:
         line = f.readline()
         nline = line.split()
         if len(nline) == 15:
-            incl_v = 1
+            incl_v = True
         elif len(nline) == 9:
-            incl_v = 0
+            incl_v = False
         else:
             raise RuntimeError(f"Invalid first particle line: {line}")
 
     return TrajInfo(traj,len(idxs),idxs, incl_v)
 
-def describe(top : str or None, traj : str) -> Tuple[TopInfo, TrajInfo]:
+def describe(top:(str|None), traj:str) -> Tuple[TopInfo, TrajInfo]:
     """
         retrieve top and traj info for a provided pair
 
         You can provide None as the topology and it will read the first conf of the traj to get the number of particles.
-        Note that the TopInfo will be missing the path parameter if no topology is provided.
+        The TopInfo will be missing the path parameter if no topology is provided.
 
         Parameters:
             top (str or None) : path to the topology file
@@ -231,13 +231,14 @@ def describe(top : str or None, traj : str) -> Tuple[TopInfo, TrajInfo]:
 def strand_describe(top) -> Tuple[System, list]:
     """
         Retrieve all information from topology file mapping nucleotides to strands.
+
+        This is returned as two objects so that monomers can be indexed either via strand or via global index
         
         Parameters:
             top (str) : path to topology file
 
         Returns:
-            system (System) : system object 
-            monomers (list of Monomer) : list of monomers
+            (System, List[Monomer]) : The system object and the list of monomer objects.
     """
     get_neighbor = lambda x: monomers[x].id if x != -1 else None
 
@@ -246,7 +247,7 @@ def strand_describe(top) -> Tuple[System, list]:
         nmonomers = int(l[0])
 
         system = System()
-        monomers = [Monomer(i, None, None, None, None, None) for i in range(nmonomers)]
+        monomers = [Monomer(i, "", None, None, None, None) for i in range(nmonomers)]
 
         ls = f.readlines()
 
@@ -294,7 +295,7 @@ def get_input_parameter(input_file, parameter) -> str:
         parameter (str): The parameter you want to get the value of
 
     Returns:
-        value (str): The value of the parameter
+        (str): The value of the parameter
     """
     fin = open(input_file)
     value = ''

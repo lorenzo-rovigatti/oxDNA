@@ -31,7 +31,7 @@ def angle_between (axis1:np.ndarray, axis2:np.ndarray) -> float:
     """
     return (np.arccos(np.dot(axis1, axis2)/(np.linalg.norm(axis1)*np.linalg.norm(axis2))))
 
-def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]], invert_mask:List[bool]) -> Tuple[List[List[np.array]], List[List[float]], List[List[float]], List[List[float]], List[List[float]]]:
+def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]], invert_mask:List[bool]) -> Tuple[List[List[np.ndarray]], List[List[float]], List[List[float]], List[List[float]], List[List[float]]]:
     """
         Read in a duplex list file and return the angles between specified duplexes.
 

@@ -8,7 +8,7 @@ from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 from oxDNA_analysis_tools.align import svd_align
 
 
-def superimpose(ref:Configuration, victims:List[Configuration], indexes:List[int]=None):
+def superimpose(ref:Configuration, victims:List[str], indexes:List[int]=[]):
     """
     Superimposes one or more structures sharing a topology to a reference structure
 
@@ -20,6 +20,9 @@ def superimpose(ref:Configuration, victims:List[Configuration], indexes:List[int
     Returns:
         Aligned configurations (List[Configuration])
     """
+
+    if indexes == []:
+        indexes = list(range(len(ref.positions)))
 
     ref = inbox(ref)
     # alignment requires the ref to be centered at 0.  Inboxing did not take the indexing into account.

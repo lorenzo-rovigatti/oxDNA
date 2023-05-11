@@ -24,7 +24,7 @@ ComputeContext_map = namedtuple("ComputeContext_map",["traj_info",
                                                       "centered_ref_coords",
                                                       "components"])
 
-def align_positions(centered_ref_coords:np.ndarray, coords:np.ndarray) -> np.array:
+def align_positions(centered_ref_coords:np.ndarray, coords:np.ndarray) -> np.ndarray:
     """
     Single-value decomposition-based alignment of configurations
 
@@ -161,11 +161,11 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
 
     chunk_size = get_chunk_size()
     coordinates = np.zeros((traj_info.nconfs, ctx.top_info.nbases*3))
-    def callback(i, r):
+    def callback2(i, r):
         nonlocal coordinates, chunk_size
         coordinates[i*chunk_size:(i*chunk_size)+len(r)] = r
 
-    oat_multiprocesser(traj_info.nconfs, ncpus, map_confs_to_pcs, callback, ctx)
+    oat_multiprocesser(traj_info.nconfs, ncpus, map_confs_to_pcs, callback2, ctx)
 
     return (coordinates, evalues, evectors)
 

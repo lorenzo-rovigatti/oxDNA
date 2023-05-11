@@ -24,7 +24,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     return [''.join(out) for out in outstr]
 
-def write_topologies(system:System, indexes:List[int], outfiles:List[str]):
+def write_topologies(system:System, indexes:List[List[int]], outfiles:List[str]):
     top_names = [o+ ".top" for o in outfiles]
     for idx, top_name in zip(indexes, top_names):
         idx = set(idx)

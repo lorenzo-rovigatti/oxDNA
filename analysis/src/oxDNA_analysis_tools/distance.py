@@ -37,7 +37,7 @@ def min_image(p1:np.ndarray, p2:np.ndarray, box:float) -> float:
     diff = diff - (np.round(diff/box)*box)
     return np.linalg.norm(diff)
 
-def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.array:
+def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.ndarray:
     """
     Calculates all mutual distances between two sets of points taking PBC into account
     

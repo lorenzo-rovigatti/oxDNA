@@ -26,7 +26,7 @@ def svd_align(ref_coords:np.ndarray, coords:np.ndarray, indexes:List[int], ref_c
         ref_center (numpy.ndarray): (optional) The center of mass of the reference configuration. If not provided, it will be calculated (slightly slower for many confss).
 
     Returns:
-        A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk
+        Tuple[np.ndarray, np.ndarray, np.ndarray] A tuple of the aligned coordinates (coords, a1s, a3s) for the given chunk
     """
     if len(ref_center) == 0:
         ref_center = np.mean(ref_coords, axis=0)
@@ -62,7 +62,7 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
     out = ''.join([conf_to_str(c, include_vel=ctx.traj_info.incl_v) for c in confs])
     return out
 
-def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=[], ref_conf:Configuration=None, center:bool=True):
+def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=[], ref_conf:(Configuration|None)=None, center:bool=True):
     """
         Align a trajectory to a ref_conf and print the result to a file.
 
