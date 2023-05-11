@@ -131,8 +131,8 @@ def get_top_info(top:str) -> TopInfo:
             TopInfo : A TopInfo object which contains the path to the file and the number of bases.
     """
     with open(top) as f:
-        my_top_info = f.readline().split(' ')
-        if len(my_top_info)  == 2:
+        my_top_info = f.readline().strip().split(' ')
+        if len(my_top_info) == 2:
             nbases = my_top_info[0]
         elif len(my_top_info) == 5:
             nbases, ndna, nres = (my_top_info[0], my_top_info[2], my_top_info[3])
