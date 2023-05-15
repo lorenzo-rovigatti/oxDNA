@@ -1150,8 +1150,6 @@ number DNAInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	if(!_check_bonded_neighbour(&p, &q, false)) {
 		return (number) 0;
 	}
-        std::cout << p->btype << "\n" ;
-        std::cout << q->btype << "\n" ;
 
 	number energy = _backbone(p, q, false, update_forces);
 	energy += _bonded_excluded_volume(p, q, false, update_forces);
