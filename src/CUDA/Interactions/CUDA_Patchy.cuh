@@ -59,33 +59,6 @@ __device__ void _particle_particle_interaction(c_number4 &ppos, c_number4 &qpos,
 	}
 }
 
-// forces + second step without lists
-
-__global__ void patchy_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, CUDABox *box) {
-	if(IND >= MD_N[0]) return;
-
-	c_number4 F = forces[IND];
-	c_number4 T = make_c_number4(0, 0, 0, 0);
-	c_number4 ppos = poss[IND];
-	GPU_quat po = orientations[IND];
-	c_number4 a1, a2, a3, b1, b2, b3;
-	get_vectors_from_quat(po, a1, a2, a3);
-
-	for(int j = 0; j < MD_N[0]; j++) {
-		if(j != IND) {
-			c_number4 qpos = poss[j];
-			GPU_quat qo = orientations[j];
-			get_vectors_from_quat(qo, b1, b2, b3);
-			_particle_particle_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
-		}
-	}
-
-	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);
-
-	forces[IND] = F;
-	torques[IND] = T;
-}
-
 __global__ void patchy_forces_edge(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, edge_bond *edge_list, int n_edges, CUDABox *box) {
 	if(IND >= n_edges) return;
 
@@ -127,9 +100,8 @@ __global__ void patchy_forces_edge(c_number4 *poss, GPU_quat *orientations, c_nu
 	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z) > (c_number) 0.f) LR_atomicAddXYZ(&(forces[to_index]), dF);
 	if((dT.x * dT.x + dT.y * dT.y + dT.z * dT.z) > (c_number) 0.f) LR_atomicAddXYZ(&(torques[to_index]), _vectors_transpose_c_number4_product(b1, b2, b3, dT));
 }
-//Forces + second step with verlet lists
 
-__global__ void patchy_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *c_number_neighs, CUDABox *box) {
+__global__ void patchy_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *number_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -139,15 +111,16 @@ __global__ void patchy_forces(c_number4 *poss, GPU_quat *orientations, c_number4
 	c_number4 a1, a2, a3, b1, b2, b3;
 	get_vectors_from_quat(po, a1, a2, a3);
 
-	int num_neighs = c_number_neighs[IND];
-
+	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
 	for(int j = 0; j < num_neighs; j++) {
-		int k_index = matrix_neighs[j * MD_N[0] + IND];
+		int k_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
 
-		c_number4 qpos = poss[k_index];
-		GPU_quat qo = orientations[k_index];
-		get_vectors_from_quat(qo, b1, b2, b3);
-		_particle_particle_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
+		if(k_index != IND) {
+			c_number4 qpos = poss[k_index];
+			GPU_quat qo = orientations[k_index];
+			get_vectors_from_quat(qo, b1, b2, b3);
+			_particle_particle_interaction(ppos, qpos, a1, a2, a3, b1, b2, b3, F, T, box);
+		}
 	}
 
 	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);

@@ -26,7 +26,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
             conf.a1s -= conf.a1s
             conf.a3s -= conf.a3s
 
-    out = ''.join([conf_to_str(c) for c in confs])
+    out = ''.join([conf_to_str(c,  include_vel=False) for c in confs])
     return out
 
 def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:int=None, a:bool=False, ncpus=1):

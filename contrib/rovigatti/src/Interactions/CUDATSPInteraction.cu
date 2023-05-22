@@ -275,8 +275,8 @@ void CUDATSPInteraction::get_settings(input_file &inp) {
 	}
 }
 
-void CUDATSPInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDATSPInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	TSPInteraction::init();
 
 	_setup_anchors();

@@ -20,7 +20,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     for conf in confs:
         sub_confs = [Configuration(conf.time, conf.box, conf.energy, conf.positions[i], conf.a1s[i], conf.a3s[i]) for i in ctx.indexes]
         for i, sub_conf in enumerate(sub_confs):
-            outstr[i].append(conf_to_str(sub_conf))
+            outstr[i].append(conf_to_str(sub_conf,  include_vel=ctx.traj_info.incl_v))
 
     return [''.join(out) for out in outstr]
 
@@ -102,7 +102,7 @@ def main():
             try:
                 data = sorted([int(i) for i in data])
             except:
-                print("ERROR: The index file {} must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button".format(i))
+                raise RuntimeError("The index file {} must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button".format(i))
         indexes.append(data)
         outfiles.append(o)
 

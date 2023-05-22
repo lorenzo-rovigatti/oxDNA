@@ -219,10 +219,13 @@ void copy_Model_to_CUDAModel(Model& model_from, CUDAModel& model_to) {
 
 CUDARNAInteraction::CUDARNAInteraction() {
 	_grooving = false;
+	_edge_compatible = true;
 }
 
 CUDARNAInteraction::~CUDARNAInteraction() {
-
+	if(_d_is_strand_end != nullptr) {
+		CUDA_SAFE_CALL(cudaFree(_d_is_strand_end));
+	}
 }
 
 void CUDARNAInteraction::get_settings(input_file &inp) {
@@ -234,7 +237,7 @@ void CUDARNAInteraction::get_settings(input_file &inp) {
 			_use_debye_huckel = true;
 			// copy-pasted from the DNA2Interaction constructor
 			_debye_huckel_half_charged_ends = true;
-			this->_grooving = true;
+			_grooving = true;
 			// end copy from DNA2Interaction
 
 			// copied from DNA2Interaction::get_settings() (CPU), the least bad way of doing things
@@ -252,15 +255,15 @@ void CUDARNAInteraction::get_settings(input_file &inp) {
 
 			int mismatches = 0;
 			if(getInputBoolAsInt(&inp, "mismatch_repulsion", &mismatches, 0) == KEY_FOUND) {
-				this->_mismatch_repulsion = (bool) mismatches;
+				_mismatch_repulsion = (bool) mismatches;
 			}
-			if(this->_mismatch_repulsion) {
+			if(_mismatch_repulsion) {
 				float temp;
 				if(getInputFloat(&inp, "mismatch_repulsion_strength", &temp, 0) == KEY_FOUND) {
-					this->_RNA_HYDR_MIS = temp;
+					_RNA_HYDR_MIS = temp;
 				}
 				else {
-					this->_RNA_HYDR_MIS = 1;
+					_RNA_HYDR_MIS = 1;
 				}
 
 			}
@@ -271,27 +274,27 @@ void CUDARNAInteraction::get_settings(input_file &inp) {
 	RNAInteraction::get_settings(inp);
 }
 
-void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDARNAInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	RNAInteraction::init();
 
-	float f_copy = 1.0; //this->_hb_multiplier;
+	float f_copy = 1.0; //_hb_multiplier;
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_hb_multi, &f_copy, sizeof(float)));
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
 
 	//mismatch repulsion modification
-	if(this->_mismatch_repulsion) {
-		float tempmis = -1.0 * this->_RNA_HYDR_MIS / this->model->RNA_HYDR_EPS;
-		this->F1_EPS[RNA_HYDR_F1][0][0] *= tempmis;
-		this->F1_SHIFT[RNA_HYDR_F1][0][0] *= tempmis;
+	if(_mismatch_repulsion) {
+		float tempmis = -1.0 * _RNA_HYDR_MIS / model->RNA_HYDR_EPS;
+		F1_EPS[RNA_HYDR_F1][0][0] *= tempmis;
+		F1_SHIFT[RNA_HYDR_F1][0][0] *= tempmis;
 	}
 
 	c_number tmp[50];
 	for(int i = 0; i < 2; i++) {
 		for(int j = 0; j < 5; j++) {
 			for(int k = 0; k < 5; k++) {
-				tmp[i * 25 + j * 5 + k] = this->F1_EPS[i][j][k];
+				tmp[i * 25 + j * 5 + k] = F1_EPS[i][j][k];
 			}
 		}
 	}
@@ -301,47 +304,47 @@ void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
 	for(int i = 0; i < 2; i++) {
 		for(int j = 0; j < 5; j++) {
 			for(int k = 0; k < 5; k++) {
-				tmp[i * 25 + j * 5 + k] = this->F1_SHIFT[i][j][k];
+				tmp[i * 25 + j * 5 + k] = F1_SHIFT[i][j][k];
 			}
 		}
 	}
 
 	COPY_ARRAY_TO_CONSTANT(MD_F1_SHIFT, tmp, 50);
 
-	COPY_ARRAY_TO_CONSTANT(MD_F1_A, this->F1_A, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RC, this->F1_RC, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_R0, this->F1_R0, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_BLOW, this->F1_BLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_BHIGH, this->F1_BHIGH, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RLOW, this->F1_RLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RHIGH, this->F1_RHIGH, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RCLOW, this->F1_RCLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F1_RCHIGH, this->F1_RCHIGH, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_A, F1_A, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_RC, F1_RC, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_R0, F1_R0, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_BLOW, F1_BLOW, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_BHIGH, F1_BHIGH, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_RLOW, F1_RLOW, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_RHIGH, F1_RHIGH, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_RCLOW, F1_RCLOW, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F1_RCHIGH, F1_RCHIGH, 2);
 
-	COPY_ARRAY_TO_CONSTANT(MD_F2_K, this->F2_K, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F2_RC, this->F2_RC, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F2_R0, this->F2_R0, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F2_BLOW, this->F2_BLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F2_BHIGH, this->F2_BHIGH, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F2_RLOW, this->F2_RLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F2_RHIGH, this->F2_RHIGH, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F2_RCLOW, this->F2_RCLOW, 2);
-	COPY_ARRAY_TO_CONSTANT(MD_F2_RCHIGH, this->F2_RCHIGH, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_K, F2_K, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_RC, F2_RC, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_R0, F2_R0, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_BLOW, F2_BLOW, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_BHIGH, F2_BHIGH, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_RLOW, F2_RLOW, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_RHIGH, F2_RHIGH, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_RCLOW, F2_RCLOW, 2);
+	COPY_ARRAY_TO_CONSTANT(MD_F2_RCHIGH, F2_RCHIGH, 2);
 
-	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_A, this->F5_PHI_A, 4);
-	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_B, this->F5_PHI_B, 4);
-	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_XC, this->F5_PHI_XC, 4);
-	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_XS, this->F5_PHI_XS, 4);
+	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_A, F5_PHI_A, 4);
+	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_B, F5_PHI_B, 4);
+	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_XC, F5_PHI_XC, 4);
+	COPY_ARRAY_TO_CONSTANT(MD_F5_PHI_XS, F5_PHI_XS, 4);
 
 	CUDAModel cudamodel;
-	copy_Model_to_CUDAModel(*(this->model), cudamodel);
+	copy_Model_to_CUDAModel(*(model), cudamodel);
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(rnamodel, &cudamodel, sizeof(CUDAModel)));
 
-	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
+	if(_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &_n_forces, sizeof(int)));
 	if(_use_debye_huckel) {
 		// copied from DNA2Interaction::init() (CPU), the least bad way of doing things, adapted for RNA
-		// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide this->_T by 0.1
-		c_number lambda = _debye_huckel_lambdafactor * sqrt(this->_T / 0.1f) / sqrt(_salt_concentration);
+		// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide _T by 0.1
+		c_number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
 		// RHIGH gives the distance at which the smoothing begins
 		_debye_huckel_RHIGH = 3.0 * lambda;
 		_minus_kappa = -1.0 / lambda;
@@ -355,12 +358,12 @@ void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
 		_debye_huckel_B = -(exp(-x / l) * q * q * (x + l) * (x + l)) / (-4. * x * x * x * l * l * q);
 		_debye_huckel_RC = x * (q * x + 3. * q * l) / (q * (x + l));
 
-		c_number debyecut = 2. * sqrt(SQR(this->model->RNA_POS_BACK_a1) + SQR(this->model->RNA_POS_BACK_a2) + SQR(this->model->RNA_POS_BACK_a3)) + _debye_huckel_RC;
+		c_number debyecut = 2. * sqrt(SQR(model->RNA_POS_BACK_a1) + SQR(model->RNA_POS_BACK_a2) + SQR(model->RNA_POS_BACK_a3)) + _debye_huckel_RC;
 
 		// the cutoff radius for the potential should be the larger of rcut and debyecut
-		if(debyecut > this->_rcut) {
-			this->_rcut = debyecut;
-			this->_sqr_rcut = debyecut * debyecut;
+		if(debyecut > _rcut) {
+			_rcut = debyecut;
+			_sqr_rcut = debyecut * debyecut;
 		}
 		// End copy from cpu interaction
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_dh_RC, &_debye_huckel_RC, sizeof(float)));
@@ -373,39 +376,44 @@ void CUDARNAInteraction::cuda_init(c_number box_side, int N) {
 }
 
 void CUDARNAInteraction::_on_T_update() {
-	cuda_init(_box_side, _N);
+	cuda_init(_N);
+}
+
+void CUDARNAInteraction::_init_strand_ends(LR_bonds *d_bonds) {
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&_d_is_strand_end, sizeof(int) * _N));
+	init_RNA_strand_ends<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>(_d_is_strand_end, d_bonds, _N);
 }
 
 void CUDARNAInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
-	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
+	if(_d_is_strand_end == nullptr) {
+		_init_strand_ends(d_bonds);
+	}
 
-	//this->_grooving = this->_average;
-	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) {
+	if(_use_edge) {
+		if(_n_forces == 1) { // we can directly use d_forces and d_torques so that no sum is required
 			rna_forces_edge_nonbonded
-				<<<(_v_lists->N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->d_edge_list, _v_lists->N_edges, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, d_box);
-
-			this->_sum_edge_forces_torques(d_forces, d_torques);
+				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, _d_is_strand_end,
+				_average,_use_debye_huckel,_mismatch_repulsion, d_box);
+		}
+		else { // sum required, somewhat slower
+			rna_forces_edge_nonbonded
+				<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+				(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges,
+				_d_is_strand_end, _average,_use_debye_huckel,_mismatch_repulsion, d_box);
+			_sum_edge_forces_torques(d_forces, d_torques);
+		}
 
 		rna_forces_edge_bonded
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, d_bonds, this->_average,this->_use_mbf,this->_mbf_xmax, this->_mbf_finf);
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, d_forces, d_torques, d_bonds, _average, _use_mbf, _mbf_xmax, _mbf_finf);
 	}
 	else {
 		rna_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
+			<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_bonds,
+					_average,_use_debye_huckel,_mismatch_repulsion, _use_mbf,_mbf_xmax, _mbf_finf, d_box);
 		CUT_CHECK_ERROR("forces_second_step simple_lists error");
-	}
-}
-
-CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
-	if(_no_lists != NULL) {
-		rna_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations,  d_forces, d_torques, d_bonds, this->_average,this->_use_debye_huckel,this->_mismatch_repulsion, this->_use_mbf,this->_mbf_xmax, this->_mbf_finf, d_box);
-		CUT_CHECK_ERROR("forces_second_step no_lists error");
 	}
 }
 

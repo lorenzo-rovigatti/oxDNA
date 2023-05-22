@@ -35,6 +35,7 @@ class PatchyParticle : public BaseParticle {
 protected:
 	number _sigma;
 	std::vector<LR_vector> _base_patches;
+	int _N_patches;
 
 public:
 	PatchyParticle(std::vector<LR_vector> base_patches, int nt, number sigma);
@@ -45,6 +46,10 @@ public:
 
 	virtual bool is_rigid_body() {
 		return true;
+	}
+
+	uint N_int_centers() override {
+		return _N_patches;
 	}
 
 	std::vector<LR_vector> base_patches() {

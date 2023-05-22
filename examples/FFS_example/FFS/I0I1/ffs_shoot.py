@@ -13,7 +13,7 @@ Flavio
 desired_success_count = 100
 
 # executable set-up
-executable = '../../../bin/oxDNA'
+executable = '../../../build/bin/oxDNA'
 input = 'input'
 logfilename = 'ffs.log'
 starting_conf_pattern = '../FLUX/success*'

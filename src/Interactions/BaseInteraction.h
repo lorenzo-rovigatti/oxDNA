@@ -20,12 +20,9 @@
 #include <fstream>
 #include <set>
 #include <vector>
-#include <array>
 #include <functional>
 
 #define ADD_INTERACTION_TO_MAP(index, member) {_interaction_map[index] = [this](BaseParticle *p, BaseParticle *q, bool compute_r, bool compute_forces) { return member(p, q, compute_r, compute_forces); };}
-
-using StressTensor = std::array<number, 6>;
 
 /**
  * @brief Base class for managing particle-particle interactions. It is an abstract class.
@@ -54,8 +51,7 @@ protected:
 
 	StressTensor _stress_tensor;
 
-	virtual void _update_stress_tensor(LR_vector r_p, LR_vector group_force);
-
+	virtual void _update_stress_tensor(const LR_vector &r_p, const LR_vector &group_force);
 
 	using energy_function = std::function<number(BaseParticle *, BaseParticle *, bool, bool)>;
 	using interaction_map = std::map<int, energy_function>;
@@ -116,13 +112,22 @@ public:
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles) = 0;
 
 	/**
-	 * @brief Signals the interaction that an energy (or force) computation is about to begin.
+	 * @brief Signals the interaction that an energy computation is about to begin.
 	 *
-	 * By default this method resets the stress tensor data structures and nothing else, but interactions inheriting from this interface may
+	 * By default this method does nothing, but interactions inheriting from this interface may
 	 * need to initialise or reset other data structures before computing the energy or the force acting on all particles.
 	 *
 	 */
 	virtual void begin_energy_computation();
+
+	/**
+	 * @brief Signals the interaction that an energy and force computation is about to begin.
+	 *
+	 * By default this method resets the stress tensor data structures, calls begin_energy_computationa() and nothing else, but interactions inheriting from this interface may
+	 * need to initialise or reset other data structures before computing the energy or the force acting on all particles.
+	 *
+	 */
+	virtual void begin_energy_and_force_computation();
 
 	/**
 	 * @brief Returns true if the interaction computes the stress tensor internally, false otherwise.
@@ -137,8 +142,12 @@ public:
 
 	void reset_stress_tensor();
 
-	StressTensor stress_tensor() const {
-		return _stress_tensor;
+	void compute_standard_stress_tensor();
+
+	StressTensor stress_tensor() const;
+
+	void set_stress_tensor(StressTensor st) {
+		_stress_tensor = st;
 	}
 
 	/**

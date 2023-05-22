@@ -138,7 +138,7 @@
 .. autofunction:: oxDNA_analysis_tools.contact_map.contact_map
 ```
 
-## Dot-bracket to force
+## Decimate
 
 ```{eval-rst}
 .. toctree::
@@ -149,9 +149,9 @@
 .. autosummary::
     :nosignatures:
 
-    oxDNA_analysis_tools.db_to_force.parse_dot_bracket
+    oxDNA_analysis_tools.decimate.decimate
     
-.. autofunction:: oxDNA_analysis_tools.db_to_force.parse_dot_bracket
+.. autofunction:: oxDNA_analysis_tools.decimate.decimate
 ```
 
 ## Deviations
@@ -192,6 +192,24 @@
 .. autofunction:: oxDNA_analysis_tools.distance.distance
 ```
 
+## Dot-bracket to force
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.db_to_force.parse_dot_bracket
+    oxDNA_analysis_tools.db_to_force.db_to_forcelist
+    
+.. autofunction:: oxDNA_analysis_tools.db_to_force.parse_dot_bracket
+.. autofunction:: oxDNA_analysis_tools.db_to_force.db_to_forcelist
+```
+
 ## Duplex angle plotter
 
 ```{eval-rst}
@@ -226,6 +244,21 @@
 .. autoclass:: oxDNA_analysis_tools.duplex_finder.Duplex
 .. autofunction:: oxDNA_analysis_tools.duplex_finder.find_duplex
 .. autofunction:: oxDNA_analysis_tools.duplex_finder.duplex_finder
+```
+
+## File info
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.file_info.file_info
+    
+.. autofunction:: oxDNA_analysis_tools.file_info.file_info
 ```
 
 ## Mean
@@ -314,6 +347,26 @@
 .. autofunction:: oxDNA_analysis_tools.pca.map_confs_to_pcs
 .. autofunction:: oxDNA_analysis_tools.pca.make_heatmap
 .. autofunction:: oxDNA_analysis_tools.pca.pca
+```
+
+## Persistence length
+
+```{eval-rst}
+.. toctree::
+   :maxdepth: 2
+
+.. currentmodule:: oxDNA_analysis_tools
+
+.. autosummary::
+    :nosignatures:
+
+    oxDNA_analysis_tools.persistence_length.persistence_length
+    oxDNA_analysis_tools.persistence_length.get_r
+    oxDNA_analysis_tools.persistence_length.fit_PL
+    
+.. autofunction:: oxDNA_analysis_tools.persistence_length.persistence_length
+.. autofunction:: oxDNA_analysis_tools.persistence_length.get_r
+.. autofunction:: oxDNA_analysis_tools.persistence_length.fit_PL
 ```
 
 ## Subset trajectory

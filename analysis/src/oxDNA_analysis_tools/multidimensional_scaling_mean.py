@@ -152,7 +152,7 @@ def main():
         outfile = "mean_mds.dat"
         print("INFO: No outfile name provided, defaulting to \"{}\"".format(outfile), file=stderr)
 
-    write_conf(outfile,mean_conf)
+    write_conf(outfile,mean_conf, include_vel=traj_info.incl_v)
     print("INFO: Wrote mean to {}".format(outfile), file=stderr)
 
     devs = distance_deviations(traj_info, top_info, masked_mean, ncpus)

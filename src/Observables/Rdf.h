@@ -45,7 +45,7 @@
  */
 class Rdf: public BaseObservable {
 private:
-	long int _nconf;
+	int _n_pairs;
 	number _max_value;
 	number _bin_size;
 	int _nbins;
@@ -57,7 +57,10 @@ public:
 	Rdf();
 	virtual ~Rdf();
 
-	virtual std::string get_output_string(llint curr_step);
+	void update_data(llint curr_step) override;
+
+	std::string get_output_string(llint curr_step) override;
+
 	void get_settings(input_file &my_inp, input_file &sim_inp);
 };
 

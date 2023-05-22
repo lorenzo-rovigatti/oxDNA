@@ -1,7 +1,7 @@
 #see: https://dna.physics.ox.ac.uk/index.php/Documentation#External_Forces
+from typing import Dict, List
 
-
-def mutual_trap(particle, ref_particle, stiff, r0, PBC):
+def mutual_trap(particle:int, ref_particle:int, stiff:float, r0:float, PBC:bool) -> Dict:
     """
     A spring force that pulls a particle towards the position of another particle
 
@@ -23,15 +23,15 @@ def mutual_trap(particle, ref_particle, stiff, r0, PBC):
     })
 
 
-def string(particle, f0, rate, direction):
+def string(particle:int, f0:float, rate:float, direction:List[float]) -> Dict:
     """
     A linear force along a vector
 
     Parameters:
         particle (int): the particle that the force acts upon
         f0 (float): the initial strength of the force at t=0 (in simulation units)
-        rate (float or SN string): growing rate of the force (simulation units/timestep)
-        dir ([float, float, float]): the direction of the force
+        rate (float): growing rate of the force (simulation units/timestep)
+        direction ([float, float, float]): the direction of the force
     """
     return({
         "type" : "string",
@@ -42,7 +42,7 @@ def string(particle, f0, rate, direction):
     })
 
 
-def harmonic_trap(particle, pos0, stiff, rate, direction):
+def harmonic_trap(particle:int, pos0:List[float], stiff:float, rate:float, direction:List[float]) -> Dict:
     """
     A linear potential well that traps a particle
 
@@ -57,12 +57,13 @@ def harmonic_trap(particle, pos0, stiff, rate, direction):
         "type" : "trap",
         "particle" : particle, 
         "pos0" : pos0,
+        "stiff" : stiff,
         "rate" : rate,
         "dir" : direction
     })
 
 
-def rotating_harmonic_trap(particle, stiff, rate, base, pos0, center, axis, mask):
+def rotating_harmonic_trap(particle:int, pos0:List[float], stiff:float, rate:float, base:float, center:List[float], axis:List[float], mask:List[float]) -> Dict:
     """
     A harmonic trap that rotates in space with constant angular velocity
 
@@ -72,8 +73,9 @@ def rotating_harmonic_trap(particle, stiff, rate, base, pos0, center, axis, mask
         stiff (float): the stiffness of the trap (force = stiff * dx)
         rate (float): the angular velocity of the trap (simulation units/time step)
         base (float): initial phase of the trap
+        center ([float, float, float]): the center of the circle
         axis ([float, float, float]): the rotation axis of the trap
-        mask([float, float, float]): the masking vector of the trap (force vector is element-wise multiplied by mask)
+        mask ([float, float, float]): the masking vector of the trap (force vector is element-wise multiplied by mask)
     """
     return({
         "type" : "twist", 
@@ -88,15 +90,15 @@ def rotating_harmonic_trap(particle, stiff, rate, base, pos0, center, axis, mask
     })
 
 
-def repulsion_plane(particle, stiff, direction, position):
+def repulsion_plane(particle:int, stiff:float, direction:List[float], position:List[float]) -> Dict:
     """
     A plane that forces the affected particle to stay on one side.
 
     Parameters:
         particle (int): the particle that the force acts upon.  -1 will act on whole system.
         stiff (float): the stiffness of the trap (force = stiff * distance below plane)
-        dir ([float, float, float]): the normal vecor to the plane
-        position(float): position of the plane (plane is d0*x + d1*y + d2*z + position = 0)
+        direction ([float, float, float]): the normal vecor to the plane
+        position ([float, float, float]): position of the plane (plane is d0*x + d1*y + d2*z + position = 0)
     """
     return({
         "type" : "repulsion_plane",
@@ -107,7 +109,7 @@ def repulsion_plane(particle, stiff, direction, position):
     })
 
 
-def repulsion_sphere(particle, center, stiff, r0, rate=1):
+def repulsion_sphere(particle:int, center:List[float], stiff:float, r0:float, rate:float) -> Dict:
     """
     A sphere that encloses the particle
     

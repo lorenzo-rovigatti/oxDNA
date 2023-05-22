@@ -69,14 +69,14 @@ def main():
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
     else: 
         indexes = list(range(top_info.nbases))
 
     aligned = superimpose(ref_conf, args.victims, indexes)
 
     for i, conf in enumerate(aligned):
-        write_conf("aligned{}.dat".format(i), conf)
+        write_conf("aligned{}.dat".format(i), conf, include_vel=ref_info.incl_v)
         print("INFO: Wrote file aligned{}.dat".format(i), file=stderr)
 
 if __name__ == '__main__':

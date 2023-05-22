@@ -116,6 +116,7 @@ public:
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
 	void begin_energy_computation() override;
+	void begin_energy_and_force_computation() override;
 
 	bool has_custom_stress_tensor() const override;
 

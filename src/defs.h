@@ -41,11 +41,13 @@
 
 #include <string>
 #include <memory>
+#include <array>
 
 #if __cplusplus < 201103L
 typedef unsigned int uint32_t;
 #endif
 typedef uint32_t uint;
 using llint = long long int;
+using StressTensor = std::array<number, 6>;
 
 #endif /* DEFS_H_ */

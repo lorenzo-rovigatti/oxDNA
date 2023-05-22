@@ -43,11 +43,15 @@ def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, index
         Find the configuration in a trajectory closest to a provided reference configuration
 
         Parameters:
-            traj_info: TrajInfo object containing information about the trajectory
-            top_info: TopInfo object containing information about the topology
-            ref_conf: Configuration object containing the reference configuration
-            indexes: (optional) List of indexes of the particles to be used for alignment
-            ncpus: (optional) Number of CPUs to use for alignment
+            traj_info (TrajInfo): Object containing information about the trajectory
+            top_info (TopInfo): Object containing information about the topology
+            ref_conf (Configuration): Object containing the reference configuration
+            indexes (List[int]): (optional) Indexes of the particles to be used for alignment
+            ncpus (int): (optional) Number of CPUs to use for alignment
+
+        Returns:
+            centroid_candidate (Configuration): The configuration with the lowest RMSD to the reference
+            min_RMSD (float): The RMSD from the centroid to the reference
     '''
     if indexes is None:
         indexes = list(range(top_info.nbases))
@@ -115,7 +119,7 @@ def main():
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
     else:
         indexes = list(range(top_info.nbases))
 
@@ -136,7 +140,7 @@ def main():
         outfile = "centroid.dat"
         print("INFO: No outfile name provided, defaulting to \"{}\"".format(outfile), file=stderr)
 
-    write_conf(outfile, centroid_candidate)
+    write_conf(outfile, centroid_candidate, include_vel=traj_info.incl_v)
     print("INFO: Wrote centroid to {}".format(outfile), file=stderr)
     print("INFO: Min RMSD: {} nm".format(min_RMSD), file=stderr)
     print("INFO: Centroid time: {}".format(centroid_candidate.time), file=stderr)

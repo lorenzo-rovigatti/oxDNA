@@ -141,8 +141,6 @@ ObservablePtr PluginManager::get_observable(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
-	// we do this c-like because dynamic linking can be done only in c and thus
-	// we have no way of using templates
 	void *temp_obs;
 	bool found = false;
 	make_obs *make_new_obs = (make_obs *) _get_entry_point(handle, name, _obs_entry_points);
@@ -164,8 +162,6 @@ InteractionPtr PluginManager::get_interaction(string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
-	// we do this c-like because dynamic linking can be done only in c and thus
-	// we have no way of using templates
 	void *temp_inter;
 	bool found = false;
 	make_inter *make_new_inter = (make_inter *) _get_entry_point(handle, name, _inter_entry_points);
@@ -187,8 +183,6 @@ MovePtr PluginManager::get_move(std::string name) {
 	void *handle = _get_handle(name);
 	if(handle == NULL) return NULL;
 
-	// we do this c-like because dynamic linking can be done only in c and thus
-	// we have no way of using templates
 	void *temp_move;
 	bool found = false;
 	make_move *make_new_move = (make_move *) _get_entry_point(handle, name, _move_entry_points);
