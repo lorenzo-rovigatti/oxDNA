@@ -254,8 +254,8 @@ def strand_describe(top:str) -> Tuple[System, list]:
                 "type" : "DNA",
                 "circular" : False
             }
-            for x in ls:
-                kwdata[x.split('=')[0]] = x.split('=')[1]
+            for y in x:
+                kwdata[y.split('=')[0]] = y.split('=')[1]
             return kwdata
 
         with open(top_file, 'r') as f:
@@ -270,10 +270,10 @@ def strand_describe(top:str) -> Tuple[System, list]:
         s_start = 0
         mid = 0
         for sid, l in enumerate(ls):
-            s = Strand(sid)
             l = l.split()
             seq = l[0]
             kwdata = _parse_kwdata(l[1:])
+            s = Strand(sid, kwdata)
             i = 0
             while i < len(seq):
                 # base type can either be a 1-letter code or a number in parentheses
@@ -342,6 +342,8 @@ def strand_describe(top:str) -> Tuple[System, list]:
         while l:
             if int(l[0]) != curr:
                 s.monomers = monomers[s_start:mid]
+                if s[0].n3 == s[-1].n5:
+                    s.circular = True
                 strands.append(s)
                 curr = int(l[0])
                 s = Strand(curr)
@@ -358,6 +360,8 @@ def strand_describe(top:str) -> Tuple[System, list]:
             except IndexError:
                 break
 
+        if s[0].n3 == s[-1].n5:
+            s.circular = True
         s.monomers = monomers[s_start:mid]
         strands.append(s)
 

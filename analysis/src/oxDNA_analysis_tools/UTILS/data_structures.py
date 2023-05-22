@@ -121,11 +121,16 @@ class Strand:
             monomers (List[Monomer]) : A list of Monomer objects
     """
 
-    def __init__(self, id):
+    def __init__(self, id, *initial_data, **kwargs):
         self.id = id
         self.monomers = []
         self.type = ''
         self.circular = False
+        for dictionary in initial_data:
+            for key in dictionary:
+                setattr(self, key, dictionary[key])
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
 
     def __getitem__(self, key:int):
         return self.monomers[key]
@@ -137,7 +142,7 @@ class Strand:
         return (m for m in self.monomers)
 
     def is_circular(self) -> bool:
-        return True if self.monomers[0].n3 == self.monomers[-1].id else False
+        return self.circular
     
     def get_length(self) -> int:
         return len(self.monomers)
@@ -147,7 +152,7 @@ class Strand:
     
     def set_sequence(self, new_seq:str) -> None:
         if len(new_seq) != self.get_length():
-            raise ValueError("New sequence must be the same length as old sequence.")
+            raise RuntimeError("New sequence must be the same length as old sequence.")
         
         for m, s, in zip(self, new_seq):
             m.btype = s
