@@ -1,7 +1,7 @@
 from sys import stderr
 import numpy as np
 import pickle
-from os.path import exists
+from os.path import exists, abspath
 from typing import List, Tuple, Iterator
 import os
 from .data_structures import *
@@ -132,6 +132,14 @@ def get_top_info(top:str) -> TopInfo:
     """
     with open(top) as f:
         my_top_info = f.readline().strip().split(' ')
+
+        # Check which kind of topology file you're using
+        if my_top_info[-1] == '5->3':
+            my_top_info = my_top_info[:-1]
+        else:
+            print("WARNING: The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.")
+        
+        # There's actually nothing different between the headers once you remove the new marker.
         if len(my_top_info) == 2:
             nbases = my_top_info[0]
         elif len(my_top_info) == 5:
@@ -228,7 +236,7 @@ def describe(top:(str|None), traj:str) -> Tuple[TopInfo, TrajInfo]:
     else:
         return (get_top_info(top), get_traj_info(traj))
 
-def strand_describe(top) -> Tuple[System, list]:
+def strand_describe(top:str) -> Tuple[System, list]:
     """
         Retrieve all information from topology file mapping nucleotides to strands.
 
@@ -240,49 +248,138 @@ def strand_describe(top) -> Tuple[System, list]:
         Returns:
             (System, List[Monomer]) : The system object and the list of monomer objects.
     """
-    get_neighbor = lambda x: monomers[x].id if x != -1 else None
+    def _strand_describe_new(top_file:str) -> Tuple[System, list]:
+        def _parse_kwdata(x): 
+            kwdata = {
+                "type" : "DNA",
+                "circular" : False
+            }
+            for x in ls:
+                kwdata[x.split('=')[0]] = x.split('=')[1]
+            return kwdata
 
-    with open (top) as f:
-        l = f.readline().split()
-        nmonomers = int(l[0])
+        with open(top_file, 'r') as f:
+            l = f.readline().split()
+            nmonomers = int(l[0])
+            ls = f.readlines()
 
-        system = System()
-        monomers = [Monomer(i, "", None, None, None, None) for i in range(nmonomers)]
+        strands = []
+        monomers = [Monomer(i, "", None, None, None, None)
+                    for i in range(nmonomers)]
+        
+        s_start = 0
+        mid = 0
+        for sid, l in enumerate(ls):
+            s = Strand(sid)
+            l = l.split()
+            seq = l[0]
+            kwdata = _parse_kwdata(l[1:])
+            i = 0
+            while i < len(seq):
+                # base type can either be a 1-letter code or a number in parentheses
+                if seq[i] != '(':
+                    monomers[mid].btype = seq[i]
+                else:
+                    btype = []
+                    while seq[i] != ')':
+                        btype.append(seq[i])
+                        i += 1
+                    btype.append(')')
+                    monomers[mid].btype = ''.join(btype)
 
-        ls = f.readlines()
+                # At least this one is obvious...
+                monomers[mid].strand = s
+                
+                # Make a bad assumption
+                monomers[mid].n5 = mid-1
+                monomers[mid].n3 = mid+1
+
+                # Fix the assumption for ends of straight strands
+                if mid == s_start:
+                    monomers[mid].n5 = -1
+                elif i == len(seq)-1:
+                    monomers[mid].n3 = -1
+                
+                # Fix the assumption for 'ends' of circular strands
+                if kwdata['circular'] and i == len(seq)-1:
+                    monomers[s_start].n5 = mid
+                    monomers[mid].n3 = s_start
+
+                i += 1
+                mid += 1
+            
+            s.monomers = monomers[s_start:mid]
+            strands.append(s)
+            s_start = mid
+
+        system = System(top_file=abspath(top_file), strands=strands)
+
+        return system, monomers
+             
+    def _strand_describe_old(top_file:str) -> Tuple[System, list]:
+        def _get_neighbor(x): return monomers[x].id if x != -1 else None
+
+        with open(top_file, 'r') as f:
+            l = f.readline().split()
+            nmonomers = int(l[0])
+            ls = f.readlines()
+
+        strands = []
+        monomers = [Monomer(i, "", None, None, None, None)
+                    for i in range(nmonomers)]
 
         l = ls[0].split()
         curr = int(l[0])
         mid = 0
         s_start = 0
         s = Strand(curr)
-        monomers[mid].type = l[1]
+        monomers[mid].btype = l[1]
         monomers[mid].strand = s
-        monomers[mid].n3 = get_neighbor(int(l[2]))
-        monomers[mid].n5 = get_neighbor(int(l[3]))
+        monomers[mid].n3 = _get_neighbor(int(l[2]))
+        monomers[mid].n5 = _get_neighbor(int(l[3]))
         l = ls[1].split()
         mid += 1
         while l:
             if int(l[0]) != curr:
                 s.monomers = monomers[s_start:mid]
-                system.append(s)
+                strands.append(s)
                 curr = int(l[0])
                 s = Strand(curr)
                 s_start = mid
-            
-            monomers[mid].type = l[1]
+
+            monomers[mid].btype = l[1]
             monomers[mid].strand = s
-            monomers[mid].n3 = get_neighbor(int(l[2]))
-            monomers[mid].n5 = get_neighbor(int(l[3]))
+            monomers[mid].n3 = _get_neighbor(int(l[2]))
+            monomers[mid].n5 = _get_neighbor(int(l[3]))
 
             mid += 1
             try:
                 l = ls[mid].split()
             except IndexError:
-                break  
+                break
 
-    s.monomers = monomers[s_start:mid]
-    system.append(s)
+        s.monomers = monomers[s_start:mid]
+        strands.append(s)
+
+        system = System(top_file=abspath(top_file), strands=strands)
+
+        return system, monomers
+
+    with open(top) as f:
+        l = f.readline().strip().split()
+
+        # Check which kind of topology file you're using
+        old_top = False
+        if l[-1] == '5->3':
+            l = l[:-1]
+        else:
+            old_top = True
+            print("WARNING: The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.")
+
+        if old_top:
+            system, monomers = _strand_describe_old(top)
+        else:
+            system, monomers = _strand_describe_new(top)
 
     return system, monomers
 
@@ -438,7 +535,7 @@ def get_top_string(system) -> str:
             for i, m in enumerate(s.monomers):
                 n_na += 1
                 mid += 1
-                body.append(f'{na_strands} {m.type} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
+                body.append(f'{na_strands} {m.btype} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
 
         # it's a peptide strand
         elif s.id < 0:
@@ -446,7 +543,7 @@ def get_top_string(system) -> str:
             for i, m in enumerate(s.monomers):
                 n_aa += 1
                 mid += 1
-                body.append(f'{aa_strands} {m.type} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
+                body.append(f'{aa_strands} {m.btype} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
 
     header.append(f'{n_na+n_aa} {na_strands+aa_strands} {n_na if n_aa > 0 else ""} {n_aa if n_aa > 0 else ""}')
 
