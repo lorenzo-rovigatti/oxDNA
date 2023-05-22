@@ -31,7 +31,7 @@ weights_file = wfile.txt
 ### Seq. Dependence ##########
 use_average_seq = 0
 #seq_dep_file = seq.txt
-seq_dep_file=/home/bob/oxdna-code/oxDNA/oxDNA2_sequence_dependent_parameters.txt
+seq_dep_file= ../../../oxDNA2_sequence_dependent_parameters.txt
 
 ##############################
 ####    INPUT / OUTPUT    ####

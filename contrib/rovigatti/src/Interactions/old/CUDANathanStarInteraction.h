@@ -26,7 +26,7 @@ public:
 	virtual ~CUDANathanStarInteraction();
 
 	void get_settings(input_file &inp);
-	void cuda_init(c_number box_side, int N);
+	void cuda_init(int N);
 	c_number get_cuda_rcut() {
 		return this->get_rcut();
 	}

@@ -41,7 +41,7 @@ typedef struct
 		}
 		void get_settings(input_file &inp);
 
-		void cuda_init(c_number box_side, int N);
+		void cuda_init(int N);
 
 		void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
 	};

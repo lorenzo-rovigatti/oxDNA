@@ -37,37 +37,49 @@ void MCBackend::get_settings(input_file &inp) {
 
 	SimBackend::get_settings(inp);
 
+	std::string sim_type;
+	getInputString(&inp, "sim_type", sim_type, 0);
+
 	getInputInt(&inp, "check_energy_every", &_check_energy_every, 0);
-	getInputString(&inp, "ensemble", tmp, 1);
-	if(strncasecmp(tmp, "npt", 256) == 0) {
-		_ensemble = MC_ENSEMBLE_NPT;
-		int check = getInputString(&inp, "list_type", tmp, 0);
-		if(check == KEY_NOT_FOUND || (strncasecmp(tmp, "cells", 256) != 0 && strncasecmp(tmp, "no", 256) != 0 && strncasecmp(tmp, "rodcells", 256) != 0))
-			throw oxDNAException("NPT ensemble requires no lists or cells to handle interaction lists; set list_type=cells in the input file");
-
-	}
-	else if(strncasecmp(tmp, "nvt", 256) == 0)
-		_ensemble = MC_ENSEMBLE_NVT;
-	else
-		throw oxDNAException("Ensemble '%s' not supported\n", tmp);
-
-	int tmpi;
-	if(getInputBoolAsInt(&inp, "adjust_moves", &tmpi, 0) == KEY_FOUND) {
-		_adjust_moves = (tmpi > 0);
-		if(_adjust_moves)
-			OX_LOG(Logger::LOG_INFO, "(MCBackend) adjusting moves in the equilibration phase");
-		getInputLLInt(&inp, "equilibration_steps", &_MC_equilibration_steps, 1);
-	}
-
 	if(getInputNumber(&inp, "check_energy_threshold", &_check_energy_threshold, 0) == KEY_NOT_FOUND) {
 		_check_energy_threshold = 1e-6;
 	}
 
-	getInputNumber(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
-	getInputNumber(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
-	if(_ensemble == MC_ENSEMBLE_NPT) {
-		getInputNumber(&inp, "P", &(_P), 1);
-		getInputNumber(&inp, "delta_volume", &_delta[MC_MOVE_VOLUME], 1);
+	if(sim_type == "MC") {
+		getInputString(&inp, "ensemble", tmp, 1);
+		if(strncasecmp(tmp, "npt", 256) == 0) {
+			_ensemble = MC_ENSEMBLE_NPT;
+			int check = getInputString(&inp, "list_type", tmp, 0);
+			if(check == KEY_NOT_FOUND || (strncasecmp(tmp, "cells", 256) != 0 && strncasecmp(tmp, "no", 256) != 0 && strncasecmp(tmp, "rodcells", 256) != 0))
+				throw oxDNAException("NPT ensemble requires no lists or cells to handle interaction lists; set list_type=cells in the input file");
+
+		}
+		else if(strncasecmp(tmp, "nvt", 256) == 0) {
+			_ensemble = MC_ENSEMBLE_NVT;
+		}
+		else {
+			throw oxDNAException("Ensemble '%s' not supported\n", tmp);
+		}
+
+		int tmpi;
+		if(getInputBoolAsInt(&inp, "adjust_moves", &tmpi, 0) == KEY_FOUND) {
+			_adjust_moves = (tmpi > 0);
+			if(_adjust_moves)
+				OX_LOG(Logger::LOG_INFO, "(MCBackend) adjusting moves in the equilibration phase");
+			getInputLLInt(&inp, "equilibration_steps", &_MC_equilibration_steps, 1);
+		}
+
+		getInputNumber(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
+		getInputNumber(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
+
+		if(_ensemble == MC_ENSEMBLE_NPT) {
+			getInputNumber(&inp, "P", &(_P), 1);
+			getInputNumber(&inp, "delta_volume", &_delta[MC_MOVE_VOLUME], 1);
+		}
+	}
+	else if(sim_type == "VMMC") {
+		getInputNumber(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
+		getInputNumber(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
 	}
 
 	char energy_file[512];

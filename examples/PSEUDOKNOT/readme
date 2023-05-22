@@ -40,7 +40,7 @@ configuration for a single strand. The box size does not matter as long as
 it is big enough to contain the structure, so 30 s.u. will do. The file
 <tt>pkseq.txt</tt> contains the above sequence. So, run
 
-<code>../../UTILS/generate-sa.py 30. pkseq.txt</code>
+<code>../../utils/generate-sa.py 30. pkseq.txt</code>
 
 which generates <tt>generated.dat</tt> and <tt>generated.top</tt>.
 

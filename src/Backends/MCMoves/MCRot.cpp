@@ -9,7 +9,7 @@
 #include "MCRot.h"
 
 
-MCRot::MCRot () : BaseMove() {
+MCRot::MCRot() : BaseMove() {
 	_orientation_old = LR_matrix (1., 0., 0., 0., 1., 0., 0., 0., 1.);
 	_orientationT_old = LR_matrix (1., 0., 0., 0., 1., 0., 0., 0., 1.);
 }
@@ -20,26 +20,25 @@ MCRot::~MCRot () {
 }
 
 
-void MCRot::get_settings (input_file &inp, input_file &sim_inp) {
-	BaseMove::get_settings (inp, sim_inp);
+void MCRot::get_settings(input_file &inp, input_file &sim_inp) {
+	BaseMove::get_settings(inp, sim_inp);
 
 	// the following "double" parsing is for backwards compatibility
-	if (getInputNumber (&inp, "delta_rot", &_delta, 0) == KEY_NOT_FOUND) {
-		getInputNumber (&inp, "delta", &_delta, 1);
+	if (getInputNumber(&inp, "delta_rot", &_delta, 0) == KEY_NOT_FOUND) {
+		getInputNumber(&inp, "delta", &_delta, 1);
 	}
 	getInputNumber (&inp, "prob", &this->prob, 1);
 }
 
 
-void MCRot::init () {
+void MCRot::init() {
 	BaseMove::init();
 	OX_LOG(Logger::LOG_INFO, "(MCRot.cpp) MCRot initiated with T %g, delta %g, prob: %g", this->_T, _delta, this->prob);
 }
 
 
-void MCRot::apply (llint curr_step) {
-
-	this->_attempted ++;
+void MCRot::apply(llint curr_step) {
+	this->_attempted++;
 
 	int pi = (int) (drand48() * this->_Info->N());
 	BaseParticle *p = this->_Info->particles()[pi];
@@ -53,7 +52,7 @@ void MCRot::apply (llint curr_step) {
 	number delta_E;
 	if (this->_compute_energy_before) delta_E = -this->particle_energy(p);
 	else delta_E = (number) 0.f;
-	p->set_ext_potential (curr_step, this->_Info->box);
+	p->set_ext_potential(curr_step, this->_Info->box);
 	number delta_E_ext = -p->ext_potential;
 
 	_orientation_old = p->orientation;
@@ -82,7 +81,7 @@ void MCRot::apply (llint curr_step) {
 	p->orientationT = p->orientation.get_transpose();
 	p->set_positions();
 
-	if (p->is_rigid_body()) {
+	if(p->is_rigid_body()) {
 		this->_Info->lists->single_update(p);
 		if(!this->_Info->lists->is_updated()) {
 			this->_Info->lists->global_update();
@@ -116,7 +115,7 @@ void MCRot::apply (llint curr_step) {
 		}
 		this->_Info->interaction->set_is_infinite(false);
 
-		if (curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
+		if(curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
 	}
 
 	return;

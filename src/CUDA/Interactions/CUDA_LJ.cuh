@@ -9,7 +9,7 @@ __constant__ int MD_LJ_n[3];
 
 #include "../cuda_utils/CUDA_lr_common.cuh"
 
-__device__ void _particle_particle_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox*box) {
+__device__ void _particle_particle_interaction(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *box) {
 	int ptype = get_particle_type(ppos);
 	int qtype = get_particle_type(qpos);
 	int type = ptype + qtype;
@@ -34,25 +34,7 @@ __device__ void _particle_particle_interaction(c_number4 &ppos, c_number4 &qpos,
 	F.w += energy;
 }
 
-// forces + second step without lists
-__global__ void lj_forces(c_number4 *poss, c_number4 *forces, CUDABox*box) {
-	if(IND >= MD_N[0]) return;
-
-	c_number4 F = forces[IND];
-	c_number4 ppos = poss[IND];
-
-	for(int j = 0; j < MD_N[0]; j++) {
-		if(j != IND) {
-			c_number4 qpos = poss[j];
-
-			_particle_particle_interaction(ppos, qpos, F, box);
-		}
-	}
-
-	forces[IND] = F;
-}
-
-__global__ void lj_forces_edge(c_number4 *poss, c_number4 *forces, edge_bond *edge_list, int n_edges, CUDABox*box) {
+__global__ void lj_forces_edge(c_number4 *poss, c_number4 *forces, edge_bond *edge_list, int n_edges, CUDABox *box) {
 	if(IND >= n_edges) return;
 
 	c_number4 dF = make_c_number4(0.f, 0.f, 0.f, 0.f);
@@ -79,20 +61,20 @@ __global__ void lj_forces_edge(c_number4 *poss, c_number4 *forces, edge_bond *ed
 	if((dF.x * dF.x + dF.y * dF.y + dF.z * dF.z) > (c_number) 0.f) LR_atomicAddXYZ(forces + to_index, dF);
 }
 
-// forces + second step with verlet lists
-__global__ void lj_forces(c_number4 *poss, c_number4 *forces, int *matrix_neighs, int *c_number_neighs, CUDABox*box) {
+__global__ void lj_forces(c_number4 *poss, c_number4 *forces, int *matrix_neighs, int *number_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
 	c_number4 ppos = poss[IND];
 
-	int num_neighs = c_number_neighs[IND];
-
+	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
 	for(int j = 0; j < num_neighs; j++) {
-		int k_index = matrix_neighs[j * MD_N[0] + IND];
+		int k_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
 
-		c_number4 qpos = poss[k_index];
-		_particle_particle_interaction(ppos, qpos, F, box);
+		if(k_index != IND) {
+			c_number4 qpos = poss[k_index];
+			_particle_particle_interaction(ppos, qpos, F, box);
+		}
 	}
 
 	forces[IND] = F;

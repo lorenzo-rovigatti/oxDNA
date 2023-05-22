@@ -42,8 +42,8 @@ def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, in
             ncpus (int): (optional) Number of CPUs to use for alignment
         
         Returns:
-            RMSDs: Root mean squared deviation for each configuration in the trajectory
-            RMSFs: Average deviation for each particle in the structure
+            RMSDs (np.array): Root mean squared deviation for each configuration in the trajectory
+            RMSFs (np.array): Average fluctuation for each particle in the structure
     """
     if indexes is None:
         indexes = list(range(top_info.nbases))
@@ -91,7 +91,7 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
             })
         )
 
-    print("INFO: writing RMSDs to oxView order parameter file, {}".format(data_file))
+    print("INFO: writing RMSDs to oxView order parameter file, {}".format(data_file), file=stderr)
     with open(data_file, 'w') as f:
         f.write(
             dumps({
@@ -99,7 +99,7 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
             })
         )
 
-    print("INFO: writing RMSD plot to {}".format(plot_name))
+    print("INFO: writing RMSD plot to {}".format(plot_name), file=stderr)
     plt.plot(RMSDs)
     plt.axhline(np.mean(RMSDs), color='red')
     plt.xlabel('Configuration')
@@ -147,7 +147,7 @@ def main():
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
     else:
         indexes = list(range(top_info.nbases))
 

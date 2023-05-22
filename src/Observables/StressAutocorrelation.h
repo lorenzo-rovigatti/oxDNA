@@ -10,21 +10,19 @@
 
 #include "BaseObservable.h"
 
+#include <sstream>
+
 /**
- * @brief Outputs the instantaneous pressure, computed through the virial.
+ * @brief Outputs stress autocorrelation functions
  *
- * The supported syntax is
- * @verbatim
- type = pressure (an observable that computes the osmotic pressure of the system)
- [stress_tensor = <bool> (if true, the output will contain 9 fields: the total pressure and the nine components of the stress tensor, xx, xy, xz, yx, yy, yz, zx, zy, zz)]
- @endverbatim
+ * Computes and prints the autocorrelation functions of the off-diagonal, diagonal and longitudinal parts of the stress tensor
  */
 
 class StressAutocorrelation: public BaseObservable {
 	struct Level {
 		uint m;
 		uint p;
-		const uint level_number;
+		uint level_number;
 		uint start_at;
 
 		std::vector<double> data;
@@ -38,10 +36,44 @@ class StressAutocorrelation: public BaseObservable {
 			m(nm),
 			p(np),
 			level_number(l_number),
-			data(p),
+			data(0),
 			correlation(p),
 			counter(p) {
 			start_at = (l_number == 0) ? 0 : p / m;
+		}
+
+		void load_from_file(std::istream &inp) {
+			inp >> m;
+			inp >> p;
+			inp >> level_number;
+			inp >> start_at;
+
+			data.resize(p);
+			for(auto &v : data) {
+				inp >> v;
+			}
+
+			correlation.resize(p);
+			for(auto &v : correlation) {
+				inp >> v;
+			}
+
+			counter.resize(p);
+			for(auto &v : counter) {
+				inp >> v;
+			}
+
+			inp >> accumulator;
+			inp >> accumulator_counter;
+
+			int pos = inp.tellg();
+			int next_p;
+			inp >> next_p;
+			if(inp.good()) {
+				inp.seekg(pos);
+				next = std::make_shared<Level>(m, p, level_number + 1);
+				next->load_from_file(inp);
+			}
 		}
 
 		void add_value(double v) {
@@ -71,7 +103,9 @@ class StressAutocorrelation: public BaseObservable {
 
 		void get_times(double dt, std::vector<double>& times) {
 			for(uint i = start_at; i < p; i++) {
-				times.push_back(i * std::pow((double) m, (double) level_number) * dt);
+				if(counter[i] > 0) {
+					times.push_back(i * std::pow((double) m, (double) level_number) * dt);
+				}
 			}
 
 			if(next != nullptr) {
@@ -81,26 +115,79 @@ class StressAutocorrelation: public BaseObservable {
 
 		void get_acf(double dt, std::vector<double> &acf) {
 			for(uint i = start_at; i < p; i++) {
-				acf.push_back(correlation[i] / counter[i]);
+				if(counter[i] > 0) {
+					acf.push_back(correlation[i] / counter[i]);
+				}
 			}
 
 			if(next != nullptr) {
 				next->get_acf(dt, acf);
 			}
 		}
+
+		std::string _serialised() {
+			std::stringstream output;
+
+			output << m << std::endl;
+			output << p << std::endl;
+			output << level_number << std::endl;
+			output << start_at << std::endl;
+
+			for(auto v : data) {
+				output << v << " ";
+			}
+			output << std::endl;
+
+			for(auto v : correlation) {
+				output << v << " ";
+			}
+			output << std::endl;
+
+			for(auto v : counter) {
+				output << v << " ";
+			}
+			output << std::endl;
+
+			output << accumulator << std::endl;
+			output << accumulator_counter << std::endl;
+
+			if(next != nullptr) {
+				output << next->_serialised();
+			}
+
+			return output.str();
+		}
+
+		void serialise(std::string filename) {
+			std::ofstream output(filename);
+
+			output << "t = " << CONFIG_INFO->curr_step << std::endl;
+			output << _serialised();
+
+			output.close();
+		}
 	};
 
 protected:
+	uint _m = 2;
+	uint _p = 16;
 	std::vector<LR_vector> _old_forces, _old_torques;
-	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_zx, _N_xy, _N_yz, _N_xz;
-	double _delta_t;
+	std::shared_ptr<Level> _sigma_xy, _sigma_yz, _sigma_xz, _N_xy, _N_yz, _N_xz, _sigma_xx, _sigma_yy, _sigma_zz, _sigma_P;
+	double _delta_t = 0.0;
+	bool _enable_serialisation = false;
+
+	std::shared_ptr<Level> _deserialise(std::string filename);
 
 public:
 	StressAutocorrelation();
 	virtual ~StressAutocorrelation();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
+	void init() override;
 
+	void serialise() override;
+
+	bool require_data_on_CPU() override;
 	void update_data(llint curr_step) override;
 
 	std::string get_output_string(llint curr_step);

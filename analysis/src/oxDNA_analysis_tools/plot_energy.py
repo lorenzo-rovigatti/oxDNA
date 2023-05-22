@@ -38,8 +38,7 @@ def main():
         if "both" in args.format:
             hist = line = True
         if hist == line == False:
-            print("ERROR: unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"", file=stderr)
-            exit(1)
+            raise RuntimeError("Unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"")
     else:
         print("INFO: No graph format specified, defaulting to histogram", file=stderr)
         hist = True

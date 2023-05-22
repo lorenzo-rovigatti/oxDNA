@@ -204,7 +204,7 @@ def oxdna_to_pdb(filehandle, ox_protein_positions, pdbfile, nuccom, reading_posi
     # Get Coordinates
     oca = np.multiply(np.asarray(ox_protein_positions), 8.518)  # simulation to Angstroms
     pca, pfull, chain_separated_residue_ids, chain_separated_atom_ids = getalphacarbons_pdb(pdbid, pdbfile)
-    
+    print('n_residues:', len(chain_separated_residue_ids))
     #print('reading', reading_position)
     tmp = chain_separated_residue_ids[int(reading_position)]
     tmp_atom = chain_separated_atom_ids[int(reading_position)]

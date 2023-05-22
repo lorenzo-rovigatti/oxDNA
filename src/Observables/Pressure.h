@@ -25,18 +25,12 @@ protected:
 	bool _custom_stress_tensor;
 	bool _with_stress_tensor;
 	bool _PV_only;
-	double _P;
-	StressTensor _stress_tensor;
-	number _shear_rate;
 
 public:
 	Pressure();
 	virtual ~Pressure();
 
 	void get_settings(input_file &my_inp, input_file &sim_inp);
-
-	void update_pressure();
-	void update_pressure_with_custom_stress_tensor();
 
 	std::string get_output_string(llint curr_step);
 };

@@ -20,7 +20,10 @@ __device__ GPU_quat_double _get_updated_orientation(LR_double4 &L, GPU_quat_doub
 	return quat_multiply(old_o, R);
 }
 
-__global__ void first_step_mixed(float4 *poss, GPU_quat *orientations, LR_double4 *possd, GPU_quat_double *orientationsd, float4 *list_poss, LR_double4 *velsd, LR_double4 *Lsd, float4 *forces, float4 *torques, bool *are_lists_old, bool any_rigid_body) {
+__global__ void first_step_mixed(float4 __restrict__ *poss, GPU_quat __restrict__ *orientations, LR_double4 __restrict__ *possd,
+		GPU_quat_double __restrict__ *orientationsd, const float4 __restrict__ *list_poss, LR_double4 __restrict__ *velsd,
+		LR_double4 __restrict__ *Lsd, const float4 __restrict__ *forces, const float4 __restrict__ *torques,
+		bool *are_lists_old, bool any_rigid_body) {
 	if(IND >= MD_N[0]) return;
 
 	float4 F = forces[IND];

@@ -105,8 +105,8 @@ void CUDAAOInteraction::get_settings(input_file &inp) {
 	AOInteraction::get_settings(inp);
 }
 
-void CUDAAOInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAAOInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	AOInteraction::init();
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));

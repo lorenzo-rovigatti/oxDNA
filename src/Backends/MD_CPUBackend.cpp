@@ -16,7 +16,6 @@ MD_CPUBackend::MD_CPUBackend() :
 				MDBackend() {
 	_thermostat = nullptr;
 	_V_move = nullptr;
-	_compute_stress_tensor = false;
 	_stress_tensor_avg_every = -1;
 	_stress_tensor_counter = 0;
 }
@@ -27,15 +26,6 @@ MD_CPUBackend::~MD_CPUBackend() {
 
 void MD_CPUBackend::get_settings(input_file &inp) {
 	MDBackend::get_settings(inp);
-
-	getInputBool(&inp, "MD_compute_stress_tensor", &_compute_stress_tensor, 0);
-	if(_compute_stress_tensor) {
-		OX_LOG(Logger::LOG_INFO, "Computing the stress tensor directly in the backend");
-		getInputInt(&inp, "MD_stress_tensor_avg_every", &_stress_tensor_avg_every, 1);
-		if(_stress_tensor_avg_every < 1) {
-			throw oxDNAException("MD_stress_tensor_avg_every should be larger than 0");
-		}
-	}
 
 	if(_use_barostat) {
 		std::string move_name("volume");
@@ -72,12 +62,6 @@ void MD_CPUBackend::init() {
 	}
 
 	_compute_forces();
-	if(_compute_stress_tensor) {
-		for(auto p : _particles) {
-			_update_kinetic_stress_tensor(p);
-		}
-		_update_backend_info();
-	}
 }
 
 void MD_CPUBackend::_first_step() {
@@ -159,7 +143,7 @@ void MD_CPUBackend::_first_step() {
 }
 
 void MD_CPUBackend::_compute_forces() {
-	_interaction->begin_energy_computation();
+	_interaction->begin_energy_and_force_computation();
 
 	_U = (number) 0;
 	for(auto p : _particles) {
@@ -170,12 +154,7 @@ void MD_CPUBackend::_compute_forces() {
 		}
 
 		for(auto q : _lists->get_neigh_list(p)) {
-			if(!_compute_stress_tensor) {
-				_U += _interaction->pair_interaction_nonbonded(p, q, true, true);
-			}
-			else {
-				_update_forces_and_stress_tensor(p, q);
-			}
+			_U += _interaction->pair_interaction_nonbonded(p, q, true, true);
 		}
 	}
 }
@@ -190,68 +169,11 @@ void MD_CPUBackend::_second_step() {
 		if(p->is_rigid_body()) {
 			p->L += p->torque * _dt * (number) 0.5f;
 		}
-
-		if(_compute_stress_tensor) {
-			_update_kinetic_stress_tensor(p);
-		}
 	}
-}
-
-void MD_CPUBackend::_update_forces_and_stress_tensor(BaseParticle *p, BaseParticle *q) {
-	// pair_interaction_nonbonded will change these vectors, but we still need them in the next
-	// first integration step. For this reason we copy and then restore their values
-	// after the calculation
-	LR_vector old_p_force(p->force);
-	LR_vector old_q_force(q->force);
-	LR_vector old_p_torque(p->torque);
-	LR_vector old_q_torque(q->torque);
-
-	p->force = q->force = p->torque = q->torque = LR_vector();
-
-	LR_vector r = _box->min_image(p->pos, q->pos);
-	_interaction->set_computed_r(r);
-	_interaction->pair_interaction_nonbonded(p, q, false, true);
-
-	_stress_tensor.v1.x += r.x * q->force.x;
-	_stress_tensor.v1.y += r.x * q->force.y;
-	_stress_tensor.v1.z += r.x * q->force.z;
-	_stress_tensor.v2.x += r.y * q->force.x;
-	_stress_tensor.v2.y += r.y * q->force.y;
-	_stress_tensor.v2.z += r.y * q->force.z;
-	_stress_tensor.v3.x += r.z * q->force.x;
-	_stress_tensor.v3.y += r.z * q->force.y;
-	_stress_tensor.v3.z += r.z * q->force.z;
-
-	p->force += old_p_force;
-	q->force += old_q_force;
-	p->torque += old_p_torque;
-	q->torque += old_q_torque;
-}
-
-void MD_CPUBackend::_update_kinetic_stress_tensor(BaseParticle *p) {
-	LR_vector vel = p->vel;
-	if(_shear_rate > 0.) {
-		number Ly = _box->box_sides().y;
-		number y_in_box = p->pos.y - floor(p->pos.y / Ly) * Ly - 0.5 * Ly;
-		number flow_vx = y_in_box * _shear_rate;
-		vel.x -= flow_vx;
-	}
-	_stress_tensor.v1.x += SQR(vel.x);
-	_stress_tensor.v1.y += vel.x * vel.y;
-	_stress_tensor.v1.z += vel.x * vel.z;
-	_stress_tensor.v2.x += vel.y * vel.x;
-	_stress_tensor.v2.y += SQR(vel.y);
-	_stress_tensor.v2.z += vel.y * vel.z;
-	_stress_tensor.v3.x += vel.z * vel.x;
-	_stress_tensor.v3.y += vel.z * vel.y;
-	_stress_tensor.v3.z += SQR(vel.z);
 }
 
 void MD_CPUBackend::_update_backend_info() {
-	_stress_tensor /= 3 * _box->V();
-	double P = _stress_tensor.v1.x + _stress_tensor.v2.y + _stress_tensor.v3.z;
-	_backend_info = Utils::sformat("% 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf % 10.6lf", P, _stress_tensor.v1.x, _stress_tensor.v1.y, _stress_tensor.v1.z, _stress_tensor.v2.x, _stress_tensor.v2.y, _stress_tensor.v2.z, _stress_tensor.v3.x, _stress_tensor.v3.y, _stress_tensor.v3.z);
-	_stress_tensor = LR_matrix();
+
 }
 
 void MD_CPUBackend::sim_step() {
@@ -278,15 +200,6 @@ void MD_CPUBackend::sim_step() {
 	_timer_forces->resume();
 	_compute_forces();
 	_second_step();
-
-	if(_compute_stress_tensor) {
-		_stress_tensor_counter++;
-		if(_stress_tensor_counter == _stress_tensor_avg_every) {
-			_stress_tensor_counter = 0;
-			_stress_tensor /= _stress_tensor_avg_every;
-			_update_backend_info();
-		}
-	}
 
 	_timer_forces->pause();
 

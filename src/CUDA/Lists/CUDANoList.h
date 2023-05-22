@@ -23,7 +23,7 @@ public:
 	void update(c_number4 *poss, c_number4 *list_poss, LR_bonds *bonds) {}
 	void clean() {}
 
-	void get_settings(input_file &inp) {}
+	void get_settings(input_file &inp) override;
 };
 
 #endif /* CUDANOLIST_H_ */

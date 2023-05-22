@@ -14,7 +14,7 @@
 #define HALF_ISQRT3 0.28867513459481292f
 
 CUDAPatchyInteraction::CUDAPatchyInteraction() {
-
+	_edge_compatible = true;
 }
 
 CUDAPatchyInteraction::~CUDAPatchyInteraction() {
@@ -25,8 +25,8 @@ void CUDAPatchyInteraction::get_settings(input_file &inp) {
 	PatchyInteraction::get_settings(inp);
 }
 
-void CUDAPatchyInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAPatchyInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	PatchyInteraction::init();
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
@@ -104,29 +104,18 @@ void CUDAPatchyInteraction::cuda_init(c_number box_side, int N) {
 	if(this->_use_edge) CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n_forces, &this->_n_forces, sizeof(int)));
 }
 
-void CUDAPatchyInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
-	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
-	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) {
-			patchy_forces_edge
-				<<<(_v_lists->N_edges - 1)/(this->_launch_cfg.threads_per_block) + 1, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, this->_d_edge_forces, this->_d_edge_torques, _v_lists->d_edge_list, _v_lists->N_edges, d_box);
+void CUDAPatchyInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
+	if(_use_edge) {
+		patchy_forces_edge
+			<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, d_box);
 
-			this->_sum_edge_forces_torques(d_forces, d_torques);
-		}
-		else {
-			patchy_forces
-				<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-				(d_poss, d_orientations, d_forces, d_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_box);
-			CUT_CHECK_ERROR("forces_second_step patchy simple_lists error");
-		}
+		this->_sum_edge_forces_torques(d_forces, d_torques);
 	}
-
-	CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
-	if(_no_lists != NULL) {
+	else {
 		patchy_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, d_box);
-		CUT_CHECK_ERROR("forces_second_step patchy no_lists error");
+			<<<this->_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
+			(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_box);
+		CUT_CHECK_ERROR("forces_second_step patchy simple_lists error");
 	}
 }

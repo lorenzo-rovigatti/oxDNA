@@ -71,14 +71,13 @@
     :func: cli_parser
     :prog: oat contact_map
 ```
-
-## Dot-bracket to force
+## Decimate
 
 ```{eval-rst}
 .. argparse::
-    :filename: ../analysis/src/oxDNA_analysis_tools/db_to_force.py
+    :filename: ../analysis/src/oxDNA_analysis_tools/decimate.py
     :func: cli_parser
-    :prog: oat db_to_force
+    :prog: oat decimate
 ```
 
 ## Deviations
@@ -99,6 +98,15 @@
     :prog: oat distance
 ```
 
+## Dot-bracket to force
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/db_to_force.py
+    :func: cli_parser
+    :prog: oat db_to_force
+```
+
 ## Duplex angle plotter
 
 ```{eval-rst}
@@ -115,6 +123,14 @@
     :filename: ../analysis/src/oxDNA_analysis_tools/duplex_finder.py
     :func: cli_parser
     :prog: oat duplex_finder
+```
+
+## File info
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/file_info.py
+    :func: cli_parser
+    :prog: oat file_info
 ```
 
 ## Forces to pairs
@@ -171,6 +187,15 @@
     :prog: oat output_bonds
 ```
 
+## oxDNA -> PDB
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/oxDNA_PDB.py
+    :func: cli_parser
+    :prog: oat oxDNA_PDB
+```
+
 ## Principal component analysis
 
 ```{eval-rst}
@@ -178,6 +203,15 @@
     :filename: ../analysis/src/oxDNA_analysis_tools/pca.py
     :func: cli_parser
     :prog: oat pca
+```
+
+## Persistence Length
+
+```{eval-rst}
+.. argparse::
+    :filename: ../analysis/src/oxDNA_analysis_tools/persistence_length.py
+    :func: cli_parser
+    :prog: oat persistence_length
 ```
 
 ## Plot energy

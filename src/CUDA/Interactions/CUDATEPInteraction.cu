@@ -196,72 +196,7 @@ __device__ void _twist_boundary_particle(c_number4 &v1, c_number4& v3, c_number4
 	T += torque_w + torque_o;
 }
 
-// forces + second step without lists
-
-__global__ void TEP_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, LR_bonds *bonds, CUDABox*box, c_number *kb1_pref, c_number *kb2_pref, c_number *xk_bending, c_number *xu_bending, c_number *kt_pref, c_number4 *o_vects, c_number4 *w_vects, llint step) {
-	if(IND >= MD_N[0]) return;
-
-	c_number4 F = forces[IND];
-	c_number4 T = make_c_number4(0, 0, 0, 0);
-	c_number4 ppos = poss[IND];
-	LR_bonds pbonds = bonds[IND];
-
-	c_number4 a1, a2, a3;
-	get_vectors_from_quat(orientations[IND], a1, a2, a3);
-
-	if(pbonds.n3 != P_INVALID) {
-		int n3_index = pbonds.n3;
-		c_number4 b1, b2, b3;
-		get_vectors_from_quat(orientations[pbonds.n3], b1, b2, b3);
-
-		c_number kb1 = kb1_pref[n3_index];
-		c_number kb2 = kb2_pref[n3_index];
-		c_number xk = xk_bending[n3_index];
-		c_number xu = xu_bending[n3_index];
-		c_number kt = kt_pref[n3_index];
-		_bonded_particle_particle<c_number, c_number4, false>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
-		// if this bead is the last of the strand
-		if(pbonds.n5 == P_INVALID) _bonded_particle_particle<c_number, c_number4, true>(ppos, a1, a2, a3, poss[pbonds.n3], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
-	}
-	else _twist_boundary_particle(a1, a3, T, o_vects[0], w_vects[0], step, MD_o_modulus[0]);
-
-	if(pbonds.n5 != P_INVALID) {
-		c_number4 b1, b2, b3;
-		get_vectors_from_quat(orientations[pbonds.n5], b1, b2, b3);
-
-		c_number kb1 = kb1_pref[IND];
-		c_number kb2 = kb2_pref[IND];
-		c_number xk = xk_bending[IND];
-		c_number xu = xu_bending[IND];
-		c_number kt = kt_pref[IND];
-		_bonded_particle_particle<c_number, c_number4, true>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt);
-		// we have to check whether n5 is the last of the strand
-		LR_bonds qbonds = bonds[pbonds.n5];
-		if(qbonds.n5 == P_INVALID) {
-			_bonded_particle_particle<c_number, c_number4, false>(ppos, a1, a2, a3, poss[pbonds.n5], b1, b2, b3, F, T, box, kb1, kb2, xk, xu, kt, true);
-			_twist_boundary_particle(a1, a3, T, o_vects[1], w_vects[1], step, MD_o_modulus[1]);
-		}
-	}
-
-	for(int j = 0; j < MD_N[0]; j++) {
-		if(j != IND && pbonds.n3 != j && pbonds.n5 != j) {
-			c_number4 qpos = poss[j];
-
-			c_number4 r = box->minimum_image(ppos, qpos);
-			_repulsive_lj2(MD_TEP_EXCL_EPS_NONBONDED[0], r, F, MD_TEP_EXCL_S2[0], MD_TEP_EXCL_R2[0], MD_TEP_EXCL_B2[0], MD_TEP_EXCL_RC2[0]);
-		}
-	}
-
-	F.w *= (c_number) 0.5f;
-	forces[IND] = F;
-
-	T = _vectors_transpose_c_number4_product(a1, a2, a3, T);
-	torques[IND] = T;
-}
-
-// forces + second step with verlet lists
-
-__global__ void TEP_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox*box, c_number *kb1_pref, c_number *kb2_pref, c_number *xk_bending, c_number *xu_bending, c_number *kt_pref, c_number4 *o_vects, c_number4 *w_vects, llint step) {
+__global__ void TEP_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, CUDABox*box, c_number *kb1_pref, c_number *kb2_pref, c_number *xk_bending, c_number *xu_bending, c_number *kt_pref, c_number4 *o_vects, c_number4 *w_vects, llint step) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -306,14 +241,15 @@ __global__ void TEP_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 		}
 	}
 
-	int num_neighs = c_number_neighs[IND];
-
+	int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
 	for(int j = 0; j < num_neighs; j++) {
-		int k_index = matrix_neighs[j * MD_N[0] + IND];
+		int k_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
 
-		c_number4 qpos = poss[k_index];
-		c_number4 r = box->minimum_image(ppos, qpos);
-		_repulsive_lj2(MD_TEP_EXCL_EPS_NONBONDED[0], r, F, MD_TEP_EXCL_S2[0], MD_TEP_EXCL_R2[0], MD_TEP_EXCL_B2[0], MD_TEP_EXCL_RC2[0]);
+		if(k_index != IND) {
+			c_number4 qpos = poss[k_index];
+			c_number4 r = box->minimum_image(ppos, qpos);
+			_repulsive_lj2(MD_TEP_EXCL_EPS_NONBONDED[0], r, F, MD_TEP_EXCL_S2[0], MD_TEP_EXCL_R2[0], MD_TEP_EXCL_B2[0], MD_TEP_EXCL_RC2[0]);
+		}
 	}
 
 	F.w *= (c_number) 0.5f;
@@ -353,8 +289,8 @@ void CUDATEPInteraction::get_settings(input_file &inp) {
 	if(this->_prefer_harmonic_over_fene) throw oxDNAException("The 'prefer_harmonic_over_fene' option is not compatible with CUDA");
 }
 
-void CUDATEPInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDATEPInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	TEPInteraction::init();
 
 	std::vector<BaseParticle *> particles(N);
@@ -413,23 +349,11 @@ void CUDATEPInteraction::cuda_init(c_number box_side, int N) {
 void CUDATEPInteraction::compute_forces(CUDABaseList*lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox*d_box) {
 	_steps++;
 
-	this->update_increment(_steps);
-	this->_time_var = this->update_time_variable(this->_time_var);
+	update_increment(_steps);
+	_time_var = this->update_time_variable(_time_var);
 
-	CUDASimpleVerletList*_v_lists = dynamic_cast<CUDASimpleVerletList*>(lists);
-	if(_v_lists != NULL) {
-		if(_v_lists->use_edge()) throw oxDNAException("use_edge unsupported by TEPInteraction");
-		TEP_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, _v_lists->d_matrix_neighs, _v_lists->d_number_neighs, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
-			CUT_CHECK_ERROR("forces_second_step TEP simple_lists error");
-	}
-
-	CUDANoList*_no_lists = dynamic_cast<CUDANoList*>(lists);
-	if(_no_lists != NULL) {
-		TEP_forces
-			<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
-			(d_poss, d_orientations, d_forces, d_torques, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
-		CUT_CHECK_ERROR("forces_second_step TEP no_lists error");
-	}
+	TEP_forces
+		<<<this->_launch_cfg.blocks, this->_launch_cfg.threads_per_block>>>
+		(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_bonds, d_box, _d_kb1_pref, _d_kb2_pref, _d_xk_bending, _d_xu_bending, _d_kt_pref, _d_o_vects, _d_w_vects, this->_time_var);
+	CUT_CHECK_ERROR("forces_second_step TEP simple_lists error");
 }

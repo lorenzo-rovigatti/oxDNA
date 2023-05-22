@@ -15,6 +15,10 @@ BaseObservable::~BaseObservable() {
 
 }
 
+bool BaseObservable::is_update_every_set() {
+	return _update_every > 0;
+}
+
 bool BaseObservable::need_updating(llint curr_step) {
 	return (_update_every > 0 && (curr_step % _update_every) == 0);
 }

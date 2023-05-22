@@ -1,16 +1,8 @@
 # reintegrate trajectory
-import sys
 from json import loads
-try:
-    sys.path.append("../")
-    from oxdna_analysis_tools.UTILS.readers import ErikReader
-except :
-    print("Make sure oxdna_analysis_tools is on your python path.")
-    sys.exit()
+from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, get_input_parameter, write_conf
 
 import argparse
-
-
 
 if __name__ == "__main__":
     #handle commandline arguments
@@ -35,12 +27,23 @@ if __name__ == "__main__":
     
     with open(history_file) as file:
         history = loads(file.read())
-    
-    readers= [ErikReader(f"./trajectory_{i}.dat") for i in range(len(pt_temp_list))]
+
+    top_name = get_input_parameter(input_file, 'topology')
+    traj_name = "trajectory"#get_input_parameter(input_file, 'trajectory_file')
+    #traj_base = traj_name.split('.')[:-1]
+    traj_ext = "dat"#traj_name.split('.')[-1]
+    tis = []
+    dis = []
+    for i in range(len(pt_temp_list)):
+        ti, di = describe(top_name, f'{traj_name}_{i}.{traj_ext}')
+        tis.append(ti)
+        dis.append(di)
+        
     out_files = [f"./{out_file}_{T}.dat" for T in pt_temp_list]
 
+    read_poses = [0 for _ in range(len(pt_temp_list))]
     for i,locations in enumerate(history):
-        print(i)
         for j,l in enumerate(locations):
-            configuration = readers[j].read()
-            configuration.write_append(out_files[l])
+            configuration = get_confs(tis[l], dis[l], read_poses[l], 1)[0]
+            read_poses[l] += 1
+            write_conf(out_files[l], configuration, append=True, include_vel=dis[0].incl_v)

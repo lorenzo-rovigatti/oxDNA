@@ -273,8 +273,8 @@ void CUDAStarrInteraction::get_settings(input_file &inp) {
 	}
 }
 
-void CUDAStarrInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDAStarrInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	StarrInteraction::init();
 
 	if(this->_mode != StarrInteraction::STRANDS) _setup_hubs();

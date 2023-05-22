@@ -4,7 +4,7 @@ ends of a longer one (40 bases) forming a seemingly circular structure.
 
 First of all, let's generate an initial configuration:
 
-../../UTILS/generate-sa.py 40. sequences
+../../utils/generate-sa.py 40. sequences
 
 A good guess for a viable box size is the size of the longest strand, and thus
 we use 40. The file `sequences' is present in this directory. The previous
@@ -86,7 +86,7 @@ PBC=0
 Than we start a VMMC simulation and wait for the assembly. An input file is
 ready in the directory
 
-../../bin/oxDNA input 
+../../build/bin/oxDNA input 
 
 should be done in a few minutes! The 1e6 steps in the input file should be
 enough to fully form the needed base pairs.

@@ -13,8 +13,7 @@ Flavio
 desired_success_count = 100
 
 # executable set-up
-#precommand = 'mosrun -J 12'
-executable = '../../../bin/oxDNA'
+executable = '../../../build/bin/oxDNA'
 input = 'input'
 logfilename = 'ffs.log'
 starting_conf = 'flux_initial.dat'
