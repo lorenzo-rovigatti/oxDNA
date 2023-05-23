@@ -4,27 +4,18 @@
 #include "rna_model.h"
 #include "drh_model.h"
 
-
 #include <fstream>
 #include <cfloat>
 
-
-
-
-
-DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction()
-								, _average_DRH(true) {
-	//ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
-	//ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
-	//ADD_INTERACTION_TO_MAP(STACKING, _stacking);
-
-	//ADD_INTERACTION_TO_MAP(NONBONDED_EXCLUDED_VOLUME, _nonbonded_excluded_volume);
-	//ADD_INTERACTION_TO_MAP(HYDROGEN_BONDING, _hydrogen_bonding);
-	//ADD_INTERACTION_TO_MAP(CROSS_STACKING, _cross_stacking);
-	//ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
-	//ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
-
-
+DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
+	ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
+  ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(STACKING, _stacking);
+	ADD_INTERACTION_TO_MAP(NONBONDED_EXCLUDED_VOLUME, _nonbonded_excluded_volume);
+	ADD_INTERACTION_TO_MAP(HYDROGEN_BONDING, _hydrogen_bonding);
+	ADD_INTERACTION_TO_MAP(CROSS_STACKING, _cross_stacking);
+	ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
+	ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
 
 	//Hybrid
 	F1_A[0] = DRH_HYDR_A;
@@ -96,7 +87,6 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction()
 	F4_THETA_TC[8] = DRH_CRST_THETA4_TC;
 	F4_THETA_TC[9] = DRH_CRST_THETA7_TC;
 
-	
 	F2_RC[1] = DRH_CXST_RC;
 	F2_R0[1] = DRH_CXST_R0;
 	F2_BLOW[1] = DRH_CXST_BLOW;
@@ -105,6 +95,7 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction()
 	F2_RHIGH[1] = DRH_CXST_RHIGH;
 	F2_RCLOW[1] = DRH_CXST_RCLOW;
 	F2_RCHIGH[1] = DRH_CXST_RCHIGH;
+
 	F4_THETA_A[10] = DRH_CXST_THETA1_A;
 	F4_THETA_A[11] = DRH_CXST_THETA4_A;
 	F4_THETA_A[12] = DRH_CXST_THETA5_A;
@@ -120,6 +111,7 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction()
 	F4_THETA_TC[10] = DRH_CXST_THETA1_TC;
 	F4_THETA_TC[11] = DRH_CXST_THETA4_TC;
 	F4_THETA_TC[12] = DRH_CXST_THETA5_TC;
+
 	F5_PHI_A[2] = DRH_CXST_PHI3_A;
 	F5_PHI_A[3] = DRH_CXST_PHI4_A;
 	F5_PHI_B[2] = DRH_CXST_PHI3_B;
@@ -129,9 +121,9 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction()
 	F5_PHI_XS[2] = DRH_CXST_PHI3_XS;
 	F5_PHI_XS[3] = DRH_CXST_PHI4_XS;
 
-	MESH_F4_POINTS[CXST_F4_THETA1] = CXST_T1_MESH_POINTS;
-	MESH_F4_POINTS[CXST_F4_THETA4] = CXST_T4_MESH_POINTS;
-	MESH_F4_POINTS[CXST_F4_THETA5] = CXST_T5_MESH_POINTS;
+	MESH_F4_POINTS[DRH_CXST_F4_THETA1] = DRH_CXST_T1_MESH_POINTS;
+	MESH_F4_POINTS[DRH_CXST_F4_THETA4] = DRH_CXST_T4_MESH_POINTS;
+	MESH_F4_POINTS[DRH_CXST_F4_THETA5] = DRH_CXST_T5_MESH_POINTS;
 
 	MESH_F4_POINTS[DRH_HYDR_F4_THETA1] = DRH_HYDR_T1_MESH_POINTS;
 	MESH_F4_POINTS[DRH_HYDR_F4_THETA2] = DRH_HYDR_T2_MESH_POINTS;
@@ -143,7 +135,6 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction()
 	MESH_F4_POINTS[DRH_CRST_F4_THETA4] = DRH_CRST_T4_MESH_POINTS;
 	MESH_F4_POINTS[DRH_CRST_F4_THETA7] = DRH_CRST_T7_MESH_POINTS;
 
-
 	for(int i = 0; i < 13; i++) {
 		// the order of the interpolation interval extremes is reversed,
 		// due to the cosine being monotonically decreasing with increasing
@@ -152,52 +143,40 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction()
 		number upplimit = cos(fmax(0, F4_THETA_T0[i] - F4_THETA_TC[i]));
 		number lowlimit = cos(fmin(PI, F4_THETA_T0[i] + F4_THETA_TC[i]));
 
+		
 		if(i != CXST_F4_THETA1)
-			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4(x, args); }, [this](number x, void *args) { return _fakef4D(x, args); }, (void*) (&i), points, lowlimit, upplimit);
+			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4_DRH(x, args); }, [this](number x, void *args) { return _fakef4D_DRH(x, args); }, (void*) (&i), points, lowlimit, upplimit);
 		else {
-			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4_cxst_t1(x, args); }, [this](number x, void *args) { return _fakef4D_cxst_t1(x, args); }, (void*) (&i), points, lowlimit, upplimit);
+			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4_cxst_t1_DRH(x, args); }, [this](number x, void *args) { return _fakef4D_cxst_t1_DRH(x, args); }, (void*) (&i), points, lowlimit, upplimit);
 		}
 		assert(lowlimit < upplimit);
-	}
 
-	OX_LOG(Logger::LOG_INFO,"Running DNA/RNA hybrid (DRH) interaction with oxRNA2 and oxDNA2.");
-	_generate_consider_bonded_interactions = true;
-
-	CONFIG_INFO->subscribe("T_updated", [this]() { this->_on_T_update(); });
-
+	}	
+	OX_LOG(Logger::LOG_INFO,"Running oxDRH with oxDNA2 & oxRNA2.");
 }
+
 
 DRHInteraction::~DRHInteraction() {
-
 }
 
-//this is almost certainly not the problem
+
 void DRHInteraction::get_settings(input_file &inp) {
 
 	//Getting settings for DNA and RNA interactions
 	RNA2Interaction::get_settings(inp);
 	DNA2Interaction::get_settings(inp);
 
-
-	getInputNumber(&inp, "hb_multiplier", &_hb_multiplier_DRH, 0);
 	getInputString(&inp, "nucleotide_types", _nucleotide_types, 1);
 
-	if(getInputBool(&inp, "use_average_seq", &_average_DRH, 0) == KEY_FOUND) {
-		if(!_average_DRH) {
-			getInputString(&inp, "seq_dep_file_DRH", _seq_filename_DRH, 1);
-			OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent DRH values",_seq_filename_DRH);
-		}
+	if(!DNA2Interaction::_average) {
+		getInputString(&inp, "seq_dep_file_DRH", _seq_filename, 1);
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent DRH values",_seq_filename);
 	}
-
-	//same temperature as in the DNA interaction
-	_T = DNA2Interaction::_T;
- 
 }
 
 
-//checking the type of a particle
-bool DRHInteraction::_is_DNA(BaseParticle *p)
-{
+//checking the type of nucleic acid
+bool DRHInteraction::_is_DNA(BaseParticle *p) {
   if (p->acid_type == 'D') 
       return true;
     else
@@ -205,10 +184,8 @@ bool DRHInteraction::_is_DNA(BaseParticle *p)
 }
 
 
-
 //checking the pairwise interaction type (0 = DNA, 1 = RNA, 2 = DRH)
-int DRHInteraction::_interaction_type(BaseParticle *p, BaseParticle *q)
-{
+int DRHInteraction::_interaction_type(BaseParticle *p, BaseParticle *q) {
   if (this->_is_DNA(p) && this->_is_DNA(q)) 
       return 0;
   else if (!this->_is_DNA(p) && !this->_is_DNA(q)) 
@@ -232,25 +209,14 @@ void DRHInteraction::init() {
 		}
 	}
 
-	// if we want to use the sequence dependence then we overwrite all the
-	// epsilon regarding interactions between true bases (i.e. the
-	// interactions between dummy bases or regular bases and dummy bases
-	// keeps the default value)
-	if(!_average_DRH) {
-		char key[256];
-		float tmp_value;
+	//setting sequence-dependent parameters
+	if(!DNA2Interaction::_average) {
 
+		float tmp_value;
 		input_file seq_file;
-		seq_file.init_from_filename(_seq_filename_DRH);
+		seq_file.init_from_filename(_seq_filename);
 		if(seq_file.state == ERROR)
-			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename_DRH);
-		/*
-		// for changing the cross-stacking from seq-dep file. not needed for now
-		if(getInputFloat(&seq_file, "CROSS_B_B", &tmp_value, 0) == KEY_NOT_FOUND) {
-			getInputFloat(&seq_file, "CROSS_B_B", &tmp_value, 1);
-		}
-		_cross_K_multiplier_hybrid = tmp_value / CRST_K_hybrid;
-		*/
+			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename);
 
 		// HB
 		// if X and Y are two bases which can interact via HB, then the
@@ -286,18 +252,6 @@ void DRHInteraction::init() {
 }
 
 
-void DRHInteraction::_on_T_update() {
-	_T = CONFIG_INFO->temperature();
-	number T_in_C = _T * 3000 - 273.15;
-	number T_in_K = _T * 3000;
-	OX_LOG(Logger::LOG_INFO, "Temperature change detected (new temperature: %.2lf C, %.2lf K), re-initialising the DNA-RNA interaction", T_in_C, T_in_K);
-	init();
-}
-
-
-
-
-
 // ------------------------------------------------------------------------------------------------------
 // DRH interactions 
 number DRHInteraction::_hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -308,8 +262,7 @@ number DRHInteraction::_hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, b
 
 	// true if p and q are Watson-Crick-like pairs
 	bool is_pair = (q->btype + p->btype == 3);
-	number hb_multi = (abs(q->btype) >= 300 && abs(p->btype) >= 300) ? _hb_multiplier_DRH : 1.f;
-
+	number hb_multi = (abs(q->btype) >= 300 && abs(p->btype) >= 300) ? DNA2Interaction::_hb_multiplier : 1.f;
 
 
 	LR_vector rhydro;
@@ -343,14 +296,14 @@ number DRHInteraction::_hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, b
 		number cost8 = a3 * rhydrodir;
 
 		// functions called at their relevant arguments
-		number f1 = hb_multi * _f1(rhydromod, DRH_HYDR_F1, q->type, p->type, this->_is_DNA(q), this->_is_DNA(p));
-		number f4t1 = _custom_f4(cost1, DRH_HYDR_F4_THETA1);
-		number f4t2 = _custom_f4(cost2, DRH_HYDR_F4_THETA2);
-		number f4t3 = _custom_f4(cost3, DRH_HYDR_F4_THETA3);
+		number f1 = hb_multi * _f1_DRH(rhydromod, DRH_HYDR_F1, q->type, p->type, this->_is_DNA(q), this->_is_DNA(p));
+		number f4t1 = _custom_f4_DRH(cost1, DRH_HYDR_F4_THETA1);
+		number f4t2 = _custom_f4_DRH(cost2, DRH_HYDR_F4_THETA2);
+		number f4t3 = _custom_f4_DRH(cost3, DRH_HYDR_F4_THETA3);
 
-		number f4t4 = _custom_f4(cost4, DRH_HYDR_F4_THETA4);
-		number f4t7 = _custom_f4(cost7, DRH_HYDR_F4_THETA7);
-		number f4t8 = _custom_f4(cost8, DRH_HYDR_F4_THETA8);
+		number f4t4 = _custom_f4_DRH(cost4, DRH_HYDR_F4_THETA4);
+		number f4t7 = _custom_f4_DRH(cost7, DRH_HYDR_F4_THETA7);
+		number f4t8 = _custom_f4_DRH(cost8, DRH_HYDR_F4_THETA8);
 
 		energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
@@ -361,14 +314,14 @@ number DRHInteraction::_hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, b
 			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
-			number f1D = hb_multi * _f1D(rhydromod, DRH_HYDR_F1, q->type, p->type, this->_is_DNA(q), this->_is_DNA(p));
-			number f4t1Dsin = _custom_f4D(cost1, DRH_HYDR_F4_THETA1);
-			number f4t2Dsin = _custom_f4D(cost2, DRH_HYDR_F4_THETA2);
-			number f4t3Dsin = -_custom_f4D(cost3, DRH_HYDR_F4_THETA3);
+			number f1D = hb_multi * _f1D_DRH(rhydromod, DRH_HYDR_F1, q->type, p->type, this->_is_DNA(q), this->_is_DNA(p));
+			number f4t1Dsin = _custom_f4D_DRH(cost1, DRH_HYDR_F4_THETA1);
+			number f4t2Dsin = _custom_f4D_DRH(cost2, DRH_HYDR_F4_THETA2);
+			number f4t3Dsin = -_custom_f4D_DRH(cost3, DRH_HYDR_F4_THETA3);
 
-			number f4t4Dsin = -_custom_f4D(cost4, DRH_HYDR_F4_THETA4);
-			number f4t7Dsin = _custom_f4D(cost7, DRH_HYDR_F4_THETA7);
-			number f4t8Dsin = -_custom_f4D(cost8, DRH_HYDR_F4_THETA8);
+			number f4t4Dsin = -_custom_f4D_DRH(cost4, DRH_HYDR_F4_THETA4);
+			number f4t7Dsin = _custom_f4D_DRH(cost7, DRH_HYDR_F4_THETA7);
+			number f4t8Dsin = -_custom_f4D_DRH(cost8, DRH_HYDR_F4_THETA8);
 
 			// RADIAL PART
 			force = -rhydrodir * (f1D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
@@ -478,13 +431,13 @@ number DRHInteraction::_cross_stacking_DRH(BaseParticle *p, BaseParticle *q, boo
 		number cost8 = a3 * rcstackdir;
 
 		// functions called at their relevant arguments
-		number f2 = _f2(rcstackmod, DRH_CRST_F2);
-		number f4t1 = _custom_f4(cost1, DRH_CRST_F4_THETA1);
-		number f4t2 = _custom_f4(cost2, DRH_CRST_F4_THETA2);
-		number f4t3 = _custom_f4(cost3, DRH_CRST_F4_THETA3);
-		number f4t4 = _custom_f4(cost4, DRH_CRST_F4_THETA4) + _custom_f4(-cost4, DRH_CRST_F4_THETA4);
-		number f4t7 = _custom_f4(cost7, DRH_CRST_F4_THETA7) + _custom_f4(-cost7, DRH_CRST_F4_THETA7);
-		number f4t8 = _custom_f4(cost8, DRH_CRST_F4_THETA8) + _custom_f4(-cost8, DRH_CRST_F4_THETA8);
+		number f2 = _f2_DRH(rcstackmod, DRH_CRST_F2);
+		number f4t1 = _custom_f4_DRH(cost1, DRH_CRST_F4_THETA1);
+		number f4t2 = _custom_f4_DRH(cost2, DRH_CRST_F4_THETA2);
+		number f4t3 = _custom_f4_DRH(cost3, DRH_CRST_F4_THETA3);
+		number f4t4 = _custom_f4_DRH(cost4, DRH_CRST_F4_THETA4) + _custom_f4_DRH(-cost4, DRH_CRST_F4_THETA4);
+		number f4t7 = _custom_f4_DRH(cost7, DRH_CRST_F4_THETA7) + _custom_f4_DRH(-cost7, DRH_CRST_F4_THETA7);
+		number f4t8 = _custom_f4_DRH(cost8, DRH_CRST_F4_THETA8) + _custom_f4_DRH(-cost8, DRH_CRST_F4_THETA8);
 
 		number prefactor = 1.0f;
 		energy = f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
@@ -496,13 +449,13 @@ number DRHInteraction::_cross_stacking_DRH(BaseParticle *p, BaseParticle *q, boo
 			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
-			number f2D = prefactor*_f2D(rcstackmod, DRH_CRST_F2);
-			number f4t1Dsin = _custom_f4D(cost1, DRH_CRST_F4_THETA1);
-			number f4t2Dsin = _custom_f4D(cost2, DRH_CRST_F4_THETA2);
-			number f4t3Dsin = -_custom_f4D(cost3, DRH_CRST_F4_THETA3);
-			number f4t4Dsin = -_custom_f4D(cost4, DRH_CRST_F4_THETA4) + _custom_f4D(-cost4, DRH_CRST_F4_THETA4);
-			number f4t7Dsin = _custom_f4D(cost7, DRH_CRST_F4_THETA7) - _custom_f4D(-cost7, DRH_CRST_F4_THETA7);
-			number f4t8Dsin = -_custom_f4D(cost8, DRH_CRST_F4_THETA8) + _custom_f4D(-cost8, DRH_CRST_F4_THETA8);
+			number f2D = prefactor*_f2D_DRH(rcstackmod, DRH_CRST_F2);
+			number f4t1Dsin = _custom_f4D_DRH(cost1, DRH_CRST_F4_THETA1);
+			number f4t2Dsin = _custom_f4D_DRH(cost2, DRH_CRST_F4_THETA2);
+			number f4t3Dsin = -_custom_f4D_DRH(cost3, DRH_CRST_F4_THETA3);
+			number f4t4Dsin = -_custom_f4D_DRH(cost4, DRH_CRST_F4_THETA4) + _custom_f4D_DRH(-cost4, DRH_CRST_F4_THETA4);
+			number f4t7Dsin = _custom_f4D_DRH(cost7, DRH_CRST_F4_THETA7) - _custom_f4D_DRH(-cost7, DRH_CRST_F4_THETA7);
+			number f4t8Dsin = -_custom_f4D_DRH(cost8, DRH_CRST_F4_THETA8) + _custom_f4D_DRH(-cost8, DRH_CRST_F4_THETA8);
 
 			// RADIAL PART
 			force = -rcstackdir * (f2D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
@@ -622,15 +575,15 @@ number DRHInteraction::_coaxial_stacking_DRH(BaseParticle *p, BaseParticle *q, b
 		number cosphi3 = rstackdir * (rbackbonedir.cross(a1));
 		number cosphi4 = rstackdir * (rbackbonedir.cross(b1));
 		// functions called at their relevant arguments
-		number f2 = _f2(rstackmod, DRH_CXST_F2);
+		number f2 = _f2_DRH(rstackmod, DRH_CXST_F2);
 
-		number f4t1 = _f4(t1, DRH_CXST_F4_THETA1) + _f4(2 * PI - t1, DRH_CXST_F4_THETA1);
-		number f4t4 = _f4(t4, DRH_CXST_F4_THETA4);
-		number f4t5 = _f4(t5, DRH_CXST_F4_THETA5) + _f4(PI - t5, DRH_CXST_F4_THETA5);
-		number f4t6 = _f4(t6, DRH_CXST_F4_THETA6) + _f4(PI - t6, DRH_CXST_F4_THETA6);
+		number f4t1 = _f4_DRH(t1, DRH_CXST_F4_THETA1) + _f4_DRH(2 * PI - t1, DRH_CXST_F4_THETA1);
+		number f4t4 = _f4_DRH(t4, DRH_CXST_F4_THETA4);
+		number f4t5 = _f4_DRH(t5, DRH_CXST_F4_THETA5) + _f4_DRH(PI - t5, DRH_CXST_F4_THETA5);
+		number f4t6 = _f4_DRH(t6, DRH_CXST_F4_THETA6) + _f4_DRH(PI - t6, DRH_CXST_F4_THETA6);
 
-		number f5cosphi3 = _f5(cosphi3, DRH_CXST_F5_PHI3);
-		number f5cosphi4 = _f5(cosphi4, DRH_CXST_F5_PHI4);
+		number f5cosphi3 = _f5_DRH(cosphi3, DRH_CXST_F5_PHI3);
+		number f5cosphi4 = _f5_DRH(cosphi4, DRH_CXST_F5_PHI4);
 
 		//energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * SQR(f5cosphi3);
 		energy = f2 * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3 * f5cosphi4;
@@ -642,15 +595,15 @@ number DRHInteraction::_coaxial_stacking_DRH(BaseParticle *p, BaseParticle *q, b
 			LR_vector torqueq(0, 0, 0);
 
 			// derivatives called at the relevant arguments
-			number f2D = _f2D(rstackmod, DRH_CXST_F2);
+			number f2D = _f2D_DRH(rstackmod, DRH_CXST_F2);
 
-			number f4t1Dsin = -_f4Dsin(t1, DRH_CXST_F4_THETA1) + _f4Dsin(2 * PI - t1, DRH_CXST_F4_THETA1);
-			number f4t4Dsin = _f4Dsin(t4, DRH_CXST_F4_THETA4);
-			number f4t5Dsin = _f4Dsin(t5, DRH_CXST_F4_THETA5) - _f4Dsin(PI - t5, DRH_CXST_F4_THETA5);
-			number f4t6Dsin = -_f4Dsin(t6, DRH_CXST_F4_THETA6) + _f4Dsin(PI - t6, DRH_CXST_F4_THETA6);
+			number f4t1Dsin = -_f4Dsin_DRH(t1, DRH_CXST_F4_THETA1) + _f4Dsin_DRH(2 * PI - t1, DRH_CXST_F4_THETA1);
+			number f4t4Dsin = _f4Dsin_DRH(t4, DRH_CXST_F4_THETA4);
+			number f4t5Dsin = _f4Dsin_DRH(t5, DRH_CXST_F4_THETA5) - _f4Dsin_DRH(PI - t5, DRH_CXST_F4_THETA5);
+			number f4t6Dsin = -_f4Dsin_DRH(t6, DRH_CXST_F4_THETA6) + _f4Dsin_DRH(PI - t6, DRH_CXST_F4_THETA6);
 
-			number f5Dcosphi3 = _f5D(cosphi3, DRH_CXST_F5_PHI3);
-			number f5Dcosphi4 = _f5D(cosphi4, DRH_CXST_F5_PHI4);
+			number f5Dcosphi3 = _f5D_DRH(cosphi3, DRH_CXST_F5_PHI3);
+			number f5Dcosphi4 = _f5D_DRH(cosphi4, DRH_CXST_F5_PHI4);
 
 			// RADIAL PART
 			force = -rstackdir * f2D * f4t1 * f4t4 * f4t5 * f4t6 * f5cosphi3 * f5cosphi4;
@@ -801,7 +754,7 @@ number DRHInteraction::_nonbonded_excluded_volume_DRH(BaseParticle *p, BaseParti
 	else {
 		rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[RNANucleotide::BASE];
 	}
-	number energy = _repulsive_lj(rcenter, force, DRH_EXCL_S2, DRH_EXCL_R2, DRH_EXCL_B2, DRH_EXCL_RC2, update_forces);
+	number energy = _repulsive_lj_DRH(rcenter, force, DRH_EXCL_S2, DRH_EXCL_R2, DRH_EXCL_B2, DRH_EXCL_RC2, update_forces);
 
 	if(update_forces) {
 		if(this->_is_DNA(p)) {
@@ -824,7 +777,7 @@ number DRHInteraction::_nonbonded_excluded_volume_DRH(BaseParticle *p, BaseParti
 	else {
 		rcenter = _computed_r + q->int_centers[DNANucleotide::BASE] - p->int_centers[RNANucleotide::BACK];
 	}
-	energy += _repulsive_lj(rcenter, force, DRH_EXCL_S4, DRH_EXCL_R4, DRH_EXCL_B4, DRH_EXCL_RC4, update_forces);
+	energy += _repulsive_lj_DRH(rcenter, force, DRH_EXCL_S4, DRH_EXCL_R4, DRH_EXCL_B4, DRH_EXCL_RC4, update_forces);
 
 	if(update_forces) {
 		if(this->_is_DNA(p)) {
@@ -847,7 +800,7 @@ number DRHInteraction::_nonbonded_excluded_volume_DRH(BaseParticle *p, BaseParti
 	else {
 		rcenter = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[RNANucleotide::BASE];
 	}
-	energy += _repulsive_lj(rcenter, force, DRH_EXCL_S3, DRH_EXCL_R3, DRH_EXCL_B3, DRH_EXCL_RC3, update_forces);
+	energy += _repulsive_lj_DRH(rcenter, force, DRH_EXCL_S3, DRH_EXCL_R3, DRH_EXCL_B3, DRH_EXCL_RC3, update_forces);
 
 	if(update_forces) {
 		if(this->_is_DNA(p)) {
@@ -870,7 +823,7 @@ number DRHInteraction::_nonbonded_excluded_volume_DRH(BaseParticle *p, BaseParti
 	else {
 		rcenter = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
 	}
-	energy += _repulsive_lj(rcenter, force, DRH_EXCL_S1, DRH_EXCL_R1, DRH_EXCL_B1, DRH_EXCL_RC1, update_forces);
+	energy += _repulsive_lj_DRH(rcenter, force, DRH_EXCL_S1, DRH_EXCL_R1, DRH_EXCL_B1, DRH_EXCL_RC1, update_forces);
 
 	if(update_forces) {
 		if(this->_is_DNA(p)) {
@@ -959,7 +912,7 @@ number DRHInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	}
 }
 
-//DNA stacking seems to be giving the nan energies
+//(DNA stacking seems to be giving the nan energies)
 number DRHInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(_interaction_type(p,q) == 0) {
 		return DNA2Interaction::_stacking(p, q, false, update_forces);
@@ -1028,6 +981,7 @@ number DRHInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	energy += _bonded_excluded_volume(p, q, false, update_forces);
 	energy += _stacking(p, q, false, update_forces);
 
+
 	return energy;
 	
 	
@@ -1057,113 +1011,74 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 
 
 void DRHInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
+	DNA2Interaction::read_topology(N_strands, particles);
+}
 
-	int N_from_conf = particles.size();
-	BaseInteraction::read_topology(N_strands, particles);												  
-	int my_N, my_N_strands;									
-	char line[512];
-	std::ifstream topology;
-	topology.open(_topology_filename, std::ios::in);
 
-	if(!topology.good())
-		throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
-
-	topology.getline(line, 512);
-
-	sscanf(line, "%d %d\n", &my_N, &my_N_strands);
-
-	char base[256];
-	int strand, i = 0;
-	while(topology.good()) {
-		topology.getline(line, 512);
-		if(strlen(line) == 0 || line[0] == '#')
-			continue;
-		if(i == N_from_conf)
-			throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", N_from_conf);
-
-		int tmpn3, tmpn5;
-		int res = sscanf(line, "%d %s %d %d", &strand, base, &tmpn3, &tmpn5);
-
-		if(res < 4)
-			throw oxDNAException("Line %d of the topology file has an invalid syntax", i + 2);
-
+void DRHInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
+	int N = particles.size();
+	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];
 
-		if(tmpn3 < 0)
-			p->n3 = P_VIRTUAL;
-		else
-			p->n3 = particles[tmpn3];
-		if(tmpn5 < 0)
-			p->n5 = P_VIRTUAL;
-		else
-			p->n5 = particles[tmpn5];
-
-		// store the strand id
-		// for a design inconsistency, in the topology file
-		// strand ids start from 1, not from 0
-		p->strand_id = strand - 1; 
-
-
-		// -------------------------------------------------------------------------------------------------------------------------
-		// allocating particle types for the hybrid interaction
-		//if(_nucleotide_types[i] == 'D') {
-			//p->acid_type = 'D';
-		//}
-		//else {
-			//p->acid_type = 'R';
-		//}
-		// -------------------------------------------------------------------------------------------------------------------------
-
-
-		// the base can be either a char or an integer
-		if(strlen(base) == 1) {
-			p->type = Utils::decode_base(base[0]);
-			p->btype = Utils::decode_base(base[0]);
+		//making sure there are no bonds between DNA and RNA particles
+		if(p->n3 != P_VIRTUAL) {
+			BaseParticle *q = p->n3;
+			if(_interaction_type(p,q) == 2){
+				throw oxDNAException("Bonds between DNA and RNA are not allowed (particles %d and %d)", i, p->n3->index);
+			}
 		}
-		else {
-			if(atoi(base) > 0)
-				p->type = atoi(base) % 4;
-			else
-				p->type = 3 - ((3 - atoi(base)) % 4);
-			p->btype = atoi(base);
+		if(p->n5 != P_VIRTUAL) {
+			BaseParticle *q = p->n5;
+			if(_interaction_type(p,q) == 2){
+				throw oxDNAException("Bonds between DNA and RNA are not allowed (particles %d and %d)", i, p->n5->index);
+			}
 		}
 
-		if(p->type == P_INVALID)
-			throw oxDNAException("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, base);
-		p->index = i;
-		i++;
+		//making sure particle indices don't exceed the number of particles in the system
+		if(p->n3 != P_VIRTUAL && p->n3->index >= N) {
+			throw oxDNAException("Wrong topology for particle %d (n3 neighbor is %d, should be < N = %d)", i, p->n3->index, N);
+		}
+		if(p->n5 != P_VIRTUAL && p->n5->index >= N) {
+			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
+		}
 
-		// here we fill the affected vector
-		if(p->n3 != P_VIRTUAL)
-			p->affected.push_back(ParticlePair(p->n3, p));
-		if(p->n5 != P_VIRTUAL)
-			p->affected.push_back(ParticlePair(p, p->n5));
+		if(DNA2Interaction::_use_mbf && RNA2Interaction::_use_mbf)
+			continue;
 
+		//checking backbone distances for DNA and RNA
+		number mind;
+		number maxd;
+		if(_is_DNA(p) == true){
+			mind = DNA2Interaction::_fene_r0 - FENE_DELTA;
+			maxd = DNA2Interaction::_fene_r0 + FENE_DELTA;
+		} else {
+			mind = model->RNA_FENE_R0 - model->RNA_FENE_DELTA;
+			maxd = model->RNA_FENE_R0 + model->RNA_FENE_DELTA;
+		}
+		//here the int_centers[] thing should be generalised but its fine for now
+		if(p->n3 != P_VIRTUAL) {
+			BaseParticle *q = p->n3;
+			q->set_positions();
+			LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
+			number r = sqrt(rv * rv);
+			if(r > maxd || r < mind) {
+				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
+			}
+		}
+		if(p->n5 != P_VIRTUAL) {
+			BaseParticle *q = p->n5;
+			q->set_positions();
+			LR_vector rv = p->pos + p->int_centers[DNANucleotide::BACK] - (q->pos + q->int_centers[DNANucleotide::BACK]);
+			number r = sqrt(rv * rv);
+			if(r > maxd || r < mind) {
+				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n5->index, r);
+			}
+		}
 	}
-
-	if(i < N_from_conf)
-		throw oxDNAException("Not enough particles found in the topology file (should be %d). Aborting", N_from_conf);
-
-	topology.close();
-
-	if(my_N != N_from_conf)
-		throw oxDNAException("Number of lines in the configuration file and\nnumber of particles in the topology files don't match. Aborting");
-
-	*N_strands = my_N_strands;
-
-
-
-}
-
-//we should just rewrite this to accomodate for DNA and RNA instead of inheriting
-void DRHInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
-
-	//need to write a version of this which works with systems containing DNA and RNA
-	//including a check to make sure that there are no bonds between dna/rna
 }
 
 
-number DRHInteraction::_repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
+number DRHInteraction::_repulsive_lj_DRH(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
 	// this is a bit faster than calling r.norm()
 	number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
 	number energy = (number) 0;
@@ -1193,7 +1108,7 @@ number DRHInteraction::_repulsive_lj(const LR_vector &r, LR_vector &force, numbe
 
 
 //-------Functions for hybrid h-bonding, cross-stacking and coaxial stacking-------
-number DRHInteraction::_f1(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA) {
+number DRHInteraction::_f1_DRH(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA) {
 	number val = (number) 0;
 
 
@@ -1248,7 +1163,7 @@ number DRHInteraction::_f1(number r, int type, int n3, int n5, bool is_n3_DNA, b
 	return val;
 }
 
-number DRHInteraction::_f1D(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA) {
+number DRHInteraction::_f1D_DRH(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA) {
 	number val = (number) 0;
 
 
@@ -1304,7 +1219,7 @@ number DRHInteraction::_f1D(number r, int type, int n3, int n5, bool is_n3_DNA, 
 }
 
 
-number DRHInteraction::_f2(number r, int type) {
+number DRHInteraction::_f2_DRH(number r, int type) {
 	number val = (number) 0.;
 	if(r < F2_RCHIGH[type]) {
 		if(r > F2_RHIGH[type]) {
@@ -1320,7 +1235,7 @@ number DRHInteraction::_f2(number r, int type) {
 	return val;
 }
 
-number DRHInteraction::_f2D(number r, int type) {
+number DRHInteraction::_f2D_DRH(number r, int type) {
 	number val = (number) 0.;
 	if(r < F2_RCHIGH[type]) {
 		if(r > F2_RHIGH[type]) {
@@ -1336,40 +1251,40 @@ number DRHInteraction::_f2D(number r, int type) {
 	return val;
 }
 
-number DRHInteraction::_fakef4(number t, void *par) {
+number DRHInteraction::_fakef4_DRH(number t, void *par) {
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1.0001))
 		throw oxDNAException("In function DRHInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1))
 		t = (number) copysign(1, t);
-	return _f4(acos(t), *((int*) par));
+	return _f4_DRH(acos(t), *((int*) par));
 }
 
-number DRHInteraction::_fakef4D(number t, void *par) {
+number DRHInteraction::_fakef4D_DRH(number t, void *par) {
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1.0001))
 		throw oxDNAException("In function DRHInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1))
 		t = (number) copysign(1, t);
-	return -_f4Dsin(acos(t), *((int*) par));
+	return -_f4Dsin_DRH(acos(t), *((int*) par));
 }
 
-number DRHInteraction::_fakef4_cxst_t1(number t, void *par) {
+number DRHInteraction::_fakef4_cxst_t1_DRH(number t, void *par) {
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1.0001))
 		throw oxDNAException("In function DRHInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1))
 		t = (number) copysign(1, t);
-	return _f4(acos(t), *((int*) par)) + _f4(2 * PI - acos(t), *((int*) par));
+	return _f4_DRH(acos(t), *((int*) par)) + _f4_DRH(2 * PI - acos(t), *((int*) par));
 }
 
-number DRHInteraction::_fakef4D_cxst_t1(number t, void *par) {
+number DRHInteraction::_fakef4D_cxst_t1_DRH(number t, void *par) {
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1.0001))
 		throw oxDNAException("In function DRHInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1))
 		t = (number) copysign(1, t);
-	return -_f4Dsin(acos(t), *((int*) par)) - _f4Dsin(2 * PI - acos(t), *((int*) par));
+	return -_f4Dsin_DRH(acos(t), *((int*) par)) - _f4Dsin_DRH(2 * PI - acos(t), *((int*) par));
 }
 
 
-number DRHInteraction::_f4(number t, int type) {
+number DRHInteraction::_f4_DRH(number t, int type) {
 	number val = (number) 0;
 	t -= F4_THETA_T0[type];
 	if(t < 0)
@@ -1386,7 +1301,7 @@ number DRHInteraction::_f4(number t, int type) {
 	return val;
 }
 
-number DRHInteraction::_f4D(number t, int type) {
+number DRHInteraction::_f4D_DRH(number t, int type) {
 	number val = (number) 0;
 	number m = (number) 1;
 	t -= F4_THETA_T0[type];
@@ -1409,7 +1324,7 @@ number DRHInteraction::_f4D(number t, int type) {
 	return val;
 }
 
-number DRHInteraction::_f4Dsin(number t, int type) {
+number DRHInteraction::_f4Dsin_DRH(number t, int type) {
 	number val = (number) 0;
 	number m = (number) 1;
 	number tt0 = t - F4_THETA_T0[type];
@@ -1438,7 +1353,7 @@ number DRHInteraction::_f4Dsin(number t, int type) {
 }
 
 
-number DRHInteraction::_f5(number f, int type) {
+number DRHInteraction::_f5_DRH(number f, int type) {
 	number val = (number) 0;
 
 	if(f > F5_PHI_XC[type]) {
@@ -1455,7 +1370,7 @@ number DRHInteraction::_f5(number f, int type) {
 	return val;
 }
 
-number DRHInteraction::_f5D(number f, int type) {
+number DRHInteraction::_f5D_DRH(number f, int type) {
 	number val = (number) 0;
 
 	if(f > F5_PHI_XC[type]) {

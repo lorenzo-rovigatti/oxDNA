@@ -10,46 +10,44 @@
 #include "../Particles/DNANucleotide.h"
 
 /**
- * @brief Handles interactions between DNA and RNA nucleotides.
+ * Eryk 2022/23
+ * 
+ * 
+ * Handles nucleic acid interactions in DNA/RNA hybrid (DRH) systems. As much as possible
+ * is inherited from DNA2/RNA2, and new hybrid inter-strand interactions are defined here.
+ * 
+ * To use, set interaction_type = DRH.
  *
  * 
- */
+ **/
 
 class DRHInteraction : virtual public DNA2Interaction, virtual public RNA2Interaction {
 protected:
+	
 	std::string _nucleotide_types;
-
-	bool _average_DRH;
-	char _seq_filename_DRH[512];
-	number _hb_multiplier_DRH;
-
-	number _T;
-	number _cross_K_multiplier;
+	char _seq_filename[512];
 
 	int MESH_F4_POINTS[13];
-	Mesh _mesh_f4[13];
+	Mesh _mesh_f4[13];  
 
-	virtual void _on_T_update(); 
+	number _f4_DRH(number t, int type);
+	number _f4D_DRH(number t, int type);
+	number _f4Dsin_DRH(number t, int type);
+	number _f5_DRH(number f, int type);
+	number _f5D_DRH(number f, int type);
 
-
-	number _f4(number t, int type);
-	number _f4D(number t, int type);
-	number _f4Dsin(number t, int type);
-	number _f5(number f, int type);
-	number _f5D(number f, int type);
-
-	number _fakef4(number t, void * par);
-	number _fakef4D(number t, void * par);
-	number _fakef4_cxst_t1(number t, void * par);
-	number _fakef4D_cxst_t1(number t, void * par);
+	number _fakef4_DRH(number t, void * par);
+	number _fakef4D_DRH(number t, void * par);
+	number _fakef4_cxst_t1_DRH(number t, void * par);
+	number _fakef4D_cxst_t1_DRH(number t, void * par);
 
 	
-	number _f1(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA);
-	number _f1D(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA);
-	number _f2(number r, int type);
-	number _f2D(number r, int type);
+	number _f1_DRH(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA);
+	number _f1D_DRH(number r, int type, int n3, int n5, bool is_n3_DNA, bool is_n5_DNA);
+	number _f2_DRH(number r, int type);
+	number _f2D_DRH(number r, int type);
 
-	inline number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
+	inline number _repulsive_lj_DRH(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 
 	// DRH-only interactions
 	virtual number _hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
@@ -73,7 +71,7 @@ protected:
 	 * @param cost  argument of f4
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4 (number cost, int i) { return this->_mesh_f4[i].query(cost); }
+	virtual number _custom_f4_DRH (number cost, int i) { return this->_mesh_f4[i].query(cost); }
 
 	/**
 	 * @brief Custom function that returns the derivative of f4. See _custom_f4
@@ -81,7 +79,7 @@ protected:
 	 * @param cost  argument of f4D
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4D (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
+	virtual number _custom_f4D_DRH (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
 
 
 	/**
@@ -130,6 +128,7 @@ public:
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
+	
 	// DRH model constants
 	number F1_EPS[2][5][5];
 	number F1_SHIFT[2][5][5];
@@ -163,6 +162,7 @@ public:
 	number F5_PHI_B[4];
 	number F5_PHI_XC[4];
 	number F5_PHI_XS[4];
+	
 };
 
 

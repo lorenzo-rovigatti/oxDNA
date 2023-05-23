@@ -210,6 +210,10 @@
 #define DRH_HYDR_T7_MESH_POINTS 12  // almost perfect
 #define DRH_HYDR_T8_MESH_POINTS DRH_HYDR_T7_MESH_POINTS
 
+#define DRH_STCK_T4_MESH_POINTS 6   // perfect
+#define DRH_STCK_T5_MESH_POINTS 6   // perfect 
+#define DRH_STCK_T6_MESH_POINTS DRH_STCK_T5_MESH_POINTS
+
 #define DRH_CRST_T1_MESH_POINTS 250 // good enough
 #define DRH_CRST_T2_MESH_POINTS 80  // almost perfect
 #define DRH_CRST_T3_MESH_POINTS DRH_CRST_T2_MESH_POINTS
@@ -220,6 +224,5 @@
 #define DRH_CXST_T1_MESH_POINTS 250 // perfetto
 #define DRH_CXST_T4_MESH_POINTS 6   // perfetto
 #define DRH_CXST_T5_MESH_POINTS 6   // perfetto
-#define DRH_CXST_T6_MESH_POINTS CXST_T5_MESH_POINTS
-
+#define DRH_CXST_T6_MESH_POINTS DRH_CXST_T5_MESH_POINTS
 #endif 
