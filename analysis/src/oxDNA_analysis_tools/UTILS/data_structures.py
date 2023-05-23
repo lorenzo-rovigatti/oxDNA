@@ -1,7 +1,9 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
+import inspect
 import numpy as np
+
 
 @dataclass
 class Chunk:
@@ -124,7 +126,7 @@ class Strand:
     def __init__(self, id, *initial_data, **kwargs):
         self.id = id
         self.monomers = []
-        self.type = ''
+        self.type = 'DNA'
         self.circular = False
         for dictionary in initial_data:
             for key in dictionary:
@@ -140,6 +142,13 @@ class Strand:
 
     def __iter__(self):
         return (m for m in self.monomers)
+    
+    def get_kwdata(self) -> Dict[str:str]:
+        attributes = inspect.getmembers(self, lambda a:not(inspect.isroutine(a)))
+        attributes = [a for a in attributes if not(a[0].startswith('__') and a[0].endswith('__'))]
+        d = {k:str(v) for k,v in attributes if k != 'monomers'}
+        return d
+
 
     def is_circular(self) -> bool:
         return self.circular

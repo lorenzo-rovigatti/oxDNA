@@ -24,7 +24,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     return [''.join(out) for out in outstr]
 
-def write_topologies(system:System, indexes:List[List[int]], outfiles:List[str]):
+def write_topologies(system:System, indexes:List[List[int]], outfiles:List[str], old_format=False):
     top_names = [o+ ".top" for o in outfiles]
     for idx, top_name in zip(indexes, top_names):
         idx = set(idx)
@@ -37,11 +37,11 @@ def write_topologies(system:System, indexes:List[List[int]], outfiles:List[str])
         new_sys.strands = [s for s in new_sys if len(s.monomers) > 0]
 
         with open(top_name, 'w+') as f:
-            f.write(get_top_string(new_sys))
+            f.write(get_top_string(new_sys, old_format))
 
     return top_names
 
-def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[List[int]], outfiles:List[str], ncpus=1):
+def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[List[int]], outfiles:List[str], ncpus=1, old_format=False):
     """
         Splits a trajectory into multiple trajectories, each containing a subset of the particles in the original configuration.
 
@@ -70,7 +70,7 @@ def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[Lis
         f.close()
 
     # Write topology files
-    top_names = write_topologies(system, indexes, outfiles)
+    top_names = write_topologies(system, indexes, outfiles, old_format)
 
     print("INFO: Wrote trajectories: {}".format(dat_names), file=stderr)
     print("INFO: Wrote topologies: {}".format(top_names), file=stderr)
@@ -78,18 +78,19 @@ def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[Lis
 def cli_parser(prog="subset_trajectory.py"):
     #command line arguments
     parser = argparse.ArgumentParser(prog = prog, description="Extracts parts of a structure into separate trajectories")
-    parser.add_argument('trajectory', type=str, nargs=1, help="The trajectory file to subset")
-    parser.add_argument('topology', type=str, nargs=1, help="The topology file corresponding to the trajectory")
+    parser.add_argument('trajectory', type=str, help="The trajectory file to subset")
+    parser.add_argument('topology', type=str, help="The topology file corresponding to the trajectory")
     parser.add_argument('-i', '--index', metavar='index', action='append', nargs=2, help='A space separated index file and the associated output file name.  This can be called multiple times')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-p', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-f', action='store_true', dest='old_format', help="Use the old 3'-5' topology format?")
     return(parser)
 
 def main():
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
-    top_file  = args.topology[0]
-    traj_file = args.trajectory[0]
+    top_file  = args.topology
+    traj_file = args.trajectory
     index_files = [i[0] for i in args.index]
     output_files = [i[1] for i in args.index]
     top_info, traj_info = describe(top_file, traj_file)
@@ -107,11 +108,13 @@ def main():
         outfiles.append(o)
 
     if args.parallel:
-        ncpus = args.parallel[0]
+        ncpus = args.parallel
     else:
         ncpus = 1
 
-    subset(traj_info, top_info, system, indexes, outfiles, ncpus)
+    old_format = args.old_format
+
+    subset(traj_info, top_info, system, indexes, outfiles, ncpus, old_format)
 
 if __name__ == '__main__':
     main()

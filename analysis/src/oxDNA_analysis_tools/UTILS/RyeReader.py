@@ -366,6 +366,12 @@ def strand_describe(top:str) -> Tuple[System, list]:
         strands.append(s)
         system = System(top_file=abspath(top_file), strands=strands)
 
+        # With the old topology, we assume that the sytem is homogenous.
+        if 'U' in [m.btype for m in monomers]:
+            print("INFO: RNA detected, all strands will be marked as RNA", file=stderr)
+            for s in system.strands:
+                s.type = 'RNA'
+
         return system, monomers
 
     with open(top) as f:
@@ -495,60 +501,94 @@ def conf_to_str(conf:Configuration, include_vel:bool=True) -> str:
     else:
         return(''.join([header, ''.join([('{} {} {}\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
 
-def write_top(path:str, system:System) -> None:
+def write_top(path:str, system:System, old_format:bool=False) -> None:
     """
     Write the system to a topology file"
 
     Parameters:
-        path (str) : path to the output file
-        system (System) : system to write out
+        path (str) : Path to the output file
+        system (System) : System to write out
+        old_format (bool) : Use the old 3'-5' format?
     """
 
     with open(path, 'w+') as f:
-        f.write(get_top_string(system))
+        f.write(get_top_string(system, old_format))
 
-def get_top_string(system) -> str:
+def get_top_string(system:System, old_format:bool=False) -> str:
     """
         Write topology file from system object.
 
         Parameters:
-            system (System) : system object
+            system (System) : System object
+            old_format (bool) : Use the old 3'-5' format?
 
         Returns:
             (str) : string representation of the system in .top format
 
     """
+    def _get_top_string_old(system) -> str:
+        n_na = 0
+        n_aa = 0
+        na_strands = 0
+        aa_strands = 0
+        mid = -1
 
-    n_na = 0
-    n_aa = 0
-    na_strands = 0
-    aa_strands = 0
-    mid = -1
 
+        header = []
+        body = []
 
-    header = []
-    body = []
+        # iterate through strands and assign sequential ids
+        # this will break circular strands.
+        for s in system.strands:
+            #it's a nucleic acid strand
+            if s.id > 0:
+                na_strands += 1
+                for i, m in enumerate(s.monomers):
+                    n_na += 1
+                    mid += 1
+                    body.append(f'{na_strands} {m.btype} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
 
-    # iterate through strands and assign sequential ids
-    # this will break circular strands.
-    for s in system.strands:
-        #it's a nucleic acid strand
-        if s.id > 0:
-            na_strands += 1
-            for i, m in enumerate(s.monomers):
-                n_na += 1
-                mid += 1
-                body.append(f'{na_strands} {m.btype} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
+            # it's a peptide strand
+            elif s.id < 0:
+                aa_strands -= 1
+                for i, m in enumerate(s.monomers):
+                    n_aa += 1
+                    mid += 1
+                    body.append(f'{aa_strands} {m.btype} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
 
-        # it's a peptide strand
-        elif s.id < 0:
-            aa_strands -= 1
-            for i, m in enumerate(s.monomers):
-                n_aa += 1
-                mid += 1
-                body.append(f'{aa_strands} {m.btype} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
+        header.append(f'{n_na+n_aa} {na_strands+aa_strands}{" "+n_na if n_aa > 0 else ""}{" "+n_aa if n_aa > 0 else ""}')
 
-    header.append(f'{n_na+n_aa} {na_strands+aa_strands} {n_na if n_aa > 0 else ""} {n_aa if n_aa > 0 else ""}')
+        out = header+body
+        return '\n'.join(out)
 
-    out = header+body
-    return '\n'.join(out)
+    def _get_top_string_new(system) -> str:
+        def kwdata_to_str(kwdata): return ' '.join([f'{k}={v}' for k,v in kwdata.items()])
+        n_na = 0
+        n_aa = 0
+        na_strands = 0
+        aa_strands = 0
+
+        header = []
+        body = []
+
+        for s in system.strands:
+            seq = ''.join([m.btype for m in s])
+            kwdata = s.get_kwdata()
+            body.append(seq + ' ' + kwdata_to_str(kwdata))
+            if kwdata['type'] == 'DNA' or kwdata['type'] == 'RNA':
+                n_na += len(seq)
+                na_strands += 1
+            if kwdata['type'] == 'peptide':
+                n_aa += len(seq)
+                aa_strands += 1
+
+        header.append(f'{n_na+n_aa} {na_strands+aa_strands}{" "+n_na if n_aa > 0 else ""}{" "+n_aa if n_aa > 0 else ""} 5->3')
+        out = header+body
+        return '\n'.join(out)
+    
+    if old_format:
+        out = _get_top_string_old(system)
+    else:
+        out = _get_top_string_new(system)
+
+    return(out)
