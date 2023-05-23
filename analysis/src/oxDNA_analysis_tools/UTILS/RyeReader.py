@@ -147,7 +147,7 @@ def get_top_info(top:str) -> TopInfo:
         else:
             raise RuntimeError("Malformed topology header, failed to read topology file.")
         
-    return TopInfo(top, int(nbases))
+    return TopInfo(abspath(top), int(nbases))
 
 def get_top_info_from_traj(traj : str) -> TopInfo:
     """
@@ -215,7 +215,7 @@ def get_traj_info(traj : str) -> TrajInfo:
         else:
             raise RuntimeError(f"Invalid first particle line: {line}")
 
-    return TrajInfo(traj,len(idxs),idxs, incl_v)
+    return TrajInfo(abspath(traj),len(idxs),idxs, incl_v)
 
 def describe(top:(str|None), traj:str) -> Tuple[TopInfo, TrajInfo]:
     """
@@ -342,7 +342,7 @@ def strand_describe(top:str) -> Tuple[System, list]:
         while l:
             if int(l[0]) != curr:
                 s.monomers = monomers[s_start:mid]
-                if s[0].n3 == s[-1].n5:
+                if s[0].n3 == s[-1].id:
                     s.circular = True
                 strands.append(s)
                 curr = int(l[0])
@@ -358,13 +358,12 @@ def strand_describe(top:str) -> Tuple[System, list]:
             try:
                 l = ls[mid].split()
             except IndexError:
-                break
+                break  
 
-        if s[0].n3 == s[-1].n5:
-            s.circular = True
         s.monomers = monomers[s_start:mid]
+        if s[0].n3 == s[-1].id:
+            s.circular = True
         strands.append(s)
-
         system = System(top_file=abspath(top_file), strands=strands)
 
         return system, monomers
