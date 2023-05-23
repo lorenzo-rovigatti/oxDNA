@@ -124,6 +124,7 @@ class Strand:
     """
 
     def __init__(self, id, *initial_data, **kwargs):
+        self.__from_old = False
         self.id = id
         self.monomers = []
         self.type = 'DNA'
@@ -143,9 +144,10 @@ class Strand:
     def __iter__(self):
         return (m for m in self.monomers)
     
+    # Attributes which should not be included file write out should start with '__'
     def get_kwdata(self) -> Dict[str:str]:
         attributes = inspect.getmembers(self, lambda a:not(inspect.isroutine(a)))
-        attributes = [a for a in attributes if not(a[0].startswith('__') and a[0].endswith('__'))]
+        attributes = [a for a in attributes if not(a[0].startswith('__') or a[0].endswith('__'))]
         d = {k:str(v) for k,v in attributes if k != 'monomers'}
         return d
 

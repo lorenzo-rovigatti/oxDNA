@@ -309,6 +309,7 @@ def strand_describe(top:str) -> Tuple[System, list]:
                 mid += 1
             
             s.monomers = monomers[s_start:mid]
+            s.__from_old = False
             strands.append(s)
             s_start = mid
 
@@ -344,6 +345,7 @@ def strand_describe(top:str) -> Tuple[System, list]:
                 s.monomers = monomers[s_start:mid]
                 if s[0].n3 == s[-1].id:
                     s.circular = True
+                s.__from_old = True
                 strands.append(s)
                 curr = int(l[0])
                 s = Strand(curr)
@@ -540,6 +542,10 @@ def get_top_string(system:System, old_format:bool=False) -> str:
         # iterate through strands and assign sequential ids
         # this will break circular strands.
         for s in system.strands:
+            if s.__from_old == False:
+                raise RuntimeError("Writing an old-style topology file based on a new-style one will ruin the corresponding configuration file (strands will be backwards)\n\
+                                   \
+                                   Please use the conversion script found in oxDNA/utils/convert.py to change to the old topology format.")
             #it's a nucleic acid strand
             if s.id > 0:
                 na_strands += 1
@@ -572,6 +578,10 @@ def get_top_string(system:System, old_format:bool=False) -> str:
         body = []
 
         for s in system.strands:
+            if s.__from_old == True:
+                raise RuntimeError("Writing a new-style topology file based on an old-style one will ruin the corresponding configuration file (strands will be backwards)\n\
+                                   \
+                                   Please use the conversion script found in oxDNA/utils/convert.py to change to the new topology format.")
             seq = ''.join([m.btype for m in s])
             kwdata = s.get_kwdata()
             body.append(seq + ' ' + kwdata_to_str(kwdata))
