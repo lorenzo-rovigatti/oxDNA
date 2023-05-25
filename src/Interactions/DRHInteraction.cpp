@@ -529,8 +529,6 @@ number DRHInteraction::_cross_stacking_DRH(BaseParticle *p, BaseParticle *q, boo
 }
 
 
-
-//essentially copy pasted from the rna model, may need changing in the future
 number DRHInteraction::_coaxial_stacking_DRH(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(_are_bonded(p, q)) {
 		return (number) 0.f;
@@ -912,7 +910,7 @@ number DRHInteraction::_backbone(BaseParticle *p, BaseParticle *q, bool compute_
 	}
 }
 
-//(DNA stacking seems to be giving the nan energies)
+
 number DRHInteraction::_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(_interaction_type(p,q) == 0) {
 		return DNA2Interaction::_stacking(p, q, false, update_forces);
