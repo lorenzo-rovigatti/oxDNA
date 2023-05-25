@@ -200,7 +200,7 @@ void DRHInteraction::init() {
 	DNA2Interaction::init();
 	RNA2Interaction::init();
 
-	//DRH
+	//setting average-sequence parameters
 	for(int i = 0; i < 5; i++) {
 		for(int j = 0; j < 5; j++) {
 			// HB

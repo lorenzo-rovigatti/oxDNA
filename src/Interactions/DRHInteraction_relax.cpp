@@ -1,32 +1,34 @@
 /*
- * RNAInteraction_relax.cpp
+ * DRHInteraction_relax.cpp
  *
- *  Created on: Nov 28, 2014
- *      Author: Ben Snodin
+ *  Created on: May 25, 2023
+ *      Author: Eryk R.
+ * 
+ * For relaxing initial configurations of systems containing DNA and RNA.
  */
 
 #include <fstream>
 
-#include "DNAwithRNAInteraction_relax.h"
+#include "DRHInteraction_relax.h"
 #include "../Particles/RNANucleotide.h"
 #include "../Particles/DNANucleotide.h"
 
-DNAwithRNAInteraction_relax::DNAwithRNAInteraction_relax() :
-				DNAwithRNAInteraction() {
-	OX_LOG(Logger::LOG_INFO, "Using unphysical backbone (DNAwithRNA_relax interaction)");
+DRHInteraction_relax::DRHInteraction_relax() :
+				DRHInteraction() {
+	OX_LOG(Logger::LOG_INFO, "Using unphysical backbone (DRH_relax interaction)");
 	_constant_force = 0;
 	_harmonic_force = 1;
 }
 
-DNAwithRNAInteraction_relax::~DNAwithRNAInteraction_relax() {
+DRHInteraction_relax::~DRHInteraction_relax() {
 }
 
-number DNAwithRNAInteraction_relax::_backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	if(!_check_bonded_neighbour(&p, &q, compute_r)) {
+number DRHInteraction_relax::_backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	if(!DRHInteraction::DNA2Interaction::_check_bonded_neighbour(&p, &q, compute_r)) {
 		return (number) 0.f;
 	}
 
-	//making sure that DNA doesn't bond with RNA
+	//(excluding DNA-RNA bonding)
 	if(_interaction_type(p,q) == 2) {
 		return (number) 0.f;
 	}
@@ -42,7 +44,7 @@ number DNAwithRNAInteraction_relax::_backbone(BaseParticle *p, BaseParticle *q, 
 	if(_interaction_type(p,q) == 0) {
 		rback = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 		rbackmod = rback.module();
-		rbackr0 = rbackmod - _fene_r0_DNA;
+		rbackr0 = rbackmod - DNA2Interaction::_fene_r0;
 	} else if(_interaction_type(p,q) == 1){
 		rback = _computed_r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
 		rbackmod = rback.module();
@@ -83,7 +85,7 @@ number DNAwithRNAInteraction_relax::_backbone(BaseParticle *p, BaseParticle *q, 
 	return energy;
 }
 
-void DNAwithRNAInteraction_relax::check_input_sanity(std::vector<BaseParticle *> &particles) {
+void DRHInteraction_relax::check_input_sanity(std::vector<BaseParticle *> &particles) {
 	int N = particles.size();
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];
@@ -93,11 +95,25 @@ void DNAwithRNAInteraction_relax::check_input_sanity(std::vector<BaseParticle *>
 		if(p->n5 != P_VIRTUAL && p->n5->index >= N) {
 			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 		}
+
+		//making sure there are no bonds between DNA and RNA particles
+		if(p->n3 != P_VIRTUAL) {
+			BaseParticle *q = p->n3;
+			if(_interaction_type(p,q) == 2){
+				throw oxDNAException("Bonds between DNA and RNA are not allowed (particles %d and %d)", i, p->n3->index);
+			}
+		}
+		if(p->n5 != P_VIRTUAL) {
+			BaseParticle *q = p->n5;
+			if(_interaction_type(p,q) == 2){
+				throw oxDNAException("Bonds between DNA and RNA are not allowed (particles %d and %d)", i, p->n5->index);
+			}
+		}
 	}
 }
 
-void DNAwithRNAInteraction_relax::get_settings(input_file &inp) {
-	DNAwithRNAInteraction::get_settings(inp);
+void DRHInteraction_relax::get_settings(input_file &inp) {
+	DRHInteraction::get_settings(inp);
 
 	char tmps[256];
 	getInputString(&inp, "relax_type", tmps, 1);

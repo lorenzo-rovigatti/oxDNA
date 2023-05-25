@@ -123,6 +123,7 @@ SET(interactions_SOURCES
 	Interactions/KFInteraction.cpp
 	Interactions/CustomInteraction.cpp
 	Interactions/DRHInteraction.cpp
+	Interactions/DRHInteraction_relax.cpp
 	Interactions/DNANMInteraction.cpp
 )
 
