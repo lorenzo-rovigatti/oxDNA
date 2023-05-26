@@ -229,8 +229,8 @@ def cli_parser(prog="oxDNA_PDB.py"):
                         help='the configuration file you wish to convert')
     parser.add_argument('direction', type=str,
                         help='the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.')
-    parser.add_argument('pdbfiles', type=str, nargs='?',
-                        help='PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file.')
+    parser.add_argument('pdbfiles', type=str, nargs='+',
+                        help='PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file. If there are multiple of the same protein, you must provide that PDB file that many times.')
     parser.add_argument('-o', '--output', type=str, 
                         help='The name of the output pdb file.  Defaults to name of the configuration+.pdb')
     parser.add_argument('-d', '--output_direction', type=str,
@@ -256,7 +256,7 @@ def main():
     if direction not in ["35", "53"]:
         raise RuntimeError("Error: Direction must be either 35 or 53")
     if args.pdbfiles:
-        protein_pdb_files = args.pdbfiles.split(' ')
+        protein_pdb_files = args.pdbfiles
     else:
         protein_pdb_files = None
 
