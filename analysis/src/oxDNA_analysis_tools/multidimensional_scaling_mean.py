@@ -56,7 +56,7 @@ def devs_mds(ctx:DevsContext, chunk_size:int, chunk_id:int, ):
     devs = np.zeros((ctx.top_info.nbases, ctx.top_info.nbases))
 
     for c in np_poses:
-        c_map = vectorized_min_image(c, c, confs[0].box)
+        c_map = vectorized_min_image(c, c, confs[0].box[0])
         masked_distances = np.ma.masked_array(c_map, ~(c_map < CUTOFF))
 
         # Fill the masked values with the cutoff.  Not sure if this is the best practice here.

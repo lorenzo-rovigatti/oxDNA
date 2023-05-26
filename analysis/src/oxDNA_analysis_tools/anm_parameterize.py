@@ -22,7 +22,7 @@ def calculate_deviations(positions, reference_configuration):
     devs = np.sqrt(np.sum(np.square(d), axis=1)) # sqrt(dx**2 + dy**2 + dz**2)
     return devs
 
-def anm_parameterize(particles_array:np.ndarray, trajectory:str, ref_conf:Configuration) -> np.array:
+def anm_parameterize(particles_array:np.ndarray, trajectory:str, ref_conf:Configuration) -> np.ndarray:
     """
         Computes the coarse-grained RMSF for a given trajectory.
 
@@ -32,7 +32,7 @@ def anm_parameterize(particles_array:np.ndarray, trajectory:str, ref_conf:Config
             ref_conf (Configuration): The reference configuration.
 
         Returns:
-            np.array: The RMSF for each super particle.
+            np.array : The RMSF for each super particle.
     """
     
     ref_conf = inbox(ref_conf, center=True)
@@ -86,7 +86,7 @@ def main():
     # parse the file
     for line in index_lines:
         particles_array.append(
-                np.array(line.split(" "),dtype=np.int)
+                np.array(line.split(" "),dtype=int)
         )
     # parsed index file
     particles_array = np.array(particles_array,dtype=object)

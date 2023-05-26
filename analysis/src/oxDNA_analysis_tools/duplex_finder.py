@@ -39,8 +39,8 @@ class Duplex:
     end1 : int
     start2 : int
     end2 : int
-    axis : np.array
-    pos : np.array
+    axis : np.ndarray
+    pos : np.ndarray
 
 
 def find_duplex(monomers:List[Monomer]) -> List[Duplex]:

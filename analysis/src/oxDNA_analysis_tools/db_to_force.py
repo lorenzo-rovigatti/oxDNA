@@ -7,7 +7,7 @@ import numpy as np
 from oxDNA_analysis_tools.external_force_utils.force_reader import write_force_file
 from oxDNA_analysis_tools.external_force_utils.forces import mutual_trap
 
-def parse_dot_bracket(input:str) -> List[int]:
+def parse_dot_bracket(input:str) -> np.ndarray:
     """
     Converts a dot-bracket string to a list of paired nucleotides.
 
@@ -82,7 +82,7 @@ def db_to_forcelist(db_str:str, stiff:float, reverse:bool) -> List[Dict]:
     #p is particle id, q is paired particle id
     for p, q in enumerate(db_idx):
         if q != -1:
-            force_list.append(mutual_trap(p, q, stiff, 1.2, 1))
+            force_list.append(mutual_trap(p, q, stiff, 1.2, True))
 
     return force_list
 

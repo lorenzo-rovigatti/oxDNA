@@ -65,11 +65,11 @@ class Configuration:
             a3s (numpy.ndarray) : the orientations of the stacking sites
     """
     time : int
-    box : np.array
-    energy : np.array
-    positions : np.array
-    a1s : np.array
-    a3s : np.array
+    box : np.ndarray
+    energy : np.ndarray
+    positions : np.ndarray
+    a1s : np.ndarray
+    a3s : np.ndarray
 
 @dataclass
 class TopInfo:
@@ -157,14 +157,14 @@ class Monomer:
         Parameters:
             id (int) : The id of the monomer
             type (str) : The type of the monomer
-            strand (Strand) : The strand the monomer belongs to
+            strand (Strand | None) : The strand the monomer belongs to
             n3 (int) : The id of the 3' neighbor of the monomer
             n5 (int) : The id of the 5' neighbor of the monomer
             pair (int) : The id of the pair of the monomer
     """
     id : int
     type : str
-    strand : Strand
-    n3 : int
-    n5 : int
-    pair : int
+    strand : (Strand | None)
+    n3 : (int | None)
+    n5 : (int | None)
+    pair : (int | None)

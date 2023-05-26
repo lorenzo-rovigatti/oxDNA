@@ -29,7 +29,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     out = ''.join([conf_to_str(c,  include_vel=False) for c in confs])
     return out
 
-def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:int=None, a:bool=False, ncpus=1):
+def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:(int|None)=None, a:bool=False, ncpus=1):
     """
         Make a trajectory smaller by discarding some precision.
 

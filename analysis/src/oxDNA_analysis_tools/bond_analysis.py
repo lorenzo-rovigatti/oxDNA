@@ -64,7 +64,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarra
         return(np.array(tot_bonds), np.array(count_correct_bonds), np.array(count_incorrect_bonds), out_array)
 
 
-def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], inputfile:str, ncpus:int=1) -> Tuple[int, int, int, np.ndarray]:
+def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], inputfile:str, ncpus:int=1) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     '''
         Compare the bond occupancy of a trajectory with a designed structure
 
@@ -76,10 +76,10 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], in
             ncpus (int): (optional) number of cores to use
 
         Returns:
-            total_bonds (np.array): Number of formed bonds among the specified nucleotides at each step in the simulation
-            incorrect_bonds (np.array): Number of missbonds among specified nucleotides at each step in the simulation
-            correct_bonds (np.array): Number of correct bonds among specified nucleotides at each step in the simulation
-            nt_array (np.array): per-nucleotide correct bond occupancy
+            total_bonds (np.ndarray): Number of formed bonds among the specified nucleotides at each step in the simulation
+            incorrect_bonds (np.ndarray): Number of missbonds among specified nucleotides at each step in the simulation
+            correct_bonds (np.ndarray): Number of correct bonds among specified nucleotides at each step in the simulation
+            nt_array (np.ndarray): per-nucleotide correct bond occupancy
     '''
     ctx = ComputeContext(traj_info, top_info, pairs, inputfile)
 
@@ -112,7 +112,7 @@ def oxView_overlay(nt_array:np.ndarray, outfile:str):
         file.write("] \n}")
     return
 
-def plot_trajectories(correct_bonds:np.ndarray, incorrect_bonds:np.ndarray, designed_bonds:int, plotname:np.ndarray):
+def plot_trajectories(correct_bonds:np.ndarray, incorrect_bonds:np.ndarray, designed_bonds:int, plotname:str):
     fig, ax = plt.subplots()
     ax.plot(correct_bonds, alpha=0.5, label="Correct bonds")
     ax.plot(incorrect_bonds, alpha=0.5, label="Incorrect bonds")
@@ -120,19 +120,19 @@ def plot_trajectories(correct_bonds:np.ndarray, incorrect_bonds:np.ndarray, desi
     plt.xlabel('Configuration')
     plt.ylabel('Number of Bonds')
     plt.legend()
+    plt.tight_layout()
     plt.savefig(plotname)
     return
-
 
 def cli_parser(prog="bond_analysis.py"):
     #read data from files
     parser = argparse.ArgumentParser(prog = prog, description="Compare the bonds found at each trajectory with the intended design")
-    parser.add_argument('inputfile', type=str, nargs=1, help="The inputfile used to run the simulation")
-    parser.add_argument('trajectory', type=str, nargs=1, help="The trajecotry file to compare against the designed pairs")
-    parser.add_argument('designed_pairs', type=str, nargs=1, help="The file containing the desired nucleotides pairings in the format `a b`")
-    parser.add_argument('-o', metavar='output_file', type=str, nargs=1, dest='outfile', help="Name of the file to save the output oxView overlay to")
-    parser.add_argument('-t', metavar='trajectory_plot', type=str, nargs=1, dest='traj_plot', help='Name of the file to save the trajecotry plot to')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('inputfile', type=str, help="The inputfile used to run the simulation")
+    parser.add_argument('trajectory', type=str, help="The trajecotry file to compare against the designed pairs")
+    parser.add_argument('designed_pairs', type=str, help="The file containing the desired nucleotides pairings in the format `a b`")
+    parser.add_argument('-o', metavar='output_file', type=str, dest='outfile', help="Name of the file to save the output oxView overlay to")
+    parser.add_argument('-t', metavar='trajectory_plot', type=str, dest='traj_plot', help='Name of the file to save the trajecotry plot to')
+    parser.add_argument('-p', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
     return parser
 
 def main():
@@ -144,17 +144,17 @@ def main():
     check(["python", "numpy"])
 
     # Parse CLI input
-    inputfile = args.inputfile[0]
-    traj_file = args.trajectory[0]
-    designfile = args.designed_pairs[0]
+    inputfile = args.inputfile
+    traj_file = args.trajectory
+    designfile = args.designed_pairs
     if args.outfile:
-        outfile = args.outfile[0]
+        outfile = args.outfile
         outfile = outfile.strip(".json")+".json"
     else:
         outfile = 'bonds.json'
         print("INFO: No oxView name provided, defaulting to \"{}\"".format(outfile), file=stderr)
     if args.traj_plot:
-        plotfile = args.traj_plot[0]
+        plotfile = args.traj_plot
         plotfile = plotfile.strip(".png")+".png"
     else:
         plotfile = 'bonds.png'
@@ -174,7 +174,7 @@ def main():
     pairs = {int(p[0]) : int(p[1]) for p in [p.split() for p in pairs_txt]}
 
     if args.parallel:
-        ncpus = args.parallel[0]
+        ncpus = args.parallel
     else:
         ncpus = 1
 

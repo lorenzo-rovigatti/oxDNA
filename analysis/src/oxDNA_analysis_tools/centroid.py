@@ -17,7 +17,7 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "indexes"])
 
 
-def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.array, float, int]:
+def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.ndarray, float, int]:
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     confs = [inbox(c) for c in confs]
     np_confs = np.asarray([[c.positions, c.a1s, c.a3s] for c in confs])
@@ -38,7 +38,7 @@ def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.a
 
     return (centroid_candidate, min_RMSD, t)
 
-def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, indexes:List[int]=None, ncpus=1) -> Tuple[Configuration, float]:
+def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, indexes:List[int]=[], ncpus=1) -> Tuple[Configuration, float]:
     '''
         Find the configuration in a trajectory closest to a provided reference configuration
 
@@ -53,7 +53,7 @@ def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, index
             centroid_candidate (Configuration): The configuration with the lowest RMSD to the reference
             min_RMSD (float): The RMSD from the centroid to the reference
     '''
-    if indexes is None:
+    if indexes == []:
         indexes = list(range(top_info.nbases))
 
     ref_conf = inbox(ref_conf)

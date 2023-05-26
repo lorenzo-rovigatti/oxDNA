@@ -32,9 +32,9 @@ def forces2pairs(force_file:str) -> List[Tuple]:
         for line in f.readlines():
             line = line.strip()
             if line.startswith("particle"):
-                a = int(line.split("=")[1].strip())
+                a = int(float(line.split("=")[1].strip()))
             if "ref_particle" in line:
-                b = int(line.split("=")[1].strip())
+                b = int(float(line.split("=")[1].strip()))
             if "}" in line:
                 if a < b:
                     pairs.append((a, b))
@@ -49,7 +49,6 @@ def main():
 
     infile = args.force_file[0]
 
-    #if there's no outfile argument, just print to stdout.
     try:
         out = args.output[0]
     except:
