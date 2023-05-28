@@ -55,6 +55,3 @@ energy_file = cuda_energy.dat
 print_conf_interval = 5e4
 print_energy_every = 1e4
 time_scale = linear
-external_forces=1
-external_forces_file=replica_forces.txt
-massfile = output_m.txt
