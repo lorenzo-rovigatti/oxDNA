@@ -22,8 +22,9 @@ void CCGInteraction::init() {
 
 void CCGInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	OX_LOG(Logger::LOG_INFO,"Filling up the void with CCGParticles");
-	for(i=0;i<totPar;i++)
+	for(i=0;i<totPar;i++){
 		particles[i] = new CCGParticle();
+	}
 }
 
 number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -53,7 +54,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 	topology.getline(line,2048); //Read the header from the topology file
 	std::stringstream head(line);
 
-	head >> version >> totPar>>ccg>>ccg0>>noSpring>>noColor; //Saving header info
+	head >> version >> totPar>>strands>>ccg>>ccg0>>noSpring>>noColor; //Saving header info
 	allocate_particles(particles);
 	if(head.fail())
 		throw oxDNAException("Please check the header, there seems to be something out of ordinary.");
@@ -65,8 +66,11 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 		if (strlen(line)==0 || line[0]=='#') //Ignore empty line or line starting with # for comment
 			continue;
 		particles[i]->index=i;
-		BaseParticle *p = particles[i];
-		auto *q = dynamic_cast< CCGParticle *>(p);
+		particles[i]->strand_id=0;
+		particles[i]->type=20;
+
+		// BaseParticle *p = particles[i];
+		auto *q = dynamic_cast< CCGParticle *>(particles[i]);
 		std::stringstream body(line);
 		j=0;
 		connection=true;
@@ -89,11 +93,12 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			}
 			j++;
 		}
-		particles[i]->btype=color; //btype is used for coloring
+		// particles[i]->btype=color; //btype is used for coloring
 		if(i==0)
 			OX_LOG(Logger::LOG_INFO, "One loop successfully completed");
 		i++;
 	}
+	*N_strands=strands;
 };
 
 void CCGInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {

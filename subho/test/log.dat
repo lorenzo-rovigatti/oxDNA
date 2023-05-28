@@ -8,7 +8,7 @@ INFO: Setting is being called
 INFO: The generator will try to take into account bonded interactions by choosing distances between bonded neighbours no larger than 2.000000
 INFO: Converting temperature from Celsius (20.000000 C°) to simulation units (0.097717)
 INFO: Setting the maximum IO limit to 4 MB/s
-INFO: pid: 33943
+INFO: pid: 48600
 INFO: CCG is initilized
 INFO: Read Topology is being called.
 INFO: Filling up the void with CCGParticles

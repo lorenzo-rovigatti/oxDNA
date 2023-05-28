@@ -15,7 +15,7 @@
 class CCGInteraction: public BaseInteraction {
 protected:
 public:
-	int version,totPar,ccg,ccg0,noSpring,noColor ;// Header Information
+	int version,totPar,strands,ccg,ccg0,noSpring,noColor ;// Header Information
 	int currentVersion = 1; // Don't forget to update the version number
 	int particleType, paricleName,color,neighbour,bfactor; //Body parameters
 	double Bfactor;
