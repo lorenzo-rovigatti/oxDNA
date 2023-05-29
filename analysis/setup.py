@@ -26,7 +26,8 @@ if USING_CYTHON:
 
 # Get version number
 def get_property(prop):
-    result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(prop), open('{}/src/oxDNA_analysis_tools/__init__.py'.format(OAT_DIR)).read())
+    init_location = os.path.join(OAT_DIR, 'src/oxDNA_analysis_tools/__init__.py')
+    result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(prop), open(init_location).read())
     return result.group(1)
 
 #invoke actual setup

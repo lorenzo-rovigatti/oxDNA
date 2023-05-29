@@ -1,7 +1,7 @@
 import argparse
 import os
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 from sys import stderr
 from collections import namedtuple
@@ -62,7 +62,7 @@ def compute(ctx:ComputeContext, chunk_size, chunk_id:int):
     out = ''.join([conf_to_str(c, include_vel=ctx.traj_info.incl_v) for c in confs])
     return out
 
-def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=[], ref_conf:(Configuration|None)=None, center:bool=True):
+def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=[], ref_conf:Union[Configuration,None]=None, center:bool=True):
     """
         Align a trajectory to a ref_conf and print the result to a file.
 
