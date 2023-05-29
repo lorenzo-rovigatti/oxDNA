@@ -1,4 +1,9 @@
-v. 3.5.1
+v. 3.5.2
+	oat: 
+	  - remove usage of `|` to specify type annotations for unions to make oat compatible with Python 3.9
+      - improve the portability of the `setup.py` script to fix installation issues on some systems
+
+v. 3.5.1 [c549859]
 	- Add the stress tensor calculation on GPUs for DNA
 	- Improve the performance and memory consumption of the DNA and RNA interactions
 	- Improve the numerical stability of the CUDA RNA and DNA codes
