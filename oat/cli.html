@@ -606,6 +606,7 @@
 <p><p>Finds the ensemble of angles between any two duplexes defined by a starting or ending nucleotide in the system</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">duplex_angle_plotter</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">angle_file</span> <span class="p">[</span><span class="n">angle_file</span> <span class="o">...</span><span class="p">]]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">v</span> <span class="n">INVERT_MASK</span> <span class="p">[</span><span class="n">INVERT_MASK</span> <span class="o">...</span><span class="p">]]</span>
                                 <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span>
                                 <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span>
                                 <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span>
@@ -616,6 +617,9 @@
 <dl class="option-list">
 <dt><kbd>-i, --input</kbd></dt>
 <dd><p>An angle file from duplex_angle_finder.py and a list of duplex-end particle pairs to compare.  Can call -i multiple times to plot multiple datasets.</p>
+</dd>
+<dt><kbd>-v, --invert_mask</kbd></dt>
+<dd><p>If 1 invert the i-th vector, if 0, do nothing.</p>
 </dd>
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>The name to save the graph file to</p>
@@ -887,8 +891,9 @@
 <h2>oxDNA -&gt; PDB<a class="headerlink" href="#oxdna-pdb" title="Permalink to this headline">¶</a></h2>
 <p><p>Convert oxDNA files to PDB.  This converter can handle oxDNANM protein simulation files.</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">oxDNA_PDB</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">RMSF_BFACTOR</span><span class="p">]</span>
-                     <span class="n">topology</span> <span class="n">configuration</span> <span class="n">direction</span> <span class="p">[</span><span class="n">pdbfiles</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">oxDNA_PDB</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">OUTPUT_DIRECTION</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">RMSF_BFACTOR</span><span class="p">]</span>
+                     <span class="n">topology</span> <span class="n">configuration</span> <span class="n">direction</span> <span class="n">pdbfiles</span> <span class="p">[</span><span class="n">pdbfiles</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="positional-arguments">
@@ -904,7 +909,7 @@
 <dd><p>the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.</p>
 </dd>
 <dt><kbd>pdbfiles</kbd></dt>
-<dd><p>PDB files for the proteins present in your structure.  If you have multiple proteins, you must specify multiple PDB files.</p>
+<dd><p>PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file. If there are multiple of the same protein, you must provide that PDB file that many times.</p>
 </dd>
 </dl>
 </div>
@@ -913,6 +918,9 @@
 <dl class="option-list">
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>The name of the output pdb file.  Defaults to name of the configuration+.pdb</p>
+</dd>
+<dt><kbd>-d, --output_direction</kbd></dt>
+<dd><p>Direction to save nucleic acid strands in.  Should be “53” or “35”.  Defaults to same as input direction.</p>
 </dd>
 <dt><kbd>-H, --hydrogen</kbd></dt>
 <dd><p>if you want to include hydrogen atoms in the output PDB file</p>
