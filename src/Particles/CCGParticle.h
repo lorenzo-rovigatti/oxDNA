@@ -14,8 +14,9 @@ public:
     virtual ~CCGParticle();
     virtual bool has_bond(BaseParticle *p);
     virtual double return_bfactor(int particleIndex);
+    virtual void return_kro(int particleIndex,double *k,double *r0);//return both k and r0 as pointer.
     std::vector<int> spring_neighbours;
-    std::vector<double>Bfactor;
+    std::vector<double>Bfactor,ro;
 };
 
 

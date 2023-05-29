@@ -24,7 +24,7 @@ public:
 	// };
 	int i,j;
 	std::string temp;
-	bool connection; // connection shifts between adding spring neighbours and Bfactor during reading of the topology file
+	bool connection,bcall; // connection shifts between adding spring neighbours and Bfactor during reading of the topology file
 	CCGInteraction();
 	virtual ~CCGInteraction();
 

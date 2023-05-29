@@ -31,9 +31,9 @@ void CCGInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	if(pCG->has_bond(q)){
-		pair_interaction_bonded(p,q,compute_r,update_forces);
+		return pair_interaction_bonded(p,q,compute_r,update_forces);
 	}else{
-		pair_interaction_nonbonded(p,q,compute_r,update_forces);
+		return pair_interaction_nonbonded(p,q,compute_r,update_forces);
 	}
 }
 
@@ -49,15 +49,20 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
-	double k = 1.f/pCG->return_bfactor(q->index); // calculate k=1/Bfactor
-	number dist=_computed_r.module(); // Distance between the particles
+	double k,r0;
+	pCG->return_kro(q->index,&k,&r0);
+	number dist=_computed_r.module()-r0; // Distance between the particles - equilibrium distance
 	number energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2
 	if(update_forces){
-		LR_vector force = (-1.f*k*_computed_r); //force = -k*x
+		LR_vector force = (-1.f*k*_computed_r*dist/_computed_r.module()); //force = -k*(r_unit*dist) =-k(r-r0)
 		p->force-= force;//substract force from p
 		q->force+= force;//add force to q
 	}
 	return energy;
+}
+
+number CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+	return 0.f;
 }
 
 void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
@@ -93,6 +98,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 		std::stringstream body(line);
 		j=0;
 		connection=true;
+		bcall=true;
 		while(body.tellg()!=-1){
 			body>>temp;
 			if(j==0){
@@ -105,9 +111,13 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 				if(connection){
 					q->spring_neighbours.push_back(std::stoi(temp));
 					connection=false;
-				}else{
+				}else if(bcall){
 					q->Bfactor.push_back(std::stod(temp));
+					bcall=false;
+				}else{
+					q->ro.push_back(std::stod(temp));
 					connection=true;
+					bcall=true;
 				};
 			}
 			j++;
