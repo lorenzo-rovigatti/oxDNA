@@ -1,5 +1,7 @@
 #include "DNAInteraction.h"
+
 #include "../Particles/DNANucleotide.h"
+#include "../Utilities/TopologyParser.h"
 
 #include <fstream>
 #include <cfloat>
@@ -231,7 +233,7 @@ void DNAInteraction::get_settings(input_file &inp) {
 
 	if(getInputBool(&inp, "use_average_seq", &_average, 0) == KEY_FOUND) {
 		if(!_average) {
-			getInputString(&inp, "seq_dep_file_DNA", _seq_filename, 1);
+			getInputString(&inp, "seq_dep_file", _seq_filename, 1);
 			OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename.c_str());
 		}
 	}
@@ -1411,10 +1413,11 @@ void DNAInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
 			throw oxDNAException("Wrong topology for particle %d (n5 neighbor is %d, should be < N = %d)", i, p->n5->index, N);
 		}
 
-		if(_use_mbf)
+		if(_use_mbf) {
 			continue;
+		}
 
-		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
+		// check that the distance between bonded neighbors doesn't exceed a reasonable threshold
 		number mind = _fene_r0 - FENE_DELTA;
 		number maxd = _fene_r0 + FENE_DELTA;
 		if(p->n3 != P_VIRTUAL) {
@@ -1446,84 +1449,75 @@ void DNAInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 }
 
 void DNAInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
-	int N_from_conf = particles.size();
 	BaseInteraction::read_topology(N_strands, particles);
-	int my_N, my_N_strands;
 
-	char line[512];
-	std::ifstream topology;
-	topology.open(_topology_filename, std::ios::in);
+	TopologyParser parser(_topology_filename);
 
-	if(!topology.good())
-		throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
+	int N_from_topology = 0 ;
+	if(parser.is_new_topology()) {
+		parser.parse_new_topology();
+		int ns = 0, current_idx = 0;
+		for(auto &seq_input : parser.lines()) {
+			bool is_circular = false;
+			getInputBool(&seq_input, "circular", &is_circular, 0);
+			std::string type, sequence;
+			getInputString(&seq_input, "specs", sequence, 1);
 
-	topology.getline(line, 512);
+			if(getInputString(&seq_input, "type", type, 0) == KEY_FOUND) {
+				if(type != "DNA") {
+					throw oxDNAException("topology file, strand %d (line %d): the DNA and DNA2 interactions only support type=DNA strands", ns, ns + 1);
+				}
+			}
 
-	sscanf(line, "%d %d\n", &my_N, &my_N_strands);
+			std::vector<int> btypes;
+			try {
+				btypes = Utils::btypes_from_sequence(sequence);
+			}
+			catch(oxDNAException &e) {
+				throw oxDNAException("topology file, strand %d (line %d): %s", ns, ns + 1, e.what());
+			}
 
-	char base[256];
-	int strand, i = 0;
-	while(topology.good()) {
-		topology.getline(line, 512);
-		if(strlen(line) == 0 || line[0] == '#')
-			continue;
-		if(i == N_from_conf)
-			throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", N_from_conf);
+			int N_in_strand = btypes.size();
+				for(int i = 0; i < N_in_strand; i++, current_idx++) {
+					if(current_idx == parser.N()) {
+						throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
+					}
 
-		int tmpn3, tmpn5;
-		int res = sscanf(line, "%d %s %d %d", &strand, base, &tmpn3, &tmpn5);
+					BaseParticle *p = particles[current_idx];
+					p->strand_id = ns;
+					p->btype = btypes[i];
+					p->type = (p->btype < 0) ? 3 - ((3 - p->btype) % 4) : p->btype % 4;
+					p->n3 = p->n5 = P_VIRTUAL;
+					if(i > 0) {
+						p->n5 = particles[current_idx - 1];
+						p->affected.push_back(ParticlePair(p->n5, p));
+					}
+					if(i < N_in_strand - 1) {
+						p->n3 = particles[current_idx + 1];
+						p->affected.push_back(ParticlePair(p->n3, p));
+					}
+					// if this is the last nucleotide of the strand then we enforce the circularity of the strand
+					else if(is_circular) {
+						BaseParticle *first = particles[current_idx - i];
+						p->n3 = first;
+						p->affected.push_back(ParticlePair(first, p));
+						first->n5 = p;
+						first->affected.push_back(ParticlePair(p, first));
+					}
+				}
 
-		if(res < 4)
-			throw oxDNAException("Line %d of the topology file has an invalid syntax", i + 2);
-
-		BaseParticle *p = particles[i];
-
-		if(tmpn3 < 0)
-			p->n3 = P_VIRTUAL;
-		else
-			p->n3 = particles[tmpn3];
-		if(tmpn5 < 0)
-			p->n5 = P_VIRTUAL;
-		else
-			p->n5 = particles[tmpn5];
-
-		// store the strand id
-		// for a design inconsistency, in the topology file
-		// strand ids start from 1, not from 0
-		p->strand_id = strand - 1;
-
-		// the base can be either a char or an integer
-		if(strlen(base) == 1) {
-			p->type = Utils::decode_base(base[0]);
-			p->btype = Utils::decode_base(base[0]);
+			ns++;
 		}
-		else {
-			if(atoi(base) > 0)
-				p->type = atoi(base) % 4;
-			else
-				p->type = 3 - ((3 - atoi(base)) % 4);
-			p->btype = atoi(base);
-		}
-
-		if(p->type == P_INVALID)
-			throw oxDNAException("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, base);
-		p->index = i;
-		i++;
-
-		// here we fill the affected vector
-		if(p->n3 != P_VIRTUAL)
-			p->affected.push_back(ParticlePair(p->n3, p));
-		if(p->n5 != P_VIRTUAL)
-			p->affected.push_back(ParticlePair(p, p->n5));
+		N_from_topology = current_idx;
+	}
+	else {
+		N_from_topology = parser.parse_old_topology(particles);
 	}
 
-	if(i < N_from_conf)
-		throw oxDNAException("Not enough particles found in the topology file (should be %d). Aborting", N_from_conf);
+	if(N_from_topology != (int) particles.size()) {
+		throw oxDNAException("The number of particles specified in the header of the topology file (%d) "
+				"and the number of particles found in the topology (%d) don't match. Aborting",  N_from_topology, particles.size());
+	}
 
-	topology.close();
-
-	if(my_N != N_from_conf)
-		throw oxDNAException("Number of lines in the configuration file and\nnumber of particles in the topology files don't match. Aborting");
-
-	*N_strands = my_N_strands;
+	*N_strands = parser.N_strands();
 }
