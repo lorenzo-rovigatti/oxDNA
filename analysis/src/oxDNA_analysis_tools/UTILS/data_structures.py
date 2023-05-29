@@ -4,6 +4,7 @@ from copy import deepcopy
 from typing import List
 from ctypes import c_ulong
 import numpy as np
+from typing import Union
 
 @dataclass
 class Chunk:
@@ -157,14 +158,15 @@ class Monomer:
         Parameters:
             id (int) : The id of the monomer
             type (str) : The type of the monomer
-            strand (Strand | None) : The strand the monomer belongs to
-            n3 (int) : The id of the 3' neighbor of the monomer
-            n5 (int) : The id of the 5' neighbor of the monomer
-            pair (int) : The id of the pair of the monomer
+            strand Union[Strand, None] : The strand the monomer belongs to
+            n3 Union[int, None] : The id of the 3' neighbor of the monomer
+            n5 Union[int, None] : The id of the 5' neighbor of the monomer
+            pair Union[int, None] : The id of the pair of the monomer
     """
     id : int
     type : str
-    strand : (Strand | None)
-    n3 : (int | None)
-    n5 : (int | None)
-    pair : (int | None)
+    strand : Union[Strand, None]
+    n3 : Union[int, None]
+    n5 : Union[int, None]
+    pair : Union[int, None]
+    

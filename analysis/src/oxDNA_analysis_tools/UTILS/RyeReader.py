@@ -2,7 +2,7 @@ from sys import stderr
 import numpy as np
 import pickle
 from os.path import exists
-from typing import List, Tuple, Iterator
+from typing import List, Tuple, Iterator, Union
 import os
 from .data_structures import *
 from .oat_multiprocesser import get_chunk_size
@@ -209,7 +209,7 @@ def get_traj_info(traj : str) -> TrajInfo:
 
     return TrajInfo(traj,len(idxs),idxs, incl_v)
 
-def describe(top:(str|None), traj:str) -> Tuple[TopInfo, TrajInfo]:
+def describe(top:Union[str,None], traj:str) -> Tuple[TopInfo, TrajInfo]:
     """
         retrieve top and traj info for a provided pair
 
