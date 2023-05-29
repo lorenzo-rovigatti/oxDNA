@@ -1,18 +1,18 @@
 
 /**
- * DNANMwithRNANMInteraction.cpp
+ * DRHANMInteraction.cpp
  *
  *  Created on: Jan 16, 2023
  *      Author: jonah (+eryk)
  * 
- * (just the DNANM interaction without templates)
+ * extension of the DNANM interaction to include the DNA/RNA hybrid model
  *
  * 
  * 
  **/
 
 //(for some basic debugging OX_LOG(Logger::LOG_INFO, "We made it this far.");)
-#include "DNANMwithRNANMInteraction.h"
+#include "DRHANMInteraction.h"
 #include <sstream>
 #include <fstream>
 #include <utility>
@@ -24,8 +24,7 @@
 #include "rna_model.h"
 
 
-DNANMwithRNANMInteraction::DNANMwithRNANMInteraction() : DNA2withRNA2Interaction() { // @suppress("Class members should be properly initialized")
-
+DRHANMInteraction::DRHANMInteraction() : DRHInteraction() { // @suppress("Class members should be properly initialized")
 
     //these cause errors, fix later
     //ADD_INTERACTION_TO_MAP(SPRING, _protein_spring);
@@ -33,12 +32,14 @@ DNANMwithRNANMInteraction::DNANMwithRNANMInteraction() : DNA2withRNA2Interaction
     //ADD_INTERACTION_TO_MAP(PRO_DNA_EXC_VOL, _protein_dna_exc_volume);
 }
 
-DNANMwithRNANMInteraction::~DNANMwithRNANMInteraction() {
+DRHANMInteraction::~DRHANMInteraction() {
 }
 
-void DNANMwithRNANMInteraction::get_settings(input_file &inp){
+void DRHANMInteraction::get_settings(input_file &inp){
 
-	DNA2withRNA2Interaction::get_settings(inp);
+	DRHInteraction::get_settings(inp);
+    getInputString(&inp, "nucleotide_types", _nucleotide_types, 1);
+    
 	getInputString(&inp, "parfile", _parameterfile, 0);
 	//Addition of Reading Parameter File
     char n[5] = "none";
@@ -84,14 +85,14 @@ void DNANMwithRNANMInteraction::get_settings(input_file &inp){
 }
 
 
-void DNANMwithRNANMInteraction::check_input_sanity(std::vector<BaseParticle *> &particles){
-	DNA2withRNA2Interaction::check_input_sanity(particles);
-	//Need to make own function that checks the input sanity
+void DRHANMInteraction::check_input_sanity(std::vector<BaseParticle *> &particles){
+	DRHInteraction::check_input_sanity(particles);
+	//Need to make own function that checks the input sanity (including protein particles)
 }
 
 
 
-void DNANMwithRNANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
+void DRHANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
     int N = particles.size();
     RNANucleotide::set_model(model);
 
@@ -108,9 +109,8 @@ void DNANMwithRNANMInteraction::allocate_particles(std::vector<BaseParticle*> &p
     } else if (npro == 0) {
         OX_LOG(Logger::LOG_INFO, "No Protein Particles Specified, Continuing with just DNA/RNA Particles");
         for (int i = 0; i < ndna; i++) {
-            //particles[i] = new DNANucleotide(this->_grooving);
             if(_nucleotide_types[i] == 'D') {
-                particles[i] = new DNANucleotide(_grooving_DNA);
+                particles[i] = new DNANucleotide(DNA2Interaction::_grooving);
             } else {
                 particles[i] = new RNANucleotide();
             }   
@@ -118,9 +118,8 @@ void DNANMwithRNANMInteraction::allocate_particles(std::vector<BaseParticle*> &p
 	} else {
 	    if (_firststrand > 0){
             for (int i = 0; i < ndna; i++) {
-                //particles[i] = new DNANucleotide(this->_grooving);
                 if(_nucleotide_types[i] == 'D') {
-                    particles[i] = new DNANucleotide(_grooving_DNA);
+                    particles[i] = new DNANucleotide(DNA2Interaction::_grooving);
                 } else {
                     particles[i] = new RNANucleotide();
                 }
@@ -134,7 +133,7 @@ void DNANMwithRNANMInteraction::allocate_particles(std::vector<BaseParticle*> &p
             }
             for (int i = npro; i < N; i++) {
                 if(_nucleotide_types[i-npro] == 'D') {
-                    particles[i] = new DNANucleotide(_grooving_DNA);    
+                    particles[i] = new DNANucleotide(DNA2Interaction::_grooving);    
                 } else {
                     particles[i] = new RNANucleotide();
                 }
@@ -146,7 +145,7 @@ void DNANMwithRNANMInteraction::allocate_particles(std::vector<BaseParticle*> &p
 }
 
 
-void DNANMwithRNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
+void DRHANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 
     int N_from_conf = particles.size();
     int my_N, my_N_strands;
@@ -329,7 +328,7 @@ void DNANMwithRNANMInteraction::read_topology(int *N_strands, std::vector<BasePa
 
 
 
-number DNANMwithRNANMInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
+number DRHANMInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
     if (p->btype >= 0 && q->btype >=0){
         if(p->is_bonded(q)) return this->pair_interaction_bonded(p, q, compute_r, update_forces);
         else return this->pair_interaction_nonbonded(p, q, compute_r, update_forces);
@@ -345,7 +344,7 @@ number DNANMwithRNANMInteraction::pair_interaction(BaseParticle *p, BaseParticle
 }
 
 
-number DNANMwithRNANMInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(compute_r == true) {
         if (q != P_VIRTUAL && p != P_VIRTUAL) {
             _computed_r = this->_box->min_image(p->pos, q->pos);
@@ -353,7 +352,7 @@ number DNANMwithRNANMInteraction::pair_interaction_bonded(BaseParticle *p, BaseP
     }
 
     if (p->btype >= 0 && q->btype >=0){
-        if(!this->_check_bonded_neighbour(&p, &q, false)) {
+        if(!DNA2Interaction::_check_bonded_neighbour(&p, &q, false)) {
             return (number) 0;
         }
 
@@ -382,7 +381,7 @@ number DNANMwithRNANMInteraction::pair_interaction_bonded(BaseParticle *p, BaseP
 }
 
 
-number DNANMwithRNANMInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if (compute_r == true) {
         _computed_r = this->_box->min_image(p->pos, q->pos);
     }
@@ -419,7 +418,7 @@ number DNANMwithRNANMInteraction::pair_interaction_nonbonded(BaseParticle *p, Ba
 }
 
 
-number DNANMwithRNANMInteraction::_protein_na_exc_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number DRHANMInteraction::_protein_na_exc_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
   
      BaseParticle *protein;
      BaseParticle *nuc;
@@ -496,7 +495,7 @@ number DNANMwithRNANMInteraction::_protein_na_exc_volume(BaseParticle *p, BasePa
 }
 
 
-number DNANMwithRNANMInteraction::_protein_na_repulsive_lj(const LR_vector &r, LR_vector &force, bool update_forces, number &sigma, number &b, number &rstar, number &rcut, number &stiffness) {
+number DRHANMInteraction::_protein_na_repulsive_lj(const LR_vector &r, LR_vector &force, bool update_forces, number &sigma, number &b, number &rstar, number &rcut, number &stiffness) {
     // this is a bit faster than calling r.norm()
     number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
     number energy = (number) 0;
@@ -522,8 +521,8 @@ number DNANMwithRNANMInteraction::_protein_na_repulsive_lj(const LR_vector &r, L
 }
 
 
-void DNANMwithRNANMInteraction::init() {
-	DNA2withRNA2Interaction::init();
+void DRHANMInteraction::init() {
+	DRHInteraction::init();
     ndna=0, npro=0, ndnas =0;
 	//OLD VERSIONS
     //Backbone-Protein Excluded Volume Parameters
@@ -586,7 +585,7 @@ void DNANMwithRNANMInteraction::init() {
 
 
 
-number DNANMwithRNANMInteraction::_protein_repulsive_lj(const LR_vector &r, LR_vector &force, bool update_forces) {
+number DRHANMInteraction::_protein_repulsive_lj(const LR_vector &r, LR_vector &force, bool update_forces) {
     // this is a bit faster than calling r.norm()
     //changed to a quartic form
     number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
@@ -612,11 +611,11 @@ number DNANMwithRNANMInteraction::_protein_repulsive_lj(const LR_vector &r, LR_v
 }
 
 
-number DNANMwithRNANMInteraction::_protein_exc_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number DRHANMInteraction::_protein_exc_volume(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
     if (p->index != q->index && (p->btype < 0 && q-> btype < 0 )  ){
         LR_vector force(0,0,0);
 
-        number energy =  DNANMwithRNANMInteraction::_protein_repulsive_lj(*r, force, update_forces);
+        number energy =  DRHANMInteraction::_protein_repulsive_lj(*r, force, update_forces);
 
         if(update_forces)
         {
@@ -630,7 +629,7 @@ number DNANMwithRNANMInteraction::_protein_exc_volume(BaseParticle *p, BaseParti
     }
 }
 
-number DNANMwithRNANMInteraction::_protein_spring(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number DRHANMInteraction::_protein_spring(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
     if(p->btype >= 0 || q->btype >= 0)    //this function is only for proteins
     {
         return 0.f;
@@ -737,58 +736,58 @@ number DNANMwithRNANMInteraction::_protein_spring(BaseParticle *p, BaseParticle 
 }
 
 
-number DNANMwithRNANMInteraction::_na_backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
+number DRHANMInteraction::_na_backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
     if(p->btype >= 0 && q->btype >=0){
-        return DNA2withRNA2Interaction::_backbone(p, q, false, update_forces);
+        return DRHInteraction::_backbone(p, q, false, update_forces);
     } else return 0.f;
 }
 
 
-number DNANMwithRNANMInteraction::_na_bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::_na_bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->btype >= 0 && q->btype >=0){
-        return DNA2withRNA2Interaction::_bonded_excluded_volume(p, q, false, update_forces);
+        return DRHInteraction::_bonded_excluded_volume(p, q, false, update_forces);
     } else return 0.f;
 }
 
 
-number DNANMwithRNANMInteraction::_na_nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::_na_nonbonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->btype >= 0 && q->btype >=0){
-        return DNA2withRNA2Interaction::_nonbonded_excluded_volume(p, q, false, update_forces);
+        return DRHInteraction::_nonbonded_excluded_volume(p, q, false, update_forces);
     } else return 0.f;
 }
 
 
-number DNANMwithRNANMInteraction::_na_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::_na_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->btype >= 0 && q->btype >=0){
-        return DNA2withRNA2Interaction::_stacking(p, q, false, update_forces);
+        return DRHInteraction::_stacking(p, q, false, update_forces);
     } else return 0.f;
 }
 
 
-number DNANMwithRNANMInteraction::_na_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::_na_coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->btype >= 0 && q->btype >=0){
-        return DNA2withRNA2Interaction::_coaxial_stacking(p, q, false, update_forces);
+        return DRHInteraction::_coaxial_stacking(p, q, false, update_forces);
     } else return 0.f;
 }
 
 
-number DNANMwithRNANMInteraction::_na_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::_na_hydrogen_bonding(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->btype >= 0 && q->btype >=0){
-        return DNA2withRNA2Interaction::_hydrogen_bonding(p, q, false, update_forces);
+        return DRHInteraction::_hydrogen_bonding(p, q, false, update_forces);
     } else return 0.f;
 }
 
 
-number DNANMwithRNANMInteraction::_na_cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::_na_cross_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->btype >= 0 && q->btype >=0){
-        return DNA2withRNA2Interaction::_cross_stacking(p, q, false, update_forces);
+        return DRHInteraction::_cross_stacking(p, q, false, update_forces);
     } else return 0.f;
 }
 
 
-number DNANMwithRNANMInteraction::_na_debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DRHANMInteraction::_na_debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
     if(p->btype >= 0 && q->btype >=0){
-        return DNA2withRNA2Interaction::_debye_huckel(p, q, false, update_forces);
+        return DRHInteraction::_debye_huckel(p, q, false, update_forces);
     } else return 0.f;
 }
 

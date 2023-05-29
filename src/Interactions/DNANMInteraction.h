@@ -2,7 +2,7 @@
  * DNANMInteraction.h
  *
  *  Created on: Apr 17, 2019
- *      Author: jonah
+ *      Author: jonah + eryk (rewritten for the new version of the code without templates)
  */
 
 #ifndef DNANM_INTERACTION_H_
