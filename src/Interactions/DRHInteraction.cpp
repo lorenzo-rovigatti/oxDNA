@@ -1,4 +1,5 @@
 #include "DRHInteraction.h"
+#include "../Utilities/TopologyParser.h"
 #include "../Particles/DNANucleotide.h"
 #include "../Particles/RNANucleotide.h"
 #include "rna_model.h"
@@ -166,7 +167,7 @@ void DRHInteraction::get_settings(input_file &inp) {
 	RNA2Interaction::get_settings(inp);
 	DNA2Interaction::get_settings(inp);
 
-	getInputString(&inp, "nucleotide_types", _nucleotide_types, 1);
+	//getInputString(&inp, "nucleotide_types", _nucleotide_types, 1);
 
 	if(!DNA2Interaction::_average) {
 		getInputString(&inp, "seq_dep_file_DRH", _seq_filename, 1);
@@ -988,28 +989,124 @@ number DRHInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 
 void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 
-	// checking that the number of nucleotides specified in input file is correct
-	if(_nucleotide_types.length() != particles.size()) {
-		throw oxDNAException("Number of nucleotides in the system (%d) doesn't match the length of 'nucleotide_types' (%d)",particles.size(), _nucleotide_types.length());
-	}
-	
-	RNANucleotide::set_model(model);
-	for(uint i = 0; i < particles.size(); i++) {
-		// it's possible that this modification is unnecessary (it now seems necessary)
-		if(_nucleotide_types[i] == 'D') {
-			particles[i] = new DNANucleotide(DNA2Interaction::_grooving);
-		} else if(_nucleotide_types[i] == 'R'){
-			particles[i] = new RNANucleotide();
-		} else {
-			throw oxDNAException("Invalid nucleotide type in input file (%d).", _nucleotide_types[i]);
+	/**
+	 * Using parts of the new topology reader to get info on which particle is DNA
+	 * and which is RNA. The topology is properly checked in the read_topology() 
+	 * method.
+	 * 
+	 **/
+
+	TopologyParser parser(_topology_filename);
+	int N_from_topology = 0 ;
+	if(parser.is_new_topology()) {
+		parser.parse_new_topology();
+		int ns = 0, current_idx = 0;
+		for(auto &seq_input : parser.lines()) {
+			std::string type, sequence;
+			getInputString(&seq_input, "specs", sequence, 1);
+			if(getInputString(&seq_input, "type", type, 0) == KEY_FOUND) {
+				if( !((type == "DNA") || (type == "RNA")) ) {
+					throw oxDNAException("topology file, strand %d (line %d): the DRH interaction only supports type=DNA and type=RNA strands", ns, ns + 1);
+				}
+			}
+
+			int N_in_strand = sequence.size();
+				for(int i = 0; i < N_in_strand; i++, current_idx++) {
+					if(current_idx == parser.N()) {
+						throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
+					}
+					//allocating the particles
+					if(type == "DNA"){
+						particles[current_idx] = new DNANucleotide(DNA2Interaction::_grooving);
+					} else if (type == "RNA") {
+						particles[current_idx] = new RNANucleotide();
+					}
+				}
+			ns++;
 		}
+		N_from_topology = current_idx;
 	}
-	
+	else {
+		throw oxDNAException("The DRH interaction type only supports topology files in the new format");
+	}
+	if(N_from_topology != (int) particles.size()) {
+		throw oxDNAException("The number of particles specified in the header of the topology file (%d) "
+				"and the number of particles found in the topology (%d) don't match. Aborting",  N_from_topology, particles.size());
+	}
 }
 
 
 void DRHInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
-	DNA2Interaction::read_topology(N_strands, particles);
+	DNA2Interaction::BaseInteraction::read_topology(N_strands, particles);
+	TopologyParser parser(_topology_filename);
+
+	int N_from_topology = 0;
+	if(parser.is_new_topology()) {
+		parser.parse_new_topology();
+		int ns = 0, current_idx = 0;
+		for(auto &seq_input : parser.lines()) {
+			bool is_circular = false;
+			getInputBool(&seq_input, "circular", &is_circular, 0);
+			std::string type, sequence;
+			getInputString(&seq_input, "specs", sequence, 1);
+
+			if(getInputString(&seq_input, "type", type, 0) == KEY_FOUND) {
+				if( !((type == "DNA") || (type == "RNA")) ) {
+					throw oxDNAException("topology file, strand %d (line %d): the DRH interaction only supports type=DNA and type=RNA strands", ns, ns + 1);
+				}
+			}
+
+			std::vector<int> btypes;
+			try {
+				btypes = Utils::btypes_from_sequence(sequence);
+			}
+			catch(oxDNAException &e) {
+				throw oxDNAException("topology file, strand %d (line %d): %s", ns, ns + 1, e.what());
+			}
+
+			int N_in_strand = btypes.size();
+				for(int i = 0; i < N_in_strand; i++, current_idx++) {
+					if(current_idx == parser.N()) {
+						throw oxDNAException("Too many particles found in the topology file (should be %d), aborting", parser.N());
+					}
+
+					BaseParticle *p = particles[current_idx];
+					p->strand_id = ns;
+					p->btype = btypes[i];
+					p->type = (p->btype < 0) ? 3 - ((3 - p->btype) % 4) : p->btype % 4;
+					p->n3 = p->n5 = P_VIRTUAL;
+					if(i > 0) {
+						p->n5 = particles[current_idx - 1];
+						p->affected.push_back(ParticlePair(p->n5, p));
+					}
+					if(i < N_in_strand - 1) {
+						p->n3 = particles[current_idx + 1];
+						p->affected.push_back(ParticlePair(p->n3, p));
+					}
+					// if this is the last nucleotide of the strand then we enforce the circularity of the strand
+					else if(is_circular) {
+						BaseParticle *first = particles[current_idx - i];
+						p->n3 = first;
+						p->affected.push_back(ParticlePair(first, p));
+						first->n5 = p;
+						first->affected.push_back(ParticlePair(p, first));
+					}
+				}
+
+			ns++;
+		}
+		N_from_topology = current_idx;
+	}
+	else {
+		N_from_topology = parser.parse_old_topology(particles);
+	}
+
+	if(N_from_topology != (int) particles.size()) {
+		throw oxDNAException("The number of particles specified in the header of the topology file (%d) "
+				"and the number of particles found in the topology (%d) don't match. Aborting",  N_from_topology, particles.size());
+	}
+
+	*N_strands = parser.N_strands();
 }
 
 

@@ -24,7 +24,7 @@
 class DRHInteraction : virtual public DNA2Interaction, virtual public RNA2Interaction {
 protected:
 
-	std::string _nucleotide_types;
+	//std::string _nucleotide_types;
 	char _seq_filename[512];
 
 	int MESH_F4_POINTS[13];
