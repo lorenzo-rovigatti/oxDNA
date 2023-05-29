@@ -13,6 +13,7 @@ public:
     CCGParticle();
     virtual ~CCGParticle();
     virtual bool has_bond(BaseParticle *p);
+    virtual double return_bfactor(int particleIndex);
     std::vector<int> spring_neighbours;
     std::vector<double>Bfactor;
 };

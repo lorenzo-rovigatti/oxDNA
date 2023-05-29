@@ -22,17 +22,24 @@ void CCGInteraction::init() {
 
 void CCGInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	OX_LOG(Logger::LOG_INFO,"Filling up the void with CCGParticles");
+	particles.resize(totPar);//Confirming the particles vector has size to accomodate all the particles.
 	for(i=0;i<totPar;i++){
 		particles[i] = new CCGParticle();
 	}
 }
 
 number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
+	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	if(pCG->has_bond(q)){
+		pair_interaction_bonded(p,q,compute_r,update_forces);
+	}else{
+		pair_interaction_nonbonded(p,q,compute_r,update_forces);
+	}
 }
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	return (number) 0.f;
+	number energy = spring(p,q,compute_r,update_forces);
+	return energy;
 }
 
 number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -40,6 +47,18 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	return (number) 0.f;
 }
 
+number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	double k = 1.f/pCG->return_bfactor(q->index); // calculate k=1/Bfactor
+	number dist=_computed_r.module(); // Distance between the particles
+	number energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2
+	if(update_forces){
+		LR_vector force = (-1.f*k*_computed_r); //force = -k*x
+		p->force-= force;//substract force from p
+		q->force+= force;//add force to q
+	}
+	return energy;
+}
 
 void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 	OX_LOG(Logger::LOG_INFO,"Read Topology is being called.");
