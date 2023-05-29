@@ -67,7 +67,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			continue;
 		particles[i]->index=i;
 		particles[i]->strand_id=0;
-		particles[i]->type=20;
+		// particles[i]->type=20;
 
 		// BaseParticle *p = particles[i];
 		auto *q = dynamic_cast< CCGParticle *>(particles[i]);
@@ -79,7 +79,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			if(j==0){
 				particleType=std::stoi(temp);
 			}else if(j==1){
-				paricleName=std::stoi(temp);
+				particles[i]->type=std::stoi(temp);
 			}else if(j==2){
 				color=std::stoi(temp);
 			}else{
@@ -93,7 +93,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			}
 			j++;
 		}
-		// particles[i]->btype=color; //btype is used for coloring
+		particles[i]->btype=color; //btype is used for coloring
 		if(i==0)
 			OX_LOG(Logger::LOG_INFO, "One loop successfully completed");
 		i++;

@@ -46,6 +46,7 @@ test/OXPY/first_nucleotide.dat
 test/OXPY/last_nucleotide.dat
 
 **/*pyc
+*.ign
 
 # Distribution / packaging
 .Python

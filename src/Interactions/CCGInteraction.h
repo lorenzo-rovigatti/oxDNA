@@ -17,7 +17,7 @@ protected:
 public:
 	int version,totPar,strands,ccg,ccg0,noSpring,noColor ;// Header Information
 	int currentVersion = 1; // Don't forget to update the version number
-	int particleType, paricleName,color,neighbour,bfactor; //Body parameters
+	int particleType,color,neighbour,bfactor; //Body parameters particleType,particleName,...
 	double Bfactor;
 	// enum {
 	// 	PATCHY = 4
