@@ -1,10 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from copy import deepcopy
-from typing import List
-from ctypes import c_ulong
+from typing import List, Dict
+import inspect
 import numpy as np
 from typing import Union
+
 
 @dataclass
 class Chunk:
@@ -89,19 +89,17 @@ class System:
         Object hierarchy representation of an oxDNA configuration
 
         Parameters:
+            top_file (str) : The path to the topology file creating the system
             strands (List[Strand]) : A list of Strand objects
     """
-    __slots__ = ('strands')
-    strands : list
+    __slots__ = ('top_file', 'strands')
 
-    def __init__(self, strands:List = []):
+    def __init__(self, top_file:str='', strands:List = []):
+        self.top_file = top_file
         self.strands = strands
 
     def __getitem__(self, key):
         return self.strands[key]
-
-    def __setitem__(self, key, value):
-        self.strands[key] = value
 
     def __iter__(self):
         return (s for s in self.strands)
@@ -125,27 +123,57 @@ class Strand:
             id (int) : The id of the strand
             monomers (List[Monomer]) : A list of Monomer objects
     """
-    __slots__ = ('id', 'monomers')
-    id : int
-    monomers : list
 
-    def __init__(self, id):
+    def __init__(self, id, *initial_data, **kwargs):
+        self.__from_old = False
         self.id = id
+        self.monomers = []
+        self.type = 'DNA'
+        self.circular = False
+        for dictionary in initial_data:
+            for key in dictionary:
+                setattr(self, key, dictionary[key])
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
 
-    def __getitem__(self, key):
+    def __getitem__(self, key:int):
         return self.monomers[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key:int, value:Monomer):
         self.monomers[key] = value
 
     def __iter__(self):
         return (m for m in self.monomers)
-
-    def is_circular(self):
-        return True if self.monomers[0].n3 == self.monomers[-1].id else False
     
-    def get_length(self):
+    # Attributes which should not be included file write out should start with '__'
+    def get_kwdata(self) -> Dict[str,str]:
+        attributes = inspect.getmembers(self, lambda a:not(inspect.isroutine(a)))
+        attributes = [a for a in attributes if not(a[0].startswith('__') or a[0].endswith('__'))]
+        d = {k:str(v) for k,v in attributes if k != 'monomers'}
+        return d
+
+    def is_old(self):
+        return self.__from_old
+    
+    def set_old(self, from_old):
+        self.__from_old = from_old
+
+    def is_circular(self) -> bool:
+        return self.circular
+    
+    def get_length(self) -> int:
         return len(self.monomers)
+    
+    def get_sequence(self) -> str:
+        return ''.join([m.btype for m in self])
+    
+    def set_sequence(self, new_seq:str) -> None:
+        if len(new_seq) != self.get_length():
+            raise RuntimeError("New sequence must be the same length as old sequence.")
+        
+        for m, s, in zip(self, new_seq):
+            m.btype = s
+
 
 #No, you cannot make n3, n5 and pair refs to other Monomers
 #Scaffold strands are long enough that it would stack overflow while pickling for Pool processing
@@ -164,7 +192,7 @@ class Monomer:
             pair Union[int, None] : The id of the pair of the monomer
     """
     id : int
-    type : str
+    btype : str
     strand : Union[Strand, None]
     n3 : Union[int, None]
     n5 : Union[int, None]

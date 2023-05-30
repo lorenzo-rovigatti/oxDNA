@@ -143,7 +143,7 @@ def main():
         indexes = list(range(top_info.nbases))
 
     # -a specifies the id of the reference configuration, defaults to random
-    # Get the reference configuration
+    # Get the reference configuration and bring it back in the box
     if args.align:
         ref_conf_id = int(args.align[0])
     else:

@@ -1,5 +1,7 @@
 #include "RNAInteraction2.h"
 
+#include "../Particles/RNANucleotide.h"
+
 RNA2Interaction::RNA2Interaction() :
 				RNAInteraction() {
 	ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);

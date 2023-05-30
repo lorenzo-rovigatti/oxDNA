@@ -331,7 +331,7 @@ def main():
         for strand in system.strands:
             strand_pdb = []
             nucleotides_in_strand = strand.monomers
-            sequence = [n.type for n in nucleotides_in_strand]
+            sequence = [n.btype for n in nucleotides_in_strand]
             isDNA = True #This should be in the strand parser instead.
             if 'U' in sequence or 'u' in sequence: #Turns out, this is a bad assumption but its all we got.
                 isDNA = False
@@ -367,13 +367,13 @@ def main():
             elif strand.id >= 0:
                 for nucleotide in nucleotides_in_strand:
                     # Get paragon DNA or RNA nucleotide
-                    if type(nucleotide.type) != str:
+                    if type(nucleotide.btype) != str:
                         if isDNA:
-                            nb = number_to_DNAbase[nucleotide.type]
+                            nb = number_to_DNAbase[nucleotide.btype]
                         else:
-                            nb = number_to_RNAbase[nucleotide.type]
+                            nb = number_to_RNAbase[nucleotide.btype]
                     else: 
-                        nb = nucleotide.type
+                        nb = nucleotide.btype
                     
                     if isDNA:
                         my_base = copy.deepcopy(DNAbases[nb])
