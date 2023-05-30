@@ -39,12 +39,13 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = spring(p,q,compute_r,update_forces);
+	energy+=exc_vol(p,q,compute_r,update_forces);
 	return energy;
 }
 
 number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-
-	return (number) 0.f;
+	number energy = exc_vol(p,q,compute_r,update_forces);
+	return energy;
 }
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
@@ -61,11 +62,40 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	return energy;
 }
 
-number CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
 	auto *pCCG = dynamic_cast<CCGParticle*>(p);
 	auto *qCCG = dynamic_cast<CCGParticle*>(q);
+	double totalRadius = pCCG->radius+qCCG->radius;
+	double sig= sigma*totalRadius;
+	double rs = rstar*totalRadius;
+	double bs = b/totalRadius;
+	double rcs = rc*totalRadius;
+	double r = _computed_r.module();
+	double energy = 0.f;
+	if(r<rs){
+		double factor = SQR(sig/r);
+		double tmp = factor*factor*factor;
+		energy=4*epsilon*(SQR(tmp)-tmp);
+		if(update_forces){
+			LR_vector force = -_computed_r*(24*epsilon*(tmp-2*SQR(tmp))/r);
+			p->force-=force;
+			q->force+=force;
+		}
+	}else if (r<rcs){
+		double rrc = r-rcs;
+		energy=epsilon*b*SQR(rrc);
+		if(update_forces){
+			LR_vector force = -_computed_r*(2*epsilon*bs*rrc/r);
+			p->force-=force;
+			q->force+=force;
+		}
+	}
 
-	return 0.f;
+	return energy;
+}
+
+bool CCGInteraction::color_compatibility(BaseParticle *p, BaseParticle *q){
+	return false;
 }
 
 void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
