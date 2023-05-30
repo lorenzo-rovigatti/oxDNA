@@ -62,6 +62,9 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 }
 
 number CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+	auto *pCCG = dynamic_cast<CCGParticle*>(p);
+	auto *qCCG = dynamic_cast<CCGParticle*>(q);
+
 	return 0.f;
 }
 
@@ -79,6 +82,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 	std::stringstream head(line);
 
 	head >> version >> totPar>>strands>>ccg>>ccg0>>noSpring>>noColor; //Saving header info
+	if(ccg+ccg0 !=totPar) throw oxDNAException("Number of Colored + Color less particles is not equal to total Particles. Insanity caught in the header.");
 	allocate_particles(particles);
 	if(head.fail())
 		throw oxDNAException("Please check the header, there seems to be something out of ordinary.");
@@ -89,6 +93,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 	while(topology.getline(line,2048)){ //Read till the end of file.
 		if (strlen(line)==0 || line[0]=='#') //Ignore empty line or line starting with # for comment
 			continue;
+		if(i>totPar) throw oxDNAException("Contains from molecules than Total Particles provided in the header. Mismatch of information between header and body.");
 		particles[i]->index=i;
 		particles[i]->strand_id=0;
 		// particles[i]->type=20;
@@ -102,20 +107,22 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 		while(body.tellg()!=-1){
 			body>>temp;
 			if(j==0){
-				particleType=std::stoi(temp);
+				particleType=std::stoi(temp); // particle type = -2 for future references
 			}else if(j==1){
-				particles[i]->type=std::stoi(temp);
+				particles[i]->type=std::stoi(temp); // id of the particle
 			}else if(j==2){
-				color=std::stoi(temp);
+				particles[i]->btype=std::stoi(temp); //color of the particle
+			}else if(j==3){
+				q->radius=std::stoi(temp); //radius of the particle
 			}else{
 				if(connection){
-					q->spring_neighbours.push_back(std::stoi(temp));
+					q->spring_neighbours.push_back(std::stoi(temp)); //all connected particle
 					connection=false;
 				}else if(bcall){
-					q->Bfactor.push_back(std::stod(temp));
+					q->Bfactor.push_back(std::stod(temp)); //connected particle Bfactor
 					bcall=false;
 				}else{
-					q->ro.push_back(std::stod(temp));
+					q->ro.push_back(std::stod(temp)); //connected particle equilibrium spring distance r0
 					connection=true;
 					bcall=true;
 				};

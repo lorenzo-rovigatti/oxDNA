@@ -25,6 +25,7 @@ public:
 	int i,j;
 	std::string temp;
 	bool connection,bcall; // connection shifts between adding spring neighbours and Bfactor during reading of the topology file
+	number sigma=1.0f,rstar=0.9053f,b=677.505671539f,rc=0.99888f,epsilon=2.0f;
 	CCGInteraction();
 	virtual ~CCGInteraction();
 
@@ -43,6 +44,7 @@ public:
 	//My interactions
 	virtual number spring(BaseParticle *p, BaseParticle *q, bool compute_r=true, bool update_forces=false); //Calculate spring interaction
 	virtual number exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r=true,bool update_forces=false); //Calculate excluded volume interaction
+	// virtual number repulsive_lj(BaseParticle *p, BaseParticle *q, LR_vector &r, bool update_forces=false); //copied from contrib/romano PatchyShapeInteraction. Calculate energy based on repulsive interactions.
 };
 
 #endif /* CCGInteraction_H_ */
