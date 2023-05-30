@@ -1,15 +1,24 @@
 import sys
 
-def print_inverted_configuration(old_filename, new_filename):
+def print_inverted_configuration(old_filename, strand_lengths, new_filename):
     with open(old_filename) as old_conf, open(new_filename, "w") as new_conf:
         lines = list(old_conf.readlines())
-        new_conf_content = "".join(lines[0:3] + list(reversed(lines[3:])))
+        
+        # split the lines array into chunks, one for each strand
+        strand_lines = []
+        start = 3
+        for length in strand_lengths:
+            strand_lines.append(lines[start : start + length])
+            start += length
+        
+        new_conf_content = "".join(lines[0:3]) # headers
+        for strand in strand_lines:
+            new_conf_content += "".join(list(reversed(strand)))
+        
         new_conf.write(new_conf_content)
 
 def old_to_new(topology, configuration, prefix):
     print("INFO: converting from old to new", file=sys.stderr)
-    
-    print_inverted_configuration(configuration, prefix + configuration)
     
     # convert the topology
     with open(topology) as f:
@@ -21,31 +30,33 @@ def old_to_new(topology, configuration, prefix):
             
     with open(prefix + topology, "w") as new_t:
         print(N, N_strands, "5->3", file=new_t)
-        
+
+        strand_lengths = []        
         for k, v in strands.items():
             circular = True
-            sequence = ""
+            sequence = []
             for nucleotide in v:
                 if nucleotide[1] == "-1" or nucleotide[2] == "-1":
                     circular = False
     
                 try:
                     base = str(int(nucleotide[0])) # yields an exception if nucleotide[0] is a letter                
-                    sequence += "(" + nucleotide[0] + ")"
+                    sequence.append("(" + nucleotide[0] + ")")
                 except ValueError:
-                    sequence += nucleotide[0]
+                    sequence.append(nucleotide[0])
                 
-            line = sequence[::-1]
+            line = "".join(sequence[::-1])
+            strand_lengths.append(len(sequence))
             if circular:
                 line += " circular=True"
             else:
                 line += " circular=False"
             print(line, file=new_t)
+            
+    print_inverted_configuration(configuration, strand_lengths, prefix + configuration)
 
 def new_to_old(topology, configuration, prefix):
     print("INFO: converting from new to old", file=sys.stderr)
-    
-    print_inverted_configuration(configuration, prefix + configuration)
     
     # convert the topology
     with open(topology) as f:
@@ -106,6 +117,9 @@ def new_to_old(topology, configuration, prefix):
                 current_idx += 1
                 
                 print(strand, nucl, prev, next, file=old_t)
+
+    strand_lengths = list(map(len, sequences))
+    print_inverted_configuration(configuration, strand_lengths, prefix + configuration)
 
 if __name__ == '__main__': 
 
