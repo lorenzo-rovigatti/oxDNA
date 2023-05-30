@@ -2,12 +2,6 @@ import sys
 
 def print_inverted_configuration(old_filename, strand_lengths, new_filename):
     with open(old_filename) as old_conf, open(new_filename, "w") as new_conf:
-<<<<<<< HEAD
-        lines = old_conf.readlines()
-        if not '\n' in lines[-1]:
-            lines[-1] = lines[-1]+'\n'
-        new_conf_content = "".join(lines[0:3] + list(reversed(lines[3:])))
-=======
         lines = list(old_conf.readlines())
         
         # split the lines array into chunks, one for each strand
@@ -21,7 +15,6 @@ def print_inverted_configuration(old_filename, strand_lengths, new_filename):
         for strand in strand_lines:
             new_conf_content += "".join(list(reversed(strand)))
         
->>>>>>> new_topology
         new_conf.write(new_conf_content)
 
 def old_to_new(topology, configuration, prefix):
