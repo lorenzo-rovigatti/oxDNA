@@ -21,7 +21,6 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	BaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "DPS_n", &_PS_n, 0);
-	getInputInt(&inp, "DPS_chain_size", &_chain_size, 1);
 
 	getInputNumber(&inp, "DPS_alpha", &_PS_alpha, 0);
 
@@ -616,30 +615,43 @@ void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BasePa
 	if(!topology.good()) {
 		throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
 	}
-	unsigned int N_from_topology;
-	topology >> N_from_topology >> *N_strands;
+
+	std::getline(topology, line);
+	auto spl_line = Utils::split(line, ' ');
+
+	unsigned int N_from_topology = std::strtoul(spl_line[0].c_str(), NULL, 0);
+	*N_strands = std::strtol(spl_line[1].c_str(), NULL, 0);
 
 	if(N_from_conf != N_from_topology) {
 		throw oxDNAException("The number of particles found in the configuration file (%u) and specified in the topology (%u) are different", N_from_conf, N_from_topology);
 	}
 
+	int current_chain = 0;
 	for(unsigned int i = 0; i < N_from_conf; i++) {
-		unsigned int p_idx;
-		topology >> p_idx;
+		std::getline(topology, line);
+
+		spl_line = Utils::split(line, ' ');
+
+		if(spl_line.size() == 0) { // end of chain
+			current_chain++;
+			i--;
+			continue;
+		}
+
+		unsigned int p_idx = std::strtoul(spl_line[0].c_str(), NULL, 0);
 
 		if(!topology.good()) {
 			throw oxDNAException("The topology should contain two lines per particle, but it seems there is info for only %d particles\n", i);
 		}
 
 		ParticleFTG *p = static_cast<ParticleFTG*>(particles[p_idx]);
-		topology >> p->btype;
+		p->btype = std::strtol(spl_line[1].c_str(), NULL, 0);
 		p->type = (p->btype > 0) ? STICKY_ANY : MONOMER;
 		if(p->btype > _N_attractive_types) {
 			_N_attractive_types = p->btype;
 		}
 
-		int n_bonds;
-		topology >> n_bonds;
+		int n_bonds = std::strtol(spl_line[2].c_str(), NULL, 0);
 
 		if(i != p_idx) {
 			throw oxDNAException("There is something wrong with the topology file. Expected index %d, found %d\n", i, p_idx);
@@ -650,16 +662,20 @@ void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BasePa
 					N_from_conf - 1);
 		}
 
-		p->strand_id = p_idx / _chain_size;
+		p->strand_id = current_chain;
 		p->n3 = p->n5 = P_VIRTUAL;
+
+		std::getline(topology, line);
+		spl_line = Utils::split(line, ' ');
+		if(spl_line.size() != (uint) n_bonds) {
+			throw oxDNAException("The number of bonded neighbours of particle %d should be %d, but the line that follows contains %u fields", p_idx, n_bonds, spl_line.size());
+		}
+
 		for(int j = 0; j < n_bonds; j++) {
-			unsigned int n_idx;
-			topology >> n_idx;
-			// the >> operator always leaves '\n', which is subsequently picked up by getline if we don't explicitly ignore it
-			topology.ignore();
+			unsigned int n_idx = std::strtoul(spl_line[j].c_str(), NULL, 0);
 
 			if(n_idx >= N_from_conf) {
-				throw oxDNAException("The topology file contains a link between particles {} and {}, but the largest possible index in the configuration is %d", p->index, n_idx, N_from_conf - 1);
+				throw oxDNAException("The topology file contains a link between particles %d and %d, but the largest possible index in the configuration is %d", p->index, n_idx, N_from_conf - 1);
 			}
 
 			ParticleFTG *q = static_cast<ParticleFTG*>(particles[n_idx]);
@@ -669,10 +685,6 @@ void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BasePa
 
 	topology.close();
 
-	*N_strands = N_from_conf / _chain_size;
-	if(*N_strands == 0) {
-		*N_strands = 1;
-	}
 	_N_chains = *N_strands;
 
 	_parse_interaction_matrix();
