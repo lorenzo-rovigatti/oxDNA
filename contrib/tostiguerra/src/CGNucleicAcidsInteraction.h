@@ -1,4 +1,4 @@
- #ifndef CGNUCLEICACIDS_INTERACTION_H
+#ifndef CGNUCLEICACIDS_INTERACTION_H
 #define CGNUCLEICACIDS_INTERACTION_H
 
 #include "Interactions/BaseInteraction.h"
@@ -13,19 +13,19 @@ struct PSBond {
 	LR_vector force;
 	int p_patch, q_patch;
 	LR_vector r;
-        number r_mod;
+	number r_mod;
 	LR_vector p_torque, q_torque;
-        LR_vector r_part;
+	LR_vector r_part;
 
 	PSBond(BaseParticle *o, number e, number eps, int pp, int qp, LR_vector nr, number rm, LR_vector rp) :
-		other(o),
-		energy(e),
-		epsilon(eps),
-		p_patch(pp),
-		q_patch(qp),
-		r(nr),
-    r_mod(rm),
-    r_part(rp) {
+					other(o),
+					energy(e),
+					epsilon(eps),
+					p_patch(pp),
+					q_patch(qp),
+					r(nr),
+					r_mod(rm),
+					r_part(rp) {
 
 	}
 };
@@ -41,7 +41,6 @@ struct PSBondCompare {
 	}
 };
 
-
 class CGNucleicAcidsInteraction: public BaseInteraction {
 protected:
 	number _Kfene = 15.;
@@ -49,10 +48,10 @@ protected:
 	number _sqr_rfene;
 	number _WCA_sigma = 1.0;
 	number _PS_sqr_rep_rcut;
-  number _mu = 1.0;
-  number dS_mod = 1.0;
-  number alpha_mod = 1.0;
-  number bdG_threshold = 1.0;
+	number _mu = 1.0;
+	number dS_mod = 1.0;
+	number alpha_mod = 1.0;
+	number bdG_threshold = 1.0;
 
 	std::vector<LR_vector> _chain_coms;
 
@@ -78,12 +77,12 @@ protected:
 
 	/// three-body flexibility stuff
 	bool _enable_semiflexibility = false;
-  bool _enable_semiflexibility_3b = false;
-  bool _enable_patch_stacking = false;
+	bool _enable_semiflexibility_3b = false;
+	bool _enable_patch_stacking = false;
 	number _semiflexibility_k;
-  number _semiflexibility_a1;
-  number _semiflexibility_3b_k;
-  number _stacking_eta;
+	number _semiflexibility_a1;
+	number _semiflexibility_3b_k;
+	number _stacking_eta;
 
 	/// patchy stuff
 	number _deltaPatchMon = 0.5;
@@ -105,7 +104,7 @@ protected:
 	number _patchy_three_body(BaseParticle *p, PSBond &new_bond, bool update_forces);
 	number _semiflexibility_three_body(BaseParticle *middle, BaseParticle *n1, BaseParticle *n2, bool update_forces);
 	number _semiflexibility_two_body(BaseParticle *p, BaseParticle *q, bool update_forces);
-  number _patch_stacking(BaseParticle *p, BaseParticle *q, bool update_forces);
+	number _patch_stacking(BaseParticle *p, BaseParticle *q, bool update_forces);
 
 public:
 	enum {
@@ -125,7 +124,7 @@ public:
 
 	number P_inter_chain();
 
-	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
+	virtual void allocate_particles(std::vector<BaseParticle*> &particles);
 
 	void begin_energy_computation() override;
 	void begin_energy_and_force_computation() override;
@@ -139,10 +138,10 @@ public:
 	virtual number pair_nonbonded_WCA(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 	virtual number pair_nonbonded_sticky(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false);
 
-	virtual void read_topology(int *N_stars, std::vector<BaseParticle *> &particles);
-	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
+	virtual void read_topology(int *N_stars, std::vector<BaseParticle*> &particles);
+	virtual void check_input_sanity(std::vector<BaseParticle*> &particles);
 };
 
-extern "C" CGNucleicAcidsInteraction *make_CGNucleicAcidsInteraction();
+extern "C" CGNucleicAcidsInteraction* make_CGNucleicAcidsInteraction();
 
 #endif /* CGNUCLEICACIDS_INTERACTION_H */

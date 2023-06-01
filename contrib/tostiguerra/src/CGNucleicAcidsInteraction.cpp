@@ -34,7 +34,7 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_mu", &_mu, 1.0);
 	getInputNumber(&inp, "DPS_dS_mod", &dS_mod, 1.0);
 	getInputNumber(&inp, "DPS_alpha_mod", &alpha_mod, 1.0);
-  getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
+	getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
 
 	getInputNumber(&inp, "DPS_deltaPatchMon", &_deltaPatchMon, 0);
 
@@ -220,7 +220,7 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 
 	// sticky-sticky
 	if(_sticky_interaction(p->btype, q->btype)) {
-		if(sqr_r  < _sqr_3b_rcut) {
+		if(sqr_r < _sqr_3b_rcut) {
 			number epsilon = _3b_epsilon[p->btype * _interaction_matrix_size + q->btype];
 
 			number r_mod = sqrt(sqr_r);
@@ -228,7 +228,7 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 			number Vradial = epsilon * _3b_A_part * exp_part * (_3b_B_part / SQR(sqr_r) - 1.);
 
 			number cost_a3 = (p->orientationT.v3 * q->orientationT.v3);
-			number Vteta_a3 = (1. - cost_a3)/2.;         // axis defining the 3'-5' direction
+			number Vteta_a3 = (1. - cost_a3) / 2.;         // axis defining the 3'-5' direction
 			// Vteta_a3 = 1;
 
 			//number cost_a1 = (p->orientationT.v1 * q->orientationT.v1);
@@ -239,22 +239,22 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 			number tmp_energy = Vradial * Vteta_a3 * Vteta_a1;
 			energy += tmp_energy;
 
-			number tb_energy = (r_mod < _3b_sigma) ? Vteta_a3 * Vteta_a1: -tmp_energy / epsilon;
+			number tb_energy = (r_mod < _3b_sigma) ? Vteta_a3 * Vteta_a1 : -tmp_energy / epsilon;
 
 			PSBond p_bond(q, tb_energy, epsilon, 1, 1, patch_dist, r_mod, _computed_r);
 			PSBond q_bond(p, tb_energy, epsilon, 1, 1, -patch_dist, r_mod, -_computed_r);
 
 			if(update_forces) {
-				number force_mod = ( epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * Vradial / SQR(r_mod - _3b_rcut) ) * Vteta_a3 * Vteta_a1;
+				number force_mod = (epsilon * _3b_A_part * exp_part * (4. * _3b_B_part / (SQR(sqr_r) * r_mod)) + _3b_sigma * Vradial / SQR(r_mod - _3b_rcut)) * Vteta_a3 * Vteta_a1;
 				LR_vector tmp_force = patch_dist * (-force_mod / r_mod);
 
 				//number torque_a1 = _semiflexibility_a1 * pow((1. - cost_a1), (_semiflexibility_a1 - 1.)) / (pow(2, _semiflexibility_a1));
 				number torque_a1 = 0.;
 				//LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2. * Vteta_a1 + Vradial * ( p->orientationT.v1.cross(q->orientationT.v1) )/2. * Vteta_a3;
-				LR_vector torque_tetaTerm = Vradial * ( p->orientationT.v3.cross(q->orientationT.v3) )/2. * Vteta_a1 + Vradial * torque_a1 * ( p->orientationT.v1.cross(q->orientationT.v1) ) * Vteta_a3;
+				LR_vector torque_tetaTerm = Vradial * (p->orientationT.v3.cross(q->orientationT.v3)) / 2. * Vteta_a1 + Vradial * torque_a1 * (p->orientationT.v1.cross(q->orientationT.v1)) * Vteta_a3;
 				// torque_tetaTerm = LR_vector();
-				LR_vector p_torque = p->orientationT * ( p_patch_pos.cross(tmp_force) + torque_tetaTerm);
-				LR_vector q_torque = q->orientationT * ( q_patch_pos.cross(tmp_force) + torque_tetaTerm);
+				LR_vector p_torque = p->orientationT * (p_patch_pos.cross(tmp_force) + torque_tetaTerm);
+				LR_vector q_torque = q->orientationT * (q_patch_pos.cross(tmp_force) + torque_tetaTerm);
 
 				p->force += tmp_force;
 				q->force -= tmp_force;
@@ -263,13 +263,13 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 				q->torque -= q_torque;
 
 				if(r_mod > _3b_sigma) {
-						p_bond.force = tmp_force / epsilon;
-						p_bond.p_torque = p_torque / epsilon;
-						p_bond.q_torque = q_torque / epsilon;
+					p_bond.force = tmp_force / epsilon;
+					p_bond.p_torque = p_torque / epsilon;
+					p_bond.q_torque = q_torque / epsilon;
 
-						q_bond.force = -tmp_force / epsilon;
-						q_bond.p_torque = -q_torque / epsilon;
-						q_bond.q_torque = -p_torque / epsilon;
+					q_bond.force = -tmp_force / epsilon;
+					q_bond.p_torque = -q_torque / epsilon;
+					q_bond.q_torque = -p_torque / epsilon;
 				}
 				else {
 					p_bond.force = LR_vector();
@@ -280,7 +280,6 @@ number CGNucleicAcidsInteraction::_sticky(BaseParticle *p, BaseParticle *q, bool
 					q_bond.p_torque = q->orientationT * torque_tetaTerm / Vradial;
 					q_bond.q_torque = p->orientationT * torque_tetaTerm / Vradial;
 				}
-
 
 				if(p->strand_id != q->strand_id) {
 					_update_inter_chain_stress_tensor(p->strand_id, p->strand_id, tmp_force);
@@ -362,7 +361,6 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 						_update_inter_chain_stress_tensor(other->strand_id, p->strand_id, -tmp_force);
 					}
 
-
 					_update_stress_tensor(p->pos, tmp_force);
 					_update_stress_tensor(p->pos + other_bond.r, -tmp_force);
 				}
@@ -385,7 +383,7 @@ number CGNucleicAcidsInteraction::pair_interaction(BaseParticle *p, BaseParticle
 number CGNucleicAcidsInteraction::_patch_stacking(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number cost_a1 = (p->orientationT.v1 * q->orientationT.v1);
 
-	if (update_forces) {
+	if(update_forces) {
 		LR_vector torque_term = _stacking_eta * p->orientationT.v1.cross(q->orientationT.v1);
 		p->torque += p->orientationT * torque_term;
 		q->torque -= q->orientationT * torque_term;
@@ -398,7 +396,7 @@ number CGNucleicAcidsInteraction::_patch_stacking(BaseParticle *p, BaseParticle 
 number CGNucleicAcidsInteraction::_semiflexibility_two_body(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number cost_a3 = (p->orientationT.v3 * q->orientationT.v3);
 
-	if (update_forces) {
+	if(update_forces) {
 		LR_vector torque_term = _semiflexibility_k * p->orientationT.v3.cross(q->orientationT.v3);
 		p->torque += p->orientationT * torque_term;
 		q->torque -= q->orientationT * torque_term;
@@ -429,7 +427,6 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *midd
 
 	return _semiflexibility_3b_k * (1. - cost);
 }
-
 
 number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy = (number) 0.f;
@@ -525,19 +522,19 @@ number CGNucleicAcidsInteraction::pair_nonbonded_WCA(BaseParticle *p, BasePartic
 
 	return energy;
 }	// switch(N_int_centers()) {
-	// case 0:
-	// 	break;
-	// case 1: {
-	// 	_base_patches[0] = LR_vector(1, 0, 0);
-	// 	break;
-	// }
-  // default:
-	// 	throw oxDNAException("Unsupported number of patches %d\n", N_int_centers());
-	// }
-  // for(uint i = 0; i < N_int_centers(); i++) {
-  //   _base_patches[i].normalize();
-  //   _base_patches[i] *= deltaPM;
-  // }
+// case 0:
+// 	break;
+// case 1: {
+// 	_base_patches[0] = LR_vector(1, 0, 0);
+// 	break;
+// }
+// default:
+// 	throw oxDNAException("Unsupported number of patches %d\n", N_int_centers());
+// }
+// for(uint i = 0; i < N_int_centers(); i++) {
+//   _base_patches[i].normalize();
+//   _base_patches[i] *= deltaPM;
+// }
 
 number CGNucleicAcidsInteraction::pair_nonbonded_sticky(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) {
@@ -566,43 +563,43 @@ void CGNucleicAcidsInteraction::check_input_sanity(std::vector<BaseParticle*> &p
 
 void CGNucleicAcidsInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	for(uint i = 0; i < particles.size(); i++) {
-		particles[i] = new ParticleFTG(1,0,1,_deltaPatchMon);
+		particles[i] = new ParticleFTG(1, 0, 1, _deltaPatchMon);
 	}
 }
 
 void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
-        // parse the interaction matrix file
-        input_file inter_matrix_file;
-        inter_matrix_file.init_from_filename(_interaction_matrix_file);
-        const number _t37_ = 310.15;
-        const number _kB_ = 1.9872036;
-        //const number dS_mod = 1.87;
-        if(inter_matrix_file.state == ERROR) {
-                throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
-        }
+	// parse the interaction matrix file
+	input_file inter_matrix_file;
+	inter_matrix_file.init_from_filename(_interaction_matrix_file);
+	const number _t37_ = 310.15;
+	const number _kB_ = 1.9872036;
+	//const number dS_mod = 1.87;
+	if(inter_matrix_file.state == ERROR) {
+		throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
+	}
 
-        _interaction_matrix_size = _N_attractive_types + 1;
-        _3b_epsilon.resize(_interaction_matrix_size * _interaction_matrix_size, 0.);
+	_interaction_matrix_size = _N_attractive_types + 1;
+	_3b_epsilon.resize(_interaction_matrix_size * _interaction_matrix_size, 0.);
 
-        ofstream myfile;
-        myfile.open ("beta_eps_matrix.dat");
-        for(int i = 1; i <= _N_attractive_types; i++) {
-                for(int j = 1; j <= _N_attractive_types; j++) {
-                        number valueH;
-                        number valueS;
-                        std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
-                        std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
-                        if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
-                                number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS)/_kB_;
-                                number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
-                                if(beta_dG<bdG_threshold && abs(i-j)>2) {
-                                        _3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
-                                        myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
-                                }
-                        }
-                }
-        }
-        myfile.close();
+	ofstream myfile;
+	myfile.open("beta_eps_matrix.dat");
+	for(int i = 1; i <= _N_attractive_types; i++) {
+		for(int j = 1; j <= _N_attractive_types; j++) {
+			number valueH;
+			number valueS;
+			std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
+			std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
+			if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
+				number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS) / _kB_;
+				number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
+				if(beta_dG < bdG_threshold && abs(i - j) > 2) {
+					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
+					myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
+				}
+			}
+		}
+	}
+	myfile.close();
 }
 
 void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
@@ -678,12 +675,22 @@ void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BasePa
 				throw oxDNAException("The topology file contains a link between particles %d and %d, but the largest possible index in the configuration is %d", p->index, n_idx, N_from_conf - 1);
 			}
 
-			ParticleFTG *q = static_cast<ParticleFTG*>(particles[n_idx]);
+			ParticleFTG *q = static_cast<ParticleFTG *>(particles[n_idx]);
 			p->add_bonded_neigh(q);
 		}
 	}
 
 	topology.close();
+
+	// check that particles beads belonging to different chains are not bonded neighbours
+	for(auto p : particles) {
+		ParticleFTG *p_ftg = static_cast<ParticleFTG *>(p);
+		for(auto q_ftg : p_ftg->bonded_neighs) {
+			if(p_ftg->strand_id != q_ftg->strand_id) {
+				throw oxDNAException("Particles %d and %d are listed as bonded in the topology file, but belong to different chains (%d and %d, respectively)", p->index, q_ftg->index, p->strand_id, q_ftg->strand_id);
+			}
+		}
+	}
 
 	_N_chains = *N_strands;
 

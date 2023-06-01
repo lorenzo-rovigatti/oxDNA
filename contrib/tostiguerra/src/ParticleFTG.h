@@ -22,20 +22,19 @@ struct PatchyBond {
 
 class ParticleFTG: public BaseParticle {
 protected:
-  number _sigma;
+	number _sigma;
 	std::vector<LR_vector> _base_patches;
 
 public:
 	ParticleFTG();
-  ParticleFTG(int N_patches, int nt, number sigma, number deltaPM);
+	ParticleFTG(int N_patches, int nt, number sigma, number deltaPM);
 	virtual ~ParticleFTG();
 
-  void set_positions();
+	void set_positions();
 
-  virtual bool is_rigid_body() {
+	virtual bool is_rigid_body() {
 		return true;
 	}
-
 
 	virtual bool is_bonded(BaseParticle *q);
 	virtual void add_bonded_neigh(ParticleFTG *nn);
@@ -43,35 +42,30 @@ public:
 	std::set<ParticleFTG *> bonded_neighs;
 };
 
-
-
-ParticleFTG::ParticleFTG() : BaseParticle()  {
+ParticleFTG::ParticleFTG() :
+				BaseParticle() {
 
 }
-
 
 ParticleFTG::~ParticleFTG() {
 
 }
 
-
 void ParticleFTG::add_bonded_neigh(ParticleFTG *nn) {
-if(!is_bonded(nn)) {
-	bonded_neighs.insert(nn);
-	nn->bonded_neighs.insert(this);
+	if(!is_bonded(nn)) {
+		bonded_neighs.insert(nn);
+		nn->bonded_neighs.insert(this);
 
-	ParticlePair new_pair(this, nn);
-	this->affected.push_back(new_pair);
-	nn->affected.push_back(new_pair);
+		ParticlePair new_pair(this, nn);
+		this->affected.push_back(new_pair);
+		nn->affected.push_back(new_pair);
+	}
 }
-}
-
 
 bool ParticleFTG::is_bonded(BaseParticle *q) {
-ParticleFTG *Cq = static_cast<ParticleFTG *>(q);
-return !(bonded_neighs.find(Cq) == bonded_neighs.end());
+	ParticleFTG *Cq = static_cast<ParticleFTG*>(q);
+	return !(bonded_neighs.find(Cq) == bonded_neighs.end());
 }
-
 
 ParticleFTG::ParticleFTG(int N_patches, int nt, number sigma, number deltaPM) :
 				BaseParticle(),
