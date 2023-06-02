@@ -95,7 +95,17 @@ double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,
 }
 
 bool CCGInteraction::color_compatibility(BaseParticle *p, BaseParticle *q){
-	return false;
+	if(abs(p->btype)<10 && abs(q->type)<10){
+		if(p->type==q->type){
+			return true;
+		}else{
+			return false;
+		}
+	}else if(p->btype+q->type ==0){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
