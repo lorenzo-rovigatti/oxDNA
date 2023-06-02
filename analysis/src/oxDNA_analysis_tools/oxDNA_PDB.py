@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import argparse
 from collections import defaultdict
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from io import TextIOWrapper
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
@@ -105,7 +105,7 @@ def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, 
 
     return bases
 
-def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> List[PDB_AminoAcid]:
+def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> Tuple[int, List[PDB_AminoAcid]]:
     """
         Get amino acid descriptions from a PDB file.
 
@@ -113,6 +113,9 @@ def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> List[PDB_Ami
             pdbfile (str) : File path to PDB file
             start_res (int) : Line number to start parsing from, default 0.
             n_res (int) : Get only this many residues, default until end of file.
+
+        Returns
+            (Tuple[int, List[PDB_AminoAcid]]) : The line number in the PDB file the read left off at and a list of amino acids extracted from the file.
     """
     with open(pdbfile) as pdbf:
         amino_acids = []
@@ -143,7 +146,7 @@ def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> List[PDB_Ami
 
     return next_pos, amino_acids[start_res:end]
 
-def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_position:int):
+def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_position:int) -> Tuple[int, List[PDB_AminoAcid]]:
     """
         Convert a Strand object to an all-atom representation based on a reference pdb file.
         
@@ -154,7 +157,7 @@ def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_posit
             reading_position (int) : Starting residue in the PDB file for this strand
 
         Returns:
-            (Tuple[int, List[PDB_AminoAcid]]) : The next reading_reading position (or -1 if the file was finished) and the list of PDB-ready amino acid objects
+            (Tuple[int, List[PDB_AminoAcid]]) : The next reading position in the PDB file (or -1 if the file was finished) and the list of PDB-ready amino acid objects
     """
     coord = np.array([conf.positions[m.id] for m in strand.monomers])  # amino acids only go from nterm to cterm (pdb format does as well)
     coord = coord * FROM_OXDNA_TO_ANGSTROM
@@ -181,7 +184,7 @@ def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_posit
 
     return(reading_position, amino_acids)
 
-def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper):
+def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper) -> int:
     """
         Write a list of nucleotide property dictionaries as a new chain to an open PDB file
 
@@ -290,11 +293,6 @@ def main():
     conf = inbox(conf, center=True)
     box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
 
-    # get protein reference files
-    if protein_pdb_files:
-        s_pdbfile = iter(protein_pdb_files)
-        pdbfile = next(s_pdbfile)
-
     # Handle RMSF -> bFactor conversion
     if rmsf_file:
         with open(rmsf_file) as f:
@@ -341,6 +339,8 @@ def main():
             # Handle protein
             if strand.id < 0 and protein_pdb_files:
                 # Map oxDNA configuration onto R-group orientations from pdb file
+                s_pdbfile = iter(protein_pdb_files)
+                pdbfile = next(s_pdbfile)
                 reading_position, amino_acids = peptide_to_pdb(strand, conf, pdbfile, reading_position)
                 if reading_position == -1:
                     try:
