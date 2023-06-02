@@ -2,4 +2,4 @@
 # Header = Version,Total Particles,Strands,Colored Particles,Color less Particles,Springs,Color
 #Body = particleType, paricleName,color,radius,neighbour,bfactor,r0
 -2 1 -20 1 1 100.0 5.0
--2 1 20 1 0 100.0 5.0
+1-2 1 20 1 0 100.0 5.0

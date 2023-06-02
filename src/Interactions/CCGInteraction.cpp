@@ -53,13 +53,16 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 }
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number energy = spring(p,q,compute_r,update_forces);
+	number energy =0.f;
+	energy = spring(p,q,compute_r,update_forces);
 	energy+=exc_vol(p,q,compute_r,update_forces);
 	return energy;
 }
 
 number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number energy = exc_vol(p,q,compute_r,update_forces);
+	number energy =0.f;
+	energy = exc_vol(p,q,compute_r,update_forces);
+	energy+= patchy_interaction(p,q,compute_r,update_forces);
 	return energy;
 }
 
@@ -80,9 +83,20 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
 	number energy =0.f;
 	if(color_compatibility(p,q)){
-		double r2 = SQR(r.x)+SQR(r.y)+SQR(r.z);
-		energy=strength*(-1.001*exp(-pow(r2,5)/pow(patchyAlpha,10))-patchyCutoff);
+		// double r2 = SQR(r.x)+SQR(r.y)+SQR(r.z); //r^2
+		if(rmod<patchyCutoff){
+			double r8b10 = pow(rmod,8)/pow(patchyAlpha,10);
+			double expPart = -1.001*exp(-0.5*r8b10*rmod*rmod);
+			energy=strength*(expPart-patchyCutoff); //patchy interaction potential
+
+			if(update_forces){
+				double f1D = 5 * expPart * r8b10;
+				LR_vector force = r*f1D;
+				p->force+=force;
+				q->force-=force;
+			}
 		}
+	}
 	return energy;
 }
 
