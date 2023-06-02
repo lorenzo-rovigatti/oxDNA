@@ -1,6 +1,5 @@
 #include "CCGInteraction.h"
 #include "../Particles/CCGParticle.h"
-#include "../Utilities/Utils.h"
 
 CCGInteraction::CCGInteraction() :
 				BaseInteraction() {
@@ -12,8 +11,21 @@ CCGInteraction::~CCGInteraction() {
 }
 
 void CCGInteraction::get_settings(input_file &inp) {
-	OX_LOG(Logger::LOG_INFO,"Setting is being called");
+	// OX_LOG(Logger::LOG_INFO,"Setting is being called");
 	BaseInteraction::get_settings(inp);
+	
+	if(getInputString(&inp,"patchyAlpha",temp,0)==KEY_FOUND){
+		patchyAlpha=stod(temp);
+		OX_LOG(Logger::LOG_INFO,"New alpha value for patchy interaction = %d",patchyAlpha);
+	}
+	if(getInputString(&inp,"patchyCutoff",temp,0)==KEY_FOUND){
+		patchyCutoff=stod(temp);
+		OX_LOG(Logger::LOG_INFO,"New cutoff value for the patchy interaction = %d",patchyCutoff);
+	}
+	if(getInputString(&inp,"patchyRcut",temp,0)==KEY_FOUND){
+		patchyRcut =stod(temp);
+		OX_LOG(Logger::LOG_INFO,"New cutoff value for the patchy interaction = %d",patchyRcut);
+	}
 }
 
 void CCGInteraction::init() {
@@ -30,9 +42,12 @@ void CCGInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 
 number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	this->r=_computed_r;
+	this->rmod=r.module();
 	if(pCG->has_bond(q)){
 		return pair_interaction_bonded(p,q,compute_r,update_forces);
 	}else{
+		this->strength=pCG->strength;
 		return pair_interaction_nonbonded(p,q,compute_r,update_forces);
 	}
 }
@@ -52,40 +67,49 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	double k,r0;
 	pCG->return_kro(q->index,&k,&r0);
-	number dist=_computed_r.module()-r0; // Distance between the particles - equilibrium distance
+	number dist=rmod-r0; // Distance between the particles - equilibrium distance
 	number energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2
 	if(update_forces){
-		LR_vector force = (-1.f*k*_computed_r*dist/_computed_r.module()); //force = -k*(r_unit*dist) =-k(r-r0)
+		LR_vector force = (-1.f*k*_computed_r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
 		p->force-= force;//substract force from p
 		q->force+= force;//add force to q
 	}
 	return energy;
 }
 
+number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+	number energy =0.f;
+	if(color_compatibility(p,q)){
+		double r2 = SQR(r.x)+SQR(r.y)+SQR(r.z);
+		energy=strength*(-1.001*exp(-pow(r2,5)/pow(patchyAlpha,10))-patchyCutoff);
+		}
+	return energy;
+}
+
 double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
-	auto *pCCG = dynamic_cast<CCGParticle*>(p);
-	auto *qCCG = dynamic_cast<CCGParticle*>(q);
+	auto *pCCG = static_cast<CCGParticle*>(p);
+	auto *qCCG = static_cast<CCGParticle*>(q);
 	double totalRadius = pCCG->radius+qCCG->radius;
 	double sig= sigma*totalRadius;
 	double rs = rstar*totalRadius;
 	double bs = b/totalRadius;
 	double rcs = rc*totalRadius;
-	double r = _computed_r.module();
+	// double rmod = r.module();
 	double energy = 0.f;
-	if(r<rs){
-		double factor = SQR(sig/r);
+	if(rmod<rs){
+		double factor = SQR(sig/rmod);
 		double tmp = factor*factor*factor;
 		energy=4*epsilon*(SQR(tmp)-tmp);
 		if(update_forces){
-			LR_vector force = -_computed_r*(24*epsilon*(tmp-2*SQR(tmp))/r);
+			LR_vector force = -_computed_r*(24*epsilon*(tmp-2*SQR(tmp))/rmod);
 			p->force-=force;
 			q->force+=force;
 		}
-	}else if (r<rcs){
-		double rrc = r-rcs;
+	}else if (rmod<rcs){
+		double rrc = rmod-rcs;
 		energy=epsilon*b*SQR(rrc);
 		if(update_forces){
-			LR_vector force = -_computed_r*(2*epsilon*bs*rrc/r);
+			LR_vector force = -_computed_r*(2*epsilon*bs*rrc/rmod);
 			p->force-=force;
 			q->force+=force;
 		}
@@ -95,13 +119,16 @@ double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,
 }
 
 bool CCGInteraction::color_compatibility(BaseParticle *p, BaseParticle *q){
-	if(abs(p->btype)<10 && abs(q->type)<10){
+	if(this->strength==0) return false; //Prevent any further calculations if strength of p =0
+	if(abs(p->btype)==100 || abs(q->btype)==100) return false; //100 and -100 are colorless particles 
+
+	if(abs(p->btype)<10 && abs(q->type)<10){ //self-complementary domain 1 interact with 1 and so on till 9
 		if(p->type==q->type){
 			return true;
 		}else{
 			return false;
 		}
-	}else if(p->btype+q->type ==0){
+	}else if(p->btype+q->type ==0){ //only -5 interact with +5 
 		return true;
 	}else{
 		return false;

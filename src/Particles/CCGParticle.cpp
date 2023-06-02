@@ -7,6 +7,7 @@ CCGParticle::CCGParticle():BaseParticle(){
     spring_neighbours={};
     Bfactor={};
     ro={};
+    strength=1.f;
 }
 
 CCGParticle::~CCGParticle(){

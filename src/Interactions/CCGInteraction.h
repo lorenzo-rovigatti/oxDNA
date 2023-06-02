@@ -10,6 +10,7 @@
 
 #include "BaseInteraction.h"
 #include "../Particles/PatchyParticle.h"
+#include "../Utilities/parse_input/parse_input.h"
 #include <fstream>
 #include <sstream>
 class CCGInteraction: public BaseInteraction {
@@ -18,7 +19,9 @@ public:
 	int version,totPar,strands,ccg,ccg0,noSpring,noColor ;// Header Information
 	int currentVersion = 1; // Don't forget to update the version number
 	int particleType,color,neighbour,bfactor; //Body parameters particleType,particleName,...
-	double Bfactor;
+	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0;//color parameters
+	double Bfactor,strength =1.0,rmod;
+	LR_vector r; //temporary parameters.
 	// enum {
 	// 	PATCHY = 4
 	// };
@@ -47,6 +50,7 @@ public:
 
 	//Color interactions
 	virtual bool color_compatibility(BaseParticle *p, BaseParticle *q); //check wether two particle will interact or not
+	virtual number patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r=true,bool update_forces=false);
 };
 
 #endif /* CCGInteraction_H_ */
