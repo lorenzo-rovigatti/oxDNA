@@ -7,7 +7,7 @@
 #include "../Utilities/Utils.h"
 #include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/DNA2Interaction.h"
-//#include "../Interactions/DNA2withRNA2Interaction.h"
+#include "../Interactions/DRHInteraction.h"
 
 #include <set>
 #include <sstream>
@@ -194,7 +194,6 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 	ok_interactions.push_back("RNA");
 	ok_interactions.push_back("RNA2");
 	ok_interactions.push_back("DRH");
-	//ok_interactions.push_back("DNA2withRNA2");
 	if(getInputString(&inp, "interaction_type", inter, 0) == KEY_FOUND) {
 		// std::find points is equal to ok_interactions.end() if it can't find inter in ok_interactions.
 		if(std::find(ok_interactions.begin(), ok_interactions.end(), inter) == ok_interactions.end()) {
@@ -438,9 +437,9 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	else if(dynamic_cast<RNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
 	}
-	//else if(dynamic_cast<DNA2withRNA2Interaction *>(_interaction.get()) != NULL) {
-	//	energy += _interaction->pair_interaction_term(DNA2withRNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
-	//}
+	else if(dynamic_cast<DRHInteraction *>(_interaction.get()) != NULL) {
+		energy += _interaction->pair_interaction_term(DRHInteraction::DEBYE_HUCKEL, p, q, false, false);
+	}
 
 	return energy;
 }

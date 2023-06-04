@@ -18,6 +18,9 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
 	ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 	ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
 
+	DNA2Interaction::_drh_interaction = true;
+	RNA2Interaction::_drh_interaction = true;
+
 	//Hybrid
 	F1_A[0] = DRH_HYDR_A;
 	F1_RC[0] = DRH_HYDR_RC;
@@ -168,6 +171,8 @@ void DRHInteraction::get_settings(input_file &inp) {
 	DNA2Interaction::get_settings(inp);
 
 	//getInputString(&inp, "nucleotide_types", _nucleotide_types, 1);
+
+	//ADD SOMETHING TO OVERWRITE SEQ_DEP_FILE FOR DNA AND RNA
 
 	if(!DNA2Interaction::_average) {
 		getInputString(&inp, "seq_dep_file_DRH", _seq_filename, 1);

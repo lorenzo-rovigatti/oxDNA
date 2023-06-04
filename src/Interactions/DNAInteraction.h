@@ -14,6 +14,10 @@
 
 class DNAInteraction : virtual public BaseInteraction {
 protected:
+	//used to distinguish between sequence dependent filename keys in the DRH interaction
+	//false be default
+	bool _drh_interaction;
+
 	bool _average;
 	std::string _seq_filename;
 	number _T;
