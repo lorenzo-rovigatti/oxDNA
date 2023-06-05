@@ -16,6 +16,9 @@
 class CCGInteraction: public BaseInteraction {
 protected:
 public:
+	enum {
+		CCG = 0
+	};
 	int version,totPar,strands,ccg,ccg0,noSpring,noColor ;// Header Information
 	int currentVersion = 1; // Don't forget to update the version number
 	int particleType,color,neighbour,bfactor; //Body parameters particleType,particleName,...
@@ -32,6 +35,14 @@ public:
 	CCGInteraction();
 	virtual ~CCGInteraction();
 
+	number ccg_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false){
+		OX_DEBUG("Bonded interaction is called");
+		number energy =0.f;
+		// energy += spring(p,q,compute_r,update_forces);
+		// energy+=exc_vol(p,q,compute_r,update_forces);
+		energy+=25;
+		return energy;
+	};
 	// Necessary interaction
     virtual void get_settings(input_file &inp);
 	virtual void init();
