@@ -27,6 +27,12 @@ OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the p
 OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
 
+if(DEFINED PYTHON)
+	set(Python ${PYTHON})
+elseif(DEFINED python)
+	set(Python ${python})
+endif()
+
 # these operations have to be performed before PROJECT(oxDNA) or we will have problems at linking time
 if(INTEL)
 	FIND_PROGRAM(CMAKE_C_COMPILER NAMES icc)
