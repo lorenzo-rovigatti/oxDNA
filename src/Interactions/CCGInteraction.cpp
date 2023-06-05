@@ -98,6 +98,20 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 				q->force-=force;
 			}
 		}
+		//Locking algo; don't forgot to look into color compatibility and particle definition as well
+		// auto *pCG = static_cast<CCGParticle*>(p);
+		// auto *qCG = static_cast<CCGParticle*>(q);
+
+		// if(update_forces && !pCG->multipatch && !qCG->multipatch){
+		// 	if(energy<lockCutOff){
+		// 		pCG->lockedTo = qCG->index;
+		// 		qCG->lockedTo = pCG->index;
+		// 	}
+		// 	else{
+		// 		pCG->lockedTo=0;
+		// 		qCG->lockedTo=0;
+		// 	}
+		// }
 	}
 	return energy;
 }
@@ -135,9 +149,11 @@ double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,
 }
 
 bool CCGInteraction::color_compatibility(BaseParticle *p, BaseParticle *q){
+	// auto *pCCG = static_cast<CCGParticle*>(p);
 	if(this->strength==0) return false; //Prevent any further calculations if strength of p =0
-	if(abs(p->btype)==100 || abs(q->btype)==100) return false; //100 and -100 are colorless particles 
-
+	if(abs(p->btype)==100 || abs(q->btype)==100) return false; //100 and -100 are colorless particles
+	// if(pCCG->lockedTo==q->btype) return true;
+	// if(pCCG->lockedTo!=0) return false;
 	if(abs(p->btype)<10 && abs(q->type)<10){ //self-complementary domain 1 interact with 1 and so on till 9
 		if(p->type==q->type){
 			return true;
