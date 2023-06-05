@@ -44,18 +44,20 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	this->r=_computed_r;
 	this->rmod=r.module();
-	if(pCG->has_bond(q)){
-		return pair_interaction_bonded(p,q,compute_r,update_forces);
-	}else{
-		this->strength=pCG->strength;
-		return pair_interaction_nonbonded(p,q,compute_r,update_forces);
-	}
+	OX_DEBUG("Pair interaction is being called");
+	// if(pCG->has_bond(q)){
+	// 	return pair_interaction_bonded(p,q,compute_r,update_forces);
+	// }else{
+	// 	this->strength=pCG->strength;
+	// 	return pair_interaction_nonbonded(p,q,compute_r,update_forces);
+	// }
+	return 5.f;
 }
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	OX_DEBUG("Bonded interaction is called");
 	number energy =0.f;
-	energy = spring(p,q,compute_r,update_forces);
+	energy += spring(p,q,compute_r,update_forces);
 	energy+=exc_vol(p,q,compute_r,update_forces);
 	return energy;
 }
@@ -63,7 +65,7 @@ number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	OX_DEBUG("Nonbonded interaction is called");
 	number energy =0.f;
-	energy = exc_vol(p,q,compute_r,update_forces);
+	energy += exc_vol(p,q,compute_r,update_forces);
 	energy+= patchy_interaction(p,q,compute_r,update_forces);
 	return energy;
 }

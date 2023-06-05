@@ -21,7 +21,7 @@ T = 20C
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
-steps = 1
+steps = 1000
 
 ### MD PARAMS ###
 dt = 0.002
