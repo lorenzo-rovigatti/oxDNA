@@ -8,6 +8,7 @@ CCGParticle::CCGParticle():BaseParticle(){
     Bfactor={};
     ro={};
     strength=1.f;
+    lockedTo=0; // patchy particle with index 0 should not exists
 }
 
 CCGParticle::~CCGParticle(){
