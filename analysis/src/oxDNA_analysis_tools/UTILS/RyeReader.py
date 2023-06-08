@@ -365,6 +365,7 @@ def strand_describe(top:str) -> Tuple[System, list]:
         s.monomers = monomers[s_start:mid]
         if s[0].n3 == s[-1].id:
             s.circular = True
+        s.set_old(True)
         strands.append(s)
         system = System(top_file=abspath(top_file), strands=strands)
 
