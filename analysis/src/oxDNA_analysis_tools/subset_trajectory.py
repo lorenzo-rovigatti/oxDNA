@@ -41,7 +41,7 @@ def write_topologies(system:System, indexes:List[List[int]], outfiles:List[str],
 
     return top_names
 
-def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[List[int]], outfiles:List[str], ncpus=1, old_format=False):
+def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[List[int]], outfiles:List[str], ncpus=1):
     """
         Splits a trajectory into multiple trajectories, each containing a subset of the particles in the original configuration.
 
@@ -70,7 +70,7 @@ def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[Lis
         f.close()
 
     # Write topology files
-    top_names = write_topologies(system, indexes, outfiles, old_format)
+    top_names = write_topologies(system, indexes, outfiles, system.strands[0].is_old())
 
     print("INFO: Wrote trajectories: {}".format(dat_names), file=stderr)
     print("INFO: Wrote topologies: {}".format(top_names), file=stderr)
@@ -112,9 +112,7 @@ def main():
     else:
         ncpus = 1
 
-    old_format = args.old_format
-
-    subset(traj_info, top_info, system, indexes, outfiles, ncpus, old_format)
+    subset(traj_info, top_info, system, indexes, outfiles, ncpus)
 
 if __name__ == '__main__':
     main()
