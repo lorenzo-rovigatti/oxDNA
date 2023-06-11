@@ -15,6 +15,7 @@ public:
     virtual bool has_bond(BaseParticle *p);
     virtual double return_bfactor(int particleIndex);
     virtual void return_kro(int particleIndex,double *k,double *r0);//return both k and r0 as pointer.
+    virtual void add_neighbour(BaseParticle *n); //to add neighbours, affected from base paricle is necessary to call bonded function.
     std::vector<int> spring_neighbours;
     std::vector<double>Bfactor,ro;
     double radius,strength=1.0f;

@@ -3,7 +3,9 @@
 
 CCGInteraction::CCGInteraction() :
 				BaseInteraction() {
-	ADD_INTERACTION_TO_MAP(CCG, ccg_interaction_bonded);
+	ADD_INTERACTION_TO_MAP(SPRING,spring);
+	ADD_INTERACTION_TO_MAP(EXEVOL,exc_vol);
+	ADD_INTERACTION_TO_MAP(PATCHY,patchy_interaction);
 }
 
 CCGInteraction::~CCGInteraction() {
@@ -30,6 +32,14 @@ void CCGInteraction::get_settings(input_file &inp) {
 		patchyRcut =stod(temp);
 		OX_LOG(Logger::LOG_INFO,"New cutoff value for the patchy interaction = %d",patchyRcut);
 	}
+	if(getInputString(&inp,"rcut",temp,0)==KEY_FOUND){
+		_rcut=stod(temp);
+		_sqr_rcut = SQR(_rcut);
+		OX_LOG(Logger::LOG_INFO,"New interaction radius cutoff = %d",_rcut);
+	}else{
+		_rcut= 1.2;
+		_sqr_rcut=SQR(_rcut);
+	}
 }
 
 void CCGInteraction::init() {
@@ -49,25 +59,26 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 	this->r=_computed_r;
 	this->rmod=r.module();
 	OX_DEBUG("Pair interaction is being called");
-	// if(pCG->has_bond(q)){
-	// 	return pair_interaction_bonded(p,q,compute_r,update_forces);
-	// }else{
-	// 	this->strength=pCG->strength;
-	// 	return pair_interaction_nonbonded(p,q,compute_r,update_forces);
-	// }
-	return ccg_interaction_bonded(p,q,compute_r,update_forces);
+	if(pCG->has_bond(q)){
+		return pair_interaction_bonded(p,q,compute_r,update_forces);
+	}else{
+		this->strength=pCG->strength;
+		return pair_interaction_nonbonded(p,q,compute_r,update_forces);
+	}
 }
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	return ccg_interaction_bonded(p,q,compute_r,update_forces);
+	OX_DEBUG("Bonded interaction is called");
+	// number energy = spring(p,q,compute_r,update_forces);
+	// energy+=exc_vol(p,q,compute_r,update_forces);
+	return 10.f;
 }
 
 number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	OX_DEBUG("Nonbonded interaction is called");
-	// number energy =0.f;
-	// energy += exc_vol(p,q,compute_r,update_forces);
+	// number energy = exc_vol(p,q,compute_r,update_forces);
 	// energy+= patchy_interaction(p,q,compute_r,update_forces);
-	return ccg_interaction_bonded(p,q,compute_r,update_forces);
+	return 5.f;
 }
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
@@ -217,7 +228,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 				q->radius=std::stoi(temp); //radius of the particle
 			}else{
 				if(connection){
-					q->spring_neighbours.push_back(std::stoi(temp)); //all connected particle
+					q->add_neighbour(particles[std::stoi(temp)]); //all connected particle
 					connection=false;
 				}else if(bcall){
 					q->Bfactor.push_back(std::stod(temp)); //connected particle Bfactor

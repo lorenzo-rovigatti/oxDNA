@@ -25,9 +25,11 @@ public:
 	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0;//color parameters
 	double Bfactor,strength =1.0,rmod;
 	LR_vector r; //temporary parameters.
-	// enum {
-	// 	PATCHY = 4
-	// };
+	enum {
+		SPRING =1,
+		EXEVOL=2,
+		PATCHY=3
+	};
 	int i,j;
 	std::string temp;
 	bool connection,bcall; // connection shifts between adding spring neighbours and Bfactor during reading of the topology file
@@ -38,8 +40,7 @@ public:
 	number ccg_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false){
 		OX_DEBUG("Bonded interaction is called");
 		number energy =0.f;
-		// energy += spring(p,q,compute_r,update_forces);
-		// energy+=exc_vol(p,q,compute_r,update_forces);
+		
 		energy+=25;
 		return energy;
 	};

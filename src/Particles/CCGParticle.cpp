@@ -16,6 +16,17 @@ CCGParticle::~CCGParticle(){
     
 }
 
+void CCGParticle::add_neighbour(BaseParticle *p){
+    if(!has_bond(p)){
+        auto *CCGp = static_cast<CCGParticle*>(p);
+        spring_neighbours.push_back(p->index);
+        CCGp->spring_neighbours.push_back(this->index);
+        ParticlePair pair(this,p);
+        this->affected.push_back(pair);
+        p->affected.push_back(pair);
+    }
+}
+
 bool CCGParticle::has_bond(BaseParticle *p){
     if(std::find(spring_neighbours.begin(),spring_neighbours.end(),p->index)!=spring_neighbours.end()){
         return true;
