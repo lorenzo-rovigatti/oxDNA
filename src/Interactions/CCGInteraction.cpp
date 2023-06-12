@@ -37,7 +37,7 @@ void CCGInteraction::get_settings(input_file &inp) {
 		_sqr_rcut = SQR(_rcut);
 		OX_LOG(Logger::LOG_INFO,"New interaction radius cutoff = %d",_rcut);
 	}else{
-		_rcut= 1.2;
+		_rcut= 0;
 		_sqr_rcut=SQR(_rcut);
 	}
 }
@@ -51,6 +51,8 @@ void CCGInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	particles.resize(totPar);//Confirming the particles vector has size to accomodate all the particles.
 	for(i=0;i<totPar;i++){
 		particles[i] = new CCGParticle();
+		particles[i]->index=i;
+		particles[i]->type=0;
 	}
 }
 
@@ -58,7 +60,7 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	this->r=_computed_r;
 	this->rmod=r.module();
-	OX_DEBUG("Pair interaction is being called");
+	// OX_DEBUG("Pair interaction is being called");
 	if(pCG->has_bond(q)){
 		return pair_interaction_bonded(p,q,compute_r,update_forces);
 	}else{
@@ -68,17 +70,19 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 }
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	OX_DEBUG("Bonded interaction is called");
-	// number energy = spring(p,q,compute_r,update_forces);
+	// OX_DEBUG("Bonded interaction is called");
+	this->r=_computed_r;
+	this->rmod=r.module();
+	number energy = spring(p,q,compute_r,update_forces);
 	// energy+=exc_vol(p,q,compute_r,update_forces);
-	return 10.f;
+	return energy;
 }
 
 number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	OX_DEBUG("Nonbonded interaction is called");
+	// OX_DEBUG("Nonbonded interaction is called");
 	// number energy = exc_vol(p,q,compute_r,update_forces);
 	// energy+= patchy_interaction(p,q,compute_r,update_forces);
-	return 5.f;
+	return 0;
 }
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
@@ -87,11 +91,12 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	pCG->return_kro(q->index,&k,&r0);
 	number dist=rmod-r0; // Distance between the particles - equilibrium distance
 	number energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2
-	if(update_forces){
-		LR_vector force = (-1.f*k*_computed_r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
-		p->force-= force;//substract force from p
-		q->force+= force;//add force to q
-	}
+	// OX_DEBUG("Stiffness = %d and r0 = %d",k,r0);
+	// if(update_forces){
+	// 	LR_vector force = (-1.f*k*_computed_r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
+	// 	p->force-= force;//substract force from p
+	// 	q->force+= force;//add force to q
+	// }
 	return energy;
 }
 
@@ -167,13 +172,13 @@ bool CCGInteraction::color_compatibility(BaseParticle *p, BaseParticle *q){
 	if(abs(p->btype)==100 || abs(q->btype)==100) return false; //100 and -100 are colorless particles
 	// if(pCCG->lockedTo==q->btype) return true;
 	// if(pCCG->lockedTo!=0) return false;
-	if(abs(p->btype)<10 && abs(q->type)<10){ //self-complementary domain 1 interact with 1 and so on till 9
-		if(p->type==q->type){
+	if(abs(p->btype)<10 && abs(q->btype)<10){ //self-complementary domain 1 interact with 1 and so on till 9
+		if(p->btype==q->btype){
 			return true;
 		}else{
 			return false;
 		}
-	}else if(p->btype+q->type ==0){ //only -5 interact with +5 
+	}else if(p->btype+q->btype ==0){ //only -5 interact with +5 
 		return true;
 	}else{
 		return false;
@@ -214,33 +219,58 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 		auto *q = dynamic_cast< CCGParticle *>(particles[i]);
 		std::stringstream body(line);
 		j=0;
-		connection=true;
-		bcall=true;
+		// connection=true;
+		// bcall=true;
 		while(body.tellg()!=-1){
 			body>>temp;
 			if(j==0){
 				particleType=std::stoi(temp); // particle type = -2 for future references
 			}else if(j==1){
-				particles[i]->type=std::stoi(temp); // id of the particle
+				particles[i]->strand_id=std::stoi(temp); // id of the particle
 			}else if(j==2){
 				particles[i]->btype=std::stoi(temp); //color of the particle
 			}else if(j==3){
 				q->radius=std::stoi(temp); //radius of the particle
 			}else{
-				if(connection){
-					q->add_neighbour(particles[std::stoi(temp)]); //all connected particle
-					connection=false;
-				}else if(bcall){
-					q->Bfactor.push_back(std::stod(temp)); //connected particle Bfactor
-					bcall=false;
-				}else{
-					q->ro.push_back(std::stod(temp)); //connected particle equilibrium spring distance r0
-					connection=true;
-					bcall=true;
-				};
+				// if(connection){
+				// 	q->add_neighbour(particles[std::stoi(temp)]); //all connected particle
+				// 	connection=false;
+				// }else if(bcall){
+				// 	q->Bfactor.push_back(std::stod(temp)); //connected particle Bfactor
+				// 	bcall=false;
+				// }else{
+				// 	q->ro.push_back(std::stod(temp)); //connected particle equilibrium spring distance r0
+				// 	connection=true;
+				// 	bcall=true;
+				// };
+				int connection = std::stoi(temp);
+				body>>temp;
+				double bfact = std::stod(temp);
+				body>>temp;
+				double tempro = std::stod(temp);
+				q->add_neighbour(particles[connection],bfact,tempro);
 			}
 			j++;
 		}
+		// OX_DEBUG("Neighbours for %d is %d and %d",q->index,q->ro[0],q->ro[1]);
+		// std::cout << "Spring Neighbours \n";
+		// for(int p=0;p<q->spring_neighbours.size();p++){
+		// 	std::cout <<q->index<<"\t"<<q->spring_neighbours[p]<<"\n";
+		// }
+
+		// std::cout<< "Stiffness \n";
+		// for(int p=0;p<q->Bfactor.size();p++){
+		// 	std::cout<< q->index<<"\t"<<q->Bfactor[p]<<"\n";
+		// }
+
+		// std::cout<<"Mean distance \n";
+		// for(int p=0; p<q->ro.size();p++){
+		// 	std::cout<<q->index<<"\t"<<q->ro[p]<<"\n";
+		// }
+		
+		// std::cout<< " Color of the particles: " << q->btype<<std::endl;
+
+
 		particles[i]->btype=color; //btype is used for coloring
 		if(i==0)
 			OX_LOG(Logger::LOG_INFO, "One loop successfully completed");

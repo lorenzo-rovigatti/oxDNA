@@ -16,16 +16,23 @@ CCGParticle::~CCGParticle(){
     
 }
 
-void CCGParticle::add_neighbour(BaseParticle *p){
-    if(!has_bond(p)){
-        auto *CCGp = static_cast<CCGParticle*>(p);
-        spring_neighbours.push_back(p->index);
-        CCGp->spring_neighbours.push_back(this->index);
-        ParticlePair pair(this,p);
-        this->affected.push_back(pair);
-        p->affected.push_back(pair);
+void CCGParticle::add_neighbour(BaseParticle *nn,double bfact, double tempro){
+    if(!has_bond(nn)){
+        auto *Cq = dynamic_cast<CCGParticle *>(nn);
+        spring_neighbours.push_back(Cq->index);
+        Bfactor.push_back(bfact);
+        ro.push_back(tempro);
+        Cq->spring_neighbours.push_back(index);
+        Cq->Bfactor.push_back(bfact);
+        Cq->ro.push_back(tempro);
+
+        ParticlePair newPair(this,nn);
+        affected.push_back(newPair);
+        nn->affected.push_back(newPair);
     }
 }
+
+// void CCGParticle::add_Bfactor()
 
 bool CCGParticle::has_bond(BaseParticle *p){
     if(std::find(spring_neighbours.begin(),spring_neighbours.end(),p->index)!=spring_neighbours.end()){
