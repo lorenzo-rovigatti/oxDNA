@@ -58,9 +58,6 @@ void CCGInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 
 number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
-	// this->r=_computed_r;
-	// this->rmod=r.module();
-	// OX_DEBUG("Pair interaction is being called");
 	if(pCG->has_bond(q)){
 		return pair_interaction_bonded(p,q,compute_r,update_forces);
 	}else{
@@ -71,8 +68,11 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	// OX_DEBUG("Bonded interaction is called");
-	this->r=_computed_r;
-	this->rmod=r.module();
+	if(update_forces){
+		_computed_r = _box->min_image(p->pos,q->pos);
+	}
+	r=_computed_r; //remove this later
+	this->rmod=_computed_r.module();
 	number energy = spring(p,q,compute_r,update_forces);
 	// number energy = debug(p,q,compute_r,update_forces);
 	// energy+=exc_vol(p,q,compute_r,update_forces);
@@ -87,9 +87,9 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 }
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
-	r=_computed_r;
-	rmod=r.module();
-	std::cout <<rmod<<std::endl;
+	// r=_computed_r;
+	// rmod=r.module();
+	// std::cout <<p->index<<"\t"<<q->index<<"\t"<<p->pos<<"\t"<<q->pos<<"\t"<<_computed_r<<"\t"<<_box->min_image(p,q)<<std::endl;
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	double k,r0;
 	pCG->return_kro(q->index,&k,&r0);
@@ -98,10 +98,10 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	double energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2
 	// OX_DEBUG("For particle %d and %d Stiffness = %d and r0 = %d",p->index,q->index,k,r0);
 	if(update_forces){
-		LR_vector force = (-k*r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
+		LR_vector force = (-k*_computed_r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
 		// std::cout<< p->index << "\t"<<q->index<<"\t k="<<k<<"\t dist="<<dist<<"\t rmod = "<<rmod<<"\t force = "<<force.x<<","<<force.y<<","<<force.z<<"\n";
-		// p->force-= force;//substract force from p
-		// q->force+= force;//add force to q
+		p->force-= force;//substract force from p
+		q->force+= force;//add force to q
 	}
 	return energy;
 }

@@ -21,7 +21,7 @@ T = 20C
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
-steps = 1
+steps = 1e5
 
 ### MD PARAMS ###
 dt = 0.002
@@ -53,6 +53,6 @@ log_file = log.ign
 no_stdout_energy = 0
 restart_step_counter = 1
 energy_file = energy.ign
-print_conf_interval = 1
-print_energy_every = 1
+print_conf_interval = 100
+print_energy_every = 100
 time_scale = linear
