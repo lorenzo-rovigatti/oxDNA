@@ -37,7 +37,7 @@ void CCGInteraction::get_settings(input_file &inp) {
 		_sqr_rcut = SQR(_rcut);
 		OX_LOG(Logger::LOG_INFO,"New interaction radius cutoff = %d",_rcut);
 	}else{
-		_rcut= 0;
+		_rcut= 1.2;
 		_sqr_rcut=SQR(_rcut);
 	}
 }
@@ -58,8 +58,8 @@ void CCGInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 
 number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
-	this->r=_computed_r;
-	this->rmod=r.module();
+	// this->r=_computed_r;
+	// this->rmod=r.module();
 	// OX_DEBUG("Pair interaction is being called");
 	if(pCG->has_bond(q)){
 		return pair_interaction_bonded(p,q,compute_r,update_forces);
@@ -74,6 +74,7 @@ number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	this->r=_computed_r;
 	this->rmod=r.module();
 	number energy = spring(p,q,compute_r,update_forces);
+	// number energy = debug(p,q,compute_r,update_forces);
 	// energy+=exc_vol(p,q,compute_r,update_forces);
 	return energy;
 }
@@ -86,18 +87,32 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 }
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+	r=_computed_r;
+	rmod=r.module();
+	std::cout <<rmod<<std::endl;
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	double k,r0;
 	pCG->return_kro(q->index,&k,&r0);
-	number dist=rmod-r0; // Distance between the particles - equilibrium distance
-	number energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2
-	// OX_DEBUG("Stiffness = %d and r0 = %d",k,r0);
-	// if(update_forces){
-	// 	LR_vector force = (-1.f*k*_computed_r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
-	// 	p->force-= force;//substract force from p
-	// 	q->force+= force;//add force to q
-	// }
+	// std::cout<< p->index <<"\t"<<q->index<<"\t"<<k<<"\t"<<r0<<"\n";
+	double dist=rmod-r0; // Distance between the particles - equilibrium distance
+	double energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2
+	// OX_DEBUG("For particle %d and %d Stiffness = %d and r0 = %d",p->index,q->index,k,r0);
+	if(update_forces){
+		LR_vector force = (-k*r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
+		// std::cout<< p->index << "\t"<<q->index<<"\t k="<<k<<"\t dist="<<dist<<"\t rmod = "<<rmod<<"\t force = "<<force.x<<","<<force.y<<","<<force.z<<"\n";
+		// p->force-= force;//substract force from p
+		// q->force+= force;//add force to q
+	}
 	return energy;
+}
+
+number CCGInteraction::debug(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
+	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	// pCG->return_bfactor(q->index);
+	double k,r0;
+	pCG->return_kro(q->index,&k,&r0);
+	std::cout<< p->index <<"\t"<<q->index<<"\t"<<k<<"\t"<<r0<<"\n";
+	return 0.f;
 }
 
 number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){

@@ -45,8 +45,10 @@ bool CCGParticle::has_bond(BaseParticle *p){
 double CCGParticle::return_bfactor(int particleIndex){
     std::vector<int>::iterator itr = std::find(spring_neighbours.begin(), spring_neighbours.end(), particleIndex);
     if(itr!=spring_neighbours.cend()){
+        // std::cout << index << "\t"<< particleIndex<<"\t"<<(double) Bfactor[std::distance(spring_neighbours.begin(),itr)]<<"\n";
         return Bfactor[std::distance(spring_neighbours.begin(),itr)];
     }else{
+        std::cout<<"error \n";
         return 0.f;
     }
 }
@@ -54,9 +56,10 @@ double CCGParticle::return_bfactor(int particleIndex){
 void CCGParticle::return_kro(int particleIndex,double *k,double *r0){
     std::vector<int>::iterator itr = std::find(spring_neighbours.begin(), spring_neighbours.end(), particleIndex);
     if(itr!=spring_neighbours.cend()){
-        int jindex = std::distance(spring_neighbours.begin(),itr);
-        *k = 1.0/Bfactor[jindex];
-        *r0 = ro[jindex];
+        int jindex = (int)std::distance(spring_neighbours.begin(),itr);
+        *k = (double)1.0/Bfactor[jindex];
+        *r0 = (double)ro[jindex];
+        // std::cout<<index<<"\t"<<particleIndex<<"\t"<<*k<<"\t"<<*r0<<"\n";
     }else{
         *k=0;*r0=0;
     }
