@@ -213,14 +213,14 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 	topology.getline(line,2048); //Read the header from the topology file
 	std::stringstream head(line);
 
-	head >> version >> totPar>>strands>>ccg>>ccg0>>noSpring>>noColor; //Saving header info
+	head>> totPar>>strands>>ccg>>ccg0>>noSpring>>noColor; //Saving header info
 	if(ccg+ccg0 !=totPar) throw oxDNAException("Number of Colored + Color less particles is not equal to total Particles. Insanity caught in the header.");
 	allocate_particles(particles);
 	if(head.fail())
 		throw oxDNAException("Please check the header, there seems to be something out of ordinary.");
 	
-	if(version<currentVersion)
-		throw oxDNAException("Seems like the version of the file is an old one. Try looking into the documentation to upgrade it to newer one.");
+	// if(version<currentVersion)
+	// 	throw oxDNAException("Seems like the version of the file is an old one. Try looking into the documentation to upgrade it to newer one.");
 	i=0,color=0;
 	while(topology.getline(line,2048)){ //Read till the end of file.
 		if (strlen(line)==0 || line[0]=='#') //Ignore empty line or line starting with # for comment
