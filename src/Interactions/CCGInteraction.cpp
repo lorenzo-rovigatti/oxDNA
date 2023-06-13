@@ -67,39 +67,30 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 }
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	// OX_DEBUG("Bonded interaction is called");
+	// updating _computed_r is necessary.
 	if(update_forces){
-		_computed_r = _box->min_image(p->pos,q->pos);
+		_computed_r = _box->min_image(p->pos,q->pos); // calculate the minimum distance between p and q in preodic boundary
 	}
-	r=_computed_r; //remove this later
 	this->rmod=_computed_r.module();
 	number energy = spring(p,q,compute_r,update_forces);
-	// number energy = debug(p,q,compute_r,update_forces);
-	// energy+=exc_vol(p,q,compute_r,update_forces);
+	energy+=exc_vol(p,q,compute_r,update_forces);
 	return energy;
 }
 
 number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	// OX_DEBUG("Nonbonded interaction is called");
-	// number energy = exc_vol(p,q,compute_r,update_forces);
-	// energy+= patchy_interaction(p,q,compute_r,update_forces);
+	// number energy = patchy_interaction(p,q,compute_r,update_forces);
+	// energy += exc_vol(p,q,compute_r,update_forces);
 	return 0;
 }
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
-	// r=_computed_r;
-	// rmod=r.module();
-	// std::cout <<p->index<<"\t"<<q->index<<"\t"<<p->pos<<"\t"<<q->pos<<"\t"<<_computed_r<<"\t"<<_box->min_image(p,q)<<std::endl;
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	double k,r0;
 	pCG->return_kro(q->index,&k,&r0);
-	// std::cout<< p->index <<"\t"<<q->index<<"\t"<<k<<"\t"<<r0<<"\n";
 	double dist=rmod-r0; // Distance between the particles - equilibrium distance
 	double energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2
-	// OX_DEBUG("For particle %d and %d Stiffness = %d and r0 = %d",p->index,q->index,k,r0);
 	if(update_forces){
 		LR_vector force = (-k*_computed_r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
-		// std::cout<< p->index << "\t"<<q->index<<"\t k="<<k<<"\t dist="<<dist<<"\t rmod = "<<rmod<<"\t force = "<<force.x<<","<<force.y<<","<<force.z<<"\n";
 		p->force-= force;//substract force from p
 		q->force+= force;//add force to q
 	}
@@ -148,37 +139,63 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 	}
 	return energy;
 }
+//Old exc_vol
 
 double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+	if(update_forces) _computed_r = _box->min_image(p->pos,q->pos);
+	number rnorm = SQR(_computed_r.x) + SQR(_computed_r.y) + SQR(_computed_r.z);
 	auto *pCCG = static_cast<CCGParticle*>(p);
 	auto *qCCG = static_cast<CCGParticle*>(q);
 	double totalRadius = pCCG->radius+qCCG->radius;
-	double sig= sigma*totalRadius;
-	double rs = rstar*totalRadius;
-	double bs = b/totalRadius;
-	double rcs = rc*totalRadius;
-	// double rmod = r.module();
-	double energy = 0.f;
-	if(rmod<rs){
-		double factor = SQR(sig/rmod);
-		double tmp = factor*factor*factor;
-		energy=4*epsilon*(SQR(tmp)-tmp);
-		if(update_forces){
-			LR_vector force = -_computed_r*(24*epsilon*(tmp-2*SQR(tmp))/rmod);
-			p->force-=force;
-			q->force+=force;
+	double sigma=totalRadius*patchySigma;
+	double rstar=totalRadius*patchyRstar;
+	double b = patchyB/totalRadius;
+	double rc = patchyRc*totalRadius;
+	number energy =0;
+	LR_vector force;
+	if(rnorm < SQR(rc)) {
+		if(rnorm > SQR(rstar)) {
+			number rmo = sqrt(rnorm);
+			number rrc = rmo - rc;
+			energy = patchyEpsilon * b * SQR(rrc);
+			if(update_forces) force = -r * (2 * patchyEpsilon * b * rrc / rmo);
 		}
-	}else if (rmod<rcs){
-		double rrc = rmod-rcs;
-		energy=epsilon*b*SQR(rrc);
-		if(update_forces){
-			LR_vector force = -_computed_r*(2*epsilon*bs*rrc/rmod);
-			p->force-=force;
-			q->force+=force;
+		else {
+			number tmp = SQR(sigma) / rnorm;
+			number lj_part = tmp * tmp * tmp;
+			energy = 4 * patchyEpsilon * (SQR(lj_part) - lj_part);
+			if(update_forces) force = -r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) / rnorm);
 		}
 	}
 
+	if(update_forces && energy == (number) 0) force.x = force.y = force.z = (number) 0;
+
+	if(update_forces){
+		p->force+=force;
+		q->force-=force;
+	}
 	return energy;
+// 	double rcs = rc*totalRadius;
+// 	double energy = 0.f;
+// 	if(rmod<rs){
+// 		double factor = SQR(sig/rmod);
+// 		double tmp = factor*factor*factor;
+// 		energy=4*epsilon*(SQR(tmp)-tmp);
+// 		if(update_forces){
+// 			LR_vector force = -_computed_r*(24*epsilon*(tmp-2*SQR(tmp))/rmod);
+// 			p->force-=force;
+// 			q->force+=force;
+// 		}
+// 	}else if (rmod<rcs){
+// 		double rrc = rmod-rcs;
+// 		energy=epsilon*b*SQR(rrc);
+// 		if(update_forces){
+// 			LR_vector force = -_computed_r*(2*epsilon*bs*rrc/rmod);
+// 			p->force-=force;
+// 			q->force+=force;
+// 		}
+// 	}
+
 }
 
 bool CCGInteraction::color_compatibility(BaseParticle *p, BaseParticle *q){
