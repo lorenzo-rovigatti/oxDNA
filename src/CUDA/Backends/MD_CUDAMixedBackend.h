@@ -41,7 +41,8 @@ protected:
 	virtual void _first_step();
 	virtual void _forces_second_step();
 
-	virtual void _thermalize();
+	void _thermalize() override;
+	void _update_stress_tensor() override;
 
 public:
 	CUDAMixedBackend();
