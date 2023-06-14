@@ -21,7 +21,7 @@ T = 20C
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
-steps = 1e5
+steps = 1e4
 
 ### MD PARAMS ###
 dt = 0.002
@@ -47,7 +47,7 @@ ensemble = NVT
 #parfile = replica.par
 topology = ccg.top
 conf_file = ccg.dat
-trajectory_file = trajectory.ign
+trajectory_file = trajectory.dat
 lastconf_file=last_conf.ign
 log_file = log.ign
 no_stdout_energy = 0

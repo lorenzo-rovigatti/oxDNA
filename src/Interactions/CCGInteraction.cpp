@@ -37,7 +37,7 @@ void CCGInteraction::get_settings(input_file &inp) {
 		_sqr_rcut = SQR(_rcut);
 		OX_LOG(Logger::LOG_INFO,"New interaction radius cutoff = %d",_rcut);
 	}else{
-		_rcut= 1.2;
+		_rcut= 50;
 		_sqr_rcut=SQR(_rcut);
 	}
 }
@@ -67,23 +67,29 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 }
 
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	// updating _computed_r is necessary.
-	if(update_forces){
-		_computed_r = _box->min_image(p->pos,q->pos); // calculate the minimum distance between p and q in preodic boundary
-	}
-	this->rmod=_computed_r.module();
-	number energy = spring(p,q,compute_r,update_forces);
-	energy+=exc_vol(p,q,compute_r,update_forces);
+	number energy=0;
+	energy += spring(p,q,compute_r,update_forces);
+	// energy+=exc_vol(p,q,compute_r,update_forces);
 	return energy;
 }
 
 number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	// number energy = patchy_interaction(p,q,compute_r,update_forces);
-	// energy += exc_vol(p,q,compute_r,update_forces);
-	return 0;
+	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	number energy=0;
+	if(!pCG->has_bond(q)){
+		// energy += exc_vol(p,q,compute_r,update_forces);
+		energy += patchy_interaction(p,q,compute_r,update_forces);
+	}
+	// OX_DEBUG("This function is being called");
+	return energy;
 }
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+	// updating _computed_r is necessary.
+	if(update_forces){ 
+		_computed_r = _box->min_image(p->pos,q->pos);
+		rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
+	} 
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	double k,r0;
 	pCG->return_kro(q->index,&k,&r0);
@@ -107,17 +113,24 @@ number CCGInteraction::debug(BaseParticle *p, BaseParticle *q, bool compute_r, b
 }
 
 number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+	auto *pCG = static_cast<CCGParticle*>(p);
+	auto *qCG = static_cast<CCGParticle*>(q);
 	number energy =0.f;
+	if(update_forces) {
+		_computed_r = _box->min_image(p->pos,q->pos);
+		rmod = _computed_r.module();
+	}
+	double dist = rmod-pCG->radius-qCG->radius;
 	if(color_compatibility(p,q)){
 		// double r2 = SQR(r.x)+SQR(r.y)+SQR(r.z); //r^2
-		if(rmod<patchyCutoff){
-			double r8b10 = pow(rmod,8)/pow(patchyAlpha,10);
-			double expPart = -1.001*exp(-0.5*r8b10*rmod*rmod);
-			energy=strength*(expPart-patchyCutoff); //patchy interaction potential
+		if(dist<patchyCutoff){ //effective distance for my case should be small
+			double r8b10 = pow(dist,8)/pow(patchyAlpha,10);
+			double expPart = -1.001*exp(-0.5*r8b10*dist*dist);
+			energy=strength*(expPart-patchyEcutoff); //patchy interaction potential
 
 			if(update_forces){
-				double f1D = 5 * expPart * r8b10;
-				LR_vector force = r*f1D;
+				double f1D = 5.0 * expPart * r8b10;
+				LR_vector force = _computed_r*dist/rmod*f1D;
 				p->force+=force;
 				q->force-=force;
 			}
@@ -143,7 +156,7 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 
 double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
 	if(update_forces) _computed_r = _box->min_image(p->pos,q->pos);
-	number rnorm = SQR(_computed_r.x) + SQR(_computed_r.y) + SQR(_computed_r.z);
+	double rnorm = SQR(_computed_r.x) + SQR(_computed_r.y) + SQR(_computed_r.z);
 	auto *pCCG = static_cast<CCGParticle*>(p);
 	auto *qCCG = static_cast<CCGParticle*>(q);
 	double totalRadius = pCCG->radius+qCCG->radius;
@@ -151,29 +164,33 @@ double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,
 	double rstar=totalRadius*patchyRstar;
 	double b = patchyB/totalRadius;
 	double rc = patchyRc*totalRadius;
-	number energy =0;
+	double energy =0;
+	// std::cout <<p->index<<"\t"<<q->index<<"\t"<<rnorm<<"\t"<<SQR(rc)<<"\n";
 	LR_vector force;
 	if(rnorm < SQR(rc)) {
 		if(rnorm > SQR(rstar)) {
-			number rmo = sqrt(rnorm);
-			number rrc = rmo - rc;
+			double rmo = sqrt(rnorm);
+			double rrc = rmo - rc;
 			energy = patchyEpsilon * b * SQR(rrc);
-			if(update_forces) force = -r * (2 * patchyEpsilon * b * rrc / rmo);
+			if(update_forces) force = -_computed_r * (2 * patchyEpsilon * b * rrc / rmo);
+			OX_DEBUG("This is 1\t%d\t%d\t%d",p->index,q->index,energy);
 		}
 		else {
-			number tmp = SQR(sigma) / rnorm;
-			number lj_part = tmp * tmp * tmp;
+			double tmp = SQR(sigma) / rnorm;
+			double lj_part = tmp * tmp * tmp;
 			energy = 4 * patchyEpsilon * (SQR(lj_part) - lj_part);
-			if(update_forces) force = -r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) / rnorm);
+			if(update_forces) force = -_computed_r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) / rnorm);
 		}
 	}
 
-	if(update_forces && energy == (number) 0) force.x = force.y = force.z = (number) 0;
+	if(update_forces && energy == 0) force.x = force.y = force.z = 0;
 
 	if(update_forces){
 		p->force+=force;
 		q->force-=force;
 	}
+	// OX_DEBUG("This is final \t %d \t %d \t %d",p->index,q->index,energy);
+	// std::cout << energy<<"\n";
 	return energy;
 // 	double rcs = rc*totalRadius;
 // 	double energy = 0.f;
@@ -276,8 +293,10 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 				// 	bcall=true;
 				// };
 				int connection = std::stoi(temp);
+				if(body.tellg()==-1) throw oxDNAException("Missing color after connection");
 				body>>temp;
 				double bfact = std::stod(temp);
+				if(body.tellg()==-1) throw oxDNAException("Missing r0 after color");
 				body>>temp;
 				double tempro = std::stod(temp);
 				q->add_neighbour(particles[connection],bfact,tempro);
@@ -285,6 +304,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			j++;
 		}
 		// OX_DEBUG("Neighbours for %d is %d and %d",q->index,q->ro[0],q->ro[1]);
+		// std::cout << "Index of current particle : "<< q->index<<std::endl;
 		// std::cout << "Spring Neighbours \n";
 		// for(int p=0;p<q->spring_neighbours.size();p++){
 		// 	std::cout <<q->index<<"\t"<<q->spring_neighbours[p]<<"\n";
@@ -301,6 +321,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 		// }
 		
 		// std::cout<< " Color of the particles: " << q->btype<<std::endl;
+		// std::cout<<"Strength of the particles: "<<q->strength<<std::endl;
 
 
 		particles[i]->btype=color; //btype is used for coloring

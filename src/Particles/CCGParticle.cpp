@@ -7,7 +7,7 @@ CCGParticle::CCGParticle():BaseParticle(){
     spring_neighbours={};
     Bfactor={};
     ro={};
-    strength=1.f;
+    strength=1;
     // lockedTo=0; // patchy particle with index 0 should not exists
     // multipatch=true; // if multiple patches could attach or not
 }

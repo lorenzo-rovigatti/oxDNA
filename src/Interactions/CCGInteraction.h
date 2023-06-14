@@ -22,9 +22,9 @@ public:
 	int version,totPar,strands,ccg,ccg0,noSpring,noColor ;// Header Information
 	int currentVersion = 1; // Don't forget to update the version number
 	int particleType,color,neighbour,bfactor; //Body parameters particleType,particleName,...
-	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0;//color parameters
+	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=2,patchyEcutoff=0;//color parameters // cut off should be 0.0324
 	double Bfactor,strength =1.0,rmod;
-	LR_vector r; //temporary parameters.
+	// LR_vector r; //temporary parameters.
 	enum {
 		SPRING =1,
 		EXEVOL=2,
