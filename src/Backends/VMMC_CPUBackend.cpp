@@ -426,20 +426,26 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	energy += _interaction->pair_interaction_term(DNAInteraction::NONBONDED_EXCLUDED_VOLUME, p, q, false, false);
 	energy += _interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, false, false);
 
-	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
-	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL)
-	energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
+	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking*
+	// *the hybrid interaction is a second exception
+	if( (dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL) || (dynamic_cast<DRHInteraction *>(_interaction.get()) == NULL) ) {
+		energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
+	}
 
-	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
+	if(dynamic_cast<DRHInteraction *>(_interaction.get()) != NULL) {
+		energy += _interaction->pair_interaction_term(DRHInteraction::COAXIAL_STACKING, p, q, false, false);
+		energy += _interaction->pair_interaction_term(DRHInteraction::DEBYE_HUCKEL, p, q, false, false);
+	}
+	
+	else if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, false, false);
 		energy += _interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
 	}
 	else if(dynamic_cast<RNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
 	}
-	else if(dynamic_cast<DRHInteraction *>(_interaction.get()) != NULL) {
-		energy += _interaction->pair_interaction_term(DRHInteraction::DEBYE_HUCKEL, p, q, false, false);
-	}
+	
+	
 
 	return energy;
 }
