@@ -24,30 +24,30 @@ def min_image(p1:np.ndarray, p2:np.ndarray, box:float) -> float:
     Calculates distance between two particles taking PBC into account
 
     Parameters:
-        p1 (np.array): The first particle's position
-        p2 (np.array): The second particle's position
+        p1 (np.ndarray): The first particle's position
+        p2 (np.ndarray): The second particle's position
         box (float): The size of the box (assumes a cubic box)
 
     Returns:
-        distance (float): The distance between the two particles
+        (float): The distance between the two particles
     """
     p1 = p1 - (np.floor(p1/box) * box)
     p2 = p2 - (np.floor(p2/box) * box)
     diff = p1 - p2
     diff = diff - (np.round(diff/box)*box)
-    return np.linalg.norm(diff)
+    return float(np.linalg.norm(diff))
 
 def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.ndarray:
     """
     Calculates all mutual distances between two sets of points taking PBC into account
     
     Paramters:
-        p1s (np.array): the first set of points (Nx3 array)
-        p2s (np.array): the second set of points (Mx3 array)
-        box (float): The size of the box (assumes a cubic box)
+        p1s (np.ndarray) : the first set of points (Nx3 array)
+        p2s (np.ndarray) : the second set of points (Mx3 array)
+        box (float) : The size of the box (assumes a cubic box)
 
     returns:
-        distances (np.array): the distances between the points (NxM array)
+        (np.array) : the distances between the points (NxM array)
     """
 
     p1s = p1s - (np.floor(p1s/box) * box)
