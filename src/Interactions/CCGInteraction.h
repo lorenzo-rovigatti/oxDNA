@@ -13,6 +13,7 @@
 #include "../Utilities/parse_input/parse_input.h"
 #include <fstream>
 #include <sstream>
+#include <cmath>
 class CCGInteraction: public BaseInteraction {
 protected:
 public:
@@ -34,7 +35,7 @@ public:
 	std::string temp;
 	// bool connection,bcall; // connection shifts between adding spring neighbours and Bfactor during reading of the topology file
 	
-	const double patchySigma=1.0f,patchyRstar=0.9053f,patchyB=677.505671539f,patchyRc=0.99888f,patchyEpsilon=2.0f,patchyLockCutOff=0;
+	const double patchySigma=1.0f,patchyRstar=0.9053f,patchyB=677.505671539f,patchyRc=1,patchyEpsilon=2.0f,patchyLockCutOff=0;
 	CCGInteraction();
 	virtual ~CCGInteraction();
 

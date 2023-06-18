@@ -69,7 +69,7 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	number energy=0;
 	energy += spring(p,q,compute_r,update_forces);
-	// energy+=exc_vol(p,q,compute_r,update_forces);
+	energy+=exc_vol(p,q,compute_r,update_forces);
 	return energy;
 }
 
@@ -77,7 +77,7 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	auto *pCG = dynamic_cast<CCGParticle*>(p);
 	number energy=0;
 	if(!pCG->has_bond(q)){
-		// energy += exc_vol(p,q,compute_r,update_forces);
+		energy += exc_vol(p,q,compute_r,update_forces);
 		energy += patchy_interaction(p,q,compute_r,update_forces);
 	}
 	// OX_DEBUG("This function is being called");
@@ -115,6 +115,7 @@ number CCGInteraction::debug(BaseParticle *p, BaseParticle *q, bool compute_r, b
 number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
 	auto *pCG = static_cast<CCGParticle*>(p);
 	auto *qCG = static_cast<CCGParticle*>(q);
+	std::cout<<"This is called"<<std::endl;
 	number energy =0.f;
 	if(update_forces) {
 		_computed_r = _box->min_image(p->pos,q->pos);
@@ -174,12 +175,30 @@ double CCGInteraction::exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r,
 			energy = patchyEpsilon * b * SQR(rrc);
 			if(update_forces) force = -_computed_r * (2 * patchyEpsilon * b * rrc / rmo);
 			OX_DEBUG("This is 1\t%d\t%d\t%d",p->index,q->index,energy);
+			// std::cout<<energy<<std::endl;
 		}
 		else {
 			double tmp = SQR(sigma) / rnorm;
 			double lj_part = tmp * tmp * tmp;
 			energy = 4 * patchyEpsilon * (SQR(lj_part) - lj_part);
-			if(update_forces) force = -_computed_r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) / rnorm);
+			// if(update_forces) force = -_computed_r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) / rnorm);
+			// if(update_forces){
+			// 	if(rnorm<pow(2.f,1/6)){
+			// 		force = LR_vector(0,0,0);
+			// 	}else{
+			// 		force = -_computed_r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) / rnorm);
+			// 	}
+			// }
+			if(update_forces){
+				double netValue= (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) / rnorm);
+				if(netValue<0){
+					// force = LR_vector(0,0,0);
+					force = _computed_r*netValue;
+				}else{
+					force = -_computed_r*netValue;
+				}
+			}
+			// std::cout<<rnorm<<"\t"<<lj_part<<"\t"<<energy<<"\t"<<force<<"\t"<<_computed_r<<std::endl;
 		}
 	}
 
