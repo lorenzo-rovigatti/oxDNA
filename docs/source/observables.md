@@ -5,7 +5,7 @@ The observable infrastructure was devised to help building customized output fro
 The relevant keys in the input file are `analysis_data_output_*` (used by *DNAnalysis*) and `data_output_*` (used by *oxDNA*). These take as an argument, between curly brackets, a series of lines that is interpreted as an input file and whose options dictate the way the resulting output file is printed. 
 
 ````{warning}
-`data_output_i` (with `i` integer) will not be taken into consideration unless all `data_output_j` for `j < i` are present. The same holds true for `analysis_data_output_*`.
+`data_output_i` (with `i` integer) will not be taken into consideration if all `data_output_j` for `j < i` are present. The same holds true for `analysis_data_output_*`.
 ````
 
 The following options are supported:
