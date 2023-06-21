@@ -536,6 +536,12 @@ void MD_CUDABackend::_thermalize() {
 	_cuda_thermostat->apply_cuda(_d_poss, _d_orientations, _d_vels, _d_Ls, current_step());
 }
 
+void MD_CUDABackend::_update_stress_tensor() {
+	if(_update_st_every > 0 && (CONFIG_INFO->curr_step % _update_st_every == 0)) {
+		_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
+	}
+}
+
 void MD_CUDABackend::sim_step() {
 	_mytimer->resume();
 
@@ -577,9 +583,7 @@ void MD_CUDABackend::sim_step() {
 		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / (2. * N()));
 	}
 
-	if(_update_st_every > 0 && (CONFIG_INFO->curr_step % _update_st_every == 0)) {
-		_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
-	}
+	_update_stress_tensor();
 
 	_timer_forces->pause();
 

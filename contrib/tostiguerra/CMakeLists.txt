@@ -18,3 +18,18 @@ endfunction()
 
 # Interactions
 add_library_no_prefix(CGNucleicAcidsInteraction MODULE EXCLUDE_FROM_ALL src/CGNucleicAcidsInteraction.cpp)
+
+if(CUDA)
+	set(CMAKE_MODULE_LINKER_FLAGS  "${CMAKE_MODULE_LINKER_FLAGS} -rdynamic")
+	find_package("CUDA")
+	
+	# same thing but for CUDA libs
+	function(cuda_add_library_no_prefix target source)
+		cuda_add_library(${target} MODULE EXCLUDE_FROM_ALL ${source} ${ARGN})
+		target_link_libraries(${target} ${CUDA_LIBRARIES})
+		set_target_properties(${target} PROPERTIES PREFIX "")
+	endfunction()
+	
+	cuda_add_library_no_prefix(CUDACGNucleicAcidsInteraction src/CUDACGNucleicAcidsInteraction.cu src/CGNucleicAcidsInteraction.cpp)
+	ADD_DEPENDENCIES(tostiguerra CUDACGNucleicAcidsInteraction)
+endif(CUDA)
