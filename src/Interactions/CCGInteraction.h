@@ -24,7 +24,7 @@ public:
 	int currentVersion = 1; // Don't forget to update the version number
 	int particleType,color,neighbour,bfactor; //Body parameters particleType,particleName,...
 	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=2,patchyEcutoff=0;//color parameters // cut off should be 0.0324
-	double Bfactor,strength =1.0,rmod;
+	double Bfactor,strength =1,rmod;
 	// LR_vector r; //temporary parameters.
 	enum {
 		SPRING =1,
@@ -60,7 +60,8 @@ public:
 
 	//My interactions
 	virtual number spring(BaseParticle *p, BaseParticle *q, bool compute_r=true, bool update_forces=false); //Calculate spring interaction
-	virtual number exc_vol(BaseParticle *p, BaseParticle *q, bool compute_r=true,bool update_forces=false); //Calculate excluded volume interaction
+	virtual number exc_vol_bonded(BaseParticle *p, BaseParticle *q, bool compute_r=true,bool update_forces=false); //Calculate excluded volume interaction
+	virtual number exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r=true,bool update_forces=false); //Calculate excluded volume interaction
 
 	//Color interactions
 	virtual bool color_compatibility(BaseParticle *p, BaseParticle *q); //check wether two particle will interact or not

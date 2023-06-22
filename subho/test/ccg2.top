@@ -1,5 +1,5 @@
-4 2
-1 G -1 1
-1 T 0 2
-1 A 1 -1
-2 A -1 -1
+2 1 2 0 1 1
+# Header = Total Particles,Strands,Colored Particles,Color less Particles,Springs,Color
+#Body = particleType, paricleName,color,radius,neighbour,bfactor,r0
+-2 0 -20 2 1 5.0 4
+-2 0 20 2

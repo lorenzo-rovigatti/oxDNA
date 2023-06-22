@@ -16,7 +16,7 @@
 #include "CUDAPatchyInteraction.h"
 #include "CUDATEPInteraction.h"
 #include "CUDARNAInteraction.h"
-#include "CUDACCGInteraction.h"
+// #include "CUDACCGInteraction.h"
 
 #include "../../Utilities/Utils.h"
 
