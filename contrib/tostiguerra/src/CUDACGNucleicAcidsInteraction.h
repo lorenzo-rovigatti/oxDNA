@@ -18,6 +18,9 @@ class CUDACGNucleicAcidsInteraction: public CUDABaseInteraction, public CGNuclei
 private:
 	c_number4 *_d_three_body_forces = nullptr;
 	int *_d_bonded_neighs = nullptr;
+	float *_d_3b_epsilon = nullptr;
+
+	cudaTextureObject_t _tex_eps = 0;
 
 public:
 	CUDACGNucleicAcidsInteraction();
