@@ -27,6 +27,9 @@ protected:
 	float *_d_patchy_eps = nullptr;
 	float4 *_d_base_patches = nullptr;
 
+	cudaTextureObject_t _tex_patchy_eps = 0;
+	cudaTextureObject_t _tex_base_patches = 0;
+
 	llint _step;
 public:
 	static const int MAX_PATCHES = 5;
