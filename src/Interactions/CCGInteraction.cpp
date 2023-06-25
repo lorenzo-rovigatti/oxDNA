@@ -70,7 +70,7 @@ number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	number energy=0;
 	// if(p->index==0 && q->index==1) p->pos+=_box->min_image(p->pos,q->pos)*0.001;
 	energy += spring(p,q,compute_r,update_forces);
-	// energy+=exc_vol_bonded(p,q,compute_r,update_forces);
+	energy+=exc_vol_bonded(p,q,compute_r,update_forces);
 	return energy;
 }
 
@@ -80,8 +80,8 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	if(!pCG->has_bond(q)){
 		// _computed_r = _box->min_image(p->pos,q->pos);
 		// p->pos+=_computed_r*0.001/_computed_r.module();
-		// energy += exc_vol_nonbonded(p,q,compute_r,update_forces);
-		// energy += patchy_interaction(p,q,compute_r,update_forces);
+		energy += exc_vol_nonbonded(p,q,compute_r,update_forces);
+		energy += patchy_interaction(p,q,compute_r,update_forces);
 	}
 	// OX_DEBUG("This function is being called");
 	return energy;
@@ -89,10 +89,10 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 
 number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
 	// updating _computed_r is necessary.
-	if(update_forces){ 
+	if(compute_r){ 
 		_computed_r = _box->min_image(p->pos,q->pos);
 		rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
-		std::cout<<rmod<<"\n";
+		// std::cout<<rmod<<"\n";
 	}
 	// _computed_r = _box->min_image(p->pos,q->pos);
 	// rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
@@ -124,7 +124,7 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 	auto *qCG = static_cast<CCGParticle*>(q);
 	// std::cout<<"This is called"<<std::endl;
 	number energy =0.f;
-	if(update_forces) {
+	if(compute_r) {
 		_computed_r = _box->min_image(p->pos,q->pos);
 		rmod = _computed_r.module();
 	}
@@ -140,7 +140,7 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 			if(update_forces){
 				double f1D = 5.0 * expPart * r8b10;
 				LR_vector force = strength*_computed_r*f1D*dist/rmod;
-				if(expPart<-1) std::cout<<rmod<<"\t"<< energy<<"\t"<<f1D*dist/rmod<<std::endl;
+				// if(expPart<-1) std::cout<<rmod<<"\t"<< energy<<"\t"<<f1D*dist/rmod<<std::endl;
 				// std::cout<<dist/rmod*f1D<<"\n";
 				p->force-=force;
 				q->force+=force;
@@ -166,7 +166,7 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 //Old exc_vol
 
 double CCGInteraction::exc_vol_bonded(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
-	if(update_forces) _computed_r = _box->min_image(p->pos,q->pos);
+	if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
 	// if(p->index==0 && q->index==1) std::cout<< "Distance between particles = "<<_computed_r <<std::endl; ;
 	double rnorm = SQR(_computed_r.x) + SQR(_computed_r.y) + SQR(_computed_r.z);
 	auto *pCCG = static_cast<CCGParticle*>(p);
@@ -249,7 +249,7 @@ double CCGInteraction::exc_vol_bonded(BaseParticle *p, BaseParticle *q, bool com
 }
 
 double CCGInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
-	if(update_forces) _computed_r = _box->min_image(p->pos,q->pos);
+	if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
 	// if(p->index==0 && q->index==1) std::cout<< "Distance between particles = "<<_computed_r <<std::endl; ;
 	double rnorm = SQR(_computed_r.x) + SQR(_computed_r.y) + SQR(_computed_r.z);
 	auto *pCCG = static_cast<CCGParticle*>(p);
