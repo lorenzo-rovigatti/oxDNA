@@ -23,7 +23,7 @@ public:
 	int version,totPar,strands,ccg,ccg0,noSpring,noColor ;// Header Information
 	int currentVersion = 1; // Don't forget to update the version number
 	int particleType,color,neighbour,bfactor; //Body parameters particleType,particleName,...
-	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0.2,patchyEcutoff=0;//color parameters // cut off should be 0.0324
+	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0.2,patchyEcutoff=0,patchyB=667.505671539f;//color parameters // cut off should be 0.0324
 	double Bfactor,strength =1,rmod,rnorm;
 	// LR_vector r; //temporary parameters.
 	enum {
@@ -36,7 +36,7 @@ public:
 	std::string temp;
 	// bool connection,bcall; // connection shifts between adding spring neighbours and Bfactor during reading of the topology file
 	
-	const double patchySigma=1.0f,patchyRstar=0.9053f,patchyB=667.505671539f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=0,patchyInteractionDistanceCutoff=0;
+	const double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=0,patchyInteractionDistanceCutoff=0;
 	CCGInteraction();
 	virtual ~CCGInteraction();
 
@@ -70,6 +70,7 @@ public:
 
 	//Debug function
 	virtual number debug(BaseParticle  *p, BaseParticle*q, bool compute_r,bool update_forces);
+	virtual number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 };
 
 #endif /* CCGInteraction_H_ */
