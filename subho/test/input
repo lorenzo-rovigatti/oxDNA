@@ -20,8 +20,8 @@ max_density_multiplier = 10
 T = 20C
 T_force_value = true
 verlet_skin = 0.25
-sim_type = MC
-steps = 10
+sim_type = MD
+steps = 1e6
 
 ### MD PARAMS ###
 dt = 0.002
@@ -31,7 +31,7 @@ thermostat=no
 refresh_vel=1
 
 ### MC PARAMS ###
-delta_translation = 0.1
+delta_translation = 0.01
 delta_rotation = 0.25
 check_energy_every = 10
 check_energy_threshold = 1.e-4
@@ -45,14 +45,14 @@ ensemble = NVT
 
 ##############################
 #parfile = replica.par
-topology = ccg2.top
-conf_file = ccg2.dat
+topology = test.top
+conf_file = test.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.ign
 log_file = log.ign
 no_stdout_energy = 0
 restart_step_counter = 1
 energy_file = energy.ign
-print_conf_interval = 1
-print_energy_every = 1
+print_conf_interval = 1e4
+print_energy_every = 1e4
 time_scale = linear

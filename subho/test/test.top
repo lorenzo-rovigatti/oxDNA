@@ -1,0 +1,9 @@
+6 2 6 0 0 1
+# Header = Total Particles,Strands,Colored Particles,Color less Particles,Springs,Color
+#Body = particleType, paricleName,color,radius,neighbour,bfactor,r0
+-2 0 -20 2 1 5.0 5
+-2 0 20 2 2 8.0 5
+-2 0 50 2 0 12.0 5
+-2 1 -50 2 4 5 5
+-2 1 20 2 3 5 5
+-2 1 -20 2 4 5 5 3 5 5
