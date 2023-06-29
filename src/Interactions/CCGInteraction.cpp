@@ -64,7 +64,7 @@ void CCGInteraction::get_settings(input_file &inp) {
 		_sqr_rcut = SQR(_rcut);
 		OX_LOG(Logger::LOG_INFO,"New interaction radius cutoff = %d",_rcut);
 	}else{
-		_rcut= 1.2;
+		_rcut= 4.0;
 		_sqr_rcut=SQR(_rcut);
 	}
 }
@@ -108,8 +108,8 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 		// std::cout << "Working"<<std::endl;
 		// _computed_r = _box->min_image(p->pos,q->pos);
 		// p->pos+=_computed_r*0.001/_computed_r.module();
-		// energy += exc_vol_nonbonded(p,q,compute_r,update_forces);
-		// energy += patchy_interaction(p,q,compute_r,update_forces);
+		energy += exc_vol_nonbonded(p,q,compute_r,update_forces);
+		energy += patchy_interaction(p,q,compute_r,update_forces);
 	}
 	// OX_DEBUG("This function is being called");
 	return energy;
