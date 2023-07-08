@@ -63,6 +63,7 @@ public:
 	virtual number spring(BaseParticle *p, BaseParticle *q, bool compute_r=true, bool update_forces=false); //Calculate spring interaction
 	virtual number exc_vol_bonded(BaseParticle *p, BaseParticle *q, bool compute_r=true,bool update_forces=false); //Calculate excluded volume interaction
 	virtual number exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r=true,bool update_forces=false); //Calculate excluded volume interaction
+	// virtual number exc_vol_centralParticle(BaseParticle *p, BaseParticle *q, bool compute_r=true, bool update_forces=false); // Special calculation for base particle
 
 	//Color interactions
 	virtual bool color_compatibility(BaseParticle *p, BaseParticle *q); //check wether two particle will interact or not

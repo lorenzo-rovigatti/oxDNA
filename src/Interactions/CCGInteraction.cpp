@@ -57,7 +57,7 @@ void CCGInteraction::get_settings(input_file &inp) {
 	}
 	if(getInputString(&inp,"patchyB",temp,0)==KEY_FOUND){
 		patchyB =stod(temp);
-		OX_LOG(Logger::LOG_INFO,"New b value for the exclusion volume = %d",patchyB);
+		OX_LOG(Logger::LOG_INFO,"New b value for the exclusion volume = %d",std::stod(temp));
 	}
 	if(getInputString(&inp,"rcut",temp,0)==KEY_FOUND){
 		_rcut=stod(temp);

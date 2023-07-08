@@ -58,4 +58,4 @@ print_energy_every = 100
 time_scale = linear
 
 ###### CCG ################
-#patchyB = 900
+patchyB = 900
