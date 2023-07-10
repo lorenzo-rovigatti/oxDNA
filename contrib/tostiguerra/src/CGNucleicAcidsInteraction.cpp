@@ -49,7 +49,6 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 
 	if(_enable_semiflexibility_3b) {
 		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflexibility_3b_k, 1);
-		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 1);
 	}
 
 	getInputBool(&inp, "DPS_stacking", &_enable_patch_stacking, 0);
@@ -67,14 +66,20 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
 		}
 	}
+
+	getInputInt(&inp, "DPS_bead_size", &_bead_size, 1);
 }
 
 void CGNucleicAcidsInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
-	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / this->_PS_n);
+	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / _PS_n);
+	_WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0;
+
+	OX_LOG(Logger::LOG_INFO, "CGNA: WCA sigma = %lf, WCA sigma unbonded = %lf", _WCA_sigma, _WCA_sigma_unbonded);
 
 	_rcut = sqrt(_PS_sqr_rep_rcut);
 
+	// TODO: handle the case when n < 3 (i.e. sigma_unbonded > sigma)
 	_3b_rcut = _3b_range * _3b_sigma;
 	_sqr_3b_rcut = SQR(_3b_rcut);
 	number B_ss = 1. / (1. + 4. * SQR(1. - _3b_range));
@@ -91,7 +96,7 @@ void CGNucleicAcidsInteraction::init() {
 	}
 	_sqr_rcut = SQR(_rcut);
 
-	OX_LOG(Logger::LOG_INFO, "PolymerSwap: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
+	OX_LOG(Logger::LOG_INFO, "CGNA: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
 
 	if(_PS_alpha != 0) {
 		if(_PS_alpha < 0.) {
@@ -99,7 +104,7 @@ void CGNucleicAcidsInteraction::init() {
 		}
 		_PS_gamma = M_PI / (_sqr_rfene - pow(2., 1. / 3.));
 		_PS_beta = 2 * M_PI - _sqr_rfene * _PS_gamma;
-		OX_LOG(Logger::LOG_INFO, "MG: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
+		OX_LOG(Logger::LOG_INFO, "CGNA: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
 	}
 
 	if(_use_mbf) {
@@ -109,7 +114,7 @@ void CGNucleicAcidsInteraction::init() {
 		_mbf_A = _mbf_fmax - _mbf_B / _mbf_xmax;
 
 		// if we use mbf, we should tell the user
-		OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g (xmax = %g, Emax = %g, A = %g, B = %g)", _mbf_fmax, _mbf_xmax, _mbf_Emax, _mbf_A, _mbf_B);
+		OX_LOG(Logger::LOG_INFO, "CGNA: using a maximum backbone force of %g (xmax = %g, Emax = %g, A = %g, B = %g)", _mbf_fmax, _mbf_xmax, _mbf_Emax, _mbf_A, _mbf_B);
 	}
 }
 
@@ -210,10 +215,12 @@ number CGNucleicAcidsInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool up
 	// this number is the module of the force over r, so we don't have to divide the distance vector for its module
 	number force_mod = 0;
 
+	number sigma = p->is_bonded(q) ? _WCA_sigma : _WCA_sigma_unbonded;
+
 	// cut-off for all the repulsive interactions
 	if(sqr_r < _PS_sqr_rep_rcut) {
 		number part = 1.;
-		number ir2_scaled = SQR(_WCA_sigma) / sqr_r;
+		number ir2_scaled = SQR(sigma) / sqr_r;
 		for(int i = 0; i < _PS_n / 2; i++) {
 			part *= ir2_scaled;
 		}
@@ -599,7 +606,7 @@ void CGNucleicAcidsInteraction::check_input_sanity(std::vector<BaseParticle*> &p
 
 void CGNucleicAcidsInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	for(uint i = 0; i < particles.size(); i++) {
-		particles[i] = new ParticleFTG(1, 0, 1, _deltaPatchMon);
+		particles[i] = new ParticleFTG(1, 0, _WCA_sigma_unbonded, _deltaPatchMon);
 	}
 }
 
