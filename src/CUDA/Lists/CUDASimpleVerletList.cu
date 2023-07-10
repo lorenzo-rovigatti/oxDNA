@@ -152,19 +152,10 @@ void CUDASimpleVerletList::_init_cells(c_number4 *poss) {
 		}
 
 		// initialise the texture used to access the cell counters
-		cudaResourceDesc resDesc;
-		memset(&resDesc, 0, sizeof(resDesc));
-		resDesc.resType = cudaResourceTypeLinear;
-		resDesc.res.linear.devPtr = _d_counters_cells;
-		resDesc.res.linear.desc.f = cudaChannelFormatKindSigned;
-		resDesc.res.linear.desc.x = 32;
-		resDesc.res.linear.sizeInBytes = _N_cells * sizeof(int);
-
-		cudaTextureDesc texDesc;
-		memset(&texDesc, 0, sizeof(texDesc));
-		texDesc.readMode = cudaReadModeElementType;
-
-		cudaCreateTextureObject(&_counters_cells_tex, &resDesc, &texDesc, NULL);
+		if(_counters_cells_tex != 0) {
+			cudaDestroyTextureObject(_counters_cells_tex);
+		}
+		GpuUtils::init_texture_object(&_counters_cells_tex, cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindSigned), _d_counters_cells, _N_cells);
 	}
 
 	_old_N_cells = _N_cells;

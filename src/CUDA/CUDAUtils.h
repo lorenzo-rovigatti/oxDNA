@@ -69,6 +69,22 @@ public:
 	static void reset_allocated_mem() {
 		_allocated_dev_mem = 0;
 	}
+
+	template<typename T>
+	static void init_texture_object(cudaTextureObject_t *obj, cudaChannelFormatDesc format, T *dev_ptr, size_t size) {
+		cudaResourceDesc res_desc_eps;
+		memset(&res_desc_eps, 0, sizeof(res_desc_eps));
+		res_desc_eps.resType = cudaResourceTypeLinear;
+		res_desc_eps.res.linear.devPtr = dev_ptr;
+		res_desc_eps.res.linear.desc = format;
+		res_desc_eps.res.linear.sizeInBytes = size * sizeof(T);
+
+		cudaTextureDesc tex_desc_eps;
+		memset(&tex_desc_eps, 0, sizeof(tex_desc_eps));
+		tex_desc_eps.readMode = cudaReadModeElementType;
+
+		CUDA_SAFE_CALL(cudaCreateTextureObject(obj, &res_desc_eps, &tex_desc_eps, NULL));
+	}
 };
 
 template<typename T>
