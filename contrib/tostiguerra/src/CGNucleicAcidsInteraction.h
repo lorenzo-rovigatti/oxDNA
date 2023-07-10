@@ -87,6 +87,14 @@ protected:
 	/// patchy stuff
 	number _deltaPatchMon = 0.5;
 
+	/// used when max_backbone_force = true
+	bool _use_mbf = false;
+	number _mbf_xmax = 0.0;
+	number _mbf_fmax = 0.0;
+	number _mbf_Emax = 0.0;
+	number _mbf_A = 0.0;
+	number _mbf_B = 0.0;
+
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
 	int _N_chains = -1;

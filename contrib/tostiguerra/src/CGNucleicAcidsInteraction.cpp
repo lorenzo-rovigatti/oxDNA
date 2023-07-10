@@ -60,6 +60,13 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
 	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
+
+	if(getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND) {
+		_use_mbf = true;
+		if(_mbf_fmax < 0.f) {
+			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
+		}
+	}
 }
 
 void CGNucleicAcidsInteraction::init() {
@@ -93,6 +100,16 @@ void CGNucleicAcidsInteraction::init() {
 		_PS_gamma = M_PI / (_sqr_rfene - pow(2., 1. / 3.));
 		_PS_beta = 2 * M_PI - _sqr_rfene * _PS_gamma;
 		OX_LOG(Logger::LOG_INFO, "MG: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
+	}
+
+	if(_use_mbf) {
+		_mbf_xmax = (-_Kfene * SQR(_rfene) + std::sqrt(SQR(_Kfene) * SQR(SQR(_rfene)) + SQR(_mbf_fmax) * SQR(_rfene))) / _mbf_fmax;
+		_mbf_Emax = -_Kfene * _sqr_rfene * std::log(1. - SQR(_mbf_xmax) / _sqr_rfene);
+		_mbf_B = (_mbf_Emax - _mbf_fmax * _mbf_xmax) / (std::log(_mbf_xmax) - 1.0);
+		_mbf_A = _mbf_fmax - _mbf_B / _mbf_xmax;
+
+		// if we use mbf, we should tell the user
+		OX_LOG(Logger::LOG_INFO, "Using a maximum backbone force of %g (xmax = %g, Emax = %g, A = %g, B = %g)", _mbf_fmax, _mbf_xmax, _mbf_Emax, _mbf_A, _mbf_B);
 	}
 }
 
@@ -140,25 +157,44 @@ bool CGNucleicAcidsInteraction::has_custom_stress_tensor() const {
 number CGNucleicAcidsInteraction::_fene(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 
-	if(sqr_r > _sqr_rfene) {
+	number energy = 0.0;
+
+	if(_use_mbf && sqr_r > SQR(_mbf_xmax)) {
+		number r = std::sqrt(sqr_r);
+
+		energy = _mbf_A * r + _mbf_B * std::log(r);
 		if(update_forces) {
-			throw oxDNAException("The distance between particles %d and %d (r: %lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _rfene);
+			auto force = -_computed_r * (_mbf_A + _mbf_B / r) / r;
+
+			p->force += force;
+			q->force -= force;
+
+			_update_stress_tensor(p->pos, force);
+			_update_stress_tensor(p->pos + _computed_r, -force);
 		}
-		set_is_infinite(true);
-		return 10e10;
 	}
 
-	number energy = -_Kfene * _sqr_rfene * log(1. - sqr_r / _sqr_rfene);
+	else {
+		if(sqr_r > _sqr_rfene) {
+			if(update_forces) {
+				throw oxDNAException("The distance between particles %d and %d (r: %lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _rfene);
+			}
+			set_is_infinite(true);
+			return 10e10;
+		}
 
-	if(update_forces) {
-		// this number is the module of the force over r, so we don't have to divide the distance vector by its module
-		number force_mod = -2 * _Kfene * _sqr_rfene / (_sqr_rfene - sqr_r);
-		auto force = -_computed_r * force_mod;
-		p->force += force;
-		q->force -= force;
+		energy = -_Kfene * _sqr_rfene * log(1. - sqr_r / _sqr_rfene);
 
-		_update_stress_tensor(p->pos, force);
-		_update_stress_tensor(p->pos + _computed_r, -force);
+		if(update_forces) {
+			// this number is the module of the force over r, so we don't have to divide the distance vector by its module
+			number force_mod = -2 * _Kfene * _sqr_rfene / (_sqr_rfene - sqr_r);
+			auto force = -_computed_r * force_mod;
+			p->force += force;
+			q->force -= force;
+
+			_update_stress_tensor(p->pos, force);
+			_update_stress_tensor(p->pos + _computed_r, -force);
+		}
 	}
 
 	return energy;
