@@ -83,6 +83,7 @@ protected:
 	number _semiflexibility_k;
 	number _semiflexibility_a1;
 	number _semiflexibility_3b_k;
+	number _semiflexibility_3b_exp_sigma = -1.0;
 	number _stacking_eta;
 
 	/// patchy stuff
