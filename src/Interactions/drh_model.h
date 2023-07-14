@@ -35,7 +35,7 @@
  */
 /// radial part
 #define DRH_HYDR_F1 0
-#define DRH_HYDR_EPS 1.43f
+#define DRH_HYDR_EPS 1.5f
 #define DRH_HYDR_A 8.f
 #define DRH_HYDR_RC 0.75f
 #define DRH_HYDR_R0 0.4f
