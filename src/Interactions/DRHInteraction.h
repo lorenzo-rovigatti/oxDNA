@@ -27,8 +27,8 @@ protected:
 	//std::string _nucleotide_types;
 	char _seq_filename[512];
 
-	int MESH_F4_POINTS[13];
-	Mesh _mesh_f4[13];  
+	//int MESH_F4_POINTS[13];
+	//Mesh _mesh_f4[13];  
 
 	number _f4_DRH(number t, int type);
 	number _f4D_DRH(number t, int type);
@@ -65,13 +65,15 @@ protected:
 	virtual number _coaxial_stacking(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _debye_huckel(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
+
+
 	/**
 	 * @brief Custom function that returns f4. This was added to add the possibility to avoid the use of meshes in classes that inherit from this.
 	 *
 	 * @param cost  argument of f4
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4_DRH (number cost, int i) { return this->_mesh_f4[i].query(cost); }
+	//virtual number _custom_f4_DRH (number cost, int i) { return this->_mesh_f4[i].query(cost); }
 
 	/**
 	 * @brief Custom function that returns the derivative of f4. See _custom_f4
@@ -79,7 +81,10 @@ protected:
 	 * @param cost  argument of f4D
 	 * @param i     type of the interaction (which mesh to use)
 	 */
-	virtual number _custom_f4D_DRH (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
+	//virtual number _custom_f4D_DRH (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
+
+
+	//CHANGES TO .cpp: changed the above two funcs to dna-inherited versions
 
 
 	/**

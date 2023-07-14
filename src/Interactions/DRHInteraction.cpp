@@ -125,20 +125,22 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
 	F5_PHI_XS[2] = DRH_CXST_PHI3_XS;
 	F5_PHI_XS[3] = DRH_CXST_PHI4_XS;
 
-	MESH_F4_POINTS[DRH_CXST_F4_THETA1] = DRH_CXST_T1_MESH_POINTS;
-	MESH_F4_POINTS[DRH_CXST_F4_THETA4] = DRH_CXST_T4_MESH_POINTS;
-	MESH_F4_POINTS[DRH_CXST_F4_THETA5] = DRH_CXST_T5_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_CXST_F4_THETA1] = DRH_CXST_T1_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_CXST_F4_THETA4] = DRH_CXST_T4_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_CXST_F4_THETA5] = DRH_CXST_T5_MESH_POINTS;
 
-	MESH_F4_POINTS[DRH_HYDR_F4_THETA1] = DRH_HYDR_T1_MESH_POINTS;
-	MESH_F4_POINTS[DRH_HYDR_F4_THETA2] = DRH_HYDR_T2_MESH_POINTS;
-	MESH_F4_POINTS[DRH_HYDR_F4_THETA4] = DRH_HYDR_T4_MESH_POINTS;
-	MESH_F4_POINTS[DRH_HYDR_F4_THETA7] = DRH_HYDR_T7_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_HYDR_F4_THETA1] = DRH_HYDR_T1_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_HYDR_F4_THETA2] = DRH_HYDR_T2_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_HYDR_F4_THETA4] = DRH_HYDR_T4_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_HYDR_F4_THETA7] = DRH_HYDR_T7_MESH_POINTS;
 
-	MESH_F4_POINTS[DRH_CRST_F4_THETA1] = DRH_CRST_T1_MESH_POINTS;
-	MESH_F4_POINTS[DRH_CRST_F4_THETA2] = DRH_CRST_T2_MESH_POINTS;
-	MESH_F4_POINTS[DRH_CRST_F4_THETA4] = DRH_CRST_T4_MESH_POINTS;
-	MESH_F4_POINTS[DRH_CRST_F4_THETA7] = DRH_CRST_T7_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_CRST_F4_THETA1] = DRH_CRST_T1_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_CRST_F4_THETA2] = DRH_CRST_T2_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_CRST_F4_THETA4] = DRH_CRST_T4_MESH_POINTS;
+	//MESH_F4_POINTS[DRH_CRST_F4_THETA7] = DRH_CRST_T7_MESH_POINTS;
 
+
+	/*
 	for(int i = 0; i < 13; i++) {
 		// the order of the interpolation interval extremes is reversed,
 		// due to the cosine being monotonically decreasing with increasing
@@ -147,7 +149,7 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
 		number upplimit = cos(fmax(0, F4_THETA_T0[i] - F4_THETA_TC[i]));
 		number lowlimit = cos(fmin(PI, F4_THETA_T0[i] + F4_THETA_TC[i]));
 
-		
+		//this be causing the undef behav on HYDRA:
 		if(i != CXST_F4_THETA1)
 			_mesh_f4[i].build([this](number x, void *args) { return this->_fakef4_DRH(x, args); }, [this](number x, void *args) { return _fakef4D_DRH(x, args); }, (void*) (&i), points, lowlimit, upplimit);
 		else {
@@ -156,6 +158,7 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
 		assert(lowlimit < upplimit);
 
 	}	
+	*/
 	OX_LOG(Logger::LOG_INFO,"Running oxDRH with oxDNA2 & oxRNA2.");
 }
 
@@ -303,13 +306,13 @@ number DRHInteraction::_hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, b
 
 		// functions called at their relevant arguments
 		number f1 = hb_multi * _f1_DRH(rhydromod, DRH_HYDR_F1, q->type, p->type, this->_is_DNA(q), this->_is_DNA(p));
-		number f4t1 = _custom_f4_DRH(cost1, DRH_HYDR_F4_THETA1);
-		number f4t2 = _custom_f4_DRH(cost2, DRH_HYDR_F4_THETA2);
-		number f4t3 = _custom_f4_DRH(cost3, DRH_HYDR_F4_THETA3);
+		number f4t1 = DNA2Interaction::_custom_f4(cost1, DRH_HYDR_F4_THETA1);
+		number f4t2 = DNA2Interaction::_custom_f4(cost2, DRH_HYDR_F4_THETA2);
+		number f4t3 = DNA2Interaction::_custom_f4(cost3, DRH_HYDR_F4_THETA3);
 
-		number f4t4 = _custom_f4_DRH(cost4, DRH_HYDR_F4_THETA4);
-		number f4t7 = _custom_f4_DRH(cost7, DRH_HYDR_F4_THETA7);
-		number f4t8 = _custom_f4_DRH(cost8, DRH_HYDR_F4_THETA8);
+		number f4t4 = DNA2Interaction::_custom_f4(cost4, DRH_HYDR_F4_THETA4);
+		number f4t7 = DNA2Interaction::_custom_f4(cost7, DRH_HYDR_F4_THETA7);
+		number f4t8 = DNA2Interaction::_custom_f4(cost8, DRH_HYDR_F4_THETA8);
 
 		energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
@@ -321,13 +324,13 @@ number DRHInteraction::_hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, b
 
 			// derivatives called at the relevant arguments
 			number f1D = hb_multi * _f1D_DRH(rhydromod, DRH_HYDR_F1, q->type, p->type, this->_is_DNA(q), this->_is_DNA(p));
-			number f4t1Dsin = _custom_f4D_DRH(cost1, DRH_HYDR_F4_THETA1);
-			number f4t2Dsin = _custom_f4D_DRH(cost2, DRH_HYDR_F4_THETA2);
-			number f4t3Dsin = -_custom_f4D_DRH(cost3, DRH_HYDR_F4_THETA3);
+			number f4t1Dsin = DNA2Interaction::_custom_f4D(cost1, DRH_HYDR_F4_THETA1);
+			number f4t2Dsin = DNA2Interaction::_custom_f4D(cost2, DRH_HYDR_F4_THETA2);
+			number f4t3Dsin = -DNA2Interaction::_custom_f4D(cost3, DRH_HYDR_F4_THETA3);
 
-			number f4t4Dsin = -_custom_f4D_DRH(cost4, DRH_HYDR_F4_THETA4);
-			number f4t7Dsin = _custom_f4D_DRH(cost7, DRH_HYDR_F4_THETA7);
-			number f4t8Dsin = -_custom_f4D_DRH(cost8, DRH_HYDR_F4_THETA8);
+			number f4t4Dsin = -DNA2Interaction::_custom_f4D(cost4, DRH_HYDR_F4_THETA4);
+			number f4t7Dsin = DNA2Interaction::_custom_f4D(cost7, DRH_HYDR_F4_THETA7);
+			number f4t8Dsin = -DNA2Interaction::_custom_f4D(cost8, DRH_HYDR_F4_THETA8);
 
 			// RADIAL PART
 			force = -rhydrodir * (f1D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
@@ -438,12 +441,12 @@ number DRHInteraction::_cross_stacking_DRH(BaseParticle *p, BaseParticle *q, boo
 
 		// functions called at their relevant arguments
 		number f2 = _f2_DRH(rcstackmod, DRH_CRST_F2);
-		number f4t1 = _custom_f4_DRH(cost1, DRH_CRST_F4_THETA1);
-		number f4t2 = _custom_f4_DRH(cost2, DRH_CRST_F4_THETA2);
-		number f4t3 = _custom_f4_DRH(cost3, DRH_CRST_F4_THETA3);
-		number f4t4 = _custom_f4_DRH(cost4, DRH_CRST_F4_THETA4) + _custom_f4_DRH(-cost4, DRH_CRST_F4_THETA4);
-		number f4t7 = _custom_f4_DRH(cost7, DRH_CRST_F4_THETA7) + _custom_f4_DRH(-cost7, DRH_CRST_F4_THETA7);
-		number f4t8 = _custom_f4_DRH(cost8, DRH_CRST_F4_THETA8) + _custom_f4_DRH(-cost8, DRH_CRST_F4_THETA8);
+		number f4t1 = DNA2Interaction::_custom_f4(cost1, DRH_CRST_F4_THETA1);
+		number f4t2 = DNA2Interaction::_custom_f4(cost2, DRH_CRST_F4_THETA2);
+		number f4t3 = DNA2Interaction::_custom_f4(cost3, DRH_CRST_F4_THETA3);
+		number f4t4 = DNA2Interaction::_custom_f4(cost4, DRH_CRST_F4_THETA4) + DNA2Interaction::_custom_f4(-cost4, DRH_CRST_F4_THETA4);
+		number f4t7 = DNA2Interaction::_custom_f4(cost7, DRH_CRST_F4_THETA7) + DNA2Interaction::_custom_f4(-cost7, DRH_CRST_F4_THETA7);
+		number f4t8 = DNA2Interaction::_custom_f4(cost8, DRH_CRST_F4_THETA8) + DNA2Interaction::_custom_f4(-cost8, DRH_CRST_F4_THETA8);
 
 		number prefactor = 1.0f;
 		energy = f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
@@ -456,12 +459,12 @@ number DRHInteraction::_cross_stacking_DRH(BaseParticle *p, BaseParticle *q, boo
 
 			// derivatives called at the relevant arguments
 			number f2D = prefactor*_f2D_DRH(rcstackmod, DRH_CRST_F2);
-			number f4t1Dsin = _custom_f4D_DRH(cost1, DRH_CRST_F4_THETA1);
-			number f4t2Dsin = _custom_f4D_DRH(cost2, DRH_CRST_F4_THETA2);
-			number f4t3Dsin = -_custom_f4D_DRH(cost3, DRH_CRST_F4_THETA3);
-			number f4t4Dsin = -_custom_f4D_DRH(cost4, DRH_CRST_F4_THETA4) + _custom_f4D_DRH(-cost4, DRH_CRST_F4_THETA4);
-			number f4t7Dsin = _custom_f4D_DRH(cost7, DRH_CRST_F4_THETA7) - _custom_f4D_DRH(-cost7, DRH_CRST_F4_THETA7);
-			number f4t8Dsin = -_custom_f4D_DRH(cost8, DRH_CRST_F4_THETA8) + _custom_f4D_DRH(-cost8, DRH_CRST_F4_THETA8);
+			number f4t1Dsin = DNA2Interaction::_custom_f4D(cost1, DRH_CRST_F4_THETA1);
+			number f4t2Dsin = DNA2Interaction::_custom_f4D(cost2, DRH_CRST_F4_THETA2);
+			number f4t3Dsin = -DNA2Interaction::_custom_f4D(cost3, DRH_CRST_F4_THETA3);
+			number f4t4Dsin = -DNA2Interaction::_custom_f4D(cost4, DRH_CRST_F4_THETA4) + DNA2Interaction::_custom_f4D(-cost4, DRH_CRST_F4_THETA4);
+			number f4t7Dsin = DNA2Interaction::_custom_f4D(cost7, DRH_CRST_F4_THETA7) - DNA2Interaction::_custom_f4D(-cost7, DRH_CRST_F4_THETA7);
+			number f4t8Dsin = -DNA2Interaction::_custom_f4D(cost8, DRH_CRST_F4_THETA8) + DNA2Interaction::_custom_f4D(-cost8, DRH_CRST_F4_THETA8);
 
 			// RADIAL PART
 			force = -rcstackdir * (f2D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
@@ -1351,6 +1354,7 @@ number DRHInteraction::_f2D_DRH(number r, int type) {
 	return val;
 }
 
+/*
 number DRHInteraction::_fakef4_DRH(number t, void *par) {
 	if((*(int*) par == DRH_CXST_F4_THETA1) && (t * t > 1.0001))
 		throw oxDNAException("In function DRHInteraction::_fakef4() t was found to be out of the range [-1,1] by a large amount, t = %g", t);
@@ -1382,7 +1386,7 @@ number DRHInteraction::_fakef4D_cxst_t1_DRH(number t, void *par) {
 		t = (number) copysign(1, t);
 	return -_f4Dsin_DRH(acos(t), *((int*) par)) - _f4Dsin_DRH(2 * PI - acos(t), *((int*) par));
 }
-
+*/
 
 number DRHInteraction::_f4_DRH(number t, int type) {
 	number val = (number) 0;
