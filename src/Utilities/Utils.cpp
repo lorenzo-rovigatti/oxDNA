@@ -193,6 +193,48 @@ std::vector<int> btypes_from_sequence(const std::string &sequence) {
 	return result;
 }
 
+
+std::vector<int> aatypes_from_sequence(const std::string &sequence) {
+	std::vector<int> result;
+	bool open_parenthesis = false;
+	std::string parenthesis_token;
+
+	for(char c : sequence) {
+		if(c == '(') {
+			open_parenthesis = true;
+			parenthesis_token.clear();
+			continue;
+		}
+		else if(c == ')') {
+			if(!open_parenthesis) {
+				throw oxDNAException("unbalanced parenthesis");
+			}
+			open_parenthesis = false;
+			int aatype = std::atoi(parenthesis_token.c_str());
+			result.push_back(aatype);
+		}
+		else {
+			if(open_parenthesis) {
+				parenthesis_token.push_back(c);
+			}
+			else {
+				int aatype = Utils::decode_aa(c);
+				if(aatype == P_INVALID) {
+					throw oxDNAException("invalid amino acid %c", c);
+				}
+				result.push_back(aatype);
+			}
+		}
+	}
+
+	if(open_parenthesis) {
+		throw oxDNAException("missing closing parenthesis");
+	}
+
+	return result;
+}
+
+
 std::vector<std::string> split(const string &s, char delim) {
 	string s_copy(s);
 	if(delim == ' ') {

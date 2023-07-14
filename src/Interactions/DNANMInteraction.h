@@ -44,6 +44,7 @@ public:
 
     char _parameterfile[500];
 
+    int get_id(int btype);
 	DNANMInteraction();
 	virtual ~DNANMInteraction();
 	virtual void get_settings(input_file &inp); //done

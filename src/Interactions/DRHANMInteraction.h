@@ -48,6 +48,8 @@ public:
 	};
 
     char _parameterfile[500];
+    
+    int get_id(int btype);
 
 	DRHANMInteraction();
 	virtual ~DRHANMInteraction();

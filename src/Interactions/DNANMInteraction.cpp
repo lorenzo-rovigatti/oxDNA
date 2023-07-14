@@ -728,7 +728,9 @@ number DNANMInteraction::_dna_debye_huckel(BaseParticle *p, BaseParticle *q, boo
 }
 
 
-
+int DNANMInteraction::get_id(int btype){
+    return (btype <= 4) ? 0: 1;
+};
 
 
 

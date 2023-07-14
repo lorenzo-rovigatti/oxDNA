@@ -86,6 +86,7 @@ void DRHANMInteraction::get_settings(input_file &inp){
 
 
 void DRHANMInteraction::check_input_sanity(std::vector<BaseParticle *> &particles){
+    //modify this to only check nucleic acid particles
 	DRHInteraction::check_input_sanity(particles);
 	//Need to make own function that checks the input sanity (including protein particles)
 }
@@ -93,6 +94,8 @@ void DRHANMInteraction::check_input_sanity(std::vector<BaseParticle *> &particle
 
 
 void DRHANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
+
+    //---working version with old topology---:
     int N = particles.size();
     RNANucleotide::set_model(model);
 
@@ -142,9 +145,10 @@ void DRHANMInteraction::allocate_particles(std::vector<BaseParticle*> &particles
 	}
 
 
+
 }
 
-
+//use aatypes_from_sequence() for protein particles
 void DRHANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
 
     int N_from_conf = particles.size();
@@ -224,26 +228,14 @@ void DRHANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*>
             i++;
         }
 
+        // Nucleic acids
         if (strand > 0) {
             char base[256];
             int tmpn3, tmpn5;
             ss >> base >> tmpn3 >> tmpn5;
-            
                 
             BaseParticle *p = particles[i];   
-            /*    
-            if(_is_DNA(p)) {
-                p = dynamic_cast<DNANucleotide *> (particles[i]);
-            } else {
-                p = dynamic_cast<RNANucleotide *> (particles[i]);
-            }
-            */
-            
-            //DNANucleotide *p = dynamic_cast<DNANucleotide *> (particles[i]);
-           
-
-
-           
+       
             if (tmpn3 < 0) p->n3 = P_VIRTUAL;
             else p->n3 = particles[tmpn3];
             if (tmpn5 < 0) p->n5 = P_VIRTUAL;    
@@ -251,19 +243,6 @@ void DRHANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*>
 
             p->strand_id = strand - 1;
     
-
-            /*
-            // allocating particle types for the hybrid interaction
-            // -------------------------------------------------------------------------------------------------------------------------
-            //making sure that the indexing of 'nucleotide_types' is correct
-            if(_nucleotide_types[i-npro] == 'D') {
-                p->acid_type = 'D';
-            } else {
-                p->acid_type = 'R';
-            }
-            // -------------------------------------------------------------------------------------------------------------------------
-            */
-
             // the base can be either a char or an integer
             if (strlen(base) == 1) {
                 p->type = Utils::decode_base(base[0]);
@@ -275,10 +254,6 @@ void DRHANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*>
                 p->btype = atoi(base);
             }
             
-
-
-            
-
             //std::printf("DNA %d %d %d \n", p->index, (p->n3)->index, (p->n5)->index);
             if (p->type == P_INVALID)
                 throw oxDNAException("Particle #%d in strand #%d contains a non valid base '%c'. Aborting", i, strand, base);
@@ -290,22 +265,6 @@ void DRHANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*>
             if (p->n3 != P_VIRTUAL) p->affected.push_back(ParticlePair(p->n3, p));
             if (p->n5 != P_VIRTUAL) p->affected.push_back(ParticlePair(p, p->n5));
             
-            /*
-            if(_is_DNA(p)){
-                OX_LOG(Logger::LOG_INFO, "D");
-            } else {
-                OX_LOG(Logger::LOG_INFO, "R");
-            }
-            */
-
-
-
-            //Debug
-//            typedef typename std::vector<ParticlePair >::iterator iter;
-//            iter it;
-//            for (it = p->affected.begin(); it != p->affected.end(); ++it) {
-//                printf("Pair %d %d \n", (*it).first->index, (*it).second->index);
-//            }
 
         }
         if (strand == 0) throw oxDNAException("No strand 0 should be present please check topology file");
@@ -322,7 +281,8 @@ void DRHANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*>
 
     *N_strands = my_N_strands; 
 
-   
+
+
 
 }
 
@@ -791,6 +751,9 @@ number DRHANMInteraction::_na_debye_huckel(BaseParticle *p, BaseParticle *q, boo
     } else return 0.f;
 }
 
+int DRHANMInteraction::get_id(int btype){
+    return (btype <= 4) ? 0: 1;
+};
 
 
 

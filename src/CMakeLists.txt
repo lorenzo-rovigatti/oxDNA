@@ -126,6 +126,7 @@ SET(interactions_SOURCES
 	Interactions/DRHInteraction_relax.cpp
 	Interactions/DNANMInteraction.cpp
 	Interactions/DRHANMInteraction.cpp
+	Interactions/DRHANMInteraction_relax.cpp
 )
 
 SET(move_SOURCES
