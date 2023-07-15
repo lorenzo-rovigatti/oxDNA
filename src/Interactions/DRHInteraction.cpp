@@ -306,13 +306,13 @@ number DRHInteraction::_hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, b
 
 		// functions called at their relevant arguments
 		number f1 = hb_multi * _f1_DRH(rhydromod, DRH_HYDR_F1, q->type, p->type, this->_is_DNA(q), this->_is_DNA(p));
-		number f4t1 = DNA2Interaction::_custom_f4(cost1, DRH_HYDR_F4_THETA1);
-		number f4t2 = DNA2Interaction::_custom_f4(cost2, DRH_HYDR_F4_THETA2);
-		number f4t3 = DNA2Interaction::_custom_f4(cost3, DRH_HYDR_F4_THETA3);
+		number f4t1 = _custom_f4_DRH(cost1, DRH_HYDR_F4_THETA1);
+		number f4t2 = _custom_f4_DRH(cost2, DRH_HYDR_F4_THETA2);
+		number f4t3 = _custom_f4_DRH(cost3, DRH_HYDR_F4_THETA3);
 
-		number f4t4 = DNA2Interaction::_custom_f4(cost4, DRH_HYDR_F4_THETA4);
-		number f4t7 = DNA2Interaction::_custom_f4(cost7, DRH_HYDR_F4_THETA7);
-		number f4t8 = DNA2Interaction::_custom_f4(cost8, DRH_HYDR_F4_THETA8);
+		number f4t4 = _custom_f4_DRH(cost4, DRH_HYDR_F4_THETA4);
+		number f4t7 = _custom_f4_DRH(cost7, DRH_HYDR_F4_THETA7);
+		number f4t8 = _custom_f4_DRH(cost8, DRH_HYDR_F4_THETA8);
 
 		energy = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
 
@@ -324,13 +324,13 @@ number DRHInteraction::_hydrogen_bonding_DRH(BaseParticle *p, BaseParticle *q, b
 
 			// derivatives called at the relevant arguments
 			number f1D = hb_multi * _f1D_DRH(rhydromod, DRH_HYDR_F1, q->type, p->type, this->_is_DNA(q), this->_is_DNA(p));
-			number f4t1Dsin = DNA2Interaction::_custom_f4D(cost1, DRH_HYDR_F4_THETA1);
-			number f4t2Dsin = DNA2Interaction::_custom_f4D(cost2, DRH_HYDR_F4_THETA2);
-			number f4t3Dsin = -DNA2Interaction::_custom_f4D(cost3, DRH_HYDR_F4_THETA3);
+			number f4t1Dsin = _custom_f4D_DRH(cost1, DRH_HYDR_F4_THETA1);
+			number f4t2Dsin = _custom_f4D_DRH(cost2, DRH_HYDR_F4_THETA2);
+			number f4t3Dsin = -_custom_f4D_DRH(cost3, DRH_HYDR_F4_THETA3);
 
-			number f4t4Dsin = -DNA2Interaction::_custom_f4D(cost4, DRH_HYDR_F4_THETA4);
-			number f4t7Dsin = DNA2Interaction::_custom_f4D(cost7, DRH_HYDR_F4_THETA7);
-			number f4t8Dsin = -DNA2Interaction::_custom_f4D(cost8, DRH_HYDR_F4_THETA8);
+			number f4t4Dsin = -_custom_f4D_DRH(cost4, DRH_HYDR_F4_THETA4);
+			number f4t7Dsin = _custom_f4D_DRH(cost7, DRH_HYDR_F4_THETA7);
+			number f4t8Dsin = -_custom_f4D_DRH(cost8, DRH_HYDR_F4_THETA8);
 
 			// RADIAL PART
 			force = -rhydrodir * (f1D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);
@@ -441,12 +441,12 @@ number DRHInteraction::_cross_stacking_DRH(BaseParticle *p, BaseParticle *q, boo
 
 		// functions called at their relevant arguments
 		number f2 = _f2_DRH(rcstackmod, DRH_CRST_F2);
-		number f4t1 = DNA2Interaction::_custom_f4(cost1, DRH_CRST_F4_THETA1);
-		number f4t2 = DNA2Interaction::_custom_f4(cost2, DRH_CRST_F4_THETA2);
-		number f4t3 = DNA2Interaction::_custom_f4(cost3, DRH_CRST_F4_THETA3);
-		number f4t4 = DNA2Interaction::_custom_f4(cost4, DRH_CRST_F4_THETA4) + DNA2Interaction::_custom_f4(-cost4, DRH_CRST_F4_THETA4);
-		number f4t7 = DNA2Interaction::_custom_f4(cost7, DRH_CRST_F4_THETA7) + DNA2Interaction::_custom_f4(-cost7, DRH_CRST_F4_THETA7);
-		number f4t8 = DNA2Interaction::_custom_f4(cost8, DRH_CRST_F4_THETA8) + DNA2Interaction::_custom_f4(-cost8, DRH_CRST_F4_THETA8);
+		number f4t1 = _custom_f4_DRH(cost1, DRH_CRST_F4_THETA1);
+		number f4t2 = _custom_f4_DRH(cost2, DRH_CRST_F4_THETA2);
+		number f4t3 = _custom_f4_DRH(cost3, DRH_CRST_F4_THETA3);
+		number f4t4 = _custom_f4_DRH(cost4, DRH_CRST_F4_THETA4) + _custom_f4_DRH(-cost4, DRH_CRST_F4_THETA4);
+		number f4t7 = _custom_f4_DRH(cost7, DRH_CRST_F4_THETA7) + _custom_f4_DRH(-cost7, DRH_CRST_F4_THETA7);
+		number f4t8 = _custom_f4_DRH(cost8, DRH_CRST_F4_THETA8) + _custom_f4_DRH(-cost8, DRH_CRST_F4_THETA8);
 
 		number prefactor = 1.0f;
 		energy = f2 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8;
@@ -459,12 +459,12 @@ number DRHInteraction::_cross_stacking_DRH(BaseParticle *p, BaseParticle *q, boo
 
 			// derivatives called at the relevant arguments
 			number f2D = prefactor*_f2D_DRH(rcstackmod, DRH_CRST_F2);
-			number f4t1Dsin = DNA2Interaction::_custom_f4D(cost1, DRH_CRST_F4_THETA1);
-			number f4t2Dsin = DNA2Interaction::_custom_f4D(cost2, DRH_CRST_F4_THETA2);
-			number f4t3Dsin = -DNA2Interaction::_custom_f4D(cost3, DRH_CRST_F4_THETA3);
-			number f4t4Dsin = -DNA2Interaction::_custom_f4D(cost4, DRH_CRST_F4_THETA4) + DNA2Interaction::_custom_f4D(-cost4, DRH_CRST_F4_THETA4);
-			number f4t7Dsin = DNA2Interaction::_custom_f4D(cost7, DRH_CRST_F4_THETA7) - DNA2Interaction::_custom_f4D(-cost7, DRH_CRST_F4_THETA7);
-			number f4t8Dsin = -DNA2Interaction::_custom_f4D(cost8, DRH_CRST_F4_THETA8) + DNA2Interaction::_custom_f4D(-cost8, DRH_CRST_F4_THETA8);
+			number f4t1Dsin = _custom_f4D_DRH(cost1, DRH_CRST_F4_THETA1);
+			number f4t2Dsin = _custom_f4D_DRH(cost2, DRH_CRST_F4_THETA2);
+			number f4t3Dsin = -_custom_f4D_DRH(cost3, DRH_CRST_F4_THETA3);
+			number f4t4Dsin = -_custom_f4D_DRH(cost4, DRH_CRST_F4_THETA4) + _custom_f4D_DRH(-cost4, DRH_CRST_F4_THETA4);
+			number f4t7Dsin = _custom_f4D_DRH(cost7, DRH_CRST_F4_THETA7) - _custom_f4D_DRH(-cost7, DRH_CRST_F4_THETA7);
+			number f4t8Dsin = -_custom_f4D_DRH(cost8, DRH_CRST_F4_THETA8) + _custom_f4D_DRH(-cost8, DRH_CRST_F4_THETA8);
 
 			// RADIAL PART
 			force = -rcstackdir * (f2D * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8);

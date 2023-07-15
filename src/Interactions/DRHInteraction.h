@@ -67,6 +67,8 @@ protected:
 
 
 
+	//These are inherited from DNA2Interaction:
+
 	/**
 	 * @brief Custom function that returns f4. This was added to add the possibility to avoid the use of meshes in classes that inherit from this.
 	 *
@@ -74,7 +76,7 @@ protected:
 	 * @param i     type of the interaction (which mesh to use)
 	 */
 	//virtual number _custom_f4_DRH (number cost, int i) { return this->_mesh_f4[i].query(cost); }
-
+	virtual number _custom_f4_DRH (number cost, int i) { return DNA2Interaction::_custom_f4(cost, i); }
 	/**
 	 * @brief Custom function that returns the derivative of f4. See _custom_f4
 	 *
@@ -82,6 +84,7 @@ protected:
 	 * @param i     type of the interaction (which mesh to use)
 	 */
 	//virtual number _custom_f4D_DRH (number cost, int i) { return this->_mesh_f4[i].query_derivative(cost); }
+	virtual number _custom_f4D_DRH (number cost, int i) { return DNA2Interaction::_custom_f4D(cost, i); }
 
 
 	//CHANGES TO .cpp: changed the above two funcs to dna-inherited versions
