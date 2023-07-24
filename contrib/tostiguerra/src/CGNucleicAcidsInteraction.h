@@ -46,7 +46,7 @@ protected:
 	number _Kfene = 15.;
 	number _rfene = 1.5;
 	number _sqr_rfene;
-	number _WCA_sigma = 1.0;
+	number _WCA_sigma = 1.0, _WCA_sigma_unbonded;
 	number _PS_sqr_rep_rcut;
 	number _mu = 1.0;
 	number dS_mod = 1.0;
@@ -59,6 +59,7 @@ protected:
 	number _PS_beta = 0.;
 	number _PS_gamma = 0.;
 	int _PS_n = 6;
+	int _bead_size = 0;
 
 	int _N_attractive_types = 0;
 	int _interaction_matrix_size = 0;
@@ -82,10 +83,19 @@ protected:
 	number _semiflexibility_k;
 	number _semiflexibility_a1;
 	number _semiflexibility_3b_k;
+	number _semiflexibility_3b_exp_sigma = -1.0;
 	number _stacking_eta;
 
 	/// patchy stuff
 	number _deltaPatchMon = 0.5;
+
+	/// used when max_backbone_force = true
+	bool _use_mbf = false;
+	number _mbf_xmax = 0.0;
+	number _mbf_fmax = 0.0;
+	number _mbf_Emax = 0.0;
+	number _mbf_A = 0.0;
+	number _mbf_B = 0.0;
 
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
