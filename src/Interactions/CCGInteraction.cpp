@@ -169,7 +169,7 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 				double f1D = 5.0 * expPart * r8b10;
 				LR_vector force = strength*_computed_r*f1D*dist/rmod;
 				// if(expPart<-1) std::cout<<rmod<<"\t"<< energy<<"\t"<<f1D*dist/rmod<<std::endl;
-				std::cout<<strength*_computed_r*f1D*dist/rmod<<"\n";
+				// std::cout<<strength*_computed_r*f1D*dist/rmod<<"\n";
 				p->force-=force;
 				q->force+=force;
 			}
