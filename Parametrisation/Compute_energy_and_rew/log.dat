@@ -1,0 +1,260 @@
+DEBUG: Initializing
+INFO: seeding the RNG with 1
+INFO: Initializing backend 
+INFO: Simulation type: MD
+DEBUG: Adding new timer with description SimBackend and no parent
+INFO: The generator will try to take into account bonded interactions by choosing distances between bonded neighbours no larger than 2.000000
+INFO: Using '/home/andrea/oxDNA/oxdna/oxDNA2_sequence_dependent_parameters.txt' as the input for sequence-dependent values
+INFO: Converting temperature from Kelvin (298.000000 K) to simulation units (0.099333)
+INFO: Running Debye-Huckel at salt concentration =  0.2
+INFO: Using different widths for major and minor grooves
+INFO: Temperature change detected (new temperature: 24.85 C, 298.00 K), re-initialising the DNA interaction
+DEBUG: Debye-Huckel parameters: Q=0.054300, lambda_0=0.361646, lambda=0.805964, r_high=2.417892, cutoff=4.589635
+DEBUG: Debye-Huckel parameters: debye_huckel_RC=3.626837e+00, debye_huckel_B=7.650079e-04
+INFO: The Debye length at this temperature and salt concentration is 0.805964
+INFO: pid: 15497
+DEBUG: Debye-Huckel parameters: Q=0.054300, lambda_0=0.361646, lambda=0.805964, r_high=2.417892, cutoff=4.589635
+DEBUG: Debye-Huckel parameters: debye_huckel_RC=3.626837e+00, debye_huckel_B=7.650079e-04
+INFO: The Debye length at this temperature and salt concentration is 0.805964
+INFO: (Cells.cpp) N_cells_side: 5, 5, 5; rcut=4.68963, IS_MC: 0
+INFO: N: 40, N molecules: 2
+INFO: Using randomly distributed velocities
+INFO: Initial kinetic energy: 12.267401
+DEBUG: Adding new timer with description First Step and parent SimBackend
+DEBUG: Adding new timer with description Forces and parent SimBackend
+DEBUG: Adding new timer with description Thermostat and parent SimBackend
+DEBUG: Adding new timer with description Lists and parent SimBackend
+INFO: RELEASE: 
+INFO: GIT COMMIT: b291b44
+INFO: COMPILED ON: 08/02/23
+DEBUG: Running
+INFO: diffusion fixed.. -56.2251 -56.2251
+INFO: diffusion fixed.. -56.2905 -56.2905
+INFO: diffusion fixed.. -58.872 -58.872
+DEBUG: Current data production rate: 0.00234267 MB/s (total bytes: 73704, time_passed: 30.0041)
+DEBUG: Current data production rate: 0.00227233 MB/s (total bytes: 73950, time_passed: 31.0361)
+DEBUG: Current data production rate: 0.00220855 MB/s (total bytes: 74196, time_passed: 32.0386)
+DEBUG: Current data production rate: 0.00214905 MB/s (total bytes: 74442, time_passed: 33.0348)
+DEBUG: Current data production rate: 0.00209352 MB/s (total bytes: 74688, time_passed: 34.0231)
+DEBUG: Current data production rate: 0.00204112 MB/s (total bytes: 74934, time_passed: 35.0115)
+DEBUG: Current data production rate: 0.00199132 MB/s (total bytes: 75180, time_passed: 36.0049)
+DEBUG: Current data production rate: 0.00194483 MB/s (total bytes: 75426, time_passed: 36.9862)
+DEBUG: Current data production rate: 0.0019004 MB/s (total bytes: 75672, time_passed: 37.9743)
+DEBUG: Current data production rate: 0.00185838 MB/s (total bytes: 75918, time_passed: 38.9592)
+INFO: diffusion fixed.. -57.0943 -57.0943
+DEBUG: Current data production rate: 0.00234415 MB/s (total bytes: 98218, time_passed: 39.9581)
+DEBUG: Current data production rate: 0.00229181 MB/s (total bytes: 98464, time_passed: 40.9731)
+DEBUG: Current data production rate: 0.00224273 MB/s (total bytes: 98710, time_passed: 41.9743)
+DEBUG: Current data production rate: 0.00219522 MB/s (total bytes: 98956, time_passed: 42.9897)
+DEBUG: Current data production rate: 0.00215066 MB/s (total bytes: 99202, time_passed: 43.9895)
+DEBUG: Current data production rate: 0.00210804 MB/s (total bytes: 99448, time_passed: 44.9902)
+DEBUG: Current data production rate: 0.0020679 MB/s (total bytes: 99694, time_passed: 45.977)
+DEBUG: Current data production rate: 0.00202936 MB/s (total bytes: 99940, time_passed: 46.9655)
+DEBUG: Current data production rate: 0.00199207 MB/s (total bytes: 100186, time_passed: 47.9626)
+DEBUG: Current data production rate: 0.00195632 MB/s (total bytes: 100432, time_passed: 48.959)
+INFO: diffusion fixed.. -57.7166 -57.7166
+DEBUG: Current data production rate: 0.00234302 MB/s (total bytes: 122724, time_passed: 49.952)
+DEBUG: Current data production rate: 0.00230146 MB/s (total bytes: 122970, time_passed: 50.9561)
+DEBUG: Current data production rate: 0.00226205 MB/s (total bytes: 123216, time_passed: 51.9476)
+DEBUG: Current data production rate: 0.0022231 MB/s (total bytes: 123462, time_passed: 52.9632)
+DEBUG: Current data production rate: 0.00218465 MB/s (total bytes: 123708, time_passed: 54.0028)
+DEBUG: Current data production rate: 0.00214444 MB/s (total bytes: 123954, time_passed: 55.1249)
+DEBUG: Current data production rate: 0.0021069 MB/s (total bytes: 124200, time_passed: 56.2182)
+DEBUG: Current data production rate: 0.00207241 MB/s (total bytes: 124446, time_passed: 57.2671)
+DEBUG: Current data production rate: 0.00204001 MB/s (total bytes: 124692, time_passed: 58.2918)
+DEBUG: Current data production rate: 0.00200858 MB/s (total bytes: 124938, time_passed: 59.3207)
+INFO: diffusion fixed.. -58.7786 -58.7786
+DEBUG: Current data production rate: 0.00232774 MB/s (total bytes: 147248, time_passed: 60.3275)
+DEBUG: Current data production rate: 0.00229207 MB/s (total bytes: 147494, time_passed: 61.3687)
+DEBUG: Current data production rate: 0.00225795 MB/s (total bytes: 147740, time_passed: 62.4)
+DEBUG: Current data production rate: 0.00222611 MB/s (total bytes: 147986, time_passed: 63.3978)
+DEBUG: Current data production rate: 0.00219447 MB/s (total bytes: 148232, time_passed: 64.4186)
+DEBUG: Current data production rate: 0.00216299 MB/s (total bytes: 148478, time_passed: 65.4649)
+DEBUG: Current data production rate: 0.00213384 MB/s (total bytes: 148724, time_passed: 66.4691)
+DEBUG: Current data production rate: 0.00210618 MB/s (total bytes: 148970, time_passed: 67.4532)
+DEBUG: Current data production rate: 0.00207959 MB/s (total bytes: 149216, time_passed: 68.4288)
+DEBUG: Current data production rate: 0.00205359 MB/s (total bytes: 149462, time_passed: 69.4092)
+INFO: diffusion fixed.. -56.329 -56.329
+DEBUG: Current data production rate: 0.00232517 MB/s (total bytes: 171714, time_passed: 70.429)
+DEBUG: Current data production rate: 0.0022954 MB/s (total bytes: 171960, time_passed: 71.4445)
+DEBUG: Current data production rate: 0.0022668 MB/s (total bytes: 172206, time_passed: 72.4494)
+DEBUG: Current data production rate: 0.0022393 MB/s (total bytes: 172452, time_passed: 73.444)
+DEBUG: Current data production rate: 0.00221289 MB/s (total bytes: 172698, time_passed: 74.4264)
+DEBUG: Current data production rate: 0.00218739 MB/s (total bytes: 172944, time_passed: 75.4013)
+DEBUG: Current data production rate: 0.00216268 MB/s (total bytes: 173190, time_passed: 76.3713)
+DEBUG: Current data production rate: 0.0021384 MB/s (total bytes: 173436, time_passed: 77.3483)
+DEBUG: Current data production rate: 0.00211452 MB/s (total bytes: 173682, time_passed: 78.3326)
+DEBUG: Current data production rate: 0.0020914 MB/s (total bytes: 173928, time_passed: 79.311)
+INFO: diffusion fixed.. -59.8968 -59.8968
+DEBUG: Current data production rate: 0.00233045 MB/s (total bytes: 196218, time_passed: 80.2971)
+DEBUG: Current data production rate: 0.00230378 MB/s (total bytes: 196464, time_passed: 81.3282)
+DEBUG: Current data production rate: 0.00227875 MB/s (total bytes: 196710, time_passed: 82.3245)
+DEBUG: Current data production rate: 0.00225413 MB/s (total bytes: 196956, time_passed: 83.3279)
+DEBUG: Current data production rate: 0.00223045 MB/s (total bytes: 197202, time_passed: 84.3177)
+DEBUG: Current data production rate: 0.00220749 MB/s (total bytes: 197448, time_passed: 85.301)
+DEBUG: Current data production rate: 0.00218506 MB/s (total bytes: 197694, time_passed: 86.2839)
+DEBUG: Current data production rate: 0.00216304 MB/s (total bytes: 197940, time_passed: 87.2709)
+DEBUG: Current data production rate: 0.00214149 MB/s (total bytes: 198186, time_passed: 88.2585)
+DEBUG: Current data production rate: 0.00212063 MB/s (total bytes: 198432, time_passed: 89.2375)
+INFO: diffusion fixed.. -56.5502 -56.5502
+DEBUG: Current data production rate: 0.0023331 MB/s (total bytes: 220700, time_passed: 90.213)
+DEBUG: Current data production rate: 0.00231057 MB/s (total bytes: 220946, time_passed: 91.194)
+DEBUG: Current data production rate: 0.00228843 MB/s (total bytes: 221192, time_passed: 92.1788)
+DEBUG: Current data production rate: 0.00226617 MB/s (total bytes: 221438, time_passed: 93.1881)
+DEBUG: Current data production rate: 0.00224485 MB/s (total bytes: 221684, time_passed: 94.1773)
+DEBUG: Current data production rate: 0.0022242 MB/s (total bytes: 221930, time_passed: 95.1574)
+DEBUG: Current data production rate: 0.002204 MB/s (total bytes: 222176, time_passed: 96.1361)
+DEBUG: Current data production rate: 0.00218405 MB/s (total bytes: 222422, time_passed: 97.1217)
+DEBUG: Current data production rate: 0.00216451 MB/s (total bytes: 222668, time_passed: 98.1066)
+DEBUG: Current data production rate: 0.00214524 MB/s (total bytes: 222914, time_passed: 99.0974)
+INFO: diffusion fixed.. -59.2004 -59.2004
+DEBUG: Current data production rate: 0.002336 MB/s (total bytes: 245168, time_passed: 100.09)
+DEBUG: Current data production rate: 0.00231479 MB/s (total bytes: 245414, time_passed: 101.108)
+DEBUG: Current data production rate: 0.00229435 MB/s (total bytes: 245660, time_passed: 102.111)
+DEBUG: Current data production rate: 0.00227445 MB/s (total bytes: 245906, time_passed: 103.108)
+DEBUG: Current data production rate: 0.00225498 MB/s (total bytes: 246152, time_passed: 104.102)
+DEBUG: Current data production rate: 0.00223607 MB/s (total bytes: 246398, time_passed: 105.088)
+DEBUG: Current data production rate: 0.00221725 MB/s (total bytes: 246644, time_passed: 106.086)
+DEBUG: Current data production rate: 0.00219887 MB/s (total bytes: 246890, time_passed: 107.079)
+DEBUG: Current data production rate: 0.00218112 MB/s (total bytes: 247136, time_passed: 108.058)
+DEBUG: Current data production rate: 0.0021638 MB/s (total bytes: 247382, time_passed: 109.031)
+INFO: diffusion fixed.. -55.0877 -55.0877
+DEBUG: Current data production rate: 0.00233822 MB/s (total bytes: 269714, time_passed: 110.006)
+DEBUG: Current data production rate: 0.00231881 MB/s (total bytes: 269960, time_passed: 111.029)
+DEBUG: Current data production rate: 0.00230069 MB/s (total bytes: 270206, time_passed: 112.005)
+DEBUG: Current data production rate: 0.00228204 MB/s (total bytes: 270452, time_passed: 113.023)
+DEBUG: Current data production rate: 0.00226414 MB/s (total bytes: 270698, time_passed: 114.02)
+DEBUG: Current data production rate: 0.00224669 MB/s (total bytes: 270944, time_passed: 115.01)
+DEBUG: Current data production rate: 0.00222947 MB/s (total bytes: 271190, time_passed: 116.004)
+DEBUG: Current data production rate: 0.0022129 MB/s (total bytes: 271436, time_passed: 116.979)
+DEBUG: Current data production rate: 0.00219667 MB/s (total bytes: 271682, time_passed: 117.949)
+DEBUG: Current data production rate: 0.00218051 MB/s (total bytes: 271928, time_passed: 118.931)
+INFO: diffusion fixed.. -55.1974 -55.1974
+DEBUG: Current data production rate: 0.0023406 MB/s (total bytes: 294300, time_passed: 119.912)
+DEBUG: Current data production rate: 0.00232332 MB/s (total bytes: 294546, time_passed: 120.905)
+DEBUG: Current data production rate: 0.00230669 MB/s (total bytes: 294792, time_passed: 121.878)
+DEBUG: Current data production rate: 0.00228982 MB/s (total bytes: 295038, time_passed: 122.879)
+DEBUG: Current data production rate: 0.00227352 MB/s (total bytes: 295284, time_passed: 123.863)
+DEBUG: Current data production rate: 0.0022576 MB/s (total bytes: 295530, time_passed: 124.84)
+DEBUG: Current data production rate: 0.00224193 MB/s (total bytes: 295776, time_passed: 125.817)
+DEBUG: Current data production rate: 0.00222631 MB/s (total bytes: 296022, time_passed: 126.806)
+DEBUG: Current data production rate: 0.00221091 MB/s (total bytes: 296268, time_passed: 127.795)
+DEBUG: Current data production rate: 0.0021958 MB/s (total bytes: 296514, time_passed: 128.781)
+INFO: diffusion fixed.. -55.6171 -55.6171
+DEBUG: Current data production rate: 0.00234263 MB/s (total bytes: 318758, time_passed: 129.765)
+DEBUG: Current data production rate: 0.0023266 MB/s (total bytes: 319004, time_passed: 130.76)
+DEBUG: Current data production rate: 0.00231089 MB/s (total bytes: 319250, time_passed: 131.75)
+DEBUG: Current data production rate: 0.00229515 MB/s (total bytes: 319496, time_passed: 132.756)
+DEBUG: Current data production rate: 0.00228 MB/s (total bytes: 319742, time_passed: 133.741)
+DEBUG: Current data production rate: 0.00226537 MB/s (total bytes: 319988, time_passed: 134.708)
+DEBUG: Current data production rate: 0.00225095 MB/s (total bytes: 320234, time_passed: 135.676)
+DEBUG: Current data production rate: 0.00223665 MB/s (total bytes: 320480, time_passed: 136.648)
+DEBUG: Current data production rate: 0.00222222 MB/s (total bytes: 320726, time_passed: 137.641)
+DEBUG: Current data production rate: 0.00220761 MB/s (total bytes: 320972, time_passed: 138.658)
+INFO: diffusion fixed.. -58.636 -58.636
+DEBUG: Current data production rate: 0.00234299 MB/s (total bytes: 343296, time_passed: 139.733)
+DEBUG: Current data production rate: 0.00232601 MB/s (total bytes: 343542, time_passed: 140.854)
+DEBUG: Current data production rate: 0.00231052 MB/s (total bytes: 343788, time_passed: 141.9)
+DEBUG: Current data production rate: 0.00229498 MB/s (total bytes: 344034, time_passed: 142.963)
+DEBUG: Current data production rate: 0.00227852 MB/s (total bytes: 344280, time_passed: 144.099)
+DEBUG: Current data production rate: 0.00226364 MB/s (total bytes: 344526, time_passed: 145.149)
+DEBUG: Current data production rate: 0.00224928 MB/s (total bytes: 344772, time_passed: 146.18)
+DEBUG: Current data production rate: 0.00223421 MB/s (total bytes: 345018, time_passed: 147.271)
+DEBUG: Current data production rate: 0.00221972 MB/s (total bytes: 345264, time_passed: 148.338)
+DEBUG: Current data production rate: 0.00220544 MB/s (total bytes: 345510, time_passed: 149.405)
+INFO: diffusion fixed.. -58.7617 -58.7617
+DEBUG: Current data production rate: 0.00233271 MB/s (total bytes: 367926, time_passed: 150.418)
+DEBUG: Current data production rate: 0.00231886 MB/s (total bytes: 368172, time_passed: 151.417)
+DEBUG: Current data production rate: 0.00230477 MB/s (total bytes: 368418, time_passed: 152.445)
+DEBUG: Current data production rate: 0.00229123 MB/s (total bytes: 368664, time_passed: 153.448)
+DEBUG: Current data production rate: 0.00227706 MB/s (total bytes: 368910, time_passed: 154.506)
+DEBUG: Current data production rate: 0.00226375 MB/s (total bytes: 369156, time_passed: 155.518)
+DEBUG: Current data production rate: 0.00225059 MB/s (total bytes: 369402, time_passed: 156.532)
+DEBUG: Current data production rate: 0.00223772 MB/s (total bytes: 369648, time_passed: 157.537)
+DEBUG: Current data production rate: 0.00222528 MB/s (total bytes: 369894, time_passed: 158.523)
+DEBUG: Current data production rate: 0.00221095 MB/s (total bytes: 370140, time_passed: 159.657)
+INFO: diffusion fixed.. -59.0625 -59.0625
+DEBUG: Current data production rate: 0.00232796 MB/s (total bytes: 392448, time_passed: 160.77)
+DEBUG: Current data production rate: 0.0023144 MB/s (total bytes: 392694, time_passed: 161.814)
+DEBUG: Current data production rate: 0.00230128 MB/s (total bytes: 392940, time_passed: 162.839)
+DEBUG: Current data production rate: 0.00228814 MB/s (total bytes: 393186, time_passed: 163.876)
+DEBUG: Current data production rate: 0.00227474 MB/s (total bytes: 393432, time_passed: 164.944)
+DEBUG: Current data production rate: 0.00226203 MB/s (total bytes: 393678, time_passed: 165.975)
+DEBUG: Current data production rate: 0.00224994 MB/s (total bytes: 393924, time_passed: 166.971)
+DEBUG: Current data production rate: 0.00223794 MB/s (total bytes: 394170, time_passed: 167.972)
+DEBUG: Current data production rate: 0.00222573 MB/s (total bytes: 394416, time_passed: 168.998)
+DEBUG: Current data production rate: 0.00221335 MB/s (total bytes: 394662, time_passed: 170.049)
+INFO: diffusion fixed.. -55.9918 -55.9918
+DEBUG: Current data production rate: 0.00232499 MB/s (total bytes: 417038, time_passed: 171.062)
+DEBUG: Current data production rate: 0.00231254 MB/s (total bytes: 417284, time_passed: 172.085)
+DEBUG: Current data production rate: 0.00230022 MB/s (total bytes: 417530, time_passed: 173.109)
+DEBUG: Current data production rate: 0.00228774 MB/s (total bytes: 417776, time_passed: 174.156)
+DEBUG: Current data production rate: 0.00227557 MB/s (total bytes: 418022, time_passed: 175.19)
+DEBUG: Current data production rate: 0.00226368 MB/s (total bytes: 418268, time_passed: 176.214)
+DEBUG: Current data production rate: 0.00225186 MB/s (total bytes: 418514, time_passed: 177.243)
+DEBUG: Current data production rate: 0.0022404 MB/s (total bytes: 418760, time_passed: 178.254)
+DEBUG: Current data production rate: 0.00222907 MB/s (total bytes: 419006, time_passed: 179.265)
+DEBUG: Current data production rate: 0.00221727 MB/s (total bytes: 419252, time_passed: 180.326)
+INFO: diffusion fixed.. -58.4372 -58.4372
+DEBUG: Current data production rate: 0.00232244 MB/s (total bytes: 441562, time_passed: 181.321)
+DEBUG: Current data production rate: 0.00231037 MB/s (total bytes: 441808, time_passed: 182.369)
+DEBUG: Current data production rate: 0.00229886 MB/s (total bytes: 442054, time_passed: 183.385)
+DEBUG: Current data production rate: 0.00228693 MB/s (total bytes: 442300, time_passed: 184.444)
+DEBUG: Current data production rate: 0.00227499 MB/s (total bytes: 442546, time_passed: 185.515)
+DEBUG: Current data production rate: 0.00226427 MB/s (total bytes: 442792, time_passed: 186.497)
+DEBUG: Current data production rate: 0.00225285 MB/s (total bytes: 443038, time_passed: 187.547)
+DEBUG: Current data production rate: 0.00224182 MB/s (total bytes: 443284, time_passed: 188.574)
+DEBUG: Current data production rate: 0.0022305 MB/s (total bytes: 443530, time_passed: 189.636)
+DEBUG: Current data production rate: 0.00221988 MB/s (total bytes: 443776, time_passed: 190.649)
+INFO: diffusion fixed.. -58.7 -58.7
+DEBUG: Current data production rate: 0.00231853 MB/s (total bytes: 466164, time_passed: 191.746)
+DEBUG: Current data production rate: 0.00230736 MB/s (total bytes: 466410, time_passed: 192.775)
+DEBUG: Current data production rate: 0.00229417 MB/s (total bytes: 466656, time_passed: 193.986)
+DEBUG: Current data production rate: 0.00228305 MB/s (total bytes: 466902, time_passed: 195.034)
+DEBUG: Current data production rate: 0.00227256 MB/s (total bytes: 467148, time_passed: 196.038)
+DEBUG: Current data production rate: 0.00226215 MB/s (total bytes: 467394, time_passed: 197.043)
+DEBUG: Current data production rate: 0.00225189 MB/s (total bytes: 467640, time_passed: 198.045)
+DEBUG: Current data production rate: 0.00224172 MB/s (total bytes: 467886, time_passed: 199.048)
+DEBUG: Current data production rate: 0.00223117 MB/s (total bytes: 468132, time_passed: 200.095)
+DEBUG: Current data production rate: 0.00222097 MB/s (total bytes: 468378, time_passed: 201.119)
+INFO: diffusion fixed.. -56.5009 -56.5009
+DEBUG: Current data production rate: 0.00231495 MB/s (total bytes: 490768, time_passed: 202.179)
+
+INFO: Total Running Time: 202.179 s, per step: 0.101089 ms
+INFO: Timings, in seconds, by Timer (total, own, spent in children)
+> SimBackend                        202.179 (100.0%)        8.552 (  4.2%)      193.627 ( 95.8%)
+***> Lists                            5.359 (  2.7%)        5.359 (  2.7%)        0.000 (  0.0%)
+***> Thermostat                       1.743 (  0.9%)        1.743 (  0.9%)        0.000 (  0.0%)
+***> Forces                         179.022 ( 88.5%)      179.022 ( 88.5%)        0.000 (  0.0%)
+***> First Step                       7.503 (  3.7%)        7.503 (  3.7%)        0.000 (  0.0%)
+
+INFO: END OF THE SIMULATION, everything went OK!
+DEBUG: The following keys found in the input file were not used: 
+	small_system
+INFO: Lists updated 190198 times (every ~10.515358 steps)
+INFO: Aggregated I/O statistics (set debug=1 for file-wise information)
+DEBUG:   on energy.dat:   9.618 KB
+DEBUG:   on last_conf.dat: 226.302 KB
+DEBUG:   on split_energy.dat:  26.499 KB
+DEBUG:   on stdout:  12.170 KB
+DEBUG:   on trajectory.dat: 215.489 KB
+	477.908 KB written to files
+	 12.170 KB written to stdout/stderr
+	For a total of  0.00237 MB/s
+
+DEBUG: Timer with desc SimBackend deleted
+DEBUG: Timer with desc First Step deleted
+DEBUG: Timer with desc Forces deleted
+DEBUG: Timer with desc Thermostat deleted
+DEBUG: Timer with desc Lists deleted
+
+Please cite these publications for any work that uses the oxDNA simulation package
+- for the code:
+    * P. Šulc et al., J. Chem. Phys. 137, 135101 (2012)
+    * L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)
+- for the oxDNA model:
+    * T. E. Ouldridge et al., J. Chem. Phys, 134, 085101 (2011)
+- for the oxDNA2 model:
+    * B. E. K. Snodin et al., J. Chem. Phys. 142, 234901 (2015)
+- for the oxRNA model:
+    * P. Šulc et al., J. Chem. Phys. 140, 235102 (2014)
