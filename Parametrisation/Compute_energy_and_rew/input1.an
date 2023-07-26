@@ -1,0 +1,51 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+#debug = 1
+sim_type = MD
+#seed = 1
+
+####    SIM PARAMETERS    ####
+#steps = 2e6
+#newtonian_steps = 103
+#diff_coeff = 2.50
+#pt = 0.99
+#thermostat = john
+
+T = 298K
+dt = 0.005
+verlet_skin = 0.05
+salt_concentration = 0.2
+interaction_type = DNA2
+
+### Seq. Dependence ##########
+use_average_seq = 0
+seq_dep_file = /home/andrea/oxDNA/oxdna/oxDNA2_sequence_dependent_parameters.txt 
+small_system = 1
+
+
+####    INPUT / OUTPUT    ####
+topology = generated.top
+conf_file = last_conf.dat
+trajectory_file = trajectory_ox2.dat
+refresh_vel = 1
+#log_file = log.dat
+no_stdout_energy = 0
+#restart_step_counter = 1
+#energy_file = energy.dat
+print_conf_interval = 1e5
+#print_energy_every = 1e4
+time_scale = linear
+external_forces = 0
+
+analysis_data_output_1 = {
+name = energy_test.dat
+print_every = 1e4
+col_1 = {
+type = potential_energy
+#split = true
+}
+#col_2 = {
+#type = total_energy
+#}
+}
+
