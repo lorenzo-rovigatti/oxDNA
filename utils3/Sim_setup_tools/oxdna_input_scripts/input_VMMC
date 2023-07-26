@@ -1,0 +1,58 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+backend_precision = double
+
+####    SIM PARAMETERS    ####
+sim_type = VMMC
+ensemble = NVT
+steps = 1e9
+interaction_type = DNA3
+#major_minor_grooving = 1
+salt_concentration = 0.5
+delta_translation = 0.1
+delta_rotation = 0.22
+T = 70C
+verlet_skin = 1
+umbrella_sampling = 1
+op_file = op.txt
+weights_file = w.txt
+#init_hist_file = last_hist.dat
+#
+restart_step_counter = 0
+traj_hist_file = traj_hist
+maxclust=7
+safe_weights = False
+default_weight = 0
+skip_hist_zeros = True
+extrapolate_hist = 58C, 59C, 60C, 61C, 62C, 63C, 65C, 66C, 67C, 68C, 69C, 70C, 72C, 74C, 76C, 78C, 80C
+data_output_1 = {
+ name = decorr.txt
+ print_every = 1e5
+ col_1 = {
+  type = step
+}
+ col_2 = {
+ type=order_parameters
+ op_file = op.txt
+}
+}
+
+### Seq. Dependence ##########
+### Seq. Dependence ##########
+use_average_seq = 0
+seq_dep_file = oxDNA_path/oxDNA2_sequence_dependent_parameters.txt 
+small_system = 1
+#
+####    INPUT / OUTPUT    ####
+topology = generated.top
+conf_file = generated.dat
+lastconf_file = last_conf.dat
+trajectory_file = trajectory.dat
+no_stdout_energy = 0 
+energy_file = energy.dat
+conf_output_dir = confs
+print_conf_interval = 1e6
+print_energy_every = 1e5
+time_scale = linear
+external_forces = 0
+
