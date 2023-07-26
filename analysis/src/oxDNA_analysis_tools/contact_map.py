@@ -16,7 +16,7 @@ start_time = time()
 ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "top_info"])
 
-def compute(ctx:ComputeContext, chunk_size:int,  chunk_id:int) -> np.array:
+def compute(ctx:ComputeContext, chunk_size:int,  chunk_id:int) -> np.ndarray:
     """
     Computes the average distance between every pair of nucleotides and creates a matrix of these distances.
 
@@ -32,11 +32,11 @@ def compute(ctx:ComputeContext, chunk_size:int,  chunk_id:int) -> np.array:
     np_poses = np.asarray([c.positions for c in confs])
     distances = np.zeros((ctx.top_info.nbases, ctx.top_info.nbases))
     for c in np_poses:
-        distances += vectorized_min_image(c, c, confs[0].box)
+        distances += vectorized_min_image(c, c, confs[0].box[0])
 
     return distances
 
-def contact_map(traj_info:TrajInfo, top_info:TopInfo, ncpus=1) -> np.array: 
+def contact_map(traj_info:TrajInfo, top_info:TopInfo, ncpus=1) -> np.ndarray: 
     """
         Calculates the average contact map for a trajectory.
 

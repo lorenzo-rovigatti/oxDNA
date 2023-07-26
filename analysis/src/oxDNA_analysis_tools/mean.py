@@ -1,7 +1,7 @@
 import argparse
 import os
 import time
-from typing import List
+from typing import List, Union
 import numpy as np
 from sys import stderr
 from collections import namedtuple
@@ -47,7 +47,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     
     return sub_mean
 
-def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration=None, indexes:List[int]=None, ncpus:int=1) -> Configuration:
+def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Union[Configuration,None]=None, indexes:List[int]=[], ncpus:int=1) -> Configuration:
     """
         Compute the mean structure of a trajectory.
 
@@ -63,7 +63,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration=None, inde
     """
 
     # Handle case where function was called from another script with incomplete arguments
-    if indexes == None:
+    if indexes == []:
         indexes = list(range(top_info.nbases))
     if ref_conf == None:
         ref_conf_id = int(randrange(0, traj_info.nconfs))

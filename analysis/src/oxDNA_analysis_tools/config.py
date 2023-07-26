@@ -6,7 +6,7 @@ from typing import List
 import argparse
 
 #checking dependencies to make sure everything is correct
-def check(to_check:List[str]=["python", "numpy", "matplotlib", "Bio", "sklearn", "oxpy"]):
+def check(to_check:List[str]=["python", "numpy", "matplotlib", "sklearn", "oxpy"]):
     """
         Checks if the dependencies are installed.
 
@@ -17,21 +17,18 @@ def check(to_check:List[str]=["python", "numpy", "matplotlib", "Bio", "sklearn",
     dependencies = {
         "numpy": 1.14,
         "matplotlib": 3.0,
-        "Bio": 1.73,
         "sklearn": 0.21,
         "oxpy": 3.2,
     }
     real_names = {
         "numpy": "Numpy",
         "matplotlib": "MatPlotLib",
-        "Bio": "BioPython",
         "sklearn": "SciKit-Learn",
         "oxpy": "oxpy"
     }
     websites = {
         "numpy": "numpy.org", 
         "matplotlib": "matplotlib.org",
-        "Bio": "biopython.org",
         "sklearn": "scikit-learn.org",
         "oxpy": "https://github.com/lorenzo-rovigatti/oxDNA"
     }
@@ -58,18 +55,9 @@ def check(to_check:List[str]=["python", "numpy", "matplotlib", "Bio", "sklearn",
             mod = __import__(package)
             print("INFO: Package {} found. Version: {}".format(real_names[package], mod.__version__), file=stderr)
         except:
-            if package == "Bio":
-                try:
-                    mod = __import__('bio')
-                    print("INFO: Package {} found. Version: {}".format(real_names[package], mod.__version__), file=stderr)
-                except:
-                    flag = True
-                    print("ERROR: Unable to find package {}.  Please check your environment or follow the installation instructions at {}".format(real_names[package], websites[package]), file=stderr)
-                    continue
-            else:
-                flag = True
-                print("ERROR: Unable to find package {}.  Please check your environment or follow the installation instructions at {}".format(real_names[package], websites[package]), file=stderr)
-                continue
+            flag = True
+            print("ERROR: Unable to find package {}.  Please check your environment or follow the installation instructions at {}".format(real_names[package], websites[package]), file=stderr)
+            continue
         ver = float('.'.join(mod.__version__.split(".")[0:2]))
         if ver < dependencies[package]:
             flag = True
@@ -132,7 +120,7 @@ def main():
         set_chunk_size(args.chunk_size)
         print("INFO: future analyses will calculate in blocks of {} confs at a time".format(args.chunk_size), file=stderr)
 
-    check(["python", "numpy", "matplotlib", "Bio", "sklearn", "oxpy"])
+    check(["python", "numpy", "matplotlib", "sklearn", "oxpy"])
 
     print()
     get_chunk_size()

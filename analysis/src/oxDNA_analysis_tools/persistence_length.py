@@ -102,7 +102,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     return(l0, correlations, correlations_counter)
 
-def persistence_length(traj_info:TrajInfo, inp_file:str, n1:int, n2:int, ncpus:int=1) -> Tuple[int, np.ndarray]:
+def persistence_length(traj_info:TrajInfo, inp_file:str, n1:int, n2:int, ncpus:int=1) -> Tuple[float, np.ndarray]:
     """
         Computes the persistence length of a bonded sequence of nucleotides.
 
