@@ -1,12 +1,11 @@
+# Documentation https://lorenzo-rovigatti.github.io/oxDNA/input.html
 ##############################
 ####  PROGRAM PARAMETERS  ####
 ##############################
-interaction_type=DNA_relax
-relax_type = harmonic_force
-salt_concentration=1.0
 sim_type = MC
 backend = CPU
 backend_precision = double
+verlet_skin = 0.5
 #max_density_multiplier=10
 #debug = 1
 #seed = 42
@@ -14,18 +13,17 @@ backend_precision = double
 ##############################
 ####    SIM PARAMETERS    ####
 ##############################
-steps = 1e4
-
-ensemble = nvt
-delta_translation = 0.02
-delta_rotation = 0.04
-max_backbone_force = 100
-
-T = 20C
+interaction_type=DNA2
+steps = 5e3
 dt = 0.05
-verlet_skin = 0.04
+T = 30C
+salt_concentration=1.0
+ensemble = nvt
+delta_translation = 0.22
+delta_rotation = 0.22
 diff_coeff = 2.5
-newtonian_steps = 103
+max_backbone_force = 5
+max_backhone_force_far = 10
 
 ##############################
 ####    INPUT / OUTPUT    ####
@@ -34,12 +32,11 @@ topology = topology.top
 conf_file = start_conf.dat
 lastconf_file = last_conf_MC.dat
 trajectory_file = MC_traj.dat
-refresh_vel = 0
-#log_file = log_trap.dat
-no_stdout_energy = 0
-restart_step_counter = 1
 energy_file = energy_MC.dat
-print_conf_interval = 5000
-print_energy_every = 1000
+print_conf_interval = ${$(steps) / 10}
+print_energy_every = ${$(steps) / 50}
 time_scale = linear
-
+refresh_vel = 0
+restart_step_counter = 1
+no_stdout_energy = 0
+#log_file = log_trap.dat

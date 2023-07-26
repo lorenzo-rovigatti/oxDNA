@@ -1,7 +1,7 @@
 import argparse
 import os
 import time
-from typing import List
+from typing import List, Union
 import numpy as np
 from sys import stderr
 from collections import namedtuple
@@ -47,7 +47,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
     
     return sub_mean
 
-def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration=None, indexes:List[int]=None, ncpus:int=1) -> Configuration:
+def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Union[Configuration,None]=None, indexes:List[int]=[], ncpus:int=1) -> Configuration:
     """
         Compute the mean structure of a trajectory.
 
@@ -55,7 +55,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration=None, inde
             traj_info (TrajInfo): Information about the trajectory
             top_info (TopInfo): Information about the topology
             ref_conf (Configuration): (optional) The reference configuration to align to. If None, a random configuraiton will be used.
-            indexes (List[int]): (optional) The indexes of the configurations to use. If None, all configurations will be used.
+            indexes (List[int]): (optional) The indexes of nucleotides included in the alignment. If None, all nucleotides will be aligned.
             ncpus (int): (optional) The number of CPUs to use. If None, 1 CPU will be used.
         
         Returns:
@@ -63,7 +63,7 @@ def mean(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration=None, inde
     """
 
     # Handle case where function was called from another script with incomplete arguments
-    if indexes == None:
+    if indexes == []:
         indexes = list(range(top_info.nbases))
     if ref_conf == None:
         ref_conf_id = int(randrange(0, traj_info.nconfs))
@@ -138,7 +138,7 @@ def main():
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
     else:
         indexes = list(range(top_info.nbases))
 
@@ -157,6 +157,7 @@ def main():
     else:
         ncpus = 1
 
+    # Actually perform the mean computation
     mean_conf = mean(traj_info, top_info, ref_conf, indexes, ncpus)
 
     #-o names the output file
@@ -168,14 +169,14 @@ def main():
 
     # Create the mean configuration from the numpy arrays containing the positions and orientations
     # And write it to the outfile
-    write_conf(outfile, mean_conf)
+    write_conf(outfile, mean_conf, include_vel=traj_info.incl_v)
     print("--- %s seconds ---" % (time.time() - start_time))
 
     # -d runs deviations.py after computing the mean
     if args.deviations:
         from oxDNA_analysis_tools import deviations
         dev_file = args.deviations[0]
-        print("INFO: Launching compute_deviations")
+        print("INFO: Launching compute_deviations", file=stderr)
 
         RMSDs, RMSFs = deviations.deviations(traj_info, top_info, mean_conf, indexes, ncpus)
         deviations.output(RMSDs, RMSFs, dev_file, dev_file.split('.')[0]+"_rmsd.png", dev_file.split('.')[0]+"_rmsd_data.json")

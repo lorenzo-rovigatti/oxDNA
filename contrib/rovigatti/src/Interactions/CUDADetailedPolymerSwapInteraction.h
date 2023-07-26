@@ -21,12 +21,14 @@ private:
 	int *_d_bonded_neighs;
 	float *_d_3b_epsilon = nullptr;
 
+	cudaTextureObject_t _tex_eps = 0;
+
 public:
 	CUDADetailedPolymerSwapInteraction();
 	virtual ~CUDADetailedPolymerSwapInteraction();
 
 	void get_settings(input_file &inp);
-	void cuda_init(c_number box_side, int N);
+	void cuda_init(int N);
 	c_number get_cuda_rcut() {
 		return this->get_rcut();
 	}

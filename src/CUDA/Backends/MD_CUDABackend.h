@@ -48,6 +48,7 @@ protected:
 	c_number4 *_d_buff_vels, *_d_buff_Ls;
 
 	llint _barostat_attempts, _barostat_accepted;
+	int _update_st_every = 0;
 
 	bool _print_energy;
 
@@ -76,6 +77,7 @@ protected:
 	virtual void _set_external_forces();
 
 	virtual void _thermalize();
+	virtual void _update_stress_tensor();
 
 	virtual void _init_CUDA_MD_symbols();
 

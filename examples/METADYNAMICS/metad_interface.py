@@ -187,6 +187,9 @@ class Estimator():
             initial_conf = os.path.join(self.base_dir, input_file["conf_file"])
             top_file = os.path.join(self.base_dir, input_file["topology"])
             
+            # remove some clutter from the output
+            input_file["log_file"] = "oxDNA_log.txt"
+            input_file["no_stdout_energy"] = "true"
             input_file["show_overwrite_warnings"] = "false"
             input_file["print_conf_interval"] = str(conf_interval)
             # we standardise the location of the last configuration, which is also the configuration we will start from
@@ -221,6 +224,7 @@ class Estimator():
                     pass
             
             input_file["external_forces_file"] = Estimator.EXT_FORCES_FILE
+            input_file["external_forces"] = "true"
             
             if not self.continue_run:
                 # delete and recreate the bias directory

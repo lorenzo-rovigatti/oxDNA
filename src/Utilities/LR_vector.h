@@ -120,6 +120,14 @@ public:
 		return std::sqrt(sqr_distance(V1));
 	}
 
+	inline LR_vector stably_normalised() {
+		LR_vector res(*this);
+
+		number max = std::fmax(std::fmax(std::fabs(x), std::fabs(y)), std::fabs(z));
+		res /= max;
+		return res /  res.module();
+	}
+
 	inline void normalize() {
 		number v_norm = norm();
 		if(v_norm == 0) return;

@@ -536,6 +536,12 @@ void MD_CUDABackend::_thermalize() {
 	_cuda_thermostat->apply_cuda(_d_poss, _d_orientations, _d_vels, _d_Ls, current_step());
 }
 
+void MD_CUDABackend::_update_stress_tensor() {
+	if(_update_st_every > 0 && (CONFIG_INFO->curr_step % _update_st_every == 0)) {
+		_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
+	}
+}
+
 void MD_CUDABackend::sim_step() {
 	_mytimer->resume();
 
@@ -576,6 +582,9 @@ void MD_CUDABackend::sim_step() {
 		c_number energy = GpuUtils::sum_c_number4_to_double_on_GPU(_d_forces, N());
 		_backend_info = Utils::sformat("\tCUDA_energy: %lf", energy / (2. * N()));
 	}
+
+	_update_stress_tensor();
+
 	_timer_forces->pause();
 
 	_timer_thermostat->resume();
@@ -601,6 +610,7 @@ void MD_CUDABackend::get_settings(input_file &inp) {
 	getInputBool(&inp, "CUDA_avoid_cpu_calculations", &_avoid_cpu_calculations, 0);
 	getInputBool(&inp, "CUDA_barostat_always_refresh", &_cuda_barostat_always_refresh, 0);
 	getInputBool(&inp, "CUDA_print_energy", &_print_energy, 0);
+	getInputInt(&inp, "CUDA_update_stress_tensor_every", &_update_st_every, 0);
 
 	_cuda_thermostat = CUDAThermostatFactory::make_thermostat(inp, _box.get());
 	_cuda_thermostat->get_settings(inp);
@@ -711,6 +721,10 @@ void MD_CUDABackend::init() {
 	_cuda_lists->update(_d_poss, _d_list_poss, _d_bonds);
 	_set_external_forces();
 	_cuda_interaction->compute_forces(_cuda_lists, _d_poss, _d_orientations, _d_forces, _d_torques, _d_bonds, _d_cuda_box);
+
+	if(_update_st_every > 0) {
+		_interaction->set_stress_tensor(_cuda_interaction->CPU_stress_tensor(_d_vels));
+	}
 }
 
 #pragma GCC diagnostic pop

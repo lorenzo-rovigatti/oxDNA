@@ -20,8 +20,8 @@ public:
 	CUDALJInteraction();
 	virtual ~CUDALJInteraction();
 
-	void get_settings(input_file &inp);
-	void cuda_init(c_number box_side, int N);
+	void get_settings(input_file &inp) override;
+	void cuda_init(int N) override;
 	c_number get_cuda_rcut() {
 		return this->get_rcut();
 	}

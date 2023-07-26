@@ -11,8 +11,6 @@ __constant__ int verlet_N[1];
 __constant__ int verlet_N_cells_side[3];
 __constant__ int verlet_max_N_per_cell[1];
 
-//texture<int, 1, cudaReadModeElementType> counters_cells_tex;
-
 __forceinline__ __device__ int neigh_cell(int3 index, int3 offset) {
 	// neighbour cell of this cell
 	index.x = (index.x + verlet_N_cells_side[0] + offset.x) % verlet_N_cells_side[0];
@@ -22,7 +20,7 @@ __forceinline__ __device__ int neigh_cell(int3 index, int3 offset) {
 	return (index.z * verlet_N_cells_side[1] + index.y) * verlet_N_cells_side[0] + index.x;
 }
 
-__device__ void update_cell_neigh_list(cudaTextureObject_t counters_cells_tex, c_number4 *poss, int cell_ind, int *cells, c_number4 r, int *neigh, int &N_neigh, LR_bonds b, CUDABox*box) {
+__device__ void update_cell_neigh_list(cudaTextureObject_t counters_cells_tex, c_number4 *poss, int cell_ind, int *cells, c_number4 r, int *neigh, int &N_neigh, LR_bonds b, CUDABox *box) {
 	int size = tex1Dfetch<int>(counters_cells_tex, cell_ind);
 	for(int i = 0; i < size; i++) {
 		int m = cells[cell_ind * verlet_max_N_per_cell[0] + i];
@@ -39,7 +37,7 @@ __device__ void update_cell_neigh_list(cudaTextureObject_t counters_cells_tex, c
 	}
 }
 
-__global__ void simple_update_neigh_list(cudaTextureObject_t counters_cells_tex, c_number4 *poss, c_number4 *list_poss, int *cells, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox*box) {
+__global__ void simple_update_neigh_list(cudaTextureObject_t counters_cells_tex, c_number4 *poss, c_number4 *list_poss, int *cells, int *matrix_neighs, int *c_number_neighs, LR_bonds *bonds, CUDABox *box) {
 	if(IND >= verlet_N[0]) return;
 
 	c_number4 r = poss[IND];
@@ -83,7 +81,7 @@ __global__ void simple_update_neigh_list(cudaTextureObject_t counters_cells_tex,
 	c_number_neighs[IND] = N_neighs;
 }
 
-__global__ void simple_fill_cells(c_number4 *poss, int *cells, int *counters_cells, bool *cell_overflow, CUDABox*box) {
+__global__ void simple_fill_cells(c_number4 *poss, int *cells, int *counters_cells, bool *cell_overflow, CUDABox *box) {
 	if(IND >= verlet_N[0]) return;
 
 	c_number4 r = poss[IND];
@@ -105,19 +103,13 @@ __global__ void compress_matrix_neighs(int *matrix, int *nneighs, int *offsets, 
 			edge_bond b;
 			b.from = IND;
 			b.to = matrix[i * verlet_N[0] + IND];
-			b.n_from = i;
-			b.n_to = -1;
-			// we know n_from out of the box, now we have to look for "from" in "to"'s neighbour list
-			// in order to find n_to
-			for(int j = 0; j < nneighs[b.to] && b.n_to == -1; j++)
-				if(matrix[j * verlet_N[0] + b.to] == IND) b.n_to = j;
 			edge_list[offsets[IND] + ctr] = b;
 			ctr++;
 		}
 	}
 }
 
-__device__ void edge_update_cell_neigh_list(cudaTextureObject_t counters_cells_tex, c_number4 *poss, int cell_ind, int *cells, c_number4 &r, int *neigh, int &N_n, LR_bonds b, int &N_n_no_doubles, CUDABox*box) {
+__device__ void edge_update_cell_neigh_list(cudaTextureObject_t counters_cells_tex, c_number4 *poss, int cell_ind, int *cells, c_number4 &r, int *neigh, int &N_n, LR_bonds b, int &N_n_no_doubles, CUDABox *box) {
 	int size = tex1Dfetch<int>(counters_cells_tex, cell_ind);
 	for(int i = 0; i < size; i++) {
 		int m = cells[cell_ind * verlet_max_N_per_cell[0] + i];
@@ -136,7 +128,7 @@ __device__ void edge_update_cell_neigh_list(cudaTextureObject_t counters_cells_t
 	}
 }
 
-__global__ void edge_update_neigh_list(cudaTextureObject_t counters_cells_tex, c_number4 *poss, c_number4 *list_poss, int *cells, int *matrix_neighs, int *nn, int *nn_no_doubles, LR_bonds *bonds, CUDABox*box) {
+__global__ void edge_update_neigh_list(cudaTextureObject_t counters_cells_tex, c_number4 *poss, c_number4 *list_poss, int *cells, int *matrix_neighs, int *nn, int *nn_no_doubles, LR_bonds *bonds, CUDABox *box) {
 	if(IND >= verlet_N[0]) return;
 
 	c_number4 r = poss[IND];

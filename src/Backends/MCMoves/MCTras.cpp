@@ -42,7 +42,7 @@ void MCTras::init() {
 }
 
 
-void MCTras::apply (llint curr_step) {
+void MCTras::apply(llint curr_step) {
 
 	// we increase the attempted count
 	this->_attempted += 1;
@@ -100,7 +100,7 @@ void MCTras::apply (llint curr_step) {
 		this->_Info->lists->single_update(p);
 		this->_Info->interaction->set_is_infinite(false);
 
-		if (curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
+		if(curr_step < this->_equilibration_steps && this->_adjust_moves) _delta /= this->_rej_fact;
 	}
 
 	return;

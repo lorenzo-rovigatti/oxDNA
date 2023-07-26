@@ -116,8 +116,8 @@ void CUDACPMixtureInteraction::get_settings(input_file &inp) {
 	CPMixtureInteraction::get_settings(inp);
 }
 
-void CUDACPMixtureInteraction::cuda_init(c_number box_side, int N) {
-	CUDABaseInteraction::cuda_init(box_side, N);
+void CUDACPMixtureInteraction::cuda_init(int N) {
+	CUDABaseInteraction::cuda_init(N);
 	CPMixtureInteraction::init();
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));

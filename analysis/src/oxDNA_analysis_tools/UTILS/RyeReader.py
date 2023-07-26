@@ -2,17 +2,17 @@ from sys import stderr
 import numpy as np
 import pickle
 from os.path import exists
-from typing import List, Tuple
+from typing import List, Tuple, Iterator, Union
 import os
-from oxDNA_analysis_tools.UTILS.data_structures import *
-from oxDNA_analysis_tools.UTILS.oat_multiprocesser import get_chunk_size
+from .data_structures import *
+from .oat_multiprocesser import get_chunk_size
 from oxDNA_analysis_tools.UTILS.get_confs import cget_confs
 
 ####################################################################################
 ##########                             FILE READERS                       ##########
 ####################################################################################
 
-def Chunker(file, fsize, size=1000000) -> Chunk:
+def Chunker(file, fsize, size=1000000) -> Iterator[Chunk]:
     """
         Generator that yields chunks of a fixed number of bytes
 
@@ -22,7 +22,7 @@ def Chunker(file, fsize, size=1000000) -> Chunk:
             size (int) : The size of the chunks
 
         Returns:
-            (Chunk) : The chunk
+            (Iterator[Chunk]) : An iterator object which yields chunks.
     """
     current_chunk = 0  
     while True:
@@ -31,7 +31,7 @@ def Chunker(file, fsize, size=1000000) -> Chunk:
         yield Chunk(b,current_chunk*size, current_chunk * size + size > fsize, fsize)
         current_chunk+=1
 
-def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> List[Configuration]:
+def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=-1) -> Iterator[List[Configuration]]:
     """
         Read a trajecory without multiprocessing.  
 
@@ -43,9 +43,9 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=None) -> Li
             ntopart (int) : The number of confs to read at a time
 
         Returns:
-            list[Configuration] : list of configurations
+            iterator[Configuration] : An iterator object which yields lists of <chunk_size> configurations.
     """
-    if chunk_size is None:
+    if chunk_size == -1:
         chunk_size = get_chunk_size()
     current_chunk = 0
     while True:
@@ -88,12 +88,17 @@ def _index(traj_file) -> List[ConfInfo]:
     idxs = [ConfInfo(conf_starts[i], conf_starts[i+1] - conf_starts[i],i) 
                                             for i in range(len(conf_starts)-1)]
     #handle last offset
-    idxs.append(ConfInfo(conf_starts[-1], fsize - conf_starts[-1], len(conf_starts)-1))
+    try:
+        idxs.append(ConfInfo(conf_starts[-1], fsize - conf_starts[-1], len(conf_starts)-1))
+    except Exception as e:
+        out_e = RuntimeError("Cannot find any configuration starts in file {}. It is not a properly formatted trajectory file.".format((traj_file)))
+        out_e = out_e.with_traceback(e.__traceback__)
+        raise out_e from e
     return idxs
 
 def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int) -> List[Configuration]:
     """
-        Read a chunk of confs from a trajectory file.
+        Read a chunk of configurations from a trajectory file.
 
         Parameters:
             top_info (TopInfo) : Contains the number of bases in the configuration
@@ -102,44 +107,45 @@ def get_confs(top_info:TopInfo, traj_info:TrajInfo, start_conf:int, n_confs:int)
             n_confs (int) : The number of confs to read
 
         Returns:
-            List[Configuration] : list of configurations
+            List[Configuration] : A list of n_confs configurations starting from <start_conf>
 
     """
     indexes = traj_info.idxs
     traj_file = traj_info.path
     n_bases = top_info.nbases
-    return cget_confs(indexes, traj_file, start_conf, n_confs, n_bases)
+    incl_v = traj_info.incl_v
+    return cget_confs(indexes, traj_file, start_conf, n_confs, n_bases, incl_vel=incl_v)
 
 ####################################################################################
 ##########                             FILE PARSERS                       ##########
 ####################################################################################
 
-def get_top_info(top : str) -> TopInfo:
+def get_top_info(top:str) -> TopInfo:
     """
-        bare bones of topology info
+        Get data from topology file header
 
         Parameters:
             top (str) : path to the topology file
 
         Returns:
-            (TopInfo) : topology info
+            TopInfo : A TopInfo object which contains the path to the file and the number of bases.
     """
     with open(top) as f:
-        my_top_info = f.readline().split(' ')
-        if len(my_top_info)  == 2:
+        my_top_info = f.readline().strip().split(' ')
+        if len(my_top_info) == 2:
             nbases = my_top_info[0]
         elif len(my_top_info) == 5:
             nbases, ndna, nres = (my_top_info[0], my_top_info[2], my_top_info[3])
         else:
-            print("ERROR: malformed topology header, failed to read topology file", file=stderr)
-            exit()
+            raise RuntimeError("Malformed topology header, failed to read topology file.")
+        
     return TopInfo(top, int(nbases))
 
 def get_top_info_from_traj(traj : str) -> TopInfo:
     """
         Retrieve top and traj info without providing a topology. 
 
-        Note that the resulting top_info will have 0 strands because that information cannot be found in the trajectory. 
+        Note its not implemented, but if it were, this would not return the number of strands.
 
         Parameters:
             traj (str) : path to the trajectory file
@@ -169,7 +175,7 @@ def get_traj_info(traj : str) -> TrajInfo:
             traj (str) : path to the trajectory file
 
         Returns:
-            (TrajInfo) : trajectory info
+            TrajInfo : trajectory info object
 
     """
     #if idxs is None: # handle case when we have no indexes provided
@@ -188,14 +194,27 @@ def get_traj_info(traj : str) -> TrajInfo:
             with open(traj+".pyidx","wb") as file:
                 file.write(pickle.dumps(idxs))
 
-    return TrajInfo(traj,len(idxs),idxs)
+    # Check if velocities are present in the trajectory
+    with open(traj) as f:
+        for _ in range(3):
+            f.readline()
+        line = f.readline()
+        nline = line.split()
+        if len(nline) == 15:
+            incl_v = True
+        elif len(nline) == 9:
+            incl_v = False
+        else:
+            raise RuntimeError(f"Invalid first particle line: {line}")
 
-def describe(top : str, traj : str) -> Tuple[TopInfo, TrajInfo]:
+    return TrajInfo(traj,len(idxs),idxs, incl_v)
+
+def describe(top:Union[str,None], traj:str) -> Tuple[TopInfo, TrajInfo]:
     """
         retrieve top and traj info for a provided pair
 
         You can provide None as the topology and it will read the first conf of the traj to get the number of particles.
-        Note that the TopInfo will be missing the path parameter if no topology is provided.
+        The TopInfo will be missing the path parameter if no topology is provided.
 
         Parameters:
             top (str or None) : path to the topology file
@@ -212,23 +231,23 @@ def describe(top : str, traj : str) -> Tuple[TopInfo, TrajInfo]:
 def strand_describe(top) -> Tuple[System, list]:
     """
         Retrieve all information from topology file mapping nucleotides to strands.
+
+        This is returned as two objects so that monomers can be indexed either via strand or via global index
         
         Parameters:
             top (str) : path to topology file
 
         Returns:
-            system (System) : system object 
-            monomers (list of Monomer) : list of monomers
+            (System, List[Monomer]) : The system object and the list of monomer objects.
     """
     get_neighbor = lambda x: monomers[x].id if x != -1 else None
 
     with open (top) as f:
         l = f.readline().split()
         nmonomers = int(l[0])
-        nstrands = int(l[1])
 
-        system = System([None] * nstrands)
-        monomers = [Monomer(i, None, None, None, None, None) for i in range(nmonomers)]
+        system = System()
+        monomers = [Monomer(i, "", None, None, None, None) for i in range(nmonomers)]
 
         ls = f.readlines()
 
@@ -246,7 +265,7 @@ def strand_describe(top) -> Tuple[System, list]:
         while l:
             if int(l[0]) != curr:
                 s.monomers = monomers[s_start:mid]
-                system[curr-1] = s #this is going to do something weird with proteins
+                system.append(s)
                 curr = int(l[0])
                 s = Strand(curr)
                 s_start = mid
@@ -263,7 +282,7 @@ def strand_describe(top) -> Tuple[System, list]:
                 break  
 
     s.monomers = monomers[s_start:mid]
-    system[curr-1] = s #this is going to do something weird with proteins
+    system.append(s)
 
     return system, monomers
 
@@ -276,7 +295,7 @@ def get_input_parameter(input_file, parameter) -> str:
         parameter (str): The parameter you want to get the value of
 
     Returns:
-        value (str): The value of the parameter
+        (str): The value of the parameter
     """
     fin = open(input_file)
     value = ''
@@ -287,7 +306,7 @@ def get_input_parameter(input_file, parameter) -> str:
                 value = line.split('=')[1].replace(' ','').replace('\n','')
     fin.close()
     if value == '':
-        print("ERROR: Key {} not found in input file {}".format(parameter, input_file))
+        raise RuntimeError("Key {} not found in input file {}".format(parameter, input_file))
     return value
 
 ####################################################################################
@@ -333,7 +352,7 @@ def inbox(conf : Configuration, center=False) -> Configuration:
 ##########                             FILE WRITERS                       ##########
 ####################################################################################
 
-def write_conf(path : str, conf : Configuration, append=False) -> None:
+def write_conf(path:str, conf:Configuration, append:bool=False, include_vel:bool=True) -> None:
     """
         write the conf to a file
 
@@ -341,32 +360,52 @@ def write_conf(path : str, conf : Configuration, append=False) -> None:
             path (str) : path to the file
             conf (Configuration) : the configuration to write
             append (bool) : if True, append to the file, if False, overwrite
+            include_vel (bool) : Include velocities in the output trajectory?  Defaults to True.
     """
     out = []
     out.append('t = {}'.format(int(conf.time)))
     out.append('b = {}'.format(' '.join(conf.box.astype(str))))
     out.append('E = {}'.format(' '.join(conf.energy.astype(str))))
     for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s):
-        out.append('{} {} {} 0 0 0 0 0 0'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str))))
+        if include_vel:
+            out.append('{} {} {} 0 0 0 0 0 0'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str))))
+        else:
+            out.append('{} {} {}'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str))))
     
     mode = 'a' if append else 'w'
     with open(path,mode) as f:
         f.write("\n".join(out))
 
-def conf_to_str(conf : Configuration) -> str:
+def conf_to_str(conf:Configuration, include_vel:bool=True) -> str:
     """
     Write configuration as a string
 
     Parameters:
         conf (Configuration) : The configuration to write
+        include_vel (bool) : Include velocities in the output string?  Defaults to True.
 
     Returns:
         (str) : The configuration as a string
     """
     # When writing a configuration to a file, the conversion from ndarray to string is the slowest part
-    # This horrific list comp is the best solution we found
+    # This horrific list comp is the fastest solution we found
     header = f't = {int(conf.time)}\nb = {" ".join(conf.box.astype(str))}\nE = {" ".join(conf.energy.astype(str))}\n'
-    return(''.join([header, ''.join([('{} {} {} 0 0 0 0 0 0\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
+    if include_vel:
+        return(''.join([header, ''.join([('{} {} {} 0 0 0 0 0 0\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
+    else:
+        return(''.join([header, ''.join([('{} {} {}\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
+
+def write_top(path:str, system:System) -> None:
+    """
+    Write the system to a topology file"
+
+    Parameters:
+        path (str) : path to the output file
+        system (System) : system to write out
+    """
+
+    with open(path, 'w+') as f:
+        f.write(get_top_string(system))
 
 def get_top_string(system) -> str:
     """

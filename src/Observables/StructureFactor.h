@@ -41,7 +41,6 @@ max_q = 6.
 
 class StructureFactor : public BaseObservable {
 private:
-	long int _nconf;
 	number _max_q;
 	std::vector<long double> _sq, _sq_cos, _sq_sin;
 	std::list<LR_vector> _qs;
@@ -54,10 +53,11 @@ public:
 	StructureFactor();
 	virtual ~StructureFactor();
 
-	void get_settings(input_file &my_inp, input_file &sim_inp);
-	virtual void init();
+	void get_settings(input_file &my_inp, input_file &sim_inp) override;
+	void init() override;
 
 	void update_data(llint curr_step) override;
+
 	std::string get_output_string(llint curr_step) override;
 };
 

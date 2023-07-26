@@ -68,17 +68,8 @@ int main(int argc, char *argv[]) {
 
 	TimingManager::clear();
 
-	OX_LOG(Logger::LOG_NOTHING, "");
-	OX_LOG(Logger::LOG_NOTHING, R"c(Please cite these publications for any work that uses the oxDNA simulation package
-- for the code:
-    * P. Šulc et al., J. Chem. Phys. 137, 135101 (2012)
-    * L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)
-- for the oxDNA model:
-    * T. E. Ouldridge et al., J. Chem. Phys, 134, 085101 (2011)
-- for the oxDNA2 model:
-    * B. E. K. Snodin et al., J. Chem. Phys. 142, 234901 (2015)
-- for the oxRNA model:
-    * P. Šulc et al., J. Chem. Phys. 140, 235102 (2014))c");
+	OX_LOG(Logger::LOG_NOTHING, R"c(Please cite at least the following publication for any work that uses the oxDNA simulation package
+  * E. Poppleton et al., J. Open Source Softw. 8, 4693 (2023), DOI: 10.21105/joss.04693)c");
 
 	return 0;
 }
