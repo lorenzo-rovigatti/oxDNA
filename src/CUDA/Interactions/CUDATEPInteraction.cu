@@ -107,7 +107,7 @@ __device__ void _bonded_double_bending(c_number4 &up, c_number4 &uq, c_number kb
 }
 
 template<typename c_number, typename c_number4, bool torque_on_p>
-__device__ void _bonded_particle_particle(c_number4 &n3_pos, c_number4 &up, c_number4 &fp, c_number4 &vp, c_number4 &n5_pos, c_number4 &uq, c_number4 &fq, c_number4 &vq, c_number4 &F, c_number4 &T, CUDABox*box, c_number kb1, c_number kb2, c_number tu, c_number tk, c_number kt_pref, bool alignment_only = false) {
+__device__ void _bonded_particle_particle(c_number4 &n3_pos, c_number4 &up, c_number4 &fp, c_number4 &vp, c_number4 &n5_pos, c_number4 &uq, c_number4 &fq, c_number4 &vq, c_number4 &F, c_number4 &T, CUDABox *box, c_number kb1, c_number kb2, c_number tu, c_number tk, c_number kt_pref, bool alignment_only = false) {
 	c_number4 r = box->minimum_image(n3_pos, n5_pos);
 	c_number rmod = sqrtf(CUDA_DOT(r, r));
 
@@ -196,7 +196,7 @@ __device__ void _twist_boundary_particle(c_number4 &v1, c_number4& v3, c_number4
 	T += torque_w + torque_o;
 }
 
-__global__ void TEP_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, CUDABox*box, c_number *kb1_pref, c_number *kb2_pref, c_number *xk_bending, c_number *xu_bending, c_number *kt_pref, c_number4 *o_vects, c_number4 *w_vects, llint step) {
+__global__ void TEP_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *number_neighs, LR_bonds *bonds, CUDABox *box, c_number *kb1_pref, c_number *kb2_pref, c_number *xk_bending, c_number *xu_bending, c_number *kt_pref, c_number4 *o_vects, c_number4 *w_vects, llint step) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];

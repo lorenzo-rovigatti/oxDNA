@@ -30,7 +30,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     return SFs
 
-def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, indexes:List[int]=None, ncpus:int=1) -> Tuple[np.array, np.array]:
+def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, indexes:List[int]=[], ncpus:int=1) -> Tuple[np.ndarray, np.ndarray]:
     """
         Find the deviations of a trajectory from a mean configuration
 
@@ -45,7 +45,7 @@ def deviations(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, in
             RMSDs (np.array): Root mean squared deviation for each configuration in the trajectory
             RMSFs (np.array): Average fluctuation for each particle in the structure
     """
-    if indexes is None:
+    if indexes == []:
         indexes = list(range(top_info.nbases))
 
     mean_conf = inbox(mean_conf)
@@ -104,6 +104,7 @@ def output(RMSDs:np.ndarray, RMSFs:np.ndarray, outfile:str='devs.json', plot_nam
     plt.axhline(np.mean(RMSDs), color='red')
     plt.xlabel('Configuration')
     plt.ylabel('RMSD (nm)')
+    plt.tight_layout()
     plt.savefig(plot_name)
 
     return

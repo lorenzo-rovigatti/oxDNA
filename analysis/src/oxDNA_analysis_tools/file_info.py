@@ -84,7 +84,7 @@ def main():
     if args.labels:
         labels = args.labels
         if len(labels) != len(trajectories):
-            raise(RuntimeError, "Number of trajectories does not match the number of labels.")
+            raise RuntimeError("Number of trajectories does not match the number of labels.")
     else:
         labels = [os.path.basename(t) for t in trajectories]
 
