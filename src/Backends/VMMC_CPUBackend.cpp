@@ -7,6 +7,7 @@
 #include "../Utilities/Utils.h"
 #include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/DNA2Interaction.h"
+#include "../Interactions/DNA2SDInteraction.h"
 #include "../Interactions/DNA3Interaction.h"
 
 #include <set>
@@ -188,6 +189,7 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 	std::vector<std::string> ok_interactions; //= {"DNA", "DNA_nomesh", "DNA2", "DNA2_nomesh","RNA","RNA2"};//would work in C++11 and we woudln't to push back the elements
 	ok_interactions.push_back("DNA");
 	ok_interactions.push_back("DNA2");
+	ok_interactions.push_back("DNA2SD");
         ok_interactions.push_back("DNA3");
 	ok_interactions.push_back("DNA2ModInteraction");
 	ok_interactions.push_back("DNA_nomesh");

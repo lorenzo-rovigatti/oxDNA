@@ -9,6 +9,7 @@
 DNA2SDInteraction::DNA2SDInteraction() :
                                 DNA2Interaction() {
                                 
+                       std::cout << std::endl << "Using DNA2SD Interactions" << std::endl << std::endl;
                        ADD_INTERACTION_TO_MAP(STACKING, _stacking);
                        ADD_INTERACTION_TO_MAP(HYDROGEN_BONDING, _hydrogen_bonding);
                        ADD_INTERACTION_TO_MAP(CROSS_STACKING, _cross_stacking);
