@@ -6,6 +6,7 @@
 DNA3Interaction::DNA3Interaction() :
                                 DNA2Interaction() {
         std::cout << "\n \n \n  using DNA3Interaction \n \n \n" ;
+        std::cout << "Ciao!" << std::endl;
         _grooving = 2; 
            
         //initaialise all sequence dependent parameters with their average value.
