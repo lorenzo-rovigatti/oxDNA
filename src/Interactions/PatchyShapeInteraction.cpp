@@ -248,7 +248,7 @@ number PatchyShapeInteraction::_exc_LJ_vol_interaction_sphere(BaseParticle *p, B
 
 number PatchyShapeInteraction::_exc_vol_hard_icosahedron(BaseParticle *ap, BaseParticle *aq, LR_vector *r,bool update_forces) {
 	if (update_forces)
-		throw oxDNAException("No forces, figlio di ndrocchia");
+		throw oxDNAException("No forces");
 
 	PatchyShapeParticle *p = NULL, *q = NULL;
 	LR_vector my_r;
@@ -581,7 +581,7 @@ number PatchyShapeInteraction::_patchy_interaction_notorsion(BaseParticle *p, Ba
 }
 
 
-PatchyShapeInteraction::PatchyShapeInteraction() : BaseInteraction<number, PatchyShapeInteraction >()  {
+PatchyShapeInteraction::PatchyShapeInteraction() : BaseInteraction()  {
 	//this->_int_map[PATCHY] = &PatchyShapeInteraction::_patchy_interaction;
     _close_vertexes = NULL;
 
@@ -1057,8 +1057,9 @@ number PatchyShapeInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseP
 	return energy;
 }
 
-void PatchyShapeInteraction::read_topology(int N, int *N_strands, BaseParticle **particles) {
-	*N_strands = N;
+void PatchyShapeInteraction::read_topology(int *N_strands,std::vector<BaseParticle*> &particles) {
+	int N = *N_strands;
+	// *N_strands = N;
     int N_types;
 	std::ifstream topology(this->_topology_filename, ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
@@ -1369,5 +1370,5 @@ void PatchyShapeInteraction::check_patchy_locks(ConfigInfo  *Info)
 }
 
 
-template class PatchyShapeInteraction<float>;
-template class PatchyShapeInteraction<double>;
+// template class PatchyShapeInteraction<float>;
+// template class PatchyShapeInteraction<double>;

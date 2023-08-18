@@ -223,7 +223,7 @@ public:
 		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	}
 
-	virtual void read_topology(int *N_strands, BaseParticle **particles);
+	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(BaseParticle **particles, int N);
 
 	//virtual void generate_random_configuration(BaseParticle **particles, int N, number box_side);
