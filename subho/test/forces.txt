@@ -1,0 +1,6 @@
+set yrange [0:100]
+plot -5*1.001*exp(-0.5*(x-2/0.12)**(10))*(x-2)**(9)*(0.12)**(10)
+replot -2*2*667.5*(x-2)/(x*16)
+set xlabel "Distance(SU)"
+set ylabel "Force(N)"
+replot

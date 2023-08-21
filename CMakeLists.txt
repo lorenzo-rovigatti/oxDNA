@@ -11,9 +11,9 @@ endif()
 # this is required when working with newer gcc versions (> 5.4)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 
-OPTION(CUDA "Set to ON to compile with CUDA support" OFF)
+OPTION(CUDA "Set to ON to compile with CUDA support" ON)
 OPTION(MPI "Set to ON to compile with MPI support" OFF)
-OPTION(Debug "Set to ON to compile with debug symbols" OFF)
+OPTION(Debug "Set to ON to compile with debug symbols" ON)
 OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
@@ -26,6 +26,12 @@ OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the p
 
 OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
+
+if(DEFINED PYTHON)
+	set(Python ${PYTHON})
+elseif(DEFINED python)
+	set(Python ${python})
+endif()
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have problems at linking time
 if(INTEL)

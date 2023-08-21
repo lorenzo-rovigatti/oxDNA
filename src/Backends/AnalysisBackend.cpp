@@ -45,6 +45,7 @@ void AnalysisBackend::get_settings(input_file &inp) {
 
 	// initialise the timer
 	_mytimer = TimingManager::instance()->new_timer(std::string("AnalysisBackend"));
+	_obs_timer = TimingManager::instance()->new_timer(string("Observables"), string("AnalysisBackend"));
 
 	getInputInt(&inp, "analysis_confs_to_skip", &_confs_to_skip, 0);
 	if(_confs_to_skip == 0) {
@@ -123,8 +124,6 @@ bool AnalysisBackend::read_next_configuration(bool binary) {
 }
 
 void AnalysisBackend::analyse() {
-	_mytimer->resume();
-
 	if(read_next_configuration(_initial_conf_is_binary)) {
 		SimBackend::update_observables_data();
 		SimBackend::print_observables();
@@ -133,6 +132,4 @@ void AnalysisBackend::analyse() {
 			OX_LOG(Logger::LOG_INFO, "Analysed %d configurations", _n_conf);
 		}
 	}
-
-	_mytimer->pause();
 }

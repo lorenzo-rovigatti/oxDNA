@@ -31,7 +31,7 @@ def angle_between (axis1:np.ndarray, axis2:np.ndarray) -> float:
     """
     return (np.arccos(np.dot(axis1, axis2)/(np.linalg.norm(axis1)*np.linalg.norm(axis2))))
 
-def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]], invert_mask:List[bool]) -> Tuple[List[List[np.array]], List[List[float]], List[List[float]], List[List[float]], List[List[float]]]:
+def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]], invert_mask:List[bool]) -> Tuple[List[List[np.ndarray]], List[List[float]], List[List[float]], List[List[float]], List[List[float]]]:
     """
         Read in a duplex list file and return the angles between specified duplexes.
 
@@ -80,6 +80,7 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
         with open(anglefile) as file:
             all_search = search1.copy()
             all_search.extend(search2)
+            all_search = list(set(all_search)) # get rid of duplicate searches
             d = {i : np.array([0, 0, 0]) for i in all_search}
             for l in file.readlines()[1:]: #the first line is a header, so it can be dropped
                 try:
@@ -96,7 +97,7 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
                 if (t != last_step):
                     for j, (p1, p2) in enumerate(zip(search1, search2)):
                         if np.linalg.norm(d[p1]) != 0 and np.linalg.norm(d[p2]) != 0:
-                            if invert_mask[i]:
+                            if invert_mask[j]:
                                 d[p1] *= -1
                             angle = rad2degree(angle_between(d[p1], d[p2]))
                             all_angles[i][j].append(angle)
@@ -185,6 +186,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         plt.xlabel("Angle (degrees)")
         plt.ylabel("Normalized frequency")
         print("INFO: Saving histogram to {}".format(out), file=stderr)
+        plt.tight_layout()
         plt.savefig(out)
 
     #make a trajectory plot
@@ -204,6 +206,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         plt.xlabel("Configuration Number")
         plt.ylabel("Angle (degrees)")
         print("INFO: Saving line plot to {}".format(out), file=stderr)
+        plt.tight_layout()
         plt.savefig(out)
     
     return
@@ -281,7 +284,6 @@ def main():
     # -n sets the names of the data series
     if args.names:
         names = args.names
-        print(names)
         if len(names) < n_angles:
             print("WARNING: Names list too short.  There are {} items in names and {} angles were calculated.  Will pad with particle IDs".format(len(names), n_angles), file=stderr)
             for i in range(len(names), n_angles):

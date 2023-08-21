@@ -1,0 +1,61 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+#backend_precision = mixed
+#CUDA_list = verlet
+#CUDA_sort_every = 0
+use_edge = 1
+edge_n_forces = 1
+debug = 1
+seed = 1
+interaction_type = CCG
+salt_concentration = 1.
+max_io = 4
+max_density_multiplier = 10
+##############################
+####    SIM PARAMETERS    ####
+##############################
+### Universal Params ###
+T = 0C
+T_force_value = true
+verlet_skin = 0.25
+sim_type = MD
+steps = 1e6
+
+### MD PARAMS ###
+dt = 1e-5
+newtonian_steps=51
+diff_coeff=1
+thermostat=no
+refresh_vel=1
+
+### MC PARAMS ###
+delta_translation = 0.01
+delta_rotation = 0.25
+check_energy_every = 10
+check_energy_threshold = 1.e-4
+ensemble = NVT
+
+##############################
+####     INTERACTIONS     ####
+##############################
+
+
+
+##############################
+#parfile = replica.par
+topology = ccg2.top
+conf_file = ccg2.dat
+trajectory_file = trajectory.dat
+lastconf_file=last_conf.ign
+log_file = log.ign
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.ign
+print_conf_interval = 100
+print_energy_every = 100
+time_scale = linear
+
+###### CCG ################
+# patchyB = 900

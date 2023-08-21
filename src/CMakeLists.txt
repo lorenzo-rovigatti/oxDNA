@@ -106,6 +106,8 @@ SET(interactions_SOURCES
 	Interactions/LJInteraction.cpp
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
+	Interactions/CCGInteraction.cpp
+	Interactions/PatchyShapeInteraction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/RNAInteraction.cpp
@@ -179,6 +181,7 @@ SET(common_SOURCES
 	Particles/RNANucleotide.cpp
 	Particles/BaseParticle.cpp
 	Particles/DNANucleotide.cpp
+	Particles/CCGParticle.cpp
 	Particles/PatchyParticle.cpp
 	Particles/PatchyParticleDan.cpp
 	Particles/SpheroCylinder.cpp
@@ -279,6 +282,7 @@ IF(CUDA)
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu
 		CUDA/Interactions/CUDATEPInteraction.cu
+		# CUDA/Interactions/CUDACCGInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu

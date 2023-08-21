@@ -28,6 +28,8 @@
 #include "RNAInteraction_relax.h"
 #include "TEPInteraction.h"
 #include "JordanInteraction.h"
+#include "CCGInteraction.h"
+// #include "PatchyShapeInteraction.h"
 
 InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	// The default interaction is DNAInteraction
@@ -56,6 +58,7 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("RNA_relax") == 0) return std::make_shared<RNAInteraction_relax>();
 	else if(inter_type.compare("patchy") == 0) return std::make_shared<PatchyInteraction>();
 	else if(inter_type.compare("patchyDan") == 0) return std::make_shared<PatchyInteractionDan>();
+	// else if(inter_type.compare("PatchyShape") == 0) return std::make_shared<PatchyShapeInteraction>();
 	else if(inter_type.compare("KF") == 0) return std::make_shared<KFInteraction>();
 	else if(inter_type.compare("HS") == 0) return std::make_shared<HSInteraction>();
 	else if(inter_type.compare("Box") == 0) return std::make_shared<BoxInteraction>();
@@ -65,6 +68,7 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("custom") == 0) return std::make_shared<CustomInteraction>();
 	else if(inter_type.compare("TEP") == 0) return std::make_shared<TEPInteraction>();
 	else if(inter_type.compare("Jordan") == 0) return std::make_shared<JordanInteraction>();
+	else if(inter_type.compare("CCG")==0) return std::make_shared<CCGInteraction>();
 	else {
 		InteractionPtr res = PluginManager::instance()->get_interaction(inter_type);
 		if(res == NULL) throw oxDNAException("Interaction '%s' not found. Aborting", inter_type.c_str());

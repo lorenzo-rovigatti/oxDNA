@@ -44,8 +44,10 @@ test/**/trajectory.dat
 test/**/time.dat
 test/OXPY/first_nucleotide.dat
 test/OXPY/last_nucleotide.dat
+subho/test/trajectory.dat
 
 **/*pyc
+*.ign
 
 # Distribution / packaging
 .Python

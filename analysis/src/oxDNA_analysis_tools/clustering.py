@@ -179,6 +179,7 @@ def make_plot(op, labels, centroid_ids):
         handles, _ = cen.legend_elements(prop="colors", num = 1)
         l = ax.legend(handles, ['Centroids'])
         ax.add_artist(l)
+        plt.tight_layout()
         plt.savefig(plot_file)
     print("INFO: Saved cluster plot to {}".format(plot_file), file=stderr)
 
