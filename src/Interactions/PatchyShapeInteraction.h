@@ -1,5 +1,9 @@
+// By Subhajit Aug 2023 from Petr's work
+
 #include "../Particles/PatchyShapeParticle.h"
 #include "../Utilities/parse_input/parse_input.h"
+#include "InteractionUtils.h"
+#include "../Utilities/Utils.h"
 
 
 #include "BaseInteraction.h"
@@ -219,9 +223,9 @@ public:
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
-		return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
-	}
+	// virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
+	// 	return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
+	// }
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
 	virtual void check_input_sanity(BaseParticle **particles, int N);

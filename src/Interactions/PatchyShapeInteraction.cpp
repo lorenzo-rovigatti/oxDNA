@@ -1,3 +1,5 @@
+// Correct definition of compute_r look Add Interaction to Map
+
 #include "PatchyShapeInteraction.h"
 
 LR_vector getVector(input_file *obs_input,const char *key)
@@ -587,8 +589,13 @@ PatchyShapeInteraction::PatchyShapeInteraction() : BaseInteraction()  {
 
     _no_multipatch = 0;
 
-	this->_int_map[EXCVOL] = &PatchyShapeInteraction::_exc_vol_interaction;
-	this->_int_map[PATCHY] = &PatchyShapeInteraction::_patchy_interaction_notorsion;
+	// This is the old code by Petr
+	// this->_int_map[EXCVOL] = &PatchyShapeInteraction::_exc_vol_interaction;
+	// this->_int_map[PATCHY] = &PatchyShapeInteraction::_patchy_interaction_notorsion;
+
+	// My modification
+	ADD_INTERACTION_TO_MAP(EXCVOL,_exc_vol_interaction);
+	ADD_INTERACTION_TO_MAP(PATCHY,_patchy_interaction_notorsion);
 
 	//this->_int_map[PATCHY] = &PatchyShapeInteraction::_patchy_LJ_interaction;
 	//this->_int_map[PATCHY] = &PatchyShapeInteraction::_patchy_CUT_LJ4896_noEXC_interaction;
@@ -767,11 +774,11 @@ void PatchyShapeInteraction::get_settings(input_file &inp) {
 	this->_shape = 0;
 	std::string shapestring; //this file contains information about types of patches
 	getInputString(&inp, "shape", shapestring, 1);
-	if ( shapestring == string("sphere") )
+	if ( shapestring == std::string("sphere") )
 	{
 		this->_shape = SPHERE_SHAPE;
 	}
-	else if ( shapestring == string("icosahedron") )
+	else if ( shapestring == std::string("icosahedron") )
 	{
 		this->_shape = ICOSAHEDRON_SHAPE;
 	}
@@ -1061,7 +1068,7 @@ void PatchyShapeInteraction::read_topology(int *N_strands,std::vector<BasePartic
 	int N = *N_strands;
 	// *N_strands = N;
     int N_types;
-	std::ifstream topology(this->_topology_filename, ios::in);
+	std::ifstream topology(this->_topology_filename, std::ios::in);
 	if(!topology.good()) throw oxDNAException("Can't read topology file '%s'. Aborting", this->_topology_filename);
 	char *line = new char[3*N+3];
 	topology.getline(line, 512);
