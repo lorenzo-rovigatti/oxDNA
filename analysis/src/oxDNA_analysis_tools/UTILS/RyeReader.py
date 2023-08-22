@@ -136,7 +136,10 @@ def get_top_info(top:str) -> TopInfo:
             nbases = my_top_info[0]
         elif len(my_top_info) == 5:
             nbases, ndna, nres = (my_top_info[0], my_top_info[2], my_top_info[3])
+        elif len(my_top_info) == 6:
+            nbases,ndna = (my_top_info[0],my_top_info[2]);
         else:
+            print("ERROR: malformed topology header, failed to read topology file. Lenght of top_info = "+str(len(my_top_info)), file=stderr)
             raise RuntimeError("Malformed topology header, failed to read topology file.")
         
     return TopInfo(top, int(nbases))
