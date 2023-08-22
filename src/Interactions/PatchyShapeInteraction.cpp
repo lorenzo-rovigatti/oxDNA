@@ -1027,7 +1027,7 @@ void PatchyShapeInteraction::init() {
 	}
 }
 
-void PatchyShapeInteraction::allocate_particles(BaseParticle **particles, int N) {
+void PatchyShapeInteraction::allocate_particles(std::vector<BaseParticle *> &particles) {
 	for(int i = 0; i < N; i++) {
 		//int i_patches = (i < _N_A) ? _N_patches : _N_patches_B;
 		particles[i] = new PatchyShapeParticle(1);

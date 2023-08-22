@@ -214,7 +214,7 @@ public:
 
 	void check_loaded_particles(void); //needed for debugging
 
-	virtual void allocate_particles(BaseParticle **particles, int N);
+	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
 	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
 	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
