@@ -1,0 +1,51 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+
+backend = CPU
+#CUDA_list = verlet
+#CUDA_sort_every = 0
+#use_edge = 1
+#edge_n_forces = 1
+backend_precision = double
+interaction_type=DNANM
+salt_concentration=1.0
+sim_type = MD
+max_io = 4
+#debug = 1
+#seed = 42
+#max_density_multiplier = 10
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 10000
+
+ensemble = nvt
+delta_translation = 0.02
+delta_rotation = 0.04
+
+thermostat = john
+T = 300K
+T_force_value = true
+dt = 0.001
+verlet_skin = 0.05
+diff_coeff = 2.5
+newtonian_steps = 103
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+parfile = ac.par
+topology = acc2.top
+conf_file = acc2_relaxed.dat
+trajectory_file = trajectory.dat
+refresh_vel = 1
+log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = acenergy.dat
+print_conf_interval = 1000
+print_energy_every = 1000
+time_scale = linear
+external_forces = 1
+external_forces_file = acforceponly.txt

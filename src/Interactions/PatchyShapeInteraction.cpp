@@ -412,21 +412,32 @@ number PatchyShapeInteraction::_exc_vol_hard_icosahedron(BaseParticle *ap, BaseP
 	return (number) 0.;
 }
 
-number PatchyShapeInteraction::_exc_vol_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PatchyShapeInteraction::_exc_vol_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	LR_vector r=_computed_r;
+	if(compute_r){
+		_computed_r=_box->min_image(p->pos,q->pos);
+		r=_computed_r;
+	}
 
 	if(this->_shape == SPHERE_SHAPE) {
-		return this->_exc_LJ_vol_interaction_sphere(p,q,r,update_forces);
+		return this->_exc_LJ_vol_interaction_sphere(p,q,&r,update_forces);
 	}
 	else if (this->_shape == ICOSAHEDRON_SHAPE) {
-		return this->_exc_vol_hard_icosahedron(p,q,r,update_forces);
+		return this->_exc_vol_hard_icosahedron(p,q,&r,update_forces);
 	} else {
 		throw oxDNAException("Selected particle shape type not supported");
 	}
 }
 
 //USING THIS ONE!
-number PatchyShapeInteraction::_patchy_interaction_notorsion(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	number rnorm = r->norm();
+number PatchyShapeInteraction::_patchy_interaction_notorsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	LR_vector r=_computed_r;
+	if(compute_r){ 
+		_computed_r = _box->min_image(p->pos,q->pos);
+		r=_computed_r;
+	}
+
+	number rnorm = r.norm();
 	if(rnorm > this->_sqr_rcut) return (number) 0.f;
 
 	number energy = (number) 0.f;
@@ -463,7 +474,7 @@ number PatchyShapeInteraction::_patchy_interaction_notorsion(BaseParticle *p, Ba
 				number K = pp->patches[pi].strength;
 			    LR_vector qpatch = q->int_centers[pj];
 
-			    LR_vector patch_dist = *r + qpatch - ppatch;
+			    LR_vector patch_dist = r + qpatch - ppatch;
 			    number dist = patch_dist.norm();
 			    //LR_vector patch_dist_dir = patch_dist / sqrt(dist);
 			    //number rdist = sqrt(rnorm);
@@ -674,7 +685,7 @@ void PatchyShapeInteraction::_load_patchy_particle_files(std::string& patchy_fil
 		throw oxDNAException("Could not open file %s ",patchy_file.c_str());
 	}
 	input_file obs_input;
-	loadInput(&obs_input,fpatch);
+	obs_input.init_from_file(fpatch);
 
 	int no = 0;
 	char patch_no[1024];
@@ -702,7 +713,7 @@ void PatchyShapeInteraction::_load_patchy_particle_files(std::string& patchy_fil
 			throw oxDNAException("Could not open file %s ",particle_file.c_str());
 	}
 	input_file p_input;
-	loadInput(&p_input, fparticle);
+	p_input.init_from_file(fparticle);
 
 	int p_no = 0;
 	char particle_no[1024];
@@ -762,7 +773,7 @@ void PatchyShapeInteraction::_load_interaction_tensor(std::string &tensor_file)
 }
 
 void PatchyShapeInteraction::get_settings(input_file &inp) {
-	IBaseInteraction::get_settings(inp);
+	BaseInteraction::get_settings(inp);
 
 	//getInputInt(&inp, "PATCHY_N", &_N_patches, 1);
 
@@ -1041,25 +1052,30 @@ void PatchyShapeInteraction::allocate_particles(std::vector<BaseParticle *> &par
 	}
 }
 
-number PatchyShapeInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	return pair_interaction_nonbonded(p, q, r, update_forces);
+number PatchyShapeInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	return pair_interaction_nonbonded(p, q, compute_r, update_forces);
 }
 
-number PatchyShapeInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
+number PatchyShapeInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	return (number) 0.f;
 }
 
-number PatchyShapeInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces) {
-	LR_vector computed_r(0, 0, 0);
-	if(r == NULL) {
-		computed_r = this->_box->min_image(p->pos, q->pos);
-		r = &computed_r;
+number PatchyShapeInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+	// LR_vector computed_r(0, 0, 0);
+	// if(r == NULL) {
+	// 	computed_r = this->_box->min_image(p->pos, q->pos);
+	// 	r = &computed_r;
+	// }
+	LR_vector r=_computed_r;
+	if(compute_r){
+		_computed_r = _box->min_image(p->pos,q->pos);
+		r=_computed_r;
 	}
 
 	number energy;
 
-	energy = this->_patchy_interaction_notorsion(p, q, r, update_forces);
-	energy += this->_exc_vol_interaction(p,q,r,update_forces);
+	energy = this->_patchy_interaction_notorsion(p, q, compute_r, update_forces);
+	energy += this->_exc_vol_interaction(p,q,compute_r,update_forces);
 
 	return energy;
 }
@@ -1135,7 +1151,7 @@ void PatchyShapeInteraction::read_topology(int *N_strands,std::vector<BasePartic
     delete [] line;
 }
 
-void PatchyShapeInteraction::check_input_sanity(BaseParticle **particles, int N) {
+void PatchyShapeInteraction::check_input_sanity(std::vector<BaseParticle *> &particles) {
 
 }
 

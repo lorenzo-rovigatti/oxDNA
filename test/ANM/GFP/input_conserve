@@ -1,0 +1,54 @@
+
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+debug = 1
+#seed = 1369909050
+interaction_type = AC
+#salt_concentration = 1.
+max_io = 4
+##############################
+####    SIM PARAMETERS    ####
+##############################
+### Universal Params ###
+T = 0.1
+verlet_skin = 0.20
+sim_type = MD
+steps = 300000
+
+### MD PARAMS ###
+dt = 1e-6
+newtonian_steps=51
+diff_coeff=1
+thermostat=no
+refresh_vel=1
+
+### MC PARAMS ###
+#delta_translation = 0.01
+#delta_rotation = 0.25
+#check_energy_every = 10
+#check_energy_threshold = 1.e-4
+#ensemble = NVT
+
+##############################
+####     INTERACTIONS     ####
+##############################
+
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+parfile = generated.par
+topology = generated.top
+conf_file = generated.conf
+trajectory_file = trajectory.dat
+log_file = log.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 100000
+print_energy_every = 1000
+time_scale = linear
+external_forces=0

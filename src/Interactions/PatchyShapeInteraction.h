@@ -154,7 +154,7 @@ public:
 	number _V_mod(int type, number cosr1);
 	number _V_modD(int type, number cosr1);
 	number _V_modDsin(int type, number cosr1);
-	number _exc_vol_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	number _exc_vol_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 
 	number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 	number _repulsive_lj_n(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc,int n,bool update_forces);
@@ -164,8 +164,8 @@ public:
 	number _exc_vol_hs (BaseParticle *p, BaseParticle *q, LR_vector *r,bool update_forces);
 	//inline number _exc_quadratic_vol_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
 
-	inline number _patchy_interaction_notorsion(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
-	inline number _patchy_interaction_kf(BaseParticle *p, BaseParticle *q, LR_vector *r, bool update_forces);
+	inline number _patchy_interaction_notorsion(BaseParticle *p, BaseParticle *q, bool compute_r=true, bool update_forces=false);
+	inline number _patchy_interaction_kf(BaseParticle *p, BaseParticle *q, bool compute_r=true, bool update_forces=false);
 
 	virtual bool multipatch_allowed(void) {return  ! this->_no_multipatch;}
 
@@ -191,6 +191,7 @@ public:
     void check_patchy_locks(ConfigInfo *_Info = NULL);
 
 public:
+	// LR_vector r;
 	enum {
 		PATCHY = 0,
 		EXCVOL = 1,
@@ -220,15 +221,15 @@ public:
 
 	virtual void allocate_particles(std::vector<BaseParticle *> &particles);
 
-	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
-	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false);
+	virtual number pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r=true, bool update_forces=false);
+	virtual number pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces=false);
+	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces=false);
 	// virtual number pair_interaction_term(int name, BaseParticle *p, BaseParticle *q, LR_vector *r=NULL, bool update_forces=false) {
 	// 	return this->_pair_interaction_term_wrapper(this, name, p, q, compute_r, update_forces);
 	// }
 
 	virtual void read_topology(int *N_strands, std::vector<BaseParticle *> &particles);
-	virtual void check_input_sanity(BaseParticle **particles, int N);
+	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
 
 	//virtual void generate_random_configuration(BaseParticle **particles, int N, number box_side);
 };
