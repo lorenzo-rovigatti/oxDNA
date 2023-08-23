@@ -239,7 +239,7 @@ void RNANMInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> 
 
         // Amino Acid
         if (strand < 0) {
-            BaseParticle *p = particles[i];
+            auto *p = static_cast<ANMParticle*>(particles[i]); //Subho
             char aminoacid[256];
             int nside, cside;
             ss >> aminoacid >> nside >> cside;

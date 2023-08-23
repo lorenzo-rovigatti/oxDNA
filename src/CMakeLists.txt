@@ -126,8 +126,8 @@ SET(interactions_SOURCES
 	Interactions/CustomInteraction.cpp
 	Interactions/ANMInteraction.cpp
 	# Interaction/CGDNAInteraction.cpp
-	# Interactions/DNANMInteraction.cpp
-	# Interactions/RNANMInteraction.cpp
+	Interactions/DNANMInteraction.cpp
+	Interactions/RNANMInteraction.cpp
 )
 
 SET(move_SOURCES
@@ -154,6 +154,8 @@ SET(forces_SOURCES
 	Forces/MovingTrap.cpp
 	Forces/LowdimMovingTrap.cpp
 	Forces/MutualTrap.cpp
+	# Forces/SkewTrap.cpp
+	# Forces/Morse.cpp
 	Forces/RepulsiveEllipsoid.cpp
 	Forces/RepulsionPlane.cpp
 	Forces/RepulsionPlaneMoving.cpp
