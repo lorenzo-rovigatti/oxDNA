@@ -66,7 +66,7 @@ SET(observables_SOURCES
 SET(backends_SOURCES
 	Backends/BackendFactory.cpp
 	Backends/SimBackend.cpp
-	Backends/AnalysisBackend.cpp 
+	Backends/AnalysisBackend.cpp
 	Backends/MDBackend.cpp
 	Backends/MCBackend.cpp
 	Backends/MD_CPUBackend.cpp 
@@ -107,7 +107,7 @@ SET(interactions_SOURCES
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
 	Interactions/CCGInteraction.cpp
-	Interactions/PatchyShapeInteraction.cpp
+	#Interactions/PatchyShapeInteraction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/RNAInteraction.cpp
