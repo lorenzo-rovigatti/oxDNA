@@ -124,6 +124,10 @@ SET(interactions_SOURCES
 	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
 	Interactions/CustomInteraction.cpp
+	Interactions/ANMInteraction.cpp
+	# Interaction/CGDNAInteraction.cpp
+	# Interactions/DNANMInteraction.cpp
+	# Interactions/RNANMInteraction.cpp
 )
 
 SET(move_SOURCES
@@ -187,6 +191,9 @@ SET(common_SOURCES
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Particles/Molecule.cpp
+	Particles/ANMParticle.cpp
+	Particles/ANMTParticle.cpp
+	Particles/GSParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp

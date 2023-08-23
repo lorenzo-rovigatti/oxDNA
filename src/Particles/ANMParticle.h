@@ -24,5 +24,6 @@ public:
     virtual bool is_bonded(BaseParticle *q);
     virtual void add_bonded_neighbor(BaseParticle *nn);
     std::vector<int> bonded_neighs;
+    number mass=1.0,massinverted=1.0; // Subho
 };
 #endif //ANM_PARTICLE_H
