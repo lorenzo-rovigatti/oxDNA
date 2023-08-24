@@ -1117,7 +1117,7 @@ void PatchyShapeInteraction::read_topology(int *N_strands,std::vector<BasePartic
         // // int i = total_count;
 		type=0;
         // particles[total_count]->copy_from(this->_particle_types[type]);
-		particles[total_count]->copy_from(_particle_types[type]);
+		// particles[total_count]->copy_from(_particle_types[type]);
 
         // /*
         // printf("!!!!!!!!! JUST INITIALIZED PARTICLE %d \n",i);
@@ -1140,21 +1140,22 @@ void PatchyShapeInteraction::read_topology(int *N_strands,std::vector<BasePartic
     	// //printf("at the end of while, Loaded type %d, and state is %d\n",type,ss.good());
 
     }
-	std::cout <<"This is completed \n";
+	std::cout<<particles.size()<<std::endl;
 	OX_LOG(Logger::LOG_INFO, "There were %d particles, %d types, and finished allocation, and line was %s, and N_particle types was %d",totPar,strands,line,_N_particle_types);
     int patch_index = 0;
     for(int i = 0; i < totPar; i++)
     {
     	//printf("Particle %d has %d patches, which have the following colors: ",i,dynamic_cast<PatchyShapeParticle *>(particles[i])->N_patches);
-    	particles[i]->set_positions();
-    	for(int c = 0; c < dynamic_cast<PatchyShapeParticle *>( particles[i])->N_patches; c++)
-    	{
-    		//now assign each patch its unique id
-    		//printf("%d ",dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].color);
-    		dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].index = patch_index;
-    		patch_index++;
-    		//printf("%d (%f %f %f) ",dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].color, dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].a1.x,dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].a1.y,dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].a1.z);
-    	}
+    	// particles[i]->set_positions();
+		// std::cout <<"Done1\t";
+    	// for(int c = 0; c < dynamic_cast<PatchyShapeParticle *>( particles[i])->N_patches; c++)
+    	// {
+    	// 	//now assign each patch its unique id
+    	// 	//printf("%d ",dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].color);
+    	// 	dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].index = patch_index;
+    	// 	patch_index++;
+    	// 	//printf("%d (%f %f %f) ",dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].color, dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].a1.x,dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].a1.y,dynamic_cast<PatchyShapeParticle *>(particles[i])->patches[c].a1.z);
+    	// }
     	//printf("\n");
     }
 
