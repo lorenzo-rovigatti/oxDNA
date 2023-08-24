@@ -29,7 +29,7 @@
 #include "TEPInteraction.h"
 #include "JordanInteraction.h"
 #include "CCGInteraction.h"
-// #include "PatchyShapeInteraction.h"
+#include "PatchyShapeInteraction.h"
 #include "ANMInteraction.h"
 #include "DNANMInteraction.h"
 #include "RNANMInteraction.h"
@@ -62,7 +62,7 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("RNA_relax") == 0) return std::make_shared<RNAInteraction_relax>();
 	else if(inter_type.compare("patchy") == 0) return std::make_shared<PatchyInteraction>();
 	else if(inter_type.compare("patchyDan") == 0) return std::make_shared<PatchyInteractionDan>();
-	// else if(inter_type.compare("PatchyShape") == 0) return std::make_shared<PatchyShapeInteraction>();
+	else if(inter_type.compare("PatchyShape") == 0) return std::make_shared<PatchyShapeInteraction>();
 	else if(inter_type.compare("KF") == 0) return std::make_shared<KFInteraction>();
 	else if(inter_type.compare("HS") == 0) return std::make_shared<HSInteraction>();
 	else if(inter_type.compare("Box") == 0) return std::make_shared<BoxInteraction>();

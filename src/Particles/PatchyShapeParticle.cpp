@@ -1,4 +1,4 @@
-
+#include "PatchyShapeParticle.h"
 #include "../Utilities/oxDNAException.h"
 
 #define HALF_ISQRT3 0.28867513459481292f
@@ -9,17 +9,21 @@ PatchyShapeParticle::PatchyShapeParticle(int _N_patches, int _type, int _N_verte
 	N_patches =  _N_patches;
 	N_vertexes = _N_vertexes;
 
-	this->N_int_centers = N_patches+N_vertexes;
+	// this->N_int_centers = N_patches+N_vertexes; //This is now a vector
+	
 	if(N_patches + N_vertexes> 0)
 	{
-		this->int_centers = new LR_vector[N_patches+N_vertexes];
+		// this->int_centers = new LR_vector[N_patches+N_vertexes]; //Don't think one need to initilize this.
+		this->int_centers.resize(N_patches+N_vertexes);
 		this->patches = new Patch[N_patches];
 		this->_vertexes = new LR_vector[N_vertexes];
 
 	}
 	else
 	{
-		this->int_centers = 0;
+		// this->int_centers = 0;
+		this->int_centers.resize(1);
+		// int_centers[0]=0;
 		this->patches = 0;
 		this->_vertexes = 0;
 	}
@@ -41,17 +45,18 @@ void PatchyShapeParticle::copy_from(const BaseParticle &b)
 	  throw oxDNAException("Can't convert particle to PatchyShapeParticle by dynamic cast'. Aborting");
   }
 
-  if( ! (this->int_centers == b.int_centers && this->N_patches == bb->N_patches && this->N_vertexes == bb->N_vertexes)      )
+  if( ! (this->int_centers.size() == b.int_centers.size() && this->N_patches == bb->N_patches && this->N_vertexes == bb->N_vertexes)      )
   {
-	delete [] this->int_centers;
+	// delete [] this->int_centers;
+	this->int_centers.clear();
 	delete [] this->patches;
 	delete [] this->_vertexes;
 
-	this->N_int_centers = bb->N_int_centers;
+	this->int_centers.resize(bb->int_centers.size());
 	this->N_patches = bb->N_patches;
 	this->N_vertexes = bb->N_vertexes;
 
-	this->int_centers = new LR_vector[bb->N_int_centers];
+	// this->int_centers = new LR_vector[bb->N_int_centers];
 	patches = new Patch[bb->N_patches];
 	_vertexes = new LR_vector[bb->N_vertexes];
   }
@@ -74,7 +79,7 @@ void PatchyShapeParticle::copy_from(const BaseParticle &b)
  void
 PatchyShapeParticle::add_patch(Patch &patch,int position) {
 
-	if(position < 0 || position >= this->N_int_centers)
+	if(position < 0 || position >= static_cast<int>(this->int_centers.size()))
 	{
 		 throw oxDNAException ("Could process patch id, please check that the patches of id %d are correct. Aborting",position);
 	}
@@ -86,7 +91,7 @@ PatchyShapeParticle::add_patch(Patch &patch,int position) {
 void PatchyShapeParticle::_set_base_patches() {
 
 
-	for(int i = 0; i < this->N_int_centers; i++) {
+	for(uint i = 0; i < this->int_centers.size(); i++) {
 		patches[i].a1.normalize();
 		patches[i].a2.normalize();
 		//patches[i] *= 0.5;

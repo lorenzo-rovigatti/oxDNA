@@ -5,7 +5,6 @@
 #include "InteractionUtils.h"
 #include "../Utilities/Utils.h"
 
-
 #include "BaseInteraction.h"
 
 #include <sstream>
@@ -147,6 +146,7 @@ protected:
 
 
 public:
+	int totPar,strands;
 	virtual bool _bonding_allowed(PatchyShapeParticle  *p, PatchyShapeParticle  *q, int pi, int pj );
 	bool _patches_compatible(PatchyShapeParticle  *p, PatchyShapeParticle  *q, int pi, int pj );
 
@@ -186,9 +186,9 @@ public:
 
     void _init_icosahedron(void);
 
-    void _init_patchy_locks(ConfigInfo *_Info = NULL);
+    // void _init_patchy_locks(ConfigInfo *_Info = NULL);
 
-    void check_patchy_locks(ConfigInfo *_Info = NULL);
+    // void check_patchy_locks(ConfigInfo *_Info = NULL);
 
 public:
 	// LR_vector r;

@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
 
 if(POLICY CMP0054)
 	cmake_policy(SET CMP0054 NEW)
@@ -26,6 +26,16 @@ OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the p
 
 OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
+
+OPTION(DEB "Generate DEB file for the cpack." ON)
+
+if(DEB)
+	include(CPack)
+	set(CPACK_DEBIAN_PACKAGE_MAINTAINER,"Subhajit Roy")
+	set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+	set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
+	set(CPACK_DEB_COMPONENT_INSTALL YES)
+endif()
 
 if(DEFINED PYTHON)
 	set(Python ${PYTHON})
