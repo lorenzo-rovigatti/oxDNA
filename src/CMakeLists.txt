@@ -9,7 +9,12 @@ ELSEIF(MPI)
 ELSE()
 	SET(exe_name oxDNA)
 ENDIF()
-
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER,"Subhajit Roy")
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
+set(CPACK_DEB_COMPONENT_INSTALL YES)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.3.1-6), libc6 (< 2.4)")
+set(CPACK_PACKAGE_CONTACT,"Subhajit")
 SET(observables_SOURCES
 	Observables/BaseObservable.cpp
 	Observables/ObservableFactory.cpp

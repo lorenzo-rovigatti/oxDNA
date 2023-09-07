@@ -27,20 +27,29 @@ OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the p
 OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
 
+
+
+
 OPTION(DEB "Generate DEB file for the cpack." ON)
 OPTION(TGZ "Generate TGZ file instead" ON)
 set(DEB ON CACHE BOOL INTERNAL)
-set(CMAKE_INSTALL_PREFIX "/tmp/subho/test")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER,"Subhajit Roy")
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
+set(CPACK_DEB_COMPONENT_INSTALL YES)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.3.1-6), libc6 (< 2.4)")
+set(CPACK_PACKAGE_CONTACT,"Subhajit")
 
 if(DEB)
 	include(CPack)
 	include(InstallRequiredSystemLibraries)
-	# set(CPACK_INSTALL_PREFIX "/tmp/subho/test") 
+	set(CPACK_SET_DESTDIR ON)
+	set(CPACK_PACKAGING_INSTALL_PREFIX "~/.local/")
+	set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+	# set(CPACK_INSTALL_PREFIX "/tmp/subho/test")
 	# SET(CPACK_OUTPUT_FILE_PREFIX "/tmp/subho/test")
-	# set(CPACK_DEBIAN_PACKAGE_MAINTAINER,"Subhajit Roy")
-	# set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-	# set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
-	# set(CPACK_DEB_COMPONENT_INSTALL YES)
+
 
 endif()
 
