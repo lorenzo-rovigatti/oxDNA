@@ -81,6 +81,11 @@ If you are on your own machine or you installed Python via Anaconda, the `-DOxpy
 	If you are using conda environments, the paths should look something like:  
 	* Include: `$HOME/anaconda3/envs/py38/include/python3.8`
 	* Executable: `$HOME/anaconda3/envs/py38/bin/python`
+
+	This is particularly a problem if you are running in a base Conda environment on MacOS. In this case, the cmake command should look something like:
+	```
+	cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUDE_DIRS=$HOME/miniconda3/include/python3.11 ..
+	```
 * If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing `oxDNA_analysis_tools` with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, either update your version of Numpy or try to install just `OAT` without build isolation:
   `python -m pip install ./analysis --no-build-isolation`
 * Sometimes installation will fail with `TypeError: expected string or bytes-like object`. This error is usually caused by older versions of either `oxpy` or `oxDNA-analysis-tools` floating around. Remove them and re-install `oxpy`.
