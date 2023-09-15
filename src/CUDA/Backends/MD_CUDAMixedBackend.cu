@@ -146,3 +146,8 @@ void CUDAMixedBackend::_thermalize() {
 		_float4_to_LR_double4(_d_Ls, _d_Lsd);
 	}
 }
+
+void CUDAMixedBackend::_update_stress_tensor() {
+	_LR_double4_to_float4(_d_velsd, _d_vels);
+	MD_CUDABackend::_update_stress_tensor();
+}

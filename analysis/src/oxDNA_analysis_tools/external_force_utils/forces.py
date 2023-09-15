@@ -1,5 +1,5 @@
 #see: https://dna.physics.ox.ac.uk/index.php/Documentation#External_Forces
-from typing import Dict, List
+from typing import Dict, List, Literal
 
 def mutual_trap(particle:int, ref_particle:int, stiff:float, r0:float, PBC:bool) -> Dict:
     """
@@ -10,16 +10,15 @@ def mutual_trap(particle:int, ref_particle:int, stiff:float, r0:float, PBC:bool)
         ref_particle (int): the particle that the particle will be pulled towards
         stiff (float): the force constant of the spring (in simulation units)
         r0 (float): the equlibrium distance of the spring
-        PBC (bool): does the force calculation take PBC into account (almost always 1)
+        PBC (0 or 1): does the force calculation take PBC into account (almost always 1)
     """
-    PBC = int(PBC)
     return({
         "type" : "mutual_trap",
         "particle" : particle,
         "ref_particle" : ref_particle,
         "stiff" : stiff, 
         "r0" : r0,
-        "PBC" : PBC
+        "PBC" : int(PBC)
     })
 
 

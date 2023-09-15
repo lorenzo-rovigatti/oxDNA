@@ -1,3 +1,34 @@
+v. 3.5.2
+	oat: 
+	  - remove usage of `|` to specify type annotations for unions to make oat compatible with Python 3.9
+      - improve the portability of the `setup.py` script to fix installation issues on some systems
+
+v. 3.5.1 [c549859]
+	- Add the stress tensor calculation on GPUs for DNA
+	- Improve the performance and memory consumption of the DNA and RNA interactions
+	- Improve the numerical stability of the CUDA RNA and DNA codes
+	- Make the StressAutocorrelation observable output also the bulk and longitudinal ACFs
+	- Remove some unnecessary checks on the required keys from the MC backend
+	- Add a pivot move to the MC2 backend
+	- Add the possibility of disabling JSON support at compile time (-DJSON_ENABLED=Off)
+	- Fix a bug whereby a DNA force was sometimes incorrectly evaluated on GPU
+	- Fix two minor bugs in the CUDARNA interaction [0112a3e]
+	- Fix a bug whereby the code would sometimes segfault due to plugins [b6ed721]
+	oxpy:
+	  - Make the metad interface set more default input options
+	oat:
+	  - Completely rewrote oxDNA/ANM -> PDB converter
+        - Now works with RNA as well as DNA and proteins
+        - No longer depends on Biopython (removed from oat dependencies).
+        - More control over output files.
+      - All oat utilities that don't involve oxpy have compete and correct type annotations
+      - Many doctoring updates.
+      - Better error messages when something that isn't a configuration file is passed to the configuration parser.
+      - Update the dot-bracket parser to accept pseudoknotted structures
+      - bugfixes:
+        - Decimal in particle IDs no longer break forces2pairs.
+        - Extra spaces in the header of the topology parser no longer crash it.
+
 v. 3.5.0 [a16d07b]
 	- Strip down the exprtk library to speed up compilation
 	- Fix a bug whereby setting lastconf_file to /dev/null would segfault

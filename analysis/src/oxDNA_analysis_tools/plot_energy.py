@@ -76,6 +76,7 @@ def main():
         plt.ylabel("Normalized frequency")
         if outfile:
             print("INFO: Saving histogram to {}".format(out), file=stderr)
+            plt.tight_layout()
             plt.savefig(out)
         else:
             plt.show()
@@ -97,6 +98,7 @@ def main():
         plt.ylabel("Energy (SU)")
         if outfile:
             print("INFO: Saving line plot to {}".format(out), file=stderr)
+            plt.tight_layout()
             plt.savefig(out)
         else:
             plt.show()

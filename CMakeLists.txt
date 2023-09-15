@@ -22,9 +22,16 @@ OPTION(DOUBLE "Set the numerical precision to double" ON)
 OPTION(CUDA_DOUBLE "Set the numerical precision for the CUDA backend to double" OFF)
 OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its architecture, set to ON (default) to compile for the most common architectures" ON)
 OPTION(NATIVE_COMPILATION "Set to OFF to compile without the -march=native flag. This may be required when compiling binaries to be used elsewhere" ON)
+OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers" ON)
 
 OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
+
+if(DEFINED PYTHON)
+	set(Python ${PYTHON})
+elseif(DEFINED python)
+	set(Python ${python})
+endif()
 
 # these operations have to be performed before PROJECT(oxDNA) or we will have problems at linking time
 if(INTEL)
@@ -108,6 +115,12 @@ ENDIF()
 IF(MPI)
 	ADD_DEFINITIONS(-DHAVE_MPI)
 ENDIF(MPI)
+
+if(JSON_ENABLED)
+	add_definitions(-DJSON_ENABLED)
+else()
+	message(STATUS "Disabling JSON support")
+endif(JSON_ENABLED)
 
 # get the current git revision, if git is installed. Avoid warnings if it isn't
 FIND_PACKAGE(Git)

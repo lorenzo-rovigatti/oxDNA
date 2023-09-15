@@ -46,6 +46,7 @@ texture<float4, 1, cudaReadModeElementType> tex_base_patches;
 struct __align__(16) CUDA_FS_bond {
 	int q;
 	c_number4 force;
+	c_number4 r;
 	c_number4 p_torque;
 	c_number4 q_torque_ref_frame;
 };
@@ -132,19 +133,19 @@ __device__ void _patchy_point_two_body_interaction(c_number4 &ppos, c_number4 &q
 					r.z + q_patch_pos.z - p_patch_pos.z, 0.f
 			};
 
-			c_number dist = CUDA_DOT(patch_dist, patch_dist);
-			if(dist < MD_sqr_patch_rcut[0]) {
+			c_number dist_sqr = CUDA_DOT(patch_dist, patch_dist);
+			if(dist_sqr < MD_sqr_patch_rcut[0]) {
 				int p_patch_type = MD_patch_types[ptype][p_patch];
 				int q_patch_type = MD_patch_types[qtype][q_patch];
 				c_number epsilon = tex1Dfetch(tex_patchy_eps, p_patch_type + MD_N_patch_types[0] * q_patch_type);
 
 				if(epsilon != (c_number) 0.f) {
-					c_number r_p = sqrtf(dist);
+					c_number r_p = sqrtf(dist_sqr);
 					if((r_p - MD_rcut_ss[0]) < 0.f) {
 						c_number exp_part = expf(MD_sigma_ss[0] / (r_p - MD_rcut_ss[0]));
-						c_number energy_part = epsilon * MD_A_part[0] * exp_part * (MD_B_part[0] / SQR(dist) - 1.f);
+						c_number energy_part = epsilon * MD_A_part[0] * exp_part * (MD_B_part[0] / SQR(dist_sqr) - 1.f);
 
-						c_number force_mod = epsilon * MD_A_part[0] * exp_part * (4.f * MD_B_part[0] / (SQR(dist) * r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
+						c_number force_mod = epsilon * MD_A_part[0] * exp_part * (4.f * MD_B_part[0] / (SQR(dist_sqr) * r_p)) + MD_sigma_ss[0] * energy_part / SQR(r_p - MD_rcut_ss[0]);
 						c_number4 tmp_force = patch_dist * (force_mod / r_p);
 
 						c_number4 p_torque = _cross(p_patch_pos, tmp_force);
@@ -158,6 +159,7 @@ __device__ void _patchy_point_two_body_interaction(c_number4 &ppos, c_number4 &q
 
 						CUDA_FS_bond &my_bond = bonds[p_patch].new_bond();
 
+						my_bond.r = r;
 						my_bond.q = q_idx;
 
 						if(r_p > MD_sigma_ss[0]) {
@@ -299,6 +301,7 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 						if(energy_part < 0.f) {
 							CUDA_FS_bond &my_bond = bonds[p_patch].new_bond();
 
+							my_bond.r = r;
 							my_bond.force = (dist_surf < MD_sigma_ss[0]) ? angular_force : tot_force;
 							my_bond.force.w = (dist_surf < MD_sigma_ss[0]) ? epsilon * p_mod * q_mod : -energy_part;
 							my_bond.p_torque = p_torque;
@@ -313,7 +316,7 @@ __device__ void _patchy_KF_two_body_interaction(c_number4 &ppos, c_number4 &qpos
 	}
 }
 
-__device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T, c_number4 *forces, c_number4 *torques) {
+__device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T, CUDAStressTensor &p_st, c_number4 *forces, c_number4 *torques) {
 	for(int pi = 0; pi < CUDADetailedPatchySwapInteraction::MAX_PATCHES; pi++) {
 		CUDA_FS_bond_list &bond_list = bonds[pi];
 
@@ -323,6 +326,12 @@ __device__ void _three_body(CUDA_FS_bond_list *bonds, c_number4 &F, c_number4 &T
 
 			for(int bj = bi + 1; bj < bond_list.n_bonds; bj++) {
 				CUDA_FS_bond &b2 = bond_list.bonds[bj];
+
+				// the three-body interaction doesn't act if a patch on particle p is bonded to two patches belonging to the same particle
+				if(b1.q == b2.q) {
+					continue;
+				}
+
 				c_number other_energy = b2.force.w;
 
 				// the factor 2 takes into account the fact that the total pair energy is always counted twice
@@ -389,7 +398,7 @@ __global__ void DPS_forces(c_number4 *poss, GPU_quat *orientations, c_number4 *f
 		}
 	}
 
-	_three_body(bonds, F, T, three_body_forces, three_body_torques);
+	_three_body(bonds, F, T, p_st, three_body_forces, three_body_torques);
 
 	if(update_st) {
 		st[IND] = p_st;

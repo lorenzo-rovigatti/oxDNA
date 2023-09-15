@@ -178,7 +178,7 @@ __device__ void _patchy_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, C
 
 			if(curr_energy != MD_3b_epsilon[0]) {
 				c_number factor = MD_3b_prefactor[0] * other_energy;
-				c_number4 force = factor * b1.force;
+				c_number4 force = b1.force * factor;
 				force.w = 0.f;
 
 				_update_stress_tensor<false>(p_st, b1.r, force);
@@ -188,7 +188,7 @@ __device__ void _patchy_three_body(CUDA_FS_bond_list &bond_list, c_number4 &F, C
 
 			if(other_energy != MD_3b_epsilon[0]) {
 				c_number factor = MD_3b_prefactor[0] * curr_energy;
-				c_number4 force = factor * b2.force;
+				c_number4 force = b2.force * factor;
 				force.w = 0.f;
 
 				_update_stress_tensor<false>(p_st, b2.r, force);
