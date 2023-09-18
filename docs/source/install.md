@@ -80,7 +80,7 @@ If you are on your own machine or you installed Python via Anaconda, the `-DOxpy
 	cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary
 	```
 	If you are using conda environments, the paths should look something like:  
-	* Include: `$HOME/anaconda3/envs/py38/include/python3.8`
+	* Include: `$HOME/anaconda3/envs/py38/include/python3.11`
 	* Executable: `$HOME/anaconda3/envs/py38/bin/python`
 
 	This is particularly a problem if you are running in a base Conda environment on MacOS. In this case, the cmake command should look something like:
