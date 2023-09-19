@@ -124,9 +124,6 @@ SET(interactions_SOURCES
 	Interactions/CustomInteraction.cpp
 	Interactions/DRHInteraction.cpp
 	Interactions/DRHInteraction_relax.cpp
-	Interactions/DNANMInteraction.cpp
-	Interactions/DRHANMInteraction.cpp
-	Interactions/DRHANMInteraction_relax.cpp
 )
 
 SET(move_SOURCES
@@ -189,7 +186,6 @@ SET(common_SOURCES
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Particles/Molecule.cpp
-	Particles/ACParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp

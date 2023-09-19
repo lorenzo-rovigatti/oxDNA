@@ -30,9 +30,7 @@
 #include "JordanInteraction.h"
 #include "DRHInteraction.h"
 #include "DRHInteraction_relax.h"
-#include "DNANMInteraction.h"
-#include "DRHANMInteraction.h"
-#include "DRHANMInteraction_relax.h"
+
 
 InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	// The default interaction is DNAInteraction
@@ -72,10 +70,6 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("Jordan") == 0) return std::make_shared<JordanInteraction>();
 	else if(inter_type.compare("DRH") == 0) return std::make_shared<DRHInteraction>();
 	else if(inter_type.compare("DRH_relax") == 0) return std::make_shared<DRHInteraction_relax>();
-	else if(inter_type.compare("DNANM") == 0) return std::make_shared<DNANMInteraction>();
-	else if(inter_type.compare("DRHANM") == 0) return std::make_shared<DRHANMInteraction>();
-	else if(inter_type.compare("DRHANM_relax") == 0) return std::make_shared<DRHANMInteraction_relax>();
-
 	else {
 		InteractionPtr res = PluginManager::instance()->get_interaction(inter_type);
 		if(res == NULL) throw oxDNAException("Interaction '%s' not found. Aborting", inter_type.c_str());
