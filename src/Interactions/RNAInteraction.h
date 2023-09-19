@@ -41,8 +41,9 @@ protected:
 	inline number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 
 protected:
+
 	//used to distinguish between sequence dependent filename keys in the DRH interaction
-	//false be default
+	//false by default
 	bool _drh_interaction;
 	
 	bool _average;

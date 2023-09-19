@@ -51,7 +51,6 @@ void RNAInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 void RNAInteraction::get_settings(input_file &inp) {
 	BaseInteraction::get_settings(inp);
 
-
 	if(getInputBool(&inp, "use_average_seq", &_average, 0) == KEY_FOUND) {
 		if(!_average) {
 
