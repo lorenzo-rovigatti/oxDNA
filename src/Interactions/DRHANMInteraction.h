@@ -1,14 +1,14 @@
 /*
- * DNANMwithRNANMInteraction.h
+ * DRHANMInteraction.h
  *
  *  Created on: Apr 17, 2019
  *      Author: jonah
  */
 
-#ifndef DNANM_WITH_RNANM_INTERACTION_H_
-#define DNANM_WITH_RNANM_INTERACTION_H_
+#ifndef DRHANM_INTERACTION_H_
+#define DRHANM_INTERACTION_H_
 
-#include "DNA2withRNA2Interaction.h"
+#include "DRHInteraction.h"
 #include "BaseInteraction.h"
 
 #include "../Particles/ACParticle.h"
@@ -17,9 +17,12 @@
 #include "rna_model.h"
 
 
-class DNANMwithRNANMInteraction: public DNA2withRNA2Interaction {
+class DRHANMInteraction: public DRHInteraction {
 
 protected:
+	//since the new topology doesn't support proteins (yet)
+	std::string _nucleotide_types;
+	
 	int ndna;//How many particles of DNA type: Used in allocate_particles
 	int npro;//How many bonds b/t different particle types
 	int ndnas;//Number of Strands that are dna
@@ -45,9 +48,11 @@ public:
 	};
 
     char _parameterfile[500];
+    
+    int get_id(int btype);
 
-	DNANMwithRNANMInteraction();
-	virtual ~DNANMwithRNANMInteraction();
+	DRHANMInteraction();
+	virtual ~DRHANMInteraction();
 	virtual void get_settings(input_file &inp); //done
 
 	virtual void allocate_particles(std::vector<BaseParticle*> &particles); 

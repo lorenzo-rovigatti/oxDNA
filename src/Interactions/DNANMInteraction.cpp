@@ -51,6 +51,20 @@ DNANMInteraction::DNANMInteraction() : DNA2Interaction() { // @suppress("Class m
     //ADD_INTERACTION_TO_MAP(SPRING, _protein_spring);
     //ADD_INTERACTION_TO_MAP(PRO_EXC_VOL, _protein_exc_volume);
     //ADD_INTERACTION_TO_MAP(PRO_DNA_EXC_VOL, _protein_dna_exc_volume);
+
+
+    ADD_INTERACTION_TO_MAP(BACKBONE, _backbone);
+    ADD_INTERACTION_TO_MAP(BONDED_EXCLUDED_VOLUME, _bonded_excluded_volume);
+    ADD_INTERACTION_TO_MAP(STACKING, _stacking);
+    ADD_INTERACTION_TO_MAP(NONBONDED_EXCLUDED_VOLUME, _nonbonded_excluded_volume);
+    ADD_INTERACTION_TO_MAP(HYDROGEN_BONDING, _hydrogen_bonding);
+    ADD_INTERACTION_TO_MAP(CROSS_STACKING, _cross_stacking);
+    ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
+    ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
+
+    //ADD_INTERACTION_TO_MAP(SPRING, _protein_spring);
+    //ADD_INTERACTION_TO_MAP(PRO_EXC_VOL, _protein_exc_volume);
+    //ADD_INTERACTION_TO_MAP(PRO_DNA_EXC_VOL, _protein_dna_exc_volume);
 }
 
 DNANMInteraction::~DNANMInteraction() {
@@ -728,7 +742,9 @@ number DNANMInteraction::_dna_debye_huckel(BaseParticle *p, BaseParticle *q, boo
 }
 
 
-
+int DNANMInteraction::get_id(int btype){
+    return (btype <= 4) ? 0: 1;
+};
 
 
 

@@ -122,11 +122,11 @@ SET(interactions_SOURCES
 	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
 	Interactions/CustomInteraction.cpp
-	Interactions/DNAwithRNAInteraction.cpp
-	Interactions/DNA2withRNA2Interaction.cpp
+	Interactions/DRHInteraction.cpp
+	Interactions/DRHInteraction_relax.cpp
 	Interactions/DNANMInteraction.cpp
-	Interactions/DNANMwithRNANMInteraction.cpp
-	Interactions/DNAwithRNAInteraction_relax.cpp
+	Interactions/DRHANMInteraction.cpp
+	Interactions/DRHANMInteraction_relax.cpp
 )
 
 SET(move_SOURCES
@@ -204,6 +204,7 @@ SET(common_SOURCES
 	Utilities/SignalManager.cpp
 	Utilities/ConfigInfo.cpp
 	Utilities/FlattenedConfigInfo.cpp
+	Utilities/TopologyParser.cpp
 	PluginManagement/PluginManager.cpp
 	${forces_SOURCES}
 	${observables_SOURCES}

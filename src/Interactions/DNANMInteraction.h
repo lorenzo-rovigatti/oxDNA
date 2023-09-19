@@ -2,7 +2,7 @@
  * DNANMInteraction.h
  *
  *  Created on: Apr 17, 2019
- *      Author: jonah
+ *      Author: jonah + eryk (rewritten for the new version of the code without templates)
  */
 
 #ifndef DNANM_INTERACTION_H_
@@ -44,6 +44,7 @@ public:
 
     char _parameterfile[500];
 
+    int get_id(int btype);
 	DNANMInteraction();
 	virtual ~DNANMInteraction();
 	virtual void get_settings(input_file &inp); //done

@@ -35,17 +35,10 @@ int decode_base(char c);
 char encode_base(int b);
 int decode_aa(char c);
 char encode_aa(int b);
+std::vector<int> btypes_from_sequence(const std::string &sequence);
+std::vector<int> aatypes_from_sequence(const std::string &sequence);
 
 number gaussian();
-number gamma(number alpha, number beta);
-
-inline number sum(number *v, int N) {
-	number res = (number) 0.;
-	for(int i = 0; i < N; i++) {
-		res += v[i];
-	}
-	return res;
-}
 
 // trim from start
 inline std::string &ltrim(std::string &s) {
