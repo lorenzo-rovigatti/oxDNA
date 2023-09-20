@@ -1,7 +1,7 @@
 #see: https://dna.physics.ox.ac.uk/index.php/Documentation#External_Forces
 from typing import Dict, List, Literal
 
-def mutual_trap(particle:int, ref_particle:int, stiff:float, r0:float, PBC:bool) -> Dict:
+def mutual_trap(particle:int, ref_particle:int, stiff:float, r0:float, PBC:bool, rate:float=0, stiff_rate:float=0) -> Dict:
     """
     A spring force that pulls a particle towards the position of another particle
 
@@ -11,13 +11,17 @@ def mutual_trap(particle:int, ref_particle:int, stiff:float, r0:float, PBC:bool)
         stiff (float): the force constant of the spring (in simulation units)
         r0 (float): the equlibrium distance of the spring
         PBC (0 or 1): does the force calculation take PBC into account (almost always 1)
+        rate (float): changes r0 by this much every time step
+        stiff_rate (float): changes stiff by this much every time step
     """
     return({
         "type" : "mutual_trap",
         "particle" : particle,
         "ref_particle" : ref_particle,
-        "stiff" : stiff, 
+        "stiff" : stiff,
+        "stiff_rate" : stiff_rate, 
         "r0" : r0,
+        "rate" : rate,
         "PBC" : int(PBC)
     })
 

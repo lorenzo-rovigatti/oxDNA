@@ -50,7 +50,7 @@ def parse_dot_bracket(input:str) -> np.ndarray:
 
     return output
 
-def db_to_forcelist(db_str:str, stiff:float, reverse:bool) -> List[Dict]:
+def db_to_forcelist(db_str:str, stiff:float, reverse:bool, r0:float=1.2, PBC:bool=True, rate:float=0, stiff_rate:float=0) -> List[Dict]:
     """
         Convert a dot-bracket string to oxDNA mutual traps
 
@@ -82,7 +82,7 @@ def db_to_forcelist(db_str:str, stiff:float, reverse:bool) -> List[Dict]:
     #p is particle id, q is paired particle id
     for p, q in enumerate(db_idx):
         if q != -1:
-            force_list.append(mutual_trap(p, q, stiff, 1.2, True))
+            force_list.append(mutual_trap(p, q, stiff, r0, True, rate=rate, stiff_rate=stiff_rate))
 
     return force_list
 
