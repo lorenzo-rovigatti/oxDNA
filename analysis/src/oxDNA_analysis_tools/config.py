@@ -46,7 +46,7 @@ def check(to_check:List[str]=["python", "numpy", "matplotlib", "sklearn", "oxpy"
         print("INFO: Python version: {}".format('.'.join([str(i) for i in version_info[0:3]])), file=stderr)
         if version_info < (3, 9):
             flag = True
-            print("WARNING: Some scripts will not run with Python versions earler than 3.9.  You have {}, please update your environment", file=stderr)
+            print("WARNING: Some scripts will not run with Python versions earlier than 3.9.  You have {}, please update your environment".format(version_info), file=stderr)
 
     #check packages
     for package in to_check:
