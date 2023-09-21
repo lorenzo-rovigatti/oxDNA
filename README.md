@@ -49,12 +49,13 @@ Please cite these publications for any work that uses the oxDNA simulation packa
     
 ## Acknowledgements
 
-oxDNA depends on a minimum number of external libraries (a c++-14-compliant standard library and Nvidia's CUDA if the user wishes to enable it).
+oxDNA depends on a minimum number of external libraries (a c++-14-compliant standard library and NVIDIA's CUDA if the user wishes to enable it).
 
 Internally, oxDNA uses the following libraries, which are included in the source tree:
 
 * [ExprTk](https://www.partow.net/programming/exprtk/index.html)
 * [nlohmann's JSON library](https://github.com/nlohmann/json)
 * [pybind11](https://github.com/pybind/pybind11)
+* [fast_double_parser](https://github.com/lemire/fast_double_parser)
 
 As far as I know, this is compatible with their licenses. If you are a developer or a mantainer of one of these projects and you think that oxDNA does not comply with your license, please contact us.
