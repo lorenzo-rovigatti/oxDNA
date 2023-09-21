@@ -100,10 +100,10 @@ If you are on your own machine or you installed Python via Anaconda, the `-DOxpy
 
 ## Using `oxpy` with old Python versions
 
-`oxpy` interfaces with oxDNA using [Pybind11](https://github.com/pybind/pybind11). In Sepember 2023 we updated the version of Pybind11 included with oxDNA from 2.2 to 2.11 due to changes to the Python C API which made older versions of Pybind11 incompatible with the current Python 3.11. This new version of Pybind11 is only compatible with Python > 3.8. If, for some reason, you need to use an older version of Python 3 and cannot install a newer version in a virtual environment via, for example, [Conda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html), this can be done by downloading an older version of Pybind11:
+`oxpy` interfaces with oxDNA using [Pybind11](https://github.com/pybind/pybind11). In September 2023 we updated the version of pybind11 included with oxDNA from 2.2 to 2.11 due to changes to the Python C API which made older versions of Pybind11 incompatible with the current Python 3.11. This new version of pybind11 is only compatible with Python > 3.8. If, for some reason, you need to use an older version of Python 3 and cannot install a newer version in a virtual environment via, for example, [Conda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html), this can be done by using an older version of pybind11:
 
-1. Get an old version of Pybind11 from the [releases page](https://github.com/pybind/pybind11/releases?page=1) of their GitHub (tested with 2.6.0).
-2. Remove `oxDNA/oxpy/pybind11/` and replace it with the unzipped folder you just downloaded (make sure you rename the folder to `pybind11`)
+1. Get an old version of Pybind11 from the [releases page](https://github.com/pybind/pybind11/releases?page=1) of their GitHub, or use the `pybind11_2.2.4.tgz` file that can be found in the `oxDNA/legacy/` folder.
+2. Remove `oxDNA/oxpy/pybind11/` and replace it with the unzipped folder you just downloaded or copied, making sure you rename the folder to `pybind11`
 3. Edit `oxDNA/setup.py` and `oxDNA/oxpy/make_install_setup.py` to remove the `install_requires = [ ...` lines which also install `oat` (OAT requires 3.9+ due to typing and data structures so cannot be installed with older Python versions)
 4. Compile as normal (`cmake -DPython=1 .. && make -j4 && make install`)
 
