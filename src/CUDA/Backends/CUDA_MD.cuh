@@ -94,7 +94,7 @@ __global__ void rescale_positions(c_number4 *poss, c_number4 ratio) {
 	poss[IND] = ppos;
 }
 
-__global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUDA_trap *ext_forces, c_number4 *forces, c_number4 *torques, llint step, int max_ext_forces, CUDABox*box) {
+__global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUDA_trap *ext_forces, c_number4 *forces, c_number4 *torques, llint step, int max_ext_forces, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 	// if there are no external forces then just put the force to 0
 	if(max_ext_forces == 0) {

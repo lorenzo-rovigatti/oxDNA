@@ -196,15 +196,11 @@ For nucleotides for which {math}`u x + v y + w z + {\rm position} \geq 0`, no fo
 The following snippet defines a plane that acts on the whole system and will not exert any force on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit \* x (48.6 pN \* x for DNA) will be exerted on all particles . 
 
 	{
-	type = twist
-	particle = 0
+	type = repulsion_plane
+	particle = -1
 	stiff = 1.00
-	rate = 1e-5
-	base = 0.
-	pos0 = 15, 0.674909093169, 18.6187733563
-	center = 13., 0.674909093169, 18.6187733563
-	axis = 0, 0, 1
-	mask = 1, 1, 0
+	dir = 1, 0, 0
+	position = 0
 	}
 
 ````

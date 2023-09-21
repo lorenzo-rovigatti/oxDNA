@@ -49,7 +49,13 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 
 	if(_enable_semiflexibility_3b) {
 		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflexibility_3b_k, 1);
-		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 1);
+		getInputNumber(&inp, "DPS_semiflexibility_3b_exp_sigma", &_semiflexibility_3b_exp_sigma, 0);
+		if(_semiflexibility_3b_exp_sigma > 0.0) {
+			OX_LOG(Logger::LOG_INFO, "CGNA: Using the exponential potential to model semiflexibility");
+		}
+		else {
+			OX_LOG(Logger::LOG_INFO, "CGNA: Using the linear potential to model semiflexibility");
+		}
 	}
 
 	getInputBool(&inp, "DPS_stacking", &_enable_patch_stacking, 0);
@@ -60,14 +66,27 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
 	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
+
+	if(getInputNumber(&inp, "max_backbone_force", &_mbf_fmax, 0) == KEY_FOUND) {
+		_use_mbf = true;
+		if(_mbf_fmax < 0.f) {
+			throw oxDNAException("Cowardly refusing to run with a negative max_backbone_force");
+		}
+	}
+
+	getInputInt(&inp, "DPS_bead_size", &_bead_size, 1);
 }
 
 void CGNucleicAcidsInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
-	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / this->_PS_n);
+	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / _PS_n);
+	_WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0;
+
+	OX_LOG(Logger::LOG_INFO, "CGNA: WCA sigma = %lf, WCA sigma unbonded = %lf", _WCA_sigma, _WCA_sigma_unbonded);
 
 	_rcut = sqrt(_PS_sqr_rep_rcut);
 
+	// TODO: handle the case when n < 3 (i.e. sigma_unbonded > sigma)
 	_3b_rcut = _3b_range * _3b_sigma;
 	_sqr_3b_rcut = SQR(_3b_rcut);
 	number B_ss = 1. / (1. + 4. * SQR(1. - _3b_range));
@@ -84,7 +103,7 @@ void CGNucleicAcidsInteraction::init() {
 	}
 	_sqr_rcut = SQR(_rcut);
 
-	OX_LOG(Logger::LOG_INFO, "PolymerSwap: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
+	OX_LOG(Logger::LOG_INFO, "CGNA: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
 
 	if(_PS_alpha != 0) {
 		if(_PS_alpha < 0.) {
@@ -92,7 +111,17 @@ void CGNucleicAcidsInteraction::init() {
 		}
 		_PS_gamma = M_PI / (_sqr_rfene - pow(2., 1. / 3.));
 		_PS_beta = 2 * M_PI - _sqr_rfene * _PS_gamma;
-		OX_LOG(Logger::LOG_INFO, "MG: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
+		OX_LOG(Logger::LOG_INFO, "CGNA: alpha = %lf, beta = %lf, gamma = %lf", _PS_alpha, _PS_beta, _PS_gamma);
+	}
+
+	if(_use_mbf) {
+		_mbf_xmax = (-_Kfene * SQR(_rfene) + std::sqrt(SQR(_Kfene) * SQR(SQR(_rfene)) + SQR(_mbf_fmax) * SQR(_rfene))) / _mbf_fmax;
+		_mbf_Emax = -_Kfene * _sqr_rfene * std::log(1. - SQR(_mbf_xmax) / _sqr_rfene);
+		_mbf_B = (_mbf_Emax - _mbf_fmax * _mbf_xmax) / (std::log(_mbf_xmax) - 1.0);
+		_mbf_A = _mbf_fmax - _mbf_B / _mbf_xmax;
+
+		// if we use mbf, we should tell the user
+		OX_LOG(Logger::LOG_INFO, "CGNA: using a maximum backbone force of %g (xmax = %g, Emax = %g, A = %g, B = %g)", _mbf_fmax, _mbf_xmax, _mbf_Emax, _mbf_A, _mbf_B);
 	}
 }
 
@@ -140,25 +169,44 @@ bool CGNucleicAcidsInteraction::has_custom_stress_tensor() const {
 number CGNucleicAcidsInteraction::_fene(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 
-	if(sqr_r > _sqr_rfene) {
+	number energy = 0.0;
+
+	if(_use_mbf && sqr_r > SQR(_mbf_xmax)) {
+		number r = std::sqrt(sqr_r);
+
+		energy = _mbf_A * r + _mbf_B * std::log(r);
 		if(update_forces) {
-			throw oxDNAException("The distance between particles %d and %d (r: %lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _rfene);
+			auto force = -_computed_r * (_mbf_A + _mbf_B / r) / r;
+
+			p->force += force;
+			q->force -= force;
+
+			_update_stress_tensor(p->pos, force);
+			_update_stress_tensor(p->pos + _computed_r, -force);
 		}
-		set_is_infinite(true);
-		return 10e10;
 	}
 
-	number energy = -_Kfene * _sqr_rfene * log(1. - sqr_r / _sqr_rfene);
+	else {
+		if(sqr_r > _sqr_rfene) {
+			if(update_forces) {
+				throw oxDNAException("The distance between particles %d and %d (r: %lf) exceeds the FENE distance (%lf)", p->index, q->index, sqrt(sqr_r), _rfene);
+			}
+			set_is_infinite(true);
+			return 10e10;
+		}
 
-	if(update_forces) {
-		// this number is the module of the force over r, so we don't have to divide the distance vector by its module
-		number force_mod = -2 * _Kfene * _sqr_rfene / (_sqr_rfene - sqr_r);
-		auto force = -_computed_r * force_mod;
-		p->force += force;
-		q->force -= force;
+		energy = -_Kfene * _sqr_rfene * log(1. - sqr_r / _sqr_rfene);
 
-		_update_stress_tensor(p->pos, force);
-		_update_stress_tensor(p->pos + _computed_r, -force);
+		if(update_forces) {
+			// this number is the module of the force over r, so we don't have to divide the distance vector by its module
+			number force_mod = -2 * _Kfene * _sqr_rfene / (_sqr_rfene - sqr_r);
+			auto force = -_computed_r * force_mod;
+			p->force += force;
+			q->force -= force;
+
+			_update_stress_tensor(p->pos, force);
+			_update_stress_tensor(p->pos + _computed_r, -force);
+		}
 	}
 
 	return energy;
@@ -174,10 +222,12 @@ number CGNucleicAcidsInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool up
 	// this number is the module of the force over r, so we don't have to divide the distance vector for its module
 	number force_mod = 0;
 
+	number sigma = p->is_bonded(q) ? _WCA_sigma : _WCA_sigma_unbonded;
+
 	// cut-off for all the repulsive interactions
 	if(sqr_r < _PS_sqr_rep_rcut) {
 		number part = 1.;
-		number ir2_scaled = SQR(_WCA_sigma) / sqr_r;
+		number ir2_scaled = SQR(sigma) / sqr_r;
 		for(int i = 0; i < _PS_n / 2; i++) {
 			part *= ir2_scaled;
 		}
@@ -414,18 +464,31 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *midd
 	number i_pn1_pn2 = 1. / sqrt(sqr_dist_pn1 * sqr_dist_pn2);
 	number cost = (dist_pn1 * dist_pn2) * i_pn1_pn2;
 
+	number energy, force_factor;
+
+	if(_semiflexibility_3b_exp_sigma > 0.0) {
+		number arg = (1.0 - cost) / _semiflexibility_3b_exp_sigma;
+		number exp_factor = exp(-SQR(arg));
+		energy = -_semiflexibility_3b_k * (exp_factor - 1.0);
+		force_factor = 2 * exp_factor * arg / _semiflexibility_3b_exp_sigma;
+	}
+	else {
+		energy = _semiflexibility_3b_k * (1.0 - cost);
+		force_factor = 1.0;
+	}
+
 	if(update_forces) {
 		number cost_n1 = cost / sqr_dist_pn1;
 		number cost_n2 = cost / sqr_dist_pn2;
 		number force_mod_n1 = i_pn1_pn2 + cost_n1;
 		number force_mod_n2 = i_pn1_pn2 + cost_n2;
 
-		middle->force += dist_pn1 * (force_mod_n1 * _semiflexibility_3b_k) - dist_pn2 * (force_mod_n2 * _semiflexibility_3b_k);
-		n1->force -= dist_pn1 * (cost_n1 * _semiflexibility_3b_k) - dist_pn2 * (i_pn1_pn2 * _semiflexibility_3b_k);
-		n2->force -= dist_pn1 * (i_pn1_pn2 * _semiflexibility_3b_k) - dist_pn2 * (cost_n2 * _semiflexibility_3b_k);
+		middle->force += force_factor * (dist_pn1 * (force_mod_n1 * _semiflexibility_3b_k) - dist_pn2 * (force_mod_n2 * _semiflexibility_3b_k));
+		n1->force -= force_factor * (dist_pn1 * (cost_n1 * _semiflexibility_3b_k) - dist_pn2 * (i_pn1_pn2 * _semiflexibility_3b_k));
+		n2->force -= force_factor * (dist_pn1 * (i_pn1_pn2 * _semiflexibility_3b_k) - dist_pn2 * (cost_n2 * _semiflexibility_3b_k));
 	}
 
-	return _semiflexibility_3b_k * (1. - cost);
+	return energy;
 }
 
 number CGNucleicAcidsInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
@@ -563,7 +626,7 @@ void CGNucleicAcidsInteraction::check_input_sanity(std::vector<BaseParticle*> &p
 
 void CGNucleicAcidsInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	for(uint i = 0; i < particles.size(); i++) {
-		particles[i] = new ParticleFTG(1, 0, 1, _deltaPatchMon);
+		particles[i] = new ParticleFTG(1, 0, _WCA_sigma_unbonded, _deltaPatchMon);
 	}
 }
 
