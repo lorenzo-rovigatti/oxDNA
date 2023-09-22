@@ -1,4 +1,12 @@
-import sys
+import os, sys
+
+def prefix_path(prefix, path, input_dir):
+    base, filename = os.path.split(path)
+
+    if input_dir:
+        return os.path.join(base, prefix + filename)
+    else:
+        return prefix + filename
 
 def print_inverted_configuration(old_filename, strand_lengths, new_filename):
     with open(old_filename) as old_conf, open(new_filename, "w") as new_conf:
@@ -17,7 +25,7 @@ def print_inverted_configuration(old_filename, strand_lengths, new_filename):
         
         new_conf.write(new_conf_content)
 
-def old_to_new(topology, configuration, prefix):
+def old_to_new(topology, configuration, prefix, input_dir):
     print("INFO: converting from old to new", file=sys.stderr)
     
     # convert the topology
@@ -28,7 +36,7 @@ def old_to_new(topology, configuration, prefix):
             spl = line.split()
             strands[spl[0]].append(spl[1:])
             
-    with open(prefix + topology, "w") as new_t:
+    with open(prefix_path(prefix, topology, input_dir), "w") as new_t:
         print(N, N_strands, "5->3", file=new_t)
 
         strand_lengths = []        
@@ -53,9 +61,9 @@ def old_to_new(topology, configuration, prefix):
                 line += " circular=False"
             print(line, file=new_t)
             
-    print_inverted_configuration(configuration, strand_lengths, prefix + configuration)
+    print_inverted_configuration(configuration, strand_lengths, prefix_path(prefix, configuration, input_dir))
 
-def new_to_old(topology, configuration, prefix):
+def new_to_old(topology, configuration, prefix, input_dir):
     print("INFO: converting from new to old", file=sys.stderr)
     
     # convert the topology
@@ -94,7 +102,7 @@ def new_to_old(topology, configuration, prefix):
                         
             sequences.append(sequence[::-1])
                         
-    with open(prefix + topology, "w") as old_t:
+    with open(prefix_path(prefix, topology, input_dir), "w") as old_t:
         print(N, N_strands, file=old_t)
         current_idx = 0
         for i, sequence in enumerate(sequences):
@@ -119,7 +127,7 @@ def new_to_old(topology, configuration, prefix):
                 print(strand, nucl, prev, next, file=old_t)
 
     strand_lengths = list(map(len, sequences))
-    print_inverted_configuration(configuration, strand_lengths, prefix + configuration)
+    print_inverted_configuration(configuration, strand_lengths, prefix_path(prefix, configuration, input_dir))
 
 if __name__ == '__main__': 
 
@@ -129,6 +137,7 @@ if __name__ == '__main__':
     parser.add_argument("topology", help="The source topology file")
     parser.add_argument("configuration", help="The source configuration file")
     parser.add_argument("-p", "--prefix", default="", required=False, help="A string that will prepended to the output filenames")
+    parser.add_argument("-i", "--input-dir", default=False, action="store_true", required=False, help="Output files will be written to the directory containing the input files instead of the current working directory")
     
     args = parser.parse_args()
     if args.prefix == "":
@@ -137,9 +146,9 @@ if __name__ == '__main__':
     with open(args.topology) as top:
         spl = top.readline().split()
         if len(spl) == 2:
-            old_to_new(args.topology, args.configuration, args.prefix)
+            old_to_new(args.topology, args.configuration, args.prefix, args.input_dir)
         elif len(spl) == 3 and spl[2] == "5->3":
-            new_to_old(args.topology, args.configuration, args.prefix)
+            new_to_old(args.topology, args.configuration, args.prefix, args.input_dir)
         else:
             print("ERROR: Invalid topology file", file=sys.stderr)
             exit(1)
