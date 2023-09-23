@@ -110,6 +110,10 @@ CGCAAC
 
 In addition, DNA and RNA interactions also support the `type=DNA|RNA` (which defaults to `DNA`) and `circular=true|false` (which defaults to `false`) specifiers. The former sets the type of strand, while the latter, if set to `true`, indicates that the strand is circular.
 
+```{note}
+The `examples/PERSISTENCE_LENGTH/NEW_TOPOLOGY` directory contains an example that uses this new format.
+```
+
 ### Special nucleotides
 
 Internally, oxDNA encodes the base types with integers as follows:
@@ -128,7 +132,7 @@ This property can be leveraged to extend the canonical base pairing and create v
 ```{note}
 In the classic topology format, custom nucleotide types are set by using numbers instead of letters. For instance, the following topology line specifies that the corresponding nucleotide (which is part of strand 1 and bonded to nucleotides 2 and 4) has a custom type `-10`: `1 -10 2 4`.
 
-In the new topology format, custom nucleotide types can be set by enclosing them between brackets. As an example, the following line sets the sequence of a DNA strand made of 6 nucleotides, of which the third one has a custom type `-10`: `AA(-10)GCT type=DNA`.
+In the new topology format, custom nucleotide types can be set by enclosing them between brackets. As an example, the following line sets the sequence of a DNA strand made of 6 nucleotides, with the third one having a custom type `-10`: `AA(-10)GCT type=DNA`.
 ```
 
 For instance, $B = 13$, for which $B \bmod 4 = 1$, would correspond to a nucleotide with the same property of a Guanine. However, such a nucleotide would bond only to a nucleotide with base type $B' = -10$.
