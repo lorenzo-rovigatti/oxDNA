@@ -33,10 +33,7 @@ namespace Utils {
 
 int decode_base(char c);
 char encode_base(int b);
-int decode_aa(char c);
-char encode_aa(int b);
 std::vector<int> btypes_from_sequence(const std::string &sequence);
-std::vector<int> aatypes_from_sequence(const std::string &sequence);
 
 number gaussian();
 
