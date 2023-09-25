@@ -43,7 +43,7 @@ When simulating very large structures the size of the trajectory files stored on
 
 ## Topology file
 
-The topology file stores information about the fixed-bonding topology (*i.e.* which nucleotides share backbone links), as well as the strand sequences. Along with the original topology format (the "classic" one), starting with version 3.6 oxDNA also supports a new format that is simpler and more flexible. Note that this "new" format is not widely supported by the other tools of the oxDNA ecosystem. 
+The topology file stores information about the fixed-bonding topology (*i.e.* which nucleotides share backbone links), as well as the strand sequences. Along with the original topology format (the "classic" one which is in the 3'-5' direction), starting with version 3.6, oxDNA also supports a new format that is simpler and more flexible (and in 5'-3' direction). Note that this "new" format is not necessarily supported by the other tools of the oxDNA ecosystem. 
 
 ```{note}
 You can interconvert between the classic and new formats by using the `utils/convert.py` script.
@@ -108,7 +108,17 @@ GTTGCG
 CGCAAC
 ```
 
-In addition, DNA and RNA interactions also support the `type=DNA|RNA` (which defaults to `DNA`) and `circular=true|false` (which defaults to `false`) specifiers. The former sets the type of strand, while the latter, if set to `true`, indicates that the strand is circular.
+In addition, DNA and RNA interactions also support the `type=DNA|RNA` (which defaults to `DNA`) and `circular=true|false` (which defaults to `false`) specifiers. The former sets the type of strand, while the latter, if set to `true`, indicates that the strand is circular. For example, if you wanted to explicitally note that the above strands are DNA, the file would read
+
+```
+12 2 5->3
+GTTGCG type=DNA
+CGCAAC type=DNA
+```
+
+```{note}
+Setting `type` only affects the force field when using the DNA/RNA hybrid model (`interaction_type=DRH`). For normal DNA or RNA, the interactions will be determined by the `interaction_type=DNA|DNA2|RNA|RNA2|DRH|LJ...` parameter in the [input file](input.md)
+```
 
 ```{note}
 The `examples/PERSISTENCE_LENGTH/NEW_TOPOLOGY` directory contains an example that uses this new format.

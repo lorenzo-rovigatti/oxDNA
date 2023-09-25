@@ -238,15 +238,16 @@ def describe(top:Union[str,None], traj:str) -> Tuple[TopInfo, TrajInfo]:
 
 def strand_describe(top:str) -> Tuple[System, list]:
     """
-        Retrieve all information from topology file mapping nucleotides to strands.
+        Retrieve all information from a topology file and return a System object which maps nucleotides to strands.
 
-        This is returned as two objects so that monomers can be indexed either via strand or via global index
+        This is returned as two objects so that monomers can be indexed either via strand or via global index. 
+        This function will automatically detect whether the input topology file is new or old format.
         
         Parameters:
             top (str) : path to topology file
 
         Returns:
-            (System, List[Monomer]) : The system object and the list of monomer objects.
+            (System, List[Monomer]) : The System object and the list of Monomer objects.
     """
     def _strand_describe_new(top_file:str) -> Tuple[System, list]:
         def _parse_kwdata(x): 
@@ -523,7 +524,7 @@ def get_top_string(system:System, old_format:bool=False) -> str:
 
         Parameters:
             system (System) : System object
-            old_format (bool) : Use the old 3'-5' format?
+            old_format (bool) : Use the old 3'-5' format? (default: False)
 
         Returns:
             (str) : string representation of the system in .top format
