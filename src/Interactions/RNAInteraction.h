@@ -27,7 +27,7 @@
 #include "BaseInteraction.h"
 #include "rna_model.h"
 
-class RNAInteraction : public BaseInteraction {
+class RNAInteraction : virtual public BaseInteraction {
 protected:
 	virtual number _backbone(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
 	virtual number _bonded_excluded_volume(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces);
@@ -41,6 +41,11 @@ protected:
 	inline number _repulsive_lj(const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces);
 
 protected:
+
+	//used to distinguish between sequence dependent filename keys in the DRH interaction
+	//false by default
+	bool _drh_interaction;
+	
 	bool _average;
 
 	/// variables used when max_backbone_force = true

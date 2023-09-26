@@ -212,6 +212,7 @@ DNAInteraction::DNAInteraction() :
 	_grooving = false;
 	_allow_broken_fene = false;
 	_generate_consider_bonded_interactions = true;
+	_drh_interaction = false;
 
 	_fene_r0 = FENE_R0_OXDNA;
 
@@ -233,7 +234,13 @@ void DNAInteraction::get_settings(input_file &inp) {
 
 	if(getInputBool(&inp, "use_average_seq", &_average, 0) == KEY_FOUND) {
 		if(!_average) {
-			getInputString(&inp, "seq_dep_file", _seq_filename, 1);
+
+			if(_drh_interaction){
+				getInputString(&inp, "seq_dep_file_DNA", _seq_filename, 1);
+			} else {
+				getInputString(&inp, "seq_dep_file", _seq_filename, 1);
+			}
+
 			OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent values", _seq_filename.c_str());
 		}
 	}

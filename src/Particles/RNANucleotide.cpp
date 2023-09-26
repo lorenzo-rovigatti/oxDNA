@@ -13,6 +13,7 @@ RNANucleotide::RNANucleotide() :
 				_stack_axis(0, 0, 1),
 				_third_axis(0, 1, 0) {
 	int_centers.resize(7);
+	acid_type = 'R';
 }
 
 RNANucleotide::~RNANucleotide() {

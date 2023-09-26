@@ -147,6 +147,9 @@ public:
 
 	/// Needed for specific base pairing
 	int btype;
+	
+	/// Needed for DNA-RNA interactions
+	char acid_type;
 
 	/// DNA bonded neighbours
 	BaseParticle *n3, *n5;

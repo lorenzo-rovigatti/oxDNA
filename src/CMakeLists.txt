@@ -122,6 +122,8 @@ SET(interactions_SOURCES
 	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
 	Interactions/CustomInteraction.cpp
+	Interactions/DRHInteraction.cpp
+	Interactions/DRHInteraction_relax.cpp
 )
 
 SET(move_SOURCES

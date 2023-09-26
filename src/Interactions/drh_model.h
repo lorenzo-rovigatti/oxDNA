@@ -1,0 +1,228 @@
+/**
+ * 
+ */
+
+#ifndef DRH_MODEL_H_
+#define DRH_MODEL_H_
+
+
+
+//------------------PARAMETERS FOR DRH INTERACTION------------------//
+
+/**
+ * EXCLUDED VOLUME
+ */
+#define DRH_EXCL_EPS 2.0f
+#define DRH_EXCL_S1 0.70f
+#define DRH_EXCL_S2 0.33f
+#define DRH_EXCL_S3 0.515f
+#define DRH_EXCL_S4 0.515f
+#define DRH_EXCL_R1 0.675f
+#define DRH_EXCL_R2 0.32f
+#define DRH_EXCL_R3 0.50f
+#define DRH_EXCL_R4 0.50f
+#define DRH_EXCL_B1 892.016223343f
+#define DRH_EXCL_B2 4119.70450017f
+#define DRH_EXCL_B3 1707.30627298f
+#define DRH_EXCL_B4 1707.30627298f
+#define DRH_EXCL_RC1 0.711879214356f
+#define DRH_EXCL_RC2 0.335388426126f
+#define DRH_EXCL_RC3 0.52329943261f
+#define DRH_EXCL_RC4 0.52329943261f
+
+/**
+ * HYDROGEN BONDING
+ */
+/// radial part
+#define DRH_HYDR_F1 0
+#define DRH_HYDR_EPS 1.5f
+#define DRH_HYDR_A 8.f
+#define DRH_HYDR_RC 0.75f
+#define DRH_HYDR_R0 0.4f
+#define DRH_HYDR_BLOW -126.243f
+#define DRH_HYDR_BHIGH -7.87708f
+#define DRH_HYDR_RLOW 0.34f
+#define DRH_HYDR_RHIGH 0.7f
+#define DRH_HYDR_RCLOW 0.276908f
+#define DRH_HYDR_RCHIGH 0.783775f
+
+/// angular part
+#define DRH_HYDR_F4_THETA1 2
+#define DRH_HYDR_F4_THETA2 3
+#define DRH_HYDR_F4_THETA3 3
+#define DRH_HYDR_F4_THETA4 4
+#define DRH_HYDR_F4_THETA7 5
+#define DRH_HYDR_F4_THETA8 5
+
+#define DRH_HYDR_THETA1_A 1.5f
+#define DRH_HYDR_THETA1_B 4.16038f
+#define DRH_HYDR_THETA1_T0 0.f
+#define DRH_HYDR_THETA1_TS 0.7f
+#define DRH_HYDR_THETA1_TC 0.952381f
+
+#define DRH_HYDR_THETA2_A 1.5f
+#define DRH_HYDR_THETA2_B 4.16038f
+#define DRH_HYDR_THETA2_T0 0.f
+#define DRH_HYDR_THETA2_TS 0.7f
+#define DRH_HYDR_THETA2_TC 0.952381f
+
+#define DRH_HYDR_THETA3_A 1.5f
+#define DRH_HYDR_THETA3_B 4.16038f
+#define DRH_HYDR_THETA3_T0 0.f
+#define DRH_HYDR_THETA3_TS 0.7f
+#define DRH_HYDR_THETA3_TC 0.952381f
+
+#define DRH_HYDR_THETA4_A 0.46f
+#define DRH_HYDR_THETA4_B 0.133855f
+#define DRH_HYDR_THETA4_T0 PI
+#define DRH_HYDR_THETA4_TS 0.7f
+#define DRH_HYDR_THETA4_TC 3.10559f
+
+#define DRH_HYDR_THETA7_A 4.f
+#define DRH_HYDR_THETA7_B 17.0526f
+#define DRH_HYDR_THETA7_T0 (PI*0.5f)
+#define DRH_HYDR_THETA7_TS 0.45f
+#define DRH_HYDR_THETA7_TC 0.555556f
+
+#define DRH_HYDR_THETA8_A 4.f
+#define DRH_HYDR_THETA8_B 17.0526f
+#define DRH_HYDR_THETA8_T0 (PI*0.5f)
+#define DRH_HYDR_THETA8_TS 0.45f
+#define DRH_HYDR_THETA8_TC 0.555556f
+
+
+/**
+ *  CROSS STACKING
+ */
+/// radial part
+#define DRH_CRST_F2 0  
+#define DRH_CRST_R0 0.575f
+#define DRH_CRST_RC 0.675f
+#define DRH_CRST_K 44.535f
+#define DRH_CRST_BLOW -0.888889f
+#define DRH_CRST_RLOW 0.495f
+#define DRH_CRST_RCLOW 0.45f
+#define DRH_CRST_BHIGH -0.888889f
+#define DRH_CRST_RHIGH 0.655f
+#define DRH_CRST_RCHIGH 0.7f
+/// angular part;
+#define DRH_CRST_F4_THETA1 6
+#define DRH_CRST_F4_THETA2 7
+#define DRH_CRST_F4_THETA3 7
+#define DRH_CRST_F4_THETA4 8 
+#define DRH_CRST_F4_THETA7 9 
+#define DRH_CRST_F4_THETA8 9  
+#define DRH_CRST_THETA1_A 2.25f
+#define DRH_CRST_THETA1_B 7.00545f
+#define DRH_CRST_THETA1_T0 (PI - 2.35f)
+#define DRH_CRST_THETA1_TS 0.58f
+#define DRH_CRST_THETA1_TC 0.766284f
+#define DRH_CRST_THETA2_A 1.70f
+#define DRH_CRST_THETA2_B 6.2469f
+#define DRH_CRST_THETA2_T0 1.f
+#define DRH_CRST_THETA2_TS 0.68f
+#define DRH_CRST_THETA2_TC 0.865052f
+#define DRH_CRST_THETA3_A 1.70f
+#define DRH_CRST_THETA3_B 6.2469f
+#define DRH_CRST_THETA3_T0 1.f
+#define DRH_CRST_THETA3_TS 0.68f
+#define DRH_CRST_THETA3_TC 0.865052f
+#define DRH_CRST_THETA4_A 1.50f
+#define DRH_CRST_THETA4_B 2.59556f
+#define DRH_CRST_THETA4_T0 0.f
+#define DRH_CRST_THETA4_TS 0.65f
+#define DRH_CRST_THETA4_TC 1.02564f
+#define DRH_CRST_THETA7_A 1.70f
+#define DRH_CRST_THETA7_B 6.2469f
+#define DRH_CRST_THETA7_T0 0.875f
+#define DRH_CRST_THETA7_TS 0.68f
+#define DRH_CRST_THETA7_TC 0.865052f
+#define DRH_CRST_THETA8_A 1.70f
+#define DRH_CRST_THETA8_B 6.2469f
+#define DRH_CRST_THETA8_T0 0.875f
+#define DRH_CRST_THETA8_TS 0.68f
+#define DRH_CRST_THETA8_TC 0.865052f
+
+
+/**
+ *  COAXIAL STACKING
+ */
+/// radial part
+#define DRH_CXST_F2 1
+#define DRH_CXST_R0 0.400f
+#define DRH_CXST_RC 0.6f
+#define DRH_CXST_K_OXDNA 46.0f
+#define DRH_CXST_K_OXDNA2 58.5f
+#define DRH_CXST_BLOW -2.13158f
+#define DRH_CXST_RLOW 0.22f
+#define DRH_CXST_RCLOW 0.177778f
+#define DRH_CXST_BHIGH -2.13158f
+#define DRH_CXST_RHIGH 0.58f
+#define DRH_CXST_RCHIGH 0.6222222f
+/// angular part;
+#define DRH_CXST_F4_THETA1 10
+#define DRH_CXST_F4_THETA4 11
+#define DRH_CXST_F4_THETA5 12 
+#define DRH_CXST_F4_THETA6 12 
+#define DRH_CXST_THETA1_A   2.f
+#define DRH_CXST_THETA1_B   10.9032f
+#define DRH_CXST_THETA1_T0_OXDNA (PI - 0.60f)
+#define DRH_CXST_THETA1_T0_OXDNA2 (PI - 0.25f)
+#define DRH_CXST_THETA1_TS  0.65f
+#define DRH_CXST_THETA1_TC  0.769231f
+#define DRH_CXST_THETA1_SA  20.f
+#define DRH_CXST_THETA1_SB (PI - 0.1f*(PI - (PI - 0.25f)))
+#define DRH_CXST_THETA4_A   1.3f
+#define DRH_CXST_THETA4_B   6.4381f
+#define DRH_CXST_THETA4_T0  0.f
+#define DRH_CXST_THETA4_TS  0.8f
+#define DRH_CXST_THETA4_TC  0.961538f
+#define DRH_CXST_THETA5_A   0.9f
+#define DRH_CXST_THETA5_B   3.89361f  
+#define DRH_CXST_THETA5_T0  0.f
+#define DRH_CXST_THETA5_TS  0.95f
+#define DRH_CXST_THETA5_TC  1.16959f
+#define DRH_CXST_THETA6_A   0.9f
+#define DRH_CXST_THETA6_B   3.89361f  
+#define DRH_CXST_THETA6_T0  0.f
+#define DRH_CXST_THETA6_TS  0.95f
+#define DRH_CXST_THETA6_TC  1.16959f
+/// angular part, phi3 and phi4
+#define DRH_CXST_F5_PHI3 2
+#define DRH_CXST_F5_PHI4 3
+#define DRH_CXST_PHI3_A 2.0f
+#define DRH_CXST_PHI3_B 10.9032f
+#define DRH_CXST_PHI3_XC -0.769231f
+#define DRH_CXST_PHI3_XS -0.65f
+#define DRH_CXST_PHI4_A 2.0f
+#define DRH_CXST_PHI4_B 10.9032f
+#define DRH_CXST_PHI4_XC -0.769231f
+#define DRH_CXST_PHI4_XS -0.65f
+
+
+
+
+//Mesh stuff
+#define DRH_HYDR_T1_MESH_POINTS 6   // perfect
+#define DRH_HYDR_T2_MESH_POINTS 6   // perfect
+#define DRH_HYDR_T3_MESH_POINTS DRH_HYDR_T2_MESH_POINTS
+#define DRH_HYDR_T4_MESH_POINTS 50  // almost perfect 
+#define DRH_HYDR_T7_MESH_POINTS 12  // almost perfect
+#define DRH_HYDR_T8_MESH_POINTS DRH_HYDR_T7_MESH_POINTS
+
+#define DRH_STCK_T4_MESH_POINTS 6   // perfect
+#define DRH_STCK_T5_MESH_POINTS 6   // perfect 
+#define DRH_STCK_T6_MESH_POINTS DRH_STCK_T5_MESH_POINTS
+
+#define DRH_CRST_T1_MESH_POINTS 250 // good enough
+#define DRH_CRST_T2_MESH_POINTS 80  // almost perfect
+#define DRH_CRST_T3_MESH_POINTS DRH_CRST_T2_MESH_POINTS
+#define DRH_CRST_T4_MESH_POINTS 6   // perfect
+#define DRH_CRST_T7_MESH_POINTS 250 // good enough
+#define DRH_CRST_T8_MESH_POINTS DRH_CRST_T7_MESH_POINTS
+
+#define DRH_CXST_T1_MESH_POINTS 250 // perfetto
+#define DRH_CXST_T4_MESH_POINTS 6   // perfetto
+#define DRH_CXST_T5_MESH_POINTS 6   // perfetto
+#define DRH_CXST_T6_MESH_POINTS DRH_CXST_T5_MESH_POINTS
+#endif 
