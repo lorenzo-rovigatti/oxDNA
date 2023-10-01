@@ -48,7 +48,7 @@ void MDBackend::get_settings(input_file &inp) {
 		getInputBool(&inp, "barostat_isotropic", &_barostat_isotropic, 0);
 		getInputNumber(&inp, "P", &this->_P, 1);
 		getInputNumber(&inp, "delta_L", &_delta_L, 1);
-		getInputNumber(&inp, "barostat_probability", &_barostat_probability, 0);
+		getInputNumber(&inp, "barostat_probability", &_barostat_probability, 1);
 		getInputBool(&inp, "barostat_molecular", &_barostat_molecular, 0);
 		std::string barostat_type("atomic");
 		if(_barostat_molecular) {
