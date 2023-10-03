@@ -110,7 +110,7 @@ def cli_parser(prog="mean.py"):
     parser.add_argument('trajectory', type=str, nargs=1, help='The trajectory file you wish to analyze')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The filename to save the mean structure to')
-    parser.add_argument('-d', '--deviations', metavar='deviation_file', nargs=1, help='Immediatley run oat deviations from the output')
+    parser.add_argument('-d', '--deviations', metavar='deviation_file', nargs=1, help='Immediately run oat deviations from the output')
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Compute mean structure of a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-a', '--align', metavar='alignment_configuration', nargs=1, help='The id of the configuration to align to, otherwise random')
     return parser
@@ -143,7 +143,7 @@ def main():
         indexes = list(range(top_info.nbases))
 
     # -a specifies the id of the reference configuration, defaults to random
-    # Get the reference configuration
+    # Get the reference configuration and bring it back in the box
     if args.align:
         ref_conf_id = int(args.align[0])
     else:

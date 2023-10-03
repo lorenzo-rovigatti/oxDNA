@@ -77,7 +77,7 @@ The following bit of code will create an external force on the first nucleotide 
 This force is useful to form initial configurations. It is a harmonic force that at every moment pulls a particle towards a reference particle. It is possible to specify the separation at which the force will be 0.
 
 ````{warning}
-Please note that the reference particle (`ref_particle` below) will not feel any force, thus making the name mutual trap somewhat misleading. If you want to have an actual *mutual* trap you will need to add a force on the reference particle.
+Please note that the reference particle (`ref_particle` below) will not feel any force, thus making the name mutual trap somewhat misleading. If you want to have an actual *mutual* trap you will need to add a corresponding force on the reference particle.
 ````
 
 A force of this kind is specified with `type = mutual_trap`. The relevant keys are: 
@@ -85,7 +85,14 @@ A force of this kind is specified with `type = mutual_trap`. The relevant keys a
 * `particle = <int>`: the particle on which to exert the force.
 * `ref_particle = <int>`: particle to pull towards.
 * `stiff = <float>`: stiffness of the trap.
-* `r0 = <float`: equilibrium distance of the trap.
+* `r0 = <float>`: equilibrium distance of the trap.
+* `PBC = <bool>`: (default: 1) If 0, calculate the distance between particles without considering periodic boundary conditions.
+* `rate = <float>`: change `r0` by this much every time step.
+* `stiff_rate = <float>`: change `stiff` by this much every time step.
+
+````{warning}
+PBC should almost always be 1. The only common exception is if you are simulating a single long strand where you want to pull the ends together.
+````
 
 ````{admonition} Example
 

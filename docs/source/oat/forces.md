@@ -1,4 +1,4 @@
-# External forces documentation
+# OAT external force utilities documentation
 
 ## Forces
 Python data structures for all forces defined by oxDNA

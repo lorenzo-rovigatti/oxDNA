@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import argparse
 from collections import defaultdict
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from io import TextIOWrapper
 
 from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
@@ -105,7 +105,7 @@ def choose_reference_nucleotides(nucleotides:List[PDB_Nucleotide]) -> Dict[str, 
 
     return bases
 
-def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> List[PDB_AminoAcid]:
+def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> Tuple[int, List[PDB_AminoAcid]]:
     """
         Get amino acid descriptions from a PDB file.
 
@@ -113,6 +113,9 @@ def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> List[PDB_Ami
             pdbfile (str) : File path to PDB file
             start_res (int) : Line number to start parsing from, default 0.
             n_res (int) : Get only this many residues, default until end of file.
+
+        Returns
+            (Tuple[int, List[PDB_AminoAcid]]) : The line number in the PDB file the read left off at and a list of amino acids extracted from the file.
     """
     with open(pdbfile) as pdbf:
         amino_acids = []
@@ -143,7 +146,7 @@ def get_AAs_from_PDB(pdbfile:str, start_res:int=0, n_res:int=-1) -> List[PDB_Ami
 
     return next_pos, amino_acids[start_res:end]
 
-def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_position:int):
+def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_position:int) -> Tuple[int, List[PDB_AminoAcid]]:
     """
         Convert a Strand object to an all-atom representation based on a reference pdb file.
         
@@ -154,7 +157,7 @@ def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_posit
             reading_position (int) : Starting residue in the PDB file for this strand
 
         Returns:
-            (Tuple[int, List[PDB_AminoAcid]]) : The next reading_reading position (or -1 if the file was finished) and the list of PDB-ready amino acid objects
+            (Tuple[int, List[PDB_AminoAcid]]) : The next reading position in the PDB file (or -1 if the file was finished) and the list of PDB-ready amino acid objects
     """
     coord = np.array([conf.positions[m.id] for m in strand.monomers])  # amino acids only go from nterm to cterm (pdb format does as well)
     coord = coord * FROM_OXDNA_TO_ANGSTROM
@@ -181,7 +184,7 @@ def peptide_to_pdb(strand:Strand, conf:Configuration, pdbfile:str, reading_posit
 
     return(reading_position, amino_acids)
 
-def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper):
+def write_strand_to_PDB(strand_pdb:List[Dict], chain_id:str, atom_counter:int, out:TextIOWrapper) -> int:
     """
         Write a list of nucleotide property dictionaries as a new chain to an open PDB file
 
@@ -229,7 +232,7 @@ def cli_parser(prog="oxDNA_PDB.py"):
                         help='the configuration file you wish to convert')
     parser.add_argument('direction', type=str,
                         help='the direction of strands in the oxDNA files, either 35 or 53.  Most oxDNA files are 3-5.')
-    parser.add_argument('pdbfiles', type=str, nargs='+',
+    parser.add_argument('pdbfiles', type=str, nargs='*',
                         help='PDB files for the proteins present in your structure.  The strands in the PDB file(s) must be in the same order as your oxDNA file. If there are multiple of the same protein, you must provide that PDB file that many times.')
     parser.add_argument('-o', '--output', type=str, 
                         help='The name of the output pdb file.  Defaults to name of the configuration+.pdb')
@@ -262,7 +265,7 @@ def main():
 
     # Parse optional arguments
     if args.output:
-        out_basename = args.output.strip('.pdb')
+        out_basename = args.output.rstrip('.pdb')
     else:
         out_basename = conf_file
     reverse = False
@@ -271,6 +274,7 @@ def main():
             raise RuntimeError("Error: Output direction must be either 35 or 53")
         if args.output_direction != direction:
             reverse = True
+
     hydrogen = args.hydrogen
     uniform_residue_names = args.uniform_residue_names
     one_file_per_strand = args.one_file_per_strand
@@ -289,11 +293,6 @@ def main():
     conf = get_confs(ti, di, 0, 1)[0]
     conf = inbox(conf, center=True)
     box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
-
-    # get protein reference files
-    if protein_pdb_files:
-        s_pdbfile = iter(protein_pdb_files)
-        pdbfile = next(s_pdbfile)
 
     # Handle RMSF -> bFactor conversion
     if rmsf_file:
@@ -331,7 +330,7 @@ def main():
         for strand in system.strands:
             strand_pdb = []
             nucleotides_in_strand = strand.monomers
-            sequence = [n.type for n in nucleotides_in_strand]
+            sequence = [n.btype for n in nucleotides_in_strand]
             isDNA = True #This should be in the strand parser instead.
             if 'U' in sequence or 'u' in sequence: #Turns out, this is a bad assumption but its all we got.
                 isDNA = False
@@ -341,6 +340,8 @@ def main():
             # Handle protein
             if strand.id < 0 and protein_pdb_files:
                 # Map oxDNA configuration onto R-group orientations from pdb file
+                s_pdbfile = iter(protein_pdb_files)
+                pdbfile = next(s_pdbfile)
                 reading_position, amino_acids = peptide_to_pdb(strand, conf, pdbfile, reading_position)
                 if reading_position == -1:
                     try:
@@ -367,13 +368,13 @@ def main():
             elif strand.id >= 0:
                 for nucleotide in nucleotides_in_strand:
                     # Get paragon DNA or RNA nucleotide
-                    if type(nucleotide.type) != str:
+                    if type(nucleotide.btype) != str:
                         if isDNA:
-                            nb = number_to_DNAbase[nucleotide.type]
+                            nb = number_to_DNAbase[nucleotide.btype]
                         else:
-                            nb = number_to_RNAbase[nucleotide.type]
+                            nb = number_to_RNAbase[nucleotide.btype]
                     else: 
-                        nb = nucleotide.type
+                        nb = nucleotide.btype
                     
                     if isDNA:
                         my_base = copy.deepcopy(DNAbases[nb])

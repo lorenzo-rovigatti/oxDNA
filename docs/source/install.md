@@ -10,7 +10,7 @@ Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 10. If y
 
 ### Python bindings
 
-Compiling with the Python bindings (`oxpy`) enabled requires a working Python3 installation comprising both binaries and include files. On Debian-derived Linux distros these come with the package `python3-dev`.  `oxpy` and OxDNA Analysis Tools require Python version 3.9 or newer. See [below]() if you do not have access to Python >= 3.9 and woud like to use `oxpy`
+Compiling with the Python bindings (`oxpy`) enabled requires a working Python3 installation comprising both binaries and include files. On Debian-derived Linux distros these come with the package `python3-dev`.  `oxpy` and OxDNA Analysis Tools require Python version 3.9 or newer. See [below](#using-oxpy-with-old-python-versions) if you do not have access to Python >= 3.9 and woud like to use `oxpy`
 
 ## Compiling oxDNA
 
@@ -70,30 +70,37 @@ If you are on your own machine or you installed Python via Anaconda, the `-DOxpy
 * `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
 * `make romano` Compiles the observables and interactions in contrib/romano
 
-### Common issues
+### Known issues
 
-#### Cmake compiler choice
+The list of known issues can be browsed online [here](https://github.com/lorenzo-rovigatti/oxDNA/issues).
 
-* Cmake searches your $PATH for compatible C and C++ compilers and uses the first ones it finds. If you want to use a different set than the default, you can override the compiler choice as follows:
-   ```bash
-  cmake -DCMAKE_C_COMPILER=/path/to/gcc -DCMAKE_CXX_COMPILER=path/to/g++ ..
-   ``` 
+#### CMake compiler choice
+
+CMake searches your $PATH for compatible C and C++ compilers and uses the first ones it finds. If you want to use a different set than the default, you can override the compiler choice as follows:
+
+```bash
+cmake -DCMAKE_C_COMPILER=/path/to/gcc -DCMAKE_CXX_COMPILER=path/to/g++ ..
+```
 
 #### `oxpy` and oxDNA Analysis Tools
 
 * When running `make` if you run into a problem at the end of compilation where it cannot find `python.h`, this means that you don't have the Python developer kit installed. See [this StackOverflow answer](https://stackoverflow.com/a/21530768/9738112) on how to install with a variety of package managers. If you do have it installed, see the next bullet point.
 * When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly as follows:
-	```bash
-	cmake -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary ..
-	```
-	If you are using conda environments, the paths should look something like:  
-	* Include: `$HOME/anaconda3/envs/py311/include/python3.11`
-	* Executable: `$HOME/anaconda3/envs/py311/bin/python`
 
-	This is particularly a problem if you are running in a base Conda environment on MacOS. In this case, the cmake command should look something like:
-	```
-	cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUDE_DIRS=$HOME/miniconda3/include/python3.11 ..
-	```
+```bash
+cmake -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary ..
+```
+
+If you are using conda environments, the paths should look something like:  
+
+ * Include: `$HOME/anaconda3/envs/py311/include/python3.11`
+ * Executable: `$HOME/anaconda3/envs/py311/bin/python`
+
+This is particularly a problem if you are running in a base Conda environment on MacOS. In this case, the cmake command should look something like:
+
+```
+cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUDE_DIRS=$HOME/miniconda3/include/python3.11 ..
+```
 * If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing `oxDNA_analysis_tools` with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, either update your version of Numpy or try to install just `OAT` without build isolation:
   `python -m pip install ./analysis --no-build-isolation`
 * Sometimes installation will fail with `TypeError: expected string or bytes-like object`. This error is usually caused by older versions of either `oxpy` or `oxDNA-analysis-tools` somewhere in your `$PATH`. Remove them with `pip uninstall oxpy` and `pip uninstall oxDNA-analysis-tools` and try installing again.

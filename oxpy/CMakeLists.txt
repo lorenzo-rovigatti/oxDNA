@@ -5,7 +5,7 @@ SET(oxpy_SOURCES
 
 IF(Python)
 	# tell pybind11 to use python3
-	set(PYBIND11_PYTHON_VERSION 3 CACHE STRING "Python version to use for compiling modules")
+	set(PYBIND11_PYTHON_VERSION 3.9 CACHE STRING "Python version to use for compiling modules")
 	ADD_SUBDIRECTORY(pybind11)
 	ADD_DEFINITIONS(-DPYTHON_BINDINGS)
 	
