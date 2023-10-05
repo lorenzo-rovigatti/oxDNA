@@ -254,15 +254,22 @@ dir = 0., 0., 1.
 <p>This force is useful to form initial configurations. It is a harmonic force that at every moment pulls a particle towards a reference particle. It is possible to specify the separation at which the force will be 0.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Please note that the reference particle (<code class="docutils literal notranslate"><span class="pre">ref_particle</span></code> below) will not feel any force, thus making the name mutual trap somewhat misleading. If you want to have an actual <em>mutual</em> trap you will need to add a force on the reference particle.</p>
+<p>Please note that the reference particle (<code class="docutils literal notranslate"><span class="pre">ref_particle</span></code> below) will not feel any force, thus making the name mutual trap somewhat misleading. If you want to have an actual <em>mutual</em> trap you will need to add a corresponding force on the reference particle.</p>
 </div>
 <p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">mutual_trap</span></code>. The relevant keys are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: the particle on which to exert the force.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ref_particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: particle to pull towards.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stiff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: stiffness of the trap.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">r0</span> <span class="pre">=</span> <span class="pre">&lt;float</span></code>: equilibrium distance of the trap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">r0</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: equilibrium distance of the trap.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PBC</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;</span></code>: (default: 1) If 0, calculate the distance between particles without considering periodic boundary conditions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: change <code class="docutils literal notranslate"><span class="pre">r0</span></code> by this much every time step.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stiff_rate</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: change <code class="docutils literal notranslate"><span class="pre">stiff</span></code> by this much every time step.</p></li>
 </ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>PBC should almost always be 1. The only common exception is if you are simulating a single long strand where you want to pull the ends together.</p>
+</div>
 <div class="admonition-example admonition">
 <p class="admonition-title">Example</p>
 <p>Here is an example, extracted from the pseudoknot formation example (<code class="docutils literal notranslate"><span class="pre">examples/PSEUDOKNOT</span></code>). This will pull particle 14 towards particle 39, favouring an equilibrium distance of 1.4 (which corresponds roughly to the minimum of the hydrogen bonding potential, not a coincidence). The same force with opposite sign is exerted on particle 39 through a separate force. It is not necessary to have both particles feel the force, but it usually works much better.</p>

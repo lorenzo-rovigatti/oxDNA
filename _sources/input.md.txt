@@ -93,6 +93,8 @@ These options control the behaviour of MD simulations.
 * `[use_barostat = <bool>]`: apply an MC-like barostat to the simulation to keep the pressure constant. Defaults to `false`.
 * `[P = <float>]`: the taget pressure of the simulation. Mandatory if `use_barostat = true`.
 * `[delta_L = <float>]`: the extent of the box side change performed by the MC-like barostat. Mandatory if `use_barostat = true`.
+* `[barostat_probability = <float>]`: The probability of attempting a volume move. Mandatory if `use_barostat = true`.
+* `[barostat_molecular = <bool>]`: Rescale the positions of the molecules as whole rather than of the single particles. Defaults to `false`.
 
 ## CUDA options
 
@@ -101,7 +103,7 @@ The following options require `backend = CUDA`.
 * `[use_edge = <bool>]`: parallelise computations over interacting pairs rather than particles. It often results in a performance increase. Defaults to `false`.
 * `[CUDA_list = no|verlet]`: neighbour lists for CUDA simulations. Defaults to `verlet`.
 * `[cells_auto_optimisation = <bool>`: increase the size of the cells used to build Verlet lists if the total number of cells exceeds two times the number of nucleotides. Sometimes disabling this option increases performance. Used only if `CUDA_list = verlet`, defaults to `true`.
-* `[max_density_multiplier = <float>]`: scale the size of data structures that store neighbours and cell lists. it is sometime necessary to increase this value (which also increases the memory footprint of the simulation) if the local density of nucleotides is high and the simulation crashes. defaults to `3`.
+* `[max_density_multiplier = <float>]`: scale the size of data structures that store neighbours and cell lists. it is sometime necessary to increase this value (which also increases the memory footprint of the simulation) if the local density of nucleotides is high and the simulation crashes. Defaults to `3`.
 * `[print_problematic_ids = <bool>]`: if `true`, the code will print the indexes of particles that have very large coordinates (which may be caused by incorrectly-defined external forces and/or large time steps) before exiting. Useful for debugging purposes. Defaults to `false`.
 * `[CUDA_device = <int>]`: CUDA-enabled device to run the simulation on. If it is not specified or it is given a negative number, a suitable device will be automatically chosen.
 * `[CUDA_sort_every = <int>]`: sort particles according to a 3D Hilbert curve after the lists have been updated `CUDA_sort_every` times. This will greatly enhnance performances for some types of interaction. Defaults to `0`, which disables sorting.

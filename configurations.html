@@ -91,6 +91,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration and topology files</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#configuration-file">Configuration file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#topology-file">Topology file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#classic-format-3-to-5">Classic format (3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#new-format-5-to-3">New format (5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#special-nucleotides">Special nucleotides</a></li>
 </ul>
 </li>
@@ -180,6 +182,10 @@
 <p>The current state of a system, as specified by oxDNA, is described by two files: a configuration file and a topology file. The configuration file contains all the general information (timestep, energy and box size) and the orientations and positions of each nucleotide. The topology file, on the other hand, keeps track of the backbone-backbone bonds between nucleotides in the same strand. Working configuration and topology files can be found in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory.</p>
 <div class="section" id="configuration-file">
 <h2>Configuration file<a class="headerlink" href="#configuration-file" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Nucleotides are listed in the 3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’ order if using the “classic” topology format or in the 5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’ order if using the “new” format (see <a class="reference internal" href="#topology-file"><span class="std std-doc">Topology file</span></a>).</p>
+</div>
 <p>The first three rows of a configuration file contain the timestep T at which the configuration has been printed, the length of the box sides Lx, Ly and Lz and the total, potential and kinetic energies, Etot, U and K, respectively:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>t = T
 b = Lz Ly Lz
@@ -219,7 +225,14 @@ E = Etot U K
 </div>
 <div class="section" id="topology-file">
 <h2>Topology file<a class="headerlink" href="#topology-file" title="Permalink to this headline">¶</a></h2>
-<p>The topology file stores the intra-strand, fixed bonding topology (<em>i.e.</em> which nucleotides share backbone links). The first row contains the total number of nucleotides N and the number of strands Ns:</p>
+<p>The topology file stores information about the fixed-bonding topology (<em>i.e.</em> which nucleotides share backbone links), as well as the strand sequences. Along with the original topology format (the “classic” one which is in the 3’-5’ direction), starting with version 3.6, oxDNA also supports a new format that is simpler and more flexible (and in 5’-3’ direction). Note that this “new” format is not necessarily supported by the other tools of the oxDNA ecosystem.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can interconvert between the classic and new formats by using the <code class="docutils literal notranslate"><span class="pre">utils/convert.py</span></code> script.</p>
+</div>
+<div class="section" id="classic-format-3-to-5">
+<h3>Classic format (3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’)<a class="headerlink" href="#classic-format-3-to-5" title="Permalink to this headline">¶</a></h3>
+<p>The first row contains the total number of nucleotides N and the number of strands Ns:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>N Ns
 </pre></div>
 </div>
@@ -230,7 +243,7 @@ E = Etot U K
 <p>where S is the index of the strand (starting from 1) which the nucleotide belongs to, B is the base (<em>A</em>, <em>C</em>, <em>G</em>, and <em>T</em> for DNA or <em>A</em>, <em>C</em>, <em>G</em>, and <em>U</em> for RNA, but see below for more options) and 3’ and 5’ specify the index of the nucleotides with which the <em>i</em>-th nucleotide is bonded in the 3’ and 5’ direction, respectively. A -1 signals that the nucleotide terminates the strand in either 3’ or 5’ direction.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>OxDNA’s convention is to list nucleotides in the 3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’ order. Note that this is the opposite of how most of the other DNA-related tools behave.</p>
+<p>OxDNA’s “classic topology” convention is to list nucleotides in the 3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’ order. Note that this is the opposite of how most of the other DNA-related tools behave.</p>
 </div>
 <p>The topology file of a strand of sequence GCGTTG would be:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>6 1
@@ -243,6 +256,40 @@ E = Etot U K
 </pre></div>
 </div>
 <p>Specifying the topology in this way can simplify the process of simulating, for example, circular DNA.</p>
+</div>
+<div class="section" id="new-format-5-to-3">
+<h3>New format (5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’)<a class="headerlink" href="#new-format-5-to-3" title="Permalink to this headline">¶</a></h3>
+<p>The new format (introduced in oxDNA 3.6) lists nucleotides in the more common order (5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’), is (arguably) simpler, and is more flexible. However, it is not fully supported by all oxDNA-related tools yet.</p>
+<p>The first row of the topology should contain the total number of nucleotides N, the number of strands Ns and the “5-&gt;3” string to signal that the file has the “new” format:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>N Ns 5-&gt;3
+</pre></div>
+</div>
+<p>Each of the Ns rows that follows contains the details of a single strand as a space-separated list of elements. The first element is the sequence of the strand (in 5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’ order), while additional elements can be specified with the key=value syntax. The topology of the same system used as an example of “classic” topology (<em>i.e.</em> a system composed of a single strand of sequence GTTGCG) is</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>6 1 5-&gt;3
+GTTGCG
+</pre></div>
+</div>
+<p>As another example, the topology of a system composed by two complementary strands would be</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">12</span> <span class="mi">2</span> <span class="mi">5</span><span class="o">-&gt;</span><span class="mi">3</span>
+<span class="n">GTTGCG</span>
+<span class="n">CGCAAC</span>
+</pre></div>
+</div>
+<p>In addition, DNA and RNA interactions also support the <code class="docutils literal notranslate"><span class="pre">type=DNA|RNA</span></code> (which defaults to <code class="docutils literal notranslate"><span class="pre">DNA</span></code>) and <code class="docutils literal notranslate"><span class="pre">circular=true|false</span></code> (which defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>) specifiers. The former sets the type of strand, while the latter, if set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, indicates that the strand is circular. For example, if you wanted to explicitally note that the above strands are DNA, the file would read</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">12</span> <span class="mi">2</span> <span class="mi">5</span><span class="o">-&gt;</span><span class="mi">3</span>
+<span class="n">GTTGCG</span> <span class="nb">type</span><span class="o">=</span><span class="n">DNA</span>
+<span class="n">CGCAAC</span> <span class="nb">type</span><span class="o">=</span><span class="n">DNA</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">type</span></code> only affects the force field when using the DNA/RNA hybrid model (<code class="docutils literal notranslate"><span class="pre">interaction_type=DRH</span></code>). For normal DNA or RNA, the interactions will be determined by the <code class="docutils literal notranslate"><span class="pre">interaction_type=DNA|DNA2|RNA|RNA2|DRH|LJ...</span></code> parameter in the <a class="reference internal" href="input.html"><span class="doc std std-doc">input file</span></a></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">examples/PERSISTENCE_LENGTH/NEW_TOPOLOGY</span></code> directory contains an example that uses this new format.</p>
+</div>
+</div>
 <div class="section" id="special-nucleotides">
 <h3>Special nucleotides<a class="headerlink" href="#special-nucleotides" title="Permalink to this headline">¶</a></h3>
 <p>Internally, oxDNA encodes the base types with integers as follows:</p>
@@ -253,7 +300,12 @@ T = U = 3
 </pre></div>
 </div>
 <p>According to these values, two nucleotides interact through the Watson-Crick mechanism (<em>i.e.</em> can be hydrogen bonded) if the sum of their base types is 3.</p>
-<p>This property can be leveraged to extend the canonical base pairing and create very specific topologies. Indeed, in oxDNA a nucleotide of type B which is larger than 9 or smaller than 0 behaves as a nucleotide of type <span class="math notranslate nohighlight">\(B \bmod 4\)</span> if <span class="math notranslate nohighlight">\(B\)</span> is positive or <span class="math notranslate nohighlight">\(3 - ((3 - B) \bmod 4)\)</span> if <span class="math notranslate nohighlight">\(B\)</span> is negative, but can be hydrogen-bonded <strong>only</strong> with a nucleotide of type <span class="math notranslate nohighlight">\(B'\)</span> for which <span class="math notranslate nohighlight">\(B + B' = 3\)</span>.</p>
+<p>This property can be leveraged to extend the canonical base pairing and create very specific topologies. Indeed, in oxDNA a nucleotide of custom type X which is larger than 9 or smaller than 0 behaves as a nucleotide of type <span class="math notranslate nohighlight">\(X \bmod 4\)</span> if <span class="math notranslate nohighlight">\(X\)</span> is positive or <span class="math notranslate nohighlight">\(3 - ((3 - X) \bmod 4)\)</span> if <span class="math notranslate nohighlight">\(X\)</span> is negative, but can be hydrogen-bonded <strong>only</strong> with a nucleotide of type <span class="math notranslate nohighlight">\(X'\)</span> for which <span class="math notranslate nohighlight">\(X + X' = 3\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the classic topology format, custom nucleotide types are set by using numbers instead of letters. For instance, the following topology line specifies that the corresponding nucleotide (which is part of strand 1 and bonded to nucleotides 2 and 4) has a custom type <code class="docutils literal notranslate"><span class="pre">-10</span></code>: <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-10</span> <span class="pre">2</span> <span class="pre">4</span></code>.</p>
+<p>In the new topology format, custom nucleotide types can be set by enclosing them between brackets. As an example, the following line sets the sequence of a DNA strand made of 6 nucleotides, with the third one having a custom type <code class="docutils literal notranslate"><span class="pre">-10</span></code>: <code class="docutils literal notranslate"><span class="pre">AA(-10)GCT</span> <span class="pre">type=DNA</span></code>.</p>
+</div>
 <p>For instance, <span class="math notranslate nohighlight">\(B = 13\)</span>, for which <span class="math notranslate nohighlight">\(B \bmod 4 = 1\)</span>, would correspond to a nucleotide with the same property of a Guanine. However, such a nucleotide would bond only to a nucleotide with base type <span class="math notranslate nohighlight">\(B' = -10\)</span>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>

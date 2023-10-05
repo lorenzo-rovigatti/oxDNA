@@ -105,15 +105,15 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#scripting-interface">Scripting interface</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#top-level-api">Top-level API</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api.html">Analysis documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api.html">OAT scripting interface documentation</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#utility-api">Utility API</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="utils.html">Utilities documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="utils.html">OAT utilities documentation</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#forces-api">Forces API</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="forces.html">External forces documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="forces.html">OAT external force utilities documentation</a></li>
 </ul>
 </li>
 </ul>
@@ -192,10 +192,10 @@
             
   <div class="tex2jax_ignore mathjax_ignore section" id="oxdna-analysis-tools">
 <h1>oxDNA Analysis Tools<a class="headerlink" href="#oxdna-analysis-tools" title="Permalink to this headline">¶</a></h1>
-<p>oxDNA Analysis Tools (<em>oat</em> in short) is a suite of command line Python tools for performing generic structural analyses of oxDNA simulations. The package functions both as a series of standalone command-line scripts and as importable modules for building custom analysis tools.</p>
+<p>oxDNA Analysis Tools (<em>oat</em> in short) is a suite of command line Python tools and importable modules for performing structural analyses of oxDNA simulations. oxDNA Analysis Tools has been updated to use the <a class="reference internal" href="../configurations.html"><span class="doc">new topology</span></a>.</p>
 <div class="section" id="command-line-interface">
 <h2>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h2>
-<p>The command line version of the scripts can be run via:</p>
+<p>The scripts can be run via the command line with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">oat</span> <span class="o">&lt;</span><span class="n">script</span> <span class="n">name</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">script</span> <span class="n">arguments</span><span class="o">&gt;</span>
 </pre></div>
 </div>
@@ -238,7 +238,7 @@
 </div>
 <div class="section" id="scripting-interface">
 <h2>Scripting interface<a class="headerlink" href="#scripting-interface" title="Permalink to this headline">¶</a></h2>
-<p>The scripting API for <code class="docutils literal notranslate"><span class="pre">oat</span></code> can be imported into Python scripts through the <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> package.  For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:</p>
+<p>The scripting API for <code class="docutils literal notranslate"><span class="pre">oat</span></code> can be imported into Python scripts as the <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">oxDNA_analysis_tools.UTILS.RyeReader</span> <span class="kn">import</span> <span class="n">describe</span><span class="p">,</span> <span class="n">get_confs</span>
 
 <span class="c1"># get the top and traj names from the command line or hardcode them</span>
@@ -247,12 +247,13 @@
 <span class="n">confs</span> <span class="o">=</span> <span class="n">get_confs</span><span class="p">(</span><span class="n">top_info</span><span class="p">,</span> <span class="n">traj_info</span><span class="p">,</span> <span class="n">start_conf</span><span class="p">,</span> <span class="n">n_confs</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>The mean.py script located at <code class="docutils literal notranslate"><span class="pre">oxDNA/analysis/src/oxDNA_analysis_tools/mean.py</span></code> has been commented in detail to give a full example of how to use <code class="docutils literal notranslate"><span class="pre">oxDNA_analysis_tools</span></code> to write your own analyses.</p>
 <p>Full API documentation:</p>
 <div class="section" id="top-level-api">
 <h3>Top-level API<a class="headerlink" href="#top-level-api" title="Permalink to this headline">¶</a></h3>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api.html">Analysis documentation</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">OAT scripting interface documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#align">Align</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#anm-parameterize">ANM parameterize</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#backbone-flexibility">Backbone flexibility</a></li>
@@ -285,7 +286,7 @@
 <h3>Utility API<a class="headerlink" href="#utility-api" title="Permalink to this headline">¶</a></h3>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities documentation</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">OAT utilities documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#data-structures">Data structures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#geometry-utilities">Geometry utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#ipython-oxview-plugin">iPython oxView plugin</a></li>
@@ -300,7 +301,7 @@
 <h3>Forces API<a class="headerlink" href="#forces-api" title="Permalink to this headline">¶</a></h3>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="forces.html">External forces documentation</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="forces.html">OAT external force utilities documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="forces.html#forces">Forces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="forces.html#reader-writer">Reader/Writer</a></li>
 </ul>

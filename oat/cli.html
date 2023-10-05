@@ -37,7 +37,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Analysis documentation" href="api.html" />
+    <link rel="next" title="OAT scripting interface documentation" href="api.html" />
     <link rel="prev" title="oxDNA Analysis Tools" href="index.html" /> 
 </head>
 
@@ -777,7 +777,7 @@
 <dd><p>The filename to save the mean structure to</p>
 </dd>
 <dt><kbd>-d, --deviations</kbd></dt>
-<dd><p>Immediatley run oat deviations from the output</p>
+<dd><p>Immediately run oat deviations from the output</p>
 </dd>
 <dt><kbd>-i</kbd></dt>
 <dd><p>Compute mean structure of a subset of particles from a space-separated list in the provided file</p>
@@ -894,7 +894,7 @@
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">oxDNA_PDB</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">OUTPUT_DIRECTION</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                      <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">RMSF_BFACTOR</span><span class="p">]</span>
-                     <span class="n">topology</span> <span class="n">configuration</span> <span class="n">direction</span> <span class="n">pdbfiles</span> <span class="p">[</span><span class="n">pdbfiles</span> <span class="o">...</span><span class="p">]</span>
+                     <span class="n">topology</span> <span class="n">configuration</span> <span class="n">direction</span> <span class="p">[</span><span class="n">pdbfiles</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="section" id="positional-arguments">
@@ -1051,7 +1051,7 @@
 <h2>Subset trajectory<a class="headerlink" href="#subset-trajectory" title="Permalink to this headline">¶</a></h2>
 <p><p>Extracts parts of a structure into separate trajectories</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">subset_trajectory</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index</span> <span class="n">index</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">subset_trajectory</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index</span> <span class="n">index</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
                              <span class="n">trajectory</span> <span class="n">topology</span>
 </pre></div>
 </div>
@@ -1074,6 +1074,10 @@
 </dd>
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
+</dd>
+<dt><kbd>-f</kbd></dt>
+<dd><p>Use the old 3’-5’ topology format?</p>
+<p>Default: False</p>
 </dd>
 </dl>
 </div>
@@ -1115,7 +1119,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="api.html" class="btn btn-neutral float-right" title="Analysis documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="api.html" class="btn btn-neutral float-right" title="OAT scripting interface documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="oxDNA Analysis Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
