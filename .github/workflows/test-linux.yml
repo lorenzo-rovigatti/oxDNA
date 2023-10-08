@@ -22,4 +22,5 @@ jobs:
     - name: Run Simple Test Script
       run: |
         pushd build
+        make test_run
         make test_quick

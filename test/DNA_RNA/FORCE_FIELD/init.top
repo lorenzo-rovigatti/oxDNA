@@ -1,0 +1,5 @@
+16 4 5->3
+TGCA circular=False type=RNA
+TGGA circular=False type=RNA
+TCCA circular=False type=DNA
+TGCA circular=False type=DNA
