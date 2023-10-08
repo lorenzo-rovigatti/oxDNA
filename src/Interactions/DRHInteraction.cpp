@@ -18,9 +18,6 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
 	ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 	ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
 
-	DNA2Interaction::_drh_interaction = true;
-	RNA2Interaction::_drh_interaction = true;
-
 	//Hybrid
 	F1_A[0] = DRH_HYDR_A;
 	F1_RC[0] = DRH_HYDR_RC;
