@@ -183,7 +183,7 @@ void DRHInteraction::get_settings(input_file &inp) {
 
 //checking the type of nucleic acid
 bool DRHInteraction::_is_DNA(BaseParticle *p) {
-  if (p->acid_type == 'D') 
+  if (_acid_type[p->index] == 'D') 
       return true;
     else
       return false;
@@ -1001,6 +1001,8 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	 * 
 	 **/
 
+	_acid_type.resize(particles.size());
+
 	TopologyParser parser(_topology_filename);
 	int N_from_topology = 0 ;
 	if(parser.is_new_topology()) {
@@ -1023,8 +1025,10 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 					//allocating the particles
 					if(type == "DNA"){
 						particles[current_idx] = new DNANucleotide(DNA2Interaction::_grooving);
+						_acid_type[current_idx] = 'D';
 					} else if (type == "RNA") {
 						particles[current_idx] = new RNANucleotide();
+						_acid_type[current_idx] = 'R';
 					}
 				}
 			ns++;
