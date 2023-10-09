@@ -30,10 +30,6 @@ The `analysis/paper_examples` folder contains examples for `oxDNA_analysis_tools
 
 **A:** No, oxDNA can run simulations on single cores or single GPUs only.
 
-**Q: Can I simulate systems containing both DNA and RNA?**
-
-**A:** Unfortunately not: at the moment there is no force field for that.
-
 ## Citing oxDNA
 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.04693/status.svg)](https://doi.org/10.21105/joss.04693)
