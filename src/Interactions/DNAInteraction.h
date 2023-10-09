@@ -12,7 +12,7 @@
  * This is the default interaction.
  */
 
-class DNAInteraction : public BaseInteraction {
+class DNAInteraction : virtual public BaseInteraction {
 protected:
 	bool _average;
 	std::string _seq_filename;

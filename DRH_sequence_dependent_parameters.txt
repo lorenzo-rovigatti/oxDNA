@@ -1,0 +1,4 @@
+HYDR_A_U = 1.21
+HYDR_A_T = 1.37
+HYDR_rC_dG = 1.61
+HYDR_rG_dC = 1.77

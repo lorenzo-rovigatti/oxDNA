@@ -7,6 +7,7 @@
 #include "../Utilities/Utils.h"
 #include "../Interactions/RNAInteraction2.h"
 #include "../Interactions/DNA2Interaction.h"
+#include "../Interactions/DRHInteraction.h"
 
 #include <set>
 #include <sstream>
@@ -192,6 +193,7 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 	ok_interactions.push_back("DNA2_nomesh");
 	ok_interactions.push_back("RNA");
 	ok_interactions.push_back("RNA2");
+	ok_interactions.push_back("DRH");
 	if(getInputString(&inp, "interaction_type", inter, 0) == KEY_FOUND) {
 		// std::find points is equal to ok_interactions.end() if it can't find inter in ok_interactions.
 		if(std::find(ok_interactions.begin(), ok_interactions.end(), inter) == ok_interactions.end()) {
@@ -424,17 +426,26 @@ inline number VMMC_CPUBackend::_particle_particle_nonbonded_interaction_VMMC(Bas
 	energy += _interaction->pair_interaction_term(DNAInteraction::NONBONDED_EXCLUDED_VOLUME, p, q, false, false);
 	energy += _interaction->pair_interaction_term(DNAInteraction::CROSS_STACKING, p, q, false, false);
 
-	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking
-	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL)
-	energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
+	// all interactions except DNA2Interaction use the DNAInteraction coaxial stacking*
+	// *the hybrid interaction is a second exception
+	if( (dynamic_cast<DNA2Interaction *>(_interaction.get()) == NULL) || (dynamic_cast<DRHInteraction *>(_interaction.get()) == NULL) ) {
+		energy += _interaction->pair_interaction_term(DNAInteraction::COAXIAL_STACKING, p, q, false, false);
+	}
 
-	if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
+	if(dynamic_cast<DRHInteraction *>(_interaction.get()) != NULL) {
+		energy += _interaction->pair_interaction_term(DRHInteraction::COAXIAL_STACKING, p, q, false, false);
+		energy += _interaction->pair_interaction_term(DRHInteraction::DEBYE_HUCKEL, p, q, false, false);
+	}
+	
+	else if(dynamic_cast<DNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(DNA2Interaction::COAXIAL_STACKING, p, q, false, false);
 		energy += _interaction->pair_interaction_term(DNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
 	}
 	else if(dynamic_cast<RNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, false, false);
 	}
+	
+	
 
 	return energy;
 }

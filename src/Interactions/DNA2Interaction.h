@@ -25,7 +25,7 @@
 
 #include "DNAInteraction.h"
 
-class DNA2Interaction: public DNAInteraction {
+class DNA2Interaction: virtual public DNAInteraction {
 
 protected:
 	float _salt_concentration;

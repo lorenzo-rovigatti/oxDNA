@@ -147,7 +147,7 @@ public:
 
 	/// Needed for specific base pairing
 	int btype;
-
+	
 	/// DNA bonded neighbours
 	BaseParticle *n3, *n5;
 

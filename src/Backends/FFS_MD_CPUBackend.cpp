@@ -218,6 +218,7 @@ number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p
 
 	_interaction->set_computed_r(computed_r);
 	number energy = _interaction->pair_interaction_term(DNAInteraction::HYDROGEN_BONDING, p, q, false, update_forces);
+
 	if(energy <= MAX_BOND_CUTOFF) {
 		_op.add_hb(q->index, p->index, energy);
 	}
@@ -234,6 +235,8 @@ number FFS_MD_CPUBackend::pair_interaction_nonbonded_DNA_with_op(BaseParticle *p
 	else if(dynamic_cast<RNA2Interaction *>(_interaction.get()) != NULL) {
 		energy += _interaction->pair_interaction_term(RNA2Interaction::DEBYE_HUCKEL, p, q, false, update_forces);
 	}
+
+	
 
 	return energy;
 }
