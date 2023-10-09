@@ -118,7 +118,7 @@ cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUD
  
 ## Testing
 
-* `make test_run` runs quick tests to check whether oxDNA has been correctly compiled or not.	
+* `make test_run` runs quick tests to check that oxDNA has been correctly compiled, and that the core interactions (`DNA2`, `RNA2` and `DRH`) compute the energy contributions in a nicked double strand correctly.
 * `make test_quick` runs longer tests to check that oxDNA works.
 * `make test_oxpy` checks that the Python bindings work.
 * `make test` runs all sets of tests above.
