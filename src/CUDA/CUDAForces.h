@@ -99,11 +99,11 @@ struct moving_trap {
 	float3 dir;
 };
 
-void init_MovingTrap_from_CPU(moving_trap *cuda_force, MovingTrap *cpu_force) {
+void init_MovingTrap_from_CPU(moving_trap *cuda_force, MovingTrap *cpu_force, const int *p_pos_shift, const LR_vector &box_sides) {
 	cuda_force->type = CUDA_TRAP_MOVING;
 	cuda_force->stiff = cpu_force->_stiff;
 	cuda_force->rate = cpu_force->_rate;
-	cuda_force->pos0 = make_float3(cpu_force->_pos0.x, cpu_force->_pos0.y, cpu_force->_pos0.z);
+	cuda_force->pos0 = make_float3(cpu_force->_pos0.x - box_sides.x * p_pos_shift[0], cpu_force->_pos0.y - box_sides.y * p_pos_shift[1], cpu_force->_pos0.z - box_sides.z * p_pos_shift[2]);
 	cuda_force->dir = make_float3(cpu_force->_direction.x, cpu_force->_direction.y, cpu_force->_direction.z);
 }
 

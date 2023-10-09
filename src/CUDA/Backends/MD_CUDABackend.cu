@@ -149,7 +149,7 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 				}
 				else if(force_type == typeid(MovingTrap)) {
 					MovingTrap *p_force = (MovingTrap *) p->ext_forces[j];
-					init_MovingTrap_from_CPU(&cuda_force->moving, p_force);
+					init_MovingTrap_from_CPU(&cuda_force->moving, p_force, p->_pos_shift, _box->box_sides());
 				}
 				else if(force_type == typeid(LowdimMovingTrap)) {
 					LowdimMovingTrap *p_force = (LowdimMovingTrap *) p->ext_forces[j];
