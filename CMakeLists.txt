@@ -1,19 +1,19 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
 
 if(POLICY CMP0054)
 	cmake_policy(SET CMP0054 NEW)
 endif()
 
 if(POLICY CMP0037)
-	cmake_policy(SET CMP0037 OLD)
+        cmake_policy(SET CMP0037 OLD)
 endif()
 
 # this is required when working with newer gcc versions (> 5.4)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 
-OPTION(CUDA "Set to ON to compile with CUDA support" OFF)
+OPTION(CUDA "Set to ON to compile with CUDA support" ON)
 OPTION(MPI "Set to ON to compile with MPI support" OFF)
-OPTION(Debug "Set to ON to compile with debug symbols" OFF)
+OPTION(Debug "Set to ON to compile with debug symbols" ON)
 OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
@@ -24,8 +24,34 @@ OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its ar
 OPTION(NATIVE_COMPILATION "Set to OFF to compile without the -march=native flag. This may be required when compiling binaries to be used elsewhere" ON)
 OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers" ON)
 
-OPTION(Python "Enable Python bindings" OFF)
+OPTION(Python "Enable Python bindings" ON)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
+
+
+
+
+OPTION(DEB "Generate DEB file for the cpack." ON)
+OPTION(TGZ "Generate TGZ file instead" ON)
+set(DEB ON CACHE BOOL INTERNAL)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER,"Subhajit Roy")
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
+set(CPACK_DEB_COMPONENT_INSTALL YES)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.3.1-6), libc6 (< 2.4)")
+set(CPACK_PACKAGE_CONTACT,"Subhajit")
+
+if(DEB)
+	include(CPack)
+	include(InstallRequiredSystemLibraries)
+	set(CPACK_SET_DESTDIR ON)
+	set(CPACK_PACKAGING_INSTALL_PREFIX "~/.local/")
+	set (CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+	# set(CPACK_INSTALL_PREFIX "/tmp/subho/test")
+	# SET(CPACK_OUTPUT_FILE_PREFIX "/tmp/subho/test")
+
+
+endif()
 
 if(DEFINED PYTHON)
 	set(Python ${PYTHON})

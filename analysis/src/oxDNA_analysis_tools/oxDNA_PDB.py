@@ -294,6 +294,11 @@ def main():
     conf = inbox(conf, center=True)
     box_angstrom = conf.box * FROM_OXDNA_TO_ANGSTROM
 
+    # get protein reference files
+    if protein_pdb_files:
+        s_pdbfile = iter(protein_pdb_files)
+        pdbfile = next(s_pdbfile)
+
     # Handle RMSF -> bFactor conversion
     if rmsf_file:
         with open(rmsf_file) as f:

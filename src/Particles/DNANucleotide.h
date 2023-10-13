@@ -38,6 +38,7 @@ public:
 	virtual bool is_rigid_body() {
 		return true;
 	}
+	number mass=1.0,massinverted=1.0; // Subho
 };
 
 #endif /* DNANUCLEOTIDE_H_ */

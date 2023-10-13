@@ -10,6 +10,13 @@ ELSE()
 	SET(exe_name oxDNA)
 ENDIF()
 
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER,"Subhajit Roy")
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
+set(CPACK_DEB_COMPONENT_INSTALL YES)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.3.1-6), libc6 (< 2.4)")
+set(CPACK_PACKAGE_CONTACT,"Subhajit")
+
 SET(observables_SOURCES
 	Observables/BaseObservable.cpp
 	Observables/ObservableFactory.cpp
@@ -106,6 +113,9 @@ SET(interactions_SOURCES
 	Interactions/LJInteraction.cpp
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
+	Interactions/CCGInteraction.cpp
+	Interactions/PSPInteraction.cpp
+	Interactions/PatchyShapeInteraction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/RNAInteraction.cpp
@@ -124,6 +134,10 @@ SET(interactions_SOURCES
 	Interactions/CustomInteraction.cpp
 	Interactions/DRHInteraction.cpp
 	Interactions/DRHInteraction_relax.cpp
+	Interactions/ANMInteraction.cpp
+	# Interaction/CGDNAInteraction.cpp
+	Interactions/DNANMInteraction.cpp
+	Interactions/RNANMInteraction.cpp
 )
 
 SET(move_SOURCES
@@ -150,6 +164,8 @@ SET(forces_SOURCES
 	Forces/MovingTrap.cpp
 	Forces/LowdimMovingTrap.cpp
 	Forces/MutualTrap.cpp
+	# Forces/SkewTrap.cpp
+	# Forces/Morse.cpp
 	Forces/RepulsiveEllipsoid.cpp
 	Forces/RepulsionPlane.cpp
 	Forces/RepulsionPlaneMoving.cpp
@@ -181,11 +197,16 @@ SET(common_SOURCES
 	Particles/RNANucleotide.cpp
 	Particles/BaseParticle.cpp
 	Particles/DNANucleotide.cpp
+	Particles/CCGParticle.cpp
 	Particles/PatchyParticle.cpp
 	Particles/PatchyParticleDan.cpp
+	Particles/PatchyShapeParticle.cpp
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Particles/Molecule.cpp
+	Particles/ANMParticle.cpp
+	Particles/ANMTParticle.cpp
+	Particles/GSParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp
@@ -278,10 +299,13 @@ IF(CUDA)
 		CUDA/Backends/MD_CUDABackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
 		CUDA/Interactions/CUDADNAInteraction.cu
+		# CUDA/Interactions/CUDADNANMInteraction.cu
+		# CUDA/Interactions/CUDACGDNAInteraction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu
 		CUDA/Interactions/CUDATEPInteraction.cu
+		# CUDA/Interactions/CUDACCGInteraction.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu

@@ -37,6 +37,105 @@ int decode_base(char c) {
 	}
 }
 
+int decode_aa(char c) {
+    c = toupper(c);
+    switch(c) {
+        case 'A':
+            return A_A;
+        case 'R':
+            return A_R;
+        case 'N':
+            return A_N;
+        case 'D':
+            return A_D;
+        case 'C':
+            return A_C;
+        case 'E':
+            return A_E;
+        case 'Q':
+            return A_Q;
+        case 'G':
+            return A_G;
+        case 'H':
+            return A_H;
+        case 'I':
+            return A_I;
+        case 'L':
+            return A_L;
+        case 'K':
+            return A_K;
+        case 'M':
+            return A_M;
+        case 'F':
+            return A_F;
+        case 'P':
+            return A_P;
+        case 'S':
+            return A_S;
+        case 'T':
+            return A_T;
+        case 'W':
+            return A_W;
+        case 'Y':
+            return A_Y;
+        case 'V':
+            return A_V;
+        case 'Z':
+            return A_DUMMY;
+        default:
+            return A_INVALID;
+    }
+}
+
+char encode_aa(int b) {
+    switch(b) {
+        case A_A:
+            return 'A';
+        case A_R:
+            return 'R';
+        case A_N:
+            return 'N';
+        case A_D:
+            return 'D';
+        case A_C:
+            return 'C';
+        case A_E:
+            return 'E';
+        case A_Q:
+            return 'Q';
+        case A_G:
+            return 'G';
+        case A_H:
+            return 'H';
+        case A_I:
+            return 'I';
+        case A_L:
+            return 'L';
+        case A_K:
+            return 'K';
+        case A_M:
+            return 'M';
+        case A_F:
+            return 'F';
+        case A_P:
+            return 'P';
+        case A_S:
+            return 'S';
+        case A_T:
+            return 'T';
+        case A_W:
+            return 'W';
+        case A_Y:
+            return 'Y';
+        case A_V:
+            return 'V';
+        case A_DUMMY:
+            return 'Z';
+        default:
+            return 'X';
+    }
+}
+
 char encode_base(int b) {
 	switch(b) {
 	case N_A:
@@ -295,6 +394,33 @@ void get_seed(unsigned short *seedptr) {
 	memcpy(seedptr, tmpptr, 3 * sizeof(unsigned short));
 	seed48(seedptr);
 	seed48(seedptr);
+}
+
+number gamma(number alpha, number beta) {
+	number x, v, u;
+	double d = alpha - 1. / 3.;
+	double c = (1. / 3.) / sqrt(d);
+
+	if(alpha < 1.)
+		return pow(drand48(), 1. / alpha) * gamma((number) 1. + alpha, beta);
+
+	while(true) {
+		do {
+			x = gaussian();
+			v = 1. + c * x;
+		} while(v <= 0);
+
+		v = v * v * v;
+		u = drand48();
+
+		if(u < 1. - 0.0331 * x * x * x * x)
+			break;
+
+		if(log(u) < 0.5 * x * x + d * (1 - v + log(v)))
+			break;
+	}
+
+	return beta * d * v;
 }
 
 void assert_is_valid_particle(int index, int N, std::string identifier) {

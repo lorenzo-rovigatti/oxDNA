@@ -30,6 +30,12 @@
 #include "JordanInteraction.h"
 #include "DRHInteraction.h"
 #include "DRHInteraction_relax.h"
+#include "CCGInteraction.h"
+#include "PatchyShapeInteraction.h"
+#include "ANMInteraction.h"
+#include "DNANMInteraction.h"
+#include "RNANMInteraction.h"
+// #include "CGDNAInteraction.h"
 
 
 InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
@@ -59,6 +65,7 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("RNA_relax") == 0) return std::make_shared<RNAInteraction_relax>();
 	else if(inter_type.compare("patchy") == 0) return std::make_shared<PatchyInteraction>();
 	else if(inter_type.compare("patchyDan") == 0) return std::make_shared<PatchyInteractionDan>();
+	else if(inter_type.compare("PatchyShape") == 0) return std::make_shared<PatchyShapeInteraction>();
 	else if(inter_type.compare("KF") == 0) return std::make_shared<KFInteraction>();
 	else if(inter_type.compare("HS") == 0) return std::make_shared<HSInteraction>();
 	else if(inter_type.compare("Box") == 0) return std::make_shared<BoxInteraction>();
@@ -70,6 +77,13 @@ InteractionPtr InteractionFactory::make_interaction(input_file &inp) {
 	else if(inter_type.compare("Jordan") == 0) return std::make_shared<JordanInteraction>();
 	else if(inter_type.compare("DRH") == 0) return std::make_shared<DRHInteraction>();
 	else if(inter_type.compare("DRH_relax") == 0) return std::make_shared<DRHInteraction_relax>();
+	else if(inter_type.compare("CCG")==0) return std::make_shared<CCGInteraction>();
+	else if(inter_type.compare("AC") == 0) return std::make_shared<ANMInteraction>();
+	else if(inter_type.compare("DNANM") == 0) return std::make_shared<DNANMInteraction>(false);
+	else if(inter_type.compare("DNACT") == 0) return std::make_shared<DNANMInteraction>(true);
+	// else if(inter_type.compare("CGDNA" )== 0) return std::make_shared<CGDNAInteraction>(false);
+	else if(inter_type.compare("RNANM") == 0) return std::make_shared<RNANMInteraction>(false);
+	else if(inter_type.compare("RNACT") == 0) return std::make_shared<RNANMInteraction>(true);
 	else {
 		InteractionPtr res = PluginManager::instance()->get_interaction(inter_type);
 		if(res == NULL) throw oxDNAException("Interaction '%s' not found. Aborting", inter_type.c_str());
