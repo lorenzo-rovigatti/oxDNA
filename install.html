@@ -110,6 +110,7 @@
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input file</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configurations.html">Configuration and topology files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="relaxation.html">Relaxing initial configurations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Improving performance</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scaling.html">Efficient GPU usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="forces.html">External forces</a></li>
 <li class="toctree-l1"><a class="reference internal" href="observables.html">Observables</a></li>
@@ -306,7 +307,7 @@ make<span class="w"> </span>-j4<span class="w">        </span><span class="c1">#
 <div class="section" id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_run</span></code> runs quick tests to check whether oxDNA has been correctly compiled or not.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_run</span></code> runs quick tests to check that oxDNA has been correctly compiled, and that the core interactions (<code class="docutils literal notranslate"><span class="pre">DNA2</span></code>, <code class="docutils literal notranslate"><span class="pre">RNA2</span></code> and <code class="docutils literal notranslate"><span class="pre">DRH</span></code>) compute the energy contributions in a nicked double strand correctly.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_quick</span></code> runs longer tests to check that oxDNA works.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_oxpy</span></code> checks that the Python bindings work.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test</span></code> runs all sets of tests above.</p></li>
