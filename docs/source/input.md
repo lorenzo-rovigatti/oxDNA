@@ -124,7 +124,7 @@ The following options control the behaviour of MC simulations.
 * `P = <float>`: the target pressure of the simulation. Used only if `ensemble = npt`.
 * `[check_energy_every = <int>]`: oxDNA will compute the energy from scratch, compare it with the current energy and throw an error if the difference is larger then `check_energy_threshold`. Defaults to `10`.
 * `[check_energy_threshold = <float>]`: threshold for the energy check. Defaults to 0.01 for single precision and {math}`10^{-6}` for double precision.
-* `[adjust_moves = <bool>]`: if `true`, oxDNA will run for `equilibration_steps` time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if `equilibration_steps = 0` or not given. Defaults to `false`.
+* `[adjust_moves = <bool>]`: if `true`, oxDNA will run for `equilibration_steps` time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if `equilibration_steps = 0` or it is not set. Defaults to `false`.
 * `[maxclust = <int>]`: maximum number of particles to be moved together if `sim_type = VMMC`. Defaults to the size of the whole system.
 * `[small_system = <bool>]`: whether to use an interaction computation suited for small systems. Defaults to `false`.
 * `[preserve_topology = <bool>]`: set a maximum size for the move attempt to 0.5, which guarantees that the topology of the system is conserved. Also prevents very large moves and might speed up simulations of larger systems, while suppressing diffusion. Defaults to `false`.
