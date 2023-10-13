@@ -1,0 +1,54 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+interaction_type=DNA2
+salt_concentration=1.0
+sim_type = MD
+backend = CUDA
+backend_precision = mixed
+mismatch_repulsion = 1
+use_average_seq = no
+#debug = 1
+#seed = 42
+CUDA_list = verlet
+CUDA_sort_every = 0
+use_edge = 1
+edge_n_forces = 1
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 1e9
+max_backbone_force = 10.
+ensemble = nvt
+#delta_translation = 0.02
+#delta_rotation = 0.04
+#use_average_seq = no
+seq_dep_file_DNA = oxDNA2_sequence_dependent_parameters.txt
+thermostat = john
+T = 25C
+dt = 0.005
+verlet_skin = 0.6
+maxclust = 63
+diff_coeff = 2.5
+newtonian_steps = 103
+max_density_multiplier=5 
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = ico.top 
+conf_file = ico.dat 
+lastconf_file = last_conf.dat
+trajectory_file = trajectory.dat
+max_io = 5
+refresh_vel = 1
+#log_file = log_trap.dat
+no_stdout_energy = 0
+restart_step_counter = 0
+energy_file = energy_trap30C.dat
+print_conf_interval = 2e5
+print_energy_every = 2e5
+time_scale = linear
+external_forces = 0
+#external_forces_file = bondforce.txt
