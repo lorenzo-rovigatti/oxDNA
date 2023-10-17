@@ -49,10 +49,10 @@ protected:
 	number _sqr_rfene;
 	number _WCA_sigma = 1.0;
 	number _PS_sqr_rep_rcut;
-  number _mu = 1.0;
-  number dS_mod = 1.0;
-  number alpha_mod = 1.0;
-  number bdG_threshold = 1.0;
+	number _tC = 37.0;
+	number dS_mod = 1.0;
+	number alpha_mod = 1.0;
+	number bdG_threshold = 1.0;
 
 	std::vector<LR_vector> _chain_coms;
 
@@ -78,12 +78,13 @@ protected:
 
 	/// three-body flexibility stuff
 	bool _enable_semiflexibility = false;
-  bool _enable_semiflexibility_3b = false;
-  bool _enable_patch_stacking = false;
+	bool _enable_semiflexibility_3b = false;
+	bool _enable_patch_stacking = false;
 	number _semiflexibility_k;
-  number _semiflexibility_a1;
-  number _semiflexibility_3b_k;
-  number _stacking_eta;
+	number _semiflexibility_a1;
+	number _semiflexibility_3b_k;
+	number _semiflexibility_3b_exp_sigma = -1.0;
+	number _stacking_eta;
 
 	/// patchy stuff
 	number _deltaPatchMon = 0.5;
