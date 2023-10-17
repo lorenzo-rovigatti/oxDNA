@@ -35,7 +35,7 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_mu", &_mu, 1.0);
 	getInputNumber(&inp, "DPS_dS_mod", &dS_mod, 1.0);
 	getInputNumber(&inp, "DPS_alpha_mod", &alpha_mod, 1.0);
-  getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
+        getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
 
 	getInputNumber(&inp, "DPS_deltaPatchMon", &_deltaPatchMon, 0);
 
@@ -592,7 +592,7 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
                         if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
                                 number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS)/_kB_;
                                 number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
-                                if(beta_dG<bdG_threshold && abs(i-j)>2) {
+                                if(beta_dG<bdG_threshold && abs(i-j)>2) {   
                                         _3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
                                         myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
                                 }
