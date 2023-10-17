@@ -32,10 +32,10 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_3b_sigma", &_3b_sigma, 0);
 	getInputNumber(&inp, "DPS_3b_range", &_3b_range, 0);
 	getInputNumber(&inp, "DPS_3b_lambda", &_3b_lambda, 0);
-	getInputNumber(&inp, "DPS_mu", &_mu, 1.0);
+	getInputNumber(&inp, "DPS_tC", &_tC, 37.0);
 	getInputNumber(&inp, "DPS_dS_mod", &dS_mod, 1.0);
 	getInputNumber(&inp, "DPS_alpha_mod", &alpha_mod, 1.0);
-  getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
+	getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
 
 	getInputNumber(&inp, "DPS_deltaPatchMon", &_deltaPatchMon, 0);
 
@@ -50,7 +50,13 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 
 	if(_enable_semiflexibility_3b) {
 		getInputNumber(&inp, "DPS_semiflexibility_3b_k", &_semiflexibility_3b_k, 1);
-		getInputNumber(&inp, "DPS_semiflexibility_a1", &_semiflexibility_a1, 1);
+		getInputNumber(&inp, "DPS_semiflexibility_3b_exp_sigma", &_semiflexibility_3b_exp_sigma, 0);
+		if(_semiflexibility_3b_exp_sigma > 0.0) {
+			OX_LOG(Logger::LOG_INFO, "CGNA: Using the exponential potential to model semiflexibility");
+		}
+		else {
+			OX_LOG(Logger::LOG_INFO, "CGNA: Using the linear potential to model semiflexibility");
+		}
 	}
 
 	getInputBool(&inp, "DPS_stacking", &_enable_patch_stacking, 0);
@@ -413,18 +419,31 @@ number CGNucleicAcidsInteraction::_semiflexibility_three_body(BaseParticle *midd
 	number i_pn1_pn2 = 1. / sqrt(sqr_dist_pn1 * sqr_dist_pn2);
 	number cost = (dist_pn1 * dist_pn2) * i_pn1_pn2;
 
+	number energy, force_factor;
+
+	if(_semiflexibility_3b_exp_sigma > 0.0) {
+		number arg = (1.0 - cost) / _semiflexibility_3b_exp_sigma;
+		number exp_factor = exp(-SQR(arg));
+		energy = -_semiflexibility_3b_k * (exp_factor - 1.0);
+		force_factor = 2 * exp_factor * arg / _semiflexibility_3b_exp_sigma;
+	}
+	else {
+		energy = _semiflexibility_3b_k * (1.0 - cost);
+		force_factor = 1.0;
+	}
+
 	if(update_forces) {
 		number cost_n1 = cost / sqr_dist_pn1;
 		number cost_n2 = cost / sqr_dist_pn2;
 		number force_mod_n1 = i_pn1_pn2 + cost_n1;
 		number force_mod_n2 = i_pn1_pn2 + cost_n2;
 
-		middle->force += dist_pn1 * (force_mod_n1 * _semiflexibility_3b_k) - dist_pn2 * (force_mod_n2 * _semiflexibility_3b_k);
-		n1->force -= dist_pn1 * (cost_n1 * _semiflexibility_3b_k) - dist_pn2 * (i_pn1_pn2 * _semiflexibility_3b_k);
-		n2->force -= dist_pn1 * (i_pn1_pn2 * _semiflexibility_3b_k) - dist_pn2 * (cost_n2 * _semiflexibility_3b_k);
+		middle->force += force_factor * (dist_pn1 * (force_mod_n1 * _semiflexibility_3b_k) - dist_pn2 * (force_mod_n2 * _semiflexibility_3b_k));
+		n1->force -= force_factor * (dist_pn1 * (cost_n1 * _semiflexibility_3b_k) - dist_pn2 * (i_pn1_pn2 * _semiflexibility_3b_k));
+		n2->force -= force_factor * (dist_pn1 * (i_pn1_pn2 * _semiflexibility_3b_k) - dist_pn2 * (cost_n2 * _semiflexibility_3b_k));
 	}
 
-	return _semiflexibility_3b_k * (1. - cost);
+	return energy;
 }
 
 
@@ -573,7 +592,7 @@ void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
         inter_matrix_file.init_from_filename(_interaction_matrix_file);
         const number _t37_ = 310.15;
         const number _kB_ = 1.9872036;
-        //const number dS_mod = 1.87;
+        number _mu = _t37_/(_tC+273.15);
         if(inter_matrix_file.state == ERROR) {
                 throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
         }
