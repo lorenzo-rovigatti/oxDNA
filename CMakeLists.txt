@@ -24,7 +24,7 @@ OPTION(CUDA_COMMON_ARCH "Set to OFF to autodetect the GPU and compile for its ar
 OPTION(NATIVE_COMPILATION "Set to OFF to compile without the -march=native flag. This may be required when compiling binaries to be used elsewhere" ON)
 OPTION(JSON_ENABLED "Set to OFF to compile without JSON support, disabling the possibility of initialising external forces and/or observables from a JSON file. Disabling JSON can sometimes help with compiling with older compilers" ON)
 
-OPTION(Python "Enable Python bindings" ON)
+OPTION(Python "Enable Python bindings" OFF)
 OPTION(OxpySystemInstall "Install oxpy as a system-wide package" OFF)
 
 
