@@ -12,7 +12,7 @@ import subprocess
 
 # handle the arguments
 if len(sys.argv) < 3:
-	print('USAGE:',sys.argv[0],'<trajectory file> <number of nucleotides>  <alpha>')
+	print 'USAGE:',sys.argv[0],'<trajectory file> <number of nucleotides>  <alpha>'
 	sys.exit(-1)
 
 #PLEASE Note:ALPHA is com correction. If you are not interested in applying that, please use alpha = 0.00. The optimium value to get correct com, alpha= 0.06(units of sim length).
@@ -25,10 +25,10 @@ ids_nucls = []
 for i in range(0,N_bp):
     id1=[i] if i < N_bp else None
     id2=[n_nucls-1-i] if i < N_bp else None
-    ids_nucls.append(list(zip(id1,id2)))
+    ids_nucls.append(zip(id1,id2))
     
 n_com = len(ids_nucls) #no. of centre of masses
-print(("no of basepairs =" , n_com))
+print ("no of basepairs =" , n_com)
 
 bad_words = ['t','b','E']
 
@@ -78,8 +78,8 @@ R_dup  = get_centres(cms)
 def a(R_dup):
     a = np.zeros((s,n_com-1), dtype=np.float64)
     for i in range (s):
-        for j in range (n_com-1):
-            a[i][j] = 0.8518*np.linalg.norm(R_dup[i][j+1]- R_dup[i][j])  #now nm after 0.8518
+		for j in range (n_com-1):
+			a[i][j] = 0.8518*np.linalg.norm(R_dup[i][j+1]- R_dup[i][j])  #now nm after 0.8518
     return a
 a = a(R_dup)
 
@@ -112,7 +112,7 @@ id_nucls = []
 for i in range(0,N_bp-2):
     i1=[i] if i < N_bp else None
     i2=[i+2] if i < N_bp else None
-    id_nucls.append(list(zip(i1,i2)))    
+    id_nucls.append(zip(i1,i2))    
 
 
 def e3(R_dup):
@@ -238,10 +238,10 @@ def omegas(omega1,omega2,omega3):
 omegas = omegas(omega1,omega2,omega3)
 
 with open ("theta_deg" , "a+") as f:
-    print('{:^18}{:^18}{:^18}{:^18}{:^18}'.format(("alpha"),("n_nucls"),("t1"),("t2"),("t3")), file=f)
-    print('{:^18}{:^18}{:^18}{:^18}{:^18}'.format((sys.argv[3]),(n_nucls),round(np.rad2deg(a1),4),round(np.rad2deg(a2),4),round(np.rad2deg(a3),4)), file=f)
+                print >> f , '{:^18}{:^18}{:^18}{:^18}{:^18}'.format(("alpha"),("n_nucls"),("t1"),("t2"),("t3"))
+        	print >> f , '{:^18}{:^18}{:^18}{:^18}{:^18}'.format((sys.argv[3]),(n_nucls),round(np.rad2deg(a1),4),round(np.rad2deg(a2),4),round(np.rad2deg(a3),4))
 
-print((np.mean(a[0:][10:-10])))
+print (np.mean(a[0:][10:-10]))
 np.save('theta2_alpha_'+ sys.argv[3], a4) #rad
 np.save('theta3_alpha_'+ sys.argv[3], a5) #rad
 np.save('Omegas_alpha_'+ sys.argv[3], omegas) #rad

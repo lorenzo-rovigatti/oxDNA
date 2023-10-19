@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 if len(sys.argv) not in [5]:
-	print(("\033[0;31mUsage is %s omegas e3 step a \033[0m" % sys.argv[0]))
+	print("\033[0;31mUsage is %s omegas e3 step a \033[0m" % sys.argv[0])
 	sys.exit()
 
 
@@ -30,7 +30,7 @@ for m in range(1,step+1):
         cosomega = np.cos(a*om3)                            
         l_t_half = (-0.5*m*a)/(np.log(np.mean(cosomega)))   # use exact value of 'a' here, calulated in triad3.py stored in file 'a'
         with open (f_1[0] +'_lt' , "a") as f:
-            print('{:^8}{:^8}'.format(m,round(l_t_half,1)), file=f)  
+            print >> f ,  '{:^8}{:^8}'.format(m,round(l_t_half,1))  
  
 #lb
 for m in range(1,step+1):
@@ -40,7 +40,7 @@ for m in range(1,step+1):
                 costheta[k][i-10] = np.dot(e3[k][i],e3[k][i+m])        
         l_b = (-m*a)/np.log(np.mean(costheta))             # use exact value of a here, calulated in triad3.py stored in file 'a'
         with open (f_1[0] + '_lb' , "a") as f:
-            print('{:^8}{:^8}'.format(m,round(l_b,1)), file=f)
+            print >> f ,  '{:^8}{:^8}'.format(m,round(l_b,1))
         
 #e3
 for m in range(1,step+1):
@@ -50,4 +50,4 @@ for m in range(1,step+1):
                 costheta[k][i-10] = np.dot(e3[k][i],e3[k][i+m])
         cos_theta = (np.mean(costheta))
         with open (f_1[0] + '_cos_theta' , "a") as f:
-            print('{:^8}{:^8}'.format(m,(cos_theta)), file=f)
+            print >> f ,  '{:^8}{:^8}'.format(m,(cos_theta))
