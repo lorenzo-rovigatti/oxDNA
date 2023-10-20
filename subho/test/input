@@ -40,21 +40,20 @@ ensemble = NVT
 ##############################
 ####     INTERACTIONS     ####
 ##############################
-
-
+rcut=10
 
 ##############################
 #parfile = replica.par
-topology = 125.top
-conf_file = 125.dat
+topology = 2.top
+conf_file = 2.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.ign
 log_file = log.ign
 no_stdout_energy = 0
 restart_step_counter = 1
 energy_file = energy.ign
-print_conf_interval = 100
-print_energy_every = 100
+print_conf_interval = 10000
+print_energy_every = 10000
 time_scale = linear
 
 ###### CCG ################

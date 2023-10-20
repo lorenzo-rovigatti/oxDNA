@@ -63,9 +63,11 @@ void CCGInteraction::get_settings(input_file &inp) {
 		_rcut=stod(temp);
 		_sqr_rcut = SQR(_rcut);
 		OX_LOG(Logger::LOG_INFO,"New interaction radius cutoff = %d",_rcut);
+		std::cout<<"rcut is now="<<_rcut<<std::endl;
 	}else{
 		_rcut= 4.0;
 		_sqr_rcut=SQR(_rcut);
+		// std::cout<<"This is called"<<std::endl;
 	}
 }
 
@@ -97,7 +99,7 @@ number CCGInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	number energy=0;
 	// if(p->index==0 && q->index==1) p->pos+=_box->min_image(p->pos,q->pos)*0.001;
 	energy += spring(p,q,compute_r,update_forces);
-	energy+=exc_vol_bonded(p,q,compute_r,update_forces);
+	// energy+=exc_vol_bonded(p,q,compute_r,update_forces);
 	return energy;
 }
 
