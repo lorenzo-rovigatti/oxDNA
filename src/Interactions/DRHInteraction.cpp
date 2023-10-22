@@ -176,7 +176,7 @@ void DRHInteraction::get_settings(input_file &inp) {
 
 	if(!DNA2Interaction::_average) {
 		getInputString(&inp, "seq_dep_file_DRH", _seq_filename, 1);
-		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent DRH values",_seq_filename);
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent DRH values",_seq_filename.c_str());
 	}
 }
 
@@ -222,7 +222,7 @@ void DRHInteraction::init() {
 		input_file seq_file;
 		seq_file.init_from_filename(_seq_filename);
 		if(seq_file.state == ERROR)
-			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename);
+			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename.c_str());
 
 		// HB
 		// if X and Y are two bases which can interact via HB, then the
