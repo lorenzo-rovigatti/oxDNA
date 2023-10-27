@@ -133,7 +133,7 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	double energy = 0.25*k*SQR(dist); // Energy = 1/2*k*x^2 but 1/2 for one particle and 1/2 for other
 	// std::cout<<energy<<std::endl;
 	if(update_forces){
-		LR_vector force = (-k*_computed_r*dist/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
+		LR_vector force = ((-k*dist)-damp*(p->vel-q->vel).module())*(_computed_r/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
 		p->force-= force;//substract force from p
 		q->force+= force;//add force to q
 	}
