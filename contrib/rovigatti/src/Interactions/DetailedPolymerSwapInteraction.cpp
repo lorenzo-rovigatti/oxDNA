@@ -21,7 +21,6 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	BaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "DPS_n", &_PS_n, 0);
-	getInputInt(&inp, "DPS_chain_size", &_chain_size, 1);
 
 	getInputNumber(&inp, "DPS_alpha", &_PS_alpha, 0);
 
@@ -494,6 +493,7 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 		throw oxDNAException("The number of particles found in the configuration file (%u) and specified in the topology (%u) are different", N_from_conf, N_from_topology);
 	}
 
+	std::set<int> chain_ids;
 	for(unsigned int i = 0; i < N_from_conf; i++) {
 		unsigned int p_idx;
 		topology >> p_idx;
@@ -501,6 +501,10 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 		if(!topology.good()) {
 			throw oxDNAException("The topology should contain two lines per particle, but it seems there is info for only %d particles\n", i);
 		}
+
+		int chain_id;
+		topology >> chain_id;
+		chain_ids.insert(chain_id);
 
 		CustomParticle *p = static_cast<CustomParticle*>(particles[p_idx]);
 		topology >> p->btype;
@@ -521,7 +525,7 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 					N_from_conf - 1);
 		}
 
-		p->strand_id = p_idx / _chain_size;
+		p->strand_id = chain_id;
 		p->n3 = p->n5 = P_VIRTUAL;
 		for(int j = 0; j < n_bonds; j++) {
 			unsigned int n_idx;
@@ -540,7 +544,7 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 
 	topology.close();
 
-	*N_strands = N_from_conf / _chain_size;
+	*N_strands = chain_ids.size();
 	if(*N_strands == 0) {
 		*N_strands = 1;
 	}
