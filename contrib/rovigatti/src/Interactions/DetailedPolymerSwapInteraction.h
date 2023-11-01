@@ -79,7 +79,6 @@ protected:
 
 	std::map<int, std::set<PSBond, PSBondCompare> > _bonds;
 
-	int _chain_size = -1;
 	int _N_chains = -1;
 
 	StressTensor _inter_chain_stress_tensor;
