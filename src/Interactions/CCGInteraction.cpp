@@ -30,6 +30,7 @@ number CCGInteraction::_repulsive_lj(const LR_vector &r, LR_vector &force, numbe
 			number lj_part = tmp * tmp * tmp;
 			energy = 4 * EXCL_EPS * (SQR(lj_part) - lj_part);
 			if(update_forces) force = -r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) /rnorm);
+			// std::cout<<"Inner collision"<<std::endl;
 
 		}
 	}
@@ -71,6 +72,18 @@ void CCGInteraction::get_settings(input_file &inp) {
 	if(getInputString(&inp,"damp",temp,0)==KEY_FOUND){
 		damp=stod(temp);
 		std::cout<<"New damping constant is ="<<damp<<std::endl;
+	}
+	if(getInputString(&inp,"patchyStrength",temp,0)==KEY_FOUND){
+		strength=stod(temp);
+		std::cout<<"New Patchy Strength = "<<strength<<std::endl;
+	}
+	if(getInputString(&inp,"patchyRc",temp,0)==KEY_FOUND){
+		patchyRc=stod(temp);
+		std::cout<<"New Patchy Rc="<<patchyRc<<std::endl;
+	}
+	if(getInputString(&inp,"patchyRstar",temp,0)==KEY_FOUND){
+		patchyRstar=stod(temp);
+		std::cout<<"New Patchy Rstar="<<patchyRstar<<std::endl;
 	}
 }
 
@@ -169,12 +182,15 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 			double r8b10 = pow(dist,8)/pow(patchyAlpha,10);
 			double expPart = -1.001*exp(-0.5*r8b10*dist*dist);
 			energy=strength*(expPart-patchyEcutoff); //patchy interaction potential
-			
+			// std::cout<<energy<<std::endl;
 			if(update_forces){
 				double f1D = 5.0 * expPart * r8b10;
 				LR_vector force = strength*_computed_r*f1D*dist/rmod;
+				// std::cout<<"Patchy force ="<< force<<std::endl;
 				// if(expPart<-1) std::cout<<rmod<<"\t"<< energy<<"\t"<<f1D*dist/rmod<<std::endl;
 				// std::cout<<strength*_computed_r*f1D*dist/rmod<<"\n";
+				if(force.module()>0.1)
+					// std::cout<<"force ="<<force.module()<<std::endl;
 				p->force-=force;
 				q->force+=force;
 			}
@@ -254,6 +270,7 @@ double CCGInteraction::exc_vol_bonded(BaseParticle *p, BaseParticle *q, bool com
 	if(update_forces && energy == 0) force.x = force.y = force.z = 0;
 
 	if(update_forces){
+		// throw oxDNAException("Calculated forces");
 		p->force-=force;
 		q->force+=force;
 	}

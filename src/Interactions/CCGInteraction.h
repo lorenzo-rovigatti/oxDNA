@@ -37,7 +37,7 @@ public:
 	std::string temp;
 	// bool connection,bcall; // connection shifts between adding spring neighbours and Bfactor during reading of the topology file
 	
-	const double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=0,patchyInteractionDistanceCutoff=0;
+	double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=0,patchyInteractionDistanceCutoff=0;
 	CCGInteraction();
 	virtual ~CCGInteraction();
 
