@@ -3,7 +3,7 @@
 using namespace std;
 
 int main(){
-    Analysis ico("../../managerExample/DNA/ico.top","../../managerExample/DNA/ico.dat","DNA"); // Loading the top and the dat files
+    Analysis ico("ico.top","ico.dat","DNA"); // Loading the top and the dat files
     // ico.shiftbox({0,0,0}); // Bringing everything to 1st coordinate
     // ico.testBoxOverloaded(); // Checking overload from previous action.
 
@@ -23,14 +23,14 @@ int main(){
         };
     
     vector<int> colors{20,-20,30,-30,20,-20,35,-35,40,-40,35,-35}; // if 12 colors provided 13th color will be by default 100 or colorless
-    vector<double> radius{2,10}; // if 2 of the radius are provided then 1st for all particle and 2nd for the central particle
+    vector<double> radius{8,10}; // if 2 of the radius are provided then 1st for all particle and 2nd for the central particle
     // cout << ids.size()<<endl;
     Analysis psp("","","newPSP"); // generating empty particle class
-    ico.generatePSP(&psp,ids,colors,radius); // generating ccg particle from oxDNA file.
-    // psp.populate(125,40); //generate 125 crystal with extra 1 su seperation between them
+    ico.generatePSP(&psp,ids,colors,radius,5,10); // generating ccg particle from oxDNA file.
+    psp.populate(125,1); //generate 125 crystal with extra 1 su seperation between them
     psp.boxToCubic();// make the box cubic nothing is effected
     psp.writeCCGtopology("125.top"); // write the CCG topology
-    psp.writeCCGviewTopology("125view.top"); // write oxview readeable topology
+    psp.writeCCGviewTopology("125iew.top"); // write oxview readeable topology
     psp.writeConfig("125.dat"); // write config dat file
     // cout <<psp.particles[5].connector<<endl;
     return 0;

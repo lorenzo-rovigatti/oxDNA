@@ -65,7 +65,7 @@ void CCGInteraction::get_settings(input_file &inp) {
 		_sqr_rcut = SQR(_rcut);
 		std::cout<<"rcut is now="<<_rcut<<std::endl;
 	}else{
-		_rcut= 10.0;
+		_rcut= 20.0;
 		_sqr_rcut=SQR(_rcut);
 		// std::cout<<"This is called"<<std::endl;
 	}
@@ -106,7 +106,7 @@ number CCGInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool c
 	if(pCG->has_bond(q)){
 		return pair_interaction_bonded(p,q,compute_r,update_forces);
 	}else{
-		this->strength=pCG->strength;
+		// this->strength=pCG->strength;
 		return pair_interaction_nonbonded(p,q,compute_r,update_forces);
 	}
 }
@@ -149,9 +149,9 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	double energy = 0.25*k*SQR(dist); // Energy = 1/2*k*x^2 but 1/2 for one particle and 1/2 for other
 	// std::cout<<energy<<std::endl;
 	if(update_forces){
-		LR_vector force = ((-k*dist)-damp*(p->vel-q->vel).module())*(_computed_r/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
-		p->force-= force;//substract force from p
-		q->force+= force;//add force to q
+		LR_vector force = ((-k*dist))*(_computed_r/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
+		p->force-= force+damp*p->vel;//substract force from p
+		q->force+= force-damp*q->vel;//add force to q
 	}
 	return energy;
 }
