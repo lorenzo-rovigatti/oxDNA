@@ -57,17 +57,20 @@ void CCGInteraction::get_settings(input_file &inp) {
 	}
 	if(getInputString(&inp,"patchyB",temp,0)==KEY_FOUND){
 		patchyB =stod(temp);
-		OX_LOG(Logger::LOG_INFO,"New b value for the exclusion volume = %d",std::stod(temp));
+		std::cout<<"New PatchyB="<<patchyB<<std::endl;
 	}
 	if(getInputString(&inp,"rcut",temp,0)==KEY_FOUND){
 		_rcut=stod(temp);
 		_sqr_rcut = SQR(_rcut);
-		OX_LOG(Logger::LOG_INFO,"New interaction radius cutoff = %d",_rcut);
 		std::cout<<"rcut is now="<<_rcut<<std::endl;
 	}else{
-		_rcut= 4.0;
+		_rcut= 10.0;
 		_sqr_rcut=SQR(_rcut);
 		// std::cout<<"This is called"<<std::endl;
+	}
+	if(getInputString(&inp,"damp",temp,0)==KEY_FOUND){
+		damp=stod(temp);
+		std::cout<<"New damping constant is ="<<damp<<std::endl;
 	}
 }
 

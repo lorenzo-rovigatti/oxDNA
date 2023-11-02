@@ -8,7 +8,7 @@ backend = CPU
 use_edge = true
 edge_n_forces = true
 debug = true
-seed = 1
+# seed = 1
 interaction_type = CCG
 salt_concentration = 1.
 max_io = 4
@@ -41,11 +41,13 @@ ensemble = NVT
 ####     INTERACTIONS     ####
 ##############################
 rcut=10
+damp=0.5
+# patchyB=1000
 
 ##############################
 #parfile = replica.par
-topology = 2.top
-conf_file = 2.dat
+topology = 3.top
+conf_file = 3.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.ign
 log_file = log.ign
