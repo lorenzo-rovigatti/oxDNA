@@ -341,7 +341,7 @@ bool CCGInteraction::color_compatibility(BaseParticle *p, BaseParticle *q){
 }
 
 void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {
-	OX_LOG(Logger::LOG_INFO,"Read Topology is being called.");
+	// OX_LOG(Logger::LOG_INFO,"Read Topology is being called.");
 	char line[2048];
 	std::ifstream topology;
 	topology.open(this-> _topology_filename, std::ios::in);

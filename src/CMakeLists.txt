@@ -138,6 +138,7 @@ SET(interactions_SOURCES
 	# Interaction/CGDNAInteraction.cpp
 	Interactions/DNANMInteraction.cpp
 	Interactions/RNANMInteraction.cpp
+	Interactions/PHBInteraction.cpp
 )
 
 SET(move_SOURCES
@@ -207,6 +208,7 @@ SET(common_SOURCES
 	Particles/ANMParticle.cpp
 	Particles/ANMTParticle.cpp
 	Particles/GSParticle.cpp
+	Particles/PHBParticle.cpp
 	Managers/SimManager.cpp
 	Utilities/OrderParameters.cpp
 	Utilities/Weights.cpp
