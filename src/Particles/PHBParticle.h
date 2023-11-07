@@ -5,18 +5,15 @@
 #ifndef PHBParticle_H
 #define PHBParticle_H
 
-#include "BaseParticle.h"
+#include "CCGParticle.h"
 
-class PHBParticle: public BaseParticle {
+class PHBParticle: public CCGParticle {
 public:
+
+    //strange variables
+    number th_b_0=0,beta_b_0=0;
     PHBParticle();
     virtual ~PHBParticle();
-
-    //variables
-    double radius=1;
-
-    //functions
-    virtual bool is_bonded(const PHBParticle *q);
 };
 
 #endif

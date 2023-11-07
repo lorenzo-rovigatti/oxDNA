@@ -142,7 +142,7 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	}
 	// _computed_r = _box->min_image(p->pos,q->pos);
 	// rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
-	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	auto *pCG = static_cast<CCGParticle*>(p);
 	double k,r0;
 	pCG->return_kro(q->index,&k,&r0);
 	double dist=rmod-r0; // Distance between the particles - equilibrium distance
