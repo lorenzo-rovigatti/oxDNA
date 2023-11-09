@@ -42,10 +42,10 @@ number PHBInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	auto *pCG = dynamic_cast<PHBParticle*>(p);
 	auto *qCG = static_cast<PHBParticle*>(q);
 	if(!pCG->has_bond(q)){
-		energy += spring(p,q,compute_r,update_forces);
-		energy += bonded_twist(p, q, false, update_forces);
+		energy += spring(pCG,qCG,compute_r,update_forces);
+		energy += bonded_twist(pCG, qCG, false, update_forces);
 		energy += bonded_double_bending(pCG, qCG, false, update_forces);
-		energy += bonded_alignment(p, q, false, update_forces);
+		energy += bonded_alignment(pCG, qCG, false, update_forces);
 	}
 	return energy;
 };
@@ -133,168 +133,164 @@ number PHBInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 
 number PHBInteraction::bonded_double_bending(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0;
-// 	LR_vector torque(0., 0., 0.);
-// 	if(p->spring_neighbours.size()<2 || q->spring_neighbours.size()<2)return 0.; //return 0 for extreme top and bottom particles
+	LR_vector torque(0., 0., 0.);
+	if(p->spring_neighbours.size()<2 || q->spring_neighbours.size()<2)return 0.; //return 0 for extreme top and bottom particles
 
-// 	LR_vector &up = p->orientationT.v1;
-// 	LR_vector &uq = q->orientationT.v1;
-// 	LR_vector &vq = q->orientationT.v2;
-// 	number &th_b_0 = p->th_b_0;
-// 	number &beta_0 = p->beta_b_0;
-// 	// the particle behind sees the particle ahead as if it were slightly tilted,
-// 	// and tries to align with the tilted particle
-// 	LR_vector uqq = rotateVectorAroundVersor(uq, vq, th_b_0);
-// 	uqq = rotateVectorAroundVersor(uqq, uq, beta_0);
-// 	number cosine = up * uqq;
+	LR_vector &up = p->orientationT.v1;
+	LR_vector &uq = q->orientationT.v1;
+	LR_vector &vq = q->orientationT.v2;
+	number &th_b_0 = p->th_b_0;
+	number &beta_0 = p->beta_b_0;
+	// the particle behind sees the particle ahead as if it were slightly tilted,
+	// and tries to align with the tilted particle
+	LR_vector uqq = rotateVectorAroundVersor(uq, vq, th_b_0);
+	uqq = rotateVectorAroundVersor(uqq, uq, beta_0);
+	number cosine = up * uqq;
 
-// 	LR_vector sin_vector = up.cross(uqq);
+	LR_vector sin_vector = up.cross(uqq);
 
-// 	energy = (number) 0.f;
+	energy = (number) 0.f;
 
-// 	number tu = _xu_bending[p->index];
-// 	number tk = _xk_bending[p->index];
-// 	number kb1 = _kb1_pref[p->index];
-// 	number kb2 = _kb2_pref[p->index];
+	const number tu = p->xu_bending;
+	const number tk = p->xk_bending;
+	const number kb1 = p->kb1;
+	const number kb2 = p->kb2;
 
-// 	number gu = cos(_xu_bending[p->index]);
-// 	number angle = acos(cosine);
+	number gu = cos(tu);
+	number angle = acos(cosine);
 
-// 	number A = (kb2 * sin(tk) - kb1 * sin(tu)) / (tk - tu);
-// 	number B = kb1 * sin(tu);
-// 	number C = kb1 * (1 - gu) - (A * SQR(tu) / 2. + tu * (B - tu * A));
-// 	number D = cos(tk) + (A * SQR(tk) * 0.5 + tk * (B - tu * A) + C) / kb2;
+	number A = (kb2 * sin(tk) - kb1 * sin(tu)) / (tk - tu);
+	number B = kb1 * sin(tu);
+	number C = kb1 * (1 - gu) - (A * SQR(tu) / 2. + tu * (B - tu * A));
+	number D = cos(tk) + (A * SQR(tk) * 0.5 + tk * (B - tu * A) + C) / kb2;
 
-// 	number g1 = (angle - tu) * A + B;
-// 	number g_ = A * SQR(angle) / 2. + angle * (B - tu * A);
-// 	number g = g_ + C;
+	number g1 = (angle - tu) * A + B;
+	number g_ = A * SQR(angle) / 2. + angle * (B - tu * A);
+	number g = g_ + C;
 
 // 	// unkinked bending regime
-// 	if(acos(cosine) < _xu_bending[p->index]) {
-// 		if(update_forces) {
-// 			torque = -_kb * _kb1_pref[p->index] * sin_vector;
-// 			p->torque -= p->orientationT * torque;
-// 			q->torque += q->orientationT * torque;
+	if(acos(cosine) <tu) {
+		if(update_forces) {
+			torque = -_kb * kb1 * sin_vector;
+			p->torque -= p->orientationT * torque;
+			q->torque += q->orientationT * torque;
 // 			// forces are not updated since this term of the potential only introduces a torque,
 // 			// since it does not depend on r.
-// 		}
-// 		energy = _kb * (1 - cosine) * _kb1_pref[p->index];
-// 	}		//intermediate regime
-// 	else if(acos(cosine) < _xk_bending[p->index]) {
-// 		if(update_forces) {
-// 			sin_vector.normalize();
-// 			torque = -_kb * g1 * sin_vector;
+		}
+		energy = _kb * (1 - cosine) * kb1;
+	}		//intermediate regime
+	else if(acos(cosine) < tk) {
+		if(update_forces) {
+			sin_vector.normalize();
+			torque = -_kb * g1 * sin_vector;
 
-// 			p->torque -= p->orientationT * torque;
-// 			q->torque += q->orientationT * torque;
-// 		}
-// 		energy = _kb * g;
-// 	}		// kinked bending regime - same as unkinked, but with an additive term to the energy and with a different bending.
-// 	else {
-// 		if(update_forces) {
-// 			torque = -_kb * _kb2_pref[p->index] * sin_vector;
-// 			p->torque -= p->orientationT * torque;
-// 			q->torque += q->orientationT * torque;
+			p->torque -= p->orientationT * torque;
+			q->torque += q->orientationT * torque;
+		}
+		energy = _kb * g;
+	}		// kinked bending regime - same as unkinked, but with an additive term to the energy and with a different bending.
+	else {
+		if(update_forces) {
+			torque = -_kb * kb2 * sin_vector;
+			p->torque -= p->orientationT * torque;
+			q->torque += q->orientationT * torque;
 // 			// forces are not updated since this term of the potential only introduces a torque,
 // 			// since it does not depend on r.
-// 		}
-// 		//energy = _kb*( (1 - up*uq) * _kb2_pref[p->index] + _get_phi_bending(p->index) );
-// 		energy = _kb * (D - cosine) * kb2;
+		}
+		// energy = _kb*( (1 - up*uq) * kb2 + _get_phi_bending(p->index) );
+		energy = _kb * (D - cosine) * kb2;
 
-// 	}
+	}
 	return energy;
 
 }
 
-number PHBInteraction::bonded_twist(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	number energy=0;
-// 	// just return 0 if the k_t is 0.
-// 	if(_kt == 0 || _kt_pref[p->index] == 0)
-// 		return 0;
-// //	return the twist part of the interaction energy.
-// 	LR_vector &up = p->orientationT.v1;
-// 	LR_vector &uq = q->orientationT.v1;
-// 	LR_vector &fp = p->orientationT.v2;
-// 	LR_vector &fq = q->orientationT.v2;
-// 	LR_vector &vp = p->orientationT.v3;
-// 	LR_vector &vq = q->orientationT.v3;
+number PHBInteraction::bonded_twist(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces) {
 
-// 	LR_vector torque(0., 0., 0.);
-// 	number energy = 0;
-// 	number M = fp * fq + vp * vq;
-// 	number L = 1 + up * uq;
-// 	number cos_alpha_plus_gamma = M / L;
+	if(_kt == 0 || p->kt_pref == 0) return 0;// just return 0 if the k_t is 0.
+//	return the twist part of the interaction energy.
+	LR_vector &up = p->orientationT.v1;
+	LR_vector &uq = q->orientationT.v1;
+	LR_vector &fp = p->orientationT.v2;
+	LR_vector &fq = q->orientationT.v2;
+	LR_vector &vp = p->orientationT.v3;
+	LR_vector &vq = q->orientationT.v3;
 
-// 	// if it gets here, the twisting angle is too big
-// 	if(-cos_alpha_plus_gamma >= _twist_b) {
-// 		if(p->n5 != P_VIRTUAL && q->n5 != P_VIRTUAL) {
-// 			// if it doesn't involve the terminal bead and we're using MD, exit with an error
-// 			if(update_forces) {
-// 				throw oxDNAException("(TEPInteraction.cpp) During the simulation, the twisting angle between bonded neighbors %d and %d exceeded acceptable values (cos_alpha_plus_gamma = %g)", p->index, q->index, cos_alpha_plus_gamma);
-// 			}
-// 			// if the forces are not needed, just log it.
-// 			OX_LOG(Logger::LOG_INFO,"the bond between the bead %d and the bead %d is too twisted! cos_alpha_plus_gamma = %g, average superhelical density = %g/N,_my_time1 = %lld,_my_time2 = %lld",p->get_index(),q->get_index(),cos_alpha_plus_gamma,_my_time1*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI)),_my_time1, _my_time2);
-// 		}
-// 		energy = 1.e12;
-// 	}
-// 	else {
+	LR_vector torque(0., 0., 0.);
+	number energy = 0;
+	number M = fp * fq + vp * vq;
+	number L = 1 + up * uq;
+	number cos_alpha_plus_gamma = M / L;
+
+	// if it gets here, the twisting angle is too big
+	if(-cos_alpha_plus_gamma >= _twist_b) {
+		if(p->spring_neighbours.size()==2 || q->spring_neighbours.size()==2){
+			// if it doesn't involve the terminal bead and we're using MD, exit with an error
+			if(update_forces) {
+				throw oxDNAException("(TEPInteraction.cpp) During the simulation, the twisting angle between bonded neighbors %d and %d exceeded acceptable values (cos_alpha_plus_gamma = %g)", p->index, q->index, cos_alpha_plus_gamma);
+			}
+			// if the forces are not needed, just log it.
+			// OX_LOG(Logger::LOG_INFO,"the bond between the bead %d and the bead %d is too twisted! cos_alpha_plus_gamma = %g, average superhelical density = %g/N,_my_time1 = %lld,_my_time2 = %lld",p->get_index(),q->get_index(),cos_alpha_plus_gamma,_my_time1*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI)),_my_time1, _my_time2);
+		}
+		energy = 1.e12;
+	}
+	else {
 // 		// if it gets here, the angle is in the normal region
-// 		if(-cos_alpha_plus_gamma <= _twist_a) {
-// 			if(update_forces) {
+		if(-cos_alpha_plus_gamma <= _twist_a) {
+			if(update_forces) {
 
-// 				torque = -(_kt / L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq)) * _kt_pref[p->index];
+				torque = -(_kt / L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq)) * p->kt_pref;
 
-// 				p->torque -= p->orientationT * torque;
-// 				q->torque += q->orientationT * torque;
-// 				// forces are not updated since this term of the potential only introduces a torque,
-// 				// as it only depends on r.
-// 			}
-// 			energy = _kt * (1 - cos_alpha_plus_gamma);
-// 		}
-// 		// if it gets here, the angle is in the intermediate region, where the behaviour is lorentzian
-// 		else {
-// 			// quadratic constants of the potential - here for sentimental reasons
-// 			//number A = ( _twist_b - _twist_a)*( _twist_b - _twist_a)*( _twist_b - _twist_a )*0.5;	//A = (b - a)^3/2
-// 			//number C = 0.5*(_twist_a - _twist_b) + _twist_a;// C = (a - b)/2 + a
+				p->torque -= p->orientationT * torque;
+				q->torque += q->orientationT * torque;
+				// forces are not updated since this term of the potential only introduces a torque,
+				// as it only depends on r.
+			}
+			energy = _kt * (1 - cos_alpha_plus_gamma);
+		}
+		// if it gets here, the angle is in the intermediate region, where the behaviour is lorentzian
+		else {
+			// quadratic constants of the potential - here for sentimental reasons
+			//number A = ( _twist_b - _twist_a)*( _twist_b - _twist_a)*( _twist_b - _twist_a )*0.5;	//A = (b - a)^3/2
+			//number C = 0.5*(_twist_a - _twist_b) + _twist_a;// C = (a - b)/2 + a
 
-// 			number A = (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * 0.25;			//A = (b - a)^5/4
-// 			number C = 0.25 * (_twist_a - _twist_b) + _twist_a;			// C = (a - b)/4 + a
+			number A = (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * 0.25;			//A = (b - a)^5/4
+			number C = 0.25 * (_twist_a - _twist_b) + _twist_a;			// C = (a - b)/4 + a
 
-// 			if(update_forces) {
-// 				// the torque is made steeper by multiplication of the derivative of the potential. It should work.
-// 				//torque.normalize();
-// 				torque = -(_kt / L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq)) * _kt_pref[p->index];				//this torque is the same as above
-// 				// quadratic prefactor - here for sentimental reasons
-// 				//torque *= 2*A/( (SQR(_twist_b+cos_alpha_plus_gamma))*(_twist_b+cos_alpha_plus_gamma) );
-// 				torque *= 4 * A / ((SQR(_twist_b + cos_alpha_plus_gamma)) * (SQR(_twist_b + cos_alpha_plus_gamma)) * (_twist_b + cos_alpha_plus_gamma));
+			if(update_forces) {
+				// the torque is made steeper by multiplication of the derivative of the potential. It should work.
+				//torque.normalize();
+				torque = -(_kt / L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq)) * p->kt_pref;				//this torque is the same as above
+				// quadratic prefactor - here for sentimental reasons
+				//torque *= 2*A/( (SQR(_twist_b+cos_alpha_plus_gamma))*(_twist_b+cos_alpha_plus_gamma) );
+				torque *= 4 * A / ((SQR(_twist_b + cos_alpha_plus_gamma)) * (SQR(_twist_b + cos_alpha_plus_gamma)) * (_twist_b + cos_alpha_plus_gamma));
 
-// 				p->torque -= p->orientationT * torque;
-// 				q->torque += q->orientationT * torque;
-// 			}
-// 			energy = _kt * (1. + A / (SQR( -cos_alpha_plus_gamma - _twist_b) * SQR(-cos_alpha_plus_gamma - _twist_b)) + C);
-// 		}
-// 	}
+				p->torque -= p->orientationT * torque;
+				q->torque += q->orientationT * torque;
+			}
+			energy = _kt * (1. + A / (SQR( -cos_alpha_plus_gamma - _twist_b) * SQR(-cos_alpha_plus_gamma - _twist_b)) + C);
+		}
+	}
 
-// 	energy *= _kt_pref[p->index];
+	energy *= p->kt_pref;
 	return energy;
 }
 
-number PHBInteraction::bonded_alignment(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-	return 0;
-}
-// //	return the alignment term of the interaction energy.
+number PHBInteraction::bonded_alignment(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces) {
+//	return the alignment term of the interaction energy.
 
-// 	LR_vector up, tp;
-// 	// these particles are initialised to P_VIRTUAL to prevent gcc from complaining
-// 	BaseParticle *backp = P_VIRTUAL, *frontp = P_VIRTUAL;
+	LR_vector up, tp;
+	// these particles are initialised to P_VIRTUAL to prevent gcc from complaining
+	BaseParticle *backp = P_VIRTUAL, *frontp = P_VIRTUAL;
 // //	make sure the particle q follows p and not the contrary
 
-// 	if(q == p->n5) {
-// 		up = p->orientationT.v1;
-// 		tp = q->pos - p->pos;
-// 		backp = p;
-// 		frontp = q;
-// 	} //now this only happens for the last particle, so this means that the particle p has to be aligned with the vector between r_p - r_q
-// 	else if(p == q->n5) {
+	if(q->index>p->index) {
+		up = p->orientationT.v1;
+		tp = q->pos - p->pos;
+		backp = p;
+		frontp = q;
+	} //now this only happens for the last particle, so this means that the particle p has to be aligned with the vector between r_p - r_q
+// 	else if(p == q->n5) { // subho my model already takes care of the problem
 // 		//new bit
 // 		up = p->orientationT.v1;
 // 		tp = p->pos - q->pos;
@@ -327,18 +323,18 @@ number PHBInteraction::bonded_alignment(BaseParticle *p, BaseParticle *q, bool c
 // 		printf("CHe cazzo ci faccio qua io?\n");
 // 		abort();
 // 	}
-// 	number tpm = tp.module();
-// 	if(update_forces) {
-// 		LR_vector force = _ka * (up - tp * (up * tp) / SQR(tpm)) / tpm;
-// 		backp->force -= force;
-// 		frontp->force += force;
-// 		//only the torque on p is updated, since this interaction term is basically a self-interaction
-// 		//that keeps a particle's u vector aligned with  its tangent vector.
-// 		backp->torque -= backp->orientationT * ((_ka * tp.cross(up)) / tpm);
-// 	}
+	number tpm = tp.module();
+	if(update_forces) {
+		LR_vector force = _ka * (up - tp * (up * tp) / SQR(tpm)) / tpm;
+		backp->force -= force;
+		frontp->force += force;
+		//only the torque on p is updated, since this interaction term is basically a self-interaction
+		//that keeps a particle's u vector aligned with  its tangent vector.
+		backp->torque -= backp->orientationT * ((_ka * tp.cross(up)) / tpm);
+	}
 
-// 	return _ka * (1 - (up * tp) / tpm);
-// }
+	return _ka * (1 - (up * tp) / tpm);
+}
 
 
 // number PHBInteraction::maxRadius(std::vector<PHBParticle*> &particles){
