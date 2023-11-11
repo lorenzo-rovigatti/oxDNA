@@ -355,6 +355,8 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	std::cout<<temp<<std::endl;
 	std::stringstream head(temp);
 	head>>totPar>>strands; //saving header info
+	*N_strands=strands; // This one is important don't forget
+
 	allocate_particles(particles);
 	i=0;
 	string line;

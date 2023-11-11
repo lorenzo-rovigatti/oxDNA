@@ -13,7 +13,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORCE_INLINES")
 
 OPTION(CUDA "Set to ON to compile with CUDA support" ON)
 OPTION(MPI "Set to ON to compile with MPI support" OFF)
-OPTION(Debug "Set to ON to compile with debug symbols" OFF)
+OPTION(Debug "Set to ON to compile with debug symbols" ON)
 OPTION(G "Set to ON to compile with optimisations and debug symbols" OFF)
 OPTION(INTEL "Use the Intel compiler" OFF)
 OPTION(MOSIX "Make oxDNA compatible with MOSIX" OFF)
