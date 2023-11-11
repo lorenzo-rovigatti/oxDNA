@@ -49,8 +49,8 @@ patchyStrength=1
 
 ##############################
 #parfile = replica.par
-topology = 8.top
-conf_file = 8.dat
+topology = 128.top
+conf_file = 128.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.dat
 log_file = log.ign
