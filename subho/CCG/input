@@ -41,7 +41,7 @@ ensemble = NVT
 ####     INTERACTIONS     ####
 ##############################
 rcut=20
-# damp=1e-4
+damp=0
 # patchyB=1000
 patchyStrength=1
 # patchyRstar=0.88
@@ -49,8 +49,8 @@ patchyStrength=1
 
 ##############################
 #parfile = replica.par
-topology = 128.top
-conf_file = 128.dat
+topology = 125.top
+conf_file = 125.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.dat
 log_file = log.ign

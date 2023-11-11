@@ -19,8 +19,8 @@ public:
     std::vector<int> spring_neighbours;
     std::vector<double>Bfactor,ro;
     double radius,strength=1.0f;
-    // int lockedTo; //to have patchy interaction between single pair
-    // bool multipatch;// if multiple patches could attach or not.
+    // int lockedTo=0; //to have patchy interaction between single pair
+    // bool multipatch=true;// if multiple patches could attach or not.
 };
 
 

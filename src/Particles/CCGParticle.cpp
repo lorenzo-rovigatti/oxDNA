@@ -9,8 +9,6 @@ CCGParticle::CCGParticle():BaseParticle(){
     Bfactor={};
     ro={};
     strength=1;
-    // lockedTo=0; // patchy particle with index 0 should not exists
-    // multipatch=true; // if multiple patches could attach or not
 }
 
 CCGParticle::~CCGParticle(){
