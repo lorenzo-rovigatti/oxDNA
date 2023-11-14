@@ -156,7 +156,7 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
 
 	}	
 	*/
-	OX_LOG(Logger::LOG_INFO,"Running oxDRH with oxDNA2 & oxRNA2.");
+	OX_LOG(Logger::LOG_INFO,"Running oxNA with oxDNA2 & oxRNA2.");
 }
 
 
@@ -175,8 +175,8 @@ void DRHInteraction::get_settings(input_file &inp) {
 	//ADD SOMETHING TO OVERWRITE SEQ_DEP_FILE FOR DNA AND RNA
 
 	if(!DNA2Interaction::_average) {
-		getInputString(&inp, "seq_dep_file_DRH", _seq_filename, 1);
-		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent DRH values",_seq_filename.c_str());
+		getInputString(&inp, "seq_dep_file_NA", _seq_filename, 1);
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent NA values",_seq_filename.c_str());
 	}
 }
 
@@ -1013,7 +1013,7 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 			getInputString(&seq_input, "specs", sequence, 1);
 			if(getInputString(&seq_input, "type", type, 0) == KEY_FOUND) {
 				if( !((type == "DNA") || (type == "RNA")) ) {
-					throw oxDNAException("topology file, strand %d (line %d): the DRH interaction only supports type=DNA and type=RNA strands", ns, ns + 1);
+					throw oxDNAException("topology file, strand %d (line %d): the NA interaction only supports type=DNA and type=RNA strands", ns, ns + 1);
 				}
 			}
 
@@ -1036,7 +1036,7 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 		N_from_topology = current_idx;
 	}
 	else {
-		throw oxDNAException("The DRH interaction type only supports topology files in the new format");
+		throw oxDNAException("The NA interaction type only supports topology files in the new format");
 	}
 	if(N_from_topology != (int) particles.size()) {
 		throw oxDNAException("The number of particles specified in the header of the topology file (%d) "
@@ -1061,7 +1061,7 @@ void DRHInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 
 			if(getInputString(&seq_input, "type", type, 0) == KEY_FOUND) {
 				if( !((type == "DNA") || (type == "RNA")) ) {
-					throw oxDNAException("topology file, strand %d (line %d): the DRH interaction only supports type=DNA and type=RNA strands", ns, ns + 1);
+					throw oxDNAException("topology file, strand %d (line %d): the NA interaction only supports type=DNA and type=RNA strands", ns, ns + 1);
 				}
 			}
 

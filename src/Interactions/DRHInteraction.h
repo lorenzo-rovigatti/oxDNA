@@ -16,7 +16,7 @@
  * Handles nucleic acid interactions in DNA/RNA hybrid (DRH) systems. As much as possible
  * is inherited from DNA2/RNA2, and new hybrid inter-strand interactions are defined here.
  * 
- * To use, set interaction_type = DRH.
+ * To use, set interaction_type = NA.
  *
  * 
  **/
