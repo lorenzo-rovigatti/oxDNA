@@ -24,7 +24,7 @@ echo ""
 
 echo "Testing bond_analysis..."
 if
-    python ../src/oxDNA_analysis_tools/bond_analysis.py -p2 input_rna minitraj.dat pairs.txt pairs.json 2>&1 >/dev/null | grep -y "ERROR"
+    python ../src/oxDNA_analysis_tools/bond_analysis.py -p2 input_rna minitraj.dat pairs.txt 2>&1 >/dev/null | grep -y "ERROR"
 then
     echo "AN ERROR OCCURED"
 else

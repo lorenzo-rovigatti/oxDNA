@@ -28,7 +28,6 @@ RNAInteraction::RNAInteraction() :
 
 	OX_LOG(Logger::LOG_INFO,"Running oxRNA version %s",RNA_MODEL_VERSION);
 	_generate_consider_bonded_interactions = true;
-	_drh_interaction = false;
 
 	_use_mbf = false;
 	_mbf_xmax = 0.f;
@@ -53,8 +52,9 @@ void RNAInteraction::get_settings(input_file &inp) {
 
 	if(getInputBool(&inp, "use_average_seq", &_average, 0) == KEY_FOUND) {
 		if(!_average) {
-
-			if(_drh_interaction){
+			std::string inter_type;
+			getInputString(&inp, "interaction_type", inter_type, 0);
+			if(inter_type.compare("DRH") || inter_type.compare("DRH_relax")) {
 				getInputString(&inp, "seq_dep_file_RNA", _seq_filename, 1);
 			} else {
 				getInputString(&inp, "seq_dep_file", _seq_filename, 1);

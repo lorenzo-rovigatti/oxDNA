@@ -2,8 +2,8 @@ from setuptools import setup
 import os
 
 import sys
-if sys.version_info < (3,0):
-    sys.exit('Error, Python < 3.0 is not supported')
+if sys.version_info < (3,8):
+    sys.exit('Error, Python < 3.8 is not supported')
 
 setup(
     name = 'oxpy',

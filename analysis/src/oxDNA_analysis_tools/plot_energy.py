@@ -38,8 +38,7 @@ def main():
         if "both" in args.format:
             hist = line = True
         if hist == line == False:
-            print("ERROR: unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"", file=stderr)
-            exit(1)
+            raise RuntimeError("Unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"")
     else:
         print("INFO: No graph format specified, defaulting to histogram", file=stderr)
         hist = True
@@ -77,6 +76,7 @@ def main():
         plt.ylabel("Normalized frequency")
         if outfile:
             print("INFO: Saving histogram to {}".format(out), file=stderr)
+            plt.tight_layout()
             plt.savefig(out)
         else:
             plt.show()
@@ -98,6 +98,7 @@ def main():
         plt.ylabel("Energy (SU)")
         if outfile:
             print("INFO: Saving line plot to {}".format(out), file=stderr)
+            plt.tight_layout()
             plt.savefig(out)
         else:
             plt.show()

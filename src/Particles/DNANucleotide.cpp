@@ -19,7 +19,6 @@ DNANucleotide::DNANucleotide(bool grooving) :
 	// -- Ben 1/8/13
 	int_centers.resize(3);
 	_grooving = grooving;
-	acid_type = 'D';
 }
 
 DNANucleotide::~DNANucleotide() {

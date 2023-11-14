@@ -75,12 +75,14 @@ struct mutual_trap {
 	int p_ind;
 	bool PBC;
 	c_number rate;
+	c_number stiff_rate;
 };
 
 void init_MutualTrap_from_CPU(mutual_trap *cuda_force, MutualTrap *cpu_force) {
 	cuda_force->type = CUDA_TRAP_MUTUAL;
 	cuda_force->rate = cpu_force->_rate;
 	cuda_force->stiff = cpu_force->_stiff;
+	cuda_force->stiff_rate = cpu_force->_stiff_rate;
 	cuda_force->r0 = cpu_force->_r0;
 	cuda_force->p_ind = cpu_force->_p_ptr->index;
 	cuda_force->PBC = cpu_force->PBC;

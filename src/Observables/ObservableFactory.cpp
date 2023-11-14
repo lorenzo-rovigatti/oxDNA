@@ -58,7 +58,9 @@
 #include "Configurations/TEPxyzOutput.h"
 #include "Configurations/JordanOutput.h"
 
+#ifdef JSON_ENABLED
 #include <nlohmann/json.hpp>
+#endif
 
 ObservablePtr ObservableFactory::make_observable(input_file &obs_inp) {
 	char obs_type[512];
@@ -148,6 +150,7 @@ std::vector<ObservableOutputPtr> ObservableFactory::make_observables(std::string
 
 	std::string obs_filename;
 	if(getInputString(CONFIG_INFO->sim_input, obs_key.c_str(), obs_filename, 0) == KEY_FOUND) {
+#ifdef JSON_ENABLED
 		OX_LOG(Logger::LOG_INFO, "Parsing JSON observable file %s", obs_filename.c_str());
 
 		ifstream external(obs_filename.c_str());
@@ -184,6 +187,9 @@ std::vector<ObservableOutputPtr> ObservableFactory::make_observables(std::string
 
 		external.close();
 		OX_LOG(Logger::LOG_INFO, "   Observable file parsed");
+#else
+		throw oxDNAException("Cannot parse the JSON observable file %s since JSON has been disabled at compile time", obs_filename.c_str());
+#endif
 	}
 
 	return result;

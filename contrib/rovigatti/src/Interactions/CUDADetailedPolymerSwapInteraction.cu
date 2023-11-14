@@ -41,8 +41,6 @@ __constant__ float MD_3b_B_part[1];
 __constant__ bool MD_enable_semiflexibility[1];
 __constant__ float MD_semiflexibility_k[1];
 
-texture<float, 1, cudaReadModeElementType> tex_eps;
-
 #include "CUDA/cuda_utils/CUDA_lr_common.cuh"
 
 struct __align__(16) CUDA_FS_bond {
@@ -109,7 +107,7 @@ __device__ void _WCA(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *bo
 	F.w += energy;
 }
 
-__device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int eps_idx, int q_idx, c_number4 &F, CUDA_FS_bond_list &bond_list, CUDABox *box) {
+__device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int eps_idx, int q_idx, c_number4 &F, CUDA_FS_bond_list &bond_list, cudaTextureObject_t tex_eps, CUDABox *box) {
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
@@ -120,7 +118,7 @@ __device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int eps_idx, int q_idx
 	if(sqr_r < MD_sqr_3b_rcut[0]) {
 		c_number r_mod = sqrtf(sqr_r);
 		c_number delta_r = r_mod - MD_3b_rcut[0];
-		c_number epsilon = tex1Dfetch(tex_eps, eps_idx);
+		c_number epsilon = tex1Dfetch<c_number>(tex_eps, eps_idx);
 		// given the finite precision of floating point numbers, this might be equal to or ever-so-slightly larger than 0
 		if(delta_r < 0.f && epsilon != 0.f) {
 			c_number exp_part = expf(MD_3b_sigma[0] / delta_r);
@@ -260,7 +258,7 @@ __device__ bool _sticky_interaction(int p_btype, int q_btype) {
 }
 
 // forces + second step with verlet lists
-__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *number_neighs, CUDABox *box) {
+__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *number_neighs, cudaTextureObject_t tex_eps, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -282,7 +280,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 
 			if(_sticky_interaction(p_btype, q_btype)) {
 				int eps_idx = p_btype + MD_interaction_matrix_size[0] * q_btype;
-				_sticky(ppos, qpos, eps_idx, q_index, F, bonds, box);
+				_sticky(ppos, qpos, eps_idx, q_index, F, bonds, tex_eps, box);
 			}
 		}
 	}
@@ -309,6 +307,10 @@ CUDADetailedPolymerSwapInteraction::~CUDADetailedPolymerSwapInteraction() {
 
 	if(_d_3b_epsilon != nullptr) {
 		CUDA_SAFE_CALL(cudaFree(_d_3b_epsilon));
+	}
+
+	if(_tex_eps != 0) {
+		cudaDestroyTextureObject(_tex_eps);
 	}
 }
 
@@ -373,7 +375,7 @@ void CUDADetailedPolymerSwapInteraction::cuda_init(int N) {
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_3b_epsilon, _3b_epsilon.size() * sizeof(float)));
 	std::vector<float> h_3b_epsilon(_3b_epsilon.begin(), _3b_epsilon.end());
 	CUDA_SAFE_CALL(cudaMemcpy(_d_3b_epsilon, h_3b_epsilon.data(), _3b_epsilon.size() * sizeof(float), cudaMemcpyHostToDevice));
-	CUDA_SAFE_CALL(cudaBindTexture(NULL, tex_eps, _d_3b_epsilon, _3b_epsilon.size() * sizeof(float)));
+	GpuUtils::init_texture_object(&_tex_eps, cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat), _d_3b_epsilon, _3b_epsilon.size());
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_enable_semiflexibility, &_enable_semiflexibility, sizeof(bool)));
 	COPY_NUMBER_TO_FLOAT(MD_semiflexibility_k, _semiflexibility_k);
@@ -391,7 +393,7 @@ void CUDADetailedPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_n
 
 	ps_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, d_box);
+		(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, _tex_eps, d_box);
 	CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap error");
 
 	// add the three body contributions to the two-body forces

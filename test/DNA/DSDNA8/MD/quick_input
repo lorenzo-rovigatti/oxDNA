@@ -15,8 +15,8 @@ dt = 0.005
 verlet_skin = 0.05
 
 ####    INPUT / OUTPUT    ####
-topology = dsdna8.top
-conf_file = init.dat
+topology = ../dsdna8.top
+conf_file = ../init.dat
 trajectory_file = trajectory.dat
 refresh_vel = 1
 log_file = log.dat

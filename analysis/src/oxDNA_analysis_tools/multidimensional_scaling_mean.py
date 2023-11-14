@@ -56,7 +56,7 @@ def devs_mds(ctx:DevsContext, chunk_size:int, chunk_id:int, ):
     devs = np.zeros((ctx.top_info.nbases, ctx.top_info.nbases))
 
     for c in np_poses:
-        c_map = vectorized_min_image(c, c, confs[0].box)
+        c_map = vectorized_min_image(c, c, confs[0].box[0])
         masked_distances = np.ma.masked_array(c_map, ~(c_map < CUTOFF))
 
         # Fill the masked values with the cutoff.  Not sure if this is the best practice here.
@@ -152,7 +152,7 @@ def main():
         outfile = "mean_mds.dat"
         print("INFO: No outfile name provided, defaulting to \"{}\"".format(outfile), file=stderr)
 
-    write_conf(outfile,mean_conf)
+    write_conf(outfile,mean_conf, include_vel=traj_info.incl_v)
     print("INFO: Wrote mean to {}".format(outfile), file=stderr)
 
     devs = distance_deviations(traj_info, top_info, masked_mean, ncpus)

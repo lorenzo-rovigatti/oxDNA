@@ -1,0 +1,41 @@
+####  PROGRAM PARAMETERS  ####
+backend = CPU
+#debug = 1
+seed = 129382
+
+####    SIM PARAMETERS    ####
+steps = 0
+newtonian_steps = 103
+diff_coeff = 2.50
+#pt = 0.1
+thermostat = john
+
+T = 20C 
+dt = 0.005
+verlet_skin = 0.05
+
+interaction_type = DNA2
+salt_concentration = 1.0
+
+####    INPUT / OUTPUT    ####
+topology = ../init.top
+conf_file = ../init.dat
+trajectory_file = trajectory.dat
+refresh_vel = 1
+log_file = log.dat
+no_stdout_energy = 1
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e5
+print_energy_every = 1e3 
+time_scale = linear
+external_forces = 0
+
+data_output_1 = {
+    name = split_energy.dat
+    print_every = 1
+    col_1 = {
+        type = potential_energy
+        split = true
+    }
+}

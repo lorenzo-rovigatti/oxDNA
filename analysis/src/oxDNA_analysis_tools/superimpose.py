@@ -8,7 +8,7 @@ from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 from oxDNA_analysis_tools.align import svd_align
 
 
-def superimpose(ref:Configuration, victims:List[Configuration], indexes:List[int]=None):
+def superimpose(ref:Configuration, victims:List[str], indexes:List[int]=[]):
     """
     Superimposes one or more structures sharing a topology to a reference structure
 
@@ -20,6 +20,9 @@ def superimpose(ref:Configuration, victims:List[Configuration], indexes:List[int
     Returns:
         Aligned configurations (List[Configuration])
     """
+
+    if indexes == []:
+        indexes = list(range(len(ref.positions)))
 
     ref = inbox(ref)
     # alignment requires the ref to be centered at 0.  Inboxing did not take the indexing into account.
@@ -69,14 +72,14 @@ def main():
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
     else: 
         indexes = list(range(top_info.nbases))
 
     aligned = superimpose(ref_conf, args.victims, indexes)
 
     for i, conf in enumerate(aligned):
-        write_conf("aligned{}.dat".format(i), conf)
+        write_conf("aligned{}.dat".format(i), conf, include_vel=ref_info.incl_v)
         print("INFO: Wrote file aligned{}.dat".format(i), file=stderr)
 
 if __name__ == '__main__':

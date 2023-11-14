@@ -13,8 +13,10 @@ except ImportError:
     from setuptools import Extension
     USING_CYTHON = False
 
+OAT_DIR = os.path.dirname(__file__)
+
 ext = 'pyx' if USING_CYTHON else 'c'
-sources = glob('src/oxDNA_analysis_tools/cython_utils/*.%s' % (ext,))
+sources = glob('src/oxDNA_analysis_tools/cython_utils/*.{}'.format(ext))
 extensions = [
     Extension('oxDNA_analysis_tools.UTILS.'+source.split(os.path.sep)[-1].split('.')[0],
               sources=[source]) for source in sources]
@@ -22,14 +24,14 @@ extensions = [
 if USING_CYTHON:
     extensions = cythonize(extensions, compiler_directives={'language_level' : "3"})
 
-
 # Get version number
 def get_property(prop):
-    result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(prop), open('src/oxDNA_analysis_tools/__init__.py').read())
+    init_location = os.path.join(OAT_DIR, 'src/oxDNA_analysis_tools/__init__.py')
+    result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(prop), open(init_location).read())
     return result.group(1)
 
 #invoke actual setup
-setup(version=get_property('__version__'), ext_modules=extensions, include_dirs=[np.get_include()])
+setup(name="oxDNA-analysis-tools", version=get_property('__version__'), ext_modules=extensions, include_dirs=[np.get_include()])
 
 #Notification about command line interface and autocompletes
 print("\n\n################################################################################")

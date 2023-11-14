@@ -45,7 +45,7 @@ def split_trajectory(traj_info, top_info, labs):
 
     for chunk in linear_read(traj_info, top_info):
         for conf in chunk:
-            files[labs[i]].write(conf_to_str(conf))
+            files[labs[i]].write(conf_to_str(conf, include_vel=traj_info.incl_v))
             i += 1
     [f.close() for f in files]
 
@@ -92,7 +92,7 @@ def get_centroid(points, metric_name, labs, traj_info, top_info) -> List[int]:
 
         centroid = get_confs(top_info, traj_info, centroid_id, 1)[0]
         fname = "centroid_"+str(cluster)+".dat"
-        write_conf(fname, centroid)
+        write_conf(fname, centroid, include_vel=traj_info.incl_v)
         print(f"INFO: Wrote centroid file {fname}", file=stderr)
 
     return cids
@@ -179,6 +179,7 @@ def make_plot(op, labels, centroid_ids):
         handles, _ = cen.legend_elements(prop="colors", num = 1)
         l = ax.legend(handles, ['Centroids'])
         ax.add_artist(l)
+        plt.tight_layout()
         plt.savefig(plot_file)
     print("INFO: Saved cluster plot to {}".format(plot_file), file=stderr)
 

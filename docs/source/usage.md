@@ -36,6 +36,10 @@ confGenerator <input_file> <box|density> [key1=value1] [key2=value2] [...]
 
 In addition to the input file, *confGenerator* takes another mandatory argument whose meaning depends on its value. It specifies the simulation box if it is a single number larger than 2 (in which case the simulation box is assumed to be cubic) or if it is an x-separated triplet of numbers that specify the length of the edges of the box (which is assumed to be a cuboid). By contrast, the second mandatory argument is interpreted as a number density if it is smaller than 2.
 
+```{warning}
+This tool generates a configuration by inserting one particle (nucleotide) at a time, provided that its interaction energy does not exceed some predetermined value (which can be set with `energy_threshold`). It does so by placing each nucleotide randomly, but close to its neighbours, so that it is not too unlikely to end up with a non-overstretched bond. Unfortunately, this procedure makes it extremely unlikely to successfully generate a circular strand.
+```
+
 The following examples generate random initial configurations in a cubic box of size 10, in a cuboid of sizes 10x5x15 and in a cubic box with edge $L$ such that $N / L^3 = 0.1$, where $N$ is the total number of nucleotides specified in the topology file.
 
 ```text
