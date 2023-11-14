@@ -179,7 +179,7 @@ void DRHInteraction::get_settings(input_file &inp) {
 
 	if(!DNA2Interaction::_average) {
 		getInputString(&inp, "seq_dep_file_NA", _seq_filename, 1);
-		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent NA values",_seq_filename);
+		OX_LOG(Logger::LOG_INFO, "Using '%s' as the input for sequence-dependent NA values",_seq_filename.c_str());
 	}
 }
 
