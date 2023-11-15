@@ -14,10 +14,10 @@ T = 20C
 dt = 0.005
 verlet_skin = 0.05
 
-interaction_type = DRH
+interaction_type = NA
 salt_concentration = 1.0
 use_average_seq = true
-seq_dep_file = ../../../../DRH_sequence_dependent_parameters.txt
+seq_dep_file = ../../../../NA_sequence_dependent_parameters.txt
 
 ####    INPUT / OUTPUT    ####
 topology = ../init.top
