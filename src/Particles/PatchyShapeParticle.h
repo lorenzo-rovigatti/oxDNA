@@ -56,7 +56,7 @@ struct Patch {
 };
 
 ///Excluded volume center
-template <typename number>
+
 struct ExcVolCenter {
  LR_vector position; //the position of the excvol with respect to the CM of the particle
  number radius;  //radius of the excvol

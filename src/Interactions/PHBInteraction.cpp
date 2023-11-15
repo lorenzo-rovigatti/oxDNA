@@ -108,7 +108,37 @@ number PHBInteraction::_repulsive_lj2(number prefactor, const LR_vector &r, LR_v
 	return energy;
 };
 
-number PHBInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+number PHBInteraction::fene(PHBParticle *p, PHBParticle *q, bool compute_r,bool update_forces){ // For now this function is not being used 
+	if(compute_r){ 
+		_computed_r = _box->min_image(p->pos,q->pos);
+		rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
+	}
+	double k,r0;
+	p->return_kro(q->index,&k,&r0);
+	r0=rmod-r0; // Distance between the particles - equilibrium distance
+	double energy = -0.5*k*log(1 - SQR(r0) / tepFeneDelta2);
+	if(fabs(r0) > tepFeneDelta - DBL_EPSILON) {
+		if(update_forces && !_allow_broken_fene) {
+			throw oxDNAException("(TEPInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(r0));
+		}
+		return (number) (1.e12); //Explode the simulation
+	}
+	double totalRadius = p->radius+q->radius;
+	double sigma=totalRadius*patchySigma;
+	double rstar=totalRadius*patchyRstar;
+	double b = patchyB/SQR(totalRadius);
+	double rc = patchyRc*totalRadius;
+	LR_vector force;
+	energy+=_repulsive_lj2(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
+	if(update_forces) {
+		force += _computed_r * (-(k * r0 / (tepFeneDelta2 - r0 * r0)) / rmod);
+		p->force -= force;
+		q->force += force;
+	}
+	return energy;
+}
+
+number PHBInteraction::spring(PHBParticle *p, PHBParticle *q, bool compute_r,bool update_forces){
 	// updating _computed_r is necessary.
 	if(compute_r){ 
 		_computed_r = _box->min_image(p->pos,q->pos);
@@ -117,9 +147,9 @@ number PHBInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	}
 	// _computed_r = _box->min_image(p->pos,q->pos);
 	// rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
-	auto *pCG = static_cast<CCGParticle*>(p);
+	// auto *pCG = static_cast<CCGParticle*>(p);
 	double k,r0;
-	pCG->return_kro(q->index,&k,&r0);
+	p->return_kro(q->index,&k,&r0);
 	double dist=rmod-r0; // Distance between the particles - equilibrium distance
 	double energy = 0.25*k*SQR(dist); // Energy = 1/2*k*x^2 but 1/2 for one particle and 1/2 for other
 	// std::cout<<energy<<std::endl;
