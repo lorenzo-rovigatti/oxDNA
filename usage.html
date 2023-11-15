@@ -203,6 +203,10 @@
 </pre></div>
 </div>
 <p>In addition to the input file, <em>confGenerator</em> takes another mandatory argument whose meaning depends on its value. It specifies the simulation box if it is a single number larger than 2 (in which case the simulation box is assumed to be cubic) or if it is an x-separated triplet of numbers that specify the length of the edges of the box (which is assumed to be a cuboid). By contrast, the second mandatory argument is interpreted as a number density if it is smaller than 2.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This tool generates a configuration by inserting one particle (nucleotide) at a time, provided that its interaction energy does not exceed some predetermined value (which can be set with <code class="docutils literal notranslate"><span class="pre">energy_threshold</span></code>). It does so by placing each nucleotide randomly, but close to its neighbours, so that it is not too unlikely to end up with a non-overstretched bond. Unfortunately, this procedure makes it extremely unlikely to successfully generate a circular strand.</p>
+</div>
 <p>The following examples generate random initial configurations in a cubic box of size 10, in a cuboid of sizes 10x5x15 and in a cubic box with edge <span class="math notranslate nohighlight">\(L\)</span> such that <span class="math notranslate nohighlight">\(N / L^3 = 0.1\)</span>, where <span class="math notranslate nohighlight">\(N\)</span> is the total number of nucleotides specified in the topology file.</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>confGenerator input 10
 confGenerator input 10x5x15
