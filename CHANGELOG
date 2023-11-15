@@ -1,4 +1,21 @@
-v. 3.5.2
+v. 3.6.0
+	- Add 6 more tests to the `run` level; these tests use the new topology and check that the DNA, RNA and NA interactions compute the right energies for a short nicked duplex
+	- Add support for a "new" topology format where nucleotides are listed in the 5' -> 3' order, which is the standard in the community
+	- Add the NA interaction, which can be used to simulate hybrid DNA/RNA systems (by @eryykr, see #68)
+	- Add a old<->new topology converter to the `utils` folder
+	- Add an option `stiff_rate` to the `mutual_trap` force
+	- Remove a few warnings when compiling with CUDA
+	- Fix the computation of the stress tensor on the GPU
+	oxpy:
+	  - Update pybind to make oxpy compatible with newer Python versions
+	  - Deprecate support for Python versions < 3.8
+	  - Add (undocumented) support for `-Dpython=On` and `-DPYTHON=On`
+	oat:
+	  - Add support for the new topology format
+	  - Fixed an error in the oxDNA_PDB CLI parser
+	  - Added error handling for truncated trajectories in the oat parser (see #67)
+
+v. 3.5.2 [50479f2]
 	oat: 
 	  - remove usage of `|` to specify type annotations for unions to make oat compatible with Python 3.9
       - improve the portability of the `setup.py` script to fix installation issues on some systems

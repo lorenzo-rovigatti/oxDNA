@@ -14,7 +14,7 @@ T = 20C
 dt = 0.005
 verlet_skin = 0.05
 
-interaction_type = DRH
+interaction_type = NA
 salt_concentration = 1.0
 
 ####    INPUT / OUTPUT    ####
