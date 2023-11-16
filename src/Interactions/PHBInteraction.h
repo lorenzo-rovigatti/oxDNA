@@ -3,7 +3,7 @@
 #ifndef PHBInteraction_H_
 #define PHBInteraction_H_
 #include "BaseInteraction.h"
-#include "../Particles/PHBParticle.h"
+#include "../Particles/PHBParticle.h" // This is helix particles + patchy particles
 #include <sstream>
 
 

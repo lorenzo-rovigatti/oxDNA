@@ -7,7 +7,7 @@
 PatchyShapeParticle::PatchyShapeParticle(int _N_patches, int _type, int _N_vertexes) :  BaseParticle() {
 	this->type = _type;
 	N_patches =  _N_patches;
-	N_vertexes = _N_vertexes;
+	N_vertexes = _N_vertexes; // this is unnecessary
 
 	// this->N_int_centers = N_patches+N_vertexes; //This is now a vector
 	
@@ -15,25 +15,21 @@ PatchyShapeParticle::PatchyShapeParticle(int _N_patches, int _type, int _N_verte
 	{
 		// this->int_centers = new LR_vector[N_patches+N_vertexes]; //Don't think one need to initilize this.
 		this->int_centers.resize(N_patches+N_vertexes);
-		this->patches = new Patch[N_patches];
-		this->_vertexes = new LR_vector[N_vertexes];
+		this->patches.resize(N_patches);
+		this->vertexes.resize(N_vertexes);
 
 	}
 	else
 	{
-		// this->int_centers = 0;
-		this->int_centers.resize(1);
-		// int_centers[0]=0;
-		this->patches = 0;
-		this->_vertexes = 0;
+		this->int_centers.clear();
+		this->patches.clear();
+		this->vertexes.clear();
 	}
 	//_set_base_patches();
 }
 
 
 PatchyShapeParticle::~PatchyShapeParticle() {
-	delete[] patches;
-	delete [] _vertexes;
 }
 
 
@@ -41,60 +37,38 @@ void PatchyShapeParticle::copy_from(const BaseParticle &b)
 {
   const PatchyShapeParticle *bb = dynamic_cast<const PatchyShapeParticle *>(&b);
   if (bb == 0)
-  {
 	  throw oxDNAException("Can't convert particle to PatchyShapeParticle by dynamic cast'. Aborting");
-  }
 
-  if( ! (this->int_centers.size() == b.int_centers.size() && this->N_patches == bb->N_patches && this->N_vertexes == bb->N_vertexes)      )
-  {
-	// delete [] this->int_centers;
-	this->int_centers.clear();
-	delete [] this->patches;
-	delete [] this->_vertexes;
-
+  if(!(this->int_centers.size() == b.int_centers.size() && this->N_patches == bb->N_patches && this->N_vertexes == bb->N_vertexes)){
 	this->int_centers.resize(bb->int_centers.size());
 	this->N_patches = bb->N_patches;
 	this->N_vertexes = bb->N_vertexes;
 
 	// this->int_centers = new LR_vector[bb->N_int_centers];
-	patches = new Patch[bb->N_patches];
-	_vertexes = new LR_vector[bb->N_vertexes];
+	patches.resize(bb->N_patches);
+	vertexes.resize(bb->N_vertexes);
   }
 
-  BaseParticle::copy_from(b);
+//   BaseParticle::copy_from(b);
 
-  for(int i =0 ; i < this->N_patches; i++)
-  {
-     // this->int_centers[i] = bb->int_centers[i];
-      this->patches[i] = bb->patches[i];
-  }
-  for(int i =0 ; i < this->N_vertexes; i++)
-  {
-      // this->int_centers[i] = bb->int_centers[i];
-       this->_vertexes[i] = bb->_vertexes[i];
-  }
+  for(int i =0 ; i < this->N_patches; i++)	this->patches[i] = bb->patches[i];
+  for(int i =0 ; i < this->N_vertexes; i++)	this->vertexes[i] = bb->vertexes[i];
 
 }
 
- void
-PatchyShapeParticle::add_patch(Patch &patch,int position) {
+ void PatchyShapeParticle::add_patch(Patch &patch,int position) {
 
 	if(position < 0 || position >= static_cast<int>(this->int_centers.size()))
-	{
-		 throw oxDNAException ("Could process patch id, please check that the patches of id %d are correct. Aborting",position);
-	}
+		throw oxDNAException ("Could process patch id, please check that the patches of id %d are correct. Aborting",position);
 	patches[position] = patch;
 }
 
 
 
 void PatchyShapeParticle::_set_base_patches() {
-
-
 	for(uint i = 0; i < this->int_centers.size(); i++) {
 		patches[i].a1.normalize();
 		patches[i].a2.normalize();
-		//patches[i] *= 0.5;
 	}
 }
 
@@ -115,18 +89,8 @@ void PatchyShapeParticle::set_positions() {
     }
 	for(int i = 0; i < this->N_vertexes; i++)
 	{
-			this->int_centers[this->N_patches+i] = this->orientation * this->_vertexes[i];
+			this->int_centers[this->N_patches+i] = this->orientation * this->vertexes[i];
 	}
-
-	/*
-	if(this->index == 0)
-	{
-		for(int i = 0; i < this->N_int_centers; i++)
-			{
-			printf("%d center: %f %f %f vertex: %f %f %f \n",i,this->int_centers[i].x,this->int_centers[i].y,this->int_centers[i].z,this->_vertexes[i].x,this->_vertexes[i].y,this->_vertexes[i].z);
-			}
-	}
-	*/
 
 }
 
@@ -178,20 +142,20 @@ void PatchyShapeParticle::_set_icosahedron_vertexes() {
 
 	// 12 vertexes of the icosahedron; circular
 	// permutations of (0, +/-a, +/-b)
-	_vertexes[ 0] = LR_vector( 0.,  a,  b);
-	_vertexes[ 1] = LR_vector( 0.,  a, -b);
-	_vertexes[ 2] = LR_vector( 0., -a,  b);
-	_vertexes[ 3] = LR_vector( 0., -a, -b);
+	vertexes[ 0] = LR_vector( 0.,  a,  b);
+	vertexes[ 1] = LR_vector( 0.,  a, -b);
+	vertexes[ 2] = LR_vector( 0., -a,  b);
+	vertexes[ 3] = LR_vector( 0., -a, -b);
 
-	_vertexes[ 4] = LR_vector(  b, 0.,  a);
-	_vertexes[ 5] = LR_vector(  b, 0., -a);
-	_vertexes[ 6] = LR_vector( -b, 0.,  a);
-	_vertexes[ 7] = LR_vector( -b, 0., -a);
+	vertexes[ 4] = LR_vector(  b, 0.,  a);
+	vertexes[ 5] = LR_vector(  b, 0., -a);
+	vertexes[ 6] = LR_vector( -b, 0.,  a);
+	vertexes[ 7] = LR_vector( -b, 0., -a);
 
-	_vertexes[ 8] = LR_vector(  a,  b, 0.);
-	_vertexes[ 9] = LR_vector(  a, -b, 0.);
-	_vertexes[10] = LR_vector( -a,  b, 0.);
-	_vertexes[11] = LR_vector( -a, -b, 0.);
+	vertexes[ 8] = LR_vector(  a,  b, 0.);
+	vertexes[ 9] = LR_vector(  a, -b, 0.);
+	vertexes[10] = LR_vector( -a,  b, 0.);
+	vertexes[11] = LR_vector( -a, -b, 0.);
 
 	// we now need to figure out which vertexes belong to which face
 	// angle between vertexes of the same face: 1.1071487177940436, ~63.435 degrees
@@ -199,23 +163,13 @@ void PatchyShapeParticle::_set_icosahedron_vertexes() {
 	// each vertex has 5 vertexes at 63, 5 more at 116 and 1 at 180 (opposite)
 
 
-	int nface = 0;
 	number thres = 0.;  // threshold angle is 90 degrees
 	for (int i = 0; i < 12; i ++) {
 		for (int j = 0; j < i; j ++) {
 			for (int k = 0; k < j; k ++) {
-				if ((_vertexes[i]*_vertexes[j] > thres) &&
-				    (_vertexes[i]*_vertexes[k] > thres) &&
-				    (_vertexes[j]*_vertexes[k] > thres)) {
-						//_faces[3*nface + 0] = i;
-						//_faces[3*nface + 1] = j;
-						//_faces[3*nface + 2] = k;
-						/*printf ("\n\n%d %d %d @\n", i, j, k);
-						printf ("%7.5g %7.5g %7.5g\n", _vertexes[i].x, _vertexes[i].y, _vertexes[i].z);
-						printf ("%7.5g %7.5g %7.5g\n", _vertexes[j].x, _vertexes[j].y, _vertexes[j].z);
-						printf ("%7.5g %7.5g %7.5g\n", _vertexes[k].x, _vertexes[k].y, _vertexes[k].z);
-						printf ("  %g %g %g\n", 4.f*(_vertexes[i]*_vertexes[j]), 4.f*(_vertexes[i]*_vertexes[k]), 4.*(_vertexes[j]*_vertexes[k]));*/
-						nface ++;
+				if ((vertexes[i]*vertexes[j] > thres) &&
+				    (vertexes[i]*vertexes[k] > thres) &&
+				    (vertexes[j]*vertexes[k] > thres)) {
 				}
 			}
 		}

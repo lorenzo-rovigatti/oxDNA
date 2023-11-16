@@ -16,11 +16,16 @@ struct Patch {
 
  int color; //this is the color of the patch
  number strength;  //sets the strength of the interaction
- number a1_x, a1_y, a1_z;
- number a2_x, a2_y, a2_z;
+ number a1_x=1, a1_y=0, a1_z=0;
+ number a2_x=1, a2_y=0, a2_z=0;
 
 
- Patch() {active = false; id = 0; color = -1; strength = 1; a1_x = a1_y = a1_z = a2_x = a2_y = a2_z = 0; set_lock(-1,-1,0);}
+ Patch() {
+	active = false; 
+	id = 0; 
+	color = -1; 
+	strength = 1; 
+	a1_x = a1_y = a1_z = a2_x = a2_y = a2_z = 0; set_lock(-1,-1,0);}
 
  Patch(LR_vector _a1_xyz, LR_vector _a2_xyz, LR_vector _position, int _id,int _color, number _strength=1.0,  bool _active = true) :
 	 position(_position), id(_id), active(_active),   color(_color), strength(_strength)
@@ -74,14 +79,17 @@ public:
 	int N_patches; //number of patches  = number of patches
 	int N_vertexes; //number of vertices of the shape; 0 = sphere
 
-    Patch *patches;
-    LR_vector *_vertexes;
+    std::vector<Patch> patches;
+    std::vector<LR_vector> vertexes;
 
 
 	void _set_base_patches();
 	PatchyShapeParticle(int N_patches=1 , int type = 0,int N_vertexes=0);
-	PatchyShapeParticle(const PatchyShapeParticle &b)
-	{patches = 0; this->_vertexes =  0; this->copy_from(b);}
+	PatchyShapeParticle(const PatchyShapeParticle &b){
+		patches.clear(); 
+		this->vertexes.clear();
+		this->copy_from(b);
+	}
 
 	virtual ~PatchyShapeParticle();
 
