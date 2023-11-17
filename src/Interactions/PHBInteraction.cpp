@@ -51,10 +51,11 @@ number PHBInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 };
 number PHBInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
     auto *pCG = dynamic_cast<PHBParticle*>(p);
+	auto *qCG = static_cast<PHBParticle*>(q);
 	number energy=0;
 	if(pCG->has_bond(q)){
 		energy+=exc_vol_nonbonded(p,q,compute_r,update_forces);
-		// energy += patchy_interaction(p,q,compute_r,update_forces);
+		energy+=patchy_interaction_notorsion(pCG,qCG,compute_r,update_forces);
 	}
 	return energy;
 };
@@ -82,7 +83,7 @@ double PHBInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool 
 
 number PHBInteraction::_repulsive_lj2(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
 	// this is a bit faster than calling r.norm()
-	number rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
+	rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
 	number energy = (number) 0;
 	if(rnorm < SQR(rc)) {
 		if(rnorm > SQR(rstar)) {
@@ -376,6 +377,12 @@ number PHBInteraction::bonded_alignment(PHBParticle *p, PHBParticle *q, bool com
 // };
 
 void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles){
+	//Variables that needs to be destroyed 
+	std::vector<Patch> patches; //stores the initial patches
+    Patch tempPatch; // temporary patch variable;
+    std::vector<int> tempColors; 
+	std::vector<std::vector<int>> particleColors;// store id corresponding to particle colors with patch info. 1 particleColor can have multiple patches
+	
     // char line[2048];
 	std::ifstream topology;
 	topology.open(this->_topology_filename,std::ios::in);
@@ -389,40 +396,83 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 
 	allocate_particles(particles);
 	i=0;
+	int j=0;
 	string line;
 	while(std::getline(topology,line)){
 		if(line.empty()||line[0]=='#') continue; //skip empty line and comment
 		if(line[0]=='i'){
-			if(line[1]=='P') continue; //these are Patchy informations
+			if(line[1]=='P'){ //these are Patchy informations
+				std::stringstream body(line);
+				j=0;
+				while(body.tellg()!=-1){
+					body>>temp;
+					// std::cout<< patches.size()<<std::endl;
+					if(j==1 && stoi(temp)!= static_cast<int> (patches.size())) throw oxDNAException("Ids of patches starts with 0 and should be monotonically increasing with gap of 1. We all sometime face counting problems!!!!!!");
+					if(j==2) tempPatch.color=stoi(temp);
+					if(j==3) tempPatch.strength=stod(temp);
+					if(j==4) tempPatch.position.x=stod(temp);
+					if(j==5) tempPatch.position.y=stod(temp);
+					if(j==6) tempPatch.position.z=stod(temp);
+					if(j==7) tempPatch.a1static.x=stod(temp);
+					if(j==8) tempPatch.a1static.y=stod(temp);
+					if(j==9) tempPatch.a1static.z=stod(temp);
+					if(j==10) tempPatch.a2static.x=stod(temp);
+					if(j==11) tempPatch.a2static.y=stod(temp);
+					if(j==12) tempPatch.a2static.z=stod(temp);
+					j++;
+				}
+				patches.push_back(tempPatch);
+				continue;
+			}
+			if(line[1]=='C'){//these are Color informations
+				std::stringstream body(line);
+				j=0;
+				while(body.tellg()!=-1){
+					body>>temp;
+					if(j==1 && stoi(temp)!=static_cast<int> (particleColors.size())) throw oxDNAException("Ids of colors starts with 0 and should be monotonically increasing with gap of 1. We all sometime face counting problems!!!!!!");
+					if(j>1){
+						tempColors.push_back(stoi(temp));
+					}
+					j++;
+				}
+				particleColors.push_back(tempColors);
+				continue;
+			}
 		}
 		auto *q = static_cast< PHBParticle *>(particles[i]); //Start working with PHB particles
 		std::stringstream body(line);
-		int j=0;
+		j=0;
 		while(body.tellg()!=-1){
 			body>>temp;
 			if(j==0) q->type=std::stoi(temp);
-			if(q->type==-3){
-				if(j==1) q->strand_id=std::stoi(temp);
-				if(j==2) q->btype=std::stoi(temp);
-				if(j==3) q->radius=std::stod(temp);
-				if(j>3){
-					int connection = std::stoi(temp);
-					if(body.tellg()==-1) throw oxDNAException("Missing color after connection");
-					body>>temp;
-					double bfact = std::stod(temp);
-					if(body.tellg()==-1) throw oxDNAException("Missing r0 after color");
-					body>>temp;
-					double tempro = std::stod(temp);
-					q->add_neighbour(particles[connection],bfact,tempro);
-				}
+			if(j==1) q->strand_id=std::stoi(temp);
+			if(j==2){
+				q->btype=std::stoi(temp); // btype is color don't forget
+				if(q->btype!=100) //if the color is not 100, it is non empty and do further operations
+					for(uint id=0;id<particleColors[q->btype].size();id++)
+						q->add_patch(patches[particleColors[q->btype][id]]);
 			}
-			if(q->type==-4){
-				std::cout<<"Patchy Particles"<<std::endl;
+			if(j==3) q->radius=std::stod(temp);
+			// if(q->type==-3){ /// These are helix particles
+				// std::cout<<"Hexlix Particle"<<std::endl;
+			if(j>3){
+				int connection = std::stoi(temp);
+				if(body.tellg()==-1) throw oxDNAException("Missing color after connection");
+				body>>temp;
+				double bfact = std::stod(temp);
+				if(body.tellg()==-1) throw oxDNAException("Missing r0 after color");
+				body>>temp;
+				double tempro = std::stod(temp);
+				q->add_neighbour(particles[connection],bfact,tempro);
 			}
+			// }
 			j++;
 		}
 		i++;
-	}
+	};
+	// auto *q = static_cast< PHBParticle *>(particles[0]);
+	// cout<<q->patches[0].a1static.x<<endl;
+	std::cout<<"Successfully completed topology reading with total types of patches = "<<patches.size()<< " and types of colored particles = "<<particleColors.size()<<std::endl;
 
 };
 
@@ -443,3 +493,112 @@ LR_vector PHBInteraction::rotateVectorAroundVersor(const LR_vector vector, const
 	LR_vector cross = versor.cross(vector);
 	return LR_vector(versor.x * scalar * (1. - costh) + vector.x * costh + cross.x * sinth, versor.y * scalar * (1. - costh) + vector.y * costh + cross.y * sinth, versor.z * scalar * (1. - costh) + vector.z * costh + cross.z * sinth);
 }
+
+
+///////// Patchy scense //////////////
+
+number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces){
+	rnorm = _computed_r.norm();
+	if(rnorm > this->patchyRcut2) return 0; // not within reach ignore
+	if(p->btype==100||q->btype==100) return 0; // no color present ignore
+	number energy=0;
+	int c = 0;
+	LR_vector tmptorquep(0, 0, 0);
+	LR_vector tmptorqueq(0, 0, 0);
+	for(uint pi=0;pi<p->patches.size();pi++){
+		LR_vector ppatch = p->int_centers[pi];
+		for(uint qi=0;qi<q->patches.size();qi++){
+			// if(bondingAllowed(p->patches[pi],q->patches[qi]))
+		}
+	}
+
+	return energy;
+}
+
+// number PatchyShapeInteraction::_patchy_interaction_notorsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+// 	LR_vector r=_computed_r;
+// 	if(compute_r){ 
+// 		_computed_r = _box->min_image(p->pos,q->pos);
+// 		r=_computed_r;
+// 	}
+
+// 	number rnorm = r.norm();
+// 	if(rnorm > this->_sqr_rcut) return (number) 0.f;
+
+// 	number energy = (number) 0.f;
+
+
+
+// 	PatchyShapeParticle *pp = static_cast<PatchyShapeParticle *>(p);
+// 	PatchyShapeParticle *qq = static_cast<PatchyShapeParticle *>(q);
+
+// 	int c = 0;
+// 	LR_vector tmptorquep(0, 0, 0);
+// 	LR_vector tmptorqueq(0, 0, 0);
+// 	for(int pi = 0; pi < pp->N_patches; pi++) {
+// 		LR_vector ppatch = p->int_centers[pi];
+
+// 		for(int pj = 0; pj < qq->N_patches; pj++) {
+
+// 			if(this->_bonding_allowed(pp,qq,pi,pj)  )
+// 			{
+
+// 				number K = pp->patches[pi].strength;
+// 			    LR_vector qpatch = q->int_centers[pj];
+
+// 			    LR_vector patch_dist = r + qpatch - ppatch;
+// 			    number dist = patch_dist.norm();
+
+
+// 			    if(dist < SQR(PATCHY_CUTOFF)) {
+
+// 				    c++;
+//                     number energy_ij = 0;
+
+// 				    number r8b10 = dist*dist*dist*dist / _patch_pow_alpha;
+// 				    number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * dist);
+
+
+// 				    number f1 =  K * (exp_part - _patch_E_cut);
+
+
+// 				    energy_ij = f1;// * angular_part;
+//                     energy += energy_ij;
+
+//                     if(update_forces && this->_no_multipatch)
+//                     {
+//                      if (energy_ij < this->_lock_cutoff )
+//                      {
+//                     	qq->patches[pj].set_lock(p->index,pi,energy_ij);
+//                         pp->patches[pi].set_lock(q->index,pj,energy_ij);
+//                      }
+//                      else
+//                      {
+//                     	qq->patches[pj].unlock();
+//                     	pp->patches[pi].unlock();
+
+//                      }
+
+//                     }
+
+// 				if(update_forces ) {
+// 					number f1D =  (5 * exp_part * r8b10);
+// 					LR_vector tmp_force = patch_dist * (f1D ); //patch_dist * (f1D * angular_part);
+// 					LR_vector torqueq(0,0,0) ; //= dir;
+//                     LR_vector torquep(0,0,0) ; //= dir;
+// 					torquep += ppatch.cross(tmp_force);
+// 					torqueq += qpatch.cross(tmp_force);
+
+
+// 					p->torque -= p->orientationT * torquep;
+// 					q->torque += q->orientationT * torqueq;
+
+// 					p->force -= tmp_force;
+// 					q->force += tmp_force;
+// 				}
+// 			   }
+// 			}
+// 		}
+// 	}
+// 	return energy;
+// }

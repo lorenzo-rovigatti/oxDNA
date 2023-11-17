@@ -15,9 +15,10 @@ public:
     int totPar,strands,totHelix,totPatchy; //topology
     int particleType;//body parameter
     int i; //temporary parameters
-    number rmod;
+    number rmod,rnorm;
     double damp=0;
-    double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=0,patchyInteractionDistanceCutoff=0,patchyB=667.505671539f;
+    double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=0,patchyInteractionDistanceCutoff=0,patchyB=667.505671539,patchyRcut=1.2;
+    double patchyRcut2=SQR(patchyRcut);
     double tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6; //currently not used
     double tepFeneDelta2=SQR(tepFeneDelta);
     number _ka = 100.,_kb = 21.,_kt = 29.7; //Energies
@@ -28,6 +29,10 @@ public:
 
     bool _allow_broken_fene = false, iLoveHarmonic=true; //special implementation for later
     std::string temp;
+
+    // Patchy variables
+
+
     // Necessary interaction
     virtual void get_settings(input_file &inp);
 	virtual void init();
@@ -51,6 +56,9 @@ public:
     virtual number bonded_twist(PHBParticle *p, PHBParticle *q, bool compute_r=true, bool update_forces=false);
     virtual number bonded_double_bending(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
     virtual number bonded_alignment(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
+
+    //Patchy Interactions
+    virtual number patchy_interaction_notorsion(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
 
     
 

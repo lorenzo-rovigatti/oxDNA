@@ -1,9 +1,10 @@
-8 1 4
+4 1 4
 # Header = Total Particles,Strands, Number of Patchy Particles
 # Additional information is written using i followed by code. Example Color information `iC`, Patch information `iP`;
 # iP = iP, color, strength,pos x y z, a1 x y z, a3 x y z
 # Diffrent patches together from cluster.
 # iC = ParticleColor, patch ids ...
+# ids of iP are read in sequential order don't, it is given here only for readablity purposes only.
 
 #Structure for patchy. All the iP information needs to be declared earlier
 
@@ -22,10 +23,9 @@ iP 10 -25 1 0 0.262866 -0.4253250 +0.2886751346 -0.5 -0.8164965809
 iC 0 0 1 2 3 4 5
 
 # Body for helix =  particleType, strand,color,radius, neighbour, bfactor, r0
--3 0 100 1 1 10 2.5
+-3 0 0 1 1 10 2.5
 -3 0 100 1 2 10 2.5
 -3 0 100 1 3 10 2.5
 -3 0 100 1
 
 # Body for Patchy = particleType, strand,iC,radius, neighbour, bfactor, r0
--4 -1 

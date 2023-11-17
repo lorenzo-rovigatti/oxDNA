@@ -17,7 +17,7 @@ max_density_multiplier = 10
 ####    SIM PARAMETERS    ####
 ##############################
 ### Universal Params ###
-T = 20C
+T = 0.230
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
@@ -52,7 +52,7 @@ patchyStrength=1
 topology = 125.top
 conf_file = 125.dat
 trajectory_file = trajectory.dat
-lastconf_file=last_conf.dat
+lastconf_file=last_confTemp230.dat
 log_file = log.ign
 no_stdout_energy = 0
 restart_step_counter = 1

@@ -115,7 +115,7 @@ SET(interactions_SOURCES
 	Interactions/DNA2Interaction.cpp
 	Interactions/CCGInteraction.cpp
 	Interactions/PSPInteraction.cpp
-	Interactions/PatchyShapeInteraction.cpp
+	# Interactions/PatchyShapeInteraction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
 	Interactions/RNAInteraction.cpp
@@ -201,7 +201,7 @@ SET(common_SOURCES
 	Particles/CCGParticle.cpp
 	Particles/PatchyParticle.cpp
 	Particles/PatchyParticleDan.cpp
-	Particles/PatchyShapeParticle.cpp
+	# Particles/PatchyShapeParticle.cpp
 	Particles/SpheroCylinder.cpp
 	Particles/CustomParticle.cpp
 	Particles/Molecule.cpp

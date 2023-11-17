@@ -56,7 +56,7 @@ void PatchyShapeParticle::copy_from(const BaseParticle &b)
 
 }
 
- void PatchyShapeParticle::add_patch(Patch &patch,int position) {
+void PatchyShapeParticle::add_patch(Patch &patch,int position) {
 
 	if(position < 0 || position >= static_cast<int>(this->int_centers.size()))
 		throw oxDNAException ("Could process patch id, please check that the patches of id %d are correct. Aborting",position);
