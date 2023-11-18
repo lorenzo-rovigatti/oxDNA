@@ -29,3 +29,4 @@ iC 0 0 1 2 3 4 5
 -3 0 100 1
 
 # Body for Patchy = particleType, strand,iC,radius, neighbour, bfactor, r0
+# Free patchy particle should have strand id =-1

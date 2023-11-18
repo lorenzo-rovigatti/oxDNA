@@ -501,6 +501,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 	rnorm = _computed_r.norm();
 	if(rnorm > this->patchyRcut2) return 0; // not within reach ignore
 	if(p->btype==100||q->btype==100) return 0; // no color present ignore
+	if(p->strand_id>=0 && p->strand_id==q->strand_id) return 0; // particle on same strand will not interact unless it is - ve.
 	number energy=0;
 	int c = 0;
 	LR_vector tmptorquep(0, 0, 0);
@@ -508,97 +509,67 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 	for(uint pi=0;pi<p->patches.size();pi++){
 		LR_vector ppatch = p->int_centers[pi];
 		for(uint qi=0;qi<q->patches.size();qi++){
-			// if(bondingAllowed(p->patches[pi],q->patches[qi]))
+			if(bondingAllowed(p,q,pi,qi)){
+				number K = p->patches[pi].strength;
+			    LR_vector qpatch = q->int_centers[qi];
+				LR_vector patch_dist = _computed_r + qpatch - ppatch;
+				number dist = patch_dist.norm();
+				if(dist < SQR(patchyCutOff)){
+					c++;
+                    number energy_ij = 0;
+
+				    number r8b10 = dist*dist*dist*dist / patchyPowAlpha;
+				    number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * dist);
+					number patch_E_cut = -1.001f * expf(-(number)0.5f * r8b10 * SQR(patchyCutOff));
+					number f1 =  K * (exp_part - patch_E_cut);
+					energy_ij = f1;// * angular_part;
+                    energy += energy_ij;
+
+					if(update_forces){
+						if (energy_ij <patchyLockCutOff){
+							q->patches[qi].set_lock(p->index,pi,energy_ij);
+							p->patches[pi].set_lock(q->index,qi,energy_ij);
+						}else{
+							q->patches[qi].unlock();
+							p->patches[pi].unlock();
+						}
+						number f1D =  (5 * exp_part * r8b10);
+						LR_vector tmp_force = patch_dist * (f1D ); //patch_dist * (f1D * angular_part);
+						LR_vector torqueq(0,0,0) ; //= dir; // no torque is applied
+						LR_vector torquep(0,0,0) ; //= dir;
+						torquep += ppatch.cross(tmp_force);
+						torqueq += qpatch.cross(tmp_force);
+
+
+						p->torque -= p->orientationT * torquep;
+						q->torque += q->orientationT * torqueq;
+
+						p->force -= tmp_force;
+						q->force += tmp_force;
+					}
+				}
+			}
 		}
 	}
 
 	return energy;
 }
 
-// number PatchyShapeInteraction::_patchy_interaction_notorsion(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
-// 	LR_vector r=_computed_r;
-// 	if(compute_r){ 
-// 		_computed_r = _box->min_image(p->pos,q->pos);
-// 		r=_computed_r;
-// 	}
+bool PHBInteraction::bondingAllowed(PHBParticle *p,PHBParticle *q,int pi,int qi){
+	bool complementary =false;
 
-// 	number rnorm = r.norm();
-// 	if(rnorm > this->_sqr_rcut) return (number) 0.f;
+	if(p->patches[pi].color<10 && q->patches[qi].color<10){ // self complimentary domain
+		if(p->patches[pi].color==q->patches[qi].color) complementary=true;
+	}else if(p->patches[pi].color+q->patches[qi].color==0) complementary=true;// opposite complimentary domain where -20 will bind with 20
 
-// 	number energy = (number) 0.f;
+	if(complementary){
+		if(p->patches[pi].locked_to(q->index,qi)){
+			if(! q->patches[qi].locked_to(p->index,pi)) throw oxDNAException("Locking is assymetic, something is super fish like."); //this is extra check
+			return true;
+		}else if(!p->patches[pi].is_locked()&& !q->patches[qi].is_locked()){
+			return true;
+		}
+	}
 
-
-
-// 	PatchyShapeParticle *pp = static_cast<PatchyShapeParticle *>(p);
-// 	PatchyShapeParticle *qq = static_cast<PatchyShapeParticle *>(q);
-
-// 	int c = 0;
-// 	LR_vector tmptorquep(0, 0, 0);
-// 	LR_vector tmptorqueq(0, 0, 0);
-// 	for(int pi = 0; pi < pp->N_patches; pi++) {
-// 		LR_vector ppatch = p->int_centers[pi];
-
-// 		for(int pj = 0; pj < qq->N_patches; pj++) {
-
-// 			if(this->_bonding_allowed(pp,qq,pi,pj)  )
-// 			{
-
-// 				number K = pp->patches[pi].strength;
-// 			    LR_vector qpatch = q->int_centers[pj];
-
-// 			    LR_vector patch_dist = r + qpatch - ppatch;
-// 			    number dist = patch_dist.norm();
-
-
-// 			    if(dist < SQR(PATCHY_CUTOFF)) {
-
-// 				    c++;
-//                     number energy_ij = 0;
-
-// 				    number r8b10 = dist*dist*dist*dist / _patch_pow_alpha;
-// 				    number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * dist);
-
-
-// 				    number f1 =  K * (exp_part - _patch_E_cut);
-
-
-// 				    energy_ij = f1;// * angular_part;
-//                     energy += energy_ij;
-
-//                     if(update_forces && this->_no_multipatch)
-//                     {
-//                      if (energy_ij < this->_lock_cutoff )
-//                      {
-//                     	qq->patches[pj].set_lock(p->index,pi,energy_ij);
-//                         pp->patches[pi].set_lock(q->index,pj,energy_ij);
-//                      }
-//                      else
-//                      {
-//                     	qq->patches[pj].unlock();
-//                     	pp->patches[pi].unlock();
-
-//                      }
-
-//                     }
-
-// 				if(update_forces ) {
-// 					number f1D =  (5 * exp_part * r8b10);
-// 					LR_vector tmp_force = patch_dist * (f1D ); //patch_dist * (f1D * angular_part);
-// 					LR_vector torqueq(0,0,0) ; //= dir;
-//                     LR_vector torquep(0,0,0) ; //= dir;
-// 					torquep += ppatch.cross(tmp_force);
-// 					torqueq += qpatch.cross(tmp_force);
-
-
-// 					p->torque -= p->orientationT * torquep;
-// 					q->torque += q->orientationT * torqueq;
-
-// 					p->force -= tmp_force;
-// 					q->force += tmp_force;
-// 				}
-// 			   }
-// 			}
-// 		}
-// 	}
-// 	return energy;
-// }
+	return false;
+}
