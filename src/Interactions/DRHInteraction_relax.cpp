@@ -15,7 +15,7 @@
 
 DRHInteraction_relax::DRHInteraction_relax() :
 				DRHInteraction() {
-	OX_LOG(Logger::LOG_INFO, "Using unphysical backbone (DRH_relax interaction)");
+	OX_LOG(Logger::LOG_INFO, "Using unphysical backbone (NA_relax interaction)");
 	_constant_force = 0;
 	_harmonic_force = 1;
 }
