@@ -135,7 +135,7 @@ public:
 		arg[2] = _pos_shift[2];
 	}
 
-	uint N_int_centers() {
+	virtual uint N_int_centers() {
 		return int_centers.size();
 	}
 
@@ -148,9 +148,6 @@ public:
 	/// Needed for specific base pairing
 	int btype;
 	
-	/// Needed for DNA-RNA interactions
-	char acid_type;
-
 	/// DNA bonded neighbours
 	BaseParticle *n3, *n5;
 

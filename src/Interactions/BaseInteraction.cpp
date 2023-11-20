@@ -112,13 +112,13 @@ void BaseInteraction::begin_energy_and_force_computation() {
 	begin_energy_computation();
 }
 
-void BaseInteraction::_update_stress_tensor(LR_vector r_p, LR_vector group_force) {
-	_stress_tensor[0] += r_p[0] * group_force[0];
-	_stress_tensor[1] += r_p[1] * group_force[1];
-	_stress_tensor[2] += r_p[2] * group_force[2];
-	_stress_tensor[3] += r_p[0] * group_force[1];
-	_stress_tensor[4] += r_p[0] * group_force[2];
-	_stress_tensor[5] += r_p[1] * group_force[2];
+void BaseInteraction::_update_stress_tensor(const LR_vector &r_p, const LR_vector &group_force) {
+	_stress_tensor[0] += r_p.x * group_force.x;
+	_stress_tensor[1] += r_p.y * group_force.y;
+	_stress_tensor[2] += r_p.z * group_force.z;
+	_stress_tensor[3] += r_p.x * group_force.y;
+	_stress_tensor[4] += r_p.x * group_force.z;
+	_stress_tensor[5] += r_p.y * group_force.z;
 }
 
 void BaseInteraction::compute_standard_stress_tensor() {

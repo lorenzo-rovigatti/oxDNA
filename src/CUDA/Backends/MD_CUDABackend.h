@@ -77,6 +77,7 @@ protected:
 	virtual void _set_external_forces();
 
 	virtual void _thermalize();
+	virtual void _update_stress_tensor();
 
 	virtual void _init_CUDA_MD_symbols();
 

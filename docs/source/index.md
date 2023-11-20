@@ -20,6 +20,8 @@ The simulation engine is complemented by an updated version of `oxDNA_analysis_t
    input.md
    configurations.md
    relaxation.md
+   performance.md
+   scaling.md
    forces.md
    observables.md
    umbrella_sampling.md

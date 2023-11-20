@@ -71,7 +71,7 @@ class SimBackend {
 protected:
 	std::string _backend_info;
 
-	std::shared_ptr<Timer> _mytimer;
+	std::shared_ptr<Timer> _mytimer, _obs_timer;
 
 	number _max_io;
 

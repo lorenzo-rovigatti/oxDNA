@@ -45,10 +45,17 @@ number DRHInteraction_relax::_backbone(BaseParticle *p, BaseParticle *q, bool co
 		rback = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 		rbackmod = rback.module();
 		rbackr0 = rbackmod - DNA2Interaction::_fene_r0;
-	} else if(_interaction_type(p,q) == 1){
+	} 
+	else if(_interaction_type(p,q) == 1){
 		rback = _computed_r + q->int_centers[RNANucleotide::BACK] - p->int_centers[RNANucleotide::BACK];
 		rbackmod = rback.module();
 		rbackr0 = rbackmod - model->RNA_FENE_R0;
+	}
+	// since this is a bonded interaction, _interaction_type should return either 0 or 1, which means that
+	// this else should never be reached. However, things may change (i.e. in the future this interaction)
+	// could be extended to model chimeric strands, so we put this here to avoid issues
+	else {
+		throw oxDNAException("Bonded particles %d and %d are not of the same type: cannot relax the strand", p->index, q->index);
 	}
 
 	number energy = 0;

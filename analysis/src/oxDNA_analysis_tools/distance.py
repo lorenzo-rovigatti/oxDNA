@@ -24,30 +24,30 @@ def min_image(p1:np.ndarray, p2:np.ndarray, box:float) -> float:
     Calculates distance between two particles taking PBC into account
 
     Parameters:
-        p1 (np.array): The first particle's position
-        p2 (np.array): The second particle's position
+        p1 (np.ndarray): The first particle's position
+        p2 (np.ndarray): The second particle's position
         box (float): The size of the box (assumes a cubic box)
 
     Returns:
-        distance (float): The distance between the two particles
+        (float): The distance between the two particles
     """
     p1 = p1 - (np.floor(p1/box) * box)
     p2 = p2 - (np.floor(p2/box) * box)
     diff = p1 - p2
     diff = diff - (np.round(diff/box)*box)
-    return np.linalg.norm(diff)
+    return float(np.linalg.norm(diff))
 
-def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.array:
+def vectorized_min_image(p1s:np.ndarray, p2s:np.ndarray, box:float) -> np.ndarray:
     """
     Calculates all mutual distances between two sets of points taking PBC into account
     
     Paramters:
-        p1s (np.array): the first set of points (Nx3 array)
-        p2s (np.array): the second set of points (Mx3 array)
-        box (float): The size of the box (assumes a cubic box)
+        p1s (np.ndarray) : the first set of points (Nx3 array)
+        p2s (np.ndarray) : the second set of points (Mx3 array)
+        box (float) : The size of the box (assumes a cubic box)
 
     returns:
-        distances (np.array): the distances between the points (NxM array)
+        (np.array) : the distances between the points (NxM array)
     """
 
     p1s = p1s - (np.floor(p1s/box) * box)
@@ -134,8 +134,7 @@ def main():
 
     #Make sure that the input is correctly formatted
     if len(p1ss) != len(p2ss):
-        print("ERROR: bad input arguments\nPlease supply an even number of particles", file=stderr)
-        exit(1)
+        raise RuntimeError(" bad input arguments\nPlease supply an even number of particles")
 
     # Get metadata on the inputs
     top_infos = []
@@ -164,8 +163,7 @@ def main():
             hist = True
             lineplt = True
         if hist == lineplt == False:
-            print("ERROR: unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"", file=stderr)
-            exit(1)
+            raise RuntimeError("Unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"")
     else:
         print("INFO: No graph format specified, defaulting to histogram", file=stderr)
         hist = True
@@ -264,6 +262,7 @@ def main():
         plt.ylabel("Normalized frequency")
         plt.legend()
         #plt.show()
+        plt.tight_layout()
         print("INFO: Writing histogram to file {}".format(out), file=stderr)
         plt.savefig("{}".format(out))
 
@@ -285,13 +284,14 @@ def main():
         plt.ylabel("Distance (nm)")
         plt.legend()
         #plt.show()
+        plt.tight_layout()
         print("INFO: Writing trajectory plot to file {}".format(out), file=stderr)
         plt.savefig("{}".format(out))
 
     if cluster == True:
         if not all([x == trajectories[0] for x in trajectories]):
-            print("ERROR: Clustering can only be run on a single trajectory", file=stderr)
-            exit(1)
+            raise RuntimeError("Clustering can only be run on a single trajectory")
+
         from oxDNA_analysis_tools.clustering import perform_DBSCAN
 
         labs = perform_DBSCAN(traj_infos[0], top_infos[0], distances[0].T, "euclidean", 12, 8)

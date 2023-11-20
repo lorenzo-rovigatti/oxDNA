@@ -1,0 +1,39 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+#debug = 1
+#seed = 1
+#CUDA_list = verlet
+#CUDA_device = 0
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 10000000000
+newtonian_steps = 103
+diff_coeff = 2.50
+thermostat = john
+
+T = 23C
+dt = 0.005
+verlet_skin = 0.1
+
+use_average_seq = 0
+seq_dep_file = ../sequence_dependent_parameters.txt 
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = new_init.top
+conf_file = new_init.conf
+trajectory_file = trajectory.dat
+lastconf_file = lastconf_running.dat
+refresh_vel = true
+#log_file = log.dat
+no_stdout_energy = false
+restart_step_counter = false
+energy_file = ener.dat
+print_conf_interval = 1000000
+print_conf_ppc = 51
+print_energy_every = 50000
+time_scale = linear

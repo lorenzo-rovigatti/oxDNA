@@ -18,9 +18,6 @@ DRHInteraction::DRHInteraction() : DNA2Interaction(), RNA2Interaction() {
 	ADD_INTERACTION_TO_MAP(COAXIAL_STACKING, _coaxial_stacking);
 	ADD_INTERACTION_TO_MAP(DEBYE_HUCKEL, _debye_huckel);
 
-	DNA2Interaction::_drh_interaction = true;
-	RNA2Interaction::_drh_interaction = true;
-
 	//Hybrid
 	F1_A[0] = DRH_HYDR_A;
 	F1_RC[0] = DRH_HYDR_RC;
@@ -186,7 +183,7 @@ void DRHInteraction::get_settings(input_file &inp) {
 
 //checking the type of nucleic acid
 bool DRHInteraction::_is_DNA(BaseParticle *p) {
-  if (p->acid_type == 'D') 
+  if (_acid_type[p->index] == 'D') 
       return true;
     else
       return false;
@@ -225,7 +222,7 @@ void DRHInteraction::init() {
 		input_file seq_file;
 		seq_file.init_from_filename(_seq_filename);
 		if(seq_file.state == ERROR)
-			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename);
+			throw oxDNAException("Caught an error while opening sequence dependence file '%s'", _seq_filename.c_str());
 
 		// HB
 		// if X and Y are two bases which can interact via HB, then the
@@ -1004,6 +1001,8 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 	 * 
 	 **/
 
+	_acid_type.resize(particles.size());
+
 	TopologyParser parser(_topology_filename);
 	int N_from_topology = 0 ;
 	if(parser.is_new_topology()) {
@@ -1026,8 +1025,10 @@ void DRHInteraction::allocate_particles(std::vector<BaseParticle*> &particles) {
 					//allocating the particles
 					if(type == "DNA"){
 						particles[current_idx] = new DNANucleotide(DNA2Interaction::_grooving);
+						_acid_type[current_idx] = 'D';
 					} else if (type == "RNA") {
 						particles[current_idx] = new RNANucleotide();
+						_acid_type[current_idx] = 'R';
 					}
 				}
 			ns++;

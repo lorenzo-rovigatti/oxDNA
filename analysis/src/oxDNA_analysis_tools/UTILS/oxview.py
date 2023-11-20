@@ -81,7 +81,7 @@ def from_path(*args:List[str], **kwargs):
     
     
     
-def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = None, par_file_path = None , inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = None, par_file_path = None , script_file_path = None, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
     """
         Display an oxDNA configuration in oxview
 
@@ -91,6 +91,7 @@ def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = N
             overlay (str) : (optional) the path to the overlay file
             forces_path (str) : (optional) the path to the forces file
             par_file_path (str) : (optional) the path to the par file
+            script_file_path (str) : (optional) the path to the script file (js)
             inbox_settings (list[str]) : (optional) a list of strings, the inbox settings to use
             oxview_src (str) : (optional) the url of the oxview source
     """
@@ -101,7 +102,12 @@ def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = N
 
     # location to store the things we want to past to js
     file_list = [(top_string, "top"), (dat_string, "dat")]
-   
+
+    # handle script files
+    if script_file_path:
+        script_string = __fetch_file_from_path(script_file_path)
+        file_list.append((script_string, "js"))
+
     # if we have an overlay it's supposedly a json-like object
     if overlay:
         overlay_string = dumps(overlay)

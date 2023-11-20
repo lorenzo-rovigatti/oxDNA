@@ -17,7 +17,7 @@ ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "indexes"])
 
 
-def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.array, float, int]:
+def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.ndarray, float, int]:
     confs = get_confs(ctx.top_info, ctx.traj_info, chunk_id*chunk_size, chunk_size)
     confs = [inbox(c) for c in confs]
     np_confs = np.asarray([[c.positions, c.a1s, c.a3s] for c in confs])
@@ -38,7 +38,7 @@ def compute_centroid(ctx:ComputeContext, chunk_size, chunk_id:int) -> Tuple[np.a
 
     return (centroid_candidate, min_RMSD, t)
 
-def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, indexes:List[int]=None, ncpus=1) -> Tuple[Configuration, float]:
+def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, indexes:List[int]=[], ncpus=1) -> Tuple[Configuration, float]:
     '''
         Find the configuration in a trajectory closest to a provided reference configuration
 
@@ -53,7 +53,7 @@ def centroid(traj_info:TrajInfo, top_info:TopInfo, ref_conf:Configuration, index
             centroid_candidate (Configuration): The configuration with the lowest RMSD to the reference
             min_RMSD (float): The RMSD from the centroid to the reference
     '''
-    if indexes is None:
+    if indexes == []:
         indexes = list(range(top_info.nbases))
 
     ref_conf = inbox(ref_conf)
@@ -119,7 +119,7 @@ def main():
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                print("ERROR: The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
     else:
         indexes = list(range(top_info.nbases))
 
@@ -140,7 +140,7 @@ def main():
         outfile = "centroid.dat"
         print("INFO: No outfile name provided, defaulting to \"{}\"".format(outfile), file=stderr)
 
-    write_conf(outfile, centroid_candidate)
+    write_conf(outfile, centroid_candidate, include_vel=traj_info.incl_v)
     print("INFO: Wrote centroid to {}".format(outfile), file=stderr)
     print("INFO: Min RMSD: {} nm".format(min_RMSD), file=stderr)
     print("INFO: Centroid time: {}".format(centroid_candidate.time), file=stderr)
