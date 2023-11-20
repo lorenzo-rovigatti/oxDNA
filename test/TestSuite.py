@@ -346,7 +346,7 @@ class TestManager(object):
     def launch(self):
         for i in range(self.threads):
             runner = Runner(i)
-            runner.setDaemon(True)
+            runner.daemon = True
             runner.start()
         
         for system in self.systems:
