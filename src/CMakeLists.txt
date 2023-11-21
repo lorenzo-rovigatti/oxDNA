@@ -301,6 +301,7 @@ IF(CUDA)
 		CUDA/Backends/MD_CUDABackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
 		CUDA/Interactions/CUDADNAInteraction.cu
+		CUDA/Interactions/CUDACCGInteraction.cu
 		# CUDA/Interactions/CUDADNANMInteraction.cu
 		# CUDA/Interactions/CUDACGDNAInteraction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
