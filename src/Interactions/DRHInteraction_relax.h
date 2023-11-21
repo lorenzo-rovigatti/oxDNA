@@ -15,7 +15,7 @@
  * This interaction takes 3 compulsory arguments:
  *
  * This interaction is selected with
- * interaction_type = DRH_relax
+ * interaction_type = NA_relax
  *
  @verbatim
  relax_type = <string> (Possible values: constant_force, harmonic_force; Relaxation algorithm used)

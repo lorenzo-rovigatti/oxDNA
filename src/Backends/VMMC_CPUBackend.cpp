@@ -193,7 +193,7 @@ void VMMC_CPUBackend::get_settings(input_file & inp) {
 	ok_interactions.push_back("DNA2_nomesh");
 	ok_interactions.push_back("RNA");
 	ok_interactions.push_back("RNA2");
-	ok_interactions.push_back("DRH");
+	ok_interactions.push_back("NA");
 	if(getInputString(&inp, "interaction_type", inter, 0) == KEY_FOUND) {
 		// std::find points is equal to ok_interactions.end() if it can't find inter in ok_interactions.
 		if(std::find(ok_interactions.begin(), ok_interactions.end(), inter) == ok_interactions.end()) {
