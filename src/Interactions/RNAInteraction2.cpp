@@ -32,75 +32,42 @@ number RNA2Interaction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle
 void RNA2Interaction::get_settings(input_file &inp) {
 	RNAInteraction::get_settings(inp);
 
-	float salt;
-	int mismatches;
-	float prefactor; // this is the strength of the interaction
-	float lambdafactor; //Lambda is _debye_huckel_LAMBDAFACTOR / salt^0.5
-	float rh;
-	int half_charged_ends = 0;
-	//getInputString(&inp, "topology", _topology_filename, 1);
-
 	// read salt concentration from file, or set it to the default value
-	if(getInputFloat(&inp, "salt_concentration", &salt, 0) == KEY_FOUND) {
-		_salt_concentration = (float) salt;
-	}
-	else {
+	if(getInputNumber(&inp, "salt_concentration", &_salt_concentration, 0) != KEY_FOUND) {
 		_salt_concentration = 1.0f;
 	}
 
 	// read lambda-factor (the dh length at I = 1.0), or set it to the default value
-	if(getInputFloat(&inp, "dh_lambda", &lambdafactor, 0) == KEY_FOUND) {
-		_debye_huckel_lambdafactor = (float) lambdafactor;
-	}
-	else {
+	if(getInputNumber(&inp, "dh_lambda", &_debye_huckel_lambdafactor, 0) != KEY_FOUND) {
 		_debye_huckel_lambdafactor = 0.3667258;
 	}
 
 	// read the prefactor to the potential, or set it to the default value
-	if(getInputFloat(&inp, "dh_strength", &prefactor, 0) == KEY_FOUND) {
-		_debye_huckel_prefactor = (float) prefactor;
-	}
-	else {
+	if(getInputNumber(&inp, "dh_strength", &_debye_huckel_prefactor, 0) != KEY_FOUND) {
 		_debye_huckel_prefactor = 0.0858; // 0.510473f;  Q = 0.0858
 	}
-	// read the cutoff distance (todo - set the default value to something 
-	// which makes sense, maybe that depends on lambdafactor and salt concentration
+
 	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
-	if(getInputFloat(&inp, "debye_huckel_rhigh", &rh, 0) == KEY_FOUND) {
-		_debye_huckel_RHIGH = (float) rh;
-	}
-	else {
+	if(getInputNumber(&inp, "debye_huckel_rhigh", &_debye_huckel_RHIGH, 0) != KEY_FOUND) {
 		_debye_huckel_RHIGH = 3.0 * lambda;
 	}
 	// read the mismatch_repulsion flag (not implemented yet)
-	if(getInputBoolAsInt(&inp, "mismatch_repulsion", &mismatches, 0) == KEY_FOUND) {
-		_mismatch_repulsion = (bool) mismatches;
-	}
-	else {
+	if(getInputBool(&inp, "mismatch_repulsion", &_mismatch_repulsion, 0) != KEY_FOUND) {
 		_mismatch_repulsion = false;
 	}
 	// whether to halve the charge on the terminus of the strand or not (default true)
-	if(getInputBoolAsInt(&inp, "dh_half_charged_ends", &half_charged_ends, 0) == KEY_FOUND) {
-		_debye_huckel_half_charged_ends = (bool) half_charged_ends;
-	}
-	else {
+	if(getInputBool(&inp, "dh_half_charged_ends", &_debye_huckel_half_charged_ends, 0) != KEY_FOUND) {
 		_debye_huckel_half_charged_ends = true;
 	}
 
 	//log it 
-	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt_concentration =  %g",_salt_concentration);
+	OX_LOG(Logger::LOG_INFO,"Running Debye-Huckel at salt_concentration =  %g", _salt_concentration);
 
 	if(_mismatch_repulsion) {
-		float temp;
-		if(getInputFloat(&inp, "mismatch_repulsion_strength", &temp, 0) == KEY_FOUND) {
-			_RNA_HYDR_MIS = temp;
-		}
-		else {
+		if(getInputNumber(&inp, "mismatch_repulsion_strength", &_RNA_HYDR_MIS, 0) != KEY_FOUND) {
 			_RNA_HYDR_MIS = 1;
 		}
-
 	}
-
 }
 
 //initialise the interaction
