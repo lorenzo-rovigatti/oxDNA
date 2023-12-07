@@ -9,6 +9,13 @@
 
 class PHBInteraction: public BaseInteraction{
 public:
+    enum{
+        SPRING=0,
+        BONDED_DOUBLE_BENDING=1,
+        BONDED_TWIST=2,
+        BONDED_ALIGNMENT=3,
+        PATCHY_INTERACTION_NOTORSION=4
+    };
     PHBInteraction();
     virtual ~PHBInteraction();
     // Variables d

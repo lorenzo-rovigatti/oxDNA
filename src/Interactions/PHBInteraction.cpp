@@ -2,7 +2,8 @@
 using namespace std;
 
 PHBInteraction::PHBInteraction():BaseInteraction(){
-
+	// ADD_INTERACTION_TO_MAP(SPRING,spring);
+	// ADD_INTERACTION_TO_MAP()
 };
 
 PHBInteraction::~PHBInteraction(){
