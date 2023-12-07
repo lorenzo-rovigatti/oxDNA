@@ -76,3 +76,4 @@ select_compute_arch_laptop.cmake
 
 *.ign
 **/trajectory.dat
+**/trajectory*.dat
