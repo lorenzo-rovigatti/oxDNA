@@ -77,7 +77,7 @@ void LangevinThermostat::init() {
 
 void LangevinThermostat::apply(std::vector<BaseParticle *> &particles, llint curr_step) {
 	for(auto p: particles) {
-		p->vel += _dt * (-_gamma_trans * p->vel + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_trans);
+		p->vel += _dt * (-_gamma_trans * p->vel + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_trans); //subho *sqrt(p->massinverted)
 		if(p->is_rigid_body()) {
 			p->L += _dt * (-_gamma_rot * p->L + LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor_rot);
 		}
