@@ -152,6 +152,7 @@ The following options control the behaviour of MC simulations.
 ## Common options for `DNA2` and `RNA2` simulations
 
 * `[dh_lambda = <float>]`: the value that lambda, which is a function of temperature (T) and salt concentration (I), should take when T = 300K and I = 1M. Defaults to the value from Debye-Huckel theory, 0.3616455.
+* `[debye_huckel_rhigh]`: the distance at which the smoothing of the Debye-Hucker repulsion begins. Defaults to three times the Debye screening length.
 * `[dh_strength = <float>]`: the value that scales the overall strength of the Debye-Huckel interaction. Defaults to 0.0543.
 * `[dh_half_charged_ends = <bool>]`: if `false`, nucleotides at the end of a strand carry a full charge, if `true` their charge is halved. Defaults to `true`.
 
