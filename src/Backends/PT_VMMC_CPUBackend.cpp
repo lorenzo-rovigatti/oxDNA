@@ -7,7 +7,7 @@
 
 #include "PT_VMMC_CPUBackend.h"
 
-#include "mpi.h"
+#include <mpi.h>
 
 PT_VMMC_CPUBackend::PT_VMMC_CPUBackend() :
 				VMMC_CPUBackend() {
@@ -28,8 +28,6 @@ PT_VMMC_CPUBackend::~PT_VMMC_CPUBackend() {
 }
 
 void PT_VMMC_CPUBackend::init() {
-	//VMMC_CPUBackend::init(conf_input);
-
 	if(_oxRNA_stacking) {
 		RNAInteraction *it = dynamic_cast<RNAInteraction*>(_interaction.get());
 		model = it->get_model();
@@ -42,10 +40,6 @@ void PT_VMMC_CPUBackend::init() {
 	sprintf(my_conf_filename, "%s%d", _conf_filename.c_str(), _my_mpi_id);
 
 	_conf_filename = string(my_conf_filename);
-
-	fprintf(stderr, "REPLICA %d: reading configuration from %s\n", _my_mpi_id, my_conf_filename);
-	VMMC_CPUBackend::init();
-
 	_exchange_conf = new PT_serialized_particle_info[N()];
 
 	// check that temperatures are in order...
@@ -69,17 +63,10 @@ void PT_VMMC_CPUBackend::init() {
 	//OX_LOG(Logger::LOG_INFO, "Replica %d: Running at T=%g", _my_mpi_id, _T);
 	fprintf(stderr, "Replica %d: Running at T=%g\n", _my_mpi_id, _T);
 
-	OX_LOG(Logger::LOG_INFO, "Deleting previous interaction and creating one...");
-	//_interaction.init(_T);
-	//throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
-	// here we should initialize the interaction to use the appropriate T
+	CONFIG_INFO->update_temperature(_T);
 
-	OX_LOG(Logger::LOG_INFO, "Deleting previous lists and creating one...");
-	//throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
-	// here we should create our own lists...
-
-	//VMMC_CPUBackend::_compute_energy();
-	MC_CPUBackend::_compute_energy();
+	fprintf(stderr, "REPLICA %d: reading configuration from %s\n", _my_mpi_id, my_conf_filename);
+	VMMC_CPUBackend::init();
 
 	//fprintf (stderr, "REPLICA %d: Running at T=%g\n", _my_mpi_id, _T);
 
@@ -203,15 +190,6 @@ void PT_serialized_particle_info::read_from(BaseParticle *par) {
 void PT_serialized_particle_info::write_to(BaseParticle *par) {
 	par->pos = pos;
 	par->orientation = orientation;
-
-	/*
-	 par->en3 = 0; // = p->en3;
-	 par->en5 = 0; // p->en5;
-	 par->esn3 = 0; //p->esn3;
-	 par->esn5 = 0; // p->esn5;
-	 par->inclust = false;
-	 */
-
 }
 
 void PT_VMMC_CPUBackend::sim_step() {
