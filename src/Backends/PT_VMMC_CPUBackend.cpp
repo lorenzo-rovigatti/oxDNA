@@ -28,6 +28,8 @@ PT_VMMC_CPUBackend::~PT_VMMC_CPUBackend() {
 }
 
 void PT_VMMC_CPUBackend::init() {
+	VMMC_CPUBackend::init();
+
 	if(_oxRNA_stacking) {
 		RNAInteraction *it = dynamic_cast<RNAInteraction*>(_interaction.get());
 		model = it->get_model();
@@ -57,8 +59,9 @@ void PT_VMMC_CPUBackend::init() {
 	}
 
 	// let's get our own temperature...
-	if(_npttemps != _mpi_nprocs)
+	if(_npttemps != _mpi_nprocs) {
 		throw oxDNAException("Number of PT temperatures does not match number of processes (%d != %d)", _npttemps, _mpi_nprocs);
+	}
 	_T = _pttemps[_my_mpi_id];
 	//OX_LOG(Logger::LOG_INFO, "Replica %d: Running at T=%g", _my_mpi_id, _T);
 	fprintf(stderr, "Replica %d: Running at T=%g\n", _my_mpi_id, _T);
@@ -79,8 +82,9 @@ void PT_VMMC_CPUBackend::init() {
 	strcat(_last_hist_file, extra);
 	strcat(_traj_hist_file, extra);
 
-	if(_reload_hist)
+	if(_reload_hist) {
 		strcat(_init_hist_file, extra);
+	}
 
 	// common weights file? if so, we have a single file
 	if(_have_us) {
@@ -159,7 +163,6 @@ void PT_VMMC_CPUBackend::get_settings(input_file &inp) {
 			memcpy(_pttemps, tmpt, _npttemps * sizeof(double));
 		}
 		delete[] tmpt;
-		//abort ();
 	}
 
 	int tmpi = -1;
@@ -176,10 +179,12 @@ void PT_VMMC_CPUBackend::get_settings(input_file &inp) {
 
 	std::string inter_type("");
 	getInputString(&inp, "interaction_type", inter_type, 0);
-	if(inter_type.compare("DNA2") == 0)
+	if(inter_type.compare("DNA2") == 0) {
 		_oxDNA2_stacking = true;
-	if(inter_type.compare("RNA2") == 0 || inter_type.compare("RNA2") == 0)
+	}
+	if(inter_type.compare("RNA2") == 0 || inter_type.compare("RNA2") == 0) {
 		_oxRNA_stacking = true;
+	}
 }
 
 void PT_serialized_particle_info::read_from(BaseParticle *par) {
@@ -375,10 +380,10 @@ void PT_VMMC_CPUBackend::sim_step() {
 		}
 		fflush(stdout);
 		// debug
-		if(fabs(_T - _pttemps[_my_mpi_id]) > 1.e-7) {
+		if(fabs(_T - _pttemps[_my_mpi_id]) > 1e-7) {
 			fprintf(stderr, "DISASTRO\n\n\n");
 		}
-		// we should se the forces again if we have swapped conf
+		// we should set the forces again if we have swapped conf
 		if(_external_forces) {
 			BaseParticle *p;
 			for(int i = 0; i < N(); i++) {
@@ -388,8 +393,6 @@ void PT_VMMC_CPUBackend::sim_step() {
 		}
 
 	}
-
-	return;
 }
 
 void PT_VMMC_CPUBackend::_send_exchange_energy(int other_id) {
