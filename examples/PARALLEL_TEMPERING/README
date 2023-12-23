@@ -9,7 +9,7 @@ parallel, sinchronize them, attempt exchanges, etc.
 
 
 COMPILING
-this backend requires MPI, so it only gets compiled when using "make mpi=1". In
+this backend requires MPI, so it only gets compiled when using "make MPI=1". In
 beetween compilations with and without MPI, a "make clean" is required.
 
 USAGE:

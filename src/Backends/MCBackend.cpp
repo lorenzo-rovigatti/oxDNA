@@ -77,7 +77,7 @@ void MCBackend::get_settings(input_file &inp) {
 			getInputNumber(&inp, "delta_volume", &_delta[MC_MOVE_VOLUME], 1);
 		}
 	}
-	else if(sim_type == "VMMC") {
+	else if(sim_type == "VMMC" || sim_type == "PT_VMMC") {
 		getInputNumber(&inp, "delta_translation", &_delta[MC_MOVE_TRANSLATION], 1);
 		getInputNumber(&inp, "delta_rotation", &_delta[MC_MOVE_ROTATION], 1);
 	}
