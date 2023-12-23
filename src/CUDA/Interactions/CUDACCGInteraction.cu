@@ -24,3 +24,12 @@ void CUDACCGInteraction::cuda_init(int N){ // N is the number of particles
 void CUDACCGInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_qorientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box){
 
 };
+
+__device__ void repulsive(c_number prefactor,c_number4 &r, c_number4 &F, c_number sigma, c_number rstar, c_number b, c_number rc){
+    c_number rnorm = CUDA_DOT(r,r);
+    if(rnorm < SQR(rc)){
+        if(rnorm > SQR(rstar)){
+            rmod = 
+        }
+    }
+}

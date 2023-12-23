@@ -14,6 +14,7 @@ public:
 		return this->get_rcut();
 	};
     virtual void compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_qorientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box);
+    
 };
 
 #endif
