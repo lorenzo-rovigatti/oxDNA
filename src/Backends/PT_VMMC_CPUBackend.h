@@ -83,11 +83,6 @@ public:
 	void get_settings (input_file &inp);
 	void init();
 
-	int get_mpi_id () { return _my_mpi_id; }
-	int get_which_replica () { return _which_replica; }
-	char *get_replica_info_str ();
-	number get_pt_acc ();
-
 	void sim_step();
 };
 

@@ -28,8 +28,6 @@ PT_VMMC_CPUBackend::~PT_VMMC_CPUBackend() {
 }
 
 void PT_VMMC_CPUBackend::init() {
-	VMMC_CPUBackend::init();
-
 	if(_oxRNA_stacking) {
 		RNAInteraction *it = dynamic_cast<RNAInteraction*>(_interaction.get());
 		model = it->get_model();
@@ -42,7 +40,6 @@ void PT_VMMC_CPUBackend::init() {
 	sprintf(my_conf_filename, "%s%d", _conf_filename.c_str(), _my_mpi_id);
 
 	_conf_filename = string(my_conf_filename);
-	_exchange_conf = new PT_serialized_particle_info[N()];
 
 	// check that temperatures are in order...
 	bool check2 = true;
@@ -70,6 +67,8 @@ void PT_VMMC_CPUBackend::init() {
 
 	fprintf(stderr, "REPLICA %d: reading configuration from %s\n", _my_mpi_id, my_conf_filename);
 	VMMC_CPUBackend::init();
+	// N() returns no non-sense only after having called init()
+	_exchange_conf = new PT_serialized_particle_info[N()];
 
 	//fprintf (stderr, "REPLICA %d: Running at T=%g\n", _my_mpi_id, _T);
 
@@ -79,8 +78,6 @@ void PT_VMMC_CPUBackend::init() {
 	// changing filename
 	char extra[16];
 	sprintf(extra, "%d", _my_mpi_id);
-	strcat(_last_hist_file, extra);
-	strcat(_traj_hist_file, extra);
 
 	if(_reload_hist) {
 		strcat(_init_hist_file, extra);
@@ -88,6 +85,8 @@ void PT_VMMC_CPUBackend::init() {
 
 	// common weights file? if so, we have a single file
 	if(_have_us) {
+		strcat(_last_hist_file, extra);
+		strcat(_traj_hist_file, extra);
 
 		sprintf(_irresp_weights_file, "%s", _weights_file);
 
@@ -334,8 +333,7 @@ void PT_VMMC_CPUBackend::sim_step() {
 					_exchange_energy.U_ext = buffer_energy.U_ext;
 					_exchange_energy.replica_id = buffer_energy.replica_id;
 
-					// rebuild my conf (which will now become the other guy's
-					// old one
+					// rebuild my conf (which will now become the other guy's old one
 					_rebuild_exchange_conf();
 					_rebuild_exchange_energy();
 
@@ -484,7 +482,7 @@ void PT_VMMC_CPUBackend::_rebuild_exchange_conf() {
 		}
 	}
 
-//here we reset order parameters
+	// here we reset order parameters
 	_op.reset();
 	int i, j;
 	number hpq;
@@ -503,7 +501,7 @@ void PT_VMMC_CPUBackend::_rebuild_exchange_conf() {
 
 	_op.fill_distance_parameters(_particles, _box.get());
 
-	//VMMC_CPUBackend::_update_metainfo ();
+	//VMMC_CPUBackend::_update_metainfo();
 	return;
 }
 
@@ -529,19 +527,4 @@ int PT_VMMC_CPUBackend::_MPI_receive_block_data(void *data, size_t size, int nod
 	else {
 		return 1;
 	}
-}
-
-number PT_VMMC_CPUBackend::get_pt_acc() {
-	if(_my_mpi_id == (_mpi_nprocs - 1)) {
-		// I am never responsible, so by definition...
-		return 0.;
-	}
-	else {
-		return _pt_exchange_accepted / (number) _pt_exchange_tries;
-	}
-}
-
-char* PT_VMMC_CPUBackend::get_replica_info_str() {
-	sprintf(_replica_info, "%d %d", _my_mpi_id, _which_replica);
-	return _replica_info;
 }
