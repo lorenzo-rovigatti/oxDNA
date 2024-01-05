@@ -80,7 +80,8 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 void CGNucleicAcidsInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
 	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / _PS_n);
-	_WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0;
+	// _WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0; // disabled for now
+	_WCA_sigma_unbonded = _WCA_sigma;
 
 	OX_LOG(Logger::LOG_INFO, "CGNA: WCA sigma = %lf, WCA sigma unbonded = %lf", _WCA_sigma, _WCA_sigma_unbonded);
 
