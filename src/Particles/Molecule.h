@@ -53,12 +53,18 @@ struct Molecule {
 		return _id + 1;
 	}
 
+	bool shiftable();
+
 private:
 	static int _next_id() {
 	   return _current_id++;
 	}
 	const int _id;
 	static int _current_id;
+
+	/// @brief true if the shiftable conditions should be re-evaluated
+	bool _shiftable_dirty = false;
+	bool _is_shiftable = true;
 };
 
 #endif /* SRC_PARTICLES_MOLECULE_H_ */
