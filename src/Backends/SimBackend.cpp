@@ -334,6 +334,20 @@ void SimBackend::init() {
 	// initialise external forces
 	ForceFactory::instance()->make_forces(_particles, _box.get());
 
+	// now that molecules and external forces have been initialised we can check what strands can be shifted
+	// and undo the shifting done to particles that belong to those strands that shouldn't be shifted
+	std::vector<bool> printed(_molecules.size(), false); // used to print the message once per strand
+	for(auto p : _particles) {
+		if(!_molecules[p->strand_id]->shiftable()) {
+			p->pos = _box->get_abs_pos(p);
+			p->set_pos_shift(0, 0, 0);
+			if(!printed[p->strand_id] && _enable_fix_diffusion) {
+				OX_LOG(Logger::LOG_INFO, "Strand %d is not shiftable and therefore 'fix_diffusion' will not act on it", p->strand_id);
+				printed[p->strand_id] = true;
+			}
+		}
+	}
+
 	_interaction->set_box(_box.get());
 
 	_lists->init(_rcut);
@@ -362,6 +376,7 @@ LR_vector SimBackend::_read_next_binary_vector() {
 	return res;
 }
 
+// here we cannot use _molecules because it has not been initialised yet
 bool SimBackend::read_next_configuration(bool binary) {
 	double Lx, Ly, Lz;
 	// parse headers. Binary and ascii configurations have different headers, and hence
@@ -438,14 +453,8 @@ bool SimBackend::read_next_configuration(bool binary) {
 	// the following part is always carried out in double precision since we want to be able to restart from confs that have
 	// large numbers in the conf file and use float precision later
 	int k, i;
-	std::vector<int> nins(_N_strands);
-	std::vector<LR_vector> scdm(_N_strands);
-
-	// here we cannot use _molecules because it has not been initialised yet
-	for(k = 0; k < _N_strands; k++) {
-		nins[k] = 0;
-		scdm[k] = LR_vector((double) 0., (double) 0., (double) 0.);
-	}
+	std::vector<int> nins(_N_strands, 0);
+	std::vector<LR_vector> scdm(_N_strands, LR_vector((double) 0., (double) 0., (double) 0.));
 
 	i = 0;
 	std::string line;
@@ -529,18 +538,10 @@ bool SimBackend::read_next_configuration(bool binary) {
 
 	for(i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
-		k = p->strand_id;
-
-		LR_vector p_pos = p->pos;
 		if(_enable_fix_diffusion && !binary) {
 			// we need to manually set the particle shift so that the particle absolute position is the right one
-			LR_vector scdm_number(scdm[k].x, scdm[k].y, scdm[k].z);
-			_box->shift_particle(p, scdm_number);
-			p_pos.x -= _box->box_sides().x * (floor(scdm[k].x / _box->box_sides().x));
-			p_pos.y -= _box->box_sides().y * (floor(scdm[k].y / _box->box_sides().y));
-			p_pos.z -= _box->box_sides().z * (floor(scdm[k].z / _box->box_sides().z));
+			_box->shift_particle(p, scdm[p->strand_id]);
 		}
-		p->pos = LR_vector(p_pos.x, p_pos.y, p_pos.z);
 	}
 
 	_interaction->check_input_sanity(_particles);
@@ -664,10 +665,12 @@ void SimBackend::fix_diffusion() {
 	// change particle position and fix orientation matrix;
 	for(int i = 0; i < N(); i++) {
 		BaseParticle *p = _particles[i];
-		_box->shift_particle(p, _molecules[p->strand_id]->com);
-		p->orientation.orthonormalize();
-		p->orientationT = p->orientation.get_transpose();
-		p->set_positions();
+		if(_molecules[p->strand_id]->shiftable()) {
+			_box->shift_particle(p, _molecules[p->strand_id]->com);
+			p->orientation.orthonormalize();
+			p->orientationT = p->orientation.get_transpose();
+			p->set_positions();
+		}
 	}
 
 	number E_after = _interaction->get_system_energy(_particles, _lists.get());
