@@ -10,7 +10,7 @@ CUDACCGInteraction::~CUDACCGInteraction(){
 };
 
 void CUDACCGInteraction::get_settings(input_file &inp){
-
+    CCGInteraction::get_settings(inp);
 };
 
 void CUDACCGInteraction::cuda_init(int N){ // N is the number of particles

@@ -10,6 +10,7 @@
 
 #include "CUDABaseInteraction.h"
 #include "../../Interactions/CGDNAInteraction.h"
+#include "../Lists/CUDASimpleVerletList.h"
 
 /**
  * @brief CUDA implementation of the oxDNA model with ANM protein model as implemented in DNANMInteraction.
