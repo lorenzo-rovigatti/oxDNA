@@ -106,7 +106,7 @@ Compute and print the hydrogen-bonding (HB) energy of all or selected nucleotide
 
 * `type = hb_energy`: the observable type.
 * `[pairs_file = <path>]`: an order parameter file containing the list of pairs whose total HB energy is to be computed.
-* `[base_file = <path>]`: file containing a list of nucleotides whose total HB energy is to be computed, one nucleotide per line. If both this option and `pairs_file` are set, the former is silently ignored.
+* `[bases_file = <path>]`: file containing a list of nucleotides whose total HB energy is to be computed, one nucleotide per line. If both this option and `pairs_file` are set, the former is silently ignored.
 
 ## Hydrogen bonds
 
