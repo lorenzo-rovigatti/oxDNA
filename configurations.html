@@ -1,89 +1,52 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Configuration and topology files &mdash; oxDNA  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
   
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script src="_static/sphinx_highlight.js"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Relaxing initial configurations" href="relaxation.html" />
     <link rel="prev" title="Input file" href="input.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            oxDNA
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -115,77 +78,38 @@
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">oxDNA</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Configuration and topology files</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration and topology files</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/configurations.md.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="tex2jax_ignore mathjax_ignore section" id="configuration-and-topology-files">
-<h1>Configuration and topology files<a class="headerlink" href="#configuration-and-topology-files" title="Permalink to this headline">¶</a></h1>
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="configuration-and-topology-files">
+<h1>Configuration and topology files<a class="headerlink" href="#configuration-and-topology-files" title="Permalink to this heading"></a></h1>
 <p>The current state of a system, as specified by oxDNA, is described by two files: a configuration file and a topology file. The configuration file contains all the general information (timestep, energy and box size) and the orientations and positions of each nucleotide. The topology file, on the other hand, keeps track of the backbone-backbone bonds between nucleotides in the same strand. Working configuration and topology files can be found in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> directory.</p>
-<div class="section" id="configuration-file">
-<h2>Configuration file<a class="headerlink" href="#configuration-file" title="Permalink to this headline">¶</a></h2>
+<section id="configuration-file">
+<h2>Configuration file<a class="headerlink" href="#configuration-file" title="Permalink to this heading"></a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Nucleotides are listed in the 3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’ order if using the “classic” topology format or in the 5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’ order if using the “new” format (see <a class="reference internal" href="#topology-file"><span class="std std-doc">Topology file</span></a>).</p>
+<p>Nucleotides are listed in the 3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’ order if using the “classic” topology format or in the 5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’ order if using the “new” format (see <a class="reference internal" href="#topology-file">Topology file</a>).</p>
 </div>
 <p>The first three rows of a configuration file contain the timestep T at which the configuration has been printed, the length of the box sides Lx, Ly and Lz and the total, potential and kinetic energies, Etot, U and K, respectively:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>t = T
@@ -223,16 +147,16 @@ E = Etot U K
 <p class="admonition-title">Note</p>
 <p>When simulating very large structures the size of the trajectory files stored on disk may become very large. In this case it may be convenient to avoid printing the last six columns by setting <code class="docutils literal notranslate"><span class="pre">trajectory_print_momenta</span> <span class="pre">=</span> <span class="pre">false</span></code> in the input file, thus decreasing the size of the trajectory by <span class="math notranslate nohighlight">\(\approx 40\%\)</span>.</p>
 </div>
-</div>
-<div class="section" id="topology-file">
-<h2>Topology file<a class="headerlink" href="#topology-file" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="topology-file">
+<h2>Topology file<a class="headerlink" href="#topology-file" title="Permalink to this heading"></a></h2>
 <p>The topology file stores information about the fixed-bonding topology (<em>i.e.</em> which nucleotides share backbone links), as well as the strand sequences. Along with the original topology format (the “classic” one which is in the 3’-5’ direction), starting with version 3.6, oxDNA also supports a new format that is simpler and more flexible (and in 5’-3’ direction). Note that this “new” format is not necessarily supported by the other tools of the oxDNA ecosystem.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You can interconvert between the classic and new formats by using the <code class="docutils literal notranslate"><span class="pre">utils/convert.py</span></code> script.</p>
 </div>
-<div class="section" id="classic-format-3-to-5">
-<h3>Classic format (3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’)<a class="headerlink" href="#classic-format-3-to-5" title="Permalink to this headline">¶</a></h3>
+<section id="classic-format-3-to-5">
+<h3>Classic format (3’ <span class="math notranslate nohighlight">\(\to\)</span> 5’)<a class="headerlink" href="#classic-format-3-to-5" title="Permalink to this heading"></a></h3>
 <p>The first row contains the total number of nucleotides N and the number of strands Ns:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>N Ns
 </pre></div>
@@ -257,9 +181,9 @@ E = Etot U K
 </pre></div>
 </div>
 <p>Specifying the topology in this way can simplify the process of simulating, for example, circular DNA.</p>
-</div>
-<div class="section" id="new-format-5-to-3">
-<h3>New format (5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’)<a class="headerlink" href="#new-format-5-to-3" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="new-format-5-to-3">
+<h3>New format (5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’)<a class="headerlink" href="#new-format-5-to-3" title="Permalink to this heading"></a></h3>
 <p>The new format (introduced in oxDNA 3.6) lists nucleotides in the more common order (5’ <span class="math notranslate nohighlight">\(\to\)</span> 3’), is (arguably) simpler, and is more flexible. However, it is not fully supported by all oxDNA-related tools yet.</p>
 <p>The first row of the topology should contain the total number of nucleotides N, the number of strands Ns and the “5-&gt;3” string to signal that the file has the “new” format:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>N Ns 5-&gt;3
@@ -284,15 +208,15 @@ GTTGCG
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Setting <code class="docutils literal notranslate"><span class="pre">type</span></code> only affects the force field when using the DNA/RNA hybrid model (<code class="docutils literal notranslate"><span class="pre">interaction_type=DRH</span></code>). For normal DNA or RNA, the interactions will be determined by the <code class="docutils literal notranslate"><span class="pre">interaction_type=DNA|DNA2|RNA|RNA2|DRH|LJ...</span></code> parameter in the <a class="reference internal" href="input.html"><span class="doc std std-doc">input file</span></a></p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">type</span></code> only affects the force field when using the DNA/RNA hybrid model (<code class="docutils literal notranslate"><span class="pre">interaction_type=NA</span></code>). For normal DNA or RNA, the interactions will be determined by the <code class="docutils literal notranslate"><span class="pre">interaction_type=DNA|DNA2|RNA|RNA2|NA|LJ...</span></code> parameter in the <a class="reference internal" href="input.html"><span class="std std-doc">input file</span></a></p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">examples/PERSISTENCE_LENGTH/NEW_TOPOLOGY</span></code> directory contains an example that uses this new format.</p>
 </div>
-</div>
-<div class="section" id="special-nucleotides">
-<h3>Special nucleotides<a class="headerlink" href="#special-nucleotides" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="special-nucleotides">
+<h3>Special nucleotides<a class="headerlink" href="#special-nucleotides" title="Permalink to this heading"></a></h3>
 <p>Internally, oxDNA encodes the base types with integers as follows:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>A = 0
 G = 1
@@ -312,68 +236,43 @@ T = U = 3
 <p class="admonition-title">Warning</p>
 <p>The CUDA backend supports base types whose absolute values do not exceed <span class="math notranslate nohighlight">\(2^{9} - 1 = 511\)</span>. In other words, base types larger than <span class="math notranslate nohighlight">\(511\)</span> or smaller than <span class="math notranslate nohighlight">\(-511\)</span> are not allowed.</p>
 </div>
-</div>
-</div>
-<div class="section" id="converting-to-and-from-oxdna-configurations">
-<h2>Converting to and from oxDNA configurations<a class="headerlink" href="#converting-to-and-from-oxdna-configurations" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="converting-to-and-from-oxdna-configurations">
+<h2>Converting to and from oxDNA configurations<a class="headerlink" href="#converting-to-and-from-oxdna-configurations" title="Permalink to this heading"></a></h2>
 <p>Many DNA-nanotechnology tools support exporting to oxDNA configurations, as well as converting between different formats (see <em>e.g.</em> <a class="reference external" href="https://doi.org/10.1002/jcc.26029">tacoxDNA</a>, <a class="reference external" href="https://academic.oup.com/nar/article/48/12/e72/5843822">oxView</a>, <a class="reference external" href="https://doi.org/10.1093/nar/gkaa593">Adenita</a>, <a class="reference external" href="https://doi.org/10.1093/nar/gkaa200">MrDNA</a>).</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="relaxation.html" class="btn btn-neutral float-right" title="Relaxing initial configurations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="input.html" class="btn btn-neutral float-left" title="Input file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="input.html" class="btn btn-neutral float-left" title="Input file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="relaxation.html" class="btn btn-neutral float-right" title="Relaxing initial configurations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
-
-    </p>
+    <p>&#169; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc.</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

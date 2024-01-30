@@ -1,89 +1,52 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Relaxing initial configurations &mdash; oxDNA  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
   
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script src="_static/sphinx_highlight.js"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Improving performance" href="performance.html" />
     <link rel="prev" title="Configuration and topology files" href="configurations.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            oxDNA
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -109,79 +72,40 @@
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">oxDNA</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Relaxing initial configurations</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Relaxing initial configurations</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/relaxation.md.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="tex2jax_ignore mathjax_ignore section" id="relaxing-initial-configurations">
-<h1>Relaxing initial configurations<a class="headerlink" href="#relaxing-initial-configurations" title="Permalink to this headline">¶</a></h1>
-<p>OxDNA structures generated with external tools such as <a class="reference external" href="http://tacoxdna.sissa.it/">tacoxDNA</a>, <a class="reference external" href="https://sulcgroup.github.io/oxdna-viewer/">oxview</a> or <a class="reference external" href="https://doi.org/10.1093/nar/gkaa593">Adenita</a> will generally contain regions that are locally stressed: over-bending or twisting, steric clashes, or excessively large separations of sites along the backbone. These local stresses could lead to numerical instabilities in an MD simulation and must be eliminated with preliminary relaxation runs. Note that some of these tools (notably tacoxDNA and oxview) can optionally provide a <a class="reference internal" href="forces.html"><span class="doc std std-doc">force-file</span></a> that can be used to keep nucleotide pairs bonded during the relaxation.</p>
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="relaxing-initial-configurations">
+<h1>Relaxing initial configurations<a class="headerlink" href="#relaxing-initial-configurations" title="Permalink to this heading"></a></h1>
+<p>OxDNA structures generated with external tools such as <a class="reference external" href="http://tacoxdna.sissa.it/">tacoxDNA</a>, <a class="reference external" href="https://sulcgroup.github.io/oxdna-viewer/">oxview</a> or <a class="reference external" href="https://doi.org/10.1093/nar/gkaa593">Adenita</a> will generally contain regions that are locally stressed: over-bending or twisting, steric clashes, or excessively large separations of sites along the backbone. These local stresses could lead to numerical instabilities in an MD simulation and must be eliminated with preliminary relaxation runs. Note that some of these tools (notably tacoxDNA and oxview) can optionally provide a <a class="reference internal" href="forces.html"><span class="std std-doc">force-file</span></a> that can be used to keep nucleotide pairs bonded during the relaxation.</p>
 <p>With oxDNA, a standard relaxation procedure starts with running short (<span class="math notranslate nohighlight">\(10^2\)</span> to <span class="math notranslate nohighlight">\(10^4\)</span> steps) Monte Carlo simulations on a CPU, followed by order of <span class="math notranslate nohighlight">\(10^6\)</span> steps of an MD relaxation with a maximum-value of the cutoff for the backbone potential (ideally on CUDA, as simulations of large structures are prohibitively slow on CPU).</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Many cadnano designs exported to oxDNA are near impossible to relax using the relaxation protocols described here. In these cases we advise to first use <a class="reference external" href="https://github.com/sulcgroup/oxdna-viewer#rigid-body-simulations">oxview’s rigid body simulator</a> and then proceed as described below.</p>
 </div>
-<div class="section" id="first-stage-monte-carlo-relaxation">
-<h2>First stage: Monte Carlo relaxation<a class="headerlink" href="#first-stage-monte-carlo-relaxation" title="Permalink to this headline">¶</a></h2>
+<section id="first-stage-monte-carlo-relaxation">
+<h2>First stage: Monte Carlo relaxation<a class="headerlink" href="#first-stage-monte-carlo-relaxation" title="Permalink to this heading"></a></h2>
 <p>The aim of the first stage of the relaxation is to remove those issues that only require small displacements of the nucleotides (<em>e.g.</em> particle overlaps) and it is run on a single CPU core. As such, it is advisable to simulate a small number of time steps, especially for large configurations. The following snippet contains the options required to enable this type of relaxation:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim_type</span> <span class="o">=</span> <span class="n">MC</span>
 <span class="n">ensemble</span> <span class="o">=</span> <span class="n">NVT</span>
@@ -200,9 +124,9 @@
 <span class="n">external_forces_file</span> <span class="o">=</span> <span class="n">YOURFILE</span><span class="o">.</span><span class="n">force</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="second-stage-molecular-dynamics-relaxation">
-<h2>Second stage: molecular dynamics relaxation<a class="headerlink" href="#second-stage-molecular-dynamics-relaxation" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="second-stage-molecular-dynamics-relaxation">
+<h2>Second stage: molecular dynamics relaxation<a class="headerlink" href="#second-stage-molecular-dynamics-relaxation" title="Permalink to this heading"></a></h2>
 <p>If only small local structural changes are required, this first stage may be sufficient to produce a configuration that is suitable as a starting point for an MD simulation. The aim of the second stage is to remove issues that require larger scale displacements of the nucleotides. In this stage, an MD simulation is run with the modified backbone potential; a typical duration might be <span class="math notranslate nohighlight">\(10^6\)</span> MD steps,
 but this will depend on the extent of the displacements required. To deal with the potentially large forces, it is also advantageous to increase the damping compared to a standard oxDNA MD simulation (by reducing the <code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code> parameter). For large DNA structures, this more computationally demanding step is ideally performed on GPU-based architectures (CUDA).</p>
 <p>The most important options that are linked to this type of relaxation are listed below:</p>
@@ -225,63 +149,38 @@ but this will depend on the extent of the displacements required. To deal with t
 <span class="n">external_forces_file</span> <span class="o">=</span> <span class="n">YOURFILE</span><span class="o">.</span><span class="n">force</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="performance.html" class="btn btn-neutral float-right" title="Improving performance" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="configurations.html" class="btn btn-neutral float-left" title="Configuration and topology files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="configurations.html" class="btn btn-neutral float-left" title="Configuration and topology files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="performance.html" class="btn btn-neutral float-right" title="Improving performance" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
-
-    </p>
+    <p>&#169; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc.</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

@@ -71,7 +71,7 @@ These options control the behaviour of MD simulations.
 
 * `sim_type = MD|FFS_MD`: run either an MD or an FFS simulation.
 * `backend = CPU|CUDA`: MD simulations can be run either on single CPU cores or on single CUDA-enabled GPUs.
-* `backend_precision = <any>`: by default CPU simulations are run with `double` precision, CUDA with `mixed` precision (see [here](https://doi.org/10.1002/jcc.23763) for details). The CUDA backend also supports single precision (`backend_precision = float`), but we do not recommend to use it. Optionally, [by using CMake switches](install.md#CMake-options) it is possible to run CPU simulations in single precision or CUDA simulations in double precision.
+* `backend_precision = <any>`: by default CPU simulations are run with `double` precision, CUDA with `mixed` precision (see [here](https://doi.org/10.1002/jcc.23763) for details). The CUDA backend also supports single precision (`backend_precision = float`), but we do not recommend to use it. Optionally, [by using CMake switches](install.md#cmake-options) it is possible to run CPU simulations in single precision or CUDA simulations in double precision.
 * `dt`: the simulation time step. The higher this value, the longer time a simulation of a given number of time steps will correspond to. However, a value that is too large will result in numerical instabilities. Typical values range between 0.001 and 0.005.
 * `refresh_vel = <bool>`: if `true` the velocities of the particles in the initial configuration will be randomly sampled from a Boltzmann distribution corresponding to `T`. If `false`, the velocities in the `conf_file` will be used (or an error will be thrown if the `conf_file` doesn't include initialized velocities).
 * `[reset_initial_com_momentum = <bool>]`: if `true` the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to `false` to enforce the reproducibility of the trajectory.
@@ -152,6 +152,7 @@ The following options control the behaviour of MC simulations.
 ## Common options for `DNA2` and `RNA2` simulations
 
 * `[dh_lambda = <float>]`: the value that lambda, which is a function of temperature (T) and salt concentration (I), should take when T = 300K and I = 1M. Defaults to the value from Debye-Huckel theory, 0.3616455.
+* `[debye_huckel_rhigh]`: the distance at which the smoothing of the Debye-Hucker repulsion begins. Defaults to three times the Debye screening length.
 * `[dh_strength = <float>]`: the value that scales the overall strength of the Debye-Huckel interaction. Defaults to 0.0543.
 * `[dh_half_charged_ends = <bool>]`: if `false`, nucleotides at the end of a strand carry a full charge, if `true` their charge is halved. Defaults to `true`.
 

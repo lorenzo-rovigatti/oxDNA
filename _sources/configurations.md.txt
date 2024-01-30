@@ -117,7 +117,7 @@ CGCAAC type=DNA
 ```
 
 ```{note}
-Setting `type` only affects the force field when using the DNA/RNA hybrid model (`interaction_type=DRH`). For normal DNA or RNA, the interactions will be determined by the `interaction_type=DNA|DNA2|RNA|RNA2|DRH|LJ...` parameter in the [input file](input.md)
+Setting `type` only affects the force field when using the DNA/RNA hybrid model (`interaction_type=NA`). For normal DNA or RNA, the interactions will be determined by the `interaction_type=DNA|DNA2|RNA|RNA2|NA|LJ...` parameter in the [input file](input.md)
 ```
 
 ```{note}

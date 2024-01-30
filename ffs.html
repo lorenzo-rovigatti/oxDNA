@@ -1,89 +1,52 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Forward Flux Sampling &mdash; oxDNA  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
   
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script src="_static/sphinx_highlight.js"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Events" href="events.html" />
     <link rel="prev" title="Umbrella sampling" href="umbrella_sampling.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            oxDNA
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -112,78 +75,39 @@
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">oxDNA</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Forward Flux Sampling</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Forward Flux Sampling</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/ffs.md.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="tex2jax_ignore mathjax_ignore section" id="forward-flux-sampling">
-<h1>Forward Flux Sampling<a class="headerlink" href="#forward-flux-sampling" title="Permalink to this headline">¶</a></h1>
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="forward-flux-sampling">
+<h1>Forward Flux Sampling<a class="headerlink" href="#forward-flux-sampling" title="Permalink to this heading"></a></h1>
 <p>Forward flux sampling (FFS) is a standard method for extracting the kinetic rate constants of a rare molecular process from a set of simulations. The detailed description of the method can be found in molecular simulation literature, see for example <a class="reference external" href="https://arxiv.org/abs/0906.4758">this review</a>. Briefly, FFS is best suited for a transition between two states (A and B) separated by a single barrier with no metastable intermediates. The transition from A to B is partitioned by dividing interfaces <span class="math notranslate nohighlight">\(λ_0, . . . , λ_n\)</span>, corresponding to values of order parameter(s) Q. For <span class="math notranslate nohighlight">\(Q &lt; λ_0\)</span>, system is in state A, and for <span class="math notranslate nohighlight">\(Q &gt; λ_n\)</span>, it is in state B.</p>
 <p>In the context of kinetic processes studied with oxDNA, state A can for example correspond to unbound state, and state B can correspond to a bound hybridized state with all base-pairs formed. The FFS method starts by estimating the flux <span class="math notranslate nohighlight">\(φ_0^A\)</span> of trajectories leaving from state A that cross interface <span class="math notranslate nohighlight">\(λ_0\)</span>: We run a simulation and record  coordinates of our system in phase space whenever we reach interface <span class="math notranslate nohighlight">\(λ_0\)</span> while coming from state A. The simulation is stopped after a desired number of crossings was generated. We divide the number of recorded states by the simulation time to obtain estimate of <span class="math notranslate nohighlight">\(φ_0^A\)</span>. The rate of transition from A to B is then given by <span class="math notranslate nohighlight">\(k_{AB} = φ_0^A \prod_i P (λ_{i+1}|λ_i)\)</span>,  where <span class="math notranslate nohighlight">\(P (λ_{i+1}|λ_i)\)</span> is the probability that trajectory coming from A and crossing <span class="math notranslate nohighlight">\(λ_i\)</span> will also cross <span class="math notranslate nohighlight">\(λ_{i+1}\)</span> before returning to state A. In practice, we can estimate <span class="math notranslate nohighlight">\(P (λ_{i+1}|λ_i)\)</span> by launching multiple simulations from randomly selected saved configurations at interface <span class="math notranslate nohighlight">\(λ_i\)</span> and recording what fraction reaches <span class="math notranslate nohighlight">\(λ_i+1\)</span> and what fraction goes back to A. We record the states that reached <span class="math notranslate nohighlight">\(λ_{i+1}\)</span> and use them to start simulations to estimate <span class="math notranslate nohighlight">\(P (λ_{i+2}|λ_{i+1})\)</span>.</p>
 <p>The FFS method requires simulation with stochastic dynamics (such as Andersen thermostat) to ensure that two simulations started from the same saved configuration will not follow an identical path. FFS hence allows us to partition the transition from A to B into several intermediate steps, where the probability estimation can be trivially parallelized by launching multiple simulations for a given interface concurrently.</p>
 <p>In oxDNA, the FFS approach is most often used to study the kinetics of melting or hybridization of duplexes or hairpins, or rates of more complex processes, such as strand displacement reaction. For an example of use, see e.g. <a class="reference external" href="http://arxiv.org/abs/1303.3370">this paper</a>.</p>
 <p>The provided Python scripts in <code class="docutils literal notranslate"><span class="pre">EXAMPLE/FFS_example</span></code> directory show how to setup FFS simulation to estimate the rate of melting of a duplex. If you want to use them to study a different system, you need to adapt the defintion of interfaces in the script and <code class="docutils literal notranslate"><span class="pre">input</span></code> files for oxDNA simulation accordingly. The Python scripts support multiple core execution, but requires all CPU cores to be present on a single machine. Hence, if you are submitting these scripts as part of a CPU cluster, all CPUs have to be physically on a single computer. Similarly, if you are using the GPU version of FFS, all used GPU cards have to be on the same node. We next provide description of use of FFS to estimate the rate of association of a DNA 8-mer.</p>
-<div class="section" id="example-system">
-<h2>Example system<a class="headerlink" href="#example-system" title="Permalink to this headline">¶</a></h2>
+<section id="example-system">
+<h2>Example system<a class="headerlink" href="#example-system" title="Permalink to this heading"></a></h2>
 <p>Following the FFS terminology, we want to to compute a rate between
 a stable state A (two separate strands) and a state B (DNA duplex). We have a set of interfaces, labelled
 <span class="math notranslate nohighlight">\(λ_i\)</span>, with <span class="math notranslate nohighlight">\(i = -1, \ldots, n\)</span>, along a reaction coordinate (aka order
@@ -199,8 +123,8 @@ The example present in the <code class="docutils literal notranslate"><span clas
 <li><p><span class="math notranslate nohighlight">\(λ_{0}\)</span>: at least one pair of complementary bases are “bound”</p></li>
 <li><p><span class="math notranslate nohighlight">\(λ_{1}\)</span>: at least 8 pair of complementary bases are “bound” (full binding)</p></li>
 </ul>
-<div class="section" id="initial-flux">
-<h3>Initial flux<a class="headerlink" href="#initial-flux" title="Permalink to this headline">¶</a></h3>
+<section id="initial-flux">
+<h3>Initial flux<a class="headerlink" href="#initial-flux" title="Permalink to this heading"></a></h3>
 <p>The script <code class="docutils literal notranslate"><span class="pre">ffs_flux.py</span></code> runs the simulations of the initial flux. There are
 some things that can be changed in the script itself, or changed via the
 command line. The part that needs editing in the script is clearly marked.</p>
@@ -227,9 +151,9 @@ of the log file (and to the screen if <code class="docutils literal notranslate"
 λ_0) using 8 cpus (actually, running 8 threads. Whether these are actual CPUs
 it depends on the system) in verbose mode.
 This should take about 30 seconds per success on a single CPU.</p>
-</div>
-<div class="section" id="shooting">
-<h3>Shooting<a class="headerlink" href="#shooting" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="shooting">
+<h3>Shooting<a class="headerlink" href="#shooting" title="Permalink to this heading"></a></h3>
 <p>The two directories I0I1 and I0IF are prepared to shoot from interface
 <span class="math notranslate nohighlight">\(λ_{0}\)</span> to <span class="math notranslate nohighlight">\(λ{1}\)</span> and from <span class="math notranslate nohighlight">\(λ_{1}\)</span> to <span class="math notranslate nohighlight">\(λ_{2}\)</span>, respectively.
 The relevant script here is <code class="docutils literal notranslate"><span class="pre">ffs_shoot.py</span></code>. The usage is the basically the same.
@@ -260,64 +184,39 @@ Also these should take about 30 seconds per success on a single CPU.</p>
 <li><p>Overall rate: <span class="math notranslate nohighlight">\(\approx 4 \times 10^{-9}\)</span> (events per time step)</p></li>
 </ul>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="events.html" class="btn btn-neutral float-right" title="Events" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="umbrella_sampling.html" class="btn btn-neutral float-left" title="Umbrella sampling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="umbrella_sampling.html" class="btn btn-neutral float-left" title="Umbrella sampling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="events.html" class="btn btn-neutral float-right" title="Events" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
-
-    </p>
+    <p>&#169; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc.</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

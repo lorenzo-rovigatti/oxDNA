@@ -1,89 +1,50 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Improving performance &mdash; oxDNA  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
   
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Efficient GPU usage" href="scaling.html" />
     <link rel="prev" title="Relaxing initial configurations" href="relaxation.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            oxDNA
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -112,73 +73,34 @@
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">oxDNA</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Improving performance</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Improving performance</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/performance.md.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="tex2jax_ignore mathjax_ignore section" id="improving-performance">
-<h1>Improving performance<a class="headerlink" href="#improving-performance" title="Permalink to this headline">¶</a></h1>
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="improving-performance">
+<h1>Improving performance<a class="headerlink" href="#improving-performance" title="Permalink to this heading"></a></h1>
 <p>The overall performance depends on many factors, and it is therefore not possible to come up with a set of options that will always maximise performance. However, here we provide some guidance and list some tips to help you improving the efficiency of your simulations.</p>
-<p>First of all, note that at the end of each simulation (if the code was not compiled with the <a class="reference internal" href="install.html#cmake-options"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">-DMOSIX=On</span></code> CMake option</span></a>) oxDNA will print information about the total running time, the time taken per simulation step (in milliseconds) and a detailed list of timings. Here is an example:</p>
+<p>First of all, note that at the end of each simulation (if the code was not compiled with the <a class="reference internal" href="install.html#cmake-options"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">-DMOSIX=On</span></code> CMake option</span></a>) oxDNA will print information about the total running time, the time taken per simulation step (in milliseconds) and a detailed list of timings. Here is an example:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>INFO: Total Running Time: 10.6746 s, per step: 1.68876 ms
 INFO: Timings, in seconds, by Timer (total, own, spent in children)
 &gt; SimBackend                         10.675 (100.0%)        0.023 (  0.2%)       10.651 ( 99.8%)
@@ -190,7 +112,7 @@ INFO: Timings, in seconds, by Timer (total, own, spent in children)
 </pre></div>
 </div>
 <p>Each row below <code class="docutils literal notranslate"><span class="pre">SimBackend</span></code> presents the time spent by doing a specific task in seconds and, between brackets, in percentage. The list of possible tasks (which depend on the specifics of the simulation) is:</p>
-<table class="colwidths-auto docutils align-default">
+<table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p>Type</p></th>
@@ -216,7 +138,7 @@ INFO: Timings, in seconds, by Timer (total, own, spent in children)
 </tr>
 <tr class="row-even"><td><p>Hilbert sorting</p></td>
 <td><p>MD on CUDA</p></td>
-<td><p>Sort the particles to optimise data access on GPUs.Used only if <a class="reference internal" href="input.html#cuda-options"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">CUDA_sort</span></code> is set</span></a></p></td>
+<td><p>Sort the particles to optimise data access on GPUs.Used only if <a class="reference internal" href="input.html#cuda-options"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">CUDA_sort</span></code> is set</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Rotations+Translations</p></td>
 <td><p>MC</p></td>
@@ -234,79 +156,54 @@ INFO: Timings, in seconds, by Timer (total, own, spent in children)
 </table>
 <p>Given a certain task, the time spent by the code is split into total time, time spent by the task itself, and time spent by the task’s children (subtasks, if you will). Note that the latter two sum up to the former.</p>
 <p>The most important information, optimization-wise, is provided by the percentage column.</p>
-<div class="section" id="molecular-dynamics">
-<h2>Molecular dynamics<a class="headerlink" href="#molecular-dynamics" title="Permalink to this headline">¶</a></h2>
+<section id="molecular-dynamics">
+<h2>Molecular dynamics<a class="headerlink" href="#molecular-dynamics" title="Permalink to this heading"></a></h2>
 <p>In molecular dynamics simulations, the two most important parameters, performance-wise, are <code class="docutils literal notranslate"><span class="pre">verlet_skin</span></code> and <code class="docutils literal notranslate"><span class="pre">dt</span></code>.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">verlet_skin</span></code> controls the distance a particle has to move to trigger the update of the neighbour lists. Using a larger value results in fewer updates but a larger number of possibly-interacting pairs of non-bonded particles and vice versa. You can try to decrease this number if the simulation tends to spend most of its time computing pair interactions. The most common optimal value lies between 0.05 and 0.2.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code> is the integration time step. Given a number of simulated time steps, the simulated time is proporional to <code class="docutils literal notranslate"><span class="pre">dt</span></code>. Since the overall performance of the simulation is only weakly dependent on the integration time step, using the largest possible <code class="docutils literal notranslate"><span class="pre">dt</span></code> value is advisable. However, using a value that is too large will result in numerical instabilities. Depending on the thermostat settings, optimal values range from 0.001 to 0.003 but your mileage may vary, so feel free to experiment with <code class="docutils literal notranslate"><span class="pre">dt</span></code> if you want to really optimise your simulation.</p></li>
 </ul>
-<div class="section" id="gpu-simulations">
-<h3>GPU simulations<a class="headerlink" href="#gpu-simulations" title="Permalink to this headline">¶</a></h3>
+<section id="gpu-simulations">
+<h3>GPU simulations<a class="headerlink" href="#gpu-simulations" title="Permalink to this heading"></a></h3>
 <p>When running CUDA-powered simulations, the box size has a non-trivial effect on performance, and its interaction with other parameters such as <code class="docutils literal notranslate"><span class="pre">salt_concentration</span></code>, <code class="docutils literal notranslate"><span class="pre">verlet_skin</span></code>, and possibly others, make it hard to come up with a way of automatically set the best options for a given case.</p>
 <p>Since there is no dynamic memory on GPUs, in order to avoid crashing simulations oxDNA sets the size of the cells used to build neighbouring lists so that their memory footprint is not too high. If you want to optimise performance is sometimes worth to set <code class="docutils literal notranslate"><span class="pre">cells_auto_optimisation</span> <span class="pre">=</span> <span class="pre">false</span></code> so that oxDNA uses the smallest possible cells (at the cost of memory consumption). If the resulting memory footprint can be handled by your GPU you’ll probably see some (possibly large) performance gains.</p>
-</div>
-</div>
-<div class="section" id="monte-carlo">
-<h2>Monte Carlo<a class="headerlink" href="#monte-carlo" title="Permalink to this headline">¶</a></h2>
-<p>When running Monte Carlo simulations the efficiency of the sampling depends on specific moves employed during the simulation. For regular Monte Carlo and VMMC simulations, the most important options are <code class="docutils literal notranslate"><span class="pre">delta_translation</span></code> and <code class="docutils literal notranslate"><span class="pre">delta_rotation</span></code>, which set the maximum displacement for translations and rotations. Optimal values depend very much on the system at hand, so it is hard to provide some guidelines, although often values around <code class="docutils literal notranslate"><span class="pre">0.1</span></code> given decent performance. Sometimes it may be worth to set <a class="reference internal" href="input.html#monte-carlo-options"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">adjust_moves</span> <span class="pre">=</span> <span class="pre">true</span></code> (together with <code class="docutils literal notranslate"><span class="pre">equilibration_steps</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>)</span></a> to let the code look for optimal values.</p>
-</div>
-</div>
+</section>
+</section>
+<section id="monte-carlo">
+<h2>Monte Carlo<a class="headerlink" href="#monte-carlo" title="Permalink to this heading"></a></h2>
+<p>When running Monte Carlo simulations the efficiency of the sampling depends on specific moves employed during the simulation. For regular Monte Carlo and VMMC simulations, the most important options are <code class="docutils literal notranslate"><span class="pre">delta_translation</span></code> and <code class="docutils literal notranslate"><span class="pre">delta_rotation</span></code>, which set the maximum displacement for translations and rotations. Optimal values depend very much on the system at hand, so it is hard to provide some guidelines, although often values around <code class="docutils literal notranslate"><span class="pre">0.1</span></code> given decent performance. Sometimes it may be worth to set <a class="reference internal" href="input.html#monte-carlo-options"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">adjust_moves</span> <span class="pre">=</span> <span class="pre">true</span></code> (together with <code class="docutils literal notranslate"><span class="pre">equilibration_steps</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>)</span></a> to let the code look for optimal values.</p>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="scaling.html" class="btn btn-neutral float-right" title="Efficient GPU usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="relaxation.html" class="btn btn-neutral float-left" title="Relaxing initial configurations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="relaxation.html" class="btn btn-neutral float-left" title="Relaxing initial configurations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="scaling.html" class="btn btn-neutral float-right" title="Efficient GPU usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
-
-    </p>
+    <p>&#169; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc.</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

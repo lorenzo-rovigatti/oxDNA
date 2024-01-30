@@ -1,89 +1,52 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>External forces &mdash; oxDNA  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-  
-  
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
   
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+        <script src="_static/sphinx_highlight.js"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Observables" href="observables.html" />
     <link rel="prev" title="Efficient GPU usage" href="scaling.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> oxDNA
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            oxDNA
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -119,71 +82,32 @@
 <li class="toctree-l1"><a class="reference internal" href="oxpy/index.html">Oxpy</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">oxDNA</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>External forces</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">External forces</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/forces.md.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="tex2jax_ignore mathjax_ignore section" id="external-forces">
-<h1>External forces<a class="headerlink" href="#external-forces" title="Permalink to this headline">¶</a></h1>
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="external-forces">
+<h1>External forces<a class="headerlink" href="#external-forces" title="Permalink to this heading"></a></h1>
 <p>The code implements several types of external forces that can be imposed on the system that can be used either to simulate tension exerted on DNA or simply to accelerate the formation of secondary or tertiary structure. External forces can be tricky to treat, especially in a dynamics simulation, since they are an external source of work. Care should be taken in adjusting the time step, thermostat parameters and such.</p>
 <p>To enable external forces, one needs to specify <code class="docutils literal notranslate"><span class="pre">external_forces</span> <span class="pre">=</span> <span class="pre">true</span></code> in the input file and also supply an external force file to read from with the key <code class="docutils literal notranslate"><span class="pre">external_forces_file</span> <span class="pre">=</span> <span class="pre">&lt;file&gt;</span></code>.</p>
 <p>The syntax of the external forces file is quite simple. Examples of such files can be found in the hairpin formation (<code class="docutils literal notranslate"><span class="pre">examples/HAIRPIN</span></code>) and pseudoknot formation (<code class="docutils literal notranslate"><span class="pre">examples/PSEUDOKNOT</span></code>) examples. Each force is specified within a block contained in curly brackets. Empty lines and lines beginning with an hash symbol (#) are ignored. Different forces require different keys to be present. If the file has the wrong syntax, oxDNA should print out a sensible error message while parsing the file.</p>
@@ -218,16 +142,16 @@
 </div>
 <p>Note that <strong>all fields</strong> should be escaped with double quotes.</p>
 </div>
-<div class="section" id="common-options">
-<h2>Common options<a class="headerlink" href="#common-options" title="Permalink to this headline">¶</a></h2>
-<p>The following two options are supported by all forces and can be used by observables or by the <a class="reference internal" href="oxpy/index.html"><span class="doc std std-doc">oxpy</span></a> library to retrieve information from or set options of specific external forces:</p>
+<section id="common-options">
+<h2>Common options<a class="headerlink" href="#common-options" title="Permalink to this heading"></a></h2>
+<p>The following two options are supported by all forces and can be used by observables or by the <a class="reference internal" href="oxpy/index.html"><span class="std std-doc">oxpy</span></a> library to retrieve information from or set options of specific external forces:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">[group_name</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: an identifier that can be used to group forces together. Used, for instance, by the <code class="docutils literal notranslate"><span class="pre">force_energy</span></code> observable.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[id</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: a unique identifier that can be used to refer to this specific external force.</p></li>
 </ul>
-</div>
-<div class="section" id="string">
-<h2>String<a class="headerlink" href="#string" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="string">
+<h2>String<a class="headerlink" href="#string" title="Permalink to this heading"></a></h2>
 <p>A string is implemented as a force that does not depend on the particle position. Its value can be constant or can change linearly with time. It is useful as it does not fluctuate with time. A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">string</span></code>. The relevant keys are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
@@ -249,9 +173,9 @@ dir = 0., 0., 1.
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="mutual-trap">
-<h2>Mutual Trap<a class="headerlink" href="#mutual-trap" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="mutual-trap">
+<h2>Mutual Trap<a class="headerlink" href="#mutual-trap" title="Permalink to this heading"></a></h2>
 <p>This force is useful to form initial configurations. It is a harmonic force that at every moment pulls a particle towards a reference particle. It is possible to specify the separation at which the force will be 0.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -292,9 +216,9 @@ r0 = 1.2
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="harmonic-trap">
-<h2>Harmonic trap<a class="headerlink" href="#harmonic-trap" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="harmonic-trap">
+<h2>Harmonic trap<a class="headerlink" href="#harmonic-trap" title="Permalink to this heading"></a></h2>
 <p>This type of force implements an harmonic trap, of arbitrary stiffness, that can move linearly with time. It can be useful to fix the position of the nucleotides to simulate attachment to something or to implement (quasi) constant extension simulations.</p>
 <p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">trap</span></code>. The relevant keys are:</p>
 <ul class="simple">
@@ -318,9 +242,9 @@ dir = 1.,0.,0.
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="rotating-harmonic-trap">
-<h2>Rotating harmonic trap<a class="headerlink" href="#rotating-harmonic-trap" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="rotating-harmonic-trap">
+<h2>Rotating harmonic trap<a class="headerlink" href="#rotating-harmonic-trap" title="Permalink to this heading"></a></h2>
 <p>Same as the harmonic trap, with the exception that the trap position rotates in space with constant angular velocity. Several of these can be used e.g. to twist DNA.</p>
 <p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">twist</span></code>. The relevant keys are:</p>
 <ul class="simple">
@@ -349,9 +273,9 @@ mask = 1, 1, 0
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="repulsion-plane">
-<h2>Repulsion plane<a class="headerlink" href="#repulsion-plane" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="repulsion-plane">
+<h2>Repulsion plane<a class="headerlink" href="#repulsion-plane" title="Permalink to this heading"></a></h2>
 <p>This kind of external force implements a repulsion plane that constrains particles to stay on one side of it. It is implemented as a harmonic repulsion, but the stiffness can be made arbitrarily high to mimic a hard repulsion.</p>
 <p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane</span></code>. The relevant keys are:</p>
 <ul class="simple">
@@ -377,9 +301,9 @@ position = 0
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="repulsive-sphere">
-<h2>Repulsive sphere<a class="headerlink" href="#repulsive-sphere" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="repulsive-sphere">
+<h2>Repulsive sphere<a class="headerlink" href="#repulsive-sphere" title="Permalink to this heading"></a></h2>
 <p>This force encloses particle(s) in a repulsive sphere. The repulsion force is harmonic.</p>
 <p>A force of this kind is specified with <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sphere</span></code>. The relevant keys are:</p>
 <ul class="simple">
@@ -403,9 +327,9 @@ r0 = 6
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="type-com">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code><a class="headerlink" href="#type-com" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="type-com">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code><a class="headerlink" href="#type-com" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
     stiffness of the spring
 r0 = &lt;float&gt;
@@ -419,9 +343,9 @@ ref_list = &lt;string&gt;
     other group of particles
 </pre></div>
 </div>
-</div>
-<div class="section" id="type-lj-wall">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code><a class="headerlink" href="#type-lj-wall" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="type-lj-wall">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code><a class="headerlink" href="#type-lj-wall" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
     the vector normal to the plane: it should point towards the half-plane
     where the repulsion is not acting.
@@ -448,9 +372,9 @@ particle = &lt;int&gt;
     Defaults to false
 </pre></div>
 </div>
-</div>
-<div class="section" id="type-sawtooth">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code><a class="headerlink" href="#type-sawtooth" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="type-sawtooth">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code><a class="headerlink" href="#type-sawtooth" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>particle = &lt;int&gt;
     particle to apply the force to. -1 applies it to all particles.
 F0 = &lt;float&gt;
@@ -462,9 +386,9 @@ increment = &lt;float&gt;
     amount by which to increment the force every wait_time steps.
 </pre></div>
 </div>
-</div>
-<div class="section" id="type-repulsion-plane-moving">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code><a class="headerlink" href="#type-repulsion-plane-moving" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="type-repulsion-plane-moving">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">repulsion_plane_moving</span></code><a class="headerlink" href="#type-repulsion-plane-moving" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>stiff = &lt;float&gt;
     stiffness of the repulsion.
 dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
@@ -480,9 +404,9 @@ ref_particle = &lt;int&gt;
     separated indexes.
 </pre></div>
 </div>
-</div>
-<div class="section" id="type-hard-wall">
-<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code><a class="headerlink" href="#type-hard-wall" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="type-hard-wall">
+<h2><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">hard_wall</span></code><a class="headerlink" href="#type-hard-wall" title="Permalink to this heading"></a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dir = &lt;float&gt;,&lt;float&gt;,&lt;float&gt;
     the vector normal to the plane: it should point towards the half-plane
     that is allowed to the particles.
@@ -497,63 +421,38 @@ particle = &lt;int&gt;
     particle and wall. Defaults to 1.
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="observables.html" class="btn btn-neutral float-right" title="Observables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="scaling.html" class="btn btn-neutral float-left" title="Efficient GPU usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="scaling.html" class="btn btn-neutral float-left" title="Efficient GPU usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="observables.html" class="btn btn-neutral float-right" title="Observables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        
-        &copy; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc
-
-    </p>
+    <p>&#169; Copyright 2022, Lorenzo Rovigatti, Flavio Romano, Erik Poppleton, Michael Matthies, and Petr Šulc.</p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
