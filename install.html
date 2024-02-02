@@ -55,14 +55,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#compiling-oxdna">Compiling oxDNA</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#updating-a-local-copy">Updating a local copy</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cmake-options">CMake options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#make-targets">make targets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#known-issues">Known issues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#make-targets">make targets</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#cmake-compiler-choice">CMake compiler choice</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#oxpy-and-oxdna-analysis-tools"><code class="docutils literal notranslate"><span class="pre">oxpy</span></code> and oxDNA Analysis Tools</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#known-issues">Known issues</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-oxpy-with-old-python-versions">Using <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> with old Python versions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 </ul>
@@ -178,10 +178,6 @@ make<span class="w"> </span>-j4<span class="w">        </span><span class="c1">#
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">rovigatti</span></code> Compiles the observables and interactions in contrib/rovigatti</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">romano</span></code> Compiles the observables and interactions in contrib/romano</p></li>
 </ul>
-</section>
-<section id="known-issues">
-<h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this heading"></a></h3>
-<p>The list of known issues can be browsed online <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA/issues">here</a>.</p>
 <section id="cmake-compiler-choice">
 <h4>CMake compiler choice<a class="headerlink" href="#cmake-compiler-choice" title="Permalink to this heading"></a></h4>
 <p>CMake searches your $PATH for compatible C and C++ compilers and uses the first ones it finds. If you want to use a different set than the default, you can override the compiler choice as follows:</p>
@@ -214,6 +210,13 @@ make<span class="w"> </span>-j4<span class="w">        </span><span class="c1">#
 </ul>
 </section>
 </section>
+</section>
+<section id="known-issues">
+<h2>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>An <code class="docutils literal notranslate"><span class="pre">illegal</span> <span class="pre">instruction</span></code> is sometimes issued when the code is compiled on a CPU architecture and run on another, or when specific combinations of CPU architecture and compiler are used. Invoke CMake with <code class="docutils literal notranslate"><span class="pre">-DNATIVE_COMPILATION=Off</span></code> and re-compile the code to fix the issue.</p></li>
+<li><p>A list of other known issues can be browsed online <a class="reference external" href="https://github.com/lorenzo-rovigatti/oxDNA/issues">here</a>.</p></li>
+</ul>
 </section>
 <section id="using-oxpy-with-old-python-versions">
 <h2>Using <code class="docutils literal notranslate"><span class="pre">oxpy</span></code> with old Python versions<a class="headerlink" href="#using-oxpy-with-old-python-versions" title="Permalink to this heading"></a></h2>
