@@ -191,7 +191,7 @@ make<span class="w"> </span>-j4<span class="w">        </span><span class="c1">#
 <li><p>When running <code class="docutils literal notranslate"><span class="pre">make</span></code> if you run into a problem at the end of compilation where it cannot find <code class="docutils literal notranslate"><span class="pre">python.h</span></code>, this means that you don’t have the Python developer kit installed. See <a class="reference external" href="https://stackoverflow.com/a/21530768/9738112">this StackOverflow answer</a> on how to install with a variety of package managers. If you do have it installed, see the next bullet point.</p></li>
 <li><p>When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly as follows:</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DPython<span class="o">=</span>ON<span class="w"> </span>-DPYTHON_INCLUDE_DIRS<span class="o">=</span>/path/to/python/include/dir<span class="w"> </span>-DPYTHON_EXECUTABLE<span class="o">=</span>/path/to/python/binary<span class="w"> </span>..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DPython<span class="o">=</span>ON<span class="w"> </span>-DPYTHON_INCLUDE_DIR<span class="o">=</span>/path/to/python/include/dir<span class="w"> </span>-DPYTHON_EXECUTABLE<span class="o">=</span>/path/to/python/binary<span class="w"> </span>..
 </pre></div>
 </div>
 <p>If you are using conda environments, the paths should look something like:</p>

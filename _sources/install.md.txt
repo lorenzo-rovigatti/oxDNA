@@ -84,7 +84,7 @@ cmake -DCMAKE_C_COMPILER=/path/to/gcc -DCMAKE_CXX_COMPILER=path/to/g++ ..
 * When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly as follows:
 
 ```bash
-cmake -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary ..
+cmake -DPython=ON -DPYTHON_INCLUDE_DIR=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary ..
 ```
 
 If you are using conda environments, the paths should look something like:  
