@@ -31,7 +31,7 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_3b_sigma", &_3b_sigma, 0);
 	getInputNumber(&inp, "DPS_3b_range", &_3b_range, 0);
 	getInputNumber(&inp, "DPS_3b_lambda", &_3b_lambda, 0);
-	getInputNumber(&inp, "DPS_mu", &_mu, 1.0);
+	getInputNumber(&inp, "DPS_tC", &_tC, 37.0);
 	getInputNumber(&inp, "DPS_dS_mod", &dS_mod, 1.0);
 	getInputNumber(&inp, "DPS_alpha_mod", &alpha_mod, 1.0);
 	getInputNumber(&inp, "DPS_bdG_threshold", &bdG_threshold, 1.0);
@@ -80,7 +80,8 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 void CGNucleicAcidsInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
 	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / _PS_n);
-	_WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0;
+	// _WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0; // disabled for now
+	_WCA_sigma_unbonded = _WCA_sigma;
 
 	OX_LOG(Logger::LOG_INFO, "CGNA: WCA sigma = %lf, WCA sigma unbonded = %lf", _WCA_sigma, _WCA_sigma_unbonded);
 
@@ -631,38 +632,38 @@ void CGNucleicAcidsInteraction::allocate_particles(std::vector<BaseParticle*> &p
 }
 
 void CGNucleicAcidsInteraction::_parse_interaction_matrix() {
-	// parse the interaction matrix file
-	input_file inter_matrix_file;
-	inter_matrix_file.init_from_filename(_interaction_matrix_file);
-	const number _t37_ = 310.15;
-	const number _kB_ = 1.9872036;
-	//const number dS_mod = 1.87;
-	if(inter_matrix_file.state == ERROR) {
-		throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
-	}
+        // parse the interaction matrix file
+        input_file inter_matrix_file;
+        inter_matrix_file.init_from_filename(_interaction_matrix_file);
+        const number _t37_ = 310.15;
+        const number _kB_ = 1.9872036;
+        number _mu = _t37_ / (_tC+273.15);
+        if(inter_matrix_file.state == ERROR) {
+                throw oxDNAException("Caught an error while opening the interaction matrix file '%s'", _interaction_matrix_file.c_str());
+        }
 
 	_interaction_matrix_size = _N_attractive_types + 1;
 	_3b_epsilon.resize(_interaction_matrix_size * _interaction_matrix_size, 0.);
 
-	ofstream myfile;
-	myfile.open("beta_eps_matrix.dat");
-	for(int i = 1; i <= _N_attractive_types; i++) {
-		for(int j = 1; j <= _N_attractive_types; j++) {
-			number valueH;
-			number valueS;
-			std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
-			std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
-			if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
-				number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS) / _kB_;
-				number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
-				if(beta_dG < bdG_threshold && abs(i - j) > 2) {
-					_3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
-					myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
-				}
-			}
-		}
-	}
-	myfile.close();
+        ofstream myfile;
+        myfile.open("beta_eps_matrix.dat");
+        for(int i = 1; i <= _N_attractive_types; i++) {
+                for(int j = 1; j <= _N_attractive_types; j++) {
+                        number valueH;
+                        number valueS;
+                        std::string keyH = Utils::sformat("dH[%d][%d]", i, j);
+                        std::string keyS = Utils::sformat("dS[%d][%d]", i, j);
+                        if(getInputNumber(&inter_matrix_file, keyH.c_str(), &valueH, 0) == KEY_FOUND && getInputNumber(&inter_matrix_file, keyS.c_str(), &valueS, 0) == KEY_FOUND) {
+                                number beta_dG = (_mu * valueH * 1000 / _t37_ - valueS)/_kB_;
+                                number beta_eps = -(beta_dG + dS_mod) / alpha_mod;
+                                if(beta_dG<bdG_threshold && abs(i - j) > 1) {
+                                        _3b_epsilon[i + _interaction_matrix_size * j] = _3b_epsilon[j + _interaction_matrix_size * i] = beta_eps;
+                                        myfile << "beta_eps[" << i << "][" << j << "]=" << beta_eps << "\n";
+                                }
+                        }
+                }
+        }
+        myfile.close();
 }
 
 void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &particles) {

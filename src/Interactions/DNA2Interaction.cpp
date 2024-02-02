@@ -69,27 +69,25 @@ void DNA2Interaction::get_settings(input_file &inp) {
 	//OX_LOG(Logger::LOG_INFO,"dh_half_charged_ends = %s", _debye_huckel_half_charged_ends ? "true" : "false");
 
 	// lambda-factor (the dh length at T = 300K, I = 1.0)
-	float lambdafactor;
-	if(getInputFloat(&inp, "dh_lambda", &lambdafactor, 0) == KEY_FOUND) {
-		_debye_huckel_lambdafactor = (float) lambdafactor;
-	}
-	else {
+	if(getInputNumber(&inp, "dh_lambda", &_debye_huckel_lambdafactor, 0) != KEY_FOUND) {
 		_debye_huckel_lambdafactor = 0.3616455;
 	}
 
 	// the prefactor to the Debye-Huckel term
-	float prefactor;
-	if(getInputFloat(&inp, "dh_strength", &prefactor, 0) == KEY_FOUND) {
-		_debye_huckel_prefactor = (float) prefactor;
-	}
-	else {
+	if(getInputNumber(&inp, "dh_strength", &_debye_huckel_prefactor, 0) != KEY_FOUND) {
 		_debye_huckel_prefactor = 0.0543;
+	}
+
+	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
+	// RHIGH gives the distance at which the smoothing begins
+	if(getInputNumber(&inp, "debye_huckel_rhigh", &_debye_huckel_RHIGH, 0) != KEY_FOUND) {
+		_debye_huckel_RHIGH = 3.0 * lambda;
 	}
 
 	// notify the user that major-minor grooving is switched on
 	// check whether it's set in the input file to avoid duplicate messages
-	int tmp;
-	if(_grooving && (getInputBoolAsInt(&inp, "major_minor_grooving", &tmp, 0) != KEY_FOUND)) {
+	bool tmp;
+	if(_grooving && (getInputBool(&inp, "major_minor_grooving", &tmp, 0) != KEY_FOUND)) {
 		OX_LOG(Logger::LOG_INFO, "Using different widths for major and minor grooves");
 	}
 }
@@ -118,8 +116,6 @@ void DNA2Interaction::init() {
 
 	// We wish to normalise with respect to T=300K, I=1M. 300K=0.1 s.u. so divide _T by 0.1
 	number lambda = _debye_huckel_lambdafactor * sqrt(_T / 0.1f) / sqrt(_salt_concentration);
-	// RHIGH gives the distance at which the smoothing begins
-	_debye_huckel_RHIGH = 3.0 * lambda;
 	_minus_kappa = -1.0 / lambda;
 
 	// these are just for convenience for the smoothing parameter computation

@@ -70,10 +70,6 @@ If you are on your own machine or you installed Python via Anaconda, the `-DOxpy
 * `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
 * `make romano` Compiles the observables and interactions in contrib/romano
 
-### Known issues
-
-The list of known issues can be browsed online [here](https://github.com/lorenzo-rovigatti/oxDNA/issues).
-
 #### CMake compiler choice
 
 CMake searches your $PATH for compatible C and C++ compilers and uses the first ones it finds. If you want to use a different set than the default, you can override the compiler choice as follows:
@@ -104,6 +100,12 @@ cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUD
 * If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing `oxDNA_analysis_tools` with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, either update your version of Numpy or try to install just `OAT` without build isolation:
   `python -m pip install ./analysis --no-build-isolation`
 * Sometimes installation will fail with `TypeError: expected string or bytes-like object`. This error is usually caused by older versions of either `oxpy` or `oxDNA-analysis-tools` somewhere in your `$PATH`. Remove them with `pip uninstall oxpy` and `pip uninstall oxDNA-analysis-tools` and try installing again.
+
+## Known issues
+
+* An `illegal instruction` is sometimes issued when the code is compiled on a CPU architecture and run on another, or when specific combinations of CPU architecture and compiler are used. Invoke CMake with `-DNATIVE_COMPILATION=Off` and re-compile the code to fix the issue.
+* A list of other known issues can be browsed online [here](https://github.com/lorenzo-rovigatti/oxDNA/issues).
+
 
 ## Using `oxpy` with old Python versions
 

@@ -7,7 +7,7 @@
 
 #include "PT_VMMC_CPUBackend.h"
 
-#include "mpi.h"
+#include <mpi.h>
 
 PT_VMMC_CPUBackend::PT_VMMC_CPUBackend() :
 				VMMC_CPUBackend() {
@@ -28,8 +28,6 @@ PT_VMMC_CPUBackend::~PT_VMMC_CPUBackend() {
 }
 
 void PT_VMMC_CPUBackend::init() {
-	//VMMC_CPUBackend::init(conf_input);
-
 	if(_oxRNA_stacking) {
 		RNAInteraction *it = dynamic_cast<RNAInteraction*>(_interaction.get());
 		model = it->get_model();
@@ -42,11 +40,6 @@ void PT_VMMC_CPUBackend::init() {
 	sprintf(my_conf_filename, "%s%d", _conf_filename.c_str(), _my_mpi_id);
 
 	_conf_filename = string(my_conf_filename);
-
-	fprintf(stderr, "REPLICA %d: reading configuration from %s\n", _my_mpi_id, my_conf_filename);
-	VMMC_CPUBackend::init();
-
-	_exchange_conf = new PT_serialized_particle_info[N()];
 
 	// check that temperatures are in order...
 	bool check2 = true;
@@ -63,23 +56,19 @@ void PT_VMMC_CPUBackend::init() {
 	}
 
 	// let's get our own temperature...
-	if(_npttemps != _mpi_nprocs)
+	if(_npttemps != _mpi_nprocs) {
 		throw oxDNAException("Number of PT temperatures does not match number of processes (%d != %d)", _npttemps, _mpi_nprocs);
+	}
 	_T = _pttemps[_my_mpi_id];
 	//OX_LOG(Logger::LOG_INFO, "Replica %d: Running at T=%g", _my_mpi_id, _T);
 	fprintf(stderr, "Replica %d: Running at T=%g\n", _my_mpi_id, _T);
 
-	OX_LOG(Logger::LOG_INFO, "Deleting previous interaction and creating one...");
-	//_interaction.init(_T);
-	//throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
-	// here we should initialize the interaction to use the appropriate T
+	CONFIG_INFO->update_temperature(_T);
 
-	OX_LOG(Logger::LOG_INFO, "Deleting previous lists and creating one...");
-	//throw oxDNAException ("File %s, line %d: not implemented", __FILE__, __LINE__);
-	// here we should create our own lists...
-
-	//VMMC_CPUBackend::_compute_energy();
-	MC_CPUBackend::_compute_energy();
+	fprintf(stderr, "REPLICA %d: reading configuration from %s\n", _my_mpi_id, my_conf_filename);
+	VMMC_CPUBackend::init();
+	// N() returns no non-sense only after having called init()
+	_exchange_conf = new PT_serialized_particle_info[N()];
 
 	//fprintf (stderr, "REPLICA %d: Running at T=%g\n", _my_mpi_id, _T);
 
@@ -89,14 +78,15 @@ void PT_VMMC_CPUBackend::init() {
 	// changing filename
 	char extra[16];
 	sprintf(extra, "%d", _my_mpi_id);
-	strcat(_last_hist_file, extra);
-	strcat(_traj_hist_file, extra);
 
-	if(_reload_hist)
+	if(_reload_hist) {
 		strcat(_init_hist_file, extra);
+	}
 
 	// common weights file? if so, we have a single file
 	if(_have_us) {
+		strcat(_last_hist_file, extra);
+		strcat(_traj_hist_file, extra);
 
 		sprintf(_irresp_weights_file, "%s", _weights_file);
 
@@ -172,7 +162,6 @@ void PT_VMMC_CPUBackend::get_settings(input_file &inp) {
 			memcpy(_pttemps, tmpt, _npttemps * sizeof(double));
 		}
 		delete[] tmpt;
-		//abort ();
 	}
 
 	int tmpi = -1;
@@ -189,10 +178,12 @@ void PT_VMMC_CPUBackend::get_settings(input_file &inp) {
 
 	std::string inter_type("");
 	getInputString(&inp, "interaction_type", inter_type, 0);
-	if(inter_type.compare("DNA2") == 0)
+	if(inter_type.compare("DNA2") == 0) {
 		_oxDNA2_stacking = true;
-	if(inter_type.compare("RNA2") == 0 || inter_type.compare("RNA2") == 0)
+	}
+	if(inter_type.compare("RNA2") == 0 || inter_type.compare("RNA2") == 0) {
 		_oxRNA_stacking = true;
+	}
 }
 
 void PT_serialized_particle_info::read_from(BaseParticle *par) {
@@ -203,15 +194,6 @@ void PT_serialized_particle_info::read_from(BaseParticle *par) {
 void PT_serialized_particle_info::write_to(BaseParticle *par) {
 	par->pos = pos;
 	par->orientation = orientation;
-
-	/*
-	 par->en3 = 0; // = p->en3;
-	 par->en5 = 0; // p->en5;
-	 par->esn3 = 0; //p->esn3;
-	 par->esn5 = 0; // p->esn5;
-	 par->inclust = false;
-	 */
-
 }
 
 void PT_VMMC_CPUBackend::sim_step() {
@@ -351,8 +333,7 @@ void PT_VMMC_CPUBackend::sim_step() {
 					_exchange_energy.U_ext = buffer_energy.U_ext;
 					_exchange_energy.replica_id = buffer_energy.replica_id;
 
-					// rebuild my conf (which will now become the other guy's
-					// old one
+					// rebuild my conf (which will now become the other guy's old one
 					_rebuild_exchange_conf();
 					_rebuild_exchange_energy();
 
@@ -397,10 +378,10 @@ void PT_VMMC_CPUBackend::sim_step() {
 		}
 		fflush(stdout);
 		// debug
-		if(fabs(_T - _pttemps[_my_mpi_id]) > 1.e-7) {
+		if(fabs(_T - _pttemps[_my_mpi_id]) > 1e-7) {
 			fprintf(stderr, "DISASTRO\n\n\n");
 		}
-		// we should se the forces again if we have swapped conf
+		// we should set the forces again if we have swapped conf
 		if(_external_forces) {
 			BaseParticle *p;
 			for(int i = 0; i < N(); i++) {
@@ -410,8 +391,6 @@ void PT_VMMC_CPUBackend::sim_step() {
 		}
 
 	}
-
-	return;
 }
 
 void PT_VMMC_CPUBackend::_send_exchange_energy(int other_id) {
@@ -503,7 +482,7 @@ void PT_VMMC_CPUBackend::_rebuild_exchange_conf() {
 		}
 	}
 
-//here we reset order parameters
+	// here we reset order parameters
 	_op.reset();
 	int i, j;
 	number hpq;
@@ -522,7 +501,7 @@ void PT_VMMC_CPUBackend::_rebuild_exchange_conf() {
 
 	_op.fill_distance_parameters(_particles, _box.get());
 
-	//VMMC_CPUBackend::_update_metainfo ();
+	//VMMC_CPUBackend::_update_metainfo();
 	return;
 }
 
@@ -548,19 +527,4 @@ int PT_VMMC_CPUBackend::_MPI_receive_block_data(void *data, size_t size, int nod
 	else {
 		return 1;
 	}
-}
-
-number PT_VMMC_CPUBackend::get_pt_acc() {
-	if(_my_mpi_id == (_mpi_nprocs - 1)) {
-		// I am never responsible, so by definition...
-		return 0.;
-	}
-	else {
-		return _pt_exchange_accepted / (number) _pt_exchange_tries;
-	}
-}
-
-char* PT_VMMC_CPUBackend::get_replica_info_str() {
-	sprintf(_replica_info, "%d %d", _my_mpi_id, _which_replica);
-	return _replica_info;
 }
