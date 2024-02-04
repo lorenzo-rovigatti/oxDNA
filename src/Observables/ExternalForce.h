@@ -16,14 +16,16 @@
 
 class ExternalForce: public BaseObservable {
 protected:
-	std::vector<std::string> _ids;
-	std::vector<std::shared_ptr<BaseForce>> _ext_forces;
+	std::string _particle_ids;
+	std::vector<BaseParticle *> _particles;
 	std::vector<LR_vector> _force_averages;
 public:
 	ExternalForce();
 	virtual ~ExternalForce();
 
-	virtual void get_settings(input_file &my_inp, input_file &sim_inp);
+	void get_settings(input_file &my_inp, input_file &sim_inp) override;
+	void init() override;
+
 	void update_data(llint curr_step) override;
 
 	std::string get_output_string(llint curr_step);

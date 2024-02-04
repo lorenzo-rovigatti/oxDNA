@@ -73,7 +73,7 @@ public:
 	 */
 	bool add_ext_force(BaseForce *f);
 
-	inline void set_initial_forces(llint step, const std::shared_ptr<BaseBox> &box) {
+	inline void set_initial_forces(llint step, BaseBox *box) {
 		if(is_rigid_body()) {
 			torque = LR_vector((number) 0.f, (number) 0.f, (number) 0.f);
 		}

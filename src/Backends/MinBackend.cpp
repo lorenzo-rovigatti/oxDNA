@@ -115,7 +115,7 @@ void MinBackend::sim_step() {
 	_mytimer->resume();
 
 	for(auto p: _particles) {
-		p->set_initial_forces(current_step(), _box);
+		p->set_initial_forces(current_step(), _box.get());
 	}
 
 	_timer_lists->resume();
