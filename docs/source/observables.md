@@ -171,6 +171,13 @@ Print the energy associated to all (or a subset of) the external forces acting o
 * `type = force_energy`: the observable type.
 * `[print_group = <string>]`: limit the energy computation to the forces belonging to a specific group of forces. This can be set by adding a `group_name` option to the [desired external forces](forces.md#common-options). If not set, all external forces will be considered.
 
+## External force acting on particle(s)
+
+Print the force vector acting on all (or a subset of all) particles due to external forces. This observable supports the `update_every` option.
+
+* `type = external_force`: the observable type.
+* `particles`: list of comma-separated particle indexes whose force vectors should be printed.
+
 ## Configuration
 
 Print an [oxDNA configuration](configurations.md#configuration-file).
