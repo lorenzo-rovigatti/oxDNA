@@ -199,6 +199,9 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 					LTCOMTrap *p_force = (LTCOMTrap *) p->ext_forces[j];
 					init_LTCOMTrap_from_CPU(&cuda_force->ltcomtrap, p_force, first_time);
 				}
+				// else if(force_type == typeid(attraction_plane)){
+				// 	throw oxDNAException("attraction_plane forces are not supported on CUDA at the moment.\n");
+				// }
 				else {
 					throw oxDNAException("Only ConstantRate, MutualTrap, MovingTrap, LowdimMovingTrap, RepulsionPlane, "
 							"RepulsionPlaneMoving, RepulsiveSphere, LJWall, ConstantRateTorque, GenericCentralForce, "

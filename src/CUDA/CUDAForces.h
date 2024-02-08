@@ -44,6 +44,7 @@
 #define CUDA_COM_FORCE 13
 #define CUDA_LR_COM_TRAP 14
 
+#define CUDA_ATTRACTION_PLANE 100
 /**
  * @brief CUDA version of a ConstantRateForce.
  */
@@ -245,6 +246,17 @@ struct constant_rate_torque {
 	c_number F0;
 };
 
+/**
+ * @brief CUDA version of a AttractionPlane.
+ */
+
+struct attraction_plane {
+	int type;
+	c_number stiff;
+	c_number position;
+	float3 dir;
+};
+
 void init_ConstantRateTorque_from_CPU(constant_rate_torque *cuda_force, ConstantRateTorque *cpu_force) {
 	cuda_force->type = CUDA_CONSTANT_RATE_TORQUE;
 	cuda_force->stiff = cpu_force->_stiff;
@@ -442,6 +454,7 @@ union CUDA_trap {
 	repulsive_ellipsoid repulsiveellipsoid;
 	COM_force comforce;
 	lt_com_trap ltcomtrap;
+	// attraction_plane attractionplane;
 };
 
 #endif /* CUDAFORCES_H_ */
