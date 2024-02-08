@@ -119,7 +119,7 @@ void ObservableOutput::_open_output() {
 }
 
 void ObservableOutput::init() {
-	if(!_update_name_with_time) {
+	if(!_update_name_with_time && !_only_last) {
 		_open_output();
 	}
 
