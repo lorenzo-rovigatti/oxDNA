@@ -530,7 +530,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 				number K = p->patches[pi].strength;
 			    LR_vector qpatch = q->int_centers[qi];
 				LR_vector patch_dist = _computed_r + qpatch - ppatch;
-				patch_dist += patch_dist*patchyIntercept/patch_dist.norm()
+				patch_dist += patch_dist*patchyIntercept/patch_dist.norm();
 				number dist = patch_dist.norm();
 				if(dist < SQR(patchyCutOff)){
 					c++;
