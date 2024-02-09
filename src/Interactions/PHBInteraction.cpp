@@ -11,6 +11,22 @@ PHBInteraction::~PHBInteraction(){
 };
 void PHBInteraction::get_settings(input_file &inp){
     BaseInteraction::get_settings(inp);
+	if(getInputString(&inp,"patchyAlpha",temp,0)==KEY_FOUND){
+		patchyAlpha=stod(temp);
+		OX_LOG(Logger::LOG_INFO,"New alpha value for patchy interaction = %d",patchyAlpha);
+	}
+	if(getInputString(&inp,"patchyRcut",temp,0)==KEY_FOUND){
+		patchyRcut =stod(temp);
+		OX_LOG(Logger::LOG_INFO,"New cutoff value for the patchy interaction = %d",patchyRcut);
+	}
+	if(getInputString(&inp,"patchyB",temp,0)==KEY_FOUND){
+		patchyB =stod(temp);
+		OX_LOG(Logger::LOG_INFO,"New b value for the exclusion volume = %d",std::stod(temp));
+	}
+	if(getInputString(&inp,"patchyIntercept",temp,0)==KEY_FOUND){
+		patchyIntercept =stod(temp);
+		OX_LOG(Logger::LOG_INFO,"New b intercept distance for the patchy particle = %d",std::stod(temp));
+	}
     if(getInputString(&inp,"rcut",temp,0)==KEY_FOUND){ //set the rcut from the input file
 		_rcut=stod(temp);
         _sqr_rcut=sqrt(_rcut);
@@ -514,6 +530,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 				number K = p->patches[pi].strength;
 			    LR_vector qpatch = q->int_centers[qi];
 				LR_vector patch_dist = _computed_r + qpatch - ppatch;
+				patch_dist += patch_dist*patchyIntercept/patch_dist.norm()
 				number dist = patch_dist.norm();
 				if(dist < SQR(patchyCutOff)){
 					c++;
