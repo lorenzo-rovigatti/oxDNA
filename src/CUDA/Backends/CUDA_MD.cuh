@@ -417,19 +417,19 @@ __global__ void set_external_forces(c_number4 *poss, GPU_quat *orientations, CUD
 				}
 				break;
 			}
-			// case CUDA_ATTRACTION_PLANE: {
-			// 	c_number distance = extF.attractionplane.dir.x*ppos.x + extF.attractionplane.dir.y*ppos.y + extF.attractionplane.dir.z*ppos.z + extF.attractionplane.position;
-			// 	if(distance > 0.0f) {
-			// 		F.x += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.x;
-			// 		F.y += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.y;
-			// 		F.z += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.z;
-			// 	}else{
-			// 		F.x += -extF.attractionplane.stiff * extF.attractionplane.dir.x;
-			// 		F.y += -extF.attractionplane.stiff * extF.attractionplane.dir.y;
-			// 		F.z += -extF.attractionplane.stiff * extF.attractionplane.dir.z;
-			// 	}
-			// 	break;
-			// }
+			case CUDA_ATTRACTION_PLANE: {
+				c_number distance = extF.attractionplane.dir.x*ppos.x + extF.attractionplane.dir.y*ppos.y + extF.attractionplane.dir.z*ppos.z + extF.attractionplane.position;
+				if(distance > 0.0f) {
+					F.x += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.x;
+					F.y += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.y;
+					F.z += -distance * extF.attractionplane.stiff * extF.attractionplane.dir.z;
+				}else{
+					F.x += -extF.attractionplane.stiff * extF.attractionplane.dir.x;
+					F.y += -extF.attractionplane.stiff * extF.attractionplane.dir.y;
+					F.z += -extF.attractionplane.stiff * extF.attractionplane.dir.z;
+				}
+				break;
+			}
 			default: {
 				break;
 			}

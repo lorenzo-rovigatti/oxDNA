@@ -24,6 +24,7 @@
 #include "../Forces/LJCone.h"
 #include "../Forces/RepulsiveEllipsoid.h"
 #include "../Forces/Metadynamics/LTCOMTrap.h"
+#include "../Forces/AttractionPlane.h"
 
 #include "CUDAUtils.h"
 
@@ -151,6 +152,24 @@ void init_RepulsionPlane_from_CPU(repulsion_plane *cuda_force, RepulsionPlane *c
 }
 
 /**
+ * @brief CUDA version of a AttractionPlane.
+ */
+
+struct attraction_plane {
+	int type;
+	c_number stiff;
+	c_number position;
+	float3 dir;
+};
+
+void init_AttractionPlane_from_CPU(attraction_plane *cuda_force, AttractionPlane *cpu_force) {
+	cuda_force->type = CUDA_ATTRACTION_PLANE;
+	cuda_force->stiff = cpu_force->_stiff;
+	cuda_force->position = cpu_force->_position;
+	cuda_force->dir = make_float3(cpu_force->_direction.x, cpu_force->_direction.y, cpu_force->_direction.z);
+}
+
+/**
  * @brief CUDA version of a RepulsionPlaneMoving.
  */
 struct repulsion_plane_moving {
@@ -244,17 +263,6 @@ struct constant_rate_torque {
 	c_number rate;
 	c_number stiff;
 	c_number F0;
-};
-
-/**
- * @brief CUDA version of a AttractionPlane.
- */
-
-struct attraction_plane {
-	int type;
-	c_number stiff;
-	c_number position;
-	float3 dir;
 };
 
 void init_ConstantRateTorque_from_CPU(constant_rate_torque *cuda_force, ConstantRateTorque *cpu_force) {
@@ -454,7 +462,7 @@ union CUDA_trap {
 	repulsive_ellipsoid repulsiveellipsoid;
 	COM_force comforce;
 	lt_com_trap ltcomtrap;
-	// attraction_plane attractionplane;
+	attraction_plane attractionplane;
 };
 
 #endif /* CUDAFORCES_H_ */
