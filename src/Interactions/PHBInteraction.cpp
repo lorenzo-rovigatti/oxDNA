@@ -17,6 +17,7 @@ void PHBInteraction::get_settings(input_file &inp){
 	}
 	if(getInputString(&inp,"patchyRcut",temp,0)==KEY_FOUND){
 		patchyRcut =stod(temp);
+		patchyRcut2=SQR(patchyRcut);
 		OX_LOG(Logger::LOG_INFO,"New cutoff value for the patchy interaction = %d",patchyRcut);
 	}
 	if(getInputString(&inp,"patchyB",temp,0)==KEY_FOUND){
