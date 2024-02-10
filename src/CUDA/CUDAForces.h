@@ -16,6 +16,7 @@
 #include "../Forces/MovingTrap.h"
 #include "../Forces/MutualTrap.h"
 #include "../Forces/RepulsionPlane.h"
+#include "../Forces/AttractionPlane.h"
 #include "../Forces/RepulsionPlaneMoving.h"
 #include "../Forces/RepulsiveSphere.h"
 #include "../Forces/RepulsiveSphereSmooth.h"
