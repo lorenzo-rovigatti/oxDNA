@@ -17,11 +17,11 @@ max_density_multiplier = 10
 ####    SIM PARAMETERS    ####
 ##############################
 ### Universal Params ###
-T = 20C
+T = 0.120
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
-steps = 1e8
+steps = 1e9
 
 ### MD PARAMS ###
 dt = 0.005
@@ -49,8 +49,8 @@ ensemble = NVT
 
 ##############################
 #parfile = replica.par
-topology = input.top
-conf_file = input.dat
+topology = patchy.top
+conf_file = patchy.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.dat
 log_file = log.ign
