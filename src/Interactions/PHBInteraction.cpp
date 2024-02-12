@@ -59,19 +59,19 @@ number PHBInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
     number energy=0;
 	auto *pCG = dynamic_cast<PHBParticle*>(p);
 	auto *qCG = static_cast<PHBParticle*>(q);
-	if(!pCG->has_bond(q)){
+	// if(!pCG->has_bond(q)){
 		energy += spring(pCG,qCG,compute_r,update_forces);
 		energy += bonded_twist(pCG, qCG, false, update_forces);
 		energy += bonded_double_bending(pCG, qCG, false, update_forces);
 		energy += bonded_alignment(pCG, qCG, false, update_forces);
-	}
+	// }
 	return energy;
 };
 number PHBInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
     auto *pCG = dynamic_cast<PHBParticle*>(p);
 	auto *qCG = static_cast<PHBParticle*>(q);
 	number energy=0;
-	if(pCG->has_bond(q)){
+	if(!pCG->has_bond(q)){
 		energy+=exc_vol_nonbonded(p,q,compute_r,update_forces);
 		energy+=patchy_interaction_notorsion(pCG,qCG,compute_r,update_forces);
 	}
