@@ -519,8 +519,9 @@ void PHBInteraction::setRcut(std::vector<BaseParticle *> &particles){
 			auto *p = static_cast<PHBParticle*>(particles[i]);
 			if(p->radius>_rcut) _rcut=p->radius;
 		}
-		_rcut+=patchyRcut+patchyIntercept+patchySpacer;
-		_rcut*=2.5;
+		_rcut+=patchyIntercept+patchySpacer;
+		_rcut*=2.7;
+		if(_rcut<patchyRcut) _rcut=patchyRcut;
 	}
 }
 

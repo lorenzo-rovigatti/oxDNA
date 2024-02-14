@@ -17,7 +17,7 @@ max_density_multiplier = 10
 ####    SIM PARAMETERS    ####
 ##############################
 ### Universal Params ###
-T = 0.120
+T = 0.125
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
@@ -57,9 +57,9 @@ log_file = log.ign
 no_stdout_energy = 0
 restart_step_counter = 1
 energy_file = energy.ign
-print_conf_interval = 10
-print_energy_every = 10
+print_conf_interval = 1e4
+print_energy_every = 1e4
 time_scale = linear
 
 ###### CCG ################
-patchyB = 10
+#patchyB = 10
