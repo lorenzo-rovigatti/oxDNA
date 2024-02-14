@@ -59,11 +59,12 @@ number PHBInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
     number energy=0;
 	auto *pCG = dynamic_cast<PHBParticle*>(p);
 	auto *qCG = static_cast<PHBParticle*>(q);
-	// if(!pCG->has_bond(q)){
+	std::cout<< "this is called "<< std::endl;
+	// if(pCG->has_bond(q)){
 		energy += spring(pCG,qCG,compute_r,update_forces);
-		energy += bonded_twist(pCG, qCG, false, update_forces);
-		energy += bonded_double_bending(pCG, qCG, false, update_forces);
-		energy += bonded_alignment(pCG, qCG, false, update_forces);
+		// energy += bonded_twist(pCG, qCG, false, update_forces);
+		// energy += bonded_double_bending(pCG, qCG, false, update_forces);
+		// energy += bonded_alignment(pCG, qCG, false, update_forces);
 	// }
 	return energy;
 };
@@ -71,7 +72,9 @@ number PHBInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
     auto *pCG = dynamic_cast<PHBParticle*>(p);
 	auto *qCG = static_cast<PHBParticle*>(q);
 	number energy=0;
+	// cout<< "this is called "<< std::endl;
 	if(!pCG->has_bond(q)){
+		// cout<<"Radius : " << pCG->radius << " " << qCG->radius << endl;
 		energy+=exc_vol_nonbonded(p,q,compute_r,update_forces);
 		energy+=patchy_interaction_notorsion(pCG,qCG,compute_r,update_forces);
 	}
@@ -90,7 +93,8 @@ double PHBInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool 
 	double rc = patchyRc*totalRadius;
 	double energy =0;
 	LR_vector force;
-	energy = _repulsive_lj2(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
+	energy = repulsiveLJ(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
+	// energy = hardRepulsive(patchyEpsilon,_computed_r,force,sigma,rc,update_forces);
 	if(update_forces){
 		p->force-=force;
 		q->force+=force;
@@ -99,7 +103,20 @@ double PHBInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool 
 	return energy;
 }
 
-number PHBInteraction::_repulsive_lj2(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
+number PHBInteraction::hardRepulsive(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rc, bool update_forces){
+	rnorm = r.norm();
+	if(rnorm > SQR(rc)) return (number) 0;
+	number energy = (number) 0;
+	number part = powf(SQR(sigma)/rnorm,100.0f);
+	energy = part;
+	if(update_forces){
+		force = r * (200.0f*part/rnorm);
+	}
+	return energy;
+
+};
+
+number PHBInteraction::repulsiveLJ(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
 	// this is a bit faster than calling r.norm()
 	rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
 	number energy = (number) 0;
@@ -107,15 +124,14 @@ number PHBInteraction::_repulsive_lj2(number prefactor, const LR_vector &r, LR_v
 		if(rnorm > SQR(rstar)) {
 			rmod = sqrt(rnorm);
 			number rrc = rmod - rc;
-			energy = prefactor * b * SQR(rrc);
+			energy = prefactor * b * SQR(SQR(rrc));
 			if(update_forces)
-				force = -r * (2 * prefactor * b * rrc / rmod);
+				force = -r * (4 * prefactor * b * CUB(rrc) / rmod);
 		}
 		else {
 			number tmp = SQR(sigma) / rnorm;
 			number lj_part = tmp * tmp * tmp;
-			// the additive term was added by me to mimick Davide's implementation
-			energy = 4 * prefactor * (SQR(lj_part) - lj_part) + prefactor;
+			energy = 4 * prefactor * (SQR(lj_part) - lj_part);
 			if(update_forces)
 				force = -r * (24 * prefactor * (lj_part - 2 * SQR(lj_part)) / rnorm);
 		}
@@ -148,7 +164,7 @@ number PHBInteraction::fene(PHBParticle *p, PHBParticle *q, bool compute_r,bool 
 	double b = patchyB/SQR(totalRadius);
 	double rc = patchyRc*totalRadius;
 	LR_vector force;
-	energy+=_repulsive_lj2(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
+	energy+=repulsiveLJ(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
 	if(update_forces) {
 		force += _computed_r * (-(k * r0 / (tepFeneDelta2 - r0 * r0)) / rmod);
 		p->force -= force;
@@ -407,7 +423,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	if(!topology.good()) throw oxDNAException("Problem with topology file: %s",this->_topology_filename);
 
 	std::getline(topology,temp);
-	std::cout<<temp<<std::endl;
+	// std::cout<<temp<<std::endl;
 	std::stringstream head(temp);
 	head>>totPar>>strands; //saving header info
 	*N_strands=strands; // This one is important don't forget
@@ -516,6 +532,7 @@ LR_vector PHBInteraction::rotateVectorAroundVersor(const LR_vector vector, const
 ///////// Patchy scense //////////////
 
 number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces){
+	// cout<<"Patchy interaction called"<<endl;
 	rnorm = _computed_r.norm();
 	if(rnorm > this->patchyRcut2) return 0; // not within reach ignore
 	if(p->btype==100||q->btype==100) return 0; // no color present ignore
@@ -565,6 +582,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 
 						p->force -= tmp_force;
 						q->force += tmp_force;
+						// cout<<tmp_force.x<<" "<<tmp_force.y<<" "<<tmp_force.z<<endl;
 					}
 				}
 			}
@@ -575,8 +593,9 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 }
 
 bool PHBInteraction::bondingAllowed(PHBParticle *p,PHBParticle *q,int pi,int qi){
+	// cout<<"Bonding allowed called"<<endl;
 	bool complementary =false;
-
+	// cout<<p->patches[pi].color<<" "<<q->patches[qi].color<<endl;
 	if(p->patches[pi].color<10 && q->patches[qi].color<10){ // self complimentary domain
 		if(p->patches[pi].color==q->patches[qi].color) complementary=true;
 	}else if(p->patches[pi].color+q->patches[qi].color==0) complementary=true;// opposite complimentary domain where -20 will bind with 20
