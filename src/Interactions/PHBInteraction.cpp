@@ -62,9 +62,9 @@ number PHBInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	std::cout<< "this is called "<< std::endl;
 	// if(pCG->has_bond(q)){
 		energy += spring(pCG,qCG,compute_r,update_forces);
-		// energy += bonded_twist(pCG, qCG, false, update_forces);
-		// energy += bonded_double_bending(pCG, qCG, false, update_forces);
-		// energy += bonded_alignment(pCG, qCG, false, update_forces);
+		energy += bonded_twist(pCG, qCG, false, update_forces);
+		energy += bonded_double_bending(pCG, qCG, false, update_forces);
+		energy += bonded_alignment(pCG, qCG, false, update_forces);
 	// }
 	return energy;
 };
@@ -425,7 +425,8 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	std::getline(topology,temp);
 	// std::cout<<temp<<std::endl;
 	std::stringstream head(temp);
-	head>>totPar>>strands; //saving header info
+	head>>totPar>>strands>>temp>>patchySpacer; //saving header info
+	// cout<<patchySpacer<<endl;
 	*N_strands=strands; // This one is important don't forget
 
 	allocate_particles(particles);
@@ -506,9 +507,22 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	};
 	// auto *q = static_cast< PHBParticle *>(particles[0]);
 	// cout<<q->patches[0].a1static.x<<endl;
-	std::cout<<"Successfully completed topology reading with total types of patches = "<<patches.size()<< " and types of colored particles = "<<particleColors.size()<<std::endl;
+	setRcut(particles);
+	std::cout<<"Successfully completed topology reading with total types of patches = "<<patches.size()<< " and types of colored particles = "<<particleColors.size()<<" with rcut = "<<_rcut<<std::endl;
 
 };
+
+void PHBInteraction::setRcut(std::vector<BaseParticle *> &particles){
+	if(_rcut<0){
+		#pragma omp parallel for
+		for(i=0;i<totPar;i++){
+			auto *p = static_cast<PHBParticle*>(particles[i]);
+			if(p->radius>_rcut) _rcut=p->radius;
+		}
+		_rcut+=patchyRcut+patchyIntercept+patchySpacer;
+		_rcut*=2.5;
+	}
+}
 
 
 // Rotate a vector around a versor (TODO: propose to add this to defs.h)

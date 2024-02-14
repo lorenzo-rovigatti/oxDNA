@@ -1,4 +1,4 @@
-4 1 4
+4 1 4 0.1
 # Header = Total Particles,Strands, Number of Patchy Particles
 # Additional information is written using i followed by code. Example Color information `iC`, Patch information `iP`;
 # Diffrent patches together from cluster.

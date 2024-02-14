@@ -5,6 +5,7 @@
 #include "BaseInteraction.h"
 #include "../Particles/PHBParticle.h" // This is helix particles + patchy particles
 #include <sstream>
+#include "omp.h" // for openmp
 
 
 class PHBInteraction: public BaseInteraction{
@@ -24,7 +25,7 @@ public:
     int i; //temporary parameters
     number rmod,rnorm;
     double damp=0;
-    double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=-0.1,patchyInteractionDistanceCutoff=0,patchyB=667.505671539,patchyRcut=1.2,patchyCutOff=1.8,patchyAlpha=0.12,patchyIntercept=0.0;
+    double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=-0.1,patchyInteractionDistanceCutoff=0,patchyB=667.505671539,patchyRcut=1.2,patchyCutOff=1.8,patchyAlpha=0.12,patchyIntercept=0.0,patchySpacer=0.0;
     double patchyRcut2=SQR(patchyRcut),patchyPowAlpha = powf(patchyAlpha, (number) 10.f);
     double tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6; //currently not used
     double tepFeneDelta2=SQR(tepFeneDelta);
@@ -68,6 +69,9 @@ public:
     //Patchy Interactions
     virtual number patchy_interaction_notorsion(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
     virtual bool bondingAllowed(PHBParticle *p, PHBParticle *q,int pi, int qi);
+
+    //Multiprocess Functions
+    virtual void setRcut(std::vector<BaseParticle *> &particles);
 
     
 
