@@ -13,20 +13,20 @@ void PHBInteraction::get_settings(input_file &inp){
     BaseInteraction::get_settings(inp);
 	if(getInputString(&inp,"patchyAlpha",temp,0)==KEY_FOUND){
 		patchyAlpha=stod(temp);
-		OX_LOG(Logger::LOG_INFO,"New alpha value for patchy interaction = %d",patchyAlpha);
+		cout<<"New alpha value for patchy interaction = "<<patchyAlpha<<endl;
 	}
 	if(getInputString(&inp,"patchyRcut",temp,0)==KEY_FOUND){
 		patchyRcut =stod(temp);
 		patchyRcut2=SQR(patchyRcut);
-		OX_LOG(Logger::LOG_INFO,"New cutoff value for the patchy interaction = %d",patchyRcut);
+		cout<<"New cutoff value for the patchy interaction = "<<patchyRcut<<endl;
 	}
 	if(getInputString(&inp,"patchyB",temp,0)==KEY_FOUND){
 		patchyB =stod(temp);
-		OX_LOG(Logger::LOG_INFO,"New b value for the exclusion volume = %d",std::stod(temp));
+		cout<<"New b value for the exclusion volume = "<<patchyB<<endl;
 	}
 	if(getInputString(&inp,"patchyIntercept",temp,0)==KEY_FOUND){
 		patchyIntercept =stod(temp);
-		OX_LOG(Logger::LOG_INFO,"New b intercept distance for the patchy particle = %d",std::stod(temp));
+		cout<<"New b intercept distance for the patchy particle = "<<patchyIntercept;
 	}
     if(getInputString(&inp,"rcut",temp,0)==KEY_FOUND){ //set the rcut from the input file
 		_rcut=stod(temp);
