@@ -36,7 +36,9 @@ void PHBInteraction::get_settings(input_file &inp){
         _rcut=-1; // set the rcut after reading the topology. 2.5x largest radius
     }
 };
-void PHBInteraction::init(){};
+void PHBInteraction::init(){
+	// cout<<"INIT is called"<<endl;
+};
 void PHBInteraction::allocate_particles(std::vector<BaseParticle *> &particles){
 	particles.resize(totPar);
 	for(i=0;i<totPar;i++){
@@ -523,6 +525,7 @@ void PHBInteraction::setRcut(std::vector<BaseParticle *> &particles){
 		_rcut*=2.7;
 		if(_rcut<patchyRcut) _rcut=patchyRcut;
 	}
+	_sqr_rcut=SQR(_rcut);
 }
 
 

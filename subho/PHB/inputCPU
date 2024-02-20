@@ -1,9 +1,9 @@
 ##############################
 ####  PROGRAM PARAMETERS  ####
 ##############################
-backend = CUDA
-backend_precision = mixed
-CUDA_list = verlet
+backend = CPU
+#backend_precision = mixed
+#CUDA_list = verlet
 #CUDA_sort_every = 0
 use_edge = true
 edge_n_forces = true
@@ -64,5 +64,3 @@ time_scale = linear
 
 ###### CCG ################
 #patchyB = 10
-# rcut is essential for now
-rcut = 1.5
