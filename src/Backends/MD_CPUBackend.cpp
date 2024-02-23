@@ -128,7 +128,7 @@ void MD_CPUBackend::_first_step() {
 			p->set_positions();
 		}
 
-		p->set_initial_forces(current_step(), _box);
+		p->set_initial_forces(current_step(), _box.get());
 
 		_lists->single_update(p);
 	}
