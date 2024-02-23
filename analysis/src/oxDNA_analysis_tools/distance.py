@@ -100,7 +100,7 @@ def cli_parser(prog="distance.py"):
     #handle commandline arguments
     #this program has no positional arguments, only flags
     parser = argparse.ArgumentParser(prog = prog, description="Finds the ensemble of distances between any two particles in the system")
-    parser.add_argument('-i', '--input', metavar='input', nargs='+', action='append', help='A trajectory, and a list of particle pairs to compare.  Can call -i multiple times to plot multiple datasets.')
+    parser.add_argument('-i', '--input', metavar=('input', 'p1', 'p2...'), nargs='+', action='append', help='A trajectory, and a list of particle pairs to compare.  Can call -i multiple times to plot multiple datasets.')
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The name to save the graph file to')
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', nargs=1, help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
     parser.add_argument('-d', '--data', metavar='data_file', nargs=1, help='If set, the output for the graphs will be dropped as a json to this filename for loading in oxView or your own scripts')
