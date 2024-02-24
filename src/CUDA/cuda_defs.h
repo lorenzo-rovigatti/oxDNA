@@ -72,10 +72,12 @@ __align__(16) {
 
 #ifdef CUDA_DOUBLE_PRECISION
 using c_number4 = LR_double4;
+using c_number3 = double3;
 using c_number = double;
 using GPU_quat = double4;
 #else
 using c_number4 = float4;
+using c_number3 = float3;
 using c_number = float;
 using GPU_quat = float4;
 #endif
