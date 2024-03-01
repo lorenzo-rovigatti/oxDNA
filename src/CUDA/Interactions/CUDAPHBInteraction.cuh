@@ -31,6 +31,8 @@ __constant__ float4 basePatchConfig[3][CUDA_MAX_PATCHES]; // Same as patchConfig
 __constant__ float patchyRcutSqr;
 __constant__ float patchyAlpha;
 __constant__ float patchyEpsilon;
+__constant__ float hardVolCutoff;
+__constant__ float connections[MAX_Particle][MAX_NEIGHBOURS];
 
 class CUDAPHBInteraction: public CUDABaseInteraction, public PHBInteraction {
 public:

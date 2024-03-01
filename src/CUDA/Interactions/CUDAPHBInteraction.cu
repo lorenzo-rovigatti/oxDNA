@@ -12,18 +12,22 @@ void CUDAPHBInteraction::get_settings(input_file &inp) {
     PHBInteraction::get_settings(inp);
 }
 
+#define MAX_Particle 1000
+#define MAX_NEIGHBOURS 10
 
 void CUDAPHBInteraction::cuda_init(int N){
     CUDABaseInteraction::cuda_init(N);
     PHBInteraction::init();
+    auto patchyAlphaPow = pow(patchyAlpha,10);
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(rcut2, &_sqr_rcut, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(sigma, &patchySigma, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyB, &patchyB, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(NumPatches, &NumPatches, sizeof(int)*3));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(basePatchConfig, &basePatchConfig, sizeof(float4)*3*CUDA_MAX_PATCHES));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyRcutSqr, &patchyRcutSqr, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyAlpha, &patchyAlpha, sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyAlpha, &patchyAlphaPow, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyEpsilon, &patchyEpsilon, sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(hardVolCutoff, &hardVolCutoff, sizeof(float)));
     
 }
 
@@ -92,7 +96,7 @@ __device__ void CUDAexeVolCub(c_number prefactor,c_number4 &r, c_number4 &F, c_n
 __device__ void CUDAexeVolHard(c_number4 &r,c_number4 &F){
     c_number r2= CUDA_DOT(r,r);
     c_number part = powf(sigma/r2, patchyB*0.5);
-    F.w += part;
+    F.w += part-hardVolCutoff;
     c_number fmod= patchyB*part/r2;
     F.x -= r.x*fmod;
     F.y -= r.y*fmod;
@@ -172,12 +176,8 @@ __device__ void CUDAbondedParticles(c_number4 &pPos, c_number4 &qPos,CUDABox *bo
     c_number4 r = box->minimum_image(pPos,qPos);
 };
 
-
-__device__ void CUDAnonBondedParticles(c_number4 &pPos, c_number4 &qPos, c_number4 &a1, c_number4 &a2, c_number4 &a3, c_number4 &b1, c_number4 &b2, c_number4 &b3, c_number4 &f, c_number4 &tor, CUDABox *box ){ //__device__ can only be called from a __global__ function, this only run on the GPU
-    c_number4 r = box->minimum_image(pPos,qPos); //minimum distance in periodic boundary conditions
-    c_number r2 = CUDA_DOT(r, r); // r^2
-    if(r2 >= rcut2) return; //if r^2 is greater than total cutoff stop
-}
+__device__ void CUDAnonbondedParticles(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
+		c_number4 __restrict__ *torques,const int *matrix_neighs,	const int *number_neighs, )
 
 /////////////// Main Particle Interaction //////////////////////
 __global__ void CUDAparticle(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *number_neighs, CUDABox *box){
@@ -188,6 +188,6 @@ __global__ void CUDAparticle(c_number4 *poss, GPU_quat *orientations, c_number4 
 
 
 void CUDAPHBInteraction::compute_forces(CUDABaseList *lists,c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {
-    CUDAparticle<<<this->_launch_cfg.blocks, _launch_cfg.threads_per_block>>>(d_poss, d_orientations, d_forces, d_torques, lists->d_matrix_neighs, lists->d_number_neighs, d_box);
+    
     CUT_CHECK_ERROR("Kernel failed, something quite exciting");
 }
