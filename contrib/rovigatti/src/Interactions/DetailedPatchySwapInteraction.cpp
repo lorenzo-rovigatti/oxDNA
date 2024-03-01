@@ -423,15 +423,16 @@ void DetailedPatchySwapInteraction::allocate_particles(std::vector<BaseParticle*
 			curr_species++;
 			curr_limit += _N_per_species[curr_species];
 		}
+		PatchyParticle *new_particle;
 		if(_N_patches[curr_species] > 0 && _base_patches[curr_species].size() > 0) {
-			particles[i] = new PatchyParticle(_base_patches[curr_species], curr_species, 1.);
+			new_particle = new PatchyParticle(_base_patches[curr_species], curr_species, 1.);
 		}
 		else {
-			auto new_particle = new PatchyParticle(_N_patches[curr_species], curr_species, 1.);
-			particles[i] = new_particle;
-			// we need to save the base patches so that the CUDA backend has access to them
-			_base_patches[curr_species] = new_particle->base_patches();
+			new_particle = new PatchyParticle(_N_patches[curr_species], curr_species, 1.);
 		}
+		particles[i] = new_particle;
+		// we need to save the base patches so that the CUDA backend has access to them
+		_base_patches[curr_species] = new_particle->base_patches();
 		particles[i]->index = i;
 		particles[i]->strand_id = i;
 		particles[i]->type = particles[i]->btype = curr_species;
