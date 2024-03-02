@@ -1,5 +1,19 @@
 #include "CUDAPHBInteraction.cuh"
 
+__constant__ float rcut2;  // cut-off distance squared
+__constant__ int exclusionType; // 0 for Linear, 1 for Cubic, 2 for Hard
+__constant__ float sigma; // 
+__constant__ float GPUpatchyB; // Controls the stiffness of exe volume and in case of hard the power over (sigma/r).
+__constant__ int GPUnumPatches[3]; // Total number of patches for particle type 0 is ico or main particle, 1 is helix and 2 is no patches
+__constant__ float4 basePatchConfig[3][CUDA_MAX_PATCHES]; // Same as patchConfig
+__constant__ float patchyRcutSqr;
+__constant__ float patchyAlpha;
+__constant__ float patchyEpsilon;
+__constant__ float hardVolCutoff;
+// __constant__ int connections[MAX_Particle][MAX_Neighbour];
+__constant__ int GpuN;
+__constant__ int n_forces;
+
 CUDAPHBInteraction::CUDAPHBInteraction()
 {
     _edge_compatible = true;
@@ -19,11 +33,11 @@ void CUDAPHBInteraction::cuda_init(int N)
     CUDABaseInteraction::cuda_init(N);
     PHBInteraction::init();
     auto patchyAlphaPow = pow(patchyAlpha, 10);
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(N, &N, sizeof(int)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GpuN, &N, sizeof(int)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(rcut2, &_sqr_rcut, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(sigma, &patchySigma, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyB, &patchyB, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(NumPatches, &NumPatches, sizeof(int) * 3));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyB, &patchyB, sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUnumPatches, &numPatches, sizeof(int) * 3));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(basePatchConfig, &basePatchConfig, sizeof(float4) * 3 * CUDA_MAX_PATCHES));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyRcutSqr, &patchyRcutSqr, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyAlpha, &patchyAlphaPow, sizeof(float)));
@@ -104,9 +118,9 @@ __device__ void CUDAexeVolCub(c_number prefactor, c_number4 &r, c_number4 &F, c_
 __device__ void CUDAexeVolHard(c_number4 &r, c_number4 &F)
 {
     c_number r2 = CUDA_DOT(r, r);
-    c_number part = powf(sigma / r2, patchyB * 0.5);
+    c_number part = powf(sigma / r2, GPUpatchyB * 0.5);
     F.w += part - hardVolCutoff;
-    c_number fmod = patchyB * part / r2;
+    c_number fmod = GPUpatchyB * part / r2;
     F.x -= r.x * fmod;
     F.y -= r.y * fmod;
     F.z -= r.z * fmod;
@@ -116,11 +130,11 @@ __device__ void CUDAexeVolHard(c_number4 &r, c_number4 &F)
 
 __device__ void CUDApatchy(c_number4 &r, c_number4 &pa1, c_number4 &pa2, c_number4 &pa3, c_number4 &qa1, c_number4 &qa2, c_number4 &qa3, c_number4 &F, c_number4 &tor, int ptype, int qtype)
 {
-    for (int pi = 0; pi < NumPatches[ptype]; pi++)
+    for (int pi = 0; pi < GPUnumPatches[ptype]; pi++)
     {
         c_number4 ppatch = {pa1.x * basePatchConfig[ptype][pi].x + pa2.x * basePatchConfig[ptype][pi].y + pa3.x * basePatchConfig[ptype][pi].z, pa1.y * basePatchConfig[ptype][pi].x + pa2.y * basePatchConfig[ptype][pi].y + pa3.y * basePatchConfig[ptype][pi].z, pa1.z * basePatchConfig[ptype][pi].x + pa2.z * basePatchConfig[ptype][pi].y + pa3.z * basePatchConfig[ptype][pi].z, 0};
         ppatch *= sigma;
-        for (int pj = 0; pj < NumPatches[qtype]; pj++)
+        for (int pj = 0; pj < GPUnumPatches[qtype]; pj++)
         {
             c_number4 qpatch = {qa1.x * basePatchConfig[qtype][pj].x + qa2.x * basePatchConfig[qtype][pj].y + qa3.x * basePatchConfig[qtype][pj].z, qa1.y * basePatchConfig[qtype][pj].x + qa2.y * basePatchConfig[qtype][pj].y + qa3.y * basePatchConfig[qtype][pj].z, qa1.z * basePatchConfig[qtype][pj].x + qa2.z * basePatchConfig[qtype][pj].y + qa3.z * basePatchConfig[qtype][pj].z, 0};
             qpatch *= sigma;
@@ -184,12 +198,11 @@ __device__ void CUDAbondedAlignment()
     return;
 }
 
-__device__ void CUDAbondedParticles(c_number4 &pPos, c_number4 &qPos, CUDABox *box)
-{
-    c_number4 r = box->minimum_image(pPos, qPos);
+__global__ void CUDAbondedParticles(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
+                                    c_number4 __restrict__ *torques, bool update_st, CUDAStressTensor *st){
 };
 
-__device__ void CUDAnonbondedParticles(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
+__global__ void CUDAnonbondedParticles(const c_number4 __restrict__ *poss, const GPU_quat __restrict__ *orientations, c_number4 __restrict__ *forces,
                                        c_number4 __restrict__ *torques, const edge_bond __restrict__ *edge_list, int n_edges, bool update_st,
                                        CUDAStressTensor *st, const CUDABox *box)
 {
@@ -211,11 +224,11 @@ __device__ void CUDAnonbondedParticles(const c_number4 __restrict__ *poss, const
     c_number4 r = box->minimum_image(pPos, qPos);
 
     ////////call the main functions ////////////
-    CUDAexeVolCub(2,r,dF,sigma,0.9053,patchyB,0.99998);
+    CUDAexeVolCub(2,r,dF,sigma,0.9053,GPUpatchyB,0.99998);
     CUDApatchy(r,p1,p2,p3,q1,q2,q3,dF,dT,0,0);
 
-    int from_index = N * (IND % n_forces) + b.from;
-    int to_index = N * (IND % n_forces) + b.to;
+    int from_index = GpuN * (IND % n_forces) + b.from;
+    int to_index = GpuN * (IND % n_forces) + b.to;
 
     if(CUDA_DOT(dT,dT)>0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
     dT=-dT;
@@ -244,6 +257,19 @@ __global__ void CUDAparticle(c_number4 *poss, GPU_quat *orientations, c_number4 
 
 void CUDAPHBInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box)
 {
+    if(_update_st) CUDA_SAFE_CALL(cudaMemset(_d_st, 0, _N * sizeof(CUDAStressTensor)));
+    if(_n_forces == 1){
+        CUDAnonbondedParticles<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+        (d_poss, d_orientations, d_forces, d_torques, lists->d_edge_list, lists->N_edges, _update_st, _d_st, d_box);
+    }else{
+        CUDAnonbondedParticles<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+        (d_poss, d_orientations, _d_edge_forces, _d_edge_torques, lists->d_edge_list, lists->N_edges, _update_st, _d_st, d_box);
+
+        _sum_edge_forces_torques(d_forces, d_torques);
+    }
+    CUDAbondedParticles<<<(lists->N_edges - 1)/(_launch_cfg.threads_per_block) + 1, _launch_cfg.threads_per_block>>>
+    (d_poss, d_orientations, d_forces, d_torques, _update_st, _d_st);
+
 
     CUT_CHECK_ERROR("Kernel failed, something quite exciting");
 }

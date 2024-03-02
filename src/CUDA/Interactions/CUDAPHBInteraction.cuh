@@ -24,20 +24,6 @@
  * @brief This class implements both patchy and the helix bundles interactions in CUDA
  */
 
-__constant__ float rcut2;  // cut-off distance squared
-__constant__ int exclusionType; // 0 for Linear, 1 for Cubic, 2 for Hard
-__constant__ float sigma; // 
-__constant__ float patchyB; // Controls the stiffness of exe volume and in case of hard the power over (sigma/r).
-__constant__ int NumPatches[3]; // Total number of patches for particle type 0 is ico or main particle, 1 is helix and 2 is no patches
-__constant__ float4 basePatchConfig[3][CUDA_MAX_PATCHES]; // Same as patchConfig
-__constant__ float patchyRcutSqr;
-__constant__ float patchyAlpha;
-__constant__ float patchyEpsilon;
-__constant__ float hardVolCutoff;
-// __constant__ int connections[MAX_Particle][MAX_Neighbour];
-__constant__ int N;
-__constant__ int n_forces;
-
 class CUDAPHBInteraction: public CUDABaseInteraction, public PHBInteraction {
 public:
     CUDAPHBInteraction();

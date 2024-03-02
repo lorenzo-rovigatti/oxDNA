@@ -20,7 +20,7 @@ public:
     PHBInteraction();
     virtual ~PHBInteraction();
     // Variables d
-    int totPar,strands,totHelix,totPatchy; //topology
+    int totPar,strands,totHelix,totPatchy,numPatches[3]={6,3,0}; //topology
     int particleType;//body parameter
     int i; //temporary parameters
     number rmod,rnorm;
@@ -30,7 +30,7 @@ public:
     double tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6; //currently not used
     double tepFeneDelta2=SQR(tepFeneDelta);
     number _ka = 100.,_kb = 21.,_kt = 29.7; //Energies
-    number 	_twist_a = 0.00,_twist_b = 0.95; //cosines
+    number 	_twist_a = 0.00,_twist_b = 0.95; //cosine
 
     // Helix future variables 
 
