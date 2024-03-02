@@ -8,10 +8,10 @@
 #include "omp.h" // for openmp
 
 // all gpu essential definitions
-#define CUDA_MAX_PATCHES 6 // maximum patch point for a particle for ico 6 connective points
-#define MAX_Particle 1000 // maximum number of particles
-#define MAX_Neighbour 10 // number of bonded neighbout one particle is connected to 
-#define MAXpatchType 6 // unique patchy configuration max iC number.
+#define GPUmaxiP 40 // maximum patch point for a particle for ico 6 connective points
+#define MAXparticles 1000 // maximum number of particles
+#define MAXneighbour 10 // number of bonded neighbout one particle is connected to 
+#define GPUmaxiC 10 // unique patchy configuration max iC number.
 
 class PHBInteraction: public BaseInteraction{
 public:
@@ -25,7 +25,7 @@ public:
     PHBInteraction();
     virtual ~PHBInteraction();
     // Variables d
-    int totPar,strands,totHelix,totPatchy,numPatches[MAXpatchType]; //topology
+    int totPar,strands,totHelix,totPatchy; //topology
     int particleType;//body parameter
     int i; //temporary parameters
     number rmod,rnorm;
@@ -44,9 +44,10 @@ public:
     std::string temp;
 
     // Gpu only variables
-    int connections[MAX_Particle][MAX_Neighbour+1];//first intger will state number of connections
-    int topology[MAX_Particle][2];// 1st integer = patch type, 2nd integer = particle color (iC)
-    float basePatches[MAXpatchType];
+    int GPUconnections[MAXparticles][MAXneighbour];//first intger will state number of connections
+    int GPUtopology[MAXparticles][2];// strand, iC
+    float GPUpatches[GPUmaxiP][5];// id,strength,x,y,z
+    int GPUnumPatches[GPUmaxiC];// id, iC
 
 
     // Necessary interaction
