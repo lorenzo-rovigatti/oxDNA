@@ -41,9 +41,9 @@ ensemble = NVT
 ##############################
 ####     INTERACTIONS     ####
 ##############################
-# rcut=20
+rcut=1.5
 # damp=1e-4
-# patchyB=1000
+patchyB=1000
 # patchyStrength=1
 # patchyRstar=0.88
 # patchyRc=0.94

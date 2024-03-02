@@ -4,8 +4,8 @@ __constant__ float rcut2;  // cut-off distance squared
 __constant__ int exclusionType; // 0 for Linear, 1 for Cubic, 2 for Hard
 __constant__ float sigma; // 
 __constant__ float GPUpatchyB; // Controls the stiffness of exe volume and in case of hard the power over (sigma/r).
-__constant__ int GPUnumPatches[3]; // Total number of patches for particle type 0 is ico or main particle, 1 is helix and 2 is no patches
-__constant__ float4 basePatchConfig[3][CUDA_MAX_PATCHES]; // Same as patchConfig
+__constant__ int GPUnumPatches[MAXpatchType]; // Total number of patches for particle type 0 is ico or main particle, 1 is helix and 2 is no patches
+__constant__ float4 GPUbasePatchConfig[MAXpatchType][CUDA_MAX_PATCHES]; // Same as patchConfig
 __constant__ float patchyRcutSqr;
 __constant__ float patchyAlpha;
 __constant__ float patchyEpsilon;
@@ -37,8 +37,8 @@ void CUDAPHBInteraction::cuda_init(int N)
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(rcut2, &_sqr_rcut, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(sigma, &patchySigma, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyB, &patchyB, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUnumPatches, &numPatches, sizeof(int) * 3));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(basePatchConfig, &basePatchConfig, sizeof(float4) * 3 * CUDA_MAX_PATCHES));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUnumPatches, &numPatches, sizeof(int) * MAXpatchType));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUbasePatchConfig, &basePatchConfig, sizeof(float4) * MAXpatchType * CUDA_MAX_PATCHES));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyRcutSqr, &patchyRcutSqr, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyAlpha, &patchyAlphaPow, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyEpsilon, &patchyEpsilon, sizeof(float)));
@@ -132,11 +132,11 @@ __device__ void CUDApatchy(c_number4 &r, c_number4 &pa1, c_number4 &pa2, c_numbe
 {
     for (int pi = 0; pi < GPUnumPatches[ptype]; pi++)
     {
-        c_number4 ppatch = {pa1.x * basePatchConfig[ptype][pi].x + pa2.x * basePatchConfig[ptype][pi].y + pa3.x * basePatchConfig[ptype][pi].z, pa1.y * basePatchConfig[ptype][pi].x + pa2.y * basePatchConfig[ptype][pi].y + pa3.y * basePatchConfig[ptype][pi].z, pa1.z * basePatchConfig[ptype][pi].x + pa2.z * basePatchConfig[ptype][pi].y + pa3.z * basePatchConfig[ptype][pi].z, 0};
+        c_number4 ppatch = {pa1.x * GPUbasePatchConfig[ptype][pi].x + pa2.x * GPUbasePatchConfig[ptype][pi].y + pa3.x * GPUbasePatchConfig[ptype][pi].z, pa1.y * GPUbasePatchConfig[ptype][pi].x + pa2.y * GPUbasePatchConfig[ptype][pi].y + pa3.y * GPUbasePatchConfig[ptype][pi].z, pa1.z * GPUbasePatchConfig[ptype][pi].x + pa2.z * GPUbasePatchConfig[ptype][pi].y + pa3.z * GPUbasePatchConfig[ptype][pi].z, 0};
         ppatch *= sigma;
         for (int pj = 0; pj < GPUnumPatches[qtype]; pj++)
         {
-            c_number4 qpatch = {qa1.x * basePatchConfig[qtype][pj].x + qa2.x * basePatchConfig[qtype][pj].y + qa3.x * basePatchConfig[qtype][pj].z, qa1.y * basePatchConfig[qtype][pj].x + qa2.y * basePatchConfig[qtype][pj].y + qa3.y * basePatchConfig[qtype][pj].z, qa1.z * basePatchConfig[qtype][pj].x + qa2.z * basePatchConfig[qtype][pj].y + qa3.z * basePatchConfig[qtype][pj].z, 0};
+            c_number4 qpatch = {qa1.x * GPUbasePatchConfig[qtype][pj].x + qa2.x * GPUbasePatchConfig[qtype][pj].y + qa3.x * GPUbasePatchConfig[qtype][pj].z, qa1.y * GPUbasePatchConfig[qtype][pj].x + qa2.y * GPUbasePatchConfig[qtype][pj].y + qa3.y * GPUbasePatchConfig[qtype][pj].z, qa1.z * GPUbasePatchConfig[qtype][pj].x + qa2.z * GPUbasePatchConfig[qtype][pj].y + qa3.z * GPUbasePatchConfig[qtype][pj].z, 0};
             qpatch *= sigma;
             c_number4 patch_dist = {r.x + qpatch.x - ppatch.x, r.y + qpatch.y - ppatch.y, r.z + qpatch.z - ppatch.z, 0};
             c_number dist = CUDA_DOT(patch_dist, patch_dist);

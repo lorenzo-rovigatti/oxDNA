@@ -8,10 +8,6 @@
 #ifndef CUDAPHBINTERACTION_H_
 #define CUDAPHBINTERACTION_H_
 
-#define CUDA_MAX_PATCHES 50 // subho: Be careful, increase this if needed
-#define MAX_Particle 1000
-#define MAX_Neighbour 50
-
 #include "CUDABaseInteraction.h"
 #include "../../Interactions/PHBInteraction.h"
 #include "../cuda_utils/CUDA_lr_common.cuh"
