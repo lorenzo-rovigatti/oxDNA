@@ -8,7 +8,9 @@
 #ifndef CUDAPHBINTERACTION_H_
 #define CUDAPHBINTERACTION_H_
 
-#define CUDA_MAX_PATCHES 30 // subho: Be careful, increase this if needed
+#define CUDA_MAX_PATCHES 50 // subho: Be careful, increase this if needed
+#define MAX_Particle 1000
+#define MAX_Neighbour 50
 
 #include "CUDABaseInteraction.h"
 #include "../../Interactions/PHBInteraction.h"
@@ -32,7 +34,9 @@ __constant__ float patchyRcutSqr;
 __constant__ float patchyAlpha;
 __constant__ float patchyEpsilon;
 __constant__ float hardVolCutoff;
-__constant__ float connections[MAX_Particle][MAX_NEIGHBOURS];
+// __constant__ int connections[MAX_Particle][MAX_Neighbour];
+__constant__ int N;
+__constant__ int n_forces;
 
 class CUDAPHBInteraction: public CUDABaseInteraction, public PHBInteraction {
 public:
