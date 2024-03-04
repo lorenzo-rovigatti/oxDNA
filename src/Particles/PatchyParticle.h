@@ -38,7 +38,7 @@ protected:
 	int _N_patches;
 
 public:
-	PatchyParticle(std::vector<LR_vector> base_patches, int nt, number sigma);
+	PatchyParticle(std::vector<LR_vector> base_patches, int nt, number sigma, bool normalise_patches=true);
 	PatchyParticle(int N_patches, int nt, number sigma);
 	virtual ~PatchyParticle();
 

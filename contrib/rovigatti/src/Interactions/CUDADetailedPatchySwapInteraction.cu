@@ -452,7 +452,6 @@ void CUDADetailedPatchySwapInteraction::cuda_init(int N) {
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
 
-	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, _sqr_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, _sqr_rep_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_sqr_patch_rcut, _sqr_patch_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_sigma_ss, _sigma_ss);
@@ -484,6 +483,9 @@ void CUDADetailedPatchySwapInteraction::cuda_init(int N) {
 	if(N_species > MAX_SPECIES) {
 		throw oxDNAException("PatchySwapInteraction: cannot simulate more than %d species. You can increase this number in the PatchySwapInteraction.h file", MAX_SPECIES);
 	}
+
+	// this must be done after calling read_topology, since the latter can change the value of _sqr_rcut
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, _sqr_rcut);
 
 	// the following quantities are initialised by read_topology and hence have to be copied over to the GPU after its call
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patch_types, &_N_patch_types, sizeof(int)));

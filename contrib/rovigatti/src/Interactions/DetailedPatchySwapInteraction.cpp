@@ -29,6 +29,8 @@ void DetailedPatchySwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_lambda", &_lambda, 0);
 	getInputString(&inp, "DPS_interaction_matrix_file", _interaction_matrix_file, 1);
 
+	getInputBool(&inp, "DPS_normalise_patches", &_normalise_patches, 0);
+
 	getInputBool(&inp, "DPS_is_KF", &_is_KF, 0);
 	if(_is_KF) {
 		getInputInt(&inp, "DPS_patch_power", &_patch_power, 0);
@@ -48,6 +50,18 @@ void DetailedPatchySwapInteraction::get_settings(input_file &inp) {
 void DetailedPatchySwapInteraction::init() {
 	_rep_rcut = pow(2., 1. / 6.);
 	_sqr_rep_rcut = SQR(_rep_rcut);
+
+	if(_normalise_patches) {
+		OX_LOG(Logger::LOG_INFO, "DPS: Custom patches will be normalised");
+	}
+	else {
+		if(_is_KF) {
+			throw oxDNAException("DPS: Using unnormalised patches with the KF potential does not make sense");
+		}
+		else {
+			OX_LOG(Logger::LOG_INFO, "DPS: Custom patches will NOT be normalised");
+		}
+	}
 
 	if(_is_KF) {
 		ADD_INTERACTION_TO_MAP(PATCHY, _patchy_two_body_KF);
@@ -423,15 +437,16 @@ void DetailedPatchySwapInteraction::allocate_particles(std::vector<BaseParticle*
 			curr_species++;
 			curr_limit += _N_per_species[curr_species];
 		}
+		PatchyParticle *new_particle;
 		if(_N_patches[curr_species] > 0 && _base_patches[curr_species].size() > 0) {
-			particles[i] = new PatchyParticle(_base_patches[curr_species], curr_species, 1.);
+			new_particle = new PatchyParticle(_base_patches[curr_species], curr_species, 1., _normalise_patches);
 		}
 		else {
-			auto new_particle = new PatchyParticle(_N_patches[curr_species], curr_species, 1.);
-			particles[i] = new_particle;
-			// we need to save the base patches so that the CUDA backend has access to them
-			_base_patches[curr_species] = new_particle->base_patches();
+			new_particle = new PatchyParticle(_N_patches[curr_species], curr_species, 1.);
 		}
+		particles[i] = new_particle;
+		// we need to save the base patches so that the CUDA backend has access to them
+		_base_patches[curr_species] = new_particle->base_patches();
 		particles[i]->index = i;
 		particles[i]->strand_id = i;
 		particles[i]->type = particles[i]->btype = curr_species;
@@ -493,6 +508,8 @@ void DetailedPatchySwapInteraction::read_topology(int *N_strands, std::vector<Ba
 	_N = particles.size();
 	*N_strands = _N;
 
+	double farthest_patch = 0.5; // default is 0.5
+
 	std::ifstream topology(_topology_filename, ios::in);
 	if(!topology.good()) {
 		throw oxDNAException("Can't read topology file '%s'. Aborting", _topology_filename);
@@ -541,6 +558,11 @@ void DetailedPatchySwapInteraction::read_topology(int *N_strands, std::vector<Ba
 
 		if(spl.size() > 3) {
 			_base_patches[i] = _parse_base_patches(spl[3], _N_patches[i]);
+			for(auto patch : _base_patches[i]) {
+				if(patch.module() > farthest_patch) {
+					farthest_patch = patch.module();
+				}
+			}
 		}
 
 		OX_LOG(Logger::LOG_INFO, "DetailedPatchySwapInteraction: species %d has %d particles and %d patches", i, N_s, _N_patches[i]);
@@ -554,6 +576,9 @@ void DetailedPatchySwapInteraction::read_topology(int *N_strands, std::vector<Ba
 
 	allocate_particles(particles);
 	_parse_interaction_matrix();
+
+	_rcut += 2. * farthest_patch - 1.0;
+	_sqr_rcut = SQR(_rcut);
 }
 
 void DetailedPatchySwapInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {
