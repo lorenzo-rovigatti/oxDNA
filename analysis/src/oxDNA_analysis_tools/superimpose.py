@@ -28,6 +28,7 @@ def superimpose(ref:Configuration, victims:List[str], indexes:List[int]=[]):
     # alignment requires the ref to be centered at 0.  Inboxing did not take the indexing into account.
     reference_coords = ref.positions[indexes]
     aligned = []
+    rmsds = []
 
     for i, f in enumerate(victims):
         top_info, traj_info = describe(None, f)
@@ -37,9 +38,13 @@ def superimpose(ref:Configuration, victims:List[str], indexes:List[int]=[]):
         np_coords = np.asarray([conf.positions, conf.a1s, conf.a3s])
 
         conf.positions, conf.a1s, conf.a3s = svd_align(reference_coords, np_coords, indexes)
+        sd = np.square(conf.positions[indexes] - reference_coords)
+        rmsd = np.sqrt(np.mean(sd))
+        rmsds.append(rmsd)
+
         aligned.append(conf)
 
-    return aligned
+    return aligned, rmsds
 
 def cli_parser(prog="superimpose.py"):
     parser = argparse.ArgumentParser(prog = prog, description="superimposes one or more structures sharing a topology to a reference structure")
@@ -76,7 +81,10 @@ def main():
     else: 
         indexes = list(range(top_info.nbases))
 
-    aligned = superimpose(ref_conf, args.victims, indexes)
+    aligned, rmsds = superimpose(ref_conf, args.victims, indexes)
+    print("RMSDs:")
+    for f, r in zip(args.victims, rmsds):
+        print(f"{f} {r:.4f}")
 
     for i, conf in enumerate(aligned):
         write_conf("aligned{}.dat".format(i), conf, include_vel=ref_info.incl_v)
