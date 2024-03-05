@@ -5,7 +5,7 @@ backend = CUDA
 backend_precision = mixed
 CUDA_list = verlet
 #CUDA_sort_every = 0
-use_edge = true
+use_edge = 1
 edge_n_forces = true
 debug = true
 seed = 1
@@ -28,7 +28,7 @@ edge_n_forces = 1
 dt = 0.001
 newtonian_steps=51
 diff_coeff=1
-thermostat=no
+thermostat=john
 refresh_vel=1
 
 ### MC PARAMS ###
