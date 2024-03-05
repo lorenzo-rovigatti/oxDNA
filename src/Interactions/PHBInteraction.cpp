@@ -512,6 +512,36 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	setRcut(particles);
 	std::cout<<"Successfully completed topology reading with total types of patches = "<<patches.size()<< " and types of colored particles = "<<particleColors.size()<<" with rcut = "<<_rcut<<std::endl;
 
+	//Setting GPU connections
+	#pragma omp parallel for
+	for(i=0;i<totPar;i++){
+		auto *p = static_cast<PHBParticle*>(particles[i]);
+		GPUconnections[i][0]=(int)(p->ro.size());
+		// int y=0;
+		for(j=0;j<(int)p->ro.size();j++){
+			GPUconnections[i][j+1] = p->spring_neighbours[j];
+			GPUro[i][j] = p->ro[j];
+			GPUk[i][j] = p->Bfactor[j];
+		}
+	};
+
+	#pragma omp parallel for
+	for(i=0;i<(int)patches.size();i++){
+		GPUpatches[i][0]=patches[i].color;
+		GPUpatches[i][1]=patches[i].strength;
+		GPUpatches[i][2]=patches[i].position.x;
+		GPUpatches[i][3]=patches[i].position.y;
+		GPUpatches[i][4]=patches[i].position.z;
+	}
+
+	#pragma omp parallel for
+	for(i=0;i<(int)particleColors.size();i++){
+		GPUnumPatches[i][0]=(int)particleColors[i].size();
+		for(j=0;j<(int)particleColors[i].size();j++){
+			GPUnumPatches[i][j+1]=particleColors[i][j];
+		}
+	}
+
 };
 
 void PHBInteraction::setRcut(std::vector<BaseParticle *> &particles){

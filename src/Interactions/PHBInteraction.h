@@ -12,6 +12,7 @@
 #define MAXparticles 1000 // maximum number of particles
 #define MAXneighbour 10 // number of bonded neighbout one particle is connected to 
 #define GPUmaxiC 10 // unique patchy configuration max iC number.
+#define MaxPatches 6 // maximum number of patches
 
 class PHBInteraction: public BaseInteraction{
 public:
@@ -29,11 +30,11 @@ public:
     int particleType;//body parameter
     int i; //temporary parameters
     number rmod,rnorm;
-    double damp=0;
-    double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=-0.1,patchyInteractionDistanceCutoff=0,patchyB=667.505671539,patchyRcut=1.2,patchyCutOff=1.8,patchyAlpha=0.12,patchyIntercept=0.0,patchySpacer=0.0;
-    double patchyRcut2=SQR(patchyRcut),patchyPowAlpha = powf(patchyAlpha, (number) 10.f);
-    double tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6; //currently not used
-    double tepFeneDelta2=SQR(tepFeneDelta);
+    number damp=0;
+    number patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=-0.1,patchyInteractionDistanceCutoff=0,patchyB=667.505671539,patchyRcut=1.2,patchyCutOff=1.8,patchyAlpha=0.12,patchyIntercept=0.0,patchySpacer=0.0;
+    number patchyRcut2=SQR(patchyRcut),patchyPowAlpha = powf(patchyAlpha, (number) 10.f);
+    number tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6; //currently not used
+    number tepFeneDelta2=SQR(tepFeneDelta);
     number _ka = 100.,_kb = 21.,_kt = 29.7; //Energies
     number 	_twist_a = 0.00,_twist_b = 0.95; //cosine
 
@@ -44,10 +45,12 @@ public:
     std::string temp;
 
     // Gpu only variables
-    int GPUconnections[MAXparticles][MAXneighbour];//first intger will state number of connections
+    int GPUconnections[MAXparticles][MAXneighbour+1];//first intger will state number of connections
+    float GPUro[MAXparticles][MAXneighbour];//rarius of the spring
+    float GPUk[MAXparticles][MAXneighbour];//spring constant
     int GPUtopology[MAXparticles][2];// strand, iC
-    float GPUpatches[GPUmaxiP][5];// id,strength,x,y,z
-    int GPUnumPatches[GPUmaxiC];// id, iC
+    float GPUpatches[GPUmaxiP][5];// color,strength,x,y,z
+    int GPUnumPatches[GPUmaxiC][MaxPatches];// num, patch1, patch2, patch3, patch4, patch5, patch6
 
 
     // Necessary interaction
