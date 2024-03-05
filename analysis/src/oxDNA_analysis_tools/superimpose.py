@@ -1,5 +1,6 @@
 import argparse
 import os
+from pathlib import Path
 from typing import List
 import numpy as np
 from sys import stderr
@@ -51,6 +52,7 @@ def cli_parser(prog="superimpose.py"):
     parser.add_argument('reference', type=str, nargs=1, help="The reference configuration to superimpose to")
     parser.add_argument('victims', type=str, nargs='+', help="The configurations to superimpose on the reference")
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Align to only a subset of particles from a space-separated list in the provided file')
+    parser.add_argument('-o', metavar='output_names', dest='output_names', type=str, nargs='+', help='The names of the output files (defaults to inputname_a.dat)')
     return parser
 
 def main():
@@ -77,18 +79,23 @@ def main():
             try:
                 indexes = [int(i) for i in indexes]
             except:
-                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated using oxView by clicking the \"Download Selected Base List\" button")
+                raise RuntimeError("The index file must be a space-seperated list of particles.  These can be generated from an oxView selection by clicking the \"Selection IDs\" button")
     else: 
         indexes = list(range(top_info.nbases))
+
+    if args.output_names :
+        outputs = args.output_names
+    else:
+        outputs = [Path(v).stem+'_a.dat' for v in args.victims]
 
     aligned, rmsds = superimpose(ref_conf, args.victims, indexes)
     print("RMSDs:")
     for f, r in zip(args.victims, rmsds):
         print(f"{f} {r:.4f}")
 
-    for i, conf in enumerate(aligned):
-        write_conf("aligned{}.dat".format(i), conf, include_vel=ref_info.incl_v)
-        print("INFO: Wrote file aligned{}.dat".format(i), file=stderr)
+    for conf, out in zip(aligned, outputs):
+        write_conf(out, conf, include_vel=ref_info.incl_v)
+        print("INFO: Wrote file {}".format(out), file=stderr)
 
 if __name__ == '__main__':
     main()
