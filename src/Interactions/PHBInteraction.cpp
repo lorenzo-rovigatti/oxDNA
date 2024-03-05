@@ -551,7 +551,11 @@ LR_vector PHBInteraction::rotateVectorAroundVersor(const LR_vector vector, const
 
 number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces){
 	// cout<<"Patchy interaction called"<<endl;
-	rnorm = _computed_r.norm();
+	if(compute_r){
+		_computed_r = _box->min_image(p->pos,q->pos);
+		rnorm = _computed_r.norm();
+	} 
+	
 	if(rnorm > this->patchyRcut2) return 0; // not within reach ignore
 	if(p->btype==100||q->btype==100) return 0; // no color present ignore
 	if(p->strand_id>=0 && p->strand_id==q->strand_id) return 0; // particle on same strand will not interact unless it is - ve.
@@ -559,14 +563,15 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 	int c = 0;
 	LR_vector tmptorquep(0, 0, 0);
 	LR_vector tmptorqueq(0, 0, 0);
-	for(uint pi=0;pi<p->patches.size();pi++){
+
+	for(uint pi=0;pi< p->patches.size();pi++){
 		LR_vector ppatch = p->int_centers[pi];
 		for(uint qi=0;qi<q->patches.size();qi++){
 			if(bondingAllowed(p,q,pi,qi)){
 				number K = p->patches[pi].strength;
 			    LR_vector qpatch = q->int_centers[qi];
 				LR_vector patch_dist = _computed_r + qpatch - ppatch;
-				patch_dist += patch_dist*patchyIntercept/patch_dist.norm();
+				// patch_dist += patch_dist*patchyIntercept/patch_dist.norm();
 				number dist = patch_dist.norm();
 				if(dist < SQR(patchyCutOff)){
 					c++;
@@ -589,14 +594,14 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 						}
 						number f1D =  (5 * exp_part * r8b10);
 						LR_vector tmp_force = patch_dist * (f1D ); //patch_dist * (f1D * angular_part);
-						LR_vector torqueq(0,0,0) ; //= dir; // no torque is applied
-						LR_vector torquep(0,0,0) ; //= dir;
-						torquep += ppatch.cross(tmp_force);
-						torqueq += qpatch.cross(tmp_force);
+						// LR_vector torqueq(0,0,0) ; //= dir; // no torque is applied
+						// LR_vector torquep(0,0,0) ; //= dir;
+						// torquep += ppatch.cross(tmp_force);
+						// torqueq += qpatch.cross(tmp_force);
 
 
-						p->torque -= p->orientationT * torquep;
-						q->torque += q->orientationT * torqueq;
+						p->torque -= p->orientationT * ppatch.cross(tmp_force);
+						q->torque += q->orientationT * qpatch.cross(tmp_force);
 
 						p->force -= tmp_force;
 						q->force += tmp_force;
