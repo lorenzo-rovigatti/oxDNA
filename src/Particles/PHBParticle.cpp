@@ -3,12 +3,11 @@
 #include "PHBParticle.h"
 
 PHBParticle::PHBParticle():CCGParticle(){
-    this->int_centers.resize(patches.size()+vertexes.size());
+    this->int_centers.resize(patches.size());
 }
 
-PHBParticle::PHBParticle(int totPatches,int totVertexes){
+PHBParticle::PHBParticle(int totPatches):CCGParticle(){
     patches.resize(totPatches);
-    vertexes.resize(totVertexes);
 }
 
 PHBParticle::~PHBParticle(){
@@ -16,14 +15,12 @@ PHBParticle::~PHBParticle(){
 
 void PHBParticle::copy_from(PHBParticle p){
     patches.resize(p.patches.size());
-    vertexes.resize(p.vertexes.size());
     for(uint i=0;i<patches.size();i++) patches[i]=p.patches[i];
-    for(uint i=0;i<vertexes.size();i++) vertexes[i]=p.vertexes[i];
 }
 
 void PHBParticle::add_patch(Patch &patch) {
 	patches.push_back(patch);
-	int_centers.resize(patches.size()+vertexes.size());
+	int_centers.resize(patches.size());
 }
 
 // void PHBParticle::set_base_patches() {

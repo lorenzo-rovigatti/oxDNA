@@ -1,6 +1,15 @@
 #include "PHBInteraction.h"
 using namespace std;
 
+template <typename S>
+std::ostream &operator<<(std::ostream &os, const std::vector<S> &vector){
+  for (auto element : vector)
+  {
+    os << element << " ";
+  }
+  return os;
+}
+
 PHBInteraction::PHBInteraction():BaseInteraction(){
 	// ADD_INTERACTION_TO_MAP(SPRING,spring);
 	// ADD_INTERACTION_TO_MAP()
@@ -38,6 +47,8 @@ void PHBInteraction::get_settings(input_file &inp){
 };
 void PHBInteraction::init(){
 	// cout<<"INIT is called"<<endl;
+	number r8b10 = powf(patchyRcut, (number) 8.f) / patchyPowAlpha;
+    patchEcut = -1.001f * exp(-(number) 0.5f * r8b10 * patchyRcut2);
 };
 void PHBInteraction::allocate_particles(std::vector<BaseParticle *> &particles){
 	particles.resize(totPar);
@@ -83,17 +94,17 @@ number PHBInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	return energy;
 };
 
-double PHBInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
+number PHBInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
 	if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
 	// if(p->index==0 && q->index==1) std::cout<< "Distance between particles = "<<_computed_r <<std::endl; ;
 	auto *pCCG = static_cast<PHBParticle*>(p);
 	auto *qCCG = static_cast<PHBParticle*>(q);
-	double totalRadius = pCCG->radius+qCCG->radius;
-	double sigma=totalRadius*patchySigma;
-	double rstar=totalRadius*patchyRstar;
-	double b = patchyB/SQR(totalRadius);
-	double rc = patchyRc*totalRadius;
-	double energy =0;
+	number totalRadius = pCCG->radius+qCCG->radius;
+	number sigma=totalRadius*patchySigma;
+	number rstar=totalRadius*patchyRstar;
+	number b = patchyB/SQR(totalRadius);
+	number rc = patchyRc*totalRadius;
+	number energy =0;
 	LR_vector force;
 	energy = repulsiveLJ(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
 	// energy = hardRepulsive(patchyEpsilon,_computed_r,force,sigma,rc,update_forces);
@@ -150,21 +161,21 @@ number PHBInteraction::fene(PHBParticle *p, PHBParticle *q, bool compute_r,bool 
 		_computed_r = _box->min_image(p->pos,q->pos);
 		rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
 	}
-	double k,r0;
+	number k,r0;
 	p->return_kro(q->index,&k,&r0);
 	r0=rmod-r0; // Distance between the particles - equilibrium distance
-	double energy = -0.5*k*log(1 - SQR(r0) / tepFeneDelta2);
+	number energy = -0.5*k*log(1 - SQR(r0) / tepFeneDelta2);
 	if(fabs(r0) > tepFeneDelta - DBL_EPSILON) {
 		if(update_forces && !_allow_broken_fene) {
 			throw oxDNAException("(TEPInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(r0));
 		}
 		return (number) (1.e12); //Explode the simulation
 	}
-	double totalRadius = p->radius+q->radius;
-	double sigma=totalRadius*patchySigma;
-	double rstar=totalRadius*patchyRstar;
-	double b = patchyB/SQR(totalRadius);
-	double rc = patchyRc*totalRadius;
+	number totalRadius = p->radius+q->radius;
+	number sigma=totalRadius*patchySigma;
+	number rstar=totalRadius*patchyRstar;
+	number b = patchyB/SQR(totalRadius);
+	number rc = patchyRc*totalRadius;
 	LR_vector force;
 	energy+=repulsiveLJ(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
 	if(update_forces) {
@@ -185,10 +196,10 @@ number PHBInteraction::spring(PHBParticle *p, PHBParticle *q, bool compute_r,boo
 	// _computed_r = _box->min_image(p->pos,q->pos);
 	// rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
 	// auto *pCG = static_cast<CCGParticle*>(p);
-	double k,r0;
+	number k,r0;
 	p->return_kro(q->index,&k,&r0);
-	double dist=rmod-r0; // Distance between the particles - equilibrium distance
-	double energy = 0.25*k*SQR(dist); // Energy = 1/2*k*x^2 but 1/2 for one particle and 1/2 for other
+	number dist=rmod-r0; // Distance between the particles - equilibrium distance
+	number energy = 0.25*k*SQR(dist); // Energy = 1/2*k*x^2 but 1/2 for one particle and 1/2 for other
 	// std::cout<<energy<<std::endl;
 	if(update_forces){
 		LR_vector force = ((-k*dist))*(_computed_r/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
@@ -416,7 +427,6 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	//Variables that needs to be destroyed 
 	std::vector<Patch> patches; //stores the initial patches
     Patch tempPatch; // temporary patch variable;
-    std::vector<int> tempColors; 
 	std::vector<std::vector<int>> particleColors;// store id corresponding to particle colors with patch info. 1 particleColor can have multiple patches
 	
     // char line[2048];
@@ -436,6 +446,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	int j=0;
 	string line;
 	while(std::getline(topology,line)){
+		// if(i==1) throw oxDNAException("Topology fil/e is not in the correct format. Please check the topology file");
 		if(line.empty()||line[0]=='#') continue; //skip empty line and comment
 		if(line[0]=='i'){
 			if(line[1]=='P'){ //these are Patchy informations
@@ -464,6 +475,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 			if(line[1]=='C'){//these are Color informations
 				std::stringstream body(line);
 				j=0;
+				std::vector<int> tempColors;
 				while(body.tellg()!=-1){
 					body>>temp;
 					if(j==1 && stoi(temp)!=static_cast<int> (particleColors.size())) throw oxDNAException("Ids of colors starts with 0 and should be monotonically increasing with gap of 1. We all sometime face counting problems!!!!!!");
@@ -478,6 +490,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 		}
 		auto *q = static_cast< PHBParticle *>(particles[i]); //Start working with PHB particles
 		std::stringstream body(line);
+		// std::cout<<particleColors<<std::endl;
 		j=0;
 		while(body.tellg()!=-1){
 			body>>temp;
@@ -486,6 +499,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 			if(j==2){
 				q->btype=std::stoi(temp); // btype is color don't forget
 				if(q->btype!=100) //if the color is not 100, it is non empty and do further operations
+					// cout<< particleColors[q->btype].size()<<endl;
 					for(uint id=0;id<particleColors[q->btype].size();id++)
 						q->add_patch(patches[particleColors[q->btype][id]]);
 			}
@@ -496,16 +510,17 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 				int connection = std::stoi(temp);
 				if(body.tellg()==-1) throw oxDNAException("Missing color after connection");
 				body>>temp;
-				double bfact = std::stod(temp);
+				number bfact = std::stod(temp);
 				if(body.tellg()==-1) throw oxDNAException("Missing r0 after color");
 				body>>temp;
-				double tempro = std::stod(temp);
+				number tempro = std::stod(temp);
 				q->add_neighbour(particles[connection],bfact,tempro);
 			}
 			// }
 			j++;
 		}
 		i++;
+		// if(i==1941)cout<<q->patches[1].color<<endl;
 	};
 	// auto *q = static_cast< PHBParticle *>(particles[0]);
 	// cout<<q->patches[0].a1static.x<<endl;
@@ -541,6 +556,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 			GPUnumPatches[i][j+1]=particleColors[i][j];
 		}
 	}
+	// throw oxDNAException("Stop here");
 
 };
 
@@ -594,8 +610,12 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 	LR_vector tmptorquep(0, 0, 0);
 	LR_vector tmptorqueq(0, 0, 0);
 
+	#pragma omp parallel for reduction(+:energy)
 	for(uint pi=0;pi< p->patches.size();pi++){
 		LR_vector ppatch = p->int_centers[pi];
+		// cout<<p->int_centers[pi]<<p->orientation*p->patches[pi].position<<endl;
+		// throw oxDNAException("Stop here");
+		// cout << p->int_centers.size()<<"\t"<<p->patches.size()<<endl;
 		for(uint qi=0;qi<q->patches.size();qi++){
 			if(bondingAllowed(p,q,pi,qi)){
 				number K = p->patches[pi].strength;
@@ -609,8 +629,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 
 				    number r8b10 = dist*dist*dist*dist / patchyPowAlpha;
 				    number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * dist);
-					number patch_E_cut = -1.001f * expf(-(number)0.5f * r8b10 * SQR(patchyCutOff));
-					number f1 =  K * (exp_part - patch_E_cut);
+					number f1 =  K * (exp_part - patchEcut);
 					energy_ij = f1;// * angular_part;
                     energy += energy_ij;
 
@@ -641,7 +660,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 			}
 		}
 	}
-
+	// if(energy>0) throw oxDNAException("Energy is positive, something is wrong");
 	return energy;
 }
 
