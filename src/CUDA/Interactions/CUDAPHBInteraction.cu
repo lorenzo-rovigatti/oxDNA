@@ -241,7 +241,7 @@ __global__ void CUDAnonbondedParticles(const c_number4 __restrict__ *poss, const
     if(CUDA_DOT(dT,dT)>0.f) LR_atomicAddXYZ(&(torques[from_index]), dT);
     dT=-dT;
 
-    // if(CUDA_DOT(dF,dF)>0.f){
+    if(CUDA_DOT(dF,dF)>0.f){
         LR_atomicAddXYZ(&(forces[from_index]), dF);
 
             if(update_st){
@@ -252,9 +252,9 @@ __global__ void CUDAnonbondedParticles(const c_number4 __restrict__ *poss, const
 
         dT += _cross(r, dF);
         LR_atomicAddXYZ(&(forces[to_index]),-dF);
-    // }
+    }
 
-    // if(CUDA_DOT(dT,dT)>0.f) 
+    if(CUDA_DOT(dT,dT)>0.f) 
     LR_atomicAddXYZ(&(torques[to_index]), dT);
 
 }
