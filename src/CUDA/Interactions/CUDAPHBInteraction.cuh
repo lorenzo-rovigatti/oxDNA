@@ -13,7 +13,6 @@
 #include "../cuda_utils/CUDA_lr_common.cuh"
 #include "../Lists/CUDASimpleVerletList.h"
 #include "../Lists/CUDANoList.h"
-#include "../cuda_utils/CUDA_lr_common.cuh"
 
 /**
  * @Subhajit-Roy-Partho
