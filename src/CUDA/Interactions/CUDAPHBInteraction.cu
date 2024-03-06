@@ -5,7 +5,7 @@ __constant__ int exclusionType; // 0 for Linear, 1 for Cubic, 2 for Hard
 __constant__ float sigma; // 
 __constant__ float GPUpatchyB; // Controls the stiffness of exe volume and in case of hard the power over (sigma/r).
 __constant__ float patchyRcutSqr;
-__constant__ float patchyAlpha;
+__constant__ float GPUpatchyPowAlpha;
 __constant__ float patchyEps;
 __constant__ float hardVolCutoff;
 __constant__ int GpuN;
@@ -46,7 +46,7 @@ void CUDAPHBInteraction::cuda_init(int N)
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(sigma, &patchySigma, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyB, &patchyB, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyRcutSqr, &patchyRcut2, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyAlpha, &patchyPowAlpha, sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyPowAlpha, &patchyPowAlpha, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyEps, &patchyEpsilon, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(hardVolCutoff, &GPUhardVolCutoff, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(n_forces, &_n_forces, sizeof(int)));
