@@ -243,7 +243,7 @@ __global__ void CUDAnonbondedParticles(const c_number4 __restrict__ *poss, const
     c_number4 r = box->minimum_image(pPos, qPos);
 
     ////////call the main functions ////////////
-    // CUDAexeVolCub(2,r,dF,sigma,0.9053,GPUpatchyB,0.99998);
+    CUDAexeVolCub(2,r,dF,sigma,0.9053,GPUpatchyB,0.99998);
     // CUDApatchy(r,p1,p2,p3,q1,q2,q3,dF,dT,0,0);
 
     int from_index = GpuN * (IND % n_forces) + b.from;
