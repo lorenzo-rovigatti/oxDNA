@@ -485,6 +485,7 @@ def write_conf(path:str, conf:Configuration, append:bool=False, include_vel:bool
     mode = 'a' if append else 'w'
     with open(path,mode) as f:
         f.write("\n".join(out))
+        f.write("\n")
 
 def conf_to_str(conf:Configuration, include_vel:bool=True) -> str:
     """
