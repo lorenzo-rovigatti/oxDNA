@@ -17,7 +17,7 @@ __constant__ int numPatches[GPUmaxiC][MaxPatches];// num, patch1, patch2, patch3
 __device__ int connection[MAXparticles][MAXneighbour+1];//first intger will state number of connections
 __device__ float ro[MAXparticles][MAXneighbour];//rarius of the spring
 __device__ float k[MAXparticles][MAXneighbour];//spring constant
-__device__ int GPUtopology[MAXparticles][2];// strand, iC
+__device__ int topology[MAXparticles][2];// strand, iC
 
 CUDAPHBInteraction::CUDAPHBInteraction()
 {
@@ -163,8 +163,14 @@ __device__ void CUDAexeVolHard(c_number4 &r, c_number4 &F)
 //     }
 // };
 
-__device__ bool patchAllowed(){
-    return true;
+
+__device__ void CUDApatchyInteraction(c_number4 r, c_number4 &pa1, c_number4 &pa2, c_number4 &pa3, c_number4 &qa1, c_number4 &qa2, c_number4 &qa3, c_number4 &F, c_number4 &tor){
+    
+}
+
+__device__ bool GPUbondingAllowed(int &pindex,int &qindex, int &pi, int &qi){
+    // if(topology[pindex][0] == topology[qindex][0]) return false; // check if they are in the same strand
+    return false;
 
 }
 

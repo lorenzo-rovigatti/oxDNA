@@ -12,7 +12,7 @@
 #define MAXparticles 1000 // maximum number of particles
 #define MAXneighbour 10 // number of bonded neighbout one particle is connected to 
 #define GPUmaxiC 10 // unique patchy configuration max iC number.
-#define MaxPatches 6 // maximum number of patches
+#define MaxPatches 24 // maximum number of patches
 
 class PHBInteraction: public BaseInteraction{
 public:
