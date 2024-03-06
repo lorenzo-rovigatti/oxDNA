@@ -14,6 +14,11 @@ __constant__ int n_forces;
 __constant__ float patches[GPUmaxiP][5];// color,strength,x,y,z
 __constant__ int numPatches[GPUmaxiC][MaxPatches];// num, patch1, patch2, patch3, patch4, patch5, patch6
 
+__device__ int connection[MAXparticles][MAXneighbour+1];//first intger will state number of connections
+__device__ float ro[MAXparticles][MAXneighbour];//rarius of the spring
+__device__ float k[MAXparticles][MAXneighbour];//spring constant
+__device__ int GPUtopology[MAXparticles][2];// strand, iC
+
 CUDAPHBInteraction::CUDAPHBInteraction()
 {
     _edge_compatible = true;
@@ -41,7 +46,7 @@ void CUDAPHBInteraction::cuda_init(int N)
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(sigma, &patchySigma, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyB, &patchyB, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyRcutSqr, &patchyRcut2, sizeof(float)));
-    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyAlpha, &patchyPowAlpha, sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyAlpha, &patchyPowAlpha, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyEps, &patchyEpsilon, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(hardVolCutoff, &GPUhardVolCutoff, sizeof(float)));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(n_forces, &_n_forces, sizeof(int)));
