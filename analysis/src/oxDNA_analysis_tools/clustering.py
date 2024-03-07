@@ -1,6 +1,6 @@
 import numpy as np
 import argparse
-from os import environ, remove, path
+from os import remove, path
 from sys import stderr
 from typing import List
 import matplotlib.pyplot as plt
@@ -22,22 +22,17 @@ def split_trajectory(traj_info, top_info, labs):
         labs (numpy.array): The cluster each configuration belongs to.
     """
 
-    #How many are in each cluster?
-    print ("cluster\tmembers")
+    
 
     slabs = set(labs)
 
     for cluster in slabs:
-        in_cluster = list(labs).count(cluster)
-        print ("{}\t{}".format(cluster, in_cluster))
-
         #Clear old trajectory files
         try:
             remove("cluster_"+str(cluster)+".dat")
         except: pass
 
     print ("INFO: splitting trajectory...", file=stderr)
-    print ("INFO: Trajectories for each cluster will be written to cluster_<cluster number>.dat", file=stderr)
 
     fnames = ["cluster_"+str(cluster)+".dat" for cluster in slabs]
     files = [open(f, 'w+') for f in fnames]
@@ -47,7 +42,9 @@ def split_trajectory(traj_info, top_info, labs):
         for conf in chunk:
             files[labs[i]].write(conf_to_str(conf, include_vel=traj_info.incl_v))
             i += 1
-    [f.close() for f in files]
+
+    for f in files:
+        f.close()
 
     print(f"INFO: Wrote trajectory files: {fnames}", file=stderr)
 
@@ -65,26 +62,27 @@ def find_element(n, x, array):
             c += 1
     return -1
 
-def get_centroid(points, metric_name, labs, traj_info, top_info) -> List[int]:
+def get_centroid(points:np.ndarray, metric_name:str, labs:np.ndarray, traj_info:TrajInfo, top_info:TopInfo) -> List[int]:
     """
-    Takes the output from DBSCAN and produces the trajectory and centroid from each cluster.
+    Takes the output from DBSCAN and finds the centroid of each cluster.
 
     Parameters:
         points (numpy.array): The points fed to the clstering algorithm.
-        metric_name (str): The type of data the points represent.
+        metric_name (str): The type of data the points represent ('euclidean' or 'precomputed').
         labs (numpy.array): The cluster each point belongs to.
         traj_info (TrajInfo): Trajectory metadata.
-        tpo_file (TopInfo): Topology metadata.
+        top_info (TopInfo): Topology metadata.
     """
 
+    print("INFO: Finding cluster centroids...", file=stderr)
     if metric_name == 'euclidean':
         points = points[np.newaxis,:,:] - points[:,np.newaxis,:]
-        points = np.sqrt(np.sum(points**2, axis=2))    
-    
-    print("INFO: Finding cluster centroid...", file=stderr)
+        points = np.sum(points**2, axis=2) #squared distance is still correct distance 
+
     cids = []
     for cluster in (set(labs)):
-        masked = points[labs == cluster]
+        to_extract = labs == cluster
+        masked = points[np.ix_(to_extract, to_extract)]
         in_cluster_id = np.sum(masked, axis = 1).argmin()
 
         centroid_id = find_element(in_cluster_id, cluster, labs)
@@ -97,13 +95,15 @@ def get_centroid(points, metric_name, labs, traj_info, top_info) -> List[int]:
 
     return cids
 
-def make_plot(op, labels, centroid_ids):
+def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
     # Prepping a plot of the first 3 dimensions of the provided op
     dimensions = []
     x = []
     y = []
     dimensions.append(x)
     dimensions.append(y)
+    if len(op_names)==0:
+        op_names = ['OP0', 'OP1', 'OP2']
 
     # if the op is 1-dimensional add a time dimension
     add_time = False
@@ -131,20 +131,16 @@ def make_plot(op, labels, centroid_ids):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
 
-    ax.set_xlabel("OP0")
-    ax.set_ylabel("OP1")
+    ax.set_xlabel(op_names[0])
+    ax.set_ylabel(op_names[1])
 
     if len(dimensions) == 3:
-        ax.set_zlabel("OP2")
-        #to show the plot immediatley and interactivley
-        '''a = ax.scatter(x, y, z, s=2, alpha=0.4, c=labels, cmap=plt.get_cmap('tab10', 7))
-        b = fig.colorbar(a, ax=ax)
-        plt.show()'''
+        ax.set_zlabel(op_names[2])
         
         #to make a video showing a rotating plot
         plot_file = "animated.mp4"
         def init():
-            nonlocal labels, dimensions, n_clusters, centroid_ids
+            nonlocal labels, dimensions, n_clusters, centroid_ids, ax
             a = ax.scatter(x, y, z, s=2, alpha=0.4, c=labels, cmap=plt.get_cmap('tab10', n_clusters+1))
             cen = ax.scatter(dimensions[0][centroid_ids], dimensions[1][centroid_ids], dimensions[2][centroid_ids], s=1.5, c=[0 for _ in centroid_ids], cmap=ListedColormap(['black']))
             fig.colorbar(a, ax=ax)
@@ -156,11 +152,16 @@ def make_plot(op, labels, centroid_ids):
             ax.view_init(elev=10., azim=i)
             return [fig]
 
-        try:
-            anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(360), interval=20, blit=True)
-            anim.save(plot_file, fps=30, extra_args=['-vcodec', 'libx264'])
-        except:
-            print("WARNING: ffmpeg not found, cannot make animated plot, opening interactivley instead", file=stderr)
+        if not interactive_plot:
+            try:
+                anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(360), interval=20, blit=True)
+                anim.save(plot_file, fps=30, extra_args=['-vcodec', 'libx264'])
+                print("INFO: Saved cluster plot to {}".format(plot_file), file=stderr)
+            except:
+                print("WARNING: ffmpeg not found, cannot make animated plot, opening interactivley instead", file=stderr)
+                f = init()
+                plt.show()
+        else:
             f = init()
             plt.show()
 
@@ -179,25 +180,36 @@ def make_plot(op, labels, centroid_ids):
         handles, _ = cen.legend_elements(prop="colors", num = 1)
         l = ax.legend(handles, ['Centroids'])
         ax.add_artist(l)
-        plt.tight_layout()
-        plt.savefig(plot_file)
-    print("INFO: Saved cluster plot to {}".format(plot_file), file=stderr)
+        if not interactive_plot:
+            plt.tight_layout()
+            plt.savefig(plot_file)
+            print("INFO: Saved cluster plot to {}".format(plot_file), file=stderr)
+        else:
+            plt.show()
+
+    return
+    
 
 
-def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:str, eps:float, min_samples:int):
+def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:str, eps:float, min_samples:int, op_names:List[str]=[], no_traj:bool=False, interactive_plot:bool=False, min_clusters:int=-1) -> np.ndarray:
     """
     Use the DBSCAN algorithm to identify clusters of configurations based on a given order parameter.
 
     Parameters:
         traj_info (TrajInfo): Information about the trajectory
         top_info (TopInfo): Information about the topology
-        op (np.ndarray): The order parameter(s) to use
+        op (np.ndarray): The order parameter(s) to use (shape = n_confs x n_op for metric=euclidean, n_confs x n_confs for metric=precomputed)
         metric (str): Either 'euclidean' or 'precomputed' for whether the distance needs to be calculated
         eps (float): The maximum distance between two points to be considered in the same neighborhood
         min_samples (int): The minimum number of points to be considered a neighborhood
+        no_traj (bool): If True, skip splitting the trajectory (these are slow)
+        interactive_plot (bool): If True, show plot interactivley instead of saving as an animation
+        min_clusters (int): If less than min_clusters are found, return and don't do further calculations
     """
     
     check(["python", "sklearn", "matplotlib"])
+    if traj_info.nconfs != len(op):
+        raise RuntimeError(f"Length of trajectory ({traj_info.nconfs}) is not equal to length of order parameter array {len(op)}")
     
     #dump the input as a json file so you can iterate on eps and min_samples
     dump_file = "cluster_data.json"
@@ -209,8 +221,6 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
         "metric" : metric
     }
     dump(out, open(dump_file, 'w+'))
-
-
     
     print("INFO: Running DBSCAN...", file=stderr)
 
@@ -228,9 +238,27 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     print ("Number of clusters:", n_clusters_)
 
-    split_trajectory(traj_info, top_info, labels)
+    #How many are in each cluster?
+    print ("cluster\tmembers")
+    slabs = set(labels)
+    for cluster in slabs:
+        in_cluster = list(labels).count(cluster)
+        print ("{}\t{}".format(cluster, in_cluster))
+
+    # If the hyperparameters don't split the data well, end the run before the long stuff.
+    if n_clusters_ < min_clusters:
+        print("INFO: Did not find the minimum number of clusters requested, returning early")
+        return(labels)
+
+    # Split the trajectory into cluster trajectories
+    if not no_traj:
+        split_trajectory(traj_info, top_info, labels)
+
+    # Get the centroid id from each cluster
     centroid_ids =  get_centroid(op, metric, labels, traj_info, top_info)
-    make_plot(op, labels, centroid_ids)
+
+    # Make a plot showing the clusters
+    make_plot(op, labels, centroid_ids, interactive_plot, op_names)
     
     print("INFO: Run  `oat clustering {} -e<eps> -m<min_samples>`  to adjust clustering parameters".format(dump_file), file=stderr)
 
