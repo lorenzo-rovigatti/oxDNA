@@ -106,7 +106,7 @@ number PHBInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool 
 	number rc = patchyRc*totalRadius;
 	number energy =0;
 	LR_vector force;
-	energy = repulsiveLJ(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
+	energy = repulsiveLinear(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
 	// energy = hardRepulsive(patchyEpsilon,_computed_r,force,sigma,rc,update_forces);
 	if(update_forces){
 		p->force-=force;
@@ -140,6 +140,33 @@ number PHBInteraction::repulsiveLJ(number prefactor, const LR_vector &r, LR_vect
 			energy = prefactor * b * SQR(SQR(rrc));
 			if(update_forces)
 				force = -r * (4 * prefactor * b * CUB(rrc) / rmod);
+		}
+		else {
+			number tmp = SQR(sigma) / rnorm;
+			number lj_part = tmp * tmp * tmp;
+			energy = 4 * prefactor * (SQR(lj_part) - lj_part);
+			if(update_forces)
+				force = -r * (24 * prefactor * (lj_part - 2 * SQR(lj_part)) / rnorm);
+		}
+	}
+
+	if(update_forces && energy == (number) 0)
+		force.x = force.y = force.z = (number) 0;
+
+	return energy;
+};
+
+number PHBInteraction::repulsiveLinear(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
+	// this is a bit faster than calling r.norm()
+	rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
+	number energy = (number) 0;
+	if(rnorm < SQR(rc)) {
+		if(rnorm > SQR(rstar)) {
+			rmod = sqrt(rnorm);
+			number rrc = rmod - rc;
+			energy = prefactor * b * SQR(rrc);
+			if(update_forces)
+				force = -r * (2 * prefactor * b * rrc / rmod);
 		}
 		else {
 			number tmp = SQR(sigma) / rnorm;

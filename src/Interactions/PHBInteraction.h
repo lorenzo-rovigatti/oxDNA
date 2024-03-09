@@ -67,6 +67,7 @@ public:
     
     //Common Interaction
     virtual number repulsiveLJ(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces); //Excluded volume with pre-factor
+    virtual number repulsiveLinear(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces); //Excluded volume with pre-factor
     virtual number hardRepulsive(number prefactor, const LR_vector &r, LR_vector &force, number sigma, number rc, bool update_forces); //Excluded volume with power 200 potential
     virtual number exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces);
     // virtual number maxRadius(std::vector<PHBParticle*> &particles);//returns the maximum radius
