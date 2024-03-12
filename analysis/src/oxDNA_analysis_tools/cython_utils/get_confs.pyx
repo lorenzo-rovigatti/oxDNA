@@ -34,7 +34,7 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, bint
     cdef int *sizes = <int *> malloc(cnconfs * sizeof(int))
     cdef int *conf_starts = <int *> malloc(cnconfs * sizeof(int))
     if not sizes or not conf_starts:
-        raise MemoryError("Could not allocate memory for the configuration sizes and starts", file=stderr)
+        raise MemoryError("Could not allocate memory for the configuration sizes and starts")
 
     cdef int chunk_size = idxs[start+cnconfs-1].offset + idxs[start+cnconfs-1].size - idxs[start].offset
     for i in range(cnconfs):

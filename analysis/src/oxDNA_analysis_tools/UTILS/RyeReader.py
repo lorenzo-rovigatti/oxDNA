@@ -40,7 +40,7 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=-1) -> Iter
         Parameters:
             traj_info (TrajInfo) : The trajectory info
             top_info (TopInfo) : The topology info
-            ntopart (int) : The number of confs to read at a time
+            chunk_size (int) : The number of confs to read at a time.  Defaults to config.get_chunk_size()
 
         Returns:
             iterator[Configuration] : An iterator object which yields lists of <chunk_size> configurations.
