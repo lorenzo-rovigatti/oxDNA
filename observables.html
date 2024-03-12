@@ -70,6 +70,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#interaction-energy-between-pairs-of-particles">Interaction energy between pairs of particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#stretched-bonds">Stretched bonds</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#energy-associated-to-the-external-forces">Energy associated to the external forces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#external-force-acting-on-particle-s">External force acting on particle(s)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pressure">Pressure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#stress-autocorrelation">Stress autocorrelation</a></li>
@@ -294,6 +295,14 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">force_energy</span></code>: the observable type.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[print_group</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: limit the energy computation to the forces belonging to a specific group of forces. This can be set by adding a <code class="docutils literal notranslate"><span class="pre">group_name</span></code> option to the <a class="reference internal" href="forces.html#common-options"><span class="std std-ref">desired external forces</span></a>. If not set, all external forces will be considered.</p></li>
+</ul>
+</section>
+<section id="external-force-acting-on-particle-s">
+<h2>External force acting on particle(s)<a class="headerlink" href="#external-force-acting-on-particle-s" title="Permalink to this heading"></a></h2>
+<p>Print the force vector acting on all (or a subset of all) particles due to external forces. This observable supports the <code class="docutils literal notranslate"><span class="pre">update_every</span></code> option.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">external_force</span></code>: the observable type.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">particles</span></code>: list of comma-separated particle indexes whose force vectors should be printed.</p></li>
 </ul>
 </section>
 <section id="configuration">

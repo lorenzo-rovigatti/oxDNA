@@ -460,9 +460,10 @@
 <h2>Distance<a class="headerlink" href="#distance" title="Permalink to this heading"></a></h2>
 <p><p>Finds the ensemble of distances between any two particles in the system</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">distance</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="nb">input</span> <span class="p">[</span><span class="nb">input</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span>
-                    <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">distance</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="nb">input</span> <span class="n">p1</span> <span class="n">p2</span> <span class="n">p1</span> <span class="n">p2</span><span class="o">...</span><span class="p">)</span> <span class="p">[</span><span class="nb">input</span> <span class="n">p1</span> <span class="n">p2</span> <span class="p">(</span><span class="n">p1</span> <span class="n">p2</span><span class="o">...</span> <span class="o">...</span><span class="p">]]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="Named Arguments">
@@ -973,7 +974,7 @@
 <h2>Subset trajectory<a class="headerlink" href="#subset-trajectory" title="Permalink to this heading"></a></h2>
 <p><p>Extracts parts of a structure into separate trajectories</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">subset_trajectory</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index</span> <span class="n">index</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">subset_trajectory</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index</span> <span class="n">outfile</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
                              <span class="n">trajectory</span> <span class="n">topology</span>
 </pre></div>
 </div>
@@ -1008,7 +1009,9 @@
 <h2>Superimpose<a class="headerlink" href="#superimpose" title="Permalink to this heading"></a></h2>
 <p><p>superimposes one or more structures sharing a topology to a reference structure</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="n">reference</span> <span class="n">victims</span> <span class="p">[</span><span class="n">victims</span> <span class="o">...</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_names</span> <span class="p">[</span><span class="n">output_names</span> <span class="o">...</span><span class="p">]]</span>
+                       <span class="n">reference</span> <span class="n">victims</span> <span class="p">[</span><span class="n">victims</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -1027,6 +1030,9 @@
 <dl class="option-list">
 <dt><kbd>-i</kbd></dt>
 <dd><p>Align to only a subset of particles from a space-separated list in the provided file</p>
+</dd>
+<dt><kbd>-o</kbd></dt>
+<dd><p>The names of the output files (defaults to inputname_a.dat)</p>
 </dd>
 </dl>
 </section>
