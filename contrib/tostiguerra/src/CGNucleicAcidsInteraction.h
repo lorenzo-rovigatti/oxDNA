@@ -47,7 +47,7 @@ protected:
 	number _rfene = 1.5;
 	number _sqr_rfene;
 	number _WCA_sigma = 1.0, _WCA_sigma_unbonded;
-	number _PS_sqr_rep_rcut;
+	number _PS_sqr_rep_rcut, _PS_sqr_rep_rcut_unbonded;
 	number _tC = 37.0;
 	number dS_mod = 1.0;
 	number alpha_mod = 1.0;
