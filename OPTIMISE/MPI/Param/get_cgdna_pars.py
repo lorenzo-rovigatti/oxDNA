@@ -3,20 +3,19 @@
 """
 Created on Thu Nov  9 15:35:31 2023
 
-@author: andrea bonato - constructSeqParms function and parameters (cgDNA+ps1.mat) copyed from rahul sharma (cgna+)
+@author: yqb22156
 """
 
-import sys
+import sys, random
 import numpy as np
 import scipy, scipy.io
 from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import spsolve
 import os
-#path = os.getcwd()
-path=os.path.dirname(os.path.realpath(__file__))
+path = os.getcwd()
 
-par_file = path+'/Param/cgDNA+ps1.mat'
-path_averages = path+'/Param/'
+par_file = '/home/users/yqb22156/oxDNA/cgNA_plus-main/Parametersets/cgDNA+ps1.mat'
+path_averages = '/home/users/yqb22156/Desktop/oxDNA/cgna_parameters/'
 
 
 def finder(seq):
@@ -205,12 +204,7 @@ def get_target_mean_and_covariance(seq, ids, jx_in, jx_from_end) :
         else :
             cgDNA_ids.append(ids[i]+12)
             
-            
-    #cgna reads 5'->3', oxdna reads 3'->5'.
-    #To get the right sequence, must reverse oxdna seq!
-    cgna_seq = "".join(reversed(seq))            
-            
-    gs,stiff = constructSeqParms(cgna_seq)
+    gs,stiff = constructSeqParms(seq)
     Inv_cov = stiff.A
     red_gs, red_stiff, red_cov = reduce(gs,Inv_cov,cgDNA_ids,jx_in,jx_from_end)
     
@@ -254,3 +248,17 @@ def get_target_mean_and_covariance_diag_ave(N, ids) :
     
     return tot_gs, tot_cov
 
+
+
+#test
+
+ids = [1,6,7,8,11]
+
+N = 20
+
+bp_ave_gs = np.load(path_averages+"cgna_ave_gs.npy")
+bp_ave_cov = np.load(path_averages+"cgna_ave_cov.npy")
+
+gs, cov = get_target_mean_and_covariance_diag_ave(N, ids)
+
+ 

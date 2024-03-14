@@ -98,6 +98,12 @@ echo ${seq[1]}
 
 Nseq=${#seq[@]}
 
+
+#total number of cpus is number_of_sequences*number_of_reps
+Nproc=$((${Nreps}*${Nseq}))
+
+echo "Number of CPUs used: ${Nproc}"
+
 #initialise first step
 
 #create directory
@@ -137,7 +143,7 @@ wait
 
 #optimise
 cd ${main_path}/Step0
-python3 ${opti_path}/optimise_multi.py ../$config > OutOpti
+mpirun -np ${Nproc} python3 ${opti_path}/MPI/optimise_geometry_mpi.py ../$config > OutOpti
 
 
 mv oxDNA_sequence_dependent_parameters_tmp.txt oxDNA_sequence_dependent_parameters_fin.txt
@@ -180,6 +186,6 @@ for ((i=1; i < ${Nsteps}; i++)); do
 	wait
 	
 	cd ${main_path}/Step${i}
-	python3 ${opti_path}/optimise_multi.py ../$config > OutOpti
+	mpirun -np ${Nproc} python3 ${opti_path}/MPI/optimise_geometry_mpi.py ../$config > OutOpti
 	mv oxDNA_sequence_dependent_parameters_tmp.txt oxDNA_sequence_dependent_parameters_fin.txt
 done
