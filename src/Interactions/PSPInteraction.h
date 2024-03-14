@@ -19,10 +19,17 @@ class PSPInteraction: public BaseInteraction {
 public:
     // Temporary variables
     int i,j;
+	number rmod, rnorm;
 	std::string temp,line;
+
+
 	//Header variables
 	int totPar,strads,totParticleColor,totPatchColor; //topology
 	bool harmonics=true;
+
+	// Patchy Parameters
+	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0.2,patchyEcutoff=0,patchyB=667.505671539f;
+
 	//Topology variables
 	int connections[PSPmaxParticles][PSPmaxNeighbour]; // 5 0 1 2 3 4 where 5 is the number of neighbours and 0 1 2 3 4 are the neighbours
 	float r0[PSPmaxParticles][PSPmaxNeighbour]; // Equilibrium radius of the spring, if starts with 0 all particles have different radius, if 1 all particles have same radius
@@ -50,8 +57,15 @@ public:
 	virtual number pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false); //Non-bonded particle interaction
 
 
-	//Modifiers
-	
+	//Custom Interactions
+	virtual number spring(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false); //Spring interaction
+	virtual number exeVolInt(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false); //Excluded volume interaction
+	virtual number linearRepulsion(number patchyEpsilon, LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces); //Linear repulsion
+	virtual number cubicRepulsion(number patchyEpsilon, LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces); //Cubic repulsion
+
+	//Checkers
+	int bonded(int i, int j);
+
 
 };
 

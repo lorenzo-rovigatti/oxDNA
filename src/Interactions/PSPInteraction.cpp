@@ -111,7 +111,7 @@ void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 		connections[i][0]=p->spring_neighbours.size();
 		r0[i][0]=0; // all the eq radius are different
 		k0[i][0]=0; // all the spring constant are different
-		for(j=0;j<p->spring_neighbours.size();j++){
+		for(j=0;j<(int)p->spring_neighbours.size();j++){
 			connections[i][j+1]=p->spring_neighbours[j];
 			r0[i][j+1]=p->ro[j];
 			k0[i][j+1]=p->Bfactor[j];
@@ -131,5 +131,95 @@ number PSPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 
 number PSPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
 	// Non-bonded particle interaction
+	return 0;
+}
+
+int PSPInteraction::bonded(int p, int q){
+	for(i=1;i<=connections[p][0];i++){
+		if(connections[p][i]==q) return i;
+	}
+	return -1;
+}
+
+number PSPInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
+	// updating _computed_r is necessary.
+	if(compute_r){ 
+		_computed_r = _box->min_image(p->pos,q->pos);
+		rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
+	}
+
+	int index = bonded(p->index,q->index);
+	if(index==-1) return 0; // not bonded
+
+	number k = k0[p->index][index];
+	number r = r0[p->index][index];
+	number dist=rmod-r; // Distance between the particles - equilibrium distance
+	// number energy = 0.25*k*SQR(dist);
+	if (update_forces){
+		LR_vector force = ((-k*dist))*(_computed_r/rmod);
+		p->force-=force;
+		q->force+=force;
+	}
+	return 0.25*k*SQR(dist);
+}
+
+
+number PSPInteraction::linearRepulsion(number patchyEpsilon, LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
+	// this is a bit faster than calling r.norm()
+	rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
+	number energy = (number) 0;
+
+	if(rnorm < SQR(rc)) {
+		if(rnorm > SQR(rstar)) {
+			rmod = sqrt(rnorm);
+			number rrc = rmod - rc;
+			energy = patchyEpsilon * b * SQR(rrc);
+			if(update_forces) force = -r * (2 * patchyEpsilon * b * rrc / rmod);
+		}
+		else {
+			number tmp = SQR(sigma) / rnorm;
+			number lj_part = tmp * tmp * tmp;
+			energy = 4 * EXCL_EPS * (SQR(lj_part) - lj_part);
+			if(update_forces) force = -r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) /rnorm);
+			// std::cout<<"Inner collision"<<std::endl;
+
+		}
+	}
+
+	if(update_forces && energy == (number) 0) force.x = force.y = force.z = (number) 0;
+
+	return energy;
+}
+
+number PSPInteraction::cubicRepulsion(number patchyEpsilon, LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces){
+	rnorm = SQR(r.x) + SQR(r.y) + SQR(r.z);
+	number energy = (number) 0;
+
+	if(rnorm < SQR(rc)) {
+		if(rnorm > SQR(rstar)) {
+			rmod = sqrt(rnorm);
+			number rrc = rmod - rc;
+			energy = patchyEpsilon * b * SQR(SQR(rrc));
+			if(update_forces) force = -r * (8 * patchyEpsilon * b * CUB(rrc) / rmod);
+		}
+		else {
+			number tmp = SQR(sigma) / rnorm;
+			number lj_part = tmp * tmp * tmp;
+			energy = 4 * EXCL_EPS * (SQR(lj_part) - lj_part);
+			if(update_forces) force = -r * (24 * patchyEpsilon * (lj_part - 2*SQR(lj_part)) /rnorm);
+			// std::cout<<"Inner collision"<<std::endl;
+
+		}
+	}
+
+	if(update_forces && energy == (number) 0) force.x = force.y = force.z = (number) 0;
+
+	return energy;
+}
+
+number PSPInteraction::exeVolInt(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
+	if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
+	number totalRadius = particleTopology[p->index][2]+particleTopology[q->index][2];
+	
 	return 0;
 }

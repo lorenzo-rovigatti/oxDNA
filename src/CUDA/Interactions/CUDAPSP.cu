@@ -4,8 +4,14 @@
 #include "CUDAPSP.cuh"
 
 __constant__ int MD_N;
-__constant__ float patches[PSPmaxPatchColor][5]; // color, strength, x, y, z // for PSP interaction patch color is useless and should be -1
-__constant__ int particlePatches[PSPmaxParticleColor][PSPmaxPatchColor]; // Number of patches, patch1, patch2, patch3, patch4, patch5, patch6
+__constant__ float GPUpatches[PSPmaxPatchColor][5]; // color, strength, x, y, z // for PSP interaction patch color is useless and should be -1
+__constant__ int GPUparticlePatches[PSPmaxParticleColor][PSPmaxPatchColor]; // Number of patches, patch1, patch2, patch3, patch4, patch5, patch6
+__constant__ float GPUpatchySigma
+__constant__ float GPUpatchyRstar
+__constant__ float GPUpatchyB
+__constant__ float GPUpatchyRc
+__constant__ float patchyRcut
+__constant__ float patchyAlpha
 // __device__ GPUconnections[PSPmaxParticles][PSPmaxNeighbour];
 // __device__ float GPUr0[PSPmaxParticles][PSPmaxNeighbour]; // Equilibrium radius of the spring, if starts with 0 all particles have different radius, if 1 all particles have same radius
 // __device__ float GPUk0[PSPmaxParticles][PSPmaxNeighbour]; // Spring constant, same as above
