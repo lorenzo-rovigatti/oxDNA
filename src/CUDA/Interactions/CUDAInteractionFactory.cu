@@ -18,6 +18,7 @@
 #include "CUDARNAInteraction.h"
 // #include "CUDACCGInteraction.h"
 #include "CUDAPHBInteraction.cuh"
+#include "CUDAPSP.cuh"
 
 #include "../../Utilities/Utils.h"
 
@@ -41,6 +42,7 @@ std::shared_ptr<CUDABaseInteraction> CUDAInteractionFactory::make_interaction(in
 	else if(inter_type.compare("TEP") == 0) return std::make_shared<CUDATEPInteraction>();
 	// else if(!inter_type.compare("CCG")) return std::make_shared<CUDACCGInteraction>();
 	else if(!inter_type.compare("PHB")) return std::make_shared<CUDAPHBInteraction>();
+	else if(!inter_type.compare("PSP")) return std::make_shared<CUDAPSPInteraction>();
 	else {
 		std::string cuda_name(inter_type);
 		cuda_name = "CUDA" + cuda_name;

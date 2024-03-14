@@ -3,7 +3,7 @@
 #ifndef CUDA_PSP_CUH
 #define CUDA_PSP_CUH
 
-#include "CUDABaseInteractions.h"
+#include "CUDABaseInteraction.h"
 #include "../../Interactions/PSPInteraction.h" //cupu interactions
 #include "../cuda_utils/CUDA_lr_common.cuh"
 #include "../Lists/CUDASimpleVerletList.h"
@@ -15,6 +15,8 @@
 
 class CUDAPSPInteraction: public CUDABaseInteraction, public PSPInteraction {
 public:
+    
+
     CUDAPSPInteraction();
     virtual ~CUDAPSPInteraction();
     void get_settings(input_file &inp) override;
