@@ -80,8 +80,9 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 void CGNucleicAcidsInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
 	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / _PS_n);
-	// _WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0; // disabled for now
-	_WCA_sigma_unbonded = _WCA_sigma;
+	_WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0; // not disabled
+	_PS_sqr_rep_rcut_unbonded = pow(2. * _WCA_sigma_unbonded, 2. / _PS_n); 
+	// _WCA_sigma_unbonded = _WCA_sigma; // disabled
 
 	OX_LOG(Logger::LOG_INFO, "CGNA: WCA sigma = %lf, WCA sigma unbonded = %lf", _WCA_sigma, _WCA_sigma_unbonded);
 
@@ -215,7 +216,11 @@ number CGNucleicAcidsInteraction::_fene(BaseParticle *p, BaseParticle *q, bool u
 
 number CGNucleicAcidsInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
-	if(sqr_r > _PS_sqr_rep_rcut) {
+	
+	number sigma = p->is_bonded(q) ? _WCA_sigma : _WCA_sigma_unbonded;
+	number sqr_rcut = p->is_bonded(q) ? _PS_sqr_rep_rcut : _PS_sqr_rep_rcut_unbonded;
+
+	if(sqr_r > sqr_rcut) {
 		return (number) 0.;
 	}
 
@@ -223,10 +228,10 @@ number CGNucleicAcidsInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool up
 	// this number is the module of the force over r, so we don't have to divide the distance vector for its module
 	number force_mod = 0;
 
-	number sigma = p->is_bonded(q) ? _WCA_sigma : _WCA_sigma_unbonded;
+	
 
 	// cut-off for all the repulsive interactions
-	if(sqr_r < _PS_sqr_rep_rcut) {
+	if(sqr_r < sqr_rcut) {
 		number part = 1.;
 		number ir2_scaled = SQR(sigma) / sqr_r;
 		for(int i = 0; i < _PS_n / 2; i++) {
