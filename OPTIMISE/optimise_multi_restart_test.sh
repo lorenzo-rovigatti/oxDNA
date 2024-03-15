@@ -32,13 +32,21 @@ echo "Optimisation program path:"
 echo $opti_path
 box_size=$(awk '$1 == "BOX_SIZE" {print $2}' $config)
 if [[ "$box_size" == "" ]]; then
-	echo "Box size not specified. Setting it to 50. Usage:"
+	echo "Box size not specified. Setting it to 20. Usage:"
 	echo "In config_file: "
 	echo "BOX_SIZE box_size"
-	box_size=50
+	box_size=20
 fi
 echo "Sim box size:"
 echo $box_size
+
+concentration=$(( 2686.8/$box_size/$box_size/$box_size ))
+
+echo "Single strand concentration = $concentration mM"
+
+
+
+
 Nreps=$(awk '$1 == "REPS" {print $2}' $config)
 if [[ "$Nreps" == "" ]]; then
 	echo "Number of replicas not specified. Setting it to 1. Usage:"

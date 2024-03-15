@@ -1,0 +1,46 @@
+Usage: 
+bash optimise.sh config_file
+oxDNA path:
+/home/users/yqb22156/oxDNA/oxdna
+Optimisation program path:
+/home/users/yqb22156/Desktop/oxDNA/Parametrisation/Minimisation_ox3/OPTIMISE
+Single strand concentration =  mM
+# of replicas:
+2
+# of optimisation steps:
+2
+# of sim timesteps:
+1e6
+Usage: 
+SEQ seq box_size salt_conc simT delta_extrapolated_T op_file weight_file
+Sequences:
+ACACACACACACACACACAC
+GCTATAGATCCCAAGTACCC
+GCTATAGATCCCAAGTACCC
+Number check ok.
+Box sizes:
+20
+18
+22
+Number check ok.
+Salt concentrations:
+0.15
+0.22
+0.18
+Temperatures:
+70
+22
+54
+Number check ok.
+Temperatures:
+70
+22
+54
+Number check ok.
+OP files:
+op_file_s1.txt
+op_file_s2.txt
+wfile_s3.txt
+number of weight files is not equal to number of sequences.
+SEQ seq box_size salt_conc simT delta_extrapolated_T op_file weight_file
+Terminating.

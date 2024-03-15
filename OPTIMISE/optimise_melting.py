@@ -12,9 +12,8 @@ import oxpy
 import copy
 import time
 
-
 import functions_multi as functions
-from oxdna_to_internal_wflip import read_oxdna_trajectory_standard_order
+import functions_multi_melting as functions_melting
 import config_multi as cg
 import Utils
 
@@ -25,69 +24,42 @@ if len(sys.argv) != 2 :
     print("Usage: python3 optimise.py config_file")
     sys.exit()
     
+
 start_time = time.time()
+    
 
 config_file = sys.argv[1]
 
 #READ PARAMETERS
-if functions.read_config(config_file) == False :
+if functions_melting.read_config(config_file) == False :
     sys.exit()
-
-
-#Compute and store internal coordinates from sampled trajectories. Compute gs and cov
-for l in range(cg.Nseq) : 
-    for i in range(cg.Nreps) :
-    
-        iname = './Seq'+str(l)+'/Rep'+str(i)+'/trajectory.dat'
-        tname = './Seq'+str(l)+'/Rep'+str(i)+'/generated.top'
-        
-        ifile = open(iname,'r')
-        tfile = open(tname,'r')
-        
-        traj = read_oxdna_trajectory_standard_order(ifile, tfile)
-        
-        ifile.close()
-        tfile.close()
-        
-        # True = overwrite, False = append
-        # append is for averaging over multiple trajectories
-        
-        print("READING COORDINATES SEQ "+str(l)+" REP" +str(i))
-        
-        if i == 0 :
-            functions.store_internal_coord(traj,l,cg.ids,cg.in_j[l],cg.fin_j[l],cg.in_snap,True)
-        else  :
-            functions.store_internal_coord(traj,l,cg.ids,cg.in_j[l],cg.fin_j[l],cg.in_snap,False)
- 
-#average coordinates and energy
-functions.ave_and_cov_stored()
-for l in range(cg.Nseq) :
-    
-    print("SEQUENCE "+str(l))
-    
-    print("mu sampled:")
-    print(cg.mu_sampled[l])
-    
-    print("cov sampled:")
-    #functions.print_matrix(cg.cov_sampled)
-    print(cg.cov_sampled[l])
 
 
 inp = []
 backend = []
 obs = []
 
-#compute energy of trajectory by using oxpy
+#compute energy and hbs (order parameter) of sampled trajectory by using oxpy
 for l in range(cg.Nseq) :
+    
+    energy_ratio = 300.0/(cg.simTs[l]+273.15) #300K/simT in K 
+    print("Energy ratio sampled: "+str(energy_ratio))
+    
     for i in range(cg.Nreps) :
         with oxpy.Context():
             
             nrep = l*cg.Nreps +i
             
+            file_name = './Seq'+str(l)+'/Rep'+str(i)+'/input1_melting.an'
+            functions_melting.update_T_input_file(cg.simTs[l],file_name)
+            
             #read input script specifying sequence dependent file
             inp.append(oxpy.InputFile())
             
-            inp[nrep].init_from_filename('./Seq'+str(l)+'/Rep'+str(i)+'/input1.an')
+            inp[nrep].init_from_filename(file_name)
+            
+            print(l,i)
+            
             #create analysys backend
             backend.append(oxpy.analysis.AnalysisBackend(inp[nrep]))
         
@@ -121,11 +93,17 @@ for l in range(cg.Nseq) :
                 
                 if(counts < cg.in_snap) :
                     continue
-                a = float(obs[nrep][0].get_output_string(backend[nrep].conf_step).split()[0])
-                cg.energy_sampled[l].append((cg.Njuns[l]+1)*20*a)
+                a = float(obs[nrep][0].get_output_string(backend[nrep].conf_step).split()[0])   #total energy per nucleotide
+                #stk = float(obs[nrep][1].get_output_string(backend[nrep].conf_step).split()[2])   #total stacking energy per nucleotide
+                b = int(obs[nrep][1].get_output_string(backend[nrep].conf_step).split()[0])   #number of hbonds (value of the order parameter)
                 
+                cg.energy_sampled[l].append((cg.Njuns[l]+1)*20*a*energy_ratio)
+                #cg.energy_stk_sampled[l].append((cg.Njuns[l]+1)*20*stk)
+                cg.hbs_sampled[l].append(b)
                 
-Utils.plot_gs_sampled()
+                            
+#Utils.plot_gs_sampled()
+#Utils.plot_mt_sampled() #XXXtodo plot comparison with Santa Lucia
             
        
 #read initial values of the optimisation parameters (from initial seq dep file)
@@ -179,6 +157,12 @@ for line in ifile.readlines() :
                     up_bond.append(float(vals[2])*1.05)
                     low_bond.append(float(vals[2])*0.95)
                     
+                elif (vals1[0] == "STCK" or vals1[0] == "HYDR") and len(vals) == 3 :
+                    
+                    up_bond.append(float(vals[2])*3)
+                    low_bond.append(0.)
+                    
+                    
                 else : 
                     
                     up_bond.append(float(vals[2])*1.5)
@@ -223,10 +207,10 @@ print("RUNNING MINIMISATION")
 
 #sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(par0),method='nelder-mead',options={'maxiter':cg.miter, 'eps':0.1})
 if cg.algo == "L-BFGS-B" :
-    sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(par0),method='L-BFGS-B', bounds=bnd ,options={'maxfun':cg.neva, 'eps':cg.LBFGSB_eps, 'iprint':cg.LBFGSB_iprint})
+    sol = optimize.minimize(functions_melting.Cost_function_mT,par,args=(par0),method='L-BFGS-B', callback=functions_melting.callbackF, bounds=bnd ,options={'maxfun':cg.neva, 'eps':cg.LBFGSB_eps, 'iprint':cg.LBFGSB_iprint})
     
 elif cg.algo == "nelder-mead"  :
-    sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(par0),method='nelder-mead', bounds=bnd ,options={'maxfev':cg.neva})
+    sol = optimize.minimize(functions_melting.Cost_function_mT,par,args=(par0),method='nelder-mead', callback=functions_melting.callbackF, bounds=bnd ,options={'maxfev':cg.neva})
 
 else :
     print("UNKNOWN ALGORITHM!")
@@ -234,6 +218,15 @@ else :
 
 
 print(sol)
+
+mTs, mTs_w = functions_melting.reweight_melting_temperature(sol.x)
+"""
+for l in range(len(mTs)) :
+    for i in range(len(mTs[l])) :
+        mTs[l][i] = mTs[l][i] - 273.15 #from K to C
+"""
+
+functions_melting.print_final_melting_temperatures(mTs)
 
 #print(sol.x)
 

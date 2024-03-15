@@ -12,6 +12,7 @@ import oxpy
 import continuity_constraints
 import config_multi as cg
 import get_cgdna_pars
+from mpi4py import MPI
 
 #Parse config file (read parameters)
 #Returns False if mandatory parameters are missing 
@@ -33,8 +34,8 @@ def read_config(cfile_name) :
         if(vals[0] == 'SEQ'):
             cg.seq.append(vals[1])
             cg.Njuns.append(len(vals[1])-1)
-            cg.internal_coords.append([])
-            cg.energy_sampled.append([])
+            #cg.internal_coords.append([])
+            #cg.energy_sampled.append([])
             checklist[0] = 1
         
         #read initial and final junctions ids
@@ -125,7 +126,7 @@ def read_config(cfile_name) :
             cg.weight_gs = int(vals[1])
             checklist[15] = 1
             
-        #optimise lersistence lengths 0==true
+        #optimise persistence lengths 0==true
         if(vals[0] == "LPS") :
             if int(vals[1]) != 0 :
                 cg.opti_lp = True                
@@ -312,17 +313,20 @@ def read_config(cfile_name) :
     
     print("ALL IDS:")
     print(cg.ids)
-        
-               
+    
     #generate gs(mu) and covariance. Sampled is initialised to 0, target is read from cgna+ 
-    if checklist[3] == 1:
+    if checklist[3] == 1:        
+        
         for i in range(cg.Nseq) :
             cg.dimension.append((cg.fin_j[i]-cg.in_j[i]+1)*(len(cg.ids)))
         
-            print("DIMENSION Seq "+str(i)+": " + str(cg.dimension[i]))
+        cg.mu_sampled = np.zeros(cg.dimension[cg.seq_id], dtype = float)
+        cg.cov_sampled = np.zeros((cg.dimension[cg.seq_id],cg.dimension[cg.seq_id]), dtype = float)
         
-            cg.mu_sampled.append(np.zeros(cg.dimension[i], dtype = float))
-            cg.cov_sampled.append(np.zeros((cg.dimension[i],cg.dimension[i]), dtype = float))
+        for i in range(cg.Nseq) :
+        
+            print("DIMENSION Seq "+str(i)+": " + str(cg.dimension[i]))       
+
             
             if cg.ave == True and cg.diag == True:
                 
@@ -498,7 +502,7 @@ def read_config(cfile_name) :
 
 #given a junction trajectory (read_oxdna_trajectory_standard_order), store specific internal coordinates in
 #global variable internal_coords
-def store_internal_coord(traj,seq,ids,in_j,fin_j,in_snap,overwrite=True) :
+def store_internal_coord(traj,ids,in_j,fin_j,in_snap,overwrite=True) :
        
     coords = []
     
@@ -542,38 +546,38 @@ def store_internal_coord(traj,seq,ids,in_j,fin_j,in_snap,overwrite=True) :
                     coord.append(traj[i][j].inter_coord.tran[2])
                     
         if overwrite == False :
-            cg.internal_coords[seq].append(coord)
+            cg.internal_coords.append(coord)
         else :
             coords.append(coord)
            
     if overwrite == True :
-        cg.internal_coords[seq] = coords
+        cg.internal_coords = coords
                     
     return
 
 def ave_and_cov_stored() :
       
-    for l in range(cg.Nseq) :
-        Nsnaps = len(cg.internal_coords[l])
-        Ncoords = len(cg.internal_coords[l][0])
-        
-        for i in range(Ncoords) :
-            cg.mu_sampled[l][i] = 0.
-            for j in range(Ncoords) :
-                cg.cov_sampled[l][i][j] = 0.
-        
-        for i in range(Nsnaps) :
-            for j in range(Ncoords) :
-                cg.mu_sampled[l][j] += cg.internal_coords[l][i][j]/Nsnaps
-        
-        for i in range(Nsnaps) :
-            for j in range(Ncoords) :
-                for z in range(j,Ncoords) :
-                    cg.cov_sampled[l][j][z] += (cg.internal_coords[l][i][j] - cg.mu_sampled[l][j])*(cg.internal_coords[l][i][z] - cg.mu_sampled[l][z])/Nsnaps
-        
+
+    Nsnaps = len(cg.internal_coords)
+    Ncoords = len(cg.internal_coords[0])
+    
+    for i in range(Ncoords) :
+        cg.mu_sampled[i] = 0.
         for j in range(Ncoords) :
-            for z in range(j+1,Ncoords) :
-                cg.cov_sampled[l][z][j] = cg.cov_sampled[l][j][z]    
+            cg.cov_sampled[i][j] = 0.
+    
+    for i in range(Nsnaps) :
+        for j in range(Ncoords) :
+            cg.mu_sampled[j] += cg.internal_coords[i][j]/Nsnaps
+    
+    for i in range(Nsnaps) :
+        for j in range(Ncoords) :
+            for z in range(j,Ncoords) :
+                cg.cov_sampled[j][z] += (cg.internal_coords[i][j] - cg.mu_sampled[j])*(cg.internal_coords[i][z] - cg.mu_sampled[z])/Nsnaps
+    
+    for j in range(Ncoords) :
+        for z in range(j+1,Ncoords) :
+            cg.cov_sampled[z][j] = cg.cov_sampled[j][z]    
     
     return
 
@@ -620,14 +624,14 @@ def impose_continuity(par_cname,p_id,pars) :
         auxiliars.append('R0')
         auxiliars.append('RC')
     if f1 :
-        print(vals)
+        #print(vals)
         #check if we are also optimising one of the auxiliary parameters
         for i in range(len(auxiliars)) : 
             found = False
             aux_pname = vals[0]+'_'+auxiliars[i]
             for j in range(2,len(vals)) :
                 aux_pname = aux_pname + '_' + vals[j]
-            print(aux_pname)
+            #print(aux_pname)
             for j in range(len(cg.continuity_par_codenames)) :
                 if aux_pname == cg.continuity_par_codenames[j] :
                     aux_values.append(cg.continuity_par_values[j])
@@ -1074,142 +1078,6 @@ def update_rew_seq_dep_file(par) :
 
 
 
-#Compute mean and covariance with parameters par, by reweighting mean and covariance with parameters par0.
-#The data used to compute ensamble avarages is stored inside the global list data.
-#Data must be sampled with parameters par0 before reweighting.
-#The reweighting procedure is for multivariate normal distributions.
-def reweight_cov_and_mu(par,par0) :
-    
-    print(par)
-    print(par0)
-    
-    COV = []    #list of reweighted covariances for all sequences
-    MU = []     #list of reweighted GS for all sequences
-    AVE_MU = [] #list of reweighted average GS for all sequences
-    
-    #update_rew_seq_dep_file(par)
-    if cg.ave:
-        update_rew_seq_dep_file_ave(par)
-    else:
-        update_rew_seq_dep_file(par)
-    
-    for l in range(cg.Nseq) :
-    
-        cov = np.zeros([cg.dimension[l],cg.dimension[l]], dtype=float)    
-        mu = np.zeros(cg.dimension[l], dtype=float)    
-        
-        #<e^-DH>
-        av_e_to_deltaH = np.zeros(cg.dimension[l], dtype=float) 
-    
-        #data are sampled with par0 before calling reweighting, and stored globally.
-        #This is to avoid sampling multiple times when unnecessary.
-        #Fits well with what we want to do with oxDNA
-        
-        energy1 = []
-        
-        inp = []
-        backend = []
-        obs = []
-        
-        read = False
-        
-        for i in range(cg.Nreps) :
-            
-            nrep = i
-            
-            with oxpy.Context():              
-                
-                #read input script specifying sequence dependent file
-                inp.append(oxpy.InputFile())
-                
-                inp[nrep].init_from_filename("./Seq"+str(l)+"/Rep"+str(i)+"/input2.an")
-                #create analysys backend
-                backend.append(oxpy.analysis.AnalysisBackend(inp[i]))
-            
-                obs.append(backend[nrep].config_info().observables)
-                
-                counts = -1
-                
-                while 1==1 : 
-                    try:
-                        read =  backend[nrep].read_next_configuration()
-                    except:
-                        counts+=1
-                        energy1.append(999)
-                        print("Warning: exception in oxpy energy computation; reweighting. Seq "+str(l)+", Rep "+str(i)+", conf" +str(counts))
-                        continue
-                    if read == False :
-                        break
-                    counts+=1
-                    
-                    if(counts < cg.in_snap) :
-                        continue
-                    a = float(obs[nrep][0].get_output_string(backend[nrep].conf_step).split()[0])
-                    energy1.append((cg.Njuns[l]+1)*20*a)
-                    
-       # print(energy1)    
-            
-        ave_mu = []
-        for i in range(len(cg.ids)) :
-            ave_mu.append(0.)
-        
-        #reweight mean
-        for i in range(len(cg.internal_coords[l])) :
-    
-            if energy1[i] != 999 and cg.energy_sampled[l][i] != 999:
-                deltaH = (energy1[i] - cg.energy_sampled[l][i])
-                
-                #print(deltaH)
-                
-                for j in range(len(cg.internal_coords[l][i])) :
-    
-                        mu[j] += cg.internal_coords[l][i][j]*math.exp(-deltaH)
-                        av_e_to_deltaH[j] += math.exp(-deltaH)
-            
-        
-        for i in range(len(mu)) :
-            mu[i] = mu[i]*(1./av_e_to_deltaH[i])
-            ave_mu[i%len(cg.ids)] += mu[i]/(1.*len(cg.internal_coords[l][0])/(1.*len(cg.ids)))
-        
-        
-        #reweight covariance
-        for i in range(len(cg.internal_coords[l])) :
-            
-            if energy1[i] != 999 and cg.energy_sampled[l][i] != 999:
-                
-                for j in range(len(cg.internal_coords[l][i])) :
-                        for z in range(j,len(cg.internal_coords[l][i])) :
-                            
-                            deltaH =  energy1[i] - cg.energy_sampled[l][i]                    
-                            cov[j,z]+=(cg.internal_coords[l][i][j]-mu[j])*(cg.internal_coords[l][i][z]-mu[z])*math.exp(-deltaH)
-                        
-                        
-        for i in range(len(mu)):
-
-            for j in range(i,len(mu)):   
-                cov[i,j] = cov[i,j]/(1.0*av_e_to_deltaH[i])
-                if i != j:
-                    cov[j,i] = cov[i,j]
-        """
-        print("mu: ")
-        print(mu)
-        
-        print("ave_mu: ")
-        print(ave_mu)
-        
-        print("cov: ")
-        print(cov)
-        
-        """
-    
-        COV.append(cov)
-        MU.append(mu)
-        AVE_MU.append(ave_mu)
-    
-    return COV,MU,AVE_MU
-
-
-
 # Computes stiffness matrix(m) (see Eq. 10 and 12 of Enrico's 2017 paper) from covariance
 def Stiff(cov,m) :
     
@@ -1283,251 +1151,402 @@ def print_matrix(M):
 
 
 #Compute Relative Entropy.
-def Relative_entropy_wRew(par,par0):
+def Relative_entropy_wRew(par,stop,par0):
     
-    #get cov and mu from reweighting sampled trajectory
-    cov,mu,ave_mu = reweight_cov_and_mu(par,par0)
+    stop[0]=cg.comm.bcast(stop[0], root=0)  #this is used to stop all processes (the while loop in main cycle)
+                                            #at the end of optimisation stop[0] is set to 1 and communicated to all processes   
+                                            
+    S = 0.
     
-    print("LENGTHS")
-    print(len(mu[0]))
-    print(len(cg.target_mu[0]))
-    print(len(cov[0][0]))
-    print(len(cg.target_cov[0][0]))
-    
-    #initialise average observables
-    ave_C = 0
-    ave_Ar = 0
-    ave_G = 0
-    ave_lb = 0
-    ave_lt = 0
-    
-    opti_lp = cg.opti_lp # change to true for lp 
-    
-    for z in range(len(cg.ids_inter_rot)) :
-        if cg.ids_inter_rot[z] in cg.ids_cov :
-            continue
-        else :
-            print("Warning: Not all inter rotations are used for covariance optimisation. Cannot tune stiffness matrix (persistence length).")
-            opti_lp = False
-            
-    #compute relative entropy
-    
-    S = 0. 
-    
-
-    for l in range(cg.Nseq) :
-    
-        print("Seq: "+str(l))    
-    
-        #initialise    
-    
-        ave_target_mu = np.zeros(len(cg.ids),dtype=float)
-        ave_target_cov = np.zeros((len(cg.ids),len(cg.ids)),dtype=float)
-        ave_cov = np.zeros((len(cg.ids),len(cg.ids)),dtype=float)
-    
-        
-        for i in range(len(cov[l][0])) :
-            ave_target_mu[i%len(cg.ids)] += cg.target_mu[l][i]/(1.*len(cg.internal_coords[l][0])/(1.*len(cg.ids)))
-            if cg.diag == True:
-                ave_cov[i%len(cg.ids),i%len(cg.ids)] += cov[l][i,i]/(1.*len(cg.internal_coords[l][0])/(1.*len(cg.ids)))
-                ave_target_cov[i%len(cg.ids),i%len(cg.ids)] += cg.target_cov[l][i,i]/(1.*len(cg.internal_coords[l][0])/(1.*len(cg.ids)))
-        
-        #GS
-        
-        delta_mu = np.zeros(len(mu), dtype = float)
-        ave_delta_mu = np.zeros(len(cg.ids), dtype = float)
-        
-        if cg.ave == True:
-            
-            ave_delta_mu = ave_mu[l] - ave_target_mu
-            
-            for i in range (len(ave_delta_mu)) :
-                if cg.ids[i] in cg.ids_gs:
-                    continue
-                else:
-                    ave_delta_mu[i] = 0       
-        
-            S += 0.5*(np.dot(np.dot(ave_delta_mu.transpose(),np.linalg.inv(ave_target_cov)),ave_delta_mu))*cg.weight_gs
-        
-        
-        else :
-            
-            delta_mu = mu[l] - cg.target_mu[l]
-            
-            for i in range (len(delta_mu)) :
-                if cg.ids[i%len(cg.ids)] in cg.ids_gs:
-                    continue
-                else:
-                    delta_mu[i] = 0       
-        
-            S += 0.5*(np.dot(np.dot(delta_mu.transpose(),np.linalg.inv(cg.target_cov[l])),delta_mu))*cg.weight_gs
-            
-        print("SEQUEUCE "+str(l))
-        print("###############")
-        print("Complete rew mu: ")
-        print(mu[l]) 
-        
-        print("Target mu: ")
-        print(cg.target_mu[l])
-        
-        print("Rew ave_mu: ")
-        print(ave_mu[l])
-        
-        print("Complete rew cov: ")
-        print(cov[l])    
-        
-        print("Ave rew cov: ")
-        print(ave_cov)    
-        
-        #COVARIANCE + STIFFNESS MATRIX (LONG RANGE)
-        
-        if len(cg.ids_cov) > 0 :        
-            
-
-            if cg.ave == False:            
-                #add symmetric term of the gs part of S. If we are not adding the covariance part, the reweighted covariance does not appear in S, and we are optimising esclusively the gs
-                invc = np.linalg.inv(cov[l])
-                for i in range(len(invc)):
-                    for j in range(len(invc)):
-                        if i!=j :
-                            invc[i,j] = 0
-                S += 0.5*(np.dot(np.dot(delta_mu.transpose(),invc),delta_mu))*cg.weight_gs      
-                
-            else:
-                S += 0.5*(np.dot(np.dot(ave_delta_mu.transpose(),np.linalg.inv(ave_cov)),ave_delta_mu))*cg.weight_gs
-
-                
-            #reduce covariance for stiff part: remove from the covariance all coordinates we want to exclude from cov optimisation
-            
-            red_n = (cg.fin_j[l]-cg.in_j[l]+1)*(len(cg.ids)-len(cg.ids_cov))
-            
-            reduced_cov = np.zeros((cg.dimension[l]-red_n,cg.dimension[l]-red_n),dtype=float)
-            reduced_target_cov = np.zeros((cg.dimension[l]-red_n,cg.dimension[l]-red_n),dtype=float)
-            
-            ave_reduced_cov = np.zeros((len(cg.ids_cov),len(cg.ids_cov)),dtype=float)
-            ave_reduced_target_cov = np.zeros((len(cg.ids_cov),len(cg.ids_cov)),dtype=float)
-            
-            nrow=-1
-            
-            for i in range(cg.dimension[l]):
-                if cg.ids[i%len(cg.ids)]  in cg.ids_cov:
-        
-                    nrow+=1
-                    ncol=-1
-                    for j in range(cg.dimension[l]):
-                        if cg.ids[j%len(cg.ids)]  in cg.ids_cov:
-                            ncol+=1
-                            reduced_cov[nrow,ncol] = cov[l][i,j]
-                            reduced_target_cov[nrow,ncol] = cg.target_cov[l][i,j]
-            nrow=-1          
-            for i in range(len(cg.ids)) :
-                if cg.ids[i] in cg.ids_cov :
-                    nrow+=1
-                    ncol=-1
-                    for j in range(len(cg.ids)):
-                        if cg.ids[j]  in cg.ids_cov:
-                            ncol+=1
-                            ave_reduced_cov[nrow,ncol] = ave_cov[i,j]
-                            ave_reduced_target_cov[nrow,ncol] = ave_target_cov[i,j]
-                            
-                            
-                            
-            #COMPUTE PERSISTENCE LENGTHS AND STIFFNESS MODULI        
-            ###WORKS AS INTENDED ONLY IF IDS_COV = 6,7,8 (i.e. inter rotations)
-            ###TO EXTEND THIS WE HAVE TO REDUCE THE COVARIANCE SO THAT WE HAVE ONLY THE INTER ROTATIONS    
-            
-            if opti_lp :
-                
-                
-                if(cg.Njuns[l] != cg.Njuns[0]) :
-                    print("Warning: not all sequences are of the same length.") 
-                    print("m in the computation of asymptotic stffness is not the same for all sequences (Njuns - 4)")
-                
-                M = Stiff(reduced_cov,cg.Njuns[l]-cg.inj-cg.jfe -3)
-                lb,lt = lps(M)
-                
-                C = M[2,2]
-                Ar = M[1,1]
-                G = M[1,2]
-                
-                ave_C += C
-                ave_Ar += Ar
-                ave_G += G
-                ave_lb += lb
-                ave_lt += lt
-                
-                
-                print("Long range (m="+str(cg.Njuns[l]-cg.inj-cg.jfe -3)+"):")
-                print("lb: "+str(lb))     
-                print("lt: "+str(lt))
-                
-                print("C: "+str(C))     
-                print("Ar: "+str(Ar))
+    if stop[0] == 0 :
                     
+        if cg.rank == 0:
+        
+            print(par)
+            print(par0)
             
-            #diagonal cov
+            #update parameters file (only once, at rank 0)
+            if cg.ave:
+                update_rew_seq_dep_file_ave(par)
+            else:
+                update_rew_seq_dep_file(par)
+                
+        #bcast par from rank 0 (where optimisation is performed) to other cpus
+        par=cg.comm.bcast(par, root=0)
+        
+        
+        
+        ######################
+        #### REWEIGHT GS AND COV
+        ######################
+        
+        l = cg.seq_id
+        rep = cg.rep_id     
+        
+
+        #compute new energy (with par)         
+        energy1 = []
+                 
+        read = False
+
+        with oxpy.Context():              
+             
+             #read input script specifying sequence dependent file
+             inp = oxpy.InputFile()
+             
+             inp.init_from_filename("./Seq"+str(l)+"/Rep"+str(rep)+"/input2.an")
+             #create analysys backend
+             backend = oxpy.analysis.AnalysisBackend(inp)
+         
+             obs = backend.config_info().observables
+             
+             counts = -1
+             
+             while 1==1 : 
+                 try:
+                     read =  backend.read_next_configuration()
+                 except:
+                     counts+=1
+                     energy1.append(999)
+                     print("Warning: exception in oxpy energy computation; reweighting. Seq "+str(l)+", Rep "+str(rep)+", conf" +str(counts))
+                     continue
+                 if read == False :
+                     break
+                 counts+=1
+                 
+                 if(counts < cg.in_snap) :
+                     continue
+                 a = float(obs[0].get_output_string(backend.conf_step).split()[0])
+                 energy1.append((cg.Njuns[l]+1)*20*a)
+                     
+
+        #reweight for rep rep and seq l
+        
+        cov = np.zeros([cg.dimension[l],cg.dimension[l]], dtype=float)    
+        mu = np.zeros(cg.dimension[l], dtype=float)    
+         
+        #<e^-DH>
+        av_e_to_deltaH = np.zeros(cg.dimension[l], dtype=float) 
+         
+        #reweight mean for seq l rep rep
+        for i in range(len(cg.internal_coords)) :
+     
+             if energy1[i] != 999 and cg.energy_sampled[i] != 999:
+                 deltaH = (energy1[i] - cg.energy_sampled[i])
+                 
+                 #print(deltaH)
+                 
+                 for j in range(len(cg.internal_coords[i])) :
+     
+                         mu[j] += cg.internal_coords[i][j]*math.exp(-deltaH)
+                         av_e_to_deltaH[j] += math.exp(-deltaH)
+             
+        #reduce gs to seq leader and compute rew gs for seq l (i.e. sum over reps)
+        
+        mu = cg.comm_seq.reduce(mu,op=MPI.SUM, root=0)
+        av_e_to_deltaH = cg.comm_seq.reduce(av_e_to_deltaH,op=MPI.SUM, root=0)
+        
+        if cg.rank_seq == 0: #same as cg.rank in cg.leaders
+        
+
+            for i in range(len(mu)) :
+                 mu[i] = mu[i]*(1./av_e_to_deltaH[i])
+        
+        mu = cg.comm_seq.bcast(mu, root=0)   #mu, for each sequence, is now the average over all reps
+        av_e_to_deltaH = cg.comm_seq.bcast(av_e_to_deltaH, root=0)   #same as mu: sum over all reps
+        
+        #reweight covariance
+        for i in range(len(cg.internal_coords)) :
+             
+             if energy1[i] != 999 and cg.energy_sampled[i] != 999:
+                 
+                 for j in range(len(cg.internal_coords[i])) :
+                         for z in range(j,len(cg.internal_coords[i])) :
+                             
+                             deltaH =  energy1[i] - cg.energy_sampled[i]                    
+                             cov[j,z]+=(cg.internal_coords[i][j]-mu[j])*(cg.internal_coords[i][z]-mu[z])*math.exp(-deltaH)
+        
+        #reduce cov to seq leader
+        
+        cov = cg.comm_seq.reduce(cov,op=MPI.SUM, root=0)
+          
+        if cg.rank_seq == 0:         
+            for i in range(len(mu)):
+     
+                 for j in range(i,len(mu)):   
+                     cov[i,j] = cov[i,j]/(1.0*av_e_to_deltaH[i])
+                     if i != j:
+                         cov[j,i] = cov[i,j]
+
+        ####################
+        ### COMPUTE RELAIVE ENTROPY
+        ###################
+
+        #we use seq leaders for this (i.e. we are done with summing over reps of same sequence)        
+        
+        if cg.rank_seq == 0:
+        
+            """
+            print("LENGTHS")
+            print(len(mu[0]))
+            print(len(cg.target_mu[0]))
+            print(len(cov[0][0]))
+            print(len(cg.target_cov[0][0]))
+            """
             
-            for i in range(len(ave_reduced_cov)):
-                for j in range(len(ave_reduced_cov)):
-                    if i != j:
-                        ave_reduced_cov[i,j] = 0.
-                        
-            for i in range(len(reduced_cov)):
-                for j in range(len(reduced_cov)):
-                    if i != j:
-                        reduced_cov[i,j] = 0.
+            
+            #initialise average observables
+            ave_C = 0
+            ave_Ar = 0
+            ave_G = 0
+            ave_lb = 0
+            ave_lt = 0
+            
+            opti_lp = cg.opti_lp # change to true for lp 
+            
+            for z in range(len(cg.ids_inter_rot)) :
+                if cg.ids_inter_rot[z] in cg.ids_cov :
+                    continue
+                else :
+                    print("Warning: Not all inter rotations are used for covariance optimisation. Cannot tune stiffness matrix (persistence length).")
+                    opti_lp = False
+                    
+            #compute relative entropy
+            
+            S = 0. 
+            
+        
+            
+            print("Seq: "+str(l))    
+        
+            #initialise    
+        
+            ave_target_mu = np.zeros(len(cg.ids),dtype=float)
+            ave_target_cov = np.zeros((len(cg.ids),len(cg.ids)),dtype=float)
+            ave_cov = np.zeros((len(cg.ids),len(cg.ids)),dtype=float)
+        
+            ave_mu = []
+        
+            for i in range(len(cg.ids)) :
+                 ave_mu.append(0.)
+                 
+            for i in range(len(mu)) :
+                 ave_mu[i%len(cg.ids)] += mu[i]/(1.*len(cg.internal_coords[0])/(1.*len(cg.ids)))
+            
+            for i in range(len(cov[0])) :
+                ave_target_mu[i%len(cg.ids)] += cg.target_mu[l][i]/(1.*len(cg.internal_coords[0])/(1.*len(cg.ids)))
+                if cg.diag == True:
+                    ave_cov[i%len(cg.ids),i%len(cg.ids)] += cov[i,i]/(1.*len(cg.internal_coords[0])/(1.*len(cg.ids)))
+                    ave_target_cov[i%len(cg.ids),i%len(cg.ids)] += cg.target_cov[l][i,i]/(1.*len(cg.internal_coords[0])/(1.*len(cg.ids)))
+            
+            #GS
+            
+            delta_mu = np.zeros(len(mu), dtype = float)
+            ave_delta_mu = np.zeros(len(cg.ids), dtype = float)
             
             if cg.ave == True:
                 
-                #ave_reduced_target_cov[1,1]*=1.1 #rescale Ar for tuning bending persistence length
+                ave_delta_mu = ave_mu - ave_target_mu
                 
-                S += 0.5*(np.dot(np.linalg.inv(ave_reduced_cov),ave_reduced_target_cov).trace()+np.dot(np.linalg.inv(ave_reduced_target_cov),ave_reduced_cov).trace()-2*len(ave_reduced_cov))
-    
-            else:
-                S += 0.5*(np.dot(np.linalg.inv(reduced_cov),reduced_target_cov).trace()+np.dot(np.linalg.inv(reduced_target_cov),reduced_cov).trace()-2*len(reduced_cov))
-               
-            print("COV-reduced rew cov: ")
-            #print_matrix(reduced_cov)
-            print(reduced_cov)  
-            print("COV-reduced rew ave_cov: ")
-            print(ave_reduced_cov) 
+                for i in range (len(ave_delta_mu)) :
+                    if cg.ids[i] in cg.ids_gs:
+                        continue
+                    else:
+                        ave_delta_mu[i] = 0       
             
-    if opti_lp and len(cg.ids_cov) > 0 :
-        #this term is a weighted sum of squared distances (l/lt+lt/l-2 = (l-lt)**2/(lt*l)). The weigth is as in the stiff term of the likelihood (see below).
-        #The complete cost function is a hybrid: weighted sum of likelihoods for each sequence + squared distance for the average persistence lengths.
-        #S += 0.5*(lb/cg.target_lb + cg.target_lb/lb + lt/cg.target_lt + cg.target_lt/lt - 4)
-        
-        ave_C /= cg.Nseq
-        ave_Ar /= cg.Nseq
-        ave_G /= cg.Nseq
-        ave_lb /= cg.Nseq
-        ave_lt /= cg.Nseq
-        
-        
-        print("Average long range stiffness:")
-        print("lb: "+str(ave_lb))     
-        print("lt: "+str(ave_lt))
-        
-        print("C: "+str(ave_C))     
-        print("Ar: "+str(ave_Ar))
-        
-        scaling_factor = cg.Nseq
-        
-        """
-        if cg.ave == False:
-            for l in range(cg.Nseq) :
-                scaling_factor = scaling_factor* (cg.Njuns[l]-cg.inj-cg.jfe -3)
-        """
-        
-        S += 0.5*(ave_C/cg.target_C + cg.target_C/ave_C + ave_Ar/cg.target_Ar + cg.target_Ar/ave_Ar - 4)*scaling_factor
-
+                S += 0.5*(np.dot(np.dot(ave_delta_mu.transpose(),np.linalg.inv(ave_target_cov)),ave_delta_mu))*cg.weight_gs
+            
+            
+            else :
+                
+                delta_mu = mu - cg.target_mu[l]
+                
+                for i in range (len(delta_mu)) :
+                    if cg.ids[i%len(cg.ids)] in cg.ids_gs:
+                        continue
+                    else:
+                        delta_mu[i] = 0       
+            
+                S += 0.5*(np.dot(np.dot(delta_mu.transpose(),np.linalg.inv(cg.target_cov[l])),delta_mu))*cg.weight_gs
+                
+            print("SEQUEUCE "+str(l))
+            print("###############")
+            print("Complete rew mu: ")
+            print(mu) 
+            
+            print("Target mu: ")
+            print(cg.target_mu[l])
+            
+            print("Rew ave_mu: ")
+            print(ave_mu)
+            
+            print("Complete rew cov: ")
+            print(cov)    
+            
+            print("Ave rew cov: ")
+            print(ave_cov)    
+            
+            #COVARIANCE + STIFFNESS MATRIX (LONG RANGE)
+            
+            if len(cg.ids_cov) > 0 :        
+                
     
-    print("S: "+str(S))
+                if cg.ave == False:            
+                    #add symmetric term of the gs part of S. If we are not adding the covariance part, the reweighted covariance does not appear in S, and we are optimising esclusively the gs
+                    invc = np.linalg.inv(cov)
+                    for i in range(len(invc)):
+                        for j in range(len(invc)):
+                            if i!=j :
+                                invc[i,j] = 0
+                    S += 0.5*(np.dot(np.dot(delta_mu.transpose(),invc),delta_mu))*cg.weight_gs      
+                    
+                else:
+                    S += 0.5*(np.dot(np.dot(ave_delta_mu.transpose(),np.linalg.inv(ave_cov)),ave_delta_mu))*cg.weight_gs
     
+                    
+                #reduce covariance for stiff part: remove from the covariance all coordinates we want to exclude from cov optimisation
+                
+                red_n = (cg.fin_j[l]-cg.in_j[l]+1)*(len(cg.ids)-len(cg.ids_cov))
+                
+                reduced_cov = np.zeros((cg.dimension[l]-red_n,cg.dimension[l]-red_n),dtype=float)
+                reduced_target_cov = np.zeros((cg.dimension[l]-red_n,cg.dimension[l]-red_n),dtype=float)
+                
+                ave_reduced_cov = np.zeros((len(cg.ids_cov),len(cg.ids_cov)),dtype=float)
+                ave_reduced_target_cov = np.zeros((len(cg.ids_cov),len(cg.ids_cov)),dtype=float)
+                
+                nrow=-1
+                
+                for i in range(cg.dimension[l]):
+                    if cg.ids[i%len(cg.ids)]  in cg.ids_cov:
+            
+                        nrow+=1
+                        ncol=-1
+                        for j in range(cg.dimension[l]):
+                            if cg.ids[j%len(cg.ids)]  in cg.ids_cov:
+                                ncol+=1
+                                reduced_cov[nrow,ncol] = cov[i,j]
+                                reduced_target_cov[nrow,ncol] = cg.target_cov[l][i,j]
+                nrow=-1          
+                for i in range(len(cg.ids)) :
+                    if cg.ids[i] in cg.ids_cov :
+                        nrow+=1
+                        ncol=-1
+                        for j in range(len(cg.ids)):
+                            if cg.ids[j]  in cg.ids_cov:
+                                ncol+=1
+                                ave_reduced_cov[nrow,ncol] = ave_cov[i,j]
+                                ave_reduced_target_cov[nrow,ncol] = ave_target_cov[i,j]
+                                
+                                
+                                
+                #COMPUTE PERSISTENCE LENGTHS AND STIFFNESS MODULI        
+                ###WORKS AS INTENDED ONLY IF IDS_COV = 6,7,8 (i.e. inter rotations)
+                ###TO EXTEND THIS WE HAVE TO REDUCE THE COVARIANCE SO THAT WE HAVE ONLY THE INTER ROTATIONS    
+                
+                if opti_lp :                    
+                    
+                    if(cg.Njuns[l] != cg.Njuns[0]) :
+                        print("Warning: not all sequences are of the same length.") 
+                        print("m in the computation of asymptotic stffness is not the same for all sequences (Njuns - 4)")
+                    
+                    
+                    M = Stiff(reduced_cov,cg.Njuns[l]-cg.inj-cg.jfe -3)                                
+                    
+                    lb,lt = lps(M)
+                    
+                    C = M[2,2]
+                    Ar = M[1,1]
+                    G = M[1,2]
+                    
+                    ave_C = C
+                    ave_Ar = Ar
+                    ave_G = G
+                    ave_lb = lb
+                    ave_lt = lt
+                    
+                    
+                    print("Long range (m="+str(cg.Njuns[l]-cg.inj-cg.jfe -3)+"):")
+                    print("lb: "+str(lb))     
+                    print("lt: "+str(lt))
+                    
+                    print("C: "+str(C))     
+                    print("Ar: "+str(Ar))
+                        
+                
+                #diagonal cov
+                
+                for i in range(len(ave_reduced_cov)):
+                    for j in range(len(ave_reduced_cov)):
+                        if i != j:
+                            ave_reduced_cov[i,j] = 0.
+                            
+                for i in range(len(reduced_cov)):
+                    for j in range(len(reduced_cov)):
+                        if i != j:
+                            reduced_cov[i,j] = 0.
+                
+                if cg.ave == True:
+                    
+                    #ave_reduced_target_cov[1,1]*=1.1 #rescale Ar for tuning bending persistence length
+                    
+                    S += 0.5*(np.dot(np.linalg.inv(ave_reduced_cov),ave_reduced_target_cov).trace()+np.dot(np.linalg.inv(ave_reduced_target_cov),ave_reduced_cov).trace()-2*len(ave_reduced_cov))
+        
+                else:
+                    S += 0.5*(np.dot(np.linalg.inv(reduced_cov),reduced_target_cov).trace()+np.dot(np.linalg.inv(reduced_target_cov),reduced_cov).trace()-2*len(reduced_cov))
+                   
+                print("COV-reduced rew cov: ")
+                #print_matrix(reduced_cov)
+                print(reduced_cov)  
+                print("COV-reduced rew ave_cov: ")
+                print(ave_reduced_cov) 
+                
+            if opti_lp and len(cg.ids_cov) > 0 :
+                #this term is a weighted sum of squared distances (l/lt+lt/l-2 = (l-lt)**2/(lt*l)). The weigth is as in the stiff term of the likelihood (see below).
+                #The complete cost function is a hybrid: weighted sum of likelihoods for each sequence + squared distance for the average persistence lengths.
+                #S += 0.5*(lb/cg.target_lb + cg.target_lb/lb + lt/cg.target_lt + cg.target_lt/lt - 4)
+                
+                
+                #reduce moduli to rank 0 and compute average 
+                
+                ave_C = cg.comm_leaders.reduce(ave_C,op=MPI.SUM, root=0)
+                ave_Ar = cg.comm_leaders.reduce(ave_Ar,op=MPI.SUM, root=0)
+                ave_G = cg.comm_leaders.reduce(ave_G,op=MPI.SUM, root=0)
+                ave_lb = cg.comm_leaders.reduce(ave_lb,op=MPI.SUM, root=0)
+                ave_lt = cg.comm_leaders.reduce(ave_lt,op=MPI.SUM, root=0)
+                
+                ave_C /= cg.Nseq
+                ave_Ar /= cg.Nseq
+                ave_G /= cg.Nseq                
+                ave_lb /= cg.Nseq
+                ave_lt /= cg.Nseq
+                
+                
+                print("Average long range stiffness:")
+                print("lb: "+str(ave_lb))     
+                print("lt: "+str(ave_lt))
+                
+                print("C: "+str(ave_C))     
+                print("Ar: "+str(ave_Ar))
+                
+                scaling_factor = cg.Nseq
+                
+                """
+                if cg.ave == False:
+                    for l in range(cg.Nseq) :
+                        scaling_factor = scaling_factor* (cg.Njuns[l]-cg.inj-cg.jfe -3)
+                """
+                
+                S += 0.5*(ave_C/cg.target_C + cg.target_C/ave_C + ave_Ar/cg.target_Ar + cg.target_Ar/ave_Ar - 4)*scaling_factor    
+        
     
-    #Whit Nelder-Mead, sometimes the reweighting does not work because the change in parameters is too large.
-    #if the resulting relative entropy is negative, this can be a problem.
-    #if S < 0 :
-    #    S = 1000
+            #finally, reduce S to rank 0, which runs the optimisation        
+            
+            
+            print("seq, rep: " + str(cg.seq_id) + ", " + str(cg.rep_id) + ". S: " + str(S))
+            
+            S = cg.comm_leaders.reduce(S,op=MPI.SUM, root=0)
+            
+            if cg.rank == 0 :                
+                print("tot S: "+str(S))
     
     return S

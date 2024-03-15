@@ -6,6 +6,8 @@ Created on Mon Nov 20 12:11:39 2023
 @author: yqb22156
 """
 
+from mpi4py import MPI
+
 bases = ['A','C','G','T']
 
 Nseq = 0 #number of sequences
@@ -79,6 +81,20 @@ LBFGSB_iprint = 1
 Niter = 0
 
 
+#MPI
+
+comm = MPI.COMM_WORLD
+comm_seq = None
+leaders = []
+comm_leaders = None
+rank = 0
+rank_seq = 0
+rank_leaders = -1
+seq_id = 0
+rep_id = 0
+
+update_rews = False
+
 ############# FOR MELTING TEMPERATURE ############
 
 
@@ -94,7 +110,7 @@ Ct = [] #total single strand concentration (in M (mol/L)) -- for a single double
 Cs = [] #salt concentartion (in M)
 
 target_mTs = []
-current_mTs = []
+current_mT = 0.
 
 
 simTs = []   #simulated temperature

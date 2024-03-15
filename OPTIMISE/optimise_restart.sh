@@ -40,10 +40,10 @@ echo "Optimisation program path:"
 echo $opti_path
 box_size=$(awk '$1 == "BOX_SIZE" {print $2}' $config)
 if [[ "$box_size" == "" ]]; then
-	echo "Box size not specified. Setting it to 50. Usage:"
+	echo "Box size not specified. Setting it to 20. Usage:"
 	echo "In config_file: "
 	echo "BOX_SIZE box_size"
-	box_size=50
+	box_size=20
 fi
 echo "Sim box size:"
 echo $box_size
