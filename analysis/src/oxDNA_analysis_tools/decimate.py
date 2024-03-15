@@ -3,7 +3,7 @@ import time
 import os
 from collections import namedtuple
 from copy import deepcopy
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from typing import Union
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs, conf_to_str
@@ -52,7 +52,7 @@ def decimate(traj:str, outfile:str, ncpus:int=1, start:int=0, stop:Union[int,Non
 
         oat_multiprocesser(my_di.nconfs, ncpus, compute, callback, ctx)
 
-    print(f"INFO: Wrote decimated trajectory to {outfile}", file=stderr)
+    log(f"Wrote decimated trajectory to {outfile}")
     return
 
 def cli_parser(prog="decimate.py"):
@@ -63,6 +63,7 @@ def cli_parser(prog="decimate.py"):
     parser.add_argument('-s', dest='start', default=0, type=int, help='First conf to write to the output file.')
     parser.add_argument('-e', dest='stop', default=None, type=int, help='Process up to this conf (exclusive).  Accepts negative indexes.')
     parser.add_argument('-d', dest='stride', default=10, type=int, help='Write out every this many confs (default=10)')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -70,6 +71,7 @@ def main():
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
     check(["python"])
 

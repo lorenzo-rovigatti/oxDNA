@@ -1,6 +1,6 @@
 import os
 import argparse
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from copy import deepcopy
 from typing import List
@@ -31,7 +31,7 @@ def write_topologies(system:System, indexes:List[List[int]], outfiles:List[str],
         new_sys = deepcopy(system)
         for s in new_sys:
             if s[0].n3 != None and s[0].id != s[-1].n5:
-                print(f"WARNING: Strand {s.id} is circular. Subsetting the trajectory will cut circular strands", file=stderr)
+                log(f"Strand {s.id} is circular. Subsetting the trajectory will cut circular strands", level='warning')
             s.monomers = [n for n in s if n.id in idx]
             
         new_sys.strands = [s for s in new_sys if len(s.monomers) > 0]
@@ -72,8 +72,8 @@ def subset(traj_info:TrajInfo, top_info:TopInfo, system:System, indexes:List[Lis
     # Write topology files
     top_names = write_topologies(system, indexes, outfiles, system.strands[0].is_old())
 
-    print("INFO: Wrote trajectories: {}".format(dat_names), file=stderr)
-    print("INFO: Wrote topologies: {}".format(top_names), file=stderr)
+    log("Wrote trajectories: {}".format(dat_names))
+    log("Wrote topologies: {}".format(top_names))
 
 def cli_parser(prog="subset_trajectory.py"):
     #command line arguments
@@ -83,12 +83,14 @@ def cli_parser(prog="subset_trajectory.py"):
     parser.add_argument('-i', '--index', metavar=('index', 'outfile'), action='append', nargs=2, help='A space separated index file and the associated output file name.  This can be called multiple times')
     parser.add_argument('-p', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-f', action='store_true', dest='old_format', help="Use the old 3'-5' topology format?")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return(parser)
 
 def main():
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     top_file  = args.topology
     traj_file = args.trajectory
     index_files = [i[0] for i in args.index]

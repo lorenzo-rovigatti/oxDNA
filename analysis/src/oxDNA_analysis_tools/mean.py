@@ -3,7 +3,7 @@ import os
 import time
 from typing import List, Union
 import numpy as np
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from random import randrange
 from oxDNA_analysis_tools.align import svd_align
@@ -113,6 +113,7 @@ def cli_parser(prog="mean.py"):
     parser.add_argument('-d', '--deviations', metavar='deviation_file', nargs=1, help='Immediately run oat deviations from the output')
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Compute mean structure of a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-a', '--align', metavar='alignment_configuration', nargs=1, help='The id of the configuration to align to, otherwise random')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 # All scripts in oat must have a main method with no arguments to work with the command line interface.
@@ -120,6 +121,7 @@ def main():
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     # Verify that dependencies are installed and a good version
     from oxDNA_analysis_tools.config import check
     check(["python", "numpy"])
@@ -165,7 +167,7 @@ def main():
         outfile = args.output[0]
     else:
         outfile = "mean.dat"
-        print("INFO: No outfile name provided, defaulting to \"{}\"".format(outfile), file=stderr)
+        log("No outfile name provided, defaulting to \"{}\"".format(outfile))
 
     # Create the mean configuration from the numpy arrays containing the positions and orientations
     # And write it to the outfile
@@ -176,7 +178,7 @@ def main():
     if args.deviations:
         from oxDNA_analysis_tools import deviations
         dev_file = args.deviations[0]
-        print("INFO: Launching compute_deviations", file=stderr)
+        log("Launching compute_deviations")
 
         RMSDs, RMSFs = deviations.deviations(traj_info, top_info, mean_conf, indexes, ncpus)
         deviations.output(RMSDs, RMSFs, dev_file, dev_file.split('.')[0]+"_rmsd.png", dev_file.split('.')[0]+"_rmsd_data.json")

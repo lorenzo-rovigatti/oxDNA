@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import List
 import numpy as np
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, inbox, write_conf
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 from oxDNA_analysis_tools.align import svd_align
@@ -53,12 +53,14 @@ def cli_parser(prog="superimpose.py"):
     parser.add_argument('victims', type=str, nargs='+', help="The configurations to superimpose on the reference")
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Align to only a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-o', metavar='output_names', dest='output_names', type=str, nargs='+', help='The names of the output files (defaults to inputname_a.dat)')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(os.path.basename(__file__))    
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     #run system checks
     from oxDNA_analysis_tools.config import check
     check(["python", "numpy"])
@@ -95,7 +97,7 @@ def main():
 
     for conf, out in zip(aligned, outputs):
         write_conf(out, conf, include_vel=ref_info.incl_v)
-        print("INFO: Wrote file {}".format(out), file=stderr)
+        log("Wrote file {}".format(out))
 
 if __name__ == '__main__':
     main()

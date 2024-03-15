@@ -12,6 +12,7 @@ from io import TextIOWrapper
 from oxDNA_analysis_tools.UTILS.pdb import Atom, PDB_Nucleotide, PDB_AminoAcid, FROM_OXDNA_TO_ANGSTROM
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, strand_describe, inbox
 from oxDNA_analysis_tools.UTILS.data_structures import Strand, Configuration
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import oxDNA_analysis_tools.UTILS.utils as utils
 
 DD12_PDB_PATH = "./UTILS/dd12_na.pdb"
@@ -253,6 +254,7 @@ def main():
     args = parser.parse_args()
 
     # Parse positional arguments
+    logger_settings.set_quiet(args.quiet)
     top_file = args.topology
     conf_file = args.configuration
     direction = args.direction
@@ -312,7 +314,7 @@ def main():
     # Process optional conditionals
     correct_for_large_boxes = False
     if np.any(box_angstrom[box_angstrom > 999]):
-        print("INFO: At least one of the box sizes is larger than 999: all the atoms which are outside of the box will be brought back through periodic boundary conditions", file=sys.stderr)
+        log("At least one of the box sizes is larger than 999: all the atoms which are outside of the box will be brought back through periodic boundary conditions")
         correct_for_large_boxes = True
     
     if one_file_per_strand:
@@ -335,7 +337,7 @@ def main():
             if 'U' in sequence or 'u' in sequence: #Turns out, this is a bad assumption but its all we got.
                 isDNA = False
 
-            print("\rINFO: Converting strand {}".format(strand.id), file=sys.stderr)
+            log("Converting strand {}".format(strand.id), end='\r')
 
             # Handle protein
             if strand.id < 0 and protein_pdb_files:
@@ -421,7 +423,7 @@ def main():
             # Chain ID can be any alphanumeric character.  Convention is A-Z, a-z, 0-9
             if one_file_per_strand:
                 out.close()
-                print("INFO: Wrote strand {}'s data to {}".format (strand.id, out_name))
+                log("Wrote strand {}'s data to {}".format (strand.id, out_name))
                 chain_id = 'A'
                 if strand != system.strands[-1]:
                     out_name = out_basename + "_{}.pdb".format(strand.id, )
@@ -433,12 +435,13 @@ def main():
                 elif chain_id == chr(ord('z')+1):
                     chain_id = '1'
                 elif chain_id == chr(ord('0')+1):
-                    print("WARNING: More than 62 chains identified, looping chain identifier...", file=sys.stderr)
+                    log("More than 62 chains identified, looping chain identifier...", level='warning')
                     chain_id = 'A'
+        print()
 
-    print("INFO: Wrote data to '{}'".format(out_name), file=sys.stderr)
+    log("Wrote data to '{}'".format(out_name))
         
-    print("\nINFO: DONE", file=sys.stderr)
+    log("DONE")
 
 if __name__ == '__main__':
     main()

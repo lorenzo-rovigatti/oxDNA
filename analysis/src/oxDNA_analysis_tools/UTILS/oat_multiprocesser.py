@@ -1,4 +1,4 @@
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from multiprocessing import Pool
 from typing import Callable, NamedTuple
 
@@ -28,18 +28,19 @@ def oat_multiprocesser(nconfs:int, ncpus:int, function:Callable, callback:Callab
     nchunks = int(nconfs / chunk_size +
                          (1 if nconfs % chunk_size else 0))
 
-    print(f"INFO: Processing in blocks of {chunk_size} configurations", file=stderr)
-    print(f"INFO: You can modify this number by running oat config -n <number>, which will be persistent between analyses.", file=stderr)
+    log(f"Processing in blocks of {chunk_size} configurations")
+    log(f"You can modify this number by running oat config -n <number>, which will be persistent between analyses.")
 
     ## Distribute jobs to the worker processes
-    print(f"Starting up {ncpus} processes for {nchunks} chunks")
+    log(f"Starting up {ncpus} processes for {nchunks} chunks")
     responses = [pool.apply_async(function,(ctx,chunk_size,i)) for i in range(nchunks)]
-    print("All spawned, waiting for results")
+    log("All spawned, waiting for results")
 
     pool.close()
 
     for i,r in enumerate(responses):
         callback(i, r.get())
         print(f"finished {i+1}/{nchunks}",end="\r")
+    print()
 
     pool.join()

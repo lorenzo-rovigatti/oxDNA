@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 import argparse
 from os import path
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from dataclasses import dataclass
 from collections import namedtuple
 import oxpy
@@ -107,7 +107,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = hb_list \n } \n }'
 
         if (not inp["use_average_seq"] or inp.get_bool("use_average_seq")) and "RNA" in inp["interaction_type"]:
-            print("WARNING: Sequence dependence not set for RNA model, wobble base pairs will be ignored", file=stderr)
+            log("Sequence dependence not set for RNA model, wobble base pairs will be ignored", level="warning")
 
         backend = oxpy.analysis.AnalysisBackend(inp)
         i = 0
@@ -165,12 +165,14 @@ def cli_parser(prog="duplex_finder.py"):
     parser.add_argument('trajectory', type=str, nargs=1, help="The trajectory file from the simulation")
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-o', '--output', metavar='output_file',  type=str, nargs=1, help='name of the file to write the angle list to')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
     check(["python", "numpy"])
 
@@ -183,7 +185,7 @@ def main():
         outfile = args.output[0]
     else: 
         outfile = "angles.txt"
-        print("INFO: No outfile name provided, defaulting to \"{}\"".format(outfile), file=stderr)
+        log("No outfile name provided, defaulting to \"{}\"".format(outfile))
 
     if args.parallel:
         ncpus = args.parallel[0]
@@ -197,7 +199,7 @@ def main():
     duplexes_at_step = duplex_finder(traj_info, top_info, inputfile, monomers, ncpus)
 
     #print duplexes to a file
-    print("INFO: Writing duplex data to {}.  Use duplex_angle_plotter to graph data".format(outfile), file=stderr)
+    log("Writing duplex data to {}.  Use duplex_angle_plotter to graph data".format(outfile))
     with open(outfile, 'w') as f:
         f.write("time\tduplex\tstart1\tend1\tstart2\tend2\taxisX\taxisY\taxisZ\thel_pos\n")
         for i in range (0, len(duplexes_at_step)):

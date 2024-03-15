@@ -2,7 +2,7 @@ import os
 import numpy as np
 import argparse
 import matplotlib.pyplot as plt
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
@@ -67,6 +67,7 @@ def cli_parser(prog="contact_map.py"):
     parser.add_argument('-g', metavar='graph', dest='graph', nargs=1, type=str, help='Filename for the plot')
     parser.add_argument('-d', metavar='data', dest='data', nargs=1, help='The name of the file to save the contact map as a pickle.')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -75,6 +76,7 @@ def main():
     # Get arguments and file metadata
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
+    logger_settings.set_quiet(args.quiet)
     traj = args.trajectory[0]
     top_info, traj_info = describe(None, traj)
 
@@ -89,7 +91,7 @@ def main():
     if args.graph:
         graph_name = args.graph[0]
     else:
-        print("INFO: No graph name provided, defaulting to 'contact_map.png'", file=stderr)
+        log("No graph name provided, defaulting to 'contact_map.png'")
         graph_name = "contact_map.png"
 
     fig, ax = plt.subplots()
@@ -100,16 +102,16 @@ def main():
     b = fig.colorbar(a, ax=ax)
     b.set_label("distance (nm)", rotation = 270, labelpad=15)
     plt.tight_layout()
-    print("INFO: Saving contact map to '{}'".format(graph_name), file=stderr)
+    log("Saving contact map to '{}'".format(graph_name))
     plt.savefig(graph_name)
 
     # Save the contact map as a pickle
     if args.data:
         data_name = args.data[0]
     else:
-        print("INFO: No data name provided, defaulting to 'contact_map.pkl'", file=stderr)
+        log("No data name provided, defaulting to 'contact_map.pkl'")
         data_name = "contact_map.pkl"
-    print("INFO: Saving contact map to '{}'".format(data_name), file=stderr)
+    log("Saving contact map to '{}'".format(data_name))
     np.save(data_name, distances)
 
     print("--- %s seconds ---" % (time() - start_time))

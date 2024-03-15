@@ -1,7 +1,7 @@
 import numpy as np
 import argparse
 from os import remove, path
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from typing import List
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
@@ -32,7 +32,7 @@ def split_trajectory(traj_info, top_info, labs):
             remove("cluster_"+str(cluster)+".dat")
         except: pass
 
-    print ("INFO: splitting trajectory...", file=stderr)
+    log("splitting trajectory...")
 
     fnames = ["cluster_"+str(cluster)+".dat" for cluster in slabs]
     files = [open(f, 'w+') for f in fnames]
@@ -46,7 +46,7 @@ def split_trajectory(traj_info, top_info, labs):
     for f in files:
         f.close()
 
-    print(f"INFO: Wrote trajectory files: {fnames}", file=stderr)
+    log(f"Wrote trajectory files: {fnames}")
 
     return
 
@@ -74,7 +74,7 @@ def get_centroid(points:np.ndarray, metric_name:str, labs:np.ndarray, traj_info:
         top_info (TopInfo): Topology metadata.
     """
 
-    print("INFO: Finding cluster centroids...", file=stderr)
+    log("Finding cluster centroids...")
     if metric_name == 'euclidean':
         points = points[np.newaxis,:,:] - points[:,np.newaxis,:]
         points = np.sum(points**2, axis=2) #squared distance is still correct distance 
@@ -91,7 +91,7 @@ def get_centroid(points:np.ndarray, metric_name:str, labs:np.ndarray, traj_info:
         centroid = get_confs(top_info, traj_info, centroid_id, 1)[0]
         fname = "centroid_"+str(cluster)+".dat"
         write_conf(fname, centroid, include_vel=traj_info.incl_v)
-        print(f"INFO: Wrote centroid file {fname}", file=stderr)
+        log(f"Wrote centroid file {fname}")
 
     return cids
 
@@ -123,7 +123,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
 
     n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
 
-    print("INFO: Making cluster plot...")
+    log("Making cluster plot using first three OPs...")
     if len(dimensions) == 3:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
@@ -143,7 +143,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
             nonlocal labels, dimensions, n_clusters, centroid_ids, ax
             a = ax.scatter(x, y, z, s=2, alpha=0.4, c=labels, cmap=plt.get_cmap('tab10', n_clusters+1))
             cen = ax.scatter(dimensions[0][centroid_ids], dimensions[1][centroid_ids], dimensions[2][centroid_ids], s=1.5, c=[0 for _ in centroid_ids], cmap=ListedColormap(['black']))
-            fig.colorbar(a, ax=ax)
+            fig.colorbar(a, ax=ax, ticks=list(set(labels)))
             handles, _ = cen.legend_elements(prop="colors", num = 1)
             l = ax.legend(handles, ['Centroids'])
             return [fig]
@@ -156,9 +156,9 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
             try:
                 anim = animation.FuncAnimation(fig, animate, init_func=init, frames=range(360), interval=20, blit=True)
                 anim.save(plot_file, fps=30, extra_args=['-vcodec', 'libx264'])
-                print("INFO: Saved cluster plot to {}".format(plot_file), file=stderr)
+                log("Saved cluster plot to {}".format(plot_file))
             except:
-                print("WARNING: ffmpeg not found, cannot make animated plot, opening interactivley instead", file=stderr)
+                print("WARNING: ffmpeg not found, cannot make animated plot, opening interactivley instead")
                 f = init()
                 plt.show()
         else:
@@ -183,7 +183,7 @@ def make_plot(op, labels, centroid_ids, interactive_plot, op_names):
         if not interactive_plot:
             plt.tight_layout()
             plt.savefig(plot_file)
-            print("INFO: Saved cluster plot to {}".format(plot_file), file=stderr)
+            log("Saved cluster plot to {}".format(plot_file))
         else:
             plt.show()
 
@@ -213,8 +213,8 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
     
     #dump the input as a json file so you can iterate on eps and min_samples
     dump_file = "cluster_data.json"
-    print("INFO: Serializing input data to {}".format(dump_file), file=stderr)
-    print("INFO: Run  `oat clustering {} -e<eps> -m<min_samples>`  to adjust clustering parameters".format(dump_file), file=stderr)
+    log("Serializing input data to {}".format(dump_file))
+    log("Run  `oat clustering {} -e<eps> -m<min_samples>`  to adjust clustering parameters".format(dump_file))
     out = {
         "data": op.tolist(), 
         "traj" : traj_info.path,
@@ -222,7 +222,7 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
     }
     dump(out, open(dump_file, 'w+'))
     
-    print("INFO: Running DBSCAN...", file=stderr)
+    log("Running DBSCAN...")
 
     #DBSCAN parameters:
     #eps: the pairwise distance that configurations below are considered neighbors
@@ -231,7 +231,7 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
     #        If the matrix is already a square distance matrix, the metrix needs to be "precomputed".
     #the eps and min_samples need to be determined for each input based on the values of the input data
     #If you're making your own multidimensional data, you probably want to normalize your data first.
-    print("INFO: Current values: eps={}, min_samples={}".format(eps, min_samples))
+    log("Current values: eps={}, min_samples={}".format(eps, min_samples))
     db = DBSCAN(eps=eps, min_samples=min_samples, metric=metric).fit(op) 
     labels = db.labels_
     
@@ -247,7 +247,7 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
 
     # If the hyperparameters don't split the data well, end the run before the long stuff.
     if n_clusters_ < min_clusters:
-        print("INFO: Did not find the minimum number of clusters requested, returning early")
+        log("Did not find the minimum number of clusters requested, returning early")
         return(labels)
 
     # Split the trajectory into cluster trajectories
@@ -260,7 +260,7 @@ def perform_DBSCAN(traj_info:TrajInfo, top_info:TopInfo, op:np.ndarray, metric:s
     # Make a plot showing the clusters
     make_plot(op, labels, centroid_ids, interactive_plot, op_names)
     
-    print("INFO: Run  `oat clustering {} -e<eps> -m<min_samples>`  to adjust clustering parameters".format(dump_file), file=stderr)
+    log("Run  `oat clustering {} -e<eps> -m<min_samples>`  to adjust clustering parameters".format(dump_file))
 
     return labels
 
@@ -269,11 +269,14 @@ def cli_parser(prog="clustering.py"):
     parser.add_argument('serialized_data', type=str, nargs=1, help="The json-formatted input file")
     parser.add_argument('-e', '--eps', type=float, nargs=1, help="The epsilon parameter for DBSCAN (maximum distance to be considered a 'neighbor')")
     parser.add_argument('-m', '--min_samples', type=int, nargs=1, help="The min_samples parameter for DBSCAN (number of neighbors which define a point as a central point in a cluster)")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
+
+    logger_settings.set_quiet(args.quiet)
     data_file = args.serialized_data[0]
     if args.eps:
         eps = args.eps[0]

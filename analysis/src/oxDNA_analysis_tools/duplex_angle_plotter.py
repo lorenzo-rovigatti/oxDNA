@@ -2,9 +2,10 @@
 
 from typing import List, Tuple
 import numpy as np
-from sys import stderr, exit
-from os import environ, path
+from sys import exit
+from os import path
 import argparse
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 def rad2degree(angle:float) -> float:
     """
@@ -185,7 +186,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         plt.xlim((0, 180))
         plt.xlabel("Angle (degrees)")
         plt.ylabel("Normalized frequency")
-        print("INFO: Saving histogram to {}".format(out), file=stderr)
+        log("Saving histogram to {}".format(out))
         plt.tight_layout()
         plt.savefig(out)
 
@@ -205,7 +206,7 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
         plt.legend(labels=names)
         plt.xlabel("Configuration Number")
         plt.ylabel("Angle (degrees)")
-        print("INFO: Saving line plot to {}".format(out), file=stderr)
+        log("Saving line plot to {}".format(out))
         plt.tight_layout()
         plt.savefig(out)
     
@@ -220,12 +221,14 @@ def cli_parser(prog="duplex_angle_plotter.py"):
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
     parser.add_argument('-d', '--data', metavar='data_file', help='If set, the output for the graphs will be dropped as a json to this filename for loading in oxView or your own scripts')
     parser.add_argument('-n', '--names', metavar='names', nargs='+', help='Names of the data series.  Will default to particle ids if not provided')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return(parser)
 
 def main():
     parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
     check(["python", "numpy", "matplotlib"])
 
@@ -259,7 +262,7 @@ def main():
     if args.output:
         outfile = args.output
     else:
-        print("INFO: No outfile name provided, defaulting to \"angle.png\"", file=stderr)
+        log("No outfile name provided, defaulting to \"angle.png\"")
         outfile = "angle.png"
 
     #-f defines which type of graph to produce
@@ -275,7 +278,7 @@ def main():
         if hist == line == False:
             raise RuntimeError("Unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"")
     else:
-        print("INFO: No graph format specified, defaulting to histogram", file=stderr)
+        log("No graph format specified, defaulting to histogram")
         hist = True
 
     # actual computation
@@ -285,14 +288,14 @@ def main():
     if args.names:
         names = args.names
         if len(names) < n_angles:
-            print("WARNING: Names list too short.  There are {} items in names and {} angles were calculated.  Will pad with particle IDs".format(len(names), n_angles), file=stderr)
+            log("Names list too short.  There are {} items in names and {} angles were calculated.  Will pad with particle IDs".format(len(names), n_angles), level="warning")
             for i in range(len(names), n_angles):
                 names.append("{}-{}".format([j for sl in p1s for j in sl][i], [j for sl in p2s for j in sl][i]))
         if len(names) > n_angles:
-            print("WARNING: Names list too long. There are {} items in names and {} angles were calculated.  Truncating to be the same as distances".format(len(names), n_angles), file=stderr)
+            log("Names list too long. There are {} items in names and {} angles were calculated.  Truncating to be the same as distances".format(len(names), n_angles), level="warning")
             names = names[:n_angles]
     else:
-        print("INFO: Defaulting to particle IDs as data series names")
+        log("Defaulting to particle IDs as data series names")
         names = ["{}-{}".format(p1, p2) for p1, p2 in zip([i for sl in p1s for i in sl], [i for sl in p2s for i in sl])]
 
     # -d will dump the distances as json files for loading with the trajectories in oxView
@@ -300,7 +303,7 @@ def main():
         from json import dump
         if len(files) > 1:
             f_names = [path.basename(f) for f in files]
-            print("INFO: angle lists from separate trajectories are printed to separate files for oxView compatibility.  Trajectory names will be appended to your provided data file name.", file=stderr)
+            log("angle lists from separate trajectories are printed to separate files for oxView compatibility.  Trajectory names will be appended to your provided data file name.")
             file_names = ["{}_{}.json".format(args.data.strip('.json'), i) for i,_ in enumerate(f_names)]
         else:
             file_names = [args.data.strip('.json')+'.json']
@@ -311,7 +314,7 @@ def main():
             for n, a in zip(ns, ang_list):
                 obj[n] = list(a)
             with open(file_name, 'w+') as f:
-                print("INFO: writing data to {}.  This can be opened in oxView using the Order parameter selector".format(file_name))
+                log("writing data to {}.  This can be opened in oxView using the Order parameter selector".format(file_name))
                 dump(obj, f)
 
     #print statistical information
