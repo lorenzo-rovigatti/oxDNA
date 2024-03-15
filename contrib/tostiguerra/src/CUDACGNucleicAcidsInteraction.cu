@@ -321,6 +321,10 @@ void CUDACGNucleicAcidsInteraction::cuda_init(int N) {
 	CUDABaseInteraction::cuda_init(N);
 	CGNucleicAcidsInteraction::init();
 
+	if(_enable_semiflexibility) {
+		throw oxDNAException("DPS_semiflexibility is not available on CUDA");
+	}
+
 	std::vector<BaseParticle *> particles(_N);
 	CGNucleicAcidsInteraction::allocate_particles(particles);
 	int tmp_N_strands;
@@ -328,18 +332,18 @@ void CUDACGNucleicAcidsInteraction::cuda_init(int N) {
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_three_body_forces, N * sizeof(c_number4)));
 
-	int max_n_neighs = 5;
-	int n_elems = (max_n_neighs + 1) * _N;
+	const int n_neighs = 2;
+	int n_elems = (n_neighs + 1) * _N;
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc<int>(&_d_bonded_neighs, n_elems * sizeof(int)));
 	std::vector<int> h_bonded_neighs(n_elems);
 
 	for(int i = 0; i < _N; i++) {
-		CustomParticle *p = static_cast<CustomParticle *>(particles[i]);
+		auto *p = static_cast<ParticleFTG *>(particles[i]);
 		// start from 1, since the first element will contain the number of bonds
 		int nb = 1;
 		for(auto q : p->bonded_neighs) {
-			if(nb > max_n_neighs) {
-				throw oxDNAException("CUDACGNucleicAcidsInteraction: particle %d has more than %d bonded neighbours", p->index, max_n_neighs);
+			if(nb > n_neighs) {
+				throw oxDNAException("CUDACGNucleicAcidsInteraction: particle %d has more than %d bonded neighbours", p->index, n_neighs);
 			}
 			h_bonded_neighs[_N * nb + i] = q->index;
 			nb++;
@@ -392,12 +396,12 @@ void CUDACGNucleicAcidsInteraction::compute_forces(CUDABaseList *lists, c_number
 	ps_FENE_flexibility_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 		(d_poss, d_forces, _d_three_body_forces, _d_bonded_neighs, _update_st, _d_st, d_box);
-	CUT_CHECK_ERROR("ps_FENE_flexibility_forces PolymerSwap error");
+	CUT_CHECK_ERROR("ps_FENE_flexibility_forces CGNucleicAcids error");
 
 	ps_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
 		(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, _update_st, _tex_eps, _d_st, d_box);
-	CUT_CHECK_ERROR("forces_second_step PolymerSwap simple_lists error");
+	CUT_CHECK_ERROR("forces_second_step CGNucleicAcids simple_lists error");
 
 	// add the three body contributions to the two-body forces
 	thrust::transform(t_forces, t_forces + _N, t_three_body_forces, t_forces, thrust::plus<c_number4>());
