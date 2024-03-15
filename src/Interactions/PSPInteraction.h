@@ -34,7 +34,7 @@ public:
 	int connections[PSPmaxParticles][PSPmaxNeighbour]; // 5 0 1 2 3 4 where 5 is the number of neighbours and 0 1 2 3 4 are the neighbours
 	float r0[PSPmaxParticles][PSPmaxNeighbour]; // Equilibrium radius of the spring, if starts with 0 all particles have different radius, if 1 all particles have same radius
 	float k0[PSPmaxParticles][PSPmaxNeighbour]; // Spring constant, same as above
-	int particleTopology[PSPmaxParticles][3]; // Strand, particleColor, radius
+	float particleTopology[PSPmaxParticles][3]; // Strand, particleColor, radius
 	float patches[PSPmaxPatchColor][5]; // color, strength, x, y, z // for PSP interaction patch color is useless and should be -1
 	int particlePatches[PSPmaxParticleColor][PSPmaxPatchColor]; // Number of patches, patch1, patch2, patch3, patch4, patch5, patch6
     // Patchy variables

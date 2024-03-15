@@ -309,15 +309,14 @@ IF(CUDA)
 		CUDA/Backends/MD_CUDABackend.cu
 		CUDA/Interactions/CUDABaseInteraction.cu
 		CUDA/Interactions/CUDADNAInteraction.cu
-		CUDA/Interactions/CUDACCGInteraction.cu
+		# CUDA/Interactions/CUDACCGInteraction.cu
 		# CUDA/Interactions/CUDADNANMInteraction.cu
 		# CUDA/Interactions/CUDACGDNAInteraction.cu
-		CUDA/Interactions/CUDAPHBInteraction.cu
+		# CUDA/Interactions/CUDAPHBInteraction.cu
 		CUDA/Interactions/CUDALJInteraction.cu
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu
 		CUDA/Interactions/CUDATEPInteraction.cu
-		# CUDA/Interactions/CUDACCGInteraction.cu
 		CUDA/Interactions/CUDAPSP.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
 		CUDA/Lists/CUDAListFactory.cu
