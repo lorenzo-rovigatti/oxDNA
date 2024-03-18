@@ -13,11 +13,11 @@ def oat_multiprocesser(nconfs:int, ncpus:int, function:Callable, callback:Callab
         Runs a function on a trajectory by distributing chunks of the trajectory to each processor. Accumulates the results with a callback function.
 
         Parameters:
-            nconfs (int): The number of configurations to process at a time
+            nconfs (int): The total number of configurations to process
             ncpus (int): The number of processors to use
             function (function): The function to run on each chunk
             callback (function): The function to call after each chunk is processed
-            ctx (NamedTuple): A named tuple containing the arguments for the function
+            ctx (NamedTuple): A NamedTuple containing the arguments for the function
 
         The callback function must use the `nonlocal` keyword to update a variable in the main thread.
     """
@@ -25,8 +25,8 @@ def oat_multiprocesser(nconfs:int, ncpus:int, function:Callable, callback:Callab
 
     pool = Pool(ncpus)
 
-    nchunks = int(nconfs / chunk_size +
-                         (1 if nconfs % chunk_size else 0))
+    # Figure out how many jobs we need to run
+    nchunks = int(nconfs / chunk_size + (1 if nconfs % chunk_size else 0))
 
     log(f"Processing in blocks of {chunk_size} configurations")
     log(f"You can modify this number by running oat config -n <number>, which will be persistent between analyses.")
