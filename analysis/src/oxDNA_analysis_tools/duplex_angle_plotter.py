@@ -38,9 +38,9 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
 
         Parameters:
             files (List[str]): The list of duplex files to read.
-            p1s (List[List[int]]): The list of start1 nucleotide indices for each file.
-            p2s (List[List[int]]): The list of start2 nucleotide indices for each file.
-            invert_mask (List[bool]): Invert one of the vectors in the i-th angle calculation?
+            p1s (List[List[int]]): Find duplexes containing these nucleotides...
+            p2s (List[List[int]]): ...and get the angles between them and duplexes containing these nucleotides.
+            invert_mask (List[bool]): Invert one of the vectors in the i-th duplex pair?
 
         Returns:
             angles (List[List[np.array]]): The list of angles between the specified duplexes.
@@ -49,6 +49,10 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
             stdevs (List[float]): The standard deviation of the angle between each pair of duplexes.
             representations (List[float]): The percentage of confs that have the duplexes.
     """
+    if(len(files) != len(p1s) != len(p2s)):
+        raise RuntimeError("Bad input arguments!\nThe number of files must equal the number of lists of particle pairs.\n\
+                           For example, files=['duplexes1.txt', 'duplexes2.txt'], p1s=[[23, 42], [7, 13, 45]], p2s=[[35, 99], [35, 74, 68]]")
+    
     all_angles = [[] for _ in files]
     means = [[] for _ in files]
     medians = [[] for _ in files]
@@ -59,6 +63,9 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
 
     # For each angle file...
     for i, (anglefile, search1, search2) in enumerate(zip(files, p1s, p2s)):
+        if len(search1) != len(search2):
+            raise RuntimeError("Bad input arguments!\nThe lengths of the particle pair lists are unequal.\n\
+                               For example, files=['duplexes1.txt', 'duplexes2.txt'], p1s=[[23, 42], [7, 13, 45]], p2s=[[35, 99], [35, 74, 68]]")
 
         steps = 0 # counts the number of configurations in the file
         last_step = 0
@@ -219,8 +226,8 @@ def make_plots(all_angles:List[List[np.ndarray]], names:List[str], outfile:str, 
 
 def cli_parser(prog="duplex_angle_plotter.py"):
     #Get command line arguments.
-    parser = argparse.ArgumentParser(prog = prog, description="Finds the ensemble of angles between any two duplexes defined by a starting or ending nucleotide in the system")
-    parser.add_argument('-i', '--input', metavar='angle_file', dest='input', nargs='+', action='append', help='An angle file from duplex_angle_finder.py and a list of duplex-end particle pairs to compare.  Can call -i multiple times to plot multiple datasets.')
+    parser = argparse.ArgumentParser(prog = prog, description="Finds the ensemble of angles between pairs duplexes defined by nucleotides in the duplexes.")
+    parser.add_argument('-i', '--input', metavar='angle_file', dest='input', nargs='+', action='append', help='An angle file from duplex_angle_finder.py and a list of particle id pairs found in the duplexes you want to compare.  Can call -i multiple times to plot multiple datasets together.')
     parser.add_argument('-v', '--invert_mask', dest='invert_mask', nargs='+', help='If 1 invert the i-th vector, if 0, do nothing.')
     parser.add_argument('-o', '--output', metavar='output_file', help='The name to save the graph file to')
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
@@ -258,10 +265,11 @@ def main():
 
     #Make sure that the input is correctly formatted
     if(len(files) != len(p1s) != len(p2s)):
-        raise RuntimeError("Bad input arguments\nPlease supply an equal number of trajectory and particle pairs")
-        exit(1)
+        raise RuntimeError("Bad input arguments\nThe number of particle pairs must be a multiple of 2.\
+                           For example, oat duplex_angle_plotter -i duplexes1.txt 23 35 42 99 -i duplexes2.txt 7 35 13 74 45 68")
     if len(invert_mask) != n_angles:
-        raise RuntimeError("Bad input arguments\nThe length of the invert mask must be equal to the number of angles to calculate.")
+        raise RuntimeError("Bad input arguments\nThe length of the invert mask must be equal to the number of angles to calculate.\
+                           For example, oat duplex_angle_plotter -i duplexes1.txt 23 35 42 99 -v 1 0")
 
     #-o names the output file
     if args.output:
@@ -308,7 +316,7 @@ def main():
         from json import dump
         if len(files) > 1:
             f_names = [path.basename(f) for f in files]
-            log("angle lists from separate trajectories are printed to separate files for oxView compatibility.  Trajectory names will be appended to your provided data file name.")
+            log("Angle lists from separate trajectories are printed to separate files for oxView compatibility.  Trajectory names will be appended to your provided data file name.")
             file_names = ["{}_{}.json".format(args.data.strip('.json'), i) for i,_ in enumerate(f_names)]
         else:
             file_names = [args.data.strip('.json')+'.json']
@@ -319,7 +327,7 @@ def main():
             for n, a in zip(ns, ang_list):
                 obj[n] = list(a)
             with open(file_name, 'w+') as f:
-                log("writing data to {}.  This can be opened in oxView using the Order parameter selector".format(file_name))
+                log("Writing data to {}.  This can be opened in oxView using the Order parameter selector".format(file_name))
                 dump(obj, f)
 
     #print statistical information
