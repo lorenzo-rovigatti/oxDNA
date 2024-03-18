@@ -57,10 +57,10 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
 
     global_count = 0
 
-    #For each input triplet
+    # For each angle file...
     for i, (anglefile, search1, search2) in enumerate(zip(files, p1s, p2s)):
 
-        steps = 0 #counts the number of configurations in the file
+        steps = 0 # counts the number of configurations in the file
         last_step = 0
         count = 0 # counts the number of search terms found in each step
         all_angles[i] = [[] for _ in p1s[i]]
@@ -78,6 +78,7 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
         # 8: Z-component of the axis vector
         # 9: Helix position
 
+        # Search the angle file for the search ids...
         with open(anglefile) as file:
             all_search = search1.copy()
             all_search.extend(search2)
@@ -116,12 +117,16 @@ def get_angle_between(files:List[str], p1s:List[List[int]], p2s:List[List[int]],
 
                 #look for the nucleotide IDs.
                 for s in all_search:
-                    idx = l.index(s, 2, 6) if s in l[2:6] else None
-                    if idx:
+                    l1 = int(l[2])
+                    u1 = int(l[3])
+                    l2 = int(l[4])
+                    u2 = int(l[5])
+                    si = int(s)
+                    if (si >= l1 and si <= u1) or (si >= l2 and si <= u2): 
                         d[s] = np.array([float(l[6]), float(l[7]), float(l[8])])
                         count += 1
 
-                #once all are found, add them to angle list
+                #once all are found, can skip the rest of this timestep
                 if count == len(d):
                     found = True
 
