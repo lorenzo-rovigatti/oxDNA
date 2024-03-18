@@ -1,4 +1,5 @@
 from sys import stderr
+from typing import Union
 
 class LoggerSettings:
     def __init__(self, quiet:bool=0):
@@ -12,7 +13,7 @@ class LoggerSettings:
 
 logger_settings:LoggerSettings = LoggerSettings()
 
-def log(message:str, end:str="\n", level:str|int="info"):
+def log(message:str, end:str="\n", level:Union[str,int]="info"):
     """
         Log something to stderr.  Doesn't do anything fancy.
         
