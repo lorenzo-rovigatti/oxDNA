@@ -136,7 +136,7 @@
 <p><p>Aligns each frame in a trajectory to the first frame</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">align</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">reference_structure</span><span class="p">]</span>
-                 <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                 <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                  <span class="n">traj</span> <span class="n">outfile</span>
 </pre></div>
 </div>
@@ -165,6 +165,10 @@
 </dd>
 <dt><kbd>-c</kbd></dt>
 <dd><p>Don’t center the output.  Can avoid errors caused by small boxes.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
 <p>Default: False</p>
 </dd>
 </dl>
@@ -200,7 +204,7 @@
 <p><p>Computes the deviations in the backbone torsion angles</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">backbone_flexibility</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span>
-                                <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                                 <span class="n">topology</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
@@ -227,6 +231,10 @@
 <dt><kbd>-d</kbd></dt>
 <dd><p>(optional) The name of the file to write the data to</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -235,7 +243,7 @@
 <p><p>Compare the bonds found at each trajectory with the intended design</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">bond_analysis</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">trajectory_plot</span><span class="p">]</span>
-                         <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                          <span class="n">inputfile</span> <span class="n">trajectory</span> <span class="n">designed_pairs</span>
 </pre></div>
 </div>
@@ -265,6 +273,10 @@
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -272,7 +284,7 @@
 <h2>Centroid<a class="headerlink" href="#centroid" title="Permalink to this heading"></a></h2>
 <p><p>Find the configuration in a trajectory closest to a provided reference configuration</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">centroid</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">centroid</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                     <span class="n">reference_structure</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
@@ -299,6 +311,10 @@
 <dt><kbd>-i</kbd></dt>
 <dd><p>Alignment and RMSD based on a subset of particles given in a space-separated list in the provided file</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -306,7 +322,7 @@
 <h2>Clustering<a class="headerlink" href="#clustering" title="Permalink to this heading"></a></h2>
 <p><p>Calculates clusters based on provided order parameters.</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">clustering</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EPS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MIN_SAMPLES</span><span class="p">]</span> <span class="n">serialized_data</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">clustering</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EPS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="n">MIN_SAMPLES</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">serialized_data</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -326,6 +342,10 @@
 <dt><kbd>-m, --min_samples</kbd></dt>
 <dd><p>The min_samples parameter for DBSCAN (number of neighbors which define a point as a central point in a cluster)</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -333,7 +353,7 @@
 <h2>Config<a class="headerlink" href="#config" title="Permalink to this heading"></a></h2>
 <p><p>Configure oxDNA_analysis_tools</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">config</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">CHUNK_SIZE</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">config</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">CHUNK_SIZE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="Named Arguments">
@@ -342,6 +362,10 @@
 <dt><kbd>-n, --chunk_size</kbd></dt>
 <dd><p>Number of configurations to per chunk.  Persistent across analyses.</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -349,7 +373,7 @@
 <h2>Contact map<a class="headerlink" href="#contact-map" title="Permalink to this heading"></a></h2>
 <p><p>Calculate and display the contact map for a structure</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">contact_map</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="n">graph</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="n">trajectory</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">contact_map</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="n">graph</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -372,6 +396,10 @@
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -379,7 +407,7 @@
 <h2>Decimate<a class="headerlink" href="#decimate" title="Permalink to this heading"></a></h2>
 <p><p>Creates a smaller trajectory only including start/stop/stride frames from the input.</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">decimate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PARALLEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">START</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">STRIDE</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">decimate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PARALLEL</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">START</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">STOP</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">STRIDE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                     <span class="n">traj</span> <span class="n">outfile</span>
 </pre></div>
 </div>
@@ -412,6 +440,10 @@
 <dd><p>Write out every this many confs (default=10)</p>
 <p>Default: 10</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -420,7 +452,7 @@
 <p><p>Compute the RMSD of each nucleotide from the mean structure produced by compute_mean.py</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">deviations</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span>
-                      <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">rmsd_plot</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">rmsd_data</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">rmsd_plot</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">rmsd_data</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                       <span class="n">mean_structure</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
@@ -453,6 +485,10 @@
 <dt><kbd>-d</kbd></dt>
 <dd><p>The name of the file to save the RMSD data in json format.</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -464,6 +500,7 @@
                     <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="nb">input</span> <span class="n">p1</span> <span class="n">p2</span> <span class="n">p1</span> <span class="n">p2</span><span class="o">...</span><span class="p">)</span> <span class="p">[</span><span class="nb">input</span> <span class="n">p1</span> <span class="n">p2</span> <span class="p">(</span><span class="n">p1</span> <span class="n">p2</span><span class="o">...</span> <span class="o">...</span><span class="p">]]</span>
                     <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span>
                     <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="Named Arguments">
@@ -491,6 +528,10 @@
 <dd><p>Run the clusterer on each configuration’s distance?</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -498,7 +539,7 @@
 <h2>Dot-bracket to force<a class="headerlink" href="#dot-bracket-to-force" title="Permalink to this heading"></a></h2>
 <p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="n">db_file</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">db_to_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">db_file</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -522,6 +563,10 @@
 <dd><p>Reverse the dot-bracket before writing forces</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -533,7 +578,7 @@
                                 <span class="p">[</span><span class="o">-</span><span class="n">v</span> <span class="n">INVERT_MASK</span> <span class="p">[</span><span class="n">INVERT_MASK</span> <span class="o">...</span><span class="p">]]</span>
                                 <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span>
                                 <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span>
-                                <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">names</span> <span class="p">[</span><span class="n">names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="Named Arguments">
@@ -557,6 +602,10 @@
 <dt><kbd>-n, --names</kbd></dt>
 <dd><p>Names of the data series.  Will default to particle ids if not provided</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -564,7 +613,8 @@
 <h2>Duplex finder<a class="headerlink" href="#duplex-finder" title="Permalink to this heading"></a></h2>
 <p><p>Fit vectors to every duplex in the structure</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">duplex_finder</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="nb">input</span> <span class="n">trajectory</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">duplex_finder</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
+                         <span class="nb">input</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -587,6 +637,10 @@
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>name of the file to write the angle list to</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -594,7 +648,7 @@
 <h2>File info<a class="headerlink" href="#file-info" title="Permalink to this heading"></a></h2>
 <p><p>Prints metadata about trajectories</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">file_info</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">l</span> <span class="n">LABELS</span> <span class="p">[</span><span class="n">LABELS</span> <span class="o">...</span><span class="p">]]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">file_info</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">l</span> <span class="n">LABELS</span> <span class="p">[</span><span class="n">LABELS</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                      <span class="n">trajectories</span> <span class="p">[</span><span class="n">trajectories</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -612,6 +666,10 @@
 <dt><kbd>-l, --labels</kbd></dt>
 <dd><p>Labels for the files if not the filename</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -619,7 +677,7 @@
 <h2>Forces to pairs<a class="headerlink" href="#forces-to-pairs" title="Permalink to this heading"></a></h2>
 <p><p>Convert an external force file to a list of particle pairs</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">forces2pairs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="n">force_file</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">forces2pairs</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">force_file</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -636,6 +694,10 @@
 <dt><kbd>-o, --output</kbd></dt>
 <dd><p>name of the file to write the pair list to</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -643,7 +705,7 @@
 <h2>Generate force<a class="headerlink" href="#generate-force" title="Permalink to this heading"></a></h2>
 <p><p>Create an external forces file enforcing the current base-pairing arrangement</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">generate_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PAIRS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">generate_force</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PAIRS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">STIFF</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                           <span class="n">inputfile</span> <span class="n">configuration</span>
 </pre></div>
 </div>
@@ -670,6 +732,10 @@
 <dt><kbd>-s, --stiff</kbd></dt>
 <dd><p>Stiffness of the mutual trap</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -678,7 +744,7 @@
 <p><p>Computes the mean structure of a trajectory file</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">mean</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">deviation_file</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">alignment_configuration</span><span class="p">]</span>
+                <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="n">alignment_configuration</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                 <span class="n">trajectory</span>
 </pre></div>
 </div>
@@ -708,6 +774,10 @@
 <dt><kbd>-a, --align</kbd></dt>
 <dd><p>The id of the configuration to align to, otherwise random</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -715,7 +785,7 @@
 <h2>Minify<a class="headerlink" href="#minify" title="Permalink to this heading"></a></h2>
 <p><p>Compress given configuration.</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">minify</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">D</span><span class="p">]</span> <span class="n">trajectory</span> <span class="n">outfile</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">minify</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">D</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span> <span class="n">trajectory</span> <span class="n">outfile</span>
 </pre></div>
 </div>
 <section id="Positional Arguments">
@@ -742,6 +812,10 @@
 <dt><kbd>-d</kbd></dt>
 <dd><p>Round positions and orientations to the specified number of digits.</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -750,7 +824,7 @@
 <p><p>Calculate molecular contacts, and assembles an average set of contacts based on MDS</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">multidimensional_scaling_mean</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">dev_file</span><span class="p">]</span>
-                                         <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span>
+                                         <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                                          <span class="n">trajectory</span>
 </pre></div>
 </div>
@@ -774,6 +848,10 @@
 <dt><kbd>-p</kbd></dt>
 <dd><p>(optional) How many cores to use</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -781,7 +859,7 @@
 <h2>Output bonds<a class="headerlink" href="#output-bonds" title="Permalink to this heading"></a></h2>
 <p><p>List all the interactions between nucleotides</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">output_bonds</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span> <span class="n">OUTFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">UNITS</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">output_bonds</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span> <span class="n">OUTFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">UNITS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                         <span class="n">inputfile</span> <span class="n">trajectory</span>
 </pre></div>
 </div>
@@ -807,6 +885,10 @@
 </dd>
 <dt><kbd>-u, --units</kbd></dt>
 <dd><p>(optional) The units of the energy (pNnm or oxDNA)</p>
+</dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
 </dd>
 </dl>
 </section>
@@ -868,7 +950,7 @@
 <h2>Principal component analysis<a class="headerlink" href="#principal-component-analysis" title="Permalink to this heading"></a></h2>
 <p><p>Calculates a principal component analysis of nucleotide deviations over a trajectory</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">pca</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">num_components</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">pca</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">num_components</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                <span class="n">trajectory</span> <span class="n">meanfile</span> <span class="n">outfile</span>
 </pre></div>
 </div>
@@ -899,6 +981,10 @@
 <dt><kbd>-n</kbd></dt>
 <dd><p>(optional) Print the first N components as oxView overlay files (defaults to 1)</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -907,6 +993,7 @@
 <p><p>Calculates persistence length and contour length of a paired sequence of DNA.</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">persistence_length</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">data_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">PLOT_NAME</span><span class="p">]</span>
+                              <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                               <span class="n">traj_file</span> <span class="nb">input</span> <span class="n">nucid_1</span> <span class="n">nucid_2</span>
 </pre></div>
 </div>
@@ -939,6 +1026,10 @@
 <dt><kbd>-n, --plot_name</kbd></dt>
 <dd><p>Name to save the plot showing the fit of persistence length to correlations.  Defaults to persistence_length.png</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -947,6 +1038,7 @@
 <p><p>Plot oxDNA energy files</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">plot_energy</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_file</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span><span class="n">histogram</span><span class="o">/</span><span class="n">trajectory</span><span class="o">/</span><span class="n">both</span><span class="o">&gt;</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                        <span class="n">energy</span> <span class="p">[</span><span class="n">energy</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -967,6 +1059,10 @@
 <dt><kbd>-f, --format</kbd></dt>
 <dd><p>Output format for the graphs.  Defaults to histogram.  Options are “histogram”, “trajectory”, and “both”</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -974,7 +1070,7 @@
 <h2>Subset trajectory<a class="headerlink" href="#subset-trajectory" title="Permalink to this heading"></a></h2>
 <p><p>Extracts parts of a structure into separate trajectories</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">subset_trajectory</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index</span> <span class="n">outfile</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">subset_trajectory</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index</span> <span class="n">outfile</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">num_cpus</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                              <span class="n">trajectory</span> <span class="n">topology</span>
 </pre></div>
 </div>
@@ -1002,6 +1098,10 @@
 <dd><p>Use the old 3’-5’ topology format?</p>
 <p>Default: False</p>
 </dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
+</dd>
 </dl>
 </section>
 </section>
@@ -1010,7 +1110,7 @@
 <p><p>superimposes one or more structures sharing a topology to a reference structure</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">superimpose</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">index_file</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_names</span> <span class="p">[</span><span class="n">output_names</span> <span class="o">...</span><span class="p">]]</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">output_names</span> <span class="p">[</span><span class="n">output_names</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">q</span><span class="p">]</span>
                        <span class="n">reference</span> <span class="n">victims</span> <span class="p">[</span><span class="n">victims</span> <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1033,6 +1133,10 @@
 </dd>
 <dt><kbd>-o</kbd></dt>
 <dd><p>The names of the output files (defaults to inputname_a.dat)</p>
+</dd>
+<dt><kbd>-q</kbd></dt>
+<dd><p>Don’t print ‘INFO’ messages to stderr</p>
+<p>Default: False</p>
 </dd>
 </dl>
 </section>
