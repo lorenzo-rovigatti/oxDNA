@@ -138,7 +138,7 @@ def get_top_info(top:str) -> TopInfo:
         if my_top_info[-1] == '5->3':
             my_top_info = my_top_info[:-1]
         else:
-            print("WARNING: The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.")
+            log("The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.", level='warning')
         
         # There's actually nothing different between the headers once you remove the new marker.
         if len(my_top_info) == 2:

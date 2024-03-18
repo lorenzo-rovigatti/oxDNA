@@ -14,12 +14,12 @@ logger_settings:LoggerSettings = LoggerSettings()
 
 def log(message:str, end:str="\n", level:str|int="info"):
     """
-        Log something to stdout.  Doesn't do anything fancy.
+        Log something to stderr.  Doesn't do anything fancy.
         
         Parameters:
             message(str) : The message to write
+            end(str) : End of the string (defaults to '\\n')
             level(str|int) : info(0)|warning(1) Whether this is informational or a warning.  For errors we just raise errors.
-            quiet(bool) : if 1 only print warnings 
     """
     global logger_settings
 
