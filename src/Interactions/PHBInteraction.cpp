@@ -72,7 +72,7 @@ number PHBInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
     number energy=0;
 	auto *pCG = dynamic_cast<PHBParticle*>(p);
 	auto *qCG = static_cast<PHBParticle*>(q);
-	std::cout<< "this is called "<< std::endl;
+	// std::cout<< "this is called "<< std::endl;
 	// if(pCG->has_bond(q)){
 		energy += spring(pCG,qCG,compute_r,update_forces);
 		energy += bonded_twist(pCG, qCG, false, update_forces);

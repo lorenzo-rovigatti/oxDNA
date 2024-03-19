@@ -28,23 +28,26 @@ public:
 	number rmod, rnorm;
 	std::string temp,line;
 
+	// Interaction Modes
+	bool helixBubble=true,harmonics=true;
 
 	//Header variables
 	int totPar,strads,totParticleColor,totPatchColor; //topology
-	bool harmonics=true;
 
 	// Patchy Parameters
-	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0.2,patchyEcutoff=0,patchyB=667.505671539f;
+	number patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0.2,patchyEcutoff=0,patchyB=667.505671539f,patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f;
+	number tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6,_ka = 100.,_kb = 21.,_kt = 29.7,_twist_a = 0.00,_twist_b = 0.95;
+	number tepFeneDelta2=SQR(tepFeneDelta);
 
 	//Topology variables
 	int connections[PSPmaxParticles][PSPmaxNeighbour]; // 5 0 1 2 3 4 where 5 is the number of neighbours and 0 1 2 3 4 are the neighbours
 	float r0[PSPmaxParticles][PSPmaxNeighbour]; // Equilibrium radius of the spring, if starts with 0 all particles have different radius, if 1 all particles have same radius
 	float k0[PSPmaxParticles][PSPmaxNeighbour]; // Spring constant, same as above
 	float particleTopology[PSPmaxParticles][3]; // Strand, particleColor, radius
-	float patches[PSPmaxPatchColor][5]; // color, strength, x, y, z // for PSP interaction patch color is useless and should be -1
+	float patches[PSPmaxPatchColor][11]; // color, strength, x, y, z, a1x, a1y, a1z, a2x, a2y, a2z // for PSP interaction patch color is useless and should be -1
 	int particlePatches[PSPmaxParticleColor][PSPmaxPatchColor]; // Number of patches, patch1, patch2, patch3, patch4, patch5, patch6
     // Patchy variables
-
+	int patchLock[PSPmaxParticles];
 
 
     PSPInteraction();
@@ -65,9 +68,22 @@ public:
 
 	//Custom Interactions
 	virtual number spring(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false); //Spring interaction
-	virtual number exeVolInt(BaseParticle *p, BaseParticle *q, bool compute_r = true, bool update_forces = false); //Excluded volume interaction
+	virtual number exc_vol_nonbonded(CCGParticle *p, CCGParticle *q, bool compute_r = true,bool update_forces=false); //Excluded volume interaction
 	virtual number linearRepulsion(number patchyEpsilon, LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces); //Linear repulsion
 	virtual number cubicRepulsion(number patchyEpsilon, LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces); //Cubic repulsion
+	virtual number fene(CCGParticle *p, CCGParticle *q, bool compute_r,bool update_forces); //Fene potential
+	// Worm like potentials
+	virtual number bonded_double_bending(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	virtual number bonded_alignment(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	virtual number bonded_twist(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	LR_vector rotateVectorAroundVersor(const LR_vector vector, const LR_vector versor, const number angle);
+
+	//Patchy Interactions
+	virtual number patchyInteractionSimple(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	virtual number patchyInteractionColored(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	virtual number patchyInteraction2point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	virtual number patchyInteraction3point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	virtual number patchyInteractionBubble(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
 
 	//Checkers
 	int bonded(int i, int j);

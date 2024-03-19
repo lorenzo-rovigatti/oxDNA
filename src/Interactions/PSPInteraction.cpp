@@ -140,18 +140,44 @@ void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 }
 
 number PSPInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
-	// Check bonded or non-bonded
-	return 0;
+	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	if(pCG->has_bond(q)){
+		return pair_interaction_bonded(p,q,compute_r,update_forces);
+	}else{
+		// this->strength=pCG->strength;
+		return pair_interaction_nonbonded(p,q,compute_r,update_forces);
+	}
 }
 
 number PSPInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
-	// Bonded particle interaction
+	number energy=0;
+	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	auto *qCG = static_cast<CCGParticle*>(q);
+	// std::cout<< "this is called "<< std::endl;
+	// if(pCG->has_bond(q)){
+		energy += (harmonics)?spring(pCG,qCG,compute_r,update_forces):fene(pCG,qCG,compute_r,update_forces);
+		if(helixBubble){
+			energy += bonded_twist(pCG, qCG, false, update_forces);
+			energy += bonded_double_bending(pCG, qCG, false, update_forces);
+			energy += bonded_alignment(pCG, qCG, false, update_forces);
+		}
+	// }
+	return energy;
 	return 0;
 }
 
 number PSPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
 	// Non-bonded particle interaction
-	return 0;
+	auto *pCG = dynamic_cast<CCGParticle*>(p);
+	auto *qCG = static_cast<CCGParticle*>(q);
+	number energy=0;
+	// cout<< "this is called "<< std::endl;
+	if(!pCG->has_bond(q)){
+		// cout<<"Radius : " << pCG->radius << " " << qCG->radius << endl;
+		energy+=exc_vol_nonbonded(pCG,qCG,compute_r,update_forces);
+		// energy+=patchy_interaction_notorsion(pCG,qCG,compute_r,update_forces);
+	}
+	return energy;
 }
 
 int PSPInteraction::bonded(int p, int q){
@@ -183,6 +209,277 @@ number PSPInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r, 
 	return 0.25*k*SQR(dist);
 }
 
+number PSPInteraction::exc_vol_nonbonded(CCGParticle *p, CCGParticle *q, bool compute_r,bool update_forces){
+	if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
+	// if(p->index==0 && q->index==1) std::cout<< "Distance between particles = "<<_computed_r <<std::endl; ;
+	number totalRadius = p->radius+q->radius;
+	number sigma=totalRadius*patchySigma;
+	number rstar=totalRadius*patchyRstar;
+	number b = patchyB/SQR(totalRadius);
+	number rc = patchyRc*totalRadius;
+	number energy =0;
+	LR_vector force;
+	energy = linearRepulsion(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
+	// energy = hardRepulsive(patchyEpsilon,_computed_r,force,sigma,rc,update_forces);
+	if(update_forces){
+		p->force-=force;
+		q->force+=force;
+	}
+	// std::cout<<24.0*patchyEpsilon * (2*SQR(lj_part)-lj_part) / rnorm<<"\t"<<rnorm<<"\t"<<p->index<<"\t"<<q->index<<"\n";
+	return energy;
+}
+
+number PSPInteraction::fene(CCGParticle *p, CCGParticle *q, bool compute_r,bool update_forces){ // For now this function is not being used 
+	if(compute_r){ 
+		_computed_r = _box->min_image(p->pos,q->pos);
+		rmod=_computed_r.module();// calculate the minimum distance between p and q in preodic boundary
+	}
+	number k,r0;
+	p->return_kro(q->index,&k,&r0);
+	r0=rmod-r0; // Distance between the particles - equilibrium distance
+	number energy = -0.5*k*log(1 - SQR(r0) / tepFeneDelta2);
+	if(fabs(r0) > tepFeneDelta - DBL_EPSILON) {
+		if(update_forces) {
+			throw oxDNAException("(TEPInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(r0));
+		}
+		return (number) (1.e12); //Explode the simulation
+	}
+	number totalRadius = p->radius+q->radius;
+	number sigma=totalRadius*patchySigma;
+	number rstar=totalRadius*patchyRstar;
+	number b = patchyB/SQR(totalRadius);
+	number rc = patchyRc*totalRadius;
+	LR_vector force;
+	energy+=linearRepulsion(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
+	if(update_forces) {
+		force += _computed_r * (-(k * r0 / (tepFeneDelta2 - r0 * r0)) / rmod);
+		p->force -= force;
+		q->force += force;
+	}
+	return energy;
+}
+
+number PSPInteraction::bonded_double_bending(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces) {
+	number energy = 0;
+	LR_vector torque(0., 0., 0.);
+	if(p->spring_neighbours.size()<2 || q->spring_neighbours.size()<2)return 0.; //return 0 for extreme top and bottom particles
+
+	LR_vector &up = p->orientationT.v1;
+	LR_vector &uq = q->orientationT.v1;
+	LR_vector &vq = q->orientationT.v2;
+	number &th_b_0 = p->th_b_0;
+	number &beta_0 = p->beta_b_0;
+	// the particle behind sees the particle ahead as if it were slightly tilted,
+	// and tries to align with the tilted particle
+	LR_vector uqq = rotateVectorAroundVersor(uq, vq, th_b_0);
+	uqq = rotateVectorAroundVersor(uqq, uq, beta_0);
+	number cosine = up * uqq;
+
+	LR_vector sin_vector = up.cross(uqq);
+
+	energy = (number) 0.f;
+
+	const number tu = p->xu_bending;
+	const number tk = p->xk_bending;
+	const number kb1 = p->kb1;
+	const number kb2 = p->kb2;
+
+	number gu = cos(tu);
+	number angle = acos(cosine);
+
+	number A = (kb2 * sin(tk) - kb1 * sin(tu)) / (tk - tu);
+	number B = kb1 * sin(tu);
+	number C = kb1 * (1 - gu) - (A * SQR(tu) / 2. + tu * (B - tu * A));
+	number D = cos(tk) + (A * SQR(tk) * 0.5 + tk * (B - tu * A) + C) / kb2;
+
+	number g1 = (angle - tu) * A + B;
+	number g_ = A * SQR(angle) / 2. + angle * (B - tu * A);
+	number g = g_ + C;
+
+// 	// unkinked bending regime
+	if(acos(cosine) <tu) {
+		if(update_forces) {
+			torque = -_kb * kb1 * sin_vector;
+			p->torque -= p->orientationT * torque;
+			q->torque += q->orientationT * torque;
+// 			// forces are not updated since this term of the potential only introduces a torque,
+// 			// since it does not depend on r.
+		}
+		energy = _kb * (1 - cosine) * kb1;
+	}		//intermediate regime
+	else if(acos(cosine) < tk) {
+		if(update_forces) {
+			sin_vector.normalize();
+			torque = -_kb * g1 * sin_vector;
+
+			p->torque -= p->orientationT * torque;
+			q->torque += q->orientationT * torque;
+		}
+		energy = _kb * g;
+	}		// kinked bending regime - same as unkinked, but with an additive term to the energy and with a different bending.
+	else {
+		if(update_forces) {
+			torque = -_kb * kb2 * sin_vector;
+			p->torque -= p->orientationT * torque;
+			q->torque += q->orientationT * torque;
+// 			// forces are not updated since this term of the potential only introduces a torque,
+// 			// since it does not depend on r.
+		}
+		// energy = _kb*( (1 - up*uq) * kb2 + _get_phi_bending(p->index) );
+		energy = _kb * (D - cosine) * kb2;
+
+	}
+	return energy;
+
+}
+
+number PSPInteraction::bonded_twist(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces) {
+
+	if(_kt == 0 || p->kt_pref == 0) return 0;// just return 0 if the k_t is 0.
+//	return the twist part of the interaction energy.
+	LR_vector &up = p->orientationT.v1;
+	LR_vector &uq = q->orientationT.v1;
+	LR_vector &fp = p->orientationT.v2;
+	LR_vector &fq = q->orientationT.v2;
+	LR_vector &vp = p->orientationT.v3;
+	LR_vector &vq = q->orientationT.v3;
+
+	LR_vector torque(0., 0., 0.);
+	number energy = 0;
+	number M = fp * fq + vp * vq;
+	number L = 1 + up * uq;
+	number cos_alpha_plus_gamma = M / L;
+
+	// if it gets here, the twisting angle is too big
+	if(-cos_alpha_plus_gamma >= _twist_b) {
+		if(p->spring_neighbours.size()==2 || q->spring_neighbours.size()==2){
+			// if it doesn't involve the terminal bead and we're using MD, exit with an error
+			if(update_forces) {
+				throw oxDNAException("(TEPInteraction.cpp) During the simulation, the twisting angle between bonded neighbors %d and %d exceeded acceptable values (cos_alpha_plus_gamma = %g)", p->index, q->index, cos_alpha_plus_gamma);
+			}
+			// if the forces are not needed, just log it.
+			// OX_LOG(Logger::LOG_INFO,"the bond between the bead %d and the bead %d is too twisted! cos_alpha_plus_gamma = %g, average superhelical density = %g/N,_my_time1 = %lld,_my_time2 = %lld",p->get_index(),q->get_index(),cos_alpha_plus_gamma,_my_time1*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI)),_my_time1, _my_time2);
+		}
+		energy = 1.e12;
+	}
+	else {
+// 		// if it gets here, the angle is in the normal region
+		if(-cos_alpha_plus_gamma <= _twist_a) {
+			if(update_forces) {
+
+				torque = -(_kt / L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq)) * p->kt_pref;
+
+				p->torque -= p->orientationT * torque;
+				q->torque += q->orientationT * torque;
+				// forces are not updated since this term of the potential only introduces a torque,
+				// as it only depends on r.
+			}
+			energy = _kt * (1 - cos_alpha_plus_gamma);
+		}
+		// if it gets here, the angle is in the intermediate region, where the behaviour is lorentzian
+		else {
+			// quadratic constants of the potential - here for sentimental reasons
+			//number A = ( _twist_b - _twist_a)*( _twist_b - _twist_a)*( _twist_b - _twist_a )*0.5;	//A = (b - a)^3/2
+			//number C = 0.5*(_twist_a - _twist_b) + _twist_a;// C = (a - b)/2 + a
+
+			number A = (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * (_twist_b - _twist_a) * 0.25;			//A = (b - a)^5/4
+			number C = 0.25 * (_twist_a - _twist_b) + _twist_a;			// C = (a - b)/4 + a
+
+			if(update_forces) {
+				// the torque is made steeper by multiplication of the derivative of the potential. It should work.
+				//torque.normalize();
+				torque = -(_kt / L) * (fp.cross(fq) + vp.cross(vq) - cos_alpha_plus_gamma * up.cross(uq)) * p->kt_pref;				//this torque is the same as above
+				// quadratic prefactor - here for sentimental reasons
+				//torque *= 2*A/( (SQR(_twist_b+cos_alpha_plus_gamma))*(_twist_b+cos_alpha_plus_gamma) );
+				torque *= 4 * A / ((SQR(_twist_b + cos_alpha_plus_gamma)) * (SQR(_twist_b + cos_alpha_plus_gamma)) * (_twist_b + cos_alpha_plus_gamma));
+
+				p->torque -= p->orientationT * torque;
+				q->torque += q->orientationT * torque;
+			}
+			energy = _kt * (1. + A / (SQR( -cos_alpha_plus_gamma - _twist_b) * SQR(-cos_alpha_plus_gamma - _twist_b)) + C);
+		}
+	}
+
+	energy *= p->kt_pref;
+	return energy;
+}
+
+number PSPInteraction::bonded_alignment(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces) {
+//	return the alignment term of the interaction energy.
+
+	LR_vector up, tp;
+	// these particles are initialised to P_VIRTUAL to prevent gcc from complaining
+	BaseParticle *backp = P_VIRTUAL, *frontp = P_VIRTUAL;
+// //	make sure the particle q follows p and not the contrary
+
+	if(q->index>p->index) {
+		up = p->orientationT.v1;
+		tp = q->pos - p->pos;
+		backp = p;
+		frontp = q;
+	} //now this only happens for the last particle, so this means that the particle p has to be aligned with the vector between r_p - r_q
+// 	else if(p == q->n5) { // subho my model already takes care of the problem
+// 		//new bit
+// 		up = p->orientationT.v1;
+// 		tp = p->pos - q->pos;
+// 		backp = p;
+// 		frontp = q;
+
+// 		//old bit - kept here for the records
+// 		//up = q->orientationT.v1;
+// 		//tp = p->pos - q->pos;
+// 		//backp = q;
+// 		//frontp = p;
+// 		number tpm = tp.module();
+// 		if(update_forces) {
+// 			// prima che inizi e' 
+// 			// LR_vector force = _ka*(up - tp*(up*tp)/SQR(tpm))/tpm;
+// 			LR_vector force = -_ka * (up - tp * (up * tp) / SQR(tpm)) / tpm;
+// 			backp->force -= force;
+// 			frontp->force += force;
+// 			//only the torque on p is updated, since this interaction term is basically a self-interaction
+// 			//that keeps a particle's u vector aligned with  its tangent vector.
+// 			// prima che inizi e' 
+// 			//backp->torque -= backp->orientationT*((_ka*tp.cross(up))/tpm);
+// 			backp->torque -= backp->orientationT * ((_ka * tp.cross(up)) / tpm);
+// 			//LR_vector temp=((_ka*tp.cross(up))/tp.module());
+// 			//printf("%lf %lf %lf %lf %lf %lf\n",temp.x,temp.y,temp.z, tp.cross(force).x, tp.cross(force).y,tp.cross(force).z);
+// 		}
+// 		return _ka * (1 - (up * tp) / tpm);
+// 	}
+// 	else {
+// 		printf("CHe cazzo ci faccio qua io?\n");
+// 		abort();
+// 	}
+	number tpm = tp.module();
+	if(update_forces) {
+		LR_vector force = _ka * (up - tp * (up * tp) / SQR(tpm)) / tpm;
+		backp->force -= force;
+		frontp->force += force;
+		//only the torque on p is updated, since this interaction term is basically a self-interaction
+		//that keeps a particle's u vector aligned with  its tangent vector.
+		backp->torque -= backp->orientationT * ((_ka * tp.cross(up)) / tpm);
+	}
+
+	return _ka * (1 - (up * tp) / tpm);
+}
+
+// Rotate a vector around a versor (TODO: propose to add this to defs.h)
+LR_vector PSPInteraction::rotateVectorAroundVersor(const LR_vector vector, const LR_vector versor, const number angle) {
+	/* According to section 5.2 of this webpage http://inside.mines.edu/fs_home/gmurray/ArbitraryAxisRotation/ ,
+	 // the image of rotating a vector (x,y,z) around a versor (u,v,w) is given by
+	 //      / u(ux + vy + wz)(1 - cos th) + x cos th + (- wy + vz) sin th \
+//      | v(ux + vy + wz)(1 - cos th) + y cos th + (+ wx - uz) sin th |
+	 //      \ w(ux + vy + wz)(1 - cos th) + z cos th + (- vx + uy) sin th /
+	 //      Note that the first parenthesis in every component contains the scalar product of the vectors,
+	 //      and the last parenthesys in every component contains a component of the cross product versor ^ vector.
+	 //      The derivation that they show on the webpage seems sound, and I've checked it with Mathematica in about//			 1 hour of ininterrupting swearing. */
+	number costh = cos(angle);
+	number sinth = sin(angle);
+	number scalar = vector * versor;
+	LR_vector cross = versor.cross(vector);
+	return LR_vector(versor.x * scalar * (1. - costh) + vector.x * costh + cross.x * sinth, versor.y * scalar * (1. - costh) + vector.y * costh + cross.y * sinth, versor.z * scalar * (1. - costh) + vector.z * costh + cross.z * sinth);
+}
 
 number PSPInteraction::linearRepulsion(number patchyEpsilon, LR_vector &r, LR_vector &force, number sigma, number rstar, number b, number rc, bool update_forces) {
 	// this is a bit faster than calling r.norm()
@@ -237,14 +534,27 @@ number PSPInteraction::cubicRepulsion(number patchyEpsilon, LR_vector &r, LR_vec
 	return energy;
 }
 
-number PSPInteraction::exeVolInt(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
-	if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
-	// number totalRadius = particleTopology[p->index][2]+particleTopology[q->index][2];
-	
+
+// Patchy Functions
+number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
 	return 0;
 }
 
+number PSPInteraction::patchyInteractionColored(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
+	return 0;
+}
 
+number PSPInteraction::patchyInteraction2point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
+	return 0;
+}
+
+number PSPInteraction::patchyInteraction3point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
+	return 0;
+}
+
+number PSPInteraction::patchyInteractionBubble(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
+	return 0;
+}
 
 //Debug function
 void PSPInteraction::print2DArraytoFile(std::string filename, float* arr, int row, int col){
