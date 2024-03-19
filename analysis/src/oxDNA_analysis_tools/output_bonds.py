@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 import argparse
 from os import path
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
@@ -51,7 +51,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = pair_energy \n } \n }'
 
         if (not inp["use_average_seq"] or inp.get_bool("use_average_seq")) and "RNA" in inp["interaction_type"]:
-            print("WARNING: Sequence dependence not set for RNA model, wobble base pairs will be ignored", file=stderr)
+            log("Sequence dependence not set for RNA model, wobble base pairs will be ignored", level="warning")
 
         backend = oxpy.analysis.AnalysisBackend(inp)
 
@@ -143,12 +143,14 @@ def cli_parser(prog="output_bonds.py"):
     parser.add_argument('-v', type=str, nargs=1, dest='outfile', help='if you want instead average per-particle energy as an oxView JSON')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-u', '--units', type=str, nargs=1, dest='units', help="(optional) The units of the energy (pNnm or oxDNA)")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
     check(["python", "numpy"])
 
@@ -186,7 +188,7 @@ def main():
     else:
         units = "oxDNA su"
         conversion_factor = 1
-        print("INFO: no units specified, assuming oxDNA su", file=stderr)
+        log("no units specified, assuming oxDNA su")
 
     energies, potentials = output_bonds(traj_info, top_info, inputfile, visualize, conversion_factor, ncpus)
 
@@ -201,7 +203,7 @@ def main():
                 f.write("{{\n\"{} ({})\" : [".format(potential, units))
                 f.write(', '.join([str(x) for x in energies[:,i]]))
                 f.write("]\n}")
-            print("INFO: Wrote oxView overlay to:", fname)
+            log(f"Wrote oxView overlay to: {fname}")
 
 
 if __name__ == "__main__":

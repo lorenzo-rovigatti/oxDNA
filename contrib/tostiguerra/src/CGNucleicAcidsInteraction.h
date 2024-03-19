@@ -2,6 +2,7 @@
 #define CGNUCLEICACIDS_INTERACTION_H
 
 #include "Interactions/BaseInteraction.h"
+#include "ParticleFTG.h"
 
 #include <vector>
 #include <array>

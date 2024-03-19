@@ -1,4 +1,4 @@
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import numpy as np
 import pickle
 from os.path import exists, abspath
@@ -49,12 +49,13 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=-1) -> Iter
         chunk_size = get_chunk_size()
     current_chunk = 0
     while True:
-        print(f"INFO: processed {current_chunk*chunk_size} / {len(traj_info.idxs)} confs", end='\r', file=stderr)
+        log(f"Processed {current_chunk*chunk_size} / {len(traj_info.idxs)} confs", end='\r')
         if current_chunk*chunk_size >= len(traj_info.idxs):
             break
         confs = get_confs(top_info, traj_info, current_chunk*chunk_size, chunk_size)
         yield confs
         current_chunk += 1
+    print()
 
 #calculates the length of a trajectory file
 def _index(traj_file) -> List[ConfInfo]: 
@@ -137,7 +138,7 @@ def get_top_info(top:str) -> TopInfo:
         if my_top_info[-1] == '5->3':
             my_top_info = my_top_info[:-1]
         else:
-            print("WARNING: The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.")
+            log("The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.", level='warning')
         
         # There's actually nothing different between the headers once you remove the new marker.
         if len(my_top_info) == 2:
@@ -375,7 +376,7 @@ def strand_describe(top:str) -> Tuple[System, list]:
 
         # With the old topology, we assume that the sytem is homogenous.
         if 'U' in [m.btype for m in monomers]:
-            print("INFO: RNA detected, all strands will be marked as RNA", file=stderr)
+            log("RNA detected, all strands will be marked as RNA")
             for s in system.strands:
                 s.type = 'RNA'
 

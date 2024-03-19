@@ -1,7 +1,6 @@
 import cython
 import numpy as np
 cimport numpy as numpy
-from sys import stderr
 from cpython.bytes cimport PyBytes_Size 
 from libc.stdio cimport fopen, fclose, fread, fseek, FILE
 from libc.string cimport strtok, strcpy, strlen

@@ -1,6 +1,6 @@
 import os
 import argparse
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import oxpy
 
 def cli_parser(prog="generate_force.py"):
@@ -10,6 +10,7 @@ def cli_parser(prog="generate_force.py"):
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Name of the file to write the forces to. Defaults to forces.txt')
     parser.add_argument('-f', '--pairs', type=str, nargs=1, help='Name of the file to write the designed pairs list to')
     parser.add_argument('-s', '--stiff', type=float, nargs=1, help='Stiffness of the mutual trap')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -18,6 +19,7 @@ def main():
     args = parser.parse_args()
 
     #Process command line arguments:
+    logger_settings.set_quiet(args.quiet)
     inputfile = args.inputfile[0]
     conf_file = args.configuration[0]
 
@@ -26,7 +28,7 @@ def main():
         outfile = args.output[0]
     else: 
         outfile = "forces.txt"
-        print("INFO: No outfile name provided, defaulting to \"{}\"".format(outfile), file=stderr)
+        log("No outfile name provided, defaulting to \"{}\"".format(outfile))
 
     if args.pairs:
         pairsfile = args.pairs[0]
@@ -48,7 +50,7 @@ def main():
         inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = hb_list \n } \n }'
 
         if (not inp["use_average_seq"] or inp.get_bool("use_average_seq")) and "RNA" in inp["interaction_type"]:
-            print("WARNING: Sequence dependence not set for RNA model, wobble base pairs will be ignored", file=stderr)
+            log("Sequence dependence not set for RNA model, wobble base pairs will be ignored", level="warning")
 
         backend = oxpy.analysis.AnalysisBackend(inp)
 
@@ -77,11 +79,11 @@ def main():
     if pairsfile:
         with open(pairsfile, "w") as file:
             file.writelines(pairlines)
-            print("INFO: Wrote pairs to {}".format(pairsfile), file=stderr)
+            log("Wrote pairs to {}".format(pairsfile))
 
     with open(outfile, "w") as file:
             file.writelines(lines)
-            print("INFO: Job finished. Wrote forces to {}".format(outfile), file=stderr)
+            log("Job finished. Wrote forces to {}".format(outfile))
 
 if __name__ == "__main__":
     main()

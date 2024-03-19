@@ -1,7 +1,7 @@
 import argparse
 from typing import Union
 from os import remove, path
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from collections import namedtuple
 from numpy import round
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
@@ -57,7 +57,7 @@ def minify(traj_info:TrajInfo, top_info:TopInfo, out:str, d:Union[int,None]=None
 
         oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
 
-    print(f"INFO: Wrote aligned trajectory to {out}", file=stderr)
+    log(f"Wrote aligned trajectory to {out}")
 
     return
 
@@ -68,12 +68,14 @@ def cli_parser(prog="minify.py"):
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-a', action = 'store_true', help='Discard a vectors.')
     parser.add_argument('-d', type=int, nargs=1,  help='Round positions and orientations to the specified number of digits.')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     traj_file = args.trajectory[0]
     out = args.outfile[0]
 

@@ -2,7 +2,6 @@ import argparse
 from typing import Tuple
 import numpy as np 
 import matplotlib.pyplot as plt
-from sys import exit, stderr
 from json import dumps
 from warnings import catch_warnings, simplefilter
 from os import path
@@ -11,6 +10,7 @@ from oxDNA_analysis_tools.UTILS.data_structures import Configuration, TopInfo, T
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, get_chunk_size
 from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, inbox
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 import time
 start_time = time.time()
@@ -137,12 +137,12 @@ def pca(traj_info:TrajInfo, top_info:TopInfo, mean_conf:Configuration, ncpus:int
 
     #now that we have the covatiation matrix we're going to use eigendecomposition to get the principal components.
     #make_heatmap(covariance)
-    print("INFO: calculating eigenvectors", file=stderr)
+    log("calculating eigenvectors")
     evalues, evectors = np.linalg.eig(covariation_matrix) #these eigenvalues are already sorted
     evectors = evectors.T #vectors come out as the columns of the array
-    print("INFO: eigenvectors calculated", file=stderr)
+    log("eigenvectors calculated")
 
-    print("INFO: Saving scree plot to scree.png", file=stderr)
+    log("Saving scree plot to scree.png")
     plt.scatter(range(0, len(evalues)), evalues, s=25)
     plt.xlabel("component")
     plt.ylabel("eigenvalue")
@@ -177,12 +177,14 @@ def cli_parser(prog="pca.py"):
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")    
     parser.add_argument('-c', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's position in PCA space?")
     parser.add_argument('-n', metavar='num_components', nargs=1, type=int, dest='N', help="(optional) Print the first N components as oxView overlay files (defaults to 1)")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     check(["python", "numpy"])
 
     traj_file = args.trajectory[0]
@@ -211,7 +213,7 @@ def main():
     coordinates, evalues, evectors = pca(traj_info, top_info, align_conf, ncpus)
 
     #make a quick plot from the first three components
-    print("INFO: Creating coordinate plot from first three eigenvectors.  Saving to coordinates.png", file=stderr)
+    log("Creating coordinate plot from first three eigenvectors.  Saving to coordinates.png")
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.scatter(coordinates[:,0], coordinates[:,1], coordinates[:,2], c='g', s=25)
@@ -226,7 +228,7 @@ def main():
     prep_pos_for_json = lambda conf: list(
                         list(p) for p in conf
                         )
-    print("INFO: Change the number of eigenvalues to sum and display by modifying the N variable in the script.  Current value: {}".format(N), file=stderr)
+    log("Change the number of eigenvalues to sum and display by modifying the N variable in the script.  Current value: {}".format(N))
     for i in range(0, N): #how many eigenvalues do you want?
         f = outfile.strip(".json")+str(i)+".json"
         out = np.sqrt(evalues[i])*evectors[i]
@@ -244,7 +246,7 @@ def main():
 
     #If we're running clustering, feed the linear terms into the clusterer
     if cluster:
-    #    print("INFO: Mapping configurations to component space...", file=stderr)
+    #    log("Mapping configurations to component space...")
 #
     #    #If you want to cluster on only some of the components, uncomment this
     #    #coordinates = coordinates[:,0:3]
