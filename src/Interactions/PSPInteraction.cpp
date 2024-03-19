@@ -29,6 +29,15 @@ void PSPInteraction::check_input_sanity(std::vector<BaseParticle *> &particles){
     // Check all the input file are correct.
 }
 
+// void PSPInteraction::coordinateConverter(){
+// 	#pragma omp parallel for
+// 	for(i=0;i<PSPmaxPatchColor;i++){
+// 		if(patchType[i]==1){
+// 			patches[i][2]*=
+// 		}
+// 	}
+// }
+
 void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &particles){
     // Read the top file
 	std::ifstream topology(this->_topology_filename);
@@ -40,33 +49,35 @@ void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 
 	allocate_particles(particles);
 	i=0;j=0;
+	int countP=0, countC=0;
 	while(std::getline(topology,line)){
 		if(line.empty()||line[0]=='#') continue; //skip empty line and comment
-		int countP=0;int countC=0;
 		if(line[0]=='i'){
 			if(line[1]=='P'){ //these are Patchy informations
 				std::stringstream body(line);
 				j=0;
 				while(body.tellg()!=-1){
 					body>>temp;
-					if(j==0) continue; //skip the first word
-					if(j==1 && stoi(temp) !=0) throw oxDNAException("Not supported yet");
-					if(j>6) continue; //skip the rest
-					patches[countP][j-2]=stoi(temp);
+					if(j==1) patchType[countP]=stoi(temp); //get the patch type.
+					if(j>1 && j<6) patches[countP][j-2]=stof(temp);
 					j++;
 				}
 				countP++;
+				// continue;
 			}
 			if(line[1]=='C'){
 				std::stringstream body(line);
 				j=0;
 				while(body.tellg()!=-1){
 					body>>temp; //skip word "iC"
-					particlePatches[countC][j]=stoi(temp);
+					// if(j==0) continue; //skip the first word
+					if(j>0) particlePatches[countC][j]=stoi(temp);
 					j++;
 				}
 				countC++;
+				// continue;
 			}
+			continue;
 		}
 		auto *p = static_cast<CCGParticle *>(particles[i]);
 		std::stringstream body(line);
@@ -103,6 +114,7 @@ void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 		}
 		i++;
 	};
+	// coordinateConverter();
 
 	//Setting up the matrix
 	#pragma omp parallel for
@@ -113,10 +125,18 @@ void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 		k0[i][0]=0; // all the spring constant are different
 		for(j=0;j<(int)p->spring_neighbours.size();j++){
 			connections[i][j+1]=p->spring_neighbours[j];
-			r0[i][j+1]=p->ro[j];
-			k0[i][j+1]=p->Bfactor[j];
+			r0[i][j+1]=(float)p->ro[j];
+			k0[i][j+1]=(float)p->Bfactor[j];
 		};
 	}
+	std::cout<<"Finished reading topology file"<<std::endl;
+	// Debugging
+	// print2DArraytoFile("connections.ign",(int*)connections,totPar,PSPmaxNeighbour);
+	// print2DArraytoFile("r0.ign",(float*)r0,totPar,PSPmaxNeighbour);
+	// print2DArraytoFile("k0.ign",(float*)k0,totPar,PSPmaxNeighbour);
+	// print2DArraytoFile("particleTopology.ign",(float*)particleTopology,totPar,3);
+	// print2DArraytoFile("patches.ign",(float*)patches,PSPmaxPatchColor,5);
+	// print2DArraytoFile("particlePatches.ign",(int*)particlePatches,PSPmaxParticleColor,PSPmaxPatchColor);
 }
 
 number PSPInteraction::pair_interaction(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
@@ -219,7 +239,34 @@ number PSPInteraction::cubicRepulsion(number patchyEpsilon, LR_vector &r, LR_vec
 
 number PSPInteraction::exeVolInt(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces){
 	if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
-	number totalRadius = particleTopology[p->index][2]+particleTopology[q->index][2];
+	// number totalRadius = particleTopology[p->index][2]+particleTopology[q->index][2];
 	
 	return 0;
+}
+
+
+
+//Debug function
+void PSPInteraction::print2DArraytoFile(std::string filename, float* arr, int row, int col){
+	std::ofstream file(filename);
+	if(!file.good()) throw oxDNAException("Something wrong with the file: %s",filename);
+	for(i=0;i<row;i++){
+		for(j=0;j<col;j++){
+			file<<arr[i*col+j]<<" ";
+		}
+		file<<std::endl;
+	}
+	file.close();
+}
+
+void PSPInteraction::print2DArraytoFile(std::string filename, int* arr, int row, int col){
+	std::ofstream file(filename);
+	if(!file.good()) throw oxDNAException("Something wrong with the file: %s",filename);
+	for(i=0;i<row;i++){
+		for(j=0;j<col;j++){
+			file<<arr[i*col+j]<<" ";
+		}
+		file<<std::endl;
+	}
+	file.close();
 }

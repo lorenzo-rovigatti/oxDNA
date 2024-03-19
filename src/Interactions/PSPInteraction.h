@@ -4,7 +4,7 @@
 #define PSPInteraction_H
 
 //Model maximum capacity
-#define PSPmaxParticles 2000
+#define PSPmaxParticles 20
 #define PSPmaxNeighbour 20
 #define PSPmaxParticleColor 20
 #define PSPmaxPatchColor 20
@@ -13,9 +13,15 @@
 #include "BaseInteraction.h"
 #include "../Particles/CCGParticle.h"
 #include <sstream>
+#include <fstream>
+#include <cmath>
 #include "omp.h" // for openmp
 
 class PSPInteraction: public BaseInteraction {
+private:
+	//Patch variables
+	int patchType[PSPmaxPatchColor];
+	// void coordinateConverter();
 public:
     // Temporary variables
     int i,j;
@@ -66,7 +72,19 @@ public:
 	//Checkers
 	int bonded(int i, int j);
 
+	//debug
+	void print2DArraytoFile(std::string filename, float *arr, int row, int col);
+	void print2DArraytoFile(std::string filename, int *arr, int row, int col);
+
 
 };
 
 #endif // PSPInteraction_H
+
+
+/////// Information about the topology file ///////
+// Patch Types:
+
+// 0 - Normal patch, directly the x,y,z coordinates will be used.
+// 1 - Square patch, x,y,z represents the position of the patch on a unit sphere, hence the final coordiantes will be (x,y,z)*radius
+// 2 - Spherical patch, where it is represented in r,theta,phi, r is not very meaningful, as it will be equal to radius of the sphere and can be any value.
