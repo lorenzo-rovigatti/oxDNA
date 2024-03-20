@@ -52,7 +52,7 @@ std::map<int, number> BaseInteraction::get_system_energy_split(std::vector<BaseP
 		energy_map[name] = (number) 0.f;
 	}
 
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for(auto p: particles) {
 		std::vector<BaseParticle *> neighs = lists->get_all_neighbours(p);
 
@@ -133,7 +133,7 @@ void BaseInteraction::compute_standard_stress_tensor() {
 	// after the calculation
 	old_forces.resize(CONFIG_INFO->N());
 	old_torques.resize(CONFIG_INFO->N());
-	#pragma parallel for
+	//#pragma parallel for
 	for(int i = 0; i < CONFIG_INFO->N(); i++) {
 		old_forces[i] = CONFIG_INFO->particles()[i]->force;
 		old_torques[i] = CONFIG_INFO->particles()[i]->torque;
@@ -157,7 +157,7 @@ void BaseInteraction::compute_standard_stress_tensor() {
 
 		neighs.insert(neighs.end(), bonded_neighs.begin(), bonded_neighs.end());
 
-		// #pragma parallel for
+		// //#pragma parallel for
 		for(auto q : neighs) {
 			if(p->index > q->index) {
 				LR_vector r = CONFIG_INFO->box->min_image(p->pos, q->pos);
@@ -220,7 +220,7 @@ number BaseInteraction::get_system_energy(std::vector<BaseParticle *> &particles
 
 	double energy = 0.;
 	std::vector<ParticlePair> pairs = lists->get_potential_interactions();
-	#pragma omp parallel for reduction(+:energy)
+	//#pragma omp parallel for reduction(+:energy)
 	for(auto &pair : pairs) {
 		BaseParticle *p = pair.first;
 		BaseParticle *q = pair.second;
@@ -238,7 +238,7 @@ number BaseInteraction::get_system_energy_term(int name, std::vector<BaseParticl
 	begin_energy_computation();
 
 	number energy = (number) 0.f;
-	#pragma omp parallel for reduction(+:energy)
+	//#pragma omp parallel for reduction(+:energy)
 	for(auto p : particles) {
 		std::vector<BaseParticle *> neighs = lists->get_all_neighbours(p);
 
@@ -280,7 +280,7 @@ void BaseInteraction::generate_random_configuration(std::vector<BaseParticle *> 
 	c.global_update();
 
 	int N = particles.size();
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for(int i = 0; i < N; i++) {
 		BaseParticle *p = particles[i];
 		bool same_strand = (_generate_consider_bonded_interactions && i > 0 && p->is_bonded(particles[i - 1]));

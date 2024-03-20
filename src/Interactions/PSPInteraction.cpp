@@ -10,6 +10,18 @@ PSPInteraction::~PSPInteraction(){
 
 void PSPInteraction::get_settings(input_file &inp){
     BaseInteraction::get_settings(inp); // Get basic settings
+	if(getInputString(&inp,"patchyRcut",temp,0)==KEY_FOUND){
+		patchyRcut =stod(temp);
+		patchyRcut2=SQR(patchyRcut);
+		std::cout<<"New cutoff value for the patchy interaction = "<<patchyRcut<<std::endl;
+	}
+	if(getInputString(&inp,"rcut",temp,0)==KEY_FOUND){ //set the rcut from the input file
+		_rcut=stod(temp);
+        _sqr_rcut=sqrt(_rcut);
+		std::cout<<"The new value of rcut = "<< _rcut<<std::endl;
+	}else{
+        _rcut=-1; // set the rcut after reading the topology. 2.5x largest radius
+    }
 }
 
 void PSPInteraction::init(){
@@ -107,7 +119,7 @@ void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 				particleTopology[i][1]=std::stoi(temp);
 			};
 			if(j==3){
-				p->radius=stof(temp);
+				p->radius=(number)stof(temp);
 				particleTopology[i][2]=std::stof(temp);
 			}
 			if(j>3){
@@ -139,6 +151,7 @@ void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 			k0[i][j+1]=(float)p->Bfactor[j];
 		};
 	}
+	setRcut(particles);
 	std::cout<<"Finished reading topology file"<<std::endl;
 	// Debugging
 	// print2DArraytoFile("connections.ign",(int*)connections,totPar,PSPmaxNeighbour);
@@ -553,6 +566,7 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 	}
 	if(p->btype==100||q->btype==100) return 0; // no color present ignore
 	if(p->strand_id>=0 && p->strand_id==q->strand_id) return 0;
+	if(rnorm<patchyRcut) return 0;
 	number energy=0;
 	// int c = 0;
 	LR_vector tmptorquep(0, 0, 0);
@@ -584,13 +598,13 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 			energy += energyIJ;
 
 			if(update_forces){
-				if(energyIJ<patchyLockCutOff){
-					patchLock[p->index][pi]=true;
-					patchLock[q->index][qi]=true;
-				}else{
-					patchLock[p->index][pi]=false;
-					patchLock[q->index][qi]=false;
-				}
+				// if(energyIJ<patchyLockCutOff){
+				// 	patchLock[p->index][pi]=true;
+				// 	patchLock[q->index][qi]=true;
+				// }else{
+				// 	patchLock[p->index][pi]=false;
+				// 	patchLock[q->index][qi]=false;
+				// }
 				number forceMag = 5*exp_part*r8b10;
 				LR_vector force = patchDist*(forceMag);
 				LR_vector ptorque = p->orientationT*pPatchR.cross(force), qtorque = q->orientationT*qPatchR.cross(force);
@@ -622,6 +636,21 @@ number PSPInteraction::patchyInteraction3point(CCGParticle *p, CCGParticle *q, b
 
 number PSPInteraction::patchyInteractionBubble(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
 	return 0;
+}
+
+void PSPInteraction::setRcut(std::vector<BaseParticle *> &particles){
+	if(_rcut<0){
+		// #pragma omp parallel for
+		for(i=0;i<totPar;i++){
+			auto *p = static_cast<CCGParticle*>(particles[i]);
+			if(p->radius>_rcut) _rcut=p->radius;
+		}
+		// _rcut+=patchyIntercept+patchySpacer;
+		_rcut*=2.1f;
+		// if(_rcut<patchyRcut) _rcut=patchyRcut; // This should not be the case
+	}
+	std::cout<<"Rcut is set to "<<_rcut<<std::endl;
+	_sqr_rcut=SQR(_rcut);
 }
 
 //Debug function
