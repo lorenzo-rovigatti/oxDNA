@@ -185,7 +185,7 @@ number PSPInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	if(!pCG->has_bond(q)){
 		// cout<<"Radius : " << pCG->radius << " " << qCG->radius << endl;
 		energy+=exc_vol_nonbonded(pCG,qCG,compute_r,update_forces);
-		// energy+=patchy_interaction_notorsion(pCG,qCG,compute_r,update_forces);
+		energy+=patchyInteractionSimple(pCG,qCG,compute_r,update_forces);
 	}
 	return energy;
 }
@@ -574,7 +574,7 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 
 			LR_vector patchDist = _computed_r + qPatchR - pPatchR;
 			number patchDist2 = patchDist.norm();
-			if(patchDist2>patchyRcut2) continue; // patch distance is too far
+			if(patchDist2>patchyRcut2) continue; // patch is too far
 
 
 			number r8b10 = patchDist2*patchDist2*patchDist2*patchDist2 / patchyPowAlpha;
@@ -594,7 +594,7 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 				number forceMag = 5*exp_part*r8b10;
 				LR_vector force = patchDist*(forceMag);
 				LR_vector ptorque = p->orientationT*pPatchR.cross(force), qtorque = q->orientationT*qPatchR.cross(force);
-				#pragma omp critical
+				#pragma omp critical // Do this one by one, overwriting can be 
 				{
 				p->force-=force;
 				q->force+=force;
@@ -606,7 +606,6 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 	}
 	// for(int pi=0;pi)
 	return energy;
-	return 0;
 }
 
 number PSPInteraction::patchyInteractionColored(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
