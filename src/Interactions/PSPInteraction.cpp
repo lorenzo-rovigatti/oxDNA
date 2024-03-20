@@ -13,6 +13,16 @@ void PSPInteraction::get_settings(input_file &inp){
 }
 
 void PSPInteraction::init(){
+	number r8b10 = powf(patchyRcut, (number) 8.f) / patchyPowAlpha;
+    patchyEcut = -1.001f * exp(-(number) 0.5f * r8b10 * patchyRcut2);
+
+	//making sure the lock is 0
+	#pragma omp parallel for collapse(2)
+	for(i=0;i<PSPmaxParticles;i++){
+		for(j=0;j<PSPmaxPatchOnParticle;j++){
+			patchLock[i][j]=false;
+		}
+	}
 }
 
 void PSPInteraction::allocate_particles(std::vector<BaseParticle *> &particles){
@@ -537,6 +547,65 @@ number PSPInteraction::cubicRepulsion(number patchyEpsilon, LR_vector &r, LR_vec
 
 // Patchy Functions
 number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
+	if(compute_r){
+		_computed_r = _box->min_image(p->pos,q->pos);
+		rnorm = _computed_r.norm();
+	}
+	if(p->btype==100||q->btype==100) return 0; // no color present ignore
+	if(p->strand_id>=0 && p->strand_id==q->strand_id) return 0;
+	number energy=0;
+	// int c = 0;
+	LR_vector tmptorquep(0, 0, 0);
+	LR_vector tmptorqueq(0, 0, 0);
+	int pparticleColor = particleTopology[p->index][1];
+	int qparticleColor = particleTopology[q->index][1];
+	// LR_vector pforce(0, 0, 0),qforce(0, 0, 0),ptorque(0, 0, 0),qtorque(0, 0, 0);
+	#pragma omp parallel for collapse(2) reduction(+:energy)
+	for(int pi=0;pi<particlePatches[pparticleColor][0];pi++){
+		for(int qi=0;qi<particlePatches[qparticleColor][0];qi++){
+			int pPatch = particlePatches[pparticleColor][pi+1];
+			int qPatch = particlePatches[qparticleColor][qi+1];
+
+			if(patches[pPatch][0]+patches[qPatch][0]!=0) continue; // colors are not compilmentory
+			if(patchLock[p->index][pi]|patchLock[q->index][qi]) continue; // patch is already locked
+			
+			LR_vector pPatchR = LR_vector(patches[pPatch][2],patches[pPatch][3],patches[pPatch][4]);
+			LR_vector qPatchR = LR_vector(patches[qPatch][2],patches[qPatch][3],patches[qPatch][4]);
+
+			LR_vector patchDist = _computed_r + qPatchR - pPatchR;
+			number patchDist2 = patchDist.norm();
+			if(patchDist2>patchyRcut2) continue; // patch distance is too far
+
+
+			number r8b10 = patchDist2*patchDist2*patchDist2*patchDist2 / patchyPowAlpha;
+			number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * patchDist2);
+			number energyIJ =  (patches[pPatch][1]+patches[qPatch][1]) * (exp_part - patchyEcut);
+
+			energy += energyIJ;
+
+			if(update_forces){
+				if(energyIJ<patchyLockCutOff){
+					patchLock[p->index][pi]=true;
+					patchLock[q->index][qi]=true;
+				}else{
+					patchLock[p->index][pi]=false;
+					patchLock[q->index][qi]=false;
+				}
+				number forceMag = 5*exp_part*r8b10;
+				LR_vector force = patchDist*(forceMag);
+				LR_vector ptorque = p->orientationT*pPatchR.cross(force), qtorque = q->orientationT*qPatchR.cross(force);
+				#pragma omp critical
+				{
+				p->force-=force;
+				q->force+=force;
+				p->torque-=ptorque;
+				q->torque+=qtorque;
+				}
+			}
+		}
+	}
+	// for(int pi=0;pi)
+	return energy;
 	return 0;
 }
 

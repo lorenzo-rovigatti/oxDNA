@@ -10,7 +10,7 @@
 #include "../Lists/CUDANoList.h"
 
 #include <thrust/device_vector.h>
-#include <thrust/fill.h>5
+// #include <thrust/fill.h>5
 #include <thrust/transform.h>
 
 class CUDAPSPInteraction: public CUDABaseInteraction, public PSPInteraction {

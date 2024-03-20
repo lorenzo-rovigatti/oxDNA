@@ -35,7 +35,8 @@ public:
 	int totPar,strads,totParticleColor,totPatchColor; //topology
 
 	// Patchy Parameters
-	number patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0.2,patchyEcutoff=0,patchyB=667.505671539f,patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f;
+	number patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0.2,patchyEcutoff=0,patchyB=667.505671539f,patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyEcut=0,patchyLockCutOff=-0.1;
+	number patchyRcut2=SQR(patchyRcut),patchyPowAlpha = powf(patchyAlpha, (number) 10.f);
 	number tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6,_ka = 100.,_kb = 21.,_kt = 29.7,_twist_a = 0.00,_twist_b = 0.95;
 	number tepFeneDelta2=SQR(tepFeneDelta);
 
@@ -45,9 +46,9 @@ public:
 	float k0[PSPmaxParticles][PSPmaxNeighbour]; // Spring constant, same as above
 	float particleTopology[PSPmaxParticles][3]; // Strand, particleColor, radius
 	float patches[PSPmaxPatchColor][11]; // color, strength, x, y, z, a1x, a1y, a1z, a2x, a2y, a2z // for PSP interaction patch color is useless and should be -1
-	int particlePatches[PSPmaxParticleColor][PSPmaxPatchColor]; // Number of patches, patch1, patch2, patch3, patch4, patch5, patch6
+	int particlePatches[PSPmaxParticleColor][PSPmaxPatchOnParticle]; // Number of patches, patch1, patch2, patch3, patch4, patch5, patch6
     // Patchy variables
-	int patchLock[PSPmaxParticles];
+	bool patchLock[PSPmaxParticles][PSPmaxPatchOnParticle]={}; // 0 - not locked, 1 - locked
 
 
     PSPInteraction();
@@ -80,6 +81,7 @@ public:
 
 	//Patchy Interactions
 	virtual number patchyInteractionSimple(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	// virtual bool patchyInteractionSimpleCheck(CCGParticle *p, CCGParticle *q);
 	virtual number patchyInteractionColored(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
 	virtual number patchyInteraction2point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
 	virtual number patchyInteraction3point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
