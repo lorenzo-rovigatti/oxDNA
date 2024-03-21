@@ -25,7 +25,7 @@ steps = 1e9
 edge_n_forces = 1
 
 ### MD PARAMS ###
-dt = 0.001
+dt = 0.005
 newtonian_steps=51
 diff_coeff=1
 thermostat=john

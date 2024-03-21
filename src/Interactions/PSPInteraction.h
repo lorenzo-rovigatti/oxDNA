@@ -40,6 +40,16 @@ public:
 	number tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6,_ka = 100.,_kb = 21.,_kt = 29.7,_twist_a = 0.00,_twist_b = 0.95;
 	number tepFeneDelta2=SQR(tepFeneDelta);
 
+	// 3body patchy
+	// std::vector<number> _patchy_eps;
+	number _patch_rcut = -1.;
+	number _sqr_patch_rcut = -1.;
+	number _sigma_ss = 0.4;
+	number _rcut_ss = -1.;
+	number _lambda = 1.0;
+	number _A_part = 0.;
+	number _B_part = 0.;
+
 	//Topology variables
 	int connections[PSPmaxParticles][PSPmaxNeighbour+1]; // 5 0 1 2 3 4 where 5 is the number of neighbours and 0 1 2 3 4 are the neighbours
 	float r0[PSPmaxParticles][PSPmaxNeighbour+1]; // Equilibrium radius of the spring, if starts with 0 all particles have different radius, if 1 all particles have same radius
@@ -88,14 +98,17 @@ public:
 	// virtual bool patchyInteractionSimpleCheck(CCGParticle *p, CCGParticle *q);
 	virtual number patchyInteractionColored(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
 	virtual number patchyInteraction2point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
-	virtual number patchyInteraction3point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
+	virtual number patchyInteraction3point(CCGParticle *p, PatchyBond &new_bond, bool update_forces);
 	virtual number patchyInteractionBubble(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces);
 
 	//debug
 	void print2DArraytoFile(std::string filename, float *arr, int row, int col);
 	void print2DArraytoFile(std::string filename, int *arr, int row, int col);
 
-
+protected:
+	inline std::vector<PatchyBond> &_particle_bonds(BaseParticle *p) {
+		return static_cast<CCGParticle *>(p)->bonds;
+	}
 };
 
 #endif // PSPInteraction_H

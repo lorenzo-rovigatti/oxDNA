@@ -622,15 +622,103 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 	return energy;
 }
 
-number PSPInteraction::patchyInteractionColored(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
-	return 0;
-}
-
 number PSPInteraction::patchyInteraction2point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
-	return 0;
+	number energy = (number) 0.f;
+	number sqr_r = _computed_r.norm();
+	if(sqr_r > _sqr_rcut) return (number) 0.f;
+	for(uint pi = 0; pi < p->N_int_centers(); pi++) {
+		LR_vector ppatch = p->int_centers[pi];
+		for(uint pj = 0; pj < q->N_int_centers(); pj++) {
+			LR_vector qpatch = q->int_centers[pj];
+
+			LR_vector patch_dist = _computed_r + qpatch - ppatch;
+			number dist = patch_dist.norm();
+			if(dist < _sqr_patch_rcut) {
+				number r_p = sqrt(dist);
+				number exp_part = exp(_sigma_ss / (r_p - _rcut_ss));
+				number tmp_energy = patchyEpsilon*_A_part * exp_part * (_B_part / SQR(dist) - 1.);
+
+				energy += tmp_energy;
+
+				number tb_energy = (r_p < _sigma_ss) ? 1 : -tmp_energy;
+
+				PatchyBond p_bond(q, r_p, pi, pj, tb_energy);
+				PatchyBond q_bond(p, r_p, pj, pi, tb_energy);
+
+				if(update_forces) {
+					number force_mod = patchyEpsilon * _A_part * exp_part * (4. * _B_part / (SQR(dist) * r_p)) + _sigma_ss * tmp_energy / SQR(r_p - _rcut_ss);
+					LR_vector tmp_force = patch_dist * (force_mod / r_p);
+
+					LR_vector p_torque = p->orientationT * ppatch.cross(tmp_force);
+					LR_vector q_torque = q->orientationT * qpatch.cross(tmp_force);
+
+					p->force -= tmp_force;
+					q->force += tmp_force;
+
+					p->torque -= p_torque;
+					q->torque += q_torque;
+
+					p_bond.force = tmp_force;
+					p_bond.p_torque = p_torque;
+					p_bond.q_torque = q_torque;
+
+					q_bond.force = -tmp_force;
+					q_bond.p_torque = -q_torque;
+					q_bond.q_torque = -p_torque;
+				}
+
+				_particle_bonds(p).emplace_back(p_bond);
+				_particle_bonds(q).emplace_back(q_bond);
+
+				energy += patchyInteraction3point(p, p_bond, update_forces);
+				energy += patchyInteraction3point(q, q_bond, update_forces);
+			}
+		}
+	}
 }
 
-number PSPInteraction::patchyInteraction3point(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
+number PSPInteraction::patchyInteraction3point(CCGParticle *p, PatchyBond &new_bond, bool update_forces){
+	number energy = 0.;
+
+	number curr_energy = new_bond.energy;
+	const auto &p_bonds = _particle_bonds(p);
+	for(auto &other_bond : p_bonds) {
+		if(other_bond.other != new_bond.other && other_bond.p_patch == new_bond.p_patch) {
+			number other_energy = other_bond.energy;
+			energy += _lambda * curr_energy * other_energy;
+
+			if(update_forces) {
+				if(new_bond.r_p > _sigma_ss) {
+					BaseParticle *other = new_bond.other;
+					number factor = -_lambda * other_energy;
+					LR_vector tmp_force = factor * new_bond.force;
+
+					p->force -= tmp_force;
+					other->force += tmp_force;
+
+					p->torque -= factor * new_bond.p_torque;
+					other->torque += factor * new_bond.q_torque;
+				}
+				if(other_bond.r_p > _sigma_ss) {
+					BaseParticle *other = other_bond.other;
+
+					number factor = -_lambda * curr_energy;
+					LR_vector tmp_force = factor * other_bond.force;
+
+					p->force -= tmp_force;
+					other->force += tmp_force;
+
+					p->torque -= factor * other_bond.p_torque;
+					other->torque += factor * other_bond.q_torque;
+				}
+			}
+		}
+	}
+
+	return energy;
+}
+
+number PSPInteraction::patchyInteractionColored(CCGParticle *p, CCGParticle *q, bool compute_r, bool update_forces){
 	return 0;
 }
 
