@@ -566,7 +566,8 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 	}
 	if(p->btype==100||q->btype==100) return 0; // no color present ignore
 	if(p->strand_id>=0 && p->strand_id==q->strand_id) return 0;
-	if(rnorm<patchyRcut) return 0;
+	// if(rnorm<patchyRcut) return 0;
+	if(_computed_r.module()>patchyRcut+p->radius+q->radius) return 0;// if the particles are farther than the cutoff, ignore
 	number energy=0;
 	// int c = 0;
 	LR_vector tmptorquep(0, 0, 0);
@@ -645,6 +646,7 @@ void PSPInteraction::setRcut(std::vector<BaseParticle *> &particles){
 			auto *p = static_cast<CCGParticle*>(particles[i]);
 			if(p->radius>_rcut) _rcut=p->radius;
 		}
+		_rcut+=patchyRcut;
 		// _rcut+=patchyIntercept+patchySpacer;
 		_rcut*=2.1f;
 		// if(_rcut<patchyRcut) _rcut=patchyRcut; // This should not be the case
