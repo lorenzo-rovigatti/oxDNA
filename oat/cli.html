@@ -572,7 +572,7 @@
 </section>
 <section id="duplex-angle-plotter">
 <h2>Duplex angle plotter<a class="headerlink" href="#duplex-angle-plotter" title="Permalink to this heading"></a></h2>
-<p><p>Finds the ensemble of angles between any two duplexes defined by a starting or ending nucleotide in the system</p>
+<p><p>Finds the ensemble of angles between pairs duplexes defined by nucleotides in the duplexes.</p>
 </p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">oat</span> <span class="n">duplex_angle_plotter</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">angle_file</span> <span class="p">[</span><span class="n">angle_file</span> <span class="o">...</span><span class="p">]]</span>
                                 <span class="p">[</span><span class="o">-</span><span class="n">v</span> <span class="n">INVERT_MASK</span> <span class="p">[</span><span class="n">INVERT_MASK</span> <span class="o">...</span><span class="p">]]</span>
@@ -585,7 +585,7 @@
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>-i, --input</kbd></dt>
-<dd><p>An angle file from duplex_angle_finder.py and a list of duplex-end particle pairs to compare.  Can call -i multiple times to plot multiple datasets.</p>
+<dd><p>An angle file from duplex_angle_finder.py and a list of particle id pairs found in the duplexes you want to compare.  Can call -i multiple times to plot multiple datasets together.</p>
 </dd>
 <dt><kbd>-v, --invert_mask</kbd></dt>
 <dd><p>If 1 invert the i-th vector, if 0, do nothing.</p>
