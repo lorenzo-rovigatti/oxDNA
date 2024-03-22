@@ -37,6 +37,7 @@ public:
     number tepFeneDelta2=SQR(tepFeneDelta);
     number _ka = 100.,_kb = 21.,_kt = 29.7; //Energies
     number 	_twist_a = 0.00,_twist_b = 0.95; //cosine
+    int lookupDistance=2;
 
     // Helix future variables 
 

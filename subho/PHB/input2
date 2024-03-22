@@ -52,7 +52,7 @@ ensemble = NVT
 #parfile = replica.par
 topology = helix.top
 conf_file = helix.dat
-trajectory_file = trajectory2.dat
+trajectory_file = trajectory3.dat
 lastconf_file=last_conf2.dat
 log_file = log2.ign
 no_stdout_energy = 0
@@ -65,4 +65,4 @@ time_scale = linear
 ###### CCG ################
 #patchyB = 10
 # rcut is essential for now
-rcut = 1.5
+rcut = 12

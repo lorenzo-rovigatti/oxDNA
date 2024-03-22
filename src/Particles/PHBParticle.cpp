@@ -31,7 +31,7 @@ void PHBParticle::add_patch(Patch &patch) {
 // }
 
 void PHBParticle::set_positions(){
-	#pragma omp parallel for
+	// #pragma omp parallel for
     for(uint i=0;i<patches.size();i++){
         int_centers[i]=orientation*patches[i].position;
         // patches[i].a1=patches[i].a1static.x*orientationT.v1+patches[i].a1static.y*orientationT.v2+patches[i].a1static.z*orientationT.v3;

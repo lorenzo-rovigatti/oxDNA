@@ -389,12 +389,18 @@ number PHBInteraction::bonded_alignment(PHBParticle *p, PHBParticle *q, bool com
 	BaseParticle *backp = P_VIRTUAL, *frontp = P_VIRTUAL;
 // //	make sure the particle q follows p and not the contrary
 
-	if(q->index>p->index) {
+	if(q->index-p->index==1) {
 		up = p->orientationT.v1;
 		tp = q->pos - p->pos;
 		backp = p;
 		frontp = q;
-	} //now this only happens for the last particle, so this means that the particle p has to be aligned with the vector between r_p - r_q
+	}else if(p->index-q->index==1) {
+		up = q->orientationT.v1;
+		tp = p->pos - q->pos;
+		backp = q;
+		frontp = p;
+	}
+	 //now this only happens for the last particle, so this means that the particle p has to be aligned with the vector between r_p - r_q
 // 	else if(p == q->n5) { // subho my model already takes care of the problem
 // 		//new bit
 // 		up = p->orientationT.v1;
@@ -627,7 +633,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 	if(compute_r){
 		_computed_r = _box->min_image(p->pos,q->pos);
 		rnorm = _computed_r.norm();
-	} 
+	}
 	
 	if(rnorm > this->patchyRcut2) return 0; // not within reach ignore
 	if(p->btype==100||q->btype==100) return 0; // no color present ignore
@@ -640,6 +646,9 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 	// #pragma omp parallel for reduction(+:energy)
 	if(p->patches.size() != 6) throw oxDNAException("Number of patches is not 6, something is wrong");
 	for(uint pi=0;pi< p->patches.size();pi++){
+		// if(p->type==-4){
+		// 	// ppatch = _box->min_image(p->pos + )
+		// }
 		LR_vector ppatch = p->int_centers[pi];
 		// cout<<p->int_centers[pi]<<p->orientation*p->patches[pi].position<<endl;
 		// throw oxDNAException("Stop here");
