@@ -29,7 +29,7 @@ void PSPInteraction::init(){
     patchyEcut = -1.001f * exp(-(number) 0.5f * r8b10 * patchyRcut2);
 
 	//making sure the lock is 0
-	#pragma omp parallel for collapse(2)
+	// #pragma omp parallel for collapse(2)
 	for(i=0;i<PSPmaxParticles;i++){
 		for(j=0;j<PSPmaxPatchOnParticle;j++){
 			patchLock[i][j]=false;
@@ -139,7 +139,7 @@ void PSPInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	// coordinateConverter();
 
 	//Setting up the matrix
-	#pragma omp parallel for
+	// #pragma omp parallel for
 	for(i=0;i<totPar;i++){
 		auto *p = static_cast<CCGParticle *>(particles[i]);
 		connections[i][0]=p->spring_neighbours.size();
@@ -575,7 +575,7 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 	int pparticleColor = particleTopology[p->index][1];
 	int qparticleColor = particleTopology[q->index][1];
 	// LR_vector pforce(0, 0, 0),qforce(0, 0, 0),ptorque(0, 0, 0),qtorque(0, 0, 0);
-	#pragma omp parallel for collapse(2) reduction(+:energy)
+	// #pragma omp parallel for collapse(2) reduction(+:energy)
 	for(int pi=0;pi<particlePatches[pparticleColor][0];pi++){
 		for(int qi=0;qi<particlePatches[qparticleColor][0];qi++){
 			int pPatch = particlePatches[pparticleColor][pi+1];
@@ -609,13 +609,13 @@ number PSPInteraction::patchyInteractionSimple(CCGParticle *p, CCGParticle *q, b
 				number forceMag = 5*exp_part*r8b10;
 				LR_vector force = patchDist*(forceMag);
 				LR_vector ptorque = p->orientationT*pPatchR.cross(force), qtorque = q->orientationT*qPatchR.cross(force);
-				#pragma omp critical // Do this one by one, overwriting can be 
-				{
+				// #pragma omp critical // Do this one by one, overwriting can be 
+				// {
 				p->force-=force;
 				q->force+=force;
 				p->torque-=ptorque;
 				q->torque+=qtorque;
-				}
+				// }
 			}
 		}
 	}
