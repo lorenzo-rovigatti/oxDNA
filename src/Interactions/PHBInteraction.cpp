@@ -555,7 +555,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	std::cout<<"Successfully completed topology reading with total types of patches = "<<patches.size()<< " and types of colored particles = "<<particleColors.size()<<" with rcut = "<<_rcut<<std::endl;
 
 	//Setting GPU connections
-	#pragma omp parallel for
+	// #pragma omp parallel for
 	for(i=0;i<totPar;i++){
 		auto *p = static_cast<PHBParticle*>(particles[i]);
 		GPUconnections[i][0]=(int)(p->ro.size());
@@ -567,7 +567,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 		}
 	};
 
-	#pragma omp parallel for
+	// #pragma omp parallel for
 	for(i=0;i<(int)patches.size();i++){
 		GPUpatches[i][0]=patches[i].color;
 		GPUpatches[i][1]=patches[i].strength;
@@ -576,7 +576,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 		GPUpatches[i][4]=patches[i].position.z;
 	}
 
-	#pragma omp parallel for
+	// #pragma omp parallel for
 	for(i=0;i<(int)particleColors.size();i++){
 		GPUnumPatches[i][0]=(int)particleColors[i].size();
 		for(j=0;j<(int)particleColors[i].size();j++){
@@ -589,13 +589,13 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 
 void PHBInteraction::setRcut(std::vector<BaseParticle *> &particles){
 	if(_rcut<0){
-		#pragma omp parallel for
+		// #pragma omp parallel for
 		for(i=0;i<totPar;i++){
 			auto *p = static_cast<PHBParticle*>(particles[i]);
 			if(p->radius>_rcut) _rcut=p->radius;
 		}
 		_rcut+=patchyIntercept+patchySpacer;
-		_rcut*=2.7;
+		_rcut*=2;
 		if(_rcut<patchyRcut) _rcut=patchyRcut;
 	}
 	_sqr_rcut=SQR(_rcut);
@@ -637,7 +637,8 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 	LR_vector tmptorquep(0, 0, 0);
 	LR_vector tmptorqueq(0, 0, 0);
 
-	#pragma omp parallel for reduction(+:energy)
+	// #pragma omp parallel for reduction(+:energy)
+	if(p->patches.size() != 6) throw oxDNAException("Number of patches is not 6, something is wrong");
 	for(uint pi=0;pi< p->patches.size();pi++){
 		LR_vector ppatch = p->int_centers[pi];
 		// cout<<p->int_centers[pi]<<p->orientation*p->patches[pi].position<<endl;

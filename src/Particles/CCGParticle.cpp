@@ -64,8 +64,8 @@ void CCGParticle::return_kro(int particleIndex,double *k,double *r0){
     }
 }
 
-void CCGParticle::set_positions() {
-	for(uint i = 0; i < N_int_centers(); i++) {
-		int_centers[i] = (orientation * _base_patches[i]) * _sigma;
-	}
-}
+// void CCGParticle::set_positions() {
+// 	for(uint i = 0; i < N_int_centers(); i++) {
+// 		int_centers[i] = (orientation * _base_patches[i]) * _sigma;
+// 	}
+// }

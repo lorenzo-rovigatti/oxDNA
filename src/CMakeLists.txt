@@ -115,7 +115,7 @@ SET(interactions_SOURCES
 	Interactions/DNAInteraction.cpp
 	Interactions/DNA2Interaction.cpp
 	Interactions/CCGInteraction.cpp
-	Interactions/PSPInteraction.cpp
+	# Interactions/PSPInteraction.cpp
 	# Interactions/PatchyShapeInteraction.cpp
 	Interactions/DNAInteraction_nomesh.cpp
 	Interactions/DNAInteraction_relax.cpp
@@ -317,7 +317,7 @@ IF(CUDA)
 		CUDA/Interactions/CUDARNAInteraction.cu
 		CUDA/Interactions/CUDAPatchyInteraction.cu
 		CUDA/Interactions/CUDATEPInteraction.cu
-		CUDA/Interactions/CUDAPSP.cu
+		# CUDA/Interactions/CUDAPSP.cu
 		CUDA/Interactions/CUDAInteractionFactory.cu
 		CUDA/Lists/CUDAListFactory.cu
 		CUDA/Lists/CUDANoList.cu
