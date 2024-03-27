@@ -397,8 +397,8 @@ number PHBInteraction::bonded_alignment(PHBParticle *p, PHBParticle *q, bool com
 	}else if(p->index-q->index==1) {
 		up = q->orientationT.v1;
 		tp = p->pos - q->pos;
-		backp = q;
-		frontp = p;
+		backp = p;
+		frontp = q;
 	}
 	 //now this only happens for the last particle, so this means that the particle p has to be aligned with the vector between r_p - r_q
 // 	else if(p == q->n5) { // subho my model already takes care of the problem
@@ -645,6 +645,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 
 	// #pragma omp parallel for reduction(+:energy)
 	if(p->patches.size() != 6) throw oxDNAException("Number of patches is not 6, something is wrong");
+	std::cout<<p->patches.size()<<std::endl;
 	for(uint pi=0;pi< p->patches.size();pi++){
 		// if(p->type==-4){
 		// 	// ppatch = _box->min_image(p->pos + )

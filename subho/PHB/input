@@ -17,7 +17,7 @@ max_density_multiplier = 10
 ####    SIM PARAMETERS    ####
 ##############################
 ### Universal Params ###
-T = 0.125
+T = 0.123
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
