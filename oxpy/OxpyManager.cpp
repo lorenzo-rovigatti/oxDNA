@@ -30,10 +30,20 @@ OxpyManager::OxpyManager(input_file input) :
 				SimManager(input) {
 SimManager::load_options();
 SimManager::init();
+	if(SimManager::started) {
+		throw oxDNAException(
+			"It appears you're attempting to initialize a new OxpyManager without properly destroying "
+			"a previous instance, which is not permitted. In Python, you can achieve this by explicitly "
+			"deleting the variable \"manager\" using \"del manager\"."
+		);
+	}
 }
 
 OxpyManager::~OxpyManager() {
-
+	// reset some static variables that are used internally by the code to keep track of its corrent status
+	SimManager::stop = false;
+	SimManager::started = false;
+	Utils::converted_temperatures.clear();
 }
 
 std::shared_ptr<ConfigInfo> OxpyManager::config_info() {
