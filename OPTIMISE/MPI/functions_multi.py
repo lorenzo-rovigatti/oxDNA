@@ -322,6 +322,7 @@ def read_config(cfile_name) :
         
         cg.mu_sampled = np.zeros(cg.dimension[cg.seq_id], dtype = float)
         cg.cov_sampled = np.zeros((cg.dimension[cg.seq_id],cg.dimension[cg.seq_id]), dtype = float)
+        cg.cov0_sampled = np.zeros((cg.dimension[cg.seq_id],cg.dimension[cg.seq_id]), dtype = float)
         
         for i in range(cg.Nseq) :
         
@@ -561,23 +562,36 @@ def ave_and_cov_stored() :
     Nsnaps = len(cg.internal_coords)
     Ncoords = len(cg.internal_coords[0])
     
+    Nave = Nsnaps
+    
+    for i in range(Nsnaps) :
+        if 998.9 < cg.energy_sampled[i] and cg.energy_sampled[i] > 999.1 :
+            Nave -= 1
+    
     for i in range(Ncoords) :
         cg.mu_sampled[i] = 0.
         for j in range(Ncoords) :
             cg.cov_sampled[i][j] = 0.
-    
+            cg.cov0_sampled[i][j] = 0.
+       
     for i in range(Nsnaps) :
+        if 998.9 < cg.energy_sampled[i] and cg.energy_sampled[i] > 999.1 :
+            continue
         for j in range(Ncoords) :
-            cg.mu_sampled[j] += cg.internal_coords[i][j]/Nsnaps
+            cg.mu_sampled[j] += cg.internal_coords[i][j]/Nave
     
     for i in range(Nsnaps) :
+        if 998.9 < cg.energy_sampled[i] and cg.energy_sampled[i] > 999.1 :
+            continue
         for j in range(Ncoords) :
             for z in range(j,Ncoords) :
-                cg.cov_sampled[j][z] += (cg.internal_coords[i][j] - cg.mu_sampled[j])*(cg.internal_coords[i][z] - cg.mu_sampled[z])/Nsnaps
+                cg.cov_sampled[j][z] += (cg.internal_coords[i][j] - cg.mu_sampled[j])*(cg.internal_coords[i][z] - cg.mu_sampled[z])/Nave
+                cg.cov0_sampled[j][z] += cg.internal_coords[i][j]*cg.internal_coords[i][z]/Nave
     
     for j in range(Ncoords) :
         for z in range(j+1,Ncoords) :
-            cg.cov_sampled[z][j] = cg.cov_sampled[j][z]    
+            cg.cov_sampled[z][j] = cg.cov_sampled[j][z]
+            cg.cov0_sampled[z][j] = cg.cov0_sampled[j][z] 
     
     return
 
@@ -1171,8 +1185,10 @@ def Relative_entropy_wRew(par,stop,par0):
             else:
                 update_rew_seq_dep_file(par)
                 
+        print("We are here 0 rank " +str(cg.rank))
         #bcast par from rank 0 (where optimisation is performed) to other cpus
         par=cg.comm.bcast(par, root=0)
+        print("We are there 0 rank " +str(cg.rank))
         
         
         
@@ -1188,37 +1204,82 @@ def Relative_entropy_wRew(par,stop,par0):
         energy1 = []
                  
         read = False
+        
+        cg.stop_flag = 0
 
-        with oxpy.Context():              
+        with oxpy.Context():      
+            
              
+             #print("We are here -1 rank " +str(cg.rank))
              #read input script specifying sequence dependent file
              inp = oxpy.InputFile()
-             
              inp.init_from_filename("./Seq"+str(l)+"/Rep"+str(rep)+"/input2.an")
-             #create analysys backend
-             backend = oxpy.analysis.AnalysisBackend(inp)
-         
-             obs = backend.config_info().observables
              
-             counts = -1
+             #backend = oxpy.analysis.AnalysisBackend(inp)
              
-             while 1==1 : 
-                 try:
-                     read =  backend.read_next_configuration()
-                 except:
-                     counts+=1
-                     energy1.append(999)
-                     print("Warning: exception in oxpy energy computation; reweighting. Seq "+str(l)+", Rep "+str(rep)+", conf" +str(counts))
-                     continue
-                 if read == False :
-                     break
-                 counts+=1
+             try :
+                 #create analysys backend
+                 backend = oxpy.analysis.AnalysisBackend(inp)
+             except :
+                 print("Could not start oxpy. Throwing a stop flag.")
+                 cg.stop_flag = 1
+
+             if cg.stop_flag == 0 :
+                 obs = backend.config_info().observables
                  
-                 if(counts < cg.in_snap) :
-                     continue
-                 a = float(obs[0].get_output_string(backend.conf_step).split()[0])
-                 energy1.append((cg.Njuns[l]+1)*20*a)
+                 #print("We are there -1 rank " +str(cg.rank))
+                 
+                 counts = -1
+                 
+                 #print("We are here rank " +str(cg.rank))
+                 
+                 while 1==1 : 
+                     try:
+                         read =  backend.read_next_configuration()
+                     except:
+                         counts+=1
+                         energy1.append(999)
+                         print("Warning: exception in oxpy energy computation; reweighting. Seq "+str(l)+", Rep "+str(rep)+", conf" +str(counts))
+                         continue
+                     if read == False :
+                         break
+                     counts+=1
                      
+                     if(counts < cg.in_snap) :
+                         continue
+                     a = float(obs[0].get_output_string(backend.conf_step).split()[0])
+                     #print(counts)
+                     if math.isnan( a ) or (abs((cg.Njuns[l]+1)*20*a-cg.energy_sampled[counts-cg.in_snap])>30):    #avoid nans and overflows
+                         energy1.append(999)
+                         #print("We are here 0 rank " +str(cg.rank))
+                     else :
+                         energy1.append((cg.Njuns[l]+1)*20*a)
+                         
+        counts_disc = 0
+                         
+        if cg.stop_flag == 0 :              
+           for k in range(len(energy1)) :
+               if energy1[k] < 999.01 and energy1[k] > 998.99 :
+                   counts_disc += 1
+           
+        #sanity check: if more than half of the configurations are discarded, then the parameters are too extreme. 
+        #Return S = 1000000, works with Nelder-Mead.
+           
+           if counts_disc >= len(energy1)*0.5 :
+                print("Warning: too many discarded configurations")
+                cg.stop_flag = 1
+                         
+                         
+        #if something goes horribly wrong, return S = 10^6
+        cg.stop_flag = cg.comm.allreduce(cg.stop_flag,op=MPI.SUM)
+        
+        if cg.stop_flag > 0:
+            if cg.rank == 0:
+                print("Warning!: Got a stop flag in the reweighting. Returning S = 10^6")
+            return 1000000
+                     
+        #print("We are there rank " +str(cg.rank))
+        counts_disc = 0                     
 
         #reweight for rep rep and seq l
         
@@ -1231,34 +1292,43 @@ def Relative_entropy_wRew(par,stop,par0):
         #reweight mean for seq l rep rep
         for i in range(len(cg.internal_coords)) :
      
-             if energy1[i] != 999 and cg.energy_sampled[i] != 999:
+             if (energy1[i] > 999.01 or energy1[i] < 998.99) and (cg.energy_sampled[i] > 999.01 or cg.energy_sampled[i] < 998.99):
                  deltaH = (energy1[i] - cg.energy_sampled[i])
-                 
-                 #print(deltaH)
+                 if math.isnan( deltaH ) :
+                     print("rank "+ str(cg.rank) + " " + str(i) + " " + str(deltaH))                     
                  
                  for j in range(len(cg.internal_coords[i])) :
      
                          mu[j] += cg.internal_coords[i][j]*math.exp(-deltaH)
+                         
+                         if math.isnan(math.exp(-deltaH)) :
+                             print("Exp is nan: delta = "+str(deltaH))
+                         
                          av_e_to_deltaH[j] += math.exp(-deltaH)
              
         #reduce gs to seq leader and compute rew gs for seq l (i.e. sum over reps)
         
+        #print("We are here 1 rank " +str(cg.rank))
+        
         mu = cg.comm_seq.reduce(mu,op=MPI.SUM, root=0)
-        av_e_to_deltaH = cg.comm_seq.reduce(av_e_to_deltaH,op=MPI.SUM, root=0)
+        av_e_to_deltaH = cg.comm_seq.allreduce(av_e_to_deltaH,op=MPI.SUM)
+        
+        #print("We are there 1 rank " +str(cg.rank))
         
         if cg.rank_seq == 0: #same as cg.rank in cg.leaders
         
 
             for i in range(len(mu)) :
                  mu[i] = mu[i]*(1./av_e_to_deltaH[i])
+                 
         
         mu = cg.comm_seq.bcast(mu, root=0)   #mu, for each sequence, is now the average over all reps
-        av_e_to_deltaH = cg.comm_seq.bcast(av_e_to_deltaH, root=0)   #same as mu: sum over all reps
+        #av_e_to_deltaH = cg.comm_seq.bcast(av_e_to_deltaH, root=0)   #same as mu: sum over all reps
         
         #reweight covariance
         for i in range(len(cg.internal_coords)) :
              
-             if energy1[i] != 999 and cg.energy_sampled[i] != 999:
+             if (energy1[i] > 999.01 or energy1[i] < 998.99) and (cg.energy_sampled[i] > 999.01 or cg.energy_sampled[i] < 998.99):
                  
                  for j in range(len(cg.internal_coords[i])) :
                          for z in range(j,len(cg.internal_coords[i])) :
@@ -1268,7 +1338,11 @@ def Relative_entropy_wRew(par,stop,par0):
         
         #reduce cov to seq leader
         
+        #print("We are here 2 rank " +str(cg.rank))
+        
         cov = cg.comm_seq.reduce(cov,op=MPI.SUM, root=0)
+        
+        #print("We are there 2 rank " +str(cg.rank))
           
         if cg.rank_seq == 0:         
             for i in range(len(mu)):
@@ -1546,7 +1620,12 @@ def Relative_entropy_wRew(par,stop,par0):
             
             S = cg.comm_leaders.reduce(S,op=MPI.SUM, root=0)
             
+            if S > 100000 or S < 0 :
+                print("S overflow. Setting it to 10^6")
+                S = 1000000
+            
             if cg.rank == 0 :                
                 print("tot S: "+str(S))
+                
     
     return S

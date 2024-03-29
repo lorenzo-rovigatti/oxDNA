@@ -15,7 +15,8 @@ import time
 import functions_multi as functions
 from oxdna_to_internal_wflip import read_oxdna_trajectory_standard_order
 import config_multi as cg
-import Utils
+import Utils_mpi
+from mpi4py import MPI
 
 cg.size = cg.comm.Get_size()
 cg.rank = cg.comm.Get_rank()
@@ -24,7 +25,7 @@ cg.rank = cg.comm.Get_rank()
 if len(sys.argv) != 2 :
     print("Unknown argument format.")
     print("Usage: python3 optimise.py config_file")
-    sys.exit()
+    sys.exit(1)
 
 start_time = 0.
 
@@ -35,7 +36,7 @@ config_file = sys.argv[1]
 
 #READ PARAMETERS
 if functions.read_config(config_file) == False :
-    sys.exit()
+    sys.exit(1)
     
     
 #SET UP MPI COMMUNICATORS
@@ -88,23 +89,34 @@ print("READING COORDINATES SEQ "+str(l)+" REP" +str(i))
 
 functions.store_internal_coord(traj,cg.ids,cg.in_j[l],cg.fin_j[l],cg.in_snap,True)
 
- 
-#average coordinates and energy
-functions.ave_and_cov_stored()
 
+#check that the simulation went well:
     
-print("SEQUENCE "+str(l))
+lsamp = len(cg.internal_coords)
 
-print("mu sampled:")
-print(cg.mu_sampled[l])
-
-print("cov sampled:")
-#functions.print_matrix(cg.cov_sampled)
-print(cg.cov_sampled[l])
-
+if lsamp < cg.in_snap + 100:
+    print("FATAL:")
+    print("Not enough sampled configurations.")
+    print("At least 100+IN_SNAP sampled configurations are needed." )
+    print("Did something go wrong with the simulation?")
+    sys.exit(1)    
 
 
 #compute energy of trajectory by using oxpy
+
+#accepted minumn value of hb bonds.
+#if the number of hb of a configuration is less then min_hb, than it is discarded
+#since configurations melt from the ends, this we can make it so the protion of DNA used for optimisation is always a double helix
+min_rj = cg.inj
+if cg.jfe < min_rj :
+    min_rj = cg.jfe
+    
+min_hb = cg.Njuns[cg.seq_id ]+1
+if min_rj  > 0 :
+    min_hb = min_hb - min_rj + 1
+    
+    
+discarded = 0
 
 with oxpy.Context():
     
@@ -150,10 +162,54 @@ with oxpy.Context():
         if(counts < cg.in_snap) :
             continue
         a = float(obs[0].get_output_string(backend.conf_step).split()[0])
-        cg.energy_sampled.append((cg.Njuns[l]+1)*20*a)
-                
-                
-#Utils.plot_gs_sampled()   XXXXTODO does not work with MPI!!! 
+        b = int(obs[1].get_output_string(backend.conf_step).split()[0])   #number of hbonds (value of the order parameter)
+        
+        if b < min_hb :
+            cg.energy_sampled.append(999)
+            print("rank " + str(cg.rank) + ", seq"+ str(cg.seq_id)+ " rep"+str(cg.rep_id)+", discarded one conf. Hb = "+str(b))
+            discarded += 1
+        else:        
+            cg.energy_sampled.append((cg.Njuns[l]+1)*20*a)
+            
+print("rank " + str(cg.rank) + ", seq"+ str(cg.seq_id)+ " rep"+str(cg.rep_id)+ " total discarded confs: "+str(discarded))
+
+if lsamp - cg.in_snap - discarded <  100:
+    print("FATAL:")
+    print("Discarded too many configurations.")
+    print("Not enough sampled configurations left.")
+    print("At least 100 configurations are needed for acceptable statistics." )
+    print("Did something go wrong with the simulation?")
+    sys.exit(1)   
+            
+#average coordinates and energy
+functions.ave_and_cov_stored()
+
+
+print("SEQUENCE "+str(l))
+
+print("mu sampled:")
+print(cg.mu_sampled[l])
+
+print("cov sampled:")
+#functions.print_matrix(cg.cov_sampled)
+print(cg.cov_sampled[l])
+            
+#compute mu and cov for sequence (summing over replicas)      
+cg.mu_sampled = cg.comm_seq.reduce(cg.mu_sampled,op=MPI.SUM, root=0)
+cg.cov0_sampled = cg.comm_seq.reduce(cg.cov0_sampled,op=MPI.SUM, root=0)
+
+if cg.rank_seq == 0: #same as cg.rank in cg.leaders
+
+    cg.mu_sampled /= cg.Nreps
+    cg.cov0_sampled /= cg.Nreps  
+    
+    for p in range(len(cg.cov0_sampled)) :
+        for q in range(len(cg.cov0_sampled[p])) :
+            cg.cov_sampled[p][q] =  cg.cov0_sampled[p][q] - cg.mu_sampled[p]*cg.mu_sampled[q]    
+
+    Utils_mpi.plot_gs_sampled()
+    Utils_mpi.plot_cov_sampled_diag()
+    
        
 #read initial values of the optimisation parameters (from initial seq dep file)
 ifile = open("oxDNA_sequence_dependent_parameters_in.txt",'r')
@@ -193,23 +249,32 @@ for line in ifile.readlines() :
                 
                 if vals1[0] == "FENE" and vals1[1] == "R0" :    #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
-                    up_bond.append(float(vals[2])*1.03)
-                    low_bond.append(float(vals[2])*0.97)
+                    up_bond.append(float(vals[2])*1.02)
+                    low_bond.append(float(vals[2])*0.98)
                 
                 elif vals1[0] == "FENE" and vals1[1] == "DELTA" :    #stricter for FENE_DELTA (+-5%), to avoid problems with the FENE potential
                     
-                    up_bond.append(float(vals[2])*1.05)
-                    low_bond.append(float(vals[2])*0.95)
+                    up_bond.append(float(vals[2])*1.02)
+                    low_bond.append(float(vals[2])*0.98)
                     
                 elif vals1[0] == "STCK" and vals1[1] == "R0" :
                     
                     up_bond.append(float(vals[2])*1.05)
-                    low_bond.append(float(vals[2])*0.95)
+                    low_bond.append(float(vals[2])*0.95) 
                     
-                else : 
+                elif vals1[0] == "STCK" and vals1[2] == "T0" and abs(float(vals[2])) < 0.01:   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
-                    up_bond.append(float(vals[2])*1.5)
-                    low_bond.append(float(vals[2])*0.5)
+                    up_bond.append(0.2)
+                    low_bond.append(-0.2)
+                    
+                elif vals1[0] == "CRST" and vals1[1] == "THETA4" and vals1[2] == "T0" :   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
+                    
+                    up_bond.append(float(vals[2])*1.1)
+                    low_bond.append(float(vals[2])*0.9)
+                    
+                else :                    
+                    up_bond.append(float(vals[2])*1.2)
+                    low_bond.append(float(vals[2])*0.8)
                     
                 
                 order.append(i)
@@ -229,6 +294,8 @@ low_bond = [low_bond_c[i] for i in order]
 print(order)
 print(par0_c)
 
+
+
 for i in range(len(order)) :
     par0[order[i]] = par0_c[i]
     up_bond[order[i]] = up_bond_c[i]
@@ -239,12 +306,13 @@ for i in range(len(order)) :
 print(par0)
 
 print("Initial values of the optimisation parameters: ")
-print(par0)
 
-par = par0
+par = copy.deepcopy(par0)
+
+
+print(par)
 
 bnd = optimize.Bounds(low_bond,up_bond)
-
 
 
 print("RUNNING MINIMISATION")
@@ -253,6 +321,7 @@ print("RUNNING MINIMISATION")
 if cg.rank == 0:
     
     stop = [0]
+    
     
     #sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(par0),method='nelder-mead',options={'maxiter':cg.miter, 'eps':0.1})
     if cg.algo == "L-BFGS-B" :
@@ -263,7 +332,7 @@ if cg.rank == 0:
     
     else :
         print("UNKNOWN ALGORITHM!")
-        sys.exit()
+        sys.exit(1)
     
     #OPTI DONE
     print("OPTI DONE")

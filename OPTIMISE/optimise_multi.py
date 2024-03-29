@@ -126,6 +126,7 @@ for l in range(cg.Nseq) :
                 
                 
 Utils.plot_gs_sampled()
+Utils.plot_cov_sampled_diag()
             
        
 #read initial values of the optimisation parameters (from initial seq dep file)

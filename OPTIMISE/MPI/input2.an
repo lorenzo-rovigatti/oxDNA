@@ -27,6 +27,7 @@ small_system = 1
 topology = replace_me1/generated.top
 conf_file = replace_me1/generated.dat
 trajectory_file = replace_me1/trajectory.dat
+#op_file = replace_me1/op.txt
 refresh_vel = 1
 #log_file = log.dat
 no_stdout_energy = 0
@@ -45,7 +46,7 @@ type = potential_energy
 #split = true
 }
 #col_2 = {
-#type = total_energy
+#type = order_parameters
 #}
 }
 

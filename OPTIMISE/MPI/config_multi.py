@@ -50,6 +50,7 @@ energy_sampled = [] #stores the energy of the sampled configurations
 energy_stk_sampled = [] #stores the stacking enegy of the sampled configurations
 
 mu_sampled = [] #sampled means (list of arrays, one for each different sequence)
+cov0_sampled = [] #sampled means (list of arrays, one for each different sequence)
 cov_sampled = [] #sampled covaraiances (list of matrices, one for each sequence)
 
 target_mu = [] #target means
@@ -94,6 +95,8 @@ seq_id = 0
 rep_id = 0
 
 update_rews = False
+
+stop_flag = 0
 
 ############# FOR MELTING TEMPERATURE ############
 
