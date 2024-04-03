@@ -8,6 +8,15 @@
 #ifndef CCGInteraction_H_
 #define CCGInteraction_H_
 
+// Make sure that PHB is also set to greater or same value
+#ifndef MAXparticles
+#define MAXparticles 2000
+#endif
+#ifndef MAXneighbour
+#define MAXneighbour 13
+#endif
+
+
 #include "BaseInteraction.h"
 #include "../Particles/PatchyParticle.h"
 #include "../Utilities/parse_input/parse_input.h"
@@ -38,6 +47,15 @@ public:
 	// bool connection,bcall; // connection shifts between adding spring neighbours and Bfactor during reading of the topology file
 	
 	double patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=0,patchyInteractionDistanceCutoff=0;
+
+	//GPU matrix
+	int CPUconnections[MAXparticles][MAXneighbour+1];//first intger will state number of connections
+	double CPUro[MAXparticles][MAXneighbour+1];//rarius of the spring
+	double CPUk[MAXparticles][MAXneighbour+1];//spring constant
+	int CPUtopology[MAXparticles][4];// strand, strength, iC,radius
+	// double patches[GPUmaxiP][5];// color,strength,x,y,z
+
+
 	CCGInteraction();
 	virtual ~CCGInteraction();
 

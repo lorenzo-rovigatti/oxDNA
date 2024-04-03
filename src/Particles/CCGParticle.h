@@ -39,11 +39,16 @@ public:
     std::vector<int> spring_neighbours;
     std::vector<double>Bfactor,ro;
     double radius,strength=1.0f;
+    int lockedTo=-1;
+
+    void unlock() {lockedTo = -1;};//unlock the particle
+    bool is_locked() {return lockedTo >= 0;};//check if the particle is locked
+    bool locked_to(int particle_id) {return is_locked() && particle_id == lockedTo;};//check if the particle is locked to a particular particle
+    void lock_to(int particle_id) {lockedTo = particle_id;};//lock the particle to a particular particle
     //Patchy Intereaaction
     // std::vector<LR_vector> _base_patches;
     // number _sigma;
     // std::vector<PatchyBond> bonds;
-    // int lockedTo=0; //to have patchy interaction between single pair
     // bool multipatch=true;// if multiple patches could attach or not.
 };
 

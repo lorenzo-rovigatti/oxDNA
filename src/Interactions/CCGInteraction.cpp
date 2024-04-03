@@ -436,6 +436,25 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 		i++;
 	}
 	*N_strands=strands;
+
+	//Setting GPU matrix
+	for(i=0;i<totPar;i++){
+		auto *p = static_cast<CCGParticle*>(particles[i]);
+		CPUtopology[i][0]=p->strand_id;
+		CPUtopology[i][1]=p->strength;
+		CPUtopology[i][2]=p->btype;
+		CPUtopology[i][3]=p->radius;
+		
+		CPUconnections[i][0]=(int)(p->ro.size());
+		CPUro[i][0]=0;
+		CPUk[i][0]=0;
+
+		for(j=0;j<(int)p->ro.size();j++){
+			CPUconnections[i][j+1] = p->spring_neighbours[j];
+			CPUro[i][j+1] = p->ro[j];
+			CPUk[i][j+1] = p->Bfactor[j];
+		}
+	};
 };
 
 void CCGInteraction::check_input_sanity(std::vector<BaseParticle*> &particles) {

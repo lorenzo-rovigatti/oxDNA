@@ -9,8 +9,8 @@
 
 // all gpu essential definitions
 #define GPUmaxiP 40 // maximum patch point for a particle for ico 6 connective points
-#define MAXparticles 1000 // maximum number of particles
-#define MAXneighbour 10 // number of bonded neighbout one particle is connected to 
+#define MAXparticles 2000 // maximum number of particles
+#define MAXneighbour 15 // number of bonded neighbout one particle is connected to 
 #define GPUmaxiC 10 // unique patchy configuration max iC number.
 #define MaxPatches 24 // maximum number of patches
 

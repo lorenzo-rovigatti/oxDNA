@@ -329,15 +329,15 @@ number PHBInteraction::bonded_twist(PHBParticle *p, PHBParticle *q, bool compute
 
 	// if it gets here, the twisting angle is too big
 	if(-cos_alpha_plus_gamma >= _twist_b) {
-		if(p->spring_neighbours.size()==2 || q->spring_neighbours.size()==2){
-			// if it doesn't involve the terminal bead and we're using MD, exit with an error
-			if(update_forces) {
-				throw oxDNAException("(TEPInteraction.cpp) During the simulation, the twisting angle between bonded neighbors %d and %d exceeded acceptable values (cos_alpha_plus_gamma = %g)", p->index, q->index, cos_alpha_plus_gamma);
-			}
-			// if the forces are not needed, just log it.
-			// OX_LOG(Logger::LOG_INFO,"the bond between the bead %d and the bead %d is too twisted! cos_alpha_plus_gamma = %g, average superhelical density = %g/N,_my_time1 = %lld,_my_time2 = %lld",p->get_index(),q->get_index(),cos_alpha_plus_gamma,_my_time1*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI)),_my_time1, _my_time2);
-		}
-		energy = 1.e12;
+		// if(p->spring_neighbours.size()==2 || q->spring_neighbours.size()==2){
+		// 	// if it doesn't involve the terminal bead and we're using MD, exit with an error
+		// 	if(update_forces) {
+		// 		throw oxDNAException("(TEPInteraction.cpp) During the simulation, the twisting angle between bonded neighbors %d and %d exceeded acceptable values (cos_alpha_plus_gamma = %g)", p->index, q->index, cos_alpha_plus_gamma);
+		// 	}
+		// 	// if the forces are not needed, just log it.
+		// 	// OX_LOG(Logger::LOG_INFO,"the bond between the bead %d and the bead %d is too twisted! cos_alpha_plus_gamma = %g, average superhelical density = %g/N,_my_time1 = %lld,_my_time2 = %lld",p->get_index(),q->get_index(),cos_alpha_plus_gamma,_my_time1*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI)),_my_time1, _my_time2);
+		// }
+		// energy = 1.e12;
 	}
 	else {
 // 		// if it gets here, the angle is in the normal region
