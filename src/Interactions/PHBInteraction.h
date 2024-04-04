@@ -79,6 +79,7 @@ public:
     virtual number bonded_twist(PHBParticle *p, PHBParticle *q, bool compute_r=true, bool update_forces=false);
     virtual number bonded_double_bending(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
     virtual number bonded_alignment(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
+    virtual number falseTwist(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
 
     //Patchy Interactions
     virtual number patchy_interaction_notorsion(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);

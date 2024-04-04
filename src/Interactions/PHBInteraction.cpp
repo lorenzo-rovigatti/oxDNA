@@ -75,7 +75,8 @@ number PHBInteraction::pair_interaction_bonded(BaseParticle *p, BaseParticle *q,
 	// std::cout<< "this is called "<< std::endl;
 	// if(pCG->has_bond(q)){
 		energy += spring(pCG,qCG,compute_r,update_forces);
-		energy += bonded_twist(pCG, qCG, false, update_forces);
+		// energy += bonded_twist(pCG, qCG, false, update_forces);
+		// energy += falseTwist(pCG, qCG, false, update_forces);
 		energy += bonded_double_bending(pCG, qCG, false, update_forces);
 		energy += bonded_alignment(pCG, qCG, false, update_forces);
 	// }
@@ -329,15 +330,15 @@ number PHBInteraction::bonded_twist(PHBParticle *p, PHBParticle *q, bool compute
 
 	// if it gets here, the twisting angle is too big
 	if(-cos_alpha_plus_gamma >= _twist_b) {
-		// if(p->spring_neighbours.size()==2 || q->spring_neighbours.size()==2){
-		// 	// if it doesn't involve the terminal bead and we're using MD, exit with an error
-		// 	if(update_forces) {
-		// 		throw oxDNAException("(TEPInteraction.cpp) During the simulation, the twisting angle between bonded neighbors %d and %d exceeded acceptable values (cos_alpha_plus_gamma = %g)", p->index, q->index, cos_alpha_plus_gamma);
-		// 	}
-		// 	// if the forces are not needed, just log it.
-		// 	// OX_LOG(Logger::LOG_INFO,"the bond between the bead %d and the bead %d is too twisted! cos_alpha_plus_gamma = %g, average superhelical density = %g/N,_my_time1 = %lld,_my_time2 = %lld",p->get_index(),q->get_index(),cos_alpha_plus_gamma,_my_time1*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI)),_my_time1, _my_time2);
-		// }
-		// energy = 1.e12;
+		if(p->spring_neighbours.size()==2 || q->spring_neighbours.size()==2){
+			// if it doesn't involve the terminal bead and we're using MD, exit with an error
+			if(update_forces) {
+				throw oxDNAException("(TEPInteraction.cpp) During the simulation, the twisting angle between bonded neighbors %d and %d exceeded acceptable values (cos_alpha_plus_gamma = %g)", p->index, q->index, cos_alpha_plus_gamma);
+			}
+			// if the forces are not needed, just log it.
+			// OX_LOG(Logger::LOG_INFO,"the bond between the bead %d and the bead %d is too twisted! cos_alpha_plus_gamma = %g, average superhelical density = %g/N,_my_time1 = %lld,_my_time2 = %lld",p->get_index(),q->get_index(),cos_alpha_plus_gamma,_my_time1*(_o1_modulus/(2*PI)-_o2_modulus/(2*PI)),_my_time1, _my_time2);
+		}
+		energy = 1.e12;
 	}
 	else {
 // 		// if it gets here, the angle is in the normal region
@@ -523,7 +524,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 		}
 		auto *q = static_cast< PHBParticle *>(particles[i]); //Start working with PHB particles
 		std::stringstream body(line);
-		// std::cout<<particleColors<<std::endl;
+		// std::cout<<line<<std::endl;
 		j=0;
 		while(body.tellg()!=-1){
 			body>>temp;
@@ -540,6 +541,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 			// if(q->type==-3){ /// These are helix particles
 				// std::cout<<"Hexlix Particle"<<std::endl;
 			if(j>3){
+				// std::cout<<temp<<std::endl;
 				int connection = std::stoi(temp);
 				if(body.tellg()==-1) throw oxDNAException("Missing color after connection");
 				body>>temp;
@@ -557,6 +559,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	};
 	// auto *q = static_cast< PHBParticle *>(particles[0]);
 	// cout<<q->patches[0].a1static.x<<endl;
+	// cout<< "setting rcut"<<endl;
 	setRcut(particles);
 	std::cout<<"Successfully completed topology reading with total types of patches = "<<patches.size()<< " and types of colored particles = "<<particleColors.size()<<" with rcut = "<<_rcut<<std::endl;
 
@@ -720,4 +723,9 @@ bool PHBInteraction::bondingAllowed(PHBParticle *p,PHBParticle *q,int pi,int qi)
 	}
 
 	return false;
+}
+
+
+number PHBInteraction::falseTwist(PHBInteraction *p, PHBInteraction *q, bool compute_r, bool update_forces){
+	return 0;
 }
