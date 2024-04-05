@@ -21,14 +21,14 @@ T = 0.125
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
-steps = 1e9
+steps = 1e5
 edge_n_forces = 1
 
 ### MD PARAMS ###
-dt = 0.001
+dt = 0.000001
 newtonian_steps=51
 diff_coeff=1
-thermostat=john
+zathermostat=john
 refresh_vel=1
 
 ### MC PARAMS ###
@@ -50,7 +50,7 @@ ensemble = NVT
 
 ##############################
 #parfile = replica.par
-topology = helix.top
+topology = helix.phb
 conf_file = helix.dat
 trajectory_file = trajectory2.dat
 lastconf_file=last_conf2.dat
@@ -58,11 +58,13 @@ log_file = log2.ign
 no_stdout_energy = 0
 restart_step_counter = 1
 energy_file = energy2.ign
-print_conf_interval = 1e5
-print_energy_every = 1e5
+print_conf_interval = 1e2
+print_energy_every = 1e2
 time_scale = linear
 
 ###### CCG ################
 #patchyB = 10
 # rcut is essential for now
 rcut = 12
+#Kb=100
+Kt=0

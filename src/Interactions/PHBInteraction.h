@@ -31,7 +31,7 @@ public:
     int i; //temporary parameters
     number rmod,rnorm;
     number damp=0;
-    number patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=-0.1,patchyInteractionDistanceCutoff=0,patchyB=667.505671539,patchyRcut=1.2,patchyCutOff=1.8,patchyAlpha=0.12,patchyIntercept=0.0,patchySpacer=0.0;
+    number patchySigma=1.0f,patchyRstar=0.9053f,patchyRc=0.99998,patchyEpsilon=2.0f,patchyLockCutOff=-0.1,patchyInteractionDistanceCutoff=0,patchyB=667.505671539,patchyRcut=1.2,patchyCutOff=1.8,patchyAlpha=0.10,patchyIntercept=0.0,patchySpacer=0.0;
     number patchyRcut2=SQR(patchyRcut),patchyPowAlpha = powf(patchyAlpha, (number) 10.f),patchEcut=0;
     number tepEpsilon=1.0f,tepB=1,_xu_bending=0.952319757,_xk_bending= 1.14813301,tepFeneDelta=1.6; //currently not used
     number tepFeneDelta2=SQR(tepFeneDelta);
@@ -79,7 +79,7 @@ public:
     virtual number bonded_twist(PHBParticle *p, PHBParticle *q, bool compute_r=true, bool update_forces=false);
     virtual number bonded_double_bending(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
     virtual number bonded_alignment(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
-    virtual number falseTwist(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
+    virtual number falseTwist(PHBInteraction *p, PHBInteraction *q, bool compute_r, bool update_forces);
 
     //Patchy Interactions
     virtual number patchy_interaction_notorsion(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces);
@@ -87,8 +87,11 @@ public:
 
     //Multiprocess Functions
     virtual void setRcut(std::vector<BaseParticle *> &particles);
+    virtual void setTopBottom(std::vector<BaseParticle *> &particles);
 
-    
+    //debug functions
+
+    virtual void printParticleProperties(std::vector<BaseParticle *> &particles);
 
 protected:
 

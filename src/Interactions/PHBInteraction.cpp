@@ -44,6 +44,19 @@ void PHBInteraction::get_settings(input_file &inp){
 	}else{
         _rcut=-1; // set the rcut after reading the topology. 2.5x largest radius
     }
+	if(getInputString(&inp,"Ka",temp,0)==KEY_FOUND){
+		_ka =stod(temp);
+		cout<<"New Ka = "<<_ka<<endl;
+	}
+	if(getInputString(&inp,"Kb",temp,0)==KEY_FOUND){
+		_kb =stod(temp);
+		cout<<"New Kb = "<<_kb<<endl;
+	}
+	if(getInputString(&inp,"Kt",temp,0)==KEY_FOUND){
+		_kt =stod(temp);
+		cout<<"New Kt = "<<_kt<<endl;
+	}
+
 };
 void PHBInteraction::init(){
 	// cout<<"INIT is called"<<endl;
@@ -240,7 +253,7 @@ number PHBInteraction::spring(PHBParticle *p, PHBParticle *q, bool compute_r,boo
 number PHBInteraction::bonded_double_bending(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces) {
 	number energy = 0;
 	LR_vector torque(0., 0., 0.);
-	if(p->spring_neighbours.size()<2 || q->spring_neighbours.size()<2)return 0.; //return 0 for extreme top and bottom particles
+	// if(p->location==-1|| q->location==-1)return 0.; //return 0 for extreme bottom particle only, don't ignore the top particle
 
 	LR_vector &up = p->orientationT.v1;
 	LR_vector &uq = q->orientationT.v1;
@@ -561,6 +574,8 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	// cout<<q->patches[0].a1static.x<<endl;
 	// cout<< "setting rcut"<<endl;
 	setRcut(particles);
+	setTopBottom(particles);
+	// printParticleProperties(particles);
 	std::cout<<"Successfully completed topology reading with total types of patches = "<<patches.size()<< " and types of colored particles = "<<particleColors.size()<<" with rcut = "<<_rcut<<std::endl;
 
 	//Setting GPU connections
@@ -633,22 +648,25 @@ LR_vector PHBInteraction::rotateVectorAroundVersor(const LR_vector vector, const
 
 number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle *q, bool compute_r, bool update_forces){
 	// cout<<"Patchy interaction called"<<endl;
+	// cout<<"called"<<endl;
 	if(compute_r){
 		_computed_r = _box->min_image(p->pos,q->pos);
 		rnorm = _computed_r.norm();
 	}
-	
-	if(rnorm > this->patchyRcut2) return 0; // not within reach ignore
+	// rnorm -= SQR(p->radius + q->radius);
+	// cout<<rnorm<<endl;
+	if(rnorm-SQR(p->radius + q->radius) > this->patchyRcut2) return 0; // not within reach ignore
 	if(p->btype==100||q->btype==100) return 0; // no color present ignore
 	if(p->strand_id>=0 && p->strand_id==q->strand_id) return 0; // particle on same strand will not interact unless it is - ve.
 	number energy=0;
 	int c = 0;
 	LR_vector tmptorquep(0, 0, 0);
 	LR_vector tmptorqueq(0, 0, 0);
+	
 
 	// #pragma omp parallel for reduction(+:energy)
-	if(p->patches.size() != 6) throw oxDNAException("Number of patches is not 6, something is wrong");
-	std::cout<<p->patches.size()<<std::endl;
+	// if(p->patches.size() != 1) throw oxDNAException("Number of patches is not 6, something is wrong");
+	// std::cout<<p->patches.size()<<std::endl;
 	for(uint pi=0;pi< p->patches.size();pi++){
 		// if(p->type==-4){
 		// 	// ppatch = _box->min_image(p->pos + )
@@ -659,7 +677,8 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 		// cout << p->int_centers.size()<<"\t"<<p->patches.size()<<endl;
 		for(uint qi=0;qi<q->patches.size();qi++){
 			if(bondingAllowed(p,q,pi,qi)){
-				number K = p->patches[pi].strength;
+				number K = p->patches[pi].strength+q->patches[qi].strength;
+				// cout<<K<<endl;
 			    LR_vector qpatch = q->int_centers[qi];
 				LR_vector patch_dist = _computed_r + qpatch - ppatch;
 				// patch_dist += patch_dist*patchyIntercept/patch_dist.norm();
@@ -670,9 +689,10 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 
 				    number r8b10 = dist*dist*dist*dist / patchyPowAlpha;
 				    number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * dist);
-					number f1 =  K * (exp_part - patchEcut);
+					number f1 =  K * (exp_part );
 					energy_ij = f1;// * angular_part;
                     energy += energy_ij;
+					// cout<<energy_ij<<endl;
 
 					if(update_forces){
 						if (energy_ij <patchyLockCutOff){
@@ -725,6 +745,23 @@ bool PHBInteraction::bondingAllowed(PHBParticle *p,PHBParticle *q,int pi,int qi)
 	return false;
 }
 
+void PHBInteraction::setTopBottom(std::vector<BaseParticle *> &particles){
+	if(particles[0]->type==-4) ((PHBParticle*)particles[0])->location=1;
+	for(i=1;i<totPar-1;i++){
+		if(particles[i]->type==-4 && particles[i-1]->type!=-4) 
+			((PHBParticle*)particles[i])->location=1;
+		if(particles[i]->type==-4 && particles[i+1]->type!=-4) 
+			((PHBParticle*)particles[i])->location=-1;
+	}
+	if(particles[totPar-1]->type==-4) ((PHBParticle*)particles[totPar-1])->location=-1;
+}
+
+void PHBInteraction::printParticleProperties(std::vector<BaseParticle *> &particles){
+	for(i=0;i<totPar;i++){
+		auto *p = static_cast<PHBParticle*>(particles[i]);
+		std::cout<<p->type<<" "<<p->strand_id<<" "<<p->btype<<" "<<p->radius<<" "<<p->location<<std::endl;
+	}
+}
 
 number PHBInteraction::falseTwist(PHBInteraction *p, PHBInteraction *q, bool compute_r, bool update_forces){
 	return 0;

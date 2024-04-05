@@ -52,7 +52,7 @@ struct Patch {
 
 class PHBParticle: public CCGParticle {
 public:
-
+    int location=0; //0 means somewhere in the middle, 1 represents the start, -1 represents the end
     PHBParticle();
     PHBParticle(int totPatches);
     virtual ~PHBParticle();
