@@ -77,7 +77,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     return(torsions, dihedrals)
 
-def backbone_flexibility(traj_info:TrajInfo, top_info:TopInfo,system:System, ncpus=1) -> Tuple[np.array]: 
+def backbone_flexibility(traj_info:TrajInfo, top_info:TopInfo,system:System, ncpus=1) -> Tuple[np.ndarray, np.ndarray]: 
     '''
         Calculate backbone flexibility of a trajectory.
 
