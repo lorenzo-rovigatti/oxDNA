@@ -424,36 +424,52 @@ def get_input_parameter(input_file, parameter) -> str:
 ##########                              CONF UTILS                        ##########
 ####################################################################################
 
-def inbox(conf : Configuration, center=False) -> Configuration:
+def inbox(conf:Configuration, center:bool=True, centerpoint:Union[str,np.ndarray]='bc') -> Configuration:
     """
         Modify the positions attribute such that all positions are inside the box.
 
+        For cohesive structures, you almost always want center=True.
+        For diffuse simulations, you probably want center=False.
+
         Parameters:
             conf (Configuration) : The configuration to inbox
-            center (bool) : If True, center the configuration on the box
+            center (bool) : If True, center the configuration in the box (default True)
+            centerpoint (str|np.ndarray) : If 'bc', center in the box, if array, center on the array (default 'bc')
 
         Returns:
             (Configuration) : The inboxed configuration
     """
+    # Get coords in home box
     def realMod (n, m):
         return(((n % m) + m) % m)
     def coord_in_box(p):
         p = realMod(p, conf.box)
         return(p)
+    
+    # Calculate center of mass in home box of particles in many boxes
     def calc_PBC_COM(conf):
         angle = (conf.positions * 2 * np.pi) / conf.box
         cm = np.array([[np.sum(np.cos(angle[:,0])), np.sum(np.sin(angle[:,0]))], 
         [np.sum(np.cos(angle[:,1])), np.sum(np.sin(angle[:,1]))], 
         [np.sum(np.cos(angle[:,2])), np.sum(np.sin(angle[:,2]))]]) / len(angle)
         return conf.box / (2 * np.pi) * (np.arctan2(-cm[:,1], -cm[:,0]) + np.pi)
-    target = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
-    cms = calc_PBC_COM(conf)
+    
+    # You generally want to center cohesive structures in the box so they're not cut in visualization
+    # For diffuse simulations, you generally do not want centering.
+    cms = np.zeros(3)
+    target = np.zeros(3)
+    if center:
+        if centerpoint == 'bc':
+            target = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
+        else:
+            target = centerpoint
+        cms = calc_PBC_COM(conf)
     positions = conf.positions + target - cms   
     new_poses = coord_in_box(positions)
     positions += (new_poses - conf.positions)
-    if center:
-        cms = np.mean(positions, axis=0)
-        positions -= cms
+    #if center:
+    #    cms = np.mean(positions, axis=0)
+    #    positions -= cms
     return Configuration(
         conf.time, conf.box, conf.energy,
         positions, conf.a1s, conf.a3s
@@ -547,9 +563,7 @@ def get_top_string(system:System, old_format:bool=False) -> str:
         # this will break circular strands.
         for s in system.strands:
             if s.is_old() == False:
-                raise RuntimeError("Writing an old-style topology file based on a new-style one will ruin the corresponding configuration file (strands will be backwards)\n\
-                                   \
-                                   Please use the conversion script found in oxDNA/utils/convert.py to change to the old topology format.")
+                raise RuntimeError("Writing an old-style topology file based on a new-style one will ruin the corresponding configuration file (strands will be backwards)\n\nPlease use the conversion script found in oxDNA/utils/convert.py to change to the old topology format.")
             #it's a nucleic acid strand
             if s.id > 0:
                 na_strands += 1
