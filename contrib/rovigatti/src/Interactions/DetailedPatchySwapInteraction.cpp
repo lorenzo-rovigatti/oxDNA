@@ -434,8 +434,10 @@ void DetailedPatchySwapInteraction::allocate_particles(std::vector<BaseParticle*
 	int curr_species = 0;
 	for(int i = 0; i < N; i++) {
 		if(i == curr_limit) {
-			curr_species++;
-			curr_limit += _N_per_species[curr_species];
+			do {
+				curr_species++;
+				curr_limit += _N_per_species[curr_species];
+			} while(_N_per_species[curr_species] == 0);
 		}
 		PatchyParticle *new_particle;
 		if(_N_patches[curr_species] > 0 && _base_patches[curr_species].size() > 0) {

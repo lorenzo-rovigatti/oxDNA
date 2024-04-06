@@ -240,7 +240,7 @@ Print quantities related to the coaxial stacking interaction acting between two 
 
 This observable supports the `update_every` option.
 
-* `type = structure_factor`: the observable type.
+* `type = Sq`: the observable type.
 * `max_q = <float>`: maximum wave vector $q$ to consider.
 * `[type = <int>]`: particle species to consider. Defaults to -1, which means "all particles"
 

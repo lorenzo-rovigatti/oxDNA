@@ -79,10 +79,9 @@ void CGNucleicAcidsInteraction::get_settings(input_file &inp) {
 
 void CGNucleicAcidsInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
-	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / _PS_n);
+	_PS_sqr_rep_rcut = pow(2., 2. / _PS_n) * SQR(_WCA_sigma);
 	_WCA_sigma_unbonded = _WCA_sigma * (6.0 / _bead_size - _3b_sigma) / 2.0; // not disabled
-	_PS_sqr_rep_rcut_unbonded = pow(2. * _WCA_sigma_unbonded, 2. / _PS_n); 
-	// _WCA_sigma_unbonded = _WCA_sigma; // disabled
+	_PS_sqr_rep_rcut_unbonded = pow(2., 2. / _PS_n) * SQR(_WCA_sigma_unbonded);
 
 	OX_LOG(Logger::LOG_INFO, "CGNA: WCA sigma = %lf, WCA sigma unbonded = %lf", _WCA_sigma, _WCA_sigma_unbonded);
 
@@ -371,7 +370,6 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 
 			energy += prefactor * curr_energy * other_energy;
 
-			LR_vector check;
 			if(update_forces) {
 				// if(new_bond.r_mod > _3b_sigma)
 				{
@@ -385,8 +383,6 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 
 					p->torque += factor * new_bond.p_torque;
 					other->torque -= factor * new_bond.q_torque;
-
-					check = new_bond.r_part.cross(-tmp_force) + p->orientation * factor * new_bond.p_torque - other->orientation * factor * new_bond.q_torque;
 
 					if(p->strand_id != other->strand_id) {
 						_update_inter_chain_stress_tensor(p->strand_id, p->strand_id, tmp_force);
@@ -409,8 +405,6 @@ number CGNucleicAcidsInteraction::_patchy_three_body(BaseParticle *p, PSBond &ne
 
 					p->torque += factor * other_bond.p_torque;
 					other->torque -= factor * other_bond.q_torque;
-
-					check += other_bond.r_part.cross(-tmp_force) + p->orientation * factor * other_bond.p_torque - other->orientation * factor * other_bond.q_torque;
 
 					if(p->strand_id != other->strand_id) {
 						_update_inter_chain_stress_tensor(p->strand_id, p->strand_id, tmp_force);
@@ -746,6 +740,15 @@ void CGNucleicAcidsInteraction::read_topology(int *N_strands, std::vector<BasePa
 
 			ParticleFTG *q = static_cast<ParticleFTG *>(particles[n_idx]);
 			p->add_bonded_neigh(q);
+			/* the n3 and n5 members are only used on CUDA */
+			if(q->index > p->index) {
+				p->n5 = q;
+				q->n3 = p;
+			}
+			else {
+				p->n3 = q;
+				q->n5 = p;
+			}
 		}
 	}
 

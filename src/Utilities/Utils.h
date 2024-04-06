@@ -160,6 +160,11 @@ input_file *get_input_file_from_string(const std::string &inp);
  * @return
  */
 number get_temperature(std::string raw_T);
+/* 
+ * this is used by get_temperature, but it needs to be global because it needs to be reset every time a Manager is 
+ * instantiated to avoid issues when simulations are run with oxpy
+*/
+extern std::set<std::string> converted_temperatures;
 
 /**
  * @brief fills the memory pointed to by seedptr with the current

@@ -213,9 +213,8 @@ input_file* get_input_file_from_string(const std::string &inp) {
 	return ret;
 }
 
+std::set<std::string> converted_temperatures;
 number get_temperature(std::string raw_T) {
-	static std::set<std::string> converted_temperatures;
-
 	bool print_output = false;
 	if(converted_temperatures.find(raw_T) == converted_temperatures.end()) {
 		converted_temperatures.insert(raw_T);
