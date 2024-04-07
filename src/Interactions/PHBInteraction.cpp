@@ -296,7 +296,7 @@ number PHBInteraction::bonded_double_bending(PHBParticle *p, PHBParticle *q, boo
 // 			// forces are not updated since this term of the potential only introduces a torque,
 // 			// since it does not depend on r.
 		}
-		energy = _kb * (1 - cosine) * kb1;
+		energy = _kb * (1 - cosine) * kb1/2;
 	}		//intermediate regime
 	else if(acos(cosine) < tk) {
 		if(update_forces) {
@@ -306,7 +306,7 @@ number PHBInteraction::bonded_double_bending(PHBParticle *p, PHBParticle *q, boo
 			p->torque -= p->orientationT * torque;
 			q->torque += q->orientationT * torque;
 		}
-		energy = _kb * g;
+		energy = _kb * g/2;
 	}		// kinked bending regime - same as unkinked, but with an additive term to the energy and with a different bending.
 	else {
 		if(update_forces) {
@@ -317,7 +317,7 @@ number PHBInteraction::bonded_double_bending(PHBParticle *p, PHBParticle *q, boo
 // 			// since it does not depend on r.
 		}
 		// energy = _kb*( (1 - up*uq) * kb2 + _get_phi_bending(p->index) );
-		energy = _kb * (D - cosine) * kb2;
+		energy = _kb * (D - cosine) * kb2/2;
 
 	}
 	return energy;
@@ -458,7 +458,7 @@ number PHBInteraction::bonded_alignment(PHBParticle *p, PHBParticle *q, bool com
 		backp->torque -= backp->orientationT * ((_ka * tp.cross(up)) / tpm);
 	}
 
-	return _ka * (1 - (up * tp) / tpm);
+	return _ka * (1 - (up * tp) / tpm)/2;
 }
 
 
@@ -691,7 +691,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 				    number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * dist);
 					number f1 =  K * (exp_part );
 					energy_ij = f1;// * angular_part;
-                    energy += energy_ij;
+                    energy += energy_ij/2;
 					// cout<<energy_ij<<endl;
 
 					if(update_forces){

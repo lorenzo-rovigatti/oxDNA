@@ -21,14 +21,14 @@ T = 0.125
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
-steps = 1e5
+steps = 1e6
 edge_n_forces = 1
 
 ### MD PARAMS ###
 dt = 0.000001
 newtonian_steps=51
 diff_coeff=1
-zathermostat=john
+thermostat=no
 refresh_vel=1
 
 ### MC PARAMS ###
