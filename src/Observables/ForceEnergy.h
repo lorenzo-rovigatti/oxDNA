@@ -22,6 +22,7 @@
 class ForceEnergy: public BaseObservable {
 protected:
 	std::string _group_name;
+	std::string _precision;
 public:
 	ForceEnergy();
 	virtual ~ForceEnergy();
