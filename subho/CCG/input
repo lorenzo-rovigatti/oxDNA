@@ -21,7 +21,7 @@ T = 0.200
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
-steps = 1e9
+steps = 1e7
 
 ### MD PARAMS ###
 dt = 0.005
@@ -52,15 +52,16 @@ patchyAlpha=0.4
 #parfile = replica.par
 topology = 127.top
 conf_file = 127.dat
-trajectory_file = trajectory230127patchy100.dat
-lastconf_file=last_conf230127patchy100.dat
-log_file = log230127patchy100.ign
+trajectory_file = trajectory.dat
+lastconf_file=last_conf.ign
+log_file = log.ign
 no_stdout_energy = 0
 restart_step_counter = 1
-energy_file = energy230127patchy100.ign
+energy_file = energy.ign
 print_conf_interval = 1e4
 print_energy_every = 1e4
 time_scale = linear
 
 ###### CCG ################
 # patchyB = 900
+patchyAngleCutoff=15;

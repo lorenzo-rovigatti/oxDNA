@@ -85,6 +85,10 @@ void CCGInteraction::get_settings(input_file &inp) {
 		patchyRstar=stod(temp);
 		std::cout<<"New Patchy Rstar="<<patchyRstar<<std::endl;
 	}
+	if(getInputString(&inp,"patchyAngleCutoff",temp,0)==KEY_FOUND){
+		patchyRadcutoff=stod(temp)*M_PI/180;
+		std::cout<<"New Patchy Angle Cutoff="<<stod(temp)<<" degrees or "<<patchyRadcutoff<<" radians."<<std::endl;
+	}
 }
 
 void CCGInteraction::init() {
@@ -179,13 +183,22 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 	if(color_compatibility(p,q)){
 		// double r2 = SQR(r.x)+SQR(r.y)+SQR(r.z); //r^2
 		if(dist<patchyCutoff){ //effective distance for my case should be small
+
+			// Angle dependance
+			LR_vector a1 = _box->min_image(pCG->n5->pos,p->pos);
+			LR_vector a2 = _box->min_image(q->pos,qCG->n5->pos);
+			double cosTheta =acos((a1*a2)/(a1.module()*a2.module()));
+			if(cosTheta>patchyRadcutoff) return 0.f;
+			// std::cout<<cosTheta<<"\n";
+			// throw oxDNAException("This is called");
+
 			double r8b10 = pow(dist,8)/pow(patchyAlpha,10);
 			double expPart = -1.001*exp(-0.5*r8b10*dist*dist);
-			energy=strength*(expPart-patchyEcutoff); //patchy interaction potential
+			energy=strength*(expPart-patchyEcutoff)*(1/cosh(2*cosTheta)); //patchy interaction potential
 			// std::cout<<energy<<std::endl;
 			if(update_forces){
 				double f1D = 5.0 * expPart * r8b10;
-				LR_vector force = strength*_computed_r*f1D*dist/rmod;
+				LR_vector force = strength*_computed_r*f1D*dist/rmod*(1/cosh(2*cosTheta));
 				// std::cout<<"Patchy force ="<< force<<std::endl;
 				// if(expPart<-1) std::cout<<rmod<<"\t"<< energy<<"\t"<<f1D*dist/rmod<<std::endl;
 				// std::cout<<strength*_computed_r*f1D*dist/rmod<<"\n";
@@ -353,8 +366,9 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 	topology.getline(line,2048); //Read the header from the topology file
 	std::stringstream head(line);
 
-	head>> totPar>>strands>>ccg>>ccg0>>noSpring>>noColor; //Saving header info
-	if(ccg+ccg0 !=totPar) throw oxDNAException("Number of Colored + Color less particles is not equal to total Particles. Insanity caught in the header.");
+	head>> totPar>>strands>>ccg>>particlePerStrand>>noSpring>>noColor; //Saving header info
+	// if(ccg+ccg0 !=totPar) throw oxDNAException("Number of Colored + Color less particles is not equal to total Particles. Insanity caught in the header.");
+	if(strands<ccg) throw oxDNAException("Total stands can't be less than shape strands");
 	allocate_particles(particles);
 	if(head.fail())
 		throw oxDNAException("Please check the header, there seems to be something out of ordinary.");
@@ -437,7 +451,7 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 	}
 	*N_strands=strands;
 
-	//Setting GPU matrix
+	//Setting GPU matrix and setting central particle as n5
 	for(i=0;i<totPar;i++){
 		auto *p = static_cast<CCGParticle*>(particles[i]);
 		CPUtopology[i][0]=p->strand_id;
@@ -453,6 +467,12 @@ void CCGInteraction::read_topology(int *N_strands, std::vector<BaseParticle*> &p
 			CPUconnections[i][j+1] = p->spring_neighbours[j];
 			CPUro[i][j+1] = p->ro[j];
 			CPUk[i][j+1] = p->Bfactor[j];
+		}
+		// setting central particle as n5
+		if((i+1)%particlePerStrand!=0 && p->strand_id<=ccg){;
+			p->n5=particles[(i/particlePerStrand)*particlePerStrand + particlePerStrand-1];
+			// if(i<100)
+			// std::cout<<p->index<<"\t"<<p->n5->index<<std::endl;
 		}
 	};
 };
