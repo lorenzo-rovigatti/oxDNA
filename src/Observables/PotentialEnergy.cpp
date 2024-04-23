@@ -40,10 +40,10 @@ std::string PotentialEnergy::get_output_string(llint curr_step) {
 		number energy = get_potential_energy();
 
 		if (_precision == "") {
-			return Utils::sformat("% 10.6lf", energy);
+			return Utils::sformat("%g", energy);
 		}
 		else {
-			return Utils::sformat("% 10." + _precision + "lf", energy);
+			return Utils::sformat("%." + _precision + "g", energy);
 		}
 	}
 	else {
@@ -52,10 +52,10 @@ std::string PotentialEnergy::get_output_string(llint curr_step) {
 		for(auto energy_item : energies) {
 			number contrib = energy_item.second / _config_info->N();
 			if (_precision == "") {
-				res = Utils::sformat("%s % 10.6lf", res.c_str(), contrib);
+				res = Utils::sformat("%s %g", res.c_str(), contrib);
 			}
 			else {
-				res = Utils::sformat("%s % 10." + _precision + "lf", res.c_str(), contrib);
+				res = Utils::sformat("%s %." + _precision + "g", res.c_str(), contrib);
 			}
 		}
 
