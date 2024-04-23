@@ -683,15 +683,15 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 				LR_vector patch_dist = _computed_r + qpatch - ppatch;
 				// patch_dist += patch_dist*patchyIntercept/patch_dist.norm();
 				number dist = patch_dist.norm();
-				if(dist < SQR(patchyCutOff)){
+				if(dist < patchyCutOff2){
 					c++;
                     number energy_ij = 0;
 
 				    number r8b10 = dist*dist*dist*dist / patchyPowAlpha;
-				    number exp_part = -1.001f * exp(-(number)0.5f * r8b10 * dist);
+				    number exp_part = -1 * exp(-(number)0.5f * r8b10 * dist);
 					number f1 =  K * (exp_part );
 					energy_ij = f1;// * angular_part;
-                    energy += energy_ij/2;
+                    energy += energy_ij;
 					// cout<<energy_ij<<endl;
 
 					if(update_forces){
@@ -703,7 +703,7 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 							p->patches[pi].unlock();
 						}
 						number f1D =  (5 * exp_part * r8b10);
-						LR_vector tmp_force = patch_dist * (f1D ); //patch_dist * (f1D * angular_part);
+						LR_vector tmp_force = patch_dist * (f1D )*K; //patch_dist * (f1D * angular_part);
 						// LR_vector torqueq(0,0,0) ; //= dir; // no torque is applied
 						// LR_vector torquep(0,0,0) ; //= dir;
 						// torquep += ppatch.cross(tmp_force);
