@@ -24,14 +24,14 @@ sim_type = MD
 steps = 1e7
 
 ### MD PARAMS ###
-dt = 0.005
+dt = 0.00001
 newtonian_steps=51
 diff_coeff=1
 thermostat=no
 refresh_vel=1
 
 ### MC PARAMS ###
-delta_translation = 0.01
+delta_translation = 0.001
 delta_rotation = 0.25
 check_energy_every = 10
 check_energy_threshold = 1.e-4
@@ -51,7 +51,7 @@ patchyAlpha=0.4
 ##############################
 #parfile = replica.par
 topology = 127.top
-conf_file = 127.dat
+conf_file = last_conf3.ign
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.ign
 log_file = log.ign
@@ -64,4 +64,4 @@ time_scale = linear
 
 ###### CCG ################
 # patchyB = 900
-patchyAngleCutoff=15;
+patchyAngleCutoff=30;

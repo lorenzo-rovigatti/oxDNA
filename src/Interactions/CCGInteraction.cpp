@@ -128,7 +128,10 @@ number CCGInteraction::pair_interaction_nonbonded(BaseParticle *p, BaseParticle 
 	number energy=0;
 	if(!pCG->has_bond(q)){
 		// std::cout << "Working"<<std::endl;
-		// _computed_r = _box->min_image(p->pos,q->pos);
+		if(compute_r){
+			_computed_r = _box->min_image(p->pos,q->pos);
+			rmod = _computed_r.module();
+		}
 		// p->pos+=_computed_r*0.001/_computed_r.module();
 		energy += exc_vol_nonbonded(p,q,compute_r,update_forces);
 		energy += patchy_interaction(p,q,compute_r,update_forces);
@@ -150,7 +153,7 @@ number CCGInteraction::spring(BaseParticle *p, BaseParticle *q, bool compute_r,b
 	double k,r0;
 	pCG->return_kro(q->index,&k,&r0);
 	double dist=rmod-r0; // Distance between the particles - equilibrium distance
-	double energy = 0.25*k*SQR(dist); // Energy = 1/2*k*x^2 but 1/2 for one particle and 1/2 for other
+	double energy = 0.5*k*SQR(dist); // Energy = 1/2*k*x^2 but 1/2 for one particle and 1/2 for other
 	// std::cout<<energy<<std::endl;
 	if(update_forces){
 		LR_vector force = ((-k*dist))*(_computed_r/rmod); //force = -k*(r_unit*dist) =-k(r-r0)
@@ -174,10 +177,9 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 	auto *qCG = static_cast<CCGParticle*>(q);
 	// std::cout<<"This is called"<<std::endl;
 	number energy =0.f;
-	if(compute_r) {
-		_computed_r = _box->min_image(p->pos,q->pos);
-		rmod = _computed_r.module();
-	}
+	// _computed_r = _box->min_image(p->pos,q->pos);
+	rmod = _computed_r.module();
+
 	double dist = rmod-pCG->radius-qCG->radius;
 	// std::cout<<dist<<"\t"<< std::abs(dist)<<std::endl;
 	if(color_compatibility(p,q)){
@@ -187,18 +189,19 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 			// Angle dependance
 			LR_vector a1 = _box->min_image(pCG->n5->pos,p->pos);
 			LR_vector a2 = _box->min_image(q->pos,qCG->n5->pos);
-			double cosTheta =acos((a1*a2)/(a1.module()*a2.module()));
-			if(cosTheta>patchyRadcutoff) return 0.f;
+			double theta =acos((a1*a2)/(a1.module()*a2.module()));
+			if(theta>patchyRadcutoff) return 0.f;
 			// std::cout<<cosTheta<<"\n";
 			// throw oxDNAException("This is called");
 
-			double r8b10 = pow(dist,8)/pow(patchyAlpha,10);
-			double expPart = -1.001*exp(-0.5*r8b10*dist*dist);
-			energy=strength*(expPart-patchyEcutoff)*(1/cosh(2*cosTheta)); //patchy interaction potential
+			double r8b10 = pow(dist,8)/patchyPowAlpha;
+			double expPart = -1.001f*exp(-(number)0.5f*r8b10*dist*dist);
+			energy=strength*(expPart-patchyEcutoff); //patchy interaction potential
+			std::cout<<"Called"<<std::endl;
 			// std::cout<<energy<<std::endl;
 			if(update_forces){
 				double f1D = 5.0 * expPart * r8b10;
-				LR_vector force = strength*_computed_r*f1D*dist/rmod*(1/cosh(2*cosTheta));
+				LR_vector force = strength*f1D*dist*(_computed_r/(rmod));
 				// std::cout<<"Patchy force ="<< force<<std::endl;
 				// if(expPart<-1) std::cout<<rmod<<"\t"<< energy<<"\t"<<f1D*dist/rmod<<std::endl;
 				// std::cout<<strength*_computed_r*f1D*dist/rmod<<"\n";
@@ -314,7 +317,7 @@ double CCGInteraction::exc_vol_bonded(BaseParticle *p, BaseParticle *q, bool com
 }
 
 double CCGInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){
-	if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
+	// if(compute_r) _computed_r = _box->min_image(p->pos,q->pos);
 	// if(p->index==0 && q->index==1) std::cout<< "Distance between particles = "<<_computed_r <<std::endl; ;
 	auto *pCCG = static_cast<CCGParticle*>(p);
 	auto *qCCG = static_cast<CCGParticle*>(q);

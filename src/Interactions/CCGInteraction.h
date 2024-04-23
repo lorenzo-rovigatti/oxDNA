@@ -33,6 +33,7 @@ public:
 	int currentVersion = 1; // Don't forget to update the version number
 	int particleType,color,neighbour,bfactor; //Body parameters particleType,particleName,...
 	double patchyRcut=1.2,patchyAlpha=0.12,patchyRadius=0,patchyCutoff=0.2,patchyEcutoff=0,patchyB=667.505671539f,patchyRadcutoff=0.1745329;//10 degrees cutoff
+	double patchyPowAlpha=pow(patchyAlpha,10);
 	double Bfactor,strength =1,rmod,rnorm;
 	double damp=1.0;
 	// LR_vector r; //temporary parameters.
