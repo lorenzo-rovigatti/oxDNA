@@ -106,7 +106,7 @@ Compute and print the hydrogen-bonding (HB) energy of all or selected nucleotide
 
 * `type = hb_energy`: the observable type.
 * `[pairs_file = <path>]`: an order parameter file containing the list of pairs whose total HB energy is to be computed.
-* `[base_file = <path>]`: file containing a list of nucleotides whose total HB energy is to be computed, one nucleotide per line. If both this option and `pairs_file` are set, the former is silently ignored.
+* `[bases_file = <path>]`: file containing a list of nucleotides whose total HB energy is to be computed, one nucleotide per line. If both this option and `pairs_file` are set, the former is silently ignored.
 
 ## Hydrogen bonds
 
@@ -171,6 +171,13 @@ Print the energy associated to all (or a subset of) the external forces acting o
 * `type = force_energy`: the observable type.
 * `[print_group = <string>]`: limit the energy computation to the forces belonging to a specific group of forces. This can be set by adding a `group_name` option to the [desired external forces](forces.md#common-options). If not set, all external forces will be considered.
 
+## External force acting on particle(s)
+
+Print the force vector acting on all (or a subset of all) particles due to external forces. This observable supports the `update_every` option.
+
+* `type = external_force`: the observable type.
+* `particles`: list of comma-separated particle indexes whose force vectors should be printed.
+
 ## Configuration
 
 Print an [oxDNA configuration](configurations.md#configuration-file).
@@ -233,7 +240,7 @@ Print quantities related to the coaxial stacking interaction acting between two 
 
 This observable supports the `update_every` option.
 
-* `type = structure_factor`: the observable type.
+* `type = Sq`: the observable type.
 * `max_q = <float>`: maximum wave vector $q$ to consider.
 * `[type = <int>]`: particle species to consider. Defaults to -1, which means "all particles"
 

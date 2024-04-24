@@ -1,4 +1,23 @@
-# Analysis documentation
+# OAT scripting interface documentation
+
+Each script has been broken down into two types of functions: 
+
+1. An importable module with the same name as the corresponding command line invocation which runs the entire script and returns the result as a Python object.
+2. A series of sub-modules which implement individual steps of the overall process.
+
+The first type of import can be used to compose multiple analysis types into a single script or Jupyter notebook.  For example, to first align a trajectory, then decimate the resulting trajectory to contain only every 10th trajectory while skipping the first 200 confgiruations, each using 5 processes, you would run:
+
+```python
+from oxDNA_analysis_tools.align import align
+from oxDNA_analysis_tools.decimate import decimate
+
+traj = 'traj.dat'
+align_output = 'aligned.dat'
+decimate_output = 'decimated.dat'
+
+align(traj, align_output, ncpus=5)
+decimate(align_output, decimate_output, ncpus=5, start=200, stride=10)
+```
 
 ## Align
 

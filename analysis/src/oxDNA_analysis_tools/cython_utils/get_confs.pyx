@@ -1,10 +1,9 @@
 import cython
 import numpy as np
 cimport numpy as numpy
-from sys import stderr
 from cpython.bytes cimport PyBytes_Size 
 from libc.stdio cimport fopen, fclose, fread, fseek, FILE
-from libc.string cimport strtok, strcpy
+from libc.string cimport strtok, strcpy, strlen
 from libc.stdlib cimport atoi, atof, atol, malloc, free
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 
@@ -34,7 +33,7 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, bint
     cdef int *sizes = <int *> malloc(cnconfs * sizeof(int))
     cdef int *conf_starts = <int *> malloc(cnconfs * sizeof(int))
     if not sizes or not conf_starts:
-        raise MemoryError("Could not allocate memory for the configuration sizes and starts", file=stderr)
+        raise MemoryError("Could not allocate memory for the configuration sizes and starts")
 
     cdef int chunk_size = idxs[start+cnconfs-1].offset + idxs[start+cnconfs-1].size - idxs[start].offset
     for i in range(cnconfs):
@@ -58,8 +57,11 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, bint
     # Parse the chunk into Configurations
     cdef list confs = [None]*cnconfs
     for i in range(cnconfs):
-        c = parse_conf(chunk, conf_starts[i], sizes[i], nbases, incl_vel)
-        confs[i] = c
+        c = parse_conf(chunk, conf_starts[i], nbases, incl_vel)
+        if c == 1:
+            raise RuntimeError("Trajectory parsing failed on conf {} in chunk {}.  This likely means the previous conf was truncated.".format(i, start))
+        else:
+            confs[i] = c
 
     fclose(traj_file)
     free(chunk)
@@ -71,7 +73,7 @@ def cget_confs(list idxs, str traj_path, int start, int nconfs, int nbases, bint
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef parse_conf(char *chunk, int start_byte, int size, int nbases, bint incl_vel=1):
+cdef parse_conf(char *chunk, int start_byte, int nbases, bint incl_vel=1):
     cdef int THREE = 3
     cdef numpy.int64_t time #Windows and Unix use different precision for time. Using `long` means long trajectories can't be loaded on Windows systems.
     
@@ -87,8 +89,12 @@ cdef parse_conf(char *chunk, int start_byte, int size, int nbases, bint incl_vel
 
     # Get a pointer to the start of the configuration
     cdef const char *ptr = chunk + start_byte
+    if strlen(ptr) == 1:
+        return 1
 
     # Get the time
+    # Note that once strtok has been called, chunk is modified to have a \0 in place of t= and you can no longer get the size of chunk
+    # The standard way around this is to make a copy of the target string, but we don't want to do that in case of large chunks.
     ptr = strtok(ptr, 't =\n')
     time = np.int64(ptr)
 
@@ -109,18 +115,26 @@ cdef parse_conf(char *chunk, int start_byte, int size, int nbases, bint incl_vel
     for i in range(nbases):
         for j in range(THREE):
             ptr = strtok(NULL, ' ')
+            if not ptr:
+                raise RuntimeError("Final configuration (t={}) ended earlier than expected.  It is probably truncated.".format(time))
             cposes[i*THREE+j] = atof(ptr)
         for j in range(THREE):
             ptr = strtok(NULL, ' ')
+            if not ptr:
+                raise RuntimeError("Final configuration (t={}) ended earlier than expected.  It is probably truncated.".format(time))
             ca1s[i*THREE+j] = atof(ptr)
         if incl_vel:
             for j in range(THREE):
                 ptr = strtok(NULL, ' ')
+                if not ptr:
+                    raise RuntimeError("Final configuration (t={}) ended earlier than expected.  It is probably truncated.".format(time))
                 ca3s[i*THREE+j] = atof(ptr)
             ptr = strtok(NULL, '\n')
         else:
             for j in range(2):
                 ptr = strtok(NULL, ' ')
+                if not ptr:
+                    raise RuntimeError("Final configuration (t={}) ended earlier than expected.  It is probably truncated.".format(time))
                 ca3s[i*THREE+j] = atof(ptr)
             ptr = strtok(NULL, '\n')
             ca3s[i*THREE+2] = atof(ptr)

@@ -3,11 +3,11 @@ import os
 import time
 from typing import List, Tuple, Union
 import numpy as np
-from sys import stderr
 from collections import namedtuple
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, inbox, conf_to_str
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 ComputeContext = namedtuple("ComputeContext",["traj_info",
                                               "top_info",
@@ -104,7 +104,7 @@ def align(traj:str, outfile:str, ncpus:int=1, indexes:List[int]=[], ref_conf:Uni
 
         oat_multiprocesser(traj_info.nconfs, ncpus, compute, callback, ctx)
     
-    print(f"INFO: Wrote aligned trajectory to {outfile}", file=stderr)
+    log(f"Wrote aligned trajectory to {outfile}")
     return
 
 def cli_parser(prog="align.py"):
@@ -116,6 +116,7 @@ def cli_parser(prog="align.py"):
     parser.add_argument('-i', metavar='index_file', dest='index_file', nargs=1, help='Align to only a subset of particles from a space-separated list in the provided file')
     parser.add_argument('-r', metavar='reference_structure', dest='reference_structure', nargs=1, help="Align to a provided configuration instead of the first frame.")
     parser.add_argument('-c', metavar='no_center', dest='no_center', action='store_const', const=True, default=False, help="Don't center the output.  Can avoid errors caused by small boxes.")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -124,6 +125,7 @@ def main():
     args = parser.parse_args()
 
     #Parse command line arguments
+    logger_settings.set_quiet(args.quiet)
     traj_file = args.traj[0]
     outfile = args.outfile[0]
     top_info, traj_info = describe(None, traj_file)

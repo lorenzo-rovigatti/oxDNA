@@ -8,7 +8,7 @@
 
 #include "RNAInteraction.h"
 
-class RNA2Interaction: public RNAInteraction {
+class RNA2Interaction: virtual public RNAInteraction {
 
 private:
 	number test_huckel(number rbackmod);

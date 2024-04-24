@@ -452,7 +452,6 @@ void CUDADetailedPatchySwapInteraction::cuda_init(int N) {
 
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N, &N, sizeof(int)));
 
-	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, _sqr_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, _sqr_rep_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_sqr_patch_rcut, _sqr_patch_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_sigma_ss, _sigma_ss);
@@ -485,6 +484,9 @@ void CUDADetailedPatchySwapInteraction::cuda_init(int N) {
 		throw oxDNAException("PatchySwapInteraction: cannot simulate more than %d species. You can increase this number in the PatchySwapInteraction.h file", MAX_SPECIES);
 	}
 
+	// this must be done after calling read_topology, since the latter can change the value of _sqr_rcut
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rcut, _sqr_rcut);
+
 	// the following quantities are initialised by read_topology and hence have to be copied over to the GPU after its call
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patch_types, &_N_patch_types, sizeof(int)));
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_N_patches, _N_patches.data(), sizeof(int) * N_species));
@@ -493,19 +495,6 @@ void CUDADetailedPatchySwapInteraction::cuda_init(int N) {
 	std::vector<float> h_patchy_eps(_patchy_eps.begin(), _patchy_eps.end());
 	CUDA_SAFE_CALL(cudaMemcpy(_d_patchy_eps, h_patchy_eps.data(), _patchy_eps.size() * sizeof(float), cudaMemcpyHostToDevice));
 	GpuUtils::init_texture_object(&_tex_patchy_eps, cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat), _d_patchy_eps, _patchy_eps.size());
-
-	int N_base_patches = MAX_PATCHES * N_species;
-	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_base_patches, N_base_patches * sizeof(float4)));
-	std::vector<float4> h_base_patches(N_base_patches, make_float4(0., 0., 0., 0.));
-	for(uint ns = 0; ns < N_species; ns++) {
-		for(uint np = 0; np < _base_patches[ns].size(); np++) {
-			float4 bp_f4 = make_float4(_base_patches[ns][np].x, _base_patches[ns][np].y, _base_patches[ns][np].z, 0.);
-			h_base_patches[ns * MAX_PATCHES + np] = bp_f4;
-		}
-	}
-
-	CUDA_SAFE_CALL(cudaMemcpy(_d_base_patches, h_base_patches.data(), N_base_patches * sizeof(float4), cudaMemcpyHostToDevice));
-	GpuUtils::init_texture_object(&_tex_base_patches, cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat), _d_base_patches, h_base_patches.size());
 
 	for(int i = 0; i < N_species; i++) {
 		int n_patches = _N_patches[i];
@@ -522,6 +511,19 @@ void CUDADetailedPatchySwapInteraction::cuda_init(int N) {
 		// fourth argument is the offset
 		CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_patch_types, patch_types, sizeof(int) * n_patches, i * sizeof(int) * MAX_PATCHES));
 	}
+
+	int N_base_patches = MAX_PATCHES * N_species;
+	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_base_patches, N_base_patches * sizeof(float4)));
+	std::vector<float4> h_base_patches(N_base_patches, make_float4(0., 0., 0., 0.));
+	for(uint ns = 0; ns < N_species; ns++) {
+		for(uint np = 0; np < _base_patches[ns].size(); np++) {
+			float4 bp_f4 = make_float4(_base_patches[ns][np].x, _base_patches[ns][np].y, _base_patches[ns][np].z, 0.);
+			h_base_patches[ns * MAX_PATCHES + np] = bp_f4;
+		}
+	}
+
+	CUDA_SAFE_CALL(cudaMemcpy(_d_base_patches, h_base_patches.data(), N_base_patches * sizeof(float4), cudaMemcpyHostToDevice));
+	GpuUtils::init_texture_object(&_tex_base_patches, cudaCreateChannelDesc(32, 32, 32, 32, cudaChannelFormatKindFloat), _d_base_patches, h_base_patches.size());
 }
 
 void CUDADetailedPatchySwapInteraction::compute_forces(CUDABaseList *lists, c_number4 *d_poss, GPU_quat *d_orientations, c_number4 *d_forces, c_number4 *d_torques, LR_bonds *d_bonds, CUDABox *d_box) {

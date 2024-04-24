@@ -19,6 +19,7 @@
  */
 class DetailedPatchySwapInteraction: public BaseInteraction {
 protected:
+	bool _normalise_patches = true;
 	/// Number of particles of each species
 	std::vector<int> _N_per_species;
 	int _N = 0;

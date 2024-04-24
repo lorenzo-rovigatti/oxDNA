@@ -36,7 +36,7 @@ These are the options that control the overall behaviour of the simulation and o
 * `time_scale = linear/log_lin`: a linear time_scale will make oxDNA print linearly-spaced configurations. a log_lin will make it print linearly-spaced cycles of logarithmically-spaced configurations.
 * `print_conf_interval = <int>`: if the time scale is linear, this is the number of time steps between the outputing of configurations, otherwise this is just the first point of the logarithmic part of the log_lin time scale.
 * `print_energy_every = <int>`: number of time steps between the outputing of the energy (and of the other default observables such as acceptance ratios in Monte Carlo simulations).
-* `[interaction_type = DNA|DNA2|RNA|RNA2|LJ|...]`: Particle-particle interaction of choice. Check the documentation relative to the specific interaction for more details and the supported interaction-specific options. Defaults to `DNA`.
+* `[interaction_type = DNA|DNA2|RNA|RNA2|NA|LJ|...]`: Particle-particle interaction of choice. Check the documentation relative to the specific interaction for more details and the supported interaction-specific options. Defaults to `DNA`.
 * `[max_io = <float>]`: the maximum rate at which the output is printed, in MB/s. This is a useful option to avoid filling up the disk too quickly. Increase the default value (1 MB/s) at your own risk! 
 * `[fix_diffusion = <bool>]`: if true, particles that leave the simulation box are brought back in via periodic boundary conditions. Defaults to `true`.
 * `[fix_diffusion_every = <int>]`: number of time steps every which the diffusion is fixed. Used only if `fix_diffusion = true`, defaults to 100000 ({math}`10^5`).
@@ -71,7 +71,7 @@ These options control the behaviour of MD simulations.
 
 * `sim_type = MD|FFS_MD`: run either an MD or an FFS simulation.
 * `backend = CPU|CUDA`: MD simulations can be run either on single CPU cores or on single CUDA-enabled GPUs.
-* `backend_precision = <any>`: by default CPU simulations are run with `double` precision, CUDA with `mixed` precision (see [here](https://doi.org/10.1002/jcc.23763) for details). The CUDA backend also supports single precision (`backend_precision = float`), but we do not recommend to use it. Optionally, [by using CMake switches](install.md#CMake-options) it is possible to run CPU simulations in single precision or CUDA simulations in double precision.
+* `backend_precision = <any>`: by default CPU simulations are run with `double` precision, CUDA with `mixed` precision (see [here](https://doi.org/10.1002/jcc.23763) for details). The CUDA backend also supports single precision (`backend_precision = float`), but we do not recommend to use it. Optionally, [by using CMake switches](install.md#cmake-options) it is possible to run CPU simulations in single precision or CUDA simulations in double precision.
 * `dt`: the simulation time step. The higher this value, the longer time a simulation of a given number of time steps will correspond to. However, a value that is too large will result in numerical instabilities. Typical values range between 0.001 and 0.005.
 * `refresh_vel = <bool>`: if `true` the velocities of the particles in the initial configuration will be randomly sampled from a Boltzmann distribution corresponding to `T`. If `false`, the velocities in the `conf_file` will be used (or an error will be thrown if the `conf_file` doesn't include initialized velocities).
 * `[reset_initial_com_momentum = <bool>]`: if `true` the momentum of the centre of mass of the initial configuration will be set to 0. Defaults to `false` to enforce the reproducibility of the trajectory.
@@ -93,6 +93,8 @@ These options control the behaviour of MD simulations.
 * `[use_barostat = <bool>]`: apply an MC-like barostat to the simulation to keep the pressure constant. Defaults to `false`.
 * `[P = <float>]`: the taget pressure of the simulation. Mandatory if `use_barostat = true`.
 * `[delta_L = <float>]`: the extent of the box side change performed by the MC-like barostat. Mandatory if `use_barostat = true`.
+* `[barostat_probability = <float>]`: The probability of attempting a volume move. Mandatory if `use_barostat = true`.
+* `[barostat_molecular = <bool>]`: Rescale the positions of the molecules as whole rather than of the single particles. Defaults to `false`.
 
 ## CUDA options
 
@@ -101,7 +103,7 @@ The following options require `backend = CUDA`.
 * `[use_edge = <bool>]`: parallelise computations over interacting pairs rather than particles. It often results in a performance increase. Defaults to `false`.
 * `[CUDA_list = no|verlet]`: neighbour lists for CUDA simulations. Defaults to `verlet`.
 * `[cells_auto_optimisation = <bool>`: increase the size of the cells used to build Verlet lists if the total number of cells exceeds two times the number of nucleotides. Sometimes disabling this option increases performance. Used only if `CUDA_list = verlet`, defaults to `true`.
-* `[max_density_multiplier = <float>]`: scale the size of data structures that store neighbours and cell lists. it is sometime necessary to increase this value (which also increases the memory footprint of the simulation) if the local density of nucleotides is high and the simulation crashes. defaults to `3`.
+* `[max_density_multiplier = <float>]`: scale the size of data structures that store neighbours and cell lists. it is sometime necessary to increase this value (which also increases the memory footprint of the simulation) if the local density of nucleotides is high and the simulation crashes. Defaults to `3`.
 * `[print_problematic_ids = <bool>]`: if `true`, the code will print the indexes of particles that have very large coordinates (which may be caused by incorrectly-defined external forces and/or large time steps) before exiting. Useful for debugging purposes. Defaults to `false`.
 * `[CUDA_device = <int>]`: CUDA-enabled device to run the simulation on. If it is not specified or it is given a negative number, a suitable device will be automatically chosen.
 * `[CUDA_sort_every = <int>]`: sort particles according to a 3D Hilbert curve after the lists have been updated `CUDA_sort_every` times. This will greatly enhnance performances for some types of interaction. Defaults to `0`, which disables sorting.
@@ -122,7 +124,7 @@ The following options control the behaviour of MC simulations.
 * `P = <float>`: the target pressure of the simulation. Used only if `ensemble = npt`.
 * `[check_energy_every = <int>]`: oxDNA will compute the energy from scratch, compare it with the current energy and throw an error if the difference is larger then `check_energy_threshold`. Defaults to `10`.
 * `[check_energy_threshold = <float>]`: threshold for the energy check. Defaults to 0.01 for single precision and {math}`10^{-6}` for double precision.
-* `[adjust_moves = <bool>]`: if `true`, oxDNA will run for `equilibration_steps` time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if `equilibration_steps = 0` or not given. Defaults to `false`.
+* `[adjust_moves = <bool>]`: if `true`, oxDNA will run for `equilibration_steps` time steps while changing the delta of the moves in order to have an optimal acceptance ratio. It does not make sense if `equilibration_steps = 0` or it is not set. Defaults to `false`.
 * `[maxclust = <int>]`: maximum number of particles to be moved together if `sim_type = VMMC`. Defaults to the size of the whole system.
 * `[small_system = <bool>]`: whether to use an interaction computation suited for small systems. Defaults to `false`.
 * `[preserve_topology = <bool>]`: set a maximum size for the move attempt to 0.5, which guarantees that the topology of the system is conserved. Also prevents very large moves and might speed up simulations of larger systems, while suppressing diffusion. Defaults to `false`.
@@ -150,6 +152,7 @@ The following options control the behaviour of MC simulations.
 ## Common options for `DNA2` and `RNA2` simulations
 
 * `[dh_lambda = <float>]`: the value that lambda, which is a function of temperature (T) and salt concentration (I), should take when T = 300K and I = 1M. Defaults to the value from Debye-Huckel theory, 0.3616455.
+* `[debye_huckel_rhigh]`: the distance at which the smoothing of the Debye-Hucker repulsion begins. Defaults to three times the Debye screening length.
 * `[dh_strength = <float>]`: the value that scales the overall strength of the Debye-Huckel interaction. Defaults to 0.0543.
 * `[dh_half_charged_ends = <bool>]`: if `false`, nucleotides at the end of a strand carry a full charge, if `true` their charge is halved. Defaults to `true`.
 
@@ -169,7 +172,15 @@ The following options control the behaviour of MC simulations.
 
 * `[salt = <float>]`: the salt concentration in molar (M). Defaults to 1.
 * `[mismatch_repulsion = <bool>]`: if `true`, add a repulsion between mismatches. Defaults to `false`.
-* `[mismatch_repulsion_strength = <float>]`: set the strength of the repulsion between mismatches. Used only if `mismatch_repulsion = true`, defaults to `1`. 
+* `[mismatch_repulsion_strength = <float>]`: set the strength of the repulsion between mismatches. Used only if `mismatch_repulsion = true`, defaults to `1`.
+
+## Options for `NA` simulations
+
+* `[use_average_seq = <bool>]`: use the average-sequence parameters. Defaults to `true`.
+* `[seq_dep_file_DNA = <path>]`: path to the location of the file containing the DNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
+* `[seq_dep_file_RNA = <path>]`: path to the location of the file containing the DNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
+* `[seq_dep_file_NA = <path>]`: path to the location of the file containing the DNA-RNA sequence-dependent parameters. Mandatory if `use_average_seq = false`.
+
 
 ## Options for `LJ` (Lennard-Jones) simulations
 

@@ -54,6 +54,46 @@ char encode_base(int b) {
 	}
 }
 
+std::vector<int> btypes_from_sequence(const std::string &sequence) {
+	std::vector<int> result;
+	bool open_parenthesis = false;
+	std::string parenthesis_token;
+
+	for(char c : sequence) {
+		if(c == '(') {
+			open_parenthesis = true;
+			parenthesis_token.clear();
+			continue;
+		}
+		else if(c == ')') {
+			if(!open_parenthesis) {
+				throw oxDNAException("unbalanced parenthesis");
+			}
+			open_parenthesis = false;
+			int btype = std::atoi(parenthesis_token.c_str());
+			result.push_back(btype);
+		}
+		else {
+			if(open_parenthesis) {
+				parenthesis_token.push_back(c);
+			}
+			else {
+				int btype = Utils::decode_base(c);
+				if(btype == P_INVALID) {
+					throw oxDNAException("invalid base %c", c);
+				}
+				result.push_back(btype);
+			}
+		}
+	}
+
+	if(open_parenthesis) {
+		throw oxDNAException("missing closing parenthesis");
+	}
+
+	return result;
+}
+
 std::vector<std::string> split(const string &s, char delim) {
 	string s_copy(s);
 	if(delim == ' ') {
@@ -173,9 +213,8 @@ input_file* get_input_file_from_string(const std::string &inp) {
 	return ret;
 }
 
+std::set<std::string> converted_temperatures;
 number get_temperature(std::string raw_T) {
-	static std::set<std::string> converted_temperatures;
-
 	bool print_output = false;
 	if(converted_temperatures.find(raw_T) == converted_temperatures.end()) {
 		converted_temperatures.insert(raw_T);
@@ -255,33 +294,6 @@ void get_seed(unsigned short *seedptr) {
 	memcpy(seedptr, tmpptr, 3 * sizeof(unsigned short));
 	seed48(seedptr);
 	seed48(seedptr);
-}
-
-number gamma(number alpha, number beta) {
-	number x, v, u;
-	double d = alpha - 1. / 3.;
-	double c = (1. / 3.) / sqrt(d);
-
-	if(alpha < 1.)
-		return pow(drand48(), 1. / alpha) * gamma((number) 1. + alpha, beta);
-
-	while(true) {
-		do {
-			x = gaussian();
-			v = 1. + c * x;
-		} while(v <= 0);
-
-		v = v * v * v;
-		u = drand48();
-
-		if(u < 1. - 0.0331 * x * x * x * x)
-			break;
-
-		if(log(u) < 0.5 * x * x + d * (1 - v + log(v)))
-			break;
-	}
-
-	return beta * d * v;
 }
 
 void assert_is_valid_particle(int index, int N, std::string identifier) {

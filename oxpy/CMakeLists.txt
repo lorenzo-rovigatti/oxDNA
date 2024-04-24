@@ -5,7 +5,7 @@ SET(oxpy_SOURCES
 
 IF(Python)
 	# tell pybind11 to use python3
-	set(PYBIND11_PYTHON_VERSION 3 CACHE STRING "Python version to use for compiling modules")
+	set(PYBIND11_PYTHON_VERSION 3.9 CACHE STRING "Python version to use for compiling modules")
 	ADD_SUBDIRECTORY(pybind11)
 	ADD_DEFINITIONS(-DPYTHON_BINDINGS)
 	
@@ -52,7 +52,13 @@ IF(Python)
 	    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
 	    COMMENT "Running oxpy tests" VERBATIM
 	)
-	add_dependencies(test test_oxpy)
+	# and one to test oat
+	add_custom_target(test_oat
+	    bash test.sh ${PYTHON_EXECUTABLE} && bash cleanup.sh
+	    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/analysis/tests
+	    COMMENT "Running oxpy tests" VERBATIM
+	)
+	add_dependencies(test test_oxpy test_oat)
 	
 	CONFIGURE_FILE(make_install_setup.py
 		${OXPY_OUTPUT_DIR}/setup.py

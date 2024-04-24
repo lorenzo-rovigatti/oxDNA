@@ -162,7 +162,7 @@ void FIREBackend::_first_step() {
 			p->torque = LR_vector((number) 0, (number) 0, (number) 0);
 
 		}
-		p->set_initial_forces(current_step(), _box);
+		p->set_initial_forces(current_step(), _box.get());
 
 		_lists->single_update(p);
 	}

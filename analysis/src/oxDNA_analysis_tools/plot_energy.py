@@ -2,19 +2,21 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 def cli_parser(prog="plot_energy.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Plot oxDNA energy files")
     parser.add_argument('energy', nargs='+', help='Energy files to plot')
     parser.add_argument('-o', '--output', metavar='output_file', nargs=1, help='The name to save the graph file to')
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', nargs=1, help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(os.path.basename(__file__))    
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
     check(["python", "numpy", "matplotlib"])
 
@@ -40,7 +42,7 @@ def main():
         if hist == line == False:
             raise RuntimeError("Unrecognized graph format\nAccepted formats are \"histogram\", \"trajectory\", and \"both\"")
     else:
-        print("INFO: No graph format specified, defaulting to histogram", file=stderr)
+        log("No graph format specified, defaulting to histogram")
         hist = True
 
     all_times = []
@@ -75,7 +77,7 @@ def main():
         plt.xlabel("Energy per particle (SU)")
         plt.ylabel("Normalized frequency")
         if outfile:
-            print("INFO: Saving histogram to {}".format(out), file=stderr)
+            log("Saving histogram to {}".format(out))
             plt.tight_layout()
             plt.savefig(out)
         else:
@@ -97,7 +99,7 @@ def main():
         plt.xlabel("Time (SU)")
         plt.ylabel("Energy (SU)")
         if outfile:
-            print("INFO: Saving line plot to {}".format(out), file=stderr)
+            log("Saving line plot to {}".format(out))
             plt.tight_layout()
             plt.savefig(out)
         else:
