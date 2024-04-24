@@ -550,7 +550,13 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 					for(uint id=0;id<particleColors[q->btype].size();id++)
 						q->add_patch(patches[particleColors[q->btype][id]]);
 			}
-			if(j==3) q->radius=std::stod(temp);
+			if(j==3) {
+				q->radius=std::stod(temp);
+				if(mass==true){
+					q->mass=pow(q->radius,3); 
+					q->invmass=1/q->mass;
+				}
+			}
 			// if(q->type==-3){ /// These are helix particles
 				// std::cout<<"Hexlix Particle"<<std::endl;
 			if(j>3){

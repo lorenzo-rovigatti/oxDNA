@@ -70,12 +70,12 @@ void MD_CPUBackend::_first_step() {
 	for(auto p : _particles) {
 		if(_use_builtin_langevin_thermostat) {
 			LR_vector p_plus = _langevin_c1 * p->vel + _langevin_c2 * LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian());
-			LR_vector dv = p->force * (_dt * (number) 0.5); //subho *p->massinverted
+			LR_vector dv = p->force * (_dt * (number) 0.5)*p->invmass; //subho *p->massinverted
 			p->vel = p_plus + dv;
 			dr = (p_plus + dv) * _dt;
 		}
 		else {
-			p->vel += p->force * (_dt * (number) 0.5); //subho *p->massinverted
+			p->vel += p->force * (_dt * (number) 0.5)*p->invmass; //subho *p->massinverted
 			dr = p->vel * _dt;
 		}
 		if(dr.norm() > 0.01) {
@@ -105,7 +105,7 @@ void MD_CPUBackend::_first_step() {
 		}
 
 		if(p->is_rigid_body()) {
-			p->L += p->torque * (_dt * (number) 0.5);
+			p->L += p->torque * (_dt * (number) 0.5)*p->invmass; //subho *p->massinverted
 			// update of the orientation
 			number norm = p->L.module();
 			LR_vector LVersor(p->L / norm);
@@ -161,13 +161,13 @@ void MD_CPUBackend::_compute_forces() {
 
 void MD_CPUBackend::_second_step() {
 	for(auto p : _particles) {
-		p->vel += p->force * _dt * (number) 0.5f; //subho p->massinverted
+		p->vel += p->force * _dt * (number) 0.5f*p->invmass; //subho p->massinverted
 		if(_use_builtin_langevin_thermostat) {
 			p->vel = _langevin_c1 * p->vel + _langevin_c2 * LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian());
 		}
 
 		if(p->is_rigid_body()) {
-			p->L += p->torque * _dt * (number) 0.5f;
+			p->L += p->torque * _dt * (number) 0.5f*p->invmass; //subho
 		}
 	}
 }

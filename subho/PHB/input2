@@ -25,10 +25,10 @@ steps = 1e7
 edge_n_forces = 1
 
 ### MD PARAMS ###
-dt = 0.0005
+dt = 0.001
 newtonian_steps=51
 diff_coeff=1
-thermostat=john
+thermostat=no
 refresh_vel=1
 
 ### MC PARAMS ###

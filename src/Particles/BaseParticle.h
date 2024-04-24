@@ -57,6 +57,7 @@ public:
 	}
 
 	number en3, en5, esn3, esn5;
+	number mass,invmass;
 	bool inclust;
 
 	void init();

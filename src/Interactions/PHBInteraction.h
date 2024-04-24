@@ -42,7 +42,7 @@ public:
     // Helix future variables 
 
 
-    bool _allow_broken_fene = false, iLoveHarmonic=true; //special implementation for later
+    bool _allow_broken_fene = false, iLoveHarmonic=true,mass=false; //special implementation for later
     std::string temp;
 
     // Gpu only variables

@@ -140,10 +140,10 @@ void MDBackend::_reset_momentum() {
 void MDBackend::_generate_vel() {
 	OX_LOG(Logger::LOG_INFO, "Using randomly distributed velocities");
 
-	number rescale_factor = sqrt(this->_T);
+	// number rescale_factor = sqrt(this->_T);
 	number initial_K = 0;
 	for(auto p: _particles) {
-		//number rescale_factor = sqrt(this->_T*p->massinverted); //subho
+		number rescale_factor = sqrt(this->_T*p->invmass); //subho
 
 		p->vel.x = Utils::gaussian() * rescale_factor;
 		p->vel.y = Utils::gaussian() * rescale_factor;
@@ -159,7 +159,7 @@ void MDBackend::_generate_vel() {
 			p->vel.x += y_in_box*_shear_rate;
 		}
 
-		initial_K += (p->vel.norm() + p->L.norm()) * 0.5; //subho p->mass*p->vel.norm()
+		initial_K += (p->vel.norm() + p->L.norm()) * 0.5*p->invmass; //subho p->mass*p->vel.norm()
 	}
 
 	OX_LOG(Logger::LOG_INFO, "Initial kinetic energy: %f", initial_K);//subho /_particles.size()
