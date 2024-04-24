@@ -24,7 +24,6 @@
 class PotentialEnergy: public BaseObservable {
 protected:
 	bool _split;
-	std::string _precision;
 
 public:
 	PotentialEnergy();

@@ -32,18 +32,17 @@ void PotentialEnergy::get_settings(input_file &my_inp, input_file &sim_inp) {
 	BaseObservable::get_settings(my_inp, sim_inp);
 
 	getInputBool(&my_inp, "split", &_split, 0);
-	getInputString(&my_inp, "precision", _precision, 0);
 }
 
 std::string PotentialEnergy::get_output_string(llint curr_step) {
 	if(!_split) {
 		number energy = get_potential_energy();
 
-		if (_precision == "") {
-			return Utils::sformat("%g", energy);
+		if (_general_format) {
+			return Utils::sformat("%." + _precision + "g", energy);
 		}
 		else {
-			return Utils::sformat("%." + _precision + "g", energy);
+			return Utils::sformat("% 10." + _precision + "lf", energy);
 		}
 	}
 	else {
@@ -51,11 +50,11 @@ std::string PotentialEnergy::get_output_string(llint curr_step) {
 		auto energies = _config_info->interaction->get_system_energy_split(_config_info->particles(), _config_info->lists);
 		for(auto energy_item : energies) {
 			number contrib = energy_item.second / _config_info->N();
-			if (_precision == "") {
-				res = Utils::sformat("%s %g", res.c_str(), contrib);
+			if (_general_format) {
+				res = Utils::sformat("%s %." + _precision + "g", res.c_str(), contrib);
 			}
 			else {
-				res = Utils::sformat("%s %." + _precision + "g", res.c_str(), contrib);
+				res = Utils::sformat("%s % 10." + _precision + "lf", res.c_str(), contrib);
 			}
 		}
 
