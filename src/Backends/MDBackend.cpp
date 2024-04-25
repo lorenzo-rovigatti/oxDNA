@@ -149,6 +149,8 @@ void MDBackend::_generate_vel() {
 		p->vel.y = Utils::gaussian() * rescale_factor;
 		p->vel.z = Utils::gaussian() * rescale_factor;
 
+		rescale_factor = sqrt(this->_T*p->invmr2); //subho
+
 		p->L.x = Utils::gaussian() * rescale_factor;
 		p->L.y = Utils::gaussian() * rescale_factor;
 		p->L.z = Utils::gaussian() * rescale_factor;
@@ -159,7 +161,7 @@ void MDBackend::_generate_vel() {
 			p->vel.x += y_in_box*_shear_rate;
 		}
 
-		initial_K += (p->vel.norm() + p->L.norm()) * 0.5*p->invmass; //subho p->mass*p->vel.norm()
+		initial_K += (p->vel.norm()*p->invmass + p->L.norm()*p->invmr2) * 0.5; //subho p->mass*p->vel.norm()
 	}
 
 	OX_LOG(Logger::LOG_INFO, "Initial kinetic energy: %f", initial_K);//subho /_particles.size()

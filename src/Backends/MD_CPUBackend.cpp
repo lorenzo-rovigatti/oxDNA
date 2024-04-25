@@ -105,7 +105,7 @@ void MD_CPUBackend::_first_step() {
 		}
 
 		if(p->is_rigid_body()) {
-			p->L += p->torque * (_dt * (number) 0.5)*p->invmass; //subho *p->massinverted
+			p->L += p->torque * (_dt * (number) 0.5)*p->invmr2; //subho *p->massinverted
 			// update of the orientation
 			number norm = p->L.module();
 			LR_vector LVersor(p->L / norm);
@@ -167,7 +167,7 @@ void MD_CPUBackend::_second_step() {
 		}
 
 		if(p->is_rigid_body()) {
-			p->L += p->torque * _dt * (number) 0.5f*p->invmass; //subho
+			p->L += p->torque * _dt * (number) 0.5f*p->invmr2; //subho
 		}
 	}
 }

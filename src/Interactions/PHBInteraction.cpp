@@ -552,9 +552,11 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 			}
 			if(j==3) {
 				q->radius=std::stod(temp);
-				if(mass==true){
-					q->mass=pow(q->radius,3); 
+				if(mass){
+					q->mass=pow(q->radius,3);
 					q->invmass=1/q->mass;
+					q->mr2=q->mass*q->radius*q->radius;
+					q->invmr2=1/q->mr2;
 				}
 			}
 			// if(q->type==-3){ /// These are helix particles

@@ -31,6 +31,8 @@ BaseParticle::BaseParticle() :
 	next_particle = P_INVALID;
 	mass = 1.0;
 	invmass = 1.0;
+	mr2 = 1.0;
+	invmr2 = 1.0;
 }
 
 void BaseParticle::copy_from(const BaseParticle &p) {
@@ -50,6 +52,8 @@ void BaseParticle::copy_from(const BaseParticle &p) {
 	n5 = p.n5;
 	mass = p.mass;
 	invmass = p.invmass;
+	mr2 = p.mr2;
+	invmr2 = p.invmr2;
 
 	int_centers = p.int_centers;
 
