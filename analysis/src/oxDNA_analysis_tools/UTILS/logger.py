@@ -2,7 +2,7 @@ from sys import stderr
 from typing import Union
 
 class LoggerSettings:
-    def __init__(self, quiet:bool=0):
+    def __init__(self, quiet:bool=False):
         self.quiet = quiet
     
     def set_quiet(self, value:bool):

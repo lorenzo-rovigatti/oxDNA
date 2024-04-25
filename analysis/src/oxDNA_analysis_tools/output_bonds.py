@@ -134,7 +134,7 @@ def output_bonds(traj_info:TrajInfo, top_info:TopInfo, inputfile:str, visualize:
     if visualize:
         return energies, pot_names
     else:
-        return None
+        return energies, None
 
 def cli_parser(prog="output_bonds.py"):
     parser = argparse.ArgumentParser(prog = prog, description="List all the interactions between nucleotides")
@@ -160,9 +160,10 @@ def main():
     top_info, traj_info  = describe(None, traj_file)
 
     try:
-        outfile = args.outfile[0]
+        outfile:str = args.outfile[0]
         visualize = True
     except:
+        outfile = ''
         visualize = False
 
     #if path.dirname(inputfile) != getcwd():
@@ -183,8 +184,7 @@ def main():
             units = "oxDNA su"
             conversion_factor = 1
         else:
-            print("Unrecognized units:", args.units[0], file=stderr)
-            exit(1)
+            raise RuntimeError(f"Unrecognized units: {args.units[0]}\n Recognized options are 'pNnm' and 'oxDNA'.")
     else:
         units = "oxDNA su"
         conversion_factor = 1

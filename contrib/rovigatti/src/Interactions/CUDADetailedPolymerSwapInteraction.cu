@@ -316,6 +316,10 @@ CUDADetailedPolymerSwapInteraction::~CUDADetailedPolymerSwapInteraction() {
 
 void CUDADetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	DetailedPolymerSwapInteraction::get_settings(inp);
+
+	if(_yk_strength != 0.) {
+		throw oxDNAException("The Yukawa repulsion has not been implemented on CUDA yet");
+	}
 }
 
 void CUDADetailedPolymerSwapInteraction::cuda_init(int N) {
