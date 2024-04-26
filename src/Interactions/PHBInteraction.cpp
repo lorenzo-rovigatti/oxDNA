@@ -56,6 +56,10 @@ void PHBInteraction::get_settings(input_file &inp){
 		_kt =stod(temp);
 		cout<<"New Kt = "<<_kt<<endl;
 	}
+	if(getInputString(&inp,"mass",temp,0)==KEY_FOUND){
+		mass =stoi(temp);
+		cout<<"New Mass = "<<mass<<endl;
+	}
 
 };
 void PHBInteraction::init(){
@@ -121,6 +125,7 @@ number PHBInteraction::exc_vol_nonbonded(BaseParticle *p, BaseParticle *q, bool 
 	number energy =0;
 	LR_vector force;
 	energy = repulsiveLinear(patchyEpsilon,_computed_r,force,sigma,rstar,b,rc,update_forces);
+	// cout<< "Energy = "<<energy<<" Force = "<< force <<endl;
 	// energy = hardRepulsive(patchyEpsilon,_computed_r,force,sigma,rc,update_forces);
 	if(update_forces){
 		p->force-=force;
@@ -550,18 +555,23 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 					for(uint id=0;id<particleColors[q->btype].size();id++)
 						q->add_patch(patches[particleColors[q->btype][id]]);
 			}
-			if(j==3) {
-				q->radius=std::stod(temp);
-				if(mass){
+			if(j==3) q->radius=std::stod(temp);
+			if(j==4) {
+				q->mass=std::stod(temp);
+				if(q->mass==0){
 					q->mass=pow(q->radius,3);
+					q->invmass = 1/q->mass;
+				}else if (q->mass<0){
+					q->mass=1;q->invmass=1;
+				}else{
 					q->invmass=1/q->mass;
-					q->mr2=q->mass*q->radius*q->radius;
-					q->invmr2=1/q->mr2;
 				}
-			}
+				q->mr2=q->mass*q->radius*q->radius;
+				q->invmr2=1/q->mr2;
+			};
 			// if(q->type==-3){ /// These are helix particles
 				// std::cout<<"Hexlix Particle"<<std::endl;
-			if(j>3){
+			if(j>4){
 				// std::cout<<temp<<std::endl;
 				int connection = std::stoi(temp);
 				if(body.tellg()==-1) throw oxDNAException("Missing color after connection");
@@ -572,9 +582,11 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 				number tempro = std::stod(temp);
 				q->add_neighbour(particles[connection],bfact,tempro);
 			}
+			
 			// }
 			j++;
 		}
+		// cout<<"Mass = "<<q->mass<< " mr2 = "<< q->mr2<<"  Radius = "<<q->radius<<"  Connections "<< q->spring_neighbours<<" Bfactors "<<q->Bfactor<<endl;
 		i++;
 		// if(i==1941)cout<<q->patches[1].color<<endl;
 	};

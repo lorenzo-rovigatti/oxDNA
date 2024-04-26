@@ -59,10 +59,10 @@ void BrownianThermostat::apply (std::vector<BaseParticle *> &particles, llint cu
 
 	for(auto p: particles) {
 		if(drand48() < _pt) {
-			p->vel = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor; //subho *sqrt(p->massinverted) for variable mass to work
+			p->vel = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor*sqrt(p->invmass); //subho *sqrt(p->massinverted) for variable mass to work
 		}
 		if(drand48() < _pr) {
-			p->L = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor;
+			p->L = LR_vector(Utils::gaussian(), Utils::gaussian(), Utils::gaussian()) * _rescale_factor*sqrt(p->invmr2); //subho
 		}
 	}
 }
