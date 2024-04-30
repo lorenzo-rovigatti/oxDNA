@@ -26,7 +26,7 @@ public:
     PHBInteraction();
     virtual ~PHBInteraction();
     // Variables d
-    int totPar,strands,totHelix,totPatchy; //topology
+    int totPar,strands,version,totHelix,totPatchy; //topology
     int particleType;//body parameter
     int i; //temporary parameters
     number rmod,rnorm;

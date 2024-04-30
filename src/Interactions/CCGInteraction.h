@@ -18,7 +18,7 @@
 
 
 #include "BaseInteraction.h"
-#include "../Particles/PatchyParticle.h"
+#include "../Particles/CCGParticle.h"
 #include "../Utilities/parse_input/parse_input.h"
 #include <fstream>
 #include <sstream>
@@ -88,6 +88,7 @@ public:
 	//Color interactions
 	virtual bool color_compatibility(BaseParticle *p, BaseParticle *q); //check wether two particle will interact or not
 	virtual number patchy_interaction(BaseParticle *p, BaseParticle *q, bool compute_r=true,bool update_forces=false);
+	virtual number patchyInteraction2(CCGParticle *p, CCGParticle *q,bool update_forces=false);
 
 	//Debug function
 	virtual number debug(BaseParticle  *p, BaseParticle*q, bool compute_r,bool update_forces);

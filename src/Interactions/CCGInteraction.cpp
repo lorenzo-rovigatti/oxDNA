@@ -1,5 +1,4 @@
 #include "CCGInteraction.h"
-#include "../Particles/CCGParticle.h"
 
 CCGInteraction::CCGInteraction() :
 				BaseInteraction() {
@@ -228,6 +227,31 @@ number CCGInteraction::patchy_interaction(BaseParticle *p, BaseParticle *q, bool
 	}
 	return energy;
 }
+
+number CCGInteraction::patchyInteraction2(CCGParticle *p, CCGParticle *q,bool update_forces){
+	number energy =0.f;
+	rmod = _computed_r.module();
+
+	double dist = rmod-p->radius-q->radius;
+
+	if(color_compatibility(p,q)){
+		if(dist<patchyCutoff){ //effective distance for my case should be small
+
+			double r8b10 = pow(dist,8)/patchyPowAlpha;
+			double expPart = -1.001f*exp(-(number)0.5f*r8b10*dist*dist);
+			energy=strength*(expPart-patchyEcutoff); //patchy interaction potential
+			if(update_forces){
+				double f1D = 5.0 * expPart * r8b10;
+				LR_vector force = strength*f1D*dist*(_computed_r/(rmod));
+				if(force.module()>0.1)
+				p->force-=force;
+				q->force+=force;
+			}
+		}
+	}
+	return energy;
+}
+
 //Old exc_vol
 
 double CCGInteraction::exc_vol_bonded(BaseParticle *p, BaseParticle *q, bool compute_r,bool update_forces){

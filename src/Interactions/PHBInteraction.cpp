@@ -480,6 +480,8 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	std::vector<Patch> patches; //stores the initial patches
     Patch tempPatch; // temporary patch variable;
 	std::vector<std::vector<int>> particleColors;// store id corresponding to particle colors with patch info. 1 particleColor can have multiple patches
+	std::vector<double> momentOfInertia{1,1,1,0.666666666,0.4,1,1,1,1,1}; //moment of inertia of the particles
+	std::vector<double> Masses{1,1,1,1,85,1,1,1,1,1};
 	
     // char line[2048];
 	std::ifstream topology;
@@ -489,7 +491,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	std::getline(topology,temp);
 	// std::cout<<temp<<std::endl;
 	std::stringstream head(temp);
-	head>>totPar>>strands>>temp>>patchySpacer; //saving header info
+	head>>totPar>>strands>>version>>patchySpacer; //saving header info
 	// cout<<patchySpacer<<endl;
 	*N_strands=strands; // This one is important don't forget
 
@@ -539,7 +541,29 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 				particleColors.push_back(tempColors);
 				continue;
 			}
+			if(line[1]=='K'){// moment of inertia of k
+				std::stringstream body(line);
+				j=0;
+				body>>temp;body>>temp;
+				int index = abs(stoi(temp));
+				body>>temp;
+				momentOfInertia[index]=stod(temp);
+				continue;
+			}
+			// Currently the masses features is not being used.
+			if(line[1]=='M'){ // Masses of particles
+				std::stringstream body(line);
+				j=0;
+				body>>temp;body>>temp;
+				int index = abs(stoi(temp));
+				body>>temp;
+				Masses[index]=stod(temp);
+				continue;
+			}
+			cout<<"There is new informational section that is not incorporated :\t"<<line<<endl;
+			continue;
 		}
+		// cout<<momentOfInertia<<endl;
 		auto *q = static_cast< PHBParticle *>(particles[i]); //Start working with PHB particles
 		std::stringstream body(line);
 		// std::cout<<line<<std::endl;
@@ -566,8 +590,9 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 				}else{
 					q->invmass=1/q->mass;
 				}
-				q->mr2=q->mass*q->radius*q->radius;
+				q->mr2=momentOfInertia[abs(q->type)]*q->mass*q->radius*q->radius;
 				q->invmr2=1/q->mr2;
+				// cout<<q->type<<"\t"<<q->mass<<"\t"<<q->radius<<"\t"<<momentOfInertia[abs(q->type)]<<"\t"<<q->mr2<<endl;
 			};
 			// if(q->type==-3){ /// These are helix particles
 				// std::cout<<"Hexlix Particle"<<std::endl;
