@@ -599,10 +599,10 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 			if(j>4){
 				// std::cout<<temp<<std::endl;
 				int connection = std::stoi(temp);
-				if(body.tellg()==-1) throw oxDNAException("Missing color after connection");
+				if(body.tellg()==-1) throw oxDNAException("Missing spring constant k after connection");
 				body>>temp;
 				number bfact = std::stod(temp);
-				if(body.tellg()==-1) throw oxDNAException("Missing r0 after color");
+				if(body.tellg()==-1) throw oxDNAException("Missing r0 after spring constant k");
 				body>>temp;
 				number tempro = std::stod(temp);
 				q->add_neighbour(particles[connection],bfact,tempro);
