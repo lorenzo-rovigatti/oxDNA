@@ -8,7 +8,6 @@ Created on Mon Nov 20 12:00:12 2023
 
 
 import numpy as np
-import copy
 import math
 import oxpy
 import config_multi as cg
@@ -23,6 +22,26 @@ from mpi4py import MPI
 
 def read_config(cfile_name) :
     
+    #find if mode is ave or md
+    
+    cfile = open(cfile_name,'r')
+    for line in cfile.readlines() :
+        vals = line.split()
+        if len(vals) == 0:
+            continue
+        if vals[0][0] == '#':
+            continue    
+        if(vals[0] == 'MODE'):
+            if vals[1] == "ave":
+                cg.ave = True
+    
+    if cg.ave :
+        print("MODE = AVE")
+    else:
+        print("MODE = SD")
+    
+    cfile.close()
+    
     cfile = open(cfile_name,'r')
     
     if cg.first_step_flag == False:
@@ -30,7 +49,7 @@ def read_config(cfile_name) :
         Ts_lines = tfile.readlines()
     Ts_index = -1
     
-    checklist = np.zeros(12, dtype = int) #check if some mandatory parameters are missing
+    checklist = np.zeros(11, dtype = int) #check if some mandatory parameters are missing
     
     Seq_counter = -1
     
@@ -74,8 +93,10 @@ def read_config(cfile_name) :
             cg.Ct.append(Ct)            
             cg.Cs.append(Cs)
 
-
-            SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
+            if cg.ave == True :
+                SLt = SantaLucia.melting_temperature_ave(vals[1],Ct,Cs)
+            else:
+                SLt = SantaLucia.melting_temperature(vals[1],Ct,Cs)
             SimT = 0
             if cg.first_step_flag == True:
                 SimT = float(vals[4])     
@@ -114,7 +135,7 @@ def read_config(cfile_name) :
             T0 = SimT
             
             rew_Ts = []
-                        
+            
             lr = 0
             ur = 0
             
@@ -126,14 +147,8 @@ def read_config(cfile_name) :
                 ur = int((NT-1)/2+1)
                 
             
-            offset = 0.
-            if DT*lr+T0<0 :  #oxpy does not like T < 0C and T > 100C
-                offset = -(DT*lr+T0-0.5)
-            if DT*ur+T0>100 :
-                offset = - (DT*ur+T0-100) - 0.5
-            
             for l in range(lr,ur) :
-                rew_Ts.append( DT*l+T0  + offset)
+                rew_Ts.append( DT*l+T0 )
                 
                 
             cg.rew_Ts.append(rew_Ts)
@@ -141,8 +156,8 @@ def read_config(cfile_name) :
             
             #read weights
 
-            wfile = open("Seq"+str(Seq_counter)+"/Rep0/"+vals[8],'r')
-            cg.fin_wfiles.append("Seq"+str(Seq_counter)+"/"+vals[8])
+            wfile = open("Nbp"+str(cg.Njuns[Seq_counter]+1)+"/Rep0/"+vals[8],'r')
+            cg.fin_wfiles.append("Nbp"+str(cg.Njuns[Seq_counter]+1)+"/"+vals[8])
           
             weights = []
             
@@ -224,14 +239,6 @@ def read_config(cfile_name) :
         if(vals[0] == "LBFGSB_IPRINT") :
             cg.LBFGSB_iprint = int(vals[1])
             checklist[8] = 1
-            
-        #symm stacking default = True
-        if(vals[0] == "SYMM_STCK") :
-            if int(vals[1]) == 0 :
-                cg.symm_stck = True
-            else :
-                cg.symm_stck = False
-                checklist[9] = 1
     
     cfile.close()
     if cg.first_step_flag == False:
@@ -374,15 +381,6 @@ def read_config(cfile_name) :
             print("Note: it might be that MAX number of iterations is used, instead")
             print("Usage:")
             print("LBFGSB_iprint iprint")
-            
-    if checklist[9] == 1:
-        print("Breaking stacking symmetry (AA/TT only)")
-    else :
-        print("OPTION. Using symmetric stacking.")
-        print("If you want to break the AA/TT symmetry,")
-        print("Usage:")
-        print("SYMM_STCK 1")            
-            
     
     return True
 
@@ -400,6 +398,17 @@ def update_T_input_file(T,file_name) :
     pysed.replace(strold2,strnew,file_name)   
     
     return
+
+def set_topo_input_file(seq_id,file_name) :
+    
+    strold1 = r"topology = .*"  #could be K or 
+    strnew = "topology = topo_s"+str(seq_id)+".dat"  #could be C
+    
+    pysed.replace(strold1,strnew,file_name) 
+    
+    return
+
+
 
 def print_final_melting_temperatures(mTs) :
     
@@ -503,12 +512,7 @@ def callbackF(par) :
 def Cost_function_mT(par,stop,par0):
     
     stop[0]=cg.comm.bcast(stop[0], root=0)  #this is used to stop all processes (the while loop in main cycle)
-         
-    par_fr = copy.deepcopy(par)
-    for k in range(len(par)):
-        par[k] *= par0[k]
-
-    #at the end of optimisation stop[0] is set to 1 and communicated to all processes   
+                                            #at the end of optimisation stop[0] is set to 1 and communicated to all processes   
     C = 0
     
     if stop[0] == 0 :
@@ -533,8 +537,6 @@ def Cost_function_mT(par,stop,par0):
             print(par0)
             print("par")
             print(par)
-            print("fraction")            
-            print(par_fr)
                 
             if cg.ave:
                 functions_multi.update_rew_seq_dep_file_ave(par)
@@ -562,11 +564,13 @@ def Cost_function_mT(par,stop,par0):
             read = False
             
                 
-            file_name ="./Seq"+str(l)+"/Rep"+str(n)+"/input2_melting.an"
+            file_name = "Nbp" + str(cg.Njuns[l]+1)+"/Rep"+str(n)+"/input2_melting.an"
             
             #print(file_name)
             
             update_T_input_file(cg.rew_Ts[l][m],file_name)    #change temperature to reweighting target
+            if cg.ave == False:
+                set_topo_input_file(l,file_name)    #change temperature to reweighting target
             print("updating T to "+ str(cg.rew_Ts[l][m]))
             
             with oxpy.Context():              
@@ -574,7 +578,7 @@ def Cost_function_mT(par,stop,par0):
                 #read input script specifying sequence dependent file
                 inp = oxpy.InputFile()
                 
-                inp.init_from_filename("./Seq"+str(l)+"/Rep"+str(n)+"/input2_melting.an")
+                inp.init_from_filename(file_name)
                 #create analysys backend
                 backend = oxpy.analysis.AnalysisBackend(inp)
             

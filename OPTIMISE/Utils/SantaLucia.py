@@ -8,7 +8,6 @@ Created on Wed Feb 14 15:19:00 2024
 
 import numpy as np
 import math
-import sys
 
 def base_to_id(base) :
     
@@ -22,6 +21,20 @@ def base_to_id(base) :
         return 3
     
     return -1
+
+
+def id_to_base(base) :
+    
+    if base == 0:
+        return  'A'
+    elif base == 1:
+        return 'G'
+    elif base == 2:
+        return 'C'
+    elif base == 3:
+        return 'T'
+    
+    return 'Z'
 
 DH0in = 0.2
 DS0in = -5.7
@@ -61,13 +74,28 @@ DS0_step = np.array( [ [-21.3,-21.0,-22.4,-20.4],
                   [-21.3,-22.7,-22.2,-21.3] ] )
 
 
+DH0in_ave = 0.2
+DS0in_ave = -5.7
+
+DH0_step_ave = 0
+DS0_step_ave = 0
+
+for i in range(len(DH0_step)) :
+    for j in range(len(DH0_step[i])) :
+        DH0_step_ave += DH0_step[i][j]/16.
+        DS0_step_ave += DS0_step[i][j]/16.
+        
+DH0fin_ave = 2.2
+DS0fin_ave = 6.9
+
+
 def melting_temperature(seq,Ct,Cs) :
     
     #Santa Lucia (and cgna) reads 5'->3', oxdna reads 3'->5'.
     #To get the right sequence, must reverse oxdna seq!
     SL_seq = "".join(reversed(seq))
     #SL_seq = seq
-    print(SL_seq)
+    #print(SL_seq)
     
     seq_num = []    #from letters to numbers
     
@@ -84,21 +112,26 @@ def melting_temperature(seq,Ct,Cs) :
         DS0 += DS0_step[seq_num[i]][seq_num[i+1]]
         DH0 += DH0_step[seq_num[i]][seq_num[i+1]]
         
+    if seq_num[0] == 0 or seq_num[0] == 3 :
+        #print("In AT")
+        DS0 += DS0fin_AT
+        DH0 += DH0fin_AT
+        
     if seq_num[len(seq_num)-1] == 0 or seq_num[len(seq_num)-1] == 3 :
-        print("Fin AT")
+        #print("Fin AT")
         DS0 += DS0fin_AT
         DH0 += DH0fin_AT
         
         
-    #applay salt correction
+    #apply salt correction
     
     DS0 = DS0 + 0.368*(len(seq_num)-1)*math.log(Cs)
     
-    print(DS0)
-    print(DH0)
+    #print(DS0)
+    #print(DH0)
     
     if self_complementary(seq_num) :
-        print("complementary")
+        #print("complementary")
         DS0 += DS0Symm
         
     x = 4.
@@ -111,20 +144,55 @@ def melting_temperature(seq,Ct,Cs) :
     return Tm
 
 
-# READ SEQUENCE
-if len(sys.argv) != 4 :
-    print("Unknown argument format.")
-    print("Usage: python3 SantaLucia.py sequence Ct Cs")
-    print("Ct = total single strand concentration in M")
-    print("Cs = salt concentration in M")
-    print("For 1 duplex in a box of size l ox units, Ct = 2/l^3*2.6868 M")
-    sys.exit()
+
+
+
+
+def melting_temperature_ave(seq,Ct,Cs) :
+        
+    #Santa Lucia (and cgna) reads 5'->3', oxdna reads 3'->5'.
+    #To get the right sequence, must reverse oxdna seq!
+    SL_seq = "".join(reversed(seq))
+    #SL_seq = seq
+    #print(SL_seq)
     
-
-seq = sys.argv[1]
-Ct = float(sys.argv[2])
-Cs = float(sys.argv[3])
-
-Tm = melting_temperature(seq,Ct,Cs)
-
-print("Tm: " +str(Tm))
+    seq_num = []    #from letters to numbers
+    
+    for i in range(len(SL_seq)) :
+        seq_num.append(base_to_id(SL_seq[i]))   
+    
+    
+    DS0 = 0.
+    DH0 = 0.
+    
+    DS0 += DS0in_ave + (len(seq_num)-1)*DS0_step_ave + DS0fin_ave
+    DH0 += DH0in_ave + (len(seq_num)-1)*DH0_step_ave + DH0fin_ave
+ 
+        
+    #apply salt correction
+    
+    if len(seq_num)%2 == 0 :
+        DS0 += DS0Symm*pow(4,-len(seq_num)/2)
+    
+    
+    DS0 = DS0 + 0.368*(len(seq_num)-1)*math.log(Cs)
+    
+    #print(DS0)
+    #print(DH0)
+    
+    """
+    
+    #lower order correction. Can be neglected
+    
+    if self_complementary(seq_num) :
+        #print("complementary")
+        DS0 += DS0Symm
+        
+    if self_complementary(seq_num) :
+        x = 1.
+    """
+    x = 4.
+    
+    Tm = DH0*1000/(DS0 + R*math.log(Ct/x))-273.15
+    
+    return Tm

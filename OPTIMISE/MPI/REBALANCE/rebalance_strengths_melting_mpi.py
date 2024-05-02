@@ -13,7 +13,7 @@ import copy
 import time
 
 import functions_multi as functions
-import functions_multi_melting_mpi as functions_melting
+import functions_rebalance_strengths_melting_mpi as functions_melting
 import config_multi as cg
 #import Utils
 
@@ -78,7 +78,7 @@ with oxpy.Context():
     energy_ratio = 300.0/(cg.simTs[l]+273.15) #300K/simT in K 
     print("Energy ratio sampled: "+str(energy_ratio))
         
-    file_name = './Seq'+str(l)+'/Rep'+str(i)+'/input1_melting.an'
+    file_name = "Nbp" + str(cg.Njuns[l]+1)+'/Rep'+str(i)+'/input1_melting.an'  #NEW: the configurations are the same for all sequences of the same length
     functions_melting.update_T_input_file(cg.simTs[l],file_name)
     
     #read input script specifying sequence dependent file
@@ -140,9 +140,17 @@ for line in ifile.readlines() :
             if vals[0] == cg.par_codename[i] and cg.par_codename[i] == 'FENE_DELTA' :
                 par0.append(float(vals[2]))
                 order.append(i)
-            elif vals[0] == cg.par_codename[i]+'_A_A' :
+            elif vals[0] == cg.par_codename[i]+'_A_T' :
                 par0.append(float(vals[2]))    
                 order.append(i)
+                
+                if cg.par_codename[i] == "STCK" :                    
+                    up_bond.append(float(vals[2])*1.1)
+                    low_bond.append(float(vals[2])*0.8)                    
+                    
+                else:
+                    up_bond.append(float(vals[2])*1.3)
+                    low_bond.append(float(vals[2])*0.7)
     #SD           
     else :
         if len(vals) == 0 :
@@ -171,24 +179,16 @@ for line in ifile.readlines() :
                     up_bond.append(float(vals[2])*1.05)
                     low_bond.append(float(vals[2])*0.95)
                     
-                elif cg.par_codename[i] == "HYDR_A_T" or cg.par_codename[i] == "HYDR_T_A":
+                elif (vals1[0] == "STCK" or vals1[0] == "HYDR") and len(vals) == 3 :
                     
-                    up_bond.append(0.9544*1.05)
-                    low_bond.append(0.9544*0.95)
+                    up_bond.append(float(vals[2])*3)
+                    low_bond.append(0.)
                     
-                elif cg.par_codename[i] == "HYDR_C_G" or cg.par_codename[i] == "HYDR_G_C":
-                    
-                    up_bond.append(1.318*1.05)
-                    low_bond.append(1.318*0.95)
-                    
-                elif vals1[0] == "STCK" and len(vals1) == 3:
-                    up_bond.append(float(vals[2])*1.05)
-                    low_bond.append(float(vals[2])*0.8)
                     
                 else : 
                     
-                    up_bond.append(float(vals[2])*2)
-                    low_bond.append(float(vals[2])*0)
+                    up_bond.append(float(vals[2])*3.0)
+                    low_bond.append(float(vals[2])*0.0)
                     
                 
                 order.append(i)
@@ -206,7 +206,6 @@ low_bond = [low_bond_c[i] for i in order]
 
 
 print(order)
-print(par0_c)
 
 for i in range(len(order)) :
     par0[order[i]] = par0_c[i]
@@ -215,20 +214,10 @@ for i in range(len(order)) :
 
 
 
-print(par0)
-
 print("Initial values of the optimisation parameters: ")
 print(par0)
 
-par = copy.deepcopy(par0)
-
-#NEW!!!!
-#Normalise parameters!
-
-for k in range(len(par0)) :
-    par[k]/=par0[k]
-    up_bond[k]/=par0[k]
-    low_bond[k]/=par0[k]
+par = par0
 
 bnd = optimize.Bounds(low_bond,up_bond)
     
@@ -316,15 +305,10 @@ if cg.rank == 0 :
 
     #print(sol.x)
     
-    fin_par = copy.deepcopy(sol.x)
-    
-    for l in range(len(fin_par)) :
-        fin_par[l] *= par0[l]
-    
     if cg.ave :
-        functions.update_rew_seq_dep_file_ave(fin_par)
+        functions.update_rew_seq_dep_file_ave(sol.x)
     else :
-        functions.update_rew_seq_dep_file(fin_par)
+        functions.update_rew_seq_dep_file(sol.x)
         
     timefile = open("runtime_mpi.txt",'w')
     print("Run time [s]: " + str(time.time() - start_time),file=timefile)

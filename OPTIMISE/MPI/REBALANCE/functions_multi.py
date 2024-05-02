@@ -20,7 +20,7 @@ def read_config(cfile_name) :
     
     cfile = open(cfile_name,'r')
     
-    checklist = np.zeros(18, dtype = int) #check if some mandatory parameters are missing
+    checklist = np.zeros(17, dtype = int) #check if some mandatory parameters are missing
     
     for line in cfile.readlines() :
         vals = line.split()
@@ -131,14 +131,6 @@ def read_config(cfile_name) :
             if int(vals[1]) != 0 :
                 cg.opti_lp = True                
                 checklist[16] = 1
-                
-        #symm stacking default = True
-        if(vals[0] == "SYMM_STCK") :
-            if int(vals[1]) != 0 :
-                cg.symm_stck = True
-            else :
-                cg.symm_stck = False
-                checklist[17] = 1
         
 
     #CHECK AND PRINT
@@ -503,14 +495,6 @@ def read_config(cfile_name) :
             print("Usage:")
             print("LBFGSB_iprint iprint")
             
-    if checklist[17] == 1:
-        print("Breaking stacking symmetry (AA/TT only)")
-    else :
-        print("OPTION. Using symmetric stacking.")
-        print("If you want to break the AA/TT symmetry,")
-        print("Usage:")
-        print("SYMM_STCK 1")
-            
     
 
     
@@ -618,6 +602,10 @@ def impose_continuity(par_cname,p_id,pars) :
     auxiliars = []
     aux_values = []
     output = []
+    
+    if len(vals) == 1:  #for stacking strength average
+        output.append('No')
+        return output
     
     f1 = False
     f2 = False
@@ -937,13 +925,11 @@ def update_rew_seq_dep_file(par) :
                     print(name+"_A_C"+" = "+str(par[i]),file=ofile)
                 elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'C' :
                     print(name+"_G_T"+" = "+str(par[i]),file=ofile)
-                
-                if cg.symm_stck:
-                    if vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'A' :
-                        print(name+"_T_T"+" = "+str(par[i]),file=ofile)
-                    elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
-                        print(name+"_A_A"+" = "+str(par[i]),file=ofile)
-                
+                    
+                elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'A' :
+                    print(name+"_T_T"+" = "+str(par[i]),file=ofile)
+                elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
+                    print(name+"_A_A"+" = "+str(par[i]),file=ofile)
             #symmetries
             elif vals[0] == 'FENE':
                 
@@ -1186,16 +1172,14 @@ def print_matrix(M):
 def Relative_entropy_wRew(par,stop,par0):
     
     stop[0]=cg.comm.bcast(stop[0], root=0)  #this is used to stop all processes (the while loop in main cycle)
-                                            #at the end of optimisation stop[0] is set to 1 and communicated to all processes                                          
+                                            #at the end of optimisation stop[0] is set to 1 and communicated to all processes   
+                                            
     S = 0.
     
     if stop[0] == 0 :
                     
         if cg.rank == 0:
-            """
-            for k in range(len(par)):
-                par[k] *= par0[k]    
-            """
+        
             print(par)
             print(par0)
             
@@ -1209,8 +1193,6 @@ def Relative_entropy_wRew(par,stop,par0):
         #bcast par from rank 0 (where optimisation is performed) to other cpus
         par=cg.comm.bcast(par, root=0)
         print("We are there 0 rank " +str(cg.rank))
-        #print("communicated par")
-        #print(par)
         
         
         
@@ -1640,11 +1622,11 @@ def Relative_entropy_wRew(par,stop,par0):
             
             print("seq, rep: " + str(cg.seq_id) + ", " + str(cg.rep_id) + ". S: " + str(S))
             
+            S = cg.comm_leaders.reduce(S,op=MPI.SUM, root=0)
+            
             if S > 100000 or S < 0 :
                 print("S overflow. Setting it to 10^6")
                 S = 1000000
-            
-            S = cg.comm_leaders.reduce(S,op=MPI.SUM, root=0)
             
             if cg.rank == 0 :                
                 print("tot S: "+str(S))

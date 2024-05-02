@@ -15,7 +15,7 @@ T = 47C
 dt = 0.005
 verlet_skin = 0.05
 salt_concentration = 0.15
-interaction_type = DNA2
+interaction_type = DNA3
 
 ### Seq. Dependence ##########
 use_average_seq = 0

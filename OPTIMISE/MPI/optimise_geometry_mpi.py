@@ -273,17 +273,30 @@ for line in ifile.readlines() :
                     low_bond.append(float(vals[2])*0.9)
                     
                 else :                    
-                    up_bond.append(float(vals[2])*1.2)
-                    low_bond.append(float(vals[2])*0.8)
+                    up_bond.append(float(vals[2])*1.5)
+                    low_bond.append(float(vals[2])*0.5)
                     
                 
                 order.append(i)
 
 ifile.close()
 
+par0_c = copy.deepcopy(par0)
+
+
+print(order)
+print(par0_c)
+
+for i in range(len(order)) :
+    par0[order[i]] = par0_c[i]
+
+
+
+print(par0)
+
 #sort par0 so that the values match the parameters in par_codenames 
 
-par0_c = copy.deepcopy(par0)
+
 up_bond_c = copy.deepcopy(up_bond)
 low_bond_c = copy.deepcopy(low_bond)
 
@@ -291,19 +304,13 @@ up_bond = [up_bond_c[i] for i in order]
 low_bond = [low_bond_c[i] for i in order]
 
 
-print(order)
-print(par0_c)
-
-
 
 for i in range(len(order)) :
-    par0[order[i]] = par0_c[i]
     up_bond[order[i]] = up_bond_c[i]
     low_bond[order[i]] = low_bond_c[i]
 
 
 
-print(par0)
 
 print("Initial values of the optimisation parameters: ")
 

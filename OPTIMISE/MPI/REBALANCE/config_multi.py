@@ -128,4 +128,4 @@ hbs_sampled = []
 first_step_flag = False
 fin_wfiles = []
 
-symm_stck = True
+

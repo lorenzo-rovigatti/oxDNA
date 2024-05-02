@@ -81,8 +81,10 @@ if [[ "$st" == "" ]]; then
 fi
 
 seq=()
+Nbp=()
 for word in $st; do
 	seq+=("$word")
+	Nbp+=(${#word})
 done
 #seq=$(echo $st | tr " " "\n")
 
@@ -92,6 +94,7 @@ echo "Sequences:"
 
 for (( k = 0; k < ${Nseq}; k++ )); do
 	echo ${seq[$k]}
+	echo "Nbp: " ${Nbp[$k]}
 done
 
 #total number of cpus is number_of_sequences*number_of_reps
@@ -256,37 +259,30 @@ done
 
 
 ###########################
-#OPTIMISATION
+#REBALANCE
 ###########################
 
-#initialise first step
+#setup files
 
-#create directory
-mkdir ${main_path}/Step0
-cp ${main_path}/oxDNA_sequence_dependent_parameters.txt ${main_path}/Step0/
-cp ${main_path}/oxDNA_sequence_dependent_parameters_in.txt ${main_path}/Step0/
+STCK=( 1.5667 1.5337 )
 
-#setup and run repetitions for step 0
+Nstck=${#STCK[@]}
+
 for ((l=0; l < ${Nseq}; l++)); do
-	for ((j=0; j < ${Nreps};j++)); do
-		mkdir -p ${main_path}/Step0/Seq${l}/Rep${j}/	
-		#cp ${main_path}/gen.txt ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${opti_path}/MPI/input_VMMC ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${main_path}/Step0/oxDNA_sequence_dependent_parameters_in.txt ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${main_path}/${OP_files[$l]} ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${main_path}/${W_files[$l]} ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${opti_path}/MPI/input1_melting.an ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${opti_path}/MPI/input2_melting.an ${main_path}/Step0/Seq${l}/Rep${j}/
+	for ((j=0; j< ${Nreps};j++)); do
+
+		cp ${opti_path}/MPI/input1_melting.an ${main_path}/Nbp${Nbp[l]}/Rep${j}/
+		cp ${opti_path}/MPI/input2_melting.an ${main_path}/Nbp${Nbp[l]}/Rep${j}/
 		
-		rep_path=${main_path}/Step0/Seq${l}/Rep${j}
-		step_path=${main_path}/Step0/
-		cd ${rep_path}
 		
-		echo "double "${seq[$l]} > gen.txt
+		rep_path=${main_path}/Nbp${Nbp[l]}/Rep${j}/
+		step_path=${main_path}
 		
+		cd ${main_path}/Nbp${Nbp[l]}/Rep${j}/
+
 		sed -i "s|replace_me1|${rep_path}|g" input1_melting.an	
 		sed -i "s|replace_me1|${rep_path}|g" input2_melting.an
-		sed -i "s|replace_me2|${step_path}|g" input1_melting.an	
+		sed -i "s|replace_me2|${rep_path}|g" input1_melting.an	
 		sed -i "s|replace_me2|${step_path}|g" input2_melting.an
 		sed -i "s|op.txt|${OP_files[$l]}|g" input1_melting.an
 		sed -i "s|op.txt|${OP_files[$l]}|g" input2_melting.an
@@ -294,95 +290,25 @@ for ((l=0; l < ${Nseq}; l++)); do
 		sed -i "s|T = .*|T = ${Ts[$l]}C|g" input2_melting.an
 		sed -i "s|salt_concentration = .*|salt_concentration = ${salt[$l]}|g" input1_melting.an
 		sed -i "s|salt_concentration = .*|salt_concentration = ${salt[$l]}|g" input2_melting.an
-		python3 ${oxDNA_path}/utils/generate-sa.py ${box_size[$l]} gen.txt
-		sed -i "s|seed = .*|seed = ${RANDOM}|g" input_VMMC
-		sed -i "s|steps = .*|steps = ${timesteps}|g" input_VMMC
-		sed -i "s|T = 72C|T = ${Ts[$l]}C|g" input_VMMC
-		sed -i "s|salt_concentration = .*|salt_concentration = ${salt[$l]}|g" input_VMMC
-		sed -i "s|op_file = op.txt|op_file = ${OP_files[$l]}|g" input_VMMC
-		sed -i "s|weights_file = wfile.txt|weights_file = ${W_files[$l]}|g" input_VMMC
-		${oxDNA_path}/build/bin/oxDNA input_VMMC > out &
 	done
 done
 
-
-wait
-
-#optimise
-cd ${main_path}/Step0
-mpirun -np ${Nproc} python3 ${opti_path}/MPI/optimise_melting_mpi.py ../$config 0 > OutOpti
+cd ${main_path}/
 
 
-mv oxDNA_sequence_dependent_parameters_tmp.txt oxDNA_sequence_dependent_parameters_fin.txt
+for ((k=0; k < ${Nstck}; k++)); do
 
-for ((i=1; i < ${Nsteps}; i++)); do
-
-	Tfile=${main_path}/Step$(($i-1))/final_rew_mTs.txt
-	st=$(awk '{print $1}' $Tfile)
-	if [[ "$st" == "" ]]; then
-		echo "Rew Temperatures previous step missing. Optimisation not working? "
-		echo "Terminating."
-		exit 1
+	if [ $k -ge 0 ]; then
+		sed -i "s| = ${STCK[$(($k-1))]}| = ${STCK[$k]}|g" oxDNA_sequence_dependent_parameters.txt
+		sed -i "s| = ${STCK[$(($k-1))]}| = ${STCK[$k]}|g" oxDNA_sequence_dependent_parameters.in
 	fi
 
-	rew_Ts=()
-	for word in $st; do
-		rew_Ts+=("$word")
-	done
+	mpirun -np ${Nproc} python3 ${opti_path}/MPI/REBALANCE/rebalance_strengths_melting_mpi.py $config 0 > OutOpti
 	
-	echo "Rew temperatures:"
+	mv oxDNA_sequence_dependent_parameters_tmp.txt PARAMS/oxDNA_sequence_dependent_parameters_fin${k}.txt
 
-	for (( k = 0; k < ${Nseq}; k++ )); do
-		echo ${rew_Ts[$k]}
-	done
-
-
-	mkdir -p ${main_path}/Step${i}/
 	
-	cp $Tfile ${main_path}/Step$i/in_Ts.txt
-	
-	#copy optimisation code
-	cp ${main_path}/oxDNA_sequence_dependent_parameters.txt ${main_path}/Step${i}/
-	cp ${main_path}/Step$(($i-1))/oxDNA_sequence_dependent_parameters_fin.txt ${main_path}/Step${i}/oxDNA_sequence_dependent_parameters_in.txt
-	for ((l=0; l < ${Nseq}; l++)); do
-		for ((j=0; j< ${Nreps};j++)); do
-			mkdir -p ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			cp ${main_path}/Step$(($i-1))/Seq${l}/Rep${j}/input_VMMC ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			cp ${main_path}/Step$(($i-1))/oxDNA_sequence_dependent_parameters_fin.txt ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			cp ${main_path}/Step$(($i-1))/Seq${l}/Rep${j}/${OP_files[$l]} ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			cp ${main_path}/Step$(($i-1))/Seq${l}/${W_files[$l]} ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			cp ${opti_path}/MPI/input1_melting.an ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			cp ${opti_path}/MPI/input2_melting.an ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			cd ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			mv oxDNA_sequence_dependent_parameters_fin.txt oxDNA_sequence_dependent_parameters_in.txt
-			
-			cd ${main_path}/Step${i}/
-			rep_path=$(pwd)/Seq${l}/Rep${j}
-			step_path=$(pwd)
-			cd ${rep_path}
-			
-			echo "double "${seq[$l]} > gen.txt
-			
-			sed -i "s|replace_me1|${rep_path}|g" input1_melting.an	
-			sed -i "s|replace_me1|${rep_path}|g" input2_melting.an
-			sed -i "s|replace_me2|${step_path}|g" input1_melting.an	
-			sed -i "s|replace_me2|${step_path}|g" input2_melting.an
-			sed -i "s|op.txt|${OP_files[$l]}|g" input1_melting.an
-			sed -i "s|op.txt|${OP_files[$l]}|g" input2_melting.an
-			python3 ${oxDNA_path}/utils/generate-sa.py ${box_size} gen.txt
-			sed -i "s|seed = .*|seed = ${RANDOM}|g" input_VMMC
-			sed -i "s|T = .*|T = ${rew_Ts[$l]}C|g" input_VMMC
-			sed -i "s|T = .*|T = ${rew_Ts[$l]}C|g" input1_melting.an
-			sed -i "s|T = .*|T = ${rew_Ts[$l]}C|g" input2_melting.an
-			sed -i "s|salt_concentration = .*|salt_concentration = ${salt[$l]}|g" input1_melting.an
-			sed -i "s|salt_concentration = .*|salt_concentration = ${salt[$l]}|g" input2_melting.an
-			${oxDNA_path}/build/bin/oxDNA input_VMMC > out &
-		done
-	done
-	
-	wait
-	
-	cd ${main_path}/Step${i}
-	mpirun -np ${Nproc} python3 ${opti_path}/MPI/optimise_melting_mpi.py ../$config 1 > OutOpti
-	mv oxDNA_sequence_dependent_parameters_tmp.txt oxDNA_sequence_dependent_parameters_fin.txt
+	mv parameters_v_iter.txt PARAMS/parameters_v_iter${k}.txt
+	mv final_rew_mTs.txt PARAMS/final_rew_mTs${k}.txt
+	mv OutOpti PARAMS/OutOpti${k}
 done
