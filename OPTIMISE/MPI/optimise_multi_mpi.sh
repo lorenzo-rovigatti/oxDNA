@@ -131,7 +131,7 @@ for ((l=0; l < ${Nseq}; l++)); do
 		
 		sed -i "s|replace_me1|${rep_path}|g" input1.an	#set the right paths
 		sed -i "s|replace_me1|${rep_path}|g" input2.an
-		sed -i "s|replace_me2|${step_path}|g" input1.an	
+		sed -i "s|replace_me2|${rep_path}|g" input1.an	
 		sed -i "s|replace_me2|${step_path}|g" input2.an
 		python3 ${opti_path}/GenOP.py ${#seq[$l]}	#generate op file (to check if sampled confs are melted)
 		python3 ${oxDNA_path}/utils/generate-sa.py ${box_size} gen.txt	#gen topology and in conf
