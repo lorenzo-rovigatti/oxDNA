@@ -5,7 +5,7 @@
 #include "BaseInteraction.h"
 #include "../Particles/PHBParticle.h" // This is helix particles + patchy particles
 #include <sstream>
-#include "omp.h" // for openmp
+// #include "omp.h" // for openmp
 
 // all gpu essential definitions
 #define GPUmaxiP 40 // maximum patch point for a particle for ico 6 connective points

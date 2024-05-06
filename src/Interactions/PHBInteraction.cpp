@@ -653,7 +653,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 		}
 	}
 	// throw oxDNAException("Stop here");
-
+	cout<< "Topology reading completed"<<endl;
 };
 
 void PHBInteraction::setRcut(std::vector<BaseParticle *> &particles){
