@@ -37,10 +37,5 @@ std::string ForceEnergy::get_output_string(llint curr_step) {
 	}
 	U /= _config_info->N();
 
-	if (_general_format) {
-		return Utils::sformat("%." + _precision + "g", U);
-	}
-	else {
-		return Utils::sformat("% 10." + _precision + "lf", U);
-	}
+	return Utils::sformat(_number_formatter, U);
 }
