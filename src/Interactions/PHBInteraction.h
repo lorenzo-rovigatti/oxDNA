@@ -8,10 +8,10 @@
 // #include "omp.h" // for openmp
 
 // all gpu essential definitions
-#define GPUmaxiP 40 // maximum patch point for a particle for ico 6 connective points
-#define MAXparticles 2000 // maximum number of particles
+#define GPUmaxiP 500 // maximum patch point for a particle for ico 6 connective points
+#define MAXparticles 5000 // maximum number of particles
 #define MAXneighbour 15 // number of bonded neighbout one particle is connected to 
-#define GPUmaxiC 10 // unique patchy configuration max iC number.
+#define GPUmaxiC 500 // unique patchy configuration max iC number.
 #define MaxPatches 24 // maximum number of patches
 
 class PHBInteraction: public BaseInteraction{
