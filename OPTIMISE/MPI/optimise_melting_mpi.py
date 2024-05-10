@@ -173,13 +173,13 @@ for line in ifile.readlines() :
                     
                 elif cg.par_codename[i] == "HYDR_A_T" or cg.par_codename[i] == "HYDR_T_A":
                     
-                    up_bond.append(0.9544*1.05)
-                    low_bond.append(0.9544*0.95)
+                    up_bond.append(0.9544*1.1)
+                    low_bond.append(0.9544*0.9)
                     
                 elif cg.par_codename[i] == "HYDR_C_G" or cg.par_codename[i] == "HYDR_G_C":
                     
-                    up_bond.append(1.318*1.05)
-                    low_bond.append(1.318*0.95)
+                    up_bond.append(1.318*1.1)
+                    low_bond.append(1.318*0.9)
                     
                 elif vals1[0] == "STCK" and len(vals1) == 3:
                     up_bond.append(float(vals[2])*1.05)

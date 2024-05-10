@@ -1192,12 +1192,19 @@ def Relative_entropy_wRew(par,stop,par0):
     if stop[0] == 0 :
                     
         if cg.rank == 0:
+            
+            frac = []
+            for i in range(len(par)):
+                frac.append(par[i]/par0[i])            
+            
             """
             for k in range(len(par)):
                 par[k] *= par0[k]    
             """
             print(par)
             print(par0)
+            print("fraction:")
+            print(frac)
             
             #update parameters file (only once, at rank 0)
             if cg.ave:
@@ -1271,7 +1278,7 @@ def Relative_entropy_wRew(par,stop,par0):
                          continue
                      a = float(obs[0].get_output_string(backend.conf_step).split()[0])
                      #print(counts)
-                     if math.isnan( a ) or (abs((cg.Njuns[l]+1)*20*a-cg.energy_sampled[counts-cg.in_snap])>30):    #avoid nans and overflows
+                     if math.isnan( a ) or (abs((cg.Njuns[l]+1)*20*a-cg.energy_sampled[counts-cg.in_snap])>70):    #avoid nans and overflows
                          energy1.append(999)
                          #print("We are here 0 rank " +str(cg.rank))
                      else :

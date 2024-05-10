@@ -259,8 +259,8 @@ for line in ifile.readlines() :
                     
                 elif vals1[0] == "STCK" and vals1[1] == "R0" :
                     
-                    up_bond.append(float(vals[2])*1.05)
-                    low_bond.append(float(vals[2])*0.95) 
+                    up_bond.append(float(vals[2])*1.1)
+                    low_bond.append(float(vals[2])*0.9) 
                     
                 elif vals1[0] == "STCK" and vals1[2] == "T0" and abs(float(vals[2])) < 0.01:   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
@@ -269,8 +269,8 @@ for line in ifile.readlines() :
                     
                 elif vals1[0] == "CRST" and vals1[1] == "THETA4" and vals1[2] == "T0" :   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
-                    up_bond.append(float(vals[2])*1.1)
-                    low_bond.append(float(vals[2])*0.9)
+                    up_bond.append(float(vals[2])*1.2)
+                    low_bond.append(float(vals[2])*0.8)
                     
                 else :                    
                     up_bond.append(float(vals[2])*1.5)
