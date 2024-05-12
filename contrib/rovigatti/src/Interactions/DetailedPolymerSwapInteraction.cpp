@@ -174,11 +174,11 @@ number DetailedPolymerSwapInteraction::_yukawa(BaseParticle *p, BaseParticle *q,
 		return (number) 0.;
 	}
 	number r = sqrt(sqr_r);
-
-	number energy = exp(-r / _yk_debye) * _yk_strength / r;
+	number exp_part = exp(-r / _yk_debye);
+	number energy = exp_part * _yk_strength / r;
 
 	if(update_forces) {
-		LR_vector force = _computed_r * ((_yk_strength * exp(-r / _yk_debye)) * (1.0 / (sqr_r * _yk_debye) + 1.0f / (r * sqr_r)));
+		LR_vector force = _computed_r * ((_yk_strength * exp_part) * (1.0 / (sqr_r * _yk_debye) + 1.0f / (r * sqr_r)));
 		p->force -= force;
 		q->force += force;
 	}
