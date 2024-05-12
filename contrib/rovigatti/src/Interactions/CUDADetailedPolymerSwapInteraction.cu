@@ -30,6 +30,9 @@ __constant__ float MD_alpha[1];
 __constant__ float MD_beta[1];
 __constant__ float MD_gamma[1];
 
+__constant__ float MD_yk_strength[1];
+__constant__ float MD_yk_debye[1];
+
 __constant__ float MD_sqr_3b_rcut[1];
 __constant__ float MD_3b_sigma[1];
 __constant__ float MD_3b_prefactor[1];
@@ -75,7 +78,11 @@ struct __align__(16) CUDA_FS_bond_list {
 	}
 };
 
-__device__ void _WCA(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *box) {
+__device__ bool _sticky_interaction(int p_btype, int q_btype) {
+	return p_btype != DetailedPolymerSwapInteraction::MONOMER && q_btype != DetailedPolymerSwapInteraction::MONOMER;
+}
+
+__device__ void _repulsion(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *box) {
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
@@ -92,14 +99,16 @@ __device__ void _WCA(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *bo
 		energy += 4.f * part * (part - 1.f) + 1.f - MD_alpha[0];
 		force_mod += 4.f * MD_n[0] * part * (2.f * part - 1.f) / sqr_r;
 	}
-	/*else {
-		energy += 0.5f * MD_alpha[0] * (cosf(MD_gamma[0] * sqr_r + MD_beta[0]) - 1.f);
-		force_mod += MD_alpha[0] * MD_gamma[0] * sinf(MD_gamma[0] * sqr_r + MD_beta[0]);
-	}
 
-	if(sqr_r > MD_sqr_rcut[0]) {
-		energy = force_mod = (c_number) 0.f;
-		}*/
+	if(MD_yk_strength[0] > 0.f) {	
+		int p_btype = get_particle_btype(ppos);
+		int q_btype = get_particle_btype(qpos);
+		if(!_sticky_interaction(p_btype, q_btype)) {
+			c_number r_mod = sqrtf(sqr_r);
+			energy += expf(-r_mod / MD_yk_debye[0]) * MD_yk_strength[1] / r_mod;
+			force_mod += (MD_yk_strength[0] * expf(-r_mod / MD_yk_debye[0])) * (1.f / (sqr_r * MD_yk_debye[0]) + 1.f / (r_mod * sqr_r));
+		}
+	}
 
 	F.x -= r.x * force_mod;
 	F.y -= r.y * force_mod;
@@ -253,10 +262,6 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 	forces[IND] = F;
 }
 
-__device__ bool _sticky_interaction(int p_btype, int q_btype) {
-	return p_btype != DetailedPolymerSwapInteraction::MONOMER && q_btype != DetailedPolymerSwapInteraction::MONOMER;
-}
-
 // forces + second step with verlet lists
 __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *number_neighs, cudaTextureObject_t tex_eps, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
@@ -276,7 +281,7 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 			c_number4 qpos = poss[q_index];
 			int q_btype = get_particle_btype(qpos);
 
-			_WCA(ppos, qpos, F, box);
+			_repulsion(ppos, qpos, F, box);
 
 			if(_sticky_interaction(p_btype, q_btype)) {
 				int eps_idx = p_btype + MD_interaction_matrix_size[0] * q_btype;
