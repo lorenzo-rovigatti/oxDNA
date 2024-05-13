@@ -146,6 +146,7 @@ class Strand:
                 setattr(self, key, dictionary[key])
         for key in kwargs:
             setattr(self, key, kwargs[key])
+        self.id = int(self.id)
 
     def __getitem__(self, key:int):
         return self.monomers[key]
