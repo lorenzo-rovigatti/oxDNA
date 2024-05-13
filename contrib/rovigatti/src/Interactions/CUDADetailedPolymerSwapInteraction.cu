@@ -22,6 +22,7 @@ __constant__ int MD_N[1];
 __constant__ int MD_n[1];
 __constant__ int MD_interaction_matrix_size[1];
 __constant__ float MD_sqr_rep_rcut[1];
+__constant__ float MD_sqr_WCA_rcut[1];
 __constant__ float MD_sqr_rfene[1];
 __constant__ float MD_Kfene[1];
 __constant__ float MD_WCA_sigma[1];
@@ -29,6 +30,9 @@ __constant__ float MD_sqr_rcut[1];
 __constant__ float MD_alpha[1];
 __constant__ float MD_beta[1];
 __constant__ float MD_gamma[1];
+
+__constant__ float MD_yk_strength[1];
+__constant__ float MD_yk_debye[1];
 
 __constant__ float MD_sqr_3b_rcut[1];
 __constant__ float MD_3b_sigma[1];
@@ -75,7 +79,11 @@ struct __align__(16) CUDA_FS_bond_list {
 	}
 };
 
-__device__ void _WCA(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *box) {
+__device__ bool _sticky_interaction(int p_btype, int q_btype) {
+	return p_btype != DetailedPolymerSwapInteraction::MONOMER && q_btype != DetailedPolymerSwapInteraction::MONOMER;
+}
+
+__device__ void _repulsion(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *box, bool with_yukawa) {
 	c_number4 r = box->minimum_image(ppos, qpos);
 	c_number sqr_r = CUDA_DOT(r, r);
 
@@ -83,7 +91,7 @@ __device__ void _WCA(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *bo
 	// this is the module of the force over r, so we don't have to divide the distance vector by its module
 	c_number force_mod = 0.f;
 
-	if(sqr_r < MD_sqr_rep_rcut[0]) {
+	if(sqr_r < MD_sqr_WCA_rcut[0]) {
 		c_number part = 1.f;
 		c_number ir2_scaled = SQR(MD_WCA_sigma[0]) / sqr_r;
 		for(int i = 0; i < MD_n[0] / 2; i++) {
@@ -92,19 +100,20 @@ __device__ void _WCA(c_number4 &ppos, c_number4 &qpos, c_number4 &F, CUDABox *bo
 		energy += 4.f * part * (part - 1.f) + 1.f - MD_alpha[0];
 		force_mod += 4.f * MD_n[0] * part * (2.f * part - 1.f) / sqr_r;
 	}
-	/*else {
-		energy += 0.5f * MD_alpha[0] * (cosf(MD_gamma[0] * sqr_r + MD_beta[0]) - 1.f);
-		force_mod += MD_alpha[0] * MD_gamma[0] * sinf(MD_gamma[0] * sqr_r + MD_beta[0]);
+
+	if(with_yukawa) {
+		c_number r_mod = sqrtf(sqr_r);
+		c_number exp_part = expf(-r_mod / MD_yk_debye[0]); 
+		energy += exp_part * MD_yk_strength[0] / r_mod;
+		force_mod += (MD_yk_strength[0] * exp_part) * (1.f / (sqr_r * MD_yk_debye[0]) + 1.f / (r_mod * sqr_r));
 	}
 
-	if(sqr_r > MD_sqr_rcut[0]) {
-		energy = force_mod = (c_number) 0.f;
-		}*/
-
-	F.x -= r.x * force_mod;
-	F.y -= r.y * force_mod;
-	F.z -= r.z * force_mod;
-	F.w += energy;
+	if(sqr_r < MD_sqr_rep_rcut[0]) {
+		F.x -= r.x * force_mod;
+		F.y -= r.y * force_mod;
+		F.z -= r.z * force_mod;
+		F.w += energy;
+	}
 }
 
 __device__ void _sticky(c_number4 &ppos, c_number4 &qpos, int eps_idx, int q_idx, c_number4 &F, CUDA_FS_bond_list &bond_list, cudaTextureObject_t tex_eps, CUDABox *box) {
@@ -226,6 +235,17 @@ __device__ int get_monomer_type(const c_number4 &r_i) {
 	return my_btype > 0;
 }
 
+__device__ bool are_bonded_neighs(int p, int q, int *bonded_neighs) {
+	int n_bonded_neighs = bonded_neighs[p];
+	bool are_neighs = false;
+	for(int i = 1; i <= n_bonded_neighs; i++) {
+		int neigh_idx = bonded_neighs[MD_N[0] * i + p];
+		are_neighs = (are_neighs) ? true : neigh_idx == q;
+	}
+
+	return are_neighs;
+}
+
 __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *bonded_neighs, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
@@ -253,12 +273,7 @@ __global__ void ps_FENE_flexibility_forces(c_number4 *poss, c_number4 *forces, c
 	forces[IND] = F;
 }
 
-__device__ bool _sticky_interaction(int p_btype, int q_btype) {
-	return p_btype != DetailedPolymerSwapInteraction::MONOMER && q_btype != DetailedPolymerSwapInteraction::MONOMER;
-}
-
-// forces + second step with verlet lists
-__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *number_neighs, cudaTextureObject_t tex_eps, CUDABox *box) {
+__global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_body_forces, int *matrix_neighs, int *number_neighs, int *bonded_neighs, cudaTextureObject_t tex_eps, CUDABox *box) {
 	if(IND >= MD_N[0]) return;
 
 	c_number4 F = forces[IND];
@@ -275,10 +290,11 @@ __global__ void ps_forces(c_number4 *poss, c_number4 *forces, c_number4 *three_b
 		if(q_index != IND) {
 			c_number4 qpos = poss[q_index];
 			int q_btype = get_particle_btype(qpos);
+			bool sticky_interaction = _sticky_interaction(p_btype, q_btype);
+			bool with_yukawa = (MD_yk_strength[0] > 0.f) && !are_bonded_neighs(IND, q_index, bonded_neighs) && !sticky_interaction;
+			_repulsion(ppos, qpos, F, box, with_yukawa);
 
-			_WCA(ppos, qpos, F, box);
-
-			if(_sticky_interaction(p_btype, q_btype)) {
+			if(sticky_interaction) {
 				int eps_idx = p_btype + MD_interaction_matrix_size[0] * q_btype;
 				_sticky(ppos, qpos, eps_idx, q_index, F, bonds, tex_eps, box);
 			}
@@ -357,7 +373,8 @@ void CUDADetailedPolymerSwapInteraction::cuda_init(int N) {
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_n, &_PS_n, sizeof(int)));
 	int interaction_matrix_size = _N_attractive_types + 1;
 	CUDA_SAFE_CALL(cudaMemcpyToSymbol(MD_interaction_matrix_size, &interaction_matrix_size, sizeof(int)));
-	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, _PS_sqr_rep_rcut)
+	COPY_NUMBER_TO_FLOAT(MD_sqr_rep_rcut, _PS_sqr_rep_rcut);
+	COPY_NUMBER_TO_FLOAT(MD_sqr_WCA_rcut, _PS_sqr_WCA_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_sqr_rfene, _sqr_rfene);
 	COPY_NUMBER_TO_FLOAT(MD_Kfene, _Kfene);
 	COPY_NUMBER_TO_FLOAT(MD_WCA_sigma, _WCA_sigma);
@@ -371,6 +388,8 @@ void CUDADetailedPolymerSwapInteraction::cuda_init(int N) {
 	COPY_NUMBER_TO_FLOAT(MD_3b_rcut, _3b_rcut);
 	COPY_NUMBER_TO_FLOAT(MD_3b_A_part, _3b_A_part);
 	COPY_NUMBER_TO_FLOAT(MD_3b_B_part, _3b_B_part);
+	COPY_NUMBER_TO_FLOAT(MD_yk_strength, _yk_strength);
+	COPY_NUMBER_TO_FLOAT(MD_yk_debye, _yk_debye);
 
 	CUDA_SAFE_CALL(GpuUtils::LR_cudaMalloc(&_d_3b_epsilon, _3b_epsilon.size() * sizeof(float)));
 	std::vector<float> h_3b_epsilon(_3b_epsilon.begin(), _3b_epsilon.end());
@@ -393,7 +412,7 @@ void CUDADetailedPolymerSwapInteraction::compute_forces(CUDABaseList *lists, c_n
 
 	ps_forces
 		<<<_launch_cfg.blocks, _launch_cfg.threads_per_block>>>
-		(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, _tex_eps, d_box);
+		(d_poss, d_forces, _d_three_body_forces, lists->d_matrix_neighs, lists->d_number_neighs, _d_bonded_neighs, _tex_eps, d_box);
 	CUT_CHECK_ERROR("forces_second_step DetailedPolymerSwap error");
 
 	// add the three body contributions to the two-body forces
