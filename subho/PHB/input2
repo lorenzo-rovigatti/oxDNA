@@ -50,8 +50,8 @@ ensemble = NVT
 
 ##############################
 #parfile = replica.par
-topology = 100p.phb
-conf_file = 100p.dat
+topology = helix.phb
+conf_file = helix.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf2.dat
 log_file = log2.ign
