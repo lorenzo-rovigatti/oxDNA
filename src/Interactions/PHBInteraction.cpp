@@ -22,6 +22,7 @@ void PHBInteraction::get_settings(input_file &inp){
     BaseInteraction::get_settings(inp);
 	if(getInputString(&inp,"patchyAlpha",temp,0)==KEY_FOUND){
 		patchyAlpha=stod(temp);
+		patchyPowAlpha=powf(patchyAlpha, (number) 10.f);
 		cout<<"New alpha value for patchy interaction = "<<patchyAlpha<<endl;
 	}
 	if(getInputString(&inp,"patchyRcut",temp,0)==KEY_FOUND){
@@ -59,6 +60,10 @@ void PHBInteraction::get_settings(input_file &inp){
 	if(getInputString(&inp,"mass",temp,0)==KEY_FOUND){
 		mass =stoi(temp);
 		cout<<"New Mass = "<<mass<<endl;
+	}
+	if(getInputString(&inp,"patchyRc",temp,0)==KEY_FOUND){
+		patchyRc =stoi(temp);
+		cout<<"New Patchy Rc = "<<patchyRc<<endl;
 	}
 
 };
@@ -580,7 +585,8 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 						q->add_patch(patches[particleColors[q->btype][id]]);
 			}
 			if(j==3) q->radius=std::stod(temp);
-			if(j==4) {
+			if(!mass) cout<< "Mass is rejected"<<endl;
+			if(j==4 && mass) {
 				q->mass=std::stod(temp);
 				if(q->mass==0){
 					q->mass=pow(q->radius,3);
@@ -594,6 +600,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 				q->invmr2=1/q->mr2;
 				// cout<<q->type<<"\t"<<q->mass<<"\t"<<q->radius<<"\t"<<momentOfInertia[abs(q->type)]<<"\t"<<q->mr2<<endl;
 			};
+			cout<<q->mass<<q->mr2<<endl;
 			// if(q->type==-3){ /// These are helix particles
 				// std::cout<<"Hexlix Particle"<<std::endl;
 			if(j>4){
@@ -733,11 +740,8 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
                     number energy_ij = 0;
 
 				    number r8b10 = dist*dist*dist*dist / patchyPowAlpha;
-				    number exp_part = -1 * exp(-(number)0.5f * r8b10 * dist);
-					number f1 =  K * (exp_part );
-					energy_ij = f1;// * angular_part;
-                    energy += energy_ij;
-					// cout<<energy_ij<<endl;
+				    number exp_part = -1* exp(-1.f*r8b10 * dist)*K;
+                    energy +=exp_part;
 
 					if(update_forces){
 						if (energy_ij <patchyLockCutOff){
@@ -747,13 +751,8 @@ number PHBInteraction::patchy_interaction_notorsion(PHBParticle *p, PHBParticle 
 							q->patches[qi].unlock();
 							p->patches[pi].unlock();
 						}
-						number f1D =  (5 * exp_part * r8b10);
-						LR_vector tmp_force = patch_dist * (f1D )*K; //patch_dist * (f1D * angular_part);
-						// LR_vector torqueq(0,0,0) ; //= dir; // no torque is applied
-						// LR_vector torquep(0,0,0) ; //= dir;
-						// torquep += ppatch.cross(tmp_force);
-						// torqueq += qpatch.cross(tmp_force);
 
+						LR_vector tmp_force = patch_dist*(10 * exp_part * r8b10); //patch_dist * (f1D * angular_part);
 
 						p->torque -= p->orientationT * ppatch.cross(tmp_force);
 						q->torque += q->orientationT * qpatch.cross(tmp_force);
