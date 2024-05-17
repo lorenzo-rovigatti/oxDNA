@@ -388,10 +388,16 @@ def main():
                     # end residue identifiers
                     residue_type = ""
                     if not uniform_residue_names:
-                        if nucleotide == strand.monomers[0] and not strand.is_circular():
-                            residue_type = "3"
-                        elif nucleotide == strand.monomers[-1]:
-                            residue_type = "5"
+                        if strand.is_old():
+                            if nucleotide == strand.monomers[0] and not strand.is_circular():
+                                residue_type = "3"
+                            elif nucleotide == strand.monomers[-1]:
+                                residue_type = "5"
+                        else:
+                            if nucleotide == strand.monomers[0] and not strand.is_circular():
+                                residue_type = "5"
+                            elif nucleotide == strand.monomers[-1]:
+                                residue_type = "3"
 
                     nuc_data = {
                         'pos' : conf.positions[nucleotide.id],
