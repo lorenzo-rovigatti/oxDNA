@@ -600,7 +600,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 				q->invmr2=1/q->mr2;
 				// cout<<q->type<<"\t"<<q->mass<<"\t"<<q->radius<<"\t"<<momentOfInertia[abs(q->type)]<<"\t"<<q->mr2<<endl;
 			};
-			cout<<q->mass<<q->mr2<<endl;
+			cout<<q->mass<<"\t"<<q->mr2<<endl;
 			// if(q->type==-3){ /// These are helix particles
 				// std::cout<<"Hexlix Particle"<<std::endl;
 			if(j>4){
@@ -634,6 +634,10 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 	// #pragma omp parallel for
 	for(i=0;i<totPar;i++){
 		auto *p = static_cast<PHBParticle*>(particles[i]);
+		GPUstrand[i]=p->strand_id;
+		GPUradius[i]=p->radius;
+		GPUiC[i]=p->btype;
+		GPUmass[i]=p->mass;
 		GPUconnections[i][0]=(int)(p->ro.size());
 		// int y=0;
 		for(j=0;j<(int)p->ro.size();j++){

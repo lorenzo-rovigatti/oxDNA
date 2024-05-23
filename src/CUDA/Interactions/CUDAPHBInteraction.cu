@@ -17,7 +17,10 @@ __constant__ int numPatches[GPUmaxiC][MaxPatches];// num, patch1, patch2, patch3
 __device__ int connection[MAXparticles][MAXneighbour+1];//first intger will state number of connections
 __device__ float ro[MAXparticles][MAXneighbour];//rarius of the spring
 __device__ float k[MAXparticles][MAXneighbour];//spring constant
-__device__ int topology[MAXparticles][2];// strand, iC
+__device__ int strand[MAXparticles];
+__device__ int iC[MAXparticles];
+__device__ float radius[MAXparticles];
+__device__ float mass[MAXparticles];
 
 CUDAPHBInteraction::CUDAPHBInteraction()
 {
@@ -41,17 +44,19 @@ void CUDAPHBInteraction::cuda_init(int N)
     number r8b10 = powf(patchyRcut, (number) 8.f) / patchyPowAlpha;
     number GPUhardVolCutoff = -1.001f * exp(-(number) 0.5f * r8b10 * patchyRcut2);
 
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GpuN, &N, sizeof(int)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(rcut2, &_sqr_rcut, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(sigma, &patchySigma, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyB, &patchyB, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyRcutSqr, &patchyRcut2, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyPowAlpha, &patchyPowAlpha, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyEps, &patchyEpsilon, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(hardVolCutoff, &GPUhardVolCutoff, sizeof(float)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(n_forces, &_n_forces, sizeof(int)));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(patches, &GPUpatches, sizeof(float) * GPUmaxiP * 5));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(numPatches, &GPUnumPatches, sizeof(int) * GPUmaxiC * MaxPatches));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(GpuN, &N, sizeof(int)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(rcut2, &_sqr_rcut, sizeof(float)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(sigma, &patchySigma, sizeof(float)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyB, &patchyB, sizeof(float)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyRcutSqr, &patchyRcut2, sizeof(float)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(GPUpatchyPowAlpha, &patchyPowAlpha, sizeof(float)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(patchyEps, &patchyEpsilon, sizeof(float)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(hardVolCutoff, &GPUhardVolCutoff, sizeof(float)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(n_forces, &_n_forces, sizeof(int)));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(patches, &GPUpatches, sizeof(float) * GPUmaxiP * 5));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(numPatches, &GPUnumPatches, sizeof(int) * GPUmaxiC * MaxPatches));
+
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(connection, &GPUconnections, sizeof(int) * MAXparticles * (MAXneighbour + 1));
 }
 
 ////////////////////bonded Interactions //////////////////////

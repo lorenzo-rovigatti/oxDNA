@@ -49,9 +49,14 @@ public:
     int GPUconnections[MAXparticles][MAXneighbour+1];//first intger will state number of connections
     float GPUro[MAXparticles][MAXneighbour];//rarius of the spring
     float GPUk[MAXparticles][MAXneighbour];//spring constant
-    int GPUtopology[MAXparticles][2];// strand, iC
     float GPUpatches[GPUmaxiP][5];// color,strength,x,y,z
     int GPUnumPatches[GPUmaxiC][MaxPatches];// num, patch1, patch2, patch3, patch4, patch5, patch6
+
+    // GPU topology
+    int GPUstrand[MAXparticles];
+    int GPUiC[MAXparticles];
+    float GPUradius[MAXparticles];
+    float GPUmass[MAXparticles];
 
 
     // Necessary interaction
