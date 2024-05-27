@@ -202,10 +202,15 @@ __device__ void CUDAbondedAlignment()
 }
 
 __device__ void bondedInteraction(c_number4 &poss ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qoss, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box){
+    c_number4 r = box->minimum_image(poss, qoss);
+    // CUDAspring()
 
 }
 
-__device__ void nonbondedInteraction(c_number4 &poss ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qoss, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box){
+__device__ void nonbondedInteraction(c_number4 &ppos ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qpos, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box, c_number r0=0,c_number k =1.f){
+    c_number4 r = box->minimum_image(ppos, qpos);
+	// c_number sqr_r = CUDA_DOT(r, r);
+    CUDAexeVolLin(1.f,r,F,sigma,Rstar,patchyb,Rc);
 
 }
 
@@ -223,7 +228,7 @@ __global__ void CUDAparticle(c_number4 *poss, GPU_quat *orientations, c_number4 
     for(int p =0;p<connection[IND][0];p++){
         int id = connection[IND][p+1];
         get_vectors_from_quat(orientations[id], b1, b2, b3);
-        bondedInteraction(poss[IND],a1,a2,a3,poss[id],b1,b2,b3,F,T,box);
+        bondedInteraction(ppos,a1,a2,a3,poss[id],b1,b2,b3,F,T,box);
     }
 
 
@@ -234,7 +239,7 @@ __global__ void CUDAparticle(c_number4 *poss, GPU_quat *orientations, c_number4 
         if(k_index != IND) {
 			c_number4 qpos = poss[k_index];
             get_vectors_from_quat(orientations[k_index], b1, b2, b3);
-            // bondedInteraction(poss[IND]),a1,a2,a3;
+            nonbondedInteraction(ppos,a1,a2,a3,qpos,b1,b2,b3,F,T,box);
         }
     }
 

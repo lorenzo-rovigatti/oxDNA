@@ -51,8 +51,8 @@ ensemble = NVT
 
 ##############################
 #parfile = replica.par
-topology = patchy.top
-conf_file = patchy.dat
+topology = helix.phb
+conf_file = helix.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.ign
 log_file = log.ign
