@@ -200,6 +200,11 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">[id</span> <span class="pre">=</span> <span class="pre">&lt;string&gt;]</span></code>: a unique identifier that can be used to refer to this specific observable (see <em>e.g.</em> <a class="reference internal" href="oxpy/modules/core/core.html#oxpy.core.ConfigInfo.get_observable_by_id" title="oxpy.core.ConfigInfo.get_observable_by_id"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_observable_by_id()</span></code></a>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[update_every</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: the number of time steps every which the observable is updated (but no output is printed). Note that this is supported only by some observables.</p></li>
 </ul>
+<p>The following options are supported by some observables, but we plan to extend their usage:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[general_format</span> <span class="pre">=</span> <span class="pre">&lt;bool&gt;]</span></code>: print output numbers with the <code class="docutils literal notranslate"><span class="pre">printf</span></code>’s <code class="docutils literal notranslate"><span class="pre">%g</span></code> type field (see <em>e.g.</em> <a class="reference external" href="https://stackoverflow.com/a/54162153/5140209">here</a> for details). Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[precision</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;]</span></code>: number of significant digits after decimal with which numbers should be printed. Defaults to 6.</p></li>
+</ul>
 </section>
 <section id="simulation-time">
 <h2>Simulation time<a class="headerlink" href="#simulation-time" title="Permalink to this heading"></a></h2>

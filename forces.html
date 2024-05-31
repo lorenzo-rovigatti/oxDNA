@@ -63,6 +63,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#rotating-harmonic-trap">Rotating harmonic trap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#repulsion-plane">Repulsion plane</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#repulsive-sphere">Repulsive sphere</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#yukawa-sphere">Yukawa sphere</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-com"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">com</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-lj-wall"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">LJ_wall</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#type-sawtooth"><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">sawtooth</span></code></a></li>
@@ -323,6 +324,35 @@ center = 10.0,10.0,10.0
 stiff = 10.0
 rate = 0.
 r0 = 6
+}
+</pre></div>
+</div>
+</div>
+</section>
+<section id="yukawa-sphere">
+<h2>Yukawa sphere<a class="headerlink" href="#yukawa-sphere" title="Permalink to this heading"></a></h2>
+<p>This force encloses particle(s) in a sphere that interacts through a purely repulsive <a class="reference external" href="http://www.sklogwiki.org/SklogWiki/index.php/Weeks-Chandler-Andersen_reference_system_model">WCA</a> potential complemented by a Yukawa potential of the form <span class="math notranslate nohighlight">\(A \exp(-r / \lambda)\)</span>, where <span class="math notranslate nohighlight">\(A\)</span> is the interaction strength (which can be either positive or negative), <span class="math notranslate nohighlight">\(r\)</span> is the distance between a particle and the sphere surface, <span class="math notranslate nohighlight">\(\lambda\)</span> is the Debye length. The relevant keys are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: comma-separated list of indices of particles to apply the force to. A value of <code class="docutils literal notranslate"><span class="pre">-1</span></code> or <code class="docutils literal notranslate"><span class="pre">all</span></code> applies it to all particles. Entries separated by a dash “-” get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, <code class="docutils literal notranslate"><span class="pre">particle</span> <span class="pre">=</span> <span class="pre">1,2,5-7</span></code> applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">radius</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: radius of the sphere.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">debye_A</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: Strength the Yukawa interaction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">debye_length</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: Debye length of the Yukawa interaction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WCA_epsilon</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: strength of the WCA repulsion, defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WCA_sigma</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;</span></code>: diameter of the WCA repulsion, defaults to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WCA_n</span> <span class="pre">=</span> <span class="pre">&lt;int&gt;</span></code>: exponent of the WCA repulsion, defaults to <code class="docutils literal notranslate"><span class="pre">6</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[cutoff</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;]</span></code>: cutoff of the interaction, defaults to four times the Debye length.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[center</span> <span class="pre">=</span> <span class="pre">&lt;float&gt;,&lt;float&gt;,&lt;float&gt;]</span></code>: centre of the sphere, defaults to <code class="docutils literal notranslate"><span class="pre">0,0,0</span></code>.</p></li>
+</ul>
+<div class="admonition-example admonition">
+<p class="admonition-title">Example</p>
+<p>The following snippet defines a Yukawa sphere that acts on all nucleotides, confining them within a sphere of radius 5 centred in <span class="math notranslate nohighlight">\((0, 0, 10)\)</span>. The WCA parameters are set to their defaults, while the Debye length and strength are <code class="docutils literal notranslate"><span class="pre">5</span></code> and <code class="docutils literal notranslate"><span class="pre">-10</span></code>, respectively.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+type = yukawa_sphere
+radius = 5
+center = 0,0,10
+debye_length = 5
+debye_A = -10
+particle = all
 }
 </pre></div>
 </div>

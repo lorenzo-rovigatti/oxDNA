@@ -86,6 +86,11 @@ The following options are supported by all observabes:
 * `[id = <string>]`: a unique identifier that can be used to refer to this specific observable (see *e.g.* {meth}`~oxpy.core.ConfigInfo.get_observable_by_id`).
 * `[update_every = <int>]`: the number of time steps every which the observable is updated (but no output is printed). Note that this is supported only by some observables.
 
+The following options are supported by some observables, but we plan to extend their usage:
+
+* `[general_format = <bool>]`: print output numbers with the `printf`'s `%g` type field (see *e.g.* [here](https://stackoverflow.com/a/54162153/5140209) for details). Defaults to `false`.
+* `[precision = <int>]`: number of significant digits after decimal with which numbers should be printed. Defaults to 6.
+
 ## Simulation time
 
 Print the current simulation time as the number of steps or as molecular-dynamics time.
