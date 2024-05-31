@@ -18,7 +18,7 @@ max_density_multiplier = 10
 ####    SIM PARAMETERS    ####
 ##############################
 ### Universal Params ###
-T = 0.125
+T = 0.1
 T_force_value = true
 verlet_skin = 0.25
 sim_type = MD
@@ -29,7 +29,7 @@ edge_n_forces = 1
 dt = 0.001
 newtonian_steps=51
 diff_coeff=1
-thermostat=john
+thermostat=no
 refresh_vel=1
 
 ### MC PARAMS ###
@@ -52,7 +52,7 @@ ensemble = NVT
 ##############################
 #parfile = replica.par
 topology = helix.phb
-conf_file = helix.dat
+conf_file = helix5.dat
 trajectory_file = trajectory.dat
 lastconf_file=last_conf.ign
 log_file = log.ign
@@ -66,4 +66,4 @@ time_scale = linear
 ###### CCG ################
 #patchyB = 10
 # rcut is essential for now
-rcut = 1.5
+rcut = 13

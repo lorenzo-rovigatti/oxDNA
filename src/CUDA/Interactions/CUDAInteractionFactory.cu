@@ -17,7 +17,7 @@
 #include "CUDATEPInteraction.h"
 #include "CUDARNAInteraction.h"
 #include "CUDACCGInteration.h"
-#include "CUDAPHBInteraction.cuh"
+#include "CUDAPHBInteraction.h"
 // #include "CUDAPSP.cuh"
 
 #include "../../Utilities/Utils.h"

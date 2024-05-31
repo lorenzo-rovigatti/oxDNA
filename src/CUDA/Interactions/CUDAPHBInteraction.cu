@@ -1,4 +1,4 @@
-#include "CUDAPHBInteraction.cuh"
+#include "CUDAPHBInteraction.h"
 
 __constant__ float rcut2;  // cut-off distance squared
 __constant__ int exclusionType; // 0 for Linear, 1 for Cubic, 2 for Hard
@@ -42,6 +42,11 @@ void CUDAPHBInteraction::cuda_init(int N)
 {
     CUDABaseInteraction::cuda_init(N);
     PHBInteraction::init();
+    std::vector<BaseParticle *> particles(N);
+	int my_N_strands;
+	PHBInteraction::read_topology(&my_N_strands, particles);
+    std::cout<<this->_rcut<<std::endl;
+    std::cout<<this->_sqr_rcut<<std::endl;
 
     number r8b10 = powf(patchyRcut, (number) 8.f) / patchyPowAlpha;
     number GPUhardVolCutoff = -1.001f * exp(-(number) 0.5f * r8b10 * patchyRcut2);
@@ -66,20 +71,26 @@ void CUDAPHBInteraction::cuda_init(int N)
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(strand, &GPUstrand, sizeof(int) * MAXparticles));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(iC, &GPUiC, sizeof(int) * MAXparticles));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(radius, &GPUradius, sizeof(float) * MAXparticles));
-    CUDA_SAFE_CALL(cudaMemcpyToSymbol(mass, &GPUmass, sizeof(float) * MAXparticles));
+    // CUDA_SAFE_CALL(cudaMemcpyToSymbol(mass, &GPUmass, sizeof(float) * MAXparticles));
+    // for(int i=0;i<7;i++){
+    //     for(int j=0;j<MAXneighbour+1;j++){
+    //         std::cout<<GPUconnections[i][j]<<"\t";
+    //     }
+    //     std::cout<<"\n";
+    // }
 }
 
 ////////////////////bonded Interactions //////////////////////
 
-__device__ void CUDAspring(c_number3 &r, c_number &r0, c_number &k, c_number4 &F)
+__device__ void CUDAspring(c_number4 &r, c_number &r0, c_number &k, c_number4 &F)
 {
     c_number rmod = sqrt(CUDA_DOT(r, r));
     c_number dist = abs(rmod - r0);
-    F.w += 0.5f * k * dist * dist;
-    c_number magForce = -(k * dist) / rmod;
-    F.x -= r.x * magForce;
-    F.y -= r.y * magForce;
-    F.z -= r.z * magForce;
+    F.w -= 0.5f * k * dist * dist;
+    c_number magForce = (k * dist) / rmod;
+    F.x += r.x * magForce;
+    F.y += r.y * magForce;
+    F.z += r.z * magForce;
 };
 
 ///////////////////nonbonded Interactions ////////////////////
@@ -96,19 +107,18 @@ __device__ void CUDAexeVolLin(c_number prefactor, c_number4 &r, c_number4 &F, c_
             c_number rmod = sqrt(r2);
             c_number rrc = rmod - rc;
             c_number fmod = 2.f * prefactor * b * rrc / rmod;
-            F.x -= r.x * fmod;
-            F.y -= r.y * fmod;
-            F.z -= r.z * fmod;
+            F.x += r.x * fmod;
+            F.y += r.y * fmod;
+            F.z += r.z * fmod;
             F.w += prefactor * b * SQR(rrc);
-            return;
+        }else{
+            c_number lj_part = CUB(SQR(sigma) / r2);
+            c_number fmod = 24.f * prefactor * (lj_part - 2.f * SQR(lj_part)) / r2;
+            F.x += r.x * fmod;
+            F.y += r.y * fmod;
+            F.z += r.z * fmod;
+            F.w += 4.f * prefactor * (SQR(lj_part) - lj_part);
         }
-        c_number lj_part = CUB(SQR(sigma) / r2);
-        c_number fmod = 24.f * prefactor * (lj_part - 2.f * SQR(lj_part)) / r2;
-        F.x -= r.x * fmod;
-        F.y -= r.y * fmod;
-        F.z -= r.z * fmod;
-        F.w += 4.f * prefactor * (SQR(lj_part) - lj_part);
-        return;
     }
 }
 
@@ -149,7 +159,7 @@ __device__ void CUDAexeVolHard(c_number4 &r, c_number4 &F)
     F.z -= r.z * fmod;
 }
 
-/////////////////// ROY Patchy Interaction /////////////////////////
+/////////////////// Patchy Interaction /////////////////////////
 
 // __device__ void CUDApatchy(c_number4 &r, c_number4 &pa1, c_number4 &pa2, c_number4 &pa3, c_number4 &qa1, c_number4 &qa2, c_number4 &qa3, c_number4 &F, c_number4 &tor, int ptype, int qtype)
 // {
@@ -201,34 +211,35 @@ __device__ void CUDAbondedAlignment()
     return;
 }
 
-__device__ void bondedInteraction(c_number4 &poss ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qoss, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box){
+__device__ void bondedInteraction(c_number4 &poss ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qoss, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box, c_number &ro,c_number &k){
     c_number4 r = box->minimum_image(poss, qoss);
-    // CUDAspring()
+    CUDAspring(r,ro,k,F);
 
 }
 
-__device__ void nonbondedInteraction(c_number4 &ppos ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qpos, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box, c_number r0=0,c_number k =1.f){
+__device__ void nonbondedInteraction(c_number4 &ppos ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qpos, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box,c_number totRad){
     c_number4 r = box->minimum_image(ppos, qpos);
-	// c_number sqr_r = CUDA_DOT(r, r);
-    CUDAexeVolLin(1.f,r,F,sigma,Rstar,patchyb,Rc);
-
+    
+    CUDAexeVolLin(1.f,r,F,sigma*totRad,Rstar*totRad,patchyb/SQR(totRad),Rc*totRad);
+    // _repulsive_lj2(1, r, F, sigma,Rstar,patchyb,Rc);
 }
 
 /////////////// Main Particle Interaction //////////////////////
 __global__ void CUDAparticle(c_number4 *poss, GPU_quat *orientations, c_number4 *forces, c_number4 *torques, int *matrix_neighs, int *number_neighs, CUDABox *box){
     if(IND >= MD_N[0]) return; // for i > N leave
-    c_number4 F = forces[IND];
-	c_number4 T = torques[IND];
+    c_number4 F = make_c_number4(0, 0, 0, 0);
+	c_number4 T = make_c_number4(0, 0, 0, 0);
 	c_number4 ppos = poss[IND];
 	// GPU_quat po = ;
-	c_number4 a1, a2, a3, b1, b2, b3;
+	c_number4 a1, a2, a3;
 	get_vectors_from_quat(orientations[IND], a1, a2, a3);
 
     //Bonded Interactions
     for(int p =0;p<connection[IND][0];p++){
         int id = connection[IND][p+1];
+        c_number4 b1, b2, b3;
         get_vectors_from_quat(orientations[id], b1, b2, b3);
-        bondedInteraction(ppos,a1,a2,a3,poss[id],b1,b2,b3,F,T,box);
+        bondedInteraction(ppos,a1,a2,a3,poss[id],b1,b2,b3,F,T,box,ro[IND][p],k[IND][p]);
     }
 
 
@@ -236,13 +247,16 @@ __global__ void CUDAparticle(c_number4 *poss, GPU_quat *orientations, c_number4 
     int num_neighs = NUMBER_NEIGHBOURS(IND, number_neighs);
     for(int j = 0; j < num_neighs; j++) {
 		int k_index = NEXT_NEIGHBOUR(IND, j, matrix_neighs);
-        if(k_index != IND) {
+        if(k_index != IND && strand[IND]!=strand[k_index]) {
 			c_number4 qpos = poss[k_index];
+            c_number4 b1, b2, b3;
             get_vectors_from_quat(orientations[k_index], b1, b2, b3);
-            nonbondedInteraction(ppos,a1,a2,a3,qpos,b1,b2,b3,F,T,box);
+            c_number toatalRad = radius[IND] + radius[k_index];
+            nonbondedInteraction(ppos,a1,a2,a3,qpos,b1,b2,b3,F,T,box,toatalRad);
         }
     }
 
+    F.w *= (c_number) 0.5f;
     forces[IND] = F;
 	torques[IND] = _vectors_transpose_c_number4_product(a1, a2, a3, T);
 }
