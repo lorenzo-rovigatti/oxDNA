@@ -232,6 +232,35 @@ The following snippet defines a repulsive sphere that acts on the first 50 nucle
 
 ````
 
+## Yukawa sphere
+
+This force encloses particle(s) in a sphere that interacts through a purely repulsive [WCA](http://www.sklogwiki.org/SklogWiki/index.php/Weeks-Chandler-Andersen_reference_system_model) potential complemented by a Yukawa potential of the form {math}`A \exp(-r / \lambda)`, where {math}`A` is the interaction strength (which can be either positive or negative), {math}`r` is the distance between a particle and the sphere surface, {math}`\lambda` is the Debye length. The relevant keys are:
+
+* `particle = <int>`: comma-separated list of indices of particles to apply the force to. A value of `-1` or `all` applies it to all particles. Entries separated by a dash "-" get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, `particle = 1,2,5-7` applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.
+* `radius = <float>`: radius of the sphere.
+* `debye_A = <float>`: Strength the Yukawa interaction.
+* `debye_length = <float>`: Debye length of the Yukawa interaction.
+* `WCA_epsilon = <float>`: strength of the WCA repulsion, defaults to `1`.
+* `WCA_sigma = <float>`: diameter of the WCA repulsion, defaults to `1`.
+* `WCA_n = <int>`: exponent of the WCA repulsion, defaults to `6`.
+* `[cutoff = <float>]`: cutoff of the interaction, defaults to four times the Debye length.
+* `[center = <float>,<float>,<float>]`: centre of the sphere, defaults to `0,0,0`.
+
+````{admonition} Example
+
+The following snippet defines a Yukawa sphere that acts on all nucleotides, confining them within a sphere of radius 5 centred in {math}`(0, 0, 10)`. The WCA parameters are set to their defaults, while the Debye length and strength are `5` and `-10`, respectively.
+
+	{
+	type = yukawa_sphere
+	radius = 5
+    center = 0,0,10
+	debye_length = 5
+	debye_A = -10
+	particle = all
+	}
+
+````
+
 ## `type = com`
 
     stiff = <float>
