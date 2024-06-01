@@ -65,4 +65,4 @@ time_scale = linear
 ###### CCG ################
 #patchyB = 10
 # rcut is essential for now
-rcut = 13
+#rcut = 13

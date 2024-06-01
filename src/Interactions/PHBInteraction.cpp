@@ -71,6 +71,8 @@ void PHBInteraction::init(){
 	// cout<<"INIT is called"<<endl;
 	number r8b10 = powf(patchyRcut, (number) 8.f) / patchyPowAlpha;
     patchEcut = -1.001f * exp(-(number) 0.5f * r8b10 * patchyRcut2);
+	_rcut=20;
+	_sqr_rcut=sqrt(_rcut);
 };
 void PHBInteraction::allocate_particles(std::vector<BaseParticle *> &particles){
 	particles.resize(totPar);
@@ -600,7 +602,7 @@ void PHBInteraction::read_topology(int *N_strands, std::vector<BaseParticle *> &
 				q->invmr2=1/q->mr2;
 				// cout<<q->type<<"\t"<<q->mass<<"\t"<<q->radius<<"\t"<<momentOfInertia[abs(q->type)]<<"\t"<<q->mr2<<endl;
 			};
-			cout<<q->mass<<"\t"<<q->mr2<<endl;
+			// cout<<q->mass<<"\t"<<q->mr2<<endl;
 			// if(q->type==-3){ /// These are helix particles
 				// std::cout<<"Hexlix Particle"<<std::endl;
 			if(j>4){
