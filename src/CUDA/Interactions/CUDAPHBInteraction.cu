@@ -16,6 +16,10 @@ __constant__ int n_forces;
 __constant__ float patches[GPUmaxiP][5];// color,strength,x,y,z
 __constant__ int numPatches[GPUmaxiC][MaxPatches];// num, patch1, patch2, patch3, patch4, patch5, patch6
 
+__constant__ float ka;
+__constant__ float kb;
+__constant__ float kt;
+
 __device__ int connection[MAXparticles][MAXneighbour+1];//first intger will state number of connections
 __device__ float ro[MAXparticles][MAXneighbour];//rarius of the spring
 __device__ float k[MAXparticles][MAXneighbour];//spring constant
@@ -23,6 +27,12 @@ __device__ int strand[MAXparticles];
 __device__ int iC[MAXparticles];
 __device__ float radius[MAXparticles];
 __device__ float mass[MAXparticles];
+
+// Particle properties made constant
+__constant__ float tu=0.952319757;
+__constant__ float tk=1.14813301;
+__constant__ float kb1=1;
+__constant__ float kb2=0.80;
 
 CUDAPHBInteraction::CUDAPHBInteraction()
 {
@@ -72,19 +82,41 @@ void CUDAPHBInteraction::cuda_init(int N)
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(iC, &GPUiC, sizeof(int) * MAXparticles));
     CUDA_SAFE_CALL(cudaMemcpyToSymbol(radius, &GPUradius, sizeof(float) * MAXparticles));
     // CUDA_SAFE_CALL(cudaMemcpyToSymbol(mass, &GPUmass, sizeof(float) * MAXparticles));
-    // for(int i=0;i<7;i++){
-    //     for(int j=0;j<MAXneighbour+1;j++){
-    //         std::cout<<GPUconnections[i][j]<<"\t";
-    //     }
-    //     std::cout<<"\n";
-    // }
+
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(ka, &_ka, sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(kb, &_kb, sizeof(float)));
+    CUDA_SAFE_CALL(cudaMemcpyToSymbol(kt, &_kt, sizeof(float)));
+
+    for(int i=0;i<7;i++){
+        for(int j=0;j<GPUconnections[i][0];j++){
+            std::cout<<GPUconnections[i][j+1]<<"\t";
+            std::cout<<GPUro[i][j]<<"\t";
+            std::cout<<GPUk[i][j]<<"\t";
+        }
+        std::cout<<"\n";
+    }
+}
+
+__device__ void rotateVectorAroundVector(c_number4 &v, c_number4 &axis, c_number angle)
+{
+    // c_number4 tmp = axis * CUDA_DOT(v, axis);
+    // v -= tmp;
+    // c_number4 w = _cross(axis, v);
+    // v = tmp + v * cosf(angle) + w * sinf(angle);
+
+    c_number costh = cos(angle);
+    c_number sinth = sin(angle);
+    c_number scalar = CUDA_DOT(v, axis);
+    c_number4 cross = _cross(axis, v);
+    v.x = axis.x*scalar*(1.-costh)+v.x*costh+cross.x*sinth;
+    v.y = axis.y*scalar*(1.-costh)+v.y*costh+cross.y*sinth;
+    v.z = axis.z*scalar*(1.-costh)+v.z*costh+cross.z*sinth;
 }
 
 ////////////////////bonded Interactions //////////////////////
 
-__device__ void CUDAspring(c_number4 &r, c_number &r0, c_number &k, c_number4 &F)
+__device__ void CUDAspring(c_number4 &r, c_number &r0, c_number &k, c_number4 &F, c_number &rmod)
 {
-    c_number rmod = sqrt(CUDA_DOT(r, r));
     c_number dist = abs(rmod - r0);
     F.w -= 0.5f * k * dist * dist;
     c_number magForce = (k * dist) / rmod;
@@ -201,20 +233,72 @@ __device__ bool GPUbondingAllowed(int &pindex,int &qindex, int &pi, int &qi){
 
 ///////////////////Helix Interaction /////////////////////////
 
-__device__ void CUDAbondedTwist(c_number4 &fp, c_number4 &fq, c_number4 &vp, c_number4 &vq, c_number4 &up, c_number4 &uq)
-{
-    c_number cos_alpha_plus_gamma = CUDA_DOT(fp, fq) + CUDA_DOT(vp, vq) / 1 + CUDA_DOT(up, uq);
-};
+// __device__ void CUDAbondedTwist(c_number4 &fp, c_number4 &fq, c_number4 &vp, c_number4 &vq, c_number4 &up, c_number4 &uq)
+// {
+//     c_number cos_alpha_plus_gamma = CUDA_DOT(fp, fq) + CUDA_DOT(vp, vq) / 1 + CUDA_DOT(up, uq);
+// };
 
-__device__ void CUDAbondedAlignment()
-{
-    return;
+__device__ void CUDAbondedAlignment(c_number4 &tp, c_number4 &up,c_number4 &F, c_number4 &T,c_number &rmod){
+    c_number4 force = ka*(up-tp*CUDA_DOT(up,tp)/SQR(rmod))/rmod;
+    F.x += force.x;
+    F.y += force.y;
+    F.z += force.z;
+    F.w += ka*(1-CUDA_DOT(up,tp)/rmod);
+    c_number4 torque = -(ka*_cross(tp,up))/rmod;
+    T.x += torque.x;
+    T.y += torque.y;
+    T.z += torque.z;
 }
 
-__device__ void bondedInteraction(c_number4 &poss ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qoss, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box, c_number &ro,c_number &k){
-    c_number4 r = box->minimum_image(poss, qoss);
-    CUDAspring(r,ro,k,F);
+__device__ void CUDAbondedDoubleBending(c_number4 &up, c_number4 &uq,c_number4 &F, c_number4 &T){
+    // c_number4 torque;
 
+    c_number cosine = CUDA_DOT(up,uq);
+    c_number gu = cosf(tu);
+    c_number angle = LRACOS(cosine);
+
+    c_number A = (kb2*sinf(tk)-kb1*sinf(tu))/(tk-tu);
+    c_number B = kb1 * sinf(tu);
+    c_number C = kb1 * (1.f - gu) - (A * SQR(tu) / 2.f + tu * (B - tu * A));
+    c_number D = cosf(tk) + (A * SQR(tk) * 0.5f + tk * (B - tu * A) + C) / kb2;
+
+	c_number g1 = (angle - tu) * A + B;
+	c_number g_ = A * SQR(angle) / 2.f + angle * (B - tu * A);
+	c_number g = g_ + C;
+
+    if(angle < tu){
+        T += kb * kb1 * _cross(up, uq);
+		F.w += kb * (1.f - cosine) * kb1;
+    }
+    else if(angle < tk) {
+		c_number4 sin_vector = _cross(up, uq);
+		c_number sin_module = _module(sin_vector);
+		sin_vector.x /= sin_module;
+		sin_vector.y /= sin_module;
+		sin_vector.z /= sin_module;
+
+		T+= kb * g1 * sin_vector;
+		F.w += kb * g;
+	}
+    else {
+		T+= kb * kb2 * _cross(up, uq);
+		F.w += kb * (D - cosine) * kb2;
+	}
+}
+
+__device__ void bondedInteraction(c_number4 &poss ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qoss, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box, int pid,int qid,c_number &ro,c_number &k){
+    c_number4 r = box->minimum_image(poss, qoss);
+    c_number rmod = sqrt(CUDA_DOT(r, r));
+    
+    CUDAspring(r,ro,k,F,rmod);
+    CUDAbondedDoubleBending(a1,b1,F,T);
+
+    if(qid-pid==1){
+        r*=-1;
+        CUDAbondedAlignment(r,a1,F,T,rmod);
+    }else if(pid-qid==1){
+        CUDAbondedAlignment(r,b1,F,T,rmod);
+    }
 }
 
 __device__ void nonbondedInteraction(c_number4 &ppos ,c_number4 &a1, c_number4 &a2, c_number4 &a3,c_number4 &qpos, c_number4 &b1, c_number4 &b2, c_number4 &b3,c_number4 &F, c_number4 &T, CUDABox *box,c_number totRad){
@@ -239,7 +323,7 @@ __global__ void CUDAparticle(c_number4 *poss, GPU_quat *orientations, c_number4 
         int id = connection[IND][p+1];
         c_number4 b1, b2, b3;
         get_vectors_from_quat(orientations[id], b1, b2, b3);
-        bondedInteraction(ppos,a1,a2,a3,poss[id],b1,b2,b3,F,T,box,ro[IND][p],k[IND][p]);
+        bondedInteraction(ppos,a1,a2,a3,poss[id],b1,b2,b3,F,T,box,IND,id,ro[IND][p],k[IND][p]);
     }
 
 

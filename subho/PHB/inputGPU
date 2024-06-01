@@ -7,7 +7,6 @@ CUDA_list = verlet
 CUDA_device=0
 #CUDA_sort_every = 0
 use_edge = 1
-edge_n_forces = true
 debug = true
 seed = 1
 interaction_type = PHB
