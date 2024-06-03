@@ -51,7 +51,8 @@ myst_heading_anchors = 3
 
 myst_enable_extensions = [
     "dollarmath",
-    "amsmath"
+    "amsmath",
+    "colon_fence",
     ]
 
 napoleon_include_init_with_doc = True

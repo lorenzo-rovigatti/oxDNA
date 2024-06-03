@@ -33,7 +33,20 @@ with oxpy.Context():
 	# and the interaction energy between the first two particles
 	print("Interaction energy between particle 0 and particle 1:", manager.config_info().interaction.pair_interaction(particles[0], particles[1]))
 ```
-	    
+
+:::{warning}
+There is a known issue that makes the code segfault whenever multiple `with oxpy.Context()` are used in a single script. In these cases a simple workaround is to add a `del manager` instruction at the end of the `with` code block, like this:
+
+```python
+for _ in range(N_sims):
+   with oxpy.Context():
+      manager = oxpy.OxpyManager("input")
+      manager.run(N_steps)
+      del manager # <-- if you comment this line the script will segfault
+```
+
+:::
+
 If you want, you can initialise the input file yourself and change some of the options before initialising the manager:
 
 ```python
@@ -67,7 +80,7 @@ conf_file = init_conf.dat
 trajectory_file = trajectory.dat
 energy_file = energy.dat
 ```
-	
+
 ## An example of a simple analysis
 
 Here we loop over all the configurations stored in an oxDNA trajectory file, printing the position of the first particle. 
