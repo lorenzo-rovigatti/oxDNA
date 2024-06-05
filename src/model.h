@@ -227,7 +227,7 @@
 
 #define CRST_R0_33 0.575f
 #define CRST_RC_33 0.675f
-#define CRST_K_33 142.5f
+#define CRST_K_33 47.5f
 #define CRST_BLOW_33 -0.888889f
 #define CRST_RLOW_33 0.495f
 #define CRST_RCLOW_33 0.45f
@@ -237,7 +237,7 @@
 
 #define CRST_R0_55 0.575f
 #define CRST_RC_55 0.675f
-#define CRST_K_55 0.f
+#define CRST_K_55 47.5f
 #define CRST_BLOW_55 -0.888889f
 #define CRST_RLOW_55 0.495f
 #define CRST_RCLOW_55 0.45f
