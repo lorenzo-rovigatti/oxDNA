@@ -28,7 +28,7 @@ if [[ "$opti_path" == "" ]]; then
 	echo "Terminating."
 	exit 1
 fi
-opti_path=$opti_path"/MPI"
+#opti_path=$opti_path"/MPI"
 echo "Optimisation program path:"
 echo $opti_path
 box_size=$(awk '$1 == "BOX_SIZE" {print $2}' $config)
@@ -147,7 +147,7 @@ wait
 
 #optimise
 cd ${main_path}/Step0
-exit_status= $( mpirun -np ${Nproc} python3 ${opti_path}/optimise_geometry_mpi.py ../$config > OutOpti )
+exit_status= $( mpirun -np ${Nproc} python3 ${opti_path}/optimise_geometry_mpi_rescale.py ../$config > OutOpti )
 if [[ $exit_status == 1 ]]; then
 	echo "optimisation throwed an error."
 	echo "Terminating".
@@ -200,7 +200,7 @@ for ((i=1; i < ${Nsteps}; i++)); do
 	wait
 	
 	cd ${main_path}/Step${i}
-	exit_status= $( mpirun -np ${Nproc} python3 ${opti_path}/optimise_geometry_mpi.py ../$config > OutOpti )
+	exit_status= $( mpirun -np ${Nproc} python3 ${opti_path}/optimise_geometry_mpi_rescale.py ../$config > OutOpti )
 	
 	if [[ $exit_status == 1 ]]; then
 		echo "optimisation throwed an error."

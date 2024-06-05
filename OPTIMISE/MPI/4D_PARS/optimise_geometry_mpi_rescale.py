@@ -12,7 +12,7 @@ import oxpy
 import copy
 import time
 
-import functions_multi as functions
+import functions_multi_rescale as functions
 from oxdna_to_internal_wflip import read_oxdna_trajectory_standard_order
 import config_multi as cg
 import Utils_mpi
@@ -33,6 +33,42 @@ if cg.rank == 0 :
     start_time = time.time()
 
 config_file = sys.argv[1]
+
+
+#reading initial parameters
+ifile = open('oxDNA_sequence_dependent_parameters_in.txt','r')
+for line in ifile.readlines() :
+    vals = line.split()
+    if len(vals) == 0 :
+        continue
+    if vals[0][0] == '#':
+        continue
+    #print(vals[0])
+    vals1 = vals[0].split("_")
+    if (vals1[0] == "STCK" or vals1[0] == "FENE") and vals1[1]== "R0" :
+        i = cg.base_to_id(vals1[2])
+        j = cg.base_to_id(vals1[3])
+        l = cg.base_to_id(vals1[4])
+        m = cg.base_to_id(vals1[5])
+        if(vals1[0] == "STCK") :
+            cg.stck_r0[i][j][l][m]=float(vals[2])
+        elif(vals1[0] == "FENE") :
+            cg.fene_r0[i][j][l][m]=float(vals[2])
+
+ifile.close()
+
+
+for i in range(4):
+    for j in range(4):
+        for l in range(4):
+            for m in range(4):
+                if cg.fene_r0[i][j][l][m] < 0.0001 or cg.stck_r0[i][j][l][m] < 0.0001 :
+                    print(i,j,l,m)
+                    print("fene_r0 or stck_r0 = 0")
+                    print("Terminating")
+                    sys.exit(1)
+
+
 
 #READ PARAMETERS
 if functions.read_config(config_file) == False :
@@ -66,9 +102,12 @@ if cg.rank in cg.leaders :
     print("rank " + str(cg.rank) + " is a comm leader" )
 
 
-#Compute and store internal coordinates from sampled trajectories. Compute gs and cov
+
 l = cg.seq_id 
 i = cg.rep_id
+
+
+#Compute and store internal coordinates from sampled trajectories. Compute gs and cov
     
 iname = './Seq'+str(l)+'/Rep'+str(i)+'/trajectory.dat'
 tname = './Seq'+str(l)+'/Rep'+str(i)+'/generated.top'
@@ -94,13 +133,14 @@ functions.store_internal_coord(traj,cg.ids,cg.in_j[l],cg.fin_j[l],cg.in_snap,Tru
     
 lsamp = len(cg.internal_coords)
 
+"""
 if lsamp < cg.in_snap + 100:
     print("FATAL:")
     print("Not enough sampled configurations.")
     print("At least 100+IN_SNAP sampled configurations are needed." )
     print("Did something go wrong with the simulation?")
     sys.exit(1)    
-
+"""
 
 #compute energy of trajectory by using oxpy
 
@@ -121,6 +161,8 @@ min_hb = cg.Njuns[cg.seq_id ]+1 -  cg.inj - cg.jfe
     
     
 discarded = 0
+
+
 
 with oxpy.Context():
     
@@ -182,14 +224,16 @@ good_confs = lsamp - cg.in_snap - discarded
 
 good_confs = cg.comm_seq.reduce(good_confs,op=MPI.SUM, root=0)
 
+"""
 if cg.rank_seq == 0: #same as cg.rank in cg.leaders
-    if lsamp - cg.in_snap - discarded <  50:
+    if lsamp - cg.in_snap - discarded <  5:
         print("FATAL:")
         print("Discarded too many configurations.")
         print("Not enough sampled configurations left.")
         print("At least 100 configurations are needed for acceptable statistics." )
         print("Did something go wrong with the simulation?")
         sys.exit(1)   
+"""
             
 #average coordinates and energy
 functions.ave_and_cov_stored()
@@ -243,113 +287,30 @@ if cg.rank_seq == 0: #same as cg.rank in cg.leaders
     
        
 #read initial values of the optimisation parameters (from initial seq dep file)
-ifile = open("oxDNA_sequence_dependent_parameters_in.txt",'r')
+
 
 par0 = []
+par = []
+for i in range(6):
+    par0.append(0)
+    par.append(0)
 order = []
 
 up_bond = []    #upper parameter bond
+up_bond.append(0.1)
+up_bond.append(0.1)
+up_bond.append(0.05)
+up_bond.append(0.1)
+up_bond.append(0.05)
+up_bond.append(0.03)
 low_bond = []   #lower parameter bond
-
-for line in ifile.readlines() :
-    vals = line.split()
-    
-    #average    
-    if cg.ave :
-        if len(vals) == 0 :
-                continue
-        for i in range(len(cg.par_codename)) :
-            if vals[0] == cg.par_codename[i] and cg.par_codename[i] == 'FENE_DELTA' :
-                par0.append(float(vals[2]))
-                order.append(i)
-            elif vals[0] == cg.par_codename[i]+'_A_A' :
-                par0.append(float(vals[2]))    
-                order.append(i)
-    #SD           
-    else :
-        if len(vals) == 0 :
-                continue
-        for i in range(len(cg.par_codename)) :
-            if vals[0] == cg.par_codename[i] :
-                par0.append(float(vals[2]))
-                
-                print(i)
-                print(cg.par_codename[i])
-                
-                vals1 = cg.par_codename[i].split('_')
-                
-                if vals1[0] == "FENE" and vals1[1] == "R0" :    #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
-                    
-                    up_bond.append(float(vals[2])*1.02)
-                    low_bond.append(float(vals[2])*0.98)
-                
-                elif vals1[0] == "FENE" and vals1[1] == "DELTA" :    #stricter for FENE_DELTA (+-5%), to avoid problems with the FENE potential
-                    
-                    up_bond.append(float(vals[2])*1.02)
-                    low_bond.append(float(vals[2])*0.98)
-                    
-                elif vals1[0] == "STCK" and vals1[1] == "R0" :
-                    
-                    up_bond.append(float(vals[2])*1.1)
-                    low_bond.append(float(vals[2])*0.9) 
-                    
-                elif vals1[0] == "STCK" and vals1[2] == "T0" and abs(float(vals[2])) < 0.01:   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
-                    
-                    up_bond.append(0.2)
-                    low_bond.append(-0.2)
-                    
-                elif vals1[0] == "CRST" and vals1[1] == "THETA4" and vals1[2] == "T0" :   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
-                    
-                    up_bond.append(3.14159+0.1745) #pi +- 20deg to avoid weird things
-                    low_bond.append(3.14159-0.1745)
-                    
-                else :                    
-                    up_bond.append(float(vals[2])*6.0)
-                    low_bond.append(float(vals[2])*0.1)
-                    
-                
-                order.append(i)
-
-ifile.close()
-
-par0_c = copy.deepcopy(par0)
-
-
-print(order)
-print(par0_c)
-
-for i in range(len(order)) :
-    par0[order[i]] = par0_c[i]
-
-
-
-#print(par0)
-print(["{0:0.3f}".format(i) for i in par0])
-
-#sort par0 so that the values match the parameters in par_codenames 
-
-
-up_bond_c = copy.deepcopy(up_bond)
-low_bond_c = copy.deepcopy(low_bond)
-
-up_bond = [up_bond_c[i] for i in order]
-low_bond = [low_bond_c[i] for i in order]
-
-
-
-for i in range(len(order)) :
-    up_bond[order[i]] = up_bond_c[i]
-    low_bond[order[i]] = low_bond_c[i]
-
-
-
-
-print("Initial values of the optimisation parameters: ")
-
-par = copy.deepcopy(par0)
-
-
-#print(par)
+low_bond.append(-0.1)
+low_bond.append(-0.1)
+low_bond.append(-0.05)
+low_bond.append(-0.1)
+low_bond.append(-0.05)
+low_bond.append(-0.03)
+   
 
 bnd = optimize.Bounds(low_bond,up_bond)
 
@@ -358,7 +319,7 @@ cg.curr_feva = 0
 
 print("RUNNING MINIMISATION")
     
-for n in range(0,4) :
+for n in range(0,1) :
     
     S = functions.Relative_entropy_wRew(par,[0],par0)
     
@@ -386,7 +347,12 @@ for n in range(0,4) :
             
         elif cg.algo == "nelder-mead"  :
             
-            in_simplex = functions.build_initial_simplex_for_nm(par,up_bond,low_bond)
+            in_simplex = []
+            in_simplex.append(copy.deepcopy(par))
+            for i in range(6):
+                in_simplex_p = copy.deepcopy(par)
+                in_simplex_p[i]+=0.3*up_bond[i]
+                in_simplex.append(in_simplex_p)
             
             
             #sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(stop,par0),method='nelder-mead', callback=functions.callbackF, bounds=bnd ,options={'maxfev': cg.neva, 'adaptive': True})

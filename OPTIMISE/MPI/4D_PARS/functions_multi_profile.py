@@ -14,6 +14,8 @@ import continuity_constraints
 import config_multi as cg
 import get_cgdna_pars
 from mpi4py import MPI
+import time
+#from numba import jit
 
 #Parse config file (read parameters)
 #Returns False if mandatory parameters are missing 
@@ -614,7 +616,6 @@ def ave_and_cov_stored() :
     
     return
 
-
 def compute_deltas(First) :
     #seq = ""
     cg.Deltas = np.zeros((len(cg.ids),4,4),dtype=float)
@@ -650,7 +651,7 @@ def impose_continuity(par_cname,p_id,pars) :
     f2 = False
     f4 = False
     
-
+    #print("Continuity pars")
     
     #this is the scaling factor of the HYDRO and STCK (e.g. HYDR_A_T and STCK_G_A)
     if len(vals) == 3 and (vals[0] == "HYDR" or vals[0] == "STCK") and (vals[1] in cg.bases) and (vals[2] in cg.bases) :
@@ -664,6 +665,8 @@ def impose_continuity(par_cname,p_id,pars) :
     r0 = 0.
     rc = 0.
     a = 0.  
+    
+    #print("searching")
 
     if vals[1] == 'R0' and vals[0] != 'FENE' and vals[0] != 'CRST': #FENE and CRST have different modulations or the radial part
         f1 = True
@@ -681,7 +684,7 @@ def impose_continuity(par_cname,p_id,pars) :
         auxiliars.append('R0')
         auxiliars.append('RC')
     if f1 :
-        #print(vals)
+        #print("f1")
         #check if we are also optimising one of the auxiliary parameters
         for i in range(len(auxiliars)) : 
             found = False
@@ -727,7 +730,7 @@ def impose_continuity(par_cname,p_id,pars) :
     #check if the parameter is in f2 modulation
     if len(vals) >= 2:
         if vals[1] == 'R0' and vals[0] == "CRST" :
-            print("f2")
+            #print("f2")
             f2 = True
             r0 = pars[p_id]
 
@@ -770,7 +773,6 @@ def impose_continuity(par_cname,p_id,pars) :
         output.append('No')
         return output
          
-   
 def build_initial_simplex_for_nm(x0,up_bnds,low_bnds) :
     in_simplex = []
     
@@ -828,13 +830,13 @@ def build_initial_simplex_for_nm(x0,up_bnds,low_bnds) :
                     found = True
                     if cg.Deltas[k][cg.base_to_id(vals1[2])][cg.base_to_id(vals1[3])] < 0:
         
-                        if x[i]*1.1 < up_bnds[i] : 
-                            x[i]*=1.1
+                        if x[i]*1.2 < up_bnds[i] : 
+                            x[i]*=1.2
                         else :
                             x[i] = up_bnds[i] - 0.001
                     else :
-                        if x[i]*0.9 > low_bnds[i] : 
-                            x[i]*=0.9
+                        if x[i]*0.8 > low_bnds[i] : 
+                            x[i]*=0.8
                         else :
                             x[i] = low_bnds[i] + 0.001 
                             
@@ -1177,108 +1179,59 @@ def update_rew_seq_dep_file(par) :
         print('\n', file=ofile)
         
         for i in range(len(cg.par_codename)) :
+            
+            id1=0
+            id2=0
+            id3=0
+            id4=0
+            cb1=0
+            cb2=0
+            cb3=0
+            cb4=0            
+            
             print(cg.par_codename[i]+" = "+str(par[i]),file=ofile)
             vals = cg.par_codename[i].split('_')
             name = vals[0]
+            name_2b = vals[0]
             for k in range(1,len(vals)-2) :
-                name = name + "_"+vals[k]
+                if k < len(vals)-4:
+                    name = name + "_"+vals[k]
+                name_2b = name_2b + "_"+vals[k]
+                
                 
             if vals[1] == 'DELTA' :
-                print(name+"2"+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(par[i]*par[i]),file=ofile)
+                print(name+"2"+"_"+vals[len(vals)-4]+"_"+vals[len(vals)-3]+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(par[i]*par[i]),file=ofile)
                 
+            if vals[0] == 'STCK' or vals[0] == 'FENE':
+            
+                id1 = cg.base_to_id(vals[len(vals)-4])
+                id2 = cg.base_to_id(vals[len(vals)-3])
+                id3 = cg.base_to_id(vals[len(vals)-2])
+                id4 = cg.base_to_id(vals[len(vals)-1])
+                
+                cb1 = cg.bases[3-id4]
+                cb2 = cg.bases[3-id3]
+                cb3 = cg.bases[3-id2]
+                cb4 = cg.bases[3-id1]     
+            
+            
             #symmetries
             if vals[0] == 'STCK':
-                if vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'G' :
-                    print(name+"_C_C"+" = "+str(par[i]),file=ofile)                      
-                elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'C' :
-                    print(name+"_G_G"+" = "+str(par[i]),file=ofile)
-                    
-                elif vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'A' :
-                    print(name+"_T_C"+" = "+str(par[i]),file=ofile)
-                elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'C' :
-                    print(name+"_G_A"+" = "+str(par[i]),file=ofile)
-                    
-                elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'G' :
-                    print(name+"_C_T"+" = "+str(par[i]),file=ofile)
-                elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'T' :
-                    print(name+"_A_G"+" = "+str(par[i]),file=ofile)
-                    
-                elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'G' :
-                    print(name+"_C_A"+" = "+str(par[i]),file=ofile)
-                elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'A' :
-                    print(name+"_T_G"+" = "+str(par[i]),file=ofile)
-                    
-                elif vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'T' :
-                    print(name+"_A_C"+" = "+str(par[i]),file=ofile)
-                elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'C' :
-                    print(name+"_G_T"+" = "+str(par[i]),file=ofile)
                 
-                if cg.symm_stck:
-                    if vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'A' :
-                        print(name+"_T_T"+" = "+str(par[i]),file=ofile)
-                    elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
-                        print(name+"_A_A"+" = "+str(par[i]),file=ofile)
+                if cb1 != vals[len(vals)-4] or cb2 != vals[len(vals)-3] or cb3 != vals[len(vals)-2] or cb4 != vals[len(vals)-1]:
+                    print(name+"_"+cb1+"_"+cb2+"_"+cb3+"_"+cb4+" = "+str(par[i]),file=ofile)
                 
             #symmetries
             elif vals[0] == 'FENE':
                 
-                if vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'G' :
-                    print(name+"_C_C"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_C_C"+" = "+str(par[i]*par[i]),file=ofile)                      
-                elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'C' :
-                    print(name+"_G_G"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_G_G"+" = "+str(par[i]*par[i]),file=ofile)      
-                    
-                elif vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'A' :
-                    print(name+"_T_C"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_T_C"+" = "+str(par[i]*par[i]),file=ofile)     
-                elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'C' :
-                    print(name+"_G_A"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_G_A"+" = "+str(par[i]*par[i]),file=ofile)      
-                    
-                elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'G' :
-                    print(name+"_C_T"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_C_T"+" = "+str(par[i]*par[i]),file=ofile)      
-                elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'T' :
-                    print(name+"_A_G"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_A_G"+" = "+str(par[i]*par[i]),file=ofile)    
-                    
-                elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'G' :
-                    print(name+"_C_A"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_C_A"+" = "+str(par[i]*par[i]),file=ofile)  
-                elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'A' :
-                    print(name+"_T_G"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_T_G"+" = "+str(par[i]*par[i]),file=ofile)     
-                    
-                elif vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'T' :
-                    print(name+"_A_C"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_A_C"+" = "+str(par[i]*par[i]),file=ofile)    
-                elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'C' :
-                    print(name+"_G_T"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_G_T"+" = "+str(par[i]*par[i]),file=ofile)  
-                    
-                elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'A' :
-                    print(name+"_T_T"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_T_T"+" = "+str(par[i]*par[i]),file=ofile)      
-                elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
-                    print(name+"_A_A"+" = "+str(par[i]),file=ofile)
-                    if vals[1] == 'DELTA' :       
-                        print(name+"2"+"_A_A"+" = "+str(par[i]*par[i]),file=ofile)      
+                if cb1 != vals[len(vals)-4] or cb2 != vals[len(vals)-3] or cb3 != vals[len(vals)-2] or cb4 != vals[len(vals)-1]:
+                    print(name+"_"+cb1+"_"+cb2+"_"+cb3+"_"+cb4+" = "+str(par[i]),file=ofile)
+                    if vals[1] == 'DELTA' :  
+                        print(name+"2_"+cb1+"_"+cb2+"_"+cb3+"_"+cb4+" = "+str(par[i]),file=ofile)
                     
             elif vals[0] == 'CRST' or vals[0] == 'HYDR':
                 if vals[len(vals)-2] !=  vals[len(vals)-1]  :
-                    print(name+"_"+vals[len(vals)-1]+"_"+vals[len(vals)-2]+" = "+str(par[i]),file=ofile)
+                    print(name_2b+"_"+vals[len(vals)-1]+"_"+vals[len(vals)-2]+" = "+str(par[i]),file=ofile)
             #impose continuity!
             if cg.used[i] == False :
                 output = impose_continuity(cg.par_codename[i],i,par)
@@ -1339,36 +1292,10 @@ def update_rew_seq_dep_file(par) :
                 #update seq dep file + impose symmetries
                 for k in range(len(names)) :
                     if vals[0] == 'STCK' :
-                        print(names[k]+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(output[k+1]),file=ofile)
-                        if vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'G' :
-                            print(names[k]+"_C_C"+" = "+str(output[k+1]),file=ofile)
-                        elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'C' :
-                            print(names[k]+"_G_G"+" = "+str(output[k+1]),file=ofile)
-                            
-                        elif vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'A' :
-                            print(names[k]+"_T_C"+" = "+str(output[k+1]),file=ofile)
-                        elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'C' :
-                            print(names[k]+"_G_A"+" = "+str(output[k+1]),file=ofile)
-                            
-                        elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'G' :
-                            print(names[k]+"_C_T"+" = "+str(output[k+1]),file=ofile)
-                        elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'T' :
-                            print(names[k]+"_A_G"+" = "+str(output[k+1]),file=ofile)
-                            
-                        elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'G' :
-                            print(names[k]+"_C_A"+" = "+str(output[k+1]),file=ofile)
-                        elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'A' :
-                            print(names[k]+"_T_G"+" = "+str(output[k+1]),file=ofile)
-                            
-                        elif vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'T' :
-                            print(names[k]+"_A_C"+" = "+str(output[k+1]),file=ofile)
-                        elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'C' :
-                            print(names[k]+"_G_T"+" = "+str(output[k+1]),file=ofile)
-                            
-                        elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'A' :
-                            print(names[k]+"_T_T"+" = "+str(output[k+1]),file=ofile)
-                        elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
-                            print(names[k]+"_A_A"+" = "+str(output[k+1]),file=ofile)
+                        print(names[k]+"_"+vals[len(vals)-4]+"_"+vals[len(vals)-3]+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(output[k+1]),file=ofile)
+                        if cb1 != vals[len(vals)-4] or cb2 != vals[len(vals)-3] or cb3 != vals[len(vals)-2] or cb4 != vals[len(vals)-1]:
+                            print(names[k]+"_"+cb1+"_"+cb2+"_"+cb3+"_"+cb4+" = "+str(output[k+1]),file=ofile)
+                       
                             
                     elif vals[0] == 'CRST' or vals[0] == 'HYDR':
                         print(names[k]+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(output[k+1]),file=ofile)
@@ -1444,7 +1371,6 @@ def lps(M) :
     
     return lb,lt
                     
-
 def print_matrix(M):
     
     for i in range(len(M)):
@@ -1454,7 +1380,6 @@ def print_matrix(M):
         print(string)
         
     return
-
 
 def callbackF(par) :
     
@@ -1488,6 +1413,74 @@ def callbackF(par) :
     return
 
 
+def get_energy_oxpy(l,rep):
+    
+    energy1 = []
+    read = False
+
+    with oxpy.Context():      
+        
+         time_init = 0;
+         time_read = 0.
+         time_obs = 0.
+         #print("We are here -1 rank " +str(cg.rank))
+         #read input script specifying sequence dependent file
+         inp = oxpy.InputFile()
+         
+         t1 = time.perf_counter()
+         inp.init_from_filename("./Seq"+str(l)+"/Rep"+str(rep)+"/input2.an")
+         time_init = time.perf_counter()-t1
+         
+         #backend = oxpy.analysis.AnalysisBackend(inp)
+         
+         try :
+             #create analysys backend
+             backend = oxpy.analysis.AnalysisBackend(inp)
+         except :
+             print("Could not start oxpy. Throwing a stop flag.")
+             cg.stop_flag = 1
+
+         if cg.stop_flag == 0 :
+             obs = backend.config_info().observables
+             
+             #print("We are there -1 rank " +str(cg.rank))
+             
+             counts = -1
+             
+             #print("We are here rank " +str(cg.rank))
+             
+             while 1==1 : 
+                 try:
+                     t1 = time.perf_counter()
+                     read =  backend.read_next_configuration()
+                     time_read += time.perf_counter() - t1
+                 except:
+                     counts+=1
+                     energy1.append(999)
+                     print("Warning: exception in oxpy energy computation; reweighting. Seq "+str(l)+", Rep "+str(rep)+", conf" +str(counts))
+                     continue
+                 if read == False :
+                     break
+                 counts+=1
+                 
+                 if(counts < cg.in_snap) :
+                     continue
+                 t1 = time.perf_counter()
+                 a = float(obs[0].get_output_string(backend.conf_step).split()[0])
+                 #print(counts)
+                 if math.isnan( a ) or (abs((cg.Njuns[l]+1)*20*a-cg.energy_sampled[counts-cg.in_snap])>70):    #avoid nans and overflows
+                     energy1.append(999)
+                     #print("We are here 0 rank " +str(cg.rank))
+                 else :
+                     energy1.append((cg.Njuns[l]+1)*20*a)
+                 time_obs += time.perf_counter() - t1
+                 
+    print("Times oxpy: init read obs")
+    print(time_init,time_read,time_obs)
+                     
+    return energy1
+
+
 
 #Compute Relative Entropy.
 def Relative_entropy_wRew(par,stop,par0):
@@ -1499,15 +1492,15 @@ def Relative_entropy_wRew(par,stop,par0):
     if stop[0] == 0 :
                     
         if cg.rank == 0:
-            
+            """
             frac = []
             for i in range(len(par)):
                 frac.append(par[i]/par0[i])            
             
-            """
+            
             for k in range(len(par)):
                 par[k] *= par0[k]    
-            """
+            
             print("parameters")
             #print(par)
             print(["{0:0.3f}".format(i) for i in par])
@@ -1516,12 +1509,13 @@ def Relative_entropy_wRew(par,stop,par0):
             print("fraction (par/par0):")
             #print(frac)
             print(["{0:0.3f}".format(i) for i in frac])
+            """
             
             #update parameters file (only once, at rank 0)
-            if cg.ave:
-                update_rew_seq_dep_file_ave(par)
-            else:
-                update_rew_seq_dep_file(par)
+            #if cg.ave:
+            #    update_rew_seq_dep_file_ave(par)
+            #else:
+            update_rew_seq_dep_file(par)
                 
         #print("We are here 0 rank " +str(cg.rank))
         #bcast par from rank 0 (where optimisation is performed) to other cpus
@@ -1541,12 +1535,15 @@ def Relative_entropy_wRew(par,stop,par0):
         
 
         #compute new energy (with par)         
-        energy1 = []
-                 
+        
+        #energy1 = []
         read = False
         
-        cg.stop_flag = 0
-
+        cg.stop_flag = 0      
+        
+        
+        energy1 = get_energy_oxpy(l,rep)
+        """
         with oxpy.Context():      
             
              
@@ -1594,6 +1591,7 @@ def Relative_entropy_wRew(par,stop,par0):
                          #print("We are here 0 rank " +str(cg.rank))
                      else :
                          energy1.append((cg.Njuns[l]+1)*20*a)
+        """
                          
         counts_disc = 0
                          
@@ -1628,23 +1626,24 @@ def Relative_entropy_wRew(par,stop,par0):
          
         #<e^-DH>
         av_e_to_deltaH = np.zeros(cg.dimension[l], dtype=float) 
+        expmDH = np.zeros(len(cg.internal_coords), dtype=float) 
          
         #reweight mean for seq l rep rep
         for i in range(len(cg.internal_coords)) :
      
              if (energy1[i] > 999.01 or energy1[i] < 998.99) and (cg.energy_sampled[i] > 999.01 or cg.energy_sampled[i] < 998.99):
                  deltaH = (energy1[i] - cg.energy_sampled[i])
-                 if math.isnan( deltaH ) :
-                     print("rank "+ str(cg.rank) + " " + str(i) + " " + str(deltaH))                     
-                 
+                 #if math.isnan( deltaH ) :
+                 #    print("rank "+ str(cg.rank) + " " + str(i) + " " + str(deltaH))                     
+                 expmDH[i] = math.exp(-deltaH)
                  for j in range(len(cg.internal_coords[i])) :
      
-                         mu[j] += cg.internal_coords[i][j]*math.exp(-deltaH)
+                         mu[j] += cg.internal_coords[i][j]*expmDH[i]
                          
-                         if math.isnan(math.exp(-deltaH)) :
-                             print("Exp is nan: delta = "+str(deltaH))
+                         #if math.isnan(math.exp(-deltaH)) :
+                         #    print("Exp is nan: delta = "+str(deltaH))
                          
-                         av_e_to_deltaH[j] += math.exp(-deltaH)
+                         av_e_to_deltaH[j] += expmDH[i]
              
         #reduce gs to seq leader and compute rew gs for seq l (i.e. sum over reps)
         
@@ -1673,8 +1672,8 @@ def Relative_entropy_wRew(par,stop,par0):
                  for j in range(len(cg.internal_coords[i])) :
                          for z in range(j,len(cg.internal_coords[i])) :
                              
-                             deltaH =  energy1[i] - cg.energy_sampled[i]                    
-                             cov[j,z]+=(cg.internal_coords[i][j]-mu[j])*(cg.internal_coords[i][z]-mu[z])*math.exp(-deltaH)
+                             #deltaH =  energy1[i] - cg.energy_sampled[i]                    
+                             cov[j,z]+=(cg.internal_coords[i][j]-mu[j])*(cg.internal_coords[i][z]-mu[z])*expmDH[i]
         
         #reduce cov to seq leader
         
@@ -1725,7 +1724,7 @@ def Relative_entropy_wRew(par,stop,par0):
                 if cg.ids_inter_rot[z] in cg.ids_cov :
                     continue
                 else :
-                    print("Warning: Not all inter rotations are used for covariance optimisation. Cannot tune stiffness matrix (persistence length).")
+                    #print("Warning: Not all inter rotations are used for covariance optimisation. Cannot tune stiffness matrix (persistence length).")
                     opti_lp = False
                     
             #compute relative entropy
@@ -1734,7 +1733,7 @@ def Relative_entropy_wRew(par,stop,par0):
             
         
             
-            print("Seq: "+str(l))    
+            #print("Seq: "+str(l))    
         
             #initialise    
         
@@ -1785,7 +1784,9 @@ def Relative_entropy_wRew(par,stop,par0):
                         delta_mu[i] = 0       
             
                 S += 0.5*(np.dot(np.dot(delta_mu.transpose(),np.linalg.inv(cg.target_cov[l])),delta_mu))*cg.weight_gs
-                
+            
+            """
+            #PRINTING
             print("SEQUEUCE "+str(l))
             print("###############")
             print("Complete rew mu: ")
@@ -1837,6 +1838,7 @@ def Relative_entropy_wRew(par,stop,par0):
             
             print("Ave rew cov: ")
             print(ave_cov)    
+            """
             
             #COVARIANCE + STIFFNESS MATRIX (LONG RANGE)
             
@@ -1946,11 +1948,14 @@ def Relative_entropy_wRew(par,stop,par0):
                 else:
                     S += 0.5*(np.dot(np.linalg.inv(reduced_cov),reduced_target_cov).trace()+np.dot(np.linalg.inv(reduced_target_cov),reduced_cov).trace()-2*len(reduced_cov))
                    
+                """
+                #PRINITING COV
                 print("COV-reduced rew cov: ")
                 #print_matrix(reduced_cov)
                 print(reduced_cov)  
                 print("COV-reduced rew ave_cov: ")
                 print(ave_reduced_cov) 
+                """
                 
             if opti_lp and len(cg.ids_cov) > 0 :
                 #this term is a weighted sum of squared distances (l/lt+lt/l-2 = (l-lt)**2/(lt*l)). The weigth is as in the stiff term of the likelihood (see below).
@@ -1994,7 +1999,7 @@ def Relative_entropy_wRew(par,stop,par0):
             #finally, reduce S to rank 0, which runs the optimisation        
             
             
-            print("seq, rep: " + str(cg.seq_id) + ", " + str(cg.rep_id) + ". S: " + str(S))
+            #print("seq, rep: " + str(cg.seq_id) + ", " + str(cg.rep_id) + ". S: " + str(S))
             
             if S > 100000 or S < 0 :
                 print("S overflow. Setting it to 10^6")
@@ -2003,7 +2008,7 @@ def Relative_entropy_wRew(par,stop,par0):
             S = cg.comm_leaders.reduce(S,op=MPI.SUM, root=0)
             
             if cg.rank == 0 :                
-                print("tot S: "+str(S))
+                #print("tot S: "+str(S))
                 cg.S_curr = S
                 cg.curr_feva += 1
                 

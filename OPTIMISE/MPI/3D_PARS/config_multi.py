@@ -90,7 +90,7 @@ diag = True # diagonal covariance
 
 algo = "nelder-mead" #default
 neva = 40
-miter = 40
+miter = 80
 curr_feva = 0
 
 #params for L-BFGS-B

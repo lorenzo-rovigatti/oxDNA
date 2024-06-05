@@ -1,15 +1,22 @@
 main_path=$(pwd)
 echo "Usage: "
-echo "bash optimise.sh config_file"
+echo "bash optimise.sh config_file restart_step"
+echo "Note: restart_step is the first step of the restart run, not the last step of the interrupted run."
 
-if [ "$#" -ne 1 ]; then
+if [ "$#" -ne 2 ]; then
 	echo "Illegal number of parameters"
 	exit 1
 fi
 
 config=$1 #configuration file
 
-#parse input from conf file
+rstep=$2
+echo "Restarting from step: ${rstep}"
+
+###########################
+#INPUT FROM FILE
+###########################
+
 oxDNA_path=$(awk '$1 == "OXDNA_PATH" {print $2}' $config)
 if [[ "$oxDNA_path" == "" ]]; then
 	echo "Ox DNA path not specified. Usage"
@@ -28,7 +35,6 @@ if [[ "$opti_path" == "" ]]; then
 	echo "Terminating."
 	exit 1
 fi
-opti_path=$opti_path"/MPI"
 echo "Optimisation program path:"
 echo $opti_path
 box_size=$(awk '$1 == "BOX_SIZE" {print $2}' $config)
@@ -38,13 +44,15 @@ if [[ "$box_size" == "" ]]; then
 	echo "BOX_SIZE box_size"
 	box_size=20
 fi
-
 echo "Sim box size:"
 echo $box_size
 
-concentration=$(( 2687/$box_size/$box_size/$box_size ))
+concentration=$(( 2686.8/$box_size/$box_size/$box_size ))
 
 echo "Single strand concentration = $concentration mM"
+
+
+
 
 Nreps=$(awk '$1 == "REPS" {print $2}' $config)
 if [[ "$Nreps" == "" ]]; then
@@ -99,75 +107,35 @@ echo ${seq[1]}
 
 Nseq=${#seq[@]}
 
-
-#total number of cpus is number_of_sequences*number_of_reps
-Nproc=$((${Nreps}*${Nseq}))
-
-echo "Number of CPUs used: ${Nproc}"
-
 #initialise first step
 
-#create directory
-mkdir ${main_path}/Step0
-#copy parameters files
-cp ${main_path}/oxDNA_sequence_dependent_parameters.txt ${main_path}/Step0/
-cp ${main_path}/oxDNA_sequence_dependent_parameters_in.txt ${main_path}/Step0/
-
-#setup and run repetitions for step 0
-for ((l=0; l < ${Nseq}; l++)); do
-	for ((j=0; j < ${Nreps};j++)); do
-		mkdir -p ${main_path}/Step0/Seq${l}/Rep${j}/	
-		#cp ${main_path}/gen.txt ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${opti_path}/input_MD ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${main_path}/Step0/oxDNA_sequence_dependent_parameters_in.txt ${main_path}/Step0/Seq${l}/Rep${j}/
-		cp ${opti_path}/input1.an ${main_path}/Step0/Seq${l}/Rep${j}/	#files used for oxpy analysis
-		cp ${opti_path}/input2.an ${main_path}/Step0/Seq${l}/Rep${j}/
-		
-		rep_path=${main_path}/Step0/Seq${l}/Rep${j}
-		step_path=${main_path}/Step0/
-		cd ${rep_path}
-		
-		echo "double "${seq[$l]} > gen.txt	#used for generating in conf and topology
-		
-		sed -i "s|replace_me1|${rep_path}|g" input1.an	#set the right paths
-		sed -i "s|replace_me1|${rep_path}|g" input2.an
-		sed -i "s|replace_me2|${rep_path}|g" input1.an	
-		sed -i "s|replace_me2|${step_path}|g" input2.an
-		python3 ${opti_path}/GenOP.py ${#seq[$l]} ${main_path}/${config} #generate op file (to check if sampled confs are melted)
-		python3 ${oxDNA_path}/utils/generate-sa.py ${box_size} gen.txt	#gen topology and in conf
-		sed -i "s|seed = 1|seed = ${RANDOM}|g" input_MD		#randomise seed
-		sed -i "s|steps = 1e7|steps = ${timesteps}|g" input_MD
-		${oxDNA_path}/build/bin/oxDNA input_MD > out &	#run oxdna
-	done
-done
+echo "Running ${Nsteps}-${rstep} optimisation steps."
 
 
-wait
+cd ${main_path}/Step$(($rstep-1))
+#python3 ${opti_path}/optimise_multi.py ../$config > OutOpti
 
 
-#optimise
-cd ${main_path}/Step0
-exit_status= $( mpirun -np ${Nproc} python3 ${opti_path}/optimise_geometry_mpi.py ../$config > OutOpti )
-if [[ $exit_status == 1 ]]; then
-	echo "optimisation throwed an error."
-	echo "Terminating".
-	exit 1
+file_tmp=oxDNA_sequence_dependent_parameters_tmp.txt
+file_fin=oxDNA_sequence_dependent_parameters_fin.txt
+
+if [ ! -f "$file_fin" ]; then
+	if [ ! -f "$file_tmp" ];
+		mv oxDNA_sequence_dependent_parameters_tmp.txt oxDNA_sequence_dependent_parameters_fin.txt
+	else
+		echo "could not find $file_tmp nor $file_fin in ${main_path}/Step$(($rstep-1))"
+		echo "cannot restart"
+		exit 1
+	fi
 fi
 
-#same as above, but for all the other steps
-#copy all necessary files form previous step and
-#turn output (param file) of optimise into input param file for next step
-
-
-mv oxDNA_sequence_dependent_parameters_tmp.txt oxDNA_sequence_dependent_parameters_fin.txt
-
-for ((i=1; i < ${Nsteps}; i++)); do
+for ((i=${rstep}; i < ${Nsteps}; i++)); do
 
 	mkdir -p ${main_path}/Step${i}/
 	
 	#copy optimisation code
 	cp ${main_path}/oxDNA_sequence_dependent_parameters.txt ${main_path}/Step${i}/
-	cp ${main_path}/Step$(($i-1))/oxDNA_sequence_dependent_parameters_fin.txt ${main_path}/Step${i}/oxDNA_sequence_dependent_parameters_in.txt	#copy output of optimse at previous step and make it the starting parameter files of this step
+	cp ${main_path}/Step$(($i-1))/oxDNA_sequence_dependent_parameters_fin.txt ${main_path}/Step${i}/oxDNA_sequence_dependent_parameters_in.txt
 	for ((l=0; l < ${Nseq}; l++)); do
 		for ((j=0; j< ${Nreps};j++)); do
 			mkdir -p ${main_path}/Step${i}/Seq${l}/Rep${j}/
@@ -175,7 +143,6 @@ for ((i=1; i < ${Nsteps}; i++)); do
 			cp ${main_path}/Step$(($i-1))/oxDNA_sequence_dependent_parameters_fin.txt ${main_path}/Step${i}/Seq${l}/Rep${j}/
 			cp ${opti_path}/input1.an ${main_path}/Step${i}/Seq${l}/Rep${j}/
 			cp ${opti_path}/input2.an ${main_path}/Step${i}/Seq${l}/Rep${j}/
-			cp ${main_path}/Step$(($i-1))/Seq${l}/Rep${j}/op.txt ${main_path}/Step${i}/Seq${l}/Rep${j}/
 			cd ${main_path}/Step${i}/Seq${l}/Rep${j}/
 			mv oxDNA_sequence_dependent_parameters_fin.txt oxDNA_sequence_dependent_parameters_in.txt
 			
@@ -191,7 +158,7 @@ for ((i=1; i < ${Nsteps}; i++)); do
 			sed -i "s|replace_me2|${step_path}|g" input1.an	
 			sed -i "s|replace_me2|${step_path}|g" input2.an
 			python3 ${oxDNA_path}/utils/generate-sa.py ${box_size} gen.txt
-			sed -i "s|seed = .*|seed = ${RANDOM}|g" input_MD
+			sed -i "s|seed = *|seed = ${RANDOM}|g" input_MD
 			sed -i "s|steps = 1e7|steps = ${timesteps}|g" input_MD
 			${oxDNA_path}/build/bin/oxDNA input_MD > out &
 		done
@@ -200,13 +167,6 @@ for ((i=1; i < ${Nsteps}; i++)); do
 	wait
 	
 	cd ${main_path}/Step${i}
-	exit_status= $( mpirun -np ${Nproc} python3 ${opti_path}/optimise_geometry_mpi.py ../$config > OutOpti )
-	
-	if [[ $exit_status == 1 ]]; then
-		echo "optimisation throwed an error."
-		echo "Terminating".
-		exit 1
-	fi	
-	
+	python3 ${opti_path}/optimise_multi.py ../$config > OutOpti
 	mv oxDNA_sequence_dependent_parameters_tmp.txt oxDNA_sequence_dependent_parameters_fin.txt
 done

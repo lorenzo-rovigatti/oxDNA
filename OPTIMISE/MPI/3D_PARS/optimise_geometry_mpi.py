@@ -290,8 +290,8 @@ for line in ifile.readlines() :
                     
                 elif vals1[0] == "STCK" and vals1[1] == "R0" :
                     
-                    up_bond.append(float(vals[2])*1.1)
-                    low_bond.append(float(vals[2])*0.9) 
+                    up_bond.append(float(vals[2])*1.2)
+                    low_bond.append(float(vals[2])*0.8) 
                     
                 elif vals1[0] == "STCK" and vals1[2] == "T0" and abs(float(vals[2])) < 0.01:   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
@@ -358,7 +358,7 @@ cg.curr_feva = 0
 
 print("RUNNING MINIMISATION")
     
-for n in range(0,4) :
+for n in range(0,5) :
     
     S = functions.Relative_entropy_wRew(par,[0],par0)
     

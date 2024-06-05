@@ -12,6 +12,7 @@ import oxpy
 import copy
 import time
 
+#import functions_multi_profile as functions
 import functions_multi as functions
 from oxdna_to_internal_wflip import read_oxdna_trajectory_standard_order
 import config_multi as cg
@@ -280,18 +281,18 @@ for line in ifile.readlines() :
                 
                 if vals1[0] == "FENE" and vals1[1] == "R0" :    #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
-                    up_bond.append(float(vals[2])*1.02)
-                    low_bond.append(float(vals[2])*0.98)
+                    up_bond.append(float(vals[2])*1.03)
+                    low_bond.append(float(vals[2])*0.97)
                 
                 elif vals1[0] == "FENE" and vals1[1] == "DELTA" :    #stricter for FENE_DELTA (+-5%), to avoid problems with the FENE potential
                     
-                    up_bond.append(float(vals[2])*1.02)
-                    low_bond.append(float(vals[2])*0.98)
+                    up_bond.append(float(vals[2])*1.03)
+                    low_bond.append(float(vals[2])*0.97)
                     
                 elif vals1[0] == "STCK" and vals1[1] == "R0" :
                     
-                    up_bond.append(float(vals[2])*1.1)
-                    low_bond.append(float(vals[2])*0.9) 
+                    up_bond.append(float(vals[2])*1.2)
+                    low_bond.append(float(vals[2])*0.8) 
                     
                 elif vals1[0] == "STCK" and vals1[2] == "T0" and abs(float(vals[2])) < 0.01:   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
@@ -304,8 +305,8 @@ for line in ifile.readlines() :
                     low_bond.append(3.14159-0.1745)
                     
                 else :                    
-                    up_bond.append(float(vals[2])*6.0)
-                    low_bond.append(float(vals[2])*0.1)
+                    up_bond.append(float(vals[2])*2.0)
+                    low_bond.append(float(vals[2])*0.5)
                     
                 
                 order.append(i)
@@ -358,7 +359,7 @@ cg.curr_feva = 0
 
 print("RUNNING MINIMISATION")
     
-for n in range(0,4) :
+for n in range(0,1) :
     
     S = functions.Relative_entropy_wRew(par,[0],par0)
     

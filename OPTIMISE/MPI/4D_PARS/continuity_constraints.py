@@ -120,13 +120,13 @@ def continuity_f1(r0,a,rc) :
     
     while 1==1 :
     
-        num = a*a*(math.exp(-(rl-r0)*a)-math.exp(-2*(rl-r0)*a))**2
-        den = (1-math.exp(-(rl-r0)*a))**2-(1-math.exp(-(rc-r0)*a))**2
+        num = a*a*(math.exp(-(rl-r0)*a)-math.exp(-2*(rl-r0)*a))*(math.exp(-(rl-r0)*a)-math.exp(-2*(rl-r0)*a))
+        den = (1-math.exp(-(rl-r0)*a))**2-(1-math.exp(-(rc-r0)*a))*(1-math.exp(-(rc-r0)*a))
         
         bl = num/den
         
-        num = a*a*(math.exp(-(rh-r0)*a)-math.exp(-2*(rh-r0)*a))**2
-        den = (1-math.exp(-(rh-r0)*a))**2-(1-math.exp(-(rc-r0)*a))**2
+        num = a*a*(math.exp(-(rh-r0)*a)-math.exp(-2*(rh-r0)*a))*(math.exp(-(rh-r0)*a)-math.exp(-2*(rh-r0)*a))
+        den = (1-math.exp(-(rh-r0)*a))**2-(1-math.exp(-(rc-r0)*a))*(1-math.exp(-(rc-r0)*a))
         
         bh = num/den
         
@@ -263,7 +263,3 @@ def continuity_f4(a) :
     #continuous = check_continuity_f4(a,th0,dts,dtc,b,0.01)
 
     return dts,dtc,b
-
-
-
-

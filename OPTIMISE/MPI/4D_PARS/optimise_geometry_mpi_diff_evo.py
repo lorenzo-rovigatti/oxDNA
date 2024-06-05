@@ -12,7 +12,7 @@ import oxpy
 import copy
 import time
 
-import functions_multi as functions
+import functions_multi_diffevo as functions
 from oxdna_to_internal_wflip import read_oxdna_trajectory_standard_order
 import config_multi as cg
 import Utils_mpi
@@ -280,18 +280,18 @@ for line in ifile.readlines() :
                 
                 if vals1[0] == "FENE" and vals1[1] == "R0" :    #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
-                    up_bond.append(float(vals[2])*1.02)
-                    low_bond.append(float(vals[2])*0.98)
+                    up_bond.append(float(vals[2])*1.03)
+                    low_bond.append(float(vals[2])*0.97)
                 
                 elif vals1[0] == "FENE" and vals1[1] == "DELTA" :    #stricter for FENE_DELTA (+-5%), to avoid problems with the FENE potential
                     
-                    up_bond.append(float(vals[2])*1.02)
-                    low_bond.append(float(vals[2])*0.98)
+                    up_bond.append(float(vals[2])*1.03)
+                    low_bond.append(float(vals[2])*0.97)
                     
                 elif vals1[0] == "STCK" and vals1[1] == "R0" :
                     
-                    up_bond.append(float(vals[2])*1.1)
-                    low_bond.append(float(vals[2])*0.9) 
+                    up_bond.append(float(vals[2])*1.2)
+                    low_bond.append(float(vals[2])*0.8) 
                     
                 elif vals1[0] == "STCK" and vals1[2] == "T0" and abs(float(vals[2])) < 0.01:   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
                     
@@ -304,8 +304,8 @@ for line in ifile.readlines() :
                     low_bond.append(3.14159-0.1745)
                     
                 else :                    
-                    up_bond.append(float(vals[2])*6.0)
-                    low_bond.append(float(vals[2])*0.1)
+                    up_bond.append(float(vals[2])*2.0)
+                    low_bond.append(float(vals[2])*0.5)
                     
                 
                 order.append(i)
@@ -358,9 +358,12 @@ cg.curr_feva = 0
 
 print("RUNNING MINIMISATION")
     
-for n in range(0,4) :
+for n in range(0,1) :
     
-    S = functions.Relative_entropy_wRew(par,[0],par0)
+    functions.stop = [0]
+    
+    S = functions.Relative_entropy_wRew(par)
+    
     
     if n > 0:
         if cg.rank_seq == 0: #same as cg.rank in cg.leaders
@@ -377,42 +380,42 @@ for n in range(0,4) :
     
     if cg.rank == 0:
                 
-        stop = [0]
+        functions.stop = [0]
         
         
         #sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(par0),method='nelder-mead',options={'maxiter':cg.miter, 'eps':0.1})
-        if cg.algo == "L-BFGS-B" :
-            sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(stop,par0),method='L-BFGS-B', callback=functions.callbackF, bounds=bnd ,options={'maxfun':cg.neva, 'eps':cg.LBFGSB_eps, 'iprint':cg.LBFGSB_iprint})
+        #if cg.algo == "L-BFGS-B" :
+        #    sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(stop,par0),method='L-BFGS-B', callback=functions.callbackF, bounds=bnd ,options={'maxfun':cg.neva, 'eps':cg.LBFGSB_eps, 'iprint':cg.LBFGSB_iprint})
             
-        elif cg.algo == "nelder-mead"  :
+        #elif cg.algo == "nelder-mead"  :
             
-            in_simplex = functions.build_initial_simplex_for_nm(par,up_bond,low_bond)
+        #    in_simplex = functions.build_initial_simplex_for_nm(par,up_bond,low_bond)
             
             
             #sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(stop,par0),method='nelder-mead', callback=functions.callbackF, bounds=bnd ,options={'maxfev': cg.neva, 'adaptive': True})
             #sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(stop,par0),method='nelder-mead', callback=functions.callbackF, bounds=bnd ,options={'maxfev':cg.neva, 'initial_simplex' : in_simplex})
             #sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(stop,par0),method='nelder-mead', callback=functions.callbackF, bounds=bnd ,options={'maxiter': cg.miter, 'adaptive' : True, 'initial_simplex' : in_simplex})
-            sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(stop,par0),method='nelder-mead', callback=functions.callbackF, bounds=bnd ,options={'maxiter': cg.miter, 'initial_simplex' : in_simplex})
+        sol = optimize.differential_evolution(functions.Relative_entropy_wRew,bnd,x0=par, maxiter = 30, popsize=1, callback=functions.callbackF, mutation=(0.1,0.5))
             #sol = optimize.minimize(functions.Relative_entropy_wRew,par,args=(stop,par0),method='nelder-mead', callback=functions.callbackF, bounds=bnd ,options={'maxfev':2, 'initial_simplex' : in_simplex})
         
-        else :
-            print("UNKNOWN ALGORITHM!")
-            sys.exit(1)
+        #else :
+        #    print("UNKNOWN ALGORITHM!")
+        #    sys.exit(1)
         
         #OPTI DONE
         print("OPTI DONE")
         print("TERMINATING")
-        stop = [1] #this stops the while on the other processors
-        functions.Relative_entropy_wRew(par,stop,par0)   #extra call to stop other processors
+        functions.stop = [1] #this stops the while on the other processors
+        functions.Relative_entropy_wRew(par)   #extra call to stop other processors
         par = sol.x
             
             
     else :
         #ite = 0
-        stop = [0]
-        while stop[0]==0:   #keep computing local term of cost function untill stop[0] != 0
+        functions.stop = [0]
+        while functions.stop[0]==0:   #keep computing local term of cost function untill stop[0] != 0
             #ite += 1
-            C = functions.Relative_entropy_wRew(par,stop,par0)
+            C = functions.Relative_entropy_wRew(par)
             #print("ite",cg.rank,ite)
 
 

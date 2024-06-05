@@ -42,6 +42,9 @@ bsteps_counts = []
 # 6,7,8 = tilt, roll, twist
 # 9,10,11 = shift, slide, rise
 
+fene_r0 = np.zeros((4,4,4,4),dtype=float)
+stck_r0 = np.zeros((4,4,4,4),dtype=float)
+
 ids_inter_rot = [6,7,8]
 
 ids = [] #coordinates to optimse
@@ -90,7 +93,7 @@ diag = True # diagonal covariance
 
 algo = "nelder-mead" #default
 neva = 40
-miter = 40
+miter = 1
 curr_feva = 0
 
 #params for L-BFGS-B

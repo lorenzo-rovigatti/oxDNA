@@ -650,7 +650,7 @@ def impose_continuity(par_cname,p_id,pars) :
     f2 = False
     f4 = False
     
-
+    #print("Continuity pars")
     
     #this is the scaling factor of the HYDRO and STCK (e.g. HYDR_A_T and STCK_G_A)
     if len(vals) == 3 and (vals[0] == "HYDR" or vals[0] == "STCK") and (vals[1] in cg.bases) and (vals[2] in cg.bases) :
@@ -664,6 +664,8 @@ def impose_continuity(par_cname,p_id,pars) :
     r0 = 0.
     rc = 0.
     a = 0.  
+    
+    #print("searching")
 
     if vals[1] == 'R0' and vals[0] != 'FENE' and vals[0] != 'CRST': #FENE and CRST have different modulations or the radial part
         f1 = True
@@ -681,14 +683,14 @@ def impose_continuity(par_cname,p_id,pars) :
         auxiliars.append('R0')
         auxiliars.append('RC')
     if f1 :
-        #print(vals)
+        #print("f1")
         #check if we are also optimising one of the auxiliary parameters
         for i in range(len(auxiliars)) : 
             found = False
             aux_pname = vals[0]+'_'+auxiliars[i]
             for j in range(2,len(vals)) :
                 aux_pname = aux_pname + '_' + vals[j]
-            #print(aux_pname)
+            print(aux_pname)
             for j in range(len(cg.continuity_par_codenames)) :
                 if aux_pname == cg.continuity_par_codenames[j] :
                     aux_values.append(cg.continuity_par_values[j])
@@ -1185,9 +1187,20 @@ def update_rew_seq_dep_file(par) :
                 
             if vals[1] == 'DELTA' :
                 print(name+"2"+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(par[i]*par[i]),file=ofile)
-                
+            
             #symmetries
             if vals[0] == 'STCK':
+                
+                """
+                id1 = cg.base_to_id(vals[len(vals)-3])
+                id2 = cg.base_to_id(vals[len(vals)-2])
+                id3 = cg.base_to_id(vals[len(vals)-1])
+                
+                cb1 = cg.bases[3-id3]
+                cb2 = cg.bases[3-id2]
+                cb3 = cg.bases[3-id1]
+                
+                
                 if vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'G' :
                     print(name+"_C_C"+" = "+str(par[i]),file=ofile)                      
                 elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'C' :
@@ -1219,6 +1232,9 @@ def update_rew_seq_dep_file(par) :
                     elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
                         print(name+"_A_A"+" = "+str(par[i]),file=ofile)
                 
+                if cb1 != vals[len(vals)-3] and cb2 != vals[len(vals)-2] and cb3 != vals[len(vals)-1]:
+                    print(name+"_"+cb1+"_"+cb2+"_"+cb3+" = "+str(par[i]),file=ofile)
+                """
             #symmetries
             elif vals[0] == 'FENE':
                 
@@ -1339,7 +1355,8 @@ def update_rew_seq_dep_file(par) :
                 #update seq dep file + impose symmetries
                 for k in range(len(names)) :
                     if vals[0] == 'STCK' :
-                        print(names[k]+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(output[k+1]),file=ofile)
+                        print(names[k]+"_"+vals[len(vals)-3]+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(output[k+1]),file=ofile)
+                        """
                         if vals[len(vals)-2] == 'G' and vals[len(vals)-1] == 'G' :
                             print(names[k]+"_C_C"+" = "+str(output[k+1]),file=ofile)
                         elif vals[len(vals)-2] == 'C' and vals[len(vals)-1] == 'C' :
@@ -1369,6 +1386,7 @@ def update_rew_seq_dep_file(par) :
                             print(names[k]+"_T_T"+" = "+str(output[k+1]),file=ofile)
                         elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
                             print(names[k]+"_A_A"+" = "+str(output[k+1]),file=ofile)
+                        """
                             
                     elif vals[0] == 'CRST' or vals[0] == 'HYDR':
                         print(names[k]+"_"+vals[len(vals)-2]+"_"+vals[len(vals)-1]+" = "+str(output[k+1]),file=ofile)
