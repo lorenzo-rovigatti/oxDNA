@@ -72,12 +72,13 @@ public:
 	 * @return a map storing all the potential energy contributions.
 	 */
 	virtual std::map<int, number> get_system_energy_split(std::vector<BaseParticle *> &particles, BaseList *lists);
-
+	
 	virtual void set_box(BaseBox *box) {
 		_box = box;
 	}
 
 	virtual void get_settings(input_file &inp);
+	virtual void update_parameters(std::string names, std::string values);
 
 	/**
 	 * Initialization of class constants.

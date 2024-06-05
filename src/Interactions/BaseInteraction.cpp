@@ -261,6 +261,9 @@ bool BaseInteraction::generate_random_configuration_overlap(BaseParticle *p, Bas
 	return energy > _energy_threshold;
 }
 
+void BaseInteraction::update_parameters(std::string names, std::string values) {
+}
+
 void BaseInteraction::generate_random_configuration(std::vector<BaseParticle *> &particles) {
 	Cells c(particles, _box);
 	c.init(_rcut);
