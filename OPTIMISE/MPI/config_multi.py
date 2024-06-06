@@ -7,8 +7,20 @@ Created on Mon Nov 20 12:11:39 2023
 """
 
 from mpi4py import MPI
+import numpy as np
 
 bases = ['A','C','G','T']
+def base_to_id(b) :
+    if b == 'A':
+        return 0
+    elif  b == 'C':
+        return 1
+    elif  b == 'G':
+        return 2
+    elif  b == 'T':
+        return 3
+    else:
+        return -1
 
 Nseq = 0 #number of sequences
 seq = []
@@ -19,6 +31,11 @@ jfe = 0
 in_j = [] #ignore ends
 fin_j = [] #ignore ends
 
+S_curr = 0
+mu_curr = []
+
+Deltas = []
+bsteps_counts = []
 # IDS:
 # 0,1,2 = buckle, propeller, opening
 # 3,4,5 = shear, stretch, stagger
@@ -50,6 +67,7 @@ energy_sampled = [] #stores the energy of the sampled configurations
 energy_stk_sampled = [] #stores the stacking enegy of the sampled configurations
 
 mu_sampled = [] #sampled means (list of arrays, one for each different sequence)
+cov0_sampled = [] #sampled means (list of arrays, one for each different sequence)
 cov_sampled = [] #sampled covaraiances (list of matrices, one for each sequence)
 
 target_mu = [] #target means
@@ -72,7 +90,8 @@ diag = True # diagonal covariance
 
 algo = "nelder-mead" #default
 neva = 40
-miter = 10
+miter = 40
+curr_feva = 0
 
 #params for L-BFGS-B
 LBFGSB_eps = 0.01
@@ -95,6 +114,8 @@ rep_id = 0
 
 update_rews = False
 
+stop_flag = 0
+
 ############# FOR MELTING TEMPERATURE ############
 
 
@@ -111,6 +132,7 @@ Cs = [] #salt concentartion (in M)
 
 target_mTs = []
 current_mT = 0.
+current_hist_Ts = []
 
 
 simTs = []   #simulated temperature
@@ -121,5 +143,7 @@ weights = []    #weights
 
 hbs_sampled = []
 
+first_step_flag = False
+fin_wfiles = []
 
-
+symm_stck = True

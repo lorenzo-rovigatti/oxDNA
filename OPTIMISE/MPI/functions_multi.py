@@ -9,6 +9,7 @@ Created on Mon Nov 20 12:00:12 2023
 import numpy as np
 import math
 import oxpy
+import copy
 import continuity_constraints
 import config_multi as cg
 import get_cgdna_pars
@@ -20,7 +21,7 @@ def read_config(cfile_name) :
     
     cfile = open(cfile_name,'r')
     
-    checklist = np.zeros(17, dtype = int) #check if some mandatory parameters are missing
+    checklist = np.zeros(18, dtype = int) #check if some mandatory parameters are missing
     
     for line in cfile.readlines() :
         vals = line.split()
@@ -131,6 +132,14 @@ def read_config(cfile_name) :
             if int(vals[1]) != 0 :
                 cg.opti_lp = True                
                 checklist[16] = 1
+                
+        #symm stacking default = True
+        if(vals[0] == "SYMM_STCK") :
+            if int(vals[1]) != 0 :
+                cg.symm_stck = True
+            else :
+                cg.symm_stck = False
+                checklist[17] = 1
         
 
     #CHECK AND PRINT
@@ -311,6 +320,8 @@ def read_config(cfile_name) :
 
     cg.ids.sort()
     
+    #initialise deltas    
+    
     print("ALL IDS:")
     print(cg.ids)
     
@@ -322,6 +333,7 @@ def read_config(cfile_name) :
         
         cg.mu_sampled = np.zeros(cg.dimension[cg.seq_id], dtype = float)
         cg.cov_sampled = np.zeros((cg.dimension[cg.seq_id],cg.dimension[cg.seq_id]), dtype = float)
+        cg.cov0_sampled = np.zeros((cg.dimension[cg.seq_id],cg.dimension[cg.seq_id]), dtype = float)
         
         for i in range(cg.Nseq) :
         
@@ -494,6 +506,14 @@ def read_config(cfile_name) :
             print("Usage:")
             print("LBFGSB_iprint iprint")
             
+    if checklist[17] == 1:
+        print("Breaking stacking symmetry (AA/TT only)")
+    else :
+        print("OPTION. Using symmetric stacking.")
+        print("If you want to break the AA/TT symmetry,")
+        print("Usage:")
+        print("SYMM_STCK 1")
+            
     
 
     
@@ -561,25 +581,62 @@ def ave_and_cov_stored() :
     Nsnaps = len(cg.internal_coords)
     Ncoords = len(cg.internal_coords[0])
     
+    Nave = Nsnaps
+    
+    for i in range(Nsnaps) :
+        if 998.9 < cg.energy_sampled[i] and cg.energy_sampled[i] > 999.1 :
+            Nave -= 1
+    
     for i in range(Ncoords) :
         cg.mu_sampled[i] = 0.
         for j in range(Ncoords) :
             cg.cov_sampled[i][j] = 0.
-    
+            cg.cov0_sampled[i][j] = 0.
+       
     for i in range(Nsnaps) :
+        if 998.9 < cg.energy_sampled[i] and cg.energy_sampled[i] > 999.1 :
+            continue
         for j in range(Ncoords) :
-            cg.mu_sampled[j] += cg.internal_coords[i][j]/Nsnaps
+            cg.mu_sampled[j] += cg.internal_coords[i][j]/Nave
     
     for i in range(Nsnaps) :
+        if 998.9 < cg.energy_sampled[i] and cg.energy_sampled[i] > 999.1 :
+            continue
         for j in range(Ncoords) :
             for z in range(j,Ncoords) :
-                cg.cov_sampled[j][z] += (cg.internal_coords[i][j] - cg.mu_sampled[j])*(cg.internal_coords[i][z] - cg.mu_sampled[z])/Nsnaps
+                cg.cov_sampled[j][z] += (cg.internal_coords[i][j] - cg.mu_sampled[j])*(cg.internal_coords[i][z] - cg.mu_sampled[z])/Nave
+                cg.cov0_sampled[j][z] += cg.internal_coords[i][j]*cg.internal_coords[i][z]/Nave
     
     for j in range(Ncoords) :
         for z in range(j+1,Ncoords) :
-            cg.cov_sampled[z][j] = cg.cov_sampled[j][z]    
+            cg.cov_sampled[z][j] = cg.cov_sampled[j][z]
+            cg.cov0_sampled[z][j] = cg.cov0_sampled[j][z] 
     
     return
+
+
+def compute_deltas(First) :
+    #seq = ""
+    cg.Deltas = np.zeros((len(cg.ids),4,4),dtype=float)
+    if First:
+        cg.bsteps_counts = np.zeros((4,4), dtype=int)
+    for i in range(len(cg.Deltas)):
+        for j in range(4) :
+            for k in range(4):
+                cg.Deltas[i][j][k] = 0.
+    
+    for i in range(cg.in_j[cg.seq_id], cg.fin_j[cg.seq_id]) :
+        #seq+=cg.seq[cg.seq_id]
+        #print("Seq "+str(cg.seq_id)+ " index " +str(i) + " " + cg.seq[cg.seq_id][i])
+        if First:
+            cg.bsteps_counts[cg.base_to_id(cg.seq[cg.seq_id][i])][cg.base_to_id(cg.seq[cg.seq_id][i+1])]+=1
+            
+        for j in range(len(cg.ids)) :
+            delta = cg.mu_curr[(i-cg.in_j[cg.seq_id])*len(cg.ids)+j]-cg.target_mu[cg.seq_id][(i-cg.in_j[cg.seq_id])*len(cg.ids)+j]
+            cg.Deltas[j][cg.base_to_id(cg.seq[cg.seq_id][i])][cg.base_to_id(cg.seq[cg.seq_id][i+1])]+=delta
+            #print("Delta"+str(j)+ " " +str(cg.seq[cg.seq_id][i])+str(cg.seq[cg.seq_id][i+1])+ " ("+str(cg.base_to_id(cg.seq[cg.seq_id][i]))+str(cg.base_to_id(cg.seq[cg.seq_id][i+1]))+") " +str(delta))
+            
+    
 
 
 #given a parameter, check if continuity constraints should be imposed
@@ -713,7 +770,255 @@ def impose_continuity(par_cname,p_id,pars) :
         output.append('No')
         return output
          
+   
+def build_initial_simplex_for_nm(x0,up_bnds,low_bnds) :
+    in_simplex = []
+    
+    x = copy.deepcopy(x0)
+    for i in range(len(x)) :
+        x[i]*=1.0
+    in_simplex.append(x)
+    
+    
+    for i in range(len(x0)) :
+        x = copy.deepcopy(x0)
                 
+        vals1 = cg.par_codename[i].split('_')
+        
+        if vals1[0] == "FENE" and vals1[1] == "R0" :    #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
+
+            found = False
+
+            for k in range(len(cg.ids)):
+                if cg.ids[k] == 8:
+                    found = True
+                    if cg.Deltas[k][cg.base_to_id(vals1[2])][cg.base_to_id(vals1[3])]< 0:
+        
+                        if x[i]*1.02 < up_bnds[i] : 
+                            x[i]*=1.02
+                        else :
+                            x[i] = up_bnds[i] - 0.001
+                    else :
+                        if x[i]*0.98 > low_bnds[i] : 
+                            x[i]*=0.98
+                        else :
+                            x[i] = low_bnds[i] + 0.001     
+            if found == False :
+                if x[i]*1.02 < up_bnds[i] : 
+                    x[i]*=1.02
+                else :
+                    x[i] = up_bnds[i] - 0.001
+                
+        
+        elif vals1[0] == "FENE" and vals1[1] == "DELTA" :    #stricter for FENE_DELTA (+-5%), to avoid problems with the FENE potential
+            
+            if x[i]*1.02 < up_bnds[i] : 
+                x[i]*=1.02
+            else :
+                x[i] = up_bnds[i] - 0.001
+                
+        
+            
+        elif vals1[0] == "STCK" and vals1[1] == "R0" :
+            
+            found = False
+                
+            for k in range(len(cg.ids)):
+                if cg.ids[k] == 11:
+                    found = True
+                    if cg.Deltas[k][cg.base_to_id(vals1[2])][cg.base_to_id(vals1[3])] < 0:
+        
+                        if x[i]*1.1 < up_bnds[i] : 
+                            x[i]*=1.1
+                        else :
+                            x[i] = up_bnds[i] - 0.001
+                    else :
+                        if x[i]*0.9 > low_bnds[i] : 
+                            x[i]*=0.9
+                        else :
+                            x[i] = low_bnds[i] + 0.001 
+                            
+            if found == False:
+                if x[i]*1.1 < up_bnds[i] : 
+                    x[i]*=1.1
+                else :
+                    x[i] = up_bnds[i] - 0.001
+            
+        elif vals1[0] == "STCK" and vals1[2] == "T0" and abs(x[i]) < 0.01:
+            
+            if x[i]+0.2 < up_bnds[i] : 
+                x[i]+=0.2
+            else :
+                x[i] = up_bnds[i] - 0.001
+            
+        elif vals1[0] == "CRST" and vals1[1] == "THETA4" and vals1[2] == "T0" :   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
+            
+
+            found = False
+            for k in range(len(cg.ids)):
+                if cg.ids[k] == 7:
+                    found = True
+                    if vals1[3] == '55':
+                        if cg.Deltas[k][cg.base_to_id(vals1[4])][3-cg.base_to_id(vals1[5])] < 0:
+        
+                            if x[i]+0.2 < up_bnds[i] : 
+                                x[i]+=0.2
+                            else :
+                                x[i] = up_bnds[i] - 0.001
+                        else :
+                            if x[i]-0.2 > low_bnds[i] : 
+                                x[i]-=0.2
+                            else :
+                                x[i] = low_bnds[i] + 0.001
+                    elif vals1[3] == '33':
+                        if cg.Deltas[k][3-cg.base_to_id(vals1[5])][cg.base_to_id(vals1[4])] < 0:
+        
+                            if x[i]+0.2 < up_bnds[i] : 
+                                x[i]+=0.2
+                            else :
+                                x[i] = up_bnds[i] - 0.001
+                        else :
+                            if x[i]-0.2 > low_bnds[i] : 
+                                x[i]-=0.2
+                            else :
+                                x[i] = low_bnds[i] + 0.001
+            if found == False:
+                if x[i]+0.2 < up_bnds[i] : 
+                    x[i]+=0.2
+                else :
+                    x[i] = up_bnds[i] - 0.001                
+                        
+            
+                
+        elif vals1[0] == "CRST" and vals1[1] == "THETA4" and vals1[2] == "A" :   #stricter for FENE_R0 (+-3%), to avoid problems with the FENE potential
+            
+           if x[i]*3.0 < up_bnds[i] : 
+               x[i]*=3.0
+           else :
+               x[i] = up_bnds[i] - 0.001
+               
+               
+        elif vals1[0] == "STCK" and (vals1[1] == "THETA4" or vals1[1] == "THETA5") and vals1[2] == "A":
+            
+            
+            found = False
+            for k in range(len(cg.ids)):
+                if cg.ids[k] == 1:
+                    found = True
+                    if cg.Deltas[k][cg.base_to_id(vals1[2])][cg.base_to_id(vals1[3])] > 0:
+        
+                        if x[i]*1.5 < up_bnds[i] : 
+                            x[i]*=1.5
+                        else :
+                            x[i] = up_bnds[i] - 0.001
+                    else :
+                        if x[i]*0.75 > low_bnds[i] : 
+                            x[i]*=0.75
+                        else :
+                            x[i] = low_bnds[i] + 0.001
+            if found == False:
+                if x[i]*1.5 < up_bnds[i] : 
+                    x[i]*=1.5
+                else :
+                    x[i] = up_bnds[i] - 0.001
+                            
+        elif vals1[0] == "HYDR" and vals1[1] == "THETA4" and vals1[2] == "A":
+            
+            found = False
+            for k in range(len(cg.ids)):
+                if cg.ids[k] == 1:
+                    found = True
+                    delta = 0
+                    for m in range(4):
+                        for n in range(4):
+                            delta += cg.Deltas[k][m][n]/16.
+                    
+                    if delta < 0:
+        
+                        if x[i]*1.5 < up_bnds[i] : 
+                            x[i]*=1.5
+                        else :
+                            x[i] = up_bnds[i] - 0.001
+                    else :
+                        if x[i]*0.75 > low_bnds[i] : 
+                            x[i]*=0.75
+                        else :
+                            x[i] = low_bnds[i] + 0.001 
+                            
+            if found == False :
+                if x[i]*1.5 < up_bnds[i] : 
+                    x[i]*=1.5
+                else :
+                    x[i] = up_bnds[i] - 0.001
+                
+            
+        else :                    
+            if x[i]*1.5 < up_bnds[i] : 
+                x[i]*=1.5
+            else :
+                x[i] = up_bnds[i] - 0.001
+                
+        in_simplex.append(x)
+        
+        
+    ofile = open("Deltas_and_in_simplexes.txt", 'a')
+    
+    print("ITER "+ str(cg.Niter), file=ofile)
+    print("DELTAS", file=ofile)
+    print("",file=ofile)
+    for i in range(len(cg.Deltas)):
+        if cg.ids[i] == 0:
+            print("buckle")
+        if cg.ids[i] == 1:
+            print("propeller")
+        if cg.ids[i] == 2:
+            print("opening")
+        if cg.ids[i] == 3:
+            print("shear")
+        if cg.ids[i] == 4:
+            print("stretch")
+        if cg.ids[i] == 5:
+            print("stagger")
+        if cg.ids[i] == 6:
+            print("tilt")
+        if cg.ids[i] == 7:
+            print("roll")
+        if cg.ids[i] == 8:
+            print("twist")
+        if cg.ids[i] == 9:
+            print("shift")
+        if cg.ids[i] == 10:
+            print("slide")
+        if cg.ids[i] == 11:
+            print("rise")
+            
+        for j in range(4):
+            string = ""
+            for k in range(4):
+                string+= " "+str(cg.Deltas[i][j][k])
+            print(string, file=ofile)
+        print("",file=ofile)
+        
+    print("INITIAL SIMPLEX", file=ofile)
+    
+    i = 0
+    string = ""
+    for j in range(len(in_simplex[i])):
+        string += " " + " {:.3f}".format(in_simplex[i][j])
+    print(string, file=ofile)
+    
+    string = ""
+    for i in range(1, len(in_simplex)):
+        string += " " + " {:.3f}".format(in_simplex[i][i-1])
+    print(string, file=ofile)
+            
+    print("",file=ofile)
+    
+    ofile.close()        
+    
+    
+    return in_simplex
+             
         
     
 #update sequence dependent file with new values (par) of the optimisation parameters + continuity constraints and symmetries.
@@ -907,11 +1212,13 @@ def update_rew_seq_dep_file(par) :
                     print(name+"_A_C"+" = "+str(par[i]),file=ofile)
                 elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'C' :
                     print(name+"_G_T"+" = "+str(par[i]),file=ofile)
-                    
-                elif vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'A' :
-                    print(name+"_T_T"+" = "+str(par[i]),file=ofile)
-                elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
-                    print(name+"_A_A"+" = "+str(par[i]),file=ofile)
+                
+                if cg.symm_stck:
+                    if vals[len(vals)-2] == 'A' and vals[len(vals)-1] == 'A' :
+                        print(name+"_T_T"+" = "+str(par[i]),file=ofile)
+                    elif vals[len(vals)-2] == 'T' and vals[len(vals)-1] == 'T' :
+                        print(name+"_A_A"+" = "+str(par[i]),file=ofile)
+                
             #symmetries
             elif vals[0] == 'FENE':
                 
@@ -1149,21 +1456,66 @@ def print_matrix(M):
     return
 
 
+def callbackF(par) :
+    
+    cg.Niter += 1
+    
+    ofile = open("parameters_v_iter.txt", 'a')
+    
+    string = str(cg.Niter)
+    
+    for i in range(len(par)):
+        
+        string = string + " " + str(par[i])
+    
+    print(string, file=ofile)
+    
+    ofile.close()
+    
+    ofile = open("S_v_iter.txt", 'a')
+    
+    if cg.Niter == 1:
+        print('#niter = number of iterations, neva = number of S evaluations, S = cost function')
+        print('#niter neva S', file=ofile)        
+    
+    string = str(cg.Niter) + " " + str(cg.curr_feva) + " "+ str(cg.S_curr)
+    
+    print(string, file=ofile)
+    
+    ofile.close()
+    
+    
+    return
+
+
 
 #Compute Relative Entropy.
 def Relative_entropy_wRew(par,stop,par0):
     
     stop[0]=cg.comm.bcast(stop[0], root=0)  #this is used to stop all processes (the while loop in main cycle)
-                                            #at the end of optimisation stop[0] is set to 1 and communicated to all processes   
-                                            
+                                            #at the end of optimisation stop[0] is set to 1 and communicated to all processes                                          
     S = 0.
     
     if stop[0] == 0 :
                     
         if cg.rank == 0:
-        
-            print(par)
-            print(par0)
+            
+            frac = []
+            for i in range(len(par)):
+                frac.append(par[i]/par0[i])            
+            
+            """
+            for k in range(len(par)):
+                par[k] *= par0[k]    
+            """
+            print("parameters")
+            #print(par)
+            print(["{0:0.3f}".format(i) for i in par])
+            #print(par0)
+            #print(["{0:0.3f}".format(i) for i in par0])
+            print("fraction (par/par0):")
+            #print(frac)
+            print(["{0:0.3f}".format(i) for i in frac])
             
             #update parameters file (only once, at rank 0)
             if cg.ave:
@@ -1171,8 +1523,12 @@ def Relative_entropy_wRew(par,stop,par0):
             else:
                 update_rew_seq_dep_file(par)
                 
+        #print("We are here 0 rank " +str(cg.rank))
         #bcast par from rank 0 (where optimisation is performed) to other cpus
         par=cg.comm.bcast(par, root=0)
+        #print("We are there 0 rank " +str(cg.rank))
+        #print("communicated par")
+        #print(par)
         
         
         
@@ -1188,37 +1544,82 @@ def Relative_entropy_wRew(par,stop,par0):
         energy1 = []
                  
         read = False
+        
+        cg.stop_flag = 0
 
-        with oxpy.Context():              
+        with oxpy.Context():      
+            
              
+             #print("We are here -1 rank " +str(cg.rank))
              #read input script specifying sequence dependent file
              inp = oxpy.InputFile()
-             
              inp.init_from_filename("./Seq"+str(l)+"/Rep"+str(rep)+"/input2.an")
-             #create analysys backend
-             backend = oxpy.analysis.AnalysisBackend(inp)
-         
-             obs = backend.config_info().observables
              
-             counts = -1
+             #backend = oxpy.analysis.AnalysisBackend(inp)
              
-             while 1==1 : 
-                 try:
-                     read =  backend.read_next_configuration()
-                 except:
-                     counts+=1
-                     energy1.append(999)
-                     print("Warning: exception in oxpy energy computation; reweighting. Seq "+str(l)+", Rep "+str(rep)+", conf" +str(counts))
-                     continue
-                 if read == False :
-                     break
-                 counts+=1
+             try :
+                 #create analysys backend
+                 backend = oxpy.analysis.AnalysisBackend(inp)
+             except :
+                 print("Could not start oxpy. Throwing a stop flag.")
+                 cg.stop_flag = 1
+
+             if cg.stop_flag == 0 :
+                 obs = backend.config_info().observables
                  
-                 if(counts < cg.in_snap) :
-                     continue
-                 a = float(obs[0].get_output_string(backend.conf_step).split()[0])
-                 energy1.append((cg.Njuns[l]+1)*20*a)
+                 #print("We are there -1 rank " +str(cg.rank))
+                 
+                 counts = -1
+                 
+                 #print("We are here rank " +str(cg.rank))
+                 
+                 while 1==1 : 
+                     try:
+                         read =  backend.read_next_configuration()
+                     except:
+                         counts+=1
+                         energy1.append(999)
+                         print("Warning: exception in oxpy energy computation; reweighting. Seq "+str(l)+", Rep "+str(rep)+", conf" +str(counts))
+                         continue
+                     if read == False :
+                         break
+                     counts+=1
                      
+                     if(counts < cg.in_snap) :
+                         continue
+                     a = float(obs[0].get_output_string(backend.conf_step).split()[0])
+                     #print(counts)
+                     if math.isnan( a ) or (abs((cg.Njuns[l]+1)*20*a-cg.energy_sampled[counts-cg.in_snap])>70):    #avoid nans and overflows
+                         energy1.append(999)
+                         #print("We are here 0 rank " +str(cg.rank))
+                     else :
+                         energy1.append((cg.Njuns[l]+1)*20*a)
+                         
+        counts_disc = 0
+                         
+        if cg.stop_flag == 0 :              
+           for k in range(len(energy1)) :
+               if energy1[k] < 999.01 and energy1[k] > 998.99 :
+                   counts_disc += 1
+           
+        #sanity check: if more than half of the configurations are discarded, then the parameters are too extreme. 
+        #Return S = 1000000, works with Nelder-Mead.
+           
+           if counts_disc >= len(energy1)*0.5 :
+                print("Warning: too many discarded configurations")
+                cg.stop_flag = 1
+                         
+                         
+        #if something goes horribly wrong, return S = 10^6
+        cg.stop_flag = cg.comm.allreduce(cg.stop_flag,op=MPI.SUM)
+        
+        if cg.stop_flag > 0:
+            if cg.rank == 0:
+                print("Warning!: Got a stop flag in the reweighting. Returning S = 10^6")
+            return 1000000
+                     
+        #print("We are there rank " +str(cg.rank))
+        counts_disc = 0                     
 
         #reweight for rep rep and seq l
         
@@ -1231,34 +1632,43 @@ def Relative_entropy_wRew(par,stop,par0):
         #reweight mean for seq l rep rep
         for i in range(len(cg.internal_coords)) :
      
-             if energy1[i] != 999 and cg.energy_sampled[i] != 999:
+             if (energy1[i] > 999.01 or energy1[i] < 998.99) and (cg.energy_sampled[i] > 999.01 or cg.energy_sampled[i] < 998.99):
                  deltaH = (energy1[i] - cg.energy_sampled[i])
-                 
-                 #print(deltaH)
+                 if math.isnan( deltaH ) :
+                     print("rank "+ str(cg.rank) + " " + str(i) + " " + str(deltaH))                     
                  
                  for j in range(len(cg.internal_coords[i])) :
      
                          mu[j] += cg.internal_coords[i][j]*math.exp(-deltaH)
+                         
+                         if math.isnan(math.exp(-deltaH)) :
+                             print("Exp is nan: delta = "+str(deltaH))
+                         
                          av_e_to_deltaH[j] += math.exp(-deltaH)
              
         #reduce gs to seq leader and compute rew gs for seq l (i.e. sum over reps)
         
+        #print("We are here 1 rank " +str(cg.rank))
+        
         mu = cg.comm_seq.reduce(mu,op=MPI.SUM, root=0)
-        av_e_to_deltaH = cg.comm_seq.reduce(av_e_to_deltaH,op=MPI.SUM, root=0)
+        av_e_to_deltaH = cg.comm_seq.allreduce(av_e_to_deltaH,op=MPI.SUM)
+        
+        #print("We are there 1 rank " +str(cg.rank))
         
         if cg.rank_seq == 0: #same as cg.rank in cg.leaders
         
 
             for i in range(len(mu)) :
                  mu[i] = mu[i]*(1./av_e_to_deltaH[i])
+                 
         
         mu = cg.comm_seq.bcast(mu, root=0)   #mu, for each sequence, is now the average over all reps
-        av_e_to_deltaH = cg.comm_seq.bcast(av_e_to_deltaH, root=0)   #same as mu: sum over all reps
+        #av_e_to_deltaH = cg.comm_seq.bcast(av_e_to_deltaH, root=0)   #same as mu: sum over all reps
         
         #reweight covariance
         for i in range(len(cg.internal_coords)) :
              
-             if energy1[i] != 999 and cg.energy_sampled[i] != 999:
+             if (energy1[i] > 999.01 or energy1[i] < 998.99) and (cg.energy_sampled[i] > 999.01 or cg.energy_sampled[i] < 998.99):
                  
                  for j in range(len(cg.internal_coords[i])) :
                          for z in range(j,len(cg.internal_coords[i])) :
@@ -1268,7 +1678,11 @@ def Relative_entropy_wRew(par,stop,par0):
         
         #reduce cov to seq leader
         
+        #print("We are here 2 rank " +str(cg.rank))
+        
         cov = cg.comm_seq.reduce(cov,op=MPI.SUM, root=0)
+        
+        #print("We are there 2 rank " +str(cg.rank))
           
         if cg.rank_seq == 0:         
             for i in range(len(mu)):
@@ -1285,6 +1699,9 @@ def Relative_entropy_wRew(par,stop,par0):
         #we use seq leaders for this (i.e. we are done with summing over reps of same sequence)        
         
         if cg.rank_seq == 0:
+            
+            cg.curr_mu = mu
+            
         
             """
             print("LENGTHS")
@@ -1372,10 +1789,45 @@ def Relative_entropy_wRew(par,stop,par0):
             print("SEQUEUCE "+str(l))
             print("###############")
             print("Complete rew mu: ")
-            print(mu) 
+            #print(mu)
+            string = ""
+            counts_coo = -1
+            for coo in mu:
+                counts_coo+=1
+                if counts_coo % len(cg.ids) == 0 :
+                    string = ""
+                string += " {:.3f}".format(coo)
+                if counts_coo % len(cg.ids) == len(cg.ids)-1 :
+                    print(string) 
             
-            print("Target mu: ")
-            print(cg.target_mu[l])
+            print("Delta (target - rew mu): ")
+            #print(cg.target_mu[l]-mu)
+            
+            string = ""
+            counts_coo = -1
+            for coo in mu:
+                counts_coo+=1
+                if counts_coo % len(cg.ids) == 0 :
+                    string = ""
+                string += " " + " {:.3f}".format((cg.target_mu[l][counts_coo]-coo))
+                if counts_coo % len(cg.ids) == len(cg.ids)-1 :
+                    print(string) 
+                    
+                        
+            print("Delta Ratio Delta/Delta0 (Delta0 = sampled): ")
+            #print(cg.target_mu[l]-mu)
+            
+            string = ""
+            counts_coo = -1
+            for coo in mu:
+                counts_coo+=1
+                if counts_coo % len(cg.ids) == 0 :
+                    string = ""
+                string += " " + " {:.3f}".format((cg.target_mu[l][counts_coo]-coo)/(cg.target_mu[l][counts_coo]-cg.mu_sampled[counts_coo]))
+                if counts_coo % len(cg.ids) == len(cg.ids)-1 :
+                    print(string) 
+
+            
             
             print("Rew ave_mu: ")
             print(ave_mu)
@@ -1544,9 +1996,16 @@ def Relative_entropy_wRew(par,stop,par0):
             
             print("seq, rep: " + str(cg.seq_id) + ", " + str(cg.rep_id) + ". S: " + str(S))
             
+            if S > 100000 or S < 0 :
+                print("S overflow. Setting it to 10^6")
+                S = 1000000
+            
             S = cg.comm_leaders.reduce(S,op=MPI.SUM, root=0)
             
             if cg.rank == 0 :                
                 print("tot S: "+str(S))
+                cg.S_curr = S
+                cg.curr_feva += 1
+                
     
     return S

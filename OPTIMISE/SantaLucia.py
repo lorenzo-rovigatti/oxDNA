@@ -83,6 +83,11 @@ def melting_temperature(seq,Ct,Cs) :
         DS0 += DS0_step[seq_num[i]][seq_num[i+1]]
         DH0 += DH0_step[seq_num[i]][seq_num[i+1]]
         
+    if seq_num[0] == 0 or seq_num[0] == 3 :
+        print("In AT")
+        DS0 += DS0fin_AT
+        DH0 += DH0fin_AT
+        
     if seq_num[len(seq_num)-1] == 0 or seq_num[len(seq_num)-1] == 3 :
         print("Fin AT")
         DS0 += DS0fin_AT
