@@ -239,6 +239,8 @@ def cli_parser(prog="oxDNA_PDB.py"):
                         help='The name of the output pdb file.  Defaults to name of the configuration+.pdb')
     parser.add_argument('-d', '--output_direction', type=str,
                         help='Direction to save nucleic acid strands in.  Should be "53" or "35".  Defaults to same as input direction.')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, 
+                        help="Don't print 'INFO' messages to stderr")
     parser.add_argument('-H', '--hydrogen', action='store_true', default=True,
                         help='if you want to include hydrogen atoms in the output PDB file')
     parser.add_argument('-u', '--uniform-residue-names', action='store_true', default=False,
@@ -386,10 +388,16 @@ def main():
                     # end residue identifiers
                     residue_type = ""
                     if not uniform_residue_names:
-                        if nucleotide == strand.monomers[0] and not strand.is_circular():
-                            residue_type = "3"
-                        elif nucleotide == strand.monomers[-1]:
-                            residue_type = "5"
+                        if strand.is_old():
+                            if nucleotide == strand.monomers[0] and not strand.is_circular():
+                                residue_type = "3"
+                            elif nucleotide == strand.monomers[-1]:
+                                residue_type = "5"
+                        else:
+                            if nucleotide == strand.monomers[0] and not strand.is_circular():
+                                residue_type = "5"
+                            elif nucleotide == strand.monomers[-1]:
+                                residue_type = "3"
 
                     nuc_data = {
                         'pos' : conf.positions[nucleotide.id],

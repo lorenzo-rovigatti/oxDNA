@@ -60,7 +60,7 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 void DetailedPolymerSwapInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
 	_PS_sqr_WCA_rcut = pow(2. * _WCA_sigma, 2. / this->_PS_n);
-	number sqr_debye_rcut = SQR(_yk_rcut_multiplier * _yk_debye);
+	number sqr_debye_rcut = (_yk_strength > 0.) ? SQR(_yk_rcut_multiplier * _yk_debye) : 0.;
 	_PS_sqr_rep_rcut = std::max(_PS_sqr_WCA_rcut, sqr_debye_rcut);
 
 	_rcut = sqrt(_PS_sqr_rep_rcut);
@@ -174,11 +174,11 @@ number DetailedPolymerSwapInteraction::_yukawa(BaseParticle *p, BaseParticle *q,
 		return (number) 0.;
 	}
 	number r = sqrt(sqr_r);
-
-	number energy = exp(-r / _yk_debye) * _yk_strength / r;
+	number exp_part = exp(-r / _yk_debye);
+	number energy = exp_part * _yk_strength / r;
 
 	if(update_forces) {
-		LR_vector force = _computed_r * ((_yk_strength * exp(-r / _yk_debye)) * (1.0 / (sqr_r * _yk_debye) + 1.0f / (r * sqr_r)));
+		LR_vector force = _computed_r * ((_yk_strength * exp_part) * (1.0 / (sqr_r * _yk_debye) + 1.0f / (r * sqr_r)));
 		p->force -= force;
 		q->force += force;
 	}
@@ -456,7 +456,7 @@ number DetailedPolymerSwapInteraction::pair_nonbonded_repulsive(BaseParticle *p,
 
 	number energy = _WCA(p, q, update_forces);
 
-	if(_yk_strength > 0.) {
+	if(_yk_strength > 0. && !_sticky_interaction(p->btype, q->btype)) {
 		energy += _yukawa(p, q, update_forces);
 	}
 

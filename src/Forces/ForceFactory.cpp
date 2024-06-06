@@ -25,6 +25,7 @@
 #include "GenericCentralForce.h"
 #include "LJCone.h"
 #include "RepulsiveEllipsoid.h"
+#include "YukawaSphere.h"
 
 // metadynamics-related forces
 #include "Metadynamics/LT2DCOMTrap.h"
@@ -82,10 +83,11 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("generic_central_force") == 0) extF = std::make_shared<GenericCentralForce>();
 	else if(type_str.compare("LJ_cone") == 0) extF = std::make_shared<LJCone>();
 	else if(type_str.compare("ellipsoid") == 0) extF = std::make_shared<RepulsiveEllipsoid>();
-	else if (type_str.compare("meta_com_trap") == 0) extF = std::make_shared<LTCOMTrap>();
-	else if (type_str.compare("meta_2D_com_trap") == 0) extF = std::make_shared<LT2DCOMTrap>();
-	else if (type_str.compare("meta_atan_com_trap") == 0) extF = std::make_shared<LTAtanCOMTrap>();
-	else if (type_str.compare("meta_com_angle_trap") == 0) extF = std::make_shared<LTCOMAngleTrap>();
+	else if(type_str.compare("yukawa_sphere") == 0) extF = std::make_shared<YukawaSphere>();
+	else if(type_str.compare("meta_com_trap") == 0) extF = std::make_shared<LTCOMTrap>();
+	else if(type_str.compare("meta_2D_com_trap") == 0) extF = std::make_shared<LT2DCOMTrap>();
+	else if(type_str.compare("meta_atan_com_trap") == 0) extF = std::make_shared<LTAtanCOMTrap>();
+	else if(type_str.compare("meta_com_angle_trap") == 0) extF = std::make_shared<LTCOMAngleTrap>();
 	else throw oxDNAException("Invalid force type `%s\'", type_str.c_str());
 
 	string group = string("default");
