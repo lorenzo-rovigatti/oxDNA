@@ -56,6 +56,7 @@ SET(observables_SOURCES
 	Observables/AverageEnergy.cpp
 	Observables/ContactMap.cpp
 	Observables/AllVectors.cpp
+	Observables/ExternalForce.cpp
 	Observables/Configurations/Configuration.cpp
 	Observables/Configurations/BinaryConfiguration.cpp
 	Observables/Configurations/TclOutput.cpp
@@ -127,6 +128,8 @@ SET(interactions_SOURCES
 	Interactions/PatchyInteractionDan.cpp
 	Interactions/KFInteraction.cpp
 	Interactions/CustomInteraction.cpp
+	Interactions/DRHInteraction.cpp
+	Interactions/DRHInteraction_relax.cpp
 )
 
 SET(move_SOURCES
@@ -163,6 +166,7 @@ SET(forces_SOURCES
 	Forces/AlignmentField.cpp
 	Forces/GenericCentralForce.cpp
 	Forces/LJCone.cpp
+	Forces/YukawaSphere.cpp
 	Forces/Metadynamics/LTCOMTrap.cpp
 	Forces/Metadynamics/LTCOMAngleTrap.cpp
 	Forces/Metadynamics/LT2DCOMTrap.cpp
@@ -203,6 +207,7 @@ SET(common_SOURCES
 	Utilities/SignalManager.cpp
 	Utilities/ConfigInfo.cpp
 	Utilities/FlattenedConfigInfo.cpp
+	Utilities/TopologyParser.cpp
 	PluginManagement/PluginManager.cpp
 	${forces_SOURCES}
 	${observables_SOURCES}

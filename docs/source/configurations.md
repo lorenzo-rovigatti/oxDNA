@@ -4,6 +4,10 @@ The current state of a system, as specified by oxDNA, is described by two files:
 
 ## Configuration file
 
+```{warning}
+Nucleotides are listed in the 3' {math}`\to` 5' order if using the "classic" topology format or in the 5' {math}`\to` 3' order if using the "new" format (see [Topology file](#topology-file)).
+```
+
 The first three rows of a configuration file contain the timestep T at which the configuration has been printed, the length of the box sides Lx, Ly and Lz and the total, potential and kinetic energies, Etot, U and K, respectively:
 
 ```text
@@ -39,7 +43,15 @@ When simulating very large structures the size of the trajectory files stored on
 
 ## Topology file
 
-The topology file stores the intra-strand, fixed bonding topology (*i.e.* which nucleotides share backbone links). The first row contains the total number of nucleotides N and the number of strands Ns: 
+The topology file stores information about the fixed-bonding topology (*i.e.* which nucleotides share backbone links), as well as the strand sequences. Along with the original topology format (the "classic" one which is in the 3'-5' direction), starting with version 3.6, oxDNA also supports a new format that is simpler and more flexible (and in 5'-3' direction). Note that this "new" format is not necessarily supported by the other tools of the oxDNA ecosystem. 
+
+```{note}
+You can interconvert between the classic and new formats by using the `utils/convert.py` script.
+```
+
+### Classic format (3' {math}`\to` 5')
+
+The first row contains the total number of nucleotides N and the number of strands Ns: 
 
 ```text
 N Ns
@@ -54,7 +66,7 @@ S B 3' 5'
 where S is the index of the strand (starting from 1) which the nucleotide belongs to, B is the base (*A*, *C*, *G*, and *T* for DNA or *A*, *C*, *G*, and *U* for RNA, but see below for more options) and 3' and 5' specify the index of the nucleotides with which the *i*-th nucleotide is bonded in the 3' and 5' direction, respectively. A -1 signals that the nucleotide terminates the strand in either 3' or 5' direction. 
 
 ```{warning}
-OxDNA's convention is to list nucleotides in the 3' {math}`\to` 5' order. Note that this is the opposite of how most of the other DNA-related tools behave.
+OxDNA's "classic topology" convention is to list nucleotides in the 3' {math}`\to` 5' order. Note that this is the opposite of how most of the other DNA-related tools behave.
 ```
 
 The topology file of a strand of sequence GCGTTG would be:
@@ -71,6 +83,47 @@ The topology file of a strand of sequence GCGTTG would be:
 
 Specifying the topology in this way can simplify the process of simulating, for example, circular DNA.
 
+### New format (5' {math}`\to` 3')
+
+The new format (introduced in oxDNA 3.6) lists nucleotides in the more common order (5' {math}`\to` 3'), is (arguably) simpler, and is more flexible. However, it is not fully supported by all oxDNA-related tools yet.
+
+The first row of the topology should contain the total number of nucleotides N, the number of strands Ns and the "5->3" string to signal that the file has the "new" format:
+
+```text
+N Ns 5->3
+```
+
+Each of the Ns rows that follows contains the details of a single strand as a space-separated list of elements. The first element is the sequence of the strand (in 5' {math}`\to` 3' order), while additional elements can be specified with the key=value syntax. The topology of the same system used as an example of "classic" topology (*i.e.* a system composed of a single strand of sequence GTTGCG) is
+
+```text
+6 1 5->3
+GTTGCG
+```
+
+As another example, the topology of a system composed by two complementary strands would be
+
+```
+12 2 5->3
+GTTGCG
+CGCAAC
+```
+
+In addition, DNA and RNA interactions also support the `type=DNA|RNA` (which defaults to `DNA`) and `circular=true|false` (which defaults to `false`) specifiers. The former sets the type of strand, while the latter, if set to `true`, indicates that the strand is circular. For example, if you wanted to explicitally note that the above strands are DNA, the file would read
+
+```
+12 2 5->3
+GTTGCG type=DNA
+CGCAAC type=DNA
+```
+
+```{note}
+Setting `type` only affects the force field when using the DNA/RNA hybrid model (`interaction_type=NA`). For normal DNA or RNA, the interactions will be determined by the `interaction_type=DNA|DNA2|RNA|RNA2|NA|LJ...` parameter in the [input file](input.md)
+```
+
+```{note}
+The `examples/PERSISTENCE_LENGTH/NEW_TOPOLOGY` directory contains an example that uses this new format.
+```
+
 ### Special nucleotides
 
 Internally, oxDNA encodes the base types with integers as follows:
@@ -84,7 +137,13 @@ T = U = 3
 
 According to these values, two nucleotides interact through the Watson-Crick mechanism (*i.e.* can be hydrogen bonded) if the sum of their base types is 3. 
 
-This property can be leveraged to extend the canonical base pairing and create very specific topologies. Indeed, in oxDNA a nucleotide of type B which is larger than 9 or smaller than 0 behaves as a nucleotide of type $B \bmod 4$ if $B$ is positive or $3 - ((3 - B) \bmod 4)$ if $B$ is negative, but can be hydrogen-bonded **only** with a nucleotide of type $B'$ for which $B + B' = 3$.
+This property can be leveraged to extend the canonical base pairing and create very specific topologies. Indeed, in oxDNA a nucleotide of custom type X which is larger than 9 or smaller than 0 behaves as a nucleotide of type $X \bmod 4$ if $X$ is positive or $3 - ((3 - X) \bmod 4)$ if $X$ is negative, but can be hydrogen-bonded **only** with a nucleotide of type $X'$ for which $X + X' = 3$.
+
+```{note}
+In the classic topology format, custom nucleotide types are set by using numbers instead of letters. For instance, the following topology line specifies that the corresponding nucleotide (which is part of strand 1 and bonded to nucleotides 2 and 4) has a custom type `-10`: `1 -10 2 4`.
+
+In the new topology format, custom nucleotide types can be set by enclosing them between brackets. As an example, the following line sets the sequence of a DNA strand made of 6 nucleotides, with the third one having a custom type `-10`: `AA(-10)GCT type=DNA`.
+```
 
 For instance, $B = 13$, for which $B \bmod 4 = 1$, would correspond to a nucleotide with the same property of a Guanine. However, such a nucleotide would bond only to a nucleotide with base type $B' = -10$.
 

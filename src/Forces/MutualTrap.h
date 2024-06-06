@@ -18,6 +18,8 @@ private:
 public:
 	BaseParticle * _p_ptr;
 	number _r0;
+	number _rate;
+	number _stiff_rate;
 	bool PBC;
 
 	MutualTrap();

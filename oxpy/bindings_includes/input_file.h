@@ -21,6 +21,10 @@ Options can be read, set or overwritten by using square brackets::
 	my_input["sim_type"] = "VMMC"
 	print(my_input["sim_type"])
 
+Options can also be deleted::
+
+	del my_input["log_file"]
+
 To check if a specific option has been set you can use `in`::
 
 	if "debug" in my_input:
@@ -28,14 +32,19 @@ To check if a specific option has been set you can use `in`::
 	)pbdoc");
 
 	input.def(py::init<>());
+
 	input.def("__getitem__", &input_file::get_value,
 		py::arg("key") = '\0',
 		py::arg("mandatory") = 0,
 		py::arg("found") = true
 	);
+
 	input.def("__setitem__", &input_file::set_value);
+
 	input.def("__delitem__", &input_file::unset_value);
+
 	input.def("__str__", &input_file::to_string);
+
 	// this enables the use of "if 'something' in input_file"
 	input.def("__contains__", [](input_file &inp, std::string v) {
 		try {
@@ -47,6 +56,7 @@ To check if a specific option has been set you can use `in`::
 			return false;
 		}
 	});
+
 	input.def("init_from_filename", &input_file::init_from_filename, py::arg("filename"), R"pbdoc(
         Initialise the object from the input file passed as parameter.
 
@@ -55,6 +65,7 @@ To check if a specific option has been set you can use `in`::
         filename: str
             The name of the input file whence the options will be loaded.
 	)pbdoc");
+
 	input.def("get_bool", [](input_file &inp, std::string &key) {
 		bool found;
 		if (inp.true_values.find(inp.get_value(key, 0, found)) != inp.true_values.end()) {
@@ -75,6 +86,25 @@ To check if a specific option has been set you can use `in`::
 		-------
 		bool
 			The boolean value of the option.
+	)pbdoc");
+
+	input.def("keys", [](input_file &inp) {
+		std::vector<std::string> keys;
+		for (auto &it : inp.keys) {
+			keys.push_back(it.first);
+		}
+		return keys;
+	}, R"pbdoc(
+		Return the list of keys stored in the input file. For instance, the following code prints all the options stored in an input file::
+
+			keys = my_input.keys()
+			for key in keys:
+				print(f"Option '{key}' is set to '{my_input[key]}'")
+
+		Returns
+		-------
+		List(str)
+			The list of keys stored in the input file.
 	)pbdoc");
 }
 

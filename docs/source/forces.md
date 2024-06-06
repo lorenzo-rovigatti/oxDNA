@@ -77,7 +77,7 @@ The following bit of code will create an external force on the first nucleotide 
 This force is useful to form initial configurations. It is a harmonic force that at every moment pulls a particle towards a reference particle. It is possible to specify the separation at which the force will be 0.
 
 ````{warning}
-Please note that the reference particle (`ref_particle` below) will not feel any force, thus making the name mutual trap somewhat misleading. If you want to have an actual *mutual* trap you will need to add a force on the reference particle.
+Please note that the reference particle (`ref_particle` below) will not feel any force, thus making the name mutual trap somewhat misleading. If you want to have an actual *mutual* trap you will need to add a corresponding force on the reference particle.
 ````
 
 A force of this kind is specified with `type = mutual_trap`. The relevant keys are: 
@@ -85,7 +85,14 @@ A force of this kind is specified with `type = mutual_trap`. The relevant keys a
 * `particle = <int>`: the particle on which to exert the force.
 * `ref_particle = <int>`: particle to pull towards.
 * `stiff = <float>`: stiffness of the trap.
-* `r0 = <float`: equilibrium distance of the trap.
+* `r0 = <float>`: equilibrium distance of the trap.
+* `PBC = <bool>`: (default: 1) If 0, calculate the distance between particles without considering periodic boundary conditions.
+* `rate = <float>`: change `r0` by this much every time step.
+* `stiff_rate = <float>`: change `stiff` by this much every time step.
+
+````{warning}
+PBC should almost always be 1. The only common exception is if you are simulating a single long strand where you want to pull the ends together.
+````
 
 ````{admonition} Example
 
@@ -189,15 +196,11 @@ For nucleotides for which {math}`u x + v y + w z + {\rm position} \geq 0`, no fo
 The following snippet defines a plane that acts on the whole system and will not exert any force on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit \* x (48.6 pN \* x for DNA) will be exerted on all particles . 
 
 	{
-	type = twist
-	particle = 0
+	type = repulsion_plane
+	particle = -1
 	stiff = 1.00
-	rate = 1e-5
-	base = 0.
-	pos0 = 15, 0.674909093169, 18.6187733563
-	center = 13., 0.674909093169, 18.6187733563
-	axis = 0, 0, 1
-	mask = 1, 1, 0
+	dir = 1, 0, 0
+	position = 0
 	}
 
 ````
@@ -225,6 +228,35 @@ The following snippet defines a repulsive sphere that acts on the first 50 nucle
 	stiff = 10.0
 	rate = 0.
 	r0 = 6
+	}
+
+````
+
+## Yukawa sphere
+
+This force encloses particle(s) in a sphere that interacts through a purely repulsive [WCA](http://www.sklogwiki.org/SklogWiki/index.php/Weeks-Chandler-Andersen_reference_system_model) potential complemented by a Yukawa potential of the form {math}`A \exp(-r / \lambda)`, where {math}`A` is the interaction strength (which can be either positive or negative), {math}`r` is the distance between a particle and the sphere surface, {math}`\lambda` is the Debye length. The relevant keys are:
+
+* `particle = <int>`: comma-separated list of indices of particles to apply the force to. A value of `-1` or `all` applies it to all particles. Entries separated by a dash "-" get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, `particle = 1,2,5-7` applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.
+* `radius = <float>`: radius of the sphere.
+* `debye_A = <float>`: Strength the Yukawa interaction.
+* `debye_length = <float>`: Debye length of the Yukawa interaction.
+* `WCA_epsilon = <float>`: strength of the WCA repulsion, defaults to `1`.
+* `WCA_sigma = <float>`: diameter of the WCA repulsion, defaults to `1`.
+* `WCA_n = <int>`: exponent of the WCA repulsion, defaults to `6`.
+* `[cutoff = <float>]`: cutoff of the interaction, defaults to four times the Debye length.
+* `[center = <float>,<float>,<float>]`: centre of the sphere, defaults to `0,0,0`.
+
+````{admonition} Example
+
+The following snippet defines a Yukawa sphere that acts on all nucleotides, confining them within a sphere of radius 5 centred in {math}`(0, 0, 10)`. The WCA parameters are set to their defaults, while the Debye length and strength are `5` and `-10`, respectively.
+
+	{
+	type = yukawa_sphere
+	radius = 5
+    center = 0,0,10
+	debye_length = 5
+	debye_A = -10
+	particle = all
 	}
 
 ````

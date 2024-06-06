@@ -9,7 +9,6 @@
 import numpy as np
 import argparse
 from os import path
-from sys import exit, stderr
 from json import dumps
 from collections import namedtuple
 from typing import Tuple
@@ -17,6 +16,7 @@ from sklearn.manifold import MDS
 from oxDNA_analysis_tools.config import check
 from oxDNA_analysis_tools.contact_map import contact_map
 from oxDNA_analysis_tools.distance import vectorized_min_image
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.RyeReader import get_confs, describe, write_conf
 from oxDNA_analysis_tools.UTILS.data_structures import Configuration, TopInfo, TrajInfo
@@ -85,7 +85,7 @@ def multidimensional_scaling_mean(traj_info:TrajInfo, top_info:TopInfo, ncpus:in
     mean_distances = distances / traj_info.nconfs
     masked_mean = np.ma.masked_array(mean_distances, ~(mean_distances < CUTOFF))
 
-    print("INFO: fitting local distance data", file=stderr)
+    log("fitting local distance data")
     mds = MDS(n_components=3, metric=True, max_iter=3000, eps=1e-12, dissimilarity="precomputed", n_jobs=1, n_init=1)
     out_coords = mds.fit_transform(masked_mean, init=example_conf.positions) #without the init you can get a left-handed structure.
     a1s = np.zeros((top_info.nbases, 3))
@@ -128,11 +128,14 @@ def cli_parser(prog="multidimensional_scaling_mean.py"):
     parser.add_argument('-o', '--output', metavar='output', type=str, nargs=1, help='the name of the .dat file where the mean will be written')
     parser.add_argument('-d', '--dev_file', metavar='dev_file', type=str, nargs=1, help='the name of the .json file where the devs will be written')
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
+    
+    logger_settings.set_quiet(args.quiet)
     traj = args.trajectory[0]
     top_info, traj_info = describe(None, traj)
 
@@ -150,10 +153,10 @@ def main():
         outfile = args.output[0]
     else:
         outfile = "mean_mds.dat"
-        print("INFO: No outfile name provided, defaulting to \"{}\"".format(outfile), file=stderr)
+        log("No outfile name provided, defaulting to \"{}\"".format(outfile))
 
     write_conf(outfile,mean_conf, include_vel=traj_info.incl_v)
-    print("INFO: Wrote mean to {}".format(outfile), file=stderr)
+    log("Wrote mean to {}".format(outfile))
 
     devs = distance_deviations(traj_info, top_info, masked_mean, ncpus)
 
@@ -162,13 +165,13 @@ def main():
         devfile = args.dev_file[0].split(".")[0] + ".json"
     else:
         devfile = "devs_mds.json"
-        print("INFO: No deviations file name provided, defaulting to \"{}\"".format(devfile), file=stderr)
+        log("No deviations file name provided, defaulting to \"{}\"".format(devfile))
 
     with open(devfile, "w") as file:
         file.write(
             dumps({"contact deviation" : list(devs)})
         )
-    print("INFO: wrote file {}".format(devfile), file=stderr)
+    log("wrote file {}".format(devfile))
 
 if __name__ == '__main__':
     main()

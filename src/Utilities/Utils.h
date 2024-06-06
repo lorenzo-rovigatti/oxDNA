@@ -33,17 +33,9 @@ namespace Utils {
 
 int decode_base(char c);
 char encode_base(int b);
+std::vector<int> btypes_from_sequence(const std::string &sequence);
 
 number gaussian();
-number gamma(number alpha, number beta);
-
-inline number sum(number *v, int N) {
-	number res = (number) 0.;
-	for(int i = 0; i < N; i++) {
-		res += v[i];
-	}
-	return res;
-}
 
 // trim from start
 inline std::string &ltrim(std::string &s) {
@@ -168,6 +160,11 @@ input_file *get_input_file_from_string(const std::string &inp);
  * @return
  */
 number get_temperature(std::string raw_T);
+/* 
+ * this is used by get_temperature, but it needs to be global because it needs to be reset every time a Manager is 
+ * instantiated to avoid issues when simulations are run with oxpy
+*/
+extern std::set<std::string> converted_temperatures;
 
 /**
  * @brief fills the memory pointed to by seedptr with the current

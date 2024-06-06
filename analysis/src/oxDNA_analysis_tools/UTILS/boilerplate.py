@@ -1,7 +1,7 @@
 import oxpy
 from oxpy import InputFile
 from os.path import join, abspath, dirname, exists, basename
-from os import mkdir, getpid
+from os import mkdir, getpid,chdir, getcwd
 from multiprocessing import Process
 from shutil import copyfile, rmtree
 from oxDNA_analysis_tools.UTILS.oxview import from_path, oxdna_conf
@@ -14,7 +14,8 @@ from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
 import ipywidgets as widgets
 from IPython.display import display, IFrame
 import numpy as np
-
+from functools import wraps
+import subprocess
 
 default_input_file = {
     "T" :"20C",
@@ -84,7 +85,7 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
     out_top = join(out_dir,basename(top_path))
     if(not exists(out_top)):
         copyfile(top_path, out_top)
-    input_file["topology"] = out_top
+    input_file["topology"] = basename(top_path)
     
     #copy the conf over if not present
     out_dat = join(out_dir, basename(dat_path))
@@ -94,12 +95,12 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
         copyfile(dat_path, out_dat)
         copyfile(dat_path, last_conf_path)
         
-    input_file["conf_file"] = out_dat
+    input_file["conf_file"] = basename(dat_path)
         
     #set the outputs to desired location
-    input_file["trajectory_file"] = join(out_dir, "trajectory.dat")
-    input_file["energy_file"] = join(out_dir, "energy.dat")
-    input_file["lastconf_file"] =last_conf_path
+    input_file["trajectory_file"] = "trajectory.dat"
+    input_file["energy_file"] = "energy.dat"
+    input_file["lastconf_file"] ="last_conf.dat"
     
     # if we have defined forces we need to 
     # 1) build the file
@@ -109,7 +110,7 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
         dump_json(force_dict, force_path)
         input_file["external_forces_as_JSON"] = "true"
         input_file["external_forces"] = "1"
-        input_file["external_forces_file"] = force_path
+        input_file["external_forces_file"] = "forces.json"
     
     
     # set all base simulation parameters, overriding previous
@@ -118,15 +119,38 @@ def setup_simulation(top_path:str, dat_path:str, out_dir:str, parameters:dict[st
     
     
     #prevents output
-    input_file["log_file"] = join(out_dir,"logfile")
+    input_file["log_file"] = "logfile"
     
     input_file_path = join(out_dir,"input")
     with open(input_file_path,"w") as file:
         file.write(str(input_file))
-    
-
     return input_file_path
-    
+
+# our typical run function for a provided dictionary input file 
+def _prun(input_file_path:str):
+    with oxpy.Context():
+        # change to the directory of the input file path
+        chdir(dirname(abspath(input_file_path)))
+        input_file = InputFile()
+        input_file.init_from_filename(basename(input_file_path))
+        manager = oxpy.OxpyManager(input_file)
+        manager.run_complete() #run complete run's it till the number steps specified are reached 
+            
+
+def path_decorator(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        # Save the current path
+        old_path = getcwd()
+        # Change the path to self.__out_dir
+        chdir(self.out_dir)
+        # Call the original method
+        result = func(self, *args, **kwargs)
+        # Restore the original path
+        chdir(old_path)
+        return result
+    return wrapper
+
 
 class Simulation:
     def __init__(self, input_file_path:str):
@@ -138,8 +162,10 @@ class Simulation:
         self.input_file = InputFile()
         self.input_file.init_from_filename(input_file_path)
         self.p = None # the process refference
-        self.out_dir = dirname(input_file_path)
+        self.out_dir = dirname(abspath(input_file_path))
+        self.__input_file_path = input_file_path
     
+    @path_decorator
     def get_init_conf(self):
         """
             returns the initial configuration of the simulation as a rye reader object
@@ -148,6 +174,7 @@ class Simulation:
                           abspath(self.input_file["conf_file"]))
         return (ti, di), get_confs(ti, di, 0, 1)[0]
     
+    @path_decorator
     def get_last_conf(self):
         """
             returns the last configuration of the simulation as a rye reader object
@@ -171,6 +198,7 @@ class Simulation:
         (ti,di), conf = self.get_last_conf()
         oxdna_conf(ti, conf)
     
+    @path_decorator
     def get_conf_count(self):
         """
             returns the number of configurations in the trajectory
@@ -179,6 +207,7 @@ class Simulation:
                          abspath(self.input_file["trajectory_file"]))
         return len(di.idxs)
     
+    @path_decorator
     def get_conf(self, id:int):
         """
             returns the configuration at the given index in the trajectory
@@ -199,6 +228,7 @@ class Simulation:
         (ti,di), conf = self.get_conf(id)
         oxdna_conf(ti, conf)
     
+
     def view_traj(self,  init = 0, op=None):
         """
             opens the trajectory in an embeded oxDNA viewer window
@@ -211,10 +241,11 @@ class Simulation:
         
         slider = widgets.IntSlider(
             min = 0,
-            max = len(di.idxs),
+            max = len(di.idxs)-1,
             step=1,
             description="Select:",
-            value=init
+            value=init, 
+            continuous_update=False,
         )
         
         output = widgets.Output()
@@ -252,22 +283,34 @@ class Simulation:
         """
             runs the simulation
         """
-        # our typical run function for a provided dictionary input file 
-        def _prun(input_file:InputFile):
-            with oxpy.Context():
-                manager = oxpy.OxpyManager(input_file)
-                manager.run_complete() #run complete run's it till the number steps specified are reached 
-            
+
         # if we have any reference to a simulation
         if(self.p):
             self.terminate()
         
         #spawn the process
-        self.p = Process(target=_prun, args = (self.input_file,))
+        self.p = Process(target=_prun, args = (self.__input_file_path,))
         
         self.p.start()
         return self
     
+    # @path_decorator
+    # TODO: possibly add this to the api
+    # def align(self, p=2):
+    #     """
+    #         aligns the trajectory to the last configuration
+    #     """
+    #     with oxpy.Context():
+    #         input_file = InputFile()
+    #         input_file.init_from_filename(basename(self.__input_file_path))
+    #         print(input_file["trajectory_file"])
+
+    #         # run shell command oat align 
+    #         subprocess.run(["oat", "align", "-p", str(p), input_file["trajectory_file"], "aligned.dat"])
+    #         with open(basename(self.__input_file_path),"w+") as file:
+    #             file.write("aligned = aligned.dat")
+    
+    @path_decorator
     def plot_energy(self):
         """
             plots the energy graph of the running simulation

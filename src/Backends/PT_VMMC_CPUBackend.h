@@ -50,8 +50,6 @@ protected:
 	/// keep track of who's got which replica
 	int _which_replica;
 
-	number _U_ext;
-
 	llint _pt_exchange_tries, _pt_exchange_accepted;
 
 	Weights _irresp_w;
@@ -76,19 +74,14 @@ protected:
 
 	bool _oxDNA2_stacking;
 	bool _oxRNA_stacking;
-	Model *model; //is necessary for temperature dependent potentials and exchange probability
+	Model *model; // necessary for temperature dependent potentials and exchange probability
 
 public:
 	PT_VMMC_CPUBackend();
 	virtual ~PT_VMMC_CPUBackend();
-	//void init(ifstream &conf_input);
-	void init();
-	void get_settings (input_file &inp);
 
-	int get_mpi_id () { return _my_mpi_id; }
-	int get_which_replica () { return _which_replica; }
-	char * get_replica_info_str ();
-	number get_pt_acc ();
+	void get_settings (input_file &inp);
+	void init();
 
 	void sim_step();
 };

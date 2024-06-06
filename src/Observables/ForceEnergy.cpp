@@ -37,5 +37,5 @@ std::string ForceEnergy::get_output_string(llint curr_step) {
 	}
 	U /= _config_info->N();
 
-	return Utils::sformat("% 10.6lf", U);
+	return Utils::sformat(_number_formatter, U);
 }

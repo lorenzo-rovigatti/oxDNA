@@ -1,7 +1,7 @@
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 import numpy as np
 import pickle
-from os.path import exists
+from os.path import exists, abspath
 from typing import List, Tuple, Iterator, Union
 import os
 from .data_structures import *
@@ -40,7 +40,7 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=-1) -> Iter
         Parameters:
             traj_info (TrajInfo) : The trajectory info
             top_info (TopInfo) : The topology info
-            ntopart (int) : The number of confs to read at a time
+            chunk_size (int) : The number of confs to read at a time.  Defaults to config.get_chunk_size()
 
         Returns:
             iterator[Configuration] : An iterator object which yields lists of <chunk_size> configurations.
@@ -49,12 +49,13 @@ def linear_read(traj_info:TrajInfo, top_info:TopInfo, chunk_size:int=-1) -> Iter
         chunk_size = get_chunk_size()
     current_chunk = 0
     while True:
-        print(f"INFO: processed {current_chunk*chunk_size} / {len(traj_info.idxs)} confs", end='\r', file=stderr)
+        log(f"Processed {current_chunk*chunk_size} / {len(traj_info.idxs)} confs", end='\r')
         if current_chunk*chunk_size >= len(traj_info.idxs):
             break
         confs = get_confs(top_info, traj_info, current_chunk*chunk_size, chunk_size)
         yield confs
         current_chunk += 1
+    print()
 
 #calculates the length of a trajectory file
 def _index(traj_file) -> List[ConfInfo]: 
@@ -132,6 +133,14 @@ def get_top_info(top:str) -> TopInfo:
     """
     with open(top) as f:
         my_top_info = f.readline().strip().split(' ')
+
+        # Check which kind of topology file you're using
+        if my_top_info[-1] == '5->3':
+            my_top_info = my_top_info[:-1]
+        else:
+            log("The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.", level='warning')
+        
+        # There's actually nothing different between the headers once you remove the new marker.
         if len(my_top_info) == 2:
             nbases = my_top_info[0]
         elif len(my_top_info) == 5:
@@ -139,7 +148,7 @@ def get_top_info(top:str) -> TopInfo:
         else:
             raise RuntimeError("Malformed topology header, failed to read topology file.")
         
-    return TopInfo(top, int(nbases))
+    return TopInfo(abspath(top), int(nbases))
 
 def get_top_info_from_traj(traj : str) -> TopInfo:
     """
@@ -207,7 +216,7 @@ def get_traj_info(traj : str) -> TrajInfo:
         else:
             raise RuntimeError(f"Invalid first particle line: {line}")
 
-    return TrajInfo(traj,len(idxs),idxs, incl_v)
+    return TrajInfo(abspath(traj),len(idxs),idxs, incl_v)
 
 def describe(top:Union[str,None], traj:str) -> Tuple[TopInfo, TrajInfo]:
     """
@@ -228,52 +237,126 @@ def describe(top:Union[str,None], traj:str) -> Tuple[TopInfo, TrajInfo]:
     else:
         return (get_top_info(top), get_traj_info(traj))
 
-def strand_describe(top) -> Tuple[System, list]:
+def strand_describe(top:str) -> Tuple[System, list]:
     """
-        Retrieve all information from topology file mapping nucleotides to strands.
+        Retrieve all information from a topology file and return a System object which maps nucleotides to strands.
 
-        This is returned as two objects so that monomers can be indexed either via strand or via global index
+        This is returned as two objects so that monomers can be indexed either via strand or via global index. 
+        This function will automatically detect whether the input topology file is new or old format.
         
         Parameters:
             top (str) : path to topology file
 
         Returns:
-            (System, List[Monomer]) : The system object and the list of monomer objects.
+            (System, List[Monomer]) : The System object and the list of Monomer objects.
     """
-    get_neighbor = lambda x: monomers[x].id if x != -1 else None
+    def _strand_describe_new(top_file:str) -> Tuple[System, list]:
+        def _parse_kwdata(x): 
+            kwdata = {
+                "type" : "DNA",
+                "circular" : False
+            }
+            for y in x:
+                kwdata[y.split('=')[0]] = y.split('=')[1]
+            return kwdata
 
-    with open (top) as f:
-        l = f.readline().split()
-        nmonomers = int(l[0])
+        with open(top_file, 'r') as f:
+            l = f.readline().split()
+            nmonomers = int(l[0])
+            ls = f.readlines()
 
-        system = System()
-        monomers = [Monomer(i, "", None, None, None, None) for i in range(nmonomers)]
+        strands = []
+        monomers = [Monomer(i, "", None, None, None, None)
+                    for i in range(nmonomers)]
+        
+        s_start = 0
+        mid = 0
+        for sid, l in enumerate(ls):
+            l = l.split()
+            seq = l[0]
+            kwdata = _parse_kwdata(l[1:])
+            s = Strand(sid, kwdata)
+            i = 0
+            while i < len(seq):
+                # base type can either be a 1-letter code or a number in parentheses
+                if seq[i] != '(':
+                    monomers[mid].btype = seq[i]
+                else:
+                    btype = []
+                    while seq[i] != ')':
+                        btype.append(seq[i])
+                        i += 1
+                    btype.append(')')
+                    monomers[mid].btype = ''.join(btype)
 
-        ls = f.readlines()
+                # At least this one is obvious...
+                monomers[mid].strand = s
+                
+                # Make a bad assumption
+                monomers[mid].n5 = mid-1
+                monomers[mid].n3 = mid+1
+
+                # Fix the assumption for ends of straight strands
+                if mid == s_start:
+                    monomers[mid].n5 = -1
+                elif i == len(seq)-1:
+                    monomers[mid].n3 = -1
+                
+                # Fix the assumption for 'ends' of circular strands
+                if kwdata['circular'] and i == len(seq)-1:
+                    monomers[s_start].n5 = mid
+                    monomers[mid].n3 = s_start
+
+                i += 1
+                mid += 1
+            
+            s.monomers = monomers[s_start:mid]
+            s.set_old(False)
+            strands.append(s)
+            s_start = mid
+
+        system = System(top_file=abspath(top_file), strands=strands)
+
+        return system, monomers
+             
+    def _strand_describe_old(top_file:str) -> Tuple[System, list]:
+        def _get_neighbor(x): return monomers[x].id if x != -1 else None
+
+        with open(top_file, 'r') as f:
+            l = f.readline().split()
+            nmonomers = int(l[0])
+            ls = f.readlines()
+
+        strands = []
+        monomers = [Monomer(i, "", None, None, None, None)
+                    for i in range(nmonomers)]
 
         l = ls[0].split()
         curr = int(l[0])
         mid = 0
         s_start = 0
         s = Strand(curr)
-        monomers[mid].type = l[1]
+        monomers[mid].btype = l[1]
         monomers[mid].strand = s
-        monomers[mid].n3 = get_neighbor(int(l[2]))
-        monomers[mid].n5 = get_neighbor(int(l[3]))
+        monomers[mid].n3 = _get_neighbor(int(l[2]))
+        monomers[mid].n5 = _get_neighbor(int(l[3]))
         l = ls[1].split()
         mid += 1
         while l:
             if int(l[0]) != curr:
                 s.monomers = monomers[s_start:mid]
-                system.append(s)
+                if s[0].n3 == s[-1].id:
+                    s.circular = True
+                s.set_old(True)
+                strands.append(s)
                 curr = int(l[0])
                 s = Strand(curr)
                 s_start = mid
-            
-            monomers[mid].type = l[1]
+
+            monomers[mid].btype = l[1]
             monomers[mid].strand = s
-            monomers[mid].n3 = get_neighbor(int(l[2]))
-            monomers[mid].n5 = get_neighbor(int(l[3]))
+            monomers[mid].n3 = _get_neighbor(int(l[2]))
+            monomers[mid].n5 = _get_neighbor(int(l[3]))
 
             mid += 1
             try:
@@ -281,8 +364,36 @@ def strand_describe(top) -> Tuple[System, list]:
             except IndexError:
                 break  
 
-    s.monomers = monomers[s_start:mid]
-    system.append(s)
+        s.monomers = monomers[s_start:mid]
+        if s[0].n3 == s[-1].id:
+            s.circular = True
+        s.set_old(True)
+        strands.append(s)
+        system = System(top_file=abspath(top_file), strands=strands)
+
+        # With the old topology, we assume that the sytem is homogenous.
+        if 'U' in [m.btype for m in monomers]:
+            log("RNA detected, all strands will be marked as RNA")
+            for s in system.strands:
+                s.type = 'RNA'
+
+        return system, monomers
+
+    with open(top) as f:
+        l = f.readline().strip().split()
+
+        # Check which kind of topology file you're using
+        old_top = False
+        if l[-1] == '5->3':
+            l = l[:-1]
+        else:
+            old_top = True
+            print("WARNING: The old topology format is depreciated and future tools may not support it.  Please update to the new topology format for future simulations.")
+
+        if old_top:
+            system, monomers = _strand_describe_old(top)
+        else:
+            system, monomers = _strand_describe_new(top)
 
     return system, monomers
 
@@ -313,39 +424,52 @@ def get_input_parameter(input_file, parameter) -> str:
 ##########                              CONF UTILS                        ##########
 ####################################################################################
 
-def inbox(conf : Configuration, center=False) -> Configuration:
+def inbox(conf:Configuration, center:bool=True, centerpoint:Union[str,np.ndarray]='bc') -> Configuration:
     """
         Modify the positions attribute such that all positions are inside the box.
 
+        For cohesive structures, you almost always want center=True.
+        For diffuse simulations, you probably want center=False.
+
         Parameters:
             conf (Configuration) : The configuration to inbox
-            center (bool) : If True, center the configuration on the box
+            center (bool) : If True, center the configuration in the box (default True)
+            centerpoint (str|np.ndarray) : If 'bc', center in the box, if array, center on the array (default 'bc')
 
         Returns:
             (Configuration) : The inboxed configuration
     """
+    # Get coords in home box
     def realMod (n, m):
         return(((n % m) + m) % m)
     def coord_in_box(p):
         p = realMod(p, conf.box)
         return(p)
+    
+    # Calculate center of mass in home box of particles in many boxes
     def calc_PBC_COM(conf):
         angle = (conf.positions * 2 * np.pi) / conf.box
         cm = np.array([[np.sum(np.cos(angle[:,0])), np.sum(np.sin(angle[:,0]))], 
         [np.sum(np.cos(angle[:,1])), np.sum(np.sin(angle[:,1]))], 
         [np.sum(np.cos(angle[:,2])), np.sum(np.sin(angle[:,2]))]]) / len(angle)
         return conf.box / (2 * np.pi) * (np.arctan2(-cm[:,1], -cm[:,0]) + np.pi)
-    target = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
-    cms = calc_PBC_COM(conf)
+    
+    # You generally want to center cohesive structures in the box so they're not cut in visualization
+    # For diffuse simulations, you generally do not want centering.
+    cms = np.zeros(3)
+    target = np.zeros(3)
+    if center:
+        if centerpoint == 'bc':
+            target = np.array([conf.box[0] / 2, conf.box[1] / 2, conf.box[2] / 2])
+        else:
+            target = centerpoint
+        cms = calc_PBC_COM(conf)
     positions = conf.positions + target - cms   
     new_poses = coord_in_box(positions)
-    positions += (new_poses - conf.positions)
-    if center:
-        cms = np.mean(positions, axis=0)
-        positions -= cms
+
     return Configuration(
         conf.time, conf.box, conf.energy,
-        positions, conf.a1s, conf.a3s
+        new_poses, conf.a1s, conf.a3s
     )
 
 ####################################################################################
@@ -375,6 +499,7 @@ def write_conf(path:str, conf:Configuration, append:bool=False, include_vel:bool
     mode = 'a' if append else 'w'
     with open(path,mode) as f:
         f.write("\n".join(out))
+        f.write("\n")
 
 def conf_to_str(conf:Configuration, include_vel:bool=True) -> str:
     """
@@ -395,60 +520,100 @@ def conf_to_str(conf:Configuration, include_vel:bool=True) -> str:
     else:
         return(''.join([header, ''.join([('{} {} {}\n'.format(' '.join(p.astype(str)), ' '.join(a1.astype(str)), ' '.join(a3.astype(str)))) for p, a1, a3 in zip(conf.positions, conf.a1s, conf.a3s)])]))
 
-def write_top(path:str, system:System) -> None:
+def write_top(path:str, system:System, old_format:bool=False) -> None:
     """
     Write the system to a topology file"
 
     Parameters:
-        path (str) : path to the output file
-        system (System) : system to write out
+        path (str) : Path to the output file
+        system (System) : System to write out
+        old_format (bool) : Use the old 3'-5' format?
     """
 
     with open(path, 'w+') as f:
-        f.write(get_top_string(system))
+        f.write(get_top_string(system, old_format))
 
-def get_top_string(system) -> str:
+def get_top_string(system:System, old_format:bool=False) -> str:
     """
         Write topology file from system object.
 
         Parameters:
-            system (System) : system object
+            system (System) : System object
+            old_format (bool) : Use the old 3'-5' format? (default: False)
 
         Returns:
             (str) : string representation of the system in .top format
 
     """
+    def _get_top_string_old(system) -> str:
+        n_na = 0
+        n_aa = 0
+        na_strands = 0
+        aa_strands = 0
+        mid = -1
 
-    n_na = 0
-    n_aa = 0
-    na_strands = 0
-    aa_strands = 0
-    mid = -1
 
+        header = []
+        body = []
 
-    header = []
-    body = []
+        # iterate through strands and assign sequential ids
+        # this will break circular strands.
+        for s in system.strands:
+            if s.is_old() == False:
+                raise RuntimeError("Writing an old-style topology file based on a new-style one will ruin the corresponding configuration file (strands will be backwards)\n\nPlease use the conversion script found in oxDNA/utils/convert.py to change to the old topology format.")
+            #it's a nucleic acid strand
+            if s.id > 0:
+                na_strands += 1
+                for i, m in enumerate(s.monomers):
+                    n_na += 1
+                    mid += 1
+                    body.append(f'{na_strands} {m.btype} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
 
-    # iterate through strands and assign sequential ids
-    # this will break circular strands.
-    for s in system.strands:
-        #it's a nucleic acid strand
-        if s.id > 0:
-            na_strands += 1
-            for i, m in enumerate(s.monomers):
-                n_na += 1
-                mid += 1
-                body.append(f'{na_strands} {m.type} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
+            # it's a peptide strand
+            elif s.id < 0:
+                aa_strands -= 1
+                for i, m in enumerate(s.monomers):
+                    n_aa += 1
+                    mid += 1
+                    body.append(f'{aa_strands} {m.btype} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
 
-        # it's a peptide strand
-        elif s.id < 0:
-            aa_strands -= 1
-            for i, m in enumerate(s.monomers):
-                n_aa += 1
-                mid += 1
-                body.append(f'{aa_strands} {m.type} {-1 if i == 0 else mid-1} {-1 if i == len(s.monomers)-1 else mid+1}')
+        header.append(f'{n_na+n_aa} {na_strands+aa_strands}{" "+str(n_na) if n_aa > 0 else ""}{" "+str(n_aa) if n_aa > 0 else ""}')
 
-    header.append(f'{n_na+n_aa} {na_strands+aa_strands} {n_na if n_aa > 0 else ""} {n_aa if n_aa > 0 else ""}')
+        out = header+body
+        return '\n'.join(out)
 
-    out = header+body
-    return '\n'.join(out)
+    def _get_top_string_new(system) -> str:
+        def kwdata_to_str(kwdata): return ' '.join([f'{k}={v}' for k,v in kwdata.items()])
+        n_na = 0
+        n_aa = 0
+        na_strands = 0
+        aa_strands = 0
+
+        header = []
+        body = []
+
+        for s in system.strands:
+            if s.is_old():
+                raise RuntimeError("Writing a new-style topology file based on an old-style one will ruin the corresponding configuration file (strands will be backwards)\n\
+                                   \
+                                   Please use the conversion script found in oxDNA/utils/convert.py to change to the new topology format.")
+            seq = ''.join([m.btype for m in s])
+            kwdata = s.get_kwdata()
+            body.append(seq + ' ' + kwdata_to_str(kwdata))
+            if kwdata['type'] == 'DNA' or kwdata['type'] == 'RNA':
+                n_na += len(seq)
+                na_strands += 1
+            if kwdata['type'] == 'peptide':
+                n_aa += len(seq)
+                aa_strands += 1
+
+        header.append(f'{n_na+n_aa} {na_strands+aa_strands}{" "+str(n_na) if n_aa > 0 else ""}{" "+str(n_aa) if n_aa > 0 else ""} 5->3')
+        out = header+body
+        return '\n'.join(out)
+    
+    if old_format:
+        out = _get_top_string_old(system)
+    else:
+        out = _get_top_string_new(system)
+
+    return(out)

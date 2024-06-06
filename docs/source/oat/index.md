@@ -1,10 +1,12 @@
 # oxDNA Analysis Tools
 
-oxDNA Analysis Tools (*oat* in short) is a suite of command line Python tools for performing generic structural analyses of oxDNA simulations. The package functions both as a series of standalone command-line scripts and as importable modules for building custom analysis tools.
+```{eval-rst}
+oxDNA Analysis Tools (*oat* in short) is a suite of command line Python tools and importable modules for performing structural analyses of oxDNA simulations. oxDNA Analysis Tools has been updated to use the :doc:`new topology</configurations>`.
+```
 
 ## Command Line Interface
 
-The command line version of the scripts can be run via:
+The scripts can be run via the command line with:
 ```
 oat <script name> <script arguments>
 ```
@@ -22,7 +24,7 @@ Documentation for individual scripts:
 
 ## Scripting interface
 
-The scripting API for `oat` can be imported into Python scripts through the `oxDNA_analysis_tools` package.  For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
+The scripting API for `oat` can be imported into Python scripts as the `oxDNA_analysis_tools` package. For example, to use the optimized oxDNA trajectory reader you would include the following lines in your script:
 
 ```python
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
@@ -32,6 +34,8 @@ from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_confs
 top_info, traj_info = describe(top, traj)
 confs = get_confs(top_info, traj_info, start_conf, n_confs)
 ```
+
+The mean.py script located at `oxDNA/analysis/src/oxDNA_analysis_tools/mean.py` has been commented in detail to give a full example of how to use `oxDNA_analysis_tools` to write your own analyses.
 
 Full API documentation:
 

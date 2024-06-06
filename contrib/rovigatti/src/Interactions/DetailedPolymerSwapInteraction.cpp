@@ -8,7 +8,7 @@
 DetailedPolymerSwapInteraction::DetailedPolymerSwapInteraction() :
 				BaseInteraction() {
 	ADD_INTERACTION_TO_MAP(BONDED, pair_interaction_bonded);
-	ADD_INTERACTION_TO_MAP(NONBONDED, pair_nonbonded_WCA);
+	ADD_INTERACTION_TO_MAP(NONBONDED, pair_nonbonded_repulsive);
 	ADD_INTERACTION_TO_MAP(STICKY, pair_nonbonded_sticky);
 
 }
@@ -21,7 +21,6 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	BaseInteraction::get_settings(inp);
 
 	getInputInt(&inp, "DPS_n", &_PS_n, 0);
-	getInputInt(&inp, "DPS_chain_size", &_chain_size, 1);
 
 	getInputNumber(&inp, "DPS_alpha", &_PS_alpha, 0);
 
@@ -43,11 +42,26 @@ void DetailedPolymerSwapInteraction::get_settings(input_file &inp) {
 	getInputNumber(&inp, "DPS_rfene", &_rfene, 0);
 	getInputNumber(&inp, "DPS_Kfene", &_Kfene, 0);
 	getInputNumber(&inp, "DPS_WCA_sigma", &_WCA_sigma, 0);
+
+	if(getInputNumber(&inp, "DPS_yukawa_strength", &_yk_strength, 0) == KEY_FOUND) {
+		if(_yk_strength <= 0.) {
+			throw oxDNAException("DPS_yukawa_strength should be larger than 0.");
+		}
+
+		getInputNumber(&inp, "DPS_yukawa_debye_length", &_yk_debye, 1);
+		if(_yk_debye <= 0.) {
+			throw oxDNAException("DPS_yukawa_debye_length should be larger than 0.");
+		}
+
+		getInputNumber(&inp, "DPS_yukawa_rcut_multiplier", &_yk_rcut_multiplier, 0);
+	}
 }
 
 void DetailedPolymerSwapInteraction::init() {
 	_sqr_rfene = SQR(_rfene);
-	_PS_sqr_rep_rcut = pow(2. * _WCA_sigma, 2. / this->_PS_n);
+	_PS_sqr_WCA_rcut = pow(2. * _WCA_sigma, 2. / this->_PS_n);
+	number sqr_debye_rcut = (_yk_strength > 0.) ? SQR(_yk_rcut_multiplier * _yk_debye) : 0.;
+	_PS_sqr_rep_rcut = std::max(_PS_sqr_WCA_rcut, sqr_debye_rcut);
 
 	_rcut = sqrt(_PS_sqr_rep_rcut);
 
@@ -69,7 +83,10 @@ void DetailedPolymerSwapInteraction::init() {
 	}
 	_sqr_rcut = SQR(_rcut);
 
-	OX_LOG(Logger::LOG_INFO, "PolymerSwap: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
+	OX_LOG(Logger::LOG_INFO, "DetailedPolymerSwap: A_part: %lf, B_part: %lf, total rcut: %lf (%lf)", _3b_A_part, _3b_B_part, _rcut, _sqr_rcut);
+	if(_yk_strength > 0.) {
+		OX_LOG(Logger::LOG_INFO, "DetailedPolymerSwap: yukawa strength: %lf, debye length: %lf, rcut: %lf", _yk_strength, _yk_debye, sqrt(_PS_sqr_rep_rcut));
+	}
 
 	if(_PS_alpha != 0) {
 		if(_PS_alpha < 0.) {
@@ -151,9 +168,27 @@ number DetailedPolymerSwapInteraction::_fene(BaseParticle *p, BaseParticle *q, b
 	return energy;
 }
 
-number DetailedPolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool update_forces) {
+number DetailedPolymerSwapInteraction::_yukawa(BaseParticle *p, BaseParticle *q, bool update_forces) {
 	number sqr_r = _computed_r.norm();
 	if(sqr_r > _PS_sqr_rep_rcut) {
+		return (number) 0.;
+	}
+	number r = sqrt(sqr_r);
+	number exp_part = exp(-r / _yk_debye);
+	number energy = exp_part * _yk_strength / r;
+
+	if(update_forces) {
+		LR_vector force = _computed_r * ((_yk_strength * exp_part) * (1.0 / (sqr_r * _yk_debye) + 1.0f / (r * sqr_r)));
+		p->force -= force;
+		q->force += force;
+	}
+
+	return energy;
+}
+
+number DetailedPolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bool update_forces) {
+	number sqr_r = _computed_r.norm();
+	if(sqr_r > _PS_sqr_WCA_rcut) {
 		return (number) 0.;
 	}
 
@@ -162,7 +197,7 @@ number DetailedPolymerSwapInteraction::_WCA(BaseParticle *p, BaseParticle *q, bo
 	number force_mod = 0;
 
 	// cut-off for all the repulsive interactions
-	if(sqr_r < _PS_sqr_rep_rcut) {
+	if(sqr_r < _PS_sqr_WCA_rcut) {
 		number part = 1.;
 		number ir2_scaled = SQR(_WCA_sigma) / sqr_r;
 		for(int i = 0; i < _PS_n / 2; i++) {
@@ -404,13 +439,13 @@ number DetailedPolymerSwapInteraction::pair_interaction_nonbonded(BaseParticle *
 		_computed_r = _box->min_image(p->pos, q->pos);
 	}
 
-	number energy = pair_nonbonded_WCA(p, q, false, update_forces);
+	number energy = pair_nonbonded_repulsive(p, q, false, update_forces);
 	energy += pair_nonbonded_sticky(p, q, false, update_forces);
 
 	return energy;
 }
 
-number DetailedPolymerSwapInteraction::pair_nonbonded_WCA(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
+number DetailedPolymerSwapInteraction::pair_nonbonded_repulsive(BaseParticle *p, BaseParticle *q, bool compute_r, bool update_forces) {
 	if(p->is_bonded(q)) {
 		return (number) 0.f;
 	}
@@ -420,6 +455,10 @@ number DetailedPolymerSwapInteraction::pair_nonbonded_WCA(BaseParticle *p, BaseP
 	}
 
 	number energy = _WCA(p, q, update_forces);
+
+	if(_yk_strength > 0. && !_sticky_interaction(p->btype, q->btype)) {
+		energy += _yukawa(p, q, update_forces);
+	}
 
 	return energy;
 }
@@ -494,6 +533,7 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 		throw oxDNAException("The number of particles found in the configuration file (%u) and specified in the topology (%u) are different", N_from_conf, N_from_topology);
 	}
 
+	std::set<int> chain_ids;
 	for(unsigned int i = 0; i < N_from_conf; i++) {
 		unsigned int p_idx;
 		topology >> p_idx;
@@ -501,6 +541,10 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 		if(!topology.good()) {
 			throw oxDNAException("The topology should contain two lines per particle, but it seems there is info for only %d particles\n", i);
 		}
+
+		int chain_id;
+		topology >> chain_id;
+		chain_ids.insert(chain_id);
 
 		CustomParticle *p = static_cast<CustomParticle*>(particles[p_idx]);
 		topology >> p->btype;
@@ -521,7 +565,7 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 					N_from_conf - 1);
 		}
 
-		p->strand_id = p_idx / _chain_size;
+		p->strand_id = chain_id;
 		p->n3 = p->n5 = P_VIRTUAL;
 		for(int j = 0; j < n_bonds; j++) {
 			unsigned int n_idx;
@@ -540,7 +584,7 @@ void DetailedPolymerSwapInteraction::read_topology(int *N_strands, std::vector<B
 
 	topology.close();
 
-	*N_strands = N_from_conf / _chain_size;
+	*N_strands = chain_ids.size();
 	if(*N_strands == 0) {
 		*N_strands = 1;
 	}

@@ -38,16 +38,8 @@ void OxpyContext::exit(py::object exc_type, py::object exc_value, py::object tra
 
 	if(_print_coda) {
 		OX_LOG(Logger::LOG_NOTHING, "");
-		OX_LOG(Logger::LOG_NOTHING, R"c(Please cite these publications for any work that uses the oxDNA simulation package
-		- for the code:
-			* P. Šulc et al., J. Chem. Phys. 137, 135101 (2012)
-			* L. Rovigatti et al., J. Comput. Chem. 36, 1 (2015)
-		- for the oxDNA model:
-			* T. E. Ouldridge et al., J. Chem. Phys, 134, 085101 (2011)
-		- for the oxDNA2 model:
-			* B. E. K. Snodin et al., J. Chem. Phys. 142, 234901 (2015)
-		- for the oxRNA model:
-			* P. Šulc et al., J. Chem. Phys. 140, 235102 (2014))c");
+		OX_LOG(Logger::LOG_NOTHING, R"c(Please cite at least the following publication for any work that uses the oxDNA simulation package
+  * E. Poppleton et al., J. Open Source Softw. 8, 4693 (2023), DOI: 10.21105/joss.04693)c");
 	}
 }
 
@@ -63,7 +55,14 @@ void export_OxpyContext(py::module &m) {
                 # your code using oxpy goes here
 	)pbdoc");
 
-	context.def(py::init<bool>(), py::arg("print_coda") = true);
+	context.def(py::init<bool>(), py::arg("print_coda") = true, R"pbdoc(
+The default constructor takes an optional parameter that controls whether the final message gets printed or not.
+
+Parameters
+----------
+print_coda : bool
+    If True (default value) a message asking to cite the oxDNA JOSS paper will be printed at the end of the simulation.
+	)pbdoc");
 	context.def("__enter__", &OxpyContext::enter);
 	context.def("__exit__", &OxpyContext::exit);
 }

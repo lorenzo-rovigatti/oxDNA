@@ -1,5 +1,4 @@
 import argparse
-from sys import exit, stderr
 from os import path
 from collections import namedtuple
 from typing import Tuple, Dict
@@ -9,6 +8,7 @@ import oxpy
 from oxDNA_analysis_tools.UTILS.data_structures import TopInfo, TrajInfo
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser, get_chunk_size
 from oxDNA_analysis_tools.UTILS.RyeReader import describe, get_input_parameter
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 import time
 start_time = time.time()
@@ -29,7 +29,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int) -> Tuple[np.ndarra
         inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = hb_list \n } \n }'
 
         if (not inp["use_average_seq"] or inp.get_bool("use_average_seq")) and "RNA" in inp["interaction_type"]:
-            print("WARNING: Sequence dependence not set for RNA model, wobble base pairs will be ignored", file=stderr)
+            log("Sequence dependence not set for RNA model, wobble base pairs will be ignored", level="warning")
 
         backend = oxpy.analysis.AnalysisBackend(inp)
     
@@ -103,7 +103,7 @@ def bond_analysis(traj_info:TrajInfo, top_info:TopInfo, pairs:Dict[int, int], in
     return(total_bonds, correct_bonds, incorrect_bonds, nt_array)
 
 def oxView_overlay(nt_array:np.ndarray, outfile:str):
-    print("INFO: Writing bond occupancy data to {}".format(outfile))
+    log("Writing bond occupancy data to {}".format(outfile))
     with open(outfile, "w+") as file:
         file.write("{\n\"occupancy\" : [")
         file.write(str(nt_array[0]))
@@ -133,6 +133,7 @@ def cli_parser(prog="bond_analysis.py"):
     parser.add_argument('-o', metavar='output_file', type=str, dest='outfile', help="Name of the file to save the output oxView overlay to")
     parser.add_argument('-t', metavar='trajectory_plot', type=str, dest='traj_plot', help='Name of the file to save the trajecotry plot to')
     parser.add_argument('-p', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
@@ -140,6 +141,7 @@ def main():
     args = parser.parse_args()
 
     #run system checks
+    logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
     check(["python", "numpy"])
 
@@ -152,13 +154,13 @@ def main():
         outfile = outfile.strip(".json")+".json"
     else:
         outfile = 'bonds.json'
-        print("INFO: No oxView name provided, defaulting to \"{}\"".format(outfile), file=stderr)
+        log("No oxView name provided, defaulting to \"{}\"".format(outfile))
     if args.traj_plot:
         plotfile = args.traj_plot
         plotfile = plotfile.strip(".png")+".png"
     else:
         plotfile = 'bonds.png'
-        print("INFO: No bond plot name provided, defaulting to \"{}\"".format(plotfile), file=stderr)
+        log("No bond plot name provided, defaulting to \"{}\"".format(plotfile))
 
     # Get trajectory metadata
     top_file = get_input_parameter(inputfile, "topology")

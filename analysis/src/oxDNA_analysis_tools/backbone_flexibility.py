@@ -2,7 +2,7 @@ import os
 import argparse
 from json import dumps
 from collections import namedtuple
-from sys import stderr
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
@@ -77,7 +77,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
 
     return(torsions, dihedrals)
 
-def backbone_flexibility(traj_info:TrajInfo, top_info:TopInfo,system:System, ncpus=1) -> Tuple[np.array]: 
+def backbone_flexibility(traj_info:TrajInfo, top_info:TopInfo,system:System, ncpus=1) -> Tuple[np.ndarray, np.ndarray]: 
     '''
         Calculate backbone flexibility of a trajectory.
 
@@ -118,11 +118,14 @@ def cli_parser(prog="backbone_flexibility.py"):
     parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-o', metavar='output_file', nargs=1, type=str, dest='output', help="(optional) The name of the file to write the graph to")
     parser.add_argument('-d', metavar='data_file', nargs=1, type=str, dest='data', help="(optional) The name of the file to write the data to")
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(os.path.basename(__file__))
     args = parser.parse_args()
+    
+    logger_settings.set_quiet(args.quiet)
 
     #run system checks
     from oxDNA_analysis_tools.config import check
@@ -148,14 +151,14 @@ def main():
         out = args.output[0]
     else:
         out = "ramachandran.png"
-        print("INFO: No output file specified, writing to {}".format(out), file=stderr)
+        log("No output file specified, writing to {}".format(out))
 
     plt.scatter(torsions[len(system.strands):], dihedrals)
     plt.xlabel("torsion_angle")
     plt.ylabel("dihedral_angle")
     plt.tight_layout()
     plt.savefig(out)
-    print("INFO: Wrote plot to {}".format(out), file=stderr)
+    log("Wrote plot to {}".format(out))
 
     if args.data:
         out = args.data[0]
@@ -164,7 +167,7 @@ def main():
                 "torsions": torsions,
                 "dihedrals": dihedrals
             }))
-        print("INFO: Wrote angle data to {}".format(out), file=stderr)
+        log("Wrote angle data to {}".format(out))
 
     # Maybe some sort of overlay file?  Hard to do since there is 2*nstrands fewer torsions than particles.
 

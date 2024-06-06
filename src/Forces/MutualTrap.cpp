@@ -15,6 +15,8 @@ MutualTrap::MutualTrap() :
 	_particle = -2;
 	_p_ptr = NULL;
 	_r0 = -1.;
+	_rate = -1;
+	_stiff_rate = -1;
 	PBC = false;
 }
 
@@ -28,6 +30,8 @@ std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp) {
 	getInputBool(&inp, "PBC", &PBC, 0);
 	_rate = 0.f; //default rate is 0
 	getInputNumber(&inp, "rate", &_rate, 0);
+	_stiff_rate = 0.f; //default stiff_rate is 0
+	getInputNumber(&inp, "stiff_rate", &_stiff_rate, 0);
 
 	int N = CONFIG_INFO->particles().size();
 	if(_ref_id < 0 || _ref_id >= N) {
@@ -42,7 +46,7 @@ std::tuple<std::vector<int>, std::string> MutualTrap::init(input_file &inp) {
 		throw oxDNAException("Cannot apply MutualTrap to all particles. Aborting");
 	}
 
-	std::string description = Utils::sformat("MutualTrap (stiff=%g, rate=%g, r0=%g, ref_particle=%d, PBC=%d)", _stiff, _rate, _r0, _ref_id, PBC);
+	std::string description = Utils::sformat("MutualTrap (stiff=%g, stiff_rate=%g, r0=%g, rate=%g, ref_particle=%d, PBC=%d)", _stiff, _stiff_rate, _r0, _rate, _ref_id, PBC);
 
 	return std::make_tuple(std::vector<int>{_particle}, description);
 }
@@ -58,10 +62,10 @@ LR_vector MutualTrap::_distance(LR_vector u, LR_vector v) {
 
 LR_vector MutualTrap::value(llint step, LR_vector &pos) {
 	LR_vector dr = _distance(pos, CONFIG_INFO->box->get_abs_pos(_p_ptr));
-	return (dr / dr.module()) * (dr.module() - (_r0 + (_rate * step))) * _stiff;
+	return (dr / dr.module()) * (dr.module() - (_r0 + (_rate * step))) * (_stiff + (_stiff_rate * step));
 }
 
 number MutualTrap::potential(llint step, LR_vector &pos) {
 	LR_vector dr = _distance(pos, CONFIG_INFO->box->get_abs_pos(_p_ptr));
-	return pow(dr.module() - (_r0 + (_rate * step)), 2) * ((number) 0.5) * _stiff;
+	return pow(dr.module() - (_r0 + (_rate * step)), 2) * ((number) 0.5) * (_stiff + (_stiff_rate * step));
 }

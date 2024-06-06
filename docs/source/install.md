@@ -2,7 +2,7 @@
 
 ## Requirements
 
-The code requires [CMake](https://cmake.org/) and a c++-14-compliant `g++` (any version >= 4.9 *should* work). The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
+The code requires [CMake](https://cmake.org/) and a c++-14-compliant `g++` (any version >= 4.9 *should* work). Compilation works with current versions (14.0) of Apple `clang` but this has not been thoroughly tested. The code should be also compilable with the Intel compiler (with the `-DIntel=ON` `cmake` flag, see below), although this has not been tested with newer oxDNA versions.
 
 ### CUDA
 
@@ -10,7 +10,7 @@ Compiling with CUDA support requires CMake >= 3.5 and a CUDA toolkit >= 10. If y
 
 ### Python bindings
 
-Compiling with the python bindings enabled requires a working Python3 installation comprising both binaries and include files. With Debian-derived distro these come with the package `python3-dev`.  OxDNA Analysis Tools requires Python version 3.9 or newer.  `oxpy` will work with any version of Python 3.
+Compiling with the Python bindings (`oxpy`) enabled requires a working Python3 installation comprising both binaries and include files. On Debian-derived Linux distros these come with the package `python3-dev`.  `oxpy` and OxDNA Analysis Tools require Python version 3.9 or newer. See [below](#using-oxpy-with-old-python-versions) if you do not have access to Python >= 3.9 and woud like to use `oxpy`
 
 ## Compiling oxDNA
 
@@ -61,34 +61,66 @@ The following options pertain to `oxpy`:
 * `-DPython=ON` Enables Python bindings
 * `-DOxpySystemInstall=On` By default `oxpy` is installed in the current user's home directory. By enabling this option `oxpy` will be installed as a system-wide package. It may require superuser privileges (unless using Conda environments. See below.).
 
-If you are on your own machine or you installed Python via Anaconda, the `-DOxpySystemInstall=On` option should be set to install `oxpy` and `oxDNA_analysis_tools` on your `PATH`.  If you are on a shared system (for example and HPC cluster which isn't using Conda), perform the `cmake` command without this option.  `make install` will probably (depends on `pip` settings) install the two libraries in `$HOME/.local/bin/`, which is not on the `PATH` by default and you will have to add it (if you have not already for another program).  In our testing, Conda-managed versions of Python correctly installed the libraries in the current environment's `site-packages` folder if `-DOxpySystemInstall=On` was set, even on shared systems.
+If you are on your own machine or you installed Python via Anaconda, the `-DOxpySystemInstall=On` option should be set to install `oxpy` and `oxDNA_analysis_tools` on your `$PATH`.  If you are on a shared system (for example and HPC cluster which isn't using Conda), perform the `cmake` command without this option.  `make install` will probably (depends on `pip` settings) install the two libraries in `$HOME/.local/bin/`, which is not on the `$PATH` by default and you will have to add it (if you have not already for another program).  In our testing, Conda-managed versions of Python correctly installed the libraries in the current environment's `site-packages` folder if `-DOxpySystemInstall=On` was set, even on shared systems.
 
 ### make targets
 
 * `make` compiles oxDNA
-* `make install` Copies the `oxpy` and `oxDNA_analysis_tools` packages to the Python's package folder making the two packages importable with Python. 
+* `make install` Copies the `oxpy` and `oxDNA_analysis_tools` packages to Python's package folder making the two packages importable with Python. 
 * `make rovigatti` Compiles the observables and interactions in contrib/rovigatti
 * `make romano` Compiles the observables and interactions in contrib/romano
 
-### Known issues
+#### CMake compiler choice
 
-#### `oxpy`
+CMake searches your $PATH for compatible C and C++ compilers and uses the first ones it finds. If you want to use a different set than the default, you can override the compiler choice as follows:
 
-* When running `make` if you run into a problem at the end of compilation where it cannot find `python.h`, this means that you don't have the Python developer kit installed. See [this StackOverflow answer](https://stackoverflow.com/a/21530768/9738112) on how to install with a variety of package managers.
-* When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly set from the command line as follows:
-	```bash
-	cmake .. -DPython=ON -DPYTHON_INCLUDE_DIRS=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary
-	```
-	If you are using conda environments, the paths should look something like:  
-	* Include: `$HOME/anaconda3/envs/py38/include/python3.8`
-	* Executable: `$HOME/anaconda3/envs/py38/bin/python`
+```bash
+cmake -DCMAKE_C_COMPILER=/path/to/gcc -DCMAKE_CXX_COMPILER=path/to/g++ ..
+```
+
+#### `oxpy` and oxDNA Analysis Tools
+
+* When running `make` if you run into a problem at the end of compilation where it cannot find `python.h`, this means that you don't have the Python developer kit installed. See [this StackOverflow answer](https://stackoverflow.com/a/21530768/9738112) on how to install with a variety of package managers. If you do have it installed, see the next bullet point.
+* When compiling with the Python bindings enabled CMake will sometimes choose the wrong Python binary and/or include files, resulting in a failed compilation. If this happens the correct paths can be directly as follows:
+
+```bash
+cmake -DPython=ON -DPYTHON_INCLUDE_DIR=/path/to/python/include/dir -DPYTHON_EXECUTABLE=/path/to/python/binary ..
+```
+
+If you are using conda environments, the paths should look something like:  
+
+ * Include: `$HOME/anaconda3/envs/py311/include/python3.11`
+ * Executable: `$HOME/anaconda3/envs/py311/bin/python`
+
+This is particularly a problem if you are running in a base Conda environment on MacOS. In this case, the cmake command should look something like:
+
+```
+cmake -DPython=1 -DPYTHON_EXECUTABLE=$HOME/miniconda3/bin/python -DPYTHON_INCLUDE_DIRS=$HOME/miniconda3/include/python3.11 ..
+```
 * If you get an error regarding the number of bytes in the `numpy.array` header, this happens when the version of Numpy on your system doesn't match the version that pip downloads from PyPi when installing `oxDNA_analysis_tools` with its isolated environment (most commonly because you installed Numpy using Conda which tends to be a few versions behind PyPi). To fix this, either update your version of Numpy or try to install just `OAT` without build isolation:
   `python -m pip install ./analysis --no-build-isolation`
-* Sometimes installation will fail with `TypeError: expected string or bytes-like object`. This error is usually caused by older versions of either `oxpy` or `oxDNA-analysis-tools` floating around. Remove them and re-install `oxpy`.
-	
+* Sometimes installation will fail with `TypeError: expected string or bytes-like object`. This error is usually caused by older versions of either `oxpy` or `oxDNA-analysis-tools` somewhere in your `$PATH`. Remove them with `pip uninstall oxpy` and `pip uninstall oxDNA-analysis-tools` and try installing again.
+
+## Known issues
+
+* An `illegal instruction` is sometimes issued when the code is compiled on a CPU architecture and run on another, or when specific combinations of CPU architecture and compiler are used. Invoke CMake with `-DNATIVE_COMPILATION=Off` and re-compile the code to fix the issue.
+* A list of other known issues can be browsed online [here](https://github.com/lorenzo-rovigatti/oxDNA/issues).
+
+
+## Using `oxpy` with old Python versions
+
+`oxpy` interfaces with oxDNA using [Pybind11](https://github.com/pybind/pybind11). In September 2023 we updated the version of pybind11 included with oxDNA from 2.2 to 2.11 due to changes to the Python C API which made older versions of Pybind11 incompatible with the current Python 3.11. This new version of pybind11 is only compatible with Python > 3.8. If, for some reason, you need to use an older version of Python 3 and cannot install a newer version in a virtual environment via, for example, [Conda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html), this can be done by using an older version of pybind11:
+
+1. Get an old version of Pybind11 from the [releases page](https://github.com/pybind/pybind11/releases?page=1) of their GitHub, or use the `pybind11_2.2.4.tgz` file that can be found in the `oxDNA/legacy/` folder.
+2. Remove `oxDNA/oxpy/pybind11/` and replace it with the unzipped folder you just downloaded or copied, making sure you rename the folder to `pybind11`
+3. Edit `oxDNA/setup.py` and `oxDNA/oxpy/make_install_setup.py` to remove the `install_requires = [ ...` lines which also install `oat` (OAT requires 3.9+ due to typing and data structures so cannot be installed with older Python versions)
+4. Compile as normal (`cmake -DPython=1 .. && make -j4 && make install`)
+
+**Note: Tested on a MacOS system with Python 3.6 in a Conda environment**
+ 
 ## Testing
 
-* `make test_run` runs quick tests to check whether oxDNA has been correctly compiled or not.	
+* `make test_run` runs quick tests to check that oxDNA has been correctly compiled, and that the core interactions (`DNA2`, `RNA2` and `NA`) compute the energy contributions in a nicked double strand correctly.
 * `make test_quick` runs longer tests to check that oxDNA works.
 * `make test_oxpy` checks that the Python bindings work.
 * `make test` runs all sets of tests above.

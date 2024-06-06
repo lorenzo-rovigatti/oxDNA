@@ -1,4 +1,3 @@
-import sys
 from os import path
 from typing import Dict, Tuple
 from collections import namedtuple
@@ -9,6 +8,7 @@ import oxpy
 from oxDNA_analysis_tools.UTILS.RyeReader import describe
 from oxDNA_analysis_tools.UTILS.oat_multiprocesser import oat_multiprocesser
 from oxDNA_analysis_tools.UTILS.data_structures import TrajInfo
+from oxDNA_analysis_tools.UTILS.logger import log, logger_settings
 
 import time
 start_time = time.time()
@@ -60,7 +60,7 @@ def compute(ctx:ComputeContext, chunk_size:int, chunk_id:int):
         inp["analysis_data_output_1"] = '{ \n name = stdout \n print_every = 1e10 \n col_1 = { \n id = my_obs \n type = hb_list \n } \n }'
 
         if (not inp["use_average_seq"] or inp.get_bool("use_average_seq")) and "RNA" in inp["interaction_type"]:
-            print("WARNING: Sequence dependence not set for RNA model, wobble base pairs will be ignored", file=sys.stderr)
+            log("Sequence dependence not set for RNA model, wobble base pairs will be ignored", level='warning')
 
         backend = oxpy.analysis.AnalysisBackend(inp)
         if backend.config_info().particles()[ctx.n1].strand_id != backend.config_info().particles()[ctx.n2].strand_id:
@@ -165,7 +165,7 @@ def fit_PL(correlations:np.ndarray, plt_name:str) -> float:
     plt.legend()
     plt.tight_layout()
     plt.savefig(plt_name, dpi=300)
-    print("INFO: Saving figure to", plt_name, file=sys.stderr)
+    log(f"Saving figure to {plt_name}")
 
     return pl
 
@@ -178,12 +178,14 @@ def cli_parser(prog="persistence_length.py"):
     parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-d', '--data', metavar='data_file', nargs=1, help='If set, the correlations will be written to a txt file in the format `offset correlation`')
     parser.add_argument('-n', '--plot_name', nargs=1, help='Name to save the plot showing the fit of persistence length to correlations.  Defaults to persistence_length.png')
+    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
     parser = cli_parser(path.basename(__file__))
     args = parser.parse_args()
 
+    logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
     check(["python", "matplotlib", "numpy"])
 
@@ -203,7 +205,7 @@ def main():
     l0, correlations = persistence_length(di, inp_file, n1, n2, ncpus)
 
     if args.data:
-        print("INFO: Writing correlations to", args.data[0], file=sys.stderr)
+        log(f"Writing correlations to {args.data[0]}")
         with open(args.data[0], 'w+') as f:
             for i, c in enumerate(correlations):
                 f.write(f'{i} {c}\n')

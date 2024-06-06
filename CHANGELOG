@@ -1,4 +1,39 @@
-v. 3.5.2
+v. 3.6.1
+	- Fix some bugs and docs errors due to the DRH -> NA change (see #81) [79728d3 and 7cf4b94]
+	- Add and document an option to control the DH cut-off (see #83) [95a9f0d]
+	- Make the MPI VMMC backend runnable once again, after it had been broken for years (see #85) [8becd5f]
+	- Fix how the trap, twist and string forces behave on CUDA (see #71) [e92695c]
+	- Fix the oat test's suite (see #89) [ffd1dd9]
+	- Add an observable that can be used to print the total external force acting on particles [7f0eff6]
+	- Fix a bug whereby the DPS interaction would segfault of dying gracefully when too many patches were used [b38ae1c]
+	oxpy:
+	  - Add a method to Python's InputFile and update some outdated info [bd7c9e6]
+	oat:
+	  - Added RMSD calculation to superimpose [99320e0]
+	  - Added output file naming option to superimpose [3d316b6]
+	  - Clarified argparse strings for distance and subset [eae41a9]
+	  - Fixed missing newline bug in write_conf [0e5c28d]
+	  - Fixed bad error in get_confs [171f2ca]
+	  - Overhaul of clustering to have significantly more options and cleaner output [80920ab]
+
+v. 3.6.0 [aaebaeb]
+	- Add 6 more tests to the `run` level; these tests use the new topology and check that the DNA, RNA and NA interactions compute the right energies for a short nicked duplex
+	- Add support for a "new" topology format where nucleotides are listed in the 5' -> 3' order, which is the standard in the community
+	- Add the NA interaction, which can be used to simulate hybrid DNA/RNA systems (by @eryykr, see #68)
+	- Add a old<->new topology converter to the `utils` folder
+	- Add an option `stiff_rate` to the `mutual_trap` force
+	- Remove a few warnings when compiling with CUDA
+	- Fix the computation of the stress tensor on the GPU
+	oxpy:
+	  - Update pybind to make oxpy compatible with newer Python versions
+	  - Deprecate support for Python versions < 3.8
+	  - Add (undocumented) support for `-Dpython=On` and `-DPYTHON=On`
+	oat:
+	  - Add support for the new topology format
+	  - Fixed an error in the oxDNA_PDB CLI parser
+	  - Added error handling for truncated trajectories in the oat parser (see #67)
+
+v. 3.5.2 [50479f2]
 	oat: 
 	  - remove usage of `|` to specify type annotations for unions to make oat compatible with Python 3.9
       - improve the portability of the `setup.py` script to fix installation issues on some systems
