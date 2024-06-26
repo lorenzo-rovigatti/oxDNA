@@ -139,6 +139,17 @@
 	<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interaction energy between particle 0 and particle 1:&quot;</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">config_info</span><span class="p">()</span><span class="o">.</span><span class="n">interaction</span><span class="o">.</span><span class="n">pair_interaction</span><span class="p">(</span><span class="n">particles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">particles</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>There is a known issue that makes the code segfault whenever multiple <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">oxpy.Context()</span></code> are used in a single script. In these cases a simple workaround is to add a <code class="docutils literal notranslate"><span class="pre">del</span> <span class="pre">manager</span></code> instruction at the end of the <code class="docutils literal notranslate"><span class="pre">with</span></code> code block, like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_sims</span><span class="p">):</span>
+   <span class="k">with</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">Context</span><span class="p">():</span>
+      <span class="n">manager</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">OxpyManager</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+      <span class="n">manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">N_steps</span><span class="p">)</span>
+      <span class="k">del</span> <span class="n">manager</span> <span class="c1"># &lt;-- if you comment this line the script will segfault</span>
+</pre></div>
+</div>
+</div>
 <p>If you want, you can initialise the input file yourself and change some of the options before initialising the manager:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_input</span> <span class="o">=</span> <span class="n">oxpy</span><span class="o">.</span><span class="n">InputFile</span><span class="p">()</span>
 <span class="n">my_input</span><span class="o">.</span><span class="n">init_from_filename</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
