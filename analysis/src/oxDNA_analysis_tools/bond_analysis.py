@@ -2,6 +2,7 @@ import argparse
 from os import path
 from collections import namedtuple
 from typing import Tuple, Dict
+from json import dump
 import numpy as np
 import matplotlib.pyplot as plt
 import oxpy
@@ -132,6 +133,7 @@ def cli_parser(prog="bond_analysis.py"):
     parser.add_argument('designed_pairs', type=str, help="The file containing the desired nucleotides pairings in the format `a b`")
     parser.add_argument('-o', metavar='output_file', type=str, dest='outfile', help="Name of the file to save the output oxView overlay to")
     parser.add_argument('-t', metavar='trajectory_plot', type=str, dest='traj_plot', help='Name of the file to save the trajecotry plot to')
+    parser.add_argument('-d', metavar='data_file', type=str, dest='data_file', help="If set, save the data used to make the plot to a json file.")
     parser.add_argument('-p', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
     parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
@@ -151,13 +153,13 @@ def main():
     designfile = args.designed_pairs
     if args.outfile:
         outfile = args.outfile
-        outfile = outfile.strip(".json")+".json"
+        outfile = outfile.remove(".json", "")+".json"
     else:
         outfile = 'bonds.json'
         log("No oxView name provided, defaulting to \"{}\"".format(outfile))
     if args.traj_plot:
         plotfile = args.traj_plot
-        plotfile = plotfile.strip(".png")+".png"
+        plotfile = plotfile.removesuffix(".png")+".png"
     else:
         plotfile = 'bonds.png'
         log("No bond plot name provided, defaulting to \"{}\"".format(plotfile))
@@ -186,6 +188,18 @@ def main():
     # Summarize output and generate output filess
     print("\nSummary:\navg bonds: {}\navg correct bonds: {}/{}\navg missbonds: {}".format(np.mean(total_bonds),np.mean(correct_bonds), len(pairs), np.mean(incorrect_bonds)))
 
+    if args.data_file:
+        data_file = args.data_file.removesuffix(".json")+".json"
+        with open(data_file, 'w+') as f:
+            dump(
+                {
+                    "total_bonds" : total_bonds.tolist(),
+                    "correct_bonds" : correct_bonds.tolist(),
+                    "incorrect_bonds" : incorrect_bonds.tolist()
+                }, f
+            )
+            log(f"Wrote per-step and per-nucleotide bond data to {data_file}")
+    
     oxView_overlay(nt_array, outfile)
 
     plot_trajectories(correct_bonds, incorrect_bonds, len(pairs), plotfile)
