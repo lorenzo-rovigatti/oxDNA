@@ -1,4 +1,5 @@
 from oxDNA_analysis_tools.external_force_utils import forces
+from oxDNA_analysis_tools.UTILS.logger import log
 
 def read_force_file(file):
     """
@@ -31,7 +32,7 @@ def read_force_file(file):
                     l = f.readline()
                 force_list.append(getattr(forces, t)(**args)) #calls the function "t" from module "forces"
             l = f.readline()
-    print("read {} forces".format(len(force_list)))
+    log("read {} forces".format(len(force_list)))
     return(force_list)
 
 
