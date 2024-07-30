@@ -2,7 +2,7 @@ from oxDNA_analysis_tools.UTILS.RyeReader import Configuration, TopInfo
 from IPython.display import display, HTML
 from random import randint
 from json import dumps
-from typing import List
+from typing import List, Union
     
 def __compress_dat(conf):
     """ generate me a compressed double escaped dat file """
@@ -18,12 +18,12 @@ def __fetch_file_from_path(path):
         top_string = file.read()
         return top_string.replace("\n", "\\n")  
 
-def display_files(files_with_ext,  inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
+def display_files(system_list,  inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
     """
         Generate an iframe displaying the provided files in oxview
 
         Parameters:
-            files_with_ext (tuple) : a list of tuples (file_string, extension)
+            system_list (tuple) : a list of lists of tuples (file_string, extension) 
             inbox_settings (list[str]) : a list of strings, the inbox settings to use
             oxview_src (str) : the url of the oxview source
 
@@ -35,18 +35,24 @@ def display_files(files_with_ext,  inbox_settings =  ["Monomer", "Origin"], oxvi
     # buffer where our html will go to
     out_lines = []
     a = out_lines.append
+
     a("<script>")
     a("function handle(){")
     a("let t_files = [];")
-    a("let t_ext = [];")
-    # now let's create all those files and extensions we want to pass to view
-    for file_string, ext in files_with_ext:
-        a(f"t_files.push(new Blob(['{file_string}'], {{type : 'text/plain'}}));")
-        a(f't_ext.push("{ext}");')
+    a("let t_ext = [];")    
     # get the reference to the iframe
-    a(f"const frame = document.getElementById('oxview-frame-{frame_id}');")
-    # and forward the files
-    a(f"frame.contentWindow.postMessage({{message : 'iframe_drop',files: t_files, ext: t_ext, inbox_settings : {inbox_settings} }}, \"{oxview_src}\");")
+    a(f"const frame = document.getElementById('oxview-frame-{frame_id}');")    
+    for files_with_ext in system_list: 
+        # push only 1 system per postMessage 
+        a("t_files = [];")
+        a("t_ext = [];")
+        # now let's create all those files and extensions we want to pass to view
+        for file_string, ext in files_with_ext:
+            a(f"t_files.push(new Blob(['{file_string}'], {{type : 'text/plain'}}));")
+            a(f't_ext.push("{ext}");')
+        # and forward the files
+        a(f"frame.contentWindow.postMessage({{message : 'iframe_drop',files: t_files, ext: t_ext, inbox_settings : {inbox_settings} }}, \"{oxview_src}\");")
+        
     a("}")
     a("</script>")
     a(f'<iframe width="99%" height="500"  src="{oxview_src}" id="oxview-frame-{frame_id}" onload="handle()">')
@@ -54,18 +60,33 @@ def display_files(files_with_ext,  inbox_settings =  ["Monomer", "Origin"], oxvi
     
     display(HTML( "".join(out_lines) ))
     
-def from_path(*args:List[str], **kwargs):
+def from_path(*args:Union[List[str],List[List[str]]] , **kwargs):
     """ 
         Display oxview frame based on the string path provided 
 
         Parameters:
-            args (List[str]) : contains the paths to the files
+            args (Union[List[str],List[List[str]]]) : contains the paths to the files or a list of lists of paths
             kwargs (dict) : the properties to oxview defaults to = {"inbox_settings":["Monomer", "Origin"], "oxview_src" : "https://sulcgroup.github.io/oxdna-viewer/"}
         
         Usage:
-            raw("conf.top", "conf.dat",**{"inbox_settings":["Monomer", "Origin"]})
+            from_path("conf.top", "conf.dat",**{"inbox_settings":["Monomer", "Origin"]})
     """
-    file_list = [(__fetch_file_from_path(path),path) for path in args]
+
+    # we have two possible caseses 
+    # args is a list of lists or a list of strings
+    if all(isinstance(i, str) for i in args):
+        file_list = [[(__fetch_file_from_path(path),path) for path in args]]
+        # print("single")
+        # print (file_list)
+        # #file_list = [(__fetch_file_from_path(path),path) for path in args]
+    elif all(isinstance(i, list) for i in args):
+        # print("multi")
+        file_list = file_list = [[(__fetch_file_from_path(path), path)  for path in lst] for lst in args]
+        # print (file_list)
+    else:
+        raise ValueError("args must be a list of strings or a list of lists of strings")
+
+    
     #make sure we have some default view
     if not "inbox_settings" in kwargs:
         inbox_settings = ["Monomer", "Origin"]
@@ -122,7 +143,8 @@ def oxdna_conf(top: TopInfo, conf:Configuration, overlay = None, forces_path = N
         forces_string = __fetch_file_from_path(forces_path)
         file_list.append((forces_string, "forces.txt"))      
         
-    display_files(file_list, inbox_settings, oxview_src)
+    # hack cause we support multiple systems in from_path 
+    display_files([file_list], inbox_settings, oxview_src)
     
 def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
     """
@@ -148,7 +170,7 @@ def loro_patchy_conf(top_path:str, conf:Configuration,  matrix_path:str, inbox_s
         (matrix_string,"matrix")
     ]
 
-    display_files(file_list, inbox_settings, oxview_src)
+    display_files([file_list], inbox_settings, oxview_src)
 
 def flro_patchy_conf(top_path:str,  conf:Configuration, particles_path:str, inbox_settings =  ["Monomer", "Origin"], oxview_src = "https://sulcgroup.github.io/oxdna-viewer/"):
     """
@@ -172,5 +194,5 @@ def flro_patchy_conf(top_path:str,  conf:Configuration, particles_path:str, inbo
         (dat_string,   "dat"),
         (particles_string,"particles")
     ]
-    display_files(file_list, inbox_settings, oxview_src)
+    display_files([file_list], inbox_settings, oxview_src)
     
