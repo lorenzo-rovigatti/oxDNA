@@ -153,7 +153,7 @@ def main():
     designfile = args.designed_pairs
     if args.outfile:
         outfile = args.outfile
-        outfile = outfile.remove(".json", "")+".json"
+        outfile = outfile.removesuffix(".json", "")+".json"
     else:
         outfile = 'bonds.json'
         log("No oxView name provided, defaulting to \"{}\"".format(outfile))
