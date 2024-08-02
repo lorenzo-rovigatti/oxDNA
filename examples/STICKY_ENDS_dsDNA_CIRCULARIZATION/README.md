@@ -47,7 +47,7 @@ The code will automatically generate the complementary sequences making up the s
 
 To generate your own intial configuration, the initial positions, orientation, and etc of each nucleotide in the model, write the following in the terminal:
 
-../../utils/generate-sa.py 40 sequences
+```../../utils/generate-sa.py 40. sequences```
 
 *Note: Format: path/to/generate-sa.py side_length_of_model_box path/to/sequences_file
 *Note: Make sure you are in the STICKY_ENDS_dsDNA_CIRCULARIZATION directory.
@@ -60,7 +60,7 @@ Read more on those files here: https://lorenzo-rovigatti.github.io/oxDNA/configu
 
 To run the model using the provided input file, type the following into the command line:
 
-../../build/bin/oxDNA ../../examples/STICKY_ENDS_dsDNA_CIRCULARIZATION/input
+```../../build/bin/oxDNA ../../examples/STICKY_ENDS_dsDNA_CIRCULARIZATION/input```
 
 *Note: Format: path/to/oxDNA_executable path/to/input_file
 *Note: Make sure the build path is correct
