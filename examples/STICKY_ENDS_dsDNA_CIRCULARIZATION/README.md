@@ -1,6 +1,6 @@
 # Linear dsDNA with sticky ends
 
-Author: Jinhuang Zhou
+Author: Jinhuang Zhou  
 Last update: Aug 2024
 
 The config and topology files are in the "classic" format. 
