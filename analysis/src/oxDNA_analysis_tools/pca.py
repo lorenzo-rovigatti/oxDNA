@@ -230,7 +230,7 @@ def main():
                         )
     log("Change the number of eigenvalues to sum and display by modifying the N variable in the script.  Current value: {}".format(N))
     for i in range(0, N): #how many eigenvalues do you want?
-        f = outfile.strip(".json")+str(i)+".json"
+        f = outfile.removesuffix(".json")+str(i)+".json"
         out = np.sqrt(evalues[i])*evectors[i]
 
         with catch_warnings(): #this produces an annoying warning about casting complex values to real values that is not relevant

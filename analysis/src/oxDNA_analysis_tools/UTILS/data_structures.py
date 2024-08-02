@@ -104,6 +104,9 @@ class System:
 
     def __iter__(self):
         return (s for s in self.strands)
+    
+    def __len__(self):
+        return len(self.strands)
 
     def append(self, strand:Strand):
         """
@@ -156,6 +159,9 @@ class Strand:
 
     def __iter__(self):
         return (m for m in self.monomers)
+    
+    def __len__(self):
+        return len(self.monomers)
     
     # Attributes which should not be included file write out should start with '__'
     def get_kwdata(self) -> Dict[str,str]:
