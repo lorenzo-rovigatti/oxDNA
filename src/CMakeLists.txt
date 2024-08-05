@@ -167,6 +167,8 @@ SET(forces_SOURCES
 	Forces/Metadynamics/LT2DCOMTrap.cpp
 	Forces/Metadynamics/LTAtanCOMTrap.cpp
 	Forces/Metadynamics/meta_utils.cpp
+	Forces/AttractionPlane.cpp
+
 )
 
 SET(box_SOURCES

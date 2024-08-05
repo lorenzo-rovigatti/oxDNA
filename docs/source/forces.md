@@ -205,6 +205,36 @@ The following snippet defines a plane that acts on the whole system and will not
 
 ````
 
+## Attraction plane
+
+This kind of external force implements a attraction plane that constrains particles to stay on one side of it while attracting them with a constant force. The repulsion is implemented as a harmonic interaction, but the stiffness can be made arbitrarily high to mimic a hard repulsion.
+
+A force of this kind is specified with `type = attraction_plane`. The relevant keys are:
+
+* `particle = <int>`: comma-separated list of indices of particles to apply the force to. A value of `-1` or `all` applies it to all particles. Entries separated by a dash "-" get expanded in a list of all the particles on a same strand comprised between the two indices. For instance, `particle = 1,2,5-7` applies the force to 1,2,5,6,7 if 5 and 7 are on the same strand.
+* `stiff = <float>`: stiffness of the repulsion.
+* `dir = <float>,<float>,<float>`: the vector normal to the plane: it should point towards the half-plane where the repulsion is not acting.
+* `position = <float>`: defines the position of the plane along the direction identified by the plane normal.
+
+If direction is `dir`{math}` = (u,v,w)`, then the plane contains all the points {math}`(x,y,z)` that satisfy the equation: {math}`u x + v y + w z + {\rm position} = 0`.
+Only nucleotides  with coordinates {math}`(x,y,z)` that satisfy {math}`u x + v y + w z + {\rm position} \lt 0` will feel the force.
+The force exerted on a nucleotide is equal to `stiff` \* *D*, where {math}`D = | ux + vy + wz + \mbox{position}| / \sqrt{u^2 + v^2 + w^2 }` is the distance of the nucleotide from the plane.
+For nucleotides for which {math}`u x + v y + w z + {\rm position} \geq 0`, no force will be exerted.
+
+````{admonition} Example
+
+The following snippet defines a plane that acts on the whole system and will exert a constant force of 1 simulation unit \* x (48.6 pN \* x for DNA) towards the plane on nucleotides with a positive x coordinate. A force proportional to 1 simulation unit \* x (48.6 pN \* x for DNA) will be exerted on all particles. 
+
+	{
+	type = attraction_plane
+	particle = -1
+	stiff = 1.00
+	dir = 1, 0, 0
+	position = 0
+	}
+
+````
+
 ## Repulsive sphere
 
 This force encloses particle(s) in a repulsive sphere. The repulsion force is harmonic.

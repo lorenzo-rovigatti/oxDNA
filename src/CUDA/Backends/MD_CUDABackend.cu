@@ -159,6 +159,10 @@ void MD_CUDABackend::_apply_external_forces_changes() {
 					RepulsionPlane *p_force = (RepulsionPlane *) p->ext_forces[j];
 					init_RepulsionPlane_from_CPU(&cuda_force->repulsionplane, p_force);
 				}
+				else if(force_type == typeid(AttractionPlane) ) {
+					AttractionPlane *p_force = (AttractionPlane *) p->ext_forces[j];
+					init_AttractionPlane_from_CPU(&cuda_force->attractionplane, p_force);
+				}
 				else if(force_type == typeid(RepulsionPlaneMoving)) {
 					RepulsionPlaneMoving *p_force = (RepulsionPlaneMoving *) p->ext_forces[j];
 					init_RepulsionPlaneMoving_from_CPU(&cuda_force->repulsionplanemoving, p_force);
