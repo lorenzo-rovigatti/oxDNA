@@ -157,15 +157,14 @@ void init_RepulsionPlane_from_CPU(repulsion_plane *cuda_force, RepulsionPlane *c
 /**
  * @brief CUDA version of a AttractionPlane.
  */
-template<typename number>
 struct attraction_plane {
 	int type;
-	number stiff;
-	number position;
+	c_number stiff;
+	c_number position;
 	float3 dir;
 };
 
-void init_AttractionPlane_from_CPU(repulsion_plane *cuda_force, RepulsionPlane *cpu_force) {
+void init_AttractionPlane_from_CPU(attraction_plane *cuda_force, AttractionPlane *cpu_force) {
 	cuda_force->type = CUDA_ATTRACTION_PLANE;
 	cuda_force->stiff = cpu_force->_stiff;
 	cuda_force->position = cpu_force->_position;
@@ -497,7 +496,7 @@ union CUDA_trap {
 	COM_force comforce;
 	lt_com_trap ltcomtrap;
 	Yukawa_sphere yukawasphere;
-	attraction_plane<number> attractionplane;
+	attraction_plane attractionplane;
 };
 
 #endif /* CUDAFORCES_H_ */

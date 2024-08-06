@@ -1,5 +1,5 @@
 /**
- * @file    RepulsionPlane.cpp
+ * @file    AttractionPlane.cpp
  * @date    01/aug/2024
  * @author  Matthies, Tilibit 
  *
@@ -11,36 +11,34 @@
 
 AttractionPlane::AttractionPlane() :
 				BaseForce() {
-	_particle = -1;
 	_position = -1.;
 }
 
-void AttractionPlane::get_settings (input_file &inp) {
-	getInputInt (&inp, "particle", &_particle, 1);
 
-	getInputNumber(&inp, "stiff", &this->_stiff, 1);
-	getInputNumber(&inp, "position", &this->_position, 1);
+std::tuple<std::vector<int>, std::string> AttractionPlane::init(input_file &inp) {
+	BaseForce::init(inp);
+
+	std::string particles_string;
+	getInputString(&inp, "particle", particles_string, 1);
+
+	getInputNumber(&inp, "stiff", &_stiff, 1);
+	getInputNumber(&inp, "position", &_position, 1);
 
 	int tmpi;
 	double tmpf[3];
 	std::string strdir;
-	getInputString (&inp, "dir", strdir, 1);
+	getInputString(&inp, "dir", strdir, 1);
 	tmpi = sscanf(strdir.c_str(), "%lf,%lf,%lf", tmpf, tmpf + 1, tmpf + 2);
-	if(tmpi != 3) throw oxDNAException ("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
-	this->_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
-	this->_direction.normalize();
-}
+	if(tmpi != 3) {
+		throw oxDNAException("Could not parse dir %s in external forces file. Aborting", strdir.c_str());
+	}
+	_direction = LR_vector((number) tmpf[0], (number) tmpf[1], (number) tmpf[2]);
+	_direction.normalize();
 
-void AttractionPlane::init (BaseParticle ** particles, int N, BaseBox * box_ptr) {
-	if (_particle >= N || N < -1) throw oxDNAException ("Trying to add a AttractionPlane on non-existent particle %d. Aborting", _particle);
-	if (_particle != -1) {
-		OX_LOG (Logger::LOG_INFO, "Adding AttractionPlane (stiff=%g, position=%g, dir=%g,%g,%g, on particle %d", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z, _particle);
-		particles[_particle]->add_ext_force(this);
-	}
-	else { // force affects all particles
-		OX_LOG (Logger::LOG_INFO, "Adding AttractionPlane (stiff=%g, position=%g, dir=%g,%g,%g, on ALL particles", this->_stiff, this->_position, this->_direction.x, this->_direction.y, this->_direction.z);
-		for(int i = 0; i < N; i ++) particles[i]->add_ext_force(this);
-	}
+	auto particle_ids = Utils::get_particles_from_string(CONFIG_INFO->particles(), particles_string, "AttractionPlane");
+	std::string description = Utils::sformat("AttractionPlane (stiff=%g, position=%g, dir=%g,%g,%g", _stiff, _position, _direction.x, _direction.y, _direction.z);
+
+	return std::make_tuple(particle_ids, description);
 }
 
 LR_vector AttractionPlane::value(llint step, LR_vector &pos) {

@@ -1,5 +1,5 @@
 /**
- * @file    RepulsionPlane.h
+ * @file    AttractionPlane.h
  * @date    01/aug/2024
  * @author  Matthies, Tilibit 
  *
@@ -34,17 +34,14 @@ particle = <int> (index of the particle on which the force shall be applied. If 
 */
 
 class AttractionPlane : public BaseForce {
-private:
-	int _particle;
-
 public:
 	number _position;
 
 	AttractionPlane ();
-	virtual ~AttractionPlane() {}
+	virtual ~AttractionPlane() {
+	}
 
-	void get_settings (input_file &);
-	void init (BaseParticle **, int, BaseBox *);
+	std::tuple<std::vector<int>, std::string> init(input_file &inp) override;
 
 	virtual LR_vector value(llint step, LR_vector &pos);
 	virtual number potential(llint step, LR_vector &pos);
