@@ -1,0 +1,34 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+debug = 1
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+sim_type = VMMC
+ensemble = NVT
+steps = 1e6
+
+preserve_topology=1
+
+delta_translation = 0.10
+delta_rotation = 0.45
+T = 45C
+verlet_skin = 1.
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = generated.top
+conf_file = generated.dat
+trajectory_file = trajectory.dat
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = energy.dat
+print_conf_interval = 1e3
+print_energy_every = 1e3
+time_scale = linear
+external_forces = 1
+external_forces_file = ext.dat
