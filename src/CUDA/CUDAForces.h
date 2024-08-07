@@ -155,7 +155,7 @@ void init_RepulsionPlane_from_CPU(repulsion_plane *cuda_force, RepulsionPlane *c
 }
 
 /**
- * @brief CUDA version of a AttractionPlane.
+ * @brief CUDA version of an AttractionPlane.
  */
 struct attraction_plane {
 	int type;

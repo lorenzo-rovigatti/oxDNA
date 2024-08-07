@@ -42,19 +42,22 @@ std::tuple<std::vector<int>, std::string> AttractionPlane::init(input_file &inp)
 }
 
 LR_vector AttractionPlane::value(llint step, LR_vector &pos) {
-	number distance = this->_direction*pos + this->_position;
+	number distance_from_plane = this->_direction*pos + this->_position;
 
-	if(distance >=  0.) 
-		return -this->_stiff*this->_direction;
+	if(distance_from_plane >=  0.) {
+		number force = -this->_stiff * 1.0;  // constant times * unit of length
+		return force * this->_direction;
+	}
 	else
-		return -(distance*this->_stiff)*this->_direction;
+		return -(distance_from_plane*this->_stiff)*this->_direction;
 }
 
 number AttractionPlane::potential(llint step, LR_vector &pos) {
-	number distance = this->_direction*pos + this->_position; // distance from the plane
-	if(distance >= 0.) 
-		return  (number) (this->_stiff*distance);
+	number distance_from_plane = this->_direction*pos + this->_position;
+
+	if(distance_from_plane >= 0.) 
+		return  (number) (this->_stiff*distance_from_plane);
 	else 
-		return (number) (0.5*this->_stiff*SQR(distance));
+		return (number) (0.5*this->_stiff*SQR(distance_from_plane));
 }
 
