@@ -43,7 +43,7 @@ class Timer;
  restart_step_counter = <boolean> (false means that the step counter will start from the value read in the configuration file, true means that the step counter will start from 0)
 
  [external_forces = <bool> (specifies whether there are external forces acting on the nucleotides or not. If it is set to 1, then a file which specifies the external forces' configuration has to be provided (see external_forces_file))]
- [external_forces_file = <path> (specifies the file containing all the external forces' configurations. Currently there are six supported force types: string, twist, trap, repulsion_plane, repulsion_plane_moving and mutual_trap (see EXAMPLES/TRAPS for some examples))]
+ [external_forces_file = <path> (specifies the file containing all the external forces' configurations. Currently there are several supported force types: string, twist, trap, repulsion_plane, attraction_plane, repulsion_plane_moving and mutual_trap (see EXAMPLES/TRAPS for some examples))]
 
  [back_in_box = <bool> (whether particles should be brought back into the box when a configuration is printed or not, defaults to false)]
 
