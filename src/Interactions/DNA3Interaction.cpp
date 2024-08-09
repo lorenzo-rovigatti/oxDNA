@@ -2,7 +2,6 @@
 
 #include "../Particles/DNANucleotide.h"
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <sstream>
 #include <cmath>
@@ -308,456 +307,6 @@ DNA3Interaction::DNA3Interaction() :
 	*/           
 }
 
-
-std::vector<double> split_string_double(const std::string& str, const std::string& delim)
-{
-    std::vector<double> tokens;
-    size_t prev = 0, pos = 0;
-    do
-    {
-        pos = str.find(delim, prev);
-        if (pos == std::string::npos) pos = str.length();
-        std::string token = str.substr(prev, pos-prev);
-        if (!token.empty()) tokens.push_back(std::stod(token));
-        prev = pos + delim.length();
-    }
-    while (pos < str.length() && prev < str.length());
-    return tokens;
-}
-
-std::vector<std::string> split_string_string(const std::string& str, const std::string& delim)
-{
-    std::vector<std::string> tokens;
-    size_t prev = 0, pos = 0;
-    do
-    {
-        pos = str.find(delim, prev);
-        if (pos == std::string::npos) pos = str.length();
-        std::string token = str.substr(prev, pos-prev);
-        if (!token.empty()) tokens.push_back(token);
-        prev = pos + delim.length();
-    }
-    while (pos < str.length() && prev < str.length());
-    return tokens;
-}
-
-
-/*
-Update the parameters of the model.
-For now, only the parameters that we actually use in the parametrisation are supported
-*/
-void DNA3Interaction::update_parameters(std::string names, std::string values) {
-	std::vector<std::string> _names = split_string_string(names, " ");
-	std::vector<double> _values = split_string_double(values, " ");
-	
-	int counts = 0;
-	int i,j,k,l;
-	for(auto par : _names) {
-		std::vector<std::string> _words = split_string_string(par, "_");
-		//FENE
-		if(_words[0] == "FENE") {
-			i = Utils::encode_base(_words[2][0]);
-			j = Utils::encode_base(_words[3][0]);
-			k = Utils::encode_base(_words[4][0]);
-			l = Utils::encode_base(_words[5][0]);
-			if(_words[1] == "R0") {
-				_fene_r0_SD[i][j][k][l] = _values[counts];
-			}
-			if(_words[1] == "DELTA") {
-				_fene_delta_SD[i][j][k][l] = _values[counts];
-			}
-			if(_words[1] == "DELTA2") {
-				_fene_delta2_SD[i][j][k][l] = _values[counts];
-			}	
-		
-		}
-		if(_words[0] == "STACKING") {
-			if(_words.size() == 6) {
-				bool update_shift = false;
-				i = Utils::encode_base(_words[2][0]);
-				j = Utils::encode_base(_words[3][0]);
-				k = Utils::encode_base(_words[4][0]);
-				l = Utils::encode_base(_words[5][0]);
-				if(_words[1] == "A") {
-					F1_SD_A[STCK_F1][i][j][k][l] = _values[counts];
-					update_shift = true;
-				}
-				if(_words[1] == "RC") {
-					F1_SD_RC[STCK_F1][i][j][k][l] = _values[counts];
-					update_shift = true;
-				}
-				if(_words[1] == "R0") {
-					F1_SD_R0[STCK_F1][i][j][k][l] = _values[counts];
-					update_shift = true;
-				}
-				if(_words[1] == "BLOW") {
-					F1_SD_BLOW[STCK_F1][i][j][k][l] = _values[counts];
-				}
-				if(_words[1] == "BHIGH") {
-					F1_SD_BHIGH[STCK_F1][i][j][k][l] = _values[counts];
-				}
-				if(_words[1] == "RLOW") {
-					F1_SD_RLOW[STCK_F1][i][j][k][l] = _values[counts];
-				}
-				if(_words[1] == "RHIGH") {
-					F1_SD_RHIGH[STCK_F1][i][j][k][l] = _values[counts];
-				}
-				if(_words[1] == "RCLOW") {
-					F1_SD_RCLOW[STCK_F1][i][j][k][l] = _values[counts];
-				}
-				if(_words[1] == "RCHIGH") {
-					F1_SD_RCHIGH[STCK_F1][i][j][k][l] = _values[counts];
-				}
-				
-				//update shift
-				if(update_shift) F1_SD_SHIFT[STCK_F1][i][j][k][l] = F1_EPS[STCK_F1][i][j] * SQR(1 - exp(-(F1_SD_RC[STCK_F1][i][j][k][l] - F1_SD_R0[STCK_F1][i][j][k][l]) * F1_SD_A[STCK_F1][i][j][k][l]));
-			}
-			if(_words.size() == 7) {
-				i = Utils::encode_base(_words[3][0]);
-				j = Utils::encode_base(_words[4][0]);
-				k = Utils::encode_base(_words[5][0]);
-				l = Utils::encode_base(_words[6][0]);
-				if(_words[1] == "THETA4") {
-					if(_words[2] == "A") {
-						F4_SD_THETA_A[STCK_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "B") {
-						F4_SD_THETA_B[STCK_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "T0") {
-						F4_SD_THETA_T0[STCK_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "TS") {
-						F4_SD_THETA_TS[STCK_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "TC") {
-						F4_SD_THETA_TC[STCK_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-				
-				}
-				if(_words[1] == "THETA5") {
-					if(_words[2] == "A") {
-						F4_SD_THETA_A[STCK_F4_THETA5][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "B") {
-						F4_SD_THETA_B[STCK_F4_THETA5][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "T0") {
-						F4_SD_THETA_T0[STCK_F4_THETA5][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "TS") {
-						F4_SD_THETA_TS[STCK_F4_THETA5][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "TC") {
-						F4_SD_THETA_TC[STCK_F4_THETA5][i][j][k][l] = _values[counts];
-					}
-				
-				}
-			}	
-		}
-		
-		
-		if(_words[0] == "HYDR") {
-			if(_words.size() == 5) {
-				j = Utils::encode_base(_words[3][0]);
-				k = Utils::encode_base(_words[4][0]);
-				//This is pair dependent
-				if(_words[1] == "THETA4") {
-					if(_words[2] == "A") {
-						for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_A[HYDR_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "B") {
-						for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_B[HYDR_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "T0") {
-						for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_T0[HYDR_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "TS") {
-						for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_TS[HYDR_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "TC") {
-						for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_TC[HYDR_F4_THETA4][i][j][k][l] = _values[counts];
-					}
-				
-				}
-			}
-		
-		}
-		
-		if(_words[0] == "CRST") {
-			if(_words.size() == 5) {
-				j = Utils::encode_base(_words[3][0]);
-				k = Utils::encode_base(_words[4][0]);
-				//This is pair dependent
-				if(_words[1] == "K") {
-					if(_words[2] == "33")  {
-						for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F2_SD_K[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55")  {
-						for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F2_SD_K[CRST_F2_55][i][j][k][l] = _values[counts];
-					}				
-				}
-			}
-			if(_words.size() == 6) {
-				j = Utils::encode_base(_words[4][0]);
-				k = Utils::encode_base(_words[5][0]);
-				//This is pair dependent
-				if(_words[1] == "THETA4") {
-					if(_words[2] == "A") {
-						if(_words[3] == "33")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_A[CRST_F4_THETA4_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_A[CRST_F4_THETA4_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "B") {
-						if(_words[3] == "33")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_B[CRST_F4_THETA4_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_B[CRST_F4_THETA4_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "T0") {
-						if(_words[3] == "33")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_T0[CRST_F4_THETA4_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_T0[CRST_F4_THETA4_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "TS") {
-						if(_words[3] == "33")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_TS[CRST_F4_THETA4_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_TS[CRST_F4_THETA4_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "TC") {
-						if(_words[3] == "33")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_TC[CRST_F4_THETA4_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							for(i = 0; i < 4; i++) for(l = 0; l < 4; l++) F4_SD_THETA_TC[CRST_F4_THETA4_55][i][j][k][l] = _values[counts];
-						}
-					}
-				
-				}
-			}
-			
-			if(_words.size() == 7) {
-				i = Utils::encode_base(_words[3][0]);
-				j = Utils::encode_base(_words[4][0]);
-				k = Utils::encode_base(_words[5][0]);
-				l = Utils::encode_base(_words[6][0]);
-				if(_words[1] == "RC") {
-					if(_words[2] == "33") {
-						F2_SD_RC[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55") {
-						F2_SD_RC[CRST_F2_55][i][j][k][l] = _values[counts];
-					}
-				}
-				if(_words[1] == "R0") {
-					if(_words[2] == "33") {
-						F2_SD_R0[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55") {
-						F2_SD_R0[CRST_F2_55][i][j][k][l] = _values[counts];
-					}
-				}
-				if(_words[1] == "BLOW") {
-					if(_words[2] == "33") {
-						F2_SD_BLOW[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55") {
-						F2_SD_BLOW[CRST_F2_55][i][j][k][l] = _values[counts];
-					}
-				}
-				if(_words[1] == "BHIGH") {
-					if(_words[2] == "33") {
-						F2_SD_BHIGH[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55") {
-						F2_SD_BHIGH[CRST_F2_55][i][j][k][l] = _values[counts];
-					}
-				}
-				if(_words[1] == "RLOW") {
-					if(_words[2] == "33") {
-						F2_SD_RLOW[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55") {
-						F2_SD_RLOW[CRST_F2_55][i][j][k][l] = _values[counts];
-					}
-				}
-				if(_words[1] == "RHIGH") {
-					if(_words[2] == "33") {
-						F2_SD_RHIGH[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55") {
-						F2_SD_RHIGH[CRST_F2_55][i][j][k][l] = _values[counts];
-					}
-				}
-				if(_words[1] == "RCLOW") {
-					if(_words[2] == "33") {
-						F2_SD_RCLOW[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55") {
-						F2_SD_RCLOW[CRST_F2_55][i][j][k][l] = _values[counts];
-					}
-				}
-				if(_words[1] == "RCHIGH") {
-					if(_words[2] == "33") {
-						F2_SD_RCHIGH[CRST_F2_33][i][j][k][l] = _values[counts];
-					}
-					if(_words[2] == "55") {
-						F2_SD_RCHIGH[CRST_F2_55][i][j][k][l] = _values[counts];
-					}
-				}
-			}
-			
-			if(_words.size() == 8) {
-				i = Utils::encode_base(_words[4][0]);
-				j = Utils::encode_base(_words[5][0]);
-				k = Utils::encode_base(_words[6][0]);
-				l = Utils::encode_base(_words[7][0]);
-				if(_words[1] == "THETA1") {
-					if(_words[2] == "A") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_A[CRST_F4_THETA1_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_A[CRST_F4_THETA1_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "B") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_B[CRST_F4_THETA1_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_B[CRST_F4_THETA1_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "T0") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_T0[CRST_F4_THETA1_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_T0[CRST_F4_THETA1_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "TS") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_TS[CRST_F4_THETA1_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_TS[CRST_F4_THETA1_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "TC") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_TC[CRST_F4_THETA1_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_TC[CRST_F4_THETA1_55][i][j][k][l] = _values[counts];
-						}
-					}
-				
-				}
-				if(_words[1] == "THETA2") {
-					if(_words[2] == "A") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_A[CRST_F4_THETA2_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_A[CRST_F4_THETA2_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "B") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_B[CRST_F4_THETA2_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_B[CRST_F4_THETA2_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "T0") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_T0[CRST_F4_THETA2_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_T0[CRST_F4_THETA2_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "TS") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_TS[CRST_F4_THETA2_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_TS[CRST_F4_THETA2_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "TC") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_TC[CRST_F4_THETA2_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_TC[CRST_F4_THETA2_55][i][j][k][l] = _values[counts];
-						}
-					}
-				
-				}
-				if(_words[1] == "THETA7") {
-					if(_words[2] == "A") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_A[CRST_F4_THETA7_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_A[CRST_F4_THETA7_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "B") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_B[CRST_F4_THETA7_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_B[CRST_F4_THETA7_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "T0") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_T0[CRST_F4_THETA7_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_T0[CRST_F4_THETA7_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "TS") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_TS[CRST_F4_THETA7_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_TS[CRST_F4_THETA7_55][i][j][k][l] = _values[counts];
-						}
-					}
-					if(_words[2] == "TC") {
-						if(_words[3] == "33")  {
-							F4_SD_THETA_TC[CRST_F4_THETA7_33][i][j][k][l] = _values[counts];
-						}
-						if(_words[3] == "55")  {
-							F4_SD_THETA_TC[CRST_F4_THETA7_55][i][j][k][l] = _values[counts];
-						}
-					}
-				
-				}
-			}
-		}
-		counts++;
-	}
-}
-
 void DNA3Interaction::init() {
 	DNA2Interaction::init();
 
@@ -814,7 +363,7 @@ void DNA3Interaction::init() {
 						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCHIGH[HYDR_F1][k][i][j][l] = tmp_value;
 						
 						//update shift
-						F1_SD_SHIFT[HYDR_F1][i][j][k][l] = F1_EPS[HYDR_F1][i][j] * SQR(1 - exp(-(F1_SD_RC[HYDR_F1][i][j][k][l] - F1_SD_R0[HYDR_F1][i][j][k][l]) * F1_SD_A[HYDR_F1][i][j][k][l]));
+						F1_SD_SHIFT[HYDR_F1][i][j][k][l] = F1_EPS[HYDR_F1][j][k] * SQR(1 - exp(-(F1_SD_RC[HYDR_F1][i][j][k][l] - F1_SD_R0[HYDR_F1][i][j][k][l]) * F1_SD_A[HYDR_F1][i][j][k][l]));
 					
 						//STACKING
 					
@@ -838,7 +387,7 @@ void DNA3Interaction::init() {
 						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F1_SD_RCHIGH[STCK_F1][i][j][k][l] = tmp_value;
 						
 						//update shift
-						F1_SD_SHIFT[STCK_F1][i][j][k][l] = F1_EPS[STCK_F1][i][j] * SQR(1 - exp(-(F1_SD_RC[STCK_F1][i][j][k][l] - F1_SD_R0[STCK_F1][i][j][k][l]) * F1_SD_A[STCK_F1][i][j][k][l]));
+						F1_SD_SHIFT[STCK_F1][i][j][k][l] = F1_EPS[STCK_F1][j][k] * SQR(1 - exp(-(F1_SD_RC[STCK_F1][i][j][k][l] - F1_SD_R0[STCK_F1][i][j][k][l]) * F1_SD_A[STCK_F1][i][j][k][l]));
 						
 						//F4
 				
@@ -933,7 +482,97 @@ void DNA3Interaction::init() {
 						sprintf(key, "STCK_THETA5_TC_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
 						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[STCK_F4_THETA5][i][j][k][l] = tmp_value;
 						
+						//CROSS STACKING
 						
+						//this is pair type dependent
+						sprintf(key, "CRST_THETA4_A_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_33][k][i][j][l] = tmp_value;
+						sprintf(key, "CRST_THETA4_B_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_33][k][i][j][l] = tmp_value;
+						sprintf(key, "CRST_THETA4_T0_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_33][k][i][j][l] = tmp_value;
+						sprintf(key, "CRST_THETA4_TS_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_33][k][i][j][l] = tmp_value;
+						sprintf(key, "CRST_THETA4_TC_33_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_33][k][i][j][l] = tmp_value;
+						
+						sprintf(key, "CRST_THETA4_A_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA4_55][k][i][j][l] = tmp_value;
+						sprintf(key, "CRST_THETA4_B_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA4_55][k][i][j][l] = tmp_value;
+						sprintf(key, "CRST_THETA4_T0_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA4_55][k][i][j][l] = tmp_value;
+						sprintf(key, "CRST_THETA4_TS_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA4_55][k][i][j][l] = tmp_value;
+						sprintf(key, "CRST_THETA4_TC_55_%c_%c", Utils::encode_base(i), Utils::encode_base(j));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA4_55][k][i][j][l] = tmp_value;
+						
+						//tetramer dependent
+						sprintf(key, "CRST_THETA1_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA1_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA1_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA1_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA1_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_33][i][j][k][l] = tmp_value;
+					
+						sprintf(key, "CRST_THETA2_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA2_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA2_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA2_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA2_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_33][i][j][k][l] = tmp_value;
+						
+						sprintf(key, "CRST_THETA7_A_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA7_B_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA7_T0_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA7_TS_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA7_TC_33_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_33][i][j][k][l] = tmp_value;
+						
+						sprintf(key, "CRST_THETA1_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA1_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA1_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA1_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA1_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA1_55][i][j][k][l] = tmp_value;
+					
+						sprintf(key, "CRST_THETA2_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA2_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA2_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA2_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA2_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA2_55][i][j][k][l] = tmp_value;
+											
+						sprintf(key, "CRST_THETA7_A_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_A[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA7_B_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_B[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA7_T0_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_T0[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA7_TS_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TS[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
+						sprintf(key, "CRST_THETA7_TC_55_%c_%c_%c_%c", Utils::encode_base(i), Utils::encode_base(j), Utils::encode_base(k), Utils::encode_base(l));
+						if(getInputFloat(&seq_file, key, &tmp_value, 0) == KEY_FOUND) F4_SD_THETA_TC[CRST_F4_THETA7_55][i][j][k][l] = tmp_value;
 						
 						
 						//F2
@@ -1285,10 +924,10 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 
 	int type_n3_2;
 	if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-	else type_n3_2 = 2;
+	else type_n3_2 = 0;
 	int type_n5_2;
 	if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
-	else type_n5_2 = 2;
+	else type_n5_2 = 0;
 
 	LR_vector rback = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 	number rbackmod = rback.module();
@@ -1371,10 +1010,10 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
 	// functions and their derivatives needed for energies and forces
 	int type_n3_2;
 	if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-	else type_n3_2 = 2;
+	else type_n3_2 = 0;
 	int type_n5_2;
 	if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
-	else type_n5_2 = 2;
+	else type_n5_2 = 0;
 	number f1 = _f1_SD(rstackmod, STCK_F1, type_n3_2, q->type, p->type, type_n5_2);
 	number f4t4 = _custom_f4_SD(cost4, STCK_F4_THETA4, type_n3_2, q->type, p->type, type_n5_2);
 	number f4t5 = _custom_f4_SD(-cost5, STCK_F4_THETA5, type_n3_2, q->type, p->type, type_n5_2);
@@ -1714,15 +1353,15 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 	
 	int type_n3_2_33, type_n5_2_33;
 	if (q->n5 != P_VIRTUAL) type_n3_2_33 = q->n5->type;
-	else type_n3_2_33 = 2;
+	else type_n3_2_33 = 0;
 	if (p->n5 != P_VIRTUAL) type_n5_2_33 = p->n5->type;
-	else type_n5_2_33 = 2;
+	else type_n5_2_33 = 0;
 	
 	int type_n3_2_55, type_n5_2_55;
 	if (q->n3 != P_VIRTUAL) type_n3_2_55 = q->n3->type;
-	else type_n3_2_55 = 2;
+	else type_n3_2_55 = 0;
 	if (p->n3 != P_VIRTUAL) type_n5_2_55 = p->n3->type;
-	else type_n5_2_55 = 2;
+	else type_n5_2_55 = 0;
 	
 	
 	if( (cost7 > 0 && cost8 > 0 && F2_SD_RCLOW[CRST_F2_33][type_n3_2_33][q->type][p->type][type_n5_2_33] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_33][type_n3_2_33][q->type][p->type][type_n5_2_33]) || (cost7 < 0 && cost8 < 0 && F2_SD_RCLOW[CRST_F2_55][type_n3_2_55][q->type][p->type][type_n5_2_55] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_55][type_n3_2_55][q->type][p->type][type_n5_2_55]) ) {
@@ -2068,14 +1707,14 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) 
 
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 		
-		int type_n3_2 = 4; 
-		int type_n5_2 = 4;
+		int type_n3_2 = 0; 
+		int type_n5_2 = 0;
 		number mind;
 		number maxd;
 		if(p->n3 != P_VIRTUAL) {
 			BaseParticle *q = p->n3;
 			
-			if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;	
+			if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
 			if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;			
 			
 			mind = _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2] - _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
