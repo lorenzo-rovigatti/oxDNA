@@ -922,12 +922,12 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 		_computed_r = q->pos - p->pos;
 	}
 
-	int type_n3_2;
+	int type_n3_2 = 2;
+	int type_n5_2 = 2;
 	if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-	else type_n3_2 = 0;
-	int type_n5_2;
 	if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
-	else type_n5_2 = 0;
+	if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = p->n5->type;
+	if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = q->n3->type;	
 
 	LR_vector rback = _computed_r + q->int_centers[DNANucleotide::BACK] - p->int_centers[DNANucleotide::BACK];
 	number rbackmod = rback.module();
@@ -948,7 +948,7 @@ number DNA3Interaction::_backbone(BaseParticle *p, BaseParticle *q, bool compute
 		// we check whether we ended up OUTSIDE of the FENE range
 		if(fabs(rbackr0) > _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2] - DBL_EPSILON) {
 			if(update_forces && !_allow_broken_fene) {
-				throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf)", p->index, q->index, fabs(rbackr0));
+				throw oxDNAException("(DNAInteraction.cpp) During the simulation, the distance between bonded neighbors %d and %d exceeded acceptable values (d = %lf), %d, %d", p->index, q->index, fabs(rbackr0), fabs(rbackmod), fabs(_fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2]));
 			}
 			return (number) (1.e12);
 		}
@@ -1006,14 +1006,18 @@ number DNA3Interaction::_stacking(BaseParticle *p, BaseParticle *q, bool compute
 	number cost6 = -b3 * rstackdir;
 	number cosphi1 = a2 * rbackref / rbackrefmod;
 	number cosphi2 = b2 * rbackref / rbackrefmod;
+	
+
 
 	// functions and their derivatives needed for energies and forces
-	int type_n3_2;
+	int type_n3_2 = 2;
+	int type_n5_2 = 2;
+	
 	if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-	else type_n3_2 = 0;
-	int type_n5_2;
 	if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
-	else type_n5_2 = 0;
+	if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = p->n5->type;
+	if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = q->n3->type;
+	
 	number f1 = _f1_SD(rstackmod, STCK_F1, type_n3_2, q->type, p->type, type_n5_2);
 	number f4t4 = _custom_f4_SD(cost4, STCK_F4_THETA4, type_n3_2, q->type, p->type, type_n5_2);
 	number f4t5 = _custom_f4_SD(-cost5, STCK_F4_THETA5, type_n3_2, q->type, p->type, type_n5_2);
@@ -1351,18 +1355,22 @@ number DNA3Interaction::_cross_stacking(BaseParticle *p, BaseParticle *q, bool c
 	
 	*/
 	
-	int type_n3_2_33, type_n5_2_33;
+	
+	int type_n3_2_33 = 2;
+	int type_n5_2_33 = 2;
+	
 	if (q->n5 != P_VIRTUAL) type_n3_2_33 = q->n5->type;
-	else type_n3_2_33 = 0;
 	if (p->n5 != P_VIRTUAL) type_n5_2_33 = p->n5->type;
-	else type_n5_2_33 = 0;
+	if (q->n5 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2_33 = p->n5->type;
+	if (p->n5 == P_VIRTUAL && q->n5 != P_VIRTUAL) type_n5_2_33 = q->n5->type;
 	
-	int type_n3_2_55, type_n5_2_55;
+	int type_n3_2_55 = 2;
+	int type_n5_2_55 = 2;
+	
 	if (q->n3 != P_VIRTUAL) type_n3_2_55 = q->n3->type;
-	else type_n3_2_55 = 0;
 	if (p->n3 != P_VIRTUAL) type_n5_2_55 = p->n3->type;
-	else type_n5_2_55 = 0;
-	
+	if (q->n3 == P_VIRTUAL && p->n3 != P_VIRTUAL) type_n3_2_55 = p->n3->type;
+	if (p->n3 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2_55 = q->n3->type;
 	
 	if( (cost7 > 0 && cost8 > 0 && F2_SD_RCLOW[CRST_F2_33][type_n3_2_33][q->type][p->type][type_n5_2_33] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_33][type_n3_2_33][q->type][p->type][type_n5_2_33]) || (cost7 < 0 && cost8 < 0 && F2_SD_RCLOW[CRST_F2_55][type_n3_2_55][q->type][p->type][type_n5_2_55] < rcstackmod && rcstackmod < F2_SD_RCHIGH[CRST_F2_55][type_n3_2_55][q->type][p->type][type_n5_2_55]) ) {
 
@@ -1707,15 +1715,17 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) 
 
 		// check that the distance between bonded neighbor doesn't exceed a reasonable threshold
 		
-		int type_n3_2 = 0; 
-		int type_n5_2 = 0;
+		int type_n3_2 = 2; 
+		int type_n5_2 = 2;
 		number mind;
 		number maxd;
 		if(p->n3 != P_VIRTUAL) {
 			BaseParticle *q = p->n3;
 			
-			if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
-			if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;			
+				if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
+				if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+				if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = p->n5->type;
+				if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = q->n3->type;		
 			
 			mind = _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2] - _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
 			maxd = _fene_r0_SD[type_n3_2][q->type][p->type][type_n5_2] + _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
@@ -1726,11 +1736,16 @@ void DNA3Interaction::check_input_sanity(std::vector<BaseParticle*> &particles) 
 				throw oxDNAException("Distance between bonded neighbors %d and %d exceeds acceptable values (d = %lf)", i, p->n3->index, r);
 			}
 		}
+		
+		type_n3_2 = 2; 
+		type_n5_2 = 2;
 
 		if(p->n5 != P_VIRTUAL) {
 			BaseParticle *q = p->n5;
-			if (q->n5 != P_VIRTUAL) type_n5_2 = q->n5->type;				
-			if (p->n3 != P_VIRTUAL) type_n3_2 = p->n3->type;
+				if (q->n3 != P_VIRTUAL) type_n3_2 = q->n3->type;
+				if (p->n5 != P_VIRTUAL) type_n5_2 = p->n5->type;
+				if (q->n3 == P_VIRTUAL && p->n5 != P_VIRTUAL) type_n3_2 = p->n5->type;
+				if (p->n5 == P_VIRTUAL && q->n3 != P_VIRTUAL) type_n5_2 = q->n3->type;
 			
 			mind = _fene_r0_SD[type_n3_2][p->type][q->type][type_n5_2] - _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
 			maxd = _fene_r0_SD[type_n3_2][p->type][q->type][type_n5_2] + _fene_delta_SD[type_n3_2][q->type][p->type][type_n5_2];
