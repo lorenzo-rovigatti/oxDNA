@@ -31,7 +31,7 @@ def check(to_check:List[str]=["python", "numpy", "matplotlib", "sklearn", "oxpy"
         "numpy": "numpy.org", 
         "matplotlib": "matplotlib.org",
         "sklearn": "scikit-learn.org",
-        "oxpy": "https://github.com/lorenzo-rovigatti/oxDNA"
+        "oxpy": "https://lorenzo-rovigatti.github.io/oxDNA/install.html#cmake-options"
     }
 
     #get version of this package

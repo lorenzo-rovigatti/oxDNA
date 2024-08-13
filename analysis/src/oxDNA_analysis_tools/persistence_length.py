@@ -187,7 +187,7 @@ def main():
 
     logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
-    check(["python", "matplotlib", "numpy"])
+    check(["python", "matplotlib", "numpy", "oxpy"])
 
     traj = args.traj_file[0]
     inp_file = args.input[0]

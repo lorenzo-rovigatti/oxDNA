@@ -23,6 +23,9 @@ def main():
     inputfile = args.inputfile[0]
     conf_file = args.configuration[0]
 
+    from oxDNA_analysis_tools.config import check
+    check(["oxpy"])
+
     #-o names the output file
     if args.output:
         outfile = args.output[0]

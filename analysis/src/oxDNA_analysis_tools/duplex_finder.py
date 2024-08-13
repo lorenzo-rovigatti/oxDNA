@@ -176,7 +176,7 @@ def main():
 
     logger_settings.set_quiet(args.quiet)
     from oxDNA_analysis_tools.config import check
-    check(["python", "numpy"])
+    check(["python", "numpy", "oxpy"])
 
     #Process command line arguments:
     inputfile = args.input[0]
