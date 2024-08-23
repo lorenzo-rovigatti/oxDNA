@@ -50,7 +50,6 @@ public:
 	
 	virtual void init();
 	virtual void check_input_sanity(std::vector<BaseParticle *> &particles);
-	virtual void update_parameters(std::string names, std::string values);
 	
 	number F1_SD_A[2][5][5][5][5];
 	number F1_SD_RC[2][5][5][5][5];
