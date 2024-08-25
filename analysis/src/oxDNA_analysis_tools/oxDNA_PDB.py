@@ -418,7 +418,7 @@ def cli_parser(prog="oxDNA_PDB.py"):
                         help='The name of the output pdb file.  Defaults to name of the configuration+.pdb')
     parser.add_argument('-d', '--output_direction', type=str,
                         help='Direction to save nucleic acid strands in.  Should be "53" or "35".  Defaults to same as input direction.')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, 
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, 
                         help="Don't print 'INFO' messages to stderr")
     parser.add_argument('-H', '--hydrogen', action='store_true', default=True,
                         help='if you want to include hydrogen atoms in the output PDB file')

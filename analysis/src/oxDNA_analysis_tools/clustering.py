@@ -269,7 +269,7 @@ def cli_parser(prog="clustering.py"):
     parser.add_argument('serialized_data', type=str, nargs=1, help="The json-formatted input file")
     parser.add_argument('-e', '--eps', type=float, nargs=1, help="The epsilon parameter for DBSCAN (maximum distance to be considered a 'neighbor')")
     parser.add_argument('-m', '--min_samples', type=int, nargs=1, help="The min_samples parameter for DBSCAN (number of neighbors which define a point as a central point in a cluster)")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

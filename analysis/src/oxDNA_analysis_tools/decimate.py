@@ -59,11 +59,11 @@ def cli_parser(prog="decimate.py"):
     parser = argparse.ArgumentParser(prog = prog, description="Creates a smaller trajectory only including start/stop/stride frames from the input.")    
     parser.add_argument('traj', type=str, help="The trajectory file to decimate")
     parser.add_argument('outfile', type=str, help='The name of the new trajectory file to write out')
-    parser.add_argument('-p', dest='parallel', default=1, type=int, help="(optional) How many cores to use")
-    parser.add_argument('-s', dest='start', default=0, type=int, help='First conf to write to the output file.')
-    parser.add_argument('-e', dest='stop', default=None, type=int, help='Process up to this conf (exclusive).  Accepts negative indexes.')
-    parser.add_argument('-d', dest='stride', default=10, type=int, help='Write out every this many confs (default=10)')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-p', '--parallel', dest='parallel', default=1, type=int, help="(optional) How many cores to use")
+    parser.add_argument('-s', '--start', dest='start', default=0, type=int, help='First conf to write to the output file.')
+    parser.add_argument('-e', '--stop', dest='stop', default=None, type=int, help='Process up to this conf (exclusive).  Accepts negative indexes.')
+    parser.add_argument('-d', '--stride', dest='stride', default=10, type=int, help='Write out every this many confs (default=10)')
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

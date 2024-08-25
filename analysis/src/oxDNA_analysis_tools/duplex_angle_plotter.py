@@ -233,7 +233,7 @@ def cli_parser(prog="duplex_angle_plotter.py"):
     parser.add_argument('-f', '--format', metavar='<histogram/trajectory/both>', help='Output format for the graphs.  Defaults to histogram.  Options are \"histogram\", \"trajectory\", and \"both\"')
     parser.add_argument('-d', '--data', metavar='data_file', help='If set, the output for the graphs will be dropped as a json to this filename for loading in oxView or your own scripts')
     parser.add_argument('-n', '--names', metavar='names', nargs='+', help='Names of the data series.  Will default to particle ids if not provided')
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return(parser)
 
 def main():

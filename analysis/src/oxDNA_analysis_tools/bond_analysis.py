@@ -131,11 +131,11 @@ def cli_parser(prog="bond_analysis.py"):
     parser.add_argument('inputfile', type=str, help="The inputfile used to run the simulation")
     parser.add_argument('trajectory', type=str, help="The trajecotry file to compare against the designed pairs")
     parser.add_argument('designed_pairs', type=str, help="The file containing the desired nucleotides pairings in the format `a b`")
-    parser.add_argument('-o', metavar='output_file', type=str, dest='outfile', help="Name of the file to save the output oxView overlay to")
-    parser.add_argument('-t', metavar='trajectory_plot', type=str, dest='traj_plot', help='Name of the file to save the trajecotry plot to')
-    parser.add_argument('-d', metavar='data_file', type=str, dest='data_file', help="If set, save the data used to make the plot to a json file.")
-    parser.add_argument('-p', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-o', '--output',metavar='output_file', type=str, dest='outfile', help="Name of the file to save the output oxView overlay to")
+    parser.add_argument('-t', '--plot', metavar='trajectory_plot', type=str, dest='traj_plot', help='Name of the file to save the trajecotry plot to')
+    parser.add_argument('-d', '--data', metavar='data_file', type=str, dest='data_file', help="If set, save the data used to make the plot to a json file.")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', type=int, dest='parallel', help="(optional) How many cores to use")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():

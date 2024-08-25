@@ -174,10 +174,10 @@ def cli_parser(prog="pca.py"):
     parser.add_argument('trajectory', type=str, nargs=1, help='the trajectory file you wish to analyze')
     parser.add_argument('meanfile', type=str, nargs=1, help='The mean structure from oat mean')
     parser.add_argument('outfile', type=str, nargs=1, help='the name of the oxView .json overlay file where the PCs will be written')
-    parser.add_argument('-p', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")    
-    parser.add_argument('-c', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's position in PCA space?")
-    parser.add_argument('-n', metavar='num_components', nargs=1, type=int, dest='N', help="(optional) Print the first N components as oxView overlay files (defaults to 1)")
-    parser.add_argument('-q', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
+    parser.add_argument('-p', '--parallel', metavar='num_cpus', nargs=1, type=int, dest='parallel', help="(optional) How many cores to use")    
+    parser.add_argument('-c', '--cluster', metavar='cluster', dest='cluster', action='store_const', const=True, default=False, help="Run the clusterer on each configuration's position in PCA space?")
+    parser.add_argument('-n', '--view_comps', metavar='num_components', nargs=1, type=int, dest='N', help="(optional) Print the first N components as oxView overlay files (defaults to 1)")
+    parser.add_argument('-q', '--quiet', metavar='quiet', dest='quiet', action='store_const', const=True, default=False, help="Don't print 'INFO' messages to stderr")
     return parser
 
 def main():
