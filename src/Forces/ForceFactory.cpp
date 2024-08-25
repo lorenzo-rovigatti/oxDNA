@@ -26,6 +26,8 @@
 #include "LJCone.h"
 #include "RepulsiveEllipsoid.h"
 #include "YukawaSphere.h"
+#include "AttractionPlane.h"
+
 
 // metadynamics-related forces
 #include "Metadynamics/LT2DCOMTrap.h"
@@ -70,6 +72,7 @@ void ForceFactory::add_force(input_file &inp, std::vector<BaseParticle *> &parti
 	else if(type_str.compare("twist") == 0) extF = std::make_shared<ConstantRateTorque>();
 	else if(type_str.compare("trap") == 0) extF = std::make_shared<MovingTrap>();
 	else if(type_str.compare("repulsion_plane") == 0) extF = std::make_shared<RepulsionPlane>();
+	else if(type_str.compare("attraction_plane") == 0) extF = std::make_shared<AttractionPlane>();
 	else if(type_str.compare("repulsion_plane_moving") == 0) extF = std::make_shared<RepulsionPlaneMoving>();
 	else if(type_str.compare("mutual_trap") == 0) extF = std::make_shared<MutualTrap>();
 	else if(type_str.compare("lowdim_trap") == 0) extF = std::make_shared<LowdimMovingTrap>();
